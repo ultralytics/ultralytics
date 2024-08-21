@@ -427,6 +427,10 @@ class ClassificationDataset:
         self.root = self.base.root
 
         # Initialize attributes
+        self._init_attributes(args, augment, prefix)
+
+    def _init_attributes(self, args, augment, prefix):
+        # Initialize attributes
         if augment and args.fraction < 1.0:  # reduce training fraction
             self.samples = self.samples[: round(len(self.samples) * args.fraction)]
         self.prefix = colorstr(f"{prefix}: ") if prefix else ""

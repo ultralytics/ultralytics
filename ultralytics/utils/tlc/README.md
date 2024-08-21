@@ -2,7 +2,9 @@
 
 # 3LC Integration
 
-This document outlines how to use the 3LC integration available for YOLOv8 object detection.
+This document outlines how to use the 3LC integration available for YOLOv8 classification and object detection.
+
+For any questions or problems, please reach out on the [3LC Discord](https://discord.com/channels/1236027984150794290/1236118620002586655).
 
 ## About 3LC
 
@@ -19,142 +21,153 @@ The first step is to clone this fork, change directory into it and install the p
 git clone https://github.com/3lc-ai/ultralytics.git
 cd ultralytics
 python -m venv .venv
-source .venv/bin/activate # or .venv/Scripts/activate in Git Bash
+source .venv/bin/activate # or .venv/Scripts/activate in Git Bash / Windows
 pip install -e . # install the local ultralytics fork package
 pip install 3lc # install 3lc
+pip install pacmap # or umap-learn (only required for embeddings collection)
 ```
 
-In order to run training with the integration, instantiate `TLCYOLO` (instead of `YOLO`) and call the method `.train()` just like you are used to. The most simple example, which also shows how to specify 3LC settings, looks like this:
+In order to create a `tlc.Run` with the integration, instantiate `TLCYOLO` (instead of `YOLO`) and call the method `.train()` like usual:
+<details open>
+<summary>Code Example</summary>
+The following code example shows basic usage of the 3LC integration. The `Settings` object can be used to specify 3LC specific settings. For more details, see the
+section called 3LC Settings.
 
 ```python
-from ultralytics.utils.tlc.detect.model import TLCYOLO
-from ultralytics.utils.tlc.detect.settings import Settings
+from ultralytics.utils.tlc import Settings, TLCYOLO
 
 # Set 3LC specific settings
 settings = Settings(
     project_name="my_yolo_project",
     run_name="my_yolo_run",
     run_description="my_yolo_run_description",
-    image_embeddings_dim=2,
-    collection_epoch_start=0,
-    collection_epoch_interval=2,
-    conf_thres=0.2,
 )
 
 # Initialize and run training
-model = TLCYOLO("yolov8n.pt")
-model.train(data="coco128.yaml", settings=settings)
+model = TLCYOLO("yolov8n.pt") # Or e.g. "yolov8n-cls.pt" for classification
+model.train(data="coco128.yaml", settings=settings) # See the section 'Dataset Specification' for how to specify which data to use
 ```
+</details>
 
-In order to run metrics collection only (no training) in a single 3LC run, you can use `.val()`, where the same run is reused across calls:
+In the background, 3LC will create `tlc.Table`s and collect metrics with the trained model after training completes, which can be opened in the 3LC Dashboard.
 
+## Dataset specification
+
+![Banner image with tasks](https://raw.githubusercontent.com/ultralytics/assets/main/im/banner-tasks.png)
+
+A good starting point for using the integration is usually to use the dataset you are already using with YOLOv8. In this case, you can get started by setting `data=<path to your dataset>` like you are already doing. See the [Ultralytics Documentation](https://docs.ultralytics.com/datasets/) to learn more. 3LC parses these datasets and creates a table for each split, which can be viewed in the Dashboard. Once you make some new versions of your data in the 3LC Dashboard you can use the same command with `data=<path to your dataset>`, and the latest version will be used automatically.
+
+As an alternative, if you would like to train again with a specific version, or have your own `tlc.Table`s you would like to use, there are two ways to specify this:
+
+1. When calling `model.train()`, `model.val()` or `model.collect()`, provide a keyword argument `tables` which is a dictionary mapping split names to `tlc.Table` instances or `tlc.Url`s to tables. For example, for table instances it could look like this: `tables={"train": my_train_table, "val": my_val_table}`. When `tables` is provided, any value of `data` is ignored. In training the table for the key `"train"` is used for training, and `"val"` or `"test"`for validation (val takes precedence). 
+
+2. Use a so-called 3LC YAML file. To signal that you are providing a 3LC YAML file, add a `3LC://`-prefix to the path to the file. If, for example, you create a 3LC YAML file named `my_3lc_yaml_file.yaml`, pass it as `model.train(data="3LC://my_3lc_yaml_file.yaml")`. A 3LC YAML file should look something like the following:
+```yaml
+train: /path/to/train/table
+val: s3://path/to/val/table # The table is on s3
+```
+It is also possible to specify that the latest version of your dataset should be used by attaching `:latest` to the end of your path:
+```yaml
+train: /path/to/train/table:latest # Use the latest version of this data
+val: s3://path/to/val/table # The table is on s3
+```
+`names` and `nc` are not needed since the `tlc.Table`s themselves contain the category names and indices.
+
+There are some specific settings and options for the different tasks, check out the relevant dropdowns for this:
+<details>
+<summary>Classification</summary>
+For image classification, it is possible to provide `image_column_name` and `label_column_name` when calling `model.train()`, `model.val()` and `model.collect()` if you are providing your own table which has different column names to those expected by 3LC.
+</details>
+
+<details>
+<summary>Object Detection</summary>
+In addition to tables created with `Table.from_yolo()` (which is called internally when you provide a yolo dataset), it is also possible to use tables with the COCO format used in the 3LC Detectron2 integration. If you have created 3LC tables in the Detectron2 integration, you can also use this `tlc.Table` in this integration!
+</details>
+
+<details>
+<summary>Segmentation (not supported)</summary>
+The 3LC integration does not yet support the Segmentation task. Let us know on Discord if you would like us to add it.
+</details>
+
+<details>
+<summary>Pose Estimation (not supported)</summary>
+The 3LC integration does not yet support the Pose Estimation task. Let us know on Discord if you would like us to add it.
+</details>
+
+<details>
+<summary>OBB (oriented object detection) (not supported)</summary>
+The 3LC integration does not yet support the Oriented Object Detection task. Let us know on Discord if you would like us to add it.
+</details>
+
+## Metrics collection only
+
+It is possible to create runs where only metrics collection, and no training, is performed. This is useful when you already have a trained model and would like to collect metrics, or if you would like to collect metrics on a different dataset to the one you trained and validated on.
+
+Use the method `model.collect()` to perform metrics collection only. Either pass `data` (a path to a yaml file) and `splits` (an iterable of split names to collect metrics for), or a dictionary `tables` like detailed in the previous section, to define which data to collect metrics on. This will create a run, collect the metrics on each split by calling `model.val()` and finally reduce any embeddings that were collected. Any additional arguments, such as `imgsz` and `batch`, are forwarded as `model.val(**kwargs)`.
+
+The following code snippet shows how to collect metrics on the train and validation splits of the `coco128` dataset with `yolov8m.pt`:
 ```python
-from ultralytics.utils.tlc.detect.model import TLCYOLO
-from ultralytics.utils.tlc.detect.settings import Settings
+from ultralytics.utils.tlc import Settings, TLCYOLO
 
-model = TLCYOLO("yolov8n.pt")
+model = TLCYOLO("yolov8m.pt")
 
-# Set 3LC specific settings
 settings = Settings(
     image_embeddings_dim=2,
     conf_thres=0.2,
 )
 
-# Run metrics collection on 
-for split in ("train", "val"):
-    results = model.val(data="coco128.yaml", split=split, settings=settings)
+model.collect(
+    data="coco128.yaml",
+    splits=("train", "val"),
+    settings=settings,
+    batch=32,
+    imgsz=320
+)
 ```
-
-### First Time
-
-For your first run, 3LC creates `Table`s for your training and validation sets provided through the `data` kwarg, and collects metrics after the final epoch for every sample in your dataset. A new YAML file is written next to the one that was used, which can be used for later runs, more on that in [Later Runs](#later-runs).
-
-You can then open the 3LC Dashboard to view your run!
-
-### Later Runs
-
-For later runs, in order to specify that you would like to continue working with the same 3LC tables, there are two ways to proceed:
-
-#### Regular YAML file
-
-You can keep using the same YAML file pointed to by `data`. As long as this file does not change, the integration will resolve to the same 3LC tables and always get the latest revision for each split. The specific revisions used are logged to the console, and a line is printed stating that a 3LC YAML is printed with instructions on how to use it.
-
-The integration uses only the YAML file name to resolve to the relevant tables if they exist. Therefore, if any changes are made to the original YAML file name, this reference to the tables is lost (and new tables are instead created on your next run).
-
-#### 3LC YAML File
-
-For more flexibility and to explicitly select which tables to use, you should use a 3LC YAML file, like the one written during your first run.
-
-The file should simply contain keys for the relevant splits (`train` and `val` in most cases), with values set to the 3LC Urls of the corresponding tables. Once your 3LC YAML is populated with these it will look like the following example:
-
-```yaml
-train: my_train_table
-val: my_val_table
-```
-
-In order to use it, prepend a 3LC prefix `3LC://` to the path. If the 3LC YAML file is named `my_dataset.yaml`, you should provide `data="3LC://my_dataset.yaml` to `.train()` and `.val()`. After running your first run with the regular YAML file, a 3LC YAML is written next to it which you can use immediately (just remember to prepend the 3LC prefix).
-
-In order to train on different revisions, simply change the paths in the file to your desired revision.
-
-If you would like to train on the latest revisions, you can add `:latest` to one or both of the paths, and 3LC will find the `Table`s for the latest revision in the same lineage. For the above example, with latest on both, the 3LC YAML would look like this:
-
-```yaml
-train: my_train_table:latest
-val: my_val_table:latest
-```
-
-______________________________________________________________________
-
-**NOTE**: We recommend using a 3LC YAML to specify which revisions to use, as this enables using specific revisions of the dataset, and adding `:latest` in order to use the latest table in the lineage. It removes the dependency on the original YAML file to find the corresponding tables.
-
-______________________________________________________________________
-
-<details>
-<summary>3LC YAML Example</summary>
-<br>
-The following example highlights the behavior when using 3LC YAML files.
-
-Let's assume that you made a new revision in the 3LC Dashboard where you edited two bounding boxes. You would then have the following tables in your lineage:
-```
-my_train_table ---> Edited2BoundingBoxes (latest)
-my_val_table (latest)
-```
-
-If you were to reuse the original YAML file, `Edited2BoundingBoxes` would be the latest revision of your train set and `my_val_table` the latest val set. These would be used for your run.
-
-In order to train on a specific revision, in this case the original data, you can provide a 3LC YAML file `my_3lc_dataset.yaml` with `--data 3LC://my_3lc_dataset.yaml`, with the following content:
-
-```yaml
-train: my_train_table
-val: my_val_table
-```
-
-Specifying to use the latest revisions instead can be done by adding `:latest` to one or both of these `Url`s:
-
-```yaml
-train: my_train_table:latest # resolves to the latest revision of my_train_table, which is Edited1BoundingBoxes
-val: my_val_table:latest # resolves to the latest revision of my_val_table, which is my_val_table
-```
-
-</details>
 
 ## 3LC Settings
 
-The integration offers a rich set of settings and features which can be set through an instance of `Settings`. They allow specifying which metrics to collect, how often to collect them, and whether to use sampling weights during training.
+The integration offers a rich set of settings and features which can be set through an instance of `Settings`, which are in addition to the regular YOLOv8 settings. They allow specifying which metrics to collect, how often to collect them, and whether to use sampling weights during training.
 
-The available 3LC settings can be seen in the `Settings` class in [settings.py](detect/settings.py).
+The available 3LC settings can be seen in the `Settings` class in [settings.py](settings.py).
 
 Providing invalid values (or combinations of values) will either log an appropriate warning or raise an error, depending on the case.
 
 ### Image Embeddings
 
-Image embeddings can be collected by setting `image_embeddings_dim` to 2 or 3, and are based on the output of the spatial pooling function output from the YOLOv8 architectures. Similar images, as seen by the model, tend to be close to each other in this space. In the 3LC Dashboard these embeddings can be visualized, allowing you to find similar images, duplicates and imbalances in your dataset and determine if your validation set is representative of your training data (and vice-versa).
+Image embeddings can be collected by setting `image_embeddings_dim` to 2 or 3. Similar images, as seen by the model, tend to be close to each other in this space. In the 3LC Dashboard these embeddings can be visualized, allowing you to find similar images, duplicates and imbalances in your dataset, and take appropriate actions to mitigate these issues.
 
-Note that when collecting image embeddings for validation only runs, `reduce_all_embeddings()` must be called at the end to produce embeddings which can be visualized in the Dashboard.
+The way in which embeddings are collected is different for the different tasks. For more details, see the drop-downs:
+<details>
+<summary>Classification</summary>
+For classification, the integration scans your model for the first occurrence of a `torch.nn.Linear` layer. The inputs to this layer are used to extract image embeddings.
+</details>
+<details>
+<summary>Object Detection</summary>
+For object detection, the output of the spatial pooling function is used to extract embeddings.
+</details>
+
+You can change which `3lc`-supported reducer to use by setting `image_embeddings_dim`. `pacmap` is the default.
+
+### Run properties
+Use `project_name`, `run_name` and `run_description` to customize the `tlc.Run` that is created. Any tables created by the integration will be under the `project_name` provided here. If these settings are not set, appropriate defaults are used instead.
+
+### Sampling Weights
+Use `sampling_weights=True` to enable the usage of sampling weights. This resamples the data presented to the model according to the weight column in the `Table`. If a sample has weight 2.0, it is twice as likely to appear as a particular sample with weight 1.0. Any given sample can occur multiple times in one epoch. This setting only applies to training.
+
+### Exclude zero weight samples
+Use `exclude_zero_weight_training=True` (only applies to training) and `exclude_zero_weight_collection=True` to eliminate rows with weight 0.0. If your table has samples with weight 0.0, this will effectively reduce the size of the dataset (i.e. reduce the number of iterations per epoch).
+
+### Metrics collection settings
+Use `collection_val_only=True` to disable metrics collection on the training set. This only applies to training.
+
+Use `collection_disable=True` to disable metrics collection entirely. This only applies to training. A run will still be created, and hyperparameters and aggregate metrics will be logged to 3LC.
+
+Use `collection_epoch_start` and `collection_epoch_interval` to define when to collect metrics during training. The start epoch is 1-based, i.e. 1 means after the first epoch. As an example, `collection_epoch_start=1` with `collection_epoch_interval=2` means metrics collection will occur after the first epoch and then every other epoch after that.
 
 ## Other output
 
-When viewing all your YOLOv8 runs in the 3LC Dashboard, charts will show up with per-epoch validation metrics for each run. This allows you to follow your runs in real-time, and compare them with each other.
+When viewing all your YOLOv8 runs in the 3LC Dashboard, charts will show up with per-epoch aggregate metrics produced by YOLOv8 for each run. This allows you to follow your runs in real-time, and compare them with each other.
 
 # Frequently Asked Questions
 
@@ -170,8 +183,12 @@ Early stopping can be used just like before. Unless metrics collection is disabl
 
 ## Why is embeddings collection disabled by default?
 
-Embeddings collection has an extra dependency for the library used for reduction, and a performance implication (fitting and applying the reducer) at the end of your run. It is therefore disabled by default.
+Embeddings collection has an extra dependency for the library used for reduction, and a performance implication (fitting and applying the reducer) at the end of a run. It is therefore disabled by default.
 
 ## How do I collect embeddings for each bounding box?
 
 In order to collect embeddings (or other additional metrics) for each bounding box, refer to the [3LC Bounding Box Example Notebooks](https://docs.3lc.ai/3lc/latest/public-notebooks/add-bb-embeddings.html).
+
+## Can I use the YOLOv8 CLI commands in the integration to train and collect metrics?
+
+This is not supported yet, but will be added in a future commit!

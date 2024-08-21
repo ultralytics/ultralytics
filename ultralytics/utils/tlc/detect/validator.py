@@ -1,137 +1,49 @@
-# Ultralytics YOLO 🚀 3LC Integration, AGPL-3.0 license
+# Ultralytics YOLO 🚀, 3LC Integration, AGPL-3.0 license
 from __future__ import annotations
 
-import numpy as np
 import tlc
 import torch
-from tlc.client.torch.metrics.metrics_collectors.bounding_box_metrics_collector import _TLCPredictedBoundingBoxes
+import weakref
 
-import ultralytics
+from ultralytics.data import build_dataloader
 from ultralytics.models.yolo.detect import DetectionValidator
-from ultralytics.nn.tasks import DetectionModel
-from ultralytics.utils import LOGGER, metrics, ops
-from ultralytics.utils.tlc.constants import TRAINING_PHASE
-from ultralytics.utils.tlc.detect.dataset import build_tlc_dataset
-from ultralytics.utils.tlc.detect.nn import TLCDetectionModel
-from ultralytics.utils.tlc.detect.settings import Settings
-from ultralytics.utils.tlc.detect.utils import (
-    check_det_dataset,
-    construct_bbox_struct,
-    get_metrics_collection_epochs,
-    get_names_from_yolo_table,
-    infer_embeddings_size,
-    training_phase_schema,
-    yolo_image_embeddings_schema,
-    yolo_predicted_bounding_box_schema,
-)
+from ultralytics.utils import metrics, ops
+from ultralytics.utils.tlc.constants import IMAGE_COLUMN_NAME, DETECTION_LABEL_COLUMN_NAME
+from ultralytics.utils.tlc.detect.utils import build_tlc_yolo_dataset, yolo_predicted_bounding_box_schema, construct_bbox_struct, tlc_check_det_dataset
+from ultralytics.utils.tlc.engine.validator import TLCValidatorMixin
 
-# Patch the check_det_dataset function so 3LC parses the dataset
-ultralytics.engine.validator.check_det_dataset = check_det_dataset
+class TLCDetectionValidator(TLCValidatorMixin, DetectionValidator):
+    _default_image_column_name = IMAGE_COLUMN_NAME
+    _default_label_column_name = DETECTION_LABEL_COLUMN_NAME
 
+    def check_dataset(self, *args, **kwargs):
+        return tlc_check_det_dataset(*args, **kwargs)
 
-class TLCDetectionValidator(DetectionValidator):
-    """Validator class for YOLOv8 object detection with 3LC"""
+    def get_dataloader(self, dataset_path, batch_size):
+        """Builds and returns a data loader with given parameters."""
+        dataset = self.build_dataset(dataset_path, batch=batch_size, mode="val")
+        return build_dataloader(dataset, batch_size, self.args.workers, shuffle=False, rank=-1)
 
-    def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None, run=None):
-        LOGGER.info("Using 3LC Validator 🌟")
+    def build_dataset(self, table, mode="val", batch=None):
+        return build_tlc_yolo_dataset(self.args, table, batch, self.data, mode=mode, stride=self.stride, settings=self._settings)
 
-        self._settings = args.pop('settings', Settings())
-        self._run = run
-        self._seen = 0
-        self._final_validation = True
-        self._split = args.get('split', None)
-        self._embedding_size = None # Set the first time the model is seen
-
-        _callbacks['on_val_start'].append(verify_settings)
-        _callbacks['on_val_start'].append(set_up_metrics_writer)
-        super().__init__(dataloader, save_dir, pbar, args, _callbacks)
-
-        self.epoch = None
-
-    def __call__(self, trainer=None, model=None, final_validation=False):
-        self._trainer = trainer
-        self._final_validation = final_validation
-        if trainer:
-            self.epoch = trainer.epoch
-
-        if self._settings.image_embeddings_dim > 0 and isinstance(model, DetectionModel):
-            # Add TLCDetectionModel forward method to allow for embedding collection
-            model.__class__ = TLCDetectionModel
-
-        if self._embedding_size is None and self._settings.image_embeddings_dim > 0:
-            self._embedding_size = infer_embeddings_size(trainer.model if trainer else model)
-
-        output = super().__call__(trainer, model)
-        if self._run:
-            self._run.set_status_running()
-        
-        return output
-
-    def build_dataset(self, img_path, mode="val", batch=None):
-        """
-        Build 3LC detection Dataset.
-
-        Args:
-            img_path (str): Path to the folder containing images.
-            mode (str): `train` mode or `val` mode, users are able to customize different augmentations for each mode.
-            batch (int, optional): Size of batches, this is for `rect`. Defaults to None.
-        """
-        table = self.data[self._split]
-        return build_tlc_dataset(
-            self.args,
-            img_path,
-            batch,
-            self.data,
-            mode=mode,
-            stride=self.stride,
-            table=table,
-            use_sampling_weights=False,
-            exclude_zero_weights=self._settings.exclude_zero_weight_collection
-        )
-
-    def _collect_metrics(self, predictions: list[torch.Tensor]) -> None:
-        """Collects metrics for the current batch of predictions.
-
-        :param predictions: The batch of predictions.
-        """
-        batch_size = len(predictions)
-        example_indices = np.arange(self._seen, self._seen + batch_size)
-        example_ids = self.dataloader.dataset._example_ids[example_indices]
-
-        metrics = {
-            tlc.EXAMPLE_ID: example_ids,
-            tlc.PREDICTED_BOUNDING_BOXES: self._process_batch_predictions(predictions), 
+    def _get_metrics_schemas(self):
+        return {
+            tlc.PREDICTED_BOUNDING_BOXES: yolo_predicted_bounding_box_schema(self.data["names"]),
         }
-
-        if self.epoch is not None:
-            metrics[tlc.EPOCH] = [self.epoch] * batch_size
-            metrics[TRAINING_PHASE] = [1 if self._final_validation else 0] * batch_size
-
-        if self._settings.image_embeddings_dim > 0:
-            metrics["embeddings"] = TLCDetectionModel.activations.cpu()
-        self.metrics_writer.add_batch(metrics_batch=metrics)
-
-        self._seen += batch_size
-
-        if self._seen == len(self.dataloader.dataset):
-            self.metrics_writer.finalize()
-            metrics_infos = self.metrics_writer.get_written_metrics_infos()
-            self._run.update_metrics(metrics_infos)
-            self._seen = 0
-            if self.epoch:
-                self.epoch += 1
-
-    def _process_batch_predictions(self, batch_predictions: list[torch.Tensor]) -> list[_TLCPredictedBoundingBoxes]:
-        """Convert a batch of predictions to a list of 3LC bounding box dicts.
-
-        :param batch_predictions: The batch of predictions.
-        :return: A list of 3LC bounding box dicts.
-        """
+    
+    def _compute_3lc_metrics(self, preds, batch):
+        processed_predictions = self._process_detection_predictions(preds, batch)
+        return {
+            tlc.PREDICTED_BOUNDING_BOXES: processed_predictions,
+        }
+    
+    def _process_detection_predictions(self, preds, batch):
         predicted_boxes = []
-        for i, predictions in enumerate(batch_predictions):
-            ori_shape = self._curr_batch['ori_shape'][i]
-            resized_shape = self._curr_batch['resized_shape'][i]
-            ratio_pad = self._curr_batch['ratio_pad'][i]
+        for i, predictions in enumerate(preds):
+            ori_shape = batch['ori_shape'][i]
+            resized_shape = batch['resized_shape'][i]
+            ratio_pad = batch['ratio_pad'][i]
             height, width = ori_shape
 
             # Handle case with no predictions
@@ -153,7 +65,7 @@ class TLCDetectionValidator(DetectionValidator):
             pred_scaled = ops.scale_boxes(resized_shape, pred_box, ori_shape, ratio_pad)
 
             # Compute IoUs
-            pbatch = self._prepare_batch(i, self._curr_batch)
+            pbatch = self._prepare_batch(i, batch)
             if pbatch['bbox'].shape[0]:
                 ious = metrics.box_iou(pbatch['bbox'], pred_scaled)  # IoU evaluated in xyxy format
                 box_ious = ious.max(dim=0)[0].cpu().tolist()
@@ -182,88 +94,32 @@ class TLCDetectionValidator(DetectionValidator):
             ))
 
         return predicted_boxes
+    
+    def _add_embeddings_hook(self, model) -> int:
+        if hasattr(model.model, "model"):
+            model = model.model
 
-    def preprocess(self, batch):
-        self._curr_batch = super().preprocess(batch)
-        return self._curr_batch
+        # Find index of the SPPF layer
+        sppf_index = next((i for i, m in enumerate(model.model) if "SPPF" in m.type), -1)
 
-    def postprocess(self, preds):
-        postprocessed = super().postprocess(preds)
+        if sppf_index == -1:
+            raise ValueError("No SPPF layer found in model, cannot collect embeddings.")
+        
+        weak_self = weakref.ref(self) # Avoid circular reference (self <-> hook_fn)
+        def hook_fn(module, input, output):
+            # Store embeddings
+            self_ref = weak_self()
+            flattened_output = torch.nn.functional.adaptive_avg_pool2d(output, (1, 1)).squeeze(-1).squeeze(-1)
+            embeddings = flattened_output.detach().cpu().numpy()
+            self_ref.embeddings = embeddings
 
-        if self._should_collect_metrics():
-            self._collect_metrics(postprocessed)
+        # Add forward hook to collect embeddings
+        for i, module in enumerate(model.model):
+            if i == sppf_index:
+                self._hook_handles.append(module.register_forward_hook(hook_fn))
 
-        return postprocessed
-
-    def _should_collect_metrics(self) -> bool:
-        """Determines if metrics should be collected for the current batch.
-
-        :return: True if metrics should be collected, False otherwise.
-        """
-        if self.epoch is None:
-            return True
-        if self._final_validation and not self._settings.collection_disable:
-            return True
-        else:
-            return self._trainer and self.epoch < self._trainer.args.epochs and self.epoch in self._collection_epochs
-
-
-### CALLBACKS ############################################################################################################
-
-
-def verify_settings(validator: TLCDetectionValidator) -> None:
-    """Sets the settings for the validator, used as a callback.
-
-    :param validator: The validator object.
-    :raises AssertionError: If the validator is not an instance of TLCDetectionValidator.
-    """
-    assert isinstance(validator, TLCDetectionValidator), "validator must be an instance of TLCDetectionValidator."
-    if validator._trainer:
-        validator._settings = validator._trainer._settings
-    else:
-        validator._settings.verify(training=False)
-
-
-def set_up_metrics_writer(validator: TLCDetectionValidator) -> None:
-    """Sets up the metrics writer for the validator, used as a callback.
-
-    :param validator: The validator object.
-    :raises AssertionError: If the validator is not an instance of TLCDetectionValidator.
-    """
-    assert isinstance(validator, TLCDetectionValidator), "validator must be an instance of TLCDetectionValidator."
-
-    if validator._trainer:
-        validator._collection_epochs = get_metrics_collection_epochs(validator._settings.collection_epoch_start,
-                                                                     validator._trainer.args.epochs,
-                                                                     validator._settings.collection_epoch_interval,
-                                                                     validator._settings.collection_disable)
-        names = validator.dataloader.dataset.data['names']
-        dataset_url = validator.dataloader.dataset.table.url
-        dataset_name = validator.dataloader.dataset.table.dataset_name
-    else:
-        if validator._split is None:
-            raise ValueError("split must be provided when calling .val() directly.")
-        project_name = validator.data[validator._split].project_name
-        if not validator._run:
-            # Use existing ongoing run if available
-            validator._run = tlc.active_run() if tlc.active_run() else tlc.init(project_name=project_name)
-        dataset_url = validator.data[validator._split].url
-        dataset_name = validator.data[validator._split].dataset_name
-        names = get_names_from_yolo_table(validator.data[validator._split])
-
-    if validator._run is not None:
-        metrics_column_schemas = {
-            tlc.PREDICTED_BOUNDING_BOXES: yolo_predicted_bounding_box_schema(names), }
-        if validator._trainer:
-            metrics_column_schemas[TRAINING_PHASE] = training_phase_schema()
-        if validator._settings.image_embeddings_dim > 0:
-            metrics_column_schemas.update(yolo_image_embeddings_schema(activation_size=validator._embedding_size))
-
-        validator.metrics_writer = tlc.MetricsTableWriter(
-            run_url=validator._run.url,
-            foreign_table_url=dataset_url,
-            foreign_table_display_name=dataset_name,
-            column_schemas=metrics_column_schemas
-        )
-
-        validator._run.set_status_collecting()
+        activation_size = model.model[sppf_index]._modules['cv2']._modules['conv'].out_channels
+        return activation_size
+    
+    def _infer_batch_size(self, preds, batch) -> int:
+        return len(batch['im_file'])

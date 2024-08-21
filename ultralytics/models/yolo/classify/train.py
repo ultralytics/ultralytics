@@ -74,12 +74,12 @@ class ClassificationTrainer(BaseTrainer):
         """Creates a ClassificationDataset instance given an image path, and mode (train/test etc.)."""
         return ClassificationDataset(root=img_path, args=self.args, augment=mode == "train", prefix=mode)
 
-    def get_dataloader(self, dataset_path, batch_size=16, rank=0, mode="train"):
+    def get_dataloader(self, dataset_path, batch_size=16, rank=0, mode="train", shuffle=True):
         """Returns PyTorch DataLoader with transforms to preprocess images for inference."""
         with torch_distributed_zero_first(rank):  # init dataset *.cache only once if DDP
             dataset = self.build_dataset(dataset_path, mode)
 
-        loader = build_dataloader(dataset, batch_size, self.args.workers, rank=rank)
+        loader = build_dataloader(dataset, batch_size, self.args.workers, rank=rank, shuffle=shuffle)
         # Attach inference transforms
         if mode != "train":
             if is_parallel(self.model):

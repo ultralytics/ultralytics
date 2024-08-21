@@ -48,16 +48,13 @@ class Bboxes:
 
     def __init__(self, bboxes, format="xyxy") -> None:
         """Initializes the Bboxes class with bounding box data in a specified format."""
-        assert format in _formats, f"Invalid bounding box format: {format}, format must be one of {_formats}"
-        if bboxes.size == 0:
-            bboxes = np.empty((0, 4))
-        else:
-            bboxes = bboxes[None, :] if bboxes.ndim == 1 else bboxes
-            assert bboxes.ndim == 2
-            assert bboxes.shape[1] == 4
-            self.bboxes = bboxes
-            self.format = format
-            # self.normalized = normalized
+        assert format in _formats, f"Invalid bounding box format: {format}, format must be one of {_formats}"   
+        bboxes = bboxes[None, :] if bboxes.ndim == 1 else bboxes
+        assert bboxes.ndim == 2
+        assert bboxes.shape[1] == 4
+        self.bboxes = bboxes
+        self.format = format
+        # self.normalized = normalized
 
     def convert(self, format):
         """Converts bounding box format from one type to another."""

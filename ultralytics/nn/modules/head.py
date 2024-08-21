@@ -52,8 +52,6 @@ class Detect(nn.Module):
         """Concatenates and returns predicted bounding boxes and class probabilities."""
         if self.end2end:
             return self.forward_end2end(x)
-        elif self.export and self.format == "rknn":
-            return self.forward_rknn(x)
 
         for i in range(self.nl):
             x[i] = torch.cat((self.cv2[i](x[i]), self.cv3[i](x[i])), 1)
@@ -85,18 +83,6 @@ class Detect(nn.Module):
         y = self._inference(one2one)
         y = self.postprocess(y.permute(0, 2, 1), self.max_det, self.nc)
         return y if self.export else (y, {"one2many": x, "one2one": one2one})
-
-    def forward_rknn(self, x):
-        """Forward pass for RKNN export."""
-        # Adapted from https://github.com/airockchip/ultralytics_yolov8
-        y = []
-        for i in range(self.nl):
-            y.append(self.cv2[i](x[i]))
-            cls = torch.sigmoid(self.cv3[i](x[i]))
-            cls_sum = torch.clamp(cls.sum(1, keepdim=True), 0, 1)
-            y.append(cls)
-            y.append(cls_sum)
-        return y
 
     def _inference(self, x):
         """Decode predicted bounding boxes and class probabilities based on multiple-level feature maps."""
@@ -196,23 +182,9 @@ class Segment(Detect):
         bs = p.shape[0]  # batch size
 
         mc = torch.cat([self.cv4[i](x[i]).view(bs, self.nm, -1) for i in range(self.nl)], 2)  # mask coefficients
-        # if self.export and self.format == 'rknn': # TODO
-        #     mc = [self.cv4[i](x[i]) for i in range(self.nl)]
-        # else:
-        #     mc = torch.cat([self.cv4[i](x[i]).view(bs, self.nm, -1) for i in range(self.nl)], 2)  # mask coefficients
-
         x = Detect.forward(self, x)
         if self.training:
             return x, mc, p
-        # if self.export and self.format == 'rknn':  # TODO
-        #     bo = len(x) // 3
-        #     relocated = []
-        #     for i in range(len(mc)):
-        #         relocated.extend(x[i * bo : (i + 1) * bo])
-        #         relocated.extend([mc[i]])
-        #     relocated.extend([p])
-        #     return relocated
-        # Adapted from https://github.com/airockchip/ultralytics_yolov8
         return (torch.cat([x, mc], 1), p) if self.export else (torch.cat([x[0], mc], 1), (x[1], mc, p))
 
 

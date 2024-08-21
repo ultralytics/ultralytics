@@ -908,7 +908,7 @@ class Model(nn.Module):
         Examples:
             >>> model = YOLO('yolov8n.pt')
             >>> print(model.names)
-            [0: 'person', 1: 'bicycle', 2: 'car', ...]
+            {0: 'person', 1: 'bicycle', 2: 'car', ...}
         """
         from ultralytics.nn.autobackend import check_class_names
 

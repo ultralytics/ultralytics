@@ -1896,15 +1896,15 @@ class Albumentations:
                 labels["img"] = new["image"]
                 labels["cls"] = np.array(new["class_labels"])
                 bboxes = np.array(new["bboxes"], dtype=np.float32)
-                labels["instances"].update(bboxes=bboxes if bboxes.size != 0 else np.empty((0,4)))
+                labels["instances"].update(bboxes=bboxes if bboxes.size != 0 else np.empty((0, 4)))
         else:
             labels["img"] = self.transform(image=labels["img"])["image"]  # transformed
 
-        if labels['resized_shape'] != labels['img'].shape[:2]:
-            letter_box=LetterBox(new_shape=labels['resized_shape'])
-            result=letter_box(labels=labels)
-            labels['img']=result['img']
-            labels['instances']=result['instances']
+        if labels["resized_shape"] != labels["img"].shape[:2]:
+            letter_box = LetterBox(new_shape=labels["resized_shape"])
+            result = letter_box(labels=labels)
+            labels["img"] = result["img"]
+            labels["instances"] = result["instances"]
         return labels
 
 

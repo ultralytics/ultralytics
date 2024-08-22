@@ -118,12 +118,7 @@ class Detect(nn.Module):
             dbox = self.decode_bboxes(
                 self.dfl(box) * self.strides, self.anchors.unsqueeze(0) * self.strides, xywh=False
             )
-            y1 = dbox[:, 0, :]
-            x1 = dbox[:, 1, :]
-            y2 = dbox[:, 2, :]
-            x2 = dbox[:, 3, :]
-            y_bb = torch.stack((x1, y1, x2, y2), 1).transpose(1, 2)
-            return y_bb, cls.sigmoid().permute(0, 2, 1)
+            return dbox.transpose(1, 2), cls.sigmoid().permute(0, 2, 1)
         else:
             dbox = self.decode_bboxes(self.dfl(box), self.anchors.unsqueeze(0)) * self.strides
 

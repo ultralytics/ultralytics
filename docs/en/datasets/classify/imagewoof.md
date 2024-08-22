@@ -76,6 +76,13 @@ To use these variants in your training, simply replace 'imagewoof' in the datase
         model.train(data="imagewoof160", epochs=100, imgsz=224)
         ```
 
+    === "CLI"
+
+        ```bash
+        # Load a pretrained model and train on the small-sized dataset
+        yolo train model=yolov8n-cls.pt data=imagewoof320 epochs=100 imgsz=224
+        ```
+
 It's important to note that using smaller images will likely yield lower performance in terms of classification accuracy. However, it's an excellent way to iterate quickly in the early stages of model development and prototyping.
 
 ## Sample Images and Annotations

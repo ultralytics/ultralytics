@@ -777,6 +777,7 @@ class C4(C2f):
     def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5, nk=2):
         super().__init__(c1, c2, n, shortcut, g, e)
         self.m = nn.ModuleList(
+            # C2(self.c, self.c, n, shortcut, g)
             Bottleneck(self.c, self.c, shortcut, g) if c2 <= 256 and n == 1 else C2(self.c, self.c, nk, shortcut, g)
             for _ in range(n)
         )
@@ -1038,6 +1039,6 @@ class C3PSA(C3):
         c_ = int(c2 * e)  # hidden channels
         self.m = nn.Sequential(*(PSABlock(c_, attn_ratio=0.5, num_heads=c_ // 64) for _ in range(n)))
 
-    # def forward(self, x):
-    #     """Forward pass through the CSP bottleneck with 2 convolutions."""
-    #     return self.cv3(torch.cat((self.cv1(x), self.m(self.cv2(x))), 1))
+    def forward(self, x):
+        """Forward pass through the CSP bottleneck with 2 convolutions."""
+        return self.cv3(torch.cat((self.cv1(x), self.m(self.cv2(x))), 1))

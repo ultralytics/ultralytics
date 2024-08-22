@@ -155,7 +155,7 @@ class Model(nn.Module):
         directly with the required arguments.
 
         Args:
-            source (str | Path | int | Image.Image | np.ndarray | torch.Tensor | List | Tuple): The source of
+            source (str | Path | int | PIL.Image | np.ndarray | torch.Tensor | List | Tuple): The source of
                 the image(s) to make predictions on. Can be a file path, URL, PIL image, numpy array, PyTorch
                 tensor, or a list/tuple of these.
             stream (bool): If True, treat the input source as a continuous stream for predictions.
@@ -518,7 +518,7 @@ class Model(nn.Module):
         types of image sources and can operate in a streaming mode.
 
         Args:
-            source (str | Path | int | List[str] | List[Path] | List[int] | np.ndarray | torch.Tensor): The source
+            source (str | Path | int | PIL.Image | np.ndarray | torch.Tensor | List | Tuple): The source
                 of the image(s) to make predictions on. Accepts various types including file paths, URLs, PIL
                 images, numpy arrays, and torch tensors.
             stream (bool): If True, treats the input source as a continuous stream for predictions.

@@ -900,7 +900,7 @@ class Model(nn.Module):
         initialized, it sets it up before retrieving the names.
 
         Returns:
-            (List[str]): A list of class names associated with the model.
+            (Dict[int, str]): A dict of class names associated with the model.
 
         Raises:
             AttributeError: If the model or predictor does not have a 'names' attribute.
@@ -908,7 +908,7 @@ class Model(nn.Module):
         Examples:
             >>> model = YOLO('yolov8n.pt')
             >>> print(model.names)
-            ['person', 'bicycle', 'car', ...]
+            {0: 'person', 1: 'bicycle', 2: 'car', ...}
         """
         from ultralytics.nn.autobackend import check_class_names
 

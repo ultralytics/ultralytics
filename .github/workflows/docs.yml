@@ -1,0 +1,85 @@
+# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Test and publish docs to https://docs.ultralytics.com
+
+name: Publish Docs
+
+on:
+  push:
+    branches: [main]
+  pull_request_target:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  Docs:
+    if: github.repository == 'ultralytics/ultralytics'
+    runs-on: macos-14
+    steps:
+      - name: Git config
+        run: |
+          git config --global user.name "UltralyticsAssistant"
+          git config --global user.email "web@ultralytics.com"
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          ref: ${{ github.head_ref || github.ref }}
+          fetch-depth: 0
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+          cache: "pip" # caching pip dependencies
+      - name: Install Dependencies
+        run: pip install black tqdm mkdocs-material "mkdocstrings[python]" mkdocs-jupyter mkdocs-redirects mkdocs-ultralytics-plugin mkdocs-macros-plugin
+      - name: Update Docs Reference Section and Push Changes
+        if: github.event_name == 'pull_request_target'
+        run: |
+          python docs/build_reference.py
+          git pull origin ${{ github.head_ref || github.ref }}
+          git add .
+          git reset HEAD -- .github/workflows/  # workflow changes are not permitted with default token
+          if ! git diff --staged --quiet; then
+            git commit -m "Auto-update Ultralytics Docs Reference Section by https://ultralytics.com/actions"
+            git push
+          else
+            echo "No changes to commit"
+          fi
+      - name: Build Docs and Check for Warnings
+        run: |
+          export JUPYTER_PLATFORM_DIRS=1
+          python docs/build_docs.py
+      - name: Commit and Push Docs changes
+        continue-on-error: true
+        if: always() && github.event_name == 'pull_request_target'
+        run: |
+          git pull origin ${{ github.head_ref || github.ref }}
+          git add --update  # only add updated files
+          git reset HEAD -- .github/workflows/  # workflow changes are not permitted with default token
+          if ! git diff --staged --quiet; then
+            git commit -m "Auto-update Ultralytics Docs by https://ultralytics.com/actions"
+            git push
+          else
+            echo "No changes to commit"
+          fi
+      - name: Publish Docs to https://docs.ultralytics.com
+        if: github.event_name == 'push'
+        env:
+          PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          INDEXNOW_KEY: ${{ secrets.INDEXNOW_KEY_DOCS }}
+        run: |
+          git clone https://github.com/ultralytics/docs.git docs-repo
+          cd docs-repo
+          git checkout gh-pages || git checkout -b gh-pages
+          rm -rf *
+          cp -R ../site/* .
+          echo "$INDEXNOW_KEY" > "$INDEXNOW_KEY.txt"
+          git add .
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            LATEST_HASH=$(git rev-parse --short=7 HEAD)
+            git commit -m "Update Docs for 'ultralytics ${{ steps.check_pypi.outputs.version }} - $LATEST_HASH'"
+            git push https://$PERSONAL_ACCESS_TOKEN@github.com/ultralytics/docs.git gh-pages
+          fi

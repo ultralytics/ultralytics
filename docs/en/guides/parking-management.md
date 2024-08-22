@@ -10,6 +10,17 @@ keywords: parking management, YOLOv8, Ultralytics, vehicle detection, real-time 
 
 Parking management with [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics/) ensures efficient and safe parking by organizing spaces and monitoring availability. YOLOv8 can improve parking lot management through real-time vehicle detection, and insights into parking occupancy.
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/WwXnljc7ZUM"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to Implement Parking Management Using Ultralytics YOLOv8 🚀
+</p>
+
 ## Advantages of Parking Management System?
 
 - **Efficiency**: Parking lot management optimizes the use of parking spaces and reduces congestion.

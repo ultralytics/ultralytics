@@ -505,7 +505,7 @@ class Model(nn.Module):
 
     def predict(
         self,
-        source: Union[str, Path, int, list, tuple, np.ndarray, torch.Tensor] = None,
+        source: Union[str, Path, int, Image.Image, list, tuple, np.ndarray, torch.Tensor] = None,
         stream: bool = False,
         predictor=None,
         **kwargs,

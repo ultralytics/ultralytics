@@ -1,5 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-
+import shutil
 import threading
 import time
 from http import HTTPStatus
@@ -346,21 +346,19 @@ class HUBTrainingSession:
         """
         weights = Path(weights)
         if not weights.is_file():
-            if final:
-                last_weights = weights.with_name("last" + weights.suffix)
-                if last_weights.is_file():
-                    LOGGER.warning(
-                        f"{PREFIX} Model 'best.pt' not found, using 'last.pt' instead. "
-                        "This often happens when resuming training in transient environments like Google Colab. "
-                        "For more reliable training, consider using Ultralytics HUB Cloud. "
-                        "Learn more at https://docs.ultralytics.com/hub/cloud-training/."
-                    )
-                    weights = last_weights
-                else:
-                    LOGGER.warning(f"{PREFIX} WARNING ⚠️ Model upload issue. Missing model {weights}.")
-                    return
+            last = weights.with_name("last" + weights.suffix)
+            if final and last.is_file():
+                LOGGER.warning(
+                    f"{PREFIX} Model 'best.pt' not found, using 'last.pt' instead. "
+                    "This often happens when resuming training in transient environments like Google Colab. "
+                    "For more reliable training, consider using Ultralytics HUB Cloud. "
+                    "Learn more at https://docs.ultralytics.com/hub/cloud-training/."
+                )
+                shutil.copy(last, weights)  # copy last.pt to best.pt
+            else:
+                LOGGER.warning(f"{PREFIX} WARNING ⚠️ Model upload issue. Missing model {weights}.")
+                return
 
-        progress_total = weights.stat().st_size if final else None  # Only show progress if final
         self.request_queue(
             self.model.upload_model,
             epoch=epoch,
@@ -371,7 +369,7 @@ class HUBTrainingSession:
             retry=10,
             timeout=3600,
             thread=not final,
-            progress_total=progress_total,
+            progress_total=weights.stat().st_size if final else None,  # only show progress if final
             stream_response=True,
         )
 

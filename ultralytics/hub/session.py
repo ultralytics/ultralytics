@@ -344,23 +344,34 @@ class HUBTrainingSession:
             map (float): Mean average precision of the model.
             final (bool): Indicates if the model is the final model after training.
         """
-        if Path(weights).is_file():
-            progress_total = Path(weights).stat().st_size if final else None  # Only show progress if final
-            self.request_queue(
-                self.model.upload_model,
-                epoch=epoch,
-                weights=weights,
-                is_best=is_best,
-                map=map,
-                final=final,
-                retry=10,
-                timeout=3600,
-                thread=not final,
-                progress_total=progress_total,
-                stream_response=True,
-            )
-        else:
-            LOGGER.warning(f"{PREFIX}WARNING ⚠️ Model upload issue. Missing model {weights}.")
+        weights = Path(weights)
+        if not weights.is_file():
+            if final and weights.with_stem("last").is_file():
+                LOGGER.warning(
+                    f"{PREFIX} Model 'best.pt' not found, using 'last.pt' instead. "
+                    "This often happens when resuming training in transient environments like Google Colab. "
+                    "For more reliable training, consider using Ultralytics HUB Cloud. "
+                    "Learn more at https://docs.ultralytics.com/hub/cloud-training/."
+                )
+                weights = weights.with_stem("last")
+            else:
+                LOGGER.warning(f"{PREFIX}WARNING ⚠️ Model upload issue. Missing model {weights}.")
+                return
+
+        progress_total = weights.stat().st_size if final else None  # Only show progress if final
+        self.request_queue(
+            self.model.upload_model,
+            epoch=epoch,
+            weights=str(weights),
+            is_best=is_best,
+            map=map,
+            final=final,
+            retry=10,
+            timeout=3600,
+            thread=not final,
+            progress_total=progress_total,
+            stream_response=True,
+        )
 
     @staticmethod
     def _show_upload_progress(content_length: int, response: requests.Response) -> None:

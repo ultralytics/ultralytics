@@ -346,17 +346,19 @@ class HUBTrainingSession:
         """
         weights = Path(weights)
         if not weights.is_file():
-            if final and weights.with_stem("last").is_file():
-                LOGGER.warning(
-                    f"{PREFIX} Model 'best.pt' not found, using 'last.pt' instead. "
-                    "This often happens when resuming training in transient environments like Google Colab. "
-                    "For more reliable training, consider using Ultralytics HUB Cloud. "
-                    "Learn more at https://docs.ultralytics.com/hub/cloud-training/."
-                )
-                weights = weights.with_stem("last")
-            else:
-                LOGGER.warning(f"{PREFIX}WARNING ⚠️ Model upload issue. Missing model {weights}.")
-                return
+            if final:
+                last_weights = weights.with_name("last" + weights.suffix)
+                if last_weights.is_file():
+                    LOGGER.warning(
+                        f"{PREFIX} Model 'best.pt' not found, using 'last.pt' instead. "
+                        "This often happens when resuming training in transient environments like Google Colab. "
+                        "For more reliable training, consider using Ultralytics HUB Cloud. "
+                        "Learn more at https://docs.ultralytics.com/hub/cloud-training/."
+                    )
+                    weights = last_weights
+                else:
+                    LOGGER.warning(f"{PREFIX} WARNING ⚠️ Model upload issue. Missing model {weights}.")
+                    return
 
         progress_total = weights.stat().st_size if final else None  # Only show progress if final
         self.request_queue(

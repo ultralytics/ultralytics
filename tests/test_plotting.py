@@ -2,12 +2,13 @@ import matplotlib.pyplot as plt
 
 from ultralytics.utils import plt_settings
 
+
 def test_backend_reset():
-    @plt_settings(backend='Agg')
+    @plt_settings(backend="Agg")
     def raise_error():
         raise RuntimeError
 
-    backend = 'ps'
+    backend = "ps"
     plt.switch_backend(backend)
     try:
         raise_error()

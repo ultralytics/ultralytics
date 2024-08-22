@@ -219,7 +219,7 @@ def plt_settings(rcparams=None, backend="Agg"):
         def wrapper(*args, **kwargs):
             """Sets rc parameters and backend, calls the original function, and restores the settings."""
             original_backend = plt.get_backend()
-            backend_switch = (backend.lower() != original_backend.lower())
+            backend_switch = backend.lower() != original_backend.lower()
             if backend_switch:
                 plt.close("all")  # auto-close()ing of figures upon backend switching is deprecated since 3.8
                 plt.switch_backend(backend)

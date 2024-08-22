@@ -112,6 +112,7 @@ def export_formats():
         ["TensorFlow.js", "tfjs", "_web_model", True, False],
         ["PaddlePaddle", "paddle", "_paddle_model", True, True],
         ["NCNN", "ncnn", "_ncnn_model", True, True],
+        ["Sony MCT", "mct", "_mct_model", True, True],
     ]
     return pandas.DataFrame(x, columns=["Format", "Argument", "Suffix", "CPU", "GPU"])
 
@@ -183,15 +184,16 @@ class Exporter:
         flags = [x == fmt for x in fmts]
         if sum(flags) != 1:
             raise ValueError(f"Invalid export format='{fmt}'. Valid formats are {fmts}")
-        jit, onnx, xml, engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, paddle, ncnn = flags  # export booleans
+        jit, onnx, xml, engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, paddle, ncnn, mct = flags  # export booleans
         is_tf_format = any((saved_model, pb, tflite, edgetpu, tfjs))
-
+        if mct:
+            LOGGER.warning("WARNING ⚠️ Sony MCT only supports int8 export, setting int8=True.")
+            self.args.int8 = True
         # Device
         if fmt == "engine" and self.args.device is None:
             LOGGER.warning("WARNING ⚠️ TensorRT requires GPU export, automatically assigning device=0")
             self.args.device = "0"
         self.device = select_device("cpu" if self.args.device is None else self.args.device)
-
         # Checks
         if not hasattr(model, "names"):
             model.names = default_class_names()
@@ -251,6 +253,8 @@ class Exporter:
             elif isinstance(m, C2f) and not is_tf_format:
                 # EdgeTPU does not support FlexSplitV while split provides cleaner ONNX graph
                 m.forward = m.forward_split
+            if isinstance(m, C2f) and mct:
+                m.forward = m.forward_fx
 
         y = None
         for _ in range(2):
@@ -323,6 +327,8 @@ class Exporter:
             f[10], _ = self.export_paddle()
         if ncnn:  # NCNN
             f[11], _ = self.export_ncnn()
+        if mct:
+            f[12], _ = self.export_mct()
 
         # Finish
         f = [str(x) for x in f if x]  # filter out '' and None
@@ -1014,7 +1020,47 @@ class Exporter:
         #     j.write(subst)
         yaml_save(Path(f) / "metadata.yaml", self.metadata)  # add metadata.yaml
         return f, None
-
+    
+    @try_export
+    def export_mct(self, prefix=colorstr("Sony MCT:")):
+        import model_compression_toolkit as mct
+        
+        # pip install --upgrade -force-reinstall git+https://github.com/ambitious-octopus/model_optimization.git@get-output-fix
+        def representative_dataset_gen(dataloader=self.get_int8_calibration_dataloader(prefix)):
+            for batch in dataloader:
+                img = batch["img"]
+                img = img / 255.0
+                yield [img]
+        
+        tpc = mct.get_target_platform_capabilities(fw_name="pytorch",
+                                           target_platform_name='imx500',
+                                           target_platform_version='v1')
+        mp_config = mct.core.MixedPrecisionQuantizationConfig(num_of_images=5,
+                                                      use_hessian_based_scores=False)
+        config = mct.core.CoreConfig(mixed_precision_config=mp_config,
+                             quantization_config=mct.core.QuantizationConfig(shift_negative_activation_correction=True))
+        
+        resource_utilization_data = mct.core.pytorch_resource_utilization_data(in_model=self.model,
+                                                                       representative_data_gen=
+                                                                       representative_dataset_gen,
+                                                                       core_config=config,
+                                                                       target_platform_capabilities=tpc)
+        
+        resource_utilization = mct.core.ResourceUtilization(weights_memory=resource_utilization_data.weights_memory * 0.75)
+        
+        quant_model, _ = mct.ptq.pytorch_post_training_quantization(in_module=self.model,
+                                                            representative_data_gen=
+                                                            representative_dataset_gen,
+                                                            target_resource_utilization=resource_utilization,
+                                                            core_config=config,
+                                                            target_platform_capabilities=tpc)
+        
+        f = str(self.file).replace(self.file.suffix, "_mct_model.onnx")
+        mct.exporter.pytorch_export_model(model=quant_model,
+                                  save_model_path=f,
+                                  repr_dataset=representative_dataset_gen)
+        return f, None
+    
     def _add_tflite_metadata(self, file):
         """Add metadata to *.tflite models per https://www.tensorflow.org/lite/models/convert/metadata."""
         import flatbuffers

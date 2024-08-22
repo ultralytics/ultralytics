@@ -184,7 +184,9 @@ class Exporter:
         flags = [x == fmt for x in fmts]
         if sum(flags) != 1:
             raise ValueError(f"Invalid export format='{fmt}'. Valid formats are {fmts}")
-        jit, onnx, xml, engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, paddle, ncnn, mct = flags  # export booleans
+        jit, onnx, xml, engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, paddle, ncnn, mct = (
+            flags  # export booleans
+        )
         is_tf_format = any((saved_model, pb, tflite, edgetpu, tfjs))
         if mct:
             LOGGER.warning("WARNING ⚠️ Sony MCT only supports int8 export, setting int8=True.")
@@ -1020,21 +1022,24 @@ class Exporter:
         #     j.write(subst)
         yaml_save(Path(f) / "metadata.yaml", self.metadata)  # add metadata.yaml
         return f, None
-    
+
     @try_export
     def export_mct(self, prefix=colorstr("Sony MCT:")):
         # pip install --upgrade -force-reinstall git+https://github.com/ambitious-octopus/model_optimization.git@get-output-fix
         import model_compression_toolkit as mct
-        from torch import nn
+
         # pip install sony-custom-layers[torch]
         from sony_custom_layers.pytorch.object_detection.nms import multiclass_nms
-        
+        from torch import nn
+
         class PostProcessWrapper(nn.Module):
-            def __init__(self,
-                        model: nn.Module,
-                        score_threshold: float = 0.001,
-                        iou_threshold: float = 0.7,
-                        max_detections: int = 300):
+            def __init__(
+                self,
+                model: nn.Module,
+                score_threshold: float = 0.001,
+                iou_threshold: float = 0.7,
+                max_detections: int = 300,
+            ):
                 """
                 Wrapping PyTorch Module with multiclass_nms layer from sony_custom_layers.
 
@@ -1056,49 +1061,59 @@ class Exporter:
 
                 boxes = outputs[0]
                 scores = outputs[1]
-                nms = multiclass_nms(boxes=boxes, scores=scores, score_threshold=self.score_threshold,
-                                    iou_threshold=self.iou_threshold, max_detections=self.max_detections)
+                nms = multiclass_nms(
+                    boxes=boxes,
+                    scores=scores,
+                    score_threshold=self.score_threshold,
+                    iou_threshold=self.iou_threshold,
+                    max_detections=self.max_detections,
+                )
                 return nms
-            
+
         def representative_dataset_gen(dataloader=self.get_int8_calibration_dataloader(prefix)):
             for batch in dataloader:
                 img = batch["img"]
                 img = img / 255.0
                 yield [img]
-        
-        tpc = mct.get_target_platform_capabilities(fw_name="pytorch",
-                                           target_platform_name='imx500',
-                                           target_platform_version='v1')
-        mp_config = mct.core.MixedPrecisionQuantizationConfig(num_of_images=5,
-                                                      use_hessian_based_scores=False)
-        config = mct.core.CoreConfig(mixed_precision_config=mp_config,
-                             quantization_config=mct.core.QuantizationConfig(shift_negative_activation_correction=True))
-        
-        resource_utilization_data = mct.core.pytorch_resource_utilization_data(in_model=self.model,
-                                                                       representative_data_gen=
-                                                                       representative_dataset_gen,
-                                                                       core_config=config,
-                                                                       target_platform_capabilities=tpc)
-        
-        resource_utilization = mct.core.ResourceUtilization(weights_memory=resource_utilization_data.weights_memory * 0.75)
-        
-        quant_model, _ = mct.ptq.pytorch_post_training_quantization(in_module=self.model,
-                                                            representative_data_gen=
-                                                            representative_dataset_gen,
-                                                            target_resource_utilization=resource_utilization,
-                                                            core_config=config,
-                                                            target_platform_capabilities=tpc)
+
+        tpc = mct.get_target_platform_capabilities(
+            fw_name="pytorch", target_platform_name="imx500", target_platform_version="v1"
+        )
+        mp_config = mct.core.MixedPrecisionQuantizationConfig(num_of_images=5, use_hessian_based_scores=False)
+        config = mct.core.CoreConfig(
+            mixed_precision_config=mp_config,
+            quantization_config=mct.core.QuantizationConfig(shift_negative_activation_correction=True),
+        )
+
+        resource_utilization_data = mct.core.pytorch_resource_utilization_data(
+            in_model=self.model,
+            representative_data_gen=representative_dataset_gen,
+            core_config=config,
+            target_platform_capabilities=tpc,
+        )
+
+        resource_utilization = mct.core.ResourceUtilization(
+            weights_memory=resource_utilization_data.weights_memory * 0.75
+        )
+
+        quant_model, _ = mct.ptq.pytorch_post_training_quantization(
+            in_module=self.model,
+            representative_data_gen=representative_dataset_gen,
+            target_resource_utilization=resource_utilization,
+            core_config=config,
+            target_platform_capabilities=tpc,
+        )
 
         # Get working device
         device = mct.core.pytorch.pytorch_device_config.get_working_device()
         quant_model_pp = PostProcessWrapper(model=quant_model).to(device=device)
         f = str(self.file).replace(self.file.suffix, "_mct_model.onnx")
-        mct.exporter.pytorch_export_model(model=quant_model_pp,
-                                  save_model_path=f,
-                                  repr_dataset=representative_dataset_gen)
-        
+        mct.exporter.pytorch_export_model(
+            model=quant_model_pp, save_model_path=f, repr_dataset=representative_dataset_gen
+        )
+
         return f, None
-    
+
     def _add_tflite_metadata(self, file):
         """Add metadata to *.tflite models per https://www.tensorflow.org/lite/models/convert/metadata."""
         import flatbuffers

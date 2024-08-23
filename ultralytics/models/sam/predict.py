@@ -974,8 +974,6 @@ class SAM2VideoPredictor(SAM2Predictor):
             frame_idx,
             is_cond=is_cond,
             run_mem_encoder=False,
-            # consolidate_at_video_res=True,
-            consolidate_at_video_res=False,
         )
         pred_masks = consolidated_out["pred_masks"].flatten(0, 1)
         return pred_masks.flatten(0, 1), torch.ones(1, dtype=pred_masks.dtype, device=pred_masks.device)
@@ -1220,9 +1218,8 @@ class SAM2VideoPredictor(SAM2Predictor):
     def _consolidate_temp_output_across_obj(
         self,
         frame_idx,
-        is_cond,
-        run_mem_encoder,
-        consolidate_at_video_res=False,
+        is_cond=False,
+        run_mem_encoder=False,
     ):
         """Consolidate the per-object temporary outputs in `temp_output_dict_per_obj` on a frame into a single output
         for all objects, including 1) fill any missing objects either from `output_dict_per_obj` (if they exist in
@@ -1232,17 +1229,6 @@ class SAM2VideoPredictor(SAM2Predictor):
         """
         batch_size = len(self.inference_state["obj_idx_to_id"])
         storage_key = "cond_frame_outputs" if is_cond else "non_cond_frame_outputs"
-        # Optionally, we allow consolidating the temporary outputs at the original
-        # video resolution (to provide a better editing experience for mask prompts).
-        if consolidate_at_video_res:
-            assert not run_mem_encoder, "memory encoder cannot run at video resolution"
-            consolidated_H = self.inference_state["video_height"]
-            consolidated_W = self.inference_state["video_width"]
-            consolidated_mask_key = "pred_masks_video_res"
-        else:
-            consolidated_H = self.imgsz[0] // 4
-            consolidated_W = self.imgsz[1] // 4
-            consolidated_mask_key = "pred_masks"
 
         # Initialize `consolidated_out`. Its "maskmem_features" and "maskmem_pos_enc"
         # will be added when rerunning the memory encoder after applying non-overlapping
@@ -1251,8 +1237,8 @@ class SAM2VideoPredictor(SAM2Predictor):
         consolidated_out = {
             "maskmem_features": None,
             "maskmem_pos_enc": None,
-            consolidated_mask_key: torch.full(
-                size=(batch_size, 1, consolidated_H, consolidated_W),
+            "pred_masks": torch.full(
+                size=(batch_size, 1, self.imgsz[0] // 4, self.imgsz[1] // 4),
                 fill_value=-1024.0,
                 dtype=torch.float32,
                 device=self.device,
@@ -1292,18 +1278,9 @@ class SAM2VideoPredictor(SAM2Predictor):
                 continue
             # Add the temporary object output mask to consolidated output mask
             obj_mask = out["pred_masks"]
-            consolidated_pred_masks = consolidated_out[consolidated_mask_key]
-            if obj_mask.shape[-2:] == consolidated_pred_masks.shape[-2:]:
-                consolidated_pred_masks[obj_idx : obj_idx + 1] = obj_mask
-            else:
-                # Resize first if temporary object mask has a different resolution
-                resized_obj_mask = torch.nn.functional.interpolate(
-                    obj_mask,
-                    size=consolidated_pred_masks.shape[-2:],
-                    mode="bilinear",
-                    align_corners=False,
-                )
-                consolidated_pred_masks[obj_idx : obj_idx + 1] = resized_obj_mask
+            consolidated_pred_masks = consolidated_out["pred_masks"]
+            # if obj_mask.shape[-2:] == consolidated_pred_masks.shape[-2:]:
+            consolidated_pred_masks[obj_idx : obj_idx + 1] = obj_mask
             consolidated_out["obj_ptr"][obj_idx : obj_idx + 1] = out["obj_ptr"]
 
         # Optionally, apply non-overlapping constraints on the consolidated scores

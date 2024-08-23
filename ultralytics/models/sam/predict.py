@@ -1256,10 +1256,7 @@ class SAM2VideoPredictor(SAM2Predictor):
                     consolidated_out["obj_ptr"][obj_idx : obj_idx + 1] = self._get_empty_mask_ptr(frame_idx)
                 continue
             # Add the temporary object output mask to consolidated output mask
-            obj_mask = out["pred_masks"]
-            consolidated_pred_masks = consolidated_out["pred_masks"]
-            # if obj_mask.shape[-2:] == consolidated_pred_masks.shape[-2:]:
-            consolidated_pred_masks[obj_idx : obj_idx + 1] = obj_mask
+            consolidated_out["pred_masks"][obj_idx : obj_idx + 1] = out["pred_masks"]
             consolidated_out["obj_ptr"][obj_idx : obj_idx + 1] = out["obj_ptr"]
 
         # Optionally, apply non-overlapping constraints on the consolidated scores

@@ -831,10 +831,10 @@ class SAM2VideoPredictor(SAM2Predictor):
             points *= r
             # NOTE: use multiple points to locate one object
             # (N, 2) --> (1, N, 2), (N, ) --> (1, N)
-            points, labels = points[None], labels[None]
+            # points, labels = points[None], labels[None]
             # NOTE: treat points as independent ones
             # (N, 2) --> (N, 1, 2), (N, ) --> (N, 1)
-            # points, labels = points[:, None], labels[:, None]
+            points, labels = points[:, None], labels[:, None]
         if bboxes is not None:
             bboxes = torch.as_tensor(bboxes, dtype=torch.float32, device=self.device)
             bboxes = bboxes[None] if bboxes.ndim == 1 else bboxes
@@ -852,7 +852,8 @@ class SAM2VideoPredictor(SAM2Predictor):
 
         frame = self.seen  # NOTE: fix this
         if frame == 0:
-            self.add_new_points(obj_id=0, points=points, labels=labels)
+            for i in range(len(points)):
+                self.add_new_points(obj_id=i, points=points[[i]], labels=labels[[i]])
             self.inference_state["video_height"] = src_shape[0]
             self.inference_state["video_width"] = src_shape[1]
         self.propagate_in_video_preflight()
@@ -1096,7 +1097,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         for i, pos in enumerate(expanded_backbone_out["vision_pos_enc"]):
             pos = pos.expand(batch, -1, -1, -1)
             expanded_backbone_out["vision_pos_enc"][i] = pos
-        _, vis_feats, vis_pos_embed, feat_sizes = self.model._prepare_backbone_features(backbone_out)
+        _, vis_feats, vis_pos_embed, feat_sizes = self.model._prepare_backbone_features(expanded_backbone_out)
         return vis_feats, vis_pos_embed, feat_sizes
 
     def _obj_id_to_idx(self, obj_id):

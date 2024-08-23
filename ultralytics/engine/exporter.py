@@ -1111,6 +1111,20 @@ class Exporter:
         mct.exporter.pytorch_export_model(
             model=quant_model_pp, save_model_path=f, repr_dataset=representative_dataset_gen
         )
+        
+        n_gptq_epochs = 1000
+        gptq_config = mct.gptq.get_pytorch_gptq_config(n_epochs=n_gptq_epochs, use_hessian_based_weights=False)
+
+        # Perform Gradient-Based Post Training Quantization
+        gptq_quant_model, _ = mct.gptq.pytorch_gradient_post_training_quantization(
+            model=self.model,
+            representative_data_gen=representative_dataset_gen,
+            target_resource_utilization=resource_utilization,
+            gptq_config=gptq_config,
+            core_config=config,
+            target_platform_capabilities=tpc)
+
+        print('Quantized-GPTQ model is ready')
 
         return f, None
 

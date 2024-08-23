@@ -894,7 +894,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         # Create slices of per-object outputs for subsequent interaction with each
         # individual object after tracking.
         self._add_output_per_object(frame, current_out, storage_key)
-        self.inference_state["frames_already_tracked"][frame] = {"reverse": False}
+        self.inference_state["frames_already_tracked"].append(frame)
 
         return pred_masks.flatten(0, 1), torch.ones(1, dtype=pred_masks.dtype, device=pred_masks.device)
 
@@ -924,8 +924,6 @@ class SAM2VideoPredictor(SAM2Predictor):
         # using any memory from other frames, like in SAM. Otherwise (if it has been tracked),
         # the input points will be used to correct the already tracked masks.
         is_init_cond_frame = frame_idx not in self.inference_state["frames_already_tracked"]
-        # whether to track in reverse time order
-        reverse = False if is_init_cond_frame else self.inference_state["frames_already_tracked"][frame_idx]["reverse"]
         obj_output_dict = self.inference_state["output_dict_per_obj"][obj_idx]
         obj_temp_output_dict = self.inference_state["temp_output_dict_per_obj"][obj_idx]
         # Add a frame to conditioning output if it's an initial conditioning frame or
@@ -955,7 +953,7 @@ class SAM2VideoPredictor(SAM2Predictor):
             is_init_cond_frame=is_init_cond_frame,
             point_inputs=point_inputs,
             mask_inputs=None,
-            reverse=reverse,
+            reverse=False,
             # Skip the memory encoder when adding clicks or mask. We execute the memory encoder
             # at the beginning of `propagate_in_video` (after user finalize their clicks). This
             # allows us to enforce non-overlapping constraints on all objects before encoding
@@ -1077,7 +1075,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         }
         # metadata for each tracking frame (e.g. which direction it's tracked)
         inference_state["tracking_has_started"] = False
-        inference_state["frames_already_tracked"] = {}
+        inference_state["frames_already_tracked"] = []
         predictor.inference_state = inference_state
 
     def get_im_features(self, im, batch=1):

@@ -1262,8 +1262,8 @@ class SAM2VideoPredictor(SAM2Predictor):
         # Optionally, apply non-overlapping constraints on the consolidated scores
         # and rerun the memory encoder
         if run_mem_encoder:
-            high_res_masks = torch.nn.functional.interpolate(
-                consolidated_out["pred_masks"].to(self.device, non_blocking=True),
+            high_res_masks = F.interpolate(
+                consolidated_out["pred_masks"],
                 size=self.imgsz,
                 mode="bilinear",
                 align_corners=False,

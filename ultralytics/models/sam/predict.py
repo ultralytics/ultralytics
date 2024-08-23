@@ -861,14 +861,11 @@ class SAM2VideoPredictor(SAM2Predictor):
         batch_size = len(self.inference_state["obj_idx_to_id"])
         if len(output_dict["cond_frame_outputs"]) == 0:
             raise RuntimeError("No points are provided; please add points first")
-        clear_non_cond_mem = self.clear_non_cond_mem_around_input and (
-            self.clear_non_cond_mem_for_multi_obj or batch_size <= 1
-        )
 
         if frame in consolidated_frame_inds["cond_frame_outputs"]:
             storage_key = "cond_frame_outputs"
             current_out = output_dict[storage_key][frame]
-            if clear_non_cond_mem:
+            if self.clear_non_cond_mem_around_input and (self.clear_non_cond_mem_for_multi_obj or batch_size <= 1):
                 # clear non-conditioning memory of the surrounding frames
                 self._clear_non_cond_mem_around_input(frame)
         elif frame in consolidated_frame_inds["non_cond_frame_outputs"]:
@@ -985,7 +982,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         # temporary outputs have been added (either in this call or any previous calls
         # to `propagate_in_video_preflight`).
         consolidated_frame_inds = self.inference_state["consolidated_frame_inds"]
-        for is_cond in [False, True]:
+        for is_cond in {False, True}:
             # Separately consolidate conditioning and non-conditioning temp outptus
             storage_key = "cond_frame_outputs" if is_cond else "non_cond_frame_outputs"
             # Find all the frames that contain temporary outputs for any objects
@@ -1003,10 +1000,7 @@ class SAM2VideoPredictor(SAM2Predictor):
                 # merge them into "output_dict" and also create per-object slices
                 output_dict[storage_key][frame_idx] = consolidated_out
                 self._add_output_per_object(frame_idx, consolidated_out, storage_key)
-                clear_non_cond_mem = self.clear_non_cond_mem_around_input and (
-                    self.clear_non_cond_mem_for_multi_obj or batch_size <= 1
-                )
-                if clear_non_cond_mem:
+                if self.clear_non_cond_mem_around_input and (self.clear_non_cond_mem_for_multi_obj or batch_size <= 1):
                     # clear non-conditioning memory of the surrounding frames
                     self._clear_non_cond_mem_around_input(frame_idx)
 
@@ -1340,8 +1334,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         maskmem_pos_enc = current_out["maskmem_pos_enc"]
         assert maskmem_pos_enc is None or isinstance(maskmem_pos_enc, list)
 
-        output_dict_per_obj = self.inference_state["output_dict_per_obj"]
-        for obj_idx, obj_output_dict in output_dict_per_obj.items():
+        for obj_idx, obj_output_dict in self.inference_state["output_dict_per_obj"].items():
             obj_slice = slice(obj_idx, obj_idx + 1)
             obj_out = {
                 "maskmem_features": None,
@@ -1367,9 +1360,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         r = self.model.memory_temporal_stride_for_eval
         frame_idx_begin = frame_idx - r * self.model.num_maskmem
         frame_idx_end = frame_idx + r * self.model.num_maskmem
-        output_dict = self.inference_state["output_dict"]
-        non_cond_frame_outputs = output_dict["non_cond_frame_outputs"]
         for t in range(frame_idx_begin, frame_idx_end + 1):
-            non_cond_frame_outputs.pop(t, None)
+            self.inference_state["output_dict"]["non_cond_frame_outputs"].pop(t, None)
             for obj_output_dict in self.inference_state["output_dict_per_obj"].values():
                 obj_output_dict["non_cond_frame_outputs"].pop(t, None)

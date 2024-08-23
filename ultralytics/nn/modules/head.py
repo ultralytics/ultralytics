@@ -8,7 +8,6 @@ import torch
 import torch.nn as nn
 from torch.nn.init import constant_, xavier_uniform_
 
-from ultralytics.utils import MACOS
 from ultralytics.utils.tal import TORCH_1_10, dist2bbox, dist2rbox, make_anchors
 
 from .block import DFL, BNContrastiveHead, ContrastiveHead, Proto
@@ -159,7 +158,7 @@ class Detect(nn.Module):
         scores, index = torch.topk(scores.flatten(1), max_det, axis=-1)
         labels = index % nc
         index = index // nc
-        
+
         # Set int64 dtype for MPS and CoreML compatibility to avoid 'gather_along_axis' ops error
         index = index.to(torch.int64)
         boxes = boxes.gather(dim=1, index=index.unsqueeze(-1).repeat(1, 1, boxes.shape[-1]))

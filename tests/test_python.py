@@ -590,5 +590,6 @@ def test_yolov10():
 
 def test_mask_iou():
     from ultralytics.utils.metrics import mask_iou
+
     iou = mask_iou(torch.ones(1, 10000, dtype=torch.uint8), torch.ones(1, 10000, dtype=torch.uint8))
     assert iou[0, 0] == 1.0

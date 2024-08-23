@@ -1193,10 +1193,9 @@ class SAM2VideoPredictor(SAM2Predictor):
                 maskmem_pos_enc = model_constants["maskmem_pos_enc"]
             # expand the cached maskmem_pos_enc to the actual batch size
             batch_size = out_maskmem_pos_enc[0].size(0)
-            expanded_maskmem_pos_enc = [x.expand(batch_size, -1, -1, -1) for x in maskmem_pos_enc]
-        else:
-            expanded_maskmem_pos_enc = None
-        return expanded_maskmem_pos_enc
+            if batch_size > 1:
+                out_maskmem_pos_enc = [x.expand(batch_size, -1, -1, -1) for x in maskmem_pos_enc]
+        return out_maskmem_pos_enc
 
     def _consolidate_temp_output_across_obj(
         self,

@@ -992,8 +992,8 @@ class Boxes(BaseTensor):
         Convert bounding boxes from [x1, y1, x2, y2] format to [x, y, width, height] format.
 
         Returns:
-            (torch.Tensor | numpy.ndarray): Boxes in [x, y, width, height] format, where x, y are the coordinates of
-                the top-left corner of the bounding box, width, height are the dimensions of the bounding box and the
+            (torch.Tensor | numpy.ndarray): Boxes in [x_center, y_center, width, height] format, where x_center, y_center are the coordinates of
+                the center point of the bounding box, width, height are the dimensions of the bounding box and the
                 shape of the returned tensor is (N, 4), where N is the number of boxes.
 
         Examples:

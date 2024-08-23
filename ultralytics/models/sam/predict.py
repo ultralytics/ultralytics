@@ -1081,16 +1081,12 @@ class SAM2VideoPredictor(SAM2Predictor):
     def get_im_features(self, im, batch=1):
         """Extracts and processes image features using SAM2's image encoder for subsequent segmentation tasks."""
         backbone_out = self.model.forward_image(im)
-        expanded_backbone_out = {
-            "backbone_fpn": backbone_out["backbone_fpn"].copy(),
-            "vision_pos_enc": backbone_out["vision_pos_enc"].copy(),
-        }
-        for i, feat in enumerate(expanded_backbone_out["backbone_fpn"]):
-            expanded_backbone_out["backbone_fpn"][i] = feat.expand(batch, -1, -1, -1)
-        for i, pos in enumerate(expanded_backbone_out["vision_pos_enc"]):
+        for i, feat in enumerate(backbone_out["backbone_fpn"]):
+            backbone_out["backbone_fpn"][i] = feat.expand(batch, -1, -1, -1)
+        for i, pos in enumerate(backbone_out["vision_pos_enc"]):
             pos = pos.expand(batch, -1, -1, -1)
-            expanded_backbone_out["vision_pos_enc"][i] = pos
-        _, vis_feats, vis_pos_embed, feat_sizes = self.model._prepare_backbone_features(expanded_backbone_out)
+            backbone_out["vision_pos_enc"][i] = pos
+        _, vis_feats, vis_pos_embed, feat_sizes = self.model._prepare_backbone_features(backbone_out)
         return vis_feats, vis_pos_embed, feat_sizes
 
     def _obj_id_to_idx(self, obj_id):

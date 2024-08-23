@@ -591,7 +591,6 @@ class SAM2Model(torch.nn.Module):
 
     def _prepare_backbone_features(self, backbone_out):
         """Prepares and flattens visual features from the image backbone output for further processing."""
-        backbone_out = backbone_out.copy()
         assert len(backbone_out["backbone_fpn"]) == len(backbone_out["vision_pos_enc"])
         assert len(backbone_out["backbone_fpn"]) >= self.num_feature_levels
 

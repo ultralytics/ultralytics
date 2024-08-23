@@ -85,14 +85,15 @@ Note (2): Due to ONNX Runtime, we need to use CUDA 11 and cuDNN 8. Keep in mind 
    **Notice**:
 
    If you encounter an error indicating that the `ONNXRUNTIME_ROOT` variable is not set correctly, you can resolve this by building the project using the appropriate command tailored to your system.
-      ```console
-      # compiled in a win32 system
-      cmake -D WIN32=TRUE ..
-      # compiled in a linux system
-      cmake -D LINUX=TRUE ..
-      # compiled in an apple system
-      cmake -D APPLE=TRUE ..
-      ```
+
+   ```console
+   # compiled in a win32 system
+   cmake -D WIN32=TRUE ..
+   # compiled in a linux system
+   cmake -D LINUX=TRUE ..
+   # compiled in an apple system
+   cmake -D APPLE=TRUE ..
+   ```
 
 5. Build the project:
 

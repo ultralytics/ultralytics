@@ -910,7 +910,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         frame_idx=0,
     ):
         """Add new points to a frame."""
-        assert (masks is None) ^ (points is None), f"'masks' and 'points' prompts are not compatible with each other."
+        assert (masks is None) ^ (points is None), "'masks' and 'points' prompts are not compatible with each other."
         obj_idx = self._obj_id_to_idx(obj_id)
 
         # TODO

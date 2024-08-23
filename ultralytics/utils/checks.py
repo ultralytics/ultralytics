@@ -20,7 +20,6 @@ import requests
 import torch
 
 from ultralytics.utils import (
-    ENVIRONMENT,
     IS_GIT_DIR,
     ASSETS,
     AUTOINSTALL,
@@ -586,6 +585,7 @@ def collect_system_info():
     """Collect and print relevant system information including OS, Python, RAM, CPU, and CUDA."""
     import psutil
 
+    from ultralytics.utils import ENVIRONMENT  # scope to avoid circular import
     from ultralytics.utils.torch_utils import get_cpu_info
 
     ram_info = psutil.virtual_memory().total / (1024**3)  # Convert bytes to GB

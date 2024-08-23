@@ -816,7 +816,6 @@ class SAM2VideoPredictor(SAM2Predictor):
         bboxes = self.prompts.pop("bboxes", bboxes)
         points = self.prompts.pop("points", points)
         masks = self.prompts.pop("masks", masks)
-        assert masks is None, "Masks as prompts has not been supported yet."
 
         src_shape, dst_shape = self.batch[1][0].shape[:2], im.shape[2:]
         r = min(dst_shape[0] / src_shape[0], dst_shape[1] / src_shape[1])
@@ -848,13 +847,15 @@ class SAM2VideoPredictor(SAM2Predictor):
             else:
                 points, labels = bboxes, bbox_labels
         if masks is not None:
+            # TODO: resize the masks if needed
             masks = torch.as_tensor(masks, dtype=torch.float32, device=self.device).unsqueeze(1)
 
         frame = self.dataset.frame
         output_dict = self.inference_state["output_dict"]
         if len(output_dict["cond_frame_outputs"]) == 0:  # initialize points
+            # TODO
             for i in range(len(points)):
-                self.add_new_points(obj_id=i, points=points[[i]], labels=labels[[i]], frame_idx=frame)
+                self.add_new_prompts(obj_id=i, points=points[[i]], labels=labels[[i]], frame_idx=frame)
         self.propagate_in_video_preflight()
 
         consolidated_frame_inds = self.inference_state["consolidated_frame_inds"]
@@ -900,19 +901,27 @@ class SAM2VideoPredictor(SAM2Predictor):
         return results
 
     @smart_inference_mode()
-    def add_new_points(
+    def add_new_prompts(
         self,
         obj_id,
-        points,
-        labels,
+        points=None,
+        labels=None,
+        masks=None,
         frame_idx=0,
     ):
         """Add new points to a frame."""
+        assert (masks is None) ^ (points is None), f"'masks' and 'points' prompts are not compatible with each other."
         obj_idx = self._obj_id_to_idx(obj_id)
 
-        point_inputs = {"point_coords": points, "point_labels": labels}
-        self.inference_state["point_inputs_per_obj"][obj_idx][frame_idx] = point_inputs
-        self.inference_state["mask_inputs_per_obj"][obj_idx].pop(frame_idx, None)
+        # TODO
+        if points is not None:
+            point_inputs, mask_inputs = {"point_coords": points, "point_labels": labels}, None
+            self.inference_state["point_inputs_per_obj"][obj_idx][frame_idx] = point_inputs
+            self.inference_state["mask_inputs_per_obj"][obj_idx].pop(frame_idx, None)
+        else:
+            pred_masks, mask_inputs = None, masks
+            self.inference_state["mask_inputs_per_obj"][obj_idx][frame_idx] = mask_inputs
+            self.inference_state["point_inputs_per_obj"][obj_idx].pop(frame_idx, None)
         # If this frame hasn't been tracked before, we treat it as an initial conditioning
         # frame, meaning that the inputs points are to generate segments on this frame without
         # using any memory from other frames, like in SAM. Otherwise (if it has been tracked),
@@ -930,23 +939,24 @@ class SAM2VideoPredictor(SAM2Predictor):
         prev_sam_mask_logits = None
         # lookup temporary output dict first, which contains the most recent output
         # (if not found, then lookup conditioning and non-conditioning frame output)
-        prev_out = (
-            obj_temp_output_dict[storage_key].get(frame_idx)
-            or obj_output_dict["cond_frame_outputs"].get(frame_idx)
-            or obj_output_dict["non_cond_frame_outputs"].get(frame_idx)
-        )
+        if point_inputs is not None:
+            prev_out = (
+                obj_temp_output_dict[storage_key].get(frame_idx)
+                or obj_output_dict["cond_frame_outputs"].get(frame_idx)
+                or obj_output_dict["non_cond_frame_outputs"].get(frame_idx)
+            )
 
-        if prev_out is not None and prev_out.get("pred_masks") is not None:
-            prev_sam_mask_logits = prev_out["pred_masks"].to(device=self.device, non_blocking=True)
-            # Clamp the scale of prev_sam_mask_logits to avoid rare numerical issues.
-            prev_sam_mask_logits.clamp_(-32.0, 32.0)
+            if prev_out is not None and prev_out.get("pred_masks") is not None:
+                prev_sam_mask_logits = prev_out["pred_masks"].to(device=self.device, non_blocking=True)
+                # Clamp the scale of prev_sam_mask_logits to avoid rare numerical issues.
+                prev_sam_mask_logits.clamp_(-32.0, 32.0)
         current_out = self._run_single_frame_inference(
             output_dict=obj_output_dict,  # run on the slice of a single object
             frame_idx=frame_idx,
             batch_size=1,  # run on the slice of a single object
             is_init_cond_frame=is_init_cond_frame,
             point_inputs=point_inputs,
-            mask_inputs=None,
+            mask_inputs=mask_inputs,
             reverse=False,
             # Skip the memory encoder when adding clicks or mask. We execute the memory encoder
             # at the beginning of `propagate_in_video` (after user finalize their clicks). This

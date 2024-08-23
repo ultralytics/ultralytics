@@ -224,6 +224,7 @@ def plt_settings(rcparams=None, backend="Agg"):
                 plt.close("all")  # auto-close()ing of figures upon backend switching is deprecated since 3.8
                 plt.switch_backend(backend)
 
+            # Plot with backend and always revert to original backend
             try:
                 with plt.rc_context(rcparams):
                     result = func(*args, **kwargs)

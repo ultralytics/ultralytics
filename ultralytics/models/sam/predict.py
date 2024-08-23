@@ -858,6 +858,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         self.propagate_in_video_preflight()
 
         consolidated_frame_inds = self.inference_state["consolidated_frame_inds"]
+        batch_size = len(self.inference_state["obj_idx_to_id"])
         if len(output_dict["cond_frame_outputs"]) == 0:
             raise RuntimeError("No points are provided; please add points first")
 
@@ -875,7 +876,7 @@ class SAM2VideoPredictor(SAM2Predictor):
             current_out = self._run_single_frame_inference(
                 output_dict=output_dict,
                 frame_idx=frame,
-                batch_size=len(self.inference_state["obj_idx_to_id"]),
+                batch_size=batch_size,
                 is_init_cond_frame=False,
                 point_inputs=None,
                 mask_inputs=None,

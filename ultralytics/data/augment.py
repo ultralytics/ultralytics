@@ -1889,10 +1889,40 @@ class Albumentations:
             - Spatial transforms update bounding boxes, while non-spatial transforms only modify the image.
             - Requires the Albumentations library to be installed.
         """
-        print("WARNING: these agumentations are disabled because they do not support images with more than 3 channels")
-        disable = True
+        
+        disable = False
+        if disable:
+            #print("WARNING: these agumentations are disabled because they do not support images with more than 3 channels")
+            return labels
         if disable or self.transform is None or random.random() > self.p:
             return labels
+        #If we have an image with a number of channels other than 1 or 3, we will handle transformations differently
+        if len(labels["img"].shape) == 3 and labels["img"].shape[2] not in [1, 3]: #N-channel case
+            #If transform is ToGray, we'll apply it to the first three channels only, as if the other channels didnt exist.
+            if self.transform.transforms[0].__class__.__name__ == "ToGray":
+                labels["img"] = labels["img"][:,:,:3]
+                return self.__call__(labels)
+            #If transform is Blur, we'll apply the transform to the RGB portion first (first 3 channels), and then apply it to the other channels and concatenate
+            elif self.transform.transforms[0].__class__.__name__ == "Blur":
+                img = labels["img"]
+                img_list = []
+                aux_labels = labels.copy()
+                aux_labels["img"] = img[:,:,0:3]
+                aux_labels = self.__call__(aux_labels)
+                labels = aux_labels #assuming that for a multi-channel image, the other keys are the same for all channels
+                img_list.append(labels["img"])
+                for i in range(3, img.shape[2]):
+                    aux_labels["img"] = img[:,:,i]
+                    aux_labels = self.__call__(aux_labels)
+                    #Expand aux_labels to 3 dimensions
+                    aux_labels["img"] = np.expand_dims(aux_labels["img"], axis=2)
+                    img_list.append(aux_labels["img"])
+                labels["img"] = np.concatenate(img_list, axis=2)
+                return labels
+            else:
+                #Print transform name, along with warning that it won't be applied
+                print(f"WARNING: {self.transform.transforms[0].__class__.__name__} will not be applied to images with more than 3 channels")
+                return labels
 
         if self.contains_spatial:
             cls = labels["cls"]

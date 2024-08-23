@@ -936,16 +936,16 @@ class SAM2VideoPredictor(SAM2Predictor):
         prev_sam_mask_logits = None
         # lookup temporary output dict first, which contains the most recent output
         # (if not found, then lookup conditioning and non-conditioning frame output)
-        prev_out = obj_temp_output_dict[storage_key].get(frame_idx)
-        if prev_out is None:
-            prev_out = obj_output_dict["cond_frame_outputs"].get(frame_idx)
-            if prev_out is None:
-                prev_out = obj_output_dict["non_cond_frame_outputs"].get(frame_idx)
+        prev_out = (
+            obj_temp_output_dict[storage_key].get(frame_idx)
+            or obj_output_dict["cond_frame_outputs"].get(frame_idx)
+            or obj_output_dict["non_cond_frame_outputs"].get(frame_idx)
+        )
 
-        if prev_out is not None and prev_out["pred_masks"] is not None:
-            prev_sam_mask_logits = prev_out["pred_masks"].cuda(non_blocking=True)
+        if prev_out is not None and prev_out.get("pred_masks") is not None:
+            prev_sam_mask_logits = prev_out["pred_masks"].to(device=self.device, non_blocking=True)
             # Clamp the scale of prev_sam_mask_logits to avoid rare numerical issues.
-            prev_sam_mask_logits = torch.clamp(prev_sam_mask_logits, -32.0, 32.0)
+            prev_sam_mask_logits.clamp_(-32.0, 32.0)
         current_out, _ = self._run_single_frame_inference(
             output_dict=obj_output_dict,  # run on the slice of a single object
             frame_idx=frame_idx,

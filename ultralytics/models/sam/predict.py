@@ -1165,7 +1165,7 @@ class SAM2VideoPredictor(SAM2Predictor):
 
         maskmem_features = current_out["maskmem_features"]
         if maskmem_features is not None:
-            maskmem_features = maskmem_features.to(dtype=torch.bfloat16, device=self.device, non_blocking=True)
+            maskmem_features = maskmem_features.to(dtype=torch.float16, device=self.device, non_blocking=True)
         pred_masks_gpu = current_out["pred_masks"]
         # NOTE: Do not support the `fill_holes_in_mask_scores` function since it needs cuda extensions
         # potentially fill holes in the predicted masks
@@ -1343,7 +1343,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         )
 
         # optionally offload the output to CPU memory to save GPU space
-        maskmem_features = maskmem_features.to(dtype=torch.bfloat16, device=self.device, non_blocking=True)
+        maskmem_features = maskmem_features.to(dtype=torch.float16, device=self.device, non_blocking=True)
         # "maskmem_pos_enc" is the same across frames, so we only need to store one copy of it
         maskmem_pos_enc = self._get_maskmem_pos_enc({"maskmem_pos_enc": maskmem_pos_enc})
         return maskmem_features, maskmem_pos_enc

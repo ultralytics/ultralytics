@@ -81,9 +81,10 @@ Note (2): Due to ONNX Runtime, we need to use CUDA 11 and cuDNN 8. Keep in mind 
       ```console
       cmake ..
       ```
-   
+
       **Notice**:
       If you encounter an error indicating that the `ONNXRUNTIME_ROOT` variable is not set correctly, you can resolve this by building the project using the appropriate command tailored to your system.
+
       ```console
       # compiled in a win32 system
       cmake -D WIN32=TRUE ..
@@ -93,13 +94,13 @@ Note (2): Due to ONNX Runtime, we need to use CUDA 11 and cuDNN 8. Keep in mind 
       cmake -D APPLE=TRUE ..
       ```
 
-5. Build the project:
+4. Build the project:
 
    ```console
    make
    ```
 
-6. The built executable should now be located in the `build` directory.
+5. The built executable should now be located in the `build` directory.
 
 ## Usage 🚀
 

@@ -52,7 +52,7 @@ def check_tlc_dataset(
         LOGGER.info(f"{TLC_COLORSTR}Creating or reusing tables from data={data}")
 
         for key in ("train", "val", "test", "minival"):
-            if data_dict.get(key) is not None:
+            if data_dict.get(key):
                 name = Path(data).stem
                 dataset_name = f"{name}-{key}"
                 table_name = "initial"

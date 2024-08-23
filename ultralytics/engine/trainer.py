@@ -646,6 +646,9 @@ class BaseTrainer:
             if f.exists():
                 strip_optimizer(f)  # strip optimizers
                 if f is self.best:
+                    if self.last.is_file():  # update best.pt train_metrics from last.pt
+                        k = "train_metrics"
+                        torch.save({**torch.load(self.best), **{k: torch.load(self.last)[k]}}, self.best)
                     LOGGER.info(f"\nValidating {f}...")
                     self.validator.args.plots = self.args.plots
                     self.metrics = self.validator(model=f)

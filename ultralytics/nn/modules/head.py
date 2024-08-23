@@ -159,9 +159,9 @@ class Detect(nn.Module):
         scores, index = torch.topk(scores.flatten(1), max_det, axis=-1)
         labels = index % nc
         index = index // nc
+        
         # Set int64 dtype for MPS and CoreML compatibility to avoid 'gather_along_axis' ops error
-        if MACOS:
-            index = index.to(torch.int64)
+        index = index.to(torch.int64)
         boxes = boxes.gather(dim=1, index=index.unsqueeze(-1).repeat(1, 1, boxes.shape[-1]))
 
         return torch.cat([boxes, scores.unsqueeze(-1), labels.unsqueeze(-1).to(boxes.dtype)], dim=-1)

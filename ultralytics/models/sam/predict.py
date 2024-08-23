@@ -870,17 +870,15 @@ class SAM2VideoPredictor(SAM2Predictor):
         if frame in consolidated_frame_inds["cond_frame_outputs"]:
             storage_key = "cond_frame_outputs"
             current_out = output_dict[storage_key][frame]
-            pred_masks = current_out["pred_masks"]
             if clear_non_cond_mem:
                 # clear non-conditioning memory of the surrounding frames
                 self._clear_non_cond_mem_around_input(frame)
         elif frame in consolidated_frame_inds["non_cond_frame_outputs"]:
             storage_key = "non_cond_frame_outputs"
             current_out = output_dict[storage_key][frame]
-            pred_masks = current_out["pred_masks"]
         else:
             storage_key = "non_cond_frame_outputs"
-            current_out, pred_masks = self._run_single_frame_inference(
+            current_out = self._run_single_frame_inference(
                 output_dict=output_dict,
                 frame_idx=frame,
                 batch_size=batch_size,
@@ -895,6 +893,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         # individual object after tracking.
         self._add_output_per_object(frame, current_out, storage_key)
         self.inference_state["frames_already_tracked"].append(frame)
+        pred_masks = current_out["pred_masks"]
 
         return pred_masks.flatten(0, 1), torch.ones(1, dtype=pred_masks.dtype, device=pred_masks.device)
 
@@ -946,7 +945,7 @@ class SAM2VideoPredictor(SAM2Predictor):
             prev_sam_mask_logits = prev_out["pred_masks"].to(device=self.device, non_blocking=True)
             # Clamp the scale of prev_sam_mask_logits to avoid rare numerical issues.
             prev_sam_mask_logits.clamp_(-32.0, 32.0)
-        current_out, _ = self._run_single_frame_inference(
+        current_out = self._run_single_frame_inference(
             output_dict=obj_output_dict,  # run on the slice of a single object
             frame_idx=frame_idx,
             batch_size=1,  # run on the slice of a single object
@@ -1176,13 +1175,13 @@ class SAM2VideoPredictor(SAM2Predictor):
         # object pointer is a small tensor, so we always keep it on GPU memory for fast access
         obj_ptr = current_out["obj_ptr"]
         # make a compact version of this frame's output to reduce the state size
-        compact_current_out = {
+        current_out = {
             "maskmem_features": maskmem_features,
             "maskmem_pos_enc": maskmem_pos_enc,
             "pred_masks": pred_masks,
             "obj_ptr": obj_ptr,
         }
-        return compact_current_out, pred_masks
+        return current_out
 
     def _get_maskmem_pos_enc(self, current_out):
         """`maskmem_pos_enc` is the same across frames and objects, so we cache it as a constant in the inference

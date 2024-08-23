@@ -850,10 +850,10 @@ class SAM2VideoPredictor(SAM2Predictor):
         if masks is not None:
             masks = torch.as_tensor(masks, dtype=torch.float32, device=self.device).unsqueeze(1)
 
-        frame = self.seen  # NOTE: fix this
-        if frame == 0:
+        frame = self.dataset.frame
+        if len(self.inference_state["output_dict"]["cond_frame_outputs"]) == 0:  # initialize points
             for i in range(len(points)):
-                self.add_new_points(obj_id=i, points=points[[i]], labels=labels[[i]])
+                self.add_new_points(obj_id=i, points=points[[i]], labels=labels[[i]], frame_idx=frame)
             self.inference_state["video_height"] = src_shape[0]
             self.inference_state["video_width"] = src_shape[1]
         self.propagate_in_video_preflight()

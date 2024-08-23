@@ -1270,13 +1270,11 @@ class SAM2VideoPredictor(SAM2Predictor):
             )
             if self.model.non_overlap_masks_for_mem_enc:
                 high_res_masks = self.model._apply_non_overlapping_constraints(high_res_masks)
-            maskmem_features, maskmem_pos_enc = self._run_memory_encoder(
+            consolidated_out["maskmem_features"], consolidated_out["maskmem_pos_enc"] = self._run_memory_encoder(
                 batch_size=batch_size,
                 high_res_masks=high_res_masks,
                 is_mask_from_pts=True,  # these frames are what the user interacted with
             )
-            consolidated_out["maskmem_features"] = maskmem_features
-            consolidated_out["maskmem_pos_enc"] = maskmem_pos_enc
 
         return consolidated_out
 

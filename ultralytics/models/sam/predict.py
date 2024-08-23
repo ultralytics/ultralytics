@@ -1081,7 +1081,7 @@ class SAM2VideoPredictor(SAM2Predictor):
     def get_im_features(self, im, batch=1):
         """Extracts and processes image features using SAM2's image encoder for subsequent segmentation tasks."""
         backbone_out = self.model.forward_image(im)
-        if batch > 1:   # expand features if there's more than one prompt
+        if batch > 1:  # expand features if there's more than one prompt
             for i, feat in enumerate(backbone_out["backbone_fpn"]):
                 backbone_out["backbone_fpn"][i] = feat.expand(batch, -1, -1, -1)
             for i, pos in enumerate(backbone_out["vision_pos_enc"]):
@@ -1166,12 +1166,11 @@ class SAM2VideoPredictor(SAM2Predictor):
         maskmem_features = current_out["maskmem_features"]
         if maskmem_features is not None:
             maskmem_features = maskmem_features.to(dtype=torch.float16, device=self.device, non_blocking=True)
-        pred_masks_gpu = current_out["pred_masks"]
+        pred_masks = current_out["pred_masks"].to(self.device, non_blocking=True)
         # NOTE: Do not support the `fill_holes_in_mask_scores` function since it needs cuda extensions
         # potentially fill holes in the predicted masks
         # if self.fill_hole_area > 0:
-        #     pred_masks_gpu = fill_holes_in_mask_scores(pred_masks_gpu, self.fill_hole_area)
-        pred_masks = pred_masks_gpu.to(self.device, non_blocking=True)
+        #     pred_masks = fill_holes_in_mask_scores(pred_masks, self.fill_hole_area)
         # "maskmem_pos_enc" is the same across frames, so we only need to store one copy of it
         maskmem_pos_enc = self._get_maskmem_pos_enc(current_out)
         # object pointer is a small tensor, so we always keep it on GPU memory for fast access
@@ -1183,7 +1182,7 @@ class SAM2VideoPredictor(SAM2Predictor):
             "pred_masks": pred_masks,
             "obj_ptr": obj_ptr,
         }
-        return compact_current_out, pred_masks_gpu
+        return compact_current_out, pred_masks
 
     def _get_maskmem_pos_enc(self, current_out):
         """`maskmem_pos_enc` is the same across frames and objects, so we cache it as a constant in the inference

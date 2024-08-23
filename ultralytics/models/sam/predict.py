@@ -854,8 +854,6 @@ class SAM2VideoPredictor(SAM2Predictor):
         if len(self.inference_state["output_dict"]["cond_frame_outputs"]) == 0:  # initialize points
             for i in range(len(points)):
                 self.add_new_points(obj_id=i, points=points[[i]], labels=labels[[i]], frame_idx=frame)
-            self.inference_state["video_height"] = src_shape[0]
-            self.inference_state["video_width"] = src_shape[1]
         self.propagate_in_video_preflight()
 
         output_dict = self.inference_state["output_dict"]

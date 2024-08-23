@@ -1232,19 +1232,18 @@ class SAM2VideoPredictor(SAM2Predictor):
                 device=self.device,
             ),
         }
-        empty_mask_ptr = None
         for obj_idx in range(batch_size):
             obj_temp_output_dict = self.inference_state["temp_output_dict_per_obj"][obj_idx]
             obj_output_dict = self.inference_state["output_dict_per_obj"][obj_idx]
-            out = obj_temp_output_dict[storage_key].get(frame_idx, None)
-            # If the object doesn't appear in "temp_output_dict_per_obj" on this frame,
-            # we fall back and look up its previous output in "output_dict_per_obj".
-            # We look up both "cond_frame_outputs" and "non_cond_frame_outputs" in
-            # "output_dict_per_obj" to find a previous output for this object.
-            if out is None:
-                out = obj_output_dict["cond_frame_outputs"].get(frame_idx, None)
-            if out is None:
-                out = obj_output_dict["non_cond_frame_outputs"].get(frame_idx, None)
+            out = (
+                obj_temp_output_dict[storage_key].get(frame_idx)
+                # If the object doesn't appear in "temp_output_dict_per_obj" on this frame,
+                # we fall back and look up its previous output in "output_dict_per_obj".
+                # We look up both "cond_frame_outputs" and "non_cond_frame_outputs" in
+                # "output_dict_per_obj" to find a previous output for this object.
+                or obj_output_dict["cond_frame_outputs"].get(frame_idx)
+                or obj_output_dict["non_cond_frame_outputs"].get(frame_idx)
+            )
             # If the object doesn't appear in "output_dict_per_obj" either, we skip it
             # and leave its mask scores to the default scores (i.e. the NO_OBJ_SCORE
             # placeholder above) and set its object pointer to be a dummy pointer.
@@ -1253,10 +1252,8 @@ class SAM2VideoPredictor(SAM2Predictor):
                 # tracking outcomes on this frame (only do it under `run_mem_encoder=True`,
                 # i.e. when we need to build the memory for tracking).
                 if run_mem_encoder:
-                    if empty_mask_ptr is None:
-                        empty_mask_ptr = self._get_empty_mask_ptr(frame_idx)
                     # fill object pointer with a dummy pointer (based on an empty mask)
-                    consolidated_out["obj_ptr"][obj_idx : obj_idx + 1] = empty_mask_ptr
+                    consolidated_out["obj_ptr"][obj_idx : obj_idx + 1] = self._get_empty_mask_ptr(frame_idx)
                 continue
             # Add the temporary object output mask to consolidated output mask
             obj_mask = out["pred_masks"]

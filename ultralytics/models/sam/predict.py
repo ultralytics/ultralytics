@@ -851,14 +851,13 @@ class SAM2VideoPredictor(SAM2Predictor):
             masks = torch.as_tensor(masks, dtype=torch.float32, device=self.device).unsqueeze(1)
 
         frame = self.dataset.frame
-        if len(self.inference_state["output_dict"]["cond_frame_outputs"]) == 0:  # initialize points
+        output_dict = self.inference_state["output_dict"]
+        if len(output_dict["cond_frame_outputs"]) == 0:  # initialize points
             for i in range(len(points)):
                 self.add_new_points(obj_id=i, points=points[[i]], labels=labels[[i]], frame_idx=frame)
         self.propagate_in_video_preflight()
 
-        output_dict = self.inference_state["output_dict"]
         consolidated_frame_inds = self.inference_state["consolidated_frame_inds"]
-        batch_size = len(self.inference_state["obj_idx_to_id"])
         if len(output_dict["cond_frame_outputs"]) == 0:
             raise RuntimeError("No points are provided; please add points first")
 
@@ -876,7 +875,7 @@ class SAM2VideoPredictor(SAM2Predictor):
             current_out = self._run_single_frame_inference(
                 output_dict=output_dict,
                 frame_idx=frame,
-                batch_size=batch_size,
+                batch_size=len(self.inference_state["obj_idx_to_id"]),
                 is_init_cond_frame=False,
                 point_inputs=None,
                 mask_inputs=None,

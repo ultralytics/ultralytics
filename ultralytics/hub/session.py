@@ -276,7 +276,7 @@ class HUBTrainingSession:
 
             # if request related to metrics upload and exceed retries
             if response is None and kwargs.get("metrics"):
-                self.metrics_upload_failed_queue.update(kwargs.get("metrics", None))
+                self.metrics_upload_failed_queue.update(kwargs.get("metrics"))
 
             return response
 

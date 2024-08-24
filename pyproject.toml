@@ -181,8 +181,6 @@ convention = "google"
 wrap-summaries = 120
 wrap-descriptions = 120
 in-place = true
-pre-summary-newline = true
-close-quotes-on-newline = true
 
 [tool.codespell]
 ignore-words-list = "crate,nd,ned,strack,dota,ane,segway,fo,gool,winn,commend,bloc,nam,afterall"

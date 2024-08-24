@@ -252,7 +252,8 @@ class DETRLoss(nn.Module):
         return loss
 
     def forward(self, pred_bboxes, pred_scores, batch, postfix="", **kwargs):
-        """Calculate loss for predicted bounding boxes and scores.
+        """
+        Calculate loss for predicted bounding boxes and scores.
 
         Args:
             pred_bboxes (torch.Tensor): Predicted bounding boxes, shape [l, b, query, 4].

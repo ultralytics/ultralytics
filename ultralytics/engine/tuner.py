@@ -12,8 +12,8 @@ Example:
     ```python
     from ultralytics import YOLO
 
-    model = YOLO('yolov8n.pt')
-    model.tune(data='coco8.yaml', epochs=10, iterations=300, optimizer='AdamW', plots=False, save=False, val=False)
+    model = YOLO("yolov8n.pt")
+    model.tune(data="coco8.yaml", epochs=10, iterations=300, optimizer="AdamW", plots=False, save=False, val=False)
     ```
 """
 
@@ -54,15 +54,15 @@ class Tuner:
         ```python
         from ultralytics import YOLO
 
-        model = YOLO('yolov8n.pt')
-        model.tune(data='coco8.yaml', epochs=10, iterations=300, optimizer='AdamW', plots=False, save=False, val=False)
+        model = YOLO("yolov8n.pt")
+        model.tune(data="coco8.yaml", epochs=10, iterations=300, optimizer="AdamW", plots=False, save=False, val=False)
         ```
 
         Tune with custom search space.
         ```python
         from ultralytics import YOLO
 
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
         model.tune(space={key1: val1, key2: val2})  # custom search space dictionary
         ```
     """

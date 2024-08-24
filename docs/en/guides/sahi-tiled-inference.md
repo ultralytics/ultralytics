@@ -248,9 +248,9 @@ Learn more about the [benefits of sliced inference](#benefits-of-sliced-inferenc
 Yes, you can visualize prediction results when using YOLOv8 with SAHI. Here's how you can export and visualize the results:
 
 ```python
-result.export_visuals(export_dir="demo_data/")
 from IPython.display import Image
 
+result.export_visuals(export_dir="demo_data/")
 Image("demo_data/prediction_visual.png")
 ```
 

@@ -153,14 +153,18 @@ Each subset comprises images categorized into 10 classes, with their annotations
 
 If you use the CIFAR-10 dataset in your research or development projects, make sure to cite the following paper:
 
-```bibtex
-@TECHREPORT{Krizhevsky09learningmultiple,
-            author={Alex Krizhevsky},
-            title={Learning multiple layers of features from tiny images},
-            institution={},
-            year={2009}
-}
-```
+!!! Quote ""
+
+    === "BibTeX"
+
+        ```bibtex
+        @TECHREPORT{Krizhevsky09learningmultiple,
+                    author={Alex Krizhevsky},
+                    title={Learning multiple layers of features from tiny images},
+                    institution={},
+                    year={2009}
+        }
+        ```
 
 Acknowledging the dataset's creators helps support continued research and development in the field. For more details, see the [citations and acknowledgments](#citations-and-acknowledgments) section.
 

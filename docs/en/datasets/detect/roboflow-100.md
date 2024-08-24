@@ -203,7 +203,7 @@ The **Roboflow 100** dataset is accessible on [GitHub](https://github.com/robofl
 
 When using the Roboflow 100 dataset in your research, ensure to properly cite it. Here is the recommended citation:
 
-!!! Quote
+!!! Quote ""
 
     === "BibTeX"
 

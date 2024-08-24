@@ -92,8 +92,8 @@ class FastSAMPredictor(SegmentationPredictor):
                     if labels.sum() == 0  # all negative points
                     else torch.zeros(len(result), dtype=torch.bool, device=self.device)
                 )
-                for p, l in zip(points, labels):
-                    point_idx[torch.nonzero(masks[:, p[1], p[0]], as_tuple=True)[0]] = True if l else False
+                for point, label in zip(points, labels):
+                    point_idx[torch.nonzero(masks[:, point[1], point[0]], as_tuple=True)[0]] = True if label else False
                 idx |= point_idx
             if texts is not None:
                 if isinstance(texts, str):

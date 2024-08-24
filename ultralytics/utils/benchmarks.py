@@ -71,7 +71,7 @@ def benchmark(
         ```python
         from ultralytics.utils.benchmarks import benchmark
 
-        benchmark(model='yolov8n.pt', imgsz=640)
+        benchmark(model="yolov8n.pt", imgsz=640)
         ```
     """
     import pandas as pd  # scope for faster 'import ultralytics'
@@ -302,7 +302,7 @@ class ProfileModels:
         ```python
         from ultralytics.utils.benchmarks import ProfileModels
 
-        ProfileModels(['yolov8n.yaml', 'yolov8s.yaml'], imgsz=640).profile()
+        ProfileModels(["yolov8n.yaml", "yolov8s.yaml"], imgsz=640).profile()
         ```
     """
 

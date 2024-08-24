@@ -716,7 +716,7 @@ class BasicLayer(nn.Module):
 
         Examples:
             >>> layer = BasicLayer(dim=96, input_resolution=(56, 56), depth=2, num_heads=3, window_size=7)
-            >>> x = torch.randn(1, 56*56, 96)
+            >>> x = torch.randn(1, 56 * 56, 96)
             >>> output = layer(x)
             >>> print(output.shape)
         """

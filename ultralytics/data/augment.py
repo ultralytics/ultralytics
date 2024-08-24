@@ -24,7 +24,8 @@ DEFAULT_CROP_FRACTION = 1.0
 
 
 class BaseTransform:
-    """Base class for image transformations in the Ultralytics library.
+    """
+    Base class for image transformations in the Ultralytics library.
 
     This class serves as a foundation for implementing various image processing operations, designed to be
     compatible with both classification and semantic segmentation tasks.
@@ -42,7 +43,8 @@ class BaseTransform:
     """
 
     def __init__(self) -> None:
-        """Initializes the BaseTransform object.
+        """
+        Initializes the BaseTransform object.
 
         This constructor sets up the base transformation object, which can be extended for specific image
         processing tasks. It is designed to be compatible with both classification and semantic segmentation.
@@ -53,7 +55,8 @@ class BaseTransform:
         pass
 
     def apply_image(self, labels):
-        """Applies image transformations to labels.
+        """
+        Applies image transformations to labels.
 
         This method is intended to be overridden by subclasses to implement specific image transformation
         logic. In its base form, it returns the input labels unchanged.
@@ -75,7 +78,8 @@ class BaseTransform:
         pass
 
     def apply_instances(self, labels):
-        """Applies transformations to object instances in labels.
+        """
+        Applies transformations to object instances in labels.
 
         This method is responsible for applying various transformations to object instances within the given
         labels. It is designed to be overridden by subclasses to implement specific instance transformation
@@ -95,7 +99,8 @@ class BaseTransform:
         pass
 
     def apply_semantic(self, labels):
-        """Applies semantic segmentation transformations to an image.
+        """
+        Applies semantic segmentation transformations to an image.
 
         This method is intended to be overridden by subclasses to implement specific semantic segmentation
         transformations. In its base form, it does not perform any operations.
@@ -114,7 +119,8 @@ class BaseTransform:
         pass
 
     def __call__(self, labels):
-        """Applies all label transformations to an image, instances, and semantic masks.
+        """
+        Applies all label transformations to an image, instances, and semantic masks.
 
         This method orchestrates the application of various transformations defined in the BaseTransform class
         to the input labels. It sequentially calls the apply_image and apply_instances methods to process the
@@ -138,7 +144,8 @@ class BaseTransform:
 
 
 class Compose:
-    """A class for composing multiple image transformations.
+    """
+    A class for composing multiple image transformations.
 
     Attributes:
         transforms (List[Callable]): A list of transformation functions to be applied sequentially.
@@ -160,7 +167,8 @@ class Compose:
     """
 
     def __init__(self, transforms):
-        """Initializes the Compose object with a list of transforms.
+        """
+        Initializes the Compose object with a list of transforms.
 
         Args:
             transforms (List[Callable]): A list of callable transform objects to be applied sequentially.
@@ -173,7 +181,8 @@ class Compose:
         self.transforms = transforms if isinstance(transforms, list) else [transforms]
 
     def __call__(self, data):
-        """Applies a series of transformations to input data. This method sequentially applies each transformation in the
+        """
+        Applies a series of transformations to input data. This method sequentially applies each transformation in the
         Compose object's list of transforms to the input data.
 
         Args:
@@ -193,7 +202,8 @@ class Compose:
         return data
 
     def append(self, transform):
-        """Appends a new transform to the existing list of transforms.
+        """
+        Appends a new transform to the existing list of transforms.
 
         Args:
             transform (BaseTransform): The transformation to be added to the composition.
@@ -205,7 +215,8 @@ class Compose:
         self.transforms.append(transform)
 
     def insert(self, index, transform):
-        """Inserts a new transform at a specified index in the existing list of transforms.
+        """
+        Inserts a new transform at a specified index in the existing list of transforms.
 
         Args:
             index (int): The index at which to insert the new transform.
@@ -220,7 +231,8 @@ class Compose:
         self.transforms.insert(index, transform)
 
     def __getitem__(self, index: Union[list, int]) -> "Compose":
-        """Retrieves a specific transform or a set of transforms using indexing.
+        """
+        Retrieves a specific transform or a set of transforms using indexing.
 
         Args:
             index (int | List[int]): Index or list of indices of the transforms to retrieve.
@@ -242,7 +254,8 @@ class Compose:
         return Compose([self.transforms[i] for i in index])
 
     def __setitem__(self, index: Union[list, int], value: Union[list, int]) -> None:
-        """Sets one or more transforms in the composition using indexing.
+        """
+        Sets one or more transforms in the composition using indexing.
 
         Args:
             index (int | List[int]): Index or list of indices to set transforms at.
@@ -268,7 +281,8 @@ class Compose:
             self.transforms[i] = v
 
     def tolist(self):
-        """Converts the list of transforms to a standard Python list.
+        """
+        Converts the list of transforms to a standard Python list.
 
         Returns:
             (List): A list containing all the transform objects in the Compose instance.
@@ -283,7 +297,8 @@ class Compose:
         return self.transforms
 
     def __repr__(self):
-        """Returns a string representation of the Compose object.
+        """
+        Returns a string representation of the Compose object.
 
         Returns:
             (str): A string representation of the Compose object, including the list of transforms.
@@ -301,7 +316,8 @@ class Compose:
 
 
 class BaseMixTransform:
-    """Base class for mix transformations like MixUp and Mosaic.
+    """
+    Base class for mix transformations like MixUp and Mosaic.
 
     This class provides a foundation for implementing mix transformations on datasets. It handles the
     probability-based application of transforms and manages the mixing of multiple images and labels.
@@ -331,7 +347,8 @@ class BaseMixTransform:
     """
 
     def __init__(self, dataset, pre_transform=None, p=0.0) -> None:
-        """Initializes the BaseMixTransform object for mix transformations like MixUp and Mosaic.
+        """
+        Initializes the BaseMixTransform object for mix transformations like MixUp and Mosaic.
 
         This class serves as a base for implementing mix transformations in image processing pipelines.
 
@@ -350,7 +367,8 @@ class BaseMixTransform:
         self.p = p
 
     def __call__(self, labels):
-        """Applies pre-processing transforms and mixup/mosaic transforms to labels data.
+        """
+        Applies pre-processing transforms and mixup/mosaic transforms to labels data.
 
         This method determines whether to apply the mix transform based on a probability factor. If applied, it
         selects additional images, applies pre-transforms if specified, and then performs the mix transform.
@@ -389,7 +407,8 @@ class BaseMixTransform:
         return labels
 
     def _mix_transform(self, labels):
-        """Applies MixUp or Mosaic augmentation to the label dictionary.
+        """
+        Applies MixUp or Mosaic augmentation to the label dictionary.
 
         This method should be implemented by subclasses to perform specific mix transformations like MixUp or
         Mosaic. It modifies the input label dictionary in-place with the augmented data.
@@ -409,7 +428,8 @@ class BaseMixTransform:
         raise NotImplementedError
 
     def get_indexes(self):
-        """Gets a list of shuffled indexes for mosaic augmentation.
+        """
+        Gets a list of shuffled indexes for mosaic augmentation.
 
         Returns:
             (List[int]): A list of shuffled indexes from the dataset.
@@ -422,7 +442,8 @@ class BaseMixTransform:
         raise NotImplementedError
 
     def _update_label_text(self, labels):
-        """Updates label text and class IDs for mixed labels in image augmentation.
+        """
+        Updates label text and class IDs for mixed labels in image augmentation.
 
         This method processes the 'texts' and 'cls' fields of the input labels dictionary and any mixed labels,
         creating a unified set of text labels and updating class IDs accordingly.
@@ -466,7 +487,8 @@ class BaseMixTransform:
 
 
 class Mosaic(BaseMixTransform):
-    """Mosaic augmentation for image datasets.
+    """
+    Mosaic augmentation for image datasets.
 
     This class performs mosaic augmentation by combining multiple (4 or 9) images into a single mosaic image.
     The augmentation is applied to a dataset with a given probability.
@@ -495,7 +517,8 @@ class Mosaic(BaseMixTransform):
     """
 
     def __init__(self, dataset, imgsz=640, p=1.0, n=4):
-        """Initializes the Mosaic augmentation object.
+        """
+        Initializes the Mosaic augmentation object.
 
         This class performs mosaic augmentation by combining multiple (4 or 9) images into a single mosaic image.
         The augmentation is applied to a dataset with a given probability.
@@ -519,7 +542,8 @@ class Mosaic(BaseMixTransform):
         self.n = n
 
     def get_indexes(self, buffer=True):
-        """Returns a list of random indexes from the dataset for mosaic augmentation.
+        """
+        Returns a list of random indexes from the dataset for mosaic augmentation.
 
         This method selects random image indexes either from a buffer or from the entire dataset, depending on
         the 'buffer' parameter. It is used to choose images for creating mosaic augmentations.
@@ -543,7 +567,8 @@ class Mosaic(BaseMixTransform):
             return [random.randint(0, len(self.dataset) - 1) for _ in range(self.n - 1)]
 
     def _mix_transform(self, labels):
-        """Applies mosaic augmentation to the input image and labels.
+        """
+        Applies mosaic augmentation to the input image and labels.
 
         This method combines multiple images (3, 4, or 9) into a single mosaic image based on the 'n' attribute.
         It ensures that rectangular annotations are not present and that there are other images available for
@@ -571,7 +596,8 @@ class Mosaic(BaseMixTransform):
         )  # This code is modified for mosaic3 method.
 
     def _mosaic3(self, labels):
-        """Creates a 1x3 image mosaic by combining three images.
+        """
+        Creates a 1x3 image mosaic by combining three images.
 
         This method arranges three images in a horizontal layout, with the main image in the center and two
         additional images on either side. It's part of the Mosaic augmentation technique used in object detection.
@@ -629,7 +655,8 @@ class Mosaic(BaseMixTransform):
         return final_labels
 
     def _mosaic4(self, labels):
-        """Creates a 2x2 image mosaic from four input images.
+        """
+        Creates a 2x2 image mosaic from four input images.
 
         This method combines four images into a single mosaic image by placing them in a 2x2 grid. It also
         updates the corresponding labels for each image in the mosaic.
@@ -686,7 +713,8 @@ class Mosaic(BaseMixTransform):
         return final_labels
 
     def _mosaic9(self, labels):
-        """Creates a 3x3 image mosaic from the input image and eight additional images.
+        """
+        Creates a 3x3 image mosaic from the input image and eight additional images.
 
         This method combines nine images into a single mosaic image. The input image is placed at the center,
         and eight additional images from the dataset are placed around it in a 3x3 grid pattern.
@@ -758,7 +786,8 @@ class Mosaic(BaseMixTransform):
 
     @staticmethod
     def _update_labels(labels, padw, padh):
-        """Updates label coordinates with padding values.
+        """
+        Updates label coordinates with padding values.
 
         This method adjusts the bounding box coordinates of object instances in the labels by adding padding
         values. It also denormalizes the coordinates if they were previously normalized.
@@ -783,7 +812,8 @@ class Mosaic(BaseMixTransform):
         return labels
 
     def _cat_labels(self, mosaic_labels):
-        """Concatenates and processes labels for mosaic augmentation.
+        """
+        Concatenates and processes labels for mosaic augmentation.
 
         This method combines labels from multiple images used in mosaic augmentation, clips instances to the
         mosaic border, and removes zero-area boxes.
@@ -834,7 +864,8 @@ class Mosaic(BaseMixTransform):
 
 
 class MixUp(BaseMixTransform):
-    """Applies MixUp augmentation to image datasets.
+    """
+    Applies MixUp augmentation to image datasets.
 
     This class implements the MixUp augmentation technique as described in the paper "mixup: Beyond Empirical Risk
     Minimization" (https://arxiv.org/abs/1710.09412). MixUp combines two images and their labels using a random weight.
@@ -856,7 +887,8 @@ class MixUp(BaseMixTransform):
     """
 
     def __init__(self, dataset, pre_transform=None, p=0.0) -> None:
-        """Initializes the MixUp augmentation object.
+        """
+        Initializes the MixUp augmentation object.
 
         MixUp is an image augmentation technique that combines two images by taking a weighted sum of their pixel
         values and labels. This implementation is designed for use with the Ultralytics YOLO framework.
@@ -874,7 +906,8 @@ class MixUp(BaseMixTransform):
         super().__init__(dataset=dataset, pre_transform=pre_transform, p=p)
 
     def get_indexes(self):
-        """Get a random index from the dataset.
+        """
+        Get a random index from the dataset.
 
         This method returns a single random index from the dataset, which is used to select an image for MixUp
         augmentation.
@@ -891,7 +924,8 @@ class MixUp(BaseMixTransform):
         return random.randint(0, len(self.dataset) - 1)
 
     def _mix_transform(self, labels):
-        """Applies MixUp augmentation to the input labels.
+        """
+        Applies MixUp augmentation to the input labels.
 
         This method implements the MixUp augmentation technique as described in the paper
         "mixup: Beyond Empirical Risk Minimization" (https://arxiv.org/abs/1710.09412).
@@ -915,7 +949,8 @@ class MixUp(BaseMixTransform):
 
 
 class RandomPerspective:
-    """Implements random perspective and affine transformations on images and corresponding annotations.
+    """
+    Implements random perspective and affine transformations on images and corresponding annotations.
 
     This class applies random rotations, translations, scaling, shearing, and perspective transformations
     to images and their associated bounding boxes, segments, and keypoints. It can be used as part of an
@@ -950,7 +985,8 @@ class RandomPerspective:
     def __init__(
         self, degrees=0.0, translate=0.1, scale=0.5, shear=0.0, perspective=0.0, border=(0, 0), pre_transform=None
     ):
-        """Initializes RandomPerspective object with transformation parameters.
+        """
+        Initializes RandomPerspective object with transformation parameters.
 
         This class implements random perspective and affine transformations on images and corresponding bounding boxes,
         segments, and keypoints. Transformations include rotation, translation, scaling, and shearing.
@@ -978,7 +1014,8 @@ class RandomPerspective:
         self.pre_transform = pre_transform
 
     def affine_transform(self, img, border):
-        """Applies a sequence of affine transformations centered around the image center.
+        """
+        Applies a sequence of affine transformations centered around the image center.
 
         This function performs a series of geometric transformations on the input image, including
         translation, perspective change, rotation, scaling, and shearing. The transformations are
@@ -1040,7 +1077,8 @@ class RandomPerspective:
         return img, M, s
 
     def apply_bboxes(self, bboxes, M):
-        """Apply affine transformation to bounding boxes.
+        """
+        Apply affine transformation to bounding boxes.
 
         This function applies an affine transformation to a set of bounding boxes using the provided
         transformation matrix.
@@ -1073,7 +1111,8 @@ class RandomPerspective:
         return np.concatenate((x.min(1), y.min(1), x.max(1), y.max(1)), dtype=bboxes.dtype).reshape(4, n).T
 
     def apply_segments(self, segments, M):
-        """Apply affine transformations to segments and generate new bounding boxes.
+        """
+        Apply affine transformations to segments and generate new bounding boxes.
 
         This function applies affine transformations to input segments and generates new bounding boxes based on
         the transformed segments. It clips the transformed segments to fit within the new bounding boxes.
@@ -1109,7 +1148,8 @@ class RandomPerspective:
         return bboxes, segments
 
     def apply_keypoints(self, keypoints, M):
-        """Applies affine transformation to keypoints.
+        """
+        Applies affine transformation to keypoints.
 
         This method transforms the input keypoints using the provided affine transformation matrix. It handles
         perspective rescaling if necessary and updates the visibility of keypoints that fall outside the image
@@ -1142,7 +1182,8 @@ class RandomPerspective:
         return np.concatenate([xy, visible], axis=-1).reshape(n, nkpt, 3)
 
     def __call__(self, labels):
-        """Applies random perspective and affine transformations to an image and its associated labels.
+        """
+        Applies random perspective and affine transformations to an image and its associated labels.
 
         This method performs a series of transformations including rotation, translation, scaling, shearing,
         and perspective distortion on the input image and adjusts the corresponding bounding boxes, segments,
@@ -1219,7 +1260,8 @@ class RandomPerspective:
         return labels
 
     def box_candidates(self, box1, box2, wh_thr=2, ar_thr=100, area_thr=0.1, eps=1e-16):
-        """Compute candidate boxes for further processing based on size and aspect ratio criteria.
+        """
+        Compute candidate boxes for further processing based on size and aspect ratio criteria.
 
         This method compares boxes before and after augmentation to determine if they meet specified
         thresholds for width, height, aspect ratio, and area. It's used to filter out boxes that have
@@ -1257,7 +1299,8 @@ class RandomPerspective:
 
 
 class RandomHSV:
-    """Randomly adjusts the Hue, Saturation, and Value (HSV) channels of an image.
+    """
+    Randomly adjusts the Hue, Saturation, and Value (HSV) channels of an image.
 
     This class applies random HSV augmentation to images within predefined limits set by hgain, sgain, and vgain.
 
@@ -1280,7 +1323,8 @@ class RandomHSV:
     """
 
     def __init__(self, hgain=0.5, sgain=0.5, vgain=0.5) -> None:
-        """Initializes the RandomHSV object for random HSV (Hue, Saturation, Value) augmentation.
+        """
+        Initializes the RandomHSV object for random HSV (Hue, Saturation, Value) augmentation.
 
         This class applies random adjustments to the HSV channels of an image within specified limits.
 
@@ -1298,7 +1342,8 @@ class RandomHSV:
         self.vgain = vgain
 
     def __call__(self, labels):
-        """Applies random HSV augmentation to an image within predefined limits.
+        """
+        Applies random HSV augmentation to an image within predefined limits.
 
         This method modifies the input image by randomly adjusting its Hue, Saturation, and Value (HSV) channels.
         The adjustments are made within the limits set by hgain, sgain, and vgain during initialization.
@@ -1334,7 +1379,8 @@ class RandomHSV:
 
 
 class RandomFlip:
-    """Applies a random horizontal or vertical flip to an image with a given probability.
+    """
+    Applies a random horizontal or vertical flip to an image with a given probability.
 
     This class performs random image flipping and updates corresponding instance annotations such as
     bounding boxes and keypoints.
@@ -1355,7 +1401,8 @@ class RandomFlip:
     """
 
     def __init__(self, p=0.5, direction="horizontal", flip_idx=None) -> None:
-        """Initializes the RandomFlip class with probability and direction.
+        """
+        Initializes the RandomFlip class with probability and direction.
 
         This class applies a random horizontal or vertical flip to an image with a given probability.
         It also updates any instances (bounding boxes, keypoints, etc.) accordingly.
@@ -1380,7 +1427,8 @@ class RandomFlip:
         self.flip_idx = flip_idx
 
     def __call__(self, labels):
-        """Applies random flip to an image and updates any instances like bounding boxes or keypoints accordingly.
+        """
+        Applies random flip to an image and updates any instances like bounding boxes or keypoints accordingly.
 
         This method randomly flips the input image either horizontally or vertically based on the initialized
         probability and direction. It also updates the corresponding instances (bounding boxes, keypoints) to
@@ -1425,7 +1473,8 @@ class RandomFlip:
 
 
 class LetterBox:
-    """Resize image and padding for detection, instance segmentation, pose.
+    """
+    Resize image and padding for detection, instance segmentation, pose.
 
     This class resizes and pads images to a specified shape while preserving aspect ratio. It also updates
     corresponding labels and bounding boxes.
@@ -1449,7 +1498,8 @@ class LetterBox:
     """
 
     def __init__(self, new_shape=(640, 640), auto=False, scaleFill=False, scaleup=True, center=True, stride=32):
-        """Initialize LetterBox object for resizing and padding images.
+        """
+        Initialize LetterBox object for resizing and padding images.
 
         This class is designed to resize and pad images for object detection, instance segmentation, and pose estimation
         tasks. It supports various resizing modes including auto-sizing, scale-fill, and letterboxing.
@@ -1481,7 +1531,8 @@ class LetterBox:
         self.center = center  # Put the image in the middle or top-left
 
     def __call__(self, labels=None, image=None):
-        """Resizes and pads an image for object detection, instance segmentation, or pose estimation tasks.
+        """
+        Resizes and pads an image for object detection, instance segmentation, or pose estimation tasks.
 
         This method applies letterboxing to the input image, which involves resizing the image while maintaining its
         aspect ratio and adding padding to fit the new shape. It also updates any associated labels accordingly.
@@ -1548,7 +1599,8 @@ class LetterBox:
             return img
 
     def _update_labels(self, labels, ratio, padw, padh):
-        """Updates labels after applying letterboxing to an image.
+        """
+        Updates labels after applying letterboxing to an image.
 
         This method modifies the bounding box coordinates of instances in the labels
         to account for resizing and padding applied during letterboxing.
@@ -1594,7 +1646,8 @@ class CopyPaste:
     """
 
     def __init__(self, p=0.5) -> None:
-        """Initializes the CopyPaste augmentation object.
+        """
+        Initializes the CopyPaste augmentation object.
 
         This class implements the Copy-Paste augmentation as described in the paper "Simple Copy-Paste is a Strong Data
         Augmentation Method for Instance Segmentation" (https://arxiv.org/abs/2012.07177). It applies the Copy-Paste
@@ -1613,7 +1666,8 @@ class CopyPaste:
         self.p = p
 
     def __call__(self, labels):
-        """Applies Copy-Paste augmentation to an image and its instances.
+        """
+        Applies Copy-Paste augmentation to an image and its instances.
 
         Args:
             labels (Dict): A dictionary containing:
@@ -1662,7 +1716,8 @@ class CopyPaste:
 
 
 class Albumentations:
-    """Albumentations transformations for image augmentation.
+    """
+    Albumentations transformations for image augmentation.
 
     This class applies various image transformations using the Albumentations library. It includes operations such as
     Blur, Median Blur, conversion to grayscale, Contrast Limited Adaptive Histogram Equalization (CLAHE), random changes
@@ -1687,7 +1742,8 @@ class Albumentations:
     """
 
     def __init__(self, p=1.0):
-        """Initialize the Albumentations transform object for YOLO bbox formatted parameters.
+        """
+        Initialize the Albumentations transform object for YOLO bbox formatted parameters.
 
         This class applies various image augmentations using the Albumentations library, including Blur, Median Blur,
         conversion to grayscale, Contrast Limited Adaptive Histogram Equalization, random changes of brightness and
@@ -1794,7 +1850,8 @@ class Albumentations:
             LOGGER.info(f"{prefix}{e}")
 
     def __call__(self, labels):
-        """Applies Albumentations transformations to input labels.
+        """
+        Applies Albumentations transformations to input labels.
 
         This method applies a series of image augmentations using the Albumentations library. It can perform both
         spatial and non-spatial transformations on the input image and its corresponding labels.
@@ -1847,7 +1904,8 @@ class Albumentations:
 
 
 class Format:
-    """A class for formatting image annotations for object detection, instance segmentation, and pose estimation tasks.
+    """
+    A class for formatting image annotations for object detection, instance segmentation, and pose estimation tasks.
 
     This class standardizes image and instance annotations to be used by the `collate_fn` in PyTorch DataLoader.
 
@@ -1887,7 +1945,8 @@ class Format:
         batch_idx=True,
         bgr=0.0,
     ):
-        """Initializes the Format class with given parameters for image and instance annotation formatting.
+        """
+        Initializes the Format class with given parameters for image and instance annotation formatting.
 
         This class standardizes image and instance annotations for object detection, instance segmentation, and pose
         estimation tasks, preparing them for use in PyTorch DataLoader's `collate_fn`.
@@ -1930,7 +1989,8 @@ class Format:
         self.bgr = bgr
 
     def __call__(self, labels):
-        """Formats image annotations for object detection, instance segmentation, and pose estimation tasks.
+        """
+        Formats image annotations for object detection, instance segmentation, and pose estimation tasks.
 
         This method standardizes the image and instance annotations to be used by the `collate_fn` in PyTorch
         DataLoader. It processes the input labels dictionary, converting annotations to the specified format and
@@ -1996,7 +2056,8 @@ class Format:
         return labels
 
     def _format_img(self, img):
-        """Formats an image for YOLO from a Numpy array to a PyTorch tensor.
+        """
+        Formats an image for YOLO from a Numpy array to a PyTorch tensor.
 
         This function performs the following operations:
         1. Ensures the image has 3 dimensions (adds a channel dimension if needed).
@@ -2026,7 +2087,8 @@ class Format:
         return img
 
     def _format_segments(self, instances, cls, w, h):
-        """Converts polygon segments to bitmap masks.
+        """
+        Converts polygon segments to bitmap masks.
 
         Args:
             instances (Instances): Object containing segment information.
@@ -2058,7 +2120,8 @@ class Format:
 
 
 class RandomLoadText:
-    """Randomly samples positive and negative texts and updates class indices accordingly.
+    """
+    Randomly samples positive and negative texts and updates class indices accordingly.
 
     This class is responsible for sampling texts from a given set of class texts, including both positive
     (present in the image) and negative (not present in the image) samples. It updates the class indices
@@ -2090,7 +2153,8 @@ class RandomLoadText:
         padding: bool = False,
         padding_value: str = "",
     ) -> None:
-        """Initializes the RandomLoadText class for randomly sampling positive and negative texts.
+        """
+        Initializes the RandomLoadText class for randomly sampling positive and negative texts.
 
         This class is designed to randomly sample positive texts and negative texts, and update the class
         indices accordingly to the number of samples. It can be used for text-based object detection tasks.
@@ -2129,7 +2193,8 @@ class RandomLoadText:
         self.padding_value = padding_value
 
     def __call__(self, labels: dict) -> dict:
-        """Randomly samples positive and negative texts and updates class indices accordingly.
+        """
+        Randomly samples positive and negative texts and updates class indices accordingly.
 
         This method samples positive texts based on the existing class labels in the image, and randomly
         selects negative texts from the remaining classes. It then updates the class indices to match the
@@ -2192,7 +2257,8 @@ class RandomLoadText:
 
 
 def v8_transforms(dataset, imgsz, hyp, stretch=False):
-    """Applies a series of image transformations for YOLOv8 training.
+    """
+    Applies a series of image transformations for YOLOv8 training.
 
     This function creates a composition of image augmentation techniques to prepare images for YOLOv8 training.
     It includes operations such as mosaic, copy-paste, random perspective, mixup, and various color adjustments.
@@ -2256,7 +2322,8 @@ def classify_transforms(
     interpolation="BILINEAR",
     crop_fraction: float = DEFAULT_CROP_FRACTION,
 ):
-    """Creates a composition of image transforms for classification tasks.
+    """
+    Creates a composition of image transforms for classification tasks.
 
     This function generates a sequence of torchvision transforms suitable for preprocessing images
     for classification models during evaluation or inference. The transforms include resizing,
@@ -2321,7 +2388,8 @@ def classify_augmentations(
     erasing=0.0,
     interpolation="BILINEAR",
 ):
-    """Creates a composition of image augmentation transforms for classification tasks.
+    """
+    Creates a composition of image augmentation transforms for classification tasks.
 
     This function generates a set of image transformations suitable for training classification models. It includes
     options for resizing, flipping, color jittering, auto augmentation, and random erasing.
@@ -2409,7 +2477,8 @@ def classify_augmentations(
 
 # NOTE: keep this class for backward compatibility
 class ClassifyLetterBox:
-    """A class for resizing and padding images for classification tasks.
+    """
+    A class for resizing and padding images for classification tasks.
 
     This class is designed to be part of a transformation pipeline, e.g., T.Compose([LetterBox(size), ToTensor()]).
     It resizes and pads images to a specified size while maintaining the original aspect ratio.
@@ -2432,7 +2501,8 @@ class ClassifyLetterBox:
     """
 
     def __init__(self, size=(640, 640), auto=False, stride=32):
-        """Initializes the ClassifyLetterBox object for image preprocessing.
+        """
+        Initializes the ClassifyLetterBox object for image preprocessing.
 
         This class is designed to be part of a transformation pipeline for image classification tasks. It resizes and
         pads images to a specified size while maintaining the original aspect ratio.
@@ -2462,7 +2532,8 @@ class ClassifyLetterBox:
         self.stride = stride  # used with auto
 
     def __call__(self, im):
-        """Resizes and pads an image using the letterbox method.
+        """
+        Resizes and pads an image using the letterbox method.
 
         This method resizes the input image to fit within the specified dimensions while maintaining its aspect ratio,
         then pads the resized image to match the target size.
@@ -2497,7 +2568,8 @@ class ClassifyLetterBox:
 
 # NOTE: keep this class for backward compatibility
 class CenterCrop:
-    """Applies center cropping to images for classification tasks.
+    """
+    Applies center cropping to images for classification tasks.
 
     This class performs center cropping on input images, resizing them to a specified size while maintaining the aspect
     ratio. It is designed to be part of a transformation pipeline, e.g., T.Compose([CenterCrop(size), ToTensor()]).
@@ -2518,7 +2590,8 @@ class CenterCrop:
     """
 
     def __init__(self, size=640):
-        """Initializes the CenterCrop object for image preprocessing.
+        """
+        Initializes the CenterCrop object for image preprocessing.
 
         This class is designed to be part of a transformation pipeline, e.g., T.Compose([CenterCrop(size), ToTensor()]).
         It performs a center crop on input images to a specified size.
@@ -2541,7 +2614,8 @@ class CenterCrop:
         self.h, self.w = (size, size) if isinstance(size, int) else size
 
     def __call__(self, im):
-        """Applies center cropping to an input image.
+        """
+        Applies center cropping to an input image.
 
         This method resizes and crops the center of the image using a letterbox method. It maintains the aspect
         ratio of the original image while fitting it into the specified dimensions.
@@ -2569,7 +2643,8 @@ class CenterCrop:
 
 # NOTE: keep this class for backward compatibility
 class ToTensor:
-    """Converts an image from a numpy array to a PyTorch tensor.
+    """
+    Converts an image from a numpy array to a PyTorch tensor.
 
     This class is designed to be part of a transformation pipeline, e.g., T.Compose([LetterBox(size), ToTensor()]).
 
@@ -2592,7 +2667,8 @@ class ToTensor:
     """
 
     def __init__(self, half=False):
-        """Initializes the ToTensor object for converting images to PyTorch tensors.
+        """
+        Initializes the ToTensor object for converting images to PyTorch tensors.
 
         This class is designed to be used as part of a transformation pipeline for image preprocessing in the
         Ultralytics YOLO framework. It converts numpy arrays or PIL Images to PyTorch tensors, with an option
@@ -2612,7 +2688,8 @@ class ToTensor:
         self.half = half
 
     def __call__(self, im):
-        """Transforms an image from a numpy array to a PyTorch tensor.
+        """
+        Transforms an image from a numpy array to a PyTorch tensor.
 
         This method converts the input image from a numpy array to a PyTorch tensor, applying optional
         half-precision conversion and normalization. The image is transposed from HWC to CHW format and

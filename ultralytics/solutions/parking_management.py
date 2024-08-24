@@ -106,7 +106,8 @@ class ParkingPtsSelection:
             self.current_box = []
 
     def draw_bounding_box(self, box):
-        """Draw bounding box on canvas.
+        """
+        Draw bounding box on canvas.
 
         Args:
             box (list): Bounding box data
@@ -166,7 +167,8 @@ class ParkingManagement:
         available_region_color=(0, 0, 255),
         margin=10,
     ):
-        """Initializes the parking management system with a YOLOv8 model and visualization settings.
+        """
+        Initializes the parking management system with a YOLOv8 model and visualization settings.
 
         Args:
             model_path (str): Path to the YOLOv8 model.
@@ -202,7 +204,8 @@ class ParkingManagement:
 
     @staticmethod
     def parking_regions_extraction(json_file):
-        """Extract parking regions from json file.
+        """
+        Extract parking regions from json file.
 
         Args:
             json_file (str): file that have all parking slot points
@@ -211,7 +214,8 @@ class ParkingManagement:
             return json.load(f)
 
     def process_data(self, json_data, im0, boxes, clss):
-        """Process the model data for parking lot management.
+        """
+        Process the model data for parking lot management.
 
         Args:
             json_data (str): json data for parking lot management
@@ -254,7 +258,8 @@ class ParkingManagement:
         annotator.display_analytics(im0, self.labels_dict, self.txt_color, self.bg_color, self.margin)
 
     def display_frames(self, im0):
-        """Display frame.
+        """
+        Display frame.
 
         Args:
             im0 (ndarray): inference image

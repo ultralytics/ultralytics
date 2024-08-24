@@ -18,7 +18,8 @@ class AIGym:
         pose_down_angle=90.0,
         pose_type="pullup",
     ):
-        """Initializes the AIGym class with the specified parameters.
+        """
+        Initializes the AIGym class with the specified parameters.
 
         Args:
             kpts_to_check (list): Indices of keypoints to check.
@@ -56,7 +57,8 @@ class AIGym:
         self.stage = []
 
     def start_counting(self, im0, results):
-        """Function used to count the gym steps.
+        """
+        Function used to count the gym steps.
 
         Args:
             im0 (ndarray): Current frame from the video stream.

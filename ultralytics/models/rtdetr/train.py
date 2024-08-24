@@ -12,7 +12,8 @@ from .val import RTDETRDataset, RTDETRValidator
 
 
 class RTDETRTrainer(DetectionTrainer):
-    """Trainer class for the RT-DETR model developed by Baidu for real-time object detection. Extends the DetectionTrainer
+    """
+    Trainer class for the RT-DETR model developed by Baidu for real-time object detection. Extends the DetectionTrainer
     class for YOLO to adapt to the specific features and architecture of RT-DETR. This model leverages Vision
     Transformers and has capabilities like IoU-aware query selection and adaptable inference speed.
 
@@ -31,7 +32,8 @@ class RTDETRTrainer(DetectionTrainer):
     """
 
     def get_model(self, cfg=None, weights=None, verbose=True):
-        """Initialize and return an RT-DETR model for object detection tasks.
+        """
+        Initialize and return an RT-DETR model for object detection tasks.
 
         Args:
             cfg (dict, optional): Model configuration. Defaults to None.
@@ -47,7 +49,8 @@ class RTDETRTrainer(DetectionTrainer):
         return model
 
     def build_dataset(self, img_path, mode="val", batch=None):
-        """Build and return an RT-DETR dataset for training or validation.
+        """
+        Build and return an RT-DETR dataset for training or validation.
 
         Args:
             img_path (str): Path to the folder containing images.
@@ -70,7 +73,8 @@ class RTDETRTrainer(DetectionTrainer):
         )
 
     def get_validator(self):
-        """Returns a DetectionValidator suitable for RT-DETR model validation.
+        """
+        Returns a DetectionValidator suitable for RT-DETR model validation.
 
         Returns:
             (RTDETRValidator): Validator object for model validation.
@@ -79,7 +83,8 @@ class RTDETRTrainer(DetectionTrainer):
         return RTDETRValidator(self.test_loader, save_dir=self.save_dir, args=copy(self.args))
 
     def preprocess_batch(self, batch):
-        """Preprocess a batch of images. Scales and converts the images to float format.
+        """
+        Preprocess a batch of images. Scales and converts the images to float format.
 
         Args:
             batch (dict): Dictionary containing a batch of images, bboxes, and labels.

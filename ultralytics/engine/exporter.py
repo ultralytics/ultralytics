@@ -144,7 +144,8 @@ def try_export(inner_func):
 
 
 class Exporter:
-    """A class for exporting a model.
+    """
+    A class for exporting a model.
 
     Attributes:
         args (SimpleNamespace): Configuration for the exporter.
@@ -152,7 +153,8 @@ class Exporter:
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
-        """Initializes the Exporter class.
+        """
+        Initializes the Exporter class.
 
         Args:
             cfg (str, optional): Path to a configuration file. Defaults to DEFAULT_CFG.

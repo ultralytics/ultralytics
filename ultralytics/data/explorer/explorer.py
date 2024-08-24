@@ -7,8 +7,8 @@ from typing import Any, List, Tuple, Union
 import cv2
 import numpy as np
 import torch
-from matplotlib import pyplot as plt
 from PIL import Image
+from matplotlib import pyplot as plt
 from tqdm import tqdm
 
 from ultralytics.data.augment import Format
@@ -16,7 +16,6 @@ from ultralytics.data.dataset import YOLODataset
 from ultralytics.data.utils import check_det_dataset
 from ultralytics.models.yolo.model import YOLO
 from ultralytics.utils import LOGGER, USER_CONFIG_DIR, IterableSimpleNamespace, checks
-
 from .utils import get_sim_index_schema, get_table_schema, plot_query_result, prompt_sql_query, sanitize_batch
 
 
@@ -226,6 +225,7 @@ class Explorer:
     def plot_sql_query(self, query: str, labels: bool = True) -> Image.Image:
         """
         Plot the results of a SQL-Like query on the table.
+
         Args:
             query (str): SQL query to run.
             labels (bool): Whether to plot the labels or not.
@@ -457,20 +457,3 @@ class Explorer:
             LOGGER.error("AI generated query is not valid. Please try again with a different prompt")
             LOGGER.error(e)
             return None
-
-    def visualize(self, result):
-        """
-        Visualize the results of a query. TODO.
-
-        Args:
-            result (pyarrow.Table): Table containing the results of a query.
-        """
-        pass
-
-    def generate_report(self, result):
-        """
-        Generate a report of the dataset.
-
-        TODO
-        """
-        pass

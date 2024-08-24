@@ -332,6 +332,7 @@ def dist2rbox(pred_dist, pred_angle, anchor_points, dim=-1):
         pred_dist (torch.Tensor): Predicted rotated distance, (bs, h*w, 4).
         pred_angle (torch.Tensor): Predicted angle, (bs, h*w, 1).
         anchor_points (torch.Tensor): Anchor points, (h*w, 2).
+
     Returns:
         (torch.Tensor): Predicted rotated bounding boxes, (bs, h*w, 4).
     """

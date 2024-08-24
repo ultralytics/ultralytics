@@ -166,8 +166,7 @@ class YOLOv8Seg:
     @staticmethod
     def masks2segments(masks):
         """
-        It takes a list of masks(n,h,w) and returns a list of segments(n,xy) (Borrowed from
-        https://github.com/ultralytics/ultralytics/blob/465df3024f44fa97d4fad9986530d5a13cdabdca/ultralytics/utils/ops.py#L750)
+        Takes a list of masks(n,h,w) and returns a list of segments(n,xy), from but is slower, from https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/ops.py.
 
         Args:
             masks (numpy.ndarray): the output of the model, which is a tensor of shape (batch_size, 160, 160).
@@ -188,8 +187,7 @@ class YOLOv8Seg:
     @staticmethod
     def crop_mask(masks, boxes):
         """
-        It takes a mask and a bounding box, and returns a mask that is cropped to the bounding box. (Borrowed from
-        https://github.com/ultralytics/ultralytics/blob/465df3024f44fa97d4fad9986530d5a13cdabdca/ultralytics/utils/ops.py#L599)
+        Takes a mask and a bounding box, and returns a mask that is cropped to the bounding box, from https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/ops.py.
 
         Args:
             masks (Numpy.ndarray): [n, h, w] tensor of masks.
@@ -206,8 +204,8 @@ class YOLOv8Seg:
 
     def process_mask(self, protos, masks_in, bboxes, im0_shape):
         """
-        Takes the output of the mask head, and applies the mask to the bounding boxes. This produces masks of higher quality
-        but is slower. (Borrowed from https://github.com/ultralytics/ultralytics/blob/465df3024f44fa97d4fad9986530d5a13cdabdca/ultralytics/utils/ops.py#L618)
+        Takes the output of the mask head, and applies the mask to the bounding boxes. This produces masks of higher quality but is slower, from https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/ops.py.
+
 
         Args:
             protos (numpy.ndarray): [mask_dim, mask_h, mask_w].
@@ -229,8 +227,7 @@ class YOLOv8Seg:
     @staticmethod
     def scale_mask(masks, im0_shape, ratio_pad=None):
         """
-        Takes a mask, and resizes it to the original image size. (Borrowed from
-        https://github.com/ultralytics/ultralytics/blob/465df3024f44fa97d4fad9986530d5a13cdabdca/ultralytics/utils/ops.py#L305)
+        Takes a mask, and resizes it to the original image size, from  https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/ops.py.
 
         Args:
             masks (np.ndarray): resized and padded masks/images, [h, w, num]/[h, w, 3].

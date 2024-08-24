@@ -597,7 +597,7 @@ def ltwh2xyxy(x):
 
 def segments2boxes(segments):
     """
-    It converts segment labels to box labels, i.e. (cls, xy1, xy2, ...) to (cls, xywh)
+    It converts segment labels to box labels, i.e. (cls, xy1, xy2, ...) to (cls, xywh).
 
     Args:
         segments (list): list of segments, each segment is a list of points, each point is a list of x, y coordinates
@@ -784,7 +784,7 @@ def regularize_rboxes(rboxes):
 
 def masks2segments(masks, strategy="largest"):
     """
-    It takes a list of masks(n,h,w) and returns a list of segments(n,xy)
+    It takes a list of masks(n,h,w) and returns a list of segments(n,xy).
 
     Args:
         masks (torch.Tensor): the output of the model, which is a tensor of shape (batch_size, 160, 160)
@@ -822,7 +822,7 @@ def convert_torch2numpy_batch(batch: torch.Tensor) -> np.ndarray:
 
 def clean_str(s):
     """
-    Cleans a string by replacing special characters with underscore _
+    Cleans a string by replacing special characters with '_' character.
 
     Args:
         s (str): a string needing special characters replaced

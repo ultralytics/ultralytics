@@ -492,7 +492,7 @@ def init_seeds(seed=0, deterministic=False):
 class ModelEMA:
     """
     Updated Exponential Moving Average (EMA) from https://github.com/rwightman/pytorch-image-models. Keeps a moving
-    average of everything in the model state_dict (parameters and buffers)
+    average of everything in the model state_dict (parameters and buffers).
 
     For EMA details see https://www.tensorflow.org/api_docs/python/tf/train/ExponentialMovingAverage
 

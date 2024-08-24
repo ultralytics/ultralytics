@@ -20,10 +20,10 @@ import requests
 import torch
 
 from ultralytics.utils import (
-    IS_GIT_DIR,
     ASSETS,
     AUTOINSTALL,
     IS_COLAB,
+    IS_GIT_DIR,
     IS_JUPYTER,
     IS_KAGGLE,
     IS_PIP_PACKAGE,

@@ -228,19 +228,22 @@ class TaskAlignedAssigner(nn.Module):
 
     @staticmethod
     def select_highest_overlaps(mask_pos, overlaps, n_max_boxes):
-        """
-        If an anchor box is assigned to multiple gts, the one with the highest IoU will be selected.
+        """Select anchor boxes with highest IoU when assigned to multiple ground truths.
 
         Args:
-            mask_pos (Tensor): shape(b, n_max_boxes, h*w)
-            overlaps (Tensor): shape(b, n_max_boxes, h*w)
+            mask_pos (torch.Tensor): Positive mask, shape (b, n_max_boxes, h*w).
+            overlaps (torch.Tensor): IoU overlaps, shape (b, n_max_boxes, h*w).
+            n_max_boxes (int): Maximum number of ground truth boxes.
 
         Returns:
-            target_gt_idx (Tensor): shape(b, h*w)
-            fg_mask (Tensor): shape(b, h*w)
-            mask_pos (Tensor): shape(b, n_max_boxes, h*w)
+            target_gt_idx (torch.Tensor): Indices of assigned ground truths, shape (b, h*w).
+            fg_mask (torch.Tensor): Foreground mask, shape (b, h*w).
+            mask_pos (torch.Tensor): Updated positive mask, shape (b, n_max_boxes, h*w).
+
+        Note:
+            b: batch size, h: height, w: width.
         """
-        # (b, n_max_boxes, h*w) -> (b, h*w)
+        # Convert (b, n_max_boxes, h*w) -> (b, h*w)
         fg_mask = mask_pos.sum(-2)
         if fg_mask.max() > 1:  # one anchor is assigned to multiple gt_bboxes
             mask_multi_gts = (fg_mask.unsqueeze(1) > 1).expand(-1, n_max_boxes, -1)  # (b, n_max_boxes, h*w)

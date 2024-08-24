@@ -559,9 +559,7 @@ class RepBottleneck(Bottleneck):
     """Rep bottleneck."""
 
     def __init__(self, c1, c2, shortcut=True, g=1, k=(3, 3), e=0.5):
-        """Initializes a RepBottleneck module with customizable in/out channels, shortcut option, groups and expansion
-        ratio.
-        """
+        """Initializes a RepBottleneck module with customizable in/out channels, shortcuts, groups and expansion."""
         super().__init__(c1, c2, shortcut, g, k, e)
         c_ = int(c2 * e)  # hidden channels
         self.cv1 = RepConv(c1, c_, k[0], 1)

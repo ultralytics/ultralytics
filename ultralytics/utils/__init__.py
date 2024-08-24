@@ -765,8 +765,8 @@ def remove_colorstr(input_string):
         (str): A new string with all ANSI escape codes removed.
 
     Examples:
-        >>> remove_colorstr(colorstr('blue', 'bold', 'hello world'))
-        >>> 'hello world'
+        >>> remove_colorstr(colorstr("blue", "bold", "hello world"))
+        >>> "hello world"
     """
     ansi_escape = re.compile(r"\x1B\[[0-9;]*[A-Za-z]")
     return ansi_escape.sub("", input_string)
@@ -780,12 +780,12 @@ class TryExcept(contextlib.ContextDecorator):
         As a decorator:
         >>> @TryExcept(msg="Error occurred in func", verbose=True)
         >>> def func():
-        >>>    # Function logic here
+        >>> # Function logic here
         >>>     pass
 
         As a context manager:
         >>> with TryExcept(msg="Error occurred in block", verbose=True):
-        >>>     # Code block here
+        >>> # Code block here
         >>>     pass
     """
 
@@ -816,7 +816,7 @@ class Retry(contextlib.ContextDecorator):
         Example usage as a decorator:
         >>> @Retry(times=3, delay=2)
         >>> def test_func():
-        >>>     # Replace with function logic that may raise exceptions
+        >>> # Replace with function logic that may raise exceptions
         >>>     return True
     """
 

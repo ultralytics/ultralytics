@@ -17,7 +17,7 @@ name: Publish Docs
 on:
   push:
     branches: [main]
-  pull_request_target:
+  pull_request:
     branches: [main]
   workflow_dispatch:
 
@@ -45,7 +45,7 @@ jobs:
       - name: Install Dependencies
         run: pip install ruff black tqdm mkdocs-material "mkdocstrings[python]" mkdocs-jupyter mkdocs-redirects mkdocs-ultralytics-plugin mkdocs-macros-plugin mkdocs-exclude
       - name: Update Docs Reference Section and Push Changes
-        if: github.event_name == 'pull_request_target'
+        if: github.event_name == 'pull_request'
         run: |
           python docs/build_reference.py
           ruff check --fix --fix-unsafe --select D --ignore=D100,D104,D203,D205,D212,D213,D401,D406,D407,D413 . || true
@@ -66,7 +66,7 @@ jobs:
           python docs/build_docs.py
       - name: Commit and Push Docs changes
         continue-on-error: true
-        if: always() && github.event_name == 'pull_request_target'
+        if: always() && github.event_name == 'pull_request'
         run: |
           git pull origin ${{ github.head_ref || github.ref }}
           git add --update  # only add updated files

@@ -33,7 +33,8 @@ class DETRLoss(nn.Module):
     def __init__(
         self, nc=80, loss_gain=None, aux_loss=True, use_fl=True, use_vfl=False, use_uni_match=False, uni_match_ind=0
     ):
-        """Initialize DETR loss function with customizable components and gains.
+        """
+        Initialize DETR loss function with customizable components and gains.
 
         Uses default loss_gain if not provided. Initializes HungarianMatcher with
         preset cost gains. Supports auxiliary losses and various loss types.

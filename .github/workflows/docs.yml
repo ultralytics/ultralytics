@@ -44,11 +44,13 @@ jobs:
           cache: "pip" # caching pip dependencies
       - name: Install Dependencies
         run: pip install ruff black tqdm mkdocs-material "mkdocstrings[python]" mkdocs-jupyter mkdocs-redirects mkdocs-ultralytics-plugin mkdocs-macros-plugin
+      - name: Ruff fixes
+        continue-on-error: true
+        run: ruff check --fix --fix-unsafe --select D --ignore=D100,D104,D203,D205,D212,D213,D401,D406,D407,D413 .
       - name: Update Docs Reference Section and Push Changes
         if: github.event_name == 'pull_request_target'
         run: |
           python docs/build_reference.py
-          ruff check --fix --fix-unsafe --select D --ignore=D100,D104,D203,D205,D212,D213,D401,D406,D407,D413 . || true
           git pull origin ${{ github.head_ref || github.ref }}
           git add .
           git reset HEAD -- .github/workflows/  # workflow changes are not permitted with default token

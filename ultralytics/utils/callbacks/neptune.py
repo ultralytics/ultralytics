@@ -31,7 +31,8 @@ def _log_images(imgs_dict, group=""):
 
 
 def _log_plot(title, plot_path):
-    """Log plots to the NeptuneAI experiment logger.
+    """
+    Log plots to the NeptuneAI experiment logger.
 
     Args:
         title (str): Title of the plot.

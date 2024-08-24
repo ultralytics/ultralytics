@@ -107,7 +107,8 @@ class Heatmap:
             self.shape = "circle"
 
     def extract_results(self, tracks):
-        """Extracts results from the provided data.
+        """
+        Extracts results from the provided data.
 
         Args:
             tracks (list): List of tracks obtained from the object tracking process.
@@ -118,7 +119,8 @@ class Heatmap:
             self.track_ids = tracks[0].boxes.id.int().tolist()
 
     def generate_heatmap(self, im0, tracks):
-        """Generate heatmap based on tracking data.
+        """
+        Generate heatmap based on tracking data.
 
         Args:
             im0 (nd array): Image

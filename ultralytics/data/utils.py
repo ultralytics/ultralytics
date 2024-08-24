@@ -167,7 +167,8 @@ def verify_image_label(args):
 
 
 def polygon2mask(imgsz, polygons, color=1, downsample_ratio=1):
-    """Convert a list of polygons to a binary mask of the specified image size.
+    """
+    Convert a list of polygons to a binary mask of the specified image size.
 
     Args:
         imgsz (tuple): The size of the image as (height, width).
@@ -189,7 +190,8 @@ def polygon2mask(imgsz, polygons, color=1, downsample_ratio=1):
 
 
 def polygons2masks(imgsz, polygons, color, downsample_ratio=1):
-    """Convert a list of polygons to a set of binary masks of the specified image size.
+    """
+    Convert a list of polygons to a set of binary masks of the specified image size.
 
     Args:
         imgsz (tuple): The size of the image as (height, width).
@@ -227,7 +229,8 @@ def polygons2masks_overlap(imgsz, segments, downsample_ratio=1):
 
 
 def find_dataset_yaml(path: Path) -> Path:
-    """Find and return the YAML file associated with a Detect, Segment or Pose dataset.
+    """
+    Find and return the YAML file associated with a Detect, Segment or Pose dataset.
 
     This function searches for a YAML file at the root level of the provided directory first, and if not found, it
     performs a recursive search. It prefers YAML files that have the same stem as the provided path. An AssertionError
@@ -248,7 +251,8 @@ def find_dataset_yaml(path: Path) -> Path:
 
 
 def check_det_dataset(dataset, autodownload=True):
-    """Download, verify, and/or unzip a dataset if not found locally.
+    """
+    Download, verify, and/or unzip a dataset if not found locally.
 
     This function checks the availability of a specified dataset, and if not found, it has the option to download and
     unzip the dataset. It then reads and parses the accompanying YAML data, ensuring key requirements are met and also
@@ -340,7 +344,8 @@ def check_det_dataset(dataset, autodownload=True):
 
 
 def check_cls_dataset(dataset, split=""):
-    """Checks a classification dataset such as Imagenet.
+    """
+    Checks a classification dataset such as Imagenet.
 
     This function accepts a `dataset` name and attempts to retrieve the corresponding dataset information.
     If the dataset is not found locally, it attempts to download the dataset from the internet and save it locally.
@@ -417,7 +422,8 @@ def check_cls_dataset(dataset, split=""):
 
 
 class HUBDatasetStats:
-    """A class for generating HUB dataset JSON and `-hub` dataset directory.
+    """
+    A class for generating HUB dataset JSON and `-hub` dataset directory.
 
     Args:
         path (str): Path to data.yaml or data.zip (with data.yaml inside data.zip). Default is 'coco8.yaml'.
@@ -574,9 +580,10 @@ class HUBDatasetStats:
 
 
 def compress_one_image(f, f_new=None, max_dim=1920, quality=50):
-    """Compresses a single image file to reduced size while preserving its aspect ratio and quality using either the
-    Python Imaging Library (PIL) or OpenCV library. If the input image is smaller than the maximum dimension, it will
-    not be resized.
+    """
+    Compresses a single image file to reduced size while preserving its aspect ratio and quality using either the Python
+    Imaging Library (PIL) or OpenCV library. If the input image is smaller than the maximum dimension, it will not be
+    resized.
 
     Args:
         f (str): The path to the input image file.
@@ -610,8 +617,8 @@ def compress_one_image(f, f_new=None, max_dim=1920, quality=50):
 
 
 def autosplit(path=DATASETS_DIR / "coco8/images", weights=(0.9, 0.1, 0.0), annotated_only=False):
-    """Automatically split a dataset into train/val/test splits and save the resulting splits into autosplit_*.txt
-    files.
+    """
+    Automatically split a dataset into train/val/test splits and save the resulting splits into autosplit_*.txt files.
 
     Args:
         path (Path, optional): Path to images directory. Defaults to DATASETS_DIR / 'coco8/images'.

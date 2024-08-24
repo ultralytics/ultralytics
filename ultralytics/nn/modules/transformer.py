@@ -191,7 +191,8 @@ class MLP(nn.Module):
 
 
 class LayerNorm2d(nn.Module):
-    """2D Layer Normalization module inspired by Detectron2 and ConvNeXt implementations.
+    """
+    2D Layer Normalization module inspired by Detectron2 and ConvNeXt implementations.
 
     Original implementations in
     https://github.com/facebookresearch/detectron2/blob/main/detectron2/layers/batch_norm.py
@@ -215,7 +216,8 @@ class LayerNorm2d(nn.Module):
 
 
 class MSDeformAttn(nn.Module):
-    """Multiscale Deformable Attention Module based on Deformable-DETR and PaddleDetection implementations.
+    """
+    Multiscale Deformable Attention Module based on Deformable-DETR and PaddleDetection implementations.
 
     https://github.com/fundamentalvision/Deformable-DETR/blob/main/models/ops/modules/ms_deform_attn.py
     """
@@ -265,7 +267,8 @@ class MSDeformAttn(nn.Module):
         constant_(self.output_proj.bias.data, 0.0)
 
     def forward(self, query, refer_bbox, value, value_shapes, value_mask=None):
-        """Perform forward pass for multiscale deformable attention.
+        """
+        Perform forward pass for multiscale deformable attention.
 
         https://github.com/PaddlePaddle/PaddleDetection/blob/develop/ppdet/modeling/transformers/deformable_transformer.py
 
@@ -307,7 +310,8 @@ class MSDeformAttn(nn.Module):
 
 
 class DeformableTransformerDecoderLayer(nn.Module):
-    """Deformable Transformer Decoder Layer inspired by PaddleDetection and Deformable-DETR implementations.
+    """
+    Deformable Transformer Decoder Layer inspired by PaddleDetection and Deformable-DETR implementations.
 
     https://github.com/PaddlePaddle/PaddleDetection/blob/develop/ppdet/modeling/transformers/deformable_transformer.py
     https://github.com/fundamentalvision/Deformable-DETR/blob/main/models/deformable_transformer.py
@@ -368,7 +372,8 @@ class DeformableTransformerDecoderLayer(nn.Module):
 
 
 class DeformableTransformerDecoder(nn.Module):
-    """Implementation of Deformable Transformer Decoder based on PaddleDetection.
+    """
+    Implementation of Deformable Transformer Decoder based on PaddleDetection.
 
     https://github.com/PaddlePaddle/PaddleDetection/blob/develop/ppdet/modeling/transformers/deformable_transformer.py
     """

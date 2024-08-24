@@ -9,7 +9,8 @@ import requests
 
 
 class GCPRegions:
-    """A class for managing and analyzing Google Cloud Platform (GCP) regions.
+    """
+    A class for managing and analyzing Google Cloud Platform (GCP) regions.
 
     This class provides functionality to initialize, categorize, and analyze GCP regions based on their
     geographical location, tier classification, and network latency.
@@ -107,7 +108,8 @@ class GCPRegions:
         tier: Optional[int] = None,
         attempts: int = 1,
     ) -> List[Tuple[str, float, float, float, float]]:
-        """Determines the GCP regions with the lowest latency based on ping tests.
+        """
+        Determines the GCP regions with the lowest latency based on ping tests.
 
         Args:
             top (int): Number of top regions to return.

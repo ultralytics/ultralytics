@@ -35,7 +35,8 @@ GITHUB_ASSETS_STEMS = [Path(k).stem for k in GITHUB_ASSETS_NAMES]
 
 
 def is_url(url, check=False):
-    """Validates if the given string is a URL and optionally checks if the URL exists online.
+    """
+    Validates if the given string is a URL and optionally checks if the URL exists online.
 
     Args:
         url (str): The string to be validated as a URL.
@@ -63,7 +64,8 @@ def is_url(url, check=False):
 
 
 def delete_dsstore(path, files_to_delete=(".DS_Store", "__MACOSX")):
-    """Deletes all ".DS_store" files under a specified directory.
+    """
+    Deletes all ".DS_store" files under a specified directory.
 
     Args:
         path (str, optional): The directory path where the ".DS_store" files should be deleted.
@@ -88,8 +90,9 @@ def delete_dsstore(path, files_to_delete=(".DS_Store", "__MACOSX")):
 
 
 def zip_directory(directory, compress=True, exclude=(".DS_Store", "__MACOSX"), progress=True):
-    """Zips the contents of a directory, excluding files containing strings in the exclude list. The resulting zip file
-    is named after the directory and placed alongside it.
+    """
+    Zips the contents of a directory, excluding files containing strings in the exclude list. The resulting zip file is
+    named after the directory and placed alongside it.
 
     Args:
         directory (str | Path): The path to the directory to be zipped.
@@ -126,7 +129,8 @@ def zip_directory(directory, compress=True, exclude=(".DS_Store", "__MACOSX"), p
 
 
 def unzip_file(file, path=None, exclude=(".DS_Store", "__MACOSX"), exist_ok=False, progress=True):
-    """Unzips a *.zip file to the specified path, excluding files containing strings in the exclude list.
+    """
+    Unzips a *.zip file to the specified path, excluding files containing strings in the exclude list.
 
     If the zipfile does not contain a single top-level directory, the function will create a new
     directory with the same name as the zipfile (without the extension) to extract its contents.
@@ -191,7 +195,8 @@ def unzip_file(file, path=None, exclude=(".DS_Store", "__MACOSX"), exist_ok=Fals
 
 
 def check_disk_space(url="https://ultralytics.com/assets/coco8.zip", path=Path.cwd(), sf=1.5, hard=True):
-    """Check if there is sufficient disk space to download and store a file.
+    """
+    Check if there is sufficient disk space to download and store a file.
 
     Args:
         url (str, optional): The URL to the file. Defaults to 'https://ultralytics.com/assets/coco8.zip'.
@@ -228,7 +233,8 @@ def check_disk_space(url="https://ultralytics.com/assets/coco8.zip", path=Path.c
 
 
 def get_google_drive_file_info(link):
-    """Retrieves the direct download link and filename for a shareable Google Drive file link.
+    """
+    Retrieves the direct download link and filename for a shareable Google Drive file link.
 
     Args:
         link (str): The shareable link of the Google Drive file.
@@ -280,7 +286,8 @@ def safe_download(
     exist_ok=False,
     progress=True,
 ):
-    """Downloads files from a URL, with options for retrying, unzipping, and deleting the downloaded file.
+    """
+    Downloads files from a URL, with options for retrying, unzipping, and deleting the downloaded file.
 
     Args:
         url (str): The URL of the file to be downloaded.
@@ -371,7 +378,8 @@ def safe_download(
 
 
 def get_github_assets(repo="ultralytics/assets", version="latest", retry=False):
-    """Retrieve the specified version's tag and assets from a GitHub repository. If the version is not specified, the
+    """
+    Retrieve the specified version's tag and assets from a GitHub repository. If the version is not specified, the
     function fetches the latest release assets.
 
     Args:
@@ -401,8 +409,9 @@ def get_github_assets(repo="ultralytics/assets", version="latest", retry=False):
 
 
 def attempt_download_asset(file, repo="ultralytics/assets", release="v8.2.0", **kwargs):
-    """Attempt to download a file from GitHub release assets if it is not found locally. The function checks for the
-    file locally first, then tries to download it from the specified GitHub repository release.
+    """
+    Attempt to download a file from GitHub release assets if it is not found locally. The function checks for the file
+    locally first, then tries to download it from the specified GitHub repository release.
 
     Args:
         file (str | Path): The filename or file path to be downloaded.
@@ -454,7 +463,8 @@ def attempt_download_asset(file, repo="ultralytics/assets", release="v8.2.0", **
 
 
 def download(url, dir=Path.cwd(), unzip=True, delete=False, curl=False, threads=1, retry=3, exist_ok=False):
-    """Downloads files from specified URLs to a given directory. Supports concurrent downloads if multiple threads are
+    """
+    Downloads files from specified URLs to a given directory. Supports concurrent downloads if multiple threads are
     specified.
 
     Args:

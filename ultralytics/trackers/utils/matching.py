@@ -18,7 +18,8 @@ except (ImportError, AssertionError, AttributeError):
 
 
 def linear_assignment(cost_matrix: np.ndarray, thresh: float, use_lap: bool = True) -> tuple:
-    """Perform linear assignment using either the scipy or lap.lapjv method.
+    """
+    Perform linear assignment using either the scipy or lap.lapjv method.
 
     Args:
         cost_matrix (np.ndarray): The matrix containing cost values for assignments, with shape (N, M).
@@ -62,7 +63,8 @@ def linear_assignment(cost_matrix: np.ndarray, thresh: float, use_lap: bool = Tr
 
 
 def iou_distance(atracks: list, btracks: list) -> np.ndarray:
-    """Compute cost based on Intersection over Union (IoU) between tracks.
+    """
+    Compute cost based on Intersection over Union (IoU) between tracks.
 
     Args:
         atracks (list[STrack] | list[np.ndarray]): List of tracks 'a' or bounding boxes.
@@ -101,7 +103,8 @@ def iou_distance(atracks: list, btracks: list) -> np.ndarray:
 
 
 def embedding_distance(tracks: list, detections: list, metric: str = "cosine") -> np.ndarray:
-    """Compute distance between tracks and detections based on embeddings.
+    """
+    Compute distance between tracks and detections based on embeddings.
 
     Args:
         tracks (list[STrack]): List of tracks, where each track contains embedding features.
@@ -130,7 +133,8 @@ def embedding_distance(tracks: list, detections: list, metric: str = "cosine") -
 
 
 def fuse_score(cost_matrix: np.ndarray, detections: list) -> np.ndarray:
-    """Fuses cost matrix with detection scores to produce a single similarity matrix.
+    """
+    Fuses cost matrix with detection scores to produce a single similarity matrix.
 
     Args:
         cost_matrix (np.ndarray): The matrix containing cost values for assignments, with shape (N, M).

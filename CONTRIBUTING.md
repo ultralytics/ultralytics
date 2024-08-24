@@ -63,7 +63,8 @@ This example illustrates a Google-style docstring. Ensure that both input and ou
 
 ```python
 def example_function(arg1, arg2=4):
-    """Example function demonstrating Google-style docstrings.
+    """
+    Example function demonstrating Google-style docstrings.
 
     Args:
         arg1 (int): The first argument.
@@ -86,7 +87,8 @@ This example includes both a Google-style docstring and type hints for arguments
 
 ```python
 def example_function(arg1: int, arg2: int = 4) -> bool:
-    """Example function demonstrating Google-style docstrings.
+    """
+    Example function demonstrating Google-style docstrings.
 
     Args:
         arg1: The first argument.

@@ -8,7 +8,8 @@ from ultralytics.utils import DEFAULT_CFG, ops
 
 
 class OBBPredictor(DetectionPredictor):
-    """A class extending the DetectionPredictor class for prediction based on an Oriented Bounding Box (OBB) model.
+    """
+    A class extending the DetectionPredictor class for prediction based on an Oriented Bounding Box (OBB) model.
 
     Example:
         ```python

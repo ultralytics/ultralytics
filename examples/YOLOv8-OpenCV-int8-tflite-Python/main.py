@@ -89,7 +89,8 @@ class Yolov8TFLite:
     """Class for performing object detection using YOLOv8 model converted to TensorFlow Lite format."""
 
     def __init__(self, tflite_model, input_image, confidence_thres, iou_thres):
-        """Initializes an instance of the Yolov8TFLite class.
+        """
+        Initializes an instance of the Yolov8TFLite class.
 
         Args:
             tflite_model: Path to the TFLite model.
@@ -109,7 +110,8 @@ class Yolov8TFLite:
         self.color_palette = np.random.uniform(0, 255, size=(len(self.classes), 3))
 
     def draw_detections(self, img, box, score, class_id):
-        """Draws bounding boxes and labels on the input image based on the detected objects.
+        """
+        Draws bounding boxes and labels on the input image based on the detected objects.
 
         Args:
             img: The input image to draw detections on.
@@ -152,7 +154,8 @@ class Yolov8TFLite:
         cv2.putText(img, label, (int(label_x), int(label_y)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
 
     def preprocess(self):
-        """Preprocesses the input image before performing inference.
+        """
+        Preprocesses the input image before performing inference.
 
         Returns:
             image_data: Preprocessed image data ready for inference.
@@ -175,7 +178,8 @@ class Yolov8TFLite:
         return image / 255
 
     def postprocess(self, input_image, output):
-        """Performs post-processing on the model's output to extract bounding boxes, scores, and class IDs.
+        """
+        Performs post-processing on the model's output to extract bounding boxes, scores, and class IDs.
 
         Args:
             input_image (numpy.ndarray): The input image.
@@ -222,7 +226,8 @@ class Yolov8TFLite:
         return input_image
 
     def main(self):
-        """Performs inference using a TFLite model and returns the output image with drawn detections.
+        """
+        Performs inference using a TFLite model and returns the output image with drawn detections.
 
         Returns:
             output_img: The output image with drawn detections.

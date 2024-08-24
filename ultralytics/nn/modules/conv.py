@@ -81,7 +81,8 @@ class Conv2(Conv):
 
 
 class LightConv(nn.Module):
-    """Light convolution with args(ch_in, ch_out, kernel).
+    """
+    Light convolution with args(ch_in, ch_out, kernel).
 
     https://github.com/PaddlePaddle/PaddleDetection/blob/develop/ppdet/modeling/backbones/hgnet_v2.py
     """
@@ -144,7 +145,8 @@ class Focus(nn.Module):
         # self.contract = Contract(gain=2)
 
     def forward(self, x):
-        """Applies convolution to concatenated tensor and returns the output.
+        """
+        Applies convolution to concatenated tensor and returns the output.
 
         Input shape is (b,c,w,h) and output shape is (b,4c,w/2,h/2).
         """
@@ -171,7 +173,8 @@ class GhostConv(nn.Module):
 
 
 class RepConv(nn.Module):
-    """RepConv is a basic rep-style block, including training and deploy status.
+    """
+    RepConv is a basic rep-style block, including training and deploy status.
 
     This module is used in RT-DETR.
     Based on https://github.com/DingXiaoH/RepVGG/blob/main/repvgg.py

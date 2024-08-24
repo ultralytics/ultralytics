@@ -19,7 +19,8 @@ from ultralytics.utils import DEFAULT_CFG, LOCAL_RANK, LOGGER, NUM_THREADS, TQDM
 
 
 class BaseDataset(Dataset):
-    """Base dataset class for loading and processing image data.
+    """
+    Base dataset class for loading and processing image data.
 
     Args:
         img_path (str): Path to the folder containing images.
@@ -271,7 +272,8 @@ class BaseDataset(Dataset):
         return label
 
     def build_transforms(self, hyp=None):
-        """Users can customize augmentations here.
+        """
+        Users can customize augmentations here.
 
         Example:
             ```python
@@ -286,7 +288,8 @@ class BaseDataset(Dataset):
         raise NotImplementedError
 
     def get_labels(self):
-        """Users can customize their own format here.
+        """
+        Users can customize their own format here.
 
         Note:
             Ensure output is a dictionary with the following keys:

@@ -13,7 +13,8 @@ from ultralytics.utils.plotting import output_to_target, plot_images
 
 
 class PoseValidator(DetectionValidator):
-    """A class extending the DetectionValidator class for validation based on a pose model.
+    """
+    A class extending the DetectionValidator class for validation based on a pose model.
 
     Example:
         ```python
@@ -156,8 +157,8 @@ class PoseValidator(DetectionValidator):
                 )
 
     def _process_batch(self, detections, gt_bboxes, gt_cls, pred_kpts=None, gt_kpts=None):
-        """Return correct prediction matrix by computing Intersection over Union (IoU) between detections and ground
-        truth.
+        """
+        Return correct prediction matrix by computing Intersection over Union (IoU) between detections and ground truth.
 
         Args:
             detections (torch.Tensor): Tensor with shape (N, 6) representing detection boxes and scores, where each

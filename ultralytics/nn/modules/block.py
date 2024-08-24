@@ -50,7 +50,8 @@ __all__ = (
 
 
 class DFL(nn.Module):
-    """Integral module of Distribution Focal Loss (DFL).
+    """
+    Integral module of Distribution Focal Loss (DFL).
 
     Proposed in Generalized Focal Loss https://ieeexplore.ieee.org/document/9792391
     """
@@ -74,7 +75,8 @@ class Proto(nn.Module):
     """YOLOv8 mask Proto module for segmentation models."""
 
     def __init__(self, c1, c_=256, c2=32):
-        """Initializes the YOLOv8 mask Proto module with specified number of protos and masks.
+        """
+        Initializes the YOLOv8 mask Proto module with specified number of protos and masks.
 
         Input arguments are ch_in, number of protos, number of masks.
         """
@@ -90,7 +92,8 @@ class Proto(nn.Module):
 
 
 class HGStem(nn.Module):
-    """StemBlock of PPHGNetV2 with 5 convolutions and one maxpool2d.
+    """
+    StemBlock of PPHGNetV2 with 5 convolutions and one maxpool2d.
 
     https://github.com/PaddlePaddle/PaddleDetection/blob/develop/ppdet/modeling/backbones/hgnet_v2.py
     """
@@ -120,7 +123,8 @@ class HGStem(nn.Module):
 
 
 class HGBlock(nn.Module):
-    """HG_Block of PPHGNetV2 with 2 convolutions and LightConv.
+    """
+    HG_Block of PPHGNetV2 with 2 convolutions and LightConv.
 
     https://github.com/PaddlePaddle/PaddleDetection/blob/develop/ppdet/modeling/backbones/hgnet_v2.py
     """
@@ -163,7 +167,8 @@ class SPPF(nn.Module):
     """Spatial Pyramid Pooling - Fast (SPPF) layer for YOLOv5 by Glenn Jocher."""
 
     def __init__(self, c1, c2, k=5):
-        """Initializes the SPPF layer with given input/output channels and kernel size.
+        """
+        Initializes the SPPF layer with given input/output channels and kernel size.
 
         This module is equivalent to SPP(k=(5, 9, 13)).
         """
@@ -536,7 +541,8 @@ class ContrastiveHead(nn.Module):
 
 
 class BNContrastiveHead(nn.Module):
-    """Batch Norm Contrastive Head for YOLO-World using batch norm instead of l2-normalization.
+    """
+    Batch Norm Contrastive Head for YOLO-World using batch norm instead of l2-normalization.
 
     Args:
         embed_dims (int): Embed dimensions of text and image features.
@@ -714,7 +720,8 @@ class RepVGGDW(torch.nn.Module):
         self.act = nn.SiLU()
 
     def forward(self, x):
-        """Performs a forward pass of the RepVGGDW block.
+        """
+        Performs a forward pass of the RepVGGDW block.
 
         Args:
             x (torch.Tensor): Input tensor.
@@ -725,7 +732,8 @@ class RepVGGDW(torch.nn.Module):
         return self.act(self.conv(x) + self.conv1(x))
 
     def forward_fuse(self, x):
-        """Performs a forward pass of the RepVGGDW block without fusing the convolutions.
+        """
+        Performs a forward pass of the RepVGGDW block without fusing the convolutions.
 
         Args:
             x (torch.Tensor): Input tensor.
@@ -737,7 +745,8 @@ class RepVGGDW(torch.nn.Module):
 
     @torch.no_grad()
     def fuse(self):
-        """Fuses the convolutional layers in the RepVGGDW block.
+        """
+        Fuses the convolutional layers in the RepVGGDW block.
 
         This method fuses the convolutional layers and updates the weights and biases accordingly.
         """
@@ -762,7 +771,8 @@ class RepVGGDW(torch.nn.Module):
 
 
 class CIB(nn.Module):
-    """Conditional Identity Block (CIB) module.
+    """
+    Conditional Identity Block (CIB) module.
 
     Args:
         c1 (int): Number of input channels.
@@ -787,7 +797,8 @@ class CIB(nn.Module):
         self.add = shortcut and c1 == c2
 
     def forward(self, x):
-        """Forward pass of the CIB module.
+        """
+        Forward pass of the CIB module.
 
         Args:
             x (torch.Tensor): Input tensor.
@@ -799,7 +810,8 @@ class CIB(nn.Module):
 
 
 class C2fCIB(C2f):
-    """C2fCIB class represents a convolutional block with C2f and CIB modules.
+    """
+    C2fCIB class represents a convolutional block with C2f and CIB modules.
 
     Args:
         c1 (int): Number of input channels.
@@ -818,7 +830,8 @@ class C2fCIB(C2f):
 
 
 class Attention(nn.Module):
-    """Attention module that performs self-attention on the input tensor.
+    """
+    Attention module that performs self-attention on the input tensor.
 
     Args:
         dim (int): The input tensor dimension.
@@ -849,7 +862,8 @@ class Attention(nn.Module):
         self.pe = Conv(dim, dim, 3, 1, g=dim, act=False)
 
     def forward(self, x):
-        """Forward pass of the Attention module.
+        """
+        Forward pass of the Attention module.
 
         Args:
             x (torch.Tensor): The input tensor.
@@ -872,7 +886,8 @@ class Attention(nn.Module):
 
 
 class PSA(nn.Module):
-    """Position-wise Spatial Attention module.
+    """
+    Position-wise Spatial Attention module.
 
     Args:
         c1 (int): Number of input channels.
@@ -899,7 +914,8 @@ class PSA(nn.Module):
         self.ffn = nn.Sequential(Conv(self.c, self.c * 2, 1), Conv(self.c * 2, self.c, 1, act=False))
 
     def forward(self, x):
-        """Forward pass of the PSA module.
+        """
+        Forward pass of the PSA module.
 
         Args:
             x (torch.Tensor): Input tensor.
@@ -917,7 +933,8 @@ class SCDown(nn.Module):
     """Spatial Channel Downsample (SCDown) module for reducing spatial and channel dimensions."""
 
     def __init__(self, c1, c2, k, s):
-        """Spatial Channel Downsample (SCDown) module.
+        """
+        Spatial Channel Downsample (SCDown) module.
 
         Args:
             c1 (int): Number of input channels.
@@ -930,7 +947,8 @@ class SCDown(nn.Module):
         self.cv2 = Conv(c2, c2, k=k, s=s, g=c2, act=False)
 
     def forward(self, x):
-        """Forward pass of the SCDown module.
+        """
+        Forward pass of the SCDown module.
 
         Args:
             x (torch.Tensor): Input tensor.

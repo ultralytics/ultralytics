@@ -31,7 +31,8 @@ class SourceTypes:
 
 
 class LoadStreams:
-    """Stream Loader for various types of video streams, Supports RTSP, RTMP, HTTP, and TCP streams.
+    """
+    Stream Loader for various types of video streams, Supports RTSP, RTMP, HTTP, and TCP streams.
 
     Attributes:
         sources (str): The source input paths or URLs for the video streams.
@@ -183,7 +184,8 @@ class LoadStreams:
 
 
 class LoadScreenshots:
-    """YOLOv8 screenshot dataloader.
+    """
+    YOLOv8 screenshot dataloader.
 
     This class manages the loading of screenshot images for processing with YOLOv8.
     Suitable for use with `yolo predict source=screen`.
@@ -247,7 +249,8 @@ class LoadScreenshots:
 
 
 class LoadImagesAndVideos:
-    """YOLOv8 image/video dataloader.
+    """
+    YOLOv8 image/video dataloader.
 
     This class manages the loading and pre-processing of image and video data for YOLOv8. It supports loading from
     various formats, including single image files, video files, and lists of image and video paths.
@@ -385,7 +388,8 @@ class LoadImagesAndVideos:
 
 
 class LoadPilAndNumpy:
-    """Load images from PIL and Numpy arrays for batch processing.
+    """
+    Load images from PIL and Numpy arrays for batch processing.
 
     This class is designed to manage loading and pre-processing of image data from both PIL and Numpy formats.
     It performs basic validation and format conversion to ensure that the images are in the required format for
@@ -439,7 +443,8 @@ class LoadPilAndNumpy:
 
 
 class LoadTensor:
-    """Load images from torch.Tensor data.
+    """
+    Load images from torch.Tensor data.
 
     This class manages the loading and pre-processing of image data from PyTorch tensors for further processing.
 
@@ -519,7 +524,8 @@ def autocast_list(source):
 
 
 def get_best_youtube_url(url, method="pytube"):
-    """Retrieves the URL of the best quality MP4 video stream from a given YouTube video.
+    """
+    Retrieves the URL of the best quality MP4 video stream from a given YouTube video.
 
     This function uses the specified method to extract the video info from YouTube. It supports the following methods:
     - "pytube": Uses the pytube library to fetch the video streams.

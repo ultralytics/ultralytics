@@ -15,7 +15,8 @@ class YOLOv8Seg:
     """YOLOv8 segmentation model."""
 
     def __init__(self, onnx_model):
-        """Initialization.
+        """
+        Initialization.
 
         Args:
             onnx_model (str): Path to the ONNX model.
@@ -41,7 +42,8 @@ class YOLOv8Seg:
         self.color_palette = Colors()
 
     def __call__(self, im0, conf_threshold=0.4, iou_threshold=0.45, nm=32):
-        """The whole pipeline: pre-process -> inference -> post-process.
+        """
+        The whole pipeline: pre-process -> inference -> post-process.
 
         Args:
             im0 (Numpy.ndarray): original input image.
@@ -74,7 +76,8 @@ class YOLOv8Seg:
         return boxes, segments, masks
 
     def preprocess(self, img):
-        """Pre-processes the input image.
+        """
+        Pre-processes the input image.
 
         Args:
             img (Numpy.ndarray): image about to be processed.
@@ -104,7 +107,8 @@ class YOLOv8Seg:
         return img_process, ratio, (pad_w, pad_h)
 
     def postprocess(self, preds, im0, ratio, pad_w, pad_h, conf_threshold, iou_threshold, nm=32):
-        """Post-process the prediction.
+        """
+        Post-process the prediction.
 
         Args:
             preds (Numpy.ndarray): predictions come from ort.session.run().
@@ -161,7 +165,8 @@ class YOLOv8Seg:
 
     @staticmethod
     def masks2segments(masks):
-        """Takes a list of masks(n,h,w) and returns a list of segments(n,xy), from
+        """
+        Takes a list of masks(n,h,w) and returns a list of segments(n,xy), from
         https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/ops.py.
 
         Args:
@@ -182,7 +187,8 @@ class YOLOv8Seg:
 
     @staticmethod
     def crop_mask(masks, boxes):
-        """Takes a mask and a bounding box, and returns a mask that is cropped to the bounding box, from
+        """
+        Takes a mask and a bounding box, and returns a mask that is cropped to the bounding box, from
         https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/ops.py.
 
         Args:
@@ -199,7 +205,8 @@ class YOLOv8Seg:
         return masks * ((r >= x1) * (r < x2) * (c >= y1) * (c < y2))
 
     def process_mask(self, protos, masks_in, bboxes, im0_shape):
-        """Takes the output of the mask head, and applies the mask to the bounding boxes. This produces masks of higher
+        """
+        Takes the output of the mask head, and applies the mask to the bounding boxes. This produces masks of higher
         quality but is slower, from https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/ops.py.
 
         Args:
@@ -221,7 +228,8 @@ class YOLOv8Seg:
 
     @staticmethod
     def scale_mask(masks, im0_shape, ratio_pad=None):
-        """Takes a mask, and resizes it to the original image size, from
+        """
+        Takes a mask, and resizes it to the original image size, from
         https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/ops.py.
 
         Args:
@@ -253,7 +261,8 @@ class YOLOv8Seg:
         return masks
 
     def draw_and_visualize(self, im, bboxes, segments, vis=False, save=True):
-        """Draw and visualize results.
+        """
+        Draw and visualize results.
 
         Args:
             im (np.ndarray): original image, shape [h, w, c].

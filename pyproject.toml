@@ -180,6 +180,7 @@ convention = "google"
 [tool.docformatter]
 wrap-summaries = 120
 wrap-descriptions = 120
+close-quotes-on-newline = true
 in-place = true
 
 [tool.codespell]

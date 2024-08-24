@@ -168,9 +168,6 @@ class SimpleClass:
     This class provides a foundation for creating objects that can be easily printed or represented as strings,
     showing all their non-callable attributes. It's useful for debugging and introspection of object states.
     
-    Attributes:
-        There are no predefined attributes for this class. Attributes are dynamically added to instances.
-    
     Methods:
         __str__: Returns a human-readable string representation of the object.
         __repr__: Returns a machine-readable string representation of the object.
@@ -224,9 +221,6 @@ class IterableSimpleNamespace(SimpleNamespace):
     This class extends the SimpleNamespace class with additional methods for iteration, string representation,
     and attribute access. It is designed to be used as a convenient container for storing and accessing
     configuration parameters.
-    
-    Attributes:
-        Any user-defined attributes can be added and accessed.
     
     Methods:
         __iter__: Returns an iterator of key-value pairs from the namespace's attributes.

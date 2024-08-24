@@ -1005,7 +1005,6 @@ class RandomPerspective:
             >>> transform = RandomPerspective(degrees=10.0, translate=0.1, scale=0.5, shear=5.0)
             >>> result = transform(labels)  # Apply random perspective to labels
         """
-
         self.degrees = degrees
         self.translate = translate
         self.scale = scale
@@ -1038,7 +1037,6 @@ class RandomPerspective:
             >>> border = (10, 10)
             >>> transformed_img, matrix, scale = affine_transform(img, border)
         """
-
         # Center
         C = np.eye(3, dtype=np.float32)
 

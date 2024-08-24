@@ -65,7 +65,6 @@ def parse_requirements(file_path=ROOT.parent / "requirements.txt", package=""):
         parse_requirements(package="ultralytics")
         ```
     """
-
     if package:
         requires = [x for x in metadata.distribution(package).requires if "extra == " not in x]
     else:
@@ -257,7 +256,7 @@ def check_latest_pypi_version(package_name="ultralytics"):
     """
     Returns the latest version of a PyPI package without downloading or installing it.
 
-    Parameters:
+    Args:
         package_name (str): The name of the package to find the latest version for.
 
     Returns:
@@ -362,7 +361,6 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
         check_requirements(["numpy", "ultralytics>=8.0.0"])
         ```
     """
-
     prefix = colorstr("red", "bold", "requirements:")
     check_python()  # check python version
     check_torchvision()  # check torch-torchvision compatibility
@@ -422,7 +420,6 @@ def check_torchvision():
     The compatibility table is a dictionary where the keys are PyTorch versions and the values are lists of compatible
     Torchvision versions.
     """
-
     # Compatibility table
     compatibility_table = {
         "2.3": ["0.18"],
@@ -622,9 +619,9 @@ def collect_system_info():
 
 def check_amp(model):
     """
-    This function checks the PyTorch Automatic Mixed Precision (AMP) functionality of a YOLOv8 model. If the checks
-    fail, it means there are anomalies with AMP on the system that may cause NaN losses or zero-mAP results, so AMP will
-    be disabled during training.
+    Checks the PyTorch Automatic Mixed Precision (AMP) functionality of a YOLOv8 model. If the checks fail, it means
+    there are anomalies with AMP on the system that may cause NaN losses or zero-mAP results, so AMP will be disabled
+    during training.
 
     Args:
         model (nn.Module): A YOLOv8 model instance.

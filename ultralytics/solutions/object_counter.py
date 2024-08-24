@@ -53,7 +53,6 @@ class ObjectCounter:
             line_dist_thresh (int): Euclidean distance threshold for line counter.
             cls_txtdisplay_gap (int): Display gap between each class count.
         """
-
         # Mouse events
         self.is_drawing = False
         self.selected_point = None
@@ -141,7 +140,6 @@ class ObjectCounter:
 
     def extract_and_process_tracks(self, tracks):
         """Extracts and processes tracks for object counting in a video stream."""
-
         # Annotator Init and region drawing
         self.annotator = Annotator(self.im0, self.tf, self.names)
 

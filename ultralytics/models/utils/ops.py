@@ -33,7 +33,6 @@ class HungarianMatcher(nn.Module):
 
     def __init__(self, cost_gain=None, use_fl=True, with_mask=False, num_sample_points=12544, alpha=0.25, gamma=2.0):
         """Initializes a HungarianMatcher module for optimal assignment of predicted and ground truth bounding boxes."""
-
         super().__init__()
         if cost_gain is None:
             cost_gain = {"class": 1, "bbox": 5, "giou": 2, "mask": 1, "dice": 1}

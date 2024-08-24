@@ -390,8 +390,7 @@ class ProfileModels:
         return [Path(file) for file in sorted(files)]
 
     def get_onnx_model_info(self, onnx_file: str):
-        """Extracts metadata from an ONNX model file including parameters, GFLOPs, and input shape"""
-
+        """Extracts metadata from an ONNX model file including parameters, GFLOPs, and input shape."""
         return 0.0, 0.0, 0.0, 0.0  # return (num_layers, num_params, num_gradients, num_flops)
 
     @staticmethod
@@ -437,7 +436,6 @@ class ProfileModels:
 
     def profile_onnx_model(self, onnx_file: str, eps: float = 1e-3):
         """Profiles an ONNX model, measuring average inference time and standard deviation across multiple runs."""
-
         check_requirements("onnxruntime")
         import onnxruntime as ort
 

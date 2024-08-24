@@ -267,7 +267,6 @@ class Classify(nn.Module):
 
     def __init__(self, c1, c2, k=1, s=1, p=None, g=1):
         """Initializes YOLOv8 classification head to transform input tensor from (b,c1,20,20) to (b,c2) shape."""
-
         super().__init__()
         c_ = 1280  # efficientnet_b0 size
         self.conv = Conv(c1, c_, k, s, p, g)

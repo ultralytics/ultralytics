@@ -159,7 +159,6 @@ class GhostConv(nn.Module):
 
     def __init__(self, c1, c2, k=1, s=1, g=1, act=True):
         """Initializes Ghost Convolution module with primary and cheap operations for efficient feature learning."""
-
         super().__init__()
         c_ = c2 // 2  # hidden channels
         self.cv1 = Conv(c1, c_, k, s, None, g, act=act)

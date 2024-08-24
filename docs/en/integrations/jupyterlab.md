@@ -117,7 +117,7 @@ To train a YOLOv8 model using JupyterLab:
 
 1. Install JupyterLab and the Ultralytics package:
 
-    ```python
+    ```bash
     pip install jupyterlab ultralytics
     ```
 

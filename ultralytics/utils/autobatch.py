@@ -22,7 +22,6 @@ def check_train_batch_size(model, imgsz=640, amp=True, batch=-1):
     Returns:
         (int): Optimal batch size computed using the autobatch() function.
     """
-
     with autocast(enabled=amp):
         return autobatch(deepcopy(model).train(), imgsz, fraction=batch if 0.0 < batch < 1.0 else 0.6)
 
@@ -40,7 +39,6 @@ def autobatch(model, imgsz=640, fraction=0.60, batch_size=DEFAULT_CFG.batch):
     Returns:
         (int): The optimal batch size.
     """
-
     # Check device
     prefix = colorstr("AutoBatch: ")
     LOGGER.info(f"{prefix}Computing optimal batch size for imgsz={imgsz} at {fraction * 100}% CUDA memory utilization.")

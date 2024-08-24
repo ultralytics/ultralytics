@@ -21,7 +21,6 @@ class YOLOv8Seg:
         Args:
             onnx_model (str): Path to the ONNX model.
         """
-
         # Build Ort session
         self.session = ort.InferenceSession(
             onnx_model,
@@ -57,7 +56,6 @@ class YOLOv8Seg:
             segments (List): list of segments.
             masks (np.ndarray): [N, H, W], output masks.
         """
-
         # Pre-process
         im, ratio, (pad_w, pad_h) = self.preprocess(im0)
 
@@ -90,7 +88,6 @@ class YOLOv8Seg:
             pad_w (float): width padding in letterbox.
             pad_h (float): height padding in letterbox.
         """
-
         # Resize and pad input image using letterbox() (Borrowed from Ultralytics)
         shape = img.shape[:2]  # original image shape
         new_shape = (self.model_height, self.model_width)
@@ -277,7 +274,6 @@ class YOLOv8Seg:
         Returns:
             None
         """
-
         # Draw rectangles and polygons
         im_canvas = im.copy()
         for (*box, conf, cls_), segment in zip(bboxes, segments):

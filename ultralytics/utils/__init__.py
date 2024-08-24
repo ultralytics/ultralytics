@@ -209,7 +209,6 @@ def plt_settings(rcparams=None, backend="Agg"):
         (Callable): Decorated function with temporarily set rc parameters and backend. This decorator can be
             applied to any function that needs to have specific matplotlib rc parameters and backend for its execution.
     """
-
     if rcparams is None:
         rcparams = {"font.size": 11}
 

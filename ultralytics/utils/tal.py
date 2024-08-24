@@ -209,7 +209,8 @@ class TaskAlignedAssigner(nn.Module):
 
     @staticmethod
     def select_candidates_in_gts(xy_centers, gt_bboxes, eps=1e-9):
-        """Select positive anchor centers within ground truth bounding boxes.
+        """
+        Select positive anchor centers within ground truth bounding boxes.
 
         Args:
             xy_centers (torch.Tensor): Anchor center coordinates, shape (h*w, 2).

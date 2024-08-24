@@ -20,8 +20,7 @@ class DistanceCalculation:
         line_color=(255, 255, 0),
         centroid_color=(255, 0, 255),
     ):
-        """
-        Initializes the DistanceCalculation class with the given parameters.
+        """Initializes the DistanceCalculation class with the given parameters.
 
         Args:
             names (dict): Dictionary of classes names.
@@ -57,8 +56,7 @@ class DistanceCalculation:
         self.env_check = check_imshow(warn=True)
 
     def mouse_event_for_distance(self, event, x, y, flags, param):
-        """
-        Handles mouse events to select regions in a real-time video stream.
+        """Handles mouse events to select regions in a real-time video stream.
 
         Args:
             event (int): Type of mouse event (e.g., cv2.EVENT_MOUSEMOVE, cv2.EVENT_LBUTTONDOWN, etc.).
@@ -79,8 +77,7 @@ class DistanceCalculation:
             self.left_mouse_count = 0
 
     def extract_tracks(self, tracks):
-        """
-        Extracts tracking results from the provided data.
+        """Extracts tracking results from the provided data.
 
         Args:
             tracks (list): List of tracks obtained from the object tracking process.
@@ -91,8 +88,7 @@ class DistanceCalculation:
 
     @staticmethod
     def calculate_centroid(box):
-        """
-        Calculates the centroid of a bounding box.
+        """Calculates the centroid of a bounding box.
 
         Args:
             box (list): Bounding box coordinates [x1, y1, x2, y2].
@@ -103,8 +99,7 @@ class DistanceCalculation:
         return int((box[0] + box[2]) // 2), int((box[1] + box[3]) // 2)
 
     def calculate_distance(self, centroid1, centroid2):
-        """
-        Calculates the distance between two centroids.
+        """Calculates the distance between two centroids.
 
         Args:
             centroid1 (tuple): Coordinates of the first centroid (x, y).
@@ -119,8 +114,7 @@ class DistanceCalculation:
         return distance_m, distance_mm
 
     def start_process(self, im0, tracks):
-        """
-        Processes the video frame and calculates the distance between two bounding boxes.
+        """Processes the video frame and calculates the distance between two bounding boxes.
 
         Args:
             im0 (ndarray): The image frame.

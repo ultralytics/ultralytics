@@ -24,8 +24,7 @@ __all__ = (
 
 
 def login(api_key: str = None, save=True) -> bool:
-    """
-    Log in to the Ultralytics HUB API using the provided API key.
+    """Log in to the Ultralytics HUB API using the provided API key.
 
     The session is not stored; a new session is created when needed using the saved SETTINGS or the HUB_API_KEY
     environment variable if successfully authenticated.
@@ -68,8 +67,7 @@ def login(api_key: str = None, save=True) -> bool:
 
 
 def logout():
-    """
-    Log out of Ultralytics HUB by removing the API key from the settings file. To log in again, use 'yolo hub login'.
+    """Log out of Ultralytics HUB by removing the API key from the settings file. To log in again, use 'yolo hub login'.
 
     Example:
         ```python
@@ -122,8 +120,7 @@ def get_export(model_id="", format="torchscript"):
 
 
 def check_dataset(path: str, task: str) -> None:
-    """
-    Function for error-checking HUB dataset Zip file before upload. It checks a dataset for errors before it is uploaded
+    """Function for error-checking HUB dataset Zip file before upload. It checks a dataset for errors before it is uploaded
     to the HUB. Usage examples are given below.
 
     Args:

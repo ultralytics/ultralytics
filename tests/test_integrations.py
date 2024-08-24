@@ -62,8 +62,7 @@ def test_mlflow_keep_run_active():
 
 @pytest.mark.skipif(not check_requirements("tritonclient", install=False), reason="tritonclient[all] not installed")
 def test_triton():
-    """
-    Test NVIDIA Triton Server functionalities with YOLO model.
+    """Test NVIDIA Triton Server functionalities with YOLO model.
 
     See https://catalog.ngc.nvidia.com/orgs/nvidia/containers/tritonserver.
     """

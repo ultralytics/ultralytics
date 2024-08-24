@@ -88,8 +88,7 @@ class BaseModel(nn.Module):
     """The BaseModel class serves as a base class for all the models in the Ultralytics YOLO family."""
 
     def forward(self, x, *args, **kwargs):
-        """
-        Perform forward pass of the model for either training or inference.
+        """Perform forward pass of the model for either training or inference.
 
         If x is a dict, calculates and returns the loss for training. Otherwise, returns predictions for inference.
 
@@ -106,8 +105,7 @@ class BaseModel(nn.Module):
         return self.predict(x, *args, **kwargs)
 
     def predict(self, x, profile=False, visualize=False, augment=False, embed=None):
-        """
-        Perform a forward pass through the network.
+        """Perform a forward pass through the network.
 
         Args:
             x (torch.Tensor): The input tensor to the model.
@@ -124,8 +122,7 @@ class BaseModel(nn.Module):
         return self._predict_once(x, profile, visualize, embed)
 
     def _predict_once(self, x, profile=False, visualize=False, embed=None):
-        """
-        Perform a forward pass through the network.
+        """Perform a forward pass through the network.
 
         Args:
             x (torch.Tensor): The input tensor to the model.
@@ -161,8 +158,7 @@ class BaseModel(nn.Module):
         return self._predict_once(x)
 
     def _profile_one_layer(self, m, x, dt):
-        """
-        Profile the computation time and FLOPs of a single layer of the model on a given input. Appends the results to
+        """Profile the computation time and FLOPs of a single layer of the model on a given input. Appends the results to
         the provided list.
 
         Args:
@@ -186,8 +182,7 @@ class BaseModel(nn.Module):
             LOGGER.info(f"{sum(dt):10.2f} {'-':>10s} {'-':>10s}  Total")
 
     def fuse(self, verbose=True):
-        """
-        Fuse the `Conv2d()` and `BatchNorm2d()` layers of the model into a single layer, in order to improve the
+        """Fuse the `Conv2d()` and `BatchNorm2d()` layers of the model into a single layer, in order to improve the
         computation efficiency.
 
         Returns:
@@ -216,8 +211,7 @@ class BaseModel(nn.Module):
         return self
 
     def is_fused(self, thresh=10):
-        """
-        Check if the model has less than a certain threshold of BatchNorm layers.
+        """Check if the model has less than a certain threshold of BatchNorm layers.
 
         Args:
             thresh (int, optional): The threshold number of BatchNorm layers. Default is 10.
@@ -229,8 +223,7 @@ class BaseModel(nn.Module):
         return sum(isinstance(v, bn) for v in self.modules()) < thresh  # True if < 'thresh' BatchNorm layers in model
 
     def info(self, detailed=False, verbose=True, imgsz=640):
-        """
-        Prints model information.
+        """Prints model information.
 
         Args:
             detailed (bool): if True, prints out detailed information about the model. Defaults to False
@@ -240,8 +233,7 @@ class BaseModel(nn.Module):
         return model_info(self, detailed=detailed, verbose=verbose, imgsz=imgsz)
 
     def _apply(self, fn):
-        """
-        Applies a function to all the tensors in the model that are not parameters or registered buffers.
+        """Applies a function to all the tensors in the model that are not parameters or registered buffers.
 
         Args:
             fn (function): the function to apply to the model
@@ -258,8 +250,7 @@ class BaseModel(nn.Module):
         return self
 
     def load(self, weights, verbose=True):
-        """
-        Load the weights into the model.
+        """Load the weights into the model.
 
         Args:
             weights (dict | torch.nn.Module): The pre-trained weights to be loaded.
@@ -273,8 +264,7 @@ class BaseModel(nn.Module):
             LOGGER.info(f"Transferred {len(csd)}/{len(self.model.state_dict())} items from pretrained weights")
 
     def loss(self, batch, preds=None):
-        """
-        Compute loss.
+        """Compute loss.
 
         Args:
             batch (dict): Batch to compute loss on
@@ -478,8 +468,7 @@ class ClassificationModel(BaseModel):
 
 
 class RTDETRDetectionModel(DetectionModel):
-    """
-    RTDETR (Real-time DEtection and Tracking using Transformers) Detection Model class.
+    """RTDETR (Real-time DEtection and Tracking using Transformers) Detection Model class.
 
     This class is responsible for constructing the RTDETR architecture, defining loss functions, and facilitating both
     the training and inference processes. RTDETR is an object detection and tracking model that extends from the
@@ -498,8 +487,7 @@ class RTDETRDetectionModel(DetectionModel):
     """
 
     def __init__(self, cfg="rtdetr-l.yaml", ch=3, nc=None, verbose=True):
-        """
-        Initialize the RTDETRDetectionModel.
+        """Initialize the RTDETRDetectionModel.
 
         Args:
             cfg (str): Configuration file name or path.
@@ -516,8 +504,7 @@ class RTDETRDetectionModel(DetectionModel):
         return RTDETRDetectionLoss(nc=self.nc, use_vfl=True)
 
     def loss(self, batch, preds=None):
-        """
-        Compute the loss for the given batch of data.
+        """Compute the loss for the given batch of data.
 
         Args:
             batch (dict): Dictionary containing image and label data.
@@ -561,8 +548,7 @@ class RTDETRDetectionModel(DetectionModel):
         )
 
     def predict(self, x, profile=False, visualize=False, batch=None, augment=False, embed=None):
-        """
-        Perform a forward pass through the model.
+        """Perform a forward pass through the model.
 
         Args:
             x (torch.Tensor): The input tensor.
@@ -625,8 +611,7 @@ class WorldModel(DetectionModel):
         self.model[-1].nc = len(text)
 
     def predict(self, x, profile=False, visualize=False, txt_feats=None, augment=False, embed=None):
-        """
-        Perform a forward pass through the model.
+        """Perform a forward pass through the model.
 
         Args:
             x (torch.Tensor): The input tensor.
@@ -668,8 +653,7 @@ class WorldModel(DetectionModel):
         return x
 
     def loss(self, batch, preds=None):
-        """
-        Compute loss.
+        """Compute loss.
 
         Args:
             batch (dict): Batch to compute loss on.
@@ -704,8 +688,7 @@ class Ensemble(nn.ModuleList):
 
 @contextlib.contextmanager
 def temporary_modules(modules=None, attributes=None):
-    """
-    Context manager for temporarily adding or modifying modules in Python's module cache (`sys.modules`).
+    """Context manager for temporarily adding or modifying modules in Python's module cache (`sys.modules`).
 
     This function can be used to change the module paths during runtime. It's useful when refactoring code,
     where you've moved a module from one location to another, but you still want to support the old import
@@ -754,8 +737,7 @@ def temporary_modules(modules=None, attributes=None):
 
 
 def torch_safe_load(weight):
-    """
-    This function attempts to load a PyTorch model with the torch.load() function. If a ModuleNotFoundError is raised,
+    """This function attempts to load a PyTorch model with the torch.load() function. If a ModuleNotFoundError is raised,
     it catches the error, logs a warning message, and attempts to install the missing module via the
     check_requirements() function. After installation, the function again attempts to load the model using torch.load().
 
@@ -1017,8 +999,7 @@ def yaml_model_load(path):
 
 
 def guess_model_scale(model_path):
-    """
-    Takes a path to a YOLO model's YAML file as input and extracts the size character of the model's scale. The function
+    """Takes a path to a YOLO model's YAML file as input and extracts the size character of the model's scale. The function
     uses regular expression matching to find the pattern of the model scale in the YAML file name, which is denoted by
     n, s, m, l, or x. The function returns the size character of the model scale as a string.
 
@@ -1036,8 +1017,7 @@ def guess_model_scale(model_path):
 
 
 def guess_model_task(model):
-    """
-    Guess the task of a PyTorch model from its architecture or configuration.
+    """Guess the task of a PyTorch model from its architecture or configuration.
 
     Args:
         model (nn.Module | dict): PyTorch model or model configuration in YAML format.

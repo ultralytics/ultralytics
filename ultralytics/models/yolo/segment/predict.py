@@ -6,8 +6,7 @@ from ultralytics.utils import DEFAULT_CFG, ops
 
 
 class SegmentationPredictor(DetectionPredictor):
-    """
-    A class extending the DetectionPredictor class for prediction based on a segmentation model.
+    """A class extending the DetectionPredictor class for prediction based on a segmentation model.
 
     Example:
         ```python

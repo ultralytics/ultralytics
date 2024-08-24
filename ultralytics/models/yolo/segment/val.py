@@ -15,8 +15,7 @@ from ultralytics.utils.plotting import output_to_target, plot_images
 
 
 class SegmentationValidator(DetectionValidator):
-    """
-    A class extending the DetectionValidator class for validation based on a segmentation model.
+    """A class extending the DetectionValidator class for validation based on a segmentation model.
 
     Example:
         ```python
@@ -171,8 +170,7 @@ class SegmentationValidator(DetectionValidator):
         self.metrics.confusion_matrix = self.confusion_matrix
 
     def _process_batch(self, detections, gt_bboxes, gt_cls, pred_masks=None, gt_masks=None, overlap=False, masks=False):
-        """
-        Compute correct prediction matrix for a batch based on bounding boxes and optional masks.
+        """Compute correct prediction matrix for a batch based on bounding boxes and optional masks.
 
         Args:
             detections (torch.Tensor): Tensor of shape (N, 6) representing detected bounding boxes and
@@ -256,8 +254,7 @@ class SegmentationValidator(DetectionValidator):
         ).save_txt(file, save_conf=save_conf)
 
     def pred_to_json(self, predn, filename, pred_masks):
-        """
-        Save one JSON result.
+        """Save one JSON result.
 
         Examples:
              >>> result = {"image_id": 42, "category_id": 18, "bbox": [258.15, 41.29, 348.26, 243.78], "score": 0.236}

@@ -115,8 +115,7 @@ os.environ["KINETO_LOG_LEVEL"] = "5"  # suppress verbose PyTorch profiler output
 
 
 class TQDM(tqdm_original):
-    """
-    Custom Ultralytics tqdm class with different default arguments.
+    """Custom Ultralytics tqdm class with different default arguments.
 
     Args:
         *args (list): Positional arguments passed to original tqdm.
@@ -124,8 +123,7 @@ class TQDM(tqdm_original):
     """
 
     def __init__(self, *args, **kwargs):
-        """
-        Initialize custom Ultralytics tqdm class with different default arguments.
+        """Initialize custom Ultralytics tqdm class with different default arguments.
 
         Note these can still be overridden when calling TQDM.
         """
@@ -194,8 +192,7 @@ class IterableSimpleNamespace(SimpleNamespace):
 
 
 def plt_settings(rcparams=None, backend="Agg"):
-    """
-    Decorator to temporarily set rc parameters and the backend for a plotting function.
+    """Decorator to temporarily set rc parameters and the backend for a plotting function.
 
     Example:
         decorator: @plt_settings({"font.size": 12})
@@ -293,8 +290,7 @@ def emojis(string=""):
 
 
 class ThreadingLocked:
-    """
-    A decorator class for ensuring thread-safe execution of a function or method. This class can be used as a decorator
+    """A decorator class for ensuring thread-safe execution of a function or method. This class can be used as a decorator
     to make sure that if the decorated function is called from multiple threads, only one thread at a time will be able
     to execute the function.
 
@@ -329,8 +325,7 @@ class ThreadingLocked:
 
 
 def yaml_save(file="data.yaml", data=None, header=""):
-    """
-    Save YAML data to a file.
+    """Save YAML data to a file.
 
     Args:
         file (str, optional): File name. Default is 'data.yaml'.
@@ -361,8 +356,7 @@ def yaml_save(file="data.yaml", data=None, header=""):
 
 
 def yaml_load(file="data.yaml", append_filename=False):
-    """
-    Load YAML data from a file.
+    """Load YAML data from a file.
 
     Args:
         file (str, optional): File name. Default is 'data.yaml'.
@@ -387,8 +381,7 @@ def yaml_load(file="data.yaml", append_filename=False):
 
 
 def yaml_print(yaml_file: Union[str, Path, dict]) -> None:
-    """
-    Pretty prints a YAML file or a YAML-formatted dictionary.
+    """Pretty prints a YAML file or a YAML-formatted dictionary.
 
     Args:
         yaml_file: The file path of the YAML file or a YAML-formatted dictionary.
@@ -411,8 +404,7 @@ DEFAULT_CFG = IterableSimpleNamespace(**DEFAULT_CFG_DICT)
 
 
 def read_device_model() -> str:
-    """
-    Reads the device model information from the system and caches it for quick access. Used by is_jetson() and
+    """Reads the device model information from the system and caches it for quick access. Used by is_jetson() and
     is_raspberrypi().
 
     Returns:
@@ -425,8 +417,7 @@ def read_device_model() -> str:
 
 
 def is_ubuntu() -> bool:
-    """
-    Check if the OS is Ubuntu.
+    """Check if the OS is Ubuntu.
 
     Returns:
         (bool): True if OS is Ubuntu, False otherwise.
@@ -438,8 +429,7 @@ def is_ubuntu() -> bool:
 
 
 def is_colab():
-    """
-    Check if the current script is running inside a Google Colab notebook.
+    """Check if the current script is running inside a Google Colab notebook.
 
     Returns:
         (bool): True if running inside a Colab notebook, False otherwise.
@@ -448,8 +438,7 @@ def is_colab():
 
 
 def is_kaggle():
-    """
-    Check if the current script is running inside a Kaggle kernel.
+    """Check if the current script is running inside a Kaggle kernel.
 
     Returns:
         (bool): True if running inside a Kaggle kernel, False otherwise.
@@ -458,8 +447,7 @@ def is_kaggle():
 
 
 def is_jupyter():
-    """
-    Check if the current script is running inside a Jupyter Notebook. Verified on Colab, Jupyterlab, Kaggle, Paperspace.
+    """Check if the current script is running inside a Jupyter Notebook. Verified on Colab, Jupyterlab, Kaggle, Paperspace.
 
     Returns:
         (bool): True if running inside a Jupyter Notebook, False otherwise.
@@ -472,8 +460,7 @@ def is_jupyter():
 
 
 def is_docker() -> bool:
-    """
-    Determine if the script is running inside a Docker container.
+    """Determine if the script is running inside a Docker container.
 
     Returns:
         (bool): True if the script is running inside a Docker container, False otherwise.
@@ -485,8 +472,7 @@ def is_docker() -> bool:
 
 
 def is_raspberrypi() -> bool:
-    """
-    Determines if the Python environment is running on a Raspberry Pi by checking the device model information.
+    """Determines if the Python environment is running on a Raspberry Pi by checking the device model information.
 
     Returns:
         (bool): True if running on a Raspberry Pi, False otherwise.
@@ -495,8 +481,7 @@ def is_raspberrypi() -> bool:
 
 
 def is_jetson() -> bool:
-    """
-    Determines if the Python environment is running on a Jetson Nano or Jetson Orin device by checking the device model
+    """Determines if the Python environment is running on a Jetson Nano or Jetson Orin device by checking the device model
     information.
 
     Returns:
@@ -506,8 +491,7 @@ def is_jetson() -> bool:
 
 
 def is_online() -> bool:
-    """
-    Check internet connectivity by attempting to connect to a known online host.
+    """Check internet connectivity by attempting to connect to a known online host.
 
     Returns:
         (bool): True if connection is successful, False otherwise.
@@ -523,8 +507,7 @@ def is_online() -> bool:
 
 
 def is_pip_package(filepath: str = __name__) -> bool:
-    """
-    Determines if the file at the given filepath is part of a pip package.
+    """Determines if the file at the given filepath is part of a pip package.
 
     Args:
         filepath (str): The filepath to check.
@@ -542,8 +525,7 @@ def is_pip_package(filepath: str = __name__) -> bool:
 
 
 def is_dir_writeable(dir_path: Union[str, Path]) -> bool:
-    """
-    Check if a directory is writeable.
+    """Check if a directory is writeable.
 
     Args:
         dir_path (str | Path): The path to the directory.
@@ -555,8 +537,7 @@ def is_dir_writeable(dir_path: Union[str, Path]) -> bool:
 
 
 def is_pytest_running():
-    """
-    Determines whether pytest is currently running or not.
+    """Determines whether pytest is currently running or not.
 
     Returns:
         (bool): True if pytest is running, False otherwise.
@@ -565,8 +546,7 @@ def is_pytest_running():
 
 
 def is_github_action_running() -> bool:
-    """
-    Determine if the current environment is a GitHub Actions runner.
+    """Determine if the current environment is a GitHub Actions runner.
 
     Returns:
         (bool): True if the current environment is a GitHub Actions runner, False otherwise.
@@ -575,8 +555,7 @@ def is_github_action_running() -> bool:
 
 
 def get_git_dir():
-    """
-    Determines whether the current file is part of a git repository and if so, returns the repository root directory. If
+    """Determines whether the current file is part of a git repository and if so, returns the repository root directory. If
     the current file is not part of a git repository, returns None.
 
     Returns:
@@ -588,8 +567,7 @@ def get_git_dir():
 
 
 def is_git_dir():
-    """
-    Determines whether the current file is part of a git repository. If the current file is not part of a git
+    """Determines whether the current file is part of a git repository. If the current file is not part of a git
     repository, returns None.
 
     Returns:
@@ -599,8 +577,7 @@ def is_git_dir():
 
 
 def get_git_origin_url():
-    """
-    Retrieves the origin URL of a git repository.
+    """Retrieves the origin URL of a git repository.
 
     Returns:
         (str | None): The origin URL of the git repository or None if not git directory.
@@ -612,8 +589,7 @@ def get_git_origin_url():
 
 
 def get_git_branch():
-    """
-    Returns the current git branch name. If not in a git repository, returns None.
+    """Returns the current git branch name. If not in a git repository, returns None.
 
     Returns:
         (str | None): The current git branch name or None if not a git directory.
@@ -625,8 +601,7 @@ def get_git_branch():
 
 
 def get_default_args(func):
-    """
-    Returns a dictionary of default arguments for a function.
+    """Returns a dictionary of default arguments for a function.
 
     Args:
         func (callable): The function to inspect.
@@ -639,8 +614,7 @@ def get_default_args(func):
 
 
 def get_ubuntu_version():
-    """
-    Retrieve the Ubuntu version if the OS is Ubuntu.
+    """Retrieve the Ubuntu version if the OS is Ubuntu.
 
     Returns:
         (str): Ubuntu version or None if not an Ubuntu OS.
@@ -652,8 +626,7 @@ def get_ubuntu_version():
 
 
 def get_user_config_dir(sub_dir="Ultralytics"):
-    """
-    Return the appropriate config directory based on the environment operating system.
+    """Return the appropriate config directory based on the environment operating system.
 
     Args:
         sub_dir (str): The name of the subdirectory to create.
@@ -701,8 +674,7 @@ SETTINGS_YAML = USER_CONFIG_DIR / "settings.yaml"
 
 
 def colorstr(*input):
-    r"""
-    Colors a string based on the provided color and style arguments. Utilizes ANSI escape codes.
+    r"""Colors a string based on the provided color and style arguments. Utilizes ANSI escape codes.
     See https://en.wikipedia.org/wiki/ANSI_escape_code for more details.
 
     This function can be called in two ways:
@@ -754,8 +726,7 @@ def colorstr(*input):
 
 
 def remove_colorstr(input_string):
-    """
-    Removes ANSI escape codes from a string, effectively un-coloring it.
+    """Removes ANSI escape codes from a string, effectively un-coloring it.
 
     Args:
         input_string (str): The string to remove color and style from.
@@ -772,8 +743,7 @@ def remove_colorstr(input_string):
 
 
 class TryExcept(contextlib.ContextDecorator):
-    """
-    Ultralytics TryExcept class. Use as @TryExcept() decorator or 'with TryExcept():' context manager.
+    """Ultralytics TryExcept class. Use as @TryExcept() decorator or 'with TryExcept():' context manager.
 
     Examples:
         As a decorator:
@@ -805,8 +775,7 @@ class TryExcept(contextlib.ContextDecorator):
 
 
 class Retry(contextlib.ContextDecorator):
-    """
-    Retry class for function execution with exponential backoff.
+    """Retry class for function execution with exponential backoff.
 
     Can be used as a decorator to retry a function on exceptions, up to a specified number of times with an
     exponentially increasing delay between retries.
@@ -845,8 +814,7 @@ class Retry(contextlib.ContextDecorator):
 
 
 def threaded(func):
-    """
-    Multi-threads a target function by default and returns the thread or function result.
+    """Multi-threads a target function by default and returns the thread or function result.
 
     Use as @threaded decorator. The function runs in a separate thread unless 'threaded=False' is passed.
     """
@@ -864,8 +832,7 @@ def threaded(func):
 
 
 def set_sentry():
-    """
-    Initialize the Sentry SDK for error tracking and reporting. Only used if sentry_sdk package is installed and
+    """Initialize the Sentry SDK for error tracking and reporting. Only used if sentry_sdk package is installed and
     sync=True in settings. Run 'yolo settings' to see and update settings YAML file.
 
     Conditions required to send errors (ALL conditions must be met or no errors will be reported):
@@ -885,8 +852,7 @@ def set_sentry():
     """
 
     def before_send(event, hint):
-        """
-        Modify the event before sending it to Sentry based on specific exception types and messages.
+        """Modify the event before sending it to Sentry based on specific exception types and messages.
 
         Args:
             event (dict): The event dictionary containing information about the error.
@@ -936,8 +902,7 @@ def set_sentry():
 
 
 class SettingsManager(dict):
-    """
-    Manages Ultralytics settings stored in a YAML file.
+    """Manages Ultralytics settings stored in a YAML file.
 
     Args:
         file (str | Path): Path to the Ultralytics settings YAML file. Default is USER_CONFIG_DIR / 'settings.yaml'.

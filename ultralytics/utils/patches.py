@@ -13,8 +13,7 @@ _imshow = cv2.imshow  # copy to avoid recursion errors
 
 
 def imread(filename: str, flags: int = cv2.IMREAD_COLOR):
-    """
-    Read an image from a file.
+    """Read an image from a file.
 
     Args:
         filename (str): Path to the file to read.
@@ -27,8 +26,7 @@ def imread(filename: str, flags: int = cv2.IMREAD_COLOR):
 
 
 def imwrite(filename: str, img: np.ndarray, params=None):
-    """
-    Write an image to a file.
+    """Write an image to a file.
 
     Args:
         filename (str): Path to the file to write.
@@ -46,8 +44,7 @@ def imwrite(filename: str, img: np.ndarray, params=None):
 
 
 def imshow(winname: str, mat: np.ndarray):
-    """
-    Displays an image in the specified window.
+    """Displays an image in the specified window.
 
     Args:
         winname (str): Name of the window.
@@ -62,8 +59,7 @@ _torch_save = torch.save
 
 
 def torch_load(*args, **kwargs):
-    """
-    Load a PyTorch model with updated arguments to avoid warnings.
+    """Load a PyTorch model with updated arguments to avoid warnings.
 
     This function wraps torch.load and adds the 'weights_only' argument for PyTorch 1.13.0+ to prevent warnings.
 
@@ -87,8 +83,7 @@ def torch_load(*args, **kwargs):
 
 
 def torch_save(*args, use_dill=True, **kwargs):
-    """
-    Optionally use dill to serialize lambda functions where pickle does not, adding robustness with 3 retries and
+    """Optionally use dill to serialize lambda functions where pickle does not, adding robustness with 3 retries and
     exponential standoff in case of save failure.
 
     Args:

@@ -20,8 +20,7 @@ from ultralytics.utils.downloads import attempt_download_asset, is_url
 
 
 def check_class_names(names):
-    """
-    Check class names.
+    """Check class names.
 
     Map imagenet class codes to human-readable names if required. Convert lists to dicts.
     """
@@ -51,8 +50,7 @@ def default_class_names(data=None):
 
 
 class AutoBackend(nn.Module):
-    """
-    Handles dynamic backend selection for running inference using Ultralytics YOLO models.
+    """Handles dynamic backend selection for running inference using Ultralytics YOLO models.
 
     The AutoBackend class is designed to provide an abstraction layer for various inference engines. It supports a wide
     range of formats, each with specific naming conventions as outlined below:
@@ -90,8 +88,7 @@ class AutoBackend(nn.Module):
         fuse=True,
         verbose=True,
     ):
-        """
-        Initialize the AutoBackend for inference.
+        """Initialize the AutoBackend for inference.
 
         Args:
             weights (str): Path to the model weights file. Defaults to 'yolov8n.pt'.
@@ -433,8 +430,7 @@ class AutoBackend(nn.Module):
         self.__dict__.update(locals())  # assign all variables to self
 
     def forward(self, im, augment=False, visualize=False, embed=None):
-        """
-        Runs inference on the YOLOv8 MultiBackend model.
+        """Runs inference on the YOLOv8 MultiBackend model.
 
         Args:
             im (torch.Tensor): The image tensor to perform inference on.
@@ -612,8 +608,7 @@ class AutoBackend(nn.Module):
             return self.from_numpy(y)
 
     def from_numpy(self, x):
-        """
-        Convert a numpy array to a tensor.
+        """Convert a numpy array to a tensor.
 
         Args:
             x (np.ndarray): The array to be converted.
@@ -624,8 +619,7 @@ class AutoBackend(nn.Module):
         return torch.tensor(x).to(self.device) if isinstance(x, np.ndarray) else x
 
     def warmup(self, imgsz=(1, 3, 640, 640)):
-        """
-        Warm up the model by running one forward pass with a dummy input.
+        """Warm up the model by running one forward pass with a dummy input.
 
         Args:
             imgsz (tuple): The shape of the dummy input tensor in the format (batch_size, channels, height, width)
@@ -640,8 +634,7 @@ class AutoBackend(nn.Module):
 
     @staticmethod
     def _model_type(p="path/to/model.pt"):
-        """
-        This function takes a path to a model file and returns the model type. Possibles types are pt, jit, onnx, xml,
+        """This function takes a path to a model file and returns the model type. Possibles types are pt, jit, onnx, xml,
         engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, ncnn or paddle.
 
         Args:

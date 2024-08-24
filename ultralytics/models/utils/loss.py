@@ -11,8 +11,7 @@ from .ops import HungarianMatcher
 
 
 class DETRLoss(nn.Module):
-    """
-    DETR (DEtection TRansformer) Loss class. This class calculates and returns the different loss components for the
+    """DETR (DEtection TRansformer) Loss class. This class calculates and returns the different loss components for the
     DETR object detection model. It computes classification loss, bounding box loss, GIoU loss, and optionally auxiliary
     losses.
 
@@ -33,8 +32,7 @@ class DETRLoss(nn.Module):
     def __init__(
         self, nc=80, loss_gain=None, aux_loss=True, use_fl=True, use_vfl=False, use_uni_match=False, uni_match_ind=0
     ):
-        """
-        Initialize DETR loss function with customizable components and gains.
+        """Initialize DETR loss function with customizable components and gains.
 
         Uses default loss_gain if not provided. Initializes HungarianMatcher with
         preset cost gains. Supports auxiliary losses and various loss types.
@@ -253,8 +251,7 @@ class DETRLoss(nn.Module):
         return loss
 
     def forward(self, pred_bboxes, pred_scores, batch, postfix="", **kwargs):
-        """
-        Calculate loss for predicted bounding boxes and scores.
+        """Calculate loss for predicted bounding boxes and scores.
 
         Args:
             pred_bboxes (torch.Tensor): Predicted bounding boxes, shape [l, b, query, 4].
@@ -292,16 +289,14 @@ class DETRLoss(nn.Module):
 
 
 class RTDETRDetectionLoss(DETRLoss):
-    """
-    Real-Time DeepTracker (RT-DETR) Detection Loss class that extends the DETRLoss.
+    """Real-Time DeepTracker (RT-DETR) Detection Loss class that extends the DETRLoss.
 
     This class computes the detection loss for the RT-DETR model, which includes the standard detection loss as well as
     an additional denoising training loss when provided with denoising metadata.
     """
 
     def forward(self, preds, batch, dn_bboxes=None, dn_scores=None, dn_meta=None):
-        """
-        Forward pass to compute the detection loss.
+        """Forward pass to compute the detection loss.
 
         Args:
             preds (tuple): Predicted bounding boxes and scores.
@@ -335,8 +330,7 @@ class RTDETRDetectionLoss(DETRLoss):
 
     @staticmethod
     def get_dn_match_indices(dn_pos_idx, dn_num_group, gt_groups):
-        """
-        Get the match indices for denoising.
+        """Get the match indices for denoising.
 
         Args:
             dn_pos_idx (List[torch.Tensor]): List of tensors containing positive indices for denoising.

@@ -62,8 +62,7 @@ class Detect(nn.Module):
         return y if self.export else (y, x)
 
     def forward_end2end(self, x):
-        """
-        Performs forward pass of the v10Detect module.
+        """Performs forward pass of the v10Detect module.
 
         Args:
             x (tensor): Input tensor.
@@ -132,8 +131,7 @@ class Detect(nn.Module):
 
     @staticmethod
     def postprocess(preds: torch.Tensor, max_det: int, nc: int = 80):
-        """
-        Post-processes the predictions obtained from a YOLOv10 model.
+        """Post-processes the predictions obtained from a YOLOv10 model.
 
         Args:
             preds (torch.Tensor): The predictions obtained from the model. It should have a shape of (batch_size, num_boxes, 4 + num_classes).
@@ -339,8 +337,7 @@ class WorldDetect(Detect):
 
 
 class RTDETRDecoder(nn.Module):
-    """
-    Real-Time Deformable Transformer Decoder (RTDETRDecoder) module for object detection.
+    """Real-Time Deformable Transformer Decoder (RTDETRDecoder) module for object detection.
 
     This decoder module utilizes Transformer architecture along with deformable convolutions to predict bounding boxes
     and class labels for objects in an image. It integrates features from multiple layers and runs through a series of
@@ -368,8 +365,7 @@ class RTDETRDecoder(nn.Module):
         box_noise_scale=1.0,
         learnt_init_query=False,
     ):
-        """
-        Initializes the RTDETRDecoder module with the given parameters.
+        """Initializes the RTDETRDecoder module with the given parameters.
 
         Args:
             nc (int): Number of classes. Default is 80.
@@ -570,8 +566,7 @@ class RTDETRDecoder(nn.Module):
 
 
 class v10Detect(Detect):
-    """
-    v10 Detection head from https://arxiv.org/pdf/2405.14458.
+    """v10 Detection head from https://arxiv.org/pdf/2405.14458.
 
     Args:
         nc (int): Number of classes.

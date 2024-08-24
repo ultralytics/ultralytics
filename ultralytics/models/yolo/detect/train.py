@@ -17,8 +17,7 @@ from ultralytics.utils.torch_utils import de_parallel, torch_distributed_zero_fi
 
 
 class DetectionTrainer(BaseTrainer):
-    """
-    A class extending the BaseTrainer class for training based on a detection model.
+    """A class extending the BaseTrainer class for training based on a detection model.
 
     Example:
         ```python
@@ -31,8 +30,7 @@ class DetectionTrainer(BaseTrainer):
     """
 
     def build_dataset(self, img_path, mode="train", batch=None):
-        """
-        Build YOLO Dataset.
+        """Build YOLO Dataset.
 
         Args:
             img_path (str): Path to the folder containing images.
@@ -98,8 +96,7 @@ class DetectionTrainer(BaseTrainer):
         )
 
     def label_loss_items(self, loss_items=None, prefix="train"):
-        """
-        Returns a loss dict with labelled training loss items tensor.
+        """Returns a loss dict with labelled training loss items tensor.
 
         Not needed for classification but necessary for segmentation & detection
         """

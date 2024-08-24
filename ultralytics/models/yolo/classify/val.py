@@ -10,8 +10,7 @@ from ultralytics.utils.plotting import plot_images
 
 
 class ClassificationValidator(BaseValidator):
-    """
-    A class extending the BaseValidator class for validation based on a classification model.
+    """A class extending the BaseValidator class for validation based on a classification model.
 
     Notes:
         - Torchvision classification models can also be passed to the 'model' argument, i.e. model='resnet18'.

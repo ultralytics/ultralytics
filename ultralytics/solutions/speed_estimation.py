@@ -14,8 +14,7 @@ class SpeedEstimator:
     """A class to estimate the speed of objects in a real-time video stream based on their tracks."""
 
     def __init__(self, names, reg_pts=None, view_img=False, line_thickness=2, region_thickness=5, spdl_dist_thresh=10):
-        """
-        Initializes the SpeedEstimator with the given parameters.
+        """Initializes the SpeedEstimator with the given parameters.
 
         Args:
             names (dict): Dictionary of class names.
@@ -55,8 +54,7 @@ class SpeedEstimator:
         self.env_check = check_imshow(warn=True)
 
     def extract_tracks(self, tracks):
-        """
-        Extracts results from the provided tracking data.
+        """Extracts results from the provided tracking data.
 
         Args:
             tracks (list): List of tracks obtained from the object tracking process.
@@ -66,8 +64,7 @@ class SpeedEstimator:
         self.trk_ids = tracks[0].boxes.id.int().cpu().tolist()
 
     def store_track_info(self, track_id, box):
-        """
-        Stores track data.
+        """Stores track data.
 
         Args:
             track_id (int): Object track id.
@@ -87,8 +84,7 @@ class SpeedEstimator:
         return track
 
     def plot_box_and_track(self, track_id, box, cls, track):
-        """
-        Plots track and bounding box.
+        """Plots track and bounding box.
 
         Args:
             track_id (int): Object track id.
@@ -104,8 +100,7 @@ class SpeedEstimator:
         cv2.circle(self.im0, (int(track[-1][0]), int(track[-1][1])), 5, bbox_color, -1)
 
     def calculate_speed(self, trk_id, track):
-        """
-        Calculates the speed of an object.
+        """Calculates the speed of an object.
 
         Args:
             trk_id (int): Object track id.
@@ -133,8 +128,7 @@ class SpeedEstimator:
         self.trk_previous_points[trk_id] = track[-1]
 
     def estimate_speed(self, im0, tracks, region_color=(255, 0, 0)):
-        """
-        Estimates the speed of objects based on tracking data.
+        """Estimates the speed of objects based on tracking data.
 
         Args:
             im0 (ndarray): Image.

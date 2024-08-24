@@ -10,8 +10,7 @@ from .blocks import RoPEAttention
 
 
 class MemoryAttentionLayer(nn.Module):
-    """
-    Implements a memory attention layer with self-attention and cross-attention mechanisms for neural networks.
+    """Implements a memory attention layer with self-attention and cross-attention mechanisms for neural networks.
 
     This class combines self-attention, cross-attention, and feedforward components to process input tensors and
     generate memory-based attention outputs.
@@ -138,8 +137,7 @@ class MemoryAttentionLayer(nn.Module):
 
 
 class MemoryAttention(nn.Module):
-    """
-    Memory attention module for processing sequential data with self and cross-attention mechanisms.
+    """Memory attention module for processing sequential data with self and cross-attention mechanisms.
 
     This class implements a multi-layer attention mechanism that combines self-attention and cross-attention
     for processing sequential data, particularly useful in transformer-like architectures.

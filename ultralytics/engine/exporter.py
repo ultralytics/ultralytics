@@ -1,6 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-"""
-Export a YOLOv8 PyTorch model to other formats. TensorFlow exports authored by https://github.com/zldrobit.
+"""Export a YOLOv8 PyTorch model to other formats. TensorFlow exports authored by https://github.com/zldrobit.
 
 Format                  | `format=argument`         | Model
 ---                     | ---                       | ---
@@ -145,8 +144,7 @@ def try_export(inner_func):
 
 
 class Exporter:
-    """
-    A class for exporting a model.
+    """A class for exporting a model.
 
     Attributes:
         args (SimpleNamespace): Configuration for the exporter.
@@ -154,8 +152,7 @@ class Exporter:
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
-        """
-        Initializes the Exporter class.
+        """Initializes the Exporter class.
 
         Args:
             cfg (str, optional): Path to a configuration file. Defaults to DEFAULT_CFG.

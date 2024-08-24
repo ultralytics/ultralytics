@@ -1,6 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-"""
-Helper file to build Ultralytics Docs reference section. Recursively walks through ultralytics dir and builds an MkDocs
+"""Helper file to build Ultralytics Docs reference section. Recursively walks through ultralytics dir and builds an MkDocs
 reference section of *.md files composed of classes and functions, and also creates a nav menu for use in mkdocs.yaml.
 
 Note: Must be run from repository root directory. Do not run from docs directory.

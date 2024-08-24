@@ -22,8 +22,7 @@ def on_pretrain_routine_end(trainer):
 
 
 class WorldTrainer(yolo.detect.DetectionTrainer):
-    """
-    A class to fine-tune a world model on a close-set dataset.
+    """A class to fine-tune a world model on a close-set dataset.
 
     Example:
         ```python
@@ -66,8 +65,7 @@ class WorldTrainer(yolo.detect.DetectionTrainer):
         return model
 
     def build_dataset(self, img_path, mode="train", batch=None):
-        """
-        Build YOLO Dataset.
+        """Build YOLO Dataset.
 
         Args:
             img_path (str): Path to the folder containing images.

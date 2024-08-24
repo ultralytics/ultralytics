@@ -1,6 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-"""
-Train a model on a dataset.
+"""Train a model on a dataset.
 
 Usage:
     $ yolo mode=train model=yolov8n.pt data=coco8.yaml imgsz=640 epochs=100 batch=16
@@ -55,8 +54,7 @@ from ultralytics.utils.torch_utils import (
 
 
 class BaseTrainer:
-    """
-    A base class for creating trainers.
+    """A base class for creating trainers.
 
     Attributes:
         args (SimpleNamespace): Configuration for the trainer.
@@ -90,8 +88,7 @@ class BaseTrainer:
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
-        """
-        Initializes the BaseTrainer class.
+        """Initializes the BaseTrainer class.
 
         Args:
             cfg (str, optional): Path to a configuration file. Defaults to DEFAULT_CFG.
@@ -515,8 +512,7 @@ class BaseTrainer:
             (self.wdir / f"epoch{self.epoch}.pt").write_bytes(serialized_ckpt)  # save epoch, i.e. 'epoch3.pt'
 
     def get_dataset(self):
-        """
-        Get train, val path from data dict if it exists.
+        """Get train, val path from data dict if it exists.
 
         Returns None if data format is not recognized.
         """
@@ -567,8 +563,7 @@ class BaseTrainer:
         return batch
 
     def validate(self):
-        """
-        Runs validation on test set using self.validator.
+        """Runs validation on test set using self.validator.
 
         The returned dict is expected to contain "fitness" key.
         """
@@ -595,8 +590,7 @@ class BaseTrainer:
         raise NotImplementedError("build_dataset function not implemented in trainer")
 
     def label_loss_items(self, loss_items=None, prefix="train"):
-        """
-        Returns a loss dict with labelled training loss items tensor.
+        """Returns a loss dict with labelled training loss items tensor.
 
         Note:
             This is not needed for classification but necessary for segmentation & detection
@@ -719,8 +713,7 @@ class BaseTrainer:
             self.train_loader.dataset.close_mosaic(hyp=self.args)
 
     def build_optimizer(self, model, name="auto", lr=0.001, momentum=0.9, decay=1e-5, iterations=1e5):
-        """
-        Constructs an optimizer for the given model, based on the specified optimizer name, learning rate, momentum,
+        """Constructs an optimizer for the given model, based on the specified optimizer name, learning rate, momentum,
         weight decay, and number of iterations.
 
         Args:

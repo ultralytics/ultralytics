@@ -6,8 +6,7 @@ from ultralytics.utils import DEFAULT_CFG, LOGGER, ops
 
 
 class PosePredictor(DetectionPredictor):
-    """
-    A class extending the DetectionPredictor class for prediction based on a pose model.
+    """A class extending the DetectionPredictor class for prediction based on a pose model.
 
     Example:
         ```python

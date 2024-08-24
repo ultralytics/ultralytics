@@ -1,6 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-"""
-Check a model's accuracy on a test or val split of a dataset.
+"""Check a model's accuracy on a test or val split of a dataset.
 
 Usage:
     $ yolo mode=val model=yolov8n.pt data=coco8.yaml imgsz=640
@@ -37,8 +36,7 @@ from ultralytics.utils.torch_utils import de_parallel, select_device, smart_infe
 
 
 class BaseValidator:
-    """
-    BaseValidator.
+    """BaseValidator.
 
     A base class for creating validators.
 
@@ -66,8 +64,7 @@ class BaseValidator:
     """
 
     def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None):
-        """
-        Initializes a BaseValidator instance.
+        """Initializes a BaseValidator instance.
 
         Args:
             dataloader (torch.utils.data.DataLoader): Dataloader to be used for validation.
@@ -217,8 +214,7 @@ class BaseValidator:
             return stats
 
     def match_predictions(self, pred_classes, true_classes, iou, use_scipy=False):
-        """
-        Matches predictions to ground truth objects (pred_classes, true_classes) using IoU.
+        """Matches predictions to ground truth objects (pred_classes, true_classes) using IoU.
 
         Args:
             pred_classes (torch.Tensor): Predicted class indices of shape(N,).

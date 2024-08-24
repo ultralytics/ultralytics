@@ -33,8 +33,7 @@ class ObjectCounter:
         line_dist_thresh=15,
         cls_txtdisplay_gap=50,
     ):
-        """
-        Initializes the ObjectCounter with various tracking and counting parameters.
+        """Initializes the ObjectCounter with various tracking and counting parameters.
 
         Args:
             names (dict): Dictionary of class names.
@@ -108,8 +107,7 @@ class ObjectCounter:
             self.counting_region = LineString(self.reg_pts)
 
     def mouse_event_for_region(self, event, x, y, flags, params):
-        """
-        Handles mouse events for defining and moving the counting region in a real-time video stream.
+        """Handles mouse events for defining and moving the counting region in a real-time video stream.
 
         Args:
             event (int): The type of mouse event (e.g., cv2.EVENT_MOUSEMOVE, cv2.EVENT_LBUTTONDOWN, etc.).
@@ -232,8 +230,7 @@ class ObjectCounter:
                 return
 
     def start_counting(self, im0, tracks):
-        """
-        Main function to start the object counting process.
+        """Main function to start the object counting process.
 
         Args:
             im0 (ndarray): Current frame from the video stream.

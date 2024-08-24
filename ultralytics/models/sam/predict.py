@@ -1,6 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-"""
-Generate predictions using the Segment Anything Model (SAM).
+"""Generate predictions using the Segment Anything Model (SAM).
 
 SAM is an advanced image segmentation model offering features like promptable segmentation and zero-shot performance.
 This module contains the implementation of the prediction logic and auxiliary utilities required to perform segmentation
@@ -33,8 +32,7 @@ from .build import build_sam
 
 
 class Predictor(BasePredictor):
-    """
-    Predictor class for SAM, enabling real-time image segmentation with promptable capabilities.
+    """Predictor class for SAM, enabling real-time image segmentation with promptable capabilities.
 
     This class extends BasePredictor and implements the Segment Anything Model (SAM) for advanced image
     segmentation tasks. It supports various input prompts like points, bounding boxes, and masks for
@@ -76,8 +74,7 @@ class Predictor(BasePredictor):
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
-        """
-        Initialize the Predictor with configuration, overrides, and callbacks.
+        """Initialize the Predictor with configuration, overrides, and callbacks.
 
         Sets up the Predictor object for SAM (Segment Anything Model) and applies any configuration overrides or
         callbacks provided. Initializes task-specific settings for SAM, such as retina_masks being set to True
@@ -104,8 +101,7 @@ class Predictor(BasePredictor):
         self.segment_all = False
 
     def preprocess(self, im):
-        """
-        Preprocess the input image for model inference.
+        """Preprocess the input image for model inference.
 
         This method prepares the input image by applying transformations and normalization. It supports both
         torch.Tensor and list of np.ndarray as input formats.
@@ -137,8 +133,7 @@ class Predictor(BasePredictor):
         return im
 
     def pre_transform(self, im):
-        """
-        Perform initial transformations on the input image for preprocessing.
+        """Perform initial transformations on the input image for preprocessing.
 
         This method applies transformations such as resizing to prepare the image for further preprocessing.
         Currently, batched inference is not supported; hence the list length should be 1.
@@ -164,8 +159,7 @@ class Predictor(BasePredictor):
         return [letterbox(image=x) for x in im]
 
     def inference(self, im, bboxes=None, points=None, labels=None, masks=None, multimask_output=False, *args, **kwargs):
-        """
-        Perform image segmentation inference based on the given input cues, using the currently loaded image.
+        """Perform image segmentation inference based on the given input cues, using the currently loaded image.
 
         This method leverages SAM's (Segment Anything Model) architecture consisting of image encoder, prompt
         encoder, and mask decoder for real-time and promptable segmentation tasks.
@@ -203,8 +197,7 @@ class Predictor(BasePredictor):
         return self.prompt_inference(im, bboxes, points, labels, masks, multimask_output)
 
     def prompt_inference(self, im, bboxes=None, points=None, labels=None, masks=None, multimask_output=False):
-        """
-        Performs image segmentation inference based on input cues using SAM's specialized architecture.
+        """Performs image segmentation inference based on input cues using SAM's specialized architecture.
 
         This internal function leverages the Segment Anything Model (SAM) for prompt-based, real-time segmentation.
         It processes various input prompts such as bounding boxes, points, and masks to generate segmentation masks.
@@ -282,8 +275,7 @@ class Predictor(BasePredictor):
         stability_score_offset=0.95,
         crop_nms_thresh=0.7,
     ):
-        """
-        Perform image segmentation using the Segment Anything Model (SAM).
+        """Perform image segmentation using the Segment Anything Model (SAM).
 
         This method segments an entire image into constituent parts by leveraging SAM's advanced architecture
         and real-time performance capabilities. It can optionally work on image crops for finer segmentation.
@@ -382,8 +374,7 @@ class Predictor(BasePredictor):
         return pred_masks, pred_scores, pred_bboxes
 
     def setup_model(self, model, verbose=True):
-        """
-        Initializes the Segment Anything Model (SAM) for inference.
+        """Initializes the Segment Anything Model (SAM) for inference.
 
         This method sets up the SAM model by allocating it to the appropriate device and initializing the necessary
         parameters for image normalization and other Ultralytics compatibility settings.
@@ -417,8 +408,7 @@ class Predictor(BasePredictor):
         return build_sam(self.args.model)
 
     def postprocess(self, preds, img, orig_imgs):
-        """
-        Post-processes SAM's inference outputs to generate object detection masks and bounding boxes.
+        """Post-processes SAM's inference outputs to generate object detection masks and bounding boxes.
 
         This method scales masks and boxes to the original image size and applies a threshold to the mask
         predictions. It leverages SAM's advanced architecture for real-time, promptable segmentation tasks.
@@ -463,8 +453,7 @@ class Predictor(BasePredictor):
         return results
 
     def setup_source(self, source):
-        """
-        Sets up the data source for inference.
+        """Sets up the data source for inference.
 
         This method configures the data source from which images will be fetched for inference. It supports
         various input types such as image files, directories, video files, and other compatible data sources.
@@ -488,8 +477,7 @@ class Predictor(BasePredictor):
             super().setup_source(source)
 
     def set_image(self, image):
-        """
-        Preprocesses and sets a single image for inference.
+        """Preprocesses and sets a single image for inference.
 
         This method prepares the model for inference on a single image by setting up the model if not already
         initialized, configuring the data source, and preprocessing the image for feature extraction. It
@@ -535,8 +523,7 @@ class Predictor(BasePredictor):
 
     @staticmethod
     def remove_small_regions(masks, min_area=0, nms_thresh=0.7):
-        """
-        Remove small disconnected regions and holes from segmentation masks.
+        """Remove small disconnected regions and holes from segmentation masks.
 
         This function performs post-processing on segmentation masks generated by the Segment Anything Model (SAM).
         It removes small disconnected regions and holes from the input masks, and then performs Non-Maximum
@@ -588,8 +575,7 @@ class Predictor(BasePredictor):
 
 
 class SAM2Predictor(Predictor):
-    """
-    SAM2Predictor class for advanced image segmentation using Segment Anything Model 2 architecture.
+    """SAM2Predictor class for advanced image segmentation using Segment Anything Model 2 architecture.
 
     This class extends the base Predictor class to implement SAM2-specific functionality for image
     segmentation tasks. It provides methods for model initialization, feature extraction, and
@@ -637,8 +623,7 @@ class SAM2Predictor(Predictor):
         multimask_output=False,
         img_idx=-1,
     ):
-        """
-        Performs image segmentation inference based on various prompts using SAM2 architecture.
+        """Performs image segmentation inference based on various prompts using SAM2 architecture.
 
         This method leverages the Segment Anything Model 2 (SAM2) to generate segmentation masks for input images
         based on provided prompts such as bounding boxes, points, or existing masks. It supports both single and
@@ -728,8 +713,7 @@ class SAM2Predictor(Predictor):
         return pred_masks.flatten(0, 1), pred_scores.flatten(0, 1)
 
     def set_image(self, image):
-        """
-        Preprocesses and sets a single image for inference using the SAM2 model.
+        """Preprocesses and sets a single image for inference using the SAM2 model.
 
         This method initializes the model if not already done, configures the data source to the specified image,
         and preprocesses the image for feature extraction. It supports setting only one image at a time.

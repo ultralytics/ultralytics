@@ -82,8 +82,7 @@ class Explorer:
         self.progress = 0
 
     def create_embeddings_table(self, force: bool = False, split: str = "train") -> None:
-        """
-        Create LanceDB table containing the embeddings of the images in the dataset. The table will be reused if it
+        """Create LanceDB table containing the embeddings of the images in the dataset. The table will be reused if it
         already exists. Pass force=True to overwrite the existing table.
 
         Args:
@@ -147,8 +146,7 @@ class Explorer:
     def query(
         self, imgs: Union[str, np.ndarray, List[str], List[np.ndarray]] = None, limit: int = 25
     ) -> Any:  # pyarrow.Table
-        """
-        Query the table for similar images. Accepts a single image or a list of images.
+        """Query the table for similar images. Accepts a single image or a list of images.
 
         Args:
             imgs (str or list): Path to the image or a list of paths to the images.
@@ -179,8 +177,7 @@ class Explorer:
     def sql_query(
         self, query: str, return_type: str = "pandas"
     ) -> Union[Any, None]:  # pandas.DataFrame or pyarrow.Table
-        """
-        Run a SQL-Like query on the table. Utilizes LanceDB predicate pushdown.
+        """Run a SQL-Like query on the table. Utilizes LanceDB predicate pushdown.
 
         Args:
             query (str): SQL query to run.
@@ -224,8 +221,7 @@ class Explorer:
             return rs.df()
 
     def plot_sql_query(self, query: str, labels: bool = True) -> Image.Image:
-        """
-        Plot the results of a SQL-Like query on the table.
+        """Plot the results of a SQL-Like query on the table.
 
         Args:
             query (str): SQL query to run.
@@ -256,8 +252,7 @@ class Explorer:
         limit: int = 25,
         return_type: str = "pandas",
     ) -> Any:  # pandas.DataFrame or pyarrow.Table
-        """
-        Query the table for similar images. Accepts a single image or a list of images.
+        """Query the table for similar images. Accepts a single image or a list of images.
 
         Args:
             img (str or list): Path to the image or a list of paths to the images.
@@ -291,8 +286,7 @@ class Explorer:
         limit: int = 25,
         labels: bool = True,
     ) -> Image.Image:
-        """
-        Plot the similar images. Accepts images or indexes.
+        """Plot the similar images. Accepts images or indexes.
 
         Args:
             img (str or list): Path to the image or a list of paths to the images.
@@ -318,8 +312,7 @@ class Explorer:
         return Image.fromarray(img)
 
     def similarity_index(self, max_dist: float = 0.2, top_k: float = None, force: bool = False) -> Any:  # pd.DataFrame
-        """
-        Calculate the similarity index of all the images in the table. Here, the index will contain the data points that
+        """Calculate the similarity index of all the images in the table. Here, the index will contain the data points that
         are max_dist or closer to the image in the embedding space at a given index.
 
         Args:
@@ -377,8 +370,7 @@ class Explorer:
         return sim_table.to_pandas()
 
     def plot_similarity_index(self, max_dist: float = 0.2, top_k: float = None, force: bool = False) -> Image:
-        """
-        Plot the similarity index of all the images in the table. Here, the index will contain the data points that are
+        """Plot the similarity index of all the images in the table. Here, the index will contain the data points that are
         max_dist or closer to the image in the embedding space at a given index.
 
         Args:
@@ -435,8 +427,7 @@ class Explorer:
         return img if isinstance(img, list) else [img]
 
     def ask_ai(self, query):
-        """
-        Ask AI a question.
+        """Ask AI a question.
 
         Args:
             query (str): Question to ask.

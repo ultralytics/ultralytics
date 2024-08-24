@@ -8,8 +8,7 @@ from ultralytics.utils.torch_utils import de_parallel
 
 
 class WorldTrainerFromScratch(WorldTrainer):
-    """
-    A class extending the WorldTrainer class for training a world model from scratch on open-set dataset.
+    """A class extending the WorldTrainer class for training a world model from scratch on open-set dataset.
 
     Example:
         ```python
@@ -45,8 +44,7 @@ class WorldTrainerFromScratch(WorldTrainer):
         super().__init__(cfg, overrides, _callbacks)
 
     def build_dataset(self, img_path, mode="train", batch=None):
-        """
-        Build YOLO Dataset.
+        """Build YOLO Dataset.
 
         Args:
             img_path (List[str] | str): Path to the folder containing images.
@@ -65,8 +63,7 @@ class WorldTrainerFromScratch(WorldTrainer):
         return YOLOConcatDataset(dataset) if len(dataset) > 1 else dataset[0]
 
     def get_dataset(self):
-        """
-        Get train, val path from data dict if it exists.
+        """Get train, val path from data dict if it exists.
 
         Returns None if data format is not recognized.
         """

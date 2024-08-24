@@ -25,8 +25,7 @@ NO_OBJ_SCORE = -1024.0
 
 
 class SAMModel(nn.Module):
-    """
-    Segment Anything Model (SAM) for object segmentation tasks.
+    """Segment Anything Model (SAM) for object segmentation tasks.
 
     This class combines image encoders, prompt encoders, and mask decoders to predict object masks from images
     and input prompts.
@@ -63,8 +62,7 @@ class SAMModel(nn.Module):
         pixel_mean: List[float] = (123.675, 116.28, 103.53),
         pixel_std: List[float] = (58.395, 57.12, 57.375),
     ) -> None:
-        """
-        Initialize the SAMModel class to predict object masks from an image and input prompts.
+        """Initialize the SAMModel class to predict object masks from an image and input prompts.
 
         Args:
             image_encoder (ImageEncoderViT): The backbone used to encode the image into image embeddings.
@@ -92,8 +90,7 @@ class SAMModel(nn.Module):
 
 
 class SAM2Model(torch.nn.Module):
-    """
-    SAM2Model class for Segment Anything Model 2 with memory-based video object segmentation capabilities.
+    """SAM2Model class for Segment Anything Model 2 with memory-based video object segmentation capabilities.
 
     This class extends the functionality of SAM to handle video sequences, incorporating memory mechanisms
     for temporal consistency and efficient tracking of objects across frames.
@@ -163,8 +160,7 @@ class SAM2Model(torch.nn.Module):
         sam_mask_decoder_extra_args=None,
         compile_image_encoder: bool = False,
     ):
-        """
-        Initializes the SAM2Model for video object segmentation with memory-based tracking.
+        """Initializes the SAM2Model for video object segmentation with memory-based tracking.
 
         Args:
             image_encoder (nn.Module): Visual encoder for extracting image features.
@@ -380,8 +376,7 @@ class SAM2Model(torch.nn.Module):
         high_res_features=None,
         multimask_output=False,
     ):
-        """
-        Forward pass through SAM prompt encoders and mask heads.
+        """Forward pass through SAM prompt encoders and mask heads.
 
         This method processes image features and optional point/mask inputs to generate object masks and scores.
 

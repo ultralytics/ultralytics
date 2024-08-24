@@ -902,8 +902,8 @@ def save_one_box(xyxy, im, file=Path("im.jpg"), gain=1.02, pad=10, square=False,
         from ultralytics.utils.plotting import save_one_box
 
         xyxy = [50, 50, 150, 150]
-        im = cv2.imread('image.jpg')
-        cropped_im = save_one_box(xyxy, im, file='cropped.jpg', square=True)
+        im = cv2.imread("image.jpg")
+        cropped_im = save_one_box(xyxy, im, file="cropped.jpg", square=True)
         ```
     """
 
@@ -1109,7 +1109,7 @@ def plot_results(file="path/to/results.csv", dir="", segment=False, pose=False, 
         ```python
         from ultralytics.utils.plotting import plot_results
 
-        plot_results('path/to/results.csv', segment=True)
+        plot_results("path/to/results.csv", segment=True)
         ```
     """
     import pandas as pd  # scope for faster 'import ultralytics'
@@ -1195,7 +1195,7 @@ def plot_tune_results(csv_file="tune_results.csv"):
         csv_file (str, optional): Path to the CSV file containing the tuning results. Defaults to 'tune_results.csv'.
 
     Examples:
-        >>> plot_tune_results('path/to/tune_results.csv')
+        >>> plot_tune_results("path/to/tune_results.csv")
     """
 
     import pandas as pd  # scope for faster 'import ultralytics'

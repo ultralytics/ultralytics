@@ -121,7 +121,7 @@ def embedding_distance(tracks: list, detections: list, metric: str = "cosine") -
         Compute the embedding distance between tracks and detections using cosine metric
         >>> tracks = [STrack(...), STrack(...)]  # List of track objects with embedding features
         >>> detections = [BaseTrack(...), BaseTrack(...)]  # List of detection objects with embedding features
-        >>> cost_matrix = embedding_distance(tracks, detections, metric='cosine')
+        >>> cost_matrix = embedding_distance(tracks, detections, metric="cosine")
     """
 
     cost_matrix = np.zeros((len(tracks), len(detections)), dtype=np.float32)

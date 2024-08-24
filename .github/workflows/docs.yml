@@ -48,7 +48,7 @@ jobs:
         if: github.event_name == 'pull_request_target'
         run: |
           python docs/build_reference.py
-          ruff check --fix --fix-unsafe --select D --ignore=D100,D104,D203,D205,D212,D213,D401,D406,D407,D413 . || true
+          ruff check --fix --unsafe-fixes --select D --ignore=D100,D104,D203,D205,D212,D213,D401,D406,D407,D413 . || true
           git pull origin ${{ github.head_ref || github.ref }}
           git add .
           git reset HEAD -- .github/workflows/  # workflow changes are not permitted with default token

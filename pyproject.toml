@@ -171,6 +171,9 @@ split_before_first_argument = false
 [tool.ruff]
 line-length = 120
 
+[tool.ruff.format]
+docstring-code-format = true
+
 [tool.ruff.lint.pydocstyle]
 convention = "google"
 

@@ -366,7 +366,8 @@ class Annotator:
             self.fromarray(self.im)
 
     def kpts(self, kpts, shape=(640, 640), radius=5, kpt_line=True, conf_thres=0.25, kpt_color=None):
-        """Plot keypoints on the image.
+        """
+        Plot keypoints on the image.
 
         Args:
             kpts (torch.Tensor): Keypoints, shape [17, 3] (x, y, confidence).
@@ -627,7 +628,8 @@ class Annotator:
         return angle
 
     def draw_specific_points(self, keypoints, indices=None, shape=(640, 640), radius=2, conf_thres=0.25):
-        """Draw specific keypoints for gym steps counting.
+        """
+        Draw specific keypoints for gym steps counting.
 
         Args:
             keypoints (list): Keypoints data to be plotted.

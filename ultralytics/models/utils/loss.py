@@ -33,16 +33,19 @@ class DETRLoss(nn.Module):
     def __init__(
         self, nc=80, loss_gain=None, aux_loss=True, use_fl=True, use_vfl=False, use_uni_match=False, uni_match_ind=0
     ):
-        """
-        DETR loss function.
+        """Initialize DETR loss function with customizable components and gains.
+
+        Uses default loss_gain if not provided. Initializes HungarianMatcher with
+        preset cost gains. Supports auxiliary losses and various loss types.
 
         Args:
-            nc (int): The number of classes.
-            loss_gain (dict): The coefficient of loss.
-            aux_loss (bool): If 'aux_loss = True', loss at each decoder layer are to be used.
-            use_vfl (bool): Use VarifocalLoss or not.
-            use_uni_match (bool): Whether to use a fixed layer to assign labels for auxiliary branch.
-            uni_match_ind (int): The fixed indices of a layer.
+            nc (int): Number of classes.
+            loss_gain (dict): Coefficients for different loss components.
+            aux_loss (bool): Use auxiliary losses from each decoder layer.
+            use_fl (bool): Use FocalLoss.
+            use_vfl (bool): Use VarifocalLoss.
+            use_uni_match (bool): Use fixed layer for auxiliary branch label assignment.
+            uni_match_ind (int): Index of fixed layer for uni_match.
         """
         super().__init__()
 

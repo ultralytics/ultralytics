@@ -140,7 +140,8 @@ def make_divisible(x, divisor):
 
 
 def nms_rotated(boxes, scores, threshold=0.45):
-    """NMS for oriented bounding boxes using probiou and fast-nms.
+    """
+    NMS for oriented bounding boxes using probiou and fast-nms.
 
     Args:
         boxes (torch.Tensor): Rotated bounding boxes, shape (N, 5), format xywhr.

@@ -88,14 +88,17 @@ class BaseModel(nn.Module):
     """The BaseModel class serves as a base class for all the models in the Ultralytics YOLO family."""
 
     def forward(self, x, *args, **kwargs):
-        """
-        Forward pass of the model on a single scale. Wrapper for `_forward_once` method.
+        """Perform forward pass of the model for either training or inference.
+
+        If x is a dict, calculates and returns the loss for training. Otherwise, returns predictions for inference.
 
         Args:
-            x (torch.Tensor | dict): The input image tensor or a dict including image tensor and gt labels.
+            x (torch.Tensor | dict): Input tensor for inference, or dict with image tensor and labels for training.
+            (*args): Variable length argument list.
+            (**kwargs): Arbitrary keyword arguments.
 
         Returns:
-            (torch.Tensor): The output of the network.
+            (torch.Tensor): Loss if x is a dict (training), or network predictions (inference).
         """
         if isinstance(x, dict):  # for cases of training and validating while training.
             return self.loss(x, *args, **kwargs)

@@ -280,7 +280,7 @@ class BaseValidator:
         return batch
 
     def postprocess(self, preds):
-        """Describes and summarizes the purpose of 'postprocess()' but no details mentioned."""
+        """Preprocesses the predictions."""
         return preds
 
     def init_metrics(self, model):

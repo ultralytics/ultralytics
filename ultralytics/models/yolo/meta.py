@@ -73,8 +73,8 @@ class ModelMeta(Model):
             AssertionError: If the model is not a PyTorch model.
 
         Examples:
-            >>> model = YOLO('yolov8n.pt')
-            >>> results = model.benchmark(data='coco8.yaml', imgsz=640, half=True)
+            >>> model = YOLO("yolov8n.pt")
+            >>> results = model.benchmark(data="coco8.yaml", imgsz=640, half=True)
             >>> print(results)
         """
         return super().benchmark(**{k: v for k, v in locals().items() if k not in DROP})
@@ -121,8 +121,8 @@ class ModelMeta(Model):
             RuntimeError: If the export process fails due to errors.
 
         Examples:
-            >>> model = YOLO('yolov8n.pt')
-            >>> model.export(format='onnx', dynamic=True, simplify=True)
+            >>> model = YOLO("yolov8n.pt")
+            >>> model.export(format="onnx", dynamic=True, simplify=True)
             'path/to/exported/model.onnx'
         """
         return super().export(**{k: v for k, v in locals().items() if k not in DROP})
@@ -207,8 +207,8 @@ class ModelMeta(Model):
             (list[Results] | Generator[Results]): Inference results as list or generator of Results objects if `stream==True`.
 
         Examples:
-        >>> model = YOLO('yolov8n.pt')
-        >>> results = model.predict(source='path/to/image.jpg', conf=0.25)
+        >>> model = YOLO("yolov8n.pt")
+        >>> results = model.predict(source="path/to/image.jpg", conf=0.25)
         >>> for r in results:
         ...     print(r.boxes.data)  # print detection bounding boxes
 
@@ -343,8 +343,8 @@ class ModelMeta(Model):
             ModuleNotFoundError: If the HUB SDK is not installed.
 
         Examples:
-            >>> model = YOLO('yolov8n.pt')
-            >>> results = model.train(data='coco128.yaml', epochs=3)
+            >>> model = YOLO("yolov8n.pt")
+            >>> results = model.train(data="coco128.yaml", epochs=3)
         """
         return super().train(**{k: v for k, v in locals().items() if k not in DROP})
 
@@ -430,8 +430,8 @@ class ModelMeta(Model):
             AttributeError: If the predictor does not have registered trackers.
 
         Examples:
-            >>> model = YOLO('yolov8n.pt')
-            >>> results = model.track(source='path/to/video.mp4', show=True)
+            >>> model = YOLO("yolov8n.pt")
+            >>> results = model.track(source="path/to/video.mp4", show=True)
             >>> for r in results:
             ...     print(r.boxes.id)  # print tracking IDs
 
@@ -490,8 +490,8 @@ class ModelMeta(Model):
             AssertionError: If the model is not a PyTorch model.
 
         Examples:
-            >>> model = YOLO('yolov8n.pt')
-            >>> results = model.val(data='coco128.yaml', imgsz=640)
+            >>> model = YOLO("yolov8n.pt")
+            >>> results = model.val(data="coco128.yaml", imgsz=640)
             >>> print(results.box.map)  # Print mAP50-95
         """
         return super().val(**{k: v for k, v in locals().items() if k not in DROP})

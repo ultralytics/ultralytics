@@ -1,9 +1,14 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 # Test and publish docs to https://docs.ultralytics.com
-# Ignored docs rules:
+# Ignores the following Docs rules to match Google-style docstrings
 # D100: Missing docstring in public module
 # D104: Missing docstring in public package
 # D205: 1 blank line required between summary line and description
+# D212: Multi-line docstring summary should start at the first line
+# D401: First line of docstring should be in imperative mood
+# D406: Section name should end with a newline
+# D407: Missing dashed underline after section
+# D413: Missing blank line after last section
 
 name: Publish Docs
 
@@ -41,7 +46,7 @@ jobs:
         if: github.event_name == 'pull_request_target'
         run: |
           python docs/build_reference.py
-          ruff check --fix --fix-unsafe --select D --ignore=D100,D104,D205 . || true
+          ruff check --fix --fix-unsafe --select D --ignore=D100,D104,D205,D212,D401,D406,D407,D413 . || true
           git pull origin ${{ github.head_ref || github.ref }}
           git add .
           git reset HEAD -- .github/workflows/  # workflow changes are not permitted with default token
@@ -54,7 +59,7 @@ jobs:
       - name: Build Docs and Check for Warnings
         run: |
           export JUPYTER_PLATFORM_DIRS=1
-          ruff check --select D --ignore=D100,D104,D205 .
+          ruff check --select D --ignore=D100,D104,D205,D212,D401,D406,D407,D413 .
           python docs/build_docs.py
       - name: Commit and Push Docs changes
         continue-on-error: true

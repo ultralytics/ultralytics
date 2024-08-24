@@ -226,6 +226,7 @@ class Explorer:
     def plot_sql_query(self, query: str, labels: bool = True) -> Image.Image:
         """
         Plot the results of a SQL-Like query on the table.
+
         Args:
             query (str): SQL query to run.
             labels (bool): Whether to plot the labels or not.
@@ -457,20 +458,3 @@ class Explorer:
             LOGGER.error("AI generated query is not valid. Please try again with a different prompt")
             LOGGER.error(e)
             return None
-
-    def visualize(self, result):
-        """
-        Visualize the results of a query. TODO.
-
-        Args:
-            result (pyarrow.Table): Table containing the results of a query.
-        """
-        pass
-
-    def generate_report(self, result):
-        """
-        Generate a report of the dataset.
-
-        TODO
-        """
-        pass

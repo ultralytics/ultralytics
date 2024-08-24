@@ -1,5 +1,16 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 # Test and publish docs to https://docs.ultralytics.com
+# Ignores the following Docs rules to match Google-style docstrings:
+# D100: Missing docstring in public module
+# D104: Missing docstring in public package
+# D203: 1 blank line required before class docstring
+# D205: 1 blank line required between summary line and description
+# D212: Multi-line docstring summary should start at the first line
+# D213: Multi-line docstring summary should start at the second line
+# D401: First line of docstring should be in imperative mood
+# D406: Section name should end with a newline
+# D407: Missing dashed underline after section
+# D413: Missing blank line after last section
 
 name: Publish Docs
 
@@ -32,20 +43,23 @@ jobs:
           python-version: "3.x"
           cache: "pip" # caching pip dependencies
       - name: Install Dependencies
-        run: pip install black tqdm mkdocs-material "mkdocstrings[python]" mkdocs-jupyter mkdocs-redirects mkdocs-ultralytics-plugin mkdocs-macros-plugin
+        run: pip install ruff black tqdm mkdocs-material "mkdocstrings[python]" mkdocs-jupyter mkdocs-redirects mkdocs-ultralytics-plugin mkdocs-macros-plugin
       - name: Update Docs Reference Section and Push Changes
         if: github.event_name == 'pull_request_target'
         run: |
           python docs/build_reference.py
+          ruff check --fix --fix-unsafe --select D --ignore=D100,D104,D203,D205,D212,D213,D401,D406,D407,D413 . || true
           git pull origin ${{ github.head_ref || github.ref }}
           git add .
           git reset HEAD -- .github/workflows/  # workflow changes are not permitted with default token
           if ! git diff --staged --quiet; then
-            git commit -m "Auto-update Ultralytics Docs Reference Section by https://ultralytics.com/actions"
+            git commit -m "Auto-update Ultralytics Docs Reference by https://ultralytics.com/actions"
             git push
           else
             echo "No changes to commit"
           fi
+      - name: Ruff checks
+        run: ruff check --select D --ignore=D100,D104,D203,D205,D212,D213,D401,D406,D407,D413 .
       - name: Build Docs and Check for Warnings
         run: |
           export JUPYTER_PLATFORM_DIRS=1

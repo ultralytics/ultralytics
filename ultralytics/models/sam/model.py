@@ -1,5 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-"""SAM model interface.
+"""
+SAM model interface.
 
 This module provides an interface to the Segment Anything Model (SAM) from Ultralytics, designed for real-time image
 segmentation tasks. The SAM model allows for promptable segmentation with unparalleled versatility in image analysis,
@@ -23,7 +24,8 @@ from .predict import Predictor, SAM2Predictor
 
 
 class SAM(Model):
-    """SAM (Segment Anything Model) interface class for real-time image segmentation tasks.
+    """
+    SAM (Segment Anything Model) interface class for real-time image segmentation tasks.
 
     This class provides an interface to the Segment Anything Model (SAM) from Ultralytics, designed for
     promptable segmentation with versatility in image analysis. It supports various prompts such as bounding
@@ -46,7 +48,8 @@ class SAM(Model):
     """
 
     def __init__(self, model="sam_b.pt") -> None:
-        """Initializes the SAM (Segment Anything Model) instance.
+        """
+        Initializes the SAM (Segment Anything Model) instance.
 
         Args:
             model (str): Path to the pre-trained SAM model file. File should have a .pt or .pth extension.
@@ -64,7 +67,8 @@ class SAM(Model):
         super().__init__(model=model, task="segment")
 
     def _load(self, weights: str, task=None):
-        """Loads the specified weights into the SAM model.
+        """
+        Loads the specified weights into the SAM model.
 
         This method initializes the SAM model with the provided weights file, setting up the model architecture
         and loading the pre-trained parameters.
@@ -80,7 +84,8 @@ class SAM(Model):
         self.model = build_sam(weights)
 
     def predict(self, source, stream=False, bboxes=None, points=None, labels=None, **kwargs):
-        """Performs segmentation prediction on the given image or video source.
+        """
+        Performs segmentation prediction on the given image or video source.
 
         Args:
             source (str | PIL.Image | numpy.ndarray): Path to the image or video file, or a PIL.Image object, or
@@ -106,7 +111,8 @@ class SAM(Model):
         return super().predict(source, stream, prompts=prompts, **kwargs)
 
     def __call__(self, source=None, stream=False, bboxes=None, points=None, labels=None, **kwargs):
-        """Performs segmentation prediction on the given image or video source.
+        """
+        Performs segmentation prediction on the given image or video source.
 
         This method is an alias for the 'predict' method, providing a convenient way to call the SAM model
         for segmentation tasks.
@@ -131,7 +137,8 @@ class SAM(Model):
         return self.predict(source, stream, bboxes, points, labels, **kwargs)
 
     def info(self, detailed=False, verbose=True):
-        """Logs information about the SAM model.
+        """
+        Logs information about the SAM model.
 
         This method provides details about the Segment Anything Model (SAM), including its architecture,
         parameters, and computational requirements.
@@ -152,7 +159,8 @@ class SAM(Model):
 
     @property
     def task_map(self):
-        """Provides a mapping from the 'segment' task to its corresponding 'Predictor'.
+        """
+        Provides a mapping from the 'segment' task to its corresponding 'Predictor'.
 
         Returns:
             (Dict[str, Type[Predictor]]): A dictionary mapping the 'segment' task to its corresponding Predictor

@@ -31,7 +31,8 @@ class Analytics:
         save_img=True,
         max_points=50,
     ):
-        """Initialize the Analytics class with various chart types.
+        """
+        Initialize the Analytics class with various chart types.
 
         Args:
             type (str): Type of chart to initialize ('line', 'bar', 'pie', or 'area').
@@ -106,7 +107,8 @@ class Analytics:
         self.ax.tick_params(axis="both", colors=self.fg_color)
 
     def update_area(self, frame_number, counts_dict):
-        """Update the area graph with new data for multiple classes.
+        """
+        Update the area graph with new data for multiple classes.
 
         Args:
             frame_number (int): The current frame number.
@@ -166,7 +168,8 @@ class Analytics:
         self.write_and_display(im0)
 
     def update_line(self, frame_number, total_counts):
-        """Update the line graph with new data.
+        """
+        Update the line graph with new data.
 
         Args:
             frame_number (int): The current frame number.
@@ -185,7 +188,8 @@ class Analytics:
         self.write_and_display(im0)
 
     def update_multiple_lines(self, counts_dict, labels_list, frame_number):
-        """Update the line graph with multiple classes.
+        """
+        Update the line graph with multiple classes.
 
         Args:
             counts_dict (int): Dictionary include each class counts.
@@ -220,7 +224,8 @@ class Analytics:
         self.write_and_display(im0)
 
     def write_and_display(self, im0):
-        """Write and display the line graph
+        """
+        Write and display the line graph
         Args:
             im0 (ndarray): Image for processing.
         """
@@ -229,7 +234,8 @@ class Analytics:
         self.writer.write(im0) if self.save_img else None
 
     def update_bar(self, count_dict):
-        """Update the bar graph with new data.
+        """
+        Update the bar graph with new data.
 
         Args:
             count_dict (dict): Dictionary containing the count data to plot.
@@ -266,7 +272,8 @@ class Analytics:
         self.write_and_display(im0)
 
     def update_pie(self, classes_dict):
-        """Update the pie chart with new data.
+        """
+        Update the pie chart with new data.
 
         Args:
             classes_dict (dict): Dictionary containing the class data to plot.

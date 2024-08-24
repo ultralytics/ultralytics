@@ -32,7 +32,8 @@ __all__ = ("Bboxes",)  # tuple or list
 
 
 class Bboxes:
-    """A class for handling bounding boxes.
+    """
+    A class for handling bounding boxes.
 
     The class supports various bounding box formats like 'xyxy', 'xywh', and 'ltwh'.
     Bounding box data should be provided in numpy arrays.
@@ -94,7 +95,8 @@ class Bboxes:
     #     self.normalized = True
 
     def mul(self, scale):
-        """Multiply bounding box coordinates by scale factor(s).
+        """
+        Multiply bounding box coordinates by scale factor(s).
 
         Args:
             scale (int | tuple | list): Scale factor(s) for four coordinates.
@@ -110,7 +112,8 @@ class Bboxes:
         self.bboxes[:, 3] *= scale[3]
 
     def add(self, offset):
-        """Add offset to bounding box coordinates.
+        """
+        Add offset to bounding box coordinates.
 
         Args:
             offset (int | tuple | list): Offset(s) for four coordinates.
@@ -131,7 +134,8 @@ class Bboxes:
 
     @classmethod
     def concatenate(cls, boxes_list: List["Bboxes"], axis=0) -> "Bboxes":
-        """Concatenate a list of Bboxes objects into a single Bboxes object.
+        """
+        Concatenate a list of Bboxes objects into a single Bboxes object.
 
         Args:
             boxes_list (List[Bboxes]): A list of Bboxes objects to concatenate.
@@ -154,7 +158,8 @@ class Bboxes:
         return cls(np.concatenate([b.bboxes for b in boxes_list], axis=axis))
 
     def __getitem__(self, index) -> "Bboxes":
-        """Retrieve a specific bounding box or a set of bounding boxes using indexing.
+        """
+        Retrieve a specific bounding box or a set of bounding boxes using indexing.
 
         Args:
             index (int, slice, or np.ndarray): The index, slice, or boolean array to select
@@ -178,7 +183,8 @@ class Bboxes:
 
 
 class Instances:
-    """Container for bounding boxes, segments, and keypoints of detected objects in an image.
+    """
+    Container for bounding boxes, segments, and keypoints of detected objects in an image.
 
     Attributes:
         _bboxes (Bboxes): Internal object for handling bounding box operations.
@@ -209,7 +215,8 @@ class Instances:
     """
 
     def __init__(self, bboxes, segments=None, keypoints=None, bbox_format="xywh", normalized=True) -> None:
-        """Initialize the object with bounding boxes, segments, and keypoints.
+        """
+        Initialize the object with bounding boxes, segments, and keypoints.
 
         Args:
             bboxes (np.ndarray): Bounding boxes, shape [N, 4].
@@ -278,7 +285,8 @@ class Instances:
             self.keypoints[..., 1] += padh
 
     def __getitem__(self, index) -> "Instances":
-        """Retrieve a specific instance or a set of instances using indexing.
+        """
+        Retrieve a specific instance or a set of instances using indexing.
 
         Args:
             index (int, slice, or np.ndarray): The index, slice, or boolean array to select
@@ -369,7 +377,8 @@ class Instances:
 
     @classmethod
     def concatenate(cls, instances_list: List["Instances"], axis=0) -> "Instances":
-        """Concatenates a list of Instances objects into a single Instances object.
+        """
+        Concatenates a list of Instances objects into a single Instances object.
 
         Args:
             instances_list (List[Instances]): A list of Instances objects to concatenate.

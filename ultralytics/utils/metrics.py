@@ -18,7 +18,8 @@ OKS_SIGMA = (
 
 
 def bbox_ioa(box1, box2, iou=False, eps=1e-7):
-    """Calculate the intersection over box2 area given box1 and box2. Boxes are in x1y1x2y2 format.
+    """
+    Calculate the intersection over box2 area given box1 and box2. Boxes are in x1y1x2y2 format.
 
     Args:
         box1 (np.ndarray): A numpy array of shape (n, 4) representing n bounding boxes.
@@ -49,7 +50,8 @@ def bbox_ioa(box1, box2, iou=False, eps=1e-7):
 
 
 def box_iou(box1, box2, eps=1e-7):
-    """Calculate intersection-over-union (IoU) of boxes. Both sets of boxes are expected to be in (x1, y1, x2, y2) format.
+    """
+    Calculate intersection-over-union (IoU) of boxes. Both sets of boxes are expected to be in (x1, y1, x2, y2) format.
     Based on https://github.com/pytorch/vision/blob/master/torchvision/ops/boxes.py.
 
     Args:
@@ -70,7 +72,8 @@ def box_iou(box1, box2, eps=1e-7):
 
 
 def bbox_iou(box1, box2, xywh=True, GIoU=False, DIoU=False, CIoU=False, eps=1e-7):
-    """Calculate Intersection over Union (IoU) of box1(1, 4) to box2(n, 4).
+    """
+    Calculate Intersection over Union (IoU) of box1(1, 4) to box2(n, 4).
 
     Args:
         box1 (torch.Tensor): A tensor representing a single bounding box with shape (1, 4).
@@ -127,7 +130,8 @@ def bbox_iou(box1, box2, xywh=True, GIoU=False, DIoU=False, CIoU=False, eps=1e-7
 
 
 def mask_iou(mask1, mask2, eps=1e-7):
-    """Calculate masks IoU.
+    """
+    Calculate masks IoU.
 
     Args:
         mask1 (torch.Tensor): A tensor of shape (N, n) where N is the number of ground truth objects and n is the
@@ -145,7 +149,8 @@ def mask_iou(mask1, mask2, eps=1e-7):
 
 
 def kpt_iou(kpt1, kpt2, area, sigma, eps=1e-7):
-    """Calculate Object Keypoint Similarity (OKS).
+    """
+    Calculate Object Keypoint Similarity (OKS).
 
     Args:
         kpt1 (torch.Tensor): A tensor of shape (N, 17, 3) representing ground truth keypoints.
@@ -166,7 +171,8 @@ def kpt_iou(kpt1, kpt2, area, sigma, eps=1e-7):
 
 
 def _get_covariance_matrix(boxes):
-    """Generating covariance matrix from obbs.
+    """
+    Generating covariance matrix from obbs.
 
     Args:
         boxes (torch.Tensor): A tensor of shape (N, 5) representing rotated bounding boxes, with xywhr format.
@@ -185,7 +191,8 @@ def _get_covariance_matrix(boxes):
 
 
 def probiou(obb1, obb2, CIoU=False, eps=1e-7):
-    """Calculate probabilistic IoU between oriented bounding boxes.
+    """
+    Calculate probabilistic IoU between oriented bounding boxes.
 
     Implements the algorithm from https://arxiv.org/pdf/2106.06072v1.pdf.
 
@@ -230,7 +237,8 @@ def probiou(obb1, obb2, CIoU=False, eps=1e-7):
 
 
 def batch_probiou(obb1, obb2, eps=1e-7):
-    """Calculate the prob IoU between oriented bounding boxes, https://arxiv.org/pdf/2106.06072v1.pdf.
+    """
+    Calculate the prob IoU between oriented bounding boxes, https://arxiv.org/pdf/2106.06072v1.pdf.
 
     Args:
         obb1 (torch.Tensor | np.ndarray): A tensor of shape (N, 5) representing ground truth obbs, with xywhr format.
@@ -263,7 +271,8 @@ def batch_probiou(obb1, obb2, eps=1e-7):
 
 
 def smooth_BCE(eps=0.1):
-    """Computes smoothed positive and negative Binary Cross-Entropy targets.
+    """
+    Computes smoothed positive and negative Binary Cross-Entropy targets.
 
     This function calculates positive and negative label smoothing BCE targets based on a given epsilon value.
     For implementation details, refer to https://github.com/ultralytics/yolov3/issues/238#issuecomment-598028441.
@@ -278,7 +287,8 @@ def smooth_BCE(eps=0.1):
 
 
 class ConfusionMatrix:
-    """A class for calculating and updating a confusion matrix for object detection and classification tasks.
+    """
+    A class for calculating and updating a confusion matrix for object detection and classification tasks.
 
     Attributes:
         task (str): The type of task, either 'detect' or 'classify'.
@@ -297,7 +307,8 @@ class ConfusionMatrix:
         self.iou_thres = iou_thres
 
     def process_cls_preds(self, preds, targets):
-        """Update confusion matrix for classification task.
+        """
+        Update confusion matrix for classification task.
 
         Args:
             preds (Array[N, min(nc,5)]): Predicted class labels.
@@ -308,7 +319,8 @@ class ConfusionMatrix:
             self.matrix[p][t] += 1
 
     def process_batch(self, detections, gt_bboxes, gt_cls):
-        """Update confusion matrix for object detection task.
+        """
+        Update confusion matrix for object detection task.
 
         Args:
             detections (Array[N, 6] | Array[N, 7]): Detected bounding boxes and their associated information.
@@ -379,7 +391,8 @@ class ConfusionMatrix:
     @TryExcept("WARNING ⚠️ ConfusionMatrix plot failure")
     @plt_settings()
     def plot(self, normalize=True, save_dir="", names=(), on_plot=None):
-        """Plot the confusion matrix using seaborn and save it to a file.
+        """
+        Plot the confusion matrix using seaborn and save it to a file.
 
         Args:
             normalize (bool): Whether to normalize the confusion matrix.
@@ -486,7 +499,8 @@ def plot_mc_curve(px, py, save_dir=Path("mc_curve.png"), names={}, xlabel="Confi
 
 
 def compute_ap(recall, precision):
-    """Compute the average precision (AP) given the recall and precision curves.
+    """
+    Compute the average precision (AP) given the recall and precision curves.
 
     Args:
         recall (list): The recall curve.
@@ -519,7 +533,8 @@ def compute_ap(recall, precision):
 def ap_per_class(
     tp, conf, pred_cls, target_cls, plot=False, on_plot=None, save_dir=Path(), names={}, eps=1e-16, prefix=""
 ):
-    """Computes the average precision per class for object detection evaluation.
+    """
+    Computes the average precision per class for object detection evaluation.
 
     Args:
         tp (np.ndarray): Binary array indicating whether the detection is correct (True) or not (False).
@@ -606,7 +621,8 @@ def ap_per_class(
 
 
 class Metric(SimpleClass):
-    """Class for computing evaluation metrics for YOLOv8 model.
+    """
+    Class for computing evaluation metrics for YOLOv8 model.
 
     Attributes:
         p (list): Precision for each class. Shape: (nc,).
@@ -642,7 +658,8 @@ class Metric(SimpleClass):
 
     @property
     def ap50(self):
-        """Returns the Average Precision (AP) at an IoU threshold of 0.5 for all classes.
+        """
+        Returns the Average Precision (AP) at an IoU threshold of 0.5 for all classes.
 
         Returns:
             (np.ndarray, list): Array of shape (nc,) with AP50 values per class, or an empty list if not available.
@@ -651,7 +668,8 @@ class Metric(SimpleClass):
 
     @property
     def ap(self):
-        """Returns the Average Precision (AP) at an IoU threshold of 0.5-0.95 for all classes.
+        """
+        Returns the Average Precision (AP) at an IoU threshold of 0.5-0.95 for all classes.
 
         Returns:
             (np.ndarray, list): Array of shape (nc,) with AP50-95 values per class, or an empty list if not available.
@@ -660,7 +678,8 @@ class Metric(SimpleClass):
 
     @property
     def mp(self):
-        """Returns the Mean Precision of all classes.
+        """
+        Returns the Mean Precision of all classes.
 
         Returns:
             (float): The mean precision of all classes.
@@ -669,7 +688,8 @@ class Metric(SimpleClass):
 
     @property
     def mr(self):
-        """Returns the Mean Recall of all classes.
+        """
+        Returns the Mean Recall of all classes.
 
         Returns:
             (float): The mean recall of all classes.
@@ -678,7 +698,8 @@ class Metric(SimpleClass):
 
     @property
     def map50(self):
-        """Returns the mean Average Precision (mAP) at an IoU threshold of 0.5.
+        """
+        Returns the mean Average Precision (mAP) at an IoU threshold of 0.5.
 
         Returns:
             (float): The mAP at an IoU threshold of 0.5.
@@ -687,7 +708,8 @@ class Metric(SimpleClass):
 
     @property
     def map75(self):
-        """Returns the mean Average Precision (mAP) at an IoU threshold of 0.75.
+        """
+        Returns the mean Average Precision (mAP) at an IoU threshold of 0.75.
 
         Returns:
             (float): The mAP at an IoU threshold of 0.75.
@@ -696,7 +718,8 @@ class Metric(SimpleClass):
 
     @property
     def map(self):
-        """Returns the mean Average Precision (mAP) over IoU thresholds of 0.5 - 0.95 in steps of 0.05.
+        """
+        Returns the mean Average Precision (mAP) over IoU thresholds of 0.5 - 0.95 in steps of 0.05.
 
         Returns:
             (float): The mAP over IoU thresholds of 0.5 - 0.95 in steps of 0.05.
@@ -725,7 +748,8 @@ class Metric(SimpleClass):
         return (np.array(self.mean_results()) * w).sum()
 
     def update(self, results):
-        """Updates the evaluation metrics of the model with a new set of results.
+        """
+        Updates the evaluation metrics of the model with a new set of results.
 
         Args:
             results (tuple): A tuple containing the following evaluation metrics:
@@ -769,8 +793,9 @@ class Metric(SimpleClass):
 
 
 class DetMetrics(SimpleClass):
-    """This class is a utility class for computing detection metrics such as precision, recall, and mean average
-    precision (mAP) of an object detection model.
+    """
+    This class is a utility class for computing detection metrics such as precision, recall, and mean average precision
+    (mAP) of an object detection model.
 
     Args:
         save_dir (Path): A path to the directory where the output plots will be saved. Defaults to current directory.
@@ -869,7 +894,8 @@ class DetMetrics(SimpleClass):
 
 
 class SegmentMetrics(SimpleClass):
-    """Calculates and aggregates detection and segmentation metrics over a given set of classes.
+    """
+    Calculates and aggregates detection and segmentation metrics over a given set of classes.
 
     Args:
         save_dir (Path): Path to the directory where the output plots should be saved. Default is the current directory.
@@ -908,7 +934,8 @@ class SegmentMetrics(SimpleClass):
         self.task = "segment"
 
     def process(self, tp, tp_m, conf, pred_cls, target_cls):
-        """Processes the detection and segmentation metrics over the given set of predictions.
+        """
+        Processes the detection and segmentation metrics over the given set of predictions.
 
         Args:
             tp (list): List of True Positive boxes.
@@ -1007,7 +1034,8 @@ class SegmentMetrics(SimpleClass):
 
 
 class PoseMetrics(SegmentMetrics):
-    """Calculates and aggregates detection and pose metrics over a given set of classes.
+    """
+    Calculates and aggregates detection and pose metrics over a given set of classes.
 
     Args:
         save_dir (Path): Path to the directory where the output plots should be saved. Default is the current directory.
@@ -1047,7 +1075,8 @@ class PoseMetrics(SegmentMetrics):
         self.task = "pose"
 
     def process(self, tp, tp_p, conf, pred_cls, target_cls):
-        """Processes the detection and pose metrics over the given set of predictions.
+        """
+        Processes the detection and pose metrics over the given set of predictions.
 
         Args:
             tp (list): List of True Positive boxes.
@@ -1136,7 +1165,8 @@ class PoseMetrics(SegmentMetrics):
 
 
 class ClassifyMetrics(SimpleClass):
-    """Class for computing classification metrics including top-1 and top-5 accuracy.
+    """
+    Class for computing classification metrics including top-1 and top-5 accuracy.
 
     Attributes:
         top1 (float): The top-1 accuracy.

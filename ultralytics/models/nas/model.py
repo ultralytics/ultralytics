@@ -1,5 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-"""YOLO-NAS model interface.
+"""
+YOLO-NAS model interface.
 
 Example:
     ```python
@@ -23,7 +24,8 @@ from .val import NASValidator
 
 
 class NAS(Model):
-    """YOLO NAS model for object detection.
+    """
+    YOLO NAS model for object detection.
 
     This class provides an interface for the YOLO-NAS models and extends the `Model` class from Ultralytics engine.
     It is designed to facilitate the task of object detection using pre-trained or custom-trained YOLO-NAS models.
@@ -77,7 +79,8 @@ class NAS(Model):
         self.model.task = "detect"  # for export()
 
     def info(self, detailed=False, verbose=True):
-        """Logs model info.
+        """
+        Logs model info.
 
         Args:
             detailed (bool): Show detailed information about model.

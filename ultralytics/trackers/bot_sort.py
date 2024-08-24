@@ -12,7 +12,8 @@ from .utils.kalman_filter import KalmanFilterXYWH
 
 
 class BOTrack(STrack):
-    """An extended version of the STrack class for YOLOv8, adding object tracking features.
+    """
+    An extended version of the STrack class for YOLOv8, adding object tracking features.
 
     This class extends the STrack class to include additional functionalities for object tracking, such as feature
     smoothing, Kalman filter prediction, and reactivation of tracks.
@@ -47,7 +48,8 @@ class BOTrack(STrack):
     shared_kalman = KalmanFilterXYWH()
 
     def __init__(self, tlwh, score, cls, feat=None, feat_history=50):
-        """Initialize a BOTrack object with temporal parameters, such as feature history, alpha, and current features.
+        """
+        Initialize a BOTrack object with temporal parameters, such as feature history, alpha, and current features.
 
         Args:
             tlwh (np.ndarray): Bounding box coordinates in tlwh format (top left x, top left y, width, height).
@@ -143,8 +145,8 @@ class BOTrack(STrack):
 
 
 class BOTSORT(BYTETracker):
-    """An extended version of the BYTETracker class for YOLOv8, designed for object tracking with ReID and GMC
-    algorithm.
+    """
+    An extended version of the BYTETracker class for YOLOv8, designed for object tracking with ReID and GMC algorithm.
 
     Attributes:
         proximity_thresh (float): Threshold for spatial proximity (IoU) between tracks and detections.
@@ -170,7 +172,8 @@ class BOTSORT(BYTETracker):
     """
 
     def __init__(self, args, frame_rate=30):
-        """Initialize YOLOv8 object with ReID module and GMC algorithm.
+        """
+        Initialize YOLOv8 object with ReID module and GMC algorithm.
 
         Args:
             args (object): Parsed command-line arguments containing tracking parameters.

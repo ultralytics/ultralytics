@@ -45,7 +45,8 @@ class TorchVisionVideoClassifier:
     }
 
     def __init__(self, model_name: str, device: str or torch.device = ""):
-        """Initialize the VideoClassifier with the specified model name and device.
+        """
+        Initialize the VideoClassifier with the specified model name and device.
 
         Args:
             model_name (str): The name of the model to use.
@@ -62,7 +63,8 @@ class TorchVisionVideoClassifier:
 
     @staticmethod
     def available_model_names() -> List[str]:
-        """Get the list of available model names.
+        """
+        Get the list of available model names.
 
         Returns:
             list: List of available model names.
@@ -70,7 +72,8 @@ class TorchVisionVideoClassifier:
         return list(TorchVisionVideoClassifier.model_name_to_model_and_weights.keys())
 
     def preprocess_crops_for_video_cls(self, crops: List[np.ndarray], input_size: list = None) -> torch.Tensor:
-        """Preprocess a list of crops for video classification.
+        """
+        Preprocess a list of crops for video classification.
 
         Args:
             crops (List[np.ndarray]): List of crops to preprocess. Each crop should have dimensions (H, W, C)
@@ -95,7 +98,8 @@ class TorchVisionVideoClassifier:
         return torch.stack(processed_crops).unsqueeze(0).permute(0, 2, 1, 3, 4).to(self.device)
 
     def __call__(self, sequences: torch.Tensor):
-        """Perform inference on the given sequences.
+        """
+        Perform inference on the given sequences.
 
         Args:
             sequences (torch.Tensor): The input sequences for the model. The expected input dimensions are
@@ -108,7 +112,8 @@ class TorchVisionVideoClassifier:
             return self.model(sequences)
 
     def postprocess(self, outputs: torch.Tensor) -> Tuple[List[str], List[float]]:
-        """Postprocess the model's batch output.
+        """
+        Postprocess the model's batch output.
 
         Args:
             outputs (torch.Tensor): The model's output.
@@ -139,7 +144,8 @@ class HuggingFaceVideoClassifier:
         device: str or torch.device = "",
         fp16: bool = False,
     ):
-        """Initialize the HuggingFaceVideoClassifier with the specified model name.
+        """
+        Initialize the HuggingFaceVideoClassifier with the specified model name.
 
         Args:
             labels (List[str]): List of labels for zero-shot classification.
@@ -157,7 +163,8 @@ class HuggingFaceVideoClassifier:
         self.model = model.eval()
 
     def preprocess_crops_for_video_cls(self, crops: List[np.ndarray], input_size: list = None) -> torch.Tensor:
-        """Preprocess a list of crops for video classification.
+        """
+        Preprocess a list of crops for video classification.
 
         Args:
             crops (List[np.ndarray]): List of crops to preprocess. Each crop should have dimensions (H, W, C)
@@ -187,7 +194,8 @@ class HuggingFaceVideoClassifier:
         return output
 
     def __call__(self, sequences: torch.Tensor) -> torch.Tensor:
-        """Perform inference on the given sequences.
+        """
+        Perform inference on the given sequences.
 
         Args:
             sequences (torch.Tensor): The input sequences for the model. Batched video frames with shape (B, T, H, W, C).
@@ -205,7 +213,8 @@ class HuggingFaceVideoClassifier:
         return outputs.logits_per_video
 
     def postprocess(self, outputs: torch.Tensor) -> Tuple[List[List[str]], List[List[float]]]:
-        """Postprocess the model's batch output.
+        """
+        Postprocess the model's batch output.
 
         Args:
             outputs (torch.Tensor): The model's output.
@@ -266,7 +275,8 @@ def run(
     video_classifier_model: str = "microsoft/xclip-base-patch32",
     labels: List[str] = None,
 ) -> None:
-    """Run action recognition on a video source using YOLO for object detection and a video classifier.
+    """
+    Run action recognition on a video source using YOLO for object detection and a video classifier.
 
     Args:
         weights (str): Path to the YOLO model weights. Defaults to "yolov8n.pt".

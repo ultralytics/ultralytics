@@ -15,7 +15,8 @@ class YOLOv8:
     """YOLOv8 object detection model class for handling inference and visualization."""
 
     def __init__(self, onnx_model, input_image, confidence_thres, iou_thres):
-        """Initializes an instance of the YOLOv8 class.
+        """
+        Initializes an instance of the YOLOv8 class.
 
         Args:
             onnx_model: Path to the ONNX model.
@@ -35,7 +36,8 @@ class YOLOv8:
         self.color_palette = np.random.uniform(0, 255, size=(len(self.classes), 3))
 
     def draw_detections(self, img, box, score, class_id):
-        """Draws bounding boxes and labels on the input image based on the detected objects.
+        """
+        Draws bounding boxes and labels on the input image based on the detected objects.
 
         Args:
             img: The input image to draw detections on.
@@ -74,7 +76,8 @@ class YOLOv8:
         cv2.putText(img, label, (label_x, label_y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
 
     def preprocess(self):
-        """Preprocesses the input image before performing inference.
+        """
+        Preprocesses the input image before performing inference.
 
         Returns:
             image_data: Preprocessed image data ready for inference.
@@ -104,7 +107,8 @@ class YOLOv8:
         return image_data
 
     def postprocess(self, input_image, output):
-        """Performs post-processing on the model's output to extract bounding boxes, scores, and class IDs.
+        """
+        Performs post-processing on the model's output to extract bounding boxes, scores, and class IDs.
 
         Args:
             input_image (numpy.ndarray): The input image.
@@ -172,7 +176,8 @@ class YOLOv8:
         return input_image
 
     def main(self):
-        """Performs inference using an ONNX model and returns the output image with drawn detections.
+        """
+        Performs inference using an ONNX model and returns the output image with drawn detections.
 
         Returns:
             output_img: The output image with drawn detections.

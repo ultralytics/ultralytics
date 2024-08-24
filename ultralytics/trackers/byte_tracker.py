@@ -10,7 +10,8 @@ from .utils.kalman_filter import KalmanFilterXYAH
 
 
 class STrack(BaseTrack):
-    """Single object tracking representation that uses Kalman filtering for state estimation.
+    """
+    Single object tracking representation that uses Kalman filtering for state estimation.
 
     This class is responsible for storing all the information regarding individual tracklets and performs state updates
     and predictions based on Kalman filter.
@@ -48,7 +49,8 @@ class STrack(BaseTrack):
     shared_kalman = KalmanFilterXYAH()
 
     def __init__(self, xywh, score, cls):
-        """Initialize a new STrack instance.
+        """
+        Initialize a new STrack instance.
 
         Args:
             xywh (List[float]): Bounding box coordinates and dimensions in the format (x, y, w, h, [a], idx), where
@@ -147,7 +149,8 @@ class STrack(BaseTrack):
         self.idx = new_track.idx
 
     def update(self, new_track, frame_id):
-        """Update the state of a matched track.
+        """
+        Update the state of a matched track.
 
         Args:
             new_track (STrack): The new track containing updated information.
@@ -230,7 +233,8 @@ class STrack(BaseTrack):
 
 
 class BYTETracker:
-    """BYTETracker: A tracking algorithm built on top of YOLOv8 for object detection and tracking.
+    """
+    BYTETracker: A tracking algorithm built on top of YOLOv8 for object detection and tracking.
 
     Responsible for initializing, updating, and managing the tracks for detected objects in a video sequence.
     It maintains the state of tracked, lost, and removed tracks over frames, utilizes Kalman filtering for predicting
@@ -264,7 +268,8 @@ class BYTETracker:
     """
 
     def __init__(self, args, frame_rate=30):
-        """Initialize a BYTETracker instance for object tracking.
+        """
+        Initialize a BYTETracker instance for object tracking.
 
         Args:
             args (Namespace): Command-line arguments containing tracking parameters.

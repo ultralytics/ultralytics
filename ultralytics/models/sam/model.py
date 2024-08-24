@@ -41,8 +41,8 @@ class SAM(Model):
         info: Logs information about the SAM model.
 
     Examples:
-        >>> sam = SAM('sam_b.pt')
-        >>> results = sam.predict('image.jpg', points=[[500, 375]])
+        >>> sam = SAM("sam_b.pt")
+        >>> results = sam.predict("image.jpg", points=[[500, 375]])
         >>> for r in results:
         >>>     print(f"Detected {len(r.masks)} masks")
     """
@@ -58,7 +58,7 @@ class SAM(Model):
             NotImplementedError: If the model file extension is not .pt or .pth.
 
         Examples:
-            >>> sam = SAM('sam_b.pt')
+            >>> sam = SAM("sam_b.pt")
             >>> print(sam.is_sam2)
         """
         if model and Path(model).suffix not in {".pt", ".pth"}:
@@ -78,8 +78,8 @@ class SAM(Model):
             task (str | None): Task name. If provided, it specifies the particular task the model is being loaded for.
 
         Examples:
-            >>> sam = SAM('sam_b.pt')
-            >>> sam._load('path/to/custom_weights.pt')
+            >>> sam = SAM("sam_b.pt")
+            >>> sam._load("path/to/custom_weights.pt")
         """
         self.model = build_sam(weights)
 
@@ -100,8 +100,8 @@ class SAM(Model):
             (List): The model predictions.
 
         Examples:
-            >>> sam = SAM('sam_b.pt')
-            >>> results = sam.predict('image.jpg', points=[[500, 375]])
+            >>> sam = SAM("sam_b.pt")
+            >>> results = sam.predict("image.jpg", points=[[500, 375]])
             >>> for r in results:
             ...     print(f"Detected {len(r.masks)} masks")
         """
@@ -130,8 +130,8 @@ class SAM(Model):
             (List): The model predictions, typically containing segmentation masks and other relevant information.
 
         Examples:
-            >>> sam = SAM('sam_b.pt')
-            >>> results = sam('image.jpg', points=[[500, 375]])
+            >>> sam = SAM("sam_b.pt")
+            >>> results = sam("image.jpg", points=[[500, 375]])
             >>> print(f"Detected {len(results[0].masks)} masks")
         """
         return self.predict(source, stream, bboxes, points, labels, **kwargs)
@@ -151,7 +151,7 @@ class SAM(Model):
             (Tuple): A tuple containing the model's information (string representations of the model).
 
         Examples:
-            >>> sam = SAM('sam_b.pt')
+            >>> sam = SAM("sam_b.pt")
             >>> info = sam.info()
             >>> print(info[0])  # Print summary information
         """
@@ -167,7 +167,7 @@ class SAM(Model):
                 class. For SAM2 models, it maps to SAM2Predictor, otherwise to the standard Predictor.
 
         Examples:
-            >>> sam = SAM('sam_b.pt')
+            >>> sam = SAM("sam_b.pt")
             >>> task_map = sam.task_map
             >>> print(task_map)
             {'segment': <class 'ultralytics.models.sam.predict.Predictor'>}

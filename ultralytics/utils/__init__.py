@@ -135,9 +135,7 @@ class TQDM(tqdm_original):
 
 
 class SimpleClass:
-    """Ultralytics SimpleClass is a base class providing helpful string representation, error reporting, and attribute
-    access methods for easier debugging and usage.
-    """
+    """A base class providing string representation and attribute access functionality for Ultralytics objects."""
 
     def __str__(self):
         """Return a human-readable string representation of the object."""
@@ -164,9 +162,7 @@ class SimpleClass:
 
 
 class IterableSimpleNamespace(SimpleNamespace):
-    """Ultralytics IterableSimpleNamespace is an extension class of SimpleNamespace that adds iterable functionality and
-    enables usage with dict() and for loops.
-    """
+    """Iterable SimpleNamespace subclass for key-value attribute iteration and custom error handling."""
 
     def __iter__(self):
         """Return an iterator of key-value pairs from the namespace's attributes."""
@@ -209,7 +205,6 @@ def plt_settings(rcparams=None, backend="Agg"):
         (Callable): Decorated function with temporarily set rc parameters and backend. This decorator can be
             applied to any function that needs to have specific matplotlib rc parameters and backend for its execution.
     """
-
     if rcparams is None:
         rcparams = {"font.size": 11}
 
@@ -240,9 +235,7 @@ def plt_settings(rcparams=None, backend="Agg"):
 
 
 def set_logging(name="LOGGING_NAME", verbose=True):
-    """Sets up logging for the given name with UTF-8 encoding support, ensuring compatibility across different
-    environments.
-    """
+    """Sets up logging with UTF-8 encoding and configurable verbosity for Ultralytics YOLO."""
     level = logging.INFO if verbose and RANK in {-1, 0} else logging.ERROR  # rank in world for Multi-GPU trainings
 
     # Configure the console (stdout) encoding to UTF-8, with checks for compatibility
@@ -702,7 +695,7 @@ SETTINGS_YAML = USER_CONFIG_DIR / "settings.yaml"
 
 
 def colorstr(*input):
-    """
+    r"""
     Colors a string based on the provided color and style arguments. Utilizes ANSI escape codes.
     See https://en.wikipedia.org/wiki/ANSI_escape_code for more details.
 
@@ -946,9 +939,7 @@ class SettingsManager(dict):
     """
 
     def __init__(self, file=SETTINGS_YAML, version="0.0.4"):
-        """Initialize the SettingsManager with default settings, load and validate current settings from the YAML
-        file.
-        """
+        """Initializes the SettingsManager with default settings and loads user settings."""
         import copy
         import hashlib
 

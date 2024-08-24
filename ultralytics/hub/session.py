@@ -353,7 +353,7 @@ class HUBTrainingSession:
                     f"{PREFIX} WARNING ⚠️ Model 'best.pt' not found, copying 'last.pt' to 'best.pt' and uploading. "
                     "This often happens when resuming training in transient environments like Google Colab. "
                     "For more reliable training, consider using Ultralytics HUB Cloud. "
-                    "Learn more at https://docs.ultralytics.com/hub/cloud-training/."
+                    "Learn more at https://docs.ultralytics.com/hub/cloud-training."
                 )
                 shutil.copy(last, weights)  # copy last.pt to best.pt
             else:

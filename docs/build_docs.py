@@ -1,7 +1,8 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-"""This Python script is designed to automate the building and post-processing of MkDocs documentation, particularly for
-projects with multilingual content. It streamlines the workflow for generating localized versions of the documentation
-and updating HTML links to ensure they are correctly formatted.
+"""
+Automates the building and post-processing of MkDocs documentation, particularly for projects with multilingual
+content. It streamlines the workflow for generating localized versions of the documentation and updating HTML links to
+ensure they are correctly formatted.
 
 Key Features:
     - Automated building of MkDocs documentation: The script compiles both the main documentation and

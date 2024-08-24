@@ -159,16 +159,19 @@ The configuration file for the VisDrone dataset, `VisDrone.yaml`, can be found i
 
 If you use the VisDrone dataset in your research or development work, please cite the following paper:
 
-!!! Quote "BibTeX"
+!!! Quote ""
 
-    ```bibtex
-    @ARTICLE{9573394,
-      author={Zhu, Pengfei and Wen, Longyin and Du, Dawei and Bian, Xiao and Fan, Heng and Hu, Qinghua and Ling, Haibin},
-      journal={IEEE Transactions on Pattern Analysis and Machine Intelligence},
-      title={Detection and Tracking Meet Drones Challenge},
-      year={2021},
-      volume={},
-      number={},
-      pages={1-1},
-      doi={10.1109/TPAMI.2021.3119563}}
-    ```
+    === "BibTeX"
+
+        ```bibtex
+        @ARTICLE{9573394,
+          author={Zhu, Pengfei and Wen, Longyin and Du, Dawei and Bian, Xiao and Fan, Heng and Hu, Qinghua and Ling, Haibin},
+          journal={IEEE Transactions on Pattern Analysis and Machine Intelligence},
+          title={Detection and Tracking Meet Drones Challenge},
+          year={2021},
+          volume={},
+          number={},
+          pages={1-1},
+          doi={10.1109/TPAMI.2021.3119563}
+        }
+        ```

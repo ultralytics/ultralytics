@@ -137,10 +137,10 @@ def select_device(device="", batch=0, newline=False, verbose=True):
             devices when using multiple GPUs.
 
     Examples:
-        >>> select_device('cuda:0')
+        >>> select_device("cuda:0")
         device(type='cuda', index=0)
 
-        >>> select_device('cpu')
+        >>> select_device("cpu")
         device(type='cpu')
 
     Note:
@@ -331,11 +331,13 @@ def model_info_for_loggers(trainer):
     Example:
         YOLOv8n info for loggers
         ```python
-        results = {'model/parameters': 3151904,
-                   'model/GFLOPs': 8.746,
-                   'model/speed_ONNX(ms)': 41.244,
-                   'model/speed_TensorRT(ms)': 3.211,
-                   'model/speed_PyTorch(ms)': 18.755}
+        results = {
+            "model/parameters": 3151904,
+            "model/GFLOPs": 8.746,
+            "model/speed_ONNX(ms)": 41.244,
+            "model/speed_TensorRT(ms)": 3.211,
+            "model/speed_PyTorch(ms)": 18.755,
+        }
         ```
     """
     if trainer.args.profile:  # profile ONNX and TensorRT times
@@ -542,7 +544,7 @@ def strip_optimizer(f: Union[str, Path] = "best.pt", s: str = "") -> None:
         from pathlib import Path
         from ultralytics.utils.torch_utils import strip_optimizer
 
-        for f in Path('path/to/model/checkpoints').rglob('*.pt'):
+        for f in Path("path/to/model/checkpoints").rglob("*.pt"):
             strip_optimizer(f)
         ```
 

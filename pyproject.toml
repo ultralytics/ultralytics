@@ -171,6 +171,9 @@ split_before_first_argument = false
 [tool.ruff]
 line-length = 120
 
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
 [tool.docformatter]
 wrap-summaries = 120
 wrap-descriptions = 120

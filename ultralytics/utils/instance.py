@@ -209,7 +209,8 @@ class Instances:
     """
 
     def __init__(self, bboxes, segments=None, keypoints=None, bbox_format="xywh", normalized=True) -> None:
-        """Initialize the object with bounding boxes, segments, and keypoints.
+        """
+        Initialize the object with bounding boxes, segments, and keypoints.
 
         Args:
             bboxes (np.ndarray): Bounding boxes, shape [N, 4].

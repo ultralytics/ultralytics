@@ -249,15 +249,24 @@ class DETRLoss(nn.Module):
         return loss
 
     def forward(self, pred_bboxes, pred_scores, batch, postfix="", **kwargs):
-        """
+        """Calculate loss for predicted bounding boxes and scores.
+
         Args:
-            pred_bboxes (torch.Tensor): [l, b, query, 4]
-            pred_scores (torch.Tensor): [l, b, query, num_classes]
-            batch (dict): A dict includes:
-                gt_cls (torch.Tensor) with shape [num_gts, ],
-                gt_bboxes (torch.Tensor): [num_gts, 4],
-                gt_groups (List(int)): a list of batch size length includes the number of gts of each image.
-            postfix (str): postfix of loss name.
+            pred_bboxes (torch.Tensor): Predicted bounding boxes, shape [l, b, query, 4].
+            pred_scores (torch.Tensor): Predicted class scores, shape [l, b, query, num_classes].
+            batch (dict): Batch information containing:
+                cls (torch.Tensor): Ground truth classes, shape [num_gts].
+                bboxes (torch.Tensor): Ground truth bounding boxes, shape [num_gts, 4].
+                gt_groups (List[int]): Number of ground truths for each image in the batch.
+            postfix (str): Postfix for loss names.
+            **kwargs (Any): Additional arguments, may include 'match_indices'.
+
+        Returns:
+            (dict): Computed losses, including main and auxiliary (if enabled).
+
+        Note:
+            Uses last elements of pred_bboxes and pred_scores for main loss, and the rest for auxiliary losses if
+            self.aux_loss is True.
         """
         self.device = pred_bboxes.device
         match_indices = kwargs.get("match_indices", None)

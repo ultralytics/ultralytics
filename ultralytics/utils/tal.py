@@ -326,15 +326,16 @@ def bbox2dist(anchor_points, bbox, reg_max):
 
 def dist2rbox(pred_dist, pred_angle, anchor_points, dim=-1):
     """
-    Decode predicted object bounding box coordinates from anchor points and distribution.
+    Decode predicted rotated bounding box coordinates from anchor points and distribution.
 
     Args:
-        pred_dist (torch.Tensor): Predicted rotated distance, (bs, h*w, 4).
-        pred_angle (torch.Tensor): Predicted angle, (bs, h*w, 1).
-        anchor_points (torch.Tensor): Anchor points, (h*w, 2).
+        pred_dist (torch.Tensor): Predicted rotated distance, shape (bs, h*w, 4).
+        pred_angle (torch.Tensor): Predicted angle, shape (bs, h*w, 1).
+        anchor_points (torch.Tensor): Anchor points, shape (h*w, 2).
+        dim (int, optional): Dimension along which to split. Defaults to -1.
 
     Returns:
-        (torch.Tensor): Predicted rotated bounding boxes, (bs, h*w, 4).
+        torch.Tensor: Predicted rotated bounding boxes, shape (bs, h*w, 4).
     """
     lt, rb = pred_dist.split(2, dim=dim)
     cos, sin = torch.cos(pred_angle), torch.sin(pred_angle)

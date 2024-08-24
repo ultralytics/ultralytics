@@ -140,15 +140,15 @@ def make_divisible(x, divisor):
 
 
 def nms_rotated(boxes, scores, threshold=0.45):
-    """
-    NMS for obbs, powered by probiou and fast-nms.
+    """NMS for oriented bounding boxes using probiou and fast-nms.
 
     Args:
-        boxes (torch.Tensor): (N, 5), xywhr.
-        scores (torch.Tensor): (N, ).
-        threshold (float): IoU threshold.
+        boxes (torch.Tensor): Rotated bounding boxes, shape (N, 5), format xywhr.
+        scores (torch.Tensor): Confidence scores, shape (N,).
+        threshold (float, optional): IoU threshold. Defaults to 0.45.
 
     Returns:
+        (torch.Tensor): Indices of boxes to keep after NMS.
     """
     if len(boxes) == 0:
         return np.empty((0,), dtype=np.int8)

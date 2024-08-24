@@ -204,9 +204,8 @@ class C2(nn.Module):
     """CSP Bottleneck with 2 convolutions."""
 
     def __init__(self, c1, c2, n=1, shortcut=True, g=1, e=0.5):
-        """Initializes the CSP Bottleneck with 2 convolutions module with arguments ch_in, ch_out, number, shortcut,
-        groups, expansion.
-        """
+        """Initializes a CSP Bottleneck with 2 convolutions and optional shortcut connection."""
+
         super().__init__()
         self.c = int(c2 * e)  # hidden channels
         self.cv1 = Conv(c1, 2 * self.c, 1, 1)
@@ -224,9 +223,8 @@ class C2f(nn.Module):
     """Faster Implementation of CSP Bottleneck with 2 convolutions."""
 
     def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5):
-        """Initialize CSP bottleneck layer with two convolutions with arguments ch_in, ch_out, number, shortcut, groups,
-        expansion.
-        """
+        """Initializes a CSP bottleneck with 2 convolutions and n Bottleneck blocks for faster processing"""
+
         super().__init__()
         self.c = int(c2 * e)  # hidden channels
         self.cv1 = Conv(c1, 2 * self.c, 1, 1)
@@ -335,9 +333,8 @@ class Bottleneck(nn.Module):
     """Standard bottleneck."""
 
     def __init__(self, c1, c2, shortcut=True, g=1, k=(3, 3), e=0.5):
-        """Initializes a bottleneck module with given input/output channels, shortcut option, group, kernels, and
-        expansion.
-        """
+        """Initializes a standard bottleneck module with optional shortcut connection and configurable parameters."""
+
         super().__init__()
         c_ = int(c2 * e)  # hidden channels
         self.cv1 = Conv(c1, c_, k[0], 1)
@@ -449,9 +446,8 @@ class C2fAttn(nn.Module):
     """C2f module with an additional attn module."""
 
     def __init__(self, c1, c2, n=1, ec=128, nh=1, gc=512, shortcut=False, g=1, e=0.5):
-        """Initialize CSP bottleneck layer with two convolutions with arguments ch_in, ch_out, number, shortcut, groups,
-        expansion.
-        """
+        """Initializes C2f module with attention mechanism for enhanced feature extraction and processing."""
+
         super().__init__()
         self.c = int(c2 * e)  # hidden channels
         self.cv1 = Conv(c1, 2 * self.c, 1, 1)
@@ -521,9 +517,8 @@ class ImagePoolingAttn(nn.Module):
 
 
 class ContrastiveHead(nn.Module):
-    """Contrastive Head for YOLO-World compute the region-text scores according to the similarity between image and text
-    features.
-    """
+    """Implements contrastive learning head for region-text similarity in vision-language models"""
+
 
     def __init__(self):
         """Initializes ContrastiveHead with specified region-text similarity parameters."""
@@ -578,7 +573,7 @@ class RepBottleneck(Bottleneck):
 
 
 class RepCSP(C3):
-    """Rep CSP Bottleneck with 3 convolutions."""
+    """Repeatable Cross Stage Partial Network (RepCSP) module for efficient feature extraction."""
 
     def __init__(self, c1, c2, n=1, shortcut=True, g=1, e=0.5):
         """Initializes RepCSP layer with given channels, repetitions, shortcut, groups and expansion ratio."""

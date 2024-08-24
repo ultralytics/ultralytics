@@ -416,9 +416,8 @@ def initialize_weights(model):
 
 
 def scale_img(img, ratio=1.0, same_shape=False, gs=32):
-    """Scales and pads an image tensor of shape img(bs,3,y,x) based on given ratio and grid size gs, optionally
-    retaining the original shape.
-    """
+    """Scales and pads an image tensor, optionally maintaining aspect ratio and padding to gs multiple."""
+
     if ratio == 1.0:
         return img
     h, w = img.shape[2:]

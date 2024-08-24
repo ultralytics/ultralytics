@@ -42,7 +42,7 @@ class STrack(BaseTrack):
 
     Examples:
         Initialize and activate a new track
-        >>> track = STrack(xywh=[100, 200, 50, 80, 0], score=0.9, cls='person')
+        >>> track = STrack(xywh=[100, 200, 50, 80, 0], score=0.9, cls="person")
         >>> track.activate(kalman_filter=KalmanFilterXYAH(), frame_id=1)
     """
 
@@ -61,7 +61,7 @@ class STrack(BaseTrack):
         Examples:
             >>> xywh = [100.0, 150.0, 50.0, 75.0, 1]
             >>> score = 0.9
-            >>> cls = 'person'
+            >>> cls = "person"
             >>> track = STrack(xywh, score, cls)
         """
         super().__init__()

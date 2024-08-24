@@ -99,24 +99,28 @@ The [Roboflow Package Segmentation Dataset](https://universe.roboflow.com/factor
 
 ### How do I train an Ultralytics YOLOv8 model on the Package Segmentation Dataset?
 
-You can train an Ultralytics YOLOv8n model using both Python and CLI methods. For Python, use the snippet below:
+You can train an Ultralytics YOLOv8n model using both Python and CLI methods. Use the snippets below:
 
-```python
-from ultralytics import YOLO
+!!! Example "Train Example"
 
-# Load a model
-model = YOLO("yolov8n-seg.pt")  # load a pretrained model
+    === "Python"
+    
+        ```python
+        from ultralytics import YOLO
 
-# Train the model
-results = model.train(data="package-seg.yaml", epochs=100, imgsz=640)
-```
+        # Load a model
+        model = YOLO("yolov8n-seg.pt")  # load a pretrained model
 
-For CLI:
+        # Train the model
+        results = model.train(data="package-seg.yaml", epochs=100, imgsz=640)
+        ```
 
-```bash
-# Start training from a pretrained *.pt model
-yolo segment train data=package-seg.yaml model=yolov8n-seg.pt epochs=100 imgsz=640
-```
+    === "CLI"
+        
+        ```bash
+        # Start training from a pretrained *.pt model
+        yolo segment train data=package-seg.yaml model=yolov8n-seg.pt epochs=100 imgsz=640
+        ```
 
 Refer to the model [Training](../../modes/train.md) page for more details.
 

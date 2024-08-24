@@ -141,14 +141,15 @@ def make_divisible(x, divisor):
 
 def nms_rotated(boxes, scores, threshold=0.45):
     """
-    NMS for obbs, powered by probiou and fast-nms.
+    NMS for oriented bounding boxes using probiou and fast-nms.
 
     Args:
-        boxes (torch.Tensor): (N, 5), xywhr.
-        scores (torch.Tensor): (N, ).
-        threshold (float): IoU threshold.
+        boxes (torch.Tensor): Rotated bounding boxes, shape (N, 5), format xywhr.
+        scores (torch.Tensor): Confidence scores, shape (N,).
+        threshold (float, optional): IoU threshold. Defaults to 0.45.
 
     Returns:
+        (torch.Tensor): Indices of boxes to keep after NMS.
     """
     if len(boxes) == 0:
         return np.empty((0,), dtype=np.int8)
@@ -597,7 +598,7 @@ def ltwh2xyxy(x):
 
 def segments2boxes(segments):
     """
-    It converts segment labels to box labels, i.e. (cls, xy1, xy2, ...) to (cls, xywh)
+    It converts segment labels to box labels, i.e. (cls, xy1, xy2, ...) to (cls, xywh).
 
     Args:
         segments (list): list of segments, each segment is a list of points, each point is a list of x, y coordinates
@@ -667,7 +668,6 @@ def process_mask(protos, masks_in, bboxes, shape, upsample=False):
         (torch.Tensor): A binary mask tensor of shape [n, h, w], where n is the number of masks after NMS, and h and w
             are the height and width of the input image. The mask is applied to the bounding boxes.
     """
-
     c, mh, mw = protos.shape  # CHW
     ih, iw = shape
     masks = (masks_in @ protos.float().view(c, -1)).view(-1, mh, mw)  # CHW
@@ -785,7 +785,7 @@ def regularize_rboxes(rboxes):
 
 def masks2segments(masks, strategy="largest"):
     """
-    It takes a list of masks(n,h,w) and returns a list of segments(n,xy)
+    It takes a list of masks(n,h,w) and returns a list of segments(n,xy).
 
     Args:
         masks (torch.Tensor): the output of the model, which is a tensor of shape (batch_size, 160, 160)
@@ -823,7 +823,7 @@ def convert_torch2numpy_batch(batch: torch.Tensor) -> np.ndarray:
 
 def clean_str(s):
     """
-    Cleans a string by replacing special characters with underscore _
+    Cleans a string by replacing special characters with '_' character.
 
     Args:
         s (str): a string needing special characters replaced

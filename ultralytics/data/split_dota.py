@@ -19,11 +19,19 @@ from shapely.geometry import Polygon
 
 def bbox_iof(polygon1, bbox2, eps=1e-6):
     """
-    Calculate iofs between bbox1 and bbox2.
+    Calculate Intersection over Foreground (IoF) between polygons and bounding boxes.
 
     Args:
-        polygon1 (np.ndarray): Polygon coordinates, (n, 8).
-        bbox2 (np.ndarray): Bounding boxes, (n ,4).
+        polygon1 (np.ndarray): Polygon coordinates, shape (n, 8).
+        bbox2 (np.ndarray): Bounding boxes, shape (n, 4).
+        eps (float, optional): Small value to prevent division by zero. Defaults to 1e-6.
+
+    Returns:
+        (np.ndarray): IoF scores, shape (n, 1) or (n, m) if bbox2 is (m, 4).
+
+    Note:
+        Polygon format: [x1, y1, x2, y2, x3, y3, x4, y4].
+        Bounding box format: [x_min, y_min, x_max, y_max].
     """
     polygon1 = polygon1.reshape(-1, 4, 2)
     lt_point = np.min(polygon1, axis=-2)  # left-top

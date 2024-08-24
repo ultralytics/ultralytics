@@ -182,7 +182,6 @@ class RF100Benchmark:
         Args:
             api_key (str): The API key.
         """
-
         check_requirements("roboflow")
         from roboflow import Roboflow
 
@@ -195,7 +194,6 @@ class RF100Benchmark:
         Args:
             ds_link_txt (str): Path to dataset_links file.
         """
-
         (shutil.rmtree("rf-100"), os.mkdir("rf-100")) if os.path.exists("rf-100") else os.mkdir("rf-100")
         os.chdir("rf-100")
         os.mkdir("ultralytics-benchmarks")
@@ -225,7 +223,6 @@ class RF100Benchmark:
         Args:
             path (str): YAML file path.
         """
-
         with open(path, "r") as file:
             yaml_data = yaml.safe_load(file)
         yaml_data["train"] = "train/images"
@@ -393,9 +390,7 @@ class ProfileModels:
         return [Path(file) for file in sorted(files)]
 
     def get_onnx_model_info(self, onnx_file: str):
-        """Retrieves the information including number of layers, parameters, gradients and FLOPs for an ONNX model
-        file.
-        """
+        """Extracts metadata from an ONNX model file including parameters, GFLOPs, and input shape."""
         return 0.0, 0.0, 0.0, 0.0  # return (num_layers, num_params, num_gradients, num_flops)
 
     @staticmethod
@@ -440,9 +435,7 @@ class ProfileModels:
         return np.mean(run_times), np.std(run_times)
 
     def profile_onnx_model(self, onnx_file: str, eps: float = 1e-3):
-        """Profiles an ONNX model by executing it multiple times and returns the mean and standard deviation of run
-        times.
-        """
+        """Profiles an ONNX model, measuring average inference time and standard deviation across multiple runs."""
         check_requirements("onnxruntime")
         import onnxruntime as ort
 

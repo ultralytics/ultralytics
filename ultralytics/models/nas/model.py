@@ -6,8 +6,8 @@ Example:
     ```python
     from ultralytics import NAS
 
-    model = NAS('yolo_nas_s')
-    results = model.predict('ultralytics/assets/bus.jpg')
+    model = NAS("yolo_nas_s")
+    results = model.predict("ultralytics/assets/bus.jpg")
     ```
 """
 
@@ -34,8 +34,8 @@ class NAS(Model):
         ```python
         from ultralytics import NAS
 
-        model = NAS('yolo_nas_s')
-        results = model.predict('ultralytics/assets/bus.jpg')
+        model = NAS("yolo_nas_s")
+        results = model.predict("ultralytics/assets/bus.jpg")
         ```
 
     Attributes:

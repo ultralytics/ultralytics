@@ -191,7 +191,8 @@ def _get_covariance_matrix(boxes):
 
 
 def probiou(obb1, obb2, CIoU=False, eps=1e-7):
-    """Calculate probabilistic IoU between oriented bounding boxes.
+    """
+    Calculate probabilistic IoU between oriented bounding boxes.
 
     Implements the algorithm from https://arxiv.org/pdf/2106.06072v1.pdf.
 

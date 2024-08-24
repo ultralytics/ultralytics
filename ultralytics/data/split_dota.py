@@ -18,7 +18,8 @@ from shapely.geometry import Polygon
 
 
 def bbox_iof(polygon1, bbox2, eps=1e-6):
-    """Calculate Intersection over Foreground (IoF) between polygons and bounding boxes.
+    """
+    Calculate Intersection over Foreground (IoF) between polygons and bounding boxes.
 
     Args:
         polygon1 (np.ndarray): Polygon coordinates, shape (n, 8).

@@ -95,8 +95,8 @@ class BaseModel(nn.Module):
 
         Args:
             x (torch.Tensor | dict): Input tensor for inference, or dict with image tensor and labels for training.
-            (*args): Variable length argument list.
-            (**kwargs): Arbitrary keyword arguments.
+            *args (Any): Variable length argument list.
+            **kwargs (Any): Arbitrary keyword arguments.
 
         Returns:
             (torch.Tensor): Loss if x is a dict (training), or network predictions (inference).

@@ -209,11 +209,14 @@ class Instances:
     """
 
     def __init__(self, bboxes, segments=None, keypoints=None, bbox_format="xywh", normalized=True) -> None:
-        """
+        """Initialize the object with bounding boxes, segments, and keypoints.
+
         Args:
-            bboxes (ndarray): bboxes with shape [N, 4].
-            segments (list | ndarray): segments.
-            keypoints (ndarray): keypoints(x, y, visible) with shape [N, 17, 3].
+            bboxes (np.ndarray): Bounding boxes, shape [N, 4].
+            segments (list | np.ndarray, optional): Segmentation masks. Defaults to None.
+            keypoints (np.ndarray, optional): Keypoints, shape [N, 17, 3] and format (x, y, visible). Defaults to None.
+            bbox_format (str, optional): Format of bboxes. Defaults to "xywh".
+            normalized (bool, optional): Whether the coordinates are normalized. Defaults to True.
         """
         self._bboxes = Bboxes(bboxes=bboxes, format=bbox_format)
         self.keypoints = keypoints

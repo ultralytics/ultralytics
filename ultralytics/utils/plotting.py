@@ -366,19 +366,20 @@ class Annotator:
             self.fromarray(self.im)
 
     def kpts(self, kpts, shape=(640, 640), radius=5, kpt_line=True, conf_thres=0.25, kpt_color=None):
-        """
-        Plot keypoints on the image.
+        """Plot keypoints on the image.
 
         Args:
-            kpts (tensor): Predicted keypoints with shape [17, 3]. Each keypoint has (x, y, confidence).
-            shape (tuple): Image shape as a tuple (h, w), where h is the height and w is the width.
-            radius (int, optional): Radius of the drawn keypoints. Default is 5.
-            kpt_line (bool, optional): If True, the function will draw lines connecting keypoints
-                                       for human pose. Default is True.
-            kpt_color (tuple, optional): The color of the keypoints (B, G, R).
+            kpts (torch.Tensor): Keypoints, shape [17, 3] (x, y, confidence).
+            shape (tuple, optional): Image shape (h, w). Defaults to (640, 640).
+            radius (int, optional): Keypoint radius. Defaults to 5.
+            kpt_line (bool, optional): Draw lines between keypoints. Defaults to True.
+            conf_thres (float, optional): Confidence threshold. Defaults to 0.25.
+            kpt_color (tuple, optional): Keypoint color (B, G, R). Defaults to None.
 
         Note:
-            `kpt_line=True` currently only supports human pose plotting.
+            - `kpt_line=True` currently only supports human pose plotting.
+            - Modifies self.im in-place.
+            - If self.pil is True, converts image to numpy array and back to PIL.
         """
         if self.pil:
             # Convert to numpy first
@@ -626,14 +627,21 @@ class Annotator:
         return angle
 
     def draw_specific_points(self, keypoints, indices=None, shape=(640, 640), radius=2, conf_thres=0.25):
-        """
-        Draw specific keypoints for gym steps counting.
+        """Draw specific keypoints for gym steps counting.
 
         Args:
-            keypoints (list): list of keypoints data to be plotted
-            indices (list): keypoints ids list to be plotted
-            shape (tuple): imgsz for model inference
-            radius (int): Keypoint radius value
+            keypoints (list): Keypoints data to be plotted.
+            indices (list, optional): Keypoint indices to be plotted. Defaults to [2, 5, 7].
+            shape (tuple, optional): Image size for model inference. Defaults to (640, 640).
+            radius (int, optional): Keypoint radius. Defaults to 2.
+            conf_thres (float, optional): Confidence threshold for keypoints. Defaults to 0.25.
+
+        Returns:
+            numpy.ndarray: Image with drawn keypoints.
+
+        Note:
+            Keypoint format: [x, y] or [x, y, confidence].
+            Modifies self.im in-place.
         """
         if indices is None:
             indices = [2, 5, 7]

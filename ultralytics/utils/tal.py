@@ -344,7 +344,7 @@ def dist2rbox(pred_dist, pred_angle, anchor_points, dim=-1):
         dim (int, optional): Dimension along which to split. Defaults to -1.
 
     Returns:
-        torch.Tensor: Predicted rotated bounding boxes, shape (bs, h*w, 4).
+        (torch.Tensor): Predicted rotated bounding boxes, shape (bs, h*w, 4).
     """
     lt, rb = pred_dist.split(2, dim=dim)
     cos, sin = torch.cos(pred_angle), torch.sin(pred_angle)

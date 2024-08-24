@@ -639,7 +639,7 @@ class Annotator:
             conf_thres (float, optional): Confidence threshold for keypoints. Defaults to 0.25.
 
         Returns:
-            numpy.ndarray: Image with drawn keypoints.
+            (numpy.ndarray): Image with drawn keypoints.
 
         Note:
             Keypoint format: [x, y] or [x, y, confidence].

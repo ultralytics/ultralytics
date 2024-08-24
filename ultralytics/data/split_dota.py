@@ -27,7 +27,7 @@ def bbox_iof(polygon1, bbox2, eps=1e-6):
         eps (float, optional): Small value to prevent division by zero. Defaults to 1e-6.
 
     Returns:
-        np.ndarray: IoF scores, shape (n, 1) or (n, m) if bbox2 is (m, 4).
+        (np.ndarray): IoF scores, shape (n, 1) or (n, m) if bbox2 is (m, 4).
 
     Note:
         Polygon format: [x1, y1, x2, y2, x3, y3, x4, y4].

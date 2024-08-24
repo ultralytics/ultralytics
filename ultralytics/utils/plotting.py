@@ -204,7 +204,6 @@ class Annotator:
             txt_color (tuple, optional): The color of the text (R, G, B).
             margin (int, optional): The margin between the text and the rectangle border.
         """
-
         # If label have more than 3 characters, skip other characters, due to circle size
         if len(label) > 3:
             print(
@@ -246,7 +245,6 @@ class Annotator:
             txt_color (tuple, optional): The color of the text (R, G, B).
             margin (int, optional): The margin between the text and the rectangle border.
         """
-
         # Calculate the center of the bounding box
         x_center, y_center = int((box[0] + box[2]) / 2), int((box[1] + box[3]) / 2)
         # Get the size of the text
@@ -284,7 +282,6 @@ class Annotator:
             txt_color (tuple, optional): The color of the text (R, G, B).
             rotated (bool, optional): Variable used to check if task is OBB
         """
-
         txt_color = self.get_txt_color(color, txt_color)
         if isinstance(box, torch.Tensor):
             box = box.tolist()
@@ -343,7 +340,6 @@ class Annotator:
             alpha (float): Mask transparency: 0.0 fully transparent, 1.0 opaque
             retina_masks (bool): Whether to use high resolution masks or not. Defaults to False.
         """
-
         if self.pil:
             # Convert to numpy first
             self.im = np.asarray(self.im).copy()
@@ -374,17 +370,18 @@ class Annotator:
         Plot keypoints on the image.
 
         Args:
-            kpts (tensor): Predicted keypoints with shape [17, 3]. Each keypoint has (x, y, confidence).
-            shape (tuple): Image shape as a tuple (h, w), where h is the height and w is the width.
-            radius (int, optional): Radius of the drawn keypoints. Default is 5.
-            kpt_line (bool, optional): If True, the function will draw lines connecting keypoints
-                                       for human pose. Default is True.
-            kpt_color (tuple, optional): The color of the keypoints (B, G, R).
+            kpts (torch.Tensor): Keypoints, shape [17, 3] (x, y, confidence).
+            shape (tuple, optional): Image shape (h, w). Defaults to (640, 640).
+            radius (int, optional): Keypoint radius. Defaults to 5.
+            kpt_line (bool, optional): Draw lines between keypoints. Defaults to True.
+            conf_thres (float, optional): Confidence threshold. Defaults to 0.25.
+            kpt_color (tuple, optional): Keypoint color (B, G, R). Defaults to None.
 
         Note:
-            `kpt_line=True` currently only supports human pose plotting.
+            - `kpt_line=True` currently only supports human pose plotting.
+            - Modifies self.im in-place.
+            - If self.pil is True, converts image to numpy array and back to PIL.
         """
-
         if self.pil:
             # Convert to numpy first
             self.im = np.asarray(self.im).copy()
@@ -488,7 +485,6 @@ class Annotator:
         Returns:
             angle (degree): Degree value of angle between three points
         """
-
         x_min, y_min, x_max, y_max = bbox
         width = x_max - x_min
         height = y_max - y_min
@@ -503,7 +499,6 @@ class Annotator:
             color (tuple): Region Color value
             thickness (int): Region area thickness value
         """
-
         cv2.polylines(self.im, [np.array(reg_pts, dtype=np.int32)], isClosed=True, color=color, thickness=thickness)
 
     def draw_centroid_and_tracks(self, track, color=(255, 0, 255), track_thickness=2):
@@ -515,7 +510,6 @@ class Annotator:
             color (tuple): tracks line color
             track_thickness (int): track line thickness value
         """
-
         points = np.hstack(track).astype(np.int32).reshape((-1, 1, 2))
         cv2.polylines(self.im, [points], isClosed=False, color=color, thickness=track_thickness)
         cv2.circle(self.im, (int(track[-1][0]), int(track[-1][1])), track_thickness * 2, color, -1)
@@ -530,7 +524,6 @@ class Annotator:
             region_color (RGB): queue region color
             txt_color (RGB): text display color
         """
-
         x_values = [point[0] for point in points]
         y_values = [point[1] for point in points]
         center_x = sum(x_values) // len(points)
@@ -574,7 +567,6 @@ class Annotator:
             y_center (float): y position center point for bounding box
             margin (int): gap between text and rectangle for better display
         """
-
         text_size = cv2.getTextSize(text, 0, fontScale=self.sf, thickness=self.tf)[0]
         text_x = x_center - text_size[0] // 2
         text_y = y_center + text_size[1] // 2
@@ -597,7 +589,6 @@ class Annotator:
             bg_color (bgr color): display color for text background
             margin (int): gap between text and rectangle for better display
         """
-
         horizontal_gap = int(im0.shape[1] * 0.02)
         vertical_gap = int(im0.shape[0] * 0.01)
         text_y_offset = 0
@@ -629,7 +620,6 @@ class Annotator:
         Returns:
             angle (degree): Degree value of angle between three points
         """
-
         a, b, c = np.array(a), np.array(b), np.array(c)
         radians = np.arctan2(c[1] - b[1], c[0] - b[0]) - np.arctan2(a[1] - b[1], a[0] - b[0])
         angle = np.abs(radians * 180.0 / np.pi)
@@ -642,12 +632,19 @@ class Annotator:
         Draw specific keypoints for gym steps counting.
 
         Args:
-            keypoints (list): list of keypoints data to be plotted
-            indices (list): keypoints ids list to be plotted
-            shape (tuple): imgsz for model inference
-            radius (int): Keypoint radius value
-        """
+            keypoints (list): Keypoints data to be plotted.
+            indices (list, optional): Keypoint indices to be plotted. Defaults to [2, 5, 7].
+            shape (tuple, optional): Image size for model inference. Defaults to (640, 640).
+            radius (int, optional): Keypoint radius. Defaults to 2.
+            conf_thres (float, optional): Confidence threshold for keypoints. Defaults to 0.25.
 
+        Returns:
+            (numpy.ndarray): Image with drawn keypoints.
+
+        Note:
+            Keypoint format: [x, y] or [x, y, confidence].
+            Modifies self.im in-place.
+        """
         if indices is None:
             indices = [2, 5, 7]
         for i, k in enumerate(keypoints):
@@ -675,7 +672,6 @@ class Annotator:
             color (tuple): text background color for workout monitoring
             txt_color (tuple): text foreground color for workout monitoring
         """
-
         angle_text, count_text, stage_text = (f" {angle_text:.2f}", f"Steps : {count_text}", f" {stage_text}")
 
         # Draw angle
@@ -744,7 +740,6 @@ class Annotator:
             label (str): Detection label text
             txt_color (RGB): text color
         """
-
         cv2.polylines(self.im, [np.int32([mask])], isClosed=True, color=mask_color, thickness=2)
         text_size, _ = cv2.getTextSize(label, 0, self.sf, self.tf)
 
@@ -772,7 +767,6 @@ class Annotator:
             line_color (RGB): Distance line color.
             centroid_color (RGB): Bounding box centroid color.
         """
-
         (text_width_m, text_height_m), _ = cv2.getTextSize(f"Distance M: {distance_m:.2f}m", 0, self.sf, self.tf)
         cv2.rectangle(self.im, (15, 25), (15 + text_width_m + 10, 25 + text_height_m + 20), line_color, -1)
         cv2.putText(
@@ -813,7 +807,6 @@ class Annotator:
             color (tuple): object centroid and line color value
             pin_color (tuple): visioneye point color value
         """
-
         center_bbox = int((box[0] + box[2]) / 2), int((box[1] + box[3]) / 2)
         cv2.circle(self.im, center_point, self.tf * 2, pin_color, -1)
         cv2.circle(self.im, center_bbox, self.tf * 2, color, -1)
@@ -902,11 +895,10 @@ def save_one_box(xyxy, im, file=Path("im.jpg"), gain=1.02, pad=10, square=False,
         from ultralytics.utils.plotting import save_one_box
 
         xyxy = [50, 50, 150, 150]
-        im = cv2.imread('image.jpg')
-        cropped_im = save_one_box(xyxy, im, file='cropped.jpg', square=True)
+        im = cv2.imread("image.jpg")
+        cropped_im = save_one_box(xyxy, im, file="cropped.jpg", square=True)
         ```
     """
-
     if not isinstance(xyxy, torch.Tensor):  # may be list
         xyxy = torch.stack(xyxy)
     b = ops.xyxy2xywh(xyxy.view(-1, 4))  # boxes
@@ -1109,7 +1101,7 @@ def plot_results(file="path/to/results.csv", dir="", segment=False, pose=False, 
         ```python
         from ultralytics.utils.plotting import plot_results
 
-        plot_results('path/to/results.csv', segment=True)
+        plot_results("path/to/results.csv", segment=True)
         ```
     """
     import pandas as pd  # scope for faster 'import ultralytics'
@@ -1171,7 +1163,6 @@ def plt_color_scatter(v, f, bins=20, cmap="viridis", alpha=0.8, edgecolors="none
         >>> f = np.random.rand(100)
         >>> plt_color_scatter(v, f)
     """
-
     # Calculate 2D histogram and corresponding colors
     hist, xedges, yedges = np.histogram2d(v, f, bins=bins)
     colors = [
@@ -1195,9 +1186,8 @@ def plot_tune_results(csv_file="tune_results.csv"):
         csv_file (str, optional): Path to the CSV file containing the tuning results. Defaults to 'tune_results.csv'.
 
     Examples:
-        >>> plot_tune_results('path/to/tune_results.csv')
+        >>> plot_tune_results("path/to/tune_results.csv")
     """
-
     import pandas as pd  # scope for faster 'import ultralytics'
     from scipy.ndimage import gaussian_filter1d
 

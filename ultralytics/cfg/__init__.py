@@ -198,15 +198,15 @@ def cfg2dict(cfg):
 
     Examples:
         Convert a YAML file path to a dictionary:
-        >>> config_dict = cfg2dict('config.yaml')
+        >>> config_dict = cfg2dict("config.yaml")
 
         Convert a SimpleNamespace to a dictionary:
         >>> from types import SimpleNamespace
-        >>> config_sn = SimpleNamespace(param1='value1', param2='value2')
+        >>> config_sn = SimpleNamespace(param1="value1", param2="value2")
         >>> config_dict = cfg2dict(config_sn)
 
         Pass through an already existing dictionary:
-        >>> config_dict = cfg2dict({'param1': 'value1', 'param2': 'value2'})
+        >>> config_dict = cfg2dict({"param1": "value1", "param2": "value2"})
 
     Notes:
         - If cfg is a path or string, it's loaded as YAML and converted to a dictionary.
@@ -235,7 +235,7 @@ def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace] = DEFAULT_CFG_DICT, ove
     Examples:
         >>> from ultralytics.cfg import get_cfg
         >>> config = get_cfg()  # Load default configuration
-        >>> config = get_cfg('path/to/config.yaml', overrides={'epochs': 50, 'batch_size': 16})
+        >>> config = get_cfg("path/to/config.yaml", overrides={"epochs": 50, "batch_size": 16})
 
     Notes:
         - If both `cfg` and `overrides` are provided, the values in `overrides` will take precedence.
@@ -282,10 +282,10 @@ def check_cfg(cfg, hard=True):
 
     Examples:
         >>> config = {
-        ...     'epochs': 50,     # valid integer
-        ...     'lr0': 0.01,      # valid float
-        ...     'momentum': 1.2,  # invalid float (out of 0.0-1.0 range)
-        ...     'save': 'true',   # invalid bool
+        ...     "epochs": 50,  # valid integer
+        ...     "lr0": 0.01,  # valid float
+        ...     "momentum": 1.2,  # invalid float (out of 0.0-1.0 range)
+        ...     "save": "true",  # invalid bool
         ... }
         >>> check_cfg(config, hard=False)
         >>> print(config)
@@ -345,12 +345,11 @@ def get_save_dir(args, name=None):
 
     Examples:
         >>> from types import SimpleNamespace
-        >>> args = SimpleNamespace(project='my_project', task='detect', mode='train', exist_ok=True)
+        >>> args = SimpleNamespace(project="my_project", task="detect", mode="train", exist_ok=True)
         >>> save_dir = get_save_dir(args)
         >>> print(save_dir)
         my_project/detect/train
     """
-
     if getattr(args, "save_dir", None):
         save_dir = args.save_dir
     else:
@@ -381,7 +380,6 @@ def _handle_deprecation(custom):
         equivalents. It also handles value conversions where necessary, such as inverting boolean values for
         'hide_labels' and 'hide_conf'.
     """
-
     for key in custom.copy().keys():
         if key == "boxes":
             deprecation_warn(key, "show_boxes")
@@ -413,8 +411,8 @@ def check_dict_alignment(base: Dict, custom: Dict, e=None):
         SystemExit: If mismatched keys are found between the custom and base dictionaries.
 
     Examples:
-        >>> base_cfg = {'epochs': 50, 'lr0': 0.01, 'batch_size': 16}
-        >>> custom_cfg = {'epoch': 100, 'lr': 0.02, 'batch_size': 32}
+        >>> base_cfg = {"epochs": 50, "lr0": 0.01, "batch_size": 16}
+        >>> custom_cfg = {"epoch": 100, "lr": 0.02, "batch_size": 32}
         >>> try:
         ...     check_dict_alignment(base_cfg, custom_cfg)
         ... except SystemExit:
@@ -548,9 +546,9 @@ def handle_yolo_settings(args: List[str]) -> None:
 
 def handle_explorer(args: List[str]):
     """
-    This function launches a graphical user interface that provides tools for interacting with and analyzing datasets
-    using the Ultralytics Explorer API. It checks for the required 'streamlit' package and informs the user that the
-    Explorer dashboard is loading.
+    Launches a graphical user interface that provides tools for interacting with and analyzing datasets using the
+    Ultralytics Explorer API. It checks for the required 'streamlit' package and informs the user that the Explorer
+    dashboard is loading.
 
     Args:
         args (List[str]): A list of optional command line arguments.

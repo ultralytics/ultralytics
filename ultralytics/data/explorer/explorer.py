@@ -163,7 +163,7 @@ class Explorer:
             ```python
             exp = Explorer()
             exp.create_embeddings_table()
-            similar = exp.query(img='https://ultralytics.com/images/zidane.jpg')
+            similar = exp.query(img="https://ultralytics.com/images/zidane.jpg")
             ```
         """
         if self.table is None:
@@ -226,6 +226,7 @@ class Explorer:
     def plot_sql_query(self, query: str, labels: bool = True) -> Image.Image:
         """
         Plot the results of a SQL-Like query on the table.
+
         Args:
             query (str): SQL query to run.
             labels (bool): Whether to plot the labels or not.
@@ -271,7 +272,7 @@ class Explorer:
             ```python
             exp = Explorer()
             exp.create_embeddings_table()
-            similar = exp.get_similar(img='https://ultralytics.com/images/zidane.jpg')
+            similar = exp.get_similar(img="https://ultralytics.com/images/zidane.jpg")
             ```
         """
         assert return_type in {"pandas", "arrow"}, f"Return type should be `pandas` or `arrow`, but got {return_type}"
@@ -306,7 +307,7 @@ class Explorer:
             ```python
             exp = Explorer()
             exp.create_embeddings_table()
-            similar = exp.plot_similar(img='https://ultralytics.com/images/zidane.jpg')
+            similar = exp.plot_similar(img="https://ultralytics.com/images/zidane.jpg")
             ```
         """
         similar = self.get_similar(img, idx, limit, return_type="arrow")
@@ -395,8 +396,8 @@ class Explorer:
             exp.create_embeddings_table()
 
             similarity_idx_plot = exp.plot_similarity_index()
-            similarity_idx_plot.show() # view image preview
-            similarity_idx_plot.save('path/to/save/similarity_index_plot.png') # save contents to file
+            similarity_idx_plot.show()  # view image preview
+            similarity_idx_plot.save("path/to/save/similarity_index_plot.png")  # save contents to file
             ```
         """
         sim_idx = self.similarity_index(max_dist=max_dist, top_k=top_k, force=force)
@@ -447,7 +448,7 @@ class Explorer:
             ```python
             exp = Explorer()
             exp.create_embeddings_table()
-            answer = exp.ask_ai('Show images with 1 person and 2 dogs')
+            answer = exp.ask_ai("Show images with 1 person and 2 dogs")
             ```
         """
         result = prompt_sql_query(query)
@@ -457,20 +458,3 @@ class Explorer:
             LOGGER.error("AI generated query is not valid. Please try again with a different prompt")
             LOGGER.error(e)
             return None
-
-    def visualize(self, result):
-        """
-        Visualize the results of a query. TODO.
-
-        Args:
-            result (pyarrow.Table): Table containing the results of a query.
-        """
-        pass
-
-    def generate_report(self, result):
-        """
-        Generate a report of the dataset.
-
-        TODO
-        """
-        pass

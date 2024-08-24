@@ -1,5 +1,9 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 # Test and publish docs to https://docs.ultralytics.com
+# Ignored docs rules:
+# D100: Missing docstring in public module
+# D104: Missing docstring in public package
+# D205: 1 blank line required between summary line and description
 
 name: Publish Docs
 
@@ -32,16 +36,17 @@ jobs:
           python-version: "3.x"
           cache: "pip" # caching pip dependencies
       - name: Install Dependencies
-        run: pip install black tqdm mkdocs-material "mkdocstrings[python]" mkdocs-jupyter mkdocs-redirects mkdocs-ultralytics-plugin mkdocs-macros-plugin
+        run: pip install ruff black tqdm mkdocs-material "mkdocstrings[python]" mkdocs-jupyter mkdocs-redirects mkdocs-ultralytics-plugin mkdocs-macros-plugin
       - name: Update Docs Reference Section and Push Changes
         if: github.event_name == 'pull_request_target'
         run: |
           python docs/build_reference.py
+          ruff check --fix --fix-unsafe --select D --ignore=D100,D104,D205 . || true
           git pull origin ${{ github.head_ref || github.ref }}
           git add .
           git reset HEAD -- .github/workflows/  # workflow changes are not permitted with default token
           if ! git diff --staged --quiet; then
-            git commit -m "Auto-update Ultralytics Docs Reference Section by https://ultralytics.com/actions"
+            git commit -m "Auto-update Ultralytics Docs Reference by https://ultralytics.com/actions"
             git push
           else
             echo "No changes to commit"
@@ -49,6 +54,7 @@ jobs:
       - name: Build Docs and Check for Warnings
         run: |
           export JUPYTER_PLATFORM_DIRS=1
+          ruff check --select D --ignore=D100,D104,D205 .
           python docs/build_docs.py
       - name: Commit and Push Docs changes
         continue-on-error: true

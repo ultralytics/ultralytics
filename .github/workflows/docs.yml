@@ -58,10 +58,11 @@ jobs:
           else
             echo "No changes to commit"
           fi
+      - name: Ruff checks
+        run: ruff check --select D --ignore=D100,D104,D203,D205,D212,D213,D401,D406,D407,D413 .
       - name: Build Docs and Check for Warnings
         run: |
           export JUPYTER_PLATFORM_DIRS=1
-          ruff check --select D --ignore=D100,D104,D203,D205,D212,D213,D401,D406,D407,D413 .
           python docs/build_docs.py
       - name: Commit and Push Docs changes
         continue-on-error: true

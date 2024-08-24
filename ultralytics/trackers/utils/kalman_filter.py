@@ -268,7 +268,7 @@ class KalmanFilterXYAH:
             >>> mean = np.array([0, 0, 1, 1, 0, 0, 0, 0])
             >>> covariance = np.eye(8)
             >>> measurements = np.array([[1, 1, 1, 1], [2, 2, 1, 1]])
-            >>> distances = kf.gating_distance(mean, covariance, measurements, only_position=False, metric='maha')
+            >>> distances = kf.gating_distance(mean, covariance, measurements, only_position=False, metric="maha")
         """
         mean, covariance = self.project(mean, covariance)
         if only_position:

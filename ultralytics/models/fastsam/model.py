@@ -16,8 +16,8 @@ class FastSAM(Model):
         ```python
         from ultralytics import FastSAM
 
-        model = FastSAM('last.pt')
-        results = model.predict('ultralytics/assets/bus.jpg')
+        model = FastSAM("last.pt")
+        results = model.predict("ultralytics/assets/bus.jpg")
         ```
     """
 

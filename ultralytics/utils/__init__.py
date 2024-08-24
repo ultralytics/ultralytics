@@ -220,16 +220,19 @@ def plt_settings(rcparams=None, backend="Agg"):
         def wrapper(*args, **kwargs):
             """Sets rc parameters and backend, calls the original function, and restores the settings."""
             original_backend = plt.get_backend()
-            if backend.lower() != original_backend.lower():
+            switch = backend.lower() != original_backend.lower()
+            if switch:
                 plt.close("all")  # auto-close()ing of figures upon backend switching is deprecated since 3.8
                 plt.switch_backend(backend)
 
-            with plt.rc_context(rcparams):
-                result = func(*args, **kwargs)
-
-            if backend != original_backend:
-                plt.close("all")
-                plt.switch_backend(original_backend)
+            # Plot with backend and always revert to original backend
+            try:
+                with plt.rc_context(rcparams):
+                    result = func(*args, **kwargs)
+            finally:
+                if switch:
+                    plt.close("all")
+                    plt.switch_backend(original_backend)
             return result
 
         return wrapper
@@ -711,7 +714,7 @@ def colorstr(*input):
     In the second form, 'blue' and 'bold' will be applied by default.
 
     Args:
-        *input (str): A sequence of strings where the first n-1 strings are color and style arguments,
+        *input (str | Path): A sequence of strings where the first n-1 strings are color and style arguments,
                       and the last string is the one to be colored.
 
     Supported Colors and Styles:
@@ -763,8 +766,8 @@ def remove_colorstr(input_string):
         (str): A new string with all ANSI escape codes removed.
 
     Examples:
-        >>> remove_colorstr(colorstr('blue', 'bold', 'hello world'))
-        >>> 'hello world'
+        >>> remove_colorstr(colorstr("blue", "bold", "hello world"))
+        >>> "hello world"
     """
     ansi_escape = re.compile(r"\x1B\[[0-9;]*[A-Za-z]")
     return ansi_escape.sub("", input_string)
@@ -778,12 +781,12 @@ class TryExcept(contextlib.ContextDecorator):
         As a decorator:
         >>> @TryExcept(msg="Error occurred in func", verbose=True)
         >>> def func():
-        >>>    # Function logic here
+        >>> # Function logic here
         >>>     pass
 
         As a context manager:
         >>> with TryExcept(msg="Error occurred in block", verbose=True):
-        >>>     # Code block here
+        >>> # Code block here
         >>>     pass
     """
 
@@ -814,7 +817,7 @@ class Retry(contextlib.ContextDecorator):
         Example usage as a decorator:
         >>> @Retry(times=3, delay=2)
         >>> def test_func():
-        >>>     # Replace with function logic that may raise exceptions
+        >>> # Replace with function logic that may raise exceptions
         >>>     return True
     """
 

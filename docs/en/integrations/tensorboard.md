@@ -64,10 +64,10 @@ Before diving into the usage instructions, be sure to check out the range of [YO
         from ultralytics import YOLO
 
         # Load a pre-trained model
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
 
         # Train the model
-        results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
         ```
 
 Upon running the usage code snippet above, you can expect the following output:
@@ -202,10 +202,10 @@ Yes, you can use TensorBoard in a Google Colab environment to train YOLOv8 model
 
         ```python
         from ultralytics import YOLO
-        
+
         # Load a pre-trained model
         model = YOLO("yolov8n.pt")
-        
+
         # Train the model
         results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
         ```

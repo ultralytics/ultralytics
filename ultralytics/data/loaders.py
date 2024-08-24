@@ -240,7 +240,7 @@ class LoadScreenshots:
         return self
 
     def __next__(self):
-        """mss screen capture: get raw pixels from the screen as np array."""
+        """Screen capture with 'mss' to get raw pixels from the screen as np array."""
         im0 = np.asarray(self.sct.grab(self.monitor))[:, :, :3]  # BGRA to BGR
         s = f"screen {self.screen} (LTWH): {self.left},{self.top},{self.width},{self.height}: "
 

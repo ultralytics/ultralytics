@@ -350,7 +350,6 @@ def get_save_dir(args, name=None):
         >>> print(save_dir)
         my_project/detect/train
     """
-
     if getattr(args, "save_dir", None):
         save_dir = args.save_dir
     else:
@@ -381,7 +380,6 @@ def _handle_deprecation(custom):
         equivalents. It also handles value conversions where necessary, such as inverting boolean values for
         'hide_labels' and 'hide_conf'.
     """
-
     for key in custom.copy().keys():
         if key == "boxes":
             deprecation_warn(key, "show_boxes")
@@ -548,9 +546,9 @@ def handle_yolo_settings(args: List[str]) -> None:
 
 def handle_explorer(args: List[str]):
     """
-    This function launches a graphical user interface that provides tools for interacting with and analyzing datasets
-    using the Ultralytics Explorer API. It checks for the required 'streamlit' package and informs the user that the
-    Explorer dashboard is loading.
+    Launches a graphical user interface that provides tools for interacting with and analyzing datasets using the
+    Ultralytics Explorer API. It checks for the required 'streamlit' package and informs the user that the Explorer
+    dashboard is loading.
 
     Args:
         args (List[str]): A list of optional command line arguments.

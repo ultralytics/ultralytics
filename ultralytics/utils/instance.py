@@ -95,7 +95,8 @@ class Bboxes:
     #     self.normalized = True
 
     def mul(self, scale):
-        """Multiply bounding box coordinates by scale factor(s).
+        """
+        Multiply bounding box coordinates by scale factor(s).
 
         Args:
             scale (int | tuple | list): Scale factor(s) for four coordinates.
@@ -111,7 +112,8 @@ class Bboxes:
         self.bboxes[:, 3] *= scale[3]
 
     def add(self, offset):
-        """Add offset to bounding box coordinates.
+        """
+        Add offset to bounding box coordinates.
 
         Args:
             offset (int | tuple | list): Offset(s) for four coordinates.

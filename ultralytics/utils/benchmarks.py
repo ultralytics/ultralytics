@@ -383,7 +383,8 @@ class ProfileModels:
 
     def get_onnx_model_info(self, onnx_file: str):
         """Retrieves the information including number of layers, parameters, gradients and FLOPs for an ONNX model
-        file."""
+        file.
+        """
         return 0.0, 0.0, 0.0, 0.0  # return (num_layers, num_params, num_gradients, num_flops)
 
     @staticmethod
@@ -429,7 +430,8 @@ class ProfileModels:
 
     def profile_onnx_model(self, onnx_file: str, eps: float = 1e-3):
         """Profiles an ONNX model by executing it multiple times and returns the mean and standard deviation of run
-        times."""
+        times.
+        """
         check_requirements("onnxruntime")
         import onnxruntime as ort
 

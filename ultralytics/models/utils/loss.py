@@ -85,7 +85,8 @@ class DETRLoss(nn.Module):
 
     def _get_loss_bbox(self, pred_bboxes, gt_bboxes, postfix=""):
         """Calculates and returns the bounding box loss and GIoU loss for the predicted and ground truth bounding
-        boxes."""
+        boxes.
+        """
         # Boxes: [b, query, 4], gt_bbox: list[[n, 4]]
         name_bbox = f"loss_bbox{postfix}"
         name_giou = f"loss_giou{postfix}"

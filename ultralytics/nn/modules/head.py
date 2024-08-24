@@ -265,7 +265,8 @@ class Classify(nn.Module):
 
     def __init__(self, c1, c2, k=1, s=1, p=None, g=1):
         """Initializes YOLOv8 classification head with specified input and output channels, kernel size, stride,
-        padding, and groups."""
+        padding, and groups.
+        """
         super().__init__()
         c_ = 1280  # efficientnet_b0 size
         self.conv = Conv(c1, c_, k, s, p, g)

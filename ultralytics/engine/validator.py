@@ -102,7 +102,8 @@ class BaseValidator:
     @smart_inference_mode()
     def __call__(self, trainer=None, model=None):
         """Supports validation of a pre-trained model if passed or a model being trained if trainer is passed (trainer
-        gets priority)."""
+        gets priority).
+        """
         self.training = trainer is not None
         augment = self.args.augment and (not self.training)
         if self.training:

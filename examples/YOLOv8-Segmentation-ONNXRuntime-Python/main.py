@@ -206,7 +206,6 @@ class YOLOv8Seg:
         """
         Takes the output of the mask head, and applies the mask to the bounding boxes. This produces masks of higher quality but is slower, from https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/ops.py.
 
-
         Args:
             protos (numpy.ndarray): [mask_dim, mask_h, mask_w].
             masks_in (numpy.ndarray): [n, mask_dim], n is number of masks after nms.

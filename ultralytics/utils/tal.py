@@ -232,7 +232,8 @@ class TaskAlignedAssigner(nn.Module):
 
     @staticmethod
     def select_highest_overlaps(mask_pos, overlaps, n_max_boxes):
-        """Select anchor boxes with highest IoU when assigned to multiple ground truths.
+        """
+        Select anchor boxes with highest IoU when assigned to multiple ground truths.
 
         Args:
             mask_pos (torch.Tensor): Positive mask, shape (b, n_max_boxes, h*w).

@@ -32,8 +32,9 @@ class MaskDecoder(nn.Module):
 
     Examples:
         >>> decoder = MaskDecoder(transformer_dim=256, transformer=transformer_module)
-        >>> masks, iou_pred = decoder(image_embeddings, image_pe, sparse_prompt_embeddings,
-        ...                           dense_prompt_embeddings, multimask_output=True)
+        >>> masks, iou_pred = decoder(
+        ...     image_embeddings, image_pe, sparse_prompt_embeddings, dense_prompt_embeddings, multimask_output=True
+        ... )
         >>> print(f"Predicted masks shape: {masks.shape}, IoU predictions shape: {iou_pred.shape}")
     """
 
@@ -213,7 +214,8 @@ class SAM2MaskDecoder(nn.Module):
         >>> dense_prompt_embeddings = torch.rand(1, 256, 64, 64)
         >>> decoder = SAM2MaskDecoder(256, transformer)
         >>> masks, iou_pred, sam_tokens_out, obj_score_logits = decoder.forward(
-        ...     image_embeddings, image_pe, sparse_prompt_embeddings, dense_prompt_embeddings, True, False)
+        ...     image_embeddings, image_pe, sparse_prompt_embeddings, dense_prompt_embeddings, True, False
+        ... )
     """
 
     def __init__(
@@ -345,7 +347,8 @@ class SAM2MaskDecoder(nn.Module):
             >>> dense_prompt_embeddings = torch.rand(1, 256, 64, 64)
             >>> decoder = SAM2MaskDecoder(256, transformer)
             >>> masks, iou_pred, sam_tokens_out, obj_score_logits = decoder.forward(
-            ...     image_embeddings, image_pe, sparse_prompt_embeddings, dense_prompt_embeddings, True, False)
+            ...     image_embeddings, image_pe, sparse_prompt_embeddings, dense_prompt_embeddings, True, False
+            ... )
         """
         masks, iou_pred, mask_tokens_out, object_score_logits = self.predict_masks(
             image_embeddings=image_embeddings,

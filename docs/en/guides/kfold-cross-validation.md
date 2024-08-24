@@ -82,7 +82,7 @@ Without further ado, let's dive in!
     ```python
     import pandas as pd
 
-    indx = [l.stem for l in labels]  # uses base filename as ID (no extension)
+    indx = [label.stem for label in labels]  # uses base filename as ID (no extension)
     labels_df = pd.DataFrame([], columns=cls_idx, index=indx)
     ```
 
@@ -97,9 +97,9 @@ Without further ado, let's dive in!
         with open(label, "r") as lf:
             lines = lf.readlines()
 
-        for l in lines:
+        for line in lines:
             # classes for YOLO label uses integer at first position of each line
-            lbl_counter[int(l.split(" ")[0])] += 1
+            lbl_counter[int(line.split(" ")[0])] += 1
 
         labels_df.loc[label.stem] = lbl_counter
 

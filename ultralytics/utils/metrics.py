@@ -30,7 +30,6 @@ def bbox_ioa(box1, box2, iou=False, eps=1e-7):
     Returns:
         (np.ndarray): A numpy array of shape (n, m) representing the intersection over box2 area.
     """
-
     # Get the coordinates of bounding boxes
     b1_x1, b1_y1, b1_x2, b1_y2 = box1.T
     b2_x1, b2_y1, b2_x2, b2_y2 = box2.T
@@ -53,7 +52,7 @@ def bbox_ioa(box1, box2, iou=False, eps=1e-7):
 def box_iou(box1, box2, eps=1e-7):
     """
     Calculate intersection-over-union (IoU) of boxes. Both sets of boxes are expected to be in (x1, y1, x2, y2) format.
-    Based on https://github.com/pytorch/vision/blob/master/torchvision/ops/boxes.py
+    Based on https://github.com/pytorch/vision/blob/master/torchvision/ops/boxes.py.
 
     Args:
         box1 (torch.Tensor): A tensor of shape (N, 4) representing N bounding boxes.
@@ -63,7 +62,6 @@ def box_iou(box1, box2, eps=1e-7):
     Returns:
         (torch.Tensor): An NxM tensor containing the pairwise IoU values for every element in box1 and box2.
     """
-
     # NOTE: Need .float() to get accurate iou values
     # inter(N,M) = (rb(N,M,2) - lt(N,M,2)).clamp(0).prod(2)
     (a1, a2), (b1, b2) = box1.float().unsqueeze(1).chunk(2, 2), box2.float().unsqueeze(0).chunk(2, 2)
@@ -90,7 +88,6 @@ def bbox_iou(box1, box2, xywh=True, GIoU=False, DIoU=False, CIoU=False, eps=1e-7
     Returns:
         (torch.Tensor): IoU, GIoU, DIoU, or CIoU values depending on the specified flags.
     """
-
     # Get the coordinates of bounding boxes
     if xywh:  # transform from xywh to xyxy
         (x1, y1, w1, h1), (x2, y2, w2, h2) = box1.chunk(4, -1), box2.chunk(4, -1)
@@ -195,15 +192,22 @@ def _get_covariance_matrix(boxes):
 
 def probiou(obb1, obb2, CIoU=False, eps=1e-7):
     """
-    Calculate the prob IoU between oriented bounding boxes, https://arxiv.org/pdf/2106.06072v1.pdf.
+    Calculate probabilistic IoU between oriented bounding boxes.
+
+    Implements the algorithm from https://arxiv.org/pdf/2106.06072v1.pdf.
 
     Args:
-        obb1 (torch.Tensor): A tensor of shape (N, 5) representing ground truth obbs, with xywhr format.
-        obb2 (torch.Tensor): A tensor of shape (N, 5) representing predicted obbs, with xywhr format.
-        eps (float, optional): A small value to avoid division by zero. Defaults to 1e-7.
+        obb1 (torch.Tensor): Ground truth OBBs, shape (N, 5), format xywhr.
+        obb2 (torch.Tensor): Predicted OBBs, shape (N, 5), format xywhr.
+        CIoU (bool, optional): If True, calculate CIoU. Defaults to False.
+        eps (float, optional): Small value to avoid division by zero. Defaults to 1e-7.
 
     Returns:
-        (torch.Tensor): A tensor of shape (N, ) representing obb similarities.
+        (torch.Tensor): OBB similarities, shape (N,).
+
+    Note:
+        OBB format: [center_x, center_y, width, height, rotation_angle].
+        If CIoU is True, returns CIoU instead of IoU.
     """
     x1, y1 = obb1[..., :2].split(1, dim=-1)
     x2, y2 = obb2[..., :2].split(1, dim=-1)
@@ -507,7 +511,6 @@ def compute_ap(recall, precision):
         (np.ndarray): Precision envelope curve.
         (np.ndarray): Modified recall curve with sentinel values added at the beginning and end.
     """
-
     # Append sentinel values to beginning and end
     mrec = np.concatenate(([0.0], recall, [1.0]))
     mpre = np.concatenate(([1.0], precision, [0.0]))
@@ -560,7 +563,6 @@ def ap_per_class(
             x (np.ndarray): X-axis values for the curves. Shape: (1000,).
             prec_values: Precision values at mAP@0.5 for each class. Shape: (nc, 1000).
     """
-
     # Sort by objectness
     i = np.argsort(-conf)
     tp, conf, pred_cls = tp[i], conf[i], pred_cls[i]
@@ -792,8 +794,8 @@ class Metric(SimpleClass):
 
 class DetMetrics(SimpleClass):
     """
-    This class is a utility class for computing detection metrics such as precision, recall, and mean average precision
-    (mAP) of an object detection model.
+    Utility class for computing detection metrics such as precision, recall, and mean average precision (mAP) of an
+    object detection model.
 
     Args:
         save_dir (Path): A path to the directory where the output plots will be saved. Defaults to current directory.
@@ -942,7 +944,6 @@ class SegmentMetrics(SimpleClass):
             pred_cls (list): List of predicted classes.
             target_cls (list): List of target classes.
         """
-
         results_mask = ap_per_class(
             tp_m,
             conf,
@@ -1084,7 +1085,6 @@ class PoseMetrics(SegmentMetrics):
             pred_cls (list): List of predicted classes.
             target_cls (list): List of target classes.
         """
-
         results_pose = ap_per_class(
             tp_p,
             conf,

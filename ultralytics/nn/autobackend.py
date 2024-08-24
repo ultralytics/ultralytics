@@ -641,8 +641,8 @@ class AutoBackend(nn.Module):
     @staticmethod
     def _model_type(p="path/to/model.pt"):
         """
-        This function takes a path to a model file and returns the model type. Possibles types are pt, jit, onnx, xml,
-        engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, ncnn or paddle.
+        Takes a path to a model file and returns the model type. Possibles types are pt, jit, onnx, xml, engine, coreml,
+        saved_model, pb, tflite, edgetpu, tfjs, ncnn or paddle.
 
         Args:
             p: path to the model file. Defaults to path/to/model.pt

@@ -143,7 +143,7 @@ class BaseTensor(SimpleClass):
 
         Examples:
             >>> base_tensor = BaseTensor(torch.randn(3, 4), orig_shape=(480, 640))
-            >>> cuda_tensor = base_tensor.to('cuda')
+            >>> cuda_tensor = base_tensor.to("cuda")
             >>> float16_tensor = base_tensor.to(dtype=torch.float16)
         """
         return self.__class__(torch.as_tensor(self.data).to(*args, **kwargs), self.orig_shape)
@@ -223,7 +223,7 @@ class Results(SimpleClass):
         >>> for result in results:
         ...     print(result.boxes)  # Print detection boxes
         ...     result.show()  # Display the annotated image
-        ...     result.save(filename='result.jpg')  # Save annotated image
+        ...     result.save(filename="result.jpg")  # Save annotated image
     """
 
     def __init__(
@@ -280,7 +280,7 @@ class Results(SimpleClass):
             (Results): A new Results object containing the specified subset of inference results.
 
         Examples:
-            >>> results = model('path/to/image.jpg')  # Perform inference
+            >>> results = model("path/to/image.jpg")  # Perform inference
             >>> single_result = results[0]  # Get the first result
             >>> subset_results = results[1:4]  # Get a slice of results
         """
@@ -319,7 +319,7 @@ class Results(SimpleClass):
             obb (torch.Tensor | None): A tensor of shape (N, 5) containing oriented bounding box coordinates.
 
         Examples:
-            >>> results = model('image.jpg')
+            >>> results = model("image.jpg")
             >>> new_boxes = torch.tensor([[100, 100, 200, 200, 0.9, 0]])
             >>> results[0].update(boxes=new_boxes)
         """
@@ -370,7 +370,7 @@ class Results(SimpleClass):
             (Results): A new Results object with all tensor attributes on CPU memory.
 
         Examples:
-            >>> results = model('path/to/image.jpg')  # Perform inference
+            >>> results = model("path/to/image.jpg")  # Perform inference
             >>> cpu_result = results[0].cpu()  # Move the first result to CPU
             >>> print(cpu_result.boxes.device)  # Output: cpu
         """
@@ -384,7 +384,7 @@ class Results(SimpleClass):
             (Results): A new Results object with all tensors converted to numpy arrays.
 
         Examples:
-            >>> results = model('path/to/image.jpg')
+            >>> results = model("path/to/image.jpg")
             >>> numpy_result = results[0].numpy()
             >>> type(numpy_result.boxes.data)
             <class 'numpy.ndarray'>
@@ -488,7 +488,7 @@ class Results(SimpleClass):
             (np.ndarray): Annotated image as a numpy array.
 
         Examples:
-            >>> results = model('image.jpg')
+            >>> results = model("image.jpg")
             >>> for result in results:
             ...     im = result.plot()
             ...     im.show()
@@ -578,7 +578,7 @@ class Results(SimpleClass):
             **kwargs (Any): Arbitrary keyword arguments to be passed to the `plot()` method.
 
         Examples:
-            >>> results = model('path/to/image.jpg')
+            >>> results = model("path/to/image.jpg")
             >>> results[0].show()  # Display the first result
             >>> for result in results:
             ...     result.show()  # Display all results
@@ -599,12 +599,12 @@ class Results(SimpleClass):
             **kwargs (Any): Arbitrary keyword arguments to be passed to the `plot` method.
 
         Examples:
-            >>> results = model('path/to/image.jpg')
+            >>> results = model("path/to/image.jpg")
             >>> for result in results:
-            ...     result.save('annotated_image.jpg')
+            ...     result.save("annotated_image.jpg")
             >>> # Or with custom plot arguments
             >>> for result in results:
-            ...     result.save('annotated_image.jpg', conf=False, line_width=2)
+            ...     result.save("annotated_image.jpg", conf=False, line_width=2)
         """
         if not filename:
             filename = f"results_{Path(self.path).name}"
@@ -623,7 +623,7 @@ class Results(SimpleClass):
                 number of detections per class. For classification tasks, it includes the top 5 class probabilities.
 
         Examples:
-            >>> results = model('path/to/image.jpg')
+            >>> results = model("path/to/image.jpg")
             >>> for result in results:
             ...     print(result.verbose())
             2 persons, 1 car, 3 traffic lights,
@@ -660,7 +660,7 @@ class Results(SimpleClass):
 
         Examples:
             >>> from ultralytics import YOLO
-            >>> model = YOLO('yolov8n.pt')
+            >>> model = YOLO("yolov8n.pt")
             >>> results = model("path/to/image.jpg")
             >>> for result in results:
             ...     result.save_txt("output.txt")
@@ -757,7 +757,7 @@ class Results(SimpleClass):
                 task type (classification or detection) and available information (boxes, masks, keypoints).
 
         Examples:
-            >>> results = model('image.jpg')
+            >>> results = model("image.jpg")
             >>> summary = results[0].summary()
             >>> print(summary)
         """
@@ -919,7 +919,7 @@ class Boxes(BaseTensor):
                 coordinates in [x1, y1, x2, y2] format, where n is the number of boxes.
 
         Examples:
-            >>> results = model('image.jpg')
+            >>> results = model("image.jpg")
             >>> boxes = results[0].boxes
             >>> xyxy = boxes.xyxy
             >>> print(xyxy)
@@ -953,7 +953,7 @@ class Boxes(BaseTensor):
                 The shape is (N,), where N is the number of boxes.
 
         Examples:
-            >>> results = model('image.jpg')
+            >>> results = model("image.jpg")
             >>> boxes = results[0].boxes
             >>> class_ids = boxes.cls
             >>> print(class_ids)  # tensor([0., 2., 1.])
@@ -970,7 +970,7 @@ class Boxes(BaseTensor):
                 otherwise None. Shape is (N,) where N is the number of boxes.
 
         Examples:
-            >>> results = model.track('path/to/video.mp4')
+            >>> results = model.track("path/to/video.mp4")
             >>> for result in results:
             ...     boxes = result.boxes
             ...     if boxes.is_track:
@@ -1116,7 +1116,7 @@ class Masks(BaseTensor):
                 mask contour.
 
         Examples:
-            >>> results = model('image.jpg')
+            >>> results = model("image.jpg")
             >>> masks = results[0].masks
             >>> normalized_coords = masks.xyn
             >>> print(normalized_coords[0])  # Normalized coordinates of the first mask
@@ -1141,7 +1141,7 @@ class Masks(BaseTensor):
                 number of points in the segment.
 
         Examples:
-            >>> results = model('image.jpg')
+            >>> results = model("image.jpg")
             >>> masks = results[0].masks
             >>> xy_coords = masks.xy
             >>> print(len(xy_coords))  # Number of masks
@@ -1223,7 +1223,7 @@ class Keypoints(BaseTensor):
                 the number of detections and K is the number of keypoints per detection.
 
         Examples:
-            >>> results = model('image.jpg')
+            >>> results = model("image.jpg")
             >>> keypoints = results[0].keypoints
             >>> xy = keypoints.xy
             >>> print(xy.shape)  # (N, K, 2)
@@ -1388,7 +1388,7 @@ class Probs(BaseTensor):
             (torch.Tensor | numpy.ndarray): A tensor containing the confidence score of the top 1 class.
 
         Examples:
-            >>> results = model('image.jpg')  # classify an image
+            >>> results = model("image.jpg")  # classify an image
             >>> probs = results[0].probs  # get classification probabilities
             >>> top1_confidence = probs.top1conf  # get confidence of top 1 class
             >>> print(f"Top 1 class confidence: {top1_confidence.item():.4f}")
@@ -1410,7 +1410,7 @@ class Probs(BaseTensor):
                 top 5 predicted classes, sorted in descending order of probability.
 
         Examples:
-            >>> results = model('image.jpg')
+            >>> results = model("image.jpg")
             >>> probs = results[0].probs
             >>> top5_conf = probs.top5conf
             >>> print(top5_conf)  # Prints confidence scores for top 5 classes
@@ -1497,7 +1497,7 @@ class OBB(BaseTensor):
                 [x_center, y_center, width, height, rotation]. The shape is (N, 5) where N is the number of boxes.
 
         Examples:
-            >>> results = model('image.jpg')
+            >>> results = model("image.jpg")
             >>> obb = results[0].obb
             >>> xywhr = obb.xywhr
             >>> print(xywhr.shape)
@@ -1518,7 +1518,7 @@ class OBB(BaseTensor):
                 for N detections, where each score is in the range [0, 1].
 
         Examples:
-            >>> results = model('image.jpg')
+            >>> results = model("image.jpg")
             >>> obb_result = results[0].obb
             >>> confidence_scores = obb_result.conf
             >>> print(confidence_scores)
@@ -1535,7 +1535,7 @@ class OBB(BaseTensor):
                 bounding box. The shape is (N,), where N is the number of boxes.
 
         Examples:
-            >>> results = model('image.jpg')
+            >>> results = model("image.jpg")
             >>> result = results[0]
             >>> obb = result.obb
             >>> class_values = obb.cls
@@ -1553,7 +1553,7 @@ class OBB(BaseTensor):
                 oriented bounding box. Returns None if tracking IDs are not available.
 
         Examples:
-            >>> results = model('image.jpg', tracker=True)  # Run inference with tracking
+            >>> results = model("image.jpg", tracker=True)  # Run inference with tracking
             >>> for result in results:
             ...     if result.obb is not None:
             ...         track_ids = result.obb.id
@@ -1620,8 +1620,8 @@ class OBB(BaseTensor):
         Examples:
             >>> import torch
             >>> from ultralytics import YOLO
-            >>> model = YOLO('yolov8n-obb.pt')
-            >>> results = model('path/to/image.jpg')
+            >>> model = YOLO("yolov8n-obb.pt")
+            >>> results = model("path/to/image.jpg")
             >>> for result in results:
             ...     obb = result.obb
             ...     if obb is not None:

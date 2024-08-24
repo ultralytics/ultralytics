@@ -713,7 +713,7 @@ def temporary_modules(modules=None, attributes=None):
 
     Example:
         ```python
-        with temporary_modules({'old.module': 'new.module'}, {'old.module.attribute': 'new.module.attribute'}):
+        with temporary_modules({"old.module": "new.module"}, {"old.module.attribute": "new.module.attribute"}):
             import old.module  # this will now import new.module
             from old.module import attribute  # this will now import new.module.attribute
         ```

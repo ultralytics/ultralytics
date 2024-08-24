@@ -794,8 +794,8 @@ class Metric(SimpleClass):
 
 class DetMetrics(SimpleClass):
     """
-    Utility class for computing detection metrics such as precision, recall, and mean average precision
-    (mAP) of an object detection model.
+    Utility class for computing detection metrics such as precision, recall, and mean average precision (mAP) of an
+    object detection model.
 
     Args:
         save_dir (Path): A path to the directory where the output plots will be saved. Defaults to current directory.

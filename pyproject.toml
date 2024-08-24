@@ -174,8 +174,8 @@ line-length = 120
 [tool.ruff.format]
 docstring-code-format = true
 
-[tool.ruff.lint.pydocstyle]
-convention = "google"
+#[tool.ruff.lint.pydocstyle]
+#convention = "google"
 
 [tool.docformatter]
 wrap-summaries = 120

@@ -159,7 +159,6 @@ class HUBTrainingSession:
         Raises:
             HUBModelError: If the identifier format is not recognized.
         """
-
         # Initialize variables
         api_key, model_id, filename = None, None, None
 
@@ -200,7 +199,6 @@ class HUBTrainingSession:
             ValueError: If the model is already trained, if required dataset information is missing, or if there are
                 issues with the provided training arguments.
         """
-
         if self.model.is_resumable():
             # Model has saved weights
             self.train_args = {"data": self.model.get_dataset_url(), "resume": True}
@@ -276,7 +274,7 @@ class HUBTrainingSession:
 
             # if request related to metrics upload and exceed retries
             if response is None and kwargs.get("metrics"):
-                self.metrics_upload_failed_queue.update(kwargs.get("metrics", None))
+                self.metrics_upload_failed_queue.update(kwargs.get("metrics"))
 
             return response
 
@@ -350,10 +348,10 @@ class HUBTrainingSession:
             last = weights.with_name("last" + weights.suffix)
             if final and last.is_file():
                 LOGGER.warning(
-                    f"{PREFIX} ARNING ⚠️ Model 'best.pt' not found, copying 'last.pt' to 'best.pt' and uploading. "
+                    f"{PREFIX} WARNING ⚠️ Model 'best.pt' not found, copying 'last.pt' to 'best.pt' and uploading. "
                     "This often happens when resuming training in transient environments like Google Colab. "
                     "For more reliable training, consider using Ultralytics HUB Cloud. "
-                    "Learn more at https://docs.ultralytics.com/hub/cloud-training/."
+                    "Learn more at https://docs.ultralytics.com/hub/cloud-training."
                 )
                 shutil.copy(last, weights)  # copy last.pt to best.pt
             else:

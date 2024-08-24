@@ -33,7 +33,7 @@ class GMC:
 
     Examples:
         Create a GMC object and apply it to a frame
-        >>> gmc = GMC(method='sparseOptFlow', downscale=2)
+        >>> gmc = GMC(method="sparseOptFlow", downscale=2)
         >>> frame = np.array([[1, 2, 3], [4, 5, 6]])
         >>> processed_frame = gmc.apply(frame)
         >>> print(processed_frame)
@@ -51,7 +51,7 @@ class GMC:
 
         Examples:
             Initialize a GMC object with the 'sparseOptFlow' method and a downscale factor of 2
-            >>> gmc = GMC(method='sparseOptFlow', downscale=2)
+            >>> gmc = GMC(method="sparseOptFlow", downscale=2)
         """
         super().__init__()
 
@@ -101,7 +101,7 @@ class GMC:
             (np.ndarray): Processed frame with applied object detection.
 
         Examples:
-            >>> gmc = GMC(method='sparseOptFlow')
+            >>> gmc = GMC(method="sparseOptFlow")
             >>> raw_frame = np.random.rand(480, 640, 3)
             >>> processed_frame = gmc.apply(raw_frame)
             >>> print(processed_frame.shape)
@@ -127,7 +127,7 @@ class GMC:
             (np.ndarray): The processed frame with the applied ECC transformation.
 
         Examples:
-            >>> gmc = GMC(method='ecc')
+            >>> gmc = GMC(method="ecc")
             >>> processed_frame = gmc.applyEcc(np.array([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]]))
             >>> print(processed_frame)
             [[1. 0. 0.]
@@ -173,7 +173,7 @@ class GMC:
             (np.ndarray): Processed frame.
 
         Examples:
-            >>> gmc = GMC(method='orb')
+            >>> gmc = GMC(method="orb")
             >>> raw_frame = np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8)
             >>> processed_frame = gmc.applyFeatures(raw_frame)
             >>> print(processed_frame.shape)

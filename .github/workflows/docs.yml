@@ -1,6 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 # Test and publish docs to https://docs.ultralytics.com
-# Ignores the following Docs rules to match Google-style docstrings
+# Ignores the following Docs rules to match Google-style docstrings:
 # D100: Missing docstring in public module
 # D104: Missing docstring in public package
 # D203: 1 blank line required before class docstring

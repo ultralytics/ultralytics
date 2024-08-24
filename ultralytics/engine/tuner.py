@@ -1,6 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 """
-This module provides functionalities for hyperparameter tuning of the Ultralytics YOLO models for object detection,
+Module provides functionalities for hyperparameter tuning of the Ultralytics YOLO models for object detection,
 instance segmentation, image classification, pose estimation, and multi-object tracking.
 
 Hyperparameter tuning is the process of systematically searching for the optimal set of hyperparameters

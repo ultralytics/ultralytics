@@ -1,6 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-"""
-Benchmark a YOLO model formats for speed and accuracy.
+"""Benchmark a YOLO model formats for speed and accuracy.
 
 Usage:
     from ultralytics.utils.benchmarks import ProfileModels, benchmark
@@ -49,8 +48,7 @@ from ultralytics.utils.torch_utils import select_device
 def benchmark(
     model=WEIGHTS_DIR / "yolov8n.pt", data=None, imgsz=160, half=False, int8=False, device="cpu", verbose=False
 ):
-    """
-    Benchmark a YOLO model across different formats for speed and accuracy.
+    """Benchmark a YOLO model across different formats for speed and accuracy.
 
     Args:
         model (str | Path | optional): Path to the model file or directory. Default is
@@ -176,8 +174,7 @@ class RF100Benchmark:
         self.val_metrics = ["class", "images", "targets", "precision", "recall", "map50", "map95"]
 
     def set_key(self, api_key):
-        """
-        Set Roboflow API key for processing.
+        """Set Roboflow API key for processing.
 
         Args:
             api_key (str): The API key.
@@ -188,8 +185,7 @@ class RF100Benchmark:
         self.rf = Roboflow(api_key=api_key)
 
     def parse_dataset(self, ds_link_txt="datasets_links.txt"):
-        """
-        Parse dataset links and downloads datasets.
+        """Parse dataset links and downloads datasets.
 
         Args:
             ds_link_txt (str): Path to dataset_links file.
@@ -217,8 +213,7 @@ class RF100Benchmark:
 
     @staticmethod
     def fix_yaml(path):
-        """
-        Function to fix YAML train and val path.
+        """Function to fix YAML train and val path.
 
         Args:
             path (str): YAML file path.
@@ -231,8 +226,7 @@ class RF100Benchmark:
             yaml.safe_dump(yaml_data, file)
 
     def evaluate(self, yaml_path, val_log_file, eval_log_file, list_ind):
-        """
-        Model evaluation on validation results.
+        """Model evaluation on validation results.
 
         Args:
             yaml_path (str): YAML file path.
@@ -280,8 +274,7 @@ class RF100Benchmark:
 
 
 class ProfileModels:
-    """
-    ProfileModels class for profiling different models on ONNX and TensorRT.
+    """ProfileModels class for profiling different models on ONNX and TensorRT.
 
     This class profiles the performance of different models, returning results such as model speed and FLOPs.
 
@@ -314,8 +307,7 @@ class ProfileModels:
         trt=True,
         device=None,
     ):
-        """
-        Initialize the ProfileModels class for profiling models.
+        """Initialize the ProfileModels class for profiling models.
 
         Args:
             paths (list): List of paths of the models to be profiled.
@@ -391,8 +383,7 @@ class ProfileModels:
 
     def get_onnx_model_info(self, onnx_file: str):
         """Retrieves the information including number of layers, parameters, gradients and FLOPs for an ONNX model
-        file.
-        """
+        file."""
         return 0.0, 0.0, 0.0, 0.0  # return (num_layers, num_params, num_gradients, num_flops)
 
     @staticmethod
@@ -438,8 +429,7 @@ class ProfileModels:
 
     def profile_onnx_model(self, onnx_file: str, eps: float = 1e-3):
         """Profiles an ONNX model by executing it multiple times and returns the mean and standard deviation of run
-        times.
-        """
+        times."""
         check_requirements("onnxruntime")
         import onnxruntime as ort
 

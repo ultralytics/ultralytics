@@ -11,8 +11,7 @@ from ultralytics.utils.plotting import output_to_rotated_target, plot_images
 
 
 class OBBValidator(DetectionValidator):
-    """
-    A class extending the DetectionValidator class for validation based on an Oriented Bounding Box (OBB) model.
+    """A class extending the DetectionValidator class for validation based on an Oriented Bounding Box (OBB) model.
 
     Example:
         ```python
@@ -51,8 +50,8 @@ class OBBValidator(DetectionValidator):
         )
 
     def _process_batch(self, detections, gt_bboxes, gt_cls):
-        """
-        Perform computation of the correct prediction matrix for a batch of detections and ground truth bounding boxes.
+        """Perform computation of the correct prediction matrix for a batch of detections and ground truth bounding
+        boxes.
 
         Args:
             detections (torch.Tensor): A tensor of shape (N, 7) representing the detected bounding boxes and associated

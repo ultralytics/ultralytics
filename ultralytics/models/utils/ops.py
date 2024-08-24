@@ -10,9 +10,8 @@ from ultralytics.utils.ops import xywh2xyxy, xyxy2xywh
 
 
 class HungarianMatcher(nn.Module):
-    """
-    A module implementing the HungarianMatcher, which is a differentiable module to solve the assignment problem in an
-    end-to-end fashion.
+    """A module implementing the HungarianMatcher, which is a differentiable module to solve the assignment problem in
+    an end-to-end fashion.
 
     HungarianMatcher performs optimal assignment over the predicted and ground truth bounding boxes using a cost
     function that considers classification scores, bounding box coordinates, and optionally, mask predictions.
@@ -33,8 +32,7 @@ class HungarianMatcher(nn.Module):
 
     def __init__(self, cost_gain=None, use_fl=True, with_mask=False, num_sample_points=12544, alpha=0.25, gamma=2.0):
         """Initializes HungarianMatcher with cost coefficients, Focal Loss, mask prediction, sample points, and alpha
-        gamma factors.
-        """
+        gamma factors."""
         super().__init__()
         if cost_gain is None:
             cost_gain = {"class": 1, "bbox": 5, "giou": 2, "mask": 1, "dice": 1}
@@ -46,8 +44,7 @@ class HungarianMatcher(nn.Module):
         self.gamma = gamma
 
     def forward(self, pred_bboxes, pred_scores, gt_bboxes, gt_cls, gt_groups, masks=None, gt_mask=None):
-        """
-        Forward pass for HungarianMatcher. This function computes costs based on prediction and ground truth
+        """Forward pass for HungarianMatcher. This function computes costs based on prediction and ground truth
         (classification cost, L1 cost between boxes and GIoU cost between boxes) and finds the optimal matching between
         predictions and ground truth based on these costs.
 
@@ -152,10 +149,9 @@ class HungarianMatcher(nn.Module):
 def get_cdn_group(
     batch, num_classes, num_queries, class_embed, num_dn=100, cls_noise_ratio=0.5, box_noise_scale=1.0, training=False
 ):
-    """
-    Get contrastive denoising training group. This function creates a contrastive denoising training group with positive
-    and negative samples from the ground truths (gt). It applies noise to the class labels and bounding box coordinates,
-    and returns the modified labels, bounding boxes, attention mask and meta information.
+    """Get contrastive denoising training group. This function creates a contrastive denoising training group with
+    positive and negative samples from the ground truths (gt). It applies noise to the class labels and bounding box
+    coordinates, and returns the modified labels, bounding boxes, attention mask and meta information.
 
     Args:
         batch (dict): A dict that includes 'gt_cls' (torch.Tensor with shape [num_gts, ]), 'gt_bboxes'

@@ -9,8 +9,7 @@ from ultralytics.utils.plotting import plot_images, plot_results
 
 
 class SegmentationTrainer(yolo.detect.DetectionTrainer):
-    """
-    A class extending the DetectionTrainer class for training based on a segmentation model.
+    """A class extending the DetectionTrainer class for training based on a segmentation model.
 
     Example:
         ```python

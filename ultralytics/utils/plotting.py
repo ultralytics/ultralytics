@@ -97,8 +97,7 @@ colors = Colors()  # create instance for 'from utils.plots import colors'
 
 
 class Annotator:
-    """
-    Ultralytics Annotator for train/val mosaics and JPGs and predictions annotations.
+    """Ultralytics Annotator for train/val mosaics and JPGs and predictions annotations.
 
     Attributes:
         im (Image.Image or numpy array): The image to annotate.
@@ -193,8 +192,7 @@ class Annotator:
             return txt_color
 
     def circle_label(self, box, label="", color=(128, 128, 128), txt_color=(255, 255, 255), margin=2):
-        """
-        Draws a label with a background circle centered within a given bounding box.
+        """Draws a label with a background circle centered within a given bounding box.
 
         Args:
             box (tuple): The bounding box coordinates (x1, y1, x2, y2).
@@ -234,8 +232,7 @@ class Annotator:
         )
 
     def text_label(self, box, label="", color=(128, 128, 128), txt_color=(255, 255, 255), margin=5):
-        """
-        Draws a label with a background rectangle centered within a given bounding box.
+        """Draws a label with a background rectangle centered within a given bounding box.
 
         Args:
             box (tuple): The bounding box coordinates (x1, y1, x2, y2).
@@ -271,8 +268,7 @@ class Annotator:
         )
 
     def box_label(self, box, label="", color=(128, 128, 128), txt_color=(255, 255, 255), rotated=False):
-        """
-        Draws a bounding box to image with label.
+        """Draws a bounding box to image with label.
 
         Args:
             box (tuple): The bounding box coordinates (x1, y1, x2, y2).
@@ -329,8 +325,7 @@ class Annotator:
                 )
 
     def masks(self, masks, colors, im_gpu, alpha=0.5, retina_masks=False):
-        """
-        Plot masks on image.
+        """Plot masks on image.
 
         Args:
             masks (tensor): Predicted masks on cuda, shape: [n, h, w]
@@ -365,8 +360,7 @@ class Annotator:
             self.fromarray(self.im)
 
     def kpts(self, kpts, shape=(640, 640), radius=5, kpt_line=True, conf_thres=0.25, kpt_color=None):
-        """
-        Plot keypoints on the image.
+        """Plot keypoints on the image.
 
         Args:
             kpts (torch.Tensor): Keypoints, shape [17, 3] (x, y, confidence).
@@ -475,8 +469,7 @@ class Annotator:
         cv2.imwrite(filename, np.asarray(self.im))
 
     def get_bbox_dimension(self, bbox=None):
-        """
-        Calculate the area of a bounding box.
+        """Calculate the area of a bounding box.
 
         Args:
             bbox (tuple): Bounding box coordinates in the format (x_min, y_min, x_max, y_max).
@@ -490,8 +483,7 @@ class Annotator:
         return width, height, width * height
 
     def draw_region(self, reg_pts=None, color=(0, 255, 0), thickness=5):
-        """
-        Draw region line.
+        """Draw region line.
 
         Args:
             reg_pts (list): Region Points (for line 2 points, for region 4 points)
@@ -501,8 +493,7 @@ class Annotator:
         cv2.polylines(self.im, [np.array(reg_pts, dtype=np.int32)], isClosed=True, color=color, thickness=thickness)
 
     def draw_centroid_and_tracks(self, track, color=(255, 0, 255), track_thickness=2):
-        """
-        Draw centroid point and track trails.
+        """Draw centroid point and track trails.
 
         Args:
             track (list): object tracking points for trails display
@@ -514,8 +505,7 @@ class Annotator:
         cv2.circle(self.im, (int(track[-1][0]), int(track[-1][1])), track_thickness * 2, color, -1)
 
     def queue_counts_display(self, label, points=None, region_color=(255, 255, 255), txt_color=(0, 0, 0)):
-        """
-        Displays queue counts on an image centered at the points with customizable font size and colors.
+        """Displays queue counts on an image centered at the points with customizable font size and colors.
 
         Args:
             label (str): queue counts label
@@ -554,8 +544,7 @@ class Annotator:
         )
 
     def display_objects_labels(self, im0, text, txt_color, bg_color, x_center, y_center, margin):
-        """
-        Display the bounding boxes labels in parking management app.
+        """Display the bounding boxes labels in parking management app.
 
         Args:
             im0 (ndarray): inference image
@@ -578,8 +567,7 @@ class Annotator:
         cv2.putText(im0, text, (text_x, text_y), 0, self.sf, txt_color, self.tf, lineType=cv2.LINE_AA)
 
     def display_analytics(self, im0, text, txt_color, bg_color, margin):
-        """
-        Display the overall statistics for parking lots.
+        """Display the overall statistics for parking lots.
 
         Args:
             im0 (ndarray): inference image
@@ -608,8 +596,7 @@ class Annotator:
 
     @staticmethod
     def estimate_pose_angle(a, b, c):
-        """
-        Calculate the pose angle for object.
+        """Calculate the pose angle for object.
 
         Args:
             a (float) : The value of pose point a
@@ -627,8 +614,7 @@ class Annotator:
         return angle
 
     def draw_specific_points(self, keypoints, indices=None, shape=(640, 640), radius=2, conf_thres=0.25):
-        """
-        Draw specific keypoints for gym steps counting.
+        """Draw specific keypoints for gym steps counting.
 
         Args:
             keypoints (list): Keypoints data to be plotted.
@@ -660,8 +646,7 @@ class Annotator:
     def plot_angle_and_count_and_stage(
         self, angle_text, count_text, stage_text, center_kpt, color=(104, 31, 17), txt_color=(255, 255, 255)
     ):
-        """
-        Plot the pose angle, count value and step stage.
+        """Plot the pose angle, count value and step stage.
 
         Args:
             angle_text (str): angle value for workout monitoring
@@ -730,8 +715,7 @@ class Annotator:
         cv2.putText(self.im, stage_text, stage_text_position, 0, self.sf, txt_color, self.tf)
 
     def seg_bbox(self, mask, mask_color=(255, 0, 255), label=None, txt_color=(255, 255, 255)):
-        """
-        Function for drawing segmented object in bounding box shape.
+        """Function for drawing segmented object in bounding box shape.
 
         Args:
             mask (list): masks data list for instance segmentation area plotting
@@ -756,8 +740,7 @@ class Annotator:
             )
 
     def plot_distance_and_line(self, distance_m, distance_mm, centroids, line_color, centroid_color):
-        """
-        Plot the distance and line on frame.
+        """Plot the distance and line on frame.
 
         Args:
             distance_m (float): Distance between two bbox centroids in meters.
@@ -797,8 +780,7 @@ class Annotator:
         cv2.circle(self.im, centroids[1], 6, centroid_color, -1)
 
     def visioneye(self, box, center_point, color=(235, 219, 11), pin_color=(255, 0, 255)):
-        """
-        Function for pinpoint human-vision eye mapping and plotting.
+        """Function for pinpoint human-vision eye mapping and plotting.
 
         Args:
             box (list): Bounding box coordinates
@@ -869,8 +851,7 @@ def plot_labels(boxes, cls, names=(), save_dir=Path(""), on_plot=None):
 
 
 def save_one_box(xyxy, im, file=Path("im.jpg"), gain=1.02, pad=10, square=False, BGR=False, save=True):
-    """
-    Save image crop as {file} with crop size multiple {gain} and {pad} pixels. Save and/or return crop.
+    """Save image crop as {file} with crop size multiple {gain} and {pad} pixels. Save and/or return crop.
 
     This function takes a bounding box and an image, and then saves a cropped portion of the image according
     to the bounding box. Optionally, the crop can be squared, and the function allows for gain and padding
@@ -933,8 +914,7 @@ def plot_images(
     save: bool = True,
     conf_thres: float = 0.25,
 ) -> Optional[np.ndarray]:
-    """
-    Plot image grid with labels, bounding boxes, masks, and keypoints.
+    """Plot image grid with labels, bounding boxes, masks, and keypoints.
 
     Args:
         images: Batch of images to plot. Shape: (batch_size, channels, height, width).
@@ -1083,9 +1063,9 @@ def plot_images(
 
 @plt_settings()
 def plot_results(file="path/to/results.csv", dir="", segment=False, pose=False, classify=False, on_plot=None):
-    """
-    Plot training results from a results CSV file. The function supports various types of data including segmentation,
-    pose estimation, and classification. Plots are saved as 'results.png' in the directory where the CSV is located.
+    """Plot training results from a results CSV file. The function supports various types of data including
+    segmentation, pose estimation, and classification. Plots are saved as 'results.png' in the directory where the CSV
+    is located.
 
     Args:
         file (str, optional): Path to the CSV file containing the training results. Defaults to 'path/to/results.csv'.
@@ -1146,8 +1126,7 @@ def plot_results(file="path/to/results.csv", dir="", segment=False, pose=False, 
 
 
 def plt_color_scatter(v, f, bins=20, cmap="viridis", alpha=0.8, edgecolors="none"):
-    """
-    Plots a scatter plot with points colored based on a 2D histogram.
+    """Plots a scatter plot with points colored based on a 2D histogram.
 
     Args:
         v (array-like): Values for the x-axis.
@@ -1177,9 +1156,9 @@ def plt_color_scatter(v, f, bins=20, cmap="viridis", alpha=0.8, edgecolors="none
 
 
 def plot_tune_results(csv_file="tune_results.csv"):
-    """
-    Plot the evolution results stored in an 'tune_results.csv' file. The function generates a scatter plot for each key
-    in the CSV, color-coded based on fitness scores. The best-performing configurations are highlighted on the plots.
+    """Plot the evolution results stored in an 'tune_results.csv' file. The function generates a scatter plot for each
+    key in the CSV, color-coded based on fitness scores. The best-performing configurations are highlighted on the
+    plots.
 
     Args:
         csv_file (str, optional): Path to the CSV file containing the tuning results. Defaults to 'tune_results.csv'.
@@ -1254,8 +1233,7 @@ def output_to_rotated_target(output, max_det=300):
 
 
 def feature_visualization(x, module_type, stage, n=32, save_dir=Path("runs/detect/exp")):
-    """
-    Visualize feature maps of a given model module during inference.
+    """Visualize feature maps of a given model module during inference.
 
     Args:
         x (torch.Tensor): Features to be visualized.

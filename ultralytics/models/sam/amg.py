@@ -30,8 +30,7 @@ def batch_iterator(batch_size: int, *args) -> Generator[List[Any], None, None]:
 
 
 def calculate_stability_score(masks: torch.Tensor, mask_threshold: float, threshold_offset: float) -> torch.Tensor:
-    """
-    Computes the stability score for a batch of masks.
+    """Computes the stability score for a batch of masks.
 
     The stability score is the IoU between binary masks obtained by thresholding the predicted mask logits at
     high and low values.

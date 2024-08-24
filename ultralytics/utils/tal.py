@@ -11,8 +11,7 @@ TORCH_1_10 = check_version(torch.__version__, "1.10.0")
 
 
 class TaskAlignedAssigner(nn.Module):
-    """
-    A task-aligned assigner for object detection.
+    """A task-aligned assigner for object detection.
 
     This class assigns ground-truth (gt) objects to anchors based on the task-aligned metric, which combines both
     classification and localization information.
@@ -124,8 +123,7 @@ class TaskAlignedAssigner(nn.Module):
         return bbox_iou(gt_bboxes, pd_bboxes, xywh=False, CIoU=True).squeeze(-1).clamp_(0)
 
     def select_topk_candidates(self, metrics, largest=True, topk_mask=None):
-        """
-        Select the top-k candidates based on the given metrics.
+        """Select the top-k candidates based on the given metrics.
 
         Args:
             metrics (Tensor): A tensor of shape (b, max_num_obj, h*w), where b is the batch size,
@@ -159,8 +157,7 @@ class TaskAlignedAssigner(nn.Module):
         return count_tensor.to(metrics.dtype)
 
     def get_targets(self, gt_labels, gt_bboxes, target_gt_idx, fg_mask):
-        """
-        Compute target labels, target bounding boxes, and target scores for the positive anchor points.
+        """Compute target labels, target bounding boxes, and target scores for the positive anchor points.
 
         Args:
             gt_labels (Tensor): Ground truth labels of shape (b, max_num_obj, 1), where b is the
@@ -208,8 +205,7 @@ class TaskAlignedAssigner(nn.Module):
 
     @staticmethod
     def select_candidates_in_gts(xy_centers, gt_bboxes, eps=1e-9):
-        """
-        Select positive anchor centers within ground truth bounding boxes.
+        """Select positive anchor centers within ground truth bounding boxes.
 
         Args:
             xy_centers (torch.Tensor): Anchor center coordinates, shape (h*w, 2).
@@ -232,8 +228,7 @@ class TaskAlignedAssigner(nn.Module):
 
     @staticmethod
     def select_highest_overlaps(mask_pos, overlaps, n_max_boxes):
-        """
-        Select anchor boxes with highest IoU when assigned to multiple ground truths.
+        """Select anchor boxes with highest IoU when assigned to multiple ground truths.
 
         Args:
             mask_pos (torch.Tensor): Positive mask, shape (b, n_max_boxes, h*w).
@@ -273,8 +268,7 @@ class RotatedTaskAlignedAssigner(TaskAlignedAssigner):
 
     @staticmethod
     def select_candidates_in_gts(xy_centers, gt_bboxes):
-        """
-        Select the positive anchor center in gt for rotated bounding boxes.
+        """Select the positive anchor center in gt for rotated bounding boxes.
 
         Args:
             xy_centers (Tensor): shape(h*w, 2)
@@ -333,8 +327,7 @@ def bbox2dist(anchor_points, bbox, reg_max):
 
 
 def dist2rbox(pred_dist, pred_angle, anchor_points, dim=-1):
-    """
-    Decode predicted rotated bounding box coordinates from anchor points and distribution.
+    """Decode predicted rotated bounding box coordinates from anchor points and distribution.
 
     Args:
         pred_dist (torch.Tensor): Predicted rotated distance, shape (bs, h*w, 4).

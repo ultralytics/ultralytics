@@ -37,8 +37,7 @@ counting_regions = [
 
 
 def mouse_callback(event, x, y, flags, param):
-    """
-    Handles mouse events for region manipulation.
+    """Handles mouse events for region manipulation.
 
     Parameters:
         event (int): The mouse event type (e.g., cv2.EVENT_LBUTTONDOWN).
@@ -102,8 +101,7 @@ def run(
     track_thickness=2,
     region_thickness=2,
 ):
-    """
-    Run Region counting on a video using YOLOv8 and ByteTrack.
+    """Run Region counting on a video using YOLOv8 and ByteTrack.
 
     Supports movable region for real time counting inside specific area.
     Supports multiple regions counting.

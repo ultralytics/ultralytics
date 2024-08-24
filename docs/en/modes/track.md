@@ -292,8 +292,7 @@ Finally, after all threads have completed their task, the windows displaying the
 
 
     def run_tracker_in_thread(filename, model, file_index):
-        """
-        Runs a video file or webcam stream concurrently with the YOLOv8 model using threading.
+        """Runs a video file or webcam stream concurrently with the YOLOv8 model using threading.
 
         This function captures video frames from a given file or camera source and utilizes the YOLOv8 model for object
         tracking. The function runs in its own thread for concurrent processing.

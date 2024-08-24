@@ -7,8 +7,7 @@ import torch.nn.functional as F
 
 
 def select_closest_cond_frames(frame_idx, cond_frame_outputs, max_cond_frame_num):
-    """
-    Selects the closest conditioning frames to a given frame index.
+    """Selects the closest conditioning frames to a given frame index.
 
     Args:
         frame_idx (int): Current frame index.
@@ -124,8 +123,7 @@ def apply_rotary_enc(
 
 
 def window_partition(x, window_size):
-    """
-    Partitions input tensor into non-overlapping windows with padding if needed.
+    """Partitions input tensor into non-overlapping windows with padding if needed.
 
     Args:
         x (torch.Tensor): Input tensor with shape (B, H, W, C).
@@ -156,8 +154,7 @@ def window_partition(x, window_size):
 
 
 def window_unpartition(windows, window_size, pad_hw, hw):
-    """
-    Unpartitions windowed sequences into original sequences and removes padding.
+    """Unpartitions windowed sequences into original sequences and removes padding.
 
     This function reverses the windowing process, reconstructing the original input from windowed segments
     and removing any padding that was added during the windowing process.
@@ -194,8 +191,7 @@ def window_unpartition(windows, window_size, pad_hw, hw):
 
 
 def get_rel_pos(q_size: int, k_size: int, rel_pos: torch.Tensor) -> torch.Tensor:
-    """
-    Extracts relative positional embeddings based on query and key sizes.
+    """Extracts relative positional embeddings based on query and key sizes.
 
     Args:
         q_size (int): Size of the query.
@@ -243,8 +239,7 @@ def add_decomposed_rel_pos(
     q_size: Tuple[int, int],
     k_size: Tuple[int, int],
 ) -> torch.Tensor:
-    """
-    Adds decomposed Relative Positional Embeddings to the attention map.
+    """Adds decomposed Relative Positional Embeddings to the attention map.
 
     This function calculates and applies decomposed Relative Positional Embeddings as described in the MVITv2
     paper. It enhances the attention mechanism by incorporating spatial relationships between query and key

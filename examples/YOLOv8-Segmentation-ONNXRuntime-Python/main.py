@@ -15,8 +15,7 @@ class YOLOv8Seg:
     """YOLOv8 segmentation model."""
 
     def __init__(self, onnx_model):
-        """
-        Initialization.
+        """Initialization.
 
         Args:
             onnx_model (str): Path to the ONNX model.
@@ -75,8 +74,7 @@ class YOLOv8Seg:
         return boxes, segments, masks
 
     def preprocess(self, img):
-        """
-        Pre-processes the input image.
+        """Pre-processes the input image.
 
         Args:
             img (Numpy.ndarray): image about to be processed.
@@ -106,8 +104,7 @@ class YOLOv8Seg:
         return img_process, ratio, (pad_w, pad_h)
 
     def postprocess(self, preds, im0, ratio, pad_w, pad_h, conf_threshold, iou_threshold, nm=32):
-        """
-        Post-process the prediction.
+        """Post-process the prediction.
 
         Args:
             preds (Numpy.ndarray): predictions come from ort.session.run().
@@ -256,8 +253,7 @@ class YOLOv8Seg:
         return masks
 
     def draw_and_visualize(self, im, bboxes, segments, vis=False, save=True):
-        """
-        Draw and visualize results.
+        """Draw and visualize results.
 
         Args:
             im (np.ndarray): original image, shape [h, w, c].

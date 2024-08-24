@@ -10,8 +10,7 @@ from ultralytics.utils import DEFAULT_CFG, ops
 
 
 class ClassificationPredictor(BasePredictor):
-    """
-    A class extending the BasePredictor class for prediction based on a classification model.
+    """A class extending the BasePredictor class for prediction based on a classification model.
 
     Notes:
         - Torchvision classification models can also be passed to the 'model' argument, i.e. model='resnet18'.

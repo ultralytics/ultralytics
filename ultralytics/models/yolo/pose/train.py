@@ -9,8 +9,7 @@ from ultralytics.utils.plotting import plot_images, plot_results
 
 
 class PoseTrainer(yolo.detect.DetectionTrainer):
-    """
-    A class extending the DetectionTrainer class for training based on a pose model.
+    """A class extending the DetectionTrainer class for training based on a pose model.
 
     Example:
         ```python

@@ -70,8 +70,7 @@ def smart_inference_mode():
 
 
 def autocast(enabled: bool, device: str = "cuda"):
-    """
-    Get the appropriate autocast context manager based on PyTorch version and AMP setting.
+    """Get the appropriate autocast context manager based on PyTorch version and AMP setting.
 
     This function returns a context manager for automatic mixed precision (AMP) training that is compatible with both
     older and newer versions of PyTorch. It handles the differences in the autocast API between PyTorch versions.
@@ -114,8 +113,7 @@ def get_cpu_info():
 
 
 def select_device(device="", batch=0, newline=False, verbose=True):
-    """
-    Selects the appropriate PyTorch device based on the provided arguments.
+    """Selects the appropriate PyTorch device based on the provided arguments.
 
     The function takes a string specifying the device or a torch.device object and returns a torch.device object
     representing the selected device. The function also validates the number of available devices and raises an
@@ -283,8 +281,7 @@ def fuse_deconv_and_bn(deconv, bn):
 
 
 def model_info(model, detailed=False, verbose=True, imgsz=640):
-    """
-    Model information.
+    """Model information.
 
     imgsz may be int or list, i.e. imgsz=640 or imgsz=[640, 320].
     """
@@ -324,8 +321,7 @@ def get_num_gradients(model):
 
 
 def model_info_for_loggers(trainer):
-    """
-    Return model info dict with useful model information.
+    """Return model info dict with useful model information.
 
     Example:
         YOLOv8n info for loggers
@@ -417,8 +413,7 @@ def initialize_weights(model):
 
 def scale_img(img, ratio=1.0, same_shape=False, gs=32):
     """Scales and pads an image tensor of shape img(bs,3,y,x) based on given ratio and grid size gs, optionally
-    retaining the original shape.
-    """
+    retaining the original shape."""
     if ratio == 1.0:
         return img
     h, w = img.shape[2:]
@@ -527,8 +522,7 @@ class ModelEMA:
 
 
 def strip_optimizer(f: Union[str, Path] = "best.pt", s: str = "") -> None:
-    """
-    Strip optimizer from 'f' to finalize training, optionally save as 's'.
+    """Strip optimizer from 'f' to finalize training, optionally save as 's'.
 
     Args:
         f (str): file path to model to strip the optimizer from. Default is 'best.pt'.
@@ -590,8 +584,7 @@ def strip_optimizer(f: Union[str, Path] = "best.pt", s: str = "") -> None:
 
 
 def convert_optimizer_state_dict_to_fp16(state_dict):
-    """
-    Converts the state_dict of a given optimizer to FP16, focusing on the 'state' key for tensor conversions.
+    """Converts the state_dict of a given optimizer to FP16, focusing on the 'state' key for tensor conversions.
 
     This method aims to reduce storage size without altering 'param_groups' as they contain non-tensor data.
     """
@@ -604,8 +597,7 @@ def convert_optimizer_state_dict_to_fp16(state_dict):
 
 
 def profile(input, ops, n=10, device=None):
-    """
-    Ultralytics speed, memory and FLOPs profiler.
+    """Ultralytics speed, memory and FLOPs profiler.
 
     Example:
         ```python
@@ -667,8 +659,7 @@ class EarlyStopping:
     """Early stopping class that stops training when a specified number of epochs have passed without improvement."""
 
     def __init__(self, patience=50):
-        """
-        Initialize early stopping object.
+        """Initialize early stopping object.
 
         Args:
             patience (int, optional): Number of epochs to wait after fitness stops improving before stopping.
@@ -679,8 +670,7 @@ class EarlyStopping:
         self.possible_stop = False  # possible stop may occur next epoch
 
     def __call__(self, epoch, fitness):
-        """
-        Check whether to stop training.
+        """Check whether to stop training.
 
         Args:
             epoch (int): Current epoch of training

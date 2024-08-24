@@ -56,8 +56,7 @@ def sanitize_batch(batch, dataset_info):
 
 
 def plot_query_result(similar_set, plot_labels=True):
-    """
-    Plot images from the similar set.
+    """Plot images from the similar set.
 
     Args:
         similar_set (list): Pyarrow or pandas object containing the similar data points

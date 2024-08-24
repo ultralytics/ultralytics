@@ -15,8 +15,7 @@ from ultralytics.utils.plotting import output_to_target, plot_images
 
 
 class DetectionValidator(BaseValidator):
-    """
-    A class extending the BaseValidator class for validation based on a detection model.
+    """A class extending the BaseValidator class for validation based on a detection model.
 
     Example:
         ```python
@@ -207,8 +206,7 @@ class DetectionValidator(BaseValidator):
                 )
 
     def _process_batch(self, detections, gt_bboxes, gt_cls):
-        """
-        Return correct prediction matrix.
+        """Return correct prediction matrix.
 
         Args:
             detections (torch.Tensor): Tensor of shape (N, 6) representing detections where each detection is
@@ -228,8 +226,7 @@ class DetectionValidator(BaseValidator):
         return self.match_predictions(detections[:, 5], gt_cls, iou)
 
     def build_dataset(self, img_path, mode="val", batch=None):
-        """
-        Build YOLO Dataset.
+        """Build YOLO Dataset.
 
         Args:
             img_path (str): Path to the folder containing images.

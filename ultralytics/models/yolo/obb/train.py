@@ -8,8 +8,7 @@ from ultralytics.utils import DEFAULT_CFG, RANK
 
 
 class OBBTrainer(yolo.detect.DetectionTrainer):
-    """
-    A class extending the DetectionTrainer class for training based on an Oriented Bounding Box (OBB) model.
+    """A class extending the DetectionTrainer class for training based on an Oriented Bounding Box (OBB) model.
 
     Example:
         ```python

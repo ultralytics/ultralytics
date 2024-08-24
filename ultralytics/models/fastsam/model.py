@@ -9,8 +9,7 @@ from .val import FastSAMValidator
 
 
 class FastSAM(Model):
-    """
-    FastSAM model interface.
+    """FastSAM model interface.
 
     Example:
         ```python
@@ -29,8 +28,7 @@ class FastSAM(Model):
         super().__init__(model=model, task="segment")
 
     def predict(self, source, stream=False, bboxes=None, points=None, labels=None, texts=None, **kwargs):
-        """
-        Perform segmentation prediction on image or video source.
+        """Perform segmentation prediction on image or video source.
 
         Supports prompted segmentation with bounding boxes, points, labels, and texts.
 

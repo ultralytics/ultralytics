@@ -30,8 +30,7 @@ class QueueManager:
         region_thickness=5,
         fontsize=0.7,
     ):
-        """
-        Initializes the QueueManager with specified parameters for tracking and counting objects.
+        """Initializes the QueueManager with specified parameters for tracking and counting objects.
 
         Args:
             names (dict): A dictionary mapping class IDs to class names.
@@ -146,8 +145,7 @@ class QueueManager:
                 return
 
     def process_queue(self, im0, tracks):
-        """
-        Main function to start the queue management process.
+        """Main function to start the queue management process.
 
         Args:
             im0 (ndarray): Current frame from the video stream.

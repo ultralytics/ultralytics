@@ -175,8 +175,7 @@ default_callbacks = {
 
 
 def get_default_callbacks():
-    """
-    Return a copy of the default_callbacks dictionary with lists as default values.
+    """Return a copy of the default_callbacks dictionary with lists as default values.
 
     Returns:
         (defaultdict): A defaultdict with keys from default_callbacks and empty lists as default values.
@@ -185,8 +184,7 @@ def get_default_callbacks():
 
 
 def add_integration_callbacks(instance):
-    """
-    Add integration callbacks from various sources to the instance's callbacks.
+    """Add integration callbacks from various sources to the instance's callbacks.
 
     Args:
         instance (Trainer, Predictor, Validator, Exporter): An object with a 'callbacks' attribute that is a dictionary

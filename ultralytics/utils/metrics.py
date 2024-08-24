@@ -794,7 +794,7 @@ class Metric(SimpleClass):
 
 class DetMetrics(SimpleClass):
     """
-    This class is a utility class for computing detection metrics such as precision, recall, and mean average precision
+    Utility class for computing detection metrics such as precision, recall, and mean average precision
     (mAP) of an object detection model.
 
     Args:

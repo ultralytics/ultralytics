@@ -546,7 +546,7 @@ def handle_yolo_settings(args: List[str]) -> None:
 
 def handle_explorer(args: List[str]):
     """
-    This function launches a graphical user interface that provides tools for interacting with and analyzing datasets
+    Launches a graphical user interface that provides tools for interacting with and analyzing datasets
     using the Ultralytics Explorer API. It checks for the required 'streamlit' package and informs the user that the
     Explorer dashboard is loading.
 

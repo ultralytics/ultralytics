@@ -755,7 +755,7 @@ def temporary_modules(modules=None, attributes=None):
 
 def torch_safe_load(weight):
     """
-    This function attempts to load a PyTorch model with the torch.load() function. If a ModuleNotFoundError is raised,
+    Attempts to load a PyTorch model with the torch.load() function. If a ModuleNotFoundError is raised,
     it catches the error, logs a warning message, and attempts to install the missing module via the
     check_requirements() function. After installation, the function again attempts to load the model using torch.load().
 

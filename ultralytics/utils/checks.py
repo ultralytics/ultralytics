@@ -619,7 +619,7 @@ def collect_system_info():
 
 def check_amp(model):
     """
-    This function checks the PyTorch Automatic Mixed Precision (AMP) functionality of a YOLOv8 model. If the checks
+    Checks the PyTorch Automatic Mixed Precision (AMP) functionality of a YOLOv8 model. If the checks
     fail, it means there are anomalies with AMP on the system that may cause NaN losses or zero-mAP results, so AMP will
     be disabled during training.
 

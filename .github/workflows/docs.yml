@@ -43,7 +43,7 @@ jobs:
           python-version: "3.x"
           cache: "pip" # caching pip dependencies
       - name: Install Dependencies
-        run: pip install ruff black tqdm mkdocs-material "mkdocstrings[python]" mkdocs-jupyter mkdocs-redirects mkdocs-ultralytics-plugin mkdocs-macros-plugin
+        run: pip install ruff black tqdm mkdocs-material "mkdocstrings[python]" mkdocs-jupyter mkdocs-redirects mkdocs-ultralytics-plugin mkdocs-macros-plugin mkdocs-exclude
       - name: Update Docs Reference Section and Push Changes
         if: github.event_name == 'pull_request_target'
         run: |

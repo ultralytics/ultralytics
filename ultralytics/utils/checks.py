@@ -256,7 +256,7 @@ def check_latest_pypi_version(package_name="ultralytics"):
     """
     Returns the latest version of a PyPI package without downloading or installing it.
 
-    Parameters:
+    Args:
         package_name (str): The name of the package to find the latest version for.
 
     Returns:

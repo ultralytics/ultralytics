@@ -26,7 +26,8 @@ class Auth:
     id_token = api_key = model_key = False
 
     def __init__(self, api_key="", verbose=False):
-        """Initialize Auth class and authenticate user.
+        """
+        Initialize Auth class and authenticate user.
 
         Handles API key validation, Google Colab authentication, and new key requests. Updates SETTINGS upon successful
         authentication.

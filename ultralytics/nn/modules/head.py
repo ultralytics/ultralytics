@@ -146,8 +146,7 @@ class Detect(nn.Module):
         """
         batch_size, anchors, predictions = preds.shape  # i.e. shape(16,8400,84)
         boxes, scores = preds.split([4, nc], dim=-1)
-        max_scores, index = scores.amax(dim=-1).topk(min(max_det, anchors))
-        index = index.unsqueeze(-1)
+        index = scores.amax(dim=-1).topk(min(max_det, anchors))[1].unsqueeze(-1)
         boxes = boxes.gather(dim=1, index=index.repeat(1, 1, 4))
         scores = scores.gather(dim=1, index=index.repeat(1, 1, nc))
         scores, index = scores.flatten(1).topk(max_det)

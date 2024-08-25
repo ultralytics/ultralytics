@@ -52,7 +52,7 @@ jobs:
                   head_repo_name = pr.head.repo.full_name
                   base_branch_name = pr.base.ref
                   head_branch_name = pr.head.ref
-                  
+
                   # Check if PR is behind the default branch
                   comparison = repo.compare(default_branch.commit.sha, pr.head.sha)
                   if comparison.behind_by > 0:
@@ -74,7 +74,7 @@ jobs:
               except Exception as e:
                   print(f"❌ Could not process PR #{pr.number}: {e}")
                   errors += 1
-          
+
           # Print summary
           print("\n\nSummary:")
           print(f"Branches updated: {updated_branches}")

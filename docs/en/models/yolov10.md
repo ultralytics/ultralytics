@@ -202,20 +202,20 @@ The YOLOv10 models series offers a range of models, each optimized for high-perf
 
 Due to the new operations introduced with YOLOv10, not all export formats provided by Ultralytics are currently supported. The following table outlines which formats have been successfully converted using Ultralytics for YOLOv10. Feel free to open a pull request if you're able to [provide a contribution change](../help/contributing.md) for adding export support of additional formats for YOLOv10.
 
-| Export Format                                     | Supported |
-| ------------------------------------------------- | --------- |
-| [TorchScript](../integrations/torchscript.md)     | ✅        |
-| [ONNX](../integrations/onnx.md)                   | ✅        |
-| [OpenVINO](../integrations/openvino.md)           | ✅        |
-| [TensorRT](../integrations/tensorrt.md)           | ✅        |
-| [CoreML](../integrations/coreml.md)               | ❌        |
-| [TF SavedModel](../integrations/tf-savedmodel.md) | ✅        |
-| [TF GraphDef](../integrations/tf-graphdef.md)     | ✅        |
-| [TF Lite](../integrations/tflite.md)              | ✅        |
-| [TF Edge TPU](../integrations/edge-tpu.md)        | ❌        |
-| [TF.js](../integrations/tfjs.md)                  | ❌        |
-| [PaddlePaddle](../integrations/paddlepaddle.md)   | ❌        |
-| [NCNN](../integrations/ncnn.md)                   | ❌        |
+| Export Format                                     | Export Support | Exported Model Inference | Notes                                       |
+| ------------------------------------------------- | -------------- | ------------------------ | ------------------------------------------- |
+| [TorchScript](../integrations/torchscript.md)     | ✅             | ✅                       | Standard PyTorch model format.              |
+| [ONNX](../integrations/onnx.md)                   | ✅             | ✅                       | Widely supported for deployment.            |
+| [OpenVINO](../integrations/openvino.md)           | ✅             | ✅                       | Optimized for Intel hardware.               |
+| [TensorRT](../integrations/tensorrt.md)           | ✅             | ✅                       | Optimized for NVIDIA GPUs.                  |
+| [CoreML](../integrations/coreml.md)               | ✅             | ✅                       | Limited to Apple devices.                   |
+| [TF SavedModel](../integrations/tf-savedmodel.md) | ✅             | ✅                       | TensorFlow's standard model format.         |
+| [TF GraphDef](../integrations/tf-graphdef.md)     | ✅             | ✅                       | Legacy TensorFlow format.                   |
+| [TF Lite](../integrations/tflite.md)              | ✅             | ✅                       | Optimized for mobile and embedded.          |
+| [TF Edge TPU](../integrations/edge-tpu.md)        | ✅             | ✅                       | Specific to Google's Edge TPU devices.      |
+| [TF.js](../integrations/tfjs.md)                  | ✅             | ✅                       | JavaScript environment for browser use.     |
+| [PaddlePaddle](../integrations/paddlepaddle.md)   | ❌             | ❌                       | Popular in China; less global support.      |
+| [NCNN](../integrations/ncnn.md)                   | ✅             | ❌                       | Layer `torch.topk` not exists or registered |
 
 ## Conclusion
 

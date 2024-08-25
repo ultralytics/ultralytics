@@ -144,6 +144,7 @@ class Detect(nn.Module):
             (torch.Tensor): Processed predictions with shape (batch_size, min(max_det, num_anchors), 6) and last
                 dimension format [x, y, w, h, max_class_prob, class_index].
         """
+
     @staticmethod
     def postprocess(preds: torch.Tensor, max_det: int, nc: int = 80):
         """

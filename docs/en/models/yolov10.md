@@ -56,7 +56,7 @@ YOLOv10 comes in various model scales to cater to different application needs:
 YOLOv10 outperforms previous YOLO versions and other state-of-the-art models in terms of accuracy and efficiency. For example, YOLOv10-S is 1.8x faster than RT-DETR-R18 with similar AP on the COCO dataset, and YOLOv10-B has 46% less latency and 25% fewer parameters than YOLOv9-C with the same performance.
 
 | Model          | Input Size | AP<sup>val</sup> | FLOPs (G) | Latency (ms) |
-|----------------|------------|------------------|-----------|--------------|
+| -------------- | ---------- | ---------------- | --------- | ------------ |
 | [YOLOv10-N][1] | 640        | 38.5             | **6.7**   | **1.84**     |
 | [YOLOv10-S][2] | 640        | 46.3             | 21.6      | 2.49         |
 | [YOLOv10-M][3] | 640        | 51.1             | 59.1      | 4.74         |
@@ -102,7 +102,7 @@ Compared to other state-of-the-art detectors:
 Here is a detailed comparison of YOLOv10 variants with other state-of-the-art models:
 
 | Model              | Params<br><sup>(M) | FLOPs<br><sup>(G) | mAP<sup>val<br>50-95 | Latency<br><sup>(ms) | Latency-forward<br><sup>(ms) |
-|--------------------|--------------------|-------------------|----------------------|----------------------|------------------------------|
+| ------------------ | ------------------ | ----------------- | -------------------- | -------------------- | ---------------------------- |
 | YOLOv6-3.0-N       | 4.7                | 11.4              | 37.0                 | 2.69                 | **1.76**                     |
 | Gold-YOLO-N        | 5.6                | 12.1              | **39.6**             | 2.92                 | 1.82                         |
 | YOLOv8-N           | 3.2                | 8.7               | 37.3                 | 6.16                 | 1.77                         |
@@ -195,27 +195,27 @@ For training YOLOv10 on a custom dataset:
 The YOLOv10 models series offers a range of models, each optimized for high-performance [Object Detection](../tasks/detect.md). These models cater to varying computational needs and accuracy requirements, making them versatile for a wide array of applications.
 
 | Model   | Filenames                                                             | Tasks                                  | Inference | Validation | Training | Export |
-|---------|-----------------------------------------------------------------------|----------------------------------------|-----------|------------|----------|--------|
-| YOLOv10 | `yolov10n.pt` `yolov10s.pt` `yolov10m.pt` `yolov10l.pt` `yolov10x.pt` | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ✅        | ✅      |
+| ------- | --------------------------------------------------------------------- | -------------------------------------- | --------- | ---------- | -------- | ------ |
+| YOLOv10 | `yolov10n.pt` `yolov10s.pt` `yolov10m.pt` `yolov10l.pt` `yolov10x.pt` | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
 
 ## Exporting YOLOv10
 
 Due to the new operations introduced with YOLOv10, not all export formats provided by Ultralytics are currently supported. The following table outlines which formats have been successfully converted using Ultralytics for YOLOv10. Feel free to open a pull request if you're able to [provide a contribution change](../help/contributing.md) for adding export support of additional formats for YOLOv10.
 
 | Export Format                                     | Export Support | Exported Model Inference | Notes                                       |
-|---------------------------------------------------|----------------|--------------------------|---------------------------------------------|
-| [TorchScript](../integrations/torchscript.md)     | ✅              | ✅                        | Standard PyTorch model format.              |
-| [ONNX](../integrations/onnx.md)                   | ✅              | ✅                        | Widely supported for deployment.            |
-| [OpenVINO](../integrations/openvino.md)           | ✅              | ✅                        | Optimized for Intel hardware.               |
-| [TensorRT](../integrations/tensorrt.md)           | ✅              | ✅                        | Optimized for NVIDIA GPUs.                  |
-| [CoreML](../integrations/coreml.md)               | ✅              | ✅                        | Limited to Apple devices.                   |
-| [TF SavedModel](../integrations/tf-savedmodel.md) | ✅              | ✅                        | TensorFlow's standard model format.         |
-| [TF GraphDef](../integrations/tf-graphdef.md)     | ✅              | ✅                        | Legacy TensorFlow format.                   |
-| [TF Lite](../integrations/tflite.md)              | ✅              | ✅                        | Optimized for mobile and embedded.          |
-| [TF Edge TPU](../integrations/edge-tpu.md)        | ✅              | ✅                        | Specific to Google's Edge TPU devices.      |
-| [TF.js](../integrations/tfjs.md)                  | ✅              | ✅                        | JavaScript environment for browser use.     |
-| [PaddlePaddle](../integrations/paddlepaddle.md)   | ❌              | ❌                        | Popular in China; less global support.      |
-| [NCNN](../integrations/ncnn.md)                   | ✅              | ❌                        | Layer `torch.topk` not exists or registered |
+| ------------------------------------------------- | -------------- | ------------------------ | ------------------------------------------- |
+| [TorchScript](../integrations/torchscript.md)     | ✅             | ✅                       | Standard PyTorch model format.              |
+| [ONNX](../integrations/onnx.md)                   | ✅             | ✅                       | Widely supported for deployment.            |
+| [OpenVINO](../integrations/openvino.md)           | ✅             | ✅                       | Optimized for Intel hardware.               |
+| [TensorRT](../integrations/tensorrt.md)           | ✅             | ✅                       | Optimized for NVIDIA GPUs.                  |
+| [CoreML](../integrations/coreml.md)               | ✅             | ✅                       | Limited to Apple devices.                   |
+| [TF SavedModel](../integrations/tf-savedmodel.md) | ✅             | ✅                       | TensorFlow's standard model format.         |
+| [TF GraphDef](../integrations/tf-graphdef.md)     | ✅             | ✅                       | Legacy TensorFlow format.                   |
+| [TF Lite](../integrations/tflite.md)              | ✅             | ✅                       | Optimized for mobile and embedded.          |
+| [TF Edge TPU](../integrations/edge-tpu.md)        | ✅             | ✅                       | Specific to Google's Edge TPU devices.      |
+| [TF.js](../integrations/tfjs.md)                  | ✅             | ✅                       | JavaScript environment for browser use.     |
+| [PaddlePaddle](../integrations/paddlepaddle.md)   | ❌             | ❌                       | Popular in China; less global support.      |
+| [NCNN](../integrations/ncnn.md)                   | ✅             | ❌                       | Layer `torch.topk` not exists or registered |
 
 ## Conclusion
 

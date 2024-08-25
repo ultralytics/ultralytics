@@ -31,6 +31,7 @@ jobs:
         run: |
           from github import Github
           import os
+          import time
 
           g = Github(os.getenv('GITHUB_TOKEN'))
           repo = g.get_repo(os.getenv('GITHUB_REPOSITORY'))
@@ -38,6 +39,11 @@ jobs:
           # Fetch the default branch name
           default_branch_name = repo.default_branch
           default_branch = repo.get_branch(default_branch_name)
+
+          # Initialize counters
+          updated_branches = 0
+          up_to_date_branches = 0
+          errors = 0
           
           for pr in repo.get_pulls(state='open', sort='created'):
               try:
@@ -49,7 +55,6 @@ jobs:
 
                   # Check if PR is behind the default branch
                   comparison = repo.compare(default_branch.commit.sha, pr.head.sha)
-                  
                   if comparison.behind_by > 0:
                       print(f"⚠️ PR #{pr.number} ({head_repo_name}:{head_branch_name} -> {base_repo_name}:{base_branch_name}) is behind {default_branch_name} by {comparison.behind_by} commit(s).")
                       
@@ -58,13 +63,23 @@ jobs:
                           success = pr.update_branch()
                           assert success, "Branch update failed"
                           print(f"✅ Successfully merged '{default_branch_name}' into PR #{pr.number} ({head_repo_name}:{head_branch_name} -> {base_repo_name}:{base_branch_name}).")
+                          updated_branches += 1
+                          time.sleep(10)  # rate limit merges
                       except Exception as update_error:
                           print(f"❌ Could not update PR #{pr.number} ({head_repo_name}:{head_branch_name} -> {base_repo_name}:{base_branch_name}): {update_error}")
-                          print("   This might be due to branch protection rules or insufficient permissions.")
+                          errors += 1
                   else:
-                      print(f"✅ PR #{pr.number} ({head_repo_name}:{head_branch_name} -> {base_repo_name}:{base_branch_name}) is up to date with {default_branch_name}.")
+                      print(f"✅ PR #{pr.number} ({head_repo_name}:{head_branch_name} -> {base_repo_name}:{base_branch_name}) is already up to date with {default_branch_name}, no merge required.")
+                      up_to_date_branches += 1
               except Exception as e:
                   print(f"❌ Could not process PR #{pr.number}: {e}")
+                  errors += 1
+
+          # Print summary
+          print("\n\nSummary:")
+          print(f"Branches updated: {updated_branches}")
+          print(f"Branches already up-to-date: {up_to_date_branches}")
+          print(f"Total errors: {errors}")
 
         env:
           GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN || secrets.GITHUB_TOKEN }}

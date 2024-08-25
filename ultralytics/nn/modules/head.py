@@ -8,7 +8,6 @@ import torch
 import torch.nn as nn
 from torch.nn.init import constant_, xavier_uniform_
 
-from ultralytics.utils import MACOS
 from ultralytics.utils.tal import TORCH_1_10, dist2bbox, dist2rbox, make_anchors
 
 from .block import DFL, BNContrastiveHead, ContrastiveHead, Proto
@@ -136,7 +135,7 @@ class Detect(nn.Module):
         Post-processes YOLO model predictions.
 
         Args:
-            preds (torch.Tensor): Raw predictions with shape (batch_size, num_anchors, 4 + nc) with last dimension 
+            preds (torch.Tensor): Raw predictions with shape (batch_size, num_anchors, 4 + nc) with last dimension
                 format [x, y, w, h, class_probs].
             max_det (int): Maximum detections per image.
             nc (int, optional): Number of classes. Default: 80.

@@ -2780,7 +2780,6 @@ class RandomRotation90:
         Returns:
             (dict): The same dict with the rotated image and updated instance under the 'img' key.
         """
-
         if random.random() < self.p:
             img = labels["img"]
             instances = labels.pop("instances")

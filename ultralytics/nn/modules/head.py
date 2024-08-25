@@ -159,14 +159,15 @@ class Detect(nn.Module):
             (torch.Tensor): The post-processed predictions with shape (batch_size, max_det, 6),
                 including bounding boxes, scores and cls.
         """
-        batch_size, anchors, predictions = preds.shape
+        batch_size, anchors, predictions = preds.shape  # i.e. shape(16,8400,84)
         boxes, scores = preds.split([4, nc], dim=-1)
         max_scores, index = scores.amax(dim=-1).topk(min(max_det, anchors))
         index = index.unsqueeze(-1)
         boxes = boxes.gather(dim=1, index=index.repeat(1, 1, 4))
         scores = scores.gather(dim=1, index=index.repeat(1, 1, nc))
         scores, index = scores.flatten(1).topk(max_det)
-        return torch.cat([boxes[:, index[0] // nc], scores[..., None], (index % nc)[..., None].float()], dim=-1)
+        i = torch.arange(batch_size)[..., None]  # batch indices
+        return torch.cat([boxes[i, index // nc], scores[..., None], (index % nc)[..., None].float()], dim=-1)
 
 
 class Segment(Detect):

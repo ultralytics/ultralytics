@@ -28,13 +28,13 @@ class WorkingDirectory(contextlib.ContextDecorator):
     Examples:
         Using as a context manager:
         >>> with WorkingDirectory('/path/to/new/dir'):
-        >>>     # Perform operations in the new directory
+        >>> # Perform operations in the new directory
         >>>     pass
 
         Using as a decorator:
         >>> @WorkingDirectory('/path/to/new/dir')
         >>> def some_function():
-        >>>     # Perform operations in the new directory
+        >>> # Perform operations in the new directory
         >>>     pass
     """
 
@@ -69,9 +69,8 @@ def spaces_in_path(path):
         Use the context manager to handle paths with spaces:
         >>> from ultralytics.utils.files import spaces_in_path
         >>> with spaces_in_path('/path/with spaces') as new_path:
-        >>>     # Your code here
+        >>> # Your code here
     """
-
     # If path has spaces, replace them with underscores
     if " " in str(path):
         string = isinstance(path, str)  # input type

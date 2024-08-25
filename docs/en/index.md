@@ -16,7 +16,6 @@ keywords: Ultralytics, YOLOv8, object detection, image segmentation, deep learni
 <a href="https://docs.ultralytics.com/pt/">Português</a> |
 <a href="https://docs.ultralytics.com/tr/">Türkçe</a> |
 <a href="https://docs.ultralytics.com/vi/">Tiếng Việt</a> |
-<a href="https://docs.ultralytics.com/hi/">हिन्दी</a> |
 <a href="https://docs.ultralytics.com/ar/">العربية</a>
 <br>
 <br>

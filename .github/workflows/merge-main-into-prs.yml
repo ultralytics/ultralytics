@@ -23,7 +23,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-          cache: "pip" # caching pip dependencies
+          cache: "pip"
       - name: Install requirements
         run: |
           pip install pygithub
@@ -33,26 +33,35 @@ jobs:
           from github import Github
           import os
 
-          # Authenticate with the GitHub Token
           g = Github(os.getenv('GITHUB_TOKEN'))
-
-          # Get the repository dynamically
           repo = g.get_repo(os.getenv('GITHUB_REPOSITORY'))
-
-          # List all open pull requests
           open_pulls = repo.get_pulls(state='open', sort='created')
 
           for pr in open_pulls:
               try:
-                  # Compare PR head with main to see if it's behind
-                  comparison = repo.compare(pr.base.ref, pr.head.ref)  # ensure correct order of base and head
+                  # Check if PR is behind main
+                  base_branch = repo.get_branch(pr.base.ref)
+                  comparison = repo.compare(pr.head.sha, base_branch.commit.sha)
+                  
                   if comparison.behind_by > 0:
-                      # Merge main into the PR branch
-                      success = pr.update_branch()
-                      assert success, "Branch update failed"
-                      print(f"Merged 'main' into PR #{pr.number} ({pr.head.ref}) successfully.")
+                      # PR is behind, let's update it
+                      print(f"Updating PR #{pr.number} ({pr.head.ref})")
+                      
+                      # Create a merge commit
+                      merge_commit = repo.merge(
+                          pr.head.ref,
+                          base_branch.commit.sha,
+                          f"Merge branch '{pr.base.ref}' into {pr.head.ref}"
+                      )
+                      
+                      if merge_commit:
+                          print(f"Successfully updated PR #{pr.number}")
+                      else:
+                          print(f"Failed to update PR #{pr.number}. There might be conflicts.")
+                  else:
+                      print(f"PR #{pr.number} is up to date with {pr.base.ref}")
               except Exception as e:
-                  print(f"Could not merge 'main' into PR #{pr.number} ({pr.head.ref}): {e}")
+                  print(f"Error processing PR #{pr.number}: {e}")
         env:
-          GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}

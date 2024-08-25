@@ -144,21 +144,6 @@ class Detect(nn.Module):
             (torch.Tensor): Processed predictions with shape (batch_size, min(max_det, num_anchors), 6) and last
                 dimension format [x, y, w, h, max_class_prob, class_index].
         """
-
-    @staticmethod
-    def postprocess(preds: torch.Tensor, max_det: int, nc: int = 80):
-        """
-        Post-processes the predictions obtained from a YOLOv10 model.
-
-        Args:
-            preds (torch.Tensor): The predictions obtained from the model. It should have a shape of (batch_size, num_boxes, 4 + num_classes).
-            max_det (int): The maximum number of detections to keep.
-            nc (int, optional): The number of classes. Defaults to 80.
-
-        Returns:
-            (torch.Tensor): The post-processed predictions with shape (batch_size, max_det, 6),
-                including bounding boxes, scores and cls.
-        """
         batch_size, anchors, predictions = preds.shape  # i.e. shape(16,8400,84)
         boxes, scores = preds.split([4, nc], dim=-1)
         max_scores, index = scores.amax(dim=-1).topk(min(max_det, anchors))

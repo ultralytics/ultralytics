@@ -31,6 +31,7 @@ jobs:
         run: |
           from github import Github
           import os
+          import time
 
           g = Github(os.getenv('GITHUB_TOKEN'))
           repo = g.get_repo(os.getenv('GITHUB_REPOSITORY'))
@@ -58,6 +59,7 @@ jobs:
                           success = pr.update_branch()
                           assert success, "Branch update failed"
                           print(f"✅ Successfully merged '{default_branch_name}' into PR #{pr.number} ({head_repo_name}:{head_branch_name} -> {base_repo_name}:{base_branch_name}).")
+                          time.sleep(10)  # rate limit merges
                       except Exception as update_error:
                           print(f"❌ Could not update PR #{pr.number} ({head_repo_name}:{head_branch_name} -> {base_repo_name}:{base_branch_name}): {update_error}")
                           print("   This might be due to branch protection rules or insufficient permissions.")

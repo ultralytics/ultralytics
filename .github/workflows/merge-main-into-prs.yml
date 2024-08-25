@@ -64,7 +64,7 @@ jobs:
                           print(f"❌ Could not update PR #{pr.number} ({head_repo_name}:{head_branch_name} -> {base_repo_name}:{base_branch_name}): {update_error}")
                           print("   This might be due to branch protection rules or insufficient permissions.")
                   else:
-                      print(f"✅ PR #{pr.number} ({head_repo_name}:{head_branch_name} -> {base_repo_name}:{base_branch_name}) is up to date with {default_branch_name}.")
+                      print(f"✅ PR #{pr.number} ({head_repo_name}:{head_branch_name} -> {base_repo_name}:{base_branch_name}) is already up to date with {default_branch_name}, no merge required.")
               except Exception as e:
                   print(f"❌ Could not process PR #{pr.number}: {e}")
 

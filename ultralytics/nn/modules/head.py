@@ -144,14 +144,28 @@ class Detect(nn.Module):
             (torch.Tensor): Processed predictions with shape (batch_size, min(max_det, num_anchors), 6) and last
                 dimension format [x, y, w, h, max_class_prob, class_index].
         """
-        batch_size, anchors, predictions = preds.shape  # i.e. shape(16,6300,84)
-        assert 4 + nc == predictions
-        boxes, classes = preds.split([4, nc], dim=-1)
-        scores, index = classes.max(dim=-1)
-        k = min(max_det, anchors)  # i.e. 300
-        batch_idx = torch.arange(batch_size)[..., None]  # shape(16,1)
-        score_idx = scores.topk(k, dim=1)[1]  # shape(16,300)
-        return torch.cat((boxes, scores[..., None], index[..., None].float()), dim=-1)[batch_idx, score_idx]  # 16,300,6
+    @staticmethod
+    def postprocess(preds: torch.Tensor, max_det: int, nc: int = 80):
+        """
+        Post-processes the predictions obtained from a YOLOv10 model.
+
+        Args:
+            preds (torch.Tensor): The predictions obtained from the model. It should have a shape of (batch_size, num_boxes, 4 + num_classes).
+            max_det (int): The maximum number of detections to keep.
+            nc (int, optional): The number of classes. Defaults to 80.
+
+        Returns:
+            (torch.Tensor): The post-processed predictions with shape (batch_size, max_det, 6),
+                including bounding boxes, scores and cls.
+        """
+        batch_size, anchors, predictions = preds.shape
+        boxes, scores = preds.split([4, nc], dim=-1)
+        max_scores, index = scores.amax(dim=-1).topk(min(max_det, anchors))
+        index = index.unsqueeze(-1)
+        boxes = boxes.gather(dim=1, index=index.repeat(1, 1, 4))
+        scores = scores.gather(dim=1, index=index.repeat(1, 1, nc))
+        scores, index = scores.flatten(1).topk(max_det)
+        return torch.cat([boxes[:, index[0] // nc], scores[..., None], (index % nc)[..., None].float()], dim=-1)
 
 
 class Segment(Detect):

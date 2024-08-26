@@ -12,11 +12,15 @@ from ultralytics.utils.files import increment_path
 from ultralytics.utils.plotting import Annotator, colors
 
 
-class SahiInference:
+class SAHIInference:
+    """Runs YOLOv8 and SAHI for object detection on video with options to view, save, and track results."""
+
     def __init__(self):
+        """Initializes the SAHIInference class for performing sliced inference using SAHI with YOLOv8 models."""
         self.detection_model = None
 
     def load_model(self, weights):
+        """Loads a YOLOv8 model with specified weights for object detection using SAHI."""
         yolov8_model_path = f"models/{weights}"
         download_yolov8s_model(yolov8_model_path)
         self.detection_model = AutoDetectionModel.from_pretrained(
@@ -98,5 +102,5 @@ class SahiInference:
 
 
 if __name__ == "__main__":
-    inference = SahiInference()
+    inference = SAHIInference()
     inference.inference(**vars(inference.parse_opt()))

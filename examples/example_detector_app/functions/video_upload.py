@@ -55,7 +55,7 @@ def detect_video(confidence, model):
                 if success:
                     image = cv2.resize(image, (720, int(720 * (9 / 16))))
                     res = model.predict(image, conf=confidence)
-                    result_tensor = res[0].boxes
+                    res[0].boxes
                     res_plotted = res[0].plot()
                     st_frame.image(res_plotted, caption="Detected Video", channels="BGR", use_column_width=True)
                 else:

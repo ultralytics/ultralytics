@@ -13,13 +13,13 @@ def image_upload():
 
     if uploaded_file is not None:
         st.success("Image uploaded successfully")
-        image = Image.open(uploaded_file)
+        Image.open(uploaded_file)
         return uploaded_file
 
 
 # Image detection
 def image_detection(file):
-    if file != None:
+    if file is not None:
         img1 = Image.open(file)
         img2 = np.array(img1)
 

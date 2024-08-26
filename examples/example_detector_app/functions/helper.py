@@ -44,7 +44,6 @@ def display_detected_frames(conf, model, st_frame, image):
     Returns:
     None
     """
-
     # Resize the image to a standard size
     image = cv2.resize(image, (720, int(720 * (9 / 16))))
 

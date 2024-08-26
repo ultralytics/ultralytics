@@ -16,24 +16,24 @@ jobs:
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           pr-message: |
-            👋 Hello @${{ github.actor }}, thank you for submitting an Ultralytics YOLOv8 🚀 PR! To allow your work to be integrated as seamlessly as possible, we advise you to:
+            👋 Hello @${{ github.actor }}, thank you for submitting an Ultralytics 🚀 PR! To allow your work to be integrated as seamlessly as possible, we advise you to:
 
             - ✅ Verify your PR is **up-to-date** with `ultralytics/ultralytics` `main` branch. If your PR is behind you can update your code by clicking the 'Update branch' button or by running `git pull` and `git merge main` locally.
-            - ✅ Verify all YOLOv8 Continuous Integration (CI) **checks are passing**.
-            - ✅ Update YOLOv8 [Docs](https://docs.ultralytics.com) for any new or updated features.
+            - ✅ Verify all Ultralytics Continuous Integration (CI) **checks are passing**.
+            - ✅ Update Ultralytics [Docs](https://docs.ultralytics.com) for any new or updated features.
             - ✅ Reduce changes to the absolute **minimum** required for your bug fix or feature addition. _"It is not daily increase but daily decrease, hack away the unessential. The closer to the source, the less wastage there is."_  — Bruce Lee
 
             See our [Contributing Guide](https://docs.ultralytics.com/help/contributing) for details and let us know if you have any questions!
 
           issue-message: |
-            👋 Hello @${{ github.actor }}, thank you for your interest in Ultralytics YOLOv8 🚀! We recommend a visit to the [Docs](https://docs.ultralytics.com) for new users where you can find many [Python](https://docs.ultralytics.com/usage/python/) and [CLI](https://docs.ultralytics.com/usage/cli/) usage examples and where many of the most common questions may already be answered.
+            👋 Hello @${{ github.actor }}, thank you for your interest in Ultralytics 🚀! We recommend a visit to the [Docs](https://docs.ultralytics.com) for new users where you can find many [Python](https://docs.ultralytics.com/usage/python/) and [CLI](https://docs.ultralytics.com/usage/cli/) usage examples and where many of the most common questions may already be answered.
 
             If this is a 🐛 Bug Report, please provide a [minimum reproducible example](https://docs.ultralytics.com/help/minimum_reproducible_example/) to help us debug it.
 
-            If this is a custom training ❓ Question, please provide as much information as possible, including dataset image examples and training logs, and verify you are following our [Tips for Best Training Results](https://docs.ultralytics.com/guides/model-training-tips//).
+            If this is a custom training ❓ Question, please provide as much information as possible, including dataset image examples and training logs, and verify you are following our [Tips for Best Training Results](https://docs.ultralytics.com/guides/model-training-tips/).
 
-            Join the vibrant [Ultralytics Discord](https://ultralytics.com/discord) 🎧 community for real-time conversations and collaborations. This platform offers a perfect space to inquire, showcase your work, and connect with fellow Ultralytics users.
-
+            Join the Ultralytics community where it suits you best. For real-time chat, head to [Discord](https://ultralytics.com/discord) 🎧. Prefer in-depth discussions? Check out [Discourse](https://community.ultralytics.com). Or dive into threads on our [Subreddit](https://reddit.com/r/ultralytics) to share knowledge with the community.
+         
             ## Install
 
             Pip install the `ultralytics` package including all [requirements](https://github.com/ultralytics/ultralytics/blob/main/pyproject.toml) in a [**Python>=3.8**](https://www.python.org/) environment with [**PyTorch>=1.8**](https://pytorch.org/get-started/locally/).

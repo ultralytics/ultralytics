@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Explore Ultralytics community’s Code of Conduct, ensuring a supportive, inclusive environment for contributors & members at all levels. Find our guidelines on acceptable behavior & enforcement.
-keywords: Ultralytics, code of conduct, community, contribution, behavior guidelines, enforcement, open source contributions
+description: Join our welcoming community! Learn about the Ultralytics Code of Conduct to ensure a harassment-free experience for all participants.
+keywords: Ultralytics, Contributor Covenant, Code of Conduct, community guidelines, harassment-free, inclusive community, diversity, enforcement policy
 ---
 
 # Ultralytics Contributor Covenant Code of Conduct
@@ -83,3 +83,27 @@ Community Impact Guidelines were inspired by [Mozilla's code of conduct enforcem
 For answers to common questions about this code of conduct, see the FAQ at https://www.contributor-covenant.org/faq. Translations are available at https://www.contributor-covenant.org/translations.
 
 [homepage]: https://www.contributor-covenant.org
+
+## FAQ
+
+### What is the Ultralytics Contributor Covenant Code of Conduct?
+
+The Ultralytics Contributor Covenant Code of Conduct aims to create a harassment-free experience for everyone participating in the Ultralytics community. It applies to all community interactions, including online and offline activities. The code details expected behaviors, unacceptable behaviors, and the enforcement responsibilities of community leaders. For more detailed information, see the [Enforcement Responsibilities](#enforcement-responsibilities) section.
+
+### How does the enforcement process work for the Ultralytics Code of Conduct?
+
+Enforcement of the Ultralytics Code of Conduct is managed by community leaders who can take appropriate action in response to any behavior deemed inappropriate. This could range from a private warning to a permanent ban, depending on the severity of the violation. Instances of misconduct can be reported to hello@ultralytics.com for investigation. Learn more about the enforcement steps in the [Enforcement Guidelines](#enforcement-guidelines) section.
+
+### Why is diversity and inclusion important in the Ultralytics community?
+
+Ultralytics values diversity and inclusion as fundamental aspects for fostering innovation and creativity within its community. A diverse and inclusive environment allows different perspectives and experiences to contribute to an open, welcoming, and healthy community. This commitment is reflected in our [Pledge](#our-pledge) to ensure a harassment-free experience for everyone regardless of their background.
+
+### How can I contribute to Ultralytics while adhering to the Code of Conduct?
+
+Contributing to Ultralytics means engaging positively and respectfully with other community members. You can contribute by demonstrating empathy, offering and accepting constructive feedback, and taking responsibility for any mistakes. Always aim to contribute in a way that benefits the entire community. For more details on acceptable behaviors, refer to the [Our Standards](#our-standards) section.
+
+### Where can I find additional information about the Ultralytics Code of Conduct?
+
+For more comprehensive details about the Ultralytics Code of Conduct, including reporting guidelines and enforcement policies, you can visit the [Contributor Covenant homepage](https://www.contributor-covenant.org/version/2/0/code_of_conduct.html) or check the [FAQ section of Contributor Covenant](https://www.contributor-covenant.org/faq). Learn more about Ultralytics' goals and initiatives on [our brand page](https://www.ultralytics.com/brand) and [about page](https://www.ultralytics.com/about).
+
+Should you have more questions or need further assistance, check our [Help Center](../help/FAQ.md) and [Contributing Guide](../help/contributing.md) for more information.

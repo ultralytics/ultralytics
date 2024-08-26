@@ -49,9 +49,153 @@ div.highlight {
   max-height: 75vh;
 }
 
-/* Update the background of the banner (same as the one on the Ultralytics website) */
+/* Banner (same as the one on the Ultralytics website) -------------------------------------------------------------- */
 .md-banner {
-  background-image: url(https://uploads-ssl.webflow.com/646dd1f1a3703e451ba81ecc/65e60cd6a4080bba757850a3_banner_ct.webp);
+  background-image: url(https://assets-global.website-files.com/646dd1f1a3703e451ba81ecc/6627a0cab2de939ad35939ed_banner_82.webp);
   background-size: cover;
   background-position: center;
 }
+
+.md-banner__inner {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+.banner-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  height: 64px;
+
+  overflow: hidden;
+}
+
+.banner-content {
+  max-height: 64px;
+}
+
+.banner-content.desktop {
+  display: none;
+}
+
+.banner-arrow {
+  display: none;
+  max-height: 80px;
+  margin-left: -16px;
+  transition: transform ease-in-out 0.5s;
+}
+
+.banner-wrapper:hover > .banner-arrow {
+  transform: translateX(8px);
+}
+
+@media screen and (min-width: 768px) {
+  .banner-content.mobile {
+    display: none;
+  }
+  .banner-content.desktop {
+    display: revert;
+  }
+  .banner-arrow {
+    display: revert;
+  }
+}
+/* Banner (same as the one on the Ultralytics website) -------------------------------------------------------------- */
+
+/* MkDocs Ultralytics Plugin ---------------------------------------------------------------------------------------- */
+.git-info,
+.dates-container,
+.authors-container,
+.share-buttons {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.git-info {
+  font-size: 0.8em;
+  color: grey;
+  margin-bottom: 10px;
+}
+
+.dates-container,
+.authors-container {
+  margin-bottom: 10px;
+}
+
+.date-item,
+.author-link,
+.share-button {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.date-item {
+  margin-right: 10px;
+}
+
+.hover-item {
+  transition: all 0.2s ease;
+  filter: grayscale(100%);
+}
+
+.date-item .hover-item {
+  font-size: 1.6em;
+  margin-right: 5px;
+}
+
+.author-link .hover-item {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  margin-right: 3px;
+}
+
+.hover-item:hover {
+  transform: scale(1.2);
+  filter: grayscale(0%);
+}
+
+.share-buttons {
+  margin-top: 10px;
+}
+
+.share-button {
+  background-color: #1da1f2;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 5px;
+  border: none;
+  font-size: 0.95em;
+  margin: 5px;
+  transition: all 0.2s ease;
+}
+
+.share-button:hover {
+  transform: scale(1.1);
+  filter: brightness(1.2);
+}
+
+.share-button.linkedin {
+  background-color: #0077b5;
+}
+
+.share-button i {
+  margin-right: 5px;
+  font-size: 1.1em;
+}
+
+@media (max-width: 1024px) {
+  .git-info {
+    flex-direction: column;
+    align-items: flex-end;
+  }
+  .dates-container,
+  .authors-container {
+    width: 100%;
+  }
+}
+/* MkDocs Ultralytics Plugin ---------------------------------------------------------------------------------------- */

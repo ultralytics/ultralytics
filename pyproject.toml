@@ -171,12 +171,15 @@ split_before_first_argument = false
 [tool.ruff]
 line-length = 120
 
+[tool.ruff.format]
+docstring-code-format = true
+
 [tool.docformatter]
 wrap-summaries = 120
 wrap-descriptions = 120
-in-place = true
 pre-summary-newline = true
 close-quotes-on-newline = true
+in-place = true
 
 [tool.codespell]
 ignore-words-list = "crate,nd,ned,strack,dota,ane,segway,fo,gool,winn,commend,bloc,nam,afterall"

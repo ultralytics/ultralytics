@@ -241,3 +241,29 @@ Below are a few of the many pieces of feedback we have received for using YOLOv8
 <img src="https://media.roboflow.com/ultralytics/rf_showcase_2.png" alt="Showcase image" width="500">
 <img src="https://media.roboflow.com/ultralytics/rf_showcase_3.png" alt="Showcase image" width="500">
 </p>
+
+## FAQ
+
+### How do I label data for YOLOv8 models using Roboflow?
+
+Labeling data for YOLOv8 models using Roboflow is straightforward with Roboflow Annotate. First, create a project on Roboflow and upload your images. After uploading, select the batch of images and click "Start Annotating." You can use the `B` key for bounding boxes or the `P` key for polygons. For faster annotation, use the SAM-based label assistant by clicking the cursor icon in the sidebar. Detailed steps can be found [here](#upload-convert-and-label-data-for-yolov8-format).
+
+### What services does Roboflow offer for collecting YOLOv8 training data?
+
+Roboflow provides two key services for collecting YOLOv8 training data: [Universe](https://universe.roboflow.com/?ref=ultralytics) and [Collect](https://roboflow.com/collect?ref=ultralytics). Universe offers access to over 250,000 vision datasets, while Collect helps you gather images using a webcam and automated prompts.
+
+### How can I manage and analyze my YOLOv8 dataset using Roboflow?
+
+Roboflow offers robust dataset management tools, including dataset search, tagging, and Health Check. Use the search feature to find images based on text descriptions or tags. Health Check provides insights into dataset quality, showing class balance, image sizes, and annotation heatmaps. This helps optimize dataset performance before training YOLOv8 models. Detailed information can be found [here](#dataset-management-for-yolov8).
+
+### How do I export my YOLOv8 dataset from Roboflow?
+
+To export your YOLOv8 dataset from Roboflow, you need to create a dataset version. Click "Versions" in the sidebar, then "Create New Version" and apply any desired augmentations. Once the version is generated, click "Export Dataset" and choose the YOLOv8 format. Follow this process [here](#export-data-in-40-formats-for-model-training).
+
+### How can I integrate and deploy YOLOv8 models with Roboflow?
+
+Integrate and deploy YOLOv8 models on Roboflow by uploading your YOLOv8 weights through a few lines of Python code. Use the provided script to authenticate and upload your model, which will create an API for deployment. For details on the script and further instructions, see [this section](#upload-custom-yolov8-model-weights-for-testing-and-deployment).
+
+### What tools does Roboflow provide for evaluating YOLOv8 models?
+
+Roboflow offers model evaluation tools, including a confusion matrix and vector analysis plots. Access these tools from the "View Detailed Evaluation" button on your model page. These features help identify model performance issues and find areas for improvement. For more information, refer to [this section](#how-to-evaluate-yolov8-models).

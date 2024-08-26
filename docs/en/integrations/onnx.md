@@ -132,3 +132,82 @@ In this guide, you've learned how to export Ultralytics YOLOv8 models to ONNX fo
 For further details on usage, visit the [ONNX official documentation](https://onnx.ai/onnx/intro/).
 
 Also, if you'd like to know more about other Ultralytics YOLOv8 integrations, visit our [integration guide page](../integrations/index.md). You'll find plenty of useful resources and insights there.
+
+## FAQ
+
+### How do I export YOLOv8 models to ONNX format using Ultralytics?
+
+To export your YOLOv8 models to ONNX format using Ultralytics, follow these steps:
+
+!!! Example "Usage"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load the YOLOv8 model
+        model = YOLO("yolov8n.pt")
+
+        # Export the model to ONNX format
+        model.export(format="onnx")  # creates 'yolov8n.onnx'
+
+        # Load the exported ONNX model
+        onnx_model = YOLO("yolov8n.onnx")
+
+        # Run inference
+        results = onnx_model("https://ultralytics.com/images/bus.jpg")
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Export a YOLOv8n PyTorch model to ONNX format
+        yolo export model=yolov8n.pt format=onnx  # creates 'yolov8n.onnx'
+
+        # Run inference with the exported model
+        yolo predict model=yolov8n.onnx source='https://ultralytics.com/images/bus.jpg'
+        ```
+
+For more details, visit the [export documentation](../modes/export.md).
+
+### What are the advantages of using ONNX Runtime for deploying YOLOv8 models?
+
+Using ONNX Runtime for deploying YOLOv8 models offers several advantages:
+
+- **Cross-platform compatibility**: ONNX Runtime supports various platforms, such as Windows, macOS, and Linux, ensuring your models run smoothly across different environments.
+- **Hardware acceleration**: ONNX Runtime can leverage hardware-specific optimizations for CPUs, GPUs, and dedicated accelerators, providing high-performance inference.
+- **Framework interoperability**: Models trained in popular frameworks like PyTorch or TensorFlow can be easily converted to ONNX format and run using ONNX Runtime.
+
+Learn more by checking the [ONNX Runtime documentation](https://onnxruntime.ai/docs/api/python/api_summary.html).
+
+### What deployment options are available for YOLOv8 models exported to ONNX?
+
+YOLOv8 models exported to ONNX can be deployed on various platforms including:
+
+- **CPUs**: Utilizing ONNX Runtime for optimized CPU inference.
+- **GPUs**: Leveraging NVIDIA CUDA for high-performance GPU acceleration.
+- **Edge devices**: Running lightweight models on edge and mobile devices for real-time, on-device inference.
+- **Web browsers**: Executing models directly within web browsers for interactive web-based applications.
+
+For more information, explore our guide on [model deployment options](../guides/model-deployment-options.md).
+
+### Why should I use ONNX format for Ultralytics YOLOv8 models?
+
+Using ONNX format for Ultralytics YOLOv8 models provides numerous benefits:
+
+- **Interoperability**: ONNX allows models to be transferred between different machine learning frameworks seamlessly.
+- **Performance Optimization**: ONNX Runtime can enhance model performance by utilizing hardware-specific optimizations.
+- **Flexibility**: ONNX supports various deployment environments, enabling you to use the same model on different platforms without modification.
+
+Refer to the comprehensive guide on [exporting YOLOv8 models to ONNX](https://www.ultralytics.com/blog/export-and-optimize-a-yolov8-model-for-inference-on-openvino).
+
+### How can I troubleshoot issues when exporting YOLOv8 models to ONNX?
+
+When exporting YOLOv8 models to ONNX, you might encounter common issues such as mismatched dependencies or unsupported operations. To troubleshoot these problems:
+
+1. Verify that you have the correct version of required dependencies installed.
+2. Check the official [ONNX documentation](https://onnx.ai/onnx/intro/) for supported operators and features.
+3. Review the error messages for clues and consult the [Ultralytics Common Issues guide](../guides/yolo-common-issues.md).
+
+If issues persist, contact Ultralytics support for further assistance.

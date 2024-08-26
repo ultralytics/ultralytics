@@ -150,3 +150,78 @@ This guide serves as an introduction to get you up and running with YOLOv8 on Az
 - [Register a Model](https://learn.microsoft.com/azure/machine-learning/how-to-manage-models): Familiarize yourself with model management practices including registration, versioning, and deployment.
 - [Train YOLOv8 with AzureML Python SDK](https://medium.com/@ouphi/how-to-train-the-yolov8-model-with-azure-machine-learning-python-sdk-8268696be8ba): Explore a step-by-step guide on using the AzureML Python SDK to train your YOLOv8 models.
 - [Train YOLOv8 with AzureML CLI](https://medium.com/@ouphi/how-to-train-the-yolov8-model-with-azureml-and-the-az-cli-73d3c870ba8e): Discover how to utilize the command-line interface for streamlined training and management of YOLOv8 models on AzureML.
+
+## FAQ
+
+### How do I run YOLOv8 on AzureML for model training?
+
+Running YOLOv8 on AzureML for model training involves several steps:
+
+1. **Create a Compute Instance**: From your AzureML workspace, navigate to Compute > Compute instances > New, and select the required instance.
+
+2. **Setup Environment**: Start your compute instance, open a terminal, and create a conda environment:
+
+    ```bash
+    conda create --name yolov8env -y
+    conda activate yolov8env
+    conda install pip -y
+    pip install ultralytics onnx>=1.12.0
+    ```
+
+3. **Run YOLOv8 Tasks**: Use the Ultralytics CLI to train your model:
+    ```bash
+    yolo train data=coco8.yaml model=yolov8n.pt epochs=10 lr0=0.01
+    ```
+
+For more details, you can refer to the [instructions to use the Ultralytics CLI](../quickstart.md#use-ultralytics-with-cli).
+
+### What are the benefits of using AzureML for YOLOv8 training?
+
+AzureML provides a robust and efficient ecosystem for training YOLOv8 models:
+
+- **Scalability**: Easily scale your compute resources as your data and model complexity grows.
+- **MLOps Integration**: Utilize features like versioning, monitoring, and auditing to streamline ML operations.
+- **Collaboration**: Share and manage resources within teams, enhancing collaborative workflows.
+
+These advantages make AzureML an ideal platform for projects ranging from quick prototypes to large-scale deployments. For more tips, check out [AzureML Jobs](https://learn.microsoft.com/azure/machine-learning/how-to-train-model).
+
+### How do I troubleshoot common issues when running YOLOv8 on AzureML?
+
+Troubleshooting common issues with YOLOv8 on AzureML can involve the following steps:
+
+- **Dependency Issues**: Ensure all required packages are installed. Refer to the `requirements.txt` file for dependencies.
+- **Environment Setup**: Verify that your conda environment is correctly activated before running commands.
+- **Resource Allocation**: Make sure your compute instances have sufficient resources to handle the training workload.
+
+For additional guidance, review our [YOLO Common Issues](https://docs.ultralytics.com/guides/yolo-common-issues/) documentation.
+
+### Can I use both the Ultralytics CLI and Python interface on AzureML?
+
+Yes, AzureML allows you to use both the Ultralytics CLI and the Python interface seamlessly:
+
+- **CLI**: Ideal for quick tasks and running standard scripts directly from the terminal.
+
+    ```bash
+    yolo predict model=yolov8n.pt source='https://ultralytics.com/images/bus.jpg'
+    ```
+
+- **Python Interface**: Useful for more complex tasks requiring custom coding and integration within notebooks.
+
+    ```python
+    from ultralytics import YOLO
+
+    model = YOLO("yolov8n.pt")
+    model.train(data="coco8.yaml", epochs=3)
+    ```
+
+Refer to the quickstart guides for more detailed instructions [here](../quickstart.md#use-ultralytics-with-cli) and [here](../quickstart.md#use-ultralytics-with-python).
+
+### What is the advantage of using Ultralytics YOLOv8 over other object detection models?
+
+Ultralytics YOLOv8 offers several unique advantages over competing object detection models:
+
+- **Speed**: Faster inference and training times compared to models like Faster R-CNN and SSD.
+- **Accuracy**: High accuracy in detection tasks with features like anchor-free design and enhanced augmentation strategies.
+- **Ease of Use**: Intuitive API and CLI for quick setup, making it accessible both to beginners and experts.
+
+To explore more about YOLOv8's features, visit the [Ultralytics YOLO](https://www.ultralytics.com/yolo) page for detailed insights.

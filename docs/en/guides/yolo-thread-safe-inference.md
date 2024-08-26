@@ -43,9 +43,9 @@ def predict(image_path):
 
 
 # Starting threads that share the same model instance
-t1=Thread(target=predict, args=("image1.jpg",))
+t1 = Thread(target=predict, args=("image1.jpg",))
 t1.start()
-t2=Thread(target=predict, args=("image2.jpg",))
+t2 = Thread(target=predict, args=("image2.jpg",))
 t2.start()
 t1.join()
 t2.join()
@@ -75,9 +75,9 @@ def predict(model, image_path):
 
 
 # Starting threads with individual model instances
-t1=Thread(target=predict, args=("image1.jpg",))
+t1 = Thread(target=predict, args=("image1.jpg",))
 t1.start()
-t2=Thread(target=predict, args=("image2.jpg",))
+t2 = Thread(target=predict, args=("image2.jpg",))
 t2.start()
 t1.join()
 t2.join()
@@ -108,9 +108,9 @@ def thread_safe_predict(image_path):
 
 
 # Starting threads that each have their own model instance
-t1=Thread(target=predict, args=("image1.jpg",))
+t1 = Thread(target=predict, args=("image1.jpg",))
 t1.start()
-t2=Thread(target=predict, args=("image2.jpg",))
+t2 = Thread(target=predict, args=("image2.jpg",))
 t2.start()
 t1.join()
 t2.join()

@@ -29,7 +29,6 @@ class AIGym:
             pose_down_angle (float, optional): Angle threshold for the 'down' pose. Defaults to 90.0.
             pose_type (str, optional): Type of pose to detect ('pullup', 'pushup', 'abworkout'). Defaults to "pullup".
         """
-
         # Image and line thickness
         self.im0 = None
         self.tf = line_thickness
@@ -53,9 +52,9 @@ class AIGym:
 
         # Check if environment supports imshow
         self.env_check = check_imshow(warn=True)
-        self.count = list()
-        self.angle = list()
-        self.stage = list()
+        self.count = []
+        self.angle = []
+        self.stage = []
 
     def start_counting(self, im0, results):
         """
@@ -65,7 +64,6 @@ class AIGym:
             im0 (ndarray): Current frame from the video stream.
             results (list): Pose estimation data.
         """
-
         self.im0 = im0
 
         if not len(results[0]):

@@ -18,6 +18,8 @@ from ultralytics.utils.torch_utils import select_device
 
 
 class TorchVisionVideoClassifier:
+    """Classifies videos using pretrained TorchVision models; see https://pytorch.org/vision/stable/."""
+
     from torchvision.models.video import (
         MViT_V1_B_Weights,
         MViT_V2_S_Weights,
@@ -69,7 +71,7 @@ class TorchVisionVideoClassifier:
         """
         return list(TorchVisionVideoClassifier.model_name_to_model_and_weights.keys())
 
-    def preprocess_crops_for_video_cls(self, crops: List[np.ndarray], input_size: list = [224, 224]) -> torch.Tensor:
+    def preprocess_crops_for_video_cls(self, crops: List[np.ndarray], input_size: list = None) -> torch.Tensor:
         """
         Preprocess a list of crops for video classification.
 
@@ -80,6 +82,8 @@ class TorchVisionVideoClassifier:
         Returns:
             torch.Tensor: Preprocessed crops as a tensor with dimensions (1, T, C, H, W).
         """
+        if input_size is None:
+            input_size = [224, 224]
         from torchvision.transforms import v2
 
         transform = v2.Compose(
@@ -131,6 +135,8 @@ class TorchVisionVideoClassifier:
 
 
 class HuggingFaceVideoClassifier:
+    """Zero-shot video classifier using Hugging Face models for various devices."""
+
     def __init__(
         self,
         labels: List[str],
@@ -156,7 +162,7 @@ class HuggingFaceVideoClassifier:
             model = model.half()
         self.model = model.eval()
 
-    def preprocess_crops_for_video_cls(self, crops: List[np.ndarray], input_size: list = [224, 224]) -> torch.Tensor:
+    def preprocess_crops_for_video_cls(self, crops: List[np.ndarray], input_size: list = None) -> torch.Tensor:
         """
         Preprocess a list of crops for video classification.
 
@@ -167,13 +173,15 @@ class HuggingFaceVideoClassifier:
         Returns:
             torch.Tensor: Preprocessed crops as a tensor (1, T, C, H, W).
         """
-        from torchvision.transforms import v2
+        if input_size is None:
+            input_size = [224, 224]
+        from torchvision import transforms
 
-        transform = v2.Compose(
+        transform = transforms.Compose(
             [
-                v2.ToDtype(torch.float32, scale=True),
-                v2.Resize(input_size, antialias=True),
-                v2.Normalize(
+                transforms.Lambda(lambda x: x.float() / 255.0),
+                transforms.Resize(input_size),
+                transforms.Normalize(
                     mean=self.processor.image_processor.image_mean, std=self.processor.image_processor.image_std
                 ),
             ]
@@ -195,7 +203,6 @@ class HuggingFaceVideoClassifier:
         Returns:
             torch.Tensor: The model's output.
         """
-
         input_ids = self.processor(text=self.labels, return_tensors="pt", padding=True)["input_ids"].to(self.device)
 
         inputs = {"pixel_values": sequences, "input_ids": input_ids}
@@ -266,15 +273,7 @@ def run(
     video_cls_overlap_ratio: float = 0.25,
     fp16: bool = False,
     video_classifier_model: str = "microsoft/xclip-base-patch32",
-    labels: List[str] = [
-        "walking",
-        "running",
-        "brushing teeth",
-        "looking into phone",
-        "weight lifting",
-        "cooking",
-        "sitting",
-    ],
+    labels: List[str] = None,
 ) -> None:
     """
     Run action recognition on a video source using YOLO for object detection and a video classifier.
@@ -295,6 +294,16 @@ def run(
     Returns:
         None</edit>
     """
+    if labels is None:
+        labels = [
+            "walking",
+            "running",
+            "brushing teeth",
+            "looking into phone",
+            "weight lifting",
+            "cooking",
+            "sitting",
+        ]
     # Initialize models and device
     device = select_device(device)
     yolo_model = YOLO(weights).to(device)
@@ -312,9 +321,7 @@ def run(
     # Initialize video capture
     if source.startswith("http") and urlparse(source).hostname in {"www.youtube.com", "youtube.com", "youtu.be"}:
         source = get_best_youtube_url(source)
-    elif source.endswith(".mp4"):
-        pass
-    else:
+    elif not source.endswith(".mp4"):
         raise ValueError("Invalid source. Supported sources are YouTube URLs and MP4 files.")
     cap = cv2.VideoCapture(source)
 

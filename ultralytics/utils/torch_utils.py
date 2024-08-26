@@ -1,5 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-
+import contextlib
 import gc
 import math
 import os
@@ -21,6 +21,7 @@ from ultralytics.utils import (
     DEFAULT_CFG_DICT,
     DEFAULT_CFG_KEYS,
     LOGGER,
+    NUM_THREADS,
     PYTHON_VERSION,
     TORCHVISION_VERSION,
     __version__,
@@ -40,17 +41,19 @@ TORCH_2_0 = check_version(torch.__version__, "2.0.0")
 TORCHVISION_0_10 = check_version(TORCHVISION_VERSION, "0.10.0")
 TORCHVISION_0_11 = check_version(TORCHVISION_VERSION, "0.11.0")
 TORCHVISION_0_13 = check_version(TORCHVISION_VERSION, "0.13.0")
+TORCHVISION_0_18 = check_version(TORCHVISION_VERSION, "0.18.0")
 
 
 @contextmanager
 def torch_distributed_zero_first(local_rank: int):
     """Ensures all processes in distributed training wait for the local master (rank 0) to complete a task first."""
     initialized = dist.is_available() and dist.is_initialized()
+
     if initialized and local_rank not in {-1, 0}:
         dist.barrier(device_ids=[local_rank])
     yield
     if initialized and local_rank == 0:
-        dist.barrier(device_ids=[0])
+        dist.barrier(device_ids=[local_rank])
 
 
 def smart_inference_mode():
@@ -66,14 +69,48 @@ def smart_inference_mode():
     return decorate
 
 
+def autocast(enabled: bool, device: str = "cuda"):
+    """
+    Get the appropriate autocast context manager based on PyTorch version and AMP setting.
+
+    This function returns a context manager for automatic mixed precision (AMP) training that is compatible with both
+    older and newer versions of PyTorch. It handles the differences in the autocast API between PyTorch versions.
+
+    Args:
+        enabled (bool): Whether to enable automatic mixed precision.
+        device (str, optional): The device to use for autocast. Defaults to 'cuda'.
+
+    Returns:
+        (torch.amp.autocast): The appropriate autocast context manager.
+
+    Note:
+        - For PyTorch versions 1.13 and newer, it uses `torch.amp.autocast`.
+        - For older versions, it uses `torch.cuda.autocast`.
+
+    Example:
+        ```python
+        with autocast(amp=True):
+            # Your mixed precision operations here
+            pass
+        ```
+    """
+    if TORCH_1_13:
+        return torch.amp.autocast(device, enabled=enabled)
+    else:
+        return torch.cuda.amp.autocast(enabled)
+
+
 def get_cpu_info():
     """Return a string with system CPU information, i.e. 'Apple M2'."""
-    import cpuinfo  # pip install py-cpuinfo
+    with contextlib.suppress(Exception):
+        import cpuinfo  # pip install py-cpuinfo
 
-    k = "brand_raw", "hardware_raw", "arch_string_raw"  # info keys sorted by preference (not all keys always available)
-    info = cpuinfo.get_cpu_info()  # info dict
-    string = info.get(k[0] if k[0] in info else k[1] if k[1] in info else k[2], "unknown")
-    return string.replace("(R)", "").replace("CPU ", "").replace("@ ", "")
+        k = "brand_raw", "hardware_raw", "arch_string_raw"  # keys sorted by preference (not all keys always available)
+        info = cpuinfo.get_cpu_info()  # info dict
+        string = info.get(k[0] if k[0] in info else k[1] if k[1] in info else k[2], "unknown")
+        return string.replace("(R)", "").replace("CPU ", "").replace("@ ", "")
+
+    return "unknown"
 
 
 def select_device(device="", batch=0, newline=False, verbose=True):
@@ -100,16 +137,15 @@ def select_device(device="", batch=0, newline=False, verbose=True):
             devices when using multiple GPUs.
 
     Examples:
-        >>> select_device('cuda:0')
+        >>> select_device("cuda:0")
         device(type='cuda', index=0)
 
-        >>> select_device('cpu')
+        >>> select_device("cpu")
         device(type='cpu')
 
     Note:
         Sets the 'CUDA_VISIBLE_DEVICES' environment variable for specifying which GPUs to use.
     """
-
     if isinstance(device, torch.device):
         return device
 
@@ -171,6 +207,8 @@ def select_device(device="", batch=0, newline=False, verbose=True):
         s += f"CPU ({get_cpu_info()})\n"
         arg = "cpu"
 
+    if arg in {"cpu", "mps"}:
+        torch.set_num_threads(NUM_THREADS)  # reset OMP_NUM_THREADS for cpu training
     if verbose:
         LOGGER.info(s if newline else s.rstrip())
     return torch.device(arg)
@@ -271,7 +309,7 @@ def model_info(model, detailed=False, verbose=True, imgsz=640):
     fs = f", {flops:.1f} GFLOPs" if flops else ""
     yaml_file = getattr(model, "yaml_file", "") or getattr(model, "yaml", {}).get("yaml_file", "")
     model_name = Path(yaml_file).stem.replace("yolo", "YOLO") or "Model"
-    LOGGER.info(f"{model_name} summary{fused}: {n_l} layers, {n_p} parameters, {n_g} gradients{fs}")
+    LOGGER.info(f"{model_name} summary{fused}: {n_l:,} layers, {n_p:,} parameters, {n_g:,} gradients{fs}")
     return n_l, n_p, n_g, flops
 
 
@@ -292,11 +330,13 @@ def model_info_for_loggers(trainer):
     Example:
         YOLOv8n info for loggers
         ```python
-        results = {'model/parameters': 3151904,
-                   'model/GFLOPs': 8.746,
-                   'model/speed_ONNX(ms)': 41.244,
-                   'model/speed_TensorRT(ms)': 3.211,
-                   'model/speed_PyTorch(ms)': 18.755}
+        results = {
+            "model/parameters": 3151904,
+            "model/GFLOPs": 8.746,
+            "model/speed_ONNX(ms)": 41.244,
+            "model/speed_TensorRT(ms)": 3.211,
+            "model/speed_PyTorch(ms)": 18.755,
+        }
         ```
     """
     if trainer.args.profile:  # profile ONNX and TensorRT times
@@ -376,9 +416,7 @@ def initialize_weights(model):
 
 
 def scale_img(img, ratio=1.0, same_shape=False, gs=32):
-    """Scales and pads an image tensor of shape img(bs,3,y,x) based on given ratio and grid size gs, optionally
-    retaining the original shape.
-    """
+    """Scales and pads an image tensor, optionally maintaining aspect ratio and padding to gs multiple."""
     if ratio == 1.0:
         return img
     h, w = img.shape[2:]
@@ -387,13 +425,6 @@ def scale_img(img, ratio=1.0, same_shape=False, gs=32):
     if not same_shape:  # pad/crop img
         h, w = (math.ceil(x * ratio / gs) * gs for x in (h, w))
     return F.pad(img, [0, w - s[1], 0, h - s[0]], value=0.447)  # value = imagenet mean
-
-
-def make_divisible(x, divisor):
-    """Returns nearest x divisible by divisor."""
-    if isinstance(divisor, torch.Tensor):
-        divisor = int(divisor.max())  # to int
-    return math.ceil(x / divisor) * divisor
 
 
 def copy_attr(a, b, include=(), exclude=()):
@@ -459,7 +490,7 @@ def init_seeds(seed=0, deterministic=False):
 class ModelEMA:
     """
     Updated Exponential Moving Average (EMA) from https://github.com/rwightman/pytorch-image-models. Keeps a moving
-    average of everything in the model state_dict (parameters and buffers)
+    average of everything in the model state_dict (parameters and buffers).
 
     For EMA details see https://www.tensorflow.org/api_docs/python/tf/train/ExponentialMovingAverage
 
@@ -510,9 +541,12 @@ def strip_optimizer(f: Union[str, Path] = "best.pt", s: str = "") -> None:
         from pathlib import Path
         from ultralytics.utils.torch_utils import strip_optimizer
 
-        for f in Path('path/to/model/checkpoints').rglob('*.pt'):
+        for f in Path("path/to/model/checkpoints").rglob("*.pt"):
             strip_optimizer(f)
         ```
+
+    Note:
+        Use `ultralytics.nn.torch_safe_load` for missing modules with `x = torch_safe_load(f)[0]`
     """
     try:
         x = torch.load(f, map_location=torch.device("cpu"))

@@ -6,7 +6,7 @@ keywords: Ultralytics HUB, model management, create project, share project, edit
 
 # Ultralytics HUB Projects
 
-[Ultralytics HUB](https://bit.ly/ultralytics_hub) projects provide an effective solution for consolidating and managing your models. If you are working with several models that perform similar tasks or have related purposes, [Ultralytics HUB](https://bit.ly/ultralytics_hub) projects allow you to group these models together.
+[Ultralytics HUB](https://ultralytics.com/hub) projects provide an effective solution for consolidating and managing your models. If you are working with several models that perform similar tasks or have related purposes, [Ultralytics HUB](https://ultralytics.com/hub) projects allow you to group these models together.
 
 This creates a unified and organized workspace that facilitates easier model management, comparison and development. Having similar models or various iterations together can facilitate rapid benchmarking, as you can compare their effectiveness. This can lead to faster, more insightful iterative development and refinement of your models.
 
@@ -54,13 +54,13 @@ Next, [train a model](./models.md#train-model) inside your project.
 
 !!! info "Info"
 
-    [Ultralytics HUB](https://bit.ly/ultralytics_hub)'s sharing functionality provides a convenient way to share projects with others. This feature is designed to accommodate both existing [Ultralytics HUB](https://bit.ly/ultralytics_hub) users and those who have yet to create an account.
+    [Ultralytics HUB](https://ultralytics.com/hub)'s sharing functionality provides a convenient way to share projects with others. This feature is designed to accommodate both existing [Ultralytics HUB](https://ultralytics.com/hub) users and those who have yet to create an account.
 
 ??? note "Note"
 
     You have control over the general access of your projects.
 
-    You can choose to set the general access to "Private", in which case, only you will have access to it. Alternatively, you can set the general access to "Unlisted" which grants viewing access to anyone who has the direct link to the project, regardless of whether they have an [Ultralytics HUB](https://bit.ly/ultralytics_hub) account or not.
+    You can choose to set the general access to "Private", in which case, only you will have access to it. Alternatively, you can set the general access to "Unlisted" which grants viewing access to anyone who has the direct link to the project, regardless of whether they have an [Ultralytics HUB](https://ultralytics.com/hub) account or not.
 
 Navigate to the Project page of the project you want to share, open the project actions dropdown and click on the **Share** option. This action will trigger the **Share Project** dialog.
 

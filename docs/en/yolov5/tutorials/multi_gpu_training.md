@@ -24,7 +24,7 @@ pip install -r requirements.txt  # install
 
 Select a pretrained model to start training from. Here we select [YOLOv5s](https://github.com/ultralytics/yolov5/blob/master/models/yolov5s.yaml), the smallest and fastest model available. See our README [table](https://github.com/ultralytics/yolov5#pretrained-checkpoints) for a full comparison of all models. We will train this model with Multi-GPU on the [COCO](https://github.com/ultralytics/yolov5/blob/master/data/scripts/get_coco.sh) dataset.
 
-<p align="center"><img width="700" alt="YOLOv5 Models" src="https://github.com/ultralytics/yolov5/releases/download/v1.0/model_comparison.png"></p>
+<p align="center"><img width="700" alt="YOLOv5 Models" src="https://github.com/ultralytics/assets/releases/download/v0.0.0/model_comparison.png"></p>
 
 ### Single GPU
 
@@ -143,7 +143,7 @@ python -m torch.distributed.run --nproc_per_node 8 train.py --batch-size 128 --d
 </details>
 
 | GPUs<br>A100 | batch-size | CUDA_mem<br><sup>device0 (G) | COCO<br><sup>train | COCO<br><sup>val |
-|--------------|------------|------------------------------|--------------------|------------------|
+| ------------ | ---------- | ---------------------------- | ------------------ | ---------------- |
 | 1x           | 16         | 26GB                         | 20:39              | 0:55             |
 | 2x           | 32         | 26GB                         | 11:43              | 0:57             |
 | 4x           | 64         | 26GB                         | 5:57               | 0:55             |

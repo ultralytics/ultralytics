@@ -95,3 +95,68 @@ If you use the xView dataset in your research or development work, please cite t
         ```
 
 We would like to acknowledge the [Defense Innovation Unit](https://www.diu.mil/) (DIU) and the creators of the xView dataset for their valuable contribution to the computer vision research community. For more information about the xView dataset and its creators, visit the [xView dataset website](http://xviewdataset.org/).
+
+## FAQ
+
+### What is the xView dataset and how does it benefit computer vision research?
+
+The [xView](http://xviewdataset.org/) dataset is one of the largest publicly available collections of high-resolution overhead imagery, containing over 1 million object instances across 60 classes. It is designed to enhance various facets of computer vision research such as reducing the minimum resolution for detection, improving learning efficiency, discovering more object classes, and advancing fine-grained object detection.
+
+### How can I use Ultralytics YOLO to train a model on the xView dataset?
+
+To train a model on the xView dataset using Ultralytics YOLO, follow these steps:
+
+!!! Example "Train Example"
+
+    === "Python"
+    
+        ```python
+        from ultralytics import YOLO
+
+        # Load a model
+        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
+
+        # Train the model
+        results = model.train(data="xView.yaml", epochs=100, imgsz=640)
+        ```
+    
+
+    === "CLI"
+    
+        ```bash
+        # Start training from a pretrained *.pt model
+        yolo detect train data=xView.yaml model=yolov8n.pt epochs=100 imgsz=640
+        ```
+
+For detailed arguments and settings, refer to the model [Training](../../modes/train.md) page.
+
+### What are the key features of the xView dataset?
+
+The xView dataset stands out due to its comprehensive set of features:
+- Over 1 million object instances across 60 distinct classes.
+- High-resolution imagery at 0.3 meters.
+- Diverse object types including small, rare, and fine-grained objects, all annotated with bounding boxes.
+- Availability of a pre-trained baseline model and examples in TensorFlow and PyTorch.
+
+### What is the dataset structure of xView, and how is it annotated?
+
+The xView dataset comprises high-resolution satellite images collected from WorldView-3 satellites at a 0.3m ground sample distance. It encompasses over 1 million objects across 60 classes in approximately 1,400 km² of imagery. Each object within the dataset is annotated with bounding boxes, making it ideal for training and evaluating deep learning models for object detection in overhead imagery. For a detailed overview, you can look at the dataset structure section [here](#dataset-structure).
+
+### How do I cite the xView dataset in my research?
+
+If you utilize the xView dataset in your research, please cite the following paper:
+
+!!! Quote "BibTeX"
+
+    ```bibtex
+    @misc{lam2018xview,
+          title={xView: Objects in Context in Overhead Imagery},
+          author={Darius Lam and Richard Kuzma and Kevin McGee and Samuel Dooley and Michael Laielli and Matthew Klaric and Yaroslav Bulatov and Brendan McCord},
+          year={2018},
+          eprint={1802.07856},
+          archivePrefix={arXiv},
+          primaryClass={cs.CV}
+    }
+    ```
+   
+For more information about the xView dataset, visit the official [xView dataset website](http://xviewdataset.org/).

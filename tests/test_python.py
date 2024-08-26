@@ -26,6 +26,7 @@ from ultralytics.utils import (
     WEIGHTS_DIR,
     WINDOWS,
     checks,
+    is_github_action_running,
 )
 from ultralytics.utils.downloads import download
 from ultralytics.utils.torch_utils import TORCH_1_9
@@ -95,7 +96,7 @@ def test_predict_img(model_name):
         Image.open(SOURCE),  # PIL
         np.zeros((320, 640, 3), dtype=np.uint8),  # numpy
     ]
-    assert len(model(batch, imgsz=32, augment=True)) == len(batch)  # multiple sources in a batch
+    assert len(model(batch, imgsz=32)) == len(batch)  # multiple sources in a batch
 
 
 @pytest.mark.parametrize("model", MODELS)
@@ -131,6 +132,7 @@ def test_predict_grey_and_4ch():
 
 @pytest.mark.slow
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
+@pytest.mark.skipif(is_github_action_running(), reason="No auth https://github.com/JuanBindez/pytubefix/issues/166")
 def test_youtube():
     """Test YOLO model on a YouTube video stream, handling potential network-related errors."""
     model = YOLO(MODEL)

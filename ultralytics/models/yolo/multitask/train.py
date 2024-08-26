@@ -16,7 +16,7 @@ class MultiTaskTrainer(yolo.detect.DetectionTrainer):
         ```python
         from ultralytics.models.yolo.multitask import MultiTaskTrainer
 
-        args = dict(model='yolov8n-multitask.pt', data='coco8-multitask.yaml', epochs=3)
+        args = dict(model="yolov8n-multitask.pt", data="coco8-multitask.yaml", epochs=3)
         trainer = MultiTaskTrainer(overrides=args)
         trainer.train()
         ```

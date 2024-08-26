@@ -14,7 +14,7 @@ class MultiTaskPredictor(DetectionPredictor):
         from ultralytics.utils import ASSETS
         from ultralytics.models.yolo.multitask import MultiTaskPredictor
 
-        args = dict(model='yolov8n-multitask.pt', source=ASSETS)
+        args = dict(model="yolov8n-multitask.pt", source=ASSETS)
         predictor = MultiTaskPredictor(overrides=args)
         predictor.predict_cli()
         ```
@@ -58,7 +58,7 @@ class MultiTaskPredictor(DetectionPredictor):
             preds[1][-2] if len(preds[1]) == 4 else preds[0][1]
         )  # second output is len 4 if pt, but only 1 if exported
         for i, (pred_seg, pred_kpt) in enumerate(zip(p_seg, p_pose)):
-            pred_seg_copy = pred_seg.clone()
+            pred_seg.clone()
             pred_kpt_copy = pred_kpt.clone()
             orig_img = orig_imgs[i]
             img_path = self.batch[0][i]

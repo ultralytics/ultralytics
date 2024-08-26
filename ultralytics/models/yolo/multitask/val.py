@@ -22,7 +22,7 @@ class MultiTaskValidator(DetectionValidator):
         ```python
         from ultralytics.models.yolo.multitask import MultiTaskValidator
 
-        args = dict(model='yolov8n-multitask.pt', data='coco8-multitask.yaml')
+        args = dict(model="yolov8n-multitask.pt", data="coco8-multitask.yaml")
         validator = MultiTaskValidator(args=args)
         validator()
         ```

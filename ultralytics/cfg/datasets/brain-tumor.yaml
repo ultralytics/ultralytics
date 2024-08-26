@@ -19,4 +19,4 @@ names:
   1: positive
 
 # Download script/URL (optional)
-download: https://ultralytics.com/assets/brain-tumor.zip
+download: https://github.com/ultralytics/assets/releases/download/v0.0.0/brain-tumor.zip

@@ -13,7 +13,7 @@ By using the TensorRT export format, you can enhance your [Ultralytics YOLOv8](h
 ## TensorRT
 
 <p align="center">
-  <img width="100%" src="https://github.com/ultralytics/yolov5/releases/download/v1.0/tensorrt-overview.jpg" alt="TensorRT Overview">
+  <img width="100%" src="https://github.com/ultralytics/ultralytics/assets/26833433/7fea48c2-9709-4deb-8d04-eaf95d12a91d" alt="TensorRT Overview">
 </p>
 
 [TensorRT](https://developer.nvidia.com/tensorrt), developed by NVIDIA, is an advanced software development kit (SDK) designed for high-speed deep learning inference. It's well-suited for real-time applications like object detection.

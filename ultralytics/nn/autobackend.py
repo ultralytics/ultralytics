@@ -566,10 +566,6 @@ class AutoBackend(nn.Module):
                     y = [y]
             elif self.pb:  # GraphDef
                 y = self.frozen_func(x=self.tf.constant(im))
-                if (self.task == "segment" or len(y) == 2) and len(self.names) == 999:  # segments and names not defined
-                    ip, ib = (0, 1) if len(y[0].shape) == 4 else (1, 0)  # index of protos, boxes
-                    nc = y[ib].shape[1] - y[ip].shape[3] - 4  # y = (1, 160, 160, 32), (1, 116, 8400)
-                    self.names = {i: f"class{i}" for i in range(nc)}
             else:  # Lite or Edge TPU
                 details = self.input_details[0]
                 is_int = details["dtype"] in {np.int8, np.int16}  # is TFLite quantized int8 or int16 model
@@ -587,19 +583,30 @@ class AutoBackend(nn.Module):
                     if x.ndim == 3:  # if task is not classification, excluding masks (ndim=4) as well
                         # Denormalize xywh by image size. See https://github.com/ultralytics/ultralytics/pull/1695
                         # xywh are normalized in TFLite/EdgeTPU to mitigate quantization error of integer models
-                        x[:, [0, 2]] *= w
-                        x[:, [1, 3]] *= h
+                        if x.shape[-1] == 6:  # end-to-end model
+                            x[:, :, [0, 2]] *= w
+                            x[:, :, [1, 3]] *= h
+                        else:
+                            x[:, [0, 2]] *= w
+                            x[:, [1, 3]] *= h
                     y.append(x)
             # TF segment fixes: export is reversed vs ONNX export and protos are transposed
             if len(y) == 2:  # segment with (det, proto) output order reversed
                 if len(y[1].shape) != 4:
                     y = list(reversed(y))  # should be y = (1, 116, 8400), (1, 160, 160, 32)
-                y[1] = np.transpose(y[1], (0, 3, 1, 2))  # should be y = (1, 116, 8400), (1, 32, 160, 160)
+                if y[1].shape[-1] == 6:  # end-to-end model
+                    y = [y[1]]
+                else:
+                    y[1] = np.transpose(y[1], (0, 3, 1, 2))  # should be y = (1, 116, 8400), (1, 32, 160, 160)
             y = [x if isinstance(x, np.ndarray) else x.numpy() for x in y]
 
         # for x in y:
         #     print(type(x), len(x)) if isinstance(x, (list, tuple)) else print(type(x), x.shape)  # debug shapes
         if isinstance(y, (list, tuple)):
+            if len(self.names) == 999 and (self.task == "segment" or len(y) == 2):  # segments and names not defined
+                ip, ib = (0, 1) if len(y[0].shape) == 4 else (1, 0)  # index of protos, boxes
+                nc = y[ib].shape[1] - y[ip].shape[3] - 4  # y = (1, 160, 160, 32), (1, 116, 8400)
+                self.names = {i: f"class{i}" for i in range(nc)}
             return self.from_numpy(y[0]) if len(y) == 1 else [self.from_numpy(x) for x in y]
         else:
             return self.from_numpy(y)
@@ -634,8 +641,8 @@ class AutoBackend(nn.Module):
     @staticmethod
     def _model_type(p="path/to/model.pt"):
         """
-        This function takes a path to a model file and returns the model type. Possibles types are pt, jit, onnx, xml,
-        engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, ncnn or paddle.
+        Takes a path to a model file and returns the model type. Possibles types are pt, jit, onnx, xml, engine, coreml,
+        saved_model, pb, tflite, edgetpu, tfjs, ncnn or paddle.
 
         Args:
             p: path to the model file. Defaults to path/to/model.pt

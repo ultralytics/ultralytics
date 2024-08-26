@@ -384,45 +384,74 @@ names:
 # Download script/URL (optional) ---------------------------------------------------------------------------------------
 download: |
   from tqdm import tqdm
-
   from ultralytics.utils.checks import check_requirements
   from ultralytics.utils.downloads import download
   from ultralytics.utils.ops import xyxy2xywhn
-
   import numpy as np
   from pathlib import Path
-
+  import tarfile
+  import os
+  
   check_requirements(('pycocotools>=2.0',))
   from pycocotools.coco import COCO
-
+  
   # Make Directories
   dir = Path(yaml['path'])  # dataset root dir
   for p in 'images', 'labels':
       (dir / p).mkdir(parents=True, exist_ok=True)
       for q in 'train', 'val':
           (dir / p / q).mkdir(parents=True, exist_ok=True)
-
+  
   # Train, Val Splits
   for split, patches in [('train', 50 + 1), ('val', 43 + 1)]:
-      print(f"Processing {split} in {patches} patches ...")
       images, labels = dir / 'images' / split, dir / 'labels' / split
-
-      # Download
+      
+      # Check if the split directory already has unpacked content
+      if any(images.iterdir()):
+          print(f"Skipping download and unpacking for {split} as data already exists.")
+          continue
+  
+      print(f"Processing {split} in {patches} patches ...")
+  
+      # Download and unpack
       url = f"https://dorc.ks3-cn-beijing.ksyun.com/data-set/2020Objects365%E6%95%B0%E6%8D%AE%E9%9B%86/{split}/"
+      annotation_json_path = dir / f'zhiyuan_objv2_{split}.json'
+      if not annotation_json_path.exists():
+          download_path = f'{url}zhiyuan_objv2_{split}.json' if split == 'val' else f'{url}zhiyuan_objv2_{split}.tar.gz'
+          download([download_path], dir=dir)
+  
+      # Check each patch
       if split == 'train':
-          download([f'{url}zhiyuan_objv2_{split}.tar.gz'], dir=dir)  # annotations json
-          download([f'{url}patch{i}.tar.gz' for i in range(patches)], dir=images, curl=True, threads=8)
+          for i in range(patches):
+              patch_path = images / f'patch{i}.tar.gz'
+              if not (images / f'patch{i}').exists():
+                  download([f'{url}patch{i}.tar.gz'], dir=images, curl=True, threads=8)
+                  # Unpack and delete the tar file
+                  with tarfile.open(patch_path) as tar:
+                      tar.extractall(path=images)
+                  os.remove(patch_path)
       elif split == 'val':
-          download([f'{url}zhiyuan_objv2_{split}.json'], dir=dir)  # annotations json
-          download([f'{url}images/v1/patch{i}.tar.gz' for i in range(15 + 1)], dir=images, curl=True, threads=8)
-          download([f'{url}images/v2/patch{i}.tar.gz' for i in range(16, patches)], dir=images, curl=True, threads=8)
-
+          for i in range(15 + 1):
+              patch_path = images / f'patch{i}.tar.gz'
+              if not (images / f'patch{i}').exists():
+                  download([f'{url}images/v1/patch{i}.tar.gz'], dir=images, curl=True, threads=8)
+                  with tarfile.open(patch_path) as tar:
+                      tar.extractall(path=images)
+                  os.remove(patch_path)
+          for i in range(16, patches):
+              patch_path = images / f'patch{i}.tar.gz'
+              if not (images / f'patch{i}').exists():
+                  download([f'{url}images/v2/patch{i}.tar.gz'], dir=images, curl=True, threads=8)
+                  with tarfile.open(patch_path) as tar:
+                      tar.extractall(path=images)
+                  os.remove(patch_path)
+  
       # Move
       for f in tqdm(images.rglob('*.jpg'), desc=f'Moving {split} images'):
           f.rename(images / f.name)  # move to /images/{split}
-
+  
       # Labels
-      coco = COCO(dir / f'zhiyuan_objv2_{split}.json')
+      coco = COCO(annotation_json_path)
       names = [x["name"] for x in coco.loadCats(coco.getCatIds())]
       for cid, cat in enumerate(names):
           catIds = coco.getCatIds(catNms=[cat])

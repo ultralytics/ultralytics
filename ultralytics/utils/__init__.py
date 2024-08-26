@@ -116,18 +116,46 @@ os.environ["KINETO_LOG_LEVEL"] = "5"  # suppress verbose PyTorch profiler output
 
 class TQDM(tqdm_original):
     """
-    Custom Ultralytics tqdm class with different default arguments.
+    A custom TQDM progress bar class that extends the original tqdm functionality.
 
-    Args:
-        *args (list): Positional arguments passed to original tqdm.
-        **kwargs (any): Keyword arguments, with custom defaults applied.
+    This class modifies the behavior of the original tqdm progress bar based on global settings and provides
+    additional customization options.
+
+    Attributes:
+        disable (bool): Whether to disable the progress bar. Determined by the global VERBOSE setting and
+            any passed 'disable' argument.
+        bar_format (str): The format string for the progress bar. Uses the global TQDM_BAR_FORMAT if not
+            explicitly set.
+
+    Methods:
+        __init__: Initializes the TQDM object with custom settings.
+
+    Examples:
+        >>> from ultralytics.utils import TQDM
+        >>> for i in TQDM(range(100)):
+        ...     # Your processing code here
+        ...     pass
     """
 
     def __init__(self, *args, **kwargs):
         """
-        Initialize custom Ultralytics tqdm class with different default arguments.
+        Initializes a custom TQDM progress bar.
 
-        Note these can still be overridden when calling TQDM.
+        This class extends the original tqdm class to provide customized behavior for Ultralytics projects.
+
+        Args:
+            *args (Any): Variable length argument list to be passed to the original tqdm constructor.
+            **kwargs (Any): Arbitrary keyword arguments to be passed to the original tqdm constructor.
+
+        Notes:
+            - The progress bar is disabled if VERBOSE is False or if 'disable' is explicitly set to True in kwargs.
+            - The default bar format is set to TQDM_BAR_FORMAT unless overridden in kwargs.
+
+        Examples:
+            >>> from ultralytics.utils import TQDM
+            >>> for i in TQDM(range(100)):
+            ...     # Your code here
+            ...     pass
         """
         kwargs["disable"] = not VERBOSE or kwargs.get("disable", False)  # logical 'and' with default value if passed
         kwargs.setdefault("bar_format", TQDM_BAR_FORMAT)  # override default value if passed
@@ -135,8 +163,33 @@ class TQDM(tqdm_original):
 
 
 class SimpleClass:
-    """Ultralytics SimpleClass is a base class providing helpful string representation, error reporting, and attribute
-    access methods for easier debugging and usage.
+    """
+    A simple base class for creating objects with string representations of their attributes.
+
+    This class provides a foundation for creating objects that can be easily printed or represented as strings,
+    showing all their non-callable attributes. It's useful for debugging and introspection of object states.
+
+    Methods:
+        __str__: Returns a human-readable string representation of the object.
+        __repr__: Returns a machine-readable string representation of the object.
+        __getattr__: Provides a custom attribute access error message with helpful information.
+
+    Examples:
+        >>> class MyClass(SimpleClass):
+        ...     def __init__(self):
+        ...         self.x = 10
+        ...         self.y = "hello"
+        >>> obj = MyClass()
+        >>> print(obj)
+        __main__.MyClass object with attributes:
+
+        x: 10
+        y: 'hello'
+
+    Notes:
+        - This class is designed to be subclassed. It provides a convenient way to inspect object attributes.
+        - The string representation includes the module and class name of the object.
+        - Callable attributes and attributes starting with an underscore are excluded from the string representation.
     """
 
     def __str__(self):
@@ -164,8 +217,38 @@ class SimpleClass:
 
 
 class IterableSimpleNamespace(SimpleNamespace):
-    """Ultralytics IterableSimpleNamespace is an extension class of SimpleNamespace that adds iterable functionality and
-    enables usage with dict() and for loops.
+    """
+    An iterable SimpleNamespace class that provides enhanced functionality for attribute access and iteration.
+
+    This class extends the SimpleNamespace class with additional methods for iteration, string representation,
+    and attribute access. It is designed to be used as a convenient container for storing and accessing
+    configuration parameters.
+
+    Methods:
+        __iter__: Returns an iterator of key-value pairs from the namespace's attributes.
+        __str__: Returns a human-readable string representation of the object.
+        __getattr__: Provides a custom attribute access error message with helpful information.
+        get: Retrieves the value of a specified key, or a default value if the key doesn't exist.
+
+    Examples:
+        >>> cfg = IterableSimpleNamespace(a=1, b=2, c=3)
+        >>> for k, v in cfg:
+        ...     print(f"{k}: {v}")
+        a: 1
+        b: 2
+        c: 3
+        >>> print(cfg)
+        a=1
+        b=2
+        c=3
+        >>> cfg.get("b")
+        2
+        >>> cfg.get("d", "default")
+        'default'
+
+    Notes:
+        This class is particularly useful for storing configuration parameters in a more accessible
+        and iterable format compared to a standard dictionary.
     """
 
     def __iter__(self):
@@ -209,7 +292,6 @@ def plt_settings(rcparams=None, backend="Agg"):
         (Callable): Decorated function with temporarily set rc parameters and backend. This decorator can be
             applied to any function that needs to have specific matplotlib rc parameters and backend for its execution.
     """
-
     if rcparams is None:
         rcparams = {"font.size": 11}
 
@@ -219,16 +301,19 @@ def plt_settings(rcparams=None, backend="Agg"):
         def wrapper(*args, **kwargs):
             """Sets rc parameters and backend, calls the original function, and restores the settings."""
             original_backend = plt.get_backend()
-            if backend.lower() != original_backend.lower():
+            switch = backend.lower() != original_backend.lower()
+            if switch:
                 plt.close("all")  # auto-close()ing of figures upon backend switching is deprecated since 3.8
                 plt.switch_backend(backend)
 
-            with plt.rc_context(rcparams):
-                result = func(*args, **kwargs)
-
-            if backend != original_backend:
-                plt.close("all")
-                plt.switch_backend(original_backend)
+            # Plot with backend and always revert to original backend
+            try:
+                with plt.rc_context(rcparams):
+                    result = func(*args, **kwargs)
+            finally:
+                if switch:
+                    plt.close("all")
+                    plt.switch_backend(original_backend)
             return result
 
         return wrapper
@@ -237,8 +322,27 @@ def plt_settings(rcparams=None, backend="Agg"):
 
 
 def set_logging(name="LOGGING_NAME", verbose=True):
-    """Sets up logging for the given name with UTF-8 encoding support, ensuring compatibility across different
-    environments.
+    """
+    Sets up logging with UTF-8 encoding and configurable verbosity.
+
+    This function configures logging for the Ultralytics library, setting the appropriate logging level and
+    formatter based on the verbosity flag and the current process rank. It handles special cases for Windows
+    environments where UTF-8 encoding might not be the default.
+
+    Args:
+        name (str): Name of the logger. Defaults to "LOGGING_NAME".
+        verbose (bool): Flag to set logging level to INFO if True, ERROR otherwise. Defaults to True.
+
+    Examples:
+        >>> set_logging(name="ultralytics", verbose=True)
+        >>> logger = logging.getLogger("ultralytics")
+        >>> logger.info("This is an info message")
+
+    Notes:
+        - On Windows, this function attempts to reconfigure stdout to use UTF-8 encoding if possible.
+        - If reconfiguration is not possible, it falls back to a custom formatter that handles non-UTF-8 environments.
+        - The function sets up a StreamHandler with the appropriate formatter and level.
+        - The logger's propagate flag is set to False to prevent duplicate logging in parent loggers.
     """
     level = logging.INFO if verbose and RANK in {-1, 0} else logging.ERROR  # rank in world for Multi-GPU trainings
 
@@ -699,7 +803,7 @@ SETTINGS_YAML = USER_CONFIG_DIR / "settings.yaml"
 
 
 def colorstr(*input):
-    """
+    r"""
     Colors a string based on the provided color and style arguments. Utilizes ANSI escape codes.
     See https://en.wikipedia.org/wiki/ANSI_escape_code for more details.
 
@@ -710,7 +814,7 @@ def colorstr(*input):
     In the second form, 'blue' and 'bold' will be applied by default.
 
     Args:
-        *input (str): A sequence of strings where the first n-1 strings are color and style arguments,
+        *input (str | Path): A sequence of strings where the first n-1 strings are color and style arguments,
                       and the last string is the one to be colored.
 
     Supported Colors and Styles:
@@ -762,8 +866,8 @@ def remove_colorstr(input_string):
         (str): A new string with all ANSI escape codes removed.
 
     Examples:
-        >>> remove_colorstr(colorstr('blue', 'bold', 'hello world'))
-        >>> 'hello world'
+        >>> remove_colorstr(colorstr("blue", "bold", "hello world"))
+        >>> "hello world"
     """
     ansi_escape = re.compile(r"\x1B\[[0-9;]*[A-Za-z]")
     return ansi_escape.sub("", input_string)
@@ -777,12 +881,12 @@ class TryExcept(contextlib.ContextDecorator):
         As a decorator:
         >>> @TryExcept(msg="Error occurred in func", verbose=True)
         >>> def func():
-        >>>    # Function logic here
+        >>> # Function logic here
         >>>     pass
 
         As a context manager:
         >>> with TryExcept(msg="Error occurred in block", verbose=True):
-        >>>     # Code block here
+        >>> # Code block here
         >>>     pass
     """
 
@@ -813,7 +917,7 @@ class Retry(contextlib.ContextDecorator):
         Example usage as a decorator:
         >>> @Retry(times=3, delay=2)
         >>> def test_func():
-        >>>     # Replace with function logic that may raise exceptions
+        >>> # Replace with function logic that may raise exceptions
         >>>     return True
     """
 
@@ -943,9 +1047,7 @@ class SettingsManager(dict):
     """
 
     def __init__(self, file=SETTINGS_YAML, version="0.0.4"):
-        """Initialize the SettingsManager with default settings, load and validate current settings from the YAML
-        file.
-        """
+        """Initializes the SettingsManager with default settings and loads user settings."""
         import copy
         import hashlib
 

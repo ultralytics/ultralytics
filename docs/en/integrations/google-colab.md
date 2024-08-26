@@ -138,7 +138,7 @@ For more tips on managing your Colab session, visit the [Google Colab FAQ page](
 
 ### Can I use custom datasets for training YOLOv8 models in Google Colab?
 
-Yes, you can use custom datasets to train YOLOv8 models in Google Colab. Upload your dataset to Google Drive and load it directly into your Colab notebook. You can follow Nicolai's YouTube guide, [How to Train YOLOv8 Models on Your Custom Dataset](https://www.youtube.com/watch?v=LNwODJXcvt4?si=lB9UAc4hatSSEr2a), or refer to the [Custom Dataset Training guide](https://www.ultralytics.com/blog/training-custom-datasets-with-ultralytics-yolov8-in-google-colab) for detailed steps.
+Yes, you can use custom datasets to train YOLOv8 models in Google Colab. Upload your dataset to Google Drive and load it directly into your Colab notebook. You can follow Nicolai's YouTube guide, [How to Train YOLOv8 Models on Your Custom Dataset](https://www.youtube.com/watch?v=LNwODJXcvt4), or refer to the [Custom Dataset Training guide](https://www.ultralytics.com/blog/training-custom-datasets-with-ultralytics-yolov8-in-google-colab) for detailed steps.
 
 ### What should I do if my Google Colab training session is interrupted?
 

@@ -121,3 +121,108 @@ The below examples showcase YOLO model validation with custom arguments in Pytho
         ```bash
         yolo val model=yolov8n.pt data=coco8.yaml imgsz=640 batch=16 conf=0.25 iou=0.6 device=0
         ```
+
+## FAQ
+
+### How do I validate my YOLOv8 model with Ultralytics?
+
+To validate your YOLOv8 model, you can use the Val mode provided by Ultralytics. For example, using the Python API, you can load a model and run validation with:
+
+```python
+from ultralytics import YOLO
+
+# Load a model
+model = YOLO("yolov8n.pt")
+
+# Validate the model
+metrics = model.val()
+print(metrics.box.map)  # map50-95
+```
+
+Alternatively, you can use the command-line interface (CLI):
+
+```bash
+yolo val model=yolov8n.pt
+```
+
+For further customization, you can adjust various arguments like `imgsz`, `batch`, and `conf` in both Python and CLI modes. Check the [Arguments for YOLO Model Validation](#arguments-for-yolo-model-validation) section for the full list of parameters.
+
+### What metrics can I get from YOLOv8 model validation?
+
+YOLOv8 model validation provides several key metrics to assess model performance. These include:
+
+- mAP50 (mean Average Precision at IoU threshold 0.5)
+- mAP75 (mean Average Precision at IoU threshold 0.75)
+- mAP50-95 (mean Average Precision across multiple IoU thresholds from 0.5 to 0.95)
+
+Using the Python API, you can access these metrics as follows:
+
+```python
+metrics = model.val()  # assumes `model` has been loaded
+print(metrics.box.map)  # mAP50-95
+print(metrics.box.map50)  # mAP50
+print(metrics.box.map75)  # mAP75
+print(metrics.box.maps)  # list of mAP50-95 for each category
+```
+
+For a complete performance evaluation, it's crucial to review all these metrics. For more details, refer to the [Key Features of Val Mode](#key-features-of-val-mode).
+
+### What are the advantages of using Ultralytics YOLO for validation?
+
+Using Ultralytics YOLO for validation provides several advantages:
+
+- **Precision:** YOLOv8 offers accurate performance metrics including mAP50, mAP75, and mAP50-95.
+- **Convenience:** The models remember their training settings, making validation straightforward.
+- **Flexibility:** You can validate against the same or different datasets and image sizes.
+- **Hyperparameter Tuning:** Validation metrics help in fine-tuning models for better performance.
+
+These benefits ensure that your models are evaluated thoroughly and can be optimized for superior results. Learn more about these advantages in the [Why Validate with Ultralytics YOLO](#why-validate-with-ultralytics-yolo) section.
+
+### Can I validate my YOLOv8 model using a custom dataset?
+
+Yes, you can validate your YOLOv8 model using a custom dataset. Specify the `data` argument with the path to your dataset configuration file. This file should include paths to the validation data, class names, and other relevant details.
+
+Example in Python:
+
+```python
+from ultralytics import YOLO
+
+# Load a model
+model = YOLO("yolov8n.pt")
+
+# Validate with a custom dataset
+metrics = model.val(data="path/to/your/custom_dataset.yaml")
+print(metrics.box.map)  # map50-95
+```
+
+Example using CLI:
+
+```bash
+yolo val model=yolov8n.pt data=path/to/your/custom_dataset.yaml
+```
+
+For more customizable options during validation, see the [Example Validation with Arguments](#example-validation-with-arguments) section.
+
+### How do I save validation results to a JSON file in YOLOv8?
+
+To save the validation results to a JSON file, you can set the `save_json` argument to `True` when running validation. This can be done in both the Python API and CLI.
+
+Example in Python:
+
+```python
+from ultralytics import YOLO
+
+# Load a model
+model = YOLO("yolov8n.pt")
+
+# Save validation results to JSON
+metrics = model.val(save_json=True)
+```
+
+Example using CLI:
+
+```bash
+yolo val model=yolov8n.pt save_json=True
+```
+
+This functionality is particularly useful for further analysis or integration with other tools. Check the [Arguments for YOLO Model Validation](#arguments-for-yolo-model-validation) for more details.

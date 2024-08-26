@@ -124,3 +124,81 @@ In this guide, we explored how to export Ultralytics YOLOv8 models to the TF Gra
 For further details on usage, visit the [TF GraphDef official documentation](https://www.tensorflow.org/api_docs/python/tf/Graph).
 
 For more information on integrating Ultralytics YOLOv8 with other platforms and frameworks, don't forget to check out our [integration guide page](index.md). It has great resources and insights to help you make the most of YOLOv8 in your projects.
+
+## FAQ
+
+### How do I export a YOLOv8 model to TF GraphDef format?
+
+Ultralytics YOLOv8 models can be exported to TensorFlow GraphDef (TF GraphDef) format seamlessly. This format provides a serialized, platform-independent representation of the model, ideal for deploying in varied environments like mobile and web. To export a YOLOv8 model to TF GraphDef, follow these steps:
+
+!!! Example "Usage"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load the YOLOv8 model
+        model = YOLO("yolov8n.pt")
+
+        # Export the model to TF GraphDef format
+        model.export(format="pb")  # creates 'yolov8n.pb'
+
+        # Load the exported TF GraphDef model
+        tf_graphdef_model = YOLO("yolov8n.pb")
+
+        # Run inference
+        results = tf_graphdef_model("https://ultralytics.com/images/bus.jpg")
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Export a YOLOv8n PyTorch model to TF GraphDef format
+        yolo export model="yolov8n.pt" format="pb"  # creates 'yolov8n.pb'
+
+        # Run inference with the exported model
+        yolo predict model="yolov8n.pb" source="https://ultralytics.com/images/bus.jpg"
+        ```
+
+For more information on different export options, visit the [Ultralytics documentation on model export](../modes/export.md).
+
+### What are the benefits of using TF GraphDef for YOLOv8 model deployment?
+
+Exporting YOLOv8 models to the TF GraphDef format offers multiple advantages, including:
+
+1. **Platform Independence**: TF GraphDef provides a platform-independent format, allowing models to be deployed across various environments including mobile and web browsers.
+2. **Optimizations**: The format enables several optimizations, such as constant folding, quantization, and graph transformations, which enhance execution efficiency and reduce memory usage.
+3. **Hardware Acceleration**: Models in TF GraphDef format can leverage hardware accelerators like GPUs, TPUs, and AI chips for performance gains.
+
+Read more about the benefits in the [TF GraphDef section](#why-should-you-export-to-tf-graphdef) of our documentation.
+
+### Why should I use Ultralytics YOLOv8 over other object detection models?
+
+Ultralytics YOLOv8 offers numerous advantages compared to other models like YOLOv5 and YOLOv7. Some key benefits include:
+
+1. **State-of-the-Art Performance**: YOLOv8 provides exceptional speed and accuracy for real-time object detection, segmentation, and classification.
+2. **Ease of Use**: Features a user-friendly API for model training, validation, prediction, and export, making it accessible for both beginners and experts.
+3. **Broad Compatibility**: Supports multiple export formats including ONNX, TensorRT, CoreML, and TensorFlow, for versatile deployment options.
+
+Explore further details in our [introduction to YOLOv8](https://docs.ultralytics.com/models/yolov8/).
+
+### How can I deploy a YOLOv8 model on specialized hardware using TF GraphDef?
+
+Once a YOLOv8 model is exported to TF GraphDef format, you can deploy it across various specialized hardware platforms. Typical deployment scenarios include:
+
+- **TensorFlow Serving**: Use TensorFlow Serving for scalable model deployment in production environments. It supports model management and efficient serving.
+- **Mobile Devices**: Convert TF GraphDef models to TensorFlow Lite, optimized for mobile and embedded devices, enabling on-device inference.
+- **Web Browsers**: Deploy models using TensorFlow.js for client-side inference in web applications.
+- **AI Accelerators**: Leverage TPUs and custom AI chips for accelerated inference.
+
+Check the [deployment options](#deployment-options-with-tf-graphdef) section for detailed information.
+
+### Where can I find solutions for common issues while exporting YOLOv8 models?
+
+For troubleshooting common issues with exporting YOLOv8 models, Ultralytics provides comprehensive guides and resources. If you encounter problems during installation or model export, refer to:
+
+- **[Common Issues Guide](../guides/yolo-common-issues.md)**: Offers solutions to frequently faced problems.
+- **[Installation Guide](../quickstart.md)**: Step-by-step instructions for setting up the required packages.
+
+These resources should help you resolve most issues related to YOLOv8 model export and deployment.

@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Discover the power and flexibility of exporting Ultralytics YOLOv8 models to TensorRT format for enhanced performance and efficiency on NVIDIA GPUs.
-keywords: Ultralytics, YOLOv8, TensorRT Export, Model Deployment, GPU Acceleration, NVIDIA Support, CUDA Deployment
+description: Learn to convert YOLOv8 models to TensorRT for high-speed NVIDIA GPU inference. Boost efficiency and deploy optimized models with our step-by-step guide.
+keywords: YOLOv8, TensorRT, NVIDIA, GPU, deep learning, model optimization, high-speed inference, model export
 ---
 
 # TensorRT Export for YOLOv8 Models
@@ -13,10 +13,10 @@ By using the TensorRT export format, you can enhance your [Ultralytics YOLOv8](h
 ## TensorRT
 
 <p align="center">
-  <img width="100%" src="https://docs.nvidia.com/deeplearning/tensorrt/archives/tensorrt-601/tensorrt-developer-guide/graphics/whatistrt2.png" alt="TensorRT Overview">
+  <img width="100%" src="https://github.com/ultralytics/ultralytics/assets/26833433/7fea48c2-9709-4deb-8d04-eaf95d12a91d" alt="TensorRT Overview">
 </p>
 
-[TensorRT](https://developer.nvidia.com/tensorrt), developed by NVIDIA, is an advanced software development kit (SDK) designed for high-speed deep learning inference. It’s well-suited for real-time applications like object detection.
+[TensorRT](https://developer.nvidia.com/tensorrt), developed by NVIDIA, is an advanced software development kit (SDK) designed for high-speed deep learning inference. It's well-suited for real-time applications like object detection.
 
 This toolkit optimizes deep learning models for NVIDIA GPUs and results in faster and more efficient operations. TensorRT models undergo TensorRT optimization, which includes techniques like layer fusion, precision calibration (INT8 and FP16), dynamic tensor memory management, and kernel auto-tuning. Converting deep learning models into the TensorRT format allows developers to realize the potential of NVIDIA GPUs fully.
 
@@ -40,7 +40,7 @@ TensorRT models offer a range of key features that contribute to their efficienc
 
 ## Deployment Options in TensorRT
 
-Before we look at the code for exporting YOLOv8 models to the TensorRT format, let’s understand where TensorRT models are normally used.
+Before we look at the code for exporting YOLOv8 models to the TensorRT format, let's understand where TensorRT models are normally used.
 
 TensorRT offers several deployment options, and each option balances ease of integration, performance optimization, and flexibility differently:
 
@@ -65,7 +65,7 @@ To install the required package, run:
 !!! Tip "Installation"
 
     === "CLI"
-    
+
         ```bash
         # Install the required package for YOLOv8
         pip install ultralytics
@@ -85,16 +85,16 @@ Before diving into the usage instructions, be sure to check out the range of [YO
         from ultralytics import YOLO
 
         # Load the YOLOv8 model
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
 
         # Export the model to TensorRT format
-        model.export(format='engine')  # creates 'yolov8n.engine'
+        model.export(format="engine")  # creates 'yolov8n.engine'
 
         # Load the exported TensorRT model
-        tensorrt_model = YOLO('yolov8n.engine')
+        tensorrt_model = YOLO("yolov8n.engine")
 
         # Run inference
-        results = tensorrt_model('https://ultralytics.com/images/bus.jpg')
+        results = tensorrt_model("https://ultralytics.com/images/bus.jpg")
         ```
 
     === "CLI"
@@ -111,7 +111,7 @@ For more details about the export process, visit the [Ultralytics documentation 
 
 ### Exporting TensorRT with INT8 Quantization
 
-Exporting Ultralytics YOLO models using TensorRT with INT8 precision executes post-training quantization (PTQ). TensorRT uses calibration for PTQ, which measures the distribution of activations within each activation tensor as the YOLO model processes inference on representative input data, and then uses that distribution to estimate scale values for each tensor. Each activation tensor that is a candidate for quantization has an associated scale that is deduced by a calibration process. 
+Exporting Ultralytics YOLO models using TensorRT with INT8 precision executes post-training quantization (PTQ). TensorRT uses calibration for PTQ, which measures the distribution of activations within each activation tensor as the YOLO model processes inference on representative input data, and then uses that distribution to estimate scale values for each tensor. Each activation tensor that is a candidate for quantization has an associated scale that is deduced by a calibration process.
 
 When processing implicitly quantized networks TensorRT uses INT8 opportunistically to optimize layer execution time. If a layer runs faster in INT8 and has assigned quantization scales on its data inputs and outputs, then a kernel with INT8 precision is assigned to that layer, otherwise TensorRT selects a precision of either FP32 or FP16 for the kernel based on whichever results in faster execution time for that layer.
 
@@ -123,49 +123,65 @@ When processing implicitly quantized networks TensorRT uses INT8 opportunistical
 
 The arguments provided when using [export](../modes/export.md) for an Ultralytics YOLO model will **greatly** influence the performance of the exported model. They will also need to be selected based on the device resources available, however the default arguments _should_ work for most [Ampere (or newer) NVIDIA discrete GPUs](https://developer.nvidia.com/blog/nvidia-ampere-architecture-in-depth/). The calibration algorithm used is `"ENTROPY_CALIBRATION_2"` and you can read more details about the options available [in the TensorRT Developer Guide](https://docs.nvidia.com/deeplearning/tensorrt/developer-guide/index.html#enable_int8_c). Ultralytics tests found that `"ENTROPY_CALIBRATION_2"` was the best choice and exports are fixed to using this algorithm.
 
-  - `workspace` : Controls the size (in GiB) of the device memory allocation while converting the model weights.
-    
-    - Aim to use the <u>minimum</u> `workspace` value required as this prevents testing algorithms that require more `workspace` from being considered by the TensorRT builder. Setting a higher value for `workspace` may take **considerably longer** to calibrate and export.
+- `workspace` : Controls the size (in GiB) of the device memory allocation while converting the model weights.
+
+    - Adjust the `workspace` value according to your calibration needs and resource availability. While a larger `workspace` may increase calibration time, it allows TensorRT to explore a wider range of optimization tactics, potentially enhancing model performance and accuracy. Conversely, a smaller `workspace` can reduce calibration time but may limit the optimization strategies, affecting the quality of the quantized model.
 
     - Default is `workspace=4` (GiB), this value may need to be increased if calibration crashes (exits without warning).
-    
+
     - TensorRT will report `UNSUPPORTED_STATE` during export if the value for `workspace` is larger than the memory available to the device, which means the value for `workspace` should be lowered.
-    
+
     - If `workspace` is set to max value and calibration fails/crashes, consider reducing the values for `imgsz` and `batch` to reduce memory requirements.
 
     - <u><b>Remember</b> calibration for INT8 is specific to each device</u>, borrowing a "high-end" GPU for calibration, might result in poor performance when inference is run on another device.
 
-  - `batch` : The maximum batch-size that will be used for inference. During inference smaller batches can be used, but inference will not accept batches any larger than what is specified.
-    
-    !!! note
+- `batch` : The maximum batch-size that will be used for inference. During inference smaller batches can be used, but inference will not accept batches any larger than what is specified.
 
-        During calibration, twice the `batch` size provided will be used. Using small batches can lead to inaccurate scaling during calibration. This is because the process adjusts based on the data it sees. Small batches might not capture the full range of values, leading to issues with the final calibration, so the `batch` size is doubled automatically. If no batch size is specified `batch=1`, calibration will be run at `batch=1 * 2` to reduce calibration scaling errors.
+!!! note
+
+    During calibration, twice the `batch` size provided will be used. Using small batches can lead to inaccurate scaling during calibration. This is because the process adjusts based on the data it sees. Small batches might not capture the full range of values, leading to issues with the final calibration, so the `batch` size is doubled automatically. If no batch size is specified `batch=1`, calibration will be run at `batch=1 * 2` to reduce calibration scaling errors.
 
 Experimentation by NVIDIA led them to recommend using at least 500 calibration images that are representative of the data for your model, with INT8 quantization calibration. This is a guideline and not a _hard_ requirement, and <u>**you will need to experiment with what is required to perform well for your dataset**.</u> Since the calibration data is required for INT8 calibration with TensorRT, make certain to use the `data` argument when `int8=True` for TensorRT and use `data="my_dataset.yaml"`, which will use the images from [validation](../modes/val.md) to calibrate with. When no value is passed for `data` with export to TensorRT with INT8 quantization, the default will be to use one of the ["small" example datasets based on the model task](../datasets/index.md) instead of throwing an error.
 
 !!! example
 
-    ```{ .py .annotate }
-    from ultralytics import YOLO
+    === "Python"
 
-    model = YOLO("yolov8n.pt")
-    model.export(
-        format="engine",
-        dynamic=True, #(1)!
-        batch=8, #(2)!
-        workspace=4, #(3)!
-        int8=True,
-        data="coco.yaml", #(4)!
-    )
+        ```{ .py .annotate }
+        from ultralytics import YOLO
 
-    model = YOLO("yolov8n.engine", task="detect") # load the model
-    
-    ```
-    
-    1. Exports with dynamic axes, this will be enabled by default when exporting with `int8=True` even when not explicitly set. See [export arguments](../modes/export.md#arguments) for additional information.
-    2. Sets max batch size of 8 for exported model, which calibrates with `batch = 2 *×* 8` to avoid scaling errors during calibration.
-    3. Allocates 4 GiB of memory instead of allocating the entire device for conversion process.
-    4. Uses [COCO dataset](../datasets/detect/coco.md) for calibration, specifically the images used for [validation](../modes/val.md) (5,000 total).
+        model = YOLO("yolov8n.pt")
+        model.export(
+            format="engine",
+            dynamic=True,  # (1)!
+            batch=8,  # (2)!
+            workspace=4,  # (3)!
+            int8=True,
+            data="coco.yaml",  # (4)!
+        )
+
+        # Load the exported TensorRT INT8 model
+        model = YOLO("yolov8n.engine", task="detect")
+
+        # Run inference
+        result = model.predict("https://ultralytics.com/images/bus.jpg")
+        ```
+
+        1. Exports with dynamic axes, this will be enabled by default when exporting with `int8=True` even when not explicitly set. See [export arguments](../modes/export.md#arguments) for additional information.
+        2. Sets max batch size of 8 for exported model, which calibrates with `batch = 2 * 8` to avoid scaling errors during calibration.
+        3. Allocates 4 GiB of memory instead of allocating the entire device for conversion process.
+        4. Uses [COCO dataset](../datasets/detect/coco.md) for calibration, specifically the images used for [validation](../modes/val.md) (5,000 total).
+
+
+    === "CLI"
+
+        ```bash
+        # Export a YOLOv8n PyTorch model to TensorRT format with INT8 quantization
+        yolo export model=yolov8n.pt format=engine batch=8 workspace=4 int8=True data=coco.yaml  # creates 'yolov8n.engine''
+
+        # Run inference with the exported TensorRT quantized model
+        yolo predict model=yolov8n.engine source='https://ultralytics.com/images/bus.jpg'
+        ```
 
 ???+ warning "Calibration Cache"
 
@@ -189,7 +205,7 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
 
 - **Increased development times:** Finding the "optimal" settings for INT8 calibration for dataset and device can take a significant amount of testing.
 
-- **Hardware dependency:** Calibration and performance gains could be highly hardware dependent and model weights are less transferrable.
+- **Hardware dependency:** Calibration and performance gains could be highly hardware dependent and model weights are less transferable.
 
 ## Ultralytics YOLO TensorRT Export Performance
 
@@ -203,7 +219,7 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
 
         See [Detection Docs](../tasks/detect.md) for usage examples with these models trained on [COCO](../datasets/detect/coco.md), which include 80 pre-trained classes.
 
-        !!! note 
+        !!! note
             Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pre-trained weights `yolov8n.engine`
 
         | Precision | Eval test    | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val<br>50(B) | mAP<sup>val<br>50-95(B) | `batch` | size<br><sup>(pixels) |
@@ -218,8 +234,8 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
     === "Segmentation (COCO)"
 
         See [Segmentation Docs](../tasks/segment.md) for usage examples with these models trained on [COCO](../datasets/segment/coco.md), which include 80 pre-trained classes.
-        
-        !!! note 
+
+        !!! note
             Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pre-trained weights `yolov8n-seg.engine`
 
         | Precision | Eval test    | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val<br>50(B) | mAP<sup>val<br>50-95(B) | mAP<sup>val<br>50(M) | mAP<sup>val<br>50-95(M) | `batch` | size<br><sup>(pixels) |
@@ -235,23 +251,23 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
 
         See [Classification Docs](../tasks/classify.md) for usage examples with these models trained on [ImageNet](../datasets/classify/imagenet.md), which include 1000 pre-trained classes.
 
-        !!! note 
+        !!! note
             Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pre-trained weights `yolov8n-cls.engine`
 
         | Precision | Eval test        | mean<br>(ms) | min \| max<br>(ms) | top-1 | top-5 | `batch` | size<br><sup>(pixels) |
         |-----------|------------------|--------------|--------------------|-------|-------|---------|-----------------------|
-        | FP32      | Predict          | 0.26         | 0.25 \| 0.28       | 0.35  | 0.61  | 8       | 640                   |
-        | FP32      | ImageNet<sup>val | 0.26         |                    |       |       | 1       | 640                   |
-        | FP16      | Predict          | 0.18         | 0.17 \| 0.19       | 0.35  | 0.61  | 8       | 640                   |
-        | FP16      | ImageNet<sup>val | 0.18         |                    |       |       | 1       | 640                   |
-        | INT8      | Predict          | 0.16         | 0.15 \| 0.57       | 0.32  | 0.59  | 8       | 640                   |
-        | INT8      | ImageNet<sup>val | 0.15         |                    |       |       | 1       | 640                   |
+        | FP32      | Predict          | 0.26         | 0.25 \| 0.28       |       |       | 8       | 640                   |
+        | FP32      | ImageNet<sup>val | 0.26         |                    | 0.35  | 0.61  | 1       | 640                   |
+        | FP16      | Predict          | 0.18         | 0.17 \| 0.19       |       |       | 8       | 640                   |
+        | FP16      | ImageNet<sup>val | 0.18         |                    | 0.35  | 0.61  | 1       | 640                   |
+        | INT8      | Predict          | 0.16         | 0.15 \| 0.57       |       |       | 8       | 640                   |
+        | INT8      | ImageNet<sup>val | 0.15         |                    | 0.32  | 0.59  | 1       | 640                   |
 
     === "Pose (COCO)"
 
         See [Pose Estimation Docs](../tasks/pose.md) for usage examples with these models trained on [COCO](../datasets/pose/coco.md), which include 1 pre-trained class, "person".
 
-        !!! note 
+        !!! note
             Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pre-trained weights `yolov8n-pose.engine`
 
         | Precision | Eval test    | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val<br>50(B) | mAP<sup>val<br>50-95(B) | mAP<sup>val<br>50(P) | mAP<sup>val<br>50-95(P) | `batch` | size<br><sup>(pixels) |
@@ -267,7 +283,7 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
 
         See [Oriented Detection Docs](../tasks/obb.md) for usage examples with these models trained on [DOTAv1](../datasets/obb/dota-v2.md#dota-v10), which include 15 pre-trained classes.
 
-        !!! note 
+        !!! note
             Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pre-trained weights `yolov8n-obb.engine`
 
         | Precision | Eval test      | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val<br>50(B) | mAP<sup>val<br>50-95(B) | `batch` | size<br><sup>(pixels) |
@@ -287,7 +303,7 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
 
         Tested with Windows 10.0.19045, `python 3.10.9`, `ultralytics==8.2.4`, `tensorrt==10.0.0b6`
 
-        !!! note 
+        !!! note
             Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pre-trained weights `yolov8n.engine`
 
         | Precision | Eval test    | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val<br>50(B) | mAP<sup>val<br>50-95(B) | `batch` | size<br><sup>(pixels) |
@@ -302,8 +318,8 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
     === "RTX 3060 12 GB"
 
         Tested with Windows 10.0.22631, `python 3.11.9`, `ultralytics==8.2.4`, `tensorrt==10.0.1`
-    
-        !!! note 
+
+        !!! note
             Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pre-trained weights `yolov8n.engine`
 
 
@@ -320,7 +336,7 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
 
         Tested with Pop!_OS 22.04 LTS, `python 3.10.12`, `ultralytics==8.2.4`, `tensorrt==8.6.1.post1`
 
-        !!! note 
+        !!! note
             Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pre-trained weights `yolov8n.engine`
 
         | Precision | Eval test    | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val<br>50(B) | mAP<sup>val<br>50-95(B) | `batch` | size<br><sup>(pixels) |
@@ -338,19 +354,19 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
 
     === "Jetson Orin NX 16GB"
 
-        Tested with JetPack 5.1.3 (L4T 35.5.0) Ubuntu 20.04.6, `python 3.8.10`, `ultralytics==8.2.4`, `tensorrt==8.5.2.2`
+        Tested with JetPack 6.0 (L4T 36.3) Ubuntu 22.04.4 LTS, `python 3.10.12`, `ultralytics==8.2.16`, `tensorrt==10.0.1`
 
-        !!! note 
+        !!! note
             Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pre-trained weights `yolov8n.engine`
 
         | Precision | Eval test    | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val<br>50(B) | mAP<sup>val<br>50-95(B) | `batch` | size<br><sup>(pixels) |
         |-----------|--------------|--------------|--------------------|----------------------|-------------------------|---------|-----------------------|
-        | FP32      | Predict      | 6.90         | 6.89 \| 6.93       |                      |                         | 8       | 640                   |
-        | FP32      | COCO<sup>val | 6.97         |                    | 0.52                 | 0.37                    | 1       | 640                   |
-        | FP16      | Predict      | 3.36         | 3.35 \| 3.39       |                      |                         | 8       | 640                   |
-        | FP16      | COCO<sup>val | 3.39         |                    | 0.52                 | 0.37                    | 1       | 640                   |
-        | INT8      | Predict      | 2.32         | 2.32 \| 2.34       |                      |                         | 8       | 640                   |
-        | INT8      | COCO<sup>val | 2.33         |                    | 0.47                 | 0.33                    | 1       | 640                   |
+        | FP32      | Predict      | 6.11         | 6.10 \| 6.29       |                      |                         | 8       | 640                   |
+        | FP32      | COCO<sup>val | 6.17         |                    | 0.52                 | 0.37                    | 1       | 640                   |
+        | FP16      | Predict      | 3.18         | 3.18 \| 3.20       |                      |                         | 8       | 640                   |
+        | FP16      | COCO<sup>val | 3.19         |                    | 0.52                 | 0.37                    | 1       | 640                   |
+        | INT8      | Predict      | 2.30         | 2.29 \| 2.35       |                      |                         | 8       | 640                   |
+        | INT8      | COCO<sup>val | 2.32         |                    | 0.46                 | 0.32                    | 1       | 640                   |
 
 !!! info
 
@@ -370,36 +386,14 @@ Expand sections below for information on how these models were exported and test
     model = YOLO("yolov8n.pt")
 
     # TensorRT FP32
-    out = model.export(
-        format="engine",
-        imgsz:640,
-        dynamic:True,
-        verbose:False,
-        batch:8,
-        workspace:2
-    )
-    
+    out = model.export(format="engine", imgsz=640, dynamic=True, verbose=False, batch=8, workspace=2)
+
     # TensorRT FP16
+    out = model.export(format="engine", imgsz=640, dynamic=True, verbose=False, batch=8, workspace=2, half=True)
+
+    # TensorRT INT8 with calibration `data` (i.e. COCO, ImageNet, or DOTAv1 for appropriate model task)
     out = model.export(
-        format="engine",
-        imgsz:640,
-        dynamic:True,
-        verbose:False,
-        batch:8,
-        workspace:2,
-        half=True
-    )
-    
-    # TensorRT INT8
-    out = model.export(
-        format="engine",
-        imgsz:640,
-        dynamic:True,
-        verbose:False,
-        batch:8,
-        workspace:2,
-        int8=True,
-        data:"data.yaml"  # COCO, ImageNet, or DOTAv1 for appropriate model task
+        format="engine", imgsz=640, dynamic=True, verbose=False, batch=8, workspace=2, int8=True, data="coco8.yaml"
     )
     ```
 
@@ -409,6 +403,7 @@ Expand sections below for information on how these models were exported and test
 
     ```py
     import cv2
+
     from ultralytics import YOLO
 
     model = YOLO("yolov8n.engine")
@@ -418,7 +413,7 @@ Expand sections below for information on how these models were exported and test
         result = model.predict(
             [img] * 8,  # batch=8 of the same image
             verbose=False,
-            device="cuda"
+            device="cuda",
         )
     ```
 
@@ -435,7 +430,7 @@ Expand sections below for information on how these models were exported and test
         batch=1,
         imgsz=640,
         verbose=False,
-        device="cuda"
+        device="cuda",
     )
     ```
 
@@ -451,7 +446,6 @@ Having successfully exported your Ultralytics YOLOv8 models to TensorRT format, 
 
 - **[GitHub Repository for NVIDIA TensorRT:](https://github.com/NVIDIA/TensorRT)**: This is the official GitHub repository that contains the source code and documentation for NVIDIA TensorRT.
 
-
 ## Summary
 
 In this guide, we focused on converting Ultralytics YOLOv8 models to NVIDIA's TensorRT model format. This conversion step is crucial for improving the efficiency and speed of YOLOv8 models, making them more effective and suitable for diverse deployment environments.
@@ -459,3 +453,94 @@ In this guide, we focused on converting Ultralytics YOLOv8 models to NVIDIA's Te
 For more information on usage details, take a look at the [TensorRT official documentation](https://docs.nvidia.com/deeplearning/tensorrt/).
 
 If you're curious about additional Ultralytics YOLOv8 integrations, our [integration guide page](../integrations/index.md) provides an extensive selection of informative resources and insights.
+
+## FAQ
+
+### How do I convert YOLOv8 models to TensorRT format?
+
+To convert your Ultralytics YOLOv8 models to TensorRT format for optimized NVIDIA GPU inference, follow these steps:
+
+1. **Install the required package**:
+
+    ```bash
+    pip install ultralytics
+    ```
+
+2. **Export your YOLOv8 model**:
+
+    ```python
+    from ultralytics import YOLO
+
+    model = YOLO("yolov8n.pt")
+    model.export(format="engine")  # creates 'yolov8n.engine'
+
+    # Run inference
+    model = YOLO("yolov8n.engine")
+    results = model("https://ultralytics.com/images/bus.jpg")
+    ```
+
+For more details, visit the [YOLOv8 Installation guide](../quickstart.md) and the [export documentation](../modes/export.md).
+
+### What are the benefits of using TensorRT for YOLOv8 models?
+
+Using TensorRT to optimize YOLOv8 models offers several benefits:
+
+- **Faster Inference Speed**: TensorRT optimizes the model layers and uses precision calibration (INT8 and FP16) to speed up inference without significantly sacrificing accuracy.
+- **Memory Efficiency**: TensorRT manages tensor memory dynamically, reducing overhead and improving GPU memory utilization.
+- **Layer Fusion**: Combines multiple layers into single operations, reducing computational complexity.
+- **Kernel Auto-Tuning**: Automatically selects optimized GPU kernels for each model layer, ensuring maximum performance.
+
+For more information, explore the detailed features of TensorRT [here](https://developer.nvidia.com/tensorrt) and read our [TensorRT overview section](#tensorrt).
+
+### Can I use INT8 quantization with TensorRT for YOLOv8 models?
+
+Yes, you can export YOLOv8 models using TensorRT with INT8 quantization. This process involves post-training quantization (PTQ) and calibration:
+
+1. **Export with INT8**:
+
+    ```python
+    from ultralytics import YOLO
+
+    model = YOLO("yolov8n.pt")
+    model.export(format="engine", batch=8, workspace=4, int8=True, data="coco.yaml")
+    ```
+
+2. **Run inference**:
+
+    ```python
+    from ultralytics import YOLO
+
+    model = YOLO("yolov8n.engine", task="detect")
+    result = model.predict("https://ultralytics.com/images/bus.jpg")
+    ```
+
+For more details, refer to the [exporting TensorRT with INT8 quantization section](#exporting-tensorrt-with-int8-quantization).
+
+### How do I deploy YOLOv8 TensorRT models on an NVIDIA Triton Inference Server?
+
+Deploying YOLOv8 TensorRT models on an NVIDIA Triton Inference Server can be done using the following resources:
+
+- **[Deploy Ultralytics YOLOv8 with Triton Server](../guides/triton-inference-server.md)**: Step-by-step guidance on setting up and using Triton Inference Server.
+- **[NVIDIA Triton Inference Server Documentation](https://developer.nvidia.com/blog/deploying-deep-learning-nvidia-tensorrt/)**: Official NVIDIA documentation for detailed deployment options and configurations.
+
+These guides will help you integrate YOLOv8 models efficiently in various deployment environments.
+
+### What are the performance improvements observed with YOLOv8 models exported to TensorRT?
+
+Performance improvements with TensorRT can vary based on the hardware used. Here are some typical benchmarks:
+
+- **NVIDIA A100**:
+
+    - **FP32** Inference: ~0.52 ms / image
+    - **FP16** Inference: ~0.34 ms / image
+    - **INT8** Inference: ~0.28 ms / image
+    - Slight reduction in mAP with INT8 precision, but significant improvement in speed.
+
+- **Consumer GPUs (e.g., RTX 3080)**:
+    - **FP32** Inference: ~1.06 ms / image
+    - **FP16** Inference: ~0.62 ms / image
+    - **INT8** Inference: ~0.52 ms / image
+
+Detailed performance benchmarks for different hardware configurations can be found in the [performance section](#ultralytics-yolo-tensorrt-export-performance).
+
+For more comprehensive insights into TensorRT performance, refer to the [Ultralytics documentation](../modes/export.md) and our performance analysis reports.

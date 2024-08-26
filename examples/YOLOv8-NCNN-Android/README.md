@@ -34,9 +34,9 @@ Convert your model.
 yolo export model=yolov8n-seg.pt format=ncnn
 ```
 
-Copy ***yolov8n-seg.param*** and ***yolov8n-seg.bin*** to **app/src/main/jni/assets**
+Copy **_yolov8n-seg.param_** and **_yolov8n-seg.bin_** to **app/src/main/jni/assets**
 
-*For your own model :* Change the name of the model in ***yolov8ncnn.cpp*** line 184. Change the classes names in ***yolo.h***
+_For your own model :_ Change the name of the model in **_yolov8ncnn.cpp_** line 184. Change the classes names in **_yolo.h_**
 
 ### Step 2
 

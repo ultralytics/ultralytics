@@ -32,7 +32,7 @@ jobs:
           from github import Github
           import os
           import time
-          
+
           g = Github(os.getenv('GITHUB_TOKEN'))
           repo = g.get_repo(os.getenv('GITHUB_REPOSITORY'))
           

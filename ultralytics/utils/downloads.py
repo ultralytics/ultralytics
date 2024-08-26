@@ -17,12 +17,13 @@ from ultralytics.utils import LOGGER, TQDM, checks, clean_url, emojis, is_online
 # Define Ultralytics GitHub assets maintained at https://github.com/ultralytics/assets
 GITHUB_ASSETS_REPO = "ultralytics/assets"
 GITHUB_ASSETS_NAMES = (
-    [f"yolov8{k}{suffix}.pt" for k in "nsmlx" for suffix in ("", "-cls", "-seg", "-pose", "-obb")]
+    [f"yolov8{k}{suffix}.pt" for k in "nsmlx" for suffix in ("", "-cls", "-seg", "-pose", "-obb", "-oiv7")]
     + [f"yolov5{k}{resolution}u.pt" for k in "nsmlx" for resolution in ("", "6")]
     + [f"yolov3{k}u.pt" for k in ("", "-spp", "-tiny")]
     + [f"yolov8{k}-world.pt" for k in "smlx"]
     + [f"yolov8{k}-worldv2.pt" for k in "smlx"]
-    + [f"yolov9{k}.pt" for k in "ce"]
+    + [f"yolov9{k}.pt" for k in "tsmce"]
+    + [f"yolov10{k}.pt" for k in "nsmblx"]
     + [f"yolo_nas_{k}.pt" for k in "sml"]
     + [f"sam_{k}.pt" for k in "bl"]
     + [f"FastSAM-{k}.pt" for k in "sx"]
@@ -40,7 +41,7 @@ def is_url(url, check=False):
     Args:
         url (str): The string to be validated as a URL.
         check (bool, optional): If True, performs an additional check to see if the URL exists online.
-            Defaults to True.
+            Defaults to False.
 
     Returns:
         (bool): Returns True for a valid URL. If 'check' is True, also returns True if the URL exists online.
@@ -74,7 +75,7 @@ def delete_dsstore(path, files_to_delete=(".DS_Store", "__MACOSX")):
         ```python
         from ultralytics.utils.downloads import delete_dsstore
 
-        delete_dsstore('path/to/dir')
+        delete_dsstore("path/to/dir")
         ```
 
     Note:
@@ -106,7 +107,7 @@ def zip_directory(directory, compress=True, exclude=(".DS_Store", "__MACOSX"), p
         ```python
         from ultralytics.utils.downloads import zip_directory
 
-        file = zip_directory('path/to/dir')
+        file = zip_directory("path/to/dir")
         ```
     """
     from zipfile import ZIP_DEFLATED, ZIP_STORED, ZipFile
@@ -152,7 +153,7 @@ def unzip_file(file, path=None, exclude=(".DS_Store", "__MACOSX"), exist_ok=Fals
         ```python
         from ultralytics.utils.downloads import unzip_file
 
-        dir = unzip_file('path/to/file.zip')
+        dir = unzip_file("path/to/file.zip")
         ```
     """
     from zipfile import BadZipFile, ZipFile, is_zipfile
@@ -167,13 +168,15 @@ def unzip_file(file, path=None, exclude=(".DS_Store", "__MACOSX"), exist_ok=Fals
         files = [f for f in zipObj.namelist() if all(x not in f for x in exclude)]
         top_level_dirs = {Path(f).parts[0] for f in files}
 
-        if len(top_level_dirs) > 1 or (len(files) > 1 and not files[0].endswith("/")):
-            # Zip has multiple files at top level
-            path = extract_path = Path(path) / Path(file).stem  # i.e. ../datasets/coco8
-        else:
+        # Decide to unzip directly or unzip into a directory
+        unzip_as_dir = len(top_level_dirs) == 1  # (len(files) > 1 and not files[0].endswith("/"))
+        if unzip_as_dir:
             # Zip has 1 top-level directory
             extract_path = path  # i.e. ../datasets
-            path = Path(path) / list(top_level_dirs)[0]  # i.e. ../datasets/coco8
+            path = Path(path) / list(top_level_dirs)[0]  # i.e. extract coco8/ dir to ../datasets/
+        else:
+            # Zip has multiple files at top level
+            path = extract_path = Path(path) / Path(file).stem  # i.e. extract multiple files to ../datasets/coco8/
 
         # Check if destination directory already exists and contains files
         if path.exists() and any(path.iterdir()) and not exist_ok:
@@ -191,14 +194,14 @@ def unzip_file(file, path=None, exclude=(".DS_Store", "__MACOSX"), exist_ok=Fals
     return path  # return unzip dir
 
 
-def check_disk_space(url="https://ultralytics.com/assets/coco128.zip", path=Path.cwd(), sf=1.5, hard=True):
+def check_disk_space(url="https://ultralytics.com/assets/coco8.zip", path=Path.cwd(), sf=1.5, hard=True):
     """
     Check if there is sufficient disk space to download and store a file.
 
     Args:
-        url (str, optional): The URL to the file. Defaults to 'https://ultralytics.com/assets/coco128.zip'.
+        url (str, optional): The URL to the file. Defaults to 'https://ultralytics.com/assets/coco8.zip'.
         path (str | Path, optional): The path or drive to check the available free space on.
-        sf (float, optional): Safety factor, the multiplier for the required free space. Defaults to 2.0.
+        sf (float, optional): Safety factor, the multiplier for the required free space. Defaults to 1.5.
         hard (bool, optional): Whether to throw an error or not on insufficient disk space. Defaults to True.
 
     Returns:
@@ -317,7 +320,11 @@ def safe_download(
     if "://" not in str(url) and Path(url).is_file():  # URL exists ('://' check required in Windows Python<3.10)
         f = Path(url)  # filename
     elif not f.is_file():  # URL and file do not exist
-        desc = f"Downloading {url if gdrive else clean_url(url)} to '{f}'"
+        uri = (url if gdrive else clean_url(url)).replace(  # cleaned and aliased url
+            "https://github.com/ultralytics/assets/releases/download/v0.0.0/",
+            "https://ultralytics.com/assets/",  # assets alias
+        )
+        desc = f"Downloading {uri} to '{f}'"
         LOGGER.info(f"{desc}...")
         f.parent.mkdir(parents=True, exist_ok=True)  # make directory if missing
         check_disk_space(url, path=f.parent)
@@ -351,10 +358,10 @@ def safe_download(
                     f.unlink()  # remove partial downloads
             except Exception as e:
                 if i == 0 and not is_online():
-                    raise ConnectionError(emojis(f"❌  Download failure for {url}. Environment is not online.")) from e
+                    raise ConnectionError(emojis(f"❌  Download failure for {uri}. Environment is not online.")) from e
                 elif i >= retry:
-                    raise ConnectionError(emojis(f"❌  Download failure for {url}. Retry limit reached.")) from e
-                LOGGER.warning(f"⚠️ Download failure, retrying {i + 1}/{retry} {url}...")
+                    raise ConnectionError(emojis(f"❌  Download failure for {uri}. Retry limit reached.")) from e
+                LOGGER.warning(f"⚠️ Download failure, retrying {i + 1}/{retry} {uri}...")
 
     if unzip and f.exists() and f.suffix in {"", ".zip", ".tar", ".gz"}:
         from zipfile import is_zipfile
@@ -385,10 +392,9 @@ def get_github_assets(repo="ultralytics/assets", version="latest", retry=False):
 
     Example:
         ```python
-        tag, assets = get_github_assets(repo='ultralytics/assets', version='latest')
+        tag, assets = get_github_assets(repo="ultralytics/assets", version="latest")
         ```
     """
-
     if version != "latest":
         version = f"tags/{version}"  # i.e. tags/v6.2
     url = f"https://api.github.com/repos/{repo}/releases/{version}"
@@ -418,7 +424,7 @@ def attempt_download_asset(file, repo="ultralytics/assets", release="v8.2.0", **
 
     Example:
         ```python
-        file_path = attempt_download_asset('yolov8n.pt', repo='ultralytics/assets', release='latest')
+        file_path = attempt_download_asset("yolov8n.pt", repo="ultralytics/assets", release="latest")
         ```
     """
     from ultralytics.utils import SETTINGS  # scoped for circular import
@@ -473,7 +479,7 @@ def download(url, dir=Path.cwd(), unzip=True, delete=False, curl=False, threads=
 
     Example:
         ```python
-        download('https://ultralytics.com/assets/example.zip', dir='path/to/dir', unzip=True)
+        download("https://ultralytics.com/assets/example.zip", dir="path/to/dir", unzip=True)
         ```
     """
     dir = Path(dir)

@@ -24,7 +24,7 @@ class NASValidator(DetectionValidator):
         ```python
         from ultralytics import NAS
 
-        model = NAS('yolo_nas_s')
+        model = NAS("yolo_nas_s")
         validator = model.validator
         # Assumes that raw_preds are available
         final_preds = validator.postprocess(raw_preds)

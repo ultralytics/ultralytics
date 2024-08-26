@@ -2,6 +2,7 @@
 comments: true
 description: Master instance segmentation using YOLOv8. Learn how to detect, segment and outline objects in images with detailed guides and examples.
 keywords: instance segmentation, YOLOv8, object detection, image segmentation, machine learning, deep learning, computer vision, COCO dataset, Ultralytics
+model_name: yolov8n-seg
 ---
 
 # Instance Segmentation
@@ -63,6 +64,7 @@ Train YOLOv8n-seg on the COCO128-seg dataset for 100 epochs at image size 640. F
         # Train the model
         results = model.train(data="coco8-seg.yaml", epochs=100, imgsz=640)
         ```
+
     === "CLI"
 
         ```bash
@@ -107,6 +109,7 @@ retains its training `data` and arguments as model attributes.
         metrics.seg.map75  # map75(M)
         metrics.seg.maps  # a list contains map50-95(M) of each category
         ```
+
     === "CLI"
 
         ```bash
@@ -132,6 +135,7 @@ Use a trained YOLOv8n-seg model to run predictions on images.
         # Predict with the model
         results = model("https://ultralytics.com/images/bus.jpg")  # predict on an image
         ```
+
     === "CLI"
 
         ```bash
@@ -159,6 +163,7 @@ Export a YOLOv8n-seg model to a different format like ONNX, CoreML, etc.
         # Export the model
         model.export(format="onnx")
         ```
+
     === "CLI"
 
         ```bash
@@ -168,20 +173,96 @@ Export a YOLOv8n-seg model to a different format like ONNX, CoreML, etc.
 
 Available YOLOv8-seg export formats are in the table below. You can export to any format using the `format` argument, i.e. `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, i.e. `yolo predict model=yolov8n-seg.onnx`. Usage examples are shown for your model after export completes.
 
-| Format                                            | `format` Argument | Model                         | Metadata | Arguments                                                            |
-| ------------------------------------------------- | ----------------- | ----------------------------- | -------- | -------------------------------------------------------------------- |
-| [PyTorch](https://pytorch.org/)                   | -                 | `yolov8n-seg.pt`              | ✅       | -                                                                    |
-| [TorchScript](../integrations/torchscript.md)     | `torchscript`     | `yolov8n-seg.torchscript`     | ✅       | `imgsz`, `optimize`, `batch`                                         |
-| [ONNX](../integrations/onnx.md)                   | `onnx`            | `yolov8n-seg.onnx`            | ✅       | `imgsz`, `half`, `dynamic`, `simplify`, `opset`, `batch`             |
-| [OpenVINO](../integrations/openvino.md)           | `openvino`        | `yolov8n-seg_openvino_model/` | ✅       | `imgsz`, `half`, `int8`, `batch`                                     |
-| [TensorRT](../integrations/tensorrt.md)           | `engine`          | `yolov8n-seg.engine`          | ✅       | `imgsz`, `half`, `dynamic`, `simplify`, `workspace`, `int8`, `batch` |
-| [CoreML](../integrations/coreml.md)               | `coreml`          | `yolov8n-seg.mlpackage`       | ✅       | `imgsz`, `half`, `int8`, `nms`, `batch`                              |
-| [TF SavedModel](../integrations/tf-savedmodel.md) | `saved_model`     | `yolov8n-seg_saved_model/`    | ✅       | `imgsz`, `keras`, `int8`, `batch`                                    |
-| [TF GraphDef](../integrations/tf-graphdef.md)     | `pb`              | `yolov8n-seg.pb`              | ❌       | `imgsz`, `batch`                                                     |
-| [TF Lite](../integrations/tflite.md)              | `tflite`          | `yolov8n-seg.tflite`          | ✅       | `imgsz`, `half`, `int8`, `batch`                                     |
-| [TF Edge TPU](../integrations/edge-tpu.md)        | `edgetpu`         | `yolov8n-seg_edgetpu.tflite`  | ✅       | `imgsz`                                                              |
-| [TF.js](../integrations/tfjs.md)                  | `tfjs`            | `yolov8n-seg_web_model/`      | ✅       | `imgsz`, `half`, `int8`, `batch`                                     |
-| [PaddlePaddle](../integrations/paddlepaddle.md)   | `paddle`          | `yolov8n-seg_paddle_model/`   | ✅       | `imgsz`, `batch`                                                     |
-| [NCNN](../integrations/ncnn.md)                   | `ncnn`            | `yolov8n-seg_ncnn_model/`     | ✅       | `imgsz`, `half`, `batch`                                             |
+{% include "macros/export-table.md" %}
 
 See full `export` details in the [Export](../modes/export.md) page.
+
+## FAQ
+
+### How do I train a YOLOv8 segmentation model on a custom dataset?
+
+To train a YOLOv8 segmentation model on a custom dataset, you first need to prepare your dataset in the YOLO segmentation format. You can use tools like [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO) to convert datasets from other formats. Once your dataset is ready, you can train the model using Python or CLI commands:
+
+!!! Example
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load a pretrained YOLOv8 segment model
+        model = YOLO("yolov8n-seg.pt")
+
+        # Train the model
+        results = model.train(data="path/to/your_dataset.yaml", epochs=100, imgsz=640)
+        ```
+
+    === "CLI"
+
+        ```bash
+        yolo segment train data=path/to/your_dataset.yaml model=yolov8n-seg.pt epochs=100 imgsz=640
+        ```
+
+Check the [Configuration](../usage/cfg.md) page for more available arguments.
+
+### What is the difference between object detection and instance segmentation in YOLOv8?
+
+Object detection identifies and localizes objects within an image by drawing bounding boxes around them, whereas instance segmentation not only identifies the bounding boxes but also delineates the exact shape of each object. YOLOv8 instance segmentation models provide masks or contours that outline each detected object, which is particularly useful for tasks where knowing the precise shape of objects is important, such as medical imaging or autonomous driving.
+
+### Why use YOLOv8 for instance segmentation?
+
+Ultralytics YOLOv8 is a state-of-the-art model recognized for its high accuracy and real-time performance, making it ideal for instance segmentation tasks. YOLOv8 Segment models come pretrained on the [COCO dataset](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml), ensuring robust performance across a variety of objects. Additionally, YOLOv8 supports training, validation, prediction, and export functionalities with seamless integration, making it highly versatile for both research and industry applications.
+
+### How do I load and validate a pretrained YOLOv8 segmentation model?
+
+Loading and validating a pretrained YOLOv8 segmentation model is straightforward. Here's how you can do it using both Python and CLI:
+
+!!! Example
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load a pretrained model
+        model = YOLO("yolov8n-seg.pt")
+
+        # Validate the model
+        metrics = model.val()
+        print("Mean Average Precision for boxes:", metrics.box.map)
+        print("Mean Average Precision for masks:", metrics.seg.map)
+        ```
+
+    === "CLI"
+
+        ```bash
+        yolo segment val model=yolov8n-seg.pt
+        ```
+
+These steps will provide you with validation metrics like Mean Average Precision (mAP), crucial for assessing model performance.
+
+### How can I export a YOLOv8 segmentation model to ONNX format?
+
+Exporting a YOLOv8 segmentation model to ONNX format is simple and can be done using Python or CLI commands:
+
+!!! Example
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load a pretrained model
+        model = YOLO("yolov8n-seg.pt")
+
+        # Export the model to ONNX format
+        model.export(format="onnx")
+        ```
+
+    === "CLI"
+
+        ```bash
+        yolo export model=yolov8n-seg.pt format=onnx
+        ```
+
+For more details on exporting to various formats, refer to the [Export](../modes/export.md) page.

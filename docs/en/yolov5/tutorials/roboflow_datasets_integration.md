@@ -71,3 +71,35 @@ Ultralytics provides a range of ready-to-use environments, each pre-installed wi
 <a href="https://github.com/ultralytics/yolov5/actions/workflows/ci-testing.yml"><img src="https://github.com/ultralytics/yolov5/actions/workflows/ci-testing.yml/badge.svg" alt="YOLOv5 CI"></a>
 
 This badge indicates that all [YOLOv5 GitHub Actions](https://github.com/ultralytics/yolov5/actions) Continuous Integration (CI) tests are successfully passing. These CI tests rigorously check the functionality and performance of YOLOv5 across various key aspects: [training](https://github.com/ultralytics/yolov5/blob/master/train.py), [validation](https://github.com/ultralytics/yolov5/blob/master/val.py), [inference](https://github.com/ultralytics/yolov5/blob/master/detect.py), [export](https://github.com/ultralytics/yolov5/blob/master/export.py), and [benchmarks](https://github.com/ultralytics/yolov5/blob/master/benchmarks.py). They ensure consistent and reliable operation on macOS, Windows, and Ubuntu, with tests conducted every 24 hours and upon each new commit.
+
+## FAQ
+
+### How do I upload data to Roboflow for training YOLOv5 models?
+
+You can upload your data to Roboflow using three different methods: via the website, the REST API, or through Python. These options offer flexibility depending on your technical preference or project requirements. Once your data is uploaded, you can organize, label, and version it to prepare for training with Ultralytics YOLOv5 models. For more details, visit the [Upload](#upload) section of the documentation.
+
+### What are the advantages of using Roboflow for data labeling and versioning?
+
+Roboflow provides a comprehensive platform for data organization, labeling, and versioning which is essential for efficient machine learning workflows. By using Roboflow with YOLOv5, you can streamline the process of dataset preparation, ensuring that your data is accurately annotated and consistently versioned. The platform also supports various preprocessing and offline augmentation options to enhance your dataset's quality. For a deeper dive into these features, see the [Labeling](#labeling) and [Versioning](#versioning) sections of the documentation.
+
+### How can I export my dataset from Roboflow to YOLOv5 format?
+
+Exporting your dataset from Roboflow to YOLOv5 format is straightforward. You can use the Python code snippet provided in the documentation:
+
+```python
+from roboflow import Roboflow
+
+rf = Roboflow(api_key="YOUR API KEY HERE")
+project = rf.workspace().project("YOUR PROJECT")
+dataset = project.version("YOUR VERSION").download("yolov5")
+```
+
+This code will download your dataset in a format compatible with YOLOv5, allowing you to quickly begin training your model. For more details, refer to the [Exporting Data](#exporting-data) section.
+
+### What is active learning and how does it work with YOLOv5 and Roboflow?
+
+Active learning is a machine learning strategy that iteratively improves a model by intelligently selecting the most informative data points to label. With the Roboflow and YOLOv5 integration, you can implement active learning to continuously enhance your model's performance. This involves deploying a model, capturing new data, using the model to make predictions, and then manually verifying or correcting those predictions to further train the model. For more insights into active learning see the [Active Learning](#active-learning) section above.
+
+### How can I use Ultralytics environments for training YOLOv5 models on different platforms?
+
+Ultralytics provides ready-to-use environments with pre-installed dependencies like CUDA, CUDNN, Python, and PyTorch, making it easier to kickstart your training projects. These environments are available on various platforms such as Google Cloud, AWS, Azure, and Docker. You can also access free GPU notebooks via [Paperspace](https://bit.ly/yolov5-paperspace-notebook), [Google Colab](https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb), and [Kaggle](https://www.kaggle.com/ultralytics/yolov5). For specific setup instructions, visit the [Supported Environments](#supported-environments) section of the documentation.

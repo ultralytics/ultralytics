@@ -6,13 +6,14 @@ keywords: Ultralytics HUB, Pro Plan, upgrade guide, cloud training, storage, inf
 
 # Ultralytics HUB Pro
 
-[Ultralytics HUB](https://bit.ly/ultralytics_hub) offers the Pro Plan as a monthly or annual subscription.
+[Ultralytics HUB](https://ultralytics.com/hub) offers the Pro Plan as a monthly or annual subscription.
 
 The Pro Plan provides early access to upcoming features and includes enhanced benefits:
 
 - 200GB of storage, compared to the standard 20GB.
 - Access to our [Cloud Training](./cloud-training.md).
-- Increased rate limits for our [Inference API](./inference-api.md).
+- Access to our [Dedicated Inference API](./inference-api.md#dedicated-inference-api).
+- Increased rate limits for our [Shared Inference API](./inference-api.md#shared-inference-api).
 - Collaboration features for [teams](./teams.md).
 
 ## Upgrade

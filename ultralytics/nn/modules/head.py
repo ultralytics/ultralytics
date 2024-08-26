@@ -229,7 +229,6 @@ class Pose(Detect):
 
     def forward(self, x, is_training=True):
         """Perform forward pass through YOLO model and return predictions."""
-
         if self.end2end:
             return self.pose_forward_end2end(x, is_training=is_training)
 
@@ -252,7 +251,6 @@ class Pose(Detect):
         Returns:
             (dict, tensor): If not in training mode, returns a dictionary containing the outputs of both one2many and one2one detections.
         """
-
         x_detach = [xi.detach() for xi in x]
         bs = x[0].shape[0]  # batch size
 
@@ -310,7 +308,6 @@ class Pose(Detect):
             (torch.Tensor): The post-processed predictions with shape (batch_size, max_det, 6),
                 including bounding boxes, scores and cls.
         """
-
         assert 4 + nc + nk == preds.shape[-1]
         boxes, scores, keypoints = preds.split([4, nc, nk], dim=-1)
         max_scores = scores.amax(dim=-1)

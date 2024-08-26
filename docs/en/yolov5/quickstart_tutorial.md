@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Dive into YOLOv5 for object detection with our easy-to-follow guide on setup, model training, and image inference using PyTorch. Get started now!
-keywords: YOLOv5 Tutorial, Object Detection Guide, PyTorch Model Training, Inference with YOLOv5, Ultralytics YOLOv5 Setup
+description: Kickstart your real-time object detection journey with YOLOv5! This guide covers installation, inference, and training to help you master YOLOv5 quickly.
+keywords: YOLOv5, Quickstart, real-time object detection, AI, ML, PyTorch, inference, training, Ultralytics, machine learning, deep learning
 ---
 
 # YOLOv5 Quickstart 🚀
@@ -20,7 +20,7 @@ pip install -r requirements.txt  # install dependencies
 
 ## Inference with PyTorch Hub
 
-Experience the simplicity of YOLOv5 [PyTorch Hub](https://docs.ultralytics.com/yolov5/tutorials/pytorch_hub_model_loading) inference, where [models](https://github.com/ultralytics/yolov5/tree/master/models) are seamlessly downloaded from the latest YOLOv5 [release](https://github.com/ultralytics/yolov5/releases).
+Experience the simplicity of YOLOv5 [PyTorch Hub](./tutorials/pytorch_hub_model_loading.md) inference, where [models](https://github.com/ultralytics/yolov5/tree/master/models) are seamlessly downloaded from the latest YOLOv5 [release](https://github.com/ultralytics/yolov5/releases).
 
 ```python
 import torch
@@ -57,7 +57,7 @@ python detect.py --weights yolov5s.pt --source 0                               #
 
 ## Training
 
-Replicate the YOLOv5 [COCO](https://github.com/ultralytics/yolov5/blob/master/data/scripts/get_coco.sh) benchmarks with the instructions below. The necessary [models](https://github.com/ultralytics/yolov5/tree/master/models) and [datasets](https://github.com/ultralytics/yolov5/tree/master/data) are pulled directly from the latest YOLOv5 [release](https://github.com/ultralytics/yolov5/releases). Training YOLOv5n/s/m/l/x on a V100 GPU should typically take 1/2/4/6/8 days respectively (note that [Multi-GPU](https://docs.ultralytics.com/yolov5/tutorials/multi_gpu_training) setups work faster). Maximize performance by using the highest possible `--batch-size` or use `--batch-size -1` for the YOLOv5 [AutoBatch](https://github.com/ultralytics/yolov5/pull/5092) feature. The following batch sizes are ideal for V100-16GB GPUs.
+Replicate the YOLOv5 [COCO](https://github.com/ultralytics/yolov5/blob/master/data/scripts/get_coco.sh) benchmarks with the instructions below. The necessary [models](https://github.com/ultralytics/yolov5/tree/master/models) and [datasets](https://github.com/ultralytics/yolov5/tree/master/data) are pulled directly from the latest YOLOv5 [release](https://github.com/ultralytics/yolov5/releases). Training YOLOv5n/s/m/l/x on a V100 GPU should typically take 1/2/4/6/8 days respectively (note that [Multi-GPU](./tutorials/multi_gpu_training.md) setups work faster). Maximize performance by using the highest possible `--batch-size` or use `--batch-size -1` for the YOLOv5 [AutoBatch](https://github.com/ultralytics/yolov5/pull/5092) feature. The following batch sizes are ideal for V100-16GB GPUs.
 
 ```bash
 python train.py --data coco.yaml --epochs 300 --weights '' --cfg yolov5n.yaml  --batch-size 128

@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Understand the YOLO pose dataset format and learn to use Ultralytics datasets to train your pose estimation models effectively.
-keywords: Ultralytics, YOLO, pose estimation, datasets, training, YAML, keypoints, COCO-Pose, COCO8-Pose, data conversion
+description: Learn about Ultralytics YOLO format for pose estimation datasets, supported formats, COCO-Pose, COCO8-Pose, Tiger-Pose, and how to add your own dataset.
+keywords: pose estimation, Ultralytics, YOLO format, COCO-Pose, COCO8-Pose, Tiger-Pose, dataset conversion, keypoints
 ---
 
 # Pose Estimation Datasets Overview
@@ -72,16 +72,17 @@ The `train` and `val` fields specify the paths to the directories containing the
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('yolov8n-pose.pt')  # load a pretrained model (recommended for training)
+        model = YOLO("yolov8n-pose.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
-        results = model.train(data='coco128-pose.yaml', epochs=100, imgsz=640)
+        results = model.train(data="coco8-pose.yaml", epochs=100, imgsz=640)
         ```
+
     === "CLI"
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=coco128-pose.yaml model=yolov8n-pose.pt epochs=100 imgsz=640
+        yolo pose train data=coco8-pose.yaml model=yolov8n-pose.pt epochs=100 imgsz=640
         ```
 
 ## Supported Datasets
@@ -132,7 +133,78 @@ Ultralytics provides a convenient conversion tool to convert labels from the pop
         ```python
         from ultralytics.data.converter import convert_coco
 
-        convert_coco(labels_dir='path/to/coco/annotations/', use_keypoints=True)
+        convert_coco(labels_dir="path/to/coco/annotations/", use_keypoints=True)
         ```
 
 This conversion tool can be used to convert the COCO dataset or any dataset in the COCO format to the Ultralytics YOLO format. The `use_keypoints` parameter specifies whether to include keypoints (for pose estimation) in the converted labels.
+
+## FAQ
+
+### What is the Ultralytics YOLO format for pose estimation?
+
+The Ultralytics YOLO format for pose estimation datasets involves labeling each image with a corresponding text file. Each row of the text file stores information about an object instance: 
+
+- Object class index
+- Object center coordinates (normalized x and y)
+- Object width and height (normalized)
+- Object keypoint coordinates (normalized pxn and pyn)
+
+For 2D poses, keypoints include pixel coordinates. For 3D, each keypoint also has a visibility flag. For more details, see [Ultralytics YOLO format](#ultralytics-yolo-format).
+
+### How do I use the COCO-Pose dataset with Ultralytics YOLO?
+
+To use the COCO-Pose dataset with Ultralytics YOLO:
+1. Download the dataset and prepare your label files in the YOLO format.
+2. Create a YAML configuration file specifying paths to training and validation images, keypoint shape, and class names.
+3. Use the configuration file for training:
+
+    ```python
+    from ultralytics import YOLO
+
+    model = YOLO("yolov8n-pose.pt")  # load pretrained model
+    results = model.train(data="coco-pose.yaml", epochs=100, imgsz=640)
+    ```
+    
+    For more information, visit [COCO-Pose](coco.md) and [train](../../modes/train.md) sections.
+
+### How can I add my own dataset for pose estimation in Ultralytics YOLO?
+
+To add your dataset:
+1. Convert your annotations to the Ultralytics YOLO format.
+2. Create a YAML configuration file specifying the dataset paths, number of classes, and class names.
+3. Use the configuration file to train your model:
+
+    ```python
+    from ultralytics import YOLO
+
+    model = YOLO("yolov8n-pose.pt")
+    results = model.train(data="your-dataset.yaml", epochs=100, imgsz=640)
+    ```
+    
+    For complete steps, check the [Adding your own dataset](#adding-your-own-dataset) section.
+
+### What is the purpose of the dataset YAML file in Ultralytics YOLO?
+
+The dataset YAML file in Ultralytics YOLO defines the dataset and model configuration for training. It specifies paths to training, validation, and test images, keypoint shapes, class names, and other configuration options. This structured format helps streamline dataset management and model training. Here is an example YAML format:
+
+```yaml
+path: ../datasets/coco8-pose
+train: images/train
+val: images/val
+names:
+  0: person
+```
+
+Read more about creating YAML configuration files in [Dataset YAML format](#dataset-yaml-format).
+
+### How can I convert COCO dataset labels to Ultralytics YOLO format for pose estimation?
+
+Ultralytics provides a conversion tool to convert COCO dataset labels to the YOLO format, including keypoint information:
+
+```python
+from ultralytics.data.converter import convert_coco
+
+convert_coco(labels_dir="path/to/coco/annotations/", use_keypoints=True)
+```
+
+This tool helps seamlessly integrate COCO datasets into YOLO projects. For details, refer to the [Conversion Tool](#conversion-tool) section.

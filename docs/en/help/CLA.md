@@ -1,6 +1,6 @@
 ---
-description: Understand terms governing contributions to Ultralytics projects including source code, bug fixes, documentation and more. Read our Contributor License Agreement.
-keywords: Ultralytics, Contributor License Agreement, Open Source Software, Contributions, Copyright License, Patent License, Moral Rights
+description: Review the terms for contributing to Ultralytics projects. Learn about copyright, patent licenses, and moral rights for your contributions.
+keywords: Ultralytics, Contributor License Agreement, open source, contributions, copyright license, patent license, moral rights
 ---
 
 # Ultralytics Individual Contributor License Agreement
@@ -26,3 +26,25 @@ You agree that the following terms apply to all of your past, present and future
 **Disputes.** This Agreement shall be governed by and construed in accordance with the laws of the State of New York, United States of America, without giving effect to its principles or rules regarding conflicts of laws, other than such principles directing application of New York law. The parties hereby submit to venue in, and jurisdiction of the courts located in New York, New York for purposes relating to this Agreement. In the event that any of the provisions of this Agreement shall be held by a court or other tribunal of competent jurisdiction to be unenforceable, the remaining portions hereof shall remain in full force and effect.
 
 **Assignment.** You agree that Ultralytics may assign this Agreement, and all of its rights, obligations and licenses hereunder.
+
+## FAQ
+
+### What is the purpose of the Ultralytics Individual Contributor License Agreement?
+
+The Ultralytics Individual Contributor License Agreement (ICLA) governs the terms under which you contribute to Ultralytics' open-source projects. It sets out the rights and obligations related to your contributions, including granting copyright and patent licenses, waiving moral rights, and disclosing any third-party content.
+
+### Why do I need to agree to the Copyright License in the ICLA?
+
+Agreeing to the Copyright License allows Ultralytics to use and distribute your contributions, including making derivative works. This ensures that your contributions can be integrated into Ultralytics projects and shared with the community, fostering collaboration and software development.
+
+### How does the Patent License benefit both contributors and Ultralytics?
+
+The Patent License grants Ultralytics the rights to use, make, and sell contributions covered by your patents, which is crucial for product development and commercialization. In return, it allows your patented innovations to be more widely used and recognized, promoting innovation within the community.
+
+### What should I do if my contribution contains third-party content?
+
+If your contribution includes third-party content or you are aware of any third-party intellectual property rights, you must provide full details of such content and rights when submitting your contribution. This includes identifying the third-party content, its author, and the applicable license terms. For more information on third-party content, refer to the Third Party Content/Rights section of the Agreement.
+
+### What happens if Ultralytics does not use my contributions?
+
+Ultralytics is not obligated to use or incorporate your contributions into any projects. The decision to use or integrate contributions is at Ultralytics' sole discretion. This means that while your contributions are valuable, they may not always align with the project's current needs or directions. For further details, see the No Obligation section.

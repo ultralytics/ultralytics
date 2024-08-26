@@ -36,7 +36,7 @@ FILE = Path(__file__).resolve()
 ROOT = FILE.parents[1]  # YOLO
 ASSETS = ROOT / "assets"  # default images
 DEFAULT_CFG_PATH = ROOT / "cfg/default.yaml"
-NUM_THREADS = min(8, max(1, os.cpu_count() - 1))  # number of YOLOv5 multiprocessing threads
+NUM_THREADS = min(8, max(1, os.cpu_count() - 1))  # number of YOLO multiprocessing threads
 AUTOINSTALL = str(os.getenv("YOLO_AUTOINSTALL", True)).lower() == "true"  # global auto-install mode
 VERBOSE = str(os.getenv("YOLO_VERBOSE", True)).lower() == "true"  # global verbose mode
 TQDM_BAR_FORMAT = "{l_bar}{bar:10}{r_bar}" if VERBOSE else None  # tqdm bar format
@@ -44,9 +44,10 @@ LOGGING_NAME = "ultralytics"
 MACOS, LINUX, WINDOWS = (platform.system() == x for x in ["Darwin", "Linux", "Windows"])  # environment booleans
 ARM64 = platform.machine() in {"arm64", "aarch64"}  # ARM64 booleans
 PYTHON_VERSION = platform.python_version()
+TORCH_VERSION = torch.__version__
 TORCHVISION_VERSION = importlib.metadata.version("torchvision")  # faster than importing torchvision
 HELP_MSG = """
-    Usage examples for running YOLOv8:
+    Examples for running Ultralytics:
 
     1. Install the ultralytics package:
 
@@ -57,34 +58,34 @@ HELP_MSG = """
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('yolov8n.yaml')  # build a new model from scratch
+        model = YOLO("yolov8n.yaml")  # build a new model from scratch
         model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
 
         # Use the model
-        results = model.train(data="coco128.yaml", epochs=3)  # train the model
+        results = model.train(data="coco8.yaml", epochs=3)  # train the model
         results = model.val()  # evaluate model performance on the validation set
-        results = model('https://ultralytics.com/images/bus.jpg')  # predict on an image
-        success = model.export(format='onnx')  # export the model to ONNX format
+        results = model("https://ultralytics.com/images/bus.jpg")  # predict on an image
+        success = model.export(format="onnx")  # export the model to ONNX format
 
     3. Use the command line interface (CLI):
 
-        YOLOv8 'yolo' CLI commands use the following syntax:
+        Ultralytics 'yolo' CLI commands use the following syntax:
 
             yolo TASK MODE ARGS
 
-            Where   TASK (optional) is one of [detect, segment, classify]
-                    MODE (required) is one of [train, val, predict, export]
-                    ARGS (optional) are any number of custom 'arg=value' pairs like 'imgsz=320' that override defaults.
-                        See all ARGS at https://docs.ultralytics.com/usage/cfg or with 'yolo cfg'
+            Where   TASK (optional) is one of [detect, segment, classify, pose, obb]
+                    MODE (required) is one of [train, val, predict, export, benchmark]
+                    ARGS (optional) are any number of custom "arg=value" pairs like "imgsz=320" that override defaults.
+                        See all ARGS at https://docs.ultralytics.com/usage/cfg or with "yolo cfg"
 
         - Train a detection model for 10 epochs with an initial learning_rate of 0.01
-            yolo detect train data=coco128.yaml model=yolov8n.pt epochs=10 lr0=0.01
+            yolo detect train data=coco8.yaml model=yolov8n.pt epochs=10 lr0=0.01
 
         - Predict a YouTube video using a pretrained segmentation model at image size 320:
             yolo segment predict model=yolov8n-seg.pt source='https://youtu.be/LNwODJXcvt4' imgsz=320
 
         - Val a pretrained detection model at batch-size 1 and image size 640:
-            yolo detect val model=yolov8n.pt data=coco128.yaml batch=1 imgsz=640
+            yolo detect val model=yolov8n.pt data=coco8.yaml batch=1 imgsz=640
 
         - Export a YOLOv8n classification model to ONNX format at image size 224 by 128 (no TASK required)
             yolo export model=yolov8n-cls.pt format=onnx imgsz=224,128
@@ -102,29 +103,59 @@ HELP_MSG = """
     GitHub: https://github.com/ultralytics/ultralytics
     """
 
-# Settings
+# Settings and Environment Variables
 torch.set_printoptions(linewidth=320, precision=4, profile="default")
 np.set_printoptions(linewidth=320, formatter={"float_kind": "{:11.5g}".format})  # format short g, %precision=5
 cv2.setNumThreads(0)  # prevent OpenCV from multithreading (incompatible with PyTorch DataLoader)
 os.environ["NUMEXPR_MAX_THREADS"] = str(NUM_THREADS)  # NumExpr max threads
 os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"  # for deterministic training
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"  # suppress verbose TF compiler warnings in Colab
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # suppress verbose TF compiler warnings in Colab
+os.environ["TORCH_CPP_LOG_LEVEL"] = "ERROR"  # suppress "NNPACK.cpp could not initialize NNPACK" warnings
+os.environ["KINETO_LOG_LEVEL"] = "5"  # suppress verbose PyTorch profiler output when computing FLOPs
 
 
 class TQDM(tqdm_original):
     """
-    Custom Ultralytics tqdm class with different default arguments.
+    A custom TQDM progress bar class that extends the original tqdm functionality.
 
-    Args:
-        *args (list): Positional arguments passed to original tqdm.
-        **kwargs (any): Keyword arguments, with custom defaults applied.
+    This class modifies the behavior of the original tqdm progress bar based on global settings and provides
+    additional customization options.
+
+    Attributes:
+        disable (bool): Whether to disable the progress bar. Determined by the global VERBOSE setting and
+            any passed 'disable' argument.
+        bar_format (str): The format string for the progress bar. Uses the global TQDM_BAR_FORMAT if not
+            explicitly set.
+
+    Methods:
+        __init__: Initializes the TQDM object with custom settings.
+
+    Examples:
+        >>> from ultralytics.utils import TQDM
+        >>> for i in TQDM(range(100)):
+        ...     # Your processing code here
+        ...     pass
     """
 
     def __init__(self, *args, **kwargs):
         """
-        Initialize custom Ultralytics tqdm class with different default arguments.
+        Initializes a custom TQDM progress bar.
 
-        Note these can still be overridden when calling TQDM.
+        This class extends the original tqdm class to provide customized behavior for Ultralytics projects.
+
+        Args:
+            *args (Any): Variable length argument list to be passed to the original tqdm constructor.
+            **kwargs (Any): Arbitrary keyword arguments to be passed to the original tqdm constructor.
+
+        Notes:
+            - The progress bar is disabled if VERBOSE is False or if 'disable' is explicitly set to True in kwargs.
+            - The default bar format is set to TQDM_BAR_FORMAT unless overridden in kwargs.
+
+        Examples:
+            >>> from ultralytics.utils import TQDM
+            >>> for i in TQDM(range(100)):
+            ...     # Your code here
+            ...     pass
         """
         kwargs["disable"] = not VERBOSE or kwargs.get("disable", False)  # logical 'and' with default value if passed
         kwargs.setdefault("bar_format", TQDM_BAR_FORMAT)  # override default value if passed
@@ -132,8 +163,33 @@ class TQDM(tqdm_original):
 
 
 class SimpleClass:
-    """Ultralytics SimpleClass is a base class providing helpful string representation, error reporting, and attribute
-    access methods for easier debugging and usage.
+    """
+    A simple base class for creating objects with string representations of their attributes.
+
+    This class provides a foundation for creating objects that can be easily printed or represented as strings,
+    showing all their non-callable attributes. It's useful for debugging and introspection of object states.
+
+    Methods:
+        __str__: Returns a human-readable string representation of the object.
+        __repr__: Returns a machine-readable string representation of the object.
+        __getattr__: Provides a custom attribute access error message with helpful information.
+
+    Examples:
+        >>> class MyClass(SimpleClass):
+        ...     def __init__(self):
+        ...         self.x = 10
+        ...         self.y = "hello"
+        >>> obj = MyClass()
+        >>> print(obj)
+        __main__.MyClass object with attributes:
+
+        x: 10
+        y: 'hello'
+
+    Notes:
+        - This class is designed to be subclassed. It provides a convenient way to inspect object attributes.
+        - The string representation includes the module and class name of the object.
+        - Callable attributes and attributes starting with an underscore are excluded from the string representation.
     """
 
     def __str__(self):
@@ -161,8 +217,38 @@ class SimpleClass:
 
 
 class IterableSimpleNamespace(SimpleNamespace):
-    """Ultralytics IterableSimpleNamespace is an extension class of SimpleNamespace that adds iterable functionality and
-    enables usage with dict() and for loops.
+    """
+    An iterable SimpleNamespace class that provides enhanced functionality for attribute access and iteration.
+
+    This class extends the SimpleNamespace class with additional methods for iteration, string representation,
+    and attribute access. It is designed to be used as a convenient container for storing and accessing
+    configuration parameters.
+
+    Methods:
+        __iter__: Returns an iterator of key-value pairs from the namespace's attributes.
+        __str__: Returns a human-readable string representation of the object.
+        __getattr__: Provides a custom attribute access error message with helpful information.
+        get: Retrieves the value of a specified key, or a default value if the key doesn't exist.
+
+    Examples:
+        >>> cfg = IterableSimpleNamespace(a=1, b=2, c=3)
+        >>> for k, v in cfg:
+        ...     print(f"{k}: {v}")
+        a: 1
+        b: 2
+        c: 3
+        >>> print(cfg)
+        a=1
+        b=2
+        c=3
+        >>> cfg.get("b")
+        2
+        >>> cfg.get("d", "default")
+        'default'
+
+    Notes:
+        This class is particularly useful for storing configuration parameters in a more accessible
+        and iterable format compared to a standard dictionary.
     """
 
     def __iter__(self):
@@ -206,7 +292,6 @@ def plt_settings(rcparams=None, backend="Agg"):
         (Callable): Decorated function with temporarily set rc parameters and backend. This decorator can be
             applied to any function that needs to have specific matplotlib rc parameters and backend for its execution.
     """
-
     if rcparams is None:
         rcparams = {"font.size": 11}
 
@@ -216,16 +301,19 @@ def plt_settings(rcparams=None, backend="Agg"):
         def wrapper(*args, **kwargs):
             """Sets rc parameters and backend, calls the original function, and restores the settings."""
             original_backend = plt.get_backend()
-            if backend.lower() != original_backend.lower():
+            switch = backend.lower() != original_backend.lower()
+            if switch:
                 plt.close("all")  # auto-close()ing of figures upon backend switching is deprecated since 3.8
                 plt.switch_backend(backend)
 
-            with plt.rc_context(rcparams):
-                result = func(*args, **kwargs)
-
-            if backend != original_backend:
-                plt.close("all")
-                plt.switch_backend(original_backend)
+            # Plot with backend and always revert to original backend
+            try:
+                with plt.rc_context(rcparams):
+                    result = func(*args, **kwargs)
+            finally:
+                if switch:
+                    plt.close("all")
+                    plt.switch_backend(original_backend)
             return result
 
         return wrapper
@@ -234,8 +322,27 @@ def plt_settings(rcparams=None, backend="Agg"):
 
 
 def set_logging(name="LOGGING_NAME", verbose=True):
-    """Sets up logging for the given name with UTF-8 encoding support, ensuring compatibility across different
-    environments.
+    """
+    Sets up logging with UTF-8 encoding and configurable verbosity.
+
+    This function configures logging for the Ultralytics library, setting the appropriate logging level and
+    formatter based on the verbosity flag and the current process rank. It handles special cases for Windows
+    environments where UTF-8 encoding might not be the default.
+
+    Args:
+        name (str): Name of the logger. Defaults to "LOGGING_NAME".
+        verbose (bool): Flag to set logging level to INFO if True, ERROR otherwise. Defaults to True.
+
+    Examples:
+        >>> set_logging(name="ultralytics", verbose=True)
+        >>> logger = logging.getLogger("ultralytics")
+        >>> logger.info("This is an info message")
+
+    Notes:
+        - On Windows, this function attempts to reconfigure stdout to use UTF-8 encoding if possible.
+        - If reconfiguration is not possible, it falls back to a custom formatter that handles non-UTF-8 environments.
+        - The function sets up a StreamHandler with the appropriate formatter and level.
+        - The logger's propagate flag is set to False to prevent duplicate logging in parent loggers.
     """
     level = logging.INFO if verbose and RANK in {-1, 0} else logging.ERROR  # rank in world for Multi-GPU trainings
 
@@ -303,7 +410,6 @@ class ThreadingLocked:
         @ThreadingLocked()
         def my_function():
             # Your code here
-            pass
         ```
     """
 
@@ -393,7 +499,7 @@ def yaml_print(yaml_file: Union[str, Path, dict]) -> None:
         (None)
     """
     yaml_dict = yaml_load(yaml_file) if isinstance(yaml_file, (str, Path)) else yaml_file
-    dump = yaml.dump(yaml_dict, sort_keys=False, allow_unicode=True)
+    dump = yaml.dump(yaml_dict, sort_keys=False, allow_unicode=True, width=float("inf"))
     LOGGER.info(f"Printing '{colorstr('bold', 'black', yaml_file)}'\n\n{dump}")
 
 
@@ -513,7 +619,7 @@ def is_online() -> bool:
         import socket
 
         for dns in ("1.1.1.1", "8.8.8.8"):  # check Cloudflare and Google DNS
-            socket.create_connection(address=(dns, 80), timeout=1.0).close()
+            socket.create_connection(address=(dns, 80), timeout=2.0).close()
             return True
     return False
 
@@ -697,7 +803,7 @@ SETTINGS_YAML = USER_CONFIG_DIR / "settings.yaml"
 
 
 def colorstr(*input):
-    """
+    r"""
     Colors a string based on the provided color and style arguments. Utilizes ANSI escape codes.
     See https://en.wikipedia.org/wiki/ANSI_escape_code for more details.
 
@@ -708,7 +814,7 @@ def colorstr(*input):
     In the second form, 'blue' and 'bold' will be applied by default.
 
     Args:
-        *input (str): A sequence of strings where the first n-1 strings are color and style arguments,
+        *input (str | Path): A sequence of strings where the first n-1 strings are color and style arguments,
                       and the last string is the one to be colored.
 
     Supported Colors and Styles:
@@ -760,8 +866,8 @@ def remove_colorstr(input_string):
         (str): A new string with all ANSI escape codes removed.
 
     Examples:
-        >>> remove_colorstr(colorstr('blue', 'bold', 'hello world'))
-        >>> 'hello world'
+        >>> remove_colorstr(colorstr("blue", "bold", "hello world"))
+        >>> "hello world"
     """
     ansi_escape = re.compile(r"\x1B\[[0-9;]*[A-Za-z]")
     return ansi_escape.sub("", input_string)
@@ -775,12 +881,12 @@ class TryExcept(contextlib.ContextDecorator):
         As a decorator:
         >>> @TryExcept(msg="Error occurred in func", verbose=True)
         >>> def func():
-        >>>    # Function logic here
+        >>> # Function logic here
         >>>     pass
 
         As a context manager:
         >>> with TryExcept(msg="Error occurred in block", verbose=True):
-        >>>     # Code block here
+        >>> # Code block here
         >>>     pass
     """
 
@@ -804,20 +910,15 @@ class Retry(contextlib.ContextDecorator):
     """
     Retry class for function execution with exponential backoff.
 
-    Can be used as a decorator or a context manager to retry a function or block of code on exceptions, up to a
-    specified number of times with an exponentially increasing delay between retries.
+    Can be used as a decorator to retry a function on exceptions, up to a specified number of times with an
+    exponentially increasing delay between retries.
 
     Examples:
         Example usage as a decorator:
         >>> @Retry(times=3, delay=2)
         >>> def test_func():
-        >>>     # Replace with function logic that may raise exceptions
+        >>> # Replace with function logic that may raise exceptions
         >>>     return True
-
-        Example usage as a context manager:
-        >>> with Retry(times=3, delay=2):
-        >>>     # Replace with code block that may raise exceptions
-        >>>     pass
     """
 
     def __init__(self, times=3, delay=2):
@@ -843,20 +944,6 @@ class Retry(contextlib.ContextDecorator):
                     time.sleep(self.delay * (2**self._attempts))  # exponential backoff delay
 
         return wrapped_func
-
-    def __enter__(self):
-        """Enter the runtime context related to this object."""
-        self._attempts = 0
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        """Exit the runtime context related to this object with exponential backoff."""
-        if exc_type is not None:
-            self._attempts += 1
-            if self._attempts < self.times:
-                print(f"Retry {self._attempts}/{self.times} failed: {exc_value}")
-                time.sleep(self.delay * (2**self._attempts))  # exponential backoff delay
-                return True  # Suppresses the exception and retries
-        return False  # Re-raises the exception if retries are exhausted
 
 
 def threaded(func):
@@ -960,9 +1047,7 @@ class SettingsManager(dict):
     """
 
     def __init__(self, file=SETTINGS_YAML, version="0.0.4"):
-        """Initialize the SettingsManager with default settings, load and validate current settings from the YAML
-        file.
-        """
+        """Initializes the SettingsManager with default settings and loads user settings."""
         import copy
         import hashlib
 
@@ -993,6 +1078,11 @@ class SettingsManager(dict):
             "tensorboard": True,
             "wandb": True,
         }
+        self.help_msg = (
+            f"\nView settings with 'yolo settings' or at '{self.file}'"
+            "\nUpdate settings with 'yolo settings key=value', i.e. 'yolo settings runs_dir=path/to/dir'. "
+            "For help see https://docs.ultralytics.com/quickstart/#ultralytics-settings."
+        )
 
         super().__init__(copy.deepcopy(self.defaults))
 
@@ -1004,15 +1094,10 @@ class SettingsManager(dict):
             correct_keys = self.keys() == self.defaults.keys()
             correct_types = all(type(a) is type(b) for a, b in zip(self.values(), self.defaults.values()))
             correct_version = check_version(self["settings_version"], self.version)
-            help_msg = (
-                f"\nView settings with 'yolo settings' or at '{self.file}'"
-                "\nUpdate settings with 'yolo settings key=value', i.e. 'yolo settings runs_dir=path/to/dir'. "
-                "For help see https://docs.ultralytics.com/quickstart/#ultralytics-settings."
-            )
             if not (correct_keys and correct_types and correct_version):
                 LOGGER.warning(
                     "WARNING ⚠️ Ultralytics settings reset to default values. This may be due to a possible problem "
-                    f"with your settings or a recent ultralytics package update. {help_msg}"
+                    f"with your settings or a recent ultralytics package update. {self.help_msg}"
                 )
                 self.reset()
 
@@ -1020,7 +1105,7 @@ class SettingsManager(dict):
                 LOGGER.warning(
                     f"WARNING ⚠️ Ultralytics setting 'datasets_dir: {self.get('datasets_dir')}' "
                     f"must be different than 'runs_dir: {self.get('runs_dir')}'. "
-                    f"Please change one to avoid possible issues during training. {help_msg}"
+                    f"Please change one to avoid possible issues during training. {self.help_msg}"
                 )
 
     def load(self):
@@ -1033,6 +1118,12 @@ class SettingsManager(dict):
 
     def update(self, *args, **kwargs):
         """Updates a setting value in the current settings."""
+        for k, v in kwargs.items():
+            if k not in self.defaults:
+                raise KeyError(f"No Ultralytics setting '{k}'. {self.help_msg}")
+            t = type(self.defaults[k])
+            if not isinstance(v, t):
+                raise TypeError(f"Ultralytics setting '{k}' must be of type '{t}', not '{type(v)}'. {self.help_msg}")
         super().update(*args, **kwargs)
         self.save()
 
@@ -1043,13 +1134,10 @@ class SettingsManager(dict):
         self.save()
 
 
-def deprecation_warn(arg, new_arg, version=None):
+def deprecation_warn(arg, new_arg):
     """Issue a deprecation warning when a deprecated argument is used, suggesting an updated argument."""
-    if not version:
-        version = float(__version__[:3]) + 0.2  # deprecate after 2nd major release
     LOGGER.warning(
-        f"WARNING ⚠️ '{arg}' is deprecated and will be removed in 'ultralytics {version}' in the future. "
-        f"Please use '{new_arg}' instead."
+        f"WARNING ⚠️ '{arg}' is deprecated and will be removed in in the future. " f"Please use '{new_arg}' instead."
     )
 
 
@@ -1087,8 +1175,9 @@ TESTS_RUNNING = is_pytest_running() or is_github_action_running()
 set_sentry()
 
 # Apply monkey patches
-from .patches import imread, imshow, imwrite, torch_save
+from ultralytics.utils.patches import imread, imshow, imwrite, torch_load, torch_save
 
+torch.load = torch_load
 torch.save = torch_save
 if WINDOWS:
     # Apply cv2 patches for non-ASCII and non-UTF characters in image paths

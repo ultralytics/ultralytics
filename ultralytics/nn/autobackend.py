@@ -106,7 +106,7 @@ class AutoBackend(nn.Module):
         super().__init__()
         w = str(weights[0] if isinstance(weights, list) else weights)
         nn_module = isinstance(weights, torch.nn.Module)
-        (pt, jit, onnx, xml, engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, paddle, ncnn, triton, mct) = (
+        (pt, jit, onnx, xml, engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, paddle, ncnn, mct, triton) = (
             self._model_type(w)
         )
         fp16 &= pt or jit or onnx or xml or engine or nn_module or triton  # FP16
@@ -176,7 +176,16 @@ class AutoBackend(nn.Module):
             import onnxruntime
 
             providers = ["CUDAExecutionProvider", "CPUExecutionProvider"] if cuda else ["CPUExecutionProvider"]
-            session = onnxruntime.InferenceSession(w, providers=providers)
+            if mct:
+                from sony_custom_layers.pytorch.object_detection import nms_ort
+                import mct_quantizers as mctq
+
+                session = onnxruntime.InferenceSession(w,
+                                            mctq.get_ort_session_options(),
+                                            providers=["CPUExecutionProvider"])
+                task = "detect"
+            else:
+                session = onnxruntime.InferenceSession(w, providers=providers)
             output_names = [x.name for x in session.get_outputs()]
             metadata = session.get_modelmeta().custom_metadata_map
 

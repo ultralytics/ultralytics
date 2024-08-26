@@ -1,6 +1,6 @@
 ---
-description: Explore Ultralytics' comprehensive security strategies safeguarding user data and systems. Learn about our diverse security tools, including Snyk, GitHub CodeQL, and Dependabot Alerts.
-keywords: Ultralytics, Comprehensive Security, user data protection, Snyk, GitHub CodeQL, Dependabot, vulnerability management, coding security practices
+description: Learn about the security measures and tools used by Ultralytics to protect user data and systems. Discover how we address vulnerabilities with Snyk, CodeQL, Dependabot, and more.
+keywords: Ultralytics security policy, Snyk scanning, CodeQL scanning, Dependabot alerts, secret scanning, vulnerability reporting, GitHub security, open-source security
 ---
 
 # Ultralytics Security Policy
@@ -34,3 +34,41 @@ We enable private vulnerability reporting, allowing users to discreetly report p
 If you suspect or discover a security vulnerability in any of our repositories, please let us know immediately. You can reach out to us directly via our [contact form](https://ultralytics.com/contact) or via [security@ultralytics.com](mailto:security@ultralytics.com). Our security team will investigate and respond as soon as possible.
 
 We appreciate your help in keeping all Ultralytics open-source projects secure and safe for everyone 🙏.
+
+## FAQ
+
+### What are the security measures implemented by Ultralytics to protect user data?
+
+Ultralytics employs a comprehensive security strategy to protect user data and systems. Key measures include:
+
+- **Snyk Scanning**: Conducts security scans to detect vulnerabilities in code and Dockerfiles.
+- **GitHub CodeQL**: Analyzes code semantics to detect complex vulnerabilities such as SQL injection.
+- **Dependabot Alerts**: Monitors dependencies for known vulnerabilities and sends alerts for swift remediation.
+- **Secret Scanning**: Detects sensitive data like credentials or private keys in code repositories to prevent data breaches.
+- **Private Vulnerability Reporting**: Offers a secure channel for users to report potential security issues discreetly.
+
+These tools ensure proactive identification and resolution of security issues, enhancing overall system security. For more details, visit our [export documentation](../modes/export.md).
+
+### How does Ultralytics use Snyk for security scanning?
+
+Ultralytics utilizes [Snyk](https://snyk.io/advisor/python/ultralytics) to conduct thorough security scans on its repositories. Snyk extends beyond basic dependency checks, examining the code and Dockerfiles for various vulnerabilities. By proactively identifying and resolving potential security issues, Snyk helps ensure that Ultralytics' open-source projects remain secure and reliable.
+
+To see the Snyk badge and learn more about its deployment, check the [Snyk Scanning section](#snyk-scanning).
+
+### What is CodeQL and how does it enhance security for Ultralytics?
+
+[CodeQL](https://docs.github.com/en/code-security/code-scanning/automatically-scanning-your-code-for-vulnerabilities-and-errors/about-code-scanning-with-codeql) is a security analysis tool integrated into Ultralytics' workflow via GitHub. It delves deep into the codebase to identify complex vulnerabilities such as SQL injection and Cross-Site Scripting (XSS). CodeQL analyzes the semantic structure of the code to provide an advanced level of security, ensuring early detection and mitigation of potential risks.
+
+For more information on how CodeQL is used, visit the [GitHub CodeQL Scanning section](#github-codeql-scanning).
+
+### How does Dependabot help maintain Ultralytics' code security?
+
+[Dependabot](https://docs.github.com/en/code-security/dependabot) is an automated tool that monitors and manages dependencies for known vulnerabilities. When Dependabot detects a vulnerability in an Ultralytics project dependency, it sends an alert, allowing the team to quickly address and mitigate the issue. This ensures that dependencies are kept secure and up-to-date, minimizing potential security risks.
+
+For more details, explore the [GitHub Dependabot Alerts section](#github-dependabot-alerts).
+
+### How does Ultralytics handle private vulnerability reporting?
+
+Ultralytics encourages users to report potential security issues through private channels. Users can report vulnerabilities discreetly via the [contact form](https://ultralytics.com/contact) or by emailing [security@ultralytics.com](mailto:security@ultralytics.com). This ensures responsible disclosure and allows the security team to investigate and address vulnerabilities securely and efficiently.
+
+For more information on private vulnerability reporting, refer to the [Private Vulnerability Reporting section](#private-vulnerability-reporting).

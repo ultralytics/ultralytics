@@ -41,7 +41,7 @@ def is_url(url, check=False):
     Args:
         url (str): The string to be validated as a URL.
         check (bool, optional): If True, performs an additional check to see if the URL exists online.
-            Defaults to True.
+            Defaults to False.
 
     Returns:
         (bool): Returns True for a valid URL. If 'check' is True, also returns True if the URL exists online.
@@ -75,7 +75,7 @@ def delete_dsstore(path, files_to_delete=(".DS_Store", "__MACOSX")):
         ```python
         from ultralytics.utils.downloads import delete_dsstore
 
-        delete_dsstore('path/to/dir')
+        delete_dsstore("path/to/dir")
         ```
 
     Note:
@@ -107,7 +107,7 @@ def zip_directory(directory, compress=True, exclude=(".DS_Store", "__MACOSX"), p
         ```python
         from ultralytics.utils.downloads import zip_directory
 
-        file = zip_directory('path/to/dir')
+        file = zip_directory("path/to/dir")
         ```
     """
     from zipfile import ZIP_DEFLATED, ZIP_STORED, ZipFile
@@ -153,7 +153,7 @@ def unzip_file(file, path=None, exclude=(".DS_Store", "__MACOSX"), exist_ok=Fals
         ```python
         from ultralytics.utils.downloads import unzip_file
 
-        dir = unzip_file('path/to/file.zip')
+        dir = unzip_file("path/to/file.zip")
         ```
     """
     from zipfile import BadZipFile, ZipFile, is_zipfile
@@ -201,7 +201,7 @@ def check_disk_space(url="https://ultralytics.com/assets/coco8.zip", path=Path.c
     Args:
         url (str, optional): The URL to the file. Defaults to 'https://ultralytics.com/assets/coco8.zip'.
         path (str | Path, optional): The path or drive to check the available free space on.
-        sf (float, optional): Safety factor, the multiplier for the required free space. Defaults to 2.0.
+        sf (float, optional): Safety factor, the multiplier for the required free space. Defaults to 1.5.
         hard (bool, optional): Whether to throw an error or not on insufficient disk space. Defaults to True.
 
     Returns:
@@ -392,10 +392,9 @@ def get_github_assets(repo="ultralytics/assets", version="latest", retry=False):
 
     Example:
         ```python
-        tag, assets = get_github_assets(repo='ultralytics/assets', version='latest')
+        tag, assets = get_github_assets(repo="ultralytics/assets", version="latest")
         ```
     """
-
     if version != "latest":
         version = f"tags/{version}"  # i.e. tags/v6.2
     url = f"https://api.github.com/repos/{repo}/releases/{version}"
@@ -425,7 +424,7 @@ def attempt_download_asset(file, repo="ultralytics/assets", release="v8.2.0", **
 
     Example:
         ```python
-        file_path = attempt_download_asset('yolov8n.pt', repo='ultralytics/assets', release='latest')
+        file_path = attempt_download_asset("yolov8n.pt", repo="ultralytics/assets", release="latest")
         ```
     """
     from ultralytics.utils import SETTINGS  # scoped for circular import
@@ -480,7 +479,7 @@ def download(url, dir=Path.cwd(), unzip=True, delete=False, curl=False, threads=
 
     Example:
         ```python
-        download('https://ultralytics.com/assets/example.zip', dir='path/to/dir', unzip=True)
+        download("https://ultralytics.com/assets/example.zip", dir="path/to/dir", unzip=True)
         ```
     """
     dir = Path(dir)

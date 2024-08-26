@@ -104,9 +104,7 @@ class BaseValidator:
 
     @smart_inference_mode()
     def __call__(self, trainer=None, model=None):
-        """Supports validation of a pre-trained model if passed or a model being trained if trainer is passed (trainer
-        gets priority).
-        """
+        """Executes validation process, running inference on dataloader and computing performance metrics."""
         self.training = trainer is not None
         augment = self.args.augment and (not self.training)
         if self.training:
@@ -280,7 +278,7 @@ class BaseValidator:
         return batch
 
     def postprocess(self, preds):
-        """Describes and summarizes the purpose of 'postprocess()' but no details mentioned."""
+        """Preprocesses the predictions."""
         return preds
 
     def init_metrics(self, model):
@@ -317,7 +315,7 @@ class BaseValidator:
         return []
 
     def on_plot(self, name, data=None):
-        """Registers plots (e.g. to be consumed in callbacks)"""
+        """Registers plots (e.g. to be consumed in callbacks)."""
         self.plots[Path(name)] = {"data": data, "timestamp": time.time()}
 
     # TODO: may need to put these following functions into callback

@@ -265,7 +265,6 @@ def check_det_dataset(dataset, autodownload=True):
     Returns:
         (dict): Parsed dataset information and paths.
     """
-
     file = check_file(dataset)
 
     # Download (optional)
@@ -363,7 +362,6 @@ def check_cls_dataset(dataset, split=""):
             - 'nc' (int): The number of classes in the dataset.
             - 'names' (dict): A dictionary of class names in the dataset.
     """
-
     # Download (optional if dataset=https://file.zip is passed directly)
     if str(dataset).startswith(("http:/", "https:/")):
         dataset = safe_download(dataset, dir=DATASETS_DIR, unzip=True, delete=False)
@@ -438,11 +436,11 @@ class HUBDatasetStats:
         ```python
         from ultralytics.data.utils import HUBDatasetStats
 
-        stats = HUBDatasetStats('path/to/coco8.zip', task='detect')  # detect dataset
-        stats = HUBDatasetStats('path/to/coco8-seg.zip', task='segment')  # segment dataset
-        stats = HUBDatasetStats('path/to/coco8-pose.zip', task='pose')  # pose dataset
-        stats = HUBDatasetStats('path/to/dota8.zip', task='obb')  # OBB dataset
-        stats = HUBDatasetStats('path/to/imagenet10.zip', task='classify')  # classification dataset
+        stats = HUBDatasetStats("path/to/coco8.zip", task="detect")  # detect dataset
+        stats = HUBDatasetStats("path/to/coco8-seg.zip", task="segment")  # segment dataset
+        stats = HUBDatasetStats("path/to/coco8-pose.zip", task="pose")  # pose dataset
+        stats = HUBDatasetStats("path/to/dota8.zip", task="obb")  # OBB dataset
+        stats = HUBDatasetStats("path/to/imagenet10.zip", task="classify")  # classification dataset
 
         stats.get_json(save=True)
         stats.process_images()
@@ -598,11 +596,10 @@ def compress_one_image(f, f_new=None, max_dim=1920, quality=50):
         from pathlib import Path
         from ultralytics.data.utils import compress_one_image
 
-        for f in Path('path/to/dataset').rglob('*.jpg'):
+        for f in Path("path/to/dataset").rglob("*.jpg"):
             compress_one_image(f)
         ```
     """
-
     try:  # use PIL
         im = Image.open(f)
         r = max_dim / max(im.height, im.width)  # ratio
@@ -635,7 +632,6 @@ def autosplit(path=DATASETS_DIR / "coco8/images", weights=(0.9, 0.1, 0.0), annot
         autosplit()
         ```
     """
-
     path = Path(path)  # images dir
     files = sorted(x for x in path.rglob("*.*") if x.suffix[1:].lower() in IMG_FORMATS)  # image files only
     n = len(files)  # number of files

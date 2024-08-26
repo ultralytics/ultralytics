@@ -136,11 +136,11 @@ def check_dataset(path: str, task: str) -> None:
         ```python
         from ultralytics.hub import check_dataset
 
-        check_dataset('path/to/coco8.zip', task='detect')  # detect dataset
-        check_dataset('path/to/coco8-seg.zip', task='segment')  # segment dataset
-        check_dataset('path/to/coco8-pose.zip', task='pose')  # pose dataset
-        check_dataset('path/to/dota8.zip', task='obb')  # OBB dataset
-        check_dataset('path/to/imagenet10.zip', task='classify')  # classification dataset
+        check_dataset("path/to/coco8.zip", task="detect")  # detect dataset
+        check_dataset("path/to/coco8-seg.zip", task="segment")  # segment dataset
+        check_dataset("path/to/coco8-pose.zip", task="pose")  # pose dataset
+        check_dataset("path/to/dota8.zip", task="obb")  # OBB dataset
+        check_dataset("path/to/imagenet10.zip", task="classify")  # classification dataset
         ```
     """
     HUBDatasetStats(path=path, task=task).get_json()

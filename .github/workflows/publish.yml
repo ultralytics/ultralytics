@@ -1,7 +1,7 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-# Publish pip package to PyPI https://pypi.org/project/ultralytics/ and Docs to https://docs.ultralytics.com
+# Publish pip package to PyPI https://pypi.org/project/ultralytics/
 
-name: Publish to PyPI and Deploy Docs
+name: Publish to PyPI
 
 on:
   push:
@@ -11,20 +11,17 @@ on:
       pypi:
         type: boolean
         description: Publish to PyPI
-      docs:
-        type: boolean
-        description: Deploy Docs
 
 jobs:
   publish:
     if: github.repository == 'ultralytics/ultralytics' && github.actor == 'glenn-jocher'
     name: Publish
-    runs-on: macos-14
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: "0" # pulls all commits (needed correct last updated dates in Docs)
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN || secrets.GITHUB_TOKEN }} # use your PAT here
       - name: Git config
         run: |
           git config --global user.name "UltralyticsAssistant"
@@ -32,45 +29,72 @@ jobs:
       - name: Set up Python environment
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.x"
           cache: "pip" # caching pip dependencies
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip wheel build twine
-          pip install -e ".[dev]" openai --extra-index-url https://download.pytorch.org/whl/cpu
+          python -m pip install --upgrade pip wheel
+          pip install openai requests build twine toml
       - name: Check PyPI version
         shell: python
         run: |
           import os
-          import ultralytics
-          from ultralytics.utils.checks import check_latest_pypi_version
-          latest_pypi_version = check_latest_pypi_version()
-          v_local = tuple(map(int, ultralytics.__version__.split('.')))
-          v_pypi = tuple(map(int, latest_pypi_version.split('.')))
-          print(f'Local version is {v_local}')
-          print(f'PyPI version is {v_pypi}')
-          d = [a - b for a, b in zip(v_local, v_pypi)]  # diff
-          increment_patch = (d[0] == d[1] == 0) and (0 < d[2] < 3)  # publish if patch version increments by 1 or 2
-          increment_minor = (d[0] == 0) and (d[1] == 1) and v_local[2] == 0  # publish if minor version increments
-          increment = increment_patch or increment_minor
-          os.system(f'echo "increment={increment}" >> $GITHUB_OUTPUT')
-          os.system(f'echo "version={ultralytics.__version__}" >> $GITHUB_OUTPUT')
-          os.system(f'echo "previous_version={latest_pypi_version}" >> $GITHUB_OUTPUT')
-          if increment:
-              print('Local version is higher than PyPI version. Publishing new version to PyPI ✅.')
+          import requests
+          import toml
+
+          # Load version and package name from pyproject.toml
+          pyproject = toml.load('pyproject.toml')
+          package_name = pyproject['project']['name']
+          local_version = pyproject['project'].get('version', 'dynamic')
+
+          # If version is dynamic, extract it from the specified file
+          if local_version == 'dynamic':
+              version_attr = pyproject['tool']['setuptools']['dynamic']['version']['attr']
+              module_path, attr_name = version_attr.rsplit('.', 1)
+              with open(f"{module_path.replace('.', '/')}/__init__.py") as f:
+                  local_version = next(line.split('=')[1].strip().strip("'\"") for line in f if line.startswith(attr_name))
+
+          print(f"Local Version: {local_version}")
+
+          # Get online version from PyPI
+          response = requests.get(f"https://pypi.org/pypi/{package_name}/json")
+          online_version = response.json()['info']['version'] if response.status_code == 200 else None
+          print(f"Online Version: {online_version or 'Not Found'}")
+
+          # Determine if a new version should be published
+          publish = False
+          if online_version:
+              local_ver = tuple(map(int, local_version.split('.')))
+              online_ver = tuple(map(int, online_version.split('.')))
+              major_diff = local_ver[0] - online_ver[0]
+              minor_diff = local_ver[1] - online_ver[1]
+              patch_diff = local_ver[2] - online_ver[2]
+
+              publish = (
+                  (major_diff == 0 and minor_diff == 0 and 0 < patch_diff <= 2) or
+                  (major_diff == 0 and minor_diff == 1 and local_ver[2] == 0) or
+                  (major_diff == 1 and local_ver[1] == 0 and local_ver[2] == 0)
+              )
+          else:
+              publish = True  # First release
+
+          os.system(f'echo "increment={publish}" >> $GITHUB_OUTPUT')
+          os.system(f'echo "version={local_version}" >> $GITHUB_OUTPUT')
+          os.system(f'echo "previous_version={online_version or "N/A"}" >> $GITHUB_OUTPUT')
+
+          if publish:
+              print('Ready to publish new version to PyPI ✅.')
         id: check_pypi
       - name: Publish new tag
         if: (github.event_name == 'push' || github.event.inputs.pypi == 'true')  && steps.check_pypi.outputs.increment == 'True'
         run: |
-          git tag -a "v${{ steps.check_pypi.outputs.version }}" -m "$(git log -1 --pretty=%B)" || true  # i.e. "v0.1.2 commit message"
-          git push origin "v${{ steps.check_pypi.outputs.version }}" || true
+          git tag -a "v${{ steps.check_pypi.outputs.version }}" -m "$(git log -1 --pretty=%B)"  # i.e. "v0.1.2 commit message"
+          git push origin "v${{ steps.check_pypi.outputs.version }}"
       - name: Publish new release
         if: (github.event_name == 'push' || github.event.inputs.pypi == 'true')  && steps.check_pypi.outputs.increment == 'True'
         env:
-          OPENAI_AZURE_API_KEY: ${{ secrets.OPENAI_AZURE_API_KEY }}
-          OPENAI_AZURE_ENDPOINT: ${{ secrets.OPENAI_AZURE_ENDPOINT }}
-          OPENAI_AZURE_API_VERSION: ${{ secrets.OPENAI_AZURE_API_VERSION }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN || secrets.GITHUB_TOKEN }}
           CURRENT_TAG: ${{ steps.check_pypi.outputs.version }}
           PREVIOUS_TAG: ${{ steps.check_pypi.outputs.previous_version }}
         shell: python
@@ -82,26 +106,18 @@ jobs:
           import subprocess
 
           # Retrieve environment variables
-          OPENAI_AZURE_API_KEY = os.getenv('OPENAI_AZURE_API_KEY')
-          OPENAI_AZURE_ENDPOINT = os.getenv('OPENAI_AZURE_ENDPOINT')
-          OPENAI_AZURE_API_VERSION = os.getenv('OPENAI_AZURE_API_VERSION')
+          OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
           GITHUB_TOKEN = os.getenv('GITHUB_TOKEN')
           CURRENT_TAG = os.getenv('CURRENT_TAG')
           PREVIOUS_TAG = os.getenv('PREVIOUS_TAG')
 
           # Check for required environment variables
-          if not all([OPENAI_AZURE_API_KEY, OPENAI_AZURE_ENDPOINT, OPENAI_AZURE_API_VERSION, GITHUB_TOKEN, CURRENT_TAG, PREVIOUS_TAG]):
-              print(OPENAI_AZURE_API_KEY)
-              print(OPENAI_AZURE_ENDPOINT)
-              print(OPENAI_AZURE_API_VERSION)
-              print(GITHUB_TOKEN)
-              print(CURRENT_TAG)
-              print(PREVIOUS_TAG)
+          if not all([OPENAI_API_KEY, GITHUB_TOKEN, CURRENT_TAG, PREVIOUS_TAG]):
               raise ValueError("One or more required environment variables are missing.")
 
           latest_tag = f"v{CURRENT_TAG}"
           previous_tag = f"v{PREVIOUS_TAG}"
-          repo = 'ultralytics/ultralytics'
+          repo = os.getenv('GITHUB_REPOSITORY')
           headers = {"Authorization": f"token {GITHUB_TOKEN}", "Accept": "application/vnd.github.v3.diff"}
 
           # Get the diff between the tags
@@ -109,29 +125,23 @@ jobs:
           response = requests.get(url, headers=headers)
           diff = response.text if response.status_code == 200 else f"Failed to get diff: {response.content}"
 
-          # Set up client
-          client = openai.AzureOpenAI(
-              api_key=OPENAI_AZURE_API_KEY,
-              api_version=OPENAI_AZURE_API_VERSION,
-              azure_endpoint=OPENAI_AZURE_ENDPOINT
-          )
-
+          # Get summary
           messages = [
               {
                   "role": "system",
-                  "content": "You are an Ultralytics AI assistant skilled in software development and technical communication. Your task is to summarize GitHub releases from Ultralytics in a way that is detailed, accurate, and understandable to both expert developers and non-expert users. Focus on highlighting the key changes and their impact in simple and intuitive terms."
+                  "content": "You are an Ultralytics AI assistant skilled in software development and technical communication. Your task is to summarize GitHub releases in a way that is detailed, accurate, and understandable to both expert developers and non-expert users. Focus on highlighting the key changes and their impact in simple and intuitive terms."
               },
               {
                   "role": "user",
-                  "content": f"Summarize the updates made in the [Ultralytics](https://ultralytics.com) '{latest_tag}' tag, focusing on major changes, their purpose, and potential impact. Keep the summary clear and suitable for a broad audience. Add emojis to enliven the summary. Reply directly with a summary along these example guidelines, though feel free to adjust as appropriate:\n\n"
+                  "content": f"Summarize the updates made in the '{latest_tag}' tag, focusing on major changes, their purpose, and potential impact. Keep the summary clear and suitable for a broad audience. Add emojis to enliven the summary. Reply directly with a summary along these example guidelines, though feel free to adjust as appropriate:\n\n"
                              f"## 🌟 Summary (single-line synopsis)\n"
                              f"## 📊 Key Changes (bullet points highlighting any major changes)\n"
                              f"## 🎯 Purpose & Impact (bullet points explaining any benefits and potential impact to users)\n"
                              f"\n\nHere's the release diff:\n\n{diff[:300000]}",
               }
           ]
-
-          completion = client.chat.completions.create(model="gpt-4o-2024-05-13", messages=messages)
+          client = openai.OpenAI(api_key=OPENAI_API_KEY)
+          completion = client.chat.completions.create(model="gpt-4o-2024-08-06", messages=messages)
           summary = completion.choices[0].message.content.strip()
 
           # Get the latest commit message
@@ -161,37 +171,20 @@ jobs:
         run: |
           python -m build
           python -m twine upload dist/* -u __token__ -p $PYPI_TOKEN
-      - name: Deploy Docs
-        continue-on-error: true
-        if: (github.event_name == 'push' || github.event.inputs.docs == 'true') && github.repository == 'ultralytics/ultralytics' && github.actor == 'glenn-jocher'
-        env:
-          PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-          INDEXNOW_KEY: ${{ secrets.INDEXNOW_KEY_DOCS }}
-        run: |
-          pip install black
-          export JUPYTER_PLATFORM_DIRS=1
-          python docs/build_docs.py
-          git clone https://github.com/ultralytics/docs.git docs-repo
-          cd docs-repo
-          git checkout gh-pages || git checkout -b gh-pages
-          rm -rf *
-          cp -R ../site/* .
-          echo "$INDEXNOW_KEY" > "$INDEXNOW_KEY.txt"
-          git add .
-          LATEST_HASH=$(git rev-parse --short=7 HEAD)
-          git commit -m "Update Docs for 'ultralytics ${{ steps.check_pypi.outputs.version }} - $LATEST_HASH'"
-          git push https://$PERSONAL_ACCESS_TOKEN@github.com/ultralytics/docs.git gh-pages
       - name: Extract PR Details
+        env:
+          GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN || secrets.GITHUB_TOKEN }}
         run: |
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            PR_JSON=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }})
+          # Check if the event is a pull request or pull_request_target
+          if [ "${{ github.event_name }}" = "pull_request" ] || [ "${{ github.event_name }}" = "pull_request_target" ]; then
             PR_NUMBER=${{ github.event.pull_request.number }}
-            PR_TITLE=$(echo $PR_JSON | jq -r '.title')
+            PR_TITLE=$(gh pr view $PR_NUMBER --json title --jq '.title')
           else
+            # Use gh to find the PR associated with the commit
             COMMIT_SHA=${{ github.event.after }}
-            PR_JSON=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/search/issues?q=repo:${{ github.repository }}+is:pr+is:merged+sha:$COMMIT_SHA")
-            PR_NUMBER=$(echo $PR_JSON | jq -r '.items[0].number')
-            PR_TITLE=$(echo $PR_JSON | jq -r '.items[0].title')
+            PR_JSON=$(gh pr list --search "${COMMIT_SHA}" --state merged --json number,title --jq '.[0]')
+            PR_NUMBER=$(echo $PR_JSON | jq -r '.number')
+            PR_TITLE=$(echo $PR_JSON | jq -r '.title')
           fi
           echo "PR_NUMBER=$PR_NUMBER" >> $GITHUB_ENV
           echo "PR_TITLE=$PR_TITLE" >> $GITHUB_ENV
@@ -200,7 +193,7 @@ jobs:
         uses: slackapi/slack-github-action@v1.26.0
         with:
           payload: |
-            {"text": "<!channel> GitHub Actions success for ${{ github.workflow }} ✅\n\n\n*Repository:* https://github.com/${{ github.repository }}\n*Action:* https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\n*Author:* ${{ github.actor }}\n*Event:* NEW 'ultralytics ${{ steps.check_pypi.outputs.version }}' pip package published 😃\n*Job Status:* ${{ job.status }}\n*Pull Request:* <https://github.com/${{ github.repository }}/pull/${{ env.PR_NUMBER }}> ${{ env.PR_TITLE }}\n"}
+            {"text": "<!channel> GitHub Actions success for ${{ github.workflow }} ✅\n\n\n*Repository:* https://github.com/${{ github.repository }}\n*Action:* https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\n*Author:* ${{ github.actor }}\n*Event:* NEW '${{ github.repository }} v${{ steps.check_pypi.outputs.version }}' pip package published 😃\n*Job Status:* ${{ job.status }}\n*Pull Request:* <https://github.com/${{ github.repository }}/pull/${{ env.PR_NUMBER }}> ${{ env.PR_TITLE }}\n"}
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_YOLO }}
       - name: Notify on Slack (Failure)

@@ -18,6 +18,8 @@ from ultralytics.utils.torch_utils import select_device
 
 
 class TorchVisionVideoClassifier:
+    """Classifies videos using pretrained TorchVision models; see https://pytorch.org/vision/stable/."""
+
     from torchvision.models.video import (
         MViT_V1_B_Weights,
         MViT_V2_S_Weights,
@@ -133,6 +135,8 @@ class TorchVisionVideoClassifier:
 
 
 class HuggingFaceVideoClassifier:
+    """Zero-shot video classifier using Hugging Face models for various devices."""
+
     def __init__(
         self,
         labels: List[str],
@@ -171,13 +175,13 @@ class HuggingFaceVideoClassifier:
         """
         if input_size is None:
             input_size = [224, 224]
-        from torchvision.transforms import v2
+        from torchvision import transforms
 
-        transform = v2.Compose(
+        transform = transforms.Compose(
             [
-                v2.ToDtype(torch.float32, scale=True),
-                v2.Resize(input_size, antialias=True),
-                v2.Normalize(
+                transforms.Lambda(lambda x: x.float() / 255.0),
+                transforms.Resize(input_size),
+                transforms.Normalize(
                     mean=self.processor.image_processor.image_mean, std=self.processor.image_processor.image_std
                 ),
             ]
@@ -199,7 +203,6 @@ class HuggingFaceVideoClassifier:
         Returns:
             torch.Tensor: The model's output.
         """
-
         input_ids = self.processor(text=self.labels, return_tensors="pt", padding=True)["input_ids"].to(self.device)
 
         inputs = {"pixel_values": sequences, "input_ids": input_ids}

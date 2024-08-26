@@ -91,9 +91,10 @@ dev = [
     "mkdocs>=1.6.0",
     "mkdocs-material>=9.5.9",
     "mkdocstrings[python]",
-    "mkdocs-jupyter", # for notebooks
-    "mkdocs-redirects", # for 301 redirects
-    "mkdocs-ultralytics-plugin>=0.0.49", # for meta descriptions and images, dates and authors
+    "mkdocs-jupyter", # notebooks
+    "mkdocs-redirects", # 301 redirects
+    "mkdocs-ultralytics-plugin>=0.1.2", # for meta descriptions and images, dates and authors
+    "mkdocs-macros-plugin>=1.0.5"  # duplicating content (i.e. export tables) in multiple places
 ]
 export = [
     "onnx>=1.12.0", # ONNX export
@@ -101,6 +102,7 @@ export = [
     "openvino>=2024.0.0", # OpenVINO export
     "tensorflow>=2.0.0", # TF bug https://github.com/ultralytics/ultralytics/issues/5161
     "tensorflowjs>=3.9.0", # TF.js export, automatically installs tensorflow
+    "tensorstore>=0.1.63; platform_machine == 'aarch64' and python_version >= '3.9'",  # for TF Raspberry Pi exports
     "keras",  # not installed automatically by tensorflow>=2.16
     "flatbuffers>=23.5.26,<100; platform_machine == 'aarch64'", # update old 'flatbuffers' included inside tensorflow package
     "numpy==1.23.5; platform_machine == 'aarch64'", # fix error: `np.bool` was a deprecated alias for the builtin `bool` when using TensorRT models on NVIDIA Jetson
@@ -169,12 +171,15 @@ split_before_first_argument = false
 [tool.ruff]
 line-length = 120
 
+[tool.ruff.format]
+docstring-code-format = true
+
 [tool.docformatter]
 wrap-summaries = 120
 wrap-descriptions = 120
-in-place = true
 pre-summary-newline = true
 close-quotes-on-newline = true
+in-place = true
 
 [tool.codespell]
 ignore-words-list = "crate,nd,ned,strack,dota,ane,segway,fo,gool,winn,commend,bloc,nam,afterall"

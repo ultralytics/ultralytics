@@ -199,7 +199,7 @@ Using Ultralytics YOLOv8 for workout monitoring provides several key benefits:
 - **Health Awareness:** Early detection of patterns that indicate potential health issues or over-training.
 - **Informed Decisions:** Make data-driven decisions to adjust routines and set realistic goals.
 
-You can watch a [YouTube video demonstration](https://www.youtube.com/embed/LGGxqLZtvuw) to see these benefits in action.
+You can watch a [YouTube video demonstration](https://www.youtube.com/watch?v=LGGxqLZtvuw) to see these benefits in action.
 
 ### How accurate is Ultralytics YOLOv8 in detecting and tracking exercises?
 

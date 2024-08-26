@@ -7,6 +7,7 @@ import torch.nn.functional as F
 from ultralytics.utils.metrics import OKS_SIGMA
 from ultralytics.utils.ops import crop_mask, xywh2xyxy, xyxy2xywh
 from ultralytics.utils.tal import RotatedTaskAlignedAssigner, TaskAlignedAssigner, dist2bbox, dist2rbox, make_anchors
+from ultralytics.utils.torch_utils import autocast
 
 from .metrics import bbox_iou, probiou
 from .tal import bbox2dist
@@ -27,7 +28,7 @@ class VarifocalLoss(nn.Module):
     def forward(pred_score, gt_score, label, alpha=0.75, gamma=2.0):
         """Computes varfocal loss."""
         weight = alpha * pred_score.sigmoid().pow(gamma) * (1 - label) + gt_score * label
-        with torch.cuda.amp.autocast(enabled=False):
+        with autocast(enabled=False):
             loss = (
                 (F.binary_cross_entropy_with_logits(pred_score.float(), gt_score.float(), reduction="none") * weight)
                 .mean(1)
@@ -607,12 +608,10 @@ class v8ClassificationLoss:
 
 
 class v8OBBLoss(v8DetectionLoss):
-    def __init__(self, model):
-        """
-        Initializes v8OBBLoss with model, assigner, and rotated bbox loss.
+    """Calculates losses for object detection, classification, and box distribution in rotated YOLO models."""
 
-        Note model must be de-paralleled.
-        """
+    def __init__(self, model):
+        """Initializes v8OBBLoss with model, assigner, and rotated bbox loss; note model must be de-paralleled."""
         super().__init__(model)
         self.assigner = RotatedTaskAlignedAssigner(topk=10, num_classes=self.nc, alpha=0.5, beta=6.0)
         self.bbox_loss = RotatedBboxLoss(self.reg_max).to(self.device)

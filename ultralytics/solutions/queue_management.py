@@ -17,7 +17,7 @@ class QueueManager:
 
     def __init__(
         self,
-        classes_names,
+        names,
         reg_pts=None,
         line_thickness=2,
         track_thickness=2,
@@ -34,7 +34,7 @@ class QueueManager:
         Initializes the QueueManager with specified parameters for tracking and counting objects.
 
         Args:
-            classes_names (dict): A dictionary mapping class IDs to class names.
+            names (dict): A dictionary mapping class IDs to class names.
             reg_pts (list of tuples, optional): Points defining the counting region polygon. Defaults to a predefined
                 rectangle.
             line_thickness (int, optional): Thickness of the annotation lines. Defaults to 2.
@@ -49,7 +49,6 @@ class QueueManager:
             region_thickness (int, optional): Thickness of the counting region lines. Defaults to 5.
             fontsize (float, optional): Font size for the text annotations. Defaults to 0.7.
         """
-
         # Mouse events state
         self.is_drawing = False
         self.selected_point = None
@@ -69,7 +68,7 @@ class QueueManager:
         self.view_queue_counts = view_queue_counts
         self.fontsize = fontsize
 
-        self.names = classes_names  # Class names
+        self.names = names  # Class names
         self.annotator = None  # Annotator
         self.window_name = "Ultralytics YOLOv8 Queue Manager"
 
@@ -88,7 +87,6 @@ class QueueManager:
 
     def extract_and_process_tracks(self, tracks):
         """Extracts and processes tracks for queue management in a video stream."""
-
         # Initialize annotator and draw the queue region
         self.annotator = Annotator(self.im0, self.tf, self.names)
 
@@ -139,7 +137,7 @@ class QueueManager:
 
     def display_frames(self):
         """Displays the current frame with annotations."""
-        if self.env_check:
+        if self.env_check and self.view_img:
             self.annotator.draw_region(reg_pts=self.reg_pts, thickness=self.region_thickness, color=self.region_color)
             cv2.namedWindow(self.window_name)
             cv2.imshow(self.window_name, self.im0)

@@ -29,7 +29,6 @@ class AIGym:
             pose_down_angle (float, optional): Angle threshold for the 'down' pose. Defaults to 90.0.
             pose_type (str, optional): Type of pose to detect ('pullup', 'pushup', 'abworkout'). Defaults to "pullup".
         """
-
         # Image and line thickness
         self.im0 = None
         self.tf = line_thickness
@@ -53,24 +52,28 @@ class AIGym:
 
         # Check if environment supports imshow
         self.env_check = check_imshow(warn=True)
+        self.count = []
+        self.angle = []
+        self.stage = []
 
-    def start_counting(self, im0, results, frame_count):
+    def start_counting(self, im0, results):
         """
         Function used to count the gym steps.
 
         Args:
             im0 (ndarray): Current frame from the video stream.
             results (list): Pose estimation data.
-            frame_count (int): Current frame count.
         """
-
         self.im0 = im0
 
-        # Initialize count, angle, and stage lists on the first frame
-        if frame_count == 1:
-            self.count = [0] * len(results[0])
-            self.angle = [0] * len(results[0])
-            self.stage = ["-" for _ in results[0]]
+        if not len(results[0]):
+            return self.im0
+
+        if len(results[0]) > len(self.count):
+            new_human = len(results[0]) - len(self.count)
+            self.count += [0] * new_human
+            self.angle += [0] * new_human
+            self.stage += ["-"] * new_human
 
         self.keypoints = results[0].keypoints.data
         self.annotator = Annotator(im0, line_width=self.tf)
@@ -93,7 +96,7 @@ class AIGym:
                         self.stage[ind] = "up"
                         self.count[ind] += 1
 
-                elif self.pose_type == "pushup" or self.pose_type == "squat":
+                elif self.pose_type in {"pushup", "squat"}:
                     if self.angle[ind] > self.poseup_angle:
                         self.stage[ind] = "up"
                     if self.angle[ind] < self.posedown_angle and self.stage[ind] == "up":

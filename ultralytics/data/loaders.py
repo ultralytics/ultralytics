@@ -240,7 +240,7 @@ class LoadScreenshots:
         return self
 
     def __next__(self):
-        """mss screen capture: get raw pixels from the screen as np array."""
+        """Screen capture with 'mss' to get raw pixels from the screen as np array."""
         im0 = np.asarray(self.sct.grab(self.monitor))[:, :, :3]  # BGRA to BGR
         s = f"screen {self.screen} (LTWH): {self.left},{self.top},{self.width},{self.height}: "
 
@@ -545,7 +545,7 @@ def get_best_youtube_url(url, method="pytube"):
     """
     if method == "pytube":
         # Switched from pytube to pytubefix to resolve https://github.com/pytube/pytube/issues/1954
-        check_requirements("pytubefix==6.3.4")  # bug in 6.4.2 https://github.com/JuanBindez/pytubefix/issues/123
+        check_requirements("pytubefix>=6.5.2")
         from pytubefix import YouTube
 
         streams = YouTube(url).streams.filter(file_extension="mp4", only_video=True)

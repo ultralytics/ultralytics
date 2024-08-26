@@ -60,7 +60,7 @@ To train a YOLO model on the CIFAR-10 dataset for 100 epochs with an image size 
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=cifar10 model=yolov8n-cls.pt epochs=100 imgsz=32
+        yolo classify train data=cifar10 model=yolov8n-cls.pt epochs=100 imgsz=32
         ```
 
 ## Sample Images and Annotations
@@ -100,22 +100,22 @@ To train a YOLO model on the CIFAR-10 dataset using Ultralytics, you can follow 
 
     === "Python"
 
-    ```python
-    from ultralytics import YOLO
+        ```python
+        from ultralytics import YOLO
 
-    # Load a model
-    model = YOLO("yolov8n-cls.pt")  # load a pretrained model (recommended for training)
+        # Load a model
+        model = YOLO("yolov8n-cls.pt")  # load a pretrained model (recommended for training)
 
-    # Train the model
-    results = model.train(data="cifar10", epochs=100, imgsz=32)
-    ```
+        # Train the model
+        results = model.train(data="cifar10", epochs=100, imgsz=32)
+        ```
 
     === "CLI"
 
-    ```bash
-    # Start training from a pretrained *.pt model
-    yolo detect train data=cifar10 model=yolov8n-cls.pt epochs=100 imgsz=32
-    ```
+        ```bash
+        # Start training from a pretrained *.pt model
+        yolo classify train data=cifar10 model=yolov8n-cls.pt epochs=100 imgsz=32
+        ```
 
 For more details, refer to the model [Training](../../modes/train.md) page.
 
@@ -153,14 +153,18 @@ Each subset comprises images categorized into 10 classes, with their annotations
 
 If you use the CIFAR-10 dataset in your research or development projects, make sure to cite the following paper:
 
-```bibtex
-@TECHREPORT{Krizhevsky09learningmultiple,
-            author={Alex Krizhevsky},
-            title={Learning multiple layers of features from tiny images},
-            institution={},
-            year={2009}
-}
-```
+!!! Quote ""
+
+    === "BibTeX"
+
+        ```bibtex
+        @TECHREPORT{Krizhevsky09learningmultiple,
+                    author={Alex Krizhevsky},
+                    title={Learning multiple layers of features from tiny images},
+                    institution={},
+                    year={2009}
+        }
+        ```
 
 Acknowledging the dataset's creators helps support continued research and development in the field. For more details, see the [citations and acknowledgments](#citations-and-acknowledgments) section.
 

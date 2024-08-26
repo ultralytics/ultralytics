@@ -170,7 +170,7 @@ class Exporter:
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
         callbacks.add_integration_callbacks(self)
 
-    @smart_inference_mode()
+    # @smart_inference_mode()
     def __call__(self, model=None) -> str:
         """Returns list of exported files/dirs after running callbacks."""
         self.run_callbacks("on_export_start")
@@ -190,7 +190,7 @@ class Exporter:
         is_tf_format = any((saved_model, pb, tflite, edgetpu, tfjs))
         if mct:
             LOGGER.warning("WARNING ⚠️ Sony MCT only supports int8 export, setting int8=True.")
-            self.args.int8 = True
+            self.args.int8 = True  
         # Device
         if fmt == "engine" and self.args.device is None:
             LOGGER.warning("WARNING ⚠️ TensorRT requires GPU export, automatically assigning device=0")
@@ -1028,12 +1028,12 @@ class Exporter:
 
         # pip install sony-custom-layers[torch]
         from sony_custom_layers.pytorch.object_detection.nms import multiclass_nms
-        from torch import nn
+        from model_compression_toolkit.core.pytorch.pytorch_device_config import get_working_device
 
-        class PostProcessWrapper(nn.Module):
+        class PostProcessWrapper(torch.nn.Module):
             def __init__(
                 self,
-                model: nn.Module,
+                model: torch.nn.Module,
                 score_threshold: float = 0.001,
                 iou_threshold: float = 0.7,
                 max_detections: int = 300,
@@ -1073,57 +1073,65 @@ class Exporter:
                 img = batch["img"]
                 img = img / 255.0
                 yield [img]
+            
 
         tpc = mct.get_target_platform_capabilities(
-            fw_name="pytorch", target_platform_name="imx500", target_platform_version="v1"
+            fw_name="pytorch", target_platform_name="imx500", target_platform_version="v3"
         )
-        mp_config = mct.core.MixedPrecisionQuantizationConfig(num_of_images=5, use_hessian_based_scores=False)
-        config = mct.core.CoreConfig(
-            mixed_precision_config=mp_config,
-            quantization_config=mct.core.QuantizationConfig(shift_negative_activation_correction=True),
-        )
+        config = mct.core.CoreConfig(mixed_precision_config=mct.core.MixedPrecisionQuantizationConfig(num_of_images=10),
+                            quantization_config=mct.core.QuantizationConfig(concat_threshold_update=True))
 
-        resource_utilization_data = mct.core.pytorch_resource_utilization_data(
-            in_model=self.model,
-            representative_data_gen=representative_dataset_gen,
-            core_config=config,
-            target_platform_capabilities=tpc,
-        )
-
-        resource_utilization = mct.core.ResourceUtilization(
-            weights_memory=resource_utilization_data.weights_memory * 0.75
-        )
-
-        quant_model, _ = mct.ptq.pytorch_post_training_quantization(
-            in_module=self.model,
-            representative_data_gen=representative_dataset_gen,
-            target_resource_utilization=resource_utilization,
-            core_config=config,
-            target_platform_capabilities=tpc,
-        )
+        resource_utilization = mct.core.ResourceUtilization(weights_memory=3146176 * 0.76)
+        
+        # Perform post training quantization
+        quant_model, _ = mct.ptq.pytorch_post_training_quantization(in_module=self.model,
+                                                                    representative_data_gen=representative_dataset_gen,
+                                                                    target_resource_utilization=resource_utilization,
+                                                                    core_config=config,
+                                                                    target_platform_capabilities=tpc)
+        print('Quantized model is ready')
+        
+        
+        # Define PostProcess params
+        score_threshold = 0.001
+        iou_threshold = 0.7
+        max_detections = 300
 
         # Get working device
-        device = mct.core.pytorch.pytorch_device_config.get_working_device()
-        quant_model_pp = PostProcessWrapper(model=quant_model).to(device=device)
-        f = str(self.file).replace(self.file.suffix, "_mct_model.onnx")
-        mct.exporter.pytorch_export_model(
-            model=quant_model_pp, save_model_path=f, repr_dataset=representative_dataset_gen
-        )
+        device = get_working_device()
 
-        n_gptq_epochs = 1000
-        gptq_config = mct.gptq.get_pytorch_gptq_config(n_epochs=n_gptq_epochs, use_hessian_based_weights=False)
+        quant_model_pp = PostProcessWrapper(model=quant_model,
+                                            score_threshold=score_threshold,
+                                            iou_threshold=iou_threshold,
+                                            max_detections=max_detections).to(device=device)
+        
+        f = Path(str(self.file).replace(self.file.suffix, "ptq_mct.onnx"))  # js dir
+        mct.exporter.pytorch_export_model(model=quant_model_pp,
+                                  save_model_path=f,
+                                  repr_dataset=representative_dataset_gen)
+
+        gptq_config = mct.gptq.get_pytorch_gptq_config(n_epochs=1000, use_hessian_based_weights=False)
 
         # Perform Gradient-Based Post Training Quantization
-        gptq_quant_model, _ = mct.gptq.pytorch_gradient_post_training_quantization(
-            model=self.model,
-            representative_data_gen=representative_dataset_gen,
-            target_resource_utilization=resource_utilization,
-            gptq_config=gptq_config,
-            core_config=config,
-            target_platform_capabilities=tpc,
-        )
 
-        print("Quantized-GPTQ model is ready")
+        gptq_quant_model, _ = mct.gptq.pytorch_gradient_post_training_quantization(
+                model=self.model,
+                representative_data_gen=representative_dataset_gen,
+                target_resource_utilization=resource_utilization,
+                gptq_config=gptq_config,
+                core_config=config,
+                target_platform_capabilities=tpc)
+        
+        print('Quantized-PTQ model is ready')
+        
+        gptq_quant_model_pp = PostProcessWrapper(model=gptq_quant_model,
+                                        score_threshold=score_threshold,
+                                        iou_threshold=iou_threshold,
+                                        max_detections=max_detections).to(device=device)
+        f = Path(str(self.file).replace(self.file.suffix, "gptq_mct.onnx"))  # js dir
+        mct.exporter.pytorch_export_model(model=gptq_quant_model_pp,
+                                save_model_path='./qmodel_gptq_pp.onnx',
+                                repr_dataset=representative_dataset_gen)
 
         return f, None
 

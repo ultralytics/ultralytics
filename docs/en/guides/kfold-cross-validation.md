@@ -29,7 +29,7 @@ Without further ado, let's dive in!
     - It includes 6 class labels, each with its total instance counts listed below.
 
 | Class Label | Instance Count |
-|:------------|:--------------:|
+| :---------- | :------------: |
 | Apple       |      7049      |
 | Grapes      |      7202      |
 | Pineapple   |      1613      |
@@ -57,24 +57,13 @@ Without further ado, let's dive in!
 
 ## Generating Feature Vectors for Object Detection Dataset
 
-1. Start by creating a new Python file and import the required libraries.
-
-    ```python
-    import datetime
-    import shutil
-    from collections import Counter
-    from pathlib import Path
-
-    import numpy as np
-    import pandas as pd
-    import yaml
-    from sklearn.model_selection import KFold
-    from ultralytics import YOLO
-    ```
+1. Start by creating a new `example.py` Python file for the steps below.
 
 2. Proceed to retrieve all label files for your dataset.
 
     ```python
+    from pathlib import Path
+
     dataset_path = Path("./Fruit-detection")  # replace with 'path/to/dataset' for your custom data
     labels = sorted(dataset_path.rglob("*labels/*.txt"))  # all data in 'labels'
     ```
@@ -91,22 +80,26 @@ Without further ado, let's dive in!
 4. Initialize an empty `pandas` DataFrame.
 
     ```python
-    indx = [l.stem for l in labels]  # uses base filename as ID (no extension)
+    import pandas as pd
+
+    indx = [label.stem for label in labels]  # uses base filename as ID (no extension)
     labels_df = pd.DataFrame([], columns=cls_idx, index=indx)
     ```
 
 5. Count the instances of each class-label present in the annotation files.
 
     ```python
+    from collections import Counter
+
     for label in labels:
         lbl_counter = Counter()
 
         with open(label, "r") as lf:
             lines = lf.readlines()
 
-        for l in lines:
+        for line in lines:
             # classes for YOLO label uses integer at first position of each line
-            lbl_counter[int(l.split(" ")[0])] += 1
+            lbl_counter[int(line.split(" ")[0])] += 1
 
         labels_df.loc[label.stem] = lbl_counter
 
@@ -141,6 +134,8 @@ The rows index the label files, each corresponding to an image in your dataset, 
         - By setting `random_state=M` where `M` is a chosen integer, you can obtain repeatable results.
 
     ```python
+    from sklearn.model_selection import KFold
+
     ksplit = 5
     kf = KFold(n_splits=ksplit, shuffle=True, random_state=20)  # setting random_state for repeatable results
 
@@ -172,11 +167,13 @@ The rows index the label files, each corresponding to an image in your dataset, 
         fold_lbl_distrb.loc[f"split_{n}"] = ratio
     ```
 
-   The ideal scenario is for all class ratios to be reasonably similar for each split and across classes. This, however, will be subject to the specifics of your dataset.
+    The ideal scenario is for all class ratios to be reasonably similar for each split and across classes. This, however, will be subject to the specifics of your dataset.
 
 4. Next, we create the directories and dataset YAML files for each split.
 
     ```python
+    import datetime
+
     supported_extensions = [".jpg", ".jpeg", ".png"]
 
     # Initialize an empty list to store image file paths
@@ -218,9 +215,11 @@ The rows index the label files, each corresponding to an image in your dataset, 
 
 5. Lastly, copy images and labels into the respective directory ('train' or 'val') for each split.
 
-    - __NOTE:__ The time required for this portion of the code will vary based on the size of your dataset and your system hardware.
+    - **NOTE:** The time required for this portion of the code will vary based on the size of your dataset and your system hardware.
 
     ```python
+    import shutil
+
     for image, label in zip(images, labels):
         for split, k_split in folds_df.loc[image.stem].items():
             # Destination directory
@@ -246,6 +245,8 @@ fold_lbl_distrb.to_csv(save_path / "kfold_label_distribution.csv")
 1. First, load the YOLO model.
 
     ```python
+    from ultralytics import YOLO
+
     weights_path = "path/to/weights.pt"
     model = YOLO(weights_path, task="detect")
     ```
@@ -279,3 +280,33 @@ Finally, we implemented the actual model training using each split in a loop, sa
 This technique of K-Fold cross-validation is a robust way of making the most out of your available data, and it helps to ensure that your model performance is reliable and consistent across different data subsets. This results in a more generalizable and reliable model that is less likely to overfit to specific data patterns.
 
 Remember that although we used YOLO in this guide, these steps are mostly transferable to other machine learning models. Understanding these steps allows you to apply cross-validation effectively in your own machine learning projects. Happy coding!
+
+## FAQ
+
+### What is K-Fold Cross Validation and why is it useful in object detection?
+
+K-Fold Cross Validation is a technique where the dataset is divided into 'k' subsets (folds) to evaluate model performance more reliably. Each fold serves as both training and validation data. In the context of object detection, using K-Fold Cross Validation helps to ensure your Ultralytics YOLO model's performance is robust and generalizable across different data splits, enhancing its reliability. For detailed instructions on setting up K-Fold Cross Validation with Ultralytics YOLO, refer to [K-Fold Cross Validation with Ultralytics](#introduction).
+
+### How do I implement K-Fold Cross Validation using Ultralytics YOLO?
+
+To implement K-Fold Cross Validation with Ultralytics YOLO, you need to follow these steps:
+
+1. Verify annotations are in the [YOLO detection format](../datasets/detect/index.md).
+2. Use Python libraries like `sklearn`, `pandas`, and `pyyaml`.
+3. Create feature vectors from your dataset.
+4. Split your dataset using `KFold` from `sklearn.model_selection`.
+5. Train the YOLO model on each split.
+
+For a comprehensive guide, see the [K-Fold Dataset Split](#k-fold-dataset-split) section in our documentation.
+
+### Why should I use Ultralytics YOLO for object detection?
+
+Ultralytics YOLO offers state-of-the-art, real-time object detection with high accuracy and efficiency. It's versatile, supporting multiple computer vision tasks such as detection, segmentation, and classification. Additionally, it integrates seamlessly with tools like Ultralytics HUB for no-code model training and deployment. For more details, explore the benefits and features on our [Ultralytics YOLO page](https://www.ultralytics.com/yolo).
+
+### How can I ensure my annotations are in the correct format for Ultralytics YOLO?
+
+Your annotations should follow the YOLO detection format. Each annotation file must list the object class, alongside its bounding box coordinates in the image. The YOLO format ensures streamlined and standardized data processing for training object detection models. For more information on proper annotation formatting, visit the [YOLO detection format guide](../datasets/detect/index.md).
+
+### Can I use K-Fold Cross Validation with custom datasets other than Fruit Detection?
+
+Yes, you can use K-Fold Cross Validation with any custom dataset as long as the annotations are in the YOLO detection format. Replace the dataset paths and class labels with those specific to your custom dataset. This flexibility ensures that any object detection project can benefit from robust model evaluation using K-Fold Cross Validation. For a practical example, review our [Generating Feature Vectors](#generating-feature-vectors-for-object-detection-dataset) section.

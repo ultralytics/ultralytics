@@ -979,7 +979,7 @@ class PSABlock(nn.Module):
         return x
 
 
-class PSA(nn.Module):
+class C2PSA(nn.Module):
     """
     Position-wise Spatial Attention module.
 
@@ -1020,7 +1020,7 @@ class PSA(nn.Module):
         return self.cv2(torch.cat((a, b), 1))
 
 
-class C2PSA(C2f):
+class C2fPSA(C2f):
     """
     Position-wise Spatial Attention module.
 

@@ -177,12 +177,11 @@ class AutoBackend(nn.Module):
 
             providers = ["CUDAExecutionProvider", "CPUExecutionProvider"] if cuda else ["CPUExecutionProvider"]
             if mct:
-                from sony_custom_layers.pytorch.object_detection import nms_ort
                 import mct_quantizers as mctq
 
-                session = onnxruntime.InferenceSession(w,
-                                            mctq.get_ort_session_options(),
-                                            providers=["CPUExecutionProvider"])
+                session = onnxruntime.InferenceSession(
+                    w, mctq.get_ort_session_options(), providers=["CPUExecutionProvider"]
+                )
                 task = "detect"
             else:
                 session = onnxruntime.InferenceSession(w, providers=providers)

@@ -78,6 +78,7 @@ def _get_covariance_matrix(boxes):
 
     Args:
         boxes (np.ndarray): A numpy array of shape (N, 5) representing rotated bounding boxes, with xywhr format.
+
     Returns:
         (np.ndarray): Covariance matrices corresponding to original rotated bounding boxes.
     """
@@ -97,8 +98,10 @@ def xywhr2xyxyxyxy(rboxes):
 
     Rotation values should
     be in degrees from 0 to 90.
+
     Args:
         rboxes (numpy.ndarray): Input data in [cx, cy, w, h, rotation] format of shape (n, 5) or (b, n, 5).
+
     Returns:
         numpy.ndarray: Converted corner points of shape (n, 4, 2) or (b, n, 4, 2).
     """
@@ -121,10 +124,12 @@ def xywhr2xyxyxyxy(rboxes):
 def batch_probiou(obb1, obb2, eps=1e-7):
     """
     Calculate the prob iou between oriented bounding boxes, https://arxiv.org/pdf/2106.06072v1.pdf.
+
     Args:
         obb1 (np.ndarray): An array of shape (N, 5) representing ground truth obbs, with xywhr format.
         obb2 (np.ndarray): An array of shape (M, 5) representing predicted obbs, with xywhr format.
         eps (float, oy1ptional): A small value to avoid division by zero. Defaults to 1e-7.
+
     Returns:
         np.ndarray: An array of shape (N, M) representing obb similarities.
     """
@@ -164,6 +169,7 @@ def nms_rotated(boxes, scores, threshold=0.45):
         boxes (np.ndarray): (N, 5), xywhr.
         scores (np.ndarray): (N, ).
         threshold (float): IoU threshold.
+
     Returns:
         np.ndarray: Indices of selected boxes after NMS.
     """
@@ -545,7 +551,6 @@ class YoloV8:
             box (np.ndarray): Bounding boxes in (x, y, width, height) format.
             max_index (np.ndarray): Index of the predicted class for each detection.
         """
-
         for idx in range(len(confidence)):
             score = f"{confidence[idx]:.2f}"
             # Clip coordinates to ensure they are within the image boundaries
@@ -564,16 +569,17 @@ class YoloV8:
     def _draw_pose(self, img, confidence, box, kpts):
         """
         Draw skeleton and keypoints on the input image based on pose detection results.
+
         Args:
             img (np.ndarray): Input image.
             confidence (np.ndarray): Confidence scores for each detected pose.
             box (np.ndarray): Bounding boxes in (x, y, width, height) format.
             kpts (np.ndarray): Detected keypoints for each pose.
+
         Note:
             `kpts` should be a NumPy array of shape (num_poses, num_keypoints * 3), where each row contains
             (x, y, score) for each keypoint in the order specified by your implementation.
         """
-
         for idx in range(len(confidence)):
             score = f"{confidence[idx]:.2f}"
             x = int(np.clip(box[idx][0] - box[idx][2] / 2, 0, img.shape[1]))
@@ -616,6 +622,7 @@ class YoloV8:
         Args:
             arr (np.ndarray): Input one-dimensional array.
             k (int): Number of top elements to retrieve.
+
         Returns:
             np.ndarray: Indices of the top-k elements.
         """
@@ -633,10 +640,10 @@ class YoloV8:
             im (np.ndarray): original image, shape [h, w, c].
             bboxes (numpy.ndarray): [n, 4], n is number of bboxes.
             segments (List): list of segment masks.
+
         Returns:
             None
         """
-
         # Draw rectangles and polygons
         im_canvas = im.copy()
         for idx in range(len(segments)):
@@ -675,10 +682,10 @@ class YoloV8:
         Args:
             image (np.ndarray): Input image.
             dotaPoint (np.ndarray): Four points representing the rotated bounding box.
+
         Note:
             `dotaPoint` should be a NumPy array of shape (4, 2), where each row contains (x, y) coordinates of a point.
         """
-
         scaledCoordinates = dotaPoint.astype(np.int16)
         for data_points in scaledCoordinates:
             for x, y in data_points:

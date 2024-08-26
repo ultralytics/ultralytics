@@ -26,19 +26,19 @@ use the following Python script:
 from ultralytics import YOLO
 
 model_det = YOLO("yolov8s.pt")
-model_det.export(format='ncnn')
+model_det.export(format="ncnn")
 
 model_pose = YOLO("yolov8s-pose.pt")
-model_pose.export(format='ncnn')
+model_pose.export(format="ncnn")
 
 model_cls = YOLO("yolov8s-cls.pt")
-model_cls.export(format='ncnn')
+model_cls.export(format="ncnn")
 
 model_seg = YOLO("yolov8s-seg.pt")
-model_seg.export(format='ncnn')
+model_seg.export(format="ncnn")
 
 model_obb = YOLO("yolov8s-obb.pt")
-model_obb.export(format='ncnn')
+model_obb.export(format="ncnn")
 ```
 
 Alternatively, you can use the following command in the Command Line Interface (CLI) with a yolo command

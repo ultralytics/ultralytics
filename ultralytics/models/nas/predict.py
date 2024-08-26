@@ -22,7 +22,7 @@ class NASPredictor(BasePredictor):
         ```python
         from ultralytics import NAS
 
-        model = NAS('yolo_nas_s')
+        model = NAS("yolo_nas_s")
         predictor = model.predictor
         # Assumes that raw_preds, img, orig_imgs are available
         results = predictor.postprocess(raw_preds, img, orig_imgs)
@@ -34,7 +34,6 @@ class NASPredictor(BasePredictor):
 
     def postprocess(self, preds_in, img, orig_imgs):
         """Postprocess predictions and returns a list of Results objects."""
-
         # Cat boxes and class scores
         boxes = ops.xyxy2xywh(preds_in[0][0])
         preds = torch.cat((boxes, preds_in[0][1]), -1).permute(0, 2, 1)
@@ -52,9 +51,7 @@ class NASPredictor(BasePredictor):
             orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)
 
         results = []
-        for i, pred in enumerate(preds):
-            orig_img = orig_imgs[i]
+        for pred, orig_img, img_path in zip(preds, orig_imgs, self.batch[0]):
             pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], orig_img.shape)
-            img_path = self.batch[0][i]
             results.append(Results(orig_img, path=img_path, names=self.model.names, boxes=pred))
         return results

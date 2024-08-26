@@ -70,7 +70,7 @@ class ThreadQ(QThread):
         self.input = fname
 
     def set_model(self):
-        if self.m != None:
+        if self.m is not None:
             del self.m
             import gc
 
@@ -93,7 +93,6 @@ class ThreadQ(QThread):
         if self.checked:
             fps = 24
             sizes = (640, 500)
-            cvfont = cv2.FONT_HERSHEY_SIMPLEX
             if not isinstance(self.cap, bool):
                 fps = self.cap.get(cv2.CAP_PROP_FPS)
                 sizes = (int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)), int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT)))

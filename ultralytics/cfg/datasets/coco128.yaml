@@ -97,4 +97,4 @@ names:
   79: toothbrush
 
 # Download script/URL (optional)
-download: https://ultralytics.com/assets/coco128.zip
+download: https://github.com/ultralytics/assets/releases/download/v0.0.0/coco128.zip

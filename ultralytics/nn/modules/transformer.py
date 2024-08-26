@@ -174,18 +174,20 @@ class MLPBlock(nn.Module):
 class MLP(nn.Module):
     """Implements a simple multi-layer perceptron (also called FFN)."""
 
-    def __init__(self, input_dim, hidden_dim, output_dim, num_layers):
+    def __init__(self, input_dim, hidden_dim, output_dim, num_layers, act=nn.ReLU, sigmoid=False):
         """Initialize the MLP with specified input, hidden, output dimensions and number of layers."""
         super().__init__()
         self.num_layers = num_layers
         h = [hidden_dim] * (num_layers - 1)
         self.layers = nn.ModuleList(nn.Linear(n, k) for n, k in zip([input_dim] + h, h + [output_dim]))
+        self.sigmoid = sigmoid
+        self.act = act()
 
     def forward(self, x):
         """Forward pass for the entire MLP."""
         for i, layer in enumerate(self.layers):
-            x = F.relu(layer(x)) if i < self.num_layers - 1 else layer(x)
-        return x
+            x = getattr(self, "act", nn.ReLU())(layer(x)) if i < self.num_layers - 1 else layer(x)
+        return x.sigmoid() if getattr(self, "sigmoid", False) else x
 
 
 class LayerNorm2d(nn.Module):
@@ -350,7 +352,6 @@ class DeformableTransformerDecoderLayer(nn.Module):
 
     def forward(self, embed, refer_bbox, feats, shapes, padding_mask=None, attn_mask=None, query_pos=None):
         """Perform the forward pass through the entire decoder layer."""
-
         # Self attention
         q = k = self.with_pos_embed(embed, query_pos)
         tgt = self.self_attn(q.transpose(0, 1), k.transpose(0, 1), embed.transpose(0, 1), attn_mask=attn_mask)[

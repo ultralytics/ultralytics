@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Navigate through supported dataset formats, methods to utilize them and how to add your own datasets. Get insights on porting or converting label formats.
-keywords: Ultralytics, YOLO, datasets, object detection, dataset formats, label formats, data conversion
+description: Learn about dataset formats compatible with Ultralytics YOLO for robust object detection. Explore supported datasets and learn how to convert formats.
+keywords: Ultralytics, YOLO, object detection datasets, dataset formats, COCO, dataset conversion, training datasets
 ---
 
 # Object Detection Datasets Overview
@@ -61,6 +61,7 @@ Here's how you can use these formats to train your model:
         # Train the model
         results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
         ```
+
     === "CLI"
 
         ```bash
@@ -72,19 +73,21 @@ Here's how you can use these formats to train your model:
 
 Here is a list of the supported datasets and a brief description for each:
 
-- [**Argoverse**](argoverse.md): A collection of sensor data collected from autonomous vehicles. It contains 3D tracking annotations for car objects.
-- [**COCO**](coco.md): Common Objects in Context (COCO) is a large-scale object detection, segmentation, and captioning dataset with 80 object categories.
-- [**LVIS**](lvis.md): LVIS is a large-scale object detection, segmentation, and captioning dataset with 1203 object categories.
-- [**COCO8**](coco8.md): A smaller subset of the COCO dataset, COCO8 is more lightweight and faster to train.
-- [**GlobalWheat2020**](globalwheat2020.md): A dataset containing images of wheat heads for the Global Wheat Challenge 2020.
-- [**Objects365**](objects365.md): A large-scale object detection dataset with 365 object categories and 600k images, aimed at advancing object detection research.
-- [**OpenImagesV7**](open-images-v7.md): A comprehensive dataset by Google with 1.7M train images and 42k validation images.
-- [**SKU-110K**](sku-110k.md): A dataset containing images of densely packed retail products, intended for retail environment object detection.
-- [**VisDrone**](visdrone.md): A dataset focusing on drone-based images, containing various object categories like cars, pedestrians, and cyclists.
-- [**VOC**](voc.md): PASCAL VOC is a popular object detection dataset with 20 object categories including vehicles, animals, and furniture.
-- [**xView**](xview.md): A dataset containing high-resolution satellite imagery, designed for the detection of various object classes in overhead views.
-- [**Brain-tumor**](brain-tumor.md): This dataset comprises MRI or CT scan images containing information about brain tumor presence, location, and characteristics. It plays a crucial role in training computer vision models to automate tumor identification, facilitating early diagnosis and treatment planning.
-- [**African-wildlife**](african-wildlife.md): Featuring images of African wildlife such as buffalo, elephant, rhino, and zebra, this dataset is instrumental in training computer vision models. It is indispensable for identifying animals across different habitats and contributes significantly to wildlife research endeavors.
+- [Argoverse](argoverse.md): A dataset containing 3D tracking and motion forecasting data from urban environments with rich annotations.
+- [COCO](coco.md): Common Objects in Context (COCO) is a large-scale object detection, segmentation, and captioning dataset with 80 object categories.
+- [LVIS](lvis.md): A large-scale object detection, segmentation, and captioning dataset with 1203 object categories.
+- [COCO8](coco8.md): A smaller subset of the first 4 images from COCO train and COCO val, suitable for quick tests.
+- [Global Wheat 2020](globalwheat2020.md): A dataset containing images of wheat heads for the Global Wheat Challenge 2020.
+- [Objects365](objects365.md): A high-quality, large-scale dataset for object detection with 365 object categories and over 600K annotated images.
+- [OpenImagesV7](open-images-v7.md): A comprehensive dataset by Google with 1.7M train images and 42k validation images.
+- [SKU-110K](sku-110k.md): A dataset featuring dense object detection in retail environments with over 11K images and 1.7 million bounding boxes.
+- [VisDrone](visdrone.md): A dataset containing object detection and multi-object tracking data from drone-captured imagery with over 10K images and video sequences.
+- [VOC](voc.md): The Pascal Visual Object Classes (VOC) dataset for object detection and segmentation with 20 object classes and over 11K images.
+- [xView](xview.md): A dataset for object detection in overhead imagery with 60 object categories and over 1 million annotated objects.
+- [Roboflow 100](roboflow-100.md): A diverse object detection benchmark with 100 datasets spanning seven imagery domains for comprehensive model evaluation.
+- [Brain-tumor](brain-tumor.md): A dataset for detecting brain tumors includes MRI or CT scan images with details on tumor presence, location, and characteristics.
+- [African-wildlife](african-wildlife.md): A dataset featuring images of African wildlife, including buffalo, elephant, rhino, and zebras.
+- [Signature](signature.md): A dataset featuring images of various documents with annotated signatures, supporting document verification and fraud detection research.
 
 ### Adding your own dataset
 
@@ -109,3 +112,76 @@ You can easily convert labels from the popular COCO dataset format to the YOLO f
 This conversion tool can be used to convert the COCO dataset or any dataset in the COCO format to the Ultralytics YOLO format.
 
 Remember to double-check if the dataset you want to use is compatible with your model and follows the necessary format conventions. Properly formatted datasets are crucial for training successful object detection models.
+
+## FAQ
+
+### What is the Ultralytics YOLO dataset format and how to structure it?
+
+The Ultralytics YOLO format is a structured configuration for defining datasets in your training projects. It involves setting paths to your training, validation, and testing images and corresponding labels. For example:
+
+```yaml
+path: ../datasets/coco8  # dataset root directory
+train: images/train  # training images (relative to 'path')
+val: images/val  # validation images (relative to 'path')
+test:  # optional test images
+names:
+  0: person
+  1: bicycle
+  2: car
+  # ...
+```
+
+Labels are saved in `*.txt` files with one file per image, formatted as `class x_center y_center width height` with normalized coordinates. For a detailed guide, see the [COCO8 dataset example](coco8.md).
+
+### How do I convert a COCO dataset to the YOLO format?
+
+You can convert a COCO dataset to the YOLO format using the Ultralytics conversion tools. Here's a quick method:
+
+```python
+from ultralytics.data.converter import convert_coco
+
+convert_coco(labels_dir="path/to/coco/annotations/")
+```
+
+This code will convert your COCO annotations to YOLO format, enabling seamless integration with Ultralytics YOLO models. For additional details, visit the [Port or Convert Label Formats](#port-or-convert-label-formats) section.
+
+### Which datasets are supported by Ultralytics YOLO for object detection?
+
+Ultralytics YOLO supports a wide range of datasets, including:
+
+- [Argoverse](argoverse.md)
+- [COCO](coco.md)
+- [LVIS](lvis.md)
+- [COCO8](coco8.md)
+- [Global Wheat 2020](globalwheat2020.md)
+- [Objects365](objects365.md)
+- [OpenImagesV7](open-images-v7.md)
+
+Each dataset page provides detailed information on the structure and usage tailored for efficient YOLOv8 training. Explore the full list in the [Supported Datasets](#supported-datasets) section.
+
+### How do I start training a YOLOv8 model using my dataset?
+
+To start training a YOLOv8 model, ensure your dataset is formatted correctly and the paths are defined in a YAML file. Use the following script to begin training:
+
+!!! Example
+
+    === "Python"
+    
+        ```python
+        from ultralytics import YOLO
+
+        model = YOLO("yolov8n.pt")  # Load a pretrained model
+        results = model.train(data="path/to/your_dataset.yaml", epochs=100, imgsz=640)
+        ```
+
+    === "CLI"
+    
+        ```bash
+        yolo detect train data=path/to/your_dataset.yaml model=yolov8n.pt epochs=100 imgsz=640
+        ```
+
+Refer to the [Usage](#usage) section for more details on utilizing different modes, including CLI commands.
+
+### Where can I find practical examples of using Ultralytics YOLO for object detection?
+
+Ultralytics provides numerous examples and practical guides for using YOLOv8 in diverse applications. For a comprehensive overview, visit the [Ultralytics Blog](https://www.ultralytics.com/blog) where you can find case studies, detailed tutorials, and community stories showcasing object detection, segmentation, and more with YOLOv8. For specific examples, check the [Usage](../../modes/predict.md) section in the documentation.

@@ -4,7 +4,7 @@ description: An overview of how the Ultralytics-Snippets extension for Visual St
 keywords: Visual Studio Code, VS Code, deep learning, convolutional neural networks, computer vision, Python, code snippets, Ultralytics, developer productivity, machine learning, YOLO, developers, productivity, efficiency, learning, programming, IDE, code editor, developer utilities, programming tools
 ---
 
-# Accelerate Your Computer Vision Projects with Ultralytics Code Snippets
+# Accelerate Your Computer Vision Projects with the Ultralytics VS Code Extension
 
 <p align="center">
   <br>

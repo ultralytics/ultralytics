@@ -38,7 +38,7 @@ class BaseTransform:
 
     Examples:
         >>> transform = BaseTransform()
-        >>> labels = {'image': np.array(...), 'instances': [...], 'semantic': np.array(...)}
+        >>> labels = {"image": np.array(...), "instances": [...], "semantic": np.array(...)}
         >>> transformed_labels = transform(labels)
     """
 
@@ -93,7 +93,7 @@ class BaseTransform:
 
         Examples:
             >>> transform = BaseTransform()
-            >>> labels = {'instances': Instances(xyxy=torch.rand(5, 4), cls=torch.randint(0, 80, (5,)))}
+            >>> labels = {"instances": Instances(xyxy=torch.rand(5, 4), cls=torch.randint(0, 80, (5,)))}
             >>> transformed_labels = transform.apply_instances(labels)
         """
         pass
@@ -135,7 +135,7 @@ class BaseTransform:
 
         Examples:
             >>> transform = BaseTransform()
-            >>> labels = {'img': np.random.rand(640, 640, 3), 'instances': []}
+            >>> labels = {"img": np.random.rand(640, 640, 3), "instances": []}
             >>> transformed_labels = transform(labels)
         """
         self.apply_image(labels)
@@ -338,6 +338,7 @@ class BaseMixTransform:
         ...     def _mix_transform(self, labels):
         ...         # Implement custom mix logic here
         ...         return labels
+        ...
         ...     def get_indexes(self):
         ...         return [random.randint(0, len(self.dataset) - 1) for _ in range(3)]
         >>> dataset = YourDataset()
@@ -421,7 +422,7 @@ class BaseMixTransform:
 
         Examples:
             >>> transform = BaseMixTransform(dataset)
-            >>> labels = {'image': img, 'bboxes': boxes, 'mix_labels': [{'image': img2, 'bboxes': boxes2}]}
+            >>> labels = {"image": img, "bboxes": boxes, "mix_labels": [{"image": img2, "bboxes": boxes2}]}
             >>> augmented_labels = transform._mix_transform(labels)
         """
         raise NotImplementedError
@@ -456,20 +457,17 @@ class BaseMixTransform:
 
         Examples:
             >>> labels = {
-            ...     'texts': [['cat'], ['dog']],
-            ...     'cls': torch.tensor([[0], [1]]),
-            ...     'mix_labels': [{
-            ...         'texts': [['bird'], ['fish']],
-            ...         'cls': torch.tensor([[0], [1]])
-            ...     }]
+            ...     "texts": [["cat"], ["dog"]],
+            ...     "cls": torch.tensor([[0], [1]]),
+            ...     "mix_labels": [{"texts": [["bird"], ["fish"]], "cls": torch.tensor([[0], [1]])}],
             ... }
             >>> updated_labels = self._update_label_text(labels)
-            >>> print(updated_labels['texts'])
+            >>> print(updated_labels["texts"])
             [['cat'], ['dog'], ['bird'], ['fish']]
-            >>> print(updated_labels['cls'])
+            >>> print(updated_labels["cls"])
             tensor([[0],
                     [1]])
-            >>> print(updated_labels['mix_labels'][0]['cls'])
+            >>> print(updated_labels["mix_labels"][0]["cls"])
             tensor([[2],
                     [3]])
         """
@@ -616,9 +614,12 @@ class Mosaic(BaseMixTransform):
 
         Examples:
             >>> mosaic = Mosaic(dataset, imgsz=640, p=1.0, n=3)
-            >>> labels = {'img': np.random.rand(480, 640, 3), 'mix_labels': [{'img': np.random.rand(480, 640, 3)} for _ in range(2)]}
+            >>> labels = {
+            ...     "img": np.random.rand(480, 640, 3),
+            ...     "mix_labels": [{"img": np.random.rand(480, 640, 3)} for _ in range(2)],
+            ... }
             >>> result = mosaic._mosaic3(labels)
-            >>> print(result['img'].shape)
+            >>> print(result["img"].shape)
             (640, 640, 3)
         """
         mosaic_labels = []
@@ -670,9 +671,10 @@ class Mosaic(BaseMixTransform):
 
         Examples:
             >>> mosaic = Mosaic(dataset, imgsz=640, p=1.0, n=4)
-            >>> labels = {"img": np.random.rand(480, 640, 3), "mix_labels": [
-            ...     {"img": np.random.rand(480, 640, 3)} for _ in range(3)
-            ... ]}
+            >>> labels = {
+            ...     "img": np.random.rand(480, 640, 3),
+            ...     "mix_labels": [{"img": np.random.rand(480, 640, 3)} for _ in range(3)],
+            ... }
             >>> result = mosaic._mosaic4(labels)
             >>> assert result["img"].shape == (1280, 1280, 3)
         """
@@ -734,7 +736,7 @@ class Mosaic(BaseMixTransform):
             >>> mosaic = Mosaic(dataset, imgsz=640, p=1.0, n=9)
             >>> input_labels = dataset[0]
             >>> mosaic_result = mosaic._mosaic9(input_labels)
-            >>> mosaic_image = mosaic_result['img']
+            >>> mosaic_image = mosaic_result["img"]
         """
         mosaic_labels = []
         s = self.imgsz
@@ -898,7 +900,7 @@ class MixUp(BaseMixTransform):
 
         Examples:
             >>> from ultralytics.data.dataset import YOLODataset
-            >>> dataset = YOLODataset('path/to/data.yaml')
+            >>> dataset = YOLODataset("path/to/data.yaml")
             >>> mixup = MixUp(dataset, pre_transform=None, p=0.5)
         """
         super().__init__(dataset=dataset, pre_transform=pre_transform, p=p)
@@ -974,10 +976,10 @@ class RandomPerspective:
     Examples:
         >>> transform = RandomPerspective(degrees=10, translate=0.1, scale=0.1, shear=10)
         >>> image = np.random.randint(0, 255, (640, 640, 3), dtype=np.uint8)
-        >>> labels = {'img': image, 'cls': np.array([0, 1]), 'instances': Instances(...)}
+        >>> labels = {"img": image, "cls": np.array([0, 1]), "instances": Instances(...)}
         >>> result = transform(labels)
-        >>> transformed_image = result['img']
-        >>> transformed_instances = result['instances']
+        >>> transformed_image = result["img"]
+        >>> transformed_instances = result["instances"]
     """
 
     def __init__(
@@ -1003,7 +1005,6 @@ class RandomPerspective:
             >>> transform = RandomPerspective(degrees=10.0, translate=0.1, scale=0.5, shear=5.0)
             >>> result = transform(labels)  # Apply random perspective to labels
         """
-
         self.degrees = degrees
         self.translate = translate
         self.scale = scale
@@ -1036,7 +1037,6 @@ class RandomPerspective:
             >>> border = (10, 10)
             >>> transformed_img, matrix, scale = affine_transform(img, border)
         """
-
         # Center
         C = np.eye(3, dtype=np.float32)
 
@@ -1209,12 +1209,12 @@ class RandomPerspective:
             >>> transform = RandomPerspective()
             >>> image = np.random.randint(0, 255, (640, 640, 3), dtype=np.uint8)
             >>> labels = {
-            ...     'img': image,
-            ...     'cls': np.array([0, 1, 2]),
-            ...     'instances': Instances(bboxes=np.array([[10, 10, 50, 50], [100, 100, 150, 150]]))
+            ...     "img": image,
+            ...     "cls": np.array([0, 1, 2]),
+            ...     "instances": Instances(bboxes=np.array([[10, 10, 50, 50], [100, 100, 150, 150]])),
             ... }
             >>> result = transform(labels)
-            >>> assert result['img'].shape[:2] == result['resized_shape']
+            >>> assert result["img"].shape[:2] == result["resized_shape"]
         """
         if self.pre_transform and "mosaic_border" not in labels:
             labels = self.pre_transform(labels)
@@ -1358,9 +1358,9 @@ class RandomHSV:
 
         Examples:
             >>> hsv_augmenter = RandomHSV(hgain=0.5, sgain=0.5, vgain=0.5)
-            >>> labels = {'img': np.random.randint(0, 255, (100, 100, 3), dtype=np.uint8)}
+            >>> labels = {"img": np.random.randint(0, 255, (100, 100, 3), dtype=np.uint8)}
             >>> hsv_augmenter(labels)
-            >>> augmented_img = labels['img']
+            >>> augmented_img = labels["img"]
         """
         img = labels["img"]
         if self.hgain or self.sgain or self.vgain:
@@ -1394,7 +1394,7 @@ class RandomFlip:
         __call__: Applies the random flip transformation to an image and its annotations.
 
     Examples:
-        >>> transform = RandomFlip(p=0.5, direction='horizontal')
+        >>> transform = RandomFlip(p=0.5, direction="horizontal")
         >>> result = transform({"img": image, "instances": instances})
         >>> flipped_image = result["img"]
         >>> flipped_instances = result["instances"]
@@ -1416,8 +1416,8 @@ class RandomFlip:
             AssertionError: If direction is not 'horizontal' or 'vertical', or if p is not between 0 and 1.
 
         Examples:
-            >>> flip = RandomFlip(p=0.5, direction='horizontal')
-            >>> flip = RandomFlip(p=0.7, direction='vertical', flip_idx=[1, 0, 3, 2, 5, 4])
+            >>> flip = RandomFlip(p=0.5, direction="horizontal")
+            >>> flip = RandomFlip(p=0.7, direction="vertical", flip_idx=[1, 0, 3, 2, 5, 4])
         """
         assert direction in {"horizontal", "vertical"}, f"Support direction `horizontal` or `vertical`, got {direction}"
         assert 0 <= p <= 1.0, f"The probability should be in range [0, 1], but got {p}."
@@ -1446,8 +1446,8 @@ class RandomFlip:
                 'instances' (ultralytics.utils.instance.Instances): Updated instances matching the flipped image.
 
         Examples:
-            >>> labels = {'img': np.random.rand(640, 640, 3), 'instances': Instances(...)}
-            >>> random_flip = RandomFlip(p=0.5, direction='horizontal')
+            >>> labels = {"img": np.random.rand(640, 640, 3), "instances": Instances(...)}
+            >>> random_flip = RandomFlip(p=0.5, direction="horizontal")
             >>> flipped_labels = random_flip(labels)
         """
         img = labels["img"]
@@ -1493,8 +1493,8 @@ class LetterBox:
     Examples:
         >>> transform = LetterBox(new_shape=(640, 640))
         >>> result = transform(labels)
-        >>> resized_img = result['img']
-        >>> updated_instances = result['instances']
+        >>> resized_img = result["img"]
+        >>> updated_instances = result["instances"]
     """
 
     def __init__(self, new_shape=(640, 640), auto=False, scaleFill=False, scaleup=True, center=True, stride=32):
@@ -1548,9 +1548,9 @@ class LetterBox:
 
         Examples:
             >>> letterbox = LetterBox(new_shape=(640, 640))
-            >>> result = letterbox(labels={'img': np.zeros((480, 640, 3)), 'instances': Instances(...)})
-            >>> resized_img = result['img']
-            >>> updated_instances = result['instances']
+            >>> result = letterbox(labels={"img": np.zeros((480, 640, 3)), "instances": Instances(...)})
+            >>> resized_img = result["img"]
+            >>> updated_instances = result["instances"]
         """
         if labels is None:
             labels = {}
@@ -1616,7 +1616,7 @@ class LetterBox:
 
         Examples:
             >>> letterbox = LetterBox(new_shape=(640, 640))
-            >>> labels = {'instances': Instances(...)}
+            >>> labels = {"instances": Instances(...)}
             >>> ratio = (0.5, 0.5)
             >>> padw, padh = 10, 20
             >>> updated_labels = letterbox._update_labels(labels, ratio, padw, padh)
@@ -1643,7 +1643,7 @@ class CopyPaste:
     Examples:
         >>> copypaste = CopyPaste(p=0.5)
         >>> augmented_labels = copypaste(labels)
-        >>> augmented_image = augmented_labels['img']
+        >>> augmented_image = augmented_labels["img"]
     """
 
     def __init__(self, p=0.5) -> None:
@@ -1680,7 +1680,7 @@ class CopyPaste:
             (Dict): Dictionary with augmented image and updated instances under 'img', 'cls', and 'instances' keys.
 
         Examples:
-            >>> labels = {'img': np.random.rand(640, 640, 3), 'cls': np.array([0, 1, 2]), 'instances': Instances(...)}
+            >>> labels = {"img": np.random.rand(640, 640, 3), "cls": np.array([0, 1, 2]), "instances": Instances(...)}
             >>> augmenter = CopyPaste(p=0.5)
             >>> augmented_labels = augmenter(labels)
         """
@@ -1765,8 +1765,8 @@ class Albumentations:
         Examples:
             >>> transform = Albumentations(p=0.5)
             >>> augmented = transform(image=image, bboxes=bboxes, class_labels=classes)
-            >>> augmented_image = augmented['image']
-            >>> augmented_bboxes = augmented['bboxes']
+            >>> augmented_image = augmented["image"]
+            >>> augmented_bboxes = augmented["bboxes"]
 
         Notes:
             - Requires Albumentations version 1.0.3 or higher.
@@ -1871,7 +1871,7 @@ class Albumentations:
             >>> labels = {
             ...     "img": np.random.rand(640, 640, 3),
             ...     "cls": np.array([0, 1]),
-            ...     "instances": Instances(bboxes=np.array([[0, 0, 1, 1], [0.5, 0.5, 0.8, 0.8]]))
+            ...     "instances": Instances(bboxes=np.array([[0, 0, 1, 1], [0.5, 0.5, 0.8, 0.8]])),
             ... }
             >>> augmented = transform(labels)
             >>> assert augmented["img"].shape == (640, 640, 3)
@@ -1927,11 +1927,11 @@ class Format:
         _format_segments: Converts polygon points to bitmap masks.
 
     Examples:
-        >>> formatter = Format(bbox_format='xywh', normalize=True, return_mask=True)
+        >>> formatter = Format(bbox_format="xywh", normalize=True, return_mask=True)
         >>> formatted_labels = formatter(labels)
-        >>> img = formatted_labels['img']
-        >>> bboxes = formatted_labels['bboxes']
-        >>> masks = formatted_labels['masks']
+        >>> img = formatted_labels["img"]
+        >>> bboxes = formatted_labels["bboxes"]
+        >>> masks = formatted_labels["masks"]
     """
 
     def __init__(
@@ -1975,7 +1975,7 @@ class Format:
             bgr (float): The probability to return BGR images.
 
         Examples:
-            >>> format = Format(bbox_format='xyxy', return_mask=True, return_keypoint=False)
+            >>> format = Format(bbox_format="xyxy", return_mask=True, return_keypoint=False)
             >>> print(format.bbox_format)
             xyxy
         """
@@ -2013,8 +2013,8 @@ class Format:
                 - 'batch_idx': Batch index tensor (if batch_idx is True).
 
         Examples:
-            >>> formatter = Format(bbox_format='xywh', normalize=True, return_mask=True)
-            >>> labels = {'img': np.random.rand(640, 640, 3), 'cls': np.array([0, 1]), 'instances': Instances(...)}
+            >>> formatter = Format(bbox_format="xywh", normalize=True, return_mask=True)
+            >>> labels = {"img": np.random.rand(640, 640, 3), "cls": np.array([0, 1]), "instances": Instances(...)}
             >>> formatted_labels = formatter(labels)
             >>> print(formatted_labels.keys())
         """
@@ -2275,8 +2275,8 @@ def v8_transforms(dataset, imgsz, hyp, stretch=False):
 
     Examples:
         >>> from ultralytics.data.dataset import YOLODataset
-        >>> dataset = YOLODataset(img_path='path/to/images', imgsz=640)
-        >>> hyp = {'mosaic': 1.0, 'copy_paste': 0.5, 'degrees': 10.0, 'translate': 0.2, 'scale': 0.9}
+        >>> dataset = YOLODataset(img_path="path/to/images", imgsz=640)
+        >>> hyp = {"mosaic": 1.0, "copy_paste": 0.5, "degrees": 10.0, "translate": 0.2, "scale": 0.9}
         >>> transforms = v8_transforms(dataset, imgsz=640, hyp=hyp)
         >>> augmented_data = transforms(dataset[0])
     """
@@ -2343,7 +2343,7 @@ def classify_transforms(
 
     Examples:
         >>> transforms = classify_transforms(size=224)
-        >>> img = Image.open('path/to/image.jpg')
+        >>> img = Image.open("path/to/image.jpg")
         >>> transformed_img = transforms(img)
     """
     import torchvision.transforms as T  # scope for faster 'import ultralytics'
@@ -2415,7 +2415,7 @@ def classify_augmentations(
         (torchvision.transforms.Compose): A composition of image augmentation transforms.
 
     Examples:
-        >>> transforms = classify_augmentations(size=224, auto_augment='randaugment')
+        >>> transforms = classify_augmentations(size=224, auto_augment="randaugment")
         >>> augmented_image = transforms(original_image)
     """
     # Transforms to apply if Albumentations not installed

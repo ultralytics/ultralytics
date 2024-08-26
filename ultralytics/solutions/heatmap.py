@@ -18,7 +18,7 @@ class Heatmap:
 
     def __init__(
         self,
-        classes_names,
+        names,
         imw=0,
         imh=0,
         colormap=cv2.COLORMAP_JET,
@@ -37,14 +37,13 @@ class Heatmap:
         shape="circle",
     ):
         """Initializes the heatmap class with default values for Visual, Image, track, count and heatmap parameters."""
-
         # Visual information
         self.annotator = None
         self.view_img = view_img
         self.shape = shape
 
         self.initialized = False
-        self.names = classes_names  # Classes names
+        self.names = names  # Classes names
 
         # Image information
         self.imw = imw

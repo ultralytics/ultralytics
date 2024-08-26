@@ -440,4 +440,4 @@ Check out the full [CLI Guide](usage/cli.md) to explore more commands and usage 
 [Tensorboard]: ./integrations/tensorboard.md
 [Ray Tune]: ./integrations/ray-tune.md
 [Weights & Biases]: ./integrations/weights-biases.md
-[Ultralytics-Snippets]: ./integrations/vscode-snippets.md
+[Ultralytics-Snippets]: ./integrations/vscode.md

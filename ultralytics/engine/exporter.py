@@ -1,6 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 """
-Export a YOLOv8 PyTorch model to other formats. TensorFlow exports authored by https://github.com/zldrobit
+Export a YOLOv8 PyTorch model to other formats. TensorFlow exports authored by https://github.com/zldrobit.
 
 Format                  | `format=argument`         | Model
 ---                     | ---                       | ---
@@ -536,9 +536,7 @@ class Exporter:
 
     @try_export
     def export_ncnn(self, prefix=colorstr("NCNN:")):
-        """
-        YOLOv8 NCNN export using PNNX https://github.com/pnnx/pnnx.
-        """
+        """YOLOv8 NCNN export using PNNX https://github.com/pnnx/pnnx."""
         check_requirements("ncnn")
         import ncnn  # noqa
 
@@ -566,7 +564,7 @@ class Exporter:
                 LOGGER.warning(f"{prefix} WARNING ⚠️ PNNX GitHub assets not found: {e}, using default {asset}")
             unzip_dir = safe_download(f"https://github.com/pnnx/pnnx/releases/download/{release}/{asset}", delete=True)
             if check_is_path_safe(Path.cwd(), unzip_dir):  # avoid path traversal security vulnerability
-                (unzip_dir / name).rename(pnnx)  # move binary to ROOT
+                shutil.move(src=unzip_dir / name, dst=pnnx)  # move binary to ROOT
                 pnnx.chmod(0o777)  # set read, write, and execute permissions for everyone
                 shutil.rmtree(unzip_dir)  # delete unzip dir
 
@@ -888,6 +886,8 @@ class Exporter:
             output_integer_quantized_tflite=self.args.int8,
             quant_type="per-tensor",  # "per-tensor" (faster) or "per-channel" (slower but more accurate)
             custom_input_op_name_np_data_path=np_data,
+            disable_group_convolution=True,  # for end-to-end model compatibility
+            enable_batchmatmul_unfold=True,  # for end-to-end model compatibility
         )
         yaml_save(f / "metadata.yaml", self.metadata)  # add metadata.yaml
 
@@ -1020,13 +1020,13 @@ class Exporter:
         """Add metadata to *.tflite models per https://www.tensorflow.org/lite/models/convert/metadata."""
         import flatbuffers
 
-        if ARM64:
-            from tflite_support import metadata  # noqa
-            from tflite_support import metadata_schema_py_generated as schema  # noqa
-        else:
+        try:
             # TFLite Support bug https://github.com/tensorflow/tflite-support/issues/954#issuecomment-2108570845
             from tensorflow_lite_support.metadata import metadata_schema_py_generated as schema  # noqa
             from tensorflow_lite_support.metadata.python import metadata  # noqa
+        except ImportError:  # ARM64 systems may not have the 'tensorflow_lite_support' package available
+            from tflite_support import metadata  # noqa
+            from tflite_support import metadata_schema_py_generated as schema  # noqa
 
         # Create model info
         model_meta = schema.ModelMetadataT()

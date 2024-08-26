@@ -9,15 +9,15 @@ keywords: Ultralytics, TwoWayTransformer, module, deep learning, transformer, ob
 
     This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/sam/modules/transformer.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/sam/modules/transformer.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/models/sam/modules/transformer.py) 🛠️. Thank you 🙏!
 
-<br><br>
+<br>
 
 ## ::: ultralytics.models.sam.modules.transformer.TwoWayTransformer
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.models.sam.modules.transformer.TwoWayAttentionBlock
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.models.sam.modules.transformer.Attention
 

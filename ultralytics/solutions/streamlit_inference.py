@@ -6,11 +6,13 @@ import time
 import cv2
 import torch
 
+from ultralytics.utils.checks import check_requirements
+from ultralytics.utils.downloads import GITHUB_ASSETS_STEMS
 
-def inference():
+
+def inference(model=None):
     """Runs real-time object detection on video input using Ultralytics YOLOv8 in a Streamlit application."""
-
-    # Scope imports for faster ultralytics package load speeds
+    check_requirements("streamlit>=1.29.0")  # scope imports for faster ultralytics package load speeds
     import streamlit as st
 
     from ultralytics import YOLO
@@ -65,28 +67,15 @@ def inference():
         vid_file_name = 0
 
     # Add dropdown menu for model selection
-    yolov8_model = st.sidebar.selectbox(
-        "Model",
-        (
-            "YOLOv8n",
-            "YOLOv8s",
-            "YOLOv8m",
-            "YOLOv8l",
-            "YOLOv8x",
-            "YOLOv8n-Seg",
-            "YOLOv8s-Seg",
-            "YOLOv8m-Seg",
-            "YOLOv8l-Seg",
-            "YOLOv8x-Seg",
-            "YOLOv8n-Pose",
-            "YOLOv8s-Pose",
-            "YOLOv8m-Pose",
-            "YOLOv8l-Pose",
-            "YOLOv8x-Pose",
-        ),
-    )
-    model = YOLO(f"{yolov8_model.lower()}.pt")  # Load the yolov8 model
-    class_names = list(model.names.values())  # Convert dictionary to list of class names
+    available_models = [x.replace("yolo", "YOLO") for x in GITHUB_ASSETS_STEMS if x.startswith("yolov8")]
+    if model:
+        available_models.insert(0, model.split(".pt")[0])  # insert model without suffix as *.pt is added later
+
+    selected_model = st.sidebar.selectbox("Model", available_models)
+    with st.spinner("Model is downloading..."):
+        model = YOLO(f"{selected_model.lower()}.pt")  # Load the YOLO model
+        class_names = list(model.names.values())  # Convert dictionary to list of class names
+    st.success("Model loaded successfully!")
 
     # Multiselect box with class names and get indices of selected classes
     selected_classes = st.sidebar.multiselect("Classes", class_names, default=class_names[:3])
@@ -95,8 +84,9 @@ def inference():
     if not isinstance(selected_ind, list):  # Ensure selected_options is a list
         selected_ind = list(selected_ind)
 
-    conf_thres = st.sidebar.slider("Confidence Threshold", 0.0, 1.0, 0.25, 0.01)
-    nms_thres = st.sidebar.slider("NMS Threshold", 0.0, 1.0, 0.45, 0.01)
+    enable_trk = st.sidebar.radio("Enable Tracking", ("Yes", "No"))
+    conf = float(st.sidebar.slider("Confidence Threshold", 0.0, 1.0, 0.25, 0.01))
+    iou = float(st.sidebar.slider("IoU Threshold", 0.0, 1.0, 0.45, 0.01))
 
     col1, col2 = st.columns(2)
     org_frame = col1.empty()
@@ -112,20 +102,25 @@ def inference():
 
         stop_button = st.button("Stop")  # Button to stop the inference
 
-        prev_time = 0
         while videocapture.isOpened():
             success, frame = videocapture.read()
             if not success:
                 st.warning("Failed to read frame from webcam. Please make sure the webcam is connected properly.")
                 break
 
+            prev_time = time.time()
+
+            # Store model predictions
+            if enable_trk == "Yes":
+                results = model.track(frame, conf=conf, iou=iou, classes=selected_ind, persist=True)
+            else:
+                results = model(frame, conf=conf, iou=iou, classes=selected_ind)
+            annotated_frame = results[0].plot()  # Add annotations on frame
+
+            # Calculate model FPS
             curr_time = time.time()
             fps = 1 / (curr_time - prev_time)
             prev_time = curr_time
-
-            # Store model predictions
-            results = model(frame, conf=float(conf_thres), iou=float(nms_thres), classes=selected_ind)
-            annotated_frame = results[0].plot()  # Add annotations on frame
 
             # display frame
             org_frame.image(frame, channels="BGR")

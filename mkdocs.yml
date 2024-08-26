@@ -91,6 +91,8 @@ extra: # version:
       link: https://pypi.org/project/ultralytics/
     - icon: fontawesome/brands/discord
       link: https://ultralytics.com/discord
+    - icon: fontawesome/brands/reddit
+      link: https://reddit.com/r/ultralytics
 
 extra_css:
   - stylesheets/style.css

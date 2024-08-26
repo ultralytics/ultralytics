@@ -98,6 +98,18 @@ Next, [train a model](./models.md#train-model) on your dataset.
 
 ![Ultralytics HUB screenshot of the Dataset page with an arrow pointing to the Train Model button](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/datasets/hub_upload_dataset_9.jpg)
 
+## Download Dataset
+
+Navigate to the Dataset page of the dataset you want to download, open the dataset actions dropdown and click on the **Download** option. This action will start downloading your dataset.
+
+![Ultralytics HUB screenshot of the Dataset page with an arrow pointing to the Download option](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/datasets/hub_download_dataset_1.jpg)
+
+??? tip "Tip"
+
+    You can download a dataset directly from the [Datasets](https://hub.ultralytics.com/datasets) page.
+
+    ![Ultralytics HUB screenshot of the Datasets page with an arrow pointing to the Download option of one of the datasets](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/datasets/hub_download_dataset_2.jpg)
+
 ## Share Dataset
 
 !!! info "Info"

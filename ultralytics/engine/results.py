@@ -1178,7 +1178,6 @@ class Masks(BaseTensor):
 
     def resize(self, mask):
         """Resizing the mask to match the original image dimension."""
-
         rs = Resize(self.orig_shape, antialias=True)
         resizedMask = rs(mask)
         return resizedMask

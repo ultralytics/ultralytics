@@ -384,7 +384,7 @@ class BasePredictor:
             cv2.imwrite(save_path, im)
 
     def show(self, p=""):
-        """Display an image in a window using OpenCV imshow()."""
+        """Display an image in a window using the OpenCV imshow function."""
         im = self.plotted_img
         if platform.system() == "Linux" and p not in self.windows:
             self.windows.append(p)

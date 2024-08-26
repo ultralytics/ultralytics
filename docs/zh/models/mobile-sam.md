@@ -20,9 +20,9 @@ MobileSAM 使用单个 GPU 在不到一天的时间内对 10 万个数据集（�
 
 以下表格显示了可用模型及其具体的预训练权重，它们支持的任务以及与不同操作模式（[预测](../modes/predict.md)、[验证](../modes/val.md)、[训练](../modes/train.md) 和 [导出](../modes/export.md)）的兼容性，其中支持的模式用 ✅ 表示，不支持的模式用 ❌ 表示。
 
-| 模型类型      | 预训练权重           | 支持的任务                       | 预测 | 验证 | 训练 | 导出 |
-|-----------|-----------------|-----------------------------|----|----|----|----|
-| MobileSAM | `mobile_sam.pt` | [实例分割](../tasks/segment.md) | ✅  | ❌  | ❌  | ✅  |
+| 模型类型  | 预训练权重      | 支持的任务                      | 预测 | 验证 | 训练 | 导出 |
+| --------- | --------------- | ------------------------------- | ---- | ---- | ---- | ---- |
+| MobileSAM | `mobile_sam.pt` | [实例分割](../tasks/segment.md) | ✅   | ❌   | ❌   | ✅   |
 
 ## 从 SAM 迁移到 MobileSAM
 
@@ -33,23 +33,23 @@ MobileSAM 在性能上与原始 SAM 相当，并保留了相同的流程，只�
 以下表格比较了基于 ViT 的图像编码器：
 
 | 图像编码器 | 原始 SAM | MobileSAM |
-|-------|--------|-----------|
-| 参数    | 611M   | 5M        |
-| 速度    | 452ms  | 8ms       |
+| ---------- | -------- | --------- |
+| 参数       | 611M     | 5M        |
+| 速度       | 452ms    | 8ms       |
 
 原始 SAM 和 MobileSAM 均使用相同的提示引导蒙版解码器：
 
 | 蒙版解码器 | 原始 SAM | MobileSAM |
-|-------|--------|-----------|
-| 参数    | 3.876M | 3.876M    |
-| 速度    | 4ms    | 4ms       |
+| ---------- | -------- | --------- |
+| 参数       | 3.876M   | 3.876M    |
+| 速度       | 4ms      | 4ms       |
 
 以下是整个流程的比较：
 
 | 整个流程（编码器+解码器） | 原始 SAM | MobileSAM |
-|---------------|--------|-----------|
-| 参数            | 615M   | 9.66M     |
-| 速度            | 456ms  | 12ms      |
+| ------------------------- | -------- | --------- |
+| 参数                      | 615M     | 9.66M     |
+| 速度                      | 456ms    | 12ms      |
 
 MobileSAM 和原始 SAM 的性能通过使用点和框作为提示进行演示。
 
@@ -76,10 +76,10 @@ MobileSAM 的性能优于当前的 FastSAM，尺寸大约减小了 5 倍，速�
         from ultralytics import SAM
 
         # 载入模型
-        model = SAM('mobile_sam.pt')
+        model = SAM("mobile_sam.pt")
 
         # 基于点提示预测一个分段
-        model.predict('ultralytics/assets/zidane.jpg', points=[900, 370], labels=[1])
+        model.predict("ultralytics/assets/zidane.jpg", points=[900, 370], labels=[1])
         ```
 
 ### 框提示
@@ -91,10 +91,10 @@ MobileSAM 的性能优于当前的 FastSAM，尺寸大约减小了 5 倍，速�
         from ultralytics import SAM
 
         # 载入模型
-        model = SAM('mobile_sam.pt')
+        model = SAM("mobile_sam.pt")
 
         # 基于框提示预测一个分段
-        model.predict('ultralytics/assets/zidane.jpg', bboxes=[439, 437, 524, 709])
+        model.predict("ultralytics/assets/zidane.jpg", bboxes=[439, 437, 524, 709])
         ```
 
 我们使用相同的 API 实现了 `MobileSAM` 和 `SAM`。有关更多用法信息，请参阅 [SAM 页面](sam.md)。

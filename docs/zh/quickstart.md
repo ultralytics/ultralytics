@@ -217,22 +217,22 @@ YOLOv8的Python接口允许无缝集成进您的Python项目，轻松加载、�
     from ultralytics import YOLO
 
     # 从头开始创建一个新的YOLO模型
-    model = YOLO('yolov8n.yaml')
+    model = YOLO("yolov8n.yaml")
 
     # 加载预训练的YOLO模型（推荐用于训练）
-    model = YOLO('yolov8n.pt')
+    model = YOLO("yolov8n.pt")
 
     # 使用“coco128.yaml”数据集训练模型3个周期
-    results = model.train(data='coco128.yaml', epochs=3)
+    results = model.train(data="coco128.yaml", epochs=3)
 
     # 评估模型在验证集上的性能
     results = model.val()
 
     # 使用模型对图片进行目标检测
-    results = model('https://ultralytics.com/images/bus.jpg')
+    results = model("https://ultralytics.com/images/bus.jpg")
 
     # 将模型导出为ONNX格式
-    success = model.export(format='onnx')
+    success = model.export(format="onnx")
     ```
 
 [Python指南](/../usage/python.md){.md-button .md-button--primary}
@@ -256,7 +256,7 @@ Ultralytics库提供了一个强大的设置管理系统，允许您精细控制
         print(settings)
 
         # 返回特定设置
-        value = settings['runs_dir']
+        value = settings["runs_dir"]
         ```
 
     === "CLI"
@@ -277,10 +277,10 @@ Ultralytics允许用户轻松修改他们的设置。更改可以通过以下方
         from ultralytics import settings
 
         # 更新一个设置
-        settings.update({'runs_dir': '/path/to/runs'})
+        settings.update({"runs_dir": "/path/to/runs"})
 
         # 更新多个设置
-        settings.update({'runs_dir': '/path/to/runs', 'tensorboard': False})
+        settings.update({"runs_dir": "/path/to/runs", "tensorboard": False})
 
         # 重置设置为默认值
         settings.reset()
@@ -303,23 +303,23 @@ Ultralytics允许用户轻松修改他们的设置。更改可以通过以下方
 
 下表提供了Ultralytics中可调整设置的概览。每个设置都概述了一个示例值、数据类型和简短描述。
 
-| 名称                 | 示例值                   | 数据类型   | 描述                                                                                       |
-|--------------------|-----------------------|--------|------------------------------------------------------------------------------------------|
-| `settings_version` | `'0.0.4'`             | `str`  | Ultralytics _settings_ 版本（不同于Ultralytics [pip](https://pypi.org/project/ultralytics/)版本） |
-| `datasets_dir`     | `'/path/to/datasets'` | `str`  | 存储数据集的目录                                                                                 |
-| `weights_dir`      | `'/path/to/weights'`  | `str`  | 存储模型权重的目录                                                                                |
-| `runs_dir`         | `'/path/to/runs'`     | `str`  | 存储实验运行的目录                                                                                |
-| `uuid`             | `'a1b2c3d4'`          | `str`  | 当前设置的唯一标识符                                                                               |
-| `sync`             | `True`                | `bool` | 是否将分析和崩溃同步到HUB                                                                           |
-| `api_key`          | `''`                  | `str`  | Ultralytics HUB [API Key](https://hub.ultralytics.com/settings?tab=api+keys)             |
-| `clearml`          | `True`                | `bool` | 是否使用ClearML记录                                                                            |
-| `comet`            | `True`                | `bool` | 是否使用[Comet ML](https://bit.ly/yolov8-readme-comet)进行实验跟踪和可视化                             |
-| `dvc`              | `True`                | `bool` | 是否使用[DVC进行实验跟踪](https://dvc.org/doc/dvclive/ml-frameworks/yolo)和版本控制                     |
-| `hub`              | `True`                | `bool` | 是否使用[Ultralytics HUB](https://hub.ultralytics.com)集成                                     |
-| `mlflow`           | `True`                | `bool` | 是否使用MLFlow进行实验跟踪                                                                         |
-| `neptune`          | `True`                | `bool` | 是否使用Neptune进行实验跟踪                                                                        |
-| `raytune`          | `True`                | `bool` | 是否使用Ray Tune进行超参数调整                                                                      |
-| `tensorboard`      | `True`                | `bool` | 是否使用TensorBoard进行可视化                                                                     |
-| `wandb`            | `True`                | `bool` | 是否使用Weights & Biases记录                                                                   |
+| 名称               | 示例值                | 数据类型 | 描述                                                                                              |
+| ------------------ | --------------------- | -------- | ------------------------------------------------------------------------------------------------- |
+| `settings_version` | `'0.0.4'`             | `str`    | Ultralytics _settings_ 版本（不同于Ultralytics [pip](https://pypi.org/project/ultralytics/)版本） |
+| `datasets_dir`     | `'/path/to/datasets'` | `str`    | 存储数据集的目录                                                                                  |
+| `weights_dir`      | `'/path/to/weights'`  | `str`    | 存储模型权重的目录                                                                                |
+| `runs_dir`         | `'/path/to/runs'`     | `str`    | 存储实验运行的目录                                                                                |
+| `uuid`             | `'a1b2c3d4'`          | `str`    | 当前设置的唯一标识符                                                                              |
+| `sync`             | `True`                | `bool`   | 是否将分析和崩溃同步到HUB                                                                         |
+| `api_key`          | `''`                  | `str`    | Ultralytics HUB [API Key](https://hub.ultralytics.com/settings?tab=api+keys)                      |
+| `clearml`          | `True`                | `bool`   | 是否使用ClearML记录                                                                               |
+| `comet`            | `True`                | `bool`   | 是否使用[Comet ML](https://bit.ly/yolov8-readme-comet)进行实验跟踪和可视化                        |
+| `dvc`              | `True`                | `bool`   | 是否使用[DVC进行实验跟踪](https://dvc.org/doc/dvclive/ml-frameworks/yolo)和版本控制               |
+| `hub`              | `True`                | `bool`   | 是否使用[Ultralytics HUB](https://hub.ultralytics.com)集成                                        |
+| `mlflow`           | `True`                | `bool`   | 是否使用MLFlow进行实验跟踪                                                                        |
+| `neptune`          | `True`                | `bool`   | 是否使用Neptune进行实验跟踪                                                                       |
+| `raytune`          | `True`                | `bool`   | 是否使用Ray Tune进行超参数调整                                                                    |
+| `tensorboard`      | `True`                | `bool`   | 是否使用TensorBoard进行可视化                                                                     |
+| `wandb`            | `True`                | `bool`   | 是否使用Weights & Biases记录                                                                      |
 
 在您浏览项目或实验时，请务必重新访问这些设置，以确保它们为您的需求提供最佳配置。

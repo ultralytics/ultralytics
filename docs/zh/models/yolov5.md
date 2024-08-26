@@ -24,9 +24,9 @@ YOLOv5u是目标检测方法的一种进步。YOLOv5u源于Ultralytics开发的[
 
 具有各种预训练权重的YOLOv5u模型在[目标检测](../tasks/detect.md)任务中表现出色。它们支持全面的模式，适用于从开发到部署的各种应用场景。
 
-| 模型类型    | 预训练权重                                                                                                                       | 任务                         | 推断 | 验证 | 训练 | 导出 |
-|---------|-----------------------------------------------------------------------------------------------------------------------------|----------------------------|----|----|----|----|
-| YOLOv5u | `yolov5nu`, `yolov5su`, `yolov5mu`, `yolov5lu`, `yolov5xu`, `yolov5n6u`, `yolov5s6u`, `yolov5m6u`, `yolov5l6u`, `yolov5x6u` | [目标检测](../tasks/detect.md) | ✅  | ✅  | ✅  | ✅  |
+| 模型类型 | 预训练权重                                                                                                                  | 任务                           | 推断 | 验证 | 训练 | 导出 |
+| -------- | --------------------------------------------------------------------------------------------------------------------------- | ------------------------------ | ---- | ---- | ---- | ---- |
+| YOLOv5u  | `yolov5nu`, `yolov5su`, `yolov5mu`, `yolov5lu`, `yolov5xu`, `yolov5n6u`, `yolov5s6u`, `yolov5m6u`, `yolov5l6u`, `yolov5x6u` | [目标检测](../tasks/detect.md) | ✅   | ✅   | ✅   | ✅   |
 
 该表详细介绍了YOLOv5u模型的变体，突出了它们在目标检测任务和各种操作模式（如[推断](../modes/predict.md)、[验证](../modes/val.md)、[训练](../modes/train.md)和[导出](../modes/export.md)）方面的适用性。这种全面的支持确保用户可以充分发挥YOLOv5u模型在各种目标检测场景中的能力。
 
@@ -66,16 +66,16 @@ YOLOv5u是目标检测方法的一种进步。YOLOv5u源于Ultralytics开发的[
         from ultralytics import YOLO
 
         # 加载一个在COCO数据集上预训练的YOLOv5n模型
-        model = YOLO('yolov5n.pt')
+        model = YOLO("yolov5n.pt")
 
         # 显示模型信息（可选）
         model.info()
 
         # 使用COCO8示例数据集对模型进行100个时期的训练
-        results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
 
         # 使用YOLOv5n模型对'bus.jpg'图像进行推断
-        results = model('path/to/bus.jpg')
+        results = model("path/to/bus.jpg")
         ```
 
     === "CLI"

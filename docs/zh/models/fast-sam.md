@@ -34,10 +34,10 @@ FastSAM旨在解决[Segment Anything Model（SAM）](sam.md)的局限性，SAM�
 
 该表格列出了可用的模型及其特定的预训练权重，它们支持的任务以及它们与不同操作模式（如[推断](../modes/predict.md)、[验证](../modes/val.md)、[训练](../modes/train.md)和[导出](../modes/export.md)）的兼容性，由支持的模式用✅表示，不支持的模式用❌表示。
 
-| 模型类型      | 预训练权重          | 支持的任务                       | 推断 | 验证 | 训练 | 导出 |
-|-----------|----------------|-----------------------------|----|----|----|----|
-| FastSAM-s | `FastSAM-s.pt` | [实例分割](../tasks/segment.md) | ✅  | ❌  | ❌  | ✅  |
-| FastSAM-x | `FastSAM-x.pt` | [实例分割](../tasks/segment.md) | ✅  | ❌  | ❌  | ✅  |
+| 模型类型  | 预训练权重     | 支持的任务                      | 推断 | 验证 | 训练 | 导出 |
+| --------- | -------------- | ------------------------------- | ---- | ---- | ---- | ---- |
+| FastSAM-s | `FastSAM-s.pt` | [实例分割](../tasks/segment.md) | ✅   | ❌   | ❌   | ✅   |
+| FastSAM-x | `FastSAM-x.pt` | [实例分割](../tasks/segment.md) | ✅   | ❌   | ❌   | ✅   |
 
 ## 用法示例
 
@@ -55,16 +55,16 @@ FastSAM模型很容易集成到Python应用程序中。Ultralytics提供了用�
         from ultralytics.models.fastsam import FastSAMPrompt
 
         # 定义推断源
-        source = 'path/to/bus.jpg'
+        source = "path/to/bus.jpg"
 
         # 创建FastSAM模型
-        model = FastSAM('FastSAM-s.pt')  # 或 FastSAM-x.pt
+        model = FastSAM("FastSAM-s.pt")  # 或 FastSAM-x.pt
 
         # 在图像上运行推断
-        everything_results = model(source, device='cpu', retina_masks=True, imgsz=1024, conf=0.4, iou=0.9)
+        everything_results = model(source, device="cpu", retina_masks=True, imgsz=1024, conf=0.4, iou=0.9)
 
         # 准备Prompt Process对象
-        prompt_process = FastSAMPrompt(source, everything_results, device='cpu')
+        prompt_process = FastSAMPrompt(source, everything_results, device="cpu")
 
         # Everything提示
         ann = prompt_process.everything_prompt()
@@ -73,13 +73,13 @@ FastSAM模型很容易集成到Python应用程序中。Ultralytics提供了用�
         ann = prompt_process.box_prompt(bbox=[200, 200, 300, 300])
 
         # 文本提示
-        ann = prompt_process.text_prompt(text='a photo of a dog')
+        ann = prompt_process.text_prompt(text="a photo of a dog")
 
         # 点提示
         # 默认点[[0,0]] [[x1,y1],[x2,y2]]
         # 默认point_label [0] [1,0] 0：背景，1：前景
         ann = prompt_process.point_prompt(points=[[200, 200]], pointlabel=[1])
-        prompt_process.plot(annotations=ann, output='./')
+        prompt_process.plot(annotations=ann, output="./")
         ```
 
     === "CLI"
@@ -101,10 +101,10 @@ FastSAM模型很容易集成到Python应用程序中。Ultralytics提供了用�
         from ultralytics import FastSAM
 
         # 创建FastSAM模型
-        model = FastSAM('FastSAM-s.pt')  # 或 FastSAM-x.pt
+        model = FastSAM("FastSAM-s.pt")  # 或 FastSAM-x.pt
 
         # 验证模型
-        results = model.val(data='coco8-seg.yaml')
+        results = model.val(data="coco8-seg.yaml")
         ```
 
     === "CLI"
@@ -122,26 +122,29 @@ FastSAM也可以直接从[https://github.com/CASIA-IVA-Lab/FastSAM](https://gith
 ### 安装
 
 1. 克隆FastSAM存储库：
-   ```shell
-   git clone https://github.com/CASIA-IVA-Lab/FastSAM.git
-   ```
+
+    ```shell
+    git clone https://github.com/CASIA-IVA-Lab/FastSAM.git
+    ```
 
 2. 创建并激活一个带有Python 3.9的Conda环境：
-   ```shell
-   conda create -n FastSAM python=3.9
-   conda activate FastSAM
-   ```
+
+    ```shell
+    conda create -n FastSAM python=3.9
+    conda activate FastSAM
+    ```
 
 3. 进入克隆的存储库并安装所需的软件包：
-   ```shell
-   cd FastSAM
-   pip install -r requirements.txt
-   ```
+
+    ```shell
+    cd FastSAM
+    pip install -r requirements.txt
+    ```
 
 4. 安装CLIP模型：
-   ```shell
-   pip install git+https://github.com/openai/CLIP.git
-   ```
+    ```shell
+    pip install git+https://github.com/openai/CLIP.git
+    ```
 
 ### 示例用法
 
@@ -150,24 +153,27 @@ FastSAM也可以直接从[https://github.com/CASIA-IVA-Lab/FastSAM](https://gith
 2. 使用FastSAM进行推断。示例命令：
 
     - 在图像中分割所有内容：
-      ```shell
-      python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg
-      ```
+
+        ```shell
+        python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg
+        ```
 
     - 使用文本提示分割特定对象：
-      ```shell
-      python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --text_prompt "the yellow dog"
-      ```
+
+        ```shell
+        python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --text_prompt "the yellow dog"
+        ```
 
     - 在边界框中分割对象（以xywh格式提供边界框坐标）：
-      ```shell
-      python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --box_prompt "[570,200,230,400]"
-      ```
+
+        ```shell
+        python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --box_prompt "[570,200,230,400]"
+        ```
 
     - 在特定点附近分割对象：
-      ```shell
-      python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --point_prompt "[[520,360],[620,300]]" --point_label "[1,0]"
-      ```
+        ```shell
+        python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --point_prompt "[[520,360],[620,300]]" --point_label "[1,0]"
+        ```
 
 此外，您可以在[Colab演示](https://colab.research.google.com/drive/1oX14f6IneGGw612WgVlAiy91UHwFAvr9?usp=sharing)上尝试FastSAM，或在[HuggingFace Web演示](https://huggingface.co/spaces/An-619/FastSAM)上进行可视化体验。
 

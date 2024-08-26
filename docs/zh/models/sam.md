@@ -30,10 +30,10 @@ SAM 先进的设计允许它在没有先验知识的情况下适应新的图像�
 
 这个表格展示了可用模型及其特定的预训练权重，它们支持的任务，以及它们与不同操作模式（[Inference](../modes/predict.md)、[Validation](../modes/val.md)、[Training](../modes/train.md) 和 [Export](../modes/export.md)）的兼容性，用 ✅ 表示支持的模式，用 ❌ 表示不支持的模式。
 
-| 模型类型      | 预训练权重      | 支持的任务                       | 推断 | 验证 | 训练 | 导出 |
-|-----------|------------|-----------------------------|----|----|----|----|
-| SAM base  | `sam_b.pt` | [实例分割](../tasks/segment.md) | ✅  | ❌  | ❌  | ✅  |
-| SAM large | `sam_l.pt` | [实例分割](../tasks/segment.md) | ✅  | ❌  | ❌  | ✅  |
+| 模型类型  | 预训练权重 | 支持的任务                      | 推断 | 验证 | 训练 | 导出 |
+| --------- | ---------- | ------------------------------- | ---- | ---- | ---- | ---- |
+| SAM base  | `sam_b.pt` | [实例分割](../tasks/segment.md) | ✅   | ❌   | ❌   | ✅   |
+| SAM large | `sam_l.pt` | [实例分割](../tasks/segment.md) | ✅   | ❌   | ❌   | ✅   |
 
 ## 如何使用 SAM: 图像分割的多功能和强大
 
@@ -51,16 +51,16 @@ Segment Anything Model 可以用于多种下游任务，超越训练数据的范
         from ultralytics import SAM
 
         # 加载模型
-        model = SAM('sam_b.pt')
+        model = SAM("sam_b.pt")
 
         # 显示模型信息（可选）
         model.info()
 
         # 使用边界框提示进行推断
-        model('ultralytics/assets/zidane.jpg', bboxes=[439, 437, 524, 709])
+        model("ultralytics/assets/zidane.jpg", bboxes=[439, 437, 524, 709])
 
         # 使用点提示进行推断
-        model('ultralytics/assets/zidane.jpg', points=[900, 370], labels=[1])
+        model("ultralytics/assets/zidane.jpg", points=[900, 370], labels=[1])
         ```
 
 !!! Example "分割整个图像"
@@ -73,13 +73,13 @@ Segment Anything Model 可以用于多种下游任务，超越训练数据的范
         from ultralytics import SAM
 
         # 加载模型
-        model = SAM('sam_b.pt')
+        model = SAM("sam_b.pt")
 
         # 显示模型信息（可选）
         model.info()
 
         # 进行推断
-        model('path/to/image.jpg')
+        model("path/to/image.jpg")
         ```
 
     === "CLI"
@@ -101,7 +101,7 @@ Segment Anything Model 可以用于多种下游任务，超越训练数据的范
         from ultralytics.models.sam import Predictor as SAMPredictor
 
         # 创建 SAMPredictor
-        overrides = dict(conf=0.25, task='segment', mode='predict', imgsz=1024, model="mobile_sam.pt")
+        overrides = dict(conf=0.25, task="segment", mode="predict", imgsz=1024, model="mobile_sam.pt")
         predictor = SAMPredictor(overrides=overrides)
 
         # 设置图像
@@ -122,7 +122,7 @@ Segment Anything Model 可以用于多种下游任务，超越训练数据的范
         from ultralytics.models.sam import Predictor as SAMPredictor
 
         # 创建 SAMPredictor
-        overrides = dict(conf=0.25, task='segment', mode='predict', imgsz=1024, model="mobile_sam.pt")
+        overrides = dict(conf=0.25, task="segment", mode="predict", imgsz=1024, model="mobile_sam.pt")
         predictor = SAMPredictor(overrides=overrides)
 
         # 使用附加参数进行分割整个图像
@@ -135,11 +135,11 @@ Segment Anything Model 可以用于多种下游任务，超越训练数据的范
 
 在这里，我们将 Meta 最小的 SAM 模型 SAM-b 与 Ultralytics 的最小分割模型 [YOLOv8n-seg](../tasks/segment.md) 进行对比：
 
-| 模型                                             | 大小                    | 参数                   | 速度 (CPU)               |
-|------------------------------------------------|-----------------------|----------------------|------------------------|
-| Meta's SAM-b                                   | 358 MB                | 94.7 M               | 51096 ms/im            |
-| [MobileSAM](mobile-sam.md)                     | 40.7 MB               | 10.1 M               | 46122 ms/im            |
-| [FastSAM-s](fast-sam.md) with YOLOv8 backbone  | 23.7 MB               | 11.8 M               | 115 ms/im              |
+| 模型                                           | 大小                      | 参数                     | 速度 (CPU)                 |
+| ---------------------------------------------- | ------------------------- | ------------------------ | -------------------------- |
+| Meta's SAM-b                                   | 358 MB                    | 94.7 M                   | 51096 ms/im                |
+| [MobileSAM](mobile-sam.md)                     | 40.7 MB                   | 10.1 M                   | 46122 ms/im                |
+| [FastSAM-s](fast-sam.md) with YOLOv8 backbone  | 23.7 MB                   | 11.8 M                   | 115 ms/im                  |
 | Ultralytics [YOLOv8n-seg](../tasks/segment.md) | **6.7 MB** (缩小了53.4倍) | **3.4 M** (缩小了27.9倍) | **59 ms/im** (加速了866倍) |
 
 这个对比显示了不同模型之间的模型大小和速度上数量级的差异。虽然 SAM 提供了自动分割的独特能力，但它不是与 YOLOv8 分割模型直接竞争的产品，后者体积更小、速度更快、效率更高。
@@ -150,27 +150,27 @@ Segment Anything Model 可以用于多种下游任务，超越训练数据的范
 
     === "Python"
         ```python
-        from ultralytics import FastSAM, SAM, YOLO
+        from ultralytics import SAM, YOLO, FastSAM
 
         # 分析 SAM-b
-        model = SAM('sam_b.pt')
+        model = SAM("sam_b.pt")
         model.info()
-        model('ultralytics/assets')
+        model("ultralytics/assets")
 
         # 分析 MobileSAM
-        model = SAM('mobile_sam.pt')
+        model = SAM("mobile_sam.pt")
         model.info()
-        model('ultralytics/assets')
+        model("ultralytics/assets")
 
         # 分析 FastSAM-s
-        model = FastSAM('FastSAM-s.pt')
+        model = FastSAM("FastSAM-s.pt")
         model.info()
-        model('ultralytics/assets')
+        model("ultralytics/assets")
 
         # 分析 YOLOv8n-seg
-        model = YOLO('yolov8n-seg.pt')
+        model = YOLO("yolov8n-seg.pt")
         model.info()
-        model('ultralytics/assets')
+        model("ultralytics/assets")
         ```
 
 ## 自动注释：创建分割数据集的快速路径
@@ -187,16 +187,16 @@ Segment Anything Model 可以用于多种下游任务，超越训练数据的范
         ```python
         from ultralytics.data.annotator import auto_annotate
 
-        auto_annotate(data="path/to/images", det_model="yolov8x.pt", sam_model='sam_b.pt')
+        auto_annotate(data="path/to/images", det_model="yolov8x.pt", sam_model="sam_b.pt")
         ```
 
-| 参数         | 类型            | 描述                                       | 默认值          |
-|------------|---------------|------------------------------------------|--------------|
-| data       | str           | 包含要进行注释的图像的文件夹的路径。                       |              |
-| det_model  | str, 可选       | 预训练的 YOLO 检测模型，默认为 'yolov8x.pt'。         | 'yolov8x.pt' |
-| sam_model  | str, 可选       | 预训练的 SAM 分割模型，默认为 'sam_b.pt'。            | 'sam_b.pt'   |
-| device     | str, 可选       | 在其上运行模型的设备，默认为空字符串（如果可用，则为 CPU 或 GPU）。   |              |
-| output_dir | str, None, 可选 | 保存注释结果的目录。默认为与 'data' 目录同级的 'labels' 目录。 | None         |
+| 参数       | 类型            | 描述                                                                | 默认值       |
+| ---------- | --------------- | ------------------------------------------------------------------- | ------------ |
+| data       | str             | 包含要进行注释的图像的文件夹的路径。                                |              |
+| det_model  | str, 可选       | 预训练的 YOLO 检测模型，默认为 'yolov8x.pt'。                       | 'yolov8x.pt' |
+| sam_model  | str, 可选       | 预训练的 SAM 分割模型，默认为 'sam_b.pt'。                          | 'sam_b.pt'   |
+| device     | str, 可选       | 在其上运行模型的设备，默认为空字符串（如果可用，则为 CPU 或 GPU）。 |              |
+| output_dir | str, None, 可选 | 保存注释结果的目录。默认为与 'data' 目录同级的 'labels' 目录。      | None         |
 
 `auto_annotate` 函数接受您图像的路径，并提供了可选的参数用于指定预训练的检测和 SAM 分割模型、运行模型的设备，以及保存注释结果的输出目录。
 
@@ -223,4 +223,4 @@ Segment Anything Model 可以用于多种下游任务，超越训练数据的范
 
 我们要向 Meta AI 表示感谢，感谢他们为计算机视觉社区创建和维护了这个宝贵的资源。
 
-*keywords: Segment Anything，Segment Anything Model，SAM，Meta SAM，图像分割，可提示分割，零样本性能，SA-1B数据集，先进架构，自动注释，Ultralytics，预训练模型，SAM base，SAM large，实例分割，计算机视觉，AI，人工智能，机器学习，数据注释，分割掩模，检测模型，YOLO检测模型，bibtex，Meta AI。*
+_keywords: Segment Anything，Segment Anything Model，SAM，Meta SAM，图像分割，可提示分割，零样本性能，SA-1B数据集，先进架构，自动注释，Ultralytics，预训练模型，SAM base，SAM large，实例分割，计算机视觉，AI，人工智能，机器学习，数据注释，分割掩模，检测模型，YOLO检测模型，bibtex，Meta AI。_

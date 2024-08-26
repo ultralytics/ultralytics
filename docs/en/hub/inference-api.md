@@ -1,17 +1,16 @@
 ---
 comments: true
-description: Access object detection capabilities of YOLOv8 via our RESTful API. Learn how to use the YOLO Inference API with Python or cURL for swift object detection.
-keywords: Ultralytics, YOLOv8, Inference API, object detection, RESTful API, Python, cURL, Quickstart
+description: Learn how to run inference using the Ultralytics HUB Inference API. Includes examples in Python and cURL for quick integration.
+keywords: Ultralytics, HUB, Inference API, Python, cURL, REST API, YOLO, image processing, machine learning, AI integration
 ---
 
-# YOLO Inference API
+# Ultralytics HUB Inference API
 
-The YOLO Inference API allows you to access the YOLOv8 object detection capabilities via a RESTful API. This enables you to run object detection on images without the need to install and set up the YOLOv8 environment locally.
+After you [train a model](./models.md#train-model), you can use the [Shared Inference API](#shared-inference-api) for free. If you are a [Pro](./pro.md) user, you can access the [Dedicated Inference API](#dedicated-inference-api). The [Ultralytics HUB](https://ultralytics.com/hub) Inference API allows you to run inference through our REST API without the need to install and set up the Ultralytics YOLO environment locally.
 
-![Inference API Screenshot](https://github.com/ultralytics/ultralytics/assets/19519529/a8c00e55-1590-403b-bdee-ed456c60af4d) Screenshot of the Inference API section in the trained model Preview tab.
+![Ultralytics HUB screenshot of the Deploy tab inside the Model page with an arrow pointing to the Dedicated Inference API card and one to the Shared Inference API card](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/inference-api/hub_inference_api_1.jpg)
 
 <p align="center">
-  <br>
   <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/OpWpBI35A5Y"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -21,102 +20,112 @@ The YOLO Inference API allows you to access the YOLOv8 object detection capabili
   <strong>Watch:</strong> Ultralytics HUB Inference API Walkthrough
 </p>
 
-## API URL
+## Dedicated Inference API
 
-The API URL is the address used to access the YOLO Inference API. In this case, the base URL is:
+In response to high demand and widespread interest, we are thrilled to unveil the [Ultralytics HUB](https://ultralytics.com/hub) Dedicated Inference API, offering single-click deployment in a dedicated environment for our [Pro](./pro.md) users!
 
-```
-https://api.ultralytics.com/v1/predict
-```
+!!! note "Note"
 
-## Example Usage in Python
+    We are excited to offer this feature FREE during our public beta as part of the [Pro Plan](./pro.md), with paid tiers possible in the future.
 
-To access the YOLO Inference API with the specified model and API key using Python, you can use the following code:
+- **Global Coverage:** Deployed across 38 regions worldwide, ensuring low-latency access from any location. [See the full list of Google Cloud regions](https://cloud.google.com/about/locations).
+- **Google Cloud Run-Backed:** Backed by Google Cloud Run, providing infinitely scalable and highly reliable infrastructure.
+- **High Speed:** Sub-100ms latency is possible for YOLOv8n inference at 640 resolution from nearby regions based on Ultralytics testing.
+- **Enhanced Security:** Provides robust security features to protect your data and ensure compliance with industry standards. [Learn more about Google Cloud security](https://cloud.google.com/security).
+
+To use the [Ultralytics HUB](https://ultralytics.com/hub) Dedicated Inference API, click on the **Start Endpoint** button. Next, use the unique endpoint URL as described in the guides below.
+
+![Ultralytics HUB screenshot of the Deploy tab inside the Model page with an arrow pointing to the Start Endpoint button in Dedicated Inference API card](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/inference-api/hub_dedicated_inference_api_1.jpg)
+
+!!! tip "Tip"
+
+    Choose the region with the lowest latency for the best performance as described in the [documentation](https://docs.ultralytics.com/reference/hub/google/__init__).
+
+To shut down the dedicated endpoint, click on the **Stop Endpoint** button.
+
+![Ultralytics HUB screenshot of the Deploy tab inside the Model page with an arrow pointing to the Stop Endpoint button in Dedicated Inference API card](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/inference-api/hub_dedicated_inference_api_2.jpg)
+
+## Shared Inference API
+
+To use the [Ultralytics HUB](https://ultralytics.com/hub) Shared Inference API, follow the guides below.
+
+Free users have the following usage limits:
+
+- 100 calls / hour
+- 1000 calls / month
+
+[Pro](./pro.md) users have the following usage limits:
+
+- 1000 calls / hour
+- 10000 calls / month
+
+## Python
+
+To access the [Ultralytics HUB](https://ultralytics.com/hub) Inference API using Python, use the following code:
 
 ```python
 import requests
 
 # API URL, use actual MODEL_ID
-url = f"https://api.ultralytics.com/v1/predict/MODEL_ID"
+url = "https://api.ultralytics.com/v1/predict/MODEL_ID"
 
 # Headers, use actual API_KEY
 headers = {"x-api-key": "API_KEY"}
 
 # Inference arguments (optional)
-data = {"size": 640, "confidence": 0.25, "iou": 0.45}
+data = {"imgsz": 640, "conf": 0.25, "iou": 0.45}
 
 # Load image and send request
 with open("path/to/image.jpg", "rb") as image_file:
-    files = {"image": image_file}
+    files = {"file": image_file}
     response = requests.post(url, headers=headers, files=files, data=data)
 
 print(response.json())
 ```
 
-In this example, replace `API_KEY` with your actual API key, `MODEL_ID` with the desired model ID, and `path/to/image.jpg` with the path to the image you want to analyze.
+!!! note "Note"
 
-## Example Usage with cURL
+    Replace `MODEL_ID` with the desired model ID, `API_KEY` with your actual API key, and `path/to/image.jpg` with the path to the image you want to run inference on.
 
-You can use the YOLO Inference API with client URL (cURL) by utilizing the `curl` command. Replace `API_KEY` with your actual API key, `MODEL_ID` with the desired model ID, and `image.jpg` with the path to the image you want to analyze:
+    If you are using our [Dedicated Inference API](#dedicated-inference-api), replace the `url` as well.
+
+## cURL
+
+To access the [Ultralytics HUB](https://ultralytics.com/hub) Inference API using cURL, use the following code:
 
 ```bash
 curl -X POST "https://api.ultralytics.com/v1/predict/MODEL_ID" \
 	-H "x-api-key: API_KEY" \
-	-F "image=@/path/to/image.jpg" \
-	-F "size=640" \
-	-F "confidence=0.25" \
+	-F "file=@/path/to/image.jpg" \
+	-F "imgsz=640" \
+	-F "conf=0.25" \
 	-F "iou=0.45"
 ```
 
-## Passing Arguments
+!!! note "Note"
 
-This command sends a POST request to the YOLO Inference API with the specified `MODEL_ID` in the URL and the `API_KEY` in the request `headers`, along with the image file specified by `@path/to/image.jpg`.
+    Replace `MODEL_ID` with the desired model ID, `API_KEY` with your actual API key, and `path/to/image.jpg` with the path to the image you want to run inference on.
 
-Here's an example of passing the `size`, `confidence`, and `iou` arguments via the API URL using the `requests` library in Python:
+    If you are using our [Dedicated Inference API](#dedicated-inference-api), replace the `url` as well.
 
-```python
-import requests
+## Arguments
 
-# API URL, use actual MODEL_ID
-url = f"https://api.ultralytics.com/v1/predict/MODEL_ID"
+See the table below for a full list of available inference arguments.
 
-# Headers, use actual API_KEY
-headers = {"x-api-key": "API_KEY"}
+| Argument | Default | Type    | Description                                                          |
+| -------- | ------- | ------- | -------------------------------------------------------------------- |
+| `file`   |         | `file`  | Image or video file to be used for inference.                        |
+| `imgsz`  | `640`   | `int`   | Size of the input image, valid range is `32` - `1280` pixels.        |
+| `conf`   | `0.25`  | `float` | Confidence threshold for predictions, valid range `0.01` - `1.0`.    |
+| `iou`    | `0.45`  | `float` | Intersection over Union (IoU) threshold, valid range `0.0` - `0.95`. |
 
-# Inference arguments (optional)
-data = {"size": 640, "confidence": 0.25, "iou": 0.45}
+## Response
 
-# Load image and send request
-with open("path/to/image.jpg", "rb") as image_file:
-    files = {"image": image_file}
-    response = requests.post(url, headers=headers, files=files, data=data)
+The [Ultralytics HUB](https://ultralytics.com/hub) Inference API returns a JSON response.
 
-print(response.json())
-```
+### Classification
 
-In this example, the `data` dictionary contains the query arguments `size`, `confidence`, and `iou`, which tells the API to run inference at image size 640 with confidence and IoU thresholds of 0.25 and 0.45.
-
-This will send the query parameters along with the file in the POST request. See the table below for a full list of available inference arguments.
-
-| Inference Argument | Default | Type    | Notes                                          |
-|--------------------|---------|---------|------------------------------------------------|
-| `size`             | `640`   | `int`   | valid range is `32` - `1280` pixels            |
-| `confidence`       | `0.25`  | `float` | valid range is `0.01` - `1.0`                  |
-| `iou`              | `0.45`  | `float` | valid range is `0.0` - `0.95`                  |
-| `url`              | `''`    | `str`   | optional image URL if not image file is passed |
-| `normalize`        | `False` | `bool`  |                                                |
-
-## Return JSON format
-
-The YOLO Inference API returns a JSON list with the detection results. The format of the JSON list will be the same as the one produced locally by the `results[0].tojson()` command.
-
-The JSON list contains information about the detected objects, their coordinates, classes, and confidence scores.
-
-### Detect Model Format
-
-YOLO detection models, such as `yolov8n.pt`, can return JSON responses from local inference, cURL inference, and Python inference. All of these methods produce the same JSON response format.
-
-!!! Example "Detect Model JSON Response"
+!!! Example "Classification Model"
 
     === "`ultralytics`"
 
@@ -124,10 +133,10 @@ YOLO detection models, such as `yolov8n.pt`, can return JSON responses from loca
         from ultralytics import YOLO
 
         # Load model
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n-cls.pt")
 
         # Run inference
-        results = model('image.jpg')
+        results = model("image.jpg")
 
         # Print image.jpg results in JSON format
         print(results[0].tojson())
@@ -138,9 +147,9 @@ YOLO detection models, such as `yolov8n.pt`, can return JSON responses from loca
         ```bash
         curl -X POST "https://api.ultralytics.com/v1/predict/MODEL_ID" \
             -H "x-api-key: API_KEY" \
-            -F "image=@/path/to/image.jpg" \
-            -F "size=640" \
-            -F "confidence=0.25" \
+            -F "file=@/path/to/image.jpg" \
+            -F "imgsz=640" \
+            -F "conf=0.25" \
             -F "iou=0.45"
         ```
 
@@ -150,71 +159,53 @@ YOLO detection models, such as `yolov8n.pt`, can return JSON responses from loca
         import requests
 
         # API URL, use actual MODEL_ID
-        url = f"https://api.ultralytics.com/v1/predict/MODEL_ID"
+        url = "https://api.ultralytics.com/v1/predict/MODEL_ID"
 
         # Headers, use actual API_KEY
         headers = {"x-api-key": "API_KEY"}
 
         # Inference arguments (optional)
-        data = {"size": 640, "confidence": 0.25, "iou": 0.45}
+        data = {"imgsz": 640, "conf": 0.25, "iou": 0.45}
 
         # Load image and send request
         with open("path/to/image.jpg", "rb") as image_file:
-            files = {"image": image_file}
+            files = {"file": image_file}
             response = requests.post(url, headers=headers, files=files, data=data)
 
         print(response.json())
         ```
 
-    === "JSON Response"
+    === "Response"
 
         ```json
         {
-          "success": True,
-          "message": "Inference complete.",
-          "data": [
+          "images": [
             {
-              "name": "person",
-              "class": 0,
-              "confidence": 0.8359682559967041,
-              "box": {
-                "x1": 0.08974208831787109,
-                "y1": 0.27418340047200523,
-                "x2": 0.8706787109375,
-                "y2": 0.9887352837456598
-              }
-            },
-            {
-              "name": "person",
-              "class": 0,
-              "confidence": 0.8189555406570435,
-              "box": {
-                "x1": 0.5847355842590332,
-                "y1": 0.05813225640190972,
-                "x2": 0.8930277824401855,
-                "y2": 0.9903111775716146
-              }
-            },
-            {
-              "name": "tie",
-              "class": 27,
-              "confidence": 0.2909725308418274,
-              "box": {
-                "x1": 0.3433395862579346,
-                "y1": 0.6070465511745877,
-                "x2": 0.40964522361755373,
-                "y2": 0.9849439832899306
+              "results": [
+                {
+                  "class": 0,
+                  "name": "person",
+                  "confidence": 0.92
+                }
+              ],
+              "shape": [
+                750,
+                600
+              ],
+              "speed": {
+                "inference": 200.8,
+                "postprocess": 0.8,
+                "preprocess": 2.8
               }
             }
-          ]
+          ],
+          "metadata": ...
         }
         ```
 
-### Segment Model Format
+### Detection
 
-YOLO segmentation models, such as `yolov8n-seg.pt`, can return JSON responses from local inference, cURL inference, and Python inference. All of these methods produce the same JSON response format.
-
-!!! Example "Segment Model JSON Response"
+!!! Example "Detection Model"
 
     === "`ultralytics`"
 
@@ -222,10 +213,10 @@ YOLO segmentation models, such as `yolov8n-seg.pt`, can return JSON responses fr
         from ultralytics import YOLO
 
         # Load model
-        model = YOLO('yolov8n-seg.pt')
+        model = YOLO("yolov8n.pt")
 
         # Run inference
-        results = model('image.jpg')
+        results = model("image.jpg")
 
         # Print image.jpg results in JSON format
         print(results[0].tojson())
@@ -236,9 +227,9 @@ YOLO segmentation models, such as `yolov8n-seg.pt`, can return JSON responses fr
         ```bash
         curl -X POST "https://api.ultralytics.com/v1/predict/MODEL_ID" \
             -H "x-api-key: API_KEY" \
-            -F "image=@/path/to/image.jpg" \
-            -F "size=640" \
-            -F "confidence=0.25" \
+            -F "file=@/path/to/image.jpg" \
+            -F "imgsz=640" \
+            -F "conf=0.25" \
             -F "iou=0.45"
         ```
 
@@ -248,114 +239,59 @@ YOLO segmentation models, such as `yolov8n-seg.pt`, can return JSON responses fr
         import requests
 
         # API URL, use actual MODEL_ID
-        url = f"https://api.ultralytics.com/v1/predict/MODEL_ID"
+        url = "https://api.ultralytics.com/v1/predict/MODEL_ID"
 
         # Headers, use actual API_KEY
         headers = {"x-api-key": "API_KEY"}
 
         # Inference arguments (optional)
-        data = {"size": 640, "confidence": 0.25, "iou": 0.45}
+        data = {"imgsz": 640, "conf": 0.25, "iou": 0.45}
 
         # Load image and send request
         with open("path/to/image.jpg", "rb") as image_file:
-            files = {"image": image_file}
+            files = {"file": image_file}
             response = requests.post(url, headers=headers, files=files, data=data)
 
         print(response.json())
         ```
 
-    === "JSON Response"
+    === "Response"
 
-        Note `segments` `x` and `y` lengths may vary from one object to another. Larger or more complex objects may have more segment points.
         ```json
         {
-          "success": True,
-          "message": "Inference complete.",
-          "data": [
+          "images": [
             {
-              "name": "person",
-              "class": 0,
-              "confidence": 0.856913149356842,
-              "box": {
-                "x1": 0.1064866065979004,
-                "y1": 0.2798851860894097,
-                "x2": 0.8738358497619629,
-                "y2": 0.9894873725043403
-              },
-              "segments": {
-                "x": [
-                  0.421875,
-                  0.4203124940395355,
-                  0.41718751192092896
-                  ...
-                ],
-                "y": [
-                  0.2888889014720917,
-                  0.2916666567325592,
-                  0.2916666567325592
-                  ...
-                ]
-              }
-            },
-            {
-              "name": "person",
-              "class": 0,
-              "confidence": 0.8512625694274902,
-              "box": {
-                "x1": 0.5757311820983887,
-                "y1": 0.053943040635850696,
-                "x2": 0.8960096359252929,
-                "y2": 0.985154045952691
-              },
-              "segments": {
-                "x": [
-                  0.7515624761581421,
-                  0.75,
-                  0.7437499761581421
-                  ...
-                ],
-                "y": [
-                  0.0555555559694767,
-                  0.05833333358168602,
-                  0.05833333358168602
-                  ...
-                ]
-              }
-            },
-            {
-              "name": "tie",
-              "class": 27,
-              "confidence": 0.6485961675643921,
-              "box": {
-                "x1": 0.33911995887756347,
-                "y1": 0.6057066175672743,
-                "x2": 0.4081430912017822,
-                "y2": 0.9916408962673611
-              },
-              "segments": {
-                "x": [
-                  0.37187498807907104,
-                  0.37031251192092896,
-                  0.3687500059604645
-                  ...
-                ],
-                "y": [
-                  0.6111111044883728,
-                  0.6138888597488403,
-                  0.6138888597488403
-                  ...
-                ]
+              "results": [
+                {
+                  "class": 0,
+                  "name": "person",
+                  "confidence": 0.92,
+                  "box": {
+                    "x1": 118,
+                    "x2": 416,
+                    "y1": 112,
+                    "y2": 660
+                  }
+                }
+              ],
+              "shape": [
+                750,
+                600
+              ],
+              "speed": {
+                "inference": 200.8,
+                "postprocess": 0.8,
+                "preprocess": 2.8
               }
             }
-          ]
+          ],
+          "metadata": ...
         }
         ```
 
-### Pose Model Format
+### OBB
 
-YOLO pose models, such as `yolov8n-pose.pt`, can return JSON responses from local inference, cURL inference, and Python inference. All of these methods produce the same JSON response format.
-
-!!! Example "Pose Model JSON Response"
+!!! Example "OBB Model"
 
     === "`ultralytics`"
 
@@ -363,10 +299,10 @@ YOLO pose models, such as `yolov8n-pose.pt`, can return JSON responses from loca
         from ultralytics import YOLO
 
         # Load model
-        model = YOLO('yolov8n-seg.pt')
+        model = YOLO("yolov8n-obb.pt")
 
         # Run inference
-        results = model('image.jpg')
+        results = model("image.jpg")
 
         # Print image.jpg results in JSON format
         print(results[0].tojson())
@@ -377,9 +313,9 @@ YOLO pose models, such as `yolov8n-pose.pt`, can return JSON responses from loca
         ```bash
         curl -X POST "https://api.ultralytics.com/v1/predict/MODEL_ID" \
             -H "x-api-key: API_KEY" \
-            -F "image=@/path/to/image.jpg" \
-            -F "size=640" \
-            -F "confidence=0.25" \
+            -F "file=@/path/to/image.jpg" \
+            -F "imgsz=640" \
+            -F "conf=0.25" \
             -F "iou=0.45"
         ```
 
@@ -389,92 +325,262 @@ YOLO pose models, such as `yolov8n-pose.pt`, can return JSON responses from loca
         import requests
 
         # API URL, use actual MODEL_ID
-        url = f"https://api.ultralytics.com/v1/predict/MODEL_ID"
+        url = "https://api.ultralytics.com/v1/predict/MODEL_ID"
 
         # Headers, use actual API_KEY
         headers = {"x-api-key": "API_KEY"}
 
         # Inference arguments (optional)
-        data = {"size": 640, "confidence": 0.25, "iou": 0.45}
+        data = {"imgsz": 640, "conf": 0.25, "iou": 0.45}
 
         # Load image and send request
         with open("path/to/image.jpg", "rb") as image_file:
-            files = {"image": image_file}
+            files = {"file": image_file}
             response = requests.post(url, headers=headers, files=files, data=data)
 
         print(response.json())
         ```
 
-    === "JSON Response"
+    === "Response"
 
-        Note COCO-keypoints pretrained models will have 17 human keypoints. The `visible` part of the keypoints indicates whether a keypoint is visible or obscured. Obscured keypoints may be outside the image or may not be visible, i.e. a person's eyes facing away from the camera.
         ```json
         {
-          "success": True,
-          "message": "Inference complete.",
-          "data": [
+          "images": [
             {
-              "name": "person",
-              "class": 0,
-              "confidence": 0.8439509868621826,
-              "box": {
-                "x1": 0.1125,
-                "y1": 0.28194444444444444,
-                "x2": 0.7953125,
-                "y2": 0.9902777777777778
-              },
-              "keypoints": {
-                "x": [
-                  0.5058594942092896,
-                  0.5103894472122192,
-                  0.4920862317085266
-                  ...
-                ],
-                "y": [
-                  0.48964157700538635,
-                  0.4643048942089081,
-                  0.4465252459049225
-                  ...
-                ],
-                "visible": [
-                  0.8726999163627625,
-                  0.653947651386261,
-                  0.9130823612213135
-                  ...
-                ]
-              }
-            },
-            {
-              "name": "person",
-              "class": 0,
-              "confidence": 0.7474289536476135,
-              "box": {
-                "x1": 0.58125,
-                "y1": 0.0625,
-                "x2": 0.8859375,
-                "y2": 0.9888888888888889
-              },
-              "keypoints": {
-                "x": [
-                  0.778544008731842,
-                  0.7976160049438477,
-                  0.7530890107154846
-                  ...
-                ],
-                "y": [
-                  0.27595141530036926,
-                  0.2378823608160019,
-                  0.23644638061523438
-                  ...
-                ],
-                "visible": [
-                  0.8900790810585022,
-                  0.789978563785553,
-                  0.8974530100822449
-                  ...
-                ]
+              "results": [
+                {
+                  "class": 0,
+                  "name": "person",
+                  "confidence": 0.92,
+                  "box": {
+                    "x1": 374.85565,
+                    "x2": 392.31824,
+                    "x3": 412.81805,
+                    "x4": 395.35547,
+                    "y1": 264.40704,
+                    "y2": 267.45728,
+                    "y3": 150.0966,
+                    "y4": 147.04634
+                  }
+                }
+              ],
+              "shape": [
+                750,
+                600
+              ],
+              "speed": {
+                "inference": 200.8,
+                "postprocess": 0.8,
+                "preprocess": 2.8
               }
             }
-          ]
+          ],
+          "metadata": ...
+        }
+        ```
+
+### Segmentation
+
+!!! Example "Segmentation Model"
+
+    === "`ultralytics`"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load model
+        model = YOLO("yolov8n-seg.pt")
+
+        # Run inference
+        results = model("image.jpg")
+
+        # Print image.jpg results in JSON format
+        print(results[0].tojson())
+        ```
+
+    === "cURL"
+
+        ```bash
+        curl -X POST "https://api.ultralytics.com/v1/predict/MODEL_ID" \
+            -H "x-api-key: API_KEY" \
+            -F "file=@/path/to/image.jpg" \
+            -F "imgsz=640" \
+            -F "conf=0.25" \
+            -F "iou=0.45"
+        ```
+
+    === "Python"
+
+        ```python
+        import requests
+
+        # API URL, use actual MODEL_ID
+        url = "https://api.ultralytics.com/v1/predict/MODEL_ID"
+
+        # Headers, use actual API_KEY
+        headers = {"x-api-key": "API_KEY"}
+
+        # Inference arguments (optional)
+        data = {"imgsz": 640, "conf": 0.25, "iou": 0.45}
+
+        # Load image and send request
+        with open("path/to/image.jpg", "rb") as image_file:
+            files = {"file": image_file}
+            response = requests.post(url, headers=headers, files=files, data=data)
+
+        print(response.json())
+        ```
+
+    === "Response"
+
+        ```json
+        {
+          "images": [
+            {
+              "results": [
+                {
+                  "class": 0,
+                  "name": "person",
+                  "confidence": 0.92,
+                  "box": {
+                    "x1": 118,
+                    "x2": 416,
+                    "y1": 112,
+                    "y2": 660
+                  },
+                  "segments": {
+                    "x": [
+                      266.015625,
+                      266.015625,
+                      258.984375,
+                      ...
+                    ],
+                    "y": [
+                      110.15625,
+                      113.67188262939453,
+                      120.70311737060547,
+                      ...
+                    ]
+                  }
+                }
+              ],
+              "shape": [
+                750,
+                600
+              ],
+              "speed": {
+                "inference": 200.8,
+                "postprocess": 0.8,
+                "preprocess": 2.8
+              }
+            }
+          ],
+          "metadata": ...
+        }
+        ```
+
+### Pose
+
+!!! Example "Pose Model"
+
+    === "`ultralytics`"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load model
+        model = YOLO("yolov8n-pose.pt")
+
+        # Run inference
+        results = model("image.jpg")
+
+        # Print image.jpg results in JSON format
+        print(results[0].tojson())
+        ```
+
+    === "cURL"
+
+        ```bash
+        curl -X POST "https://api.ultralytics.com/v1/predict/MODEL_ID" \
+            -H "x-api-key: API_KEY" \
+            -F "file=@/path/to/image.jpg" \
+            -F "imgsz=640" \
+            -F "conf=0.25" \
+            -F "iou=0.45"
+        ```
+
+    === "Python"
+
+        ```python
+        import requests
+
+        # API URL, use actual MODEL_ID
+        url = "https://api.ultralytics.com/v1/predict/MODEL_ID"
+
+        # Headers, use actual API_KEY
+        headers = {"x-api-key": "API_KEY"}
+
+        # Inference arguments (optional)
+        data = {"imgsz": 640, "conf": 0.25, "iou": 0.45}
+
+        # Load image and send request
+        with open("path/to/image.jpg", "rb") as image_file:
+            files = {"file": image_file}
+            response = requests.post(url, headers=headers, files=files, data=data)
+
+        print(response.json())
+        ```
+
+    === "Response"
+
+        ```json
+        {
+          "images": [
+            {
+              "results": [
+                {
+                  "class": 0,
+                  "name": "person",
+                  "confidence": 0.92,
+                  "box": {
+                    "x1": 118,
+                    "x2": 416,
+                    "y1": 112,
+                    "y2": 660
+                  },
+                  "keypoints": {
+                    "visible": [
+                      0.9909399747848511,
+                      0.8162999749183655,
+                      0.9872099757194519,
+                      ...
+                    ],
+                    "x": [
+                      316.3871765136719,
+                      315.9374694824219,
+                      304.878173828125,
+                      ...
+                    ],
+                    "y": [
+                      156.4207763671875,
+                      148.05775451660156,
+                      144.93240356445312,
+                      ...
+                    ]
+                  }
+                }
+              ],
+              "shape": [
+                750,
+                600
+              ],
+              "speed": {
+                "inference": 200.8,
+                "postprocess": 0.8,
+                "preprocess": 2.8
+              }
+            }
+          ],
+          "metadata": ...
         }
         ```

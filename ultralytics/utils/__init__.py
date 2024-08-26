@@ -1154,14 +1154,11 @@ def url2file(url):
     return Path(clean_url(url)).name
 
 
-def vscode_msg() -> str:
+def vscode_msg(ext="ultralytics.ultralytics-snippets") -> str:
     """Display a message to install Ultralytics-Snippets for VS Code if not already installed."""
-    ext_path = (USER_CONFIG_DIR.parents[2] if WINDOWS else USER_CONFIG_DIR.parents[1]) / ".vscode/extensions"
-    obs_file = ext_path / ".obsolete"  # file tracks uninstalled extensions, while source directory remains
-    ext = "ultralytics.ultralytics-snippets"
-    installed = any(ext_path.glob(f"{ext}*")) and ext not in (
-        obs_file.read_text("utf-8") if obs_file.exists() else "None"
-    )
+    path = (USER_CONFIG_DIR.parents[2] if WINDOWS else USER_CONFIG_DIR.parents[1]) / ".vscode/extensions"
+    obs_file = path / ".obsolete"  # file tracks uninstalled extensions, while source directory remains
+    installed = any(path.glob(f"{ext}*")) and ext not in (obs_file.read_text("utf-8") if obs_file.exists() else "")
     return (
         "colorstr('VS Code:') view Ultralytics VS Code Extension ⚡ at https://docs.ultralytics.com/integrations/vscode"
         if not installed

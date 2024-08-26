@@ -165,7 +165,7 @@ You can plot the history of reported metrics for each trial to see how the metri
 ```python
 import matplotlib.pyplot as plt
 
-for result in result_grid:
+for i, result in enumerate(result_grid):
     plt.plot(
         result.metrics_dataframe["training_iteration"],
         result.metrics_dataframe["mean_accuracy"],

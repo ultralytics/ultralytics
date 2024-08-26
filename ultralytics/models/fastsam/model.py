@@ -16,8 +16,8 @@ class FastSAM(Model):
         ```python
         from ultralytics import FastSAM
 
-        model = FastSAM('last.pt')
-        results = model.predict('ultralytics/assets/bus.jpg')
+        model = FastSAM("last.pt")
+        results = model.predict("ultralytics/assets/bus.jpg")
         ```
     """
 
@@ -30,18 +30,21 @@ class FastSAM(Model):
 
     def predict(self, source, stream=False, bboxes=None, points=None, labels=None, texts=None, **kwargs):
         """
-        Performs segmentation prediction on the given image or video source.
+        Perform segmentation prediction on image or video source.
+
+        Supports prompted segmentation with bounding boxes, points, labels, and texts.
 
         Args:
-            source (str): Path to the image or video file, or a PIL.Image object, or a numpy.ndarray object.
-            stream (bool, optional): If True, enables real-time streaming. Defaults to False.
-            bboxes (list, optional): List of bounding box coordinates for prompted segmentation. Defaults to None.
-            points (list, optional): List of points for prompted segmentation. Defaults to None.
-            labels (list, optional): List of labels for prompted segmentation. Defaults to None.
-            texts (list, optional): List of texts for prompted segmentation. Defaults to None.
+            source (str | PIL.Image | numpy.ndarray): Input source.
+            stream (bool): Enable real-time streaming.
+            bboxes (list): Bounding box coordinates for prompted segmentation.
+            points (list): Points for prompted segmentation.
+            labels (list): Labels for prompted segmentation.
+            texts (list): Texts for prompted segmentation.
+            **kwargs (Any): Additional keyword arguments.
 
         Returns:
-            (list): The model predictions.
+            (list): Model predictions.
         """
         prompts = dict(bboxes=bboxes, points=points, labels=labels, texts=texts)
         return super().predict(source, stream, prompts=prompts, **kwargs)

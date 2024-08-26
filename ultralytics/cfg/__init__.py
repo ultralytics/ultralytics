@@ -13,6 +13,7 @@ from ultralytics.utils import (
     DEFAULT_CFG,
     DEFAULT_CFG_DICT,
     DEFAULT_CFG_PATH,
+    IS_VSCODE,
     LOGGER,
     RANK,
     ROOT,
@@ -25,6 +26,7 @@ from ultralytics.utils import (
     checks,
     colorstr,
     deprecation_warn,
+    vscode_msg,
     yaml_load,
     yaml_print,
 )
@@ -833,6 +835,10 @@ def entrypoint(debug=""):
 
     # Show help
     LOGGER.info(f"💡 Learn more at https://docs.ultralytics.com/modes/{mode}")
+
+    # Recommend VS Code extension
+    if IS_VSCODE and SETTINGS.get("vscode_msg", True):
+        LOGGER.info(vscode_msg())
 
 
 # Special modes --------------------------------------------------------------------------------------------------------

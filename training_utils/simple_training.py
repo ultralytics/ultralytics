@@ -20,21 +20,24 @@ if __name__ == "__main__":
     parser.add_argument("-l", "--load", type=str, default=None, help="Path to the model weights to load. Load the pretrained model")
 
     args = parser.parse_args()
-    model = YOLO(GetModelYaml(training_task))  # Initialize model
 
     PrepareDataset(coco_classes_file, dataset_yaml_path, training_task)
-    model = YOLO(GetModelYaml(training_task))  # Initialize model
 
     if args.load is not None:
         if os.path.exists(args.load):
-            model.load(args.load)
+            model = YOLO(args.load)
         else:
             print(f"[ERROR] : Model {args.load} does not exists")
             exit(1)
+    else:
+        model = YOLO(GetModelYaml(training_task))  # Initialize model
 
     model.train(
         task=training_task,
         data="verdant.yaml",
+        optimizer='SGD',
+        lr0=0.01,
+        lrf=0.01,
         epochs=300,
         flipud=0.5,
         fliplr=0.5,

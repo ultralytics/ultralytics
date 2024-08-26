@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Discover the power of deploying your Ultralytics YOLOv8 model using OpenVINO format for up to 10x speedup vs PyTorch.
-keywords: ultralytics docs, YOLOv8, export YOLOv8, YOLOv8 model deployment, exporting YOLOv8, OpenVINO, OpenVINO format
+description: Learn to export YOLOv8 models to OpenVINO format for up to 3x CPU speedup and hardware acceleration on Intel GPU and NPU.
+keywords: YOLOv8, OpenVINO, model export, Intel, AI inference, CPU speedup, GPU acceleration, NPU, deep learning
 ---
 
 # Intel OpenVINO Export
@@ -35,17 +35,18 @@ Export a YOLOv8n model to OpenVINO format and run inference with the exported mo
         from ultralytics import YOLO
 
         # Load a YOLOv8n PyTorch model
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
 
         # Export the model
-        model.export(format='openvino')  # creates 'yolov8n_openvino_model/'
+        model.export(format="openvino")  # creates 'yolov8n_openvino_model/'
 
         # Load the exported OpenVINO model
-        ov_model = YOLO('yolov8n_openvino_model/')
+        ov_model = YOLO("yolov8n_openvino_model/")
 
         # Run inference
-        results = ov_model('https://ultralytics.com/images/bus.jpg')
+        results = ov_model("https://ultralytics.com/images/bus.jpg")
         ```
+
     === "CLI"
 
         ```bash
@@ -58,18 +59,21 @@ Export a YOLOv8n model to OpenVINO format and run inference with the exported mo
 
 ## Arguments
 
-| Key      | Value        | Description                                          |
-|----------|--------------|------------------------------------------------------|
-| `format` | `'openvino'` | format to export to                                  |
-| `imgsz`  | `640`        | image size as scalar or (h, w) list, i.e. (640, 480) |
-| `half`   | `False`      | FP16 quantization                                    |
+| Key       | Value        | Description                                          |
+| --------- | ------------ | ---------------------------------------------------- |
+| `format`  | `'openvino'` | format to export to                                  |
+| `imgsz`   | `640`        | image size as scalar or (h, w) list, i.e. (640, 480) |
+| `half`    | `False`      | FP16 quantization                                    |
+| `int8`    | `False`      | INT8 quantization                                    |
+| `batch`   | `1`          | batch size for inference                             |
+| `dynamic` | `False`      | allows dynamic input sizes                           |
 
 ## Benefits of OpenVINO
 
 1. **Performance**: OpenVINO delivers high-performance inference by utilizing the power of Intel CPUs, integrated and discrete GPUs, and FPGAs.
 2. **Support for Heterogeneous Execution**: OpenVINO provides an API to write once and deploy on any supported Intel hardware (CPU, GPU, FPGA, VPU, etc.).
 3. **Model Optimizer**: OpenVINO provides a Model Optimizer that imports, converts, and optimizes models from popular deep learning frameworks such as PyTorch, TensorFlow, TensorFlow Lite, Keras, ONNX, PaddlePaddle, and Caffe.
-4. **Ease of Use**: The toolkit comes with more than [80 tutorial notebooks](https://github.com/openvinotoolkit/openvino_notebooks) (including [YOLOv8 optimization](https://github.com/openvinotoolkit/openvino_notebooks/tree/main/notebooks/230-yolov8-optimization)) teaching different aspects of the toolkit.
+4. **Ease of Use**: The toolkit comes with more than [80 tutorial notebooks](https://github.com/openvinotoolkit/openvino_notebooks) (including [YOLOv8 optimization](https://github.com/openvinotoolkit/openvino_notebooks/tree/latest/notebooks/yolov8-optimization)) teaching different aspects of the toolkit.
 
 ## OpenVINO Export Structure
 
@@ -95,7 +99,7 @@ In your deployment application, you would typically do the following steps:
 4. Prepare the input (image, text, audio, etc.).
 5. Run inference using `compiled_model(input_data)`.
 
-For more detailed steps and code snippets, refer to the [OpenVINO documentation](https://docs.openvino.ai/) or [API tutorial](https://github.com/openvinotoolkit/openvino_notebooks/blob/main/notebooks/002-openvino-api/002-openvino-api.ipynb).
+For more detailed steps and code snippets, refer to the [OpenVINO documentation](https://docs.openvino.ai/) or [API tutorial](https://github.com/openvinotoolkit/openvino_notebooks/blob/latest/notebooks/openvino-api/openvino-api.ipynb).
 
 ## OpenVINO YOLOv8 Benchmarks
 
@@ -118,27 +122,27 @@ Benchmarks below run on Intel® Data Center GPU Flex 170 at FP32 precision.
 </div>
 
 | Model   | Format      | Status | Size (MB) | mAP50-95(B) | Inference time (ms/im) |
-|---------|-------------|--------|-----------|-------------|------------------------|
-| YOLOv8n | PyTorch     | ✅      | 6.2       | 0.3709      | 21.79                  |
-| YOLOv8n | TorchScript | ✅      | 12.4      | 0.3704      | 23.24                  |
-| YOLOv8n | ONNX        | ✅      | 12.2      | 0.3704      | 37.22                  |
-| YOLOv8n | OpenVINO    | ✅      | 12.3      | 0.3703      | 3.29                   |
-| YOLOv8s | PyTorch     | ✅      | 21.5      | 0.4471      | 31.89                  |
-| YOLOv8s | TorchScript | ✅      | 42.9      | 0.4472      | 32.71                  |
-| YOLOv8s | ONNX        | ✅      | 42.8      | 0.4472      | 43.42                  |
-| YOLOv8s | OpenVINO    | ✅      | 42.9      | 0.4470      | 3.92                   |
-| YOLOv8m | PyTorch     | ✅      | 49.7      | 0.5013      | 50.75                  |
-| YOLOv8m | TorchScript | ✅      | 99.2      | 0.4999      | 47.90                  |
-| YOLOv8m | ONNX        | ✅      | 99.0      | 0.4999      | 63.16                  |
-| YOLOv8m | OpenVINO    | ✅      | 49.8      | 0.4997      | 7.11                   |
-| YOLOv8l | PyTorch     | ✅      | 83.7      | 0.5293      | 77.45                  |
-| YOLOv8l | TorchScript | ✅      | 167.2     | 0.5268      | 85.71                  |
-| YOLOv8l | ONNX        | ✅      | 166.8     | 0.5268      | 88.94                  |
-| YOLOv8l | OpenVINO    | ✅      | 167.0     | 0.5264      | 9.37                   |
-| YOLOv8x | PyTorch     | ✅      | 130.5     | 0.5404      | 100.09                 |
-| YOLOv8x | TorchScript | ✅      | 260.7     | 0.5371      | 114.64                 |
-| YOLOv8x | ONNX        | ✅      | 260.4     | 0.5371      | 110.32                 |
-| YOLOv8x | OpenVINO    | ✅      | 260.6     | 0.5367      | 15.02                  |
+| ------- | ----------- | ------ | --------- | ----------- | ---------------------- |
+| YOLOv8n | PyTorch     | ✅     | 6.2       | 0.3709      | 21.79                  |
+| YOLOv8n | TorchScript | ✅     | 12.4      | 0.3704      | 23.24                  |
+| YOLOv8n | ONNX        | ✅     | 12.2      | 0.3704      | 37.22                  |
+| YOLOv8n | OpenVINO    | ✅     | 12.3      | 0.3703      | 3.29                   |
+| YOLOv8s | PyTorch     | ✅     | 21.5      | 0.4471      | 31.89                  |
+| YOLOv8s | TorchScript | ✅     | 42.9      | 0.4472      | 32.71                  |
+| YOLOv8s | ONNX        | ✅     | 42.8      | 0.4472      | 43.42                  |
+| YOLOv8s | OpenVINO    | ✅     | 42.9      | 0.4470      | 3.92                   |
+| YOLOv8m | PyTorch     | ✅     | 49.7      | 0.5013      | 50.75                  |
+| YOLOv8m | TorchScript | ✅     | 99.2      | 0.4999      | 47.90                  |
+| YOLOv8m | ONNX        | ✅     | 99.0      | 0.4999      | 63.16                  |
+| YOLOv8m | OpenVINO    | ✅     | 49.8      | 0.4997      | 7.11                   |
+| YOLOv8l | PyTorch     | ✅     | 83.7      | 0.5293      | 77.45                  |
+| YOLOv8l | TorchScript | ✅     | 167.2     | 0.5268      | 85.71                  |
+| YOLOv8l | ONNX        | ✅     | 166.8     | 0.5268      | 88.94                  |
+| YOLOv8l | OpenVINO    | ✅     | 167.0     | 0.5264      | 9.37                   |
+| YOLOv8x | PyTorch     | ✅     | 130.5     | 0.5404      | 100.09                 |
+| YOLOv8x | TorchScript | ✅     | 260.7     | 0.5371      | 114.64                 |
+| YOLOv8x | ONNX        | ✅     | 260.4     | 0.5371      | 110.32                 |
+| YOLOv8x | OpenVINO    | ✅     | 260.6     | 0.5367      | 15.02                  |
 
 This table represents the benchmark results for five different models (YOLOv8n, YOLOv8s, YOLOv8m, YOLOv8l, YOLOv8x) across four different formats (PyTorch, TorchScript, ONNX, OpenVINO), giving us the status, size, mAP50-95(B) metric, and inference time for each combination.
 
@@ -157,27 +161,27 @@ Benchmarks below run on Intel® Arc 770 GPU at FP32 precision.
 </div>
 
 | Model   | Format      | Status | Size (MB) | metrics/mAP50-95(B) | Inference time (ms/im) |
-|---------|-------------|--------|-----------|---------------------|------------------------|
-| YOLOv8n | PyTorch     | ✅      | 6.2       | 0.3709              | 88.79                  |
-| YOLOv8n | TorchScript | ✅      | 12.4      | 0.3704              | 102.66                 |
-| YOLOv8n | ONNX        | ✅      | 12.2      | 0.3704              | 57.98                  |
-| YOLOv8n | OpenVINO    | ✅      | 12.3      | 0.3703              | 8.52                   |
-| YOLOv8s | PyTorch     | ✅      | 21.5      | 0.4471              | 189.83                 |
-| YOLOv8s | TorchScript | ✅      | 42.9      | 0.4472              | 227.58                 |
-| YOLOv8s | ONNX        | ✅      | 42.7      | 0.4472              | 142.03                 |
-| YOLOv8s | OpenVINO    | ✅      | 42.9      | 0.4469              | 9.19                   |
-| YOLOv8m | PyTorch     | ✅      | 49.7      | 0.5013              | 411.64                 |
-| YOLOv8m | TorchScript | ✅      | 99.2      | 0.4999              | 517.12                 |
-| YOLOv8m | ONNX        | ✅      | 98.9      | 0.4999              | 298.68                 |
-| YOLOv8m | OpenVINO    | ✅      | 99.1      | 0.4996              | 12.55                  |
-| YOLOv8l | PyTorch     | ✅      | 83.7      | 0.5293              | 725.73                 |
-| YOLOv8l | TorchScript | ✅      | 167.1     | 0.5268              | 892.83                 |
-| YOLOv8l | ONNX        | ✅      | 166.8     | 0.5268              | 576.11                 |
-| YOLOv8l | OpenVINO    | ✅      | 167.0     | 0.5262              | 17.62                  |
-| YOLOv8x | PyTorch     | ✅      | 130.5     | 0.5404              | 988.92                 |
-| YOLOv8x | TorchScript | ✅      | 260.7     | 0.5371              | 1186.42                |
-| YOLOv8x | ONNX        | ✅      | 260.4     | 0.5371              | 768.90                 |
-| YOLOv8x | OpenVINO    | ✅      | 260.6     | 0.5367              | 19                     |
+| ------- | ----------- | ------ | --------- | ------------------- | ---------------------- |
+| YOLOv8n | PyTorch     | ✅     | 6.2       | 0.3709              | 88.79                  |
+| YOLOv8n | TorchScript | ✅     | 12.4      | 0.3704              | 102.66                 |
+| YOLOv8n | ONNX        | ✅     | 12.2      | 0.3704              | 57.98                  |
+| YOLOv8n | OpenVINO    | ✅     | 12.3      | 0.3703              | 8.52                   |
+| YOLOv8s | PyTorch     | ✅     | 21.5      | 0.4471              | 189.83                 |
+| YOLOv8s | TorchScript | ✅     | 42.9      | 0.4472              | 227.58                 |
+| YOLOv8s | ONNX        | ✅     | 42.7      | 0.4472              | 142.03                 |
+| YOLOv8s | OpenVINO    | ✅     | 42.9      | 0.4469              | 9.19                   |
+| YOLOv8m | PyTorch     | ✅     | 49.7      | 0.5013              | 411.64                 |
+| YOLOv8m | TorchScript | ✅     | 99.2      | 0.4999              | 517.12                 |
+| YOLOv8m | ONNX        | ✅     | 98.9      | 0.4999              | 298.68                 |
+| YOLOv8m | OpenVINO    | ✅     | 99.1      | 0.4996              | 12.55                  |
+| YOLOv8l | PyTorch     | ✅     | 83.7      | 0.5293              | 725.73                 |
+| YOLOv8l | TorchScript | ✅     | 167.1     | 0.5268              | 892.83                 |
+| YOLOv8l | ONNX        | ✅     | 166.8     | 0.5268              | 576.11                 |
+| YOLOv8l | OpenVINO    | ✅     | 167.0     | 0.5262              | 17.62                  |
+| YOLOv8x | PyTorch     | ✅     | 130.5     | 0.5404              | 988.92                 |
+| YOLOv8x | TorchScript | ✅     | 260.7     | 0.5371              | 1186.42                |
+| YOLOv8x | ONNX        | ✅     | 260.4     | 0.5371              | 768.90                 |
+| YOLOv8x | OpenVINO    | ✅     | 260.6     | 0.5367              | 19                     |
 
 ### Intel Xeon CPU
 
@@ -192,27 +196,27 @@ Benchmarks below run on 4th Gen Intel® Xeon® Scalable CPU at FP32 precision.
 </div>
 
 | Model   | Format      | Status | Size (MB) | metrics/mAP50-95(B) | Inference time (ms/im) |
-|---------|-------------|--------|-----------|---------------------|------------------------|
-| YOLOv8n | PyTorch     | ✅      | 6.2       | 0.3709              | 24.36                  |
-| YOLOv8n | TorchScript | ✅      | 12.4      | 0.3704              | 23.93                  |
-| YOLOv8n | ONNX        | ✅      | 12.2      | 0.3704              | 39.86                  |
-| YOLOv8n | OpenVINO    | ✅      | 12.3      | 0.3704              | 11.34                  |
-| YOLOv8s | PyTorch     | ✅      | 21.5      | 0.4471              | 33.77                  |
-| YOLOv8s | TorchScript | ✅      | 42.9      | 0.4472              | 34.84                  |
-| YOLOv8s | ONNX        | ✅      | 42.8      | 0.4472              | 43.23                  |
-| YOLOv8s | OpenVINO    | ✅      | 42.9      | 0.4471              | 13.86                  |
-| YOLOv8m | PyTorch     | ✅      | 49.7      | 0.5013              | 53.91                  |
-| YOLOv8m | TorchScript | ✅      | 99.2      | 0.4999              | 53.51                  |
-| YOLOv8m | ONNX        | ✅      | 99.0      | 0.4999              | 64.16                  |
-| YOLOv8m | OpenVINO    | ✅      | 99.1      | 0.4996              | 28.79                  |
-| YOLOv8l | PyTorch     | ✅      | 83.7      | 0.5293              | 75.78                  |
-| YOLOv8l | TorchScript | ✅      | 167.2     | 0.5268              | 79.13                  |
-| YOLOv8l | ONNX        | ✅      | 166.8     | 0.5268              | 88.45                  |
-| YOLOv8l | OpenVINO    | ✅      | 167.0     | 0.5263              | 56.23                  |
-| YOLOv8x | PyTorch     | ✅      | 130.5     | 0.5404              | 96.60                  |
-| YOLOv8x | TorchScript | ✅      | 260.7     | 0.5371              | 114.28                 |
-| YOLOv8x | ONNX        | ✅      | 260.4     | 0.5371              | 111.02                 |
-| YOLOv8x | OpenVINO    | ✅      | 260.6     | 0.5371              | 83.28                  |
+| ------- | ----------- | ------ | --------- | ------------------- | ---------------------- |
+| YOLOv8n | PyTorch     | ✅     | 6.2       | 0.3709              | 24.36                  |
+| YOLOv8n | TorchScript | ✅     | 12.4      | 0.3704              | 23.93                  |
+| YOLOv8n | ONNX        | ✅     | 12.2      | 0.3704              | 39.86                  |
+| YOLOv8n | OpenVINO    | ✅     | 12.3      | 0.3704              | 11.34                  |
+| YOLOv8s | PyTorch     | ✅     | 21.5      | 0.4471              | 33.77                  |
+| YOLOv8s | TorchScript | ✅     | 42.9      | 0.4472              | 34.84                  |
+| YOLOv8s | ONNX        | ✅     | 42.8      | 0.4472              | 43.23                  |
+| YOLOv8s | OpenVINO    | ✅     | 42.9      | 0.4471              | 13.86                  |
+| YOLOv8m | PyTorch     | ✅     | 49.7      | 0.5013              | 53.91                  |
+| YOLOv8m | TorchScript | ✅     | 99.2      | 0.4999              | 53.51                  |
+| YOLOv8m | ONNX        | ✅     | 99.0      | 0.4999              | 64.16                  |
+| YOLOv8m | OpenVINO    | ✅     | 99.1      | 0.4996              | 28.79                  |
+| YOLOv8l | PyTorch     | ✅     | 83.7      | 0.5293              | 75.78                  |
+| YOLOv8l | TorchScript | ✅     | 167.2     | 0.5268              | 79.13                  |
+| YOLOv8l | ONNX        | ✅     | 166.8     | 0.5268              | 88.45                  |
+| YOLOv8l | OpenVINO    | ✅     | 167.0     | 0.5263              | 56.23                  |
+| YOLOv8x | PyTorch     | ✅     | 130.5     | 0.5404              | 96.60                  |
+| YOLOv8x | TorchScript | ✅     | 260.7     | 0.5371              | 114.28                 |
+| YOLOv8x | ONNX        | ✅     | 260.4     | 0.5371              | 111.02                 |
+| YOLOv8x | OpenVINO    | ✅     | 260.6     | 0.5371              | 83.28                  |
 
 ### Intel Core CPU
 
@@ -225,27 +229,27 @@ Benchmarks below run on 13th Gen Intel® Core® i7-13700H CPU at FP32 precision.
 </div>
 
 | Model   | Format      | Status | Size (MB) | metrics/mAP50-95(B) | Inference time (ms/im) |
-|---------|-------------|--------|-----------|---------------------|------------------------|
-| YOLOv8n | PyTorch     | ✅      | 6.2       | 0.4478              | 104.61                 |
-| YOLOv8n | TorchScript | ✅      | 12.4      | 0.4525              | 112.39                 |
-| YOLOv8n | ONNX        | ✅      | 12.2      | 0.4525              | 28.02                  |
-| YOLOv8n | OpenVINO    | ✅      | 12.3      | 0.4504              | 23.53                  |
-| YOLOv8s | PyTorch     | ✅      | 21.5      | 0.5885              | 194.83                 |
-| YOLOv8s | TorchScript | ✅      | 43.0      | 0.5962              | 202.01                 |
-| YOLOv8s | ONNX        | ✅      | 42.8      | 0.5962              | 65.74                  |
-| YOLOv8s | OpenVINO    | ✅      | 42.9      | 0.5966              | 38.66                  |
-| YOLOv8m | PyTorch     | ✅      | 49.7      | 0.6101              | 355.23                 |
-| YOLOv8m | TorchScript | ✅      | 99.2      | 0.6120              | 424.78                 |
-| YOLOv8m | ONNX        | ✅      | 99.0      | 0.6120              | 173.39                 |
-| YOLOv8m | OpenVINO    | ✅      | 99.1      | 0.6091              | 69.80                  |
-| YOLOv8l | PyTorch     | ✅      | 83.7      | 0.6591              | 593.00                 |
-| YOLOv8l | TorchScript | ✅      | 167.2     | 0.6580              | 697.54                 |
-| YOLOv8l | ONNX        | ✅      | 166.8     | 0.6580              | 342.15                 |
-| YOLOv8l | OpenVINO    | ✅      | 167.0     | 0.0708              | 117.69                 |
-| YOLOv8x | PyTorch     | ✅      | 130.5     | 0.6651              | 804.65                 |
-| YOLOv8x | TorchScript | ✅      | 260.8     | 0.6650              | 921.46                 |
-| YOLOv8x | ONNX        | ✅      | 260.4     | 0.6650              | 526.66                 |
-| YOLOv8x | OpenVINO    | ✅      | 260.6     | 0.6619              | 158.73                 |
+| ------- | ----------- | ------ | --------- | ------------------- | ---------------------- |
+| YOLOv8n | PyTorch     | ✅     | 6.2       | 0.4478              | 104.61                 |
+| YOLOv8n | TorchScript | ✅     | 12.4      | 0.4525              | 112.39                 |
+| YOLOv8n | ONNX        | ✅     | 12.2      | 0.4525              | 28.02                  |
+| YOLOv8n | OpenVINO    | ✅     | 12.3      | 0.4504              | 23.53                  |
+| YOLOv8s | PyTorch     | ✅     | 21.5      | 0.5885              | 194.83                 |
+| YOLOv8s | TorchScript | ✅     | 43.0      | 0.5962              | 202.01                 |
+| YOLOv8s | ONNX        | ✅     | 42.8      | 0.5962              | 65.74                  |
+| YOLOv8s | OpenVINO    | ✅     | 42.9      | 0.5966              | 38.66                  |
+| YOLOv8m | PyTorch     | ✅     | 49.7      | 0.6101              | 355.23                 |
+| YOLOv8m | TorchScript | ✅     | 99.2      | 0.6120              | 424.78                 |
+| YOLOv8m | ONNX        | ✅     | 99.0      | 0.6120              | 173.39                 |
+| YOLOv8m | OpenVINO    | ✅     | 99.1      | 0.6091              | 69.80                  |
+| YOLOv8l | PyTorch     | ✅     | 83.7      | 0.6591              | 593.00                 |
+| YOLOv8l | TorchScript | ✅     | 167.2     | 0.6580              | 697.54                 |
+| YOLOv8l | ONNX        | ✅     | 166.8     | 0.6580              | 342.15                 |
+| YOLOv8l | OpenVINO    | ✅     | 167.0     | 0.0708              | 117.69                 |
+| YOLOv8x | PyTorch     | ✅     | 130.5     | 0.6651              | 804.65                 |
+| YOLOv8x | TorchScript | ✅     | 260.8     | 0.6650              | 921.46                 |
+| YOLOv8x | ONNX        | ✅     | 260.4     | 0.6650              | 526.66                 |
+| YOLOv8x | OpenVINO    | ✅     | 260.6     | 0.6619              | 158.73                 |
 
 ## Reproduce Our Results
 
@@ -259,16 +263,17 @@ To reproduce the Ultralytics benchmarks above on all export [formats](../modes/e
         from ultralytics import YOLO
 
         # Load a YOLOv8n PyTorch model
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
 
-        # Benchmark YOLOv8n speed and accuracy on the COCO128 dataset for all all export formats
-        results= model.benchmarks(data='coco128.yaml')
+        # Benchmark YOLOv8n speed and accuracy on the COCO8 dataset for all export formats
+        results = model.benchmarks(data="coco8.yaml")
         ```
+
     === "CLI"
 
         ```bash
-        # Benchmark YOLOv8n speed and accuracy on the COCO128 dataset for all all export formats
-        yolo benchmark model=yolov8n.pt data=coco128.yaml
+        # Benchmark YOLOv8n speed and accuracy on the COCO8 dataset for all export formats
+        yolo benchmark model=yolov8n.pt data=coco8.yaml
         ```
 
     Note that benchmarking results might vary based on the exact hardware and software configuration of a system, as well as the current workload of the system at the time the benchmarks are run. For the most reliable results use a dataset with a large number of images, i.e. `data='coco128.yaml' (128 val images), or `data='coco.yaml'` (5000 val images).
@@ -282,3 +287,107 @@ For the Intel® Data Center GPU Flex Series, the OpenVINO format was able to del
 The benchmarks underline the effectiveness of OpenVINO as a tool for deploying deep learning models. By converting models to the OpenVINO format, developers can achieve significant performance improvements, making it easier to deploy these models in real-world applications.
 
 For more detailed information and instructions on using OpenVINO, refer to the [official OpenVINO documentation](https://docs.openvino.ai/).
+
+## FAQ
+
+### How do I export YOLOv8 models to OpenVINO format?
+
+Exporting YOLOv8 models to the OpenVINO format can significantly enhance CPU speed and enable GPU and NPU accelerations on Intel hardware. To export, you can use either Python or CLI as shown below:
+
+!!! Example
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load a YOLOv8n PyTorch model
+        model = YOLO("yolov8n.pt")
+
+        # Export the model
+        model.export(format="openvino")  # creates 'yolov8n_openvino_model/'
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Export a YOLOv8n PyTorch model to OpenVINO format
+        yolo export model=yolov8n.pt format=openvino  # creates 'yolov8n_openvino_model/'
+        ```
+
+For more information, refer to the [export formats documentation](../modes/export.md).
+
+### What are the benefits of using OpenVINO with YOLOv8 models?
+
+Using Intel's OpenVINO toolkit with YOLOv8 models offers several benefits:
+
+1. **Performance**: Achieve up to 3x speedup on CPU inference and leverage Intel GPUs and NPUs for acceleration.
+2. **Model Optimizer**: Convert, optimize, and execute models from popular frameworks like PyTorch, TensorFlow, and ONNX.
+3. **Ease of Use**: Over 80 tutorial notebooks are available to help users get started, including ones for YOLOv8.
+4. **Heterogeneous Execution**: Deploy models on various Intel hardware with a unified API.
+
+For detailed performance comparisons, visit our [benchmarks section](#openvino-yolov8-benchmarks).
+
+### How can I run inference using a YOLOv8 model exported to OpenVINO?
+
+After exporting a YOLOv8 model to OpenVINO format, you can run inference using Python or CLI:
+
+!!! Example
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load the exported OpenVINO model
+        ov_model = YOLO("yolov8n_openvino_model/")
+
+        # Run inference
+        results = ov_model("https://ultralytics.com/images/bus.jpg")
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Run inference with the exported model
+        yolo predict model=yolov8n_openvino_model source='https://ultralytics.com/images/bus.jpg'
+        ```
+
+Refer to our [predict mode documentation](../modes/predict.md) for more details.
+
+### Why should I choose Ultralytics YOLOv8 over other models for OpenVINO export?
+
+Ultralytics YOLOv8 is optimized for real-time object detection with high accuracy and speed. Specifically, when combined with OpenVINO, YOLOv8 provides:
+
+- Up to 3x speedup on Intel CPUs
+- Seamless deployment on Intel GPUs and NPUs
+- Consistent and comparable accuracy across various export formats
+
+For in-depth performance analysis, check our detailed [YOLOv8 benchmarks](#openvino-yolov8-benchmarks) on different hardware.
+
+### Can I benchmark YOLOv8 models on different formats such as PyTorch, ONNX, and OpenVINO?
+
+Yes, you can benchmark YOLOv8 models in various formats including PyTorch, TorchScript, ONNX, and OpenVINO. Use the following code snippet to run benchmarks on your chosen dataset:
+
+!!! Example
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load a YOLOv8n PyTorch model
+        model = YOLO("yolov8n.pt")
+
+        # Benchmark YOLOv8n speed and accuracy on the COCO8 dataset for all export formats
+        results = model.benchmarks(data="coco8.yaml")
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Benchmark YOLOv8n speed and accuracy on the COCO8 dataset for all export formats
+        yolo benchmark model=yolov8n.pt data=coco8.yaml
+        ```
+
+For detailed benchmark results, refer to our [benchmarks section](#openvino-yolov8-benchmarks) and [export formats](../modes/export.md) documentation.

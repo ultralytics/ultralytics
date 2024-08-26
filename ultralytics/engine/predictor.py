@@ -29,7 +29,6 @@ Usage - formats:
                               yolov8n_ncnn_model         # NCNN
 """
 
-import os
 import platform
 import re
 import threading

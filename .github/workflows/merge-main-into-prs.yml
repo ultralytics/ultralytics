@@ -47,6 +47,11 @@ jobs:
           
           for pr in repo.get_pulls(state='open', sort='created'):
               try:
+                  # Label PRs as popular for positive reactions
+                  reactions = pr.as_issue().get_reactions()
+                  if sum([(1 if r.content not in {"-1", "confused"} else 0) for r in reactions]) > 5:
+                      pr.set_labels(*("popular",) + tuple(l.name for l in pr.get_labels()))
+
                   # Get full names for repositories and branches
                   base_repo_name = repo.full_name
                   head_repo_name = pr.head.repo.full_name

@@ -5,6 +5,12 @@
 # Start FROM https://catalog.ngc.nvidia.com/orgs/nvidia/containers/l4t-jetpack
 FROM nvcr.io/nvidia/l4t-jetpack:r36.3.0
 
+# Set environment variables
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_BREAK_SYSTEM_PACKAGES=1
+
 # Downloads to user config dir
 ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.ttf \
     https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.Unicode.ttf \
@@ -17,9 +23,9 @@ RUN apt update && \
 # Create working directory
 WORKDIR /ultralytics
 
-# Copy contents and assign permissions
+# Copy contents and configure git
 COPY . .
-RUN chown -R root:root .
+RUN sed -i '/^\[http "https:\/\/github\.com\/"\]/,+1d' .git/config
 ADD https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n.pt .
 
 # Download onnxruntime-gpu 1.18.0 from https://elinux.org/Jetson_Zoo and https://forums.developer.nvidia.com/t/pytorch-for-jetson/72048
@@ -27,11 +33,11 @@ ADD https://nvidia.box.com/shared/static/48dtuob7meiw6ebgfsfqakc9vse62sg4.whl on
 
 # Pip install onnxruntime-gpu, torch, torchvision and ultralytics
 RUN python3 -m pip install --upgrade pip wheel
-RUN pip install --no-cache-dir \
+RUN pip install \
     onnxruntime_gpu-1.18.0-cp310-cp310-linux_aarch64.whl \
     https://github.com/ultralytics/assets/releases/download/v0.0.0/torch-2.3.0-cp310-cp310-linux_aarch64.whl \
     https://github.com/ultralytics/assets/releases/download/v0.0.0/torchvision-0.18.0a0+6043bc2-cp310-cp310-linux_aarch64.whl
-RUN pip install --no-cache-dir -e ".[export]"
+RUN pip install -e ".[export]"
 RUN rm *.whl
 
 # Usage Examples -------------------------------------------------------------------------------------------------------

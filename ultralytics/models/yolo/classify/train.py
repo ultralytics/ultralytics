@@ -22,7 +22,7 @@ class ClassificationTrainer(BaseTrainer):
         ```python
         from ultralytics.models.yolo.classify import ClassificationTrainer
 
-        args = dict(model='yolov8n-cls.pt', data='imagenet10', epochs=3)
+        args = dict(model="yolov8n-cls.pt", data="imagenet10", epochs=3)
         trainer = ClassificationTrainer(overrides=args)
         trainer.train()
         ```

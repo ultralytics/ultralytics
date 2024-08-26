@@ -1162,15 +1162,7 @@ def vscode_msg() -> str:
     installed = any(ext_path.glob(f"{ext}*")) and ext not in (
         obs_file.read_text("utf-8") if obs_file.exists() else "None"
     )
-    return (
-        (
-            colorstr("VS Code terminal detected.\n")
-            + "  Enhance your Ultralytics experience by installing Ultralytics-Snippets for VS Code ⚡.\n"
-            "  https://docs.ultralytics.com/integrations/vscode-snippets\n"
-        )
-        if not installed
-        else ""
-    )
+    return f"colorstr('VS Code:') view Ultralytics VS Code Extension ⚡ at https://docs.ultralytics.com/integrations/vscode-snippets\n" if not installed else ""
 
 
 # Run below code on utils init ------------------------------------------------------------------------------------

@@ -1049,7 +1049,6 @@ class SettingsManager(dict):
 
     def __init__(self, file=SETTINGS_YAML, version="0.0.5"):
         """Initializes the SettingsManager with default settings and loads user settings."""
-
         import copy
         import hashlib
 

@@ -1,8 +1,8 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 """
-This Python script is designed to automate the building and post-processing of MkDocs documentation, particularly for
-projects with multilingual content. It streamlines the workflow for generating localized versions of the documentation
-and updating HTML links to ensure they are correctly formatted.
+Automates the building and post-processing of MkDocs documentation, particularly for projects with multilingual content.
+It streamlines the workflow for generating localized versions of the documentation and updating HTML links to ensure
+they are correctly formatted.
 
 Key Features:
     - Automated building of MkDocs documentation: The script compiles both the main documentation and
@@ -64,7 +64,6 @@ def prepare_docs_markdown(clone_repos=True):
 
 def update_page_title(file_path: Path, new_title: str):
     """Update the title of an HTML file."""
-
     # Read the content of the file
     with open(file_path, encoding="utf-8") as file:
         content = file.read()
@@ -153,7 +152,6 @@ def update_markdown_files(md_filepath: Path):
 
 def update_docs_html():
     """Updates titles, edit links, head sections, and converts plaintext links in HTML documentation."""
-
     # Update 404 titles
     update_page_title(SITE / "404.html", new_title="Ultralytics Docs - Not Found")
 
@@ -214,7 +212,7 @@ def convert_plaintext_links_to_html(content):
 
 
 def remove_macros():
-    # Delete the /macros directory and sitemap.xml.gz from the built site
+    """Removes the /macros directory and related entries in sitemap.xml from the built site."""
     shutil.rmtree(SITE / "macros", ignore_errors=True)
     (SITE / "sitemap.xml.gz").unlink(missing_ok=True)
 

@@ -114,7 +114,7 @@ After installing Kaggle, we can load the dataset into Watsonx.
         os.environ["KAGGLE_KEY"] = "apiKey"
 
         # Load dataset
-        !kaggle datasets download atiqishrak/trash-dataset-icra19 --unzip
+        os.system("kaggle datasets download atiqishrak/trash-dataset-icra19 --unzip")
 
         # Store working directory path as work_dir
         work_dir = os.getcwd()

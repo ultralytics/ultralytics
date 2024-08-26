@@ -1163,7 +1163,7 @@ def vscode_msg() -> str:
         obs_file.read_text("utf-8") if obs_file.exists() else "None"
     )
     return (
-        "colorstr('VS Code:') view Ultralytics VS Code Extension ⚡ at https://docs.ultralytics.com/integrations/vscode-snippets"
+        "colorstr('VS Code:') view Ultralytics VS Code Extension ⚡ at https://docs.ultralytics.com/integrations/vscode"
         if not installed
         else ""
     )

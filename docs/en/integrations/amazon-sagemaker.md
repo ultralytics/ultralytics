@@ -118,7 +118,7 @@ After creating the AWS CloudFormation Stack, the next step is to deploy YOLOv8.
 import json
 
 
-def output_fn(prediction_output, content_type):
+def output_fn(prediction_output):
     """Formats model outputs as JSON string, extracting attributes like boxes, masks, keypoints."""
     print("Executing output_fn from inference.py ...")
     infer = {}
@@ -169,3 +169,88 @@ This guide took you step by step through deploying YOLOv8 on Amazon SageMaker En
 For more technical details, refer to [this article](https://aws.amazon.com/blogs/machine-learning/hosting-yolov8-pytorch-model-on-amazon-sagemaker-endpoints/) on the AWS Machine Learning Blog. You can also check out the official [Amazon SageMaker Documentation](https://docs.aws.amazon.com/sagemaker/latest/dg/realtime-endpoints.html) for more insights into various features and functionalities.
 
 Are you interested in learning more about different YOLOv8 integrations? Visit the [Ultralytics integrations guide page](../integrations/index.md) to discover additional tools and capabilities that can enhance your machine-learning projects.
+
+## FAQ
+
+### How do I deploy the Ultralytics YOLOv8 model on Amazon SageMaker Endpoints?
+
+To deploy the Ultralytics YOLOv8 model on Amazon SageMaker Endpoints, follow these steps:
+
+1. **Set Up Your AWS Environment**: Ensure you have an AWS Account, IAM roles with necessary permissions, and the AWS CLI configured. Install AWS CDK if not already done (refer to the [AWS CDK instructions](https://docs.aws.amazon.com/cdk/v2/guide/getting_started.html#getting_started_install)).
+2. **Clone the YOLOv8 SageMaker Repository**:
+    ```bash
+    git clone https://github.com/aws-samples/host-yolov8-on-sagemaker-endpoint.git
+    cd host-yolov8-on-sagemaker-endpoint/yolov8-pytorch-cdk
+    ```
+3. **Set Up the CDK Environment**: Create a Python virtual environment, activate it, install dependencies, and upgrade AWS CDK library.
+    ```bash
+    python3 -m venv .venv
+    source .venv/bin/activate
+    pip3 install -r requirements.txt
+    pip install --upgrade aws-cdk-lib
+    ```
+4. **Deploy using AWS CDK**: Synthesize and deploy the CloudFormation stack, bootstrap the environment.
+    ```bash
+    cdk synth
+    cdk bootstrap
+    cdk deploy
+    ```
+
+For further details, review the [documentation section](#step-5-deploy-the-yolov8-model).
+
+### What are the prerequisites for deploying YOLOv8 on Amazon SageMaker?
+
+To deploy YOLOv8 on Amazon SageMaker, ensure you have the following prerequisites:
+
+1. **AWS Account**: Active AWS account ([sign up here](https://aws.amazon.com/)).
+2. **IAM Roles**: Configured IAM roles with permissions for SageMaker, CloudFormation, and Amazon S3.
+3. **AWS CLI**: Installed and configured AWS Command Line Interface ([AWS CLI installation guide](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)).
+4. **AWS CDK**: Installed AWS Cloud Development Kit ([CDK setup guide](https://docs.aws.amazon.com/cdk/v2/guide/getting_started.html#getting_started_install)).
+5. **Service Quotas**: Sufficient quotas for `ml.m5.4xlarge` instances for both endpoint and notebook usage ([request a quota increase](https://docs.aws.amazon.com/servicequotas/latest/userguide/request-quota-increase.html#quota-console-increase)).
+
+For detailed setup, refer to [this section](#step-1-setup-your-aws-environment).
+
+### Why should I use Ultralytics YOLOv8 on Amazon SageMaker?
+
+Using Ultralytics YOLOv8 on Amazon SageMaker offers several advantages:
+
+1. **Scalability and Management**: SageMaker provides a managed environment with features like autoscaling, which helps in real-time inference needs.
+2. **Integration with AWS Services**: Seamlessly integrate with other AWS services, such as S3 for data storage, CloudFormation for infrastructure as code, and CloudWatch for monitoring.
+3. **Ease of Deployment**: Simplified setup using AWS CDK scripts and streamlined deployment processes.
+4. **Performance**: Leverage Amazon SageMaker's high-performance infrastructure for running large scale inference tasks efficiently.
+
+Explore more about the advantages of using SageMaker in the [introduction section](#amazon-sagemaker).
+
+### Can I customize the inference logic for YOLOv8 on Amazon SageMaker?
+
+Yes, you can customize the inference logic for YOLOv8 on Amazon SageMaker:
+
+1. **Modify `inference.py`**: Locate and customize the `output_fn` function in the `inference.py` file to tailor output formats.
+
+    ```python
+    import json
+
+
+    def output_fn(prediction_output):
+        """Formats model outputs as JSON string, extracting attributes like boxes, masks, keypoints."""
+        infer = {}
+        for result in prediction_output:
+            if result.boxes is not None:
+                infer["boxes"] = result.boxes.numpy().data.tolist()
+            # Add more processing logic if necessary
+        return json.dumps(infer)
+    ```
+
+2. **Deploy Updated Model**: Ensure you redeploy the model using Jupyter notebooks provided (`1_DeployEndpoint.ipynb`) to include these changes.
+
+Refer to the [detailed steps](#step-5-deploy-the-yolov8-model) for deploying the modified model.
+
+### How can I test the deployed YOLOv8 model on Amazon SageMaker?
+
+To test the deployed YOLOv8 model on Amazon SageMaker:
+
+1. **Open the Test Notebook**: Locate the `2_TestEndpoint.ipynb` notebook in the SageMaker Jupyter environment.
+2. **Run the Notebook**: Follow the notebook's instructions to send an image to the endpoint, perform inference, and display results.
+3. **Visualize Results**: Use built-in plotting functionalities to visualize performance metrics, such as bounding boxes around detected objects.
+
+For comprehensive testing instructions, visit the [testing section](#step-6-testing-your-deployment).

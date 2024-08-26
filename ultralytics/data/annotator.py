@@ -9,20 +9,24 @@ def auto_annotate(data, det_model="yolov8x.pt", sam_model="sam_b.pt", device="",
     """
     Automatically annotates images using a YOLO object detection model and a SAM segmentation model.
 
+    This function processes images in a specified directory, detects objects using a YOLO model, and then generates
+    segmentation masks using a SAM model. The resulting annotations are saved as text files.
+
     Args:
         data (str): Path to a folder containing images to be annotated.
-        det_model (str, optional): Pre-trained YOLO detection model. Defaults to 'yolov8x.pt'.
-        sam_model (str, optional): Pre-trained SAM segmentation model. Defaults to 'sam_b.pt'.
-        device (str, optional): Device to run the models on. Defaults to an empty string (CPU or GPU, if available).
-        output_dir (str | None | optional): Directory to save the annotated results.
-            Defaults to a 'labels' folder in the same directory as 'data'.
+        det_model (str): Path or name of the pre-trained YOLO detection model.
+        sam_model (str): Path or name of the pre-trained SAM segmentation model.
+        device (str): Device to run the models on (e.g., 'cpu', 'cuda', '0').
+        output_dir (str | None): Directory to save the annotated results. If None, a default directory is created.
 
-    Example:
-        ```python
-        from ultralytics.data.annotator import auto_annotate
+    Examples:
+        >>> from ultralytics.data.annotator import auto_annotate
+        >>> auto_annotate(data="ultralytics/assets", det_model="yolov8n.pt", sam_model="mobile_sam.pt")
 
-        auto_annotate(data='ultralytics/assets', det_model='yolov8n.pt', sam_model='mobile_sam.pt')
-        ```
+    Notes:
+        - The function creates a new directory for output if not specified.
+        - Annotation results are saved as text files with the same names as the input images.
+        - Each line in the output text file represents a detected object with its class ID and segmentation points.
     """
     det_model = YOLO(det_model)
     sam_model = SAM(sam_model)

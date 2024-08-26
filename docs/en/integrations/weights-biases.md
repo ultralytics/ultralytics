@@ -8,6 +8,17 @@ keywords: YOLOv8, Weights & Biases, model training, experiment tracking, Ultraly
 
 Object detection models like [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics) have become integral to many computer vision applications. However, training, evaluating, and deploying these complex models introduces several challenges. Tracking key training metrics, comparing model variants, analyzing model behavior, and detecting issues require substantial instrumentation and experiment management.
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/EeDd5P4eS6A"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to use Ultralytics YOLOv8 with Weights and Biases
+</p>
+
 This guide showcases Ultralytics YOLOv8 integration with Weights & Biases' for enhanced experiment tracking, model-checkpointing, and visualization of model performance. It also includes instructions for setting up the integration, training, fine-tuning, and visualizing results using Weights & Biases' interactive features.
 
 ## Weights & Biases

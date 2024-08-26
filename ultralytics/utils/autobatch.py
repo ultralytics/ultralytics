@@ -16,13 +16,17 @@ def check_train_batch_size(model, imgsz=640, amp=True, batch=-1):
 
     Args:
         model (torch.nn.Module): YOLO model to check batch size for.
-        imgsz (int): Image size used for training.
-        amp (bool): If True, use automatic mixed precision (AMP) for training.
+        imgsz (int, optional): Image size used for training.
+        amp (bool, optional): Use automatic mixed precision if True.
+        batch (float, optional): Fraction of GPU memory to use. If -1, use default.
 
     Returns:
         (int): Optimal batch size computed using the autobatch() function.
-    """
 
+    Note:
+        If 0.0 < batch < 1.0, it's used as the fraction of GPU memory to use.
+        Otherwise, a default fraction of 0.6 is used.
+    """
     with autocast(enabled=amp):
         return autobatch(deepcopy(model).train(), imgsz, fraction=batch if 0.0 < batch < 1.0 else 0.6)
 
@@ -40,7 +44,6 @@ def autobatch(model, imgsz=640, fraction=0.60, batch_size=DEFAULT_CFG.batch):
     Returns:
         (int): The optimal batch size.
     """
-
     # Check device
     prefix = colorstr("AutoBatch: ")
     LOGGER.info(f"{prefix}Computing optimal batch size for imgsz={imgsz} at {fraction * 100}% CUDA memory utilization.")

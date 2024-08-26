@@ -71,7 +71,7 @@ def benchmark(
         ```python
         from ultralytics.utils.benchmarks import benchmark
 
-        benchmark(model='yolov8n.pt', imgsz=640)
+        benchmark(model="yolov8n.pt", imgsz=640)
         ```
     """
     import pandas as pd  # scope for faster 'import ultralytics'
@@ -81,6 +81,7 @@ def benchmark(
     device = select_device(device, verbose=False)
     if isinstance(model, (str, Path)):
         model = YOLO(model)
+    is_end2end = getattr(model.model.model[-1], "end2end", False)
 
     y = []
     t0 = time.time()
@@ -98,10 +99,13 @@ def benchmark(
                 assert not IS_JETSON, "CoreML and TF.js export not supported on NVIDIA Jetson"
             if i in {3, 5}:  # CoreML and OpenVINO
                 assert not IS_PYTHON_3_12, "CoreML and OpenVINO not supported on Python 3.12"
-            if i in {6, 7, 8, 9, 10}:  # All TF formats
+            if i in {6, 7, 8}:  # TF SavedModel, TF GraphDef, and TFLite
+                assert not isinstance(model, YOLOWorld), "YOLOWorldv2 TensorFlow exports not supported by onnx2tf yet"
+            if i in {9, 10}:  # TF EdgeTPU and TF.js
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 TensorFlow exports not supported by onnx2tf yet"
             if i in {11}:  # Paddle
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 Paddle exports not supported yet"
+                assert not is_end2end, "End-to-end models not supported by PaddlePaddle yet"
             if i in {12}:  # NCNN
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 NCNN exports not supported yet"
             if "cpu" in device.type:
@@ -123,6 +127,8 @@ def benchmark(
             assert model.task != "pose" or i != 7, "GraphDef Pose inference is not supported"
             assert i not in {9, 10}, "inference not supported"  # Edge TPU and TF.js are unsupported
             assert i != 5 or platform.system() == "Darwin", "inference only supported on macOS>=10.13"  # CoreML
+            if i in {12}:
+                assert not is_end2end, "End-to-end torch.topk operation is not supported for NCNN prediction yet"
             exported_model.predict(ASSETS / "bus.jpg", imgsz=imgsz, device=device, half=half)
 
             # Validate
@@ -159,6 +165,8 @@ def benchmark(
 
 
 class RF100Benchmark:
+    """Benchmark YOLO model performance across formats for speed and accuracy."""
+
     def __init__(self):
         """Function for initialization of RF100Benchmark."""
         self.ds_names = []
@@ -173,7 +181,6 @@ class RF100Benchmark:
         Args:
             api_key (str): The API key.
         """
-
         check_requirements("roboflow")
         from roboflow import Roboflow
 
@@ -186,11 +193,10 @@ class RF100Benchmark:
         Args:
             ds_link_txt (str): Path to dataset_links file.
         """
-
         (shutil.rmtree("rf-100"), os.mkdir("rf-100")) if os.path.exists("rf-100") else os.mkdir("rf-100")
         os.chdir("rf-100")
         os.mkdir("ultralytics-benchmarks")
-        safe_download("https://ultralytics.com/assets/datasets_links.txt")
+        safe_download("https://github.com/ultralytics/assets/releases/download/v0.0.0/datasets_links.txt")
 
         with open(ds_link_txt, "r") as file:
             for line in file:
@@ -208,14 +214,14 @@ class RF100Benchmark:
 
         return self.ds_names, self.ds_cfg_list
 
-    def fix_yaml(self, path):
+    @staticmethod
+    def fix_yaml(path):
         """
-        Function to fix yaml train and val path.
+        Function to fix YAML train and val path.
 
         Args:
             path (str): YAML file path.
         """
-
         with open(path, "r") as file:
             yaml_data = yaml.safe_load(file)
         yaml_data["train"] = "train/images"
@@ -245,32 +251,19 @@ class RF100Benchmark:
                 entries = line.split(" ")
                 entries = list(filter(lambda val: val != "", entries))
                 entries = [e.strip("\n") for e in entries]
-                start_class = False
-                for e in entries:
-                    if e == "all":
-                        if "(AP)" not in entries:
-                            if "(AR)" not in entries:
-                                # parse all
-                                eval = {}
-                                eval["class"] = entries[0]
-                                eval["images"] = entries[1]
-                                eval["targets"] = entries[2]
-                                eval["precision"] = entries[3]
-                                eval["recall"] = entries[4]
-                                eval["map50"] = entries[5]
-                                eval["map95"] = entries[6]
-                                eval_lines.append(eval)
-
-                    if e in class_names:
-                        eval = {}
-                        eval["class"] = entries[0]
-                        eval["images"] = entries[1]
-                        eval["targets"] = entries[2]
-                        eval["precision"] = entries[3]
-                        eval["recall"] = entries[4]
-                        eval["map50"] = entries[5]
-                        eval["map95"] = entries[6]
-                        eval_lines.append(eval)
+                eval_lines.extend(
+                    {
+                        "class": entries[0],
+                        "images": entries[1],
+                        "targets": entries[2],
+                        "precision": entries[3],
+                        "recall": entries[4],
+                        "map50": entries[5],
+                        "map95": entries[6],
+                    }
+                    for e in entries
+                    if e in class_names or (e == "all" and "(AP)" not in entries and "(AR)" not in entries)
+                )
         map_val = 0.0
         if len(eval_lines) > 1:
             print("There's more dicts")
@@ -305,7 +298,7 @@ class ProfileModels:
         ```python
         from ultralytics.utils.benchmarks import ProfileModels
 
-        ProfileModels(['yolov8n.yaml', 'yolov8s.yaml'], imgsz=640).profile()
+        ProfileModels(["yolov8n.yaml", "yolov8s.yaml"], imgsz=640).profile()
         ```
     """
 
@@ -396,9 +389,7 @@ class ProfileModels:
         return [Path(file) for file in sorted(files)]
 
     def get_onnx_model_info(self, onnx_file: str):
-        """Retrieves the information including number of layers, parameters, gradients and FLOPs for an ONNX model
-        file.
-        """
+        """Extracts metadata from an ONNX model file including parameters, GFLOPs, and input shape."""
         return 0.0, 0.0, 0.0, 0.0  # return (num_layers, num_params, num_gradients, num_flops)
 
     @staticmethod
@@ -443,9 +434,7 @@ class ProfileModels:
         return np.mean(run_times), np.std(run_times)
 
     def profile_onnx_model(self, onnx_file: str, eps: float = 1e-3):
-        """Profiles an ONNX model by executing it multiple times and returns the mean and standard deviation of run
-        times.
-        """
+        """Profiles an ONNX model, measuring average inference time and standard deviation across multiple runs."""
         check_requirements("onnxruntime")
         import onnxruntime as ort
 

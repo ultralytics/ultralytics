@@ -99,7 +99,7 @@ class predict_image(QThread):
         self.m = None
 
     def set_model(self):
-        if self.m != None:
+        if self.m is not None:
             del self.m
             import gc
 
@@ -293,8 +293,8 @@ class Camera(QMainWindow):
         self.write.terminate()
         global result_que, image_que, informa_que
         del result_que, image_que
-        image_que = Queue(maxsize=Image_in_queue_maxsize)
-        result_que = Queue(maxsize=Result_in_queue_maxsize)
+        Queue(maxsize=Image_in_queue_maxsize)
+        Queue(maxsize=Result_in_queue_maxsize)
         informa_que = Queue(1)
         print("Finishing...")
         # Give time for the thread to finish

@@ -46,8 +46,8 @@ class DeepSort(object):
         ]
 
         # run on non-maximum suppression
-        boxes = np.array([d.tlwh for d in detections])
-        scores = np.array([d.confidence for d in detections])
+        np.array([d.tlwh for d in detections])
+        np.array([d.confidence for d in detections])
 
         # update tracker
         self.tracker.predict()
@@ -94,9 +94,9 @@ class DeepSort(object):
 
     def _tlwh_to_xyxy(self, bbox_tlwh):
         """
-        TODO:
+        Todo:
             Convert bbox from xtl_ytl_w_h to xc_yc_w_h
-        Thanks JieChen91@github.com for reporting this bug!
+        Thanks JieChen91@github.com for reporting this bug!.
         """
         x, y, w, h = bbox_tlwh
         x1 = max(int(x), 0)

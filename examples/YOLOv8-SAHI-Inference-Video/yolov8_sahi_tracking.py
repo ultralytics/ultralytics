@@ -53,7 +53,6 @@ def run(
         device (str): Selection of device i.e. cuda & cpu
         line_width (int): Bounding Boxes Width
     """
-
     # Check source path
     is_webcam = source.isdigit() and int(source) in range(10)
     if not is_webcam and not Path(source).exists():

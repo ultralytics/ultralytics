@@ -33,7 +33,7 @@ jobs:
             If this is a custom training ❓ Question, please provide as much information as possible, including dataset image examples and training logs, and verify you are following our [Tips for Best Training Results](https://docs.ultralytics.com/guides/model-training-tips/).
 
             Join the Ultralytics community where it suits you best. For real-time chat, head to [Discord](https://ultralytics.com/discord) 🎧. Prefer in-depth discussions? Check out [Discourse](https://community.ultralytics.com). Or dive into threads on our [Subreddit](https://reddit.com/r/ultralytics) to share knowledge with the community.
-         
+
             ## Install
 
             Pip install the `ultralytics` package including all [requirements](https://github.com/ultralytics/ultralytics/blob/main/pyproject.toml) in a [**Python>=3.8**](https://www.python.org/) environment with [**PyTorch>=1.8**](https://pytorch.org/get-started/locally/).

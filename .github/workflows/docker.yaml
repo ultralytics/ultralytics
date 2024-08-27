@@ -82,22 +82,16 @@ jobs:
           #   tags: "latest-conda"
           #   platforms: "linux/amd64"
     steps:
-      - name: Cleanup toolcache
-        # Free up to 10GB of disk space per https://github.com/ultralytics/ultralytics/pull/14894
+      - name: Free space before deletion
         run: |
-          echo "Free space before deletion:"
-          df -h /
-          rm -rf /opt/hostedtoolcache
-          echo "Free space after deletion:"
-          df -h /
-      - name: Free Disk Space (Ubuntu)
+          df -h 
+      - name: Cleanup disk
         uses: jlumbroso/free-disk-space@v1.3.1
         with:
           tool-cache: true
-      - name: Space after deleting everything
+      - name: Free space after deletion
         run: |
-          echo "Free space after deletion:"
-          df -h /
+          df -h 
       - name: Checkout repo
         uses: actions/checkout@v4
         with:

@@ -68,7 +68,7 @@ This table provides an overview of the YOLOv8 model variants, highlighting their
         [yolov8m.pt]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8m.pt
         [yolov8l.pt]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8l.pt
         [yolov8x.pt]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8x.pt
-        
+
     === "Detection (Open Images V7)"
 
         See [Detection Docs](../tasks/detect.md) for usage examples with these models trained on [Open Image V7](../datasets/detect/open-images-v7.md), which include 600 pre-trained classes.

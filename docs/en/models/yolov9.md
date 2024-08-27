@@ -113,11 +113,11 @@ The performance of YOLOv9 on the [COCO dataset](../datasets/detect/coco.md) exem
         | [yolov9c.pt]           | 640                   | 53.0                 | 70.2              | 25.5               | 102.8             |
         | [yolov9e.pt]           | 640                   | 55.6                 | 72.8              | 58.1               | 192.5             |
 
-        [yolov9t.pt]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov9t.pt 
-        [yolov9s.pt]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov9s.pt 
-        [yolov9m.pt]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov9m.pt 
-        [yolov9c.pt]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov9c.pt 
-        [yolov9e.pt]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov9e.pt 
+        [yolov9t.pt]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov9t.pt
+        [yolov9s.pt]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov9s.pt
+        [yolov9m.pt]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov9m.pt
+        [yolov9c.pt]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov9c.pt
+        [yolov9e.pt]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov9e.pt
 
     === "Segmentation (COCO)"
 

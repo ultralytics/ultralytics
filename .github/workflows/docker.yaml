@@ -82,14 +82,14 @@ jobs:
           #   tags: "latest-conda"
           #   platforms: "linux/amd64"
     steps:
-      - name: Free space before deletion
+      - name: Free space before disk cleanup
         run: |
           df -h /
       - name: Cleanup disk
         uses: jlumbroso/free-disk-space@v1.3.1
         with:
           tool-cache: true
-      - name: Free space after deletion
+      - name: Free space after disk cleanup
         run: |
           df -h /
       - name: Checkout repo

@@ -231,7 +231,9 @@ class BasePredictor:
 
             # Warmup model
             if not self.done_warmup:
-                self.model.warmup(imgsz=(1 if self.model.pt or self.model.triton else self.dataset.bs, self.args.ch , *self.imgsz))
+                self.model.warmup(
+                    imgsz=(1 if self.model.pt or self.model.triton else self.dataset.bs, self.args.ch, *self.imgsz)
+                )
                 self.done_warmup = True
 
             self.seen, self.windows, self.batch = 0, [], None

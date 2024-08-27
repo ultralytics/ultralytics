@@ -64,7 +64,6 @@ def prepare_docs_markdown(clone_repos=True):
 
 def update_page_title(file_path: Path, new_title: str):
     """Update the title of an HTML file."""
-
     # Read the content of the file
     with open(file_path, encoding="utf-8") as file:
         content = file.read()

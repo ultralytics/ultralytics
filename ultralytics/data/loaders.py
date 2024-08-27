@@ -240,7 +240,7 @@ class LoadScreenshots:
         return self
 
     def __next__(self):
-        """mss screen capture: get raw pixels from the screen as np array."""
+        """Mss screen capture: get raw pixels from the screen as np array."""
         im0 = np.asarray(self.sct.grab(self.monitor))[:, :, :3]  # BGRA to BGR
         s = f"screen {self.screen} (LTWH): {self.left},{self.top},{self.width},{self.height}: "
 
@@ -360,12 +360,13 @@ class LoadImagesAndVideos:
                         self._new_video(self.files[self.count])
             else:
                 self.mode = "image"
-                #if image is not tiff or tif, use imread from opencv
+                # if image is not tiff or tif, use imread from opencv
                 if path.split(".")[-1].lower() not in ["tiff", "tif"]:
-                    im0 = cv2.imread(path) #BGR
-                else: #Tiff case is handled through libtiff
+                    im0 = cv2.imread(path)  # BGR
+                else:  # Tiff case is handled through libtiff
                     import libtiff
-                    tif = libtiff.TIFF.open(path, mode='r')
+
+                    tif = libtiff.TIFF.open(path, mode="r")
                     im0 = tif.read_image()
                 if im0 is None:
                     LOGGER.warning(f"WARNING ⚠️ Image Read Error {path}")

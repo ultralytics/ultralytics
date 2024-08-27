@@ -1004,7 +1004,6 @@ class RandomPerspective:
             >>> transform = RandomPerspective(degrees=10.0, translate=0.1, scale=0.5, shear=5.0)
             >>> result = transform(labels)  # Apply random perspective to labels
         """
-
         self.degrees = degrees
         self.translate = translate
         self.scale = scale
@@ -1037,7 +1036,6 @@ class RandomPerspective:
             >>> border = (10, 10)
             >>> transformed_img, matrix, scale = affine_transform(img, border)
         """
-
         # Center
         C = np.eye(3, dtype=np.float32)
 
@@ -1366,7 +1364,9 @@ class RandomHSV:
         img = labels["img"]
         if self.hgain or self.sgain or self.vgain:
             r = np.random.uniform(-1, 1, 3) * [self.hgain, self.sgain, self.vgain] + 1  # random gains
-            hue, sat, val = cv2.split(cv2.cvtColor(img[:,:,:3], cv2.COLOR_BGR2HSV)) ###OVERRIDE, assuming first three channels are BGR
+            hue, sat, val = cv2.split(
+                cv2.cvtColor(img[:, :, :3], cv2.COLOR_BGR2HSV)
+            )  ###OVERRIDE, assuming first three channels are BGR
             dtype = img.dtype  # uint8
 
             x = np.arange(0, 256, dtype=r.dtype)
@@ -1585,15 +1585,13 @@ class LetterBox:
             img = cv2.resize(img, new_unpad, interpolation=cv2.INTER_LINEAR)
         top, bottom = int(round(dh - 0.1)) if self.center else 0, int(round(dh + 0.1))
         left, right = int(round(dw - 0.1)) if self.center else 0, int(round(dw + 0.1))
-        #Get number of channels from image
-        ch = img.shape[2] if len(img.shape) == 3 else 1 ##GENERALIZING TO MULTI-CHANNEL IMGS
-        if ch == 3: #This is default in YOLO, is not even checked.
+        # Get number of channels from image
+        ch = img.shape[2] if len(img.shape) == 3 else 1  ##GENERALIZING TO MULTI-CHANNEL IMGS
+        if ch == 3:  # This is default in YOLO, is not even checked.
             value = (114, 114, 114)
         else:
             value = (114, 114, 114, 114)
-        img = cv2.copyMakeBorder(
-            img, top, bottom, left, right, cv2.BORDER_CONSTANT, value=value
-        )  # add border
+        img = cv2.copyMakeBorder(img, top, bottom, left, right, cv2.BORDER_CONSTANT, value=value)  # add border
         if labels.get("ratio_pad"):
             labels["ratio_pad"] = (labels["ratio_pad"], (left, top))  # for evaluation
 
@@ -1889,39 +1887,42 @@ class Albumentations:
             - Spatial transforms update bounding boxes, while non-spatial transforms only modify the image.
             - Requires the Albumentations library to be installed.
         """
-        
         disable = False
         if disable:
-            #print("WARNING: these agumentations are disabled because they do not support images with more than 3 channels")
+            # print("WARNING: these agumentations are disabled because they do not support images with more than 3 channels")
             return labels
         if disable or self.transform is None or random.random() > self.p:
             return labels
-        #If we have an image with a number of channels other than 1 or 3, we will handle transformations differently
-        if len(labels["img"].shape) == 3 and labels["img"].shape[2] not in [1, 3]: #N-channel case
-            #If transform is ToGray, we'll apply it to the first three channels only, as if the other channels didnt exist.
+        # If we have an image with a number of channels other than 1 or 3, we will handle transformations differently
+        if len(labels["img"].shape) == 3 and labels["img"].shape[2] not in [1, 3]:  # N-channel case
+            # If transform is ToGray, we'll apply it to the first three channels only, as if the other channels didn't exist.
             if self.transform.transforms[0].__class__.__name__ == "ToGray":
-                labels["img"] = labels["img"][:,:,:3]
+                labels["img"] = labels["img"][:, :, :3]
                 return self.__call__(labels)
-            #If transform is Blur, we'll apply the transform to the RGB portion first (first 3 channels), and then apply it to the other channels and concatenate
+            # If transform is Blur, we'll apply the transform to the RGB portion first (first 3 channels), and then apply it to the other channels and concatenate
             elif self.transform.transforms[0].__class__.__name__ == "Blur":
                 img = labels["img"]
                 img_list = []
                 aux_labels = labels.copy()
-                aux_labels["img"] = img[:,:,0:3]
+                aux_labels["img"] = img[:, :, 0:3]
                 aux_labels = self.__call__(aux_labels)
-                labels = aux_labels #assuming that for a multi-channel image, the other keys are the same for all channels
+                labels = (
+                    aux_labels  # assuming that for a multi-channel image, the other keys are the same for all channels
+                )
                 img_list.append(labels["img"])
                 for i in range(3, img.shape[2]):
-                    aux_labels["img"] = img[:,:,i]
+                    aux_labels["img"] = img[:, :, i]
                     aux_labels = self.__call__(aux_labels)
-                    #Expand aux_labels to 3 dimensions
+                    # Expand aux_labels to 3 dimensions
                     aux_labels["img"] = np.expand_dims(aux_labels["img"], axis=2)
                     img_list.append(aux_labels["img"])
                 labels["img"] = np.concatenate(img_list, axis=2)
                 return labels
             else:
-                #Print transform name, along with warning that it won't be applied
-                print(f"WARNING: {self.transform.transforms[0].__class__.__name__} will not be applied to images with more than 3 channels")
+                # Print transform name, along with warning that it won't be applied
+                print(
+                    f"WARNING: {self.transform.transforms[0].__class__.__name__} will not be applied to images with more than 3 channels"
+                )
                 return labels
 
         if self.contains_spatial:

@@ -182,7 +182,6 @@ class RF100Benchmark:
         Args:
             api_key (str): The API key.
         """
-
         check_requirements("roboflow")
         from roboflow import Roboflow
 
@@ -195,7 +194,6 @@ class RF100Benchmark:
         Args:
             ds_link_txt (str): Path to dataset_links file.
         """
-
         (shutil.rmtree("rf-100"), os.mkdir("rf-100")) if os.path.exists("rf-100") else os.mkdir("rf-100")
         os.chdir("rf-100")
         os.mkdir("ultralytics-benchmarks")
@@ -225,7 +223,6 @@ class RF100Benchmark:
         Args:
             path (str): YAML file path.
         """
-
         with open(path, "r") as file:
             yaml_data = yaml.safe_load(file)
         yaml_data["train"] = "train/images"

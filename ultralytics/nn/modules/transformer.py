@@ -350,7 +350,6 @@ class DeformableTransformerDecoderLayer(nn.Module):
 
     def forward(self, embed, refer_bbox, feats, shapes, padding_mask=None, attn_mask=None, query_pos=None):
         """Perform the forward pass through the entire decoder layer."""
-
         # Self attention
         q = k = self.with_pos_embed(embed, query_pos)
         tgt = self.self_attn(q.transpose(0, 1), k.transpose(0, 1), embed.transpose(0, 1), attn_mask=attn_mask)[

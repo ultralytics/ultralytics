@@ -122,9 +122,9 @@ def on_val_end(validator):
             "confusion_matrix_normalized.png",
             *(f"*{x}_curve.png" for x in ("F1", "PR", "P", "R")),
         ]
-        files = sum([list(validator.save_dir.glob(f)) for f in files], []) #filter with existing files
+        files = sum([list(validator.save_dir.glob(f)) for f in files], [])  # filter with existing files
         for f in files:
-            _log_plot(title="Validation "+str(f.stem), plot_path=f)
+            _log_plot(title="Validation " + str(f.stem), plot_path=f)
         _log_debug_samples(sorted(validator.save_dir.glob("val*.jpg")), "Validation")
 
 

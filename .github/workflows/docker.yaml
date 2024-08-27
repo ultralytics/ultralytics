@@ -86,20 +86,15 @@ jobs:
         # Free up to 10GB of disk space per https://github.com/ultralytics/ultralytics/pull/14894
         run: |
           echo "Free space before deletion:"
-          df -h
-          echo "Free space after deleting hostedtoolcache:"
+          df -h /
           rm -rf /opt/hostedtoolcache
-          df -h
-          echo "Free space after deleting dotnet:"
-          rm -rf /usr/share/dotnet
-          df -h
-          echo "Free space after deleting swift:"
-          /usr/share/swift
-          echo "Free space after deleting android:"
-          /usr/local/lib/android
           echo "Free space after deletion:"
-          df -h
-
+          df -h /
+      - name: Free Disk Space (Ubuntu)
+        uses: jlumbroso/free-disk-space@v1.3.1
+        run: |
+          echo "Free space after deletion:"
+          df -h /
       - name: Checkout repo
         uses: actions/checkout@v4
         with:

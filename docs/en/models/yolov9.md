@@ -105,20 +105,29 @@ The performance of YOLOv9 on the [COCO dataset](../datasets/detect/coco.md) exem
 
     === "Detection (COCO)"
 
-        | Pre-trained Weights                                                                      | size<br><sup>(pixels) | mAP<sup>val<br>50-95 | mAP<sup>val<br>50 | params<br><sup>(M) | FLOPs<br><sup>(B) |
-        | ---------------------------------------------------------------------------------------- | --------------------- | -------------------- | ----------------- | ------------------ | ----------------- |
-        | [yolov9t.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov9t.pt)  | 640                   | 38.3                 | 53.1              | 2.0                | 7.7               |
-        | [yolov9s.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov9s.pt)  | 640                   | 46.8                 | 63.4              | 7.2                | 26.7              |
-        | [yolov9m.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov9m.pt)  | 640                   | 51.4                 | 68.1              | 20.1               | 76.8              |
-        | [yolov9c.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov9c.pt)  | 640                   | 53.0                 | 70.2              | 25.5               | 102.8             |
-        | [yolov9e.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov9e.pt)  | 640                   | 55.6                 | 72.8              | 58.1               | 192.5             |
+        | Pre-trained Weights    | size<br><sup>(pixels) | mAP<sup>val<br>50-95 | mAP<sup>val<br>50 | params<br><sup>(M) | FLOPs<br><sup>(B) |
+        | ---------------------- | --------------------- | -------------------- | ----------------- | ------------------ | ----------------- |
+        | [yolov9t.pt]           | 640                   | 38.3                 | 53.1              | 2.0                | 7.7               |
+        | [yolov9s.pt]           | 640                   | 46.8                 | 63.4              | 7.2                | 26.7              |
+        | [yolov9m.pt]           | 640                   | 51.4                 | 68.1              | 20.1               | 76.8              |
+        | [yolov9c.pt]           | 640                   | 53.0                 | 70.2              | 25.5               | 102.8             |
+        | [yolov9e.pt]           | 640                   | 55.6                 | 72.8              | 58.1               | 192.5             |
+
+        [yolov9t.pt]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov9t.pt 
+        [yolov9s.pt]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov9s.pt 
+        [yolov9m.pt]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov9m.pt 
+        [yolov9c.pt]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov9c.pt 
+        [yolov9e.pt]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov9e.pt 
 
     === "Segmentation (COCO)"
 
-        | Pre-trained Weights                                                                              | size<br><sup>(pixels) | mAP<sup>box<br>50-95 | mAP<sup>mask<br>50-95 | params<br><sup>(M) | FLOPs<br><sup>(B) |
-        | ------------------------------------------------------------------------------------------------ | --------------------- | -------------------- | --------------------- | ------------------ | ----------------- |
-        | [yolov9c-seg.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov9c-seg.pt)  | 640                   | 52.4                 | 42.2                  | 27.9               | 159.4             |
-        | [yolov9e-seg.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov9e-seg.pt)  | 640                   | 55.1                 | 44.3                  | 60.5               | 248.4             |
+        | Pre-trained Weights    | size<br><sup>(pixels) | mAP<sup>box<br>50-95 | mAP<sup>mask<br>50-95 | params<br><sup>(M) | FLOPs<br><sup>(B) |
+        | ---------------------- | --------------------- | -------------------- | --------------------- | ------------------ | ----------------- |
+        | [yolov9c-seg.pt]       | 640                   | 52.4                 | 42.2                  | 27.9               | 159.4             |
+        | [yolov9e-seg.pt]       | 640                   | 55.1                 | 44.3                  | 60.5               | 248.4             |
+
+        [yolov9c-seg.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov9c-seg.pt)
+        [yolov9e-seg.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov9e-seg.pt)
 
 YOLOv9's iterations, ranging from the tiny `t` variant to the extensive `e` model, demonstrate improvements not only in accuracy (mAP metrics) but also in efficiency with a reduced number of parameters and computational needs (FLOPs). This table underscores YOLOv9's ability to deliver high precision while maintaining or reducing the computational overhead compared to prior versions and competing models.
 

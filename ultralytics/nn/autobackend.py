@@ -166,7 +166,7 @@ class AutoBackend(nn.Module):
             check_requirements("opencv-python>=4.5.4")
             net = cv2.dnn.readNetFromONNX(w)
 
-        # ONNX Runtime
+        # ONNX Runtime and MCT
         elif onnx:
             LOGGER.info(f"Loading {w} for ONNX Runtime inference...")
             check_requirements(("onnx", "onnxruntime-gpu" if cuda else "onnxruntime"))
@@ -178,7 +178,7 @@ class AutoBackend(nn.Module):
             providers = ["CUDAExecutionProvider", "CPUExecutionProvider"] if cuda else ["CPUExecutionProvider"]
             if mct:
                 import mct_quantizers as mctq
-
+                from sony_custom_layers.pytorch.object_detection import nms_ort
                 session = onnxruntime.InferenceSession(
                     w, mctq.get_ort_session_options(), providers=["CPUExecutionProvider"]
                 )

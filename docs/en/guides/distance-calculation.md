@@ -81,7 +81,7 @@ Measuring the gap between two objects is known as distance calculation within a 
 
 ???+ warning "Distance is Estimate"
 
-        Distance is estimated and may not be entirely accurate, as we are using the 2-Dimensional data and lack information about the object's depth.
+        Distance will be an estimate and may not be fully accurate, as it is calculated using 2-dimensional data, which lacks information about the object's depth.
 
 ### Arguments `DistanceCalculation()`
 

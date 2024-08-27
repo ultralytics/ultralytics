@@ -573,7 +573,7 @@ def ap_per_class(
     x, prec_values = np.linspace(0, 1, 1000), []
 
     # Average precision, precision and recall curves
-    ap, p_curve, r_curve = np.zeros((nc, tp.shape[1])), np.zeros((nc, 1000)), np.zeros((nc, 1000))
+    ap, p_curve, r_curve, prec_values = np.zeros((nc, tp.shape[1])), np.zeros((nc, 1000)), np.zeros((nc, 1000)), np.zeros((nc, 1000))
     for ci, c in enumerate(unique_classes):
         i = pred_cls == c
         n_l = nt[ci]  # number of labels
@@ -597,7 +597,7 @@ def ap_per_class(
         for j in range(tp.shape[1]):
             ap[ci, j], mpre, mrec = compute_ap(recall[:, j], precision[:, j])
             if plot and j == 0:
-                prec_values.append(np.interp(x, mrec, mpre))  # precision at mAP@0.5
+                prec_values[ci] = np.interp(x, mrec, mpre)  # precision at mAP@0.5
 
     prec_values = np.array(prec_values)  # (nc, 1000)
 

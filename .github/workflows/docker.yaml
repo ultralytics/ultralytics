@@ -82,8 +82,8 @@ jobs:
           #   tags: "latest-conda"
           #   platforms: "linux/amd64"
     steps:
-      # Free up to 30GB of disk space per https://github.com/ultralytics/ultralytics/pull/15848
       - name: Cleanup disk
+        # Free up to 30GB of disk space per https://github.com/ultralytics/ultralytics/pull/15848
         uses: jlumbroso/free-disk-space@v1.3.1
         with:
           tool-cache: true

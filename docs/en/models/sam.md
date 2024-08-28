@@ -30,9 +30,9 @@ For an in-depth look at the Segment Anything Model and the SA-1B dataset, please
 This table presents the available models with their specific pre-trained weights, the tasks they support, and their compatibility with different operating modes like [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md), indicated by ✅ emojis for supported modes and ❌ emojis for unsupported modes.
 
 | Model Type | Pre-trained Weights                                                                 | Tasks Supported                              | Inference | Validation | Training | Export |
-| ---------- | ----------------------------------------------------------------------------------- | -------------------------------------------- | --------- | ---------- | -------- | ------ |
-| SAM base   | [sam_b.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/sam_b.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ❌         | ❌       | ❌     |
-| SAM large  | [sam_l.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/sam_l.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ❌         | ❌       | ❌     |
+|------------|-------------------------------------------------------------------------------------|----------------------------------------------|-----------|------------|----------|--------|
+| SAM base   | [sam_b.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/sam_b.pt) | [Instance Segmentation](../tasks/segment.md) | ✅         | ❌          | ❌        | ❌      |
+| SAM large  | [sam_l.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/sam_l.pt) | [Instance Segmentation](../tasks/segment.md) | ✅         | ❌          | ❌        | ❌      |
 
 ## How to Use SAM: Versatility and Power in Image Segmentation
 
@@ -138,12 +138,12 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
 
 Here we compare Meta's smallest SAM model, SAM-b, with Ultralytics smallest segmentation model, [YOLOv8n-seg](../tasks/segment.md):
 
-| Model                                          | Size                       | Parameters             | Speed (CPU)                |
-| ---------------------------------------------- | -------------------------- | ---------------------- | -------------------------- |
-| Meta's SAM-b                                   | 358 MB                     | 94.7 M                 | 51096 ms/im                |
-| [MobileSAM](mobile-sam.md)                     | 40.7 MB                    | 10.1 M                 | 46122 ms/im                |
-| [FastSAM-s](fast-sam.md) with YOLOv8 backbone  | 23.7 MB                    | 11.8 M                 | 115 ms/im                  |
-| Ultralytics [YOLOv8n-seg](../tasks/segment.md) | **6.7 MB** (53.4x smaller) | **3.4 M** (27.9x less) | **59 ms/im** (866x faster) |
+| Model                                          | Size<br><sup>(MB)</sup> | Parameters<br><sup>(M)</sup> | Speed (CPU)<br><sup>(ms/im)</sup> |
+|------------------------------------------------|-------------------------|------------------------------|-----------------------------------|
+| Meta SAM-b                                     | 358                     | 94.7                         | 51096                             |
+| [MobileSAM](mobile-sam.md)                     | 40.7                    | 10.1                         | 46122                             |
+| [FastSAM-s](fast-sam.md) with YOLOv8 backbone  | 23.7                    | 11.8                         | 115                               |
+| Ultralytics [YOLOv8n-seg](../tasks/segment.md) | **6.7** (53.4x smaller) | **3.4** (27.9x less)         | **59** (866x faster)              |
 
 This comparison shows the order-of-magnitude differences in the model sizes and speeds between models. Whereas SAM presents unique capabilities for automatic segmenting, it is not a direct competitor to YOLOv8 segment models, which are smaller, faster and more efficient.
 
@@ -196,7 +196,7 @@ To auto-annotate your dataset with the Ultralytics framework, use the `auto_anno
         ```
 
 | Argument     | Type                  | Description                                                                                             | Default        |
-| ------------ | --------------------- | ------------------------------------------------------------------------------------------------------- | -------------- |
+|--------------|-----------------------|---------------------------------------------------------------------------------------------------------|----------------|
 | `data`       | `str`                 | Path to a folder containing images to be annotated.                                                     |                |
 | `det_model`  | `str`, optional       | Pre-trained YOLO detection model. Defaults to 'yolov8x.pt'.                                             | `'yolov8x.pt'` |
 | `sam_model`  | `str`, optional       | Pre-trained SAM segmentation model. Defaults to 'sam_b.pt'.                                             | `'sam_b.pt'`   |

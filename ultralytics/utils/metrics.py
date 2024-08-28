@@ -178,7 +178,7 @@ def _get_covariance_matrix(boxes):
         boxes (torch.Tensor): A tensor of shape (N, 5) representing rotated bounding boxes, with xywhr format.
 
     Returns:
-        (torch.Tensor): Covariance metrixs corresponding to original rotated bounding boxes.
+        (torch.Tensor): Covariance matrices corresponding to original rotated bounding boxes.
     """
     # Gaussian bounding boxes, ignore the center points (the first two columns) because they are not needed here.
     gbbs = torch.cat((boxes[:, 2:4].pow(2) / 12, boxes[:, 4:]), dim=-1)
@@ -192,15 +192,22 @@ def _get_covariance_matrix(boxes):
 
 def probiou(obb1, obb2, CIoU=False, eps=1e-7):
     """
-    Calculate the prob IoU between oriented bounding boxes, https://arxiv.org/pdf/2106.06072v1.pdf.
+    Calculate probabilistic IoU between oriented bounding boxes.
+
+    Implements the algorithm from https://arxiv.org/pdf/2106.06072v1.pdf.
 
     Args:
-        obb1 (torch.Tensor): A tensor of shape (N, 5) representing ground truth obbs, with xywhr format.
-        obb2 (torch.Tensor): A tensor of shape (N, 5) representing predicted obbs, with xywhr format.
-        eps (float, optional): A small value to avoid division by zero. Defaults to 1e-7.
+        obb1 (torch.Tensor): Ground truth OBBs, shape (N, 5), format xywhr.
+        obb2 (torch.Tensor): Predicted OBBs, shape (N, 5), format xywhr.
+        CIoU (bool, optional): If True, calculate CIoU. Defaults to False.
+        eps (float, optional): Small value to avoid division by zero. Defaults to 1e-7.
 
     Returns:
-        (torch.Tensor): A tensor of shape (N, ) representing obb similarities.
+        (torch.Tensor): OBB similarities, shape (N,).
+
+    Note:
+        OBB format: [center_x, center_y, width, height, rotation_angle].
+        If CIoU is True, returns CIoU instead of IoU.
     """
     x1, y1 = obb1[..., :2].split(1, dim=-1)
     x2, y2 = obb2[..., :2].split(1, dim=-1)
@@ -787,8 +794,8 @@ class Metric(SimpleClass):
 
 class DetMetrics(SimpleClass):
     """
-    This class is a utility class for computing detection metrics such as precision, recall, and mean average precision
-    (mAP) of an object detection model.
+    Utility class for computing detection metrics such as precision, recall, and mean average precision (mAP) of an
+    object detection model.
 
     Args:
         save_dir (Path): A path to the directory where the output plots will be saved. Defaults to current directory.

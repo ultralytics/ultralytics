@@ -27,7 +27,12 @@ def test_major_solutions():
     queue = solutions.QueueManager(reg_pts=queue_region, show=True, model="yolov8n.pt")
     queue_cls = solutions.QueueManager(reg_pts=queue_region, show=True, model="yolov8n.pt", classes=0)
     speed = solutions.SpeedEstimator(reg_pts=line_points, show=True, model="yolov8n.pt")
-    heatmap = solutions.Heatmap(colormap=cv2.COLORMAP_PARULA, names=names, view_img=False)
+    heatmap = solutions.Heatmap(colormap=cv2.COLORMAP_PARULA, show=True, model="yolov8n.pt", reg_pts=None)
+    heatmap_line = solutions.Heatmap(reg_pts=line_points, colormap=cv2.COLORMAP_PARULA, show=True, model="yolov8n.pt")
+    heatmap_polygon = solutions.Heatmap(reg_pts=polygon_points, colormap=cv2.COLORMAP_PARULA, show=True, model="yolov8n.pt")
+    heatmap_region = solutions.Heatmap(reg_pts=region_points, colormap=cv2.COLORMAP_PARULA, show=True, model="yolov8n.pt")
+    heatmap_cls = solutions.Heatmap(colormap=cv2.COLORMAP_PARULA, show=True, model="yolov8n.pt", classes=[0, 2])
+
     while cap.isOpened():
         success, im0 = cap.read()
         if not success:
@@ -40,55 +45,57 @@ def test_major_solutions():
         _ = speed.estimate_speed(original_im0.copy())
         _ = queue.process_queue(original_im0.copy())
         _ = queue_cls.process_queue(original_im0.copy())
-        _ = heatmap.generate_heatmap(original_im0.copy())
-
+        _ = heatmap_line.generate_heatmap(original_im0.copy())
+        _ = heatmap_polygon.generate_heatmap(original_im0.copy())
+        _ = heatmap_region.generate_heatmap(original_im0.copy())
+        _ = heatmap_cls.generate_heatmap(original_im0.copy())
     cap.release()
     cv2.destroyAllWindows()
 
 
-# @pytest.mark.slow
-# def test_aigym():
-#     """Test the workouts monitoring solution."""
-#     safe_download(url=WORKOUTS_SOLUTION_DEMO)
-#     cap = cv2.VideoCapture("solution_ci_pose_demo.mp4")
-#     assert cap.isOpened(), "Error reading video file"
-#     gym_object = solutions.AIGym(pose_type="squat", kpts_to_check=[5, 11, 13], model="yolov8n-pose.pt")
-#     while cap.isOpened():
-#         success, im0 = cap.read()
-#         if not success:
-#             break
-#         _ = gym_object.start_counting(im0)
-#     cap.release()
-#     cv2.destroyAllWindows()
+@pytest.mark.slow
+def test_aigym():
+    """Test the workouts monitoring solution."""
+    safe_download(url=WORKOUTS_SOLUTION_DEMO)
+    cap = cv2.VideoCapture("solution_ci_pose_demo.mp4")
+    assert cap.isOpened(), "Error reading video file"
+    gym_object = solutions.AIGym(pose_type="squat", show=True, kpts_to_check=[5, 11, 13], model="yolov8n-pose.pt")
+    while cap.isOpened():
+        success, im0 = cap.read()
+        if not success:
+            break
+        _ = gym_object.start_counting(im0)
+    cap.release()
+    cv2.destroyAllWindows()
 
 
-#
-# @pytest.mark.slow
-# def test_instance_segmentation():
-#     """Test the instance segmentation solution."""
-#     from ultralytics.utils.plotting import Annotator, colors
-#
-#     model = YOLO("yolov8n-seg.pt")
-#     names = model.names
-#     cap = cv2.VideoCapture("solutions_ci_demo.mp4")
-#     assert cap.isOpened(), "Error reading video file"
-#     while cap.isOpened():
-#         success, im0 = cap.read()
-#         if not success:
-#             break
-#         results = model.predict(im0)
-#         annotator = Annotator(im0, line_width=2)
-#         if results[0].masks is not None:
-#             clss = results[0].boxes.cls.cpu().tolist()
-#             masks = results[0].masks.xy
-#             for mask, cls in zip(masks, clss):
-#                 color = colors(int(cls), True)
-#                 annotator.seg_bbox(mask=mask, mask_color=color, label=names[int(cls)])
-#     cap.release()
-#     cv2.destroyAllWindows()
-#
-#
-# @pytest.mark.slow
-# def test_streamlit_predict():
-#     """Test streamlit predict live inference solution."""
-#     solutions.inference()
+@pytest.mark.slow
+def test_instance_segmentation():
+    """Test the instance segmentation solution."""
+    from ultralytics import YOLO
+    from ultralytics.utils.plotting import Annotator, colors
+
+    model = YOLO("yolov8n-seg.pt")
+    names = model.names
+    cap = cv2.VideoCapture("solutions_ci_demo.mp4")
+    assert cap.isOpened(), "Error reading video file"
+    while cap.isOpened():
+        success, im0 = cap.read()
+        if not success:
+            break
+        results = model.predict(im0)
+        annotator = Annotator(im0, line_width=2)
+        if results[0].masks is not None:
+            clss = results[0].boxes.cls.cpu().tolist()
+            masks = results[0].masks.xy
+            for mask, cls in zip(masks, clss):
+                color = colors(int(cls), True)
+                annotator.seg_bbox(mask=mask, mask_color=color, label=names[int(cls)])
+    cap.release()
+    cv2.destroyAllWindows()
+
+
+@pytest.mark.slow
+def test_streamlit_predict():
+    """Test streamlit predict live inference solution."""
+    solutions.inference()

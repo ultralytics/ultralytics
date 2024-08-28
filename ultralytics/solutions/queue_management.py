@@ -62,8 +62,10 @@ class QueueManager:
             # Extract tracks
             for box, track_id, cls in zip(boxes, track_ids, clss):
                 # Draw bounding box
+                color = colors(int(track_id), True)
                 self.annotator.box_label(
-                    box, label=f"{self.model.names[cls]}#{track_id}", color=colors(int(track_id), True)
+                    box, label=f"{self.model.names[cls]}", color=color,
+                    txt_color=self.annotator.get_txt_color(color)
                 )
 
                 # Update track history
@@ -94,8 +96,8 @@ class QueueManager:
             self.annotator.queue_counts_display(
                 label,
                 points=DEFAULT_CFG_DICT["reg_pts"],
-                region_color=DEFAULT_CFG_DICT["reg_color"],
-                txt_color=DEFAULT_CFG_DICT["txt_color"],
+                region_color=(104, 31, 17),
+                txt_color=(255, 255, 255),
             )
 
         self.counts = 0  # Reset counts after displaying
@@ -117,7 +119,7 @@ class QueueManager:
             self.annotator.draw_region(
                 reg_pts=DEFAULT_CFG_DICT["reg_pts"],
                 thickness=int(DEFAULT_CFG_DICT["line_width"]) * 2,
-                color=DEFAULT_CFG_DICT["reg_color"],
+                color=(104, 31, 17),
             )
             cv2.imshow("Ultralytics Solutions", self.im0)
             # Close window on 'q' key press

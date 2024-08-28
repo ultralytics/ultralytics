@@ -164,9 +164,7 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
         video_writer = cv2.VideoWriter("object_counting_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
         # Init Object Counter
-        counter = solutions.ObjectCounter(
-            show=True, reg_pts=line_points, draw_tracks=True, model="yolov8n.pt", classes=[0, 2]
-        )
+        counter = solutions.ObjectCounter(show=True, reg_pts=line_points, draw_tracks=True, model="yolov8n.pt", classes=[0, 2])
 
         while cap.isOpened():
             success, im0 = cap.read()

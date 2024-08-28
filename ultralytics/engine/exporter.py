@@ -184,9 +184,21 @@ class Exporter:
         flags = [x == fmt for x in fmts]
         if sum(flags) != 1:
             raise ValueError(f"Invalid export format='{fmt}'. Valid formats are {fmts}")
-        jit, onnx, xml, engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, paddle, ncnn, mct = (
-            flags  # export booleans
-        )
+        (
+            jit,
+            onnx,
+            xml,
+            engine,
+            coreml,
+            saved_model,
+            pb,
+            tflite,
+            edgetpu,
+            tfjs,
+            paddle,
+            ncnn,
+            mct,
+        ) = flags  # export booleans
         is_tf_format = any((saved_model, pb, tflite, edgetpu, tfjs))
         if mct:
             LOGGER.warning("WARNING ⚠️ Sony MCT only supports int8 export, setting int8=True.")
@@ -1025,48 +1037,48 @@ class Exporter:
     def export_mct(self, prefix=colorstr("Sony MCT:")):
         # pip install --upgrade -force-reinstall git+https://github.com/ambitious-octopus/model_optimization.git@get-output-fix
         import model_compression_toolkit as mct
-        from model_compression_toolkit.core.pytorch.pytorch_device_config import get_working_device
+        # from model_compression_toolkit.core.pytorch.pytorch_device_config import get_working_device
 
         # pip install sony-custom-layers[torch]
-        from sony_custom_layers.pytorch.object_detection.nms import multiclass_nms
-
-        class PostProcessWrapper(torch.nn.Module):
-            def __init__(
-                self,
-                model: torch.nn.Module,
-                score_threshold: float = 0.001,
-                iou_threshold: float = 0.7,
-                max_detections: int = 300,
-            ):
-                """
-                Wrapping PyTorch Module with multiclass_nms layer from sony_custom_layers.
-
-                Args:
-                    model (nn.Module): Model instance.
-                    score_threshold (float): Score threshold for non-maximum suppression.
-                    iou_threshold (float): Intersection over union threshold for non-maximum suppression.
-                    max_detections (float): The number of detections to return.
-                """
-                super(PostProcessWrapper, self).__init__()
-                self.model = model
-                self.score_threshold = score_threshold
-                self.iou_threshold = iou_threshold
-                self.max_detections = max_detections
-
-            def forward(self, images):
-                # model inference
-                outputs = self.model(images)
-
-                boxes = outputs[0]
-                scores = outputs[1]
-                nms = multiclass_nms(
-                    boxes=boxes,
-                    scores=scores,
-                    score_threshold=self.score_threshold,
-                    iou_threshold=self.iou_threshold,
-                    max_detections=self.max_detections,
-                )
-                return nms
+        # from sony_custom_layers.pytorch.object_detection.nms import multiclass_nms
+        #
+        # class PostProcessWrapper(torch.nn.Module):
+        #     def __init__(
+        #         self,
+        #         model: torch.nn.Module,
+        #         score_threshold: float = 0.001,
+        #         iou_threshold: float = 0.7,
+        #         max_detections: int = 300,
+        #     ):
+        #         """
+        #         Wrapping PyTorch Module with multiclass_nms layer from sony_custom_layers.
+        #
+        #         Args:
+        #             model (nn.Module): Model instance.
+        #             score_threshold (float): Score threshold for non-maximum suppression.
+        #             iou_threshold (float): Intersection over union threshold for non-maximum suppression.
+        #             max_detections (float): The number of detections to return.
+        #         """
+        #         super(PostProcessWrapper, self).__init__()
+        #         self.model = model
+        #         self.score_threshold = score_threshold
+        #         self.iou_threshold = iou_threshold
+        #         self.max_detections = max_detections
+        #
+        #     def forward(self, images):
+        #         # model inference
+        #         outputs = self.model(images)
+        #
+        #         boxes = outputs[0]
+        #         scores = outputs[1]
+        #         nms = multiclass_nms(
+        #             boxes=boxes,
+        #             scores=scores,
+        #             score_threshold=self.score_threshold,
+        #             iou_threshold=self.iou_threshold,
+        #             max_detections=self.max_detections,
+        #         )
+        #         return nms
 
         def representative_dataset_gen(dataloader=self.get_int8_calibration_dataloader(prefix)):
             for batch in dataloader:
@@ -1095,24 +1107,32 @@ class Exporter:
         print("Quantized model is ready")
 
         # Define PostProcess params
-        score_threshold = 0.001
-        iou_threshold = 0.7
-        max_detections = 300
+        # score_threshold = 0.001
+        # iou_threshold = 0.7
+        # max_detections = 300
 
         # Get working device
-        device = get_working_device()
+        # device = get_working_device()
 
-        quant_model_pp = PostProcessWrapper(
-            model=quant_model,
-            score_threshold=score_threshold,
-            iou_threshold=iou_threshold,
-            max_detections=max_detections,
-        ).to(device=device)
+        # quant_model_pp = PostProcessWrapper(
+        #     model=quant_model,
+        #     score_threshold=score_threshold,
+        #     iou_threshold=iou_threshold,
+        #     max_detections=max_detections,
+        # ).to(device=device)
 
-        f = Path(str(self.file).replace(self.file.suffix, "_mct_model.onnx"))  # js dir
-        mct.exporter.pytorch_export_model(
-            model=quant_model_pp, save_model_path=f, repr_dataset=representative_dataset_gen
-        )
+        f = Path(str(self.file).replace(self.file.suffix, "_ptq_mct_model.onnx"))  # js dir
+        mct.exporter.pytorch_export_model(model=quant_model, save_model_path=f, repr_dataset=representative_dataset_gen)
+
+        # add metadata
+        import onnx
+
+        model_onnx = onnx.load(f)  # load onnx model
+        for k, v in self.metadata.items():
+            meta = model_onnx.metadata_props.add()
+            meta.key, meta.value = k, str(v)
+
+        onnx.save(model_onnx, f)
 
         gptq_config = mct.gptq.get_pytorch_gptq_config(n_epochs=1000, use_hessian_based_weights=False)
 
@@ -1129,18 +1149,24 @@ class Exporter:
 
         print("Quantized-PTQ model is ready")
 
-        gptq_quant_model_pp = PostProcessWrapper(
-            model=gptq_quant_model,
-            score_threshold=score_threshold,
-            iou_threshold=iou_threshold,
-            max_detections=max_detections,
-        ).to(device=device)
-        f = Path(str(self.file).replace(self.file.suffix, "_mct_model.onnx"))  # js dir
+        # gptq_quant_model_pp = PostProcessWrapper(
+        #     model=gptq_quant_model,
+        #     score_threshold=score_threshold,
+        #     iou_threshold=iou_threshold,
+        #     max_detections=max_detections,
+        # ).to(device=device)
+        f = Path(str(self.file).replace(self.file.suffix, "_gptq_mct_model.onnx"))  # js dir
         mct.exporter.pytorch_export_model(
-            model=gptq_quant_model_pp, save_model_path="./qmodel_gptq_pp.onnx", repr_dataset=representative_dataset_gen
+            model=gptq_quant_model, save_model_path=f, repr_dataset=representative_dataset_gen
         )
 
-        return f, None
+        model_onnx = onnx.load(f)  # load onnx model
+        for k, v in self.metadata.items():
+            meta = model_onnx.metadata_props.add()
+            meta.key, meta.value = k, str(v)
+
+        onnx.save(model_onnx, f)
+        return f, model_onnx
 
     def _add_tflite_metadata(self, file):
         """Add metadata to *.tflite models per https://www.tensorflow.org/lite/models/convert/metadata."""
@@ -1320,9 +1346,9 @@ class Exporter:
         model = ct.models.MLModel(pipeline.spec, weights_dir=weights_dir)
         model.input_description["image"] = "Input image"
         model.input_description["iouThreshold"] = f"(optional) IoU threshold override (default: {nms.iouThreshold})"
-        model.input_description["confidenceThreshold"] = (
-            f"(optional) Confidence threshold override (default: {nms.confidenceThreshold})"
-        )
+        model.input_description[
+            "confidenceThreshold"
+        ] = f"(optional) Confidence threshold override (default: {nms.confidenceThreshold})"
         model.output_description["confidence"] = 'Boxes × Class confidence (see user-defined metadata "classes")'
         model.output_description["coordinates"] = "Boxes × [x, y, width, height] (relative to image size)"
         LOGGER.info(f"{prefix} pipeline success")

@@ -467,6 +467,7 @@ class AutoBackend(nn.Module):
             y = self.session.run(self.output_names, {self.session.get_inputs()[0].name: im})
             if self.mct:
                 from ultralytics.utils.ops import xyxy2xywh
+
                 y = np.concatenate([xyxy2xywh(y[0]), y[1]], axis=-1).transpose(0, 2, 1)
 
         # OpenVINO

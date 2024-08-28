@@ -27,10 +27,14 @@ def test_major_solutions():
     queue = solutions.QueueManager(reg_pts=queue_region, show=True, model="yolov8n.pt")
     queue_cls = solutions.QueueManager(reg_pts=queue_region, show=True, model="yolov8n.pt", classes=0)
     speed = solutions.SpeedEstimator(reg_pts=line_points, show=True, model="yolov8n.pt")
-    heatmap = solutions.Heatmap(colormap=cv2.COLORMAP_PARULA, show=True, model="yolov8n.pt", reg_pts=None)
+    solutions.Heatmap(colormap=cv2.COLORMAP_PARULA, show=True, model="yolov8n.pt", reg_pts=None)
     heatmap_line = solutions.Heatmap(reg_pts=line_points, colormap=cv2.COLORMAP_PARULA, show=True, model="yolov8n.pt")
-    heatmap_polygon = solutions.Heatmap(reg_pts=polygon_points, colormap=cv2.COLORMAP_PARULA, show=True, model="yolov8n.pt")
-    heatmap_region = solutions.Heatmap(reg_pts=region_points, colormap=cv2.COLORMAP_PARULA, show=True, model="yolov8n.pt")
+    heatmap_polygon = solutions.Heatmap(
+        reg_pts=polygon_points, colormap=cv2.COLORMAP_PARULA, show=True, model="yolov8n.pt"
+    )
+    heatmap_region = solutions.Heatmap(
+        reg_pts=region_points, colormap=cv2.COLORMAP_PARULA, show=True, model="yolov8n.pt"
+    )
     heatmap_cls = solutions.Heatmap(colormap=cv2.COLORMAP_PARULA, show=True, model="yolov8n.pt", classes=[0, 2])
 
     while cap.isOpened():

@@ -3,7 +3,7 @@
 import cv2
 import pytest
 
-from ultralytics import YOLO, solutions
+from ultralytics import solutions
 from ultralytics.utils.downloads import safe_download
 
 MAJOR_SOLUTIONS_DEMO = "https://github.com/ultralytics/assets/releases/download/v0.0.0/solutions_ci_demo.mp4"
@@ -51,6 +51,7 @@ def test_aigym():
         _ = gym_object.start_counting(im0)
     cap.release()
     cv2.destroyAllWindows()
+
 
 #
 # @pytest.mark.slow

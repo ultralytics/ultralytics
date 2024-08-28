@@ -20,10 +20,10 @@ def test_major_solutions():
     line_points = [(20, 400), (1080, 400)]
     polygon_points = [(20, 400), (1080, 404), (1080, 360), (20, 360), (20, 400)]
     queue_region = [(20, 340), (1080, 340), (1080, 480), (20, 480)]
-    counter_reg = solutions.ObjectCounter(reg_pts=region_points, show=True, model="yolov8n.pt")
-    counter_line = solutions.ObjectCounter(reg_pts=line_points, show=True, model="yolov8n.pt")
-    counter_polygon = solutions.ObjectCounter(reg_pts=polygon_points, show=True, model="yolov8n.pt")
-    counter_cls = solutions.ObjectCounter(reg_pts=line_points, show=True, model="yolov8n.pt", classes=0)
+    solutions.ObjectCounter(reg_pts=region_points, show=True, model="yolov8n.pt")
+    solutions.ObjectCounter(reg_pts=line_points, show=True, model="yolov8n.pt")
+    solutions.ObjectCounter(reg_pts=polygon_points, show=True, model="yolov8n.pt")
+    solutions.ObjectCounter(reg_pts=line_points, show=True, model="yolov8n.pt", classes=0)
     queue = solutions.QueueManager(reg_pts=queue_region, show=True, model="yolov8n.pt")
     queue_cls = solutions.QueueManager(reg_pts=queue_region, show=True, model="yolov8n.pt", classes=0)
 

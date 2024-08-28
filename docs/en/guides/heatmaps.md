@@ -287,7 +287,7 @@ Yes, Ultralytics YOLOv8 supports object tracking and heatmap generation concurre
 ```python
 import cv2
 
-from ultralytics import YOLO, solutions
+from ultralytics import solutions
 
 cap = cv2.VideoCapture("path/to/video/file.mp4")
 heatmap_obj = solutions.Heatmap(colormap=cv2.COLORMAP_PARULA, show=True, model="yolov8n.pt")
@@ -315,13 +315,11 @@ You can visualize specific object classes by specifying the desired classes in t
 ```python
 import cv2
 
-from ultralytics import YOLO, solutions
+from ultralytics import solutions
 
-model = YOLO("yolov8n.pt")
 cap = cv2.VideoCapture("path/to/video/file.mp4")
-heatmap_obj = solutions.Heatmap(colormap=cv2.COLORMAP_PARULA, show=True, names=model.names)
+heatmap_obj = solutions.Heatmap(colormap=cv2.COLORMAP_PARULA, show=True, model="yolov8n.pt", classes=[0,2])
 
-classes_for_heatmap = [0, 2]  # Classes to visualize
 while cap.isOpened():
     success, im0 = cap.read()
     if not success:

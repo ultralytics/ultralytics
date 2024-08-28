@@ -404,6 +404,8 @@ class RTDETRDecoder(nn.Module):
             label_noise_ratio (float): Label noise ratio. Default is 0.5.
             box_noise_scale (float): Box noise scale. Default is 1.0.
             learnt_init_query (bool): Whether to learn initial query embeddings. Default is False.
+            num_groups (int): Number of groups for Group Normalization. Defaults to 32.
+            norm_type (str, optional): Type of normalization to use. Defaults to None.
         """
         super().__init__()
         self.hidden_dim = hd
@@ -599,6 +601,7 @@ class v10Detect(Detect):
     Args:
         nc (int): Number of classes.
         ch (tuple): Tuple of channel sizes.
+        norm_type (str, optional): Type of normalization to use. Defaults to None.
 
     Attributes:
         max_det (int): Maximum number of detections.

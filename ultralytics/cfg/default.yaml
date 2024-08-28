@@ -138,9 +138,6 @@ pose_type: "pullup" # (str) type of workout being monitored
 heatmap_alpha: 0.5 # (float) transparency of the heatmap
 decay_factor: 0.99 # (float) factor for heatmap decay over time
 colormap: cv2.COLORMAP_JET # (int) colormap used for heatmap visualization
-pixels_per_meter: 10 # (int) conversion factor from pixels to meters
-line_color: (255, 255, 0) # (tuple) color of the distance measurement line in RGB
-centroid_color: (255, 0, 255) # (tuple) color of the centroids in RGB
 type: "line" # (str) type of plot for analytics (line, area, etc.)
 im0_shape: None # (None or tuple) shape of the input image
 title: "ultralytics" # (str) title of the plot

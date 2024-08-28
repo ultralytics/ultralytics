@@ -40,8 +40,6 @@ class DistanceCalculation:
         self.selected_boxes = {}
 
         self.env_check = check_imshow(warn=True)  # Check if environment supports imshow
-        DEFAULT_CFG_DICT["line_color"] = ast.literal_eval(DEFAULT_CFG_DICT["line_color"])
-        DEFAULT_CFG_DICT["centroid_color"] = ast.literal_eval(DEFAULT_CFG_DICT["centroid_color"])
         print(f"Ultralytics Solutions ✅ {DEFAULT_CFG_DICT}")
 
     def mouse_event_for_distance(self, event, x, y, flags, param):
@@ -65,21 +63,6 @@ class DistanceCalculation:
         elif event == cv2.EVENT_RBUTTONDOWN:
             self.selected_boxes = {}
             self.left_mouse_count = 0
-
-    def calculate_distance(self, centroid1, centroid2):
-        """
-        Computes the distance between two centroids.
-
-        Args:
-            centroid1 (tuple): The (x, y) coordinates of the first centroid.
-            centroid2 (tuple): The (x, y) coordinates of the second centroid.
-
-        Returns:
-            (tuple): The distance in meters and millimeters.
-        """
-        pixel_distance = math.sqrt((centroid1[0] - centroid2[0]) ** 2 + (centroid1[1] - centroid2[1]) ** 2)
-        distance_m = pixel_distance / DEFAULT_CFG_DICT["pixels_per_meter"]
-        return distance_m, distance_m * 1000
 
     def start_process(self, im0):
         """
@@ -119,14 +102,9 @@ class DistanceCalculation:
                     for trk_id in self.selected_boxes
                 ]
 
-                distance_m, distance_mm = self.calculate_distance(self.centroids[0], self.centroids[1])
-                self.annotator.plot_distance_and_line(
-                    distance_m,
-                    distance_mm,
-                    self.centroids,
-                    DEFAULT_CFG_DICT["line_color"],
-                    DEFAULT_CFG_DICT["centroid_color"],
-                )
+                pixel_distance = math.sqrt((self.centroids[0][0] - self.centroids[1][0]) ** 2 + (
+                            self.centroids[1][0] - self.centroids[1][1]) ** 2)
+                self.annotator.plot_pixel_distance(pixel_distance, self.centroids,)
 
             self.centroids = []
 

@@ -776,6 +776,7 @@ class CIB(nn.Module):
         shortcut (bool, optional): Whether to add a shortcut connection. Defaults to True.
         e (float, optional): Scaling factor for the hidden channels. Defaults to 0.5.
         lk (bool, optional): Whether to use RepVGGDW for the third convolutional layer. Defaults to False.
+        norm_type (str, optional): Type of normalization to use. Defaults to None.
     """
 
     def __init__(self, c1, c2, shortcut=True, e=0.5, lk=False, norm_type=None):
@@ -817,6 +818,7 @@ class C2fCIB(C2f):
         lk (bool, optional): Whether to use local key connection. Defaults to False.
         g (int, optional): Number of groups for grouped convolution. Defaults to 1.
         e (float, optional): Expansion ratio for CIB modules. Defaults to 0.5.
+        norm_type (str, optional): Type of normalization to use. Defaults to None.
     """
 
     def __init__(self, c1, c2, n=1, shortcut=False, lk=False, g=1, e=0.5, norm_type=None):
@@ -842,6 +844,7 @@ class Attention(nn.Module):
         qkv (Conv): Convolutional layer for computing the query, key, and value.
         proj (Conv): Convolutional layer for projecting the attended values.
         pe (Conv): Convolutional layer for positional encoding.
+        norm_type (str, optional): Type of normalization to use. Defaults to None.
     """
 
     def __init__(self, dim, num_heads=8, attn_ratio=0.5, norm_type=None):
@@ -896,6 +899,7 @@ class PSA(nn.Module):
         cv2 (Conv): 1x1 convolution layer to reduce the number of output channels to c.
         attn (Attention): Attention module for spatial attention.
         ffn (nn.Sequential): Feed-forward network module.
+        norm_type (str, optional): Type of normalization to use. Defaults to None.
     """
 
     def __init__(self, c1, c2, e=0.5, norm_type=None):
@@ -940,6 +944,7 @@ class SCDown(nn.Module):
             c2 (int): Number of output channels.
             k (int): Kernel size for the convolutional layer.
             s (int): Stride for the convolutional layer.
+            norm_type (str, optional): Type of normalization to use. Defaults to None.
         """
         super().__init__()
         self.cv1 = Conv(c1, c2, 1, 1, norm_type=norm_type)

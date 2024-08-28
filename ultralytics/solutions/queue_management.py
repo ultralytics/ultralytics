@@ -25,8 +25,6 @@ class QueueManager:
         Args:
             kwargs (dict): Dictionary of arguments for configuring the queue management process, such as detection thresholds, regions of interest, and analysis logic parameters.
         """
-        import ast
-
         DEFAULT_CFG_DICT.update(kwargs)
         self.model = YOLO(DEFAULT_CFG_DICT["model"])
         # Region & Line Information

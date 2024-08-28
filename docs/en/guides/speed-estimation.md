@@ -78,12 +78,12 @@ keywords: Ultralytics YOLOv8, speed estimation, object tracking, computer vision
 
 ### Arguments `SpeedEstimator`
 
-| Name               | Type   | Default      | Description                                          |
-| ------------------ | ------ | ------------ | ---------------------------------------------------- |
-| `model`            | `str`  | `yolov8n.pt` | Path to YOLO model.                                  |
-| `reg_pts`          | `list` | ``           | List of region points for speed estimation.          |
-| `show`             | `bool` | `False`      | Whether to display the image with annotations.       |
-| `line_width`       | `int`  | `2`          | Thickness of the lines for drawing boxes and tracks. |
+| Name         | Type   | Default      | Description                                          |
+| ------------ | ------ | ------------ | ---------------------------------------------------- |
+| `model`      | `str`  | `yolov8n.pt` | Path to YOLO model.                                  |
+| `reg_pts`    | `list` | ``           | List of region points for speed estimation.          |
+| `show`       | `bool` | `False`      | Whether to display the image with annotations.       |
+| `line_width` | `int`  | `2`          | Thickness of the lines for drawing boxes and tracks. |
 
 ### Arguments `model.track`
 

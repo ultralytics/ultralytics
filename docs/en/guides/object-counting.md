@@ -189,15 +189,15 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 
 Here's a table with the `ObjectCounter` arguments:
 
-| Name               | Type   | Default      | Description                                                            |
-| ------------------ | ------ | ------------ | ---------------------------------------------------------------------- |
-| `model`            | `str`  | `yolov8n.pt` | Path to Ultralytics YOLO model.                                        |
-| `reg_pts`          | `list` | ``           | List of points defining the counting region.                           |
-| `line_width`       | `int`  | `2`          | Line thickness for bounding boxes.                                     |
-| `show`             | `bool` | `False`      | Flag to control whether to display the video stream.                   |
-| `show_in_counts`   | `bool` | `True`       | Flag to control whether to display the in counts on the video stream.  |
-| `show_out_counts`  | `bool` | `True`       | Flag to control whether to display the out counts on the video stream. |
-| `draw_tracks`      | `bool` | `False`      | Flag to control whether to draw the object tracks.                     |
+| Name              | Type   | Default      | Description                                                            |
+| ----------------- | ------ | ------------ | ---------------------------------------------------------------------- |
+| `model`           | `str`  | `yolov8n.pt` | Path to Ultralytics YOLO model.                                        |
+| `reg_pts`         | `list` | ``           | List of points defining the counting region.                           |
+| `line_width`      | `int`  | `2`          | Line thickness for bounding boxes.                                     |
+| `show`            | `bool` | `False`      | Flag to control whether to display the video stream.                   |
+| `show_in_counts`  | `bool` | `True`       | Flag to control whether to display the in counts on the video stream.  |
+| `show_out_counts` | `bool` | `True`       | Flag to control whether to display the out counts on the video stream. |
+| `draw_tracks`     | `bool` | `False`      | Flag to control whether to draw the object tracks.                     |
 
 ### Arguments `tracker`
 

@@ -72,7 +72,7 @@ class AIGym:
                     k[int(DEFAULT_CFG_DICT["kpts_to_check"][2])].cpu(),
                 )
                 im0 = self.annotator.draw_specific_points(
-                    k, DEFAULT_CFG_DICT["kpts_to_check"], shape=(640, 640), radius=10
+                    k, DEFAULT_CFG_DICT["kpts_to_check"], shape=(640, 640), radius=DEFAULT_CFG_DICT["line_width"]*4
                 )
 
                 # Check and update pose stages and counts based on angle
@@ -96,9 +96,6 @@ class AIGym:
                     stage_text=self.stage[ind],
                     center_kpt=k[int(DEFAULT_CFG_DICT["kpts_to_check"][1])],
                 )
-
-            # Draw keypoints
-            self.annotator.kpts(k, shape=(640, 640), radius=1, kpt_line=True)
 
         # Display the image if the environment supports it and view_img is set to True
         if self.env_check and DEFAULT_CFG_DICT["show"]:

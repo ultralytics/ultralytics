@@ -700,13 +700,13 @@ class v8OBBLoss(v8DetectionLoss):
         else:
             loss[0] += (pred_angle * 0).sum()
 
-        #target_bboxes[fg_mask][:, -1] - pred_bboxes[fg_mask][:, -1]
-        #angle_loss = F.smooth_l1_loss(pred_bboxes[fg_mask][:, -1], target_bboxes[fg_mask][:, -1], reduction="mean")
+        # target_bboxes[fg_mask][:, -1] - pred_bboxes[fg_mask][:, -1]
+        # angle_loss = F.smooth_l1_loss(pred_bboxes[fg_mask][:, -1], target_bboxes[fg_mask][:, -1], reduction="mean")
         loss[3] = angle_loss
         loss[0] *= self.hyp.box  # box gain
         loss[1] *= self.hyp.cls  # cls gain
         loss[2] *= self.hyp.dfl  # dfl gain
-        #loss[3] *= self.hyp.ang  # ang gain
+        # loss[3] *= self.hyp.ang  # ang gain
 
         return loss.sum() * batch_size, loss.detach()  # loss(box, cls, dfl)
 

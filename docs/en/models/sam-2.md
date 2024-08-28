@@ -39,7 +39,7 @@ For a deeper understanding of SAM 2's architecture and capabilities, explore the
 SAM 2 sets a new benchmark in the field, outperforming previous models on various metrics:
 
 | Metric                             | SAM 2         | Previous SOTA |
-| ---------------------------------- | ------------- | ------------- |
+|------------------------------------|---------------|---------------|
 | **Interactive Video Segmentation** | **Best**      | -             |
 | **Human Interactions Required**    | **3x fewer**  | Baseline      |
 | **Image Segmentation Accuracy**    | **Improved**  | SAM           |
@@ -79,7 +79,7 @@ The SA-V dataset, developed for SAM 2's training, is one of the largest and most
 SAM 2 has demonstrated superior performance across major video segmentation benchmarks:
 
 | Dataset         | J&F  | J    | F    |
-| --------------- | ---- | ---- | ---- |
+|-----------------|------|------|------|
 | **DAVIS 2017**  | 82.5 | 79.8 | 85.2 |
 | **YouTube-VOS** | 81.2 | 78.9 | 83.5 |
 
@@ -88,7 +88,7 @@ SAM 2 has demonstrated superior performance across major video segmentation benc
 In interactive segmentation tasks, SAM 2 shows significant efficiency and accuracy:
 
 | Dataset               | NoC@90 | AUC   |
-| --------------------- | ------ | ----- |
+|-----------------------|--------|-------|
 | **DAVIS Interactive** | 1.54   | 0.872 |
 
 ## Installation
@@ -104,11 +104,11 @@ pip install ultralytics
 The following table details the available SAM 2 models, their pre-trained weights, supported tasks, and compatibility with different operating modes like [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md).
 
 | Model Type  | Pre-trained Weights                                                                   | Tasks Supported                              | Inference | Validation | Training | Export |
-| ----------- | ------------------------------------------------------------------------------------- | -------------------------------------------- | --------- | ---------- | -------- | ------ |
-| SAM 2 tiny  | [sam2_t.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/sam2_t.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ❌         | ❌       | ❌     |
-| SAM 2 small | [sam2_s.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/sam2_s.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ❌         | ❌       | ❌     |
-| SAM 2 base  | [sam2_b.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/sam2_b.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ❌         | ❌       | ❌     |
-| SAM 2 large | [sam2_l.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/sam2_l.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ❌         | ❌       | ❌     |
+|-------------|---------------------------------------------------------------------------------------|----------------------------------------------|-----------|------------|----------|--------|
+| SAM 2 tiny  | [sam2_t.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/sam2_t.pt) | [Instance Segmentation](../tasks/segment.md) | ✅         | ❌          | ❌        | ❌      |
+| SAM 2 small | [sam2_s.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/sam2_s.pt) | [Instance Segmentation](../tasks/segment.md) | ✅         | ❌          | ❌        | ❌      |
+| SAM 2 base  | [sam2_b.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/sam2_b.pt) | [Instance Segmentation](../tasks/segment.md) | ✅         | ❌          | ❌        | ❌      |
+| SAM 2 large | [sam2_l.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/sam2_l.pt) | [Instance Segmentation](../tasks/segment.md) | ✅         | ❌          | ❌        | ❌      |
 
 ### SAM 2 Prediction Examples
 
@@ -168,47 +168,45 @@ SAM 2 can be utilized across a broad spectrum of tasks, including real-time vide
 
 - This example demonstrates how SAM 2 can be used to segment the entire content of an image or video if no prompts (bboxes/points/masks) are provided.
 
-## SAM comparison vs YOLOv8
+## SAM 2 comparison vs YOLOv8
 
-Here we compare Meta's smallest SAM model, SAM-b, with Ultralytics smallest segmentation model, [YOLOv8n-seg](../tasks/segment.md):
+Here we compare Meta's smallest SAM 2 model, SAM2-t, with Ultralytics smallest segmentation model, [YOLOv8n-seg](../tasks/segment.md):
 
-| Model                                          | Size                       | Parameters             | Speed (CPU)                |
-| ---------------------------------------------- | -------------------------- | ---------------------- | -------------------------- |
-| Meta's SAM-b                                   | 358 MB                     | 94.7 M                 | 51096 ms/im                |
-| [MobileSAM](mobile-sam.md)                     | 40.7 MB                    | 10.1 M                 | 46122 ms/im                |
-| [FastSAM-s](fast-sam.md) with YOLOv8 backbone  | 23.7 MB                    | 11.8 M                 | 115 ms/im                  |
-| Ultralytics [YOLOv8n-seg](../tasks/segment.md) | **6.7 MB** (53.4x smaller) | **3.4 M** (27.9x less) | **59 ms/im** (866x faster) |
+| Model                                          | Size                       | Parameters             | Speed (CPU)                   |
+|------------------------------------------------|----------------------------|------------------------|-------------------------------|
+| Meta's SAM-b                                   | 375 MB                     | 93.7 M                 | 161440 ms/im                  |
+| Meta's SAM2-b                                  | 162 MB                     | 80.8 M                 | 121923 ms/im                  |
+| Meta's SAM2-t                                  | 78.1 MB                    | 38.9 M                 | 85155 ms/im                   |
+| [MobileSAM](mobile-sam.md)                     | 40.7 MB                    | 10.1 M                 | 98543 ms/im                   |
+| [FastSAM-s](fast-sam.md) with YOLOv8 backbone  | 23.7 MB                    | 11.8 M                 | 140 ms/im                     |
+| Ultralytics [YOLOv8n-seg](../tasks/segment.md) | **6.7 MB** (11.7x smaller) | **3.4 M** (11.4x less) | **79.5 ms/im** (1071x faster) |
 
 This comparison shows the order-of-magnitude differences in the model sizes and speeds between models. Whereas SAM presents unique capabilities for automatic segmenting, it is not a direct competitor to YOLOv8 segment models, which are smaller, faster and more efficient.
 
-Tests run on a 2023 Apple M2 Macbook with 16GB of RAM. To reproduce this test:
+Tests run on a 2023 Apple M2 Macbook with 16GB of RAM using `torch==2.3.1` and `ultralytics==8.3.82`. To reproduce this test:
 
 !!! Example
 
     === "Python"
 
         ```python
-        from ultralytics import SAM, YOLO, FastSAM
+        from ultralytics import ASSETS, SAM, FastSAM, YOLO
 
-        # Profile SAM-b
-        model = SAM("sam_b.pt")
-        model.info()
-        model("ultralytics/assets")
-
-        # Profile MobileSAM
-        model = SAM("mobile_sam.pt")
-        model.info()
-        model("ultralytics/assets")
+        # Profile SAM2-t, SAM2-b, SAM-b, MobileSAM
+        for file in ["sam_b.pt", "sam2_b.pt", "sam2_t.pt", "mobile_sam.pt"]:
+            model = SAM(file)
+            model.info()
+            model(ASSETS)
 
         # Profile FastSAM-s
         model = FastSAM("FastSAM-s.pt")
         model.info()
-        model("ultralytics/assets")
+        model(ASSETS)
 
         # Profile YOLOv8n-seg
         model = YOLO("yolov8n-seg.pt")
         model.info()
-        model("ultralytics/assets")
+        model(ASSETS)
         ```
 
 ## Auto-Annotation: Efficient Dataset Creation
@@ -228,7 +226,7 @@ To auto-annotate your dataset using SAM 2, follow this example:
     ```
 
 | Argument     | Type                    | Description                                                                                             | Default        |
-| ------------ | ----------------------- | ------------------------------------------------------------------------------------------------------- | -------------- |
+|--------------|-------------------------|---------------------------------------------------------------------------------------------------------|----------------|
 | `data`       | `str`                   | Path to a folder containing images to be annotated.                                                     |                |
 | `det_model`  | `str`, optional         | Pre-trained YOLO detection model. Defaults to 'yolov8x.pt'.                                             | `'yolov8x.pt'` |
 | `sam_model`  | `str`, optional         | Pre-trained SAM 2 segmentation model. Defaults to 'sam2_b.pt'.                                          | `'sam2_b.pt'`  |
@@ -332,7 +330,7 @@ This mechanism ensures continuity even when objects are temporarily obscured or 
 SAM 2 and Ultralytics YOLOv8 serve different purposes and excel in different areas. While SAM 2 is designed for comprehensive object segmentation with advanced features like zero-shot generalization and real-time performance, YOLOv8 is optimized for speed and efficiency in object detection and segmentation tasks. Here's a comparison:
 
 | Model                                          | Size                       | Parameters             | Speed (CPU)                |
-| ---------------------------------------------- | -------------------------- | ---------------------- | -------------------------- |
+|------------------------------------------------|----------------------------|------------------------|----------------------------|
 | Meta's SAM-b                                   | 358 MB                     | 94.7 M                 | 51096 ms/im                |
 | [MobileSAM](mobile-sam.md)                     | 40.7 MB                    | 10.1 M                 | 46122 ms/im                |
 | [FastSAM-s](fast-sam.md) with YOLOv8 backbone  | 23.7 MB                    | 11.8 M                 | 115 ms/im                  |

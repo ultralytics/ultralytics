@@ -64,7 +64,6 @@ def prepare_docs_markdown(clone_repos=True):
 
 def update_page_title(file_path: Path, new_title: str):
     """Update the title of an HTML file."""
-
     # Read the content of the file
     with open(file_path, encoding="utf-8") as file:
         content = file.read()
@@ -153,7 +152,6 @@ def update_markdown_files(md_filepath: Path):
 
 def update_docs_html():
     """Updates titles, edit links, head sections, and converts plaintext links in HTML documentation."""
-
     # Update 404 titles
     update_page_title(SITE / "404.html", new_title="Ultralytics Docs - Not Found")
 

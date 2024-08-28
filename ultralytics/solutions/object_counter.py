@@ -58,7 +58,6 @@ class ObjectCounter:
 
     def process_tracks(self):
         """Extracts and processes tracking data for counting objects in a video stream."""
-
         # Initialize annotator and draw regions
         annotator = Annotator(self.im0, DEFAULT_CFG_DICT["line_width"], self.model.names)
         annotator.draw_region(

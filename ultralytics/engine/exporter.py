@@ -1135,7 +1135,7 @@ class Exporter:
             iou_threshold=iou_threshold,
             max_detections=max_detections,
         ).to(device=device)
-        f = Path(str(self.file).replace(self.file.suffix, "gptq_mct.onnx"))  # js dir
+        f = Path(str(self.file).replace(self.file.suffix, "_mct_model.onnx"))  # js dir
         mct.exporter.pytorch_export_model(
             model=gptq_quant_model_pp, save_model_path="./qmodel_gptq_pp.onnx", repr_dataset=representative_dataset_gen
         )

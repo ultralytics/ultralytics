@@ -183,7 +183,10 @@ Example for airports:
 
 ```python
 queue_region_airport = [(50, 600), (1200, 600), (1200, 550), (50, 550)]
-queue_airport = solutions.QueueManager(model="yolov8n.pt", reg_pts=queue_region_airport,)
+queue_airport = solutions.QueueManager(
+    model="yolov8n.pt",
+    reg_pts=queue_region_airport,
+)
 ```
 
 For more information on diverse applications, check out our [Real World Applications](#real-world-applications) section.

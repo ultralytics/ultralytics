@@ -1,5 +1,7 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
+from shapely.geometry import LineString
+
 from .ai_gym import AIGym
 from .analytics import Analytics
 from .distance_calculation import DistanceCalculation
@@ -9,7 +11,6 @@ from .parking_management import ParkingManagement, ParkingPtsSelection
 from .queue_management import QueueManager
 from .speed_estimation import SpeedEstimator
 from .streamlit_inference import inference
-from shapely.geometry import LineString
 
 __all__ = (
     "AIGym",
@@ -27,7 +28,7 @@ __all__ = (
 
 # Define a function to check for intersection
 def does_intersect(segment1, segment2):
-    """ Check if two segments intersect """
+    """Check if two segments intersect."""
     line1 = LineString(segment1)
     line2 = LineString(segment2)
     return line1.intersects(line2)

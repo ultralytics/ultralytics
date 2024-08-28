@@ -121,8 +121,10 @@ class ObjectCounter:
                         object_segment = [(prev_position[0], prev_position[1]), (box[0], box[1])]
 
                         # Define the counting line segment
-                        counting_line_segment = [(DEFAULT_CFG_DICT["reg_pts"][0][0], DEFAULT_CFG_DICT["reg_pts"][0][1]),
-                                                 (DEFAULT_CFG_DICT["reg_pts"][1][0], DEFAULT_CFG_DICT["reg_pts"][1][1])]
+                        counting_line_segment = [
+                            (DEFAULT_CFG_DICT["reg_pts"][0][0], DEFAULT_CFG_DICT["reg_pts"][0][1]),
+                            (DEFAULT_CFG_DICT["reg_pts"][1][0], DEFAULT_CFG_DICT["reg_pts"][1][1]),
+                        ]
 
                         # Check if the object's movement segment intersects the counting line
                         if solutions.does_intersect(object_segment, counting_line_segment):
@@ -130,7 +132,8 @@ class ObjectCounter:
 
                             # Determine the direction of movement (IN or OUT)
                             direction = (box[0] - prev_position[0]) * (
-                                    self.counting_region.centroid.x - prev_position[0])
+                                self.counting_region.centroid.x - prev_position[0]
+                            )
                             if direction > 0:
                                 self.in_counts += 1
                                 self.class_wise_count[self.model.names[cls]]["IN"] += 1

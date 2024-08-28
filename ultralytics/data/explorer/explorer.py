@@ -458,20 +458,3 @@ class Explorer:
             LOGGER.error("AI generated query is not valid. Please try again with a different prompt")
             LOGGER.error(e)
             return None
-
-    def visualize(self, result):
-        """
-        Visualize the results of a query. TODO.
-
-        Args:
-            result (pyarrow.Table): Table containing the results of a query.
-        """
-        pass
-
-    def generate_report(self, result):
-        """
-        Generate a report of the dataset.
-
-        Todo:
-        """
-        pass

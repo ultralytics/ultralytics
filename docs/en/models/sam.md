@@ -154,27 +154,23 @@ Tests run on a 2023 Apple M2 Macbook with 16GB of RAM. To reproduce this test:
     === "Python"
 
         ```python
-        from ultralytics import SAM, YOLO, FastSAM
+        from ultralytics import ASSETS, SAM, YOLO, FastSAM
 
-        # Profile SAM-b
-        model = SAM("sam_b.pt")
-        model.info()
-        model("ultralytics/assets")
-
-        # Profile MobileSAM
-        model = SAM("mobile_sam.pt")
-        model.info()
-        model("ultralytics/assets")
+        # Profile SAM-b, MobileSAM
+        for file in ["sam_b.pt", "mobile_sam.pt"]:
+            model = SAM(file)
+            model.info()
+            model(ASSETS)
 
         # Profile FastSAM-s
         model = FastSAM("FastSAM-s.pt")
         model.info()
-        model("ultralytics/assets")
+        model(ASSETS)
 
         # Profile YOLOv8n-seg
         model = YOLO("yolov8n-seg.pt")
         model.info()
-        model("ultralytics/assets")
+        model(ASSETS)
         ```
 
 ## Auto-Annotation: A Quick Path to Segmentation Datasets

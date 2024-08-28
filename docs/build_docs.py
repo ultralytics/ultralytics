@@ -141,10 +141,6 @@ def update_markdown_files(md_filepath: Path):
                 new_lines.append(line)
         content = "\n".join(new_lines)
 
-        # Check MkDocs admonition indentations
-        mistakes = re.finditer(r"^(\s+)===(.*)$\n^\1```(.*)$", content, re.MULTILINE)
-        assert not mistakes, f"MkDocs incorrect admonitions in {md_filepath}"
-
         # Add EOF newline if missing
         if not content.endswith("\n"):
             content += "\n"

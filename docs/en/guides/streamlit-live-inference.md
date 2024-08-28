@@ -10,6 +10,17 @@ keywords: Streamlit, YOLOv8, Real-time Object Detection, Streamlit Application, 
 
 Streamlit makes it simple to build and deploy interactive web applications. Combining this with Ultralytics YOLOv8 allows for real-time object detection and analysis directly in your browser. YOLOv8 high accuracy and speed ensure seamless performance for live video streams, making it ideal for applications in security, retail, and beyond.
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/N8TxB43y-xM"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to Use Streamlit with Ultralytics for Real-Time Computer Vision in Your Browser
+</p>
+
 |                                                                   Aquaculture                                                                   |                                                                 Animals husbandry                                                                  |
 | :---------------------------------------------------------------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------------------------------------------------: |
 | ![Fish Detection using Ultralytics YOLOv8](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/ea6d7ece-cded-4db7-b810-1f8433df2c96) | ![Animals Detection using Ultralytics YOLOv8](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/2e1f4781-60ab-4e72-b3e4-726c10cd223c) |

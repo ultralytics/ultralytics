@@ -20,6 +20,8 @@ class AIGym:
         """
         DEFAULT_CFG_DICT.update(kwargs)
         self.model = YOLO(DEFAULT_CFG_DICT["model"])
+
+        # Store stage, count and angle information
         self.angle = None
         self.count = None
         self.stage = None
@@ -39,6 +41,7 @@ class AIGym:
 
         Returns:
             im0 (ndarray): The processed image frame.
+            results (list): Pose estimation data.
         """
         results = self.model.track(
             source=im0,

@@ -198,7 +198,6 @@ Here's a table with the `ObjectCounter` arguments:
 | `show_in_counts`   | `bool` | `True`       | Flag to control whether to display the in counts on the video stream.  |
 | `show_out_counts`  | `bool` | `True`       | Flag to control whether to display the out counts on the video stream. |
 | `draw_tracks`      | `bool` | `False`      | Flag to control whether to draw the object tracks.                     |
-| `line_dist_thresh` | `int`  | `15`         | Euclidean distance threshold for line counter.                         |
 
 ### Arguments `tracker`
 

@@ -130,7 +130,6 @@ draw_tracks: False # (bool) enable or disable drawing of tracks
 reg_pts: # (list) points defining a counting region
 show_in_counts: True # (bool) display the count of objects entering the region
 show_out_counts: True # (bool) display the count of objects exiting the region
-line_dist_thresh: 15 # (int) distance threshold for counting lines
 kpts_to_check: [6, 8, 10] # (list) keypoints to check for pose estimation
 pose_up_angle: 145 # (int) angle for the upper position in a workout
 pose_down_angle: 90 # (int) angle for the lower position in a workout

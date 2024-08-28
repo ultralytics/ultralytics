@@ -93,15 +93,15 @@ class SpeedEstimator:
         if not DEFAULT_CFG_DICT["reg_pts"][0][0] < track[-1][0] < DEFAULT_CFG_DICT["reg_pts"][1][0]:
             return
         if (
-            DEFAULT_CFG_DICT["reg_pts"][1][1] - DEFAULT_CFG_DICT["line_dist_thresh"]
+            DEFAULT_CFG_DICT["reg_pts"][1][1] - 10
             < track[-1][1]
-            < DEFAULT_CFG_DICT["reg_pts"][1][1] + DEFAULT_CFG_DICT["line_dist_thresh"]
+            < DEFAULT_CFG_DICT["reg_pts"][1][1] + 10
         ):
             direction = "known"
         elif (
-            DEFAULT_CFG_DICT["reg_pts"][0][1] - DEFAULT_CFG_DICT["line_dist_thresh"]
+            DEFAULT_CFG_DICT["reg_pts"][0][1] - 10
             < track[-1][1]
-            < DEFAULT_CFG_DICT["reg_pts"][0][1] + DEFAULT_CFG_DICT["line_dist_thresh"]
+            < DEFAULT_CFG_DICT["reg_pts"][0][1] + 10
         ):
             direction = "known"
         else:

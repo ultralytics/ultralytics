@@ -214,7 +214,6 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
 | `show_in_counts`   | `bool`           | `True`             | Whether to display the count of objects entering the region.      |
 | `show_in_counts`   | `bool`           | `True`             | Whether to display the count of objects exiting the region.       |
 | `reg_pts`          | `list` or `None` | `None`             | Points defining the counting region (either a line or a polygon). |
-| `line_dist_thresh` | `int`            | `15`               | Distance threshold for line-based counting.                       |
 | `line_width`       | `int`            | `2`                | Thickness of the lines used in drawing.                           |
 | `decay_factor`     | `float`          | `0.99`             | Decay factor for the heatmap to reduce intensity over time.       |
 | `heatmap_alpha`    | `float`          | `0.5`              | Alpha blending value for heatmap overlay.                         |

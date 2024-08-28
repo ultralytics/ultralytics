@@ -69,8 +69,8 @@ class Predictor(BasePredictor):
 
     Examples:
         >>> predictor = Predictor()
-        >>> predictor.setup_model(model_path='sam_model.pt')
-        >>> predictor.set_image('image.jpg')
+        >>> predictor.setup_model(model_path="sam_model.pt")
+        >>> predictor.set_image("image.jpg")
         >>> masks, scores, boxes = predictor.generate()
         >>> results = predictor.postprocess((masks, scores, boxes), im, orig_img)
     """
@@ -90,8 +90,8 @@ class Predictor(BasePredictor):
 
         Examples:
             >>> predictor = Predictor(cfg=DEFAULT_CFG)
-            >>> predictor = Predictor(overrides={'imgsz': 640})
-            >>> predictor = Predictor(_callbacks={'on_predict_start': custom_callback})
+            >>> predictor = Predictor(overrides={"imgsz": 640})
+            >>> predictor = Predictor(_callbacks={"on_predict_start": custom_callback})
         """
         if overrides is None:
             overrides = {}
@@ -188,8 +188,8 @@ class Predictor(BasePredictor):
 
         Examples:
             >>> predictor = Predictor()
-            >>> predictor.setup_model(model_path='sam_model.pt')
-            >>> predictor.set_image('image.jpg')
+            >>> predictor.setup_model(model_path="sam_model.pt")
+            >>> predictor.set_image("image.jpg")
             >>> masks, scores, logits = predictor.inference(im, bboxes=[[0, 0, 100, 100]])
         """
         # Override prompts if any stored in self.prompts
@@ -475,8 +475,8 @@ class Predictor(BasePredictor):
 
         Examples:
             >>> predictor = Predictor()
-            >>> predictor.setup_source('path/to/images')
-            >>> predictor.setup_source('video.mp4')
+            >>> predictor.setup_source("path/to/images")
+            >>> predictor.setup_source("video.mp4")
             >>> predictor.setup_source(None)  # Uses default source if available
 
         Notes:
@@ -504,8 +504,8 @@ class Predictor(BasePredictor):
 
         Examples:
             >>> predictor = Predictor()
-            >>> predictor.set_image('path/to/image.jpg')
-            >>> predictor.set_image(cv2.imread('path/to/image.jpg'))
+            >>> predictor.set_image("path/to/image.jpg")
+            >>> predictor.set_image(cv2.imread("path/to/image.jpg"))
 
         Notes:
             - This method should be called before performing inference on a new image.

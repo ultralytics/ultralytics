@@ -20,29 +20,27 @@ def test_major_solutions():
     line_points = [(20, 400), (1080, 400)]
     polygon_points = [(20, 400), (1080, 404), (1080, 360), (20, 360), (20, 400)]
     queue_region = [(20, 340), (1080, 340), (1080, 480), (20, 480)]
-    solutions.ObjectCounter(reg_pts=region_points, show=True, model="yolov8n.pt")
-    solutions.ObjectCounter(reg_pts=line_points, show=True, model="yolov8n.pt")
-    solutions.ObjectCounter(reg_pts=polygon_points, show=True, model="yolov8n.pt")
-    solutions.ObjectCounter(reg_pts=line_points, show=True, model="yolov8n.pt", classes=0)
+    counter_reg = solutions.ObjectCounter(reg_pts=region_points, show=True, model="yolov8n.pt")
+    counter_line = solutions.ObjectCounter(reg_pts=line_points, show=True, model="yolov8n.pt")
+    counter_polygon = solutions.ObjectCounter(reg_pts=polygon_points, show=True, model="yolov8n.pt")
+    counter_cls = solutions.ObjectCounter(reg_pts=line_points, show=True, model="yolov8n.pt", classes=0)
     queue = solutions.QueueManager(reg_pts=queue_region, show=True, model="yolov8n.pt")
     queue_cls = solutions.QueueManager(reg_pts=queue_region, show=True, model="yolov8n.pt", classes=0)
-
-    # heatmap = solutions.Heatmap(colormap=cv2.COLORMAP_PARULA, names=names, view_img=False)
-    # speed = solutions.SpeedEstimator(reg_pts=region_points, names=names, view_img=False)
-    # queue = solutions.QueueManager(names=names, reg_pts=region_points, view_img=False)
+    speed = solutions.SpeedEstimator(reg_pts=line_points, show=True, model="yolov8n.pt")
+    heatmap = solutions.Heatmap(colormap=cv2.COLORMAP_PARULA, names=names, view_img=False)
     while cap.isOpened():
         success, im0 = cap.read()
         if not success:
             break
         original_im0 = im0.copy()
-        # _ = counter_reg.start_counting(original_im0.copy())
-        # _ = counter_line.start_counting(original_im0.copy())
-        # _ = counter_polygon.start_counting(original_im0.copy())
-        # _ = counter_cls.start_counting(original_im0.copy())
-        # _ = heatmap.generate_heatmap(original_im0.copy(), tracks)
-        # _ = speed.estimate_speed(original_im0.copy(), tracks)
+        _ = counter_reg.start_counting(original_im0.copy())
+        _ = counter_line.start_counting(original_im0.copy())
+        _ = counter_polygon.start_counting(original_im0.copy())
+        _ = counter_cls.start_counting(original_im0.copy())
+        _ = speed.estimate_speed(original_im0.copy())
         _ = queue.process_queue(original_im0.copy())
         _ = queue_cls.process_queue(original_im0.copy())
+        _ = heatmap.generate_heatmap(original_im0.copy())
 
     cap.release()
     cv2.destroyAllWindows()

@@ -40,10 +40,6 @@ class QueueManager:
         self.counts = 0
         self.track_history = defaultdict(list)
         self.env_check = check_imshow(warn=True)  # Check if environment supports imshow
-        if isinstance(DEFAULT_CFG_DICT["txt_color"], str):
-            DEFAULT_CFG_DICT["txt_color"] = ast.literal_eval(DEFAULT_CFG_DICT["txt_color"])
-        if isinstance(DEFAULT_CFG_DICT["reg_color"], str):
-            DEFAULT_CFG_DICT["reg_color"] = ast.literal_eval(DEFAULT_CFG_DICT["reg_color"])
         print(f"Ultralytics Solutions ✅ {DEFAULT_CFG_DICT}")
 
     def process_tracks(self):

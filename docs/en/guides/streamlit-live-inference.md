@@ -105,7 +105,7 @@ Then, you can create a basic Streamlit application to run live inference:
         ### Make sure to run the file using command `streamlit run <file-name.py>`
         ```
 
-        === "CLI"
+    === "CLI"
 
         ```bash
         yolo streamlit-predict

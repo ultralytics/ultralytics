@@ -329,11 +329,13 @@ This mechanism ensures continuity even when objects are temporarily obscured or 
 
 SAM 2 and Ultralytics YOLOv8 serve different purposes and excel in different areas. While SAM 2 is designed for comprehensive object segmentation with advanced features like zero-shot generalization and real-time performance, YOLOv8 is optimized for speed and efficiency in object detection and segmentation tasks. Here's a comparison:
 
-| Model                                          | Size                       | Parameters             | Speed (CPU)                |
-| ---------------------------------------------- | -------------------------- | ---------------------- | -------------------------- |
-| Meta's SAM-b                                   | 358 MB                     | 94.7 M                 | 51096 ms/im                |
-| [MobileSAM](mobile-sam.md)                     | 40.7 MB                    | 10.1 M                 | 46122 ms/im                |
-| [FastSAM-s](fast-sam.md) with YOLOv8 backbone  | 23.7 MB                    | 11.8 M                 | 115 ms/im                  |
-| Ultralytics [YOLOv8n-seg](../tasks/segment.md) | **6.7 MB** (53.4x smaller) | **3.4 M** (27.9x less) | **59 ms/im** (866x faster) |
+| Model                                          | Size<br><sup>(MB)</sup> | Parameters<br><sup>(M)</sup> | Speed (CPU)<br><sup>(ms/im)</sup> |
+| ---------------------------------------------- | ----------------------- | ---------------------------- | --------------------------------- |
+| [Meta SAM-b](sam.md)                           | 375                     | 93.7                         | 161440                            |
+| Meta SAM2-b                                    | 162                     | 80.8                         | 121923                            |
+| Meta SAM2-t                                    | 78.1                    | 38.9                         | 85155                             |
+| [MobileSAM](mobile-sam.md)                     | 40.7                    | 10.1                         | 98543                             |
+| [FastSAM-s](fast-sam.md) with YOLOv8 backbone  | 23.7                    | 11.8                         | 140                               |
+| Ultralytics [YOLOv8n-seg](../tasks/segment.md) | **6.7** (11.7x smaller) | **3.4** (11.4x less)         | **79.5** (1071x faster)           |
 
-For more details, see the [SAM comparison vs YOLOv8](#sam-comparison-vs-yolov8) section.
+For more details, see the [SAM 2 comparison vs YOLOv8](#sam-2-comparison-vs-yolov8) section.

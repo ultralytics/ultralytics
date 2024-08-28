@@ -33,7 +33,7 @@ class Colors:
 
     def __init__(self):
         """Initialize colors as hex = matplotlib.colors.TABLEAU_COLORS.values()."""
-        self.hexs = (
+        hexs = (
             "042AFF",
             "0BDBEB",
             "F3F3F3",
@@ -55,7 +55,7 @@ class Colors:
             "FC6D2F",
             "A2FF0B",
         )
-        self.palette = [self.hex2rgb(f"#{c}") for c in self.hexs]
+        self.palette = [self.hex2rgb(f"#{c}") for c in hexs]
         self.n = len(self.palette)
         self.pose_palette = np.array(
             [
@@ -92,13 +92,6 @@ class Colors:
     def hex2rgb(h):
         """Converts hex color codes to RGB values (i.e. default PIL order)."""
         return tuple(int(h[1 + i : 1 + i + 2], 16) for i in (0, 2, 4))
-
-    @staticmethod
-    def rgb2hex(rgb_str):
-        """Converts rgb color codes to hex values."""
-        rgb_tuple = tuple(map(int, rgb_str.strip("()").split(", ")))
-        # Convert the RGB tuple to a hex string
-        return "#{:02x}{:02x}{:02x}".format(*rgb_tuple)
 
 
 colors = Colors()  # create instance for 'from utils.plots import colors'
@@ -377,15 +370,17 @@ class Annotator:
         Plot keypoints on the image.
 
         Args:
-            kpts (tensor): Predicted keypoints with shape [17, 3]. Each keypoint has (x, y, confidence).
-            shape (tuple): Image shape as a tuple (h, w), where h is the height and w is the width.
-            radius (int, optional): Radius of the drawn keypoints. Default is 5.
-            kpt_line (bool, optional): If True, the function will draw lines connecting keypoints
-                                       for human pose. Default is True.
-            kpt_color (tuple, optional): The color of the keypoints (B, G, R).
+            kpts (torch.Tensor): Keypoints, shape [17, 3] (x, y, confidence).
+            shape (tuple, optional): Image shape (h, w). Defaults to (640, 640).
+            radius (int, optional): Keypoint radius. Defaults to 5.
+            kpt_line (bool, optional): Draw lines between keypoints. Defaults to True.
+            conf_thres (float, optional): Confidence threshold. Defaults to 0.25.
+            kpt_color (tuple, optional): Keypoint color (B, G, R). Defaults to None.
 
         Note:
-            `kpt_line=True` currently only supports human pose plotting.
+            - `kpt_line=True` currently only supports human pose plotting.
+            - Modifies self.im in-place.
+            - If self.pil is True, converts image to numpy array and back to PIL.
         """
         if self.pil:
             # Convert to numpy first
@@ -637,10 +632,18 @@ class Annotator:
         Draw specific keypoints for gym steps counting.
 
         Args:
-            keypoints (list): list of keypoints data to be plotted
-            indices (list): keypoints ids list to be plotted
-            shape (tuple): imgsz for model inference
-            radius (int): Keypoint radius value
+            keypoints (list): Keypoints data to be plotted.
+            indices (list, optional): Keypoint indices to be plotted. Defaults to [2, 5, 7].
+            shape (tuple, optional): Image size for model inference. Defaults to (640, 640).
+            radius (int, optional): Keypoint radius. Defaults to 2.
+            conf_thres (float, optional): Confidence threshold for keypoints. Defaults to 0.25.
+
+        Returns:
+            (numpy.ndarray): Image with drawn keypoints.
+
+        Note:
+            Keypoint format: [x, y] or [x, y, confidence].
+            Modifies self.im in-place.
         """
         if indices is None:
             indices = [2, 5, 7]

@@ -49,29 +49,20 @@ Queue management using [Ultralytics YOLOv8](https://github.com/ultralytics/ultra
 
         video_writer = cv2.VideoWriter("queue_management.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
-        queue_region = [(20, 400), (1080, 404), (1080, 360), (20, 360)]
+        queue_region = [(20, 340), (1080, 340), (1080, 480), (20, 480)]
 
-        queue = solutions.QueueManager(
-            model="yolov8n.pt",
-            reg_pts=queue_region,
-            line_width=3,
-            reg_color=(255, 144, 31),
-        )
+        queue = solutions.QueueManager(model="yolov8n.pt", reg_pts=queue_region)
 
         while cap.isOpened():
             success, im0 = cap.read()
-
-            if success:
-                out = queue.process_queue(im0)
-                video_writer.write(im0)
-                if cv2.waitKey(1) & 0xFF == ord("q"):
-                    break
-                continue
-
-            print("Video frame is empty or video processing has been successfully completed.")
-            break
+            if not success:
+                print("Video frame is empty or video processing has been successfully completed.")
+                break
+            out = queue.process_queue(im0)
+            video_writer.write(im0)
 
         cap.release()
+        video_writer.release()
         cv2.destroyAllWindows()
         ```
 
@@ -80,53 +71,41 @@ Queue management using [Ultralytics YOLOv8](https://github.com/ultralytics/ultra
         ```python
         import cv2
 
-        from ultralytics import, solutions
+        from ultralytics import solutions
 
         cap = cv2.VideoCapture("path/to/video/file.mp4")
+
         assert cap.isOpened(), "Error reading video file"
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 
         video_writer = cv2.VideoWriter("queue_management.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
-        queue_region = [(20, 400), (1080, 404), (1080, 360), (20, 360)]
+        queue_region = [(20, 340), (1080, 340), (1080, 480), (20, 480)]
 
-        queue = solutions.QueueManager(
-            model="yolov8n.pt"
-            reg_pts=queue_region,
-            line_width=3,
-            reg_color=(255, 144, 31),
-            classes=0,      # For specific classes
-        )
+        queue = solutions.QueueManager(model="yolov8n.pt", reg_pts=queue_region, classes=0)
 
         while cap.isOpened():
             success, im0 = cap.read()
-
-            if success:
-                out = queue.process_queue(im0)
-
-                video_writer.write(im0)
-                if cv2.waitKey(1) & 0xFF == ord("q"):
-                    break
-                continue
-
-            print("Video frame is empty or video processing has been successfully completed.")
-            break
+            if not success:
+                print("Video frame is empty or video processing has been successfully completed.")
+                break
+            out = queue.process_queue(im0)
+            video_writer.write(im0)
 
         cap.release()
+        video_writer.release()
         cv2.destroyAllWindows()
         ```
 
 ### Arguments `QueueManager`
 
-| Name          | Type             | Default                    | Description                                                                      |
-| ------------- | ---------------- | -------------------------- | -------------------------------------------------------------------------------- |
-| `model`       | `str`            | `yolov8n.pt`               | Path to YOLO model.                                                              |
-| `reg_pts`     | `list of tuples` | `[(20, 400), (1260, 400)]` | Points defining the counting region polygon. Defaults to a predefined rectangle. |
-| `line_width`  | `int`            | `2`                        | Thickness of the annotation lines.                                               |
-| `show`        | `bool`           | `False`                    | Whether to display the image frames.                                             |
-| `reg_color`   | `tuple`          | `(255, 0, 255)`            | Color of the counting region lines (BGR).                                        |
-| `draw_tracks` | `bool`           | `False`                    | Whether to draw tracks of the objects.                                           |
-| `txt_color`   | `tuple`          | `(255, 255, 255)`          | Color of the count text (BGR).                                                   |
+| Name          | Type   | Default                    | Description                                                                      |
+| ------------- | ------ | -------------------------- | -------------------------------------------------------------------------------- |
+| `model`       | `str`  | `yolov8n.pt`               | Path to YOLO model.                                                              |
+| `reg_pts`     | `list` | `[(20, 400), (1260, 400)]` | Points defining the counting region polygon. Defaults to a predefined rectangle. |
+| `line_width`  | `int`  | `2`                        | Thickness of the annotation lines.                                               |
+| `show`        | `bool` | `False`                    | Whether to display the image frames.                                             |
+| `draw_tracks` | `bool` | `False`                    | Whether to draw tracks of the objects.                                           |
 
 ### Arguments `model.track`
 
@@ -159,22 +138,14 @@ import cv2
 from ultralytics import solutions
 
 cap = cv2.VideoCapture("path/to/video.mp4")
-queue_region = [(20, 400), (1080, 404), (1080, 360), (20, 360)]
+queue_region = [(20, 340), (1080, 340), (1080, 480), (20, 480)]
 
-queue = solutions.QueueManager(
-    model="yolov8n.pt",
-    reg_pts=queue_region,
-    line_width=3,
-    reg_color=(255, 144, 31),
-)
+queue = solutions.QueueManager(model="yolov8n.pt", show=True, reg_pts=queue_region)
 
 while cap.isOpened():
     success, im0 = cap.read()
     if success:
         out = queue.process_queue(im0)
-        cv2.imshow("Queue Management", im0)
-        if cv2.waitKey(1) & 0xFF == ord("q"):
-            break
 
 cap.release()
 cv2.destroyAllWindows()
@@ -212,12 +183,7 @@ Example for airports:
 
 ```python
 queue_region_airport = [(50, 600), (1200, 600), (1200, 550), (50, 550)]
-queue_airport = solutions.QueueManager(
-    model="yolov8n.pt",
-    reg_pts=queue_region_airport,
-    line_width=3,
-    reg_color=(0, 255, 0),
-)
+queue_airport = solutions.QueueManager(model="yolov8n.pt", reg_pts=queue_region_airport,)
 ```
 
 For more information on diverse applications, check out our [Real World Applications](#real-world-applications) section.

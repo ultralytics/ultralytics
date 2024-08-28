@@ -123,7 +123,6 @@ class Heatmap:
                 if DEFAULT_CFG_DICT["reg_pts"] is not None:
                     # Count objects in any polygon
                     if len(DEFAULT_CFG_DICT["reg_pts"]) >= 3:
-                        print(self.counting_region)
                         is_inside = self.counting_region.contains(Point(track_line[-1]))
 
                         if prev_position is not None and is_inside and track_id not in self.count_ids:

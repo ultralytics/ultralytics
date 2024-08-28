@@ -165,7 +165,7 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 
         # Init Object Counter
         counter = solutions.ObjectCounter(
-            show=True, reg_pts=region_points, draw_tracks=True, model="yolov8n.pt", classes=[0, 2]
+            show=True, reg_pts=line_points, draw_tracks=True, model="yolov8n.pt", classes=[0, 2]
         )
 
         while cap.isOpened():

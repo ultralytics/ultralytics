@@ -51,7 +51,7 @@ Queue management using [Ultralytics YOLOv8](https://github.com/ultralytics/ultra
 
         queue_region = [(20, 340), (1080, 340), (1080, 480), (20, 480)]
 
-        queue = solutions.QueueManager(model="yolov8n.pt", reg_pts=queue_region)
+        queue = solutions.QueueManager(show=True, model="yolov8n.pt", reg_pts=queue_region)
 
         while cap.isOpened():
             success, im0 = cap.read()
@@ -82,7 +82,7 @@ Queue management using [Ultralytics YOLOv8](https://github.com/ultralytics/ultra
 
         queue_region = [(20, 340), (1080, 340), (1080, 480), (20, 480)]
 
-        queue = solutions.QueueManager(model="yolov8n.pt", reg_pts=queue_region, classes=0)
+        queue = solutions.QueueManager(show=True, model="yolov8n.pt", reg_pts=queue_region, classes=0)
 
         while cap.isOpened():
             success, im0 = cap.read()

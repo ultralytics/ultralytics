@@ -766,7 +766,7 @@ class Annotator:
         """
         # Get text size
         (text_width_m, text_height_m), _ = cv2.getTextSize(
-            f"Distance In Pixels: {pixel_distance:.2f}m", 0, self.sf, self.tf
+            f"Distance In Pixels: {pixel_distance:.2f}", 0, self.sf, self.tf
         )
 
         # Draw rectangle with adjusted margins
@@ -775,7 +775,7 @@ class Annotator:
         # Place text inside the rectangle
         cv2.putText(
             self.im,
-            f"Distance In Pixels: {pixel_distance:.2f}m",
+            f"Distance In Pixels: {pixel_distance:.2f}",
             (15, 25 + text_height_m),  # Adjusted to position text within the rectangle
             0,
             self.sf,

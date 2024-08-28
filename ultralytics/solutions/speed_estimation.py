@@ -74,11 +74,11 @@ class SpeedEstimator:
         speed_label = (
             f"{int(self.dist_data[track_id])} km/h" if track_id in self.dist_data else self.model.names[int(cls)]
         )
-        bbox_color = colors(int(track_id)) if track_id in self.dist_data else (255, 0, 255)
+        bbox_color = colors(int(track_id))
 
         self.annotator.box_label(box, speed_label, bbox_color)
-        cv2.polylines(self.im0, [self.trk_pts], isClosed=False, color=(0, 255, 0), thickness=1)
-        cv2.circle(self.im0, (int(track[-1][0]), int(track[-1][1])), 5, bbox_color, -1)
+        cv2.polylines(self.im0, [self.trk_pts], isClosed=False, color=bbox_color, thickness=DEFAULT_CFG_DICT["line_width"])
+        cv2.circle(self.im0, (int(track[-1][0]), int(track[-1][1])), DEFAULT_CFG_DICT["line_width"]*2, bbox_color, -1)
 
     def calculate_speed(self, trk_id, track):
         """

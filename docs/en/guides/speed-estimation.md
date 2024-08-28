@@ -57,7 +57,7 @@ keywords: Ultralytics YOLOv8, speed estimation, object tracking, computer vision
         line_pts = [(0, 360), (1280, 360)]
 
         # Init speed-estimation obj
-        speed_obj = solutions.SpeedEstimator(reg_pts=line_pts, names=names, show=True, model="yolov8n.pt")
+        speed_obj = solutions.SpeedEstimator(reg_pts=line_pts, show=True, model="yolov8n.pt")
 
         while cap.isOpened():
             success, im0 = cap.read()

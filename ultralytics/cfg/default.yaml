@@ -128,9 +128,6 @@ tracker: botsort.yaml # (str) tracker type, choices=[botsort.yaml, bytetrack.yam
 # Default solutions settings --------------------------------------------------------------------------------------------
 draw_tracks: False # (bool) enable or disable drawing of tracks
 reg_pts: "[(20, 400), (1260, 400)]" # (list) points defining a counting region
-reg_color: "(255, 0, 255)" # (str) color of the counting region line in RGB
-txt_color: "(0, 0, 0)" # (str) color of the count text in RGB
-bg_color: "(255, 255, 255)" # (str) background color of the count text in RGB
 show_in_counts: True # (bool) display the count of objects entering the region
 show_out_counts: True # (bool) display the count of objects exiting the region
 line_dist_thresh: 15 # (int) distance threshold for counting lines

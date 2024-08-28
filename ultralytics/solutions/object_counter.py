@@ -36,12 +36,10 @@ class ObjectCounter:
         self.class_wise_count = {}
         self.track_history = defaultdict(list)  # Tracks info
         self.env_check = check_imshow(warn=True)  # Check if environment supports imshow
-        DEFAULT_CFG_DICT["reg_color"] = ast.literal_eval(DEFAULT_CFG_DICT["reg_color"])
-        DEFAULT_CFG_DICT["txt_color"] = ast.literal_eval(DEFAULT_CFG_DICT["txt_color"])
-        DEFAULT_CFG_DICT["bg_color"] = ast.literal_eval(DEFAULT_CFG_DICT["bg_color"])
 
         if isinstance(DEFAULT_CFG_DICT["reg_pts"], str):
             DEFAULT_CFG_DICT["reg_pts"] = ast.literal_eval(DEFAULT_CFG_DICT["reg_pts"])
+
         print(f"Ultralytics Solutions ✅ {DEFAULT_CFG_DICT}")
 
         # Initialize counting region
@@ -62,7 +60,7 @@ class ObjectCounter:
         annotator = Annotator(self.im0, DEFAULT_CFG_DICT["line_width"], self.model.names)
         annotator.draw_region(
             reg_pts=DEFAULT_CFG_DICT["reg_pts"],
-            color=DEFAULT_CFG_DICT["reg_color"],
+            color=(255, 0, 255),
             thickness=int(DEFAULT_CFG_DICT["line_width"]) * 2,
         )
         tracks = self.model.track(
@@ -77,7 +75,9 @@ class ObjectCounter:
         if track_ids is not None:
             for box, track_id, cls in zip(boxes, track_ids, clss):
                 # Draw bounding box
-                annotator.box_label(box, label=f"{self.model.names[cls]}#{track_id}", color=colors(int(track_id), True))
+                color = colors(int(track_id), True)
+                annotator.box_label(box, label=f"{self.model.names[cls]}", color=color,
+                                    txt_color=annotator.get_txt_color(color))
 
                 # Store class info
                 if self.model.names[cls] not in self.class_wise_count:
@@ -143,7 +143,7 @@ class ObjectCounter:
 
         if labels_dict:
             annotator.display_analytics(
-                self.im0, labels_dict, (DEFAULT_CFG_DICT["txt_color"]), (DEFAULT_CFG_DICT["bg_color"]), 10
+                self.im0, labels_dict, (255, 255, 255), (104, 31, 17), 10 + DEFAULT_CFG_DICT["line_width"]
             )
 
     def start_counting(self, im0):

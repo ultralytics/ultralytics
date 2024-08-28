@@ -46,9 +46,7 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
         cap = cv2.VideoCapture("path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
 
-        gym_object = solutions.AIGym(
-            show=True, pose_type="pushup", kpts_to_check=[6, 8, 10], model="yolov8n-pose.pt"
-        )
+        gym_object = solutions.AIGym(show=True, pose_type="pushup", kpts_to_check=[6, 8, 10], model="yolov8n-pose.pt")
 
         while cap.isOpened():
             success, im0 = cap.read()
@@ -73,9 +71,7 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
 
         video_writer = cv2.VideoWriter("workouts.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
-        gym_object = solutions.AIGym(
-            show=True, pose_type="pushup", kpts_to_check=[6, 8, 10], model="yolov8n-pose.pt"
-        )
+        gym_object = solutions.AIGym(show=True, pose_type="pushup", kpts_to_check=[6, 8, 10], model="yolov8n-pose.pt")
 
         while cap.isOpened():
             success, im0 = cap.read()
@@ -100,7 +96,7 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
 ### Arguments `AIGym`
 
 | Name              | Type    | Default      | Description                                                                            |
-| ----------------- | ------- | ------------ |----------------------------------------------------------------------------------------|
+| ----------------- | ------- | ------------ | -------------------------------------------------------------------------------------- |
 | `kpts_to_check`   | `list`  | `None`       | List of three keypoints index, for counting specific workout, followed by keypoint Map |
 | `line_width`      | `int`   | `2`          | Thickness of the lines drawn.                                                          |
 | `show`            | `bool`  | `False`      | Flag to display the image.                                                             |
@@ -135,9 +131,7 @@ from ultralytics import solutions
 cap = cv2.VideoCapture("path/to/video/file.mp4")
 assert cap.isOpened(), "Error reading video file"
 
-gym_object = solutions.AIGym(
-    show=True, pose_type="pushup", kpts_to_check=[6, 8, 10], model="yolov8n-pose.pt"
-)
+gym_object = solutions.AIGym(show=True, pose_type="pushup", kpts_to_check=[6, 8, 10], model="yolov8n-pose.pt")
 
 while cap.isOpened():
     success, im0 = cap.read()
@@ -174,9 +168,7 @@ Yes, Ultralytics YOLOv8 can be adapted for custom workout routines. The `AIGym` 
 ```python
 from ultralytics import solutions
 
-gym_object = solutions.AIGym(
-    show=True, pose_type="squat", kpts_to_check=[6, 8, 10], model="yolov8n-pose.pt"
-)
+gym_object = solutions.AIGym(show=True, pose_type="squat", kpts_to_check=[6, 8, 10], model="yolov8n-pose.pt")
 ```
 
 For more details on setting arguments, refer to the [Arguments `AIGym`](#arguments-aigym) section. This flexibility allows you to monitor various exercises and customize routines based on your needs.

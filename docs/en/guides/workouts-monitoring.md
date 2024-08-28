@@ -188,8 +188,7 @@ w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FR
 
 video_writer = cv2.VideoWriter("workouts.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
-gym_object = solutions.AIGym(show=True, pose_type="pushup", kpts_to_check=[6, 8, 10], model="yolov8n-pose.pt"
-)
+gym_object = solutions.AIGym(show=True, pose_type="pushup", kpts_to_check=[6, 8, 10], model="yolov8n-pose.pt")
 
 while cap.isOpened():
     success, im0 = cap.read()

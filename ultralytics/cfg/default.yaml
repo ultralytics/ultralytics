@@ -139,10 +139,6 @@ heatmap_alpha: 0.5 # (float) transparency of the heatmap
 decay_factor: 0.99 # (float) factor for heatmap decay over time
 colormap: cv2.COLORMAP_JET # (int) colormap used for heatmap visualization
 type: "line" # (str) type of plot for analytics (line, area, etc.)
-im0_shape: None # (None or tuple) shape of the input image
-title: "ultralytics" # (str) title of the plot
 x_label: "x" # (str) label for the x-axis
 y_label: "y" # (str) label for the y-axis
 points_width: 10 # (int) width of points in the plot
-fontsize: 13 # (int) font size for text in the plot
-max_points: 50 # (int) maximum number of points to plot

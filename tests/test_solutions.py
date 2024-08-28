@@ -96,6 +96,65 @@ def test_instance_segmentation():
 
 
 @pytest.mark.slow
+def test_analytics():
+    """Test ultralytics analytics."""
+    safe_download(url=MAJOR_SOLUTIONS_DEMO)
+    import cv2
+    from ultralytics import YOLO, solutions
+    model = YOLO("yolov8n.pt")
+    cap = cv2.VideoCapture("solutions_ci_demo.mp4")
+    assert cap.isOpened(), "Error reading video file"
+
+    analytics_line = solutions.Analytics(type="line", show=True)
+    analytics_multiple_lines = solutions.Analytics(type="line", show=True)
+    analytics_pie = solutions.Analytics(type="pie",show=True)
+    analytics_bar = solutions.Analytics(type="bar", show=True)
+    analytics_area = solutions.Analytics(type="area", show=True)
+
+    total_counts, frame_count = 0, 0
+    data, labels, clswise_count = {}, [], {}
+
+    while cap.isOpened():
+        success, frame = cap.read()
+
+        if success:
+            frame_count += 1
+            results = model.track(frame, persist=True, verbose=True)
+
+            if results[0].boxes.id is not None:
+                boxes = results[0].boxes.xyxy.cpu()
+                track_ids = results[0].boxes.id.int().cpu().tolist()
+                clss = results[0].boxes.cls.cpu().tolist()
+                for box, track_id, cls in zip(boxes, track_ids, clss):
+                    if model.names[int(cls)] not in labels:
+                        labels.append(model.names[int(cls)])
+                    if model.names[int(cls)] in data:
+                        data[model.names[int(cls)]] += 1
+
+                    if model.names[int(cls)] in clswise_count:
+                        clswise_count[model.names[int(cls)]] += 1
+                    else:
+                        clswise_count[model.names[int(cls)]] = 1
+
+                    total_counts += 1
+            _ = analytics_line.update_line(frame_count, total_counts)
+            _ = analytics_multiple_lines.update_line(frame_count, total_counts)
+            _ = analytics_pie.update_pie(clswise_count)
+            _ = analytics_bar.update_bar(clswise_count)
+            _ = analytics_area.update_area(frame_count, clswise_count)
+            clswise_count = {}
+            data = {}
+            total_counts = 0
+            if cv2.waitKey(1) & 0xFF == ord("q"):
+                break
+        else:
+            break
+
+    cap.release()
+    cv2.destroyAllWindows()
+
+
+@pytest.mark.slow
 def test_streamlit_predict():
     """Test streamlit predict live inference solution."""
     solutions.inference()

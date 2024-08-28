@@ -33,7 +33,7 @@ class Colors:
 
     def __init__(self):
         """Initialize colors as hex = matplotlib.colors.TABLEAU_COLORS.values()."""
-        hexs = (
+        self.hexs = (
             "042AFF",
             "0BDBEB",
             "F3F3F3",
@@ -55,7 +55,7 @@ class Colors:
             "FC6D2F",
             "A2FF0B",
         )
-        self.palette = [self.hex2rgb(f"#{c}") for c in hexs]
+        self.palette = [self.hex2rgb(f"#{c}") for c in self.hexs]
         self.n = len(self.palette)
         self.pose_palette = np.array(
             [

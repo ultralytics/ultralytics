@@ -1037,10 +1037,10 @@ class Exporter:
     def export_mct(self, prefix=colorstr("Sony MCT:")):
         # pip install --upgrade -force-reinstall git+https://github.com/ambitious-octopus/model_optimization.git@get-output-fix
         import model_compression_toolkit as mct
+        import onnx
         from model_compression_toolkit.core.pytorch.pytorch_device_config import get_working_device, set_working_device
         from sony_custom_layers.pytorch.object_detection.nms import multiclass_nms
-        import onnx
-    
+
         set_working_device(str(self.device))
 
         class PostProcessWrapper(torch.nn.Module):
@@ -1086,8 +1086,7 @@ class Exporter:
                 img = batch["img"]
                 img = img / 255.0
                 yield [img]
-        
-        
+
         tpc = mct.get_target_platform_capabilities(
             fw_name="pytorch", target_platform_name="imx500", target_platform_version="v3"
         )
@@ -1097,7 +1096,7 @@ class Exporter:
         )
 
         resource_utilization = mct.core.ResourceUtilization(weights_memory=3146176 * 0.76)
-            
+
         if not self.args.gptq:
             # Perform post training quantization
             quant_model, _ = mct.ptq.pytorch_post_training_quantization(
@@ -1110,7 +1109,6 @@ class Exporter:
             print("Quantized model is ready")
 
         else:
-
             gptq_config = mct.gptq.get_pytorch_gptq_config(n_epochs=1000, use_hessian_based_weights=False)
 
             # Perform Gradient-Based Post Training Quantization
@@ -1125,24 +1123,22 @@ class Exporter:
             )
 
             print("Quantized-PTQ model is ready")
-            
+
         if self.args.nms:
             # Define PostProcess params
             score_threshold = 0.001
             iou_threshold = 0.7
             max_detections = 300
-            
+
             quant_model = PostProcessWrapper(
                 model=quant_model,
                 score_threshold=score_threshold,
                 iou_threshold=iou_threshold,
                 max_detections=max_detections,
             ).to(device=get_working_device())
-                
+
         f = Path(str(self.file).replace(self.file.suffix, "_mct_model.onnx"))  # js dir
-        mct.exporter.pytorch_export_model(
-            model=quant_model, save_model_path=f, repr_dataset=representative_dataset_gen
-        )
+        mct.exporter.pytorch_export_model(model=quant_model, save_model_path=f, repr_dataset=representative_dataset_gen)
 
         model_onnx = onnx.load(f)  # load onnx model
         for k, v in self.metadata.items():

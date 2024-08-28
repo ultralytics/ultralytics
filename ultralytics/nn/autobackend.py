@@ -405,7 +405,7 @@ class AutoBackend(nn.Module):
             ret = rknn_model.init_runtime()
             if ret != 0:
                 ... # TODO add logging
-        
+            metadata = Path(w).parent / "metadata.yaml"        
         
         # Any other format (unsupported)
         else:

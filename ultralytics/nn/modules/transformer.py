@@ -186,8 +186,8 @@ class MLP(nn.Module):
     def forward(self, x):
         """Forward pass for the entire MLP."""
         for i, layer in enumerate(self.layers):
-            x = self.act(layer(x)) if i < self.num_layers - 1 else layer(x)
-        return x.sigmoid() if self.sigmoid else x
+            x = getattr(self, "act", nn.ReLU())(layer(x)) if i < self.num_layers - 1 else layer(x)
+        return x.sigmoid() if getattr(self, "sigmoid", False) else x
 
 
 class LayerNorm2d(nn.Module):
@@ -352,7 +352,6 @@ class DeformableTransformerDecoderLayer(nn.Module):
 
     def forward(self, embed, refer_bbox, feats, shapes, padding_mask=None, attn_mask=None, query_pos=None):
         """Perform the forward pass through the entire decoder layer."""
-
         # Self attention
         q = k = self.with_pos_embed(embed, query_pos)
         tgt = self.self_attn(q.transpose(0, 1), k.transpose(0, 1), embed.transpose(0, 1), attn_mask=attn_mask)[

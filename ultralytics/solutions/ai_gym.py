@@ -72,7 +72,7 @@ class AIGym:
                     k[int(DEFAULT_CFG_DICT["kpts_to_check"][2])].cpu(),
                 )
                 im0 = self.annotator.draw_specific_points(
-                    k, DEFAULT_CFG_DICT["kpts_to_check"], shape=(640, 640), radius=DEFAULT_CFG_DICT["line_width"]*4
+                    k, DEFAULT_CFG_DICT["kpts_to_check"], shape=(640, 640), radius=DEFAULT_CFG_DICT["line_width"] * 4
                 )
 
                 # Check and update pose stages and counts based on angle

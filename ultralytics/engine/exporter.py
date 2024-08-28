@@ -1042,8 +1042,8 @@ class Exporter:
 
         _ = rknn.load_onnx(model=f)
         _ = rknn.build(do_quantization=False)  # requires quantization: {'rv1103', 'rv1106','rv1103b'} # TODO
-        f = rknn.export_rknn(f.replace(".onnx", f"-{platform}.rknn"))
-        yaml_save(str(Path(f).parent / "metadata.yaml"), self.metadata)  # add metadata.yaml
+        _ = rknn.export_rknn(f.replace(".onnx", f"-{platform}.rknn"))
+        yaml_save(Path(f).parent / "metadata.yaml", self.metadata)  # add metadata.yaml
 
         LOGGER.info(f"\n{prefix} model exported as {f}.\n")
         return f, None

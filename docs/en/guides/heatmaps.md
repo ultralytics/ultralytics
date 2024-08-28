@@ -303,7 +303,7 @@ import cv2
 from ultralytics import solutions
 
 cap = cv2.VideoCapture("path/to/video/file.mp4")
-heatmap_obj = solutions.Heatmap(colormap=cv2.COLORMAP_PARULA, show=True, model="yolov8n.pt", classes=[0,2])
+heatmap_obj = solutions.Heatmap(colormap=cv2.COLORMAP_PARULA, show=True, model="yolov8n.pt", classes=[0, 2])
 
 while cap.isOpened():
     success, im0 = cap.read()

@@ -77,8 +77,10 @@ class SpeedEstimator:
         bbox_color = colors(int(track_id))
 
         self.annotator.box_label(box, speed_label, bbox_color)
-        cv2.polylines(self.im0, [self.trk_pts], isClosed=False, color=bbox_color, thickness=DEFAULT_CFG_DICT["line_width"])
-        cv2.circle(self.im0, (int(track[-1][0]), int(track[-1][1])), DEFAULT_CFG_DICT["line_width"]*2, bbox_color, -1)
+        cv2.polylines(
+            self.im0, [self.trk_pts], isClosed=False, color=bbox_color, thickness=DEFAULT_CFG_DICT["line_width"]
+        )
+        cv2.circle(self.im0, (int(track[-1][0]), int(track[-1][1])), DEFAULT_CFG_DICT["line_width"] * 2, bbox_color, -1)
 
     def calculate_speed(self, trk_id, track):
         """

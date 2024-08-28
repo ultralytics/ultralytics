@@ -764,16 +764,13 @@ class Annotator:
             pixel_distance (float): Pixels distance between two bbox centroids.
             centroids (list): Bounding box centroids data.
         """
-
         # Get text size
-        (text_width_m, text_height_m), _ = cv2.getTextSize(f"Distance In Pixels: {pixel_distance:.2f}m", 0, self.sf,
-                                                           self.tf)
+        (text_width_m, text_height_m), _ = cv2.getTextSize(
+            f"Distance In Pixels: {pixel_distance:.2f}m", 0, self.sf, self.tf
+        )
 
         # Draw rectangle with adjusted margins
-        cv2.rectangle(self.im,
-                      (5, 10),
-                      (15 + text_width_m + 10, 25 + text_height_m + 10),
-                      (104, 31, 17), -1)
+        cv2.rectangle(self.im, (5, 10), (15 + text_width_m + 10, 25 + text_height_m + 10), (104, 31, 17), -1)
 
         # Place text inside the rectangle
         cv2.putText(
@@ -788,8 +785,8 @@ class Annotator:
         )
 
         cv2.line(self.im, centroids[0], centroids[1], (104, 31, 17), self.tf)
-        cv2.circle(self.im, centroids[0], self.tf*3, (255, 0, 255), -1)
-        cv2.circle(self.im, centroids[1], self.tf*3, (255, 0, 255), -1)
+        cv2.circle(self.im, centroids[0], self.tf * 3, (255, 0, 255), -1)
+        cv2.circle(self.im, centroids[1], self.tf * 3, (255, 0, 255), -1)
 
     def visioneye(self, box, center_point, color=(235, 219, 11), pin_color=(255, 0, 255)):
         """

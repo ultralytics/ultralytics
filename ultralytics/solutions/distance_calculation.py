@@ -23,8 +23,6 @@ class DistanceCalculation:
         Args:
             kwargs (dict): Dictionary of arguments for configuring the distance calculation process, such as parameters for object detection, tracking precision, and measurement units.
         """
-        import ast
-
         DEFAULT_CFG_DICT.update(kwargs)
         self.model = YOLO(DEFAULT_CFG_DICT["model"])
         self.annotator = None
@@ -102,9 +100,14 @@ class DistanceCalculation:
                     for trk_id in self.selected_boxes
                 ]
 
-                pixel_distance = math.sqrt((self.centroids[0][0] - self.centroids[1][0]) ** 2 + (
-                            self.centroids[1][0] - self.centroids[1][1]) ** 2)
-                self.annotator.plot_pixel_distance(pixel_distance, self.centroids,)
+                pixel_distance = math.sqrt(
+                    (self.centroids[0][0] - self.centroids[1][0]) ** 2
+                    + (self.centroids[1][0] - self.centroids[1][1]) ** 2
+                )
+                self.annotator.plot_pixel_distance(
+                    pixel_distance,
+                    self.centroids,
+                )
 
             self.centroids = []
 

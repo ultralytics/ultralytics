@@ -24,7 +24,6 @@ class Analytics:
         Args:
             kwargs (dict): Dictionary of arguments for configuring chart properties such as data sources, titles, axis labels, colors, and other visual parameters.
         """
-
         DEFAULT_CFG_DICT.update(kwargs)
         print(f"Ultralytics Solutions ✅ {DEFAULT_CFG_DICT}")
 
@@ -110,7 +109,9 @@ class Analytics:
             )
 
         self.set_common_properties()
-        legend = self.ax.legend(loc="upper left", fontsize=self.font_size, facecolor=self.txt_color, edgecolor=self.txt_color)
+        legend = self.ax.legend(
+            loc="upper left", fontsize=self.font_size, facecolor=self.txt_color, edgecolor=self.txt_color
+        )
 
         # Set legend text color
         for text in legend.get_texts():
@@ -265,7 +266,6 @@ class Analytics:
             im0 (ndarray): Image for processing
             im0 (ndarray): The image to be processed.
         """
-
         if DEFAULT_CFG_DICT["show"]:
             cv2.imshow("Ultralytics", im0)
 

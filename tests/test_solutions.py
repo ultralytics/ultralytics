@@ -104,14 +104,16 @@ def test_analytics():
     """Test ultralytics analytics."""
     safe_download(url=MAJOR_SOLUTIONS_DEMO)
     import cv2
+
     from ultralytics import YOLO, solutions
+
     model = YOLO("yolov8n.pt")
     cap = cv2.VideoCapture("solutions_ci_demo.mp4")
     assert cap.isOpened(), "Error reading video file"
 
     analytics_line = solutions.Analytics(type="line", show=True)
     analytics_multiple_lines = solutions.Analytics(type="line", show=True)
-    analytics_pie = solutions.Analytics(type="pie",show=True)
+    analytics_pie = solutions.Analytics(type="pie", show=True)
     analytics_bar = solutions.Analytics(type="bar", show=True)
     analytics_area = solutions.Analytics(type="area", show=True)
 

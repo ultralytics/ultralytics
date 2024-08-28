@@ -30,31 +30,31 @@ This guide provides a comprehensive overview of three fundamental types of data 
         import cv2
 
         from ultralytics import YOLO, solutions
-        
+
         model = YOLO("yolov8n.pt")
-        
+
         cap = cv2.VideoCapture("Path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-        
+
         out = cv2.VideoWriter("line_plot.avi", cv2.VideoWriter_fourcc(*"MJPG"), fps, (1280, 720))
-        
+
         analytics = solutions.Analytics(type="line", show=True)
         total_counts = 0
         frame_count = 0
-        
+
         while cap.isOpened():
             success, frame = cap.read()
-        
+
             if success:
                 frame_count += 1
                 results = model.track(frame, persist=True, verbose=True)
-        
+
                 if results[0].boxes.id is not None:
                     boxes = results[0].boxes.xyxy.cpu()
                     for box in boxes:
                         total_counts += 1
-        
+
                 im0 = analytics.update_line(frame_count, total_counts)
                 out.write(im0)
                 total_counts = 0
@@ -62,7 +62,7 @@ This guide provides a comprehensive overview of three fundamental types of data 
                     break
             else:
                 break
-        
+
         cap.release()
         out.release()
         cv2.destroyAllWindows()
@@ -74,52 +74,52 @@ This guide provides a comprehensive overview of three fundamental types of data 
         import cv2
 
         from ultralytics import YOLO, solutions
-        
+
         model = YOLO("yolov8n.pt")
-        
+
         cap = cv2.VideoCapture("Path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-        
+
         out = cv2.VideoWriter("multiple_line_plot.avi", cv2.VideoWriter_fourcc(*"MJPG"), fps, (1280, 720))
-        
+
         analytics = solutions.Analytics(type="line", show=True)
-        
+
         frame_count = 0
         data = {}
         labels = []
-        
+
         while cap.isOpened():
             success, frame = cap.read()
-        
+
             if success:
                 frame_count += 1
-        
+
                 results = model.track(frame, persist=True)
-        
+
                 if results[0].boxes.id is not None:
                     boxes = results[0].boxes.xyxy.cpu()
                     track_ids = results[0].boxes.id.int().cpu().tolist()
                     clss = results[0].boxes.cls.cpu().tolist()
-        
+
                     for box, track_id, cls in zip(boxes, track_ids, clss):
                         # Store each class label
                         if model.names[int(cls)] not in labels:
                             labels.append(model.names[int(cls)])
-        
+
                         # Store each class count
                         if model.names[int(cls)] in data:
                             data[model.names[int(cls)]] += 1
                         else:
                             data[model.names[int(cls)]] = 0
-        
+
                 # update lines every frame
                 im0 = analytics.update_multiple_lines(data, labels, frame_count)
                 out.write(im0)
                 data = {}  # clear the data list for next frame
             else:
                 break
-        
+
         cap.release()
         out.release()
         cv2.destroyAllWindows()
@@ -131,18 +131,18 @@ This guide provides a comprehensive overview of three fundamental types of data 
         import cv2
 
         from ultralytics import YOLO, solutions
-        
+
         model = YOLO("yolov8n.pt")
-        
+
         cap = cv2.VideoCapture("Path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-        
+
         out = cv2.VideoWriter("pie_plot.avi", cv2.VideoWriter_fourcc(*"MJPG"), fps, (1280, 720))
-        
+
         analytics = solutions.Analytics(type="pie", show=True)
         clswise_count = {}
-        
+
         while cap.isOpened():
             success, frame = cap.read()
             if success:
@@ -155,16 +155,16 @@ This guide provides a comprehensive overview of three fundamental types of data 
                             clswise_count[model.names[int(cls)]] += 1
                         else:
                             clswise_count[model.names[int(cls)]] = 1
-        
+
                 im0 = analytics.update_pie(clswise_count)
                 out.write(im0)
                 clswise_count = {}
-        
+
                 if cv2.waitKey(1) & 0xFF == ord("q"):
                     break
             else:
                 break
-        
+
         cap.release()
         out.release()
         cv2.destroyAllWindows()
@@ -176,18 +176,18 @@ This guide provides a comprehensive overview of three fundamental types of data 
         import cv2
 
         from ultralytics import YOLO, solutions
-        
+
         model = YOLO("yolov8n.pt")
-        
+
         cap = cv2.VideoCapture("Path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-        
+
         out = cv2.VideoWriter("bar_plot.avi", cv2.VideoWriter_fourcc(*"MJPG"), fps, (1280, 720))
-        
+
         analytics = solutions.Analytics(type="bar", show=True)
         clswise_count = {}
-        
+
         while cap.isOpened():
             success, frame = cap.read()
             if success:
@@ -200,20 +200,19 @@ This guide provides a comprehensive overview of three fundamental types of data 
                             clswise_count[model.names[int(cls)]] += 1
                         else:
                             clswise_count[model.names[int(cls)]] = 1
-        
+
                 im0 = analytics.update_bar(clswise_count)
                 out.write(im0)
                 clswise_count = {}
-        
+
                 if cv2.waitKey(1) & 0xFF == ord("q"):
                     break
             else:
                 break
-        
+
         cap.release()
         out.release()
         cv2.destroyAllWindows()
-
         ```
 
     === "Area chart"
@@ -222,36 +221,39 @@ This guide provides a comprehensive overview of three fundamental types of data 
         import cv2
 
         from ultralytics import YOLO, solutions
-        
+
         model = YOLO("yolov8n.pt")
-        
+
         cap = cv2.VideoCapture("Path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-        
+
         out = cv2.VideoWriter("area_chart.avi", cv2.VideoWriter_fourcc(*"MJPG"), fps, (1280, 720))
-        
-        analytics = solutions.Analytics(type="area", show=True,)
-        
+
+        analytics = solutions.Analytics(
+            type="area",
+            show=True,
+        )
+
         clswise_count = {}
         frame_count = 0
-        
+
         while cap.isOpened():
             success, frame = cap.read()
             if success:
                 frame_count += 1
                 results = model.track(frame, persist=True, verbose=True)
-        
+
                 if results[0].boxes.id is not None:
                     boxes = results[0].boxes.xyxy.cpu()
                     clss = results[0].boxes.cls.cpu().tolist()
-        
+
                     for box, cls in zip(boxes, clss):
                         if model.names[int(cls)] in clswise_count:
                             clswise_count[model.names[int(cls)]] += 1
                         else:
                             clswise_count[model.names[int(cls)]] = 1
-        
+
                 im0 = analytics.update_area(frame_count, clswise_count)
                 out.write(im0)
                 clswise_count = {}
@@ -259,7 +261,7 @@ This guide provides a comprehensive overview of three fundamental types of data 
                     break
             else:
                 break
-        
+
         cap.release()
         out.release()
         cv2.destroyAllWindows()
@@ -270,7 +272,7 @@ This guide provides a comprehensive overview of three fundamental types of data 
 Here's a table with the `Analytics` arguments:
 
 | Name         | Type   | Default | Description                         |
-|--------------|--------|---------|-------------------------------------|
+| ------------ | ------ | ------- | ----------------------------------- |
 | `type`       | `str`  | `None`  | Type of data or object.             |
 | `x_label`    | `str`  | `x`     | Label for the x-axis.               |
 | `y_label`    | `str`  | `y`     | Label for the y-axis.               |

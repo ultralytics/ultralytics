@@ -62,8 +62,7 @@ class QueueManager:
                 # Draw bounding box
                 color = colors(int(track_id), True)
                 self.annotator.box_label(
-                    box, label=f"{self.model.names[cls]}", color=color,
-                    txt_color=self.annotator.get_txt_color(color)
+                    box, label=f"{self.model.names[cls]}", color=color, txt_color=self.annotator.get_txt_color(color)
                 )
 
                 # Update track history

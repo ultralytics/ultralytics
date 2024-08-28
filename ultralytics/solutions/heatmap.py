@@ -139,13 +139,21 @@ class Heatmap:
                     # Count objects using line
                     elif len(DEFAULT_CFG_DICT["reg_pts"]) == 2:
                         if prev_position is not None and track_id not in self.count_ids:
-                            distance = Point(track_line[-1]).distance(self.counting_region)
-                            if distance < DEFAULT_CFG_DICT["line_dist_thresh"] and track_id not in self.count_ids:
+                            # Define the segment of object movement (n-1 to n)
+                            object_segment = [(prev_position[0], prev_position[1]), (box[0], box[1])]
+
+                            # Define the counting line segment
+                            counting_line_segment = [(DEFAULT_CFG_DICT["reg_pts"][0][0], DEFAULT_CFG_DICT["reg_pts"][0][1]),
+                                                     (DEFAULT_CFG_DICT["reg_pts"][1][0], DEFAULT_CFG_DICT["reg_pts"][1][1])]
+
+                            # Check if the object's movement segment intersects the counting line
+                            if solutions.does_intersect(object_segment, counting_line_segment):
                                 self.count_ids.append(track_id)
 
-                                if (box[0] - prev_position[0]) * (
-                                    self.counting_region.centroid.x - prev_position[0]
-                                ) > 0:
+                                # Determine the direction of movement (IN or OUT)
+                                direction = (box[0] - prev_position[0]) * (
+                                        self.counting_region.centroid.x - prev_position[0])
+                                if direction > 0:
                                     self.in_counts += 1
                                     self.class_wise_count[self.model.names[cls]]["IN"] += 1
                                 else:

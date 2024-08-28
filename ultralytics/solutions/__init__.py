@@ -9,6 +9,7 @@ from .parking_management import ParkingManagement, ParkingPtsSelection
 from .queue_management import QueueManager
 from .speed_estimation import SpeedEstimator
 from .streamlit_inference import inference
+from shapely.geometry import LineString
 
 __all__ = (
     "AIGym",
@@ -22,6 +23,14 @@ __all__ = (
     "Analytics",
     "inference",
 )
+
+
+# Define a function to check for intersection
+def does_intersect(segment1, segment2):
+    """ Check if two segments intersect """
+    line1 = LineString(segment1)
+    line2 = LineString(segment2)
+    return line1.intersects(line2)
 
 
 def extract_tracks(tracks):

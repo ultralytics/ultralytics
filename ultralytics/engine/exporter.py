@@ -1109,7 +1109,7 @@ class Exporter:
             max_detections=max_detections,
         ).to(device=device)
 
-        f = Path(str(self.file).replace(self.file.suffix, "ptq_mct.onnx"))  # js dir
+        f = Path(str(self.file).replace(self.file.suffix, "_mct_model.onnx"))  # js dir
         mct.exporter.pytorch_export_model(
             model=quant_model_pp, save_model_path=f, repr_dataset=representative_dataset_gen
         )

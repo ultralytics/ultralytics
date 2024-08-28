@@ -188,6 +188,7 @@ class AutoBackend(nn.Module):
                 session = onnxruntime.InferenceSession(w, providers=providers)
             output_names = [x.name for x in session.get_outputs()]
             metadata = session.get_modelmeta().custom_metadata_map
+            metadata = {}
 
         # OpenVINO
         elif xml:
@@ -465,6 +466,9 @@ class AutoBackend(nn.Module):
         elif self.onnx:
             im = im.cpu().numpy()  # torch to numpy
             y = self.session.run(self.output_names, {self.session.get_inputs()[0].name: im})
+            if self.mct:
+                from ultralytics.utils.ops import xyxy2xywh
+                y = np.concatenate([xyxy2xywh(y[0]), y[1]], axis=-1).transpose(0, 2, 1)
 
         # OpenVINO
         elif self.xml:

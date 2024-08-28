@@ -4,6 +4,8 @@ from collections import defaultdict
 
 import cv2
 
+from ultralytics import YOLO, solutions
+from ultralytics.utils import DEFAULT_CFG_DICT
 from ultralytics.utils.checks import check_imshow, check_requirements
 from ultralytics.utils.plotting import Annotator, colors
 
@@ -13,92 +15,60 @@ from shapely.geometry import Point, Polygon
 
 
 class QueueManager:
-    """A class to manage the queue in a real-time video stream based on object tracks."""
+    """A class to manage queues in a real-time video stream using object tracking data."""
 
-    def __init__(
-        self,
-        names,
-        reg_pts=None,
-        line_thickness=2,
-        track_thickness=2,
-        view_img=False,
-        region_color=(255, 0, 255),
-        view_queue_counts=True,
-        draw_tracks=False,
-        count_txt_color=(255, 255, 255),
-        track_color=None,
-        region_thickness=5,
-        fontsize=0.7,
-    ):
+    def __init__(self, **kwargs):
         """
-        Initializes the QueueManager with specified parameters for tracking and counting objects.
+        Initializes an instance of the QueueManager class, setting up configurations for monitoring and managing queues
+        in real-time video streams.
 
         Args:
-            names (dict): A dictionary mapping class IDs to class names.
-            reg_pts (list of tuples, optional): Points defining the counting region polygon. Defaults to a predefined
-                rectangle.
-            line_thickness (int, optional): Thickness of the annotation lines. Defaults to 2.
-            track_thickness (int, optional): Thickness of the track lines. Defaults to 2.
-            view_img (bool, optional): Whether to display the image frames. Defaults to False.
-            region_color (tuple, optional): Color of the counting region lines (BGR). Defaults to (255, 0, 255).
-            view_queue_counts (bool, optional): Whether to display the queue counts. Defaults to True.
-            draw_tracks (bool, optional): Whether to draw tracks of the objects. Defaults to False.
-            count_txt_color (tuple, optional): Color of the count text (BGR). Defaults to (255, 255, 255).
-            track_color (tuple, optional): Color of the tracks. If None, different colors will be used for different
-                tracks. Defaults to None.
-            region_thickness (int, optional): Thickness of the counting region lines. Defaults to 5.
-            fontsize (float, optional): Font size for the text annotations. Defaults to 0.7.
+            kwargs (dict): Dictionary of arguments for configuring the queue management process, such as detection thresholds, regions of interest, and analysis logic parameters.
         """
-        # Mouse events state
-        self.is_drawing = False
-        self.selected_point = None
+        import ast
 
+        DEFAULT_CFG_DICT.update(kwargs)
+        self.model = YOLO(DEFAULT_CFG_DICT["model"])
         # Region & Line Information
-        self.reg_pts = reg_pts if reg_pts is not None else [(20, 60), (20, 680), (1120, 680), (1120, 60)]
         self.counting_region = (
-            Polygon(self.reg_pts) if len(self.reg_pts) >= 3 else Polygon([(20, 60), (20, 680), (1120, 680), (1120, 60)])
+            Polygon(DEFAULT_CFG_DICT["reg_pts"])
+            if len(DEFAULT_CFG_DICT["reg_pts"]) >= 3
+            else Polygon([(20, 60), (20, 680), (1120, 680), (1120, 60)])
         )
-        self.region_color = region_color
-        self.region_thickness = region_thickness
-
-        # Image and annotation Information
         self.im0 = None
-        self.tf = line_thickness
-        self.view_img = view_img
-        self.view_queue_counts = view_queue_counts
-        self.fontsize = fontsize
-
-        self.names = names  # Class names
         self.annotator = None  # Annotator
-        self.window_name = "Ultralytics YOLOv8 Queue Manager"
-
-        # Object counting Information
         self.counts = 0
-        self.count_txt_color = count_txt_color
-
-        # Tracks info
         self.track_history = defaultdict(list)
-        self.track_thickness = track_thickness
-        self.draw_tracks = draw_tracks
-        self.track_color = track_color
+        self.env_check = check_imshow(warn=True)  # Check if environment supports imshow
+        if isinstance(DEFAULT_CFG_DICT["txt_color"], str):
+            DEFAULT_CFG_DICT["txt_color"] = ast.literal_eval(DEFAULT_CFG_DICT["txt_color"])
+        if isinstance(DEFAULT_CFG_DICT["reg_color"], str):
+            DEFAULT_CFG_DICT["reg_color"] = ast.literal_eval(DEFAULT_CFG_DICT["reg_color"])
+        print(f"Ultralytics Solutions ✅ {DEFAULT_CFG_DICT}")
 
-        # Check if environment supports imshow
-        self.env_check = check_imshow(warn=True)
-
-    def extract_and_process_tracks(self, tracks):
-        """Extracts and processes tracks for queue management in a video stream."""
+    def process_tracks(self):
+        """Extracts and processes tracking data for queue management in a video stream."""
         # Initialize annotator and draw the queue region
-        self.annotator = Annotator(self.im0, self.tf, self.names)
+        self.annotator = Annotator(self.im0, DEFAULT_CFG_DICT["line_width"])
 
-        if tracks[0].boxes.id is not None:
-            boxes = tracks[0].boxes.xyxy.cpu()
-            clss = tracks[0].boxes.cls.cpu().tolist()
-            track_ids = tracks[0].boxes.id.int().cpu().tolist()
+        tracks = self.model.track(
+            source=self.im0,
+            persist=True,
+            tracker=DEFAULT_CFG_DICT["tracker"],
+            classes=DEFAULT_CFG_DICT["classes"],
+            iou=DEFAULT_CFG_DICT["iou"],
+            conf=DEFAULT_CFG_DICT["conf"],
+        )
 
+        boxes, clss, track_ids = solutions.extract_tracks(tracks)
+
+        if track_ids is not None:
             # Extract tracks
             for box, track_id, cls in zip(boxes, track_ids, clss):
                 # Draw bounding box
-                self.annotator.box_label(box, label=f"{self.names[cls]}#{track_id}", color=colors(int(track_id), True))
+                self.annotator.box_label(
+                    box, label=f"{self.model.names[cls]}#{track_id}", color=colors(int(track_id), True)
+                )
 
                 # Update track history
                 track_line = self.track_history[track_id]
@@ -107,17 +77,17 @@ class QueueManager:
                     track_line.pop(0)
 
                 # Draw track trails if enabled
-                if self.draw_tracks:
+                if DEFAULT_CFG_DICT["draw_tracks"]:
                     self.annotator.draw_centroid_and_tracks(
                         track_line,
-                        color=self.track_color or colors(int(track_id), True),
-                        track_thickness=self.track_thickness,
+                        color=colors(int(track_id), True),
+                        track_thickness=DEFAULT_CFG_DICT["line_width"],
                     )
 
                 prev_position = self.track_history[track_id][-2] if len(self.track_history[track_id]) > 1 else None
 
                 # Check if the object is inside the counting region
-                if len(self.reg_pts) >= 3:
+                if len(DEFAULT_CFG_DICT["reg_pts"]) >= 3:
                     is_inside = self.counting_region.contains(Point(track_line[-1]))
                     if prev_position is not None and is_inside:
                         self.counts += 1
@@ -127,40 +97,40 @@ class QueueManager:
         if label is not None:
             self.annotator.queue_counts_display(
                 label,
-                points=self.reg_pts,
-                region_color=self.region_color,
-                txt_color=self.count_txt_color,
+                points=DEFAULT_CFG_DICT["reg_pts"],
+                region_color=DEFAULT_CFG_DICT["reg_color"],
+                txt_color=DEFAULT_CFG_DICT["txt_color"],
             )
 
         self.counts = 0  # Reset counts after displaying
-        self.display_frames()
 
-    def display_frames(self):
-        """Displays the current frame with annotations."""
-        if self.env_check and self.view_img:
-            self.annotator.draw_region(reg_pts=self.reg_pts, thickness=self.region_thickness, color=self.region_color)
-            cv2.namedWindow(self.window_name)
-            cv2.imshow(self.window_name, self.im0)
-            # Close window on 'q' key press
-            if cv2.waitKey(1) & 0xFF == ord("q"):
-                return
-
-    def process_queue(self, im0, tracks):
+    def process_queue(self, im0):
         """
         Main function to start the queue management process.
 
         Args:
             im0 (ndarray): Current frame from the video stream.
-            tracks (list): List of tracks obtained from the object tracking process.
+
+        Returns:
+            im0 (ndarray): The processed image frame.
         """
         self.im0 = im0  # Store the current frame
-        self.extract_and_process_tracks(tracks)  # Extract and process tracks
+        self.process_tracks()  # Extract and process tracks
 
-        if self.view_img:
-            self.display_frames()  # Display the frame if enabled
+        if DEFAULT_CFG_DICT["show"] and self.env_check:
+            self.annotator.draw_region(
+                reg_pts=DEFAULT_CFG_DICT["reg_pts"],
+                thickness=int(DEFAULT_CFG_DICT["line_width"]) * 2,
+                color=DEFAULT_CFG_DICT["reg_color"],
+            )
+            cv2.imshow("Ultralytics Solutions", self.im0)
+            # Close window on 'q' key press
+            if cv2.waitKey(1) & 0xFF == ord("q"):
+                return
+
         return self.im0
 
 
 if __name__ == "__main__":
     classes_names = {0: "person", 1: "car"}  # example class names
-    queue_manager = QueueManager(classes_names)
+    queue_manager = QueueManager(names=classes_names)

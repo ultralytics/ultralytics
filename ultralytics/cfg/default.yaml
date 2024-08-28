@@ -127,7 +127,7 @@ tracker: botsort.yaml # (str) tracker type, choices=[botsort.yaml, bytetrack.yam
 
 # Default solutions settings --------------------------------------------------------------------------------------------
 draw_tracks: False # (bool) enable or disable drawing of tracks
-reg_pts: "[(20, 400), (1260, 400)]" # (list) points defining a counting region
+reg_pts: # (list) points defining a counting region
 show_in_counts: True # (bool) display the count of objects entering the region
 show_out_counts: True # (bool) display the count of objects exiting the region
 line_dist_thresh: 15 # (int) distance threshold for counting lines
@@ -135,7 +135,6 @@ kpts_to_check: [6, 8, 10] # (list) keypoints to check for pose estimation
 pose_up_angle: 145 # (int) angle for the upper position in a workout
 pose_down_angle: 90 # (int) angle for the lower position in a workout
 pose_type: "pullup" # (str) type of workout being monitored
-shape: "circle" # (str) shape of the heatmap marker
 heatmap_alpha: 0.5 # (float) transparency of the heatmap
 decay_factor: 0.99 # (float) factor for heatmap decay over time
 colormap: cv2.COLORMAP_JET # (int) colormap used for heatmap visualization

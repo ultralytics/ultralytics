@@ -99,13 +99,13 @@ Queue management using [Ultralytics YOLOv8](https://github.com/ultralytics/ultra
 
 ### Arguments `QueueManager`
 
-| Name          | Type   | Default                    | Description                                                                      |
-| ------------- | ------ | -------------------------- | -------------------------------------------------------------------------------- |
-| `model`       | `str`  | `yolov8n.pt`               | Path to YOLO model.                                                              |
-| `reg_pts`     | `list` | `[(20, 400), (1260, 400)]` | Points defining the counting region polygon. Defaults to a predefined rectangle. |
-| `line_width`  | `int`  | `2`                        | Thickness of the annotation lines.                                               |
-| `show`        | `bool` | `False`                    | Whether to display the image frames.                                             |
-| `draw_tracks` | `bool` | `False`                    | Whether to draw tracks of the objects.                                           |
+| Name          | Type   | Default      | Description                                                                      |
+|---------------|--------|--------------|----------------------------------------------------------------------------------|
+| `model`       | `str`  | `yolov8n.pt` | Path to YOLO model.                                                              |
+| `reg_pts`     | `list` | ``           | Points defining the counting region polygon. Defaults to a predefined rectangle. |
+| `line_width`  | `int`  | `2`          | Thickness of the annotation lines.                                               |
+| `show`        | `bool` | `False`      | Whether to display the image frames.                                             |
+| `draw_tracks` | `bool` | `False`      | Whether to draw tracks of the objects.                                           |
 
 ### Arguments `model.track`
 

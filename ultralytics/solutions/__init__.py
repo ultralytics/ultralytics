@@ -1,5 +1,9 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
+from ultralytics.utils.checks import check_requirements
+
+check_requirements("shapely>=2.0.0")
+
 from shapely.geometry import LineString
 
 from .ai_gym import AIGym

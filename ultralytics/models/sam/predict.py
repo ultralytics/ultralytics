@@ -95,7 +95,7 @@ class Predictor(BasePredictor):
         """
         if overrides is None:
             overrides = {}
-        overrides.update(dict(task="segment", mode="predict", imgsz=1024))
+        overrides.update(dict(task="segment", mode="predict"))
         super().__init__(cfg, overrides, _callbacks)
         self.args.retina_masks = True
         self.im = None
@@ -522,7 +522,11 @@ class Predictor(BasePredictor):
 
     def get_im_features(self, im):
         """Extracts image features using the SAM model's image encoder for subsequent mask prediction."""
-        return self.model.image_encoder(im)
+        if isinstance(self.imgsz, list):
+            assert self.imgsz[0] == self.imgsz[1], f"SAM models only support square image size, but got {self.imgsz}."
+        self.model.prompt_encoder.input_image_size = self.imgsz
+        self.model.prompt_encoder.image_embedding_size = [x // 16 for x in self.imgsz]  # 16 is fixed as patch size of ViT model
+        return self.model.image_encoder(im, imgsz=self.imgsz[0])
 
     def set_prompts(self, prompts):
         """Sets prompts for subsequent inference operations."""

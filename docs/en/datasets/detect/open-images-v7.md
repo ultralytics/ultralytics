@@ -105,7 +105,7 @@ To train a YOLOv8n model on the Open Images V7 dataset for 100 epochs with an im
 
 Illustrations of the dataset help provide insights into its richness:
 
-![Dataset sample image](https://storage.googleapis.com/openimages/web/images/oidv7_all-in-one_example_ab.jpg)
+![Dataset sample image](https://github.com/user-attachments/assets/1905255b-a6db-4483-acbd-a3bc332a7686)
 
 - **Open Images V7**: This image exemplifies the depth and detail of annotations available, including bounding boxes, relationships, and segmentation masks.
 

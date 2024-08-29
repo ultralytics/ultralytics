@@ -91,7 +91,7 @@ Let's say you are ready to annotate now. There are several open-source tools ava
 - **[Labelme](https://github.com/labelmeai/labelme)**: A simple and easy-to-use tool that allows for quick annotation of images with polygons, making it ideal for straightforward tasks.
 
 <p align="center">
-  <img width="100%" src="https://github.com/labelmeai/labelme/raw/main/examples/instance_segmentation/.readme/annotation.jpg" alt="LabelMe Overview">
+  <img width="100%" src="https://github.com/user-attachments/assets/a5d0c105-d114-4a8b-b484-fc70dc027bd1" alt="LabelMe Overview">
 </p>
 
 These open-source tools are budget-friendly and provide a range of features to meet different annotation needs.

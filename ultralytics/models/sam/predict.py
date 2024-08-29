@@ -522,8 +522,10 @@ class Predictor(BasePredictor):
 
     def get_im_features(self, im):
         """Extracts image features using the SAM model's image encoder for subsequent mask prediction."""
-        assert isinstance(self.imgsz, (tuple, list)) and self.imgsz[0] == self.imgsz[1], f"SAM models only support square image size, but got {self.imgsz}."
-        if list(self.imgsz) != [1024, 1024]:   # 1024 from the official models setting
+        assert (
+            isinstance(self.imgsz, (tuple, list)) and self.imgsz[0] == self.imgsz[1]
+        ), f"SAM models only support square image size, but got {self.imgsz}."
+        if list(self.imgsz) != [1024, 1024]:  # 1024 from the official models setting
             self.model.set_imgsz(self.imgsz)
         return self.model.image_encoder(im)
 
@@ -764,8 +766,10 @@ class SAM2Predictor(Predictor):
 
     def get_im_features(self, im):
         """Extracts image features from the SAM image encoder for subsequent processing."""
-        assert isinstance(self.imgsz, (tuple, list)) and self.imgsz[0] == self.imgsz[1], f"SAM 2 models only support square image size, but got {self.imgsz}."
-        if list(self.imgsz) != [1024, 1024]:   # 1024 from the official models setting
+        assert (
+            isinstance(self.imgsz, (tuple, list)) and self.imgsz[0] == self.imgsz[1]
+        ), f"SAM 2 models only support square image size, but got {self.imgsz}."
+        if list(self.imgsz) != [1024, 1024]:  # 1024 from the official models setting
             self.model.set_imgsz(self.imgsz)
             self._bb_feat_sizes = [[x // (4 * i) for x in self.imgsz] for i in [1, 2, 4]]
 

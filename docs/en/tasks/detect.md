@@ -33,13 +33,13 @@ YOLOv8 pretrained Detect models are shown here. Detect, Segment and Pose models 
 
 [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) download automatically from the latest Ultralytics [release](https://github.com/ultralytics/assets/releases) on first use.
 
-| Pre-trained Weights  | size<br><sup>(pixels) | mAP<sup>val<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
-| -------------------- | --------------------- | -------------------- | ------------------------------ | ----------------------------------- | ------------------ | ----------------- |
-| [yolov8n.pt]         | 640                   | 37.3                 | 80.4                           | 0.99                                | 3.2                | 8.7               |
-| [yolov8s.pt]         | 640                   | 44.9                 | 128.4                          | 1.20                                | 11.2               | 28.6              |
-| [yolov8m.pt]         | 640                   | 50.2                 | 234.7                          | 1.83                                | 25.9               | 78.9              |
-| [yolov8l.pt]         | 640                   | 52.9                 | 375.2                          | 2.39                                | 43.7               | 165.2             |
-| [yolov8x.pt]         | 640                   | 53.9                 | 479.1                          | 3.53                                | 68.2               | 257.8             |
+| Pre-trained Weights | size<br><sup>(pixels) | mAP<sup>val<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
+| ------------------- | --------------------- | -------------------- | ------------------------------ | ----------------------------------- | ------------------ | ----------------- |
+| [yolov8n.pt]        | 640                   | 37.3                 | 80.4                           | 0.99                                | 3.2                | 8.7               |
+| [yolov8s.pt]        | 640                   | 44.9                 | 128.4                          | 1.20                                | 11.2               | 28.6              |
+| [yolov8m.pt]        | 640                   | 50.2                 | 234.7                          | 1.83                                | 25.9               | 78.9              |
+| [yolov8l.pt]        | 640                   | 52.9                 | 375.2                          | 2.39                                | 43.7               | 165.2             |
+| [yolov8x.pt]        | 640                   | 53.9                 | 479.1                          | 3.53                                | 68.2               | 257.8             |
 
 [yolov8n.pt]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n.pt
 [yolov8s.pt]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8s.pt

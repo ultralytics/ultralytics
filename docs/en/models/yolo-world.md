@@ -54,7 +54,7 @@ This section details the models available with their specific pre-trained weight
 
 ## Available Models and Performance
 
-Here’s a quick look at YOLOv8-world models evaluated on the COCO dataset using zero-shot transfer learning. The performance metrics include mAP, mAP50, and mAP75, with improvements seen in the v2 versions of each model size.
+Here's a quick look at YOLOv8-world models evaluated on the COCO dataset using zero-shot transfer learning. The performance metrics include mAP, mAP50, and mAP75, with improvements seen in the v2 versions of each model size.
 
 !!! Performance
 

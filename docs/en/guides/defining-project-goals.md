@@ -53,7 +53,7 @@ Your problem statement helps you conceptualize which computer vision task can so
 For example, if your problem is monitoring vehicle speeds on a highway, the relevant computer vision task is object tracking. [Object tracking](../modes/track.md) is suitable because it allows the system to continuously follow each vehicle in the video feed, which is crucial for accurately calculating their speeds.
 
 <p align="center">
-  <img width="100%" src="https://assets-global.website-files.com/6479eab6eb2ed5e597810e9e/664f03ba300cf6e61689862f_FIG%20444.gif" alt="Example of Object Tracking">
+  <img width="100%" src="https://github.com/user-attachments/assets/bc601e72-d76c-47ef-ba92-a26c40e2970a" alt="Example of Object Tracking">
 </p>
 
 Other tasks, like [object detection](../tasks/detect.md), are not suitable as they don't provide continuous location or movement information. Once you've identified the appropriate computer vision task, it guides several critical aspects of your project, like model selection, dataset preparation, and model training approaches.

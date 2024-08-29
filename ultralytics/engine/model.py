@@ -84,6 +84,7 @@ class Model(nn.Module):
         model: Union[str, Path] = "yolov8n.pt",
         task: str = None,
         verbose: bool = False,
+        metadata: Union[str, Path] = None
     ) -> None:
         """
         Initializes a new instance of the YOLO model class.
@@ -122,6 +123,7 @@ class Model(nn.Module):
         self.metrics = None  # validation/training metrics
         self.session = None  # HUB session
         self.task = task  # task type
+        self.metadata = metadata
         model = str(model).strip()
 
         # Check if Ultralytics HUB model from https://hub.ultralytics.com
@@ -555,7 +557,7 @@ class Model(nn.Module):
 
         if not self.predictor:
             self.predictor = predictor or self._smart_load("predictor")(overrides=args, _callbacks=self.callbacks)
-            self.predictor.setup_model(model=self.model, verbose=is_cli)
+            self.predictor.setup_model(model=self.model, verbose=is_cli, metadata=self.metadata)
         else:  # only update args if predictor is already setup
             self.predictor.args = get_cfg(self.predictor.args, args)
             if "project" in args or "name" in args:

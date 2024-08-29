@@ -7,7 +7,7 @@ keywords: YOLO, inference results, VSCode terminal, sixel, display images, Linux
 # Viewing Inference Results in a Terminal
 
 <p align="center">
-  <img width="800" src="https://raw.githubusercontent.com/saitoha/libsixel/data/data/sixel.gif" alt="Sixel example of image in Terminal">
+  <img src="https://github.com/user-attachments/assets/f1ed2ae7-c2f0-453f-9fac-8fde5ffdca21" alt="Sixel example of image in Terminal">
 </p>
 
 Image from the [libsixel](https://saitoha.github.io/libsixel/) website.

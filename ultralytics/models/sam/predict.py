@@ -525,7 +525,7 @@ class Predictor(BasePredictor):
         assert isinstance(self.imgsz, (tuple, list)) and self.imgsz[0] == self.imgsz[1], f"SAM models only support square image size, but got {self.imgsz}."
         if list(self.imgsz) != [1024, 1024]:   # 1024 from the official models setting
             self.model.set_imgsz(self.imgsz)
-        return self.model.image_encoder(im, imgsz=self.imgsz[0])
+        return self.model.image_encoder(im)
 
     def set_prompts(self, prompts):
         """Sets prompts for subsequent inference operations."""

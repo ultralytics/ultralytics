@@ -9,7 +9,7 @@ keywords: Roboflow 100, Ultralytics, object detection, dataset, benchmarking, ma
 Roboflow 100, developed by [Roboflow](https://roboflow.com/?ref=ultralytics) and sponsored by Intel, is a groundbreaking [object detection](../../tasks/detect.md) benchmark. It includes 100 diverse datasets sampled from over 90,000 public datasets. This benchmark is designed to test the adaptability of models to various domains, including healthcare, aerial imagery, and video games.
 
 <p align="center">
-  <img width="640" src="https://user-images.githubusercontent.com/15908060/202452898-9ca6b8f7-4805-4e8e-949a-6e080d7b94d2.jpg" alt="Roboflow 100 Overview">
+  <img width="640" src="https://github.com/user-attachments/assets/e97e9a58-0daa-4541-af79-b5a78a67bdd7" alt="Roboflow 100 Overview">
 </p>
 
 ## Key Features
@@ -104,7 +104,7 @@ You can access it directly from the Roboflow 100 GitHub repository. In addition,
 Roboflow 100 consists of datasets with diverse images and videos captured from various angles and domains. Here's a look at examples of annotated images in the RF100 benchmark.
 
 <p align="center">
-  <img width="640" src="https://blog.roboflow.com/content/images/2022/11/image-2.png" alt="Sample Data and Annotations">
+  <img width="640" src="https://github.com/user-attachments/assets/760bdea1-d4ee-4a3a-a568-877ac40be1ea" alt="Sample Data and Annotations">
 </p>
 
 The diversity in the Roboflow 100 benchmark that can be seen above is a significant advancement from traditional benchmarks which often focus on optimizing a single metric within a limited domain.

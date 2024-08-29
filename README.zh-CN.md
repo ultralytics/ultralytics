@@ -12,6 +12,7 @@
     <a href="https://hub.docker.com/r/ultralytics/ultralytics"><img src="https://img.shields.io/docker/pulls/ultralytics/ultralytics?logo=docker" alt="Docker Pulls"></a>
     <a href="https://ultralytics.com/discord"><img alt="Discord" src="https://img.shields.io/discord/1089800235347353640?logo=discord&logoColor=white&label=Discord&color=blue"></a>
     <a href="https://community.ultralytics.com"><img alt="Ultralytics Forums" src="https://img.shields.io/discourse/users?server=https%3A%2F%2Fcommunity.ultralytics.com&logo=discourse&label=Forums&color=blue"></a>
+    <a href="https://reddit.com/r/ultralytics"><img alt="Ultralytics Reddit" src="https://img.shields.io/reddit/subreddit-subscribers/ultralytics?style=flat&logo=reddit&logoColor=white&label=Reddit&color=blue"></a>
     <br>
     <a href="https://console.paperspace.com/github/ultralytics/ultralytics"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run on Gradient"></a>
     <a href="https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a>
@@ -279,7 +280,7 @@ Ultralytics 提供两种许可证选项以适应各种使用场景：
 
 ## <div align="center">联系方式</div>
 
-有关 Ultralytics 错误报告和功能请求，请访问 [GitHub 问题](https://github.com/ultralytics/ultralytics/issues)。成为 Ultralytics [Discord](https://ultralytics.com/discord)、[Reddit](https://reddit.com/r/ultralytics) 或 [论坛](https://community.ultralytics) 的成员 用于提出问题、共享项目、学习讨论或寻求有关 Ultralytics 的所有帮助！
+有关 Ultralytics 错误报告和功能请求，请访问 [GitHub 问题](https://github.com/ultralytics/ultralytics/issues)。成为 Ultralytics [Discord](https://ultralytics.com/discord)、[Reddit](https://reddit.com/r/ultralytics) 或 [论坛](https://community.ultralytics.com) 的成员 用于提出问题、共享项目、学习讨论或寻求有关 Ultralytics 的所有帮助！
 
 <br>
 <div align="center">

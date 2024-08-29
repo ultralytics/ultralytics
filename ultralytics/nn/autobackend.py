@@ -588,6 +588,9 @@ class AutoBackend(nn.Module):
                         # xywh are normalized in TFLite/EdgeTPU to mitigate quantization error of integer models
                         x[:, [0, 2]] *= w
                         x[:, [1, 3]] *= h
+                        if x.shape[1] == 56:
+                            x[:, 5::3] *= w
+                            x[:, 6::3] *= h
                     y.append(x)
             # TF segment fixes: export is reversed vs ONNX export and protos are transposed
             if len(y) == 2:  # segment with (det, proto) output order reversed

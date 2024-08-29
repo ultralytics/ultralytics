@@ -253,22 +253,32 @@ class Pose(Detect):
     def forward(self, x):
         """Perform forward pass through YOLO model and return predictions."""
         bs = x[0].shape[0]  # batch size
-        if self.export:
+        if self.export and self.separate_outputs:
             kpt = torch.cat([torch.permute(self.cv4[i](x[i]), (0, 2, 3, 1)).reshape(bs, -1, self.nk) for i in range(self.nl)], 1)
         else:
-            kpt = torch.cat([self.cv4[i](x[i]).view(bs, self.nk, -1) for i in range(self.nl)], -1)  # (bs, 17*3, h*w)
+            kpts = [self.cv4[i](x[i]) for i in range(self.nl)]
+            shape = kpts[0].shape
+            kpt = torch.cat([k.view(bs, self.nk, -1) for k in kpts], -1)  # (bs, 17*3, h*w)
         x = Detect.forward(self, x)
         if self.training or (self.separate_outputs and self.export):
             return x, kpt
-        pred_kpt = self.kpts_decode(bs, kpt)
+        pred_kpt = self.kpts_decode(bs, kpt, shape)
         return torch.cat([x, pred_kpt], 1) if self.export else (torch.cat([x[0], pred_kpt], 1), (x[1], kpt))
 
-    def kpts_decode(self, bs, kpts):
+    def kpts_decode(self, bs, kpts, shape):
         """Decodes keypoints."""
         ndim = self.kpt_shape[1]
         if self.export:  # required for TFLite export to avoid 'PLACEHOLDER_FOR_GREATER_OP_CODES' bug
             y = kpts.view(bs, *self.kpt_shape, -1)
-            a = (y[:, :, :2] * 2.0 + (self.anchors - 0.5)) * self.strides
+            if self.format in {"tflite", "edgetpu"}:
+                # Precompute normalization factor to increase numerical stability
+                grid_w = shape[2]
+                grid_h = shape[3]
+                grid_size = torch.tensor([grid_w, grid_h], device=kpts.device).reshape(2, 1)
+                norm = self.strides / (self.stride[0] * grid_size)
+                a = (y[:, :, :2] * 2.0 + (self.anchors - 0.5)) * norm
+            else:
+                a = (y[:, :, :2] * 2.0 + (self.anchors - 0.5)) * self.strides
             if ndim == 3:
                 a = torch.cat((a, y[:, :, 2:3].sigmoid()), 2)
             return a.view(bs, self.nk, -1)

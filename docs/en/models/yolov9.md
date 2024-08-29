@@ -126,8 +126,8 @@ The performance of YOLOv9 on the [COCO dataset](../datasets/detect/coco.md) exem
         | [yolov9c-seg.pt]       | 640                   | 52.4                 | 42.2                  | 27.9               | 159.4             |
         | [yolov9e-seg.pt]       | 640                   | 55.1                 | 44.3                  | 60.5               | 248.4             |
 
-        [yolov9c-seg.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov9c-seg.pt)
-        [yolov9e-seg.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov9e-seg.pt)
+        [yolov9c-seg.pt]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov9c-seg.pt
+        [yolov9e-seg.pt]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov9e-seg.pt
 
 YOLOv9's iterations, ranging from the tiny `t` variant to the extensive `e` model, demonstrate improvements not only in accuracy (mAP metrics) but also in efficiency with a reduced number of parameters and computational needs (FLOPs). This table underscores YOLOv9's ability to deliver high precision while maintaining or reducing the computational overhead compared to prior versions and competing models.
 

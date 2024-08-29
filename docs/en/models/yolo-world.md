@@ -39,7 +39,7 @@ YOLO-World tackles the challenges faced by traditional Open-Vocabulary detection
 
 6. **Versatile Applications:** YOLO-World's innovative approach unlocks new possibilities for a multitude of vision tasks, delivering speed improvements by orders of magnitude over existing methods.
 
-## Available Models, Supported Tasks, and Operating Modes
+## Supported Tasks, and Operating Modes
 
 This section details the models available with their specific pre-trained weights, the tasks they support, and their compatibility with various operating modes such as [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md), denoted by ✅ for supported modes and ❌ for unsupported modes.
 
@@ -47,38 +47,38 @@ This section details the models available with their specific pre-trained weight
 
     All the YOLOv8-World weights have been directly migrated from the official [YOLO-World](https://github.com/AILab-CVC/YOLO-World) repository, highlighting their excellent contributions.
 
-| Model Type      | Pre-trained Weights  | Tasks Supported                        | Inference | Validation | Training | Export |
-| --------------- | -------------------- | -------------------------------------- | --------- | ---------- | -------- | ------ |
-| YOLOv8s-world   | [yolov8s-world.pt]   | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ❌     |
-| YOLOv8s-worldv2 | [yolov8s-worldv2.pt] | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
-| YOLOv8m-world   | [yolov8m-world.pt]   | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ❌     |
-| YOLOv8m-worldv2 | [yolov8m-worldv2.pt] | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
-| YOLOv8l-world   | [yolov8l-world.pt]   | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ❌     |
-| YOLOv8l-worldv2 | [yolov8l-worldv2.pt] | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
-| YOLOv8x-world   | [yolov8x-world.pt]   | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ❌     |
-| YOLOv8x-worldv2 | [yolov8x-worldv2.pt] | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
+| Model Type      | Tasks Supported                        | Inference | Validation | Training | Export |
+| --------------- | -------------------------------------- | --------- | ---------- | -------- | ------ |
+| YOLOv8-world   | [Object Detection](../tasks/detect.md)  | ✅        | ✅         | ✅       | ❌     |
+| YOLOv8-worldv2 | [Object Detection](../tasks/detect.md)  | ✅        | ✅         | ✅       | ✅     |
 
-[yolov8s-world.pt]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8s-world.pt
-[yolov8s-worldv2.pt]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8s-worldv2.pt
-[yolov8m-world.pt]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8m-world.pt
-[yolov8m-worldv2.pt]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8m-worldv2.pt
-[yolov8l-world.pt]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8l-world.pt
-[yolov8l-worldv2.pt]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8l-worldv2.pt
-[yolov8x-world.pt]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8x-world.pt
-[yolov8x-worldv2.pt]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8x-worldv2.pt
+## Available Models and Performance
 
-## Zero-shot Transfer on COCO Dataset
+Here’s a quick look at YOLOv8-world models evaluated on the COCO dataset using zero-shot transfer learning. The performance metrics include mAP, mAP50, and mAP75, with improvements seen in the v2 versions of each model size.
 
-| Model Type      | mAP  | mAP50 | mAP75 |
-| --------------- | ---- | ----- | ----- |
-| yolov8s-world   | 37.4 | 52.0  | 40.6  |
-| yolov8s-worldv2 | 37.7 | 52.2  | 41.0  |
-| yolov8m-world   | 42.0 | 57.0  | 45.6  |
-| yolov8m-worldv2 | 43.0 | 58.4  | 46.8  |
-| yolov8l-world   | 45.7 | 61.3  | 49.8  |
-| yolov8l-worldv2 | 45.8 | 61.3  | 49.8  |
-| yolov8x-world   | 47.0 | 63.0  | 51.2  |
-| yolov8x-worldv2 | 47.1 | 62.8  | 51.4  |
+!!! Performance
+
+    === "Zero-shot Transfer on COCO Dataset"
+
+        | Pre-trained Weights  | mAP  | mAP50 | mAP75 |
+        | -------------------- | ---- | ----- | ----- |
+        | [yolov8s-world.pt]   | 37.4 | 52.0  | 40.6  |
+        | [yolov8s-worldv2.pt] | 37.7 | 52.2  | 41.0  |
+        | [yolov8m-world.pt]   | 42.0 | 57.0  | 45.6  |
+        | [yolov8m-worldv2.pt] | 43.0 | 58.4  | 46.8  |
+        | [yolov8l-world.pt]   | 45.7 | 61.3  | 49.8  |
+        | [yolov8l-worldv2.pt] | 45.8 | 61.3  | 49.8  |
+        | [yolov8x-world.pt]   | 47.0 | 63.0  | 51.2  |
+        | [yolov8x-worldv2.pt] | 47.1 | 62.8  | 51.4  |
+
+        [yolov8s-world.pt]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8s-world.pt
+        [yolov8s-worldv2.pt]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8s-worldv2.pt
+        [yolov8m-world.pt]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8m-world.pt
+        [yolov8m-worldv2.pt]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8m-worldv2.pt
+        [yolov8l-world.pt]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8l-world.pt
+        [yolov8l-worldv2.pt]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8l-worldv2.pt
+        [yolov8x-world.pt]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8x-world.pt
+        [yolov8x-worldv2.pt]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8x-worldv2.pt
 
 ## Usage Examples
 
@@ -405,16 +405,23 @@ yolo train model=yolov8s-worldv2.yaml data=coco8.yaml epochs=100 imgsz=640
 
 Ultralytics offers multiple pre-trained YOLO-World models supporting various tasks and operating modes:
 
-| Model Type      | Pre-trained Weights                                                                                     | Tasks Supported                        | Inference | Validation | Training | Export |
-| --------------- | ------------------------------------------------------------------------------------------------------- | -------------------------------------- | --------- | ---------- | -------- | ------ |
-| YOLOv8s-world   | [yolov8s-world.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8s-world.pt)     | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ❌     |
-| YOLOv8s-worldv2 | [yolov8s-worldv2.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8s-worldv2.pt) | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
-| YOLOv8m-world   | [yolov8m-world.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8m-world.pt)     | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ❌     |
-| YOLOv8m-worldv2 | [yolov8m-worldv2.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8m-worldv2.pt) | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
-| YOLOv8l-world   | [yolov8l-world.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8l-world.pt)     | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ❌     |
-| YOLOv8l-worldv2 | [yolov8l-worldv2.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8l-worldv2.pt) | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
-| YOLOv8x-world   | [yolov8x-world.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8x-world.pt)     | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ❌     |
-| YOLOv8x-worldv2 | [yolov8x-worldv2.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8x-worldv2.pt) | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
+| Model Type      | Tasks Supported                        | Inference | Validation | Training | Export |
+| --------------- | -------------------------------------- | --------- | ---------- | -------- | ------ |
+| YOLOv8-world   | [Object Detection](../tasks/detect.md)  | ✅        | ✅         | ✅       | ❌     |
+| YOLOv8-worldv2 | [Object Detection](../tasks/detect.md)  | ✅        | ✅         | ✅       | ✅     |
+
+Pre-trained weights for these models automatically downloads with the model instantiation, enabling immediate use in your applications:
+
+| Pre-trained Weights  | mAP  | mAP50 | mAP75 |
+| -------------------- | ---- | ----- | ----- |
+| [yolov8s-world.pt]   | 37.4 | 52.0  | 40.6  |
+| [yolov8s-worldv2.pt] | 37.7 | 52.2  | 41.0  |
+| [yolov8m-world.pt]   | 42.0 | 57.0  | 45.6  |
+| [yolov8m-worldv2.pt] | 43.0 | 58.4  | 46.8  |
+| [yolov8l-world.pt]   | 45.7 | 61.3  | 49.8  |
+| [yolov8l-worldv2.pt] | 45.8 | 61.3  | 49.8  |
+| [yolov8x-world.pt]   | 47.0 | 63.0  | 51.2  |
+| [yolov8x-worldv2.pt] | 47.1 | 62.8  | 51.4  |
 
 ### How do I reproduce the official results of YOLO-World from scratch?
 

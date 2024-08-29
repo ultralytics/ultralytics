@@ -20,15 +20,34 @@ keywords: Meituan YOLOv6, object detection, real-time applications, BiC module, 
 - **Enhanced Backbone and Neck Design:** By deepening YOLOv6 to include another stage in the backbone and neck, this model achieves state-of-the-art performance on the COCO dataset at high-resolution input.
 - **Self-Distillation Strategy:** A new self-distillation strategy is implemented to boost the performance of smaller models of YOLOv6, enhancing the auxiliary regression branch during training and removing it at inference to avoid a marked speed decline.
 
+## Supported Tasks and Modes
+
+The YOLOv6 series offers a range of models, each optimized for high-performance [Object Detection](../tasks/detect.md). These models cater to varying computational needs and accuracy requirements, making them versatile for a wide array of applications.
+
+| Model Type | Tasks Supported                        | Inference | Validation | Training | Export |
+| ---------- | -------------------------------------- | --------- | ---------- | -------- | ------ |
+| YOLOv6     | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
+
+This table provides a detailed overview of the YOLOv6 model variants, highlighting their capabilities in object detection tasks and their compatibility with various operational modes such as [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md). This comprehensive support ensures that users can fully leverage the capabilities of YOLOv6 models in a broad range of object detection scenarios.
+
+!!! warning "Configuration Files"
+
+    YOLOv6 models are supported in Ultralytics only through `.yaml` configuration files. These files contain the model architecture, training parameters, and other essential details required to build and train the model. For more information on creating and customizing these configuration files, refer to the [Configuration Files](../general/config.md) documentation.
+
 ## Performance Metrics
+  
+!!! Performance
 
-YOLOv6 provides various pre-trained models with different scales:
+    === "Detection"
 
-- YOLOv6-N: 37.5% AP on COCO val2017 at 1187 FPS with NVIDIA Tesla T4 GPU.
-- YOLOv6-S: 45.0% AP at 484 FPS.
-- YOLOv6-M: 50.0% AP at 226 FPS.
-- YOLOv6-L: 52.8% AP at 116 FPS.
-- YOLOv6-L6: State-of-the-art accuracy in real-time.
+    YOLOv6 provides various pre-trained models with different scales: yolov6n, yolov6s, yolov6m, yolov6l These models are evaluated on the COCO dataset using an NVIDIA Tesla T4 GPU. The following table summarizes the performance metrics of YOLOv6 models:
+
+    | Model           | size<br><sup>(pixels) | AP<sup>val<br>50  | Speed<br><sup>Tesla T4 TensorRT<br>(ms) | FPS<br><sup>(bsì32) | params<br><sup>(M) | FLOPs<br><sup>(B) |
+    |---------------- | --------------------- | ----------------- | --------------------------------------- | ------------------- | ------------------ | ----------------- |
+    | `yolov6n.yaml`  | 640                   | 37.5              | 1.3                                     | 1187                | 4.7                | 11.4              |
+    | `yolov6s.yaml`  | 640                   | 45.0              | 2.9                                     | 484                 | 18.5               | 45.3              |
+    | `yolov6m.yaml`  | 640                   | 50.0              | 5.7                                     | 226                 | 34.9               | 85.8              |
+    | `yolov6l.yaml`  | 640                   | 52.8              | 10.3                                    | 116                 | 59.6               | 150.7             |
 
 YOLOv6 also provides quantized models for different precisions and models optimized for mobile platforms.
 
@@ -70,19 +89,7 @@ This example provides simple YOLOv6 training and inference examples. For full do
         yolo predict model=yolov6n.yaml source=path/to/bus.jpg
         ```
 
-## Supported Tasks and Modes
 
-The YOLOv6 series offers a range of models, each optimized for high-performance [Object Detection](../tasks/detect.md). These models cater to varying computational needs and accuracy requirements, making them versatile for a wide array of applications.
-
-| Model Type | Tasks Supported                        | Inference | Validation | Training | Export |
-| ---------- | -------------------------------------- | --------- | ---------- | -------- | ------ |
-| YOLOv6-N   | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
-| YOLOv6-S   | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
-| YOLOv6-M   | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
-| YOLOv6-L   | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
-| YOLOv6-L6  | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
-
-This table provides a detailed overview of the YOLOv6 model variants, highlighting their capabilities in object detection tasks and their compatibility with various operational modes such as [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md). This comprehensive support ensures that users can fully leverage the capabilities of YOLOv6 models in a broad range of object detection scenarios.
 
 ## Citations and Acknowledgements
 
@@ -145,11 +152,12 @@ For more information, visit the [Train](../modes/train.md) page.
 
 YOLOv6 offers multiple versions, each optimized for different performance requirements:
 
-- YOLOv6-N: 37.5% AP at 1187 FPS
-- YOLOv6-S: 45.0% AP at 484 FPS
-- YOLOv6-M: 50.0% AP at 226 FPS
-- YOLOv6-L: 52.8% AP at 116 FPS
-- YOLOv6-L6: State-of-the-art accuracy in real-time scenarios
+| Model           | size<br><sup>(pixels) | AP<sup>val<br>50  | Speed<br><sup>Tesla T4 TensorRT<br>(ms) | FPS<br><sup>(bsì32) | params<br><sup>(M) | FLOPs<br><sup>(B) |
+|---------------- | --------------------- | ----------------- | --------------------------------------- | ------------------- | ------------------ | ----------------- |
+| `yolov6n.yaml`  | 640                   | 37.5              | 1.3                                     | 1187                | 4.7                | 11.4              |
+| `yolov6s.yaml`  | 640                   | 45.0              | 2.9                                     | 484                 | 18.5               | 45.3              |
+| `yolov6m.yaml`  | 640                   | 50.0              | 5.7                                     | 226                 | 34.9               | 85.8              |
+| `yolov6l.yaml`  | 640                   | 52.8              | 10.3                                    | 116                 | 59.6               | 150.7             |
 
 These models are evaluated on the COCO dataset using an NVIDIA Tesla T4 GPU. For more on performance metrics, see the [Performance Metrics](#performance-metrics) section.
 

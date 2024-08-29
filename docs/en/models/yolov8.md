@@ -85,7 +85,7 @@ This table provides an overview of the YOLOv8 model variants, highlighting their
         [yolov8s-oiv7.pt]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8s-oiv7.pt
         [yolov8m-oiv7.pt]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8m-oiv7.pt
         [yolov8l-oiv7.pt]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8l-oiv7.pt
-        [yolov8x-oiv7.pt]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8-oiv7.pt
+        [yolov8x-oiv7.pt]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8x-oiv7.pt
 
     === "Segmentation (COCO)"
 

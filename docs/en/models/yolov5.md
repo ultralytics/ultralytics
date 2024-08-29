@@ -38,18 +38,18 @@ This table provides a detailed overview of the YOLOv5u model variants, highlight
 
     See [Detection Docs](../tasks/detect.md) for usage examples with these models trained on [COCO](../datasets/detect/coco.md), which include 80 pre-trained classes.
 
-    | Model              | size<br><sup>(pixels) | mAP<sup>val<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
-    |------------------- | --------------------- | -------------------- | ------------------------------ | ----------------------------------- | ------------------ | ----------------- |
-    | [yolov5nu.pt][1]   | 640                   | 34.3                 | 73.6                           | 1.06                                | 2.6                | 7.7               |
-    | [yolov5su.pt][2]   | 640                   | 43.0                 | 120.7                          | 1.27                                | 9.1                | 24.0              |
-    | [yolov5mu.pt][3]   | 640                   | 49.0                 | 233.9                          | 1.86                                | 25.1               | 64.2              |
-    | [yolov5lu.pt][4]   | 640                   | 52.2                 | 408.4                          | 2.50                                | 53.2               | 135.0             |
-    | [yolov5xu.pt][5]   | 640                   | 53.2                 | 763.2                          | 3.81                                | 97.2               | 246.4             |
-    | [yolov5n6u.pt][6]  | 1280                  | 42.1                 | 211.0                          | 1.83                                | 4.3                | 7.8               |
-    | [yolov5s6u.pt][7]  | 1280                  | 48.6                 | 422.6                          | 2.34                                | 15.3               | 24.6              |
-    | [yolov5m6u.pt][8]  | 1280                  | 53.6                 | 810.9                          | 4.36                                | 41.2               | 65.7              |
-    | [yolov5l6u.pt][9]  | 1280                  | 55.7                 | 1470.9                         | 5.47                                | 86.1               | 137.4             |
-    | [yolov5x6u.pt][10] | 1280                  | 56.8                 | 2436.5                         | 8.98                                | 155.4              | 250.7             |
+    | Pre-trained Weights | size<br><sup>(pixels) | mAP<sup>val<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
+    |-------------------- | --------------------- | -------------------- | ------------------------------ | ----------------------------------- | ------------------ | ----------------- |
+    | [yolov5nu.pt][1]    | 640                   | 34.3                 | 73.6                           | 1.06                                | 2.6                | 7.7               |
+    | [yolov5su.pt][2]    | 640                   | 43.0                 | 120.7                          | 1.27                                | 9.1                | 24.0              |
+    | [yolov5mu.pt][3]    | 640                   | 49.0                 | 233.9                          | 1.86                                | 25.1               | 64.2              |
+    | [yolov5lu.pt][4]    | 640                   | 52.2                 | 408.4                          | 2.50                                | 53.2               | 135.0             |
+    | [yolov5xu.pt][5]    | 640                   | 53.2                 | 763.2                          | 3.81                                | 97.2               | 246.4             |
+    | [yolov5n6u.pt][6]   | 1280                  | 42.1                 | 211.0                          | 1.83                                | 4.3                | 7.8               |
+    | [yolov5s6u.pt][7]   | 1280                  | 48.6                 | 422.6                          | 2.34                                | 15.3               | 24.6              |
+    | [yolov5m6u.pt][8]   | 1280                  | 53.6                 | 810.9                          | 4.36                                | 41.2               | 65.7              |
+    | [yolov5l6u.pt][9]   | 1280                  | 55.7                 | 1470.9                         | 5.47                                | 86.1               | 137.4             |
+    | [yolov5x6u.pt][10]  | 1280                  | 56.8                 | 2436.5                         | 8.98                                | 155.4              | 250.7             |
 
 [1]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov5nu.pt
 [2]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov5su.pt

@@ -100,7 +100,7 @@ class SAMModel(nn.Module):
             self.image_encoder.set_imgsz(imgsz)
         self.prompt_encoder.input_image_size = imgsz
         self.prompt_encoder.image_embedding_size = [x // 16 for x in imgsz]  # 16 is fixed as patch size of ViT model
-        self.image_encoder.imgsz = self.imgsz[0]
+        self.image_encoder.imgsz = imgsz[0]
 
 
 class SAM2Model(torch.nn.Module):

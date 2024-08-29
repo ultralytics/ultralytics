@@ -73,7 +73,7 @@ Here are some other benefits of data augmentation:
 Common augmentation techniques include flipping, rotation, scaling, and color adjustments. Several libraries, such as Albumentations, Imgaug, and TensorFlow's ImageDataGenerator, can generate these augmentations.
 
 <p align="center">
-  <img width="100%" src="https://i0.wp.com/ubiai.tools/wp-content/uploads/2023/11/UKwFg.jpg?fit=2204%2C775&ssl=1" alt="Overview of Data Augmentations">
+  <img width="100%" src="https://i0.wp.com/ubiai.tools/wp-content/uploads/2023/11/UKwFg.jpg" alt="Overview of Data Augmentations">
 </p>
 
 With respect to YOLOv8, you can [augment your custom dataset](../modes/train.md) by modifying the dataset configuration file, a .yaml file. In this file, you can add an augmentation section with parameters that specify how you want to augment your data.

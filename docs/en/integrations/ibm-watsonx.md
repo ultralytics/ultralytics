@@ -15,7 +15,7 @@ You can train [Ultralytics YOLOv8 models](https://github.com/ultralytics/ultraly
 [Watsonx](https://www.ibm.com/watsonx) is IBM's cloud-based platform designed for commercial generative AI and scientific data. IBM Watsonx's three components - watsonx.ai, watsonx.data, and watsonx.governance - come together to create an end-to-end, trustworthy AI platform that can accelerate AI projects aimed at solving business problems. It provides powerful tools for building, training, and [deploying machine learning models](../guides/model-deployment-options.md) and makes it easy to connect with various data sources.
 
 <p align="center">
-  <img width="800" src="https://cdn.stackoverflow.co/images/jo7n4k8s/production/48b67e6aec41f89031a3426cbd1f78322e6776cb-8800x4950.jpg?auto=format" alt="Overview of IBM Watsonx">
+  <img width="800" src="https://cdn.stackoverflow.co/images/jo7n4k8s/production/48b67e6aec41f89031a3426cbd1f78322e6776cb-8800x4950.jpg" alt="Overview of IBM Watsonx">
 </p>
 
 Its user-friendly interface and collaborative capabilities streamline the development process and help with efficient model management and deployment. Whether for computer vision, predictive analytics, natural language processing, or other AI applications, IBM Watsonx provides the tools and support needed to drive innovation.

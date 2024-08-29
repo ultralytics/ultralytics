@@ -30,7 +30,7 @@ Let's walk through an example.
 Consider a computer vision project where you want to [estimate the speed of vehicles](./speed-estimation.md) on a highway. The core issue is that current speed monitoring methods are inefficient and error-prone due to outdated radar systems and manual processes. The project aims to develop a real-time computer vision system that can replace legacy [speed estimation](https://www.ultralytics.com/blog/ultralytics-yolov8-for-speed-estimation-in-computer-vision-projects) systems.
 
 <p align="center">
-  <img width="100%" src="https://assets-global.website-files.com/6479eab6eb2ed5e597810e9e/664efc6e1c4bef6407824558_Abi%20Speed%20fig1.png" alt="Speed Estimation Using YOLOv8">
+  <img width="100%" src="https://github.com/user-attachments/assets/30213a6b-1e73-48e4-9db3-4d6a8bdc044e" alt="Speed Estimation Using YOLOv8">
 </p>
 
 Primary users include traffic management authorities and law enforcement, while secondary stakeholders are highway planners and the public benefiting from safer roads. Key requirements involve evaluating budget, time, and personnel, as well as addressing technical needs like high-resolution cameras and real-time data processing. Additionally, regulatory constraints on privacy and data security must be considered.

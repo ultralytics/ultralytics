@@ -205,7 +205,7 @@ To access a confusion matrix, go to your model page on the Roboflow dashboard, t
 A pop-up will appear showing a confusion matrix:
 
 <p align="center">
-<img src="https://media.roboflow.com/ultralytics/rf_confusion_matrix.png" alt="A confusion matrix" width="800">
+<img src="https://github.com/user-attachments/assets/1e350e10-1dcf-4b1b-b1c8-6c353b62d745" alt="A confusion matrix" width="800">
 </p>
 
 Hover over a box on the confusion matrix to see the value associated with the box. Click on a box to see images in the respective category. Click on an image to view the model predictions and ground truth data associated with that image.
@@ -213,7 +213,7 @@ Hover over a box on the confusion matrix to see the value associated with the bo
 For more insights, click Vector Analysis. This will show a scatter plot of the images in your dataset, calculated using CLIP. The closer images are in the plot, the more similar they are, semantically. Each image is represented as a dot with a color between white and red. The more red the dot, the worse the model performed.
 
 <p align="center">
-<img src="https://media.roboflow.com/ultralytics/rf_vector_analysis.png" alt="A vector analysis plot" width="800">
+<img src="https://github.com/user-attachments/assets/3c2d83f6-8adf-4e0f-bc70-95c130c40517" alt="A vector analysis plot" width="800">
 </p>
 
 You can use Vector Analysis to:
@@ -238,7 +238,7 @@ Below are a few of the many pieces of feedback we have received for using YOLOv8
 
 <p align="center">
 <img src="https://media.roboflow.com/ultralytics/rf_showcase_1.png" alt="Showcase image" width="500">
-<img src="https://media.roboflow.com/ultralytics/rf_showcase_2.png" alt="Showcase image" width="500">
+<img src="https://github.com/user-attachments/assets/932b41a2-93a0-4874-8d96-2d043fbea5b8" alt="Showcase image" width="500">
 <img src="https://media.roboflow.com/ultralytics/rf_showcase_3.png" alt="Showcase image" width="500">
 </p>
 

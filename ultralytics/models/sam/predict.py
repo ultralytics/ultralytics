@@ -522,10 +522,8 @@ class Predictor(BasePredictor):
 
     def get_im_features(self, im):
         """Extracts image features using the SAM model's image encoder for subsequent mask prediction."""
-        if isinstance(self.imgsz, list):
-            assert self.imgsz[0] == self.imgsz[1], f"SAM models only support square image size, but got {self.imgsz}."
-        self.model.prompt_encoder.input_image_size = self.imgsz
-        self.model.prompt_encoder.image_embedding_size = [x // 16 for x in self.imgsz]  # 16 is fixed as patch size of ViT model
+        assert isinstance(self.imgsz, (tuple, list)) and self.imgsz[0] == self.imgsz[1], f"SAM models only support square image size, but got {self.imgsz}."
+        self.model.set_imgsz(self.imgsz)
         return self.model.image_encoder(im, imgsz=self.imgsz[0])
 
     def set_prompts(self, prompts):

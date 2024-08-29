@@ -115,7 +115,7 @@ def coco91_to_coco80_class():
 
 
 def coco80_to_coco91_class():
-    """
+    r"""
     Converts 80-index (val2014) to 91-index (paper).
     For details see https://tech.amikelive.com/node-718/what-object-categories-labels-are-in-coco-dataset/.
 
@@ -123,8 +123,8 @@ def coco80_to_coco91_class():
         ```python
         import numpy as np
 
-        a = np.loadtxt('data/coco.names', dtype='str', delimiter='\n')
-        b = np.loadtxt('data/coco_paper.names', dtype='str', delimiter='\n')
+        a = np.loadtxt("data/coco.names", dtype="str", delimiter="\n")
+        b = np.loadtxt("data/coco_paper.names", dtype="str", delimiter="\n")
         x1 = [list(a[i] == b).index(True) + 1 for i in range(80)]  # darknet to coco
         x2 = [list(b[i] == a).index(True) if any(b[i] == a) else None for i in range(91)]  # coco to darknet
         ```
@@ -236,14 +236,13 @@ def convert_coco(
         ```python
         from ultralytics.data.converter import convert_coco
 
-        convert_coco('../datasets/coco/annotations/', use_segments=True, use_keypoints=False, cls91to80=True)
-        convert_coco('../datasets/lvis/annotations/', use_segments=True, use_keypoints=False, cls91to80=False, lvis=True)
+        convert_coco("../datasets/coco/annotations/", use_segments=True, use_keypoints=False, cls91to80=True)
+        convert_coco("../datasets/lvis/annotations/", use_segments=True, use_keypoints=False, cls91to80=False, lvis=True)
         ```
 
     Output:
         Generates output files in the specified output directory.
     """
-
     # Create dataset directory
     save_dir = increment_path(save_dir)  # increment if save directory already exists
     for p in save_dir / "labels", save_dir / "images":
@@ -344,14 +343,14 @@ def convert_segment_masks_to_yolo_seg(masks_dir, output_dir, classes):
     Args:
         masks_dir (str): The path to the directory where all mask images (png, jpg) are stored.
         output_dir (str): The path to the directory where the converted YOLO segmentation masks will be stored.
-        classes (int): Total classes in the dataset i.e for COCO classes=80
+        classes (int): Total classes in the dataset i.e. for COCO classes=80
 
     Example:
         ```python
         from ultralytics.data.converter import convert_segment_masks_to_yolo_seg
 
-        # for coco dataset, we have 80 classes
-        convert_segment_masks_to_yolo_seg('path/to/masks_directory', 'path/to/output/directory', classes=80)
+        # The classes here is the total classes in the dataset, for COCO dataset we have 80 classes
+        convert_segment_masks_to_yolo_seg("path/to/masks_directory", "path/to/output/directory", classes=80)
         ```
 
     Notes:
@@ -373,7 +372,7 @@ def convert_segment_masks_to_yolo_seg(masks_dir, output_dir, classes):
     """
     import os
 
-    pixel_to_class_mapping = {i + 1: i for i in range(80)}
+    pixel_to_class_mapping = {i + 1: i for i in range(classes)}
     for mask_filename in os.listdir(masks_dir):
         if mask_filename.endswith(".png"):
             mask_path = os.path.join(masks_dir, mask_filename)
@@ -429,7 +428,7 @@ def convert_dota_to_yolo_obb(dota_root_path: str):
         ```python
         from ultralytics.data.converter import convert_dota_to_yolo_obb
 
-        convert_dota_to_yolo_obb('path/to/DOTA')
+        convert_dota_to_yolo_obb("path/to/DOTA")
         ```
 
     Notes:

@@ -765,6 +765,13 @@ class SAM2Predictor(Predictor):
 
     def get_im_features(self, im):
         """Extracts image features from the SAM image encoder for subsequent processing."""
+        if isinstance(self.imgsz, list):
+            assert self.imgsz[0] == self.imgsz[1], f"SAM 2 models only support square image size, but got {self.imgsz}."
+        self.model.image_size = self.imgsz[0]
+        self.model.sam_prompt_encoder.input_image_size = self.imgsz
+        self.model.sam_prompt_encoder.image_embedding_size = [x // 16 for x in self.imgsz]  # 16 is fixed as patch size of ViT model
+        self._bb_feat_sizes = [[x // (4 * i) for x in self.imgsz] for i in [1, 2, 4]]
+
         backbone_out = self.model.forward_image(im)
         _, vision_feats, _, _ = self.model._prepare_backbone_features(backbone_out)
         if self.model.directly_add_no_mem_embed:

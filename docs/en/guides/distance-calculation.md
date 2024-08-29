@@ -79,6 +79,10 @@ Measuring the gap between two objects is known as distance calculation within a 
     - Mouse Right Click will delete all drawn points
     - Mouse Left Click can be used to draw points
 
+???+ warning "Distance is Estimate"
+
+        Distance will be an estimate and may not be fully accurate, as it is calculated using 2-dimensional data, which lacks information about the object's depth.
+
 ### Arguments `DistanceCalculation()`
 
 | `Name`             | `Type`  | `Default`       | Description                                               |

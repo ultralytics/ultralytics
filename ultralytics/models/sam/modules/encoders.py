@@ -152,8 +152,8 @@ class ImageEncoderViT(nn.Module):
         x = self.patch_embed(x)
         if self.pos_embed is not None:
             pos_embed = (
-                F.interpolate(self.pos_embed.permute(0, 3, 1, 2), scale_factor=self.imgsz / 1024).permute(0, 2, 3, 1)
-                if self.imgsz != 1024
+                F.interpolate(self.pos_embed.permute(0, 3, 1, 2), scale_factor=self.img_size / 1024).permute(0, 2, 3, 1)
+                if self.img_size != 1024
                 else self.pos_embed
             )
             x = x + pos_embed

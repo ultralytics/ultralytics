@@ -126,7 +126,7 @@ To train a model on the DOTA v1 dataset, you can utilize the following code snip
 
 Having a glance at the dataset illustrates its depth:
 
-![Dataset sample image](https://captain-whu.github.io/DOTA/images/instances-DOTA.jpg)
+![Dataset sample image](https://github.com/user-attachments/assets/dde538b8-56e5-4166-82ef-8906d63bb6cb)
 
 - **DOTA examples**: This snapshot underlines the complexity of aerial scenes and the significance of Oriented Bounding Box annotations, capturing objects in their natural orientation.
 

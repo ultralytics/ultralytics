@@ -147,15 +147,13 @@ class ImageEncoderViT(nn.Module):
             LayerNorm2d(out_chans),
         )
 
-    def forward(self, x: torch.Tensor, imgsz: int=1024) -> torch.Tensor:
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Processes input through patch embedding, positional embedding, transformer blocks, and neck module."""
         x = self.patch_embed(x)
         if self.pos_embed is not None:
             pos_embed = (
-                F.interpolate(self.pos_embed.permute(0, 3, 1, 2), scale_factor=imgsz / self.img_size).permute(
-                    0, 2, 3, 1
-                )
-                if imgsz != self.img_size
+                F.interpolate(self.pos_embed.permute(0, 3, 1, 2), scale_factor=self.imgsz / 1024).permute(0, 2, 3, 1)
+                if self.imgsz != 1024
                 else self.pos_embed
             )
             x = x + pos_embed

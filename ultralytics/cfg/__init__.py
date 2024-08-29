@@ -793,11 +793,7 @@ def entrypoint(debug=""):
         from ultralytics import FastSAM
 
         model = FastSAM(model)
-    elif "sam2" in stem:
-        from ultralytics import SAM2
-
-        model = SAM2(model)
-    elif "sam" in stem:
+    elif "sam_" in stem or "sam2_" in stem:
         from ultralytics import SAM
 
         model = SAM(model)

@@ -146,17 +146,19 @@ The xView dataset comprises high-resolution satellite images collected from Worl
 
 If you utilize the xView dataset in your research, please cite the following paper:
 
-!!! Quote "BibTeX"
+!!! Quote ""
 
-    ```bibtex
-    @misc{lam2018xview,
-          title={xView: Objects in Context in Overhead Imagery},
-          author={Darius Lam and Richard Kuzma and Kevin McGee and Samuel Dooley and Michael Laielli and Matthew Klaric and Yaroslav Bulatov and Brendan McCord},
-          year={2018},
-          eprint={1802.07856},
-          archivePrefix={arXiv},
-          primaryClass={cs.CV}
-    }
-    ```
+    === "BibTeX"
+
+        ```bibtex
+        @misc{lam2018xview,
+            title={xView: Objects in Context in Overhead Imagery},
+            author={Darius Lam and Richard Kuzma and Kevin McGee and Samuel Dooley and Michael Laielli and Matthew Klaric and Yaroslav Bulatov and Brendan McCord},
+            year={2018},
+            eprint={1802.07856},
+            archivePrefix={arXiv},
+            primaryClass={cs.CV}
+        }
+        ```
    
 For more information about the xView dataset, visit the official [xView dataset website](http://xviewdataset.org/).

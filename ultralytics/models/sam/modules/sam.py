@@ -951,3 +951,13 @@ class SAM2Model(torch.nn.Module):
         # don't overlap (here sigmoid(-10.0)=4.5398e-05)
         pred_masks = torch.where(keep, pred_masks, torch.clamp(pred_masks, max=-10.0))
         return pred_masks
+
+    def set_imgsz(self, imgsz):
+        """Set image size to make model compatible with different image sizes.
+
+        Args:
+            imgsz (Tuple[int, int]): The size of the input image.
+        """
+        self.image_size = imgsz[0]
+        self.sam_prompt_encoder.input_image_size = imgsz
+        self.sam_prompt_encoder.image_embedding_size = [x // 16 for x in imgsz]  # 16 is fixed as patch size of ViT model

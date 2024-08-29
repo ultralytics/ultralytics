@@ -455,8 +455,11 @@ class Predictor(BasePredictor):
                 cls = torch.arange(len(pred_masks), dtype=torch.int32, device=pred_masks.device)
                 pred_bboxes = torch.cat([pred_bboxes, pred_scores[:, None], cls[:, None]], dim=-1)
 
-            masks = ops.scale_masks(masks[None].float(), orig_img.shape[:2], padding=False)[0]
-            masks = masks > self.model.mask_threshold  # to bool
+            if len(masks) == 0:
+                masks = None
+            else:
+                masks = ops.scale_masks(masks[None].float(), orig_img.shape[:2], padding=False)[0]
+                masks = masks > self.model.mask_threshold  # to bool
             results.append(Results(orig_img, path=img_path, names=names, masks=masks, boxes=pred_bboxes))
         # Reset segment-all mode.
         self.segment_all = False

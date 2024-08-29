@@ -329,9 +329,13 @@ jobs:
           results = model.export(format='onnx', imgsz=160)
           "
       - name: PyTest
-        run: |
-          git clone https://github.com/ultralytics/ultralytics
-          pytest ultralytics/tests
+        uses: nick-fields/retry@v2
+        with:
+          timeout_minutes: 60
+          max_attempts: 3
+          command: |
+            git clone https://github.com/ultralytics/ultralytics
+            pytest ultralytics/tests
 
   Summary:
     runs-on: ubuntu-latest

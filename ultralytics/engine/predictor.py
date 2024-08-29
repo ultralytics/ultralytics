@@ -309,7 +309,7 @@ class BasePredictor:
             batch=self.args.batch,
             fuse=True,
             verbose=verbose,
-            metadata=metadata
+            metadata=metadata,
         )
 
         self.device = self.model.device  # update device

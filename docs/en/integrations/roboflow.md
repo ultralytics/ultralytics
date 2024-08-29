@@ -38,7 +38,7 @@ Universe is an online repository with over 250,000 vision datasets totalling ove
 With a [free Roboflow account](https://app.roboflow.com/?ref=ultralytics), you can export any dataset available on Universe. To export a dataset, click the "Download this Dataset" button on any dataset.
 
 <p align="center">
-<img src="https://media.roboflow.com/ultralytics/rf_dataset.png" alt="Roboflow Universe dataset export" width="800">
+<img src="https://github.com/user-attachments/assets/3ee7f1d1-55f0-4119-a710-455f3b24ad43" alt="Roboflow Universe dataset export" width="800">
 </p>
 
 For YOLOv8, select "YOLOv8" as the export format:
@@ -72,7 +72,7 @@ Select the batch of images you have uploaded on the Annotate page to which you a
 To label with bounding boxes, press the `B` key on your keyboard or click the box icon in the sidebar. Click on a point where you want to start your bounding box, then drag to create the box:
 
 <p align="center">
-<img src="https://media.roboflow.com/ultralytics/rf_annotate.png" alt="Annotating an image in Roboflow" width="800">
+<img src="https://github.com/user-attachments/assets/ec7aeebf-dbb1-48ed-bf64-7b2de4f22e28" alt="Annotating an image in Roboflow" width="800">
 </p>
 
 A pop-up will appear asking you to select a class for your annotation once you have created an annotation.
@@ -84,7 +84,7 @@ Roboflow offers a SAM-based label assistant with which you can label images fast
 To use the label assistant, click the cursor icon in the sidebar, SAM will be loaded for use in your project.
 
 <p align="center">
-<img src="https://media.roboflow.com/ultralytics/rf_annotate_interactive.png" alt="Annotating an image in Roboflow with SAM-powered label assist" width="800">
+<img src="https://github.com/user-attachments/assets/a5814d11-742d-4a27-91a7-9b01215aa02c" alt="Annotating an image in Roboflow with SAM-powered label assist" width="800">
 </p>
 
 Hover over any object in the image and SAM will recommend an annotation. You can hover to find the right place to annotate, then click to create your annotation. To amend your annotation to be more or less specific, you can click inside or outside the annotation SAM has created on the document.
@@ -148,7 +148,7 @@ To export your data, you will need a dataset version. A version is a state of yo
 For each augmentation you select, a pop-up will appear allowing you to tune the augmentation to your needs. Here is an example of tuning a brightness augmentation within specified parameters:
 
 <p align="center">
-<img src="https://media.roboflow.com/ultralytics/rf_augmentations.png" alt="Applying augmentations to a dataset" width="800">
+<img src="https://github.com/user-attachments/assets/4f9e37c3-bfc9-4a8a-8cfa-543a82f7521e" alt="Applying augmentations to a dataset" width="800">
 </p>
 
 When your dataset version has been generated, you can export your data into a range of formats. Click the "Export Dataset" button on your dataset version page to export your data:
@@ -185,7 +185,7 @@ When you run the code above, you will be asked to authenticate. Then, your model
 To test your model and find deployment instructions for supported SDKs, go to the "Deploy" tab in the Roboflow sidebar. At the top of this page, a widget will appear with which you can test your model. You can use your webcam for live testing or upload images or videos.
 
 <p align="center">
-<img src="https://media.roboflow.com/ultralytics/rf_test_project.png" alt="Running inference on an example image" width="800">
+<img src="https://github.com/user-attachments/assets/a5f8d894-fca9-4cab-aabc-b6f115e4be54" alt="Running inference on an example image" width="800">
 </p>
 
 You can also use your uploaded model as a [labeling assistant](https://docs.roboflow.com/annotate/use-roboflow-annotate/model-assisted-labeling). This feature uses your trained model to recommend annotations on images uploaded to Roboflow.

@@ -47,10 +47,10 @@ This section details the models available with their specific pre-trained weight
 
     All the YOLOv8-World weights have been directly migrated from the official [YOLO-World](https://github.com/AILab-CVC/YOLO-World) repository, highlighting their excellent contributions.
 
-| Model Type      | Tasks Supported                        | Inference | Validation | Training | Export |
-| --------------- | -------------------------------------- | --------- | ---------- | -------- | ------ |
-| YOLOv8-world   | [Object Detection](../tasks/detect.md)  | ✅        | ✅         | ✅       | ❌     |
-| YOLOv8-worldv2 | [Object Detection](../tasks/detect.md)  | ✅        | ✅         | ✅       | ✅     |
+| Model Type     | Tasks Supported                        | Inference | Validation | Training | Export |
+| -------------- | -------------------------------------- | --------- | ---------- | -------- | ------ |
+| YOLOv8-world   | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ❌     |
+| YOLOv8-worldv2 | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
 
 ## Available Models and Performance
 
@@ -405,10 +405,10 @@ yolo train model=yolov8s-worldv2.yaml data=coco8.yaml epochs=100 imgsz=640
 
 Ultralytics offers multiple pre-trained YOLO-World models supporting various tasks and operating modes:
 
-| Model Type      | Tasks Supported                        | Inference | Validation | Training | Export |
-| --------------- | -------------------------------------- | --------- | ---------- | -------- | ------ |
-| YOLOv8-world   | [Object Detection](../tasks/detect.md)  | ✅        | ✅         | ✅       | ❌     |
-| YOLOv8-worldv2 | [Object Detection](../tasks/detect.md)  | ✅        | ✅         | ✅       | ✅     |
+| Model Type     | Tasks Supported                        | Inference | Validation | Training | Export |
+| -------------- | -------------------------------------- | --------- | ---------- | -------- | ------ |
+| YOLOv8-world   | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ❌     |
+| YOLOv8-worldv2 | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
 
 Pre-trained weights for these models automatically downloads with the model instantiation, enabling immediate use in your applications:
 

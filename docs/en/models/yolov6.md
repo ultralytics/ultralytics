@@ -35,7 +35,7 @@ This table provides a detailed overview of the YOLOv6 model variants, highlighti
     YOLOv6 models are supported in Ultralytics only through `.yaml` configuration files. These files contain the model architecture, training parameters, and other essential details required to build and train the model. For more information on creating and customizing these configuration files, refer to the [Configuration Files](../general/config.md) documentation.
 
 ## Performance Metrics
-  
+
 !!! Performance
 
     === "Detection"
@@ -88,8 +88,6 @@ This example provides simple YOLOv6 training and inference examples. For full do
         # Build a YOLOv6n model from scratch and run inference on the 'bus.jpg' image
         yolo predict model=yolov6n.yaml source=path/to/bus.jpg
         ```
-
-
 
 ## Citations and Acknowledgements
 
@@ -152,12 +150,12 @@ For more information, visit the [Train](../modes/train.md) page.
 
 YOLOv6 offers multiple versions, each optimized for different performance requirements:
 
-| Model           | size<br><sup>(pixels) | AP<sup>val<br>50  | Speed<br><sup>Tesla T4 TensorRT<br>(ms) | FPS<br><sup>(bsì32) | params<br><sup>(M) | FLOPs<br><sup>(B) |
-|---------------- | --------------------- | ----------------- | --------------------------------------- | ------------------- | ------------------ | ----------------- |
-| `yolov6n.yaml`  | 640                   | 37.5              | 1.3                                     | 1187                | 4.7                | 11.4              |
-| `yolov6s.yaml`  | 640                   | 45.0              | 2.9                                     | 484                 | 18.5               | 45.3              |
-| `yolov6m.yaml`  | 640                   | 50.0              | 5.7                                     | 226                 | 34.9               | 85.8              |
-| `yolov6l.yaml`  | 640                   | 52.8              | 10.3                                    | 116                 | 59.6               | 150.7             |
+| Model          | size<br><sup>(pixels) | AP<sup>val<br>50 | Speed<br><sup>Tesla T4 TensorRT<br>(ms) | FPS<br><sup>(bsì32) | params<br><sup>(M) | FLOPs<br><sup>(B) |
+| -------------- | --------------------- | ---------------- | --------------------------------------- | ------------------- | ------------------ | ----------------- |
+| `yolov6n.yaml` | 640                   | 37.5             | 1.3                                     | 1187                | 4.7                | 11.4              |
+| `yolov6s.yaml` | 640                   | 45.0             | 2.9                                     | 484                 | 18.5               | 45.3              |
+| `yolov6m.yaml` | 640                   | 50.0             | 5.7                                     | 226                 | 34.9               | 85.8              |
+| `yolov6l.yaml` | 640                   | 52.8             | 10.3                                    | 116                 | 59.6               | 150.7             |
 
 These models are evaluated on the COCO dataset using an NVIDIA Tesla T4 GPU. For more on performance metrics, see the [Performance Metrics](#performance-metrics) section.
 

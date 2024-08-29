@@ -103,6 +103,8 @@ class AutoBackend(nn.Module):
             batch (int): Batch-size to assume for inference.
             fuse (bool): Fuse Conv2D + BatchNorm layers for optimization. Defaults to True.
             verbose (bool): Enable verbose logging. Defaults to True.
+            metadata (str | Path): Path to the metadata file for the model if the model can't provide it like
+                triton inference server. Defaults to None.
         """
         super().__init__()
         w = str(weights[0] if isinstance(weights, list) else weights)

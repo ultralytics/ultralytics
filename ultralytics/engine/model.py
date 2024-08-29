@@ -100,6 +100,8 @@ class Model(nn.Module):
             task (str | None): The task type associated with the YOLO model, specifying its application domain.
             verbose (bool): If True, enables verbose output during the model's initialization and subsequent
                 operations.
+            metadata (str | Path): Path to the metadata file for the model if the model can't provide it like
+                triton inference server. Defaults to None
 
         Raises:
             FileNotFoundError: If the specified model file does not exist or is inaccessible.

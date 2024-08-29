@@ -148,7 +148,7 @@ DeepSparse provides additional features for practical integration of YOLOv8 in a
 Running the annotate command processes your specified image, detecting objects, and saving the annotated image with bounding boxes and classifications. The annotated image will be stored in an annotation-results folder. This helps provide a visual representation of the model's detection capabilities.
 
 <p align="center">
-  <img width="640" src="https://user-images.githubusercontent.com/3195154/211942937-1d32193a-6dda-473d-a7ad-e2162bbb42e9.png" alt="Image Annotation Feature">
+  <img width="640" src="https://github.com/user-attachments/assets/25a8936a-27bc-48b9-9c0f-54ae2d3dd925" alt="Image Annotation Feature">
 </p>
 
 After running the eval command, you will receive detailed output metrics such as precision, recall, and mAP (mean Average Precision). This provides a comprehensive view of your model's performance on the dataset. This functionality is particularly useful for fine-tuning and optimizing your YOLOv8 models for specific use cases, ensuring high accuracy and efficiency.

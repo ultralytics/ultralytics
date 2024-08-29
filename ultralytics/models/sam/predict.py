@@ -763,8 +763,7 @@ class SAM2Predictor(Predictor):
 
     def get_im_features(self, im):
         """Extracts image features from the SAM image encoder for subsequent processing."""
-        if isinstance(self.imgsz, list):
-            assert self.imgsz[0] == self.imgsz[1], f"SAM 2 models only support square image size, but got {self.imgsz}."
+        assert isinstance(self.imgsz, (tuple, list)) and self.imgsz[0] == self.imgsz[1], f"SAM 2 models only support square image size, but got {self.imgsz}."
         self.model.set_imgsz(self.imgsz)
         self._bb_feat_sizes = [[x // (4 * i) for x in self.imgsz] for i in [1, 2, 4]]
 

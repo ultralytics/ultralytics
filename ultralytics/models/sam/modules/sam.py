@@ -90,6 +90,19 @@ class SAMModel(nn.Module):
         self.register_buffer("pixel_mean", torch.Tensor(pixel_mean).view(-1, 1, 1), False)
         self.register_buffer("pixel_std", torch.Tensor(pixel_std).view(-1, 1, 1), False)
 
+    def set_imgsz(self, imgsz):
+        """Set image size to make model compatible with different image sizes.
+
+        Args:
+            imgsz (Tuple[int, int]): The size of the input image.
+        """
+        if hasattr(self.image_encoder, "set_imgsz"):
+            self.image_encoder.set_imgsz(imgsz)
+        self.model.prompt_encoder.input_image_size = self.imgsz
+        self.model.prompt_encoder.image_embedding_size = [
+            x // 16 for x in self.imgsz
+        ]  # 16 is fixed as patch size of ViT model
+
 
 class SAM2Model(torch.nn.Module):
     """

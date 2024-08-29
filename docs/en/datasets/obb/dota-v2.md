@@ -8,7 +8,7 @@ keywords: DOTA dataset, object detection, aerial images, oriented bounding boxes
 
 [DOTA](https://captain-whu.github.io/DOTA/index.html) stands as a specialized dataset, emphasizing object detection in aerial images. Originating from the DOTA series of datasets, it offers annotated images capturing a diverse array of aerial scenes with Oriented Bounding Boxes (OBB).
 
-![DOTA classes visual](https://user-images.githubusercontent.com/26833433/259461765-72fdd0d8-266b-44a9-8199-199329bf5ca9.jpg)
+![DOTA classes visual](https://github.com/user-attachments/assets/f07fbcd1-a694-4ab6-93e5-70d853299ba7)
 
 ## Key Features
 

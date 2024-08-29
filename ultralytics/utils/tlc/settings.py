@@ -115,12 +115,12 @@ class Settings:
 
         # If start is less than one, we don't collect during training
         if self.collection_epoch_start < 1:
-            return []
+            raise ValueError(f"Invalid collection start epoch {self.collection_epoch_start}, must be at least 1 (after first epoch).")
 
         if self.collection_epoch_interval <= 0:
             raise ValueError(f'Invalid interval {self.collection_epoch_interval}, must be non-zero')
         else:
-            return list(range(self.collection_epoch_start, epochs, self.collection_epoch_interval))
+            return list(range(self.collection_epoch_start, epochs+1, self.collection_epoch_interval))
 
     def _verify_training(self) -> None:
         """ Verify that the settings are valid for training.

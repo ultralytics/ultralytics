@@ -32,7 +32,7 @@ This table provides a detailed overview of the YOLOv6 model variants, highlighti
 
 !!! warning "Configuration Files"
 
-    YOLOv6 models are supported in Ultralytics only through `.yaml` configuration files. These files contain the model architecture, training parameters, and other essential details required to build and train the model. For more information on creating and customizing these configuration files, refer to the [Configuration Files](../general/config.md) documentation.
+    YOLOv6 models are supported in Ultralytics only through `.yaml` configuration files. These files contain the model architecture, training parameters, and other essential details required to build and train the model.
 
 ## Performance Metrics
 

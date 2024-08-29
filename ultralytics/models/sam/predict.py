@@ -525,8 +525,7 @@ class Predictor(BasePredictor):
         assert (
             isinstance(self.imgsz, (tuple, list)) and self.imgsz[0] == self.imgsz[1]
         ), f"SAM models only support square image size, but got {self.imgsz}."
-        if list(self.imgsz) != [1024, 1024]:  # 1024 from the official models setting
-            self.model.set_imgsz(self.imgsz)
+        self.model.set_imgsz(self.imgsz)
         return self.model.image_encoder(im)
 
     def set_prompts(self, prompts):
@@ -769,9 +768,8 @@ class SAM2Predictor(Predictor):
         assert (
             isinstance(self.imgsz, (tuple, list)) and self.imgsz[0] == self.imgsz[1]
         ), f"SAM 2 models only support square image size, but got {self.imgsz}."
-        if list(self.imgsz) != [1024, 1024]:  # 1024 from the official models setting
-            self.model.set_imgsz(self.imgsz)
-            self._bb_feat_sizes = [[x // (4 * i) for x in self.imgsz] for i in [1, 2, 4]]
+        self.model.set_imgsz(self.imgsz)
+        self._bb_feat_sizes = [[x // (4 * i) for x in self.imgsz] for i in [1, 2, 4]]
 
         backbone_out = self.model.forward_image(im)
         _, vision_feats, _, _ = self.model._prepare_backbone_features(backbone_out)

@@ -991,7 +991,11 @@ class TinyViT(nn.Module):
         return self.forward_features(x)
 
     def set_imgsz(self, imgsz=[1024, 1024]):
-        """Set image size to make model compatible with different image sizes."""
+        """Set image size to make model compatible with different image sizes.
+
+        Args:
+            imgsz (Tuple[int, int]): The size of the input image.
+        """
         imgsz = [s // 4 for s in imgsz]
         self.patches_resolution = imgsz
         for i, layer in enumerate(self.layers):

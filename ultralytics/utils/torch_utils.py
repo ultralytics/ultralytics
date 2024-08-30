@@ -205,7 +205,9 @@ def select_device(device="", batch=0, newline=False, verbose=True):
         s += f"MPS ({get_cpu_info()})\n"
         arg = "mps"
     elif ocl:
-        check_requirements(["torch==2.4.0", "torchvision==0.19.0", "torchaudio==2.4.0"])  # current pytorch_ocl build requires PyTorch 2.4.0
+        check_requirements(
+            ["torch==2.4.0", "torchvision==0.19.0", "torchaudio==2.4.0"]
+        )  # current pytorch_ocl build requires PyTorch 2.4.0
 
         try:
             import pytorch_ocl  # check if pytorch_ocl is installed

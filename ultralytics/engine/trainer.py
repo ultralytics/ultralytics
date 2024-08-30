@@ -172,7 +172,9 @@ class BaseTrainer:
             world_size = len(self.args.device.split(","))
         elif isinstance(self.args.device, (tuple, list)):  # i.e. device=[0, 1, 2, 3] (multi-GPU from CLI is list)
             world_size = len(self.args.device)
-        elif self.args.device in {"cpu", "mps"} or self.args.device.startswith("ocl"):  # i.e. device='cpu' or 'mps' or 'ocl'
+        elif self.args.device in {"cpu", "mps"} or self.args.device.startswith(
+            "ocl"
+        ):  # i.e. device='cpu' or 'mps' or 'ocl'
             world_size = 0
         elif torch.cuda.is_available():  # i.e. device=None or device='' or device=number
             world_size = 1  # default to device 0

@@ -128,8 +128,10 @@ class Model(nn.Module):
         if self.is_hub_model(model):
             # Fetch model from HUB
             checks.check_requirements("hub-sdk>=0.0.8")
-            self.session = HUBTrainingSession.create_session(model)
-            model = self.session.model_file
+            session = HUBTrainingSession.create_session(model)
+            model = session.model_file
+            if session.train_args:  # training sent from HUB
+                self.session = session
 
         # Check if Triton Server model
         elif self.is_triton_model(model):

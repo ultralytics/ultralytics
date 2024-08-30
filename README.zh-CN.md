@@ -280,7 +280,7 @@ Ultralytics 提供两种许可证选项以适应各种使用场景：
 
 ## <div align="center">联系方式</div>
 
-有关 Ultralytics 错误报告和功能请求，请访问 [GitHub 问题](https://github.com/ultralytics/ultralytics/issues)。成为 Ultralytics [Discord](https://ultralytics.com/discord)、[Reddit](https://reddit.com/r/ultralytics) 或 [论坛](https://community.ultralytics) 的成员 用于提出问题、共享项目、学习讨论或寻求有关 Ultralytics 的所有帮助！
+有关 Ultralytics 错误报告和功能请求，请访问 [GitHub 问题](https://github.com/ultralytics/ultralytics/issues)。成为 Ultralytics [Discord](https://ultralytics.com/discord)、[Reddit](https://reddit.com/r/ultralytics) 或 [论坛](https://community.ultralytics.com) 的成员 用于提出问题、共享项目、学习讨论或寻求有关 Ultralytics 的所有帮助！
 
 <br>
 <div align="center">

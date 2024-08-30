@@ -19,7 +19,7 @@ The YOLO-World Model introduces an advanced, real-time [Ultralytics](https://ult
   <strong>Watch:</strong> YOLO World training workflow on custom dataset
 </p>
 
-![YOLO-World Model architecture overview](https://github.com/ultralytics/ultralytics/assets/26833433/31105058-78c1-43ef-9573-4f41b06df531)
+![YOLO-World Model architecture overview](https://github.com/ultralytics/docs/releases/download/0/yolo-world-model-architecture-overview.avif)
 
 ## Overview
 
@@ -195,7 +195,7 @@ Object tracking with YOLO-World model on a video/images is streamlined as follow
 
 ### Set prompts
 
-![YOLO-World prompt class names overview](https://github.com/ultralytics/ultralytics/assets/26833433/4f609ec0-ae6d-4a85-a034-c1c1c30968ff)
+![YOLO-World prompt class names overview](https://github.com/ultralytics/docs/releases/download/0/yolo-world-prompt-class-names-overview.avif)
 
 The YOLO-World framework allows for the dynamic specification of classes through custom prompts, empowering users to tailor the model to their specific needs **without retraining**. This feature is particularly useful for adapting the model to new domains or specific tasks that were not originally part of the training data. By setting custom prompts, users can essentially guide the model's focus towards objects of interest, enhancing the relevance and accuracy of the detection results.
 

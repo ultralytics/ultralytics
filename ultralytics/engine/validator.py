@@ -125,6 +125,7 @@ class BaseValidator:
                 dnn=self.args.dnn,
                 data=self.args.data,
                 fp16=self.args.half,
+                max_det=self.args.max_det,
             )
             # self.model = model
             self.device = model.device  # update device

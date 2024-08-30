@@ -89,6 +89,7 @@ class AutoBackend(nn.Module):
         batch=1,
         fuse=True,
         verbose=True,
+        max_det=300,
     ):
         """
         Initialize the AutoBackend for inference.
@@ -149,7 +150,7 @@ class AutoBackend(nn.Module):
             model.half() if fp16 else model.float()
             self.model = model  # explicitly assign for to(), cpu(), cuda(), half()
             pt = True
-
+            self.model.model[-1].max_det = max_det
         # PyTorch
         elif pt:
             from ultralytics.nn.tasks import attempt_load_weights

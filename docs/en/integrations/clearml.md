@@ -13,7 +13,7 @@ MLOps bridges the gap between creating and deploying machine learning models in 
 ## ClearML
 
 <p align="center">
-  <img width="100%" src="https://clear.ml/wp-content/uploads/2023/06/DataOps@2x-1.png" alt="ClearML Overview">
+  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/clearml-overview.avif" alt="ClearML Overview">
 </p>
 
 [ClearML](https://clear.ml/) is an innovative open-source MLOps platform that is skillfully designed to automate, monitor, and orchestrate machine learning workflows. Its key features include automated logging of all training and inference data for full experiment reproducibility, an intuitive web UI for easy data visualization and analysis, advanced hyperparameter optimization algorithms, and robust model management for efficient deployment across various platforms.
@@ -175,7 +175,7 @@ This setup is applicable to cloud VMs, local GPUs, or laptops. ClearML Autoscale
 ClearML's user-friendly interface allows easy cloning, editing, and enqueuing of tasks. Users can clone an existing experiment, adjust parameters or other details through the UI, and enqueue the task for execution. This streamlined process ensures that the ClearML Agent executing the task uses updated configurations, making it ideal for iterative experimentation and model fine-tuning.
 
 <p align="center"><br>
-  <img width="100%" src="https://github.com/user-attachments/assets/b5ff1686-cb37-4e97-a55e-eb7e6a67764d" alt="Cloning, Editing, and Enqueuing with ClearML">
+  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/cloning-editing-enqueuing-clearml.avif" alt="Cloning, Editing, and Enqueuing with ClearML">
 </p>
 
 ## Summary

@@ -7,7 +7,7 @@ keywords: YOLO, YOLOv8, troubleshooting, installation errors, model training, GP
 # Troubleshooting Common YOLO Issues
 
 <p align="center">
-  <img width="800" src="https://github.com/user-attachments/assets/61c77d01-6c61-4d74-93a9-19e7dc2ad456" alt="YOLO Common Issues Image">
+  <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/yolo-common-issues.avif" alt="YOLO Common Issues Image">
 </p>
 
 ## Introduction

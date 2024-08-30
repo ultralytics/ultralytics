@@ -27,7 +27,7 @@ This guide explains how to deploy YOLOv5 with Neural Magic's DeepSparse.
 DeepSparse is an inference runtime with exceptional performance on CPUs. For instance, compared to the ONNX Runtime baseline, DeepSparse offers a 5.8x speed-up for YOLOv5s, running on the same machine!
 
 <p align="center">
-  <img width="60%" src="https://github.com/neuralmagic/deepsparse/raw/main/examples/ultralytics-yolo/ultralytics-readmes/performance-chart-5.8x.png" alt="YOLOv5 speed improvement">
+  <img width="60%" src="https://github.com/ultralytics/docs/releases/download/0/yolov5-speed-improvement.avif" alt="YOLOv5 speed improvement">
 </p>
 
 For the first time, your deep learning workloads can meet the performance demands of production without the complexity and costs of hardware accelerators. Put simply, DeepSparse gives you the performance of GPUs and the simplicity of software:
@@ -43,7 +43,7 @@ DeepSparse takes advantage of model sparsity to gain its performance speedup.
 Sparsification through pruning and quantization is a broadly studied technique, allowing order-of-magnitude reductions in the size and compute needed to execute a network, while maintaining high accuracy. DeepSparse is sparsity-aware, meaning it skips the zeroed out parameters, shrinking amount of compute in a forward pass. Since the sparse computation is now memory bound, DeepSparse executes the network depth-wise, breaking the problem into Tensor Columns, vertical stripes of computation that fit in cache.
 
 <p align="center">
-  <img width="60%" src="https://github.com/neuralmagic/deepsparse/raw/main/examples/ultralytics-yolo/ultralytics-readmes/tensor-columns.png" alt="YOLO model pruning">
+  <img width="60%" src="https://github.com/ultralytics/docs/releases/download/0/tensor-columns.avif" alt="YOLO model pruning">
 </p>
 
 Sparse networks with compressed computation, executed depth-wise in cache, allows DeepSparse to deliver GPU-class performance on CPUs!
@@ -164,7 +164,7 @@ deepsparse.object_detection.annotate --model_filepath zoo:cv/detection/yolov5-s/
 Running the above command will create an `annotation-results` folder and save the annotated image inside.
 
 <p align = "center">
-<img src="https://github.com/neuralmagic/deepsparse/raw/d31f02596ebff2ec62761d0bc9ca14c4663e8858/src/deepsparse/yolo/sample_images/basilica-annotated.jpg" alt="annotated" width="60%">
+<img src="https://github.com/ultralytics/docs/releases/download/0/basilica-annotated.avif" alt="annotated" width="60%">
 </p>
 
 ## Benchmarking Performance

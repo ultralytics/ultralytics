@@ -7,7 +7,7 @@ keywords: Ultralytics, Android app, real-time object detection, YOLO models, Ten
 # Ultralytics Android App: Real-time Object Detection with YOLO Models
 
 <a href="https://ultralytics.com/hub" target="_blank">
-  <img width="100%" src="https://github.com/user-attachments/assets/0557dde7-d931-4034-af67-51887d8f1981" alt="Ultralytics HUB preview image"></a>
+  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/ultralytics-android-app-detection.avif" alt="Ultralytics HUB preview image"></a>
 <br>
 <div align="center">
   <a href="https://github.com/ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-github.png" width="3%" alt="Ultralytics GitHub"></a>

@@ -77,6 +77,7 @@ Here is a list of the supported datasets and a brief description for each:
 - [COCO](coco.md): Common Objects in Context (COCO) is a large-scale object detection, segmentation, and captioning dataset with 80 object categories.
 - [LVIS](lvis.md): A large-scale object detection, segmentation, and captioning dataset with 1203 object categories.
 - [COCO8](coco8.md): A smaller subset of the first 4 images from COCO train and COCO val, suitable for quick tests.
+- [COCO128](coco.md): A smaller subset of the first 128 images from COCO train and COCO val, suitable for tests.
 - [Global Wheat 2020](globalwheat2020.md): A dataset containing images of wheat heads for the Global Wheat Challenge 2020.
 - [Objects365](objects365.md): A high-quality, large-scale dataset for object detection with 365 object categories and over 600K annotated images.
 - [OpenImagesV7](open-images-v7.md): A comprehensive dataset by Google with 1.7M train images and 42k validation images.

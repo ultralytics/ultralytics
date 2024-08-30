@@ -30,7 +30,7 @@ Let's walk through an example.
 Consider a computer vision project where you want to [estimate the speed of vehicles](./speed-estimation.md) on a highway. The core issue is that current speed monitoring methods are inefficient and error-prone due to outdated radar systems and manual processes. The project aims to develop a real-time computer vision system that can replace legacy [speed estimation](https://www.ultralytics.com/blog/ultralytics-yolov8-for-speed-estimation-in-computer-vision-projects) systems.
 
 <p align="center">
-  <img width="100%" src="https://assets-global.website-files.com/6479eab6eb2ed5e597810e9e/664efc6e1c4bef6407824558_Abi%20Speed%20fig1.png" alt="Speed Estimation Using YOLOv8">
+  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/speed-estimation-using-yolov8.avif" alt="Speed Estimation Using YOLOv8">
 </p>
 
 Primary users include traffic management authorities and law enforcement, while secondary stakeholders are highway planners and the public benefiting from safer roads. Key requirements involve evaluating budget, time, and personnel, as well as addressing technical needs like high-resolution cameras and real-time data processing. Additionally, regulatory constraints on privacy and data security must be considered.
@@ -53,7 +53,7 @@ Your problem statement helps you conceptualize which computer vision task can so
 For example, if your problem is monitoring vehicle speeds on a highway, the relevant computer vision task is object tracking. [Object tracking](../modes/track.md) is suitable because it allows the system to continuously follow each vehicle in the video feed, which is crucial for accurately calculating their speeds.
 
 <p align="center">
-  <img width="100%" src="https://assets-global.website-files.com/6479eab6eb2ed5e597810e9e/664f03ba300cf6e61689862f_FIG%20444.gif" alt="Example of Object Tracking">
+  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/example-of-object-tracking.avif" alt="Example of Object Tracking">
 </p>
 
 Other tasks, like [object detection](../tasks/detect.md), are not suitable as they don't provide continuous location or movement information. Once you've identified the appropriate computer vision task, it guides several critical aspects of your project, like model selection, dataset preparation, and model training approaches.
@@ -82,7 +82,7 @@ Next, let's look at a few common discussion points in the community regarding co
 The most popular computer vision tasks include image classification, object detection, and image segmentation.
 
 <p align="center">
-  <img width="100%" src="https://assets-global.website-files.com/614c82ed388d53640613982e/64aeb16e742bde3dc050e048_image%20classification%20vs%20object%20detection%20vs%20image%20segmentation.webp" alt="Overview of Computer Vision Tasks">
+  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/image-classification-vs-object-detection-vs-image-segmentation.avif" alt="Overview of Computer Vision Tasks">
 </p>
 
 For a detailed explanation of various tasks, please take a look at the Ultralytics Docs page on [YOLOv8 Tasks](../tasks/index.md).
@@ -92,7 +92,7 @@ For a detailed explanation of various tasks, please take a look at the Ultralyti
 No, pre-trained models don't "remember" classes in the traditional sense. They learn patterns from massive datasets, and during custom training (fine-tuning), these patterns are adjusted for your specific task. The model's capacity is limited, and focusing on new information can overwrite some previous learnings.
 
 <p align="center">
-  <img width="100%" src="https://media.licdn.com/dms/image/D4D12AQHIJdbNXjBXEQ/article-cover_image-shrink_720_1280/0/1692158503859?e=2147483647&v=beta&t=pib5jFzINB9RzKIATGHMsE0jK1_4_m5LRqx7GkYiFqA" alt="Overview of Transfer Learning">
+  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/overview-of-transfer-learning.avif" alt="Overview of Transfer Learning">
 </p>
 
 If you want to use the classes the model was pre-trained on, a practical approach is to use two models: one retains the original performance, and the other is fine-tuned for your specific task. This way, you can combine the outputs of both models. There are other options like freezing layers, using the pre-trained model as a feature extractor, and task-specific branching, but these are more complex solutions and require more expertise.

@@ -24,7 +24,7 @@ Ultralytics provides support for various datasets to facilitate computer vision 
 Create embeddings for your dataset, search for similar images, run SQL queries, perform semantic search and even search using natural language! You can get started with our GUI app or build your own using the API. Learn more [here](explorer/index.md).
 
 <p>
-<img alt="Ultralytics Explorer Screenshot" src="https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/d2ebaffd-e065-4d88-983a-33cb6f593785">
+<img alt="Ultralytics Explorer Screenshot" src="https://github.com/ultralytics/docs/releases/download/0/ultralytics-explorer-screenshot.avif">
 </p>
 
 - Try the [GUI Demo](explorer/index.md)

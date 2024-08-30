@@ -107,7 +107,7 @@ Choose a hosting provider and deployment method for your MkDocs documentation:
 
 - Update the "Custom domain" in your repository's settings for a personalized URL.
 
-![196814117-fc16e711-d2be-4722-9536-b7c6d78fd167](https://user-images.githubusercontent.com/26833433/210150206-9e86dcd7-10af-43e4-9eb2-9518b3799eac.png)
+![MkDocs deployment example](https://github.com/ultralytics/docs/releases/download/0/mkdocs-deployment-example.avif)
 
 - For detailed deployment guidance, consult the [MkDocs documentation](https://www.mkdocs.org/user-guide/deploying-your-docs/).
 
@@ -115,7 +115,7 @@ Choose a hosting provider and deployment method for your MkDocs documentation:
 
 We cherish the community's input as it drives Ultralytics open-source initiatives. Dive into the [Contributing Guide](https://docs.ultralytics.com/help/contributing) and share your thoughts via our [Survey](https://ultralytics.com/survey?utm_source=github&utm_medium=social&utm_campaign=Survey). A heartfelt thank you 🙏 to each contributor!
 
-![Ultralytics open-source contributors](https://github.com/ultralytics/assets/raw/main/im/image-contributors.png)
+![Ultralytics open-source contributors](https://github.com/ultralytics/docs/releases/download/0/ultralytics-open-source-contributors.avif)
 
 ## 📜 License
 

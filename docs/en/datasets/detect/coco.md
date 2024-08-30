@@ -87,7 +87,7 @@ To train a YOLOv8n model on the COCO dataset for 100 epochs with an image size o
 
 The COCO dataset contains a diverse set of images with various object categories and complex scenes. Here are some examples of images from the dataset, along with their corresponding annotations:
 
-![Dataset sample image](https://user-images.githubusercontent.com/26833433/236811818-5b566576-1e92-42fa-9462-4b6a848abe89.jpg)
+![Dataset sample image](https://github.com/ultralytics/docs/releases/download/0/mosaiced-coco-dataset-sample.avif)
 
 - **Mosaiced Image**: This image demonstrates a training batch composed of mosaiced dataset images. Mosaicing is a technique used during training that combines multiple images into a single image to increase the variety of objects and scenes within each training batch. This helps improve the model's ability to generalize to different object sizes, aspect ratios, and contexts.
 

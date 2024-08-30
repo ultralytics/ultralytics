@@ -208,13 +208,13 @@ def select_device(device="", batch=0, newline=False, verbose=True):
         check_requirements(["torch==2.4.0", "torchvision==0.19.0", "torchaudio==2.4.0"])  # current pytorch_ocl build requires PyTorch 2.4.0
 
         try:
-            import pytorch_ocl
+            import pytorch_ocl  # check if pytorch_ocl is installed
         except ModuleNotFoundError:
             raise ModuleNotFoundError(
                 "pytorch_ocl not found. Please install pytorch_ocl from https://github.com/artyom-beilis/pytorch_dlprim/releases/latest"
             )
 
-        arg = "ocl:0" if device == "ocl" else device
+        arg = "ocl:0" if device == "ocl" else device  # 'ocl' defaults to device 0
     else:  # revert to CPU
         s += f"CPU ({get_cpu_info()})\n"
         arg = "cpu"

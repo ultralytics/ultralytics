@@ -27,6 +27,7 @@ Here are some of the key models supported:
 13. **[YOLO-NAS](yolo-nas.md)**: YOLO Neural Architecture Search (NAS) Models.
 14. **[Realtime Detection Transformers (RT-DETR)](rtdetr.md)**: Baidu's PaddlePaddle Realtime Detection Transformer (RT-DETR) models.
 15. **[YOLO-World](yolo-world.md)**: Real-time Open Vocabulary Object Detection models from Tencent AI Lab.
+15. **[LeYOLO](leyolo.md)**: A highly efficient model, featuring innovations such as efficient backbone scaling, Fast Pyramidal Architecture Network (FPAN), and Decoupled Network-in-Network (DNiN) detection head.
 
 <p align="center">
   <br>

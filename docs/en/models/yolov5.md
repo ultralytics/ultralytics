@@ -34,7 +34,7 @@ This table provides a detailed overview of the YOLOv5u model variants, highlight
 
 !!! Performance
 
-    === "Detection"
+    === "Detection (COCO)"
 
     See [Detection Docs](../tasks/detect.md) for usage examples with these models trained on [COCO](../datasets/detect/coco.md), which include 80 pre-trained classes.
 

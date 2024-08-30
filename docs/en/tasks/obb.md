@@ -56,17 +56,17 @@ YOLOv8 pretrained OBB models are shown here, which are pretrained on the [DOTAv1
 
 | Pre-trained Weights | size<br><sup>(pixels) | mAP<sup>test<br>50 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
 | ------------------- | --------------------- | ------------------ | ------------------------------ | ----------------------------------- | ------------------ | ----------------- |
-| [yolo8n-obb.pt]     | 1024                  | 78.0               | 204.77                         | 3.57                                | 3.1                | 23.3              |
-| [yolo8s-obb.pt]     | 1024                  | 79.5               | 424.88                         | 4.07                                | 11.4               | 76.3              |
-| [yolo8m-obb.pt]     | 1024                  | 80.5               | 763.48                         | 7.61                                | 26.4               | 208.6             |
-| [yolo8l-obb.pt]     | 1024                  | 80.7               | 1278.42                        | 11.83                               | 44.5               | 433.8             |
-| [yolo8x-obb.pt]     | 1024                  | 81.36              | 1759.10                        | 13.23                               | 69.5               | 676.7             |
+| [yolov8n-obb.pt]    | 1024                  | 78.0               | 204.77                         | 3.57                                | 3.1                | 23.3              |
+| [yolov8s-obb.pt]    | 1024                  | 79.5               | 424.88                         | 4.07                                | 11.4               | 76.3              |
+| [yolov8m-obb.pt]    | 1024                  | 80.5               | 763.48                         | 7.61                                | 26.4               | 208.6             |
+| [yolov8l-obb.pt]    | 1024                  | 80.7               | 1278.42                        | 11.83                               | 44.5               | 433.8             |
+| [yolov8x-obb.pt]    | 1024                  | 81.36              | 1759.10                        | 13.23                               | 69.5               | 676.7             |
 
-[yolo8n-obb.pt]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n-obb.pt
-[yolo8s-obb.pt]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8s-obb.pt
-[yolo8m-obb.pt]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8m-obb.pt
-[yolo8l-obb.pt]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8l-obb.pt
-[yolo8x-obb.pt]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8x-obb.pt
+[yolov8n-obb.pt]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n-obb.pt
+[yolov8s-obb.pt]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8s-obb.pt
+[yolov8m-obb.pt]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8m-obb.pt
+[yolov8l-obb.pt]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8l-obb.pt
+[yolov8x-obb.pt]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8x-obb.pt
 
 - **mAP<sup>test</sup>** values are for single-model multiscale on [DOTAv1 test](https://captain-whu.github.io/DOTA/index.html) dataset. <br>Reproduce by `yolo val obb data=DOTAv1.yaml device=0 split=test` and submit merged results to [DOTA evaluation](https://captain-whu.github.io/DOTA/evaluation.html).
 - **Speed** averaged over DOTAv1 val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance. <br>Reproduce by `yolo val obb data=DOTAv1.yaml batch=1 device=0|cpu`

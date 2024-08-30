@@ -31,29 +31,6 @@ keywords: Open Images V7, Google dataset, computer vision, YOLOv8 models, object
 
 ![Open Images V7 classes visual](https://github.com/ultralytics/docs/releases/download/0/open-images-v7-classes-visual.avif)
 
-## Usage
-
-!!! Example "Predict Example"
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load a Open Images V7 pretrained YOLOv8n model
-        model = YOLO("yolov8n-oiv7.pt")
-
-        # Predict
-        results = model.predict()
-        ```
-
-    === "CLI"
-
-        ```bash
-        # Predict using a  Open Images V7 pretrained YOLOv8n model
-        yolo predict model=yolov8n-oiv7.pt 
-        ```
-
 ## Key Features
 
 - Encompasses ~9M images annotated in various ways to suit multiple computer vision tasks.
@@ -90,7 +67,7 @@ Typically, datasets come with a YAML (Yet Another Markup Language) file that del
     --8<-- "ultralytics/cfg/datasets/open-images-v7.yaml"
     ```
 
-## Training Usage
+## Usage
 
 To train a YOLOv8n model on the Open Images V7 dataset for 100 epochs with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 

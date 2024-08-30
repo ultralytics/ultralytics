@@ -38,7 +38,7 @@ This table provides a detailed overview of the YOLOv6 model variants, highlighti
 
 !!! Performance
 
-    === "Detection"
+    === "Detection (COCO)"
 
     YOLOv6 provides various pre-trained models with different scales: yolov6n, yolov6s, yolov6m, yolov6l These models are evaluated on the COCO dataset using an NVIDIA Tesla T4 GPU. The following table summarizes the performance metrics of YOLOv6 models:
 

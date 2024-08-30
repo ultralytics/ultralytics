@@ -36,17 +36,17 @@ YOLOv8 pretrained Classify models are shown here. Detect, Segment and Pose model
 
 | Pre-trained Weights | size<br><sup>(pixels) | acc<br><sup>top1 | acc<br><sup>top5 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) at 640 |
 | ------------------- | --------------------- | ---------------- | ---------------- | ------------------------------ | ----------------------------------- | ------------------ | ------------------------ |
-| [yolo8n-cls.pt]     | 224                   | 69.0             | 88.3             | 12.9                           | 0.31                                | 2.7                | 4.3                      |
-| [yolo8s-cls.pt]     | 224                   | 73.8             | 91.7             | 23.4                           | 0.35                                | 6.4                | 13.5                     |
-| [yolo8m-cls.pt]     | 224                   | 76.8             | 93.5             | 85.4                           | 0.62                                | 17.0               | 42.7                     |
-| [yolo8l-cls.pt]     | 224                   | 76.8             | 93.5             | 163.0                          | 0.87                                | 37.5               | 99.7                     |
-| [yolo8x-cls.pt]     | 224                   | 79.0             | 94.6             | 232.0                          | 1.01                                | 57.4               | 154.8                    |
+| [yolov8n-cls.pt]    | 224                   | 69.0             | 88.3             | 12.9                           | 0.31                                | 2.7                | 4.3                      |
+| [yolov8s-cls.pt]    | 224                   | 73.8             | 91.7             | 23.4                           | 0.35                                | 6.4                | 13.5                     |
+| [yolov8m-cls.pt]    | 224                   | 76.8             | 93.5             | 85.4                           | 0.62                                | 17.0               | 42.7                     |
+| [yolov8l-cls.pt]    | 224                   | 76.8             | 93.5             | 163.0                          | 0.87                                | 37.5               | 99.7                     |
+| [yolov8x-cls.pt]    | 224                   | 79.0             | 94.6             | 232.0                          | 1.01                                | 57.4               | 154.8                    |
 
-[yolo8n-cls.pt]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n-cls.pt
-[yolo8s-cls.pt]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8s-cls.pt
-[yolo8m-cls.pt]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8m-cls.pt
-[yolo8l-cls.pt]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8l-cls.pt
-[yolo8x-cls.pt]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8x-cls.pt
+[yolov8n-cls.pt]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n-cls.pt
+[yolov8s-cls.pt]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8s-cls.pt
+[yolov8m-cls.pt]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8m-cls.pt
+[yolov8l-cls.pt]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8l-cls.pt
+[yolov8x-cls.pt]: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8x-cls.pt
 
 - **acc** values are model accuracies on the [ImageNet](https://www.image-net.org/) dataset validation set. <br>Reproduce by `yolo val classify data=path/to/ImageNet device=0`
 - **Speed** averaged over ImageNet val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance. <br>Reproduce by `yolo val classify data=path/to/ImageNet batch=1 device=0|cpu`

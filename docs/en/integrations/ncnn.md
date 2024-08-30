@@ -13,7 +13,7 @@ The export to NCNN format feature allows you to optimize your [Ultralytics YOLOv
 ## Why should you export to NCNN?
 
 <p align="center">
-  <img width="100%" src="https://repository-images.githubusercontent.com/494294418/207a2e12-dc16-41a6-a39e-eae26e662638" alt="NCNN overview">
+  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/ncnn-overview.avif" alt="NCNN overview">
 </p>
 
 The [NCNN](https://github.com/Tencent/ncnn) framework, developed by Tencent, is a high-performance neural network inference computing framework optimized specifically for mobile platforms, including mobile phones, embedded devices, and IoT devices. NCNN is compatible with a wide range of platforms, including Linux, Android, iOS, and macOS.

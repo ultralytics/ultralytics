@@ -103,6 +103,7 @@ class AutoBackend(nn.Module):
             batch (int): Batch-size to assume for inference.
             fuse (bool): Fuse Conv2D + BatchNorm layers for optimization. Defaults to True.
             verbose (bool): Enable verbose logging. Defaults to True.
+            max_det (int): Maximum number of detections to return. Defaults to 300.
         """
         super().__init__()
         w = str(weights[0] if isinstance(weights, list) else weights)

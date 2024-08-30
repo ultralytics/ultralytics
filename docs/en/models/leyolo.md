@@ -28,10 +28,10 @@ LeYOLO marks a significant step forward in the realm of efficient object detecti
 
 | Model        | size<br><sup>(pixels) | mAP<sup>val<br>50-95 | params<br><sup>(M) | FLOPs (G) | Latency (ms) |
 | ------------ | --------------------- | -------------------- | ------------------ | --------- | ------------ |
-| LeYOLONano   | 640                   | 34.3                 |  1.1               | 2.6       | 2.9          |
-| LeYOLOSmall  | 640                   | 38.2                 |  1.9               | 4.5       | 3.8          |
-| LeYOLOMedium | 640                   | 39.3                 |  2.4               | 5.8       | 4.9          |
-| LeYOLOLarge  | 640                   | 39.2                 |  2.4               | 5.8       | 4.9          |
+| LeYOLONano   | 640                   | 34.3                 | 1.1                | 2.6       | 2.9          |
+| LeYOLOSmall  | 640                   | 38.2                 | 1.9                | 4.5       | 3.8          |
+| LeYOLOMedium | 640                   | 39.3                 | 2.4                | 5.8       | 4.9          |
+| LeYOLOLarge  | 640                   | 39.2                 | 2.4                | 5.8       | 4.9          |
 
 Latency measured on RTX 3060 GPU.
 
@@ -61,13 +61,13 @@ We would like to acknowledge the LeYOLO authors for their significant contributi
 
         ```bibtex
         @misc{hollard2024leyolonewscalableefficient,
-            title={LeYOLO, New Scalable and Efficient CNN Architecture for Object Detection}, 
+            title={LeYOLO, New Scalable and Efficient CNN Architecture for Object Detection},
             author={Lilian Hollard and Lucas Mohimont and Nathalie Gaveau and Luiz-Angelo Steffenel},
             year={2024},
             eprint={2406.14239},
             archivePrefix={arXiv},
             primaryClass={cs.CV},
-            url={https://arxiv.org/abs/2406.14239}, 
+            url={https://arxiv.org/abs/2406.14239},
         }
         ```
 

@@ -93,7 +93,7 @@ dev = [
     "mkdocstrings[python]",
     "mkdocs-jupyter", # notebooks
     "mkdocs-redirects", # 301 redirects
-    "mkdocs-ultralytics-plugin>=0.1.2", # for meta descriptions and images, dates and authors
+    "mkdocs-ultralytics-plugin>=0.1.6", # for meta descriptions and images, dates and authors
     "mkdocs-macros-plugin>=1.0.5"  # duplicating content (i.e. export tables) in multiple places
 ]
 export = [

@@ -25,13 +25,13 @@ You can upload your data to Roboflow via [web UI](https://docs.roboflow.com/addi
 
 After uploading data to Roboflow, you can label your data and review previous labels.
 
-[![Roboflow Annotate](https://roboflow-darknet.s3.us-east-2.amazonaws.com/roboflow-annotate.gif)](https://roboflow.com/annotate)
+[![Roboflow Annotate](https://github.com/ultralytics/docs/releases/download/0/roboflow-annotate-1.avif)](https://roboflow.com/annotate)
 
 ## Versioning
 
 You can make versions of your dataset with different preprocessing and offline augmentation options. YOLOv5 does online augmentations natively, so be intentional when layering Roboflow's offline augmentations on top.
 
-![Roboflow Preprocessing](https://roboflow-darknet.s3.us-east-2.amazonaws.com/robolfow-preprocessing.png)
+![Roboflow Preprocessing](https://github.com/ultralytics/docs/releases/download/0/roboflow-preprocessing.avif)
 
 ## Exporting Data
 
@@ -54,7 +54,7 @@ We have released a custom training tutorial demonstrating all of the above capab
 
 The real world is messy and your model will invariably encounter situations your dataset didn't anticipate. Using [active learning](https://blog.roboflow.com/what-is-active-learning/) is an important strategy to iteratively improve your dataset and model. With the Roboflow and YOLOv5 integration, you can quickly make improvements on your model deployments by using a battle tested machine learning pipeline.
 
-<p align=""><a href="https://roboflow.com/?ref=ultralytics"><img width="1000" src="https://uploads-ssl.webflow.com/5f6bc60e665f54545a1e52a5/615627e5824c9c6195abfda9_computer-vision-cycle.png" alt="Roboflow active learning"></a></p>
+<p align=""><a href="https://roboflow.com/?ref=ultralytics"><img width="1000" src="https://github.com/ultralytics/docs/releases/download/0/roboflow-active-learning.avif" alt="Roboflow active learning"></a></p>
 
 ## Supported Environments
 

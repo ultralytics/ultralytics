@@ -16,7 +16,7 @@ This document presents an overview of three closely related object detection mod
 
 3. **YOLOv3u:** This is an updated version of YOLOv3-Ultralytics that incorporates the anchor-free, objectness-free split head used in YOLOv8 models. YOLOv3u maintains the same backbone and neck architecture as YOLOv3 but with the updated detection head from YOLOv8.
 
-![Ultralytics YOLOv3](https://raw.githubusercontent.com/ultralytics/assets/main/yolov3/banner-yolov3.png)
+![Ultralytics YOLOv3](https://github.com/ultralytics/docs/releases/download/0/ultralytics-yolov3-banner.avif)
 
 ## Key Features
 

@@ -33,10 +33,10 @@ keywords: Ultralytics YOLOv8, speed estimation, object tracking, computer vision
 
 ## Real World Applications
 
-|                                                                     Transportation                                                                      |                                                                      Transportation                                                                       |
-| :-----------------------------------------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------------------------------: |
+|                                                                            Transportation                                                                            |                                                                              Transportation                                                                              |
+| :------------------------------------------------------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
 | ![Speed Estimation on Road using Ultralytics YOLOv8](https://github.com/ultralytics/docs/releases/download/0/speed-estimation-on-road-using-ultralytics-yolov8.avif) | ![Speed Estimation on Bridge using Ultralytics YOLOv8](https://github.com/ultralytics/docs/releases/download/0/speed-estimation-on-bridge-using-ultralytics-yolov8.avif) |
-|                                                    Speed Estimation on Road using Ultralytics YOLOv8                                                    |                                                    Speed Estimation on Bridge using Ultralytics YOLOv8                                                    |
+|                                                          Speed Estimation on Road using Ultralytics YOLOv8                                                           |                                                           Speed Estimation on Bridge using Ultralytics YOLOv8                                                            |
 
 !!! Example "Speed Estimation using YOLOv8 Example"
 

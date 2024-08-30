@@ -29,10 +29,10 @@ keywords: object counting, regions, YOLOv8, computer vision, Ultralytics, effici
 
 ## Real World Applications
 
-|                                                                               Retail                                                                               |                                                                          Market Streets                                                                           |
-| :----------------------------------------------------------------------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------------------------------------------------------------------: |
+|                                                                                      Retail                                                                                       |                                                                                 Market Streets                                                                                  |
+| :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
 | ![People Counting in Different Region using Ultralytics YOLOv8](https://github.com/ultralytics/docs/releases/download/0/people-counting-different-region-ultralytics-yolov8.avif) | ![Crowd Counting in Different Region using Ultralytics YOLOv8](https://github.com/ultralytics/docs/releases/download/0/crowd-counting-different-region-ultralytics-yolov8.avif) |
-|                                                    People Counting in Different Region using Ultralytics YOLOv8                                                    |                                                    Crowd Counting in Different Region using Ultralytics YOLOv8                                                    |
+|                                                           People Counting in Different Region using Ultralytics YOLOv8                                                            |                                                           Crowd Counting in Different Region using Ultralytics YOLOv8                                                           |
 
 ## Steps to Run
 

@@ -29,10 +29,10 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
 
 ## Real World Applications
 
-|                                                                 Transportation                                                                  |                                                                 Retail                                                                  |
-| :---------------------------------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------------: |
+|                                                                    Transportation                                                                    |                                                                Retail                                                                |
+| :--------------------------------------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------------------------: |
 | ![Ultralytics YOLOv8 Transportation Heatmap](https://github.com/ultralytics/docs/releases/download/0/ultralytics-yolov8-transportation-heatmap.avif) | ![Ultralytics YOLOv8 Retail Heatmap](https://github.com/ultralytics/docs/releases/download/0/ultralytics-yolov8-retail-heatmap.avif) |
-|                                                    Ultralytics YOLOv8 Transportation Heatmap                                                    |                                                    Ultralytics YOLOv8 Retail Heatmap                                                    |
+|                                                      Ultralytics YOLOv8 Transportation Heatmap                                                       |                                                  Ultralytics YOLOv8 Retail Heatmap                                                   |
 
 !!! tip "Heatmap Configuration"
 

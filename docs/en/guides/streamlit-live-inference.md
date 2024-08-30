@@ -21,10 +21,10 @@ Streamlit makes it simple to build and deploy interactive web applications. Comb
   <strong>Watch:</strong> How to Use Streamlit with Ultralytics for Real-Time Computer Vision in Your Browser
 </p>
 
-|                                                                   Aquaculture                                                                   |                                                                 Animals husbandry                                                                  |
-| :---------------------------------------------------------------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------------------------------------------------: |
+|                                                                Aquaculture                                                                 |                                                          Animals husbandry                                                           |
+| :----------------------------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------------------------: |
 | ![Fish Detection using Ultralytics YOLOv8](https://github.com/ultralytics/docs/releases/download/0/fish-detection-ultralytics-yolov8.avif) | ![Animals Detection using Ultralytics YOLOv8](https://github.com/ultralytics/docs/releases/download/0/animals-detection-yolov8.avif) |
-|                                                     Fish Detection using Ultralytics YOLOv8                                                     |                                                     Animals Detection using Ultralytics YOLOv8                                                     |
+|                                                  Fish Detection using Ultralytics YOLOv8                                                   |                                              Animals Detection using Ultralytics YOLOv8                                              |
 
 ## Advantages of Live Inference
 

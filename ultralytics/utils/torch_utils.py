@@ -670,7 +670,7 @@ def profile(input, ops, n=10, device=None):
                 LOGGER.info(e)
                 results.append(None)
             gc.collect()  # attempt to free unused memory
-            torch.cuda.empty_cache()
+            torch.ocl.empty_cache() if device.type == "ocl" else torch.cuda.empty_cache()
     return results
 
 

@@ -172,7 +172,7 @@ class BaseTrainer:
             world_size = len(self.args.device.split(","))
         elif isinstance(self.args.device, (tuple, list)):  # i.e. device=[0, 1, 2, 3] (multi-GPU from CLI is list)
             world_size = len(self.args.device)
-        elif self.args.device in {"cpu", "mps"}:  # i.e. device='cpu' or 'mps'
+        elif self.args.device in {"cpu", "mps"} or self.args.device.startswith("ocl"):  # i.e. device='cpu' or 'mps' or 'ocl'
             world_size = 0
         elif torch.cuda.is_available():  # i.e. device=None or device='' or device=number
             world_size = 1  # default to device 0
@@ -450,7 +450,7 @@ class BaseTrainer:
                 self.stop |= epoch >= self.epochs  # stop if exceeded epochs
             self.run_callbacks("on_fit_epoch_end")
             gc.collect()
-            torch.cuda.empty_cache()  # clear GPU memory at end of epoch, may help reduce CUDA out of memory errors
+            torch.ocl.empty_cache() if self.device.type == "ocl" else torch.cuda.empty_cache()  # clear GPU memory at end of epoch, may help reduce GPU out of memory errors
 
             # Early Stopping
             if RANK != -1:  # if DDP training
@@ -472,7 +472,7 @@ class BaseTrainer:
                 self.plot_metrics()
             self.run_callbacks("on_train_end")
         gc.collect()
-        torch.cuda.empty_cache()
+        torch.ocl.empty_cache() if self.device.type == "ocl" else torch.cuda.empty_cache()
         self.run_callbacks("teardown")
 
     def read_results_csv(self):

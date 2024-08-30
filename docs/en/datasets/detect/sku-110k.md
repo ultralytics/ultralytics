@@ -19,7 +19,7 @@ The [SKU-110k](https://github.com/eg4000/SKU110K_CVPR19) dataset is a collection
   <strong>Watch:</strong> How to Train YOLOv10 on SKU-110k Dataset using Ultralytics | Retail Dataset
 </p>
 
-![Dataset sample image](https://user-images.githubusercontent.com/26833433/277141199-e7cdd803-237e-4b4a-9171-f95cba9388f9.jpg)
+![Dataset sample image](https://github.com/ultralytics/docs/releases/download/0/densely-packed-retail-shelf.avif)
 
 ## Key Features
 
@@ -78,7 +78,7 @@ To train a YOLOv8n model on the SKU-110K dataset for 100 epochs with an image si
 
 The SKU-110k dataset contains a diverse set of retail shelf images with densely packed objects, providing rich context for object detection tasks. Here are some examples of data from the dataset, along with their corresponding annotations:
 
-![Dataset sample image](https://user-images.githubusercontent.com/26833433/277141197-b63e4aa5-12f6-4673-96a7-9a5207363c59.jpg)
+![Dataset sample image](https://github.com/ultralytics/docs/releases/download/0/densely-packed-retail-shelf-1.avif)
 
 - **Densely packed retail shelf image**: This image demonstrates an example of densely packed objects in a retail shelf setting. Objects are annotated with bounding boxes and SKU category labels.
 

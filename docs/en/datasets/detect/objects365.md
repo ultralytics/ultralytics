@@ -65,7 +65,7 @@ To train a YOLOv8n model on the Objects365 dataset for 100 epochs with an image 
 
 The Objects365 dataset contains a diverse set of high-resolution images with objects from 365 categories, providing rich context for object detection tasks. Here are some examples of the images in the dataset:
 
-![Dataset sample image](https://user-images.githubusercontent.com/26833433/238215467-caf757dd-0b87-4b0d-bb19-d94a547f7fbf.jpg)
+![Dataset sample image](https://github.com/ultralytics/docs/releases/download/0/objects365-sample-image.avif)
 
 - **Objects365**: This image demonstrates an example of object detection, where objects are annotated with bounding boxes. The dataset provides a wide range of images to facilitate the development of models for this task.
 

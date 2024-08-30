@@ -67,7 +67,7 @@ To train a YOLO model on the CIFAR-10 dataset for 100 epochs with an image size 
 
 The CIFAR-10 dataset contains color images of various objects, providing a well-structured dataset for image classification tasks. Here are some examples of images from the dataset:
 
-![Dataset sample image](https://miro.medium.com/max/1100/1*SZnidBt7CQ4Xqcag6rd8Ew.png)
+![Dataset sample image](https://github.com/ultralytics/docs/releases/download/0/cifar10-sample-image.avif)
 
 The example showcases the variety and complexity of the objects in the CIFAR-10 dataset, highlighting the importance of a diverse dataset for training robust image classification models.
 

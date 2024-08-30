@@ -22,7 +22,7 @@ Training YOLOv8 models on Google Colab is pretty straightforward. Thanks to the 
 
 Sign in to your Google account and run the notebook's cells to train your model.
 
-![Training YOLOv8 Using Google Colab](https://github.com/ultralytics/ultralytics/assets/25847604/71779530-619e-4518-aced-5d56e1e8eab3)
+![Training YOLOv8 Using Google Colab](https://github.com/ultralytics/docs/releases/download/0/training-yolov8-using-google-colab.avif)
 
 Learn how to train a YOLOv8 model with custom data on YouTube with Nicolai. Check out the guide below.
 
@@ -67,7 +67,7 @@ Now, let's look at some of the standout features that make Google Colab a go-to 
 
 - **Hardware Resources:** Users also switch between different hardware options by modifying the runtime settings as shown below. Google Colab provides access to advanced hardware like Tesla K80 GPUs and TPUs, which are specialized circuits designed specifically for machine learning tasks.
 
-![Runtime Settings](https://github.com/ultralytics/ultralytics/assets/25847604/89a71a81-2784-4182-ad53-f024807d1dcc)
+![Runtime Settings](https://github.com/ultralytics/docs/releases/download/0/runtime-settings.avif)
 
 - **Collaboration:** Google Colab makes collaborating and working with other developers easy. You can easily share your notebooks with others and perform edits in real-time.
 

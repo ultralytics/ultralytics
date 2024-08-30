@@ -21,7 +21,7 @@ The Fast Segment Anything Model (FastSAM) is a novel, real-time CNN-based soluti
 
 ## Model Architecture
 
-![Fast Segment Anything Model (FastSAM) architecture overview](https://user-images.githubusercontent.com/26833433/248551984-d98f0f6d-7535-45d0-b380-2e1440b52ad7.jpg)
+![Fast Segment Anything Model (FastSAM) architecture overview](https://github.com/ultralytics/docs/releases/download/0/fastsam-architecture-overview.avif)
 
 ## Overview
 

@@ -7,7 +7,7 @@ model_name: yolov8n-cls
 
 # Image Classification
 
-<img width="1024" src="https://user-images.githubusercontent.com/26833433/243418606-adf35c62-2e11-405d-84c6-b84e7d013804.png" alt="Image classification examples">
+<img width="1024" src="https://github.com/ultralytics/docs/releases/download/0/image-classification-examples.avif" alt="Image classification examples">
 
 Image classification is the simplest of the three tasks and involves classifying an entire image into one of a set of predefined classes.
 

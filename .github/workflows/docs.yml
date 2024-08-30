@@ -17,7 +17,7 @@ name: Publish Docs
 on:
   push:
     branches: [main]
-  pull_request:
+  pull_request_target:
     branches: [main]
   workflow_dispatch:
 
@@ -48,7 +48,7 @@ jobs:
         continue-on-error: true
         run: ruff check --fix --fix-unsafe --select D --ignore=D100,D104,D203,D205,D212,D213,D401,D406,D407,D413 .
       - name: Update Docs Reference Section and Push Changes
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request_target'
         run: |
           python docs/build_reference.py
           git pull origin ${{ github.head_ref || github.ref }}
@@ -68,7 +68,7 @@ jobs:
           python docs/build_docs.py
       - name: Commit and Push Docs changes
         continue-on-error: true
-        if: always() && github.event_name == 'pull_request'
+        if: always() && github.event_name == 'pull_request_target'
         run: |
           git pull origin ${{ github.head_ref || github.ref }}
           git add --update  # only add updated files

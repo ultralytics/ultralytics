@@ -79,8 +79,8 @@ jobs:
               publish = True  # First release
 
           os.system(f'echo "increment={publish}" >> $GITHUB_OUTPUT')
-          os.system(f'echo "version={local_version}" >> $GITHUB_OUTPUT')
-          os.system(f'echo "previous_version={online_version or "N/A"}" >> $GITHUB_OUTPUT')
+          os.system(f'echo "current_tag=v{local_version}" >> $GITHUB_OUTPUT')
+          os.system(f'echo "previous_tag=v{online_version}" >> $GITHUB_OUTPUT')
 
           if publish:
               print('Ready to publish new version to PyPI ✅.')
@@ -88,15 +88,15 @@ jobs:
       - name: Publish new tag
         if: (github.event_name == 'push' || github.event.inputs.pypi == 'true')  && steps.check_pypi.outputs.increment == 'True'
         run: |
-          git tag -a "v${{ steps.check_pypi.outputs.version }}" -m "$(git log -1 --pretty=%B)"  # i.e. "v0.1.2 commit message"
-          git push origin "v${{ steps.check_pypi.outputs.version }}"
+          git tag -a "${{ steps.check_pypi.outputs.current_tag }}" -m "$(git log -1 --pretty=%B)"  # i.e. "v0.1.2 commit message"
+          git push origin "${{ steps.check_pypi.outputs.current_tag }}"
       - name: Publish new release
         if: (github.event_name == 'push' || github.event.inputs.pypi == 'true')  && steps.check_pypi.outputs.increment == 'True'
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN || secrets.GITHUB_TOKEN }}
-          CURRENT_TAG: ${{ steps.check_pypi.outputs.version }}
-          PREVIOUS_TAG: ${{ steps.check_pypi.outputs.previous_version }}
+          CURRENT_TAG: ${{ steps.check_pypi.outputs.current_tag }}
+          PREVIOUS_TAG: ${{ steps.check_pypi.outputs.previous_tag }}
         run: |
           curl -s "https://raw.githubusercontent.com/ultralytics/actions/main/utils/summarize_release.py" | python -
         shell: bash
@@ -130,7 +130,7 @@ jobs:
         uses: slackapi/slack-github-action@v1.26.0
         with:
           payload: |
-            {"text": "<!channel> GitHub Actions success for ${{ github.workflow }} ✅\n\n\n*Repository:* https://github.com/${{ github.repository }}\n*Action:* https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\n*Author:* ${{ github.actor }}\n*Event:* NEW '${{ github.repository }} v${{ steps.check_pypi.outputs.version }}' pip package published 😃\n*Job Status:* ${{ job.status }}\n*Pull Request:* <https://github.com/${{ github.repository }}/pull/${{ env.PR_NUMBER }}> ${{ env.PR_TITLE }}\n"}
+            {"text": "<!channel> GitHub Actions success for ${{ github.workflow }} ✅\n\n\n*Repository:* https://github.com/${{ github.repository }}\n*Action:* https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\n*Author:* ${{ github.actor }}\n*Event:* NEW '${{ github.repository }} ${{ steps.check_pypi.outputs.current_tag }}' pip package published 😃\n*Job Status:* ${{ job.status }}\n*Pull Request:* <https://github.com/${{ github.repository }}/pull/${{ env.PR_NUMBER }}> ${{ env.PR_TITLE }}\n"}
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_YOLO }}
       - name: Notify on Slack (Failure)

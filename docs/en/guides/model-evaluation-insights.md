@@ -27,7 +27,7 @@ _Quick Tip:_ When running inferences, if you aren't seeing any predictions and y
 Intersection over Union (IoU) is a metric in object detection that measures how well the predicted bounding box overlaps with the ground truth bounding box. IoU values range from 0 to 1, where one stands for a perfect match. IoU is essential because it measures how closely the predicted boundaries match the actual object boundaries.
 
 <p align="center">
-  <img width="100%" src="https://learnopencv.com/wp-content/uploads/2022/12/feature-image-iou-1.jpg" alt="Intersection over Union Overview">
+  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/intersection-over-union-overview.avif" alt="Intersection over Union Overview">
 </p>
 
 ### Mean Average Precision
@@ -42,7 +42,7 @@ Let's focus on two specific mAP metrics:
 Other mAP metrics include mAP@0.75, which uses a stricter IoU threshold of 0.75, and mAP@small, medium, and large, which evaluate precision across objects of different sizes.
 
 <p align="center">
-  <img width="100%" src="https://a.storyblok.com/f/139616/1200x800/913f78e511/ways-to-improve-mean-average-precision.webp" alt="Mean Average Precision Overview">
+  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/mean-average-precision-overview.avif" alt="Mean Average Precision Overview">
 </p>
 
 ## Evaluating YOLOv8 Model Performance

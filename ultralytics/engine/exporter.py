@@ -204,8 +204,9 @@ class Exporter:
             self.args.half = False
             assert not self.args.dynamic, "half=True not compatible with dynamic=True, i.e. use only one."
         self.imgsz = check_imgsz(self.args.imgsz, stride=model.stride, min_dim=2)  # check image size
-        if self.args.int8 and (engine or xml):
+        if self.args.int8 and not self.args.dynamic and (engine or xml):
             self.args.dynamic = True  # enforce dynamic to export TensorRT INT8; ensures ONNX is dynamic
+            LOGGER.warning("WARNING ⚠️ INT8 export requires dynamic image sizes, setting dynamic=True.")
         if self.args.optimize:
             assert not ncnn, "optimize=True not compatible with format='ncnn', i.e. use optimize=False"
             assert self.device.type == "cpu", "optimize=True not compatible with cuda devices, i.e. use device='cpu'"

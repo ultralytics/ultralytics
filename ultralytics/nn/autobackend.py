@@ -149,6 +149,7 @@ class AutoBackend(nn.Module):
             model.half() if fp16 else model.float()
             self.model = model  # explicitly assign for to(), cpu(), cuda(), half()
             pt = True
+
         # PyTorch
         elif pt:
             from ultralytics.nn.tasks import attempt_load_weights

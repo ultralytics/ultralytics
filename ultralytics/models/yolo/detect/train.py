@@ -86,7 +86,6 @@ class DetectionTrainer(BaseTrainer):
     def get_model(self, cfg=None, weights=None, verbose=True):
         """Return a YOLO detection model."""
         model = DetectionModel(cfg, nc=self.data["nc"], verbose=verbose and RANK == -1)
-        model.model[-1].max_det = self.args.max_det
         if weights:
             model.load(weights)
         return model

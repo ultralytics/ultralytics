@@ -309,7 +309,6 @@ class BasePredictor:
             batch=self.args.batch,
             fuse=True,
             verbose=verbose,
-            max_det=self.args.max_det,
         )
 
         self.device = self.model.device  # update device

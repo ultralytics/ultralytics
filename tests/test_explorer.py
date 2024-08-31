@@ -8,7 +8,7 @@ from ultralytics.utils import ASSETS
 from ultralytics.utils.torch_utils import TORCH_1_13
 
 
-#@pytest.mark.slow
+# @pytest.mark.slow
 @pytest.mark.skipif(not TORCH_1_13, reason="Explorer requires torch>=1.13")
 def test_similarity():
     """Test the correctness and response length of similarity calculations and SQL queries in the Explorer."""
@@ -26,7 +26,7 @@ def test_similarity():
     assert len(sql) == 1
 
 
-#@pytest.mark.slow
+# @pytest.mark.slow
 @pytest.mark.skipif(not TORCH_1_13, reason="Explorer requires torch>=1.13")
 def test_det():
     """Test detection functionalities and verify embedding table includes bounding boxes."""
@@ -40,7 +40,7 @@ def test_det():
     assert isinstance(similar, PIL.Image.Image)
 
 
-#@pytest.mark.slow
+# @pytest.mark.slow
 @pytest.mark.skipif(not TORCH_1_13, reason="Explorer requires torch>=1.13")
 def test_seg():
     """Test segmentation functionalities and ensure the embedding table includes segmentation masks."""
@@ -53,7 +53,7 @@ def test_seg():
     assert isinstance(similar, PIL.Image.Image)
 
 
-#@pytest.mark.slow
+# @pytest.mark.slow
 @pytest.mark.skipif(not TORCH_1_13, reason="Explorer requires torch>=1.13")
 def test_pose():
     """Test pose estimation functionality and verify the embedding table includes keypoints."""

@@ -91,6 +91,10 @@ keywords: Ultralytics, metrics, model validation, performance analysis, IoU, con
 
 <br><br><hr><br>
 
+## ::: ultralytics.utils.metrics.export_optimal_thresholds
+
+<br><br><hr><br>
+
 ## ::: ultralytics.utils.metrics.ap_per_class
 
 <br><br>

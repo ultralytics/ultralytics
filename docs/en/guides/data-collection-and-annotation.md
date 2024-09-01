@@ -62,7 +62,7 @@ Depending on the specific requirements of a [computer vision task](../tasks/inde
 - **Keypoints**: Specific points marked within an image to identify locations of interest. Keypoints are used in tasks like pose estimation and facial landmark detection.
 
 <p align="center">
-  <img width="100%" src="https://labelyourdata.com/img/article-illustrations/types_of_da_light.jpg" alt="Types of Data Annotation">
+  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/types-of-data-annotation.avif" alt="Types of Data Annotation">
 </p>
 
 ### Common Annotation Formats
@@ -91,7 +91,7 @@ Let's say you are ready to annotate now. There are several open-source tools ava
 - **[Labelme](https://github.com/labelmeai/labelme)**: A simple and easy-to-use tool that allows for quick annotation of images with polygons, making it ideal for straightforward tasks.
 
 <p align="center">
-  <img width="100%" src="https://github.com/labelmeai/labelme/raw/main/examples/instance_segmentation/.readme/annotation.jpg" alt="LabelMe Overview">
+  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/labelme-instance-segmentation-annotation.avif" alt="LabelMe Overview">
 </p>
 
 These open-source tools are budget-friendly and provide a range of features to meet different annotation needs.
@@ -105,7 +105,7 @@ Before you dive into annotating your data, there are a few more things to keep i
 It's important to understand the difference between accuracy and precision and how it relates to annotation. Accuracy refers to how close the annotated data is to the true values. It helps us measure how closely the labels reflect real-world scenarios. Precision indicates the consistency of annotations. It checks if you are giving the same label to the same object or feature throughout the dataset. High accuracy and precision lead to better-trained models by reducing noise and improving the model's ability to generalize from the training data.
 
 <p align="center">
-  <img width="100%" src="https://keylabs.ai/blog/content/images/size/w1600/2023/12/new26-3.jpg" alt="Example of Precision">
+  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/example-of-precision.avif" alt="Example of Precision">
 </p>
 
 #### Identifying Outliers

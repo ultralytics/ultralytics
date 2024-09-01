@@ -10,7 +10,7 @@ from ultralytics.utils.checks import check_imshow
 from ultralytics.utils.plotting import Annotator, colors
 
 
-class IllegalParking(object):
+class IllegalParking:
     """A class for judging illegal parking in a real-time video stream based on their tracks."""
 
     def __init__(

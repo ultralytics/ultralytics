@@ -8,7 +8,7 @@ keywords: SAM 2, Segment Anything, video segmentation, image segmentation, promp
 
 SAM 2, the successor to Meta's [Segment Anything Model (SAM)](sam.md), is a cutting-edge tool designed for comprehensive object segmentation in both images and videos. It excels in handling complex visual data through a unified, promptable model architecture that supports real-time processing and zero-shot generalization.
 
-![SAM 2 Example Results](https://github.com/facebookresearch/segment-anything-2/raw/main/assets/sa_v_dataset.jpg?raw=true)
+![SAM 2 Example Results](https://github.com/ultralytics/docs/releases/download/0/sa-v-dataset.avif)
 
 ## Key Features
 
@@ -54,7 +54,7 @@ SAM 2 sets a new benchmark in the field, outperforming previous models on variou
 - **Memory Mechanism**: Includes a memory encoder, memory bank, and memory attention module. These components collectively store and utilize information from past frames, enabling the model to maintain consistent object tracking over time.
 - **Mask Decoder**: Generates the final segmentation masks based on the encoded image features and prompts. In video, it also uses memory context to ensure accurate tracking across frames.
 
-![SAM 2 Architecture Diagram](https://github.com/facebookresearch/segment-anything-2/blob/main/assets/model_diagram.png?raw=true)
+![SAM 2 Architecture Diagram](https://github.com/facebookresearch/segment-anything-2/blob/main/assets/model_diagram.png)
 
 ### Memory Mechanism and Occlusion Handling
 
@@ -168,47 +168,45 @@ SAM 2 can be utilized across a broad spectrum of tasks, including real-time vide
 
 - This example demonstrates how SAM 2 can be used to segment the entire content of an image or video if no prompts (bboxes/points/masks) are provided.
 
-## SAM comparison vs YOLOv8
+## SAM 2 comparison vs YOLOv8
 
-Here we compare Meta's smallest SAM model, SAM-b, with Ultralytics smallest segmentation model, [YOLOv8n-seg](../tasks/segment.md):
+Here we compare Meta's smallest SAM 2 model, SAM2-t, with Ultralytics smallest segmentation model, [YOLOv8n-seg](../tasks/segment.md):
 
-| Model                                          | Size                       | Parameters             | Speed (CPU)                |
-| ---------------------------------------------- | -------------------------- | ---------------------- | -------------------------- |
-| Meta's SAM-b                                   | 358 MB                     | 94.7 M                 | 51096 ms/im                |
-| [MobileSAM](mobile-sam.md)                     | 40.7 MB                    | 10.1 M                 | 46122 ms/im                |
-| [FastSAM-s](fast-sam.md) with YOLOv8 backbone  | 23.7 MB                    | 11.8 M                 | 115 ms/im                  |
-| Ultralytics [YOLOv8n-seg](../tasks/segment.md) | **6.7 MB** (53.4x smaller) | **3.4 M** (27.9x less) | **59 ms/im** (866x faster) |
+| Model                                          | Size<br><sup>(MB)</sup> | Parameters<br><sup>(M)</sup> | Speed (CPU)<br><sup>(ms/im)</sup> |
+| ---------------------------------------------- | ----------------------- | ---------------------------- | --------------------------------- |
+| [Meta SAM-b](sam.md)                           | 375                     | 93.7                         | 161440                            |
+| Meta SAM2-b                                    | 162                     | 80.8                         | 121923                            |
+| Meta SAM2-t                                    | 78.1                    | 38.9                         | 85155                             |
+| [MobileSAM](mobile-sam.md)                     | 40.7                    | 10.1                         | 98543                             |
+| [FastSAM-s](fast-sam.md) with YOLOv8 backbone  | 23.7                    | 11.8                         | 140                               |
+| Ultralytics [YOLOv8n-seg](../tasks/segment.md) | **6.7** (11.7x smaller) | **3.4** (11.4x less)         | **79.5** (1071x faster)           |
 
 This comparison shows the order-of-magnitude differences in the model sizes and speeds between models. Whereas SAM presents unique capabilities for automatic segmenting, it is not a direct competitor to YOLOv8 segment models, which are smaller, faster and more efficient.
 
-Tests run on a 2023 Apple M2 Macbook with 16GB of RAM. To reproduce this test:
+Tests run on a 2023 Apple M2 Macbook with 16GB of RAM using `torch==2.3.1` and `ultralytics==8.3.82`. To reproduce this test:
 
 !!! Example
 
     === "Python"
 
         ```python
-        from ultralytics import SAM, YOLO, FastSAM
+        from ultralytics import ASSETS, SAM, YOLO, FastSAM
 
-        # Profile SAM-b
-        model = SAM("sam_b.pt")
-        model.info()
-        model("ultralytics/assets")
-
-        # Profile MobileSAM
-        model = SAM("mobile_sam.pt")
-        model.info()
-        model("ultralytics/assets")
+        # Profile SAM2-t, SAM2-b, SAM-b, MobileSAM
+        for file in ["sam_b.pt", "sam2_b.pt", "sam2_t.pt", "mobile_sam.pt"]:
+            model = SAM(file)
+            model.info()
+            model(ASSETS)
 
         # Profile FastSAM-s
         model = FastSAM("FastSAM-s.pt")
         model.info()
-        model("ultralytics/assets")
+        model(ASSETS)
 
         # Profile YOLOv8n-seg
         model = YOLO("yolov8n-seg.pt")
         model.info()
-        model("ultralytics/assets")
+        model(ASSETS)
         ```
 
 ## Auto-Annotation: Efficient Dataset Creation
@@ -331,11 +329,13 @@ This mechanism ensures continuity even when objects are temporarily obscured or 
 
 SAM 2 and Ultralytics YOLOv8 serve different purposes and excel in different areas. While SAM 2 is designed for comprehensive object segmentation with advanced features like zero-shot generalization and real-time performance, YOLOv8 is optimized for speed and efficiency in object detection and segmentation tasks. Here's a comparison:
 
-| Model                                          | Size                       | Parameters             | Speed (CPU)                |
-| ---------------------------------------------- | -------------------------- | ---------------------- | -------------------------- |
-| Meta's SAM-b                                   | 358 MB                     | 94.7 M                 | 51096 ms/im                |
-| [MobileSAM](mobile-sam.md)                     | 40.7 MB                    | 10.1 M                 | 46122 ms/im                |
-| [FastSAM-s](fast-sam.md) with YOLOv8 backbone  | 23.7 MB                    | 11.8 M                 | 115 ms/im                  |
-| Ultralytics [YOLOv8n-seg](../tasks/segment.md) | **6.7 MB** (53.4x smaller) | **3.4 M** (27.9x less) | **59 ms/im** (866x faster) |
+| Model                                          | Size<br><sup>(MB)</sup> | Parameters<br><sup>(M)</sup> | Speed (CPU)<br><sup>(ms/im)</sup> |
+| ---------------------------------------------- | ----------------------- | ---------------------------- | --------------------------------- |
+| [Meta SAM-b](sam.md)                           | 375                     | 93.7                         | 161440                            |
+| Meta SAM2-b                                    | 162                     | 80.8                         | 121923                            |
+| Meta SAM2-t                                    | 78.1                    | 38.9                         | 85155                             |
+| [MobileSAM](mobile-sam.md)                     | 40.7                    | 10.1                         | 98543                             |
+| [FastSAM-s](fast-sam.md) with YOLOv8 backbone  | 23.7                    | 11.8                         | 140                               |
+| Ultralytics [YOLOv8n-seg](../tasks/segment.md) | **6.7** (11.7x smaller) | **3.4** (11.4x less)         | **79.5** (1071x faster)           |
 
-For more details, see the [SAM comparison vs YOLOv8](#sam-comparison-vs-yolov8) section.
+For more details, see the [SAM 2 comparison vs YOLOv8](#sam-2-comparison-vs-yolov8) section.

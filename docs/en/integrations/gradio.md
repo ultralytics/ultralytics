@@ -28,7 +28,7 @@ This Gradio interface provides an easy and interactive way to perform object det
 - **Broad Accessibility:** The Gradio web interface can be accessed by anyone, making it an excellent tool for demonstrations, educational purposes, and quick experiments.
 
 <p align="center">
-   <img width="800" alt="Gradio example screenshot" src="https://github.com/RizwanMunawar/ultralytics/assets/26833433/52ee3cd2-ac59-4c27-9084-0fd05c6c33be">
+   <img width="800" alt="Gradio example screenshot" src="https://github.com/ultralytics/docs/releases/download/0/gradio-example-screenshot.avif">
 </p>
 
 ## How to Install the Gradio

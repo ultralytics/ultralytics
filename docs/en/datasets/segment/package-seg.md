@@ -61,7 +61,7 @@ To train Ultralytics YOLOv8n model on the Package Segmentation dataset for 100 e
 
 The Package Segmentation dataset comprises a varied collection of images and videos captured from multiple perspectives. Below are instances of data from the dataset, accompanied by their respective annotations:
 
-![Dataset sample image](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/55bdf5c8-4ae4-4824-8d08-63c15bdd9a92)
+![Dataset sample image](https://github.com/ultralytics/docs/releases/download/0/dataset-sample-image-1.avif)
 
 - This image displays an instance of image object detection, featuring annotated bounding boxes with masks outlining recognized objects. The dataset incorporates a diverse collection of images taken in different locations, environments, and densities. It serves as a comprehensive resource for developing models specific to this task.
 - The example emphasizes the diversity and complexity present in the VisDrone dataset, underscoring the significance of high-quality sensor data for computer vision tasks involving drones.

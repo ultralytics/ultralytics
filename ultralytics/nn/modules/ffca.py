@@ -70,7 +70,7 @@ class Faster_Block(nn.Module):
             self.adjust_channel = Conv(inc, dim, 1)
 
         if layer_scale_init_value > 0:
-            self.layer_scale = nn.Parameter(layer_scale_init_value * torch.ones((dim)), requires_grad=True)
+            self.layer_scale = nn.Parameter(layer_scale_init_value * torch.ones(dim), requires_grad=True)
             self.forward = self.forward_layer_scale
         else:
             self.forward = self.forward
@@ -113,7 +113,7 @@ class Conv_withoutBN(nn.Module):
 
 class SCAM(nn.Module):
     def __init__(self, in_channels, reduction=1):
-        super(SCAM, self).__init__()
+        super().__init__()
         self.in_channels = in_channels
         self.inter_channels = in_channels
 
@@ -155,7 +155,7 @@ class SCAM(nn.Module):
 
 class FFM_Concat2(nn.Module):
     def __init__(self, dimension=1, Channel1=1, Channel2=1):
-        super(FFM_Concat2, self).__init__()
+        super().__init__()
         self.d = dimension
         self.Channel1 = Channel1
         self.Channel2 = Channel2
@@ -182,7 +182,7 @@ class FFM_Concat2(nn.Module):
 
 class FFM_Concat3(nn.Module):
     def __init__(self, dimension=1, Channel1=1, Channel2=1, Channel3=1):
-        super(FFM_Concat3, self).__init__()
+        super().__init__()
         self.d = dimension
         self.Channel1 = Channel1
         self.Channel2 = Channel2
@@ -209,7 +209,7 @@ class FFM_Concat3(nn.Module):
 
 class FEM(nn.Module):
     def __init__(self, in_planes, out_planes, stride=1, scale=0.1, map_reduce=8):
-        super(FEM, self).__init__()
+        super().__init__()
         self.scale = scale
         self.out_channels = out_planes
         inter_planes = in_planes // map_reduce
@@ -262,7 +262,7 @@ class BasicConv(nn.Module):
         bn=True,
         bias=False,
     ):
-        super(BasicConv, self).__init__()
+        super().__init__()
         self.out_channels = out_planes
         self.conv = nn.Conv2d(
             in_planes,

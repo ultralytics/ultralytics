@@ -46,7 +46,7 @@ def merge_annotations(seg_path, pose_path, output_base_path):
             output_file = os.path.join(output_subdir, os.path.basename(seg_file))
 
             if os.path.exists(pose_file):
-                with open(seg_file, "r") as seg, open(pose_file, "r") as pose, open(output_file, "w") as out:
+                with open(seg_file) as seg, open(pose_file) as pose, open(output_file, "w") as out:
                     seg_lines = seg.readlines()
                     pose_lines = pose.readlines()
 

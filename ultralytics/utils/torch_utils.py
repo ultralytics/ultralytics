@@ -1,4 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
+
 import contextlib
 import gc
 import math
@@ -24,6 +25,7 @@ from ultralytics.utils import (
     NUM_THREADS,
     PYTHON_VERSION,
     TORCHVISION_VERSION,
+    WINDOWS,
     __version__,
     colorstr,
 )
@@ -42,6 +44,11 @@ TORCHVISION_0_10 = check_version(TORCHVISION_VERSION, "0.10.0")
 TORCHVISION_0_11 = check_version(TORCHVISION_VERSION, "0.11.0")
 TORCHVISION_0_13 = check_version(TORCHVISION_VERSION, "0.13.0")
 TORCHVISION_0_18 = check_version(TORCHVISION_VERSION, "0.18.0")
+if WINDOWS and torch.__version__[:3] == "2.4":  # reject all versions of 2.4 on Windows
+    LOGGER.warning(
+        "WARNING ⚠️ Known issue with torch>=2.4.0 on Windows with CPU, recommend downgrading to torch<=2.3.1 to resolve "
+        "https://github.com/ultralytics/ultralytics/issues/15049"
+    )
 
 
 @contextmanager

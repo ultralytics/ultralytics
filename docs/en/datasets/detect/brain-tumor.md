@@ -90,7 +90,7 @@ To train a YOLOv8n model on the brain tumor dataset for 100 epochs with an image
 
 The brain tumor dataset encompasses a wide array of images featuring diverse object categories and intricate scenes. Presented below are examples of images from the dataset, accompanied by their respective annotations
 
-![Brain tumor dataset sample image](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/1741cbf5-2462-4e9a-b0b9-4a07d76cf7ef)
+![Brain tumor dataset sample image](https://github.com/ultralytics/docs/releases/download/0/brain-tumor-dataset-sample-image.avif)
 
 - **Mosaiced Image**: Displayed here is a training batch comprising mosaiced dataset images. Mosaicing, a training technique, consolidates multiple images into one, enhancing batch diversity. This approach aids in improving the model's capacity to generalize across various object sizes, aspect ratios, and contexts.
 

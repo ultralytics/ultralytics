@@ -15,7 +15,7 @@ The export to TFLite Edge TPU format feature allows you to optimize your [Ultral
 Exporting models to TensorFlow Edge TPU makes machine learning tasks fast and efficient. This technology suits applications with limited power, computing resources, and connectivity. The Edge TPU is a hardware accelerator by Google. It speeds up TensorFlow Lite models on edge devices. The image below shows an example of the process involved.
 
 <p align="center">
-  <img width="100%" src="https://coral.ai/static/docs/images/edgetpu/compile-workflow.png" alt="TFLite Edge TPU">
+  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/tflite-edge-tpu-compile-workflow.avif" alt="TFLite Edge TPU">
 </p>
 
 The Edge TPU works with quantized models. Quantization makes models smaller and faster without losing much accuracy. It is ideal for the limited resources of edge computing, allowing applications to respond quickly by reducing latency and allowing for quick data processing locally, without cloud dependency. Local processing also keeps user data private and secure since it's not sent to a remote server.

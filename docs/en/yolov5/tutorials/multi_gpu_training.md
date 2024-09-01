@@ -24,7 +24,7 @@ pip install -r requirements.txt  # install
 
 Select a pretrained model to start training from. Here we select [YOLOv5s](https://github.com/ultralytics/yolov5/blob/master/models/yolov5s.yaml), the smallest and fastest model available. See our README [table](https://github.com/ultralytics/yolov5#pretrained-checkpoints) for a full comparison of all models. We will train this model with Multi-GPU on the [COCO](https://github.com/ultralytics/yolov5/blob/master/data/scripts/get_coco.sh) dataset.
 
-<p align="center"><img width="700" alt="YOLOv5 Models" src="https://github.com/ultralytics/assets/releases/download/v0.0.0/model_comparison.png"></p>
+<p align="center"><img width="700" alt="YOLOv5 Models" src="https://github.com/ultralytics/docs/releases/download/0/yolov5-model-comparison.avif"></p>
 
 ### Single GPU
 

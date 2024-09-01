@@ -70,7 +70,7 @@ To train a YOLOv8n model on the Argoverse dataset for 100 epochs with an image s
 
 The Argoverse dataset contains a diverse set of sensor data, including camera images, LiDAR point clouds, and HD map information, providing rich context for autonomous driving tasks. Here are some examples of data from the dataset, along with their corresponding annotations:
 
-![Dataset sample image](https://www.argoverse.org/assets/images/reference_images/av2_ground_height.png)
+![Dataset sample image](https://github.com/ultralytics/docs/releases/download/0/argoverse-3d-tracking-sample.avif)
 
 - **Argoverse 3D Tracking**: This image demonstrates an example of 3D object tracking, where objects are annotated with 3D bounding boxes. The dataset provides LiDAR point clouds and camera images to facilitate the development of models for this task.
 

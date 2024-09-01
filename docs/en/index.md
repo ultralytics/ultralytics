@@ -5,7 +5,7 @@ keywords: Ultralytics, YOLOv8, object detection, image segmentation, deep learni
 ---
 
 <div align="center">
-<a href="https://www.ultralytics.com/events/yolovision" target="_blank"><img width="1024%" src="https://raw.githubusercontent.com/ultralytics/assets/main/yolov8/banner-yolov8.png" alt="Ultralytics YOLO banner"></a>
+<a href="https://www.ultralytics.com/events/yolovision" target="_blank"><img width="1024%" src="https://github.com/ultralytics/docs/releases/download/0/ultralytics-yolov8-banner.avif" alt="Ultralytics YOLO banner"></a>
 <a href="https://docs.ultralytics.com/zh/">中文</a> |
 <a href="https://docs.ultralytics.com/ko/">한국어</a> |
 <a href="https://docs.ultralytics.com/ja/">日本語</a> |
@@ -24,6 +24,7 @@ keywords: Ultralytics, YOLOv8, object detection, image segmentation, deep learni
 <a href="https://hub.docker.com/r/ultralytics/ultralytics"><img src="https://img.shields.io/docker/pulls/ultralytics/ultralytics?logo=docker" alt="Docker Pulls"></a>
 <a href="https://ultralytics.com/discord"><img alt="Discord" src="https://img.shields.io/discord/1089800235347353640?logo=discord&logoColor=white&label=Discord&color=blue"></a>
 <a href="https://community.ultralytics.com"><img alt="Ultralytics Forums" src="https://img.shields.io/discourse/users?server=https%3A%2F%2Fcommunity.ultralytics.com&logo=discourse&label=Forums&color=blue"></a>
+<a href="https://reddit.com/r/ultralytics"><img alt="Ultralytics Reddit" src="https://img.shields.io/reddit/subreddit-subscribers/ultralytics?style=flat&logo=reddit&logoColor=white&label=Reddit&color=blue"></a>
 <br>
 <a href="https://console.paperspace.com/github/ultralytics/ultralytics"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run on Gradient"></a>
 <a href="https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a>

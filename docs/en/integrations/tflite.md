@@ -7,7 +7,7 @@ keywords: YOLOv8, TFLite, model export, TensorFlow Lite, edge devices, deploymen
 # A Guide on YOLOv8 Model Export to TFLite for Deployment
 
 <p align="center">
-  <img width="75%" src="https://github.com/ultralytics/ultralytics/assets/26833433/6ecf34b9-9187-4d6f-815c-72394290a4d3" alt="TFLite Logo">
+  <img width="75%" src="https://github.com/ultralytics/docs/releases/download/0/tflite-logo.avif" alt="TFLite Logo">
 </p>
 
 Deploying computer vision models on edge devices or embedded devices requires a format that can ensure seamless performance.
@@ -41,7 +41,7 @@ TFLite offers various on-device deployment options for machine learning models, 
 - **Deploying with Android and iOS**: Both Android and iOS applications with TFLite can analyze edge-based camera feeds and sensors to detect and identify objects. TFLite also offers native iOS libraries written in [Swift](https://github.com/tensorflow/tensorflow/tree/master/tensorflow/lite/swift) and [Objective-C](https://github.com/tensorflow/tensorflow/tree/master/tensorflow/lite/objc). The architecture diagram below shows the process of deploying a trained model onto Android and iOS platforms using TensorFlow Lite.
 
  <p align="center">
-  <img width="75%" src="https://1.bp.blogspot.com/-6fS9FD8KD7g/XhJ1l8y2S4I/AAAAAAAACKw/MW9MQZ8gtiYmUe0naRdN0n2FwkT1l4trACLcBGAsYHQ/s1600/architecture.png" alt="Architecture">
+  <img width="75%" src="https://github.com/ultralytics/docs/releases/download/0/architecture-diagram-tflite-deployment.avif" alt="Architecture">
 </p>
 
 - **Implementing with Embedded Linux**: If running inferences on a [Raspberry Pi](https://www.raspberrypi.org/) using the [Ultralytics Guide](../guides/raspberry-pi.md) does not meet the speed requirements for your use case, you can use an exported TFLite model to accelerate inference times. Additionally, it's possible to further improve performance by utilizing a [Coral Edge TPU device](https://coral.withgoogle.com/).

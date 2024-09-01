@@ -196,6 +196,7 @@ class BaseDataset(Dataset):
             N_CHANNELS = self.hyp.channels
             bands = self.hyp.bands
 
+
             if read_img:
                 # read image
                 if f.lower().endswith((".png",".jpg",".jpeg",".bmp",".dng",".gif",".webp",".mpo")):

@@ -55,6 +55,8 @@ from .block import (
     SCDown,
 )
 from .conv import (
+    Input,
+    FeatureFusionBlock,
     CBAM,
     ChannelAttention,
     Concat,
@@ -84,6 +86,8 @@ from .transformer import (
 )
 
 __all__ = (
+    "Input",
+    "FeatureFusionBlock",
     "Conv",
     "Conv2",
     "LightConv",

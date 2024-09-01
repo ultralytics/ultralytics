@@ -591,7 +591,7 @@ class RandomHSV:
     The adjustments are random but within limits set by hgain, sgain, and vgain.
     """
 
-    def __init__(self, hgain=0.5, sgain=0.5, vgain=0.5) -> None:
+    def __init__(self, hgain=0.5, sgain=0.5, vgain=0.5, siamese=False) -> None:
         """
         Initialize RandomHSV class with gains for each HSV channel.
 
@@ -603,6 +603,7 @@ class RandomHSV:
         self.hgain = hgain
         self.sgain = sgain
         self.vgain = vgain
+        self.siamese = siamese
 
     def __call__(self, labels):
         """
@@ -611,18 +612,53 @@ class RandomHSV:
         The modified image replaces the original image in the input 'labels' dict.
         """
         img = labels["img"]
-        if self.hgain or self.sgain or self.vgain:
-            r = np.random.uniform(-1, 1, 3) * [self.hgain, self.sgain, self.vgain] + 1  # random gains
-            hue, sat, val = cv2.split(cv2.cvtColor(img, cv2.COLOR_BGR2HSV))
-            dtype = img.dtype  # uint8
+        if not self.siamese:
+            # HSV augmentation
+            if self.hgain or self.sgain or self.vgain:
+                #first three channels are BGR
+                img_bgr = img[:, :, :3]
+                r = np.random.uniform(-1, 1, 3) * [self.hgain, self.sgain, self.vgain] + 1  # random gains
+                hue, sat, val = cv2.split(cv2.cvtColor(img_bgr, cv2.COLOR_BGR2HSV))
+                dtype = img.dtype  # uint8
 
-            x = np.arange(0, 256, dtype=r.dtype)
-            lut_hue = ((x * r[0]) % 180).astype(dtype)
-            lut_sat = np.clip(x * r[1], 0, 255).astype(dtype)
-            lut_val = np.clip(x * r[2], 0, 255).astype(dtype)
+                x = np.arange(0, 256, dtype=r.dtype)
+                lut_hue = ((x * r[0]) % 180).astype(dtype)
+                lut_sat = np.clip(x * r[1], 0, 255).astype(dtype)
+                lut_val = np.clip(x * r[2], 0, 255).astype(dtype)
 
-            im_hsv = cv2.merge((cv2.LUT(hue, lut_hue), cv2.LUT(sat, lut_sat), cv2.LUT(val, lut_val)))
-            cv2.cvtColor(im_hsv, cv2.COLOR_HSV2BGR, dst=img)  # no return needed
+                im_hsv = cv2.merge((cv2.LUT(hue, lut_hue), cv2.LUT(sat, lut_sat), cv2.LUT(val, lut_val)))
+                img_bgr = cv2.cvtColor(im_hsv, cv2.COLOR_HSV2BGR)
+                merge = np.concatenate((img_bgr, img[:, :, 3:]), axis=2)
+                labels["img"] = merge
+        else: #siamese
+            # image 1 = first half of the images bands
+            img_1 = img[:, :, :img.shape[2]//2]
+
+            # image 2 = second half of the image
+            img_2 = img[:, :, img.shape[2]//2:]
+
+            # HSV augmentation
+            for i,img in enumerate([img_1, img_2]):
+                if self.hgain or self.sgain or self.vgain:
+                    #first three channels are BGR
+                    img_bgr = img[:, :, :3]
+                    r = np.random.uniform(-1, 1, 3) * [self.hgain, self.sgain, self.vgain] + 1
+                    hue, sat, val = cv2.split(cv2.cvtColor(img, cv2.COLOR_BGR2HSV))
+                    dtype = img.dtype
+
+                    x = np.arange(0, 256, dtype=r.dtype)
+                    lut_hue = ((x * r[0]) % 180).astype(dtype)
+                    lut_sat = np.clip(x * r[1], 0, 255).astype(dtype)
+                    lut_val = np.clip(x * r[2], 0, 255).astype(dtype)
+
+                    im_hsv = cv2.merge((cv2.LUT(hue, lut_hue), cv2.LUT(sat, lut_sat), cv2.LUT(val, lut_val)))
+                    img_bgr = cv2.cvtColor(im_hsv, cv2.COLOR_HSV2BGR)
+                    merge = np.concatenate((img_bgr, img[:, :, 3:]), axis=2)
+                    if i == 0:
+                        img_1 = merge
+                    else:
+                        img_2 = merge
+            labels["img"] = np.concatenate((img_1, img_2), axis=2)
         return labels
 
 
@@ -842,13 +878,11 @@ class Albumentations:
             T = [
                 A.Blur(p=0.01),
                 A.MedianBlur(p=0.01),
-                #A.CLAHE(p=0.01),
                 A.RandomBrightnessContrast(p=0.0),
                 A.RandomGamma(p=0.0),
                 A.ImageCompression(quality_lower=75, p=0.0),
             ]
             self.transform = A.Compose(T, bbox_params=A.BboxParams(format="yolo", label_fields=["class_labels"]))
-
             LOGGER.info(prefix + ", ".join(f"{x}".replace("always_apply=False, ", "") for x in T if x.p))
         except ImportError:  # package not installed, skip
             pass
@@ -902,6 +936,7 @@ class Format:
         mask_overlap=True,
         batch_idx=True,
         bgr=0.0,
+        siamese = False,
     ):
         """Initializes the Format class with given parameters."""
         self.bbox_format = bbox_format
@@ -913,6 +948,7 @@ class Format:
         self.mask_overlap = mask_overlap
         self.batch_idx = batch_idx  # keep the batch indexes
         self.bgr = bgr
+        self.siamese = siamese
 
     def __call__(self, labels):
         """Return formatted image, classes, bounding boxes & keypoints to be used by 'collate_fn'."""
@@ -951,15 +987,27 @@ class Format:
 
     def _format_img(self, img):
         """Format the image for YOLO from Numpy array to PyTorch tensor."""
-        if img.shape[-1] == 3:
-            img = img[::-1]  # BGR to RBG
-        else:
-            if img.shape[-1] == 4:
-                img = img[:, :, [2, 1, 0, 3]]
-                # BGRA to RGBA  # BGRA to RGB
+        if not self.siamese:
+            if img.shape[-1] == 3:
+                img = img[::-1]  # BGR to RBG
             else:
-                #support n additional bands switch first three bands from bgr to rgb and leave rest as is
-                img = img[:, :, [2, 1, 0, *range(3, img.shape[-1])]]
+                if img.shape[-1] == 4:
+                    img = img[:, :, [2, 1, 0, 3]]
+                    # BGRA to RGBA  # BGRA to RGB
+                else:
+                    #support n additional bands switch first three bands from bgr to rgb and leave rest as is
+                    img = img[:, :, [2, 1, 0, *range(3, img.shape[-1])]]
+        else:#siamese
+            if img.shape[-1] == 6:
+                img = img[:, :, [2, 1, 0, 5, 4, 3]]
+            else:
+                # first n / 2 bands
+                img_1 = img[:,:,range(img.shape[-1]//2)]
+                img_1 = img_1[:, :, [2, 1, 0, *range(3, img_1.shape[-1])]]
+                # last n / 2 bands
+                img_2 = img[:,:,range(img.shape[-1]//2, img.shape[-1])]
+                img_2 = img_2[:, :, [2, 1, 0, *range(3, img_2.shape[-1])]]
+                img = np.concatenate((img_1, img_2), axis=2)
         img = np.ascontiguousarray(img.transpose(2, 0, 1))
         img = torch.from_numpy(img)
         return img
@@ -974,11 +1022,10 @@ class Format:
             cls = cls[sorted_idx]
         else:
             masks = polygons2masks((h, w), segments, color=1, downsample_ratio=self.mask_ratio)
-
         return masks, instances, cls
 
 
-def v8_transforms(dataset, imgsz, hyp, stretch=False):
+def v8_transforms(dataset, imgsz, hyp, siamese=False,stretch=False):
     """Convert images to a size suitable for YOLOv8 training."""
     pre_transform = Compose(
         [
@@ -1008,7 +1055,7 @@ def v8_transforms(dataset, imgsz, hyp, stretch=False):
             pre_transform,
             MixUp(dataset, pre_transform=pre_transform, p=hyp.mixup),
             Albumentations(p=1.0),
-            RandomHSV(hgain=hyp.hsv_h, sgain=hyp.hsv_s, vgain=hyp.hsv_v),
+            RandomHSV(hgain=hyp.hsv_h, sgain=hyp.hsv_s, vgain=hyp.hsv_v,siamese=siamese),
             RandomFlip(direction="vertical", p=hyp.flipud),
             RandomFlip(direction="horizontal", p=hyp.fliplr, flip_idx=flip_idx),
         ]

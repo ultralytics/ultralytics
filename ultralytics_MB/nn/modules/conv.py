@@ -8,6 +8,7 @@ import torch
 import torch.nn as nn
 
 __all__ = (
+    "Input",
     "Conv",
     "Conv2",
     "LightConv",
@@ -331,3 +332,76 @@ class Concat(nn.Module):
     def forward(self, x):
         """Forward pass for the YOLOv8 mask Proto module."""
         return torch.cat(x, self.d)
+
+class Input(nn.Module):
+    """Input layer."""
+    #forwards either the first three channels or the last three channels of the input tensor
+    def __init__(self,input=0):
+        self.input = input
+        super().__init__()
+
+    def forward(self,x):
+        if self.input == 0:
+            #return first 3 channels
+            return x[:,:3,:,:]
+        else:
+            #return last 3 channels
+            return x[:,3:,:,:]
+
+class FeatureFusionBlock(nn.Module):
+    def __init__(self, method='add'):
+        """
+        Initialize the FeatureFusionBlock.
+        Args:
+            method (str): Method to combine the features ('add', 'multiply', 'weighted', 'attention').
+        """
+        super(FeatureFusionBlock, self).__init__()
+        assert method in ['add', 'multiply', 'weighted', 'attention'], \
+            "Method must be 'add', 'multiply', 'weighted', or 'attention'."
+        self.method = method
+
+        if method == 'weighted':
+            # Learnable weights for fusion
+            self.weight1 = nn.Parameter(torch.Tensor([0.5]))
+            self.weight2 = nn.Parameter(torch.Tensor([0.5]))
+        elif method == 'attention':
+            # Squeeze-and-Excitation block for channel-wise attention
+            self.global_avg_pool = nn.AdaptiveAvgPool2d(1)
+            self.fc1 = nn.Conv2d(128, 32, kernel_size=1, bias=False)
+            self.relu = nn.ReLU(inplace=True)
+            self.fc2 = nn.Conv2d(32, 128, kernel_size=1, bias=False)
+            self.sigmoid = nn.Sigmoid()
+
+    def forward(self, x):
+        """
+        Forward pass of the FeatureFusionBlock.
+
+        Args:
+            x1 (torch.Tensor): First input feature map.
+            x2 (torch.Tensor): Second input feature map.
+
+        Returns:
+            torch.Tensor: Fused output feature map with the same dimensions as inputs.
+        """
+        x1 = x[0]
+        x2 = x[1]
+        if self.method == 'add':
+            return x1 + x2  # Element-wise addition
+
+        elif self.method == 'multiply':
+            return x1 * x2  # Element-wise multiplication
+
+        elif self.method == 'weighted':
+            # Weighted sum of the two inputs
+            return self.weight1 * x1 + self.weight2 * x2
+
+        elif self.method == 'attention':
+            # Channel-wise attention
+            combined = x1 + x2
+            se = self.global_avg_pool(combined)
+            se = self.fc1(se)
+            se = self.relu(se)
+            se = self.fc2(se)
+            se = self.sigmoid(se)
+            return combined * se
+

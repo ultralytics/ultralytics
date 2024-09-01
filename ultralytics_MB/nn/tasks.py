@@ -12,6 +12,8 @@ from ultralytics_MB.nn.modules import (
     C1,
     C2,
     C3,
+    Input,
+    FeatureFusionBlock,
     C3TR,
     ELAN1,
     OBB,
@@ -132,8 +134,10 @@ class BaseModel(nn.Module):
         Returns:
             (torch.Tensor): The last output of the model.
         """
+
+
         y, dt, embeddings = [], [], []  # outputs
-        for m in self.model:
+        for i,m in enumerate(self.model):
             if m.f != -1:  # if not from previous layer
                 x = y[m.f] if isinstance(m.f, int) else [x if j == -1 else y[j] for j in m.f]  # from earlier layers
             if profile:
@@ -302,7 +306,8 @@ class DetectionModel(BaseModel):
             self.yaml["backbone"][0][2] = "nn.Identity"
 
         # Define model
-        ch = self.yaml["ch"] = self.yaml.get("ch", ch)  # input channels
+        ch = self.yaml["ch"] = self.yaml.get("ch", ch) # input channels
+        LOGGER.warning(f"ch = {ch}")
         if nc and nc != self.yaml["nc"]:
             LOGGER.info(f"Overriding model.yaml nc={self.yaml['nc']} with nc={nc}")
             self.yaml["nc"] = nc  # override YAML value
@@ -319,11 +324,13 @@ class DetectionModel(BaseModel):
 
             def _forward(x):
                 """Performs a forward pass through the model, handling different Detect subclass types accordingly."""
+
                 if self.end2end:
                     return self.forward(x)["one2many"]
                 return self.forward(x)[0] if isinstance(m, (Segment, Pose, OBB)) else self.forward(x)
-
-            m.stride = torch.tensor([s / x.shape[-2] for x in _forward(torch.zeros(1, ch, s, s))])  # forward
+            zeroes = torch.zeros(1, ch, s, s)
+            LOGGER.info(f"zeroes shape: {zeroes.shape}")
+            m.stride = torch.tensor([s / x.shape[-2] for x in _forward(zeroes)])  # forward
             self.stride = m.stride
             m.bias_init()  # only run once
         else:
@@ -897,7 +904,8 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
     ch = [ch]
     layers, save, c2 = [], [], ch[-1]  # layers, savelist, ch out
     for i, (f, n, m, args) in enumerate(d["backbone"] + d["head"]):  # from, number, module, args
-        m = getattr(torch.nn, m[3:]) if "nn." in m else globals()[m]  # get module
+        m = getattr(torch.nn, m[3:]) if "nn." in m else globals()[m]
+
         for j, a in enumerate(args):
             if isinstance(a, str):
                 with contextlib.suppress(ValueError):
@@ -975,6 +983,12 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             args = [c1, c2, *args[1:]]
         elif m is CBFuse:
             c2 = ch[f[-1]]
+        elif m is Input:
+            c2 = 3
+        elif m is FeatureFusionBlock:
+            c2 = ch[f[0]]
+        elif m is nn.Identity:
+            c2 = ch[f]
         else:
             c2 = ch[f]
 

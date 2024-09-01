@@ -58,7 +58,7 @@ Results saved to runs/val/exp
 
 We repeat the above test with a pruned model by using the `torch_utils.prune()` command. We update `val.py` to prune YOLOv5x to 0.3 sparsity:
 
-<img width="894" alt="Screenshot 2022-02-02 at 22 54 18" src="https://user-images.githubusercontent.com/26833433/152243799-b0ac2777-b1a8-47b1-801a-2e4c93c06ead.png">
+<img width="894" alt="Screenshot 2022-02-02 at 22 54 18" src="https://github.com/ultralytics/docs/releases/download/0/sparsity-test-yolov5x-coco.avif">
 
 30% pruned output:
 

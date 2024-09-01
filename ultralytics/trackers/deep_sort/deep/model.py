@@ -8,7 +8,7 @@ import torch.nn.functional as F
 
 class BasicBlock(nn.Module):
     def __init__(self, c_in, c_out, is_downsample=False):
-        super(BasicBlock, self).__init__()
+        super().__init__()
         self.is_downsample = is_downsample
         if is_downsample:
             self.conv1 = nn.Conv2d(c_in, c_out, 3, stride=2, padding=1, bias=False)
@@ -51,7 +51,7 @@ def make_layers(c_in, c_out, repeat_times, is_downsample=False):
 
 class Net(nn.Module):
     def __init__(self, num_classes=751, reid=False):
-        super(Net, self).__init__()
+        super().__init__()
         # 3 128 64
         self.conv = nn.Sequential(
             nn.Conv2d(3, 64, 3, stride=1, padding=1),

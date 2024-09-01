@@ -4,7 +4,7 @@
 import numpy as np
 
 
-class Detection(object):
+class Detection:
     """
     This class represents a bounding box detection in a single image.
 

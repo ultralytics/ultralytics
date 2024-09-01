@@ -12,7 +12,7 @@ from .sort.tracker import Tracker
 __all__ = ["DeepSort"]
 
 
-class DeepSort(object):
+class DeepSort:
     def __init__(
         self,
         model_path,

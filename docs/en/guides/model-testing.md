@@ -88,7 +88,7 @@ Underfitting occurs when your model can't capture the underlying patterns in the
 The key is to find a balance between overfitting and underfitting. Ideally, a model should perform well on both training and validation datasets. Regularly monitoring your model's performance through metrics and visual inspections, along with applying the right strategies, can help you achieve the best results.
 
 <p align="center">
-  <img width="100%" src="https://viso.ai/wp-content/uploads/2022/07/overfitting-underfitting-appropriate-fitting.jpg" alt="Overfitting and Underfitting Overview">
+  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/overfitting-underfitting-appropriate-fitting.avif" alt="Overfitting and Underfitting Overview">
 </p>
 
 ## Data Leakage in Computer Vision and How to Avoid It

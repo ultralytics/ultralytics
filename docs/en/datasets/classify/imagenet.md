@@ -66,7 +66,7 @@ To train a deep learning model on the ImageNet dataset for 100 epochs with an im
 
 The ImageNet dataset contains high-resolution images spanning thousands of object categories, providing a diverse and extensive dataset for training and evaluating computer vision models. Here are some examples of images from the dataset:
 
-![Dataset sample images](https://user-images.githubusercontent.com/26833433/239280348-3d8f30c7-6f05-4dda-9cfe-d62ad9faecc9.png)
+![Dataset sample images](https://github.com/ultralytics/docs/releases/download/0/imagenet-sample-images.avif)
 
 The example showcases the variety and complexity of the images in the ImageNet dataset, highlighting the importance of a diverse dataset for training robust computer vision models.
 

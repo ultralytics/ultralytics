@@ -69,7 +69,7 @@ To train a model on the xView dataset for 100 epochs with an image size of 640, 
 
 The xView dataset contains high-resolution satellite images with a diverse set of objects annotated using bounding boxes. Here are some examples of data from the dataset, along with their corresponding annotations:
 
-![Dataset sample image](https://user-images.githubusercontent.com/26833433/277141257-ae6ba4de-5dcb-4c76-bc05-bc1e386361ba.jpg)
+![Dataset sample image](https://github.com/ultralytics/docs/releases/download/0/overhead-imagery-object-detection.avif)
 
 - **Overhead Imagery**: This image demonstrates an example of object detection in overhead imagery, where objects are annotated with bounding boxes. The dataset provides high-resolution satellite images to facilitate the development of models for this task.
 
@@ -146,17 +146,19 @@ The xView dataset comprises high-resolution satellite images collected from Worl
 
 If you utilize the xView dataset in your research, please cite the following paper:
 
-!!! Quote "BibTeX"
+!!! Quote ""
 
-    ```bibtex
-    @misc{lam2018xview,
-          title={xView: Objects in Context in Overhead Imagery},
-          author={Darius Lam and Richard Kuzma and Kevin McGee and Samuel Dooley and Michael Laielli and Matthew Klaric and Yaroslav Bulatov and Brendan McCord},
-          year={2018},
-          eprint={1802.07856},
-          archivePrefix={arXiv},
-          primaryClass={cs.CV}
-    }
-    ```
+    === "BibTeX"
+
+        ```bibtex
+        @misc{lam2018xview,
+            title={xView: Objects in Context in Overhead Imagery},
+            author={Darius Lam and Richard Kuzma and Kevin McGee and Samuel Dooley and Michael Laielli and Matthew Klaric and Yaroslav Bulatov and Brendan McCord},
+            year={2018},
+            eprint={1802.07856},
+            archivePrefix={arXiv},
+            primaryClass={cs.CV}
+        }
+        ```
    
 For more information about the xView dataset, visit the official [xView dataset website](http://xviewdataset.org/).

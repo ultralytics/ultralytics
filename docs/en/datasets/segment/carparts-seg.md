@@ -72,7 +72,7 @@ To train Ultralytics YOLOv8n model on the Carparts Segmentation dataset for 100 
 
 The Carparts Segmentation dataset includes a diverse array of images and videos taken from various perspectives. Below, you'll find examples of data from the dataset along with their corresponding annotations:
 
-![Dataset sample image](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/55da8284-a637-4858-aa1c-fc22d33a9c43)
+![Dataset sample image](https://github.com/ultralytics/docs/releases/download/0/dataset-sample-image.avif)
 
 - This image illustrates object segmentation within a sample, featuring annotated bounding boxes with masks surrounding identified objects. The dataset consists of a varied set of images captured in various locations, environments, and densities, serving as a comprehensive resource for crafting models specific to this task.
 - This instance highlights the diversity and complexity inherent in the dataset, emphasizing the crucial role of high-quality data in computer vision tasks, particularly in the realm of car parts segmentation.

@@ -8,7 +8,7 @@ keywords: Ultralytics, YOLOv8, NVIDIA Jetson, JetPack, AI deployment, embedded s
 
 This comprehensive guide provides a detailed walkthrough for deploying Ultralytics YOLOv8 on [NVIDIA Jetson](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/) devices using DeepStream SDK and TensorRT. Here we use TensorRT to maximize the inference performance on the Jetson platform.
 
-<img width="1024" src="https://github.com/ultralytics/ultralytics/assets/20147381/67403d6c-e10c-439a-a731-f1478c0656c8" alt="DeepStream on NVIDIA Jetson">
+<img width="1024" src="https://github.com/ultralytics/docs/releases/download/0/deepstream-nvidia-jetson.avif" alt="DeepStream on NVIDIA Jetson">
 
 !!! Note
 
@@ -168,7 +168,7 @@ deepstream-app -c deepstream_app_config.txt
 
     It will take a long time to generate the TensorRT engine file before starting the inference. So please be patient.
 
-<div align=center><img width=1000 src="https://github.com/ultralytics/ultralytics/assets/20147381/61bd7710-d009-4ca6-9536-2575f3eaec4a" alt="YOLOv8 with deepstream"></div>
+<div align=center><img width=1000 src="https://github.com/ultralytics/docs/releases/download/0/yolov8-with-deepstream.avif" alt="YOLOv8 with deepstream"></div>
 
 !!! Tip
 
@@ -288,7 +288,7 @@ To set up multiple streams under a single deepstream application, you can do the
 deepstream-app -c deepstream_app_config.txt
 ```
 
-<div align=center><img width=1000 src="https://github.com/ultralytics/ultralytics/assets/20147381/c2b327c8-75a4-4bc9-8e2d-cf023862a5d6" alt="Multistream setup"></div>
+<div align=center><img width=1000 src="https://github.com/ultralytics/docs/releases/download/0/multistream-setup.avif" alt="Multistream setup"></div>
 
 ## Benchmark Results
 

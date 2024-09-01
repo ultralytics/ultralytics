@@ -7,7 +7,7 @@ keywords: Ultralytics, iOS App, YOLO models, real-time object detection, Apple N
 # Ultralytics iOS App: Real-time Object Detection with YOLO Models
 
 <a href="https://ultralytics.com/hub" target="_blank">
-  <img width="100%" src="https://user-images.githubusercontent.com/26833433/281124469-6b3b0945-dbb1-44c8-80a9-ef6bc778b299.jpg" alt="Ultralytics HUB preview image"></a>
+  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/ultralytics-android-app-detection.avif" alt="Ultralytics HUB preview image"></a>
 <br>
 <div align="center">
   <a href="https://github.com/ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-github.png" width="3%" alt="Ultralytics GitHub"></a>

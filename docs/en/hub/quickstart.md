@@ -22,17 +22,17 @@ keywords: Ultralytics HUB, Quickstart, YOLO models, dataset upload, project mana
 
 [Ultralytics HUB](https://ultralytics.com/hub) offers a variety easy of signup options. You can register and log in using your Google, Apple, or GitHub accounts, or simply with your email address.
 
-![Ultralytics HUB screenshot of the Signup page](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/quickstart/hub_get_started_1.jpg)
+![Ultralytics HUB screenshot of the Signup page](https://github.com/ultralytics/docs/releases/download/0/ultralytics-hub-signup-page.avif)
 
 During the signup, you will be asked to complete your profile.
 
-![Ultralytics HUB screenshot of the Signup page profile form](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/quickstart/hub_get_started_2.jpg)
+![Ultralytics HUB screenshot of the Signup page profile form](https://github.com/ultralytics/docs/releases/download/0/ultralytics-hub-signup-profile-form.avif)
 
 ??? tip "Tip"
 
     You can update your profile from the [Account](https://hub.ultralytics.com/settings?tab=account) tab on the [Settings](https://hub.ultralytics.com/settings) page.
 
-    ![Ultralytics HUB screenshot of the Settings page Account tab with an arrow pointing to the Profile card](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/quickstart/hub_get_started_3.jpg)
+    ![Ultralytics HUB screenshot of the Settings page Account tab with an arrow pointing to the Profile card](https://github.com/ultralytics/docs/releases/download/0/hub-settings-account-profile.avif)
 
 ## Home
 
@@ -40,19 +40,19 @@ After signing in, you will be directed to the [Home](https://hub.ultralytics.com
 
 The sidebar conveniently offers links to important modules of the platform, such as [Datasets](https://hub.ultralytics.com/datasets), [Projects](https://hub.ultralytics.com/projects), and [Models](https://hub.ultralytics.com/models).
 
-![Ultralytics HUB screenshot of the Home page](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/quickstart/hub_home.jpg)
+![Ultralytics HUB screenshot of the Home page](https://github.com/ultralytics/docs/releases/download/0/hub-home.avif)
 
 ### Recent
 
 You can easily search globally or directly access your last updated [Datasets](https://hub.ultralytics.com/datasets), [Projects](https://hub.ultralytics.com/projects), or [Models](https://hub.ultralytics.com/models) using the Recent card on the [Home](https://hub.ultralytics.com/home) page.
 
-![Ultralytics HUB screenshot of the Home page with an arrow pointing to the Recent card](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/quickstart/hub_recent.jpg)
+![Ultralytics HUB screenshot of the Home page with an arrow pointing to the Recent card](https://github.com/ultralytics/docs/releases/download/0/hub-recent-card.avif)
 
 ### Upload Dataset
 
 You can upload a dataset directly from the [Home](https://hub.ultralytics.com/home) page.
 
-![Ultralytics HUB screenshot of the Home page with an arrow pointing to the Upload Dataset card](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/datasets/hub_upload_dataset_1.jpg)
+![Ultralytics HUB screenshot of the Home page with an arrow pointing to the Upload Dataset card](https://github.com/ultralytics/docs/releases/download/0/ultralytics-hub-upload-dataset-card.avif)
 
 Read more about [datasets](https://docs.ultralytics.com/hub/datasets).
 
@@ -60,7 +60,7 @@ Read more about [datasets](https://docs.ultralytics.com/hub/datasets).
 
 You can create a project directly from the [Home](https://hub.ultralytics.com/home) page.
 
-![Ultralytics HUB screenshot of the Home page with an arrow pointing to the Create Project card](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/projects/hub_create_project_1.jpg)
+![Ultralytics HUB screenshot of the Home page with an arrow pointing to the Create Project card](https://github.com/ultralytics/docs/releases/download/0/hub-create-project-card.avif)
 
 Read more about [projects](https://docs.ultralytics.com/hub/projects).
 
@@ -68,7 +68,7 @@ Read more about [projects](https://docs.ultralytics.com/hub/projects).
 
 You can train a model directly from the [Home](https://hub.ultralytics.com/home) page.
 
-![Ultralytics HUB screenshot of the Home page with an arrow pointing to the Train Model card](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/models/hub_train_model_1.jpg)
+![Ultralytics HUB screenshot of the Home page with an arrow pointing to the Train Model card](https://github.com/ultralytics/docs/releases/download/0/ultralytics-hub-train-model-card.avif)
 
 Read more about [models](https://docs.ultralytics.com/hub/models).
 
@@ -76,9 +76,9 @@ Read more about [models](https://docs.ultralytics.com/hub/models).
 
 We value your feedback! Feel free to leave a review at any time.
 
-![Ultralytics HUB screenshot of the Home page with an arrow pointing to the Feedback button](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/quickstart/hub_feedback_1.jpg)
+![Ultralytics HUB screenshot of the Home page with an arrow pointing to the Feedback button](https://github.com/ultralytics/docs/releases/download/0/hub-feedback-button.avif)
 
-![Ultralytics HUB screenshot of the Feedback dialog](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/quickstart/hub_feedback_2.jpg)
+![Ultralytics HUB screenshot of the Feedback dialog](https://github.com/ultralytics/docs/releases/download/0/ultralytics-hub-feedback-dialog.avif)
 
 ??? info "Info"
 
@@ -94,7 +94,7 @@ You can report a bug, request a feature, or ask a question on <a href="https://g
 
     When reporting a bug, please include your Environment Details from the [Support](https://hub.ultralytics.com/support) page.
 
-    ![Ultralytics HUB screenshot of the Support page with an arrow pointing to Support button in the sidebar and one to the Copy Environment Details button](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/quickstart/hub_support.jpg)
+    ![Ultralytics HUB screenshot of the Support page with an arrow pointing to Support button in the sidebar and one to the Copy Environment Details button](https://github.com/ultralytics/docs/releases/download/0/hub-support-page.avif)
 
 ??? tip "Tip"
 

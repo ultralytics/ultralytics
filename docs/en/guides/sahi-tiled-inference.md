@@ -9,7 +9,7 @@ keywords: YOLOv8, SAHI, Sliced Inference, Object Detection, Ultralytics, High-re
 Welcome to the Ultralytics documentation on how to use YOLOv8 with [SAHI](https://github.com/obss/sahi) (Slicing Aided Hyper Inference). This comprehensive guide aims to furnish you with all the essential knowledge you'll need to implement SAHI alongside YOLOv8. We'll deep-dive into what SAHI is, why sliced inference is critical for large-scale applications, and how to integrate these functionalities with YOLOv8 for enhanced object detection performance.
 
 <p align="center">
-  <img width="1024" src="https://raw.githubusercontent.com/obss/sahi/main/resources/sliced_inference.gif" alt="SAHI Sliced Inference Overview">
+  <img width="1024" src="https://github.com/ultralytics/docs/releases/download/0/sahi-sliced-inference-overview.avif" alt="SAHI Sliced Inference Overview">
 </p>
 
 ## Introduction to SAHI
@@ -51,8 +51,8 @@ Sliced Inference refers to the practice of subdividing a large or high-resolutio
     <th>YOLOv8 with SAHI</th>
   </tr>
   <tr>
-    <td><img src="https://user-images.githubusercontent.com/26833433/266123241-260a9740-5998-4e9a-ad04-b39b7767e731.png" alt="YOLOv8 without SAHI" width="640"></td>
-    <td><img src="https://user-images.githubusercontent.com/26833433/266123245-55f696ad-ec74-4e71-9155-c211d693bb69.png" alt="YOLOv8 with SAHI" width="640"></td>
+    <td><img src="https://github.com/ultralytics/docs/releases/download/0/yolov8-without-sahi.avif" alt="YOLOv8 without SAHI" width="640"></td>
+    <td><img src="https://github.com/ultralytics/docs/releases/download/0/yolov8-with-sahi.avif" alt="YOLOv8 with SAHI" width="640"></td>
   </tr>
 </table>
 

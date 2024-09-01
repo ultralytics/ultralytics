@@ -7,7 +7,7 @@ keywords: Ultralytics, utilities, data processing, auto annotation, YOLO, datase
 # Simple Utilities
 
 <p align="center">
-  <img src="https://github.com/ultralytics/ultralytics/assets/62214284/516112de-4567-49f8-b93f-b55a10b79dd7" alt="code with perspective">
+  <img src="https://github.com/ultralytics/docs/releases/download/0/code-with-perspective.avif" alt="code with perspective">
 </p>
 
 The `ultralytics` package comes with a myriad of utilities that can support, enhance, and speed up your workflows. There are many more available, but here are some that will be useful for most developers. They're also a great reference point to use when learning to program.
@@ -53,7 +53,7 @@ auto_annotate(  # (1)!
 
 ### Convert Segmentation Masks into YOLO Format
 
-![Segmentation Masks to YOLO Format](https://github.com/user-attachments/assets/1a823fc1-f3a1-4dd5-83e7-0b209df06fc3)
+![Segmentation Masks to YOLO Format](https://github.com/ultralytics/docs/releases/download/0/segmentation-masks-to-yolo-format.avif)
 
 Use to convert a dataset of segmentation mask images to the `YOLO` segmentation format.
 This function takes the directory containing the binary format mask images and converts them into YOLO segmentation format.

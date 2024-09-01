@@ -29,11 +29,13 @@ from ultralytics.utils import (
     IS_PIP_PACKAGE,
     LINUX,
     LOGGER,
+    MACOS,
     ONLINE,
     PYTHON_VERSION,
     ROOT,
     TORCHVISION_VERSION,
     USER_CONFIG_DIR,
+    WINDOWS,
     Retry,
     SimpleNamespace,
     ThreadingLocked,
@@ -44,8 +46,6 @@ from ultralytics.utils import (
     emojis,
     is_github_action_running,
     url2file,
-    WINDOWS,
-    MACOS,
 )
 
 

@@ -6,7 +6,7 @@ keywords: object detection, YOLOv8, pretrained models, training, validation, pre
 
 # Object Detection
 
-<img width="1024" src="https://user-images.githubusercontent.com/26833433/243418624-5785cb93-74c9-4541-9179-d5c6782d491a.png" alt="Object detection examples">
+<img width="1024" src="https://github.com/ultralytics/docs/releases/download/0/object-detection-examples.avif" alt="Object detection examples">
 
 Object detection is a task that involves identifying the location and class of objects in an image or video stream.
 

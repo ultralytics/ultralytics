@@ -8,7 +8,7 @@ keywords: YOLOv7, real-time object detection, Ultralytics, AI, computer vision, 
 
 YOLOv7 is a state-of-the-art real-time object detector that surpasses all known object detectors in both speed and accuracy in the range from 5 FPS to 160 FPS. It has the highest accuracy (56.8% AP) among all known real-time object detectors with 30 FPS or higher on GPU V100. Moreover, YOLOv7 outperforms other object detectors such as YOLOR, YOLOX, Scaled-YOLOv4, YOLOv5, and many others in speed and accuracy. The model is trained on the MS COCO dataset from scratch without using any other datasets or pre-trained weights. Source code for YOLOv7 is available on GitHub.
 
-![YOLOv7 comparison with SOTA object detectors](https://github.com/ultralytics/ultralytics/assets/26833433/f7605c4e-8607-428b-aca4-0c2adfceb1a2)
+![YOLOv7 comparison with SOTA object detectors](https://github.com/ultralytics/docs/releases/download/0/yolov7-comparison-sota-object-detectors.avif)
 
 ## Comparison of SOTA object detectors
 

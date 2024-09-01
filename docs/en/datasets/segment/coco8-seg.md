@@ -51,7 +51,7 @@ To train a YOLOv8n-seg model on the COCO8-Seg dataset for 100 epochs with an ima
 
 Here are some examples of images from the COCO8-Seg dataset, along with their corresponding annotations:
 
-<img src="https://user-images.githubusercontent.com/26833433/236818387-f7bde7df-caaa-46d1-8341-1f7504cd11a1.jpg" alt="Dataset sample image" width="800">
+<img src="https://github.com/ultralytics/docs/releases/download/0/mosaiced-training-batch-2.avif" alt="Dataset sample image" width="800">
 
 - **Mosaiced Image**: This image demonstrates a training batch composed of mosaiced dataset images. Mosaicing is a technique used during training that combines multiple images into a single image to increase the variety of objects and scenes within each training batch. This helps improve the model's ability to generalize to different object sizes, aspect ratios, and contexts.
 

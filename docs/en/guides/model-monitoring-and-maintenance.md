@@ -40,7 +40,7 @@ You can use automated monitoring tools to make it easier to monitor models after
 The three tools introduced above, Evidently AI, Prometheus, and Grafana, can work together seamlessly as a fully open-source ML monitoring solution that is ready for production. Evidently AI is used to collect and calculate metrics, Prometheus stores these metrics, and Grafana displays them and sets up alerts. While there are many other tools available, this setup is an exciting open-source option that provides robust capabilities for monitoring and maintaining your models.
 
 <p align="center">
-  <img width="100%" src="https://cdn.prod.website-files.com/660ef16a9e0687d9cc27474a/6625e0d5fe28fe414563ad0d_64498c4145adad5ecd2bfdcb_5_evidently_grafana_-min.png" alt="Overview of Open Source Model Monitoring Tools">
+  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/evidently-prometheus-grafana-monitoring-tools.avif" alt="Overview of Open Source Model Monitoring Tools">
 </p>
 
 ### Anomaly Detection and Alert Systems
@@ -62,7 +62,7 @@ When you are setting up your alert systems, keep these best practices in mind:
 Data drift detection is a concept that helps identify when the statistical properties of the input data change over time, which can degrade model performance. Before you decide to retrain or adjust your models, this technique helps spot that there is an issue. Data drift deals with changes in the overall data landscape over time, while anomaly detection focuses on identifying rare or unexpected data points that may require immediate attention.
 
 <p align="center">
-  <img width="100%" src="https://cdn.prod.website-files.com/660ef16a9e0687d9cc27474a/662c3c84dc614ac9ad250314_65406ec83d5a6ca96619262f_data_drift10.png" alt="Data Drift Detection Overview">
+  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/data-drift-detection-overview.avif" alt="Data Drift Detection Overview">
 </p>
 
 Here are several methods to detect data drift:
@@ -82,7 +82,7 @@ Model maintenance is crucial to keep computer vision models accurate and relevan
 Once a model is deployed, while monitoring, you may notice changes in data patterns or performance, indicating model drift. Regular updates and re-training become essential parts of model maintenance to ensure the model can handle new patterns and scenarios. There are a few techniques you can use based on how your data is changing.
 
 <p align="center">
-  <img width="100%" src="https://f8federal.com/wp-content/uploads/2021/06/Asset-2@5x.png" alt="Computer Vision Model Drift Overview">
+  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/computer-vision-model-drift-overview.avif" alt="Computer Vision Model Drift Overview">
 </p>
 
 For example, if the data is changing gradually over time, incremental learning is a good approach. Incremental learning involves updating the model with new data without completely retraining it from scratch, saving computational resources and time. However, if the data has changed drastically, a periodic full re-training might be a better option to ensure the model does not overfit on the new data while losing track of older patterns.
@@ -94,7 +94,7 @@ Regardless of the method, validation and testing are a must after updates. It is
 The frequency of retraining your computer vision model depends on data changes and model performance. Retrain your model whenever you observe a significant performance drop or detect data drift. Regular evaluations can help determine the right retraining schedule by testing the model against new data. Monitoring performance metrics and data patterns lets you decide if your model needs more frequent updates to maintain accuracy.
 
 <p align="center">
-  <img width="100%" src="https://cdn.prod.website-files.com/660ef16a9e0687d9cc27474a/6625e0e2ce5af6ba15764bf6_62e1b89973a9fd20eb9cde71_blog_retrain_or_not_-20.png" alt="When to Retrain Overview">
+  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/when-to-retrain-overview.avif" alt="When to Retrain Overview">
 </p>
 
 ## Documentation

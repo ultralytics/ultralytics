@@ -11,7 +11,7 @@ When you are deploying cutting-edge computer vision models, like YOLOv8, in diff
 In this guide, we'll walk you step by step through how to export your [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics) models to the TF GraphDef model format. By converting your model, you can streamline deployment and use YOLOv8's computer vision capabilities in a broader range of applications and platforms.
 
 <p align="center">
-  <img width="640" src="https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/2d793b51-19f2-49e0-bf4b-5208f2eb5993" alt="TensorFlow GraphDef">
+  <img width="640" src="https://github.com/ultralytics/docs/releases/download/0/tensorflow-graphdef.avif" alt="TensorFlow GraphDef">
 </p>
 
 ## Why Should You Export to TF GraphDef?

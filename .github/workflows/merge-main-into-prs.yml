@@ -35,7 +35,7 @@ jobs:
 
           g = Github(os.getenv('GITHUB_TOKEN'))
           repo = g.get_repo(os.getenv('GITHUB_REPOSITORY'))
-          
+
           # Fetch the default branch name
           default_branch_name = repo.default_branch
           default_branch = repo.get_branch(default_branch_name)
@@ -44,7 +44,7 @@ jobs:
           updated_branches = 0
           up_to_date_branches = 0
           errors = 0
-          
+
           for pr in repo.get_pulls(state='open', sort='created'):
               try:
                   # Label PRs as popular for positive reactions

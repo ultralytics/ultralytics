@@ -662,6 +662,7 @@ class RandomHSV:
         return labels
 
 
+
 class RandomFlip:
     """
     Applies a random horizontal or vertical flip to an image with a given probability.
@@ -719,6 +720,32 @@ class RandomFlip:
         return labels
 
 
+def add_border(img, top, bottom, left, right, value):
+    """
+    Add a border to an image using NumPy.
+
+    Parameters:
+    - img: NumPy array representing the image.
+    - top, bottom, left, right: Number of pixels to add as border on each side.
+    - value: Tuple representing the border color for each channel (e.g., (144, 144, 144) for a 3-channel image).
+
+    Returns:
+    - img_with_border: New image with the border added.
+    """
+
+    # Get the shape of the original image
+    height, width, channels = img.shape
+
+    # Create a new array with the desired border size and fill it with the border color
+    new_height = height + top + bottom
+    new_width = width + left + right
+    img_with_border = np.full((new_height, new_width, channels), value, dtype=img.dtype)
+
+    # Place the original image in the center of the new image
+    img_with_border[top:top+height, left:left+width] = img
+
+    return img_with_border
+
 class LetterBox:
     """Resize image and padding for detection, instance segmentation, pose."""
 
@@ -765,9 +792,9 @@ class LetterBox:
             img = cv2.resize(img, new_unpad, interpolation=cv2.INTER_LINEAR)
         top, bottom = int(round(dh - 0.1)) if self.center else 0, int(round(dh + 0.1))
         left, right = int(round(dw - 0.1)) if self.center else 0, int(round(dw + 0.1))
-        img = cv2.copyMakeBorder(
-            img, top, bottom, left, right, cv2.BORDER_CONSTANT, value= (144,) * img.shape[2]
-        )  # add border
+        img = add_border(img, top, bottom, left, right, (114)*img.shape[2])
+
+
         if labels.get("ratio_pad"):
             labels["ratio_pad"] = (labels["ratio_pad"], (left, top))  # for evaluation
 

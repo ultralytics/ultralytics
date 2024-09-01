@@ -12,6 +12,7 @@ from typing import Optional
 import cv2
 import numpy as np
 import psutil
+import tifffile as tiff
 import rasterio
 from torch.utils.data import Dataset
 
@@ -173,8 +174,6 @@ class BaseDataset(Dataset):
             if self.single_cls:
                 self.labels[i]["cls"][:, 0] = 0
 
-    import rasterio
-
     def load_image(self, i, rect_mode=True):
 
         """Loads 1 image from dataset index 'i', returns (im, resized hw)."""
@@ -209,26 +208,9 @@ class BaseDataset(Dataset):
                             LOGGER.warning(f"Image {f} has {im.shape[2]} bands, but N_CHANNELS is set to {N_CHANNELS}.")
                             raise ValueError(f"Image {f} has {im.shape[2]} bands, but N_CHANNELS is set to {N_CHANNELS}.")
                 elif f.lower().endswith((".tif",".tiff")):
-                    with rasterio.open(f) as src:
-                        bands_data = []
-                        try:
-                            for b in bands:
-                                bands_data.append(src.read(b))
-                                bands = [b for b in bands_data]
-                        except IndexError:
-                            LOGGER.warning(f"Image {f} has {im.shape[0]} bands, but N_CHANNELS is set to {N_CHANNELS}.")
-                            raise ValueError(f"Image {f} has {im.shape[0]} bands, but N_CHANNELS is set to {N_CHANNELS}.")
-                    im = np.stack(bands, axis=-1)
+                    im = tiff.imread(f)
                 else:
                     raise ValueError(f"Image format not supported: {f.suffix}")
-
-
-
-
-
-
-
-
 
             if im is None:
                 raise FileNotFoundError(f"Image Not Found {f}")
@@ -249,9 +231,7 @@ class BaseDataset(Dataset):
                 if len(self.buffer) >= self.max_buffer_length:
                     j = self.buffer.pop(0)
                     self.ims[j], self.im_hw0[j], self.im_hw[j] = None, None, None
-
             return im, (h0, w0), im.shape[:2]
-
         return self.ims[i], self.im_hw0[i], self.im_hw[i]
 
     def cache_images(self, cache):

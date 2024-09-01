@@ -14,7 +14,9 @@ from pathlib import Path
 from tarfile import is_tarfile
 
 import cv2
+import tifffile as tiff
 import numpy as np
+import tifffile
 from PIL import Image, ImageOps
 
 from ultralytics_MB.nn.autobackend import check_class_names
@@ -111,7 +113,12 @@ def verify_image_label(args):
 
     try:
         # Verify images
-        im_big = imread(im_file)
+        if im_file.lower().endswith((".tif",".tiff")):
+            im_big = tiff.imread(im_file)
+        else:
+            LOGGER.WARNING(f"im_file: {im_file} opened using cv2")
+            im_big = imread(im_file)
+
         im = Image.fromarray(im_big[...,:3])
 
         #im.verify() # PIL verify

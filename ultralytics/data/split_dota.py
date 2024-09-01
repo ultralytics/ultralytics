@@ -193,7 +193,7 @@ def crop_and_save(anno, windows, window_objs, im_dir, lb_dir, allow_background_i
 
             with open(Path(lb_dir) / f"{new_name}.txt", "w") as f:
                 for lb in label:
-                    formatted_coords = ["{:.6g}".format(coord) for coord in lb[1:]]
+                    formatted_coords = [f"{coord:.6g}" for coord in lb[1:]]
                     f.write(f"{int(lb[0])} {' '.join(formatted_coords)}\n")
 
 

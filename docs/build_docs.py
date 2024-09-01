@@ -164,7 +164,7 @@ def update_docs_html():
     # Convert plaintext links to HTML hyperlinks
     files_modified = 0
     for html_file in tqdm(SITE.rglob("*.html"), desc="Converting plaintext links"):
-        with open(html_file, "r", encoding="utf-8") as file:
+        with open(html_file, encoding="utf-8") as file:
             content = file.read()
         updated_content = convert_plaintext_links_to_html(content)
         if updated_content != content:

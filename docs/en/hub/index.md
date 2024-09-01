@@ -7,7 +7,7 @@ keywords: Ultralytics HUB, YOLO models, train YOLO, YOLOv5, YOLOv8, object detec
 # Ultralytics HUB
 
 <div align="center">
-<a href="https://ultralytics.com/hub" target="_blank"><img width="100%" src="https://github.com/ultralytics/assets/raw/main/im/ultralytics-hub.png"></a>
+<a href="https://ultralytics.com/hub" target="_blank"><img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/ultralytics-hub.avif"></a>
 <a href="https://docs.ultralytics.com/zh/hub/">中文</a> |
 <a href="https://docs.ultralytics.com/ko/hub/">한국어</a> |
 <a href="https://docs.ultralytics.com/ja/hub/">日本語</a> |
@@ -22,7 +22,7 @@ keywords: Ultralytics HUB, YOLO models, train YOLO, YOLOv5, YOLOv8, object detec
 <br>
 <br>
 
-<a href="https://github.com/ultralytics/hub/actions/workflows/ci.yaml"><img src="https://github.com/ultralytics/hub/actions/workflows/ci.yaml/badge.svg" alt="CI CPU"></a> <a href="https://colab.research.google.com/github/ultralytics/hub/blob/main/hub.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> <a href="https://ultralytics.com/discord"><img alt="Discord" src="https://img.shields.io/discord/1089800235347353640?logo=discord&logoColor=white&label=Discord&color=blue"></a> <a href="https://community.ultralytics.com"><img alt="Ultralytics Forums" src="https://img.shields.io/discourse/users?server=https%3A%2F%2Fcommunity.ultralytics.com&logo=discourse&label=Forums&color=blue"></a>
+<a href="https://github.com/ultralytics/hub/actions/workflows/ci.yaml"><img src="https://github.com/ultralytics/hub/actions/workflows/ci.yaml/badge.svg" alt="CI CPU"></a> <a href="https://colab.research.google.com/github/ultralytics/hub/blob/main/hub.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> <a href="https://ultralytics.com/discord"><img alt="Discord" src="https://img.shields.io/discord/1089800235347353640?logo=discord&logoColor=white&label=Discord&color=blue"></a> <a href="https://community.ultralytics.com"><img alt="Ultralytics Forums" src="https://img.shields.io/discourse/users?server=https%3A%2F%2Fcommunity.ultralytics.com&logo=discourse&label=Forums&color=blue"></a> <a href="https://reddit.com/r/ultralytics"><img alt="Ultralytics Reddit" src="https://img.shields.io/reddit/subreddit-subscribers/ultralytics?style=flat&logo=reddit&logoColor=white&label=Reddit&color=blue"></a>
 
 </div>
 

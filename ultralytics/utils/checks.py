@@ -234,17 +234,6 @@ def check_version(
         ):
             return True
 
-    if "sys_platform" in required:  # i.e. required='<2.4.0,>=1.8.0; sys_platform == "win32"'
-    platform_conditions = [cond.strip() for cond in required.split(';') if "sys_platform" in cond]
-    if not any(
-        (WINDOWS and "win32" in cond) or
-        (LINUX and "linux" in cond) or
-        (MACOS and ("darwin" in cond or "macos" in cond))
-        for cond in platform_conditions
-    ):
-        return True
-
-    
     op = ""
     version = ""
     result = True

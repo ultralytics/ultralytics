@@ -227,12 +227,12 @@ def check_version(
         return True
 
     if "sys_platform" in required:  # i.e. required='<2.4.0,>=1.8.0; sys_platform == "win32"'
-        if (
-            (WINDOWS and "win32" not in required)
-            and (LINUX and "linux" not in required)
-            and (MACOS and "darwin" not in required and "macos" not in required)
-        ):
-            return True
+            if (
+                ("win32" in required and not WINDOWS)
+                or ("linux" in required and not LINUX)
+                or ("macos" in required and not MACOS)
+            ):
+                return True
 
     op = ""
     version = ""

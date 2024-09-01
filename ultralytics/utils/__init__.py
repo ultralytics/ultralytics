@@ -46,6 +46,7 @@ ARM64 = platform.machine() in {"arm64", "aarch64"}  # ARM64 booleans
 PYTHON_VERSION = platform.python_version()
 TORCH_VERSION = torch.__version__
 TORCHVISION_VERSION = importlib.metadata.version("torchvision")  # faster than importing torchvision
+IS_VSCODE = os.environ.get("TERM_PROGRAM", False) == "vscode"
 HELP_MSG = """
     Examples for running Ultralytics:
 
@@ -1046,7 +1047,7 @@ class SettingsManager(dict):
         version (str): Settings version. In case of local version mismatch, new default settings will be saved.
     """
 
-    def __init__(self, file=SETTINGS_YAML, version="0.0.4"):
+    def __init__(self, file=SETTINGS_YAML, version="0.0.5"):
         """Initializes the SettingsManager with default settings and loads user settings."""
         import copy
         import hashlib
@@ -1077,6 +1078,7 @@ class SettingsManager(dict):
             "raytune": True,
             "tensorboard": True,
             "wandb": True,
+            "vscode_msg": True,
         }
         self.help_msg = (
             f"\nView settings with 'yolo settings' or at '{self.file}'"
@@ -1150,6 +1152,18 @@ def clean_url(url):
 def url2file(url):
     """Convert URL to filename, i.e. https://url.com/file.txt?auth -> file.txt."""
     return Path(clean_url(url)).name
+
+
+def vscode_msg(ext="ultralytics.ultralytics-snippets") -> str:
+    """Display a message to install Ultralytics-Snippets for VS Code if not already installed."""
+    path = (USER_CONFIG_DIR.parents[2] if WINDOWS else USER_CONFIG_DIR.parents[1]) / ".vscode/extensions"
+    obs_file = path / ".obsolete"  # file tracks uninstalled extensions, while source directory remains
+    installed = any(path.glob(f"{ext}*")) and ext not in (obs_file.read_text("utf-8") if obs_file.exists() else "")
+    return (
+        f"{colorstr('VS Code:')} view Ultralytics VS Code Extension ⚡ at https://docs.ultralytics.com/integrations/vscode"
+        if not installed
+        else ""
+    )
 
 
 # Run below code on utils init ------------------------------------------------------------------------------------

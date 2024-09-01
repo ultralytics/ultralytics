@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 
 ################################################################################
 ## Form generated from reading UI file 'camera_video.ui'
@@ -29,7 +28,7 @@ from PySide6.QtWidgets import (
 )
 
 
-class Ui_camera_video(object):
+class Ui_camera_video:
     def setupUi(self, camera_video):
         if not camera_video.objectName():
             camera_video.setObjectName("camera_video")

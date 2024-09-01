@@ -1042,7 +1042,7 @@ class Exporter:
                     iou_threshold (float): Intersection over union threshold for non-maximum suppression.
                     max_detections (float): The number of detections to return.
                 """
-                super(PostProcessWrapper, self).__init__()
+                super().__init__()
                 self.model = model
                 self.score_threshold = score_threshold
                 self.iou_threshold = iou_threshold

@@ -20,7 +20,7 @@ Hyperparameters are high-level, structural settings for the algorithm. They are 
 - **Architecture Specifics**: Such as channel counts, number of layers, types of activation functions, etc.
 
 <p align="center">
-  <img width="640" src="https://user-images.githubusercontent.com/26833433/263858934-4f109a2f-82d9-4d08-8bd6-6fd1ff520bcd.png" alt="Hyperparameter Tuning Visual">
+  <img width="640" src="https://github.com/ultralytics/docs/releases/download/0/hyperparameter-tuning-visual.avif" alt="Hyperparameter Tuning Visual">
 </p>
 
 For a full list of augmentation hyperparameters used in YOLOv8 please refer to the [configurations page](../usage/cfg.md#augmentation-settings).
@@ -157,7 +157,7 @@ This is a plot displaying fitness (typically a performance metric like AP50) aga
 - **Usage**: Performance visualization
 
 <p align="center">
-  <img width="640" src="https://user-images.githubusercontent.com/26833433/266847423-9d0aea13-d5c4-4771-b06e-0b817a498260.png" alt="Hyperparameter Tuning Fitness vs Iteration">
+  <img width="640" src="https://github.com/ultralytics/docs/releases/download/0/best-fitness.avif" alt="Hyperparameter Tuning Fitness vs Iteration">
 </p>
 
 #### tune_results.csv
@@ -182,7 +182,7 @@ This file contains scatter plots generated from `tune_results.csv`, helping you 
 - **Usage**: Exploratory data analysis
 
 <p align="center">
-  <img width="1000" src="https://user-images.githubusercontent.com/26833433/266847488-ec382f3d-79bc-4087-a0e0-42fb8b62cad2.png" alt="Hyperparameter Tuning Scatter Plots">
+  <img width="1000" src="https://github.com/ultralytics/docs/releases/download/0/tune-scatter-plots.avif" alt="Hyperparameter Tuning Scatter Plots">
 </p>
 
 #### weights/

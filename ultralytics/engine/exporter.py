@@ -138,7 +138,7 @@ def try_export(inner_func):
             LOGGER.info(f"{prefix} export success ✅ {dt.t:.1f}s, saved as '{f}' ({file_size(f):.1f} MB)")
             return f, model
         except Exception as e:
-            LOGGER.info(f"{prefix} export failure ❌ {dt.t:.1f}s: {e}")
+            LOGGER.error(f"{prefix} export failure ❌ {dt.t:.1f}s: {e}")
             raise e
 
     return outer_func
@@ -204,9 +204,8 @@ class Exporter:
             self.args.half = False
             assert not self.args.dynamic, "half=True not compatible with dynamic=True, i.e. use only one."
         self.imgsz = check_imgsz(self.args.imgsz, stride=model.stride, min_dim=2)  # check image size
-        if self.args.int8 and not self.args.dynamic and (engine or xml):
-            self.args.dynamic = True  # enforce dynamic to export TensorRT INT8; ensures ONNX is dynamic
-            LOGGER.warning("WARNING ⚠️ INT8 export requires dynamic image sizes, setting dynamic=True.")
+        if self.args.int8 and engine:
+            self.args.dynamic = True  # enforce dynamic to export TensorRT INT8
         if self.args.optimize:
             assert not ncnn, "optimize=True not compatible with format='ncnn', i.e. use optimize=False"
             assert self.device.type == "cpu", "optimize=True not compatible with cuda devices, i.e. use device='cpu'"
@@ -355,18 +354,20 @@ class Exporter:
         """Build and return a dataloader suitable for calibration of INT8 models."""
         LOGGER.info(f"{prefix} collecting INT8 calibration images from 'data={self.args.data}'")
         data = (check_cls_dataset if self.model.task == "classify" else check_det_dataset)(self.args.data)
+        # TensorRT INT8 calibration should use 2x batch size
+        batch = self.args.batch * (2 if self.args.format == "engine" else 1)
         dataset = YOLODataset(
             data[self.args.split or "val"],
             data=data,
             task=self.model.task,
             imgsz=self.imgsz[0],
             augment=False,
-            batch_size=self.args.batch * 2,  # NOTE TensorRT INT8 calibration should use 2x batch size
+            batch_size=batch,
         )
         n = len(dataset)
         if n < 300:
             LOGGER.warning(f"{prefix} WARNING ⚠️ >300 images recommended for INT8 calibration, found {n} images.")
-        return build_dataloader(dataset, batch=self.args.batch * 2, workers=0)  # required for batch loading
+        return build_dataloader(dataset, batch=batch, workers=0)  # required for batch loading
 
     @try_export
     def export_torchscript(self, prefix=colorstr("TorchScript:")):
@@ -422,7 +423,6 @@ class Exporter:
 
         # Checks
         model_onnx = onnx.load(f)  # load onnx model
-        # onnx.checker.check_model(model_onnx)  # check onnx model
 
         # Simplify
         if self.args.simplify:
@@ -432,10 +432,6 @@ class Exporter:
                 LOGGER.info(f"{prefix} slimming with onnxslim {onnxslim.__version__}...")
                 model_onnx = onnxslim.slim(model_onnx)
 
-                # ONNX Simplifier (deprecated as must be compiled with 'cmake' in aarch64 and Conda CI environments)
-                # import onnxsim
-                # model_onnx, check = onnxsim.simplify(model_onnx)
-                # assert check, "Simplified ONNX model could not be validated"
             except Exception as e:
                 LOGGER.warning(f"{prefix} simplifier failure: {e}")
 
@@ -679,7 +675,6 @@ class Exporter:
     def export_engine(self, prefix=colorstr("TensorRT:")):
         """YOLOv8 TensorRT export https://developer.nvidia.com/tensorrt."""
         assert self.im.device.type != "cpu", "export running on CPU but must be on GPU, i.e. use 'device=0'"
-        # self.args.simplify = True
         f_onnx, _ = self.export_onnx()  # run before TRT import https://github.com/ultralytics/ultralytics/issues/7016
 
         try:
@@ -786,7 +781,7 @@ class Exporter:
             # Load dataset w/ builder (for batching) and calibrate
             config.int8_calibrator = EngineCalibrator(
                 dataset=self.get_int8_calibration_dataloader(prefix),
-                batch=2 * self.args.batch,
+                batch=2 * self.args.batch,  # TensorRT INT8 calibration should use 2x batch size
                 cache=str(self.file.with_suffix(".cache")),
             )
 
@@ -869,8 +864,6 @@ class Exporter:
                 f.mkdir()
                 images = [batch["img"].permute(0, 2, 3, 1) for batch in self.get_int8_calibration_dataloader(prefix)]
                 images = torch.cat(images, 0).float()
-                # mean = images.view(-1, 3).mean(0)  # imagenet mean [123.675, 116.28, 103.53]
-                # std = images.view(-1, 3).std(0)  # imagenet std [58.395, 57.12, 57.375]
                 np.save(str(tmp_file), images.numpy().astype(np.float32))  # BHWC
                 np_data = [["images", tmp_file, [[[[0, 0, 0]]]], [[[[255, 255, 255]]]]]]
         else:
@@ -998,20 +991,7 @@ class Exporter:
         if " " in f:
             LOGGER.warning(f"{prefix} WARNING ⚠️ your model may not work correctly with spaces in path '{f}'.")
 
-        # f_json = Path(f) / 'model.json'  # *.json path
-        # with open(f_json, 'w') as j:  # sort JSON Identity_* in ascending order
-        #     subst = re.sub(
-        #         r'{"outputs": {"Identity.?.?": {"name": "Identity.?.?"}, '
-        #         r'"Identity.?.?": {"name": "Identity.?.?"}, '
-        #         r'"Identity.?.?": {"name": "Identity.?.?"}, '
-        #         r'"Identity.?.?": {"name": "Identity.?.?"}}}',
-        #         r'{"outputs": {"Identity": {"name": "Identity"}, '
-        #         r'"Identity_1": {"name": "Identity_1"}, '
-        #         r'"Identity_2": {"name": "Identity_2"}, '
-        #         r'"Identity_3": {"name": "Identity_3"}}}',
-        #         f_json.read_text(),
-        #     )
-        #     j.write(subst)
+        # Add metadata
         yaml_save(Path(f) / "metadata.yaml", self.metadata)  # add metadata.yaml
         return f, None
 
@@ -1104,27 +1084,11 @@ class Exporter:
         names = self.metadata["names"]
         nx, ny = spec.description.input[0].type.imageType.width, spec.description.input[0].type.imageType.height
         _, nc = out0_shape  # number of anchors, number of classes
-        # _, nc = out0.type.multiArrayType.shape
         assert len(names) == nc, f"{len(names)} names found for nc={nc}"  # check
 
         # Define output shapes (missing)
         out0.type.multiArrayType.shape[:] = out0_shape  # (3780, 80)
         out1.type.multiArrayType.shape[:] = out1_shape  # (3780, 4)
-        # spec.neuralNetwork.preprocessing[0].featureName = '0'
-
-        # Flexible input shapes
-        # from coremltools.models.neural_network import flexible_shape_utils
-        # s = [] # shapes
-        # s.append(flexible_shape_utils.NeuralNetworkImageSize(320, 192))
-        # s.append(flexible_shape_utils.NeuralNetworkImageSize(640, 384))  # (height, width)
-        # flexible_shape_utils.add_enumerated_image_sizes(spec, feature_name='image', sizes=s)
-        # r = flexible_shape_utils.NeuralNetworkImageSizeRange()  # shape ranges
-        # r.add_height_range((192, 640))
-        # r.add_width_range((192, 640))
-        # flexible_shape_utils.update_image_size_range(spec, feature_name='image', size_range=r)
-
-        # Print
-        # print(spec.description)
 
         # Model from spec
         model = ct.models.MLModel(spec, weights_dir=weights_dir)

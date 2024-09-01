@@ -1,4 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
+
 import contextlib
 import gc
 import math
@@ -26,6 +27,7 @@ from ultralytics.utils import (
     TORCHVISION_VERSION,
     __version__,
     colorstr,
+    WINDOWS,
 )
 from ultralytics.utils.checks import check_version
 
@@ -42,6 +44,11 @@ TORCHVISION_0_10 = check_version(TORCHVISION_VERSION, "0.10.0")
 TORCHVISION_0_11 = check_version(TORCHVISION_VERSION, "0.11.0")
 TORCHVISION_0_13 = check_version(TORCHVISION_VERSION, "0.13.0")
 TORCHVISION_0_18 = check_version(TORCHVISION_VERSION, "0.18.0")
+if WINDOWS and torch.__version__ == "2.4.0":
+    LOGGER.warning(
+        "WARNING ⚠️ Known issue with torch==2.4.0 on Windows with CPU, recommend downgrading or upgrading to resolve "
+        "https://github.com/ultralytics/ultralytics/issues/15049"
+    )
 
 
 @contextmanager
@@ -706,3 +713,4 @@ class EarlyStopping:
                 f"i.e. `patience=300` or use `patience=0` to disable EarlyStopping."
             )
         return stop
+

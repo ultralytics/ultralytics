@@ -81,13 +81,13 @@ Navigate to the directory where you saved the notebook file using your terminal.
 
 Once you've run this command, it will open JupyterLab in your default web browser, as shown below.
 
-![Image Showing How JupyterLab Opens On the Browser](https://github.com/user-attachments/assets/bac4b140-1d64-4034-b980-7c0721121ec2)
+![Image Showing How JupyterLab Opens On the Browser](https://github.com/ultralytics/docs/releases/download/0/jupyterlab-browser-launch.avif)
 
 ### Step 4: Start Experimenting
 
 In JupyterLab, open the tutorial.ipynb notebook. You can now start running the cells to explore and experiment with YOLOv8.
 
-![Image Showing Opened YOLOv8 Notebook in JupyterLab](https://github.com/user-attachments/assets/71fe86d8-1964-4cde-9f62-479dfa41c75b)
+![Image Showing Opened YOLOv8 Notebook in JupyterLab](https://github.com/ultralytics/docs/releases/download/0/opened-yolov8-notebook-jupyterlab.avif)
 
 JupyterLab's interactive environment allows you to modify code, visualize outputs, and document your findings all in one place. You can try out different configurations and understand how YOLOv8 works.
 

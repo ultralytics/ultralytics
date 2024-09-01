@@ -252,6 +252,8 @@ def test_labels_and_crops():
     for r in results:
         im_name = Path(r.path).stem
         cls_idxs = r.boxes.cls.int().tolist()
+        # Check correct detections
+        assert cls_idxs == ([0, 0, 5, 0, 7] if r.path.endswith("bus.jpg") else [0, 0])  # bus.jpg and zidane.jpg classes
         # Check label path
         labels = save_path / f"labels/{im_name}.txt"
         assert labels.exists()

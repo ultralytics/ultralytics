@@ -28,10 +28,10 @@ Queue management using [Ultralytics YOLOv8](https://github.com/ultralytics/ultra
 
 ## Real World Applications
 
-|                                                                                  Logistics                                                                                  |                                                                           Retail                                                                           |
-| :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------------------------------------------------------------: |
-| ![Queue management at airport ticket counter using Ultralytics YOLOv8](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/10487e76-bf60-4a9c-a0f3-5a75a05fa7a3) | ![Queue monitoring in crowd using Ultralytics YOLOv8](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/dcc6d2ca-5576-434d-83c6-e57fe07bc693) |
-|                                                     Queue management at airport ticket counter Using Ultralytics YOLOv8                                                     |                                                        Queue monitoring in crowd Ultralytics YOLOv8                                                        |
+|                                                                                            Logistics                                                                                            |                                                                            Retail                                                                             |
+| :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------------------------------------------------------: |
+| ![Queue management at airport ticket counter using Ultralytics YOLOv8](https://github.com/ultralytics/docs/releases/download/0/queue-management-airport-ticket-counter-ultralytics-yolov8.avif) | ![Queue monitoring in crowd using Ultralytics YOLOv8](https://github.com/ultralytics/docs/releases/download/0/queue-monitoring-crowd-ultralytics-yolov8.avif) |
+|                                                               Queue management at airport ticket counter Using Ultralytics YOLOv8                                                               |                                                         Queue monitoring in crowd Ultralytics YOLOv8                                                          |
 
 !!! Example "Queue Management using YOLOv8 Example"
 

@@ -79,7 +79,7 @@ To train a YOLOv8n model on the signature detection dataset for 100 epochs with 
 
 The signature detection dataset comprises a wide variety of images showcasing different document types and annotated signatures. Below are examples of images from the dataset, each accompanied by its corresponding annotations.
 
-![Signature detection dataset sample image](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/88a453da-3110-4835-9ae4-97bfb8b19046)
+![Signature detection dataset sample image](https://github.com/ultralytics/docs/releases/download/0/signature-detection-mosaiced-sample.avif)
 
 - **Mosaiced Image**: Here, we present a training batch consisting of mosaiced dataset images. Mosaicing, a training technique, combines multiple images into one, enriching batch diversity. This method helps enhance the model's ability to generalize across different signature sizes, aspect ratios, and contexts.
 

@@ -355,7 +355,7 @@ class Exporter:
         LOGGER.info(f"{prefix} collecting INT8 calibration images from 'data={self.args.data}'")
         data = (check_cls_dataset if self.model.task == "classify" else check_det_dataset)(self.args.data)
         # TensorRT INT8 calibration should use 2x batch size
-        batch = self.args.batch * 2 if self.args.format == "engine" else self.args.batch
+        batch = self.args.batch * (2 if self.args.format == "engine" else 1)
         dataset = YOLODataset(
             data[self.args.split or "val"],
             data=data,

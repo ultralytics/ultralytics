@@ -67,6 +67,6 @@ python train.py --data coco.yaml --epochs 300 --weights '' --cfg yolov5n.yaml  -
                                                                  yolov5x                    16
 ```
 
-<img width="800" src="https://user-images.githubusercontent.com/26833433/90222759-949d8800-ddc1-11ea-9fa1-1c97eed2b963.png" alt="YOLO training curves">
+<img width="800" src="https://github.com/ultralytics/docs/releases/download/0/yolov5-training-curves.avif" alt="YOLO training curves">
 
 To conclude, YOLOv5 is not only a state-of-the-art tool for object detection but also a testament to the power of machine learning in transforming the way we interact with the world through visual understanding. As you progress through this guide and begin applying YOLOv5 to your projects, remember that you are at the forefront of a technological revolution, capable of achieving remarkable feats. Should you need further insights or support from fellow visionaries, you're invited to our [GitHub repository](https://github.com/ultralytics/yolov5) home to a thriving community of developers and researchers. Keep exploring, keep innovating, and enjoy the marvels of YOLOv5. Happy detecting! 🌠🔍

@@ -50,6 +50,7 @@ class HUBTrainingSession:
         self.model = None
         self.model_url = None
         self.model_file = None
+        self.train_args = None
 
         # Parse input
         api_key, model_id, self.filename = self._parse_identifier(identifier)

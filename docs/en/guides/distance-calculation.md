@@ -23,9 +23,9 @@ Measuring the gap between two objects is known as distance calculation within a 
 
 ## Visuals
 
-|                                                  Distance Calculation using Ultralytics YOLOv8                                                  |
-| :---------------------------------------------------------------------------------------------------------------------------------------------: |
-| ![Ultralytics YOLOv8 Distance Calculation](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/6b6b735d-3c49-4b84-a022-2bf6e3c72f8b) |
+|                                                  Distance Calculation using Ultralytics YOLOv8                                                   |
+| :----------------------------------------------------------------------------------------------------------------------------------------------: |
+| ![Ultralytics YOLOv8 Distance Calculation](https://github.com/ultralytics/docs/releases/download/0/ultralytics-yolov8-distance-calculation.avif) |
 
 ## Advantages of Distance Calculation?
 
@@ -78,6 +78,10 @@ Measuring the gap between two objects is known as distance calculation within a 
 
     - Mouse Right Click will delete all drawn points
     - Mouse Left Click can be used to draw points
+
+???+ warning "Distance is Estimate"
+
+        Distance will be an estimate and may not be fully accurate, as it is calculated using 2-dimensional data, which lacks information about the object's depth.
 
 ### Arguments `DistanceCalculation()`
 

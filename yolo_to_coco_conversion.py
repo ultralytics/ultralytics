@@ -115,7 +115,7 @@ for label_file in glob.glob(os.path.join(yolo_labels_dir, "*.txt")):
 
     img_width, img_height = 640, 640  # Replace with actual image sizes
 
-    with open(label_file, "r") as file:
+    with open(label_file) as file:
         yolo_annotation = file.read()
 
     coco_anns, annotation_id = yolo_to_coco(yolo_annotation, image_id, img_width, img_height, annotation_id)

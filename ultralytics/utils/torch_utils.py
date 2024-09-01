@@ -25,9 +25,9 @@ from ultralytics.utils import (
     NUM_THREADS,
     PYTHON_VERSION,
     TORCHVISION_VERSION,
+    WINDOWS,
     __version__,
     colorstr,
-    WINDOWS,
 )
 from ultralytics.utils.checks import check_version
 
@@ -713,4 +713,3 @@ class EarlyStopping:
                 f"i.e. `patience=300` or use `patience=0` to disable EarlyStopping."
             )
         return stop
-

@@ -151,7 +151,12 @@ class ImageEncoderViT(nn.Module):
         """Processes input through patch embedding, positional embedding, transformer blocks, and neck module."""
         x = self.patch_embed(x)
         if self.pos_embed is not None:
-            x = x + self.pos_embed
+            pos_embed = (
+                F.interpolate(self.pos_embed.permute(0, 3, 1, 2), scale_factor=self.img_size / 1024).permute(0, 2, 3, 1)
+                if self.img_size != 1024
+                else self.pos_embed
+            )
+            x = x + pos_embed
         for blk in self.blocks:
             x = blk(x)
         return self.neck(x.permute(0, 3, 1, 2))

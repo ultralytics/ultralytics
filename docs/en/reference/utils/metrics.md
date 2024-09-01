@@ -31,6 +31,10 @@ keywords: Ultralytics, metrics, model validation, performance analysis, IoU, con
 
 <br><br><hr><br>
 
+## ::: ultralytics.utils.metrics.MultiTaskMetrics
+
+<br><br><hr><br>
+
 ## ::: ultralytics.utils.metrics.ClassifyMetrics
 
 <br><br><hr><br>

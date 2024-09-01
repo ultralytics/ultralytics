@@ -330,8 +330,12 @@ jobs:
           "
       - name: PyTest
         run: |
-          git clone https://github.com/ultralytics/ultralytics
-          pytest ultralytics/tests
+          VERSION=$(conda list ultralytics | grep ultralytics | awk '{print $2}')
+          echo "Ultralytics version: $VERSION"
+          git clone https://github.com/ultralytics/ultralytics.git
+          cd ultralytics
+          git checkout tags/v$VERSION
+          pytest tests
 
   Summary:
     runs-on: ubuntu-latest

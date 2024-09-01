@@ -287,34 +287,34 @@ class YoloV8:
 
         self.CocoClasses = None
         CocoYamlPath = "../ultralytics/cfg/datasets/coco.yaml"
-        with open(CocoYamlPath, "r", encoding="utf-8") as f:
+        with open(CocoYamlPath, encoding="utf-8") as f:
             CocoClasses = yaml.load(f.read(), Loader=yaml.FullLoader)
             self.CocoClasses = list(CocoClasses["names"].values())
 
         self.CocoPoseClasses = None
         self.CocoPoseKptShape = None
         CocoPoseYamlPath = "../ultralytics/cfg/datasets/coco-pose.yaml"
-        with open(CocoPoseYamlPath, "r", encoding="utf-8") as f:
+        with open(CocoPoseYamlPath, encoding="utf-8") as f:
             CocoPoseClasses = yaml.load(f.read(), Loader=yaml.FullLoader)
             self.CocoPoseClasses = list(CocoPoseClasses["names"].values())
             self.CocoPoseKptShape = CocoPoseClasses["kpt_shape"]
 
         self.ImageNetClasses = None
         ImageNetYamlPath = "../ultralytics/cfg/datasets/ImageNet.yaml"
-        with open(ImageNetYamlPath, "r", encoding="utf-8") as f:
+        with open(ImageNetYamlPath, encoding="utf-8") as f:
             ImageNetYaml = yaml.load(f.read(), Loader=yaml.FullLoader)
             self.ImageNetClasses = list(ImageNetYaml["names"].values())
 
         self.CocoSegClasses = None
         self.segNumMask = 32
         CocoSegYamlPath = "../ultralytics/cfg/datasets/coco128-seg.yaml"
-        with open(CocoSegYamlPath, "r", encoding="utf-8") as f:
+        with open(CocoSegYamlPath, encoding="utf-8") as f:
             CocoSegClasses = yaml.load(f.read(), Loader=yaml.FullLoader)
             self.CocoSegClasses = list(CocoSegClasses["names"].values())
 
         self.DOTAv1Classes = None
         DOTAv1YamlPath = "../ultralytics/cfg/datasets/DOTAv1.yaml"
-        with open(DOTAv1YamlPath, "r", encoding="utf-8") as f:
+        with open(DOTAv1YamlPath, encoding="utf-8") as f:
             DOTAv1Classes = yaml.load(f.read(), Loader=yaml.FullLoader)
             self.DOTAv1Classes = list(DOTAv1Classes["names"].values())
 

@@ -7,7 +7,7 @@ keywords: Ultralytics HUB, YOLO models, mobile app, iOS, Android, hardware accel
 # Ultralytics HUB App
 
 <a href="https://ultralytics.com/hub" target="_blank">
-  <img width="100%" src="https://github.com/ultralytics/assets/raw/main/im/ultralytics-hub.png" alt="Ultralytics HUB preview image"></a>
+  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/ultralytics-hub.avif" alt="Ultralytics HUB preview image"></a>
 <br>
 <div align="center">
   <a href="https://github.com/ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-github.png" width="3%" alt="Ultralytics GitHub"></a>

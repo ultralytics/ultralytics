@@ -1,4 +1,3 @@
-# -*-coding:utf-8 -*-
 # Author: Zenghui Tang
 # Date: 2024/3/26
 # Time: 13:50

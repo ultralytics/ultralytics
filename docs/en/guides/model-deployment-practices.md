@@ -49,7 +49,7 @@ Optimizing your computer vision model helps it runs efficiently, especially when
 Pruning reduces the size of the model by removing weights that contribute little to the final output. It makes the model smaller and faster without significantly affecting accuracy. Pruning involves identifying and eliminating unnecessary parameters, resulting in a lighter model that requires less computational power. It is particularly useful for deploying models on devices with limited resources.
 
 <p align="center">
-  <img width="100%" src="https://miro.medium.com/v2/resize:fit:1400/format:webp/1*rw2zAHw9Xlm7nSq1PCKbzQ.png" alt="Model Pruning Overview">
+  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/model-pruning-overview.avif" alt="Model Pruning Overview">
 </p>
 
 ### Model Quantization
@@ -65,7 +65,7 @@ Quantization converts the model's weights and activations from high precision (l
 Knowledge distillation involves training a smaller, simpler model (the student) to mimic the outputs of a larger, more complex model (the teacher). The student model learns to approximate the teacher's predictions, resulting in a compact model that retains much of the teacher's accuracy. This technique is beneficial for creating efficient models suitable for deployment on edge devices with constrained resources.
 
 <p align="center">
-  <img width="100%" src="https://editor.analyticsvidhya.com/uploads/30818Knowledge%20Distillation%20Flow%20Chart%201.2.jpg" alt="Knowledge Distillation Overview">
+  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/knowledge-distillation-overview.avif" alt="Knowledge Distillation Overview">
 </p>
 
 ## Troubleshooting Deployment Issues

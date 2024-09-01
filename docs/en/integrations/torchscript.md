@@ -12,13 +12,13 @@ Export to Torchscript to serialize your [Ultralytics YOLOv8](https://github.com/
 
 ## Why should you export to TorchScript?
 
-![Torchscript Overview](https://github.com/ultralytics/ultralytics/assets/26833433/6873349d-c2f6-4620-b3cc-7b26b0698d0b)
+![Torchscript Overview](https://github.com/ultralytics/docs/releases/download/0/torchscript-overview.avif)
 
 Developed by the creators of PyTorch, TorchScript is a powerful tool for optimizing and deploying PyTorch models across a variety of platforms. Exporting YOLOv8 models to [TorchScript](https://pytorch.org/docs/stable/jit.html) is crucial for moving from research to real-world applications. TorchScript, part of the PyTorch framework, helps make this transition smoother by allowing PyTorch models to be used in environments that don't support Python.
 
 The process involves two techniques: tracing and scripting. Tracing records operations during model execution, while scripting allows for the definition of models using a subset of Python. These techniques ensure that models like YOLOv8 can still work their magic even outside their usual Python environment.
 
-![TorchScript Script and Trace](https://github.com/ultralytics/ultralytics/assets/26833433/ea9ea24f-a3a9-44bb-aca7-9c358d7490d7)
+![TorchScript Script and Trace](https://github.com/ultralytics/docs/releases/download/0/torchscript-script-and-trace.avif)
 
 TorchScript models can also be optimized through techniques such as operator fusion and refinements in memory usage, ensuring efficient execution. Another advantage of exporting to TorchScript is its potential to accelerate model execution across various hardware platforms. It creates a standalone, production-ready representation of your PyTorch model that can be integrated into C++ environments, embedded systems, or deployed in web or mobile applications.
 
@@ -26,7 +26,7 @@ TorchScript models can also be optimized through techniques such as operator fus
 
 TorchScript, a key part of the PyTorch ecosystem, provides powerful features for optimizing and deploying deep learning models.
 
-![TorchScript Features](https://github.com/ultralytics/ultralytics/assets/26833433/44c7c5e3-1146-42db-952a-9060f070fead)
+![TorchScript Features](https://github.com/ultralytics/docs/releases/download/0/torchscript-features.avif)
 
 Here are the key features that make TorchScript a valuable tool for developers:
 

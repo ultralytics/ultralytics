@@ -227,7 +227,17 @@ class Results(SimpleClass):
     """
 
     def __init__(
-        self, orig_img, path, names, boxes=None, masks=None, probs=None, keypoints=None, obb=None, speed=None, is_soft:bool=False
+        self,
+        orig_img,
+        path,
+        names,
+        boxes=None,
+        masks=None,
+        probs=None,
+        keypoints=None,
+        obb=None,
+        speed=None,
+        is_soft: bool = False,
     ) -> None:
         """
         Initialize the Results class for storing and manipulating inference results.
@@ -259,7 +269,9 @@ class Results(SimpleClass):
         self.is_soft = is_soft
         self.orig_img = orig_img
         self.orig_shape = orig_img.shape[:2]
-        self.boxes = Boxes(boxes, self.orig_shape, soft_labels=is_soft) if boxes is not None else None  # native size boxes
+        self.boxes = (
+            Boxes(boxes, self.orig_shape, soft_labels=is_soft) if boxes is not None else None
+        )  # native size boxes
         self.masks = Masks(masks, self.orig_shape) if masks is not None else None  # native size or imgsz masks
         self.probs = Probs(probs) if probs is not None else None
         self.keypoints = Keypoints(keypoints, self.orig_shape) if keypoints is not None else None
@@ -875,7 +887,7 @@ class Boxes(BaseTensor):
         >>> print(boxes.xywhn)
     """
 
-    def __init__(self, boxes, orig_shape, soft_labels:bool=False) -> None:
+    def __init__(self, boxes, orig_shape, soft_labels: bool = False) -> None:
         """
         Initialize the Boxes class with detection box data and the original image shape.
 

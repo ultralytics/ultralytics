@@ -265,7 +265,7 @@ def non_max_suppression(
         # Detections matrix nx6 (xyxy, conf, cls)
         box, cls, mask = x.split((4, nc, nm), 1)
 
-        proba = x[..., 4:] if soft_label else None # all class probabilities
+        proba = x[..., 4:] if soft_label else None  # all class probabilities
         if multi_label:
             i, j = torch.where(cls > conf_thres)
             x = torch.cat((box[i], x[i, 4 + j, None], j[:, None].float(), mask[i]), 1)

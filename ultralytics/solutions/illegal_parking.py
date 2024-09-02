@@ -84,7 +84,7 @@ class IllegalParking:
             box: Shape (4,), representing a single bounding box as [x1, y1, x2, y2].
 
         Returns:
-            Return an array of IoU values for each box in boxes with respect to the given box.
+            (ndarray): Return an array of IoU values for each box in boxes with respect to the given box.
         """
         boxes = np.asarray(boxes)
         box = np.asarray(box)

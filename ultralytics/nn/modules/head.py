@@ -692,6 +692,8 @@ class v10Pose(Pose, v10Detect):
     end2end = True
 
     def __init__(self, nc=80, kpt_shape=(17, 3), ch=()):
-        """Initializes the v10Pose object with the specified number of classes, number of keypoints and input channels."""
+        """Initializes the v10Pose object with the specified number of classes, number of keypoints and input
+        channels.
+        """
         v10Detect.__init__(self, nc, ch)
         Pose.__init__(self, nc, kpt_shape, ch)

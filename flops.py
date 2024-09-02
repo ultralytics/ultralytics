@@ -7,11 +7,12 @@ from ultralytics.utils.torch_utils import get_flops
 
 class bcolors:
     """
-    Colors for the terminal
+    Colors for the terminal.
 
     Example:
         print(f"{bcolors.WARNING}Some warning text{bcolors.ENDC}")
     """
+
     HEADER = "\033[95m"
     OKBLUE = "\033[94m"
     OKCYAN = "\033[96m"
@@ -30,7 +31,7 @@ def get_flops_from_model(
     verbose: bool = False,
 ):
     """
-    Get FLOPS for each layer in the model
+    Get FLOPS for each layer in the model.
 
     Args:
         model (ultralytics.models.YOLO): YOLO model

@@ -103,7 +103,7 @@ class BaseTrainer:
         self.validator = None
         self.metrics = None
         self.plots = {}
-        if self.args.deterministic and self.args.cache:
+        if self.args.deterministic and self.args.cache == "ram":
             LOGGER.warning(
                 f"WARNING ⚠️ Deterministic mode is enabled with 'cache={self.args.cache}'. Setting deterministic=False for cached datasets."
             )

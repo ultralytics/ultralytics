@@ -263,7 +263,7 @@ class Pose(Detect):
             return x, {"one2many": kpt, "one2one": kpt_one2one}
 
         pred_kpt = self.kpts_decode(bs, kpt_one2one)
-        if not self.export: # when exporting this is not needed
+        if not self.export:  # when exporting this is not needed
             preds = self.postprocess(torch.cat([x[0], pred_kpt], 1).permute(0, 2, 1), self.max_det, self.nc, self.nk)
 
         # if not export return (inference(detect, kpt), predictions(detect, kpt))

@@ -1149,19 +1149,23 @@ class RotateRGBA(torch.nn.Module):
         angle = random.uniform(*self.degrees) if isinstance(self.degrees, tuple) else self.degrees
 
         img_np = np.array(img)
-        img_rgb, img_a = img_np[..., :3], img_np[..., 3]
+        img_rgb, img_a = img_np[..., :3], img_np[..., 3:]
 
         # Apply rotation to the RGB channels
         img_rgb_pil = Image.fromarray(img_rgb)
         img_rgb_pil = img_rgb_pil.rotate(angle, expand=self.expand)
         img_rgb_rotated = np.array(img_rgb_pil)
 
-        # Resize the alpha channel to match the rotated image's dimensions
-        img_a_resized = Image.fromarray(img_a).resize(img_rgb_rotated.shape[1::-1], Image.NEAREST)
-        img_a_resized = np.array(img_a_resized)
+        img_a_rotated = []
+        for band in img_a.spit():
+            img_a_pil = Image.fromarray(band)
+            img_a_pil = img_a_pil.rotate(angle, expand=self.expand)
+            #resize
+            img_a_resized = img_a_pil.resize(img_rgb_pil.size, Image.NEAREST)
+            img_a_resized = np.array(img_a_resized)
+            img_a_rotated.append(img_a_resized)
+        img_rgba_rotated = np.dstack((img_rgb_rotated, *img_a_rotated))
 
-        # Reassemble the RGBA image
-        img_rgba_rotated = np.dstack((img_rgb_rotated, img_a_resized))
         return Image.fromarray(img_rgba_rotated)
 
 

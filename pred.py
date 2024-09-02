@@ -31,12 +31,12 @@ if __name__ == "__main__":
     del model.model.model[-1].cv4
 
     if args.dataset.split(".")[-1] == "yaml":  # yaml file
-        with open(args.dataset, "r") as f:
+        with open(args.dataset) as f:
             data = yaml.safe_load(f)
 
             directories = os.path.join(data["path"][1:], data["val"])
 
-            with open(directories, "r") as f:
+            with open(directories) as f:
                 images = f.readlines()
 
                 len_images = int(len(images) * args.fraction)

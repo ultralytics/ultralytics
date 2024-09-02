@@ -104,7 +104,9 @@ class BaseTrainer:
         self.metrics = None
         self.plots = {}
         if self.args.deterministic and self.args.cache:
-            LOGGER.warning(f"WARNING ⚠️ Deterministic mode is enabled with 'cache={self.args.cache}'. Setting deterministic=False for cached datasets.")
+            LOGGER.warning(
+                f"WARNING ⚠️ Deterministic mode is enabled with 'cache={self.args.cache}'. Setting deterministic=False for cached datasets."
+            )
             self.args.deterministic = False
         init_seeds(self.args.seed + 1 + RANK, deterministic=self.args.deterministic)
         # Dirs

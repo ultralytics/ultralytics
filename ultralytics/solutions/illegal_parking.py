@@ -124,7 +124,7 @@ class IllegalParking:
         Args:
             track_id: Object track id.
             box: Object bounding box data.
-            cls(str): Object class code.
+            cls: Object class code.
         """
         is_parking = track_id in self.parking_ids_set
         parking_label = (

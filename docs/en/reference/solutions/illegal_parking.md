@@ -1,6 +1,6 @@
 ---
-description: TODO ADD DESCRIPTION
-keywords: TODO ADD KEYWORDS
+description: Explore an illegal parking detection script based on Ultralytics YOLO for real-time object tracking.
+keywords: Ultralytics, illegal parking, YOLO, real-time tracking, object tracking, python
 ---
 
 # Reference for `ultralytics/solutions/illegal_parking.py`

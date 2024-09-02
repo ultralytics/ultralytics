@@ -64,12 +64,13 @@ class IllegalParking:
 
         # Initialize polygons
         self.polygons = []
-        for coords in self.polygon_coords:
-            if len(coords) >= 3:
-                polygon = Polygon(coords)
-                self.polygons.append(polygon)
-            else:
-                print(f"Invalid Polygon coordinates {coords} provided, coords must >= 3 for polygons.")
+        if self.polygon_coords:
+            for coords in self.polygon_coords:
+                if len(coords) >= 3:
+                    polygon = Polygon(coords)
+                    self.polygons.append(polygon)
+                else:
+                    print(f"Invalid Polygon coordinates {coords} provided, coords must >= 3 for polygons.")
         if not self.polygons:
             print("Polygons is empty, Initiated as the whole of images. ")
 

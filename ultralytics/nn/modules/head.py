@@ -637,7 +637,7 @@ class RTDETRDecoder(nn.Module):
 
 class v10Detect(Detect):
     """
-    v10 Detection head from https://arxiv.org/pdf/2405.14458.
+    YOLOv10 Detection head from https://arxiv.org/pdf/2405.14458.
 
     Args:
         nc (int): Number of classes.
@@ -673,7 +673,7 @@ class v10Detect(Detect):
 
 class v10Pose(Pose, v10Detect):
     """
-    V10 Pose head by merging Pose and v10Detect modules.
+    YOLOv10 Pose head by merging Pose and v10Detect modules.
 
     Args:
         nc (int): Number of classes.
@@ -692,5 +692,6 @@ class v10Pose(Pose, v10Detect):
     end2end = True
 
     def __init__(self, nc=80, kpt_shape=(17, 3), ch=()):
+        """Initializes the v10Pose object with the specified number of classes, number of keypoints and input channels."""
         v10Detect.__init__(self, nc, ch)
         Pose.__init__(self, nc, kpt_shape, ch)

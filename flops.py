@@ -6,6 +6,12 @@ from ultralytics.utils.torch_utils import get_flops
 
 
 class bcolors:
+    """
+    Colors for the terminal
+
+    Example:
+        print(f"{bcolors.WARNING}Some warning text{bcolors.ENDC}")
+    """
     HEADER = "\033[95m"
     OKBLUE = "\033[94m"
     OKCYAN = "\033[96m"
@@ -18,11 +24,20 @@ class bcolors:
 
 
 def get_flops_from_model(
-    model,
-    imgsz,
-    should_forward_one2many_head=False,
-    verbose=False,
+    model: YOLO,
+    imgsz: float,
+    should_forward_one2many_head: bool = False,
+    verbose: bool = False,
 ):
+    """
+    Get FLOPS for each layer in the model
+
+    Args:
+        model (ultralytics.models.YOLO): YOLO model
+        imgsz (float): Image size
+        should_forward_one2many_head (bool): If True will forward the one2many head. Defaults to False.
+        verbose (bool): If True will print the FLOPS for each layer. Defaults to False.
+    """
     layers_flops_incremental = []
 
     for name in layers_names[::-1]:

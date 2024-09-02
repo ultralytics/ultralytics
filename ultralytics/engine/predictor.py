@@ -109,6 +109,7 @@ class BasePredictor:
         self.transforms = None
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
         self.txt_path = None
+        self.metadata = None
         self._lock = threading.Lock()  # for automatic thread-safe inference
         callbacks.add_integration_callbacks(self)
 
@@ -298,7 +299,7 @@ class BasePredictor:
             LOGGER.info(f"Results saved to {colorstr('bold', self.save_dir)}{s}")
         self.run_callbacks("on_predict_end")
 
-    def setup_model(self, model, verbose=True, metadata=None):
+    def setup_model(self, model, verbose=True):
         """Initialize YOLO model with given parameters and set it to evaluation mode."""
         self.model = AutoBackend(
             weights=model or self.args.model,
@@ -309,7 +310,7 @@ class BasePredictor:
             batch=self.args.batch,
             fuse=True,
             verbose=verbose,
-            metadata=metadata,
+            metadata=self.metadata,
         )
 
         self.device = self.model.device  # update device

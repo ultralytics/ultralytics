@@ -92,6 +92,11 @@ class BasePredictor:
         self.done_warmup = False
         if self.args.show:
             self.args.show = check_imshow(warn=True)
+        if self.args.classes and self.args.classes == "soft":
+            self.args.classes = None
+            self.soft_label = True
+        else:
+            self.soft_label = False
 
         # Usable if setup is done
         self.model = None
@@ -258,7 +263,7 @@ class BasePredictor:
 
                 # Postprocess
                 with profilers[2]:
-                    self.results = self.postprocess(preds, im, im0s)
+                    self.results = self.postprocess(preds, im, im0s, soft_label=self.soft_label)
                 self.run_callbacks("on_predict_postprocess_end")
 
                 # Visualize, save, write results

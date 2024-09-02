@@ -167,6 +167,7 @@ def non_max_suppression(
     classes=None,
     agnostic=False,
     multi_label=False,
+    soft_label=True,
     labels=(),
     max_det=300,
     nc=0,  # number of classes (optional)
@@ -191,6 +192,7 @@ def non_max_suppression(
         agnostic (bool): If True, the model is agnostic to the number of classes, and all
             classes will be considered as one.
         multi_label (bool): If True, each box may have multiple labels.
+        soft_label (bool): If True, the model output includes all class probabilities.
         labels (List[List[Union[int, float, torch.Tensor]]]): A list of lists, where each inner
             list contains the apriori labels for a given image. The list should be in the format
             output by a dataloader, with each label being a tuple of (class_index, x1, y1, x2, y2).
@@ -263,6 +265,7 @@ def non_max_suppression(
         # Detections matrix nx6 (xyxy, conf, cls)
         box, cls, mask = x.split((4, nc, nm), 1)
 
+        proba = x[..., 4:] if soft_label else None # all class probabilities
         if multi_label:
             i, j = torch.where(cls > conf_thres)
             x = torch.cat((box[i], x[i, 4 + j, None], j[:, None].float(), mask[i]), 1)
@@ -304,7 +307,7 @@ def non_max_suppression(
         #     if redundant:
         #         i = i[iou.sum(1) > 1]  # require redundancy
 
-        output[xi] = x[i]
+        output[xi] = torch.cat((x[i, :4], proba[i]), 1) if proba is not None else x[i]
         if (time.time() - t) > time_limit:
             LOGGER.warning(f"WARNING ⚠️ NMS time limit {time_limit:.3f}s exceeded")
             break  # time limit exceeded

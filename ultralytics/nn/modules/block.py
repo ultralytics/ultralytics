@@ -791,7 +791,7 @@ class C3k2(C2f2):
     def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5, c3k=False, nk=2):
         super().__init__(c1, c2, n, shortcut, g, e)
         self.m = nn.ModuleList(
-            C3k(self.c, self.c, nk, shortcut, g)
+            Bottleneck(self.c, self.c, shortcut, g) if c2 <= 512 and n == 1 and (not c3k) else C3k(self.c, self.c, nk, shortcut, g)
             for _ in range(n)
         )
         # self.m = nn.ModuleList(C3k(self.c, self.c, nk, shortcut, g) for _ in range(n))

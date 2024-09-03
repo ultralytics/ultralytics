@@ -29,8 +29,6 @@ class QueueManager:
         track_color=None,
         region_thickness=5,
         fontsize=0.7,
-        # new parameter to get counts
-        queue_count=0,
     ):
         """
         Initializes the QueueManager with specified parameters for tracking and counting objects.
@@ -77,8 +75,6 @@ class QueueManager:
         # Object counting Information
         self.counts = 0
         self.count_txt_color = count_txt_color
-        # initializing new variable
-        self._queue_count = queue_count
 
         # Tracks info
         self.track_history = defaultdict(list)
@@ -89,19 +85,11 @@ class QueueManager:
         # Check if environment supports imshow
         self.env_check = check_imshow(warn=True)
 
-    # getter method to get count
-    def get_queue_count(self):
-        return self._queue_count
-
-    # setter method to set count
-    def set_queue_count(self, x):
-        self._queue_count = x
-
     def extract_and_process_tracks(self, tracks):
         """Extracts and processes tracks for queue management in a video stream."""
         # Initialize annotator and draw the queue region
         self.annotator = Annotator(self.im0, self.tf, self.names)
-
+        self.counts = 0  # Reset counts every frame
         if tracks[0].boxes.id is not None:
             boxes = tracks[0].boxes.xyxy.cpu()
             clss = tracks[0].boxes.cls.cpu().tolist()
@@ -136,8 +124,6 @@ class QueueManager:
 
         # Display queue counts
         label = f"Queue Counts : {str(self.counts)}"
-        # setting the queue count in each frame
-        self.set_queue_count(self.counts)
         if label is not None:
             self.annotator.queue_counts_display(
                 label,
@@ -146,7 +132,6 @@ class QueueManager:
                 txt_color=self.count_txt_color,
             )
 
-        self.counts = 0  # Reset counts after displaying
         self.display_frames()
 
     def display_frames(self):

@@ -175,7 +175,7 @@ def non_max_suppression(
     max_wh=7680,
     in_place=True,
     rotated=False,
-    use_soft_nms:bool=True,
+    use_soft_nms:bool=True,  # TODO add arg
 ):
     """
     Perform non-maximum suppression (NMS) on a set of boxes, with support for masks and multiple labels per box.
@@ -202,6 +202,7 @@ def non_max_suppression(
         max_wh (int): The maximum box width and height in pixels.
         in_place (bool): If True, the input prediction tensor will be modified in place.
         rotated (bool): If Oriented Bounding Boxes (OBB) are being passed for NMS.
+        use_soft_nms (bool): If True, use Soft-NMS instead of standard NMS. Default is False.
 
     Returns:
         (List[torch.Tensor]): A list of length batch_size, where each element is a tensor of

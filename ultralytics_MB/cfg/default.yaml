@@ -36,7 +36,7 @@ profile: False # (bool) profile ONNX and TensorRT speeds during training for log
 freeze: None # (int | list, optional) freeze first n layers, or freeze list of layer indices during training
 multi_scale: False # (bool) Whether to use multi-scale during training
 channels: 3 # 4 or 3 for RGBA or RGB input images
-adjust_layers: [0]
+adjust_layers: []
 dual_stream: False # (bool) train with dual_stream network
 # Data settings --------------------------------------------------------------------------------------------------------
 bands: [0] # band indices used to load data from multi-band tiff images, len must be equal to channel

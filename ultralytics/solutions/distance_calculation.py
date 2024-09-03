@@ -14,7 +14,6 @@ class DistanceCalculation:
     def __init__(
         self,
         names,
-        pixels_per_meter=10,
         view_img=False,
         line_thickness=2,
         line_color=(255, 0, 255),
@@ -25,7 +24,6 @@ class DistanceCalculation:
 
         Args:
             names (dict): Dictionary of classes names.
-            pixels_per_meter (int, optional): Conversion factor from pixels to meters. Defaults to 10.
             view_img (bool, optional): Flag to indicate if the video stream should be displayed. Defaults to False.
             line_thickness (int, optional): Thickness of the lines drawn on the image. Defaults to 2.
             line_color (tuple, optional): Color of the lines drawn on the image (BGR format). Defaults to (255, 255, 0).
@@ -47,7 +45,6 @@ class DistanceCalculation:
 
         # Distance calculation information
         self.centroids = []
-        self.pixel_per_meter = pixels_per_meter
 
         # Mouse event information
         self.left_mouse_count = 0

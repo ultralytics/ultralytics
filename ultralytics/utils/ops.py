@@ -175,6 +175,7 @@ def non_max_suppression(
     max_wh=7680,
     in_place=True,
     rotated=False,
+    use_soft_nms:bool=True,
 ):
     """
     Perform non-maximum suppression (NMS) on a set of boxes, with support for masks and multiple labels per box.
@@ -287,6 +288,9 @@ def non_max_suppression(
         if rotated:
             boxes = torch.cat((x[:, :2] + c, x[:, 2:4], x[:, -1:]), dim=-1)  # xywhr
             i = nms_rotated(boxes, scores, iou_thres)
+        elif use_soft_nms:
+            boxes = x[:, :4] + c  # boxes (offset by class)
+            i = soft_nms(boxes, scores, s=0.5, t=0.001)
         else:
             boxes = x[:, :4] + c  # boxes (offset by class)
             i = torchvision.ops.nms(boxes, scores, iou_thres)  # NMS
@@ -310,6 +314,57 @@ def non_max_suppression(
             break  # time limit exceeded
 
     return output
+
+
+def soft_nms(boxes:torch.Tensor, scores:torch.Tensor, s:float=0.5, t:float=0.001,) -> torch.Tensor:
+    """
+    Applies Soft Non-Maximum Suppression (NMS) based on box scores https://arxiv.org/abs/1704.04503.
+    
+    Args:
+        boxes (torch.Tensor): The input tensor of shape (N, 4) representing the bounding boxes.
+        scores (torch.Tensor): The input tensor of shape (N,) representing the scores of the boxes.
+        s (float, optional): The scaling factor for the Soft-NMS. Defaults to 0.5.
+        t (float, optional): Threshold for scores, box-scores below this will be ignored. Defaults to 0.001.
+    
+    Returns:
+        torch.Tensor: The tensor of indices representing the selected boxes after Soft-NMS.
+    
+    Raises:
+        AssertionError: If the shape of the boxes tensor is not (N, 4).
+    """
+    assert 2 <= boxes.ndim < 3, f"boxes should be 2D tensor, but got {boxes.ndim}"
+    nb = len(boxes)
+    boxes_, scores_ = boxes.clone(), scores.view(nb, 1).clone()
+    # Sort by scores
+    sorted_idx = scores_.view(-1).argsort(descending=True)
+    boxes_, scores_ = boxes_[sorted_idx], scores_[sorted_idx]
+    area = boxes_[..., ::2].diff().mul(boxes_[..., 1::2].diff())
+    suppress = torch.zeros_like(scores, dtype=torch.bool, device=boxes.device)
+
+    for i in range(nb):
+        if scores_[i] < t:
+            break  # Early termination
+        top = scores_[i].clone()
+        p = i + 1
+        if i != nb - 1:
+            max_s, max_i = scores_[p:].max(dim=0)
+            if top < max_s:
+                swap = max_i.item() + i + 1
+                boxes_[i], boxes_[swap] = boxes_[swap].clone(), boxes_[i].clone()
+                scores_[i], scores_[swap] = scores_[swap].clone(), scores_[i].clone()
+                area[i], area[swap] = area[swap].clone(), area[i].clone()
+
+        # IOU
+        x1, y1 = boxes_[i, 0:1].maximum(boxes_[p:, 0:1]), boxes_[i, 1:2].maximum(boxes_[p:, 1:2])
+        x2, y2 = boxes_[i, 2:3].minimum(boxes_[p:, 2:3]), boxes_[i, 3:4].minimum(boxes_[p:, 3:4])
+        w, h = (x1.sub(x2)).clamp(0), (y1.sub(y2)).clamp(0)
+        intersect = w.mul(h)
+        iou = intersect.div(area[i] + area[p:] - intersect)
+        # Soft-NMS
+        scores_[p:] *= (-iou.square().div_(s)).exp()
+        suppress[p:] |= (scores[p:] < t)
+        
+    return sorted_idx[~suppress]
 
 
 def clip_boxes(boxes, shape):

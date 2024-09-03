@@ -697,6 +697,7 @@ def git_describe(path=ROOT):  # path must be a directory
 
 def print_args(args: Optional[dict] = None, show_file=True, show_func=False):
     """Print function arguments (optional args dict)."""
+
     def strip_auth(v):
         """Clean longer Ultralytics HUB URLs by stripping potential authentication information."""
         return clean_url(v) if (isinstance(v, str) and v.startswith("http") and len(v) > 100) else v

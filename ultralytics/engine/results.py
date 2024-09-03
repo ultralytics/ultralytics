@@ -660,7 +660,7 @@ class Results(SimpleClass):
                 log_string += f"{n} {self.names[int(c)]}{'s' * (n > 1)}, "
         return log_string
 
-    def save_txt(self, txt_file, save_conf=False, is_soft:bool=False):
+    def save_txt(self, txt_file, save_conf=False):
         """
         Save detection results to a text file.
 
@@ -687,7 +687,6 @@ class Results(SimpleClass):
             - If save_conf is False, the confidence scores will be excluded from the output.
             - Existing contents of the file will not be overwritten; new results will be appended.
         """
-        is_soft = self.is_soft or is_soft or self.boxes.soft_labels
         is_obb = self.obb is not None
         boxes = self.obb if is_obb else self.boxes
         masks = self.masks
@@ -708,8 +707,7 @@ class Results(SimpleClass):
                 if kpts is not None:
                     kpt = torch.cat((kpts[j].xyn, kpts[j].conf[..., None]), 2) if kpts[j].has_visible else kpts[j].xyn
                     line += (*kpt.reshape(-1).tolist(),)
-                # TODO figure out why L712 throws TypeError: can only concatenate list (not "tuple") to list
-                line += (conf if isinstance(conf, list) else (conf,)) * save_conf + (() if id is None else (id,))
+                line += (tuple(conf) if isinstance(conf, list) else (conf,)) * save_conf + (() if id is None else (id,))
                 texts.append(("%g " * len(line)).rstrip() % line)
 
         if texts:

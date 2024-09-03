@@ -88,7 +88,7 @@ def build_yolo_dataset(cfg, img_path, batch, data, mode="train", rect=False, str
         img_path=img_path,
         imgsz=cfg.imgsz,
         batch_size=batch,
-        augment=cfg.augment if mode=="train" else False,  # augmentation
+        augment=cfg.augmentation if mode=="train" else False,  # augmentation
         hyp=cfg,  # TODO: probably add a get_hyps_from_cfg function
         rect=cfg.rect or rect,  # rectangular batches
         cache=cfg.cache or None,
@@ -110,7 +110,7 @@ def build_grounding(cfg, img_path, json_file, batch, mode="train", rect=False, s
         json_file=json_file,
         imgsz=cfg.imgsz,
         batch_size=batch,
-        augment=mode == "train",  # augmentation
+        augment=cfg.augmentation if mode=="train" else False,  # augmentation
         hyp=cfg,  # TODO: probably add a get_hyps_from_cfg function
         rect=cfg.rect or rect,  # rectangular batches
         cache=cfg.cache or None,

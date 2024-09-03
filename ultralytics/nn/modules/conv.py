@@ -137,6 +137,7 @@ class ConvTranspose(nn.Module):
 
 class Focus(nn.Module):
     """Focus (w, h) information into c-space. Also known as SPDConv (space-to-depth convolution)."""
+
     _s = {1: slice(None, None, 2), 2: slice(1, None, 2)}
     _o = {(1, 1), (2, 1), (1, 2), (2, 2)}
 
@@ -146,9 +147,7 @@ class Focus(nn.Module):
         self.conv = Conv(c1 * 4, c2, k, s, p, g, act=act)
 
     def forward(self, x):
-        """
-        Applies space-to-depth convolution, input shape `(b, c, w, h)` --> output shape `(b, 4c, w / 2, h / 2)`.
-        """
+        """Applies space-to-depth convolution, input shape `(b, c, w, h)` --> output shape `(b, 4c, w / 2, h / 2)`."""
         return self.conv(torch.cat([x[..., self._s[a], self._s[b]] for (a, b) in self._o], 1))
 
 

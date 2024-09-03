@@ -537,16 +537,19 @@ class Mosaic(BaseMixTransform):
         assert 0 <= p <= 1.0, f"The probability should be in range [0, 1], but got {p}."
         assert n in {4, 9}, "grid must be equal to 4 or 9."
         super().__init__(dataset=dataset, p=p)
+        self.buffer = False if self.dataset.cache == "ram" else True
         self.imgsz = imgsz
         self.border = (-imgsz // 2, -imgsz // 2)  # width, height
         self.n = n
 
-    def get_indexes(self, buffer=True):
+    def get_indexes(self):
         """
         Returns a list of random indexes from the dataset for mosaic augmentation.
 
-        This method selects random image indexes either from a buffer or from the entire dataset, depending on
-        the 'buffer' parameter. It is used to choose images for creating mosaic augmentations.
+        This method selects random image indexes either from a buffer or from the entire dataset, 
+            depending on the 'buffer' parameter. If self.buffer is True, selects images from the 
+            dataset buffer. If False, selects from the entire dataset. It is used to choose images 
+            for creating mosaic augmentations.
 
         Args:
             buffer (bool): If True, selects images from the dataset buffer. If False, selects from the entire
@@ -561,7 +564,7 @@ class Mosaic(BaseMixTransform):
             >>> indexes = mosaic.get_indexes()
             >>> print(len(indexes))  # Output: 3
         """
-        if buffer:  # select images from buffer
+        if self.buffer:  # select images from buffer
             return random.choices(list(self.dataset.buffer), k=self.n - 1)
         else:  # select any images
             return [random.randint(0, len(self.dataset) - 1) for _ in range(self.n - 1)]

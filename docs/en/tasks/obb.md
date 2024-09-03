@@ -15,7 +15,7 @@ The output of an oriented object detector is a set of rotated bounding boxes tha
 
 <!-- youtube video link for obb task -->
 
-!!! Tip "Tip"
+!!! Tip 
 
     YOLOv8 OBB models use the `-obb` suffix, i.e. `yolov8n-obb.pt` and are pretrained on [DOTAv1](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/DOTAv1.yaml).
 

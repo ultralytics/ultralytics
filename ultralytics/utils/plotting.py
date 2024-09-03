@@ -756,19 +756,19 @@ class Annotator:
                 self.im, label, (int(mask[0][0]) - text_size[0] // 2, int(mask[0][1])), 0, self.sf, txt_color, self.tf
             )
 
-    def plot_distance_and_line(self, pexels_distance, centroids, line_color, centroid_color):
+    def plot_distance_and_line(self, pixels_distance, centroids, line_color, centroid_color):
         """
         Plot the distance and line on frame.
 
         Args:
-            pexels_distance (float): Pexels distance between two bbox centroids.
+            pixels_distance (float): Pixels distance between two bbox centroids.
             centroids (list): Bounding box centroids data.
             line_color (RGB): Distance line color.
             centroid_color (RGB): Bounding box centroid color.
         """
         # Get the text size
         (text_width_m, text_height_m), _ = cv2.getTextSize(
-            f"Pexels Distance: {pexels_distance:.2f}", 0, self.sf, self.tf
+            f"Pixels Distance: {pixels_distance:.2f}", 0, self.sf, self.tf
         )
 
         # Define corners with 10-pixel margin and draw rectangle
@@ -780,7 +780,7 @@ class Annotator:
         text_position = (top_left[0] + 10, top_left[1] + text_height_m + 10)
         cv2.putText(
             self.im,
-            f"Pexels Distance: {pexels_distance:.2f}",
+            f"Pixels Distance: {pixels_distance:.2f}",
             text_position,
             0,
             self.sf,

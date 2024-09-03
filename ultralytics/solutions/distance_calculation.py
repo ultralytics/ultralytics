@@ -102,22 +102,6 @@ class DistanceCalculation:
         """
         return int((box[0] + box[2]) // 2), int((box[1] + box[3]) // 2)
 
-    def calculate_distance(self, centroid1, centroid2):
-        """
-        Calculates the distance between two centroids.
-
-        Args:
-            centroid1 (tuple): Coordinates of the first centroid (x, y).
-            centroid2 (tuple): Coordinates of the second centroid (x, y).
-
-        Returns:
-            (tuple): Distance in meters and millimeters.
-        """
-        pixel_distance = math.sqrt((centroid1[0] - centroid2[0]) ** 2 + (centroid1[1] - centroid2[1]) ** 2)
-        distance_m = pixel_distance / self.pixel_per_meter
-        distance_mm = distance_m * 1000
-        return distance_m, distance_mm
-
     def start_process(self, im0, tracks):
         """
         Processes the video frame and calculates the distance between two bounding boxes.
@@ -149,7 +133,8 @@ class DistanceCalculation:
         if len(self.selected_boxes) == 2:
             self.centroids = [self.calculate_centroid(self.selected_boxes[trk_id]) for trk_id in self.selected_boxes]
 
-            distance_m, distance_mm = self.calculate_distance(self.centroids[0], self.centroids[1])
+            # Calculate pexels distance
+            pexels_distance = math.sqrt((self.centroids[0][0] - self.centroids[1][0]) ** 2 + (self.centroids[0][1] - self.centroids[1][1]) ** 2)
             self.annotator.plot_distance_and_line(
                 distance_m, distance_mm, self.centroids, self.line_color, self.centroid_color
             )

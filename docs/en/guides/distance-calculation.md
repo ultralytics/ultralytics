@@ -30,8 +30,7 @@ Measuring the gap between two objects is known as distance calculation within a 
 ## Advantages of Distance Calculation?
 
 - **Localization Precision:** Enhances accurate spatial positioning in computer vision tasks.
-- **Size Estimation:** Allows estimation of physical sizes for better contextual understanding.
-- **Scene Understanding:** Contributes to a 3D understanding of the environment for improved decision-making.
+- **Size Estimation:** Allows estimation of object size for better contextual understanding.
 
 ???+ tip "Distance Calculation"
 

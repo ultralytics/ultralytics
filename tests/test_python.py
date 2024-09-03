@@ -202,7 +202,7 @@ def test_workflow():
     model.train(data="coco8.yaml", epochs=1, imgsz=32, optimizer="SGD")
     model.val(imgsz=32)
     model.predict(SOURCE, imgsz=32)
-    model.export(format="onnx")
+    model.export(format="torchscript")
 
 
 def test_predict_callback_and_setup():

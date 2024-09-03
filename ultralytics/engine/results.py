@@ -180,7 +180,7 @@ class BaseTensor(SimpleClass):
             >>> print(result.data)
             tensor([1, 2, 3])
         """
-        return self.__class__(self.data[idx], self.orig_shape)
+        return self.__class__(self.data[idx], self.orig_shape, **{k:v for k,v in self.__dict__.items() if k not in ("data", "orig_shape")})
 
 
 class Results(SimpleClass):
@@ -660,7 +660,7 @@ class Results(SimpleClass):
                 log_string += f"{n} {self.names[int(c)]}{'s' * (n > 1)}, "
         return log_string
 
-    def save_txt(self, txt_file, save_conf=False):
+    def save_txt(self, txt_file, save_conf=False, is_soft:bool=False):
         """
         Save detection results to a text file.
 
@@ -687,6 +687,7 @@ class Results(SimpleClass):
             - If save_conf is False, the confidence scores will be excluded from the output.
             - Existing contents of the file will not be overwritten; new results will be appended.
         """
+        is_soft = self.is_soft or is_soft or self.boxes.soft_labels
         is_obb = self.obb is not None
         boxes = self.obb if is_obb else self.boxes
         masks = self.masks
@@ -699,7 +700,7 @@ class Results(SimpleClass):
         elif boxes:
             # Detect/segment/pose
             for j, d in enumerate(boxes):
-                c, conf, id = int(d.cls), float(d.conf), None if d.id is None else int(d.id.item())
+                c, conf, id = int(d.cls), float(d.conf) if d.conf.ndim == 1 else d.conf.flatten().tolist(), None if d.id is None else int(d.id.item())
                 line = (c, *(d.xyxyxyxyn.view(-1) if is_obb else d.xywhn.view(-1)))
                 if masks:
                     seg = masks[j].xyn[0].copy().reshape(-1)  # reversed mask.xyn, (n,2) to (n*2)
@@ -707,7 +708,8 @@ class Results(SimpleClass):
                 if kpts is not None:
                     kpt = torch.cat((kpts[j].xyn, kpts[j].conf[..., None]), 2) if kpts[j].has_visible else kpts[j].xyn
                     line += (*kpt.reshape(-1).tolist(),)
-                line += (conf,) * save_conf + (() if id is None else (id,))
+                # TODO figure out why L712 throws TypeError: can only concatenate list (not "tuple") to list
+                line += (conf if isinstance(conf, list) else (conf,)) * save_conf + (() if id is None else (id,))
                 texts.append(("%g " * len(line)).rstrip() % line)
 
         if texts:
@@ -887,7 +889,7 @@ class Boxes(BaseTensor):
         >>> print(boxes.xywhn)
     """
 
-    def __init__(self, boxes, orig_shape, soft_labels: bool = False) -> None:
+    def __init__(self, boxes, orig_shape, is_track:bool=False, soft_labels: bool = False) -> None:
         """
         Initialize the Boxes class with detection box data and the original image shape.
 
@@ -920,7 +922,7 @@ class Boxes(BaseTensor):
         if not soft_labels:
             assert n in {6, 7}, f"expected 6 or 7 values but got {n}"  # xyxy, track_id, conf, cls
         super().__init__(boxes, orig_shape)
-        self.is_track = n == 7
+        self.is_track = is_track or n == 7
         self.orig_shape = orig_shape
         self.soft_labels = soft_labels
 
@@ -973,7 +975,7 @@ class Boxes(BaseTensor):
             >>> class_ids = boxes.cls
             >>> print(class_ids)  # tensor([0., 2., 1.])
         """
-        return self.data[:, -1] if not self.soft_labels else self.data[:, 4:]
+        return self.data[:, -1] if not self.soft_labels else self.data[:, 4:].max(1, keepdim=True)[1]
 
     @property
     def id(self):

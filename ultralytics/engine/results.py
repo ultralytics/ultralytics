@@ -180,7 +180,11 @@ class BaseTensor(SimpleClass):
             >>> print(result.data)
             tensor([1, 2, 3])
         """
-        return self.__class__(self.data[idx], self.orig_shape, **{k:v for k,v in self.__dict__.items() if k not in ("data", "orig_shape")})
+        return self.__class__(
+            self.data[idx],
+            self.orig_shape,
+            **{k: v for k, v in self.__dict__.items() if k not in ("data", "orig_shape")},
+        )
 
 
 class Results(SimpleClass):
@@ -699,7 +703,11 @@ class Results(SimpleClass):
         elif boxes:
             # Detect/segment/pose
             for j, d in enumerate(boxes):
-                c, conf, id = int(d.cls), float(d.conf) if d.conf.ndim == 1 else d.conf.flatten().tolist(), None if d.id is None else int(d.id.item())
+                c, conf, id = (
+                    int(d.cls),
+                    float(d.conf) if d.conf.ndim == 1 else d.conf.flatten().tolist(),
+                    None if d.id is None else int(d.id.item()),
+                )
                 line = (c, *(d.xyxyxyxyn.view(-1) if is_obb else d.xywhn.view(-1)))
                 if masks:
                     seg = masks[j].xyn[0].copy().reshape(-1)  # reversed mask.xyn, (n,2) to (n*2)
@@ -887,7 +895,7 @@ class Boxes(BaseTensor):
         >>> print(boxes.xywhn)
     """
 
-    def __init__(self, boxes, orig_shape, is_track:bool=False, soft_labels: bool = False) -> None:
+    def __init__(self, boxes, orig_shape, is_track: bool = False, soft_labels: bool = False) -> None:
         """
         Initialize the Boxes class with detection box data and the original image shape.
 

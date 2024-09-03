@@ -502,6 +502,7 @@ def check_file(file, suffix="", download=True, download_dir=".", hard=True):
         not file
         or ("://" not in file and Path(file).exists())  # '://' check required in Windows Python<3.10
         or file.lower().startswith("grpc://")
+        or file.lower().startswith("dns:///")
     ):  # file exists or gRPC Triton images
         return file
     elif download and file.lower().startswith(("https://", "http://", "rtsp://", "rtmp://", "tcp://")):  # download

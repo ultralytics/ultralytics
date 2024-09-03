@@ -35,10 +35,17 @@ class TritonRemoteModel:
             scheme (str): The communication scheme ('http' or 'grpc').
         """
         if not endpoint and not scheme:  # Parse all args from URL string
-            splits = urlsplit(url)
-            endpoint = splits.path.strip("/").split("/")[0]
-            scheme = splits.scheme
-            url = splits.netloc
+            if url.startswith("dns:///"):
+                scheme = "dns:///"
+                url_replaced = url.replace("dns:///", "grpc://")
+                splits = urlsplit(url_replaced)
+                endpoint = splits.path.split("/")[-1]
+                url = scheme + splits.netloc
+            else:
+                splits = urlsplit(url)
+                endpoint = splits.path.strip("/").split("/")[0]
+                scheme = splits.scheme
+                url = splits.netloc
 
         self.endpoint = endpoint
         self.url = url

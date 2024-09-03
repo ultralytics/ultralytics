@@ -52,6 +52,7 @@ class DistanceCalculation:
 
         # Check if environment supports imshow
         self.env_check = check_imshow(warn=True)
+        self.window_name = "Ultralytics Solutions"
 
     def mouse_event_for_distance(self, event, x, y, flags, param):
         """
@@ -126,9 +127,9 @@ class DistanceCalculation:
 
     def display_frames(self):
         """Displays the current frame with annotations."""
-        cv2.namedWindow("Ultralytics Distance Estimation")
-        cv2.setMouseCallback("Ultralytics Distance Estimation", self.mouse_event_for_distance)
-        cv2.imshow("Ultralytics Distance Estimation", self.im0)
+        cv2.namedWindow(self.window_name)
+        cv2.setMouseCallback(self.window_name, self.mouse_event_for_distance)
+        cv2.imshow(self.window_name, self.im0)
 
         if cv2.waitKey(1) & 0xFF == ord("q"):
             return

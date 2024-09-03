@@ -55,11 +55,36 @@ class Detect(nn.Module):
             for x in ch
         )
         self.dfl = DFL(self.reg_max) if self.reg_max > 1 else nn.Identity()
+        self.cv4 = nn.ModuleList(
+            nn.Sequential(
+                Conv(4 * self.reg_max, 16, 1),
+                nn.Conv2d(16, 1, 1),
+                # nn.Conv2d(4 * 5, 1, 1),
+                # nn.Conv2d(4 * 1, 1, 1),
+                nn.Sigmoid(),
+            )
+            for _ in ch
+        )
 
     def forward(self, x):
         """Concatenates and returns predicted bounding boxes and class probabilities."""
         for i in range(self.nl):
-            x[i] = torch.cat((self.cv2[i](x[i]), self.cv3[i](x[i])), 1)
+            box = self.cv2[i](x[i])
+            cls = self.cv3[i](x[i])
+            conf = self.cv4[i](box)
+            # N, C, H, W = box.size()
+            # prob = box.view(N, 4, self.reg_max, H, W).softmax(dim=2)
+            # prob_topk = prob.topk(4, dim=2)[0]
+            # prob_topk = torch.cat([prob_topk, prob_topk.mean(dim=2, keepdim=True)], dim=2).view(N, -1, H, W)
+            # conf = self.cv4[i](prob_topk)
+
+            # N, C, H, W = box.size()
+            # prob = box.view(N, 4, self.reg_max, H, W).softmax(dim=2)
+            # prob_max = prob.amax(dim=2)
+            # prob_mean = prob.mean(dim=2)
+            # conf = self.cv4[i](torch.cat([prob_max, prob_mean], dim=1))
+            # # conf = self.cv4[i](prob_max)
+            x[i] = torch.cat((box, cls * conf), 1)
         if self.training:  # Training path
             return x
 
@@ -95,9 +120,10 @@ class Detect(nn.Module):
         m = self  # self.model[-1]  # Detect() module
         # cf = torch.bincount(torch.tensor(np.concatenate(dataset.labels, 0)[:, 0]).long(), minlength=nc) + 1
         # ncf = math.log(0.6 / (m.nc - 0.999999)) if cf is None else torch.log(cf / cf.sum())  # nominal class frequency
-        for a, b, s in zip(m.cv2, m.cv3, m.stride):  # from
+        for a, b, c, s in zip(m.cv2, m.cv3, m.cv4, m.stride):  # from
             a[-1].bias.data[:] = 1.0  # box
             b[-1].bias.data[: m.nc] = math.log(5 / m.nc / (640 / s) ** 2)  # cls (.01 objects, 80 classes, 640 img)
+            c[-2].bias.data[:] = 2.0  # cls (.01 objects, 80 classes, 640 img)
 
     def decode_bboxes(self, bboxes, anchors):
         """Decode bounding boxes."""

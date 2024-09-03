@@ -86,19 +86,6 @@ class DistanceCalculation:
         self.clss = tracks[0].boxes.cls.cpu().tolist()
         self.trk_ids = tracks[0].boxes.id.int().cpu().tolist()
 
-    @staticmethod
-    def calculate_centroid(box):
-        """
-        Calculates the centroid of a bounding box.
-
-        Args:
-            box (list): Bounding box coordinates [x1, y1, x2, y2].
-
-        Returns:
-            (tuple): Centroid coordinates (x, y).
-        """
-        return int((box[0] + box[2]) // 2), int((box[1] + box[3]) // 2)
-
     def start_process(self, im0, tracks):
         """
         Processes the video frame and calculates the distance between two bounding boxes.
@@ -128,8 +115,8 @@ class DistanceCalculation:
                         self.selected_boxes[track_id] = box
 
         if len(self.selected_boxes) == 2:
-            self.centroids = [self.calculate_centroid(self.selected_boxes[trk_id]) for trk_id in self.selected_boxes]
-
+            # Store user selected boxes in centroids list
+            self.centroids.extend([[int((box[0] + box[2]) // 2), int((box[1] + box[3]) // 2)] for box in self.selected_boxes.values()])
             # Calculate pexels distance
             pexels_distance = math.sqrt((self.centroids[0][0] - self.centroids[1][0]) ** 2 + (self.centroids[0][1] - self.centroids[1][1]) ** 2)
             self.annotator.plot_distance_and_line(

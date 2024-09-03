@@ -136,7 +136,11 @@ class ConvTranspose(nn.Module):
 
 
 class Focus(nn.Module):
-    """Focus (w, h) information into c-space. Also known as SPDConv (space-to-depth convolution)."""
+    """
+    Focus (w, h) information into c-space.
+
+    Also known as SPDConv (space-to-depth convolution).
+    """
 
     _s = {1: slice(None, None, 2), 2: slice(1, None, 2)}
     _o = {(1, 1), (2, 1), (1, 2), (2, 2)}

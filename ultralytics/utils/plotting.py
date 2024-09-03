@@ -771,16 +771,13 @@ class Annotator:
             f"Pexels Distance: {pexels_distance:.2f}", 0, self.sf, self.tf
         )
 
-        # Define the top-left and bottom-right corners of the rectangle with a 10-pixel margin
+        # Define corners with 10-pixel margin and draw rectangle
         top_left = (15, 25)
         bottom_right = (15 + text_width_m + 20, 25 + text_height_m + 20)
-
         cv2.rectangle(self.im, top_left, bottom_right, centroid_color, -1)
 
-        # Calculate the position for the text with a 10-pixel margin
+        # Calculate the position for the text with a 10-pixel margin and draw text
         text_position = (top_left[0] + 10, top_left[1] + text_height_m + 10)
-
-        # Draw the text inside the rectangle
         cv2.putText(
             self.im,
             f"Pexels Distance: {pexels_distance:.2f}",

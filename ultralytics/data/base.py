@@ -93,8 +93,24 @@ class BaseDataset(Dataset):
         if (self.cache == "ram" and self.check_cache_ram()) or self.cache == "disk":
             self.cache_images()
 
+        self.cls_weights = self.calculate_cls_weights()
         # Transforms
         self.transforms = self.build_transforms(hyp=hyp)
+
+    def calculate_cls_weights(self):
+        cls = np.concatenate([l["cls"].reshape(-1) for l in self.labels])
+        counts = np.bincount(cls.astype(int), minlength=len(self.data["names"]))
+        weights = np.zeros(len(self.labels))
+        # weights = np.ones(len(self.labels))
+        for i, label in enumerate(self.labels):
+            cls = label["cls"].reshape(-1).astype(np.int32)
+            if len(cls) == 0:
+                continue
+            weights[i] = np.mean(counts[cls])
+        # set mean value of weights for background images
+        weights = np.where(weights == 0, weights.mean(), weights)
+        weights = weights.max() - weights + 1
+        return weights / weights.sum()
 
     def get_img_files(self, img_path):
         """Read image files."""

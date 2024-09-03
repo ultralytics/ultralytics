@@ -75,17 +75,6 @@ class DistanceCalculation:
             self.selected_boxes = {}
             self.left_mouse_count = 0
 
-    def extract_tracks(self, tracks):
-        """
-        Extracts tracking results from the provided data.
-
-        Args:
-            tracks (list): List of tracks obtained from the object tracking process.
-        """
-        self.boxes = tracks[0].boxes.xyxy.cpu()
-        self.clss = tracks[0].boxes.cls.cpu().tolist()
-        self.trk_ids = tracks[0].boxes.id.int().cpu().tolist()
-
     def start_process(self, im0, tracks):
         """
         Processes the video frame and calculates the distance between two bounding boxes.
@@ -103,7 +92,10 @@ class DistanceCalculation:
                 self.display_frames()
             return im0
 
-        self.extract_tracks(tracks)
+        self.boxes = tracks[0].boxes.xyxy.cpu()
+        self.clss = tracks[0].boxes.cls.cpu().tolist()
+        self.trk_ids = tracks[0].boxes.id.int().cpu().tolist()
+
         self.annotator = Annotator(self.im0, line_width=self.line_thickness)
 
         for box, cls, track_id in zip(self.boxes, self.clss, self.trk_ids):

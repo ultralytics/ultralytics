@@ -773,7 +773,6 @@ class Annotator:
         top_left = (15, 25)
         bottom_right = (15 + text_width_m + 20, 25 + text_height_m + 20)
 
-        # Draw the rectangle with the calculated size
         cv2.rectangle(self.im, top_left, bottom_right, centroid_color, -1)
 
         # Calculate the position for the text with a 10-pixel margin

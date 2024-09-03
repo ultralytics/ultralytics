@@ -346,9 +346,15 @@ def set_logging(name="LOGGING_NAME", verbose=True):
         - The logger's propagate flag is set to False to prevent duplicate logging in parent loggers.
     """
     level = logging.INFO if verbose and RANK in {-1, 0} else logging.ERROR  # rank in world for Multi-GPU trainings
+    
+    class BaseFormatter(logging.Formatter):
+        def format(self, record):
+            if record.levelno == logging.WARNING:
+                record.msg = colorstr("yellow", "bold", record.msg)
+            return super().format(record)
 
     # Configure the console (stdout) encoding to UTF-8, with checks for compatibility
-    formatter = logging.Formatter("%(message)s")  # Default formatter
+    formatter = BaseFormatter()  # Default formatter
     if WINDOWS and hasattr(sys.stdout, "encoding") and sys.stdout.encoding != "utf-8":
 
         class CustomFormatter(logging.Formatter):

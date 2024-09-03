@@ -546,9 +546,9 @@ class Mosaic(BaseMixTransform):
         """
         Returns a list of random indexes from the dataset for mosaic augmentation.
 
-        This method selects random image indexes either from a buffer or from the entire dataset, 
-            depending on the 'buffer' parameter. If self.buffer is True, selects images from the 
-            dataset buffer. If False, selects from the entire dataset. It is used to choose images 
+        This method selects random image indexes either from a buffer or from the entire dataset,
+            depending on the 'buffer' parameter. If self.buffer is True, selects images from the
+            dataset buffer. If False, selects from the entire dataset. It is used to choose images
             for creating mosaic augmentations.
 
         Args:

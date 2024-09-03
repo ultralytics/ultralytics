@@ -24,7 +24,7 @@ The output of an instance segmentation model is a set of masks or contours that 
   <strong>Watch:</strong> Run Segmentation with Pre-Trained Ultralytics YOLOv8 Model in Python.
 </p>
 
-!!! Tip 
+!!! Tip
 
     YOLOv8 Segment models use the `-seg` suffix, i.e. `yolov8n-seg.pt` and are pretrained on [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml).
 

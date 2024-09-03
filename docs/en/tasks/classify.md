@@ -24,7 +24,7 @@ The output of an image classifier is a single class label and a confidence score
   <strong>Watch:</strong> Explore Ultralytics YOLO Tasks: Image Classification using Ultralytics HUB
 </p>
 
-!!! Tip 
+!!! Tip
 
     YOLOv8 Classify models use the `-cls` suffix, i.e. `yolov8n-cls.pt` and are pretrained on [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/ImageNet.yaml).
 

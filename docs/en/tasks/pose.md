@@ -36,7 +36,7 @@ The output of a pose estimation model is a set of points that represent the keyp
   </tr>
 </table>
 
-!!! Tip 
+!!! Tip
 
     YOLOv8 _pose_ models use the `-pose` suffix, i.e. `yolov8n-pose.pt`. These models are trained on the [COCO keypoints](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco-pose.yaml) dataset and are suitable for a variety of pose estimation tasks.
 

@@ -23,7 +23,7 @@ The output of an object detector is a set of bounding boxes that enclose the obj
   <strong>Watch:</strong> Object Detection with Pre-trained Ultralytics YOLOv8 Model.
 </p>
 
-!!! Tip 
+!!! Tip
 
     YOLOv8 Detect models are the default YOLOv8 models, i.e. `yolov8n.pt` and are pretrained on [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml).
 

@@ -37,7 +37,6 @@ class DistanceCalculation:
         self.centroid_color = centroid_color
 
         # Prediction & tracking information
-        self.clss = None
         self.names = names
         self.boxes = None
         self.line_thickness = line_thickness
@@ -94,12 +93,12 @@ class DistanceCalculation:
             return im0
 
         self.boxes = tracks[0].boxes.xyxy.cpu()
-        self.clss = tracks[0].boxes.cls.cpu().tolist()
+        clss = tracks[0].boxes.cls.cpu().tolist()
         self.trk_ids = tracks[0].boxes.id.int().cpu().tolist()
 
         self.annotator = Annotator(self.im0, line_width=self.line_thickness)
 
-        for box, cls, track_id in zip(self.boxes, self.clss, self.trk_ids):
+        for box, cls, track_id in zip(self.boxes, clss, self.trk_ids):
             self.annotator.box_label(box, color=colors(int(cls), True), label=self.names[int(cls)])
 
             if len(self.selected_boxes) == 2:

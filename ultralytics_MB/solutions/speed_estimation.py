@@ -15,7 +15,6 @@ class SpeedEstimator:
 
     def __init__(self):
         """Initializes the speed-estimator class with default values for Visual, Image, track and speed parameters."""
-
         # Visual & im0 information
         self.im0 = None
         self.annotator = None
@@ -130,7 +129,6 @@ class SpeedEstimator:
             trk_id (int): object track id.
             track (list): tracking history for tracks path drawing
         """
-
         if not self.reg_pts[0][0] < track[-1][0] < self.reg_pts[1][0]:
             return
         if self.reg_pts[1][1] - self.spdl_dist_thresh < track[-1][1] < self.reg_pts[1][1] + self.spdl_dist_thresh:

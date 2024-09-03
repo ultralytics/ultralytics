@@ -70,7 +70,6 @@ class HungarianMatcher(nn.Module):
                 For each batch element, it holds:
                     len(index_i) = len(index_j) = min(num_queries, num_target_boxes)
         """
-
         bs, nq, nc = pred_scores.shape
 
         if sum(gt_groups) == 0:
@@ -175,7 +174,6 @@ def get_cdn_group(
             bounding boxes, attention mask and meta information for denoising. If not in training mode or 'num_dn'
             is less than or equal to 0, the function returns None for all elements in the tuple.
     """
-
     if (not training) or num_dn <= 0:
         return None, None, None, None
     gt_groups = batch["gt_groups"]

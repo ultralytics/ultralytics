@@ -264,7 +264,6 @@ def check_cfg(cfg, hard=True):
 
 def get_save_dir(args, name=None):
     """Return save_dir as created from train/val/predict arguments."""
-
     if getattr(args, "save_dir", None):
         save_dir = args.save_dir
     else:
@@ -279,7 +278,6 @@ def get_save_dir(args, name=None):
 
 def _handle_deprecation(custom):
     """Hardcoded function to handle deprecated config keys."""
-
     for key in custom.copy().keys():
         if key == "boxes":
             deprecation_warn(key, "show_boxes")

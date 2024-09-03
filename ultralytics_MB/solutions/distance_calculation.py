@@ -15,7 +15,6 @@ class DistanceCalculation:
         """Initializes the distance calculation class with default values for Visual, Image, track and distance
         parameters.
         """
-
         # Visual & im0 information
         self.im0 = None
         self.annotator = None

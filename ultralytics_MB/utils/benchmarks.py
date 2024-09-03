@@ -69,7 +69,6 @@ def benchmark(
         benchmark(model='yolov8n.pt', imgsz=640)
         ```
     """
-
     import pandas as pd
 
     pd.options.display.max_columns = 10

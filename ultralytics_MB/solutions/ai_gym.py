@@ -11,7 +11,6 @@ class AIGym:
 
     def __init__(self):
         """Initializes the AIGym with default values for Visual and Image parameters."""
-
         # Image and line thickness
         self.im0 = None
         self.tf = None

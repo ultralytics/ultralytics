@@ -22,7 +22,6 @@ def run(weights="yolov8n.pt", source="test.mp4", view_img=False, save_img=False,
         save_img (bool): Save results.
         exist_ok (bool): Overwrite existing files.
     """
-
     # Check source path
     if not Path(source).exists():
         raise FileNotFoundError(f"Source path '{source}' does not exist.")

@@ -134,8 +134,6 @@ class BaseModel(nn.Module):
         Returns:
             (torch.Tensor): The last output of the model.
         """
-
-
         y, dt, embeddings = [], [], []  # outputs
         for i,m in enumerate(self.model):
             if m.f != -1:  # if not from previous layer
@@ -324,7 +322,6 @@ class DetectionModel(BaseModel):
 
             def _forward(x):
                 """Performs a forward pass through the model, handling different Detect subclass types accordingly."""
-
                 if self.end2end:
                     return self.forward(x)["one2many"]
                 return self.forward(x)[0] if isinstance(m, (Segment, Pose, OBB)) else self.forward(x)
@@ -730,7 +727,6 @@ def temporary_modules(modules=None, attributes=None):
         Be aware that directly manipulating `sys.modules` can lead to unpredictable results, especially in larger
         applications or libraries. Use this function with caution.
     """
-
     if modules is None:
         modules = {}
     if attributes is None:
@@ -816,7 +812,6 @@ def torch_safe_load(weight):
 
 def attempt_load_weights(weights, device=None, inplace=True, fuse=False):
     """Loads an ensemble of models weights=[a,b,c] or a single model weights=[a] or weights=a."""
-
     ensemble = Ensemble()
     for w in weights if isinstance(weights, list) else [weights]:
         ckpt, w = torch_safe_load(w)  # load ckpt

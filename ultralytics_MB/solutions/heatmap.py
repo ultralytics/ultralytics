@@ -18,7 +18,6 @@ class Heatmap:
 
     def __init__(self):
         """Initializes the heatmap class with default values for Visual, Image, track, count and heatmap parameters."""
-
         # Visual information
         self.annotator = None
         self.view_img = False

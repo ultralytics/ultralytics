@@ -22,7 +22,6 @@ def check_train_batch_size(model, imgsz=640, amp=True):
     Returns:
         (int): Optimal batch size computed using the autobatch() function.
     """
-
     with torch.cuda.amp.autocast(amp):
         return autobatch(deepcopy(model).train(), imgsz)  # compute optimal batch size
 
@@ -40,7 +39,6 @@ def autobatch(model, imgsz=640, fraction=0.60, batch_size=DEFAULT_CFG.batch,chan
     Returns:
         (int): The optimal batch size.
     """
-
     # Check device
     prefix = colorstr("AutoBatch: ")
     LOGGER.info(f"{prefix}Computing optimal batch size for imgsz={imgsz}")

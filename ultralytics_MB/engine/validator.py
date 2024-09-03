@@ -317,7 +317,7 @@ class BaseValidator:
         return []
 
     def on_plot(self, name, data=None):
-        """Registers plots (e.g. to be consumed in callbacks)"""
+        """Registers plots (e.g. to be consumed in callbacks)."""
         self.plots[Path(name)] = {"data": data, "timestamp": time.time()}
 
     # TODO: may need to put these following functions into callback

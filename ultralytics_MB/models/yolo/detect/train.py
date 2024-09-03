@@ -94,7 +94,6 @@ class DetectionTrainer(BaseTrainer):
         - new_channels: The desired number of input channels.
         - indexes: A list of indices specifying which convolutional layers to update.
         """
-
         # Iterate through all specified layer indices
         for index in indexes:
             # Access the specified convolutional module within the model

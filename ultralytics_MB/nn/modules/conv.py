@@ -335,6 +335,7 @@ class Concat(nn.Module):
 
 class Input(nn.Module):
     """Input layer."""
+
     #forwards either the first three channels or the last three channels of the input tensor
     def __init__(self,input=0):
         self.input = input
@@ -352,6 +353,7 @@ class FeatureFusionBlock(nn.Module):
     def __init__(self, method='add'):
         """
         Initialize the FeatureFusionBlock.
+
         Args:
             method (str): Method to combine the features ('add', 'multiply', 'weighted', 'attention').
         """

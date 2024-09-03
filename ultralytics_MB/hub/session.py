@@ -141,7 +141,6 @@ class HUBTrainingSession:
         Raises:
             HUBModelError: If the identifier format is not recognized.
         """
-
         # Initialize variables
         api_key, model_id, filename = None, None, None
 

@@ -374,7 +374,6 @@ class RandomPerspective:
         self, degrees=0.0, translate=0.1, scale=0.5, shear=0.0, perspective=0.0, border=(0, 0), pre_transform=None
     ):
         """Initializes RandomPerspective object with transformation parameters."""
-
         self.degrees = degrees
         self.translate = translate
         self.scale = scale
@@ -396,7 +395,6 @@ class RandomPerspective:
             M (ndarray): Transformation matrix.
             s (float): Scale factor.
         """
-
         # Center
         C = np.eye(3, dtype=np.float32)
 
@@ -732,7 +730,6 @@ def add_border(img, top, bottom, left, right, value):
     Returns:
     - img_with_border: New image with the border added.
     """
-
     # Get the shape of the original image
     height, width, channels = img.shape
 
@@ -889,7 +886,6 @@ class Albumentations:
     Histogram Equalization, random change of brightness and contrast, RandomGamma and lowering of image quality by
     compression.
     """
-
 
     def __init__(self, p=1.0):
         """Initialize the transform object for YOLO bbox formatted params."""
@@ -1097,6 +1093,7 @@ from PIL import Image
 
 class AdjustSaturationRGBA(torch.nn.Module):
     """Adjust saturation for RGBA images."""
+
     def __init__(self, saturation_factor):
         super().__init__()
         self.saturation_factor = saturation_factor
@@ -1117,6 +1114,7 @@ class AdjustSaturationRGBA(torch.nn.Module):
 
 class AdjustBrightnessRGBA(torch.nn.Module):
     """Adjust brightness for RGBA images."""
+
     def __init__(self, brightness_factor):
         super().__init__()
         self.brightness_factor = brightness_factor
@@ -1140,6 +1138,7 @@ from PIL import Image
 
 class RotateRGBA(torch.nn.Module):
     """Rotate RGBA image."""
+
     def __init__(self, degrees, expand=True):
         super(RotateRGBA, self).__init__()
         self.degrees = degrees
@@ -1173,6 +1172,7 @@ class RotateRGBA(torch.nn.Module):
 
 class GaussianBlurRGBA(torch.nn.Module):
     """Apply Gaussian blur to RGBA images."""
+
     def __init__(self, sigma_range, sigma=None):
         super().__init__()
         self.sigma_range = sigma_range
@@ -1224,7 +1224,6 @@ def classify_transforms(
     Returns:
         (T.Compose): torchvision transforms
     """
-
     if isinstance(size, (tuple, list)):
         assert len(size) == 2
         scale_size = tuple(math.floor(x / crop_fraction) for x in size)

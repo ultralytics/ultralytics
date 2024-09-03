@@ -411,7 +411,6 @@ class AutoBackend(nn.Module):
         Returns:
             (tuple): Tuple containing the raw output tensor, and processed output for visualization (if visualize=True)
         """
-
         if len(im.shape) > 3:  # batched
             b, ch, h, w = im.shape  # batch size, channels, height, width
         elif len(im.shape) == 3:  # single image

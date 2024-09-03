@@ -175,7 +175,6 @@ class BaseDataset(Dataset):
                 self.labels[i]["cls"][:, 0] = 0
 
     def load_image(self, i, rect_mode=True):
-
         """Loads 1 image from dataset index 'i', returns (im, resized hw)."""
         im, f, fn = self.ims[i], self.im_files[i], self.npy_files[i]
         if im is None:  # not cached in RAM

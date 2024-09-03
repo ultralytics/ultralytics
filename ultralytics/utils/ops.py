@@ -175,7 +175,7 @@ def non_max_suppression(
     max_wh=7680,
     in_place=True,
     rotated=False,
-    use_soft_nms:bool=True,  # TODO add arg
+    use_soft_nms: bool = True,  # TODO add arg
 ):
     """
     Perform non-maximum suppression (NMS) on a set of boxes, with support for masks and multiple labels per box.
@@ -317,19 +317,24 @@ def non_max_suppression(
     return output
 
 
-def soft_nms(boxes:torch.Tensor, scores:torch.Tensor, s:float=0.5, t:float=0.001,) -> torch.Tensor:
+def soft_nms(
+    boxes: torch.Tensor,
+    scores: torch.Tensor,
+    s: float = 0.5,
+    t: float = 0.001,
+) -> torch.Tensor:
     """
     Applies Soft Non-Maximum Suppression (NMS) based on box scores https://arxiv.org/abs/1704.04503.
-    
+
     Args:
         boxes (torch.Tensor): The input tensor of shape (N, 4) representing the bounding boxes.
         scores (torch.Tensor): The input tensor of shape (N,) representing the scores of the boxes.
         s (float, optional): The scaling factor for the Soft-NMS. Defaults to 0.5.
         t (float, optional): Threshold for scores, box-scores below this will be ignored. Defaults to 0.001.
-    
+
     Returns:
         torch.Tensor: The tensor of indices representing the selected boxes after Soft-NMS.
-    
+
     Raises:
         AssertionError: If the shape of the boxes tensor is not (N, 4).
     """
@@ -363,8 +368,8 @@ def soft_nms(boxes:torch.Tensor, scores:torch.Tensor, s:float=0.5, t:float=0.001
         iou = intersect.div(area[i] + area[p:] - intersect)
         # Soft-NMS
         scores_[p:] *= (-iou.square().div_(s)).exp()
-        suppress[p:] |= (scores[p:] < t)
-        
+        suppress[p:] |= scores[p:] < t
+
     return sorted_idx[~suppress]
 
 

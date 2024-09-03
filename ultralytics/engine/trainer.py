@@ -103,7 +103,7 @@ class BaseTrainer:
         self.validator = None
         self.metrics = None
         self.plots = {}
-       
+
         init_seeds(self.args.seed + 1 + RANK, deterministic=self.args.deterministic)
         # Dirs
         self.save_dir = get_save_dir(self.args)

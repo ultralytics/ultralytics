@@ -230,7 +230,7 @@ jobs:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   RaspberryPi:
-    if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event.inputs.raspberrypi == 'true')
+    # if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event.inputs.raspberrypi == 'true')
     timeout-minutes: 120
     runs-on: raspberry-pi
     steps:
@@ -264,8 +264,8 @@ jobs:
         run: |
           cat benchmarks.log
           echo "$(cat benchmarks.log)" >> $GITHUB_STEP_SUMMARY
-      - name: Reboot # run a reboot command in the background to free resources for next run and not crash main thread
-        run: sudo bash -c "sleep 10; reboot" &
+      # - name: Reboot # run a reboot command in the background to free resources for next run and not crash main thread
+      #   run: sudo bash -c "sleep 10; reboot" &
 
   Conda:
     if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event.inputs.conda == 'true')

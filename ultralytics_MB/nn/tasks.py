@@ -330,8 +330,6 @@ class DetectionModel(BaseModel):
                     return self.forward(x)["one2many"]
                 return self.forward(x)[0] if isinstance(m, (Segment, Pose, OBB)) else self.forward(x)
             zeroes = torch.zeros(1, ch, s, s)
-            LOGGER.info(f"zeroes shape: {zeroes.shape}")
-            LOGGER.info(f"model {m}")
             m.stride = torch.tensor([s / x.shape[-2] for x in _forward(zeroes)])  # forward
             self.stride = m.stride
             m.bias_init()  # only run once

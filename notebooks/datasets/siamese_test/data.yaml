@@ -1,0 +1,14 @@
+names:
+- black
+- blue
+- green
+- orange
+- purple
+- red
+- yellow
+nc: 7
+
+train: ../train/images
+val: ../val/images
+test: ../test/image
+

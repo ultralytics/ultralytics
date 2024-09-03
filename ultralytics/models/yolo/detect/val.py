@@ -99,6 +99,7 @@ class DetectionValidator(BaseValidator):
             multi_label=True,
             agnostic=self.args.single_cls or self.args.agnostic_nms,
             max_det=self.args.max_det,
+            soft_label=self.args.soft_label,
         )
 
     def _prepare_batch(self, si, batch):

@@ -277,6 +277,7 @@ class DetectionValidator(BaseValidator):
             path=None,
             names=self.names,
             boxes=predn[:, :6],
+            is_soft=self.args.soft_label,
         ).save_txt(file, save_conf=save_conf)
 
     def pred_to_json(self, predn, filename):

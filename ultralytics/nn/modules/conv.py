@@ -136,22 +136,20 @@ class ConvTranspose(nn.Module):
 
 
 class Focus(nn.Module):
-    """Focus wh information into c-space."""
+    """Focus (w, h) information into c-space. Also known as SPDConv (space-to-depth convolution)."""
+    _s = {1: slice(None, None, 2), 2: slice(1, None, 2)}
+    _o = {(1, 1), (2, 1), (1, 2), (2, 2)}
 
     def __init__(self, c1, c2, k=1, s=1, p=None, g=1, act=True):
         """Initializes Focus object with user defined channel, convolution, padding, group and activation values."""
         super().__init__()
         self.conv = Conv(c1 * 4, c2, k, s, p, g, act=act)
-        # self.contract = Contract(gain=2)
 
     def forward(self, x):
         """
-        Applies convolution to concatenated tensor and returns the output.
-
-        Input shape is (b,c,w,h) and output shape is (b,4c,w/2,h/2).
+        Applies space-to-depth convolution, input shape `(b, c, w, h)` --> output shape `(b, 4c, w / 2, h / 2)`.
         """
-        return self.conv(torch.cat((x[..., ::2, ::2], x[..., 1::2, ::2], x[..., ::2, 1::2], x[..., 1::2, 1::2]), 1))
-        # return self.conv(self.contract(x))
+        return self.conv(torch.cat([x[..., self._s[a], self._s[b]] for (a, b) in self._o], 1))
 
 
 class GhostConv(nn.Module):

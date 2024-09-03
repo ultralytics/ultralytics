@@ -149,5 +149,4 @@ def run_ray_tune(
     # Shut down Ray to clean up workers
     ray.shutdown()
 
-    # Return the results
     return results

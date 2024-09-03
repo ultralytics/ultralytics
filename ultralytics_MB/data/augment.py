@@ -591,7 +591,7 @@ class RandomHSV:
     The adjustments are random but within limits set by hgain, sgain, and vgain.
     """
 
-    def __init__(self, hgain=0.5, sgain=0.5, vgain=0.5, siamese=False) -> None:
+    def __init__(self, hgain=0.5, sgain=0.5, vgain=0.5, dual_stream=False) -> None:
         """
         Initialize RandomHSV class with gains for each HSV channel.
 
@@ -603,7 +603,7 @@ class RandomHSV:
         self.hgain = hgain
         self.sgain = sgain
         self.vgain = vgain
-        self.siamese = siamese
+        self.dual_stream = dual_stream
 
     def __call__(self, labels):
         """
@@ -612,7 +612,7 @@ class RandomHSV:
         The modified image replaces the original image in the input 'labels' dict.
         """
         img = labels["img"]
-        if not self.siamese:
+        if not self.dual_stream:
             # HSV augmentation
             if self.hgain or self.sgain or self.vgain:
                 #first three channels are BGR
@@ -630,7 +630,7 @@ class RandomHSV:
                 img_bgr = cv2.cvtColor(im_hsv, cv2.COLOR_HSV2BGR)
                 merge = np.concatenate((img_bgr, img[:, :, 3:]), axis=2)
                 labels["img"] = merge
-        else: #siamese
+        else: #dual_stream
             # image 1 = first half of the images bands
             img_1 = img[:, :, :img.shape[2]//2]
 
@@ -963,7 +963,7 @@ class Format:
         mask_overlap=True,
         batch_idx=True,
         bgr=0.0,
-        siamese = False,
+        dual_stream = False,
     ):
         """Initializes the Format class with given parameters."""
         self.bbox_format = bbox_format
@@ -975,7 +975,7 @@ class Format:
         self.mask_overlap = mask_overlap
         self.batch_idx = batch_idx  # keep the batch indexes
         self.bgr = bgr
-        self.siamese = siamese
+        self.dual_stream = dual_stream
 
     def __call__(self, labels):
         """Return formatted image, classes, bounding boxes & keypoints to be used by 'collate_fn'."""
@@ -1014,7 +1014,7 @@ class Format:
 
     def _format_img(self, img):
         """Format the image for YOLO from Numpy array to PyTorch tensor."""
-        if not self.siamese:
+        if not self.dual_stream:
             if img.shape[-1] == 3:
                 img = img[::-1]  # BGR to RBG
             else:
@@ -1024,7 +1024,7 @@ class Format:
                 else:
                     #support n additional bands switch first three bands from bgr to rgb and leave rest as is
                     img = img[:, :, [2, 1, 0, *range(3, img.shape[-1])]]
-        else:#siamese
+        else:#dual_stream
             if img.shape[-1] == 6:
                 img = img[:, :, [2, 1, 0, 5, 4, 3]]
             else:
@@ -1052,7 +1052,7 @@ class Format:
         return masks, instances, cls
 
 
-def v8_transforms(dataset, imgsz, hyp, siamese=False,stretch=False):
+def v8_transforms(dataset, imgsz, hyp, dual_stream=False,stretch=False):
     """Convert images to a size suitable for YOLOv8 training."""
     pre_transform = Compose(
         [
@@ -1082,7 +1082,7 @@ def v8_transforms(dataset, imgsz, hyp, siamese=False,stretch=False):
             pre_transform,
             MixUp(dataset, pre_transform=pre_transform, p=hyp.mixup),
             Albumentations(p=1.0),
-            RandomHSV(hgain=hyp.hsv_h, sgain=hyp.hsv_s, vgain=hyp.hsv_v,siamese=siamese),
+            RandomHSV(hgain=hyp.hsv_h, sgain=hyp.hsv_s, vgain=hyp.hsv_v,dual_stream=dual_stream),
             RandomFlip(direction="vertical", p=hyp.flipud),
             RandomFlip(direction="horizontal", p=hyp.fliplr, flip_idx=flip_idx),
         ]

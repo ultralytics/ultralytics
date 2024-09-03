@@ -297,7 +297,7 @@ class DetectionModel(BaseModel):
     def __init__(self, cfg="yolov8n.yaml", ch=3, nc=None, verbose=True):  # model, input channels, number of classes
         """Initialize the YOLOv8 detection model with the given config and parameters."""
         super().__init__()
-        self.yaml = cfg if isinstance(cfg, dict) else yaml_model_load(cfg)  # cfg dict
+        self.yaml = cfg if isinstance(cfg, dict) else yaml_model_load(cfg)# cfg dict
         if self.yaml["backbone"][0][2] == "Silence":
             LOGGER.warning(
                 "WARNING ⚠️ YOLOv9 `Silence` module is deprecated in favor of nn.Identity. "
@@ -312,6 +312,7 @@ class DetectionModel(BaseModel):
             LOGGER.info(f"Overriding model.yaml nc={self.yaml['nc']} with nc={nc}")
             self.yaml["nc"] = nc  # override YAML value
         self.model, self.save = parse_model(deepcopy(self.yaml), ch=ch, verbose=verbose)  # model, savelist
+        self.synchronize = self.yaml["synchronize"]
         self.names = {i: f"{i}" for i in range(self.yaml["nc"])}  # default names dict
         self.inplace = self.yaml.get("inplace", True)
         self.end2end = getattr(self.model[-1], "end2end", False)
@@ -330,6 +331,7 @@ class DetectionModel(BaseModel):
                 return self.forward(x)[0] if isinstance(m, (Segment, Pose, OBB)) else self.forward(x)
             zeroes = torch.zeros(1, ch, s, s)
             LOGGER.info(f"zeroes shape: {zeroes.shape}")
+            LOGGER.info(f"model {m}")
             m.stride = torch.tensor([s / x.shape[-2] for x in _forward(zeroes)])  # forward
             self.stride = m.stride
             m.bias_init()  # only run once
@@ -341,6 +343,7 @@ class DetectionModel(BaseModel):
         if verbose:
             self.info()
             LOGGER.info("")
+
 
     def _predict_augment(self, x):
         """Perform augmentations on input image x and return augmented inference and train outputs."""
@@ -903,6 +906,11 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
         LOGGER.info(f"\n{'':>3}{'from':>20}{'n':>3}{'params':>10}  {'module':<45}{'arguments':<30}")
     ch = [ch]
     layers, save, c2 = [], [], ch[-1]  # layers, savelist, ch out
+    sync_layers = d.get("sync",[])
+    if not d.get("siamese", False):
+
+        sync_layers = []
+
     for i, (f, n, m, args) in enumerate(d["backbone"] + d["head"]):  # from, number, module, args
         m = getattr(torch.nn, m[3:]) if "nn." in m else globals()[m]
 
@@ -999,7 +1007,14 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
         if verbose:
             LOGGER.info(f"{i:>3}{str(f):>20}{n_:>3}{m.np:10.0f}  {t:<45}{str(args):<30}")  # print
         save.extend(x % i for x in ([f] if isinstance(f, int) else f) if x != -1)  # append to savelist
+
+        if i in [x[1] for x in sync_layers]:
+            original = [x[0] for x in sync_layers if x[1] == i][0]
+            m_ = layers[original]
+            # sync with previous layer
+
         layers.append(m_)
+
         if i == 0:
             ch = []
         ch.append(c2)

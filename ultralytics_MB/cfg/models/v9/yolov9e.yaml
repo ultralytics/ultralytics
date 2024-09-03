@@ -2,6 +2,7 @@
 
 # parameters
 nc: 80  # number of classes
+ch: 6
 
 # gelan backbone
 backbone:

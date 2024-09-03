@@ -17,8 +17,8 @@ class DistanceCalculation:
         pixels_per_meter=10,
         view_img=False,
         line_thickness=2,
-        line_color=(255, 255, 0),
-        centroid_color=(255, 0, 255),
+        line_color=(255, 0, 255),
+        centroid_color=(104, 31, 17),
     ):
         """
         Initializes the DistanceCalculation class with the given parameters.
@@ -136,7 +136,7 @@ class DistanceCalculation:
             # Calculate pexels distance
             pexels_distance = math.sqrt((self.centroids[0][0] - self.centroids[1][0]) ** 2 + (self.centroids[0][1] - self.centroids[1][1]) ** 2)
             self.annotator.plot_distance_and_line(
-                distance_m, distance_mm, self.centroids, self.line_color, self.centroid_color
+                pexels_distance, self.centroids, self.line_color, self.centroid_color
             )
 
         self.centroids = []

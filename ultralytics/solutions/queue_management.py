@@ -78,7 +78,7 @@ class QueueManager:
         self.counts = 0
         self.count_txt_color = count_txt_color
         #initializing new variable
-        self.queue_count = queue_count
+        self._queue_count = queue_count
 
         # Tracks info
         self.track_history = defaultdict(list)
@@ -90,11 +90,11 @@ class QueueManager:
         self.env_check = check_imshow(warn=True)
     # getter method to get count
     def get_queue_count(self): 
-        return self.queue_count 
+        return self._queue_count 
       
     # setter method to set count
     def set_queue_count(self, x): 
-        self.queue_count = x
+        self._queue_count = x
 
     def extract_and_process_tracks(self, tracks):
         """Extracts and processes tracks for queue management in a video stream."""

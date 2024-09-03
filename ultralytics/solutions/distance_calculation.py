@@ -131,10 +131,10 @@ class DistanceCalculation:
             self.centroids = [self.calculate_centroid(self.selected_boxes[trk_id]) for trk_id in self.selected_boxes]
 
             # Calculate pexels distance
-            pexels_distance = math.sqrt((self.centroids[0][0] - self.centroids[1][0]) ** 2 + (self.centroids[0][1] - self.centroids[1][1]) ** 2)
-            self.annotator.plot_distance_and_line(
-                pexels_distance, self.centroids, self.line_color, self.centroid_color
+            pexels_distance = math.sqrt(
+                (self.centroids[0][0] - self.centroids[1][0]) ** 2 + (self.centroids[0][1] - self.centroids[1][1]) ** 2
             )
+            self.annotator.plot_distance_and_line(pexels_distance, self.centroids, self.line_color, self.centroid_color)
 
         self.centroids = []
 

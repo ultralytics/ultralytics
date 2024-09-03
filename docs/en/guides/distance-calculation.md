@@ -85,13 +85,13 @@ Measuring the gap between two objects is known as distance calculation within a 
 
 ### Arguments `DistanceCalculation()`
 
-| `Name`             | `Type`  | `Default`       | Description                                               |
-| ------------------ | ------- | --------------- | --------------------------------------------------------- |
-| `names`            | `dict`  | `None`          | Dictionary of classes names.                              |
-| `view_img`         | `bool`  | `False`         | Flag to indicate if the video stream should be displayed. |
-| `line_thickness`   | `int`   | `2`             | Thickness of the lines drawn on the image.                |
-| `line_color`       | `tuple` | `(255, 255, 0)` | Color of the lines drawn on the image (BGR format).       |
-| `centroid_color`   | `tuple` | `(255, 0, 255)` | Color of the centroids drawn (BGR format).                |
+| `Name`           | `Type`  | `Default`       | Description                                               |
+| ---------------- | ------- | --------------- | --------------------------------------------------------- |
+| `names`          | `dict`  | `None`          | Dictionary of classes names.                              |
+| `view_img`       | `bool`  | `False`         | Flag to indicate if the video stream should be displayed. |
+| `line_thickness` | `int`   | `2`             | Thickness of the lines drawn on the image.                |
+| `line_color`     | `tuple` | `(255, 255, 0)` | Color of the lines drawn on the image (BGR format).       |
+| `centroid_color` | `tuple` | `(255, 0, 255)` | Color of the centroids drawn (BGR format).                |
 
 ### Arguments `model.track`
 

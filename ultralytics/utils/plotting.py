@@ -767,7 +767,9 @@ class Annotator:
             centroid_color (RGB): Bounding box centroid color.
         """
         # Get the text size
-        (text_width_m, text_height_m), _ = cv2.getTextSize(f"Pexels Distance: {pexels_distance:.2f}", 0, self.sf, self.tf)
+        (text_width_m, text_height_m), _ = cv2.getTextSize(
+            f"Pexels Distance: {pexels_distance:.2f}", 0, self.sf, self.tf
+        )
 
         # Define the top-left and bottom-right corners of the rectangle with a 10-pixel margin
         top_left = (15, 25)

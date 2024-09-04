@@ -351,6 +351,8 @@ def set_logging(name="LOGGING_NAME", verbose=True):
         def format(self, record):
             if record.levelno == logging.WARNING:
                 record.msg = colorstr("yellow", "bold", record.msg)
+            if record.levelno == logging.DEBUG:
+                record.msg = colorstr("magenta", "bold", record.msg)
             return super().format(record)
 
     # Configure the console (stdout) encoding to UTF-8, with checks for compatibility

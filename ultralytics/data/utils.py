@@ -74,7 +74,6 @@ def verify_image(args):
     (im_file, cls), prefix = args
     # Number (found, corrupt), message
     nf, nc, msg = 0, 0, ""
-    print("In Verify Image")
     try:
         im = Image.open(im_file)
         im.verify()  # PIL verify
@@ -126,7 +125,6 @@ def verify_image_label(args):
             nf = 1  # label found
             with open(lb_file) as f:
                 lb = [x.split() for x in f.read().strip().splitlines() if len(x)]
-                print("lb is: ", lb, "\n")
                 if multi_label:
                     # Only Want first column because this represents classes
                     classes = np.array([x[0] for x in lb], dtype=np.float32)

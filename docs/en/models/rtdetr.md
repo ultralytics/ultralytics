@@ -29,12 +29,30 @@ Real-Time Detection Transformer (RT-DETR), developed by Baidu, is a cutting-edge
 - **IoU-aware Query Selection:** Baidu's RT-DETR improves object query initialization by utilizing IoU-aware query selection. This allows the model to focus on the most relevant objects in the scene, enhancing the detection accuracy.
 - **Adaptable Inference Speed:** Baidu's RT-DETR supports flexible adjustments of inference speed by using different decoder layers without the need for retraining. This adaptability facilitates practical application in various real-time object detection scenarios.
 
-## Pre-trained Models
+## Supported Tasks and Modes
 
-The Ultralytics Python API provides pre-trained PaddlePaddle RT-DETR models with different scales:
+This table presents the model types, the specific pre-trained weights, the tasks supported by each model, and the various modes ([Train](../modes/train.md) , [Val](../modes/val.md), [Predict](../modes/predict.md), [Export](../modes/export.md)) that are supported, indicated by ✅ emojis.
 
-- RT-DETR-L: 53.0% AP on COCO val2017, 114 FPS on T4 GPU
-- RT-DETR-X: 54.8% AP on COCO val2017, 74 FPS on T4 GPU
+| Model Type          | Tasks Supported                        | Inference | Validation | Training | Export |
+| ------------------- | -------------------------------------- | --------- | ---------- | -------- | ------ |
+| RT-DETR Large       | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
+| RT-DETR Extra-Large | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
+
+## Available Models and Performance
+
+The Ultralytics Python API provides pre-trained PaddlePaddle RT-DETR models with different scales. The performance metrics are based on the COCO val2017 dataset. The FPS values are measured on a T4 GPU.
+
+!!! Performance
+
+    === "Detection (COCO)"
+
+        | Pre-trained Weights  | COCO val2017 mAP (%) | FPS (T4 GPU)   |
+        | -------------------  | -------------------  | -------------- |
+        | [rtdetr-l.pt]        | 3.0                  | 114            |
+        | [rtdetr-x.pt]        | 54.8                 | 74             |
+
+        [rtdetr-l.pt]: https://github.com/ultralytics/assets/releases/download/v8.2.0/rtdetr-l.pt
+        [rtdetr-x.pt]: https://github.com/ultralytics/assets/releases/download/v8.2.0/rtdetr-x.pt
 
 ## Usage Examples
 
@@ -69,15 +87,6 @@ This example provides simple RT-DETR training and inference examples. For full d
         # Load a COCO-pretrained RT-DETR-l model and run inference on the 'bus.jpg' image
         yolo predict model=rtdetr-l.pt source=path/to/bus.jpg
         ```
-
-## Supported Tasks and Modes
-
-This table presents the model types, the specific pre-trained weights, the tasks supported by each model, and the various modes ([Train](../modes/train.md) , [Val](../modes/val.md), [Predict](../modes/predict.md), [Export](../modes/export.md)) that are supported, indicated by ✅ emojis.
-
-| Model Type          | Pre-trained Weights                                                                       | Tasks Supported                        | Inference | Validation | Training | Export |
-| ------------------- | ----------------------------------------------------------------------------------------- | -------------------------------------- | --------- | ---------- | -------- | ------ |
-| RT-DETR Large       | [rtdetr-l.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/rtdetr-l.pt) | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
-| RT-DETR Extra-Large | [rtdetr-x.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/rtdetr-x.pt) | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
 
 ## Citations and Acknowledgements
 

@@ -93,7 +93,7 @@ class BaseDataset(Dataset):
         if (self.cache == "ram" and self.check_cache_ram()) or self.cache == "disk":
             self.cache_images()
 
-        self.cls_weights = self.calculate_cls_weights()
+        self.cls_weights = self.calculate_cls_weights() if hyp.cls_weight else None
         # Transforms
         self.transforms = self.build_transforms(hyp=hyp)
 

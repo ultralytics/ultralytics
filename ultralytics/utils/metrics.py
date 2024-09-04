@@ -1219,6 +1219,75 @@ class ClassifyMetrics(SimpleClass):
         """Returns a list of curves for accessing specific metrics curves."""
         return []
 
+class MultiLabelClassifyMetrics(SimpleClass):
+    """
+    This class is a utility class for computing Multi-label Classification metrics such as precision, recall, and F1 score.
+    Contains TopK evaluator for multi-label classification
+    """
+
+    def __init__(self) -> None:
+        """Initialize a Multi-label ClassifyMetrics instance."""
+        self.speed = {"preprocess": 0.0, "inference": 0.0, "loss": 0.0, "postprocess": 0.0}
+        self.task = "multi_label_classify"
+        self.precision = 0 #Precision of all classes
+        self.recall = 0 # Recall of all classes
+        self.f1 = 0 # F1 score of all classes
+
+    def process(self, targets, pred):
+        """Target classes and predicted classes."""
+        true_positives = 0
+        false_positives = 0
+        false_negatives = 0
+        true_negatives = 0
+        batch_targets = targets[0]
+        batch_pred = pred[0]
+        for i in range(0, len(batch_pred) - 1):
+            for j in range(0, len(batch_pred[i]) - 1):
+                if batch_targets[i][j] == 1:
+                    if batch_pred[i][j] >= 0.5:
+                        true_positives += 1
+                    else:
+                        false_positives += 1
+                else:
+                    if batch_pred[i][j] <= 0.5:
+                        true_negatives += 1
+                    else:
+                        false_negatives += 1
+        self.precision = true_positives / (true_positives + false_positives)
+        self.recall = true_positives / (true_positives + false_negatives)
+        try:
+            self.f1 = 2 * (self.precision * self.recall) / (self.precision + self.recall)
+        except:
+            LOGGER.exception(f"Error in calculating F1 Score.")
+            self.f1 = 0
+        LOGGER.info(f"Precision: {self.precision}, Recall: {self.recall}, F1 Score: {self.f1}")
+
+    @property
+    def fitness(self):
+        """Returns mean of precision, recall and f1 score as fitness score."""
+        return (self.precision + self.recall + self.f1) / 3
+
+    @property
+    def results_dict(self):
+        """Returns a dictionary with model's performance metrics and fitness score."""
+        return dict(zip(self.keys + ["fitness"], [self.precision, self.recall, self.f1, self.fitness]))
+
+    @property
+    def keys(self):
+        """Returns a list of keys for the results_dict property."""
+        return ["metrics/precision", "metrics/recall", "metrics/f1"]
+
+    @property
+    def curves(self):
+        """Returns a list of curves for accessing specific metrics curves."""
+        return []
+
+    @property
+    def curves_results(self):
+        """Returns a list of curves for accessing specific metrics curves."""
+        return []
+
+
 
 class OBBMetrics(SimpleClass):
     """Metrics for evaluating oriented bounding box (OBB) detection, see https://arxiv.org/pdf/2106.06072.pdf."""

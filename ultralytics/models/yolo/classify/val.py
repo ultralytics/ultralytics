@@ -2,7 +2,7 @@
 
 import torch
 
-from ultralytics.data import ClassificationDataset, YOLOMultiLabelDataset, build_dataloader
+from ultralytics.data import ClassificationDataset, YOLOMultiLabelDataset, build_dataloader,build_dataloader, build_yolo_dataset, build_multilabel_dataset
 from ultralytics.engine.validator import BaseValidator
 from ultralytics.utils import LOGGER
 from ultralytics.utils.metrics import ClassifyMetrics, MultiLabelClassifyMetrics, ConfusionMatrix
@@ -182,13 +182,13 @@ class MultiLabelClassificationValidator(BaseValidator):
         self.metrics.process(self.targets, self.pred)
         return self.metrics.results_dict
 
-    def build_dataset(self, img_path):
-        """Creates and returns a ClassificationDataset instance using given image path and preprocessing parameters."""
-        return MultiLabelClassificationDataset(root=img_path, args=self.args, augment=False, prefix=self.args.split)
-
+    def build_dataset(self, img_path, mode="val", batch=None):
+        """Creates and returns a multi label classification dataset instance using given image path and preprocessing parameters."""
+        return build_multilabel_dataset(self.args, img_path, batch, self.data, mode=mode, rect=mode == "val")
+    
     def get_dataloader(self, dataset_path, batch_size):
         """Builds and returns a data loader for classification tasks with given parameters."""
-        dataset = self.build_dataset(dataset_path)
+        dataset = self.build_dataset(dataset_path, batch=batch_size, mode="val")
         return build_dataloader(dataset, batch_size, self.args.workers, rank=-1)
 
     def print_results(self):

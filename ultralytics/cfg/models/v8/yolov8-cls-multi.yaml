@@ -2,7 +2,7 @@
 # YOLOv8-cls image classification model. For Usage examples see https://docs.ultralytics.com/tasks/classify
 
 # Parameters
-nc: 3 # number of classes
+nc: 80 # number of classes
 multi_label: True # Model will be used for multi-label classification
 scales: # model compound scaling constants, i.e. 'model=yolov8n-cls.yaml' will call yolov8-cls.yaml with scale 'n'
   # [depth, width, max_channels]

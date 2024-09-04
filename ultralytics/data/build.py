@@ -103,7 +103,7 @@ def build_yolo_dataset(cfg, img_path, batch, data, mode="train", rect=False, str
     )
 
 def build_multilabel_dataset(cfg, img_path, batch, data, mode="train", rect=False, stride=32):
-        return YOLOMultiLabelDataset(
+    return YOLOMultiLabelDataset(
         img_path=img_path,
         imgsz=cfg.imgsz,
         batch_size=batch,

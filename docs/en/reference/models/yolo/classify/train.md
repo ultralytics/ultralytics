@@ -13,4 +13,8 @@ keywords: YOLO, Ultralytics, classification, training, machine learning, deep le
 
 ## ::: ultralytics.models.yolo.classify.train.ClassificationTrainer
 
+<br><br><hr><br>
+
+## ::: ultralytics.models.yolo.classify.train.MultiLabelClassificationTrainer
+
 <br><br>

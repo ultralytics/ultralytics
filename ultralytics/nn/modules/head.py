@@ -285,7 +285,7 @@ class Classify(nn.Module):
         return x if self.training else x.softmax(1)
 
 class MultiLabelClassify(nn.Module):
-    """YOLOv8 multi-label classification head"""
+    """YOLOv8 multi-label classification head."""
 
     def __init__(self, c1, c2, k=1, s=1, p=None, g=1):
         """Initializes YOLOv8 multi-label classification head with specified input and output channels, kernel size, stride,
@@ -593,7 +593,7 @@ class RTDETRDecoder(nn.Module):
 
 class v10Detect(Detect):
     """
-    v10 Detection head from https://arxiv.org/pdf/2405.14458
+    v10 Detection head from https://arxiv.org/pdf/2405.14458.
 
     Args:
         nc (int): Number of classes.

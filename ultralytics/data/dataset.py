@@ -531,7 +531,6 @@ class YOLOMultiLabelDataset(BaseDataset):
 
     def __init__(self, *args, data=None, augment=False, task="multi_label_classify", **kwargs):
         """Initializes the YOLODataset with optional configurations for segments and keypoints."""
-        
         self.data = data
         self.use_keypoints = False
         self.task = task
@@ -667,7 +666,7 @@ class YOLOMultiLabelDataset(BaseDataset):
         return torch_transforms
 
     def __getitem__(self, index):
-        """Needed to override this method otherwise data is returned incorrectly"""
+        """Needed to override this method otherwise data is returned incorrectly."""
         current_data = self.get_image_and_label(index)
         sample_image = current_data["img"]
         sample_image = Image.fromarray(cv2.cvtColor(sample_image, cv2.COLOR_BGR2RGB))

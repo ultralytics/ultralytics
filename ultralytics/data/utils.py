@@ -96,7 +96,8 @@ def verify_image(args):
 
 def verify_image_label(args):
     """Verify one image-label pair.
-    Added support for multi_label classification"""
+    Added support for multi_label classification.
+    """
     if len(args) == 8:
         im_file, lb_file, prefix, keypoint, num_cls, nkpt, ndim, multi_label = args
     else:
@@ -282,7 +283,6 @@ def check_det_dataset(dataset, autodownload=True):
     Returns:
         (dict): Parsed dataset information and paths.
     """
-
     file = check_file(dataset)
 
     # Download (optional)
@@ -380,7 +380,6 @@ def check_cls_dataset(dataset, split=""):
             - 'nc' (int): The number of classes in the dataset.
             - 'names' (dict): A dictionary of class names in the dataset.
     """
-
     # Download (optional if dataset=https://file.zip is passed directly)
     if str(dataset).startswith(("http:/", "https:/")):
         dataset = safe_download(dataset, dir=DATASETS_DIR, unzip=True, delete=False)
@@ -619,7 +618,6 @@ def compress_one_image(f, f_new=None, max_dim=1920, quality=50):
             compress_one_image(f)
         ```
     """
-
     try:  # use PIL
         im = Image.open(f)
         r = max_dim / max(im.height, im.width)  # ratio
@@ -652,7 +650,6 @@ def autosplit(path=DATASETS_DIR / "coco8/images", weights=(0.9, 0.1, 0.0), annot
         autosplit()
         ```
     """
-
     path = Path(path)  # images dir
     files = sorted(x for x in path.rglob("*.*") if x.suffix[1:].lower() in IMG_FORMATS)  # image files only
     n = len(files)  # number of files

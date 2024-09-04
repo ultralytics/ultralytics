@@ -1220,9 +1220,7 @@ class ClassifyMetrics(SimpleClass):
         return []
 
 class MultiLabelClassifyMetrics(SimpleClass):
-    """
-    Utility class for computing Multi-label Classification metrics such as precision, recall, and F1 score.
-    """
+    """Utility class for computing Multi-label Classification metrics such as precision, recall, and F1 score."""
 
     def __init__(self) -> None:
         """Initialize a Multi-label ClassifyMetrics instance."""

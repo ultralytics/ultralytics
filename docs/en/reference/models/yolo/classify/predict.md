@@ -13,4 +13,8 @@ keywords: YOLO, ClassificationPredictor, Ultralytics, model prediction, preproce
 
 ## ::: ultralytics.models.yolo.classify.predict.ClassificationPredictor
 
+<br><br><hr><br>
+
+## ::: ultralytics.models.yolo.classify.predict.MultiLabelClassificationPredictor
+
 <br><br>

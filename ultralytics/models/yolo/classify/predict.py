@@ -75,6 +75,7 @@ class MultiLabelClassificationPredictor(BasePredictor):
         predictor.predict_cli()
         ```
     """
+
     def postprocess(self, preds, img, orig_imgs):
         """Post-processes predictions to return Results objects."""
         if not isinstance(orig_imgs, list):  # input images are a torch.Tensor, not a list

@@ -436,7 +436,7 @@ class ClassificationModel(BaseModel):
     def _from_yaml(self, cfg, ch, nc, verbose):
         """Set YOLOv8 model configurations and define the model architecture."""
         self.yaml = cfg if isinstance(cfg, dict) else yaml_model_load(cfg)  # cfg dict
-
+        self.multi_label = self.yaml["multi_label"] if "multi_label" in self.yaml else False
         # Define model
         ch = self.yaml["ch"] = self.yaml.get("ch", ch)  # input channels
         if nc and nc != self.yaml["nc"]:
@@ -473,7 +473,7 @@ class ClassificationModel(BaseModel):
     def init_criterion(self):
         """Initialize the loss criterion for the ClassificationModel.
         Assumes the default task is standard classification"""
-        if self.yaml["multi_label"]:
+        if self.multi_label:
             LOGGER.info(f"{colorstr('Multi Label Classification Loss')} ")
             return v8MultiLabelClassificationLoss()
         else:

@@ -8,7 +8,8 @@ keywords: Ultralytics YOLOv8, illegal parking, object tracking, computer vision,
 
 ## What is Illegal Parking?
 
-Illegal parking is the monitoring of abnormal parking of vehicles, which is usually used in computer applications. With [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics/), you can now use the result data of [object tracking]( ../modes/track.md) to determine whether the vehicle is in a stopped state and how long it has been stopped, which is an important contribution to traffic safety management and urban vehicle management, especially for the rapid and active detection of vehicle breakdowns on highways, which can significantly reduce the probability of chain accidents.
+Illegal parking is the monitoring of abnormal parking of vehicles, which is usually used in computer applications. With [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics/), you can now use the result data of [object tracking](../modes/track.md) to determine whether the vehicle is in a stopped state and how long it has been stopped, which is an important contribution to traffic safety management and urban vehicle management, especially for the rapid and active detection of vehicle breakdowns on highways, which can significantly reduce the probability of chain accidents.
+
 <!-- TODO: Introduction Video
 <p align="center">
   <br>
@@ -21,18 +22,21 @@ Illegal parking is the monitoring of abnormal parking of vehicles, which is usua
   <strong>Watch:</strong> Illegal Parking using Ultralytics YOLOv8
 </p>
 -->
+
 ## Advantages of Illegal Parking?
 
 - **Efficient Traffic Control:** Illegal parking monitoring is actively discovered by the system, which can respond to sudden traffic incidents more quickly and greatly reduce the incidence of chain accidents, enhancing safety, and reducing congestion on roadways.
 - **Enhanced Surveillance Security:** Illegal estimation in surveillance analytics helps identify unusual behaviors or potential threats, improving the effectiveness of security measures.
 
 ## Real World Applications
+
 <!-- TODO: Pictures of application scenarios
 |                                                                             Transportation                                                                             |                                                                               Urban Management                                                                               |
 |:----------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
 | ![Illegal Parking on Highway using Ultralytics YOLOv8](https://github.com/ultralytics/docs/releases/download/0/speed-estimation-on-road-using-ultralytics-yolov8.avif) | ![Illegal Parking on urban road using Ultralytics YOLOv8](https://github.com/ultralytics/docs/releases/download/0/speed-estimation-on-bridge-using-ultralytics-yolov8.avif) |
 |                                                           Illegal Parking on Highway using Ultralytics YOLOv8                                                            |                                                             Illegal Parking on urban road using Ultralytics YOLOv8                                                            |
 -->
+
 !!! Example "Illegal Parking using YOLOv8 Example"
 
     === "Illegal Parking"
@@ -42,20 +46,28 @@ Illegal parking is the monitoring of abnormal parking of vehicles, which is usua
 
         from ultralytics import YOLO
         from ultralytics.solutions.illegal_parking import IllegalParking
-        
+
         model = YOLO("yolov8n.pt")
         names = model.model.names
-        
+
         cap = cv2.VideoCapture("path/to/video/video.mp4")
         assert cap.isOpened(), "Error reading video file"
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 
         # Video writer
         video_writer = cv2.VideoWriter("illegal_parking.mp4", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
-        
+
         # Illegal parking monitoring areas
-        polygon_pts = [[(10, 240), (1550, 10), (1800, 10), (1800, 960), (10, 960), ]]
-        
+        polygon_pts = [
+            [
+                (10, 240),
+                (1550, 10),
+                (1800, 10),
+                (1800, 960),
+                (10, 960),
+            ]
+        ]
+
         # Init illegal-parking obj
         obj = IllegalParking(
             polygon_coords=polygon_pts,
@@ -68,16 +80,15 @@ Illegal parking is the monitoring of abnormal parking of vehicles, which is usua
             if not success:
                 print("Video frame is empty or video processing has been successfully completed.")
                 break
-        
+
             tracks = model.track(im0, persist=True, show=False, verbose=False)
-        
+
             im0 = obj.found_illegal_parking(im0, tracks)
             video_writer.write(im0)
-        
+
         cap.release()
         video_writer.release()
         cv2.destroyAllWindows()
-
         ```
 
 ???+ warning "Parking Timer depends on the processing speed "
@@ -86,15 +97,15 @@ Illegal parking is the monitoring of abnormal parking of vehicles, which is usua
 
 ### Arguments `IllegalParking`
 
-| Name               | Type   | Default    | Description                                              |
-| ------------------ | ------ |------------|----------------------------------------------------------|
-| `names`            | `dict` | `required` | Dictionary of class names.                               |
-| `polygon_coords`   | `list` | `None`     | List of polygon coordinates for judging illegal parking. |
-| `view_img`         | `bool` | `False`    | Whether to display the image with annotations.           |
-| `line_thickness`   | `int`  | `2`        | Thickness of the lines for drawing boxes and tracks.     |
-| `polygon_thickness`| `int`  | `5`        | Thickness of the polygon lines.                          |
-| `parking_threshold`| `int`  | `50`       | Threshold for the number of frames to park.              |
-| `object_iou_threshold`| `float`  | `0.80`     | The intersection over union(iou) threshold of the object at different times.|
+| Name                   | Type    | Default    | Description                                                                  |
+| ---------------------- | ------- | ---------- | ---------------------------------------------------------------------------- |
+| `names`                | `dict`  | `required` | Dictionary of class names.                                                   |
+| `polygon_coords`       | `list`  | `None`     | List of polygon coordinates for judging illegal parking.                     |
+| `view_img`             | `bool`  | `False`    | Whether to display the image with annotations.                               |
+| `line_thickness`       | `int`   | `2`        | Thickness of the lines for drawing boxes and tracks.                         |
+| `polygon_thickness`    | `int`   | `5`        | Thickness of the polygon lines.                                              |
+| `parking_threshold`    | `int`   | `50`       | Threshold for the number of frames to park.                                  |
+| `object_iou_threshold` | `float` | `0.80`     | The intersection over union(iou) threshold of the object at different times. |
 
 ### Arguments `model.track`
 
@@ -133,11 +144,7 @@ w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FR
 video_writer = cv2.VideoWriter("illegal_parking.mp4", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
 # Init illegal-parking obj
-obj = IllegalParking(
-    names=names,
-    view_img=False,
-    parking_threshold=25
-)
+obj = IllegalParking(names=names, view_img=False, parking_threshold=25)
 
 while cap.isOpened():
     success, im0 = cap.read()
@@ -154,9 +161,11 @@ cap.release()
 video_writer.release()
 cv2.destroyAllWindows()
 ```
-<!-- TODO: 
+
+<!-- TODO:
 For more details, refer to our [official blog post](https...).
 -->
+
 ### What are the benefits of using Ultralytics YOLOv8 for illegal parking in traffic management?
 
 Using Ultralytics YOLOv8 for monitoring illegal parking offers significant advantages in traffic management:
@@ -182,7 +191,6 @@ Learn more about exporting models in our [guide on export](../modes/export.md).
 ### How accurate is the illegal parking using Ultralytics YOLOv8?
 
 The accuracy of using Ultralytics YOLOv8 to monitor illegal parking depends on several factors, including the quality of object tracking, the resolution and frame rate of the video, and environmental variables. It is almost 100% accurate in detecting parking, but the calculation of parking duration depends on the speed of video processing, that is, the performance of the GPU.
-
 
 ### Why choose Ultralytics YOLOv8 over other object detection models like TensorFlow Object Detection API?
 

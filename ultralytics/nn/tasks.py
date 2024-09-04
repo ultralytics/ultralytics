@@ -55,12 +55,14 @@ from ultralytics.nn.modules import (
     Segment,
     WorldDetect,
     v10Detect,
+    MultiLabelClassify,
 )
 from ultralytics.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, colorstr, emojis, yaml_load
 from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml
 from ultralytics.utils.loss import (
     E2EDetectLoss,
     v8ClassificationLoss,
+    v8MultiLabelClassificationLoss,
     v8DetectionLoss,
     v8OBBLoss,
     v8PoseLoss,
@@ -89,17 +91,13 @@ class BaseModel(nn.Module):
 
     def forward(self, x, *args, **kwargs):
         """
-        Perform forward pass of the model for either training or inference.
-
-        If x is a dict, calculates and returns the loss for training. Otherwise, returns predictions for inference.
+        Forward pass of the model on a single scale. Wrapper for `_forward_once` method.
 
         Args:
-            x (torch.Tensor | dict): Input tensor for inference, or dict with image tensor and labels for training.
-            *args (Any): Variable length argument list.
-            **kwargs (Any): Arbitrary keyword arguments.
+            x (torch.Tensor | dict): The input image tensor or a dict including image tensor and gt labels.
 
         Returns:
-            (torch.Tensor): Loss if x is a dict (training), or network predictions (inference).
+            (torch.Tensor): The output of the network.
         """
         if isinstance(x, dict):  # for cases of training and validating while training.
             return self.loss(x, *args, **kwargs)
@@ -455,7 +453,7 @@ class ClassificationModel(BaseModel):
     def reshape_outputs(model, nc):
         """Update a TorchVision classification model to class count 'n' if required."""
         name, m = list((model.model if hasattr(model, "model") else model).named_children())[-1]  # last module
-        if isinstance(m, Classify):  # YOLO Classify() head
+        if isinstance(m, Classify) or isinstance(m, MultiLabelClassify):  # YOLO Classify() head
             if m.linear.out_features != nc:
                 m.linear = nn.Linear(m.linear.in_features, nc)
         elif isinstance(m, nn.Linear):  # ResNet, EfficientNet
@@ -473,8 +471,14 @@ class ClassificationModel(BaseModel):
                     m[i] = nn.Conv2d(m[i].in_channels, nc, m[i].kernel_size, m[i].stride, bias=m[i].bias is not None)
 
     def init_criterion(self):
-        """Initialize the loss criterion for the ClassificationModel."""
-        return v8ClassificationLoss()
+        """Initialize the loss criterion for the ClassificationModel.
+        Assumes the default task is standard classification"""
+        if self.yaml["multi_label"]:
+            LOGGER.info(f"{colorstr('Multi Label Classification Loss')} ")
+            return v8MultiLabelClassificationLoss()
+        else:
+            LOGGER.info(f"{colorstr('Classification Loss')} ")
+            return v8ClassificationLoss()
 
 
 class RTDETRDetectionModel(DetectionModel):
@@ -727,6 +731,7 @@ def temporary_modules(modules=None, attributes=None):
         Be aware that directly manipulating `sys.modules` can lead to unpredictable results, especially in larger
         applications or libraries. Use this function with caution.
     """
+
     if modules is None:
         modules = {}
     if attributes is None:
@@ -755,9 +760,9 @@ def temporary_modules(modules=None, attributes=None):
 
 def torch_safe_load(weight):
     """
-    Attempts to load a PyTorch model with the torch.load() function. If a ModuleNotFoundError is raised, it catches the
-    error, logs a warning message, and attempts to install the missing module via the check_requirements() function.
-    After installation, the function again attempts to load the model using torch.load().
+    This function attempts to load a PyTorch model with the torch.load() function. If a ModuleNotFoundError is raised,
+    it catches the error, logs a warning message, and attempts to install the missing module via the
+    check_requirements() function. After installation, the function again attempts to load the model using torch.load().
 
     Args:
         weight (str): The file path of the PyTorch model.
@@ -816,6 +821,7 @@ def torch_safe_load(weight):
 
 def attempt_load_weights(weights, device=None, inplace=True, fuse=False):
     """Loads an ensemble of models weights=[a,b,c] or a single model weights=[a] or weights=a."""
+
     ensemble = Ensemble()
     for w in weights if isinstance(weights, list) else [weights]:
         ckpt, w = torch_safe_load(w)  # load ckpt
@@ -912,6 +918,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
         n = n_ = max(round(n * depth), 1) if n > 1 else n  # depth gain
         if m in {
             Classify,
+            MultiLabelClassify,
             Conv,
             ConvTranspose,
             GhostConv,

@@ -13,7 +13,6 @@ from ultralytics.utils import (
     DEFAULT_CFG,
     DEFAULT_CFG_DICT,
     DEFAULT_CFG_PATH,
-    IS_VSCODE,
     LOGGER,
     RANK,
     ROOT,
@@ -26,18 +25,18 @@ from ultralytics.utils import (
     checks,
     colorstr,
     deprecation_warn,
-    vscode_msg,
     yaml_load,
     yaml_print,
 )
 
 # Define valid tasks and modes
 MODES = {"train", "val", "predict", "export", "track", "benchmark"}
-TASKS = {"detect", "segment", "classify", "pose", "obb"}
+TASKS = {"detect", "segment", "classify","multi_label_classify", "pose", "obb"}
 TASK2DATA = {
     "detect": "coco8.yaml",
     "segment": "coco8-seg.yaml",
     "classify": "imagenet10",
+    "multi_label_classify": "imagenet10",
     "pose": "coco8-pose.yaml",
     "obb": "dota8.yaml",
 }
@@ -45,6 +44,7 @@ TASK2MODEL = {
     "detect": "yolov8n.pt",
     "segment": "yolov8n-seg.pt",
     "classify": "yolov8n-cls.pt",
+    "multi_label_classify": "yolov8n-cls.pt",
     "pose": "yolov8n-pose.pt",
     "obb": "yolov8n-obb.pt",
 }
@@ -52,6 +52,7 @@ TASK2METRIC = {
     "detect": "metrics/mAP50-95(B)",
     "segment": "metrics/mAP50-95(M)",
     "classify": "metrics/accuracy_top1",
+    "multi_label_classify": "metrics/accuracy_top1",
     "pose": "metrics/mAP50-95(P)",
     "obb": "metrics/mAP50-95(B)",
 }
@@ -184,6 +185,7 @@ CFG_BOOL_KEYS = {  # boolean-only arguments
     "nms",
     "profile",
     "multi_scale",
+    "multi_label",
 }
 
 
@@ -246,7 +248,6 @@ def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace] = DEFAULT_CFG_DICT, ove
         - The function performs type and value checks on the configuration data.
     """
     cfg = cfg2dict(cfg)
-
     # Merge overrides
     if overrides:
         overrides = cfg2dict(overrides)
@@ -352,6 +353,7 @@ def get_save_dir(args, name=None):
         >>> print(save_dir)
         my_project/detect/train
     """
+
     if getattr(args, "save_dir", None):
         save_dir = args.save_dir
     else:
@@ -382,6 +384,7 @@ def _handle_deprecation(custom):
         equivalents. It also handles value conversions where necessary, such as inverting boolean values for
         'hide_labels' and 'hide_conf'.
     """
+
     for key in custom.copy().keys():
         if key == "boxes":
             deprecation_warn(key, "show_boxes")
@@ -548,9 +551,9 @@ def handle_yolo_settings(args: List[str]) -> None:
 
 def handle_explorer(args: List[str]):
     """
-    Launches a graphical user interface that provides tools for interacting with and analyzing datasets using the
-    Ultralytics Explorer API. It checks for the required 'streamlit' package and informs the user that the Explorer
-    dashboard is loading.
+    This function launches a graphical user interface that provides tools for interacting with and analyzing datasets
+    using the Ultralytics Explorer API. It checks for the required 'streamlit' package and informs the user that the
+    Explorer dashboard is loading.
 
     Args:
         args (List[str]): A list of optional command line arguments.
@@ -793,7 +796,11 @@ def entrypoint(debug=""):
         from ultralytics import FastSAM
 
         model = FastSAM(model)
-    elif "sam_" in stem or "sam2_" in stem:
+    elif "sam2" in stem:
+        from ultralytics import SAM2
+
+        model = SAM2(model)
+    elif "sam" in stem:
         from ultralytics import SAM
 
         model = SAM(model)
@@ -831,10 +838,6 @@ def entrypoint(debug=""):
 
     # Show help
     LOGGER.info(f"💡 Learn more at https://docs.ultralytics.com/modes/{mode}")
-
-    # Recommend VS Code extension
-    if IS_VSCODE and SETTINGS.get("vscode_msg", True):
-        LOGGER.info(vscode_msg())
 
 
 # Special modes --------------------------------------------------------------------------------------------------------

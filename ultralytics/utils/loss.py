@@ -610,7 +610,15 @@ class v8MultiLabelClassificationLoss:
     """Criterion class for computing training losses in a multi-label classification task."""
 
     def __call__(self, preds, batch):
-        """Compute the classification loss between predictions and true labels."""
+        """Compute the classification loss between predictions and true labels.
+
+        Args:
+            preds (torch.Tensor): Predictions
+            batch (dict): Batch dictionary containing 'cls' with true labels
+
+        Returns:
+            (tuple): Tuple containing the classification loss and loss items.
+        """
         loss = F.binary_cross_entropy_with_logits(preds, batch["cls"], reduction="mean")
         loss_items = loss.detach()
         return loss, loss_items

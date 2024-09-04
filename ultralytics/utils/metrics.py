@@ -1221,8 +1221,7 @@ class ClassifyMetrics(SimpleClass):
 
 class MultiLabelClassifyMetrics(SimpleClass):
     """
-    This class is a utility class for computing Multi-label Classification metrics such as precision, recall, and F1 score.
-    Contains TopK evaluator for multi-label classification
+    Utility class for computing Multi-label Classification metrics such as precision, recall, and F1 score.
     """
 
     def __init__(self) -> None:
@@ -1234,7 +1233,12 @@ class MultiLabelClassifyMetrics(SimpleClass):
         self.f1 = 0 # F1 score of all classes
 
     def process(self, targets, pred):
-        """Target classes and predicted classes."""
+        """Target classes and predicted classes.
+
+        Args:
+            targets (list): List of target classes.
+            pred (list): List of predicted classes.
+        """
         true_positives = 0
         false_positives = 0
         false_negatives = 0

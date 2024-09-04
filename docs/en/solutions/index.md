@@ -14,6 +14,7 @@ Ultralytics Solutions provide cutting-edge applications of YOLO models, offering
 
 Here's our curated list of Ultralytics solutions that can be used to create awesome computer vision projects.
 
+- [Illegal Parking](../guides/illegal-parking.md) 🚀 NEW: Learn how to use Ultralytics YOLOv8 to proactively detect illegal parking situations.
 - [Object Counting](../guides/object-counting.md) 🚀 NEW: Learn to perform real-time object counting with YOLOv8. Gain the expertise to accurately count objects in live video streams.
 - [Object Cropping](../guides/object-cropping.md) 🚀 NEW: Master object cropping with YOLOv8 for precise extraction of objects from images and videos.
 - [Object Blurring](../guides/object-blurring.md) 🚀 NEW: Apply object blurring using YOLOv8 to protect privacy in image and video processing.

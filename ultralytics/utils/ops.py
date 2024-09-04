@@ -309,7 +309,7 @@ def non_max_suppression(
         #     if redundant:
         #         i = i[iou.sum(1) > 1]  # require redundancy
 
-        output[xi] = x[i]
+        output[xi] = x[i] if not use_soft_nms else x[i][[x[i, 4].argsort(descending=True)]]
         if (time.time() - t) > time_limit:
             LOGGER.warning(f"WARNING ⚠️ NMS time limit {time_limit:.3f}s exceeded")
             break  # time limit exceeded
@@ -359,6 +359,7 @@ def soft_nms(
                 boxes_[i], boxes_[swap] = boxes_[swap].clone(), boxes_[i].clone()
                 scores_[i], scores_[swap] = scores_[swap].clone(), scores_[i].clone()
                 area[i], area[swap] = area[swap].clone(), area[i].clone()
+                sorted_idx[i], sorted_idx[swap] = sorted_idx[swap].clone(), sorted_idx[i].clone()
 
         # IOU
         x1, y1 = boxes_[i, 0:1].maximum(boxes_[p:, 0:1]), boxes_[i, 1:2].maximum(boxes_[p:, 1:2])

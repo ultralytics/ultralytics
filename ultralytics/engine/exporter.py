@@ -375,7 +375,6 @@ class Exporter:
         LOGGER.info(f"\n{prefix} starting export with torch {torch.__version__}...")
         f = self.file.with_suffix(".torchscript")
 
-        # Use torch.jit.script() instead of torch.jit.trace()
         ts = torch.jit.trace(self.model, self.im, strict=False)
         extra_files = {"config.txt": json.dumps(self.metadata)}  # torch._C.ExtraFilesMap()
         if self.args.optimize:  # https://pytorch.org/tutorials/recipes/mobile_interpreter.html

@@ -44,6 +44,7 @@ from ultralytics.nn.modules import (
     HGBlock,
     HGStem,
     ImagePoolingAttn,
+    MultiLabelClassify,
     Pose,
     RepC3,
     RepConv,
@@ -55,15 +56,14 @@ from ultralytics.nn.modules import (
     Segment,
     WorldDetect,
     v10Detect,
-    MultiLabelClassify,
 )
 from ultralytics.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, colorstr, emojis, yaml_load
 from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml
 from ultralytics.utils.loss import (
     E2EDetectLoss,
     v8ClassificationLoss,
-    v8MultiLabelClassificationLoss,
     v8DetectionLoss,
+    v8MultiLabelClassificationLoss,
     v8OBBLoss,
     v8PoseLoss,
     v8SegmentationLoss,
@@ -471,7 +471,9 @@ class ClassificationModel(BaseModel):
                     m[i] = nn.Conv2d(m[i].in_channels, nc, m[i].kernel_size, m[i].stride, bias=m[i].bias is not None)
 
     def init_criterion(self):
-        """Initialize the loss criterion for the ClassificationModel.
+        """
+        Initialize the loss criterion for the ClassificationModel.
+
         Assumes the default task is standard classification.
         """
         if self.multi_label:

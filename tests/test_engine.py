@@ -130,6 +130,7 @@ def test_classify():
     result = pred(source=ASSETS, model=trainer.best)
     assert len(result), "predictor test failed"
 
+
 def test_multi_label_classify():
     """Test multi-label classification."""
     overrides = {"data": "coco8-multi.yaml", "model": "yolov8-cls-multi.yaml", "imgsz": 32, "epochs": 1, "save": False}

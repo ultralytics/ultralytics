@@ -6,8 +6,9 @@ import math
 
 import torch
 import torch.nn as nn
-from torch.nn.init import constant_, xavier_uniform_
 from torch.nn.functional import sigmoid
+from torch.nn.init import constant_, xavier_uniform_
+
 from ultralytics.utils import MACOS
 from ultralytics.utils.tal import TORCH_1_10, dist2bbox, dist2rbox, make_anchors
 
@@ -275,6 +276,7 @@ class Classify(nn.Module):
         self.pool = nn.AdaptiveAvgPool2d(1)  # to x(b,c_,1,1)
         self.drop = nn.Dropout(p=0.0, inplace=True)
         self.linear = nn.Linear(c_, c2)  # to x(b,c2)
+
     def forward(self, x):
         """Performs a forward pass of the YOLO model on input image data."""
         if isinstance(x, list):
@@ -284,12 +286,13 @@ class Classify(nn.Module):
             return x
         return x if self.training else x.softmax(1)
 
+
 class MultiLabelClassify(nn.Module):
     """YOLOv8 multi-label classification head."""
 
     def __init__(self, c1, c2, k=1, s=1, p=None, g=1):
-        """Initializes YOLOv8 multi-label classification head with specified input and output channels, kernel size, stride,
-        padding, and groups.
+        """Initializes YOLOv8 multi-label classification head with specified input and output channels, kernel size,
+        stride, padding, and groups.
         """
         super().__init__()
         c_ = 1280  # efficientnet_b0 size

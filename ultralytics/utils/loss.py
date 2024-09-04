@@ -606,11 +606,13 @@ class v8ClassificationLoss:
         loss_items = loss.detach()
         return loss, loss_items
 
+
 class v8MultiLabelClassificationLoss:
     """Criterion class for computing training losses in a multi-label classification task."""
 
     def __call__(self, preds, batch):
-        """Compute the classification loss between predictions and true labels.
+        """
+        Compute the classification loss between predictions and true labels.
 
         Args:
             preds (torch.Tensor): Predictions

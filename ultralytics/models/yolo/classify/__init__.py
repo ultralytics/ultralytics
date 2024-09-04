@@ -4,4 +4,11 @@ from ultralytics.models.yolo.classify.predict import ClassificationPredictor, Mu
 from ultralytics.models.yolo.classify.train import ClassificationTrainer, MultiLabelClassificationTrainer
 from ultralytics.models.yolo.classify.val import ClassificationValidator, MultiLabelClassificationValidator
 
-__all__ = "ClassificationPredictor", "ClassificationTrainer", "ClassificationValidator", "MultiLabelClassificationValidator", "MultiLabelClassificationPredictor", "MultiLabelClassificationTrainer"
+__all__ = (
+    "ClassificationPredictor",
+    "ClassificationTrainer",
+    "ClassificationValidator",
+    "MultiLabelClassificationValidator",
+    "MultiLabelClassificationPredictor",
+    "MultiLabelClassificationTrainer",
+)

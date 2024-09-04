@@ -42,7 +42,6 @@ mask_ratio: 4 # (int) mask downsample ratio (segment train only)
 dropout: 0.0 # (float) use dropout regularization (classify train only)
 multi_label: False # (bool) Whether to use multi-label classification (classify train only)
 
-
 # Val/Test settings ----------------------------------------------------------------------------------------------------
 val: True # (bool) validate/test during training
 split: val # (str) dataset split to use for validation, i.e. 'val', 'test' or 'train'
@@ -87,7 +86,6 @@ simplify: False # (bool) ONNX: simplify model using `onnxslim`
 opset: # (int, optional) ONNX: opset version
 workspace: 4 # (int) TensorRT: workspace size (GB)
 nms: False # (bool) CoreML: add NMS
-
 
 # Hyperparameters ------------------------------------------------------------------------------------------------------
 lr0: 0.01 # (float) initial learning rate (i.e. SGD=1E-2, Adam=1E-3)

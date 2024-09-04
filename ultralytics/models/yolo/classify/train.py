@@ -2,13 +2,22 @@
 
 import torch
 
-from ultralytics.data import ClassificationDataset, build_dataloader,build_dataloader, build_yolo_dataset, build_multilabel_dataset
+from ultralytics.data import (
+    ClassificationDataset,
+    build_dataloader,
+    build_multilabel_dataset,
+)
 from ultralytics.engine.trainer import BaseTrainer
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import ClassificationModel
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK, colorstr
 from ultralytics.utils.plotting import plot_images, plot_results
-from ultralytics.utils.torch_utils import is_parallel, strip_optimizer, torch_distributed_zero_first, de_parallel, torch_distributed_zero_first
+from ultralytics.utils.torch_utils import (
+    de_parallel,
+    is_parallel,
+    strip_optimizer,
+    torch_distributed_zero_first,
+)
 
 
 class ClassificationTrainer(BaseTrainer):
@@ -40,7 +49,6 @@ class ClassificationTrainer(BaseTrainer):
     def set_model_attributes(self):
         """Set the YOLO model's class names from the loaded dataset."""
         self.model.names = self.data["names"]
-        
 
     def get_model(self, cfg=None, weights=None, verbose=True):
         """Returns a modified PyTorch model configured for training YOLO."""
@@ -153,7 +161,8 @@ class ClassificationTrainer(BaseTrainer):
 
 class MultiLabelClassificationTrainer(BaseTrainer):
     """
-    A class extending the BaseTrainer class for training based on a classification model for multi-label classification tasks.
+    A class extending the BaseTrainer class for training based on a classification model for multi-label classification
+    tasks.
 
     Notes:
         - Torchvision classification models can also be passed to the 'model' argument, i.e. model='resnet18'.
@@ -180,7 +189,6 @@ class MultiLabelClassificationTrainer(BaseTrainer):
     def set_model_attributes(self):
         """Set the YOLO model's class names from the loaded dataset."""
         self.model.names = self.data["names"]
-        
 
     def get_model(self, cfg=None, weights=None, verbose=True):
         """Returns a modified PyTorch model configured for training YOLO."""
@@ -221,14 +229,13 @@ class MultiLabelClassificationTrainer(BaseTrainer):
         assert mode in {"train", "val"}, f"Mode must be 'train' or 'val', not {mode}."
         with torch_distributed_zero_first(rank):  # init dataset *.cache only once if DDP
             dataset = self.build_dataset(dataset_path, batch=batch_size, mode=mode)
-        shuffle = mode == "train"
         loader = build_dataloader(dataset, batch_size, self.args.workers, rank=rank)
         if mode != "train":
             if is_parallel(self.model):
                 self.model.module.transforms = loader.dataset.build_transforms()
             else:
                 self.model.transforms = loader.dataset.build_transforms()
-        return loader #build_dataloader(dataset, batch_size, workers, shuffle, rank)  # return dataloader
+        return loader  # build_dataloader(dataset, batch_size, workers, shuffle, rank)  # return dataloader
 
     def preprocess_batch(self, batch):
         """Preprocesses a batch of images and classes."""
@@ -249,7 +256,9 @@ class MultiLabelClassificationTrainer(BaseTrainer):
     def get_validator(self):
         """Returns an instance of ClassificationValidator for validation."""
         self.loss_names = ["loss"]
-        return yolo.classify.MultiLabelClassificationValidator(self.test_loader, self.save_dir, _callbacks=self.callbacks)
+        return yolo.classify.MultiLabelClassificationValidator(
+            self.test_loader, self.save_dir, _callbacks=self.callbacks
+        )
 
     def label_loss_items(self, loss_items=None, prefix="train"):
         """

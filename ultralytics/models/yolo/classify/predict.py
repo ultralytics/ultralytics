@@ -58,6 +58,7 @@ class ClassificationPredictor(BasePredictor):
             results.append(Results(orig_img, path=img_path, names=self.model.names, probs=pred))
         return results
 
+
 class MultiLabelClassificationPredictor(BasePredictor):
     """
     A class extending the BasePredictor class for prediction based on a multi-label classification model.

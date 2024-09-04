@@ -296,7 +296,7 @@ class GroundingDataset(YOLODataset):
         """Loads annotations from a JSON file, filters, and normalizes bounding boxes for each image."""
         labels = []
         LOGGER.info("Loading annotation file...")
-        with open(self.json_file, "r") as f:
+        with open(self.json_file) as f:
             annotations = json.load(f)
         images = {f'{x["id"]:d}': x for x in annotations["images"]}
         img_to_anns = defaultdict(list)
@@ -517,6 +517,7 @@ class ClassificationDataset:
         save_dataset_cache_file(self.prefix, path, x, DATASET_CACHE_VERSION)
         return samples
 
+
 class YOLOMultiLabelDataset(BaseDataset):
     """
     Dataset class for loading multi-label classification labels in YOLO format.
@@ -536,11 +537,9 @@ class YOLOMultiLabelDataset(BaseDataset):
         self.task = task
         self.use_segments = False
         self.use_obb = False
-        self.hyp = kwargs['hyp']
+        self.hyp = kwargs["hyp"]
         self.multi_label = True
         super().__init__(*args, **kwargs)
-        
-
 
     def cache_labels(self, path=Path("./labels.cache")):
         """
@@ -662,7 +661,7 @@ class YOLOMultiLabelDataset(BaseDataset):
             if self.augment
             else classify_transforms(size=self.imgsz, crop_fraction=self.hyp.crop_fraction)
         )
-        
+
         return torch_transforms
 
     def __getitem__(self, index):
@@ -689,11 +688,11 @@ class YOLOMultiLabelDataset(BaseDataset):
             cls is not with bboxes now, classification and semantic segmentation need an independent cls label
             Can also support classification and semantic segmentation by adding or removing dict keys there.
         """
-        bboxes= label.pop("bboxes")#np.array([[0, 0, 640, 640]])
+        label.pop("bboxes")  # np.array([[0, 0, 640, 640]])
         segments = label.pop("segments", [])
-        keypoints = label.pop("keypoints", None)
-        bbox_format = label.pop("bbox_format")
-        normalized = label.pop("normalized")
+        label.pop("keypoints", None)
+        label.pop("bbox_format")
+        label.pop("normalized")
         current_classes = label.pop("cls")
         # NOTE: do NOT resample oriented boxes
         segment_resamples = 100 if self.use_obb else 1000
@@ -703,11 +702,10 @@ class YOLOMultiLabelDataset(BaseDataset):
             segments = np.stack(resample_segments(segments, n=segment_resamples), axis=0)
         else:
             segments = np.zeros((0, segment_resamples, 2), dtype=np.float32)
-        label["instances"] = None 
+        label["instances"] = None
         # Need to convert the current classes to a vector of 0s and 1s for one-hot encoding
         class_vector = torch.zeros(self.data["nc"])
         for element in current_classes:
             class_vector[element] = 1
-        label["cls"] = class_vector 
+        label["cls"] = class_vector
         return label
-

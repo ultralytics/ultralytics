@@ -95,7 +95,9 @@ def verify_image(args):
 
 
 def verify_image_label(args):
-    """Verify one image-label pair.
+    """
+    Verify one image-label pair.
+
     Added support for multi_label classification.
     """
     if len(args) == 8:
@@ -103,7 +105,7 @@ def verify_image_label(args):
     else:
         im_file, lb_file, prefix, keypoint, num_cls, nkpt, ndim = args
         multi_label = False
-    
+
     # Number (missing, found, empty, corrupt), message, segments, keypoints
     nm, nf, ne, nc, msg, segments, keypoints = 0, 0, 0, 0, "", [], None
     try:

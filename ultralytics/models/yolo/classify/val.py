@@ -2,12 +2,15 @@
 
 import torch
 
-from ultralytics.data import ClassificationDataset, YOLOMultiLabelDataset, build_dataloader,build_dataloader, build_yolo_dataset, build_multilabel_dataset
+from ultralytics.data import (
+    ClassificationDataset,
+    build_dataloader,
+    build_multilabel_dataset,
+)
 from ultralytics.engine.validator import BaseValidator
 from ultralytics.utils import LOGGER
-from ultralytics.utils.metrics import ClassifyMetrics, MultiLabelClassifyMetrics, ConfusionMatrix
+from ultralytics.utils.metrics import ClassifyMetrics, ConfusionMatrix, MultiLabelClassifyMetrics
 from ultralytics.utils.plotting import plot_images
-
 
 
 class ClassificationValidator(BaseValidator):
@@ -113,6 +116,7 @@ class ClassificationValidator(BaseValidator):
             on_plot=self.on_plot,
         )  # pred
 
+
 class MultiLabelClassificationValidator(BaseValidator):
     """
     A class extending the BaseValidator class for validation based on a multi-label classification model.
@@ -136,7 +140,7 @@ class MultiLabelClassificationValidator(BaseValidator):
         self.targets = None
         self.pred = None
         self.args.task = "multi_label_classify"
-        self.args.plots = False # Not plotting for now
+        self.args.plots = False  # Not plotting for now
         self.metrics = MultiLabelClassifyMetrics()
 
     def get_desc(self):
@@ -147,7 +151,7 @@ class MultiLabelClassificationValidator(BaseValidator):
         """Initialize class names, and and metrics."""
         self.names = model.names
         self.nc = len(model.names)
-        #self.confusion_matrix = ConfusionMatrix(nc=self.nc, conf=self.args.conf, task="multi_label_classify")
+        # self.confusion_matrix = ConfusionMatrix(nc=self.nc, conf=self.args.conf, task="multi_label_classify")
         self.pred = []
         self.targets = []
 
@@ -162,19 +166,19 @@ class MultiLabelClassificationValidator(BaseValidator):
         """Updates running metrics with model predictions and batch targets."""
         # Might Need to update shape here. List will have only one element.
         # Not sure if that's expected or will cause issues with metrics.process()
-        self.pred.append(preds.type(torch.float32).cpu()) # Append all predictions
+        self.pred.append(preds.type(torch.float32).cpu())  # Append all predictions
         self.targets.append(batch["cls"].type(torch.int32).cpu())
 
     def finalize_metrics(self, *args, **kwargs):
         """Finalizes metrics of the model such as confusion_matrix and speed."""
-        #self.confusion_matrix.process_cls_preds(self.pred, self.targets)
-        #if self.args.plots:
+        # self.confusion_matrix.process_cls_preds(self.pred, self.targets)
+        # if self.args.plots:
         #    for normalize in True, False:
         #        self.confusion_matrix.plot(
         #            save_dir=self.save_dir, names=self.names.values(), normalize=normalize, on_plot=self.on_plot
         #        )
         self.metrics.speed = self.speed
-        #self.metrics.confusion_matrix = self.confusion_matrix
+        # self.metrics.confusion_matrix = self.confusion_matrix
         self.metrics.save_dir = self.save_dir
 
     def get_stats(self):
@@ -183,9 +187,11 @@ class MultiLabelClassificationValidator(BaseValidator):
         return self.metrics.results_dict
 
     def build_dataset(self, img_path, mode="val", batch=None):
-        """Creates and returns a multi label classification dataset instance using given image path and preprocessing parameters."""
+        """Creates and returns a multi label classification dataset instance using given image path and preprocessing
+        parameters.
+        """
         return build_multilabel_dataset(self.args, img_path, batch, self.data, mode=mode, rect=mode == "val")
-    
+
     def get_dataloader(self, dataset_path, batch_size):
         """Builds and returns a data loader for classification tasks with given parameters."""
         dataset = self.build_dataset(dataset_path, batch=batch_size, mode="val")
@@ -206,4 +212,3 @@ class MultiLabelClassificationValidator(BaseValidator):
             names=self.names,
             on_plot=self.on_plot,
         )
-

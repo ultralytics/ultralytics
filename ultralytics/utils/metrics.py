@@ -1219,6 +1219,7 @@ class ClassifyMetrics(SimpleClass):
         """Returns a list of curves for accessing specific metrics curves."""
         return []
 
+
 class MultiLabelClassifyMetrics(SimpleClass):
     """Utility class for computing Multi-label Classification metrics such as precision, recall, and F1 score."""
 
@@ -1226,12 +1227,13 @@ class MultiLabelClassifyMetrics(SimpleClass):
         """Initialize a Multi-label ClassifyMetrics instance."""
         self.speed = {"preprocess": 0.0, "inference": 0.0, "loss": 0.0, "postprocess": 0.0}
         self.task = "multi_label_classify"
-        self.precision = 0 #Precision of all classes
-        self.recall = 0 # Recall of all classes
-        self.f1 = 0 # F1 score of all classes
+        self.precision = 0  # Precision of all classes
+        self.recall = 0  # Recall of all classes
+        self.f1 = 0  # F1 score of all classes
 
     def process(self, targets, pred):
-        """Target classes and predicted classes.
+        """
+        Target classes and predicted classes.
 
         Args:
             targets (list): List of target classes.
@@ -1260,7 +1262,7 @@ class MultiLabelClassifyMetrics(SimpleClass):
         try:
             self.f1 = 2 * (self.precision * self.recall) / (self.precision + self.recall)
         except:
-            LOGGER.exception(f"Error in calculating F1 Score.")
+            LOGGER.exception("Error in calculating F1 Score.")
             self.f1 = 0
         LOGGER.info(f"Precision: {self.precision}, Recall: {self.recall}, F1 Score: {self.f1}")
 
@@ -1288,7 +1290,6 @@ class MultiLabelClassifyMetrics(SimpleClass):
     def curves_results(self):
         """Returns a list of curves for accessing specific metrics curves."""
         return []
-
 
 
 class OBBMetrics(SimpleClass):

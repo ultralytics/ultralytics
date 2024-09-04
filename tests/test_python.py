@@ -202,7 +202,8 @@ def test_workflow():
     model.train(data="coco8.yaml", epochs=1, imgsz=32, optimizer="SGD")
     model.val(imgsz=32)
     model.predict(SOURCE, imgsz=32)
-    model.export(format="torchscript")
+    # model.export(format="torchscript")  # Windows --slow CI bug https://github.com/ultralytics/ultralytics/pull/16003
+    model.export(format="onnx")
 
 
 def test_predict_callback_and_setup():

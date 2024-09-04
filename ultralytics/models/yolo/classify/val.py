@@ -2,11 +2,12 @@
 
 import torch
 
-from ultralytics.data import ClassificationDataset, build_dataloader
+from ultralytics.data import ClassificationDataset, YOLOMultiLabelDataset, build_dataloader
 from ultralytics.engine.validator import BaseValidator
 from ultralytics.utils import LOGGER
-from ultralytics.utils.metrics import ClassifyMetrics, ConfusionMatrix
+from ultralytics.utils.metrics import ClassifyMetrics, MultiLabelClassifyMetrics, ConfusionMatrix
 from ultralytics.utils.plotting import plot_images
+
 
 
 class ClassificationValidator(BaseValidator):
@@ -111,3 +112,98 @@ class ClassificationValidator(BaseValidator):
             names=self.names,
             on_plot=self.on_plot,
         )  # pred
+
+class MultiLabelClassificationValidator(BaseValidator):
+    """
+    A class extending the BaseValidator class for validation based on a multi-label classification model.
+
+    Notes:
+        - Torchvision classification models can also be passed to the 'model' argument, i.e. model='resnet18'.
+
+    Example:
+        ```python
+        from ultralytics.models.yolo.classify import ClassificationValidator
+
+        args = dict(model="yolov8n-cls.pt", data="imagenet10")
+        validator = ClassificationValidator(args=args)
+        validator()
+        ```
+    """
+
+    def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None):
+        """Initializes ClassificationValidator instance with args, dataloader, save_dir, and progress bar."""
+        super().__init__(dataloader, save_dir, pbar, args, _callbacks)
+        self.targets = None
+        self.pred = None
+        self.args.task = "multi_label_classify"
+        self.args.plots = False # Not plotting for now
+        self.metrics = MultiLabelClassifyMetrics()
+
+    def get_desc(self):
+        """Returns a formatted string summarizing classification metrics."""
+        return ("%22s" + "%11s" * 3) % ("classes", "precision", "recall", "f1")
+
+    def init_metrics(self, model):
+        """Initialize class names, and and metrics."""
+        self.names = model.names
+        self.nc = len(model.names)
+        #self.confusion_matrix = ConfusionMatrix(nc=self.nc, conf=self.args.conf, task="multi_label_classify")
+        self.pred = []
+        self.targets = []
+
+    def preprocess(self, batch):
+        """Preprocesses input batch and returns it."""
+        batch["img"] = batch["img"].to(self.device, non_blocking=True)
+        batch["img"] = batch["img"].half() if self.args.half else batch["img"].float()
+        batch["cls"] = batch["cls"].to(self.device)
+        return batch
+
+    def update_metrics(self, preds, batch):
+        """Updates running metrics with model predictions and batch targets."""
+        # Might Need to update shape here. List will have only one element.
+        # Not sure if that's expected or will cause issues with metrics.process()
+        self.pred.append(preds.type(torch.float32).cpu()) # Append all predictions
+        self.targets.append(batch["cls"].type(torch.int32).cpu())
+
+    def finalize_metrics(self, *args, **kwargs):
+        """Finalizes metrics of the model such as confusion_matrix and speed."""
+        #self.confusion_matrix.process_cls_preds(self.pred, self.targets)
+        #if self.args.plots:
+        #    for normalize in True, False:
+        #        self.confusion_matrix.plot(
+        #            save_dir=self.save_dir, names=self.names.values(), normalize=normalize, on_plot=self.on_plot
+        #        )
+        self.metrics.speed = self.speed
+        #self.metrics.confusion_matrix = self.confusion_matrix
+        self.metrics.save_dir = self.save_dir
+
+    def get_stats(self):
+        """Returns a dictionary of metrics obtained by processing targets and predictions."""
+        self.metrics.process(self.targets, self.pred)
+        return self.metrics.results_dict
+
+    def build_dataset(self, img_path):
+        """Creates and returns a ClassificationDataset instance using given image path and preprocessing parameters."""
+        return MultiLabelClassificationDataset(root=img_path, args=self.args, augment=False, prefix=self.args.split)
+
+    def get_dataloader(self, dataset_path, batch_size):
+        """Builds and returns a data loader for classification tasks with given parameters."""
+        dataset = self.build_dataset(dataset_path)
+        return build_dataloader(dataset, batch_size, self.args.workers, rank=-1)
+
+    def print_results(self):
+        """Prints evaluation metrics for YOLO object detection model."""
+        pf = "%22s" + "%11.3g" * len(self.metrics.keys)  # print format
+        LOGGER.info(pf % ("all", self.metrics.precision, self.metrics.recall, self.metrics.f1))
+
+    def plot_val_samples(self, batch, ni):
+        """Plot validation image samples."""
+        plot_images(
+            images=batch["img"],
+            batch_idx=torch.arange(len(batch["img"])),
+            cls=batch["cls"].view(-1),  # warning: use .view(), not .squeeze() for Classify models
+            fname=self.save_dir / f"val_batch{ni}_labels.jpg",
+            names=self.names,
+            on_plot=self.on_plot,
+        )
+

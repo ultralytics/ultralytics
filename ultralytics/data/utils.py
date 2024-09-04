@@ -74,6 +74,7 @@ def verify_image(args):
     (im_file, cls), prefix = args
     # Number (found, corrupt), message
     nf, nc, msg = 0, 0, ""
+    print("In Verify Image")
     try:
         im = Image.open(im_file)
         im.verify()  # PIL verify
@@ -95,8 +96,14 @@ def verify_image(args):
 
 
 def verify_image_label(args):
-    """Verify one image-label pair."""
-    im_file, lb_file, prefix, keypoint, num_cls, nkpt, ndim = args
+    """Verify one image-label pair.
+    Added support for multi_label classification"""
+    if len(args) == 8:
+        im_file, lb_file, prefix, keypoint, num_cls, nkpt, ndim, multi_label = args
+    else:
+        im_file, lb_file, prefix, keypoint, num_cls, nkpt, ndim = args
+        multi_label = False
+    
     # Number (missing, found, empty, corrupt), message, segments, keypoints
     nm, nf, ne, nc, msg, segments, keypoints = 0, 0, 0, 0, "", [], None
     try:
@@ -119,21 +126,33 @@ def verify_image_label(args):
             nf = 1  # label found
             with open(lb_file) as f:
                 lb = [x.split() for x in f.read().strip().splitlines() if len(x)]
-                if any(len(x) > 6 for x in lb) and (not keypoint):  # is segment
+                print("lb is: ", lb, "\n")
+                if multi_label:
+                    # Only Want first column because this represents classes
                     classes = np.array([x[0] for x in lb], dtype=np.float32)
-                    segments = [np.array(x[1:], dtype=np.float32).reshape(-1, 2) for x in lb]  # (cls, xy1...)
-                    lb = np.concatenate((classes.reshape(-1, 1), segments2boxes(segments)), 1)  # (cls, xywh)
+                    lb = classes.reshape(-1, 1)
+
+                else:
+                    if any(len(x) > 6 for x in lb) and (not keypoint):  # is segment
+                        classes = np.array([x[0] for x in lb], dtype=np.float32)
+                        segments = [np.array(x[1:], dtype=np.float32).reshape(-1, 2) for x in lb]  # (cls, xy1...)
+                        lb = np.concatenate((classes.reshape(-1, 1), segments2boxes(segments)), 1)  # (cls, xywh)
+
                 lb = np.array(lb, dtype=np.float32)
             nl = len(lb)
             if nl:
-                if keypoint:
-                    assert lb.shape[1] == (5 + nkpt * ndim), f"labels require {(5 + nkpt * ndim)} columns each"
-                    points = lb[:, 5:].reshape(-1, ndim)[:, :2]
+                if multi_label:
+                    # Multi label classification only needs one column in dataset
+                    assert lb.shape[1] == 1, f"labels require 1 column, {lb.shape[1]} columns detected"
                 else:
-                    assert lb.shape[1] == 5, f"labels require 5 columns, {lb.shape[1]} columns detected"
-                    points = lb[:, 1:]
-                assert points.max() <= 1, f"non-normalized or out of bounds coordinates {points[points > 1]}"
-                assert lb.min() >= 0, f"negative label values {lb[lb < 0]}"
+                    if keypoint:
+                        assert lb.shape[1] == (5 + nkpt * ndim), f"labels require {(5 + nkpt * ndim)} columns each"
+                        points = lb[:, 5:].reshape(-1, ndim)[:, :2]
+                    else:
+                        assert lb.shape[1] == 5, f"labels require 5 columns, {lb.shape[1]} columns detected"
+                        points = lb[:, 1:]
+                    assert points.max() <= 1, f"non-normalized or out of bounds coordinates {points[points > 1]}"
+                    assert lb.min() >= 0, f"negative label values {lb[lb < 0]}"
 
                 # All labels
                 max_cls = lb[:, 0].max()  # max label count
@@ -265,6 +284,7 @@ def check_det_dataset(dataset, autodownload=True):
     Returns:
         (dict): Parsed dataset information and paths.
     """
+
     file = check_file(dataset)
 
     # Download (optional)
@@ -362,6 +382,7 @@ def check_cls_dataset(dataset, split=""):
             - 'nc' (int): The number of classes in the dataset.
             - 'names' (dict): A dictionary of class names in the dataset.
     """
+
     # Download (optional if dataset=https://file.zip is passed directly)
     if str(dataset).startswith(("http:/", "https:/")):
         dataset = safe_download(dataset, dir=DATASETS_DIR, unzip=True, delete=False)
@@ -600,6 +621,7 @@ def compress_one_image(f, f_new=None, max_dim=1920, quality=50):
             compress_one_image(f)
         ```
     """
+
     try:  # use PIL
         im = Image.open(f)
         r = max_dim / max(im.height, im.width)  # ratio
@@ -632,6 +654,7 @@ def autosplit(path=DATASETS_DIR / "coco8/images", weights=(0.9, 0.1, 0.0), annot
         autosplit()
         ```
     """
+
     path = Path(path)  # images dir
     files = sorted(x for x in path.rglob("*.*") if x.suffix[1:].lower() in IMG_FORMATS)  # image files only
     n = len(files)  # number of files

@@ -551,10 +551,6 @@ class Mosaic(BaseMixTransform):
             dataset buffer. If False, selects from the entire dataset. It is used to choose images
             for creating mosaic augmentations.
 
-        Args:
-            buffer (bool): If True, selects images from the dataset buffer. If False, selects from the entire
-                dataset.
-
         Returns:
             (List[int]): A list of random image indexes. The length of the list is n-1, where n is the number
                 of images used in the mosaic (either 3 or 8, depending on whether n is 4 or 9).

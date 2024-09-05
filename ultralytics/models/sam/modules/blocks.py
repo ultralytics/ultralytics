@@ -736,7 +736,7 @@ class PositionEmbeddingSine(nn.Module):
         self.num_pos_feats = num_pos_feats // 2
         self.temperature = temperature
         self.normalize = normalize
-        if scale is not None and normalize is False:
+        if scale is not None and not normalize:
             raise ValueError("normalize should be True if scale is passed")
         if scale is None:
             scale = 2 * math.pi
@@ -763,8 +763,7 @@ class PositionEmbeddingSine(nn.Module):
     def encode_boxes(self, x, y, w, h):
         """Encodes box coordinates and dimensions into positional embeddings for detection."""
         pos_x, pos_y = self._encode_xy(x, y)
-        pos = torch.cat((pos_y, pos_x, h[:, None], w[:, None]), dim=1)
-        return pos
+        return torch.cat((pos_y, pos_x, h[:, None], w[:, None]), dim=1)
 
     encode = encode_boxes  # Backwards compatibility
 
@@ -775,8 +774,7 @@ class PositionEmbeddingSine(nn.Module):
         assert bx == by and nx == ny and bx == bl and nx == nl
         pos_x, pos_y = self._encode_xy(x.flatten(), y.flatten())
         pos_x, pos_y = pos_x.reshape(bx, nx, -1), pos_y.reshape(by, ny, -1)
-        pos = torch.cat((pos_y, pos_x, labels[:, :, None]), dim=2)
-        return pos
+        return torch.cat((pos_y, pos_x, labels[:, :, None]), dim=2)
 
     @torch.no_grad()
     def forward(self, x: torch.Tensor):

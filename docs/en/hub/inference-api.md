@@ -206,6 +206,7 @@ The [Ultralytics HUB](https://ultralytics.com/hub) Inference API returns a JSON 
 ### Detection
 
 !!! example "Detection Model"
+
 === "`ultralytics`"
 
         ```python

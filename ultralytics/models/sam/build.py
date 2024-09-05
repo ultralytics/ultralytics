@@ -215,16 +215,7 @@ def _build_sam(
     return sam
 
 
-def _build_sam2(
-    encoder_embed_dim=1280,
-    encoder_stages=[2, 6, 36, 4],
-    encoder_num_heads=2,
-    encoder_global_att_blocks=[7, 15, 23, 31],
-    encoder_backbone_channel_list=[1152, 576, 288, 144],
-    encoder_window_spatial_size=[7, 7],
-    encoder_window_spec=[8, 4, 16, 8],
-    checkpoint=None,
-):
+def _build_sam2(encoder_embed_dim=1280, encoder_stages=None, encoder_num_heads=2, encoder_global_att_blocks=None, encoder_backbone_channel_list=None, encoder_window_spatial_size=None, encoder_window_spec=None, checkpoint=None):
     """
     Builds and returns a Segment Anything Model 2 (SAM2) with specified architecture parameters.
 
@@ -245,6 +236,16 @@ def _build_sam2(
         >>> sam2_model = _build_sam2(encoder_embed_dim=96, encoder_stages=[1, 2, 7, 2])
         >>> sam2_model.eval()
     """
+    if encoder_stages is None:
+        encoder_stages = [2, 6, 36, 4]
+    if encoder_global_att_blocks is None:
+        encoder_global_att_blocks = [7, 15, 23, 31]
+    if encoder_backbone_channel_list is None:
+        encoder_backbone_channel_list = [1152, 576, 288, 144]
+    if encoder_window_spatial_size is None:
+        encoder_window_spatial_size = [7, 7]
+    if encoder_window_spec is None:
+        encoder_window_spec = [8, 4, 16, 8]
     image_encoder = ImageEncoder(
         trunk=Hiera(
             embed_dim=encoder_embed_dim,

@@ -436,8 +436,7 @@ class SAM2MaskDecoder(nn.Module):
             upscaled_embedding = act2(dc2(upscaled_embedding) + feat_s0)
 
         hyper_in_list: List[torch.Tensor] = [
-            self.output_hypernetworks_mlps[i](mask_tokens_out[:, i, :])
-            for i in range(self.num_mask_tokens)
+            self.output_hypernetworks_mlps[i](mask_tokens_out[:, i, :]) for i in range(self.num_mask_tokens)
         ]
         hyper_in = torch.stack(hyper_in_list, dim=1)
         b, c, h, w = upscaled_embedding.shape

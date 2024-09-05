@@ -215,7 +215,16 @@ def _build_sam(
     return sam
 
 
-def _build_sam2(encoder_embed_dim=1280, encoder_stages=None, encoder_num_heads=2, encoder_global_att_blocks=None, encoder_backbone_channel_list=None, encoder_window_spatial_size=None, encoder_window_spec=None, checkpoint=None):
+def _build_sam2(
+    encoder_embed_dim=1280,
+    encoder_stages=None,
+    encoder_num_heads=2,
+    encoder_global_att_blocks=None,
+    encoder_backbone_channel_list=None,
+    encoder_window_spatial_size=None,
+    encoder_window_spec=None,
+    checkpoint=None,
+):
     """
     Builds and returns a Segment Anything Model 2 (SAM2) with specified architecture parameters.
 

@@ -671,9 +671,7 @@ class SAM2Model(torch.nn.Module):
                 t_rel = self.num_maskmem - t_pos  # how many frames before current frame
                 if t_rel == 1:
                     # for t_rel == 1, we take the last frame (regardless of r)
-                    prev_frame_idx = (
-                        frame_idx + t_rel if track_in_reverse else frame_idx - t_rel
-                    )
+                    prev_frame_idx = frame_idx + t_rel if track_in_reverse else frame_idx - t_rel
                 elif not track_in_reverse:
                     # first find the nearest frame among every r-th frames before this frame
                     # for r=1, this would be (frame_idx - 2)

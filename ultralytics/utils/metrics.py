@@ -476,7 +476,9 @@ def plot_pr_curve(px, py, ap, save_dir=Path("pr_curve.png"), names=None, on_plot
 
 
 @plt_settings()
-def plot_mc_curve(px, py, save_dir=Path("mc_curve.png"), names=None, xlabel="Confidence", ylabel="Metric", on_plot=None):
+def plot_mc_curve(
+    px, py, save_dir=Path("mc_curve.png"), names=None, xlabel="Confidence", ylabel="Metric", on_plot=None
+):
     """Plots a metric-confidence curve."""
     if names is None:
         names = {}
@@ -534,7 +536,9 @@ def compute_ap(recall, precision):
     return ap, mpre, mrec
 
 
-def ap_per_class(tp, conf, pred_cls, target_cls, plot=False, on_plot=None, save_dir=Path(), names=None, eps=1e-16, prefix=""):
+def ap_per_class(
+    tp, conf, pred_cls, target_cls, plot=False, on_plot=None, save_dir=Path(), names=None, eps=1e-16, prefix=""
+):
     """
     Computes the average precision per class for object detection evaluation.
 

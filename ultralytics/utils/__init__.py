@@ -346,7 +346,7 @@ def set_logging(name="LOGGING_NAME", verbose=True):
         - The logger's propagate flag is set to False to prevent duplicate logging in parent loggers.
     """
     level = logging.INFO if verbose and RANK in {-1, 0} else logging.ERROR  # rank in world for Multi-GPU trainings
-    
+
     class BaseFormatter(logging.Formatter):
         def format(self, record):
             if record.levelno == logging.WARNING:

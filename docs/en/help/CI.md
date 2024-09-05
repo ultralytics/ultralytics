@@ -40,9 +40,9 @@ Remember, a successful CI test does not mean that everything is perfect. It is a
 
 Code coverage is a metric that represents the percentage of your codebase that is executed when your tests run. It provides insight into how well your tests exercise your code and can be crucial in identifying untested parts of your application. A high code coverage percentage is often associated with a lower likelihood of bugs. However, it's essential to understand that code coverage does not guarantee the absence of defects. It merely indicates which parts of the code have been executed by the tests.
 
-### Integration with [codecov.io](https://codecov.io/)
+### Integration with [codecov.io](https://about.codecov.io/)
 
-At Ultralytics, we have integrated our repositories with [codecov.io](https://codecov.io/), a popular online platform for measuring and visualizing code coverage. Codecov provides detailed insights, coverage comparisons between commits, and visual overlays directly on your code, indicating which lines were covered.
+At Ultralytics, we have integrated our repositories with [codecov.io](https://about.codecov.io/), a popular online platform for measuring and visualizing code coverage. Codecov provides detailed insights, coverage comparisons between commits, and visual overlays directly on your code, indicating which lines were covered.
 
 By integrating with Codecov, we aim to maintain and improve the quality of our code by focusing on areas that might be prone to errors or need further testing.
 
@@ -84,4 +84,4 @@ Automated [PyPI publishing](https://github.com/ultralytics/ultralytics/actions/w
 
 ### How does Ultralytics measure code coverage and why is it important?
 
-Ultralytics measures code coverage by integrating with [Codecov](https://codecov.io/github/ultralytics/ultralytics), providing insights into how much of the codebase is executed during tests. High code coverage can indicate well-tested code, helping to uncover untested areas that might be prone to bugs. Detailed code coverage metrics can be explored via badges displayed on our main repositories or directly on [Codecov](https://codecov.io/gh/ultralytics/ultralytics).
+Ultralytics measures code coverage by integrating with [Codecov](https://app.codecov.io/github/ultralytics/ultralytics), providing insights into how much of the codebase is executed during tests. High code coverage can indicate well-tested code, helping to uncover untested areas that might be prone to bugs. Detailed code coverage metrics can be explored via badges displayed on our main repositories or directly on [Codecov](https://app.codecov.io/gh/ultralytics/ultralytics).

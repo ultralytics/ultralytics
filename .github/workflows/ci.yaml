@@ -264,8 +264,9 @@ jobs:
         run: |
           cat benchmarks.log
           echo "$(cat benchmarks.log)" >> $GITHUB_STEP_SUMMARY
-      - name: Reboot # run a reboot command in the background to free resources for next run and not crash main thread
-        run: sudo bash -c "sleep 10; reboot" &
+      # The below is fixed in: https://github.com/ultralytics/ultralytics/pull/15987
+      # - name: Reboot # run a reboot command in the background to free resources for next run and not crash main thread
+      #   run: sudo bash -c "sleep 10; reboot" &
 
   Conda:
     if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event.inputs.conda == 'true')

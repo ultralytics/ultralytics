@@ -21,7 +21,7 @@ from ultralytics.data.loaders import (
     autocast_list,
 )
 from ultralytics.data.utils import IMG_FORMATS, PIN_MEMORY, VID_FORMATS
-from ultralytics.utils import RANK, colorstr
+from ultralytics.utils import RANK, colorstr, LOGGER
 from ultralytics.utils.checks import check_file
 
 
@@ -84,6 +84,8 @@ def seed_worker(worker_id):  # noqa
 def build_yolo_dataset(cfg, img_path, batch, data, mode="train", rect=False, stride=32, multi_modal=False):
     """Build YOLO Dataset."""
     dataset = YOLOMultiModalDataset if multi_modal else YOLODataset
+    if not cfg.augment and mode == "train":
+        LOGGER.warning(f"WARNING ⚠️ 'augment' is set to False in {mode} mode. This may reduce model performance.")
     return dataset(
         img_path=img_path,
         imgsz=cfg.imgsz,

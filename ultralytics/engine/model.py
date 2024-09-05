@@ -794,13 +794,13 @@ class Model(nn.Module):
             kwargs = self.session.train_args  # overwrite kwargs
 
         checks.check_pip_update_available()
-
         overrides = yaml_load(checks.check_yaml(kwargs["cfg"])) if kwargs.get("cfg") else self.overrides
         custom = {
             # NOTE: handle the case when 'cfg' includes 'data'.
             "data": overrides.get("data") or DEFAULT_CFG_DICT["data"] or TASK2DATA[self.task],
             "model": self.overrides["model"],
             "task": self.task,
+            "augment": kwargs.get("augment", True), # default to True for training
         }  # method defaults
         args = {**overrides, **custom, **kwargs, "mode": "train"}  # highest priority args on the right
         if args.get("resume"):

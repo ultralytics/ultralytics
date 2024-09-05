@@ -379,7 +379,10 @@ class MixUp(BaseMixTransform):
 
     def get_indexes(self):
         """Get a random index from the dataset."""
-        return random.randint(0, len(self.dataset) - 1)
+        if self.dataset.cls_weights is not None:
+            return np.random.choice(len(self.dataset), 1, replace=False, p=self.dataset.cls_weights)
+        else:
+            return random.randint(0, len(self.dataset) - 1)
 
     def _mix_transform(self, labels):
         """Applies MixUp augmentation as per https://arxiv.org/pdf/1710.09412.pdf."""
@@ -837,7 +840,10 @@ class CopyPaste(BaseMixTransform):
             >>> print(index)
             42
         """
-        return random.randint(0, len(self.dataset) - 1)
+        if self.dataset.cls_weights is not None:
+            return np.random.choice(len(self.dataset), 1, replace=False, p=self.dataset.cls_weights)
+        else:
+            return random.randint(0, len(self.dataset) - 1)
 
     def _mix_transform(self, labels):
         """Applies CopyPaste augmentation."""
@@ -1215,7 +1221,7 @@ def v8_transforms(dataset, imgsz, hyp, stretch=False):
         pre_transform.append(
             CopyPaste(
                 dataset,
-                pre_transform=Compose([Mosaic(dataset, imgsz=imgsz, p=hyp.mosaic, use_cls_weight=True), affine]),
+                pre_transform=Compose([Mosaic(dataset, imgsz=imgsz, p=hyp.mosaic, use_cls_weight=False), affine]),
                 p=hyp.copy_paste,
             )
         )

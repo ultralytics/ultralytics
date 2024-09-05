@@ -63,7 +63,6 @@ class ObjectCounter:
         self.view_out_counts = view_out_counts
 
         self.names = names  # Classes names
-        self.annotator = None  # Annotator
         self.window_name = "Ultralytics YOLOv8 Object Counter"
 
         # Object counting Information
@@ -135,10 +134,10 @@ class ObjectCounter:
     def extract_and_process_tracks(self, tracks):
         """Extracts and processes tracks for object counting in a video stream."""
         # Annotator Init and region drawing
-        self.annotator = Annotator(self.im0, self.tf, self.names)
+        annotator = Annotator(self.im0, self.tf, self.names)
 
         # Draw region or line
-        self.annotator.draw_region(reg_pts=self.reg_pts, color=self.region_color, thickness=self.region_thickness)
+        annotator.draw_region(reg_pts=self.reg_pts, color=self.region_color, thickness=self.region_thickness)
 
         if tracks[0].boxes.id is not None:
             boxes = tracks[0].boxes.xyxy.cpu()
@@ -148,7 +147,7 @@ class ObjectCounter:
             # Extract tracks
             for box, track_id, cls in zip(boxes, track_ids, clss):
                 # Draw bounding box
-                self.annotator.box_label(box, label=f"{self.names[cls]}#{track_id}", color=colors(int(track_id), True))
+                annotator.box_label(box, label=f"{self.names[cls]}#{track_id}", color=colors(int(track_id), True))
 
                 # Store class info
                 if self.names[cls] not in self.class_wise_count:
@@ -162,7 +161,7 @@ class ObjectCounter:
 
                 # Draw track trails
                 if self.draw_tracks:
-                    self.annotator.draw_centroid_and_tracks(
+                    annotator.draw_centroid_and_tracks(
                         track_line,
                         color=colors(int(track_id), True),
                         track_thickness=self.tf,
@@ -225,7 +224,7 @@ class ObjectCounter:
                     labels_dict[str.capitalize(key)] = f"IN {value['IN']} OUT {value['OUT']}"
 
         if labels_dict:
-            self.annotator.display_analytics(self.im0, labels_dict, self.count_txt_color, self.count_bg_color, 10)
+            annotator.display_analytics(self.im0, labels_dict, self.count_txt_color, self.count_bg_color, 10)
 
     def display_frames(self):
         """Displays the current frame with annotations and regions in a window."""

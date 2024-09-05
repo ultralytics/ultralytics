@@ -491,12 +491,11 @@ class ImageEncoder(nn.Module):
             features, pos = features[: -self.scalp], pos[: -self.scalp]
 
         src = features[-1]
-        output = {
+        return {
             "vision_features": src,
             "vision_pos_enc": pos,
             "backbone_fpn": features,
         }
-        return output
 
 
 class FpnNeck(nn.Module):
@@ -577,7 +576,7 @@ class FpnNeck(nn.Module):
 
             self.convs.append(current)
         self.fpn_interp_model = fpn_interp_model
-        assert fuse_type in ["sum", "avg"]
+        assert fuse_type in {"sum", "avg"}
         self.fuse_type = fuse_type
 
         # levels to have top-down features in its outputs

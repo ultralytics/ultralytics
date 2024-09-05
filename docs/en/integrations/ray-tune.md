@@ -10,7 +10,7 @@ Hyperparameter tuning is vital in achieving peak model performance by discoverin
 
 ## Accelerate Tuning with Ultralytics YOLOv8 and Ray Tune
 
-[Ultralytics YOLOv8](https://ultralytics.com) incorporates Ray Tune for hyperparameter tuning, streamlining the optimization of YOLOv8 model hyperparameters. With Ray Tune, you can utilize advanced search strategies, parallelism, and early stopping to expedite the tuning process.
+[Ultralytics YOLOv8](https://www.ultralytics.com/) incorporates Ray Tune for hyperparameter tuning, streamlining the optimization of YOLOv8 model hyperparameters. With Ray Tune, you can utilize advanced search strategies, parallelism, and early stopping to expedite the tuning process.
 
 ### Ray Tune
 

@@ -121,7 +121,7 @@ You can access these metrics from the training logs or by using tools like Tenso
 
 - [TensorBoard](https://www.tensorflow.org/tensorboard): TensorBoard is a popular choice for visualizing training metrics, including loss, accuracy, and more. You can integrate it with your YOLOv8 training process.
 - [Comet](https://bit.ly/yolov8-readme-comet): Comet provides an extensive toolkit for experiment tracking and comparison. It allows you to track metrics, hyperparameters, and even model weights. Integration with YOLO models is also straightforward, providing you with a complete overview of your experiment cycle.
-- [Ultralytics HUB](https://hub.ultralytics.com): Ultralytics HUB offers a specialized environment for tracking YOLO models, giving you a one-stop platform to manage metrics, datasets, and even collaborate with your team. Given its tailored focus on YOLO, it offers more customized tracking options.
+- [Ultralytics HUB](https://hub.ultralytics.com/): Ultralytics HUB offers a specialized environment for tracking YOLO models, giving you a one-stop platform to manage metrics, datasets, and even collaborate with your team. Given its tailored focus on YOLO, it offers more customized tracking options.
 
 Each of these tools offers its own set of advantages, so you may want to consider the specific needs of your project when making a choice.
 
@@ -270,7 +270,7 @@ Engaging with a community of like-minded individuals can significantly enhance y
 
 **GitHub Issues:** The YOLOv8 repository on GitHub has an [Issues tab](https://github.com/ultralytics/ultralytics/issues) where you can ask questions, report bugs, and suggest new features. The community and maintainers are active here, and it's a great place to get help with specific problems.
 
-**Ultralytics Discord Server:** Ultralytics has a [Discord server](https://ultralytics.com/discord/) where you can interact with other users and the developers.
+**Ultralytics Discord Server:** Ultralytics has a [Discord server](https://discord.com/invite/ultralytics) where you can interact with other users and the developers.
 
 ### Official Documentation and Resources
 
@@ -312,7 +312,7 @@ This sets the training process to the first GPU. Consult the `nvidia-smi` comman
 
 ### How can I monitor and track my YOLOv8 model training progress?
 
-Tracking and visualizing training progress can be efficiently managed through tools like [TensorBoard](https://www.tensorflow.org/tensorboard), [Comet](https://bit.ly/yolov8-readme-comet), and [Ultralytics HUB](https://hub.ultralytics.com). These tools allow you to log and visualize metrics such as loss, precision, recall, and mAP. Implementing [early stopping](#continuous-monitoring-parameters) based on these metrics can also help achieve better training outcomes.
+Tracking and visualizing training progress can be efficiently managed through tools like [TensorBoard](https://www.tensorflow.org/tensorboard), [Comet](https://bit.ly/yolov8-readme-comet), and [Ultralytics HUB](https://hub.ultralytics.com/). These tools allow you to log and visualize metrics such as loss, precision, recall, and mAP. Implementing [early stopping](#continuous-monitoring-parameters) based on these metrics can also help achieve better training outcomes.
 
 ### What should I do if YOLOv8 is not recognizing my dataset format?
 

@@ -232,7 +232,6 @@ Here's a table with the `ObjectCounter` arguments:
 | `count_txt_color`  | `tuple` | `(0, 0, 0)`                | RGB color of the count text.                                           |
 | `count_bg_color`   | `tuple` | `(255, 255, 255)`          | RGB color of the count text background.                                |
 | `line_thickness`   | `int`   | `2`                        | Line thickness for bounding boxes.                                     |
-| `track_thickness`  | `int`   | `2`                        | Thickness of the track lines.                                          |
 | `view_img`         | `bool`  | `False`                    | Flag to control whether to display the video stream.                   |
 | `view_in_counts`   | `bool`  | `True`                     | Flag to control whether to display the in counts on the video stream.  |
 | `view_out_counts`  | `bool`  | `True`                     | Flag to control whether to display the out counts on the video stream. |

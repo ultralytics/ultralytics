@@ -1,6 +1,7 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import torch
+from copy import copy
 
 from ultralytics.data import ClassificationDataset, build_dataloader
 from ultralytics.engine.trainer import BaseTrainer
@@ -107,7 +108,7 @@ class ClassificationTrainer(BaseTrainer):
     def get_validator(self):
         """Returns an instance of ClassificationValidator for validation."""
         self.loss_names = ["loss"]
-        return yolo.classify.ClassificationValidator(self.test_loader, self.save_dir, _callbacks=self.callbacks)
+        return yolo.classify.ClassificationValidator(self.test_loader, self.save_dir, args=copy(self.args), _callbacks=self.callbacks)
 
     def label_loss_items(self, loss_items=None, prefix="train"):
         """

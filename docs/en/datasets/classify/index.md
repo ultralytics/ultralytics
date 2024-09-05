@@ -8,7 +8,7 @@ keywords: YOLO, image classification, dataset structure, CIFAR-10, Ultralytics, 
 
 ### Dataset Structure for YOLO Classification Tasks
 
-For [Ultralytics](https://ultralytics.com) YOLO classification tasks, the dataset must be organized in a specific split-directory structure under the `root` directory to facilitate proper training, testing, and optional validation processes. This structure includes separate directories for training (`train`) and testing (`test`) phases, with an optional directory for validation (`val`).
+For [Ultralytics](https://www.ultralytics.com/) YOLO classification tasks, the dataset must be organized in a specific split-directory structure under the `root` directory to facilitate proper training, testing, and optional validation processes. This structure includes separate directories for training (`train`) and testing (`test`) phases, with an optional directory for validation (`val`).
 
 Each of these directories should contain one subdirectory for each class in the dataset. The subdirectories are named after the corresponding class and contain all the images for that class. Ensure that each image file is named uniquely and stored in a common format such as JPEG or PNG.
 

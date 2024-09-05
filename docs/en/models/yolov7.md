@@ -132,14 +132,14 @@ As of now, Ultralytics does not directly support YOLOv7 in its tools and platfor
 To install and run YOLOv7, follow these steps:
 
 1. Clone the YOLOv7 repository:
-   ```bash
-   git clone https://github.com/WongKinYiu/yolov7
-   ```
+    ```bash
+    git clone https://github.com/WongKinYiu/yolov7
+    ```
 2. Navigate to the cloned directory and install dependencies:
-   ```bash
-   cd yolov7
-   pip install -r requirements.txt
-   ```
+    ```bash
+    cd yolov7
+    pip install -r requirements.txt
+    ```
 3. Prepare your dataset and configure the model parameters according to the [usage instructions](https://github.com/WongKinYiu/yolov7) provided in the repository.
    For further guidance, visit the YOLOv7 GitHub repository for the latest information and updates.
 
@@ -151,4 +151,4 @@ YOLOv7 offers several key features that revolutionize real-time object detection
 - **Dynamic Label Assignment**: Uses a coarse-to-fine lead guided method to assign dynamic targets for outputs across different branches, improving accuracy.
 - **Extended and Compound Scaling**: Efficiently utilizes parameters and computation to scale the model for various real-time applications.
 - **Efficiency**: Reduces parameter count by 40% and computation by 50% compared to other state-of-the-art models while achieving faster inference speeds.
-  For further details on these features, see the [YOLOv7 Overview](#overview) section.
+    For further details on these features, see the [YOLOv7 Overview](#overview) section.

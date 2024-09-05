@@ -127,20 +127,20 @@ To export your Ultralytics YOLOv8 model to NCNN format, follow these steps:
 
 - **Python**: Use the `export` function from the YOLO class.
 
-  ```python
-  from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-  # Load the YOLOv8 model
-  model = YOLO("yolov8n.pt")
+    # Load the YOLOv8 model
+    model = YOLO("yolov8n.pt")
 
-  # Export to NCNN format
-  model.export(format="ncnn")  # creates '/yolov8n_ncnn_model'
-  ```
+    # Export to NCNN format
+    model.export(format="ncnn")  # creates '/yolov8n_ncnn_model'
+    ```
 
 - **CLI**: Use the `yolo` command with the `export` argument.
-  ```bash
-  yolo export model=yolov8n.pt format=ncnn  # creates '/yolov8n_ncnn_model'
-  ```
+    ```bash
+    yolo export model=yolov8n.pt format=ncnn  # creates '/yolov8n_ncnn_model'
+    ```
 
 For detailed export options, check the [Export](../modes/export.md) page in the documentation.
 

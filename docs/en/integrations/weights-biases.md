@@ -189,10 +189,10 @@ Explore these features in detail in the Weights & Biases Dashboard section above
 To configure Weights & Biases for YOLOv8 training, follow these steps:
 
 1. Run the command to initialize Weights & Biases:
-   ```bash
-   import wandb
-   wandb.login()
-   ```
+    ```bash
+    import wandb
+    wandb.login()
+    ```
 2. Retrieve your API key from the Weights & Biases website.
 3. Use the API key to authenticate your development environment.
 

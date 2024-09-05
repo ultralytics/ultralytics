@@ -74,23 +74,23 @@ Here we will install Ultralytics package on the Raspberry Pi with optional depen
 
 1. Update packages list, install pip and upgrade to latest
 
-   ```bash
-   sudo apt update
-   sudo apt install python3-pip -y
-   pip install -U pip
-   ```
+    ```bash
+    sudo apt update
+    sudo apt install python3-pip -y
+    pip install -U pip
+    ```
 
 2. Install `ultralytics` pip package with optional dependencies
 
-   ```bash
-   pip install ultralytics[export]
-   ```
+    ```bash
+    pip install ultralytics[export]
+    ```
 
 3. Reboot the device
 
-   ```bash
-   sudo reboot
-   ```
+    ```bash
+    sudo reboot
+    ```
 
 ## Use NCNN on Raspberry Pi
 
@@ -363,11 +363,11 @@ There are a couple of best practices to follow in order to enable maximum perfor
 
 1. Use an SSD
 
-   When using Raspberry Pi for 24x7 continued usage, it is recommended to use an SSD for the system because an SD card will not be able to withstand continuous writes and might get broken. With the onboard PCIe connector on the Raspberry Pi 5, now you can connect SSDs using an adapter such as the [NVMe Base for Raspberry Pi 5](https://shop.pimoroni.com/products/nvme-base).
+    When using Raspberry Pi for 24x7 continued usage, it is recommended to use an SSD for the system because an SD card will not be able to withstand continuous writes and might get broken. With the onboard PCIe connector on the Raspberry Pi 5, now you can connect SSDs using an adapter such as the [NVMe Base for Raspberry Pi 5](https://shop.pimoroni.com/products/nvme-base).
 
 2. Flash without GUI
 
-   When flashing Raspberry Pi OS, you can choose to not install the Desktop environment (Raspberry Pi OS Lite) and this can save a bit of RAM on the device, leaving more space for computer vision processing.
+    When flashing Raspberry Pi OS, you can choose to not install the Desktop environment (Raspberry Pi OS Lite) and this can save a bit of RAM on the device, leaving more space for computer vision processing.
 
 ## Next Steps
 
@@ -386,19 +386,19 @@ For more information about Kashmir World Foundation's activities, you can visit 
 To set up Ultralytics YOLOv8 on a Raspberry Pi without Docker, follow these steps:
 
 1. Update the package list and install `pip`:
-   ```bash
-   sudo apt update
-   sudo apt install python3-pip -y
-   pip install -U pip
-   ```
+    ```bash
+    sudo apt update
+    sudo apt install python3-pip -y
+    pip install -U pip
+    ```
 2. Install the Ultralytics package with optional dependencies:
-   ```bash
-   pip install ultralytics[export]
-   ```
+    ```bash
+    pip install ultralytics[export]
+    ```
 3. Reboot the device to apply changes:
-   ```bash
-   sudo reboot
-   ```
+    ```bash
+    sudo reboot
+    ```
 
 For detailed instructions, refer to the [Start without Docker](#start-without-docker) section.
 
@@ -458,44 +458,44 @@ There are two methods to set up a Raspberry Pi Camera for YOLOv8 inference:
 
 1. **Using `picamera2`**:
 
-   ```python
-   import cv2
-   from picamera2 import Picamera2
+    ```python
+    import cv2
+    from picamera2 import Picamera2
 
-   from ultralytics import YOLO
+    from ultralytics import YOLO
 
-   picam2 = Picamera2()
-   picam2.preview_configuration.main.size = (1280, 720)
-   picam2.preview_configuration.main.format = "RGB888"
-   picam2.preview_configuration.align()
-   picam2.configure("preview")
-   picam2.start()
+    picam2 = Picamera2()
+    picam2.preview_configuration.main.size = (1280, 720)
+    picam2.preview_configuration.main.format = "RGB888"
+    picam2.preview_configuration.align()
+    picam2.configure("preview")
+    picam2.start()
 
-   model = YOLO("yolov8n.pt")
+    model = YOLO("yolov8n.pt")
 
-   while True:
-       frame = picam2.capture_array()
-       results = model(frame)
-       annotated_frame = results[0].plot()
-       cv2.imshow("Camera", annotated_frame)
+    while True:
+        frame = picam2.capture_array()
+        results = model(frame)
+        annotated_frame = results[0].plot()
+        cv2.imshow("Camera", annotated_frame)
 
-       if cv2.waitKey(1) == ord("q"):
-           break
+        if cv2.waitKey(1) == ord("q"):
+            break
 
-   cv2.destroyAllWindows()
-   ```
+    cv2.destroyAllWindows()
+    ```
 
 2. **Using a TCP Stream**:
 
-   ```bash
-   rpicam-vid -n -t 0 --inline --listen -o tcp://127.0.0.1:8888
-   ```
+    ```bash
+    rpicam-vid -n -t 0 --inline --listen -o tcp://127.0.0.1:8888
+    ```
 
-   ```python
-   from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-   model = YOLO("yolov8n.pt")
-   results = model("tcp://127.0.0.1:8888")
-   ```
+    model = YOLO("yolov8n.pt")
+    results = model("tcp://127.0.0.1:8888")
+    ```
 
 For detailed setup instructions, visit the [Inference with Camera](#inference-with-camera) section.

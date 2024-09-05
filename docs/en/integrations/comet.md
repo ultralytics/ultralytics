@@ -185,39 +185,39 @@ To integrate Comet ML with Ultralytics YOLOv8, follow these steps:
 
 1. **Install the required packages**:
 
-   ```bash
-   pip install ultralytics comet_ml torch torchvision
-   ```
+    ```bash
+    pip install ultralytics comet_ml torch torchvision
+    ```
 
 2. **Set up your Comet API Key**:
 
-   ```bash
-   export COMET_API_KEY=<Your API Key>
-   ```
+    ```bash
+    export COMET_API_KEY=<Your API Key>
+    ```
 
 3. **Initialize your Comet project in your Python code**:
 
-   ```python
-   import comet_ml
+    ```python
+    import comet_ml
 
-   comet_ml.login(project_name="comet-example-yolov8-coco128")
-   ```
+    comet_ml.login(project_name="comet-example-yolov8-coco128")
+    ```
 
 4. **Train your YOLOv8 model and log metrics**:
 
-   ```python
-   from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-   model = YOLO("yolov8n.pt")
-   results = model.train(
-       data="coco8.yaml",
-       project="comet-example-yolov8-coco128",
-       batch=32,
-       save_period=1,
-       save_json=True,
-       epochs=3,
-   )
-   ```
+    model = YOLO("yolov8n.pt")
+    results = model.train(
+        data="coco8.yaml",
+        project="comet-example-yolov8-coco128",
+        batch=32,
+        save_period=1,
+        save_json=True,
+        epochs=3,
+    )
+    ```
 
 For more detailed instructions, refer to the [Comet ML configuration section](#configuring-comet-ml).
 
@@ -238,27 +238,27 @@ Comet ML allows for extensive customization of its logging behavior using enviro
 
 - **Change the number of image predictions logged**:
 
-  ```python
-  import os
+    ```python
+    import os
 
-  os.environ["COMET_MAX_IMAGE_PREDICTIONS"] = "200"
-  ```
+    os.environ["COMET_MAX_IMAGE_PREDICTIONS"] = "200"
+    ```
 
 - **Adjust batch logging interval**:
 
-  ```python
-  import os
+    ```python
+    import os
 
-  os.environ["COMET_EVAL_BATCH_LOGGING_INTERVAL"] = "4"
-  ```
+    os.environ["COMET_EVAL_BATCH_LOGGING_INTERVAL"] = "4"
+    ```
 
 - **Disable confusion matrix logging**:
 
-  ```python
-  import os
+    ```python
+    import os
 
-  os.environ["COMET_EVAL_LOG_CONFUSION_MATRIX"] = "false"
-  ```
+    os.environ["COMET_EVAL_LOG_CONFUSION_MATRIX"] = "false"
+    ```
 
 Refer to the [Customizing Comet ML Logging](#customizing-comet-ml-logging) section for more customization options.
 

@@ -25,8 +25,8 @@ Before you start to follow this guide:
 - Visit our documentation, [Quick Start Guide: NVIDIA Jetson with Ultralytics YOLOv8](nvidia-jetson.md) to set up your NVIDIA Jetson device with Ultralytics YOLOv8
 - Install [DeepStream SDK](https://developer.nvidia.com/deepstream-getting-started) according to the JetPack version
 
-  - For JetPack 4.6.4, install [DeepStream 6.0.1](https://docs.nvidia.com/metropolis/deepstream/6.0.1/dev-guide/text/DS_Quickstart.html)
-  - For JetPack 5.1.3, install [DeepStream 6.3](https://docs.nvidia.com/metropolis/deepstream/6.3/dev-guide/text/DS_Quickstart.html)
+    - For JetPack 4.6.4, install [DeepStream 6.0.1](https://docs.nvidia.com/metropolis/deepstream/6.0.1/dev-guide/text/DS_Quickstart.html)
+    - For JetPack 5.1.3, install [DeepStream 6.3](https://docs.nvidia.com/metropolis/deepstream/6.3/dev-guide/text/DS_Quickstart.html)
 
 !!! tip
 
@@ -263,24 +263,24 @@ To set up multiple streams under a single deepstream application, you can do the
 
 1. Change the rows and columns to build a grid display according to the number of streams you want to have. For example, for 4 streams, we can add 2 rows and 2 columns.
 
-   ```bash
-   [tiled-display]
-   rows=2
-   columns=2
-   ```
+    ```bash
+    [tiled-display]
+    rows=2
+    columns=2
+    ```
 
 2. Set `num-sources=4` and add `uri` of all the 4 streams
 
-   ```bash
-   [source0]
-   enable=1
-   type=3
-   uri=<path_to_video>
-   uri=<path_to_video>
-   uri=<path_to_video>
-   uri=<path_to_video>
-   num-sources=4
-   ```
+    ```bash
+    [source0]
+    enable=1
+    type=3
+    uri=<path_to_video>
+    uri=<path_to_video>
+    uri=<path_to_video>
+    uri=<path_to_video>
+    num-sources=4
+    ```
 
 ### Run Inference
 

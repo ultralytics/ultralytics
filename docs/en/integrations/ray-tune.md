@@ -192,22 +192,22 @@ To tune the hyperparameters of your Ultralytics YOLOv8 model using Ray Tune, fol
 
 1. **Install the required packages:**
 
-   ```bash
-   pip install -U ultralytics "ray[tune]"
-   pip install wandb  # optional for logging
-   ```
+    ```bash
+    pip install -U ultralytics "ray[tune]"
+    pip install wandb  # optional for logging
+    ```
 
 2. **Load your YOLOv8 model and start tuning:**
 
-   ```python
-   from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-   # Load a YOLOv8 model
-   model = YOLO("yolov8n.pt")
+    # Load a YOLOv8 model
+    model = YOLO("yolov8n.pt")
 
-   # Start tuning with the COCO8 dataset
-   result_grid = model.tune(data="coco8.yaml", use_ray=True)
-   ```
+    # Start tuning with the COCO8 dataset
+    result_grid = model.tune(data="coco8.yaml", use_ray=True)
+    ```
 
 This utilizes Ray Tune's advanced search strategies and parallelism to efficiently optimize your model's hyperparameters. For more information, check out the [Ray Tune documentation](https://docs.ray.io/en/latest/tune/index.html).
 
@@ -235,25 +235,25 @@ To integrate Weights & Biases (W&B) with your Ultralytics YOLOv8 tuning process:
 
 1. **Install W&B:**
 
-   ```bash
-   pip install wandb
-   ```
+    ```bash
+    pip install wandb
+    ```
 
 2. **Modify your tuning script:**
 
-   ```python
-   import wandb
+    ```python
+    import wandb
 
-   from ultralytics import YOLO
+    from ultralytics import YOLO
 
-   wandb.init(project="YOLO-Tuning", entity="your-entity")
+    wandb.init(project="YOLO-Tuning", entity="your-entity")
 
-   # Load YOLO model
-   model = YOLO("yolov8n.pt")
+    # Load YOLO model
+    model = YOLO("yolov8n.pt")
 
-   # Tune hyperparameters
-   result_grid = model.tune(data="coco8.yaml", use_ray=True)
-   ```
+    # Tune hyperparameters
+    result_grid = model.tune(data="coco8.yaml", use_ray=True)
+    ```
 
 This setup will allow you to monitor the tuning process, track hyperparameter configurations, and visualize results in W&B.
 

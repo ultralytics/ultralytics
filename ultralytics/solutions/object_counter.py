@@ -73,7 +73,6 @@ class ObjectCounter:
         self.count_txt_thickness = 0
         self.count_txt_color = count_txt_color
         self.count_bg_color = count_bg_color
-        self.fontsize = 0.6
 
         # Tracks info
         self.track_history = defaultdict(list)

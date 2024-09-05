@@ -23,7 +23,6 @@ class ObjectCounter:
         count_txt_color=(0, 0, 0),
         count_bg_color=(255, 255, 255),
         line_thickness=2,
-        track_thickness=2,
         view_img=False,
         view_in_counts=True,
         view_out_counts=True,
@@ -41,7 +40,6 @@ class ObjectCounter:
             count_txt_color (tuple): RGB color of the count text.
             count_bg_color (tuple): RGB color of the count text background.
             line_thickness (int): Line thickness for bounding boxes.
-            track_thickness (int): Thickness of the track lines.
             view_img (bool): Flag to control whether to display the video stream.
             view_in_counts (bool): Flag to control whether to display the in counts on the video stream.
             view_out_counts (bool): Flag to control whether to display the out counts on the video stream.
@@ -82,7 +80,6 @@ class ObjectCounter:
 
         # Tracks info
         self.track_history = defaultdict(list)
-        self.track_thickness = track_thickness
         self.draw_tracks = draw_tracks
         self.track_color = track_color
 
@@ -171,7 +168,7 @@ class ObjectCounter:
                     self.annotator.draw_centroid_and_tracks(
                         track_line,
                         color=self.track_color or colors(int(track_id), True),
-                        track_thickness=self.track_thickness,
+                        track_thickness=self.tf,
                     )
 
                 prev_position = self.track_history[track_id][-2] if len(self.track_history[track_id]) > 1 else None

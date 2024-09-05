@@ -145,7 +145,7 @@ class Detect4(nn.Module):
         self.dfl = DFL(self.reg_max) if self.reg_max > 1 else nn.Identity()
         self.cv4 = nn.ModuleList(
             nn.Sequential(
-                Conv(4 * self.reg_max, 16, 1, g=4),
+                Conv(4 * self.reg_max, 16, 1),
                 nn.Conv2d(16, 1, 1),
                 # nn.Conv2d(4 * 5, 1, 1),
                 # nn.Conv2d(4 * 1, 1, 1),

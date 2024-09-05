@@ -14,7 +14,7 @@ You can also explore other quickstart options for YOLOv5, such as our [Colab Not
 
 1. **NVIDIA Driver**: Version 455.23 or higher. Download from [Nvidia's website](https://www.nvidia.com/Download/index.aspx).
 2. **NVIDIA-Docker**: Allows Docker to interact with your local GPU. Installation instructions are available on the [NVIDIA-Docker GitHub repository](https://github.com/NVIDIA/nvidia-docker).
-3. **Docker Engine - CE**: Version 19.03 or higher. Download and installation instructions can be found on the [Docker website](https://docs.docker.com/install/).
+3. **Docker Engine - CE**: Version 19.03 or higher. Download and installation instructions can be found on the [Docker website](https://docs.docker.com/get-started/get-docker/).
 
 ## Step 1: Pull the YOLOv5 Docker Image
 

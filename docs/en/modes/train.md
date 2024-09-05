@@ -291,7 +291,7 @@ Remember to sign in to your Comet account on their website and get your API key.
 
 ### ClearML
 
-[ClearML](https://www.clear.ml/) is an open-source platform that automates tracking of experiments and helps with efficient sharing of resources. It is designed to help teams manage, execute, and reproduce their ML work more efficiently.
+[ClearML](https://clear.ml/) is an open-source platform that automates tracking of experiments and helps with efficient sharing of resources. It is designed to help teams manage, execute, and reproduce their ML work more efficiently.
 
 To use ClearML:
 

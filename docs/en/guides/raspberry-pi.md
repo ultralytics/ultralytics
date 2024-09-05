@@ -6,7 +6,7 @@ keywords: Ultralytics, YOLOv8, Raspberry Pi, setup, guide, benchmarks, computer 
 
 # Quick Start Guide: Raspberry Pi with Ultralytics YOLOv8
 
-This comprehensive guide provides a detailed walkthrough for deploying Ultralytics YOLOv8 on [Raspberry Pi](https://www.raspberrypi.com) devices. Additionally, it showcases performance benchmarks to demonstrate the capabilities of YOLOv8 on these small and powerful devices.
+This comprehensive guide provides a detailed walkthrough for deploying Ultralytics YOLOv8 on [Raspberry Pi](https://www.raspberrypi.com/) devices. Additionally, it showcases performance benchmarks to demonstrate the capabilities of YOLOv8 on these small and powerful devices.
 
 <p align="center">
   <br>

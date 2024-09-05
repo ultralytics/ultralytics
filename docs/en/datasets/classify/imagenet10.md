@@ -6,7 +6,7 @@ keywords: ImageNet10, ImageNet, Ultralytics, CI tests, sanity checks, training p
 
 # ImageNet10 Dataset
 
-The [ImageNet10](https://github.com/ultralytics/assets/releases/download/v0.0.0/imagenet10.zip) dataset is a small-scale subset of the [ImageNet](https://www.image-net.org/) database, developed by [Ultralytics](https://ultralytics.com) and designed for CI tests, sanity checks, and fast testing of training pipelines. This dataset is composed of the first image in the training set and the first image from the validation set of the first 10 classes in ImageNet. Although significantly smaller, it retains the structure and diversity of the original ImageNet dataset.
+The [ImageNet10](https://github.com/ultralytics/assets/releases/download/v0.0.0/imagenet10.zip) dataset is a small-scale subset of the [ImageNet](https://www.image-net.org/) database, developed by [Ultralytics](https://www.ultralytics.com/) and designed for CI tests, sanity checks, and fast testing of training pipelines. This dataset is composed of the first image in the training set and the first image from the validation set of the first 10 classes in ImageNet. Although significantly smaller, it retains the structure and diversity of the original ImageNet dataset.
 
 ## Key Features
 

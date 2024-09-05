@@ -346,7 +346,7 @@ class HUBTrainingSession:
         """
         weights = Path(weights)
         if not weights.is_file():
-            last = weights.with_name("last" + weights.suffix)
+            last = weights.with_name(f"last{weights.suffix}")
             if final and last.is_file():
                 LOGGER.warning(
                     f"{PREFIX} WARNING ⚠️ Model 'best.pt' not found, copying 'last.pt' to 'best.pt' and uploading. "

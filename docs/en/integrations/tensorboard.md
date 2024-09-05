@@ -6,7 +6,7 @@ keywords: YOLOv8, TensorBoard, model training, visualization, machine learning, 
 
 # Gain Visual Insights with YOLOv8's Integration with TensorBoard
 
-Understanding and fine-tuning computer vision models like [Ultralytics' YOLOv8](https://ultralytics.com) becomes more straightforward when you take a closer look at their training processes. Model training visualization helps with getting insights into the model's learning patterns, performance metrics, and overall behavior. YOLOv8's integration with TensorBoard makes this process of visualization and analysis easier and enables more efficient and informed adjustments to the model.
+Understanding and fine-tuning computer vision models like [Ultralytics' YOLOv8](https://www.ultralytics.com/) becomes more straightforward when you take a closer look at their training processes. Model training visualization helps with getting insights into the model's learning patterns, performance metrics, and overall behavior. YOLOv8's integration with TensorBoard makes this process of visualization and analysis easier and enables more efficient and informed adjustments to the model.
 
 This guide covers how to use TensorBoard with YOLOv8. You'll learn about various visualizations, from tracking metrics to analyzing model graphs. These tools will help you understand your YOLOv8 model's performance better.
 

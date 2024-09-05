@@ -101,7 +101,7 @@ This section outlines the datasets that are compatible with Ultralytics YOLO for
 
 ### COCO8-Pose
 
-- **Description**: [Ultralytics](https://ultralytics.com) COCO8-Pose is a small, but versatile pose detection dataset composed of the first 8 images of the COCO train 2017 set, 4 for training and 4 for validation.
+- **Description**: [Ultralytics](https://www.ultralytics.com/) COCO8-Pose is a small, but versatile pose detection dataset composed of the first 8 images of the COCO train 2017 set, 4 for training and 4 for validation.
 - **Label Format**: Same as Ultralytics YOLO format as described above, with keypoints for human poses.
 - **Number of Classes**: 1 (Human).
 - **Keypoints**: 17 keypoints including nose, eyes, ears, shoulders, elbows, wrists, hips, knees, and ankles.
@@ -111,7 +111,7 @@ This section outlines the datasets that are compatible with Ultralytics YOLO for
 
 ### Tiger-Pose
 
-- **Description**: [Ultralytics](https://ultralytics.com) This animal pose dataset comprises 263 images sourced from a [YouTube Video](https://www.youtube.com/watch?v=MIBAT6BGE6U&pp=ygUbVGlnZXIgd2Fsa2luZyByZWZlcmVuY2UubXA0), with 210 images allocated for training and 53 for validation.
+- **Description**: [Ultralytics](https://www.ultralytics.com/) This animal pose dataset comprises 263 images sourced from a [YouTube Video](https://www.youtube.com/watch?v=MIBAT6BGE6U&pp=ygUbVGlnZXIgd2Fsa2luZyByZWZlcmVuY2UubXA0), with 210 images allocated for training and 53 for validation.
 - **Label Format**: Same as Ultralytics YOLO format as described above, with 12 keypoints for animal pose and no visible dimension.
 - **Number of Classes**: 1 (Tiger).
 - **Keypoints**: 12 keypoints.

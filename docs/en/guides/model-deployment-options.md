@@ -288,7 +288,7 @@ When you're getting started with YOLOv8, having a helpful community and support 
 
 - **GitHub Discussions:** The YOLOv8 repository on GitHub has a "Discussions" section where you can ask questions, report issues, and suggest improvements.
 
-- **Ultralytics Discord Server:** Ultralytics has a [Discord server](https://ultralytics.com/discord/) where you can interact with other users and developers.
+- **Ultralytics Discord Server:** Ultralytics has a [Discord server](https://discord.com/invite/ultralytics) where you can interact with other users and developers.
 
 ### Official Documentation and Resources
 

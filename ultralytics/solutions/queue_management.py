@@ -89,7 +89,7 @@ class QueueManager:
         """Extracts and processes tracks for queue management in a video stream."""
         # Initialize annotator and draw the queue region
         self.annotator = Annotator(self.im0, self.tf, self.names)
-
+        self.counts = 0  # Reset counts every frame
         if tracks[0].boxes.id is not None:
             boxes = tracks[0].boxes.xyxy.cpu()
             clss = tracks[0].boxes.cls.cpu().tolist()
@@ -132,7 +132,6 @@ class QueueManager:
                 txt_color=self.count_txt_color,
             )
 
-        self.counts = 0  # Reset counts after displaying
         self.display_frames()
 
     def display_frames(self):

@@ -184,7 +184,7 @@ python utils/loggers/clearml/hpo.py
 
 Running HPO locally is really handy, but what if we want to run our experiments on a remote machine instead? Maybe you have access to a very powerful GPU machine on-site, or you have some budget to use cloud GPUs. This is where the ClearML Agent comes into play. Check out what the agent can do here:
 
-- [YouTube video](https://youtu.be/MX3BrXnaULs)
+- [YouTube video](https://www.youtube.com/watch?v=MX3BrXnaULs&feature=youtu.be)
 - [Documentation](https://clear.ml/docs/latest/docs/clearml_agent)
 
 In short: every experiment tracked by the experiment manager contains enough information to reproduce it on a different machine (installed packages, uncommitted changes etc.). So a ClearML agent does just that: it listens to a queue for incoming tasks and when it finds one, it recreates the environment and runs it while still reporting scalars, plots etc. to the experiment manager.

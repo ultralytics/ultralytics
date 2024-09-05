@@ -406,7 +406,9 @@ def convert_segment_masks_to_yolo_seg(masks_dir, output_dir, classes):
                             yolo_format.append(round(point[1] / img_height, 6))
                         yolo_format_data.append(yolo_format)
             # Save Ultralytics YOLO format data to file
-            output_path = os.path.join(output_dir, os.path.splitext(mask_filename)[0] + ".txt")
+            output_path = os.path.join(
+                output_dir, f"{os.path.splitext(mask_filename)[0]}.txt"
+            )
             with open(output_path, "w") as file:
                 for item in yolo_format_data:
                     line = " ".join(map(str, item))

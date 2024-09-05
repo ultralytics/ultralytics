@@ -8,7 +8,7 @@ keywords: YOLOv5, Comet, machine learning, model tracking, hyperparameters, visu
 
 # YOLOv5 with Comet
 
-This guide will cover how to use YOLOv5 with [Comet](https://bit.ly/yolov5-readme-comet2)
+This guide will cover how to use YOLOv5 with [Comet](https://www.comet.com/site/lp/yolov5-with-comet/?utm_source=yolov5&utm_medium=partner&utm_campaign=partner_yolov5_2022&utm_content=github)
 
 ## About Comet
 

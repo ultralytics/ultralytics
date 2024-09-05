@@ -136,12 +136,12 @@ class GCPRegions:
         sorted_results = sorted(results, key=lambda x: x[1])
 
         if verbose:
-            print(f"{'Region':<25} {'Location':<35} {'Tier':<5} {'Latency (ms)'}")
+            print(f"{'Region':<25} {'Location':<35} {'Tier':<5} Latency (ms)")
             for region, mean, std, min_, max_ in sorted_results:
                 tier, city, country = self.regions[region]
                 location = f"{city}, {country}"
                 if mean == float("inf"):
-                    print(f"{region:<25} {location:<35} {tier:<5} {'Timeout'}")
+                    print(f"{region:<25} {location:<35} {tier:<5} Timeout")
                 else:
                     print(f"{region:<25} {location:<35} {tier:<5} {mean:.0f} ± {std:.0f} ({min_:.0f} - {max_:.0f})")
             print(f"\nLowest latency region{'s' if top > 1 else ''}:")

@@ -1160,9 +1160,9 @@ def vscode_msg(ext="ultralytics.ultralytics-snippets") -> str:
     obs_file = path / ".obsolete"  # file tracks uninstalled extensions, while source directory remains
     installed = any(path.glob(f"{ext}*")) and ext not in (obs_file.read_text("utf-8") if obs_file.exists() else "")
     return (
-        f"{colorstr('VS Code:')} view Ultralytics VS Code Extension ⚡ at https://docs.ultralytics.com/integrations/vscode"
-        if not installed
-        else ""
+        ""
+        if installed
+        else f"{colorstr('VS Code:')} view Ultralytics VS Code Extension ⚡ at https://docs.ultralytics.com/integrations/vscode"
     )
 
 

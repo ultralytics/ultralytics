@@ -16,22 +16,20 @@ class ObjectCounter:
     """A class to manage the counting of objects in a real-time video stream based on their tracks."""
 
     def __init__(
-        self,
-        names,
-        reg_pts=None,
-        count_reg_color=(255, 0, 255),
-        count_txt_color=(0, 0, 0),
-        count_bg_color=(255, 255, 255),
-        line_thickness=2,
-        track_thickness=2,
-        view_img=False,
-        view_in_counts=True,
-        view_out_counts=True,
-        draw_tracks=False,
-        track_color=None,
-        region_thickness=5,
-        line_dist_thresh=15,
-        cls_txtdisplay_gap=50,
+            self,
+            names,
+            reg_pts=None,
+            count_reg_color=(255, 0, 255),
+            count_txt_color=(0, 0, 0),
+            count_bg_color=(255, 255, 255),
+            line_thickness=2,
+            track_thickness=2,
+            view_img=False,
+            view_in_counts=True,
+            view_out_counts=True,
+            draw_tracks=False,
+            track_color=None,
+            region_thickness=5,
     ):
         """
         Initializes the ObjectCounter with various tracking and counting parameters.
@@ -50,8 +48,6 @@ class ObjectCounter:
             draw_tracks (bool): Flag to control whether to draw the object tracks.
             track_color (tuple): RGB color of the tracks.
             region_thickness (int): Thickness of the object counting region.
-            line_dist_thresh (int): Euclidean distance threshold for line counter.
-            cls_txtdisplay_gap (int): Display gap between each class count.
         """
         # Mouse events
         self.is_drawing = False
@@ -59,7 +55,6 @@ class ObjectCounter:
 
         # Region & Line Information
         self.reg_pts = [(20, 400), (1260, 400)] if reg_pts is None else reg_pts
-        self.line_dist_thresh = line_dist_thresh
         self.counting_region = None
         self.region_color = count_reg_color
         self.region_thickness = region_thickness
@@ -83,7 +78,6 @@ class ObjectCounter:
         self.count_txt_thickness = 0
         self.count_txt_color = count_txt_color
         self.count_bg_color = count_bg_color
-        self.cls_txtdisplay_gap = cls_txtdisplay_gap
         self.fontsize = 0.6
 
         # Tracks info
@@ -121,9 +115,9 @@ class ObjectCounter:
         if event == cv2.EVENT_LBUTTONDOWN:
             for i, point in enumerate(self.reg_pts):
                 if (
-                    isinstance(point, (tuple, list))
-                    and len(point) >= 2
-                    and (abs(x - point[0]) < 10 and abs(y - point[1]) < 10)
+                        isinstance(point, (tuple, list))
+                        and len(point) >= 2
+                        and (abs(x - point[0]) < 10 and abs(y - point[1]) < 10)
                 ):
                     self.selected_point = i
                     self.is_drawing = True
@@ -137,6 +131,14 @@ class ObjectCounter:
         elif event == cv2.EVENT_LBUTTONUP:
             self.is_drawing = False
             self.selected_point = None
+
+    # Define a function to check for intersection
+    @staticmethod
+    def does_intersect(segment1, segment2):
+        """Check if two segments intersect."""
+        line1 = LineString(segment1)
+        line2 = LineString(segment2)
+        return line1.intersects(line2)
 
     def extract_and_process_tracks(self, tracks):
         """Extracts and processes tracks for object counting in a video stream."""
@@ -193,11 +195,24 @@ class ObjectCounter:
                 # Count objects using line
                 elif len(self.reg_pts) == 2:
                     if prev_position is not None and track_id not in self.count_ids:
-                        distance = Point(track_line[-1]).distance(self.counting_region)
-                        if distance < self.line_dist_thresh and track_id not in self.count_ids:
+                        # Define the segment of object movement (n-1 to n)
+                        object_segment = [(prev_position[0], prev_position[1]), (box[0], box[1])]
+
+                        # Define the counting line segment
+                        counting_line_segment = [
+                            (self.reg_pts[0][0], self.reg_pts[0][1]),
+                            (self.reg_pts[1][0], self.reg_pts[1][1]),
+                        ]
+
+                        # Check if the object's movement segment intersects the counting line
+                        if self.does_intersect(object_segment, counting_line_segment):
                             self.count_ids.append(track_id)
 
-                            if (box[0] - prev_position[0]) * (self.counting_region.centroid.x - prev_position[0]) > 0:
+                            # Determine the direction of movement (IN or OUT)
+                            direction = (box[0] - prev_position[0]) * (
+                                    self.counting_region.centroid.x - prev_position[0]
+                            )
+                            if direction > 0:
                                 self.in_counts += 1
                                 self.class_wise_count[self.names[cls]]["IN"] += 1
                             else:

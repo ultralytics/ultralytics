@@ -136,9 +136,7 @@ class ObjectCounter:
     @staticmethod
     def does_intersect(segment1, segment2):
         """Check if two segments intersect."""
-        line1 = LineString(segment1)
-        line2 = LineString(segment2)
-        return line1.intersects(line2)
+        return LineString(segment1).intersects(LineString(segment2))
 
     def extract_and_process_tracks(self, tracks):
         """Extracts and processes tracks for object counting in a video stream."""

@@ -36,7 +36,7 @@ YOLOv5 inference is officially supported in 11 formats:
 | [CoreML](https://github.com/apple/coremltools)                             | `coreml`              | `yolov5s.mlmodel`         |
 | [TensorFlow SavedModel](https://www.tensorflow.org/guide/saved_model)      | `saved_model`         | `yolov5s_saved_model/`    |
 | [TensorFlow GraphDef](https://www.tensorflow.org/api_docs/python/tf/Graph) | `pb`                  | `yolov5s.pb`              |
-| [TensorFlow Lite](https://www.tensorflow.org/lite)                         | `tflite`              | `yolov5s.tflite`          |
+| [TensorFlow Lite](https://ai.google.dev/edge/litert)                       | `tflite`              | `yolov5s.tflite`          |
 | [TensorFlow Edge TPU](https://coral.ai/docs/edgetpu/models-intro/)         | `edgetpu`             | `yolov5s_edgetpu.tflite`  |
 | [TensorFlow.js](https://www.tensorflow.org/js)                             | `tfjs`                | `yolov5s_web_model/`      |
 | [PaddlePaddle](https://github.com/PaddlePaddle)                            | `paddle`              | `yolov5s_paddle_model/`   |
@@ -224,7 +224,7 @@ YOLOv5 OpenCV DNN C++ inference on exported ONNX model examples:
 YOLOv5 OpenVINO C++ inference examples:
 
 - [https://github.com/dacquaviva/yolov5-openvino-cpp-python](https://github.com/dacquaviva/yolov5-openvino-cpp-python)
-- [https://github.com/UNeedCryDear/yolov5-seg-opencv-dnn-cpp](https://github.com/UNeedCryDear/yolov5-seg-opencv-dnn-cpp)
+- [https://github.com/UNeedCryDear/yolov5-seg-opencv-dnn-cpp](https://github.com/UNeedCryDear/yolov5-seg-opencv-onnxruntime-cpp)
 
 ## TensorFlow.js Web Browser Inference
 
@@ -232,7 +232,7 @@ YOLOv5 OpenVINO C++ inference examples:
 
 ## Supported Environments
 
-Ultralytics provides a range of ready-to-use environments, each pre-installed with essential dependencies such as [CUDA](https://developer.nvidia.com/cuda), [CUDNN](https://developer.nvidia.com/cudnn), [Python](https://www.python.org/), and [PyTorch](https://pytorch.org/), to kickstart your projects.
+Ultralytics provides a range of ready-to-use environments, each pre-installed with essential dependencies such as [CUDA](https://developer.nvidia.com/cuda-zone), [CUDNN](https://developer.nvidia.com/cudnn), [Python](https://www.python.org/), and [PyTorch](https://pytorch.org/), to kickstart your projects.
 
 - **Free GPU Notebooks**: <a href="https://bit.ly/yolov5-paperspace-notebook"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run on Gradient"></a> <a href="https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> <a href="https://www.kaggle.com/ultralytics/yolov5"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
 - **Google Cloud**: [GCP Quickstart Guide](../environments/google_cloud_quickstart_tutorial.md)

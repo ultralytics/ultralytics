@@ -143,7 +143,7 @@ See the `ultralytics` [pyproject.toml](https://github.com/ultralytics/ultralytic
 
 !!! Tip "Tip"
 
-    PyTorch requirements vary by operating system and CUDA requirements, so it's recommended to install PyTorch first following instructions at [https://pytorch.org/get-started/locally](https://pytorch.org/get-started/locally).
+    PyTorch requirements vary by operating system and CUDA requirements, so it's recommended to install PyTorch first following instructions at [https://pytorch.org/get-started/locally](https://pytorch.org/get-started/locally/).
 
     <a href="https://pytorch.org/get-started/locally/">
         <img width="800" alt="PyTorch Installation Instructions" src="https://github.com/ultralytics/docs/releases/download/0/pytorch-installation-instructions.avif">

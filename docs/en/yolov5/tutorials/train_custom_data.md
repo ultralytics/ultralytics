@@ -29,10 +29,10 @@ Creating a custom model to detect your objects is an iterative process of collec
 
     Ultralytics offers two licensing options:
 
-    - The [AGPL-3.0 License](https://github.com/ultralytics/ultralytics/blob/main/LICENSE), an [OSI-approved](https://opensource.org/licenses/) open-source license ideal for students and enthusiasts.
-    - The [Enterprise License](https://ultralytics.com/license) for businesses seeking to incorporate our AI models into their products and services.
+    - The [AGPL-3.0 License](https://github.com/ultralytics/ultralytics/blob/main/LICENSE), an [OSI-approved](https://opensource.org/license) open-source license ideal for students and enthusiasts.
+    - The [Enterprise License](https://www.ultralytics.com/license) for businesses seeking to incorporate our AI models into their products and services.
 
-    For more details see [Ultralytics Licensing](https://ultralytics.com/license).
+    For more details see [Ultralytics Licensing](https://www.ultralytics.com/license).
 
 YOLOv5 models must be trained on labelled data in order to learn classes of objects in that data. There are two options for creating your dataset before you start training:
 
@@ -209,7 +209,7 @@ Once your model is trained you can use your best checkpoint `best.pt` to:
 
 ## Supported Environments
 
-Ultralytics provides a range of ready-to-use environments, each pre-installed with essential dependencies such as [CUDA](https://developer.nvidia.com/cuda), [CUDNN](https://developer.nvidia.com/cudnn), [Python](https://www.python.org/), and [PyTorch](https://pytorch.org/), to kickstart your projects.
+Ultralytics provides a range of ready-to-use environments, each pre-installed with essential dependencies such as [CUDA](https://developer.nvidia.com/cuda-zone), [CUDNN](https://developer.nvidia.com/cudnn), [Python](https://www.python.org/), and [PyTorch](https://pytorch.org/), to kickstart your projects.
 
 - **Free GPU Notebooks**: <a href="https://bit.ly/yolov5-paperspace-notebook"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run on Gradient"></a> <a href="https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> <a href="https://www.kaggle.com/ultralytics/yolov5"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
 - **Google Cloud**: [GCP Quickstart Guide](../environments/google_cloud_quickstart_tutorial.md)
@@ -269,6 +269,6 @@ To convert annotated data to YOLOv5 format using Roboflow:
 Ultralytics offers two licensing options:
 
 - **AGPL-3.0 License**: An open-source license suitable for non-commercial use, ideal for students and enthusiasts.
-- **Enterprise License**: Tailored for businesses seeking to integrate YOLOv5 into commercial products and services. For detailed information, visit our [Licensing page](https://ultralytics.com/license).
+- **Enterprise License**: Tailored for businesses seeking to integrate YOLOv5 into commercial products and services. For detailed information, visit our [Licensing page](https://www.ultralytics.com/license).
 
-For more details, refer to our guide on [Ultralytics Licensing](https://ultralytics.com/license).
+For more details, refer to our guide on [Ultralytics Licensing](https://www.ultralytics.com/license).

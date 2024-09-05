@@ -26,7 +26,7 @@ Package segmentation, facilitated by the Package Segmentation Dataset, is crucia
 
 A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. In the case of the Package Segmentation dataset, the `package-seg.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/package-seg.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/package-seg.yaml).
 
-!!! Example "ultralytics/cfg/datasets/package-seg.yaml"
+!!! example "ultralytics/cfg/datasets/package-seg.yaml"
 
     ```yaml
     --8<-- "ultralytics/cfg/datasets/package-seg.yaml"
@@ -36,7 +36,7 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 To train Ultralytics YOLOv8n model on the Package Segmentation dataset for 100 epochs with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
-!!! Example "Train Example"
+!!! example "Train Example"
 
     === "Python"
 
@@ -70,7 +70,7 @@ The Package Segmentation dataset comprises a varied collection of images and vid
 
 If you integrate the crack segmentation dataset into your research or development initiatives, please cite the following paper:
 
-!!! Quote ""
+!!! quote ""
 
     === "BibTeX"
 
@@ -101,10 +101,10 @@ The [Roboflow Package Segmentation Dataset](https://universe.roboflow.com/factor
 
 You can train an Ultralytics YOLOv8n model using both Python and CLI methods. Use the snippets below:
 
-!!! Example "Train Example"
+!!! example "Train Example"
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
 
@@ -116,7 +116,7 @@ You can train an Ultralytics YOLOv8n model using both Python and CLI methods. Us
         ```
 
     === "CLI"
-        
+
         ```bash
         # Start training from a pretrained *.pt model
         yolo segment train data=package-seg.yaml model=yolov8n-seg.pt epochs=100 imgsz=640
@@ -127,6 +127,7 @@ Refer to the model [Training](../../modes/train.md) page for more details.
 ### What are the components of the Package Segmentation Dataset, and how is it structured?
 
 The dataset is structured into three main components:
+
 - **Training set**: Contains 1920 images with annotations.
 - **Testing set**: Comprises 89 images with corresponding annotations.
 - **Validation set**: Includes 188 images with annotations.
@@ -139,6 +140,6 @@ Ultralytics YOLOv8 provides state-of-the-art accuracy and speed for real-time ob
 
 ### How can I access and use the package-seg.yaml file for the Package Segmentation Dataset?
 
-The `package-seg.yaml` file is hosted on Ultralytics' GitHub repository and contains essential information about the dataset's paths, classes, and configuration. You can download it from [here](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/package-seg.yaml). This file is crucial for configuring your models to utilize the dataset efficiently. 
+The `package-seg.yaml` file is hosted on Ultralytics' GitHub repository and contains essential information about the dataset's paths, classes, and configuration. You can download it from [here](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/package-seg.yaml). This file is crucial for configuring your models to utilize the dataset efficiently.
 
 For more insights and practical examples, explore our [Usage](https://docs.ultralytics.com/usage/python/) section.

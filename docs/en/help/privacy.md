@@ -39,7 +39,7 @@ We take several measures to ensure the privacy and security of the data you entr
 
 [Sentry](https://sentry.io/) is a developer-centric error tracking software that aids in identifying, diagnosing, and resolving issues in real-time, ensuring the robustness and reliability of applications. Within our package, it plays a crucial role by providing insights through crash reporting, significantly contributing to the stability and ongoing refinement of our software.
 
-!!! Note
+!!! note
 
     Crash reporting via Sentry is activated only if the `sentry-sdk` Python package is pre-installed on your system. This package isn't included in the `ultralytics` prerequisites and won't be installed automatically by Ultralytics.
 
@@ -74,7 +74,7 @@ To opt out of sending analytics and crash reports, you can simply set `sync=Fals
 
 To gain insight into the current configuration of your settings, you can view them directly:
 
-!!! Example "View settings"
+!!! example "View settings"
 
     === "Python"
 
@@ -100,7 +100,7 @@ To gain insight into the current configuration of your settings, you can view th
 
 Ultralytics allows users to easily modify their settings. Changes can be performed in the following ways:
 
-!!! Example "Update settings"
+!!! example "Update settings"
 
     === "Python"
 
@@ -153,13 +153,13 @@ Ultralytics collects three primary types of data using Google Analytics:
 - **Usage Metrics**: These include how often and in what ways the YOLO Python package is used, preferred features, and typical command-line arguments.
 - **System Information**: General non-identifiable information about the computing environments where the package is run.
 - **Performance Data**: Metrics related to the performance of models during training, validation, and inference.
-    This data helps us enhance user experience and optimize software performance. Learn more in the [Anonymized Google Analytics](#anonymized-google-analytics) section.
+  This data helps us enhance user experience and optimize software performance. Learn more in the [Anonymized Google Analytics](#anonymized-google-analytics) section.
 
 ### How can I disable data collection in the Ultralytics YOLO package?
 
 To opt out of data collection, you can simply set `sync=False` in your YOLO settings. This action stops the transmission of any analytics or crash reports. You can disable data collection using Python or CLI methods:
 
-!!! Example "Update settings"
+!!! example "Update settings"
 
     === "Python"
 
@@ -193,7 +193,7 @@ If the `sentry-sdk` package is pre-installed, Sentry collects detailed crash log
 
 Yes, you can easily view your current settings to understand the configuration of your data collection preferences. Use the following methods to inspect these settings:
 
-!!! Example "View settings"
+!!! example "View settings"
 
     === "Python"
 

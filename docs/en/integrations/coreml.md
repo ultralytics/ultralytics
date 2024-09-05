@@ -46,9 +46,9 @@ CoreML offers various deployment options for machine learning models, including:
 
 - **On-Device Deployment**: This method directly integrates CoreML models into your iOS app. It's particularly advantageous for ensuring low latency, enhanced privacy (since data remains on the device), and offline functionality. This approach, however, may be limited by the device's hardware capabilities, especially for larger and more complex models. On-device deployment can be executed in the following two ways.
 
-    - **Embedded Models**: These models are included in the app bundle and are immediately accessible. They are ideal for small models that do not require frequent updates.
+  - **Embedded Models**: These models are included in the app bundle and are immediately accessible. They are ideal for small models that do not require frequent updates.
 
-    - **Downloaded Models**: These models are fetched from a server as needed. This approach is suitable for larger models or those needing regular updates. It helps keep the app bundle size smaller.
+  - **Downloaded Models**: These models are fetched from a server as needed. This approach is suitable for larger models or those needing regular updates. It helps keep the app bundle size smaller.
 
 - **Cloud-Based Deployment**: CoreML models are hosted on servers and accessed by the iOS app through API requests. This scalable and flexible option enables easy model updates without app revisions. It's ideal for complex models or large-scale apps requiring regular updates. However, it does require an internet connection and may pose latency and security issues.
 
@@ -60,7 +60,7 @@ Exporting YOLOv8 to CoreML enables optimized, on-device machine learning perform
 
 To install the required package, run:
 
-!!! Tip "Installation"
+!!! tip "Installation"
 
     === "CLI"
 
@@ -75,7 +75,7 @@ For detailed instructions and best practices related to the installation process
 
 Before diving into the usage instructions, be sure to check out the range of [YOLOv8 models offered by Ultralytics](../models/index.md). This will help you choose the most appropriate model for your project requirements.
 
-!!! Example "Usage"
+!!! example "Usage"
 
     === "Python"
 
@@ -131,7 +131,7 @@ Also, if you'd like to know more about other Ultralytics YOLOv8 integrations, vi
 
 To export your [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics) models to CoreML format, you'll first need to ensure you have the `ultralytics` package installed. You can install it using:
 
-!!! Example "Installation"
+!!! example "Installation"
 
     === "CLI"
 
@@ -141,7 +141,7 @@ To export your [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics) 
 
 Next, you can export the model using the following Python or CLI commands:
 
-!!! Example "Usage"
+!!! example "Usage"
 
     === "Python"
 
@@ -177,8 +177,8 @@ Once you export your YOLOv8 model to CoreML format, you have multiple deployment
 
 1. **On-Device Deployment**: Directly integrate CoreML models into your app for enhanced privacy and offline functionality. This can be done as:
 
-    - **Embedded Models**: Included in the app bundle, accessible immediately.
-    - **Downloaded Models**: Fetched from a server as needed, keeping the app bundle size smaller.
+   - **Embedded Models**: Included in the app bundle, accessible immediately.
+   - **Downloaded Models**: Fetched from a server as needed, keeping the app bundle size smaller.
 
 2. **Cloud-Based Deployment**: Host CoreML models on servers and access them via API requests. This approach supports easier updates and can handle more complex models.
 
@@ -198,7 +198,7 @@ For more information on performance optimization, visit the [CoreML official doc
 
 Yes, you can run inference directly using the exported CoreML model. Below are the commands for Python and CLI:
 
-!!! Example "Running Inference"
+!!! example "Running Inference"
 
     === "Python"
 

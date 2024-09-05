@@ -16,10 +16,10 @@ The Ultralytics YOLO format is a dataset configuration format that allows you to
 
 ```yaml
 # Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
-path: ../datasets/coco8  # dataset root dir
-train: images/train  # train images (relative to 'path') 4 images
-val: images/val  # val images (relative to 'path') 4 images
-test:  # test images (optional)
+path: ../datasets/coco8 # dataset root dir
+train: images/train # train images (relative to 'path') 4 images
+val: images/val # val images (relative to 'path') 4 images
+test: # test images (optional)
 
 # Classes (80 COCO classes)
 names:
@@ -48,7 +48,7 @@ When using the Ultralytics YOLO format, organize your training and validation im
 
 Here's how you can use these formats to train your model:
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -100,7 +100,7 @@ If you have your own dataset and would like to use it for training detection mod
 
 You can easily convert labels from the popular COCO dataset format to the YOLO format using the following code snippet:
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -121,10 +121,10 @@ Remember to double-check if the dataset you want to use is compatible with your 
 The Ultralytics YOLO format is a structured configuration for defining datasets in your training projects. It involves setting paths to your training, validation, and testing images and corresponding labels. For example:
 
 ```yaml
-path: ../datasets/coco8  # dataset root directory
-train: images/train  # training images (relative to 'path')
-val: images/val  # validation images (relative to 'path')
-test:  # optional test images
+path: ../datasets/coco8 # dataset root directory
+train: images/train # training images (relative to 'path')
+val: images/val # validation images (relative to 'path')
+test: # optional test images
 names:
   0: person
   1: bicycle
@@ -164,10 +164,10 @@ Each dataset page provides detailed information on the structure and usage tailo
 
 To start training a YOLOv8 model, ensure your dataset is formatted correctly and the paths are defined in a YAML file. Use the following script to begin training:
 
-!!! Example
+!!! example
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
 
@@ -176,7 +176,7 @@ To start training a YOLOv8 model, ensure your dataset is formatted correctly and
         ```
 
     === "CLI"
-    
+
         ```bash
         yolo detect train data=path/to/your_dataset.yaml model=yolov8n.pt epochs=100 imgsz=640
         ```

@@ -125,7 +125,7 @@ The [Ultralytics HUB](https://ultralytics.com/hub) Inference API returns a JSON 
 
 ### Classification
 
-!!! Example "Classification Model"
+!!! example "Classification Model"
 
     === "`ultralytics`"
 
@@ -205,9 +205,8 @@ The [Ultralytics HUB](https://ultralytics.com/hub) Inference API returns a JSON 
 
 ### Detection
 
-!!! Example "Detection Model"
-
-    === "`ultralytics`"
+!!! example "Detection Model"
+=== "`ultralytics`"
 
         ```python
         from ultralytics import YOLO
@@ -291,7 +290,7 @@ The [Ultralytics HUB](https://ultralytics.com/hub) Inference API returns a JSON 
 
 ### OBB
 
-!!! Example "OBB Model"
+!!! example "OBB Model"
 
     === "`ultralytics`"
 
@@ -381,7 +380,7 @@ The [Ultralytics HUB](https://ultralytics.com/hub) Inference API returns a JSON 
 
 ### Segmentation
 
-!!! Example "Segmentation Model"
+!!! example "Segmentation Model"
 
     === "`ultralytics`"
 
@@ -481,7 +480,7 @@ The [Ultralytics HUB](https://ultralytics.com/hub) Inference API returns a JSON 
 
 ### Pose
 
-!!! Example "Pose Model"
+!!! example "Pose Model"
 
     === "`ultralytics`"
 

@@ -63,7 +63,7 @@ The `imgsz` validation parameter sets the maximum dimension for image resizing, 
 
 If you want to get a deeper understanding of your YOLOv8 model's performance, you can easily access specific evaluation metrics with a few lines of Python code. The code snippet below will let you load your model, run an evaluation, and print out various metrics that show how well your model is doing.
 
-!!! Example "Usage"
+!!! example "Usage"
 
     === "Python"
 
@@ -165,7 +165,7 @@ Improving mean average precision (mAP) for a YOLOv8 model involves several steps
 
 You can access YOLOv8 model evaluation metrics using Python with the following steps:
 
-!!! Example "Usage"
+!!! example "Usage"
 
     === "Python"
 

@@ -15,10 +15,10 @@ The dataset label format used for training YOLO pose models is as follows:
 1. One text file per image: Each image in the dataset has a corresponding text file with the same name as the image file and the ".txt" extension.
 2. One row per object: Each row in the text file corresponds to one object instance in the image.
 3. Object information per row: Each row contains the following information about the object instance:
-    - Object class index: An integer representing the class of the object (e.g., 0 for person, 1 for car, etc.).
-    - Object center coordinates: The x and y coordinates of the center of the object, normalized to be between 0 and 1.
-    - Object width and height: The width and height of the object, normalized to be between 0 and 1.
-    - Object keypoint coordinates: The keypoints of the object, normalized to be between 0 and 1.
+   - Object class index: An integer representing the class of the object (e.g., 0 for person, 1 for car, etc.).
+   - Object center coordinates: The x and y coordinates of the center of the object, normalized to be between 0 and 1.
+   - Object width and height: The width and height of the object, normalized to be between 0 and 1.
+   - Object keypoint coordinates: The keypoints of the object, normalized to be between 0 and 1.
 
 Here is an example of the label format for pose estimation task:
 
@@ -42,13 +42,13 @@ The Ultralytics framework uses a YAML file format to define the dataset and mode
 
 ```yaml
 # Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
-path: ../datasets/coco8-pose  # dataset root dir
-train: images/train  # train images (relative to 'path') 4 images
-val: images/val  # val images (relative to 'path') 4 images
-test:  # test images (optional)
+path: ../datasets/coco8-pose # dataset root dir
+train: images/train # train images (relative to 'path') 4 images
+val: images/val # val images (relative to 'path') 4 images
+test: # test images (optional)
 
 # Keypoints
-kpt_shape: [17, 3]  # number of keypoints, number of dims (2 for x,y or 3 for x,y,visible)
+kpt_shape: [17, 3] # number of keypoints, number of dims (2 for x,y or 3 for x,y,visible)
 flip_idx: [0, 2, 1, 4, 3, 6, 5, 8, 7, 10, 9, 12, 11, 14, 13, 16, 15]
 
 # Classes dictionary
@@ -64,7 +64,7 @@ The `train` and `val` fields specify the paths to the directories containing the
 
 ## Usage
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -126,7 +126,7 @@ If you have your own dataset and would like to use it for training pose estimati
 
 Ultralytics provides a convenient conversion tool to convert labels from the popular COCO dataset format to YOLO format:
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -142,7 +142,7 @@ This conversion tool can be used to convert the COCO dataset or any dataset in t
 
 ### What is the Ultralytics YOLO format for pose estimation?
 
-The Ultralytics YOLO format for pose estimation datasets involves labeling each image with a corresponding text file. Each row of the text file stores information about an object instance: 
+The Ultralytics YOLO format for pose estimation datasets involves labeling each image with a corresponding text file. Each row of the text file stores information about an object instance:
 
 - Object class index
 - Object center coordinates (normalized x and y)
@@ -154,34 +154,36 @@ For 2D poses, keypoints include pixel coordinates. For 3D, each keypoint also ha
 ### How do I use the COCO-Pose dataset with Ultralytics YOLO?
 
 To use the COCO-Pose dataset with Ultralytics YOLO:
+
 1. Download the dataset and prepare your label files in the YOLO format.
 2. Create a YAML configuration file specifying paths to training and validation images, keypoint shape, and class names.
 3. Use the configuration file for training:
 
-    ```python
-    from ultralytics import YOLO
+   ```python
+   from ultralytics import YOLO
 
-    model = YOLO("yolov8n-pose.pt")  # load pretrained model
-    results = model.train(data="coco-pose.yaml", epochs=100, imgsz=640)
-    ```
-    
-    For more information, visit [COCO-Pose](coco.md) and [train](../../modes/train.md) sections.
+   model = YOLO("yolov8n-pose.pt")  # load pretrained model
+   results = model.train(data="coco-pose.yaml", epochs=100, imgsz=640)
+   ```
+
+   For more information, visit [COCO-Pose](coco.md) and [train](../../modes/train.md) sections.
 
 ### How can I add my own dataset for pose estimation in Ultralytics YOLO?
 
 To add your dataset:
+
 1. Convert your annotations to the Ultralytics YOLO format.
 2. Create a YAML configuration file specifying the dataset paths, number of classes, and class names.
 3. Use the configuration file to train your model:
 
-    ```python
-    from ultralytics import YOLO
+   ```python
+   from ultralytics import YOLO
 
-    model = YOLO("yolov8n-pose.pt")
-    results = model.train(data="your-dataset.yaml", epochs=100, imgsz=640)
-    ```
-    
-    For complete steps, check the [Adding your own dataset](#adding-your-own-dataset) section.
+   model = YOLO("yolov8n-pose.pt")
+   results = model.train(data="your-dataset.yaml", epochs=100, imgsz=640)
+   ```
+
+   For complete steps, check the [Adding your own dataset](#adding-your-own-dataset) section.
 
 ### What is the purpose of the dataset YAML file in Ultralytics YOLO?
 

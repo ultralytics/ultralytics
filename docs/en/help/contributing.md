@@ -15,9 +15,9 @@ Welcome! We're thrilled that you're considering contributing to our [Ultralytics
 
 1. [Code of Conduct](#code-of-conduct)
 2. [Contributing via Pull Requests](#contributing-via-pull-requests)
-    - [CLA Signing](#cla-signing)
-    - [Google-Style Docstrings](#google-style-docstrings)
-    - [GitHub Actions CI Tests](#github-actions-ci-tests)
+   - [CLA Signing](#cla-signing)
+   - [Google-Style Docstrings](#google-style-docstrings)
+   - [GitHub Actions CI Tests](#github-actions-ci-tests)
 3. [Reporting Bugs](#reporting-bugs)
 4. [License](#license)
 5. [Conclusion](#conclusion)
@@ -57,7 +57,7 @@ I have read the CLA Document and I sign the CLA
 
 When adding new functions or classes, please include [Google-style docstrings](https://google.github.io/styleguide/pyguide.html). These docstrings provide clear, standardized documentation that helps other developers understand and maintain your code.
 
-!!! Example "Example Docstrings"
+!!! example "Example Docstrings"
 
     === "Google-style"
 

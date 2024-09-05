@@ -43,7 +43,7 @@ The following examples show how to use YOLO-NAS models with the `ultralytics` pa
 
 In this example we validate YOLO-NAS-s on the COCO8 dataset.
 
-!!! Example
+!!! example
 
     This example provides simple inference and validation code for YOLO-NAS. For handling inference results see [Predict](../modes/predict.md) mode. For using YOLO-NAS with additional modes see [Val](../modes/val.md) and [Export](../modes/export.md). YOLO-NAS on the `ultralytics` package does not support training.
 
@@ -99,7 +99,7 @@ Below is a detailed overview of each model, including links to their pre-trained
 
 If you employ YOLO-NAS in your research or development work, please cite SuperGradients:
 
-!!! Quote ""
+!!! quote ""
 
     === "BibTeX"
 
@@ -149,7 +149,7 @@ YOLO-NAS introduces several key features that make it a superior choice for obje
 - **Quantization-Friendly Basic Block:** Enhanced architecture that improves model performance with minimal precision drop post quantization.
 - **Sophisticated Training and Quantization:** Employs advanced training schemes and post-training quantization techniques.
 - **AutoNAC Optimization and Pre-training:** Utilizes AutoNAC optimization and is pre-trained on prominent datasets like COCO, Objects365, and Roboflow 100.
-    These features contribute to its high accuracy, efficient performance, and suitability for deployment in production environments. Learn more in the [Key Features](#key-features) section.
+  These features contribute to its high accuracy, efficient performance, and suitability for deployment in production environments. Learn more in the [Key Features](#key-features) section.
 
 ### Which tasks and modes are supported by YOLO-NAS models?
 

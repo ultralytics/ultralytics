@@ -26,7 +26,7 @@ You can bring automation and efficiency to your machine learning workflow by imp
 
 To install the required packages, run:
 
-!!! Tip "Installation"
+!!! tip "Installation"
 
     === "CLI"
 
@@ -43,7 +43,7 @@ Once you have installed the necessary packages, the next step is to initialize a
 
 Begin by initializing the ClearML SDK in your environment. The 'clearml-init' command starts the setup process and prompts you for the necessary credentials.
 
-!!! Tip "Initial SDK Setup"
+!!! tip "Initial SDK Setup"
 
     === "CLI"
 
@@ -58,7 +58,7 @@ After executing this command, visit the [ClearML Settings page](https://app.clea
 
 Before diving into the usage instructions, be sure to check out the range of [YOLOv8 models offered by Ultralytics](../models/index.md). This will help you choose the most appropriate model for your project requirements.
 
-!!! Example "Usage"
+!!! example "Usage"
 
     === "Python"
 
@@ -118,28 +118,28 @@ By clicking on the URL link to the ClearML results page in the output of the usa
 
 - **Real-Time Metrics Tracking**
 
-    - Track critical metrics like loss, accuracy, and validation scores as they occur.
-    - Provides immediate feedback for timely model performance adjustments.
+  - Track critical metrics like loss, accuracy, and validation scores as they occur.
+  - Provides immediate feedback for timely model performance adjustments.
 
 - **Experiment Comparison**
 
-    - Compare different training runs side-by-side.
-    - Essential for hyperparameter tuning and identifying the most effective models.
+  - Compare different training runs side-by-side.
+  - Essential for hyperparameter tuning and identifying the most effective models.
 
 - **Detailed Logs and Outputs**
 
-    - Access comprehensive logs, graphical representations of metrics, and console outputs.
-    - Gain a deeper understanding of model behavior and issue resolution.
+  - Access comprehensive logs, graphical representations of metrics, and console outputs.
+  - Gain a deeper understanding of model behavior and issue resolution.
 
 - **Resource Utilization Monitoring**
 
-    - Monitor the utilization of computational resources, including CPU, GPU, and memory.
-    - Key to optimizing training efficiency and costs.
+  - Monitor the utilization of computational resources, including CPU, GPU, and memory.
+  - Key to optimizing training efficiency and costs.
 
 - **Model Artifacts Management**
 
-    - View, download, and share model artifacts like trained models and checkpoints.
-    - Enhances collaboration and streamlines model deployment and sharing.
+  - View, download, and share model artifacts like trained models and checkpoints.
+  - Enhances collaboration and streamlines model deployment and sharing.
 
 For a visual walkthrough of what the ClearML Results Page looks like, watch the video below:
 

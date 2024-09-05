@@ -56,7 +56,7 @@ Navigate to the [Teams](https://hub.ultralytics.com/settings?tab=teams) page, op
 
 ![Ultralytics HUB screenshot of the Teams page with an arrow pointing to the Delete option of one of the teams](https://github.com/ultralytics/docs/releases/download/0/hub-delete-team-option.avif)
 
-!!! Warning "Warning"
+!!! warning "Warning"
 
     When deleting a team, the team can't be restored.
 

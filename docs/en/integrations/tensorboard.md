@@ -26,7 +26,7 @@ Using TensorBoard while training YOLOv8 models is straightforward and offers sig
 
 To install the required package, run:
 
-!!! Tip "Installation"
+!!! tip "Installation"
 
     === "CLI"
 
@@ -43,7 +43,7 @@ For detailed instructions and best practices related to the installation process
 
 When using Google Colab, it's important to set up TensorBoard before starting your training code:
 
-!!! Example "Configure TensorBoard for Google Colab"
+!!! example "Configure TensorBoard for Google Colab"
 
     === "Python"
 
@@ -56,7 +56,7 @@ When using Google Colab, it's important to set up TensorBoard before starting yo
 
 Before diving into the usage instructions, be sure to check out the range of [YOLOv8 models offered by Ultralytics](../models/index.md). This will help you choose the most appropriate model for your project requirements.
 
-!!! Example "Usage"
+!!! example "Usage"
 
     === "Python"
 
@@ -116,15 +116,15 @@ Scalars in the TensorBoard are crucial for plotting and analyzing simple metrics
 
 - **Metrics Tags**: Scalars include performance indicators such as:
 
-    - `mAP50 (B)`: Mean Average Precision at 50% Intersection over Union (IoU), crucial for assessing object detection accuracy.
+  - `mAP50 (B)`: Mean Average Precision at 50% Intersection over Union (IoU), crucial for assessing object detection accuracy.
 
-    - `mAP50-95 (B)`: Mean Average Precision calculated over a range of IoU thresholds, offering a more comprehensive evaluation of accuracy.
+  - `mAP50-95 (B)`: Mean Average Precision calculated over a range of IoU thresholds, offering a more comprehensive evaluation of accuracy.
 
-    - `Precision (B)`: Indicates the ratio of correctly predicted positive observations, key to understanding prediction accuracy.
+  - `Precision (B)`: Indicates the ratio of correctly predicted positive observations, key to understanding prediction accuracy.
 
-    - `Recall (B)`: Important for models where missing a detection is significant, this metric measures the ability to detect all relevant instances.
+  - `Recall (B)`: Important for models where missing a detection is significant, this metric measures the ability to detect all relevant instances.
 
-    - To learn more about the different metrics, read our guide on [performance metrics](../guides/yolo-performance-metrics.md).
+  - To learn more about the different metrics, read our guide on [performance metrics](../guides/yolo-performance-metrics.md).
 
 - **Training and Validation Tags (`train`, `val`)**: These tags display metrics specifically for the training and validation datasets, allowing for a comparative analysis of model performance across different data sets.
 
@@ -189,7 +189,7 @@ These visualizations are essential for tracking model performance and making nec
 
 Yes, you can use TensorBoard in a Google Colab environment to train YOLOv8 models. Here's a quick setup:
 
-!!! Example "Configure TensorBoard for Google Colab"
+!!! example "Configure TensorBoard for Google Colab"
 
     === "Python"
 

@@ -26,7 +26,7 @@ Crack segmentation finds practical applications in infrastructure maintenance, a
 
 A YAML (Yet Another Markup Language) file is employed to outline the configuration of the dataset, encompassing details about paths, classes, and other pertinent information. Specifically, for the Crack Segmentation dataset, the `crack-seg.yaml` file is managed and accessible at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/crack-seg.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/crack-seg.yaml).
 
-!!! Example "ultralytics/cfg/datasets/crack-seg.yaml"
+!!! example "ultralytics/cfg/datasets/crack-seg.yaml"
 
     ```yaml
     --8<-- "ultralytics/cfg/datasets/crack-seg.yaml"
@@ -36,7 +36,7 @@ A YAML (Yet Another Markup Language) file is employed to outline the configurati
 
 To train Ultralytics YOLOv8n model on the Crack Segmentation dataset for 100 epochs with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
-!!! Example "Train Example"
+!!! example "Train Example"
 
     === "Python"
 
@@ -71,7 +71,7 @@ The Crack Segmentation dataset comprises a varied collection of images and video
 
 If you incorporate the crack segmentation dataset into your research or development endeavors, kindly reference the following paper:
 
-!!! Quote ""
+!!! quote ""
 
     === "BibTeX"
 
@@ -102,7 +102,7 @@ The [Roboflow Crack Segmentation Dataset](https://universe.roboflow.com/universi
 
 To train an Ultralytics YOLOv8 model on the Crack Segmentation dataset, use the following code snippets. Detailed instructions and further parameters can be found on the model [Training](../../modes/train.md) page.
 
-!!! Example "Train Example"
+!!! example "Train Example"
 
     === "Python"
 
@@ -135,7 +135,7 @@ Ultralytics YOLO offers advanced real-time object detection, segmentation, and c
 
 If you incorporate the Crack Segmentation Dataset into your research, please use the following BibTeX reference:
 
-!!! Quote ""
+!!! quote ""
 
     === "BibTeX"
 

@@ -21,7 +21,7 @@ This comprehensive guide provides a detailed walkthrough for deploying Ultralyti
 
 <img width="1024" src="https://github.com/ultralytics/docs/releases/download/0/nvidia-jetson-ecosystem.avif" alt="NVIDIA Jetson Ecosystem">
 
-!!! Note
+!!! note
 
     This guide has been tested with both [Seeed Studio reComputer J4012](https://www.seeedstudio.com/reComputer-J4012-p-5586.html) which is based on NVIDIA Jetson Orin NX 16GB running the latest stable JetPack release of [JP6.0](https://developer.nvidia.com/embedded/jetpack-sdk-60), JetPack release of [JP5.1.3](https://developer.nvidia.com/embedded/jetpack-sdk-513) and [Seeed Studio reComputer J1020 v2](https://www.seeedstudio.com/reComputer-J1020-v2-p-5498.html) which is based on NVIDIA Jetson Nano 4GB running JetPack release of [JP4.6.1](https://developer.nvidia.com/embedded/jetpack-sdk-461). It is expected to work across all the NVIDIA Jetson hardware lineup including latest and legacy.
 
@@ -33,14 +33,14 @@ NVIDIA Jetson is a series of embedded computing boards designed to bring acceler
 
 [Jetson Orin](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/jetson-orin/) is the latest iteration of the NVIDIA Jetson family based on NVIDIA Ampere architecture which brings drastically improved AI performance when compared to the previous generations. Below table compared few of the Jetson devices in the ecosystem.
 
-|                   | Jetson AGX Orin 64GB                                              | Jetson Orin NX 16GB                                              | Jetson Orin Nano 8GB                                          | Jetson AGX Xavier                                           | Jetson Xavier NX                                              | Jetson Nano                                   |
-| ----------------- | ----------------------------------------------------------------- | ---------------------------------------------------------------- | ------------------------------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------- | --------------------------------------------- |
-| AI Performance    | 275 TOPS                                                          | 100 TOPS                                                         | 40 TOPs                                                       | 32 TOPS                                                     | 21 TOPS                                                       | 472 GFLOPS                                    |
-| GPU               | 2048-core NVIDIA Ampere architecture GPU with 64 Tensor Cores     | 1024-core NVIDIA Ampere architecture GPU with 32 Tensor Cores    | 1024-core NVIDIA Ampere architecture GPU with 32 Tensor Cores | 512-core NVIDIA Volta architecture GPU with 64 Tensor Cores | 384-core NVIDIA Volta™ architecture GPU with 48 Tensor Cores | 128-core NVIDIA Maxwell™ architecture GPU    |
-| GPU Max Frequency | 1.3 GHz                                                           | 918 MHz                                                          | 625 MHz                                                       | 1377 MHz                                                    | 1100 MHz                                                      | 921MHz                                        |
-| CPU               | 12-core NVIDIA Arm® Cortex A78AE v8.2 64-bit CPU 3MB L2 + 6MB L3 | 8-core NVIDIA Arm® Cortex A78AE v8.2 64-bit CPU 2MB L2 + 4MB L3 | 6-core Arm® Cortex®-A78AE v8.2 64-bit CPU 1.5MB L2 + 4MB L3 | 8-core NVIDIA Carmel Arm®v8.2 64-bit CPU 8MB L2 + 4MB L3   | 6-core NVIDIA Carmel Arm®v8.2 64-bit CPU 6MB L2 + 4MB L3     | Quad-Core Arm® Cortex®-A57 MPCore processor |
-| CPU Max Frequency | 2.2 GHz                                                           | 2.0 GHz                                                          | 1.5 GHz                                                       | 2.2 GHz                                                     | 1.9 GHz                                                       | 1.43GHz                                       |
-| Memory            | 64GB 256-bit LPDDR5 204.8GB/s                                     | 16GB 128-bit LPDDR5 102.4GB/s                                    | 8GB 128-bit LPDDR5 68 GB/s                                    | 32GB 256-bit LPDDR4x 136.5GB/s                              | 8GB 128-bit LPDDR4x 59.7GB/s                                  | 4GB 64-bit LPDDR4 25.6GB/s"                   |
+|                   | Jetson AGX Orin 64GB                                             | Jetson Orin NX 16GB                                             | Jetson Orin Nano 8GB                                          | Jetson AGX Xavier                                           | Jetson Xavier NX                                             | Jetson Nano                                 |
+| ----------------- | ---------------------------------------------------------------- | --------------------------------------------------------------- | ------------------------------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------- |
+| AI Performance    | 275 TOPS                                                         | 100 TOPS                                                        | 40 TOPs                                                       | 32 TOPS                                                     | 21 TOPS                                                      | 472 GFLOPS                                  |
+| GPU               | 2048-core NVIDIA Ampere architecture GPU with 64 Tensor Cores    | 1024-core NVIDIA Ampere architecture GPU with 32 Tensor Cores   | 1024-core NVIDIA Ampere architecture GPU with 32 Tensor Cores | 512-core NVIDIA Volta architecture GPU with 64 Tensor Cores | 384-core NVIDIA Volta™ architecture GPU with 48 Tensor Cores | 128-core NVIDIA Maxwell™ architecture GPU   |
+| GPU Max Frequency | 1.3 GHz                                                          | 918 MHz                                                         | 625 MHz                                                       | 1377 MHz                                                    | 1100 MHz                                                     | 921MHz                                      |
+| CPU               | 12-core NVIDIA Arm® Cortex A78AE v8.2 64-bit CPU 3MB L2 + 6MB L3 | 8-core NVIDIA Arm® Cortex A78AE v8.2 64-bit CPU 2MB L2 + 4MB L3 | 6-core Arm® Cortex®-A78AE v8.2 64-bit CPU 1.5MB L2 + 4MB L3   | 8-core NVIDIA Carmel Arm®v8.2 64-bit CPU 8MB L2 + 4MB L3    | 6-core NVIDIA Carmel Arm®v8.2 64-bit CPU 6MB L2 + 4MB L3     | Quad-Core Arm® Cortex®-A57 MPCore processor |
+| CPU Max Frequency | 2.2 GHz                                                          | 2.0 GHz                                                         | 1.5 GHz                                                       | 2.2 GHz                                                     | 1.9 GHz                                                      | 1.43GHz                                     |
+| Memory            | 64GB 256-bit LPDDR5 204.8GB/s                                    | 16GB 128-bit LPDDR5 102.4GB/s                                   | 8GB 128-bit LPDDR5 68 GB/s                                    | 32GB 256-bit LPDDR4x 136.5GB/s                              | 8GB 128-bit LPDDR4x 59.7GB/s                                 | 4GB 64-bit LPDDR4 25.6GB/s"                 |
 
 For a more detailed comparison table, please visit the **Technical Specifications** section of [official NVIDIA Jetson page](https://developer.nvidia.com/embedded/jetson-modules).
 
@@ -57,7 +57,7 @@ The first step after getting your hands on an NVIDIA Jetson device is to flash N
 3. If you own a Seeed Studio reComputer J4012 device, you can [flash JetPack to the included SSD](https://wiki.seeedstudio.com/reComputer_J4012_Flash_Jetpack) and if you own a Seeed Studio reComputer J1020 v2 device, you can [flash JetPack to the eMMC/ SSD](https://wiki.seeedstudio.com/reComputer_J2021_J202_Flash_Jetpack).
 4. If you own any other third party device powered by the NVIDIA Jetson module, it is recommended to follow [command-line flashing](https://docs.nvidia.com/jetson/archives/r35.5.0/DeveloperGuide/IN/QuickStart.html).
 
-!!! Note
+!!! note
 
     For methods 3 and 4 above, after flashing the system and booting the device, please enter "sudo apt update && sudo apt install nvidia-jetpack -y" on the device terminal to install all the remaining JetPack components needed.
 
@@ -114,23 +114,23 @@ Here we will install Ultralytics package on the Jetson with optional dependencie
 
 1. Update packages list, install pip and upgrade to latest
 
-    ```bash
-    sudo apt update
-    sudo apt install python3-pip -y
-    pip install -U pip
-    ```
+   ```bash
+   sudo apt update
+   sudo apt install python3-pip -y
+   pip install -U pip
+   ```
 
 2. Install `ultralytics` pip package with optional dependencies
 
-    ```bash
-    pip install ultralytics[export]
-    ```
+   ```bash
+   pip install ultralytics[export]
+   ```
 
 3. Reboot the device
 
-    ```bash
-    sudo reboot
-    ```
+   ```bash
+   sudo reboot
+   ```
 
 #### Install PyTorch and Torchvision
 
@@ -157,7 +157,7 @@ wget https://nvidia.box.com/shared/static/48dtuob7meiw6ebgfsfqakc9vse62sg4.whl -
 pip install onnxruntime_gpu-1.18.0-cp310-cp310-linux_aarch64.whl
 ```
 
-!!! Note
+!!! note
 
     `onnxruntime-gpu` will automatically revert back the numpy version to latest. So we need to reinstall numpy to `1.23.5` to fix an issue by executing:
 
@@ -171,23 +171,23 @@ Here we will install Ultralytics package on the Jetson with optional dependencie
 
 1. Update packages list, install pip and upgrade to latest
 
-    ```bash
-    sudo apt update
-    sudo apt install python3-pip -y
-    pip install -U pip
-    ```
+   ```bash
+   sudo apt update
+   sudo apt install python3-pip -y
+   pip install -U pip
+   ```
 
 2. Install `ultralytics` pip package with optional dependencies
 
-    ```bash
-    pip install ultralytics[export]
-    ```
+   ```bash
+   pip install ultralytics[export]
+   ```
 
 3. Reboot the device
 
-    ```bash
-    sudo reboot
-    ```
+   ```bash
+   sudo reboot
+   ```
 
 #### Install PyTorch and Torchvision
 
@@ -195,27 +195,27 @@ The above ultralytics installation will install Torch and Torchvision. However, 
 
 1. Uninstall currently installed PyTorch and Torchvision
 
-    ```bash
-    pip uninstall torch torchvision
-    ```
+   ```bash
+   pip uninstall torch torchvision
+   ```
 
 2. Install PyTorch 2.1.0 according to JP5.1.3
 
-    ```bash
-    sudo apt-get install -y libopenblas-base libopenmpi-dev
-    wget https://developer.download.nvidia.com/compute/redist/jp/v512/pytorch/torch-2.1.0a0+41361538.nv23.06-cp38-cp38-linux_aarch64.whl -O torch-2.1.0a0+41361538.nv23.06-cp38-cp38-linux_aarch64.whl
-    pip install torch-2.1.0a0+41361538.nv23.06-cp38-cp38-linux_aarch64.whl
-    ```
+   ```bash
+   sudo apt-get install -y libopenblas-base libopenmpi-dev
+   wget https://developer.download.nvidia.com/compute/redist/jp/v512/pytorch/torch-2.1.0a0+41361538.nv23.06-cp38-cp38-linux_aarch64.whl -O torch-2.1.0a0+41361538.nv23.06-cp38-cp38-linux_aarch64.whl
+   pip install torch-2.1.0a0+41361538.nv23.06-cp38-cp38-linux_aarch64.whl
+   ```
 
 3. Install Torchvision v0.16.2 according to PyTorch v2.1.0
 
-    ```bash
-    sudo apt install -y libjpeg-dev zlib1g-dev
-    git clone https://github.com/pytorch/vision torchvision
-    cd torchvision
-    git checkout v0.16.2
-    python3 setup.py install --user
-    ```
+   ```bash
+   sudo apt install -y libjpeg-dev zlib1g-dev
+   git clone https://github.com/pytorch/vision torchvision
+   cd torchvision
+   git checkout v0.16.2
+   python3 setup.py install --user
+   ```
 
 Visit the [PyTorch for Jetson page](https://forums.developer.nvidia.com/t/pytorch-for-jetson/72048) to access all different versions of PyTorch for different JetPack versions. For a more detailed list on the PyTorch, Torchvision compatibility, visit the [PyTorch and Torchvision compatibility page](https://github.com/pytorch/vision).
 
@@ -230,7 +230,7 @@ wget https://nvidia.box.com/shared/static/zostg6agm00fb6t5uisw51qi6kpcuwzd.whl -
 pip install onnxruntime_gpu-1.17.0-cp38-cp38-linux_aarch64.whl
 ```
 
-!!! Note
+!!! note
 
     `onnxruntime-gpu` will automatically revert back the numpy version to latest. So we need to reinstall numpy to `1.23.5` to fix an issue by executing:
 
@@ -244,7 +244,7 @@ Out of all the model export formats supported by Ultralytics, TensorRT delivers 
 
 The YOLOv8n model in PyTorch format is converted to TensorRT to run inference with the exported model.
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -274,7 +274,7 @@ The YOLOv8n model in PyTorch format is converted to TensorRT to run inference wi
         yolo predict model=yolov8n.engine source='https://ultralytics.com/images/bus.jpg'
         ```
 
-!!! Note
+!!! note
 
     Visit the [Export page](../modes/export.md#arguments) to access additional arguments when exporting models to different model formats
 
@@ -294,7 +294,7 @@ Even though all model exports are working with NVIDIA Jetson, we have only inclu
 
 The below table represents the benchmark results for five different models (YOLOv8n, YOLOv8s, YOLOv8m, YOLOv8l, YOLOv8x) across ten different formats (PyTorch, TorchScript, ONNX, OpenVINO, TensorRT, TF SavedModel, TF GraphDef, TF Lite, PaddlePaddle, NCNN), giving us the status, size, mAP50-95(B) metric, and inference time for each combination.
 
-!!! Performance
+!!! performance
 
     === "YOLOv8n"
 
@@ -377,7 +377,7 @@ The below table represents the benchmark results for five different models (YOLO
 
 To reproduce the above Ultralytics benchmarks on all export [formats](../modes/export.md) run this code:
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -406,30 +406,30 @@ When using NVIDIA Jetson, there are a couple of best practices to follow in orde
 
 1. Enable MAX Power Mode
 
-    Enabling MAX Power Mode on the Jetson will make sure all CPU, GPU cores are turned on.
+   Enabling MAX Power Mode on the Jetson will make sure all CPU, GPU cores are turned on.
 
-    ```bash
-    sudo nvpmodel -m 0
-    ```
+   ```bash
+   sudo nvpmodel -m 0
+   ```
 
 2. Enable Jetson Clocks
 
-    Enabling Jetson Clocks will make sure all CPU, GPU cores are clocked at their maximum frequency.
+   Enabling Jetson Clocks will make sure all CPU, GPU cores are clocked at their maximum frequency.
 
-    ```bash
-    sudo jetson_clocks
-    ```
+   ```bash
+   sudo jetson_clocks
+   ```
 
 3. Install Jetson Stats Application
 
-    We can use jetson stats application to monitor the temperatures of the system components and check other system details such as view CPU, GPU, RAM utilization, change power modes, set to max clocks, check JetPack information
+   We can use jetson stats application to monitor the temperatures of the system components and check other system details such as view CPU, GPU, RAM utilization, change power modes, set to max clocks, check JetPack information
 
-    ```bash
-    sudo apt update
-    sudo pip install jetson-stats
-    sudo reboot
-    jtop
-    ```
+   ```bash
+   sudo apt update
+   sudo pip install jetson-stats
+   sudo reboot
+   jtop
+   ```
 
 <img width="1024" src="https://github.com/ultralytics/docs/releases/download/0/jetson-stats-application.avif" alt="Jetson Stats">
 

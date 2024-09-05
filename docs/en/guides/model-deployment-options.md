@@ -331,7 +331,7 @@ For more insights, check out our [blog post](https://www.ultralytics.com/blog/ac
 
 Yes, YOLOv8 models can be deployed on mobile devices using TensorFlow Lite (TF Lite) for both Android and iOS platforms. TF Lite is designed for mobile and embedded devices, providing efficient on-device inference.
 
-!!! Example
+!!! example
 
     === "Python"
 

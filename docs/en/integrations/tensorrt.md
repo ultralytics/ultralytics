@@ -62,7 +62,7 @@ You can improve execution efficiency and optimize performance by converting YOLO
 
 To install the required package, run:
 
-!!! Tip "Installation"
+!!! tip "Installation"
 
     === "CLI"
 
@@ -77,7 +77,7 @@ For detailed instructions and best practices related to the installation process
 
 Before diving into the usage instructions, be sure to check out the range of [YOLOv8 models offered by Ultralytics](../models/index.md). This will help you choose the most appropriate model for your project requirements.
 
-!!! Example "Usage"
+!!! example "Usage"
 
     === "Python"
 
@@ -125,15 +125,15 @@ The arguments provided when using [export](../modes/export.md) for an Ultralytic
 
 - `workspace` : Controls the size (in GiB) of the device memory allocation while converting the model weights.
 
-    - Adjust the `workspace` value according to your calibration needs and resource availability. While a larger `workspace` may increase calibration time, it allows TensorRT to explore a wider range of optimization tactics, potentially enhancing model performance and accuracy. Conversely, a smaller `workspace` can reduce calibration time but may limit the optimization strategies, affecting the quality of the quantized model.
+  - Adjust the `workspace` value according to your calibration needs and resource availability. While a larger `workspace` may increase calibration time, it allows TensorRT to explore a wider range of optimization tactics, potentially enhancing model performance and accuracy. Conversely, a smaller `workspace` can reduce calibration time but may limit the optimization strategies, affecting the quality of the quantized model.
 
-    - Default is `workspace=4` (GiB), this value may need to be increased if calibration crashes (exits without warning).
+  - Default is `workspace=4` (GiB), this value may need to be increased if calibration crashes (exits without warning).
 
-    - TensorRT will report `UNSUPPORTED_STATE` during export if the value for `workspace` is larger than the memory available to the device, which means the value for `workspace` should be lowered.
+  - TensorRT will report `UNSUPPORTED_STATE` during export if the value for `workspace` is larger than the memory available to the device, which means the value for `workspace` should be lowered.
 
-    - If `workspace` is set to max value and calibration fails/crashes, consider reducing the values for `imgsz` and `batch` to reduce memory requirements.
+  - If `workspace` is set to max value and calibration fails/crashes, consider reducing the values for `imgsz` and `batch` to reduce memory requirements.
 
-    - <u><b>Remember</b> calibration for INT8 is specific to each device</u>, borrowing a "high-end" GPU for calibration, might result in poor performance when inference is run on another device.
+  - <u><b>Remember</b> calibration for INT8 is specific to each device</u>, borrowing a "high-end" GPU for calibration, might result in poor performance when inference is run on another device.
 
 - `batch` : The maximum batch-size that will be used for inference. During inference smaller batches can be used, but inference will not accept batches any larger than what is specified.
 
@@ -462,22 +462,22 @@ To convert your Ultralytics YOLOv8 models to TensorRT format for optimized NVIDI
 
 1. **Install the required package**:
 
-    ```bash
-    pip install ultralytics
-    ```
+   ```bash
+   pip install ultralytics
+   ```
 
 2. **Export your YOLOv8 model**:
 
-    ```python
-    from ultralytics import YOLO
+   ```python
+   from ultralytics import YOLO
 
-    model = YOLO("yolov8n.pt")
-    model.export(format="engine")  # creates 'yolov8n.engine'
+   model = YOLO("yolov8n.pt")
+   model.export(format="engine")  # creates 'yolov8n.engine'
 
-    # Run inference
-    model = YOLO("yolov8n.engine")
-    results = model("https://ultralytics.com/images/bus.jpg")
-    ```
+   # Run inference
+   model = YOLO("yolov8n.engine")
+   results = model("https://ultralytics.com/images/bus.jpg")
+   ```
 
 For more details, visit the [YOLOv8 Installation guide](../quickstart.md) and the [export documentation](../modes/export.md).
 
@@ -498,21 +498,21 @@ Yes, you can export YOLOv8 models using TensorRT with INT8 quantization. This pr
 
 1. **Export with INT8**:
 
-    ```python
-    from ultralytics import YOLO
+   ```python
+   from ultralytics import YOLO
 
-    model = YOLO("yolov8n.pt")
-    model.export(format="engine", batch=8, workspace=4, int8=True, data="coco.yaml")
-    ```
+   model = YOLO("yolov8n.pt")
+   model.export(format="engine", batch=8, workspace=4, int8=True, data="coco.yaml")
+   ```
 
 2. **Run inference**:
 
-    ```python
-    from ultralytics import YOLO
+   ```python
+   from ultralytics import YOLO
 
-    model = YOLO("yolov8n.engine", task="detect")
-    result = model.predict("https://ultralytics.com/images/bus.jpg")
-    ```
+   model = YOLO("yolov8n.engine", task="detect")
+   result = model.predict("https://ultralytics.com/images/bus.jpg")
+   ```
 
 For more details, refer to the [exporting TensorRT with INT8 quantization section](#exporting-tensorrt-with-int8-quantization).
 
@@ -531,15 +531,15 @@ Performance improvements with TensorRT can vary based on the hardware used. Here
 
 - **NVIDIA A100**:
 
-    - **FP32** Inference: ~0.52 ms / image
-    - **FP16** Inference: ~0.34 ms / image
-    - **INT8** Inference: ~0.28 ms / image
-    - Slight reduction in mAP with INT8 precision, but significant improvement in speed.
+  - **FP32** Inference: ~0.52 ms / image
+  - **FP16** Inference: ~0.34 ms / image
+  - **INT8** Inference: ~0.28 ms / image
+  - Slight reduction in mAP with INT8 precision, but significant improvement in speed.
 
 - **Consumer GPUs (e.g., RTX 3080)**:
-    - **FP32** Inference: ~1.06 ms / image
-    - **FP16** Inference: ~0.62 ms / image
-    - **INT8** Inference: ~0.52 ms / image
+  - **FP32** Inference: ~1.06 ms / image
+  - **FP16** Inference: ~0.62 ms / image
+  - **INT8** Inference: ~0.52 ms / image
 
 Detailed performance benchmarks for different hardware configurations can be found in the [performance section](#ultralytics-yolo-tensorrt-export-performance).
 

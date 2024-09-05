@@ -5,13 +5,13 @@ keywords: Ultralytics, PyTorch, utils, initialization, inverse sigmoid, multisca
 
 # Reference for `ultralytics/nn/modules/utils.py`
 
-!!! note
+!!! Note
 
     This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/utils.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/utils.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/nn/modules/utils.py) 🛠️. Thank you 🙏!
 
 <br>
 
-## ::: ultralytics.nn.modules.utils.\_get_clones
+## ::: ultralytics.nn.modules.utils._get_clones
 
 <br><br><hr><br>
 

@@ -5,7 +5,7 @@ keywords: Ultralytics, AI Gym, YOLO, pose detection, gym step counting, real-tim
 
 # Reference for `ultralytics/solutions/ai_gym.py`
 
-!!! note
+!!! Note
 
     This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/solutions/ai_gym.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/solutions/ai_gym.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/solutions/ai_gym.py) 🛠️. Thank you 🙏!
 

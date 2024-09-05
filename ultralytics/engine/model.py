@@ -800,7 +800,7 @@ class Model(nn.Module):
             "data": overrides.get("data") or DEFAULT_CFG_DICT["data"] or TASK2DATA[self.task],
             "model": self.overrides["model"],
             "task": self.task,
-            "augment": kwargs.get("augment", True), # default to True for training
+            "augment": kwargs.get("augment", True),  # default to True for training
         }  # method defaults
         args = {**overrides, **custom, **kwargs, "mode": "train"}  # highest priority args on the right
         if args.get("resume"):

@@ -4,7 +4,7 @@
       <img width="100%" src="https://raw.githubusercontent.com/ultralytics/assets/main/yolov8/banner-yolov8.png" alt="YOLO Vision banner"></a>
   </p>
 
-[中文](https://docs.ultralytics.com/zh/) | [한국어](https://docs.ultralytics.com/ko/) | [日本語](https://docs.ultralytics.com/ja/) | [Русский](https://docs.ultralytics.com/ru/) | [Deutsch](https://docs.ultralytics.com/de/) | [Français](https://docs.ultralytics.com/fr/) | [Español](https://docs.ultralytics.com/es/) | [Português](https://docs.ultralytics.com/pt/) | [Türkçe](https://docs.ultralytics.com/tr/) | [Tiếng Việt](https://docs.ultralytics.com/vi/) | [العربية](https://docs.ultralytics.com/ar/) <br>
+[中文](https://docs.ultralytics.com/zh) | [한국어](https://docs.ultralytics.com/ko) | [日本語](https://docs.ultralytics.com/ja) | [Русский](https://docs.ultralytics.com/ru) | [Deutsch](https://docs.ultralytics.com/de) | [Français](https://docs.ultralytics.com/fr) | [Español](https://docs.ultralytics.com/es) | [Português](https://docs.ultralytics.com/pt) | [Türkçe](https://docs.ultralytics.com/tr) | [Tiếng Việt](https://docs.ultralytics.com/vi) | [العربية](https://docs.ultralytics.com/ar) <br>
 
 <div>
     <a href="https://github.com/ultralytics/ultralytics/actions/workflows/ci.yaml"><img src="https://github.com/ultralytics/ultralytics/actions/workflows/ci.yaml/badge.svg" alt="Ultralytics CI"></a>
@@ -20,11 +20,11 @@
 </div>
 <br>
 
-[Ultralytics](https://ultralytics.com) [YOLOv8](https://github.com/ultralytics/ultralytics) 是一款前沿、最先进（SOTA）的模型，基于先前 YOLO 版本的成功，引入了新功能和改进，进一步提升性能和灵活性。YOLOv8 设计快速、准确且易于使用，使其成为各种物体检测与跟踪、实例分割、图像分类和姿态估计任务的绝佳选择。
+[Ultralytics](https://www.ultralytics.com/) [YOLOv8](https://github.com/ultralytics/ultralytics) 是一款前沿、最先进（SOTA）的模型，基于先前 YOLO 版本的成功，引入了新功能和改进，进一步提升性能和灵活性。YOLOv8 设计快速、准确且易于使用，使其成为各种物体检测与跟踪、实例分割、图像分类和姿态估计任务的绝佳选择。
 
 我们希望这里的资源能帮助您充分利用 YOLOv8。请浏览 YOLOv8 的<a href="https://docs.ultralytics.com/">文档</a>了解详情，如需支持、提问或讨论，请在 <a href="https://github.com/ultralytics/ultralytics/issues/new/choose">GitHub</a> 上提出问题，成为 Ultralytics <a href="https://ultralytics.com/discord">Discord</a>、<a href="https://reddit.com/r/ultralytics">Reddit</a> 和 <a href="https://community.ultralytics.com">论坛</a> 的一员！
 
-如需申请企业许可，请在 [Ultralytics Licensing](https://ultralytics.com/license) 处填写表格
+如需申请企业许可，请在 [Ultralytics Licensing](https://www.ultralytics.com/license) 处填写表格
 
 <img width="100%" src="https://raw.githubusercontent.com/ultralytics/assets/main/yolov8/yolo-comparison-plots.png" alt="YOLOv8 performance plots"></a>
 
@@ -105,7 +105,7 @@ success = model.export(format="onnx")  # 将模型导出为 ONNX 格式
 
 ### 笔记本
 
-Ultralytics 提供了 YOLOv8 的交互式笔记本，涵盖训练、验证、跟踪等内容。每个笔记本都配有 [YouTube](https://youtube.com/ultralytics?sub_confirmation=1) 教程，使学习和实现高级 YOLOv8 功能变得简单。
+Ultralytics 提供了 YOLOv8 的交互式笔记本，涵盖训练、验证、跟踪等内容。每个笔记本都配有 [YouTube](https://www.youtube.com/ultralytics?sub_confirmation=1) 教程，使学习和实现高级 YOLOv8 功能变得简单。
 
 | 文档                                                                                                              | 笔记本                                                                                                                                                                                                                       |                                                                                                     YouTube                                                                                                     |
 | ----------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
@@ -136,7 +136,7 @@ Ultralytics 提供了 YOLOv8 的交互式笔记本，涵盖训练、验证、跟
 | [YOLOv8l](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8l.pt) | 640                 | 52.9                 | 375.2                         | 2.39                               | 43.7             | 165.2             |
 | [YOLOv8x](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8x.pt) | 640                 | 53.9                 | 479.1                         | 3.53                               | 68.2             | 257.8             |
 
-- **mAP<sup>val</sup>** 值是基于单模型单尺度在 [COCO val2017](https://cocodataset.org) 数据集上的结果。 <br>通过 `yolo val detect data=coco.yaml device=0` 复现
+- **mAP<sup>val</sup>** 值是基于单模型单尺度在 [COCO val2017](https://cocodataset.org/) 数据集上的结果。 <br>通过 `yolo val detect data=coco.yaml device=0` 复现
 - **速度** 是使用 [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) 实例对 COCO val 图像进行平均计算的。 <br>通过 `yolo val detect data=coco.yaml batch=1 device=0|cpu` 复现
 
 </details>
@@ -170,7 +170,7 @@ Ultralytics 提供了 YOLOv8 的交互式笔记本，涵盖训练、验证、跟
 | [YOLOv8l-seg](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8l-seg.pt) | 640                 | 52.3                 | 42.6                  | 572.4                         | 2.79                               | 46.0             | 220.5             |
 | [YOLOv8x-seg](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8x-seg.pt) | 640                 | 53.4                 | 43.4                  | 712.1                         | 4.02                               | 71.8             | 344.1             |
 
-- **mAP<sup>val</sup>** 值是基于单模型单尺度在 [COCO val2017](https://cocodataset.org) 数据集上的结果。 <br>通过 `yolo val segment data=coco-seg.yaml device=0` 复现
+- **mAP<sup>val</sup>** 值是基于单模型单尺度在 [COCO val2017](https://cocodataset.org/) 数据集上的结果。 <br>通过 `yolo val segment data=coco-seg.yaml device=0` 复现
 - **速度** 是使用 [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) 实例对 COCO val 图像进行平均计算的。 <br>通过 `yolo val segment data=coco-seg.yaml batch=1 device=0|cpu` 复现
 
 </details>
@@ -188,7 +188,7 @@ Ultralytics 提供了 YOLOv8 的交互式笔记本，涵盖训练、验证、跟
 | [YOLOv8x-pose](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8x-pose.pt)       | 640                 | 69.2                  | 90.2               | 1607.1                        | 3.73                               | 69.4             | 263.2             |
 | [YOLOv8x-pose-p6](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8x-pose-p6.pt) | 1280                | 71.6                  | 91.2               | 4088.7                        | 10.04                              | 99.1             | 1066.4            |
 
-- **mAP<sup>val</sup>** 值是基于单模型单尺度在 [COCO Keypoints val2017](https://cocodataset.org) 数据集上的结果。 <br>通过 `yolo val pose data=coco-pose.yaml device=0` 复现
+- **mAP<sup>val</sup>** 值是基于单模型单尺度在 [COCO Keypoints val2017](https://cocodataset.org/) 数据集上的结果。 <br>通过 `yolo val pose data=coco-pose.yaml device=0` 复现
 - **速度** 是使用 [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) 实例对 COCO val 图像进行平均计算的。 <br>通过 `yolo val pose data=coco-pose.yaml batch=1 device=0|cpu` 复现
 
 </details>
@@ -257,14 +257,14 @@ Ultralytics 提供了 YOLOv8 的交互式笔记本，涵盖训练、验证、跟
 
 ## <div align="center">Ultralytics HUB</div>
 
-体验 [Ultralytics HUB](https://ultralytics.com/hub) ⭐ 带来的无缝 AI，这是一个一体化解决方案，用于数据可视化、YOLOv5 和即将推出的 YOLOv8 🚀 模型训练和部署，无需任何编码。通过我们先进的平台和用户友好的 [Ultralytics 应用程序](https://ultralytics.com/app_install)，轻松将图像转化为可操作的见解，并实现您的 AI 愿景。现在就开始您的**免费**之旅！
+体验 [Ultralytics HUB](https://www.ultralytics.com/hub) ⭐ 带来的无缝 AI，这是一个一体化解决方案，用于数据可视化、YOLOv5 和即将推出的 YOLOv8 🚀 模型训练和部署，无需任何编码。通过我们先进的平台和用户友好的 [Ultralytics 应用程序](https://www.ultralytics.com/app-install)，轻松将图像转化为可操作的见解，并实现您的 AI 愿景。现在就开始您的**免费**之旅！
 
 <a href="https://ultralytics.com/hub" target="_blank">
 <img width="100%" src="https://github.com/ultralytics/assets/raw/main/im/ultralytics-hub.png" alt="Ultralytics HUB preview image"></a>
 
 ## <div align="center">贡献</div>
 
-我们喜欢您的参与！没有社区的帮助，YOLOv5 和 YOLOv8 将无法实现。请参阅我们的[贡献指南](https://docs.ultralytics.com/help/contributing)以开始使用，并填写我们的[调查问卷](https://ultralytics.com/survey?utm_source=github&utm_medium=social&utm_campaign=Survey)向我们提供您的使用体验反馈。感谢所有贡献者的支持！🙏
+我们喜欢您的参与！没有社区的帮助，YOLOv5 和 YOLOv8 将无法实现。请参阅我们的[贡献指南](https://docs.ultralytics.com/help/contributing)以开始使用，并填写我们的[调查问卷](https://www.ultralytics.com/survey?utm_source=github&utm_medium=social&utm_campaign=Survey)向我们提供您的使用体验反馈。感谢所有贡献者的支持！🙏
 
 <!-- SVG image from https://opencollective.com/ultralytics/contributors.svg?width=990 -->
 
@@ -275,12 +275,12 @@ Ultralytics 提供了 YOLOv8 的交互式笔记本，涵盖训练、验证、跟
 
 Ultralytics 提供两种许可证选项以适应各种使用场景：
 
-- **AGPL-3.0 许可证**：这个[OSI 批准](https://opensource.org/licenses/)的开源许可证非常适合学生和爱好者，可以推动开放的协作和知识分享。请查看[LICENSE](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) 文件以了解更多细节。
-- **企业许可证**：专为商业用途设计，该许可证允许将 Ultralytics 的软件和 AI 模型无缝集成到商业产品和服务中，从而绕过 AGPL-3.0 的开源要求。如果您的场景涉及将我们的解决方案嵌入到商业产品中，请通过 [Ultralytics Licensing](https://ultralytics.com/license)与我们联系。
+- **AGPL-3.0 许可证**：这个[OSI 批准](https://opensource.org/license)的开源许可证非常适合学生和爱好者，可以推动开放的协作和知识分享。请查看[LICENSE](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) 文件以了解更多细节。
+- **企业许可证**：专为商业用途设计，该许可证允许将 Ultralytics 的软件和 AI 模型无缝集成到商业产品和服务中，从而绕过 AGPL-3.0 的开源要求。如果您的场景涉及将我们的解决方案嵌入到商业产品中，请通过 [Ultralytics Licensing](https://www.ultralytics.com/license)与我们联系。
 
 ## <div align="center">联系方式</div>
 
-有关 Ultralytics 错误报告和功能请求，请访问 [GitHub 问题](https://github.com/ultralytics/ultralytics/issues)。成为 Ultralytics [Discord](https://ultralytics.com/discord)、[Reddit](https://reddit.com/r/ultralytics) 或 [论坛](https://community.ultralytics.com) 的成员 用于提出问题、共享项目、学习讨论或寻求有关 Ultralytics 的所有帮助！
+有关 Ultralytics 错误报告和功能请求，请访问 [GitHub 问题](https://github.com/ultralytics/ultralytics/issues)。成为 Ultralytics [Discord](https://discord.com/invite/ultralytics)、[Reddit](https://www.reddit.com/r/ultralytics/) 或 [论坛](https://community.ultralytics.com/) 的成员 用于提出问题、共享项目、学习讨论或寻求有关 Ultralytics 的所有帮助！
 
 <br>
 <div align="center">

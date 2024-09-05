@@ -73,7 +73,8 @@ from ultralytics.nn.modules import (
     Concat_BiFPN,
     C2f_DBB,
     C2f_SimAM, C2f_CoT, C2f_SK, C2f_Double,
-    C2f_Dual
+    C2f_Dual,
+    DySample
 )
 from ultralytics.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, colorstr, emojis, yaml_load
 from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml
@@ -1028,6 +1029,8 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
         elif m is Concat_BiFPN:
             c2 = sum(ch[x] for x in f)
         # ------------ end---------------
+        elif m in {DySample,}:
+            args = [ch[f], *args[0:]]
         else:
             c2 = ch[f]
 

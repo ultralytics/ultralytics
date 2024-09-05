@@ -68,7 +68,8 @@ from .block import (
     Concat_BiFPN,
     C2f_DBB,
     C2f_SimAM, C2f_CoT, C2f_SK, C2f_Double,
-    C2f_Dual
+    C2f_Dual,
+    DySample
 )
 from .conv import (
     CBAM,
@@ -188,4 +189,5 @@ __all__ = (
     "C2f_DBB",
     "C2f_SimAM", "C2f_CoT", "C2f_SK", "C2f_Double",
     "C2f_Dual",
+    "DySample"
 )

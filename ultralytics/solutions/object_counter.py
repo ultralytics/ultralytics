@@ -27,7 +27,6 @@ class ObjectCounter:
         view_in_counts=True,
         view_out_counts=True,
         draw_tracks=False,
-        track_color=None,
         region_thickness=5,
     ):
         """
@@ -44,7 +43,6 @@ class ObjectCounter:
             view_in_counts (bool): Flag to control whether to display the in counts on the video stream.
             view_out_counts (bool): Flag to control whether to display the out counts on the video stream.
             draw_tracks (bool): Flag to control whether to draw the object tracks.
-            track_color (tuple): RGB color of the tracks.
             region_thickness (int): Thickness of the object counting region.
         """
         # Mouse events
@@ -81,7 +79,6 @@ class ObjectCounter:
         # Tracks info
         self.track_history = defaultdict(list)
         self.draw_tracks = draw_tracks
-        self.track_color = track_color
 
         # Check if environment supports imshow
         self.env_check = check_imshow(warn=True)
@@ -167,7 +164,7 @@ class ObjectCounter:
                 if self.draw_tracks:
                     self.annotator.draw_centroid_and_tracks(
                         track_line,
-                        color=self.track_color or colors(int(track_id), True),
+                        color=colors(int(track_id), True),
                         track_thickness=self.tf,
                     )
 

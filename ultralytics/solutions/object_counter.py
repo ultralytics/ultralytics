@@ -16,20 +16,20 @@ class ObjectCounter:
     """A class to manage the counting of objects in a real-time video stream based on their tracks."""
 
     def __init__(
-            self,
-            names,
-            reg_pts=None,
-            count_reg_color=(255, 0, 255),
-            count_txt_color=(0, 0, 0),
-            count_bg_color=(255, 255, 255),
-            line_thickness=2,
-            track_thickness=2,
-            view_img=False,
-            view_in_counts=True,
-            view_out_counts=True,
-            draw_tracks=False,
-            track_color=None,
-            region_thickness=5,
+        self,
+        names,
+        reg_pts=None,
+        count_reg_color=(255, 0, 255),
+        count_txt_color=(0, 0, 0),
+        count_bg_color=(255, 255, 255),
+        line_thickness=2,
+        track_thickness=2,
+        view_img=False,
+        view_in_counts=True,
+        view_out_counts=True,
+        draw_tracks=False,
+        track_color=None,
+        region_thickness=5,
     ):
         """
         Initializes the ObjectCounter with various tracking and counting parameters.
@@ -115,9 +115,9 @@ class ObjectCounter:
         if event == cv2.EVENT_LBUTTONDOWN:
             for i, point in enumerate(self.reg_pts):
                 if (
-                        isinstance(point, (tuple, list))
-                        and len(point) >= 2
-                        and (abs(x - point[0]) < 10 and abs(y - point[1]) < 10)
+                    isinstance(point, (tuple, list))
+                    and len(point) >= 2
+                    and (abs(x - point[0]) < 10 and abs(y - point[1]) < 10)
                 ):
                     self.selected_point = i
                     self.is_drawing = True
@@ -208,7 +208,7 @@ class ObjectCounter:
 
                             # Determine the direction of movement (IN or OUT)
                             direction = (box[0] - prev_position[0]) * (
-                                    self.counting_region.centroid.x - prev_position[0]
+                                self.counting_region.centroid.x - prev_position[0]
                             )
                             if direction > 0:
                                 self.in_counts += 1

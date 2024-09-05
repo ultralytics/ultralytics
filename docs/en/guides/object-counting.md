@@ -239,8 +239,6 @@ Here's a table with the `ObjectCounter` arguments:
 | `draw_tracks`        | `bool`  | `False`                    | Flag to control whether to draw the object tracks.                     |
 | `track_color`        | `tuple` | `None`                     | RGB color of the tracks.                                               |
 | `region_thickness`   | `int`   | `5`                        | Thickness of the object counting region.                               |
-| `line_dist_thresh`   | `int`   | `15`                       | Euclidean distance threshold for line counter.                         |
-| `cls_txtdisplay_gap` | `int`   | `50`                       | Display gap between each class count.                                  |
 
 ### Arguments `model.track`
 

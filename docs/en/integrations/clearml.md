@@ -8,7 +8,7 @@ keywords: YOLOv8, ClearML, MLOps, Ultralytics, machine learning, object detectio
 
 MLOps bridges the gap between creating and deploying machine learning models in real-world settings. It focuses on efficient deployment, scalability, and ongoing management to ensure models perform well in practical applications.
 
-[Ultralytics YOLOv8](https://ultralytics.com) effortlessly integrates with ClearML, streamlining and enhancing your object detection model's training and management. This guide will walk you through the integration process, detailing how to set up ClearML, manage experiments, automate model management, and collaborate effectively.
+[Ultralytics YOLOv8](https://www.ultralytics.com/) effortlessly integrates with ClearML, streamlining and enhancing your object detection model's training and management. This guide will walk you through the integration process, detailing how to set up ClearML, manage experiments, automate model management, and collaborate effectively.
 
 ## ClearML
 

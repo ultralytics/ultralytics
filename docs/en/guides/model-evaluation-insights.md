@@ -128,7 +128,7 @@ Sharing your ideas and questions with other computer vision enthusiasts can insp
 ### Finding Help and Support
 
 - **GitHub Issues:** Explore the YOLOv8 GitHub repository and use the [Issues tab](https://github.com/ultralytics/ultralytics/issues) to ask questions, report bugs, and suggest features. The community and maintainers are available to assist with any issues you encounter.
-- **Ultralytics Discord Server:** Join the [Ultralytics Discord server](https://ultralytics.com/discord/) to connect with other users and developers, get support, share knowledge, and brainstorm ideas.
+- **Ultralytics Discord Server:** Join the [Ultralytics Discord server](https://discord.com/invite/ultralytics) to connect with other users and developers, get support, share knowledge, and brainstorm ideas.
 
 ### Official Documentation
 

@@ -35,7 +35,7 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 - [MLFlow](mlflow.md): Streamline the entire ML lifecycle of Ultralytics models, from experimentation and reproducibility to deployment.
 
-- [Ultralytics HUB](https://hub.ultralytics.com): Access and contribute to a community of pre-trained Ultralytics models.
+- [Ultralytics HUB](https://hub.ultralytics.com/): Access and contribute to a community of pre-trained Ultralytics models.
 
 - [Neptune](https://neptune.ai/): Maintain a comprehensive log of your ML experiments with Ultralytics in this metadata store designed for MLOps.
 
@@ -65,7 +65,7 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 - [TorchScript](torchscript.md): Developed as part of the [PyTorch](https://pytorch.org/) framework, TorchScript enables efficient execution and deployment of machine learning models in various production environments without the need for Python dependencies.
 
-- [ONNX](onnx.md): An open-source format created by [Microsoft](https://www.microsoft.com) for facilitating the transfer of AI models between various frameworks, enhancing the versatility and deployment flexibility of Ultralytics models.
+- [ONNX](onnx.md): An open-source format created by [Microsoft](https://www.microsoft.com/) for facilitating the transfer of AI models between various frameworks, enhancing the versatility and deployment flexibility of Ultralytics models.
 
 - [OpenVINO](openvino.md): Intel's toolkit for optimizing and deploying computer vision models efficiently across various Intel CPU and GPU platforms.
 
@@ -73,15 +73,15 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 - [CoreML](coreml.md): CoreML, developed by [Apple](https://www.apple.com/), is a framework designed for efficiently integrating machine learning models into applications across iOS, macOS, watchOS, and tvOS, using Apple's hardware for effective and secure model deployment.
 
-- [TF SavedModel](tf-savedmodel.md): Developed by [Google](https://www.google.com), TF SavedModel is a universal serialization format for TensorFlow models, enabling easy sharing and deployment across a wide range of platforms, from servers to edge devices.
+- [TF SavedModel](tf-savedmodel.md): Developed by [Google](https://www.google.com/), TF SavedModel is a universal serialization format for TensorFlow models, enabling easy sharing and deployment across a wide range of platforms, from servers to edge devices.
 
-- [TF GraphDef](tf-graphdef.md): Developed by [Google](https://www.google.com), GraphDef is TensorFlow's format for representing computation graphs, enabling optimized execution of machine learning models across diverse hardware.
+- [TF GraphDef](tf-graphdef.md): Developed by [Google](https://www.google.com/), GraphDef is TensorFlow's format for representing computation graphs, enabling optimized execution of machine learning models across diverse hardware.
 
-- [TFLite](tflite.md): Developed by [Google](https://www.google.com), TFLite is a lightweight framework for deploying machine learning models on mobile and edge devices, ensuring fast, efficient inference with minimal memory footprint.
+- [TFLite](tflite.md): Developed by [Google](https://www.google.com/), TFLite is a lightweight framework for deploying machine learning models on mobile and edge devices, ensuring fast, efficient inference with minimal memory footprint.
 
-- [TFLite Edge TPU](edge-tpu.md): Developed by [Google](https://www.google.com) for optimizing TensorFlow Lite models on Edge TPUs, this model format ensures high-speed, efficient edge computing.
+- [TFLite Edge TPU](edge-tpu.md): Developed by [Google](https://www.google.com/) for optimizing TensorFlow Lite models on Edge TPUs, this model format ensures high-speed, efficient edge computing.
 
-- [TF.js](tfjs.md): Developed by [Google](https://www.google.com) to facilitate machine learning in browsers and Node.js, TF.js allows JavaScript-based deployment of ML models.
+- [TF.js](tfjs.md): Developed by [Google](https://www.google.com/) to facilitate machine learning in browsers and Node.js, TF.js allows JavaScript-based deployment of ML models.
 
 - [PaddlePaddle](paddlepaddle.md): An open-source deep learning platform by [Baidu](https://www.baidu.com/), PaddlePaddle enables the efficient deployment of AI models and focuses on the scalability of industrial applications.
 
@@ -111,7 +111,7 @@ Let's collaborate to make the Ultralytics YOLO ecosystem more expansive and feat
 
 ### What is Ultralytics HUB, and how does it streamline the ML workflow?
 
-Ultralytics HUB is a cloud-based platform designed to make machine learning (ML) workflows for Ultralytics models seamless and efficient. By using this tool, you can easily upload datasets, train models, perform real-time tracking, and deploy YOLOv8 models without needing extensive coding skills. You can explore the key features on the [Ultralytics HUB](https://hub.ultralytics.com) page and get started quickly with our [Quickstart](https://docs.ultralytics.com/hub/quickstart/) guide.
+Ultralytics HUB is a cloud-based platform designed to make machine learning (ML) workflows for Ultralytics models seamless and efficient. By using this tool, you can easily upload datasets, train models, perform real-time tracking, and deploy YOLOv8 models without needing extensive coding skills. You can explore the key features on the [Ultralytics HUB](https://hub.ultralytics.com/) page and get started quickly with our [Quickstart](https://docs.ultralytics.com/hub/quickstart/) guide.
 
 ### How do I integrate Ultralytics YOLO models with Roboflow for dataset management?
 

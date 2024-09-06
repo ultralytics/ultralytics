@@ -42,35 +42,35 @@ Here is an example of the YOLO dataset format for a single image with two object
       - Not each label contains keypoint labels.
       - For objects which have less than the in `kpt_shape` maximum defined number of keypoints, all missing keypoints need to be labeled `0 0 0`.
       - Each segmentation label must have a **minimum of 3 xy points**: `<class-index> ..<points>.. <x1> <y1> <x2> <y2> <x3> <y3>`
+
 ### Dataset YAML format
 
 The Ultralytics framework uses a YAML file format to define the dataset and model configuration for training Detection Models. Here is an example of the YAML format used for defining a detection dataset:
 
 ```yaml
 # Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
-path: ../datasets/coco8-multitask  # dataset root dir
-train: images/train  # train images (relative to 'path') 4 images
-val: images/val  # val images (relative to 'path') 4 images
-test:  # test images (optional)
+path: ../datasets/coco8-multitask # dataset root dir
+train: images/train # train images (relative to 'path') 4 images
+val: images/val # val images (relative to 'path') 4 images
+test: # test images (optional)
 
 # Keypoints
-kpt_shape: [17, 3]  # maximum number of keypoints, number of dims (x,y,visible)
+kpt_shape: [17, 3] # maximum number of keypoints, number of dims (x,y,visible)
 flip_idx: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
 
 # Classes (80 COCO classes)
 names:
-  0: person
-  1: bicycle
-  2: car
-  # ...
-  77: teddy bear
-  78: hair drier
-  79: toothbrush
+    0: person
+    1: bicycle
+    2: car
+    # ...
+    77: teddy bear
+    78: hair drier
+    79: toothbrush
 
 # Classes for keypoint detection
 kpt_names:
-  0: person
-
+    0: person
 # Download script/URL (optional)
 #download: https://ultralytics.com/assets/coco8-multitask.zip
 ```
@@ -80,10 +80,9 @@ The `train` and `val` fields specify the paths to the directories containing the
 `names` is a dictionary of class names. The order of the names should match the order of the object class indices in the YOLO dataset files.
 
 `kpt_names` is a subset of `names` containing class names for which keypoint detection is enabled. The order of the names should match the order in `names`.
- 
 
 (Optional if only 1 class in `kpt_names`) if the points are symmetric then need flip_idx, like left-right side of human or face. For example if we assume five keypoints of facial landmark: [left eye, right eye, nose, left mouth, right mouth], and the original index is [0, 1, 2, 3, 4], then flip_idx is [1, 0, 2, 4, 3] (just exchange the left-right index, i.e. 0-1 and 3-4, and do not modify others like nose in this example).
-If keypoints for multiple classes get predicted, `flip_idx` *must* be in the natural order.
+If keypoints for multiple classes get predicted, `flip_idx` _must_ be in the natural order.
 
 ## Usage
 
@@ -127,6 +126,7 @@ This section outlines the datasets that are compatible with Ultralytics YOLO for
 If you have your own dataset and would like to use it for training multitask models with Ultralytics YOLO format, ensure that it follows the format specified above under "Ultralytics YOLO format". Convert your annotations to the required format and specify the paths, number of classes, and class names in the YAML configuration file.
 
 ### Conversion Tool
+
 Conversion of a Dataset is a two-step process, first convert the dataset in COCO format to seperate keypoint and segmentation datasets.
 Then merge the two datasets to a the YOLO multitask format.
 

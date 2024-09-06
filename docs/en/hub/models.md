@@ -64,7 +64,7 @@ In this step, you have to choose the project in which you want to create your mo
 
     In case you don't have a project created yet, you can set the name of your project in this step and it will be created together with your model.
 
-!!! Info "Info"
+!!! info "Info"
 
     You can read more about the available [YOLOv8](https://docs.ultralytics.com/models/yolov8) (and [YOLOv5](https://docs.ultralytics.com/models/yolov5)) architectures in our documentation.
 

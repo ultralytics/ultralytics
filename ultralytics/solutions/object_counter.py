@@ -94,10 +94,12 @@ class ObjectCounter:
             self.counting_region = LineString(self.reg_pts)
 
         # Define the counting line segment
-        self.counting_line_segment = LineString([
-            (self.reg_pts[0][0], self.reg_pts[0][1]),
-            (self.reg_pts[1][0], self.reg_pts[1][1]),
-        ])
+        self.counting_line_segment = LineString(
+            [
+                (self.reg_pts[0][0], self.reg_pts[0][1]),
+                (self.reg_pts[1][0], self.reg_pts[1][1]),
+            ]
+        )
 
     def mouse_event_for_region(self, event, x, y, flags, params):
         """

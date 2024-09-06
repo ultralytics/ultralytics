@@ -224,15 +224,15 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 
 Here's a table with the `ObjectCounter` arguments:
 
-| Name              | Type    | Default                    | Description                                                            |
-| ----------------- | ------- | -------------------------- | ---------------------------------------------------------------------- |
-| `names`           | `dict`  | `None`                     | Dictionary of classes names.                                           |
-| `reg_pts`         | `list`  | `[(20, 400), (1260, 400)]` | List of points defining the counting region.                           |
-| `line_thickness`  | `int`   | `2`                        | Line thickness for bounding boxes.                                     |
-| `view_img`        | `bool`  | `False`                    | Flag to control whether to display the video stream.                   |
-| `view_in_counts`  | `bool`  | `True`                     | Flag to control whether to display the in counts on the video stream.  |
-| `view_out_counts` | `bool`  | `True`                     | Flag to control whether to display the out counts on the video stream. |
-| `draw_tracks`     | `bool`  | `False`                    | Flag to control whether to draw the object tracks.                     |
+| Name              | Type   | Default                    | Description                                                            |
+| ----------------- | ------ | -------------------------- | ---------------------------------------------------------------------- |
+| `names`           | `dict` | `None`                     | Dictionary of classes names.                                           |
+| `reg_pts`         | `list` | `[(20, 400), (1260, 400)]` | List of points defining the counting region.                           |
+| `line_thickness`  | `int`  | `2`                        | Line thickness for bounding boxes.                                     |
+| `view_img`        | `bool` | `False`                    | Flag to control whether to display the video stream.                   |
+| `view_in_counts`  | `bool` | `True`                     | Flag to control whether to display the in counts on the video stream.  |
+| `view_out_counts` | `bool` | `True`                     | Flag to control whether to display the out counts on the video stream. |
+| `draw_tracks`     | `bool` | `False`                    | Flag to control whether to draw the object tracks.                     |
 
 ### Arguments `model.track`
 

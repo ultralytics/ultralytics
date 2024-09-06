@@ -146,7 +146,7 @@ class Settings:
             f'Invalid collection epoch interval {self.collection_epoch_interval}.')
 
     def _verify_collection(self) -> None:
-        """ Verify that the settings are valid for metrics collection only (val.py --task collect).
+        """ Verify that the settings are valid for metrics collection only (no training).
 
         :raises: AssertionError if the settings are invalid.
         """

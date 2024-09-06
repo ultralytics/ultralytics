@@ -64,6 +64,8 @@ class TLCYOLO(YOLO):
         if settings is None:
             settings = Settings()
 
+        settings.verify(training=False)
+
         results_dict = {}
         # Call val for each split or table
         if data and splits:

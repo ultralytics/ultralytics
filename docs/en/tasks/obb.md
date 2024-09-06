@@ -15,7 +15,7 @@ The output of an oriented object detector is a set of rotated bounding boxes tha
 
 <!-- youtube video link for obb task -->
 
-!!! Tip "Tip"
+!!! tip
 
     YOLOv8 OBB models use the `-obb` suffix, i.e. `yolov8n-obb.pt` and are pretrained on [DOTAv1](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/DOTAv1.yaml).
 
@@ -69,7 +69,7 @@ YOLOv8 pretrained OBB models are shown here, which are pretrained on the [DOTAv1
 
 Train YOLOv8n-obb on the `dota8.yaml` dataset for 100 epochs at image size 640. For a full list of available arguments see the [Configuration](../usage/cfg.md) page.
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -107,7 +107,7 @@ OBB dataset format can be found in detail in the [Dataset Guide](../datasets/obb
 Validate trained YOLOv8n-obb model accuracy on the DOTA8 dataset. No argument need to passed as the `model`
 retains its training `data` and arguments as model attributes.
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -137,7 +137,7 @@ retains its training `data` and arguments as model attributes.
 
 Use a trained YOLOv8n-obb model to run predictions on images.
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -165,7 +165,7 @@ See full `predict` mode details in the [Predict](../modes/predict.md) page.
 
 Export a YOLOv8n-obb model to a different format like ONNX, CoreML, etc.
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -203,7 +203,7 @@ Oriented Bounding Boxes (OBB) include an additional angle to enhance object loca
 
 To train a YOLOv8n-obb model with a custom dataset, follow the example below using Python or CLI:
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -233,7 +233,7 @@ YOLOv8-OBB models are pretrained on datasets like [DOTAv1](https://github.com/ul
 
 Exporting a YOLOv8-OBB model to ONNX format is straightforward using either Python or CLI:
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -259,7 +259,7 @@ For more export formats and details, refer to the [Export](../modes/export.md) p
 
 To validate a YOLOv8n-obb model, you can use Python or CLI commands as shown below:
 
-!!! Example
+!!! example
 
     === "Python"
 

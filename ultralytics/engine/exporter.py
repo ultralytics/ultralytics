@@ -610,6 +610,9 @@ class Exporter:
         f = self.file.with_suffix(".mlmodel" if mlmodel else ".mlpackage")
         if f.is_dir():
             shutil.rmtree(f)
+        if self.args.nms and getattr(self.model, "end2end", False):
+            LOGGER.warning(f"{prefix} WARNING ⚠️ 'nms=True' is not available for end2end models. Forcing 'nms=False'.")
+            self.args.nms = False
 
         bias = [0.0, 0.0, 0.0]
         scale = 1 / 255

@@ -40,7 +40,7 @@ You can download our [COCO8](https://github.com/ultralytics/hub/blob/main/exampl
 
 The dataset YAML is the same standard YOLOv5 and YOLOv8 YAML format.
 
-!!! Example "coco8.yaml"
+!!! example "coco8.yaml"
 
     ```yaml
     --8<-- "ultralytics/cfg/datasets/coco8.yaml"

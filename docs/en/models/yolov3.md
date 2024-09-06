@@ -44,7 +44,7 @@ This table provides an at-a-glance view of the capabilities of each YOLOv3 varia
 
 This example provides simple YOLOv3 training and inference examples. For full documentation on these and other [modes](../modes/index.md) see the [Predict](../modes/predict.md), [Train](../modes/train.md), [Val](../modes/val.md) and [Export](../modes/export.md) docs pages.
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -82,7 +82,7 @@ This example provides simple YOLOv3 training and inference examples. For full do
 
 If you use YOLOv3 in your research, please cite the original YOLO papers and the Ultralytics YOLOv3 repository:
 
-!!! Quote ""
+!!! quote ""
 
     === "BibTeX"
 
@@ -107,7 +107,7 @@ YOLOv3 is the third iteration of the YOLO (You Only Look Once) object detection 
 
 Training a YOLOv3 model with Ultralytics is straightforward. You can train the model using either Python or CLI:
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -138,7 +138,7 @@ YOLOv3u improves upon YOLOv3 and YOLOv3-Ultralytics by incorporating the anchor-
 
 You can perform inference using YOLOv3 models by either Python scripts or CLI commands:
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -169,7 +169,7 @@ YOLOv3, YOLOv3-Ultralytics, and YOLOv3u primarily support object detection tasks
 
 If you use YOLOv3 in your research, please cite the original YOLO papers and the Ultralytics YOLOv3 repository. Example BibTeX citation:
 
-!!! Quote ""
+!!! quote ""
 
     === "BibTeX"
 

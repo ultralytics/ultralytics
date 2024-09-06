@@ -116,7 +116,7 @@ SAM 2 can be utilized across a broad spectrum of tasks, including real-time vide
 
 #### Segment with Prompts
 
-!!! Example "Segment with Prompts"
+!!! example "Segment with Prompts"
 
     Use prompts to segment specific objects in images or videos.
 
@@ -140,7 +140,7 @@ SAM 2 can be utilized across a broad spectrum of tasks, including real-time vide
 
 #### Segment Everything
 
-!!! Example "Segment Everything"
+!!! example "Segment Everything"
 
     Segment the entire image or video content without specific prompts.
 
@@ -185,7 +185,7 @@ This comparison shows the order-of-magnitude differences in the model sizes and 
 
 Tests run on a 2023 Apple M2 Macbook with 16GB of RAM using `torch==2.3.1` and `ultralytics==8.3.82`. To reproduce this test:
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -217,7 +217,7 @@ Auto-annotation is a powerful feature of SAM 2, enabling users to generate segme
 
 To auto-annotate your dataset using SAM 2, follow this example:
 
-!!! Example "Auto-Annotation Example"
+!!! example "Auto-Annotation Example"
 
     ```python
     from ultralytics.data.annotator import auto_annotate
@@ -248,7 +248,7 @@ Despite its strengths, SAM 2 has certain limitations:
 
 If SAM 2 is a crucial part of your research or development work, please cite it using the following reference:
 
-!!! Quote ""
+!!! quote ""
 
     === "BibTeX"
 
@@ -281,7 +281,7 @@ For more details on SAM 2's architecture and capabilities, explore the [SAM 2 re
 
 SAM 2 can be utilized for real-time video segmentation by leveraging its promptable interface and real-time inference capabilities. Here's a basic example:
 
-!!! Example "Segment with Prompts"
+!!! example "Segment with Prompts"
 
     Use prompts to segment specific objects in images or videos.
 

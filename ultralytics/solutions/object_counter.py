@@ -185,11 +185,9 @@ class ObjectCounter:
                 # Count objects using line
                 elif len(self.reg_pts) == 2:
                     if prev_position is not None and track_id not in self.count_ids:
-                        # Define the segment of object movement (n-1 to n)
-                        object_segment = LineString([(prev_position[0], prev_position[1]), (box[0], box[1])])
 
                         # Check if the object's movement segment intersects the counting line
-                        if object_segment.intersects(self.counting_line_segment):
+                        if LineString([(prev_position[0], prev_position[1]), (box[0], box[1])]).intersects(self.counting_line_segment):
                             self.count_ids.append(track_id)
 
                             # Determine the direction of movement (IN or OUT)

@@ -39,7 +39,7 @@ The VisDrone dataset is widely used for training and evaluating deep learning mo
 
 A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. In the case of the Visdrone dataset, the `VisDrone.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/VisDrone.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/VisDrone.yaml).
 
-!!! Example "ultralytics/cfg/datasets/VisDrone.yaml"
+!!! example "ultralytics/cfg/datasets/VisDrone.yaml"
 
     ```yaml
     --8<-- "ultralytics/cfg/datasets/VisDrone.yaml"
@@ -49,7 +49,7 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 To train a YOLOv8n model on the VisDrone dataset for 100 epochs with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
-!!! Example "Train Example"
+!!! example "Train Example"
 
     === "Python"
 
@@ -84,7 +84,7 @@ The example showcases the variety and complexity of the data in the VisDrone dat
 
 If you use the VisDrone dataset in your research or development work, please cite the following paper:
 
-!!! Quote ""
+!!! quote ""
 
     === "BibTeX"
 
@@ -107,6 +107,7 @@ We would like to acknowledge the AISKYEYE team at the Lab of Machine Learning an
 ### What is the VisDrone Dataset and what are its key features?
 
 The [VisDrone Dataset](https://github.com/VisDrone/VisDrone-Dataset) is a large-scale benchmark created by the AISKYEYE team at Tianjin University, China. It is designed for various computer vision tasks related to drone-based image and video analysis. Key features include:
+
 - **Composition**: 288 video clips with 261,908 frames and 10,209 static images.
 - **Annotations**: Over 2.6 million bounding boxes for objects like pedestrians, cars, bicycles, and tricycles.
 - **Diversity**: Collected across 14 cities, in urban and rural settings, under different weather and lighting conditions.
@@ -116,10 +117,10 @@ The [VisDrone Dataset](https://github.com/VisDrone/VisDrone-Dataset) is a large-
 
 To train a YOLOv8 model on the VisDrone dataset for 100 epochs with an image size of 640, you can follow these steps:
 
-!!! Example "Train Example"
+!!! example "Train Example"
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
 
@@ -131,7 +132,7 @@ To train a YOLOv8 model on the VisDrone dataset for 100 epochs with an image siz
         ```
 
     === "CLI"
-    
+
         ```bash
         # Start training from a pretrained *.pt model
         yolo detect train data=VisDrone.yaml model=yolov8n.pt epochs=100 imgsz=640
@@ -142,6 +143,7 @@ For additional configuration options, please refer to the model [Training](../..
 ### What are the main subsets of the VisDrone dataset and their applications?
 
 The VisDrone dataset is divided into five main subsets, each tailored for a specific computer vision task:
+
 1. **Task 1**: Object detection in images.
 2. **Task 2**: Object detection in videos.
 3. **Task 3**: Single-object tracking.
@@ -159,7 +161,7 @@ The configuration file for the VisDrone dataset, `VisDrone.yaml`, can be found i
 
 If you use the VisDrone dataset in your research or development work, please cite the following paper:
 
-!!! Quote ""
+!!! quote ""
 
     === "BibTeX"
 

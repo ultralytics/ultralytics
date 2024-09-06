@@ -27,7 +27,7 @@ OpenVINO, short for Open Visual Inference & Neural Network Optimization toolkit,
 
 Export a YOLOv8n model to OpenVINO format and run inference with the exported model.
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -105,7 +105,7 @@ For more detailed steps and code snippets, refer to the [OpenVINO documentation]
 
 YOLOv8 benchmarks below were run by the Ultralytics team on 4 different model formats measuring speed and accuracy: PyTorch, TorchScript, ONNX and OpenVINO. Benchmarks were run on Intel Flex and Arc GPUs, and on Intel Xeon CPUs at FP32 precision (with the `half=False` argument).
 
-!!! Note
+!!! note
 
     The benchmarking results below are for reference and might vary based on the exact hardware and software configuration of a system, as well as the current workload of the system at the time the benchmarks are run.
 
@@ -255,7 +255,7 @@ Benchmarks below run on 13th Gen Intel® Core® i7-13700H CPU at FP32 precision.
 
 To reproduce the Ultralytics benchmarks above on all export [formats](../modes/export.md) run this code:
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -294,7 +294,7 @@ For more detailed information and instructions on using OpenVINO, refer to the [
 
 Exporting YOLOv8 models to the OpenVINO format can significantly enhance CPU speed and enable GPU and NPU accelerations on Intel hardware. To export, you can use either Python or CLI as shown below:
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -332,7 +332,7 @@ For detailed performance comparisons, visit our [benchmarks section](#openvino-y
 
 After exporting a YOLOv8 model to OpenVINO format, you can run inference using Python or CLI:
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -369,7 +369,7 @@ For in-depth performance analysis, check our detailed [YOLOv8 benchmarks](#openv
 
 Yes, you can benchmark YOLOv8 models in various formats including PyTorch, TorchScript, ONNX, and OpenVINO. Use the following code snippet to run benchmarks on your chosen dataset:
 
-!!! Example
+!!! example
 
     === "Python"
 

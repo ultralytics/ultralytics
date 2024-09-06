@@ -28,7 +28,7 @@ The Caltech-101 dataset is extensively used for training and evaluating deep lea
 
 To train a YOLO model on the Caltech-101 dataset for 100 epochs, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
-!!! Example "Train Example"
+!!! example "Train Example"
 
     === "Python"
 
@@ -61,7 +61,7 @@ The example showcases the variety and complexity of the objects in the Caltech-1
 
 If you use the Caltech-101 dataset in your research or development work, please cite the following paper:
 
-!!! Quote ""
+!!! quote ""
 
     === "BibTeX"
 
@@ -90,7 +90,7 @@ The [Caltech-101](https://data.caltech.edu/records/mzrjq-6wc02) dataset is widel
 
 To train an Ultralytics YOLO model on the Caltech-101 dataset, you can use the provided code snippets. For example, to train for 100 epochs:
 
-!!! Example "Train Example"
+!!! example "Train Example"
 
     === "Python"
 
@@ -110,11 +110,13 @@ To train an Ultralytics YOLO model on the Caltech-101 dataset, you can use the p
         # Start training from a pretrained *.pt model
         yolo classify train data=caltech101 model=yolov8n-cls.pt epochs=100 imgsz=416
         ```
+
 For more detailed arguments and options, refer to the model [Training](../../modes/train.md) page.
 
 ### What are the key features of the Caltech-101 dataset?
 
 The Caltech-101 dataset includes:
+
 - Around 9,000 color images across 101 categories.
 - Categories covering a diverse range of objects, including animals, vehicles, and household items.
 - Variable number of images per category, typically between 40 and 800.
@@ -126,7 +128,7 @@ These features make it an excellent choice for training and evaluating object re
 
 Citing the Caltech-101 dataset in your research acknowledges the creators' contributions and provides a reference for others who might use the dataset. The recommended citation is:
 
-!!! Quote ""
+!!! quote ""
 
     === "BibTeX"
 
@@ -142,6 +144,7 @@ Citing the Caltech-101 dataset in your research acknowledges the creators' contr
           publisher={Elsevier}
         }
         ```
+
 Citing helps in maintaining the integrity of academic work and assists peers in locating the original resource.
 
 ### Can I use Ultralytics HUB for training models on the Caltech-101 dataset?

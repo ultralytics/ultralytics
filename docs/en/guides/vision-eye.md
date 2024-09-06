@@ -17,7 +17,7 @@ keywords: VisionEye, YOLOv8, Ultralytics, object mapping, object tracking, dista
 | ![VisionEye View Object Mapping using Ultralytics YOLOv8](https://github.com/ultralytics/docs/releases/download/0/visioneye-view-object-mapping-yolov8.avif) | ![VisionEye View Object Mapping with Object Tracking using Ultralytics YOLOv8](https://github.com/ultralytics/docs/releases/download/0/visioneye-object-mapping-with-tracking.avif) | ![VisionEye View with Distance Calculation using Ultralytics YOLOv8](https://github.com/ultralytics/docs/releases/download/0/visioneye-distance-calculation-yolov8.avif) |
 |                                                    VisionEye View Object Mapping using Ultralytics YOLOv8                                                    |                                                     VisionEye View Object Mapping with Object Tracking using Ultralytics YOLOv8                                                     |                                                    VisionEye View with Distance Calculation using Ultralytics YOLOv8                                                     |
 
-!!! Example "VisionEye Object Mapping using YOLOv8"
+!!! example "VisionEye Object Mapping using YOLOv8"
 
     === "VisionEye Object Mapping"
 

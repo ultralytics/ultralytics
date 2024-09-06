@@ -40,11 +40,13 @@ Semantic search is a technique for finding similar images to a given image. It i
 
 For example:
 In this VOC Exploration dashboard, user selects a couple airplane images like this:
+
 <p>
 <img width="1710" alt="Explorer Dashboard Screenshot 2" src="https://github.com/ultralytics/docs/releases/download/0/explorer-dashboard-screenshot-2.avif">
 </p>
 
 On performing similarity search, you should see a similar result:
+
 <p>
 <img width="1710" alt="Explorer Dashboard Screenshot 3" src="https://github.com/ultralytics/docs/releases/download/0/explorer-dashboard-screenshot-3.avif">
 </p>
@@ -52,6 +54,7 @@ On performing similarity search, you should see a similar result:
 ## Ask AI
 
 This allows you to write how you want to filter your dataset using natural language. You don't have to be proficient in writing SQL queries. Our AI powered query generator will automatically do that under the hood. For example - you can say - "show me 100 images with exactly one person and 2 dogs. There can be other objects too" and it'll internally generate the query and show you those results. Here's an example output when asked to "Show 10 images with exactly 5 persons" and you'll see a result like this:
+
 <p>
 <img width="1709" alt="Explorer Dashboard Screenshot 4" src="https://github.com/ultralytics/docs/releases/download/0/explorer-dashboard-screenshot-4.avif">
 </p>
@@ -76,7 +79,7 @@ This is a Demo build using the Explorer API. You can use the API to build your o
 
 ### What is Ultralytics Explorer GUI and how do I install it?
 
-Ultralytics Explorer GUI is a powerful interface that unlocks advanced data exploration capabilities using the [Ultralytics Explorer API](api.md). It allows you to run semantic/vector similarity search, SQL queries, and natural language queries using the Ask AI feature powered by Large Language Models (LLMs). 
+Ultralytics Explorer GUI is a powerful interface that unlocks advanced data exploration capabilities using the [Ultralytics Explorer API](api.md). It allows you to run semantic/vector similarity search, SQL queries, and natural language queries using the Ask AI feature powered by Large Language Models (LLMs).
 
 To install the Explorer GUI, you can use pip:
 
@@ -106,13 +109,14 @@ Ultralytics Explorer GUI allows you to run SQL queries directly on your dataset 
 WHERE labels LIKE '%person%' AND labels LIKE '%dog%'
 ```
 
-You can also provide only the WHERE clause, making the querying process more flexible. 
+You can also provide only the WHERE clause, making the querying process more flexible.
 
 For more details, refer to the [SQL Queries Section](#run-sql-queries-on-your-cv-datasets).
 
 ### What are the benefits of using Ultralytics Explorer GUI for data exploration?
 
 Ultralytics Explorer GUI enhances data exploration with features like semantic search, SQL querying, and natural language interactions through the Ask AI feature. These capabilities allow users to:
+
 - Efficiently find visually similar images.
 - Filter datasets using complex SQL queries.
 - Utilize AI to perform natural language searches, eliminating the need for advanced SQL expertise.

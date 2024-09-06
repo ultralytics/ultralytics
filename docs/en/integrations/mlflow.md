@@ -34,7 +34,7 @@ pip install mlflow
 
 Make sure that MLflow logging is enabled in Ultralytics settings. Usually, this is controlled by the settings `mflow` key. See the [settings](../quickstart.md#ultralytics-settings) page for more info.
 
-!!! Example "Update Ultralytics MLflow Settings"
+!!! example "Update Ultralytics MLflow Settings"
 
     === "Python"
 
@@ -130,7 +130,7 @@ pip install mlflow
 
 Next, enable MLflow logging in Ultralytics settings. This can be controlled using the `mlflow` key. For more information, see the [settings guide](../quickstart.md#ultralytics-settings).
 
-!!! Example "Update Ultralytics MLflow Settings"
+!!! example "Update Ultralytics MLflow Settings"
 
     === "Python"
 

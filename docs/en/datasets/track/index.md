@@ -12,7 +12,7 @@ Multi-Object Detector doesn't need standalone training and directly supports pre
 
 ## Usage
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -35,10 +35,10 @@ Multi-Object Detector doesn't need standalone training and directly supports pre
 
 To use Multi-Object Tracking with Ultralytics YOLO, you can start by using the Python or CLI examples provided. Here is how you can get started:
 
-!!! Example
+!!! example
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
 
@@ -51,7 +51,7 @@ To use Multi-Object Tracking with Ultralytics YOLO, you can start by using the P
         ```bash
         yolo track model=yolov8n.pt source="https://youtu.be/LNwODJXcvt4" conf=0.3 iou=0.5 show
         ```
-    
+
 These commands load the YOLOv8 model and use it for tracking objects in the given video source with specific confidence (`conf`) and Intersection over Union (`iou`) thresholds. For more details, refer to the [track mode documentation](../../modes/track.md).
 
 ### What are the upcoming features for training trackers in Ultralytics?

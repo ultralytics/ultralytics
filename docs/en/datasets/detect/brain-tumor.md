@@ -34,7 +34,7 @@ The application of brain tumor detection using computer vision enables early dia
 
 A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. In the case of the brain tumor dataset, the `brain-tumor.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/brain-tumor.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/brain-tumor.yaml).
 
-!!! Example "ultralytics/cfg/datasets/brain-tumor.yaml"
+!!! example "ultralytics/cfg/datasets/brain-tumor.yaml"
 
     ```yaml
     --8<-- "ultralytics/cfg/datasets/brain-tumor.yaml"
@@ -44,7 +44,7 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 To train a YOLOv8n model on the brain tumor dataset for 100 epochs with an image size of 640, utilize the provided code snippets. For a detailed list of available arguments, consult the model's [Training](../../modes/train.md) page.
 
-!!! Example "Train Example"
+!!! example "Train Example"
 
     === "Python"
 
@@ -65,7 +65,7 @@ To train a YOLOv8n model on the brain tumor dataset for 100 epochs with an image
         yolo detect train data=brain-tumor.yaml model=yolov8n.pt epochs=100 imgsz=640
         ```
 
-!!! Example "Inference Example"
+!!! example "Inference Example"
 
     === "Python"
 
@@ -110,10 +110,10 @@ The brain tumor dataset is divided into two subsets: the **training set** consis
 
 You can train a YOLOv8 model on the brain tumor dataset for 100 epochs with an image size of 640px using both Python and CLI methods. Below are the examples for both:
 
-!!! Example "Train Example"
+!!! example "Train Example"
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
 
@@ -123,10 +123,10 @@ You can train a YOLOv8 model on the brain tumor dataset for 100 epochs with an i
         # Train the model
         results = model.train(data="brain-tumor.yaml", epochs=100, imgsz=640)
         ```
-    
+
 
     === "CLI"
-    
+
         ```bash
         # Start training from a pretrained *.pt model
         yolo detect train data=brain-tumor.yaml model=yolov8n.pt epochs=100 imgsz=640
@@ -142,7 +142,7 @@ Using the brain tumor dataset in AI projects enables early diagnosis and treatme
 
 Inference using a fine-tuned YOLOv8 model can be performed with either Python or CLI approaches. Here are the examples:
 
-!!! Example "Inference Example"
+!!! example "Inference Example"
 
     === "Python"
 
@@ -157,7 +157,7 @@ Inference using a fine-tuned YOLOv8 model can be performed with either Python or
         ```
 
     === "CLI"
-    
+
         ```bash
         # Start prediction with a finetuned *.pt model
         yolo detect predict model='path/to/best.pt' imgsz=640 source="https://ultralytics.com/assets/brain-tumor-sample.jpg"

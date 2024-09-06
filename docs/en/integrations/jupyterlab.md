@@ -54,7 +54,7 @@ JupyterLab makes it easy to experiment with YOLOv8. To get started, follow these
 
 First, you need to install JupyterLab. Open your terminal and run the command:
 
-!!! Tip "Installation"
+!!! tip "Installation"
 
     === "CLI"
 
@@ -71,7 +71,7 @@ Next, download the [tutorial.ipynb](https://github.com/ultralytics/ultralytics/b
 
 Navigate to the directory where you saved the notebook file using your terminal. Then, run the following command to launch JupyterLab:
 
-!!! Example "Usage"
+!!! example "Usage"
 
     === "CLI"
 

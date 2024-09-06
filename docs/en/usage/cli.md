@@ -19,7 +19,7 @@ The YOLO command line interface (CLI) allows for simple single-line commands wit
   <strong>Watch:</strong> Mastering Ultralytics YOLOv8: CLI
 </p>
 
-!!! Example
+!!! example
 
     === "Syntax"
 
@@ -79,7 +79,7 @@ Where:
 - `MODE` (required) is one of `[train, val, predict, export, track, benchmark]`
 - `ARGS` (optional) are any number of custom `arg=value` pairs like `imgsz=320` that override defaults. For a full list of available `ARGS` see the [Configuration](cfg.md) page and `defaults.yaml`
 
-!!! Warning "Warning"
+!!! warning "Warning"
 
     Arguments must be passed as `arg=val` pairs, split by an equals `=` sign and delimited by spaces ` ` between pairs. Do not use `--` argument prefixes or commas `,` between arguments.
 
@@ -91,7 +91,7 @@ Where:
 
 Train YOLOv8n on the COCO8 dataset for 100 epochs at image size 640. For a full list of available arguments see the [Configuration](cfg.md) page.
 
-!!! Example "Example"
+!!! example "Example"
 
     === "Train"
 
@@ -111,7 +111,7 @@ Train YOLOv8n on the COCO8 dataset for 100 epochs at image size 640. For a full 
 
 Validate trained YOLOv8n model accuracy on the COCO8 dataset. No argument need to passed as the `model` retains its training `data` and arguments as model attributes.
 
-!!! Example "Example"
+!!! example "Example"
 
     === "Official"
 
@@ -131,7 +131,7 @@ Validate trained YOLOv8n model accuracy on the COCO8 dataset. No argument need t
 
 Use a trained YOLOv8n model to run predictions on images.
 
-!!! Example "Example"
+!!! example "Example"
 
     === "Official"
 
@@ -151,7 +151,7 @@ Use a trained YOLOv8n model to run predictions on images.
 
 Export a YOLOv8n model to a different format like ONNX, CoreML, etc.
 
-!!! Example "Example"
+!!! example "Example"
 
     === "Official"
 
@@ -177,7 +177,7 @@ See full `export` details in the [Export](../modes/export.md) page.
 
 Default arguments can be overridden by simply passing them as arguments in the CLI in `arg=value` pairs.
 
-!!! Tip ""
+!!! tip ""
 
     === "Train"
 
@@ -208,7 +208,7 @@ To do this first create a copy of `default.yaml` in your current working dir wit
 
 This will create `default_copy.yaml`, which you can then pass as `cfg=default_copy.yaml` along with any additional args, like `imgsz=320` in this example:
 
-!!! Example
+!!! example
 
     === "CLI"
 

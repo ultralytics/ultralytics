@@ -37,7 +37,7 @@ You can use Weights & Biases to bring efficiency and automation to your YOLOv8 t
 
 To install the required packages, run:
 
-!!! Tip "Installation"
+!!! tip "Installation"
 
     === "CLI"
 
@@ -54,7 +54,7 @@ After installing the necessary packages, the next step is to set up your Weights
 
 Start by initializing the Weights & Biases environment in your workspace. You can do this by running the following command and following the prompted instructions.
 
-!!! Tip "Initial SDK Setup"
+!!! tip "Initial SDK Setup"
 
     === "CLI"
 
@@ -70,7 +70,7 @@ Navigate to the Weights & Biases authorization page to create and retrieve your 
 
 Before diving into the usage instructions for YOLOv8 model training with Weights & Biases, be sure to check out the range of [YOLOv8 models offered by Ultralytics](../models/index.md). This will help you choose the most appropriate model for your project requirements.
 
-!!! Example "Usage: Training YOLOv8 with Weights & Biases"
+!!! example "Usage: Training YOLOv8 with Weights & Biases"
 
     === "Python"
 

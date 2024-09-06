@@ -152,12 +152,12 @@ The ImageNette dataset is advantageous for several reasons:
 - **Quick and Simple**: It contains only 10 classes, making it less complex and time-consuming compared to larger datasets.
 - **Educational Use**: Ideal for learning and teaching the basics of image classification since it requires less computational power and time.
 - **Versatility**: Widely used to train and benchmark various machine learning models, especially in image classification.
-  
+
 For more details on model training and dataset management, explore the [Dataset Structure](#dataset-structure) section.
 
 ### Can the ImageNette dataset be used with different image sizes?
 
-Yes, the ImageNette dataset is also available in two resized versions: ImageNette160 and ImageNette320. These versions help in faster prototyping and are especially useful when computational resources are limited. 
+Yes, the ImageNette dataset is also available in two resized versions: ImageNette160 and ImageNette320. These versions help in faster prototyping and are especially useful when computational resources are limited.
 
 !!! Example "Train Example with ImageNette160"
 
@@ -174,7 +174,7 @@ Yes, the ImageNette dataset is also available in two resized versions: ImageNett
         ```
 
     === "CLI"
-    
+
         ```bash
         # Start training from a pretrained *.pt model with ImageNette160
         yolo detect train data=imagenette160 model=yolov8n-cls.pt epochs=100 imgsz=160

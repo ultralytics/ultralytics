@@ -93,7 +93,7 @@ To train a YOLOv8n-obb model on the DOTA8 dataset for 100 epochs with an image s
 !!! Example "Train Example"
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
 
@@ -105,7 +105,7 @@ To train a YOLOv8n-obb model on the DOTA8 dataset for 100 epochs with an image s
         ```
 
     === "CLI"
-    
+
         ```bash
         # Start training from a pretrained *.pt model
         yolo obb train data=dota8.yaml model=yolov8n-obb.pt epochs=100 imgsz=640

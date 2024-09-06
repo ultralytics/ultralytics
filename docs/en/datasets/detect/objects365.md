@@ -127,6 +127,7 @@ Refer to the [Training](../../modes/train.md) page for a comprehensive list of a
 ### Why should I use the Objects365 dataset for my object detection projects?
 
 The Objects365 dataset offers several advantages for object detection tasks:
+
 1. **Diversity**: It includes 2 million images with objects in diverse scenarios, covering 365 categories.
 2. **High-quality Annotations**: Over 30 million bounding boxes provide comprehensive ground truth data.
 3. **Performance**: Models pre-trained on Objects365 significantly outperform those trained on datasets like ImageNet, leading to better generalization.

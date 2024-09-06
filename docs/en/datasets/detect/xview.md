@@ -109,7 +109,7 @@ To train a model on the xView dataset using Ultralytics YOLO, follow these steps
 !!! Example "Train Example"
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
 
@@ -119,10 +119,10 @@ To train a model on the xView dataset using Ultralytics YOLO, follow these steps
         # Train the model
         results = model.train(data="xView.yaml", epochs=100, imgsz=640)
         ```
-    
+
 
     === "CLI"
-    
+
         ```bash
         # Start training from a pretrained *.pt model
         yolo detect train data=xView.yaml model=yolov8n.pt epochs=100 imgsz=640
@@ -133,6 +133,7 @@ For detailed arguments and settings, refer to the model [Training](../../modes/t
 ### What are the key features of the xView dataset?
 
 The xView dataset stands out due to its comprehensive set of features:
+
 - Over 1 million object instances across 60 distinct classes.
 - High-resolution imagery at 0.3 meters.
 - Diverse object types including small, rare, and fine-grained objects, all annotated with bounding boxes.
@@ -160,5 +161,5 @@ If you utilize the xView dataset in your research, please cite the following pap
             primaryClass={cs.CV}
         }
         ```
-   
+
 For more information about the xView dataset, visit the official [xView dataset website](http://xviewdataset.org/).

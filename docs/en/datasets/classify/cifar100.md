@@ -92,7 +92,7 @@ You can train a YOLO model on the CIFAR-100 dataset using either Python or CLI c
 !!! Example "Train Example"
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
 
@@ -104,7 +104,7 @@ You can train a YOLO model on the CIFAR-100 dataset using either Python or CLI c
         ```
 
     === "CLI"
-        
+
         ```bash
         # Start training from a pretrained *.pt model
         yolo classify train data=cifar100 model=yolov8n-cls.pt epochs=100 imgsz=32

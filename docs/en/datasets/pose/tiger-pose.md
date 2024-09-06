@@ -110,7 +110,7 @@ To train a YOLOv8n-pose model on the Tiger-Pose dataset for 100 epochs with an i
 !!! Example "Train Example"
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
 
@@ -120,10 +120,10 @@ To train a YOLOv8n-pose model on the Tiger-Pose dataset for 100 epochs with an i
         # Train the model
         results = model.train(data="tiger-pose.yaml", epochs=100, imgsz=640)
         ```
-    
+
 
     === "CLI"
-    
+
         ```bash
         # Start training from a pretrained *.pt model
         yolo task=pose mode=train data=tiger-pose.yaml model=yolov8n-pose.pt epochs=100 imgsz=640
@@ -140,7 +140,7 @@ To perform inference using a YOLOv8 model trained on the Tiger-Pose dataset, you
 !!! Example "Inference Example"
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
 
@@ -150,10 +150,10 @@ To perform inference using a YOLOv8 model trained on the Tiger-Pose dataset, you
         # Run inference
         results = model.predict(source="https://youtu.be/MIBAT6BGE6U", show=True)
         ```
-    
+
 
     === "CLI"
-    
+
         ```bash
         # Run inference using a tiger-pose trained model
         yolo task=pose mode=predict source="https://youtu.be/MIBAT6BGE6U" show=True model="path/to/best.pt"

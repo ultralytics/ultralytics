@@ -39,7 +39,7 @@ Want to let us know what you use for developing code? Head over to our Discourse
 
 ## Installing the Extension
 
-!!! Note
+!!! note
 
     Any code environment that will allow for installing VS Code extensions _should be_ compatible with the Ultralytics-snippets extension. After publishing the extension, it was discovered that [neovim](https://neovim.io/) can be made compatible with VS Code extensions. To learn more see the [`neovim` install section][neovim install] of the Readme in the [Ultralytics-Snippets repository][repo].
 
@@ -127,7 +127,7 @@ These are the current snippet categories available to the Ultralytics-snippets e
 
 The `ultra.examples` snippets are to useful for anyone looking to learn how to get started with the basics of working with Ultralytics YOLO. Example snippets are intended to run once inserted (some have dropdown options as well). An example of this is shown at the animation at the [top] of this page, where after the snippet is inserted, all code is selected and run interactively using <kbd>Shift ⇑</kbd>+<kbd>Enter ↵</kbd>.
 
-!!! Example
+!!! example
 
     Just like the animation shows at the [top] of this page, you can use the snippet `ultra.example-yolo-predict` to insert the following code example. Once inserted, the only configurable option is for the model scale which can be any one of: `n`, `s`, `m`, `l`, or `x`.
 
@@ -146,7 +146,7 @@ The `ultra.examples` snippets are to useful for anyone looking to learn how to g
 
 The aim for snippets other than the `ultra.examples` are for making development easier and quicker when working with Ultralytics. A common code block to be used in many projects, is to iterate the list of `Results` returned from using the model [predict] method. The `ultra.result-loop` snippet can help with this.
 
-!!! Example
+!!! example
 
     Using the `ultra.result-loop` will insert the following default code (including comments).
 
@@ -170,7 +170,7 @@ However, since Ultralytics supports numerous [tasks], when [working with inferen
 
 There are over 💯 keyword arguments for all of the various Ultralytics [tasks] and [modes]! That's a lot to remember and it can be easy to forget if the argument is `save_frame` or `save_frames` (it's definitely `save_frames` by the way). This is where the `ultra.kwargs` snippets can help out!
 
-!!! Example
+!!! example
 
     To insert the [predict] method, including all [inference arguments], use `ultra.kwargs-predict`, which will insert the following code (including comments).
 

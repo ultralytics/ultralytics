@@ -207,7 +207,7 @@ The [Ultralytics HUB](https://www.ultralytics.com/hub) Inference API returns a J
 
 !!! example "Detection Model"
 
-=== "`ultralytics`"
+    === "`ultralytics`"
 
         ```python
         from ultralytics import YOLO

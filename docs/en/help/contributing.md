@@ -57,7 +57,7 @@ I have read the CLA Document and I sign the CLA
 
 When adding new functions or classes, please include [Google-style docstrings](https://google.github.io/styleguide/pyguide.html). These docstrings provide clear, standardized documentation that helps other developers understand and maintain your code.
 
-!!! Example "Example Docstrings"
+!!! example "Example Docstrings"
 
     === "Google-style"
 

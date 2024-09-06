@@ -128,7 +128,7 @@ YOLOv9 represents a pivotal development in real-time object detection, offering 
 
 This example provides simple YOLOv9 training and inference examples. For full documentation on these and other [modes](../modes/index.md) see the [Predict](../modes/predict.md), [Train](../modes/train.md), [Val](../modes/val.md) and [Export](../modes/export.md) docs pages.
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -184,7 +184,7 @@ This table provides a detailed overview of the YOLOv9 model variants, highlighti
 
 We would like to acknowledge the YOLOv9 authors for their significant contributions in the field of real-time object detection:
 
-!!! Quote ""
+!!! quote ""
 
     === "BibTeX"
 

@@ -68,7 +68,7 @@ You can expand model compatibility and deployment flexibility by converting YOLO
 
 To install the required package, run:
 
-!!! Tip "Installation"
+!!! tip "Installation"
 
     === "CLI"
 
@@ -83,7 +83,7 @@ For detailed instructions and best practices related to the installation process
 
 Before diving into the usage instructions, be sure to check out the range of [YOLOv8 models offered by Ultralytics](../models/index.md). This will help you choose the most appropriate model for your project requirements.
 
-!!! Example "Usage"
+!!! example "Usage"
 
     === "Python"
 
@@ -139,7 +139,7 @@ Also, if you'd like to know more about other Ultralytics YOLOv8 integrations, vi
 
 To export your YOLOv8 models to ONNX format using Ultralytics, follow these steps:
 
-!!! Example "Usage"
+!!! example "Usage"
 
     === "Python"
 

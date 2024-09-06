@@ -22,7 +22,7 @@ This guide provides a comprehensive overview of three fundamental types of data 
 - Bar plots, on the other hand, are suitable for comparing quantities across different categories and showing relationships between a category and its numerical value.
 - Lastly, pie charts are effective for illustrating proportions among categories and showing parts of a whole.
 
-!!! Analytics "Analytics Examples"
+!!! analytics "Analytics Examples"
 
     === "Line Graph"
 

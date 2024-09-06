@@ -27,7 +27,6 @@ class ObjectCounter:
         view_in_counts=True,
         view_out_counts=True,
         draw_tracks=False,
-        region_thickness=5,
     ):
         """
         Initializes the ObjectCounter with various tracking and counting parameters.
@@ -43,7 +42,6 @@ class ObjectCounter:
             view_in_counts (bool): Flag to control whether to display the in counts on the video stream.
             view_out_counts (bool): Flag to control whether to display the out counts on the video stream.
             draw_tracks (bool): Flag to control whether to draw the object tracks.
-            region_thickness (int): Thickness of the object counting region.
         """
         # Mouse events
         self.is_drawing = False
@@ -53,7 +51,6 @@ class ObjectCounter:
         self.reg_pts = [(20, 400), (1260, 400)] if reg_pts is None else reg_pts
         self.counting_region = None
         self.region_color = count_reg_color
-        self.region_thickness = region_thickness
 
         # Image and annotation Information
         self.im0 = None
@@ -138,7 +135,7 @@ class ObjectCounter:
         annotator = Annotator(self.im0, self.tf, self.names)
 
         # Draw region or line
-        annotator.draw_region(reg_pts=self.reg_pts, color=self.region_color, thickness=self.region_thickness)
+        annotator.draw_region(reg_pts=self.reg_pts, color=self.region_color, thickness=self.tf*2)
 
         if tracks[0].boxes.id is not None:
             boxes = tracks[0].boxes.xyxy.cpu()

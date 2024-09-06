@@ -110,11 +110,13 @@ To train an Ultralytics YOLO model on the Caltech-101 dataset, you can use the p
         # Start training from a pretrained *.pt model
         yolo classify train data=caltech101 model=yolov8n-cls.pt epochs=100 imgsz=416
         ```
+
 For more detailed arguments and options, refer to the model [Training](../../modes/train.md) page.
 
 ### What are the key features of the Caltech-101 dataset?
 
 The Caltech-101 dataset includes:
+
 - Around 9,000 color images across 101 categories.
 - Categories covering a diverse range of objects, including animals, vehicles, and household items.
 - Variable number of images per category, typically between 40 and 800.
@@ -142,6 +144,7 @@ Citing the Caltech-101 dataset in your research acknowledges the creators' contr
           publisher={Elsevier}
         }
         ```
+
 Citing helps in maintaining the integrity of academic work and assists peers in locating the original resource.
 
 ### Can I use Ultralytics HUB for training models on the Caltech-101 dataset?

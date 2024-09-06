@@ -91,7 +91,7 @@ To train a YOLOv8n-pose model on the COCO8-Pose dataset for 100 epochs with an i
 !!! Example "Train Example"
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
 
@@ -103,7 +103,7 @@ To train a YOLOv8n-pose model on the COCO8-Pose dataset for 100 epochs with an i
         ```
 
     === "CLI"
-    
+
         ```bash
         yolo pose train data=coco8-pose.yaml model=yolov8n-pose.pt epochs=100 imgsz=640
         ```

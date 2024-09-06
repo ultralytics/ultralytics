@@ -112,17 +112,17 @@ To train a Convolutional Neural Network (CNN) model on the ImageWoof dataset usi
 !!! Example "Train Example"
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
 
         model = YOLO("yolov8n-cls.pt")  # Load a pretrained model
         results = model.train(data="imagewoof", epochs=100, imgsz=224)
         ```
-    
+
 
     === "CLI"
-    
+
         ```bash
         yolo classify train data=imagewoof model=yolov8n-cls.pt epochs=100 imgsz=224
         ```

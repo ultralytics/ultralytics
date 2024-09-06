@@ -60,7 +60,7 @@ DOTA serves as a benchmark for training and evaluating models specifically tailo
 
 Typically, datasets incorporate a YAML (Yet Another Markup Language) file detailing the dataset's configuration. For DOTA v1 and DOTA v1.5, Ultralytics provides `DOTAv1.yaml` and `DOTAv1.5.yaml` files. For additional details on these as well as DOTA v2 please consult DOTA's official repository and documentation.
 
-!!! Example "DOTAv1.yaml"
+!!! example "DOTAv1.yaml"
 
     ```yaml
     --8<-- "ultralytics/cfg/datasets/DOTAv1.yaml"
@@ -70,7 +70,7 @@ Typically, datasets incorporate a YAML (Yet Another Markup Language) file detail
 
 To train DOTA dataset, we split original DOTA images with high-resolution into images with 1024x1024 resolution in multiscale way.
 
-!!! Example "Split images"
+!!! example "Split images"
 
     === "Python"
 
@@ -97,11 +97,11 @@ To train DOTA dataset, we split original DOTA images with high-resolution into i
 
 To train a model on the DOTA v1 dataset, you can utilize the following code snippets. Always refer to your model's documentation for a thorough list of available arguments.
 
-!!! Warning
+!!! warning
 
     Please note that all images and associated annotations in the DOTAv1 dataset can be used for academic purposes, but commercial use is prohibited. Your understanding and respect for the dataset creators' wishes are greatly appreciated!
 
-!!! Example "Train Example"
+!!! example "Train Example"
 
     === "Python"
 
@@ -136,7 +136,7 @@ The dataset's richness offers invaluable insights into object detection challeng
 
 For those leveraging DOTA in their endeavors, it's pertinent to cite the relevant research papers:
 
-!!! Quote ""
+!!! quote ""
 
     === "BibTeX"
 
@@ -169,7 +169,7 @@ DOTA utilizes Oriented Bounding Boxes (OBB) for annotation, which are represente
 
 To train a model on the DOTA dataset, you can use the following example with Ultralytics YOLO:
 
-!!! Example "Train Example"
+!!! example "Train Example"
 
     === "Python"
 
@@ -204,7 +204,7 @@ For a detailed comparison and additional specifics, check the [dataset versions 
 
 DOTA images, which can be very large, are split into smaller resolutions for manageable training. Here's a Python snippet to split images:
 
-!!! Example
+!!! example
 
     === "Python"
 

@@ -31,7 +31,7 @@ The CIFAR-100 dataset is extensively used for training and evaluating deep learn
 
 To train a YOLO model on the CIFAR-100 dataset for 100 epochs with an image size of 32x32, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
-!!! Example "Train Example"
+!!! example "Train Example"
 
     === "Python"
 
@@ -64,7 +64,7 @@ The example showcases the variety and complexity of the objects in the CIFAR-100
 
 If you use the CIFAR-100 dataset in your research or development work, please cite the following paper:
 
-!!! Quote ""
+!!! quote ""
 
     === "BibTeX"
 
@@ -89,7 +89,7 @@ The [CIFAR-100 dataset](https://www.cs.toronto.edu/~kriz/cifar.html) is a large 
 
 You can train a YOLO model on the CIFAR-100 dataset using either Python or CLI commands. Here's how:
 
-!!! Example "Train Example"
+!!! example "Train Example"
 
     === "Python"
 

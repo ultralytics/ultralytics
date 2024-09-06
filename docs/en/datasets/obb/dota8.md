@@ -16,7 +16,7 @@ This dataset is intended for use with Ultralytics [HUB](https://hub.ultralytics.
 
 A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. In the case of the DOTA8 dataset, the `dota8.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/dota8.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/dota8.yaml).
 
-!!! Example "ultralytics/cfg/datasets/dota8.yaml"
+!!! example "ultralytics/cfg/datasets/dota8.yaml"
 
     ```yaml
     --8<-- "ultralytics/cfg/datasets/dota8.yaml"
@@ -26,7 +26,7 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 To train a YOLOv8n-obb model on the DOTA8 dataset for 100 epochs with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
-!!! Example "Train Example"
+!!! example "Train Example"
 
     === "Python"
 
@@ -61,7 +61,7 @@ The example showcases the variety and complexity of the images in the DOTA8 data
 
 If you use the DOTA dataset in your research or development work, please cite the following paper:
 
-!!! Quote ""
+!!! quote ""
 
     === "BibTeX"
 
@@ -90,7 +90,7 @@ The DOTA8 dataset is a small, versatile oriented object detection dataset made u
 
 To train a YOLOv8n-obb model on the DOTA8 dataset for 100 epochs with an image size of 640, you can use the following code snippets. For comprehensive argument options, refer to the model [Training](../../modes/train.md) page.
 
-!!! Example "Train Example"
+!!! example "Train Example"
 
     === "Python"
 

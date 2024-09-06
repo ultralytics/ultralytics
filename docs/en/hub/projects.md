@@ -76,7 +76,7 @@ Set the general access to "Unlisted" and click **Save**.
 
 ![Ultralytics HUB screenshot of the Share Project dialog with an arrow pointing to the dropdown and one to the Save button](https://github.com/ultralytics/docs/releases/download/0/hub-share-project-dialog.avif)
 
-!!! Warning "Warning"
+!!! warning "Warning"
 
     When changing the general access of a project, the general access of the models inside the project will be changed as well.
 
@@ -116,7 +116,7 @@ Navigate to the Project page of the project you want to delete, open the project
 
     ![Ultralytics HUB screenshot of the Projects page with an arrow pointing to the Delete option of one of the projects](https://github.com/ultralytics/docs/releases/download/0/hub-delete-project-option-1.avif)
 
-!!! Warning "Warning"
+!!! warning "Warning"
 
     When deleting a project, the models inside the project will be deleted as well.
 

@@ -26,7 +26,7 @@ By combining Ultralytics YOLOv8 with Comet ML, you unlock a range of benefits. T
 
 To install the required packages, run:
 
-!!! Tip "Installation"
+!!! tip "Installation"
 
     === "CLI"
 
@@ -39,7 +39,7 @@ To install the required packages, run:
 
 After installing the required packages, you'll need to sign up, get a [Comet API Key](https://www.comet.com/signup), and configure it.
 
-!!! Tip "Configuring Comet ML"
+!!! tip "Configuring Comet ML"
 
     === "CLI"
 
@@ -62,7 +62,7 @@ If you are using a Google Colab notebook, the code above will prompt you to ente
 
 Before diving into the usage instructions, be sure to check out the range of [YOLOv8 models offered by Ultralytics](../models/index.md). This will help you choose the most appropriate model for your project requirements.
 
-!!! Example "Usage"
+!!! example "Usage"
 
     === "Python"
 

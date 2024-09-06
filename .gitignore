@@ -130,7 +130,6 @@ venv.bak/
 
 # mkdocs documentation
 /site
-mkdocs_github_authors.yaml
 
 # mypy
 .mypy_cache/
@@ -140,8 +139,8 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# datasets and projects
-datasets/
+# datasets and projects (ignore /datasets dir at root only to allow for docs/en/datasets dir)
+/datasets
 runs/
 wandb/
 .DS_Store

@@ -23,7 +23,7 @@ This dataset can be applied in various computer vision tasks such as object dete
 
 A YAML (Yet Another Markup Language) file defines the dataset configuration, including paths and classes information. For the signature detection dataset, the `signature.yaml` file is located at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/signature.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/signature.yaml).
 
-!!! Example "ultralytics/cfg/datasets/signature.yaml"
+!!! example "ultralytics/cfg/datasets/signature.yaml"
 
     ```yaml
     --8<-- "ultralytics/cfg/datasets/signature.yaml"
@@ -33,7 +33,7 @@ A YAML (Yet Another Markup Language) file defines the dataset configuration, inc
 
 To train a YOLOv8n model on the signature detection dataset for 100 epochs with an image size of 640, use the provided code samples. For a comprehensive list of available parameters, refer to the model's [Training](../../modes/train.md) page.
 
-!!! Example "Train Example"
+!!! example "Train Example"
 
     === "Python"
 
@@ -54,7 +54,7 @@ To train a YOLOv8n model on the signature detection dataset for 100 epochs with 
         yolo detect train data=signature.yaml model=yolov8n.pt epochs=100 imgsz=640
         ```
 
-!!! Example "Inference Example"
+!!! example "Inference Example"
 
     === "Python"
 
@@ -102,7 +102,7 @@ To train a YOLOv8n model on the Signature Detection Dataset, follow these steps:
 1. Download the `signature.yaml` dataset configuration file from [signature.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/signature.yaml).
 2. Use the following Python script or CLI command to start training:
 
-!!! Example "Train Example"
+!!! example "Train Example"
 
     === "Python"
 
@@ -140,7 +140,7 @@ To perform inference using a model trained on the Signature Detection Dataset, f
 1. Load your fine-tuned model.
 2. Use the below Python script or CLI command to perform inference:
 
-!!! Example "Inference Example"
+!!! example "Inference Example"
 
     === "Python"
 

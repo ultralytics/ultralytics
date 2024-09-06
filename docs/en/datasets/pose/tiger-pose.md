@@ -29,7 +29,7 @@ This dataset is intended for use with [Ultralytics HUB](https://hub.ultralytics.
 
 A YAML (Yet Another Markup Language) file serves as the means to specify the configuration details of a dataset. It encompasses crucial data such as file paths, class definitions, and other pertinent information. Specifically, for the `tiger-pose.yaml` file, you can check [Ultralytics Tiger-Pose Dataset Configuration File](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/tiger-pose.yaml).
 
-!!! Example "ultralytics/cfg/datasets/tiger-pose.yaml"
+!!! example "ultralytics/cfg/datasets/tiger-pose.yaml"
 
     ```yaml
     --8<-- "ultralytics/cfg/datasets/tiger-pose.yaml"
@@ -39,7 +39,7 @@ A YAML (Yet Another Markup Language) file serves as the means to specify the con
 
 To train a YOLOv8n-pose model on the Tiger-Pose dataset for 100 epochs with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
-!!! Example "Train Example"
+!!! example "Train Example"
 
     === "Python"
 
@@ -72,7 +72,7 @@ The example showcases the variety and complexity of the images in the Tiger-Pose
 
 ## Inference Example
 
-!!! Example "Inference Example"
+!!! example "Inference Example"
 
     === "Python"
 
@@ -107,7 +107,7 @@ The Ultralytics Tiger-Pose dataset is designed for pose estimation tasks, consis
 
 To train a YOLOv8n-pose model on the Tiger-Pose dataset for 100 epochs with an image size of 640, use the following code snippets. For more details, visit the [Training](../../modes/train.md) page:
 
-!!! Example "Train Example"
+!!! example "Train Example"
 
     === "Python"
 
@@ -137,7 +137,7 @@ The `tiger-pose.yaml` file is used to specify the configuration details of the T
 
 To perform inference using a YOLOv8 model trained on the Tiger-Pose dataset, you can use the following code snippets. For a detailed guide, visit the [Prediction](../../modes/predict.md) page:
 
-!!! Example "Inference Example"
+!!! example "Inference Example"
 
     === "Python"
 

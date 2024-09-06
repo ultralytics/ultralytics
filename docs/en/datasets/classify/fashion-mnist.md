@@ -56,7 +56,7 @@ The Fashion-MNIST dataset is widely used for training and evaluating deep learni
 
 To train a CNN model on the Fashion-MNIST dataset for 100 epochs with an image size of 28x28, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
-!!! Example "Train Example"
+!!! example "Train Example"
 
     === "Python"
 
@@ -99,7 +99,7 @@ The [Fashion-MNIST](https://github.com/zalandoresearch/fashion-mnist) dataset is
 
 To train an Ultralytics YOLO model on the Fashion-MNIST dataset, you can use both Python and CLI commands. Here's a quick example to get you started:
 
-!!! Example "Train Example"
+!!! example "Train Example"
 
     === "Python"
 

@@ -12,7 +12,7 @@ Multi-Object Detector doesn't need standalone training and directly supports pre
 
 ## Usage
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -35,7 +35,7 @@ Multi-Object Detector doesn't need standalone training and directly supports pre
 
 To use Multi-Object Tracking with Ultralytics YOLO, you can start by using the Python or CLI examples provided. Here is how you can get started:
 
-!!! Example
+!!! example
 
     === "Python"
 

@@ -24,7 +24,7 @@ The output of an image classifier is a single class label and a confidence score
   <strong>Watch:</strong> Explore Ultralytics YOLO Tasks: Image Classification using Ultralytics HUB
 </p>
 
-!!! Tip "Tip"
+!!! tip
 
     YOLOv8 Classify models use the `-cls` suffix, i.e. `yolov8n-cls.pt` and are pretrained on [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/ImageNet.yaml).
 
@@ -49,7 +49,7 @@ YOLOv8 pretrained Classify models are shown here. Detect, Segment and Pose model
 
 Train YOLOv8n-cls on the MNIST160 dataset for 100 epochs at image size 64. For a full list of available arguments see the [Configuration](../usage/cfg.md) page.
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -86,7 +86,7 @@ YOLO classification dataset format can be found in detail in the [Dataset Guide]
 
 Validate trained YOLOv8n-cls model accuracy on the MNIST160 dataset. No argument need to passed as the `model` retains its training `data` and arguments as model attributes.
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -114,7 +114,7 @@ Validate trained YOLOv8n-cls model accuracy on the MNIST160 dataset. No argument
 
 Use a trained YOLOv8n-cls model to run predictions on images.
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -142,7 +142,7 @@ See full `predict` mode details in the [Predict](../modes/predict.md) page.
 
 Export a YOLOv8n-cls model to a different format like ONNX, CoreML, etc.
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -180,7 +180,7 @@ YOLOv8 models, such as `yolov8n-cls.pt`, are designed for efficient image classi
 
 To train a YOLOv8 model, you can use either Python or CLI commands. For example, to train a `yolov8n-cls` model on the MNIST160 dataset for 100 epochs at an image size of 64:
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -210,7 +210,7 @@ Pretrained YOLOv8 classification models can be found in the [Models](https://git
 
 You can export a trained YOLOv8 model to various formats using Python or CLI commands. For instance, to export a model to ONNX format:
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -236,7 +236,7 @@ For detailed export options, refer to the [Export](../modes/export.md) page.
 
 To validate a trained model's accuracy on a dataset like MNIST160, you can use the following Python or CLI commands:
 
-!!! Example
+!!! example
 
     === "Python"
 

@@ -127,7 +127,7 @@ Contributing a new dataset involves several steps to ensure that it aligns well 
 
 ### Example Code to Optimize and Zip a Dataset
 
-!!! Example "Optimize and Zip a Dataset"
+!!! example "Optimize and Zip a Dataset"
 
     === "Python"
 
@@ -205,7 +205,7 @@ Discover more about YOLO on the [Ultralytics YOLO](https://www.ultralytics.com/y
 
 To optimize and zip a dataset using Ultralytics tools, follow this example code:
 
-!!! Example "Optimize and Zip a Dataset"
+!!! example "Optimize and Zip a Dataset"
 
     === "Python"
 

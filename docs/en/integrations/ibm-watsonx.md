@@ -56,7 +56,7 @@ Once you do so, a notebook environment will open for you to load your data set. 
 
 Next, you can install and import the necessary Python libraries.
 
-!!! Tip "Installation"
+!!! tip "Installation"
 
     === "CLI"
 
@@ -71,7 +71,7 @@ For detailed instructions and best practices related to the installation process
 
 Then, you can import the needed packages.
 
-!!! Example "Import Relevant Libraries"
+!!! example "Import Relevant Libraries"
 
     === "Python"
 
@@ -92,7 +92,7 @@ We can load the dataset directly into the notebook using the Kaggle API. First, 
 
 Copy and paste your Kaggle username and API key into the following code. Then run the code to install the API and load the dataset into Watsonx.
 
-!!! Tip "Installation"
+!!! tip "Installation"
 
     === "CLI"
 
@@ -103,7 +103,7 @@ Copy and paste your Kaggle username and API key into the following code. Then ru
 
 After installing Kaggle, we can load the dataset into Watsonx.
 
-!!! Example "Load the Data"
+!!! example "Load the Data"
 
     === "Python"
 
@@ -155,7 +155,7 @@ But, YOLO models by default require separate images and labels in subdirectories
 
 To reorganize the data set directory, we can run the following script:
 
-!!! Example "Preprocess the Data"
+!!! example "Preprocess the Data"
 
     === "Python"
 
@@ -207,7 +207,7 @@ names:
 
 Run the following script to delete the current contents of config.yaml and replace it with the above contents that reflect our new data set directory structure. Be certain to replace the work_dir portion of the root directory path in line 4 with your own working directory path we retrieved earlier. Leave the train, val, and test subdirectory definitions. Also, do not change {work_dir} in line 23 of the code.
 
-!!! Example "Edit the .yaml File"
+!!! example "Edit the .yaml File"
 
     === "Python"
 
@@ -240,7 +240,7 @@ Run the following script to delete the current contents of config.yaml and repla
 
 Run the following command-line code to fine tune a pretrained default YOLOv8 model.
 
-!!! Example "Train the YOLOv8 model"
+!!! example "Train the YOLOv8 model"
 
     === "CLI"
 
@@ -263,7 +263,7 @@ For a detailed understanding of the model training process and best practices, r
 
 We can now run inference to test the performance of our fine-tuned model:
 
-!!! Example "Test the YOLOv8 model"
+!!! example "Test the YOLOv8 model"
 
     === "CLI"
 
@@ -279,7 +279,7 @@ The parameter `conf=0.5` informs the model to ignore all predictions with a conf
 Lastly, `iou=.5` directs the model to ignore boxes in the same class with an overlap of 50% or greater. It helps to reduce potential duplicate boxes generated for the same object.  
 we can load the images with predicted bounding box overlays to view how our model performs on a handful of images.
 
-!!! Example "Display Predictions"
+!!! example "Display Predictions"
 
     === "Python"
 

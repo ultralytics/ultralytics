@@ -25,7 +25,7 @@ pip install -r requirements.txt  # install
 
 Creating a custom model to detect your objects is an iterative process of collecting and organizing images, labeling your objects of interest, training a model, deploying it into the wild to make predictions, and then using that deployed model to collect examples of edge cases to repeat and improve.
 
-!!! Question "Licensing"
+!!! question "Licensing"
 
     Ultralytics offers two licensing options:
 
@@ -137,11 +137,11 @@ Train a YOLOv5s model on COCO128 by specifying dataset, batch-size, image size a
 python train.py --img 640 --epochs 3 --data coco128.yaml --weights yolov5s.pt
 ```
 
-!!! Tip "Tip"
+!!! tip "Tip"
 
     💡 Add `--cache ram` or `--cache disk` to speed up training (requires significant RAM/disk resources).
 
-!!! Tip "Tip"
+!!! tip "Tip"
 
     💡 Always train from a local dataset. Mounted or network drives like Google Drive will be very slow.
 

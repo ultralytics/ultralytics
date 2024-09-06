@@ -109,7 +109,7 @@ To train a YOLOv8 model with the Argoverse dataset, use the provided YAML config
 !!! Example "Train Example"
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
 
@@ -119,10 +119,10 @@ To train a YOLOv8 model with the Argoverse dataset, use the provided YAML config
         # Train the model
         results = model.train(data="Argoverse.yaml", epochs=100, imgsz=640)
         ```
-    
+
 
     === "CLI"
-    
+
         ```bash
         # Start training from a pretrained *.pt model
         yolo detect train data=Argoverse.yaml model=yolov8n.pt epochs=100 imgsz=640

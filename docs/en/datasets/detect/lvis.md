@@ -121,7 +121,7 @@ To train a YOLOv8n model on the LVIS dataset for 100 epochs with an image size o
 !!! Example "Train Example"
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
 
@@ -131,10 +131,10 @@ To train a YOLOv8n model on the LVIS dataset for 100 epochs with an image size o
         # Train the model
         results = model.train(data="lvis.yaml", epochs=100, imgsz=640)
         ```
-    
+
 
     === "CLI"
-    
+
         ```bash
         # Start training from a pretrained *.pt model
         yolo detect train data=lvis.yaml model=yolov8n.pt epochs=100 imgsz=640

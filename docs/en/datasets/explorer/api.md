@@ -342,14 +342,17 @@ The Ultralytics Explorer API is designed for comprehensive dataset exploration. 
 ### How do I install the Ultralytics Explorer API?
 
 To install the Ultralytics Explorer API along with its dependencies, use the following command:
+
 ```bash
 pip install ultralytics[explorer]
 ```
+
 This will automatically install all necessary external libraries for the Explorer API functionality. For additional setup details, refer to the [installation section](#installation) of our documentation.
 
 ### How can I use the Ultralytics Explorer API for similarity search?
 
 You can use the Ultralytics Explorer API to perform similarity searches by creating an embeddings table and querying it for similar images. Here's a basic example:
+
 ```python
 from ultralytics import Explorer
 
@@ -361,6 +364,7 @@ explorer.create_embeddings_table()
 similar_images_df = explorer.get_similar(img="path/to/image.jpg")
 print(similar_images_df.head())
 ```
+
 For more details, please visit the [Similarity Search section](#1-similarity-search).
 
 ### What are the benefits of using LanceDB with Ultralytics Explorer?

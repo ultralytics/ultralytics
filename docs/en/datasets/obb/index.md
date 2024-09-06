@@ -109,7 +109,7 @@ Training a YOLOv8 model with OBBs involves ensuring your dataset is in the YOLO 
 !!! Example
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
 
@@ -119,15 +119,14 @@ Training a YOLOv8 model with OBBs involves ensuring your dataset is in the YOLO 
         # Train the model on the custom dataset
         results = model.train(data="your_dataset.yaml", epochs=100, imgsz=640)
         ```
-    
 
     === "CLI"
-    
+
         ```bash
         # Train a new YOLOv8n-OBB model on the custom dataset
         yolo obb train data=your_dataset.yaml model=yolov8n-obb.yaml epochs=100 imgsz=640
         ```
-        
+
 This ensures your model leverages the detailed OBB annotations for improved detection accuracy.
 
 ### What datasets are currently supported for OBB training in Ultralytics YOLO models?

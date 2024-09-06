@@ -39,7 +39,7 @@ The Caltech-256 dataset is extensively used for training and evaluating deep lea
 
 To train a YOLO model on the Caltech-256 dataset for 100 epochs, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
-!!! Example "Train Example"
+!!! example "Train Example"
 
     === "Python"
 
@@ -72,7 +72,7 @@ The example showcases the diversity and complexity of the objects in the Caltech
 
 If you use the Caltech-256 dataset in your research or development work, please cite the following paper:
 
-!!! Quote ""
+!!! quote ""
 
     === "BibTeX"
 
@@ -98,7 +98,7 @@ The [Caltech-256](https://data.caltech.edu/records/nyy15-4j048) dataset is a lar
 
 To train a YOLO model on the Caltech-256 dataset for 100 epochs, you can use the following code snippets. Refer to the model [Training](../../modes/train.md) page for additional options.
 
-!!! Example "Train Example"
+!!! example "Train Example"
 
     === "Python"
 

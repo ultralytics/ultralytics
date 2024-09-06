@@ -52,7 +52,7 @@ By exporting YOLOv8 models to the TF SavedModel format, you enhance their adapta
 
 To install the required package, run:
 
-!!! Tip "Installation"
+!!! tip "Installation"
 
     === "CLI"
 
@@ -67,7 +67,7 @@ For detailed instructions and best practices related to the installation process
 
 Before diving into the usage instructions, it's important to note that while all [Ultralytics YOLOv8 models](../models/index.md) are available for exporting, you can ensure that the model you select supports export functionality [here](../modes/export.md).
 
-!!! Example "Usage"
+!!! example "Usage"
 
     === "Python"
 
@@ -125,7 +125,7 @@ For more information on integrating Ultralytics YOLOv8 with other platforms and 
 
 Exporting an Ultralytics YOLO model to the TensorFlow SavedModel format is straightforward. You can use either Python or CLI to achieve this:
 
-!!! Example "Exporting YOLOv8 to TF SavedModel"
+!!! example "Exporting YOLOv8 to TF SavedModel"
 
     === "Python"
 

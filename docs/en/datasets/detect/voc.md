@@ -31,7 +31,7 @@ The VOC dataset is widely used for training and evaluating deep learning models 
 
 A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. In the case of the VOC dataset, the `VOC.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/VOC.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/VOC.yaml).
 
-!!! Example "ultralytics/cfg/datasets/VOC.yaml"
+!!! example "ultralytics/cfg/datasets/VOC.yaml"
 
     ```yaml
     --8<-- "ultralytics/cfg/datasets/VOC.yaml"
@@ -41,7 +41,7 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 To train a YOLOv8n model on the VOC dataset for 100 epochs with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
-!!! Example "Train Example"
+!!! example "Train Example"
 
     === "Python"
 
@@ -76,7 +76,7 @@ The example showcases the variety and complexity of the images in the VOC datase
 
 If you use the VOC dataset in your research or development work, please cite the following paper:
 
-!!! Quote ""
+!!! quote ""
 
     === "BibTeX"
 
@@ -103,7 +103,7 @@ The [PASCAL VOC](http://host.robots.ox.ac.uk/pascal/VOC/) (Visual Object Classes
 
 To train a YOLOv8 model with the VOC dataset, you need the dataset configuration in a YAML file. Here's an example to start training a YOLOv8n model for 100 epochs with an image size of 640:
 
-!!! Example "Train Example"
+!!! example "Train Example"
 
     === "Python"
 

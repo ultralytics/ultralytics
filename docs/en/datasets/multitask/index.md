@@ -81,8 +81,8 @@ The `train` and `val` fields specify the paths to the directories containing the
 
 `kpt_names` is a subset of `names` containing class names for which keypoint detection is enabled. The order of the names should match the order in `names`.
 
-(Optional if only 1 class in `kpt_names`) if the points are symmetric then need flip_idx, like left-right side of human or face. For example if we assume five keypoints of facial landmark: [left eye, right eye, nose, left mouth, right mouth], and the original index is [0, 1, 2, 3, 4], then flip_idx is [1, 0, 2, 4, 3] (just exchange the left-right index, i.e. 0-1 and 3-4, and do not modify others like nose in this example).
-If keypoints for multiple classes get predicted, `flip_idx` _must_ be in the natural order.
+(Optional if only 1 class in `kpt_names`) if the points are symmetric then need flip*idx, like left-right side of human or face. For example if we assume five keypoints of facial landmark: [left eye, right eye, nose, left mouth, right mouth], and the original index is [0, 1, 2, 3, 4], then flip_idx is [1, 0, 2, 4, 3] (just exchange the left-right index, i.e. 0-1 and 3-4, and do not modify others like nose in this example).
+If keypoints for multiple classes get predicted, `flip_idx` \_must* be in the natural order.
 
 ## Usage
 

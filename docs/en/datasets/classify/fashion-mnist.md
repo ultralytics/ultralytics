@@ -102,7 +102,7 @@ To train an Ultralytics YOLO model on the Fashion-MNIST dataset, you can use bot
 !!! Example "Train Example"
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
 
@@ -112,10 +112,10 @@ To train an Ultralytics YOLO model on the Fashion-MNIST dataset, you can use bot
         # Train the model on Fashion-MNIST
         results = model.train(data="fashion-mnist", epochs=100, imgsz=28)
         ```
-    
+
 
     === "CLI"
-    
+
         ```bash
         yolo classify train data=fashion-mnist model=yolov8n-cls.pt epochs=100 imgsz=28
         ```

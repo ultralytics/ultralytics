@@ -116,7 +116,7 @@ Training a YOLOv8 model on the SKU-110k dataset is straightforward. Here's an ex
 !!! Example "Train Example"
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
 
@@ -126,10 +126,10 @@ Training a YOLOv8 model on the SKU-110k dataset is straightforward. Here's an ex
         # Train the model
         results = model.train(data="SKU-110K.yaml", epochs=100, imgsz=640)
         ```
-    
+
 
     === "CLI"
-    
+
         ```bash
         # Start training from a pretrained *.pt model
         yolo detect train data=SKU-110K.yaml model=yolov8n.pt epochs=100 imgsz=640

@@ -44,20 +44,20 @@ The Ultralytics framework uses a YAML file format to define the dataset and mode
 
 ```yaml
 # Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
-path: ../datasets/coco8-seg  # dataset root dir
-train: images/train  # train images (relative to 'path') 4 images
-val: images/val  # val images (relative to 'path') 4 images
-test:  # test images (optional)
+path: ../datasets/coco8-seg # dataset root dir
+train: images/train # train images (relative to 'path') 4 images
+val: images/val # val images (relative to 'path') 4 images
+test: # test images (optional)
 
 # Classes (80 COCO classes)
 names:
-  0: person
-  1: bicycle
-  2: car
-  # ...
-  77: teddy bear
-  78: hair drier
-  79: toothbrush
+    0: person
+    1: bicycle
+    2: car
+    # ...
+    77: teddy bear
+    78: hair drier
+    79: toothbrush
 ```
 
 The `train` and `val` fields specify the paths to the directories containing the training and validation images, respectively.
@@ -141,7 +141,7 @@ To auto-annotate your dataset using the Ultralytics framework, you can use the `
         ```
 
 | Argument     | Type                    | Description                                                                                                 | Default        |
-|--------------|-------------------------|-------------------------------------------------------------------------------------------------------------|----------------|
+| ------------ | ----------------------- | ----------------------------------------------------------------------------------------------------------- | -------------- |
 | `data`       | `str`                   | Path to a folder containing images to be annotated.                                                         | `None`         |
 | `det_model`  | `str, optional`         | Pre-trained YOLO detection model. Defaults to `'yolov8x.pt'`.                                               | `'yolov8x.pt'` |
 | `sam_model`  | `str, optional`         | Pre-trained SAM segmentation model. Defaults to `'sam_b.pt'`.                                               | `'sam_b.pt'`   |
@@ -175,15 +175,15 @@ This script converts your COCO dataset annotations to the required YOLO format, 
 To prepare a YAML file for training YOLO models with Ultralytics, you need to define the dataset paths and class names. Here's an example YAML configuration:
 
 ```yaml
-path: ../datasets/coco8-seg  # dataset root dir
-train: images/train  # train images (relative to 'path') 
-val: images/val  # val images (relative to 'path') 
+path: ../datasets/coco8-seg # dataset root dir
+train: images/train # train images (relative to 'path')
+val: images/val # val images (relative to 'path')
 
 names:
-  0: person
-  1: bicycle
-  2: car
-  # ...
+    0: person
+    1: bicycle
+    2: car
+    # ...
 ```
 
 Ensure you update the paths and class names according to your dataset. For more information, check the [Dataset YAML Format](#dataset-yaml-format) section.

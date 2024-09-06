@@ -60,7 +60,7 @@ Exporting YOLOv8 models to TorchScript makes it easier to use them in different 
 
 To install the required package, run:
 
-!!! Tip "Installation"
+!!! tip "Installation"
 
     === "CLI"
 
@@ -75,7 +75,7 @@ For detailed instructions and best practices related to the installation process
 
 Before diving into the usage instructions, it's important to note that while all [Ultralytics YOLOv8 models](../models/index.md) are available for exporting, you can ensure that the model you select supports export functionality [here](../modes/export.md).
 
-!!! Example "Usage"
+!!! example "Usage"
 
     === "Python"
 
@@ -135,7 +135,7 @@ Exporting an Ultralytics YOLOv8 model to TorchScript allows for flexible, cross-
 
 To export a YOLOv8 model to TorchScript, you can use the following example code:
 
-!!! Example "Usage"
+!!! example "Usage"
 
     === "Python"
 
@@ -182,7 +182,7 @@ For more insights into deployment, visit the [PyTorch Mobile Documentation](http
 
 To install the required package for exporting YOLOv8 models, use the following command:
 
-!!! Tip "Installation"
+!!! tip "Installation"
 
     === "CLI"
 

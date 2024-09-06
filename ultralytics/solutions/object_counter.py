@@ -135,7 +135,7 @@ class ObjectCounter:
         annotator = Annotator(self.im0, self.tf, self.names)
 
         # Draw region or line
-        annotator.draw_region(reg_pts=self.reg_pts, color=self.region_color, thickness=self.tf*2)
+        annotator.draw_region(reg_pts=self.reg_pts, color=self.region_color, thickness=self.tf * 2)
 
         if tracks[0].boxes.id is not None:
             boxes = tracks[0].boxes.xyxy.cpu()

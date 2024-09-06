@@ -19,7 +19,6 @@ class ObjectCounter:
         self,
         names,
         reg_pts=None,
-        count_reg_color=(255, 0, 255),
         count_txt_color=(0, 0, 0),
         count_bg_color=(255, 255, 255),
         line_thickness=2,
@@ -34,7 +33,6 @@ class ObjectCounter:
         Args:
             names (dict): Dictionary of class names.
             reg_pts (list): List of points defining the counting region.
-            count_reg_color (tuple): RGB color of the counting region.
             count_txt_color (tuple): RGB color of the count text.
             count_bg_color (tuple): RGB color of the count text background.
             line_thickness (int): Line thickness for bounding boxes.
@@ -50,7 +48,6 @@ class ObjectCounter:
         # Region & Line Information
         self.reg_pts = [(20, 400), (1260, 400)] if reg_pts is None else reg_pts
         self.counting_region = None
-        self.region_color = count_reg_color
 
         # Image and annotation Information
         self.im0 = None
@@ -135,7 +132,7 @@ class ObjectCounter:
         annotator = Annotator(self.im0, self.tf, self.names)
 
         # Draw region or line
-        annotator.draw_region(reg_pts=self.reg_pts, color=self.region_color, thickness=self.tf * 2)
+        annotator.draw_region(reg_pts=self.reg_pts, color=(104, 0, 123), thickness=self.tf * 2)
 
         if tracks[0].boxes.id is not None:
             boxes = tracks[0].boxes.xyxy.cpu()

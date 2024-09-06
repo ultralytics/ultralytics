@@ -228,7 +228,6 @@ Here's a table with the `ObjectCounter` arguments:
 | ----------------- | ------- | -------------------------- | ---------------------------------------------------------------------- |
 | `names`           | `dict`  | `None`                     | Dictionary of classes names.                                           |
 | `reg_pts`         | `list`  | `[(20, 400), (1260, 400)]` | List of points defining the counting region.                           |
-| `count_reg_color` | `tuple` | `(255, 0, 255)`            | RGB color of the counting region.                                      |
 | `count_txt_color` | `tuple` | `(0, 0, 0)`                | RGB color of the count text.                                           |
 | `count_bg_color`  | `tuple` | `(255, 255, 255)`          | RGB color of the count text background.                                |
 | `line_thickness`  | `int`   | `2`                        | Line thickness for bounding boxes.                                     |

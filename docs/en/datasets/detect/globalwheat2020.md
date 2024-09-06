@@ -103,7 +103,7 @@ To train a YOLOv8n model on the Global Wheat Head Dataset, you can use the follo
 !!! Example "Train Example"
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
 

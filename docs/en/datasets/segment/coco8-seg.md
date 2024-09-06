@@ -91,7 +91,7 @@ To train a **YOLOv8n-seg** model on the COCO8-Seg dataset for 100 epochs with an
 !!! Example "Train Example"
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
 
@@ -103,7 +103,7 @@ To train a **YOLOv8n-seg** model on the COCO8-Seg dataset for 100 epochs with an
         ```
 
     === "CLI"
-    
+
         ```bash
         # Start training from a pretrained *.pt model
         yolo segment train data=coco8-seg.yaml model=yolov8n-seg.pt epochs=100 imgsz=640

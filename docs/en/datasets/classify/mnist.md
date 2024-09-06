@@ -98,7 +98,7 @@ To train a model on the MNIST dataset using Ultralytics YOLO, you can follow the
 !!! Example "Train Example"
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
 
@@ -110,7 +110,7 @@ To train a model on the MNIST dataset using Ultralytics YOLO, you can follow the
         ```
 
     === "CLI"
-    
+
         ```bash
         # Start training from a pretrained *.pt model
         yolo classify train data=mnist model=yolov8n-cls.pt epochs=100 imgsz=28

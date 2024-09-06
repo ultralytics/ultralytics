@@ -43,7 +43,7 @@ Once your model is trained and validated, the next logical step is to evaluate i
 - **OpenVINO:** For Intel hardware optimization
 - **CoreML, TensorFlow SavedModel, and More:** For diverse deployment needs.
 
-!!! Tip "Tip"
+!!! tip "Tip"
 
     * Export to ONNX or OpenVINO for up to 3x CPU speedup.
     * Export to TensorRT for up to 5x GPU speedup.
@@ -52,7 +52,7 @@ Once your model is trained and validated, the next logical step is to evaluate i
 
 Run YOLOv8n benchmarks on all supported export formats including ONNX, TensorRT etc. See Arguments section below for a full list of export arguments.
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -97,7 +97,7 @@ See full `export` details in the [Export](../modes/export.md) page.
 
 Ultralytics YOLOv8 offers a Benchmark mode to assess your model's performance across different export formats. This mode provides insights into key metrics such as mean Average Precision (mAP50-95), accuracy, and inference time in milliseconds. To run benchmarks, you can use either Python or CLI commands. For example, to benchmark on a GPU:
 
-!!! Example
+!!! example
 
     === "Python"
 

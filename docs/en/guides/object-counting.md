@@ -236,7 +236,6 @@ Here's a table with the `ObjectCounter` arguments:
 | `view_in_counts`   | `bool`  | `True`                     | Flag to control whether to display the in counts on the video stream.  |
 | `view_out_counts`  | `bool`  | `True`                     | Flag to control whether to display the out counts on the video stream. |
 | `draw_tracks`      | `bool`  | `False`                    | Flag to control whether to draw the object tracks.                     |
-| `region_thickness` | `int`   | `5`                        | Thickness of the object counting region.                               |
 
 ### Arguments `model.track`
 

@@ -30,7 +30,7 @@ The Objects365 dataset is widely used for training and evaluating deep learning 
 
 A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. For the case of the Objects365 Dataset, the `Objects365.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/Objects365.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/Objects365.yaml).
 
-!!! Example "ultralytics/cfg/datasets/Objects365.yaml"
+!!! example "ultralytics/cfg/datasets/Objects365.yaml"
 
     ```yaml
     --8<-- "ultralytics/cfg/datasets/Objects365.yaml"
@@ -40,7 +40,7 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 To train a YOLOv8n model on the Objects365 dataset for 100 epochs with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
-!!! Example "Train Example"
+!!! example "Train Example"
 
     === "Python"
 
@@ -75,7 +75,7 @@ The example showcases the variety and complexity of the data in the Objects365 d
 
 If you use the Objects365 dataset in your research or development work, please cite the following paper:
 
-!!! Quote ""
+!!! quote ""
 
     === "BibTeX"
 
@@ -101,7 +101,7 @@ The [Objects365 dataset](https://www.objects365.org/) is designed for object det
 
 To train a YOLOv8n model using the Objects365 dataset for 100 epochs with an image size of 640, follow these instructions:
 
-!!! Example "Train Example"
+!!! example "Train Example"
 
     === "Python"
 
@@ -127,6 +127,7 @@ Refer to the [Training](../../modes/train.md) page for a comprehensive list of a
 ### Why should I use the Objects365 dataset for my object detection projects?
 
 The Objects365 dataset offers several advantages for object detection tasks:
+
 1. **Diversity**: It includes 2 million images with objects in diverse scenarios, covering 365 categories.
 2. **High-quality Annotations**: Over 30 million bounding boxes provide comprehensive ground truth data.
 3. **Performance**: Models pre-trained on Objects365 significantly outperform those trained on datasets like ImageNet, leading to better generalization.

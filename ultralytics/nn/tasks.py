@@ -343,7 +343,7 @@ class DetectionModel(BaseModel):
         """Perform augmentations on input image x and return augmented inference and train outputs."""
         if getattr(self, "end2end", False) or self.__class__.__name__ != "DetectionModel":
             LOGGER.warning(f"WARNING ⚠️ Model does not support 'augment=True', reverting to single-scale prediction.")
-            return self._predict_once(x)
+            return self._predict_once(x) 
         img_size = x.shape[-2:]  # height, width
         s = [1, 0.83, 0.67]  # scales
         f = [None, 3, None]  # flips (2-ud, 3-lr)

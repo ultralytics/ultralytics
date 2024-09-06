@@ -26,7 +26,7 @@ You can bring automation and efficiency to your machine learning workflow by imp
 
 To install the required packages, run:
 
-!!! Tip "Installation"
+!!! tip "Installation"
 
     === "CLI"
 
@@ -43,7 +43,7 @@ Once you have installed the necessary packages, the next step is to initialize a
 
 Begin by initializing the ClearML SDK in your environment. The 'clearml-init' command starts the setup process and prompts you for the necessary credentials.
 
-!!! Tip "Initial SDK Setup"
+!!! tip "Initial SDK Setup"
 
     === "CLI"
 
@@ -58,7 +58,7 @@ After executing this command, visit the [ClearML Settings page](https://app.clea
 
 Before diving into the usage instructions, be sure to check out the range of [YOLOv8 models offered by Ultralytics](../models/index.md). This will help you choose the most appropriate model for your project requirements.
 
-!!! Example "Usage"
+!!! example "Usage"
 
     === "Python"
 

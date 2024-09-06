@@ -124,7 +124,6 @@ class ObjectCounter:
             self.is_drawing = False
             self.selected_point = None
 
-    # Define a function to check for intersection
     @staticmethod
     def does_intersect(segment1, segment2):
         """Check if two segments intersect."""

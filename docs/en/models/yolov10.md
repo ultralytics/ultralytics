@@ -140,7 +140,7 @@ Here is a detailed comparison of YOLOv10 variants with other state-of-the-art mo
 
 For predicting new images with YOLOv10:
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -166,7 +166,7 @@ For predicting new images with YOLOv10:
 
 For training YOLOv10 on a custom dataset:
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -225,7 +225,7 @@ YOLOv10 sets a new standard in real-time object detection by addressing the shor
 
 We would like to acknowledge the YOLOv10 authors from [Tsinghua University](https://www.tsinghua.edu.cn/en/) for their extensive research and significant contributions to the [Ultralytics](https://www.ultralytics.com/) framework:
 
-!!! Quote ""
+!!! quote ""
 
     === "BibTeX"
 
@@ -252,7 +252,7 @@ YOLOv10, developed by researchers at [Tsinghua University](https://www.tsinghua.
 
 For easy inference, you can use the Ultralytics YOLO Python library or the command line interface (CLI). Below are examples of predicting new images using YOLOv10:
 
-!!! Example
+!!! example
 
     === "Python"
 

@@ -34,7 +34,7 @@ The MNIST dataset is widely used for training and evaluating deep learning model
 
 To train a CNN model on the MNIST dataset for 100 epochs with an image size of 32x32, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
-!!! Example "Train Example"
+!!! example "Train Example"
 
     === "Python"
 
@@ -69,7 +69,7 @@ If you use the MNIST dataset in your
 
 research or development work, please cite the following paper:
 
-!!! Quote ""
+!!! quote ""
 
     === "BibTeX"
 
@@ -95,7 +95,7 @@ The [MNIST](http://yann.lecun.com/exdb/mnist/) dataset, or Modified National Ins
 
 To train a model on the MNIST dataset using Ultralytics YOLO, you can follow these steps:
 
-!!! Example "Train Example"
+!!! example "Train Example"
 
     === "Python"
 

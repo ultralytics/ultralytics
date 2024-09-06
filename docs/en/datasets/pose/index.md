@@ -64,7 +64,7 @@ The `train` and `val` fields specify the paths to the directories containing the
 
 ## Usage
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -126,7 +126,7 @@ If you have your own dataset and would like to use it for training pose estimati
 
 Ultralytics provides a convenient conversion tool to convert labels from the popular COCO dataset format to YOLO format:
 
-!!! Example
+!!! example
 
     === "Python"
 

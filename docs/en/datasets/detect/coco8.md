@@ -8,7 +8,7 @@ keywords: COCO8, Ultralytics, dataset, object detection, YOLOv8, training, valid
 
 ## Introduction
 
-[Ultralytics](https://ultralytics.com) COCO8 is a small, but versatile object detection dataset composed of the first 8 images of the COCO train 2017 set, 4 for training and 4 for validation. This dataset is ideal for testing and debugging object detection models, or for experimenting with new detection approaches. With 8 images, it is small enough to be easily manageable, yet diverse enough to test training pipelines for errors and act as a sanity check before training larger datasets.
+[Ultralytics](https://www.ultralytics.com/) COCO8 is a small, but versatile object detection dataset composed of the first 8 images of the COCO train 2017 set, 4 for training and 4 for validation. This dataset is ideal for testing and debugging object detection models, or for experimenting with new detection approaches. With 8 images, it is small enough to be easily manageable, yet diverse enough to test training pipelines for errors and act as a sanity check before training larger datasets.
 
 <p align="center">
   <br>
@@ -21,7 +21,7 @@ keywords: COCO8, Ultralytics, dataset, object detection, YOLOv8, training, valid
   <strong>Watch:</strong> Ultralytics COCO Dataset Overview
 </p>
 
-This dataset is intended for use with Ultralytics [HUB](https://hub.ultralytics.com) and [YOLOv8](https://github.com/ultralytics/ultralytics).
+This dataset is intended for use with Ultralytics [HUB](https://hub.ultralytics.com/) and [YOLOv8](https://github.com/ultralytics/ultralytics).
 
 ## Dataset YAML
 
@@ -124,7 +124,7 @@ For a comprehensive list of available arguments, refer to the model [Training](.
 
 ### Why should I use Ultralytics HUB for managing my COCO8 training?
 
-Ultralytics HUB is an all-in-one web tool designed to simplify the training and deployment of YOLO models, including the Ultralytics YOLOv8 models on the COCO8 dataset. It offers cloud training, real-time tracking, and seamless dataset management. HUB allows you to start training with a single click and avoids the complexities of manual setups. Discover more about [Ultralytics HUB](https://hub.ultralytics.com) and its benefits.
+Ultralytics HUB is an all-in-one web tool designed to simplify the training and deployment of YOLO models, including the Ultralytics YOLOv8 models on the COCO8 dataset. It offers cloud training, real-time tracking, and seamless dataset management. HUB allows you to start training with a single click and avoids the complexities of manual setups. Discover more about [Ultralytics HUB](https://hub.ultralytics.com/) and its benefits.
 
 ### What are the benefits of using mosaic augmentation in training with the COCO8 dataset?
 

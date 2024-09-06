@@ -6,11 +6,22 @@ keywords: Ultralytics, YOLOv8, NVIDIA Jetson, JetPack, AI deployment, embedded s
 
 # Ultralytics YOLOv8 on NVIDIA Jetson using DeepStream SDK and TensorRT
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/wWmXKIteRLA"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to Run Multiple Streams with DeepStream SDK on Jetson Nano using Ultralytics YOLOv8
+</p>
+
 This comprehensive guide provides a detailed walkthrough for deploying Ultralytics YOLOv8 on [NVIDIA Jetson](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/) devices using DeepStream SDK and TensorRT. Here we use TensorRT to maximize the inference performance on the Jetson platform.
 
 <img width="1024" src="https://github.com/ultralytics/docs/releases/download/0/deepstream-nvidia-jetson.avif" alt="DeepStream on NVIDIA Jetson">
 
-!!! Note
+!!! note
 
     This guide has been tested with both [Seeed Studio reComputer J4012](https://www.seeedstudio.com/reComputer-J4012-p-5586.html) which is based on NVIDIA Jetson Orin NX 16GB running JetPack release of [JP5.1.3](https://developer.nvidia.com/embedded/jetpack-sdk-513) and [Seeed Studio reComputer J1020 v2](https://www.seeedstudio.com/reComputer-J1020-v2-p-5498.html) which is based on NVIDIA Jetson Nano 4GB running JetPack release of [JP4.6.4](https://developer.nvidia.com/jetpack-sdk-464). It is expected to work across all the NVIDIA Jetson hardware lineup including latest and legacy.
 
@@ -28,7 +39,7 @@ Before you start to follow this guide:
     - For JetPack 4.6.4, install [DeepStream 6.0.1](https://docs.nvidia.com/metropolis/deepstream/6.0.1/dev-guide/text/DS_Quickstart.html)
     - For JetPack 5.1.3, install [DeepStream 6.3](https://docs.nvidia.com/metropolis/deepstream/6.3/dev-guide/text/DS_Quickstart.html)
 
-!!! Tip
+!!! tip
 
     In this guide we have used the Debian package method of installing DeepStream SDK to the Jetson device. You can also visit the [DeepStream SDK on Jetson (Archived)](https://developer.nvidia.com/embedded/deepstream-on-jetson-downloads-archived) to access legacy versions of DeepStream.
 
@@ -56,7 +67,7 @@ Here we are using [marcoslucianops/DeepStream-Yolo](https://github.com/marcosluc
     wget https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8s.pt
     ```
 
-    !!! Note
+    !!! note
 
         You can also use a [custom trained YOLOv8 model](https://docs.ultralytics.com/modes/train/).
 
@@ -66,7 +77,7 @@ Here we are using [marcoslucianops/DeepStream-Yolo](https://github.com/marcosluc
     python3 utils/export_yoloV8.py -w yolov8s.pt
     ```
 
-    !!! Note "Pass the below arguments to the above command"
+    !!! note "Pass the below arguments to the above command"
 
         For DeepStream 6.0.1, use opset 12 or lower. The default opset is 16.
 
@@ -164,13 +175,13 @@ Here we are using [marcoslucianops/DeepStream-Yolo](https://github.com/marcosluc
 deepstream-app -c deepstream_app_config.txt
 ```
 
-!!! Note
+!!! note
 
     It will take a long time to generate the TensorRT engine file before starting the inference. So please be patient.
 
 <div align=center><img width=1000 src="https://github.com/ultralytics/docs/releases/download/0/yolov8-with-deepstream.avif" alt="YOLOv8 with deepstream"></div>
 
-!!! Tip
+!!! tip
 
     If you want to convert the model to FP16 precision, simply set `model-engine-file=model_b1_gpu0_fp16.engine` and `network-mode=2` inside `config_infer_primary_yoloV8.txt`
 
@@ -206,7 +217,7 @@ If you want to use INT8 precision for inference, you need to follow the steps be
     done
     ```
 
-    !!! Note
+    !!! note
 
         NVIDIA recommends at least 500 images to get a good accuracy. On this example, 1000 images are chosen to get better accuracy (more images = more accuracy). You can set it from **head -1000**. For example, for 2000 images, **head -2000**. This process can take a long time.
 
@@ -223,7 +234,7 @@ If you want to use INT8 precision for inference, you need to follow the steps be
     export INT8_CALIB_BATCH_SIZE=1
     ```
 
-    !!! Note
+    !!! note
 
         Higher INT8_CALIB_BATCH_SIZE values will result in more accuracy and faster calibration speed. Set it according to you GPU memory.
 

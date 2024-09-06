@@ -76,7 +76,7 @@ To use Ultralytics YOLOv8 for object detection, follow these steps:
 2. Train the YOLOv8 model using the detection task.
 3. Use the model to make predictions by feeding in new images or video frames.
 
-!!! Example
+!!! example
 
     === "Python"
 

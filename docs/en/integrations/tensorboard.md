@@ -26,7 +26,7 @@ Using TensorBoard while training YOLOv8 models is straightforward and offers sig
 
 To install the required package, run:
 
-!!! Tip "Installation"
+!!! tip "Installation"
 
     === "CLI"
 
@@ -43,7 +43,7 @@ For detailed instructions and best practices related to the installation process
 
 When using Google Colab, it's important to set up TensorBoard before starting your training code:
 
-!!! Example "Configure TensorBoard for Google Colab"
+!!! example "Configure TensorBoard for Google Colab"
 
     === "Python"
 
@@ -56,7 +56,7 @@ When using Google Colab, it's important to set up TensorBoard before starting yo
 
 Before diving into the usage instructions, be sure to check out the range of [YOLOv8 models offered by Ultralytics](../models/index.md). This will help you choose the most appropriate model for your project requirements.
 
-!!! Example "Usage"
+!!! example "Usage"
 
     === "Python"
 
@@ -189,7 +189,7 @@ These visualizations are essential for tracking model performance and making nec
 
 Yes, you can use TensorBoard in a Google Colab environment to train YOLOv8 models. Here's a quick setup:
 
-!!! Example "Configure TensorBoard for Google Colab"
+!!! example "Configure TensorBoard for Google Colab"
 
     === "Python"
 

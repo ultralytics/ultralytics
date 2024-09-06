@@ -33,7 +33,7 @@ Here is an example of the YOLO dataset format for a single image with two object
 1 0.504 0.000 0.501 0.004 0.498 0.004 0.493 0.010 0.492 0.0104
 ```
 
-!!! Tip "Tip"
+!!! tip "Tip"
 
       - The length of each row does **not** have to be equal.
       - Each segmentation label must have a **minimum of 3 xy points**: `<class-index> <x1> <y1> <x2> <y2> <x3> <y3>`
@@ -44,20 +44,20 @@ The Ultralytics framework uses a YAML file format to define the dataset and mode
 
 ```yaml
 # Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
-path: ../datasets/coco8-seg  # dataset root dir
-train: images/train  # train images (relative to 'path') 4 images
-val: images/val  # val images (relative to 'path') 4 images
-test:  # test images (optional)
+path: ../datasets/coco8-seg # dataset root dir
+train: images/train # train images (relative to 'path') 4 images
+val: images/val # val images (relative to 'path') 4 images
+test: # test images (optional)
 
 # Classes (80 COCO classes)
 names:
-  0: person
-  1: bicycle
-  2: car
-  # ...
-  77: teddy bear
-  78: hair drier
-  79: toothbrush
+    0: person
+    1: bicycle
+    2: car
+    # ...
+    77: teddy bear
+    78: hair drier
+    79: toothbrush
 ```
 
 The `train` and `val` fields specify the paths to the directories containing the training and validation images, respectively.
@@ -66,7 +66,7 @@ The `train` and `val` fields specify the paths to the directories containing the
 
 ## Usage
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -108,7 +108,7 @@ If you have your own dataset and would like to use it for training segmentation 
 
 You can easily convert labels from the popular COCO dataset format to the YOLO format using the following code snippet:
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -130,7 +130,7 @@ Auto-annotation is an essential feature that allows you to generate a segmentati
 
 To auto-annotate your dataset using the Ultralytics framework, you can use the `auto_annotate` function as shown below:
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -141,7 +141,7 @@ To auto-annotate your dataset using the Ultralytics framework, you can use the `
         ```
 
 | Argument     | Type                    | Description                                                                                                 | Default        |
-|--------------|-------------------------|-------------------------------------------------------------------------------------------------------------|----------------|
+| ------------ | ----------------------- | ----------------------------------------------------------------------------------------------------------- | -------------- |
 | `data`       | `str`                   | Path to a folder containing images to be annotated.                                                         | `None`         |
 | `det_model`  | `str, optional`         | Pre-trained YOLO detection model. Defaults to `'yolov8x.pt'`.                                               | `'yolov8x.pt'` |
 | `sam_model`  | `str, optional`         | Pre-trained SAM segmentation model. Defaults to `'sam_b.pt'`.                                               | `'sam_b.pt'`   |
@@ -175,15 +175,15 @@ This script converts your COCO dataset annotations to the required YOLO format, 
 To prepare a YAML file for training YOLO models with Ultralytics, you need to define the dataset paths and class names. Here's an example YAML configuration:
 
 ```yaml
-path: ../datasets/coco8-seg  # dataset root dir
-train: images/train  # train images (relative to 'path') 
-val: images/val  # val images (relative to 'path') 
+path: ../datasets/coco8-seg # dataset root dir
+train: images/train # train images (relative to 'path')
+val: images/val # val images (relative to 'path')
 
 names:
-  0: person
-  1: bicycle
-  2: car
-  # ...
+    0: person
+    1: bicycle
+    2: car
+    # ...
 ```
 
 Ensure you update the paths and class names according to your dataset. For more information, check the [Dataset YAML Format](#dataset-yaml-format) section.

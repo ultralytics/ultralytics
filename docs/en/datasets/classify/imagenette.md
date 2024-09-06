@@ -29,7 +29,7 @@ The ImageNette dataset is widely used for training and evaluating deep learning 
 
 To train a model on the ImageNette dataset for 100 epochs with a standard image size of 224x224, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
-!!! Example "Train Example"
+!!! example "Train Example"
 
     === "Python"
 
@@ -64,7 +64,7 @@ For faster prototyping and training, the ImageNette dataset is also available in
 
 To use these datasets, simply replace 'imagenette' with 'imagenette160' or 'imagenette320' in the training command. The following code snippets illustrate this:
 
-!!! Example "Train Example with ImageNette160"
+!!! example "Train Example with ImageNette160"
 
     === "Python"
 
@@ -85,7 +85,7 @@ To use these datasets, simply replace 'imagenette' with 'imagenette160' or 'imag
         yolo classify train data=imagenette160 model=yolov8n-cls.pt epochs=100 imgsz=160
         ```
 
-!!! Example "Train Example with ImageNette320"
+!!! example "Train Example with ImageNette320"
 
     === "Python"
 
@@ -122,7 +122,7 @@ The [ImageNette dataset](https://github.com/fastai/imagenette) is a simplified s
 
 To train a YOLO model on the ImageNette dataset for 100 epochs, you can use the following commands. Make sure to have the Ultralytics YOLO environment set up.
 
-!!! Example "Train Example"
+!!! example "Train Example"
 
     === "Python"
 
@@ -152,14 +152,14 @@ The ImageNette dataset is advantageous for several reasons:
 - **Quick and Simple**: It contains only 10 classes, making it less complex and time-consuming compared to larger datasets.
 - **Educational Use**: Ideal for learning and teaching the basics of image classification since it requires less computational power and time.
 - **Versatility**: Widely used to train and benchmark various machine learning models, especially in image classification.
-  
+
 For more details on model training and dataset management, explore the [Dataset Structure](#dataset-structure) section.
 
 ### Can the ImageNette dataset be used with different image sizes?
 
-Yes, the ImageNette dataset is also available in two resized versions: ImageNette160 and ImageNette320. These versions help in faster prototyping and are especially useful when computational resources are limited. 
+Yes, the ImageNette dataset is also available in two resized versions: ImageNette160 and ImageNette320. These versions help in faster prototyping and are especially useful when computational resources are limited.
 
-!!! Example "Train Example with ImageNette160"
+!!! example "Train Example with ImageNette160"
 
     === "Python"
 
@@ -174,7 +174,7 @@ Yes, the ImageNette dataset is also available in two resized versions: ImageNett
         ```
 
     === "CLI"
-    
+
         ```bash
         # Start training from a pretrained *.pt model with ImageNette160
         yolo detect train data=imagenette160 model=yolov8n-cls.pt epochs=100 imgsz=160

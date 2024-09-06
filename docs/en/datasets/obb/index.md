@@ -32,7 +32,7 @@ An example of a `*.txt` label file for the above image, which contains an object
 
 To train a model using these OBB formats:
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -70,7 +70,7 @@ For those looking to introduce their own datasets with oriented bounding boxes, 
 
 Transitioning labels from the DOTA dataset format to the YOLO OBB format can be achieved with this script:
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -106,10 +106,10 @@ This script will reformat your DOTA annotations into a YOLO-compatible format.
 
 Training a YOLOv8 model with OBBs involves ensuring your dataset is in the YOLO OBB format and then using the Ultralytics API to train the model. Here's an example in both Python and CLI:
 
-!!! Example
+!!! example
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
 
@@ -119,15 +119,14 @@ Training a YOLOv8 model with OBBs involves ensuring your dataset is in the YOLO 
         # Train the model on the custom dataset
         results = model.train(data="your_dataset.yaml", epochs=100, imgsz=640)
         ```
-    
 
     === "CLI"
-    
+
         ```bash
         # Train a new YOLOv8n-OBB model on the custom dataset
         yolo obb train data=your_dataset.yaml model=yolov8n-obb.yaml epochs=100 imgsz=640
         ```
-        
+
 This ensures your model leverages the detailed OBB annotations for improved detection accuracy.
 
 ### What datasets are currently supported for OBB training in Ultralytics YOLO models?

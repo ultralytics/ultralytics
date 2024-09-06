@@ -36,7 +36,7 @@ Measuring the gap between two objects is known as distance calculation within a 
 
     - Click on any two bounding boxes with Left Mouse click for distance calculation
 
-!!! Example "Distance Calculation using YOLOv8 Example"
+!!! example "Distance Calculation using YOLOv8 Example"
 
     === "Video Stream"
 

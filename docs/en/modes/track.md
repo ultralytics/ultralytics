@@ -56,13 +56,13 @@ The default tracker is BoT-SORT.
 
 ## Tracking
 
-!!! Warning "Tracker Threshold Information"
+!!! warning "Tracker Threshold Information"
 
     If object confidence score will be low, i.e lower than [`track_high_thresh`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/trackers/bytetrack.yaml#L5), then there will be no tracks successfully returned and updated.
 
 To run the tracker on video streams, use a trained Detect, Segment or Pose model such as YOLOv8n, YOLOv8n-seg and YOLOv8n-pose.
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -97,7 +97,7 @@ As can be seen in the above usage, tracking is available for all Detect, Segment
 
 ## Configuration
 
-!!! Warning "Tracker Threshold Information"
+!!! warning "Tracker Threshold Information"
 
     If object confidence score will be low, i.e lower than [`track_high_thresh`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/trackers/bytetrack.yaml#L5), then there will be no tracks successfully returned and updated.
 
@@ -105,7 +105,7 @@ As can be seen in the above usage, tracking is available for all Detect, Segment
 
 Tracking configuration shares properties with Predict mode, such as `conf`, `iou`, and `show`. For further configurations, refer to the [Predict](../modes/predict.md#inference-arguments) model page.
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -128,7 +128,7 @@ Tracking configuration shares properties with Predict mode, such as `conf`, `iou
 
 Ultralytics also allows you to use a modified tracker configuration file. To do this, simply make a copy of a tracker config file (for example, `custom_tracker.yaml`) from [ultralytics/cfg/trackers](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/trackers) and modify any configurations (except the `tracker_type`) as per your needs.
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -155,7 +155,7 @@ For a comprehensive list of tracking arguments, refer to the [ultralytics/cfg/tr
 
 Here is a Python script using OpenCV (`cv2`) and YOLOv8 to run object tracking on video frames. This script still assumes you have already installed the necessary packages (`opencv-python` and `ultralytics`). The `persist=True` argument tells the tracker that the current image or frame is the next in a sequence and to expect tracks from the previous image in the current image.
 
-!!! Example "Streaming for-loop with tracking"
+!!! example "Streaming for-loop with tracking"
 
     ```python
     import cv2
@@ -204,7 +204,7 @@ Visualizing object tracks over consecutive frames can provide valuable insights 
 
 In the following example, we demonstrate how to utilize YOLOv8's tracking capabilities to plot the movement of detected objects across multiple video frames. This script involves opening a video file, reading it frame by frame, and utilizing the YOLO model to identify and track various objects. By retaining the center points of the detected bounding boxes and connecting them, we can draw lines that represent the paths followed by the tracked objects.
 
-!!! Example "Plotting tracks over multiple video frames"
+!!! example "Plotting tracks over multiple video frames"
 
     ```python
     from collections import defaultdict
@@ -281,7 +281,7 @@ The `daemon=True` parameter in `threading.Thread` means that these threads will 
 
 Finally, after all threads have completed their task, the windows displaying the results are closed using `cv2.destroyAllWindows()`.
 
-!!! Example "Streaming for-loop with tracking"
+!!! example "Streaming for-loop with tracking"
 
     ```python
     import threading
@@ -378,7 +378,7 @@ Multi-object tracking in video analytics involves both identifying objects and m
 
 You can configure a custom tracker by copying an existing tracker configuration file (e.g., `custom_tracker.yaml`) from the [Ultralytics tracker configuration directory](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/trackers) and modifying parameters as needed, except for the `tracker_type`. Use this file in your tracking model like so:
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -399,7 +399,7 @@ You can configure a custom tracker by copying an existing tracker configuration 
 
 To run object tracking on multiple video streams simultaneously, you can use Python's `threading` module. Each thread will handle a separate video stream. Here's an example of how you can set this up:
 
-!!! Example "Multithreaded Tracking"
+!!! example "Multithreaded Tracking"
 
     ```python
     import threading
@@ -454,7 +454,7 @@ These applications benefit from Ultralytics YOLO's ability to process high-frame
 
 To visualize object tracks over multiple video frames, you can use the YOLO model's tracking features along with OpenCV to draw the paths of detected objects. Here's an example script that demonstrates this:
 
-!!! Example "Plotting tracks over multiple video frames"
+!!! example "Plotting tracks over multiple video frames"
 
     ```python
     from collections import defaultdict

@@ -39,7 +39,7 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
     - `heatmap_alpha`: Ensure this value is within the range (0.0 - 1.0).
     - `decay_factor`: Used for removing heatmap after an object is no longer in the frame, its value should also be in the range (0.0 - 1.0).
 
-!!! Example "Heatmaps using Ultralytics YOLOv8 Example"
+!!! example "Heatmaps using Ultralytics YOLOv8 Example"
 
     === "Heatmap"
 

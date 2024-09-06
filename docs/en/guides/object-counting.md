@@ -46,7 +46,7 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 | ![Conveyor Belt Packets Counting Using Ultralytics YOLOv8](https://github.com/ultralytics/docs/releases/download/0/conveyor-belt-packets-counting.avif) | ![Fish Counting in Sea using Ultralytics YOLOv8](https://github.com/ultralytics/docs/releases/download/0/fish-counting-in-sea-using-ultralytics-yolov8.avif) |
 |                                                 Conveyor Belt Packets Counting Using Ultralytics YOLOv8                                                 |                                                        Fish Counting in Sea using Ultralytics YOLOv8                                                         |
 
-!!! Example "Object Counting using YOLOv8 Example"
+!!! example "Object Counting using YOLOv8 Example"
 
     === "Count in Region"
 
@@ -224,23 +224,15 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 
 Here's a table with the `ObjectCounter` arguments:
 
-| Name                 | Type    | Default                    | Description                                                            |
-| -------------------- | ------- | -------------------------- | ---------------------------------------------------------------------- |
-| `names`              | `dict`  | `None`                     | Dictionary of classes names.                                           |
-| `reg_pts`            | `list`  | `[(20, 400), (1260, 400)]` | List of points defining the counting region.                           |
-| `count_reg_color`    | `tuple` | `(255, 0, 255)`            | RGB color of the counting region.                                      |
-| `count_txt_color`    | `tuple` | `(0, 0, 0)`                | RGB color of the count text.                                           |
-| `count_bg_color`     | `tuple` | `(255, 255, 255)`          | RGB color of the count text background.                                |
-| `line_thickness`     | `int`   | `2`                        | Line thickness for bounding boxes.                                     |
-| `track_thickness`    | `int`   | `2`                        | Thickness of the track lines.                                          |
-| `view_img`           | `bool`  | `False`                    | Flag to control whether to display the video stream.                   |
-| `view_in_counts`     | `bool`  | `True`                     | Flag to control whether to display the in counts on the video stream.  |
-| `view_out_counts`    | `bool`  | `True`                     | Flag to control whether to display the out counts on the video stream. |
-| `draw_tracks`        | `bool`  | `False`                    | Flag to control whether to draw the object tracks.                     |
-| `track_color`        | `tuple` | `None`                     | RGB color of the tracks.                                               |
-| `region_thickness`   | `int`   | `5`                        | Thickness of the object counting region.                               |
-| `line_dist_thresh`   | `int`   | `15`                       | Euclidean distance threshold for line counter.                         |
-| `cls_txtdisplay_gap` | `int`   | `50`                       | Display gap between each class count.                                  |
+| Name              | Type   | Default                    | Description                                                            |
+| ----------------- | ------ | -------------------------- | ---------------------------------------------------------------------- |
+| `names`           | `dict` | `None`                     | Dictionary of classes names.                                           |
+| `reg_pts`         | `list` | `[(20, 400), (1260, 400)]` | List of points defining the counting region.                           |
+| `line_thickness`  | `int`  | `2`                        | Line thickness for bounding boxes.                                     |
+| `view_img`        | `bool` | `False`                    | Flag to control whether to display the video stream.                   |
+| `view_in_counts`  | `bool` | `True`                     | Flag to control whether to display the in counts on the video stream.  |
+| `view_out_counts` | `bool` | `True`                     | Flag to control whether to display the out counts on the video stream. |
+| `draw_tracks`     | `bool` | `False`                    | Flag to control whether to draw the object tracks.                     |
 
 ### Arguments `model.track`
 

@@ -78,7 +78,7 @@ Benchmark mode is used to profile the speed and accuracy of various export forma
 
 Training a custom object detection model with Ultralytics YOLOv8 involves using the train mode. You need a dataset formatted in YOLO format, containing images and corresponding annotation files. Use the following command to start the training process:
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -108,7 +108,7 @@ Ultralytics YOLOv8 uses various metrics during the validation process to assess 
 
 You can run the following command to start the validation:
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -132,7 +132,7 @@ Refer to the [Validation Guide](../modes/val.md) for further details.
 
 Ultralytics YOLOv8 offers export functionality to convert your trained model into various deployment formats such as ONNX, TensorRT, CoreML, and more. Use the following example to export your model:
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -156,7 +156,7 @@ Detailed steps for each export format can be found in the [Export Guide](../mode
 
 Benchmark mode in Ultralytics YOLOv8 is used to analyze the speed and accuracy of various export formats such as ONNX, TensorRT, and OpenVINO. It provides metrics like model size, `mAP50-95` for object detection, and inference time across different hardware setups, helping you choose the most suitable format for your deployment needs.
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -179,7 +179,7 @@ For more details, refer to the [Benchmark Guide](../modes/benchmark.md).
 
 Real-time object tracking can be achieved using the track mode in Ultralytics YOLOv8. This mode extends object detection capabilities to track objects across video frames or live feeds. Use the following example to enable tracking:
 
-!!! Example
+!!! example
 
     === "Python"
 

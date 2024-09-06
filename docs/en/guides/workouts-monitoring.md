@@ -34,7 +34,7 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
 | ![PushUps Counting](https://github.com/ultralytics/docs/releases/download/0/pushups-counting.avif) | ![PullUps Counting](https://github.com/ultralytics/docs/releases/download/0/pullups-counting.avif) |
 |                                          PushUps Counting                                          |                                          PullUps Counting                                          |
 
-!!! Example "Workouts Monitoring Example"
+!!! example "Workouts Monitoring Example"
 
     === "Workouts Monitoring"
 

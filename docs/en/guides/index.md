@@ -68,7 +68,7 @@ Let's work together to make the Ultralytics YOLO ecosystem more robust and versa
 
 Training a custom object detection model with Ultralytics YOLO is straightforward. Start by preparing your dataset in the correct format and installing the Ultralytics package. Use the following code to initiate training:
 
-!!! Example
+!!! example
 
     === "Python"
 

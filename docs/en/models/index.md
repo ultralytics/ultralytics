@@ -45,7 +45,7 @@ This example provides simple YOLO training and inference examples. For full docu
 
 Note the below example is for YOLOv8 [Detect](../tasks/detect.md) models for object detection. For additional supported tasks see the [Segment](../tasks/segment.md), [Classify](../tasks/classify.md) and [Pose](../tasks/pose.md) docs.
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -107,7 +107,7 @@ Ultralytics YOLOv8 offers enhanced capabilities such as real-time object detecti
 
 Training a YOLOv8 model on custom data can be easily accomplished using Ultralytics' libraries. Here's a quick example:
 
-!!! Example
+!!! example
 
     === "Python"
 

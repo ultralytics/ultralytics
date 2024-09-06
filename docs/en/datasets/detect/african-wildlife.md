@@ -35,7 +35,7 @@ This dataset can be applied in various computer vision tasks such as object dete
 
 A YAML (Yet Another Markup Language) file defines the dataset configuration, including paths, classes, and other pertinent details. For the African wildlife dataset, the `african-wildlife.yaml` file is located at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/african-wildlife.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/african-wildlife.yaml).
 
-!!! Example "ultralytics/cfg/datasets/african-wildlife.yaml"
+!!! example "ultralytics/cfg/datasets/african-wildlife.yaml"
 
     ```yaml
     --8<-- "ultralytics/cfg/datasets/african-wildlife.yaml"
@@ -45,7 +45,7 @@ A YAML (Yet Another Markup Language) file defines the dataset configuration, inc
 
 To train a YOLOv8n model on the African wildlife dataset for 100 epochs with an image size of 640, use the provided code samples. For a comprehensive list of available parameters, refer to the model's [Training](../../modes/train.md) page.
 
-!!! Example "Train Example"
+!!! example "Train Example"
 
     === "Python"
 
@@ -66,7 +66,7 @@ To train a YOLOv8n model on the African wildlife dataset for 100 epochs with an 
         yolo detect train data=african-wildlife.yaml model=yolov8n.pt epochs=100 imgsz=640
         ```
 
-!!! Example "Inference Example"
+!!! example "Inference Example"
 
     === "Python"
 
@@ -111,10 +111,10 @@ The African Wildlife Dataset includes images of four common animal species found
 
 You can train a YOLOv8 model on the African Wildlife Dataset by using the `african-wildlife.yaml` configuration file. Below is an example of how to train the YOLOv8n model for 100 epochs with an image size of 640:
 
-!!! Example
+!!! example
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
 
@@ -126,7 +126,7 @@ You can train a YOLOv8 model on the African Wildlife Dataset by using the `afric
         ```
 
     === "CLI"
-    
+
         ```bash
         # Start training from a pretrained *.pt model
         yolo detect train data=african-wildlife.yaml model=yolov8n.pt epochs=100 imgsz=640

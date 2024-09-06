@@ -40,7 +40,7 @@ The Ultralytics Python API provides pre-trained PaddlePaddle RT-DETR models with
 
 This example provides simple RT-DETR training and inference examples. For full documentation on these and other [modes](../modes/index.md) see the [Predict](../modes/predict.md), [Train](../modes/train.md), [Val](../modes/val.md) and [Export](../modes/export.md) docs pages.
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -83,7 +83,7 @@ This table presents the model types, the specific pre-trained weights, the tasks
 
 If you use Baidu's RT-DETR in your research or development work, please cite the [original paper](https://arxiv.org/abs/2304.08069):
 
-!!! Quote ""
+!!! quote ""
 
     === "BibTeX"
 
@@ -110,7 +110,7 @@ Baidu's RT-DETR (Real-Time Detection Transformer) is an advanced real-time objec
 
 You can leverage Ultralytics Python API to use pre-trained PaddlePaddle RT-DETR models. For instance, to load an RT-DETR-l model pre-trained on COCO val2017 and achieve high FPS on T4 GPU, you can utilize the following example:
 
-!!! Example
+!!! example
 
     === "Python"
 

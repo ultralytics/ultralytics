@@ -36,7 +36,7 @@ YOLOv6 also provides quantized models for different precisions and models optimi
 
 This example provides simple YOLOv6 training and inference examples. For full documentation on these and other [modes](../modes/index.md) see the [Predict](../modes/predict.md), [Train](../modes/train.md), [Val](../modes/val.md) and [Export](../modes/export.md) docs pages.
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -88,7 +88,7 @@ This table provides a detailed overview of the YOLOv6 model variants, highlighti
 
 We would like to acknowledge the authors for their significant contributions in the field of real-time object detection:
 
-!!! Quote ""
+!!! quote ""
 
     === "BibTeX"
 
@@ -119,7 +119,7 @@ The Bi-directional Concatenation (BiC) module in YOLOv6 enhances localization si
 
 You can train a YOLOv6 model using Ultralytics with simple Python or CLI commands. For instance:
 
-!!! Example
+!!! example
 
     === "Python"
 

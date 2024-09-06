@@ -19,7 +19,7 @@ YOLO settings and hyperparameters play a critical role in the model's performanc
 
 Ultralytics commands use the following syntax:
 
-!!! Example
+!!! example
 
     === "CLI"
 

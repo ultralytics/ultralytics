@@ -60,7 +60,7 @@ The FastSAM models are easy to integrate into your Python applications. Ultralyt
 
 To perform object detection on an image, use the `predict` method as shown below:
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -98,7 +98,7 @@ To perform object detection on an image, use the `predict` method as shown below
 
 This snippet demonstrates the simplicity of loading a pre-trained model and running a prediction on an image.
 
-!!! Example "FastSAMPredictor example"
+!!! example "FastSAMPredictor example"
 
     This way you can run inference on image and get all the segment `results` once and run prompts inference multiple times without running inference multiple times.
 
@@ -120,7 +120,7 @@ This snippet demonstrates the simplicity of loading a pre-trained model and runn
         text_results = predictor.prompt(everything_results, texts="a photo of a dog")
         ```
 
-!!! Note
+!!! note
 
     All the returned `results` in above examples are [Results](../modes/predict.md#working-with-results) object which allows access predicted masks and source image easily.
 
@@ -128,7 +128,7 @@ This snippet demonstrates the simplicity of loading a pre-trained model and runn
 
 Validation of the model on a dataset can be done as follows:
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -155,7 +155,7 @@ Please note that FastSAM only supports detection and segmentation of a single cl
 
 To perform object tracking on an image, use the `track` method as shown below:
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -241,7 +241,7 @@ Additionally, you can try FastSAM through a [Colab demo](https://colab.research.
 
 We would like to acknowledge the FastSAM authors for their significant contributions in the field of real-time instance segmentation:
 
-!!! Quote ""
+!!! quote ""
 
     === "BibTeX"
 

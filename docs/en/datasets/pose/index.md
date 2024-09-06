@@ -53,7 +53,7 @@ flip_idx: [0, 2, 1, 4, 3, 6, 5, 8, 7, 10, 9, 12, 11, 14, 13, 16, 15]
 
 # Classes dictionary
 names:
-  0: person
+    0: person
 ```
 
 The `train` and `val` fields specify the paths to the directories containing the training and validation images, respectively.
@@ -166,7 +166,8 @@ To use the COCO-Pose dataset with Ultralytics YOLO:
    results = model.train(data="coco-pose.yaml", epochs=100, imgsz=640)
    ```
 
-   For more information, visit [COCO-Pose](coco.md) and [train](../../modes/train.md) sections.
+    For more information, visit [COCO-Pose](coco.md) and [train](../../modes/train.md) sections.
+
 
 ### How can I add my own dataset for pose estimation in Ultralytics YOLO?
 
@@ -183,7 +184,7 @@ To add your dataset:
    results = model.train(data="your-dataset.yaml", epochs=100, imgsz=640)
    ```
 
-   For complete steps, check the [Adding your own dataset](#adding-your-own-dataset) section.
+    For complete steps, check the [Adding your own dataset](#adding-your-own-dataset) section.
 
 ### What is the purpose of the dataset YAML file in Ultralytics YOLO?
 
@@ -194,7 +195,7 @@ path: ../datasets/coco8-pose
 train: images/train
 val: images/val
 names:
-  0: person
+    0: person
 ```
 
 Read more about creating YAML configuration files in [Dataset YAML format](#dataset-yaml-format).

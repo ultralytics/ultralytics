@@ -51,13 +51,13 @@ test: # test images (optional)
 
 # Classes (80 COCO classes)
 names:
-  0: person
-  1: bicycle
-  2: car
-  # ...
-  77: teddy bear
-  78: hair drier
-  79: toothbrush
+    0: person
+    1: bicycle
+    2: car
+    # ...
+    77: teddy bear
+    78: hair drier
+    79: toothbrush
 ```
 
 The `train` and `val` fields specify the paths to the directories containing the training and validation images, respectively.
@@ -180,10 +180,10 @@ train: images/train # train images (relative to 'path')
 val: images/val # val images (relative to 'path')
 
 names:
-  0: person
-  1: bicycle
-  2: car
-  # ...
+    0: person
+    1: bicycle
+    2: car
+    # ...
 ```
 
 Ensure you update the paths and class names according to your dataset. For more information, check the [Dataset YAML Format](#dataset-yaml-format) section.

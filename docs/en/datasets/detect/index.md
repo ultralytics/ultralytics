@@ -23,13 +23,13 @@ test: # test images (optional)
 
 # Classes (80 COCO classes)
 names:
-  0: person
-  1: bicycle
-  2: car
-  # ...
-  77: teddy bear
-  78: hair drier
-  79: toothbrush
+    0: person
+    1: bicycle
+    2: car
+    # ...
+    77: teddy bear
+    78: hair drier
+    79: toothbrush
 ```
 
 Labels for this format should be exported to YOLO format with one `*.txt` file per image. If there are no objects in an image, no `*.txt` file is required. The `*.txt` file should be formatted with one row per object in `class x_center y_center width height` format. Box coordinates must be in **normalized xywh** format (from 0 to 1). If your boxes are in pixels, you should divide `x_center` and `width` by image width, and `y_center` and `height` by image height. Class numbers should be zero-indexed (start with 0).
@@ -126,10 +126,10 @@ train: images/train # training images (relative to 'path')
 val: images/val # validation images (relative to 'path')
 test: # optional test images
 names:
-  0: person
-  1: bicycle
-  2: car
-  # ...
+    0: person
+    1: bicycle
+    2: car
+    # ...
 ```
 
 Labels are saved in `*.txt` files with one file per image, formatted as `class x_center y_center width height` with normalized coordinates. For a detailed guide, see the [COCO8 dataset example](coco8.md).

@@ -612,7 +612,9 @@ class Exporter:
             shutil.rmtree(f)
         if self.args.nms and hasattr(self.model, "end2end"):
             if self.model.end2end:
-                LOGGER.warning(f"{prefix} WARNING ⚠️ 'nms=True' is not available for end2end models forcing 'nms=False'.")
+                LOGGER.warning(
+                    f"{prefix} WARNING ⚠️ 'nms=True' is not available for end2end models forcing 'nms=False'."
+                )
                 self.args.nms = False
 
         bias = [0.0, 0.0, 0.0]

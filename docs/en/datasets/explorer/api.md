@@ -48,7 +48,7 @@ dataframe = explorer.get_similar(img="path/to/image.jpg")
 dataframe = explorer.get_similar(idx=0)
 ```
 
-!!! Tip "Note"
+!!! note
 
     Embeddings table for a given dataset and model pair is only created once and reused. These use [LanceDB](https://lancedb.github.io/lancedb/) under the hood, which scales on-disk, so you can create and reuse embeddings for large datasets like COCO without running out of memory.
 
@@ -67,7 +67,7 @@ In case of multiple inputs, the aggregate of their embeddings is used.
 
 You get a pandas dataframe with the `limit` number of most similar data points to the input, along with their distance in the embedding space. You can use this dataset to perform further filtering
 
-!!! Example "Semantic Search"
+!!! example "Semantic Search"
 
     === "Using Images"
 
@@ -110,7 +110,7 @@ You get a pandas dataframe with the `limit` number of most similar data points t
 
 You can also plot the similar images using the `plot_similar` method. This method takes the same arguments as `get_similar` and plots the similar images in a grid.
 
-!!! Example "Plotting Similar Images"
+!!! example "Plotting Similar Images"
 
     === "Using Images"
 
@@ -143,7 +143,7 @@ You can also plot the similar images using the `plot_similar` method. This metho
 This allows you to write how you want to filter your dataset using natural language. You don't have to be proficient in writing SQL queries. Our AI powered query generator will automatically do that under the hood. For example - you can say - "show me 100 images with exactly one person and 2 dogs. There can be other objects too" and it'll internally generate the query and show you those results.
 Note: This works using LLMs under the hood so the results are probabilistic and might get things wrong sometimes
 
-!!! Example "Ask AI"
+!!! example "Ask AI"
 
     ```python
     from ultralytics import Explorer
@@ -165,7 +165,7 @@ Note: This works using LLMs under the hood so the results are probabilistic and 
 
 You can run SQL queries on your dataset using the `sql_query` method. This method takes a SQL query as input and returns a pandas dataframe with the results.
 
-!!! Example "SQL Query"
+!!! example "SQL Query"
 
     ```python
     from ultralytics import Explorer
@@ -182,7 +182,7 @@ You can run SQL queries on your dataset using the `sql_query` method. This metho
 
 You can also plot the results of a SQL query using the `plot_sql_query` method. This method takes the same arguments as `sql_query` and plots the results in a grid.
 
-!!! Example "Plotting SQL Query Results"
+!!! example "Plotting SQL Query Results"
 
     ```python
     from ultralytics import Explorer
@@ -199,7 +199,9 @@ You can also plot the results of a SQL query using the `plot_sql_query` method. 
 
 You can also work with the embeddings table directly. Once the embeddings table is created, you can access it using the `Explorer.table`
 
-!!! Tip "Explorer works on [LanceDB](https://lancedb.github.io/lancedb/) tables internally. You can access this table directly, using `Explorer.table` object and run raw queries, push down pre- and post-filters, etc."
+!!! tip
+
+    Explorer works on [LanceDB](https://lancedb.github.io/lancedb/) tables internally. You can access this table directly, using `Explorer.table` object and run raw queries, push down pre- and post-filters, etc.
 
     ```python
     from ultralytics import Explorer
@@ -213,7 +215,7 @@ Here are some examples of what you can do with the table:
 
 ### Get raw Embeddings
 
-!!! Example
+!!! example
 
     ```python
     from ultralytics import Explorer
@@ -228,7 +230,7 @@ Here are some examples of what you can do with the table:
 
 ### Advanced Querying with pre- and post-filters
 
-!!! Example
+!!! example
 
     ```python
     from ultralytics import Explorer
@@ -270,11 +272,11 @@ It returns a pandas dataframe with the following columns:
 - `count`: Number of images in the dataset that are closer than `max_dist` to the current image
 - `sim_im_files`: List of paths to the `count` similar images
 
-!!! Tip
+!!! tip
 
     For a given dataset, model, `max_dist` & `top_k` the similarity index once generated will be reused. In case, your dataset has changed, or you simply need to regenerate the similarity index, you can pass `force=True`.
 
-!!! Example "Similarity Index"
+!!! example "Similarity Index"
 
     ```python
     from ultralytics import Explorer
@@ -342,14 +344,17 @@ The Ultralytics Explorer API is designed for comprehensive dataset exploration. 
 ### How do I install the Ultralytics Explorer API?
 
 To install the Ultralytics Explorer API along with its dependencies, use the following command:
+
 ```bash
 pip install ultralytics[explorer]
 ```
+
 This will automatically install all necessary external libraries for the Explorer API functionality. For additional setup details, refer to the [installation section](#installation) of our documentation.
 
 ### How can I use the Ultralytics Explorer API for similarity search?
 
 You can use the Ultralytics Explorer API to perform similarity searches by creating an embeddings table and querying it for similar images. Here's a basic example:
+
 ```python
 from ultralytics import Explorer
 
@@ -361,6 +366,7 @@ explorer.create_embeddings_table()
 similar_images_df = explorer.get_similar(img="path/to/image.jpg")
 print(similar_images_df.head())
 ```
+
 For more details, please visit the [Similarity Search section](#1-similarity-search).
 
 ### What are the benefits of using LanceDB with Ultralytics Explorer?

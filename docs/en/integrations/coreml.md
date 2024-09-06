@@ -60,7 +60,7 @@ Exporting YOLOv8 to CoreML enables optimized, on-device machine learning perform
 
 To install the required package, run:
 
-!!! Tip "Installation"
+!!! tip "Installation"
 
     === "CLI"
 
@@ -75,7 +75,7 @@ For detailed instructions and best practices related to the installation process
 
 Before diving into the usage instructions, be sure to check out the range of [YOLOv8 models offered by Ultralytics](../models/index.md). This will help you choose the most appropriate model for your project requirements.
 
-!!! Example "Usage"
+!!! example "Usage"
 
     === "Python"
 
@@ -131,7 +131,7 @@ Also, if you'd like to know more about other Ultralytics YOLOv8 integrations, vi
 
 To export your [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics) models to CoreML format, you'll first need to ensure you have the `ultralytics` package installed. You can install it using:
 
-!!! Example "Installation"
+!!! example "Installation"
 
     === "CLI"
 
@@ -141,7 +141,7 @@ To export your [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics) 
 
 Next, you can export the model using the following Python or CLI commands:
 
-!!! Example "Usage"
+!!! example "Usage"
 
     === "Python"
 
@@ -198,7 +198,7 @@ For more information on performance optimization, visit the [CoreML official doc
 
 Yes, you can run inference directly using the exported CoreML model. Below are the commands for Python and CLI:
 
-!!! Example "Running Inference"
+!!! example "Running Inference"
 
     === "Python"
 

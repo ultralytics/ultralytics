@@ -32,7 +32,7 @@ An example of a `*.txt` label file for the above image, which contains an object
 
 To train a model using these OBB formats:
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -70,7 +70,7 @@ For those looking to introduce their own datasets with oriented bounding boxes, 
 
 Transitioning labels from the DOTA dataset format to the YOLO OBB format can be achieved with this script:
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -106,7 +106,7 @@ This script will reformat your DOTA annotations into a YOLO-compatible format.
 
 Training a YOLOv8 model with OBBs involves ensuring your dataset is in the YOLO OBB format and then using the Ultralytics API to train the model. Here's an example in both Python and CLI:
 
-!!! Example
+!!! example
 
     === "Python"
 

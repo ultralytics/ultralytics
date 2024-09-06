@@ -27,7 +27,7 @@ This dataset is intended for use with Ultralytics [HUB](https://hub.ultralytics.
 
 A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. In the case of the COCO8 dataset, the `coco8.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco8.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco8.yaml).
 
-!!! Example "ultralytics/cfg/datasets/coco8.yaml"
+!!! example "ultralytics/cfg/datasets/coco8.yaml"
 
     ```yaml
     --8<-- "ultralytics/cfg/datasets/coco8.yaml"
@@ -37,7 +37,7 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 To train a YOLOv8n model on the COCO8 dataset for 100 epochs with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
-!!! Example "Train Example"
+!!! example "Train Example"
 
     === "Python"
 
@@ -72,7 +72,7 @@ The example showcases the variety and complexity of the images in the COCO8 data
 
 If you use the COCO dataset in your research or development work, please cite the following paper:
 
-!!! Quote ""
+!!! quote ""
 
     === "BibTeX"
 
@@ -99,7 +99,7 @@ The Ultralytics COCO8 dataset is a compact yet versatile object detection datase
 
 To train a YOLOv8 model using the COCO8 dataset, you can employ either Python or CLI commands. Here's how you can start:
 
-!!! Example "Train Example"
+!!! example "Train Example"
 
     === "Python"
 

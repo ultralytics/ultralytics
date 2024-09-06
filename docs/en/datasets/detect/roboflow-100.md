@@ -37,11 +37,11 @@ This structure enables a diverse and extensive testing ground for object detecti
 
 Dataset benchmarking evaluates machine learning model performance on specific datasets using standardized metrics like accuracy, mean average precision and F1-score.
 
-!!! Tip "Benchmarking"
+!!! tip "Benchmarking"
 
     Benchmarking results will be stored in "ultralytics-benchmarks/evaluation.txt"
 
-!!! Example "Benchmarking example"
+!!! example "Benchmarking example"
 
     === "Python"
 
@@ -113,7 +113,7 @@ The diversity in the Roboflow 100 benchmark that can be seen above is a signific
 
 If you use the Roboflow 100 dataset in your research or development work, please cite the following paper:
 
-!!! Quote ""
+!!! quote ""
 
     === "BibTeX"
 
@@ -139,7 +139,7 @@ The **Roboflow 100** dataset, developed by [Roboflow](https://roboflow.com/?ref=
 
 To use the Roboflow 100 dataset for benchmarking, you can implement the RF100Benchmark class from the Ultralytics library. Here's a brief example:
 
-!!! Example "Benchmarking example"
+!!! example "Benchmarking example"
 
     === "Python"
 
@@ -203,7 +203,7 @@ The **Roboflow 100** dataset is accessible on [GitHub](https://github.com/robofl
 
 When using the Roboflow 100 dataset in your research, ensure to properly cite it. Here is the recommended citation:
 
-!!! Quote ""
+!!! quote ""
 
     === "BibTeX"
 

@@ -48,7 +48,7 @@ When using the Ultralytics YOLO format, organize your training and validation im
 
 Here's how you can use these formats to train your model:
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -100,7 +100,7 @@ If you have your own dataset and would like to use it for training detection mod
 
 You can easily convert labels from the popular COCO dataset format to the YOLO format using the following code snippet:
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -164,7 +164,7 @@ Each dataset page provides detailed information on the structure and usage tailo
 
 To start training a YOLOv8 model, ensure your dataset is formatted correctly and the paths are defined in a YAML file. Use the following script to begin training:
 
-!!! Example
+!!! example
 
     === "Python"
 

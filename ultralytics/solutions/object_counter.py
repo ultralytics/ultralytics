@@ -206,7 +206,7 @@ class ObjectCounter:
                     labels_dict[str.capitalize(key)] = f"IN {value['IN']} OUT {value['OUT']}"
 
         if labels_dict:
-            annotator.display_analytics(self.im0, labels_dict, (104, 31, 17), (255, 255, 255) , 10)
+            annotator.display_analytics(self.im0, labels_dict, (104, 31, 17), (255, 255, 255), 10)
 
     def display_frames(self):
         """Displays the current frame with annotations and regions in a window."""

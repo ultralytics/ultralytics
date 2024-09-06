@@ -37,7 +37,7 @@ Carparts Segmentation finds applications in automotive quality control, auto rep
 
 A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. In the case of the Package Segmentation dataset, the `carparts-seg.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/carparts-seg.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/carparts-seg.yaml).
 
-!!! Example "ultralytics/cfg/datasets/carparts-seg.yaml"
+!!! example "ultralytics/cfg/datasets/carparts-seg.yaml"
 
     ```yaml
     --8<-- "ultralytics/cfg/datasets/carparts-seg.yaml"
@@ -47,7 +47,7 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 To train Ultralytics YOLOv8n model on the Carparts Segmentation dataset for 100 epochs with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
-!!! Example "Train Example"
+!!! example "Train Example"
 
     === "Python"
 
@@ -81,7 +81,7 @@ The Carparts Segmentation dataset includes a diverse array of images and videos 
 
 If you integrate the Carparts Segmentation dataset into your research or development projects, please make reference to the following paper:
 
-!!! Quote ""
+!!! quote ""
 
     === "BibTeX"
 
@@ -112,7 +112,7 @@ The [Roboflow Carparts Segmentation Dataset](https://universe.roboflow.com/gianm
 
 To train a YOLOv8 model on the Carparts Segmentation dataset, you can follow these steps:
 
-!!! Example "Train Example"
+!!! example "Train Example"
 
     === "Python"
 

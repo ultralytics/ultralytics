@@ -46,7 +46,7 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 | ![Conveyor Belt Packets Counting Using Ultralytics YOLOv8](https://github.com/ultralytics/docs/releases/download/0/conveyor-belt-packets-counting.avif) | ![Fish Counting in Sea using Ultralytics YOLOv8](https://github.com/ultralytics/docs/releases/download/0/fish-counting-in-sea-using-ultralytics-yolov8.avif) |
 |                                                 Conveyor Belt Packets Counting Using Ultralytics YOLOv8                                                 |                                                        Fish Counting in Sea using Ultralytics YOLOv8                                                         |
 
-!!! Example "Object Counting using YOLOv8 Example"
+!!! example "Object Counting using YOLOv8 Example"
 
     === "Count in Region"
 

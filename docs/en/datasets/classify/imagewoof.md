@@ -26,7 +26,7 @@ The ImageWoof dataset is widely used for training and evaluating deep learning m
 
 To train a CNN model on the ImageWoof dataset for 100 epochs with an image size of 224x224, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
-!!! Example "Train Example"
+!!! example "Train Example"
 
     === "Python"
 
@@ -59,7 +59,7 @@ ImageWoof dataset comes in three different sizes to accommodate various research
 
 To use these variants in your training, simply replace 'imagewoof' in the dataset argument with 'imagewoof320' or 'imagewoof160'. For example:
 
-!!! Example "Example"
+!!! example "Example"
 
     === "Python"
 
@@ -109,7 +109,7 @@ The [ImageWoof](https://github.com/fastai/imagenette) dataset is a challenging s
 
 To train a Convolutional Neural Network (CNN) model on the ImageWoof dataset using Ultralytics YOLO for 100 epochs at an image size of 224x224, you can use the following code:
 
-!!! Example "Train Example"
+!!! example "Train Example"
 
     === "Python"
 

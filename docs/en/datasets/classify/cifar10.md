@@ -42,7 +42,7 @@ The CIFAR-10 dataset is widely used for training and evaluating deep learning mo
 
 To train a YOLO model on the CIFAR-10 dataset for 100 epochs with an image size of 32x32, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
-!!! Example "Train Example"
+!!! example "Train Example"
 
     === "Python"
 
@@ -75,7 +75,7 @@ The example showcases the variety and complexity of the objects in the CIFAR-10 
 
 If you use the CIFAR-10 dataset in your research or development work, please cite the following paper:
 
-!!! Quote ""
+!!! quote ""
 
     === "BibTeX"
 
@@ -96,7 +96,7 @@ We would like to acknowledge Alex Krizhevsky for creating and maintaining the CI
 
 To train a YOLO model on the CIFAR-10 dataset using Ultralytics, you can follow the examples provided for both Python and CLI. Here is a basic example to train your model for 100 epochs with an image size of 32x32 pixels:
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -153,7 +153,7 @@ Each subset comprises images categorized into 10 classes, with their annotations
 
 If you use the CIFAR-10 dataset in your research or development projects, make sure to cite the following paper:
 
-!!! Quote ""
+!!! quote ""
 
     === "BibTeX"
 

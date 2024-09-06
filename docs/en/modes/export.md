@@ -39,7 +39,7 @@ Here are some of the standout functionalities:
 - **Optimized Inference:** Exported models are optimized for quicker inference times.
 - **Tutorial Videos:** In-depth guides and tutorials for a smooth exporting experience.
 
-!!! Tip "Tip"
+!!! tip "Tip"
 
     * Export to [ONNX](../integrations/onnx.md) or [OpenVINO](../integrations/openvino.md) for up to 3x CPU speedup.
     * Export to [TensorRT](../integrations/tensorrt.md) for up to 5x GPU speedup.
@@ -48,7 +48,7 @@ Here are some of the standout functionalities:
 
 Export a YOLOv8n model to a different format like ONNX or TensorRT. See Arguments section below for a full list of export arguments.
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -90,7 +90,7 @@ Available YOLOv8 export formats are in the table below. You can export to any fo
 
 Exporting a YOLOv8 model to ONNX format is straightforward with Ultralytics. It provides both Python and CLI methods for exporting models.
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -128,7 +128,7 @@ To learn more about integrating TensorRT, see the [TensorRT](../integrations/ten
 
 INT8 quantization is an excellent way to compress the model and speed up inference, especially on edge devices. Here's how you can enable INT8 quantization:
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -153,7 +153,7 @@ Dynamic input size allows the exported model to handle varying image dimensions,
 
 To enable this feature, use the `dynamic=True` flag during export:
 
-!!! Example
+!!! example
 
     === "Python"
 

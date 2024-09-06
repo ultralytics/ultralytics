@@ -38,18 +38,18 @@ Parking management with [Ultralytics YOLOv8](https://github.com/ultralytics/ultr
 
 ### Selection of Points
 
-!!! Tip "Point Selection is now Easy"
+!!! tip "Point Selection is now Easy"
 
     Choosing parking points is a critical and complex task in parking management systems. Ultralytics streamlines this process by providing a tool that lets you define parking lot areas, which can be utilized later for additional processing.
 
 - Capture a frame from the video or camera stream where you want to manage the parking lot.
 - Use the provided code to launch a graphical interface, where you can select an image and start outlining parking regions by mouse click to create polygons.
 
-!!! Warning "Image Size"
+!!! warning "Image Size"
 
     Max Image Size of 1920 * 1080 supported
 
-!!! Example "Parking slots Annotator Ultralytics YOLOv8"
+!!! example "Parking slots Annotator Ultralytics YOLOv8"
 
     === "Parking Annotator"
 
@@ -65,7 +65,7 @@ Parking management with [Ultralytics YOLOv8](https://github.com/ultralytics/ultr
 
 ### Python Code for Parking Management
 
-!!! Example "Parking management using YOLOv8 Example"
+!!! example "Parking management using YOLOv8 Example"
 
     === "Parking Management"
 

@@ -33,7 +33,7 @@ Queue management using [Ultralytics YOLOv8](https://github.com/ultralytics/ultra
 | ![Queue management at airport ticket counter using Ultralytics YOLOv8](https://github.com/ultralytics/docs/releases/download/0/queue-management-airport-ticket-counter-ultralytics-yolov8.avif) | ![Queue monitoring in crowd using Ultralytics YOLOv8](https://github.com/ultralytics/docs/releases/download/0/queue-monitoring-crowd-ultralytics-yolov8.avif) |
 |                                                               Queue management at airport ticket counter Using Ultralytics YOLOv8                                                               |                                                         Queue monitoring in crowd Ultralytics YOLOv8                                                          |
 
-!!! Example "Queue Management using YOLOv8 Example"
+!!! example "Queue Management using YOLOv8 Example"
 
     === "Queue Manager"
 

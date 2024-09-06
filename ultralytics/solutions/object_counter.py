@@ -19,7 +19,6 @@ class ObjectCounter:
         self,
         names,
         reg_pts=None,
-        count_bg_color=(255, 255, 255),
         line_thickness=2,
         view_img=False,
         view_in_counts=True,
@@ -32,7 +31,6 @@ class ObjectCounter:
         Args:
             names (dict): Dictionary of class names.
             reg_pts (list): List of points defining the counting region.
-            count_bg_color (tuple): RGB color of the count text background.
             line_thickness (int): Line thickness for bounding boxes.
             view_img (bool): Flag to control whether to display the video stream.
             view_in_counts (bool): Flag to control whether to display the in counts on the video stream.
@@ -63,7 +61,6 @@ class ObjectCounter:
         self.count_ids = []
         self.class_wise_count = {}
         self.count_txt_thickness = 0
-        self.count_bg_color = count_bg_color
 
         # Tracks info
         self.track_history = defaultdict(list)
@@ -209,7 +206,7 @@ class ObjectCounter:
                     labels_dict[str.capitalize(key)] = f"IN {value['IN']} OUT {value['OUT']}"
 
         if labels_dict:
-            annotator.display_analytics(self.im0, labels_dict, (255, 255, 255), self.count_bg_color, 10)
+            annotator.display_analytics(self.im0, labels_dict, (255, 255, 255), (104, 31, 17), 10)
 
     def display_frames(self):
         """Displays the current frame with annotations and regions in a window."""

@@ -58,7 +58,7 @@ You can convert your YOLOv8 object detection model to the TF GraphDef format, wh
 
 To install the required package, run:
 
-!!! Tip "Installation"
+!!! tip "Installation"
 
     === "CLI"
 
@@ -73,7 +73,7 @@ For detailed instructions and best practices related to the installation process
 
 Before diving into the usage instructions, it's important to note that while all [Ultralytics YOLOv8 models](../models/index.md) are available for exporting, you can ensure that the model you select supports export functionality [here](../modes/export.md).
 
-!!! Example "Usage"
+!!! example "Usage"
 
     === "Python"
 
@@ -131,7 +131,7 @@ For more information on integrating Ultralytics YOLOv8 with other platforms and 
 
 Ultralytics YOLOv8 models can be exported to TensorFlow GraphDef (TF GraphDef) format seamlessly. This format provides a serialized, platform-independent representation of the model, ideal for deploying in varied environments like mobile and web. To export a YOLOv8 model to TF GraphDef, follow these steps:
 
-!!! Example "Usage"
+!!! example "Usage"
 
     === "Python"
 

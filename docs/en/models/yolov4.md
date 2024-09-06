@@ -52,7 +52,7 @@ YOLOv4 is a powerful and efficient object detection model that strikes a balance
 
 We would like to acknowledge the YOLOv4 authors for their significant contributions in the field of real-time object detection:
 
-!!! Quote ""
+!!! quote ""
 
     === "BibTeX"
 

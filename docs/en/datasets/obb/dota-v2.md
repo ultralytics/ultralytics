@@ -40,10 +40,10 @@ keywords: DOTA dataset, object detection, aerial images, oriented bounding boxes
 - Comprises 11,268 images with a whopping 1,793,658 instances.
 - New categories introduced: "airport" and "helipad".
 - Image splits:
-  - Training: 1,830 images with 268,627 instances.
-  - Validation: 593 images with 81,048 instances.
-  - Test-dev: 2,792 images with 353,346 instances.
-  - Test-challenge: 6,053 images with 1,090,637 instances.
+    - Training: 1,830 images with 268,627 instances.
+    - Validation: 593 images with 81,048 instances.
+    - Test-dev: 2,792 images with 353,346 instances.
+    - Test-challenge: 6,053 images with 1,090,637 instances.
 
 ## Dataset Structure
 

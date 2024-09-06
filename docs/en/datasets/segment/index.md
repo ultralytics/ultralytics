@@ -15,8 +15,8 @@ The dataset label format used for training YOLO segmentation models is as follow
 1. One text file per image: Each image in the dataset has a corresponding text file with the same name as the image file and the ".txt" extension.
 2. One row per object: Each row in the text file corresponds to one object instance in the image.
 3. Object information per row: Each row contains the following information about the object instance:
-   - Object class index: An integer representing the class of the object (e.g., 0 for person, 1 for car, etc.).
-   - Object bounding coordinates: The bounding coordinates around the mask area, normalized to be between 0 and 1.
+    - Object class index: An integer representing the class of the object (e.g., 0 for person, 1 for car, etc.).
+    - Object bounding coordinates: The bounding coordinates around the mask area, normalized to be between 0 and 1.
 
 The format for a single row in the segmentation dataset file is as follows:
 

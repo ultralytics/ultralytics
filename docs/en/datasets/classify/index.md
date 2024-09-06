@@ -78,7 +78,7 @@ This structured approach ensures that the model can effectively learn from well-
 
 ## Usage
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -194,10 +194,10 @@ For additional insights and real-world applications, you can explore [Ultralytic
 
 Training a model using Ultralytics YOLO can be done easily in both Python and CLI. Here's an example:
 
-!!! Example
+!!! example
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
 
@@ -207,10 +207,10 @@ Training a model using Ultralytics YOLO can be done easily in both Python and CL
         # Train the model
         results = model.train(data="path/to/dataset", epochs=100, imgsz=640)
         ```
-    
+
 
     === "CLI"
-    
+
         ```bash
         # Start training from a pretrained *.pt model
         yolo detect train data=path/to/data model=yolov8n-cls.pt epochs=100 imgsz=640

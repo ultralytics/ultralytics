@@ -69,7 +69,7 @@ You can download the model [here](https://github.com/ChaoningZhang/MobileSAM/blo
 
 ### Point Prompt
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -85,7 +85,7 @@ You can download the model [here](https://github.com/ChaoningZhang/MobileSAM/blo
 
 ### Box Prompt
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -105,7 +105,7 @@ We have implemented `MobileSAM` and `SAM` using the same API. For more usage inf
 
 If you find MobileSAM useful in your research or development work, please consider citing our paper:
 
-!!! Quote ""
+!!! quote ""
 
     === "BibTeX"
 

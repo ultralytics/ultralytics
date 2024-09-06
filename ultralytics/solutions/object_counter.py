@@ -93,6 +93,12 @@ class ObjectCounter:
             print("Using Line Counter Now")
             self.counting_region = LineString(self.reg_pts)
 
+        # Define the counting line segment
+        self.counting_line_segment = LineString([
+            (self.reg_pts[0][0], self.reg_pts[0][1]),
+            (self.reg_pts[1][0], self.reg_pts[1][1]),
+        ])
+
     def mouse_event_for_region(self, event, x, y, flags, params):
         """
         Handles mouse events for defining and moving the counting region in a real-time video stream.
@@ -123,11 +129,6 @@ class ObjectCounter:
         elif event == cv2.EVENT_LBUTTONUP:
             self.is_drawing = False
             self.selected_point = None
-
-    @staticmethod
-    def does_intersect(segment1, segment2):
-        """Check if two segments intersect."""
-        return LineString(segment1).intersects(LineString(segment2))
 
     def extract_and_process_tracks(self, tracks):
         """Extracts and processes tracks for object counting in a video stream."""
@@ -185,16 +186,10 @@ class ObjectCounter:
                 elif len(self.reg_pts) == 2:
                     if prev_position is not None and track_id not in self.count_ids:
                         # Define the segment of object movement (n-1 to n)
-                        object_segment = [(prev_position[0], prev_position[1]), (box[0], box[1])]
-
-                        # Define the counting line segment
-                        counting_line_segment = [
-                            (self.reg_pts[0][0], self.reg_pts[0][1]),
-                            (self.reg_pts[1][0], self.reg_pts[1][1]),
-                        ]
+                        object_segment = LineString([(prev_position[0], prev_position[1]), (box[0], box[1])])
 
                         # Check if the object's movement segment intersects the counting line
-                        if self.does_intersect(object_segment, counting_line_segment):
+                        if object_segment.intersects(self.counting_line_segment):
                             self.count_ids.append(track_id)
 
                             # Determine the direction of movement (IN or OUT)

@@ -458,7 +458,9 @@ class BaseTrainer:
             gc.collect()
 
             if MACOS:
-                torch.mps.empty_cache()  # clear unified memory at end of epoch, may help MPS' management of 'unlimited' virtual memoy
+                torch.mps.empty_cache()  # clear unified memory at end of epoch, may help MPS's management of 'unlimited' virtual memory
+            elif self.device.type == "ocl":
+                torch.ocl.empty_cache()  # clear OpenCL device memory at end of epoch, may help reduce out of memory errors
             else:
                 torch.cuda.empty_cache()  # clear GPU memory at end of epoch, may help reduce CUDA out of memory errors
 
@@ -485,6 +487,8 @@ class BaseTrainer:
 
         if MACOS:
             torch.mps.empty_cache()
+        elif self.device.type == "ocl":
+            torch.ocl.empty_cache()
         else:
             torch.cuda.empty_cache()
 

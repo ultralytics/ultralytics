@@ -36,6 +36,7 @@ from ultralytics.utils import (
     colorstr,
     emojis,
     yaml_save,
+    MACOS,
 )
 from ultralytics.utils.autobatch import check_train_batch_size
 from ultralytics.utils.checks import check_amp, check_file, check_imgsz, check_model_file_from_stem, print_args

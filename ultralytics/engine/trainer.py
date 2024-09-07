@@ -454,10 +454,9 @@ class BaseTrainer:
             self.run_callbacks("on_fit_epoch_end")
             gc.collect()
             if MACOS:
-                torch.mps.empty_cache()   # clear unified memory at end of epoch, may help MPS' management of 'unlimited' virtual memoy
+                torch.mps.empty_cache()  # clear unified memory at end of epoch, may help MPS' management of 'unlimited' virtual memoy
             else:
                 torch.cuda.empty_cache()  # clear GPU memory at end of epoch, may help reduce CUDA out of memory errors
-
 
             # Early Stopping
             if RANK != -1:  # if DDP training

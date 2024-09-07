@@ -54,13 +54,13 @@ FP16 (or half-precision) quantization converts the model's 32-bit floating-point
 
 INT8 (or 8-bit integer) quantization further reduces the model's size and computation requirements by converting its 32-bit floating-point numbers to 8-bit integers. This quantization method can result in a significant speedup, but it may lead to a slight reduction in mean average precision (mAP) due to the lower numerical precision.
 
-!!! Tip "mAP Reduction in INT8 Models"
+!!! tip "mAP Reduction in INT8 Models"
 
     The reduced numerical precision in INT8 models can lead to some loss of information during the quantization process, which may result in a slight decrease in mAP. However, this trade-off is often acceptable considering the substantial performance gains offered by INT8 quantization.
 
 ## Delegates and Performance Variability
 
-Different delegates are available on Android devices to accelerate model inference. These delegates include CPU, [GPU](https://www.tensorflow.org/lite/android/delegates/gpu), [Hexagon](https://www.tensorflow.org/lite/android/delegates/hexagon) and [NNAPI](https://www.tensorflow.org/lite/android/delegates/nnapi). The performance of these delegates varies depending on the device's hardware vendor, product line, and specific chipsets used in the device.
+Different delegates are available on Android devices to accelerate model inference. These delegates include CPU, [GPU](https://ai.google.dev/edge/litert/android/gpu), [Hexagon](https://developer.android.com/ndk/guides/neuralnetworks/migration-guide) and [NNAPI](https://developer.android.com/ndk/guides/neuralnetworks/migration-guide). The performance of these delegates varies depending on the device's hardware vendor, product line, and specific chipsets used in the device.
 
 1. **CPU**: The default option, with reasonable performance on most devices.
 2. **GPU**: Utilizes the device's GPU for faster inference. It can provide a significant performance boost on devices with powerful GPUs.
@@ -69,13 +69,13 @@ Different delegates are available on Android devices to accelerate model inferen
 
 Here's a table showing the primary vendors, their product lines, popular devices, and supported delegates:
 
-| Vendor                                  | Product Lines                                                                        | Popular Devices                                                                                                                                                                | Delegates Supported      |
-| --------------------------------------- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------ |
-| [Qualcomm](https://www.qualcomm.com/)   | [Snapdragon (e.g., 800 series)](https://www.qualcomm.com/snapdragon)                 | [Samsung Galaxy S21](https://www.samsung.com/global/galaxy/galaxy-s21-5g/), [OnePlus 9](https://www.oneplus.com/9), [Google Pixel 6](https://store.google.com/product/pixel_6) | CPU, GPU, Hexagon, NNAPI |
-| [Samsung](https://www.samsung.com/)     | [Exynos (e.g., Exynos 2100)](https://www.samsung.com/semiconductor/minisite/exynos/) | [Samsung Galaxy S21 (Global version)](https://www.samsung.com/global/galaxy/galaxy-s21-5g/)                                                                                    | CPU, GPU, NNAPI          |
-| [MediaTek](https://i.mediatek.com/)     | [Dimensity (e.g., Dimensity 1200)](https://i.mediatek.com/dimensity-1200)            | [Realme GT](https://www.realme.com/global/realme-gt), [Xiaomi Redmi Note](https://www.mi.com/en/phone/redmi/note-list)                                                         | CPU, GPU, NNAPI          |
-| [HiSilicon](https://www.hisilicon.com/) | [Kirin (e.g., Kirin 990)](https://www.hisilicon.com/en/products/Kirin)               | [Huawei P40 Pro](https://consumer.huawei.com/en/phones/p40-pro/), [Huawei Mate 30 Pro](https://consumer.huawei.com/en/phones/mate30-pro/)                                      | CPU, GPU, NNAPI          |
-| [NVIDIA](https://www.nvidia.com/)       | [Tegra (e.g., Tegra X1)](https://developer.nvidia.com/content/tegra-x1)              | [NVIDIA Shield TV](https://www.nvidia.com/en-us/shield/shield-tv/), [Nintendo Switch](https://www.nintendo.com/switch/)                                                        | CPU, GPU, NNAPI          |
+| Vendor                                    | Product Lines                                                                        | Popular Devices                                                                                                                                                                | Delegates Supported      |
+| ----------------------------------------- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------ |
+| [Qualcomm](https://www.qualcomm.com/)     | [Snapdragon (e.g., 800 series)](https://www.qualcomm.com/snapdragon/overview)        | [Samsung Galaxy S21](https://www.samsung.com/global/galaxy/galaxy-s21-5g/), [OnePlus 9](https://www.oneplus.com/9), [Google Pixel 6](https://store.google.com/product/pixel_6) | CPU, GPU, Hexagon, NNAPI |
+| [Samsung](https://www.samsung.com/)       | [Exynos (e.g., Exynos 2100)](https://www.samsung.com/semiconductor/minisite/exynos/) | [Samsung Galaxy S21 (Global version)](https://www.samsung.com/global/galaxy/galaxy-s21-5g/)                                                                                    | CPU, GPU, NNAPI          |
+| [MediaTek](https://i.mediatek.com/)       | [Dimensity (e.g., Dimensity 1200)](https://i.mediatek.com/dimensity-1200)            | [Realme GT](https://www.realme.com/global/realme-gt), [Xiaomi Redmi Note](https://www.mi.com/global/phone/redmi/note-list)                                                     | CPU, GPU, NNAPI          |
+| [HiSilicon](https://www.hisilicon.com/cn) | [Kirin (e.g., Kirin 990)](https://www.hisilicon.com/en/products/Kirin)               | [Huawei P40 Pro](https://consumer.huawei.com/en/phones/), [Huawei Mate 30 Pro](https://consumer.huawei.com/en/phones/)                                                         | CPU, GPU, NNAPI          |
+| [NVIDIA](https://www.nvidia.com/)         | [Tegra (e.g., Tegra X1)](https://developer.nvidia.com/content/tegra-x1)              | [NVIDIA Shield TV](https://www.nvidia.com/en-us/shield/shield-tv/), [Nintendo Switch](https://www.nintendo.com/switch/)                                                        | CPU, GPU, NNAPI          |
 
 Please note that the list of devices mentioned is not exhaustive and may vary depending on the specific chipsets and device models. Always test your models on your target devices to ensure compatibility and optimal performance.
 

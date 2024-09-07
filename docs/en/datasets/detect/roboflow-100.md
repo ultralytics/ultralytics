@@ -37,11 +37,11 @@ This structure enables a diverse and extensive testing ground for object detecti
 
 Dataset benchmarking evaluates machine learning model performance on specific datasets using standardized metrics like accuracy, mean average precision and F1-score.
 
-!!! Tip "Benchmarking"
+!!! tip "Benchmarking"
 
     Benchmarking results will be stored in "ultralytics-benchmarks/evaluation.txt"
 
-!!! Example "Benchmarking example"
+!!! example "Benchmarking example"
 
     === "Python"
 
@@ -95,7 +95,7 @@ For more ideas and inspiration on real-world applications, be sure to check out 
 
 ## Usage
 
-The Roboflow 100 dataset is available on both [GitHub](https://github.com/roboflow/roboflow-100-benchmark) and [Roboflow Universe](https://universe.roboflow.com/roboflow-100).
+The Roboflow 100 dataset is available on both [GitHub](https://github.com/roboflow/roboflow-100-benchmark) and [Roboflow Universe](https://universe.roboflow.com/roboflow-100?ref=ultralytics).
 
 You can access it directly from the Roboflow 100 GitHub repository. In addition, on Roboflow Universe, you have the flexibility to download individual datasets by simply clicking the export button within each dataset.
 
@@ -113,7 +113,7 @@ The diversity in the Roboflow 100 benchmark that can be seen above is a signific
 
 If you use the Roboflow 100 dataset in your research or development work, please cite the following paper:
 
-!!! Quote ""
+!!! quote ""
 
     === "BibTeX"
 
@@ -139,10 +139,10 @@ The **Roboflow 100** dataset, developed by [Roboflow](https://roboflow.com/?ref=
 
 To use the Roboflow 100 dataset for benchmarking, you can implement the RF100Benchmark class from the Ultralytics library. Here's a brief example:
 
-!!! Example "Benchmarking example"
+!!! example "Benchmarking example"
 
     === "Python"
-    
+
         ```python
         import os
         import shutil
@@ -197,13 +197,13 @@ This setup allows for extensive and varied testing of models across different re
 
 ### How do I access and download the Roboflow 100 dataset?
 
-The **Roboflow 100** dataset is accessible on [GitHub](https://github.com/roboflow/roboflow-100-benchmark) and [Roboflow Universe](https://universe.roboflow.com/roboflow-100). You can download the entire dataset from GitHub or select individual datasets on Roboflow Universe using the export button.
+The **Roboflow 100** dataset is accessible on [GitHub](https://github.com/roboflow/roboflow-100-benchmark) and [Roboflow Universe](https://universe.roboflow.com/roboflow-100?ref=ultralytics). You can download the entire dataset from GitHub or select individual datasets on Roboflow Universe using the export button.
 
 ### What should I include when citing the Roboflow 100 dataset in my research?
 
 When using the Roboflow 100 dataset in your research, ensure to properly cite it. Here is the recommended citation:
 
-!!! Quote ""
+!!! quote ""
 
     === "BibTeX"
 

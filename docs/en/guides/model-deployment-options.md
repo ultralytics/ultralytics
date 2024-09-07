@@ -288,7 +288,7 @@ When you're getting started with YOLOv8, having a helpful community and support 
 
 - **GitHub Discussions:** The YOLOv8 repository on GitHub has a "Discussions" section where you can ask questions, report issues, and suggest improvements.
 
-- **Ultralytics Discord Server:** Ultralytics has a [Discord server](https://ultralytics.com/discord/) where you can interact with other users and developers.
+- **Ultralytics Discord Server:** Ultralytics has a [Discord server](https://discord.com/invite/ultralytics) where you can interact with other users and developers.
 
 ### Official Documentation and Resources
 
@@ -331,7 +331,7 @@ For more insights, check out our [blog post](https://www.ultralytics.com/blog/ac
 
 Yes, YOLOv8 models can be deployed on mobile devices using TensorFlow Lite (TF Lite) for both Android and iOS platforms. TF Lite is designed for mobile and embedded devices, providing efficient on-device inference.
 
-!!! Example
+!!! example
 
     === "Python"
 

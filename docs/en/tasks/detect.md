@@ -23,7 +23,7 @@ The output of an object detector is a set of bounding boxes that enclose the obj
   <strong>Watch:</strong> Object Detection with Pre-trained Ultralytics YOLOv8 Model.
 </p>
 
-!!! Tip "Tip"
+!!! tip
 
     YOLOv8 Detect models are the default YOLOv8 models, i.e. `yolov8n.pt` and are pretrained on [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml).
 
@@ -41,14 +41,14 @@ YOLOv8 pretrained Detect models are shown here. Detect, Segment and Pose models 
 | [YOLOv8l](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8l.pt) | 640                   | 52.9                 | 375.2                          | 2.39                                | 43.7               | 165.2             |
 | [YOLOv8x](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8x.pt) | 640                   | 53.9                 | 479.1                          | 3.53                                | 68.2               | 257.8             |
 
-- **mAP<sup>val</sup>** values are for single-model single-scale on [COCO val2017](https://cocodataset.org) dataset. <br>Reproduce by `yolo val detect data=coco.yaml device=0`
+- **mAP<sup>val</sup>** values are for single-model single-scale on [COCO val2017](https://cocodataset.org/) dataset. <br>Reproduce by `yolo val detect data=coco.yaml device=0`
 - **Speed** averaged over COCO val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance. <br>Reproduce by `yolo val detect data=coco8.yaml batch=1 device=0|cpu`
 
 ## Train
 
 Train YOLOv8n on the COCO8 dataset for 100 epochs at image size 640. For a full list of available arguments see the [Configuration](../usage/cfg.md) page.
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -85,7 +85,7 @@ YOLO detection dataset format can be found in detail in the [Dataset Guide](../d
 
 Validate trained YOLOv8n model accuracy on the COCO8 dataset. No argument need to passed as the `model` retains its training `data` and arguments as model attributes.
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -115,7 +115,7 @@ Validate trained YOLOv8n model accuracy on the COCO8 dataset. No argument need t
 
 Use a trained YOLOv8n model to run predictions on images.
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -143,7 +143,7 @@ See full `predict` mode details in the [Predict](../modes/predict.md) page.
 
 Export a YOLOv8n model to a different format like ONNX, CoreML, etc.
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -181,7 +181,7 @@ Training a YOLOv8 model on a custom dataset involves a few steps:
 2. **Load the Model**: Use the Ultralytics YOLO library to load a pre-trained model or create a new model from a YAML file.
 3. **Train the Model**: Execute the `train` method in Python or the `yolo detect train` command in CLI.
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -219,7 +219,7 @@ For a detailed list and performance metrics, refer to the [Models](https://githu
 
 To validate the accuracy of your trained YOLOv8 model, you can use the `.val()` method in Python or the `yolo detect val` command in CLI. This will provide metrics like mAP50-95, mAP50, and more.
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -246,7 +246,7 @@ For more validation details, visit the [Val](../modes/val.md) page.
 
 Ultralytics YOLOv8 allows exporting models to various formats such as ONNX, TensorRT, CoreML, and more to ensure compatibility across different platforms and devices.
 
-!!! Example
+!!! example
 
     === "Python"
 

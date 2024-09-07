@@ -8,7 +8,7 @@ keywords: YOLOv8, Comet ML, logging, machine learning, training, model checkpoin
 
 Logging key training details such as parameters, metrics, image predictions, and model checkpoints is essential in machine learning—it keeps your project transparent, your progress measurable, and your results repeatable.
 
-[Ultralytics YOLOv8](https://ultralytics.com) seamlessly integrates with Comet ML, efficiently capturing and optimizing every aspect of your YOLOv8 object detection model's training process. In this guide, we'll cover the installation process, Comet ML setup, real-time insights, custom logging, and offline usage, ensuring that your YOLOv8 training is thoroughly documented and fine-tuned for outstanding results.
+[Ultralytics YOLOv8](https://www.ultralytics.com/) seamlessly integrates with Comet ML, efficiently capturing and optimizing every aspect of your YOLOv8 object detection model's training process. In this guide, we'll cover the installation process, Comet ML setup, real-time insights, custom logging, and offline usage, ensuring that your YOLOv8 training is thoroughly documented and fine-tuned for outstanding results.
 
 ## Comet ML
 
@@ -16,7 +16,7 @@ Logging key training details such as parameters, metrics, image predictions, and
   <img width="640" src="https://www.comet.com/docs/v2/img/landing/home-hero.svg" alt="Comet ML Overview">
 </p>
 
-[Comet ML](https://www.comet.ml/) is a platform for tracking, comparing, explaining, and optimizing machine learning models and experiments. It allows you to log metrics, parameters, media, and more during your model training and monitor your experiments through an aesthetically pleasing web interface. Comet ML helps data scientists iterate more rapidly, enhances transparency and reproducibility, and aids in the development of production models.
+[Comet ML](https://www.comet.com/site/) is a platform for tracking, comparing, explaining, and optimizing machine learning models and experiments. It allows you to log metrics, parameters, media, and more during your model training and monitor your experiments through an aesthetically pleasing web interface. Comet ML helps data scientists iterate more rapidly, enhances transparency and reproducibility, and aids in the development of production models.
 
 ## Harnessing the Power of YOLOv8 and Comet ML
 
@@ -26,7 +26,7 @@ By combining Ultralytics YOLOv8 with Comet ML, you unlock a range of benefits. T
 
 To install the required packages, run:
 
-!!! Tip "Installation"
+!!! tip "Installation"
 
     === "CLI"
 
@@ -39,7 +39,7 @@ To install the required packages, run:
 
 After installing the required packages, you'll need to sign up, get a [Comet API Key](https://www.comet.com/signup), and configure it.
 
-!!! Tip "Configuring Comet ML"
+!!! tip "Configuring Comet ML"
 
     === "CLI"
 
@@ -62,7 +62,7 @@ If you are using a Google Colab notebook, the code above will prompt you to ente
 
 Before diving into the usage instructions, be sure to check out the range of [YOLOv8 models offered by Ultralytics](../models/index.md). This will help you choose the most appropriate model for your project requirements.
 
-!!! Example "Usage"
+!!! example "Usage"
 
     === "Python"
 

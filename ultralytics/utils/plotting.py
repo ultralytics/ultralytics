@@ -501,6 +501,10 @@ class Annotator:
         """
         cv2.polylines(self.im, [np.array(reg_pts, dtype=np.int32)], isClosed=True, color=color, thickness=thickness)
 
+        # Draw small circles at the corner points
+        for point in reg_pts:
+            cv2.circle(self.im, (point[0], point[1]), thickness * 2, color, -1)  # -1 fills the circle
+
     def draw_centroid_and_tracks(self, track, color=(255, 0, 255), track_thickness=2):
         """
         Draw centroid point and track trails.
@@ -756,39 +760,35 @@ class Annotator:
                 self.im, label, (int(mask[0][0]) - text_size[0] // 2, int(mask[0][1])), 0, self.sf, txt_color, self.tf
             )
 
-    def plot_distance_and_line(self, distance_m, distance_mm, centroids, line_color, centroid_color):
+    def plot_distance_and_line(self, pixels_distance, centroids, line_color, centroid_color):
         """
         Plot the distance and line on frame.
 
         Args:
-            distance_m (float): Distance between two bbox centroids in meters.
-            distance_mm (float): Distance between two bbox centroids in millimeters.
+            pixels_distance (float): Pixels distance between two bbox centroids.
             centroids (list): Bounding box centroids data.
             line_color (RGB): Distance line color.
             centroid_color (RGB): Bounding box centroid color.
         """
-        (text_width_m, text_height_m), _ = cv2.getTextSize(f"Distance M: {distance_m:.2f}m", 0, self.sf, self.tf)
-        cv2.rectangle(self.im, (15, 25), (15 + text_width_m + 10, 25 + text_height_m + 20), line_color, -1)
-        cv2.putText(
-            self.im,
-            f"Distance M: {distance_m:.2f}m",
-            (20, 50),
-            0,
-            self.sf,
-            centroid_color,
-            self.tf,
-            cv2.LINE_AA,
+        # Get the text size
+        (text_width_m, text_height_m), _ = cv2.getTextSize(
+            f"Pixels Distance: {pixels_distance:.2f}", 0, self.sf, self.tf
         )
 
-        (text_width_mm, text_height_mm), _ = cv2.getTextSize(f"Distance MM: {distance_mm:.2f}mm", 0, self.sf, self.tf)
-        cv2.rectangle(self.im, (15, 75), (15 + text_width_mm + 10, 75 + text_height_mm + 20), line_color, -1)
+        # Define corners with 10-pixel margin and draw rectangle
+        top_left = (15, 25)
+        bottom_right = (15 + text_width_m + 20, 25 + text_height_m + 20)
+        cv2.rectangle(self.im, top_left, bottom_right, centroid_color, -1)
+
+        # Calculate the position for the text with a 10-pixel margin and draw text
+        text_position = (top_left[0] + 10, top_left[1] + text_height_m + 10)
         cv2.putText(
             self.im,
-            f"Distance MM: {distance_mm:.2f}mm",
-            (20, 100),
+            f"Pixels Distance: {pixels_distance:.2f}",
+            text_position,
             0,
             self.sf,
-            centroid_color,
+            (255, 255, 255),
             self.tf,
             cv2.LINE_AA,
         )

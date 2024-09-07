@@ -6,7 +6,7 @@ keywords: Ultralytics HUB, datasets, custom datasets, dataset management, model 
 
 # Ultralytics HUB Datasets
 
-[Ultralytics HUB](https://ultralytics.com/hub) datasets are a practical solution for managing and leveraging your custom datasets.
+[Ultralytics HUB](https://www.ultralytics.com/hub) datasets are a practical solution for managing and leveraging your custom datasets.
 
 Once uploaded, datasets can be immediately utilized for model training. This integrated approach facilitates a seamless transition from dataset management to model training, significantly simplifying the entire process.
 
@@ -22,9 +22,9 @@ Once uploaded, datasets can be immediately utilized for model training. This int
 
 ## Upload Dataset
 
-[Ultralytics HUB](https://ultralytics.com/hub) datasets are just like YOLOv5 and YOLOv8 🚀 datasets. They use the same structure and the same label formats to keep everything simple.
+[Ultralytics HUB](https://www.ultralytics.com/hub) datasets are just like YOLOv5 and YOLOv8 🚀 datasets. They use the same structure and the same label formats to keep everything simple.
 
-Before you upload a dataset to [Ultralytics HUB](https://ultralytics.com/hub), make sure to **place your dataset YAML file inside the dataset root directory** and that **your dataset YAML, directory and ZIP have the same name**, as shown in the example below, and then zip the dataset directory.
+Before you upload a dataset to [Ultralytics HUB](https://www.ultralytics.com/hub), make sure to **place your dataset YAML file inside the dataset root directory** and that **your dataset YAML, directory and ZIP have the same name**, as shown in the example below, and then zip the dataset directory.
 
 For example, if your dataset is called "coco8", as our [COCO8](https://docs.ultralytics.com/datasets/detect/coco8) example dataset, then you should have a `coco8.yaml` inside your `coco8/` directory, which will create a `coco8.zip` when zipped:
 
@@ -40,13 +40,13 @@ You can download our [COCO8](https://github.com/ultralytics/hub/blob/main/exampl
 
 The dataset YAML is the same standard YOLOv5 and YOLOv8 YAML format.
 
-!!! Example "coco8.yaml"
+!!! example "coco8.yaml"
 
     ```yaml
     --8<-- "ultralytics/cfg/datasets/coco8.yaml"
     ```
 
-After zipping your dataset, you should [validate it](https://docs.ultralytics.com/reference/hub/__init__/#ultralytics.hub.check_dataset) before uploading it to [Ultralytics HUB](https://ultralytics.com/hub). [Ultralytics HUB](https://ultralytics.com/hub) conducts the dataset validation check post-upload, so by ensuring your dataset is correctly formatted and error-free ahead of time, you can forestall any setbacks due to dataset rejection.
+After zipping your dataset, you should [validate it](https://docs.ultralytics.com/reference/hub/__init__/#ultralytics.hub.check_dataset) before uploading it to [Ultralytics HUB](https://www.ultralytics.com/hub). [Ultralytics HUB](https://www.ultralytics.com/hub) conducts the dataset validation check post-upload, so by ensuring your dataset is correctly formatted and error-free ahead of time, you can forestall any setbacks due to dataset rejection.
 
 ```py
 from ultralytics.hub import check_dataset
@@ -68,7 +68,7 @@ This action will trigger the **Upload Dataset** dialog.
 
 Select the dataset task of your dataset and upload it in the _Dataset .zip file_ field.
 
-You have the additional option to set a custom name and description for your [Ultralytics HUB](https://ultralytics.com/hub) dataset.
+You have the additional option to set a custom name and description for your [Ultralytics HUB](https://www.ultralytics.com/hub) dataset.
 
 When you're happy with your dataset configuration, click **Upload**.
 
@@ -114,13 +114,13 @@ Navigate to the Dataset page of the dataset you want to download, open the datas
 
 !!! info "Info"
 
-    [Ultralytics HUB](https://ultralytics.com/hub)'s sharing functionality provides a convenient way to share datasets with others. This feature is designed to accommodate both existing [Ultralytics HUB](https://ultralytics.com/hub) users and those who have yet to create an account.
+    [Ultralytics HUB](https://www.ultralytics.com/hub)'s sharing functionality provides a convenient way to share datasets with others. This feature is designed to accommodate both existing [Ultralytics HUB](https://www.ultralytics.com/hub) users and those who have yet to create an account.
 
 !!! note "Note"
 
     You have control over the general access of your datasets.
 
-    You can choose to set the general access to "Private", in which case, only you will have access to it. Alternatively, you can set the general access to "Unlisted" which grants viewing access to anyone who has the direct link to the dataset, regardless of whether they have an [Ultralytics HUB](https://ultralytics.com/hub) account or not.
+    You can choose to set the general access to "Private", in which case, only you will have access to it. Alternatively, you can set the general access to "Unlisted" which grants viewing access to anyone who has the direct link to the dataset, regardless of whether they have an [Ultralytics HUB](https://www.ultralytics.com/hub) account or not.
 
 Navigate to the Dataset page of the dataset you want to share, open the dataset actions dropdown and click on the **Share** option. This action will trigger the **Share Dataset** dialog.
 

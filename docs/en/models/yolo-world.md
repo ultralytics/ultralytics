@@ -6,7 +6,7 @@ keywords: YOLO-World, Ultralytics, open-vocabulary detection, YOLOv8, real-time 
 
 # YOLO-World Model
 
-The YOLO-World Model introduces an advanced, real-time [Ultralytics](https://ultralytics.com) [YOLOv8](yolov8.md)-based approach for Open-Vocabulary Detection tasks. This innovation enables the detection of any object within an image based on descriptive texts. By significantly lowering computational demands while preserving competitive performance, YOLO-World emerges as a versatile tool for numerous vision-based applications.
+The YOLO-World Model introduces an advanced, real-time [Ultralytics](https://www.ultralytics.com/) [YOLOv8](yolov8.md)-based approach for Open-Vocabulary Detection tasks. This innovation enables the detection of any object within an image based on descriptive texts. By significantly lowering computational demands while preserving competitive performance, YOLO-World emerges as a versatile tool for numerous vision-based applications.
 
 <p align="center">
   <br>
@@ -43,7 +43,7 @@ YOLO-World tackles the challenges faced by traditional Open-Vocabulary detection
 
 This section details the models available with their specific pre-trained weights, the tasks they support, and their compatibility with various operating modes such as [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md), denoted by ✅ for supported modes and ❌ for unsupported modes.
 
-!!! Note
+!!! note
 
     All the YOLOv8-World weights have been directly migrated from the official [YOLO-World](https://github.com/AILab-CVC/YOLO-World) repository, highlighting their excellent contributions.
 
@@ -77,13 +77,13 @@ The YOLO-World models are easy to integrate into your Python applications. Ultra
 
 ### Train Usage
 
-!!! Tip "Tip"
+!!! tip "Tip"
 
     We strongly recommend to use `yolov8-worldv2` model for custom training, because it supports deterministic training and also easy to export other formats i.e onnx/tensorrt.
 
 Object detection is straightforward with the `train` method, as illustrated below:
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -113,7 +113,7 @@ Object detection is straightforward with the `train` method, as illustrated belo
 
 Object detection is straightforward with the `predict` method, as illustrated below:
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -143,7 +143,7 @@ This snippet demonstrates the simplicity of loading a pre-trained model and runn
 
 Model validation on a dataset is streamlined as follows:
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -168,7 +168,7 @@ Model validation on a dataset is streamlined as follows:
 
 Object tracking with YOLO-World model on a video/images is streamlined as follows:
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -189,7 +189,7 @@ Object tracking with YOLO-World model on a video/images is streamlined as follow
         yolo track model=yolov8s-world.pt imgsz=640 source="path/to/video/file.mp4"
         ```
 
-!!! Note
+!!! note
 
     The YOLO-World models provided by Ultralytics come pre-configured with [COCO dataset](../datasets/detect/coco.md) categories as part of their offline vocabulary, enhancing efficiency for immediate application. This integration allows the YOLOv8-World models to directly recognize and predict the 80 standard categories defined in the COCO dataset without requiring additional setup or customization.
 
@@ -201,7 +201,7 @@ The YOLO-World framework allows for the dynamic specification of classes through
 
 For instance, if your application only requires detecting 'person' and 'bus' objects, you can specify these classes directly:
 
-!!! Example
+!!! example
 
     === "Custom Inference Prompts"
 
@@ -223,7 +223,7 @@ For instance, if your application only requires detecting 'person' and 'bus' obj
 
 You can also save a model after setting custom classes. By doing this you create a version of the YOLO-World model that is specialized for your specific use case. This process embeds your custom class definitions directly into the model file, making the model ready to use with your specified classes without further adjustments. Follow these steps to save and load your custom YOLOv8 model:
 
-!!! Example
+!!! example
 
     === "Persisting Models with Custom Vocabulary"
 
@@ -275,7 +275,7 @@ This approach provides a powerful means of customizing state-of-the-art object d
 | Dataset                                                           | Type      | Samples | Boxes | Annotation Files                                                                                                                           |
 | ----------------------------------------------------------------- | --------- | ------- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------ |
 | [Objects365v1](https://opendatalab.com/OpenDataLab/Objects365_v1) | Detection | 609k    | 9621k | [objects365_train.json](https://opendatalab.com/OpenDataLab/Objects365_v1)                                                                 |
-| [GQA](https://nlp.stanford.edu/data/gqa/images.zip)               | Grounding | 621k    | 3681k | [final_mixed_train_no_coco.json](https://huggingface.co/GLIPModel/GLIP/blob/main/mdetr_annotations/final_mixed_train_no_coco.json)         |
+| [GQA](https://downloads.cs.stanford.edu/nlp/data/gqa/images.zip)  | Grounding | 621k    | 3681k | [final_mixed_train_no_coco.json](https://huggingface.co/GLIPModel/GLIP/blob/main/mdetr_annotations/final_mixed_train_no_coco.json)         |
 | [Flickr30k](https://shannon.cs.illinois.edu/DenotationGraph/)     | Grounding | 149k    | 641k  | [final_flickr_separateGT_train.json](https://huggingface.co/GLIPModel/GLIP/blob/main/mdetr_annotations/final_flickr_separateGT_train.json) |
 
 - Val data
@@ -286,11 +286,11 @@ This approach provides a powerful means of customizing state-of-the-art object d
 
 ### Launch training from scratch
 
-!!! Note
+!!! note
 
     `WorldTrainerFromScratch` is highly customized to allow training yolo-world models on both detection datasets and grounding datasets simultaneously. More details please checkout [ultralytics.model.yolo.world.train_world.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/yolo/world/train_world.py).
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -322,7 +322,7 @@ This approach provides a powerful means of customizing state-of-the-art object d
 
 We extend our gratitude to the [Tencent AILab Computer Vision Center](https://ai.tencent.com/) for their pioneering work in real-time open-vocabulary object detection with YOLO-World:
 
-!!! Quote ""
+!!! quote ""
 
     === "BibTeX"
 

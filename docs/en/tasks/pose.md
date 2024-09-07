@@ -36,7 +36,7 @@ The output of a pose estimation model is a set of points that represent the keyp
   </tr>
 </table>
 
-!!! Tip "Tip"
+!!! tip
 
     YOLOv8 _pose_ models use the `-pose` suffix, i.e. `yolov8n-pose.pt`. These models are trained on the [COCO keypoints](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco-pose.yaml) dataset and are suitable for a variety of pose estimation tasks.
 
@@ -75,14 +75,14 @@ YOLOv8 pretrained Pose models are shown here. Detect, Segment and Pose models ar
 | [YOLOv8x-pose](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8x-pose.pt)       | 640                   | 69.2                  | 90.2               | 1607.1                         | 3.73                                | 69.4               | 263.2             |
 | [YOLOv8x-pose-p6](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8x-pose-p6.pt) | 1280                  | 71.6                  | 91.2               | 4088.7                         | 10.04                               | 99.1               | 1066.4            |
 
-- **mAP<sup>val</sup>** values are for single-model single-scale on [COCO Keypoints val2017](https://cocodataset.org) dataset. <br>Reproduce by `yolo val pose data=coco-pose.yaml device=0`
+- **mAP<sup>val</sup>** values are for single-model single-scale on [COCO Keypoints val2017](https://cocodataset.org/) dataset. <br>Reproduce by `yolo val pose data=coco-pose.yaml device=0`
 - **Speed** averaged over COCO val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance. <br>Reproduce by `yolo val pose data=coco8-pose.yaml batch=1 device=0|cpu`
 
 ## Train
 
 Train a YOLOv8-pose model on the COCO128-pose dataset.
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -120,7 +120,7 @@ YOLO pose dataset format can be found in detail in the [Dataset Guide](../datase
 Validate trained YOLOv8n-pose model accuracy on the COCO128-pose dataset. No argument need to passed as the `model`
 retains its training `data` and arguments as model attributes.
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -150,7 +150,7 @@ retains its training `data` and arguments as model attributes.
 
 Use a trained YOLOv8n-pose model to run predictions on images.
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -178,7 +178,7 @@ See full `predict` mode details in the [Predict](../modes/predict.md) page.
 
 Export a YOLOv8n Pose model to a different format like ONNX, CoreML, etc.
 
-!!! Example
+!!! example
 
     === "Python"
 

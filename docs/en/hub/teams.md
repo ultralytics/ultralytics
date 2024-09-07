@@ -6,7 +6,7 @@ keywords: Ultralytics HUB, Teams, collaboration, team management, AI projects, r
 
 # Ultralytics HUB Teams
 
-We're excited to introduce you to the new Teams feature within [Ultralytics HUB](https://ultralytics.com/hub) for our [Pro](./pro.md) users!
+We're excited to introduce you to the new Teams feature within [Ultralytics HUB](https://www.ultralytics.com/hub) for our [Pro](./pro.md) users!
 
 Here, you'll learn how to manage team members, share resources seamlessly, and collaborate efficiently on various projects.
 
@@ -56,7 +56,7 @@ Navigate to the [Teams](https://hub.ultralytics.com/settings?tab=teams) page, op
 
 ![Ultralytics HUB screenshot of the Teams page with an arrow pointing to the Delete option of one of the teams](https://github.com/ultralytics/docs/releases/download/0/hub-delete-team-option.avif)
 
-!!! Warning "Warning"
+!!! warning "Warning"
 
     When deleting a team, the team can't be restored.
 

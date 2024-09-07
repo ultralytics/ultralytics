@@ -6,7 +6,7 @@ keywords: Ultralytics, HUB, Inference API, Python, cURL, REST API, YOLO, image p
 
 # Ultralytics HUB Inference API
 
-After you [train a model](./models.md#train-model), you can use the [Shared Inference API](#shared-inference-api) for free. If you are a [Pro](./pro.md) user, you can access the [Dedicated Inference API](#dedicated-inference-api). The [Ultralytics HUB](https://ultralytics.com/hub) Inference API allows you to run inference through our REST API without the need to install and set up the Ultralytics YOLO environment locally.
+After you [train a model](./models.md#train-model), you can use the [Shared Inference API](#shared-inference-api) for free. If you are a [Pro](./pro.md) user, you can access the [Dedicated Inference API](#dedicated-inference-api). The [Ultralytics HUB](https://www.ultralytics.com/hub) Inference API allows you to run inference through our REST API without the need to install and set up the Ultralytics YOLO environment locally.
 
 ![Ultralytics HUB screenshot of the Deploy tab inside the Model page with an arrow pointing to the Dedicated Inference API card and one to the Shared Inference API card](https://github.com/ultralytics/docs/releases/download/0/hub-inference-api-card.avif)
 
@@ -22,7 +22,7 @@ After you [train a model](./models.md#train-model), you can use the [Shared Infe
 
 ## Dedicated Inference API
 
-In response to high demand and widespread interest, we are thrilled to unveil the [Ultralytics HUB](https://ultralytics.com/hub) Dedicated Inference API, offering single-click deployment in a dedicated environment for our [Pro](./pro.md) users!
+In response to high demand and widespread interest, we are thrilled to unveil the [Ultralytics HUB](https://www.ultralytics.com/hub) Dedicated Inference API, offering single-click deployment in a dedicated environment for our [Pro](./pro.md) users!
 
 !!! note "Note"
 
@@ -33,7 +33,7 @@ In response to high demand and widespread interest, we are thrilled to unveil th
 - **High Speed:** Sub-100ms latency is possible for YOLOv8n inference at 640 resolution from nearby regions based on Ultralytics testing.
 - **Enhanced Security:** Provides robust security features to protect your data and ensure compliance with industry standards. [Learn more about Google Cloud security](https://cloud.google.com/security).
 
-To use the [Ultralytics HUB](https://ultralytics.com/hub) Dedicated Inference API, click on the **Start Endpoint** button. Next, use the unique endpoint URL as described in the guides below.
+To use the [Ultralytics HUB](https://www.ultralytics.com/hub) Dedicated Inference API, click on the **Start Endpoint** button. Next, use the unique endpoint URL as described in the guides below.
 
 ![Ultralytics HUB screenshot of the Deploy tab inside the Model page with an arrow pointing to the Start Endpoint button in Dedicated Inference API card](https://github.com/ultralytics/docs/releases/download/0/ultralytics-hub-dedicated-inference-api.avif)
 
@@ -47,7 +47,7 @@ To shut down the dedicated endpoint, click on the **Stop Endpoint** button.
 
 ## Shared Inference API
 
-To use the [Ultralytics HUB](https://ultralytics.com/hub) Shared Inference API, follow the guides below.
+To use the [Ultralytics HUB](https://www.ultralytics.com/hub) Shared Inference API, follow the guides below.
 
 Free users have the following usage limits:
 
@@ -61,7 +61,7 @@ Free users have the following usage limits:
 
 ## Python
 
-To access the [Ultralytics HUB](https://ultralytics.com/hub) Inference API using Python, use the following code:
+To access the [Ultralytics HUB](https://www.ultralytics.com/hub) Inference API using Python, use the following code:
 
 ```python
 import requests
@@ -91,7 +91,7 @@ print(response.json())
 
 ## cURL
 
-To access the [Ultralytics HUB](https://ultralytics.com/hub) Inference API using cURL, use the following code:
+To access the [Ultralytics HUB](https://www.ultralytics.com/hub) Inference API using cURL, use the following code:
 
 ```bash
 curl -X POST "https://api.ultralytics.com/v1/predict/MODEL_ID" \
@@ -121,11 +121,11 @@ See the table below for a full list of available inference arguments.
 
 ## Response
 
-The [Ultralytics HUB](https://ultralytics.com/hub) Inference API returns a JSON response.
+The [Ultralytics HUB](https://www.ultralytics.com/hub) Inference API returns a JSON response.
 
 ### Classification
 
-!!! Example "Classification Model"
+!!! example "Classification Model"
 
     === "`ultralytics`"
 
@@ -205,7 +205,7 @@ The [Ultralytics HUB](https://ultralytics.com/hub) Inference API returns a JSON 
 
 ### Detection
 
-!!! Example "Detection Model"
+!!! example "Detection Model"
 
     === "`ultralytics`"
 
@@ -291,7 +291,7 @@ The [Ultralytics HUB](https://ultralytics.com/hub) Inference API returns a JSON 
 
 ### OBB
 
-!!! Example "OBB Model"
+!!! example "OBB Model"
 
     === "`ultralytics`"
 
@@ -381,7 +381,7 @@ The [Ultralytics HUB](https://ultralytics.com/hub) Inference API returns a JSON 
 
 ### Segmentation
 
-!!! Example "Segmentation Model"
+!!! example "Segmentation Model"
 
     === "`ultralytics`"
 
@@ -481,7 +481,7 @@ The [Ultralytics HUB](https://ultralytics.com/hub) Inference API returns a JSON 
 
 ### Pose
 
-!!! Example "Pose Model"
+!!! example "Pose Model"
 
     === "`ultralytics`"
 

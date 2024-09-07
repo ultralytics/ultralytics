@@ -24,7 +24,7 @@ The output of an instance segmentation model is a set of masks or contours that 
   <strong>Watch:</strong> Run Segmentation with Pre-Trained Ultralytics YOLOv8 Model in Python.
 </p>
 
-!!! Tip "Tip"
+!!! tip
 
     YOLOv8 Segment models use the `-seg` suffix, i.e. `yolov8n-seg.pt` and are pretrained on [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml).
 
@@ -42,14 +42,14 @@ YOLOv8 pretrained Segment models are shown here. Detect, Segment and Pose models
 | [YOLOv8l-seg](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8l-seg.pt) | 640                   | 52.3                 | 42.6                  | 572.4                          | 2.79                                | 46.0               | 220.5             |
 | [YOLOv8x-seg](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8x-seg.pt) | 640                   | 53.4                 | 43.4                  | 712.1                          | 4.02                                | 71.8               | 344.1             |
 
-- **mAP<sup>val</sup>** values are for single-model single-scale on [COCO val2017](https://cocodataset.org) dataset. <br>Reproduce by `yolo val segment data=coco.yaml device=0`
+- **mAP<sup>val</sup>** values are for single-model single-scale on [COCO val2017](https://cocodataset.org/) dataset. <br>Reproduce by `yolo val segment data=coco.yaml device=0`
 - **Speed** averaged over COCO val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance. <br>Reproduce by `yolo val segment data=coco8-seg.yaml batch=1 device=0|cpu`
 
 ## Train
 
 Train YOLOv8n-seg on the COCO128-seg dataset for 100 epochs at image size 640. For a full list of available arguments see the [Configuration](../usage/cfg.md) page.
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -87,7 +87,7 @@ YOLO segmentation dataset format can be found in detail in the [Dataset Guide](.
 Validate trained YOLOv8n-seg model accuracy on the COCO128-seg dataset. No argument need to passed as the `model`
 retains its training `data` and arguments as model attributes.
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -121,7 +121,7 @@ retains its training `data` and arguments as model attributes.
 
 Use a trained YOLOv8n-seg model to run predictions on images.
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -149,7 +149,7 @@ See full `predict` mode details in the [Predict](../modes/predict.md) page.
 
 Export a YOLOv8n-seg model to a different format like ONNX, CoreML, etc.
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -183,7 +183,7 @@ See full `export` details in the [Export](../modes/export.md) page.
 
 To train a YOLOv8 segmentation model on a custom dataset, you first need to prepare your dataset in the YOLO segmentation format. You can use tools like [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO) to convert datasets from other formats. Once your dataset is ready, you can train the model using Python or CLI commands:
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -217,7 +217,7 @@ Ultralytics YOLOv8 is a state-of-the-art model recognized for its high accuracy 
 
 Loading and validating a pretrained YOLOv8 segmentation model is straightforward. Here's how you can do it using both Python and CLI:
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -245,7 +245,7 @@ These steps will provide you with validation metrics like Mean Average Precision
 
 Exporting a YOLOv8 segmentation model to ONNX format is simple and can be done using Python or CLI commands:
 
-!!! Example
+!!! example
 
     === "Python"
 

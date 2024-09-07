@@ -38,7 +38,7 @@ Streamlit makes it simple to build and deploy interactive web applications. Comb
 
     Before you start building the application, ensure you have the Ultralytics Python Package installed. You can install it using the command **pip install ultralytics**
 
-!!! Example "Streamlit Application"
+!!! example "Streamlit Application"
 
     === "Python"
 
@@ -60,7 +60,7 @@ This will launch the Streamlit application in your default web browser. You will
 
 You can optionally supply a specific model in Python:
 
-!!! Example "Streamlit Application with a custom model"
+!!! example "Streamlit Application with a custom model"
 
     === "Python"
 
@@ -86,7 +86,7 @@ Engage with the community to learn more, troubleshoot issues, and share your pro
 ### Where to Find Help and Support
 
 - **GitHub Issues:** Visit the [Ultralytics GitHub repository](https://github.com/ultralytics/ultralytics/issues) to raise questions, report bugs, and suggest features.
-- **Ultralytics Discord Server:** Join the [Ultralytics Discord server](https://ultralytics.com/discord/) to connect with other users and developers, get support, share knowledge, and brainstorm ideas.
+- **Ultralytics Discord Server:** Join the [Ultralytics Discord server](https://discord.com/invite/ultralytics) to connect with other users and developers, get support, share knowledge, and brainstorm ideas.
 
 ### Official Documentation
 
@@ -104,7 +104,7 @@ pip install ultralytics
 
 Then, you can create a basic Streamlit application to run live inference:
 
-!!! Example "Streamlit Application"
+!!! example "Streamlit Application"
 
     === "Python"
 

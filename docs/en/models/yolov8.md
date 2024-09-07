@@ -48,7 +48,7 @@ This table provides an overview of the YOLOv8 model variants, highlighting their
 
 ## Performance Metrics
 
-!!! Performance
+!!! performance
 
     === "Detection (COCO)"
 
@@ -129,7 +129,7 @@ This example provides simple YOLOv8 training and inference examples. For full do
 
 Note the below example is for YOLOv8 [Detect](../tasks/detect.md) models for object detection. For additional supported tasks see the [Segment](../tasks/segment.md), [Classify](../tasks/classify.md), [OBB](../tasks/obb.md) docs and [Pose](../tasks/pose.md) docs.
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -167,7 +167,7 @@ Note the below example is for YOLOv8 [Detect](../tasks/detect.md) models for obj
 
 If you use the YOLOv8 model or any other software from this repository in your work, please cite it using the following format:
 
-!!! Quote ""
+!!! quote ""
 
     === "BibTeX"
 
@@ -183,7 +183,7 @@ If you use the YOLOv8 model or any other software from this repository in your w
         }
         ```
 
-Please note that the DOI is pending and will be added to the citation once it is available. YOLOv8 models are provided under [AGPL-3.0](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) and [Enterprise](https://ultralytics.com/license) licenses.
+Please note that the DOI is pending and will be added to the citation once it is available. YOLOv8 models are provided under [AGPL-3.0](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) and [Enterprise](https://www.ultralytics.com/license) licenses.
 
 ## FAQ
 
@@ -203,7 +203,7 @@ YOLOv8 models achieve state-of-the-art performance across various benchmarking d
 
 Training a YOLOv8 model can be done using either Python or CLI. Below are examples for training a model using a COCO-pretrained YOLOv8 model on the COCO8 dataset for 100 epochs:
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -229,7 +229,7 @@ For further details, visit the [Training](../modes/train.md) documentation.
 
 Yes, YOLOv8 models can be benchmarked for performance in terms of speed and accuracy across various export formats. You can use PyTorch, ONNX, TensorRT, and more for benchmarking. Below are example commands for benchmarking using Python and CLI:
 
-!!! Example
+!!! example
 
     === "Python"
 

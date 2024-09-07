@@ -6,7 +6,7 @@ keywords: Ultralytics, YOLOv8, Raspberry Pi, setup, guide, benchmarks, computer 
 
 # Quick Start Guide: Raspberry Pi with Ultralytics YOLOv8
 
-This comprehensive guide provides a detailed walkthrough for deploying Ultralytics YOLOv8 on [Raspberry Pi](https://www.raspberrypi.com) devices. Additionally, it showcases performance benchmarks to demonstrate the capabilities of YOLOv8 on these small and powerful devices.
+This comprehensive guide provides a detailed walkthrough for deploying Ultralytics YOLOv8 on [Raspberry Pi](https://www.raspberrypi.com/) devices. Additionally, it showcases performance benchmarks to demonstrate the capabilities of YOLOv8 on these small and powerful devices.
 
 <p align="center">
   <br>
@@ -19,7 +19,7 @@ This comprehensive guide provides a detailed walkthrough for deploying Ultralyti
   <strong>Watch:</strong> Raspberry Pi 5 updates and improvements.
 </p>
 
-!!! Note
+!!! note
 
     This guide has been tested with Raspberry Pi 4 and Raspberry Pi 5 running the latest [Raspberry Pi OS Bookworm (Debian 12)](https://www.raspberrypi.com/software/operating-systems/). Using this guide for older Raspberry Pi devices such as the Raspberry Pi 3 is expected to work as long as the same Raspberry Pi OS Bookworm is installed.
 
@@ -100,7 +100,7 @@ Out of all the model export formats supported by Ultralytics, [NCNN](https://doc
 
 The YOLOv8n model in PyTorch format is converted to NCNN to run inference with the exported model.
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -130,7 +130,7 @@ The YOLOv8n model in PyTorch format is converted to NCNN to run inference with t
         yolo predict model='yolov8n_ncnn_model' source='https://ultralytics.com/images/bus.jpg'
         ```
 
-!!! Tip
+!!! tip
 
     For more details about supported export options, visit the [Ultralytics documentation page on deployment options](https://docs.ultralytics.com/guides/model-deployment-options).
 
@@ -138,7 +138,7 @@ The YOLOv8n model in PyTorch format is converted to NCNN to run inference with t
 
 YOLOv8 benchmarks were run by the Ultralytics team on nine different model formats measuring speed and accuracy: PyTorch, TorchScript, ONNX, OpenVINO, TF SavedModel, TF GraphDef, TF Lite, PaddlePaddle, NCNN. Benchmarks were run on both Raspberry Pi 5 and Raspberry Pi 4 at FP32 precision with default input image size of 640.
 
-!!! Note
+!!! note
 
     We have only included benchmarks for YOLOv8n and YOLOv8s models because other models sizes are too big to run on the Raspberry Pis and does not offer decent performance.
 
@@ -224,7 +224,7 @@ The below table represents the benchmark results for two different models (YOLOv
 
 To reproduce the above Ultralytics benchmarks on all [export formats](../modes/export.md), run this code:
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -251,11 +251,11 @@ To reproduce the above Ultralytics benchmarks on all [export formats](../modes/e
 
 When using Raspberry Pi for Computer Vision projects, it can be essentially to grab real-time video feeds to perform inference. The onboard MIPI CSI connector on the Raspberry Pi allows you to connect official Raspberry PI camera modules. In this guide, we have used a [Raspberry Pi Camera Module 3](https://www.raspberrypi.com/products/camera-module-3) to grab the video feeds and perform inference using YOLOv8 models.
 
-!!! Tip
+!!! tip
 
     Learn more about the [different camera modules offered by Raspberry Pi](https://www.raspberrypi.com/documentation/accessories/camera.html) and also [how to get started with the Raspberry Pi camera modules](https://www.raspberrypi.com/documentation/computers/camera_software.html#introducing-the-raspberry-pi-cameras).
 
-!!! Note
+!!! note
 
     Raspberry Pi 5 uses smaller CSI connectors than the Raspberry Pi 4 (15-pin vs 22-pin), so you will need a [15-pin to 22pin adapter cable](https://www.raspberrypi.com/products/camera-cable) to connect to a Raspberry Pi Camera.
 
@@ -267,7 +267,7 @@ Execute the following command after connecting the camera to the Raspberry Pi. Y
 rpicam-hello
 ```
 
-!!! Tip
+!!! tip
 
     Learn more about [`rpicam-hello` usage on official Raspberry Pi documentation](https://www.raspberrypi.com/documentation/computers/camera_software.html#rpicam-hello)
 
@@ -275,13 +275,13 @@ rpicam-hello
 
 There are 2 methods of using the Raspberry Pi Camera to inference YOLOv8 models.
 
-!!! Usage
+!!! usage
 
     === "Method 1"
 
         We can use `picamera2`which comes pre-installed with Raspberry Pi OS to access the camera and inference YOLOv8 models.
 
-        !!! Example
+        !!! example
 
             === "Python"
 
@@ -333,7 +333,7 @@ There are 2 methods of using the Raspberry Pi Camera to inference YOLOv8 models.
 
         Learn more about [`rpicam-vid` usage on official Raspberry Pi documentation](https://www.raspberrypi.com/documentation/computers/camera_software.html#rpicam-vid)
 
-        !!! Example
+        !!! example
 
             === "Python"
 
@@ -353,7 +353,7 @@ There are 2 methods of using the Raspberry Pi Camera to inference YOLOv8 models.
                 yolo predict model=yolov8n.pt source="tcp://127.0.0.1:8888"
                 ```
 
-!!! Tip
+!!! tip
 
     Check our document on [Inference Sources](https://docs.ultralytics.com/modes/predict/#inference-sources) if you want to change the image/ video input type
 
@@ -410,7 +410,7 @@ Ultralytics YOLOv8's NCNN format is highly optimized for mobile and embedded pla
 
 You can convert a PyTorch YOLOv8 model to NCNN format using either Python or CLI commands:
 
-!!! Example
+!!! example
 
     === "Python"
 

@@ -21,7 +21,7 @@ This comprehensive guide provides a detailed walkthrough for deploying Ultralyti
 
 <img width="1024" src="https://github.com/ultralytics/docs/releases/download/0/nvidia-jetson-ecosystem.avif" alt="NVIDIA Jetson Ecosystem">
 
-!!! Note
+!!! note
 
     This guide has been tested with both [Seeed Studio reComputer J4012](https://www.seeedstudio.com/reComputer-J4012-p-5586.html) which is based on NVIDIA Jetson Orin NX 16GB running the latest stable JetPack release of [JP6.0](https://developer.nvidia.com/embedded/jetpack-sdk-60), JetPack release of [JP5.1.3](https://developer.nvidia.com/embedded/jetpack-sdk-513) and [Seeed Studio reComputer J1020 v2](https://www.seeedstudio.com/reComputer-J1020-v2-p-5498.html) which is based on NVIDIA Jetson Nano 4GB running JetPack release of [JP4.6.1](https://developer.nvidia.com/embedded/jetpack-sdk-461). It is expected to work across all the NVIDIA Jetson hardware lineup including latest and legacy.
 
@@ -54,10 +54,10 @@ The first step after getting your hands on an NVIDIA Jetson device is to flash N
 
 1. If you own an official NVIDIA Development Kit such as the Jetson Orin Nano Developer Kit, you can [download an image and prepare an SD card with JetPack for booting the device](https://developer.nvidia.com/embedded/learn/get-started-jetson-orin-nano-devkit).
 2. If you own any other NVIDIA Development Kit, you can [flash JetPack to the device using SDK Manager](https://docs.nvidia.com/sdk-manager/install-with-sdkm-jetson/index.html).
-3. If you own a Seeed Studio reComputer J4012 device, you can [flash JetPack to the included SSD](https://wiki.seeedstudio.com/reComputer_J4012_Flash_Jetpack) and if you own a Seeed Studio reComputer J1020 v2 device, you can [flash JetPack to the eMMC/ SSD](https://wiki.seeedstudio.com/reComputer_J2021_J202_Flash_Jetpack).
+3. If you own a Seeed Studio reComputer J4012 device, you can [flash JetPack to the included SSD](https://wiki.seeedstudio.com/reComputer_J4012_Flash_Jetpack/) and if you own a Seeed Studio reComputer J1020 v2 device, you can [flash JetPack to the eMMC/ SSD](https://wiki.seeedstudio.com/reComputer_J2021_J202_Flash_Jetpack/).
 4. If you own any other third party device powered by the NVIDIA Jetson module, it is recommended to follow [command-line flashing](https://docs.nvidia.com/jetson/archives/r35.5.0/DeveloperGuide/IN/QuickStart.html).
 
-!!! Note
+!!! note
 
     For methods 3 and 4 above, after flashing the system and booting the device, please enter "sudo apt update && sudo apt install nvidia-jetpack -y" on the device terminal to install all the remaining JetPack components needed.
 
@@ -157,7 +157,7 @@ wget https://nvidia.box.com/shared/static/48dtuob7meiw6ebgfsfqakc9vse62sg4.whl -
 pip install onnxruntime_gpu-1.18.0-cp310-cp310-linux_aarch64.whl
 ```
 
-!!! Note
+!!! note
 
     `onnxruntime-gpu` will automatically revert back the numpy version to latest. So we need to reinstall numpy to `1.23.5` to fix an issue by executing:
 
@@ -230,7 +230,7 @@ wget https://nvidia.box.com/shared/static/zostg6agm00fb6t5uisw51qi6kpcuwzd.whl -
 pip install onnxruntime_gpu-1.17.0-cp38-cp38-linux_aarch64.whl
 ```
 
-!!! Note
+!!! note
 
     `onnxruntime-gpu` will automatically revert back the numpy version to latest. So we need to reinstall numpy to `1.23.5` to fix an issue by executing:
 
@@ -244,7 +244,7 @@ Out of all the model export formats supported by Ultralytics, TensorRT delivers 
 
 The YOLOv8n model in PyTorch format is converted to TensorRT to run inference with the exported model.
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -274,7 +274,7 @@ The YOLOv8n model in PyTorch format is converted to TensorRT to run inference wi
         yolo predict model=yolov8n.engine source='https://ultralytics.com/images/bus.jpg'
         ```
 
-!!! Note
+!!! note
 
     Visit the [Export page](../modes/export.md#arguments) to access additional arguments when exporting models to different model formats
 
@@ -294,7 +294,7 @@ Even though all model exports are working with NVIDIA Jetson, we have only inclu
 
 The below table represents the benchmark results for five different models (YOLOv8n, YOLOv8s, YOLOv8m, YOLOv8l, YOLOv8x) across ten different formats (PyTorch, TorchScript, ONNX, OpenVINO, TensorRT, TF SavedModel, TF GraphDef, TF Lite, PaddlePaddle, NCNN), giving us the status, size, mAP50-95(B) metric, and inference time for each combination.
 
-!!! Performance
+!!! performance
 
     === "YOLOv8n"
 
@@ -377,7 +377,7 @@ The below table represents the benchmark results for five different models (YOLO
 
 To reproduce the above Ultralytics benchmarks on all export [formats](../modes/export.md) run this code:
 
-!!! Example
+!!! example
 
     === "Python"
 

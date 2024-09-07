@@ -41,7 +41,7 @@ The following are some notable features of YOLOv8's Train mode:
 - **Hyperparameter Configuration:** The option to modify hyperparameters through YAML configuration files or CLI arguments.
 - **Visualization and Monitoring:** Real-time tracking of training metrics and visualization of the learning process for better insights.
 
-!!! Tip "Tip"
+!!! tip "Tip"
 
     * YOLOv8 datasets like COCO, VOC, ImageNet and many others automatically download on first use, i.e. `yolo train data=coco.yaml`
 
@@ -49,7 +49,7 @@ The following are some notable features of YOLOv8's Train mode:
 
 Train YOLOv8n on the COCO8 dataset for 100 epochs at image size 640. The training device can be specified using the `device` argument. If no argument is passed GPU `device=0` will be used if available, otherwise `device='cpu'` will be used. See Arguments section below for a full list of training arguments.
 
-!!! Example "Single-GPU and CPU Training Example"
+!!! example "Single-GPU and CPU Training Example"
 
     Device is determined automatically. If a GPU is available then it will be used, otherwise training will start on CPU.
 
@@ -84,7 +84,7 @@ Train YOLOv8n on the COCO8 dataset for 100 epochs at image size 640. The trainin
 
 Multi-GPU training allows for more efficient utilization of available hardware resources by distributing the training load across multiple GPUs. This feature is available through both the Python API and the command-line interface. To enable multi-GPU training, specify the GPU device IDs you wish to use.
 
-!!! Example "Multi-GPU Training Example"
+!!! example "Multi-GPU Training Example"
 
     To train with 2 GPUs, CUDA devices 0 and 1 use the following commands. Expand to additional GPUs as required.
 
@@ -113,7 +113,7 @@ With the support for Apple M1 and M2 chips integrated in the Ultralytics YOLO mo
 
 To enable training on Apple M1 and M2 chips, you should specify 'mps' as your device when initiating the training process. Below is an example of how you could do this in Python and via the command line:
 
-!!! Example "MPS Training Example"
+!!! example "MPS Training Example"
 
     === "Python"
 
@@ -146,7 +146,7 @@ You can easily resume training in Ultralytics YOLO by setting the `resume` argum
 
 Below is an example of how to resume an interrupted training using Python and via the command line:
 
-!!! Example "Resume Training Example"
+!!! example "Resume Training Example"
 
     === "Python"
 
@@ -276,7 +276,7 @@ To use a logger, select it from the dropdown menu in the code snippet above and 
 
 To use Comet:
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -291,11 +291,11 @@ Remember to sign in to your Comet account on their website and get your API key.
 
 ### ClearML
 
-[ClearML](https://www.clear.ml/) is an open-source platform that automates tracking of experiments and helps with efficient sharing of resources. It is designed to help teams manage, execute, and reproduce their ML work more efficiently.
+[ClearML](https://clear.ml/) is an open-source platform that automates tracking of experiments and helps with efficient sharing of resources. It is designed to help teams manage, execute, and reproduce their ML work more efficiently.
 
 To use ClearML:
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -314,7 +314,7 @@ After running this script, you will need to sign in to your ClearML account on t
 
 To use TensorBoard in [Google Colab](https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb):
 
-!!! Example
+!!! example
 
     === "CLI"
 
@@ -325,7 +325,7 @@ To use TensorBoard in [Google Colab](https://colab.research.google.com/github/ul
 
 To use TensorBoard locally run the below command and view results at http://localhost:6006/.
 
-!!! Example
+!!! example
 
     === "CLI"
 
@@ -343,7 +343,7 @@ After setting up your logger, you can then proceed with your model training. All
 
 To train an object detection model using Ultralytics YOLOv8, you can either use the Python API or the CLI. Below is an example for both:
 
-!!! Example "Single-GPU and CPU Training Example"
+!!! example "Single-GPU and CPU Training Example"
 
     === "Python"
 
@@ -380,7 +380,7 @@ These features make training efficient and customizable to your needs. For more 
 
 To resume training from an interrupted session, set the `resume` argument to `True` and specify the path to the last saved checkpoint.
 
-!!! Example "Resume Training Example"
+!!! example "Resume Training Example"
 
     === "Python"
 
@@ -406,7 +406,7 @@ Check the section on [Resuming Interrupted Trainings](#resuming-interrupted-trai
 
 Yes, Ultralytics YOLOv8 supports training on Apple M1 and M2 chips utilizing the Metal Performance Shaders (MPS) framework. Specify 'mps' as your training device.
 
-!!! Example "MPS Training Example"
+!!! example "MPS Training Example"
 
     === "Python"
 

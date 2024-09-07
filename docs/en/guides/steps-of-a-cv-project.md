@@ -189,7 +189,7 @@ Connecting with a community of computer vision enthusiasts can help you tackle a
 ### Community Resources
 
 - **GitHub Issues:** Check out the [YOLOv8 GitHub repository](https://github.com/ultralytics/ultralytics/issues) and use the Issues tab to ask questions, report bugs, and suggest new features. The active community and maintainers are there to help with specific issues.
-- **Ultralytics Discord Server:** Join the [Ultralytics Discord server](https://ultralytics.com/discord/) to interact with other users and developers, get support, and share insights.
+- **Ultralytics Discord Server:** Join the [Ultralytics Discord server](https://discord.com/invite/ultralytics) to interact with other users and developers, get support, and share insights.
 
 ### Official Documentation
 

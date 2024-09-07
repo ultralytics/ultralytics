@@ -6,7 +6,7 @@ keywords: YOLOv8, TFLite Edge TPU, TensorFlow Lite, model export, machine learni
 
 # Learn to Export to TFLite Edge TPU Format From YOLOv8 Model
 
-Deploying computer vision models on devices with limited computational power, such as mobile or embedded systems, can be tricky. Using a model format that is optimized for faster performance simplifies the process. The [TensorFlow Lite](https://www.tensorflow.org/lite) [Edge TPU](https://coral.ai/docs/edgetpu/models-intro/) or TFLite Edge TPU model format is designed to use minimal power while delivering fast performance for neural networks.
+Deploying computer vision models on devices with limited computational power, such as mobile or embedded systems, can be tricky. Using a model format that is optimized for faster performance simplifies the process. The [TensorFlow Lite](https://ai.google.dev/edge/litert) [Edge TPU](https://coral.ai/docs/edgetpu/models-intro/) or TFLite Edge TPU model format is designed to use minimal power while delivering fast performance for neural networks.
 
 The export to TFLite Edge TPU format feature allows you to optimize your [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics) models for high-speed and low-power inferencing. In this guide, we'll walk you through converting your models to the TFLite Edge TPU format, making it easier for your models to perform well on various mobile and embedded devices.
 
@@ -50,7 +50,7 @@ You can expand model compatibility and deployment flexibility by converting YOLO
 
 To install the required package, run:
 
-!!! Tip "Installation"
+!!! tip "Installation"
 
     === "CLI"
 
@@ -65,7 +65,7 @@ For detailed instructions and best practices related to the installation process
 
 Before diving into the usage instructions, it's important to note that while all [Ultralytics YOLOv8 models](../models/index.md) are available for exporting, you can ensure that the model you select supports export functionality [here](../modes/export.md).
 
-!!! Example "Usage"
+!!! example "Usage"
 
     === "Python"
 
@@ -123,7 +123,7 @@ Also, for more information on other Ultralytics YOLOv8 integrations, please visi
 
 To export a YOLOv8 model to TFLite Edge TPU format, you can follow these steps:
 
-!!! Example "Usage"
+!!! example "Usage"
 
     === "Python"
 

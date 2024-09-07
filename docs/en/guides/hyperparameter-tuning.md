@@ -69,7 +69,7 @@ The process is repeated until either the set number of iterations is reached or 
 
 Here's how to use the `model.tune()` method to utilize the `Tuner` class for hyperparameter tuning of YOLOv8n on COCO8 for 30 epochs with an AdamW optimizer and skipping plotting, checkpointing and validation other than on final epoch for faster Tuning.
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -212,7 +212,7 @@ For deeper insights, you can explore the `Tuner` class source code and accompany
 
 To optimize the learning rate for Ultralytics YOLO, start by setting an initial learning rate using the `lr0` parameter. Common values range from `0.001` to `0.01`. During the hyperparameter tuning process, this value will be mutated to find the optimal setting. You can utilize the `model.tune()` method to automate this process. For example:
 
-!!! Example
+!!! example
 
     === "Python"
 

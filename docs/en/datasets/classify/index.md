@@ -78,7 +78,7 @@ This structured approach ensures that the model can effectively learn from well-
 
 ## Usage
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -194,7 +194,7 @@ For additional insights and real-world applications, you can explore [Ultralytic
 
 Training a model using Ultralytics YOLO can be done easily in both Python and CLI. Here's an example:
 
-!!! Example
+!!! example
 
     === "Python"
 

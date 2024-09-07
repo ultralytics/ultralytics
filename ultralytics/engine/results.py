@@ -525,7 +525,9 @@ class Results(SimpleClass):
             idx = (
                 pred_boxes.id
                 if pred_boxes.id is not None
-                else pred_boxes.cls if pred_boxes and color_mode == "class" else reversed(range(len(pred_masks)))
+                else pred_boxes.cls
+                if pred_boxes and color_mode == "class"
+                else reversed(range(len(pred_masks)))
             )
             annotator.masks(pred_masks.data, colors=[colors(x, True) for x in idx], im_gpu=im_gpu)
 

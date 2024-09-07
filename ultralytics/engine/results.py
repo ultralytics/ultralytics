@@ -535,7 +535,7 @@ class Results(SimpleClass):
                 annotator.box_label(
                     box,
                     label,
-                    color=colors((id if id is not None else (i if color_mode == "instance" else c)), True),
+                    color=colors(i if color_mode=="instance" else (id if id is not None else c), True),
                     rotated=is_obb,
                 )
 

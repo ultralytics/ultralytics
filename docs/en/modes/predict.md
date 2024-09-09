@@ -369,7 +369,7 @@ Inference arguments:
 
 Visualization arguments:
 
-{% include "macros/visualisation-args.md" %}
+{% include "macros/visualization-args.md" %}
 
 ## Image and Video Formats
 

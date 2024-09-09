@@ -106,7 +106,7 @@ Inference arguments:
 
 Visualization arguments:
 
-{% include "macros/visualisation-args.md" %}
+{% include "macros/visualization-args.md" %}
 
 [Predict Guide](../modes/predict.md){ .md-button }
 

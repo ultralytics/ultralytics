@@ -8,8 +8,8 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
-  schedule:
-    - cron: "0 0 * * *" # runs at 00:00 UTC every day
+  #schedule:
+  #  - cron: "0 0 * * *" # runs at 00:00 UTC every day
   workflow_dispatch:
     inputs:
       hub:

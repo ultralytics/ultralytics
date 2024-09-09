@@ -110,7 +110,7 @@ class Settings:
         if self.collection_epoch_start is None:
             return []
 
-        if self.collection_epoch_start >= epochs:
+        if self.collection_epoch_start > epochs:
             return []
 
         # If start is less than one, we don't collect during training
@@ -157,14 +157,21 @@ class Settings:
 
         :raises: ValueError if the selected reducer is not available.
         """
-        reducer_spec = importlib.util.find_spec(self.image_embeddings_reducer)
-        if reducer_spec is None:
-            reducer_to_package = {'pacmap': 'pacmap', 'umap': 'umap-learn'}
+        reducer_to_package = {'pacmap': 'pacmap', 'umap': 'umap-learn'}
+        if self.image_embeddings_reducer not in reducer_to_package:
+            raise ValueError(
+                f"Invalid image embeddings reducer {self.image_embeddings_reducer}. "
+                "Valid options are 'pacmap' and 'umap'."
+            )
+
+        try:
+            importlib.import_module(self.image_embeddings_reducer)
+        except Exception as e:
             package = reducer_to_package[self.image_embeddings_reducer]
             raise ValueError(
-                f"Embeddings collection enabled, but missing {self.image_embeddings_reducer} dependency. "
+                f"Embeddings collection enabled, but failed to import {self.image_embeddings_reducer} dependency. "
                 f"Run `pip install {package}` to enable embeddings collection."
-            )
+            ) from e
 
     @staticmethod
     def _field_to_env_var(_field: field) -> None:

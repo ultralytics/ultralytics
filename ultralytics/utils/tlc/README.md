@@ -23,8 +23,7 @@ cd ultralytics
 python -m venv .venv
 source .venv/bin/activate # or .venv/Scripts/activate in Git Bash / Windows
 pip install -e . # install the local ultralytics fork package
-pip install 3lc # install 3lc
-pip install pacmap # or umap-learn (only required for embeddings collection)
+pip install pacmap # or umap-learn (optional, only required for embeddings collection)
 ```
 
 In order to create a `tlc.Run` with the integration, instantiate `TLCYOLO` (instead of `YOLO`) and call the method `.train()` like usual:

@@ -1,0 +1,34 @@
+name: Run 3LC tests
+
+on:
+  pull_request:
+    branches:
+      - tlc-integration  # Adjust if your main branch has a different name
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        python-version: ['3.9']  # Specify the Python versions you want to test against
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+          pip install pacmap
+          pip install pytest               # Install your test runner, such as pytest
+
+      - name: Run tests
+        run: |
+          pytest tests/test_3lc.py

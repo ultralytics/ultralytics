@@ -780,6 +780,16 @@ def torch_safe_load(weight):
         ):
             ckpt = torch.load(file, map_location="cpu")
 
+    except AttributeError as e:
+        if e.name == "v10DetectLoss":
+            raise TypeError(
+                emojis(
+                    f"ERROR ❌️ {weight} appears to be a YOLOv10 model originally trained "
+                    f"with https://github.com/THU-MIG/yolov10.\nThis model is NOT compatible with "
+                    f"YOLOv10 at https://github.com/ultralytics/ultralytics."
+                    f"\nTrain a new YOLOv10 model using the latest 'ultralytics' package."
+                )
+            ) from e
     except ModuleNotFoundError as e:  # e.name is missing module name
         if e.name == "models":
             raise TypeError(

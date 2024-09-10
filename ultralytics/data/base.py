@@ -93,36 +93,8 @@ class BaseDataset(Dataset):
         if (self.cache == "ram" and self.check_cache_ram()) or self.cache == "disk":
             self.cache_images()
 
-        self.cls_weights = self.calculate_cls_weights() if hyp.cls_weight else None
         # Transforms
         self.transforms = self.build_transforms(hyp=hyp)
-
-    def calculate_cls_weights(self):
-        cls = np.concatenate([l["cls"].reshape(-1) for l in self.labels])
-        counts = np.bincount(cls.astype(int), minlength=len(self.data["names"]))
-        class_weights = counts.sum() / counts
-        # weights = np.zeros(len(self.labels))
-        im_weights = np.ones(len(self.labels))
-        for i, label in enumerate(self.labels):
-            cls = label["cls"].reshape(-1).astype(np.int32)
-            if len(cls) == 0:
-                continue
-            im_weights[i] = np.sum(class_weights[cls])
-
-        # import matplotlib.pyplot as plt
-        # plt.switch_backend("Agg")
-        # _, ax = plt.subplots(2, 1, figsize=(21, 6), tight_layout=True)
-        # ax = ax.ravel()
-        # ax[0].plot(im_weights / im_weights.sum())
-        # plt.savefig("cls.png")
-        # exit()
-        return im_weights / im_weights.sum()
-
-        # weights[i] = np.mean(counts[cls])
-        # set mean value of weights for background images
-        # weights = np.where(weights == 0, weights.mean(), weights)
-        # weights = weights.max() - weights + 1
-        # return weights / weights.sum()
 
     def get_img_files(self, img_path):
         """Read image files."""

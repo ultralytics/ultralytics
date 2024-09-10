@@ -188,7 +188,7 @@ class Mosaic(BaseMixTransform):
         n (int, optional): The grid size, either 4 (for 2x2) or 9 (for 3x3).
     """
 
-    def __init__(self, dataset, imgsz=640, p=1.0, n=4, use_cls_weight=False):
+    def __init__(self, dataset, imgsz=640, p=1.0, n=4):
         """Initializes the object with a dataset, image size, probability, and border."""
         assert 0 <= p <= 1.0, f"The probability should be in range [0, 1], but got {p}."
         assert n in {4, 9}, "grid must be equal to 4 or 9."
@@ -197,13 +197,10 @@ class Mosaic(BaseMixTransform):
         self.imgsz = imgsz
         self.border = (-imgsz // 2, -imgsz // 2)  # width, height
         self.n = n
-        self.use_cls_weight = use_cls_weight
 
-    def get_indexes(self, buffer=False):
+    def get_indexes(self, buffer=True):
         """Return a list of random indexes from the dataset."""
-        if self.use_cls_weight and self.dataset.cls_weights is not None:
-            return np.random.choice(len(self.dataset), self.n - 1, replace=False, p=self.dataset.cls_weights)
-        elif buffer:  # select images from buffer
+        if buffer:  # select images from buffer
             return random.choices(list(self.dataset.buffer), k=self.n - 1)
         else:  # select any images
             return [random.randint(0, len(self.dataset) - 1) for _ in range(self.n - 1)]
@@ -379,10 +376,7 @@ class MixUp(BaseMixTransform):
 
     def get_indexes(self):
         """Get a random index from the dataset."""
-        if self.dataset.cls_weights is not None:
-            return np.random.choice(len(self.dataset), 1, replace=False, p=self.dataset.cls_weights)
-        else:
-            return random.randint(0, len(self.dataset) - 1)
+        return random.randint(0, len(self.dataset) - 1)
 
     def _mix_transform(self, labels):
         """Applies MixUp augmentation as per https://arxiv.org/pdf/1710.09412.pdf."""
@@ -840,10 +834,7 @@ class CopyPaste(BaseMixTransform):
             >>> print(index)
             42
         """
-        if self.dataset.cls_weights is not None:
-            return np.random.choice(len(self.dataset), 1, replace=False, p=self.dataset.cls_weights)
-        else:
-            return random.randint(0, len(self.dataset) - 1)
+        return random.randint(0, len(self.dataset) - 1)
 
     def _mix_transform(self, labels):
         """Applies CopyPaste augmentation."""
@@ -1204,7 +1195,7 @@ class RandomLoadText:
 
 def v8_transforms(dataset, imgsz, hyp, stretch=False):
     """Convert images to a size suitable for YOLOv8 training."""
-    mosaic = Mosaic(dataset, imgsz=imgsz, p=hyp.mosaic, use_cls_weight=False)
+    mosaic = Mosaic(dataset, imgsz=imgsz, p=hyp.mosaic)
     affine = RandomPerspective(
         degrees=hyp.degrees,
         translate=hyp.translate,
@@ -1221,7 +1212,7 @@ def v8_transforms(dataset, imgsz, hyp, stretch=False):
         pre_transform.append(
             CopyPaste(
                 dataset,
-                pre_transform=Compose([Mosaic(dataset, imgsz=imgsz, p=hyp.mosaic, use_cls_weight=False), affine]),
+                pre_transform=Compose([Mosaic(dataset, imgsz=imgsz, p=hyp.mosaic), affine]),
                 p=hyp.copy_paste,
             )
         )

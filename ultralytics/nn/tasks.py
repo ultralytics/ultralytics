@@ -909,7 +909,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             if m in (BottleneckCSP, C1, C2, C2f, C2f2, C3k2, C2fAttn, C3, C3TR, C3Ghost, C3x, RepC3, C2fPSA, C2PSA):
                 args.insert(2, n)  # number of repeats
                 n = 1
-            if m is C3k2 and max_channels == 512:   # for M/L/X sizes
+            if m is C3k2 and scale in "mlx":   # for M/L/X sizes
                 args[3] = True
         elif m is AIFI:
             args = [ch[f], *args]

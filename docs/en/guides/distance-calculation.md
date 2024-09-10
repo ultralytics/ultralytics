@@ -73,7 +73,7 @@ Measuring the gap between two objects is known as distance calculation within a 
         cv2.destroyAllWindows()
         ```
 
-???+ tip "Note"
+???+ note
 
     - Mouse Right Click will delete all drawn points
     - Mouse Left Click can be used to draw points

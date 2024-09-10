@@ -17,7 +17,7 @@ name: Publish Docs
 on:
   push:
     branches: [main]
-  pull_request_target:
+  pull_request:
     branches: [main]
   workflow_dispatch:
 
@@ -81,21 +81,18 @@ jobs:
           fi
       - name: Publish Docs to https://docs.ultralytics.com
         if: github.event_name == 'push'
-        env:
-          PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-          INDEXNOW_KEY: ${{ secrets.INDEXNOW_KEY_DOCS }}
         run: |
           git clone https://github.com/ultralytics/docs.git docs-repo
           cd docs-repo
           git checkout gh-pages || git checkout -b gh-pages
           rm -rf *
           cp -R ../site/* .
-          echo "$INDEXNOW_KEY" > "$INDEXNOW_KEY.txt"
+          echo "${{ secrets.INDEXNOW_KEY_DOCS }}" > "${{ secrets.INDEXNOW_KEY_DOCS }}.txt"
           git add .
           if git diff --staged --quiet; then
             echo "No changes to commit"
           else
             LATEST_HASH=$(git rev-parse --short=7 HEAD)
             git commit -m "Update Docs for 'ultralytics ${{ steps.check_pypi.outputs.version }} - $LATEST_HASH'"
-            git push https://$PERSONAL_ACCESS_TOKEN@github.com/ultralytics/docs.git gh-pages
+            git push https://${{ secrets.PERSONAL_ACCESS_TOKEN }}@github.com/ultralytics/docs.git gh-pages
           fi

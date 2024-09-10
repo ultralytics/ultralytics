@@ -926,6 +926,8 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             if m in (BottleneckCSP, C1, C2, C2f, C2f2, C3f2, C3F2, C2k2, C3s2, C3n2, C3k2, C3K2, C3m1, C3k3, C2fAttn, C3, C3TR, C3Ghost, C3x, RepC3, C2fPSA, C2PSA):
                 args.insert(2, n)  # number of repeats
                 n = 1
+            if m is C3k2 and max_channels == 512:   # for M/L/X sizes
+                args[3] = True
         elif m is AIFI:
             args = [ch[f], *args]
         elif m in {HGStem, HGBlock}:

@@ -25,15 +25,7 @@ from ultralytics.nn.modules import (
     BottleneckCSP,
     C2f,
     C2f2,
-    C3F2,
-    C3f2,
-    C2k2,
     C3k2,
-    C3s2,
-    C3n2,
-    C3K2,
-    C3m1,
-    C3k3,
     C2fAttn,
     C3Ghost,
     C3x,
@@ -45,7 +37,6 @@ from ultralytics.nn.modules import (
     Conv2,
     ConvTranspose,
     Detect,
-    Detect4,
     DWConv,
     DWConvTranspose2d,
     Focus,
@@ -245,7 +236,7 @@ class BaseModel(nn.Module):
         """
         self = super()._apply(fn)
         m = self.model[-1]  # Detect()
-        if isinstance(m, (Detect, Detect4)):  # includes all Detect subclasses like Segment, Pose, OBB, WorldDetect
+        if isinstance(m, Detect):  # includes all Detect subclasses like Segment, Pose, OBB, WorldDetect
             m.stride = fn(m.stride)
             m.anchors = fn(m.anchors)
             m.strides = fn(m.strides)
@@ -304,7 +295,7 @@ class DetectionModel(BaseModel):
 
         # Build strides
         m = self.model[-1]  # Detect()
-        if isinstance(m, (Detect, Detect4)):  # includes all Detect subclasses like Segment, Pose, OBB, WorldDetect
+        if isinstance(m, Detect):  # includes all Detect subclasses like Segment, Pose, OBB, WorldDetect
             s = 256  # 2x min stride
             m.inplace = self.inplace
             forward = lambda x: self.forward(x)[0] if isinstance(m, (Segment, Pose, OBB)) else self.forward(x)
@@ -891,15 +882,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             C2,
             C2f,
             C2f2,
-            C3f2,
-            C3F2,
-            C2k2,
             C3k2,
-            C3n2,
-            C3s2,
-            C3K2,
-            C3k3,
-            C3m1,
             RepNCSPELAN4,
             ADown,
             SCDown,
@@ -923,7 +906,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
                 )  # num heads
 
             args = [c1, c2, *args[1:]]
-            if m in (BottleneckCSP, C1, C2, C2f, C2f2, C3f2, C3F2, C2k2, C3s2, C3n2, C3k2, C3K2, C3m1, C3k3, C2fAttn, C3, C3TR, C3Ghost, C3x, RepC3, C2fPSA, C2PSA):
+            if m in (BottleneckCSP, C1, C2, C2f, C2f2, C3k2, C2fAttn, C3, C3TR, C3Ghost, C3x, RepC3, C2fPSA, C2PSA):
                 args.insert(2, n)  # number of repeats
                 n = 1
             if m is C3k2 and max_channels == 512:   # for M/L/X sizes
@@ -942,7 +925,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             args = [ch[f]]
         elif m is Concat:
             c2 = sum(ch[x] for x in f)
-        elif m in {Detect, Detect4, WorldDetect, Segment, Pose, OBB, ImagePoolingAttn}:
+        elif m in {Detect, WorldDetect, Segment, Pose, OBB, ImagePoolingAttn}:
             args.append([ch[x] for x in f])
             if m is Segment:
                 args[2] = make_divisible(min(args[2], max_channels) * width, 8)

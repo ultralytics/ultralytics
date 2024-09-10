@@ -47,15 +47,7 @@ from .block import (
     ResNetLayer,
     Silence,
     C2f2,
-    C3f2,
-    C3F2,
-    C2k2,
     C3k2,
-    C3K2,
-    C3n2,
-    C3s2,
-    C3k3,
-    C3m1,
     SCDown,
     C2fPSA,
     C2PSA
@@ -75,7 +67,7 @@ from .conv import (
     RepConv,
     SpatialAttention,
 )
-from .head import OBB, Classify, Detect, Pose, RTDETRDecoder, Segment, WorldDetect, Detect4
+from .head import OBB, Classify, Detect, Pose, RTDETRDecoder, Segment, WorldDetect
 from .transformer import (
     AIFI,
     MLP,
@@ -117,15 +109,7 @@ __all__ = (
     "C3",
     "C2f",
     "C2f2",
-    "C3f2",
-    "C3F2",
-    "C2k2",
     "C3k2",
-    "C3K2",
-    "C3k3",
-    "C3s2",
-    "C3n2",
-    "C3m1",
     "SCDown",
     "C2fPSA",
     "C2PSA",

@@ -29,8 +29,8 @@ jobs:
         uses: contributor-assistant/github-action@v2.5.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # Must be repository secret PAT
-          PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          # fine-grained PAT
+          PERSONAL_ACCESS_TOKEN: ${{ secrets.CLA_PAT }}
         with:
           path-to-signatures: "signatures/version1/cla.json"
           path-to-document: "https://docs.ultralytics.com/help/CLA" # CLA document

@@ -60,7 +60,6 @@ class ObjectCounter:
         self.out_counts = 0
         self.count_ids = []
         self.class_wise_count = {}
-        self.count_txt_thickness = 0
 
         # Tracks info
         self.track_history = defaultdict(list)

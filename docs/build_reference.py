@@ -10,7 +10,8 @@ import re
 import subprocess
 from collections import defaultdict
 from pathlib import Path
-
+import os
+print(os.environ)
 # Constants
 hub_sdk = False
 if hub_sdk:

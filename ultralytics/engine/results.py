@@ -524,9 +524,8 @@ class Results(SimpleClass):
                 )
             idx = (
                 pred_boxes.id
-                if pred_boxes.id is not None
-                else pred_boxes.cls
-                if pred_boxes and color_mode == "class"
+                if pred_boxes.id is not None and color_mode=="instance"
+                else pred_boxes.cls if pred_boxes and color_mode == "class"
                 else reversed(range(len(pred_masks)))
             )
             annotator.masks(pred_masks.data, colors=[colors(x, True) for x in idx], im_gpu=im_gpu)
@@ -541,7 +540,7 @@ class Results(SimpleClass):
                 annotator.box_label(
                     box,
                     label,
-                    color=colors(i if color_mode == "instance" else (id if id is not None else c), True),
+                    color=colors(c if color_mode=="class" else id if id is not None else i if color_mode=="instance" else None, True),
                     rotated=is_obb,
                 )
 

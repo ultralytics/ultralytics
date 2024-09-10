@@ -186,7 +186,8 @@ class ObjectCounter:
                                 self.counting_region.centroid.x - prev_position[0]
                             )
                             direction_y = (box[1] - prev_position[1]) * (
-                                        self.counting_region.centroid.y - prev_position[1])
+                                self.counting_region.centroid.y - prev_position[1]
+                            )
 
                             if direction_x > 0 and direction_y > 0:
                                 self.in_counts += 1

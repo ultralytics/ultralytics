@@ -9,7 +9,7 @@ from ultralytics.utils.plotting import Annotator, colors
 
 check_requirements("shapely>=2.0.0")
 
-from shapely.geometry import LineString, Point, Polygon
+from shapely.geometry import LineString, Polygon
 
 
 class ObjectCounter:
@@ -149,7 +149,9 @@ class ObjectCounter:
                     track_line.pop(0)
 
                 if self.draw_tracks:
-                    annotator.draw_centroid_and_tracks(track_line, color=colors(int(track_id), True), track_thickness=self.tf)
+                    annotator.draw_centroid_and_tracks(
+                        track_line, color=colors(int(track_id), True), track_thickness=self.tf
+                    )
 
                 prev_position = self.track_history[track_id][-2] if len(self.track_history[track_id]) > 1 else None
 

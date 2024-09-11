@@ -275,7 +275,7 @@ Ultralytics offers two licensing options to accommodate diverse use cases:
 For Ultralytics bug reports and feature requests please visit [GitHub Issues](https://github.com/ultralytics/ultralytics/issues). Become a member of the Ultralytics [Discord](https://discord.com/invite/ultralytics), [Reddit](https://www.reddit.com/r/ultralytics/), or [Forums](https://community.ultralytics.com/) for asking questions, sharing projects, learning discussions, or for help with all things Ultralytics!
 
 <br>
-<div style="--icon-width: 10%; display: flex; justify-content: center; align-items: center; gap: 5px; text-align: center;">
+<div style="--icon-width: 5%; display: flex; justify-content: center; align-items: center; gap: 5px; text-align: center;">
   <a href="https://github.com/ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-github.png" style="width: var(--icon-width);" alt="Ultralytics GitHub"></a>
   <a href="https://www.linkedin.com/company/ultralytics/"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-linkedin.png" style="width: var(--icon-width);" alt="Ultralytics LinkedIn"></a>
   <a href="https://twitter.com/ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-twitter.png" style="width: var(--icon-width);" alt="Ultralytics Twitter"></a>

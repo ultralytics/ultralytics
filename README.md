@@ -276,7 +276,7 @@ For Ultralytics bug reports and feature requests please visit [GitHub Issues](ht
 
 <br>
 </div>
-<div style="display: flex; justify-content: center; align-items: center; gap: 10px; text-align:center; text-align:center;">
+<div style="display: flex; justify-content: center; align-items: center; gap: 5px; text-align:center;">
   <a href="https://github.com/ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-github.png" width="25%" alt="Ultralytics GitHub"></a>
   <a href="https://www.linkedin.com/company/ultralytics/"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-linkedin.png" width="25%" alt="Ultralytics LinkedIn"></a>
   <a href="https://twitter.com/ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-twitter.png" width="25%" alt="Ultralytics Twitter"></a>

@@ -11,7 +11,7 @@ from ultralytics.utils.tlc.constants import IMAGE_COLUMN_NAME, CLASSIFY_LABEL_CO
 from ultralytics.utils.tlc.classify.dataset import TLCClassificationDataset
 from ultralytics.utils.tlc.classify.utils import tlc_check_cls_dataset
 from ultralytics.utils.tlc.engine.validator import TLCValidatorMixin
-
+from ultralytics.utils.tlc.utils import create_sampler
 
 class TLCClassificationValidator(TLCValidatorMixin, yolo.classify.ClassificationValidator):
     _default_image_column_name = IMAGE_COLUMN_NAME
@@ -23,7 +23,9 @@ class TLCClassificationValidator(TLCValidatorMixin, yolo.classify.Classification
     def get_dataloader(self, dataset_path, batch_size):
         """Builds and returns a data loader with given parameters."""
         dataset = self.build_dataset(dataset_path)
-        return build_dataloader(dataset, batch_size, self.args.workers, shuffle=False, rank=-1)
+        
+        sampler = create_sampler(dataset.table, mode="val", settings=self._settings)
+        return build_dataloader(dataset, batch_size, self.args.workers, shuffle=False, rank=-1, sampler=sampler)
 
     def build_dataset(self, table):
         return TLCClassificationDataset(
@@ -33,8 +35,6 @@ class TLCClassificationValidator(TLCValidatorMixin, yolo.classify.Classification
             prefix=self.args.split,
             image_column_name=self._image_column_name,
             label_column_name=self._label_column_name,
-            exclude_zero_weight=self._settings.exclude_zero_weight_collection,
-            sampling_weights=False, # Don't use sampling weights for val / mc
         )
 
     def _get_metrics_schemas(self):

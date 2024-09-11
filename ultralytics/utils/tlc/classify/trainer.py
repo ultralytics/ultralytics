@@ -3,12 +3,14 @@ from __future__ import annotations
 
 from ultralytics.models import yolo
 
+from ultralytics.data import build_dataloader
 from ultralytics.utils.tlc.constants import IMAGE_COLUMN_NAME, CLASSIFY_LABEL_COLUMN_NAME
 from ultralytics.utils.tlc.classify.dataset import TLCClassificationDataset
 from ultralytics.utils.tlc.engine.trainer import TLCTrainerMixin
 from ultralytics.utils.tlc.classify.validator import TLCClassificationValidator
 from ultralytics.utils.tlc.classify.utils import tlc_check_cls_dataset
-
+from ultralytics.utils.tlc.utils import create_sampler
+from ultralytics.utils.torch_utils import is_parallel, torch_distributed_zero_first
 
 class TLCClassificationTrainer(TLCTrainerMixin, yolo.classify.ClassificationTrainer):
     _default_image_column_name = IMAGE_COLUMN_NAME
@@ -28,8 +30,6 @@ class TLCClassificationTrainer(TLCTrainerMixin, yolo.classify.ClassificationTrai
         return self.data["train"], self.data.get("val") or self.data.get("test")
 
     def build_dataset(self, table, mode="train", batch=None):
-        exclude_zero_weight = self._settings.exclude_zero_weight_training if mode=="train" else self._settings.exclude_zero_weight_collection
-        sampling_weights = self._settings.sampling_weights if mode == "train" else False
         return TLCClassificationDataset(
             table,
             args=self.args,
@@ -37,8 +37,6 @@ class TLCClassificationTrainer(TLCTrainerMixin, yolo.classify.ClassificationTrai
             prefix=mode,
             image_column_name=self._image_column_name,
             label_column_name=self._label_column_name,
-            exclude_zero_weight=exclude_zero_weight,
-            sampling_weights=sampling_weights
         )
     
     def get_validator(self, dataloader=None):
@@ -55,4 +53,16 @@ class TLCClassificationTrainer(TLCTrainerMixin, yolo.classify.ClassificationTrai
         )
     
     def get_dataloader(self, dataset_path, batch_size=16, rank=0, mode="train"):
-        return super().get_dataloader(dataset_path, batch_size=batch_size, rank=rank, mode=mode, shuffle=mode=="train")
+        """Returns PyTorch DataLoader with transforms to preprocess images for inference."""
+        with torch_distributed_zero_first(rank):  # init dataset *.cache only once if DDP
+            dataset = self.build_dataset(dataset_path, mode)
+
+        sampler = create_sampler(dataset.table, mode=mode, settings=self._settings, distributed=is_parallel(self.model))
+        loader = build_dataloader(dataset, batch_size, self.args.workers, rank=rank, shuffle=mode=="train", sampler=sampler)
+        # Attach inference transforms
+        if mode != "train":
+            if is_parallel(self.model):
+                self.model.module.transforms = loader.dataset.torch_transforms
+            else:
+                self.model.transforms = loader.dataset.torch_transforms
+        return loader

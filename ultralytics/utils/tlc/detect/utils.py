@@ -14,13 +14,14 @@ from ultralytics.utils import colorstr
 from ultralytics.utils.tlc.detect.dataset import TLCYOLODataset
 from ultralytics.utils.tlc.utils import check_tlc_dataset
 
+
 def tlc_check_det_dataset(
-        data: str,
-        tables: dict[str, tlc.Table | tlc.Url | Path | str] | None,
-        image_column_name: str,
-        label_column_name: str,
-        project_name: str | None = None,
-    ) -> dict[str, tlc.Table | dict[float, str] | int]:
+    data: str,
+    tables: dict[str, tlc.Table | tlc.Url | Path | str] | None,
+    image_column_name: str,
+    label_column_name: str,
+    project_name: str | None = None,
+) -> dict[str, tlc.Table | dict[float, str] | int]:
     return check_tlc_dataset(
         data,
         tables,
@@ -32,7 +33,8 @@ def tlc_check_det_dataset(
         project_name=project_name,
         check_backwards_compatible_table_name=True,
     )
-    
+
+
 def get_or_create_det_table(
     key: str,
     data_dict: dict[str, object],
@@ -50,39 +52,22 @@ def get_or_create_det_table(
     :param table_name: Name of the table
     :param image_column_name: Name of the column containing image paths
     :param label_column_name: Name of the column containing labels
-    :return: A tlc.Table.from_image_folder() table
+    :return: A tlc.Table.from_yolo() table
     """
-    return tlc.Table.from_yolo(
-        dataset_yaml_file=data_dict["yaml_file"],
-        split=key,
-        override_split_path=data_dict[key],
-        project_name=project_name,
-        dataset_name=dataset_name,
-        table_name=table_name,
-        if_exists="reuse",
-        add_weight_column=True,
-        description="Created with 3LC YOLOv8 integration"
-    )
+    return tlc.Table.from_yolo(dataset_yaml_file=data_dict["yaml_file"],
+                               split=key,
+                               override_split_path=data_dict[key],
+                               project_name=project_name,
+                               dataset_name=dataset_name,
+                               table_name=table_name,
+                               if_exists="reuse",
+                               add_weight_column=True,
+                               description="Created with 3LC YOLOv8 integration")
 
-def build_tlc_yolo_dataset(
-        cfg,
-        table,
-        batch,
-        data,
-        mode="train",
-        rect=False,
-        stride=32,
-        multi_modal=False,
-        settings=None,):
+
+def build_tlc_yolo_dataset(cfg, table, batch, data, mode="train", rect=False, stride=32, multi_modal=False):
     if multi_modal:
         return ValueError("Multi-modal datasets are not supported in the 3LC YOLOv8 integration.")
-    
-    if mode=="train":
-        sampling_weights = settings.sampling_weights
-        exclude_zero_weight = settings.exclude_zero_weight_training
-    else:
-        sampling_weights = False # Never use sampling weights for validation
-        exclude_zero_weight = settings.exclude_zero_weight_collection
 
     return TLCYOLODataset(
         table,
@@ -100,9 +85,8 @@ def build_tlc_yolo_dataset(
         classes=cfg.classes,
         data=data,
         fraction=cfg.fraction if mode == "train" else 1.0,
-        sampling_weights=sampling_weights,
-        exclude_zero_weight=exclude_zero_weight,
     )
+
 
 def check_det_table(table: tlc.Table, _0: str, _1: str) -> None:
     """ Check that a table is compatible with the detection task in the 3LC YOLOv8 integration.
@@ -112,7 +96,9 @@ def check_det_table(table: tlc.Table, _0: str, _1: str) -> None:
     :raises: ValueError if the table is not compatible with the detection task.
     """
     if not (is_yolo_table(table) or is_coco_table(table)):
-        raise ValueError(f'Table {table.url} is not compatible with YOLOv8 object detection, needs to be a YOLO or COCO table.')
+        raise ValueError(
+            f'Table {table.url} is not compatible with YOLOv8 object detection, needs to be a YOLO or COCO table.')
+
 
 def yolo_predicted_bounding_box_schema(categories: dict[int, str]) -> tlc.Schema:
     """ Create a 3LC bounding box schema for YOLOv8
@@ -165,6 +151,7 @@ def yolo_loss_schemas() -> dict[str, tlc.Schema]:
                                      display_importance=3006)
     return schemas
 
+
 def construct_bbox_struct(
     predicted_annotations: list[dict[str, int | float | dict[str, float]]],
     image_width: int,
@@ -200,6 +187,7 @@ def construct_bbox_struct(
             ))
 
     return bbox_struct
+
 
 def is_yolo_table(table: tlc.Table) -> tuple[bool, str]:
     """Check if the table is a YOLO table.
@@ -241,6 +229,7 @@ def is_yolo_table(table: tlc.Table) -> tuple[bool, str]:
         return False
 
     return True
+
 
 def is_coco_table(table: tlc.Table) -> bool:
     """Check if the table is a COCO table.

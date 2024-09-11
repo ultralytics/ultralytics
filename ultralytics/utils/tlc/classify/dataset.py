@@ -32,34 +32,28 @@ class TLCClassificationDataset(TLCDatasetMixin, ClassificationDataset):
             prefix="",
             image_column_name=tlc.IMAGE,
             label_column_name=tlc.LABEL,
-            exclude_zero_weight=False,
-            sampling_weights=False
         ):
         # Populate self.samples with image paths and labels
         # Each is a tuple of (image_path, label)
         assert isinstance(table, tlc.Table)
         self.table = table
         self.root = table.url
-        self._exclude_zero_weight = exclude_zero_weight
 
         self.verify_schema(image_column_name, label_column_name)
 
         self.samples = []
         self.example_ids = []
 
-        iterator = self._get_enumerated_table_rows(exclude_zero_weight=exclude_zero_weight)
-        for example_id, row in iterator:
+        for example_id, row in enumerate(self.table.table_rows):
             self.example_ids.append(example_id)
             image_path = Path(tlc.Url(row[image_column_name]).to_absolute().to_str())
             self.samples.append((image_path, row[label_column_name]))
 
-        # Initialize attributes
+        # Initialize attributes (calls self.verify_images())
         self._init_attributes(args, augment, prefix)
 
         # Call mixin
-        self._post_init(sampling_weights=sampling_weights)
-
-        assert len(self._indices) == len(self.samples)
+        self._post_init()
 
     def verify_schema(self, image_column_name, label_column_name):
         """ Verify that the provided Table has the desired entries """

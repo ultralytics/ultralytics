@@ -5,7 +5,7 @@ import tlc
 
 from ultralytics.engine.trainer import BaseTrainer
 from ultralytics.utils.tlc.settings import Settings
-from ultralytics.utils.tlc.constants import TLC_COLORSTR
+from ultralytics.utils.tlc.constants import TLC_COLORSTR, DEFAULT_TRAIN_RUN_DESCRIPTION
 from ultralytics.utils.tlc.utils import reduce_embeddings
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
 from ultralytics.utils.torch_utils import strip_optimizer
@@ -16,6 +16,7 @@ class TLCTrainerMixin(BaseTrainer):
     which implements common 3LC-specific behavior across tasks. Use as a Mixin class for task-specific
     trainers.
     """
+
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         LOGGER.info("Using 3LC Trainer 🌟")
         self._settings = Settings() if 'settings' not in overrides else overrides.pop('settings')
@@ -34,25 +35,25 @@ class TLCTrainerMixin(BaseTrainer):
 
         if RANK in {-1, 0}:
             self._metrics_collection_epochs = set(self._settings.get_metrics_collection_epochs(self.epochs))
-            
+
             # Create a 3LC run
-            description = self._settings.run_description if self._settings.run_description else "Created with model.train()"
-            project_name = self._settings.project_name if self._settings.project_name else self.data["train"].project_name
+            description = self._settings.run_description if self._settings.run_description else DEFAULT_TRAIN_RUN_DESCRIPTION
+            project_name = self._settings.project_name if self._settings.project_name else self.data[
+                "train"].project_name
             self._run = tlc.init(
                 project_name=project_name,
                 description=description,
                 run_name=self._settings.run_name,
             )
 
-            LOGGER.info(f"{TLC_COLORSTR}Created run named '{self._run.url.parts[-1]}' in project {self._run.project_name}.")
+            LOGGER.info(
+                f"{TLC_COLORSTR}Created run named '{self._run.url.parts[-1]}' in project {self._run.project_name}.")
 
             # Log parameters to 3LC
             self._log_3lc_parameters()
 
             self._print_metrics_collection_epochs()
 
-        self.add_callback("on_train_epoch_start", resample_indices) # Run on all ranks
-        
     def _log_3lc_parameters(self):
         """ Log various data as parameters to the tlc.Run. """
         if "val" in self.data:
@@ -61,10 +62,12 @@ class TLCTrainerMixin(BaseTrainer):
             val_url = str(self.data["test"].url)
 
         parameters = {
-            **vars(self.args), # YOLO arguments
-            "3LC/train_url": str(self.data.get("train").url), # 3LC table used for training
-            "3LC/val_url": val_url, # 3LC table used for validation
-            **{f"3LC/{k}": v for k, v in vars(self._settings).items()}, # 3LC settings
+            **vars(self.args),  # YOLO arguments
+            "3LC/train_url": str(self.data.get("train").url),  # 3LC table used for training
+            "3LC/val_url": val_url,  # 3LC table used for validation
+            **{
+                f"3LC/{k}": v
+                for k, v in vars(self._settings).items()},  # 3LC settings
         }
         self._run.set_parameters(parameters)
 
@@ -90,10 +93,10 @@ class TLCTrainerMixin(BaseTrainer):
 
     def get_dataset(self):
         raise NotImplementedError("Subclasses must implement this method.")
-    
+
     def build_dataset(self, table, mode="train", batch=None):
         raise NotImplementedError("Subclasses must implement this method.")
-    
+
     def get_validator(self, dataloader):
         raise NotImplementedError("Subclasses must implement this method.")
 
@@ -104,12 +107,9 @@ class TLCTrainerMixin(BaseTrainer):
                 train_validator_dataloader = self.get_dataloader(
                     self.trainset,
                     batch_size=self.batch_size if self.args.task == "obb" else self.batch_size * 2,
-                    rank=-1, 
-                    mode="val"
-                )
-                self._train_validator = self.get_validator(
-                    dataloader=train_validator_dataloader
-                )
+                    rank=-1,
+                    mode="val")
+                self._train_validator = self.get_validator(dataloader=train_validator_dataloader)
             return self._train_validator
         else:
             return None
@@ -119,10 +119,10 @@ class TLCTrainerMixin(BaseTrainer):
         # Validate on the training set
         if not self._settings.collection_disable and not self._settings.collection_val_only and self.epoch + 1 in self._metrics_collection_epochs:
             self.train_validator(trainer=self)
-        
+
         # Validate on the validation/test set like usual
         return super().validate()
-    
+
     def final_eval(self):
         # Set epoch on validator - required when final validation is called without prior mc during training
         if not self._settings.collection_val_only and not self._settings.collection_disable:
@@ -158,14 +158,9 @@ class TLCTrainerMixin(BaseTrainer):
     def save_metrics(self, metrics):
         # Log aggregate metrics after every epoch
         processed_metrics = self._process_metrics(metrics)
-        self._run.add_output_value({"epoch": self.epoch+1, **processed_metrics})
-        
+        self._run.add_output_value({"epoch": self.epoch + 1, **processed_metrics})
+
         super().save_metrics(metrics=metrics)
 
     def _process_metrics(self, metrics):
         return metrics
-
-# CALLBACKS ##############################################################################################################
-def resample_indices(trainer):
-    if trainer._settings.sampling_weights:
-        trainer.train_loader.dataset.resample_indices()

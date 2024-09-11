@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import tlc
+import torch
 import yaml
 
 from packaging import version
@@ -11,8 +12,9 @@ from .constants import TRAINING_PHASE
 
 from ultralytics.utils import LOGGER, colorstr
 from ultralytics.utils.tlc.constants import TLC_COLORSTR, TLC_REQUIRED_VERSION, TLC_PREFIX
+from ultralytics.utils.tlc.settings import Settings
 
-from typing import Callable
+from typing import Callable, Literal
 
 def check_tlc_dataset(
     data: str,
@@ -226,3 +228,37 @@ def parse_3lc_yaml_file(data_file: str) -> dict[str, tlc.Table]:
         tables[split] = table
 
     return tables
+
+def create_sampler(table: tlc.Table, mode: Literal["train", "val"], settings: Settings, distributed: bool = False) -> torch.utils.data.Sampler | None:
+    """Get the sampler for the dataset.
+    
+    :param table: The table to get the sampler for.
+    :param mode: The mode of the sampler.
+    :param settings: The settings for the run.
+    :param distributed: Whether training is distributed.
+    :returns: The sampler for the dataset.
+    """
+    sampler = None
+
+    if mode == "train":
+        if settings.sampling_weights or settings.exclude_zero_weight_training:
+            if distributed:
+                raise NotImplementedError("Distributed training and using 3LC weights is not yet supported.")
+
+            try:
+                sampler = table.create_sampler(
+                    exclude_zero_weights=settings.exclude_zero_weight_training,
+                    weighted=settings.sampling_weights,
+                    shuffle=True,
+                )
+            except Exception as e:
+                raise ValueError(f"Error creating sampler for table {table.url}") from e
+    
+    elif mode == "val":
+        if distributed:
+            raise NotImplementedError("Distributed validation and exclusion by weight is not yet supported.")
+        
+        if settings.exclude_zero_weight_collection:
+            sampler = table.create_sampler(exclude_zero_weights=True, weighted=False, shuffle=False)
+
+    return sampler

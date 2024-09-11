@@ -11,6 +11,7 @@ from ultralytics.utils import metrics, ops
 from ultralytics.utils.tlc.constants import IMAGE_COLUMN_NAME, DETECTION_LABEL_COLUMN_NAME
 from ultralytics.utils.tlc.detect.utils import build_tlc_yolo_dataset, yolo_predicted_bounding_box_schema, construct_bbox_struct, tlc_check_det_dataset
 from ultralytics.utils.tlc.engine.validator import TLCValidatorMixin
+from ultralytics.utils.tlc.utils import create_sampler
 
 class TLCDetectionValidator(TLCValidatorMixin, DetectionValidator):
     _default_image_column_name = IMAGE_COLUMN_NAME
@@ -22,10 +23,12 @@ class TLCDetectionValidator(TLCValidatorMixin, DetectionValidator):
     def get_dataloader(self, dataset_path, batch_size):
         """Builds and returns a data loader with given parameters."""
         dataset = self.build_dataset(dataset_path, batch=batch_size, mode="val")
-        return build_dataloader(dataset, batch_size, self.args.workers, shuffle=False, rank=-1)
+
+        sampler = create_sampler(dataset.table, mode="val", settings=self._settings)
+        return build_dataloader(dataset, batch_size, self.args.workers, shuffle=False, rank=-1, sampler=sampler)
 
     def build_dataset(self, table, mode="val", batch=None):
-        return build_tlc_yolo_dataset(self.args, table, batch, self.data, mode=mode, stride=self.stride, settings=self._settings)
+        return build_tlc_yolo_dataset(self.args, table, batch, self.data, mode=mode, stride=self.stride)
 
     def _get_metrics_schemas(self):
         return {

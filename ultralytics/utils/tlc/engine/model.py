@@ -7,18 +7,20 @@ from ultralytics.models.yolo.model import YOLO
 
 from ultralytics.nn.tasks import ClassificationModel, DetectionModel
 from ultralytics.utils.tlc.classify import TLCClassificationTrainer, TLCClassificationValidator
+from ultralytics.utils.tlc.constants import DEFAULT_COLLECT_RUN_DESCRIPTION
 from ultralytics.utils.tlc.detect import TLCDetectionTrainer, TLCDetectionValidator
 from ultralytics.utils.tlc.settings import Settings
 from ultralytics.utils.tlc.utils import check_tlc_version, reduce_embeddings
 
 from typing import Iterable
 
+
 class TLCYOLO(YOLO):
     """ YOLO (You Only Look Once) object detection model with 3LC integration. """
 
     def __init__(self, *args, **kwargs):
         """ Initialize YOLO model with 3LC integration. Checks that the installed version of 3LC is compatible. """
-        
+
         check_tlc_version()
 
         super().__init__(*args, **kwargs)
@@ -30,23 +32,18 @@ class TLCYOLO(YOLO):
             "detect": {
                 "model": DetectionModel,
                 "trainer": TLCDetectionTrainer,
-                "validator": TLCDetectionValidator,
-            },
+                "validator": TLCDetectionValidator, },
             "classify": {
                 "model": ClassificationModel,
                 "trainer": TLCClassificationTrainer,
-                "validator": TLCClassificationValidator,
-            },
-        }
-    
-    def collect(
-        self,
-        data: str | None = None,
-        splits: Iterable[str] | None = None,
-        tables: dict[str, str | tlc.Url | tlc.Table] | None = None,
-        settings: Settings | None = None,
-        **kwargs
-    ) -> dict[str, dict[str, float]]:
+                "validator": TLCClassificationValidator, }, }
+
+    def collect(self,
+                data: str | None = None,
+                splits: Iterable[str] | None = None,
+                tables: dict[str, str | tlc.Url | tlc.Table] | None = None,
+                settings: Settings | None = None,
+                **kwargs) -> dict[str, dict[str, float]]:
         """ Perform calls to model.val() to collect metrics on a set of splits, all under one tlc.Run.
         If enabled, embeddings are reduced at the end of validation.
          
@@ -58,13 +55,16 @@ class TLCYOLO(YOLO):
         :return: Dictionary of split names to results returned by model.val().
         """
         # Verify only data+splits or tables are provided
-        if not ( (data and splits ) or tables):
+        if not ((data and splits) or tables):
             raise ValueError("Either data and splits or tables must be provided to collect.")
 
         if settings is None:
             settings = Settings()
 
         settings.verify(training=False)
+
+        if not settings.run_description:
+            settings.run_description = DEFAULT_COLLECT_RUN_DESCRIPTION
 
         results_dict = {}
         # Call val for each split or table
@@ -85,5 +85,6 @@ class TLCYOLO(YOLO):
                 n_components=settings.image_embeddings_dim,
             )
 
+        tlc.active_run().set_status_completed()
+
         return results_dict
-        

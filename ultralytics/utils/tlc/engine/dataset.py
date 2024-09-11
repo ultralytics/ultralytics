@@ -7,48 +7,20 @@ import numpy as np
 
 from ultralytics.utils import LOGGER
 
-# Responsible for any generic 3LC dataset handling, such as using sampling weights
-# Assume there is an attribute self.table that is a tlc.Table, and self._example_ids
+# Responsible for any generic 3LC dataset handling, such as scanning, caching and adding example ids to each sample
+# Assume there is an attribute self.table that is a tlc.Table
 class TLCDatasetMixin:
-    def _post_init(self, sampling_weights=False):
+    def _post_init(self):
         self.display_name = self.table.dataset_name
-        # Checks
-        if sampling_weights and tlc.SAMPLE_WEIGHT not in self.table.table_rows[0]:
-            raise ValueError("Cannot use sampling weights with no sample weight column in the table.")
 
         assert hasattr(self, "table") and isinstance(self.table, tlc.Table), "TLCDatasetMixin requires an attribute `table` which is a tlc.Table."
-        # Assume instance has self._example_ids (index -> example_id mapping)
-
-        if not hasattr(self, "_indices"):
-            # Sequentially iterate over the samples by default
-            self._indices = np.arange(len(self.example_ids))
-
-        sample_weights = [
-            self.table.table_rows[example_id][tlc.SAMPLE_WEIGHT]
-            for example_id in self.example_ids
-        ]
-        self._sample_probabilities = np.array(sample_weights) / np.sum(sample_weights)
-
-    def resample_indices(self):
-        # Sample from available indices
-        indices = np.arange(len(self.example_ids))
-        self._indices[:] = np.random.choice(indices, len(indices), p=self._sample_probabilities)
+        if not hasattr(self, "example_ids"):
+            self.example_ids = np.arange(len(self.table))
 
     def __getitem__(self, index):
-        i = self._indices[index]
-        return super().__getitem__(i)
-    
-    def __len__(self):
-        return len(self._indices)
-
-    def _get_enumerated_table_rows(self, exclude_zero_weight):
-        if exclude_zero_weight and tlc.SAMPLE_WEIGHT not in self.table.table_rows[0]:
-            raise ValueError("Cannot exclude zero weight samples with no sample weight column in the table.")
-
-        if exclude_zero_weight:
-            return ((i, row) for i, row in enumerate(self.table.table_rows) if row[tlc.SAMPLE_WEIGHT] > 0)
-        else:
-            return enumerate(self.table.table_rows)
+        sample = super().__getitem__(index)
+        sample[tlc.EXAMPLE_ID] = self.example_ids[index] # Add example id to the sample dict
+        return sample
         
     def _is_scanned(self):
         """ Check if the dataset has been scanned. """
@@ -61,9 +33,8 @@ class TLCDatasetMixin:
             if not content.get("zero_excluded", True):
                 LOGGER.info(f"{self.prefix}Images in {self.table.url.to_str()} already verified, skipping scan.")
                 return True
-            elif content.get("zero_excluded", True) and self._exclude_zero_weight:
-                LOGGER.info(f"{self.prefix}Images in {self.table.url.to_str()} already verified (excluding zero weight samples), skipping scan.")
-                return True
+            elif content.get("zero_excluded", True):
+                LOGGER.info(f"{self.prefix}Images in {self.table.url.to_str()} only verified for zero weight samples, need to rescan.")
             else:
                 LOGGER.info(f"{self.prefix}Images in {self.table.url.to_str()} already verified, but scan was not on all images. Re-scanning.")
         
@@ -71,10 +42,9 @@ class TLCDatasetMixin:
     
     def _write_scanned_marker(self):
         verified_marker_url = self.table.url / "cache.yolo"
-        possible_subset_str = "All non-zero weight images" if self._exclude_zero_weight else "All images"
-        LOGGER.info(f"{self.prefix}{possible_subset_str} in {self.table.url.to_str()} are verified. Writing marker file to {verified_marker_url.to_str()} to skip future verification.")
+        LOGGER.info(f"{self.prefix}Images in {self.table.url.to_str()} are verified. Writing marker file to {verified_marker_url.to_str()} to skip future verification.")
         verified_marker_url.write(
-            content=json.dumps({"verified": True, "zero_excluded": self._exclude_zero_weight}),
+            content=json.dumps({"verified": True}),
             mode="s",
             if_exists="overwrite",
         )

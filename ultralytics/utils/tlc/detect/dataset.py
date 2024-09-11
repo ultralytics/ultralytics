@@ -16,7 +16,7 @@ from ultralytics.utils import LOGGER, NUM_THREADS, TQDM
 from typing import Any
 
 class TLCYOLODataset(TLCDatasetMixin, YOLODataset):
-    def __init__(self, table, data=None, task="detect", exclude_zero_weight=None, sampling_weights=None, **kwargs):
+    def __init__(self, table, data=None, task="detect", **kwargs):
         assert task == "detect", f"Unsupported task: {task} for TLCYOLODataset. Only 'detect' is supported."
         self.table = table
 
@@ -28,13 +28,11 @@ class TLCYOLODataset(TLCDatasetMixin, YOLODataset):
         else:
             raise ValueError(f"Unsupported table format for table {table.url}")
 
-        self._exclude_zero_weight=exclude_zero_weight
-
         self.example_ids = []
 
         super().__init__(table, data=data, task=task, **kwargs)
 
-        self._post_init(sampling_weights=sampling_weights)
+        self._post_init()
 
     def get_img_files(self, _):
         """Images are read in `get_labels` to avoid two loops, return empty list here."""
@@ -43,8 +41,7 @@ class TLCYOLODataset(TLCDatasetMixin, YOLODataset):
     def get_labels(self):
         self.labels = []
 
-        rows = self._get_enumerated_table_rows(exclude_zero_weight=self._exclude_zero_weight)
-        for example_id, row in rows:
+        for example_id, row in enumerate(self.table.table_rows):
             self.example_ids.append(example_id)
             self.im_files.append(tlc.Url(row[tlc.IMAGE]).to_absolute().to_str())
             self.labels.append(tlc_table_row_to_yolo_label(row, self._table_format))

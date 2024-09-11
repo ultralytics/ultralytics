@@ -181,14 +181,9 @@ class ObjectCounter:
                             self.count_ids.append(track_id)
 
                             # Determine the direction of movement (IN or OUT)
-                            direction_x = (box[0] - prev_position[0]) * (
-                                self.counting_region.centroid.x - prev_position[0]
-                            )
-                            direction_y = (box[1] - prev_position[1]) * (
-                                self.counting_region.centroid.y - prev_position[1]
-                            )
-
-                            if direction_x > 0 and direction_y > 0:
+                            dx = (box[0] - prev_position[0]) * (self.counting_region.centroid.x - prev_position[0])
+                            dy = (box[1] - prev_position[1]) * (self.counting_region.centroid.y - prev_position[1])
+                            if dx > 0 and dy > 0:
                                 self.in_counts += 1
                                 self.class_wise_count[self.names[cls]]["IN"] += 1
                             else:

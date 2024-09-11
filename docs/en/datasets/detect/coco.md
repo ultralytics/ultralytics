@@ -22,7 +22,7 @@ The [COCO](https://cocodataset.org/#home) (Common Objects in Context) dataset is
 ## COCO Pretrained Models
 
 | Model                                                                                | size<br><sup>(pixels) | mAP<sup>val<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
-|--------------------------------------------------------------------------------------|-----------------------|----------------------|--------------------------------|-------------------------------------|--------------------|-------------------|
+| ------------------------------------------------------------------------------------ | --------------------- | -------------------- | ------------------------------ | ----------------------------------- | ------------------ | ----------------- |
 | [YOLOv8n](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n.pt) | 640                   | 37.3                 | 80.4                           | 0.99                                | 3.2                | 8.7               |
 | [YOLOv8s](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8s.pt) | 640                   | 44.9                 | 128.4                          | 1.20                                | 11.2               | 28.6              |
 | [YOLOv8m](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8m.pt) | 640                   | 50.2                 | 234.7                          | 1.83                                | 25.9               | 78.9              |
@@ -52,7 +52,7 @@ The COCO dataset is widely used for training and evaluating deep learning models
 
 A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. In the case of the COCO dataset, the `coco.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml).
 
-!!! Example "ultralytics/cfg/datasets/coco.yaml"
+!!! example "ultralytics/cfg/datasets/coco.yaml"
 
     ```yaml
     --8<-- "ultralytics/cfg/datasets/coco.yaml"
@@ -62,7 +62,7 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 To train a YOLOv8n model on the COCO dataset for 100 epochs with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
-!!! Example "Train Example"
+!!! example "Train Example"
 
     === "Python"
 
@@ -87,7 +87,7 @@ To train a YOLOv8n model on the COCO dataset for 100 epochs with an image size o
 
 The COCO dataset contains a diverse set of images with various object categories and complex scenes. Here are some examples of images from the dataset, along with their corresponding annotations:
 
-![Dataset sample image](https://user-images.githubusercontent.com/26833433/236811818-5b566576-1e92-42fa-9462-4b6a848abe89.jpg)
+![Dataset sample image](https://github.com/ultralytics/docs/releases/download/0/mosaiced-coco-dataset-sample.avif)
 
 - **Mosaiced Image**: This image demonstrates a training batch composed of mosaiced dataset images. Mosaicing is a technique used during training that combines multiple images into a single image to increase the variety of objects and scenes within each training batch. This helps improve the model's ability to generalize to different object sizes, aspect ratios, and contexts.
 
@@ -97,7 +97,7 @@ The example showcases the variety and complexity of the images in the COCO datas
 
 If you use the COCO dataset in your research or development work, please cite the following paper:
 
-!!! Quote ""
+!!! quote ""
 
     === "BibTeX"
 
@@ -124,10 +124,10 @@ The [COCO dataset](https://cocodataset.org/#home) (Common Objects in Context) is
 
 To train a YOLOv8 model using the COCO dataset, you can use the following code snippets:
 
-!!! Example "Train Example"
+!!! example "Train Example"
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
 
@@ -139,7 +139,7 @@ To train a YOLOv8 model using the COCO dataset, you can use the following code s
         ```
 
     === "CLI"
-    
+
         ```bash
         # Start training from a pretrained *.pt model
         yolo detect train data=coco.yaml model=yolov8n.pt epochs=100 imgsz=640

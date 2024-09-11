@@ -19,7 +19,7 @@ The [SKU-110k](https://github.com/eg4000/SKU110K_CVPR19) dataset is a collection
   <strong>Watch:</strong> How to Train YOLOv10 on SKU-110k Dataset using Ultralytics | Retail Dataset
 </p>
 
-![Dataset sample image](https://user-images.githubusercontent.com/26833433/277141199-e7cdd803-237e-4b4a-9171-f95cba9388f9.jpg)
+![Dataset sample image](https://github.com/ultralytics/docs/releases/download/0/densely-packed-retail-shelf.avif)
 
 ## Key Features
 
@@ -43,7 +43,7 @@ The SKU-110k dataset is widely used for training and evaluating deep learning mo
 
 A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. For the case of the SKU-110K dataset, the `SKU-110K.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/SKU-110K.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/SKU-110K.yaml).
 
-!!! Example "ultralytics/cfg/datasets/SKU-110K.yaml"
+!!! example "ultralytics/cfg/datasets/SKU-110K.yaml"
 
     ```yaml
     --8<-- "ultralytics/cfg/datasets/SKU-110K.yaml"
@@ -53,7 +53,7 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 To train a YOLOv8n model on the SKU-110K dataset for 100 epochs with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
-!!! Example "Train Example"
+!!! example "Train Example"
 
     === "Python"
 
@@ -78,7 +78,7 @@ To train a YOLOv8n model on the SKU-110K dataset for 100 epochs with an image si
 
 The SKU-110k dataset contains a diverse set of retail shelf images with densely packed objects, providing rich context for object detection tasks. Here are some examples of data from the dataset, along with their corresponding annotations:
 
-![Dataset sample image](https://user-images.githubusercontent.com/26833433/277141197-b63e4aa5-12f6-4673-96a7-9a5207363c59.jpg)
+![Dataset sample image](https://github.com/ultralytics/docs/releases/download/0/densely-packed-retail-shelf-1.avif)
 
 - **Densely packed retail shelf image**: This image demonstrates an example of densely packed objects in a retail shelf setting. Objects are annotated with bounding boxes and SKU category labels.
 
@@ -88,7 +88,7 @@ The example showcases the variety and complexity of the data in the SKU-110k dat
 
 If you use the SKU-110k dataset in your research or development work, please cite the following paper:
 
-!!! Quote ""
+!!! quote ""
 
     === "BibTeX"
 
@@ -113,10 +113,10 @@ The SKU-110k dataset consists of densely packed retail shelf images designed to 
 
 Training a YOLOv8 model on the SKU-110k dataset is straightforward. Here's an example to train a YOLOv8n model for 100 epochs with an image size of 640:
 
-!!! Example "Train Example"
+!!! example "Train Example"
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
 
@@ -126,10 +126,10 @@ Training a YOLOv8 model on the SKU-110k dataset is straightforward. Here's an ex
         # Train the model
         results = model.train(data="SKU-110K.yaml", epochs=100, imgsz=640)
         ```
-    
+
 
     === "CLI"
-    
+
         ```bash
         # Start training from a pretrained *.pt model
         yolo detect train data=SKU-110K.yaml model=yolov8n.pt epochs=100 imgsz=640
@@ -165,7 +165,7 @@ These features make the SKU-110k dataset particularly valuable for training and 
 
 If you use the SKU-110k dataset in your research or development work, please cite the following paper:
 
-!!! Quote ""
+!!! quote ""
 
     === "BibTeX"
 

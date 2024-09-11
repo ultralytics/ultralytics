@@ -6,7 +6,7 @@ keywords: YOLOv8, OpenVINO, model export, Intel, AI inference, CPU speedup, GPU 
 
 # Intel OpenVINO Export
 
-<img width="1024" src="https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/2b181f68-aa91-4514-ba09-497cc3c83b00" alt="OpenVINO Ecosystem">
+<img width="1024" src="https://github.com/ultralytics/docs/releases/download/0/openvino-ecosystem.avif" alt="OpenVINO Ecosystem">
 
 In this guide, we cover exporting YOLOv8 models to the [OpenVINO](https://docs.openvino.ai/) format, which can provide up to 3x [CPU](https://docs.openvino.ai/2024/openvino-workflow/running-inference/inference-devices-and-modes/cpu-device.html) speedup, as well as accelerating YOLO inference on Intel [GPU](https://docs.openvino.ai/2024/openvino-workflow/running-inference/inference-devices-and-modes/gpu-device.html) and [NPU](https://docs.openvino.ai/2024/openvino-workflow/running-inference/inference-devices-and-modes/npu-device.html) hardware.
 
@@ -27,7 +27,7 @@ OpenVINO, short for Open Visual Inference & Neural Network Optimization toolkit,
 
 Export a YOLOv8n model to OpenVINO format and run inference with the exported model.
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -105,7 +105,7 @@ For more detailed steps and code snippets, refer to the [OpenVINO documentation]
 
 YOLOv8 benchmarks below were run by the Ultralytics team on 4 different model formats measuring speed and accuracy: PyTorch, TorchScript, ONNX and OpenVINO. Benchmarks were run on Intel Flex and Arc GPUs, and on Intel Xeon CPUs at FP32 precision (with the `half=False` argument).
 
-!!! Note
+!!! note
 
     The benchmarking results below are for reference and might vary based on the exact hardware and software configuration of a system, as well as the current workload of the system at the time the benchmarks are run.
 
@@ -118,7 +118,7 @@ The Intel® Data Center GPU Flex Series is a versatile and robust solution desig
 Benchmarks below run on Intel® Data Center GPU Flex 170 at FP32 precision.
 
 <div align="center">
-<img width="800" src="https://user-images.githubusercontent.com/26833433/253741543-62659bf8-1765-4d0b-b71c-8a4f9885506a.jpg" alt="Flex GPU benchmarks">
+<img width="800" src="https://github.com/ultralytics/docs/releases/download/0/flex-gpu-benchmarks.avif" alt="Flex GPU benchmarks">
 </div>
 
 | Model   | Format      | Status | Size (MB) | mAP50-95(B) | Inference time (ms/im) |
@@ -157,7 +157,7 @@ Early reviews have praised the Arc™ series, particularly the integrated A770M 
 Benchmarks below run on Intel® Arc 770 GPU at FP32 precision.
 
 <div align="center">
-<img width="800" src="https://user-images.githubusercontent.com/26833433/253741545-8530388f-8fd1-44f7-a4ae-f875d59dc282.jpg" alt="Arc GPU benchmarks">
+<img width="800" src="https://github.com/ultralytics/docs/releases/download/0/arc-gpu-benchmarks.avif" alt="Arc GPU benchmarks">
 </div>
 
 | Model   | Format      | Status | Size (MB) | metrics/mAP50-95(B) | Inference time (ms/im) |
@@ -192,7 +192,7 @@ Notably, Xeon® CPUs deliver high compute density and scalability, making them i
 Benchmarks below run on 4th Gen Intel® Xeon® Scalable CPU at FP32 precision.
 
 <div align="center">
-<img width="800" src="https://user-images.githubusercontent.com/26833433/253741546-dcd8e52a-fc38-424f-b87e-c8365b6f28dc.jpg" alt="Xeon CPU benchmarks">
+<img width="800" src="https://github.com/ultralytics/docs/releases/download/0/xeon-cpu-benchmarks.avif" alt="Xeon CPU benchmarks">
 </div>
 
 | Model   | Format      | Status | Size (MB) | metrics/mAP50-95(B) | Inference time (ms/im) |
@@ -225,7 +225,7 @@ The Intel® Core® series is a range of high-performance processors by Intel. Th
 Benchmarks below run on 13th Gen Intel® Core® i7-13700H CPU at FP32 precision.
 
 <div align="center">
-<img width="800" src="https://user-images.githubusercontent.com/26833433/254559985-727bfa43-93fa-4fec-a417-800f869f3f9e.jpg" alt="Core CPU benchmarks">
+<img width="800" src="https://github.com/ultralytics/docs/releases/download/0/core-cpu-benchmarks.avif" alt="Core CPU benchmarks">
 </div>
 
 | Model   | Format      | Status | Size (MB) | metrics/mAP50-95(B) | Inference time (ms/im) |
@@ -255,7 +255,7 @@ Benchmarks below run on 13th Gen Intel® Core® i7-13700H CPU at FP32 precision.
 
 To reproduce the Ultralytics benchmarks above on all export [formats](../modes/export.md) run this code:
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -294,7 +294,7 @@ For more detailed information and instructions on using OpenVINO, refer to the [
 
 Exporting YOLOv8 models to the OpenVINO format can significantly enhance CPU speed and enable GPU and NPU accelerations on Intel hardware. To export, you can use either Python or CLI as shown below:
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -332,7 +332,7 @@ For detailed performance comparisons, visit our [benchmarks section](#openvino-y
 
 After exporting a YOLOv8 model to OpenVINO format, you can run inference using Python or CLI:
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -369,7 +369,7 @@ For in-depth performance analysis, check our detailed [YOLOv8 benchmarks](#openv
 
 Yes, you can benchmark YOLOv8 models in various formats including PyTorch, TorchScript, ONNX, and OpenVINO. Use the following code snippet to run benchmarks on your chosen dataset:
 
-!!! Example
+!!! example
 
     === "Python"
 

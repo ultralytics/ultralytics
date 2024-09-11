@@ -26,7 +26,7 @@ The ImageWoof dataset is widely used for training and evaluating deep learning m
 
 To train a CNN model on the ImageWoof dataset for 100 epochs with an image size of 224x224, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
-!!! Example "Train Example"
+!!! example "Train Example"
 
     === "Python"
 
@@ -59,7 +59,7 @@ ImageWoof dataset comes in three different sizes to accommodate various research
 
 To use these variants in your training, simply replace 'imagewoof' in the dataset argument with 'imagewoof320' or 'imagewoof160'. For example:
 
-!!! Example "Example"
+!!! example "Example"
 
     === "Python"
 
@@ -89,7 +89,7 @@ It's important to note that using smaller images will likely yield lower perform
 
 The ImageWoof dataset contains colorful images of various dog breeds, providing a challenging dataset for image classification tasks. Here are some examples of images from the dataset:
 
-![Dataset sample image](https://user-images.githubusercontent.com/26833433/239357533-ec833254-4351-491b-8cb3-59578ea5d0b2.png)
+![Dataset sample image](https://github.com/ultralytics/docs/releases/download/0/imagewoof-dataset-sample.avif)
 
 The example showcases the subtle differences and similarities among the different dog breeds in the ImageWoof dataset, highlighting the complexity and difficulty of the classification task.
 
@@ -109,20 +109,20 @@ The [ImageWoof](https://github.com/fastai/imagenette) dataset is a challenging s
 
 To train a Convolutional Neural Network (CNN) model on the ImageWoof dataset using Ultralytics YOLO for 100 epochs at an image size of 224x224, you can use the following code:
 
-!!! Example "Train Example"
+!!! example "Train Example"
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
 
         model = YOLO("yolov8n-cls.pt")  # Load a pretrained model
         results = model.train(data="imagewoof", epochs=100, imgsz=224)
         ```
-    
+
 
     === "CLI"
-    
+
         ```bash
         yolo classify train data=imagewoof model=yolov8n-cls.pt epochs=100 imgsz=224
         ```

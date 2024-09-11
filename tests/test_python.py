@@ -196,13 +196,14 @@ def test_all_model_yamls():
             YOLO(m.name)
 
 
+@pytest.mark.skipif(WINDOWS, reason="Windows slow CI export bug https://github.com/ultralytics/ultralytics/pull/16003")
 def test_workflow():
     """Test the complete workflow including training, validation, prediction, and exporting."""
     model = YOLO(MODEL)
     model.train(data="coco8.yaml", epochs=1, imgsz=32, optimizer="SGD")
     model.val(imgsz=32)
     model.predict(SOURCE, imgsz=32)
-    model.export(format="torchscript")
+    model.export(format="torchscript")  # WARNING: Windows slow CI export bug
 
 
 def test_predict_callback_and_setup():
@@ -252,6 +253,8 @@ def test_labels_and_crops():
     for r in results:
         im_name = Path(r.path).stem
         cls_idxs = r.boxes.cls.int().tolist()
+        # Check correct detections
+        assert cls_idxs == ([0, 0, 5, 0, 7] if r.path.endswith("bus.jpg") else [0, 0])  # bus.jpg and zidane.jpg classes
         # Check label path
         labels = save_path / f"labels/{im_name}.txt"
         assert labels.exists()

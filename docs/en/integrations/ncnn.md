@@ -13,7 +13,7 @@ The export to NCNN format feature allows you to optimize your [Ultralytics YOLOv
 ## Why should you export to NCNN?
 
 <p align="center">
-  <img width="100%" src="https://repository-images.githubusercontent.com/494294418/207a2e12-dc16-41a6-a39e-eae26e662638" alt="NCNN overview">
+  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/ncnn-overview.avif" alt="NCNN overview">
 </p>
 
 The [NCNN](https://github.com/Tencent/ncnn) framework, developed by Tencent, is a high-performance neural network inference computing framework optimized specifically for mobile platforms, including mobile phones, embedded devices, and IoT devices. NCNN is compatible with a wide range of platforms, including Linux, Android, iOS, and macOS.
@@ -52,7 +52,7 @@ You can expand model compatibility and deployment flexibility by converting YOLO
 
 To install the required packages, run:
 
-!!! Tip "Installation"
+!!! tip "Installation"
 
     === "CLI"
 
@@ -67,7 +67,7 @@ For detailed instructions and best practices related to the installation process
 
 Before diving into the usage instructions, it's important to note that while all [Ultralytics YOLOv8 models](../models/index.md) are available for exporting, you can ensure that the model you select supports export functionality [here](../modes/export.md).
 
-!!! Example "Usage"
+!!! example "Usage"
 
     === "Python"
 

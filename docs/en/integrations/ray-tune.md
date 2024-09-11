@@ -10,12 +10,12 @@ Hyperparameter tuning is vital in achieving peak model performance by discoverin
 
 ## Accelerate Tuning with Ultralytics YOLOv8 and Ray Tune
 
-[Ultralytics YOLOv8](https://ultralytics.com) incorporates Ray Tune for hyperparameter tuning, streamlining the optimization of YOLOv8 model hyperparameters. With Ray Tune, you can utilize advanced search strategies, parallelism, and early stopping to expedite the tuning process.
+[Ultralytics YOLOv8](https://www.ultralytics.com/) incorporates Ray Tune for hyperparameter tuning, streamlining the optimization of YOLOv8 model hyperparameters. With Ray Tune, you can utilize advanced search strategies, parallelism, and early stopping to expedite the tuning process.
 
 ### Ray Tune
 
 <p align="center">
-  <img width="640" src="https://docs.ray.io/en/latest/_images/tune_overview.png" alt="Ray Tune Overview">
+  <img width="640" src="https://github.com/ultralytics/docs/releases/download/0/ray-tune-overview.avif" alt="Ray Tune Overview">
 </p>
 
 [Ray Tune](https://docs.ray.io/en/latest/tune/index.html) is a hyperparameter tuning library designed for efficiency and flexibility. It supports various search strategies, parallelism, and early stopping strategies, and seamlessly integrates with popular machine learning frameworks, including Ultralytics YOLOv8.
@@ -28,7 +28,7 @@ YOLOv8 also allows optional integration with [Weights & Biases](https://wandb.ai
 
 To install the required packages, run:
 
-!!! Tip "Installation"
+!!! tip "Installation"
 
     === "CLI"
 
@@ -42,7 +42,7 @@ To install the required packages, run:
 
 ## Usage
 
-!!! Example "Usage"
+!!! example "Usage"
 
     === "Python"
 
@@ -103,7 +103,7 @@ The following table lists the default search space parameters for hyperparameter
 
 In this example, we demonstrate how to use a custom search space for hyperparameter tuning with Ray Tune and YOLOv8. By providing a custom search space, you can focus the tuning process on specific hyperparameters of interest.
 
-!!! Example "Usage"
+!!! example "Usage"
 
     ```python
     from ultralytics import YOLO

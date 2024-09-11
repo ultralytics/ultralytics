@@ -19,7 +19,7 @@ Ultralytics provides various installation methods including pip, conda, and Dock
   <strong>Watch:</strong> Ultralytics YOLO Quick Start Guide
 </p>
 
-!!! Example "Install"
+!!! example "Install"
 
     <p align="left" style="margin-bottom: -20px;">![PyPI - Python Version](https://img.shields.io/pypi/pyversions/ultralytics?logo=python&logoColor=gold)<p>
 
@@ -56,7 +56,7 @@ Ultralytics provides various installation methods including pip, conda, and Dock
         conda install -c conda-forge ultralytics
         ```
 
-        !!! Note
+        !!! note
 
             If you are installing in a CUDA environment best practice is to install `ultralytics`, `pytorch` and `pytorch-cuda` in the same command to allow the conda package manager to resolve any conflicts, or else to install `pytorch-cuda` last to allow it override the CPU-specific `pytorch` package if necessary.
             ```bash
@@ -141,19 +141,19 @@ Ultralytics provides various installation methods including pip, conda, and Dock
 
 See the `ultralytics` [pyproject.toml](https://github.com/ultralytics/ultralytics/blob/main/pyproject.toml) file for a list of dependencies. Note that all examples above install all required dependencies.
 
-!!! Tip "Tip"
+!!! tip "Tip"
 
-    PyTorch requirements vary by operating system and CUDA requirements, so it's recommended to install PyTorch first following instructions at [https://pytorch.org/get-started/locally](https://pytorch.org/get-started/locally).
+    PyTorch requirements vary by operating system and CUDA requirements, so it's recommended to install PyTorch first following instructions at [https://pytorch.org/get-started/locally](https://pytorch.org/get-started/locally/).
 
     <a href="https://pytorch.org/get-started/locally/">
-        <img width="800" alt="PyTorch Installation Instructions" src="https://user-images.githubusercontent.com/26833433/228650108-ab0ec98a-b328-4f40-a40d-95355e8a84e3.png">
+        <img width="800" alt="PyTorch Installation Instructions" src="https://github.com/ultralytics/docs/releases/download/0/pytorch-installation-instructions.avif">
     </a>
 
 ## Use Ultralytics with CLI
 
 The Ultralytics command line interface (CLI) allows for simple single-line commands without the need for a Python environment. CLI requires no customization or Python code. You can simply run all tasks from the terminal with the `yolo` command. Check out the [CLI Guide](usage/cli.md) to learn more about using YOLOv8 from the command line.
 
-!!! Example
+!!! example
 
     === "Syntax"
 
@@ -208,7 +208,7 @@ The Ultralytics command line interface (CLI) allows for simple single-line comma
         yolo cfg
         ```
 
-!!! Warning "Warning"
+!!! warning "Warning"
 
     Arguments must be passed as `arg=val` pairs, split by an equals `=` sign and delimited by spaces between pairs. Do not use `--` argument prefixes or commas `,` between arguments.
 
@@ -225,7 +225,7 @@ YOLOv8's Python interface allows for seamless integration into your Python proje
 
 For example, users can load a model, train it, evaluate its performance on a validation set, and even export it to ONNX format with just a few lines of code. Check out the [Python Guide](usage/python.md) to learn more about using YOLOv8 within your Python projects.
 
-!!! Example
+!!! example
 
     ```python
     from ultralytics import YOLO
@@ -259,7 +259,7 @@ The Ultralytics library provides a powerful settings management system to enable
 
 To gain insight into the current configuration of your settings, you can view them directly:
 
-!!! Example "View settings"
+!!! example "View settings"
 
     === "Python"
 
@@ -285,7 +285,7 @@ To gain insight into the current configuration of your settings, you can view th
 
 Ultralytics allows users to easily modify their settings. Changes can be performed in the following ways:
 
-!!! Example "Update settings"
+!!! example "Update settings"
 
     === "Python"
 
@@ -321,24 +321,25 @@ Ultralytics allows users to easily modify their settings. Changes can be perform
 
 The table below provides an overview of the settings available for adjustment within Ultralytics. Each setting is outlined along with an example value, the data type, and a brief description.
 
-| Name               | Example Value         | Data Type | Description                                                                                                      |
-| ------------------ | --------------------- | --------- | ---------------------------------------------------------------------------------------------------------------- |
-| `settings_version` | `'0.0.4'`             | `str`     | Ultralytics _settings_ version (different from Ultralytics [pip](https://pypi.org/project/ultralytics/) version) |
-| `datasets_dir`     | `'/path/to/datasets'` | `str`     | The directory where the datasets are stored                                                                      |
-| `weights_dir`      | `'/path/to/weights'`  | `str`     | The directory where the model weights are stored                                                                 |
-| `runs_dir`         | `'/path/to/runs'`     | `str`     | The directory where the experiment runs are stored                                                               |
-| `uuid`             | `'a1b2c3d4'`          | `str`     | The unique identifier for the current settings                                                                   |
-| `sync`             | `True`                | `bool`    | Whether to sync analytics and crashes to HUB                                                                     |
-| `api_key`          | `''`                  | `str`     | Ultralytics HUB [API Key](https://hub.ultralytics.com/settings?tab=api+keys)                                     |
-| `clearml`          | `True`                | `bool`    | Whether to use ClearML logging                                                                                   |
-| `comet`            | `True`                | `bool`    | Whether to use [Comet ML](https://bit.ly/yolov8-readme-comet) for experiment tracking and visualization          |
-| `dvc`              | `True`                | `bool`    | Whether to use [DVC for experiment tracking](https://dvc.org/doc/dvclive/ml-frameworks/yolo) and version control |
-| `hub`              | `True`                | `bool`    | Whether to use [Ultralytics HUB](https://hub.ultralytics.com) integration                                        |
-| `mlflow`           | `True`                | `bool`    | Whether to use MLFlow for experiment tracking                                                                    |
-| `neptune`          | `True`                | `bool`    | Whether to use Neptune for experiment tracking                                                                   |
-| `raytune`          | `True`                | `bool`    | Whether to use Ray Tune for hyperparameter tuning                                                                |
-| `tensorboard`      | `True`                | `bool`    | Whether to use TensorBoard for visualization                                                                     |
-| `wandb`            | `True`                | `bool`    | Whether to use Weights & Biases logging                                                                          |
+| Name               | Example Value         | Data Type | Description                                                                                  |
+| ------------------ | --------------------- | --------- | -------------------------------------------------------------------------------------------- |
+| `settings_version` | `'0.0.4'`             | `str`     | Ultralytics _settings_ version (different from Ultralytics [pip] version)                    |
+| `datasets_dir`     | `'/path/to/datasets'` | `str`     | The directory where the datasets are stored                                                  |
+| `weights_dir`      | `'/path/to/weights'`  | `str`     | The directory where the model weights are stored                                             |
+| `runs_dir`         | `'/path/to/runs'`     | `str`     | The directory where the experiment runs are stored                                           |
+| `uuid`             | `'a1b2c3d4'`          | `str`     | The unique identifier for the current settings                                               |
+| `sync`             | `True`                | `bool`    | Whether to sync analytics and crashes to HUB                                                 |
+| `api_key`          | `''`                  | `str`     | Ultralytics HUB [API Key]                                                                    |
+| `clearml`          | `True`                | `bool`    | Whether to use [ClearML] logging                                                             |
+| `comet`            | `True`                | `bool`    | Whether to use [Comet ML] for experiment tracking and visualization                          |
+| `dvc`              | `True`                | `bool`    | Whether to use [DVC for experiment tracking] and version control                             |
+| `hub`              | `True`                | `bool`    | Whether to use [Ultralytics HUB] integration                                                 |
+| `mlflow`           | `True`                | `bool`    | Whether to use [MLFlow] for experiment tracking                                              |
+| `neptune`          | `True`                | `bool`    | Whether to use [Neptune] for experiment tracking                                             |
+| `raytune`          | `True`                | `bool`    | Whether to use [Ray Tune] for hyperparameter tuning                                          |
+| `tensorboard`      | `True`                | `bool`    | Whether to use [TensorBoard] for visualization                                               |
+| `wandb`            | `True`                | `bool`    | Whether to use [Weights & Biases] logging                                                    |
+| `vscode_msg`       | `True`                | `bool`    | When VS Code terminal detected, enables prompt to download [Ultralytics-Snippets] extension. |
 
 As you navigate through your projects or experiments, be sure to revisit these settings to ensure that they are optimally configured for your needs.
 
@@ -424,3 +425,19 @@ yolo train data=coco8.yaml model=yolov8n.pt epochs=10 lr0=0.01
 ```
 
 Check out the full [CLI Guide](usage/cli.md) to explore more commands and usage examples.
+
+<!-- Article Links -->
+
+[Ultralytics HUB]: https://hub.ultralytics.com
+[API Key]: https://hub.ultralytics.com/settings?tab=api+keys
+[pip]: https://pypi.org/project/ultralytics/
+[DVC for experiment tracking]: https://dvc.org/doc/dvclive/ml-frameworks/yolo
+[Comet ML]: https://bit.ly/yolov8-readme-comet
+[Ultralytics HUB]: https://hub.ultralytics.com
+[ClearML]: ./integrations/clearml.md
+[MLFlow]: ./integrations/mlflow.md
+[Neptune]: https://neptune.ai/
+[Tensorboard]: ./integrations/tensorboard.md
+[Ray Tune]: ./integrations/ray-tune.md
+[Weights & Biases]: ./integrations/weights-biases.md
+[Ultralytics-Snippets]: ./integrations/vscode.md

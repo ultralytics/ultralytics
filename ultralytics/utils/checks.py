@@ -23,16 +23,19 @@ from ultralytics.utils import (
     ASSETS,
     AUTOINSTALL,
     IS_COLAB,
+    IS_GIT_DIR,
     IS_JUPYTER,
     IS_KAGGLE,
     IS_PIP_PACKAGE,
     LINUX,
     LOGGER,
+    MACOS,
     ONLINE,
     PYTHON_VERSION,
     ROOT,
     TORCHVISION_VERSION,
     USER_CONFIG_DIR,
+    WINDOWS,
     Retry,
     SimpleNamespace,
     ThreadingLocked,
@@ -61,10 +64,9 @@ def parse_requirements(file_path=ROOT.parent / "requirements.txt", package=""):
         ```python
         from ultralytics.utils.checks import parse_requirements
 
-        parse_requirements(package='ultralytics')
+        parse_requirements(package="ultralytics")
         ```
     """
-
     if package:
         requires = [x for x in metadata.distribution(package).requires if "extra == " not in x]
     else:
@@ -196,16 +198,16 @@ def check_version(
     Example:
         ```python
         # Check if current version is exactly 22.04
-        check_version(current='22.04', required='==22.04')
+        check_version(current="22.04", required="==22.04")
 
         # Check if current version is greater than or equal to 22.04
-        check_version(current='22.10', required='22.04')  # assumes '>=' inequality if none passed
+        check_version(current="22.10", required="22.04")  # assumes '>=' inequality if none passed
 
         # Check if current version is less than or equal to 22.04
-        check_version(current='22.04', required='<=22.04')
+        check_version(current="22.04", required="<=22.04")
 
         # Check if current version is between 20.04 (inclusive) and 22.04 (exclusive)
-        check_version(current='21.10', required='>20.04,<22.04')
+        check_version(current="21.10", required=">20.04,<22.04")
         ```
     """
     if not current:  # if current is '' or None
@@ -222,6 +224,13 @@ def check_version(
                 return False
 
     if not required:  # if required is '' or None
+        return True
+
+    if "sys_platform" in required and (  # i.e. required='<2.4.0,>=1.8.0; sys_platform == "win32"'
+        (WINDOWS and "win32" not in required)
+        or (LINUX and "linux" not in required)
+        or (MACOS and "macos" not in required and "darwin" not in required)
+    ):
         return True
 
     op = ""
@@ -256,7 +265,7 @@ def check_latest_pypi_version(package_name="ultralytics"):
     """
     Returns the latest version of a PyPI package without downloading or installing it.
 
-    Parameters:
+    Args:
         package_name (str): The name of the package to find the latest version for.
 
     Returns:
@@ -352,16 +361,15 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
         from ultralytics.utils.checks import check_requirements
 
         # Check a requirements.txt file
-        check_requirements('path/to/requirements.txt')
+        check_requirements("path/to/requirements.txt")
 
         # Check a single package
-        check_requirements('ultralytics>=8.0.0')
+        check_requirements("ultralytics>=8.0.0")
 
         # Check multiple packages
-        check_requirements(['numpy', 'ultralytics>=8.0.0'])
+        check_requirements(["numpy", "ultralytics>=8.0.0"])
         ```
     """
-
     prefix = colorstr("red", "bold", "requirements:")
     check_python()  # check python version
     check_torchvision()  # check torch-torchvision compatibility
@@ -421,9 +429,9 @@ def check_torchvision():
     The compatibility table is a dictionary where the keys are PyTorch versions and the values are lists of compatible
     Torchvision versions.
     """
-
     # Compatibility table
     compatibility_table = {
+        "2.4": ["0.19"],
         "2.3": ["0.18"],
         "2.2": ["0.17"],
         "2.1": ["0.16"],
@@ -582,10 +590,9 @@ def check_yolo(verbose=True, device=""):
 
 def collect_system_info():
     """Collect and print relevant system information including OS, Python, RAM, CPU, and CUDA."""
-
     import psutil
 
-    from ultralytics.utils import ENVIRONMENT, IS_GIT_DIR
+    from ultralytics.utils import ENVIRONMENT  # scope to avoid circular import
     from ultralytics.utils.torch_utils import get_cpu_info
 
     ram_info = psutil.virtual_memory().total / (1024**3)  # Convert bytes to GB
@@ -622,9 +629,9 @@ def collect_system_info():
 
 def check_amp(model):
     """
-    This function checks the PyTorch Automatic Mixed Precision (AMP) functionality of a YOLOv8 model. If the checks
-    fail, it means there are anomalies with AMP on the system that may cause NaN losses or zero-mAP results, so AMP will
-    be disabled during training.
+    Checks the PyTorch Automatic Mixed Precision (AMP) functionality of a YOLOv8 model. If the checks fail, it means
+    there are anomalies with AMP on the system that may cause NaN losses or zero-mAP results, so AMP will be disabled
+    during training.
 
     Args:
         model (nn.Module): A YOLOv8 model instance.
@@ -634,7 +641,7 @@ def check_amp(model):
         from ultralytics import YOLO
         from ultralytics.utils.checks import check_amp
 
-        model = YOLO('yolov8n.pt').model.cuda()
+        model = YOLO("yolov8n.pt").model.cuda()
         check_amp(model)
         ```
 

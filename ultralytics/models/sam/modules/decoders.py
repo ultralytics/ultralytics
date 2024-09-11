@@ -32,8 +32,9 @@ class MaskDecoder(nn.Module):
 
     Examples:
         >>> decoder = MaskDecoder(transformer_dim=256, transformer=transformer_module)
-        >>> masks, iou_pred = decoder(image_embeddings, image_pe, sparse_prompt_embeddings,
-        ...                           dense_prompt_embeddings, multimask_output=True)
+        >>> masks, iou_pred = decoder(
+        ...     image_embeddings, image_pe, sparse_prompt_embeddings, dense_prompt_embeddings, multimask_output=True
+        ... )
         >>> print(f"Predicted masks shape: {masks.shape}, IoU predictions shape: {iou_pred.shape}")
     """
 
@@ -213,7 +214,8 @@ class SAM2MaskDecoder(nn.Module):
         >>> dense_prompt_embeddings = torch.rand(1, 256, 64, 64)
         >>> decoder = SAM2MaskDecoder(256, transformer)
         >>> masks, iou_pred, sam_tokens_out, obj_score_logits = decoder.forward(
-        ...     image_embeddings, image_pe, sparse_prompt_embeddings, dense_prompt_embeddings, True, False)
+        ...     image_embeddings, image_pe, sparse_prompt_embeddings, dense_prompt_embeddings, True, False
+        ... )
     """
 
     def __init__(
@@ -345,7 +347,8 @@ class SAM2MaskDecoder(nn.Module):
             >>> dense_prompt_embeddings = torch.rand(1, 256, 64, 64)
             >>> decoder = SAM2MaskDecoder(256, transformer)
             >>> masks, iou_pred, sam_tokens_out, obj_score_logits = decoder.forward(
-            ...     image_embeddings, image_pe, sparse_prompt_embeddings, dense_prompt_embeddings, True, False)
+            ...     image_embeddings, image_pe, sparse_prompt_embeddings, dense_prompt_embeddings, True, False
+            ... )
         """
         masks, iou_pred, mask_tokens_out, object_score_logits = self.predict_masks(
             image_embeddings=image_embeddings,
@@ -432,9 +435,9 @@ class SAM2MaskDecoder(nn.Module):
             upscaled_embedding = act1(ln1(dc1(src) + feat_s1))
             upscaled_embedding = act2(dc2(upscaled_embedding) + feat_s0)
 
-        hyper_in_list: List[torch.Tensor] = []
-        for i in range(self.num_mask_tokens):
-            hyper_in_list.append(self.output_hypernetworks_mlps[i](mask_tokens_out[:, i, :]))
+        hyper_in_list: List[torch.Tensor] = [
+            self.output_hypernetworks_mlps[i](mask_tokens_out[:, i, :]) for i in range(self.num_mask_tokens)
+        ]
         hyper_in = torch.stack(hyper_in_list, dim=1)
         b, c, h, w = upscaled_embedding.shape
         masks = (hyper_in @ upscaled_embedding.view(b, c, h * w)).view(b, -1, h, w)
@@ -456,8 +459,7 @@ class SAM2MaskDecoder(nn.Module):
         stability_delta = self.dynamic_multimask_stability_delta
         area_i = torch.sum(mask_logits > stability_delta, dim=-1).float()
         area_u = torch.sum(mask_logits > -stability_delta, dim=-1).float()
-        stability_scores = torch.where(area_u > 0, area_i / area_u, 1.0)
-        return stability_scores
+        return torch.where(area_u > 0, area_i / area_u, 1.0)
 
     def _dynamic_multimask_via_stability(self, all_mask_logits, all_iou_scores):
         """

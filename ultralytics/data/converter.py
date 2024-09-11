@@ -115,7 +115,7 @@ def coco91_to_coco80_class():
 
 
 def coco80_to_coco91_class():
-    """
+    r"""
     Converts 80-index (val2014) to 91-index (paper).
     For details see https://tech.amikelive.com/node-718/what-object-categories-labels-are-in-coco-dataset/.
 
@@ -123,8 +123,8 @@ def coco80_to_coco91_class():
         ```python
         import numpy as np
 
-        a = np.loadtxt('data/coco.names', dtype='str', delimiter='\n')
-        b = np.loadtxt('data/coco_paper.names', dtype='str', delimiter='\n')
+        a = np.loadtxt("data/coco.names", dtype="str", delimiter="\n")
+        b = np.loadtxt("data/coco_paper.names", dtype="str", delimiter="\n")
         x1 = [list(a[i] == b).index(True) + 1 for i in range(80)]  # darknet to coco
         x2 = [list(b[i] == a).index(True) if any(b[i] == a) else None for i in range(91)]  # coco to darknet
         ```
@@ -236,14 +236,13 @@ def convert_coco(
         ```python
         from ultralytics.data.converter import convert_coco
 
-        convert_coco('../datasets/coco/annotations/', use_segments=True, use_keypoints=False, cls91to80=True)
-        convert_coco('../datasets/lvis/annotations/', use_segments=True, use_keypoints=False, cls91to80=False, lvis=True)
+        convert_coco("../datasets/coco/annotations/", use_segments=True, use_keypoints=False, cls91to80=True)
+        convert_coco("../datasets/lvis/annotations/", use_segments=True, use_keypoints=False, cls91to80=False, lvis=True)
         ```
 
     Output:
         Generates output files in the specified output directory.
     """
-
     # Create dataset directory
     save_dir = increment_path(save_dir)  # increment if save directory already exists
     for p in save_dir / "labels", save_dir / "images":
@@ -351,7 +350,7 @@ def convert_segment_masks_to_yolo_seg(masks_dir, output_dir, classes):
         from ultralytics.data.converter import convert_segment_masks_to_yolo_seg
 
         # The classes here is the total classes in the dataset, for COCO dataset we have 80 classes
-        convert_segment_masks_to_yolo_seg('path/to/masks_directory', 'path/to/output/directory', classes=80)
+        convert_segment_masks_to_yolo_seg("path/to/masks_directory", "path/to/output/directory", classes=80)
         ```
 
     Notes:
@@ -371,13 +370,10 @@ def convert_segment_masks_to_yolo_seg(masks_dir, output_dir, classes):
                 ├─ mask_yolo_03.txt
                 └─ mask_yolo_04.txt
     """
-    import os
-
     pixel_to_class_mapping = {i + 1: i for i in range(classes)}
-    for mask_filename in os.listdir(masks_dir):
-        if mask_filename.endswith(".png"):
-            mask_path = os.path.join(masks_dir, mask_filename)
-            mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)  # Read the mask image in grayscale
+    for mask_path in Path(masks_dir).iterdir():
+        if mask_path.suffix == ".png":
+            mask = cv2.imread(str(mask_path), cv2.IMREAD_GRAYSCALE)  # Read the mask image in grayscale
             img_height, img_width = mask.shape  # Get image dimensions
             LOGGER.info(f"Processing {mask_path} imgsz = {img_height} x {img_width}")
 
@@ -389,7 +385,7 @@ def convert_segment_masks_to_yolo_seg(masks_dir, output_dir, classes):
                     continue  # Skip background
                 class_index = pixel_to_class_mapping.get(value, -1)
                 if class_index == -1:
-                    LOGGER.warning(f"Unknown class for pixel value {value} in file {mask_filename}, skipping.")
+                    LOGGER.warning(f"Unknown class for pixel value {value} in file {mask_path}, skipping.")
                     continue
 
                 # Create a binary mask for the current class and find contours
@@ -407,7 +403,7 @@ def convert_segment_masks_to_yolo_seg(masks_dir, output_dir, classes):
                             yolo_format.append(round(point[1] / img_height, 6))
                         yolo_format_data.append(yolo_format)
             # Save Ultralytics YOLO format data to file
-            output_path = os.path.join(output_dir, os.path.splitext(mask_filename)[0] + ".txt")
+            output_path = Path(output_dir) / f"{mask_path.stem}.txt"
             with open(output_path, "w") as file:
                 for item in yolo_format_data:
                     line = " ".join(map(str, item))
@@ -429,7 +425,7 @@ def convert_dota_to_yolo_obb(dota_root_path: str):
         ```python
         from ultralytics.data.converter import convert_dota_to_yolo_obb
 
-        convert_dota_to_yolo_obb('path/to/DOTA')
+        convert_dota_to_yolo_obb("path/to/DOTA")
         ```
 
     Notes:
@@ -491,7 +487,7 @@ def convert_dota_to_yolo_obb(dota_root_path: str):
                 normalized_coords = [
                     coords[i] / image_width if i % 2 == 0 else coords[i] / image_height for i in range(8)
                 ]
-                formatted_coords = ["{:.6g}".format(coord) for coord in normalized_coords]
+                formatted_coords = [f"{coord:.6g}" for coord in normalized_coords]
                 g.write(f"{class_idx} {' '.join(formatted_coords)}\n")
 
     for phase in ["train", "val"]:

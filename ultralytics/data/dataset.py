@@ -296,7 +296,7 @@ class GroundingDataset(YOLODataset):
         """Loads annotations from a JSON file, filters, and normalizes bounding boxes for each image."""
         labels = []
         LOGGER.info("Loading annotation file...")
-        with open(self.json_file, "r") as f:
+        with open(self.json_file) as f:
             annotations = json.load(f)
         images = {f'{x["id"]:d}': x for x in annotations["images"]}
         img_to_anns = defaultdict(list)

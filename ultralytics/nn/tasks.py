@@ -89,13 +89,17 @@ class BaseModel(nn.Module):
 
     def forward(self, x, *args, **kwargs):
         """
-        Forward pass of the model on a single scale. Wrapper for `_forward_once` method.
+        Perform forward pass of the model for either training or inference.
+
+        If x is a dict, calculates and returns the loss for training. Otherwise, returns predictions for inference.
 
         Args:
-            x (torch.Tensor | dict): The input image tensor or a dict including image tensor and gt labels.
+            x (torch.Tensor | dict): Input tensor for inference, or dict with image tensor and labels for training.
+            *args (Any): Variable length argument list.
+            **kwargs (Any): Arbitrary keyword arguments.
 
         Returns:
-            (torch.Tensor): The output of the network.
+            (torch.Tensor): Loss if x is a dict (training), or network predictions (inference).
         """
         if isinstance(x, dict):  # for cases of training and validating while training.
             return self.loss(x, *args, **kwargs)
@@ -337,11 +341,8 @@ class DetectionModel(BaseModel):
 
     def _predict_augment(self, x):
         """Perform augmentations on input image x and return augmented inference and train outputs."""
-        if getattr(self, "end2end", False):
-            LOGGER.warning(
-                "WARNING ⚠️ End2End model does not support 'augment=True' prediction. "
-                "Reverting to single-scale prediction."
-            )
+        if getattr(self, "end2end", False) or self.__class__.__name__ != "DetectionModel":
+            LOGGER.warning("WARNING ⚠️ Model does not support 'augment=True', reverting to single-scale prediction.")
             return self._predict_once(x)
         img_size = x.shape[-2:]  # height, width
         s = [1, 0.83, 0.67]  # scales
@@ -713,7 +714,7 @@ def temporary_modules(modules=None, attributes=None):
 
     Example:
         ```python
-        with temporary_modules({'old.module': 'new.module'}, {'old.module.attribute': 'new.module.attribute'}):
+        with temporary_modules({"old.module": "new.module"}, {"old.module.attribute": "new.module.attribute"}):
             import old.module  # this will now import new.module
             from old.module import attribute  # this will now import new.module.attribute
         ```
@@ -723,7 +724,6 @@ def temporary_modules(modules=None, attributes=None):
         Be aware that directly manipulating `sys.modules` can lead to unpredictable results, especially in larger
         applications or libraries. Use this function with caution.
     """
-
     if modules is None:
         modules = {}
     if attributes is None:
@@ -752,9 +752,9 @@ def temporary_modules(modules=None, attributes=None):
 
 def torch_safe_load(weight):
     """
-    This function attempts to load a PyTorch model with the torch.load() function. If a ModuleNotFoundError is raised,
-    it catches the error, logs a warning message, and attempts to install the missing module via the
-    check_requirements() function. After installation, the function again attempts to load the model using torch.load().
+    Attempts to load a PyTorch model with the torch.load() function. If a ModuleNotFoundError is raised, it catches the
+    error, logs a warning message, and attempts to install the missing module via the check_requirements() function.
+    After installation, the function again attempts to load the model using torch.load().
 
     Args:
         weight (str): The file path of the PyTorch model.
@@ -776,6 +776,7 @@ def torch_safe_load(weight):
             attributes={
                 "ultralytics.nn.modules.block.Silence": "torch.nn.Identity",  # YOLOv9e
                 "ultralytics.nn.tasks.YOLOv10DetectionModel": "ultralytics.nn.tasks.DetectionModel",  # YOLOv10
+                "ultralytics.utils.loss.v10DetectLoss": "ultralytics.utils.loss.E2EDetectLoss",  # YOLOv10
             },
         ):
             ckpt = torch.load(file, map_location="cpu")
@@ -813,7 +814,6 @@ def torch_safe_load(weight):
 
 def attempt_load_weights(weights, device=None, inplace=True, fuse=False):
     """Loads an ensemble of models weights=[a,b,c] or a single model weights=[a] or weights=a."""
-
     ensemble = Ensemble()
     for w in weights if isinstance(weights, list) else [weights]:
         ckpt, w = torch_safe_load(w)  # load ckpt

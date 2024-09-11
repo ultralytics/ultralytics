@@ -104,9 +104,7 @@ class BaseValidator:
 
     @smart_inference_mode()
     def __call__(self, trainer=None, model=None):
-        """Supports validation of a pre-trained model if passed or a model being trained if trainer is passed (trainer
-        gets priority).
-        """
+        """Executes validation process, running inference on dataloader and computing performance metrics."""
         self.training = trainer is not None
         augment = self.args.augment and (not self.training)
         if self.training:
@@ -205,8 +203,9 @@ class BaseValidator:
             return {k: round(float(v), 5) for k, v in results.items()}  # return results as 5 decimal place floats
         else:
             LOGGER.info(
-                "Speed: %.1fms preprocess, %.1fms inference, %.1fms loss, %.1fms postprocess per image"
-                % tuple(self.speed.values())
+                "Speed: {:.1f}ms preprocess, {:.1f}ms inference, {:.1f}ms loss, {:.1f}ms postprocess per image".format(
+                    *tuple(self.speed.values())
+                )
             )
             if self.args.save_json and self.jdict:
                 with open(str(self.save_dir / "predictions.json"), "w") as f:
@@ -281,7 +280,7 @@ class BaseValidator:
         return batch
 
     def postprocess(self, preds):
-        """Describes and summarizes the purpose of 'postprocess()' but no details mentioned."""
+        """Preprocesses the predictions."""
         return preds
 
     def init_metrics(self, model):
@@ -318,7 +317,7 @@ class BaseValidator:
         return []
 
     def on_plot(self, name, data=None):
-        """Registers plots (e.g. to be consumed in callbacks)"""
+        """Registers plots (e.g. to be consumed in callbacks)."""
         self.plots[Path(name)] = {"data": data, "timestamp": time.time()}
 
     # TODO: may need to put these following functions into callback

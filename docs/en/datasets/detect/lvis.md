@@ -20,7 +20,7 @@ The [LVIS dataset](https://www.lvisdataset.org/) is a large-scale, fine-grained 
 </p>
 
 <p align="center">
-    <img width="640" src="https://github.com/ultralytics/ultralytics/assets/26833433/40230a80-e7bc-4310-a860-4cc0ef4bb02a" alt="LVIS Dataset example images">
+    <img width="640" src="https://github.com/ultralytics/docs/releases/download/0/lvis-dataset-example-images.avif" alt="LVIS Dataset example images">
 </p>
 
 ## Key Features
@@ -48,7 +48,7 @@ The LVIS dataset is widely used for training and evaluating deep learning models
 
 A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. In the case of the LVIS dataset, the `lvis.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/lvis.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/lvis.yaml).
 
-!!! Example "ultralytics/cfg/datasets/lvis.yaml"
+!!! example "ultralytics/cfg/datasets/lvis.yaml"
 
     ```yaml
     --8<-- "ultralytics/cfg/datasets/lvis.yaml"
@@ -58,7 +58,7 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 To train a YOLOv8n model on the LVIS dataset for 100 epochs with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
-!!! Example "Train Example"
+!!! example "Train Example"
 
     === "Python"
 
@@ -83,7 +83,7 @@ To train a YOLOv8n model on the LVIS dataset for 100 epochs with an image size o
 
 The LVIS dataset contains a diverse set of images with various object categories and complex scenes. Here are some examples of images from the dataset, along with their corresponding annotations:
 
-![LVIS Dataset sample image](https://github.com/ultralytics/ultralytics/assets/26833433/38cc033a-68b0-47f3-a5b8-4ef554362e40)
+![LVIS Dataset sample image](https://github.com/ultralytics/docs/releases/download/0/lvis-mosaiced-training-batch.avif)
 
 - **Mosaiced Image**: This image demonstrates a training batch composed of mosaiced dataset images. Mosaicing is a technique used during training that combines multiple images into a single image to increase the variety of objects and scenes within each training batch. This helps improve the model's ability to generalize to different object sizes, aspect ratios, and contexts.
 
@@ -93,7 +93,7 @@ The example showcases the variety and complexity of the images in the LVIS datas
 
 If you use the LVIS dataset in your research or development work, please cite the following paper:
 
-!!! Quote ""
+!!! quote ""
 
     === "BibTeX"
 
@@ -118,10 +118,10 @@ The [LVIS dataset](https://www.lvisdataset.org/) is a large-scale dataset with f
 
 To train a YOLOv8n model on the LVIS dataset for 100 epochs with an image size of 640, follow the example below. This process utilizes Ultralytics' framework, which offers comprehensive training features.
 
-!!! Example "Train Example"
+!!! example "Train Example"
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
 
@@ -131,10 +131,10 @@ To train a YOLOv8n model on the LVIS dataset for 100 epochs with an image size o
         # Train the model
         results = model.train(data="lvis.yaml", epochs=100, imgsz=640)
         ```
-    
+
 
     === "CLI"
-    
+
         ```bash
         # Start training from a pretrained *.pt model
         yolo detect train data=lvis.yaml model=yolov8n.pt epochs=100 imgsz=640
@@ -154,6 +154,6 @@ Ultralytics YOLO models, including the latest YOLOv8, are optimized for real-tim
 
 Yes, the LVIS dataset includes a variety of images with diverse object categories and complex scenes. Here is an example of a sample image along with its annotations:
 
-![LVIS Dataset sample image](https://github.com/ultralytics/ultralytics/assets/26833433/38cc033a-68b0-47f3-a5b8-4ef554362e40)
+![LVIS Dataset sample image](https://github.com/ultralytics/docs/releases/download/0/lvis-mosaiced-training-batch.avif)
 
 This mosaiced image demonstrates a training batch composed of multiple dataset images combined into one. Mosaicing increases the variety of objects and scenes within each training batch, enhancing the model's ability to generalize across different contexts. For more details on the LVIS dataset, explore the [LVIS dataset documentation](#key-features).

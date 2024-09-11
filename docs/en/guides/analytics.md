@@ -12,9 +12,9 @@ This guide provides a comprehensive overview of three fundamental types of data 
 
 ### Visual Samples
 
-|                                                     Line Graph                                                     |                                                     Bar Plot                                                     |                                                     Pie Chart                                                     |
-| :----------------------------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------------------: |
-| ![Line Graph](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/eeabd90c-04fd-4e5b-aac9-c7777f892200) | ![Bar Plot](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/c1da2d6a-99ff-43a8-b5dc-ca93127917f8) | ![Pie Chart](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/9d8acce6-d9e4-4685-949d-cd4851483187) |
+|                                       Line Graph                                       |                                      Bar Plot                                      |                                      Pie Chart                                       |
+| :------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------: |
+| ![Line Graph](https://github.com/ultralytics/docs/releases/download/0/line-graph.avif) | ![Bar Plot](https://github.com/ultralytics/docs/releases/download/0/bar-plot.avif) | ![Pie Chart](https://github.com/ultralytics/docs/releases/download/0/pie-chart.avif) |
 
 ### Why Graphs are Important
 
@@ -22,7 +22,7 @@ This guide provides a comprehensive overview of three fundamental types of data 
 - Bar plots, on the other hand, are suitable for comparing quantities across different categories and showing relationships between a category and its numerical value.
 - Lastly, pie charts are effective for illustrating proportions among categories and showing parts of a whole.
 
-!!! Analytics "Analytics Examples"
+!!! analytics "Analytics Examples"
 
     === "Line Graph"
 
@@ -311,15 +311,7 @@ Here's a table with the `Analytics` arguments:
 
 ### Arguments `model.track`
 
-| Name      | Type    | Default        | Description                                                 |
-| --------- | ------- | -------------- | ----------------------------------------------------------- |
-| `source`  | `im0`   | `None`         | source directory for images or videos                       |
-| `persist` | `bool`  | `False`        | persisting tracks between frames                            |
-| `tracker` | `str`   | `botsort.yaml` | Tracking method 'bytetrack' or 'botsort'                    |
-| `conf`    | `float` | `0.3`          | Confidence Threshold                                        |
-| `iou`     | `float` | `0.5`          | IOU Threshold                                               |
-| `classes` | `list`  | `None`         | filter results by class, i.e. classes=0, or classes=[0,2,3] |
-| `verbose` | `bool`  | `True`         | Display the object tracking results                         |
+{% include "macros/track-args.md" %}
 
 ## Conclusion
 

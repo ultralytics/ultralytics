@@ -92,15 +92,15 @@ class FastSAMPredictor(SegmentationPredictor):
                     if labels.sum() == 0  # all negative points
                     else torch.zeros(len(result), dtype=torch.bool, device=self.device)
                 )
-                for p, l in zip(points, labels):
-                    point_idx[torch.nonzero(masks[:, p[1], p[0]], as_tuple=True)[0]] = True if l else False
+                for point, label in zip(points, labels):
+                    point_idx[torch.nonzero(masks[:, point[1], point[0]], as_tuple=True)[0]] = bool(label)
                 idx |= point_idx
             if texts is not None:
                 if isinstance(texts, str):
                     texts = [texts]
                 crop_ims, filter_idx = [], []
                 for i, b in enumerate(result.boxes.xyxy.tolist()):
-                    x1, y1, x2, y2 = [int(x) for x in b]
+                    x1, y1, x2, y2 = (int(x) for x in b)
                     if masks[i].sum() <= 100:
                         filter_idx.append(i)
                         continue

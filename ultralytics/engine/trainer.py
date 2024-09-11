@@ -28,6 +28,7 @@ from ultralytics.utils import (
     DEFAULT_CFG,
     LOCAL_RANK,
     LOGGER,
+    MACOS,
     RANK,
     TQDM,
     __version__,
@@ -42,6 +43,7 @@ from ultralytics.utils.checks import check_amp, check_file, check_imgsz, check_m
 from ultralytics.utils.dist import ddp_cleanup, generate_ddp_command
 from ultralytics.utils.files import get_latest_run
 from ultralytics.utils.torch_utils import (
+    TORCH_2_4,
     EarlyStopping,
     ModelEMA,
     autocast,
@@ -56,8 +58,6 @@ from ultralytics.utils.torch_utils import (
 
 class BaseTrainer:
     """
-    BaseTrainer.
-
     A base class for creating trainers.
 
     Attributes:
@@ -230,7 +230,6 @@ class BaseTrainer:
 
     def _setup_train(self, world_size):
         """Builds dataloaders and optimizer on correct rank process."""
-
         # Model
         self.run_callbacks("on_pretrain_routine_start")
         ckpt = self.setup_model()
@@ -268,7 +267,9 @@ class BaseTrainer:
         if RANK > -1 and world_size > 1:  # DDP
             dist.broadcast(self.amp, src=0)  # broadcast the tensor from rank 0 to all other ranks (returns None)
         self.amp = bool(self.amp)  # as boolean
-        self.scaler = torch.cuda.amp.GradScaler(enabled=self.amp)
+        self.scaler = (
+            torch.amp.GradScaler("cuda", enabled=self.amp) if TORCH_2_4 else torch.cuda.amp.GradScaler(enabled=self.amp)
+        )
         if world_size > 1:
             self.model = nn.parallel.DistributedDataParallel(self.model, device_ids=[RANK], find_unused_parameters=True)
 
@@ -453,7 +454,10 @@ class BaseTrainer:
                 self.stop |= epoch >= self.epochs  # stop if exceeded epochs
             self.run_callbacks("on_fit_epoch_end")
             gc.collect()
-            torch.cuda.empty_cache()  # clear GPU memory at end of epoch, may help reduce CUDA out of memory errors
+            if MACOS:
+                torch.mps.empty_cache()  # clear unified memory at end of epoch, may help MPS' management of 'unlimited' virtual memoy
+            else:
+                torch.cuda.empty_cache()  # clear GPU memory at end of epoch, may help reduce CUDA out of memory errors
 
             # Early Stopping
             if RANK != -1:  # if DDP training
@@ -475,14 +479,22 @@ class BaseTrainer:
                 self.plot_metrics()
             self.run_callbacks("on_train_end")
         gc.collect()
-        torch.cuda.empty_cache()
+        if MACOS:
+            torch.mps.empty_cache()
+        else:
+            torch.cuda.empty_cache()
+
         self.run_callbacks("teardown")
+
+    def read_results_csv(self):
+        """Read results.csv into a dict using pandas."""
+        import pandas as pd  # scope for faster 'import ultralytics'
+
+        return {k.strip(): v for k, v in pd.read_csv(self.csv).to_dict(orient="list").items()}
 
     def save_model(self):
         """Save model training checkpoints with additional metadata."""
         import io
-
-        import pandas as pd  # scope for faster 'import ultralytics'
 
         # Serialize ckpt to a byte buffer once (faster than repeated torch.save() calls)
         buffer = io.BytesIO()
@@ -496,7 +508,7 @@ class BaseTrainer:
                 "optimizer": convert_optimizer_state_dict_to_fp16(deepcopy(self.optimizer.state_dict())),
                 "train_args": vars(self.args),  # save as dict
                 "train_metrics": {**self.metrics, **{"fitness": self.fitness}},
-                "train_results": {k.strip(): v for k, v in pd.read_csv(self.csv).to_dict(orient="list").items()},
+                "train_results": self.read_results_csv(),
                 "date": datetime.now().isoformat(),
                 "version": __version__,
                 "license": "AGPL-3.0 (https://ultralytics.com/license)",
@@ -636,7 +648,7 @@ class BaseTrainer:
         pass
 
     def on_plot(self, name, data=None):
-        """Registers plots (e.g. to be consumed in callbacks)"""
+        """Registers plots (e.g. to be consumed in callbacks)."""
         path = Path(name)
         self.plots[path] = {"data": data, "timestamp": time.time()}
 
@@ -646,6 +658,9 @@ class BaseTrainer:
             if f.exists():
                 strip_optimizer(f)  # strip optimizers
                 if f is self.best:
+                    if self.last.is_file():  # update best.pt train_metrics from last.pt
+                        k = "train_results"
+                        torch.save({**torch.load(self.best), **{k: torch.load(self.last)[k]}}, self.best)
                     LOGGER.info(f"\nValidating {f}...")
                     self.validator.args.plots = self.args.plots
                     self.metrics = self.validator(model=f)
@@ -732,7 +747,6 @@ class BaseTrainer:
         Returns:
             (torch.optim.Optimizer): The constructed optimizer.
         """
-
         g = [], [], []  # optimizer parameter groups
         bn = tuple(v for k, v in nn.__dict__.items() if "Norm" in k)  # normalization layers, i.e. BatchNorm2d()
         if name == "auto":

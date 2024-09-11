@@ -29,27 +29,27 @@ Parking management with [Ultralytics YOLOv8](https://github.com/ultralytics/ultr
 
 ## Real World Applications
 
-|                                                                Parking Management System                                                                |                                                                  Parking Management System                                                                   |
-| :-----------------------------------------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------------------------------------------------: |
-| ![Parking lots Analytics Using Ultralytics YOLOv8](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/e3d4bc3e-cf4a-4da9-b42e-0da55cc74ad6) | ![Parking management top view using Ultralytics YOLOv8](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/fe186719-1aca-43c9-b388-1ded91280eb5) |
-|                                                 Parking management Aerial View using Ultralytics YOLOv8                                                 |                                                     Parking management Top View using Ultralytics YOLOv8                                                     |
+|                                                                     Parking Management System                                                                      |                                                                      Parking Management System                                                                       |
+| :----------------------------------------------------------------------------------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
+| ![Parking lots Analytics Using Ultralytics YOLOv8](https://github.com/ultralytics/docs/releases/download/0/parking-management-aerial-view-ultralytics-yolov8.avif) | ![Parking management top view using Ultralytics YOLOv8](https://github.com/ultralytics/docs/releases/download/0/parking-management-top-view-ultralytics-yolov8.avif) |
+|                                                      Parking management Aerial View using Ultralytics YOLOv8                                                       |                                                         Parking management Top View using Ultralytics YOLOv8                                                         |
 
 ## Parking Management System Code Workflow
 
 ### Selection of Points
 
-!!! Tip "Point Selection is now Easy"
+!!! tip "Point Selection is now Easy"
 
     Choosing parking points is a critical and complex task in parking management systems. Ultralytics streamlines this process by providing a tool that lets you define parking lot areas, which can be utilized later for additional processing.
 
 - Capture a frame from the video or camera stream where you want to manage the parking lot.
 - Use the provided code to launch a graphical interface, where you can select an image and start outlining parking regions by mouse click to create polygons.
 
-!!! Warning "Image Size"
+!!! warning "Image Size"
 
     Max Image Size of 1920 * 1080 supported
 
-!!! Example "Parking slots Annotator Ultralytics YOLOv8"
+!!! example "Parking slots Annotator Ultralytics YOLOv8"
 
     === "Parking Annotator"
 
@@ -61,11 +61,11 @@ Parking management with [Ultralytics YOLOv8](https://github.com/ultralytics/ultr
 
 - After defining the parking areas with polygons, click `save` to store a JSON file with the data in your working directory.
 
-![Ultralytics YOLOv8 Points Selection Demo](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/72737b8a-0f0f-4efb-98ad-b917a0039535)
+![Ultralytics YOLOv8 Points Selection Demo](https://github.com/ultralytics/docs/releases/download/0/ultralytics-yolov8-points-selection-demo.avif)
 
 ### Python Code for Parking Management
 
-!!! Example "Parking management using YOLOv8 Example"
+!!! example "Parking management using YOLOv8 Example"
 
     === "Parking Management"
 
@@ -122,15 +122,7 @@ Parking management with [Ultralytics YOLOv8](https://github.com/ultralytics/ultr
 
 ### Arguments `model.track`
 
-| Name      | Type    | Default        | Description                                                 |
-| --------- | ------- | -------------- | ----------------------------------------------------------- |
-| `source`  | `im0`   | `None`         | source directory for images or videos                       |
-| `persist` | `bool`  | `False`        | persisting tracks between frames                            |
-| `tracker` | `str`   | `botsort.yaml` | Tracking method 'bytetrack' or 'botsort'                    |
-| `conf`    | `float` | `0.3`          | Confidence Threshold                                        |
-| `iou`     | `float` | `0.5`          | IOU Threshold                                               |
-| `classes` | `list`  | `None`         | filter results by class, i.e. classes=0, or classes=[0,2,3] |
-| `verbose` | `bool`  | `True`         | Display the object tracking results                         |
+{% include "macros/track-args.md" %}
 
 ## FAQ
 

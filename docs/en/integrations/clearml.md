@@ -8,12 +8,12 @@ keywords: YOLOv8, ClearML, MLOps, Ultralytics, machine learning, object detectio
 
 MLOps bridges the gap between creating and deploying machine learning models in real-world settings. It focuses on efficient deployment, scalability, and ongoing management to ensure models perform well in practical applications.
 
-[Ultralytics YOLOv8](https://ultralytics.com) effortlessly integrates with ClearML, streamlining and enhancing your object detection model's training and management. This guide will walk you through the integration process, detailing how to set up ClearML, manage experiments, automate model management, and collaborate effectively.
+[Ultralytics YOLOv8](https://www.ultralytics.com/) effortlessly integrates with ClearML, streamlining and enhancing your object detection model's training and management. This guide will walk you through the integration process, detailing how to set up ClearML, manage experiments, automate model management, and collaborate effectively.
 
 ## ClearML
 
 <p align="center">
-  <img width="100%" src="https://clear.ml/wp-content/uploads/2023/06/DataOps@2x-1.png" alt="ClearML Overview">
+  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/clearml-overview.avif" alt="ClearML Overview">
 </p>
 
 [ClearML](https://clear.ml/) is an innovative open-source MLOps platform that is skillfully designed to automate, monitor, and orchestrate machine learning workflows. Its key features include automated logging of all training and inference data for full experiment reproducibility, an intuitive web UI for easy data visualization and analysis, advanced hyperparameter optimization algorithms, and robust model management for efficient deployment across various platforms.
@@ -26,7 +26,7 @@ You can bring automation and efficiency to your machine learning workflow by imp
 
 To install the required packages, run:
 
-!!! Tip "Installation"
+!!! tip "Installation"
 
     === "CLI"
 
@@ -43,7 +43,7 @@ Once you have installed the necessary packages, the next step is to initialize a
 
 Begin by initializing the ClearML SDK in your environment. The 'clearml-init' command starts the setup process and prompts you for the necessary credentials.
 
-!!! Tip "Initial SDK Setup"
+!!! tip "Initial SDK Setup"
 
     === "CLI"
 
@@ -58,7 +58,7 @@ After executing this command, visit the [ClearML Settings page](https://app.clea
 
 Before diving into the usage instructions, be sure to check out the range of [YOLOv8 models offered by Ultralytics](../models/index.md). This will help you choose the most appropriate model for your project requirements.
 
-!!! Example "Usage"
+!!! example "Usage"
 
     === "Python"
 
@@ -175,7 +175,7 @@ This setup is applicable to cloud VMs, local GPUs, or laptops. ClearML Autoscale
 ClearML's user-friendly interface allows easy cloning, editing, and enqueuing of tasks. Users can clone an existing experiment, adjust parameters or other details through the UI, and enqueue the task for execution. This streamlined process ensures that the ClearML Agent executing the task uses updated configurations, making it ideal for iterative experimentation and model fine-tuning.
 
 <p align="center"><br>
-  <img width="100%" src="https://clear.ml/docs/latest/assets/images/integrations_yolov5-2483adea91df4d41bfdf1a37d28864d4.gif" alt="Cloning, Editing, and Enqueuing with ClearML">
+  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/cloning-editing-enqueuing-clearml.avif" alt="Cloning, Editing, and Enqueuing with ClearML">
 </p>
 
 ## Summary

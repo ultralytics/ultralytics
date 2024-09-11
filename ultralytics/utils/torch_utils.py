@@ -1,4 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
+
 import contextlib
 import gc
 import math
@@ -24,6 +25,7 @@ from ultralytics.utils import (
     NUM_THREADS,
     PYTHON_VERSION,
     TORCHVISION_VERSION,
+    WINDOWS,
     __version__,
     colorstr,
 )
@@ -38,10 +40,16 @@ except ImportError:
 TORCH_1_9 = check_version(torch.__version__, "1.9.0")
 TORCH_1_13 = check_version(torch.__version__, "1.13.0")
 TORCH_2_0 = check_version(torch.__version__, "2.0.0")
+TORCH_2_4 = check_version(torch.__version__, "2.4.0")
 TORCHVISION_0_10 = check_version(TORCHVISION_VERSION, "0.10.0")
 TORCHVISION_0_11 = check_version(TORCHVISION_VERSION, "0.11.0")
 TORCHVISION_0_13 = check_version(TORCHVISION_VERSION, "0.13.0")
 TORCHVISION_0_18 = check_version(TORCHVISION_VERSION, "0.18.0")
+if WINDOWS and check_version(torch.__version__, "==2.4.0"):  # reject version 2.4.0 on Windows
+    LOGGER.warning(
+        "WARNING ⚠️ Known issue with torch==2.4.0 on Windows with CPU, recommend upgrading to torch>=2.4.1 to resolve "
+        "https://github.com/ultralytics/ultralytics/issues/15049"
+    )
 
 
 @contextmanager
@@ -137,16 +145,15 @@ def select_device(device="", batch=0, newline=False, verbose=True):
             devices when using multiple GPUs.
 
     Examples:
-        >>> select_device('cuda:0')
+        >>> select_device("cuda:0")
         device(type='cuda', index=0)
 
-        >>> select_device('cpu')
+        >>> select_device("cpu")
         device(type='cpu')
 
     Note:
         Sets the 'CUDA_VISIBLE_DEVICES' environment variable for specifying which GPUs to use.
     """
-
     if isinstance(device, torch.device):
         return device
 
@@ -331,11 +338,13 @@ def model_info_for_loggers(trainer):
     Example:
         YOLOv8n info for loggers
         ```python
-        results = {'model/parameters': 3151904,
-                   'model/GFLOPs': 8.746,
-                   'model/speed_ONNX(ms)': 41.244,
-                   'model/speed_TensorRT(ms)': 3.211,
-                   'model/speed_PyTorch(ms)': 18.755}
+        results = {
+            "model/parameters": 3151904,
+            "model/GFLOPs": 8.746,
+            "model/speed_ONNX(ms)": 41.244,
+            "model/speed_TensorRT(ms)": 3.211,
+            "model/speed_PyTorch(ms)": 18.755,
+        }
         ```
     """
     if trainer.args.profile:  # profile ONNX and TensorRT times
@@ -415,9 +424,7 @@ def initialize_weights(model):
 
 
 def scale_img(img, ratio=1.0, same_shape=False, gs=32):
-    """Scales and pads an image tensor of shape img(bs,3,y,x) based on given ratio and grid size gs, optionally
-    retaining the original shape.
-    """
+    """Scales and pads an image tensor, optionally maintaining aspect ratio and padding to gs multiple."""
     if ratio == 1.0:
         return img
     h, w = img.shape[2:]
@@ -491,7 +498,7 @@ def init_seeds(seed=0, deterministic=False):
 class ModelEMA:
     """
     Updated Exponential Moving Average (EMA) from https://github.com/rwightman/pytorch-image-models. Keeps a moving
-    average of everything in the model state_dict (parameters and buffers)
+    average of everything in the model state_dict (parameters and buffers).
 
     For EMA details see https://www.tensorflow.org/api_docs/python/tf/train/ExponentialMovingAverage
 
@@ -542,7 +549,7 @@ def strip_optimizer(f: Union[str, Path] = "best.pt", s: str = "") -> None:
         from pathlib import Path
         from ultralytics.utils.torch_utils import strip_optimizer
 
-        for f in Path('path/to/model/checkpoints').rglob('*.pt'):
+        for f in Path("path/to/model/checkpoints").rglob("*.pt"):
             strip_optimizer(f)
         ```
 

@@ -24,7 +24,7 @@ This guide showcases Ultralytics YOLOv8 integration with Weights & Biases' for e
 ## Weights & Biases
 
 <p align="center">
-  <img width="800" src="https://docs.wandb.ai/assets/images/wandb_demo_experiments-4797af7fe7236d6c5c42adbdc93deb4c.gif" alt="Weights & Biases Overview">
+  <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/wandb-demo-experiments.avif" alt="Weights & Biases Overview">
 </p>
 
 [Weights & Biases](https://wandb.ai/site) is a cutting-edge MLOps platform designed for tracking, visualizing, and managing machine learning experiments. It features automatic logging of training metrics for full experiment reproducibility, an interactive UI for streamlined data analysis, and efficient model management tools for deploying across various environments.
@@ -37,7 +37,7 @@ You can use Weights & Biases to bring efficiency and automation to your YOLOv8 t
 
 To install the required packages, run:
 
-!!! Tip "Installation"
+!!! tip "Installation"
 
     === "CLI"
 
@@ -54,7 +54,7 @@ After installing the necessary packages, the next step is to set up your Weights
 
 Start by initializing the Weights & Biases environment in your workspace. You can do this by running the following command and following the prompted instructions.
 
-!!! Tip "Initial SDK Setup"
+!!! tip "Initial SDK Setup"
 
     === "CLI"
 
@@ -70,7 +70,7 @@ Navigate to the Weights & Biases authorization page to create and retrieve your 
 
 Before diving into the usage instructions for YOLOv8 model training with Weights & Biases, be sure to check out the range of [YOLOv8 models offered by Ultralytics](../models/index.md). This will help you choose the most appropriate model for your project requirements.
 
-!!! Example "Usage: Training YOLOv8 with Weights & Biases"
+!!! example "Usage: Training YOLOv8 with Weights & Biases"
 
     === "Python"
 

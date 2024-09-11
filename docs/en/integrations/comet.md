@@ -8,7 +8,7 @@ keywords: YOLOv8, Comet ML, logging, machine learning, training, model checkpoin
 
 Logging key training details such as parameters, metrics, image predictions, and model checkpoints is essential in machine learning—it keeps your project transparent, your progress measurable, and your results repeatable.
 
-[Ultralytics YOLOv8](https://ultralytics.com) seamlessly integrates with Comet ML, efficiently capturing and optimizing every aspect of your YOLOv8 object detection model's training process. In this guide, we'll cover the installation process, Comet ML setup, real-time insights, custom logging, and offline usage, ensuring that your YOLOv8 training is thoroughly documented and fine-tuned for outstanding results.
+[Ultralytics YOLOv8](https://www.ultralytics.com/) seamlessly integrates with Comet ML, efficiently capturing and optimizing every aspect of your YOLOv8 object detection model's training process. In this guide, we'll cover the installation process, Comet ML setup, real-time insights, custom logging, and offline usage, ensuring that your YOLOv8 training is thoroughly documented and fine-tuned for outstanding results.
 
 ## Comet ML
 
@@ -16,7 +16,7 @@ Logging key training details such as parameters, metrics, image predictions, and
   <img width="640" src="https://www.comet.com/docs/v2/img/landing/home-hero.svg" alt="Comet ML Overview">
 </p>
 
-[Comet ML](https://www.comet.ml/) is a platform for tracking, comparing, explaining, and optimizing machine learning models and experiments. It allows you to log metrics, parameters, media, and more during your model training and monitor your experiments through an aesthetically pleasing web interface. Comet ML helps data scientists iterate more rapidly, enhances transparency and reproducibility, and aids in the development of production models.
+[Comet ML](https://www.comet.com/site/) is a platform for tracking, comparing, explaining, and optimizing machine learning models and experiments. It allows you to log metrics, parameters, media, and more during your model training and monitor your experiments through an aesthetically pleasing web interface. Comet ML helps data scientists iterate more rapidly, enhances transparency and reproducibility, and aids in the development of production models.
 
 ## Harnessing the Power of YOLOv8 and Comet ML
 
@@ -26,7 +26,7 @@ By combining Ultralytics YOLOv8 with Comet ML, you unlock a range of benefits. T
 
 To install the required packages, run:
 
-!!! Tip "Installation"
+!!! tip "Installation"
 
     === "CLI"
 
@@ -39,7 +39,7 @@ To install the required packages, run:
 
 After installing the required packages, you'll need to sign up, get a [Comet API Key](https://www.comet.com/signup), and configure it.
 
-!!! Tip "Configuring Comet ML"
+!!! tip "Configuring Comet ML"
 
     === "CLI"
 
@@ -62,7 +62,7 @@ If you are using a Google Colab notebook, the code above will prompt you to ente
 
 Before diving into the usage instructions, be sure to check out the range of [YOLOv8 models offered by Ultralytics](../models/index.md). This will help you choose the most appropriate model for your project requirements.
 
-!!! Example "Usage"
+!!! example "Usage"
 
     === "Python"
 
@@ -96,7 +96,7 @@ Let's dive into what you'll see on the Comet ML dashboard once your YOLOv8 model
 The experiment panels section of the Comet ML dashboard organize and present the different runs and their metrics, such as segment mask loss, class loss, precision, and mean average precision.
 
 <p align="center">
-  <img width="640" src="https://www.comet.com/site/wp-content/uploads/2023/07/1_I20ts7j995-D86-BvtWYaw.png" alt="Comet ML Overview">
+  <img width="640" src="https://github.com/ultralytics/docs/releases/download/0/comet-ml-dashboard-overview.avif" alt="Comet ML Overview">
 </p>
 
 **Metrics**
@@ -104,7 +104,7 @@ The experiment panels section of the Comet ML dashboard organize and present the
 In the metrics section, you have the option to examine the metrics in a tabular format as well, which is displayed in a dedicated pane as illustrated here.
 
 <p align="center">
-  <img width="640" src="https://www.comet.com/site/wp-content/uploads/2023/07/1_FNAkQKq9o02wRRSCJh4gDw.png" alt="Comet ML Overview">
+  <img width="640" src="https://github.com/ultralytics/docs/releases/download/0/comet-ml-metrics-tabular.avif" alt="Comet ML Overview">
 </p>
 
 **Interactive Confusion Matrix**
@@ -112,7 +112,7 @@ In the metrics section, you have the option to examine the metrics in a tabular 
 The confusion matrix, found in the Confusion Matrix tab, provides an interactive way to assess the model's classification accuracy. It details the correct and incorrect predictions, allowing you to understand the model's strengths and weaknesses.
 
 <p align="center">
-  <img width="640" src="https://www.comet.com/site/wp-content/uploads/2023/07/1_h-Nf-tCm8HbsvVK0d6rTng-1500x768.png" alt="Comet ML Overview">
+  <img width="640" src="https://github.com/ultralytics/docs/releases/download/0/comet-ml-interactive-confusion-matrix.avif" alt="Comet ML Overview">
 </p>
 
 **System Metrics**
@@ -120,7 +120,7 @@ The confusion matrix, found in the Confusion Matrix tab, provides an interactive
 Comet ML logs system metrics to help identify any bottlenecks in the training process. It includes metrics such as GPU utilization, GPU memory usage, CPU utilization, and RAM usage. These are essential for monitoring the efficiency of resource usage during model training.
 
 <p align="center">
-  <img width="640" src="https://www.comet.com/site/wp-content/uploads/2023/07/1_B7dmqqUMyOtyH9XsVMr58Q.png" alt="Comet ML Overview">
+  <img width="640" src="https://github.com/ultralytics/docs/releases/download/0/comet-ml-system-metrics.avif" alt="Comet ML Overview">
 </p>
 
 ## Customizing Comet ML Logging

@@ -157,7 +157,8 @@ class BaseTrainer:
 
     def add_callback(self, event: str, callback):
         """Appends the given callback."""
-        self.callbacks[event].append(callback)
+        #self.callbacks[event].append(callback)
+        return False
 
     def set_callback(self, event: str, callback):
         """Overrides the existing callbacks with the given callback."""

@@ -1170,7 +1170,8 @@ class Exporter:
 
     def add_callback(self, event: str, callback):
         """Appends the given callback."""
-        self.callbacks[event].append(callback)
+        #self.callbacks[event].append(callback)
+        return False
 
     def run_callbacks(self, event: str):
         """Execute all callbacks for a given event."""

@@ -93,7 +93,8 @@ class BaseDataset(Dataset):
         if (self.cache == "ram" and self.check_cache_ram()) or self.cache == "disk":
             if self.cache == "ram" and hyp.get("deterministic"):
                 LOGGER.warning(
-                    "WARNING: Caching images to RAM can lead to non-deterministic training. Use cache = disk instead."
+                    "WARNING ⚠️ cache='ram' may produce non-deterministic training results. "
+                    "Consider cache='disk' as a deterministic alternative if your disk space allows."
                 )
             self.cache_images()
 

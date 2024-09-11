@@ -247,14 +247,14 @@ Below are code examples for using each source type:
 
     === "txt"
 
-        Run inference on a collection of images, URLs, videos and directories listed in a txt file.
+        Run inference on a collection of images, videos and directories listed in a txt file.
         ```python
         from ultralytics import YOLO
 
         # Load a pretrained YOLOv8n model
         model = YOLO("yolov8n.pt")
 
-        # Define a path to a txt file with images, URLs, videos and directories
+        # Define a path to a txt file with images, videos and directories
         source = "path/to/file.txt"
 
         # Run inference on the source

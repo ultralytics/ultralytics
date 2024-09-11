@@ -284,4 +284,3 @@ For Ultralytics bug reports and feature requests please visit [GitHub Issues](ht
   <a href="https://ultralytics.com/bilibili"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-bilibili.png" width="30%" alt="Ultralytics BiliBili"></a>
   <a href="https://ultralytics.com/discord"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-discord.png" width="30%" alt="Ultralytics Discord"></a>
 </div>
-

@@ -28,7 +28,7 @@ To request an Enterprise License please complete the form at [Ultralytics Licens
 
 <img width="100%" src="https://raw.githubusercontent.com/ultralytics/assets/main/yolov8/yolo-comparison-plots.png" alt="YOLOv8 performance plots"></a>
 
-<div style="--icon-width: 25%; display: flex; justify-content: center; align-items: center; gap: 5px; text-align: center;">
+<div style="--icon-width: 25%; display: flex; justify-content: center; align-items: center; gap: 10px; text-align: center;">
   <a href="https://github.com/ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-github.png" style="width: var(--icon-width);" alt="Ultralytics GitHub"></a>
   <a href="https://www.linkedin.com/company/ultralytics/"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-linkedin.png" style="width: var(--icon-width);" alt="Ultralytics LinkedIn"></a>
   <a href="https://twitter.com/ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-twitter.png" style="width: var(--icon-width);" alt="Ultralytics Twitter"></a>
@@ -37,7 +37,7 @@ To request an Enterprise License please complete the form at [Ultralytics Licens
   <a href="https://ultralytics.com/bilibili"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-bilibili.png" style="width: var(--icon-width);" alt="Ultralytics BiliBili"></a>
   <a href="https://ultralytics.com/discord"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-discord.png" style="width: var(--icon-width);" alt="Ultralytics Discord"></a>
 </div>
-
+</div>
 
 ## <div align="center">Documentation</div>
 
@@ -275,13 +275,13 @@ Ultralytics offers two licensing options to accommodate diverse use cases:
 For Ultralytics bug reports and feature requests please visit [GitHub Issues](https://github.com/ultralytics/ultralytics/issues). Become a member of the Ultralytics [Discord](https://discord.com/invite/ultralytics), [Reddit](https://www.reddit.com/r/ultralytics/), or [Forums](https://community.ultralytics.com/) for asking questions, sharing projects, learning discussions, or for help with all things Ultralytics!
 
 <br>
-<div style="display: flex; justify-content: center; align-items: center; gap: 2px; text-align:center;">
-  <a href="https://github.com/ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-github.png" width="30%" alt="Ultralytics GitHub"></a>
-  <a href="https://www.linkedin.com/company/ultralytics/"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-linkedin.png" width="30%" alt="Ultralytics LinkedIn"></a>
-  <a href="https://twitter.com/ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-twitter.png" width="30%" alt="Ultralytics Twitter"></a>
-  <a href="https://youtube.com/ultralytics?sub_confirmation=1"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-youtube.png" width="30%" alt="Ultralytics YouTube"></a>
-  <a href="https://www.tiktok.com/@ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-tiktok.png" width="30%" alt="Ultralytics TikTok"></a>
-  <a href="https://ultralytics.com/bilibili"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-bilibili.png" width="30%" alt="Ultralytics BiliBili"></a>
-  <a href="https://ultralytics.com/discord"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-discord.png" width="30%" alt="Ultralytics Discord"></a>
+<div style="--icon-width: 25%; display: flex; justify-content: center; align-items: center; gap: 10px; text-align: center;">
+  <a href="https://github.com/ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-github.png" style="width: var(--icon-width);" alt="Ultralytics GitHub"></a>
+  <a href="https://www.linkedin.com/company/ultralytics/"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-linkedin.png" style="width: var(--icon-width);" alt="Ultralytics LinkedIn"></a>
+  <a href="https://twitter.com/ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-twitter.png" style="width: var(--icon-width);" alt="Ultralytics Twitter"></a>
+  <a href="https://youtube.com/ultralytics?sub_confirmation=1"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-youtube.png" style="width: var(--icon-width);" alt="Ultralytics YouTube"></a>
+  <a href="https://www.tiktok.com/@ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-tiktok.png" style="width: var(--icon-width);" alt="Ultralytics TikTok"></a>
+  <a href="https://ultralytics.com/bilibili"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-bilibili.png" style="width: var(--icon-width);" alt="Ultralytics BiliBili"></a>
+  <a href="https://ultralytics.com/discord"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-discord.png" style="width: var(--icon-width);" alt="Ultralytics Discord"></a>
 </div>
-</div>
+

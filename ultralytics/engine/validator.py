@@ -98,6 +98,8 @@ class BaseValidator:
         if self.args.conf is None:
             self.args.conf = 0.001  # default conf=0.001
         self.args.imgsz = check_imgsz(self.args.imgsz, max_dim=1)
+        if self.args.get("augment"):
+            LOGGER.warning("WARNING: Test Time Augmentation enabled for Validation (augment=True). This may lead to non-deterministic validation results.")
 
         self.plots = {}
         self.callbacks = _callbacks or callbacks.get_default_callbacks()

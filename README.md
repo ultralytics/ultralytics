@@ -283,4 +283,4 @@ For Ultralytics bug reports and feature requests please visit [GitHub Issues](ht
   <a href="https://www.tiktok.com/@ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-tiktok.png" style="width: var(--icon-width);" alt="Ultralytics TikTok"></a>
   <a href="https://ultralytics.com/bilibili"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-bilibili.png" style="width: var(--icon-width);" alt="Ultralytics BiliBili"></a>
   <a href="https://ultralytics.com/discord"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-discord.png" style="width: var(--icon-width);" alt="Ultralytics Discord"></a>
-</div>
+</div></div>

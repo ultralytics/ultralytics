@@ -113,7 +113,7 @@ YOLOv8 can process different types of input sources for inference, as shown in t
 | OpenCV          | `cv2.imread('im.jpg')`                     | `np.ndarray`    | HWC format with BGR channels `uint8 (0-255)`.                                               |
 | numpy           | `np.zeros((640,1280,3))`                   | `np.ndarray`    | HWC format with BGR channels `uint8 (0-255)`.                                               |
 | torch           | `torch.zeros(16,3,320,640)`                | `torch.Tensor`  | BCHW format with RGB channels `float32 (0.0-1.0)`.                                          |
-| CSV             | `'sources.csv'`                            | `str` or `Path` | CSV file containing paths to images, videos, or directories.                                |
+| txt             | `'sources.txt'`                            | `str` or `Path` | txt file containing paths to images, videos, or directories.                                |
 | video ✅        | `'video.mp4'`                              | `str` or `Path` | Video file in formats like MP4, AVI, etc.                                                   |
 | directory ✅    | `'path/'`                                  | `str` or `Path` | Path to a directory containing images or videos.                                            |
 | glob ✅         | `'path/*.jpg'`                             | `str`           | Glob pattern to match multiple files. Use the `*` character as a wildcard.                  |
@@ -245,17 +245,17 @@ Below are code examples for using each source type:
         results = model(source)  # list of Results objects
         ```
 
-    === "CSV"
+    === "txt"
 
-        Run inference on a collection of images, URLs, videos and directories listed in a CSV file.
+        Run inference on a collection of images, URLs, videos and directories listed in a txt file.
         ```python
         from ultralytics import YOLO
 
         # Load a pretrained YOLOv8n model
         model = YOLO("yolov8n.pt")
 
-        # Define a path to a CSV file with images, URLs, videos and directories
-        source = "path/to/file.csv"
+        # Define a path to a txt file with images, URLs, videos and directories
+        source = "path/to/file.txt"
 
         # Run inference on the source
         results = model(source)  # list of Results objects

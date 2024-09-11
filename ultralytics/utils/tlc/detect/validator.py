@@ -13,6 +13,7 @@ from ultralytics.utils.tlc.detect.utils import build_tlc_yolo_dataset, yolo_pred
 from ultralytics.utils.tlc.engine.validator import TLCValidatorMixin
 from ultralytics.utils.tlc.utils import create_sampler
 
+
 class TLCDetectionValidator(TLCValidatorMixin, DetectionValidator):
     _default_image_column_name = IMAGE_COLUMN_NAME
     _default_label_column_name = DETECTION_LABEL_COLUMN_NAME
@@ -32,15 +33,13 @@ class TLCDetectionValidator(TLCValidatorMixin, DetectionValidator):
 
     def _get_metrics_schemas(self):
         return {
-            tlc.PREDICTED_BOUNDING_BOXES: yolo_predicted_bounding_box_schema(self.data["names"]),
-        }
-    
+            tlc.PREDICTED_BOUNDING_BOXES: yolo_predicted_bounding_box_schema(self.data["names"]), }
+
     def _compute_3lc_metrics(self, preds, batch):
         processed_predictions = self._process_detection_predictions(preds, batch)
         return {
-            tlc.PREDICTED_BOUNDING_BOXES: processed_predictions,
-        }
-    
+            tlc.PREDICTED_BOUNDING_BOXES: processed_predictions, }
+
     def _process_detection_predictions(self, preds, batch):
         predicted_boxes = []
         for i, predictions in enumerate(preds):
@@ -97,7 +96,7 @@ class TLCDetectionValidator(TLCValidatorMixin, DetectionValidator):
             ))
 
         return predicted_boxes
-    
+
     def _add_embeddings_hook(self, model) -> int:
         if hasattr(model.model, "model"):
             model = model.model
@@ -107,8 +106,9 @@ class TLCDetectionValidator(TLCValidatorMixin, DetectionValidator):
 
         if sppf_index == -1:
             raise ValueError("No SPPF layer found in model, cannot collect embeddings.")
-        
-        weak_self = weakref.ref(self) # Avoid circular reference (self <-> hook_fn)
+
+        weak_self = weakref.ref(self)  # Avoid circular reference (self <-> hook_fn)
+
         def hook_fn(module, input, output):
             # Store embeddings
             self_ref = weak_self()
@@ -123,6 +123,6 @@ class TLCDetectionValidator(TLCValidatorMixin, DetectionValidator):
 
         activation_size = model.model[sppf_index]._modules['cv2']._modules['conv'].out_channels
         return activation_size
-    
+
     def _infer_batch_size(self, preds, batch) -> int:
         return len(batch['im_file'])

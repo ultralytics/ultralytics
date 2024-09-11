@@ -24,15 +24,16 @@ class TLCClassificationDataset(TLCDatasetMixin, ClassificationDataset):
         prefix (str): See parent.
     
     """
+
     def __init__(
-            self,
-            table,
-            args,
-            augment=False,
-            prefix="",
-            image_column_name=tlc.IMAGE,
-            label_column_name=tlc.LABEL,
-        ):
+        self,
+        table,
+        args,
+        augment=False,
+        prefix="",
+        image_column_name=tlc.IMAGE,
+        label_column_name=tlc.LABEL,
+    ):
         # Populate self.samples with image paths and labels
         # Each is a tuple of (image_path, label)
         assert isinstance(table, tlc.Table)
@@ -61,8 +62,12 @@ class TLCClassificationDataset(TLCDatasetMixin, ClassificationDataset):
         # Check for data in columns
         assert len(self.table) > 0, f"Table {self.root.to_str()} has no rows."
         first_row = self.table.table_rows[0]
-        assert isinstance(first_row[image_column_name], str), f"First value in image column '{image_column_name}' in table {self.root.to_str()} is not a string."
-        assert isinstance(first_row[label_column_name], int), f"First value in label column '{label_column_name}' in table {self.root.to_str()} is not an integer."
+        assert isinstance(
+            first_row[image_column_name],
+            str), f"First value in image column '{image_column_name}' in table {self.root.to_str()} is not a string."
+        assert isinstance(
+            first_row[label_column_name],
+            int), f"First value in label column '{label_column_name}' in table {self.root.to_str()} is not an integer."
 
     def verify_images(self):
         """ Verify all images in the dataset."""
@@ -70,7 +75,7 @@ class TLCClassificationDataset(TLCDatasetMixin, ClassificationDataset):
         # Skip verification if the dataset has already been scanned
         if self._is_scanned():
             return self.samples
- 
+
         desc = f"{self.prefix}Scanning images in {self.table.url.to_str()}..."
         # Run scan if the marker does not exist
         nf, nc, msgs, samples, example_ids = 0, 0, [], [], []

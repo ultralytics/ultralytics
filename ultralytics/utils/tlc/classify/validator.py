@@ -13,6 +13,7 @@ from ultralytics.utils.tlc.classify.utils import tlc_check_cls_dataset
 from ultralytics.utils.tlc.engine.validator import TLCValidatorMixin
 from ultralytics.utils.tlc.utils import create_sampler
 
+
 class TLCClassificationValidator(TLCValidatorMixin, yolo.classify.ClassificationValidator):
     _default_image_column_name = IMAGE_COLUMN_NAME
     _default_label_column_name = CLASSIFY_LABEL_COLUMN_NAME
@@ -23,7 +24,7 @@ class TLCClassificationValidator(TLCValidatorMixin, yolo.classify.Classification
     def get_dataloader(self, dataset_path, batch_size):
         """Builds and returns a data loader with given parameters."""
         dataset = self.build_dataset(dataset_path)
-        
+
         sampler = create_sampler(dataset.table, mode="val", settings=self._settings)
         return build_dataloader(dataset, batch_size, self.args.workers, shuffle=False, rank=-1, sampler=sampler)
 
@@ -38,20 +39,28 @@ class TLCClassificationValidator(TLCValidatorMixin, yolo.classify.Classification
         )
 
     def _get_metrics_schemas(self):
-        class_names=[value['internal_name'] for value in self.dataloader.dataset.table.get_value_map(self._label_column_name).values()]
+        class_names = [
+            value['internal_name']
+            for value in self.dataloader.dataset.table.get_value_map(self._label_column_name).values()]
         column_schemas = {
-            "loss": tlc.Schema("Loss", "Cross Entropy Loss", writable=False, value=tlc.Float32Value()),
-            "predicted": tlc.CategoricalLabelSchema(class_names=class_names, display_name="Predicted", description="The highest confidence class predicted by the model."),
-            "confidence": tlc.Schema("Confidence", "The confidence of the prediction", value=tlc.Float32Value(value_min=0.0, value_max=1.0)),
-            "top1_accuracy": tlc.Schema("Top-1 Accuracy", "The correctness of the prediction", value= tlc.Float32Value()),
-        }
+            "loss":
+            tlc.Schema("Loss", "Cross Entropy Loss", writable=False, value=tlc.Float32Value()),
+            "predicted":
+            tlc.CategoricalLabelSchema(class_names=class_names,
+                                       display_name="Predicted",
+                                       description="The highest confidence class predicted by the model."),
+            "confidence":
+            tlc.Schema("Confidence",
+                       "The confidence of the prediction",
+                       value=tlc.Float32Value(value_min=0.0, value_max=1.0)),
+            "top1_accuracy":
+            tlc.Schema("Top-1 Accuracy", "The correctness of the prediction", value=tlc.Float32Value()), }
 
         if len(class_names) > 5:
             column_schemas["top5_accuracy"] = tlc.Schema(
                 "Top-5 Accuracy",
                 "The correctness of any of the top five confidence predictions",
-                value=tlc.Float32Value()
-            )
+                value=tlc.Float32Value())
 
         return column_schemas
 
@@ -60,11 +69,11 @@ class TLCClassificationValidator(TLCValidatorMixin, yolo.classify.Classification
         confidence, predicted = preds.max(dim=1)
 
         batch_metrics = {
-            "loss": torch.nn.functional.nll_loss(torch.log(preds), batch["cls"], reduction="none"), #nll since preds are normalized
+            "loss": torch.nn.functional.nll_loss(torch.log(preds), batch["cls"],
+                                                 reduction="none"),  #nll since preds are normalized
             "predicted": predicted,
             "confidence": confidence,
-            "top1_accuracy": (torch.argmax(preds, dim=1) == batch["cls"]).to(torch.float32),
-        }
+            "top1_accuracy": (torch.argmax(preds, dim=1) == batch["cls"]).to(torch.float32), }
 
         if len(self.dataloader.dataset.table.get_value_map(self._label_column_name)) > 5:
             _, top5_pred = torch.topk(preds, 5, dim=1)
@@ -77,7 +86,7 @@ class TLCClassificationValidator(TLCValidatorMixin, yolo.classify.Classification
     def _add_embeddings_hook(self, model):
         """ Add a hook to extract embeddings from the model, and infer the activation size. For a classification model, this
         amounts to finding the linear layer and extracting the input size."""
-        
+
         # Find index of the linear layer
         has_linear_layer = False
         for index, module in enumerate(model.modules()):
@@ -89,7 +98,8 @@ class TLCClassificationValidator(TLCValidatorMixin, yolo.classify.Classification
         if not has_linear_layer:
             raise ValueError("No linear layer found in model, cannot collect embeddings.")
 
-        weak_self = weakref.ref(self) # Avoid circular reference (self <-> hook_fn)
+        weak_self = weakref.ref(self)  # Avoid circular reference (self <-> hook_fn)
+
         def hook_fn(module, input, output):
             # Store embeddings
             self_ref = weak_self()
@@ -102,6 +112,6 @@ class TLCClassificationValidator(TLCValidatorMixin, yolo.classify.Classification
                 self._hook_handles.append(module.register_forward_hook(hook_fn))
 
         return activation_size
-    
+
     def _infer_batch_size(self, preds, batch) -> int:
         return preds.size(0)

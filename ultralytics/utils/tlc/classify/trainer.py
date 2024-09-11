@@ -12,6 +12,7 @@ from ultralytics.utils.tlc.classify.utils import tlc_check_cls_dataset
 from ultralytics.utils.tlc.utils import create_sampler
 from ultralytics.utils.torch_utils import is_parallel, torch_distributed_zero_first
 
+
 class TLCClassificationTrainer(TLCTrainerMixin, yolo.classify.ClassificationTrainer):
     _default_image_column_name = IMAGE_COLUMN_NAME
     _default_label_column_name = CLASSIFY_LABEL_COLUMN_NAME
@@ -38,7 +39,7 @@ class TLCClassificationTrainer(TLCTrainerMixin, yolo.classify.ClassificationTrai
             image_column_name=self._image_column_name,
             label_column_name=self._label_column_name,
         )
-    
+
     def get_validator(self, dataloader=None):
         self.loss_names = ["loss"]
         dataloader = dataloader or self.test_loader
@@ -51,14 +52,19 @@ class TLCClassificationTrainer(TLCTrainerMixin, yolo.classify.ClassificationTrai
             label_column_name=self._label_column_name,
             settings=self._settings,
         )
-    
+
     def get_dataloader(self, dataset_path, batch_size=16, rank=0, mode="train"):
         """Returns PyTorch DataLoader with transforms to preprocess images for inference."""
         with torch_distributed_zero_first(rank):  # init dataset *.cache only once if DDP
             dataset = self.build_dataset(dataset_path, mode)
 
         sampler = create_sampler(dataset.table, mode=mode, settings=self._settings, distributed=is_parallel(self.model))
-        loader = build_dataloader(dataset, batch_size, self.args.workers, rank=rank, shuffle=mode=="train", sampler=sampler)
+        loader = build_dataloader(dataset,
+                                  batch_size,
+                                  self.args.workers,
+                                  rank=rank,
+                                  shuffle=mode == "train",
+                                  sampler=sampler)
         # Attach inference transforms
         if mode != "train":
             if is_parallel(self.model):

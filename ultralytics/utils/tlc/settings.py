@@ -121,12 +121,14 @@ class Settings:
 
         # If start is less than one, we don't collect during training
         if self.collection_epoch_start < 1:
-            raise ValueError(f"Invalid collection start epoch {self.collection_epoch_start}, must be at least 1 (after first epoch).")
+            raise ValueError(
+                f"Invalid collection start epoch {self.collection_epoch_start}, must be at least 1 (after first epoch)."
+            )
 
         if self.collection_epoch_interval <= 0:
             raise ValueError(f'Invalid interval {self.collection_epoch_interval}, must be non-zero')
         else:
-            return list(range(self.collection_epoch_start, epochs+1, self.collection_epoch_interval))
+            return list(range(self.collection_epoch_start, epochs + 1, self.collection_epoch_interval))
 
     def _verify_training(self) -> None:
         """ Verify that the settings are valid for training.
@@ -165,10 +167,8 @@ class Settings:
         """
         reducer_to_package = {'pacmap': 'pacmap', 'umap': 'umap-learn'}
         if self.image_embeddings_reducer not in reducer_to_package:
-            raise ValueError(
-                f"Invalid image embeddings reducer {self.image_embeddings_reducer}. "
-                "Valid options are 'pacmap' and 'umap'."
-            )
+            raise ValueError(f"Invalid image embeddings reducer {self.image_embeddings_reducer}. "
+                             "Valid options are 'pacmap' and 'umap'.")
 
         try:
             importlib.import_module(self.image_embeddings_reducer)
@@ -176,8 +176,7 @@ class Settings:
             package = reducer_to_package[self.image_embeddings_reducer]
             raise ValueError(
                 f"Embeddings collection enabled, but failed to import {self.image_embeddings_reducer} dependency. "
-                f"Run `pip install {package}` to enable embeddings collection."
-            ) from e
+                f"Run `pip install {package}` to enable embeddings collection.") from e
 
     @staticmethod
     def _field_to_env_var(_field: field) -> None:

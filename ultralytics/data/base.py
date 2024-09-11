@@ -92,7 +92,7 @@ class BaseDataset(Dataset):
         self.cache = cache.lower() if isinstance(cache, str) else "ram" if cache is True else None
         if (self.cache == "ram" and self.check_cache_ram()) or self.cache == "disk":
             if self.cache == "ram" and hyp.get("deterministic"):
-                LOGGER.warning("WARNING: Caching images to RAM can lead to non-deterministic training.")
+                LOGGER.warning("WARNING: Caching images to RAM can lead to non-deterministic training. Use cache = disk instead.")
             self.cache_images()
 
         # Transforms

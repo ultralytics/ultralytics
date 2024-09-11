@@ -547,6 +547,7 @@ class Mosaic(BaseMixTransform):
 
         This method selects random image indexes either from a buffer or from the entire dataset, depending on
         the 'buffer' parameter. It is used to choose images for creating mosaic augmentations.
+
         Args:
             buffer (bool): If True, selects images from the dataset buffer. If False, selects from the entire
                 dataset.

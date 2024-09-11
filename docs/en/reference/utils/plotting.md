@@ -13,7 +13,23 @@ keywords: ultralytics, plotting, utilities, documentation, data visualization, a
 
 ## ::: ultralytics.utils.plotting.Colors
 
-<br><br><hr><br>
+<br>
+
+### Ultralytics Default Color Palette
+
+#### Color Palette
+
+{% include "macros/color-palette.md" %}
+
+#### Pose Color Palette
+
+{% include "macros/pose-color-palette.md" %}
+
+!!! note "Ultralytics Brand Colors"
+
+    For Ultralytics brand colors see [https://www.ultralytics.com/brand](https://www.ultralytics.com/brand). Please use the official Ultralytics colors for all marketing materials
+
+<br><hr><br>
 
 ## ::: ultralytics.utils.plotting.Annotator
 

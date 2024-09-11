@@ -20,7 +20,7 @@ from ultralytics.utils.files import increment_path
 
 class Colors:
     """
-    Ultralytics default color palette https://ultralytics.com/.
+    Ultralytics default color palette https://docs.ultralytics.com/reference/utils/plotting/#ultralytics-default-color-palette.
 
     This class provides methods to work with the Ultralytics color palette, including converting hex color codes to
     RGB values.

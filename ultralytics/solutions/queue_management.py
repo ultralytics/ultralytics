@@ -59,7 +59,7 @@ class QueueManager:
     def extract_and_process_tracks(self, tracks, im0):
         """Extracts and processes tracks for queue management in a video stream."""
         # Initialize annotator and draw the queue region
-        annotator = Annotator(self.im0, self.tf, self.names)
+        annotator = Annotator(im0, self.tf, self.names)
         self.counts = 0  # Reset counts every frame
         if tracks[0].boxes.id is not None:
             boxes = tracks[0].boxes.xyxy.cpu()

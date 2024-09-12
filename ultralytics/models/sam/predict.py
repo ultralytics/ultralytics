@@ -245,7 +245,7 @@ class Predictor(BasePredictor):
             labels = torch.as_tensor(labels, dtype=torch.int32, device=self.device)
             points *= r
             # (N, 2) --> (N, 1, 2), (N, ) --> (N, 1)
-            points, labels = points[:, None, :], labels[:, None]
+            points, labels = points[:, None], labels[:, None]
         if bboxes is not None:
             bboxes = torch.as_tensor(bboxes, dtype=torch.float32, device=self.device)
             bboxes = bboxes[None] if bboxes.ndim == 1 else bboxes

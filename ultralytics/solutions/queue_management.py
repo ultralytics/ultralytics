@@ -50,7 +50,6 @@ class QueueManager:
         self.view_img = view_img
 
         self.names = names  # Class names
-        self.annotator = None  # Annotator
         self.window_name = "Ultralytics YOLOv8 Queue Manager"
 
         # Object counting Information
@@ -66,7 +65,7 @@ class QueueManager:
     def extract_and_process_tracks(self, tracks):
         """Extracts and processes tracks for queue management in a video stream."""
         # Initialize annotator and draw the queue region
-        self.annotator = Annotator(self.im0, self.tf, self.names)
+        annotator = Annotator(self.im0, self.tf, self.names)
         self.counts = 0  # Reset counts every frame
         if tracks[0].boxes.id is not None:
             boxes = tracks[0].boxes.xyxy.cpu()
@@ -76,7 +75,7 @@ class QueueManager:
             # Extract tracks
             for box, track_id, cls in zip(boxes, track_ids, clss):
                 # Draw bounding box
-                self.annotator.box_label(box, label=f"{self.names[cls]}#{track_id}", color=colors(int(track_id), True))
+                annotator.box_label(box, label=f"{self.names[cls]}#{track_id}", color=colors(int(track_id), True))
 
                 # Update track history
                 track_line = self.track_history[track_id]
@@ -86,7 +85,7 @@ class QueueManager:
 
                 # Draw track trails if enabled
                 if self.draw_tracks:
-                    self.annotator.draw_centroid_and_tracks(
+                    annotator.draw_centroid_and_tracks(
                         track_line,
                         color=colors(int(track_id), True),
                         track_thickness=self.line_thickness,
@@ -103,19 +102,15 @@ class QueueManager:
         # Display queue counts
         label = f"Queue Counts : {str(self.counts)}"
         if label is not None:
-            self.annotator.queue_counts_display(
+            annotator.queue_counts_display(
                 label,
                 points=self.reg_pts,
                 region_color=(255, 0, 255),
                 txt_color=(0, 0, 0),
             )
 
-        self.display_frames()
-
-    def display_frames(self):
-        """Displays the current frame with annotations."""
         if self.env_check and self.view_img:
-            self.annotator.draw_region(reg_pts=self.reg_pts, thickness=self.line_thickness * 2, color=(255, 0, 255))
+            annotator.draw_region(reg_pts=self.reg_pts, thickness=self.line_thickness * 2, color=(255, 0, 255))
             cv2.namedWindow(self.window_name)
             cv2.imshow(self.window_name, self.im0)
             # Close window on 'q' key press

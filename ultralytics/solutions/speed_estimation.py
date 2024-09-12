@@ -41,8 +41,8 @@ class SpeedEstimator:
         self.dist_data = {}
         self.trkd_ids = []  # list for already speed_estimated and tracked ID's
         self.spdl = spdl_dist_thresh    # Speed line distance threshold
-        self.trk_pt = {}    # set for track previous time
-        self.trk_previous_points = {}
+        self.trk_pt = {}    # set for tracks previous time
+        self.trk_pp = {}    # set for tracks previous point
 
         # Check if the environment supports imshow
         self.env_check = check_imshow(warn=True)
@@ -69,12 +69,12 @@ class SpeedEstimator:
 
             time_difference = time() - self.trk_pt[trk_id]
             if time_difference > 0:
-                dist_difference = np.abs(track[-1][1] - self.trk_previous_points[trk_id][1])
+                dist_difference = np.abs(track[-1][1] - self.trk_pp[trk_id][1])
                 speed = dist_difference / time_difference
                 self.dist_data[trk_id] = speed
 
         self.trk_pt[trk_id] = time()
-        self.trk_previous_points[trk_id] = track[-1]
+        self.trk_pp[trk_id] = track[-1]
 
     def estimate_speed(self, im0, tracks):
         """

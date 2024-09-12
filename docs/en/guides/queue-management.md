@@ -62,7 +62,7 @@ Queue management using [Ultralytics YOLOv8](https://github.com/ultralytics/ultra
             success, im0 = cap.read()
 
             if success:
-                tracks = model.track(im0, show=False, persist=True, verbose=False)
+                tracks = model.track(im0, persist=True)
                 out = queue.process_queue(im0, tracks)
 
                 video_writer.write(im0)
@@ -104,7 +104,7 @@ Queue management using [Ultralytics YOLOv8](https://github.com/ultralytics/ultra
             success, im0 = cap.read()
 
             if success:
-                tracks = model.track(im0, show=False, persist=True, verbose=False, classes=0)  # Only person class
+                tracks = model.track(im0, persist=True, classes=0)  # Only person class
                 out = queue.process_queue(im0, tracks)
 
                 video_writer.write(im0)

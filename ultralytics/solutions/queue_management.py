@@ -40,8 +40,7 @@ class QueueManager:
             Polygon(self.reg_pts) if len(self.reg_pts) >= 3 else Polygon([(20, 60), (20, 680), (1120, 680), (1120, 60)])
         )
 
-        # Image and annotation Information
-        self.im0 = None
+        # annotation Information
         self.tf = line_thickness
         self.view_img = view_img
 
@@ -58,7 +57,7 @@ class QueueManager:
         # Check if environment supports imshow
         self.env_check = check_imshow(warn=True)
 
-    def extract_and_process_tracks(self, tracks):
+    def extract_and_process_tracks(self, tracks, im0):
         """Extracts and processes tracks for queue management in a video stream."""
         # Initialize annotator and draw the queue region
         annotator = Annotator(self.im0, self.tf, self.names)
@@ -120,8 +119,7 @@ class QueueManager:
             im0 (ndarray): Current frame from the video stream.
             tracks (list): List of tracks obtained from the object tracking process.
         """
-        self.im0 = im0  # Store the current frame
-        self.extract_and_process_tracks(tracks)  # Extract and process tracks
+        self.extract_and_process_tracks(tracks, im0)  # Extract and process tracks
         return self.im0
 
 

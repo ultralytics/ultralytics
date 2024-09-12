@@ -29,7 +29,7 @@ from ultralytics.utils import (
     is_github_action_running,
 )
 from ultralytics.utils.downloads import download
-from ultralytics.utils.torch_utils import TORCH_1_9, zero_count, prune_model
+from ultralytics.utils.torch_utils import TORCH_1_9, prune_model, zero_count
 
 
 def test_model_forward():

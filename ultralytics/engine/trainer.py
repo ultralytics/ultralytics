@@ -409,7 +409,7 @@ class BaseTrainer:
                             break
 
                 # Log
-                mem = f"{torch.cuda.memory_reserved() / 1E9 if torch.cuda.is_available() else 0:.3g}G"  # (GB)
+                mem = f"{torch.cuda.memory_reserved() / 1E9 if torch.cuda.is_available() else torch.mps.driver_allocated_memory() / 1E9 if MACOS and torch.backends.mps.is_available() else 0:.3f}G"  # (GB)
                 loss_len = self.tloss.shape[0] if len(self.tloss.shape) else 1
                 losses = self.tloss if loss_len > 1 else torch.unsqueeze(self.tloss, 0)
                 if RANK in {-1, 0}:

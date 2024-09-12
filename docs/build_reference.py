@@ -12,16 +12,10 @@ from collections import defaultdict
 from pathlib import Path
 
 # Constants
-hub_sdk = False
-if hub_sdk:
-    PACKAGE_DIR = Path("/Users/glennjocher/PycharmProjects/hub-sdk/hub_sdk")
-    REFERENCE_DIR = PACKAGE_DIR.parent / "docs/reference"
-    GITHUB_REPO = "ultralytics/hub-sdk"
-else:
-    FILE = Path(__file__).resolve()
-    PACKAGE_DIR = FILE.parents[1] / "ultralytics"  # i.e. /Users/glennjocher/PycharmProjects/ultralytics/ultralytics
-    REFERENCE_DIR = PACKAGE_DIR.parent / "docs/en/reference"
-    GITHUB_REPO = "ultralytics/ultralytics"
+FILE = Path(__file__).resolve()
+PACKAGE_DIR = FILE.parents[1] / "ultralytics"  # i.e. /Users/glennjocher/PycharmProjects/ultralytics/ultralytics
+REFERENCE_DIR = PACKAGE_DIR.parent / "docs/en/reference"
+GITHUB_REPO = "ultralytics/ultralytics"
 
 
 def extract_classes_and_functions(filepath: Path) -> tuple:

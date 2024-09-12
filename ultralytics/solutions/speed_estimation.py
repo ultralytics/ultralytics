@@ -33,10 +33,7 @@ class SpeedEstimator:
         self.reg_pts = reg_pts if reg_pts is not None else [(20, 400), (1260, 400)]
 
         # Tracking information
-        self.clss = None
         self.names = names
-        self.boxes = None
-        self.trk_ids = None
         self.trk_pts = None
         self.tf = line_thickness
         self.trk_history = defaultdict(list)
@@ -137,13 +134,13 @@ class SpeedEstimator:
                 self.display_frames()
             return im0
 
-        self.boxes = tracks[0].boxes.xyxy.cpu()
-        self.clss = tracks[0].boxes.cls.cpu().tolist()
-        self.trk_ids = tracks[0].boxes.id.int().cpu().tolist()
+        boxes = tracks[0].boxes.xyxy.cpu()
+        clss = tracks[0].boxes.cls.cpu().tolist()
+        trk_ids = tracks[0].boxes.id.int().cpu().tolist()
         self.annotator = Annotator(self.im0, line_width=self.tf)
         self.annotator.draw_region(reg_pts=self.reg_pts, color=region_color, thickness=self.tf * 2)
 
-        for box, trk_id, cls in zip(self.boxes, self.trk_ids, self.clss):
+        for box, trk_id, cls in zip(boxes, trk_ids, clss):
             track = self.store_track_info(trk_id, box)
 
             if trk_id not in self.trk_previous_times:

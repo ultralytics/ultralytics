@@ -94,7 +94,6 @@ keywords: Ultralytics YOLOv8, speed estimation, object tracking, computer vision
 | `reg_pts`          | `list` | `[(20, 400), (1260, 400)]` | List of region points for speed estimation.          |
 | `view_img`         | `bool` | `False`                    | Whether to display the image with annotations.       |
 | `line_thickness`   | `int`  | `2`                        | Thickness of the lines for drawing boxes and tracks. |
-| `region_thickness` | `int`  | `5`                        | Thickness of the region lines.                       |
 | `spdl_dist_thresh` | `int`  | `10`                       | Distance threshold for speed calculation.            |
 
 ### Arguments `model.track`

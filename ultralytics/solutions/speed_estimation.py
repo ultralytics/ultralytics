@@ -13,7 +13,7 @@ from ultralytics.utils.plotting import Annotator, colors
 class SpeedEstimator:
     """A class to estimate the speed of objects in a real-time video stream based on their tracks."""
 
-    def __init__(self, names, reg_pts=None, view_img=False, line_thickness=2, region_thickness=5, spdl_dist_thresh=10):
+    def __init__(self, names, reg_pts=None, view_img=False, line_thickness=2, spdl_dist_thresh=10):
         """
         Initializes the SpeedEstimator with the given parameters.
 
@@ -22,7 +22,6 @@ class SpeedEstimator:
             reg_pts (list, optional): List of region points for speed estimation. Defaults to [(20, 400), (1260, 400)].
             view_img (bool, optional): Whether to display the image with annotations. Defaults to False.
             line_thickness (int, optional): Thickness of the lines for drawing boxes and tracks. Defaults to 2.
-            region_thickness (int, optional): Thickness of the region lines. Defaults to 5.
             spdl_dist_thresh (int, optional): Distance threshold for speed calculation. Defaults to 10.
         """
         # Visual & image information
@@ -32,7 +31,6 @@ class SpeedEstimator:
 
         # Region information
         self.reg_pts = reg_pts if reg_pts is not None else [(20, 400), (1260, 400)]
-        self.region_thickness = region_thickness
 
         # Tracking information
         self.clss = None
@@ -40,7 +38,7 @@ class SpeedEstimator:
         self.boxes = None
         self.trk_ids = None
         self.trk_pts = None
-        self.line_thickness = line_thickness
+        self.tf = line_thickness
         self.trk_history = defaultdict(list)
 
         # Speed estimation information
@@ -151,8 +149,8 @@ class SpeedEstimator:
             return im0
 
         self.extract_tracks(tracks)
-        self.annotator = Annotator(self.im0, line_width=self.line_thickness)
-        self.annotator.draw_region(reg_pts=self.reg_pts, color=region_color, thickness=self.region_thickness)
+        self.annotator = Annotator(self.im0, line_width=self.tf)
+        self.annotator.draw_region(reg_pts=self.reg_pts, color=region_color, thickness=self.tf * 2)
 
         for box, trk_id, cls in zip(self.boxes, self.trk_ids, self.clss):
             track = self.store_track_info(trk_id, box)

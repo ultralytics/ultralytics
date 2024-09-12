@@ -268,6 +268,20 @@ class Exporter:
             elif isinstance(m, C2f) and not is_tf_format:
                 # EdgeTPU does not support FlexSplitV while split provides cleaner ONNX graph
                 m.forward = m.forward_split
+            if isinstance(m, Detect) and mct:
+                from ultralytics.utils.tal import make_anchors
+
+                anchors, strides = (
+                    x.transpose(0, 1)
+                    for x in make_anchors(
+                        torch.cat([s / m.stride.unsqueeze(-1) for s in self.imgsz], dim=1),
+                        m.stride,
+                        0.5,
+                    )
+                )
+                m.anchors = anchors
+                m.strides = strides
+
             if isinstance(m, C2f) and mct:
                 m.forward = m.forward_fx
 
@@ -1295,9 +1309,9 @@ class Exporter:
         model = ct.models.MLModel(pipeline.spec, weights_dir=weights_dir)
         model.input_description["image"] = "Input image"
         model.input_description["iouThreshold"] = f"(optional) IoU threshold override (default: {nms.iouThreshold})"
-        model.input_description["confidenceThreshold"] = (
-            f"(optional) Confidence threshold override (default: {nms.confidenceThreshold})"
-        )
+        model.input_description[
+            "confidenceThreshold"
+        ] = f"(optional) Confidence threshold override (default: {nms.confidenceThreshold})"
         model.output_description["confidence"] = 'Boxes × Class confidence (see user-defined metadata "classes")'
         model.output_description["coordinates"] = "Boxes × [x, y, width, height] (relative to image size)"
         LOGGER.info(f"{prefix} pipeline success")

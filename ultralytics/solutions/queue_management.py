@@ -23,7 +23,6 @@ class QueueManager:
         view_img=False,
         view_queue_counts=True,
         draw_tracks=False,
-        count_txt_color=(255, 255, 255),
     ):
         """
         Initializes the QueueManager with specified parameters for tracking and counting objects.
@@ -36,7 +35,6 @@ class QueueManager:
             view_img (bool, optional): Whether to display the image frames. Defaults to False.
             view_queue_counts (bool, optional): Whether to display the queue counts. Defaults to True.
             draw_tracks (bool, optional): Whether to draw tracks of the objects. Defaults to False.
-            count_txt_color (tuple, optional): Color of the count text (BGR). Defaults to (255, 255, 255).
         """
         # Mouse events state
         self.is_drawing = False
@@ -60,7 +58,6 @@ class QueueManager:
 
         # Object counting Information
         self.counts = 0
-        self.count_txt_color = count_txt_color
 
         # Tracks info
         self.track_history = defaultdict(list)
@@ -113,7 +110,7 @@ class QueueManager:
                 label,
                 points=self.reg_pts,
                 region_color=(255, 0, 255),
-                txt_color=self.count_txt_color,
+                txt_color=(0, 0, 0),
             )
 
         self.display_frames()

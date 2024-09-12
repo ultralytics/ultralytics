@@ -49,27 +49,6 @@ class SpeedEstimator:
         # Check if the environment supports imshow
         self.env_check = check_imshow(warn=True)
 
-    def store_track_info(self, track_id, box):
-        """
-        Stores track data.
-
-        Args:
-            track_id (int): Object track id.
-            box (list): Object bounding box data.
-
-        Returns:
-            (list): Updated tracking history for the given track_id.
-        """
-        track = self.trk_history[track_id]
-        bbox_center = (float((box[0] + box[2]) / 2), float((box[1] + box[3]) / 2))
-        track.append(bbox_center)
-
-        if len(track) > 30:
-            track.pop(0)
-
-        self.trk_pts = np.hstack(track).astype(np.int32).reshape((-1, 1, 2))
-        return track
-
     def plot_box_and_track(self, track_id, box, cls, track):
         """
         Plots track and bounding box.
@@ -141,8 +120,14 @@ class SpeedEstimator:
         self.annotator.draw_region(reg_pts=self.reg_pts, color=region_color, thickness=self.tf * 2)
 
         for box, trk_id, cls in zip(boxes, trk_ids, clss):
-            track = self.store_track_info(trk_id, box)
+            track = self.trk_history[track_id]
+            bbox_center = (float((box[0] + box[2]) / 2), float((box[1] + box[3]) / 2))
+            track.append(bbox_center)
 
+            if len(track) > 30:
+                track.pop(0)
+
+            self.trk_pts = np.hstack(track).astype(np.int32).reshape((-1, 1, 2))
             if trk_id not in self.trk_previous_times:
                 self.trk_previous_times[trk_id] = 0
 

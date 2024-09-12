@@ -4,9 +4,6 @@ description: Discover Ultralytics YOLOv8 - the latest in real-time object detect
 keywords: Ultralytics, YOLOv8, object detection, image segmentation, deep learning, computer vision, AI, machine learning, documentation, tutorial
 ---
 
-
-
-
 <div align="center">
 <a href="https://www.ultralytics.com/events/yolovision" target="_blank"><img width="1024%" src="https://github.com/ultralytics/docs/releases/download/0/ultralytics-yolov8-banner.avif" alt="Ultralytics YOLO banner"></a>
 <a href="https://docs.ultralytics.com/zh/">中文</a> |

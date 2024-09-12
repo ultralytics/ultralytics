@@ -743,13 +743,14 @@ def prune_model(
         fraction2prune (float, optional): The fraction of weights to prune. Defaults to 0.2.
         min_params (int, optional): The minimum number of parameters a module must have to be pruned. Default or None uses 128.
         not2prune (Iterable[str], optional): Set of sub-strings for module names to skip pruning. Default is
-            {'model.15', 'model.18', 'model.21', 'model.22'}.
+            {'model.15', 'model.18', 'model.21', 'model.22'} and are always skipped.
 
     Returns:
         None
     """
     import torch.nn.utils.prune as prune
 
+    not2prune = set(not2prune) | {"model.15", "model.18", "model.21", "model.22"}  # always skip these
     param = get_num_params(model)
     z0 = zero_count(model) / param  # initial sparsity
     min_params = 128 if not min_params else min_params

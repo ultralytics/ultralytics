@@ -12,11 +12,9 @@
 # D407: Missing dashed underline after section
 # D413: Missing blank line after last section
 
-name: Publish Docs
+name: Build Docs
 
 on:
-  push:
-    branches: [main]
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -34,7 +32,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
-          token: ${{ secrets.PERSONAL_ACCESS_TOKEN || secrets.GITHUB_TOKEN }}
           ref: ${{ github.head_ref || github.ref }}
           fetch-depth: 0
       - name: Set up Python
@@ -48,7 +45,7 @@ jobs:
         continue-on-error: true
         run: ruff check --fix --unsafe-fixes --select D --ignore=D100,D104,D203,D205,D212,D213,D401,D406,D407,D413 .
       - name: Update Docs Reference Section and Push Changes
-        if: github.event_name == 'pull_request_target'
+        if: github.event_name == 'pull_request'
         run: |
           python docs/build_reference.py
           git pull origin ${{ github.head_ref || github.ref }}
@@ -68,7 +65,7 @@ jobs:
           python docs/build_docs.py
       - name: Commit and Push Docs changes
         continue-on-error: true
-        if: always() && github.event_name == 'pull_request_target'
+        if: always() && github.event_name == 'pull_request'
         run: |
           git pull origin ${{ github.head_ref || github.ref }}
           git add --update  # only add updated files
@@ -78,21 +75,4 @@ jobs:
             git push
           else
             echo "No changes to commit"
-          fi
-      - name: Publish Docs to https://docs.ultralytics.com
-        if: github.event_name == 'push'
-        run: |
-          git clone https://github.com/ultralytics/docs.git docs-repo
-          cd docs-repo
-          git checkout gh-pages || git checkout -b gh-pages
-          rm -rf *
-          cp -R ../site/* .
-          echo "${{ secrets.INDEXNOW_KEY_DOCS }}" > "${{ secrets.INDEXNOW_KEY_DOCS }}.txt"
-          git add .
-          if git diff --staged --quiet; then
-            echo "No changes to commit"
-          else
-            LATEST_HASH=$(git rev-parse --short=7 HEAD)
-            git commit -m "Update Docs for 'ultralytics ${{ steps.check_pypi.outputs.version }} - $LATEST_HASH'"
-            git push https://${{ secrets.PERSONAL_ACCESS_TOKEN }}@github.com/ultralytics/docs.git gh-pages
           fi

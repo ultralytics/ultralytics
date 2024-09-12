@@ -14,6 +14,7 @@ import numpy as np
 import requests
 import torch
 from PIL import Image
+import csv
 
 from ultralytics.data.utils import FORMATS_HELP_MSG, IMG_FORMATS, VID_FORMATS
 from ultralytics.utils import IS_COLAB, IS_KAGGLE, LOGGER, ops
@@ -274,9 +275,14 @@ class LoadImagesAndVideos:
     def __init__(self, path, batch=1, vid_stride=1):
         """Initialize the Dataloader and raise FileNotFoundError if file not found."""
         parent = None
-        if isinstance(path, str) and Path(path).suffix == ".txt":  # *.txt file with img/vid/dir on each line
+        if isinstance(path, str) and Path(path).suffix in [".txt", ".csv"]:  # *.txt or *.csv file with img/vid/dir on each line
             parent = Path(path).parent
-            path = Path(path).read_text().splitlines()  # list of sources
+            if Path(path).suffix == ".csv":
+                with open(path, 'r') as file:
+                    reader = csv.reader(file)
+                    path = [row[0] for row in reader] # .csv file list of sources
+            else:
+                path = Path(path).read_text().splitlines()  # .txt file list of sources
         files = []
         for p in sorted(path) if isinstance(path, (list, tuple)) else [path]:
             a = str(Path(p).absolute())  # do not use .resolve() https://github.com/ultralytics/ultralytics/issues/2912

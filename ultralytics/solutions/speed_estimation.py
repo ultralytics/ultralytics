@@ -41,7 +41,7 @@ class SpeedEstimator:
         self.dist_data = {}
         self.trk_idslist = []
         self.spdl_dist_thresh = spdl_dist_thresh
-        self.trk_previous_times = {}
+        self.trk_pt = {}
         self.trk_previous_points = {}
 
         # Check if the environment supports imshow
@@ -64,16 +64,16 @@ class SpeedEstimator:
         else:
             direction = "unknown"
 
-        if self.trk_previous_times.get(trk_id) != 0 and direction != "unknown" and trk_id not in self.trk_idslist:
+        if self.trk_pt.get(trk_id) != 0 and direction != "unknown" and trk_id not in self.trk_idslist:
             self.trk_idslist.append(trk_id)
 
-            time_difference = time() - self.trk_previous_times[trk_id]
+            time_difference = time() - self.trk_pt[trk_id]
             if time_difference > 0:
                 dist_difference = np.abs(track[-1][1] - self.trk_previous_points[trk_id][1])
                 speed = dist_difference / time_difference
                 self.dist_data[trk_id] = speed
 
-        self.trk_previous_times[trk_id] = time()
+        self.trk_pt[trk_id] = time()
         self.trk_previous_points[trk_id] = track[-1]
 
     def estimate_speed(self, im0, tracks):
@@ -109,8 +109,8 @@ class SpeedEstimator:
 
             trk_pts = np.hstack(track).astype(np.int32).reshape((-1, 1, 2))
 
-            if trk_id not in self.trk_previous_times:
-                self.trk_previous_times[trk_id] = 0
+            if trk_id not in self.trk_pt:
+                self.trk_pt[trk_id] = 0
 
             speed_label = f"{int(self.dist_data[trk_id])} km/h" if track_id in self.dist_data else self.names[int(cls)]
             bbox_color = colors(int(trk_id)) if trk_id in self.dist_data else (255, 0, 255)

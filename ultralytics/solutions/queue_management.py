@@ -45,7 +45,6 @@ class QueueManager:
         self.view_img = view_img
 
         self.names = names  # Class names
-        self.window_name = "Ultralytics YOLOv8 Queue Manager"
 
         # Object counting Information
         self.counts = 0
@@ -106,7 +105,7 @@ class QueueManager:
 
         if self.env_check and self.view_img:
             annotator.draw_region(reg_pts=self.reg_pts, thickness=self.line_thickness * 2, color=(255, 0, 255))
-            cv2.imshow(self.window_name, self.im0)
+            cv2.imshow("Ultralytics YOLOv8 Queue Manager", self.im0)
             # Close window on 'q' key press
             if cv2.waitKey(1) & 0xFF == ord("q"):
                 return

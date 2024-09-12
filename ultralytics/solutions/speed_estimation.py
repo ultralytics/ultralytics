@@ -39,8 +39,8 @@ class SpeedEstimator:
         # Speed estimation information
         self.current_time = 0
         self.dist_data = {}
-        self.trkd_ids = []
-        self.spdl_dist_thresh = spdl_dist_thresh
+        self.trkd_ids = []  # list for already speed_estimated and tracked ID's
+        self.spdl = spdl_dist_thresh    # Speed line distance threshold
         self.trk_pt = {}    # set for track previous time
         self.trk_previous_points = {}
 
@@ -57,9 +57,9 @@ class SpeedEstimator:
         """
         if not self.reg_pts[0][0] < track[-1][0] < self.reg_pts[1][0]:
             return
-        if self.reg_pts[1][1] - self.spdl_dist_thresh < track[-1][1] < self.reg_pts[1][1] + self.spdl_dist_thresh:
+        if self.reg_pts[1][1] - self.spdl < track[-1][1] < self.reg_pts[1][1] + self.spdl:
             direction = "known"
-        elif self.reg_pts[0][1] - self.spdl_dist_thresh < track[-1][1] < self.reg_pts[0][1] + self.spdl_dist_thresh:
+        elif self.reg_pts[0][1] - self.spdl < track[-1][1] < self.reg_pts[0][1] + self.spdl:
             direction = "known"
         else:
             direction = "unknown"

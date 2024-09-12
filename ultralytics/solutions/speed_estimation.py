@@ -34,7 +34,6 @@ class SpeedEstimator:
 
         # Tracking information
         self.names = names
-        self.trk_pts = None
         self.tf = line_thickness
         self.trk_history = defaultdict(list)
 

@@ -24,9 +24,7 @@ class SpeedEstimator:
             line_thickness (int, optional): Thickness of the lines for drawing boxes and tracks. Defaults to 2.
             spdl_dist_thresh (int, optional): Distance threshold for speed calculation. Defaults to 10.
         """
-        # annotation information
-        self.annotator = None
-        self.view_img = view_img
+        self.view_img = view_img    # bool for displaying inference
 
         # Region information
         self.reg_pts = reg_pts if reg_pts is not None else [(20, 400), (1260, 400)]
@@ -95,8 +93,8 @@ class SpeedEstimator:
         boxes = tracks[0].boxes.xyxy.cpu()
         clss = tracks[0].boxes.cls.cpu().tolist()
         trk_ids = tracks[0].boxes.id.int().cpu().tolist()
-        self.annotator = Annotator(im0, line_width=self.tf)
-        self.annotator.draw_region(reg_pts=self.reg_pts, color=(255, 0, 255), thickness=self.tf * 2)
+        annotator = Annotator(im0, line_width=self.tf)
+        annotator.draw_region(reg_pts=self.reg_pts, color=(255, 0, 255), thickness=self.tf * 2)
 
         for box, trk_id, cls in zip(boxes, trk_ids, clss):
             track = self.trk_history[track_id]
@@ -114,7 +112,7 @@ class SpeedEstimator:
             speed_label = f"{int(self.spd[trk_id])} km/h" if track_id in self.spd else self.names[int(cls)]
             bbox_color = colors(int(trk_id)) if trk_id in self.spd else (255, 0, 255)
 
-            self.annotator.box_label(box, speed_label, bbox_color)
+            annotator.box_label(box, speed_label, bbox_color)
             cv2.polylines(im0, [trk_pts], isClosed=False, color=(0, 255, 0), thickness=1)
             cv2.circle(im0, (int(track[-1][0]), int(track[-1][1])), 5, bbox_color, -1)
             self.calculate_speed(trk_id, track)

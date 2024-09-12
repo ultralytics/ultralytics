@@ -127,7 +127,6 @@ Queue management using [Ultralytics YOLOv8](https://github.com/ultralytics/ultra
 | `reg_pts`           | `list of tuples` | `[(20, 400), (1260, 400)]` | Points defining the counting region polygon. Defaults to a predefined rectangle.    |
 | `line_thickness`    | `int`            | `2`                        | Thickness of the annotation lines.                                                  |
 | `view_img`          | `bool`           | `False`                    | Whether to display the image frames.                                                |
-| `view_queue_counts` | `bool`           | `True`                     | Whether to display the queue counts.                                                |
 | `draw_tracks`       | `bool`           | `False`                    | Whether to draw tracks of the objects.                                              |
 
 ### Arguments `model.track`

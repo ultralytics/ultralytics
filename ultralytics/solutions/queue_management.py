@@ -21,7 +21,6 @@ class QueueManager:
         reg_pts=None,
         line_thickness=2,
         view_img=False,
-        view_queue_counts=True,
         draw_tracks=False,
     ):
         """
@@ -33,7 +32,6 @@ class QueueManager:
                 rectangle.
             line_thickness (int, optional): Thickness of the annotation lines. Defaults to 2.
             view_img (bool, optional): Whether to display the image frames. Defaults to False.
-            view_queue_counts (bool, optional): Whether to display the queue counts. Defaults to True.
             draw_tracks (bool, optional): Whether to draw tracks of the objects. Defaults to False.
         """
         # Mouse events state
@@ -50,7 +48,6 @@ class QueueManager:
         self.im0 = None
         self.tf = line_thickness
         self.view_img = view_img
-        self.view_queue_counts = view_queue_counts
 
         self.names = names  # Class names
         self.annotator = None  # Annotator

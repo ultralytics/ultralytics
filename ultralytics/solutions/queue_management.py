@@ -107,7 +107,6 @@ class QueueManager:
 
         if self.env_check and self.view_img:
             annotator.draw_region(reg_pts=self.reg_pts, thickness=self.line_thickness * 2, color=(255, 0, 255))
-            cv2.namedWindow(self.window_name)
             cv2.imshow(self.window_name, self.im0)
             # Close window on 'q' key press
             if cv2.waitKey(1) & 0xFF == ord("q"):
@@ -123,9 +122,6 @@ class QueueManager:
         """
         self.im0 = im0  # Store the current frame
         self.extract_and_process_tracks(tracks)  # Extract and process tracks
-
-        if self.view_img:
-            self.display_frames()  # Display the frame if enabled
         return self.im0
 
 

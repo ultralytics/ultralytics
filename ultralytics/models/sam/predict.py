@@ -849,40 +849,9 @@ class SAM2VideoPredictor(SAM2Predictor):
         points = self.prompts.pop("points", points)
         masks = self.prompts.pop("masks", masks)
 
-        src_shape, dst_shape = self.batch[1][0].shape[:2], im.shape[2:]
-        r = min(dst_shape[0] / src_shape[0], dst_shape[1] / src_shape[1])
-        self.inference_state["im"] = im
-        if points is not None:
-            points = torch.as_tensor(points, dtype=torch.float32, device=self.device)
-            points = points[None] if points.ndim == 1 else points
-            # Assuming labels are all positive if users don't pass labels.
-            if labels is None:
-                labels = torch.ones(points.shape[0])
-            labels = torch.as_tensor(labels, dtype=torch.int32, device=self.device)
-            points *= r
-            # NOTE: use multiple points to locate one object
-            # (N, 2) --> (1, N, 2), (N, ) --> (1, N)
-            # points, labels = points[None], labels[None]
-            # NOTE: treat points as independent ones
-            # (N, 2) --> (N, 1, 2), (N, ) --> (N, 1)
-            points, labels = points[:, None], labels[:, None]
-        if bboxes is not None:
-            bboxes = torch.as_tensor(bboxes, dtype=torch.float32, device=self.device)
-            bboxes = bboxes[None] if bboxes.ndim == 1 else bboxes
-            bboxes = bboxes.view(-1, 2, 2) * r
-            bbox_labels = torch.tensor([[2, 3]], dtype=torch.int32, device=bboxes.device).expand(len(bboxes), -1)
-            # NOTE: merge "boxes" and "points" into a single "points" input
-            # (where boxes are added at the beginning) to model.sam_prompt_encoder
-            if points is not None:
-                points = torch.cat([bboxes, points], dim=1)
-                labels = torch.cat([bbox_labels, labels], dim=1)
-            else:
-                points, labels = bboxes, bbox_labels
-        if masks is not None:
-            # TODO: resize the masks if needed
-            masks = torch.as_tensor(masks, dtype=torch.float32, device=self.device).unsqueeze(1)
-
+        bboxes, points, labels, masks = self._prepare_prompts(im.shape[2:], bboxes, points, labels, masks)
         frame = self.dataset.frame
+        self.inference_state["im"] = im
         output_dict = self.inference_state["output_dict"]
         if len(output_dict["cond_frame_outputs"]) == 0:  # initialize points
             # TODO

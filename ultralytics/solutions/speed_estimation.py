@@ -109,7 +109,7 @@ class SpeedEstimator:
             if len(track) > 30:
                 track.pop(0)
 
-            self.trk_pts = np.hstack(track).astype(np.int32).reshape((-1, 1, 2))
+            trk_pts = np.hstack(track).astype(np.int32).reshape((-1, 1, 2))
 
             if trk_id not in self.trk_previous_times:
                 self.trk_previous_times[trk_id] = 0
@@ -118,7 +118,7 @@ class SpeedEstimator:
             bbox_color = colors(int(trk_id)) if trk_id in self.dist_data else (255, 0, 255)
 
             self.annotator.box_label(box, speed_label, bbox_color)
-            cv2.polylines(self.im0, [self.trk_pts], isClosed=False, color=(0, 255, 0), thickness=1)
+            cv2.polylines(self.im0, [trk_pts], isClosed=False, color=(0, 255, 0), thickness=1)
             cv2.circle(self.im0, (int(track[-1][0]), int(track[-1][1])), 5, bbox_color, -1)
             self.calculate_speed(trk_id, track)
 

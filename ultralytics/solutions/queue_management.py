@@ -104,8 +104,8 @@ class QueueManager:
             )
 
         if self.env_check and self.view_img:
-            annotator.draw_region(reg_pts=self.reg_pts, thickness=self.line_thickness * 2, color=(255, 0, 255))
-            cv2.imshow("Ultralytics YOLOv8 Queue Manager", self.im0)
+            annotator.draw_region(reg_pts=self.reg_pts, thickness=self.tf * 2, color=(255, 0, 255))
+            cv2.imshow("Ultralytics YOLOv8 Queue Manager", im0)
             # Close window on 'q' key press
             if cv2.waitKey(1) & 0xFF == ord("q"):
                 return
@@ -119,7 +119,7 @@ class QueueManager:
             tracks (list): List of tracks obtained from the object tracking process.
         """
         self.extract_and_process_tracks(tracks, im0)  # Extract and process tracks
-        return self.im0
+        return im0
 
 
 if __name__ == "__main__":

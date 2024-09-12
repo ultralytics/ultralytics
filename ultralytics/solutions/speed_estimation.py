@@ -25,13 +25,14 @@ class SpeedEstimator:
             spdl_dist_thresh (int, optional): Distance threshold for speed calculation. Defaults to 10.
         """
         self.view_img = view_img    # bool for displaying inference
+        self.tf = line_thickness    # line thickness for annotator
 
         # Region information
         self.reg_pts = reg_pts if reg_pts is not None else [(20, 400), (1260, 400)]
 
+        self.names = names  # Classes names
+
         # Tracking information
-        self.names = names
-        self.tf = line_thickness
         self.trk_history = defaultdict(list)
 
         # Speed estimation information

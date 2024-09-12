@@ -20,7 +20,6 @@ class QueueManager:
         names,
         reg_pts=None,
         line_thickness=2,
-        track_thickness=2,
         view_img=False,
         region_color=(255, 0, 255),
         view_queue_counts=True,
@@ -38,7 +37,6 @@ class QueueManager:
             reg_pts (list of tuples, optional): Points defining the counting region polygon. Defaults to a predefined
                 rectangle.
             line_thickness (int, optional): Thickness of the annotation lines. Defaults to 2.
-            track_thickness (int, optional): Thickness of the track lines. Defaults to 2.
             view_img (bool, optional): Whether to display the image frames. Defaults to False.
             region_color (tuple, optional): Color of the counting region lines (BGR). Defaults to (255, 0, 255).
             view_queue_counts (bool, optional): Whether to display the queue counts. Defaults to True.
@@ -78,7 +76,6 @@ class QueueManager:
 
         # Tracks info
         self.track_history = defaultdict(list)
-        self.track_thickness = track_thickness
         self.draw_tracks = draw_tracks
         self.track_color = track_color
 
@@ -111,7 +108,7 @@ class QueueManager:
                     self.annotator.draw_centroid_and_tracks(
                         track_line,
                         color=self.track_color or colors(int(track_id), True),
-                        track_thickness=self.track_thickness,
+                        track_thickness=self.line_thickness,
                     )
 
                 prev_position = self.track_history[track_id][-2] if len(self.track_history[track_id]) > 1 else None

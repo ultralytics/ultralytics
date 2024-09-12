@@ -130,7 +130,6 @@ Queue management using [Ultralytics YOLOv8](https://github.com/ultralytics/ultra
 | `names`             | `dict`           | `model.names`              | A dictionary mapping class IDs to class names.                                      |
 | `reg_pts`           | `list of tuples` | `[(20, 400), (1260, 400)]` | Points defining the counting region polygon. Defaults to a predefined rectangle.    |
 | `line_thickness`    | `int`            | `2`                        | Thickness of the annotation lines.                                                  |
-| `track_thickness`   | `int`            | `2`                        | Thickness of the track lines.                                                       |
 | `view_img`          | `bool`           | `False`                    | Whether to display the image frames.                                                |
 | `region_color`      | `tuple`          | `(255, 0, 255)`            | Color of the counting region lines (BGR).                                           |
 | `view_queue_counts` | `bool`           | `True`                     | Whether to display the queue counts.                                                |

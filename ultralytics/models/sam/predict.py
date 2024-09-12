@@ -925,15 +925,13 @@ class SAM2VideoPredictor(SAM2Predictor):
         assert (masks is None) ^ (points is None), "'masks' and 'points' prompts are not compatible with each other."
         obj_idx = self._obj_id_to_idx(obj_id)
 
-        # TODO
+        pop_key = "point_inputs_per_obj"
         if points is not None:
-            point_inputs, mask_inputs = {"point_coords": points, "point_labels": labels}, None
+            point_inputs = {"point_coords": points, "point_labels": labels}
             self.inference_state["point_inputs_per_obj"][obj_idx][frame_idx] = point_inputs
-            self.inference_state["mask_inputs_per_obj"][obj_idx].pop(frame_idx, None)
-        else:
-            pred_masks, mask_inputs = None, masks
-            self.inference_state["mask_inputs_per_obj"][obj_idx][frame_idx] = mask_inputs
-            self.inference_state["point_inputs_per_obj"][obj_idx].pop(frame_idx, None)
+            pop_key = "mask_inputs_per_obj"
+        self.inference_state["mask_inputs_per_obj"][obj_idx][frame_idx] = masks
+        self.inference_state[pop_key][obj_idx].pop(frame_idx, None)
         # If this frame hasn't been tracked before, we treat it as an initial conditioning
         # frame, meaning that the inputs points are to generate segments on this frame without
         # using any memory from other frames, like in SAM. Otherwise (if it has been tracked),
@@ -968,7 +966,7 @@ class SAM2VideoPredictor(SAM2Predictor):
             batch_size=1,  # run on the slice of a single object
             is_init_cond_frame=is_init_cond_frame,
             point_inputs=point_inputs,
-            mask_inputs=mask_inputs,
+            mask_inputs=masks,
             reverse=False,
             # Skip the memory encoder when adding clicks or mask. We execute the memory encoder
             # at the beginning of `propagate_in_video` (after user finalize their clicks). This

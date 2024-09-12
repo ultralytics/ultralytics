@@ -12,7 +12,7 @@ import subprocess
 import time
 from importlib import metadata
 from pathlib import Path
-from typing import Optional, Iterable
+from typing import Iterable, Optional
 
 import cv2
 import numpy as np
@@ -758,6 +758,7 @@ def substr_in_set(value: str, collection: Iterable[str]) -> bool:
         (bool): True if any sub-strings in the set are found in the string, False otherwise.
     """
     return value in collection
+
 
 # Define constants
 IS_PYTHON_MINIMUM_3_10 = check_python("3.10", hard=False)

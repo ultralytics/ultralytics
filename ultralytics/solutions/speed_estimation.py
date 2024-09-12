@@ -45,33 +45,6 @@ class SpeedEstimator:
         # Check if the environment supports imshow
         self.env_check = check_imshow(warn=True)
 
-    def calculate_speed(self, trk_id, track):
-        """
-        Calculates the speed of an object.
-
-        Args:
-            trk_id (int): Object track id.
-            track (list): Tracking history for drawing tracks path.
-        """
-        if not self.reg_pts[0][0] < track[-1][0] < self.reg_pts[1][0]:
-            return
-        if self.reg_pts[1][1] - self.spdl < track[-1][1] < self.reg_pts[1][1] + self.spdl:
-            direction = "known"
-        elif self.reg_pts[0][1] - self.spdl < track[-1][1] < self.reg_pts[0][1] + self.spdl:
-            direction = "known"
-        else:
-            direction = "unknown"
-
-        if self.trk_pt.get(trk_id) != 0 and direction != "unknown" and trk_id not in self.trkd_ids:
-            self.trkd_ids.append(trk_id)
-
-            time_difference = time() - self.trk_pt[trk_id]
-            if time_difference > 0:
-                self.spd[trk_id] = np.abs(track[-1][1] - self.trk_pp[trk_id][1]) /time_difference
-
-        self.trk_pt[trk_id] = time()
-        self.trk_pp[trk_id] = track[-1]
-
     def estimate_speed(self, im0, tracks):
         """
         Estimates the speed of objects based on tracking data.
@@ -113,7 +86,26 @@ class SpeedEstimator:
             annotator.box_label(box, speed_label, bbox_color)
             cv2.polylines(im0, [trk_pts], isClosed=False, color=(0, 255, 0), thickness=self.tf)
             cv2.circle(im0, (int(track[-1][0]), int(track[-1][1])), self.tf*2, bbox_color, -1)
-            self.calculate_speed(trk_id, track)
+
+            # Calculation of object speed
+            if not self.reg_pts[0][0] < track[-1][0] < self.reg_pts[1][0]:
+                return
+            if self.reg_pts[1][1] - self.spdl < track[-1][1] < self.reg_pts[1][1] + self.spdl:
+                direction = "known"
+            elif self.reg_pts[0][1] - self.spdl < track[-1][1] < self.reg_pts[0][1] + self.spdl:
+                direction = "known"
+            else:
+                direction = "unknown"
+
+            if self.trk_pt.get(trk_id) != 0 and direction != "unknown" and trk_id not in self.trkd_ids:
+                self.trkd_ids.append(trk_id)
+
+                time_difference = time() - self.trk_pt[trk_id]
+                if time_difference > 0:
+                    self.spd[trk_id] = np.abs(track[-1][1] - self.trk_pp[trk_id][1]) / time_difference
+
+            self.trk_pt[trk_id] = time()
+            self.trk_pp[trk_id] = track[-1]
 
         if self.view_img and self.env_check:
             cv2.imshow("Ultralytics Speed Estimation", im0)

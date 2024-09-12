@@ -25,7 +25,6 @@ class QueueManager:
         view_queue_counts=True,
         draw_tracks=False,
         count_txt_color=(255, 255, 255),
-        fontsize=0.7,
     ):
         """
         Initializes the QueueManager with specified parameters for tracking and counting objects.
@@ -40,7 +39,6 @@ class QueueManager:
             view_queue_counts (bool, optional): Whether to display the queue counts. Defaults to True.
             draw_tracks (bool, optional): Whether to draw tracks of the objects. Defaults to False.
             count_txt_color (tuple, optional): Color of the count text (BGR). Defaults to (255, 255, 255).
-            fontsize (float, optional): Font size for the text annotations. Defaults to 0.7.
         """
         # Mouse events state
         self.is_drawing = False
@@ -58,7 +56,6 @@ class QueueManager:
         self.tf = line_thickness
         self.view_img = view_img
         self.view_queue_counts = view_queue_counts
-        self.fontsize = fontsize
 
         self.names = names  # Class names
         self.annotator = None  # Annotator

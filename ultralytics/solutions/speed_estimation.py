@@ -35,7 +35,6 @@ class SpeedEstimator:
         self.trk_history = defaultdict(list)
 
         # Speed estimation information
-        self.current_time = 0
         self.spd = {}       # set for speed data
         self.trkd_ids = []  # list for already speed_estimated and tracked ID's
         self.spdl = spdl_dist_thresh    # Speed line distance threshold

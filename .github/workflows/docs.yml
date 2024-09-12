@@ -65,7 +65,7 @@ jobs:
       - name: Build Docs and Check for Warnings
         run: |
           export JUPYTER_PLATFORM_DIRS=1
-          python docs/build_docs.py
+          curl -s "https://raw.githubusercontent.com/ultralytics/ultralytics/main/docs/build_docs.py" | python -
       - name: Commit and Push Docs changes
         continue-on-error: true
         if: always() && github.event_name == 'pull_request_target'

@@ -21,7 +21,6 @@ class QueueManager:
         reg_pts=None,
         line_thickness=2,
         view_img=False,
-        region_color=(255, 0, 255),
         view_queue_counts=True,
         draw_tracks=False,
         count_txt_color=(255, 255, 255),
@@ -35,7 +34,6 @@ class QueueManager:
                 rectangle.
             line_thickness (int, optional): Thickness of the annotation lines. Defaults to 2.
             view_img (bool, optional): Whether to display the image frames. Defaults to False.
-            region_color (tuple, optional): Color of the counting region lines (BGR). Defaults to (255, 0, 255).
             view_queue_counts (bool, optional): Whether to display the queue counts. Defaults to True.
             draw_tracks (bool, optional): Whether to draw tracks of the objects. Defaults to False.
             count_txt_color (tuple, optional): Color of the count text (BGR). Defaults to (255, 255, 255).
@@ -49,7 +47,6 @@ class QueueManager:
         self.counting_region = (
             Polygon(self.reg_pts) if len(self.reg_pts) >= 3 else Polygon([(20, 60), (20, 680), (1120, 680), (1120, 60)])
         )
-        self.region_color = region_color
 
         # Image and annotation Information
         self.im0 = None
@@ -115,7 +112,7 @@ class QueueManager:
             self.annotator.queue_counts_display(
                 label,
                 points=self.reg_pts,
-                region_color=self.region_color,
+                region_color=(255, 0, 255),
                 txt_color=self.count_txt_color,
             )
 
@@ -124,7 +121,7 @@ class QueueManager:
     def display_frames(self):
         """Displays the current frame with annotations."""
         if self.env_check and self.view_img:
-            self.annotator.draw_region(reg_pts=self.reg_pts, thickness=self.line_thickness * 2, color=self.region_color)
+            self.annotator.draw_region(reg_pts=self.reg_pts, thickness=self.line_thickness * 2, color=(255, 0, 255))
             cv2.namedWindow(self.window_name)
             cv2.imshow(self.window_name, self.im0)
             # Close window on 'q' key press

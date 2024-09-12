@@ -56,8 +56,6 @@ Queue management using [Ultralytics YOLOv8](https://github.com/ultralytics/ultra
             names=model.names,
             reg_pts=queue_region,
             line_thickness=3,
-            fontsize=1.0,
-            region_color=(255, 144, 31),
         )
 
         while cap.isOpened():
@@ -100,8 +98,6 @@ Queue management using [Ultralytics YOLOv8](https://github.com/ultralytics/ultra
             names=model.names,
             reg_pts=queue_region,
             line_thickness=3,
-            fontsize=1.0,
-            region_color=(255, 144, 31),
         )
 
         while cap.isOpened():
@@ -131,7 +127,6 @@ Queue management using [Ultralytics YOLOv8](https://github.com/ultralytics/ultra
 | `reg_pts`           | `list of tuples` | `[(20, 400), (1260, 400)]` | Points defining the counting region polygon. Defaults to a predefined rectangle.    |
 | `line_thickness`    | `int`            | `2`                        | Thickness of the annotation lines.                                                  |
 | `view_img`          | `bool`           | `False`                    | Whether to display the image frames.                                                |
-| `region_color`      | `tuple`          | `(255, 0, 255)`            | Color of the counting region lines (BGR).                                           |
 | `view_queue_counts` | `bool`           | `True`                     | Whether to display the queue counts.                                                |
 | `draw_tracks`       | `bool`           | `False`                    | Whether to draw tracks of the objects.                                              |
 | `count_txt_color`   | `tuple`          | `(255, 255, 255)`          | Color of the count text (BGR).                                                      |
@@ -166,8 +161,6 @@ queue = solutions.QueueManager(
     names=model.names,
     reg_pts=queue_region,
     line_thickness=3,
-    fontsize=1.0,
-    region_color=(255, 144, 31),
 )
 
 while cap.isOpened():
@@ -219,8 +212,6 @@ queue_airport = solutions.QueueManager(
     names=model.names,
     reg_pts=queue_region_airport,
     line_thickness=3,
-    fontsize=1.0,
-    region_color=(0, 255, 0),
 )
 ```
 

@@ -70,7 +70,7 @@ class QueueManager:
             # Extract tracks
             for box, track_id, cls in zip(boxes, track_ids, clss):
                 # Draw bounding box
-                annotator.box_label(box, label=f"{self.names[cls]}#{track_id}", color=colors(int(track_id), True))
+                annotator.box_label(box, label=self.names[cls], color=colors(int(track_id), True))
 
                 # Update track history
                 track_line = self.track_history[track_id]

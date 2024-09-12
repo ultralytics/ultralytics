@@ -135,7 +135,6 @@ Queue management using [Ultralytics YOLOv8](https://github.com/ultralytics/ultra
 | `view_queue_counts` | `bool`           | `True`                     | Whether to display the queue counts.                                                |
 | `draw_tracks`       | `bool`           | `False`                    | Whether to draw tracks of the objects.                                              |
 | `count_txt_color`   | `tuple`          | `(255, 255, 255)`          | Color of the count text (BGR).                                                      |
-| `track_color`       | `tuple`          | `None`                     | Color of the tracks. If `None`, different colors will be used for different tracks. |
 | `fontsize`          | `float`          | `0.7`                      | Font size for the text annotations.                                                 |
 
 ### Arguments `model.track`

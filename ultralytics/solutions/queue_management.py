@@ -25,7 +25,6 @@ class QueueManager:
         view_queue_counts=True,
         draw_tracks=False,
         count_txt_color=(255, 255, 255),
-        track_color=None,
         fontsize=0.7,
     ):
         """
@@ -41,8 +40,6 @@ class QueueManager:
             view_queue_counts (bool, optional): Whether to display the queue counts. Defaults to True.
             draw_tracks (bool, optional): Whether to draw tracks of the objects. Defaults to False.
             count_txt_color (tuple, optional): Color of the count text (BGR). Defaults to (255, 255, 255).
-            track_color (tuple, optional): Color of the tracks. If None, different colors will be used for different
-                tracks. Defaults to None.
             fontsize (float, optional): Font size for the text annotations. Defaults to 0.7.
         """
         # Mouse events state
@@ -74,7 +71,6 @@ class QueueManager:
         # Tracks info
         self.track_history = defaultdict(list)
         self.draw_tracks = draw_tracks
-        self.track_color = track_color
 
         # Check if environment supports imshow
         self.env_check = check_imshow(warn=True)
@@ -104,7 +100,7 @@ class QueueManager:
                 if self.draw_tracks:
                     self.annotator.draw_centroid_and_tracks(
                         track_line,
-                        color=self.track_color or colors(int(track_id), True),
+                        color=colors(int(track_id), True),
                         track_thickness=self.line_thickness,
                     )
 

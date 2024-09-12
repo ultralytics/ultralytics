@@ -34,11 +34,11 @@ class SpeedEstimator:
 
         self.view_img = view_img  # bool for displaying inference
         self.tf = line_thickness  # line thickness for annotator
-        self.spd = {}       # set for speed data
+        self.spd = {}  # set for speed data
         self.trkd_ids = []  # list for already speed_estimated and tracked ID's
-        self.spdl = spdl_dist_thresh    # Speed line distance threshold
-        self.trk_pt = {}    # set for tracks previous time
-        self.trk_pp = {}    # set for tracks previous point
+        self.spdl = spdl_dist_thresh  # Speed line distance threshold
+        self.trk_pt = {}  # set for tracks previous time
+        self.trk_pp = {}  # set for tracks previous point
 
         # Check if the environment supports imshow
         self.env_check = check_imshow(warn=True)
@@ -81,7 +81,7 @@ class SpeedEstimator:
 
             annotator.box_label(box, speed_label, bbox_color)
             cv2.polylines(im0, [trk_pts], isClosed=False, color=bbox_color, thickness=self.tf)
-            cv2.circle(im0, (int(track[-1][0]), int(track[-1][1])), self.tf*2, bbox_color, -1)
+            cv2.circle(im0, (int(track[-1][0]), int(track[-1][1])), self.tf * 2, bbox_color, -1)
 
             # Calculation of object speed
             if not self.reg_pts[0][0] < track[-1][0] < self.reg_pts[1][0]:

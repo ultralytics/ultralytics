@@ -72,7 +72,7 @@ keywords: Ultralytics YOLOv8, speed estimation, object tracking, computer vision
                 print("Video frame is empty or video processing has been successfully completed.")
                 break
 
-            tracks = model.track(im0, persist=True, show=False)
+            tracks = model.track(im0, persist=True)
 
             im0 = speed_obj.estimate_speed(im0, tracks)
             video_writer.write(im0)

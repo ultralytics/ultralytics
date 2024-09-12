@@ -12,7 +12,7 @@ import subprocess
 import time
 from importlib import metadata
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Iterable
 
 import cv2
 import numpy as np
@@ -745,6 +745,19 @@ def cuda_is_available() -> bool:
     """
     return cuda_device_count() > 0
 
+
+def substr_in_set(value: str, collection: Iterable[str]) -> bool:
+    """
+    Check if a string contains any sub-strings from a set.
+
+    Args:
+        value (str): The string to check.
+        collection (set[str]): The set of sub-strings to check against.
+
+    Returns:
+        (bool): True if any sub-strings in the set are found in the string, False otherwise.
+    """
+    return value in collection
 
 # Define constants
 IS_PYTHON_MINIMUM_3_10 = check_python("3.10", hard=False)

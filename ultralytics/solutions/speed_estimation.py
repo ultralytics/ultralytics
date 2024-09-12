@@ -38,7 +38,7 @@ class SpeedEstimator:
 
         # Speed estimation information
         self.current_time = 0
-        self.dist_data = {}
+        self.spd = {}       # set for speed data
         self.trkd_ids = []  # list for already speed_estimated and tracked ID's
         self.spdl = spdl_dist_thresh    # Speed line distance threshold
         self.trk_pt = {}    # set for tracks previous time
@@ -71,7 +71,7 @@ class SpeedEstimator:
             if time_difference > 0:
                 dist_difference = np.abs(track[-1][1] - self.trk_pp[trk_id][1])
                 speed = dist_difference / time_difference
-                self.dist_data[trk_id] = speed
+                self.spd[trk_id] = speed
 
         self.trk_pt[trk_id] = time()
         self.trk_pp[trk_id] = track[-1]
@@ -111,8 +111,8 @@ class SpeedEstimator:
             if trk_id not in self.trk_pt:
                 self.trk_pt[trk_id] = 0
 
-            speed_label = f"{int(self.dist_data[trk_id])} km/h" if track_id in self.dist_data else self.names[int(cls)]
-            bbox_color = colors(int(trk_id)) if trk_id in self.dist_data else (255, 0, 255)
+            speed_label = f"{int(self.spd[trk_id])} km/h" if track_id in self.spd else self.names[int(cls)]
+            bbox_color = colors(int(trk_id)) if trk_id in self.spd else (255, 0, 255)
 
             self.annotator.box_label(box, speed_label, bbox_color)
             cv2.polylines(im0, [trk_pts], isClosed=False, color=(0, 255, 0), thickness=1)

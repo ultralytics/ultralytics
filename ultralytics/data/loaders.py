@@ -1,6 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-import csv
 import glob
 import math
 import os
@@ -275,15 +274,11 @@ class LoadImagesAndVideos:
     def __init__(self, path, batch=1, vid_stride=1):
         """Initialize the Dataloader and raise FileNotFoundError if file not found."""
         parent = None
-        if isinstance(path, str) and Path(path).suffix in [
-            ".txt",
-            ".csv",
-        ]:  # *.txt or *.csv file with img/vid/dir on each line
+        if isinstance(path, str) and Path(path).suffix in [".txt", ".csv"]:  # *.txt or *.csv file with img/vid/dir on each line
             parent = Path(path).parent
             if Path(path).suffix == ".csv":
-                with open(path) as file:
-                    reader = csv.reader(file)
-                    path = [row[0] for row in reader]  # .csv file list of sources
+                with open(path, 'r') as file:
+                    path = [line.split(",")[0] for line in file.read().strip().splitlines()] # .csv file list of sources
             else:
                 path = Path(path).read_text().splitlines()  # .txt file list of sources
         files = []

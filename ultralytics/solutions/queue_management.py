@@ -34,10 +34,6 @@ class QueueManager:
             view_img (bool, optional): Whether to display the image frames. Defaults to False.
             draw_tracks (bool, optional): Whether to draw tracks of the objects. Defaults to False.
         """
-        # Mouse events state
-        self.is_drawing = False
-        self.selected_point = None
-
         # Region & Line Information
         self.reg_pts = reg_pts if reg_pts is not None else [(20, 60), (20, 680), (1120, 680), (1120, 60)]
         self.counting_region = (

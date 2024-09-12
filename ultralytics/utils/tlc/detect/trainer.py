@@ -32,7 +32,17 @@ class TLCDetectionTrainer(TLCTrainerMixin, DetectionTrainer):
     def build_dataset(self, table, mode="train", batch=None):
         # Dataset object for training / validation
         gs = max(int(de_parallel(self.model).stride.max() if self.model else 0), 32)
-        return build_tlc_yolo_dataset(self.args, table, batch, self.data, mode=mode, rect=mode == "val", stride=gs)
+        exclude_zero = mode == "val" and self._settings.exclude_zero_weight_collection
+        return build_tlc_yolo_dataset(
+            self.args,
+            table,
+            batch,
+            self.data,
+            mode=mode,
+            rect=mode == "val",
+            stride=gs,
+            exclude_zero=exclude_zero,
+        )
 
     def get_validator(self, dataloader=None):
         self.loss_names = "box_loss", "cls_loss", "dfl_loss"

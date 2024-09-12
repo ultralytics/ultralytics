@@ -33,6 +33,7 @@ class TLCClassificationDataset(TLCDatasetMixin, ClassificationDataset):
         prefix="",
         image_column_name=tlc.IMAGE,
         label_column_name=tlc.LABEL,
+        exclude_zero=False,
     ):
         # Populate self.samples with image paths and labels
         # Each is a tuple of (image_path, label)
@@ -46,6 +47,9 @@ class TLCClassificationDataset(TLCDatasetMixin, ClassificationDataset):
         self.example_ids = []
 
         for example_id, row in enumerate(self.table.table_rows):
+            if exclude_zero and row.get(tlc.SAMPLE_WEIGHT, 1) == 0:
+                continue
+
             self.example_ids.append(example_id)
             image_path = Path(tlc.Url(row[image_column_name]).to_absolute().to_str())
             self.samples.append((image_path, row[label_column_name]))

@@ -3,7 +3,9 @@ import pandas as pd
 import pytest
 import tlc
 
-from ultralytics.utils.tlc import Settings, TLCYOLO, TLCDetectionTrainer
+from unittest.mock import Mock
+
+from ultralytics.utils.tlc import Settings, TLCYOLO, TLCClassificationTrainer, TLCDetectionTrainer
 from ultralytics.utils.tlc.constants import DEFAULT_COLLECT_RUN_DESCRIPTION
 from ultralytics.models.yolo import YOLO
 
@@ -266,9 +268,9 @@ def test_sampling_weights() -> None:
     assert len(sampled_example_ids) == len(edited_table) * epochs, "Expected no change in the number of samples"
 
 
-def test_exclude_zero_weight() -> None:
+def test_exclude_zero_weight_training() -> None:
     # Test that sampling weights are correctly applied, with worker processes enabled
-    settings = Settings(project_name="test_sampling_weights", exclude_zero_weight_training=True)
+    settings = Settings(project_name="test_exclude_zero_weight_training", exclude_zero_weight_training=True)
     trainer = TLCDetectionTrainer(overrides={"data": TASK2DATASET["detect"], "settings": settings, "workers": 4})
 
     # Create edited table where one sample has weight increased to 2
@@ -286,6 +288,35 @@ def test_exclude_zero_weight() -> None:
 
     assert 0 not in sampled_example_ids, "Sample with zero weight should not be included in training"
     assert len(sampled_example_ids) == len(edited_table) - 1, "Expected one sample to be excluded"
+
+
+@pytest.mark.parametrize("task,trainer_class", [("detect", TLCDetectionTrainer),
+                                                ("classify", TLCClassificationTrainer)])
+def test_exclude_zero_weight_collection(task, trainer_class) -> None:
+    # Test that sampling weights are correctly applied during metrics collection
+    settings = Settings(project_name=f"test_sampling_weights_collection_{task}", exclude_zero_weight_collection=True)
+    trainer = trainer_class(overrides={"data": TASK2DATASET[task], "settings": settings, "workers": 2})
+
+    # Classification trainer needs a model object to create dataloader
+    if task == "classify":
+        trainer.model = Mock()
+
+    # Create edited table where several samples have weight 0
+    edited_table = tlc.EditedTable(
+        url=trainer.trainset.url.create_sibling(f"erna_{task}"),
+        input_table_url=trainer.trainset,
+        edits={tlc.SAMPLE_WEIGHT: {
+            "runs_and_values": [[0, 3], 0.0]}},
+    )
+
+    dataloader = trainer.get_dataloader(edited_table, batch_size=2, rank=-1, mode="val")
+    sampled_example_ids = []
+    for batch in dataloader:
+        sampled_example_ids.extend(batch["example_id"])
+
+    assert 0 not in sampled_example_ids, "Sample with zero weight should not be included in collection"
+    assert 3 not in sampled_example_ids, "Sample with zero weight should not be included in collection"
+    assert len(sampled_example_ids) == len(edited_table) - 2, "Expected two samples to be excluded"
 
 
 def test_illegal_reducer() -> None:

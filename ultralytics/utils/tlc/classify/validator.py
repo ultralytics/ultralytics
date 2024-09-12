@@ -36,6 +36,7 @@ class TLCClassificationValidator(TLCValidatorMixin, yolo.classify.Classification
             prefix=self.args.split,
             image_column_name=self._image_column_name,
             label_column_name=self._label_column_name,
+            exclude_zero=self._settings.exclude_zero_weight_collection,
         )
 
     def _get_metrics_schemas(self):

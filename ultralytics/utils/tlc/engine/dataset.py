@@ -25,6 +25,9 @@ class TLCDatasetMixin:
         sample[tlc.EXAMPLE_ID] = self.example_ids[index]  # Add example id to the sample dict
         return sample
 
+    def __len__(self):
+        return len(self.example_ids)
+
     def _is_scanned(self):
         """ Check if the dataset has been scanned. """
         verified_marker_url = self.table.url / "cache.yolo"

@@ -18,9 +18,10 @@ from typing import Any
 
 class TLCYOLODataset(TLCDatasetMixin, YOLODataset):
 
-    def __init__(self, table, data=None, task="detect", **kwargs):
+    def __init__(self, table, data=None, task="detect", exclude_zero=False, **kwargs):
         assert task == "detect", f"Unsupported task: {task} for TLCYOLODataset. Only 'detect' is supported."
         self.table = table
+        self._exclude_zero = exclude_zero
 
         from ultralytics.utils.tlc.detect.utils import is_coco_table, is_yolo_table
         if is_yolo_table(self.table):
@@ -29,8 +30,6 @@ class TLCYOLODataset(TLCDatasetMixin, YOLODataset):
             self._table_format = "COCO"
         else:
             raise ValueError(f"Unsupported table format for table {table.url}")
-
-        self.example_ids = []
 
         super().__init__(table, data=data, task=task, **kwargs)
 
@@ -42,8 +41,12 @@ class TLCYOLODataset(TLCDatasetMixin, YOLODataset):
 
     def get_labels(self):
         self.labels = []
+        self.example_ids = []
 
         for example_id, row in enumerate(self.table.table_rows):
+            if self._exclude_zero and row.get(tlc.SAMPLE_WEIGHT, 1) == 0:
+                continue
+
             self.example_ids.append(example_id)
             self.im_files.append(tlc.Url(row[tlc.IMAGE]).to_absolute().to_str())
             self.labels.append(tlc_table_row_to_yolo_label(row, self._table_format))

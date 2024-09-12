@@ -49,23 +49,6 @@ class SpeedEstimator:
         # Check if the environment supports imshow
         self.env_check = check_imshow(warn=True)
 
-    def plot_box_and_track(self, track_id, box, cls, track):
-        """
-        Plots track and bounding box.
-
-        Args:
-            track_id (int): Object track id.
-            box (list): Object bounding box data.
-            cls (str): Object class name.
-            track (list): Tracking history for drawing tracks path.
-        """
-        speed_label = f"{int(self.dist_data[track_id])} km/h" if track_id in self.dist_data else self.names[int(cls)]
-        bbox_color = colors(int(track_id)) if track_id in self.dist_data else (255, 0, 255)
-
-        self.annotator.box_label(box, speed_label, bbox_color)
-        cv2.polylines(self.im0, [self.trk_pts], isClosed=False, color=(0, 255, 0), thickness=1)
-        cv2.circle(self.im0, (int(track[-1][0]), int(track[-1][1])), 5, bbox_color, -1)
-
     def calculate_speed(self, trk_id, track):
         """
         Calculates the speed of an object.
@@ -128,10 +111,16 @@ class SpeedEstimator:
                 track.pop(0)
 
             self.trk_pts = np.hstack(track).astype(np.int32).reshape((-1, 1, 2))
+
             if trk_id not in self.trk_previous_times:
                 self.trk_previous_times[trk_id] = 0
 
-            self.plot_box_and_track(trk_id, box, cls, track)
+            speed_label = f"{int(self.dist_data[trk_id])} km/h" if track_id in self.dist_data else self.names[int(cls)]
+            bbox_color = colors(int(trk_id)) if trk_id in self.dist_data else (255, 0, 255)
+
+            self.annotator.box_label(box, speed_label, bbox_color)
+            cv2.polylines(self.im0, [self.trk_pts], isClosed=False, color=(0, 255, 0), thickness=1)
+            cv2.circle(self.im0, (int(track[-1][0]), int(track[-1][1])), 5, bbox_color, -1)
             self.calculate_speed(trk_id, track)
 
         if self.view_img and self.env_check:

@@ -100,7 +100,7 @@ class QueueManager:
                 label,
                 points=self.reg_pts,
                 region_color=(255, 0, 255),
-                txt_color=(0, 0, 0),
+                txt_color=(104, 31, 17),
             )
 
         if self.env_check and self.view_img:

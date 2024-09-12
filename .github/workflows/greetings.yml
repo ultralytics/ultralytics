@@ -3,11 +3,17 @@
 name: Greetings
 
 on:
-  pull_request_target:
+  pull_request:
     types: [opened]
   issues:
     types: [opened]
 
+permissions:
+  id-token: write
+  contents: read
+  issues: write
+  pull-requests: write
+  
 jobs:
   greeting:
     runs-on: ubuntu-latest

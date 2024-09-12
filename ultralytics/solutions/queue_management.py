@@ -26,7 +26,6 @@ class QueueManager:
         draw_tracks=False,
         count_txt_color=(255, 255, 255),
         track_color=None,
-        region_thickness=5,
         fontsize=0.7,
     ):
         """
@@ -44,7 +43,6 @@ class QueueManager:
             count_txt_color (tuple, optional): Color of the count text (BGR). Defaults to (255, 255, 255).
             track_color (tuple, optional): Color of the tracks. If None, different colors will be used for different
                 tracks. Defaults to None.
-            region_thickness (int, optional): Thickness of the counting region lines. Defaults to 5.
             fontsize (float, optional): Font size for the text annotations. Defaults to 0.7.
         """
         # Mouse events state
@@ -57,7 +55,6 @@ class QueueManager:
             Polygon(self.reg_pts) if len(self.reg_pts) >= 3 else Polygon([(20, 60), (20, 680), (1120, 680), (1120, 60)])
         )
         self.region_color = region_color
-        self.region_thickness = region_thickness
 
         # Image and annotation Information
         self.im0 = None
@@ -134,7 +131,7 @@ class QueueManager:
     def display_frames(self):
         """Displays the current frame with annotations."""
         if self.env_check and self.view_img:
-            self.annotator.draw_region(reg_pts=self.reg_pts, thickness=self.region_thickness, color=self.region_color)
+            self.annotator.draw_region(reg_pts=self.reg_pts, thickness=self.line_thickness * 2, color=self.region_color)
             cv2.namedWindow(self.window_name)
             cv2.imshow(self.window_name, self.im0)
             # Close window on 'q' key press

@@ -83,7 +83,6 @@ class SpeedEstimator:
         Args:
             im0 (ndarray): Image.
             tracks (list): List of tracks obtained from the object tracking process.
-            region_color (tuple, optional): Color to use when drawing regions. Defaults to (255, 0, 0).
 
         Returns:
             (ndarray): The image with annotated boxes and tracks.

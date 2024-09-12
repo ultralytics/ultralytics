@@ -67,9 +67,7 @@ class SpeedEstimator:
 
             time_difference = time() - self.trk_pt[trk_id]
             if time_difference > 0:
-                dist_difference = np.abs(track[-1][1] - self.trk_pp[trk_id][1])
-                speed = dist_difference / time_difference
-                self.spd[trk_id] = speed
+                self.spd[trk_id] = np.abs(track[-1][1] - self.trk_pp[trk_id][1]) /time_difference
 
         self.trk_pt[trk_id] = time()
         self.trk_pp[trk_id] = track[-1]
@@ -113,8 +111,8 @@ class SpeedEstimator:
             bbox_color = colors(int(trk_id)) if trk_id in self.spd else (255, 0, 255)
 
             annotator.box_label(box, speed_label, bbox_color)
-            cv2.polylines(im0, [trk_pts], isClosed=False, color=(0, 255, 0), thickness=1)
-            cv2.circle(im0, (int(track[-1][0]), int(track[-1][1])), 5, bbox_color, -1)
+            cv2.polylines(im0, [trk_pts], isClosed=False, color=(0, 255, 0), thickness=self.tf)
+            cv2.circle(im0, (int(track[-1][0]), int(track[-1][1])), self.tf*2, bbox_color, -1)
             self.calculate_speed(trk_id, track)
 
         if self.view_img and self.env_check:

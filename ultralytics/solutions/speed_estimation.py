@@ -24,8 +24,7 @@ class SpeedEstimator:
             line_thickness (int, optional): Thickness of the lines for drawing boxes and tracks. Defaults to 2.
             spdl_dist_thresh (int, optional): Distance threshold for speed calculation. Defaults to 10.
         """
-        # Visual & image information
-        self.im0 = None
+        # annotation information
         self.annotator = None
         self.view_img = view_img
 
@@ -77,7 +76,7 @@ class SpeedEstimator:
         self.trk_previous_times[trk_id] = time()
         self.trk_previous_points[trk_id] = track[-1]
 
-    def estimate_speed(self, im0, tracks, region_color=(255, 0, 0)):
+    def estimate_speed(self, im0, tracks):
         """
         Estimates the speed of objects based on tracking data.
 
@@ -89,7 +88,6 @@ class SpeedEstimator:
         Returns:
             (ndarray): The image with annotated boxes and tracks.
         """
-        self.im0 = im0
         if tracks[0].boxes.id is None:
             if self.view_img and self.env_check:
                 self.display_frames()
@@ -98,8 +96,8 @@ class SpeedEstimator:
         boxes = tracks[0].boxes.xyxy.cpu()
         clss = tracks[0].boxes.cls.cpu().tolist()
         trk_ids = tracks[0].boxes.id.int().cpu().tolist()
-        self.annotator = Annotator(self.im0, line_width=self.tf)
-        self.annotator.draw_region(reg_pts=self.reg_pts, color=region_color, thickness=self.tf * 2)
+        self.annotator = Annotator(im0, line_width=self.tf)
+        self.annotator.draw_region(reg_pts=self.reg_pts, color=(255, 0, 255), thickness=self.tf * 2)
 
         for box, trk_id, cls in zip(boxes, trk_ids, clss):
             track = self.trk_history[track_id]
@@ -118,16 +116,17 @@ class SpeedEstimator:
             bbox_color = colors(int(trk_id)) if trk_id in self.dist_data else (255, 0, 255)
 
             self.annotator.box_label(box, speed_label, bbox_color)
-            cv2.polylines(self.im0, [trk_pts], isClosed=False, color=(0, 255, 0), thickness=1)
-            cv2.circle(self.im0, (int(track[-1][0]), int(track[-1][1])), 5, bbox_color, -1)
+            cv2.polylines(im0, [trk_pts], isClosed=False, color=(0, 255, 0), thickness=1)
+            cv2.circle(im0, (int(track[-1][0]), int(track[-1][1])), 5, bbox_color, -1)
             self.calculate_speed(trk_id, track)
 
         if self.view_img and self.env_check:
-            cv2.imshow("Ultralytics Speed Estimation", self.im0)
+            cv2.imshow("Ultralytics Speed Estimation", im0)
             if cv2.waitKey(1) & 0xFF == ord("q"):
                 return
 
         return im0
+
 
 if __name__ == "__main__":
     names = {0: "person", 1: "car"}  # example class names

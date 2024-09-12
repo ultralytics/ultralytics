@@ -39,9 +39,9 @@ class SpeedEstimator:
         # Speed estimation information
         self.current_time = 0
         self.dist_data = {}
-        self.trk_idslist = []
+        self.trkd_ids = []
         self.spdl_dist_thresh = spdl_dist_thresh
-        self.trk_pt = {}
+        self.trk_pt = {}    # set for track previous time
         self.trk_previous_points = {}
 
         # Check if the environment supports imshow
@@ -64,8 +64,8 @@ class SpeedEstimator:
         else:
             direction = "unknown"
 
-        if self.trk_pt.get(trk_id) != 0 and direction != "unknown" and trk_id not in self.trk_idslist:
-            self.trk_idslist.append(trk_id)
+        if self.trk_pt.get(trk_id) != 0 and direction != "unknown" and trk_id not in self.trkd_ids:
+            self.trkd_ids.append(trk_id)
 
             time_difference = time() - self.trk_pt[trk_id]
             if time_difference > 0:

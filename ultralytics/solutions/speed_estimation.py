@@ -52,17 +52,6 @@ class SpeedEstimator:
         # Check if the environment supports imshow
         self.env_check = check_imshow(warn=True)
 
-    def extract_tracks(self, tracks):
-        """
-        Extracts results from the provided tracking data.
-
-        Args:
-            tracks (list): List of tracks obtained from the object tracking process.
-        """
-        self.boxes = tracks[0].boxes.xyxy.cpu()
-        self.clss = tracks[0].boxes.cls.cpu().tolist()
-        self.trk_ids = tracks[0].boxes.id.int().cpu().tolist()
-
     def store_track_info(self, track_id, box):
         """
         Stores track data.
@@ -148,7 +137,9 @@ class SpeedEstimator:
                 self.display_frames()
             return im0
 
-        self.extract_tracks(tracks)
+        self.boxes = tracks[0].boxes.xyxy.cpu()
+        self.clss = tracks[0].boxes.cls.cpu().tolist()
+        self.trk_ids = tracks[0].boxes.id.int().cpu().tolist()
         self.annotator = Annotator(self.im0, line_width=self.tf)
         self.annotator.draw_region(reg_pts=self.reg_pts, color=region_color, thickness=self.tf * 2)
 

@@ -808,7 +808,28 @@ class SAM2Predictor(Predictor):
 
 
 class SAM2VideoPredictor(SAM2Predictor):
-    """The predictor class to handle user interactions with videos and manage inference states."""
+    """
+    SAM2VideoPredictor to handle user interactions with videos and manage inference states.
+
+    This class extends the functionality of SAM2Predictor to support video processing and maintains
+    the state of inference operations. It includes configurations for managing non-overlapping masks,
+    clearing memory for non-conditional inputs, and setting up callbacks for prediction events.
+
+    Attributes:
+        inference_state (Dict): A dictionary to store the current state of inference operations.
+        non_overlap_masks (Bool): A flag indicating whether masks should be non-overlapping.
+        clear_non_cond_mem_around_input (Bool): A flag to control clearing non-conditional memory around inputs.
+        clear_non_cond_mem_for_multi_obj (Bool): A flag to control clearing non-conditional memory for multi-object scenarios.
+        callbacks (Dict): A dictionary of callbacks for various prediction lifecycle events.
+
+    Args:
+        cfg (Dict, Optional): Configuration settings for the predictor. Defaults to DEFAULT_CFG.
+        overrides (Dict, Optional): Additional configuration overrides. Defaults to None.
+        _callbacks (List, Optional): Custom callbacks to be added. Defaults to None.
+
+    Note:
+        The `fill_hole_area` attribute is defined but not used in the current implementation.
+    """
 
     # fill_hole_area = 8  # not used
 

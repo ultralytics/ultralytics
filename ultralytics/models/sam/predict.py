@@ -853,10 +853,13 @@ class SAM2VideoPredictor(SAM2Predictor):
         frame = self.dataset.frame
         self.inference_state["im"] = im
         output_dict = self.inference_state["output_dict"]
-        if len(output_dict["cond_frame_outputs"]) == 0:  # initialize points
-            # TODO
-            for i in range(len(points)):
-                self.add_new_prompts(obj_id=i, points=points[[i]], labels=labels[[i]], frame_idx=frame)
+        if len(output_dict["cond_frame_outputs"]) == 0:  # initialize prompts
+            if points is not None:
+                for i in range(len(points)):
+                    self.add_new_prompts(obj_id=i, points=points[[i]], labels=labels[[i]], frame_idx=frame)
+            elif masks is not None:
+                for i in range(len(masks)):
+                    self.add_new_prompts(obj_id=i, masks=masks[[i]], frame_idx=frame)
         self.propagate_in_video_preflight()
 
         consolidated_frame_inds = self.inference_state["consolidated_frame_inds"]

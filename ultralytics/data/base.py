@@ -91,6 +91,11 @@ class BaseDataset(Dataset):
         self.npy_files = [Path(f).with_suffix(".npy") for f in self.im_files]
         self.cache = cache.lower() if isinstance(cache, str) else "ram" if cache is True else None
         if (self.cache == "ram" and self.check_cache_ram()) or self.cache == "disk":
+            if self.cache == "ram" and hyp.deterministic:
+                LOGGER.warning(
+                    "WARNING ⚠️ cache='ram' may produce non-deterministic training results. "
+                    "Consider cache='disk' as a deterministic alternative if your disk space allows."
+                )
             self.cache_images()
 
         # Transforms

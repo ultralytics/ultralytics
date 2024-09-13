@@ -1541,12 +1541,14 @@ class SAM2VideoPredictor(SAM2Predictor):
 
     def _clear_non_cond_mem_around_input(self, frame_idx):
         """
-        Remove the non-conditioning memory around the input frame. When users provide correction clicks, the surrounding
-        frames' non-conditioning memories can still contain outdated object appearance information and could confuse the
-        model.
+        Remove the non-conditioning memory around the input frame.
 
-        This method clears those non-conditioning memories surrounding the interacted frame to avoid giving the model
-        both old and new information about the object.
+        When users provide correction clicks, the surrounding frames' non-conditioning memories can still contain outdated
+        object appearance information and could confuse the model. This method clears those non-conditioning memories
+        surrounding the interacted frame to avoid giving the model both old and new information about the object.
+
+        Args:
+            frame_idx (int): The index of the current frame where user interaction occurred.
         """
         r = self.model.memory_temporal_stride_for_eval
         frame_idx_begin = frame_idx - r * self.model.num_maskmem

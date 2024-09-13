@@ -804,7 +804,6 @@ def torch_safe_load(weight, safe_only=False):
 
     check_suffix(file=weight, suffix=".pt")
     file = attempt_download_asset(weight)  # search online if missing locally
-
     try:
         with temporary_modules(
             modules={

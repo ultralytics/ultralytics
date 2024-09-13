@@ -1,6 +1,7 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import contextlib
+import pickle
 from copy import deepcopy
 from pathlib import Path
 
@@ -750,7 +751,23 @@ def temporary_modules(modules=None, attributes=None):
                 del sys.modules[old]
 
 
-def torch_safe_load(weight):
+class SafeClass:
+    """A dummy class to replace unknown classes during unpickling."""
+
+    def __init__(self, *args, **kwargs):
+        pass
+
+
+class SafeUnpickler(pickle.Unpickler):
+    def find_class(self, module, name):
+        try:
+            return super().find_class(module, name)
+        except (ImportError, AttributeError):
+            LOGGER.warning(f"Unknown class {module}.{name}, replacing with DummyClass")
+            return SafeClass
+
+
+def torch_safe_load(weight, allow_unknown_classes=False):
     """
     Attempts to load a PyTorch model with the torch.load() function. If a ModuleNotFoundError is raised, it catches the
     error, logs a warning message, and attempts to install the missing module via the check_requirements() function.
@@ -758,6 +775,7 @@ def torch_safe_load(weight):
 
     Args:
         weight (str): The file path of the PyTorch model.
+        allow_unknown_classes (bool): If True, replace unknown classes with DummyClass during loading.
 
     Returns:
         (dict): The loaded PyTorch model.
@@ -766,6 +784,7 @@ def torch_safe_load(weight):
 
     check_suffix(file=weight, suffix=".pt")
     file = attempt_download_asset(weight)  # search online if missing locally
+
     try:
         with temporary_modules(
             modules={
@@ -779,7 +798,11 @@ def torch_safe_load(weight):
                 "ultralytics.utils.loss.v10DetectLoss": "ultralytics.utils.loss.E2EDetectLoss",  # YOLOv10
             },
         ):
-            ckpt = torch.load(file, map_location="cpu")
+            if allow_unknown_classes:
+                with open(file, "rb") as f:
+                    ckpt = SafeUnpickler(f).load()
+            else:
+                ckpt = torch.load(file, map_location="cpu")
 
     except ModuleNotFoundError as e:  # e.name is missing module name
         if e.name == "models":

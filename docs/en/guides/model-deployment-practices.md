@@ -10,6 +10,17 @@ keywords: Model Deployment, Machine Learning Model Deployment, ML Model Deployme
 
 Model deployment is the [step in a computer vision project](./steps-of-a-cv-project.md) that brings a model from the development phase into a real-world application. There are various [model deployment options](./model-deployment-options.md): cloud deployment offers scalability and ease of access, edge deployment reduces latency by bringing the model closer to the data source, and local deployment ensures privacy and control. Choosing the right strategy depends on your application's needs, balancing speed, security, and scalability.
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/Tt_35YnQ9uk"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to Optimize and Deploy AI Models: Best Practices, Troubleshooting, and Security Considerations
+</p>
+
 It's also important to follow best practices when deploying a model because deployment can significantly impact the effectiveness and reliability of the model's performance. In this guide, we'll focus on how to make sure that your model deployment is smooth, efficient, and secure.
 
 ## Model Deployment Options

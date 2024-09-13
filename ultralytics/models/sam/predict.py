@@ -817,9 +817,9 @@ class SAM2VideoPredictor(SAM2Predictor):
 
     Attributes:
         inference_state (Dict): A dictionary to store the current state of inference operations.
-        non_overlap_masks (Bool): A flag indicating whether masks should be non-overlapping.
-        clear_non_cond_mem_around_input (Bool): A flag to control clearing non-conditional memory around inputs.
-        clear_non_cond_mem_for_multi_obj (Bool): A flag to control clearing non-conditional memory for multi-object scenarios.
+        non_overlap_masks (bool): A flag indicating whether masks should be non-overlapping.
+        clear_non_cond_mem_around_input (bool): A flag to control clearing non-conditional memory around inputs.
+        clear_non_cond_mem_for_multi_obj (bool): A flag to control clearing non-conditional memory for multi-object scenarios.
         callbacks (Dict): A dictionary of callbacks for various prediction lifecycle events.
 
     Args:
@@ -1247,7 +1247,32 @@ class SAM2VideoPredictor(SAM2Predictor):
         run_mem_encoder,
         prev_sam_mask_logits=None,
     ):
-        """Run tracking on a single frame based on current inputs and previous memory."""
+        """
+        Run tracking on a single frame based on current inputs and previous memory.
+
+        Args:
+            output_dict (Dict): The dictionary containing the output states of the tracking process.
+            frame_idx (int): The index of the current frame.
+            batch_size (int): The batch size for processing the frame.
+            is_init_cond_frame (bool): Indicates if the current frame is an initial conditioning frame.
+            point_inputs (Dict, Optional): Input points and their labels. Defaults to None.
+            mask_inputs (torch.Tensor, Optional): Input binary masks. Defaults to None.
+            reverse (bool): Indicates if the tracking should be performed in reverse order.
+            run_mem_encoder (bool): Indicates if the memory encoder should be executed.
+            prev_sam_mask_logits (torch.Tensor, Optional): Previous mask logits for the current object. Defaults to None.
+
+        Returns:
+            Dict: A dictionary containing the output of the tracking step, including updated features and predictions.
+
+        Raises:
+            AssertionError: If both `point_inputs` and `mask_inputs` are provided, or neither is provided.
+
+        Note:
+            - The method assumes that `point_inputs` and `mask_inputs` are mutually exclusive.
+            - The method retrieves image features using the `get_im_features` method.
+            - The `maskmem_pos_enc` is assumed to be constant across frames, hence only one copy is stored.
+            - The `fill_holes_in_mask_scores` function is commented out and currently unsupported due to CUDA extension requirements.
+        """
         # Retrieve correct image features
         current_vision_feats, current_vision_pos_embeds, feat_sizes = self.get_im_features(
             self.inference_state["im"], batch_size

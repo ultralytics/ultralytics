@@ -777,6 +777,13 @@ def torch_safe_load(weight, allow_unknown_classes=False):
         weight (str): The file path of the PyTorch model.
         allow_unknown_classes (bool): If True, replace unknown classes with DummyClass during loading.
 
+    Example:
+    ```python
+    from ultralytics.nn.tasks import torch_safe_load
+
+    ckpt = torch_safe_load("path/to/last.pt")
+    ```
+
     Returns:
         (dict): The loaded PyTorch model.
     """

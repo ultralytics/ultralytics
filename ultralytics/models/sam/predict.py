@@ -821,6 +821,15 @@ class SAM2VideoPredictor(SAM2Predictor):
         self.callbacks["on_predict_start"].append(self.init_state)
 
     def get_model(self):
+        """
+        Retrieves and configures the model with binarization enabled.
+
+        Returns:
+            Model: The configured model instance with binarization enabled.
+
+        Note:
+            This method overrides the base class implementation to set the binarize flag to True.
+        """
         model = super().get_model()
         model.set_binarize(True)
         return model

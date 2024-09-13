@@ -755,19 +755,23 @@ class SafeClass:
     """A dummy class to replace unknown classes during unpickling."""
 
     def __init__(self, *args, **kwargs):
+        """Initialize SafeClass instance, ignoring all arguments."""
         pass
 
 
 class SafeUnpickler(pickle.Unpickler):
+    """Custom Unpickler that replaces unknown classes with SafeClass."""
+
     def find_class(self, module, name):
+        """Attempt to find a class, returning SafeClass if not found."""
         try:
             return super().find_class(module, name)
         except (ImportError, AttributeError):
-            LOGGER.warning(f"Unknown class {module}.{name}, replacing with DummyClass")
+            LOGGER.warning(f"Unknown class {module}.{name}, replacing with SafeClass")
             return SafeClass
 
 
-def torch_safe_load(weight, allow_unknown_classes=False):
+def torch_safe_load(weight, allow_unknown_classes=True):
     """
     Attempts to load a PyTorch model with the torch.load() function. If a ModuleNotFoundError is raised, it catches the
     error, logs a warning message, and attempts to install the missing module via the check_requirements() function.

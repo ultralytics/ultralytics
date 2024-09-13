@@ -50,7 +50,7 @@ The GUI demo runs in your browser allowing you to create embeddings for your dat
 yolo explorer
 ```
 
-!!! note "Note"
+!!! note
 
     Ask AI feature works using OpenAI, so you'll be prompted to set the api key for OpenAI when you first run the GUI.
     You can set it like this - `yolo settings openai_api_key="..."`

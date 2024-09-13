@@ -260,7 +260,9 @@ Below are code examples for using each source type:
 
         # Run inference on the source
         results = model(source)  # list of Results objects
-        "TXT"
+        ```
+
+    === "TXT"
 
         Run inference on a collection of images, videos and directories listed in a TXT file.
         ```python

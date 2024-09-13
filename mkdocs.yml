@@ -211,8 +211,6 @@ nav:
           - solutions/index.md
       - Guides:
           - guides/index.md
-      - Explorer:
-          - datasets/explorer/index.md
   - Modes:
       - modes/index.md
       - Train: modes/train.md

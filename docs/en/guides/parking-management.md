@@ -114,8 +114,6 @@ Parking management with [Ultralytics YOLOv8](https://github.com/ultralytics/ultr
 | Name                     | Type    | Default           | Description                            |
 | ------------------------ | ------- | ----------------- | -------------------------------------- |
 | `model_path`             | `str`   | `None`            | Path to the YOLOv8 model.              |
-| `txt_color`              | `tuple` | `(0, 0, 0)`       | RGB color tuple for text.              |
-| `bg_color`               | `tuple` | `(255, 255, 255)` | RGB color tuple for background.        |
 | `occupied_region_color`  | `tuple` | `(0, 255, 0)`     | RGB color tuple for occupied regions.  |
 | `available_region_color` | `tuple` | `(0, 0, 255)`     | RGB color tuple for available regions. |
 | `margin`                 | `int`   | `10`              | Margin for text display.               |

@@ -2,6 +2,7 @@
 
 import contextlib
 import pickle
+import types
 from copy import deepcopy
 from pathlib import Path
 
@@ -752,7 +753,7 @@ def temporary_modules(modules=None, attributes=None):
 
 
 class SafeClass:
-    """A dummy class to replace unknown classes during unpickling."""
+    """A placeholder class to replace unknown classes during unpickling."""
 
     def __init__(self, *args, **kwargs):
         """Initialize SafeClass instance, ignoring all arguments."""
@@ -763,11 +764,19 @@ class SafeUnpickler(pickle.Unpickler):
     """Custom Unpickler that replaces unknown classes with SafeClass."""
 
     def find_class(self, module, name):
-        """Attempt to find a class, returning SafeClass if not found."""
-        try:
+        """Attempt to find a class, returning SafeClass if not among safe modules."""
+        safe_modules = (
+            'torch',
+            'collections',
+            'collections.abc',
+            'builtins',
+            'math',
+            'numpy',
+            # Add other modules you consider safe
+        )
+        if module in safe_modules:
             return super().find_class(module, name)
-        except (ImportError, AttributeError):
-            LOGGER.warning(f"Unknown class {module}.{name}, replacing with SafeClass")
+        else:
             return SafeClass
 
 
@@ -810,10 +819,14 @@ def torch_safe_load(weight, allow_unknown_classes=False):
             },
         ):
             if allow_unknown_classes:
-                with open(file, "rb") as f:
-                    ckpt = SafeUnpickler(f).load()
+                # Create a custom pickle module
+                safe_pickle = types.ModuleType('safe_pickle')
+                safe_pickle.Unpickler = SafeUnpickler
+                safe_pickle.load = lambda file_obj: SafeUnpickler(file_obj).load()
+                with open(file, 'rb') as f:
+                    ckpt = torch.load(f, pickle_module=safe_pickle)
             else:
-                ckpt = torch.load(file, map_location="cpu")
+                ckpt = torch.load(file, map_location="cpu", weights_only=True)
 
     except ModuleNotFoundError as e:  # e.name is missing module name
         if e.name == "models":

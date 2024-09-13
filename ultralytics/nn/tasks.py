@@ -772,7 +772,7 @@ class SafeUnpickler(pickle.Unpickler):
             "builtins",
             "math",
             "numpy",
-            # Add other modules you consider safe
+            # Add other modules considered safe
         )
         if module in safe_modules:
             return super().find_class(module, name)

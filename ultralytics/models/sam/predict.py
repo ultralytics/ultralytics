@@ -1235,10 +1235,6 @@ class SAM2VideoPredictor(SAM2Predictor):
                 f"Please call 'reset_state' to restart from scratch."
             )
 
-    def _obj_idx_to_id(self, inference_state, obj_idx):
-        """Map model-side object index to client-side object id."""
-        return inference_state["obj_idx_to_id"][obj_idx]
-
     def _run_single_frame_inference(
         self,
         output_dict,

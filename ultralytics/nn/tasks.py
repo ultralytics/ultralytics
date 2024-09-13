@@ -798,8 +798,8 @@ def torch_safe_load(weight, safe_only=False):
     ```
 
     Returns:
-        (dict): The loaded model checkpoint.
-        (str): The loaded filename
+        ckpt (dict): The loaded model checkpoint.
+        file (str): The loaded filename
     """
     from ultralytics.utils.downloads import attempt_download_asset
 
@@ -856,7 +856,7 @@ def torch_safe_load(weight, safe_only=False):
         )
         ckpt = {"model": ckpt.model}
 
-    return ckpt, file  # load
+    return ckpt, file
 
 
 def attempt_load_weights(weights, device=None, inplace=True, fuse=False):

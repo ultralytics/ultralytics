@@ -60,7 +60,6 @@ class ObjectCounter:
         self.out_counts = 0
         self.count_ids = []
         self.class_wise_count = {}
-        self.count_txt_thickness = 0
 
         # Tracks info
         self.track_history = defaultdict(list)
@@ -136,7 +135,7 @@ class ObjectCounter:
             # Extract tracks
             for box, track_id, cls in zip(boxes, track_ids, clss):
                 # Draw bounding box
-                annotator.box_label(box, label=f"{self.names[cls]}#{track_id}", color=colors(int(track_id), True))
+                annotator.box_label(box, label=self.names[cls], color=colors(int(track_id), True))
 
                 # Store class info
                 if self.names[cls] not in self.class_wise_count:
@@ -182,10 +181,9 @@ class ObjectCounter:
                             self.count_ids.append(track_id)
 
                             # Determine the direction of movement (IN or OUT)
-                            direction = (box[0] - prev_position[0]) * (
-                                self.counting_region.centroid.x - prev_position[0]
-                            )
-                            if direction > 0:
+                            dx = (box[0] - prev_position[0]) * (self.counting_region.centroid.x - prev_position[0])
+                            dy = (box[1] - prev_position[1]) * (self.counting_region.centroid.y - prev_position[1])
+                            if dx > 0 and dy > 0:
                                 self.in_counts += 1
                                 self.class_wise_count[self.names[cls]]["IN"] += 1
                             else:

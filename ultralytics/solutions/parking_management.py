@@ -183,7 +183,6 @@ class ParkingManagement:
         self.occupied_region_color = occupied_region_color
         self.available_region_color = available_region_color
 
-        self.window_name = "Ultralytics YOLOv8 Parking Management System"
         # Check if environment supports imshow
         self.env_check = check_imshow(warn=True)
 
@@ -250,8 +249,7 @@ class ParkingManagement:
             im0 (ndarray): inference image
         """
         if self.env_check:
-            cv2.namedWindow(self.window_name)
-            cv2.imshow(self.window_name, im0)
+            cv2.imshow("Ultralytics YOLOv8 Parking Management System", im0)
             # Break Window
             if cv2.waitKey(1) & 0xFF == ord("q"):
                 return

@@ -206,16 +206,12 @@ class ParkingManagement:
             im0 (ndarray): inference image
             boxes (list): bounding boxes data
             clss (list): bounding boxes classes list
-
-        Returns:
-            filled_slots (int): total slots that are filled in parking lot
-            empty_slots (int): total slots that are available in parking lot
         """
         annotator = Annotator(im0)
-        empty_slots, filled_slots = len(json_data), 0
+        es, fs = len(json_data), 0   # empty slots, filled slots
         for region in json_data:
-            points_array = np.array(region["points"], dtype=np.int32).reshape((-1, 1, 2))
-            region_occupied = False
+            pts_array = np.array(region["points"], dtype=np.int32).reshape((-1, 1, 2))
+            rg_occupied = False     # occupied region initialization
 
             for box, cls in zip(boxes, clss):
                 xc = int((box[0] + box[2]) / 2)
@@ -224,19 +220,19 @@ class ParkingManagement:
                 annotator.display_objects_labels(
                     im0, self.model.names[int(cls)], (104, 31, 17), (255, 255, 255), xc, yc, 10
                 )
-                dist = cv2.pointPolygonTest(points_array, (xc, yc), False)
+                dist = cv2.pointPolygonTest(pts_array, (xc, yc), False)
                 if dist >= 0:
-                    region_occupied = True
+                    rg_occupied = True
                     break
 
-            color = self.occupied_region_color if region_occupied else self.available_region_color
+            color = self.occupied_region_color if rg_occupied else self.available_region_color
             cv2.polylines(im0, [points_array], isClosed=True, color=color, thickness=2)
-            if region_occupied:
-                filled_slots += 1
-                empty_slots -= 1
+            if rg_occupied:
+                fs += 1
+                es -= 1
 
-        self.labels_dict["Occupancy"] = filled_slots
-        self.labels_dict["Available"] = empty_slots
+        self.labels_dict["Occupancy"] = fs
+        self.labels_dict["Available"] = es
 
         annotator.display_analytics(im0, self.labels_dict, (104, 31, 17), (255, 255, 255), 10)
 

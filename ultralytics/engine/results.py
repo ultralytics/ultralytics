@@ -817,6 +817,28 @@ class Results(SimpleClass):
             results.append(result)
 
         return results
+    
+    def todataframe(self, normalize=False, decimals=5):
+        """
+        Converts detection results to a Pandas Dataframe
+        
+        This method converts teh detection results into a pandas dataframe 
+        Args:
+            normalize (bool): Whether to normalize the bounding box coordinates by the image dimensions.
+                If True, coordinates will be returned as float values between 0 and 1. Defaults to False.
+            decimals (int): Number of decimal places to round the output values to. Defaults to 5.
+        Returns:
+            (DataFrame): A pandas dataframe containing all the information in results in an organized way.
+            
+        Examples:
+            >>> results = model("path/to/image.jpg")
+            >>> df_result = results[0].todf()
+            >>> print(df_result)
+        """
+        
+        import pandas as pd
+        
+        return  pd.DataFrame(self.summary(normalize=normalize, decimals=decimals))
 
     def tojson(self, normalize=False, decimals=5):
         """

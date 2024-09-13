@@ -1156,7 +1156,21 @@ class SAM2VideoPredictor(SAM2Predictor):
         predictor.inference_state = inference_state
 
     def get_im_features(self, im, batch=1):
-        """Extracts and processes image features using SAM2's image encoder for subsequent segmentation tasks."""
+        """Extracts and processes image features using SAM2's image encoder for subsequent segmentation tasks.
+        Args:
+            im (torch.Tensor): The input image tensor.
+            batch (int, optional): The batch size for expanding features if there are multiple prompts. Defaults to 1.
+
+        Returns:
+            Tuple[torch.Tensor, torch.Tensor, Dict]: A tuple containing:
+                - vis_feats (torch.Tensor): The visual features extracted from the image.
+                - vis_pos_embed (torch.Tensor): The positional embeddings for the visual features.
+                - feat_sizes (List): A list containing the sizes of the extracted features.
+
+        Note:
+            - If `batch` is greater than 1, the features are expanded to fit the batch size.
+            - The method leverages the model's `_prepare_backbone_features` method to prepare the backbone features.
+        """
         backbone_out = self.model.forward_image(im)
         if batch > 1:  # expand features if there's more than one prompt
             for i, feat in enumerate(backbone_out["backbone_fpn"]):

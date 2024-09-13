@@ -5,7 +5,7 @@ keywords: Ultralytics, Bot SORT, BOTrack, BOTSORT, YOLOv8, object tracking, Kalm
 
 # Reference for `ultralytics/trackers/bot_sort.py`
 
-!!! Note
+!!! note
 
     This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/trackers/bot_sort.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/trackers/bot_sort.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/trackers/bot_sort.py) 🛠️. Thank you 🙏!
 

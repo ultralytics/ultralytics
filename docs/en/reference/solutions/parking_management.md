@@ -5,7 +5,7 @@ keywords: Ultralytics, YOLO, parking management, computer vision, parking monito
 
 # Reference for `ultralytics/solutions/parking_management.py`
 
-!!! Note
+!!! note
 
     This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/solutions/parking_management.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/solutions/parking_management.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/solutions/parking_management.py) 🛠️. Thank you 🙏!
 

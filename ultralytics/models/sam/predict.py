@@ -1311,8 +1311,28 @@ class SAM2VideoPredictor(SAM2Predictor):
         return current_out
 
     def _get_maskmem_pos_enc(self, out_maskmem_pos_enc):
-        """`maskmem_pos_enc` is the same across frames and objects, so we cache it as a constant in the inference
-        session to reduce session storage size.
+        """
+        Caches and manages the positional encoding for mask memory across frames and objects.
+
+        This method optimizes storage by caching the positional encoding (`maskmem_pos_enc`) for
+        mask memory, which is constant across frames and objects, thus reducing the amount of
+        redundant information stored during an inference session. It checks if the positional
+        encoding has already been cached; if not, it caches a slice of the provided encoding.
+        If the batch size is greater than one, it expands the cached positional encoding to match
+        the current batch size.
+
+        Args:
+            out_maskmem_pos_enc (List[torch.Tensor] or None): The positional encoding for mask memory.
+                Should be a list of tensors or None.
+
+        Returns:
+            List[torch.Tensor]: The positional encoding for mask memory, either cached or expanded.
+
+        Note:
+            - The method assumes that `out_maskmem_pos_enc` is a list of tensors or None.
+            - Only a single object's slice is cached since the encoding is the same across objects.
+            - The method checks if the positional encoding has already been cached in the session's constants.
+            - If the batch size is greater than one, the cached encoding is expanded to fit the batch size.
         """
         model_constants = self.inference_state["constants"]
         # "out_maskmem_pos_enc" should be either a list of tensors or None

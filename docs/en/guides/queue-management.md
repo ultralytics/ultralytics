@@ -56,15 +56,13 @@ Queue management using [Ultralytics YOLOv8](https://github.com/ultralytics/ultra
             names=model.names,
             reg_pts=queue_region,
             line_thickness=3,
-            fontsize=1.0,
-            region_color=(255, 144, 31),
         )
 
         while cap.isOpened():
             success, im0 = cap.read()
 
             if success:
-                tracks = model.track(im0, show=False, persist=True, verbose=False)
+                tracks = model.track(im0, persist=True)
                 out = queue.process_queue(im0, tracks)
 
                 video_writer.write(im0)
@@ -100,15 +98,13 @@ Queue management using [Ultralytics YOLOv8](https://github.com/ultralytics/ultra
             names=model.names,
             reg_pts=queue_region,
             line_thickness=3,
-            fontsize=1.0,
-            region_color=(255, 144, 31),
         )
 
         while cap.isOpened():
             success, im0 = cap.read()
 
             if success:
-                tracks = model.track(im0, show=False, persist=True, verbose=False, classes=0)  # Only person class
+                tracks = model.track(im0, persist=True, classes=0)  # Only person class
                 out = queue.process_queue(im0, tracks)
 
                 video_writer.write(im0)
@@ -125,20 +121,13 @@ Queue management using [Ultralytics YOLOv8](https://github.com/ultralytics/ultra
 
 ### Arguments `QueueManager`
 
-| Name                | Type             | Default                    | Description                                                                         |
-| ------------------- | ---------------- | -------------------------- | ----------------------------------------------------------------------------------- |
-| `names`             | `dict`           | `model.names`              | A dictionary mapping class IDs to class names.                                      |
-| `reg_pts`           | `list of tuples` | `[(20, 400), (1260, 400)]` | Points defining the counting region polygon. Defaults to a predefined rectangle.    |
-| `line_thickness`    | `int`            | `2`                        | Thickness of the annotation lines.                                                  |
-| `track_thickness`   | `int`            | `2`                        | Thickness of the track lines.                                                       |
-| `view_img`          | `bool`           | `False`                    | Whether to display the image frames.                                                |
-| `region_color`      | `tuple`          | `(255, 0, 255)`            | Color of the counting region lines (BGR).                                           |
-| `view_queue_counts` | `bool`           | `True`                     | Whether to display the queue counts.                                                |
-| `draw_tracks`       | `bool`           | `False`                    | Whether to draw tracks of the objects.                                              |
-| `count_txt_color`   | `tuple`          | `(255, 255, 255)`          | Color of the count text (BGR).                                                      |
-| `track_color`       | `tuple`          | `None`                     | Color of the tracks. If `None`, different colors will be used for different tracks. |
-| `region_thickness`  | `int`            | `5`                        | Thickness of the counting region lines.                                             |
-| `fontsize`          | `float`          | `0.7`                      | Font size for the text annotations.                                                 |
+| Name             | Type             | Default                    | Description                                                                      |
+| ---------------- | ---------------- | -------------------------- | -------------------------------------------------------------------------------- |
+| `names`          | `dict`           | `model.names`              | A dictionary mapping class IDs to class names.                                   |
+| `reg_pts`        | `list of tuples` | `[(20, 400), (1260, 400)]` | Points defining the counting region polygon. Defaults to a predefined rectangle. |
+| `line_thickness` | `int`            | `2`                        | Thickness of the annotation lines.                                               |
+| `view_img`       | `bool`           | `False`                    | Whether to display the image frames.                                             |
+| `draw_tracks`    | `bool`           | `False`                    | Whether to draw tracks of the objects.                                           |
 
 ### Arguments `model.track`
 
@@ -170,8 +159,6 @@ queue = solutions.QueueManager(
     names=model.names,
     reg_pts=queue_region,
     line_thickness=3,
-    fontsize=1.0,
-    region_color=(255, 144, 31),
 )
 
 while cap.isOpened():
@@ -223,8 +210,6 @@ queue_airport = solutions.QueueManager(
     names=model.names,
     reg_pts=queue_region_airport,
     line_thickness=3,
-    fontsize=1.0,
-    region_color=(0, 255, 0),
 )
 ```
 

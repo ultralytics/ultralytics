@@ -1453,7 +1453,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         """
         Get a dummy object pointer based on an empty mask on the current frame.
 
-        Parameters:
+        Args:
             frame_idx (int): The index of the current frame for which to generate the dummy object pointer.
 
         Returns:
@@ -1487,7 +1487,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         This is usually after applying non-overlapping constraints to object scores. Since their scores changed, their
         memory also needs to be computed again with the memory encoder.
 
-        Parameters:
+        Args:
             batch_size (int): The batch size for processing the frame.
             high_res_masks (torch.Tensor): High-resolution masks for which to compute the memory.
             is_mask_from_pts (bool): Indicates if the mask is derived from point interactions.
@@ -1510,9 +1510,14 @@ class SAM2VideoPredictor(SAM2Predictor):
 
     def _add_output_per_object(self, frame_idx, current_out, storage_key):
         """
-        Split a multi-object output into per-object output slices and add them into `output_dict_per_obj`.
+        Split a multi-object output into per-object output slices and add them into Output_Dict_Per_Obj.
 
         The resulting slices share the same tensor storage.
+
+        Args:
+            frame_idx (int): The index of the current frame.
+            current_out (Dict): The current output dictionary containing multi-object outputs.
+            storage_key (str): The key used to store the output in the per-object output dictionary.
         """
         maskmem_features = current_out["maskmem_features"]
         assert maskmem_features is None or isinstance(maskmem_features, torch.Tensor)

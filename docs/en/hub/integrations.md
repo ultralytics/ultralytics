@@ -44,7 +44,7 @@ Navigate to the Dataset page of the [Roboflow](https://roboflow.com/?ref=ultraly
 
 ![Ultralytics HUB screenshot of the Dataset page of a Roboflow Universe dataset with an arrow pointing to the Remove option](https://github.com/ultralytics/docs/releases/download/0/hub-roboflow-universe-remove.avif)
 
-??? tip "Tip"
+??? tip
 
     You can remove an imported [Roboflow](https://roboflow.com/?ref=ultralytics) dataset directly from the [Datasets](https://hub.ultralytics.com/datasets) page.
 
@@ -60,7 +60,7 @@ Navigate to the [Integrations](https://hub.ultralytics.com/settings?tab=integrat
 
 Type your [Roboflow](https://roboflow.com/?ref=ultralytics) Workspace private API key and click on the **Add** button.
 
-??? tip "Tip"
+??? tip
 
     You can click on the **Get my API key** button which will redirect you to the settings of your [Roboflow](https://roboflow.com/?ref=ultralytics) Workspace from where you can obtain your private API key.
 
@@ -80,13 +80,13 @@ Navigate to the [Integrations](https://hub.ultralytics.com/settings?tab=integrat
 
 ![Ultralytics HUB screenshot of the Integrations page  with an arrow pointing to the Integrations button in the sidebar and one to the Unlink button of one of the connected workspaces](https://github.com/ultralytics/docs/releases/download/0/hub-roboflow-workspace-remove-1.avif)
 
-??? tip "Tip"
+??? tip
 
     You can remove a connected [Roboflow](https://roboflow.com/?ref=ultralytics) Workspace directly from the Dataset page of one of the datasets from your [Roboflow](https://roboflow.com/?ref=ultralytics) Workspace.
 
     ![Ultralytics HUB screenshot of the Dataset page of a Roboflow Workspace dataset with an arrow pointing to the remove option](https://github.com/ultralytics/docs/releases/download/0/hub-roboflow-workspace-remove-2.avif)
 
-??? tip "Tip"
+??? tip
 
     You can remove a connected [Roboflow](https://roboflow.com/?ref=ultralytics) Workspace directly from the [Datasets](https://hub.ultralytics.com/datasets) page.
 

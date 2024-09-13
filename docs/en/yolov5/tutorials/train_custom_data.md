@@ -137,11 +137,11 @@ Train a YOLOv5s model on COCO128 by specifying dataset, batch-size, image size a
 python train.py --img 640 --epochs 3 --data coco128.yaml --weights yolov5s.pt
 ```
 
-!!! tip "Tip"
+!!! tip
 
     💡 Add `--cache ram` or `--cache disk` to speed up training (requires significant RAM/disk resources).
 
-!!! tip "Tip"
+!!! tip
 
     💡 Always train from a local dataset. Mounted or network drives like Google Drive will be very slow.
 

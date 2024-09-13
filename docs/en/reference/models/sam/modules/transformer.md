@@ -5,7 +5,7 @@ keywords: Ultralytics, TwoWayTransformer, module, deep learning, transformer, ob
 
 # Reference for `ultralytics/models/sam/modules/transformer.py`
 
-!!! Note
+!!! note
 
     This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/sam/modules/transformer.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/sam/modules/transformer.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/models/sam/modules/transformer.py) 🛠️. Thank you 🙏!
 

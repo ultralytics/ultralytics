@@ -211,8 +211,6 @@ nav:
           - solutions/index.md
       - Guides:
           - guides/index.md
-      - Explorer:
-          - datasets/explorer/index.md
   - Modes:
       - modes/index.md
       - Train: modes/train.md
@@ -221,6 +219,13 @@ nav:
       - Export: modes/export.md
       - Track: modes/track.md
       - Benchmark: modes/benchmark.md
+      - Tasks:
+          - tasks/index.md
+          - Detect: tasks/detect.md
+          - Segment: tasks/segment.md
+          - Classify: tasks/classify.md
+          - Pose: tasks/pose.md
+          - OBB: tasks/obb.md
   - Tasks:
       - tasks/index.md
       - Detect: tasks/detect.md
@@ -228,6 +233,14 @@ nav:
       - Classify: tasks/classify.md
       - Pose: tasks/pose.md
       - OBB: tasks/obb.md
+      - Modes:
+          - modes/index.md
+          - Train: modes/train.md
+          - Val: modes/val.md
+          - Predict: modes/predict.md
+          - Export: modes/export.md
+          - Track: modes/track.md
+          - Benchmark: modes/benchmark.md
   - Models:
       - models/index.md
       - YOLOv3: models/yolov3.md

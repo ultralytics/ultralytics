@@ -958,10 +958,36 @@ class SAM2VideoPredictor(SAM2Predictor):
         obj_id,
         points=None,
         labels=None,
+        # TODO: add boxes option
         masks=None,
         frame_idx=0,
     ):
-        """Add new points to a frame."""
+        """
+        Adds new points or masks to a specific frame for a given object ID.
+
+        This method updates the inference state with new prompts (points or masks) for a specified
+        object and frame index. It ensures that the prompts are either points or masks, but not both,
+        and updates the internal state accordingly. It also handles the generation of new segmentations
+        based on the provided prompts and the existing state.
+
+        Args:
+            obj_id (int): The ID of the object to which the prompts are associated.
+            points (torch.Tensor, Optional): The coordinates of the points of interest. Defaults to None.
+            labels (torch.Tensor, Optional): The labels corresponding to the points. Defaults to None.
+            masks (torch.Tensor, optional): Binary masks for the object. Defaults to None.
+            frame_idx (int, optional): The index of the frame to which the prompts are applied. Defaults to 0.
+
+        Returns:
+            Tuple[torch.Tensor, torch.Tensor]: A tuple containing the flattened predicted masks and a tensor of ones indicating the number of objects.
+
+        Raises:
+            AssertionError: If both `masks` and `points` are provided, or neither is provided.
+
+        Note:
+            - Only one type of prompt (either points or masks) can be added per call.
+            - If the frame is being tracked for the first time, it is treated as an initial conditioning frame.
+            - The method handles the consolidation of outputs and resizing of masks to the original video resolution.
+        """
         assert (masks is None) ^ (points is None), "'masks' and 'points' prompts are not compatible with each other."
         obj_idx = self._obj_id_to_idx(obj_id)
 

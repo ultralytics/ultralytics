@@ -780,7 +780,7 @@ class SafeUnpickler(pickle.Unpickler):
             return SafeClass
 
 
-def torch_safe_load(weight, allow_unknown_classes=False):
+def torch_safe_load(weight, safe_only=False):
     """
     Attempts to load a PyTorch model with the torch.load() function. If a ModuleNotFoundError is raised, it catches the
     error, logs a warning message, and attempts to install the missing module via the check_requirements() function.
@@ -788,13 +788,13 @@ def torch_safe_load(weight, allow_unknown_classes=False):
 
     Args:
         weight (str): The file path of the PyTorch model.
-        allow_unknown_classes (bool): If True, replace unknown classes with DummyClass during loading.
+        safe_only (bool): If True, replace unknown classes with SafeClass during loading.
 
     Example:
     ```python
     from ultralytics.nn.tasks import torch_safe_load
 
-    ckpt = torch_safe_load("path/to/last.pt", allow_unknown_classes=True)
+    ckpt = torch_safe_load("path/to/last.pt", safe_only=True)
     ```
 
     Returns:
@@ -818,7 +818,7 @@ def torch_safe_load(weight, allow_unknown_classes=False):
                 "ultralytics.utils.loss.v10DetectLoss": "ultralytics.utils.loss.E2EDetectLoss",  # YOLOv10
             },
         ):
-            if allow_unknown_classes:
+            if safe_only:
                 # Create a custom pickle module
                 safe_pickle = types.ModuleType("safe_pickle")
                 safe_pickle.Unpickler = SafeUnpickler

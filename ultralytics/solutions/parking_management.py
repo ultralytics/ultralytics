@@ -163,7 +163,6 @@ class ParkingManagement:
         model_path,
         occupied_region_color=(0, 255, 0),
         available_region_color=(0, 0, 255),
-        margin=10,
     ):
         """
         Initializes the parking management system with a YOLOv8 model and visualization settings.
@@ -172,7 +171,6 @@ class ParkingManagement:
             model_path (str): Path to the YOLOv8 model.
             occupied_region_color (tuple): RGB color tuple for occupied regions.
             available_region_color (tuple): RGB color tuple for available regions.
-            margin (int): Margin for text display.
         """
         # Model path and initialization
         self.model_path = model_path
@@ -182,7 +180,6 @@ class ParkingManagement:
         self.labels_dict = {"Occupancy": 0, "Available": 0}
 
         # Visualization details
-        self.margin = margin
         self.occupied_region_color = occupied_region_color
         self.available_region_color = available_region_color
 
@@ -233,7 +230,7 @@ class ParkingManagement:
                 text = f"{self.model.names[int(cls)]}"
 
                 annotator.display_objects_labels(
-                    im0, text, (104, 31, 17), (255, 255, 255), x_center, y_center, self.margin
+                    im0, text, (104, 31, 17), (255, 255, 255), x_center, y_center, 10
                 )
                 dist = cv2.pointPolygonTest(points_array, (x_center, y_center), False)
                 if dist >= 0:
@@ -249,7 +246,7 @@ class ParkingManagement:
         self.labels_dict["Occupancy"] = filled_slots
         self.labels_dict["Available"] = empty_slots
 
-        annotator.display_analytics(im0, self.labels_dict, (104, 31, 17), (255, 255, 255), self.margin)
+        annotator.display_analytics(im0, self.labels_dict, (104, 31, 17), (255, 255, 255), 10)
 
     def display_frames(self, im0):
         """

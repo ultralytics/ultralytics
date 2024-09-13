@@ -77,7 +77,7 @@ The YOLO-World models are easy to integrate into your Python applications. Ultra
 
 ### Train Usage
 
-!!! tip "Tip"
+!!! tip
 
     We strongly recommend to use `yolov8-worldv2` model for custom training, because it supports deterministic training and also easy to export other formats i.e onnx/tensorrt.
 

@@ -1450,7 +1450,15 @@ class SAM2VideoPredictor(SAM2Predictor):
         return consolidated_out
 
     def _get_empty_mask_ptr(self, frame_idx):
-        """Get a dummy object pointer based on an empty mask on the current frame."""
+        """
+        Get a dummy object pointer based on an empty mask on the current frame.
+
+        Parameters:
+            frame_idx (int): The index of the current frame for which to generate the dummy object pointer.
+
+        Returns:
+            torch.Tensor: A tensor representing the dummy object pointer generated from the empty mask.
+        """
         # Retrieve correct image features
         current_vision_feats, current_vision_pos_embeds, feat_sizes = self.get_im_features(frame_idx)
 
@@ -1474,10 +1482,18 @@ class SAM2VideoPredictor(SAM2Predictor):
 
     def _run_memory_encoder(self, batch_size, high_res_masks, is_mask_from_pts):
         """
-        Run the memory encoder on `high_res_masks`.
+        Run the memory encoder on masks.
 
         This is usually after applying non-overlapping constraints to object scores. Since their scores changed, their
-        memory also need to be computed again with the memory encoder.
+        memory also needs to be computed again with the memory encoder.
+
+        Parameters:
+            batch_size (int): The batch size for processing the frame.
+            high_res_masks (torch.Tensor): High-resolution masks for which to compute the memory.
+            is_mask_from_pts (bool): Indicates if the mask is derived from point interactions.
+
+        Returns:
+            Tuple[torch.Tensor, torch.Tensor]: A tuple containing the encoded mask features and positional encoding.
         """
         # Retrieve correct image features
         current_vision_feats, _, feat_sizes = self.get_im_features(self.inference_state["im"], batch_size)

@@ -5,7 +5,7 @@ keywords: YOLO batch size, CUDA memory, PyTorch autobatch, Ultralytics, machine 
 
 # Reference for `ultralytics/utils/autobatch.py`
 
-!!! Note
+!!! note
 
     This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/autobatch.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/autobatch.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/utils/autobatch.py) 🛠️. Thank you 🙏!
 

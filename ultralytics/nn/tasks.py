@@ -794,7 +794,7 @@ def torch_safe_load(weight, safe_only=False):
     ```python
     from ultralytics.nn.tasks import torch_safe_load
 
-    ckpt = torch_safe_load("c3k2-m.pt", safe_only=True)[0]
+    ckpt = torch_safe_load("path/to/best.pt", safe_only=True)[0]
     ```
 
     Returns:

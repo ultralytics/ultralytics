@@ -772,7 +772,7 @@ class SafeUnpickler(pickle.Unpickler):
             "builtins",
             "math",
             "numpy",
-            # Add other modules you consider safe
+            # Add other modules considered safe
         )
         if module in safe_modules:
             return super().find_class(module, name)
@@ -819,7 +819,7 @@ def torch_safe_load(weight, safe_only=False):
             },
         ):
             if safe_only:
-                # Create a custom pickle module
+                # Load via custom pickle module
                 safe_pickle = types.ModuleType("safe_pickle")
                 safe_pickle.Unpickler = SafeUnpickler
                 safe_pickle.load = lambda file_obj: SafeUnpickler(file_obj).load()

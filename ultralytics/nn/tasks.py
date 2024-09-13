@@ -766,12 +766,12 @@ class SafeUnpickler(pickle.Unpickler):
     def find_class(self, module, name):
         """Attempt to find a class, returning SafeClass if not among safe modules."""
         safe_modules = (
-            'torch',
-            'collections',
-            'collections.abc',
-            'builtins',
-            'math',
-            'numpy',
+            "torch",
+            "collections",
+            "collections.abc",
+            "builtins",
+            "math",
+            "numpy",
             # Add other modules you consider safe
         )
         if module in safe_modules:
@@ -820,10 +820,10 @@ def torch_safe_load(weight, allow_unknown_classes=False):
         ):
             if allow_unknown_classes:
                 # Create a custom pickle module
-                safe_pickle = types.ModuleType('safe_pickle')
+                safe_pickle = types.ModuleType("safe_pickle")
                 safe_pickle.Unpickler = SafeUnpickler
                 safe_pickle.load = lambda file_obj: SafeUnpickler(file_obj).load()
-                with open(file, 'rb') as f:
+                with open(file, "rb") as f:
                     ckpt = torch.load(f, pickle_module=safe_pickle)
             else:
                 ckpt = torch.load(file, map_location="cpu", weights_only=True)

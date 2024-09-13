@@ -172,9 +172,9 @@ class ParkingManagement:
             occupied_region_color (tuple): RGB color tuple for occupied regions.
             available_region_color (tuple): RGB color tuple for available regions.
         """
-        # Model path and initialization
-        self.model_path = model_path
-        self.model = self.load_model()
+        # Model initialization
+        from ultralytics import YOLO
+        self.model = YOLO(model_path)
 
         # Labels dictionary
         self.labels_dict = {"Occupancy": 0, "Available": 0}
@@ -186,12 +186,6 @@ class ParkingManagement:
         self.window_name = "Ultralytics YOLOv8 Parking Management System"
         # Check if environment supports imshow
         self.env_check = check_imshow(warn=True)
-
-    def load_model(self):
-        """Load the Ultralytics YOLO model for inference and analytics."""
-        from ultralytics import YOLO
-
-        return YOLO(self.model_path)
 
     @staticmethod
     def parking_regions_extraction(json_file):

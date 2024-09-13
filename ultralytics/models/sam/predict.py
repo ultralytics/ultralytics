@@ -1156,7 +1156,9 @@ class SAM2VideoPredictor(SAM2Predictor):
         predictor.inference_state = inference_state
 
     def get_im_features(self, im, batch=1):
-        """Extracts and processes image features using SAM2's image encoder for subsequent segmentation tasks.
+        """
+        Extracts and processes image features using SAM2's image encoder for subsequent segmentation tasks.
+
         Args:
             im (torch.Tensor): The input image tensor.
             batch (int, optional): The batch size for expanding features if there are multiple prompts. Defaults to 1.
@@ -1182,7 +1184,25 @@ class SAM2VideoPredictor(SAM2Predictor):
         return vis_feats, vis_pos_embed, feat_sizes
 
     def _obj_id_to_idx(self, obj_id):
-        """Map client-side object id to model-side object index."""
+        """
+        Map client-side object id to model-side object index.
+
+        Args:
+            obj_id (int): The unique identifier of the object provided by the client side.
+
+        Returns:
+            int: The index of the object on the model side.
+
+        Raises:
+            RuntimeError: If an attempt is made to add a new object after tracking has started.
+
+        Note:
+            - The method updates or retrieves mappings between object IDs and indices stored in
+              `inference_state`.
+            - It ensures that new objects can only be added before tracking commences.
+            - It maintains two-way mappings between IDs and indices (`obj_id_to_idx` and `obj_idx_to_id`).
+            - Additional data structures are initialized for the new object to store inputs and outputs.
+        """
         obj_idx = self.inference_state["obj_id_to_idx"].get(obj_id, None)
         if obj_idx is not None:
             return obj_idx

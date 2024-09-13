@@ -794,11 +794,12 @@ def torch_safe_load(weight, safe_only=False):
     ```python
     from ultralytics.nn.tasks import torch_safe_load
 
-    ckpt = torch_safe_load("path/to/last.pt", safe_only=True)
+    ckpt = torch_safe_load("c3k2-m.pt", safe_only=True)[0]
     ```
 
     Returns:
-        (dict): The loaded PyTorch model.
+        (dict): The loaded model checkpoint.
+        (str): The loaded filename
     """
     from ultralytics.utils.downloads import attempt_download_asset
 

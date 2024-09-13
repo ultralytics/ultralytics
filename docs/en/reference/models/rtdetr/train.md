@@ -5,7 +5,7 @@ keywords: RTDETRTrainer, real-time object detection, Vision Transformers, YOLO, 
 
 # Reference for `ultralytics/models/rtdetr/train.py`
 
-!!! Note
+!!! note
 
     This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/rtdetr/train.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/rtdetr/train.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/models/rtdetr/train.py) 🛠️. Thank you 🙏!
 

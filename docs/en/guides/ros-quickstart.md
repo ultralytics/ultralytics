@@ -129,7 +129,7 @@ while True:
     rospy.spin()
 ```
 
-??? Example "Complete code"
+??? example "Complete code"
 
     ```python
     import time
@@ -297,7 +297,7 @@ while True:
     rospy.spin()
 ```
 
-??? Example "Complete code"
+??? example "Complete code"
 
     ```python
     import time
@@ -448,7 +448,7 @@ for index, class_id in enumerate(classes):
     o3d.visualization.draw_geometries([pcd])
 ```
 
-??? Example "Complete code"
+??? example "Complete code"
 
     ```python
     import sys

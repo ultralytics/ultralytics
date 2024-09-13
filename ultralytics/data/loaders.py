@@ -274,18 +274,9 @@ class LoadImagesAndVideos:
     def __init__(self, path, batch=1, vid_stride=1):
         """Initialize the Dataloader and raise FileNotFoundError if file not found."""
         parent = None
-        if isinstance(path, str) and Path(path).suffix in [
-            ".txt",
-            ".csv",
-        ]:  # *.txt or *.csv file with img/vid/dir on each line
+        if isinstance(path, str) and Path(path).suffix in [".txt", ".csv"]:  # *.txt or *.csv file with img/vid/dir on each line
             parent = Path(path).parent
-            if Path(path).suffix == ".csv":
-                with open(path) as file:
-                    path = [
-                        line.split(",")[0] for line in file.read().strip().splitlines()
-                    ]  # .csv file list of sources
-            else:
-                path = Path(path).read_text().splitlines()  # .txt file list of sources
+            path = Path(path).read_text().splitlines()  # list of sources
         files = []
         for p in sorted(path) if isinstance(path, (list, tuple)) else [path]:
             a = str(Path(p).absolute())  # do not use .resolve() https://github.com/ultralytics/ultralytics/issues/2912

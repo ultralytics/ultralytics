@@ -771,7 +771,7 @@ class SafeUnpickler(pickle.Unpickler):
             return SafeClass
 
 
-def torch_safe_load(weight, allow_unknown_classes=False):
+def torch_safe_load(weight, allow_unknown_classes=True):
     """
     Attempts to load a PyTorch model with the torch.load() function. If a ModuleNotFoundError is raised, it catches the
     error, logs a warning message, and attempts to install the missing module via the check_requirements() function.

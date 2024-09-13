@@ -218,14 +218,13 @@ class ParkingManagement:
             region_occupied = False
 
             for box, cls in zip(boxes, clss):
-                x_center = int((box[0] + box[2]) / 2)
-                y_center = int((box[1] + box[3]) / 2)
-                text = f"{self.model.names[int(cls)]}"
+                xc = int((box[0] + box[2]) / 2)
+                yc = int((box[1] + box[3]) / 2)
 
                 annotator.display_objects_labels(
-                    im0, text, (104, 31, 17), (255, 255, 255), x_center, y_center, 10
+                    im0, self.model.names[int(cls)], (104, 31, 17), (255, 255, 255), xc, yc, 10
                 )
-                dist = cv2.pointPolygonTest(points_array, (x_center, y_center), False)
+                dist = cv2.pointPolygonTest(points_array, (xc, yc), False)
                 if dist >= 0:
                     region_occupied = True
                     break

@@ -29,7 +29,7 @@ Explorer GUI is like a playground build using [Ultralytics Explorer API](api.md)
 pip install ultralytics[explorer]
 ```
 
-!!! note "Note"
+!!! note
 
     Ask AI feature works using OpenAI, so you'll be prompted to set the api key for OpenAI when you first run the GUI.
     You can set it like this - `yolo settings openai_api_key="..."`

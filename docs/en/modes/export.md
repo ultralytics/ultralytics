@@ -39,7 +39,7 @@ Here are some of the standout functionalities:
 - **Optimized Inference:** Exported models are optimized for quicker inference times.
 - **Tutorial Videos:** In-depth guides and tutorials for a smooth exporting experience.
 
-!!! tip "Tip"
+!!! tip
 
     * Export to [ONNX](../integrations/onnx.md) or [OpenVINO](../integrations/openvino.md) for up to 3x CPU speedup.
     * Export to [TensorRT](../integrations/tensorrt.md) for up to 5x GPU speedup.

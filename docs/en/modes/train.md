@@ -41,7 +41,7 @@ The following are some notable features of YOLOv8's Train mode:
 - **Hyperparameter Configuration:** The option to modify hyperparameters through YAML configuration files or CLI arguments.
 - **Visualization and Monitoring:** Real-time tracking of training metrics and visualization of the learning process for better insights.
 
-!!! tip "Tip"
+!!! tip
 
     * YOLOv8 datasets like COCO, VOC, ImageNet and many others automatically download on first use, i.e. `yolo train data=coco.yaml`
 

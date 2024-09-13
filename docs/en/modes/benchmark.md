@@ -43,7 +43,7 @@ Once your model is trained and validated, the next logical step is to evaluate i
 - **OpenVINO:** For Intel hardware optimization
 - **CoreML, TensorFlow SavedModel, and More:** For diverse deployment needs.
 
-!!! tip "Tip"
+!!! tip
 
     * Export to ONNX or OpenVINO for up to 3x CPU speedup.
     * Export to TensorRT for up to 5x GPU speedup.

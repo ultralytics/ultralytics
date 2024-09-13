@@ -29,7 +29,7 @@ The Security Alarm System Project utilizing Ultralytics YOLOv8 integrates advanc
 
 #### Set up the parameters of the message
 
-???+ tip "Note"
+???+ note
 
     App Password Generation is necessary
 

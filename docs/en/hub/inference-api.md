@@ -24,7 +24,7 @@ After you [train a model](./models.md#train-model), you can use the [Shared Infe
 
 In response to high demand and widespread interest, we are thrilled to unveil the [Ultralytics HUB](https://www.ultralytics.com/hub) Dedicated Inference API, offering single-click deployment in a dedicated environment for our [Pro](./pro.md) users!
 
-!!! note "Note"
+!!! note
 
     We are excited to offer this feature FREE during our public beta as part of the [Pro Plan](./pro.md), with paid tiers possible in the future.
 
@@ -37,7 +37,7 @@ To use the [Ultralytics HUB](https://www.ultralytics.com/hub) Dedicated Inferenc
 
 ![Ultralytics HUB screenshot of the Deploy tab inside the Model page with an arrow pointing to the Start Endpoint button in Dedicated Inference API card](https://github.com/ultralytics/docs/releases/download/0/ultralytics-hub-dedicated-inference-api.avif)
 
-!!! tip "Tip"
+!!! tip
 
     Choose the region with the lowest latency for the best performance as described in the [documentation](https://docs.ultralytics.com/reference/hub/google/__init__).
 
@@ -83,7 +83,7 @@ with open("path/to/image.jpg", "rb") as image_file:
 print(response.json())
 ```
 
-!!! note "Note"
+!!! note
 
     Replace `MODEL_ID` with the desired model ID, `API_KEY` with your actual API key, and `path/to/image.jpg` with the path to the image you want to run inference on.
 
@@ -102,7 +102,7 @@ curl -X POST "https://api.ultralytics.com/v1/predict/MODEL_ID" \
 	-F "iou=0.45"
 ```
 
-!!! note "Note"
+!!! note
 
     Replace `MODEL_ID` with the desired model ID, `API_KEY` with your actual API key, and `path/to/image.jpg` with the path to the image you want to run inference on.
 

@@ -1356,11 +1356,29 @@ class SAM2VideoPredictor(SAM2Predictor):
         is_cond=False,
         run_mem_encoder=False,
     ):
-        """Consolidate the per-object temporary outputs in `temp_output_dict_per_obj` on a frame into a single output
-        for all objects, including 1) fill any missing objects either from `output_dict_per_obj` (if they exist in
-        `output_dict_per_obj` for this frame) or leave them as placeholder values (if they don't exist in
-        `output_dict_per_obj` for this frame); 2) if specified, rerun memory encoder after apply non-overlapping
-        constraints on the object scores.
+        """
+        Consolidates per-object temporary outputs into a single output for all objects.
+
+        This method combines the temporary outputs for each object on a given frame into a unified
+        output. It fills in any missing objects either from the main output dictionary or leaves
+        placeholders if they do not exist in the main output. Optionally, it can re-run the memory
+        encoder after applying non-overlapping constraints to the object scores.
+
+        Args:
+            frame_idx (int): The index of the frame for which to consolidate outputs.
+            is_cond (bool, Optional): Indicates if the frame is considered a conditioning frame.
+                Defaults to False.
+            run_mem_encoder (bool, Optional): Specifies whether to run the memory encoder after
+                consolidating the outputs. Defaults to False.
+
+        Returns:
+            Dict: A consolidated output dictionary containing the combined results for all objects.
+
+        Note:
+            - The method initializes the consolidated output with placeholder values for missing objects.
+            - It searches for outputs in both the temporary and main output dictionaries.
+            - If `run_mem_encoder` is True, it applies non-overlapping constraints and re-runs the memory encoder.
+            - The `maskmem_features` and `maskmem_pos_enc` are only populated when `run_mem_encoder` is True.
         """
         batch_size = len(self.inference_state["obj_idx_to_id"])
         storage_key = "cond_frame_outputs" if is_cond else "non_cond_frame_outputs"

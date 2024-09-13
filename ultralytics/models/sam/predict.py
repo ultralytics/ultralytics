@@ -1127,7 +1127,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         inputs, outputs, and other metadata relevant to the tracking process.
 
         Args:
-            predictor (object): The predictor object for which to initialize the state.
+            predictor (SAM2VideoPredictor): The predictor object for which to initialize the state.
         """
         assert predictor.dataset is not None
         assert predictor.dataset.mode == "video"

@@ -42,21 +42,23 @@ To train a model using these OBB formats:
         # Create a new YOLOv8n-OBB model from scratch
         model = YOLO("yolov8n-obb.yaml")
 
-        # Train the model on the DOTAv2 dataset
-        results = model.train(data="DOTAv1.yaml", epochs=100, imgsz=640)
+        # Train the model on the DOTAv1 dataset
+        results = model.train(data="DOTAv1.yaml", epochs=100, imgsz=1024)
         ```
 
     === "CLI"
 
         ```bash
-        # Train a new YOLOv8n-OBB model on the DOTAv2 dataset
-        yolo obb train data=DOTAv1.yaml model=yolov8n-obb.pt epochs=100 imgsz=640
+        # Train a new YOLOv8n-OBB model on the DOTAv1 dataset
+        yolo obb train data=DOTAv1.yaml model=yolov8n-obb.pt epochs=100 imgsz=1024
         ```
 
 ## Supported Datasets
 
 Currently, the following datasets with Oriented Bounding Boxes are supported:
 
+- [DOTA-v1](dota-v2.md): The first version of the DOTA dataset, providing a comprehensive set of aerial images with oriented bounding boxes for object detection.
+- [DOTA-v1.5](dota-v2.md): An intermediate version of the DOTA dataset, offering additional annotations and improvements over DOTA-v1 for enhanced object detection tasks.
 - [DOTA-v2](dota-v2.md): DOTA (A Large-scale Dataset for Object Detection in Aerial Images) version 2, emphasizes detection from aerial perspectives and contains oriented bounding boxes with 1.7 million instances and 11,268 images.
 - [DOTA8](dota8.md): A small, 8-image subset of the full DOTA dataset suitable for testing workflows and Continuous Integration (CI) checks of OBB training in the `ultralytics` repository.
 
@@ -133,6 +135,8 @@ This ensures your model leverages the detailed OBB annotations for improved dete
 
 Currently, Ultralytics supports the following datasets for OBB training:
 
+- [DOTA-v1](dota-v2.md): The first version of the DOTA dataset, providing a comprehensive set of aerial images with oriented bounding boxes for object detection.
+- [DOTA-v1.5](dota-v2.md): An intermediate version of the DOTA dataset, offering additional annotations and improvements over DOTA-v1 for enhanced object detection tasks.
 - [DOTA-v2](dota-v2.md): This dataset includes 1.7 million instances with oriented bounding boxes and 11,268 images, primarily focusing on aerial object detection.
 - [DOTA8](dota8.md): A smaller, 8-image subset of the DOTA dataset used for testing and continuous integration (CI) checks.
 

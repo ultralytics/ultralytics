@@ -928,6 +928,24 @@ class SAM2VideoPredictor(SAM2Predictor):
         return pred_masks.flatten(0, 1), torch.ones(1, dtype=pred_masks.dtype, device=pred_masks.device)
 
     def postprocess(self, preds, img, orig_imgs):
+        """
+        Post-processes the predictions to apply non-overlapping constraints if required.
+
+        This method extends the post-processing functionality by applying non-overlapping constraints
+        to the predicted masks if the `non_overlap_masks` flag is set to True. This ensures that
+        the masks do not overlap, which can be useful for certain applications.
+
+        Args:
+            preds (Tuple[torch.Tensor]): The predictions from the model.
+            img (torch.Tensor): The processed image tensor.
+            orig_imgs (List[np.ndarray]): The original images before processing.
+
+        Returns:
+            List[Prediction]: The post-processed predictions.
+
+        Note:
+            If `non_overlap_masks` is True, the method applies constraints to ensure non-overlapping masks.
+        """
         results = super().postprocess(preds, img, orig_imgs)
         if self.non_overlap_masks:
             for result in results:

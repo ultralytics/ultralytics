@@ -1119,7 +1119,16 @@ class SAM2VideoPredictor(SAM2Predictor):
 
     @staticmethod
     def init_state(predictor):
-        """Initialize a inference state."""
+        """
+        Initialize an inference state for the predictor.
+
+        This function sets up the initial state required for performing inference on video data.
+        It includes initializing various dictionaries and ordered dictionaries that will store
+        inputs, outputs, and other metadata relevant to the tracking process.
+
+        Args:
+            predictor (object): The predictor object for which to initialize the state.
+        """
         assert predictor.dataset is not None
         assert predictor.dataset.mode == "video"
 

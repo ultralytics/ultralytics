@@ -1055,7 +1055,15 @@ class SAM2VideoPredictor(SAM2Predictor):
 
     @smart_inference_mode()
     def propagate_in_video_preflight(self):
-        """Prepare inference_state and consolidate temporary outputs before tracking."""
+        """
+        Prepare inference_state and consolidate temporary outputs before tracking.
+
+        This method marks the start of tracking, disallowing the addition of new objects until the session is reset.
+        It consolidates temporary outputs from `temp_output_dict_per_obj` and merges them into `output_dict`.
+        Additionally, it clears non-conditioning memory around input frames and ensures that the state is consistent
+        with the provided inputs.
+
+        """
         # Tracking has started and we don't allow adding new objects until session is reset.
         self.inference_state["tracking_has_started"] = True
         batch_size = len(self.inference_state["obj_idx_to_id"])

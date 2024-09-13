@@ -26,7 +26,7 @@ Next, select the Pro Plan.
 
 ![Ultralytics HUB screenshot of the Upgrade dialog with an arrow pointing to the Select Plan button](https://github.com/ultralytics/docs/releases/download/0/hub-pro-upgrade-select-plan.avif)
 
-!!! tip "Tip"
+!!! tip
 
     You can save 20% if you choose the annual Pro Plan.
 
@@ -36,7 +36,7 @@ Fill in your details during the checkout.
 
 ![Ultralytics HUB screenshot of the Checkout with an arrow pointing to the checkbox for saving the payment information for future purchases](https://github.com/ultralytics/docs/releases/download/0/hub-pro-upgrade-save-payment-info.avif)
 
-!!! tip "Tip"
+!!! tip
 
     We recommend ticking the checkbox to save your payment information for future purchases, facilitating easier top-ups to your account balance.
 

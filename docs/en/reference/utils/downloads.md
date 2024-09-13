@@ -5,7 +5,7 @@ keywords: Ultralytics, download utilities, URL validation, zip directory, unzip 
 
 # Reference for `ultralytics/utils/downloads.py`
 
-!!! Note
+!!! note
 
     This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/downloads.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/downloads.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/utils/downloads.py) 🛠️. Thank you 🙏!
 

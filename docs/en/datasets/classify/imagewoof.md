@@ -59,7 +59,7 @@ ImageWoof dataset comes in three different sizes to accommodate various research
 
 To use these variants in your training, simply replace 'imagewoof' in the dataset argument with 'imagewoof320' or 'imagewoof160'. For example:
 
-!!! example "Example"
+!!! example
 
     === "Python"
 

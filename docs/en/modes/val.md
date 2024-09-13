@@ -41,7 +41,7 @@ These are the notable functionalities offered by YOLOv8's Val mode:
 - **CLI and Python API:** Choose from command-line interface or Python API based on your preference for validation.
 - **Data Compatibility:** Works seamlessly with datasets used during the training phase as well as custom datasets.
 
-!!! tip "Tip"
+!!! tip
 
     * YOLOv8 models automatically remember their training settings, so you can validate a model at the same image size and on the original dataset easily with just `yolo val model=yolov8n.pt` or `model('yolov8n.pt').val()`
 

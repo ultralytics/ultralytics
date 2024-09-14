@@ -760,7 +760,7 @@ class SAM2Predictor(Predictor):
                 labels = torch.cat([bbox_labels, labels], dim=1)
             else:
                 points, labels = bboxes, bbox_labels
-        return bboxes, points, labels, masks
+        return points, labels, masks
 
     def set_image(self, image):
         """
@@ -899,7 +899,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         points = self.prompts.pop("points", points)
         masks = self.prompts.pop("masks", masks)
 
-        bboxes, points, labels, masks = self._prepare_prompts(im.shape[2:], bboxes, points, labels, masks)
+        points, labels, masks = self._prepare_prompts(im.shape[2:], bboxes, points, labels, masks)
         frame = self.dataset.frame
         self.inference_state["im"] = im
         output_dict = self.inference_state["output_dict"]
@@ -978,7 +978,6 @@ class SAM2VideoPredictor(SAM2Predictor):
         obj_id,
         points=None,
         labels=None,
-        # TODO: add boxes option
         masks=None,
         frame_idx=0,
     ):

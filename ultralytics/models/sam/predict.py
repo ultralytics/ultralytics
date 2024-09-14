@@ -1190,7 +1190,6 @@ class SAM2VideoPredictor(SAM2Predictor):
         # metadata for each tracking frame (e.g. which direction it's tracked)
         inference_state["tracking_has_started"] = False
         inference_state["frames_already_tracked"] = []
-        inference_state["hw"] = predictor.dataset.hw
         predictor.inference_state = inference_state
 
     def get_im_features(self, im, batch=1):

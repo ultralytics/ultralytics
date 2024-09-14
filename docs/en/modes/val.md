@@ -165,7 +165,7 @@ These benefits ensure that your models are evaluated thoroughly and can be optim
 
 ### Can I validate my YOLOv8 model using a custom dataset?
 
-Yes, you can validate your YOLOv8 model using a custom dataset. Specify the `data` argument with the path to your dataset configuration file. This file should include paths to the validation data, class names, and other relevant details.
+Yes, you can validate your YOLOv8 model using a [custom dataset](https://docs.ultralytics.com/datasets/). Specify the `data` argument with the path to your dataset configuration file. This file should include paths to the validation data, class names, and other relevant details.
 
 Example in Python:
 

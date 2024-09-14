@@ -251,7 +251,7 @@ class Predictor(BasePredictor):
         # `d` could be 1 or 3 depends on `multimask_output`.
         return pred_masks.flatten(0, 1), pred_scores.flatten(0, 1)
 
-    def _prepare_prompts(self, dst_shape, bboxes=None, points=None, labels=None, masks=None, merge_point=False, src_shape=None):
+    def _prepare_prompts(self, dst_shape, bboxes=None, points=None, labels=None, masks=None, merge_point=False):
         """
         Prepares and transforms the input prompts for processing based on the destination shape.
 
@@ -262,12 +262,11 @@ class Predictor(BasePredictor):
             labels (List | np.ndarray, Optional): Labels corresponding to the points.
             masks (List | np.ndarray, Optional): Masks for the objects, where each mask is a 2D array.
             merge_point (bool, Optional): Whether to merge points into a single object or treat them independently.
-            src_shape (tuple, Optional): The source shape (height, width) for the prompts.
 
         Returns:
             (tuple): A tuple containing transformed bounding boxes, points, labels, and masks.
         """
-        src_shape = src_shape or self.batch[1][0].shape[:2]
+        src_shape = self.batch[1][0].shape[:2]
         r = 1.0 if self.segment_all else min(dst_shape[0] / src_shape[0], dst_shape[1] / src_shape[1])
         # Transform input prompts
         if points is not None:
@@ -735,12 +734,11 @@ class SAM2Predictor(Predictor):
         # `d` could be 1 or 3 depends on `multimask_output`.
         return pred_masks.flatten(0, 1), pred_scores.flatten(0, 1)
 
-    def _prepare_prompts(self, dst_shape, bboxes=None, points=None, labels=None, masks=None, merge_point=False, src_shape=None):
+    def _prepare_prompts(self, dst_shape, bboxes=None, points=None, labels=None, masks=None, merge_point=False):
         """
         Prepares and transforms the input prompts for processing based on the destination shape.
 
         Args:
-            src_shape (tuple): The source shape (height, width) for the prompts.
             dst_shape (tuple): The target shape (height, width) for the prompts.
             bboxes (List | np.ndarray, Optional): Bounding boxes in the format [[x1, y1, x2, y2], ...].
             points (List | np.ndarray, Optional): Points of interest in the format [[x1, y1], ...].
@@ -751,7 +749,7 @@ class SAM2Predictor(Predictor):
         Returns:
             (tuple): A tuple containing transformed bounding boxes, points, labels, and masks.
         """
-        bboxes, points, labels, masks = super()._prepare_prompts(dst_shape, bboxes, points, labels, masks, merge_point, src_shape=src_shape)
+        bboxes, points, labels, masks = super()._prepare_prompts(dst_shape, bboxes, points, labels, masks, merge_point)
         if bboxes is not None:
             bboxes = bboxes.view(-1, 2, 2)
             bbox_labels = torch.tensor([[2, 3]], dtype=torch.int32, device=bboxes.device).expand(len(bboxes), -1)
@@ -908,10 +906,10 @@ class SAM2VideoPredictor(SAM2Predictor):
             points, labels, masks = self._prepare_prompts(im.shape[2:], bboxes, points, labels, masks)
             if points is not None:
                 for i in range(len(points)):
-                    self.add_new_prompts(obj_id=i, points=points[[i]], labels=labels[[i]], frame_idx=frame, prepared=True)
+                    self.add_new_prompts(obj_id=i, points=points[[i]], labels=labels[[i]], frame_idx=frame)
             elif masks is not None:
                 for i in range(len(masks)):
-                    self.add_new_prompts(obj_id=i, masks=masks[[i]], frame_idx=frame, prepared=True)
+                    self.add_new_prompts(obj_id=i, masks=masks[[i]], frame_idx=frame)
         self.propagate_in_video_preflight()
 
         consolidated_frame_inds = self.inference_state["consolidated_frame_inds"]
@@ -980,10 +978,8 @@ class SAM2VideoPredictor(SAM2Predictor):
         obj_id,
         points=None,
         labels=None,
-        bboxes=None,
         masks=None,
         frame_idx=0,
-        prepared=False
     ):
         """
         Adds new points or masks to a specific frame for a given object ID.
@@ -1011,11 +1007,6 @@ class SAM2VideoPredictor(SAM2Predictor):
             - If the frame is being tracked for the first time, it is treated as an initial conditioning frame.
             - The method handles the consolidation of outputs and resizing of masks to the original video resolution.
         """
-        if not prepared:
-            assert self.dataset is not None and self.imgsz is not None, "Please run `predictor.setup_source(source)` first to get video info."
-            assert hasattr(self, "inference_state"), "Please run `SAM2VideoPredictor.init_state(predictor)` first to initialize inference state."
-            points, labels, masks = self._prepare_prompts(self.imgsz, bboxes, points, labels, masks, merge_point=True, src_shape=self.inference_state["hw"])
-
         assert (masks is None) ^ (points is None), "'masks' and 'points' prompts are not compatible with each other."
         obj_idx = self._obj_id_to_idx(obj_id)
 

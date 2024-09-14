@@ -166,6 +166,25 @@ SAM 2 can be utilized across a broad spectrum of tasks, including real-time vide
         yolo predict model=sam2_b.pt source=path/to/video.mp4
         ```
 
+#### Segment Video and Track objects
+
+!!! example "Segment Video"
+
+    Segment the entire video content with specific prompts and track objects.
+
+    === "Python"
+
+        ```python
+        from ultralytics.models.sam import SAM2VideoPredictor
+
+        # Create SAM2VideoPredictor
+        overrides = dict(conf=0.25, task="segment", mode="predict", imgsz=1024, model="sam2_b.pt")
+        predictor = SAM2VideoPredictor(overrides=overrides)
+
+        # Inference with prompts
+        results = predictor(source="test.mp4", points=[[920, 470], [909, 138]], labels=[1, 1])
+        ```
+
 - This example demonstrates how SAM 2 can be used to segment the entire content of an image or video if no prompts (bboxes/points/masks) are provided.
 
 ## SAM 2 comparison vs YOLOv8

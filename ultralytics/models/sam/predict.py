@@ -865,7 +865,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         Retrieves and configures the model with binarization enabled.
 
         Returns:
-            Model: The configured model instance with binarization enabled.
+            SAM2Model: The configured model instance with binarization enabled.
 
         Note:
             This method overrides the base class implementation to set the binarize flag to True.
@@ -960,7 +960,7 @@ class SAM2VideoPredictor(SAM2Predictor):
             orig_imgs (List[np.ndarray]): The original images before processing.
 
         Returns:
-            List[Prediction]: The post-processed predictions.
+            (list): The post-processed predictions.
 
         Note:
             If `non_overlap_masks` is True, the method applies constraints to ensure non-overlapping masks.
@@ -997,7 +997,7 @@ class SAM2VideoPredictor(SAM2Predictor):
             frame_idx (int, optional): The index of the frame to which the prompts are applied. Defaults to 0.
 
         Returns:
-            Tuple[torch.Tensor, torch.Tensor]: A tuple containing the flattened predicted masks and a tensor of ones indicating the number of objects.
+            (tuple): A tuple containing the flattened predicted masks and a tensor of ones indicating the number of objects.
 
         Raises:
             AssertionError: If both `masks` and `points` are provided, or neither is provided.

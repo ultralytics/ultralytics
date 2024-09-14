@@ -864,9 +864,6 @@ class SAM2VideoPredictor(SAM2Predictor):
         """
         Retrieves and configures the model with binarization enabled.
 
-        Returns:
-            SAM2Model: The configured model instance with binarization enabled.
-
         Note:
             This method overrides the base class implementation to set the binarize flag to True.
         """
@@ -1199,7 +1196,7 @@ class SAM2VideoPredictor(SAM2Predictor):
             batch (int, optional): The batch size for expanding features if there are multiple prompts. Defaults to 1.
 
         Returns:
-            Tuple[torch.Tensor, torch.Tensor, List]: A tuple containing:
+            (tuple): A tuple containing:
                 - vis_feats (torch.Tensor): The visual features extracted from the image.
                 - vis_pos_embed (torch.Tensor): The positional embeddings for the visual features.
                 - feat_sizes (List): A list containing the sizes of the extracted features.

@@ -734,7 +734,7 @@ class SAM2Predictor(Predictor):
         # `d` could be 1 or 3 depends on `multimask_output`.
         return pred_masks.flatten(0, 1), pred_scores.flatten(0, 1)
 
-    def _prepare_prompts(self, dst_shape, bboxes=None, points=None, labels=None, masks=None):
+    def _prepare_prompts(self, dst_shape, bboxes=None, points=None, labels=None, masks=None, merge_point=False):
         """
         Prepares and transforms the input prompts for processing based on the destination shape.
 
@@ -744,11 +744,12 @@ class SAM2Predictor(Predictor):
             points (List | np.ndarray, Optional): Points of interest in the format [[x1, y1], ...].
             labels (List | np.ndarray, Optional): Labels corresponding to the points.
             masks (List | np.ndarray, Optional): Masks for the objects, where each mask is a 2D array.
+            merge_point (bool, Optional): Whether to merge points into a single object or treat them independently.
 
         Returns:
             (tuple): A tuple containing transformed bounding boxes, points, labels, and masks.
         """
-        bboxes, points, labels, masks = super()._prepare_prompts(dst_shape, bboxes, points, labels, masks)
+        bboxes, points, labels, masks = super()._prepare_prompts(dst_shape, bboxes, points, labels, masks, merge_point)
         if bboxes is not None:
             bboxes = bboxes.view(-1, 2, 2)
             bbox_labels = torch.tensor([[2, 3]], dtype=torch.int32, device=bboxes.device).expand(len(bboxes), -1)

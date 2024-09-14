@@ -834,6 +834,23 @@ class SAM2VideoPredictor(SAM2Predictor):
     # fill_hole_area = 8  # not used
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
+        """
+        Initialize the predictor with configuration and optional overrides.
+
+        This constructor initializes the SAM2VideoPredictor with a given configuration, applies any
+        specified overrides, and sets up the inference state along with certain flags
+        that control the behavior of the predictor.
+
+        Args:
+            cfg (Dict): Configuration dictionary containing default settings.
+            overrides (Dict | None): Dictionary of values to override default configuration.
+            _callbacks (Dict | None): Dictionary of callback functions to customize behavior.
+
+        Examples:
+            >>> predictor = SAM2VideoPredictor(cfg=DEFAULT_CFG)
+            >>> predictor = SAM2VideoPredictor(overrides={"imgsz": 640})
+            >>> predictor = SAM2VideoPredictor(_callbacks={"on_predict_start": custom_callback})
+        """
         super().__init__(cfg, overrides, _callbacks)
         self.inference_state = {}
         self.non_overlap_masks = True
@@ -1180,7 +1197,7 @@ class SAM2VideoPredictor(SAM2Predictor):
             batch (int, optional): The batch size for expanding features if there are multiple prompts. Defaults to 1.
 
         Returns:
-            Tuple[torch.Tensor, torch.Tensor, Dict]: A tuple containing:
+            Tuple[torch.Tensor, torch.Tensor, List]: A tuple containing:
                 - vis_feats (torch.Tensor): The visual features extracted from the image.
                 - vis_pos_embed (torch.Tensor): The positional embeddings for the visual features.
                 - feat_sizes (List): A list containing the sizes of the extracted features.

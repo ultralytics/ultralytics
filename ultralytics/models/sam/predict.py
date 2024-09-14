@@ -899,17 +899,17 @@ class SAM2VideoPredictor(SAM2Predictor):
         points = self.prompts.pop("points", points)
         masks = self.prompts.pop("masks", masks)
 
-        points, labels, masks = self._prepare_prompts(im.shape[2:], bboxes, points, labels, masks)
         frame = self.dataset.frame
         self.inference_state["im"] = im
         output_dict = self.inference_state["output_dict"]
         if len(output_dict["cond_frame_outputs"]) == 0:  # initialize prompts
+            points, labels, masks = self._prepare_prompts(im.shape[2:], bboxes, points, labels, masks)
             if points is not None:
                 for i in range(len(points)):
-                    self.add_new_prompts(obj_id=i, points=points[[i]], labels=labels[[i]], frame_idx=frame)
+                    self.add_new_prompts(obj_id=i, points=points[[i]], labels=labels[[i]], frame_idx=frame, prepared=True)
             elif masks is not None:
                 for i in range(len(masks)):
-                    self.add_new_prompts(obj_id=i, masks=masks[[i]], frame_idx=frame)
+                    self.add_new_prompts(obj_id=i, masks=masks[[i]], frame_idx=frame, prepared=True)
         self.propagate_in_video_preflight()
 
         consolidated_frame_inds = self.inference_state["consolidated_frame_inds"]
@@ -978,8 +978,10 @@ class SAM2VideoPredictor(SAM2Predictor):
         obj_id,
         points=None,
         labels=None,
+        bboxes=None,
         masks=None,
         frame_idx=0,
+        prepared=False
     ):
         """
         Adds new points or masks to a specific frame for a given object ID.
@@ -1007,6 +1009,11 @@ class SAM2VideoPredictor(SAM2Predictor):
             - If the frame is being tracked for the first time, it is treated as an initial conditioning frame.
             - The method handles the consolidation of outputs and resizing of masks to the original video resolution.
         """
+        if not prepared:
+            assert self.dataset is not None and self.imgsz is not None, "Please run `predictor.setup_source(source)` first to get video info."
+            assert hasattr(self, "inference_state"), "Please run `SAM2VideoPredictor.init_state(predictor)` first to initialize inference state."
+            points, labels, masks = self._prepare_prompts(self.imgsz, bboxes, points, labels, masks, merge_point=True)
+
         assert (masks is None) ^ (points is None), "'masks' and 'points' prompts are not compatible with each other."
         obj_idx = self._obj_id_to_idx(obj_id)
 
@@ -1155,6 +1162,8 @@ class SAM2VideoPredictor(SAM2Predictor):
         Args:
             predictor (SAM2VideoPredictor): The predictor object for which to initialize the state.
         """
+        if hasattr(predictor, "inference_state"):
+            return
         assert predictor.dataset is not None
         assert predictor.dataset.mode == "video"
 

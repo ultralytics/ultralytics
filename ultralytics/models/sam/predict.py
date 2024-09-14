@@ -406,7 +406,7 @@ class Predictor(BasePredictor):
 
         return pred_masks, pred_scores, pred_bboxes
 
-    def setup_model(self, model, verbose=True):
+    def setup_model(self, model=None, verbose=True):
         """
         Initializes the Segment Anything Model (SAM) for inference.
 
@@ -1162,7 +1162,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         Args:
             predictor (SAM2VideoPredictor): The predictor object for which to initialize the state.
         """
-        if hasattr(predictor, "inference_state"):
+        if len(predictor.inference_state) > 0:  # means initialized
             return
         assert predictor.dataset is not None
         assert predictor.dataset.mode == "video"

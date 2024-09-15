@@ -93,7 +93,7 @@ def test_predict_csv_multi_row():
     results = YOLO(MODEL)(source=file, imgsz=32)
     assert len(results) == 7  # 1 + 2 + 2 + 2 = 7 images
 
- 
+
 @pytest.mark.skipif(not IS_TMP_WRITEABLE, reason="directory is not writeable")
 def test_predict_csv_single_row():
     """Tests YOLO predictions with sources listed in a single row of a CSV file."""

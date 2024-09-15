@@ -154,8 +154,8 @@ class ParkingManagement:
         Args:
             model (str): Path to the YOLOv8 model.
             json_file (str): file that have all parking slot points data
-            occupied_region_color (tuple): RGB color tuple for occupied regions.
-            available_region_color (tuple): RGB color tuple for available regions.
+            orc (tuple): RGB color tuple for occupied regions.
+            arc (tuple): RGB color tuple for available regions.
         """
         # Model initialization
         from ultralytics import YOLO

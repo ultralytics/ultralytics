@@ -44,8 +44,8 @@ class ParkingPtsSelection:
         self.canvas_image = None
         self.rg_data = []  # region coordinates
         self.current_box = []
-        self.imgw = 0   # image width
-        self.imgh = 0     # image height
+        self.imgw = 0  # image width
+        self.imgh = 0  # image height
 
         # Constants
         self.canvas_max_width = 1280
@@ -129,8 +129,12 @@ class ParkingPtsSelection:
         for box in self.rg_data:
             rs_box = []  # rescaled box list
             for x, y in box:
-                rs_box.append((int(x * self.imgw / self.canvas.winfo_width()),  # width scaling
-                               int(y * self.imgh / self.canvas.winfo_height())))    # height scaling
+                rs_box.append(
+                    (
+                        int(x * self.imgw / self.canvas.winfo_width()),  # width scaling
+                        int(y * self.imgh / self.canvas.winfo_height()),
+                    )
+                )  # height scaling
             rg_data.append({"points": rs_box})
         with open("bounding_boxes.json", "w") as f:
             json.dump(rg_data, f, indent=4)
@@ -143,10 +147,10 @@ class ParkingManagement:
 
     def __init__(
         self,
-        model,     # Ultralytics YOLO model file path
-        json_file,      # Parking management annotation file created from Parking Annotator
-        orc=(0, 0, 255),    # occupied region color
-        arc=(0, 255, 0),    # available region color
+        model,  # Ultralytics YOLO model file path
+        json_file,  # Parking management annotation file created from Parking Annotator
+        orc=(0, 0, 255),  # occupied region color
+        arc=(0, 255, 0),  # available region color
     ):
         """
         Initializes the parking management system with a YOLOv8 model and visualization settings.
@@ -159,6 +163,7 @@ class ParkingManagement:
         """
         # Model initialization
         from ultralytics import YOLO
+
         self.model = YOLO(model)
 
         # Load JSON data
@@ -170,7 +175,7 @@ class ParkingManagement:
         self.occ = orc
         self.arc = arc
 
-        self.env_check = check_imshow(warn=True)    # check if environment supports imshow
+        self.env_check = check_imshow(warn=True)  # check if environment supports imshow
 
     def process_data(self, im0):
         """
@@ -179,7 +184,7 @@ class ParkingManagement:
         Args:
             im0 (ndarray): inference image
         """
-        results = self.model.track(im0, persist=True, show=False)   # object tracking
+        results = self.model.track(im0, persist=True, show=False)  # object tracking
 
         es, fs = len(self.json_data), 0  # empty slots, filled slots
         annotator = Annotator(im0)  # init annotator
@@ -194,7 +199,7 @@ class ParkingManagement:
 
         for region in self.json_data:
             # Convert points to a NumPy array with the correct dtype and reshape properly
-            pts_array = np.array(region['points'], dtype=np.int32).reshape((-1, 1, 2))
+            pts_array = np.array(region["points"], dtype=np.int32).reshape((-1, 1, 2))
             rg_occupied = False  # occupied region initialization
             for box, cls in zip(boxes, clss):
                 xc = int((box[0] + box[2]) / 2)

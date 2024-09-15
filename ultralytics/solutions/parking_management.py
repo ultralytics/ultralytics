@@ -44,8 +44,8 @@ class ParkingPtsSelection:
         self.canvas_image = None
         self.rg_data = []  # region coordinates
         self.current_box = []
-        self.img_width = 0
-        self.img_height = 0
+        self.imgw = 0   # image width
+        self.imgh = 0     # image height
 
         # Constants
         self.canvas_max_width = 1280
@@ -64,17 +64,17 @@ class ParkingPtsSelection:
             return
 
         self.image = Image.open(self.image_path)
-        self.img_width, self.img_height = self.image.size
+        self.imgw, self.imgh = self.image.size
 
         # Calculate the aspect ratio and resize image
-        aspect_ratio = self.img_width / self.img_height
+        aspect_ratio = self.imgw / self.imgh
         if aspect_ratio > 1:
             # Landscape orientation
-            canvas_width = min(self.canvas_max_width, self.img_width)
+            canvas_width = min(self.canvas_max_width, self.imgw)
             canvas_height = int(canvas_width / aspect_ratio)
         else:
             # Portrait orientation
-            canvas_height = min(self.canvas_max_height, self.img_height)
+            canvas_height = min(self.canvas_max_height, self.imgh)
             canvas_width = int(canvas_height * aspect_ratio)
 
         # Check if canvas is already initialized
@@ -100,18 +100,9 @@ class ParkingPtsSelection:
 
         if len(self.current_box) == 4:
             self.rg_data.append(self.current_box)
-            self.draw_bounding_box(self.current_box)
+            for i in range(4):
+                self.canvas.create_line(self.current_box[i], self.current_box[(i + 1) % 4], fill="blue", width=2)
             self.current_box = []
-
-    def draw_bounding_box(self, box):
-        """
-        Draw bounding box on canvas.
-
-        Args:
-            box (list): Bounding box data
-        """
-        for i in range(4):
-            self.canvas.create_line(box[i], box[(i + 1) % 4], fill="blue", width=2)
 
     def remove_last_bounding_box(self):
         """Remove the last drawn bounding box from canvas."""
@@ -134,14 +125,13 @@ class ParkingPtsSelection:
         """Saves rescaled bounding boxes to 'bounding_boxes.json' based on image-to-canvas size ratio."""
         from tkinter import messagebox  # scope for multi-environment compatibility
 
-        wsf = self.img_width / self.canvas.winfo_width()  # width scaling factor
-        hsf = self.img_height / self.canvas.winfo_height()  # height scaling factor
         rg_data = []  # regions data
         for box in self.rg_data:
             rs_box = []  # rescaled box list
             for x, y in box:
-                rs_box.append((int(x * wsf), int(y * hsf)))
-            rg_data.append({"points": rescaled_box})
+                rs_box.append((int(x * self.imgw / self.canvas.winfo_width()),  # width scaling
+                               int(y * self.imgh / self.canvas.winfo_height())))    # height scaling
+            rg_data.append({"points": rs_box})
         with open("bounding_boxes.json", "w") as f:
             json.dump(rg_data, f, indent=4)
 
@@ -174,8 +164,8 @@ class ParkingManagement:
         self.labels_dict = {"Occupancy": 0, "Available": 0}
 
         # Visualization details
-        self.occupied_region_color = occupied_region_color
-        self.available_region_color = available_region_color
+        self.occ = occupied_region_color    # occupied region color
+        self.arc = available_region_color   # available region color
 
         # Check if environment supports imshow
         self.env_check = check_imshow(warn=True)
@@ -204,7 +194,8 @@ class ParkingManagement:
         annotator = Annotator(im0)
         es, fs = len(json_data), 0  # empty slots, filled slots
         for region in json_data:
-            pts_array = np.array(region["points"], dtype=np.int32).reshape((-1, 1, 2))
+            # Convert points to a NumPy array with the correct dtype and reshape properly
+            pts_array = np.array(region['points'], dtype=np.int32).reshape((-1, 1, 2))
             rg_occupied = False  # occupied region initialization
 
             for box, cls in zip(boxes, clss):
@@ -219,7 +210,7 @@ class ParkingManagement:
                     rg_occupied = True
                     break
 
-            color = self.occupied_region_color if rg_occupied else self.available_region_color
+            color = self.occ if rg_occupied else self.arc
             cv2.polylines(im0, [pts_array], isClosed=True, color=color, thickness=2)
             if rg_occupied:
                 fs += 1

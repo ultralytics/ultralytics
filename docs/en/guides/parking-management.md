@@ -30,7 +30,7 @@ Parking management with [Ultralytics YOLOv8](https://github.com/ultralytics/ultr
 ## Real World Applications
 
 |                                                                     Parking Management System                                                                      |                                                                      Parking Management System                                                                       |
-|:------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
+| :----------------------------------------------------------------------------------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
 | ![Parking lots Analytics Using Ultralytics YOLOv8](https://github.com/ultralytics/docs/releases/download/0/parking-management-aerial-view-ultralytics-yolov8.avif) | ![Parking management top view using Ultralytics YOLOv8](https://github.com/ultralytics/docs/releases/download/0/parking-management-top-view-ultralytics-yolov8.avif) |
 |                                                      Parking management Aerial View using Ultralytics YOLOv8                                                       |                                                         Parking management Top View using Ultralytics YOLOv8                                                         |
 
@@ -71,29 +71,30 @@ Parking management with [Ultralytics YOLOv8](https://github.com/ultralytics/ultr
 
         ```python
         import cv2
+
         from ultralytics import solutions
-        
+
         # Video capture
         cap = cv2.VideoCapture("Path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-        
+
         # Video writer
         video_writer = cv2.VideoWriter("parking management.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
-        
+
         # Initialize parking management object
         parking_manager = solutions.ParkingManagement(
             model="yolov8n.pt",  # path to model file
-            json_file="bounding_boxes.json"  # path to parking annotations file
+            json_file="bounding_boxes.json",  # path to parking annotations file
         )
-        
+
         while cap.isOpened():
             ret, im0 = cap.read()
             if not ret:
                 break
             im0 = parking_manager.process_data(im0)
             video_writer.write(im0)
-        
+
         cap.release()
         video_writer.release()
         cv2.destroyAllWindows()
@@ -102,7 +103,7 @@ Parking management with [Ultralytics YOLOv8](https://github.com/ultralytics/ultr
 ### Optional Arguments `ParkingManagement`
 
 | Name        | Type    | Default       | Description                                                    |
-|-------------|---------|---------------|----------------------------------------------------------------|
+| ----------- | ------- | ------------- | -------------------------------------------------------------- |
 | `model`     | `str`   | `None`        | Path to the YOLOv8 model.                                      |
 | `json_file` | `str`   | `None`        | Path to the JSON file, that have all parking coordinates data. |
 | `orc`       | `tuple` | `(0, 0, 255)` | RGB color for occupied regions.                                |

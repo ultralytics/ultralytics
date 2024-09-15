@@ -42,7 +42,7 @@ class ParkingPtsSelection:
         self.image_path = None
         self.image = None
         self.canvas_image = None
-        self.bounding_boxes = []
+        self.rg_data = []   # region coordinates
         self.current_box = []
         self.img_width = 0
         self.img_height = 0
@@ -90,18 +90,16 @@ class ParkingPtsSelection:
         self.canvas.bind("<Button-1>", self.on_canvas_click)
 
         # Reset bounding boxes and current box
-        self.bounding_boxes = []
+        self.rg_data = []
         self.current_box = []
 
     def on_canvas_click(self, event):
         """Handle mouse clicks on canvas to create points for bounding boxes."""
         self.current_box.append((event.x, event.y))
-        x0, y0 = event.x - 3, event.y - 3
-        x1, y1 = event.x + 3, event.y + 3
-        self.canvas.create_oval(x0, y0, x1, y1, fill="red")
+        self.canvas.create_oval(event.x-3, event.y-3, event.x + 3, event.y + 3, fill="red")
 
         if len(self.current_box) == 4:
-            self.bounding_boxes.append(self.current_box)
+            self.rg_data.append(self.current_box)
             self.draw_bounding_box(self.current_box)
             self.current_box = []
 
@@ -113,20 +111,19 @@ class ParkingPtsSelection:
             box (list): Bounding box data
         """
         for i in range(4):
-            [x1, y1, x2, y2] = box[i], box[(i + 1) % 4]
-            self.canvas.create_line(x1, y1, x2, y2, fill="blue", width=2)
+            self.canvas.create_line(box[i], box[(i + 1) % 4], fill="blue", width=2)
 
     def remove_last_bounding_box(self):
         """Remove the last drawn bounding box from canvas."""
         from tkinter import messagebox  # scope for multi-environment compatibility
 
-        if self.bounding_boxes:
-            self.bounding_boxes.pop()  # Remove the last bounding box
+        if self.rg_data:
+            self.rg_data.pop()  # Remove the last bounding box
             self.canvas.delete("all")  # Clear the canvas
             self.canvas.create_image(0, 0, anchor=self.tk.NW, image=self.canvas_image)  # Redraw the image
 
             # Redraw all bounding boxes
-            for box in self.bounding_boxes:
+            for box in self.rg_data:
                 self.draw_bounding_box(box)
 
             messagebox.showinfo("Success", "Last bounding box removed.")
@@ -137,19 +134,16 @@ class ParkingPtsSelection:
         """Saves rescaled bounding boxes to 'bounding_boxes.json' based on image-to-canvas size ratio."""
         from tkinter import messagebox  # scope for multi-environment compatibility
 
-        canvas_width, canvas_height = self.canvas.winfo_width(), self.canvas.winfo_height()
-        width_scaling_factor = self.img_width / canvas_width
-        height_scaling_factor = self.img_height / canvas_height
-        bounding_boxes_data = []
-        for box in self.bounding_boxes:
-            rescaled_box = []
+        wsf = self.img_width / self.canvas.winfo_width()    # width scaling factor
+        hsf = self.img_height / self.canvas.winfo_height()  # height scaling factor
+        rg_data = []    # regions data
+        for box in self.rg_data:
+            rs_box = []     # rescaled box list
             for x, y in box:
-                rescaled_x = int(x * width_scaling_factor)
-                rescaled_y = int(y * height_scaling_factor)
-                rescaled_box.append((rescaled_x, rescaled_y))
-            bounding_boxes_data.append({"points": rescaled_box})
+                rs_box.append((int(x * wsf), int(y * hsf)))
+            rg_data.append({"points": rescaled_box})
         with open("bounding_boxes.json", "w") as f:
-            json.dump(bounding_boxes_data, f, indent=4)
+            json.dump(rg_data, f, indent=4)
 
         messagebox.showinfo("Success", "Bounding boxes saved to bounding_boxes.json")
 
@@ -160,8 +154,8 @@ class ParkingManagement:
     def __init__(
         self,
         model_path,
-        occupied_region_color=(0, 255, 0),
-        available_region_color=(0, 0, 255),
+        occupied_region_color=(0, 255, 255),
+        available_region_color=(0, 255, 0),
     ):
         """
         Initializes the parking management system with a YOLOv8 model and visualization settings.
@@ -225,7 +219,7 @@ class ParkingManagement:
                     break
 
             color = self.occupied_region_color if rg_occupied else self.available_region_color
-            cv2.polylines(im0, [points_array], isClosed=True, color=color, thickness=2)
+            cv2.polylines(im0, [pts_array], isClosed=True, color=color, thickness=2)
             if rg_occupied:
                 fs += 1
                 es -= 1

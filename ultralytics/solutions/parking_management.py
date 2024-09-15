@@ -44,8 +44,8 @@ class ParkingPtsSelection:
         self.canvas_image = None
         self.rg_data = []  # region coordinates
         self.current_box = []
-        self.imgw = 0   # image width
-        self.imgh = 0     # image height
+        self.imgw = 0  # image width
+        self.imgh = 0  # image height
 
         # Constants
         self.canvas_max_width = 1280
@@ -129,8 +129,12 @@ class ParkingPtsSelection:
         for box in self.rg_data:
             rs_box = []  # rescaled box list
             for x, y in box:
-                rs_box.append((int(x * self.imgw / self.canvas.winfo_width()),  # width scaling
-                               int(y * self.imgh / self.canvas.winfo_height())))    # height scaling
+                rs_box.append(
+                    (
+                        int(x * self.imgw / self.canvas.winfo_width()),  # width scaling
+                        int(y * self.imgh / self.canvas.winfo_height()),
+                    )
+                )  # height scaling
             rg_data.append({"points": rs_box})
         with open("bounding_boxes.json", "w") as f:
             json.dump(rg_data, f, indent=4)
@@ -164,8 +168,8 @@ class ParkingManagement:
         self.labels_dict = {"Occupancy": 0, "Available": 0}
 
         # Visualization details
-        self.occ = occupied_region_color    # occupied region color
-        self.arc = available_region_color   # available region color
+        self.occ = occupied_region_color  # occupied region color
+        self.arc = available_region_color  # available region color
 
         # Check if environment supports imshow
         self.env_check = check_imshow(warn=True)
@@ -195,7 +199,7 @@ class ParkingManagement:
         es, fs = len(json_data), 0  # empty slots, filled slots
         for region in json_data:
             # Convert points to a NumPy array with the correct dtype and reshape properly
-            pts_array = np.array(region['points'], dtype=np.int32).reshape((-1, 1, 2))
+            pts_array = np.array(region["points"], dtype=np.int32).reshape((-1, 1, 2))
             rg_occupied = False  # occupied region initialization
 
             for box, cls in zip(boxes, clss):

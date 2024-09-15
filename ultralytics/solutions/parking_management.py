@@ -154,7 +154,7 @@ class ParkingManagement:
     def __init__(
         self,
         model_path,
-        occupied_region_color=(0, 255, 255),
+        occupied_region_color=(0, 0, 255),
         available_region_color=(0, 255, 0),
     ):
         """

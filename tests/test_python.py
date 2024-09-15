@@ -79,7 +79,7 @@ def test_predict_txt():
         for src in SOURCES_LIST:
             f.write(f"{src}\n")
     results = YOLO(MODEL)(source=file, imgsz=32)
-    assert len(results) == len(SOURCES_LIST)
+    assert len(results) == 7  # 1 + 2 + 2 + 2 = 7 images
 
 
 @pytest.mark.skipif(False, reason="disabled for testing")
@@ -92,7 +92,7 @@ def test_predict_csv_multi_row():
         writer.writerow(["source"])
         writer.writerows([[src] for src in SOURCES_LIST])
     results = YOLO(MODEL)(source=file, imgsz=32)
-    assert len(results) == len(SOURCES_LIST)
+    assert len(results) == 7  # 1 + 2 + 2 + 2 = 7 images
 
 
 @pytest.mark.skipif(False, reason="disabled for testing")
@@ -104,7 +104,7 @@ def test_predict_csv_single_row():
         writer = csv.writer(f)
         writer.writerow(SOURCES_LIST)
     results = YOLO(MODEL)(source=file, imgsz=32)
-    assert len(results) == len(SOURCES_LIST)
+    assert len(results) == 7  # 1 + 2 + 2 + 2 = 7 images
 
 
 @pytest.mark.parametrize("model_name", MODELS)

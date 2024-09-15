@@ -120,7 +120,7 @@ Ultralytics HUB allows you to manage and organize your projects efficiently. You
 Ultralytics HUB offers seamless integrations with various platforms to enhance your machine learning workflows. Some key integrations include:
 
 - **Roboflow:** For dataset management and model training. Learn more on the [Integrations](integrations.md) page.
-- **Google Colab:** Efficiently train models using Google Colab's cloud-based environment. Detailed steps are available in the [Google Colab](https://docs.ultralytics.com/integrations/google-colab) section.
-- **Weights & Biases:** For enhanced experiment tracking and visualization. Explore the [Weights & Biases](https://docs.ultralytics.com/integrations/weights-biases) integration.
+- **Google Colab:** Efficiently train models using Google Colab's cloud-based environment. Detailed steps are available in the [Google Colab](https://docs.ultralytics.com/integrations/google-colab/) section.
+- **Weights & Biases:** For enhanced experiment tracking and visualization. Explore the [Weights & Biases](https://docs.ultralytics.com/integrations/weights-biases/) integration.
 
 For a complete list of integrations, refer to the [Integrations](integrations.md) page.

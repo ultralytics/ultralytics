@@ -90,6 +90,14 @@ jobs:
         run: |
           git tag -a "${{ steps.check_pypi.outputs.current_tag }}" -m "$(git log -1 --pretty=%B)"  # i.e. "v0.1.2 commit message"
           git push origin "${{ steps.check_pypi.outputs.current_tag }}"
+      - name: Publish to PyPI
+        continue-on-error: true
+        if: (github.event_name == 'push' || github.event.inputs.pypi == 'true')  && steps.check_pypi.outputs.increment == 'True'
+        env:
+          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+        run: |
+          python -m build
+          python -m twine upload dist/* -u __token__ -p $PYPI_TOKEN
       - name: Publish new release
         if: (github.event_name == 'push' || github.event.inputs.pypi == 'true')  && steps.check_pypi.outputs.increment == 'True'
         env:
@@ -100,14 +108,6 @@ jobs:
         run: |
           curl -s "https://raw.githubusercontent.com/ultralytics/actions/main/utils/summarize_release.py" | python -
         shell: bash
-      - name: Publish to PyPI
-        continue-on-error: true
-        if: (github.event_name == 'push' || github.event.inputs.pypi == 'true')  && steps.check_pypi.outputs.increment == 'True'
-        env:
-          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
-        run: |
-          python -m build
-          python -m twine upload dist/* -u __token__ -p $PYPI_TOKEN
       - name: Extract PR Details
         env:
           GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN || secrets.GITHUB_TOKEN }}

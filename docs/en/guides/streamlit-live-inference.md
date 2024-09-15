@@ -152,7 +152,7 @@ Real-time object detection using Streamlit and Ultralytics YOLOv8 can be applied
 - **Retail**: Customer counting, shelf management, and more.
 - **Wildlife and Agriculture**: Monitoring animals and crop conditions.
 
-For more in-depth use cases and examples, explore [Ultralytics Solutions](https://docs.ultralytics.com/solutions).
+For more in-depth use cases and examples, explore [Ultralytics Solutions](https://docs.ultralytics.com/solutions/).
 
 ### How does Ultralytics YOLOv8 compare to other object detection models like YOLOv5 and RCNNs?
 
@@ -162,4 +162,4 @@ Ultralytics YOLOv8 provides several enhancements over prior models like YOLOv5 a
 - **Ease of Use**: Simplified interfaces and deployment.
 - **Resource Efficiency**: Optimized for better speed with minimal computational requirements.
 
-For a comprehensive comparison, check [Ultralytics YOLOv8 Documentation](https://docs.ultralytics.com/models/yolov8) and related blog posts discussing model performance.
+For a comprehensive comparison, check [Ultralytics YOLOv8 Documentation](https://docs.ultralytics.com/models/yolov8/) and related blog posts discussing model performance.

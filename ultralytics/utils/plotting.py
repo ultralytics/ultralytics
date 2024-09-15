@@ -31,7 +31,7 @@ class Colors:
         pose_palette (np.ndarray): A specific color palette array with dtype np.uint8.
 
     ## Ultralytics Default Color Palette
-    
+
     | Index | Color                                                             | HEX       | RGB               |
     |-------|-------------------------------------------------------------------|-----------|-------------------|
     | 0     | <i class="fa-solid fa-square fa-2xl" style="color: #042aff;"></i> | `#042aff` | (4, 42, 255)      |
@@ -54,9 +54,9 @@ class Colors:
     | 17    | <i class="fa-solid fa-square fa-2xl" style="color: #ff1b6c;"></i> | `#ff1b6c` | (255, 27, 108)    |
     | 18    | <i class="fa-solid fa-square fa-2xl" style="color: #fc6d2f;"></i> | `#fc6d2f` | (252, 109, 47)    |
     | 19    | <i class="fa-solid fa-square fa-2xl" style="color: #a2ff0b;"></i> | `#a2ff0b` | (162, 255, 11)    |
-    
+
     ## Pose Color Palette
-    
+
     | Index | Color                                                             | HEX       | RGB               |
     |-------|-------------------------------------------------------------------|-----------|-------------------|
     | 0     | <i class="fa-solid fa-square fa-2xl" style="color: #ff8000;"></i> | `#ff8000` | (255, 128, 0)     |

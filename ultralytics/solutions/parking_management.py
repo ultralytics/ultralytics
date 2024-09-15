@@ -147,8 +147,8 @@ class ParkingManagement:
         self,
         model,  # Ultralytics YOLO model file path
         json_file,  # Parking management annotation file created from Parking Annotator
-        orc=(0, 0, 255),  # occupied region color
-        arc=(0, 255, 0),  # available region color
+        occupied_region_color=(0, 0, 255),  # occupied region color
+        available_region_color=(0, 255, 0),  # available region color
     ):
         """
         Initializes the parking management system with a YOLOv8 model and visualization settings.
@@ -156,8 +156,8 @@ class ParkingManagement:
         Args:
             model (str): Path to the YOLOv8 model.
             json_file (str): file that have all parking slot points data
-            orc (tuple): RGB color tuple for occupied regions.
-            arc (tuple): RGB color tuple for available regions.
+            occupied_region_color (tuple): RGB color tuple for occupied regions.
+            available_region_color (tuple): RGB color tuple for available regions.
         """
         # Model initialization
         from ultralytics import YOLO
@@ -170,8 +170,8 @@ class ParkingManagement:
 
         self.pr_info = {"Occupancy": 0, "Available": 0}  # dictionary for parking information
 
-        self.occ = orc
-        self.arc = arc
+        self.occ = occupied_region_color
+        self.arc = available_region_color
 
         self.env_check = check_imshow(warn=True)  # check if environment supports imshow
 

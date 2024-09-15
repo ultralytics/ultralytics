@@ -27,8 +27,8 @@ from ultralytics.utils import (
     WEIGHTS_DIR,
     WINDOWS,
     checks,
-    is_github_action_running,
     is_dir_writeable,
+    is_github_action_running,
 )
 from ultralytics.utils.downloads import download
 from ultralytics.utils.torch_utils import TORCH_1_9

@@ -143,65 +143,62 @@ class ParkingManagement:
 
     def __init__(
         self,
-        model_path,
-        occupied_region_color=(0, 0, 255),
-        available_region_color=(0, 255, 0),
+        model,     # Ultralytics YOLO model file path
+        json_file,      # Parking management annotation file created from Parking Annotator
+        orc=(0, 0, 255),    # occupied region color
+        arc=(0, 255, 0),    # available region color
     ):
         """
         Initializes the parking management system with a YOLOv8 model and visualization settings.
 
         Args:
-            model_path (str): Path to the YOLOv8 model.
+            model (str): Path to the YOLOv8 model.
+            json_file (str): file that have all parking slot points data
             occupied_region_color (tuple): RGB color tuple for occupied regions.
             available_region_color (tuple): RGB color tuple for available regions.
         """
         # Model initialization
         from ultralytics import YOLO
+        self.model = YOLO(model)
 
-        self.model = YOLO(model_path)
-
-        # Labels dictionary
-        self.labels_dict = {"Occupancy": 0, "Available": 0}
-
-        # Visualization details
-        self.occ = occupied_region_color    # occupied region color
-        self.arc = available_region_color   # available region color
-
-        # Check if environment supports imshow
-        self.env_check = check_imshow(warn=True)
-
-    @staticmethod
-    def parking_regions_extraction(json_file):
-        """
-        Extract parking regions from json file.
-
-        Args:
-            json_file (str): file that have all parking slot points
-        """
+        # Load JSON data
         with open(json_file) as f:
-            return json.load(f)
+            self.json_data = json.load(f)
 
-    def process_data(self, json_data, im0, boxes, clss):
+        self.pr_info = {"Occupancy": 0, "Available": 0}  # dictionary for parking information
+
+        self.occ = orc
+        self.arc = arc
+
+        self.env_check = check_imshow(warn=True)    # check if environment supports imshow
+
+    def process_data(self, im0):
         """
         Process the model data for parking lot management.
 
         Args:
-            json_data (str): json data for parking lot management
             im0 (ndarray): inference image
-            boxes (list): bounding boxes data
-            clss (list): bounding boxes classes list
         """
-        annotator = Annotator(im0)
-        es, fs = len(json_data), 0  # empty slots, filled slots
-        for region in json_data:
+        results = self.model.track(im0, persist=True, show=False)   # object tracking
+
+        es, fs = len(self.json_data), 0  # empty slots, filled slots
+        annotator = Annotator(im0)  # init annotator
+
+        # extract tracks data
+        if results[0].boxes.id is None:
+            self.display_frames(im0)
+            return im0
+
+        boxes = results[0].boxes.xyxy.cpu().tolist()
+        clss = results[0].boxes.cls.cpu().tolist()
+
+        for region in self.json_data:
             # Convert points to a NumPy array with the correct dtype and reshape properly
             pts_array = np.array(region['points'], dtype=np.int32).reshape((-1, 1, 2))
             rg_occupied = False  # occupied region initialization
-
             for box, cls in zip(boxes, clss):
                 xc = int((box[0] + box[2]) / 2)
                 yc = int((box[1] + box[3]) / 2)
-
                 annotator.display_objects_labels(
                     im0, self.model.names[int(cls)], (104, 31, 17), (255, 255, 255), xc, yc, 10
                 )
@@ -209,17 +206,21 @@ class ParkingManagement:
                 if dist >= 0:
                     rg_occupied = True
                     break
-
-            color = self.occ if rg_occupied else self.arc
-            cv2.polylines(im0, [pts_array], isClosed=True, color=color, thickness=2)
             if rg_occupied:
                 fs += 1
                 es -= 1
 
-        self.labels_dict["Occupancy"] = fs
-        self.labels_dict["Available"] = es
+            # Plotting regions
+            color = self.occ if rg_occupied else self.arc
+            cv2.polylines(im0, [pts_array], isClosed=True, color=color, thickness=2)
 
-        annotator.display_analytics(im0, self.labels_dict, (104, 31, 17), (255, 255, 255), 10)
+        self.pr_info["Occupancy"] = fs
+        self.pr_info["Available"] = es
+
+        annotator.display_analytics(im0, self.pr_info, (104, 31, 17), (255, 255, 255), 10)
+
+        self.display_frames(im0)
+        return im0
 
     def display_frames(self, im0):
         """
@@ -229,7 +230,7 @@ class ParkingManagement:
             im0 (ndarray): inference image
         """
         if self.env_check:
-            cv2.imshow("Ultralytics YOLOv8 Parking Management System", im0)
+            cv2.imshow("Ultralytics Parking Manager", im0)
             # Break Window
             if cv2.waitKey(1) & 0xFF == ord("q"):
                 return

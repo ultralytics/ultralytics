@@ -30,7 +30,7 @@ Parking management with [Ultralytics YOLOv8](https://github.com/ultralytics/ultr
 ## Real World Applications
 
 |                                                                     Parking Management System                                                                      |                                                                      Parking Management System                                                                       |
-| :----------------------------------------------------------------------------------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
+|:------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
 | ![Parking lots Analytics Using Ultralytics YOLOv8](https://github.com/ultralytics/docs/releases/download/0/parking-management-aerial-view-ultralytics-yolov8.avif) | ![Parking management top view using Ultralytics YOLOv8](https://github.com/ultralytics/docs/releases/download/0/parking-management-top-view-ultralytics-yolov8.avif) |
 |                                                      Parking management Aerial View using Ultralytics YOLOv8                                                       |                                                         Parking management Top View using Ultralytics YOLOv8                                                         |
 
@@ -71,39 +71,29 @@ Parking management with [Ultralytics YOLOv8](https://github.com/ultralytics/ultr
 
         ```python
         import cv2
-
         from ultralytics import solutions
-
-        # Path to json file, that created with above point selection app
-        polygon_json_path = "bounding_boxes.json"
-
+        
         # Video capture
         cap = cv2.VideoCapture("Path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-
+        
         # Video writer
         video_writer = cv2.VideoWriter("parking management.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
-
+        
         # Initialize parking management object
-        management = solutions.ParkingManagement(model_path="yolov8n.pt")
-
+        parking_manager = solutions.ParkingManagement(
+            model="yolov8n.pt",  # path to model file
+            json_file="bounding_boxes.json"  # path to parking annotations file
+        )
+        
         while cap.isOpened():
             ret, im0 = cap.read()
             if not ret:
                 break
-
-            json_data = management.parking_regions_extraction(polygon_json_path)
-            results = management.model.track(im0, persist=True, show=False)
-
-            if results[0].boxes.id is not None:
-                boxes = results[0].boxes.xyxy.cpu().tolist()
-                clss = results[0].boxes.cls.cpu().tolist()
-                management.process_data(json_data, im0, boxes, clss)
-
-            management.display_frames(im0)
+            im0 = parking_manager.process_data(im0)
             video_writer.write(im0)
-
+        
         cap.release()
         video_writer.release()
         cv2.destroyAllWindows()
@@ -111,11 +101,12 @@ Parking management with [Ultralytics YOLOv8](https://github.com/ultralytics/ultr
 
 ### Optional Arguments `ParkingManagement`
 
-| Name                     | Type    | Default       | Description                            |
-| ------------------------ | ------- | ------------- | -------------------------------------- |
-| `model_path`             | `str`   | `None`        | Path to the YOLOv8 model.              |
-| `occupied_region_color`  | `tuple` | `(0, 0, 255)` | RGB color tuple for occupied regions.  |
-| `available_region_color` | `tuple` | `(0, 255, 0)` | RGB color tuple for available regions. |
+| Name        | Type    | Default       | Description                                                    |
+|-------------|---------|---------------|----------------------------------------------------------------|
+| `model`     | `str`   | `None`        | Path to the YOLOv8 model.                                      |
+| `json_file` | `str`   | `None`        | Path to the JSON file, that have all parking coordinates data. |
+| `orc`       | `tuple` | `(0, 0, 255)` | RGB color for occupied regions.                                |
+| `arc`       | `tuple` | `(0, 255, 0)` | RGB color for available regions.                               |
 
 ### Arguments `model.track`
 

@@ -103,7 +103,7 @@ Parking management with [Ultralytics YOLOv8](https://github.com/ultralytics/ultr
 ### Optional Arguments `ParkingManagement`
 
 | Name                     | Type    | Default       | Description                                                    |
-|--------------------------|---------|---------------|----------------------------------------------------------------|
+| ------------------------ | ------- | ------------- | -------------------------------------------------------------- |
 | `model`                  | `str`   | `None`        | Path to the YOLOv8 model.                                      |
 | `json_file`              | `str`   | `None`        | Path to the JSON file, that have all parking coordinates data. |
 | `occupied_region_color`  | `tuple` | `(0, 0, 255)` | RGB color for occupied regions.                                |

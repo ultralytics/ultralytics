@@ -30,58 +30,55 @@ class Colors:
         n (int): The number of colors in the palette.
         pose_palette (np.ndarray): A specific color palette array with dtype np.uint8.
 
-    # Ultralytics Default Color Palette
-
-    ## Color Palette
-
-    | Color                                                             | HEX       | RGB                  | HSL                   |
-    | ----------------------------------------------------------------- | --------- | -------------------- | --------------------- |
-    | <i class="fa-solid fa-square fa-2xl" style="color: #042aff;"></i> | `#042aff` | `rgb(4, 42, 255)`    | `hsl(231, 100%, 51%)` |
-    | <i class="fa-solid fa-square fa-2xl" style="color: #0bdbeb;"></i> | `#0bdbeb` | `rgb(11, 219, 235)`  | `hsl(184, 91%, 48%)`  |
-    | <i class="fa-solid fa-square fa-2xl" style="color: #f3f3f3;"></i> | `#f3f3f3` | `rgb(243, 243, 243)` | `hsl(0, 0%, 95%)`     |
-    | <i class="fa-solid fa-square fa-2xl" style="color: #00dfb7;"></i> | `#00dfb7` | `rgb(0, 223, 183)`   | `hsl(169, 100%, 44%)` |
-    | <i class="fa-solid fa-square fa-2xl" style="color: #111f68;"></i> | `#111f68` | `rgb(17, 31, 104)`   | `hsl(230, 72%, 24%)`  |
-    | <i class="fa-solid fa-square fa-2xl" style="color: #ff6fdd;"></i> | `#ff6fdd` | `rgb(255, 111, 221)` | `hsl(314, 100%, 72%)` |
-    | <i class="fa-solid fa-square fa-2xl" style="color: #ff444f;"></i> | `#ff444f` | `rgb(255, 68, 79)`   | `hsl(356, 100%, 63%)` |
-    | <i class="fa-solid fa-square fa-2xl" style="color: #cced00;"></i> | `#cced00` | `rgb(204, 237, 0)`   | `hsl(68, 100%, 46%)`  |
-    | <i class="fa-solid fa-square fa-2xl" style="color: #00f344;"></i> | `#00f344` | `rgb(0, 243, 68)`    | `hsl(137, 100%, 48%)` |
-    | <i class="fa-solid fa-square fa-2xl" style="color: #bd00ff;"></i> | `#bd00ff` | `rgb(189, 0, 255)`   | `hsl(284, 100%, 50%)` |
-    | <i class="fa-solid fa-square fa-2xl" style="color: #00b4ff;"></i> | `#00b4ff` | `rgb(0, 180, 255)`   | `hsl(198, 100%, 50%)` |
-    | <i class="fa-solid fa-square fa-2xl" style="color: #dd00ba;"></i> | `#dd00ba` | `rgb(221, 0, 186)`   | `hsl(310, 100%, 43%)` |
-    | <i class="fa-solid fa-square fa-2xl" style="color: #00ffff;"></i> | `#00ffff` | `rgb(0, 255, 255)`   | `hsl(180, 100%, 50%)` |
-    | <i class="fa-solid fa-square fa-2xl" style="color: #26c000;"></i> | `#26c000` | `rgb(38, 192, 0)`    | `hsl(108, 100%, 38%)` |
-    | <i class="fa-solid fa-square fa-2xl" style="color: #01ffb3;"></i> | `#01ffb3` | `rgb(1, 255, 179)`   | `hsl(162, 100%, 50%)` |
-    | <i class="fa-solid fa-square fa-2xl" style="color: #7d24ff;"></i> | `#7d24ff` | `rgb(125, 36, 255)`  | `hsl(264, 100%, 57%)` |
-    | <i class="fa-solid fa-square fa-2xl" style="color: #7b0068;"></i> | `#7b0068` | `rgb(123, 0, 104)`   | `hsl(309, 100%, 24%)` |
-    | <i class="fa-solid fa-square fa-2xl" style="color: #ff1b6c;"></i> | `#ff1b6c` | `rgb(255, 27, 108)`  | `hsl(339, 100%, 55%)` |
-    | <i class="fa-solid fa-square fa-2xl" style="color: #fc6d2f;"></i> | `#fc6d2f` | `rgb(252, 109, 47)`  | `hsl(18, 97%, 59%)`   |
-    | <i class="fa-solid fa-square fa-2xl" style="color: #a2ff0b;"></i> | `#a2ff0b` | `rgb(162, 255, 11)`  | `hsl(83, 100%, 52%)`  |
-
-
+    ## Ultralytics Default Color Palette
+    
+    | Index | Color                                                             | HEX       | RGB                  |
+    |-------|-------------------------------------------------------------------|-----------|----------------------|
+    | 0     | <i class="fa-solid fa-square fa-2xl" style="color: #042aff;"></i> | `#042aff` | `rgb(4, 42, 255)`    |
+    | 1     | <i class="fa-solid fa-square fa-2xl" style="color: #0bdbeb;"></i> | `#0bdbeb` | `rgb(11, 219, 235)`  |
+    | 2     | <i class="fa-solid fa-square fa-2xl" style="color: #f3f3f3;"></i> | `#f3f3f3` | `rgb(243, 243, 243)` |
+    | 3     | <i class="fa-solid fa-square fa-2xl" style="color: #00dfb7;"></i> | `#00dfb7` | `rgb(0, 223, 183)`   |
+    | 4     | <i class="fa-solid fa-square fa-2xl" style="color: #111f68;"></i> | `#111f68` | `rgb(17, 31, 104)`   |
+    | 5     | <i class="fa-solid fa-square fa-2xl" style="color: #ff6fdd;"></i> | `#ff6fdd` | `rgb(255, 111, 221)` |
+    | 6     | <i class="fa-solid fa-square fa-2xl" style="color: #ff444f;"></i> | `#ff444f` | `rgb(255, 68, 79)`   |
+    | 7     | <i class="fa-solid fa-square fa-2xl" style="color: #cced00;"></i> | `#cced00` | `rgb(204, 237, 0)`   |
+    | 8     | <i class="fa-solid fa-square fa-2xl" style="color: #00f344;"></i> | `#00f344` | `rgb(0, 243, 68)`    |
+    | 9     | <i class="fa-solid fa-square fa-2xl" style="color: #bd00ff;"></i> | `#bd00ff` | `rgb(189, 0, 255)`   |
+    | 10    | <i class="fa-solid fa-square fa-2xl" style="color: #00b4ff;"></i> | `#00b4ff` | `rgb(0, 180, 255)`   |
+    | 11    | <i class="fa-solid fa-square fa-2xl" style="color: #dd00ba;"></i> | `#dd00ba` | `rgb(221, 0, 186)`   |
+    | 12    | <i class="fa-solid fa-square fa-2xl" style="color: #00ffff;"></i> | `#00ffff` | `rgb(0, 255, 255)`   |
+    | 13    | <i class="fa-solid fa-square fa-2xl" style="color: #26c000;"></i> | `#26c000` | `rgb(38, 192, 0)`    |
+    | 14    | <i class="fa-solid fa-square fa-2xl" style="color: #01ffb3;"></i> | `#01ffb3` | `rgb(1, 255, 179)`   |
+    | 15    | <i class="fa-solid fa-square fa-2xl" style="color: #7d24ff;"></i> | `#7d24ff` | `rgb(125, 36, 255)`  |
+    | 16    | <i class="fa-solid fa-square fa-2xl" style="color: #7b0068;"></i> | `#7b0068` | `rgb(123, 0, 104)`   |
+    | 17    | <i class="fa-solid fa-square fa-2xl" style="color: #ff1b6c;"></i> | `#ff1b6c` | `rgb(255, 27, 108)`  |
+    | 18    | <i class="fa-solid fa-square fa-2xl" style="color: #fc6d2f;"></i> | `#fc6d2f` | `rgb(252, 109, 47)`  |
+    | 19    | <i class="fa-solid fa-square fa-2xl" style="color: #a2ff0b;"></i> | `#a2ff0b` | `rgb(162, 255, 11)`  |
+    
     ## Pose Color Palette
-
-    | Color                                                             | HEX       | RGB                  | HSL                   |
-    | ----------------------------------------------------------------- | --------- | -------------------- | --------------------- |
-    | <i class="fa-solid fa-square fa-2xl" style="color: #ff8000;"></i> | `#ff8000` | `rgb(255, 128, 0)`   | `hsl(30, 100%, 50%)`  |
-    | <i class="fa-solid fa-square fa-2xl" style="color: #ff9933;"></i> | `#ff9933` | `rgb(255, 153, 51)`  | `hsl(30, 100%, 60%)`  |
-    | <i class="fa-solid fa-square fa-2xl" style="color: #ffb266;"></i> | `#ffb266` | `rgb(255, 178, 102)` | `hsl(30, 100%, 70%)`  |
-    | <i class="fa-solid fa-square fa-2xl" style="color: #e6e600;"></i> | `#e6e600` | `rgb(230, 230, 0)`   | `hsl(60, 100%, 45%)`  |
-    | <i class="fa-solid fa-square fa-2xl" style="color: #ff99ff;"></i> | `#ff99ff` | `rgb(255, 153, 255)` | `hsl(300, 100%, 80%)` |
-    | <i class="fa-solid fa-square fa-2xl" style="color: #99ccff;"></i> | `#99ccff` | `rgb(153, 204, 255)` | `hsl(210, 100%, 80%)` |
-    | <i class="fa-solid fa-square fa-2xl" style="color: #ff66ff;"></i> | `#ff66ff` | `rgb(255, 102, 255)` | `hsl(300, 100%, 70%)` |
-    | <i class="fa-solid fa-square fa-2xl" style="color: #ff33ff;"></i> | `#ff33ff` | `rgb(255, 51, 255)`  | `hsl(300, 100%, 60%)` |
-    | <i class="fa-solid fa-square fa-2xl" style="color: #66b2ff;"></i> | `#66b2ff` | `rgb(102, 178, 255)` | `hsl(210, 100%, 70%)` |
-    | <i class="fa-solid fa-square fa-2xl" style="color: #3399ff;"></i> | `#3399ff` | `rgb(51, 153, 255)`  | `hsl(210, 100%, 60%)` |
-    | <i class="fa-solid fa-square fa-2xl" style="color: #ff9999;"></i> | `#ff9999` | `rgb(255, 153, 153)` | `hsl(0, 100%, 80%)`   |
-    | <i class="fa-solid fa-square fa-2xl" style="color: #ff6666;"></i> | `#ff6666` | `rgb(255, 102, 102)` | `hsl(0, 100%, 70%)`   |
-    | <i class="fa-solid fa-square fa-2xl" style="color: #ff3333;"></i> | `#ff3333` | `rgb(255, 51, 51)`   | `hsl(0, 100%, 60%)`   |
-    | <i class="fa-solid fa-square fa-2xl" style="color: #99ff99;"></i> | `#99ff99` | `rgb(153, 255, 153)` | `hsl(120, 100%, 80%)` |
-    | <i class="fa-solid fa-square fa-2xl" style="color: #66ff66;"></i> | `#66ff66` | `rgb(102, 255, 102)` | `hsl(120, 100%, 70%)` |
-    | <i class="fa-solid fa-square fa-2xl" style="color: #33ff33;"></i> | `#33ff33` | `rgb(51, 255, 51)`   | `hsl(120, 100%, 60%)` |
-    | <i class="fa-solid fa-square fa-2xl" style="color: #00ff00;"></i> | `#00ff00` | `rgb(0, 255, 0)`     | `hsl(120, 100%, 50%)` |
-    | <i class="fa-solid fa-square fa-2xl" style="color: #0000ff;"></i> | `#0000ff` | `rgb(0, 0, 255)`     | `hsl(240, 100%, 50%)` |
-    | <i class="fa-solid fa-square fa-2xl" style="color: #ff0000;"></i> | `#ff0000` | `rgb(255, 0, 0)`     | `hsl(0, 100%, 50%)`   |
-    | <i class="fa-solid fa-square fa-2xl" style="color: #ffffff;"></i> | `#ffffff` | `rgb(255, 255, 255)` | `hsl(0, 0%, 100%)`    |
+    
+    | Index | Color                                                             | HEX       | RGB                  |
+    |-------|-------------------------------------------------------------------|-----------|----------------------|
+    | 0     | <i class="fa-solid fa-square fa-2xl" style="color: #ff8000;"></i> | `#ff8000` | `rgb(255, 128, 0)`   |
+    | 1     | <i class="fa-solid fa-square fa-2xl" style="color: #ff9933;"></i> | `#ff9933` | `rgb(255, 153, 51)`  |
+    | 2     | <i class="fa-solid fa-square fa-2xl" style="color: #ffb266;"></i> | `#ffb266` | `rgb(255, 178, 102)` |
+    | 3     | <i class="fa-solid fa-square fa-2xl" style="color: #e6e600;"></i> | `#e6e600` | `rgb(230, 230, 0)`   |
+    | 4     | <i class="fa-solid fa-square fa-2xl" style="color: #ff99ff;"></i> | `#ff99ff` | `rgb(255, 153, 255)` |
+    | 5     | <i class="fa-solid fa-square fa-2xl" style="color: #99ccff;"></i> | `#99ccff` | `rgb(153, 204, 255)` |
+    | 6     | <i class="fa-solid fa-square fa-2xl" style="color: #ff66ff;"></i> | `#ff66ff` | `rgb(255, 102, 255)` |
+    | 7     | <i class="fa-solid fa-square fa-2xl" style="color: #ff33ff;"></i> | `#ff33ff` | `rgb(255, 51, 255)`  |
+    | 8     | <i class="fa-solid fa-square fa-2xl" style="color: #66b2ff;"></i> | `#66b2ff` | `rgb(102, 178, 255)` |
+    | 9     | <i class="fa-solid fa-square fa-2xl" style="color: #3399ff;"></i> | `#3399ff` | `rgb(51, 153, 255)`  |
+    | 10    | <i class="fa-solid fa-square fa-2xl" style="color: #ff9999;"></i> | `#ff9999` | `rgb(255, 153, 153)` |
+    | 11    | <i class="fa-solid fa-square fa-2xl" style="color: #ff6666;"></i> | `#ff6666` | `rgb(255, 102, 102)` |
+    | 12    | <i class="fa-solid fa-square fa-2xl" style="color: #ff3333;"></i> | `#ff3333` | `rgb(255, 51, 51)`   |
+    | 13    | <i class="fa-solid fa-square fa-2xl" style="color: #99ff99;"></i> | `#99ff99` | `rgb(153, 255, 153)` |
+    | 14    | <i class="fa-solid fa-square fa-2xl" style="color: #66ff66;"></i> | `#66ff66` | `rgb(102, 255, 102)` |
+    | 15    | <i class="fa-solid fa-square fa-2xl" style="color: #33ff33;"></i> | `#33ff33` | `rgb(51, 255, 51)`   |
+    | 16    | <i class="fa-solid fa-square fa-2xl" style="color: #00ff00;"></i> | `#00ff00` | `rgb(0, 255, 0)`     |
+    | 17    | <i class="fa-solid fa-square fa-2xl" style="color: #0000ff;"></i> | `#0000ff` | `rgb(0, 0, 255)`     |
+    | 18    | <i class="fa-solid fa-square fa-2xl" style="color: #ff0000;"></i> | `#ff0000` | `rgb(255, 0, 0)`     |
+    | 19    | <i class="fa-solid fa-square fa-2xl" style="color: #ffffff;"></i> | `#ffffff` | `rgb(255, 255, 255)` |
 
     !!! note "Ultralytics Brand Colors"
 

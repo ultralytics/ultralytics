@@ -20,7 +20,7 @@ from ultralytics.utils.files import increment_path
 
 class Colors:
     """
-    Ultralytics default color palette https://docs.ultralytics.com/reference/utils/plotting/#ultralytics-default-color-palette.
+    Ultralytics color palette https://docs.ultralytics.com/reference/utils/plotting/#ultralytics.utils.plotting.Colors.
 
     This class provides methods to work with the Ultralytics color palette, including converting hex color codes to
     RGB values.
@@ -30,7 +30,7 @@ class Colors:
         n (int): The number of colors in the palette.
         pose_palette (np.ndarray): A specific color palette array with dtype np.uint8.
 
-    ## Ultralytics Default Color Palette
+    ## Ultralytics Color Palette
 
     | Index | Color                                                             | HEX       | RGB               |
     |-------|-------------------------------------------------------------------|-----------|-------------------|

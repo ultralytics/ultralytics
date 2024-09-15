@@ -100,8 +100,7 @@ class ParkingPtsSelection:
 
         if len(self.current_box) == 4:
             self.rg_data.append(self.current_box)
-            for i in range(4):
-                self.canvas.create_line(self.current_box[i], self.current_box[(i + 1) % 4], fill="blue", width=2)
+            [self.canvas.create_line(self.current_box[i], self.current_box[(i + 1) % 4], fill="blue", width=2) for i in range(4)]
             self.current_box = []
 
     def remove_last_bounding_box(self):
@@ -115,8 +114,7 @@ class ParkingPtsSelection:
 
             # Redraw all bounding boxes
             for box in self.rg_data:
-                self.draw_bounding_box(box)
-
+                [self.canvas.create_line(box[i], box[(i + 1) % 4], fill="blue", width=2) for i in range(4)]
             messagebox.showinfo("Success", "Last bounding box removed.")
         else:
             messagebox.showwarning("Warning", "No bounding boxes to remove.")

@@ -38,12 +38,12 @@ jobs:
 
             Join the Ultralytics community where it suits you best. For real-time chat, head to [Discord](https://ultralytics.com/discord) 🎧. Prefer in-depth discussions? Check out [Discourse](https://community.ultralytics.com). Or dive into threads on our [Subreddit](https://reddit.com/r/ultralytics) to share knowledge with the community.
 
-            ## Install
+            ## Upgrade
 
-            Pip install the `ultralytics` package including all [requirements](https://github.com/ultralytics/ultralytics/blob/main/pyproject.toml) in a [**Python>=3.8**](https://www.python.org/) environment with [**PyTorch>=1.8**](https://pytorch.org/get-started/locally/).
+            Upgrade to the latest `ultralytics` package including all [requirements](https://github.com/ultralytics/ultralytics/blob/main/pyproject.toml) in a [**Python>=3.8**](https://www.python.org/) environment with [**PyTorch>=1.8**](https://pytorch.org/get-started/locally/) to verify your issue is not already resolved in the latest version:
 
             ```bash
-            pip install ultralytics
+            pip install -U ultralytics
             ```
 
             ## Environments

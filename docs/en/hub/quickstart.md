@@ -28,7 +28,7 @@ During the signup, you will be asked to complete your profile.
 
 ![Ultralytics HUB screenshot of the Signup page profile form](https://github.com/ultralytics/docs/releases/download/0/ultralytics-hub-signup-profile-form.avif)
 
-??? tip "Tip"
+??? tip
 
     You can update your profile from the [Account](https://hub.ultralytics.com/settings?tab=account) tab on the [Settings](https://hub.ultralytics.com/settings) page.
 
@@ -54,7 +54,7 @@ You can upload a dataset directly from the [Home](https://hub.ultralytics.com/ho
 
 ![Ultralytics HUB screenshot of the Home page with an arrow pointing to the Upload Dataset card](https://github.com/ultralytics/docs/releases/download/0/ultralytics-hub-upload-dataset-card.avif)
 
-Read more about [datasets](https://docs.ultralytics.com/hub/datasets).
+Read more about [datasets](https://docs.ultralytics.com/hub/datasets/).
 
 ### Create Project
 
@@ -62,7 +62,7 @@ You can create a project directly from the [Home](https://hub.ultralytics.com/ho
 
 ![Ultralytics HUB screenshot of the Home page with an arrow pointing to the Create Project card](https://github.com/ultralytics/docs/releases/download/0/hub-create-project-card.avif)
 
-Read more about [projects](https://docs.ultralytics.com/hub/projects).
+Read more about [projects](https://docs.ultralytics.com/hub/projects/).
 
 ### Train Model
 
@@ -70,7 +70,7 @@ You can train a model directly from the [Home](https://hub.ultralytics.com/home)
 
 ![Ultralytics HUB screenshot of the Home page with an arrow pointing to the Train Model card](https://github.com/ultralytics/docs/releases/download/0/ultralytics-hub-train-model-card.avif)
 
-Read more about [models](https://docs.ultralytics.com/hub/models).
+Read more about [models](https://docs.ultralytics.com/hub/models/).
 
 ## Feedback
 
@@ -80,7 +80,7 @@ We value your feedback! Feel free to leave a review at any time.
 
 ![Ultralytics HUB screenshot of the Feedback dialog](https://github.com/ultralytics/docs/releases/download/0/ultralytics-hub-feedback-dialog.avif)
 
-??? info "Info"
+??? info
 
     Only our team will see your feedback, and we will use it to improve our platform.
 
@@ -90,12 +90,12 @@ If you encounter any issues or have questions, we're here to assist you.
 
 You can report a bug, request a feature, or ask a question on <a href="https://github.com/ultralytics/hub/issues/new/choose">GitHub</a>.
 
-!!! note "Note"
+!!! note
 
     When reporting a bug, please include your Environment Details from the [Support](https://hub.ultralytics.com/support) page.
 
     ![Ultralytics HUB screenshot of the Support page with an arrow pointing to Support button in the sidebar and one to the Copy Environment Details button](https://github.com/ultralytics/docs/releases/download/0/hub-support-page.avif)
 
-??? tip "Tip"
+??? tip
 
     You can join our <a href="https://ultralytics.com/discord">Discord</a> community for questions and discussions!

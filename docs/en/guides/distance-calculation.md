@@ -23,9 +23,9 @@ Measuring the gap between two objects is known as distance calculation within a 
 
 ## Visuals
 
-|                                                  Distance Calculation using Ultralytics YOLOv8                                                   |
-| :----------------------------------------------------------------------------------------------------------------------------------------------: |
-| ![Ultralytics YOLOv8 Distance Calculation](https://github.com/ultralytics/docs/releases/download/0/ultralytics-yolov8-distance-calculation.avif) |
+|                                         Distance Calculation using Ultralytics YOLOv8                                         |
+| :---------------------------------------------------------------------------------------------------------------------------: |
+| ![Ultralytics YOLOv8 Distance Calculation](https://github.com/ultralytics/docs/releases/download/0/distance-calculation.avif) |
 
 ## Advantages of Distance Calculation?
 
@@ -73,7 +73,7 @@ Measuring the gap between two objects is known as distance calculation within a 
         cv2.destroyAllWindows()
         ```
 
-???+ tip "Note"
+???+ note
 
     - Mouse Right Click will delete all drawn points
     - Mouse Left Click can be used to draw points
@@ -94,15 +94,7 @@ Measuring the gap between two objects is known as distance calculation within a 
 
 ### Arguments `model.track`
 
-| Name      | Type    | Default        | Description                                                 |
-| --------- | ------- | -------------- | ----------------------------------------------------------- |
-| `source`  | `im0`   | `None`         | source directory for images or videos                       |
-| `persist` | `bool`  | `False`        | persisting tracks between frames                            |
-| `tracker` | `str`   | `botsort.yaml` | Tracking method 'bytetrack' or 'botsort'                    |
-| `conf`    | `float` | `0.3`          | Confidence Threshold                                        |
-| `iou`     | `float` | `0.5`          | IOU Threshold                                               |
-| `classes` | `list`  | `None`         | filter results by class, i.e. classes=0, or classes=[0,2,3] |
-| `verbose` | `bool`  | `True`         | Display the object tracking results                         |
+{% include "macros/track-args.md" %}
 
 ## FAQ
 

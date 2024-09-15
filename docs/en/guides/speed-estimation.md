@@ -72,7 +72,7 @@ keywords: Ultralytics YOLOv8, speed estimation, object tracking, computer vision
                 print("Video frame is empty or video processing has been successfully completed.")
                 break
 
-            tracks = model.track(im0, persist=True, show=False)
+            tracks = model.track(im0, persist=True)
 
             im0 = speed_obj.estimate_speed(im0, tracks)
             video_writer.write(im0)
@@ -94,20 +94,11 @@ keywords: Ultralytics YOLOv8, speed estimation, object tracking, computer vision
 | `reg_pts`          | `list` | `[(20, 400), (1260, 400)]` | List of region points for speed estimation.          |
 | `view_img`         | `bool` | `False`                    | Whether to display the image with annotations.       |
 | `line_thickness`   | `int`  | `2`                        | Thickness of the lines for drawing boxes and tracks. |
-| `region_thickness` | `int`  | `5`                        | Thickness of the region lines.                       |
 | `spdl_dist_thresh` | `int`  | `10`                       | Distance threshold for speed calculation.            |
 
 ### Arguments `model.track`
 
-| Name      | Type    | Default        | Description                                                 |
-| --------- | ------- | -------------- | ----------------------------------------------------------- |
-| `source`  | `im0`   | `None`         | source directory for images or videos                       |
-| `persist` | `bool`  | `False`        | persisting tracks between frames                            |
-| `tracker` | `str`   | `botsort.yaml` | Tracking method 'bytetrack' or 'botsort'                    |
-| `conf`    | `float` | `0.3`          | Confidence Threshold                                        |
-| `iou`     | `float` | `0.5`          | IOU Threshold                                               |
-| `classes` | `list`  | `None`         | filter results by class, i.e. classes=0, or classes=[0,2,3] |
-| `verbose` | `bool`  | `True`         | Display the object tracking results                         |
+{% include "macros/track-args.md" %}
 
 ## FAQ
 

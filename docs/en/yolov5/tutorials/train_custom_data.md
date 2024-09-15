@@ -42,7 +42,7 @@ YOLOv5 models must be trained on labelled data in order to learn classes of obje
 
 Your model will learn by example. Training on images similar to the ones it will see in the wild is of the utmost importance. Ideally, you will collect a wide variety of images from the same configuration (camera, angle, lighting, etc.) as you will ultimately deploy your project.
 
-If this is not possible, you can start from [a public dataset](https://universe.roboflow.com/?ref=ultralytics) to train your initial model and then [sample images from the wild during inference](https://blog.roboflow.com/computer-vision-active-learning-tips/?ref=ultralytics) to improve your dataset and model iteratively.
+If this is not possible, you can start from [a public dataset](https://universe.roboflow.com/?ref=ultralytics) to train your initial model and then [sample images from the wild during inference](https://blog.roboflow.com/what-is-active-learning/?ref=ultralytics) to improve your dataset and model iteratively.
 
 ### 1.2 Create Labels
 
@@ -137,11 +137,11 @@ Train a YOLOv5s model on COCO128 by specifying dataset, batch-size, image size a
 python train.py --img 640 --epochs 3 --data coco128.yaml --weights yolov5s.pt
 ```
 
-!!! tip "Tip"
+!!! tip
 
     💡 Add `--cache ram` or `--cache disk` to speed up training (requires significant RAM/disk resources).
 
-!!! tip "Tip"
+!!! tip
 
     💡 Always train from a local dataset. Mounted or network drives like Google Drive will be very slow.
 

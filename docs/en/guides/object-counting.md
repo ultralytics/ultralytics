@@ -236,15 +236,7 @@ Here's a table with the `ObjectCounter` arguments:
 
 ### Arguments `model.track`
 
-| Name      | Type    | Default        | Description                                                 |
-| --------- | ------- | -------------- | ----------------------------------------------------------- |
-| `source`  | `im0`   | `None`         | source directory for images or videos                       |
-| `persist` | `bool`  | `False`        | persisting tracks between frames                            |
-| `tracker` | `str`   | `botsort.yaml` | Tracking method 'bytetrack' or 'botsort'                    |
-| `conf`    | `float` | `0.3`          | Confidence Threshold                                        |
-| `iou`     | `float` | `0.5`          | IOU Threshold                                               |
-| `classes` | `list`  | `None`         | filter results by class, i.e. classes=0, or classes=[0,2,3] |
-| `verbose` | `bool`  | `True`         | Display the object tracking results                         |
+{% include "macros/track-args.md" %}
 
 ## FAQ
 
@@ -357,7 +349,7 @@ Ultralytics YOLOv8 provides several advantages over other object detection model
 3. **Ease of Integration:** YOLOv8 offers seamless integration with various platforms and devices, including mobile and edge devices, which is crucial for modern AI applications.
 4. **Flexibility:** Supports various tasks like object detection, segmentation, and tracking with configurable models to meet specific use-case requirements.
 
-Check out Ultralytics [YOLOv8 Documentation](https://docs.ultralytics.com/models/yolov8) for a deeper dive into its features and performance comparisons.
+Check out Ultralytics [YOLOv8 Documentation](https://docs.ultralytics.com/models/yolov8/) for a deeper dive into its features and performance comparisons.
 
 ### Can I use YOLOv8 for advanced applications like crowd analysis and traffic management?
 

@@ -6,6 +6,7 @@ from ultralytics.utils import ASSETS, ROOT, WEIGHTS_DIR, checks, is_dir_writeabl
 MODEL = WEIGHTS_DIR / "path with spaces" / "yolov8n.pt"  # test spaces in path
 CFG = "yolov8n.yaml"
 SOURCE = ASSETS / "bus.jpg"
+SOURCES_LIST = [ASSETS / "bus.jpg", ASSETS, ASSETS / "*", ASSETS / "**/*.jpg"]
 TMP = (ROOT / "../tests/tmp").resolve()  # temp directory for test files
 IS_TMP_WRITEABLE = is_dir_writeable(TMP)
 CUDA_IS_AVAILABLE = checks.cuda_is_available()
@@ -15,6 +16,7 @@ __all__ = (
     "MODEL",
     "CFG",
     "SOURCE",
+    "SOURCES_LIST",
     "TMP",
     "IS_TMP_WRITEABLE",
     "CUDA_IS_AVAILABLE",

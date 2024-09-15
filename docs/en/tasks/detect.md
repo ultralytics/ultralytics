@@ -83,7 +83,7 @@ YOLO detection dataset format can be found in detail in the [Dataset Guide](../d
 
 ## Val
 
-Validate trained YOLOv8n model accuracy on the COCO8 dataset. No argument need to passed as the `model` retains its training `data` and arguments as model attributes.
+Validate trained YOLOv8n model accuracy on the COCO8 dataset. No arguments are needed as the `model` retains its training `data` and arguments as model attributes.
 
 !!! example
 

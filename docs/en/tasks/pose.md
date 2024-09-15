@@ -117,8 +117,7 @@ YOLO pose dataset format can be found in detail in the [Dataset Guide](../datase
 
 ## Val
 
-Validate trained YOLOv8n-pose model accuracy on the COCO128-pose dataset. No argument need to passed as the `model`
-retains its training `data` and arguments as model attributes.
+Validate trained YOLOv8n-pose model accuracy on the COCO128-pose dataset. No arguments are needed as the `model` retains its training `data` and arguments as model attributes.
 
 !!! example
 

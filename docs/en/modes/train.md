@@ -123,14 +123,14 @@ To enable training on Apple M1 and M2 chips, you should specify 'mps' as your de
         # Load a model
         model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
 
-        # Train the model with 2 GPUs
+        # Train the model with MPS
         results = model.train(data="coco8.yaml", epochs=100, imgsz=640, device="mps")
         ```
 
     === "CLI"
 
         ```bash
-        # Start training from a pretrained *.pt model using GPUs 0 and 1
+        # Start training from a pretrained *.pt model using MPS
         yolo detect train data=coco8.yaml model=yolov8n.pt epochs=100 imgsz=640 device=mps
         ```
 
@@ -169,7 +169,7 @@ Below is an example of how to resume an interrupted training using Python and vi
 
 By setting `resume=True`, the `train` function will continue training from where it left off, using the state stored in the 'path/to/last.pt' file. If the `resume` argument is omitted or set to `False`, the `train` function will start a new training session.
 
-Remember that checkpoints are saved at the end of every epoch by default, or at fixed interval using the `save_period` argument, so you must complete at least 1 epoch to resume a training run.
+Remember that checkpoints are saved at the end of every epoch by default, or at fixed intervals using the `save_period` argument, so you must complete at least 1 epoch to resume a training run.
 
 ## Train Settings
 

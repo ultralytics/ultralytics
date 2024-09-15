@@ -54,7 +54,7 @@ You can upload a dataset directly from the [Home](https://hub.ultralytics.com/ho
 
 ![Ultralytics HUB screenshot of the Home page with an arrow pointing to the Upload Dataset card](https://github.com/ultralytics/docs/releases/download/0/ultralytics-hub-upload-dataset-card.avif)
 
-Read more about [datasets](https://docs.ultralytics.com/hub/datasets).
+Read more about [datasets](https://docs.ultralytics.com/hub/datasets/).
 
 ### Create Project
 
@@ -62,7 +62,7 @@ You can create a project directly from the [Home](https://hub.ultralytics.com/ho
 
 ![Ultralytics HUB screenshot of the Home page with an arrow pointing to the Create Project card](https://github.com/ultralytics/docs/releases/download/0/hub-create-project-card.avif)
 
-Read more about [projects](https://docs.ultralytics.com/hub/projects).
+Read more about [projects](https://docs.ultralytics.com/hub/projects/).
 
 ### Train Model
 
@@ -70,7 +70,7 @@ You can train a model directly from the [Home](https://hub.ultralytics.com/home)
 
 ![Ultralytics HUB screenshot of the Home page with an arrow pointing to the Train Model card](https://github.com/ultralytics/docs/releases/download/0/ultralytics-hub-train-model-card.avif)
 
-Read more about [models](https://docs.ultralytics.com/hub/models).
+Read more about [models](https://docs.ultralytics.com/hub/models/).
 
 ## Feedback
 

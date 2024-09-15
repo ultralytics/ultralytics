@@ -193,7 +193,7 @@ Running Ultralytics YOLOv8 on a standard setup typically requires around 5GB of 
 
 ### What makes Ultralytics YOLOv8 different from other object detection models like Faster R-CNN or SSD?
 
-Ultralytics YOLOv8 provides an edge over models like Faster R-CNN or SSD with its real-time detection capabilities and higher accuracy. Its unique architecture allows it to process images much faster without compromising on precision, making it ideal for time-sensitive applications like security alarm systems. For a comprehensive comparison of object detection models, you can explore our [guide](https://docs.ultralytics.com/models).
+Ultralytics YOLOv8 provides an edge over models like Faster R-CNN or SSD with its real-time detection capabilities and higher accuracy. Its unique architecture allows it to process images much faster without compromising on precision, making it ideal for time-sensitive applications like security alarm systems. For a comprehensive comparison of object detection models, you can explore our [guide](https://docs.ultralytics.com/models/).
 
 ### How can I reduce the frequency of false positives in my security system using Ultralytics YOLOv8?
 

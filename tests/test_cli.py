@@ -101,7 +101,7 @@ def test_mobilesam():
     model.predict(source, points=[900, 370], labels=[1])
 
     # Predict a segment based on a box prompt
-    model.predict(source, bboxes=[439, 437, 524, 709])
+    model.predict(source, bboxes=[439, 437, 524, 709], save=True)
 
     # Predict all
     # model(source)

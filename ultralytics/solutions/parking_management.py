@@ -42,7 +42,7 @@ class ParkingPtsSelection:
         self.image_path = None
         self.image = None
         self.canvas_image = None
-        self.rg_data = []   # region coordinates
+        self.rg_data = []  # region coordinates
         self.current_box = []
         self.img_width = 0
         self.img_height = 0
@@ -96,7 +96,7 @@ class ParkingPtsSelection:
     def on_canvas_click(self, event):
         """Handle mouse clicks on canvas to create points for bounding boxes."""
         self.current_box.append((event.x, event.y))
-        self.canvas.create_oval(event.x-3, event.y-3, event.x + 3, event.y + 3, fill="red")
+        self.canvas.create_oval(event.x - 3, event.y - 3, event.x + 3, event.y + 3, fill="red")
 
         if len(self.current_box) == 4:
             self.rg_data.append(self.current_box)
@@ -134,11 +134,11 @@ class ParkingPtsSelection:
         """Saves rescaled bounding boxes to 'bounding_boxes.json' based on image-to-canvas size ratio."""
         from tkinter import messagebox  # scope for multi-environment compatibility
 
-        wsf = self.img_width / self.canvas.winfo_width()    # width scaling factor
+        wsf = self.img_width / self.canvas.winfo_width()  # width scaling factor
         hsf = self.img_height / self.canvas.winfo_height()  # height scaling factor
-        rg_data = []    # regions data
+        rg_data = []  # regions data
         for box in self.rg_data:
-            rs_box = []     # rescaled box list
+            rs_box = []  # rescaled box list
             for x, y in box:
                 rs_box.append((int(x * wsf), int(y * hsf)))
             rg_data.append({"points": rescaled_box})
@@ -167,6 +167,7 @@ class ParkingManagement:
         """
         # Model initialization
         from ultralytics import YOLO
+
         self.model = YOLO(model_path)
 
         # Labels dictionary
@@ -201,10 +202,10 @@ class ParkingManagement:
             clss (list): bounding boxes classes list
         """
         annotator = Annotator(im0)
-        es, fs = len(json_data), 0   # empty slots, filled slots
+        es, fs = len(json_data), 0  # empty slots, filled slots
         for region in json_data:
             pts_array = np.array(region["points"], dtype=np.int32).reshape((-1, 1, 2))
-            rg_occupied = False     # occupied region initialization
+            rg_occupied = False  # occupied region initialization
 
             for box, cls in zip(boxes, clss):
                 xc = int((box[0] + box[2]) / 2)

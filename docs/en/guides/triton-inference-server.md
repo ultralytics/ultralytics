@@ -147,7 +147,7 @@ By following the above steps, you can deploy and run Ultralytics YOLOv8 models e
 
 ### How do I set up Ultralytics YOLOv8 with NVIDIA Triton Inference Server?
 
-Setting up [Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8) with [NVIDIA Triton Inference Server](https://developer.nvidia.com/triton-inference-server) involves a few key steps:
+Setting up [Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8/) with [NVIDIA Triton Inference Server](https://developer.nvidia.com/triton-inference-server) involves a few key steps:
 
 1. **Export YOLOv8 to ONNX format**:
 
@@ -258,7 +258,7 @@ For an in-depth guide on setting up and running Triton Server with YOLOv8, refer
 
 ### How does Ultralytics YOLOv8 compare to TensorFlow and PyTorch models for deployment?
 
-[Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8) offers several unique advantages compared to TensorFlow and PyTorch models for deployment:
+[Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8/) offers several unique advantages compared to TensorFlow and PyTorch models for deployment:
 
 - **Real-time Performance**: Optimized for real-time object detection tasks, YOLOv8 provides state-of-the-art accuracy and speed, making it ideal for applications requiring live video analytics.
 - **Ease of Use**: YOLOv8 integrates seamlessly with Triton Inference Server and supports diverse export formats (ONNX, TensorRT, CoreML), making it flexible for various deployment scenarios.

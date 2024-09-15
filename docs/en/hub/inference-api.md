@@ -39,7 +39,7 @@ To use the [Ultralytics HUB](https://www.ultralytics.com/hub) Dedicated Inferenc
 
 !!! tip
 
-    Choose the region with the lowest latency for the best performance as described in the [documentation](https://docs.ultralytics.com/reference/hub/google/__init__).
+    Choose the region with the lowest latency for the best performance as described in the [documentation](https://docs.ultralytics.com/reference/hub/google/__init__/).
 
 To shut down the dedicated endpoint, click on the **Stop Endpoint** button.
 

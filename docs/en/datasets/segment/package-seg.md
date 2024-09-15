@@ -136,7 +136,7 @@ This structure ensures a balanced dataset for thorough model training, validatio
 
 ### Why should I use Ultralytics YOLOv8 with the Package Segmentation Dataset?
 
-Ultralytics YOLOv8 provides state-of-the-art accuracy and speed for real-time object detection and segmentation tasks. Using it with the Package Segmentation Dataset allows you to leverage YOLOv8's capabilities for precise package segmentation. This combination is especially beneficial for industries like logistics and warehouse automation, where accurate package identification is critical. For more information, check out our [page on YOLOv8 segmentation](https://docs.ultralytics.com/models/yolov8).
+Ultralytics YOLOv8 provides state-of-the-art accuracy and speed for real-time object detection and segmentation tasks. Using it with the Package Segmentation Dataset allows you to leverage YOLOv8's capabilities for precise package segmentation. This combination is especially beneficial for industries like logistics and warehouse automation, where accurate package identification is critical. For more information, check out our [page on YOLOv8 segmentation](https://docs.ultralytics.com/models/yolov8/).
 
 ### How can I access and use the package-seg.yaml file for the Package Segmentation Dataset?
 

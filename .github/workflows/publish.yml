@@ -85,6 +85,12 @@ jobs:
           if publish:
               print('Ready to publish new version to PyPI ✅.')
         id: check_pypi
+      - name: Publish to PyPI
+        continue-on-error: true
+        if: (github.event_name == 'push' || github.event.inputs.pypi == 'true')  && steps.check_pypi.outputs.increment == 'True'
+        run: |
+          python -m build
+          python -m twine upload dist/* -u __token__ -p ${{ secrets.PYPI_TOKEN }}
       - name: Publish new tag
         if: (github.event_name == 'push' || github.event.inputs.pypi == 'true')  && steps.check_pypi.outputs.increment == 'True'
         run: |
@@ -100,14 +106,6 @@ jobs:
         run: |
           curl -s "https://raw.githubusercontent.com/ultralytics/actions/main/utils/summarize_release.py" | python -
         shell: bash
-      - name: Publish to PyPI
-        continue-on-error: true
-        if: (github.event_name == 'push' || github.event.inputs.pypi == 'true')  && steps.check_pypi.outputs.increment == 'True'
-        env:
-          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
-        run: |
-          python -m build
-          python -m twine upload dist/* -u __token__ -p $PYPI_TOKEN
       - name: Extract PR Details
         env:
           GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN || secrets.GITHUB_TOKEN }}

@@ -121,8 +121,8 @@ Using OpenVINO's high-level performance hints and multi-device modes can help st
 
 Yes, Ultralytics YOLO models are highly versatile and can be integrated with various AI frameworks. Options include:
 
-- **TensorRT:** For NVIDIA GPU optimization, follow the [TensorRT integration guide](https://docs.ultralytics.com/integrations/tensorrt).
-- **CoreML:** For Apple devices, refer to our [CoreML export instructions](https://docs.ultralytics.com/integrations/coreml).
-- **TensorFlow.js:** For web and Node.js apps, see the [TF.js conversion guide](https://docs.ultralytics.com/integrations/tfjs).
+- **TensorRT:** For NVIDIA GPU optimization, follow the [TensorRT integration guide](https://docs.ultralytics.com/integrations/tensorrt/).
+- **CoreML:** For Apple devices, refer to our [CoreML export instructions](https://docs.ultralytics.com/integrations/coreml/).
+- **TensorFlow.js:** For web and Node.js apps, see the [TF.js conversion guide](https://docs.ultralytics.com/integrations/tfjs/).
 
-Explore more integrations on the [Ultralytics Integrations page](https://docs.ultralytics.com/integrations).
+Explore more integrations on the [Ultralytics Integrations page](https://docs.ultralytics.com/integrations/).

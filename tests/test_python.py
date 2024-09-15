@@ -13,7 +13,7 @@ import torch
 import yaml
 from PIL import Image
 
-from tests import CFG, IS_TMP_WRITEABLE, MODEL, SOURCE, SOURCES_LIST, TMP
+from tests import CFG, MODEL, SOURCE, SOURCES_LIST, TMP
 from ultralytics import RTDETR, YOLO
 from ultralytics.cfg import MODELS, TASK2DATA, TASKS
 from ultralytics.data.build import load_inference_source
@@ -28,9 +28,12 @@ from ultralytics.utils import (
     WINDOWS,
     checks,
     is_github_action_running,
+    is_dir_writeable,
 )
 from ultralytics.utils.downloads import download
 from ultralytics.utils.torch_utils import TORCH_1_9
+
+IS_TMP_WRITEABLE = is_dir_writeable(TMP)  # WARNING: must be run once tests start as TMP does not exist on tests/init
 
 
 def test_model_forward():

@@ -285,44 +285,44 @@ Finally, after all threads have completed their task, the windows displaying the
 
     ```python
         import threading
-        
+
         import cv2
-        
+
         from ultralytics import YOLO
-        
+
         # Define model names outside the function
         MODEL_NAMES = ["yolov8n.pt", "yolov8n-seg.pt"]
         SOURCES = ["path/to/video1.mp4", 0]  # 0 for webcam, 1 for external camera
-        
-        
+
+
         def run_tracker_in_thread(filename, model, file_index):
             """
-            Runs a video file or webcam stream concurrently with the YOLOv8 model using threading.
-            This function captures video frames from a given file or camera source and utilizes the YOLOv8 model for object tracking.
-            The function runs in its own thread for concurrent processing.
-        
+            Runs a video file or webcam stream concurrently with the YOLOv8 model using threading. This function captures
+            video frames from a given file or camera source and utilizes the YOLOv8 model for object tracking. The function
+            runs in its own thread for concurrent processing.
+
             Args:
                 filename (str): The path to the video file or the identifier for the webcam/external camera source.
                 model (obj): The YOLOv8 model object.
                 file_index (int): An index to uniquely identify the file being processed, used for display purposes.
             """
             video = cv2.VideoCapture(filename)
-        
+
             while True:
                 ret, frame = video.read()
                 if not ret:
                     break
-        
+
                 results = model.track(frame, persist=True)
                 res_plotted = results[0].plot()
                 cv2.imshow(f"Tracking_Stream_{file_index}", res_plotted)
-        
+
                 if cv2.waitKey(1) == ord("q"):
                     break
-        
+
             video.release()
-        
-        
+
+
         # Create and start tracker threads using a for loop
         tracker_threads = []
         for i, (video_file, model_name) in enumerate(zip(SOURCES, MODEL_NAMES), start=1):
@@ -330,11 +330,11 @@ Finally, after all threads have completed their task, the windows displaying the
             thread = threading.Thread(target=run_tracker_in_thread, args=(video_file, model, i), daemon=True)
             tracker_threads.append(thread)
             thread.start()
-        
+
         # Wait for all tracker threads to finish
         for thread in tracker_threads:
             thread.join()
-        
+
         # Clean up and close windows
         cv2.destroyAllWindows()
     ```

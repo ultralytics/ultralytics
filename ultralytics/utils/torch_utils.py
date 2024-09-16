@@ -563,7 +563,7 @@ def strip_optimizer(f: Union[str, Path] = "best.pt", s: str = "", updates: dict 
         assert "model" in x, "'model' missing from checkpoint"
     except Exception as e:
         LOGGER.warning(f"WARNING ⚠️ Skipping {f}, not a valid Ultralytics model: {e}")
-        return
+        return {}
 
     metadata = {
         "date": datetime.now().isoformat(),
@@ -592,7 +592,7 @@ def strip_optimizer(f: Union[str, Path] = "best.pt", s: str = "", updates: dict 
     # x['model'].args = x['train_args']
 
     # Save
-    combined = {**metadata, **x, **updates}
+    combined = {**metadata, **x, **(updates or {})}
     torch.save(combined, s or f, use_dill=False)  # combine dicts (prefer to the right)
     mb = os.path.getsize(s or f) / 1e6  # file size
     LOGGER.info(f"Optimizer stripped from {f},{f' saved as {s},' if s else ''} {mb:.1f}MB")

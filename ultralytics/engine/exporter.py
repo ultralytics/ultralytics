@@ -1035,6 +1035,7 @@ class Exporter:
     @try_export
     def export_mct(self, prefix=colorstr("Sony MCT:")):
         # pip install --upgrade -force-reinstall git+https://github.com/ambitious-octopus/model_optimization.git@get-output-fix
+        check_requirements("mct-nightly")
         import model_compression_toolkit as mct
         import onnx
         from model_compression_toolkit.core.pytorch.pytorch_device_config import get_working_device, set_working_device

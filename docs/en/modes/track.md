@@ -289,7 +289,7 @@ Finally, after all threads have completed their task, the windows displaying the
     
     from ultralytics import YOLO
 
-    # Define model names outside the function
+    # Define model names and video sources
     MODEL_NAMES = ["yolov8n.pt", "yolov8n-seg.pt"]
     SOURCES = ["path/to/video1.mp4", 0]  # 0 for webcam, 1 for external camera
 

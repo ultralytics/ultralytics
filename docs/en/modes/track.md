@@ -285,20 +285,20 @@ Finally, after all threads have completed their task, the windows displaying the
 
     ```python
     import threading
-    
+
     import cv2
-    
+
     from ultralytics import YOLO
-    
+
     # Define model names and video sources
     MODEL_NAMES = ["yolov8n.pt", "yolov8n-seg.pt"]
     SOURCES = ["path/to/video.mp4", "0"]  # local video, 0 for webcam
-    
-    
+
+
     def run_tracker_in_thread(model_name, filename):
         """
         Run YOLO tracker in its own thread for concurrent processing.
-    
+
         Args:
             model_name (str): The YOLOv8 model object.
             filename (str): The path to the video file or the identifier for the webcam/external camera source.
@@ -307,22 +307,21 @@ Finally, after all threads have completed their task, the windows displaying the
         results = model.track(filename, save=True, stream=True)
         for r in results:
             pass
-    
-    
+
+
     # Create and start tracker threads using a for loop
     tracker_threads = []
     for video_file, model_name in zip(SOURCES, MODEL_NAMES):
         thread = threading.Thread(target=run_tracker_in_thread, args=(model_name, video_file), daemon=True)
         tracker_threads.append(thread)
         thread.start()
-    
+
     # Wait for all tracker threads to finish
     for thread in tracker_threads:
         thread.join()
-    
+
     # Clean up and close windows
     cv2.destroyAllWindows()
-
     ```
 
 This example can easily be extended to handle more video files and models by creating more threads and applying the same methodology.
@@ -376,20 +375,20 @@ To run object tracking on multiple video streams simultaneously, you can use Pyt
 
     ```python
     import threading
-    
+
     import cv2
-    
+
     from ultralytics import YOLO
-    
+
     # Define model names and video sources
     MODEL_NAMES = ["yolov8n.pt", "yolov8n-seg.pt"]
     SOURCES = ["path/to/video.mp4", "0"]  # local video, 0 for webcam
-    
-    
+
+
     def run_tracker_in_thread(model_name, filename):
         """
         Run YOLO tracker in its own thread for concurrent processing.
-    
+
         Args:
             model_name (str): The YOLOv8 model object.
             filename (str): The path to the video file or the identifier for the webcam/external camera source.
@@ -398,19 +397,19 @@ To run object tracking on multiple video streams simultaneously, you can use Pyt
         results = model.track(filename, save=True, stream=True)
         for r in results:
             pass
-    
-    
+
+
     # Create and start tracker threads using a for loop
     tracker_threads = []
     for video_file, model_name in zip(SOURCES, MODEL_NAMES):
         thread = threading.Thread(target=run_tracker_in_thread, args=(model_name, video_file), daemon=True)
         tracker_threads.append(thread)
         thread.start()
-    
+
     # Wait for all tracker threads to finish
     for thread in tracker_threads:
         thread.join()
-    
+
     # Clean up and close windows
     cv2.destroyAllWindows()
     ```

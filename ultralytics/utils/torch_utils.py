@@ -543,7 +543,7 @@ def strip_optimizer(f: Union[str, Path] = "best.pt", s: str = "", updates: dict 
         updates (dict): a dictionary of updates to overlay onto the checkpoint before saving.
 
     Returns:
-        {dict}: The combined checkpoint dictionary.
+        (dict): The combined checkpoint dictionary.
 
     Example:
         ```python

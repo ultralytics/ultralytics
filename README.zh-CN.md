@@ -89,14 +89,25 @@ YOLOv8 也可以在 Python 环境中直接使用，并接受与上述 CLI 示例
 from ultralytics import YOLO
 
 # 加载模型
-model = YOLO("yolov8n.yaml")  # 从头开始构建新模型
-model = YOLO("yolov8n.pt")  # 加载预训练模型（建议用于训练）
+model = YOLO("yolov8n.pt")
 
-# 使用模型
-model.train(data="coco8.yaml", epochs=3)  # 训练模型
-metrics = model.val()  # 在验证集上评估模型性能
-results = model("https://ultralytics.com/images/bus.jpg")  # 对图像进行预测
-success = model.export(format="onnx")  # 将模型导出为 ONNX 格式
+# 训练模型
+train_results = model.train(
+    data="coco8.yaml",  # 数据配置文件的路径
+    epochs=100,  # 训练的轮数
+    imgsz=640,  # 训练图像大小
+    device="cpu",  # 运行的设备，例如 device=0 或 device=0,1,2,3 或 device=cpu
+)
+
+# 在验证集上评估模型性能
+metrics = model.val()
+
+# 对图像进行目标检测
+results = model("path/to/image.jpg")
+results[0].show()
+
+# 将模型导出为 ONNX 格式
+path = model.export(format="onnx")  # 返回导出的模型路径
 ```
 
 查看 YOLOv8 [Python 文档](https://docs.ultralytics.com/usage/python/)以获取更多示例。
@@ -138,23 +149,6 @@ Ultralytics 提供了 YOLOv8 的交互式笔记本，涵盖训练、验证、跟
 
 - **mAP<sup>val</sup>** 值是基于单模型单尺度在 [COCO val2017](https://cocodataset.org/) 数据集上的结果。 <br>通过 `yolo val detect data=coco.yaml device=0` 复现
 - **速度** 是使用 [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) 实例对 COCO val 图像进行平均计算的。 <br>通过 `yolo val detect data=coco.yaml batch=1 device=0|cpu` 复现
-
-</details>
-
-<details><summary>检测（Open Image V7）</summary>
-
-查看[检测文档](https://docs.ultralytics.com/tasks/detect/)以获取这些在[Open Image V7](https://docs.ultralytics.com/datasets/detect/open-images-v7/)上训练的模型的使用示例，其中包括600个预训练类别。
-
-| 模型                                                                                      | 尺寸<br><sup>(像素) | mAP<sup>验证<br>50-95 | 速度<br><sup>CPU ONNX<br>(毫秒) | 速度<br><sup>A100 TensorRT<br>(毫秒) | 参数<br><sup>(M) | 浮点运算<br><sup>(B) |
-| ----------------------------------------------------------------------------------------- | ------------------- | --------------------- | ------------------------------- | ------------------------------------ | ---------------- | -------------------- |
-| [YOLOv8n](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n-oiv7.pt) | 640                 | 18.4                  | 142.4                           | 1.21                                 | 3.5              | 10.5                 |
-| [YOLOv8s](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8s-oiv7.pt) | 640                 | 27.7                  | 183.1                           | 1.40                                 | 11.4             | 29.7                 |
-| [YOLOv8m](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8m-oiv7.pt) | 640                 | 33.6                  | 408.5                           | 2.26                                 | 26.2             | 80.6                 |
-| [YOLOv8l](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8l-oiv7.pt) | 640                 | 34.9                  | 596.9                           | 2.43                                 | 44.1             | 167.4                |
-| [YOLOv8x](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8x-oiv7.pt) | 640                 | 36.3                  | 860.6                           | 3.56                                 | 68.7             | 260.6                |
-
-- **mAP<sup>验证</sup>** 值适用于在[Open Image V7](https://docs.ultralytics.com/datasets/detect/open-images-v7/)数据集上的单模型单尺度。 <br>通过 `yolo val detect data=open-images-v7.yaml device=0` 以复现。
-- **速度** 在使用[Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/)实例对Open Image V7验证图像进行平均测算。 <br>通过 `yolo val detect data=open-images-v7.yaml batch=1 device=0|cpu` 以复现。
 
 </details>
 

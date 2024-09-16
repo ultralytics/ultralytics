@@ -668,13 +668,14 @@ class BaseTrainer:
 
     def final_eval(self):
         """Performs final evaluation and validation for object detection YOLO model."""
+        ckpt = {}
         for f in self.last, self.best:
             if f.exists():
-                strip_optimizer(f)  # strip optimizers
-                if f is self.best:
-                    if self.last.is_file():  # update best.pt train_metrics from last.pt
-                        k = "train_results"
-                        torch.save({**torch.load(self.best), **{k: torch.load(self.last)[k]}}, self.best)
+                if f is self.last:
+                    ckpt = strip_optimizer(f)
+                elif f is self.best:
+                    k = "train_results"  # update best.pt train_metrics from last.pt
+                    strip_optimizer(f, updates={k: ckpt[k]} if k in ckpt else None)
                     LOGGER.info(f"\nValidating {f}...")
                     self.validator.args.plots = self.args.plots
                     self.metrics = self.validator(model=f)

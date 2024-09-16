@@ -395,7 +395,6 @@ def get_github_assets(repo="ultralytics/assets", version="latest", retry=False):
         tag, assets = get_github_assets(repo='ultralytics/assets', version='latest')
         ```
     """
-
     if version != "latest":
         version = f"tags/{version}"  # i.e. tags/v6.2
     url = f"https://api.github.com/repos/{repo}/releases/{version}"

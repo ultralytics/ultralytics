@@ -28,7 +28,7 @@ class DropPath(nn.Module):
 
     def __init__(self, drop_prob=0.0, scale_by_keep=True):
         """Initialize DropPath module with specified drop probability and scaling option."""
-        super(DropPath, self).__init__()
+        super().__init__()
         self.drop_prob = drop_prob
         self.scale_by_keep = scale_by_keep
 
@@ -164,7 +164,7 @@ class CXBlock(nn.Module):
         self.act = nn.GELU()
         self.pwconv2 = nn.Linear(4 * dim, dim)
         self.gamma = (
-            nn.Parameter(layer_scale_init_value * torch.ones((dim)), requires_grad=True)
+            nn.Parameter(layer_scale_init_value * torch.ones(dim), requires_grad=True)
             if layer_scale_init_value > 0
             else None
         )

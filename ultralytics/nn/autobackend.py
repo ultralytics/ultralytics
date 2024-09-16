@@ -14,8 +14,8 @@ import torch
 import torch.nn as nn
 from PIL import Image
 
-from ultralytics.utils import ARM64, IS_JETSON, IS_RASPBERRYPI, LINUX, LOGGER, PYTHON_VERSION, ROOT, yaml_load
-from ultralytics.utils.checks import check_requirements, check_soc, check_suffix, check_version, check_yaml
+from ultralytics.utils import ARM64, IS_JETSON, IS_RASPBERRYPI, LINUX, LOGGER, ROOT, yaml_load
+from ultralytics.utils.checks import check_requirements, check_suffix, check_version, check_yaml
 from ultralytics.utils.downloads import attempt_download_asset, is_url
 
 
@@ -404,9 +404,9 @@ class AutoBackend(nn.Module):
             rknn_model.load_rknn(w)
             ret = rknn_model.init_runtime()
             if ret != 0:
-                ... # TODO add logging
-            metadata = Path(w).parent / "metadata.yaml"        
-        
+                ...  # TODO add logging
+            metadata = Path(w).parent / "metadata.yaml"
+
         # Any other format (unsupported)
         else:
             from ultralytics.engine.exporter import export_formats
@@ -570,13 +570,13 @@ class AutoBackend(nn.Module):
         elif self.triton:
             im = im.cpu().numpy()  # torch to numpy
             y = self.model(im)
-        
+
         # RKNN
         elif self.rknn:
             im = (im.cpu().numpy() * 255).astype("uint8")
             im = im if isinstance(im, (list, tuple)) else [im]
-            y = self.rknn_model.inference(inputs=im) # TODO change rknn_model to model
-        
+            y = self.rknn_model.inference(inputs=im)  # TODO change rknn_model to model
+
         # TensorFlow (SavedModel, GraphDef, Lite, Edge TPU)
         else:
             im = im.cpu().numpy()

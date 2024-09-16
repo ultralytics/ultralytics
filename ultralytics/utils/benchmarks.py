@@ -182,7 +182,6 @@ class RF100Benchmark:
         Args:
             api_key (str): The API key.
         """
-
         check_requirements("roboflow")
         from roboflow import Roboflow
 
@@ -195,13 +194,12 @@ class RF100Benchmark:
         Args:
             ds_link_txt (str): Path to dataset_links file.
         """
-
         (shutil.rmtree("rf-100"), os.mkdir("rf-100")) if os.path.exists("rf-100") else os.mkdir("rf-100")
         os.chdir("rf-100")
         os.mkdir("ultralytics-benchmarks")
         safe_download("https://github.com/ultralytics/assets/releases/download/v0.0.0/datasets_links.txt")
 
-        with open(ds_link_txt, "r") as file:
+        with open(ds_link_txt) as file:
             for line in file:
                 try:
                     _, url, workspace, project, version = re.split("/+", line.strip())
@@ -225,8 +223,7 @@ class RF100Benchmark:
         Args:
             path (str): YAML file path.
         """
-
-        with open(path, "r") as file:
+        with open(path) as file:
             yaml_data = yaml.safe_load(file)
         yaml_data["train"] = "train/images"
         yaml_data["val"] = "valid/images"
@@ -246,7 +243,7 @@ class RF100Benchmark:
         skip_symbols = ["🚀", "⚠️", "💡", "❌"]
         with open(yaml_path) as stream:
             class_names = yaml.safe_load(stream)["names"]
-        with open(val_log_file, "r", encoding="utf-8") as f:
+        with open(val_log_file, encoding="utf-8") as f:
             lines = f.readlines()
             eval_lines = []
             for line in lines:

@@ -20,8 +20,8 @@ import requests
 import torch
 
 from ultralytics.utils import (
-    ASSETS,
     ARM64,
+    ASSETS,
     AUTOINSTALL,
     IS_COLAB,
     IS_JUPYTER,
@@ -65,7 +65,6 @@ def parse_requirements(file_path=ROOT.parent / "requirements.txt", package=""):
         parse_requirements(package='ultralytics')
         ```
     """
-
     if package:
         requires = [x for x in metadata.distribution(package).requires if "extra == " not in x]
     else:
@@ -362,7 +361,6 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
         check_requirements(['numpy', 'ultralytics>=8.0.0'])
         ```
     """
-
     prefix = colorstr("red", "bold", "requirements:")
     check_python()  # check python version
     check_torchvision()  # check torch-torchvision compatibility
@@ -422,7 +420,6 @@ def check_torchvision():
     The compatibility table is a dictionary where the keys are PyTorch versions and the values are lists of compatible
     Torchvision versions.
     """
-
     # Compatibility table
     compatibility_table = {
         "2.3": ["0.18"],
@@ -583,7 +580,6 @@ def check_yolo(verbose=True, device=""):
 
 def collect_system_info():
     """Collect and print relevant system information including OS, Python, RAM, CPU, and CUDA."""
-
     import psutil
 
     from ultralytics.utils import ENVIRONMENT, IS_GIT_DIR
@@ -740,9 +736,9 @@ def cuda_is_available() -> bool:
     return cuda_device_count() > 0
 
 
-def check_soc(family:str="rknn", node:str= "/proc/device-tree/compatible"):
+def check_soc(family: str = "rknn", node: str = "/proc/device-tree/compatible"):
     """
-    Check SOC type from device tree compatible node. Reference `devicetree-specification` https://github.com/devicetree-org/devicetree-specification/releases/tag/v0.4 section 2.3.1
+    Check SOC type from device tree compatible node. Reference `devicetree-specification` https://github.com/devicetree-org/devicetree-specification/releases/tag/v0.4 section 2.3.1.
 
     Args:
         family (str): Device family to check, default is "rknn".
@@ -754,18 +750,19 @@ def check_soc(family:str="rknn", node:str= "/proc/device-tree/compatible"):
 
     if LINUX and ARM64:
         try:
-            with open(node, "r") as f:
+            with open(node) as f:
                 dev_str = f.read()
                 *_, soc = dev_str.split(",")
-        except IOError:
+        except OSError:
             LOGGER.warning(f"Read device node {node} failed.")
-    
+
     if family == "rknn":
         return rknn_supported.get(soc.strip(), None)
     elif family == "rpi":
         return rpi_supported.get(soc.strip(), None)
     else:
         return None
+
 
 # Define constants
 IS_PYTHON_MINIMUM_3_10 = check_python("3.10", hard=False)

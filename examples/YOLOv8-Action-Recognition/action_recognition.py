@@ -203,7 +203,6 @@ class HuggingFaceVideoClassifier:
         Returns:
             torch.Tensor: The model's output.
         """
-
         input_ids = self.processor(text=self.labels, return_tensors="pt", padding=True)["input_ids"].to(self.device)
 
         inputs = {"pixel_values": sequences, "input_ids": input_ids}

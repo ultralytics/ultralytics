@@ -759,6 +759,10 @@ class SafeClass:
         """Initialize SafeClass instance, ignoring all arguments."""
         pass
 
+    def __call__(self, *args, **kwargs):
+        """Run SafeClass instance, ignoring all arguments."""
+        pass
+
 
 class SafeUnpickler(pickle.Unpickler):
     """Custom Unpickler that replaces unknown classes with SafeClass."""

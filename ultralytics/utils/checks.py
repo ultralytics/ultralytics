@@ -659,7 +659,7 @@ def check_amp(model):
         a = m(im, device=device, verbose=False)[0].boxes.data  # FP32 inference
         with autocast(enabled=True):
             b = m(im, device=device, verbose=False)[0].boxes.data  # AMP inference
-        c = m(im, device=device, verbose=False, half=True)[0].boxes.data # Half inference
+        c = m(im, device=device, verbose=False, half=True)[0].boxes.data  # Half inference
         del m
         allclose = torch.allclose(a, b.float(), atol=0.5) and torch.allclose(a, c.float(), atol=0.5)
         return a.shape == b.shape == c.shape and allclose  # close to 0.5 absolute tolerance

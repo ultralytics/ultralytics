@@ -718,8 +718,8 @@ When using YOLO models in a multi-threaded application, it's important to instan
 
 
     # Starting threads that each have their own model instance
-    Thread(target=thread_safe_predict, args=("yolov8n.pt", "path/to/image1.jpg")).start()
-    Thread(target=thread_safe_predict, args=("yolov8n.pt", "path/to/image2.jpg")).start()
+    Thread(target=thread_safe_predict, args=("yolov8n.pt", "image1.jpg")).start()
+    Thread(target=thread_safe_predict, args=("yolov8n.pt", "image2.jpg")).start()
     ```
 
 For an in-depth look at thread-safe inference with YOLO models and step-by-step instructions, please refer to our [YOLO Thread-Safe Inference Guide](../guides/yolo-thread-safe-inference.md). This guide will provide you with all the necessary information to avoid common pitfalls and ensure that your multi-threaded inference runs smoothly.

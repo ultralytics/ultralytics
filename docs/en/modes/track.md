@@ -291,7 +291,7 @@ Finally, after all threads have completed their task, the windows displaying the
 
     # Define model names and video sources
     MODEL_NAMES = ["yolov8n.pt", "yolov8n-seg.pt"]
-    SOURCES = ["path/to/video1.mp4", 0]  # 0 for webcam, 1 for external camera
+    SOURCES = ["path/to/video1.mp4", 0]  # local video, 0 for webcam
 
 
     def run_tracker_in_thread(model_name, filename, index):

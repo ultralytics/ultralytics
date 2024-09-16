@@ -710,16 +710,16 @@ When using YOLO models in a multi-threaded application, it's important to instan
     from ultralytics import YOLO
 
 
-    def thread_safe_predict(image_path):
+    def thread_safe_predict(model, image_path):
         """Performs thread-safe prediction on an image using a locally instantiated YOLO model."""
-        local_model = YOLO("yolov8n.pt")
+        local_model = YOLO(model)
         results = local_model.predict(image_path)
         # Process results
 
 
     # Starting threads that each have their own model instance
-    Thread(target=thread_safe_predict, args=("image1.jpg",)).start()
-    Thread(target=thread_safe_predict, args=("image2.jpg",)).start()
+    Thread(target=thread_safe_predict, args=("yolov8n.pt", "path/to/image1.jpg")).start()
+    Thread(target=thread_safe_predict, args=("yolov8n.pt", "path/to/image2.jpg")).start()
     ```
 
 For an in-depth look at thread-safe inference with YOLO models and step-by-step instructions, please refer to our [YOLO Thread-Safe Inference Guide](../guides/yolo-thread-safe-inference.md). This guide will provide you with all the necessary information to avoid common pitfalls and ensure that your multi-threaded inference runs smoothly.

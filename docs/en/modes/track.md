@@ -292,42 +292,27 @@ Finally, after all threads have completed their task, the windows displaying the
 
     # Define model names and video sources
     MODEL_NAMES = ["yolov8n.pt", "yolov8n-seg.pt"]
-    SOURCES = ["path/to/video1.mp4", 0]  # local video, 0 for webcam
+    SOURCES = ["path/to/video.mp4", "0"]  # local video, 0 for webcam
 
 
-    def run_tracker_in_thread(model_name, filename, index):
+    def run_tracker_in_thread(model_name, filename):
         """
-        Runs a video file or webcam stream concurrently with the YOLOv8 model using threading. This function captures video
-        frames from a given file or camera source and utilizes the YOLOv8 model for object tracking. The function runs in
-        its own thread for concurrent processing.
+        Run YOLO tracker in its own thread for concurrent processing.
 
         Args:
+            model_name (str): The YOLOv8 model object.
             filename (str): The path to the video file or the identifier for the webcam/external camera source.
-            model (obj): The YOLOv8 model object.
-            index (int): An index to uniquely identify the file being processed, used for display purposes.
         """
         model = YOLO(model_name)
-        video = cv2.VideoCapture(filename)
-
-        while True:
-            ret, frame = video.read()
-            if not ret:
-                break
-
-            results = model.track(frame, persist=True)
-            res_plotted = results[0].plot()
-            cv2.imshow(f"Tracking_Stream_{index}", res_plotted)
-
-            if cv2.waitKey(1) == ord("q"):
-                break
-
-        video.release()
+        results = model.track(filename, save=True, stream=True)
+        for r in results:
+            pass
 
 
     # Create and start tracker threads using a for loop
     tracker_threads = []
-    for i, (video_file, model_name) in enumerate(zip(SOURCES, MODEL_NAMES), start=1):
-        thread = threading.Thread(target=run_tracker_in_thread, args=(model_name, video_file, i), daemon=True)
+    for video_file, model_name in zip(SOURCES, MODEL_NAMES):
+        thread = threading.Thread(target=run_tracker_in_thread, args=(model_name, video_file), daemon=True)
         tracker_threads.append(thread)
         thread.start()
 
@@ -395,35 +380,37 @@ To run object tracking on multiple video streams simultaneously, you can use Pyt
 
     from ultralytics import YOLO
 
-
-    def run_tracker_in_thread(filename, model, file_index):
-        video = cv2.VideoCapture(filename)
-        while True:
-            ret, frame = video.read()
-            if not ret:
-                break
-            results = model.track(frame, persist=True)
-            res_plotted = results[0].plot()
-            cv2.imshow(f"Tracking_Stream_{file_index}", res_plotted)
-            if cv2.waitKey(1) & 0xFF == ord("q"):
-                break
-        video.release()
+    # Define model names and video sources
+    MODEL_NAMES = ["yolov8n.pt", "yolov8n-seg.pt"]
+    SOURCES = ["path/to/video.mp4", "0"]  # local video, 0 for webcam
 
 
-    model1 = YOLO("yolov8n.pt")
-    model2 = YOLO("yolov8n-seg.pt")
-    video_file1 = "path/to/video1.mp4"
-    video_file2 = 0  # Path to a second video file, or 0 for a webcam
+    def run_tracker_in_thread(model_name, filename):
+        """
+        Run YOLO tracker in its own thread for concurrent processing.
 
-    tracker_thread1 = threading.Thread(target=run_tracker_in_thread, args=(video_file1, model1, 1), daemon=True)
-    tracker_thread2 = threading.Thread(target=run_tracker_in_thread, args=(video_file2, model2, 2), daemon=True)
+        Args:
+            model_name (str): The YOLOv8 model object.
+            filename (str): The path to the video file or the identifier for the webcam/external camera source.
+        """
+        model = YOLO(model_name)
+        results = model.track(filename, save=True, stream=True)
+        for r in results:
+            pass
 
-    tracker_thread1.start()
-    tracker_thread2.start()
 
-    tracker_thread1.join()
-    tracker_thread2.join()
+    # Create and start tracker threads using a for loop
+    tracker_threads = []
+    for video_file, model_name in zip(SOURCES, MODEL_NAMES):
+        thread = threading.Thread(target=run_tracker_in_thread, args=(model_name, video_file), daemon=True)
+        tracker_threads.append(thread)
+        thread.start()
 
+    # Wait for all tracker threads to finish
+    for thread in tracker_threads:
+        thread.join()
+
+    # Clean up and close windows
     cv2.destroyAllWindows()
     ```
 

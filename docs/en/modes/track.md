@@ -285,8 +285,9 @@ Finally, after all threads have completed their task, the windows displaying the
 
     ```python
     import threading
+
     import cv2
-    
+
     from ultralytics import YOLO
 
     # Define model names and video sources
@@ -296,9 +297,9 @@ Finally, after all threads have completed their task, the windows displaying the
 
     def run_tracker_in_thread(model_name, filename, index):
         """
-        Runs a video file or webcam stream concurrently with the YOLOv8 model using threading. This function captures
-        video frames from a given file or camera source and utilizes the YOLOv8 model for object tracking. The function
-        runs in its own thread for concurrent processing.
+        Runs a video file or webcam stream concurrently with the YOLOv8 model using threading. This function captures video
+        frames from a given file or camera source and utilizes the YOLOv8 model for object tracking. The function runs in
+        its own thread for concurrent processing.
 
         Args:
             filename (str): The path to the video file or the identifier for the webcam/external camera source.

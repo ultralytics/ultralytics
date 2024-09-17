@@ -818,6 +818,72 @@ class Results(SimpleClass):
 
         return results
 
+    def todataframe(self, normalize=False, decimals=5):
+        """
+        Converts detection results to a Pandas Dataframe.
+
+        This method converts the detection results into a pandas dataframe
+        Args:
+            normalize (bool): Whether to normalize the bounding box coordinates by the image dimensions.
+                If True, coordinates will be returned as float values between 0 and 1. Defaults to False.
+            decimals (int): Number of decimal places to round the output values to. Defaults to 5.
+
+        Returns:
+            (DataFrame): A pandas dataframe containing all the information in results in an organized way.
+
+        Examples:
+            >>> results = model("path/to/image.jpg")
+            >>> df_result = results[0].todataframe()
+            >>> print(df_result)
+        """
+        import pandas as pd
+
+        return pd.DataFrame(self.summary(normalize=normalize, decimals=decimals))
+
+    def tocsv(self, normalize=False, decimals=5):
+        """
+        Converts detection results to a csv format.
+
+        This method converts the detection results into a csv format
+        Args:
+            normalize (bool): Whether to normalize the bounding box coordinates by the image dimensions.
+                If True, coordinates will be returned as float values between 0 and 1. Defaults to False.
+            decimals (int): Number of decimal places to round the output values to. Defaults to 5.
+
+        Returns:
+            (str): A csv containing all the information in results in an organized way.
+
+        Examples:
+            >>> results = model("path/to/image.jpg")
+            >>> csv_result = results[0].tocsv()
+            >>> print(csv_result)
+        """
+        import pandas as pd
+
+        return pd.DataFrame(self.summary(normalize=normalize, decimals=decimals)).to_csv()
+
+    def toxml(self, normalize=False, decimals=5):
+        """
+        Converts detection results to a xml format.
+
+        This method converts the detection results into a xml format
+        Args:
+            normalize (bool): Whether to normalize the bounding box coordinates by the image dimensions.
+                If True, coordinates will be returned as float values between 0 and 1. Defaults to False.
+            decimals (int): Number of decimal places to round the output values to. Defaults to 5.
+
+        Returns:
+            (str): A xml containing all the information in results in an organized way.
+
+        Examples:
+            >>> results = model("path/to/image.jpg")
+            >>> xml_result = results[0].toxml()
+            >>> print(xml_result)
+        """
+        import pandas as pd
+
+        return pd.DataFrame(self.summary(normalize=normalize, decimals=decimals)).to_xml()
+
     def tojson(self, normalize=False, decimals=5):
         """
         Converts detection results to JSON format.

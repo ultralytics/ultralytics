@@ -859,6 +859,7 @@ class Results(SimpleClass):
             >>> print(csv_result)
         """
         import pandas as pd
+
         return pd.DataFrame(self.summary(normalize=normalize, decimals=decimals)).to_csv()
 
     def toxml(self, normalize=False, decimals=5):
@@ -880,7 +881,7 @@ class Results(SimpleClass):
             >>> print(xml_result)
         """
         import pandas as pd
-        
+
         return pd.DataFrame(self.summary(normalize=normalize, decimals=decimals)).to_xml()
 
     def tojson(self, normalize=False, decimals=5):

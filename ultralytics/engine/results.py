@@ -818,7 +818,7 @@ class Results(SimpleClass):
 
         return results
 
-    def todf(self, normalize=False, decimals=5):
+    def to_df(self, normalize=False, decimals=5):
         """
         Converts detection results to a Pandas Dataframe.
 
@@ -836,14 +836,14 @@ class Results(SimpleClass):
 
         Examples:
             >>> results = model("path/to/image.jpg")
-            >>> df_result = results[0].todf()
+            >>> df_result = results[0].to_df()
             >>> print(df_result)
         """
         import pandas as pd
 
         return pd.DataFrame(self.summary(normalize=normalize, decimals=decimals))
 
-    def tocsv(self, normalize=False, decimals=5):
+    def to_csv(self, normalize=False, decimals=5):
         """
         Converts detection results to a CSV format.
 
@@ -861,12 +861,12 @@ class Results(SimpleClass):
 
         Examples:
             >>> results = model("path/to/image.jpg")
-            >>> csv_result = results[0].tocsv()
+            >>> csv_result = results[0].to_csv()
             >>> print(csv_result)
         """
-        return self.todf(normalize=normalize, decimals=decimals).to_csv()
+        return self.to_df(normalize=normalize, decimals=decimals).to_csv()
 
-    def toxml(self, normalize=False, decimals=5):
+    def to_xml(self, normalize=False, decimals=5):
         """
         Converts detection results to a XML format.
 
@@ -884,10 +884,11 @@ class Results(SimpleClass):
 
         Examples:
             >>> results = model("path/to/image.jpg")
-            >>> xml_result = results[0].toxml()
+            >>> xml_result = results[0].to_xml()
             >>> print(xml_result)
         """
-        return self.todf(normalize=normalize, decimals=decimals).to_xml()
+        check_requirements("lxml")
+        return self.to_df(normalize=normalize, decimals=decimals).to_xml()
 
     def tojson(self, normalize=False, decimals=5):
         """

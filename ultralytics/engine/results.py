@@ -825,7 +825,7 @@ class Results(SimpleClass):
         This method converts the detection results into Pandas Dataframe format. It includes information
         about detected objects such as bounding boxes, class names, confidence scores, and optionally
         segmentation masks and keypoints.
-        
+
         Args:
             normalize (bool): Whether to normalize the bounding box coordinates by the image dimensions.
                 If True, coordinates will be returned as float values between 0 and 1. Defaults to False.
@@ -850,7 +850,7 @@ class Results(SimpleClass):
         This method serializes the detection results into a CSV format. It includes information
         about detected objects such as bounding boxes, class names, confidence scores, and optionally
         segmentation masks and keypoints.
-        
+
         Args:
             normalize (bool): Whether to normalize the bounding box coordinates by the image dimensions.
                 If True, coordinates will be returned as float values between 0 and 1. Defaults to False.
@@ -873,7 +873,7 @@ class Results(SimpleClass):
         This method serializes the detection results into an XML format. It includes information
         about detected objects such as bounding boxes, class names, confidence scores, and optionally
         segmentation masks and keypoints.
-        
+
         Args:
             normalize (bool): Whether to normalize the bounding box coordinates by the image dimensions.
                 If True, coordinates will be returned as float values between 0 and 1. Defaults to False.

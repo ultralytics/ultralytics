@@ -858,7 +858,8 @@ class Results(SimpleClass):
             >>> csv_result = results[0].tocsv()
             >>> print(csv_result)
         """
-        return Results.todataframe(self.summary(normalize=normalize, decimals=decimals)).to_csv()
+        import pandas as pd
+        return pd.DataFrame(self.summary(normalize=normalize, decimals=decimals)).to_csv()
 
     def toxml(self, normalize=False, decimals=5):
         """
@@ -878,7 +879,9 @@ class Results(SimpleClass):
             >>> xml_result = results[0].toxml()
             >>> print(xml_result)
         """
-        return Results.todataframe(self.summary(normalize=normalize, decimals=decimals)).to_xml()
+        import pandas as pd
+        
+        return pd.DataFrame(self.summary(normalize=normalize, decimals=decimals)).to_xml()
 
     def tojson(self, normalize=False, decimals=5):
         """

@@ -887,6 +887,7 @@ class Results(SimpleClass):
             >>> xml_result = results[0].toxml()
             >>> print(xml_result)
         """
+        check_requirements("lxml")
         return self.todf(normalize=normalize, decimals=decimals).to_xml()
 
     def tojson(self, normalize=False, decimals=5):

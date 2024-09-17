@@ -14,6 +14,7 @@ import torch
 
 from ultralytics.data.augment import LetterBox
 from ultralytics.utils import LOGGER, SimpleClass, ops
+from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.plotting import Annotator, colors, save_one_box
 from ultralytics.utils.torch_utils import smart_inference_mode
 
@@ -843,7 +844,7 @@ class Results(SimpleClass):
 
         return pd.DataFrame(self.summary(normalize=normalize, decimals=decimals))
 
-    def to_csv(self, normalize=False, decimals=5):
+    def to_csv(self, normalize=False, decimals=5, *args, **kwargs):
         """
         Converts detection results to a CSV format.
 
@@ -855,6 +856,9 @@ class Results(SimpleClass):
             normalize (bool): Whether to normalize the bounding box coordinates by the image dimensions.
                 If True, coordinates will be returned as float values between 0 and 1. Defaults to False.
             decimals (int): Number of decimal places to round the output values to. Defaults to 5.
+            *args (Any): Variable length argument list to be passed to pandas.DataFrame.to_csv().
+            **kwargs (Any): Arbitrary keyword arguments to be passed to pandas.DataFrame.to_csv().
+
 
         Returns:
             (str): CSV containing all the information in results in an organized way.
@@ -864,9 +868,9 @@ class Results(SimpleClass):
             >>> csv_result = results[0].to_csv()
             >>> print(csv_result)
         """
-        return self.to_df(normalize=normalize, decimals=decimals).to_csv()
+        return self.to_df(normalize=normalize, decimals=decimals).to_csv(*args, **kwargs)
 
-    def to_xml(self, normalize=False, decimals=5):
+    def to_xml(self, normalize=False, decimals=5, *args, **kwargs):
         """
         Converts detection results to a XML format.
 
@@ -878,6 +882,8 @@ class Results(SimpleClass):
             normalize (bool): Whether to normalize the bounding box coordinates by the image dimensions.
                 If True, coordinates will be returned as float values between 0 and 1. Defaults to False.
             decimals (int): Number of decimal places to round the output values to. Defaults to 5.
+            *args (Any): Variable length argument list to be passed to pandas.DataFrame.to_xml().
+            **kwargs (Any): Arbitrary keyword arguments to be passed to pandas.DataFrame.to_xml().
 
         Returns:
             (str): An XML string containing all the information in results in an organized way.
@@ -888,7 +894,7 @@ class Results(SimpleClass):
             >>> print(xml_result)
         """
         check_requirements("lxml")
-        return self.to_df(normalize=normalize, decimals=decimals).to_xml()
+        return self.to_df(normalize=normalize, decimals=decimals).to_xml(*args, **kwargs)
 
     def tojson(self, normalize=False, decimals=5):
         """

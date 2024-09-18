@@ -226,12 +226,10 @@ class Model(nn.Module):
             >>> Model.is_hub_model("not_a_hub_model.pt")
             False
         """
-        return any(
-            (
-                model.startswith(f"{HUB_WEB_ROOT}/models/"),  # i.e. https://hub.ultralytics.com/models/MODEL
-                [len(x) for x in model.split("_")] == [42, 20],  # APIKEY_MODEL
-                len(model) == 20 and not Path(model).exists() and all(x not in model for x in "./\\"),  # MODEL
-            )
+        return (
+            model.startswith(f"{HUB_WEB_ROOT}/models/")  # i.e. https://hub.ultralytics.com/models/MODEL
+            or [len(x) for x in model.split("_")] == [42, 20]  # APIKEY_MODEL
+            or (len(model) == 20 and not Path(model).exists() and all(x not in model for x in "./\\"))  # MODEL
         )
 
     def _new(self, cfg: str, task=None, model=None, verbose=False) -> None:

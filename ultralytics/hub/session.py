@@ -164,29 +164,16 @@ class HUBTrainingSession:
         # Initialize variables
         api_key, model_id, filename = None, None, None
 
-        # Check if identifier is a HUB URL
-        if identifier.startswith(f"{HUB_WEB_ROOT}/models/"):
-            # Extract the model_id after the HUB_WEB_ROOT URL
-            model_id = identifier.split(f"{HUB_WEB_ROOT}/models/")[-1]
+        path = identifier.split(f"{HUB_WEB_ROOT}/models/")[-1]
+        parts = path.split("_")
+        if Path(path).suffix in {".pt", ".yaml"}:
+            filename = path
+        elif len(parts) == 2 and len(parts[0]) == 42 and len(parts[1]) == 20:
+            api_key, model_id = parts
+        elif len(path) == 20:
+            model_id = path
         else:
-            # Split the identifier based on underscores only if it's not a HUB URL
-            parts = identifier.split("_")
-
-            # Check if identifier is in the format of API key and model ID
-            if len(parts) == 2 and len(parts[0]) == 42 and len(parts[1]) == 20:
-                api_key, model_id = parts
-            # Check if identifier is a single model ID
-            elif len(parts) == 1 and len(parts[0]) == 20:
-                model_id = parts[0]
-            # Check if identifier is a local filename
-            elif identifier.endswith(".pt") or identifier.endswith(".yaml"):
-                filename = identifier
-            else:
-                raise HUBModelError(
-                    f"model='{identifier}' could not be parsed. Check format is correct. "
-                    f"Supported formats are Ultralytics HUB URL, apiKey_modelId, modelId, local pt or yaml file."
-                )
-
+            raise HUBModelError(f"model='{identifier} invalid, correct format is {HUB_WEB_ROOT}/models/MODEL_ID")
         return api_key, model_id, filename
 
     def _set_train_args(self):

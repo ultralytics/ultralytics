@@ -1009,7 +1009,7 @@ class Exporter:
         return f, None
 
     @try_export
-    def export_rknn(self, prefix=colorstr("RKNN:")) -> tuple[str, None]:
+    def export_rknn(self, prefix=colorstr("RKNN:")):
         """YOLOv8 RKNN model export."""
         LOGGER.info(f"\n{prefix} starting export with torch {torch.__version__}...")
 

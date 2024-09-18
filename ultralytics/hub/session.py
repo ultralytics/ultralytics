@@ -5,7 +5,7 @@ import threading
 import time
 from http import HTTPStatus
 from pathlib import Path
-from urllib.parse import urlparse, parse_qs
+from urllib.parse import parse_qs, urlparse
 
 import requests
 

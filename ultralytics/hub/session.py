@@ -78,7 +78,6 @@ class HUBTrainingSession:
             if not session.client.authenticated:
                 if identifier.startswith(f"{HUB_WEB_ROOT}/models/"):
                     LOGGER.warning(f"{PREFIX}WARNING ⚠️ Login to Ultralytics HUB with 'yolo hub login API_KEY'.")
-                    exit()
                 return None
             if args and not identifier.startswith(f"{HUB_WEB_ROOT}/models/"):  # not a HUB model URL
                 session.create_model(args)

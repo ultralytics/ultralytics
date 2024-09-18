@@ -872,7 +872,7 @@ class Results(SimpleClass):
 
     def to_xml(self, normalize=False, decimals=5, *args, **kwargs):
         """
-        Converts detection results to a XML format.
+        Converts detection results to XML format.
 
         This method serializes the detection results into an XML format. It includes information
         about detected objects such as bounding boxes, class names, confidence scores, and optionally
@@ -894,7 +894,8 @@ class Results(SimpleClass):
             >>> print(xml_result)
         """
         check_requirements("lxml")
-        return self.to_df(normalize=normalize, decimals=decimals).to_xml(*args, **kwargs)
+        df = self.to_df(normalize=normalize, decimals=decimals)
+        return '<?xml version="1.0" encoding="utf-8"?>\n<root></root>' if df.empty else df.to_xml(*args, **kwargs)
 
     def tojson(self, normalize=False, decimals=5):
         """

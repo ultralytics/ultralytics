@@ -523,54 +523,30 @@ def autocast_list(source):
     return files
 
 
-def get_best_youtube_url(url, method="pytube"):
+def get_best_youtube_url(url):
     """
     Retrieves the URL of the best quality MP4 video stream from a given YouTube video.
 
-    This function uses the specified method to extract the video info from YouTube. It supports the following methods:
-    - "pytube": Uses the pytube library to fetch the video streams.
-    - "pafy": Uses the pafy library to fetch the video streams.
-    - "yt-dlp": Uses the yt-dlp library to fetch the video streams.
-
-    The function then finds the highest quality MP4 format that has a video codec but no audio codec, and returns the
-    URL of this video stream.
+    This function uses yt-dlp to extract the video info from YouTube. The function then 
+        finds the highest quality MP4 format that has a video codec but no audio codec, 
+        and returns the URL of this video stream.
 
     Args:
         url (str): The URL of the YouTube video.
-        method (str): The method to use for extracting video info. Default is "pytube". Other options are "pafy" and
-            "yt-dlp".
 
     Returns:
         (str): The URL of the best quality MP4 video stream, or None if no suitable stream is found.
     """
-    if method == "pytube":
-        # Switched from pytube to pytubefix to resolve https://github.com/pytube/pytube/issues/1954
-        check_requirements("pytubefix>=6.5.2")
-        from pytubefix import YouTube
+    check_requirements("yt-dlp")
+    import yt_dlp
 
-        streams = YouTube(url).streams.filter(file_extension="mp4", only_video=True)
-        streams = sorted(streams, key=lambda s: s.resolution, reverse=True)  # sort streams by resolution
-        for stream in streams:
-            if stream.resolution and int(stream.resolution[:-1]) >= 1080:  # check if resolution is at least 1080p
-                return stream.url
-
-    elif method == "pafy":
-        check_requirements(("pafy", "youtube_dl==2020.12.2"))
-        import pafy  # noqa
-
-        return pafy.new(url).getbestvideo(preftype="mp4").url
-
-    elif method == "yt-dlp":
-        check_requirements("yt-dlp")
-        import yt_dlp
-
-        with yt_dlp.YoutubeDL({"quiet": True}) as ydl:
-            info_dict = ydl.extract_info(url, download=False)  # extract info
-        for f in reversed(info_dict.get("formats", [])):  # reversed because best is usually last
-            # Find a format with video codec, no audio, *.mp4 extension at least 1920x1080 size
-            good_size = (f.get("width") or 0) >= 1920 or (f.get("height") or 0) >= 1080
-            if good_size and f["vcodec"] != "none" and f["acodec"] == "none" and f["ext"] == "mp4":
-                return f.get("url")
+    with yt_dlp.YoutubeDL({"quiet": True}) as ydl:
+        info_dict = ydl.extract_info(url, download=False)  # extract info
+    for f in reversed(info_dict.get("formats", [])):  # reversed because best is usually last
+        # Find a format with video codec, no audio, *.mp4 extension at least 1920x1080 size
+        good_size = (f.get("width") or 0) >= 1920 or (f.get("height") or 0) >= 1080
+        if good_size and f["vcodec"] != "none" and f["acodec"] == "none" and f["ext"] == "mp4":
+            return f.get("url")
 
 
 # Define constants

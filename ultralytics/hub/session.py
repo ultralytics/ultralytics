@@ -175,7 +175,7 @@ class HUBTrainingSession:
             filename = identifier
         elif identifier.startswith(f"{HUB_WEB_ROOT}/models/"):
             parsed_url = urlparse(identifier)
-            model_id = parsed_url.path.split("/")[-1]
+            model_id = Path(parsed_url.path).stem  # handle possible final backslash robustly
             query_params = parse_qs(parsed_url.query)  # dictionary, i.e. {"api_key": ["API_KEY_HERE"]}
             api_key = query_params.get("api_key", [None])[0]
         else:

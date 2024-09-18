@@ -80,6 +80,7 @@ dependencies = [
     "pandas>=1.1.4",
     "seaborn>=0.11.0", # plotting
     "ultralytics-thop>=2.0.0", # FLOPs computation https://github.com/ultralytics/thop
+    "lxml>=4.8.0", #xml results method
 ]
 
 # Optional dependencies ------------------------------------------------------------------------------------------------

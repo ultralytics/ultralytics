@@ -217,18 +217,18 @@ class Model(nn.Module):
             (bool): True if the model is a valid Ultralytics HUB model, False otherwise.
 
         Examples:
-            >>> Model.is_hub_model("https://hub.ultralytics.com/models/example_model")
+            >>> Model.is_hub_model("https://hub.ultralytics.com/models/MODEL")
             True
-            >>> Model.is_hub_model("api_key_example_model_id")
+            >>> Model.is_hub_model("APIKEY_MODEL")
             True
-            >>> Model.is_hub_model("example_model_id")
+            >>> Model.is_hub_model("MODEL")
             True
             >>> Model.is_hub_model("not_a_hub_model.pt")
             False
         """
         return any(
             (
-                model.startswith(f"{HUB_WEB_ROOT}/models/"),  # i.e. https://hub.ultralytics.com/models/MODEL_ID
+                model.startswith(f"{HUB_WEB_ROOT}/models/"),  # i.e. https://hub.ultralytics.com/models/MODEL
                 [len(x) for x in model.split("_")] == [42, 20],  # APIKEY_MODEL
                 len(model) == 20 and not Path(model).exists() and all(x not in model for x in "./\\"),  # MODEL
             )

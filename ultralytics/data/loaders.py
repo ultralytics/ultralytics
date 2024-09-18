@@ -527,8 +527,8 @@ def get_best_youtube_url(url):
     """
     Retrieves the URL of the best quality MP4 video stream from a given YouTube video.
 
-    This function uses yt-dlp to extract the video info from YouTube. The function then 
-        finds the highest quality MP4 format that has a video codec but no audio codec, 
+    This function uses yt-dlp to extract the video info from YouTube. The function then
+        finds the highest quality MP4 format that has a video codec but no audio codec,
         and returns the URL of this video stream.
 
     Args:

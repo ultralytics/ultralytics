@@ -898,6 +898,11 @@ class Results(SimpleClass):
         return '<?xml version="1.0" encoding="utf-8"?>\n<root></root>' if df.empty else df.to_xml(*args, **kwargs)
 
     def tojson(self, normalize=False, decimals=5):
+        """Deprecated version of to_json()."""
+        LOGGER.warning("WARNING ⚠️ 'result.tojson()' is deprecated, replace with 'result.to_json()'.")
+        return self.to_json(normalize, decimals)
+
+    def to_json(self, normalize=False, decimals=5):
         """
         Converts detection results to JSON format.
 
@@ -915,7 +920,7 @@ class Results(SimpleClass):
 
         Examples:
             >>> results = model("path/to/image.jpg")
-            >>> json_result = results[0].tojson()
+            >>> json_result = results[0].to_json()
             >>> print(json_result)
 
         Notes:

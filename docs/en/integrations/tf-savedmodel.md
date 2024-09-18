@@ -15,7 +15,7 @@ Learning how to export to TF SavedModel from [Ultralytics YOLOv8](https://github
 The TensorFlow SavedModel format is a part of the TensorFlow ecosystem developed by Google as shown below. It is designed to save and serialize TensorFlow models seamlessly. It encapsulates the complete details of models like the architecture, weights, and even compilation information. This makes it straightforward to share, deploy, and continue training across different environments.
 
 <p align="center">
-  <img width="100%" src="https://sdtimes.com/wp-content/uploads/2019/10/0_C7GCWYlsMrhUYRYi.png" alt="TF SavedModel">
+  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/tf-savedmodel-overview.avif" alt="TF SavedModel">
 </p>
 
 The TF SavedModel has a key advantage: its compatibility. It works well with TensorFlow Serving, TensorFlow Lite, and TensorFlow.js. This compatibility makes it easier to share and deploy models across various platforms, including web and mobile applications. The TF SavedModel format is useful both for research and production. It provides a unified way to manage your models, ensuring they are ready for any application.
@@ -52,7 +52,7 @@ By exporting YOLOv8 models to the TF SavedModel format, you enhance their adapta
 
 To install the required package, run:
 
-!!! Tip "Installation"
+!!! tip "Installation"
 
     === "CLI"
 
@@ -67,7 +67,7 @@ For detailed instructions and best practices related to the installation process
 
 Before diving into the usage instructions, it's important to note that while all [Ultralytics YOLOv8 models](../models/index.md) are available for exporting, you can ensure that the model you select supports export functionality [here](../modes/export.md).
 
-!!! Example "Usage"
+!!! example "Usage"
 
     === "Python"
 
@@ -125,7 +125,7 @@ For more information on integrating Ultralytics YOLOv8 with other platforms and 
 
 Exporting an Ultralytics YOLO model to the TensorFlow SavedModel format is straightforward. You can use either Python or CLI to achieve this:
 
-!!! Example "Exporting YOLOv8 to TF SavedModel"
+!!! example "Exporting YOLOv8 to TF SavedModel"
 
     === "Python"
 

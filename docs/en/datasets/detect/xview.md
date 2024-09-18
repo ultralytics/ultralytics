@@ -34,7 +34,7 @@ The xView dataset is widely used for training and evaluating deep learning model
 
 A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. In the case of the xView dataset, the `xView.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/xView.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/xView.yaml).
 
-!!! Example "ultralytics/cfg/datasets/xView.yaml"
+!!! example "ultralytics/cfg/datasets/xView.yaml"
 
     ```yaml
     --8<-- "ultralytics/cfg/datasets/xView.yaml"
@@ -44,7 +44,7 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 To train a model on the xView dataset for 100 epochs with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
-!!! Example "Train Example"
+!!! example "Train Example"
 
     === "Python"
 
@@ -69,7 +69,7 @@ To train a model on the xView dataset for 100 epochs with an image size of 640, 
 
 The xView dataset contains high-resolution satellite images with a diverse set of objects annotated using bounding boxes. Here are some examples of data from the dataset, along with their corresponding annotations:
 
-![Dataset sample image](https://user-images.githubusercontent.com/26833433/277141257-ae6ba4de-5dcb-4c76-bc05-bc1e386361ba.jpg)
+![Dataset sample image](https://github.com/ultralytics/docs/releases/download/0/overhead-imagery-object-detection.avif)
 
 - **Overhead Imagery**: This image demonstrates an example of object detection in overhead imagery, where objects are annotated with bounding boxes. The dataset provides high-resolution satellite images to facilitate the development of models for this task.
 
@@ -79,7 +79,7 @@ The example showcases the variety and complexity of the data in the xView datase
 
 If you use the xView dataset in your research or development work, please cite the following paper:
 
-!!! Quote ""
+!!! quote ""
 
     === "BibTeX"
 
@@ -106,10 +106,10 @@ The [xView](http://xviewdataset.org/) dataset is one of the largest publicly ava
 
 To train a model on the xView dataset using Ultralytics YOLO, follow these steps:
 
-!!! Example "Train Example"
+!!! example "Train Example"
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
 
@@ -119,10 +119,10 @@ To train a model on the xView dataset using Ultralytics YOLO, follow these steps
         # Train the model
         results = model.train(data="xView.yaml", epochs=100, imgsz=640)
         ```
-    
+
 
     === "CLI"
-    
+
         ```bash
         # Start training from a pretrained *.pt model
         yolo detect train data=xView.yaml model=yolov8n.pt epochs=100 imgsz=640
@@ -133,6 +133,7 @@ For detailed arguments and settings, refer to the model [Training](../../modes/t
 ### What are the key features of the xView dataset?
 
 The xView dataset stands out due to its comprehensive set of features:
+
 - Over 1 million object instances across 60 distinct classes.
 - High-resolution imagery at 0.3 meters.
 - Diverse object types including small, rare, and fine-grained objects, all annotated with bounding boxes.
@@ -146,17 +147,19 @@ The xView dataset comprises high-resolution satellite images collected from Worl
 
 If you utilize the xView dataset in your research, please cite the following paper:
 
-!!! Quote "BibTeX"
+!!! quote ""
 
-    ```bibtex
-    @misc{lam2018xview,
-          title={xView: Objects in Context in Overhead Imagery},
-          author={Darius Lam and Richard Kuzma and Kevin McGee and Samuel Dooley and Michael Laielli and Matthew Klaric and Yaroslav Bulatov and Brendan McCord},
-          year={2018},
-          eprint={1802.07856},
-          archivePrefix={arXiv},
-          primaryClass={cs.CV}
-    }
-    ```
-   
+    === "BibTeX"
+
+        ```bibtex
+        @misc{lam2018xview,
+            title={xView: Objects in Context in Overhead Imagery},
+            author={Darius Lam and Richard Kuzma and Kevin McGee and Samuel Dooley and Michael Laielli and Matthew Klaric and Yaroslav Bulatov and Brendan McCord},
+            year={2018},
+            eprint={1802.07856},
+            archivePrefix={arXiv},
+            primaryClass={cs.CV}
+        }
+        ```
+
 For more information about the xView dataset, visit the official [xView dataset website](http://xviewdataset.org/).

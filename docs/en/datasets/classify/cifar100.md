@@ -31,7 +31,7 @@ The CIFAR-100 dataset is extensively used for training and evaluating deep learn
 
 To train a YOLO model on the CIFAR-100 dataset for 100 epochs with an image size of 32x32, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
-!!! Example "Train Example"
+!!! example "Train Example"
 
     === "Python"
 
@@ -56,7 +56,7 @@ To train a YOLO model on the CIFAR-100 dataset for 100 epochs with an image size
 
 The CIFAR-100 dataset contains color images of various objects, providing a well-structured dataset for image classification tasks. Here are some examples of images from the dataset:
 
-![Dataset sample image](https://user-images.githubusercontent.com/26833433/239363319-62ebf02f-7469-4178-b066-ccac3cd334db.jpg)
+![Dataset sample image](https://github.com/ultralytics/docs/releases/download/0/cifar100-sample-image.avif)
 
 The example showcases the variety and complexity of the objects in the CIFAR-100 dataset, highlighting the importance of a diverse dataset for training robust image classification models.
 
@@ -64,7 +64,7 @@ The example showcases the variety and complexity of the objects in the CIFAR-100
 
 If you use the CIFAR-100 dataset in your research or development work, please cite the following paper:
 
-!!! Quote ""
+!!! quote ""
 
     === "BibTeX"
 
@@ -89,10 +89,10 @@ The [CIFAR-100 dataset](https://www.cs.toronto.edu/~kriz/cifar.html) is a large 
 
 You can train a YOLO model on the CIFAR-100 dataset using either Python or CLI commands. Here's how:
 
-!!! Example "Train Example"
+!!! example "Train Example"
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
 
@@ -104,7 +104,7 @@ You can train a YOLO model on the CIFAR-100 dataset using either Python or CLI c
         ```
 
     === "CLI"
-        
+
         ```bash
         # Start training from a pretrained *.pt model
         yolo classify train data=cifar100 model=yolov8n-cls.pt epochs=100 imgsz=32

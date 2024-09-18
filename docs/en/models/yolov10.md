@@ -6,9 +6,9 @@ keywords: YOLOv10, real-time object detection, NMS-free, deep learning, Tsinghua
 
 # YOLOv10: Real-Time End-to-End Object Detection
 
-YOLOv10, built on the [Ultralytics](https://ultralytics.com) [Python package](https://pypi.org/project/ultralytics/) by researchers at [Tsinghua University](https://www.tsinghua.edu.cn/en/), introduces a new approach to real-time object detection, addressing both the post-processing and model architecture deficiencies found in previous YOLO versions. By eliminating non-maximum suppression (NMS) and optimizing various model components, YOLOv10 achieves state-of-the-art performance with significantly reduced computational overhead. Extensive experiments demonstrate its superior accuracy-latency trade-offs across multiple model scales.
+YOLOv10, built on the [Ultralytics](https://www.ultralytics.com/) [Python package](https://pypi.org/project/ultralytics/) by researchers at [Tsinghua University](https://www.tsinghua.edu.cn/en/), introduces a new approach to real-time object detection, addressing both the post-processing and model architecture deficiencies found in previous YOLO versions. By eliminating non-maximum suppression (NMS) and optimizing various model components, YOLOv10 achieves state-of-the-art performance with significantly reduced computational overhead. Extensive experiments demonstrate its superior accuracy-latency trade-offs across multiple model scales.
 
-![YOLOv10 consistent dual assignment for NMS-free training](https://github.com/ultralytics/ultralytics/assets/26833433/f9b1bec0-928e-41ce-a205-e12db3c4929a)
+![YOLOv10 consistent dual assignment for NMS-free training](https://github.com/ultralytics/docs/releases/download/0/yolov10-consistent-dual-assignment.avif)
 
 <p align="center">
   <br>
@@ -91,7 +91,7 @@ YOLOv10 has been extensively tested on standard benchmarks like COCO, demonstrat
 
 ## Comparisons
 
-![YOLOv10 comparison with SOTA object detectors](https://github.com/ultralytics/ultralytics/assets/26833433/e0360eb4-3589-4cd1-b362-a8970bceada6)
+![YOLOv10 comparison with SOTA object detectors](https://github.com/ultralytics/docs/releases/download/0/yolov10-comparison-sota-detectors.avif)
 
 Compared to other state-of-the-art detectors:
 
@@ -140,7 +140,7 @@ Here is a detailed comparison of YOLOv10 variants with other state-of-the-art mo
 
 For predicting new images with YOLOv10:
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -166,7 +166,7 @@ For predicting new images with YOLOv10:
 
 For training YOLOv10 on a custom dataset:
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -202,20 +202,20 @@ The YOLOv10 models series offers a range of models, each optimized for high-perf
 
 Due to the new operations introduced with YOLOv10, not all export formats provided by Ultralytics are currently supported. The following table outlines which formats have been successfully converted using Ultralytics for YOLOv10. Feel free to open a pull request if you're able to [provide a contribution change](../help/contributing.md) for adding export support of additional formats for YOLOv10.
 
-| Export Format                                     | Supported |
-| ------------------------------------------------- | --------- |
-| [TorchScript](../integrations/torchscript.md)     | ✅        |
-| [ONNX](../integrations/onnx.md)                   | ✅        |
-| [OpenVINO](../integrations/openvino.md)           | ✅        |
-| [TensorRT](../integrations/tensorrt.md)           | ✅        |
-| [CoreML](../integrations/coreml.md)               | ❌        |
-| [TF SavedModel](../integrations/tf-savedmodel.md) | ✅        |
-| [TF GraphDef](../integrations/tf-graphdef.md)     | ✅        |
-| [TF Lite](../integrations/tflite.md)              | ✅        |
-| [TF Edge TPU](../integrations/edge-tpu.md)        | ❌        |
-| [TF.js](../integrations/tfjs.md)                  | ❌        |
-| [PaddlePaddle](../integrations/paddlepaddle.md)   | ❌        |
-| [NCNN](../integrations/ncnn.md)                   | ❌        |
+| Export Format                                     | Export Support | Exported Model Inference | Notes                                       |
+| ------------------------------------------------- | -------------- | ------------------------ | ------------------------------------------- |
+| [TorchScript](../integrations/torchscript.md)     | ✅             | ✅                       | Standard PyTorch model format.              |
+| [ONNX](../integrations/onnx.md)                   | ✅             | ✅                       | Widely supported for deployment.            |
+| [OpenVINO](../integrations/openvino.md)           | ✅             | ✅                       | Optimized for Intel hardware.               |
+| [TensorRT](../integrations/tensorrt.md)           | ✅             | ✅                       | Optimized for NVIDIA GPUs.                  |
+| [CoreML](../integrations/coreml.md)               | ✅             | ✅                       | Limited to Apple devices.                   |
+| [TF SavedModel](../integrations/tf-savedmodel.md) | ✅             | ✅                       | TensorFlow's standard model format.         |
+| [TF GraphDef](../integrations/tf-graphdef.md)     | ✅             | ✅                       | Legacy TensorFlow format.                   |
+| [TF Lite](../integrations/tflite.md)              | ✅             | ✅                       | Optimized for mobile and embedded.          |
+| [TF Edge TPU](../integrations/edge-tpu.md)        | ✅             | ✅                       | Specific to Google's Edge TPU devices.      |
+| [TF.js](../integrations/tfjs.md)                  | ✅             | ✅                       | JavaScript environment for browser use.     |
+| [PaddlePaddle](../integrations/paddlepaddle.md)   | ❌             | ❌                       | Popular in China; less global support.      |
+| [NCNN](../integrations/ncnn.md)                   | ✅             | ❌                       | Layer `torch.topk` not exists or registered |
 
 ## Conclusion
 
@@ -223,9 +223,9 @@ YOLOv10 sets a new standard in real-time object detection by addressing the shor
 
 ## Citations and Acknowledgements
 
-We would like to acknowledge the YOLOv10 authors from [Tsinghua University](https://www.tsinghua.edu.cn/en/) for their extensive research and significant contributions to the [Ultralytics](https://ultralytics.com) framework:
+We would like to acknowledge the YOLOv10 authors from [Tsinghua University](https://www.tsinghua.edu.cn/en/) for their extensive research and significant contributions to the [Ultralytics](https://www.ultralytics.com/) framework:
 
-!!! Quote ""
+!!! quote ""
 
     === "BibTeX"
 
@@ -252,7 +252,7 @@ YOLOv10, developed by researchers at [Tsinghua University](https://www.tsinghua.
 
 For easy inference, you can use the Ultralytics YOLO Python library or the command line interface (CLI). Below are examples of predicting new images using YOLOv10:
 
-!!! Example
+!!! example
 
     === "Python"
 

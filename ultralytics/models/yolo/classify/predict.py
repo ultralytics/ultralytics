@@ -21,7 +21,7 @@ class ClassificationPredictor(BasePredictor):
         from ultralytics.utils import ASSETS
         from ultralytics.models.yolo.classify import ClassificationPredictor
 
-        args = dict(model='yolov8n-cls.pt', source=ASSETS)
+        args = dict(model="yolov8n-cls.pt", source=ASSETS)
         predictor = ClassificationPredictor(overrides=args)
         predictor.predict_cli()
         ```
@@ -53,7 +53,7 @@ class ClassificationPredictor(BasePredictor):
         if not isinstance(orig_imgs, list):  # input images are a torch.Tensor, not a list
             orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)
 
-        results = []
-        for pred, orig_img, img_path in zip(preds, orig_imgs, self.batch[0]):
-            results.append(Results(orig_img, path=img_path, names=self.model.names, probs=pred))
-        return results
+        return [
+            Results(orig_img, path=img_path, names=self.model.names, probs=pred)
+            for pred, orig_img, img_path in zip(preds, orig_imgs, self.batch[0])
+        ]

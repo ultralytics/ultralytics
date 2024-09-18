@@ -23,21 +23,20 @@ Measuring the gap between two objects is known as distance calculation within a 
 
 ## Visuals
 
-|                                                  Distance Calculation using Ultralytics YOLOv8                                                  |
-| :---------------------------------------------------------------------------------------------------------------------------------------------: |
-| ![Ultralytics YOLOv8 Distance Calculation](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/6b6b735d-3c49-4b84-a022-2bf6e3c72f8b) |
+|                                         Distance Calculation using Ultralytics YOLOv8                                         |
+| :---------------------------------------------------------------------------------------------------------------------------: |
+| ![Ultralytics YOLOv8 Distance Calculation](https://github.com/ultralytics/docs/releases/download/0/distance-calculation.avif) |
 
 ## Advantages of Distance Calculation?
 
 - **Localization Precision:** Enhances accurate spatial positioning in computer vision tasks.
-- **Size Estimation:** Allows estimation of physical sizes for better contextual understanding.
-- **Scene Understanding:** Contributes to a 3D understanding of the environment for improved decision-making.
+- **Size Estimation:** Allows estimation of object size for better contextual understanding.
 
 ???+ tip "Distance Calculation"
 
     - Click on any two bounding boxes with Left Mouse click for distance calculation
 
-!!! Example "Distance Calculation using YOLOv8 Example"
+!!! example "Distance Calculation using YOLOv8 Example"
 
     === "Video Stream"
 
@@ -74,33 +73,28 @@ Measuring the gap between two objects is known as distance calculation within a 
         cv2.destroyAllWindows()
         ```
 
-???+ tip "Note"
+???+ note
 
     - Mouse Right Click will delete all drawn points
     - Mouse Left Click can be used to draw points
 
+???+ warning "Distance is Estimate"
+
+        Distance will be an estimate and may not be fully accurate, as it is calculated using 2-dimensional data, which lacks information about the object's depth.
+
 ### Arguments `DistanceCalculation()`
 
-| `Name`             | `Type`  | `Default`       | Description                                               |
-| ------------------ | ------- | --------------- | --------------------------------------------------------- |
-| `names`            | `dict`  | `None`          | Dictionary of classes names.                              |
-| `pixels_per_meter` | `int`   | `10`            | Conversion factor from pixels to meters.                  |
-| `view_img`         | `bool`  | `False`         | Flag to indicate if the video stream should be displayed. |
-| `line_thickness`   | `int`   | `2`             | Thickness of the lines drawn on the image.                |
-| `line_color`       | `tuple` | `(255, 255, 0)` | Color of the lines drawn on the image (BGR format).       |
-| `centroid_color`   | `tuple` | `(255, 0, 255)` | Color of the centroids drawn (BGR format).                |
+| `Name`           | `Type`  | `Default`       | Description                                               |
+| ---------------- | ------- | --------------- | --------------------------------------------------------- |
+| `names`          | `dict`  | `None`          | Dictionary of classes names.                              |
+| `view_img`       | `bool`  | `False`         | Flag to indicate if the video stream should be displayed. |
+| `line_thickness` | `int`   | `2`             | Thickness of the lines drawn on the image.                |
+| `line_color`     | `tuple` | `(255, 255, 0)` | Color of the lines drawn on the image (BGR format).       |
+| `centroid_color` | `tuple` | `(255, 0, 255)` | Color of the centroids drawn (BGR format).                |
 
 ### Arguments `model.track`
 
-| Name      | Type    | Default        | Description                                                 |
-| --------- | ------- | -------------- | ----------------------------------------------------------- |
-| `source`  | `im0`   | `None`         | source directory for images or videos                       |
-| `persist` | `bool`  | `False`        | persisting tracks between frames                            |
-| `tracker` | `str`   | `botsort.yaml` | Tracking method 'bytetrack' or 'botsort'                    |
-| `conf`    | `float` | `0.3`          | Confidence Threshold                                        |
-| `iou`     | `float` | `0.5`          | IOU Threshold                                               |
-| `classes` | `list`  | `None`         | filter results by class, i.e. classes=0, or classes=[0,2,3] |
-| `verbose` | `bool`  | `True`         | Display the object tracking results                         |
+{% include "macros/track-args.md" %}
 
 ## FAQ
 
@@ -129,7 +123,6 @@ To delete points drawn during distance calculation with Ultralytics YOLOv8, you 
 The key arguments for initializing the `DistanceCalculation` class in Ultralytics YOLOv8 include:
 
 - `names`: Dictionary mapping class indices to class names.
-- `pixels_per_meter`: Conversion factor from pixels to meters.
 - `view_img`: Flag to indicate if the video stream should be displayed.
 - `line_thickness`: Thickness of the lines drawn on the image.
 - `line_color`: Color of the lines drawn on the image (BGR format).

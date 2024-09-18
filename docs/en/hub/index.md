@@ -7,7 +7,7 @@ keywords: Ultralytics HUB, YOLO models, train YOLO, YOLOv5, YOLOv8, object detec
 # Ultralytics HUB
 
 <div align="center">
-<a href="https://ultralytics.com/hub" target="_blank"><img width="100%" src="https://github.com/ultralytics/assets/raw/main/im/ultralytics-hub.png"></a>
+<a href="https://ultralytics.com/hub" target="_blank"><img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/ultralytics-hub.avif"></a>
 <a href="https://docs.ultralytics.com/zh/hub/">中文</a> |
 <a href="https://docs.ultralytics.com/ko/hub/">한국어</a> |
 <a href="https://docs.ultralytics.com/ja/hub/">日本語</a> |
@@ -18,16 +18,15 @@ keywords: Ultralytics HUB, YOLO models, train YOLO, YOLOv5, YOLOv8, object detec
 <a href="https://docs.ultralytics.com/pt/hub/">Português</a> |
 <a href="https://docs.ultralytics.com/tr/hub/">Türkçe</a> |
 <a href="https://docs.ultralytics.com/vi/hub/">Tiếng Việt</a> |
-<a href="https://docs.ultralytics.com/hi/hub/">हिन्दी</a> |
 <a href="https://docs.ultralytics.com/ar/hub/">العربية</a>
 <br>
 <br>
 
-<a href="https://github.com/ultralytics/hub/actions/workflows/ci.yaml"><img src="https://github.com/ultralytics/hub/actions/workflows/ci.yaml/badge.svg" alt="CI CPU"></a> <a href="https://colab.research.google.com/github/ultralytics/hub/blob/main/hub.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> <a href="https://ultralytics.com/discord"><img alt="Discord" src="https://img.shields.io/discord/1089800235347353640?logo=discord&logoColor=white&label=Discord&color=blue"></a> <a href="https://community.ultralytics.com"><img alt="Ultralytics Forums" src="https://img.shields.io/discourse/users?server=https%3A%2F%2Fcommunity.ultralytics.com&logo=discourse&label=Forums&color=blue"></a>
+<a href="https://github.com/ultralytics/hub/actions/workflows/ci.yaml"><img src="https://github.com/ultralytics/hub/actions/workflows/ci.yaml/badge.svg" alt="CI CPU"></a> <a href="https://colab.research.google.com/github/ultralytics/hub/blob/main/hub.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> <a href="https://ultralytics.com/discord"><img alt="Discord" src="https://img.shields.io/discord/1089800235347353640?logo=discord&logoColor=white&label=Discord&color=blue"></a> <a href="https://community.ultralytics.com"><img alt="Ultralytics Forums" src="https://img.shields.io/discourse/users?server=https%3A%2F%2Fcommunity.ultralytics.com&logo=discourse&label=Forums&color=blue"></a> <a href="https://reddit.com/r/ultralytics"><img alt="Ultralytics Reddit" src="https://img.shields.io/reddit/subreddit-subscribers/ultralytics?style=flat&logo=reddit&logoColor=white&label=Reddit&color=blue"></a>
 
 </div>
 
-👋 Hello from the [Ultralytics](https://ultralytics.com/) Team! We've been working hard these last few months to launch [Ultralytics HUB](https://ultralytics.com/hub), a new web tool for training and deploying all your YOLOv5 and YOLOv8 🚀 models from one spot!
+👋 Hello from the [Ultralytics](https://www.ultralytics.com/) Team! We've been working hard these last few months to launch [Ultralytics HUB](https://www.ultralytics.com/hub), a new web tool for training and deploying all your YOLOv5 and YOLOv8 🚀 models from one spot!
 
 We hope that the resources here will help you get the most out of HUB. Please browse the HUB <a href="https://docs.ultralytics.com/">Docs</a> for details, raise an issue on <a href="https://github.com/ultralytics/hub/issues/new/choose">GitHub</a> for support, and join our <a href="https://ultralytics.com/discord">Discord</a> community for questions and discussions!
 
@@ -50,7 +49,7 @@ We hope that the resources here will help you get the most out of HUB. Please br
 
 ## Introduction
 
-[Ultralytics HUB](https://ultralytics.com/hub) is designed to be user-friendly and intuitive, allowing users to quickly upload their datasets and train new YOLO models. It also offers a range of pre-trained models to choose from, making it extremely easy for users to get started. Once a model is trained, it can be effortlessly previewed in the [Ultralytics HUB App](app/index.md) before being deployed for real-time classification, object detection, and instance segmentation tasks.
+[Ultralytics HUB](https://www.ultralytics.com/hub) is designed to be user-friendly and intuitive, allowing users to quickly upload their datasets and train new YOLO models. It also offers a range of pre-trained models to choose from, making it extremely easy for users to get started. Once a model is trained, it can be effortlessly previewed in the [Ultralytics HUB App](app/index.md) before being deployed for real-time classification, object detection, and instance segmentation tasks.
 
 <p align="center">
   <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/lveF9iCMIzc?si=_Q4WB5kMB5qNe7q6"
@@ -81,9 +80,9 @@ We hope that the resources here will help you get the most out of HUB. Please br
 
 ### How do I get started with Ultralytics HUB for training YOLO models?
 
-To get started with [Ultralytics HUB](https://ultralytics.com/hub), follow these steps:
+To get started with [Ultralytics HUB](https://www.ultralytics.com/hub), follow these steps:
 
-1. **Sign Up:** Create an account on the [Ultralytics HUB](https://ultralytics.com/hub).
+1. **Sign Up:** Create an account on the [Ultralytics HUB](https://www.ultralytics.com/hub).
 2. **Upload Dataset:** Navigate to the [Datasets](datasets.md) section to upload your custom dataset.
 3. **Train Model:** Go to the [Models](models.md) section and select a pre-trained YOLOv5 or YOLOv8 model to start training.
 4. **Deploy Model:** Once trained, preview and deploy your model using the [Ultralytics HUB App](app/index.md) for real-time tasks.
@@ -92,7 +91,7 @@ For a detailed guide, refer to the [Quickstart](quickstart.md) page.
 
 ### What are the benefits of using Ultralytics HUB over other AI platforms?
 
-[Ultralytics HUB](https://ultralytics.com/hub) offers several unique benefits:
+[Ultralytics HUB](https://www.ultralytics.com/hub) offers several unique benefits:
 
 - **User-Friendly Interface:** Intuitive design for easy dataset uploads and model training.
 - **Pre-Trained Models:** Access to a variety of pre-trained YOLOv5 and YOLOv8 models.
@@ -121,7 +120,7 @@ Ultralytics HUB allows you to manage and organize your projects efficiently. You
 Ultralytics HUB offers seamless integrations with various platforms to enhance your machine learning workflows. Some key integrations include:
 
 - **Roboflow:** For dataset management and model training. Learn more on the [Integrations](integrations.md) page.
-- **Google Colab:** Efficiently train models using Google Colab's cloud-based environment. Detailed steps are available in the [Google Colab](https://docs.ultralytics.com/integrations/google-colab) section.
-- **Weights & Biases:** For enhanced experiment tracking and visualization. Explore the [Weights & Biases](https://docs.ultralytics.com/integrations/weights-biases) integration.
+- **Google Colab:** Efficiently train models using Google Colab's cloud-based environment. Detailed steps are available in the [Google Colab](https://docs.ultralytics.com/integrations/google-colab/) section.
+- **Weights & Biases:** For enhanced experiment tracking and visualization. Explore the [Weights & Biases](https://docs.ultralytics.com/integrations/weights-biases/) integration.
 
 For a complete list of integrations, refer to the [Integrations](integrations.md) page.

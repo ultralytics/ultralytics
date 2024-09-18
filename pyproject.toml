@@ -26,11 +26,11 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "ultralytics"
 dynamic = ["version"]
-description = "Ultralytics YOLOv8 for SOTA object detection, multi-object tracking, instance segmentation, pose estimation and image classification."
+description = "Ultralytics YOLO for SOTA object detection, multi-object tracking, instance segmentation, pose estimation and image classification."
 readme = "README.md"
 requires-python = ">=3.8"
 license = { "text" = "AGPL-3.0" }
-keywords = ["machine-learning", "deep-learning", "computer-vision", "ML", "DL", "AI", "YOLO", "YOLOv3", "YOLOv5", "YOLOv8", "HUB", "Ultralytics"]
+keywords = ["machine-learning", "deep-learning", "computer-vision", "ML", "DL", "AI", "YOLO", "YOLOv3", "YOLOv5", "YOLOv8", "YOLOv9", "YOLOv10", "HUB", "Ultralytics"]
 authors = [
     { name = "Glenn Jocher" },
     { name = "Ayush Chaurasia" },
@@ -72,6 +72,7 @@ dependencies = [
     "requests>=2.23.0",
     "scipy>=1.4.1",
     "torch>=1.8.0",
+    "torch>=1.8.0,!=2.4.0; sys_platform == 'win32'",  # Windows CPU errors w/ 2.4.0 https://github.com/ultralytics/ultralytics/issues/15049
     "torchvision>=0.9.0",
     "tqdm>=4.64.0", # progress bars
     "psutil", # system utilization
@@ -91,9 +92,10 @@ dev = [
     "mkdocs>=1.6.0",
     "mkdocs-material>=9.5.9",
     "mkdocstrings[python]",
-    "mkdocs-jupyter", # for notebooks
-    "mkdocs-redirects", # for 301 redirects
-    "mkdocs-ultralytics-plugin>=0.0.49", # for meta descriptions and images, dates and authors
+    "mkdocs-jupyter", # notebooks
+    "mkdocs-redirects", # 301 redirects
+    "mkdocs-ultralytics-plugin>=0.1.8", # for meta descriptions and images, dates and authors
+    "mkdocs-macros-plugin>=1.0.5"  # duplicating content (i.e. export tables) in multiple places
 ]
 export = [
     "onnx>=1.12.0", # ONNX export
@@ -170,12 +172,15 @@ split_before_first_argument = false
 [tool.ruff]
 line-length = 120
 
+[tool.ruff.format]
+docstring-code-format = true
+
 [tool.docformatter]
 wrap-summaries = 120
 wrap-descriptions = 120
-in-place = true
 pre-summary-newline = true
 close-quotes-on-newline = true
+in-place = true
 
 [tool.codespell]
 ignore-words-list = "crate,nd,ned,strack,dota,ane,segway,fo,gool,winn,commend,bloc,nam,afterall"

@@ -2,11 +2,12 @@
 comments: true
 description: Master image classification using YOLOv8. Learn to train, validate, predict, and export models efficiently.
 keywords: YOLOv8, image classification, AI, machine learning, pretrained models, ImageNet, model export, predict, train, validate
+model_name: yolov8n-cls
 ---
 
 # Image Classification
 
-<img width="1024" src="https://user-images.githubusercontent.com/26833433/243418606-adf35c62-2e11-405d-84c6-b84e7d013804.png" alt="Image classification examples">
+<img width="1024" src="https://github.com/ultralytics/docs/releases/download/0/image-classification-examples.avif" alt="Image classification examples">
 
 Image classification is the simplest of the three tasks and involves classifying an entire image into one of a set of predefined classes.
 
@@ -23,7 +24,7 @@ The output of an image classifier is a single class label and a confidence score
   <strong>Watch:</strong> Explore Ultralytics YOLO Tasks: Image Classification using Ultralytics HUB
 </p>
 
-!!! Tip "Tip"
+!!! tip
 
     YOLOv8 Classify models use the `-cls` suffix, i.e. `yolov8n-cls.pt` and are pretrained on [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/ImageNet.yaml).
 
@@ -48,7 +49,7 @@ YOLOv8 pretrained Classify models are shown here. Detect, Segment and Pose model
 
 Train YOLOv8n-cls on the MNIST160 dataset for 100 epochs at image size 64. For a full list of available arguments see the [Configuration](../usage/cfg.md) page.
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -83,9 +84,9 @@ YOLO classification dataset format can be found in detail in the [Dataset Guide]
 
 ## Val
 
-Validate trained YOLOv8n-cls model accuracy on the MNIST160 dataset. No argument need to passed as the `model` retains its training `data` and arguments as model attributes.
+Validate trained YOLOv8n-cls model accuracy on the MNIST160 dataset. No arguments are needed as the `model` retains its training `data` and arguments as model attributes.
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -113,7 +114,7 @@ Validate trained YOLOv8n-cls model accuracy on the MNIST160 dataset. No argument
 
 Use a trained YOLOv8n-cls model to run predictions on images.
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -141,7 +142,7 @@ See full `predict` mode details in the [Predict](../modes/predict.md) page.
 
 Export a YOLOv8n-cls model to a different format like ONNX, CoreML, etc.
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -165,22 +166,7 @@ Export a YOLOv8n-cls model to a different format like ONNX, CoreML, etc.
 
 Available YOLOv8-cls export formats are in the table below. You can export to any format using the `format` argument, i.e. `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, i.e. `yolo predict model=yolov8n-cls.onnx`. Usage examples are shown for your model after export completes.
 
-| Format                                            | `format` Argument | Model                         | Metadata | Arguments                                                            |
-| ------------------------------------------------- | ----------------- | ----------------------------- | -------- | -------------------------------------------------------------------- |
-| [PyTorch](https://pytorch.org/)                   | -                 | `yolov8n-cls.pt`              | ✅       | -                                                                    |
-| [TorchScript](../integrations/torchscript.md)     | `torchscript`     | `yolov8n-cls.torchscript`     | ✅       | `imgsz`, `optimize`, `batch`                                         |
-| [ONNX](../integrations/onnx.md)                   | `onnx`            | `yolov8n-cls.onnx`            | ✅       | `imgsz`, `half`, `dynamic`, `simplify`, `opset`, `batch`             |
-| [OpenVINO](../integrations/openvino.md)           | `openvino`        | `yolov8n-cls_openvino_model/` | ✅       | `imgsz`, `half`, `int8`, `batch`                                     |
-| [TensorRT](../integrations/tensorrt.md)           | `engine`          | `yolov8n-cls.engine`          | ✅       | `imgsz`, `half`, `dynamic`, `simplify`, `workspace`, `int8`, `batch` |
-| [CoreML](../integrations/coreml.md)               | `coreml`          | `yolov8n-cls.mlpackage`       | ✅       | `imgsz`, `half`, `int8`, `nms`, `batch`                              |
-| [TF SavedModel](../integrations/tf-savedmodel.md) | `saved_model`     | `yolov8n-cls_saved_model/`    | ✅       | `imgsz`, `keras`, `int8`, `batch`                                    |
-| [TF GraphDef](../integrations/tf-graphdef.md)     | `pb`              | `yolov8n-cls.pb`              | ❌       | `imgsz`, `batch`                                                     |
-| [TF Lite](../integrations/tflite.md)              | `tflite`          | `yolov8n-cls.tflite`          | ✅       | `imgsz`, `half`, `int8`, `batch`                                     |
-| [TF Edge TPU](../integrations/edge-tpu.md)        | `edgetpu`         | `yolov8n-cls_edgetpu.tflite`  | ✅       | `imgsz`                                                              |
-| [TF.js](../integrations/tfjs.md)                  | `tfjs`            | `yolov8n-cls_web_model/`      | ✅       | `imgsz`, `half`, `int8`, `batch`                                     |
-| [PaddlePaddle](../integrations/paddlepaddle.md)   | `paddle`          | `yolov8n-cls_paddle_model/`   | ✅       | `imgsz`, `batch`                                                     |
-| [NCNN](../integrations/ncnn.md)                   | `ncnn`            | `yolov8n-cls_ncnn_model/`     | ✅       | `imgsz`, `half`, `batch`                                             |
-| [RKNN](../integrations/rknn.md)                   | `rknn`            | `yolov8n-{platform}.rknn/`    | ❌       | `imgsz`, `name`                                                      |
+{% include "macros/export-table.md" %}
 
 See full `export` details in the [Export](../modes/export.md) page.
 
@@ -194,7 +180,7 @@ YOLOv8 models, such as `yolov8n-cls.pt`, are designed for efficient image classi
 
 To train a YOLOv8 model, you can use either Python or CLI commands. For example, to train a `yolov8n-cls` model on the MNIST160 dataset for 100 epochs at an image size of 64:
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -224,7 +210,7 @@ Pretrained YOLOv8 classification models can be found in the [Models](https://git
 
 You can export a trained YOLOv8 model to various formats using Python or CLI commands. For instance, to export a model to ONNX format:
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -250,7 +236,7 @@ For detailed export options, refer to the [Export](../modes/export.md) page.
 
 To validate a trained model's accuracy on a dataset like MNIST160, you can use the following Python or CLI commands:
 
-!!! Example
+!!! example
 
     === "Python"
 

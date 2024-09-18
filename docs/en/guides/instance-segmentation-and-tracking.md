@@ -29,12 +29,12 @@ There are two types of instance segmentation tracking available in the Ultralyti
 
 ## Samples
 
-|                                                          Instance Segmentation                                                          |                                                           Instance Segmentation + Object Tracking                                                            |
-| :-------------------------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------------------------------------------------: |
-| ![Ultralytics Instance Segmentation](https://github.com/RizwanMunawar/ultralytics/assets/62513924/d4ad3499-1f33-4871-8fbc-1be0b2643aa2) | ![Ultralytics Instance Segmentation with Object Tracking](https://github.com/RizwanMunawar/ultralytics/assets/62513924/2e5c38cc-fd5c-4145-9682-fa94ae2010a0) |
-|                                                  Ultralytics Instance Segmentation 😍                                                   |                                                  Ultralytics Instance Segmentation with Object Tracking 🔥                                                   |
+|                                                        Instance Segmentation                                                         |                                                                  Instance Segmentation + Object Tracking                                                                  |
+| :----------------------------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
+| ![Ultralytics Instance Segmentation](https://github.com/ultralytics/docs/releases/download/0/ultralytics-instance-segmentation.avif) | ![Ultralytics Instance Segmentation with Object Tracking](https://github.com/ultralytics/docs/releases/download/0/ultralytics-instance-segmentation-object-tracking.avif) |
+|                                                 Ultralytics Instance Segmentation 😍                                                 |                                                         Ultralytics Instance Segmentation with Object Tracking 🔥                                                         |
 
-!!! Example "Instance Segmentation and Tracking"
+!!! example "Instance Segmentation and Tracking"
 
     === "Instance Segmentation"
 
@@ -146,7 +146,7 @@ For any inquiries, feel free to post your questions in the [Ultralytics Issue Se
 
 To perform instance segmentation using Ultralytics YOLOv8, initialize the YOLO model with a segmentation version of YOLOv8 and process video frames through it. Here's a simplified code example:
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -200,7 +200,7 @@ Ultralytics YOLOv8 offers real-time performance, superior accuracy, and ease of 
 
 To implement object tracking, use the `model.track` method and ensure that each object's ID is consistently assigned across frames. Below is a simple example:
 
-!!! Example
+!!! example
 
     === "Python"
 

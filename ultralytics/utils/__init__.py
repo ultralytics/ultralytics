@@ -46,8 +46,9 @@ ARM64 = platform.machine() in {"arm64", "aarch64"}  # ARM64 booleans
 PYTHON_VERSION = platform.python_version()
 TORCH_VERSION = torch.__version__
 TORCHVISION_VERSION = importlib.metadata.version("torchvision")  # faster than importing torchvision
+IS_VSCODE = os.environ.get("TERM_PROGRAM", False) == "vscode"
 HELP_MSG = """
-    Usage examples for running Ultralytics YOLO:
+    Examples for running Ultralytics:
 
     1. Install the ultralytics package:
 
@@ -116,18 +117,46 @@ os.environ["KINETO_LOG_LEVEL"] = "5"  # suppress verbose PyTorch profiler output
 
 class TQDM(tqdm_original):
     """
-    Custom Ultralytics tqdm class with different default arguments.
+    A custom TQDM progress bar class that extends the original tqdm functionality.
 
-    Args:
-        *args (list): Positional arguments passed to original tqdm.
-        **kwargs (any): Keyword arguments, with custom defaults applied.
+    This class modifies the behavior of the original tqdm progress bar based on global settings and provides
+    additional customization options.
+
+    Attributes:
+        disable (bool): Whether to disable the progress bar. Determined by the global VERBOSE setting and
+            any passed 'disable' argument.
+        bar_format (str): The format string for the progress bar. Uses the global TQDM_BAR_FORMAT if not
+            explicitly set.
+
+    Methods:
+        __init__: Initializes the TQDM object with custom settings.
+
+    Examples:
+        >>> from ultralytics.utils import TQDM
+        >>> for i in TQDM(range(100)):
+        ...     # Your processing code here
+        ...     pass
     """
 
     def __init__(self, *args, **kwargs):
         """
-        Initialize custom Ultralytics tqdm class with different default arguments.
+        Initializes a custom TQDM progress bar.
 
-        Note these can still be overridden when calling TQDM.
+        This class extends the original tqdm class to provide customized behavior for Ultralytics projects.
+
+        Args:
+            *args (Any): Variable length argument list to be passed to the original tqdm constructor.
+            **kwargs (Any): Arbitrary keyword arguments to be passed to the original tqdm constructor.
+
+        Notes:
+            - The progress bar is disabled if VERBOSE is False or if 'disable' is explicitly set to True in kwargs.
+            - The default bar format is set to TQDM_BAR_FORMAT unless overridden in kwargs.
+
+        Examples:
+            >>> from ultralytics.utils import TQDM
+            >>> for i in TQDM(range(100)):
+            ...     # Your code here
+            ...     pass
         """
         kwargs["disable"] = not VERBOSE or kwargs.get("disable", False)  # logical 'and' with default value if passed
         kwargs.setdefault("bar_format", TQDM_BAR_FORMAT)  # override default value if passed
@@ -135,8 +164,33 @@ class TQDM(tqdm_original):
 
 
 class SimpleClass:
-    """Ultralytics SimpleClass is a base class providing helpful string representation, error reporting, and attribute
-    access methods for easier debugging and usage.
+    """
+    A simple base class for creating objects with string representations of their attributes.
+
+    This class provides a foundation for creating objects that can be easily printed or represented as strings,
+    showing all their non-callable attributes. It's useful for debugging and introspection of object states.
+
+    Methods:
+        __str__: Returns a human-readable string representation of the object.
+        __repr__: Returns a machine-readable string representation of the object.
+        __getattr__: Provides a custom attribute access error message with helpful information.
+
+    Examples:
+        >>> class MyClass(SimpleClass):
+        ...     def __init__(self):
+        ...         self.x = 10
+        ...         self.y = "hello"
+        >>> obj = MyClass()
+        >>> print(obj)
+        __main__.MyClass object with attributes:
+
+        x: 10
+        y: 'hello'
+
+    Notes:
+        - This class is designed to be subclassed. It provides a convenient way to inspect object attributes.
+        - The string representation includes the module and class name of the object.
+        - Callable attributes and attributes starting with an underscore are excluded from the string representation.
     """
 
     def __str__(self):
@@ -164,8 +218,38 @@ class SimpleClass:
 
 
 class IterableSimpleNamespace(SimpleNamespace):
-    """Ultralytics IterableSimpleNamespace is an extension class of SimpleNamespace that adds iterable functionality and
-    enables usage with dict() and for loops.
+    """
+    An iterable SimpleNamespace class that provides enhanced functionality for attribute access and iteration.
+
+    This class extends the SimpleNamespace class with additional methods for iteration, string representation,
+    and attribute access. It is designed to be used as a convenient container for storing and accessing
+    configuration parameters.
+
+    Methods:
+        __iter__: Returns an iterator of key-value pairs from the namespace's attributes.
+        __str__: Returns a human-readable string representation of the object.
+        __getattr__: Provides a custom attribute access error message with helpful information.
+        get: Retrieves the value of a specified key, or a default value if the key doesn't exist.
+
+    Examples:
+        >>> cfg = IterableSimpleNamespace(a=1, b=2, c=3)
+        >>> for k, v in cfg:
+        ...     print(f"{k}: {v}")
+        a: 1
+        b: 2
+        c: 3
+        >>> print(cfg)
+        a=1
+        b=2
+        c=3
+        >>> cfg.get("b")
+        2
+        >>> cfg.get("d", "default")
+        'default'
+
+    Notes:
+        This class is particularly useful for storing configuration parameters in a more accessible
+        and iterable format compared to a standard dictionary.
     """
 
     def __iter__(self):
@@ -218,16 +302,19 @@ def plt_settings(rcparams=None, backend="Agg"):
         def wrapper(*args, **kwargs):
             """Sets rc parameters and backend, calls the original function, and restores the settings."""
             original_backend = plt.get_backend()
-            if backend.lower() != original_backend.lower():
+            switch = backend.lower() != original_backend.lower()
+            if switch:
                 plt.close("all")  # auto-close()ing of figures upon backend switching is deprecated since 3.8
                 plt.switch_backend(backend)
 
-            with plt.rc_context(rcparams):
-                result = func(*args, **kwargs)
-
-            if backend != original_backend:
-                plt.close("all")
-                plt.switch_backend(original_backend)
+            # Plot with backend and always revert to original backend
+            try:
+                with plt.rc_context(rcparams):
+                    result = func(*args, **kwargs)
+            finally:
+                if switch:
+                    plt.close("all")
+                    plt.switch_backend(original_backend)
             return result
 
         return wrapper
@@ -236,8 +323,27 @@ def plt_settings(rcparams=None, backend="Agg"):
 
 
 def set_logging(name="LOGGING_NAME", verbose=True):
-    """Sets up logging for the given name with UTF-8 encoding support, ensuring compatibility across different
-    environments.
+    """
+    Sets up logging with UTF-8 encoding and configurable verbosity.
+
+    This function configures logging for the Ultralytics library, setting the appropriate logging level and
+    formatter based on the verbosity flag and the current process rank. It handles special cases for Windows
+    environments where UTF-8 encoding might not be the default.
+
+    Args:
+        name (str): Name of the logger. Defaults to "LOGGING_NAME".
+        verbose (bool): Flag to set logging level to INFO if True, ERROR otherwise. Defaults to True.
+
+    Examples:
+        >>> set_logging(name="ultralytics", verbose=True)
+        >>> logger = logging.getLogger("ultralytics")
+        >>> logger.info("This is an info message")
+
+    Notes:
+        - On Windows, this function attempts to reconfigure stdout to use UTF-8 encoding if possible.
+        - If reconfiguration is not possible, it falls back to a custom formatter that handles non-UTF-8 environments.
+        - The function sets up a StreamHandler with the appropriate formatter and level.
+        - The logger's propagate flag is set to False to prevent duplicate logging in parent loggers.
     """
     level = logging.INFO if verbose and RANK in {-1, 0} else logging.ERROR  # rank in world for Multi-GPU trainings
 
@@ -709,7 +815,7 @@ def colorstr(*input):
     In the second form, 'blue' and 'bold' will be applied by default.
 
     Args:
-        *input (str): A sequence of strings where the first n-1 strings are color and style arguments,
+        *input (str | Path): A sequence of strings where the first n-1 strings are color and style arguments,
                       and the last string is the one to be colored.
 
     Supported Colors and Styles:
@@ -761,8 +867,8 @@ def remove_colorstr(input_string):
         (str): A new string with all ANSI escape codes removed.
 
     Examples:
-        >>> remove_colorstr(colorstr('blue', 'bold', 'hello world'))
-        >>> 'hello world'
+        >>> remove_colorstr(colorstr("blue", "bold", "hello world"))
+        >>> "hello world"
     """
     ansi_escape = re.compile(r"\x1B\[[0-9;]*[A-Za-z]")
     return ansi_escape.sub("", input_string)
@@ -776,12 +882,12 @@ class TryExcept(contextlib.ContextDecorator):
         As a decorator:
         >>> @TryExcept(msg="Error occurred in func", verbose=True)
         >>> def func():
-        >>>    # Function logic here
+        >>> # Function logic here
         >>>     pass
 
         As a context manager:
         >>> with TryExcept(msg="Error occurred in block", verbose=True):
-        >>>     # Code block here
+        >>> # Code block here
         >>>     pass
     """
 
@@ -812,7 +918,7 @@ class Retry(contextlib.ContextDecorator):
         Example usage as a decorator:
         >>> @Retry(times=3, delay=2)
         >>> def test_func():
-        >>>     # Replace with function logic that may raise exceptions
+        >>> # Replace with function logic that may raise exceptions
         >>>     return True
     """
 
@@ -941,10 +1047,8 @@ class SettingsManager(dict):
         version (str): Settings version. In case of local version mismatch, new default settings will be saved.
     """
 
-    def __init__(self, file=SETTINGS_YAML, version="0.0.4"):
-        """Initialize the SettingsManager with default settings, load and validate current settings from the YAML
-        file.
-        """
+    def __init__(self, file=SETTINGS_YAML, version="0.0.5"):
+        """Initializes the SettingsManager with default settings and loads user settings."""
         import copy
         import hashlib
 
@@ -974,6 +1078,7 @@ class SettingsManager(dict):
             "raytune": True,
             "tensorboard": True,
             "wandb": True,
+            "vscode_msg": True,
         }
         self.help_msg = (
             f"\nView settings with 'yolo settings' or at '{self.file}'"
@@ -1047,6 +1152,18 @@ def clean_url(url):
 def url2file(url):
     """Convert URL to filename, i.e. https://url.com/file.txt?auth -> file.txt."""
     return Path(clean_url(url)).name
+
+
+def vscode_msg(ext="ultralytics.ultralytics-snippets") -> str:
+    """Display a message to install Ultralytics-Snippets for VS Code if not already installed."""
+    path = (USER_CONFIG_DIR.parents[2] if WINDOWS else USER_CONFIG_DIR.parents[1]) / ".vscode/extensions"
+    obs_file = path / ".obsolete"  # file tracks uninstalled extensions, while source directory remains
+    installed = any(path.glob(f"{ext}*")) and ext not in (obs_file.read_text("utf-8") if obs_file.exists() else "")
+    return (
+        ""
+        if installed
+        else f"{colorstr('VS Code:')} view Ultralytics VS Code Extension ⚡ at https://docs.ultralytics.com/integrations/vscode"
+    )
 
 
 # Run below code on utils init ------------------------------------------------------------------------------------

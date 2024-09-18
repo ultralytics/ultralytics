@@ -186,8 +186,8 @@ class MLP(nn.Module):
     def forward(self, x):
         """Forward pass for the entire MLP."""
         for i, layer in enumerate(self.layers):
-            x = self.act(layer(x)) if i < self.num_layers - 1 else layer(x)
-        return x.sigmoid() if self.sigmoid else x
+            x = getattr(self, "act", nn.ReLU())(layer(x)) if i < self.num_layers - 1 else layer(x)
+        return x.sigmoid() if getattr(self, "sigmoid", False) else x
 
 
 class LayerNorm2d(nn.Module):

@@ -29,12 +29,12 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
 
 ## Real World Applications
 
-|                                                  Workouts Monitoring                                                   |                                                  Workouts Monitoring                                                   |
-| :--------------------------------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------------------------: |
-| ![PushUps Counting](https://github.com/RizwanMunawar/ultralytics/assets/62513924/cf016a41-589f-420f-8a8c-2cc8174a16de) | ![PullUps Counting](https://github.com/RizwanMunawar/ultralytics/assets/62513924/cb20f316-fac2-4330-8445-dcf5ffebe329) |
-|                                                    PushUps Counting                                                    |                                                    PullUps Counting                                                    |
+|                                        Workouts Monitoring                                         |                                        Workouts Monitoring                                         |
+| :------------------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------: |
+| ![PushUps Counting](https://github.com/ultralytics/docs/releases/download/0/pushups-counting.avif) | ![PullUps Counting](https://github.com/ultralytics/docs/releases/download/0/pullups-counting.avif) |
+|                                          PushUps Counting                                          |                                          PullUps Counting                                          |
 
-!!! Example "Workouts Monitoring Example"
+!!! example "Workouts Monitoring Example"
 
     === "Workouts Monitoring"
 
@@ -108,7 +108,7 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
 
 ### KeyPoints Map
 
-![keyPoints Order Ultralytics YOLOv8 Pose](https://github.com/ultralytics/ultralytics/assets/62513924/f45d8315-b59f-47b7-b9c8-c61af1ce865b)
+![keyPoints Order Ultralytics YOLOv8 Pose](https://github.com/ultralytics/docs/releases/download/0/keypoints-order-ultralytics-yolov8-pose.avif)
 
 ### Arguments `AIGym`
 
@@ -123,35 +123,11 @@ Monitoring workouts through pose estimation with [Ultralytics YOLOv8](https://gi
 
 ### Arguments `model.predict`
 
-| Name            | Type           | Default                | Description                                                                |
-| --------------- | -------------- | ---------------------- | -------------------------------------------------------------------------- |
-| `source`        | `str`          | `'ultralytics/assets'` | source directory for images or videos                                      |
-| `conf`          | `float`        | `0.25`                 | object confidence threshold for detection                                  |
-| `iou`           | `float`        | `0.7`                  | intersection over union (IoU) threshold for NMS                            |
-| `imgsz`         | `int or tuple` | `640`                  | image size as scalar or (h, w) list, i.e. (640, 480)                       |
-| `half`          | `bool`         | `False`                | use half precision (FP16)                                                  |
-| `device`        | `None or str`  | `None`                 | device to run on, i.e. cuda device=0/1/2/3 or device=cpu                   |
-| `max_det`       | `int`          | `300`                  | maximum number of detections per image                                     |
-| `vid_stride`    | `bool`         | `False`                | video frame-rate stride                                                    |
-| `stream_buffer` | `bool`         | `False`                | buffer all streaming frames (True) or return the most recent frame (False) |
-| `visualize`     | `bool`         | `False`                | visualize model features                                                   |
-| `augment`       | `bool`         | `False`                | apply image augmentation to prediction sources                             |
-| `agnostic_nms`  | `bool`         | `False`                | class-agnostic NMS                                                         |
-| `classes`       | `list[int]`    | `None`                 | filter results by class, i.e. classes=0, or classes=[0,2,3]                |
-| `retina_masks`  | `bool`         | `False`                | use high-resolution segmentation masks                                     |
-| `embed`         | `list[int]`    | `None`                 | return feature vectors/embeddings from given layers                        |
+{% include "macros/predict-args.md" %}
 
 ### Arguments `model.track`
 
-| Name      | Type    | Default        | Description                                                 |
-| --------- | ------- | -------------- | ----------------------------------------------------------- |
-| `source`  | `im0`   | `None`         | source directory for images or videos                       |
-| `persist` | `bool`  | `False`        | persisting tracks between frames                            |
-| `tracker` | `str`   | `botsort.yaml` | Tracking method 'bytetrack' or 'botsort'                    |
-| `conf`    | `float` | `0.3`          | Confidence Threshold                                        |
-| `iou`     | `float` | `0.5`          | IOU Threshold                                               |
-| `classes` | `list`  | `None`         | filter results by class, i.e. classes=0, or classes=[0,2,3] |
-| `verbose` | `bool`  | `True`         | Display the object tracking results                         |
+{% include "macros/track-args.md" %}
 
 ## FAQ
 

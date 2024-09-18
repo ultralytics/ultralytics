@@ -6,7 +6,7 @@ keywords: YOLOv8, TFLite Edge TPU, TensorFlow Lite, model export, machine learni
 
 # Learn to Export to TFLite Edge TPU Format From YOLOv8 Model
 
-Deploying computer vision models on devices with limited computational power, such as mobile or embedded systems, can be tricky. Using a model format that is optimized for faster performance simplifies the process. The [TensorFlow Lite](https://www.tensorflow.org/lite) [Edge TPU](https://coral.ai/docs/edgetpu/models-intro/) or TFLite Edge TPU model format is designed to use minimal power while delivering fast performance for neural networks.
+Deploying computer vision models on devices with limited computational power, such as mobile or embedded systems, can be tricky. Using a model format that is optimized for faster performance simplifies the process. The [TensorFlow Lite](https://ai.google.dev/edge/litert) [Edge TPU](https://coral.ai/docs/edgetpu/models-intro/) or TFLite Edge TPU model format is designed to use minimal power while delivering fast performance for neural networks.
 
 The export to TFLite Edge TPU format feature allows you to optimize your [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics) models for high-speed and low-power inferencing. In this guide, we'll walk you through converting your models to the TFLite Edge TPU format, making it easier for your models to perform well on various mobile and embedded devices.
 
@@ -15,7 +15,7 @@ The export to TFLite Edge TPU format feature allows you to optimize your [Ultral
 Exporting models to TensorFlow Edge TPU makes machine learning tasks fast and efficient. This technology suits applications with limited power, computing resources, and connectivity. The Edge TPU is a hardware accelerator by Google. It speeds up TensorFlow Lite models on edge devices. The image below shows an example of the process involved.
 
 <p align="center">
-  <img width="100%" src="https://coral.ai/static/docs/images/edgetpu/compile-workflow.png" alt="TFLite Edge TPU">
+  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/tflite-edge-tpu-compile-workflow.avif" alt="TFLite Edge TPU">
 </p>
 
 The Edge TPU works with quantized models. Quantization makes models smaller and faster without losing much accuracy. It is ideal for the limited resources of edge computing, allowing applications to respond quickly by reducing latency and allowing for quick data processing locally, without cloud dependency. Local processing also keeps user data private and secure since it's not sent to a remote server.
@@ -50,7 +50,7 @@ You can expand model compatibility and deployment flexibility by converting YOLO
 
 To install the required package, run:
 
-!!! Tip "Installation"
+!!! tip "Installation"
 
     === "CLI"
 
@@ -65,7 +65,7 @@ For detailed instructions and best practices related to the installation process
 
 Before diving into the usage instructions, it's important to note that while all [Ultralytics YOLOv8 models](../models/index.md) are available for exporting, you can ensure that the model you select supports export functionality [here](../modes/export.md).
 
-!!! Example "Usage"
+!!! example "Usage"
 
     === "Python"
 
@@ -113,7 +113,7 @@ However, for in-depth instructions on deploying your TFLite Edge TPU models, tak
 
 In this guide, we've learned how to export Ultralytics YOLOv8 models to TFLite Edge TPU format. By following the steps mentioned above, you can increase the speed and power of your computer vision applications.
 
-For further details on usage, visit the [Edge TPU official website](https://cloud.google.com/edge-tpu).
+For further details on usage, visit the [Edge TPU official website](https://cloud.google.com/tpu).
 
 Also, for more information on other Ultralytics YOLOv8 integrations, please visit our [integration guide page](index.md). There, you'll discover valuable resources and insights.
 
@@ -123,7 +123,7 @@ Also, for more information on other Ultralytics YOLOv8 integrations, please visi
 
 To export a YOLOv8 model to TFLite Edge TPU format, you can follow these steps:
 
-!!! Example "Usage"
+!!! example "Usage"
 
     === "Python"
 

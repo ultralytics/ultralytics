@@ -1,6 +1,7 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import contextlib
+import csv
 import urllib
 from copy import copy
 from pathlib import Path
@@ -12,7 +13,7 @@ import torch
 import yaml
 from PIL import Image
 
-from tests import CFG, IS_TMP_WRITEABLE, MODEL, SOURCE, TMP
+from tests import CFG, MODEL, SOURCE, SOURCES_LIST, TMP
 from ultralytics import RTDETR, YOLO
 from ultralytics.cfg import MODELS, TASK2DATA, TASKS
 from ultralytics.data.build import load_inference_source
@@ -26,9 +27,13 @@ from ultralytics.utils import (
     WEIGHTS_DIR,
     WINDOWS,
     checks,
+    is_dir_writeable,
+    is_github_action_running,
 )
 from ultralytics.utils.downloads import download
 from ultralytics.utils.torch_utils import TORCH_1_9
+
+IS_TMP_WRITEABLE = is_dir_writeable(TMP)  # WARNING: must be run once tests start as TMP does not exist on tests/init
 
 
 def test_model_forward():
@@ -69,11 +74,37 @@ def test_model_profile():
 @pytest.mark.skipif(not IS_TMP_WRITEABLE, reason="directory is not writeable")
 def test_predict_txt():
     """Tests YOLO predictions with file, directory, and pattern sources listed in a text file."""
-    txt_file = TMP / "sources.txt"
-    with open(txt_file, "w") as f:
-        for x in [ASSETS / "bus.jpg", ASSETS, ASSETS / "*", ASSETS / "**/*.jpg"]:
-            f.write(f"{x}\n")
-    _ = YOLO(MODEL)(source=txt_file, imgsz=32)
+    file = TMP / "sources_multi_row.txt"
+    with open(file, "w") as f:
+        for src in SOURCES_LIST:
+            f.write(f"{src}\n")
+    results = YOLO(MODEL)(source=file, imgsz=32)
+    assert len(results) == 7  # 1 + 2 + 2 + 2 = 7 images
+
+
+@pytest.mark.skipif(True, reason="disabled for testing")
+@pytest.mark.skipif(not IS_TMP_WRITEABLE, reason="directory is not writeable")
+def test_predict_csv_multi_row():
+    """Tests YOLO predictions with sources listed in multiple rows of a CSV file."""
+    file = TMP / "sources_multi_row.csv"
+    with open(file, "w", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow(["source"])
+        writer.writerows([[src] for src in SOURCES_LIST])
+    results = YOLO(MODEL)(source=file, imgsz=32)
+    assert len(results) == 7  # 1 + 2 + 2 + 2 = 7 images
+
+
+@pytest.mark.skipif(True, reason="disabled for testing")
+@pytest.mark.skipif(not IS_TMP_WRITEABLE, reason="directory is not writeable")
+def test_predict_csv_single_row():
+    """Tests YOLO predictions with sources listed in a single row of a CSV file."""
+    file = TMP / "sources_single_row.csv"
+    with open(file, "w", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow(SOURCES_LIST)
+    results = YOLO(MODEL)(source=file, imgsz=32)
+    assert len(results) == 7  # 1 + 2 + 2 + 2 = 7 images
 
 
 @pytest.mark.parametrize("model_name", MODELS)
@@ -131,6 +162,7 @@ def test_predict_grey_and_4ch():
 
 @pytest.mark.slow
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
+@pytest.mark.skipif(is_github_action_running(), reason="No auth https://github.com/JuanBindez/pytubefix/issues/166")
 def test_youtube():
     """Test YOLO model on a YouTube video stream, handling potential network-related errors."""
     model = YOLO(MODEL)
@@ -194,13 +226,14 @@ def test_all_model_yamls():
             YOLO(m.name)
 
 
+@pytest.mark.skipif(WINDOWS, reason="Windows slow CI export bug https://github.com/ultralytics/ultralytics/pull/16003")
 def test_workflow():
     """Test the complete workflow including training, validation, prediction, and exporting."""
     model = YOLO(MODEL)
     model.train(data="coco8.yaml", epochs=1, imgsz=32, optimizer="SGD")
     model.val(imgsz=32)
     model.predict(SOURCE, imgsz=32)
-    model.export(format="torchscript")
+    model.export(format="torchscript")  # WARNING: Windows slow CI export bug
 
 
 def test_predict_callback_and_setup():
@@ -250,6 +283,8 @@ def test_labels_and_crops():
     for r in results:
         im_name = Path(r.path).stem
         cls_idxs = r.boxes.cls.int().tolist()
+        # Check correct detections
+        assert cls_idxs == ([0, 0, 5, 0, 7] if r.path.endswith("bus.jpg") else [0, 0])  # bus.jpg and zidane.jpg classes
         # Check label path
         labels = save_path / f"labels/{im_name}.txt"
         assert labels.exists()

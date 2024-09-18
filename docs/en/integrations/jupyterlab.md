@@ -54,7 +54,7 @@ JupyterLab makes it easy to experiment with YOLOv8. To get started, follow these
 
 First, you need to install JupyterLab. Open your terminal and run the command:
 
-!!! Tip "Installation"
+!!! tip "Installation"
 
     === "CLI"
 
@@ -71,7 +71,7 @@ Next, download the [tutorial.ipynb](https://github.com/ultralytics/ultralytics/b
 
 Navigate to the directory where you saved the notebook file using your terminal. Then, run the following command to launch JupyterLab:
 
-!!! Example "Usage"
+!!! example "Usage"
 
     === "CLI"
 
@@ -81,13 +81,13 @@ Navigate to the directory where you saved the notebook file using your terminal.
 
 Once you've run this command, it will open JupyterLab in your default web browser, as shown below.
 
-![Image Showing How JupyterLab Opens On the Browser](https://github.com/user-attachments/assets/bac4b140-1d64-4034-b980-7c0721121ec2)
+![Image Showing How JupyterLab Opens On the Browser](https://github.com/ultralytics/docs/releases/download/0/jupyterlab-browser-launch.avif)
 
 ### Step 4: Start Experimenting
 
 In JupyterLab, open the tutorial.ipynb notebook. You can now start running the cells to explore and experiment with YOLOv8.
 
-![Image Showing Opened YOLOv8 Notebook in JupyterLab](https://github.com/user-attachments/assets/71fe86d8-1964-4cde-9f62-479dfa41c75b)
+![Image Showing Opened YOLOv8 Notebook in JupyterLab](https://github.com/ultralytics/docs/releases/download/0/opened-yolov8-notebook-jupyterlab.avif)
 
 JupyterLab's interactive environment allows you to modify code, visualize outputs, and document your findings all in one place. You can try out different configurations and understand how YOLOv8 works.
 
@@ -117,7 +117,7 @@ To train a YOLOv8 model using JupyterLab:
 
 1. Install JupyterLab and the Ultralytics package:
 
-    ```python
+    ```bash
     pip install jupyterlab ultralytics
     ```
 
@@ -138,7 +138,8 @@ To train a YOLOv8 model using JupyterLab:
     ```
 
 5. Visualize training results using JupyterLab's built-in plotting capabilities:
-    ```python
+
+    ```ipython
     %matplotlib inline
     from ultralytics.utils.plotting import plot_results
     plot_results(results)

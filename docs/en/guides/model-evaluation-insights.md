@@ -27,7 +27,7 @@ _Quick Tip:_ When running inferences, if you aren't seeing any predictions and y
 Intersection over Union (IoU) is a metric in object detection that measures how well the predicted bounding box overlaps with the ground truth bounding box. IoU values range from 0 to 1, where one stands for a perfect match. IoU is essential because it measures how closely the predicted boundaries match the actual object boundaries.
 
 <p align="center">
-  <img width="100%" src="https://learnopencv.com/wp-content/uploads/2022/12/feature-image-iou-1.jpg" alt="Intersection over Union Overview">
+  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/intersection-over-union-overview.avif" alt="Intersection over Union Overview">
 </p>
 
 ### Mean Average Precision
@@ -42,7 +42,7 @@ Let's focus on two specific mAP metrics:
 Other mAP metrics include mAP@0.75, which uses a stricter IoU threshold of 0.75, and mAP@small, medium, and large, which evaluate precision across objects of different sizes.
 
 <p align="center">
-  <img width="100%" src="https://a.storyblok.com/f/139616/1200x800/913f78e511/ways-to-improve-mean-average-precision.webp" alt="Mean Average Precision Overview">
+  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/mean-average-precision-overview.avif" alt="Mean Average Precision Overview">
 </p>
 
 ## Evaluating YOLOv8 Model Performance
@@ -63,7 +63,7 @@ The `imgsz` validation parameter sets the maximum dimension for image resizing, 
 
 If you want to get a deeper understanding of your YOLOv8 model's performance, you can easily access specific evaluation metrics with a few lines of Python code. The code snippet below will let you load your model, run an evaluation, and print out various metrics that show how well your model is doing.
 
-!!! Example "Usage"
+!!! example "Usage"
 
     === "Python"
 
@@ -128,7 +128,7 @@ Sharing your ideas and questions with other computer vision enthusiasts can insp
 ### Finding Help and Support
 
 - **GitHub Issues:** Explore the YOLOv8 GitHub repository and use the [Issues tab](https://github.com/ultralytics/ultralytics/issues) to ask questions, report bugs, and suggest features. The community and maintainers are available to assist with any issues you encounter.
-- **Ultralytics Discord Server:** Join the [Ultralytics Discord server](https://ultralytics.com/discord/) to connect with other users and developers, get support, share knowledge, and brainstorm ideas.
+- **Ultralytics Discord Server:** Join the [Ultralytics Discord server](https://discord.com/invite/ultralytics) to connect with other users and developers, get support, share knowledge, and brainstorm ideas.
 
 ### Official Documentation
 
@@ -165,7 +165,7 @@ Improving mean average precision (mAP) for a YOLOv8 model involves several steps
 
 You can access YOLOv8 model evaluation metrics using Python with the following steps:
 
-!!! Example "Usage"
+!!! example "Usage"
 
     === "Python"
 

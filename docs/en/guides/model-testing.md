@@ -88,7 +88,7 @@ Underfitting occurs when your model can't capture the underlying patterns in the
 The key is to find a balance between overfitting and underfitting. Ideally, a model should perform well on both training and validation datasets. Regularly monitoring your model's performance through metrics and visual inspections, along with applying the right strategies, can help you achieve the best results.
 
 <p align="center">
-  <img width="100%" src="https://viso.ai/wp-content/uploads/2022/07/overfitting-underfitting-appropriate-fitting.jpg" alt="Overfitting and Underfitting Overview">
+  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/overfitting-underfitting-appropriate-fitting.avif" alt="Overfitting and Underfitting Overview">
 </p>
 
 ## Data Leakage in Computer Vision and How to Avoid It
@@ -129,7 +129,7 @@ Becoming part of a community of computer vision enthusiasts can aid in solving p
 ### Community Resources
 
 - **GitHub Issues:** Explore the [YOLOv8 GitHub repository](https://github.com/ultralytics/ultralytics/issues) and use the Issues tab to ask questions, report bugs, and suggest new features. The community and maintainers are very active and ready to help.
-- **Ultralytics Discord Server:** Join the [Ultralytics Discord server](https://ultralytics.com/discord/) to chat with other users and developers, get support, and share your experiences.
+- **Ultralytics Discord Server:** Join the [Ultralytics Discord server](https://discord.com/invite/ultralytics) to chat with other users and developers, get support, and share your experiences.
 
 ### Official Documentation
 

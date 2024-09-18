@@ -5,6 +5,7 @@ import threading
 import time
 from http import HTTPStatus
 from pathlib import Path
+from urllib.parse import urlparse, parse_qs
 
 import requests
 
@@ -147,9 +148,8 @@ class HUBTrainingSession:
         Parses the given identifier to determine the type of identifier and extract relevant components.
 
         The method supports different identifier formats:
-            - A HUB URL, which starts with HUB_WEB_ROOT followed by '/models/'
-            - An identifier containing an API key and a model ID separated by an underscore
-            - An identifier that is solely a model ID of a fixed length
+            - A HUB model URL https://hub.ultralytics.com/models/MODEL
+            - A HUB model URL with API Key https://hub.ultralytics.com/models/MODEL?api_key=APIKEY
             - A local filename that ends with '.pt' or '.yaml'
 
         Args:
@@ -161,17 +161,24 @@ class HUBTrainingSession:
         Raises:
             HUBModelError: If the identifier format is not recognized.
         """
-        # Initialize variables
         api_key, model_id, filename = None, None, None
 
-        path = identifier.split(f"{HUB_WEB_ROOT}/models/")[-1]
-        parts = path.split("_")
-        if Path(path).suffix in {".pt", ".yaml"}:
-            filename = path
-        elif len(parts) == 2 and len(parts[0]) == 42 and len(parts[1]) == 20:
-            api_key, model_id = parts
-        elif len(path) == 20:
-            model_id = path
+        # path = identifier.split(f"{HUB_WEB_ROOT}/models/")[-1]
+        # parts = path.split("_")
+        # if Path(path).suffix in {".pt", ".yaml"}:
+        #     filename = path
+        # elif len(parts) == 2 and len(parts[0]) == 42 and len(parts[1]) == 20:
+        #     api_key, model_id = parts
+        # elif len(path) == 20:
+        #     model_id = path
+
+        if Path(identifier).suffix in {".pt", ".yaml"}:
+            filename = identifier
+        elif identifier.startswith(f"{HUB_WEB_ROOT}/models/"):
+            parsed_url = urlparse(identifier)
+            model_id = parsed_url.path.split("/")[-1]
+            query_params = parse_qs(parsed_url.query)  # dictionary, i.e. {"api_key": ["API_KEY_HERE"]}
+            api_key = query_params.get("api_key", [None])[0]
         else:
             raise HUBModelError(f"model='{identifier} invalid, correct format is {HUB_WEB_ROOT}/models/MODEL_ID")
         return api_key, model_id, filename

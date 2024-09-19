@@ -513,6 +513,7 @@ class Annotator:
 
     def get_bbox_dimension(self, bbox=None):
         """Compute the dimensions and area of a bounding box.
+
         Args:
             bbox (tuple): Coordinates of the bounding box in the format (x_min, y_min, x_max, y_max).
 

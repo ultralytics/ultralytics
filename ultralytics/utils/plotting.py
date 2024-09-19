@@ -240,12 +240,7 @@ class Annotator:
 
     def get_txt_color(self, color=(128, 128, 128), txt_color=(255, 255, 255)):
         """Assign text color based on background color."""
-        if color in self.dark_colors:
-            return 104, 31, 17
-        elif color in self.light_colors:
-            return 255, 255, 255
-        else:
-            return txt_color
+        return (104, 31, 17) if color in self.dark_colors else (255, 255, 255) if color in self.light_colors else txt_color
 
     def circle_label(self, box, label="", color=(128, 128, 128), txt_color=(255, 255, 255), margin=2):
         """
@@ -531,18 +526,17 @@ class Annotator:
         cv2.imwrite(filename, np.asarray(self.im))
 
     def get_bbox_dimension(self, bbox=None):
-        """
-        Calculate the area of a bounding box.
-
+        """Compute the dimensions and area of a bounding box.
         Args:
-            bbox (tuple): Bounding box coordinates in the format (x_min, y_min, x_max, y_max).
+            bbox (tuple): Coordinates of the bounding box in the format (x_min, y_min, x_max, y_max).
 
         Returns:
-            angle (degree): Degree value of angle between three points
+            width (float): Width of the bounding box.
+            height (float): Height of the bounding box.
+            angle (degree): Area enclosed by the bounding box.
         """
-        x_min, y_min, x_max, y_max = bbox
-        width = x_max - x_min
-        height = y_max - y_min
+        width = bbox[2] - bbox[0]
+        height = bbox[3] - bbox[1]
         return width, height, width * height
 
     def draw_region(self, reg_pts=None, color=(0, 255, 0), thickness=5):

@@ -110,13 +110,17 @@ def autocast(enabled: bool, device: str = "cuda"):
 
 def get_cpu_info():
     """Return a string with system CPU information, i.e. 'Apple M2'."""
-    with contextlib.suppress(Exception):
-        import cpuinfo  # pip install py-cpuinfo
+    from ultralytics.utils import PERSISTENT_CACHE  # avoid circular import error
 
-        k = "brand_raw", "hardware_raw", "arch_string_raw"  # keys sorted by preference (not all keys always available)
-        info = cpuinfo.get_cpu_info()  # info dict
-        string = info.get(k[0] if k[0] in info else k[1] if k[1] in info else k[2], "unknown")
-        return string.replace("(R)", "").replace("CPU ", "").replace("@ ", "")
+    if "cpu_info" not in PERSISTENT_CACHE:
+        with contextlib.suppress(Exception):
+            import cpuinfo  # pip install py-cpuinfo
+
+            k = "brand_raw", "hardware_raw", "arch_string_raw"  # keys sorted by preference
+            info = cpuinfo.get_cpu_info()  # info dict
+            string = info.get(k[0] if k[0] in info else k[1] if k[1] in info else k[2], "unknown")
+            PERSISTENT_CACHE["cpu_info"] = string.replace("(R)", "").replace("CPU ", "").replace("@ ", "")
+    return PERSISTENT_CACHE.get("cpu_info", "unknown")
 
     return "unknown"
 
@@ -247,7 +251,7 @@ def fuse_conv_and_bn(conv, bn):
     )
 
     # Prepare filters
-    w_conv = conv.weight.clone().view(conv.out_channels, -1)
+    w_conv = conv.weight.view(conv.out_channels, -1)
     w_bn = torch.diag(bn.weight.div(torch.sqrt(bn.eps + bn.running_var)))
     fusedconv.weight.copy_(torch.mm(w_bn, w_conv).view(fusedconv.weight.shape))
 
@@ -278,7 +282,7 @@ def fuse_deconv_and_bn(deconv, bn):
     )
 
     # Prepare filters
-    w_deconv = deconv.weight.clone().view(deconv.out_channels, -1)
+    w_deconv = deconv.weight.view(deconv.out_channels, -1)
     w_bn = torch.diag(bn.weight.div(torch.sqrt(bn.eps + bn.running_var)))
     fuseddconv.weight.copy_(torch.mm(w_bn, w_deconv).view(fuseddconv.weight.shape))
 

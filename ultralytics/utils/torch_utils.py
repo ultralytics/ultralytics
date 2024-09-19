@@ -23,12 +23,12 @@ from ultralytics.utils import (
     DEFAULT_CFG_KEYS,
     LOGGER,
     NUM_THREADS,
+    PERSISTENT_CACHE,
     PYTHON_VERSION,
     TORCHVISION_VERSION,
     WINDOWS,
     __version__,
     colorstr,
-    PERSISTENT_CACHE,
 )
 from ultralytics.utils.checks import check_version
 

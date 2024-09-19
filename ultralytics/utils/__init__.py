@@ -3,6 +3,7 @@
 import contextlib
 import importlib.metadata
 import inspect
+import json
 import logging.config
 import os
 import platform
@@ -14,6 +15,7 @@ import time
 import urllib
 import uuid
 from pathlib import Path
+from threading import Lock
 from types import SimpleNamespace
 from typing import Union
 
@@ -1136,6 +1138,52 @@ class SettingsManager(dict):
         self.save()
 
 
+class PersistentCacheDict(dict):
+    def __init__(self, file_path=USER_CONFIG_DIR / "persistent_cache.json"):
+        super().__init__()
+        self.file_path = Path(file_path)
+        self.lock = Lock()
+        self._load()
+
+    def _load(self):
+        try:
+            if self.file_path.exists():
+                with open(self.file_path, "r") as f:
+                    self.update(json.load(f))
+        except json.JSONDecodeError:
+            print(f"Error decoding JSON from {self.file_path}. Starting with an empty cache.")
+        except Exception as e:
+            print(f"Error reading from {self.file_path}: {e}")
+
+    def _save(self):
+        try:
+            self.file_path.parent.mkdir(parents=True, exist_ok=True)
+            with open(self.file_path, "w") as f:
+                json.dump(dict(self), f, indent=2)
+        except Exception as e:
+            print(f"Error writing to {self.file_path}: {e}")
+
+    def __setitem__(self, key, value):
+        with self.lock:
+            super().__setitem__(key, value)
+            self._save()
+
+    def __delitem__(self, key):
+        with self.lock:
+            super().__delitem__(key)
+            self._save()
+
+    def update(self, *args, **kwargs):
+        with self.lock:
+            super().update(*args, **kwargs)
+            self._save()
+
+    def clear(self):
+        with self.lock:
+            super().clear()
+            self._save()
+
+
 def deprecation_warn(arg, new_arg):
     """Issue a deprecation warning when a deprecated argument is used, suggesting an updated argument."""
     LOGGER.warning(
@@ -1171,6 +1219,7 @@ def vscode_msg(ext="ultralytics.ultralytics-snippets") -> str:
 # Check first-install steps
 PREFIX = colorstr("Ultralytics: ")
 SETTINGS = SettingsManager()  # initialize settings
+PERSISTENT_CACHE = PersistentCacheDict()  # initialize persistent cache
 DATASETS_DIR = Path(SETTINGS["datasets_dir"])  # global datasets directory
 WEIGHTS_DIR = Path(SETTINGS["weights_dir"])  # global weights directory
 RUNS_DIR = Path(SETTINGS["runs_dir"])  # global runs directory

@@ -240,7 +240,9 @@ class Annotator:
 
     def get_txt_color(self, color=(128, 128, 128), txt_color=(255, 255, 255)):
         """Assign text color based on background color."""
-        return (104, 31, 17) if color in self.dark_colors else (255, 255, 255) if color in self.light_colors else txt_color
+        return (
+            (104, 31, 17) if color in self.dark_colors else (255, 255, 255) if color in self.light_colors else txt_color
+        )
 
     def circle_label(self, box, label="", color=(128, 128, 128), txt_color=(255, 255, 255)):
         """
@@ -254,7 +256,11 @@ class Annotator:
         """
         # Calculate the center of the box and get the text size
         x_center, y_center = int((box[0] + box[2]) / 2), int((box[1] + box[3]) / 2)
-        text_size = cv2.getTextSize(str(label), cv2.FONT_HERSHEY_SIMPLEX, self.sf - 0.15, self.tf)[0] if label is not None else self.tf * 4
+        text_size = (
+            cv2.getTextSize(str(label), cv2.FONT_HERSHEY_SIMPLEX, self.sf - 0.15, self.tf)[0]
+            if label is not None
+            else self.tf * 4
+        )
 
         # Calculate the required radius to fit the text and draw circle
         required_radius = int(((text_size[0] ** 2 + text_size[1] ** 2) ** 0.5) / 2) + self.tf
@@ -292,7 +298,13 @@ class Annotator:
         text_y = y_center + text_size[1] // 2
 
         # Draw the background rectangle
-        cv2.rectangle(self.im, (text_x - self.tf * 2, text_y - text_size[1] - self.tf * 2), (text_x + + text_size[0]+ self.tf * 2, text_y + self.tf * 2), color, -1)
+        cv2.rectangle(
+            self.im,
+            (text_x - self.tf * 2, text_y - text_size[1] - self.tf * 2),
+            (text_x + +text_size[0] + self.tf * 2, text_y + self.tf * 2),
+            color,
+            -1,
+        )
 
         # Draw the text on top of the rectangle
         cv2.putText(
@@ -512,7 +524,8 @@ class Annotator:
         cv2.imwrite(filename, np.asarray(self.im))
 
     def get_bbox_dimension(self, bbox=None):
-        """Compute the dimensions and area of a bounding box.
+        """
+        Compute the dimensions and area of a bounding box.
 
         Args:
             bbox (tuple): Coordinates of the bounding box in the format (x_min, y_min, x_max, y_max).
@@ -550,7 +563,13 @@ class Annotator:
             color (tuple): tracks line color
             track_thickness (int): track line width value
         """
-        cv2.polylines(self.im, [np.hstack(track).astype(np.int32).reshape((-1, 1, 2))], isClosed=False, color=color, thickness=track_thickness)
+        cv2.polylines(
+            self.im,
+            [np.hstack(track).astype(np.int32).reshape((-1, 1, 2))],
+            isClosed=False,
+            color=color,
+            thickness=track_thickness,
+        )
         cv2.circle(self.im, (int(track[-1][0]), int(track[-1][1])), track_thickness * 2, color, -1)
 
     def queue_counts_display(self, label, points=None, region_color=(255, 255, 255), txt_color=(104, 31, 17)):
@@ -570,10 +589,13 @@ class Annotator:
 
         rect_width = text_size[0] + 20
         rect_height = text_size[1] + 20
-        cv2.rectangle(self.im,
-                      (center_x - rect_width // 2, center_y - rect_height // 2),
-                      (center_x + rect_width // 2, center_y + rect_height // 2),
-                      region_color, -1)
+        cv2.rectangle(
+            self.im,
+            (center_x - rect_width // 2, center_y - rect_height // 2),
+            (center_x + rect_width // 2, center_y + rect_height // 2),
+            region_color,
+            -1,
+        )
 
         # Draw text
         cv2.putText(
@@ -608,9 +630,13 @@ class Annotator:
             text_y = text_y_offset + text_size[1] + self.tf * 4 * 2 + int(im0.shape[0] * 0.01)
             rect_y2 = text_y + self.tf * 8
 
-            cv2.rectangle(im0,
-                          (text_x - self.tf * 8, text_y - text_size[1] - self.tf * 8),
-                          (text_x + text_size[0] + self.tf * 8, rect_y2), bg_color, -1)
+            cv2.rectangle(
+                im0,
+                (text_x - self.tf * 8, text_y - text_size[1] - self.tf * 8),
+                (text_x + text_size[0] + self.tf * 8, rect_y2),
+                bg_color,
+                -1,
+            )
             cv2.putText(im0, txt, (text_x, text_y), 0, self.sf, txt_color, self.tf, lineType=cv2.LINE_AA)
             text_y_offset = rect_y2
 
@@ -771,9 +797,7 @@ class Annotator:
         """
         # Get the text size
         text = f"Pixels Distance: {pixels_distance:.2f}"
-        (text_width_m, text_height_m), _ = cv2.getTextSize(
-            text, 0, self.sf, self.tf
-        )
+        (text_width_m, text_height_m), _ = cv2.getTextSize(text, 0, self.sf, self.tf)
 
         # Define corners with 10-pixel margin and draw rectangle
         cv2.rectangle(self.im, (15, 25), (15 + text_width_m + 20, 25 + text_height_m + 20), centroid_color, -1)

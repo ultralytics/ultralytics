@@ -1140,6 +1140,7 @@ class SettingsManager(dict):
 
 class PersistentCacheDict(dict):
     """A thread-safe dictionary that persists data to a JSON file for caching purposes."""
+
     def __init__(self, file_path=USER_CONFIG_DIR / "persistent_cache.json"):
         """Initializes a thread-safe persistent cache dictionary with a specified file path for storage."""
         super().__init__()

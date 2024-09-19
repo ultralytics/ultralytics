@@ -540,18 +540,17 @@ class Annotator:
         for point in reg_pts:
             cv2.circle(self.im, (point[0], point[1]), thickness * 2, color, -1)  # -1 fills the circle
 
-    def draw_centroid_and_tracks(self, track, color=(255, 0, 255), track_thickness=2):
+    def draw_centroid_and_tracks(self, track, color=(255, 0, 255), line_width=2):
         """
         Draw centroid point and track trails.
 
         Args:
             track (list): object tracking points for trails display
             color (tuple): tracks line color
-            track_thickness (int): track line thickness value
+            line_width (int): track line width value
         """
-        points = np.hstack(track).astype(np.int32).reshape((-1, 1, 2))
-        cv2.polylines(self.im, [points], isClosed=False, color=color, thickness=track_thickness)
-        cv2.circle(self.im, (int(track[-1][0]), int(track[-1][1])), track_thickness * 2, color, -1)
+        cv2.polylines(self.im, [np.hstack(track).astype(np.int32).reshape((-1, 1, 2))], isClosed=False, color=color, thickness=line_width)
+        cv2.circle(self.im, (int(track[-1][0]), int(track[-1][1])), line_width * 2, color, -1)
 
     def queue_counts_display(self, label, points=None, region_color=(255, 255, 255), txt_color=(0, 0, 0)):
         """

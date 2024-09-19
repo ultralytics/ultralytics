@@ -125,7 +125,7 @@ class Tuner:
             (dict): A dictionary containing mutated hyperparameters.
         """
         if self.tune_csv.exists():  # if CSV file exists: select best hyps and mutate
-            LOGGER.info("Found exisiting CSV results, loading tuning history...")
+            LOGGER.info("Found existing CSV results, loading tuning history...")
             # Select parent(s)
             x = np.loadtxt(self.tune_csv, ndmin=2, delimiter=",", skiprows=1)
             LOGGER.info(f"Found {len(x)} previous iterations...")

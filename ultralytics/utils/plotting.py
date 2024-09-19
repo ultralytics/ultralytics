@@ -715,8 +715,9 @@ class Annotator:
 
         return text_height
 
-    def plot_angle_and_count_and_stage(self, angle_text, count_text, stage_text, center_kpt, color=(104, 31, 17),
-                                       txt_color=(255, 255, 255)):
+    def plot_angle_and_count_and_stage(
+        self, angle_text, count_text, stage_text, center_kpt, color=(104, 31, 17), txt_color=(255, 255, 255)
+    ):
         """
         Plot the pose angle, count value, and step stage.
 
@@ -732,11 +733,15 @@ class Annotator:
         angle_text, count_text, stage_text = f" {angle_text:.2f}", f"Steps : {count_text}", f" {stage_text}"
 
         # Draw angle, count and stage text
-        angle_height = self.plot_workout_information(angle_text, (int(center_kpt[0]), int(center_kpt[1])), color, txt_color)
-        count_height = self.plot_workout_information(count_text, (int(center_kpt[0]), int(center_kpt[1]) + angle_height + 20), color,
-                                                     txt_color)
-        self.plot_workout_information(stage_text, (int(center_kpt[0]), int(center_kpt[1]) + angle_height + count_height + 40), color,
-                                      txt_color)
+        angle_height = self.plot_workout_information(
+            angle_text, (int(center_kpt[0]), int(center_kpt[1])), color, txt_color
+        )
+        count_height = self.plot_workout_information(
+            count_text, (int(center_kpt[0]), int(center_kpt[1]) + angle_height + 20), color, txt_color
+        )
+        self.plot_workout_information(
+            stage_text, (int(center_kpt[0]), int(center_kpt[1]) + angle_height + count_height + 40), color, txt_color
+        )
 
     def seg_bbox(self, mask, mask_color=(255, 0, 255), label=None, txt_color=(255, 255, 255)):
         """

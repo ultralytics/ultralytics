@@ -23,6 +23,7 @@ from ultralytics.utils import (
     DEFAULT_CFG_KEYS,
     LOGGER,
     NUM_THREADS,
+    PERSISTENT_CACHE,
     PYTHON_VERSION,
     TORCHVISION_VERSION,
     WINDOWS,

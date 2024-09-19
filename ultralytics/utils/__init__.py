@@ -1148,7 +1148,7 @@ class PersistentCacheDict(dict):
     def _load(self):
         try:
             if self.file_path.exists():
-                with open(self.file_path, "r") as f:
+                with open(self.file_path) as f:
                     self.update(json.load(f))
         except json.JSONDecodeError:
             print(f"Error decoding JSON from {self.file_path}. Starting with an empty cache.")

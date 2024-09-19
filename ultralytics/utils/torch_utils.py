@@ -245,9 +245,9 @@ def fuse_conv_and_bn(conv, bn):
             dilation=conv.dilation,
             groups=conv.groups,
             bias=True,
+            device=conv.weight.device,
         )
         .requires_grad_(False)
-        .to(conv.weight.device)
     )
 
     # Prepare filters
@@ -276,9 +276,9 @@ def fuse_deconv_and_bn(deconv, bn):
             dilation=deconv.dilation,
             groups=deconv.groups,
             bias=True,
+            device=deconv.weight.device,
         )
         .requires_grad_(False)
-        .to(deconv.weight.device)
     )
 
     # Prepare filters

@@ -712,6 +712,7 @@ def entrypoint(debug=""):
         "cfg": lambda: yaml_print(DEFAULT_CFG_PATH),
         "hub": lambda: handle_yolo_hub(args[1:]),
         "login": lambda: handle_yolo_hub(args),
+        "logout": lambda: handle_yolo_hub(args),
         "copy-cfg": copy_default_cfg,
         "explorer": lambda: handle_explorer(args[1:]),
         "streamlit-predict": lambda: handle_streamlit_inference(),

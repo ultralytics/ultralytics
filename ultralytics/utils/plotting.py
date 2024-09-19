@@ -472,7 +472,7 @@ class Annotator:
                     pos1,
                     pos2,
                     kpt_color or self.limb_color[i].tolist(),
-                    thickness=int(np.ceil(self.lw/2)),
+                    thickness=int(np.ceil(self.lw / 2)),
                     lineType=cv2.LINE_AA,
                 )
         if self.pil:

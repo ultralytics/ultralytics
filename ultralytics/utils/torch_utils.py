@@ -28,6 +28,7 @@ from ultralytics.utils import (
     WINDOWS,
     __version__,
     colorstr,
+    PERSISTENT_CACHE,
 )
 from ultralytics.utils.checks import check_version
 
@@ -110,15 +111,15 @@ def autocast(enabled: bool, device: str = "cuda"):
 
 def get_cpu_info():
     """Return a string with system CPU information, i.e. 'Apple M2'."""
-    if 'cpu_info' not in PERSISTENT_CACHE:
-        import contextlib
+    if "cpu_info" not in PERSISTENT_CACHE:
         with contextlib.suppress(Exception):
             import cpuinfo  # pip install py-cpuinfo
+
             k = "brand_raw", "hardware_raw", "arch_string_raw"  # keys sorted by preference
             info = cpuinfo.get_cpu_info()  # info dict
             string = info.get(k[0] if k[0] in info else k[1] if k[1] in info else k[2], "unknown")
-            PERSISTENT_CACHE['cpu_info'] = string.replace("(R)", "").replace("CPU ", "").replace("@ ", "")
-    return PERSISTENT_CACHE.get('cpu_info', "unknown")
+            PERSISTENT_CACHE["cpu_info"] = string.replace("(R)", "").replace("CPU ", "").replace("@ ", "")
+    return PERSISTENT_CACHE.get("cpu_info", "unknown")
 
     return "unknown"
 

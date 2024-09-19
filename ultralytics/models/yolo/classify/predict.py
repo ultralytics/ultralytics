@@ -86,4 +86,3 @@ class MultiLabelClassificationPredictor(BasePredictor):
         for pred, orig_img, img_path in zip(preds, orig_imgs, self.batch[0]):
             results.append(Results(orig_img, path=img_path, names=self.model.names, probs=pred))
         return results
-

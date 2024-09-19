@@ -552,7 +552,7 @@ class Annotator:
         cv2.polylines(self.im, [np.hstack(track).astype(np.int32).reshape((-1, 1, 2))], isClosed=False, color=color, thickness=line_width)
         cv2.circle(self.im, (int(track[-1][0]), int(track[-1][1])), line_width * 2, color, -1)
 
-    def queue_counts_display(self, label, points=None, region_color=(255, 255, 255), txt_color=(0, 0, 0)):
+    def queue_counts_display(self, label, points=None, region_color=(255, 255, 255), txt_color=(104, 31, 17)):
         """
         Displays queue counts on an image centered at the points with customizable font size and colors.
 

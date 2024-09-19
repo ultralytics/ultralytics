@@ -687,77 +687,56 @@ class Annotator:
                     cv2.circle(self.im, (int(x_coord), int(y_coord)), radius, (0, 255, 0), -1, lineType=cv2.LINE_AA)
         return self.im
 
-    def plot_angle_and_count_and_stage(
-        self, angle_text, count_text, stage_text, center_kpt, color=(104, 31, 17), txt_color=(255, 255, 255)
-    ):
+    def plot_workout_information(self, text, position, color, txt_color):
         """
-        Plot the pose angle, count value and step stage.
+        Draw text with a background on the image.
 
         Args:
-            angle_text (str): angle value for workout monitoring
-            count_text (str): counts value for workout monitoring
-            stage_text (str): stage decision for workout monitoring
-            center_kpt (list): centroid pose index for workout monitoring
-            color (tuple): text background color for workout monitoring
-            txt_color (tuple): text foreground color for workout monitoring
+            text (str): The text to be displayed.
+            position (tuple): Coordinates (x, y) on the image where the text will be placed.
+            color (tuple, optional): Background color of the text. Default is (104, 31, 17).
+            txt_color (tuple, optional): Text color. Default is (255, 255, 255).
+
+        Returns:
+            float: height of the text, used for positioning other elements.
         """
-        angle_text, count_text, stage_text = (f" {angle_text:.2f}", f"Steps : {count_text}", f" {stage_text}")
+        (text_width, text_height), _ = cv2.getTextSize(text, 0, self.sf, self.tf)
 
-        # Draw angle
-        (angle_text_width, angle_text_height), _ = cv2.getTextSize(angle_text, 0, self.sf, self.tf)
-        angle_text_position = (int(center_kpt[0]), int(center_kpt[1]))
-        angle_background_position = (angle_text_position[0], angle_text_position[1] - angle_text_height - 5)
-        angle_background_size = (angle_text_width + 2 * 5, angle_text_height + 2 * 5 + (self.tf * 2))
+        # Draw background rectangle
         cv2.rectangle(
             self.im,
-            angle_background_position,
-            (
-                angle_background_position[0] + angle_background_size[0],
-                angle_background_position[1] + angle_background_size[1],
-            ),
+            (position[0], position[1] - text_height - 5),
+            (position[0] + text_width + 10, position[1] - text_height - 5 + text_height + 10 + self.tf),
             color,
             -1,
         )
-        cv2.putText(self.im, angle_text, angle_text_position, 0, self.sf, txt_color, self.tf)
+        # Draw text
+        cv2.putText(self.im, text, position, 0, self.sf, txt_color, self.tf)
 
-        # Draw Counts
-        (count_text_width, count_text_height), _ = cv2.getTextSize(count_text, 0, self.sf, self.tf)
-        count_text_position = (angle_text_position[0], angle_text_position[1] + angle_text_height + 20)
-        count_background_position = (
-            angle_background_position[0],
-            angle_background_position[1] + angle_background_size[1] + 5,
-        )
-        count_background_size = (count_text_width + 10, count_text_height + 10 + self.tf)
+        return text_height
 
-        cv2.rectangle(
-            self.im,
-            count_background_position,
-            (
-                count_background_position[0] + count_background_size[0],
-                count_background_position[1] + count_background_size[1],
-            ),
-            color,
-            -1,
-        )
-        cv2.putText(self.im, count_text, count_text_position, 0, self.sf, txt_color, self.tf)
+    def plot_angle_and_count_and_stage(self, angle_text, count_text, stage_text, center_kpt, color=(104, 31, 17),
+                                       txt_color=(255, 255, 255)):
+        """
+        Plot the pose angle, count value, and step stage.
 
-        # Draw Stage
-        (stage_text_width, stage_text_height), _ = cv2.getTextSize(stage_text, 0, self.sf, self.tf)
-        stage_text_position = (int(center_kpt[0]), int(center_kpt[1]) + angle_text_height + count_text_height + 40)
-        stage_background_position = (stage_text_position[0], stage_text_position[1] - stage_text_height - 5)
-        stage_background_size = (stage_text_width + 10, stage_text_height + 10)
+        Args:
+            angle_text (str): Angle value for workout monitoring
+            count_text (str): Counts value for workout monitoring
+            stage_text (str): Stage decision for workout monitoring
+            center_kpt (list): Centroid pose index for workout monitoring
+            color (tuple): Text background color
+            txt_color (tuple): Text foreground color
+        """
+        # Format text
+        angle_text, count_text, stage_text = f" {angle_text:.2f}", f"Steps : {count_text}", f" {stage_text}"
 
-        cv2.rectangle(
-            self.im,
-            stage_background_position,
-            (
-                stage_background_position[0] + stage_background_size[0],
-                stage_background_position[1] + stage_background_size[1],
-            ),
-            color,
-            -1,
-        )
-        cv2.putText(self.im, stage_text, stage_text_position, 0, self.sf, txt_color, self.tf)
+        # Draw angle, count and stage text
+        angle_height = self.plot_workout_information(angle_text, (int(center_kpt[0]), int(center_kpt[1])), color, txt_color)
+        count_height = self.plot_workout_information(count_text, (int(center_kpt[0]), int(center_kpt[1]) + angle_height + 20), color,
+                                                     txt_color)
+        self.plot_workout_information(stage_text, (int(center_kpt[0]), int(center_kpt[1]) + angle_height + count_height + 40), color,
+                                      txt_color)
 
     def seg_bbox(self, mask, mask_color=(255, 0, 255), label=None, txt_color=(255, 255, 255)):
         """

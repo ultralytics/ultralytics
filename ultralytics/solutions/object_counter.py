@@ -152,7 +152,7 @@ class ObjectCounter:
                     annotator.draw_centroid_and_tracks(
                         track_line,
                         color=colors(int(track_id), True),
-                        line_width=self.tf,
+                        track_thickness=self.tf,
                     )
 
                 prev_position = self.track_history[track_id][-2] if len(self.track_history[track_id]) > 1 else None

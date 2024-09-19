@@ -82,7 +82,7 @@ class QueueManager:
                     annotator.draw_centroid_and_tracks(
                         track_line,
                         color=colors(int(track_id), True),
-                        line_width=self.line_thickness,
+                        track_thickness=self.line_thickness,
                     )
 
                 prev_position = self.track_history[track_id][-2] if len(self.track_history[track_id]) > 1 else None

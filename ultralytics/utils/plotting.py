@@ -419,7 +419,7 @@ class Annotator:
             # Convert im back to PIL and update draw
             self.fromarray(self.im)
 
-    def kpts(self, kpts, shape=(640, 640), radius=5, kpt_line=True, conf_thres=0.25, kpt_color=None):
+    def kpts(self, kpts, shape=(640, 640), radius=None, kpt_line=True, conf_thres=0.25, kpt_color=None):
         """
         Plot keypoints on the image.
 
@@ -436,6 +436,7 @@ class Annotator:
             - Modifies self.im in-place.
             - If self.pil is True, converts image to numpy array and back to PIL.
         """
+        radius = radius if radius is not None else self.lw
         if self.pil:
             # Convert to numpy first
             self.im = np.asarray(self.im).copy()
@@ -471,7 +472,7 @@ class Annotator:
                     pos1,
                     pos2,
                     kpt_color or self.limb_color[i].tolist(),
-                    thickness=2,
+                    thickness=int(np.ceil(self.lw / 2)),
                     lineType=cv2.LINE_AA,
                 )
         if self.pil:

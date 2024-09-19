@@ -870,7 +870,7 @@ class CopyPaste(BaseMixTransform):
 
     def __call__(self, labels):
         """Applies pre-processing transforms and copy_paste transforms to labels data."""
-        if len(labels["instances"].segments) == 0 or random.uniform(0, 1) > 0.5:
+        if len(labels["instances"].segments) == 0 or self.p == 0:
             return labels
         # Get index of one or three other images
         indexes = self.get_indexes()

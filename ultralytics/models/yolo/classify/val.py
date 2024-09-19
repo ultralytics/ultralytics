@@ -145,12 +145,13 @@ class MultiLabelClassificationValidator(BaseValidator):
 
     def get_desc(self):
         """Returns a formatted string summarizing classification metrics."""
-        return ("%22s" + "%11s" * 3) % ("classes", "precision", "recall", "f1")
+        return ("%22s" + "%11s" * 1) % ("classes", "mAP")
 
     def init_metrics(self, model):
         """Initialize class names, and and metrics."""
         self.names = model.names
         self.nc = len(model.names)
+
         # self.confusion_matrix = ConfusionMatrix(nc=self.nc, conf=self.args.conf, task="multi_label_classify")
         self.pred = []
         self.targets = []
@@ -200,7 +201,7 @@ class MultiLabelClassificationValidator(BaseValidator):
     def print_results(self):
         """Prints evaluation metrics for YOLO object detection model."""
         pf = "%22s" + "%11.3g" * len(self.metrics.keys)  # print format
-        LOGGER.info(pf % ("all", self.metrics.precision, self.metrics.recall, self.metrics.f1))
+        LOGGER.info(pf % ("all", self.metrics.mAP))
 
     def plot_val_samples(self, batch, ni):
         """Plot validation image samples."""

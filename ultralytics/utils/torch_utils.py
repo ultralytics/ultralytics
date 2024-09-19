@@ -251,7 +251,7 @@ def fuse_conv_and_bn(conv, bn):
     )
 
     # Prepare filters
-    w_conv = conv.weight.clone().view(conv.out_channels, -1)
+    w_conv = conv.weight.view(conv.out_channels, -1)
     w_bn = torch.diag(bn.weight.div(torch.sqrt(bn.eps + bn.running_var)))
     fusedconv.weight.copy_(torch.mm(w_bn, w_conv).view(fusedconv.weight.shape))
 
@@ -282,7 +282,7 @@ def fuse_deconv_and_bn(deconv, bn):
     )
 
     # Prepare filters
-    w_deconv = deconv.weight.clone().view(deconv.out_channels, -1)
+    w_deconv = deconv.weight.view(deconv.out_channels, -1)
     w_bn = torch.diag(bn.weight.div(torch.sqrt(bn.eps + bn.running_var)))
     fuseddconv.weight.copy_(torch.mm(w_bn, w_deconv).view(fuseddconv.weight.shape))
 

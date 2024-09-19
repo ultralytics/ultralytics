@@ -242,7 +242,7 @@ class Annotator:
         """Assign text color based on background color."""
         return (104, 31, 17) if color in self.dark_colors else (255, 255, 255) if color in self.light_colors else txt_color
 
-    def circle_label(self, box, label="", color=(128, 128, 128), txt_color=(255, 255, 255), margin=2):
+    def circle_label(self, box, label="", color=(128, 128, 128), txt_color=(255, 255, 255)):
         """
         Draws a label with a background circle centered within a given bounding box.
 
@@ -251,37 +251,27 @@ class Annotator:
             label (str): The text label to be displayed.
             color (tuple, optional): The background color of the rectangle (B, G, R).
             txt_color (tuple, optional): The color of the text (R, G, B).
-            margin (int, optional): The margin between the text and the rectangle border.
         """
-        # If label have more than 3 characters, skip other characters, due to circle size
-        if len(label) > 3:
-            print(
-                f"Length of label is {len(label)}, initial 3 label characters will be considered for circle annotation!"
-            )
-            label = label[:3]
-
-        # Calculate the center of the box
+        # Calculate the center of the box and get the text size
         x_center, y_center = int((box[0] + box[2]) / 2), int((box[1] + box[3]) / 2)
-        # Get the text size
-        text_size = cv2.getTextSize(str(label), cv2.FONT_HERSHEY_SIMPLEX, self.sf - 0.15, self.tf)[0]
-        # Calculate the required radius to fit the text with the margin
-        required_radius = int(((text_size[0] ** 2 + text_size[1] ** 2) ** 0.5) / 2) + margin
-        # Draw the circle with the required radius
+        text_size = cv2.getTextSize(str(label), cv2.FONT_HERSHEY_SIMPLEX, self.sf - 0.15, self.tf)[0] if label is not None else self.tf * 4
+
+        # Calculate the required radius to fit the text and draw circle
+        required_radius = int(((text_size[0] ** 2 + text_size[1] ** 2) ** 0.5) / 2) + self.tf
         cv2.circle(self.im, (x_center, y_center), required_radius, color, -1)
-        # Calculate the position for the text
-        text_x = x_center - text_size[0] // 2
-        text_y = y_center + text_size[1] // 2
-        # Draw the text
-        cv2.putText(
-            self.im,
-            str(label),
-            (text_x, text_y),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            self.sf - 0.15,
-            self.get_txt_color(color, txt_color),
-            self.tf,
-            lineType=cv2.LINE_AA,
-        )
+
+        if label is not None:
+            # Draw the text
+            cv2.putText(
+                self.im,
+                str(label),
+                (x_center - text_size[0] // 2, y_center + text_size[1] // 2),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                self.sf - 0.15,
+                self.get_txt_color(color, txt_color),
+                self.tf,
+                lineType=cv2.LINE_AA,
+            )
 
     def text_label(self, box, label="", color=(128, 128, 128), txt_color=(255, 255, 255), margin=5):
         """

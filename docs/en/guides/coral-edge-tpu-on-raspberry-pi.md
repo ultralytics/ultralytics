@@ -14,6 +14,17 @@ keywords: Coral Edge TPU, Raspberry Pi, YOLOv8, Ultralytics, TensorFlow Lite, ML
 
 The Coral Edge TPU is a compact device that adds an Edge TPU coprocessor to your system. It enables low-power, high-performance ML inference for TensorFlow Lite models. Read more at the [Coral Edge TPU home page](https://coral.ai/products/accelerator).
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/w4yHORvDBw0"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to Run Inference on Raspberry Pi using Google Coral Edge TPU
+</p>
+
 ## Boost Raspberry Pi Model Performance with Coral Edge TPU
 
 Many people want to run their models on an embedded or mobile device such as a Raspberry Pi, since they are very power efficient and can be used in many different applications. However, the inference performance on these devices is usually poor even when using formats like [onnx](../integrations/onnx.md) or [openvino](../integrations/openvino.md). The Coral Edge TPU is a great solution to this problem, since it can be used with a Raspberry Pi and accelerate inference performance greatly.
@@ -74,7 +85,7 @@ After installing the runtime, you need to plug in your Coral Edge TPU into a USB
 
 To use the Edge TPU, you need to convert your model into a compatible format. It is recommended that you run export on Google Colab, x86_64 Linux machine, using the official [Ultralytics Docker container](docker-quickstart.md), or using [Ultralytics HUB](../hub/quickstart.md), since the Edge TPU compiler is not available on ARM. See the [Export Mode](../modes/export.md) for the available arguments.
 
-!!! Exporting the model
+!!! note "Exporting the model"
 
     === "Python"
 
@@ -100,7 +111,7 @@ The exported model will be saved in the `<model_name>_saved_model/` folder with 
 
 After exporting your model, you can run inference with it using the following code:
 
-!!! Running the model
+!!! note "Running the model"
 
     === "Python"
 
@@ -159,7 +170,7 @@ Make sure to uninstall any previous Coral Edge TPU runtime versions by following
 
 Yes, you can export your Ultralytics YOLOv8 model to be compatible with the Coral Edge TPU. It is recommended to perform the export on Google Colab, an x86_64 Linux machine, or using the [Ultralytics Docker container](docker-quickstart.md). You can also use Ultralytics HUB for exporting. Here is how you can export your model using Python and CLI:
 
-!!! Exporting the model
+!!! note "Exporting the model"
 
     === "Python"
 
@@ -201,7 +212,7 @@ For a specific wheel, such as TensorFlow 2.15.0 `tflite-runtime`, you can downlo
 
 After exporting your YOLOv8 model to an Edge TPU-compatible format, you can run inference using the following code snippets:
 
-!!! Running the model
+!!! note "Running the model"
 
     === "Python"
 

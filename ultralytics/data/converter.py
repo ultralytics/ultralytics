@@ -370,13 +370,10 @@ def convert_segment_masks_to_yolo_seg(masks_dir, output_dir, classes):
                 ├─ mask_yolo_03.txt
                 └─ mask_yolo_04.txt
     """
-    import os
-
     pixel_to_class_mapping = {i + 1: i for i in range(classes)}
-    for mask_filename in os.listdir(masks_dir):
-        if mask_filename.endswith(".png"):
-            mask_path = os.path.join(masks_dir, mask_filename)
-            mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)  # Read the mask image in grayscale
+    for mask_path in Path(masks_dir).iterdir():
+        if mask_path.suffix == ".png":
+            mask = cv2.imread(str(mask_path), cv2.IMREAD_GRAYSCALE)  # Read the mask image in grayscale
             img_height, img_width = mask.shape  # Get image dimensions
             LOGGER.info(f"Processing {mask_path} imgsz = {img_height} x {img_width}")
 
@@ -388,7 +385,7 @@ def convert_segment_masks_to_yolo_seg(masks_dir, output_dir, classes):
                     continue  # Skip background
                 class_index = pixel_to_class_mapping.get(value, -1)
                 if class_index == -1:
-                    LOGGER.warning(f"Unknown class for pixel value {value} in file {mask_filename}, skipping.")
+                    LOGGER.warning(f"Unknown class for pixel value {value} in file {mask_path}, skipping.")
                     continue
 
                 # Create a binary mask for the current class and find contours
@@ -406,7 +403,7 @@ def convert_segment_masks_to_yolo_seg(masks_dir, output_dir, classes):
                             yolo_format.append(round(point[1] / img_height, 6))
                         yolo_format_data.append(yolo_format)
             # Save Ultralytics YOLO format data to file
-            output_path = os.path.join(output_dir, os.path.splitext(mask_filename)[0] + ".txt")
+            output_path = Path(output_dir) / f"{mask_path.stem}.txt"
             with open(output_path, "w") as file:
                 for item in yolo_format_data:
                     line = " ".join(map(str, item))

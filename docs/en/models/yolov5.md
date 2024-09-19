@@ -32,7 +32,7 @@ This table provides a detailed overview of the YOLOv5u model variants, highlight
 
 ## Performance Metrics
 
-!!! Performance
+!!! performance
 
     === "Detection"
 
@@ -56,7 +56,7 @@ This table provides a detailed overview of the YOLOv5u model variants, highlight
 
 This example provides simple YOLOv5 training and inference examples. For full documentation on these and other [modes](../modes/index.md) see the [Predict](../modes/predict.md), [Train](../modes/train.md), [Val](../modes/val.md) and [Export](../modes/export.md) docs pages.
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -94,7 +94,7 @@ This example provides simple YOLOv5 training and inference examples. For full do
 
 If you use YOLOv5 or YOLOv5u in your research, please cite the Ultralytics YOLOv5 repository as follows:
 
-!!! Quote ""
+!!! quote ""
 
     === "BibTeX"
 
@@ -111,7 +111,7 @@ If you use YOLOv5 or YOLOv5u in your research, please cite the Ultralytics YOLOv
         }
         ```
 
-Please note that YOLOv5 models are provided under [AGPL-3.0](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) and [Enterprise](https://ultralytics.com/license) licenses.
+Please note that YOLOv5 models are provided under [AGPL-3.0](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) and [Enterprise](https://www.ultralytics.com/license) licenses.
 
 ## FAQ
 
@@ -135,7 +135,7 @@ The performance metrics of YOLOv5u models vary depending on the platform and har
 
 You can train a YOLOv5u model by loading a pre-trained model and running the training command with your dataset. Here's a quick example:
 
-!!! Example
+!!! example
 
     === "Python"
 

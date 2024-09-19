@@ -8,6 +8,17 @@ keywords: YOLOv8, PaddlePaddle, export models, computer vision, deep learning, m
 
 Bridging the gap between developing and deploying computer vision models in real-world scenarios with varying conditions can be difficult. PaddlePaddle makes this process easier with its focus on flexibility, performance, and its capability for parallel processing in distributed environments. This means you can use your YOLOv8 computer vision models on a wide variety of devices and platforms, from smartphones to cloud-based servers.
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/c5eFrt2KuzY"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to Export Ultralytics YOLOv8 Models to PaddlePaddle Format | Key Features of PaddlePaddle Format
+</p>
+
 The ability to export to PaddlePaddle model format allows you to optimize your [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics) models for use within the PaddlePaddle framework. PaddlePaddle is known for facilitating industrial deployments and is a good choice for deploying computer vision applications in real-world settings across various domains.
 
 ## Why should you export to PaddlePaddle?
@@ -54,7 +65,7 @@ Converting YOLOv8 models to the PaddlePaddle format can improve execution flexib
 
 To install the required package, run:
 
-!!! Tip "Installation"
+!!! tip "Installation"
 
     === "CLI"
 
@@ -69,7 +80,7 @@ For detailed instructions and best practices related to the installation process
 
 Before diving into the usage instructions, it's important to note that while all [Ultralytics YOLOv8 models](../models/index.md) are available for exporting, you can ensure that the model you select supports export functionality [here](../modes/export.md).
 
-!!! Example "Usage"
+!!! example "Usage"
 
     === "Python"
 
@@ -127,7 +138,7 @@ Want to explore more ways to integrate your Ultralytics YOLOv8 models? Our [inte
 
 Exporting Ultralytics YOLOv8 models to PaddlePaddle format is straightforward. You can use the `export` method of the YOLO class to perform this exportation. Here is an example using Python:
 
-!!! Example "Usage"
+!!! example "Usage"
 
     === "Python"
 

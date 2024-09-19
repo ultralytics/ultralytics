@@ -6,7 +6,7 @@ keywords: ImageNet10, ImageNet, Ultralytics, CI tests, sanity checks, training p
 
 # ImageNet10 Dataset
 
-The [ImageNet10](https://github.com/ultralytics/assets/releases/download/v0.0.0/imagenet10.zip) dataset is a small-scale subset of the [ImageNet](https://www.image-net.org/) database, developed by [Ultralytics](https://ultralytics.com) and designed for CI tests, sanity checks, and fast testing of training pipelines. This dataset is composed of the first image in the training set and the first image from the validation set of the first 10 classes in ImageNet. Although significantly smaller, it retains the structure and diversity of the original ImageNet dataset.
+The [ImageNet10](https://github.com/ultralytics/assets/releases/download/v0.0.0/imagenet10.zip) dataset is a small-scale subset of the [ImageNet](https://www.image-net.org/) database, developed by [Ultralytics](https://www.ultralytics.com/) and designed for CI tests, sanity checks, and fast testing of training pipelines. This dataset is composed of the first image in the training set and the first image from the validation set of the first 10 classes in ImageNet. Although significantly smaller, it retains the structure and diversity of the original ImageNet dataset.
 
 ## Key Features
 
@@ -27,7 +27,7 @@ The ImageNet10 dataset is useful for quickly testing and debugging computer visi
 
 To test a deep learning model on the ImageNet10 dataset with an image size of 224x224, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
-!!! Example "Test Example"
+!!! example "Test Example"
 
     === "Python"
 
@@ -58,7 +58,7 @@ The ImageNet10 dataset contains a subset of images from the original ImageNet da
 
 If you use the ImageNet10 dataset in your research or development work, please cite the original ImageNet paper:
 
-!!! Quote ""
+!!! quote ""
 
     === "BibTeX"
 
@@ -86,7 +86,7 @@ The [ImageNet10](https://github.com/ultralytics/assets/releases/download/v0.0.0/
 
 To test your deep learning model on the ImageNet10 dataset with an image size of 224x224, use the following code snippets.
 
-!!! Example "Test Example"
+!!! example "Test Example"
 
     === "Python"
 

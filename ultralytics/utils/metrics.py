@@ -1231,7 +1231,6 @@ class MultiLabelClassifyMetrics(SimpleClass):
         self.average_precisions = []
         self.mAP = 0
 
-
     def process(self, targets, pred):
         """
         Target classes and predicted classes.
@@ -1239,19 +1238,19 @@ class MultiLabelClassifyMetrics(SimpleClass):
         Args:
             targets (list): List of target classes.
             pred (list): List of predicted classes.
-        """         
+        """
         batch_targets = targets[0]
         batch_pred = pred[0]
-        self.average_precisions = multilabel_auprc(batch_pred, batch_targets, average = None)
-        self.mAP = multilabel_auprc(batch_pred, batch_targets, average = 'macro')
-        
+        self.average_precisions = multilabel_auprc(batch_pred, batch_targets, average=None)
+        self.mAP = multilabel_auprc(batch_pred, batch_targets, average="macro")
+
         LOGGER.info(f"Mean Average Precision: {self.mAP}")
         LOGGER.info("Average Precision for each Class: %s", self.average_precisions)
 
     @property
     def fitness(self):
         """Returns mean of precision, recall and f1 score as fitness score."""
-        return self.mAP 
+        return self.mAP
 
     @property
     def results_dict(self):

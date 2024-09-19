@@ -274,7 +274,7 @@ def fuse_deconv_and_bn(deconv, bn):
             bias=True,
         )
         .requires_grad_(False)
-        .to(conv.weight.device)
+        .to(deconv.weight.device)
     )
 
     # Prepare filters

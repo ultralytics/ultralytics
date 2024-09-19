@@ -637,8 +637,7 @@ class Annotator:
             cv2.putText(im0, txt, (text_x, text_y), 0, self.sf, txt_color, self.tf, lineType=cv2.LINE_AA)
             text_y_offset = rect_y2
 
-    @staticmethod
-    def estimate_pose_angle(a, b, c):
+    def estimate_pose_angle(self, a, b, c):
         """
         Calculate the pose angle for object.
 
@@ -650,12 +649,9 @@ class Annotator:
         Returns:
             angle (degree): Degree value of angle between three points
         """
-        a, b, c = np.array(a), np.array(b), np.array(c)
-        radians = np.arctan2(c[1] - b[1], c[0] - b[0]) - np.arctan2(a[1] - b[1], a[0] - b[0])
-        angle = np.abs(radians * 180.0 / np.pi)
-        if angle > 180.0:
-            angle = 360 - angle
-        return angle
+        a, b, c = map(lambda x: np.array(list(x)), (a, b, c))
+        angle = np.abs(np.degrees(np.arctan2(c[1] - b[1], c[0] - b[0]) - np.arctan2(a[1] - b[1], a[0] - b[0])))
+        return 360 - angle if angle > 180 else angle
 
     def draw_specific_points(self, keypoints, indices=None, shape=(640, 640), radius=2, conf_thres=0.25):
         """

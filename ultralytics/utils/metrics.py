@@ -8,6 +8,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
+from torcheval.metrics.functional import multilabel_auprc
 
 from ultralytics.utils import LOGGER, SimpleClass, TryExcept, plt_settings
 
@@ -1221,15 +1222,15 @@ class ClassifyMetrics(SimpleClass):
 
 
 class MultiLabelClassifyMetrics(SimpleClass):
-    """Utility class for computing Multi-label Classification metrics such as precision, recall, and F1 score."""
+    """Utility class for computing Multi-label Classification metrics such as precision, recall, and macro F1 score."""
 
     def __init__(self) -> None:
         """Initialize a Multi-label ClassifyMetrics instance."""
         self.speed = {"preprocess": 0.0, "inference": 0.0, "loss": 0.0, "postprocess": 0.0}
         self.task = "multi_label_classify"
-        self.precision = 0  # Precision of all classes
-        self.recall = 0  # Recall of all classes
-        self.f1 = 0  # F1 score of all classes
+        self.average_precisions = []
+        self.mAP = 0
+
 
     def process(self, targets, pred):
         """
@@ -1238,48 +1239,29 @@ class MultiLabelClassifyMetrics(SimpleClass):
         Args:
             targets (list): List of target classes.
             pred (list): List of predicted classes.
-        """
-        true_positives = 0
-        false_positives = 0
-        false_negatives = 0
-        true_negatives = 0
+        """         
         batch_targets = targets[0]
         batch_pred = pred[0]
-        for i in range(0, len(batch_pred) - 1):
-            for j in range(0, len(batch_pred[i]) - 1):
-                if batch_targets[i][j] == 1:
-                    if batch_pred[i][j] >= 0.5:
-                        true_positives += 1
-                    else:
-                        false_positives += 1
-                else:
-                    if batch_pred[i][j] <= 0.5:
-                        true_negatives += 1
-                    else:
-                        false_negatives += 1
-        self.precision = true_positives / (true_positives + false_positives)
-        self.recall = true_positives / (true_positives + false_negatives)
-        try:
-            self.f1 = 2 * (self.precision * self.recall) / (self.precision + self.recall)
-        except:
-            LOGGER.exception("Error in calculating F1 Score.")
-            self.f1 = 0
-        LOGGER.info(f"Precision: {self.precision}, Recall: {self.recall}, F1 Score: {self.f1}")
+        self.average_precisions = multilabel_auprc(batch_pred, batch_targets, average = None)
+        self.mAP = multilabel_auprc(batch_pred, batch_targets, average = 'macro')
+        
+        LOGGER.info(f"Mean Average Precision: {self.mAP}")
+        LOGGER.info("Average Precision for each Class: %s", self.average_precisions)
 
     @property
     def fitness(self):
         """Returns mean of precision, recall and f1 score as fitness score."""
-        return (self.precision + self.recall + self.f1) / 3
+        return self.mAP 
 
     @property
     def results_dict(self):
         """Returns a dictionary with model's performance metrics and fitness score."""
-        return dict(zip(self.keys + ["fitness"], [self.precision, self.recall, self.f1, self.fitness]))
+        return dict(zip(self.keys + ["fitness"], [self.mAP, self.fitness]))
 
     @property
     def keys(self):
         """Returns a list of keys for the results_dict property."""
-        return ["metrics/precision", "metrics/recall", "metrics/f1"]
+        return ["metrics/mAP"]
 
     @property
     def curves(self):

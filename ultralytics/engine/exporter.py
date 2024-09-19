@@ -95,9 +95,7 @@ from ultralytics.utils.torch_utils import TORCH_1_13, get_latest_opset, select_d
 
 
 def export_formats():
-    """YOLOv8 export formats."""
-    import pandas  # scope for faster 'import ultralytics'
-
+    """Ultralytics YOLO export formats."""
     x = [
         ["PyTorch", "-", ".pt", True, True],
         ["TorchScript", "torchscript", ".torchscript", True, True],
@@ -113,7 +111,7 @@ def export_formats():
         ["PaddlePaddle", "paddle", "_paddle_model", True, True],
         ["NCNN", "ncnn", "_ncnn_model", True, True],
     ]
-    return pandas.DataFrame(x, columns=["Format", "Argument", "Suffix", "CPU", "GPU"])
+    return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU"], zip(*x)))
 
 
 def gd_outputs(gd):

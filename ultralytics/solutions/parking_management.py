@@ -205,9 +205,7 @@ class ParkingManagement:
             for box, cls in zip(boxes, clss):
                 xc = int((box[0] + box[2]) / 2)
                 yc = int((box[1] + box[3]) / 2)
-                annotator.display_objects_labels(
-                    im0, self.model.names[int(cls)], (104, 31, 17), (255, 255, 255), xc, yc, 10
-                )
+                cv2.circle(im0, (xc, yc), annotator.tf * 4, (104, 31, 17), -1)
                 dist = cv2.pointPolygonTest(pts_array, (xc, yc), False)
                 if dist >= 0:
                     rg_occupied = True

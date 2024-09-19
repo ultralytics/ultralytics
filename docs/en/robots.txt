@@ -1,0 +1,14 @@
+User-agent: *
+Sitemap: https://docs.ultralytics.com/sitemap.xml
+Sitemap: https://docs.ultralytics.com/ar/sitemap.xml
+Sitemap: https://docs.ultralytics.com/de/sitemap.xml
+Sitemap: https://docs.ultralytics.com/es/sitemap.xml
+Sitemap: https://docs.ultralytics.com/fr/sitemap.xml
+Sitemap: https://docs.ultralytics.com/it/sitemap.xml
+Sitemap: https://docs.ultralytics.com/ja/sitemap.xml
+Sitemap: https://docs.ultralytics.com/ko/sitemap.xml
+Sitemap: https://docs.ultralytics.com/pt/sitemap.xml
+Sitemap: https://docs.ultralytics.com/ru/sitemap.xml
+Sitemap: https://docs.ultralytics.com/tr/sitemap.xml
+Sitemap: https://docs.ultralytics.com/vi/sitemap.xml
+Sitemap: https://docs.ultralytics.com/zh/sitemap.xml

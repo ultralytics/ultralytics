@@ -1,3 +1,5 @@
+# Ultralytics YOLO 🚀, AGPL-3.0 license
+
 blank_issues_enabled: true
 contact_links:
   - name: 📄 Docs
@@ -9,3 +11,6 @@ contact_links:
   - name: 🎧 Discord
     url: https://ultralytics.com/discord
     about: Ask on Ultralytics Discord
+  - name: ⌨️ Reddit
+    url: https://reddit.com/r/ultralytics
+    about: Ask on Ultralytics Subreddit

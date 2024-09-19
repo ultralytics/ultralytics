@@ -1,0 +1,266 @@
+/* Table format like GitHub ----------------------------------------------------------------------------------------- */
+th,
+td {
+  border: 1px solid var(--md-typeset-table-color);
+  border-spacing: 0;
+  border-bottom: none;
+  border-left: none;
+  border-top: none;
+}
+
+.md-typeset__table {
+  line-height: 1;
+}
+
+.md-typeset__table table:not([class]) {
+  font-size: 0.74rem;
+  border-right: none;
+}
+
+.md-typeset__table table:not([class]) td,
+.md-typeset__table table:not([class]) th {
+  padding: 9px;
+}
+
+/* light mode alternating table bg colors */
+.md-typeset__table tr:nth-child(2n) {
+  background-color: #f6f8fa;
+}
+
+/* dark mode alternating table bg colors */
+[data-md-color-scheme="slate"] .md-typeset__table tr:nth-child(2n) {
+  background-color: #161b22;
+}
+/* Table format like GitHub ----------------------------------------------------------------------------------------- */
+
+/* Code block vertical scroll */
+div.highlight {
+  max-height: 20rem;
+  overflow-y: auto; /* for adding a scrollbar when needed */
+}
+
+/* Set content width */
+.md-grid {
+  max-width: 1440px;
+}
+
+/* Set language dropdown maximum height to screen height */
+.md-header .md-select:hover .md-select__inner {
+  max-height: 75vh;
+}
+
+/* Banner (same as the one on the Ultralytics website) -------------------------------------------------------------- */
+.md-banner {
+  background-image: url(https://assets-global.website-files.com/646dd1f1a3703e451ba81ecc/66e9a211bf6831d112fd6ce3_banner_yv24.avif);
+  background-size: cover;
+  background-position: center;
+}
+
+.md-banner__inner {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+.banner-wrapper,
+.banner-wrapper > .banner-content-wrapper,
+.banner-wrapper > .banner-content-wrapper > .banner-info-wrapper {
+  display: flex;
+  align-items: center;
+}
+
+.banner-wrapper,
+.banner-wrapper > .banner-content-wrapper {
+  flex-direction: column;
+}
+
+.banner-wrapper {
+  justify-content: space-between;
+  gap: 16px;
+
+  padding: 16px;
+}
+
+.banner-wrapper > .banner-content-wrapper,
+.banner-wrapper > .banner-content-wrapper > .banner-info-wrapper {
+  justify-content: center;
+}
+
+.banner-wrapper > .banner-content-wrapper {
+  gap: 8px;
+}
+
+.banner-wrapper > .banner-content-wrapper > .banner-info-wrapper {
+  gap: 4px;
+}
+
+.banner-wrapper > .banner-content-wrapper > p,
+.banner-wrapper > .banner-content-wrapper > .banner-info-wrapper > p {
+  margin: 0;
+}
+
+.banner-wrapper > .banner-content-wrapper > p {
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.banner-wrapper > .banner-content-wrapper > .banner-info-wrapper > p,
+.banner-wrapper > .banner-button-wrapper > .banner-button-wrapper > button {
+  font-size: 14px;
+}
+
+.banner-wrapper > .banner-content-wrapper > .banner-info-wrapper > p {
+  color: #f3f3f3;
+}
+
+.banner-wrapper > .banner-button-wrapper,
+.banner-wrapper > .banner-button-wrapper > .banner-button-wrapper,
+.banner-wrapper > .banner-button-wrapper > .banner-button-wrapper > button {
+  border-radius: 100px;
+}
+
+.banner-wrapper > .banner-button-wrapper,
+.banner-wrapper > .banner-button-wrapper > .banner-button-wrapper {
+  padding: 2px;
+
+  background-color: rgba(222, 255, 56, 0.2);
+}
+
+.banner-wrapper > .banner-button-wrapper > .banner-button-wrapper.large {
+  padding: 4px;
+}
+
+.banner-wrapper > .banner-button-wrapper > .banner-button-wrapper > button {
+  cursor: pointer;
+
+  min-width: 132px;
+  padding: 10px;
+
+  font-weight: 500;
+  color: #111f68;
+
+  background-color: rgb(222, 255, 56);
+}
+
+.banner-wrapper
+  > .banner-button-wrapper
+  > .banner-button-wrapper
+  > button:hover {
+  background-color: rgba(222, 255, 56, 0.85);
+}
+
+@media screen and (min-width: 768px) {
+  .banner-wrapper,
+  .banner-wrapper > .banner-content-wrapper {
+    flex-direction: row;
+  }
+
+  .banner-wrapper {
+    gap: 32px;
+
+    padding: 12px;
+  }
+
+  .banner-wrapper > .banner-content-wrapper {
+    gap: 24px;
+
+    margin: 0 auto;
+  }
+}
+/* Banner (same as the one on the Ultralytics website) -------------------------------------------------------------- */
+
+/* MkDocs Ultralytics Plugin ---------------------------------------------------------------------------------------- */
+.git-info,
+.dates-container,
+.authors-container,
+.share-buttons {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.git-info {
+  font-size: 0.8em;
+  color: grey;
+  margin-bottom: 10px;
+}
+
+.dates-container,
+.authors-container {
+  margin-bottom: 10px;
+}
+
+.date-item,
+.author-link,
+.share-button {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.date-item {
+  margin-right: 10px;
+}
+
+.hover-item {
+  transition: all 0.2s ease;
+  filter: grayscale(100%);
+}
+
+.date-item .hover-item {
+  font-size: 1.6em;
+  margin-right: 5px;
+}
+
+.author-link .hover-item {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  margin-right: 3px;
+}
+
+.hover-item:hover {
+  transform: scale(1.2);
+  filter: grayscale(0%);
+}
+
+.share-buttons {
+  margin-top: 10px;
+}
+
+.share-button {
+  background-color: #1da1f2;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 5px;
+  border: none;
+  font-size: 0.95em;
+  margin: 5px;
+  transition: all 0.2s ease;
+}
+
+.share-button:hover {
+  transform: scale(1.1);
+  filter: brightness(1.2);
+}
+
+.share-button.linkedin {
+  background-color: #0077b5;
+}
+
+.share-button i {
+  margin-right: 5px;
+  font-size: 1.1em;
+}
+
+@media (max-width: 1024px) {
+  .git-info {
+    flex-direction: column;
+    align-items: flex-end;
+  }
+  .dates-container,
+  .authors-container {
+    width: 100%;
+  }
+}
+/* MkDocs Ultralytics Plugin ---------------------------------------------------------------------------------------- */

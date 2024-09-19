@@ -1,0 +1,87 @@
+---
+comments: true
+description: Learn about Ultralytics CI actions, Docker deployment, broken link checks, CodeQL analysis, and PyPI publishing to ensure high-quality code.
+keywords: Ultralytics, Continuous Integration, CI, Docker deployment, CodeQL, PyPI publishing, code quality, automated testing
+---
+
+# Continuous Integration (CI)
+
+Continuous Integration (CI) is an essential aspect of software development which involves integrating changes and testing them automatically. CI allows us to maintain high-quality code by catching issues early and often in the development process. At Ultralytics, we use various CI tests to ensure the quality and integrity of our codebase.
+
+## CI Actions
+
+Here's a brief description of our CI actions:
+
+- **[CI](https://github.com/ultralytics/ultralytics/actions/workflows/ci.yaml):** This is our primary CI test that involves running unit tests, linting checks, and sometimes more comprehensive tests depending on the repository.
+- **[Docker Deployment](https://github.com/ultralytics/ultralytics/actions/workflows/docker.yaml):** This test checks the deployment of the project using Docker to ensure the Dockerfile and related scripts are working correctly.
+- **[Broken Links](https://github.com/ultralytics/ultralytics/actions/workflows/links.yml):** This test scans the codebase for any broken or dead links in our markdown or HTML files.
+- **[CodeQL](https://github.com/ultralytics/ultralytics/actions/workflows/codeql.yaml):** CodeQL is a tool from GitHub that performs semantic analysis on our code, helping to find potential security vulnerabilities and maintain high-quality code.
+- **[PyPI Publishing](https://github.com/ultralytics/ultralytics/actions/workflows/publish.yml):** This test checks if the project can be packaged and published to PyPi without any errors.
+
+### CI Results
+
+Below is the table showing the status of these CI tests for our main repositories:
+
+| Repository                                                | CI                                                                                                                                                                        | Docker Deployment                                                                                                                                                                        | Broken Links                                                                                                                                                                                                                                                                                                                                      | CodeQL                                                                                                                                                                          | PyPI and Docs Publishing                                                                                                                                                                                      |
+| --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [yolov3](https://github.com/ultralytics/yolov3)           | [![YOLOv3 CI](https://github.com/ultralytics/yolov3/actions/workflows/ci-testing.yml/badge.svg)](https://github.com/ultralytics/yolov3/actions/workflows/ci-testing.yml)  | [![Publish Docker Images](https://github.com/ultralytics/yolov3/actions/workflows/docker.yml/badge.svg)](https://github.com/ultralytics/yolov3/actions/workflows/docker.yml)             | [![Check Broken links](https://github.com/ultralytics/yolov3/actions/workflows/links.yml/badge.svg)](https://github.com/ultralytics/yolov3/actions/workflows/links.yml)                                                                                                                                                                           | [![CodeQL](https://github.com/ultralytics/yolov3/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/ultralytics/yolov3/actions/workflows/codeql-analysis.yml) |                                                                                                                                                                                                               |
+| [yolov5](https://github.com/ultralytics/yolov5)           | [![YOLOv5 CI](https://github.com/ultralytics/yolov5/actions/workflows/ci-testing.yml/badge.svg)](https://github.com/ultralytics/yolov5/actions/workflows/ci-testing.yml)  | [![Publish Docker Images](https://github.com/ultralytics/yolov5/actions/workflows/docker.yml/badge.svg)](https://github.com/ultralytics/yolov5/actions/workflows/docker.yml)             | [![Check Broken links](https://github.com/ultralytics/yolov5/actions/workflows/links.yml/badge.svg)](https://github.com/ultralytics/yolov5/actions/workflows/links.yml)                                                                                                                                                                           | [![CodeQL](https://github.com/ultralytics/yolov5/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/ultralytics/yolov5/actions/workflows/codeql-analysis.yml) |                                                                                                                                                                                                               |
+| [ultralytics](https://github.com/ultralytics/ultralytics) | [![ultralytics CI](https://github.com/ultralytics/ultralytics/actions/workflows/ci.yaml/badge.svg)](https://github.com/ultralytics/ultralytics/actions/workflows/ci.yaml) | [![Publish Docker Images](https://github.com/ultralytics/ultralytics/actions/workflows/docker.yaml/badge.svg)](https://github.com/ultralytics/ultralytics/actions/workflows/docker.yaml) | [![Check Broken links](https://github.com/ultralytics/ultralytics/actions/workflows/links.yml/badge.svg)](https://github.com/ultralytics/ultralytics/actions/workflows/links.yml)                                                                                                                                                                 | [![CodeQL](https://github.com/ultralytics/ultralytics/actions/workflows/codeql.yaml/badge.svg)](https://github.com/ultralytics/ultralytics/actions/workflows/codeql.yaml)       | [![Publish to PyPI and Deploy Docs](https://github.com/ultralytics/ultralytics/actions/workflows/publish.yml/badge.svg)](https://github.com/ultralytics/ultralytics/actions/workflows/publish.yml)            |
+| [hub](https://github.com/ultralytics/hub)                 | [![HUB CI](https://github.com/ultralytics/hub/actions/workflows/ci.yaml/badge.svg)](https://github.com/ultralytics/hub/actions/workflows/ci.yaml)                         |                                                                                                                                                                                          | [![Check Broken links](https://github.com/ultralytics/hub/actions/workflows/links.yml/badge.svg)](https://github.com/ultralytics/hub/actions/workflows/links.yml)                                                                                                                                                                                 |                                                                                                                                                                                 |                                                                                                                                                                                                               |
+| [docs](https://github.com/ultralytics/docs)               |                                                                                                                                                                           |                                                                                                                                                                                          | [![Check Broken links](https://github.com/ultralytics/docs/actions/workflows/links.yml/badge.svg)](https://github.com/ultralytics/docs/actions/workflows/links.yml)[![Check Domains](https://github.com/ultralytics/docs/actions/workflows/check_domains.yml/badge.svg)](https://github.com/ultralytics/docs/actions/workflows/check_domains.yml) |                                                                                                                                                                                 | [![pages-build-deployment](https://github.com/ultralytics/docs/actions/workflows/pages/pages-build-deployment/badge.svg)](https://github.com/ultralytics/docs/actions/workflows/pages/pages-build-deployment) |
+
+Each badge shows the status of the last run of the corresponding CI test on the `main` branch of the respective repository. If a test fails, the badge will display a "failing" status, and if it passes, it will display a "passing" status.
+
+If you notice a test failing, it would be a great help if you could report it through a GitHub issue in the respective repository.
+
+Remember, a successful CI test does not mean that everything is perfect. It is always recommended to manually review the code before deployment or merging changes.
+
+## Code Coverage
+
+Code coverage is a metric that represents the percentage of your codebase that is executed when your tests run. It provides insight into how well your tests exercise your code and can be crucial in identifying untested parts of your application. A high code coverage percentage is often associated with a lower likelihood of bugs. However, it's essential to understand that code coverage does not guarantee the absence of defects. It merely indicates which parts of the code have been executed by the tests.
+
+### Integration with [codecov.io](https://about.codecov.io/)
+
+At Ultralytics, we have integrated our repositories with [codecov.io](https://about.codecov.io/), a popular online platform for measuring and visualizing code coverage. Codecov provides detailed insights, coverage comparisons between commits, and visual overlays directly on your code, indicating which lines were covered.
+
+By integrating with Codecov, we aim to maintain and improve the quality of our code by focusing on areas that might be prone to errors or need further testing.
+
+### Coverage Results
+
+To quickly get a glimpse of the code coverage status of the `ultralytics` python package, we have included a badge and sunburst visual of the `ultralytics` coverage results. These images show the percentage of code covered by our tests, offering an at-a-glance metric of our testing efforts. For full details please see https://codecov.io/github/ultralytics/ultralytics.
+
+| Repository                                                | Code Coverage                                                                                                                                           |
+| --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [ultralytics](https://github.com/ultralytics/ultralytics) | [![codecov](https://codecov.io/gh/ultralytics/ultralytics/branch/main/graph/badge.svg?token=HHW7IIVFVY)](https://codecov.io/gh/ultralytics/ultralytics) |
+
+In the sunburst graphic below, the innermost circle is the entire project, moving away from the center are folders then, finally, a single file. The size and color of each slice is representing the number of statements and the coverage, respectively.
+
+<a href="https://codecov.io/github/ultralytics/ultralytics">
+    <img src="https://codecov.io/gh/ultralytics/ultralytics/branch/main/graphs/sunburst.svg?token=HHW7IIVFVY" alt="Ultralytics Codecov Image">
+</a>
+
+## FAQ
+
+### What is Continuous Integration (CI) in Ultralytics?
+
+Continuous Integration (CI) in Ultralytics involves automatically integrating and testing code changes to ensure high-quality standards. Our CI setup includes running [unit tests, linting checks, and comprehensive tests](https://github.com/ultralytics/ultralytics/actions/workflows/ci.yaml). Additionally, we perform [Docker deployment](https://github.com/ultralytics/ultralytics/actions/workflows/docker.yaml), [broken link checks](https://github.com/ultralytics/ultralytics/actions/workflows/links.yml), [CodeQL analysis](https://github.com/ultralytics/ultralytics/actions/workflows/codeql.yaml) for security vulnerabilities, and [PyPI publishing](https://github.com/ultralytics/ultralytics/actions/workflows/publish.yml) to package and distribute our software.
+
+### How does Ultralytics check for broken links in documentation and code?
+
+Ultralytics uses a specific CI action to [check for broken links](https://github.com/ultralytics/ultralytics/actions/workflows/links.yml) within our markdown and HTML files. This helps maintain the integrity of our documentation by scanning and identifying dead or broken links, ensuring that users always have access to accurate and live resources.
+
+### Why is CodeQL analysis important for Ultralytics' codebase?
+
+[CodeQL analysis](https://github.com/ultralytics/ultralytics/actions/workflows/codeql.yaml) is crucial for Ultralytics as it performs semantic code analysis to find potential security vulnerabilities and maintain high-quality standards. With CodeQL, we can proactively identify and mitigate risks in our code, helping us deliver robust and secure software solutions.
+
+### How does Ultralytics utilize Docker for deployment?
+
+Ultralytics employs Docker to validate the deployment of our projects through a dedicated CI action. This process ensures that our [Dockerfile and associated scripts](https://github.com/ultralytics/ultralytics/actions/workflows/docker.yaml) are functioning correctly, allowing for consistent and reproducible deployment environments which are critical for scalable and reliable AI solutions.
+
+### What is the role of automated PyPI publishing in Ultralytics?
+
+Automated [PyPI publishing](https://github.com/ultralytics/ultralytics/actions/workflows/publish.yml) ensures that our projects can be packaged and published without errors. This step is essential for distributing Ultralytics' Python packages, allowing users to easily install and use our tools via the Python Package Index (PyPI).
+
+### How does Ultralytics measure code coverage and why is it important?
+
+Ultralytics measures code coverage by integrating with [Codecov](https://app.codecov.io/github/ultralytics/ultralytics), providing insights into how much of the codebase is executed during tests. High code coverage can indicate well-tested code, helping to uncover untested areas that might be prone to bugs. Detailed code coverage metrics can be explored via badges displayed on our main repositories or directly on [Codecov](https://app.codecov.io/gh/ultralytics/ultralytics).

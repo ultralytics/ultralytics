@@ -20,7 +20,7 @@ from ultralytics.utils.files import increment_path
 
 class Colors:
     """
-    Ultralytics default color palette https://ultralytics.com/.
+    Ultralytics color palette https://docs.ultralytics.com/reference/utils/plotting/#ultralytics.utils.plotting.Colors.
 
     This class provides methods to work with the Ultralytics color palette, including converting hex color codes to
     RGB values.
@@ -29,6 +29,60 @@ class Colors:
         palette (list of tuple): List of RGB color values.
         n (int): The number of colors in the palette.
         pose_palette (np.ndarray): A specific color palette array with dtype np.uint8.
+
+    ## Ultralytics Color Palette
+
+    | Index | Color                                                             | HEX       | RGB               |
+    |-------|-------------------------------------------------------------------|-----------|-------------------|
+    | 0     | <i class="fa-solid fa-square fa-2xl" style="color: #042aff;"></i> | `#042aff` | (4, 42, 255)      |
+    | 1     | <i class="fa-solid fa-square fa-2xl" style="color: #0bdbeb;"></i> | `#0bdbeb` | (11, 219, 235)    |
+    | 2     | <i class="fa-solid fa-square fa-2xl" style="color: #f3f3f3;"></i> | `#f3f3f3` | (243, 243, 243)   |
+    | 3     | <i class="fa-solid fa-square fa-2xl" style="color: #00dfb7;"></i> | `#00dfb7` | (0, 223, 183)     |
+    | 4     | <i class="fa-solid fa-square fa-2xl" style="color: #111f68;"></i> | `#111f68` | (17, 31, 104)     |
+    | 5     | <i class="fa-solid fa-square fa-2xl" style="color: #ff6fdd;"></i> | `#ff6fdd` | (255, 111, 221)   |
+    | 6     | <i class="fa-solid fa-square fa-2xl" style="color: #ff444f;"></i> | `#ff444f` | (255, 68, 79)     |
+    | 7     | <i class="fa-solid fa-square fa-2xl" style="color: #cced00;"></i> | `#cced00` | (204, 237, 0)     |
+    | 8     | <i class="fa-solid fa-square fa-2xl" style="color: #00f344;"></i> | `#00f344` | (0, 243, 68)      |
+    | 9     | <i class="fa-solid fa-square fa-2xl" style="color: #bd00ff;"></i> | `#bd00ff` | (189, 0, 255)     |
+    | 10    | <i class="fa-solid fa-square fa-2xl" style="color: #00b4ff;"></i> | `#00b4ff` | (0, 180, 255)     |
+    | 11    | <i class="fa-solid fa-square fa-2xl" style="color: #dd00ba;"></i> | `#dd00ba` | (221, 0, 186)     |
+    | 12    | <i class="fa-solid fa-square fa-2xl" style="color: #00ffff;"></i> | `#00ffff` | (0, 255, 255)     |
+    | 13    | <i class="fa-solid fa-square fa-2xl" style="color: #26c000;"></i> | `#26c000` | (38, 192, 0)      |
+    | 14    | <i class="fa-solid fa-square fa-2xl" style="color: #01ffb3;"></i> | `#01ffb3` | (1, 255, 179)     |
+    | 15    | <i class="fa-solid fa-square fa-2xl" style="color: #7d24ff;"></i> | `#7d24ff` | (125, 36, 255)    |
+    | 16    | <i class="fa-solid fa-square fa-2xl" style="color: #7b0068;"></i> | `#7b0068` | (123, 0, 104)     |
+    | 17    | <i class="fa-solid fa-square fa-2xl" style="color: #ff1b6c;"></i> | `#ff1b6c` | (255, 27, 108)    |
+    | 18    | <i class="fa-solid fa-square fa-2xl" style="color: #fc6d2f;"></i> | `#fc6d2f` | (252, 109, 47)    |
+    | 19    | <i class="fa-solid fa-square fa-2xl" style="color: #a2ff0b;"></i> | `#a2ff0b` | (162, 255, 11)    |
+
+    ## Pose Color Palette
+
+    | Index | Color                                                             | HEX       | RGB               |
+    |-------|-------------------------------------------------------------------|-----------|-------------------|
+    | 0     | <i class="fa-solid fa-square fa-2xl" style="color: #ff8000;"></i> | `#ff8000` | (255, 128, 0)     |
+    | 1     | <i class="fa-solid fa-square fa-2xl" style="color: #ff9933;"></i> | `#ff9933` | (255, 153, 51)    |
+    | 2     | <i class="fa-solid fa-square fa-2xl" style="color: #ffb266;"></i> | `#ffb266` | (255, 178, 102)   |
+    | 3     | <i class="fa-solid fa-square fa-2xl" style="color: #e6e600;"></i> | `#e6e600` | (230, 230, 0)     |
+    | 4     | <i class="fa-solid fa-square fa-2xl" style="color: #ff99ff;"></i> | `#ff99ff` | (255, 153, 255)   |
+    | 5     | <i class="fa-solid fa-square fa-2xl" style="color: #99ccff;"></i> | `#99ccff` | (153, 204, 255)   |
+    | 6     | <i class="fa-solid fa-square fa-2xl" style="color: #ff66ff;"></i> | `#ff66ff` | (255, 102, 255)   |
+    | 7     | <i class="fa-solid fa-square fa-2xl" style="color: #ff33ff;"></i> | `#ff33ff` | (255, 51, 255)    |
+    | 8     | <i class="fa-solid fa-square fa-2xl" style="color: #66b2ff;"></i> | `#66b2ff` | (102, 178, 255)   |
+    | 9     | <i class="fa-solid fa-square fa-2xl" style="color: #3399ff;"></i> | `#3399ff` | (51, 153, 255)    |
+    | 10    | <i class="fa-solid fa-square fa-2xl" style="color: #ff9999;"></i> | `#ff9999` | (255, 153, 153)   |
+    | 11    | <i class="fa-solid fa-square fa-2xl" style="color: #ff6666;"></i> | `#ff6666` | (255, 102, 102)   |
+    | 12    | <i class="fa-solid fa-square fa-2xl" style="color: #ff3333;"></i> | `#ff3333` | (255, 51, 51)     |
+    | 13    | <i class="fa-solid fa-square fa-2xl" style="color: #99ff99;"></i> | `#99ff99` | (153, 255, 153)   |
+    | 14    | <i class="fa-solid fa-square fa-2xl" style="color: #66ff66;"></i> | `#66ff66` | (102, 255, 102)   |
+    | 15    | <i class="fa-solid fa-square fa-2xl" style="color: #33ff33;"></i> | `#33ff33` | (51, 255, 51)     |
+    | 16    | <i class="fa-solid fa-square fa-2xl" style="color: #00ff00;"></i> | `#00ff00` | (0, 255, 0)       |
+    | 17    | <i class="fa-solid fa-square fa-2xl" style="color: #0000ff;"></i> | `#0000ff` | (0, 0, 255)       |
+    | 18    | <i class="fa-solid fa-square fa-2xl" style="color: #ff0000;"></i> | `#ff0000` | (255, 0, 0)       |
+    | 19    | <i class="fa-solid fa-square fa-2xl" style="color: #ffffff;"></i> | `#ffffff` | (255, 255, 255)   |
+
+    !!! note "Ultralytics Brand Colors"
+
+        For Ultralytics brand colors see [https://www.ultralytics.com/brand](https://www.ultralytics.com/brand). Please use the official Ultralytics colors for all marketing materials.
     """
 
     def __init__(self):
@@ -365,7 +419,7 @@ class Annotator:
             # Convert im back to PIL and update draw
             self.fromarray(self.im)
 
-    def kpts(self, kpts, shape=(640, 640), radius=5, kpt_line=True, conf_thres=0.25, kpt_color=None):
+    def kpts(self, kpts, shape=(640, 640), radius=None, kpt_line=True, conf_thres=0.25, kpt_color=None):
         """
         Plot keypoints on the image.
 
@@ -382,6 +436,7 @@ class Annotator:
             - Modifies self.im in-place.
             - If self.pil is True, converts image to numpy array and back to PIL.
         """
+        radius = radius if radius is not None else self.lw
         if self.pil:
             # Convert to numpy first
             self.im = np.asarray(self.im).copy()
@@ -417,7 +472,7 @@ class Annotator:
                     pos1,
                     pos2,
                     kpt_color or self.limb_color[i].tolist(),
-                    thickness=2,
+                    thickness=int(np.ceil(self.lw / 2)),
                     lineType=cv2.LINE_AA,
                 )
         if self.pil:
@@ -500,6 +555,10 @@ class Annotator:
             thickness (int): Region area thickness value
         """
         cv2.polylines(self.im, [np.array(reg_pts, dtype=np.int32)], isClosed=True, color=color, thickness=thickness)
+
+        # Draw small circles at the corner points
+        for point in reg_pts:
+            cv2.circle(self.im, (point[0], point[1]), thickness * 2, color, -1)  # -1 fills the circle
 
     def draw_centroid_and_tracks(self, track, color=(255, 0, 255), track_thickness=2):
         """
@@ -756,39 +815,35 @@ class Annotator:
                 self.im, label, (int(mask[0][0]) - text_size[0] // 2, int(mask[0][1])), 0, self.sf, txt_color, self.tf
             )
 
-    def plot_distance_and_line(self, distance_m, distance_mm, centroids, line_color, centroid_color):
+    def plot_distance_and_line(self, pixels_distance, centroids, line_color, centroid_color):
         """
         Plot the distance and line on frame.
 
         Args:
-            distance_m (float): Distance between two bbox centroids in meters.
-            distance_mm (float): Distance between two bbox centroids in millimeters.
+            pixels_distance (float): Pixels distance between two bbox centroids.
             centroids (list): Bounding box centroids data.
             line_color (RGB): Distance line color.
             centroid_color (RGB): Bounding box centroid color.
         """
-        (text_width_m, text_height_m), _ = cv2.getTextSize(f"Distance M: {distance_m:.2f}m", 0, self.sf, self.tf)
-        cv2.rectangle(self.im, (15, 25), (15 + text_width_m + 10, 25 + text_height_m + 20), line_color, -1)
-        cv2.putText(
-            self.im,
-            f"Distance M: {distance_m:.2f}m",
-            (20, 50),
-            0,
-            self.sf,
-            centroid_color,
-            self.tf,
-            cv2.LINE_AA,
+        # Get the text size
+        (text_width_m, text_height_m), _ = cv2.getTextSize(
+            f"Pixels Distance: {pixels_distance:.2f}", 0, self.sf, self.tf
         )
 
-        (text_width_mm, text_height_mm), _ = cv2.getTextSize(f"Distance MM: {distance_mm:.2f}mm", 0, self.sf, self.tf)
-        cv2.rectangle(self.im, (15, 75), (15 + text_width_mm + 10, 75 + text_height_mm + 20), line_color, -1)
+        # Define corners with 10-pixel margin and draw rectangle
+        top_left = (15, 25)
+        bottom_right = (15 + text_width_m + 20, 25 + text_height_m + 20)
+        cv2.rectangle(self.im, top_left, bottom_right, centroid_color, -1)
+
+        # Calculate the position for the text with a 10-pixel margin and draw text
+        text_position = (top_left[0] + 10, top_left[1] + text_height_m + 10)
         cv2.putText(
             self.im,
-            f"Distance MM: {distance_mm:.2f}mm",
-            (20, 100),
+            f"Pixels Distance: {pixels_distance:.2f}",
+            text_position,
             0,
             self.sf,
-            centroid_color,
+            (255, 255, 255),
             self.tf,
             cv2.LINE_AA,
         )

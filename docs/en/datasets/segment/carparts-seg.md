@@ -6,7 +6,7 @@ keywords: Carparts Segmentation Dataset, Roboflow, computer vision, automotive A
 
 # Roboflow Universe Carparts Segmentation Dataset
 
-The [Roboflow](https://roboflow.com/?ref=ultralytics) [Carparts Segmentation Dataset](https://universe.roboflow.com/gianmarco-russo-vt9xr/car-seg-un1pm) is a curated collection of images and videos designed for computer vision applications, specifically focusing on segmentation tasks related to car parts. This dataset provides a diverse set of visuals captured from multiple perspectives, offering valuable annotated examples for training and testing segmentation models.
+The [Roboflow](https://roboflow.com/?ref=ultralytics) [Carparts Segmentation Dataset](https://universe.roboflow.com/gianmarco-russo-vt9xr/car-seg-un1pm?ref=ultralytics) is a curated collection of images and videos designed for computer vision applications, specifically focusing on segmentation tasks related to car parts. This dataset provides a diverse set of visuals captured from multiple perspectives, offering valuable annotated examples for training and testing segmentation models.
 
 Whether you're working on automotive research, developing AI solutions for vehicle maintenance, or exploring computer vision applications, the Carparts Segmentation Dataset serves as a valuable resource for enhancing accuracy and efficiency in your projects.
 
@@ -37,7 +37,7 @@ Carparts Segmentation finds applications in automotive quality control, auto rep
 
 A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. In the case of the Package Segmentation dataset, the `carparts-seg.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/carparts-seg.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/carparts-seg.yaml).
 
-!!! Example "ultralytics/cfg/datasets/carparts-seg.yaml"
+!!! example "ultralytics/cfg/datasets/carparts-seg.yaml"
 
     ```yaml
     --8<-- "ultralytics/cfg/datasets/carparts-seg.yaml"
@@ -47,7 +47,7 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 To train Ultralytics YOLOv8n model on the Carparts Segmentation dataset for 100 epochs with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
-!!! Example "Train Example"
+!!! example "Train Example"
 
     === "Python"
 
@@ -81,7 +81,7 @@ The Carparts Segmentation dataset includes a diverse array of images and videos 
 
 If you integrate the Carparts Segmentation dataset into your research or development projects, please make reference to the following paper:
 
-!!! Quote ""
+!!! quote ""
 
     === "BibTeX"
 
@@ -100,22 +100,22 @@ If you integrate the Carparts Segmentation dataset into your research or develop
             }
         ```
 
-We extend our thanks to the Roboflow team for their dedication in developing and managing the Carparts Segmentation dataset, a valuable resource for vehicle maintenance and research projects. For additional details about the Carparts Segmentation dataset and its creators, please visit the [CarParts Segmentation Dataset Page](https://universe.roboflow.com/gianmarco-russo-vt9xr/car-seg-un1pm).
+We extend our thanks to the Roboflow team for their dedication in developing and managing the Carparts Segmentation dataset, a valuable resource for vehicle maintenance and research projects. For additional details about the Carparts Segmentation dataset and its creators, please visit the [CarParts Segmentation Dataset Page](https://universe.roboflow.com/gianmarco-russo-vt9xr/car-seg-un1pm?ref=ultralytics).
 
 ## FAQ
 
 ### What is the Roboflow Carparts Segmentation Dataset?
 
-The [Roboflow Carparts Segmentation Dataset](https://universe.roboflow.com/gianmarco-russo-vt9xr/car-seg-un1pm) is a curated collection of images and videos specifically designed for car part segmentation tasks in computer vision. This dataset includes a diverse range of visuals captured from multiple perspectives, making it an invaluable resource for training and testing segmentation models for automotive applications.
+The [Roboflow Carparts Segmentation Dataset](https://universe.roboflow.com/gianmarco-russo-vt9xr/car-seg-un1pm?ref=ultralytics) is a curated collection of images and videos specifically designed for car part segmentation tasks in computer vision. This dataset includes a diverse range of visuals captured from multiple perspectives, making it an invaluable resource for training and testing segmentation models for automotive applications.
 
 ### How can I use the Carparts Segmentation Dataset with Ultralytics YOLOv8?
 
 To train a YOLOv8 model on the Carparts Segmentation dataset, you can follow these steps:
 
-!!! Example "Train Example"
+!!! example "Train Example"
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
 
@@ -138,6 +138,7 @@ For more details, refer to the [Training](../../modes/train.md) documentation.
 ### What are some applications of Carparts Segmentation?
 
 Carparts Segmentation can be widely applied in various fields such as:
+
 - **Automotive quality control**
 - **Auto repair and maintenance**
 - **E-commerce cataloging**
@@ -155,6 +156,6 @@ The dataset configuration file for the Carparts Segmentation dataset, `carparts-
 
 ### Why should I use the Carparts Segmentation Dataset?
 
-The Carparts Segmentation Dataset provides rich, annotated data essential for developing high-accuracy segmentation models in automotive computer vision. This dataset's diversity and detailed annotations improve model training, making it ideal for applications like vehicle maintenance automation, enhancing vehicle safety systems, and supporting autonomous driving technologies. Partnering with a robust dataset accelerates AI development and ensures better model performance. 
+The Carparts Segmentation Dataset provides rich, annotated data essential for developing high-accuracy segmentation models in automotive computer vision. This dataset's diversity and detailed annotations improve model training, making it ideal for applications like vehicle maintenance automation, enhancing vehicle safety systems, and supporting autonomous driving technologies. Partnering with a robust dataset accelerates AI development and ensures better model performance.
 
-For more details, visit the [CarParts Segmentation Dataset Page](https://universe.roboflow.com/gianmarco-russo-vt9xr/car-seg-un1pm).
+For more details, visit the [CarParts Segmentation Dataset Page](https://universe.roboflow.com/gianmarco-russo-vt9xr/car-seg-un1pm?ref=ultralytics).

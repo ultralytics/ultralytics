@@ -45,9 +45,9 @@ TORCHVISION_0_10 = check_version(TORCHVISION_VERSION, "0.10.0")
 TORCHVISION_0_11 = check_version(TORCHVISION_VERSION, "0.11.0")
 TORCHVISION_0_13 = check_version(TORCHVISION_VERSION, "0.13.0")
 TORCHVISION_0_18 = check_version(TORCHVISION_VERSION, "0.18.0")
-if WINDOWS and torch.__version__[:3] == "2.4":  # reject all versions of 2.4 on Windows
+if WINDOWS and check_version(torch.__version__, "==2.4.0"):  # reject version 2.4.0 on Windows
     LOGGER.warning(
-        "WARNING ⚠️ Known issue with torch>=2.4.0 on Windows with CPU, recommend downgrading to torch<=2.3.1 to resolve "
+        "WARNING ⚠️ Known issue with torch==2.4.0 on Windows with CPU, recommend upgrading to torch>=2.4.1 to resolve "
         "https://github.com/ultralytics/ultralytics/issues/15049"
     )
 
@@ -533,16 +533,17 @@ class ModelEMA:
             copy_attr(self.ema, model, include, exclude)
 
 
-def strip_optimizer(f: Union[str, Path] = "best.pt", s: str = "") -> None:
+def strip_optimizer(f: Union[str, Path] = "best.pt", s: str = "", updates: dict = None) -> dict:
     """
     Strip optimizer from 'f' to finalize training, optionally save as 's'.
 
     Args:
         f (str): file path to model to strip the optimizer from. Default is 'best.pt'.
         s (str): file path to save the model with stripped optimizer to. If not provided, 'f' will be overwritten.
+        updates (dict): a dictionary of updates to overlay onto the checkpoint before saving.
 
     Returns:
-        None
+        (dict): The combined checkpoint dictionary.
 
     Example:
         ```python
@@ -562,9 +563,9 @@ def strip_optimizer(f: Union[str, Path] = "best.pt", s: str = "") -> None:
         assert "model" in x, "'model' missing from checkpoint"
     except Exception as e:
         LOGGER.warning(f"WARNING ⚠️ Skipping {f}, not a valid Ultralytics model: {e}")
-        return
+        return {}
 
-    updates = {
+    metadata = {
         "date": datetime.now().isoformat(),
         "version": __version__,
         "license": "AGPL-3.0 License (https://ultralytics.com/license)",
@@ -591,9 +592,11 @@ def strip_optimizer(f: Union[str, Path] = "best.pt", s: str = "") -> None:
     # x['model'].args = x['train_args']
 
     # Save
-    torch.save({**updates, **x}, s or f, use_dill=False)  # combine dicts (prefer to the right)
+    combined = {**metadata, **x, **(updates or {})}
+    torch.save(combined, s or f, use_dill=False)  # combine dicts (prefer to the right)
     mb = os.path.getsize(s or f) / 1e6  # file size
     LOGGER.info(f"Optimizer stripped from {f},{f' saved as {s},' if s else ''} {mb:.1f}MB")
+    return combined
 
 
 def convert_optimizer_state_dict_to_fp16(state_dict):

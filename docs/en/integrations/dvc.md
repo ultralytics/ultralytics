@@ -8,7 +8,7 @@ keywords: YOLOv8, DVCLive, experiment tracking, machine learning, model training
 
 Experiment tracking in machine learning is critical to model development and evaluation. It involves recording and analyzing various parameters, metrics, and outcomes from numerous training runs. This process is essential for understanding model performance and making data-driven decisions to refine and optimize models.
 
-Integrating DVCLive with [Ultralytics YOLOv8](https://ultralytics.com) transforms the way experiments are tracked and managed. This integration offers a seamless solution for automatically logging key experiment details, comparing results across different runs, and visualizing data for in-depth analysis. In this guide, we'll understand how DVCLive can be used to streamline the process.
+Integrating DVCLive with [Ultralytics YOLOv8](https://www.ultralytics.com/) transforms the way experiments are tracked and managed. This integration offers a seamless solution for automatically logging key experiment details, comparing results across different runs, and visualizing data for in-depth analysis. In this guide, we'll understand how DVCLive can be used to streamline the process.
 
 ## DVCLive
 
@@ -26,7 +26,7 @@ YOLOv8 training sessions can be effectively monitored with DVCLive. Additionally
 
 To install the required packages, run:
 
-!!! Tip "Installation"
+!!! tip "Installation"
 
     === "CLI"
 
@@ -43,7 +43,7 @@ Once you have installed the necessary packages, the next step is to set up and c
 
 Begin by initializing a Git repository, as Git plays a crucial role in version control for both your code and DVCLive configurations.
 
-!!! Tip "Initial Environment Setup"
+!!! tip "Initial Environment Setup"
 
     === "CLI"
 
@@ -176,7 +176,7 @@ Additionally, explore more integrations and capabilities of Ultralytics by visit
 
 Integrating DVCLive with Ultralytics YOLOv8 is straightforward. Start by installing the necessary packages:
 
-!!! Example "Installation"
+!!! example "Installation"
 
     === "CLI"
 
@@ -186,7 +186,7 @@ Integrating DVCLive with Ultralytics YOLOv8 is straightforward. Start by install
 
 Next, initialize a Git repository and configure DVCLive in your project:
 
-!!! Example "Initial Environment Setup"
+!!! example "Initial Environment Setup"
 
     === "CLI"
 
@@ -258,7 +258,7 @@ These steps ensure proper version control and setup for experiment tracking. For
 
 DVCLive offers powerful tools to visualize the results of YOLOv8 experiments. Here's how you can generate comparative plots:
 
-!!! Example "Generate Comparative Plots"
+!!! example "Generate Comparative Plots"
 
     === "CLI"
 

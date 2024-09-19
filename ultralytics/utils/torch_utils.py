@@ -240,7 +240,7 @@ def fuse_conv_and_bn(conv, bn):
         dilation=conv.dilation,
         groups=conv.groups,
         bias=True,
-    ).requires_grad_(False)
+    ).requires_grad_(False).to(conv.weight.device)
 
     # Prepare filters
     w_conv = conv.weight.view(conv.out_channels, -1)
@@ -267,10 +267,10 @@ def fuse_deconv_and_bn(deconv, bn):
         dilation=deconv.dilation,
         groups=deconv.groups,
         bias=True,
-    ).requires_grad_(False)
+    ).requires_grad_(False).to(conv.weight.device)
 
     # Prepare filters
-    w_deconv = deconv.weight.clone().view(deconv.out_channels, -1)
+    w_deconv = deconv.weight.view(deconv.out_channels, -1)
     w_bn = torch.diag(bn.weight.div(torch.sqrt(bn.eps + bn.running_var)))
     fuseddconv.weight.copy_(torch.mm(w_bn, w_deconv).view(fuseddconv.weight.shape))
 

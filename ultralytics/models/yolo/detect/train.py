@@ -15,6 +15,7 @@ from ultralytics.utils import LOGGER, RANK
 from ultralytics.utils.plotting import plot_images, plot_labels, plot_results
 from ultralytics.utils.torch_utils import de_parallel, torch_distributed_zero_first
 
+
 # 测试分支是否启用
 class DetectionTrainer(BaseTrainer):
     """

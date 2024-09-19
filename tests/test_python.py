@@ -160,7 +160,7 @@ def test_predict_grey_and_4ch():
         f.unlink()  # cleanup
 
 
-@pytest.mark.slow
+# @pytest.mark.slow
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 @pytest.mark.skipif(is_github_action_running(), reason="No auth https://github.com/JuanBindez/pytubefix/issues/166")
 def test_youtube():

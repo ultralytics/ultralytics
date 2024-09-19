@@ -223,7 +223,7 @@ class ParkingManagement:
         self.pr_info["Occupancy"] = fs
         self.pr_info["Available"] = es
 
-        annotator.display_analytics(im0, self.pr_info, (104, 31, 17), (255, 255, 255), 10)
+        annotator.display_analytics(im0, self.pr_info, (104, 31, 17), (255, 255, 255))
 
         self.display_frames(im0)
         return im0

@@ -122,8 +122,6 @@ def get_cpu_info():
             PERSISTENT_CACHE["cpu_info"] = string.replace("(R)", "").replace("CPU ", "").replace("@ ", "")
     return PERSISTENT_CACHE.get("cpu_info", "unknown")
 
-    return "unknown"
-
 
 def select_device(device="", batch=0, newline=False, verbose=True):
     """

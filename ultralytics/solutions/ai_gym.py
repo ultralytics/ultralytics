@@ -64,10 +64,9 @@ class AIGym:
             im0 (ndarray): Current frame from the video stream.
             results (list): Pose estimation data.
         """
-        self.im0 = im0
 
         if not len(results[0]):
-            return self.im0
+            return im0
 
         if len(results[0]) > len(self.count):
             new_human = len(results[0]) - len(self.count)
@@ -115,11 +114,11 @@ class AIGym:
 
         # Display the image if environment supports it and view_img is True
         if self.env_check and self.view_img:
-            cv2.imshow("Ultralytics YOLOv8 AI GYM", self.im0)
+            cv2.imshow("Ultralytics YOLOv8 AI GYM", im0)
             if cv2.waitKey(1) & 0xFF == ord("q"):
                 return
 
-        return self.im0
+        return im0
 
 
 if __name__ == "__main__":

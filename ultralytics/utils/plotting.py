@@ -248,7 +248,6 @@ class Annotator:
 
         Returns:
             txt_color (tuple): Text color for label
-
         """
         return (
             (104, 31, 17) if color in self.dark_colors else (255, 255, 255) if color in self.light_colors else txt_color

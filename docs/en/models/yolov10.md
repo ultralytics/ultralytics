@@ -6,7 +6,7 @@ keywords: YOLOv10, real-time object detection, NMS-free, deep learning, Tsinghua
 
 # YOLOv10: Real-Time End-to-End Object Detection
 
-YOLOv10, built on the [Ultralytics](https://ultralytics.com) [Python package](https://pypi.org/project/ultralytics/) by researchers at [Tsinghua University](https://www.tsinghua.edu.cn/en/), introduces a new approach to real-time object detection, addressing both the post-processing and model architecture deficiencies found in previous YOLO versions. By eliminating non-maximum suppression (NMS) and optimizing various model components, YOLOv10 achieves state-of-the-art performance with significantly reduced computational overhead. Extensive experiments demonstrate its superior accuracy-latency trade-offs across multiple model scales.
+YOLOv10, built on the [Ultralytics](https://www.ultralytics.com/) [Python package](https://pypi.org/project/ultralytics/) by researchers at [Tsinghua University](https://www.tsinghua.edu.cn/en/), introduces a new approach to real-time object detection, addressing both the post-processing and model architecture deficiencies found in previous YOLO versions. By eliminating non-maximum suppression (NMS) and optimizing various model components, YOLOv10 achieves state-of-the-art performance with significantly reduced computational overhead. Extensive experiments demonstrate its superior accuracy-latency trade-offs across multiple model scales.
 
 ![YOLOv10 consistent dual assignment for NMS-free training](https://github.com/ultralytics/docs/releases/download/0/yolov10-consistent-dual-assignment.avif)
 
@@ -140,7 +140,7 @@ Here is a detailed comparison of YOLOv10 variants with other state-of-the-art mo
 
 For predicting new images with YOLOv10:
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -166,7 +166,7 @@ For predicting new images with YOLOv10:
 
 For training YOLOv10 on a custom dataset:
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -223,9 +223,9 @@ YOLOv10 sets a new standard in real-time object detection by addressing the shor
 
 ## Citations and Acknowledgements
 
-We would like to acknowledge the YOLOv10 authors from [Tsinghua University](https://www.tsinghua.edu.cn/en/) for their extensive research and significant contributions to the [Ultralytics](https://ultralytics.com) framework:
+We would like to acknowledge the YOLOv10 authors from [Tsinghua University](https://www.tsinghua.edu.cn/en/) for their extensive research and significant contributions to the [Ultralytics](https://www.ultralytics.com/) framework:
 
-!!! Quote ""
+!!! quote ""
 
     === "BibTeX"
 
@@ -252,7 +252,7 @@ YOLOv10, developed by researchers at [Tsinghua University](https://www.tsinghua.
 
 For easy inference, you can use the Ultralytics YOLO Python library or the command line interface (CLI). Below are examples of predicting new images using YOLOv10:
 
-!!! Example
+!!! example
 
     === "Python"
 

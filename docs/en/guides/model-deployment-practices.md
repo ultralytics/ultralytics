@@ -10,6 +10,17 @@ keywords: Model Deployment, Machine Learning Model Deployment, ML Model Deployme
 
 Model deployment is the [step in a computer vision project](./steps-of-a-cv-project.md) that brings a model from the development phase into a real-world application. There are various [model deployment options](./model-deployment-options.md): cloud deployment offers scalability and ease of access, edge deployment reduces latency by bringing the model closer to the data source, and local deployment ensures privacy and control. Choosing the right strategy depends on your application's needs, balancing speed, security, and scalability.
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/Tt_35YnQ9uk"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to Optimize and Deploy AI Models: Best Practices, Troubleshooting, and Security Considerations
+</p>
+
 It's also important to follow best practices when deploying a model because deployment can significantly impact the effectiveness and reliability of the model's performance. In this guide, we'll focus on how to make sure that your model deployment is smooth, efficient, and secure.
 
 ## Model Deployment Options
@@ -122,7 +133,7 @@ Being part of a community of computer vision enthusiasts can help you solve prob
 ### Community Resources
 
 - **GitHub Issues:** Explore the [YOLOv8 GitHub repository](https://github.com/ultralytics/ultralytics/issues) and use the Issues tab to ask questions, report bugs, and suggest new features. The community and maintainers are very active and ready to help.
-- **Ultralytics Discord Server:** Join the [Ultralytics Discord server](https://ultralytics.com/discord/) to chat with other users and developers, get support, and share your experiences.
+- **Ultralytics Discord Server:** Join the [Ultralytics Discord server](https://discord.com/invite/ultralytics) to chat with other users and developers, get support, and share your experiences.
 
 ### Official Documentation
 

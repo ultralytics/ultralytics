@@ -40,13 +40,14 @@ except ImportError:
 TORCH_1_9 = check_version(torch.__version__, "1.9.0")
 TORCH_1_13 = check_version(torch.__version__, "1.13.0")
 TORCH_2_0 = check_version(torch.__version__, "2.0.0")
+TORCH_2_4 = check_version(torch.__version__, "2.4.0")
 TORCHVISION_0_10 = check_version(TORCHVISION_VERSION, "0.10.0")
 TORCHVISION_0_11 = check_version(TORCHVISION_VERSION, "0.11.0")
 TORCHVISION_0_13 = check_version(TORCHVISION_VERSION, "0.13.0")
 TORCHVISION_0_18 = check_version(TORCHVISION_VERSION, "0.18.0")
-if WINDOWS and torch.__version__[:3] == "2.4":  # reject all versions of 2.4 on Windows
+if WINDOWS and check_version(torch.__version__, "==2.4.0"):  # reject version 2.4.0 on Windows
     LOGGER.warning(
-        "WARNING ⚠️ Known issue with torch>=2.4.0 on Windows with CPU, recommend downgrading to torch<=2.3.1 to resolve "
+        "WARNING ⚠️ Known issue with torch==2.4.0 on Windows with CPU, recommend upgrading to torch>=2.4.1 to resolve "
         "https://github.com/ultralytics/ultralytics/issues/15049"
     )
 
@@ -109,15 +110,17 @@ def autocast(enabled: bool, device: str = "cuda"):
 
 def get_cpu_info():
     """Return a string with system CPU information, i.e. 'Apple M2'."""
-    with contextlib.suppress(Exception):
-        import cpuinfo  # pip install py-cpuinfo
+    from ultralytics.utils import PERSISTENT_CACHE  # avoid circular import error
 
-        k = "brand_raw", "hardware_raw", "arch_string_raw"  # keys sorted by preference (not all keys always available)
-        info = cpuinfo.get_cpu_info()  # info dict
-        string = info.get(k[0] if k[0] in info else k[1] if k[1] in info else k[2], "unknown")
-        return string.replace("(R)", "").replace("CPU ", "").replace("@ ", "")
+    if "cpu_info" not in PERSISTENT_CACHE:
+        with contextlib.suppress(Exception):
+            import cpuinfo  # pip install py-cpuinfo
 
-    return "unknown"
+            k = "brand_raw", "hardware_raw", "arch_string_raw"  # keys sorted by preference
+            info = cpuinfo.get_cpu_info()  # info dict
+            string = info.get(k[0] if k[0] in info else k[1] if k[1] in info else k[2], "unknown")
+            PERSISTENT_CACHE["cpu_info"] = string.replace("(R)", "").replace("CPU ", "").replace("@ ", "")
+    return PERSISTENT_CACHE.get("cpu_info", "unknown")
 
 
 def select_device(device="", batch=0, newline=False, verbose=True):
@@ -246,7 +249,7 @@ def fuse_conv_and_bn(conv, bn):
     )
 
     # Prepare filters
-    w_conv = conv.weight.clone().view(conv.out_channels, -1)
+    w_conv = conv.weight.view(conv.out_channels, -1)
     w_bn = torch.diag(bn.weight.div(torch.sqrt(bn.eps + bn.running_var)))
     fusedconv.weight.copy_(torch.mm(w_bn, w_conv).view(fusedconv.weight.shape))
 
@@ -277,7 +280,7 @@ def fuse_deconv_and_bn(deconv, bn):
     )
 
     # Prepare filters
-    w_deconv = deconv.weight.clone().view(deconv.out_channels, -1)
+    w_deconv = deconv.weight.view(deconv.out_channels, -1)
     w_bn = torch.diag(bn.weight.div(torch.sqrt(bn.eps + bn.running_var)))
     fuseddconv.weight.copy_(torch.mm(w_bn, w_deconv).view(fuseddconv.weight.shape))
 
@@ -532,16 +535,17 @@ class ModelEMA:
             copy_attr(self.ema, model, include, exclude)
 
 
-def strip_optimizer(f: Union[str, Path] = "best.pt", s: str = "") -> None:
+def strip_optimizer(f: Union[str, Path] = "best.pt", s: str = "", updates: dict = None) -> dict:
     """
     Strip optimizer from 'f' to finalize training, optionally save as 's'.
 
     Args:
         f (str): file path to model to strip the optimizer from. Default is 'best.pt'.
         s (str): file path to save the model with stripped optimizer to. If not provided, 'f' will be overwritten.
+        updates (dict): a dictionary of updates to overlay onto the checkpoint before saving.
 
     Returns:
-        None
+        (dict): The combined checkpoint dictionary.
 
     Example:
         ```python
@@ -561,9 +565,9 @@ def strip_optimizer(f: Union[str, Path] = "best.pt", s: str = "") -> None:
         assert "model" in x, "'model' missing from checkpoint"
     except Exception as e:
         LOGGER.warning(f"WARNING ⚠️ Skipping {f}, not a valid Ultralytics model: {e}")
-        return
+        return {}
 
-    updates = {
+    metadata = {
         "date": datetime.now().isoformat(),
         "version": __version__,
         "license": "AGPL-3.0 License (https://ultralytics.com/license)",
@@ -590,9 +594,11 @@ def strip_optimizer(f: Union[str, Path] = "best.pt", s: str = "") -> None:
     # x['model'].args = x['train_args']
 
     # Save
-    torch.save({**updates, **x}, s or f, use_dill=False)  # combine dicts (prefer to the right)
+    combined = {**metadata, **x, **(updates or {})}
+    torch.save(combined, s or f, use_dill=False)  # combine dicts (prefer to the right)
     mb = os.path.getsize(s or f) / 1e6  # file size
     LOGGER.info(f"Optimizer stripped from {f},{f' saved as {s},' if s else ''} {mb:.1f}MB")
+    return combined
 
 
 def convert_optimizer_state_dict_to_fp16(state_dict):

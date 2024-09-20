@@ -26,11 +26,11 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "ultralytics"
 dynamic = ["version"]
-description = "Ultralytics YOLOv8 for SOTA object detection, multi-object tracking, instance segmentation, pose estimation and image classification."
+description = "Ultralytics YOLO for SOTA object detection, multi-object tracking, instance segmentation, pose estimation and image classification."
 readme = "README.md"
 requires-python = ">=3.8"
 license = { "text" = "AGPL-3.0" }
-keywords = ["machine-learning", "deep-learning", "computer-vision", "ML", "DL", "AI", "YOLO", "YOLOv3", "YOLOv5", "YOLOv8", "HUB", "Ultralytics"]
+keywords = ["machine-learning", "deep-learning", "computer-vision", "ML", "DL", "AI", "YOLO", "YOLOv3", "YOLOv5", "YOLOv8", "YOLOv9", "YOLOv10", "HUB", "Ultralytics"]
 authors = [
     { name = "Glenn Jocher" },
     { name = "Ayush Chaurasia" },
@@ -71,8 +71,8 @@ dependencies = [
     "pyyaml>=5.3.1",
     "requests>=2.23.0",
     "scipy>=1.4.1",
-    "torch>=1.8.0,<2.4.0; sys_platform == 'win32'",  # Windows CPU errors https://github.com/ultralytics/ultralytics/issues/15049
     "torch>=1.8.0",
+    "torch>=1.8.0,!=2.4.0; sys_platform == 'win32'",  # Windows CPU errors w/ 2.4.0 https://github.com/ultralytics/ultralytics/issues/15049
     "torchvision>=0.9.0",
     "tqdm>=4.64.0", # progress bars
     "psutil", # system utilization
@@ -94,7 +94,7 @@ dev = [
     "mkdocstrings[python]",
     "mkdocs-jupyter", # notebooks
     "mkdocs-redirects", # 301 redirects
-    "mkdocs-ultralytics-plugin>=0.1.6", # for meta descriptions and images, dates and authors
+    "mkdocs-ultralytics-plugin>=0.1.8", # for meta descriptions and images, dates and authors
     "mkdocs-macros-plugin>=1.0.5"  # duplicating content (i.e. export tables) in multiple places
 ]
 export = [

@@ -39,7 +39,7 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
     - `heatmap_alpha`: Ensure this value is within the range (0.0 - 1.0).
     - `decay_factor`: Used for removing heatmap after an object is no longer in the frame, its value should also be in the range (0.0 - 1.0).
 
-!!! Example "Heatmaps using Ultralytics YOLOv8 Example"
+!!! example "Heatmaps using Ultralytics YOLOv8 Example"
 
     === "Heatmap"
 
@@ -293,14 +293,7 @@ A heatmap generated with [Ultralytics YOLOv8](https://github.com/ultralytics/ult
 
 ### Arguments `model.track`
 
-| Name      | Type    | Default        | Description                                                 |
-| --------- | ------- | -------------- | ----------------------------------------------------------- |
-| `source`  | `im0`   | `None`         | source directory for images or videos                       |
-| `persist` | `bool`  | `False`        | persisting tracks between frames                            |
-| `tracker` | `str`   | `botsort.yaml` | Tracking method 'bytetrack' or 'botsort'                    |
-| `conf`    | `float` | `0.3`          | Confidence Threshold                                        |
-| `iou`     | `float` | `0.5`          | IOU Threshold                                               |
-| `classes` | `list`  | `None`         | filter results by class, i.e. classes=0, or classes=[0,2,3] |
+{% include "macros/track-args.md" %}
 
 ### Heatmap COLORMAPs
 

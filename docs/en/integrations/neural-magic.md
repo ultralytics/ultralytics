@@ -6,7 +6,7 @@ keywords: YOLOv8, DeepSparse, Neural Magic, model optimization, object detection
 
 # Optimizing YOLOv8 Inferences with Neural Magic's DeepSparse Engine
 
-When deploying object detection models like [Ultralytics YOLOv8](https://ultralytics.com) on various hardware, you can bump into unique issues like optimization. This is where YOLOv8's integration with Neural Magic's DeepSparse Engine steps in. It transforms the way YOLOv8 models are executed and enables GPU-level performance directly on CPUs.
+When deploying object detection models like [Ultralytics YOLOv8](https://www.ultralytics.com/) on various hardware, you can bump into unique issues like optimization. This is where YOLOv8's integration with Neural Magic's DeepSparse Engine steps in. It transforms the way YOLOv8 models are executed and enables GPU-level performance directly on CPUs.
 
 This guide shows you how to deploy YOLOv8 using Neural Magic's DeepSparse, how to run inferences, and also how to benchmark performance to ensure it is optimized.
 
@@ -70,7 +70,7 @@ Deploying YOLOv8 with Neural Magic's DeepSparse involves a few straightforward s
 
 To install the required packages, run:
 
-!!! Tip "Installation"
+!!! tip "Installation"
 
     === "CLI"
 
@@ -83,7 +83,7 @@ To install the required packages, run:
 
 DeepSparse Engine requires YOLOv8 models in ONNX format. Exporting your model to this format is essential for compatibility with DeepSparse. Use the following command to export YOLOv8 models:
 
-!!! Tip "Model Export"
+!!! tip "Model Export"
 
     === "CLI"
 
@@ -98,7 +98,7 @@ This command will save the `yolov8n.onnx` model to your disk.
 
 With your YOLOv8 model in ONNX format, you can deploy and run inferences using DeepSparse. This can be done easily with their intuitive Python API:
 
-!!! Tip "Deploying and Running Inferences"
+!!! tip "Deploying and Running Inferences"
 
     === "Python"
 
@@ -120,7 +120,7 @@ With your YOLOv8 model in ONNX format, you can deploy and run inferences using D
 
 It's important to check that your YOLOv8 model is performing optimally on DeepSparse. You can benchmark your model's performance to analyze throughput and latency:
 
-!!! Tip "Benchmarking"
+!!! tip "Benchmarking"
 
     === "CLI"
 
@@ -133,7 +133,7 @@ It's important to check that your YOLOv8 model is performing optimally on DeepSp
 
 DeepSparse provides additional features for practical integration of YOLOv8 in applications, such as image annotation and dataset evaluation.
 
-!!! Tip "Additional Features"
+!!! tip "Additional Features"
 
     === "CLI"
 

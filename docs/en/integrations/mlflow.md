@@ -10,7 +10,7 @@ keywords: MLflow, Ultralytics YOLO, machine learning, experiment tracking, metri
 
 ## Introduction
 
-Experiment logging is a crucial aspect of machine learning workflows that enables tracking of various metrics, parameters, and artifacts. It helps to enhance model reproducibility, debug issues, and improve model performance. [Ultralytics](https://ultralytics.com) YOLO, known for its real-time object detection capabilities, now offers integration with [MLflow](https://mlflow.org/), an open-source platform for complete machine learning lifecycle management.
+Experiment logging is a crucial aspect of machine learning workflows that enables tracking of various metrics, parameters, and artifacts. It helps to enhance model reproducibility, debug issues, and improve model performance. [Ultralytics](https://www.ultralytics.com/) YOLO, known for its real-time object detection capabilities, now offers integration with [MLflow](https://mlflow.org/), an open-source platform for complete machine learning lifecycle management.
 
 This documentation page is a comprehensive guide to setting up and utilizing the MLflow logging capabilities for your Ultralytics YOLO project.
 
@@ -34,7 +34,7 @@ pip install mlflow
 
 Make sure that MLflow logging is enabled in Ultralytics settings. Usually, this is controlled by the settings `mflow` key. See the [settings](../quickstart.md#ultralytics-settings) page for more info.
 
-!!! Example "Update Ultralytics MLflow Settings"
+!!! example "Update Ultralytics MLflow Settings"
 
     === "Python"
 
@@ -130,7 +130,7 @@ pip install mlflow
 
 Next, enable MLflow logging in Ultralytics settings. This can be controlled using the `mlflow` key. For more information, see the [settings guide](../quickstart.md#ultralytics-settings).
 
-!!! Example "Update Ultralytics MLflow Settings"
+!!! example "Update Ultralytics MLflow Settings"
 
     === "Python"
 

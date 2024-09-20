@@ -27,7 +27,7 @@ Object blurring with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 - **Selective Focus**: YOLOv8 allows for selective blurring, enabling users to target specific objects, ensuring a balance between privacy and retaining relevant visual information.
 - **Real-time Processing**: YOLOv8's efficiency enables object blurring in real-time, making it suitable for applications requiring on-the-fly privacy enhancements in dynamic environments.
 
-!!! Example "Object Blurring using YOLOv8 Example"
+!!! example "Object Blurring using YOLOv8 Example"
 
     === "Object Blurring"
 
@@ -82,23 +82,7 @@ Object blurring with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 
 ### Arguments `model.predict`
 
-| Name            | Type           | Default                | Description                                                                |
-| --------------- | -------------- | ---------------------- | -------------------------------------------------------------------------- |
-| `source`        | `str`          | `'ultralytics/assets'` | source directory for images or videos                                      |
-| `conf`          | `float`        | `0.25`                 | object confidence threshold for detection                                  |
-| `iou`           | `float`        | `0.7`                  | intersection over union (IoU) threshold for NMS                            |
-| `imgsz`         | `int or tuple` | `640`                  | image size as scalar or (h, w) list, i.e. (640, 480)                       |
-| `half`          | `bool`         | `False`                | use half precision (FP16)                                                  |
-| `device`        | `None or str`  | `None`                 | device to run on, i.e. cuda device=0/1/2/3 or device=cpu                   |
-| `max_det`       | `int`          | `300`                  | maximum number of detections per image                                     |
-| `vid_stride`    | `bool`         | `False`                | video frame-rate stride                                                    |
-| `stream_buffer` | `bool`         | `False`                | buffer all streaming frames (True) or return the most recent frame (False) |
-| `visualize`     | `bool`         | `False`                | visualize model features                                                   |
-| `augment`       | `bool`         | `False`                | apply image augmentation to prediction sources                             |
-| `agnostic_nms`  | `bool`         | `False`                | class-agnostic NMS                                                         |
-| `classes`       | `list[int]`    | `None`                 | filter results by class, i.e. classes=0, or classes=[0,2,3]                |
-| `retina_masks`  | `bool`         | `False`                | use high-resolution segmentation masks                                     |
-| `embed`         | `list[int]`    | `None`                 | return feature vectors/embeddings from given layers                        |
+{% include "macros/predict-args.md" %}
 
 ## FAQ
 
@@ -148,8 +132,8 @@ For more detailed applications, check the [advantages of object blurring section
 
 ### Can I use Ultralytics YOLOv8 to blur faces in a video for privacy reasons?
 
-Yes, Ultralytics YOLOv8 can be configured to detect and blur faces in videos to protect privacy. By training or using a pre-trained model to specifically recognize faces, the detection results can be processed with OpenCV to apply a blur effect. Refer to our guide on [object detection with YOLOv8](https://docs.ultralytics.com/models/yolov8) and modify the code to target face detection.
+Yes, Ultralytics YOLOv8 can be configured to detect and blur faces in videos to protect privacy. By training or using a pre-trained model to specifically recognize faces, the detection results can be processed with OpenCV to apply a blur effect. Refer to our guide on [object detection with YOLOv8](https://docs.ultralytics.com/models/yolov8/) and modify the code to target face detection.
 
 ### How does YOLOv8 compare to other object detection models like Faster R-CNN for object blurring?
 
-Ultralytics YOLOv8 typically outperforms models like Faster R-CNN in terms of speed, making it more suitable for real-time applications. While both models offer accurate detection, YOLOv8's architecture is optimized for rapid inference, which is critical for tasks like real-time object blurring. Learn more about the technical differences and performance metrics in our [YOLOv8 documentation](https://docs.ultralytics.com/models/yolov8).
+Ultralytics YOLOv8 typically outperforms models like Faster R-CNN in terms of speed, making it more suitable for real-time applications. While both models offer accurate detection, YOLOv8's architecture is optimized for rapid inference, which is critical for tasks like real-time object blurring. Learn more about the technical differences and performance metrics in our [YOLOv8 documentation](https://docs.ultralytics.com/models/yolov8/).

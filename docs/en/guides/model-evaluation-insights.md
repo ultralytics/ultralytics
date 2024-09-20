@@ -63,7 +63,7 @@ The `imgsz` validation parameter sets the maximum dimension for image resizing, 
 
 If you want to get a deeper understanding of your YOLOv8 model's performance, you can easily access specific evaluation metrics with a few lines of Python code. The code snippet below will let you load your model, run an evaluation, and print out various metrics that show how well your model is doing.
 
-!!! Example "Usage"
+!!! example "Usage"
 
     === "Python"
 
@@ -128,7 +128,7 @@ Sharing your ideas and questions with other computer vision enthusiasts can insp
 ### Finding Help and Support
 
 - **GitHub Issues:** Explore the YOLOv8 GitHub repository and use the [Issues tab](https://github.com/ultralytics/ultralytics/issues) to ask questions, report bugs, and suggest features. The community and maintainers are available to assist with any issues you encounter.
-- **Ultralytics Discord Server:** Join the [Ultralytics Discord server](https://ultralytics.com/discord/) to connect with other users and developers, get support, share knowledge, and brainstorm ideas.
+- **Ultralytics Discord Server:** Join the [Ultralytics Discord server](https://discord.com/invite/ultralytics) to connect with other users and developers, get support, share knowledge, and brainstorm ideas.
 
 ### Official Documentation
 
@@ -165,7 +165,7 @@ Improving mean average precision (mAP) for a YOLOv8 model involves several steps
 
 You can access YOLOv8 model evaluation metrics using Python with the following steps:
 
-!!! Example "Usage"
+!!! example "Usage"
 
     === "Python"
 

@@ -39,16 +39,16 @@ Here are some of the standout functionalities:
 - **Optimized Inference:** Exported models are optimized for quicker inference times.
 - **Tutorial Videos:** In-depth guides and tutorials for a smooth exporting experience.
 
-!!! Tip "Tip"
+!!! tip
 
     * Export to [ONNX](../integrations/onnx.md) or [OpenVINO](../integrations/openvino.md) for up to 3x CPU speedup.
     * Export to [TensorRT](../integrations/tensorrt.md) for up to 5x GPU speedup.
 
 ## Usage Examples
 
-Export a YOLOv8n model to a different format like ONNX or TensorRT. See Arguments section below for a full list of export arguments.
+Export a YOLOv8n model to a different format like ONNX or TensorRT. See the Arguments section below for a full list of export arguments.
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -90,7 +90,7 @@ Available YOLOv8 export formats are in the table below. You can export to any fo
 
 Exporting a YOLOv8 model to ONNX format is straightforward with Ultralytics. It provides both Python and CLI methods for exporting models.
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -112,7 +112,7 @@ Exporting a YOLOv8 model to ONNX format is straightforward with Ultralytics. It 
         yolo export model=path/to/best.pt format=onnx  # export custom trained model
         ```
 
-For more details on the process, including advanced options like handling different input sizes, refer to the [ONNX](../integrations/onnx.md) section.
+For more details on the process, including advanced options like handling different input sizes, refer to the [ONNX section](../integrations/onnx.md).
 
 ### What are the benefits of using TensorRT for model export?
 
@@ -122,13 +122,13 @@ Using TensorRT for model export offers significant performance improvements. YOL
 - **Speed:** Achieve faster inference through advanced optimizations.
 - **Compatibility:** Integrate smoothly with NVIDIA hardware.
 
-To learn more about integrating TensorRT, see the [TensorRT](../integrations/tensorrt.md) integration guide.
+To learn more about integrating TensorRT, see the [TensorRT integration guide](../integrations/tensorrt.md).
 
 ### How do I enable INT8 quantization when exporting my YOLOv8 model?
 
 INT8 quantization is an excellent way to compress the model and speed up inference, especially on edge devices. Here's how you can enable INT8 quantization:
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -145,7 +145,7 @@ INT8 quantization is an excellent way to compress the model and speed up inferen
         yolo export model=yolov8n.pt format=onnx int8=True   # export model with INT8 quantization
         ```
 
-INT8 quantization can be applied to various formats, such as TensorRT and CoreML. More details can be found in the [Export](../modes/export.md) section.
+INT8 quantization can be applied to various formats, such as TensorRT and CoreML. More details can be found in the [Export section](../modes/export.md).
 
 ### Why is dynamic input size important when exporting models?
 
@@ -153,7 +153,7 @@ Dynamic input size allows the exported model to handle varying image dimensions,
 
 To enable this feature, use the `dynamic=True` flag during export:
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -182,4 +182,4 @@ Understanding and configuring export arguments is crucial for optimizing model p
 - **`optimize:`** Applies specific optimizations for mobile or constrained environments.
 - **`int8:`** Enables INT8 quantization, highly beneficial for edge deployments.
 
-For a detailed list and explanations of all the export arguments, visit the [Export Arguments](#arguments) section.
+For a detailed list and explanations of all the export arguments, visit the [Export Arguments section](#arguments).

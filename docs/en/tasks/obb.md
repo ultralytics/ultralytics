@@ -30,7 +30,6 @@ The output of an oriented object detector is a set of rotated bounding boxes tha
   <strong>Watch:</strong> Object Detection using Ultralytics YOLOv8 Oriented Bounding Boxes (YOLOv8-OBB)
 </p>
 
-
 ## Visual Samples
 
 |                                              Ships Detection using OBB                                               |                                               Vehicle Detection using OBB                                                |

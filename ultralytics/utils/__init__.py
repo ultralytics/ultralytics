@@ -359,7 +359,7 @@ def set_logging(name="LOGGING_NAME", verbose=True):
     formatter = BaseFormatter()  # Default formatter
     if WINDOWS and hasattr(sys.stdout, "encoding") and sys.stdout.encoding != "utf-8":
 
-        class CustomFormatter(logging.Formatter):
+        class CustomFormatter(BaseFormatter):
             def format(self, record):
                 """Sets up logging with UTF-8 encoding and configurable verbosity."""
                 return emojis(super().format(record))

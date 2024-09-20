@@ -241,6 +241,7 @@ class Annotator:
     def get_txt_color(self, color=(128, 128, 128), txt_color=(255, 255, 255)):
         """
         Assign text color based on background color.
+
         Args:
             color (tuple, optional): The background color of the rectangle for text (B, G, R).
             txt_color (tuple, optional): The color of the text (R, G, B).

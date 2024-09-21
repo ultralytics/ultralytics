@@ -322,9 +322,12 @@ class ProfileModels:
             num_warmup_runs (int, optional): Number of warmup runs before the actual profiling starts. Default is 10.
             min_time (float, optional): Minimum time in seconds for profiling a model. Default is 60.
             imgsz (int, optional): Size of the image used during profiling. Default is 640.
-            half (bool, optional): Flag to indicate whether to use half-precision floating point for profiling.
+            half (bool, optional): Flag to indicate whether to use FP16 half-precision for TensorRT profiling.
             trt (bool, optional): Flag to indicate whether to profile using TensorRT. Default is True.
             device (torch.device, optional): Device used for profiling. If None, it is determined automatically.
+
+        Notes:
+            FP16 'half' argument option removed for ONNX as slower on CPU than FP32
         """
         self.paths = paths
         self.num_timed_runs = num_timed_runs
@@ -353,10 +356,18 @@ class ProfileModels:
                 model_info = model.info()
                 if self.trt and self.device.type != "cpu" and not engine_file.is_file():
                     engine_file = model.export(
-                        format="engine", half=self.half, imgsz=self.imgsz, device=self.device, verbose=False
+                        format="engine",
+                        half=self.half,
+                        imgsz=self.imgsz,
+                        device=self.device,
+                        verbose=False,
                     )
                 onnx_file = model.export(
-                    format="onnx", half=self.half, imgsz=self.imgsz, simplify=True, device=self.device, verbose=False
+                    format="onnx",
+                    imgsz=self.imgsz,
+                    simplify=True,
+                    device=self.device,
+                    verbose=False,
                 )
             elif file.suffix == ".onnx":
                 model_info = self.get_onnx_model_info(file)

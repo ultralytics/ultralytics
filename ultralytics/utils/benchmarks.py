@@ -322,7 +322,7 @@ class ProfileModels:
             num_warmup_runs (int, optional): Number of warmup runs before the actual profiling starts. Default is 10.
             min_time (float, optional): Minimum time in seconds for profiling a model. Default is 60.
             imgsz (int, optional): Size of the image used during profiling. Default is 640.
-            half (bool, optional): Flag to indicate whether to use half-precision floating point for trt profiling.
+            half (bool, optional): Flag to indicate whether to use FP16 half-precision for TensorRT profiling.
             trt (bool, optional): Flag to indicate whether to profile using TensorRT. Default is True.
             device (torch.device, optional): Device used for profiling. If None, it is determined automatically.
         """

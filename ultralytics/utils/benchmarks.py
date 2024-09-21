@@ -325,6 +325,9 @@ class ProfileModels:
             half (bool, optional): Flag to indicate whether to use FP16 half-precision for TensorRT profiling.
             trt (bool, optional): Flag to indicate whether to profile using TensorRT. Default is True.
             device (torch.device, optional): Device used for profiling. If None, it is determined automatically.
+
+        Notes:
+            FP16 'half' argument option removed for ONNX as slower on CPU than FP32
         """
         self.paths = paths
         self.num_timed_runs = num_timed_runs

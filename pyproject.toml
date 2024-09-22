@@ -32,14 +32,12 @@ requires-python = ">=3.8"
 license = { "text" = "AGPL-3.0" }
 keywords = ["machine-learning", "deep-learning", "computer-vision", "ML", "DL", "AI", "YOLO", "YOLOv3", "YOLOv5", "YOLOv8", "YOLOv9", "YOLOv10", "HUB", "Ultralytics"]
 authors = [
-    { name = "Glenn Jocher" },
-    { name = "Ayush Chaurasia" },
-    { name = "Jing Qiu" }
+    { name = "Glenn Jocher", email = "glenn.jocher@ultralytics.com"},
+    { name = "Jing Qiu", email = "jing.qiu@ultralytics.com"},
+    { name = "Ayush Chaurasia" }
 ]
 maintainers = [
-    { name = "Glenn Jocher" },
-    { name = "Ayush Chaurasia" },
-    { name = "Jing Qiu" }
+    { name = "Ultralytics", email = "hello@ultralytics.com" }
 ]
 classifiers = [
     "Development Status :: 4 - Beta",

@@ -1195,7 +1195,7 @@ class SettingsManager(JSONDict):
                 LOGGER.info(f"Creating new Ultralytics Settings v{version} file ✅ {self.help_msg}")
                 self.reset()
 
-        self._validate_settings()
+            self._validate_settings()
 
     def _validate_settings(self):
         """Validate the current settings and reset if necessary."""

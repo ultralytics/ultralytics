@@ -541,7 +541,7 @@ def handle_yolo_settings(args: List[str]) -> None:
                 SETTINGS.update(new)
 
         LOGGER.info(f"💡 Learn about settings at {url}")
-        yaml_print(SETTINGS_FILE)  # print the current settings
+        print(SETTINGS_FILE)  # print the current settings
     except Exception as e:
         LOGGER.warning(f"WARNING ⚠️ settings error: '{e}'. Please see {url} for help.")
 

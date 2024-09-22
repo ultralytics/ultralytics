@@ -1108,6 +1108,10 @@ class JSONDict(dict):
             super().__delitem__(key)
             self._save()
 
+    def __str__(self):
+        """Return a pretty-printed JSON string representation of the dictionary."""
+        return f"JSONDict({self.file_path}):\n" + json.dumps(dict(self), indent=2, sort_keys=False, ensure_ascii=False)
+
     def update(self, **kwargs):
         """Update the dictionary and persist changes."""
         with self.lock:

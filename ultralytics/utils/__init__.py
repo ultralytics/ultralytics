@@ -1108,6 +1108,89 @@ class JSONDict(dict):
             super().__delitem__(key)
             self._save()
 
+    def update(self, *args, **kwargs):
+        """Update the dictionary and persist changes."""
+        with self.lock:
+            super().update(*args, **kwargs)
+            self._save()
+
+    def clear(self):
+        """Clear all entries and update the persistent storage."""
+        with self.lock:
+            super().clear()
+            self._save()
+
+
+
+class SettingsManager(dict):
+
+    """
+    A dictionary-like class that provides JSON persistence for its contents.
+
+    This class extends the built-in dictionary to automatically save its contents to a JSON file whenever they are
+    modified. It ensures thread-safe operations using a lock.
+
+    Attributes:
+        file_path (Path): The path to the JSON file used for persistence.
+        lock (threading.Lock): A lock object to ensure thread-safe operations.
+
+    Methods:
+        _load: Loads the data from the JSON file into the dictionary.
+        _save: Saves the current state of the dictionary to the JSON file.
+        __setitem__: Stores a key-value pair and persists it to disk.
+        __delitem__: Removes an item and updates the persistent storage.
+        update: Updates the dictionary and persists changes.
+        clear: Clears all entries and updates the persistent storage.
+
+    Examples:
+        >>> json_dict = JSONDict("data.json")
+        >>> json_dict["key"] = "value"
+        >>> print(json_dict["key"])
+        value
+        >>> del json_dict["key"]
+        >>> json_dict.update({"new_key": "new_value"})
+        >>> json_dict.clear()
+    """
+
+    def __init__(self, file_path: Union[str, Path] = "data.json"):
+        """Initialize a JSONDict object with a specified file path for JSON persistence."""
+        super().__init__()
+        self.file_path = Path(file_path)
+        self.lock = Lock()
+        self._load()
+
+    def _load(self):
+        """Load the data from the JSON file into the dictionary."""
+        try:
+            if self.file_path.exists():
+                with open(self.file_path) as f:
+                    self.update(json.load(f))
+        except json.JSONDecodeError:
+            print(f"Error decoding JSON from {self.file_path}. Starting with an empty dictionary.")
+        except Exception as e:
+            print(f"Error reading from {self.file_path}: {e}")
+
+    def _save(self):
+        """Save the current state of the dictionary to the JSON file."""
+        try:
+            self.file_path.parent.mkdir(parents=True, exist_ok=True)
+            with open(self.file_path, "w") as f:
+                json.dump(dict(self), f, indent=2)
+        except Exception as e:
+            print(f"Error writing to {self.file_path}: {e}")
+
+    def __setitem__(self, key, value):
+        """Store a key-value pair and persist to disk."""
+        with self.lock:
+            super().__setitem__(key, value)
+            self._save()
+
+    def __delitem__(self, key):
+        """Remove an item and update the persistent storage."""
+        with self.lock:
+            super().__delitem__(key)
+            self._save()
+
     def __str__(self):
         """Return a pretty-printed JSON string representation of the dictionary."""
         return f"JSONDict({self.file_path}):\n" + json.dumps(dict(self), indent=2, sort_keys=False, ensure_ascii=False)

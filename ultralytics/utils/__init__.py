@@ -1110,7 +1110,7 @@ class JSONDict(dict):
 
     def __str__(self):
         """Return a pretty-printed JSON string representation of the dictionary."""
-        return f"JSONDict({self.file_path}):\n" + json.dumps(dict(self), indent=2, sort_keys=False, ensure_ascii=False)
+        return f'JSONDict("{self.file_path}"):\n{json.dumps(dict(self), indent=2, ensure_ascii=False)}'
 
     def update(self, *args, **kwargs):
         """Update the dictionary and persist changes."""

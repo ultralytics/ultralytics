@@ -1041,10 +1041,36 @@ def set_sentry():
 
 
 class JSONDict(dict):
-    """A base class for dictionary-like objects that persist data to a JSON file."""
+    """
+    A dictionary-like class that provides JSON persistence for its contents.
+    
+    This class extends the built-in dictionary to automatically save its contents to a JSON file whenever they are
+    modified. It ensures thread-safe operations using a lock.
+    
+    Attributes:
+        file_path (Path): The path to the JSON file used for persistence.
+        lock (threading.Lock): A lock object to ensure thread-safe operations.
+    
+    Methods:
+        _load: Loads the data from the JSON file into the dictionary.
+        _save: Saves the current state of the dictionary to the JSON file.
+        __setitem__: Stores a key-value pair and persists it to disk.
+        __delitem__: Removes an item and updates the persistent storage.
+        update: Updates the dictionary and persists changes.
+        clear: Clears all entries and updates the persistent storage.
+    
+    Examples:
+        >>> json_dict = JSONDict("data.json")
+        >>> json_dict["key"] = "value"
+        >>> print(json_dict["key"])
+        value
+        >>> del json_dict["key"]
+        >>> json_dict.update({"new_key": "new_value"})
+        >>> json_dict.clear()
+    """
 
-    def __init__(self, file_path: Union[str, Path] = "dict.json"):
-        """Initialize JSONDict from file_path JSON location."""
+    def __init__(self, file_path: Union[str, Path] = "data.json"):
+        """Initialize a JSONDict object with a specified file path for JSON persistence."""
         super().__init__()
         self.file_path = Path(file_path)
         self.lock = Lock()

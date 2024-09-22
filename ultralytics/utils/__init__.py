@@ -1191,7 +1191,7 @@ class SettingsManager(JSONDict):
         with torch_distributed_zero_first(RANK):
             super().__init__(self.file)
 
-            if not self.file.exists():
+            if not self.file.exists() or not self:  # Check if file doesn't exist or is empty
                 LOGGER.info(f"Creating new Ultralytics Settings v{version} file ✅ {self.help_msg}")
                 self.reset()
 
@@ -1199,11 +1199,9 @@ class SettingsManager(JSONDict):
 
     def _validate_settings(self):
         """Validate the current settings and reset if necessary."""
-        from ultralytics.utils.checks import check_version
-
-        correct_keys = self.keys() == self.defaults.keys()
-        correct_types = all(type(a) is type(b) for a, b in zip(self.values(), self.defaults.values()))
-        correct_version = check_version(self["settings_version"], self.version)
+        correct_keys = set(self.keys()) == set(self.defaults.keys())
+        correct_types = all(isinstance(self.get(k), type(v)) for k, v in self.defaults.items())
+        correct_version = self.get("settings_version", "") == self.version
 
         if not (correct_keys and correct_types and correct_version):
             LOGGER.warning(

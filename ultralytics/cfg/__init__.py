@@ -540,8 +540,8 @@ def handle_yolo_settings(args: List[str]) -> None:
                 check_dict_alignment(SETTINGS, new)
                 SETTINGS.update(new)
 
-        LOGGER.info(f"💡 Learn about settings at {url}")
         print(SETTINGS)  # print the current settings
+        LOGGER.info(f"💡 Learn about settings at {url}")
     except Exception as e:
         LOGGER.warning(f"WARNING ⚠️ settings error: '{e}'. Please see {url} for help.")
 

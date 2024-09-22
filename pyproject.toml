@@ -127,9 +127,11 @@ extra = [
 ]
 
 [project.urls]
+"Homepage" = "https://ultralytics.com"
+"Source" = "https://github.com/ultralytics/ultralytics"
+"Documentation" = "https://docs.ultralytics.com"
 "Bug Reports" = "https://github.com/ultralytics/ultralytics/issues"
-"Funding" = "https://ultralytics.com"
-"Source" = "https://github.com/ultralytics/ultralytics/"
+"Changelog" = "https://github.com/ultralytics/ultralytics/releases" 
 
 [project.scripts]
 yolo = "ultralytics.cfg:entrypoint"

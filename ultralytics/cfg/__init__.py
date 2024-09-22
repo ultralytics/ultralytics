@@ -19,7 +19,7 @@ from ultralytics.utils import (
     ROOT,
     RUNS_DIR,
     SETTINGS,
-    SETTINGS_YAML,
+    SETTINGS_FILE,
     TESTS_RUNNING,
     IterableSimpleNamespace,
     __version__,
@@ -532,7 +532,7 @@ def handle_yolo_settings(args: List[str]) -> None:
     try:
         if any(args):
             if args[0] == "reset":
-                SETTINGS_YAML.unlink()  # delete the settings file
+                SETTINGS_FILE.unlink()  # delete the settings file
                 SETTINGS.reset()  # create new settings
                 LOGGER.info("Settings reset successfully")  # inform the user that settings have been reset
             else:  # save a new setting
@@ -541,7 +541,7 @@ def handle_yolo_settings(args: List[str]) -> None:
                 SETTINGS.update(new)
 
         LOGGER.info(f"💡 Learn about settings at {url}")
-        yaml_print(SETTINGS_YAML)  # print the current settings
+        yaml_print(SETTINGS_FILE)  # print the current settings
     except Exception as e:
         LOGGER.warning(f"WARNING ⚠️ settings error: '{e}'. Please see {url} for help.")
 

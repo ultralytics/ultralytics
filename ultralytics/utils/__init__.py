@@ -802,7 +802,7 @@ IS_RASPBERRYPI = is_raspberrypi()
 GIT_DIR = get_git_dir()
 IS_GIT_DIR = is_git_dir()
 USER_CONFIG_DIR = Path(os.getenv("YOLO_CONFIG_DIR") or get_user_config_dir())  # Ultralytics settings dir
-SETTINGS_YAML = USER_CONFIG_DIR / "settings.yaml"
+SETTINGS_FILE = USER_CONFIG_DIR / "settings.json"
 
 
 def colorstr(*input):
@@ -1123,14 +1123,31 @@ class JSONDict(dict):
 
 class SettingsManager(JSONDict):
     """
-    Manages Ultralytics settings stored in a JSON file.
-
-    Args:
-        file (str | Path): Path to the Ultralytics settings JSON file. Default is USER_CONFIG_DIR / 'settings.json'.
-        version (str): Settings version. In case of local version mismatch, new default settings will be saved.
+    SettingsManager class for managing and persisting Ultralytics settings.
+    
+    This class extends JSONDict to provide JSON persistence for settings, ensuring thread-safe operations and default
+    values. It validates settings on initialization and provides methods to update or reset settings.
+    
+    Attributes:
+        file (Path): The path to the JSON file used for persistence.
+        version (str): The version of the settings schema.
+        defaults (Dict): A dictionary containing default settings.
+        help_msg (str): A help message for users on how to view and update settings.
+    
+    Methods:
+        _validate_settings: Validates the current settings and resets if necessary.
+        update: Updates settings, validating keys and types.
+        reset: Resets the settings to default and saves them.
+    
+    Examples:
+        Initialize and update settings:
+        >>> settings = SettingsManager()
+        >>> settings.update(runs_dir='/new/runs/dir')
+        >>> print(settings['runs_dir'])
+        /new/runs/dir
     """
 
-    def __init__(self, file=SETTINGS_YAML.with_suffix(".json"), version="0.0.5"):
+    def __init__(self, file=SETTINGS_FILE, version="0.0.6"):
         """Initializes the SettingsManager with default settings and loads user settings."""
         import hashlib
 

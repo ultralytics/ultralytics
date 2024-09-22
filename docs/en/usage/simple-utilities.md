@@ -466,7 +466,7 @@ image_with_obb = ann.result()
 import cv2
 
 from ultralytics import YOLO
-from ultralytics.utils.plotting import Annotator, colors
+from ultralytics.utils.plotting import Annotator
 
 model = YOLO("yolov8s.pt")
 names = model.names
@@ -505,7 +505,7 @@ cv2.destroyAllWindows()
 import cv2
 
 from ultralytics import YOLO
-from ultralytics.utils.plotting import Annotator, colors
+from ultralytics.utils.plotting import Annotator
 
 model = YOLO("yolov8s.pt")
 names = model.names

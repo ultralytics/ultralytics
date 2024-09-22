@@ -1183,8 +1183,8 @@ class SettingsManager(JSONDict):
             "vscode_msg": True,
         }
         self.help_msg = (
-            f"\nView settings with 'yolo settings' or at '{self.file}'"
-            "\nUpdate settings with 'yolo settings key=value', i.e. 'yolo settings runs_dir=path/to/dir'. "
+            f"\nView Ultralytics Settings with 'yolo settings' or at '{self.file}'"
+            "\nUpdate Settings with 'yolo settings key=value', i.e. 'yolo settings runs_dir=path/to/dir'. "
             "For help see https://docs.ultralytics.com/quickstart/#ultralytics-settings."
         )
 
@@ -1192,7 +1192,7 @@ class SettingsManager(JSONDict):
             super().__init__(self.file)
 
             if not self.file.exists():
-                LOGGER.info(f"✅ Creating new Ultralytics Settings v{version} file. {self.help_msg}")
+                LOGGER.info(f"Creating new Ultralytics Settings v{version} file ✅ {self.help_msg}")
                 self.reset()
 
         self._validate_settings()

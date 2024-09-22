@@ -1124,26 +1124,26 @@ class JSONDict(dict):
 class SettingsManager(JSONDict):
     """
     SettingsManager class for managing and persisting Ultralytics settings.
-    
+
     This class extends JSONDict to provide JSON persistence for settings, ensuring thread-safe operations and default
     values. It validates settings on initialization and provides methods to update or reset settings.
-    
+
     Attributes:
         file (Path): The path to the JSON file used for persistence.
         version (str): The version of the settings schema.
         defaults (Dict): A dictionary containing default settings.
         help_msg (str): A help message for users on how to view and update settings.
-    
+
     Methods:
         _validate_settings: Validates the current settings and resets if necessary.
         update: Updates settings, validating keys and types.
         reset: Resets the settings to default and saves them.
-    
+
     Examples:
         Initialize and update settings:
         >>> settings = SettingsManager()
-        >>> settings.update(runs_dir='/new/runs/dir')
-        >>> print(settings['runs_dir'])
+        >>> settings.update(runs_dir="/new/runs/dir")
+        >>> print(settings["runs_dir"])
         /new/runs/dir
     """
 

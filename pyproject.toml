@@ -128,7 +128,7 @@ extra = [
 
 [project.urls]
 "Homepage" = "https://ultralytics.com"
-"Source" = "https://github.com/ultralytics/ultralytics/"
+"Source" = "https://github.com/ultralytics/ultralytics"
 "Documentation" = "https://docs.ultralytics.com"
 "Bug Reports" = "https://github.com/ultralytics/ultralytics/issues"
 "Changelog" = "https://github.com/ultralytics/ultralytics/releases" 

@@ -481,7 +481,6 @@ while True:
         break
 
     annotator = Annotator(im0)
-
     results = model.predict(im0)
     boxes = results[0].boxes.xyxy.cpu()
     clss = results[0].boxes.cls.cpu().tolist()
@@ -521,7 +520,6 @@ while True:
         break
 
     annotator = Annotator(im0)
-
     results = model.predict(im0)
     boxes = results[0].boxes.xyxy.cpu()
     clss = results[0].boxes.cls.cpu().tolist()

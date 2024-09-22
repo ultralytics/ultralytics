@@ -1123,7 +1123,6 @@ class JSONDict(dict):
 
 
 class SettingsManager(dict):
-
     """
     A dictionary-like class that provides JSON persistence for its contents.
 

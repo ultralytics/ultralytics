@@ -1192,6 +1192,7 @@ class SettingsManager(JSONDict):
             super().__init__(self.file)
 
             if not self.file.exists():
+                LOGGER.info(f"✅ Creating new Ultralytics Settings v{version} file. {self.help_msg}")
                 self.reset()
 
         self._validate_settings()

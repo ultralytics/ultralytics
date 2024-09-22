@@ -1040,6 +1040,61 @@ def set_sentry():
         sentry_sdk.set_user({"id": SETTINGS["uuid"]})  # SHA-256 anonymized UUID hash
 
 
+class JSONDict(dict):
+    """A base class for dictionary-like objects that persist data to a JSON file."""
+
+    def __init__(self, file_path: Union[str, Path] = "dict.json"):
+        """Initialize JSONDict from file_path JSON location."""
+        super().__init__()
+        self.file_path = Path(file_path)
+        self.lock = Lock()
+        self._load()
+
+    def _load(self):
+        """Load the data from the JSON file into the dictionary."""
+        try:
+            if self.file_path.exists():
+                with open(self.file_path) as f:
+                    self.update(json.load(f))
+        except json.JSONDecodeError:
+            print(f"Error decoding JSON from {self.file_path}. Starting with an empty dictionary.")
+        except Exception as e:
+            print(f"Error reading from {self.file_path}: {e}")
+
+    def _save(self):
+        """Save the current state of the dictionary to the JSON file."""
+        try:
+            self.file_path.parent.mkdir(parents=True, exist_ok=True)
+            with open(self.file_path, "w") as f:
+                json.dump(dict(self), f, indent=2)
+        except Exception as e:
+            print(f"Error writing to {self.file_path}: {e}")
+
+    def __setitem__(self, key, value):
+        """Store a key-value pair and persist to disk."""
+        with self.lock:
+            super().__setitem__(key, value)
+            self._save()
+
+    def __delitem__(self, key):
+        """Remove an item and update the persistent storage."""
+        with self.lock:
+            super().__delitem__(key)
+            self._save()
+
+    def update(self, *args, **kwargs):
+        """Update the dictionary and persist changes."""
+        with self.lock:
+            super().update(*args, **kwargs)
+            self._save()
+
+    def clear(self):
+        """Clear all entries and update the persistent storage."""
+        with self.lock:
+            super().clear()
+            self._save()
+
+
 class SettingsManager(dict):
     """
     Manages Ultralytics settings stored in a YAML file.
@@ -1138,61 +1193,6 @@ class SettingsManager(dict):
         self.save()
 
 
-class PersistentCacheDict(dict):
-    """A thread-safe dictionary that persists data to a JSON file for caching purposes."""
-
-    def __init__(self, file_path=USER_CONFIG_DIR / "persistent_cache.json"):
-        """Initializes a thread-safe persistent cache dictionary with a specified file path for storage."""
-        super().__init__()
-        self.file_path = Path(file_path)
-        self.lock = Lock()
-        self._load()
-
-    def _load(self):
-        """Load the persistent cache from a JSON file into the dictionary, handling errors gracefully."""
-        try:
-            if self.file_path.exists():
-                with open(self.file_path) as f:
-                    self.update(json.load(f))
-        except json.JSONDecodeError:
-            print(f"Error decoding JSON from {self.file_path}. Starting with an empty cache.")
-        except Exception as e:
-            print(f"Error reading from {self.file_path}: {e}")
-
-    def _save(self):
-        """Save the current state of the cache dictionary to a JSON file, ensuring thread safety."""
-        try:
-            self.file_path.parent.mkdir(parents=True, exist_ok=True)
-            with open(self.file_path, "w") as f:
-                json.dump(dict(self), f, indent=2)
-        except Exception as e:
-            print(f"Error writing to {self.file_path}: {e}")
-
-    def __setitem__(self, key, value):
-        """Store a key-value pair in the cache and persist the updated cache to disk."""
-        with self.lock:
-            super().__setitem__(key, value)
-            self._save()
-
-    def __delitem__(self, key):
-        """Remove an item from the PersistentCacheDict and update the persistent storage."""
-        with self.lock:
-            super().__delitem__(key)
-            self._save()
-
-    def update(self, *args, **kwargs):
-        """Update the dictionary with key-value pairs from other mappings or iterables, ensuring thread safety."""
-        with self.lock:
-            super().update(*args, **kwargs)
-            self._save()
-
-    def clear(self):
-        """Clears all entries from the persistent cache dictionary, ensuring thread safety."""
-        with self.lock:
-            super().clear()
-            self._save()
-
-
 def deprecation_warn(arg, new_arg):
     """Issue a deprecation warning when a deprecated argument is used, suggesting an updated argument."""
     LOGGER.warning(
@@ -1228,7 +1228,7 @@ def vscode_msg(ext="ultralytics.ultralytics-snippets") -> str:
 # Check first-install steps
 PREFIX = colorstr("Ultralytics: ")
 SETTINGS = SettingsManager()  # initialize settings
-PERSISTENT_CACHE = PersistentCacheDict()  # initialize persistent cache
+PERSISTENT_CACHE = JSONDict(USER_CONFIG_DIR / "persistent_cache.json")  # initialize persistent cache
 DATASETS_DIR = Path(SETTINGS["datasets_dir"])  # global datasets directory
 WEIGHTS_DIR = Path(SETTINGS["weights_dir"])  # global weights directory
 RUNS_DIR = Path(SETTINGS["runs_dir"])  # global runs directory

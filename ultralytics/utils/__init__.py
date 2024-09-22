@@ -1108,10 +1108,10 @@ class JSONDict(dict):
             super().__delitem__(key)
             self._save()
 
-    def update(self, *args, **kwargs):
+    def update(self, **kwargs):
         """Update the dictionary and persist changes."""
         with self.lock:
-            super().update(*args, **kwargs)
+            super().update(**kwargs)
             self._save()
 
     def clear(self):
@@ -1121,21 +1121,19 @@ class JSONDict(dict):
             self._save()
 
 
-class SettingsManager(dict):
+class SettingsManager(JSONDict):
     """
-    Manages Ultralytics settings stored in a YAML file.
+    Manages Ultralytics settings stored in a JSON file.
 
     Args:
-        file (str | Path): Path to the Ultralytics settings YAML file. Default is USER_CONFIG_DIR / 'settings.yaml'.
+        file (str | Path): Path to the Ultralytics settings JSON file. Default is USER_CONFIG_DIR / 'settings.json'.
         version (str): Settings version. In case of local version mismatch, new default settings will be saved.
     """
 
-    def __init__(self, file=SETTINGS_YAML, version="0.0.5"):
+    def __init__(self, file=SETTINGS_YAML.with_suffix(".json"), version="0.0.5"):
         """Initializes the SettingsManager with default settings and loads user settings."""
-        import copy
         import hashlib
 
-        from ultralytics.utils.checks import check_version
         from ultralytics.utils.torch_utils import torch_distributed_zero_first
 
         root = GIT_DIR or Path()
@@ -1169,61 +1167,55 @@ class SettingsManager(dict):
             "For help see https://docs.ultralytics.com/quickstart/#ultralytics-settings."
         )
 
-        super().__init__(copy.deepcopy(self.defaults))
-
         with torch_distributed_zero_first(RANK):
-            if not self.file.exists():
-                self.save()
+            super().__init__(self.file)
 
-            self.load()
-            correct_keys = self.keys() == self.defaults.keys()
-            correct_types = all(type(a) is type(b) for a, b in zip(self.values(), self.defaults.values()))
-            correct_version = check_version(self["settings_version"], self.version)
-            if not (correct_keys and correct_types and correct_version):
-                LOGGER.warning(
-                    "WARNING ⚠️ Ultralytics settings reset to default values. This may be due to a possible problem "
-                    f"with your settings or a recent ultralytics package update. {self.help_msg}"
-                )
+            if not self.file.exists():
                 self.reset()
 
-            if self.get("datasets_dir") == self.get("runs_dir"):
-                LOGGER.warning(
-                    f"WARNING ⚠️ Ultralytics setting 'datasets_dir: {self.get('datasets_dir')}' "
-                    f"must be different than 'runs_dir: {self.get('runs_dir')}'. "
-                    f"Please change one to avoid possible issues during training. {self.help_msg}"
-                )
+        self._validate_settings()
 
-    def load(self):
-        """Loads settings from the YAML file."""
-        super().update(yaml_load(self.file))
+    def _validate_settings(self):
+        """Validate the current settings and reset if necessary."""
+        from ultralytics.utils.checks import check_version
 
-    def save(self):
-        """Saves the current settings to the YAML file."""
-        yaml_save(self.file, dict(self))
+        correct_keys = self.keys() == self.defaults.keys()
+        correct_types = all(type(a) is type(b) for a, b in zip(self.values(), self.defaults.values()))
+        correct_version = check_version(self["settings_version"], self.version)
 
-    def update(self, *args, **kwargs):
-        """Updates a setting value in the current settings."""
+        if not (correct_keys and correct_types and correct_version):
+            LOGGER.warning(
+                "WARNING ⚠️ Ultralytics settings reset to default values. This may be due to a possible problem "
+                f"with your settings or a recent ultralytics package update. {self.help_msg}"
+            )
+            self.reset()
+
+        if self.get("datasets_dir") == self.get("runs_dir"):
+            LOGGER.warning(
+                f"WARNING ⚠️ Ultralytics setting 'datasets_dir: {self.get('datasets_dir')}' "
+                f"must be different than 'runs_dir: {self.get('runs_dir')}'. "
+                f"Please change one to avoid possible issues during training. {self.help_msg}"
+            )
+
+    def update(self, **kwargs):
+        """Updates settings, validating keys and types."""
         for k, v in kwargs.items():
             if k not in self.defaults:
                 raise KeyError(f"No Ultralytics setting '{k}'. {self.help_msg}")
             t = type(self.defaults[k])
             if not isinstance(v, t):
                 raise TypeError(f"Ultralytics setting '{k}' must be of type '{t}', not '{type(v)}'. {self.help_msg}")
-        super().update(*args, **kwargs)
-        self.save()
+        super().update(**kwargs)
 
     def reset(self):
         """Resets the settings to default and saves them."""
         self.clear()
-        self.update(self.defaults)
-        self.save()
+        self.update(**self.defaults)
 
 
 def deprecation_warn(arg, new_arg):
     """Issue a deprecation warning when a deprecated argument is used, suggesting an updated argument."""
-    LOGGER.warning(
-        f"WARNING ⚠️ '{arg}' is deprecated and will be removed in in the future. " f"Please use '{new_arg}' instead."
-    )
+    LOGGER.warning(f"WARNING ⚠️ '{arg}' is deprecated and will be removed in in the future. Use '{new_arg}' instead.")
 
 
 def clean_url(url):

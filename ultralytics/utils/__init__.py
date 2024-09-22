@@ -1218,7 +1218,7 @@ class SettingsManager(JSONDict):
                 f"Please change one to avoid possible issues during training. {self.help_msg}"
             )
 
-    def update(self, **kwargs):
+    def update(self, *args, **kwargs):
         """Updates settings, validating keys and types."""
         for k, v in kwargs.items():
             if k not in self.defaults:
@@ -1226,12 +1226,12 @@ class SettingsManager(JSONDict):
             t = type(self.defaults[k])
             if not isinstance(v, t):
                 raise TypeError(f"Ultralytics setting '{k}' must be of type '{t}', not '{type(v)}'. {self.help_msg}")
-        super().update(**kwargs)
+        super().update(*args, **kwargs)
 
     def reset(self):
         """Resets the settings to default and saves them."""
         self.clear()
-        self.update(**self.defaults)
+        self.update(self.defaults)
 
 
 def deprecation_warn(arg, new_arg):

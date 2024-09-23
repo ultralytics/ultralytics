@@ -8,7 +8,8 @@ Usage - sources:
                                                 vid.mp4                         # video
                                                 screen                          # screenshot
                                                 path/                           # directory
-                                                list.txt                        # list of images
+                                                list.csv                        # list of images, videos, directories
+                                                list.txt                        # list of images, videos, directories
                                                 list.streams                    # list of streams
                                                 'path/*.jpg'                    # glob
                                                 'https://youtu.be/LNwODJXcvt4'  # YouTube

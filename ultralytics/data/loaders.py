@@ -274,7 +274,10 @@ class LoadImagesAndVideos:
     def __init__(self, path, batch=1, vid_stride=1):
         """Initialize the Dataloader and raise FileNotFoundError if file not found."""
         parent = None
-        if isinstance(path, str) and Path(path).suffix == ".txt":  # *.txt file with img/vid/dir on each line
+        if isinstance(path, str) and Path(path).suffix in [
+            ".txt",
+            ".csv",
+        ]:  # *.txt or *.csv file with img/vid/dir on each line
             parent = Path(path).parent
             path = Path(path).read_text().splitlines()  # list of sources
         files = []

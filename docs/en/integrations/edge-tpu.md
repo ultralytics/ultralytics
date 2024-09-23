@@ -12,13 +12,13 @@ The export to TFLite Edge TPU format feature allows you to optimize your [Ultral
 
 ## Why Should You Export to TFLite Edge TPU?
 
-Exporting models to TensorFlow Edge TPU makes machine learning tasks fast and efficient. This technology suits applications with limited power, computing resources, and connectivity. The Edge TPU is a hardware accelerator by Google. It speeds up TensorFlow Lite models on edge devices. The image below shows an example of the process involved.
+Exporting models to [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) Edge TPU makes [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) tasks fast and efficient. This technology suits applications with limited power, computing resources, and connectivity. The Edge TPU is a hardware accelerator by Google. It speeds up TensorFlow Lite models on edge devices. The image below shows an example of the process involved.
 
 <p align="center">
   <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/tflite-edge-tpu-compile-workflow.avif" alt="TFLite Edge TPU">
 </p>
 
-The Edge TPU works with quantized models. Quantization makes models smaller and faster without losing much accuracy. It is ideal for the limited resources of edge computing, allowing applications to respond quickly by reducing latency and allowing for quick data processing locally, without cloud dependency. Local processing also keeps user data private and secure since it's not sent to a remote server.
+The Edge TPU works with quantized models. Quantization makes models smaller and faster without losing much [accuracy](https://www.ultralytics.com/glossary/accuracy). It is ideal for the limited resources of edge computing, allowing applications to respond quickly by reducing latency and allowing for quick data processing locally, without cloud dependency. Local processing also keeps user data private and secure since it's not sent to a remote server.
 
 ## Key Features of TFLite Edge TPU
 
@@ -28,7 +28,7 @@ Here are the key features that make TFLite Edge TPU a great model format choice 
 
 - **High Computational Throughput**: TFLite Edge TPU combines specialized hardware acceleration and efficient runtime execution to achieve high computational throughput. It is well-suited for deploying machine learning models with stringent performance requirements on edge devices.
 
-- **Efficient Matrix Computations**: The TensorFlow Edge TPU is optimized for matrix operations, which are crucial for neural network computations. This efficiency is key in machine learning models, particularly those requiring numerous and complex matrix multiplications and transformations.
+- **Efficient Matrix Computations**: The TensorFlow Edge TPU is optimized for matrix operations, which are crucial for [neural network](https://www.ultralytics.com/glossary/neural-network-nn) computations. This efficiency is key in machine learning models, particularly those requiring numerous and complex matrix multiplications and transformations.
 
 ## Deployment Options with TFLite Edge TPU
 
@@ -40,7 +40,7 @@ TFLite Edge TPU offers various deployment options for machine learning models, i
 
 - **Edge Computing with Cloud TensorFlow TPUs**: In scenarios where edge devices have limited processing capabilities, TensorFlow Edge TPUs can offload inference tasks to cloud servers equipped with TPUs.
 
-- **Hybrid Deployment**: A hybrid approach combines on-device and cloud deployment and offers a versatile and scalable solution for deploying machine learning models. Advantages include on-device processing for quick responses and cloud computing for more complex computations.
+- **Hybrid Deployment**: A hybrid approach combines on-device and cloud deployment and offers a versatile and scalable solution for deploying machine learning models. Advantages include on-device processing for quick responses and [cloud computing](https://www.ultralytics.com/glossary/cloud-computing) for more complex computations.
 
 ## Exporting YOLOv8 Models to TFLite Edge TPU
 
@@ -111,7 +111,7 @@ However, for in-depth instructions on deploying your TFLite Edge TPU models, tak
 
 ## Summary
 
-In this guide, we've learned how to export Ultralytics YOLOv8 models to TFLite Edge TPU format. By following the steps mentioned above, you can increase the speed and power of your computer vision applications.
+In this guide, we've learned how to export Ultralytics YOLOv8 models to TFLite Edge TPU format. By following the steps mentioned above, you can increase the speed and power of your [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) applications.
 
 For further details on usage, visit the [Edge TPU official website](https://cloud.google.com/tpu).
 
@@ -163,7 +163,7 @@ Exporting YOLOv8 models to TFLite Edge TPU offers several benefits:
 - **Reduced Latency**: Quick local data processing without the need for cloud dependency.
 - **Enhanced Privacy**: Local processing keeps user data private and secure.
 
-This makes it ideal for applications in edge computing, where devices have limited power and computational resources. Learn more about [why you should export](#why-should-you-export-to-tflite-edge-tpu).
+This makes it ideal for applications in [edge computing](https://www.ultralytics.com/glossary/edge-computing), where devices have limited power and computational resources. Learn more about [why you should export](#why-should-you-export-to-tflite-edge-tpu).
 
 ### Can I deploy TFLite Edge TPU models on mobile and embedded devices?
 

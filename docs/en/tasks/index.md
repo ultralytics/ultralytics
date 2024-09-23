@@ -9,7 +9,7 @@ keywords: Ultralytics YOLOv8, detection, segmentation, classification, oriented 
 <br>
 <img width="1024" src="https://github.com/ultralytics/docs/releases/download/0/ultralytics-yolov8-tasks-banner.avif" alt="Ultralytics YOLO supported tasks">
 
-YOLOv8 is an AI framework that supports multiple computer vision **tasks**. The framework can be used to perform [detection](detect.md), [segmentation](segment.md), [obb](obb.md), [classification](classify.md), and [pose](pose.md) estimation. Each of these tasks has a different objective and use case.
+YOLOv8 is an AI framework that supports multiple [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) **tasks**. The framework can be used to perform [detection](detect.md), [segmentation](segment.md), [obb](obb.md), [classification](classify.md), and [pose](pose.md) estimation. Each of these tasks has a different objective and use case.
 
 <p align="center">
   <br>
@@ -19,18 +19,18 @@ YOLOv8 is an AI framework that supports multiple computer vision **tasks**. The 
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Explore Ultralytics YOLO Tasks: Object Detection, Segmentation, OBB, Tracking, and Pose Estimation.
+  <strong>Watch:</strong> Explore Ultralytics YOLO Tasks: [Object Detection](https://www.ultralytics.com/glossary/object-detection), Segmentation, OBB, Tracking, and Pose Estimation.
 </p>
 
 ## [Detection](detect.md)
 
-Detection is the primary task supported by YOLOv8. It involves detecting objects in an image or video frame and drawing bounding boxes around them. The detected objects are classified into different categories based on their features. YOLOv8 can detect multiple objects in a single image or video frame with high accuracy and speed.
+Detection is the primary task supported by YOLOv8. It involves detecting objects in an image or video frame and drawing bounding boxes around them. The detected objects are classified into different categories based on their features. YOLOv8 can detect multiple objects in a single image or video frame with high [accuracy](https://www.ultralytics.com/glossary/accuracy) and speed.
 
 [Detection Examples](detect.md){ .md-button }
 
 ## [Segmentation](segment.md)
 
-Segmentation is a task that involves segmenting an image into different regions based on the content of the image. Each region is assigned a label based on its content. This task is useful in applications such as image segmentation and medical imaging. YOLOv8 uses a variant of the U-Net architecture to perform segmentation.
+Segmentation is a task that involves segmenting an image into different regions based on the content of the image. Each region is assigned a label based on its content. This task is useful in applications such as [image segmentation](https://www.ultralytics.com/glossary/image-segmentation) and medical imaging. YOLOv8 uses a variant of the U-Net architecture to perform segmentation.
 
 [Segmentation Examples](segment.md){ .md-button }
 
@@ -114,7 +114,7 @@ For more details and implementation tips, visit our [pose estimation examples](p
 
 ### Why should I choose Ultralytics YOLOv8 for oriented object detection (OBB)?
 
-Oriented Object Detection (OBB) with YOLOv8 provides enhanced precision by detecting objects with an additional angle parameter. This feature is beneficial for applications requiring accurate localization of rotated objects, such as aerial imagery analysis and warehouse automation.
+Oriented Object Detection (OBB) with YOLOv8 provides enhanced [precision](https://www.ultralytics.com/glossary/precision) by detecting objects with an additional angle parameter. This feature is beneficial for applications requiring accurate localization of rotated objects, such as aerial imagery analysis and warehouse automation.
 
 - **Increased Precision:** The angle component reduces false positives for rotated objects.
 - **Versatile Applications:** Useful for tasks in geospatial analysis, robotics, etc.

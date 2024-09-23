@@ -8,7 +8,7 @@ keywords: Ultralytics YOLOv8, speed estimation, object tracking, computer vision
 
 ## What is Speed Estimation?
 
-[Speed estimation](https://www.ultralytics.com/blog/ultralytics-yolov8-for-speed-estimation-in-computer-vision-projects) is the process of calculating the rate of movement of an object within a given context, often employed in computer vision applications. Using [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics/) you can now calculate the speed of object using [object tracking](../modes/track.md) alongside distance and time data, crucial for tasks like traffic and surveillance. The accuracy of speed estimation directly influences the efficiency and reliability of various applications, making it a key component in the advancement of intelligent systems and real-time decision-making processes.
+[Speed estimation](https://www.ultralytics.com/blog/ultralytics-yolov8-for-speed-estimation-in-computer-vision-projects) is the process of calculating the rate of movement of an object within a given context, often employed in [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) applications. Using [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics/) you can now calculate the speed of object using [object tracking](../modes/track.md) alongside distance and time data, crucial for tasks like traffic and surveillance. The accuracy of speed estimation directly influences the efficiency and reliability of various applications, making it a key component in the advancement of intelligent systems and real-time decision-making processes.
 
 <p align="center">
   <br>
@@ -104,7 +104,7 @@ keywords: Ultralytics YOLOv8, speed estimation, object tracking, computer vision
 
 ### How do I estimate object speed using Ultralytics YOLOv8?
 
-Estimating object speed with Ultralytics YOLOv8 involves combining object detection and tracking techniques. First, you need to detect objects in each frame using the YOLOv8 model. Then, track these objects across frames to calculate their movement over time. Finally, use the distance traveled by the object between frames and the frame rate to estimate its speed.
+Estimating object speed with Ultralytics YOLOv8 involves combining [object detection](https://www.ultralytics.com/glossary/object-detection) and tracking techniques. First, you need to detect objects in each frame using the YOLOv8 model. Then, track these objects across frames to calculate their movement over time. Finally, use the distance traveled by the object between frames and the frame rate to estimate its speed.
 
 **Example**:
 
@@ -152,7 +152,7 @@ Using Ultralytics YOLOv8 for speed estimation offers significant advantages in t
 
 For more applications, see [advantages of speed estimation](#advantages-of-speed-estimation).
 
-### Can YOLOv8 be integrated with other AI frameworks like TensorFlow or PyTorch?
+### Can YOLOv8 be integrated with other AI frameworks like [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) or [PyTorch](https://www.ultralytics.com/glossary/pytorch)?
 
 Yes, YOLOv8 can be integrated with other AI frameworks like TensorFlow and PyTorch. Ultralytics provides support for exporting YOLOv8 models to various formats like ONNX, TensorRT, and CoreML, ensuring smooth interoperability with other ML frameworks.
 
@@ -166,7 +166,7 @@ Learn more about exporting models in our [guide on export](../modes/export.md).
 
 ### How accurate is the speed estimation using Ultralytics YOLOv8?
 
-The accuracy of speed estimation using Ultralytics YOLOv8 depends on several factors, including the quality of the object tracking, the resolution and frame rate of the video, and environmental variables. While the speed estimator provides reliable estimates, it may not be 100% accurate due to variances in frame processing speed and object occlusion.
+The [accuracy](https://www.ultralytics.com/glossary/accuracy) of speed estimation using Ultralytics YOLOv8 depends on several factors, including the quality of the object tracking, the resolution and frame rate of the video, and environmental variables. While the speed estimator provides reliable estimates, it may not be 100% accurate due to variances in frame processing speed and object occlusion.
 
 **Note**: Always consider margin of error and validate the estimates with ground truth data when possible.
 

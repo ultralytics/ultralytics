@@ -6,9 +6,9 @@ keywords: YOLOv8, Amazon SageMaker, AWS, Ultralytics, machine learning, computer
 
 # A Guide to Deploying YOLOv8 on Amazon SageMaker Endpoints
 
-Deploying advanced computer vision models like [Ultralytics' YOLOv8](https://github.com/ultralytics/ultralytics) on Amazon SageMaker Endpoints opens up a wide range of possibilities for various machine learning applications. The key to effectively using these models lies in understanding their setup, configuration, and deployment processes. YOLOv8 becomes even more powerful when integrated seamlessly with Amazon SageMaker, a robust and scalable machine learning service by AWS.
+Deploying advanced [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models like [Ultralytics' YOLOv8](https://github.com/ultralytics/ultralytics) on Amazon SageMaker Endpoints opens up a wide range of possibilities for various [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) applications. The key to effectively using these models lies in understanding their setup, configuration, and deployment processes. YOLOv8 becomes even more powerful when integrated seamlessly with Amazon SageMaker, a robust and scalable machine learning service by AWS.
 
-This guide will take you through the process of deploying YOLOv8 PyTorch models on Amazon SageMaker Endpoints step by step. You'll learn the essentials of preparing your AWS environment, configuring the model appropriately, and using tools like AWS CloudFormation and the AWS Cloud Development Kit (CDK) for deployment.
+This guide will take you through the process of deploying YOLOv8 [PyTorch](https://www.ultralytics.com/glossary/pytorch) models on Amazon SageMaker Endpoints step by step. You'll learn the essentials of preparing your AWS environment, configuring the model appropriately, and using tools like AWS CloudFormation and the AWS Cloud Development Kit (CDK) for deployment.
 
 ## Amazon SageMaker
 
@@ -144,7 +144,7 @@ Now that your YOLOv8 model is deployed, it's important to test its performance a
 
 - Open the Test Notebook: In the same Jupyter environment, locate and open the 2_TestEndpoint.ipynb notebook, also in the sm-notebook directory.
 
-- Run the Test Notebook: Follow the instructions within the notebook to test the deployed SageMaker endpoint. This includes sending an image to the endpoint and running inferences. Then, you'll plot the output to visualize the model's performance and accuracy, as shown below.
+- Run the Test Notebook: Follow the instructions within the notebook to test the deployed SageMaker endpoint. This includes sending an image to the endpoint and running inferences. Then, you'll plot the output to visualize the model's performance and [accuracy](https://www.ultralytics.com/glossary/accuracy), as shown below.
 
 <p align="center">
   <img width="640" src="https://github.com/ultralytics/docs/releases/download/0/testing-results-yolov8.avif" alt="Testing Results YOLOv8">

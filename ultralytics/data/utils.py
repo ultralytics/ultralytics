@@ -22,7 +22,7 @@ from ultralytics.utils import (
     LOGGER,
     NUM_THREADS,
     ROOT,
-    SETTINGS_YAML,
+    SETTINGS_FILE,
     TQDM,
     clean_url,
     colorstr,
@@ -324,7 +324,7 @@ def check_det_dataset(dataset, autodownload=True):
             if s and autodownload:
                 LOGGER.warning(m)
             else:
-                m += f"\nNote dataset download directory is '{DATASETS_DIR}'. You can update this in '{SETTINGS_YAML}'"
+                m += f"\nNote dataset download directory is '{DATASETS_DIR}'. You can update this in '{SETTINGS_FILE}'"
                 raise FileNotFoundError(m)
             t = time.time()
             r = None  # success

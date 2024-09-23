@@ -239,7 +239,8 @@ class Annotator:
         }
 
     def get_txt_color(self, color=(128, 128, 128), txt_color=(255, 255, 255)):
-        """Assign text color based on background color.
+        """
+        Assign text color based on background color.
 
         Args:
             color (tuple, optional): The background color of the rectangle for text (B, G, R).
@@ -253,7 +254,8 @@ class Annotator:
         )
 
     def circle_label(self, box, label="", color=(128, 128, 128), txt_color=(255, 255, 255)):
-        """Draws a label with a background circle centered within a given bounding box.
+        """
+        Draws a label with a background circle centered within a given bounding box.
 
         Args:
             box (tuple): The bounding box coordinates (x1, y1, x2, y2).
@@ -617,7 +619,8 @@ class Annotator:
         )
 
     def display_analytics(self, im0, text, txt_color, bg_color):
-        """Display the overall statistics for parking lots.
+        """
+        Display the overall statistics for parking lots.
 
         Args:
             im0 (ndarray): inference image
@@ -694,7 +697,8 @@ class Annotator:
         return self.im
 
     def plot_workout_information(self, text, position, color, txt_color):
-        """Draw text with a background on the image.
+        """
+        Draw text with a background on the image.
 
         Args:
             text (str): The text to be displayed.

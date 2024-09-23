@@ -1,7 +1,7 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 from collections import defaultdict
-from typing import List, Optional, Tuple
+from typing import List, Tuple
 
 import cv2
 import numpy as np
@@ -12,7 +12,6 @@ from ultralytics.utils import crop_and_pad
 from ultralytics.utils.checks import check_imshow, check_requirements
 from ultralytics.utils.plotting import Annotator
 from ultralytics.utils.torch_utils import select_device
-from ultralytics.utils import crop_and_pad
 
 
 class ActionRecognition:
@@ -46,7 +45,7 @@ class ActionRecognition:
         )
 
         self.device = select_device(device)
-        self.fp16 = torch.cuda.is_available() and torch.cuda.is_bf16_supported() and 'cuda' in self.device
+        self.fp16 = torch.cuda.is_available() and torch.cuda.is_bf16_supported() and "cuda" in self.device
 
         # Check if environment supports imshow
         self.env_check = check_imshow(warn=True)
@@ -59,7 +58,7 @@ class ActionRecognition:
             self.video_classifier = TorchVisionVideoClassifier(video_classifier_model, device=self.device)
         else:
             self.video_classifier = HuggingFaceVideoClassifier(
-                self.labels, model_name=video_classifier_model, device=self.device, fp16= self.fp16
+                self.labels, model_name=video_classifier_model, device=self.device, fp16=self.fp16
             )
 
         self.track_history = defaultdict(list)
@@ -407,7 +406,6 @@ class HuggingFaceVideoClassifier:
         Returns:
             torch.Tensor: The model's output.
         """
-
         input_ids = self.processor(text=self.labels, return_tensors="pt", padding=True)["input_ids"].to(self.device)
 
         inputs = {"pixel_values": sequences, "input_ids": input_ids}

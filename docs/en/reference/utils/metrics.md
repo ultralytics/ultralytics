@@ -11,7 +11,7 @@ keywords: Ultralytics, metrics, model validation, performance analysis, IoU, con
 
 <br>
 
-## ::: ultralytics.utils.metrics.[ConfusionMatrix](https://www.ultralytics.com/glossary/confusion-matrix)
+## ::: ultralytics.utils.metrics.ConfusionMatrix
 
 <br><br><hr><br>
 

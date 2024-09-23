@@ -11,7 +11,7 @@ keywords: Ultralytics, TwoWayTransformer, module, deep learning, transformer, ob
 
 <br>
 
-## ::: ultralytics.models.sam.modules.[transformer](https://www.ultralytics.com/glossary/transformer).TwoWayTransformer
+## ::: ultralytics.models.sam.modules.transformer.TwoWayTransformer
 
 <br><br><hr><br>
 

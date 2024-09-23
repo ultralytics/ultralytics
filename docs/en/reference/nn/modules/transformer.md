@@ -11,7 +11,7 @@ keywords: Ultralytics, Ultralytics documentation, TransformerEncoderLayer, Trans
 
 <br>
 
-## ::: ultralytics.nn.modules.[transformer](https://www.ultralytics.com/glossary/transformer).TransformerEncoderLayer
+## ::: ultralytics.nn.modules.transformer.TransformerEncoderLayer
 
 <br><br><hr><br>
 

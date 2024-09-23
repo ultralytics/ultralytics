@@ -6,7 +6,7 @@ keywords: Oriented Bounding Box, OBB Datasets, YOLO, Ultralytics, Object Detecti
 
 # Oriented Bounding Box (OBB) Datasets Overview
 
-Training a precise object detection model with oriented bounding boxes (OBB) requires a thorough dataset. This guide explains the various OBB dataset formats compatible with Ultralytics YOLO models, offering insights into their structure, application, and methods for format conversions.
+Training a precise [object detection](https://www.ultralytics.com/glossary/object-detection) model with oriented bounding boxes (OBB) requires a thorough dataset. This guide explains the various OBB dataset formats compatible with Ultralytics YOLO models, offering insights into their structure, application, and methods for format conversions.
 
 ## Supported OBB Dataset Formats
 
@@ -18,7 +18,7 @@ The YOLO OBB format designates bounding boxes by their four corner points with c
 class_index x1 y1 x2 y2 x3 y3 x4 y4
 ```
 
-Internally, YOLO processes losses and outputs in the `xywhr` format, which represents the bounding box's center point (xy), width, height, and rotation.
+Internally, YOLO processes losses and outputs in the `xywhr` format, which represents the [bounding box](https://www.ultralytics.com/glossary/bounding-box)'s center point (xy), width, height, and rotation.
 
 <p align="center"><img width="800" src="https://github.com/ultralytics/docs/releases/download/0/obb-format-examples.avif" alt="OBB format examples"></p>
 
@@ -129,7 +129,7 @@ Training a YOLOv8 model with OBBs involves ensuring your dataset is in the YOLO 
         yolo obb train data=your_dataset.yaml model=yolov8n-obb.yaml epochs=100 imgsz=640
         ```
 
-This ensures your model leverages the detailed OBB annotations for improved detection accuracy.
+This ensures your model leverages the detailed OBB annotations for improved detection [accuracy](https://www.ultralytics.com/glossary/accuracy).
 
 ### What datasets are currently supported for OBB training in Ultralytics YOLO models?
 

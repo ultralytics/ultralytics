@@ -365,7 +365,6 @@ class ProfileModels:
                 onnx_file = model.export(
                     format="onnx",
                     imgsz=self.imgsz,
-                    simplify=True,
                     device=self.device,
                     verbose=False,
                 )

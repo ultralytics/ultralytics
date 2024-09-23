@@ -6,7 +6,7 @@ keywords: YOLOv8, export, TensorFlow, GraphDef, model deployment, TensorFlow Ser
 
 # How to Export to TF GraphDef from YOLOv8 for Deployment
 
-When you are deploying cutting-edge computer vision models, like YOLOv8, in different environments, you might run into compatibility issues. Google's TensorFlow GraphDef, or TF GraphDef, offers a solution by providing a serialized, platform-independent representation of your model. Using the TF GraphDef model format, you can deploy your YOLOv8 model in environments where the complete TensorFlow ecosystem may not be available, such as mobile devices or specialized hardware.
+When you are deploying cutting-edge [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models, like YOLOv8, in different environments, you might run into compatibility issues. Google's [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) GraphDef, or TF GraphDef, offers a solution by providing a serialized, platform-independent representation of your model. Using the TF GraphDef model format, you can deploy your YOLOv8 model in environments where the complete TensorFlow ecosystem may not be available, such as mobile devices or specialized hardware.
 
 In this guide, we'll walk you step by step through how to export your [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics) models to the TF GraphDef model format. By converting your model, you can streamline deployment and use YOLOv8's computer vision capabilities in a broader range of applications and platforms.
 
@@ -24,7 +24,7 @@ GraphDef models can use hardware accelerators such as GPUs, TPUs, and AI chips, 
 
 ## Key Features of TF GraphDef Models
 
-TF GraphDef offers distinct features for streamlining model deployment and optimization.
+TF GraphDef offers distinct features for streamlining [model deployment](https://www.ultralytics.com/glossary/model-deployment) and optimization.
 
 Here's a look at its key characteristics:
 
@@ -111,7 +111,7 @@ Once you've exported your YOLOv8 model to the TF GraphDef format, the next step 
 
 However, for more information on deploying your TF GraphDef models, take a look at the following resources:
 
-- **[TensorFlow Serving](https://www.tensorflow.org/tfx/guide/serving)**: A guide on TensorFlow Serving that teaches how to deploy and serve machine learning models efficiently in production environments.
+- **[TensorFlow Serving](https://www.tensorflow.org/tfx/guide/serving)**: A guide on TensorFlow Serving that teaches how to deploy and serve [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) models efficiently in production environments.
 
 - **[TensorFlow Lite](https://www.tensorflow.org/api_docs/python/tf/lite/TFLiteConverter)**: This page describes how to convert machine learning models into a format optimized for on-device inference with TensorFlow Lite.
 
@@ -173,11 +173,11 @@ Exporting YOLOv8 models to the TF GraphDef format offers multiple advantages, in
 
 Read more about the benefits in the [TF GraphDef section](#why-should-you-export-to-tf-graphdef) of our documentation.
 
-### Why should I use Ultralytics YOLOv8 over other object detection models?
+### Why should I use Ultralytics YOLOv8 over other [object detection](https://www.ultralytics.com/glossary/object-detection) models?
 
 Ultralytics YOLOv8 offers numerous advantages compared to other models like YOLOv5 and YOLOv7. Some key benefits include:
 
-1. **State-of-the-Art Performance**: YOLOv8 provides exceptional speed and accuracy for real-time object detection, segmentation, and classification.
+1. **State-of-the-Art Performance**: YOLOv8 provides exceptional speed and [accuracy](https://www.ultralytics.com/glossary/accuracy) for real-time object detection, segmentation, and classification.
 2. **Ease of Use**: Features a user-friendly API for model training, validation, prediction, and export, making it accessible for both beginners and experts.
 3. **Broad Compatibility**: Supports multiple export formats including ONNX, TensorRT, CoreML, and TensorFlow, for versatile deployment options.
 

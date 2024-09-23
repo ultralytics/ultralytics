@@ -1280,7 +1280,6 @@ def crop_and_pad(frame, box, margin_percent):
     return cv2.resize(square_crop, (224, 224), interpolation=cv2.INTER_LINEAR)
 
 
-
 # Run below code on utils init ------------------------------------------------------------------------------------
 
 # Check first-install steps

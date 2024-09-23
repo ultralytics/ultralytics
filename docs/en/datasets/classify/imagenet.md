@@ -6,7 +6,7 @@ keywords: ImageNet, deep learning, visual recognition, computer vision, pretrain
 
 # ImageNet Dataset
 
-[ImageNet](https://www.image-net.org/) is a large-scale database of annotated images designed for use in visual object recognition research. It contains over 14 million images, with each image annotated using WordNet synsets, making it one of the most extensive resources available for training deep learning models in computer vision tasks.
+[ImageNet](https://www.image-net.org/) is a large-scale database of annotated images designed for use in visual object recognition research. It contains over 14 million images, with each image annotated using WordNet synsets, making it one of the most extensive resources available for training [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models in [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) tasks.
 
 ## ImageNet Pretrained Models
 
@@ -22,7 +22,7 @@ keywords: ImageNet, deep learning, visual recognition, computer vision, pretrain
 
 - ImageNet contains over 14 million high-resolution images spanning thousands of object categories.
 - The dataset is organized according to the WordNet hierarchy, with each synset representing a category.
-- ImageNet is widely used for training and benchmarking in the field of computer vision, particularly for image classification and object detection tasks.
+- ImageNet is widely used for training and benchmarking in the field of computer vision, particularly for [image classification](https://www.ultralytics.com/glossary/image-classification) and [object detection](https://www.ultralytics.com/glossary/object-detection) tasks.
 - The annual ImageNet Large Scale Visual Recognition Challenge (ILSVRC) has been instrumental in advancing computer vision research.
 
 ## Dataset Structure
@@ -39,7 +39,7 @@ The ImageNet dataset is widely used for training and evaluating deep learning mo
 
 ## Usage
 
-To train a deep learning model on the ImageNet dataset for 100 epochs with an image size of 224x224, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To train a deep learning model on the ImageNet dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 224x224, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
 !!! example "Train Example"
 
@@ -90,7 +90,7 @@ If you use the ImageNet dataset in your research or development work, please cit
         }
         ```
 
-We would like to acknowledge the ImageNet team, led by Olga Russakovsky, Jia Deng, and Li Fei-Fei, for creating and maintaining the ImageNet dataset as a valuable resource for the machine learning and computer vision research community. For more information about the ImageNet dataset and its creators, visit the [ImageNet website](https://www.image-net.org/).
+We would like to acknowledge the ImageNet team, led by Olga Russakovsky, Jia Deng, and Li Fei-Fei, for creating and maintaining the ImageNet dataset as a valuable resource for the [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) and computer vision research community. For more information about the ImageNet dataset and its creators, visit the [ImageNet website](https://www.image-net.org/).
 
 ## FAQ
 
@@ -127,7 +127,7 @@ For more in-depth training instruction, refer to our [Training page](../../modes
 
 ### Why should I use the Ultralytics YOLOv8 pretrained models for my ImageNet dataset projects?
 
-Ultralytics YOLOv8 pretrained models offer state-of-the-art performance in terms of speed and accuracy for various computer vision tasks. For example, the YOLOv8n-cls model, with a top-1 accuracy of 69.0% and a top-5 accuracy of 88.3%, is optimized for real-time applications. Pretrained models reduce the computational resources required for training from scratch and accelerate development cycles. Learn more about the performance metrics of YOLOv8 models in the [ImageNet Pretrained Models section](#imagenet-pretrained-models).
+Ultralytics YOLOv8 pretrained models offer state-of-the-art performance in terms of speed and [accuracy](https://www.ultralytics.com/glossary/accuracy) for various computer vision tasks. For example, the YOLOv8n-cls model, with a top-1 accuracy of 69.0% and a top-5 accuracy of 88.3%, is optimized for real-time applications. Pretrained models reduce the computational resources required for training from scratch and accelerate development cycles. Learn more about the performance metrics of YOLOv8 models in the [ImageNet Pretrained Models section](#imagenet-pretrained-models).
 
 ### How is the ImageNet dataset structured, and why is it important?
 
@@ -135,4 +135,4 @@ The ImageNet dataset is organized using the WordNet hierarchy, where each node i
 
 ### What role does the ImageNet Large Scale Visual Recognition Challenge (ILSVRC) play in computer vision?
 
-The annual [ImageNet Large Scale Visual Recognition Challenge (ILSVRC)](https://image-net.org/challenges/LSVRC/) has been pivotal in driving advancements in computer vision by providing a competitive platform for evaluating algorithms on a large-scale, standardized dataset. It offers standardized evaluation metrics, fostering innovation and development in areas such as image classification, object detection, and image segmentation. The challenge has continuously pushed the boundaries of what is possible with deep learning and computer vision technologies.
+The annual [ImageNet Large Scale Visual Recognition Challenge (ILSVRC)](https://image-net.org/challenges/LSVRC/) has been pivotal in driving advancements in computer vision by providing a competitive platform for evaluating algorithms on a large-scale, standardized dataset. It offers standardized evaluation metrics, fostering innovation and development in areas such as image classification, object detection, and [image segmentation](https://www.ultralytics.com/glossary/image-segmentation). The challenge has continuously pushed the boundaries of what is possible with deep learning and computer vision technologies.

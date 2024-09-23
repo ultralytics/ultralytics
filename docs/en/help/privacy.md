@@ -19,7 +19,7 @@ keywords: Ultralytics, data collection, YOLO, Python package, Google Analytics, 
 - **System Information**: We collect general non-identifiable information about your computing environment to ensure our package performs well across various systems.
 - **Performance Data**: Understanding the performance of our models during training, validation, and inference helps us in identifying optimization opportunities.
 
-For more information about Google Analytics and data privacy, visit [Google Analytics Privacy](https://support.google.com/analytics/answer/6004245).
+For more information about Google Analytics and [data privacy](https://www.ultralytics.com/glossary/data-privacy), visit [Google Analytics Privacy](https://support.google.com/analytics/answer/6004245).
 
 ### How We Use This Data
 

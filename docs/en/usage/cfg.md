@@ -4,7 +4,7 @@ description: Optimize your YOLO model's performance with the right settings and 
 keywords: YOLO, hyperparameters, configuration, training, validation, prediction, model settings, Ultralytics, performance optimization, machine learning
 ---
 
-YOLO settings and hyperparameters play a critical role in the model's performance, speed, and accuracy. These settings and hyperparameters can affect the model's behavior at various stages of the model development process, including training, validation, and prediction.
+YOLO settings and hyperparameters play a critical role in the model's performance, speed, and [accuracy](https://www.ultralytics.com/glossary/accuracy). These settings and hyperparameters can affect the model's behavior at various stages of the model development process, including training, validation, and prediction.
 
 <p align="center">
   <br>
@@ -57,9 +57,9 @@ YOLO models can be used for a variety of tasks, including detection, segmentatio
 - **Pose**: For identifying objects and estimating their keypoints in an image or video.
 - **OBB**: Oriented (i.e. rotated) bounding boxes suitable for satellite or medical imagery.
 
-| Argument | Default    | Description                                                                                                                                                                                                                                                                                                         |
-| -------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `task`   | `'detect'` | Specifies the YOLO task to be executed. Options include `detect` for object detection, `segment` for segmentation, `classify` for classification, `pose` for pose estimation and `OBB` for oriented bounding boxes. Each task is tailored to specific types of output and problems within image and video analysis. |
+| Argument | Default    | Description                                                                                                                                                                                                                                                                                                                                                                  |
+| -------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `task`   | `'detect'` | Specifies the YOLO task to be executed. Options include `detect` for [object detection](https://www.ultralytics.com/glossary/object-detection), `segment` for segmentation, `classify` for classification, `pose` for pose estimation and `OBB` for oriented bounding boxes. Each task is tailored to specific types of output and problems within image and video analysis. |
 
 [Tasks Guide](../tasks/index.md){ .md-button }
 
@@ -82,7 +82,7 @@ YOLO models can be used in different modes depending on the specific problem you
 
 ## Train Settings
 
-The training settings for YOLO models encompass various hyperparameters and configurations used during the training process. These settings influence the model's performance, speed, and accuracy. Key training settings include batch size, learning rate, momentum, and weight decay. Additionally, the choice of optimizer, loss function, and training dataset composition can impact the training process. Careful tuning and experimentation with these settings are crucial for optimizing performance.
+The training settings for YOLO models encompass various hyperparameters and configurations used during the training process. These settings influence the model's performance, speed, and accuracy. Key training settings include batch size, [learning rate](https://www.ultralytics.com/glossary/learning-rate), momentum, and weight decay. Additionally, the choice of optimizer, [loss function](https://www.ultralytics.com/glossary/loss-function), and training dataset composition can impact the training process. Careful tuning and experimentation with these settings are crucial for optimizing performance.
 
 {% include "macros/train-args.md" %}
 
@@ -90,7 +90,7 @@ The training settings for YOLO models encompass various hyperparameters and conf
 
     The `batch` argument can be configured in three ways:
 
-    - **Fixed Batch Size**: Set an integer value (e.g., `batch=16`), specifying the number of images per batch directly.
+    - **Fixed [Batch Size](https://www.ultralytics.com/glossary/batch-size)**: Set an integer value (e.g., `batch=16`), specifying the number of images per batch directly.
     - **Auto Mode (60% GPU Memory)**: Use `batch=-1` to automatically adjust batch size for approximately 60% CUDA memory utilization.
     - **Auto Mode with Utilization Fraction**: Set a fraction value (e.g., `batch=0.70`) to adjust batch size based on the specified fraction of GPU memory usage.
 
@@ -116,7 +116,7 @@ The val (validation) settings for YOLO models involve various hyperparameters an
 
 {% include "macros/validation-args.md" %}
 
-Careful tuning and experimentation with these settings are crucial to ensure optimal performance on the validation dataset and detect and prevent overfitting.
+Careful tuning and experimentation with these settings are crucial to ensure optimal performance on the validation dataset and detect and prevent [overfitting](https://www.ultralytics.com/glossary/overfitting).
 
 [Val Guide](../modes/val.md){ .md-button }
 
@@ -132,7 +132,7 @@ It is crucial to thoughtfully configure these settings to ensure the exported mo
 
 ## Augmentation Settings
 
-Augmentation techniques are essential for improving the robustness and performance of YOLO models by introducing variability into the training data, helping the model generalize better to unseen data. The following table outlines the purpose and effect of each augmentation argument:
+Augmentation techniques are essential for improving the robustness and performance of YOLO models by introducing variability into the [training data](https://www.ultralytics.com/glossary/training-data), helping the model generalize better to unseen data. The following table outlines the purpose and effect of each augmentation argument:
 
 {% include "macros/augmentation-args.md" %}
 
@@ -149,19 +149,19 @@ Logging, checkpoints, plotting, and file management are important considerations
 
 Effective logging, checkpointing, plotting, and file management can help you keep track of the model's progress and make it easier to debug and optimize the training process.
 
-| Argument   | Default  | Description                                                                                                                                                                                                                        |
-| ---------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `project`  | `'runs'` | Specifies the root directory for saving training runs. Each run will be saved in a separate subdirectory within this directory.                                                                                                    |
-| `name`     | `'exp'`  | Defines the name of the experiment. If not specified, YOLO automatically increments this name for each run, e.g., `exp`, `exp2`, etc., to avoid overwriting previous experiments.                                                  |
-| `exist_ok` | `False`  | Determines whether to overwrite an existing experiment directory if one with the same name already exists. Setting this to `True` allows overwriting, while `False` prevents it.                                                   |
-| `plots`    | `False`  | Controls the generation and saving of training and validation plots. Set to `True` to create plots such as loss curves, precision-recall curves, and sample predictions. Useful for visually tracking model performance over time. |
-| `save`     | `False`  | Enables the saving of training checkpoints and final model weights. Set to `True` to periodically save model states, allowing training to be resumed from these checkpoints or models to be deployed.                              |
+| Argument   | Default  | Description                                                                                                                                                                                                                                                                                                                         |
+| ---------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `project`  | `'runs'` | Specifies the root directory for saving training runs. Each run will be saved in a separate subdirectory within this directory.                                                                                                                                                                                                     |
+| `name`     | `'exp'`  | Defines the name of the experiment. If not specified, YOLO automatically increments this name for each run, e.g., `exp`, `exp2`, etc., to avoid overwriting previous experiments.                                                                                                                                                   |
+| `exist_ok` | `False`  | Determines whether to overwrite an existing experiment directory if one with the same name already exists. Setting this to `True` allows overwriting, while `False` prevents it.                                                                                                                                                    |
+| `plots`    | `False`  | Controls the generation and saving of training and validation plots. Set to `True` to create plots such as loss curves, [precision](https://www.ultralytics.com/glossary/precision)-[recall](https://www.ultralytics.com/glossary/recall) curves, and sample predictions. Useful for visually tracking model performance over time. |
+| `save`     | `False`  | Enables the saving of training checkpoints and final model weights. Set to `True` to periodically save model states, allowing training to be resumed from these checkpoints or models to be deployed.                                                                                                                               |
 
 ## FAQ
 
 ### How do I improve the performance of my YOLO model during training?
 
-Improving YOLO model performance involves tuning hyperparameters like batch size, learning rate, momentum, and weight decay. Adjusting augmentation settings, selecting the right optimizer, and employing techniques like early stopping or mixed precision can also help. For detailed guidance on training settings, refer to the [Train Guide](../modes/train.md).
+Improving YOLO model performance involves tuning hyperparameters like batch size, learning rate, momentum, and weight decay. Adjusting augmentation settings, selecting the right optimizer, and employing techniques like early stopping or [mixed precision](https://www.ultralytics.com/glossary/mixed-precision) can also help. For detailed guidance on training settings, refer to the [Train Guide](../modes/train.md).
 
 ### What are the key hyperparameters to consider for YOLO model accuracy?
 

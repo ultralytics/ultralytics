@@ -96,7 +96,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
     1. For more info on `c.masks.xy` see [Masks Section from Predict Mode](../modes/predict.md#masks).
 
-    2. Here the values are cast into `np.int32` for compatibility with `drawContours()` function from OpenCV.
+    2. Here the values are cast into `np.int32` for compatibility with `drawContours()` function from [OpenCV](https://www.ultralytics.com/glossary/opencv).
 
     3. The OpenCV `drawContours()` function expects contours to have a shape of `[N, 1, 2]` expand section below for more details.
 
@@ -178,7 +178,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
                 iso_crop = isolated[y1:y2, x1:x2]
                 ```
 
-                1.  For more information on bounding box results, see [Boxes Section from Predict Mode](../modes/predict.md/#boxes)
+                1.  For more information on [bounding box](https://www.ultralytics.com/glossary/bounding-box) results, see [Boxes Section from Predict Mode](../modes/predict.md/#boxes)
 
                 ??? question "What does this code do?"
 
@@ -253,7 +253,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
         _ = cv2.imwrite(f"{img_name}_{label}-{ci}.png", iso_crop)
         ```
 
-        - In this example, the `img_name` is the base-name of the source image file, `label` is the detected class-name, and `ci` is the index of the object detection (in case of multiple instances with the same class name).
+        - In this example, the `img_name` is the base-name of the source image file, `label` is the detected class-name, and `ci` is the index of the [object detection](https://www.ultralytics.com/glossary/object-detection) (in case of multiple instances with the same class name).
 
 ## Full Example code
 

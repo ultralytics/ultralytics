@@ -4,7 +4,7 @@ description: Learn how to define clear goals and objectives for your computer vi
 keywords: computer vision, project planning, problem statement, measurable objectives, dataset preparation, model selection, YOLOv8, Ultralytics
 ---
 
-# A Practical Guide for Defining Your Computer Vision Project
+# A Practical Guide for Defining Your [Computer Vision](https://www.ultralytics.com/glossary/computer-vision-cv) Project
 
 ## Introduction
 
@@ -33,7 +33,7 @@ Consider a computer vision project where you want to [estimate the speed of vehi
   <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/speed-estimation-using-yolov8.avif" alt="Speed Estimation Using YOLOv8">
 </p>
 
-Primary users include traffic management authorities and law enforcement, while secondary stakeholders are highway planners and the public benefiting from safer roads. Key requirements involve evaluating budget, time, and personnel, as well as addressing technical needs like high-resolution cameras and real-time data processing. Additionally, regulatory constraints on privacy and data security must be considered.
+Primary users include traffic management authorities and law enforcement, while secondary stakeholders are highway planners and the public benefiting from safer roads. Key requirements involve evaluating budget, time, and personnel, as well as addressing technical needs like high-resolution cameras and real-time data processing. Additionally, regulatory constraints on privacy and [data security](https://www.ultralytics.com/glossary/data-security) must be considered.
 
 ### Setting Measurable Objectives
 
@@ -41,7 +41,7 @@ Setting measurable objectives is key to the success of a computer vision project
 
 For example, if you are developing a system to estimate vehicle speeds on a highway. You could consider the following measurable objectives:
 
-- To achieve at least 95% accuracy in speed detection within six months, using a dataset of 10,000 vehicle images.
+- To achieve at least 95% [accuracy](https://www.ultralytics.com/glossary/accuracy) in speed detection within six months, using a dataset of 10,000 vehicle images.
 - The system should be able to process real-time video feeds at 30 frames per second with minimal delay.
 
 By setting specific and quantifiable goals, you can effectively track progress, identify areas for improvement, and ensure the project stays on course.
@@ -68,7 +68,7 @@ The order of model selection, dataset preparation, and training approach depends
 
 - **Unique or Limited Data**: If your project is constrained by unique or limited data, begin with dataset preparation. For instance, if you have a rare dataset of medical images, annotate and prepare the data first. Then, select a model that performs well on such data, followed by choosing a suitable training approach.
 
-    - **Example**: Prepare the data first for a facial recognition system with a small dataset. Annotate it, then select a model that works well with limited data, such as a pre-trained model for transfer learning. Finally, decide on a training approach, including data augmentation, to expand the dataset.
+    - **Example**: Prepare the data first for a facial recognition system with a small dataset. Annotate it, then select a model that works well with limited data, such as a pre-trained model for [transfer learning](https://www.ultralytics.com/glossary/transfer-learning). Finally, decide on a training approach, including [data augmentation](https://www.ultralytics.com/glossary/data-augmentation), to expand the dataset.
 
 - **Need for Experimentation**: In projects where experimentation is crucial, start with the training approach. This is common in research projects where you might initially test different training techniques. Refine your model selection after identifying a promising method and prepare the dataset based on your findings.
     - **Example**: In a project exploring new methods for detecting manufacturing defects, start with experimenting on a small data subset. Once you find a promising technique, select a model tailored to those findings and prepare a comprehensive dataset.
@@ -79,7 +79,7 @@ Next, let's look at a few common discussion points in the community regarding co
 
 ### What Are the Different Computer Vision Tasks?
 
-The most popular computer vision tasks include image classification, object detection, and image segmentation.
+The most popular computer vision tasks include [image classification](https://www.ultralytics.com/glossary/image-classification), [object detection](https://www.ultralytics.com/glossary/object-detection), and [image segmentation](https://www.ultralytics.com/glossary/image-segmentation).
 
 <p align="center">
   <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/image-classification-vs-object-detection-vs-image-segmentation.avif" alt="Overview of Computer Vision Tasks">
@@ -103,7 +103,7 @@ If you want to use the classes the model was pre-trained on, a practical approac
 
 - **Edge Devices**: Deploying on edge devices like smartphones or IoT devices requires lightweight models due to their limited computational resources. Example technologies include [TensorFlow Lite](../integrations/tflite.md) and [ONNX Runtime](../integrations/onnx.md), which are optimized for such environments.
 - **Cloud Servers**: Cloud deployments can handle more complex models with larger computational demands. Cloud platforms like [AWS](../integrations/amazon-sagemaker.md), Google Cloud, and Azure offer robust hardware options that can scale based on the project's needs.
-- **On-Premise Servers**: For scenarios requiring high data privacy and security, deploying on-premise might be necessary. This involves significant upfront hardware investment but allows full control over the data and infrastructure.
+- **On-Premise Servers**: For scenarios requiring high [data privacy](https://www.ultralytics.com/glossary/data-privacy) and security, deploying on-premise might be necessary. This involves significant upfront hardware investment but allows full control over the data and infrastructure.
 - **Hybrid Solutions**: Some projects might benefit from a hybrid approach, where some processing is done on the edge, while more complex analyses are offloaded to the cloud. This can balance performance needs with cost and latency considerations.
 
 Each deployment option offers different benefits and challenges, and the choice depends on specific project requirements like performance, cost, and security.
@@ -158,7 +158,7 @@ For example, "Achieve 95% accuracy in speed detection within six months using a 
 
 Deployment options critically impact the performance of your Ultralytics YOLO models. Here are key options:
 
-- **Edge Devices:** Use lightweight models like TensorFlow Lite or ONNX Runtime for deployment on devices with limited resources.
+- **Edge Devices:** Use lightweight models like [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) Lite or ONNX Runtime for deployment on devices with limited resources.
 - **Cloud Servers:** Utilize robust cloud platforms like AWS, Google Cloud, or Azure for handling complex models.
 - **On-Premise Servers:** High data privacy and security needs may require on-premise deployments.
 - **Hybrid Solutions:** Combine edge and cloud approaches for balanced performance and cost-efficiency.

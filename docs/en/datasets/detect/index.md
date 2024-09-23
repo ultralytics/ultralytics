@@ -6,7 +6,7 @@ keywords: Ultralytics, YOLO, object detection datasets, dataset formats, COCO, d
 
 # Object Detection Datasets Overview
 
-Training a robust and accurate object detection model requires a comprehensive dataset. This guide introduces various formats of datasets that are compatible with the Ultralytics YOLO model and provides insights into their structure, usage, and how to convert between different formats.
+Training a robust and accurate [object detection](https://www.ultralytics.com/glossary/object-detection) model requires a comprehensive dataset. This guide introduces various formats of datasets that are compatible with the Ultralytics YOLO model and provides insights into their structure, usage, and how to convert between different formats.
 
 ## Supported Dataset Formats
 

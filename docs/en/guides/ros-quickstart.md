@@ -69,7 +69,7 @@ Apart from the ROS environment, you will need to install the following dependenc
 
 ## Use Ultralytics with ROS `sensor_msgs/Image`
 
-The `sensor_msgs/Image` [message type](https://docs.ros.org/en/api/sensor_msgs/html/msg/Image.html) is commonly used in ROS for representing image data. It contains fields for encoding, height, width, and pixel data, making it suitable for transmitting images captured by cameras or other sensors. Image messages are widely used in robotic applications for tasks such as visual perception, object detection, and navigation.
+The `sensor_msgs/Image` [message type](https://docs.ros.org/en/api/sensor_msgs/html/msg/Image.html) is commonly used in ROS for representing image data. It contains fields for encoding, height, width, and pixel data, making it suitable for transmitting images captured by cameras or other sensors. Image messages are widely used in robotic applications for tasks such as visual perception, [object detection](https://www.ultralytics.com/glossary/object-detection), and navigation.
 
 <p align="center">
   <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/detection-segmentation-ros-gazebo.avif" alt="Detection and Segmentation in ROS Gazebo">
@@ -360,7 +360,7 @@ A point cloud is a collection of data points defined within a three-dimensional 
 
     Point Clouds can be obtained using various sensors:
 
-    1. **LIDAR (Light Detection and Ranging)**: Uses laser pulses to measure distances to objects and create high-precision 3D maps.
+    1. **LIDAR (Light Detection and Ranging)**: Uses laser pulses to measure distances to objects and create high-[precision](https://www.ultralytics.com/glossary/precision) 3D maps.
     2. **Depth Cameras**: Capture depth information for each pixel, allowing for 3D reconstruction of the scene.
     3. **Stereo Cameras**: Utilize two or more cameras to obtain depth information through triangulation.
     4. **Structured Light Scanners**: Project a known pattern onto a surface and measure the deformation to calculate depth.

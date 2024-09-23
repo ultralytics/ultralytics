@@ -4,19 +4,19 @@ description: Master hyperparameter tuning for Ultralytics YOLO to optimize model
 keywords: Ultralytics YOLO, hyperparameter tuning, machine learning, model optimization, genetic algorithms, learning rate, batch size, epochs
 ---
 
-# Ultralytics YOLO Hyperparameter Tuning Guide
+# Ultralytics YOLO [Hyperparameter Tuning](https://www.ultralytics.com/glossary/hyperparameter-tuning) Guide
 
 ## Introduction
 
-Hyperparameter tuning is not just a one-time set-up but an iterative process aimed at optimizing the machine learning model's performance metrics, such as accuracy, precision, and recall. In the context of Ultralytics YOLO, these hyperparameters could range from learning rate to architectural details, such as the number of layers or types of activation functions used.
+Hyperparameter tuning is not just a one-time set-up but an iterative process aimed at optimizing the [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) model's performance metrics, such as accuracy, precision, and recall. In the context of Ultralytics YOLO, these hyperparameters could range from learning rate to architectural details, such as the number of layers or types of activation functions used.
 
 ### What are Hyperparameters?
 
 Hyperparameters are high-level, structural settings for the algorithm. They are set prior to the training phase and remain constant during it. Here are some commonly tuned hyperparameters in Ultralytics YOLO:
 
-- **Learning Rate** `lr0`: Determines the step size at each iteration while moving towards a minimum in the loss function.
-- **Batch Size** `batch`: Number of images processed simultaneously in a forward pass.
-- **Number of Epochs** `epochs`: An epoch is one complete forward and backward pass of all the training examples.
+- **Learning Rate** `lr0`: Determines the step size at each iteration while moving towards a minimum in the [loss function](https://www.ultralytics.com/glossary/loss-function).
+- **[Batch Size](https://www.ultralytics.com/glossary/batch-size)** `batch`: Number of images processed simultaneously in a forward pass.
+- **Number of [Epochs](https://www.ultralytics.com/glossary/epoch)** `epochs`: An epoch is one complete forward and backward pass of all the training examples.
 - **Architecture Specifics**: Such as channel counts, number of layers, types of activation functions, etc.
 
 <p align="center">
@@ -162,7 +162,7 @@ This is a plot displaying fitness (typically a performance metric like AP50) aga
 
 #### tune_results.csv
 
-A CSV file containing detailed results of each iteration during the tuning. Each row in the file represents one iteration, and it includes metrics like fitness score, precision, recall, as well as the hyperparameters used.
+A CSV file containing detailed results of each iteration during the tuning. Each row in the file represents one iteration, and it includes metrics like fitness score, [precision](https://www.ultralytics.com/glossary/precision), [recall](https://www.ultralytics.com/glossary/recall), as well as the hyperparameters used.
 
 - **Format**: CSV
 - **Usage**: Per-iteration results tracking.
@@ -187,7 +187,7 @@ This file contains scatter plots generated from `tune_results.csv`, helping you 
 
 #### weights/
 
-This directory contains the saved PyTorch models for the last and the best iterations during the hyperparameter tuning process.
+This directory contains the saved [PyTorch](https://www.ultralytics.com/glossary/pytorch) models for the last and the best iterations during the hyperparameter tuning process.
 
 - **`last.pt`**: The last.pt are the weights from the last epoch of training.
 - **`best.pt`**: The best.pt weights for the iteration that achieved the best fitness score.
@@ -208,7 +208,7 @@ For deeper insights, you can explore the `Tuner` class source code and accompany
 
 ## FAQ
 
-### How do I optimize the learning rate for Ultralytics YOLO during hyperparameter tuning?
+### How do I optimize the [learning rate](https://www.ultralytics.com/glossary/learning-rate) for Ultralytics YOLO during hyperparameter tuning?
 
 To optimize the learning rate for Ultralytics YOLO, start by setting an initial learning rate using the `lr0` parameter. Common values range from `0.001` to `0.01`. During the hyperparameter tuning process, this value will be mutated to find the optimal setting. You can utilize the `model.tune()` method to automate this process. For example:
 
@@ -250,7 +250,7 @@ When evaluating model performance during hyperparameter tuning in YOLO, you can 
 
 - **AP50**: The average precision at IoU threshold of 0.50.
 - **F1-Score**: The harmonic mean of precision and recall.
-- **Precision and Recall**: Individual metrics indicating the model's accuracy in identifying true positives versus false positives and false negatives.
+- **Precision and Recall**: Individual metrics indicating the model's [accuracy](https://www.ultralytics.com/glossary/accuracy) in identifying true positives versus false positives and false negatives.
 
 These metrics help you understand different aspects of your model's performance. Refer to the [Ultralytics YOLO performance metrics](../guides/yolo-performance-metrics.md) guide for a comprehensive overview.
 

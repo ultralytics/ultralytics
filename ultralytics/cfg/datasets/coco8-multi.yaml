@@ -1,7 +1,7 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 # Manually Updated COCO8 data yaml file for multi label classification.
 # Example usage: yolo train data=coco8-multi.yaml
-# Ensure to remove all bounding box annotations and only leave the class labels after downloading. 
+# Ensure to remove all bounding box annotations and only leave the class labels after downloading.
 # parent
 # ├── ultralytics
 # └── datasets

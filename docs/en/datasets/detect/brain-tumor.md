@@ -6,7 +6,7 @@ keywords: brain tumor dataset, MRI scans, CT scans, brain tumor detection, medic
 
 # Brain Tumor Dataset
 
-A brain tumor detection dataset consists of medical images from MRI or CT scans, containing information about brain tumor presence, location, and characteristics. This dataset is essential for training computer vision algorithms to automate brain tumor identification, aiding in early diagnosis and treatment planning.
+A brain tumor detection dataset consists of medical images from MRI or CT scans, containing information about brain tumor presence, location, and characteristics. This dataset is essential for training [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) algorithms to automate brain tumor identification, aiding in early diagnosis and treatment planning.
 
 <p align="center">
   <br>
@@ -42,7 +42,7 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 ## Usage
 
-To train a YOLOv8n model on the brain tumor dataset for 100 epochs with an image size of 640, utilize the provided code snippets. For a detailed list of available arguments, consult the model's [Training](../../modes/train.md) page.
+To train a YOLOv8n model on the brain tumor dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, utilize the provided code snippets. For a detailed list of available arguments, consult the model's [Training](../../modes/train.md) page.
 
 !!! example "Train Example"
 

@@ -22,11 +22,11 @@ keywords: YOLOv5, Ultralytics, object detection, computer vision, deep learning,
 <br>
 <br>
 
-Welcome to the Ultralytics' <a href="https://github.com/ultralytics/yolov5">YOLOv5</a>🚀 Documentation! YOLOv5, the fifth iteration of the revolutionary "You Only Look Once" object detection model, is designed to deliver high-speed, high-accuracy results in real-time.
+Welcome to the Ultralytics' <a href="https://github.com/ultralytics/yolov5">YOLOv5</a>🚀 Documentation! YOLOv5, the fifth iteration of the revolutionary "You Only Look Once" [object detection](https://www.ultralytics.com/glossary/object-detection) model, is designed to deliver high-speed, high-accuracy results in real-time.
 
 <br><br>
 
-Built on PyTorch, this powerful deep learning framework has garnered immense popularity for its versatility, ease of use, and high performance. Our documentation guides you through the installation process, explains the architectural nuances of the model, showcases various use-cases, and provides a series of detailed tutorials. These resources will help you harness the full potential of YOLOv5 for your computer vision projects. Let's get started!
+Built on PyTorch, this powerful [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) framework has garnered immense popularity for its versatility, ease of use, and high performance. Our documentation guides you through the installation process, explains the architectural nuances of the model, showcases various use-cases, and provides a series of detailed tutorials. These resources will help you harness the full potential of YOLOv5 for your [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) projects. Let's get started!
 
 </div>
 
@@ -42,10 +42,10 @@ Here's a compilation of comprehensive tutorials that will guide you through diff
 - [Test-Time Augmentation (TTA)](tutorials/test_time_augmentation.md): Explore how to use TTA to improve your model's prediction accuracy.
 - [Model Ensembling](tutorials/model_ensembling.md): Learn the strategy of combining multiple models for improved performance.
 - [Model Pruning/Sparsity](tutorials/model_pruning_and_sparsity.md): Understand pruning and sparsity concepts, and how to create a more efficient model.
-- [Hyperparameter Evolution](tutorials/hyperparameter_evolution.md): Discover the process of automated hyperparameter tuning for better model performance.
-- [Transfer Learning with Frozen Layers](tutorials/transfer_learning_with_frozen_layers.md): Learn how to implement transfer learning by freezing layers in YOLOv5.
+- [Hyperparameter Evolution](tutorials/hyperparameter_evolution.md): Discover the process of automated [hyperparameter tuning](https://www.ultralytics.com/glossary/hyperparameter-tuning) for better model performance.
+- [Transfer Learning with Frozen Layers](tutorials/transfer_learning_with_frozen_layers.md): Learn how to implement [transfer learning](https://www.ultralytics.com/glossary/transfer-learning) by freezing layers in YOLOv5.
 - [Architecture Summary](tutorials/architecture_description.md) 🌟 Delve into the structural details of the YOLOv5 model.
-- [Roboflow for Datasets](tutorials/roboflow_datasets_integration.md): Understand how to utilize Roboflow for dataset management, labeling, and active learning.
+- [Roboflow for Datasets](tutorials/roboflow_datasets_integration.md): Understand how to utilize Roboflow for dataset management, labeling, and [active learning](https://www.ultralytics.com/glossary/active-learning).
 - [ClearML Logging](tutorials/clearml_logging_integration.md) 🌟 Learn how to integrate ClearML for efficient logging during your model training.
 - [YOLOv5 with Neural Magic](tutorials/neural_magic_pruning_quantization.md) Discover how to use Neural Magic's Deepsparse to prune and quantize your YOLOv5 model.
 - [Comet Logging](tutorials/comet_logging_integration.md) 🌟 NEW: Explore how to utilize Comet for improved model training logging.
@@ -95,7 +95,7 @@ We're excited to see the innovative ways you'll use YOLOv5. Dive in, experiment,
 
 ### What are the key features of Ultralytics YOLOv5?
 
-Ultralytics YOLOv5 is renowned for its high-speed and high-accuracy object detection capabilities. Built on PyTorch, it is versatile and user-friendly, making it suitable for various computer vision projects. Key features include real-time inference, support for multiple training tricks like Test-Time Augmentation (TTA) and Model Ensembling, and compatibility with export formats such as TFLite, ONNX, CoreML, and TensorRT. To delve deeper into how Ultralytics YOLOv5 can elevate your project, explore our [TFLite, ONNX, CoreML, TensorRT Export guide](tutorials/model_export.md).
+Ultralytics YOLOv5 is renowned for its high-speed and high-[accuracy](https://www.ultralytics.com/glossary/accuracy) object detection capabilities. Built on [PyTorch](https://www.ultralytics.com/glossary/pytorch), it is versatile and user-friendly, making it suitable for various computer vision projects. Key features include real-time inference, support for multiple training tricks like Test-Time Augmentation (TTA) and Model Ensembling, and compatibility with export formats such as TFLite, ONNX, CoreML, and TensorRT. To delve deeper into how Ultralytics YOLOv5 can elevate your project, explore our [TFLite, ONNX, CoreML, TensorRT Export guide](tutorials/model_export.md).
 
 ### How can I train a custom YOLOv5 model on my dataset?
 
@@ -107,7 +107,7 @@ Ultralytics YOLOv5 is preferred over models like RCNN due to its superior speed 
 
 ### How can I optimize YOLOv5 model performance during training?
 
-Optimizing YOLOv5 model performance involves tuning various hyperparameters and incorporating techniques like data augmentation and transfer learning. Ultralytics provides comprehensive resources on hyperparameter evolution and pruning/sparsity to improve model efficiency. You can discover practical tips in our [Tips for Best Training Results guide](tutorials/tips_for_best_training_results.md), which offers actionable insights for achieving optimal performance during training.
+Optimizing YOLOv5 model performance involves tuning various hyperparameters and incorporating techniques like [data augmentation](https://www.ultralytics.com/glossary/data-augmentation) and transfer learning. Ultralytics provides comprehensive resources on hyperparameter evolution and pruning/sparsity to improve model efficiency. You can discover practical tips in our [Tips for Best Training Results guide](tutorials/tips_for_best_training_results.md), which offers actionable insights for achieving optimal performance during training.
 
 ### What environments are supported for running YOLOv5 applications?
 

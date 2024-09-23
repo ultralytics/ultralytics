@@ -33,7 +33,7 @@ Installation errors can arise due to various reasons, such as incompatible versi
 
 - You're using Python 3.8 or later as recommended.
 
-- Ensure that you have the correct version of PyTorch (1.8 or later) installed.
+- Ensure that you have the correct version of [PyTorch](https://www.ultralytics.com/glossary/pytorch) (1.8 or later) installed.
 
 - Consider using virtual environments to avoid conflicts.
 
@@ -86,7 +86,7 @@ model.train(data="/path/to/your/data.yaml", batch=4)
 
 **Issue**: Training is slow on a single GPU, and you want to speed up the process using multiple GPUs.
 
-**Solution**: Increasing the batch size can accelerate training, but it's essential to consider GPU memory capacity. To speed up training with multiple GPUs, follow these steps:
+**Solution**: Increasing the [batch size](https://www.ultralytics.com/glossary/batch-size) can accelerate training, but it's essential to consider GPU memory capacity. To speed up training with multiple GPUs, follow these steps:
 
 - Ensure that you have multiple GPUs available.
 
@@ -109,7 +109,7 @@ model.train(data="/path/to/your/data.yaml", batch=32, multi_scale=True)
 
 - Precision
 - Recall
-- Mean Average Precision (mAP)
+- [Mean Average Precision](https://www.ultralytics.com/glossary/mean-average-precision-map) (mAP)
 
 You can access these metrics from the training logs or by using tools like TensorBoard or wandb for visualization. Implementing early stopping based on these metrics can help you achieve better results.
 
@@ -119,7 +119,7 @@ You can access these metrics from the training logs or by using tools like Tenso
 
 **Solution**: To track and visualize training progress, you can consider using the following tools:
 
-- [TensorBoard](https://www.tensorflow.org/tensorboard): TensorBoard is a popular choice for visualizing training metrics, including loss, accuracy, and more. You can integrate it with your YOLOv8 training process.
+- [TensorBoard](https://www.tensorflow.org/tensorboard): TensorBoard is a popular choice for visualizing training metrics, including loss, [accuracy](https://www.ultralytics.com/glossary/accuracy), and more. You can integrate it with your YOLOv8 training process.
 - [Comet](https://bit.ly/yolov8-readme-comet): Comet provides an extensive toolkit for experiment tracking and comparison. It allows you to track metrics, hyperparameters, and even model weights. Integration with YOLO models is also straightforward, providing you with a complete overview of your experiment cycle.
 - [Ultralytics HUB](https://hub.ultralytics.com/): Ultralytics HUB offers a specialized environment for tracking YOLO models, giving you a one-stop platform to manage metrics, datasets, and even collaborate with your team. Given its tailored focus on YOLO, it offers more customized tracking options.
 
@@ -145,17 +145,17 @@ Here are some things to keep in mind, if you are facing issues related to model 
 
 **Dataset Format and Labels**
 
-- Importance: The foundation of any machine learning model lies in the quality and format of the data it is trained on.
+- Importance: The foundation of any [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) model lies in the quality and format of the data it is trained on.
 
 - Recommendation: Ensure that your custom dataset and its associated labels adhere to the expected format. It's crucial to verify that annotations are accurate and of high quality. Incorrect or subpar annotations can derail the model's learning process, leading to unpredictable outcomes.
 
 **Model Convergence**
 
-- Importance: Achieving model convergence ensures that the model has sufficiently learned from the training data.
+- Importance: Achieving model convergence ensures that the model has sufficiently learned from the [training data](https://www.ultralytics.com/glossary/training-data).
 
-- Recommendation: When training a model 'from scratch', it's vital to ensure that the model reaches a satisfactory level of convergence. This might necessitate a longer training duration, with more epochs, compared to when you're fine-tuning an existing model.
+- Recommendation: When training a model 'from scratch', it's vital to ensure that the model reaches a satisfactory level of convergence. This might necessitate a longer training duration, with more [epochs](https://www.ultralytics.com/glossary/epoch), compared to when you're fine-tuning an existing model.
 
-**Learning Rate and Batch Size**
+**[Learning Rate](https://www.ultralytics.com/glossary/learning-rate) and Batch Size**
 
 - Importance: These hyperparameters play a pivotal role in determining how the model updates its weights during training.
 
@@ -207,9 +207,9 @@ yolo task=detect mode=segment model=yolov8n-seg.pt source='path/to/car.mp4' show
 
 #### Understanding Precision Metrics in YOLOv8
 
-**Issue**: Confusion regarding the difference between box precision, mask precision, and confusion matrix precision in YOLOv8.
+**Issue**: Confusion regarding the difference between box precision, mask precision, and [confusion matrix](https://www.ultralytics.com/glossary/confusion-matrix) precision in YOLOv8.
 
-**Solution**: Box precision measures the accuracy of predicted bounding boxes compared to the actual ground truth boxes using IoU (Intersection over Union) as the metric. Mask precision assesses the agreement between predicted segmentation masks and ground truth masks in pixel-wise object classification. Confusion matrix precision, on the other hand, focuses on overall classification accuracy across all classes and does not consider the geometric accuracy of predictions. It's important to note that a bounding box can be geometrically accurate (true positive) even if the class prediction is wrong, leading to differences between box precision and confusion matrix precision. These metrics evaluate distinct aspects of a model's performance, reflecting the need for different evaluation metrics in various tasks.
+**Solution**: Box precision measures the accuracy of predicted bounding boxes compared to the actual ground truth boxes using IoU (Intersection over Union) as the metric. Mask precision assesses the agreement between predicted segmentation masks and ground truth masks in pixel-wise object classification. Confusion matrix precision, on the other hand, focuses on overall classification accuracy across all classes and does not consider the geometric accuracy of predictions. It's important to note that a [bounding box](https://www.ultralytics.com/glossary/bounding-box) can be geometrically accurate (true positive) even if the class prediction is wrong, leading to differences between box precision and confusion matrix precision. These metrics evaluate distinct aspects of a model's performance, reflecting the need for different evaluation metrics in various tasks.
 
 #### Extracting Object Dimensions in YOLOv8
 
@@ -280,7 +280,7 @@ These resources should provide a solid foundation for troubleshooting and improv
 
 ## Conclusion
 
-Troubleshooting is an integral part of any development process, and being equipped with the right knowledge can significantly reduce the time and effort spent in resolving issues. This guide aimed to address the most common challenges faced by users of the YOLOv8 model within the Ultralytics ecosystem. By understanding and addressing these common issues, you can ensure smoother project progress and achieve better results with your computer vision tasks.
+Troubleshooting is an integral part of any development process, and being equipped with the right knowledge can significantly reduce the time and effort spent in resolving issues. This guide aimed to address the most common challenges faced by users of the YOLOv8 model within the Ultralytics ecosystem. By understanding and addressing these common issues, you can ensure smoother project progress and achieve better results with your [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) tasks.
 
 Remember, the Ultralytics community is a valuable resource. Engaging with fellow developers and experts can provide additional insights and solutions that might not be covered in standard documentation. Always keep learning, experimenting, and sharing your experiences to contribute to the collective knowledge of the community.
 
@@ -312,7 +312,7 @@ This sets the training process to the first GPU. Consult the `nvidia-smi` comman
 
 ### How can I monitor and track my YOLOv8 model training progress?
 
-Tracking and visualizing training progress can be efficiently managed through tools like [TensorBoard](https://www.tensorflow.org/tensorboard), [Comet](https://bit.ly/yolov8-readme-comet), and [Ultralytics HUB](https://hub.ultralytics.com/). These tools allow you to log and visualize metrics such as loss, precision, recall, and mAP. Implementing [early stopping](#continuous-monitoring-parameters) based on these metrics can also help achieve better training outcomes.
+Tracking and visualizing training progress can be efficiently managed through tools like [TensorBoard](https://www.tensorflow.org/tensorboard), [Comet](https://bit.ly/yolov8-readme-comet), and [Ultralytics HUB](https://hub.ultralytics.com/). These tools allow you to log and visualize metrics such as loss, [precision](https://www.ultralytics.com/glossary/precision), [recall](https://www.ultralytics.com/glossary/recall), and mAP. Implementing [early stopping](#continuous-monitoring-parameters) based on these metrics can also help achieve better training outcomes.
 
 ### What should I do if YOLOv8 is not recognizing my dataset format?
 

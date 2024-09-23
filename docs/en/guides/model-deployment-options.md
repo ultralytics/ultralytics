@@ -24,7 +24,7 @@ Let's walk through the different YOLOv8 deployment options. For a detailed walkt
 
 #### PyTorch
 
-PyTorch is an open-source machine learning library widely used for applications in deep learning and artificial intelligence. It provides a high level of flexibility and speed, which has made it a favorite among researchers and developers.
+PyTorch is an open-source machine learning library widely used for applications in [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) and [artificial intelligence](https://www.ultralytics.com/glossary/artificial-intelligence-ai). It provides a high level of flexibility and speed, which has made it a favorite among researchers and developers.
 
 - **Performance Benchmarks**: PyTorch is known for its ease of use and flexibility, which may result in a slight trade-off in raw performance when compared to other frameworks that are more specialized and optimized.
 
@@ -60,7 +60,7 @@ TorchScript extends PyTorch's capabilities by allowing the exportation of models
 
 #### ONNX
 
-The Open Neural Network Exchange (ONNX) is a format that allows for model interoperability across different frameworks, which can be critical when deploying to various platforms.
+The Open [Neural Network](https://www.ultralytics.com/glossary/neural-network-nn) Exchange (ONNX) is a format that allows for model interoperability across different frameworks, which can be critical when deploying to various platforms.
 
 - **Performance Benchmarks**: ONNX models may experience a variable performance depending on the specific runtime they are deployed on.
 
@@ -84,9 +84,9 @@ OpenVINO is an Intel toolkit designed to facilitate the deployment of deep learn
 
 - **Compatibility and Integration**: Works best within the Intel ecosystem but also supports a range of other platforms.
 
-- **Community Support and Ecosystem**: Backed by Intel, with a solid user base especially in the computer vision domain.
+- **Community Support and Ecosystem**: Backed by Intel, with a solid user base especially in the [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) domain.
 
-- **Case Studies**: Often utilized in IoT and edge computing scenarios where Intel hardware is prevalent.
+- **Case Studies**: Often utilized in IoT and [edge computing](https://www.ultralytics.com/glossary/edge-computing) scenarios where Intel hardware is prevalent.
 
 - **Maintenance and Updates**: Intel regularly updates OpenVINO to support the latest deep learning models and Intel hardware.
 
@@ -128,7 +128,7 @@ CoreML is Apple's machine learning framework, optimized for on-device performanc
 
 - **Maintenance and Updates**: Regularly updated by Apple to support the latest machine learning advancements and Apple hardware.
 
-- **Security Considerations**: Benefits from Apple's focus on user privacy and data security.
+- **Security Considerations**: Benefits from Apple's focus on user privacy and [data security](https://www.ultralytics.com/glossary/data-security).
 
 - **Hardware Acceleration**: Takes full advantage of Apple's neural engine and GPU for accelerated machine learning tasks.
 
@@ -236,7 +236,7 @@ PaddlePaddle is an open-source deep learning framework developed by Baidu. It is
 
 - **Maintenance and Updates**: Regularly updated with a focus on serving Chinese language AI applications and services.
 
-- **Security Considerations**: Emphasizes data privacy and security, catering to Chinese data governance standards.
+- **Security Considerations**: Emphasizes [data privacy](https://www.ultralytics.com/glossary/data-privacy) and security, catering to Chinese data governance standards.
 
 - **Hardware Acceleration**: Supports various hardware accelerations, including Baidu's own Kunlun chips.
 
@@ -329,7 +329,7 @@ For more insights, check out our [blog post](https://www.ultralytics.com/blog/ac
 
 ### Can I deploy YOLOv8 models on mobile devices?
 
-Yes, YOLOv8 models can be deployed on mobile devices using TensorFlow Lite (TF Lite) for both Android and iOS platforms. TF Lite is designed for mobile and embedded devices, providing efficient on-device inference.
+Yes, YOLOv8 models can be deployed on mobile devices using [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) Lite (TF Lite) for both Android and iOS platforms. TF Lite is designed for mobile and embedded devices, providing efficient on-device inference.
 
 !!! example
 
@@ -356,13 +356,13 @@ When choosing a deployment format for YOLOv8, consider the following factors:
 - **Performance**: Some formats like TensorRT provide exceptional speeds on NVIDIA GPUs, while OpenVINO is optimized for Intel hardware.
 - **Compatibility**: ONNX offers broad compatibility across different platforms.
 - **Ease of Integration**: Formats like CoreML or TF Lite are tailored for specific ecosystems like iOS and Android, respectively.
-- **Community Support**: Formats like PyTorch and TensorFlow have extensive community resources and support.
+- **Community Support**: Formats like [PyTorch](https://www.ultralytics.com/glossary/pytorch) and TensorFlow have extensive community resources and support.
 
 For a comparative analysis, refer to our [export formats documentation](../modes/export.md#export-formats).
 
 ### How can I deploy YOLOv8 models in a web application?
 
-To deploy YOLOv8 models in a web application, you can use TensorFlow.js (TF.js), which allows for running machine learning models directly in the browser. This approach eliminates the need for backend infrastructure and provides real-time performance.
+To deploy YOLOv8 models in a web application, you can use TensorFlow.js (TF.js), which allows for running [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) models directly in the browser. This approach eliminates the need for backend infrastructure and provides real-time performance.
 
 1. Export the YOLOv8 model to the TF.js format.
 2. Integrate the exported model into your web application.

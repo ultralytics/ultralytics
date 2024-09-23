@@ -161,16 +161,6 @@ class HUBTrainingSession:
             HUBModelError: If the identifier format is not recognized.
         """
         api_key, model_id, filename = None, None, None
-
-        # path = identifier.split(f"{HUB_WEB_ROOT}/models/")[-1]
-        # parts = path.split("_")
-        # if Path(path).suffix in {".pt", ".yaml"}:
-        #     filename = path
-        # elif len(parts) == 2 and len(parts[0]) == 42 and len(parts[1]) == 20:
-        #     api_key, model_id = parts
-        # elif len(path) == 20:
-        #     model_id = path
-
         if Path(identifier).suffix in {".pt", ".yaml"}:
             filename = identifier
         elif identifier.startswith(f"{HUB_WEB_ROOT}/models/"):

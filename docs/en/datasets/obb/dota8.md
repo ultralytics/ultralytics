@@ -8,7 +8,7 @@ keywords: DOTA8 dataset, Ultralytics, YOLOv8, object detection, debugging, train
 
 ## Introduction
 
-[Ultralytics](https://www.ultralytics.com/) DOTA8 is a small, but versatile oriented object detection dataset composed of the first 8 images of 8 images of the split DOTAv1 set, 4 for training and 4 for validation. This dataset is ideal for testing and debugging object detection models, or for experimenting with new detection approaches. With 8 images, it is small enough to be easily manageable, yet diverse enough to test training pipelines for errors and act as a sanity check before training larger datasets.
+[Ultralytics](https://www.ultralytics.com/) DOTA8 is a small, but versatile oriented [object detection](https://www.ultralytics.com/glossary/object-detection) dataset composed of the first 8 images of 8 images of the split DOTAv1 set, 4 for training and 4 for validation. This dataset is ideal for testing and debugging object detection models, or for experimenting with new detection approaches. With 8 images, it is small enough to be easily manageable, yet diverse enough to test training pipelines for errors and act as a sanity check before training larger datasets.
 
 This dataset is intended for use with Ultralytics [HUB](https://hub.ultralytics.com/) and [YOLOv8](https://github.com/ultralytics/ultralytics).
 
@@ -24,7 +24,7 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 ## Usage
 
-To train a YOLOv8n-obb model on the DOTA8 dataset for 100 epochs with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To train a YOLOv8n-obb model on the DOTA8 dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
 !!! example "Train Example"
 
@@ -121,4 +121,4 @@ Mosaicing combines multiple images into one during training, increasing the vari
 
 ### Why should I use Ultralytics YOLOv8 for object detection tasks?
 
-Ultralytics YOLOv8 provides state-of-the-art real-time object detection capabilities, including features like oriented bounding boxes (OBB), instance segmentation, and a highly versatile training pipeline. It's suitable for various applications and offers pretrained models for efficient fine-tuning. Explore further about the advantages and usage in the [Ultralytics YOLOv8 documentation](https://github.com/ultralytics/ultralytics).
+Ultralytics YOLOv8 provides state-of-the-art real-time object detection capabilities, including features like oriented bounding boxes (OBB), [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation), and a highly versatile training pipeline. It's suitable for various applications and offers pretrained models for efficient fine-tuning. Explore further about the advantages and usage in the [Ultralytics YOLOv8 documentation](https://github.com/ultralytics/ultralytics).

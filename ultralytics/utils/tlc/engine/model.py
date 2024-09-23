@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import tlc
 
+from ultralytics.models import yolo
 from ultralytics.models.yolo.model import YOLO
 
 from ultralytics.nn.tasks import ClassificationModel, DetectionModel
@@ -32,11 +33,13 @@ class TLCYOLO(YOLO):
             "detect": {
                 "model": DetectionModel,
                 "trainer": TLCDetectionTrainer,
-                "validator": TLCDetectionValidator, },
+                "validator": TLCDetectionValidator,
+                "predictor": yolo.detect.DetectionPredictor, },
             "classify": {
                 "model": ClassificationModel,
                 "trainer": TLCClassificationTrainer,
-                "validator": TLCClassificationValidator, }, }
+                "validator": TLCClassificationValidator,
+                "predictor": yolo.classify.ClassificationPredictor, }, }
 
     def collect(self,
                 data: str | None = None,

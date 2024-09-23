@@ -85,6 +85,10 @@ def test_detect_training() -> None:
     assert 0 in metrics_df["Training Phase"], "Expected metrics from during training"
     assert 1 in metrics_df["Training Phase"], "Expected metrics from after training"
 
+    # model.predict() should work and be the same as vanilla ultralytics
+    assert all(model_ultralytics.predict(imgsz=320)[0].boxes.cls == model_3lc.predict(
+        imgsz=320)[0].boxes.cls), "Predictions mismatch"
+
 
 def test_classify_training() -> None:
     model = TASK2MODEL["classify"]
@@ -145,6 +149,12 @@ def test_classify_training() -> None:
 
     assert results_dict[
         "val"].results_dict == results_ultralytics.results_dict, "Results validation metrics collection onlywith  3LC different from Ultralytics"
+
+    # model.predict() should work and be the same as vanilla ultralytics
+    preds_3lc = model_3lc.predict(imgsz=320)
+    preds_ultralytics = model_ultralytics.predict(imgsz=320)
+
+    assert preds_3lc[0].probs.top5 == preds_ultralytics[0].probs.top5, "Predictions mismatch"
 
 
 @pytest.mark.parametrize("task", ["detect"])

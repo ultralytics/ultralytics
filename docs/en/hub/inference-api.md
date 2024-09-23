@@ -139,7 +139,7 @@ The [Ultralytics HUB](https://www.ultralytics.com/hub) Inference API returns a J
         results = model("image.jpg")
 
         # Print image.jpg results in JSON format
-        print(results[0].tojson())
+        print(results[0].to_json())
         ```
 
     === "cURL"
@@ -219,7 +219,7 @@ The [Ultralytics HUB](https://www.ultralytics.com/hub) Inference API returns a J
         results = model("image.jpg")
 
         # Print image.jpg results in JSON format
-        print(results[0].tojson())
+        print(results[0].to_json())
         ```
 
     === "cURL"

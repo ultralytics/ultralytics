@@ -328,9 +328,10 @@ Below are code examples for using each source type:
         results = model(source, stream=True)  # generator of Results objects
         ```
 
-    === "Streams"
+    === "Stream"
 
-        Run inference on remote streaming sources using RTSP, RTMP, TCP and IP address protocols. If multiple streams are provided in a `*.streams` text file then batched inference will run, i.e. 8 streams will run at batch-size 8, otherwise single streams will run at batch-size 1.
+        Use the stream mode to run inference on live video streams using RTSP, RTMP, TCP, or IP address protocols. If a single stream is provided, the model runs inference with a batch size of 1. For multiple streams, a `.streams` text file can be used to perform batched inference, where the batch size is determined by the number of streams provided (e.g., batch-size 8 for 8 streams).
+
         ```python
         from ultralytics import YOLO
 
@@ -338,14 +339,42 @@ Below are code examples for using each source type:
         model = YOLO("yolov8n.pt")
 
         # Single stream with batch-size 1 inference
-        source = "rtsp://example.com/media.mp4"  # RTSP, RTMP, TCP or IP streaming address
-
-        # Multiple streams with batched inference (i.e. batch-size 8 for 8 streams)
-        source = "path/to/list.streams"  # *.streams text file with one streaming address per row
+        source = "rtsp://example.com/media.mp4"  # RTSP, RTMP, TCP, or IP streaming address
 
         # Run inference on the source
         results = model(source, stream=True)  # generator of Results objects
         ```
+
+        For single stream usage, the batch size is set to 1 by default, allowing efficient real-time processing of the video feed.
+
+    === "Multi-Stream"
+
+        To handle multiple video streams simultaneously, use a `.streams` text file containing the streaming sources. The model will run batched inference where the batch size equals the number of streams. This setup enables efficient processing of multiple feeds concurrently.
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load a pretrained YOLOv8n model
+        model = YOLO("yolov8n.pt")
+
+        # Multiple streams with batched inference (e.g., batch-size 8 for 8 streams)
+        source = "path/to/list.streams"  # *.streams text file with one streaming address per line
+
+        # Run inference on the source
+        results = model(source, stream=True)  # generator of Results objects
+        ```
+
+        Example `.streams` text file:
+
+        ```txt
+        rtsp://example.com/media1.mp4
+        rtsp://example.com/media2.mp4
+        rtmp://example2.com/live
+        tcp://192.168.1.100:554
+        ...
+        ```
+
+        Each row in the file represents a streaming source, allowing you to monitor and perform inference on several video streams at once.
 
 ## Inference Arguments
 

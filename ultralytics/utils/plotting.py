@@ -244,6 +244,7 @@ class Annotator:
         Args:
             color (tuple, optional): The background color of the rectangle for text (B, G, R).
             txt_color (tuple, optional): The color of the text (R, G, B).
+
         Returns:
             txt_color (tuple): Text color for label
         """
@@ -535,6 +536,7 @@ class Annotator:
 
         Args:
             bbox (tuple): Coordinates of the bounding box in the format (x_min, y_min, x_max, y_max).
+
         Returns:
             width (float): Width of the bounding box.
             height (float): Height of the bounding box.
@@ -670,8 +672,10 @@ class Annotator:
             shape (tuple, optional): Image size for model inference. Defaults to (640, 640).
             radius (int, optional): Keypoint radius. Defaults to 2.
             conf_thres (float, optional): Confidence threshold for keypoints. Defaults to 0.25.
+
         Returns:
             (numpy.ndarray): Image with drawn keypoints.
+
         Note:
             Keypoint format: [x, y] or [x, y, confidence].
             Modifies self.im in-place.
@@ -697,6 +701,7 @@ class Annotator:
             position (tuple): Coordinates (x, y) on the image where the text will be placed.
             color (tuple): Background color of the text. Default is (104, 31, 17).
             txt_color (tuple): Text color. Default is (255, 255, 255).
+
         Returns:
             float: height of the text, used for positioning other elements.
         """

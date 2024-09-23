@@ -22,7 +22,7 @@ Unlike many other datasets, the Caltech-101 dataset is not formally split into t
 
 ## Applications
 
-The Caltech-101 dataset is extensively used for training and evaluating deep learning models in object recognition tasks, such as Convolutional Neural Networks (CNNs), Support Vector Machines (SVMs), and various other machine learning algorithms. Its wide variety of categories and high-quality images make it an excellent dataset for research and development in the field of machine learning and computer vision.
+The Caltech-101 dataset is extensively used for training and evaluating [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models in object recognition tasks, such as [Convolutional Neural Networks](https://www.ultralytics.com/glossary/convolutional-neural-network-cnn) (CNNs), Support Vector Machines (SVMs), and various other machine learning algorithms. Its wide variety of categories and high-quality images make it an excellent dataset for research and development in the field of machine learning and [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv).
 
 ## Usage
 
@@ -84,11 +84,11 @@ We would like to acknowledge Li Fei-Fei, Rob Fergus, and Pietro Perona for creat
 
 ### What is the Caltech-101 dataset used for in machine learning?
 
-The [Caltech-101](https://data.caltech.edu/records/mzrjq-6wc02) dataset is widely used in machine learning for object recognition tasks. It contains around 9,000 images across 101 categories, providing a challenging benchmark for evaluating object recognition algorithms. Researchers leverage it to train and test models, especially Convolutional Neural Networks (CNNs) and Support Vector Machines (SVMs), in computer vision.
+The [Caltech-101](https://data.caltech.edu/records/mzrjq-6wc02) dataset is widely used in machine learning for object recognition tasks. It contains around 9,000 images across 101 categories, providing a challenging benchmark for evaluating object recognition algorithms. Researchers leverage it to train and test models, especially Convolutional [Neural Networks](https://www.ultralytics.com/glossary/neural-network-nn) (CNNs) and [Support Vector Machines](https://www.ultralytics.com/glossary/support-vector-machine-svm) (SVMs), in computer vision.
 
 ### How can I train an Ultralytics YOLO model on the Caltech-101 dataset?
 
-To train an Ultralytics YOLO model on the Caltech-101 dataset, you can use the provided code snippets. For example, to train for 100 epochs:
+To train an Ultralytics YOLO model on the Caltech-101 dataset, you can use the provided code snippets. For example, to train for 100 [epochs](https://www.ultralytics.com/glossary/epoch):
 
 !!! example "Train Example"
 
@@ -122,7 +122,7 @@ The Caltech-101 dataset includes:
 - Variable number of images per category, typically between 40 and 800.
 - Variable image sizes, with most being medium resolution.
 
-These features make it an excellent choice for training and evaluating object recognition models in machine learning and computer vision.
+These features make it an excellent choice for training and evaluating object recognition models in [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) and computer vision.
 
 ### Why should I cite the Caltech-101 dataset in my research?
 

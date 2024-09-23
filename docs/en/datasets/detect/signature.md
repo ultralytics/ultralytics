@@ -6,7 +6,7 @@ keywords: Signature Detection Dataset, document verification, fraud detection, c
 
 # Signature Detection Dataset
 
-This dataset focuses on detecting human written signatures within documents. It includes a variety of document types with annotated signatures, providing valuable insights for applications in document verification and fraud detection. Essential for training computer vision algorithms, this dataset aids in identifying signatures in various document formats, supporting research and practical applications in document analysis.
+This dataset focuses on detecting human written signatures within documents. It includes a variety of document types with annotated signatures, providing valuable insights for applications in document verification and fraud detection. Essential for training [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) algorithms, this dataset aids in identifying signatures in various document formats, supporting research and practical applications in document analysis.
 
 ## Dataset Structure
 
@@ -31,7 +31,7 @@ A YAML (Yet Another Markup Language) file defines the dataset configuration, inc
 
 ## Usage
 
-To train a YOLOv8n model on the signature detection dataset for 100 epochs with an image size of 640, use the provided code samples. For a comprehensive list of available parameters, refer to the model's [Training](../../modes/train.md) page.
+To train a YOLOv8n model on the signature detection dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, use the provided code samples. For a comprehensive list of available parameters, refer to the model's [Training](../../modes/train.md) page.
 
 !!! example "Train Example"
 
@@ -93,7 +93,7 @@ The dataset has been released available under the [AGPL-3.0 License](https://git
 
 ### What is the Signature Detection Dataset, and how can it be used?
 
-The Signature Detection Dataset is a collection of annotated images aimed at detecting human signatures within various document types. It can be applied in computer vision tasks such as object detection and tracking, primarily for document verification, fraud detection, and archival research. This dataset helps train models to recognize signatures in different contexts, making it valuable for both research and practical applications.
+The Signature Detection Dataset is a collection of annotated images aimed at detecting human signatures within various document types. It can be applied in computer vision tasks such as [object detection](https://www.ultralytics.com/glossary/object-detection) and tracking, primarily for document verification, fraud detection, and archival research. This dataset helps train models to recognize signatures in different contexts, making it valuable for both research and practical applications.
 
 ### How do I train a YOLOv8n model on the Signature Detection Dataset?
 
@@ -131,7 +131,7 @@ The Signature Detection Dataset can be used for:
 1. **Document Verification**: Automatically verifying the presence and authenticity of human signatures in documents.
 2. **Fraud Detection**: Identifying forged or fraudulent signatures in legal and financial documents.
 3. **Archival Research**: Assisting historians and archivists in the digital analysis and cataloging of historical documents.
-4. **Education**: Supporting academic research and teaching in the fields of computer vision and machine learning.
+4. **Education**: Supporting academic research and teaching in the fields of computer vision and [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml).
 
 ### How can I perform inference using a model trained on the Signature Detection Dataset?
 

@@ -10,7 +10,7 @@ keywords: Ultralytics YOLO, OpenVINO optimization, deep learning, model inferenc
 
 ## Introduction
 
-When deploying deep learning models, particularly those for object detection such as Ultralytics YOLO models, achieving optimal performance is crucial. This guide delves into leveraging Intel's OpenVINO toolkit to optimize inference, focusing on latency and throughput. Whether you're working on consumer-grade applications or large-scale deployments, understanding and applying these optimization strategies will ensure your models run efficiently on various devices.
+When deploying [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models, particularly those for [object detection](https://www.ultralytics.com/glossary/object-detection) such as Ultralytics YOLO models, achieving optimal performance is crucial. This guide delves into leveraging Intel's OpenVINO toolkit to optimize inference, focusing on latency and throughput. Whether you're working on consumer-grade applications or large-scale deployments, understanding and applying these optimization strategies will ensure your models run efficiently on various devices.
 
 ## Optimizing for Latency
 
@@ -123,6 +123,6 @@ Yes, Ultralytics YOLO models are highly versatile and can be integrated with var
 
 - **TensorRT:** For NVIDIA GPU optimization, follow the [TensorRT integration guide](https://docs.ultralytics.com/integrations/tensorrt/).
 - **CoreML:** For Apple devices, refer to our [CoreML export instructions](https://docs.ultralytics.com/integrations/coreml/).
-- **TensorFlow.js:** For web and Node.js apps, see the [TF.js conversion guide](https://docs.ultralytics.com/integrations/tfjs/).
+- **[TensorFlow](https://www.ultralytics.com/glossary/tensorflow).js:** For web and Node.js apps, see the [TF.js conversion guide](https://docs.ultralytics.com/integrations/tfjs/).
 
 Explore more integrations on the [Ultralytics Integrations page](https://docs.ultralytics.com/integrations/).

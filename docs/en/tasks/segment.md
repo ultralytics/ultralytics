@@ -9,7 +9,7 @@ model_name: yolov8n-seg
 
 <img width="1024" src="https://github.com/ultralytics/docs/releases/download/0/instance-segmentation-examples.avif" alt="Instance segmentation examples">
 
-Instance segmentation goes a step further than object detection and involves identifying individual objects in an image and segmenting them from the rest of the image.
+[Instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation) goes a step further than object detection and involves identifying individual objects in an image and segmenting them from the rest of the image.
 
 The output of an instance segmentation model is a set of masks or contours that outline each object in the image, along with class labels and confidence scores for each object. Instance segmentation is useful when you need to know not only where objects are in an image, but also what their exact shape is.
 
@@ -47,7 +47,7 @@ YOLOv8 pretrained Segment models are shown here. Detect, Segment and Pose models
 
 ## Train
 
-Train YOLOv8n-seg on the COCO128-seg dataset for 100 epochs at image size 640. For a full list of available arguments see the [Configuration](../usage/cfg.md) page.
+Train YOLOv8n-seg on the COCO128-seg dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) at image size 640. For a full list of available arguments see the [Configuration](../usage/cfg.md) page.
 
 !!! example
 
@@ -84,7 +84,7 @@ YOLO segmentation dataset format can be found in detail in the [Dataset Guide](.
 
 ## Val
 
-Validate trained YOLOv8n-seg model accuracy on the COCO128-seg dataset. No arguments are needed as the `model` retains its training `data` and arguments as model attributes.
+Validate trained YOLOv8n-seg model [accuracy](https://www.ultralytics.com/glossary/accuracy) on the COCO128-seg dataset. No arguments are needed as the `model` retains its training `data` and arguments as model attributes.
 
 !!! example
 
@@ -204,7 +204,7 @@ To train a YOLOv8 segmentation model on a custom dataset, you first need to prep
 
 Check the [Configuration](../usage/cfg.md) page for more available arguments.
 
-### What is the difference between object detection and instance segmentation in YOLOv8?
+### What is the difference between [object detection](https://www.ultralytics.com/glossary/object-detection) and instance segmentation in YOLOv8?
 
 Object detection identifies and localizes objects within an image by drawing bounding boxes around them, whereas instance segmentation not only identifies the bounding boxes but also delineates the exact shape of each object. YOLOv8 instance segmentation models provide masks or contours that outline each detected object, which is particularly useful for tasks where knowing the precise shape of objects is important, such as medical imaging or autonomous driving.
 
@@ -238,7 +238,7 @@ Loading and validating a pretrained YOLOv8 segmentation model is straightforward
         yolo segment val model=yolov8n-seg.pt
         ```
 
-These steps will provide you with validation metrics like Mean Average Precision (mAP), crucial for assessing model performance.
+These steps will provide you with validation metrics like [Mean Average Precision](https://www.ultralytics.com/glossary/mean-average-precision-map) (mAP), crucial for assessing model performance.
 
 ### How can I export a YOLOv8 segmentation model to ONNX format?
 

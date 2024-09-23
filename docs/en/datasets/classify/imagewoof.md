@@ -6,7 +6,7 @@ keywords: ImageWoof dataset, ImageNet subset, dog breeds, image classification, 
 
 # ImageWoof Dataset
 
-The [ImageWoof](https://github.com/fastai/imagenette) dataset is a subset of the ImageNet consisting of 10 classes that are challenging to classify, since they're all dog breeds. It was created as a more difficult task for image classification algorithms to solve, aiming at encouraging development of more advanced models.
+The [ImageWoof](https://github.com/fastai/imagenette) dataset is a subset of the ImageNet consisting of 10 classes that are challenging to classify, since they're all dog breeds. It was created as a more difficult task for [image classification](https://www.ultralytics.com/glossary/image-classification) algorithms to solve, aiming at encouraging development of more advanced models.
 
 ## Key Features
 
@@ -24,7 +24,7 @@ The ImageWoof dataset is widely used for training and evaluating deep learning m
 
 ## Usage
 
-To train a CNN model on the ImageWoof dataset for 100 epochs with an image size of 224x224, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To train a CNN model on the ImageWoof dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 224x224, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
 !!! example "Train Example"
 
@@ -97,7 +97,7 @@ The example showcases the subtle differences and similarities among the differen
 
 If you use the ImageWoof dataset in your research or development work, please make sure to acknowledge the creators of the dataset by linking to the [official dataset repository](https://github.com/fastai/imagenette).
 
-We would like to acknowledge the FastAI team for creating and maintaining the ImageWoof dataset as a valuable resource for the machine learning and computer vision research community. For more information about the ImageWoof dataset, visit the [ImageWoof dataset repository](https://github.com/fastai/imagenette).
+We would like to acknowledge the FastAI team for creating and maintaining the ImageWoof dataset as a valuable resource for the [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) and [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) research community. For more information about the ImageWoof dataset, visit the [ImageWoof dataset repository](https://github.com/fastai/imagenette).
 
 ## FAQ
 
@@ -107,7 +107,7 @@ The [ImageWoof](https://github.com/fastai/imagenette) dataset is a challenging s
 
 ### How can I train a model using the ImageWoof dataset with Ultralytics YOLO?
 
-To train a Convolutional Neural Network (CNN) model on the ImageWoof dataset using Ultralytics YOLO for 100 epochs at an image size of 224x224, you can use the following code:
+To train a [Convolutional Neural Network](https://www.ultralytics.com/glossary/convolutional-neural-network-cnn) (CNN) model on the ImageWoof dataset using Ultralytics YOLO for 100 epochs at an image size of 224x224, you can use the following code:
 
 !!! example "Train Example"
 
@@ -137,7 +137,7 @@ The ImageWoof dataset comes in three sizes:
 2. **Medium Size (imagewoof320)**: Resized images with a maximum edge length of 320 pixels, suited for faster training.
 3. **Small Size (imagewoof160)**: Resized images with a maximum edge length of 160 pixels, perfect for rapid prototyping.
 
-Use these versions by replacing 'imagewoof' in the dataset argument accordingly. Note, however, that smaller images may yield lower classification accuracy but can be useful for quicker iterations.
+Use these versions by replacing 'imagewoof' in the dataset argument accordingly. Note, however, that smaller images may yield lower classification [accuracy](https://www.ultralytics.com/glossary/accuracy) but can be useful for quicker iterations.
 
 ### How do noisy labels in the ImageWoof dataset benefit training?
 
@@ -145,4 +145,4 @@ Noisy labels in the ImageWoof dataset simulate real-world conditions where label
 
 ### What are the key challenges of using the ImageWoof dataset?
 
-The primary challenge of the ImageWoof dataset lies in the subtle differences among the dog breeds it includes. Since it focuses on 10 closely related breeds, distinguishing between them requires more advanced and fine-tuned image classification models. This makes ImageWoof an excellent benchmark to test the capabilities and improvements of deep learning models.
+The primary challenge of the ImageWoof dataset lies in the subtle differences among the dog breeds it includes. Since it focuses on 10 closely related breeds, distinguishing between them requires more advanced and fine-tuned image classification models. This makes ImageWoof an excellent benchmark to test the capabilities and improvements of [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models.

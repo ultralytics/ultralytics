@@ -398,8 +398,8 @@ class AutoBackend(nn.Module):
             from ultralytics.engine.exporter import export_formats
 
             raise TypeError(
-                f"model='{w}' is not a supported model format. "
-                f"See https://docs.ultralytics.com/modes/predict for help.\n\n{export_formats()}"
+                f"model='{w}' is not a supported model format. Ultralytics supports: {export_formats()['Format']}\n"
+                f"See https://docs.ultralytics.com/modes/predict for help."
             )
 
         # Load external metadata YAML
@@ -653,7 +653,7 @@ class AutoBackend(nn.Module):
         """
         from ultralytics.engine.exporter import export_formats
 
-        sf = list(export_formats().Suffix)  # export suffixes
+        sf = export_formats()["Suffix"]  # export suffixes
         if not is_url(p) and not isinstance(p, str):
             check_suffix(p, sf)  # checks
         name = Path(p).name

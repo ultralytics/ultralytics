@@ -547,9 +547,7 @@ def handle_yolo_settings(args: List[str]) -> None:
 
 
 def handle_yolo_info(args: List[str]) -> None:
-    """
-    Handles YOLO info command-line interface (CLI) commands.
-    """
+    """Handles YOLO info command-line interface (CLI) commands."""
     from ultralytics import YOLO, RTDETR, FastSAM, SAM
     
     choose = {"yolo" : YOLO, "rtdetr" : RTDETR, "fastsam" : FastSAM, "sam_" : SAM, "sam2_" : SAM}

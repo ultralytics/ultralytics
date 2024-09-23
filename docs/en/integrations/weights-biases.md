@@ -6,7 +6,7 @@ keywords: YOLOv8, Weights & Biases, model training, experiment tracking, Ultraly
 
 # Enhancing YOLOv8 Experiment Tracking and Visualization with Weights & Biases
 
-Object detection models like [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics) have become integral to many computer vision applications. However, training, evaluating, and deploying these complex models introduces several challenges. Tracking key training metrics, comparing model variants, analyzing model behavior, and detecting issues require substantial instrumentation and experiment management.
+[Object detection](https://www.ultralytics.com/glossary/object-detection) models like [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics) have become integral to many [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) applications. However, training, evaluating, and deploying these complex models introduces several challenges. Tracking key training metrics, comparing model variants, analyzing model behavior, and detecting issues require substantial instrumentation and experiment management.
 
 <p align="center">
   <br>
@@ -27,7 +27,7 @@ This guide showcases Ultralytics YOLOv8 integration with Weights & Biases' for e
   <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/wandb-demo-experiments.avif" alt="Weights & Biases Overview">
 </p>
 
-[Weights & Biases](https://wandb.ai/site) is a cutting-edge MLOps platform designed for tracking, visualizing, and managing machine learning experiments. It features automatic logging of training metrics for full experiment reproducibility, an interactive UI for streamlined data analysis, and efficient model management tools for deploying across various environments.
+[Weights & Biases](https://wandb.ai/site) is a cutting-edge MLOps platform designed for tracking, visualizing, and managing [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) experiments. It features automatic logging of training metrics for full experiment reproducibility, an interactive UI for streamlined data analysis, and efficient model management tools for deploying across various environments.
 
 ## YOLOv8 Training with Weights & Biases
 
@@ -112,7 +112,7 @@ Let's understand the steps showcased in the usage code snippet above.
 
 - **Step 3: Add Weights & Biases Callback for Ultralytics**: This step is crucial as it enables the automatic logging of training metrics and validation results to Weights & Biases, providing a detailed view of the model's performance.
 
-- **Step 4: Train and Fine-Tune the Model**: Begin training the model with the specified dataset, number of epochs, and image size. The training process includes logging of metrics and predictions at the end of each epoch, offering a comprehensive view of the model's learning progress.
+- **Step 4: Train and Fine-Tune the Model**: Begin training the model with the specified dataset, number of epochs, and image size. The training process includes logging of metrics and predictions at the end of each [epoch](https://www.ultralytics.com/glossary/epoch), offering a comprehensive view of the model's learning progress.
 
 - **Step 5: Validate the Model**: After training, the model is validated. This step is crucial for assessing the model's performance on unseen data and ensuring its generalizability.
 
@@ -126,8 +126,8 @@ Upon running the usage code snippet above, you can expect the following key outp
 
 - The setup of a new run with its unique ID, indicating the start of the training process.
 - A concise summary of the model's structure, including the number of layers and parameters.
-- Regular updates on important metrics such as box loss, cls loss, dfl loss, precision, recall, and mAP scores during each training epoch.
-- At the end of training, detailed metrics including the model's inference speed, and overall accuracy metrics are displayed.
+- Regular updates on important metrics such as box loss, cls loss, dfl loss, [precision](https://www.ultralytics.com/glossary/precision), [recall](https://www.ultralytics.com/glossary/recall), and mAP scores during each training epoch.
+- At the end of training, detailed metrics including the model's inference speed, and overall [accuracy](https://www.ultralytics.com/glossary/accuracy) metrics are displayed.
 - Links to the Weights & Biases dashboard for in-depth analysis and visualization of the training process, along with information on local log file locations.
 
 ### Viewing the Weights & Biases Dashboard
@@ -138,7 +138,7 @@ After running the usage code snippet, you can access the Weights & Biases (W&B) 
 
 - **Real-Time Metrics Tracking**: Observe metrics like loss, accuracy, and validation scores as they evolve during the training, offering immediate insights for model tuning. [See how experiments are tracked using Weights & Biases](https://imgur.com/D6NVnmN).
 
-- **Hyperparameter Optimization**: Weights & Biases aids in fine-tuning critical parameters such as learning rate, batch size, and more, enhancing the performance of YOLOv8.
+- **Hyperparameter Optimization**: Weights & Biases aids in fine-tuning critical parameters such as [learning rate](https://www.ultralytics.com/glossary/learning-rate), batch size, and more, enhancing the performance of YOLOv8.
 
 - **Comparative Analysis**: The platform allows side-by-side comparisons of different training runs, essential for assessing the impact of various model configurations.
 
@@ -177,7 +177,7 @@ For further guidance on installation steps, refer to our [YOLOv8 Installation gu
 Integrating Ultralytics YOLOv8 with Weights & Biases offers several benefits including:
 
 - **Real-Time Metrics Tracking:** Observe metric changes during training for immediate insights.
-- **Hyperparameter Optimization:** Improve model performance by fine-tuning learning rate, batch size, etc.
+- **Hyperparameter Optimization:** Improve model performance by fine-tuning learning rate, [batch size](https://www.ultralytics.com/glossary/batch-size), etc.
 - **Comparative Analysis:** Side-by-side comparison of different training runs.
 - **Resource Monitoring:** Keep track of CPU, GPU, and memory usage.
 - **Model Artifacts Management:** Easy access and sharing of model checkpoints.
@@ -238,7 +238,7 @@ Ultralytics YOLOv8 integrated with Weights & Biases offers several unique advant
 
 - **High Efficiency:** Real-time tracking of training metrics and performance optimization.
 - **Scalability:** Easily manage large-scale training jobs with robust resource monitoring and utilization tools.
-- **Interactivity:** A user-friendly interactive UI for data visualization and model management.
+- **Interactivity:** A user-friendly interactive UI for [data visualization](https://www.ultralytics.com/glossary/data-visualization) and model management.
 - **Community and Support:** Strong integration documentation and community support with flexible customization and enhancement options.
 
 For comparisons with other platforms like Comet and ClearML, refer to [Ultralytics integrations](../integrations/index.md).

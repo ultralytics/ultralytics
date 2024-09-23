@@ -23,7 +23,7 @@ The YOLO-World Model introduces an advanced, real-time [Ultralytics](https://www
 
 ## Overview
 
-YOLO-World tackles the challenges faced by traditional Open-Vocabulary detection models, which often rely on cumbersome Transformer models requiring extensive computational resources. These models' dependence on pre-defined object categories also restricts their utility in dynamic scenarios. YOLO-World revitalizes the YOLOv8 framework with open-vocabulary detection capabilities, employing vision-language modeling and pre-training on expansive datasets to excel at identifying a broad array of objects in zero-shot scenarios with unmatched efficiency.
+YOLO-World tackles the challenges faced by traditional Open-Vocabulary detection models, which often rely on cumbersome [Transformer](https://www.ultralytics.com/glossary/transformer) models requiring extensive computational resources. These models' dependence on pre-defined object categories also restricts their utility in dynamic scenarios. YOLO-World revitalizes the YOLOv8 framework with open-vocabulary detection capabilities, employing vision-[language modeling](https://www.ultralytics.com/glossary/language-modeling) and pre-training on expansive datasets to excel at identifying a broad array of objects in zero-shot scenarios with unmatched efficiency.
 
 ## Key Features
 
@@ -81,13 +81,13 @@ The YOLO-World models are easy to integrate into your Python applications. Ultra
 
     We strongly recommend to use `yolov8-worldv2` model for custom training, because it supports deterministic training and also easy to export other formats i.e onnx/tensorrt.
 
-Object detection is straightforward with the `train` method, as illustrated below:
+[Object detection](https://www.ultralytics.com/glossary/object-detection) is straightforward with the `train` method, as illustrated below:
 
 !!! example
 
     === "Python"
 
-        PyTorch pretrained `*.pt` models as well as configuration `*.yaml` files can be passed to the `YOLOWorld()` class to create a model instance in python:
+        [PyTorch](https://www.ultralytics.com/glossary/pytorch) pretrained `*.pt` models as well as configuration `*.yaml` files can be passed to the `YOLOWorld()` class to create a model instance in python:
 
         ```python
         from ultralytics import YOLOWorld
@@ -197,7 +197,7 @@ Object tracking with YOLO-World model on a video/images is streamlined as follow
 
 ![YOLO-World prompt class names overview](https://github.com/ultralytics/docs/releases/download/0/yolo-world-prompt-class-names-overview.avif)
 
-The YOLO-World framework allows for the dynamic specification of classes through custom prompts, empowering users to tailor the model to their specific needs **without retraining**. This feature is particularly useful for adapting the model to new domains or specific tasks that were not originally part of the training data. By setting custom prompts, users can essentially guide the model's focus towards objects of interest, enhancing the relevance and accuracy of the detection results.
+The YOLO-World framework allows for the dynamic specification of classes through custom prompts, empowering users to tailor the model to their specific needs **without retraining**. This feature is particularly useful for adapting the model to new domains or specific tasks that were not originally part of the [training data](https://www.ultralytics.com/glossary/training-data). By setting custom prompts, users can essentially guide the model's focus towards objects of interest, enhancing the relevance and accuracy of the detection results.
 
 For instance, if your application only requires detecting 'person' and 'bus' objects, you can specify these classes directly:
 
@@ -262,7 +262,7 @@ You can also save a model after setting custom classes. By doing this you create
 - **Efficiency**: Streamlines the detection process by focusing on relevant objects, reducing computational overhead and speeding up inference.
 - **Flexibility**: Allows for easy adaptation of the model to new or niche detection tasks without the need for extensive retraining or data collection.
 - **Simplicity**: Simplifies deployment by eliminating the need to repeatedly specify custom classes at runtime, making the model directly usable with its embedded vocabulary.
-- **Performance**: Enhances detection accuracy for specified classes by focusing the model's attention and resources on recognizing the defined objects.
+- **Performance**: Enhances detection [accuracy](https://www.ultralytics.com/glossary/accuracy) for specified classes by focusing the model's attention and resources on recognizing the defined objects.
 
 This approach provides a powerful means of customizing state-of-the-art object detection models for specific tasks, making advanced AI more accessible and applicable to a broader range of practical applications.
 
@@ -345,7 +345,7 @@ The YOLO-World model is an advanced, real-time object detection approach based o
 
 ### How does YOLO-World handle inference with custom prompts?
 
-YOLO-World supports a "prompt-then-detect" strategy, which utilizes an offline vocabulary to enhance efficiency. Custom prompts like captions or specific object categories are pre-encoded and stored as offline vocabulary embeddings. This approach streamlines the detection process without the need for retraining. You can dynamically set these prompts within the model to tailor it to specific detection tasks, as shown below:
+YOLO-World supports a "prompt-then-detect" strategy, which utilizes an offline vocabulary to enhance efficiency. Custom prompts like captions or specific object categories are pre-encoded and stored as offline vocabulary [embeddings](https://www.ultralytics.com/glossary/embeddings). This approach streamlines the detection process without the need for retraining. You can dynamically set these prompts within the model to tailor it to specific detection tasks, as shown below:
 
 ```python
 from ultralytics import YOLOWorld

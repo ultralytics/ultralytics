@@ -548,25 +548,25 @@ def handle_yolo_settings(args: List[str]) -> None:
 
 def handle_yolo_info(args: List[str]) -> None:
     """Handles YOLO info command-line interface (CLI) commands."""
-    from ultralytics import YOLO, RTDETR, FastSAM, SAM
-    
-    choose = {"yolo" : YOLO, "rtdetr" : RTDETR, "fastsam" : FastSAM, "sam_" : SAM, "sam2_" : SAM}
-    _base = {"model" : "yolov8n.pt", "detailed" : False, "meta" : False, "classes" : False}
+    from ultralytics import RTDETR, SAM, YOLO, FastSAM
+
+    choose = {"yolo": YOLO, "rtdetr": RTDETR, "fastsam": FastSAM, "sam_": SAM, "sam2_": SAM}
+    _base = {"model": "yolov8n.pt", "detailed": False, "meta": False, "classes": False}
 
     short = {"date", "version", "license", "docs", "epoch", "best_fitness"}  # metadata
     skip = {"model", "ema", "optimizer"}
 
-    delim = '-' * 80
+    delim = "-" * 80
 
     def _obj_or_dict(x: Union[object, Dict]) -> str:
         """Returns a string representation of an object or creates a string from key-value pairs from a dictionary."""
         return f"{x}" if not isinstance(x, dict) else "".join([f"\n\t{str(k)}: {v}" for k, v in x.items()])
-    
-    def _classes(d:dict):
+
+    def _classes(d: dict):
         """Yields a formatted string representation of classes from a dictionary."""
-        for k,v in d.items():
+        for k, v in d.items():
             yield f"\t{k}: {_obj_or_dict(v)}"
-    
+
     try:
         if args:
             file = args.pop(0) if "=" not in args[0] else ""
@@ -577,20 +577,20 @@ def handle_yolo_info(args: List[str]) -> None:
             file = Path(file or _base.get("model"))
             pick = next((t for t in choose.keys() if t in file.stem.lower()), "yolo")
             model = choose[pick](file)
-            
+
             names = getattr(model, "names", {})
             show = _classes(names if _base.get("classes", False) else {})
 
-            LOGGER.info(colorstr("blue", "bold", f"\nUltralytics Model Info:"))
+            LOGGER.info(colorstr("blue", "bold", "\nUltralytics Model Info:"))
             LOGGER.info(f"{delim}\nModel File: {model.ckpt_path or file}")
-            
-            meta:dict = model.ckpt or model.predictor.model.metadata
+
+            meta: dict = model.ckpt or model.predictor.model.metadata
             if _base.get("meta") and meta:
                 f"{[LOGGER.info(f'{str(k).capitalize()}: {_obj_or_dict(v)}') for k,v in meta.items() if ((k not in skip) if _base.get('detailed') else (k in short))]}"
                 LOGGER.info(f"Classes: {'' if _base.get('classes', False) else len(names)}")
                 _ = [LOGGER.info(x) for x in show]
                 LOGGER.info(f"{delim}")
-            
+
             if file.suffix.lower() == ".pt":
                 model.info(detailed=_base.get("detailed", False), verbose=True)
         else:
@@ -599,7 +599,7 @@ def handle_yolo_info(args: List[str]) -> None:
     except SyntaxError as e:
         # LOGGER.warning(f"WARNING ⚠️ info error: '{e}'. Please see {url} for help.")
         LOGGER.warning(f"WARNING ⚠️ info error: '{e}'.")
-    except FileNotFoundError as e:
+    except FileNotFoundError:
         LOGGER.error(f"Model '{file}' not found, try providing full path to file.")
     except Exception as e:
         LOGGER.error(f"Error: {e}")

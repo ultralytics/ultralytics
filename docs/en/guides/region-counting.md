@@ -75,15 +75,15 @@ python yolov8_region_counter.py --source "path/to/video.mp4" --view-img
 
 ### Optional Arguments
 
-| Name                 | Type   | Default      | Description                                |
-| -------------------- | ------ | ------------ | ------------------------------------------ |
-| `--source`           | `str`  | `None`       | Path to video file, for webcam 0           |
-| `--line_thickness`   | `int`  | `2`          | [Bounding Box](https://www.ultralytics.com/glossary/bounding-box) thickness                     |
-| `--save-img`         | `bool` | `False`      | Save the predicted video/image             |
-| `--weights`          | `str`  | `yolov8n.pt` | Weights file path                          |
-| `--classes`          | `list` | `None`       | Detect specific classes i.e. --classes 0 2 |
-| `--region-thickness` | `int`  | `2`          | Region Box thickness                       |
-| `--track-thickness`  | `int`  | `2`          | Tracking line thickness                    |
+| Name                 | Type   | Default      | Description                                                                 |
+| -------------------- | ------ | ------------ | --------------------------------------------------------------------------- |
+| `--source`           | `str`  | `None`       | Path to video file, for webcam 0                                            |
+| `--line_thickness`   | `int`  | `2`          | [Bounding Box](https://www.ultralytics.com/glossary/bounding-box) thickness |
+| `--save-img`         | `bool` | `False`      | Save the predicted video/image                                              |
+| `--weights`          | `str`  | `yolov8n.pt` | Weights file path                                                           |
+| `--classes`          | `list` | `None`       | Detect specific classes i.e. --classes 0 2                                  |
+| `--region-thickness` | `int`  | `2`          | Region Box thickness                                                        |
+| `--track-thickness`  | `int`  | `2`          | Tracking line thickness                                                     |
 
 ## FAQ
 

@@ -59,14 +59,14 @@ Export a YOLOv8n model to OpenVINO format and run inference with the exported mo
 
 ## Arguments
 
-| Key       | Value        | Description                                          |
-| --------- | ------------ | ---------------------------------------------------- |
-| `format`  | `'openvino'` | format to export to                                  |
-| `imgsz`   | `640`        | image size as scalar or (h, w) list, i.e. (640, 480) |
-| `half`    | `False`      | FP16 quantization                                    |
-| `int8`    | `False`      | INT8 quantization                                    |
-| `batch`   | `1`          | [batch size](https://www.ultralytics.com/glossary/batch-size) for inference                             |
-| `dynamic` | `False`      | allows dynamic input sizes                           |
+| Key       | Value        | Description                                                                 |
+| --------- | ------------ | --------------------------------------------------------------------------- |
+| `format`  | `'openvino'` | format to export to                                                         |
+| `imgsz`   | `640`        | image size as scalar or (h, w) list, i.e. (640, 480)                        |
+| `half`    | `False`      | FP16 quantization                                                           |
+| `int8`    | `False`      | INT8 quantization                                                           |
+| `batch`   | `1`          | [batch size](https://www.ultralytics.com/glossary/batch-size) for inference |
+| `dynamic` | `False`      | allows dynamic input sizes                                                  |
 
 ## Benefits of OpenVINO
 
@@ -121,28 +121,28 @@ Benchmarks below run on Intel® Data Center GPU Flex 170 at FP32 precision.
 <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/flex-gpu-benchmarks.avif" alt="Flex GPU benchmarks">
 </div>
 
-| Model   | Format      | Status | Size (MB) | mAP50-95(B) | Inference time (ms/im) |
-| ------- | ----------- | ------ | --------- | ----------- | ---------------------- |
-| YOLOv8n | [PyTorch](https://www.ultralytics.com/glossary/pytorch)     | ✅     | 6.2       | 0.3709      | 21.79                  |
-| YOLOv8n | TorchScript | ✅     | 12.4      | 0.3704      | 23.24                  |
-| YOLOv8n | ONNX        | ✅     | 12.2      | 0.3704      | 37.22                  |
-| YOLOv8n | OpenVINO    | ✅     | 12.3      | 0.3703      | 3.29                   |
-| YOLOv8s | PyTorch     | ✅     | 21.5      | 0.4471      | 31.89                  |
-| YOLOv8s | TorchScript | ✅     | 42.9      | 0.4472      | 32.71                  |
-| YOLOv8s | ONNX        | ✅     | 42.8      | 0.4472      | 43.42                  |
-| YOLOv8s | OpenVINO    | ✅     | 42.9      | 0.4470      | 3.92                   |
-| YOLOv8m | PyTorch     | ✅     | 49.7      | 0.5013      | 50.75                  |
-| YOLOv8m | TorchScript | ✅     | 99.2      | 0.4999      | 47.90                  |
-| YOLOv8m | ONNX        | ✅     | 99.0      | 0.4999      | 63.16                  |
-| YOLOv8m | OpenVINO    | ✅     | 49.8      | 0.4997      | 7.11                   |
-| YOLOv8l | PyTorch     | ✅     | 83.7      | 0.5293      | 77.45                  |
-| YOLOv8l | TorchScript | ✅     | 167.2     | 0.5268      | 85.71                  |
-| YOLOv8l | ONNX        | ✅     | 166.8     | 0.5268      | 88.94                  |
-| YOLOv8l | OpenVINO    | ✅     | 167.0     | 0.5264      | 9.37                   |
-| YOLOv8x | PyTorch     | ✅     | 130.5     | 0.5404      | 100.09                 |
-| YOLOv8x | TorchScript | ✅     | 260.7     | 0.5371      | 114.64                 |
-| YOLOv8x | ONNX        | ✅     | 260.4     | 0.5371      | 110.32                 |
-| YOLOv8x | OpenVINO    | ✅     | 260.6     | 0.5367      | 15.02                  |
+| Model   | Format                                                  | Status | Size (MB) | mAP50-95(B) | Inference time (ms/im) |
+| ------- | ------------------------------------------------------- | ------ | --------- | ----------- | ---------------------- |
+| YOLOv8n | [PyTorch](https://www.ultralytics.com/glossary/pytorch) | ✅     | 6.2       | 0.3709      | 21.79                  |
+| YOLOv8n | TorchScript                                             | ✅     | 12.4      | 0.3704      | 23.24                  |
+| YOLOv8n | ONNX                                                    | ✅     | 12.2      | 0.3704      | 37.22                  |
+| YOLOv8n | OpenVINO                                                | ✅     | 12.3      | 0.3703      | 3.29                   |
+| YOLOv8s | PyTorch                                                 | ✅     | 21.5      | 0.4471      | 31.89                  |
+| YOLOv8s | TorchScript                                             | ✅     | 42.9      | 0.4472      | 32.71                  |
+| YOLOv8s | ONNX                                                    | ✅     | 42.8      | 0.4472      | 43.42                  |
+| YOLOv8s | OpenVINO                                                | ✅     | 42.9      | 0.4470      | 3.92                   |
+| YOLOv8m | PyTorch                                                 | ✅     | 49.7      | 0.5013      | 50.75                  |
+| YOLOv8m | TorchScript                                             | ✅     | 99.2      | 0.4999      | 47.90                  |
+| YOLOv8m | ONNX                                                    | ✅     | 99.0      | 0.4999      | 63.16                  |
+| YOLOv8m | OpenVINO                                                | ✅     | 49.8      | 0.4997      | 7.11                   |
+| YOLOv8l | PyTorch                                                 | ✅     | 83.7      | 0.5293      | 77.45                  |
+| YOLOv8l | TorchScript                                             | ✅     | 167.2     | 0.5268      | 85.71                  |
+| YOLOv8l | ONNX                                                    | ✅     | 166.8     | 0.5268      | 88.94                  |
+| YOLOv8l | OpenVINO                                                | ✅     | 167.0     | 0.5264      | 9.37                   |
+| YOLOv8x | PyTorch                                                 | ✅     | 130.5     | 0.5404      | 100.09                 |
+| YOLOv8x | TorchScript                                             | ✅     | 260.7     | 0.5371      | 114.64                 |
+| YOLOv8x | ONNX                                                    | ✅     | 260.4     | 0.5371      | 110.32                 |
+| YOLOv8x | OpenVINO                                                | ✅     | 260.6     | 0.5367      | 15.02                  |
 
 This table represents the benchmark results for five different models (YOLOv8n, YOLOv8s, YOLOv8m, YOLOv8l, YOLOv8x) across four different formats (PyTorch, TorchScript, ONNX, OpenVINO), giving us the status, size, mAP50-95(B) metric, and inference time for each combination.
 

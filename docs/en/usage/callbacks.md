@@ -57,22 +57,22 @@ Here are all supported callbacks. See callbacks [source code](https://github.com
 
 ### Trainer Callbacks
 
-| Callback                    | Description                                             |
-| --------------------------- | ------------------------------------------------------- |
-| `on_pretrain_routine_start` | Triggered at the beginning of pre-training routine      |
-| `on_pretrain_routine_end`   | Triggered at the end of pre-training routine            |
-| `on_train_start`            | Triggered when the training starts                      |
-| `on_train_epoch_start`      | Triggered at the start of each training [epoch](https://www.ultralytics.com/glossary/epoch)           |
-| `on_train_batch_start`      | Triggered at the start of each training batch           |
-| `optimizer_step`            | Triggered during the optimizer step                     |
-| `on_before_zero_grad`       | Triggered before gradients are zeroed                   |
-| `on_train_batch_end`        | Triggered at the end of each training batch             |
-| `on_train_epoch_end`        | Triggered at the end of each training epoch             |
-| `on_fit_epoch_end`          | Triggered at the end of each fit epoch                  |
-| `on_model_save`             | Triggered when the model is saved                       |
-| `on_train_end`              | Triggered when the training process ends                |
-| `on_params_update`          | Triggered when model parameters are updated             |
-| `teardown`                  | Triggered when the training process is being cleaned up |
+| Callback                    | Description                                                                                 |
+| --------------------------- | ------------------------------------------------------------------------------------------- |
+| `on_pretrain_routine_start` | Triggered at the beginning of pre-training routine                                          |
+| `on_pretrain_routine_end`   | Triggered at the end of pre-training routine                                                |
+| `on_train_start`            | Triggered when the training starts                                                          |
+| `on_train_epoch_start`      | Triggered at the start of each training [epoch](https://www.ultralytics.com/glossary/epoch) |
+| `on_train_batch_start`      | Triggered at the start of each training batch                                               |
+| `optimizer_step`            | Triggered during the optimizer step                                                         |
+| `on_before_zero_grad`       | Triggered before gradients are zeroed                                                       |
+| `on_train_batch_end`        | Triggered at the end of each training batch                                                 |
+| `on_train_epoch_end`        | Triggered at the end of each training epoch                                                 |
+| `on_fit_epoch_end`          | Triggered at the end of each fit epoch                                                      |
+| `on_model_save`             | Triggered when the model is saved                                                           |
+| `on_train_end`              | Triggered when the training process ends                                                    |
+| `on_params_update`          | Triggered when model parameters are updated                                                 |
+| `teardown`                  | Triggered when the training process is being cleaned up                                     |
 
 ### Validator Callbacks
 

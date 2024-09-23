@@ -38,12 +38,12 @@ For a deeper understanding of SAM 2's architecture and capabilities, explore the
 
 SAM 2 sets a new benchmark in the field, outperforming previous models on various metrics:
 
-| Metric                             | SAM 2         | Previous SOTA |
-| ---------------------------------- | ------------- | ------------- |
-| **Interactive Video Segmentation** | **Best**      | -             |
-| **Human Interactions Required**    | **3x fewer**  | Baseline      |
-| **[Image Segmentation](https://www.ultralytics.com/glossary/image-segmentation) Accuracy**    | **Improved**  | SAM           |
-| **Inference Speed**                | **6x faster** | SAM           |
+| Metric                                                                                     | SAM 2         | Previous SOTA |
+| ------------------------------------------------------------------------------------------ | ------------- | ------------- |
+| **Interactive Video Segmentation**                                                         | **Best**      | -             |
+| **Human Interactions Required**                                                            | **3x fewer**  | Baseline      |
+| **[Image Segmentation](https://www.ultralytics.com/glossary/image-segmentation) Accuracy** | **Improved**  | SAM           |
+| **Inference Speed**                                                                        | **6x faster** | SAM           |
 
 ## Model Architecture
 

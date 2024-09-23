@@ -27,6 +27,7 @@ def test_special_modes():
     run("yolo version")
     run("yolo settings reset")
     run("yolo cfg")
+    run("yolo info yolov8n.pt")
 
 
 @pytest.mark.parametrize("task,model,data", TASK_MODEL_DATA)

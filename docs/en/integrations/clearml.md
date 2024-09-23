@@ -6,9 +6,9 @@ keywords: YOLOv8, ClearML, MLOps, Ultralytics, machine learning, object detectio
 
 # Training YOLOv8 with ClearML: Streamlining Your MLOps Workflow
 
-MLOps bridges the gap between creating and deploying machine learning models in real-world settings. It focuses on efficient deployment, scalability, and ongoing management to ensure models perform well in practical applications.
+MLOps bridges the gap between creating and deploying [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) models in real-world settings. It focuses on efficient deployment, scalability, and ongoing management to ensure models perform well in practical applications.
 
-[Ultralytics YOLOv8](https://www.ultralytics.com/) effortlessly integrates with ClearML, streamlining and enhancing your object detection model's training and management. This guide will walk you through the integration process, detailing how to set up ClearML, manage experiments, automate model management, and collaborate effectively.
+[Ultralytics YOLOv8](https://www.ultralytics.com/) effortlessly integrates with ClearML, streamlining and enhancing your [object detection](https://www.ultralytics.com/glossary/object-detection) model's training and management. This guide will walk you through the integration process, detailing how to set up ClearML, manage experiments, automate model management, and collaborate effectively.
 
 ## ClearML
 
@@ -16,7 +16,7 @@ MLOps bridges the gap between creating and deploying machine learning models in 
   <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/clearml-overview.avif" alt="ClearML Overview">
 </p>
 
-[ClearML](https://clear.ml/) is an innovative open-source MLOps platform that is skillfully designed to automate, monitor, and orchestrate machine learning workflows. Its key features include automated logging of all training and inference data for full experiment reproducibility, an intuitive web UI for easy data visualization and analysis, advanced hyperparameter optimization algorithms, and robust model management for efficient deployment across various platforms.
+[ClearML](https://clear.ml/) is an innovative open-source MLOps platform that is skillfully designed to automate, monitor, and orchestrate machine learning workflows. Its key features include automated logging of all training and inference data for full experiment reproducibility, an intuitive web UI for easy [data visualization](https://www.ultralytics.com/glossary/data-visualization) and analysis, advanced hyperparameter [optimization algorithms](https://www.ultralytics.com/glossary/optimization-algorithm), and robust model management for efficient deployment across various platforms.
 
 ## YOLOv8 Training with ClearML
 
@@ -95,7 +95,7 @@ Let's understand the steps showcased in the usage code snippet above.
 
 **Step 3: Loading the YOLOv8 Model**: The selected YOLOv8 model is loaded using Ultralytics' YOLO class, preparing it for training.
 
-**Step 4: Setting Up Training Arguments**: Key training arguments like the dataset (`coco8.yaml`) and the number of epochs (`16`) are organized in a dictionary and connected to the ClearML task. This allows for tracking and potential modification via the ClearML UI. For a detailed understanding of the model training process and best practices, refer to our [YOLOv8 Model Training guide](../modes/train.md).
+**Step 4: Setting Up Training Arguments**: Key training arguments like the dataset (`coco8.yaml`) and the number of [epochs](https://www.ultralytics.com/glossary/epoch) (`16`) are organized in a dictionary and connected to the ClearML task. This allows for tracking and potential modification via the ClearML UI. For a detailed understanding of the model training process and best practices, refer to our [YOLOv8 Model Training guide](../modes/train.md).
 
 **Step 5: Initiating Model Training**: The model training is started with the specified arguments. The results of the training process are captured in the `results` variable.
 
@@ -107,7 +107,7 @@ Upon running the usage code snippet above, you can expect the following output:
 - An informational message about the script code being stored, indicating that the code execution is being tracked by ClearML.
 - A URL link to the ClearML results page where you can monitor the training progress and view detailed logs.
 - Download progress for the YOLOv8 model and the specified dataset, followed by a summary of the model architecture and training configuration.
-- Initialization messages for various training components like TensorBoard, Automatic Mixed Precision (AMP), and dataset preparation.
+- Initialization messages for various training components like TensorBoard, Automatic [Mixed Precision](https://www.ultralytics.com/glossary/mixed-precision) (AMP), and dataset preparation.
 - Finally, the training process starts, with progress updates as the model trains on the specified dataset. For an in-depth understanding of the performance metrics used during training, read [our guide on performance metrics](../guides/yolo-performance-metrics.md).
 
 ### Viewing the ClearML Results Page
@@ -118,13 +118,13 @@ By clicking on the URL link to the ClearML results page in the output of the usa
 
 - **Real-Time Metrics Tracking**
 
-    - Track critical metrics like loss, accuracy, and validation scores as they occur.
+    - Track critical metrics like loss, [accuracy](https://www.ultralytics.com/glossary/accuracy), and validation scores as they occur.
     - Provides immediate feedback for timely model performance adjustments.
 
 - **Experiment Comparison**
 
     - Compare different training runs side-by-side.
-    - Essential for hyperparameter tuning and identifying the most effective models.
+    - Essential for [hyperparameter tuning](https://www.ultralytics.com/glossary/hyperparameter-tuning) and identifying the most effective models.
 
 - **Detailed Logs and Outputs**
 
@@ -139,7 +139,7 @@ By clicking on the URL link to the ClearML results page in the output of the usa
 - **Model Artifacts Management**
 
     - View, download, and share model artifacts like trained models and checkpoints.
-    - Enhances collaboration and streamlines model deployment and sharing.
+    - Enhances collaboration and streamlines [model deployment](https://www.ultralytics.com/glossary/model-deployment) and sharing.
 
 For a visual walkthrough of what the ClearML Results Page looks like, watch the video below:
 

@@ -6,7 +6,7 @@ keywords: Roboflow, Package Segmentation Dataset, computer vision, package ident
 
 # Roboflow Universe Package Segmentation Dataset
 
-The [Roboflow](https://roboflow.com/?ref=ultralytics) [Package Segmentation Dataset](https://universe.roboflow.com/factorypackage/factory_package?ref=ultralytics) is a curated collection of images specifically tailored for tasks related to package segmentation in the field of computer vision. This dataset is designed to assist researchers, developers, and enthusiasts working on projects related to package identification, sorting, and handling.
+The [Roboflow](https://roboflow.com/?ref=ultralytics) [Package Segmentation Dataset](https://universe.roboflow.com/factorypackage/factory_package?ref=ultralytics) is a curated collection of images specifically tailored for tasks related to package segmentation in the field of [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv). This dataset is designed to assist researchers, developers, and enthusiasts working on projects related to package identification, sorting, and handling.
 
 Containing a diverse set of images showcasing various packages in different contexts and environments, the dataset serves as a valuable resource for training and evaluating segmentation models. Whether you are engaged in logistics, warehouse automation, or any application requiring precise package analysis, the Package Segmentation Dataset provides a targeted and comprehensive set of images to enhance the performance of your computer vision algorithms.
 
@@ -34,7 +34,7 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 ## Usage
 
-To train Ultralytics YOLOv8n model on the Package Segmentation dataset for 100 epochs with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To train Ultralytics YOLOv8n model on the Package Segmentation dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
 !!! example "Train Example"
 
@@ -63,7 +63,7 @@ The Package Segmentation dataset comprises a varied collection of images and vid
 
 ![Dataset sample image](https://github.com/ultralytics/docs/releases/download/0/dataset-sample-image-1.avif)
 
-- This image displays an instance of image object detection, featuring annotated bounding boxes with masks outlining recognized objects. The dataset incorporates a diverse collection of images taken in different locations, environments, and densities. It serves as a comprehensive resource for developing models specific to this task.
+- This image displays an instance of image [object detection](https://www.ultralytics.com/glossary/object-detection), featuring annotated bounding boxes with masks outlining recognized objects. The dataset incorporates a diverse collection of images taken in different locations, environments, and densities. It serves as a comprehensive resource for developing models specific to this task.
 - The example emphasizes the diversity and complexity present in the VisDrone dataset, underscoring the significance of high-quality sensor data for computer vision tasks involving drones.
 
 ## Citations and Acknowledgments
@@ -136,7 +136,7 @@ This structure ensures a balanced dataset for thorough model training, validatio
 
 ### Why should I use Ultralytics YOLOv8 with the Package Segmentation Dataset?
 
-Ultralytics YOLOv8 provides state-of-the-art accuracy and speed for real-time object detection and segmentation tasks. Using it with the Package Segmentation Dataset allows you to leverage YOLOv8's capabilities for precise package segmentation. This combination is especially beneficial for industries like logistics and warehouse automation, where accurate package identification is critical. For more information, check out our [page on YOLOv8 segmentation](https://docs.ultralytics.com/models/yolov8/).
+Ultralytics YOLOv8 provides state-of-the-art [accuracy](https://www.ultralytics.com/glossary/accuracy) and speed for real-time object detection and segmentation tasks. Using it with the Package Segmentation Dataset allows you to leverage YOLOv8's capabilities for precise package segmentation. This combination is especially beneficial for industries like logistics and warehouse automation, where accurate package identification is critical. For more information, check out our [page on YOLOv8 segmentation](https://docs.ultralytics.com/models/yolov8/).
 
 ### How can I access and use the package-seg.yaml file for the Package Segmentation Dataset?
 

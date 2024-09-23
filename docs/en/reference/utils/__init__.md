@@ -177,4 +177,8 @@ keywords: Ultralytics, utils, TQDM, Python, ML, Machine Learning utilities, YOLO
 
 ## ::: ultralytics.utils.vscode_msg
 
+<br><br><hr><br>
+
+## ::: ultralytics.utils.crop_and_pad
+
 <br><br>

@@ -14,7 +14,7 @@ keywords: ClearML, YOLOv5, machine learning, experiment tracking, data versionin
 
 🔨 Track every YOLOv5 training run in the <b>experiment manager</b>
 
-🔧 Version and easily access your custom training data with the integrated ClearML <b>Data Versioning Tool</b>
+🔧 Version and easily access your custom [training data](https://www.ultralytics.com/glossary/training-data) with the integrated ClearML <b>Data Versioning Tool</b>
 
 🔦 <b>Remotely train and monitor</b> your YOLOv5 training runs using ClearML Agent
 
@@ -85,8 +85,8 @@ This will capture:
 - Console output
 - Scalars (mAP_0.5, mAP_0.5:0.95, precision, recall, losses, learning rates, ...)
 - General info such as machine details, runtime, creation date etc.
-- All produced plots such as label correlogram and confusion matrix
-- Images with bounding boxes per epoch
+- All produced plots such as label correlogram and [confusion matrix](https://www.ultralytics.com/glossary/confusion-matrix)
+- Images with bounding boxes per [epoch](https://www.ultralytics.com/glossary/epoch)
 - Mosaic per epoch
 - Validation images per epoch
 

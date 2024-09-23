@@ -542,7 +542,7 @@ class Annotator:
         Returns:
             width (float): Width of the bounding box.
             height (float): Height of the bounding box.
-            angle (degree): Area enclosed by the bounding box.
+            area (float): Area enclosed by the bounding box.
         """
         width = bbox[2] - bbox[0]
         height = bbox[3] - bbox[1]
@@ -554,8 +554,8 @@ class Annotator:
 
         Args:
             reg_pts (list): Region Points (for line 2 points, for region 4 points)
-            color (tuple): Region Color value
-            thickness (int): Region area thickness value
+            color (tuple, optional): Region Color value
+            thickness (int, optional): Region area thickness value
         """
         cv2.polylines(self.im, [np.array(reg_pts, dtype=np.int32)], isClosed=True, color=color, thickness=thickness)
 
@@ -569,8 +569,8 @@ class Annotator:
 
         Args:
             track (list): object tracking points for trails display
-            color (tuple): tracks line color
-            track_thickness (int): track line width value
+            color (tuple, optional): tracks line color
+            track_thickness (int, optional): track line width value
         """
         cv2.polylines(
             self.im,
@@ -588,8 +588,8 @@ class Annotator:
         Args:
             label (str): queue counts label
             points (tuple): region points for center point calculation to display text
-            region_color (RGB): queue region color
-            txt_color (RGB): text display color
+            region_color (tuple, optional): queue region color
+            txt_color (tuple, optional): text display color
         """
         center_x = sum([point[0] for point in points]) // len(points)
         center_y = sum([point[1] for point in points]) // len(points)
@@ -625,8 +625,8 @@ class Annotator:
         Args:
             im0 (ndarray): inference image
             text (dict): labels dictionary
-            txt_color (bgr color): display color for text foreground
-            bg_color (bgr color): display color for text background
+            txt_color (tuple): display color for text foreground
+            bg_color (tuple): display color for text background
         """
         text_y_offset = 0
         for label, value in text.items():
@@ -675,10 +675,8 @@ class Annotator:
             shape (tuple, optional): Image size for model inference. Defaults to (640, 640).
             radius (int, optional): Keypoint radius. Defaults to 2.
             conf_thres (float, optional): Confidence threshold for keypoints. Defaults to 0.25.
-
         Returns:
             (numpy.ndarray): Image with drawn keypoints.
-
         Note:
             Keypoint format: [x, y] or [x, y, confidence].
             Modifies self.im in-place.
@@ -705,7 +703,6 @@ class Annotator:
             position (tuple): Coordinates (x, y) on the image where the text will be placed.
             color (tuple, optional): Background color of the text. Default is (104, 31, 17).
             txt_color (tuple, optional): Text color. Default is (255, 255, 255).
-
         Returns:
             float: height of the text, used for positioning other elements.
         """
@@ -735,8 +732,8 @@ class Annotator:
             count_text (str): Counts value for workout monitoring
             stage_text (str): Stage decision for workout monitoring
             center_kpt (list): Centroid pose index for workout monitoring
-            color (tuple): Text background color
-            txt_color (tuple): Text foreground color
+            color (tuple, optional): Text background color
+            txt_color (tuple, optional): Text foreground color
         """
         # Format text
         angle_text, count_text, stage_text = f" {angle_text:.2f}", f"Steps : {count_text}", f" {stage_text}"
@@ -758,9 +755,9 @@ class Annotator:
 
         Args:
             mask (list): masks data list for instance segmentation area plotting
-            mask_color (RGB): mask foreground color
+            mask_color (tuple, optional): mask foreground color
             label (str): Detection label text
-            txt_color (RGB): text color
+            txt_color (tuple, optional): text color
         """
         cv2.polylines(self.im, [np.int32([mask])], isClosed=True, color=mask_color, thickness=2)
         text_size, _ = cv2.getTextSize(label, 0, self.sf, self.tf)
@@ -785,8 +782,8 @@ class Annotator:
         Args:
             pixels_distance (float): Pixels distance between two bbox centroids.
             centroids (list): Bounding box centroids data.
-            line_color (RGB): Distance line color.
-            centroid_color (RGB): Bounding box centroid color.
+            line_color (tuple, optional): Distance line color.
+            centroid_color (tuple, optional): Bounding box centroid color.
         """
         # Get the text size
         text = f"Pixels Distance: {pixels_distance:.2f}"
@@ -819,8 +816,8 @@ class Annotator:
         Args:
             box (list): Bounding box coordinates
             center_point (tuple): center point for vision eye view
-            color (tuple): object centroid and line color value
-            pin_color (tuple): visioneye point color value
+            color (tuple, optional): object centroid and line color value
+            pin_color (tuple, optional): visioneye point color value
         """
         center_bbox = int((box[0] + box[2]) / 2), int((box[1] + box[3]) / 2)
         cv2.circle(self.im, center_point, self.tf * 2, pin_color, -1)

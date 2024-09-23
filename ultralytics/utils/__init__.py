@@ -3,6 +3,7 @@
 import contextlib
 import importlib.metadata
 import inspect
+import json
 import logging.config
 import os
 import platform
@@ -14,6 +15,7 @@ import time
 import urllib
 import uuid
 from pathlib import Path
+from threading import Lock
 from types import SimpleNamespace
 from typing import Union
 
@@ -800,7 +802,7 @@ IS_RASPBERRYPI = is_raspberrypi()
 GIT_DIR = get_git_dir()
 IS_GIT_DIR = is_git_dir()
 USER_CONFIG_DIR = Path(os.getenv("YOLO_CONFIG_DIR") or get_user_config_dir())  # Ultralytics settings dir
-SETTINGS_YAML = USER_CONFIG_DIR / "settings.yaml"
+SETTINGS_FILE = USER_CONFIG_DIR / "settings.json"
 
 
 def colorstr(*input):
@@ -1038,21 +1040,121 @@ def set_sentry():
         sentry_sdk.set_user({"id": SETTINGS["uuid"]})  # SHA-256 anonymized UUID hash
 
 
-class SettingsManager(dict):
+class JSONDict(dict):
     """
-    Manages Ultralytics settings stored in a YAML file.
+    A dictionary-like class that provides JSON persistence for its contents.
 
-    Args:
-        file (str | Path): Path to the Ultralytics settings YAML file. Default is USER_CONFIG_DIR / 'settings.yaml'.
-        version (str): Settings version. In case of local version mismatch, new default settings will be saved.
+    This class extends the built-in dictionary to automatically save its contents to a JSON file whenever they are
+    modified. It ensures thread-safe operations using a lock.
+
+    Attributes:
+        file_path (Path): The path to the JSON file used for persistence.
+        lock (threading.Lock): A lock object to ensure thread-safe operations.
+
+    Methods:
+        _load: Loads the data from the JSON file into the dictionary.
+        _save: Saves the current state of the dictionary to the JSON file.
+        __setitem__: Stores a key-value pair and persists it to disk.
+        __delitem__: Removes an item and updates the persistent storage.
+        update: Updates the dictionary and persists changes.
+        clear: Clears all entries and updates the persistent storage.
+
+    Examples:
+        >>> json_dict = JSONDict("data.json")
+        >>> json_dict["key"] = "value"
+        >>> print(json_dict["key"])
+        value
+        >>> del json_dict["key"]
+        >>> json_dict.update({"new_key": "new_value"})
+        >>> json_dict.clear()
     """
 
-    def __init__(self, file=SETTINGS_YAML, version="0.0.5"):
+    def __init__(self, file_path: Union[str, Path] = "data.json"):
+        """Initialize a JSONDict object with a specified file path for JSON persistence."""
+        super().__init__()
+        self.file_path = Path(file_path)
+        self.lock = Lock()
+        self._load()
+
+    def _load(self):
+        """Load the data from the JSON file into the dictionary."""
+        try:
+            if self.file_path.exists():
+                with open(self.file_path) as f:
+                    self.update(json.load(f))
+        except json.JSONDecodeError:
+            print(f"Error decoding JSON from {self.file_path}. Starting with an empty dictionary.")
+        except Exception as e:
+            print(f"Error reading from {self.file_path}: {e}")
+
+    def _save(self):
+        """Save the current state of the dictionary to the JSON file."""
+        try:
+            self.file_path.parent.mkdir(parents=True, exist_ok=True)
+            with open(self.file_path, "w") as f:
+                json.dump(dict(self), f, indent=2)
+        except Exception as e:
+            print(f"Error writing to {self.file_path}: {e}")
+
+    def __setitem__(self, key, value):
+        """Store a key-value pair and persist to disk."""
+        with self.lock:
+            super().__setitem__(key, value)
+            self._save()
+
+    def __delitem__(self, key):
+        """Remove an item and update the persistent storage."""
+        with self.lock:
+            super().__delitem__(key)
+            self._save()
+
+    def __str__(self):
+        """Return a pretty-printed JSON string representation of the dictionary."""
+        return f'JSONDict("{self.file_path}"):\n{json.dumps(dict(self), indent=2, ensure_ascii=False)}'
+
+    def update(self, *args, **kwargs):
+        """Update the dictionary and persist changes."""
+        with self.lock:
+            super().update(*args, **kwargs)
+            self._save()
+
+    def clear(self):
+        """Clear all entries and update the persistent storage."""
+        with self.lock:
+            super().clear()
+            self._save()
+
+
+class SettingsManager(JSONDict):
+    """
+    SettingsManager class for managing and persisting Ultralytics settings.
+
+    This class extends JSONDict to provide JSON persistence for settings, ensuring thread-safe operations and default
+    values. It validates settings on initialization and provides methods to update or reset settings.
+
+    Attributes:
+        file (Path): The path to the JSON file used for persistence.
+        version (str): The version of the settings schema.
+        defaults (Dict): A dictionary containing default settings.
+        help_msg (str): A help message for users on how to view and update settings.
+
+    Methods:
+        _validate_settings: Validates the current settings and resets if necessary.
+        update: Updates settings, validating keys and types.
+        reset: Resets the settings to default and saves them.
+
+    Examples:
+        Initialize and update settings:
+        >>> settings = SettingsManager()
+        >>> settings.update(runs_dir="/new/runs/dir")
+        >>> print(settings["runs_dir"])
+        /new/runs/dir
+    """
+
+    def __init__(self, file=SETTINGS_FILE, version="0.0.6"):
         """Initializes the SettingsManager with default settings and loads user settings."""
-        import copy
         import hashlib
 
-        from ultralytics.utils.checks import check_version
         from ultralytics.utils.torch_utils import torch_distributed_zero_first
 
         root = GIT_DIR or Path()
@@ -1081,45 +1183,42 @@ class SettingsManager(dict):
             "vscode_msg": True,
         }
         self.help_msg = (
-            f"\nView settings with 'yolo settings' or at '{self.file}'"
-            "\nUpdate settings with 'yolo settings key=value', i.e. 'yolo settings runs_dir=path/to/dir'. "
+            f"\nView Ultralytics Settings with 'yolo settings' or at '{self.file}'"
+            "\nUpdate Settings with 'yolo settings key=value', i.e. 'yolo settings runs_dir=path/to/dir'. "
             "For help see https://docs.ultralytics.com/quickstart/#ultralytics-settings."
         )
 
-        super().__init__(copy.deepcopy(self.defaults))
-
         with torch_distributed_zero_first(RANK):
-            if not self.file.exists():
-                self.save()
+            super().__init__(self.file)
 
-            self.load()
-            correct_keys = self.keys() == self.defaults.keys()
-            correct_types = all(type(a) is type(b) for a, b in zip(self.values(), self.defaults.values()))
-            correct_version = check_version(self["settings_version"], self.version)
-            if not (correct_keys and correct_types and correct_version):
-                LOGGER.warning(
-                    "WARNING ⚠️ Ultralytics settings reset to default values. This may be due to a possible problem "
-                    f"with your settings or a recent ultralytics package update. {self.help_msg}"
-                )
+            if not self.file.exists() or not self:  # Check if file doesn't exist or is empty
+                LOGGER.info(f"Creating new Ultralytics Settings v{version} file ✅ {self.help_msg}")
                 self.reset()
 
-            if self.get("datasets_dir") == self.get("runs_dir"):
-                LOGGER.warning(
-                    f"WARNING ⚠️ Ultralytics setting 'datasets_dir: {self.get('datasets_dir')}' "
-                    f"must be different than 'runs_dir: {self.get('runs_dir')}'. "
-                    f"Please change one to avoid possible issues during training. {self.help_msg}"
-                )
+            self._validate_settings()
 
-    def load(self):
-        """Loads settings from the YAML file."""
-        super().update(yaml_load(self.file))
+    def _validate_settings(self):
+        """Validate the current settings and reset if necessary."""
+        correct_keys = set(self.keys()) == set(self.defaults.keys())
+        correct_types = all(isinstance(self.get(k), type(v)) for k, v in self.defaults.items())
+        correct_version = self.get("settings_version", "") == self.version
 
-    def save(self):
-        """Saves the current settings to the YAML file."""
-        yaml_save(self.file, dict(self))
+        if not (correct_keys and correct_types and correct_version):
+            LOGGER.warning(
+                "WARNING ⚠️ Ultralytics settings reset to default values. This may be due to a possible problem "
+                f"with your settings or a recent ultralytics package update. {self.help_msg}"
+            )
+            self.reset()
+
+        if self.get("datasets_dir") == self.get("runs_dir"):
+            LOGGER.warning(
+                f"WARNING ⚠️ Ultralytics setting 'datasets_dir: {self.get('datasets_dir')}' "
+                f"must be different than 'runs_dir: {self.get('runs_dir')}'. "
+                f"Please change one to avoid possible issues during training. {self.help_msg}"
+            )
 
     def update(self, *args, **kwargs):
-        """Updates a setting value in the current settings."""
+        """Updates settings, validating keys and types."""
         for k, v in kwargs.items():
             if k not in self.defaults:
                 raise KeyError(f"No Ultralytics setting '{k}'. {self.help_msg}")
@@ -1127,20 +1226,16 @@ class SettingsManager(dict):
             if not isinstance(v, t):
                 raise TypeError(f"Ultralytics setting '{k}' must be of type '{t}', not '{type(v)}'. {self.help_msg}")
         super().update(*args, **kwargs)
-        self.save()
 
     def reset(self):
         """Resets the settings to default and saves them."""
         self.clear()
         self.update(self.defaults)
-        self.save()
 
 
 def deprecation_warn(arg, new_arg):
     """Issue a deprecation warning when a deprecated argument is used, suggesting an updated argument."""
-    LOGGER.warning(
-        f"WARNING ⚠️ '{arg}' is deprecated and will be removed in in the future. " f"Please use '{new_arg}' instead."
-    )
+    LOGGER.warning(f"WARNING ⚠️ '{arg}' is deprecated and will be removed in in the future. Use '{new_arg}' instead.")
 
 
 def clean_url(url):
@@ -1159,11 +1254,8 @@ def vscode_msg(ext="ultralytics.ultralytics-snippets") -> str:
     path = (USER_CONFIG_DIR.parents[2] if WINDOWS else USER_CONFIG_DIR.parents[1]) / ".vscode/extensions"
     obs_file = path / ".obsolete"  # file tracks uninstalled extensions, while source directory remains
     installed = any(path.glob(f"{ext}*")) and ext not in (obs_file.read_text("utf-8") if obs_file.exists() else "")
-    return (
-        ""
-        if installed
-        else f"{colorstr('VS Code:')} view Ultralytics VS Code Extension ⚡ at https://docs.ultralytics.com/integrations/vscode"
-    )
+    url = "https://docs.ultralytics.com/integrations/vscode"
+    return "" if installed else f"{colorstr('VS Code:')} view Ultralytics VS Code Extension ⚡ at {url}"
 
 
 # Run below code on utils init ------------------------------------------------------------------------------------
@@ -1171,6 +1263,7 @@ def vscode_msg(ext="ultralytics.ultralytics-snippets") -> str:
 # Check first-install steps
 PREFIX = colorstr("Ultralytics: ")
 SETTINGS = SettingsManager()  # initialize settings
+PERSISTENT_CACHE = JSONDict(USER_CONFIG_DIR / "persistent_cache.json")  # initialize persistent cache
 DATASETS_DIR = Path(SETTINGS["datasets_dir"])  # global datasets directory
 WEIGHTS_DIR = Path(SETTINGS["weights_dir"])  # global weights directory
 RUNS_DIR = Path(SETTINGS["runs_dir"])  # global runs directory

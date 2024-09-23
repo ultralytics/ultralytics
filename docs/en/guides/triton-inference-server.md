@@ -6,7 +6,7 @@ keywords: Triton Inference Server, YOLOv8, Ultralytics, NVIDIA, deep learning, A
 
 # Triton Inference Server with Ultralytics YOLOv8
 
-The [Triton Inference Server](https://developer.nvidia.com/triton-inference-server) (formerly known as TensorRT Inference Server) is an open-source software solution developed by NVIDIA. It provides a cloud inference solution optimized for NVIDIA GPUs. Triton simplifies the deployment of AI models at scale in production. Integrating Ultralytics YOLOv8 with Triton Inference Server allows you to deploy scalable, high-performance deep learning inference workloads. This guide provides steps to set up and test the integration.
+The [Triton Inference Server](https://developer.nvidia.com/triton-inference-server) (formerly known as TensorRT Inference Server) is an open-source software solution developed by NVIDIA. It provides a cloud inference solution optimized for NVIDIA GPUs. Triton simplifies the deployment of AI models at scale in production. Integrating Ultralytics YOLOv8 with Triton Inference Server allows you to deploy scalable, high-performance [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) inference workloads. This guide provides steps to set up and test the integration.
 
 <p align="center">
   <br>
@@ -21,7 +21,7 @@ The [Triton Inference Server](https://developer.nvidia.com/triton-inference-serv
 
 ## What is Triton Inference Server?
 
-Triton Inference Server is designed to deploy a variety of AI models in production. It supports a wide range of deep learning and machine learning frameworks, including TensorFlow, PyTorch, ONNX Runtime, and many others. Its primary use cases are:
+Triton Inference Server is designed to deploy a variety of AI models in production. It supports a wide range of deep learning and [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) frameworks, including TensorFlow, [PyTorch](https://www.ultralytics.com/glossary/pytorch), ONNX Runtime, and many others. Its primary use cases are:
 
 - Serving multiple models from a single server instance.
 - Dynamic model loading and unloading without server restart.
@@ -216,7 +216,7 @@ This setup can help you efficiently deploy YOLOv8 models at scale on Triton Infe
 Integrating [Ultralytics YOLOv8](../models/yolov8.md) with [NVIDIA Triton Inference Server](https://developer.nvidia.com/triton-inference-server) provides several advantages:
 
 - **Scalable AI Inference**: Triton allows serving multiple models from a single server instance, supporting dynamic model loading and unloading, making it highly scalable for diverse AI workloads.
-- **High Performance**: Optimized for NVIDIA GPUs, Triton Inference Server ensures high-speed inference operations, perfect for real-time applications such as object detection.
+- **High Performance**: Optimized for NVIDIA GPUs, Triton Inference Server ensures high-speed inference operations, perfect for real-time applications such as [object detection](https://www.ultralytics.com/glossary/object-detection).
 - **Ensemble and Model Versioning**: Triton's ensemble mode enables combining multiple models to improve results, and its model versioning supports A/B testing and rolling updates.
 
 For detailed instructions on setting up and running YOLOv8 with Triton, you can refer to the [setup guide](#setting-up-triton-model-repository).
@@ -256,11 +256,11 @@ results = model("path/to/image.jpg")
 
 For an in-depth guide on setting up and running Triton Server with YOLOv8, refer to the [running triton inference server](#running-triton-inference-server) section.
 
-### How does Ultralytics YOLOv8 compare to TensorFlow and PyTorch models for deployment?
+### How does Ultralytics YOLOv8 compare to [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) and PyTorch models for deployment?
 
 [Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8/) offers several unique advantages compared to TensorFlow and PyTorch models for deployment:
 
-- **Real-time Performance**: Optimized for real-time object detection tasks, YOLOv8 provides state-of-the-art accuracy and speed, making it ideal for applications requiring live video analytics.
+- **Real-time Performance**: Optimized for real-time object detection tasks, YOLOv8 provides state-of-the-art [accuracy](https://www.ultralytics.com/glossary/accuracy) and speed, making it ideal for applications requiring live video analytics.
 - **Ease of Use**: YOLOv8 integrates seamlessly with Triton Inference Server and supports diverse export formats (ONNX, TensorRT, CoreML), making it flexible for various deployment scenarios.
 - **Advanced Features**: YOLOv8 includes features like dynamic model loading, model versioning, and ensemble inference, which are crucial for scalable and reliable AI deployments.
 

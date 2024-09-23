@@ -25,7 +25,7 @@ Object cropping with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 
 - **Focused Analysis**: YOLOv8 facilitates targeted object cropping, allowing for in-depth examination or processing of individual items within a scene.
 - **Reduced Data Volume**: By extracting only relevant objects, object cropping helps in minimizing data size, making it efficient for storage, transmission, or subsequent computational tasks.
-- **Enhanced Precision**: YOLOv8's object detection accuracy ensures that the cropped objects maintain their spatial relationships, preserving the integrity of the visual information for detailed analysis.
+- **Enhanced Precision**: YOLOv8's [object detection](https://www.ultralytics.com/glossary/object-detection) [accuracy](https://www.ultralytics.com/glossary/accuracy) ensures that the cropped objects maintain their spatial relationships, preserving the integrity of the visual information for detailed analysis.
 
 ## Visuals
 
@@ -100,7 +100,7 @@ Object cropping with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 
 ### What is object cropping in Ultralytics YOLOv8 and how does it work?
 
-Object cropping using [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics) involves isolating and extracting specific objects from an image or video based on YOLOv8's detection capabilities. This process allows for focused analysis, reduced data volume, and enhanced precision by leveraging YOLOv8 to identify objects with high accuracy and crop them accordingly. For an in-depth tutorial, refer to the [object cropping example](#object-cropping-using-ultralytics-yolov8).
+Object cropping using [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics) involves isolating and extracting specific objects from an image or video based on YOLOv8's detection capabilities. This process allows for focused analysis, reduced data volume, and enhanced [precision](https://www.ultralytics.com/glossary/precision) by leveraging YOLOv8 to identify objects with high accuracy and crop them accordingly. For an in-depth tutorial, refer to the [object cropping example](#object-cropping-using-ultralytics-yolov8).
 
 ### Why should I use Ultralytics YOLOv8 for object cropping over other solutions?
 

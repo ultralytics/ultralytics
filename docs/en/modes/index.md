@@ -10,7 +10,7 @@ keywords: Ultralytics, YOLOv8, machine learning, model training, validation, pre
 
 ## Introduction
 
-Ultralytics YOLOv8 is not just another object detection model; it's a versatile framework designed to cover the entire lifecycle of machine learning models—from data ingestion and model training to validation, deployment, and real-world tracking. Each mode serves a specific purpose and is engineered to offer you the flexibility and efficiency required for different tasks and use-cases.
+Ultralytics YOLOv8 is not just another object detection model; it's a versatile framework designed to cover the entire lifecycle of [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) models—from data ingestion and model training to validation, deployment, and real-world tracking. Each mode serves a specific purpose and is engineered to offer you the flexibility and efficiency required for different tasks and use-cases.
 
 <p align="center">
   <br>
@@ -30,7 +30,7 @@ Understanding the different **modes** that Ultralytics YOLOv8 supports is critic
 - **Train** mode: Fine-tune your model on custom or preloaded datasets.
 - **Val** mode: A post-training checkpoint to validate model performance.
 - **Predict** mode: Unleash the predictive power of your model on real-world data.
-- **Export** mode: Make your model deployment-ready in various formats.
+- **Export** mode: Make your [model deployment](https://www.ultralytics.com/glossary/model-deployment)-ready in various formats.
 - **Track** mode: Extend your object detection model into real-time tracking applications.
 - **Benchmark** mode: Analyze the speed and accuracy of your model in diverse deployment environments.
 
@@ -74,7 +74,7 @@ Benchmark mode is used to profile the speed and accuracy of various export forma
 
 ## FAQ
 
-### How do I train a custom object detection model with Ultralytics YOLOv8?
+### How do I train a custom [object detection](https://www.ultralytics.com/glossary/object-detection) model with Ultralytics YOLOv8?
 
 Training a custom object detection model with Ultralytics YOLOv8 involves using the train mode. You need a dataset formatted in YOLO format, containing images and corresponding annotation files. Use the following command to start the training process:
 
@@ -104,7 +104,7 @@ Ultralytics YOLOv8 uses various metrics during the validation process to assess 
 
 - **mAP (mean Average Precision)**: This evaluates the accuracy of object detection.
 - **IOU (Intersection over Union)**: Measures the overlap between predicted and ground truth bounding boxes.
-- **Precision and Recall**: Precision measures the ratio of true positive detections to the total detected positives, while recall measures the ratio of true positive detections to the total actual positives.
+- **[Precision](https://www.ultralytics.com/glossary/precision) and [Recall](https://www.ultralytics.com/glossary/recall)**: Precision measures the ratio of true positive detections to the total detected positives, while recall measures the ratio of true positive detections to the total actual positives.
 
 You can run the following command to start the validation:
 
@@ -154,7 +154,7 @@ Detailed steps for each export format can be found in the [Export Guide](../mode
 
 ### What is the purpose of the benchmark mode in Ultralytics YOLOv8?
 
-Benchmark mode in Ultralytics YOLOv8 is used to analyze the speed and accuracy of various export formats such as ONNX, TensorRT, and OpenVINO. It provides metrics like model size, `mAP50-95` for object detection, and inference time across different hardware setups, helping you choose the most suitable format for your deployment needs.
+Benchmark mode in Ultralytics YOLOv8 is used to analyze the speed and [accuracy](https://www.ultralytics.com/glossary/accuracy) of various export formats such as ONNX, TensorRT, and OpenVINO. It provides metrics like model size, `mAP50-95` for object detection, and inference time across different hardware setups, helping you choose the most suitable format for your deployment needs.
 
 !!! example
 

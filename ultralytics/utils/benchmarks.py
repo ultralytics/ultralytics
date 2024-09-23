@@ -85,7 +85,7 @@ def benchmark(
 
     y = []
     t0 = time.time()
-    for i, (name, format, suffix, cpu, gpu) in export_formats().iterrows():  # index, (name, format, suffix, CPU, GPU)
+    for i, (name, format, suffix, cpu, gpu) in enumerate(zip(*export_formats().values())):
         emoji, filename = "❌", None  # export defaults
         try:
             # Checks
@@ -97,8 +97,8 @@ def benchmark(
                 assert MACOS or LINUX, "CoreML and TF.js export only supported on macOS and Linux"
                 assert not IS_RASPBERRYPI, "CoreML and TF.js export not supported on Raspberry Pi"
                 assert not IS_JETSON, "CoreML and TF.js export not supported on NVIDIA Jetson"
-            if i in {3, 5}:  # CoreML and OpenVINO
-                assert not IS_PYTHON_3_12, "CoreML and OpenVINO not supported on Python 3.12"
+            if i in {5}:  # CoreML
+                assert not IS_PYTHON_3_12, "CoreML not supported on Python 3.12"
             if i in {6, 7, 8}:  # TF SavedModel, TF GraphDef, and TFLite
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 TensorFlow exports not supported by onnx2tf yet"
             if i in {9, 10}:  # TF EdgeTPU and TF.js
@@ -322,9 +322,12 @@ class ProfileModels:
             num_warmup_runs (int, optional): Number of warmup runs before the actual profiling starts. Default is 10.
             min_time (float, optional): Minimum time in seconds for profiling a model. Default is 60.
             imgsz (int, optional): Size of the image used during profiling. Default is 640.
-            half (bool, optional): Flag to indicate whether to use half-precision floating point for profiling.
+            half (bool, optional): Flag to indicate whether to use FP16 half-precision for TensorRT profiling.
             trt (bool, optional): Flag to indicate whether to profile using TensorRT. Default is True.
             device (torch.device, optional): Device used for profiling. If None, it is determined automatically.
+
+        Notes:
+            FP16 'half' argument option removed for ONNX as slower on CPU than FP32
         """
         self.paths = paths
         self.num_timed_runs = num_timed_runs
@@ -353,10 +356,17 @@ class ProfileModels:
                 model_info = model.info()
                 if self.trt and self.device.type != "cpu" and not engine_file.is_file():
                     engine_file = model.export(
-                        format="engine", half=self.half, imgsz=self.imgsz, device=self.device, verbose=False
+                        format="engine",
+                        half=self.half,
+                        imgsz=self.imgsz,
+                        device=self.device,
+                        verbose=False,
                     )
                 onnx_file = model.export(
-                    format="onnx", half=self.half, imgsz=self.imgsz, simplify=True, device=self.device, verbose=False
+                    format="onnx",
+                    imgsz=self.imgsz,
+                    device=self.device,
+                    verbose=False,
                 )
             elif file.suffix == ".onnx":
                 model_info = self.get_onnx_model_info(file)

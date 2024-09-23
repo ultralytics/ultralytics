@@ -6,7 +6,7 @@ keywords: YOLOv5 export, TFLite, ONNX, CoreML, TensorRT, model conversion, YOLOv
 
 # TFLite, ONNX, CoreML, TensorRT Export
 
-📚 This guide explains how to export a trained YOLOv5 🚀 model from PyTorch to ONNX and TorchScript formats.
+📚 This guide explains how to export a trained YOLOv5 🚀 model from [PyTorch](https://www.ultralytics.com/glossary/pytorch) to ONNX and TorchScript formats.
 
 ## Before You Start
 
@@ -103,7 +103,7 @@ This command exports a pretrained YOLOv5s model to TorchScript and ONNX formats.
 python export.py --weights yolov5s.pt --include torchscript onnx
 ```
 
-💡 ProTip: Add `--half` to export models at FP16 half precision for smaller file sizes
+💡 ProTip: Add `--half` to export models at FP16 half [precision](https://www.ultralytics.com/glossary/precision) for smaller file sizes
 
 Output:
 
@@ -205,7 +205,7 @@ results.print()  # or .show(), .save(), .crop(), .pandas(), etc.
 
 ## OpenCV DNN inference
 
-OpenCV inference with ONNX models:
+[OpenCV](https://www.ultralytics.com/glossary/opencv) inference with ONNX models:
 
 ```bash
 python export.py --weights yolov5s.pt --include onnx

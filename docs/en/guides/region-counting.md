@@ -8,7 +8,7 @@ keywords: object counting, regions, YOLOv8, computer vision, Ultralytics, effici
 
 ## What is Object Counting in Regions?
 
-[Object counting](../guides/object-counting.md) in regions with [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics/) involves precisely determining the number of objects within specified areas using advanced computer vision. This approach is valuable for optimizing processes, enhancing security, and improving efficiency in various applications.
+[Object counting](../guides/object-counting.md) in regions with [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics/) involves precisely determining the number of objects within specified areas using advanced [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv). This approach is valuable for optimizing processes, enhancing security, and improving efficiency in various applications.
 
 <p align="center">
   <br>
@@ -23,7 +23,7 @@ keywords: object counting, regions, YOLOv8, computer vision, Ultralytics, effici
 
 ## Advantages of Object Counting in Regions?
 
-- **Precision and Accuracy:** Object counting in regions with advanced computer vision ensures precise and accurate counts, minimizing errors often associated with manual counting.
+- **[Precision](https://www.ultralytics.com/glossary/precision) and Accuracy:** Object counting in regions with advanced computer vision ensures precise and accurate counts, minimizing errors often associated with manual counting.
 - **Efficiency Improvement:** Automated object counting enhances operational efficiency, providing real-time results and streamlining processes across different applications.
 - **Versatility and Application:** The versatility of object counting in regions makes it applicable across various domains, from manufacturing and surveillance to traffic monitoring, contributing to its widespread utility and effectiveness.
 
@@ -75,21 +75,21 @@ python yolov8_region_counter.py --source "path/to/video.mp4" --view-img
 
 ### Optional Arguments
 
-| Name                 | Type   | Default      | Description                                |
-| -------------------- | ------ | ------------ | ------------------------------------------ |
-| `--source`           | `str`  | `None`       | Path to video file, for webcam 0           |
-| `--line_thickness`   | `int`  | `2`          | Bounding Box thickness                     |
-| `--save-img`         | `bool` | `False`      | Save the predicted video/image             |
-| `--weights`          | `str`  | `yolov8n.pt` | Weights file path                          |
-| `--classes`          | `list` | `None`       | Detect specific classes i.e. --classes 0 2 |
-| `--region-thickness` | `int`  | `2`          | Region Box thickness                       |
-| `--track-thickness`  | `int`  | `2`          | Tracking line thickness                    |
+| Name                 | Type   | Default      | Description                                                                 |
+| -------------------- | ------ | ------------ | --------------------------------------------------------------------------- |
+| `--source`           | `str`  | `None`       | Path to video file, for webcam 0                                            |
+| `--line_thickness`   | `int`  | `2`          | [Bounding Box](https://www.ultralytics.com/glossary/bounding-box) thickness |
+| `--save-img`         | `bool` | `False`      | Save the predicted video/image                                              |
+| `--weights`          | `str`  | `yolov8n.pt` | Weights file path                                                           |
+| `--classes`          | `list` | `None`       | Detect specific classes i.e. --classes 0 2                                  |
+| `--region-thickness` | `int`  | `2`          | Region Box thickness                                                        |
+| `--track-thickness`  | `int`  | `2`          | Tracking line thickness                                                     |
 
 ## FAQ
 
 ### What is object counting in specified regions using Ultralytics YOLOv8?
 
-Object counting in specified regions with [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics) involves detecting and tallying the number of objects within defined areas using advanced computer vision. This precise method enhances efficiency and accuracy across various applications like manufacturing, surveillance, and traffic monitoring.
+Object counting in specified regions with [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics) involves detecting and tallying the number of objects within defined areas using advanced computer vision. This precise method enhances efficiency and [accuracy](https://www.ultralytics.com/glossary/accuracy) across various applications like manufacturing, surveillance, and traffic monitoring.
 
 ### How do I run the object counting script with Ultralytics YOLOv8?
 

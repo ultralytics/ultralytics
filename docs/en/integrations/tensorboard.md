@@ -6,7 +6,7 @@ keywords: YOLOv8, TensorBoard, model training, visualization, machine learning, 
 
 # Gain Visual Insights with YOLOv8's Integration with TensorBoard
 
-Understanding and fine-tuning computer vision models like [Ultralytics' YOLOv8](https://www.ultralytics.com/) becomes more straightforward when you take a closer look at their training processes. Model training visualization helps with getting insights into the model's learning patterns, performance metrics, and overall behavior. YOLOv8's integration with TensorBoard makes this process of visualization and analysis easier and enables more efficient and informed adjustments to the model.
+Understanding and fine-tuning [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models like [Ultralytics' YOLOv8](https://www.ultralytics.com/) becomes more straightforward when you take a closer look at their training processes. Model training visualization helps with getting insights into the model's learning patterns, performance metrics, and overall behavior. YOLOv8's integration with TensorBoard makes this process of visualization and analysis easier and enables more efficient and informed adjustments to the model.
 
 This guide covers how to use TensorBoard with YOLOv8. You'll learn about various visualizations, from tracking metrics to analyzing model graphs. These tools will help you understand your YOLOv8 model's performance better.
 
@@ -16,7 +16,7 @@ This guide covers how to use TensorBoard with YOLOv8. You'll learn about various
   <img width="640" src="https://github.com/ultralytics/docs/releases/download/0/tensorboard-overview.avif" alt="Tensorboard Overview">
 </p>
 
-[TensorBoard](https://www.tensorflow.org/tensorboard), TensorFlow's visualization toolkit, is essential for machine learning experimentation. TensorBoard features a range of visualization tools, crucial for monitoring machine learning models. These tools include tracking key metrics like loss and accuracy, visualizing model graphs, and viewing histograms of weights and biases over time. It also provides capabilities for projecting embeddings to lower-dimensional spaces and displaying multimedia data.
+[TensorBoard](https://www.tensorflow.org/tensorboard), [TensorFlow](https://www.ultralytics.com/glossary/tensorflow)'s visualization toolkit, is essential for [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) experimentation. TensorBoard features a range of visualization tools, crucial for monitoring machine learning models. These tools include tracking key metrics like loss and accuracy, visualizing model graphs, and viewing histograms of weights and biases over time. It also provides capabilities for projecting [embeddings](https://www.ultralytics.com/glossary/embeddings) to lower-dimensional spaces and displaying multimedia data.
 
 ## YOLOv8 Training with TensorBoard
 
@@ -94,7 +94,7 @@ The Time Series feature in the TensorBoard offers a dynamic and detailed perspec
 
 - **Filter Tags and Pinned Cards**: This functionality allows users to filter specific metrics and pin cards for quick comparison and access. It's particularly useful for focusing on specific aspects of the training process.
 
-- **Detailed Metric Cards**: Time Series divides metrics into different categories like learning rate (lr), training (train), and validation (val) metrics, each represented by individual cards.
+- **Detailed Metric Cards**: Time Series divides metrics into different categories like [learning rate](https://www.ultralytics.com/glossary/learning-rate) (lr), training (train), and validation (val) metrics, each represented by individual cards.
 
 - **Graphical Display**: Each card in the Time Series section shows a detailed graph of a specific metric over the course of training. This visual representation aids in identifying trends, patterns, or anomalies in the training process.
 
@@ -106,7 +106,7 @@ The Time Series section is essential for a thorough analysis of the YOLOv8 model
 
 ### Scalars
 
-Scalars in the TensorBoard are crucial for plotting and analyzing simple metrics like loss and accuracy during the training of YOLOv8 models. They offer a clear and concise view of how these metrics evolve with each training epoch, providing insights into the model's learning effectiveness and stability. Here's an example of what you can expect to see.
+Scalars in the TensorBoard are crucial for plotting and analyzing simple metrics like loss and accuracy during the training of YOLOv8 models. They offer a clear and concise view of how these metrics evolve with each training [epoch](https://www.ultralytics.com/glossary/epoch), providing insights into the model's learning effectiveness and stability. Here's an example of what you can expect to see.
 
 ![image](https://github.com/ultralytics/docs/releases/download/0/scalars-metrics-tensorboard.avif)
 
@@ -116,11 +116,11 @@ Scalars in the TensorBoard are crucial for plotting and analyzing simple metrics
 
 - **Metrics Tags**: Scalars include performance indicators such as:
 
-    - `mAP50 (B)`: Mean Average Precision at 50% Intersection over Union (IoU), crucial for assessing object detection accuracy.
+    - `mAP50 (B)`: Mean Average [Precision](https://www.ultralytics.com/glossary/precision) at 50% [Intersection over Union](https://www.ultralytics.com/glossary/intersection-over-union-iou) (IoU), crucial for assessing object detection accuracy.
 
-    - `mAP50-95 (B)`: Mean Average Precision calculated over a range of IoU thresholds, offering a more comprehensive evaluation of accuracy.
+    - `mAP50-95 (B)`: [Mean Average Precision](https://www.ultralytics.com/glossary/mean-average-precision-map) calculated over a range of IoU thresholds, offering a more comprehensive evaluation of accuracy.
 
-    - `Precision (B)`: Indicates the ratio of correctly predicted positive observations, key to understanding prediction accuracy.
+    - `Precision (B)`: Indicates the ratio of correctly predicted positive observations, key to understanding prediction [accuracy](https://www.ultralytics.com/glossary/accuracy).
 
     - `Recall (B)`: Important for models where missing a detection is significant, this metric measures the ability to detect all relevant instances.
 
@@ -130,7 +130,7 @@ Scalars in the TensorBoard are crucial for plotting and analyzing simple metrics
 
 #### Importance of Monitoring Scalars
 
-Observing scalar metrics is crucial for fine-tuning the YOLOv8 model. Variations in these metrics, such as spikes or irregular patterns in loss graphs, can highlight potential issues such as overfitting, underfitting, or inappropriate learning rate settings. By closely monitoring these scalars, you can make informed decisions to optimize the training process, ensuring that the model learns effectively and achieves the desired performance.
+Observing scalar metrics is crucial for fine-tuning the YOLOv8 model. Variations in these metrics, such as spikes or irregular patterns in loss graphs, can highlight potential issues such as [overfitting](https://www.ultralytics.com/glossary/overfitting), [underfitting](https://www.ultralytics.com/glossary/underfitting), or inappropriate learning rate settings. By closely monitoring these scalars, you can make informed decisions to optimize the training process, ensuring that the model learns effectively and achieves the desired performance.
 
 ### Difference Between Scalars and Time Series
 
@@ -142,7 +142,7 @@ The Graphs section of the TensorBoard visualizes the computational graph of the 
 
 ![image](https://github.com/ultralytics/docs/releases/download/0/tensorboard-yolov8-computational-graph.avif)
 
-Graphs are particularly useful for debugging the model, especially in complex architectures typical in deep learning models like YOLOv8. They help in verifying layer connections and the overall design of the model.
+Graphs are particularly useful for debugging the model, especially in complex architectures typical in [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models like YOLOv8. They help in verifying layer connections and the overall design of the model.
 
 ## Summary
 
@@ -179,9 +179,9 @@ The TensorBoard dashboard, accessible via [http://localhost:6006/](http://localh
 When training YOLOv8 models, TensorBoard allows you to visualize an array of important metrics including:
 
 - **Loss (Training and Validation):** Indicates how well the model is performing during training and validation.
-- **Accuracy/Precision/Recall:** Key performance metrics to evaluate detection accuracy.
+- **Accuracy/Precision/[Recall](https://www.ultralytics.com/glossary/recall):** Key performance metrics to evaluate detection accuracy.
 - **Learning Rate:** Track learning rate changes to understand its impact on training dynamics.
-- **mAP (mean Average Precision):** For a comprehensive evaluation of object detection accuracy at various IoU thresholds.
+- **mAP (mean Average Precision):** For a comprehensive evaluation of [object detection](https://www.ultralytics.com/glossary/object-detection) accuracy at various IoU thresholds.
 
 These visualizations are essential for tracking model performance and making necessary optimizations. For more information on these metrics, refer to our [Performance Metrics guide](../guides/yolo-performance-metrics.md).
 

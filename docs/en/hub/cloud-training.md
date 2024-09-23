@@ -44,7 +44,7 @@ Most of the times, you will use the Epochs training. The number of epochs can be
 
 !!! note
 
-    When using the Epochs training, the [account balance](./pro.md#account-balance) is deducted after every epoch.
+    When using the Epochs training, the [account balance](./pro.md#account-balance) is deducted after every [epoch](https://www.ultralytics.com/glossary/epoch).
 
     Also, after every epoch, we check if you have enough [account balance](./pro.md#account-balance) for the next epoch. In case you don't have enough [account balance](./pro.md#account-balance) for the next epoch, we will stop the training session, allowing you to resume training your model from the last checkpoint saved.
 

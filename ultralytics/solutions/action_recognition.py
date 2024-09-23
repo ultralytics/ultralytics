@@ -20,6 +20,7 @@ class ActionRecognition:
     def __init__(
         self,
         video_classifier_model="microsoft/xclip-base-patch32",
+        labels: List[str] = None,
         crop_margin_percentage: int = 10,
         num_video_sequence_samples: int = 8,
         vid_stride: int = 2,

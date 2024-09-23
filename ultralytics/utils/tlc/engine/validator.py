@@ -154,6 +154,9 @@ class TLCValidatorMixin(BaseValidator):
         """ Infer the batch size from the predictions """
         raise NotImplementedError("Subclasses must implement this method.")
 
+    def _prepare_loss_fn(self, model):
+        pass
+
     def update_metrics(self, preds, batch):
         """ Collect 3LC metrics """
         self._update_metrics(preds, batch)
@@ -187,6 +190,8 @@ class TLCValidatorMixin(BaseValidator):
         """ Prepare the validator for metrics collection """
         column_schemas = {}
         column_schemas.update(self._get_metrics_schemas())  # Add task-specific metrics schema
+
+        self._prepare_loss_fn(model)
 
         if self._settings.image_embeddings_dim > 0:
             # Add hook and get the activation size

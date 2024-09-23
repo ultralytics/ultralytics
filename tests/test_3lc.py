@@ -45,6 +45,7 @@ def test_detect_training() -> None:
 
     settings = Settings(
         collection_epoch_start=1,
+        collect_loss=True,
         image_embeddings_dim=2,
         image_embeddings_reducer="pacmap",
         project_name="test_detect_project",
@@ -82,6 +83,7 @@ def test_detect_training() -> None:
     assert embeddings_column_name in metrics_df.columns, "Expected embeddings column missing"
     assert len(metrics_df[embeddings_column_name][0]) == settings.image_embeddings_dim, "Embeddings dimension mismatch"
 
+    assert "loss" in metrics_df.columns, "Expected loss column to be present, but it is missing"
     assert 0 in metrics_df["Training Phase"], "Expected metrics from during training"
     assert 1 in metrics_df["Training Phase"], "Expected metrics from after training"
 
@@ -160,7 +162,7 @@ def test_classify_training() -> None:
 @pytest.mark.parametrize("task", ["detect"])
 def test_metrics_collection_only(task) -> None:
     overrides = {"device": "cpu"}
-    settings = Settings(project_name=f"test_{task}_collect", run_name=f"test_{task}_collect")
+    settings = Settings(project_name=f"test_{task}_collect", run_name=f"test_{task}_collect", collect_loss=True)
     splits = ("train", "val")
 
     model = TLCYOLO(TASK2MODEL[task])
@@ -171,6 +173,8 @@ def test_metrics_collection_only(task) -> None:
     assert run_urls[0] == run_urls[1], "Expected same run URL for both splits"
 
     run = tlc.Run.from_url(run_urls[0])
+    metrics_df = pd.concat([metrics_table.to_pandas() for metrics_table in run.metrics_tables], ignore_index=True)
+    assert "loss" not in metrics_df.columns, "Expected no loss column"
     assert run.status == tlc.RUN_STATUS_COMPLETED, "Run status not set to completed after training"
     assert run.description == DEFAULT_COLLECT_RUN_DESCRIPTION, "Description mismatch"
 
@@ -191,7 +195,7 @@ def test_train_collection_val_only() -> None:
 
     # Ensure that only validation metrics are collected after training
     run = _get_run_from_settings(settings)
-    assert len(run.metrics_tables) == 1, "Expected only validation metrics to be collected"
+    assert len(run.metrics_tables) == 1, "Expected only validation metrics to be collected after training"
 
 
 def test_train_collection_disabled() -> None:

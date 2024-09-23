@@ -10,9 +10,9 @@ keywords: YOLOv8, TFLite, model export, TensorFlow Lite, edge devices, deploymen
   <img width="75%" src="https://github.com/ultralytics/docs/releases/download/0/tflite-logo.avif" alt="TFLite Logo">
 </p>
 
-Deploying computer vision models on edge devices or embedded devices requires a format that can ensure seamless performance.
+Deploying [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models on edge devices or embedded devices requires a format that can ensure seamless performance.
 
-The TensorFlow Lite or TFLite export format allows you to optimize your [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics) models for tasks like object detection and image classification in edge device-based applications. In this guide, we'll walk through the steps for converting your models to the TFLite format, making it easier for your models to perform well on various edge devices.
+The TensorFlow Lite or TFLite export format allows you to optimize your [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics) models for tasks like [object detection](https://www.ultralytics.com/glossary/object-detection) and [image classification](https://www.ultralytics.com/glossary/image-classification) in edge device-based applications. In this guide, we'll walk through the steps for converting your models to the TFLite format, making it easier for your models to perform well on various edge devices.
 
 ## Why should you export to TFLite?
 
@@ -107,7 +107,7 @@ For more details about the export process, visit the [Ultralytics documentation 
 
 After successfully exporting your Ultralytics YOLOv8 models to TFLite format, you can now deploy them. The primary and recommended first step for running a TFLite model is to utilize the YOLO("model.tflite") method, as outlined in the previous usage code snippet. However, for in-depth instructions on deploying your TFLite models in various other settings, take a look at the following resources:
 
-- **[Android](https://ai.google.dev/edge/litert/android)**: A quick start guide for integrating TensorFlow Lite into Android applications, providing easy-to-follow steps for setting up and running machine learning models.
+- **[Android](https://ai.google.dev/edge/litert/android)**: A quick start guide for integrating [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) Lite into Android applications, providing easy-to-follow steps for setting up and running [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) models.
 
 - **[iOS](https://ai.google.dev/edge/litert/ios/quickstart)**: Check out this detailed guide for developers on integrating and deploying TensorFlow Lite models in iOS applications, offering step-by-step instructions and resources.
 
@@ -115,7 +115,7 @@ After successfully exporting your Ultralytics YOLOv8 models to TFLite format, yo
 
 ## Summary
 
-In this guide, we focused on how to export to TFLite format. By converting your Ultralytics YOLOv8 models to TFLite model format, you can improve the efficiency and speed of YOLOv8 models, making them more effective and suitable for edge computing environments.
+In this guide, we focused on how to export to TFLite format. By converting your Ultralytics YOLOv8 models to TFLite model format, you can improve the efficiency and speed of YOLOv8 models, making them more effective and suitable for [edge computing](https://www.ultralytics.com/glossary/edge-computing) environments.
 
 For further details on usage, visit the [TFLite official documentation](https://ai.google.dev/edge/litert).
 
@@ -151,9 +151,9 @@ yolo export model=yolov8n.pt format=tflite  # creates 'yolov8n_float32.tflite'
 
 For more details, visit the [Ultralytics export guide](../modes/export.md).
 
-### What are the benefits of using TensorFlow Lite for YOLOv8 model deployment?
+### What are the benefits of using TensorFlow Lite for YOLOv8 [model deployment](https://www.ultralytics.com/glossary/model-deployment)?
 
-TensorFlow Lite (TFLite) is an open-source deep learning framework designed for on-device inference, making it ideal for deploying YOLOv8 models on mobile, embedded, and IoT devices. Key benefits include:
+TensorFlow Lite (TFLite) is an open-source [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) framework designed for on-device inference, making it ideal for deploying YOLOv8 models on mobile, embedded, and IoT devices. Key benefits include:
 
 - **On-device optimization**: Minimize latency and enhance privacy by processing data locally.
 - **Platform compatibility**: Supports Android, iOS, embedded Linux, and MCU.

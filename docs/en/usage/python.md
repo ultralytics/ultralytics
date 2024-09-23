@@ -6,7 +6,7 @@ keywords: YOLOv8, Python, object detection, segmentation, classification, machin
 
 # Python Usage
 
-Welcome to the YOLOv8 Python Usage documentation! This guide is designed to help you seamlessly integrate YOLOv8 into your Python projects for object detection, segmentation, and classification. Here, you'll learn how to load and use pretrained models, train new models, and perform predictions on images. The easy-to-use Python interface is a valuable resource for anyone looking to incorporate YOLOv8 into their Python projects, allowing you to quickly implement advanced object detection capabilities. Let's get started!
+Welcome to the YOLOv8 Python Usage documentation! This guide is designed to help you seamlessly integrate YOLOv8 into your Python projects for [object detection](https://www.ultralytics.com/glossary/object-detection), segmentation, and classification. Here, you'll learn how to load and use pretrained models, train new models, and perform predictions on images. The easy-to-use Python interface is a valuable resource for anyone looking to incorporate YOLOv8 into their Python projects, allowing you to quickly implement advanced object detection capabilities. Let's get started!
 
 <p align="center">
   <br>
@@ -80,7 +80,7 @@ Train mode is used for training a YOLOv8 model on a custom dataset. In this mode
 
 ## [Val](../modes/val.md)
 
-Val mode is used for validating a YOLOv8 model after it has been trained. In this mode, the model is evaluated on a validation set to measure its accuracy and generalization performance. This mode can be used to tune the hyperparameters of the model to improve its performance.
+Val mode is used for validating a YOLOv8 model after it has been trained. In this mode, the model is evaluated on a validation set to measure its [accuracy](https://www.ultralytics.com/glossary/accuracy) and generalization performance. This mode can be used to tune the hyperparameters of the model to improve its performance.
 
 !!! example "Val"
 
@@ -355,7 +355,7 @@ See more detailed examples in our [Predict Mode](../modes/predict.md) section.
 
 ### What are the different modes available in YOLOv8?
 
-Ultralytics YOLOv8 provides various modes to cater to different machine learning workflows. These include:
+Ultralytics YOLOv8 provides various modes to cater to different [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) workflows. These include:
 
 - **[Train](../modes/train.md)**: Train a model using custom datasets.
 - **[Val](../modes/val.md)**: Validate model performance on a validation set.

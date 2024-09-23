@@ -6,7 +6,7 @@ keywords: YOLOv8, SAHI, Sliced Inference, Object Detection, Ultralytics, High-re
 
 # Ultralytics Docs: Using YOLOv8 with SAHI for Sliced Inference
 
-Welcome to the Ultralytics documentation on how to use YOLOv8 with [SAHI](https://github.com/obss/sahi) (Slicing Aided Hyper Inference). This comprehensive guide aims to furnish you with all the essential knowledge you'll need to implement SAHI alongside YOLOv8. We'll deep-dive into what SAHI is, why sliced inference is critical for large-scale applications, and how to integrate these functionalities with YOLOv8 for enhanced object detection performance.
+Welcome to the Ultralytics documentation on how to use YOLOv8 with [SAHI](https://github.com/obss/sahi) (Slicing Aided Hyper Inference). This comprehensive guide aims to furnish you with all the essential knowledge you'll need to implement SAHI alongside YOLOv8. We'll deep-dive into what SAHI is, why sliced inference is critical for large-scale applications, and how to integrate these functionalities with YOLOv8 for enhanced [object detection](https://www.ultralytics.com/glossary/object-detection) performance.
 
 <p align="center">
   <img width="1024" src="https://github.com/ultralytics/docs/releases/download/0/sahi-sliced-inference-overview.avif" alt="SAHI Sliced Inference Overview">
@@ -31,7 +31,7 @@ SAHI (Slicing Aided Hyper Inference) is an innovative library designed to optimi
 
 - **Seamless Integration**: SAHI integrates effortlessly with YOLO models, meaning you can start slicing and detecting without a lot of code modification.
 - **Resource Efficiency**: By breaking down large images into smaller parts, SAHI optimizes the memory usage, allowing you to run high-quality detection on hardware with limited resources.
-- **High Accuracy**: SAHI maintains the detection accuracy by employing smart algorithms to merge overlapping detection boxes during the stitching process.
+- **High [Accuracy](https://www.ultralytics.com/glossary/accuracy)**: SAHI maintains the detection accuracy by employing smart algorithms to merge overlapping detection boxes during the stitching process.
 
 ## What is Sliced Inference?
 
@@ -202,7 +202,7 @@ If you use SAHI in your research or development work, please cite the original S
         }
         ```
 
-We extend our thanks to the SAHI research group for creating and maintaining this invaluable resource for the computer vision community. For more information about SAHI and its creators, visit the [SAHI GitHub repository](https://github.com/obss/sahi).
+We extend our thanks to the SAHI research group for creating and maintaining this invaluable resource for the [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) community. For more information about SAHI and its creators, visit the [SAHI GitHub repository](https://github.com/obss/sahi).
 
 ## FAQ
 

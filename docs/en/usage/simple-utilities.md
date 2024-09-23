@@ -460,15 +460,16 @@ for obb in obb_boxes:
 image_with_obb = ann.result()
 ```
 
-#### Bounding Boxes Circle Annotation ([Circle Label](https://docs.ultralytics.com/reference/utils/plotting/#ultralytics.utils.plotting.Annotator.circle_label))
+#### Bounding Boxes Circle Annotation [Circle Label](https://docs.ultralytics.com/reference/utils/plotting/#ultralytics.utils.plotting.Annotator.circle_label)
 
 ```python
 import cv2
 
 from ultralytics import YOLO
-from ultralytics.utils.plotting import Annotator, colors
+from ultralytics.utils.plotting import Annotator
 
 model = YOLO("yolov8s.pt")
+names = model.names
 cap = cv2.VideoCapture("path/to/video/file.mp4")
 
 w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
@@ -479,15 +480,13 @@ while True:
     if not ret:
         break
 
-    annotator = Annotator(im0, line_width=2)
-
+    annotator = Annotator(im0)
     results = model.predict(im0)
     boxes = results[0].boxes.xyxy.cpu()
     clss = results[0].boxes.cls.cpu().tolist()
 
     for box, cls in zip(boxes, clss):
-        x1, y1 = int((box[0] + box[2]) // 2), int((box[1] + box[3]) // 2)
-        annotator.circle_label(box, label=model.names[int(cls)], color=colors(int(cls), True))
+        annotator.circle_label(box, label=names[int(cls)])
 
     writer.write(im0)
     cv2.imshow("Ultralytics circle annotation", im0)
@@ -500,15 +499,16 @@ cap.release()
 cv2.destroyAllWindows()
 ```
 
-#### Bounding Boxes Text Annotation ([Text Label](https://docs.ultralytics.com/reference/utils/plotting/#ultralytics.utils.plotting.Annotator.text_label))
+#### Bounding Boxes Text Annotation [Text Label](https://docs.ultralytics.com/reference/utils/plotting/#ultralytics.utils.plotting.Annotator.text_label)
 
 ```python
 import cv2
 
 from ultralytics import YOLO
-from ultralytics.utils.plotting import Annotator, colors
+from ultralytics.utils.plotting import Annotator
 
 model = YOLO("yolov8s.pt")
+names = model.names
 cap = cv2.VideoCapture("path/to/video/file.mp4")
 
 w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
@@ -519,15 +519,13 @@ while True:
     if not ret:
         break
 
-    annotator = Annotator(im0, line_width=2)
-
+    annotator = Annotator(im0)
     results = model.predict(im0)
     boxes = results[0].boxes.xyxy.cpu()
     clss = results[0].boxes.cls.cpu().tolist()
 
     for box, cls in zip(boxes, clss):
-        x1, y1 = int((box[0] + box[2]) // 2), int((box[1] + box[3]) // 2)
-        annotator.text_label(box, label=model.names[int(cls)], color=colors(int(cls), True))
+        annotator.text_label(box, label=names[int(cls)])
 
     writer.write(im0)
     cv2.imshow("Ultralytics text annotation", im0)

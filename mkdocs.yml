@@ -328,7 +328,8 @@ nav:
       - Distance Calculation: guides/distance-calculation.md
       - Queue Management: guides/queue-management.md
       - Parking Management: guides/parking-management.md
-      - NEW 🚀 Live Inference: guides/streamlit-live-inference.md
+      - Live Inference: guides/streamlit-live-inference.md
+      - NEW 🚀 Action Recognition: guides/action-recognition.md
   - Guides:
       - guides/index.md
       - YOLO Common Issues: guides/yolo-common-issues.md
@@ -565,6 +566,7 @@ nav:
               - utils: reference/nn/modules/utils.md
           - tasks: reference/nn/tasks.md
       - solutions:
+          - action_recognition: reference/solutions/action_recognition.md
           - ai_gym: reference/solutions/ai_gym.md
           - analytics: reference/solutions/analytics.md
           - distance_calculation: reference/solutions/distance_calculation.md

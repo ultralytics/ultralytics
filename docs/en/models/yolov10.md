@@ -4,7 +4,7 @@ description: Discover YOLOv10, the latest in real-time object detection, elimina
 keywords: YOLOv10, real-time object detection, NMS-free, deep learning, Tsinghua University, Ultralytics, machine learning, neural networks, performance optimization
 ---
 
-# YOLOv10: Real-Time End-to-End Object Detection
+# YOLOv10: Real-Time End-to-End [Object Detection](https://www.ultralytics.com/glossary/object-detection)
 
 YOLOv10, built on the [Ultralytics](https://www.ultralytics.com/) [Python package](https://pypi.org/project/ultralytics/) by researchers at [Tsinghua University](https://www.tsinghua.edu.cn/en/), introduces a new approach to real-time object detection, addressing both the post-processing and model architecture deficiencies found in previous YOLO versions. By eliminating non-maximum suppression (NMS) and optimizing various model components, YOLOv10 achieves state-of-the-art performance with significantly reduced computational overhead. Extensive experiments demonstrate its superior accuracy-latency trade-offs across multiple model scales.
 
@@ -29,7 +29,7 @@ Real-time object detection aims to accurately predict object categories and posi
 
 The architecture of YOLOv10 builds upon the strengths of previous YOLO models while introducing several key innovations. The model architecture consists of the following components:
 
-1. **Backbone**: Responsible for feature extraction, the backbone in YOLOv10 uses an enhanced version of CSPNet (Cross Stage Partial Network) to improve gradient flow and reduce computational redundancy.
+1. **Backbone**: Responsible for [feature extraction](https://www.ultralytics.com/glossary/feature-extraction), the backbone in YOLOv10 uses an enhanced version of CSPNet (Cross Stage Partial Network) to improve gradient flow and reduce computational redundancy.
 2. **Neck**: The neck is designed to aggregate features from different scales and passes them to the head. It includes PAN (Path Aggregation Network) layers for effective multiscale feature fusion.
 3. **One-to-Many Head**: Generates multiple predictions per object during training to provide rich supervisory signals and improve learning accuracy.
 4. **One-to-One Head**: Generates a single best prediction per object during inference to eliminate the need for NMS, thereby reducing latency and improving efficiency.
@@ -72,7 +72,7 @@ Latency measured with TensorRT FP16 on T4 GPU.
 
 YOLOv10 employs dual label assignments, combining one-to-many and one-to-one strategies during training to ensure rich supervision and efficient end-to-end deployment. The consistent matching metric aligns the supervision between both strategies, enhancing the quality of predictions during inference.
 
-### Holistic Efficiency-Accuracy Driven Model Design
+### Holistic Efficiency-[Accuracy](https://www.ultralytics.com/glossary/accuracy) Driven Model Design
 
 #### Efficiency Enhancements
 
@@ -202,20 +202,20 @@ The YOLOv10 models series offers a range of models, each optimized for high-perf
 
 Due to the new operations introduced with YOLOv10, not all export formats provided by Ultralytics are currently supported. The following table outlines which formats have been successfully converted using Ultralytics for YOLOv10. Feel free to open a pull request if you're able to [provide a contribution change](../help/contributing.md) for adding export support of additional formats for YOLOv10.
 
-| Export Format                                     | Export Support | Exported Model Inference | Notes                                       |
-| ------------------------------------------------- | -------------- | ------------------------ | ------------------------------------------- |
-| [TorchScript](../integrations/torchscript.md)     | ✅             | ✅                       | Standard PyTorch model format.              |
-| [ONNX](../integrations/onnx.md)                   | ✅             | ✅                       | Widely supported for deployment.            |
-| [OpenVINO](../integrations/openvino.md)           | ✅             | ✅                       | Optimized for Intel hardware.               |
-| [TensorRT](../integrations/tensorrt.md)           | ✅             | ✅                       | Optimized for NVIDIA GPUs.                  |
-| [CoreML](../integrations/coreml.md)               | ✅             | ✅                       | Limited to Apple devices.                   |
-| [TF SavedModel](../integrations/tf-savedmodel.md) | ✅             | ✅                       | TensorFlow's standard model format.         |
-| [TF GraphDef](../integrations/tf-graphdef.md)     | ✅             | ✅                       | Legacy TensorFlow format.                   |
-| [TF Lite](../integrations/tflite.md)              | ✅             | ✅                       | Optimized for mobile and embedded.          |
-| [TF Edge TPU](../integrations/edge-tpu.md)        | ✅             | ✅                       | Specific to Google's Edge TPU devices.      |
-| [TF.js](../integrations/tfjs.md)                  | ✅             | ✅                       | JavaScript environment for browser use.     |
-| [PaddlePaddle](../integrations/paddlepaddle.md)   | ❌             | ❌                       | Popular in China; less global support.      |
-| [NCNN](../integrations/ncnn.md)                   | ✅             | ❌                       | Layer `torch.topk` not exists or registered |
+| Export Format                                     | Export Support | Exported Model Inference | Notes                                                                                  |
+| ------------------------------------------------- | -------------- | ------------------------ | -------------------------------------------------------------------------------------- |
+| [TorchScript](../integrations/torchscript.md)     | ✅             | ✅                       | Standard [PyTorch](https://www.ultralytics.com/glossary/pytorch) model format.         |
+| [ONNX](../integrations/onnx.md)                   | ✅             | ✅                       | Widely supported for deployment.                                                       |
+| [OpenVINO](../integrations/openvino.md)           | ✅             | ✅                       | Optimized for Intel hardware.                                                          |
+| [TensorRT](../integrations/tensorrt.md)           | ✅             | ✅                       | Optimized for NVIDIA GPUs.                                                             |
+| [CoreML](../integrations/coreml.md)               | ✅             | ✅                       | Limited to Apple devices.                                                              |
+| [TF SavedModel](../integrations/tf-savedmodel.md) | ✅             | ✅                       | [TensorFlow](https://www.ultralytics.com/glossary/tensorflow)'s standard model format. |
+| [TF GraphDef](../integrations/tf-graphdef.md)     | ✅             | ✅                       | Legacy TensorFlow format.                                                              |
+| [TF Lite](../integrations/tflite.md)              | ✅             | ✅                       | Optimized for mobile and embedded.                                                     |
+| [TF Edge TPU](../integrations/edge-tpu.md)        | ✅             | ✅                       | Specific to Google's Edge TPU devices.                                                 |
+| [TF.js](../integrations/tfjs.md)                  | ✅             | ✅                       | JavaScript environment for browser use.                                                |
+| [PaddlePaddle](../integrations/paddlepaddle.md)   | ❌             | ❌                       | Popular in China; less global support.                                                 |
+| [NCNN](../integrations/ncnn.md)                   | ✅             | ❌                       | Layer `torch.topk` not exists or registered                                            |
 
 ## Conclusion
 

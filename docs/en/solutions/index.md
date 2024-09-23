@@ -6,13 +6,13 @@ keywords: Ultralytics, YOLOv8, object counting, object blurring, security system
 
 # Ultralytics Solutions: Harness YOLOv8 to Solve Real-World Problems
 
-Ultralytics Solutions provide cutting-edge applications of YOLO models, offering real-world solutions like object counting, blurring, and security systems, enhancing efficiency and accuracy in diverse industries. Discover the power of YOLOv8 for practical, impactful implementations.
+Ultralytics Solutions provide cutting-edge applications of YOLO models, offering real-world solutions like object counting, blurring, and security systems, enhancing efficiency and [accuracy](https://www.ultralytics.com/glossary/accuracy) in diverse industries. Discover the power of YOLOv8 for practical, impactful implementations.
 
 ![Ultralytics Solutions Thumbnail](https://github.com/ultralytics/docs/releases/download/0/ultralytics-solutions-thumbnail.avif)
 
 ## Solutions
 
-Here's our curated list of Ultralytics solutions that can be used to create awesome computer vision projects.
+Here's our curated list of Ultralytics solutions that can be used to create awesome [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) projects.
 
 - [Object Counting](../guides/object-counting.md) 🚀 NEW: Learn to perform real-time object counting with YOLOv8. Gain the expertise to accurately count objects in live video streams.
 - [Object Cropping](../guides/object-cropping.md) 🚀 NEW: Master object cropping with YOLOv8 for precise extraction of objects from images and videos.
@@ -21,14 +21,14 @@ Here's our curated list of Ultralytics solutions that can be used to create awes
 - [Objects Counting in Regions](../guides/region-counting.md) 🚀 NEW: Count objects in specific regions using YOLOv8 for accurate detection in varied areas.
 - [Security Alarm System](../guides/security-alarm-system.md) 🚀 NEW: Create a security alarm system with YOLOv8 that triggers alerts upon detecting new objects. Customize the system to fit your specific needs.
 - [Heatmaps](../guides/heatmaps.md) 🚀 NEW: Utilize detection heatmaps to visualize data intensity across a matrix, providing clear insights in computer vision tasks.
-- [Instance Segmentation with Object Tracking](../guides/instance-segmentation-and-tracking.md) 🚀 NEW: Implement instance segmentation and object tracking with YOLOv8 to achieve precise object boundaries and continuous monitoring.
+- [Instance Segmentation with Object Tracking](../guides/instance-segmentation-and-tracking.md) 🚀 NEW: Implement [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation) and object tracking with YOLOv8 to achieve precise object boundaries and continuous monitoring.
 - [VisionEye View Objects Mapping](../guides/vision-eye.md) 🚀 NEW: Develop systems that mimic human eye focus on specific objects, enhancing the computer's ability to discern and prioritize details.
 - [Speed Estimation](../guides/speed-estimation.md) 🚀 NEW: Estimate object speed using YOLOv8 and object tracking techniques, crucial for applications like autonomous vehicles and traffic monitoring.
-- [Distance Calculation](../guides/distance-calculation.md) 🚀 NEW: Calculate distances between objects using bounding box centroids in YOLOv8, essential for spatial analysis.
+- [Distance Calculation](../guides/distance-calculation.md) 🚀 NEW: Calculate distances between objects using [bounding box](https://www.ultralytics.com/glossary/bounding-box) centroids in YOLOv8, essential for spatial analysis.
 - [Queue Management](../guides/queue-management.md) 🚀 NEW: Implement efficient queue management systems to minimize wait times and improve productivity using YOLOv8.
 - [Parking Management](../guides/parking-management.md) 🚀 NEW: Organize and direct vehicle flow in parking areas with YOLOv8, optimizing space utilization and user experience.
 - [Analytics](../guides/analytics.md) 📊 NEW: Conduct comprehensive data analysis to discover patterns and make informed decisions, leveraging YOLOv8 for descriptive, predictive, and prescriptive analytics.
-- [Live Inference with Streamlit](../guides/streamlit-live-inference.md) 🚀 NEW: Leverage the power of YOLOv8 for real-time object detection directly through your web browser with a user-friendly Streamlit interface.
+- [Live Inference with Streamlit](../guides/streamlit-live-inference.md) 🚀 NEW: Leverage the power of YOLOv8 for real-time [object detection](https://www.ultralytics.com/glossary/object-detection) directly through your web browser with a user-friendly Streamlit interface.
 
 ## Contribute to Our Solutions
 
@@ -56,6 +56,6 @@ Ultralytics YOLOv8 can significantly improve queue management systems by accurat
 
 Yes, Ultralytics YOLOv8 can be effectively used for monitoring workouts by tracking and analyzing fitness routines in real-time. This allows for precise evaluation of exercise form and performance. Explore our guide on [Workouts Monitoring](../guides/workouts-monitoring.md) to learn how to set up an AI-powered workout monitoring system using YOLOv8.
 
-### How does Ultralytics YOLO help in creating heatmaps for data visualization?
+### How does Ultralytics YOLO help in creating heatmaps for [data visualization](https://www.ultralytics.com/glossary/data-visualization)?
 
 Ultralytics YOLOv8 can generate heatmaps to visualize data intensity across a given area, highlighting regions of high activity or interest. This feature is particularly useful in understanding patterns and trends in various computer vision tasks. Learn more about creating and using [Heatmaps](../guides/heatmaps.md) with YOLOv8 for comprehensive data analysis and visualization.

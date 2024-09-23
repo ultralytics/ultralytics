@@ -35,7 +35,7 @@ The YOLO command line interface (CLI) allows for simple single-line commands wit
 
     === "Train"
 
-        Train a detection model for 10 epochs with an initial learning_rate of 0.01
+        Train a detection model for 10 [epochs](https://www.ultralytics.com/glossary/epoch) with an initial learning_rate of 0.01
         ```bash
         yolo train data=coco8.yaml model=yolov8n.pt epochs=10 lr0=0.01
         ```
@@ -109,7 +109,7 @@ Train YOLOv8n on the COCO8 dataset for 100 epochs at image size 640. For a full 
 
 ## Val
 
-Validate trained YOLOv8n model accuracy on the COCO8 dataset. No arguments are needed as the `model` retains its training `data` and arguments as model attributes.
+Validate trained YOLOv8n model [accuracy](https://www.ultralytics.com/glossary/accuracy) on the COCO8 dataset. No arguments are needed as the `model` retains its training `data` and arguments as model attributes.
 
 !!! example
 
@@ -221,7 +221,7 @@ This will create `default_copy.yaml`, which you can then pass as `cfg=default_co
 
 ### How do I use the Ultralytics YOLOv8 command line interface (CLI) for model training?
 
-To train a YOLOv8 model using the CLI, you can execute a simple one-line command in the terminal. For example, to train a detection model for 10 epochs with a learning rate of 0.01, you would run:
+To train a YOLOv8 model using the CLI, you can execute a simple one-line command in the terminal. For example, to train a detection model for 10 epochs with a [learning rate](https://www.ultralytics.com/glossary/learning-rate) of 0.01, you would run:
 
 ```bash
 yolo train data=coco8.yaml model=yolov8n.pt epochs=10 lr0=0.01
@@ -241,7 +241,7 @@ Each task can be customized with various arguments. For detailed syntax and exam
 
 ### How can I validate the accuracy of a trained YOLOv8 model using the CLI?
 
-To validate a YOLOv8 model's accuracy, use the `val` mode. For example, to validate a pretrained detection model with a batch size of 1 and image size of 640, run:
+To validate a YOLOv8 model's accuracy, use the `val` mode. For example, to validate a pretrained detection model with a [batch size](https://www.ultralytics.com/glossary/batch-size) of 1 and image size of 640, run:
 
 ```bash
 yolo val model=yolov8n.pt data=coco8.yaml batch=1 imgsz=640

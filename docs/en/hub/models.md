@@ -219,7 +219,7 @@ Furthermore, you can preview your model in real-time directly on your [iOS](http
 
 ## Deploy Model
 
-After you [train a model](#train-model), you can export it to 13 different formats, including ONNX, OpenVINO, CoreML, TensorFlow, Paddle and many others.
+After you [train a model](#train-model), you can export it to 13 different formats, including ONNX, OpenVINO, CoreML, [TensorFlow](https://www.ultralytics.com/glossary/tensorflow), Paddle and many others.
 
 ![Ultralytics HUB screenshot of the Deploy tab inside the Model page with an arrow pointing to the Export card and all formats exported](https://github.com/ultralytics/docs/releases/download/0/ultralytics-hub-deploy-export-formats.avif)
 

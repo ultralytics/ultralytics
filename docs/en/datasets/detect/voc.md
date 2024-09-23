@@ -13,7 +13,7 @@ The [PASCAL VOC](http://host.robots.ox.ac.uk/pascal/VOC/) (Visual Object Classes
 - VOC dataset includes two main challenges: VOC2007 and VOC2012.
 - The dataset comprises 20 object categories, including common objects like cars, bicycles, and animals, as well as more specific categories such as boats, sofas, and dining tables.
 - Annotations include object bounding boxes and class labels for object detection and classification tasks, and segmentation masks for the segmentation tasks.
-- VOC provides standardized evaluation metrics like mean Average Precision (mAP) for object detection and classification, making it suitable for comparing model performance.
+- VOC provides standardized evaluation metrics like [mean Average Precision](https://www.ultralytics.com/glossary/mean-average-precision-map) (mAP) for object detection and classification, making it suitable for comparing model performance.
 
 ## Dataset Structure
 
@@ -25,7 +25,7 @@ The VOC dataset is split into three subsets:
 
 ## Applications
 
-The VOC dataset is widely used for training and evaluating deep learning models in object detection (such as YOLO, Faster R-CNN, and SSD), instance segmentation (such as Mask R-CNN), and image classification. The dataset's diverse set of object categories, large number of annotated images, and standardized evaluation metrics make it an essential resource for computer vision researchers and practitioners.
+The VOC dataset is widely used for training and evaluating [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models in object detection (such as YOLO, Faster R-CNN, and SSD), [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation) (such as Mask R-CNN), and [image classification](https://www.ultralytics.com/glossary/image-classification). The dataset's diverse set of object categories, large number of annotated images, and standardized evaluation metrics make it an essential resource for computer vision researchers and practitioners.
 
 ## Dataset YAML
 
@@ -39,7 +39,7 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 ## Usage
 
-To train a YOLOv8n model on the VOC dataset for 100 epochs with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To train a YOLOv8n model on the VOC dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
 !!! example "Train Example"
 
@@ -91,13 +91,13 @@ If you use the VOC dataset in your research or development work, please cite the
         }
         ```
 
-We would like to acknowledge the PASCAL VOC Consortium for creating and maintaining this valuable resource for the computer vision community. For more information about the VOC dataset and its creators, visit the [PASCAL VOC dataset website](http://host.robots.ox.ac.uk/pascal/VOC/).
+We would like to acknowledge the PASCAL VOC Consortium for creating and maintaining this valuable resource for the [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) community. For more information about the VOC dataset and its creators, visit the [PASCAL VOC dataset website](http://host.robots.ox.ac.uk/pascal/VOC/).
 
 ## FAQ
 
 ### What is the PASCAL VOC dataset and why is it important for computer vision tasks?
 
-The [PASCAL VOC](http://host.robots.ox.ac.uk/pascal/VOC/) (Visual Object Classes) dataset is a renowned benchmark for object detection, segmentation, and classification in computer vision. It includes comprehensive annotations like bounding boxes, class labels, and segmentation masks across 20 different object categories. Researchers use it widely to evaluate the performance of models like Faster R-CNN, YOLO, and Mask R-CNN due to its standardized evaluation metrics such as mean Average Precision (mAP).
+The [PASCAL VOC](http://host.robots.ox.ac.uk/pascal/VOC/) (Visual Object Classes) dataset is a renowned benchmark for [object detection](https://www.ultralytics.com/glossary/object-detection), segmentation, and classification in computer vision. It includes comprehensive annotations like bounding boxes, class labels, and segmentation masks across 20 different object categories. Researchers use it widely to evaluate the performance of models like Faster R-CNN, YOLO, and Mask R-CNN due to its standardized evaluation metrics such as mean Average Precision (mAP).
 
 ### How do I train a YOLOv8 model using the VOC dataset?
 
@@ -130,8 +130,8 @@ The VOC dataset includes two main challenges: VOC2007 and VOC2012. These challen
 
 ### How does the PASCAL VOC dataset enhance model benchmarking and evaluation?
 
-The PASCAL VOC dataset enhances model benchmarking and evaluation through its detailed annotations and standardized metrics like mean Average Precision (mAP). These metrics are crucial for assessing the performance of object detection and classification models. The dataset's diverse and complex images ensure comprehensive model evaluation across various real-world scenarios.
+The PASCAL VOC dataset enhances model benchmarking and evaluation through its detailed annotations and standardized metrics like mean Average [Precision](https://www.ultralytics.com/glossary/precision) (mAP). These metrics are crucial for assessing the performance of object detection and classification models. The dataset's diverse and complex images ensure comprehensive model evaluation across various real-world scenarios.
 
-### How do I use the VOC dataset for semantic segmentation in YOLO models?
+### How do I use the VOC dataset for [semantic segmentation](https://www.ultralytics.com/glossary/semantic-segmentation) in YOLO models?
 
 To use the VOC dataset for semantic segmentation tasks with YOLO models, you need to configure the dataset properly in a YAML file. The YAML file defines paths and classes needed for training segmentation models. Check the VOC dataset YAML configuration file at [VOC.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/VOC.yaml) for detailed setups.

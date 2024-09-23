@@ -8,7 +8,7 @@ keywords: object counting, YOLOv8, Ultralytics, real-time object detection, AI, 
 
 ## What is Object Counting?
 
-Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics/) involves accurate identification and counting of specific objects in videos and camera streams. YOLOv8 excels in real-time applications, providing efficient and precise object counting for various scenarios like crowd analysis and surveillance, thanks to its state-of-the-art algorithms and deep learning capabilities.
+Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics/) involves accurate identification and counting of specific objects in videos and camera streams. YOLOv8 excels in real-time applications, providing efficient and precise object counting for various scenarios like crowd analysis and surveillance, thanks to its state-of-the-art algorithms and [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) capabilities.
 
 <table>
   <tr>
@@ -340,12 +340,12 @@ count_specific_classes("path/to/video.mp4", "output_specific_classes.avi", "yolo
 
 In this example, `classes_to_count=[0, 2]`, which means it counts objects of class `0` and `2` (e.g., person and car).
 
-### Why should I use YOLOv8 over other object detection models for real-time applications?
+### Why should I use YOLOv8 over other [object detection](https://www.ultralytics.com/glossary/object-detection) models for real-time applications?
 
 Ultralytics YOLOv8 provides several advantages over other object detection models like Faster R-CNN, SSD, and previous YOLO versions:
 
 1. **Speed and Efficiency:** YOLOv8 offers real-time processing capabilities, making it ideal for applications requiring high-speed inference, such as surveillance and autonomous driving.
-2. **Accuracy:** It provides state-of-the-art accuracy for object detection and tracking tasks, reducing the number of false positives and improving overall system reliability.
+2. **[Accuracy](https://www.ultralytics.com/glossary/accuracy):** It provides state-of-the-art accuracy for object detection and tracking tasks, reducing the number of false positives and improving overall system reliability.
 3. **Ease of Integration:** YOLOv8 offers seamless integration with various platforms and devices, including mobile and edge devices, which is crucial for modern AI applications.
 4. **Flexibility:** Supports various tasks like object detection, segmentation, and tracking with configurable models to meet specific use-case requirements.
 

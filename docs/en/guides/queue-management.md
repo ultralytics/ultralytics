@@ -187,7 +187,7 @@ Using Ultralytics YOLOv8 for queue management offers several benefits:
 
 For more details, explore our [Queue Management](https://docs.ultralytics.com/reference/solutions/queue_management/) solutions.
 
-### Why should I choose Ultralytics YOLOv8 over competitors like TensorFlow or Detectron2 for queue management?
+### Why should I choose Ultralytics YOLOv8 over competitors like [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) or Detectron2 for queue management?
 
 Ultralytics YOLOv8 has several advantages over TensorFlow and Detectron2 for queue management:
 

@@ -127,10 +127,13 @@ class ObjectCounter:
         # Draw region or line
         annotator.draw_region(reg_pts=self.reg_pts, color=(104, 0, 123), thickness=self.tf * 2)
 
-        if tracks[0].boxes.id is not None:
-            boxes = tracks[0].boxes.xyxy.cpu()
-            clss = tracks[0].boxes.cls.cpu().tolist()
-            track_ids = tracks[0].boxes.id.int().cpu().tolist()
+        # Extract tracks for OBB or object detection
+        track_data = tracks[0].obb or tracks[0].boxes
+
+        if track_data and track_data.id is not None:
+            boxes = track_data.xyxy.cpu()
+            clss = track_data.cls.cpu().tolist()
+            track_ids = track_data.id.int().cpu().tolist()
 
             # Extract tracks
             for box, track_id, cls in zip(boxes, track_ids, clss):

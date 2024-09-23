@@ -12,7 +12,7 @@ This guide will cover how to use YOLOv5 with [Comet](https://bit.ly/yolov5-readm
 
 ## About Comet
 
-Comet builds tools that help data scientists, engineers, and team leaders accelerate and optimize machine learning and deep learning models.
+Comet builds tools that help data scientists, engineers, and team leaders accelerate and optimize [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) and [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models.
 
 Track and visualize model metrics in real time, save your hyperparameters, datasets, and model checkpoints, and visualize your model predictions with [Comet Custom Panels](https://www.comet.com/docs/v2/guides/comet-dashboard/code-panels/about-panels/?utm_source=yolov5&utm_medium=partner&utm_campaign=partner_yolov5_2022&utm_content=github)! Comet makes sure you never lose track of your work and makes it easy to share results and collaborate across teams of all sizes!
 
@@ -72,7 +72,7 @@ By default, Comet will log the following items
 
 ## Metrics
 
-- Box Loss, Object Loss, Classification Loss for the training and validation data
+- Box Loss, Object Loss, Classification Loss for the training and [validation data](https://www.ultralytics.com/glossary/validation-data)
 - mAP_0.5, mAP_0.5:0.95 metrics for the validation data.
 - Precision and Recall for the validation data
 
@@ -83,7 +83,7 @@ By default, Comet will log the following items
 
 ## Visualizations
 
-- Confusion Matrix of the model predictions on the validation data
+- [Confusion Matrix](https://www.ultralytics.com/glossary/confusion-matrix) of the model predictions on the validation data
 - Plots for the PR and F1 curves across all classes
 - Correlogram of the Class Labels
 
@@ -120,9 +120,9 @@ python train.py \
 
 By default, model predictions (images, ground truth labels and bounding boxes) will be logged to Comet.
 
-You can control the frequency of logged predictions and the associated images by passing the `bbox_interval` command line argument. Predictions can be visualized using Comet's Object Detection Custom Panel. This frequency corresponds to every Nth batch of data per epoch. In the example below, we are logging every 2nd batch of data for each epoch.
+You can control the frequency of logged predictions and the associated images by passing the `bbox_interval` command line argument. Predictions can be visualized using Comet's [Object Detection](https://www.ultralytics.com/glossary/object-detection) Custom Panel. This frequency corresponds to every Nth batch of data per [epoch](https://www.ultralytics.com/glossary/epoch). In the example below, we are logging every 2nd batch of data for each epoch.
 
-**Note:** The YOLOv5 validation dataloader will default to a batch size of 32, so you will have to set the logging frequency accordingly.
+**Note:** The YOLOv5 validation dataloader will default to a [batch size](https://www.ultralytics.com/glossary/batch-size) of 32, so you will have to set the logging frequency accordingly.
 
 Here is an [example project using the Panel](https://www.comet.com/examples/comet-example-yolov5?shareable=YcwMiJaZSXfcEXpGOHDD12vA1&utm_source=yolov5&utm_medium=partner&utm_campaign=partner_yolov5_2022&utm_content=github)
 
@@ -152,7 +152,7 @@ env COMET_MAX_IMAGE_UPLOADS=200 python train.py \
 
 ### Logging Class Level Metrics
 
-Use the `COMET_LOG_PER_CLASS_METRICS` environment variable to log mAP, precision, recall, f1 for each class.
+Use the `COMET_LOG_PER_CLASS_METRICS` environment variable to log mAP, [precision](https://www.ultralytics.com/glossary/precision), [recall](https://www.ultralytics.com/glossary/recall), f1 for each class.
 
 ```shell
 env COMET_LOG_PER_CLASS_METRICS=true python train.py \

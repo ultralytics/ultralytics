@@ -60,7 +60,6 @@ classifiers = [
     "Operating System :: Microsoft :: Windows",
 ]
 
-
 # Required dependencies ------------------------------------------------------------------------------------------------
 dependencies = [
     "numpy>=1.23.0,<2.0.0", # temporary patch for compat errors https://github.com/ultralytics/yolov5/actions/runs/9538130424/job/26286956354

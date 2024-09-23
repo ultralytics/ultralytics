@@ -12,7 +12,7 @@ The [ImageNet10](https://github.com/ultralytics/assets/releases/download/v0.0.0/
 
 - ImageNet10 is a compact version of ImageNet, with 20 images representing the first 10 classes of the original dataset.
 - The dataset is organized according to the WordNet hierarchy, mirroring the structure of the full ImageNet dataset.
-- It is ideally suited for CI tests, sanity checks, and rapid testing of training pipelines in computer vision tasks.
+- It is ideally suited for CI tests, sanity checks, and rapid testing of training pipelines in [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) tasks.
 - Although not designed for model benchmarking, it can provide a quick indication of a model's basic functionality and correctness.
 
 ## Dataset Structure
@@ -74,7 +74,7 @@ If you use the ImageNet10 dataset in your research or development work, please c
         }
         ```
 
-We would like to acknowledge the ImageNet team, led by Olga Russakovsky, Jia Deng, and Li Fei-Fei, for creating and maintaining the ImageNet dataset. The ImageNet10 dataset, while a compact subset, is a valuable resource for quick testing and debugging in the machine learning and computer vision research community. For more information about the ImageNet dataset and its creators, visit the [ImageNet website](https://www.image-net.org/).
+We would like to acknowledge the ImageNet team, led by Olga Russakovsky, Jia Deng, and Li Fei-Fei, for creating and maintaining the ImageNet dataset. The ImageNet10 dataset, while a compact subset, is a valuable resource for quick testing and debugging in the [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) and computer vision research community. For more information about the ImageNet dataset and its creators, visit the [ImageNet website](https://www.image-net.org/).
 
 ## FAQ
 
@@ -111,7 +111,7 @@ Refer to the [Training](../../modes/train.md) page for a comprehensive list of a
 
 ### Why should I use the ImageNet10 dataset for CI tests and sanity checks?
 
-The ImageNet10 dataset is designed specifically for CI tests, sanity checks, and quick evaluations in deep learning pipelines. Its small size allows for rapid iteration and testing, making it perfect for continuous integration processes where speed is crucial. By maintaining the structural complexity and diversity of the original ImageNet dataset, ImageNet10 provides a reliable indication of a model's basic functionality and correctness without the overhead of processing a large dataset.
+The ImageNet10 dataset is designed specifically for CI tests, sanity checks, and quick evaluations in [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) pipelines. Its small size allows for rapid iteration and testing, making it perfect for continuous integration processes where speed is crucial. By maintaining the structural complexity and diversity of the original ImageNet dataset, ImageNet10 provides a reliable indication of a model's basic functionality and correctness without the overhead of processing a large dataset.
 
 ### What are the main features of the ImageNet10 dataset?
 

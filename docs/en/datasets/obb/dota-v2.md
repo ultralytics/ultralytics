@@ -6,7 +6,7 @@ keywords: DOTA dataset, object detection, aerial images, oriented bounding boxes
 
 # DOTA Dataset with OBB
 
-[DOTA](https://captain-whu.github.io/DOTA/index.html) stands as a specialized dataset, emphasizing object detection in aerial images. Originating from the DOTA series of datasets, it offers annotated images capturing a diverse array of aerial scenes with Oriented Bounding Boxes (OBB).
+[DOTA](https://captain-whu.github.io/DOTA/index.html) stands as a specialized dataset, emphasizing [object detection](https://www.ultralytics.com/glossary/object-detection) in aerial images. Originating from the DOTA series of datasets, it offers annotated images capturing a diverse array of aerial scenes with Oriented Bounding Boxes (OBB).
 
 ![DOTA classes visual](https://github.com/ultralytics/docs/releases/download/0/dota-classes-visual.avif)
 
@@ -128,7 +128,7 @@ Having a glance at the dataset illustrates its depth:
 
 ![Dataset sample image](https://github.com/ultralytics/docs/releases/download/0/instances-DOTA.avif)
 
-- **DOTA examples**: This snapshot underlines the complexity of aerial scenes and the significance of Oriented Bounding Box annotations, capturing objects in their natural orientation.
+- **DOTA examples**: This snapshot underlines the complexity of aerial scenes and the significance of Oriented [Bounding Box](https://www.ultralytics.com/glossary/bounding-box) annotations, capturing objects in their natural orientation.
 
 The dataset's richness offers invaluable insights into object detection challenges exclusive to aerial imagery.
 

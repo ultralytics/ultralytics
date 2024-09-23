@@ -6,7 +6,7 @@ keywords: Roboflow, YOLOv8, data labeling, computer vision, model training, mode
 
 # Roboflow
 
-[Roboflow](https://roboflow.com/?ref=ultralytics) has everything you need to build and deploy computer vision models. Connect Roboflow at any step in your pipeline with APIs and SDKs, or use the end-to-end interface to automate the entire process from image to inference. Whether you're in need of [data labeling](https://roboflow.com/annotate?ref=ultralytics), [model training](https://roboflow.com/train?ref=ultralytics), or [model deployment](https://roboflow.com/deploy?ref=ultralytics), Roboflow gives you building blocks to bring custom computer vision solutions to your project.
+[Roboflow](https://roboflow.com/?ref=ultralytics) has everything you need to build and deploy [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models. Connect Roboflow at any step in your pipeline with APIs and SDKs, or use the end-to-end interface to automate the entire process from image to inference. Whether you're in need of [data labeling](https://roboflow.com/annotate?ref=ultralytics), [model training](https://roboflow.com/train?ref=ultralytics), or [model deployment](https://roboflow.com/deploy?ref=ultralytics), Roboflow gives you building blocks to bring custom computer vision solutions to your project.
 
 !!! question "Licensing"
 
@@ -53,9 +53,9 @@ If you want to gather images yourself, try [Collect](https://github.com/roboflow
 
 ## Upload, Convert and Label Data for YOLOv8 Format
 
-[Roboflow Annotate](https://docs.roboflow.com/annotate/use-roboflow-annotate?ref=ultralytics) is an online annotation tool for use in labeling images for object detection, classification, and segmentation.
+[Roboflow Annotate](https://docs.roboflow.com/annotate/use-roboflow-annotate?ref=ultralytics) is an online annotation tool for use in labeling images for [object detection](https://www.ultralytics.com/glossary/object-detection), classification, and segmentation.
 
-To label data for a YOLOv8 object detection, instance segmentation, or classification model, first create a project in Roboflow.
+To label data for a YOLOv8 object detection, [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation), or classification model, first create a project in Roboflow.
 
 <p align="center">
 <img src="https://github.com/ultralytics/docs/releases/download/0/create-roboflow-project.avif" alt="Create a Roboflow project" width="400">
@@ -69,7 +69,7 @@ Next, upload your images, and any pre-existing annotations you have from other t
 
 Select the batch of images you have uploaded on the Annotate page to which you are taken after uploading images. Then, click "Start Annotating" to label images.
 
-To label with bounding boxes, press the `B` key on your keyboard or click the box icon in the sidebar. Click on a point where you want to start your bounding box, then drag to create the box:
+To label with bounding boxes, press the `B` key on your keyboard or click the box icon in the sidebar. Click on a point where you want to start your [bounding box](https://www.ultralytics.com/glossary/bounding-box), then drag to create the box:
 
 <p align="center">
 <img src="https://github.com/ultralytics/docs/releases/download/0/annotating-an-image-in-roboflow.avif" alt="Annotating an image in Roboflow" width="800">
@@ -194,7 +194,7 @@ You can also use your uploaded model as a [labeling assistant](https://docs.robo
 
 Roboflow provides a range of features for use in evaluating models.
 
-Once you have uploaded a model to Roboflow, you can access our model evaluation tool, which provides a confusion matrix showing the performance of your model as well as an interactive vector analysis plot. These features can help you find opportunities to improve your model.
+Once you have uploaded a model to Roboflow, you can access our model evaluation tool, which provides a [confusion matrix](https://www.ultralytics.com/glossary/confusion-matrix) showing the performance of your model as well as an interactive vector analysis plot. These features can help you find opportunities to improve your model.
 
 To access a confusion matrix, go to your model page on the Roboflow dashboard, then click "View Detailed Evaluation":
 
@@ -248,7 +248,7 @@ Below are a few of the many pieces of feedback we have received for using YOLOv8
 
 Labeling data for YOLOv8 models using Roboflow is straightforward with Roboflow Annotate. First, create a project on Roboflow and upload your images. After uploading, select the batch of images and click "Start Annotating." You can use the `B` key for bounding boxes or the `P` key for polygons. For faster annotation, use the SAM-based label assistant by clicking the cursor icon in the sidebar. Detailed steps can be found [here](#upload-convert-and-label-data-for-yolov8-format).
 
-### What services does Roboflow offer for collecting YOLOv8 training data?
+### What services does Roboflow offer for collecting YOLOv8 [training data](https://www.ultralytics.com/glossary/training-data)?
 
 Roboflow provides two key services for collecting YOLOv8 training data: [Universe](https://universe.roboflow.com/?ref=ultralytics) and [Collect](https://github.com/roboflow/roboflow-collect?ref=ultralytics). Universe offers access to over 250,000 vision datasets, while Collect helps you gather images using a webcam and automated prompts.
 

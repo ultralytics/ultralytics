@@ -237,7 +237,7 @@ sudo docker pull ultralytics/ultralytics:latest
 
 For detailed steps, refer to our [Docker Quickstart Guide](../quickstart.md).
 
-### What are the benefits of using Ultralytics Docker images for machine learning projects?
+### What are the benefits of using Ultralytics Docker images for [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) projects?
 
 Using Ultralytics Docker images ensures a consistent environment across different machines, replicating the same software and dependencies. This is particularly useful for collaborating across teams, running models on various hardware, and maintaining reproducibility. For GPU-based training, Ultralytics provides optimized Docker images such as `Dockerfile` for general GPU usage and `Dockerfile-jetson` for NVIDIA Jetson devices. Explore [Ultralytics Docker Hub](https://hub.docker.com/r/ultralytics/ultralytics) for more details.
 

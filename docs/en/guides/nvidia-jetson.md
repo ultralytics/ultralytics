@@ -274,6 +274,23 @@ The YOLOv8n model in PyTorch format is converted to TensorRT to run inference wi
         yolo predict model=yolov8n.engine source='https://ultralytics.com/images/bus.jpg'
         ```
 
+It is also possible to convert the model to TensorRT with computation done on an Nvidia DLA.
+
+!!! example
+
+    === "CLI"
+
+        ```bash
+        # Export a YOLOv8n PyTorch model to TensorRT format with DLA computation enabled
+        yolo export model=yolov8n.pt format=engine dla=True  # create 'yolov8n.engine'
+
+        # Alternatively, you can assign which DLA core to use on the Jetson device
+        yolo export model=yolov8n.pt format=engine dla=True dla_core=1  # use DLA core 1 instead of 0 (default)
+
+        # Run inference with the exported model on the DLA
+        yolo predict model=yolov8n.engine source='https://ultralytics.com/images/bus.jpg'
+        ```
+
 !!! note
 
     Visit the [Export page](../modes/export.md#arguments) to access additional arguments when exporting models to different model formats

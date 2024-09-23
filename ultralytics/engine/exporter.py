@@ -713,7 +713,7 @@ class Exporter:
         if self.args.dla:
             LOGGER.info(f"{prefix} enabling DLA...")
             config.default_device_type = trt.DeviceType.DLA
-            config.DLA_core = self.args.dlacore
+            config.DLA_core = self.args.dla_core
             config.set_flag(trt.BuilderFlag.GPU_FALLBACK)
 
         # Read ONNX file

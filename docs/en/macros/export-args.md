@@ -12,3 +12,5 @@
 | `workspace` | `float`          | `4.0`           | Sets the maximum workspace size in GiB for TensorRT optimizations, balancing memory usage and performance.                                                       |
 | `nms`       | `bool`           | `False`         | Adds Non-Maximum Suppression (NMS) to the CoreML export, essential for accurate and efficient detection post-processing.                                         |
 | `batch`     | `int`            | `1`             | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                          |
+| `dla`       | `bool`           | `False`         | Specifies if the Nvidia DLA should be used during export on Nvidia Jetson devices. The Nvidia DLA trades inference speed with improved energy efficiency.        |
+| `dla_core`  | `int`            | `0`             | Sets which Nvidia DLA core to use for model inference. Nvidia Jetson devices typically 2 DLA cores addressed by 0 or 1.                                          | 

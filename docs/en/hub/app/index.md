@@ -31,11 +31,11 @@ keywords: Ultralytics HUB, YOLO models, mobile app, iOS, Android, hardware accel
     <img src="https://raw.githubusercontent.com/ultralytics/assets/master/app/google-play.svg" width="15%" alt="Google Play store"></a>&nbsp;
 </div>
 
-Welcome to the Ultralytics HUB App! We are excited to introduce this powerful mobile app that allows you to run YOLOv5 and YOLOv8 models directly on your [iOS](https://apps.apple.com/xk/app/ultralytics/id1583935240) and [Android](https://play.google.com/store/apps/details?id=com.ultralytics.ultralytics_app) devices. With the HUB App, you can utilize hardware acceleration features like Apple's Neural Engine (ANE) or Android GPU and Neural Network API (NNAPI) delegates to achieve impressive performance on your mobile device.
+Welcome to the Ultralytics HUB App! We are excited to introduce this powerful mobile app that allows you to run YOLOv5 and YOLOv8 models directly on your [iOS](https://apps.apple.com/xk/app/ultralytics/id1583935240) and [Android](https://play.google.com/store/apps/details?id=com.ultralytics.ultralytics_app) devices. With the HUB App, you can utilize hardware acceleration features like Apple's Neural Engine (ANE) or Android GPU and [Neural Network](https://www.ultralytics.com/glossary/neural-network-nn) API (NNAPI) delegates to achieve impressive performance on your mobile device.
 
 ## Features
 
-- **Run YOLOv5 and YOLOv8 models**: Experience the power of YOLO models on your mobile device for real-time object detection and image recognition tasks.
+- **Run YOLOv5 and YOLOv8 models**: Experience the power of YOLO models on your mobile device for real-time [object detection](https://www.ultralytics.com/glossary/object-detection) and [image recognition](https://www.ultralytics.com/glossary/image-recognition) tasks.
 - **Hardware Acceleration**: Benefit from Apple ANE on iOS devices or Android GPU and NNAPI delegates for optimized performance.
 - **Custom Model Training**: Train custom models with the Ultralytics HUB platform and preview them live using the HUB App.
 - **Mobile Compatibility**: The HUB App supports both iOS and Android devices, bringing the power of YOLO models to a wide range of users.

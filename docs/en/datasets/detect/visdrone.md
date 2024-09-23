@@ -6,7 +6,7 @@ keywords: VisDrone, drone dataset, computer vision, object detection, object tra
 
 # VisDrone Dataset
 
-The [VisDrone Dataset](https://github.com/VisDrone/VisDrone-Dataset) is a large-scale benchmark created by the AISKYEYE team at the Lab of Machine Learning and Data Mining, Tianjin University, China. It contains carefully annotated ground truth data for various computer vision tasks related to drone-based image and video analysis.
+The [VisDrone Dataset](https://github.com/VisDrone/VisDrone-Dataset) is a large-scale benchmark created by the AISKYEYE team at the Lab of [Machine Learning](https://www.ultralytics.com/glossary/machine-learning-ml) and Data Mining, Tianjin University, China. It contains carefully annotated ground truth data for various computer vision tasks related to drone-based image and video analysis.
 
 <p align="center">
   <br>
@@ -33,7 +33,7 @@ The VisDrone dataset is organized into five main subsets, each focusing on a spe
 
 ## Applications
 
-The VisDrone dataset is widely used for training and evaluating deep learning models in drone-based computer vision tasks such as object detection, object tracking, and crowd counting. The dataset's diverse set of sensor data, object annotations, and attributes make it a valuable resource for researchers and practitioners in the field of drone-based computer vision.
+The VisDrone dataset is widely used for training and evaluating deep learning models in drone-based [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) tasks such as object detection, object tracking, and crowd counting. The dataset's diverse set of sensor data, object annotations, and attributes make it a valuable resource for researchers and practitioners in the field of drone-based computer vision.
 
 ## Dataset YAML
 
@@ -47,7 +47,7 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 ## Usage
 
-To train a YOLOv8n model on the VisDrone dataset for 100 epochs with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To train a YOLOv8n model on the VisDrone dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
 !!! example "Train Example"
 
@@ -76,7 +76,7 @@ The VisDrone dataset contains a diverse set of images and videos captured by dro
 
 ![Dataset sample image](https://github.com/ultralytics/docs/releases/download/0/visdrone-object-detection-sample.avif)
 
-- **Task 1**: Object detection in images - This image demonstrates an example of object detection in images, where objects are annotated with bounding boxes. The dataset provides a wide variety of images taken from different locations, environments, and densities to facilitate the development of models for this task.
+- **Task 1**: [Object detection](https://www.ultralytics.com/glossary/object-detection) in images - This image demonstrates an example of object detection in images, where objects are annotated with bounding boxes. The dataset provides a wide variety of images taken from different locations, environments, and densities to facilitate the development of models for this task.
 
 The example showcases the variety and complexity of the data in the VisDrone dataset and highlights the importance of high-quality sensor data for drone-based computer vision tasks.
 
@@ -100,7 +100,7 @@ If you use the VisDrone dataset in your research or development work, please cit
           doi={10.1109/TPAMI.2021.3119563}}
         ```
 
-We would like to acknowledge the AISKYEYE team at the Lab of Machine Learning and Data Mining, Tianjin University, China, for creating and maintaining the VisDrone dataset as a valuable resource for the drone-based computer vision research community. For more information about the VisDrone dataset and its creators, visit the [VisDrone Dataset GitHub repository](https://github.com/VisDrone/VisDrone-Dataset).
+We would like to acknowledge the AISKYEYE team at the Lab of Machine Learning and [Data Mining](https://www.ultralytics.com/glossary/data-mining), Tianjin University, China, for creating and maintaining the VisDrone dataset as a valuable resource for the drone-based computer vision research community. For more information about the VisDrone dataset and its creators, visit the [VisDrone Dataset GitHub repository](https://github.com/VisDrone/VisDrone-Dataset).
 
 ## FAQ
 
@@ -150,7 +150,7 @@ The VisDrone dataset is divided into five main subsets, each tailored for a spec
 4. **Task 4**: Multi-object tracking.
 5. **Task 5**: Crowd counting.
 
-These subsets are widely used for training and evaluating deep learning models in drone-based applications such as surveillance, traffic monitoring, and public safety.
+These subsets are widely used for training and evaluating [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models in drone-based applications such as surveillance, traffic monitoring, and public safety.
 
 ### Where can I find the configuration file for the VisDrone dataset in Ultralytics?
 

@@ -5,7 +5,6 @@ import subprocess
 import pytest
 from PIL import Image
 
-from tests import CUDA_DEVICE_COUNT, CUDA_IS_AVAILABLE
 from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
 from ultralytics.utils import ASSETS, WEIGHTS_DIR, checks
 from ultralytics.utils.torch_utils import TORCH_1_9
@@ -98,4 +97,3 @@ def test_mobilesam():
 
     # Predict all
     # model(source)
-

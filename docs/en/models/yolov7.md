@@ -6,7 +6,7 @@ keywords: YOLOv7, real-time object detection, Ultralytics, AI, computer vision, 
 
 # YOLOv7: Trainable Bag-of-Freebies
 
-YOLOv7 is a state-of-the-art real-time object detector that surpasses all known object detectors in both speed and accuracy in the range from 5 FPS to 160 FPS. It has the highest accuracy (56.8% AP) among all known real-time object detectors with 30 FPS or higher on GPU V100. Moreover, YOLOv7 outperforms other object detectors such as YOLOR, YOLOX, Scaled-YOLOv4, YOLOv5, and many others in speed and accuracy. The model is trained on the MS COCO dataset from scratch without using any other datasets or pre-trained weights. Source code for YOLOv7 is available on GitHub.
+YOLOv7 is a state-of-the-art real-time object detector that surpasses all known object detectors in both speed and [accuracy](https://www.ultralytics.com/glossary/accuracy) in the range from 5 FPS to 160 FPS. It has the highest accuracy (56.8% AP) among all known real-time object detectors with 30 FPS or higher on GPU V100. Moreover, YOLOv7 outperforms other object detectors such as YOLOR, YOLOX, Scaled-YOLOv4, YOLOv5, and many others in speed and accuracy. The model is trained on the MS COCO dataset from scratch without using any other datasets or pre-trained weights. Source code for YOLOv7 is available on GitHub.
 
 ![YOLOv7 comparison with SOTA object detectors](https://github.com/ultralytics/docs/releases/download/0/yolov7-comparison-sota-object-detectors.avif)
 
@@ -62,7 +62,7 @@ From the results in the YOLO comparison table we know that the proposed method h
 
 ## Overview
 
-Real-time object detection is an important component in many computer vision systems, including multi-object tracking, autonomous driving, robotics, and medical image analysis. In recent years, real-time object detection development has focused on designing efficient architectures and improving the inference speed of various CPUs, GPUs, and neural processing units (NPUs). YOLOv7 supports both mobile GPU and GPU devices, from the edge to the cloud.
+Real-time object detection is an important component in many [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) systems, including multi-object tracking, autonomous driving, robotics, and medical image analysis. In recent years, real-time object detection development has focused on designing efficient architectures and improving the inference speed of various CPUs, GPUs, and neural processing units (NPUs). YOLOv7 supports both mobile GPU and GPU devices, from the edge to the cloud.
 
 Unlike traditional real-time object detectors that focus on architecture optimization, YOLOv7 introduces a focus on the optimization of the training process. This includes modules and optimization methods designed to improve the accuracy of object detection without increasing the inference cost, a concept known as the "trainable bag-of-freebies".
 
@@ -115,7 +115,7 @@ The original YOLOv7 paper can be found on [arXiv](https://arxiv.org/pdf/2207.026
 
 ## FAQ
 
-### What is YOLOv7 and why is it considered a breakthrough in real-time object detection?
+### What is YOLOv7 and why is it considered a breakthrough in real-time [object detection](https://www.ultralytics.com/glossary/object-detection)?
 
 YOLOv7 is a cutting-edge real-time object detection model that achieves unparalleled speed and accuracy. It surpasses other models, such as YOLOX, YOLOv5, and PPYOLOE, in both parameters usage and inference speed. YOLOv7's distinguishing features include its model re-parameterization and dynamic label assignment, which optimize its performance without increasing inference costs. For more technical details about its architecture and comparison metrics with other state-of-the-art object detectors, refer to the [YOLOv7 paper](https://arxiv.org/pdf/2207.02696.pdf).
 

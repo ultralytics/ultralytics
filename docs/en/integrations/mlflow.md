@@ -10,7 +10,7 @@ keywords: MLflow, Ultralytics YOLO, machine learning, experiment tracking, metri
 
 ## Introduction
 
-Experiment logging is a crucial aspect of machine learning workflows that enables tracking of various metrics, parameters, and artifacts. It helps to enhance model reproducibility, debug issues, and improve model performance. [Ultralytics](https://www.ultralytics.com/) YOLO, known for its real-time object detection capabilities, now offers integration with [MLflow](https://mlflow.org/), an open-source platform for complete machine learning lifecycle management.
+Experiment logging is a crucial aspect of [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) workflows that enables tracking of various metrics, parameters, and artifacts. It helps to enhance model reproducibility, debug issues, and improve model performance. [Ultralytics](https://www.ultralytics.com/) YOLO, known for its real-time [object detection](https://www.ultralytics.com/glossary/object-detection) capabilities, now offers integration with [MLflow](https://mlflow.org/), an open-source platform for complete machine learning lifecycle management.
 
 This documentation page is a comprehensive guide to setting up and utilizing the MLflow logging capabilities for your Ultralytics YOLO project.
 
@@ -164,7 +164,7 @@ mlflow server --backend-store-uri runs/mlflow
 
 Ultralytics YOLO with MLflow supports logging various metrics, parameters, and artifacts throughout the training process:
 
-- **Metrics Logging**: Tracks metrics at the end of each epoch and upon training completion.
+- **Metrics Logging**: Tracks metrics at the end of each [epoch](https://www.ultralytics.com/glossary/epoch) and upon training completion.
 - **Parameter Logging**: Logs all parameters used in the training process.
 - **Artifacts Logging**: Saves model artifacts like weights and configuration files after training.
 

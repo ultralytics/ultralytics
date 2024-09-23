@@ -6,7 +6,7 @@ keywords: Ultralytics, datasets, computer vision, object detection, instance seg
 
 # Datasets Overview
 
-Ultralytics provides support for various datasets to facilitate computer vision tasks such as detection, instance segmentation, pose estimation, classification, and multi-object tracking. Below is a list of the main Ultralytics datasets, followed by a summary of each computer vision task and the respective datasets.
+Ultralytics provides support for various datasets to facilitate computer vision tasks such as detection, [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation), pose estimation, classification, and multi-object tracking. Below is a list of the main Ultralytics datasets, followed by a summary of each computer vision task and the respective datasets.
 
 <p align="center">
   <br>
@@ -21,7 +21,7 @@ Ultralytics provides support for various datasets to facilitate computer vision 
 
 ## NEW 🚀 Ultralytics Explorer
 
-Create embeddings for your dataset, search for similar images, run SQL queries, perform semantic search and even search using natural language! You can get started with our GUI app or build your own using the API. Learn more [here](explorer/index.md).
+Create [embeddings](https://www.ultralytics.com/glossary/embeddings) for your dataset, search for similar images, run SQL queries, perform semantic search and even search using natural language! You can get started with our GUI app or build your own using the API. Learn more [here](explorer/index.md).
 
 <p>
 <img alt="Ultralytics Explorer Screenshot" src="https://github.com/ultralytics/docs/releases/download/0/ultralytics-explorer-screenshot.avif">
@@ -32,7 +32,7 @@ Create embeddings for your dataset, search for similar images, run SQL queries, 
 
 ## [Object Detection](detect/index.md)
 
-Bounding box object detection is a computer vision technique that involves detecting and localizing objects in an image by drawing a bounding box around each object.
+[Bounding box](https://www.ultralytics.com/glossary/bounding-box) object detection is a computer vision technique that involves detecting and localizing objects in an image by drawing a bounding box around each object.
 
 - [Argoverse](detect/argoverse.md): A dataset containing 3D tracking and motion forecasting data from urban environments with rich annotations.
 - [COCO](detect/coco.md): Common Objects in Context (COCO) is a large-scale object detection, segmentation, and captioning dataset with 80 object categories.
@@ -72,7 +72,7 @@ Pose estimation is a technique used to determine the pose of the object relative
 
 ## [Classification](classify/index.md)
 
-Image classification is a computer vision task that involves categorizing an image into one or more predefined classes or categories based on its visual content.
+[Image classification](https://www.ultralytics.com/glossary/image-classification) is a computer vision task that involves categorizing an image into one or more predefined classes or categories based on its visual content.
 
 - [Caltech 101](classify/caltech101.md): A dataset containing images of 101 object categories for image classification tasks.
 - [Caltech 256](classify/caltech256.md): An extended version of Caltech 101 with 256 object categories and more challenging images.
@@ -152,7 +152,7 @@ By following these steps, you can contribute a new dataset that integrates well 
 
 ## FAQ
 
-### What datasets does Ultralytics support for object detection?
+### What datasets does Ultralytics support for [object detection](https://www.ultralytics.com/glossary/object-detection)?
 
 Ultralytics supports a wide variety of datasets for object detection, including:
 
@@ -190,7 +190,7 @@ Ultralytics Explorer offers powerful features for dataset analysis, including:
 
 Explore the [Ultralytics Explorer](explorer/index.md) for more information and to try the [GUI Demo](explorer/index.md).
 
-### What are the unique features of Ultralytics YOLO models for computer vision?
+### What are the unique features of Ultralytics YOLO models for [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv)?
 
 Ultralytics YOLO models provide several unique features:
 

@@ -52,7 +52,7 @@ We have released a custom training tutorial demonstrating all of the above capab
 
 ## Active Learning
 
-The real world is messy and your model will invariably encounter situations your dataset didn't anticipate. Using [active learning](https://blog.roboflow.com/what-is-active-learning/?ref=ultralytics) is an important strategy to iteratively improve your dataset and model. With the Roboflow and YOLOv5 integration, you can quickly make improvements on your model deployments by using a battle tested machine learning pipeline.
+The real world is messy and your model will invariably encounter situations your dataset didn't anticipate. Using [active learning](https://blog.roboflow.com/what-is-active-learning/?ref=ultralytics) is an important strategy to iteratively improve your dataset and model. With the Roboflow and YOLOv5 integration, you can quickly make improvements on your [model deployments](https://www.ultralytics.com/glossary/model-deployment) by using a battle tested [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) pipeline.
 
 <p align=""><a href="https://roboflow.com/?ref=ultralytics"><img width="1000" src="https://github.com/ultralytics/docs/releases/download/0/roboflow-active-learning.avif" alt="Roboflow active learning"></a></p>
 
@@ -96,10 +96,10 @@ dataset = project.version("YOUR VERSION").download("yolov5")
 
 This code will download your dataset in a format compatible with YOLOv5, allowing you to quickly begin training your model. For more details, refer to the [Exporting Data](#exporting-data) section.
 
-### What is active learning and how does it work with YOLOv5 and Roboflow?
+### What is [active learning](https://www.ultralytics.com/glossary/active-learning) and how does it work with YOLOv5 and Roboflow?
 
 Active learning is a machine learning strategy that iteratively improves a model by intelligently selecting the most informative data points to label. With the Roboflow and YOLOv5 integration, you can implement active learning to continuously enhance your model's performance. This involves deploying a model, capturing new data, using the model to make predictions, and then manually verifying or correcting those predictions to further train the model. For more insights into active learning see the [Active Learning](#active-learning) section above.
 
 ### How can I use Ultralytics environments for training YOLOv5 models on different platforms?
 
-Ultralytics provides ready-to-use environments with pre-installed dependencies like CUDA, CUDNN, Python, and PyTorch, making it easier to kickstart your training projects. These environments are available on various platforms such as Google Cloud, AWS, Azure, and Docker. You can also access free GPU notebooks via [Paperspace](https://bit.ly/yolov5-paperspace-notebook), [Google Colab](https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb), and [Kaggle](https://www.kaggle.com/ultralytics/yolov5). For specific setup instructions, visit the [Supported Environments](#supported-environments) section of the documentation.
+Ultralytics provides ready-to-use environments with pre-installed dependencies like CUDA, CUDNN, Python, and [PyTorch](https://www.ultralytics.com/glossary/pytorch), making it easier to kickstart your training projects. These environments are available on various platforms such as Google Cloud, AWS, Azure, and Docker. You can also access free GPU notebooks via [Paperspace](https://bit.ly/yolov5-paperspace-notebook), [Google Colab](https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb), and [Kaggle](https://www.kaggle.com/ultralytics/yolov5). For specific setup instructions, visit the [Supported Environments](#supported-environments) section of the documentation.

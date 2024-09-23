@@ -4,7 +4,7 @@ description: Optimize YOLOv8 model performance with Ray Tune. Learn efficient hy
 keywords: YOLOv8, Ray Tune, hyperparameter tuning, model optimization, machine learning, deep learning, AI, Ultralytics, Weights & Biases
 ---
 
-# Efficient Hyperparameter Tuning with Ray Tune and YOLOv8
+# Efficient [Hyperparameter Tuning](https://www.ultralytics.com/glossary/hyperparameter-tuning) with Ray Tune and YOLOv8
 
 Hyperparameter tuning is vital in achieving peak model performance by discovering the optimal set of hyperparameters. This involves running trials with different hyperparameters and evaluating each trial's performance.
 
@@ -18,7 +18,7 @@ Hyperparameter tuning is vital in achieving peak model performance by discoverin
   <img width="640" src="https://github.com/ultralytics/docs/releases/download/0/ray-tune-overview.avif" alt="Ray Tune Overview">
 </p>
 
-[Ray Tune](https://docs.ray.io/en/latest/tune/index.html) is a hyperparameter tuning library designed for efficiency and flexibility. It supports various search strategies, parallelism, and early stopping strategies, and seamlessly integrates with popular machine learning frameworks, including Ultralytics YOLOv8.
+[Ray Tune](https://docs.ray.io/en/latest/tune/index.html) is a hyperparameter tuning library designed for efficiency and flexibility. It supports various search strategies, parallelism, and early stopping strategies, and seamlessly integrates with popular [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) frameworks, including Ultralytics YOLOv8.
 
 ### Integration with Weights & Biases
 
@@ -60,14 +60,14 @@ To install the required packages, run:
 
 The `tune()` method in YOLOv8 provides an easy-to-use interface for hyperparameter tuning with Ray Tune. It accepts several arguments that allow you to customize the tuning process. Below is a detailed explanation of each parameter:
 
-| Parameter       | Type             | Description                                                                                                                                                                                                                                                                                    | Default Value |
-| --------------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------- |
-| `data`          | `str`            | The dataset configuration file (in YAML format) to run the tuner on. This file should specify the training and validation data paths, as well as other dataset-specific settings.                                                                                                              |               |
-| `space`         | `dict, optional` | A dictionary defining the hyperparameter search space for Ray Tune. Each key corresponds to a hyperparameter name, and the value specifies the range of values to explore during tuning. If not provided, YOLOv8 uses a default search space with various hyperparameters.                     |               |
-| `grace_period`  | `int, optional`  | The grace period in epochs for the [ASHA scheduler](https://docs.ray.io/en/latest/tune/api/schedulers.html) in Ray Tune. The scheduler will not terminate any trial before this number of epochs, allowing the model to have some minimum training before making a decision on early stopping. | 10            |
-| `gpu_per_trial` | `int, optional`  | The number of GPUs to allocate per trial during tuning. This helps manage GPU usage, particularly in multi-GPU environments. If not provided, the tuner will use all available GPUs.                                                                                                           | None          |
-| `iterations`    | `int, optional`  | The maximum number of trials to run during tuning. This parameter helps control the total number of hyperparameter combinations tested, ensuring the tuning process does not run indefinitely.                                                                                                 | 10            |
-| `**train_args`  | `dict, optional` | Additional arguments to pass to the `train()` method during tuning. These arguments can include settings like the number of training epochs, batch size, and other training-specific configurations.                                                                                           | {}            |
+| Parameter       | Type             | Description                                                                                                                                                                                                                                                                                                                                  | Default Value |
+| --------------- | ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------- |
+| `data`          | `str`            | The dataset configuration file (in YAML format) to run the tuner on. This file should specify the training and [validation data](https://www.ultralytics.com/glossary/validation-data) paths, as well as other dataset-specific settings.                                                                                                    |               |
+| `space`         | `dict, optional` | A dictionary defining the hyperparameter search space for Ray Tune. Each key corresponds to a hyperparameter name, and the value specifies the range of values to explore during tuning. If not provided, YOLOv8 uses a default search space with various hyperparameters.                                                                   |               |
+| `grace_period`  | `int, optional`  | The grace period in [epochs](https://www.ultralytics.com/glossary/epoch) for the [ASHA scheduler](https://docs.ray.io/en/latest/tune/api/schedulers.html) in Ray Tune. The scheduler will not terminate any trial before this number of epochs, allowing the model to have some minimum training before making a decision on early stopping. | 10            |
+| `gpu_per_trial` | `int, optional`  | The number of GPUs to allocate per trial during tuning. This helps manage GPU usage, particularly in multi-GPU environments. If not provided, the tuner will use all available GPUs.                                                                                                                                                         | None          |
+| `iterations`    | `int, optional`  | The maximum number of trials to run during tuning. This parameter helps control the total number of hyperparameter combinations tested, ensuring the tuning process does not run indefinitely.                                                                                                                                               | 10            |
+| `**train_args`  | `dict, optional` | Additional arguments to pass to the `train()` method during tuning. These arguments can include settings like the number of training epochs, [batch size](https://www.ultralytics.com/glossary/batch-size), and other training-specific configurations.                                                                                      | {}            |
 
 By customizing these parameters, you can fine-tune the hyperparameter optimization process to suit your specific needs and available computational resources.
 
@@ -75,29 +75,29 @@ By customizing these parameters, you can fine-tune the hyperparameter optimizati
 
 The following table lists the default search space parameters for hyperparameter tuning in YOLOv8 with Ray Tune. Each parameter has a specific value range defined by `tune.uniform()`.
 
-| Parameter         | Value Range                | Description                              |
-| ----------------- | -------------------------- | ---------------------------------------- |
-| `lr0`             | `tune.uniform(1e-5, 1e-1)` | Initial learning rate                    |
-| `lrf`             | `tune.uniform(0.01, 1.0)`  | Final learning rate factor               |
-| `momentum`        | `tune.uniform(0.6, 0.98)`  | Momentum                                 |
-| `weight_decay`    | `tune.uniform(0.0, 0.001)` | Weight decay                             |
-| `warmup_epochs`   | `tune.uniform(0.0, 5.0)`   | Warmup epochs                            |
-| `warmup_momentum` | `tune.uniform(0.0, 0.95)`  | Warmup momentum                          |
-| `box`             | `tune.uniform(0.02, 0.2)`  | Box loss weight                          |
-| `cls`             | `tune.uniform(0.2, 4.0)`   | Class loss weight                        |
-| `hsv_h`           | `tune.uniform(0.0, 0.1)`   | Hue augmentation range                   |
-| `hsv_s`           | `tune.uniform(0.0, 0.9)`   | Saturation augmentation range            |
-| `hsv_v`           | `tune.uniform(0.0, 0.9)`   | Value (brightness) augmentation range    |
-| `degrees`         | `tune.uniform(0.0, 45.0)`  | Rotation augmentation range (degrees)    |
-| `translate`       | `tune.uniform(0.0, 0.9)`   | Translation augmentation range           |
-| `scale`           | `tune.uniform(0.0, 0.9)`   | Scaling augmentation range               |
-| `shear`           | `tune.uniform(0.0, 10.0)`  | Shear augmentation range (degrees)       |
-| `perspective`     | `tune.uniform(0.0, 0.001)` | Perspective augmentation range           |
-| `flipud`          | `tune.uniform(0.0, 1.0)`   | Vertical flip augmentation probability   |
-| `fliplr`          | `tune.uniform(0.0, 1.0)`   | Horizontal flip augmentation probability |
-| `mosaic`          | `tune.uniform(0.0, 1.0)`   | Mosaic augmentation probability          |
-| `mixup`           | `tune.uniform(0.0, 1.0)`   | Mixup augmentation probability           |
-| `copy_paste`      | `tune.uniform(0.0, 1.0)`   | Copy-paste augmentation probability      |
+| Parameter         | Value Range                | Description                                                                 |
+| ----------------- | -------------------------- | --------------------------------------------------------------------------- |
+| `lr0`             | `tune.uniform(1e-5, 1e-1)` | Initial [learning rate](https://www.ultralytics.com/glossary/learning-rate) |
+| `lrf`             | `tune.uniform(0.01, 1.0)`  | Final learning rate factor                                                  |
+| `momentum`        | `tune.uniform(0.6, 0.98)`  | Momentum                                                                    |
+| `weight_decay`    | `tune.uniform(0.0, 0.001)` | Weight decay                                                                |
+| `warmup_epochs`   | `tune.uniform(0.0, 5.0)`   | Warmup epochs                                                               |
+| `warmup_momentum` | `tune.uniform(0.0, 0.95)`  | Warmup momentum                                                             |
+| `box`             | `tune.uniform(0.02, 0.2)`  | Box loss weight                                                             |
+| `cls`             | `tune.uniform(0.2, 4.0)`   | Class loss weight                                                           |
+| `hsv_h`           | `tune.uniform(0.0, 0.1)`   | Hue augmentation range                                                      |
+| `hsv_s`           | `tune.uniform(0.0, 0.9)`   | Saturation augmentation range                                               |
+| `hsv_v`           | `tune.uniform(0.0, 0.9)`   | Value (brightness) augmentation range                                       |
+| `degrees`         | `tune.uniform(0.0, 45.0)`  | Rotation augmentation range (degrees)                                       |
+| `translate`       | `tune.uniform(0.0, 0.9)`   | Translation augmentation range                                              |
+| `scale`           | `tune.uniform(0.0, 0.9)`   | Scaling augmentation range                                                  |
+| `shear`           | `tune.uniform(0.0, 10.0)`  | Shear augmentation range (degrees)                                          |
+| `perspective`     | `tune.uniform(0.0, 0.001)` | Perspective augmentation range                                              |
+| `flipud`          | `tune.uniform(0.0, 1.0)`   | Vertical flip augmentation probability                                      |
+| `fliplr`          | `tune.uniform(0.0, 1.0)`   | Horizontal flip augmentation probability                                    |
+| `mosaic`          | `tune.uniform(0.0, 1.0)`   | Mosaic augmentation probability                                             |
+| `mixup`           | `tune.uniform(0.0, 1.0)`   | Mixup augmentation probability                                              |
+| `copy_paste`      | `tune.uniform(0.0, 1.0)`   | Copy-paste augmentation probability                                         |
 
 ## Custom Search Space Example
 

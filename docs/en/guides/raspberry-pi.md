@@ -49,7 +49,7 @@ The first thing to do after getting your hands on a Raspberry Pi is to flash a m
 
 ## Set Up Ultralytics
 
-There are two ways of setting up Ultralytics package on Raspberry Pi to build your next Computer Vision project. You can use either of them.
+There are two ways of setting up Ultralytics package on Raspberry Pi to build your next [Computer Vision](https://www.ultralytics.com/glossary/computer-vision-cv) project. You can use either of them.
 
 - [Start with Docker](#start-with-docker)
 - [Start without Docker](#start-without-docker)
@@ -70,7 +70,7 @@ After this is done, skip to [Use NCNN on Raspberry Pi section](#use-ncnn-on-rasp
 
 #### Install Ultralytics Package
 
-Here we will install Ultralytics package on the Raspberry Pi with optional dependencies so that we can export the PyTorch models to other different formats.
+Here we will install Ultralytics package on the Raspberry Pi with optional dependencies so that we can export the [PyTorch](https://www.ultralytics.com/glossary/pytorch) models to other different formats.
 
 1. Update packages list, install pip and upgrade to latest
 
@@ -136,7 +136,7 @@ The YOLOv8n model in PyTorch format is converted to NCNN to run inference with t
 
 ## Raspberry Pi 5 vs Raspberry Pi 4 YOLOv8 Benchmarks
 
-YOLOv8 benchmarks were run by the Ultralytics team on nine different model formats measuring speed and accuracy: PyTorch, TorchScript, ONNX, OpenVINO, TF SavedModel, TF GraphDef, TF Lite, PaddlePaddle, NCNN. Benchmarks were run on both Raspberry Pi 5 and Raspberry Pi 4 at FP32 precision with default input image size of 640.
+YOLOv8 benchmarks were run by the Ultralytics team on nine different model formats measuring speed and [accuracy](https://www.ultralytics.com/glossary/accuracy): PyTorch, TorchScript, ONNX, OpenVINO, TF SavedModel, TF GraphDef, TF Lite, PaddlePaddle, NCNN. Benchmarks were run on both Raspberry Pi 5 and Raspberry Pi 4 at FP32 [precision](https://www.ultralytics.com/glossary/precision) with default input image size of 640.
 
 !!! note
 

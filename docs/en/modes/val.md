@@ -10,7 +10,7 @@ keywords: Ultralytics, YOLOv8, model validation, machine learning, object detect
 
 ## Introduction
 
-Validation is a critical step in the machine learning pipeline, allowing you to assess the quality of your trained models. Val mode in Ultralytics YOLOv8 provides a robust suite of tools and metrics for evaluating the performance of your object detection models. This guide serves as a complete resource for understanding how to effectively use the Val mode to ensure that your models are both accurate and reliable.
+Validation is a critical step in the [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) pipeline, allowing you to assess the quality of your trained models. Val mode in Ultralytics YOLOv8 provides a robust suite of tools and metrics for evaluating the performance of your [object detection](https://www.ultralytics.com/glossary/object-detection) models. This guide serves as a complete resource for understanding how to effectively use the Val mode to ensure that your models are both accurate and reliable.
 
 <p align="center">
   <br>
@@ -30,7 +30,7 @@ Here's why using YOLOv8's Val mode is advantageous:
 - **Precision:** Get accurate metrics like mAP50, mAP75, and mAP50-95 to comprehensively evaluate your model.
 - **Convenience:** Utilize built-in features that remember training settings, simplifying the validation process.
 - **Flexibility:** Validate your model with the same or different datasets and image sizes.
-- **Hyperparameter Tuning:** Use validation metrics to fine-tune your model for better performance.
+- **[Hyperparameter Tuning](https://www.ultralytics.com/glossary/hyperparameter-tuning):** Use validation metrics to fine-tune your model for better performance.
 
 ### Key Features of Val Mode
 
@@ -47,7 +47,7 @@ These are the notable functionalities offered by YOLOv8's Val mode:
 
 ## Usage Examples
 
-Validate trained YOLOv8n model accuracy on the COCO8 dataset. No arguments are needed as the `model` retains its training `data` and arguments as model attributes. See Arguments section below for a full list of export arguments.
+Validate trained YOLOv8n model [accuracy](https://www.ultralytics.com/glossary/accuracy) on the COCO8 dataset. No arguments are needed as the `model` retains its training `data` and arguments as model attributes. See Arguments section below for a full list of export arguments.
 
 !!! example
 
@@ -156,7 +156,7 @@ For a complete performance evaluation, it's crucial to review all these metrics.
 
 Using Ultralytics YOLO for validation provides several advantages:
 
-- **Precision:** YOLOv8 offers accurate performance metrics including mAP50, mAP75, and mAP50-95.
+- **[Precision](https://www.ultralytics.com/glossary/precision):** YOLOv8 offers accurate performance metrics including mAP50, mAP75, and mAP50-95.
 - **Convenience:** The models remember their training settings, making validation straightforward.
 - **Flexibility:** You can validate against the same or different datasets and image sizes.
 - **Hyperparameter Tuning:** Validation metrics help in fine-tuning models for better performance.
@@ -165,7 +165,7 @@ These benefits ensure that your models are evaluated thoroughly and can be optim
 
 ### Can I validate my YOLOv8 model using a custom dataset?
 
-Yes, you can validate your YOLOv8 model using a [custom dataset](https://docs.ultralytics.com/datasets/). Specify the `data` argument with the path to your dataset configuration file. This file should include paths to the validation data, class names, and other relevant details.
+Yes, you can validate your YOLOv8 model using a [custom dataset](https://docs.ultralytics.com/datasets/). Specify the `data` argument with the path to your dataset configuration file. This file should include paths to the [validation data](https://www.ultralytics.com/glossary/validation-data), class names, and other relevant details.
 
 Example in Python:
 

@@ -12,7 +12,7 @@ keywords: Coral Edge TPU, Raspberry Pi, YOLOv8, Ultralytics, TensorFlow Lite, ML
 
 ## What is a Coral Edge TPU?
 
-The Coral Edge TPU is a compact device that adds an Edge TPU coprocessor to your system. It enables low-power, high-performance ML inference for TensorFlow Lite models. Read more at the [Coral Edge TPU home page](https://coral.ai/products/accelerator).
+The Coral Edge TPU is a compact device that adds an Edge TPU coprocessor to your system. It enables low-power, high-performance ML inference for [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) Lite models. Read more at the [Coral Edge TPU home page](https://coral.ai/products/accelerator).
 
 <p align="center">
   <br>
@@ -38,7 +38,7 @@ The [existing guide](https://coral.ai/docs/accelerator/get-started/) by Coral on
 - [Raspberry Pi 4B](https://www.raspberrypi.com/products/raspberry-pi-4-model-b/) (2GB or more recommended) or [Raspberry Pi 5](https://www.raspberrypi.com/products/raspberry-pi-5/) (Recommended)
 - [Raspberry Pi OS](https://www.raspberrypi.com/software/) Bullseye/Bookworm (64-bit) with desktop (Recommended)
 - [Coral USB Accelerator](https://coral.ai/products/accelerator/)
-- A non-ARM based platform for exporting an Ultralytics PyTorch model
+- A non-ARM based platform for exporting an Ultralytics [PyTorch](https://www.ultralytics.com/glossary/pytorch) model
 
 ## Installation Walkthrough
 
@@ -154,7 +154,7 @@ Find comprehensive information on the [Predict](../modes/predict.md) page for fu
 
 ### What is a Coral Edge TPU and how does it enhance Raspberry Pi's performance with Ultralytics YOLOv8?
 
-The Coral Edge TPU is a compact device designed to add an Edge TPU coprocessor to your system. This coprocessor enables low-power, high-performance machine learning inference, particularly optimized for TensorFlow Lite models. When using a Raspberry Pi, the Edge TPU accelerates ML model inference, significantly boosting performance, especially for Ultralytics YOLOv8 models. You can read more about the Coral Edge TPU on their [home page](https://coral.ai/products/accelerator).
+The Coral Edge TPU is a compact device designed to add an Edge TPU coprocessor to your system. This coprocessor enables low-power, high-performance [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) inference, particularly optimized for TensorFlow Lite models. When using a Raspberry Pi, the Edge TPU accelerates ML model inference, significantly boosting performance, especially for Ultralytics YOLOv8 models. You can read more about the Coral Edge TPU on their [home page](https://coral.ai/products/accelerator).
 
 ### How do I install the Coral Edge TPU runtime on a Raspberry Pi?
 

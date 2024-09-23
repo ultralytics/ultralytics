@@ -128,7 +128,7 @@ For more details on the customization and source code, see the [`BaseTrainer` Re
 
 ### How can I add a callback to the Ultralytics YOLOv8 DetectionTrainer?
 
-You can add callbacks to monitor and modify the training process in Ultralytics YOLOv8 `DetectionTrainer`. For instance, here's how you can add a callback to log model weights after every training epoch:
+You can add callbacks to monitor and modify the training process in Ultralytics YOLOv8 `DetectionTrainer`. For instance, here's how you can add a callback to log model weights after every training [epoch](https://www.ultralytics.com/glossary/epoch):
 
 ```python
 from ultralytics.models.yolo.detect import DetectionTrainer
@@ -153,8 +153,8 @@ For further details on callback events and entry points, refer to our [Callbacks
 Ultralytics YOLOv8 offers a high-level abstraction on powerful engine executors, making it ideal for rapid development and customization. Key benefits include:
 
 - **Ease of Use**: Both command-line and Python interfaces simplify complex tasks.
-- **Performance**: Optimized for real-time object detection and various vision AI applications.
-- **Customization**: Easily extendable for custom models, loss functions, and dataloaders.
+- **Performance**: Optimized for real-time [object detection](https://www.ultralytics.com/glossary/object-detection) and various vision AI applications.
+- **Customization**: Easily extendable for custom models, [loss functions](https://www.ultralytics.com/glossary/loss-function), and dataloaders.
 
 Learn more about YOLOv8's capabilities by visiting [Ultralytics YOLO](https://www.ultralytics.com/yolo).
 

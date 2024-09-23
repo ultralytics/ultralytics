@@ -6,13 +6,13 @@ keywords: YOLOv8, Google Colab, machine learning, deep learning, model training,
 
 # Accelerating YOLOv8 Projects with Google Colab
 
-Many developers lack the powerful computing resources needed to build deep learning models. Acquiring high-end hardware or renting a decent GPU can be expensive. Google Colab is a great solution to this. It's a browser-based platform that allows you to work with large datasets, develop complex models, and share your work with others without a huge cost.
+Many developers lack the powerful computing resources needed to build [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models. Acquiring high-end hardware or renting a decent GPU can be expensive. Google Colab is a great solution to this. It's a browser-based platform that allows you to work with large datasets, develop complex models, and share your work with others without a huge cost.
 
 You can use Google Colab to work on projects related to [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics) models. Google Colab's user-friendly environment is well suited for efficient model development and experimentation. Let's learn more about Google Colab, its key features, and how you can use it to train YOLOv8 models.
 
 ## Google Colaboratory
 
-Google Colaboratory, commonly known as Google Colab, was developed by Google Research in 2017. It is a free online cloud-based Jupyter Notebook environment that allows you to train your machine learning and deep learning models on CPUs, GPUs, and TPUs. The motivation behind developing Google Colab was Google's broader goals to advance AI technology and educational tools, and encourage the use of cloud services.
+Google Colaboratory, commonly known as Google Colab, was developed by Google Research in 2017. It is a free online cloud-based Jupyter Notebook environment that allows you to train your [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) and deep learning models on CPUs, GPUs, and TPUs. The motivation behind developing Google Colab was Google's broader goals to advance AI technology and educational tools, and encourage the use of cloud services.
 
 You can use Google Colab regardless of the specifications and configurations of your local computer. All you need is a Google account and a web browser, and you're good to go.
 

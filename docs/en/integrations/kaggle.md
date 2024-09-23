@@ -6,7 +6,7 @@ keywords: What is Kaggle, What is Kaggle Used For, YOLOv8, Kaggle Machine Learni
 
 # A Guide on Using Kaggle to Train Your YOLOv8 Models
 
-If you are learning about AI and working on [small projects](../solutions/index.md), you might not have access to powerful computing resources yet, and high-end hardware can be pretty expensive. Fortunately, Kaggle, a platform owned by Google, offers a great solution. Kaggle provides a free, cloud-based environment where you can access GPU resources, handle large datasets, and collaborate with a diverse community of data scientists and machine learning enthusiasts.
+If you are learning about AI and working on [small projects](../solutions/index.md), you might not have access to powerful computing resources yet, and high-end hardware can be pretty expensive. Fortunately, Kaggle, a platform owned by Google, offers a great solution. Kaggle provides a free, cloud-based environment where you can access GPU resources, handle large datasets, and collaborate with a diverse community of data scientists and [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) enthusiasts.
 
 Kaggle is a great choice for [training](../guides/model-training-tips.md) and experimenting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics?tab=readme-ov-file) models. Kaggle Notebooks make using popular machine-learning libraries and frameworks in your projects easy. Let's explore Kaggle's main features and learn how you can train YOLOv8 models on this platform!
 
@@ -20,7 +20,7 @@ With more than [10 million users](https://www.kaggle.com/discussions/general/332
 
 Training YOLOv8 models on Kaggle is simple and efficient, thanks to the platform's access to powerful GPUs.
 
-To get started, access the [Kaggle YOLOv8 Notebook](https://www.kaggle.com/code/ultralytics/yolov8). Kaggle's environment comes with pre-installed libraries like TensorFlow and PyTorch, making the setup process hassle-free.
+To get started, access the [Kaggle YOLOv8 Notebook](https://www.kaggle.com/code/ultralytics/yolov8). Kaggle's environment comes with pre-installed libraries like [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) and [PyTorch](https://www.ultralytics.com/glossary/pytorch), making the setup process hassle-free.
 
 ![What is the kaggle integration with respect to YOLOv8?](https://github.com/ultralytics/docs/releases/download/0/kaggle-integration-yolov8.avif)
 

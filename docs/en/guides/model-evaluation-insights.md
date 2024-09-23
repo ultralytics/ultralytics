@@ -24,19 +24,19 @@ _Quick Tip:_ When running inferences, if you aren't seeing any predictions and y
 
 ### Intersection over Union
 
-Intersection over Union (IoU) is a metric in object detection that measures how well the predicted bounding box overlaps with the ground truth bounding box. IoU values range from 0 to 1, where one stands for a perfect match. IoU is essential because it measures how closely the predicted boundaries match the actual object boundaries.
+[Intersection over Union](https://www.ultralytics.com/glossary/intersection-over-union-iou) (IoU) is a metric in [object detection](https://www.ultralytics.com/glossary/object-detection) that measures how well the predicted [bounding box](https://www.ultralytics.com/glossary/bounding-box) overlaps with the ground truth bounding box. IoU values range from 0 to 1, where one stands for a perfect match. IoU is essential because it measures how closely the predicted boundaries match the actual object boundaries.
 
 <p align="center">
   <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/intersection-over-union-overview.avif" alt="Intersection over Union Overview">
 </p>
 
-### Mean Average Precision
+### Mean Average [Precision](https://www.ultralytics.com/glossary/precision)
 
-Mean Average Precision (mAP) is a way to measure how well an object detection model performs. It looks at the precision of detecting each object class, averages these scores, and gives an overall number that shows how accurately the model can identify and classify objects.
+[Mean Average Precision](https://www.ultralytics.com/glossary/mean-average-precision-map) (mAP) is a way to measure how well an object detection model performs. It looks at the precision of detecting each object class, averages these scores, and gives an overall number that shows how accurately the model can identify and classify objects.
 
 Let's focus on two specific mAP metrics:
 
-- *mAP@.5:* Measures the average precision at a single IoU (Intersection over Union) threshold of 0.5. This metric checks if the model can correctly find objects with a looser accuracy requirement. It focuses on whether the object is roughly in the right place, not needing perfect placement. It helps see if the model is generally good at spotting objects.
+- *mAP@.5:* Measures the average precision at a single IoU (Intersection over Union) threshold of 0.5. This metric checks if the model can correctly find objects with a looser [accuracy](https://www.ultralytics.com/glossary/accuracy) requirement. It focuses on whether the object is roughly in the right place, not needing perfect placement. It helps see if the model is generally good at spotting objects.
 - *mAP@.5:.95:* Averages the mAP values calculated at multiple IoU thresholds, from 0.5 to 0.95 in 0.05 increments. This metric is more detailed and strict. It gives a fuller picture of how accurately the model can find objects at different levels of strictness and is especially useful for applications that need precise object detection.
 
 Other mAP metrics include mAP@0.75, which uses a stricter IoU threshold of 0.75, and mAP@small, medium, and large, which evaluate precision across objects of different sizes.
@@ -111,9 +111,9 @@ Fine-tuning involves taking a pre-trained model and adjusting its parameters to 
 
 Fine-tuning a model means paying close attention to several vital parameters and techniques to achieve optimal performance. Here are some essential tips to guide you through the process.
 
-### Starting With a Higher Learning Rate
+### Starting With a Higher [Learning Rate](https://www.ultralytics.com/glossary/learning-rate)
 
-Usually, during the initial training epochs, the learning rate starts low and gradually increases to stabilize the training process. However, since your model has already learned some features from the previous dataset, starting with a higher learning rate right away can be more beneficial.
+Usually, during the initial training [epochs](https://www.ultralytics.com/glossary/epoch), the learning rate starts low and gradually increases to stabilize the training process. However, since your model has already learned some features from the previous dataset, starting with a higher learning rate right away can be more beneficial.
 
 When evaluating your YOLOv8 model, you can set the `warmup_epochs` validation parameter to `warmup_epochs=0` to prevent the learning rate from starting too high. By following this process, the training will continue from the provided weights, adjusting to the nuances of your new data.
 
@@ -123,7 +123,7 @@ Image tiling can improve detection accuracy for small objects. By dividing large
 
 ## Engage with the Community
 
-Sharing your ideas and questions with other computer vision enthusiasts can inspire creative solutions to roadblocks in your projects. Here are some excellent ways to learn, troubleshoot, and connect.
+Sharing your ideas and questions with other [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) enthusiasts can inspire creative solutions to roadblocks in your projects. Here are some excellent ways to learn, troubleshoot, and connect.
 
 ### Finding Help and Support
 
@@ -136,7 +136,7 @@ Sharing your ideas and questions with other computer vision enthusiasts can insp
 
 ## Final Thoughts
 
-Evaluating and fine-tuning your computer vision model are important steps for successful model deployment. These steps help make sure that your model is accurate, efficient, and suited to your overall application. The key to training the best model possible is continuous experimentation and learning. Don't hesitate to tweak parameters, try new techniques, and explore different datasets. Keep experimenting and pushing the boundaries of what's possible!
+Evaluating and fine-tuning your computer vision model are important steps for successful [model deployment](https://www.ultralytics.com/glossary/model-deployment). These steps help make sure that your model is accurate, efficient, and suited to your overall application. The key to training the best model possible is continuous experimentation and learning. Don't hesitate to tweak parameters, try new techniques, and explore different datasets. Keep experimenting and pushing the boundaries of what's possible!
 
 ## FAQ
 
@@ -156,8 +156,8 @@ To handle variable image sizes during evaluation, use the `rect=true` parameter 
 
 Improving mean average precision (mAP) for a YOLOv8 model involves several steps:
 
-1. **Tuning Hyperparameters**: Experiment with different learning rates, batch sizes, and image augmentations.
-2. **Data Augmentation**: Use techniques like Mosaic and MixUp to create diverse training samples.
+1. **Tuning Hyperparameters**: Experiment with different learning rates, [batch sizes](https://www.ultralytics.com/glossary/batch-size), and image augmentations.
+2. **[Data Augmentation](https://www.ultralytics.com/glossary/data-augmentation)**: Use techniques like Mosaic and MixUp to create diverse training samples.
 3. **Image Tiling**: Split larger images into smaller tiles to improve detection accuracy for small objects.
    Refer to our detailed guide on [model fine-tuning](#tips-for-fine-tuning-your-model) for specific strategies.
 

@@ -6,9 +6,9 @@ keywords: YOLOv8, Comet ML, logging, machine learning, training, model checkpoin
 
 # Elevating YOLOv8 Training: Simplify Your Logging Process with Comet ML
 
-Logging key training details such as parameters, metrics, image predictions, and model checkpoints is essential in machine learning—it keeps your project transparent, your progress measurable, and your results repeatable.
+Logging key training details such as parameters, metrics, image predictions, and model checkpoints is essential in [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml)—it keeps your project transparent, your progress measurable, and your results repeatable.
 
-[Ultralytics YOLOv8](https://www.ultralytics.com/) seamlessly integrates with Comet ML, efficiently capturing and optimizing every aspect of your YOLOv8 object detection model's training process. In this guide, we'll cover the installation process, Comet ML setup, real-time insights, custom logging, and offline usage, ensuring that your YOLOv8 training is thoroughly documented and fine-tuned for outstanding results.
+[Ultralytics YOLOv8](https://www.ultralytics.com/) seamlessly integrates with Comet ML, efficiently capturing and optimizing every aspect of your YOLOv8 [object detection](https://www.ultralytics.com/glossary/object-detection) model's training process. In this guide, we'll cover the installation process, Comet ML setup, real-time insights, custom logging, and offline usage, ensuring that your YOLOv8 training is thoroughly documented and fine-tuned for outstanding results.
 
 ## Comet ML
 
@@ -85,7 +85,7 @@ Before diving into the usage instructions, be sure to check out the range of [YO
 
 After running the training code, Comet ML will create an experiment in your Comet workspace to track the run automatically. You will then be provided with a link to view the detailed logging of your [YOLOv8 model's training](../modes/train.md) process.
 
-Comet automatically logs the following data with no additional configuration: metrics such as mAP and loss, hyperparameters, model checkpoints, interactive confusion matrix, and image bounding box predictions.
+Comet automatically logs the following data with no additional configuration: metrics such as mAP and loss, hyperparameters, model checkpoints, interactive confusion matrix, and image [bounding box](https://www.ultralytics.com/glossary/bounding-box) predictions.
 
 ## Understanding Your Model's Performance with Comet ML Visualizations
 
@@ -93,7 +93,7 @@ Let's dive into what you'll see on the Comet ML dashboard once your YOLOv8 model
 
 **Experiment Panels**
 
-The experiment panels section of the Comet ML dashboard organize and present the different runs and their metrics, such as segment mask loss, class loss, precision, and mean average precision.
+The experiment panels section of the Comet ML dashboard organize and present the different runs and their metrics, such as segment mask loss, class loss, precision, and [mean average precision](https://www.ultralytics.com/glossary/mean-average-precision-map).
 
 <p align="center">
   <img width="640" src="https://github.com/ultralytics/docs/releases/download/0/comet-ml-dashboard-overview.avif" alt="Comet ML Overview">
@@ -107,9 +107,9 @@ In the metrics section, you have the option to examine the metrics in a tabular 
   <img width="640" src="https://github.com/ultralytics/docs/releases/download/0/comet-ml-metrics-tabular.avif" alt="Comet ML Overview">
 </p>
 
-**Interactive Confusion Matrix**
+**Interactive [Confusion Matrix](https://www.ultralytics.com/glossary/confusion-matrix)**
 
-The confusion matrix, found in the Confusion Matrix tab, provides an interactive way to assess the model's classification accuracy. It details the correct and incorrect predictions, allowing you to understand the model's strengths and weaknesses.
+The confusion matrix, found in the Confusion Matrix tab, provides an interactive way to assess the model's classification [accuracy](https://www.ultralytics.com/glossary/accuracy). It details the correct and incorrect predictions, allowing you to understand the model's strengths and weaknesses.
 
 <p align="center">
   <img width="640" src="https://github.com/ultralytics/docs/releases/download/0/comet-ml-interactive-confusion-matrix.avif" alt="Comet ML Overview">
@@ -149,7 +149,7 @@ os.environ["COMET_EVAL_BATCH_LOGGING_INTERVAL"] = "4"
 
 ### Disabling Confusion Matrix Logging
 
-In some cases, you may not want to log the confusion matrix from your validation set after every epoch. You can disable this feature by setting the `COMET_EVAL_LOG_CONFUSION_MATRIX` environment variable to "false." The confusion matrix will only be logged once, after the training is completed.
+In some cases, you may not want to log the confusion matrix from your validation set after every [epoch](https://www.ultralytics.com/glossary/epoch). You can disable this feature by setting the `COMET_EVAL_LOG_CONFUSION_MATRIX` environment variable to "false." The confusion matrix will only be logged once, after the training is completed.
 
 ```python
 import os
@@ -173,7 +173,7 @@ This guide has walked you through integrating Comet ML with Ultralytics' YOLOv8.
 
 Explore [Comet ML's official documentation](https://www.comet.com/docs/v2/integrations/third-party-tools/yolov8/) for more insights on integrating with YOLOv8.
 
-Furthermore, if you're looking to dive deeper into the practical applications of YOLOv8, specifically for image segmentation tasks, this detailed guide on [fine-tuning YOLOv8 with Comet ML](https://www.comet.com/site/blog/fine-tuning-yolov8-for-image-segmentation-with-comet/) offers valuable insights and step-by-step instructions to enhance your model's performance.
+Furthermore, if you're looking to dive deeper into the practical applications of YOLOv8, specifically for [image segmentation](https://www.ultralytics.com/glossary/image-segmentation) tasks, this detailed guide on [fine-tuning YOLOv8 with Comet ML](https://www.comet.com/site/blog/fine-tuning-yolov8-for-image-segmentation-with-comet/) offers valuable insights and step-by-step instructions to enhance your model's performance.
 
 Additionally, to explore other exciting integrations with Ultralytics, check out the [integration guide page](../integrations/index.md), which offers a wealth of resources and information.
 
@@ -266,7 +266,7 @@ Refer to the [Customizing Comet ML Logging](#customizing-comet-ml-logging) secti
 
 Once your YOLOv8 model starts training, you can access a wide range of metrics and visualizations on the Comet ML dashboard. Key features include:
 
-- **Experiment Panels**: View different runs and their metrics, including segment mask loss, class loss, and mean average precision.
+- **Experiment Panels**: View different runs and their metrics, including segment mask loss, class loss, and mean average [precision](https://www.ultralytics.com/glossary/precision).
 - **Metrics**: Examine metrics in tabular format for detailed analysis.
 - **Interactive Confusion Matrix**: Assess classification accuracy with an interactive confusion matrix.
 - **System Metrics**: Monitor GPU and CPU utilization, memory usage, and other system metrics.

@@ -50,7 +50,7 @@ dataframe = explorer.get_similar(idx=0)
 
 !!! note
 
-    Embeddings table for a given dataset and model pair is only created once and reused. These use [LanceDB](https://lancedb.github.io/lancedb/) under the hood, which scales on-disk, so you can create and reuse embeddings for large datasets like COCO without running out of memory.
+    [Embeddings](https://www.ultralytics.com/glossary/embeddings) table for a given dataset and model pair is only created once and reused. These use [LanceDB](https://lancedb.github.io/lancedb/) under the hood, which scales on-disk, so you can create and reuse embeddings for large datasets like COCO without running out of memory.
 
 In case you want to force update the embeddings table, you can pass `force=True` to `create_embeddings_table` method.
 
@@ -339,7 +339,7 @@ Try our GUI Demo based on Explorer API
 
 ### What is the Ultralytics Explorer API used for?
 
-The Ultralytics Explorer API is designed for comprehensive dataset exploration. It allows users to filter and search datasets using SQL queries, vector similarity search, and semantic search. This powerful Python API can handle large datasets, making it ideal for various computer vision tasks using Ultralytics models.
+The Ultralytics Explorer API is designed for comprehensive dataset exploration. It allows users to filter and search datasets using SQL queries, vector similarity search, and semantic search. This powerful Python API can handle large datasets, making it ideal for various [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) tasks using Ultralytics models.
 
 ### How do I install the Ultralytics Explorer API?
 

@@ -6,7 +6,7 @@ keywords: LVIS dataset, object detection, instance segmentation, Facebook AI Res
 
 # LVIS Dataset
 
-The [LVIS dataset](https://www.lvisdataset.org/) is a large-scale, fine-grained vocabulary-level annotation dataset developed and released by Facebook AI Research (FAIR). It is primarily used as a research benchmark for object detection and instance segmentation with a large vocabulary of categories, aiming to drive further advancements in computer vision field.
+The [LVIS dataset](https://www.lvisdataset.org/) is a large-scale, fine-grained vocabulary-level annotation dataset developed and released by Facebook AI Research (FAIR). It is primarily used as a research benchmark for object detection and [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation) with a large vocabulary of categories, aiming to drive further advancements in computer vision field.
 
 <p align="center">
   <br>
@@ -28,7 +28,7 @@ The [LVIS dataset](https://www.lvisdataset.org/) is a large-scale, fine-grained 
 - LVIS contains 160k images and 2M instance annotations for object detection, segmentation, and captioning tasks.
 - The dataset comprises 1203 object categories, including common objects like cars, bicycles, and animals, as well as more specific categories such as umbrellas, handbags, and sports equipment.
 - Annotations include object bounding boxes, segmentation masks, and captions for each image.
-- LVIS provides standardized evaluation metrics like mean Average Precision (mAP) for object detection, and mean Average Recall (mAR) for segmentation tasks, making it suitable for comparing model performance.
+- LVIS provides standardized evaluation metrics like [mean Average Precision](https://www.ultralytics.com/glossary/mean-average-precision-map) (mAP) for object detection, and mean Average [Recall](https://www.ultralytics.com/glossary/recall) (mAR) for segmentation tasks, making it suitable for comparing model performance.
 - LVIS uses exactly the same images as [COCO](./coco.md) dataset, but with different splits and different annotations.
 
 ## Dataset Structure
@@ -42,7 +42,7 @@ The LVIS dataset is split into three subsets:
 
 ## Applications
 
-The LVIS dataset is widely used for training and evaluating deep learning models in object detection (such as YOLO, Faster R-CNN, and SSD), instance segmentation (such as Mask R-CNN). The dataset's diverse set of object categories, large number of annotated images, and standardized evaluation metrics make it an essential resource for computer vision researchers and practitioners.
+The LVIS dataset is widely used for training and evaluating [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models in object detection (such as YOLO, Faster R-CNN, and SSD), instance segmentation (such as Mask R-CNN). The dataset's diverse set of object categories, large number of annotated images, and standardized evaluation metrics make it an essential resource for computer vision researchers and practitioners.
 
 ## Dataset YAML
 
@@ -56,7 +56,7 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 ## Usage
 
-To train a YOLOv8n model on the LVIS dataset for 100 epochs with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To train a YOLOv8n model on the LVIS dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
 !!! example "Train Example"
 
@@ -106,7 +106,7 @@ If you use the LVIS dataset in your research or development work, please cite th
         }
         ```
 
-We would like to acknowledge the LVIS Consortium for creating and maintaining this valuable resource for the computer vision community. For more information about the LVIS dataset and its creators, visit the [LVIS dataset website](https://www.lvisdataset.org/).
+We would like to acknowledge the LVIS Consortium for creating and maintaining this valuable resource for the [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) community. For more information about the LVIS dataset and its creators, visit the [LVIS dataset website](https://www.lvisdataset.org/).
 
 ## FAQ
 
@@ -144,11 +144,11 @@ For detailed training configurations, refer to the [Training](../../modes/train.
 
 ### How does the LVIS dataset differ from the COCO dataset?
 
-The images in the LVIS dataset are the same as those in the [COCO dataset](./coco.md), but the two differ in terms of splitting and annotations. LVIS provides a larger and more detailed vocabulary with 1203 object categories compared to COCO's 80 categories. Additionally, LVIS focuses on annotation completeness and diversity, aiming to push the limits of object detection and instance segmentation models by offering more nuanced and comprehensive data.
+The images in the LVIS dataset are the same as those in the [COCO dataset](./coco.md), but the two differ in terms of splitting and annotations. LVIS provides a larger and more detailed vocabulary with 1203 object categories compared to COCO's 80 categories. Additionally, LVIS focuses on annotation completeness and diversity, aiming to push the limits of [object detection](https://www.ultralytics.com/glossary/object-detection) and instance segmentation models by offering more nuanced and comprehensive data.
 
 ### Why should I use Ultralytics YOLO for training on the LVIS dataset?
 
-Ultralytics YOLO models, including the latest YOLOv8, are optimized for real-time object detection with state-of-the-art accuracy and speed. They support a wide range of annotations, such as the fine-grained ones provided by the LVIS dataset, making them ideal for advanced computer vision applications. Moreover, Ultralytics offers seamless integration with various [training](../../modes/train.md), [validation](../../modes/val.md), and [prediction](../../modes/predict.md) modes, ensuring efficient model development and deployment.
+Ultralytics YOLO models, including the latest YOLOv8, are optimized for real-time object detection with state-of-the-art [accuracy](https://www.ultralytics.com/glossary/accuracy) and speed. They support a wide range of annotations, such as the fine-grained ones provided by the LVIS dataset, making them ideal for advanced computer vision applications. Moreover, Ultralytics offers seamless integration with various [training](../../modes/train.md), [validation](../../modes/val.md), and [prediction](../../modes/predict.md) modes, ensuring efficient model development and deployment.
 
 ### Can I see some sample annotations from the LVIS dataset?
 

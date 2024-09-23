@@ -708,6 +708,14 @@ class Exporter:
         network = builder.create_network(flag)
         half = builder.platform_has_fast_fp16 and self.args.half
         int8 = builder.platform_has_fast_int8 and self.args.int8
+
+        # Optionally switch to DLA if enabled
+        if self.args.dla:
+            LOGGER.info(f"{prefix} enabling DLA...")
+            config.default_device_type = trt.DeviceType.DLA
+            config.DLA_core = self.args.dlacore
+            config.set_flag(trt.BuilderFlag.GPU_FALLBACK)
+
         # Read ONNX file
         parser = trt.OnnxParser(network, logger)
         if not parser.parse_from_file(f_onnx):

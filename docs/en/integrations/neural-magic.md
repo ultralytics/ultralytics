@@ -6,7 +6,7 @@ keywords: YOLOv8, DeepSparse, Neural Magic, model optimization, object detection
 
 # Optimizing YOLOv8 Inferences with Neural Magic's DeepSparse Engine
 
-When deploying object detection models like [Ultralytics YOLOv8](https://www.ultralytics.com/) on various hardware, you can bump into unique issues like optimization. This is where YOLOv8's integration with Neural Magic's DeepSparse Engine steps in. It transforms the way YOLOv8 models are executed and enables GPU-level performance directly on CPUs.
+When deploying [object detection](https://www.ultralytics.com/glossary/object-detection) models like [Ultralytics YOLOv8](https://www.ultralytics.com/) on various hardware, you can bump into unique issues like optimization. This is where YOLOv8's integration with Neural Magic's DeepSparse Engine steps in. It transforms the way YOLOv8 models are executed and enables GPU-level performance directly on CPUs.
 
 This guide shows you how to deploy YOLOv8 using Neural Magic's DeepSparse, how to run inferences, and also how to benchmark performance to ensure it is optimized.
 
@@ -16,7 +16,7 @@ This guide shows you how to deploy YOLOv8 using Neural Magic's DeepSparse, how t
   <img width="640" src="https://github.com/ultralytics/docs/releases/download/0/neural-magic-deepsparse-overview.avif" alt="Neural Magic's DeepSparse Overview">
 </p>
 
-[Neural Magic's DeepSparse](https://neuralmagic.com/deepsparse/) is an inference run-time designed to optimize the execution of neural networks on CPUs. It applies advanced techniques like sparsity, pruning, and quantization to dramatically reduce computational demands while maintaining accuracy. DeepSparse offers an agile solution for efficient and scalable neural network execution across various devices.
+[Neural Magic's DeepSparse](https://neuralmagic.com/deepsparse/) is an inference run-time designed to optimize the execution of neural networks on CPUs. It applies advanced techniques like sparsity, pruning, and quantization to dramatically reduce computational demands while maintaining accuracy. DeepSparse offers an agile solution for efficient and scalable [neural network](https://www.ultralytics.com/glossary/neural-network-nn) execution across various devices.
 
 ## Benefits of Integrating Neural Magic's DeepSparse with YOLOv8
 
@@ -28,7 +28,7 @@ Before diving into how to deploy YOLOV8 using DeepSparse, let's understand the b
   <img width="640" src="https://github.com/ultralytics/docs/releases/download/0/enhanced-inference-speed.avif" alt="Enhanced Inference Speed">
 </p>
 
-- **Optimized Model Efficiency**: Uses pruning and quantization to enhance YOLOv8's efficiency, reducing model size and computational requirements while maintaining accuracy.
+- **Optimized Model Efficiency**: Uses pruning and quantization to enhance YOLOv8's efficiency, reducing model size and computational requirements while maintaining [accuracy](https://www.ultralytics.com/glossary/accuracy).
 
 <p align="center">
   <img width="640" src="https://github.com/ultralytics/docs/releases/download/0/optimized-model-efficiency.avif" alt="Optimized Model Efficiency">
@@ -46,7 +46,7 @@ Before diving into how to deploy YOLOV8 using DeepSparse, let's understand the b
 
 Neural Magic's Deep Sparse technology is inspired by the human brain's efficiency in neural network computation. It adopts two key principles from the brain as follows:
 
-- **Sparsity**: The process of sparsification involves pruning redundant information from deep learning networks, leading to smaller and faster models without compromising accuracy. This technique reduces the network's size and computational needs significantly.
+- **Sparsity**: The process of sparsification involves pruning redundant information from [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) networks, leading to smaller and faster models without compromising accuracy. This technique reduces the network's size and computational needs significantly.
 
 - **Locality of Reference**: DeepSparse uses a unique execution method, breaking the network into Tensor Columns. These columns are executed depth-wise, fitting entirely within the CPU's cache. This approach mimics the brain's efficiency, minimizing data movement and maximizing the CPU's cache use.
 
@@ -151,7 +151,7 @@ Running the annotate command processes your specified image, detecting objects, 
   <img width="640" src="https://github.com/ultralytics/docs/releases/download/0/image-annotation-feature.avif" alt="Image Annotation Feature">
 </p>
 
-After running the eval command, you will receive detailed output metrics such as precision, recall, and mAP (mean Average Precision). This provides a comprehensive view of your model's performance on the dataset. This functionality is particularly useful for fine-tuning and optimizing your YOLOv8 models for specific use cases, ensuring high accuracy and efficiency.
+After running the eval command, you will receive detailed output metrics such as [precision](https://www.ultralytics.com/glossary/precision), [recall](https://www.ultralytics.com/glossary/recall), and mAP (mean Average Precision). This provides a comprehensive view of your model's performance on the dataset. This functionality is particularly useful for fine-tuning and optimizing your YOLOv8 models for specific use cases, ensuring high accuracy and efficiency.
 
 ## Summary
 

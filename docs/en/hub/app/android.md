@@ -4,7 +4,7 @@ description: Experience real-time object detection on Android with Ultralytics. 
 keywords: Ultralytics, Android app, real-time object detection, YOLO models, TensorFlow Lite, FP16 quantization, INT8 quantization, hardware delegates, mobile AI, download app
 ---
 
-# Ultralytics Android App: Real-time Object Detection with YOLO Models
+# Ultralytics Android App: Real-time [Object Detection](https://www.ultralytics.com/glossary/object-detection) with YOLO Models
 
 <a href="https://ultralytics.com/hub" target="_blank">
   <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/ultralytics-android-app-detection.avif" alt="Ultralytics HUB preview image"></a>
@@ -29,7 +29,7 @@ keywords: Ultralytics, Android app, real-time object detection, YOLO models, Ten
     <img src="https://raw.githubusercontent.com/ultralytics/assets/master/app/google-play.svg" width="15%" alt="Google Play store"></a>&nbsp;
 </div>
 
-The Ultralytics Android App is a powerful tool that allows you to run YOLO models directly on your Android device for real-time object detection. This app utilizes TensorFlow Lite for model optimization and various hardware delegates for acceleration, enabling fast and efficient object detection.
+The Ultralytics Android App is a powerful tool that allows you to run YOLO models directly on your Android device for real-time object detection. This app utilizes [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) Lite for model optimization and various hardware delegates for acceleration, enabling fast and efficient object detection.
 
 <p align="center">
   <br>
@@ -44,7 +44,7 @@ The Ultralytics Android App is a powerful tool that allows you to run YOLO model
 
 ## Quantization and Acceleration
 
-To achieve real-time performance on your Android device, YOLO models are quantized to either FP16 or INT8 precision. Quantization is a process that reduces the numerical precision of the model's weights and biases, thus reducing the model's size and the amount of computation required. This results in faster inference times without significantly affecting the model's accuracy.
+To achieve real-time performance on your Android device, YOLO models are quantized to either FP16 or INT8 [precision](https://www.ultralytics.com/glossary/precision). Quantization is a process that reduces the numerical precision of the model's weights and biases, thus reducing the model's size and the amount of computation required. This results in faster inference times without significantly affecting the model's [accuracy](https://www.ultralytics.com/glossary/accuracy).
 
 ### FP16 Quantization
 
@@ -52,7 +52,7 @@ FP16 (or half-precision) quantization converts the model's 32-bit floating-point
 
 ### INT8 Quantization
 
-INT8 (or 8-bit integer) quantization further reduces the model's size and computation requirements by converting its 32-bit floating-point numbers to 8-bit integers. This quantization method can result in a significant speedup, but it may lead to a slight reduction in mean average precision (mAP) due to the lower numerical precision.
+INT8 (or 8-bit integer) quantization further reduces the model's size and computation requirements by converting its 32-bit floating-point numbers to 8-bit integers. This quantization method can result in a significant speedup, but it may lead to a slight reduction in [mean average precision](https://www.ultralytics.com/glossary/mean-average-precision-map) (mAP) due to the lower numerical precision.
 
 !!! tip "mAP Reduction in INT8 Models"
 
@@ -65,7 +65,7 @@ Different delegates are available on Android devices to accelerate model inferen
 1. **CPU**: The default option, with reasonable performance on most devices.
 2. **GPU**: Utilizes the device's GPU for faster inference. It can provide a significant performance boost on devices with powerful GPUs.
 3. **Hexagon**: Leverages Qualcomm's Hexagon DSP for faster and more efficient processing. This option is available on devices with Qualcomm Snapdragon processors.
-4. **NNAPI**: The Android Neural Networks API (NNAPI) serves as an abstraction layer for running ML models on Android devices. NNAPI can utilize various hardware accelerators, such as CPU, GPU, and dedicated AI chips (e.g., Google's Edge TPU, or the Pixel Neural Core).
+4. **NNAPI**: The Android [Neural Networks](https://www.ultralytics.com/glossary/neural-network-nn) API (NNAPI) serves as an abstraction layer for running ML models on Android devices. NNAPI can utilize various hardware accelerators, such as CPU, GPU, and dedicated AI chips (e.g., Google's Edge TPU, or the Pixel Neural Core).
 
 Here's a table showing the primary vendors, their product lines, popular devices, and supported delegates:
 

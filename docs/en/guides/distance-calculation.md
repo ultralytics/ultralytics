@@ -8,7 +8,7 @@ keywords: Ultralytics, YOLOv8, distance calculation, computer vision, object tra
 
 ## What is Distance Calculation?
 
-Measuring the gap between two objects is known as distance calculation within a specified space. In the case of [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics), the bounding box centroid is employed to calculate the distance for bounding boxes highlighted by the user.
+Measuring the gap between two objects is known as distance calculation within a specified space. In the case of [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics), the [bounding box](https://www.ultralytics.com/glossary/bounding-box) centroid is employed to calculate the distance for bounding boxes highlighted by the user.
 
 <p align="center">
   <br>
@@ -29,7 +29,7 @@ Measuring the gap between two objects is known as distance calculation within a 
 
 ## Advantages of Distance Calculation?
 
-- **Localization Precision:** Enhances accurate spatial positioning in computer vision tasks.
+- **Localization [Precision](https://www.ultralytics.com/glossary/precision):** Enhances accurate spatial positioning in [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) tasks.
 - **Size Estimation:** Allows estimation of object size for better contextual understanding.
 
 ???+ tip "Distance Calculation"
@@ -112,7 +112,7 @@ Using distance calculation with Ultralytics YOLOv8 offers several advantages:
 
 ### Can I perform distance calculation in real-time video streams with Ultralytics YOLOv8?
 
-Yes, you can perform distance calculation in real-time video streams with Ultralytics YOLOv8. The process involves capturing video frames using OpenCV, running YOLOv8 object detection, and using the `DistanceCalculation` class to calculate distances between objects in successive frames. For a detailed implementation, see the [video stream example](#distance-calculation-using-ultralytics-yolov8).
+Yes, you can perform distance calculation in real-time video streams with Ultralytics YOLOv8. The process involves capturing video frames using [OpenCV](https://www.ultralytics.com/glossary/opencv), running YOLOv8 [object detection](https://www.ultralytics.com/glossary/object-detection), and using the `DistanceCalculation` class to calculate distances between objects in successive frames. For a detailed implementation, see the [video stream example](#distance-calculation-using-ultralytics-yolov8).
 
 ### How do I delete points drawn during distance calculation using Ultralytics YOLOv8?
 

@@ -38,18 +38,18 @@ For a deeper understanding of SAM 2's architecture and capabilities, explore the
 
 SAM 2 sets a new benchmark in the field, outperforming previous models on various metrics:
 
-| Metric                             | SAM 2         | Previous SOTA |
-| ---------------------------------- | ------------- | ------------- |
-| **Interactive Video Segmentation** | **Best**      | -             |
-| **Human Interactions Required**    | **3x fewer**  | Baseline      |
-| **Image Segmentation Accuracy**    | **Improved**  | SAM           |
-| **Inference Speed**                | **6x faster** | SAM           |
+| Metric                                                                                     | SAM 2         | Previous SOTA |
+| ------------------------------------------------------------------------------------------ | ------------- | ------------- |
+| **Interactive Video Segmentation**                                                         | **Best**      | -             |
+| **Human Interactions Required**                                                            | **3x fewer**  | Baseline      |
+| **[Image Segmentation](https://www.ultralytics.com/glossary/image-segmentation) Accuracy** | **Improved**  | SAM           |
+| **Inference Speed**                                                                        | **6x faster** | SAM           |
 
 ## Model Architecture
 
 ### Core Components
 
-- **Image and Video Encoder**: Utilizes a transformer-based architecture to extract high-level features from both images and video frames. This component is responsible for understanding the visual content at each timestep.
+- **Image and Video Encoder**: Utilizes a [transformer](https://www.ultralytics.com/glossary/transformer)-based architecture to extract high-level features from both images and video frames. This component is responsible for understanding the visual content at each timestep.
 - **Prompt Encoder**: Processes user-provided prompts (points, boxes, masks) to guide the segmentation task. This allows SAM 2 to adapt to user input and target specific objects within a scene.
 - **Memory Mechanism**: Includes a memory encoder, memory bank, and memory attention module. These components collectively store and utilize information from past frames, enabling the model to maintain consistent object tracking over time.
 - **Mask Decoder**: Generates the final segmentation masks based on the encoded image features and prompts. In video, it also uses memory context to ensure accurate tracking across frames.
@@ -242,7 +242,7 @@ Despite its strengths, SAM 2 has certain limitations:
 - **Tracking Stability**: SAM 2 may lose track of objects during extended sequences or significant viewpoint changes.
 - **Object Confusion**: The model can sometimes confuse similar-looking objects, particularly in crowded scenes.
 - **Efficiency with Multiple Objects**: Segmentation efficiency decreases when processing multiple objects simultaneously due to the lack of inter-object communication.
-- **Detail Accuracy**: May miss fine details, especially with fast-moving objects. Additional prompts can partially address this issue, but temporal smoothness is not guaranteed.
+- **Detail [Accuracy](https://www.ultralytics.com/glossary/accuracy)**: May miss fine details, especially with fast-moving objects. Additional prompts can partially address this issue, but temporal smoothness is not guaranteed.
 
 ## Citations and Acknowledgements
 
@@ -327,7 +327,7 @@ This mechanism ensures continuity even when objects are temporarily obscured or 
 
 ### How does SAM 2 compare to other segmentation models like YOLOv8?
 
-SAM 2 and Ultralytics YOLOv8 serve different purposes and excel in different areas. While SAM 2 is designed for comprehensive object segmentation with advanced features like zero-shot generalization and real-time performance, YOLOv8 is optimized for speed and efficiency in object detection and segmentation tasks. Here's a comparison:
+SAM 2 and Ultralytics YOLOv8 serve different purposes and excel in different areas. While SAM 2 is designed for comprehensive object segmentation with advanced features like zero-shot generalization and real-time performance, YOLOv8 is optimized for speed and efficiency in [object detection](https://www.ultralytics.com/glossary/object-detection) and segmentation tasks. Here's a comparison:
 
 | Model                                          | Size<br><sup>(MB)</sup> | Parameters<br><sup>(M)</sup> | Speed (CPU)<br><sup>(ms/im)</sup> |
 | ---------------------------------------------- | ----------------------- | ---------------------------- | --------------------------------- |

@@ -6,7 +6,7 @@ keywords: Open Images V7, Google dataset, computer vision, YOLOv8 models, object
 
 # Open Images V7 Dataset
 
-[Open Images V7](https://storage.googleapis.com/openimages/web/index.html) is a versatile and expansive dataset championed by Google. Aimed at propelling research in the realm of computer vision, it boasts a vast collection of images annotated with a plethora of data, including image-level labels, object bounding boxes, object segmentation masks, visual relationships, and localized narratives.
+[Open Images V7](https://storage.googleapis.com/openimages/web/index.html) is a versatile and expansive dataset championed by Google. Aimed at propelling research in the realm of [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv), it boasts a vast collection of images annotated with a plethora of data, including image-level labels, object bounding boxes, object segmentation masks, visual relationships, and localized narratives.
 
 <p align="center">
   <br>
@@ -16,7 +16,7 @@ keywords: Open Images V7, Google dataset, computer vision, YOLOv8 models, object
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Object Detection using OpenImagesV7 Pretrained Model
+  <strong>Watch:</strong> [Object Detection](https://www.ultralytics.com/glossary/object-detection) using OpenImagesV7 Pretrained Model
 </p>
 
 ## Open Images V7 Pretrained Models
@@ -34,13 +34,13 @@ keywords: Open Images V7, Google dataset, computer vision, YOLOv8 models, object
 ## Key Features
 
 - Encompasses ~9M images annotated in various ways to suit multiple computer vision tasks.
-- Houses a staggering 16M bounding boxes across 600 object classes in 1.9M images. These boxes are primarily hand-drawn by experts ensuring high precision.
+- Houses a staggering 16M bounding boxes across 600 object classes in 1.9M images. These boxes are primarily hand-drawn by experts ensuring high [precision](https://www.ultralytics.com/glossary/precision).
 - Visual relationship annotations totaling 3.3M are available, detailing 1,466 unique relationship triplets, object properties, and human activities.
 - V5 introduced segmentation masks for 2.8M objects across 350 classes.
 - V6 introduced 675k localized narratives that amalgamate voice, text, and mouse traces highlighting described objects.
 - V7 introduced 66.4M point-level labels on 1.4M images, spanning 5,827 classes.
 - Encompasses 61.4M image-level labels across a diverse set of 20,638 classes.
-- Provides a unified platform for image classification, object detection, relationship detection, instance segmentation, and multimodal image descriptions.
+- Provides a unified platform for image classification, object detection, relationship detection, [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation), and multimodal image descriptions.
 
 ## Dataset Structure
 
@@ -51,7 +51,7 @@ Open Images V7 is structured in multiple components catering to varied computer 
 - **Segmentation Masks**: These detail the exact boundary of 2.8M objects across 350 classes.
 - **Visual Relationships**: 3.3M annotations indicating object relationships, properties, and actions.
 - **Localized Narratives**: 675k descriptions combining voice, text, and mouse traces.
-- **Point-Level Labels**: 66.4M labels across 1.4M images, suitable for zero/few-shot semantic segmentation.
+- **Point-Level Labels**: 66.4M labels across 1.4M images, suitable for zero/few-shot [semantic segmentation](https://www.ultralytics.com/glossary/semantic-segmentation).
 
 ## Applications
 
@@ -69,7 +69,7 @@ Typically, datasets come with a YAML (Yet Another Markup Language) file that del
 
 ## Usage
 
-To train a YOLOv8n model on the Open Images V7 dataset for 100 epochs with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To train a YOLOv8n model on the Open Images V7 dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
 !!! warning
 
@@ -191,10 +191,10 @@ Ultralytics provides several YOLOv8 pretrained models for the Open Images V7 dat
 
 The Open Images V7 dataset supports a variety of computer vision tasks including:
 
-- **Image Classification**
+- **[Image Classification](https://www.ultralytics.com/glossary/image-classification)**
 - **Object Detection**
 - **Instance Segmentation**
 - **Visual Relationship Detection**
 - **Multimodal Image Descriptions**
 
-Its comprehensive annotations and broad scope make it suitable for training and evaluating advanced machine learning models, as highlighted in practical use cases detailed in our [applications](#applications) section.
+Its comprehensive annotations and broad scope make it suitable for training and evaluating advanced [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) models, as highlighted in practical use cases detailed in our [applications](#applications) section.

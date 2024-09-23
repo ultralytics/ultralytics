@@ -36,7 +36,7 @@ pip install ultralytics[explorer]
 
 ## Vector Semantic Similarity Search
 
-Semantic search is a technique for finding similar images to a given image. It is based on the idea that similar images will have similar embeddings. In the UI, you can select one of more images and search for the images similar to them. This can be useful when you want to find images similar to a given image or a set of images that don't perform as expected.
+Semantic search is a technique for finding similar images to a given image. It is based on the idea that similar images will have similar [embeddings](https://www.ultralytics.com/glossary/embeddings). In the UI, you can select one of more images and search for the images similar to them. This can be useful when you want to find images similar to a given image or a set of images that don't perform as expected.
 
 For example:
 In this VOC Exploration dashboard, user selects a couple airplane images like this:
@@ -79,7 +79,7 @@ This is a Demo build using the Explorer API. You can use the API to build your o
 
 ### What is Ultralytics Explorer GUI and how do I install it?
 
-Ultralytics Explorer GUI is a powerful interface that unlocks advanced data exploration capabilities using the [Ultralytics Explorer API](api.md). It allows you to run semantic/vector similarity search, SQL queries, and natural language queries using the Ask AI feature powered by Large Language Models (LLMs).
+Ultralytics Explorer GUI is a powerful interface that unlocks advanced data exploration capabilities using the [Ultralytics Explorer API](api.md). It allows you to run semantic/vector similarity search, SQL queries, and natural language queries using the Ask AI feature powered by [Large Language Models](https://www.ultralytics.com/glossary/large-language-model-llm) (LLMs).
 
 To install the Explorer GUI, you can use pip:
 
@@ -91,7 +91,7 @@ Note: To use the Ask AI feature, you'll need to set the OpenAI API key: `yolo se
 
 ### How does the semantic search feature in Ultralytics Explorer GUI work?
 
-The semantic search feature in Ultralytics Explorer GUI allows you to find images similar to a given image based on their embeddings. This technique is useful for identifying and exploring images that share visual similarities. To use this feature, select one or more images in the UI and execute a search for similar images. The result will display images that closely resemble the selected ones, facilitating efficient dataset exploration and anomaly detection.
+The semantic search feature in Ultralytics Explorer GUI allows you to find images similar to a given image based on their embeddings. This technique is useful for identifying and exploring images that share visual similarities. To use this feature, select one or more images in the UI and execute a search for similar images. The result will display images that closely resemble the selected ones, facilitating efficient dataset exploration and [anomaly detection](https://www.ultralytics.com/glossary/anomaly-detection).
 
 Learn more about semantic search and other features by visiting the [Feature Overview](#vector-semantic-similarity-search) section.
 

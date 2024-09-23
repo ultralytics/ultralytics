@@ -79,7 +79,6 @@ def logout():
         ```
     """
     SETTINGS["api_key"] = ""
-    SETTINGS.save()
     LOGGER.info(f"{PREFIX}logged out ✅. To log in again, use 'yolo hub login'.")
 
 

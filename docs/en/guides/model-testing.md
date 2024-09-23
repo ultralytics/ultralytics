@@ -10,19 +10,19 @@ keywords: Overfitting and Underfitting in Machine Learning, Model Testing, Data 
 
 After [training](./model-training-tips.md) and [evaluating](./model-evaluation-insights.md) your model, it's time to test it. Model testing involves assessing how well it performs in real-world scenarios. Testing considers factors like accuracy, reliability, fairness, and how easy it is to understand the model's decisions. The goal is to make sure the model performs as intended, delivers the expected results, and fits into the [overall objective of your application](./defining-project-goals.md) or project.
 
-Model testing is quite similar to model evaluation, but they are two distinct [steps in a computer vision project](./steps-of-a-cv-project.md). Model evaluation involves metrics and plots to assess the model's accuracy. On the other hand, model testing checks if the model's learned behavior is the same as expectations. In this guide, we'll explore strategies for testing your computer vision models.
+Model testing is quite similar to model evaluation, but they are two distinct [steps in a computer vision project](./steps-of-a-cv-project.md). Model evaluation involves metrics and plots to assess the model's accuracy. On the other hand, model testing checks if the model's learned behavior is the same as expectations. In this guide, we'll explore strategies for testing your [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models.
 
 ## Model Testing Vs. Model Evaluation
 
 First, let's understand the difference between model evaluation and testing with an example.
 
-Suppose you have trained a computer vision model to recognize cats and dogs, and you want to deploy this model at a pet store to monitor the animals. During the model evaluation phase, you use a labeled dataset to calculate metrics like accuracy, precision, recall, and F1 score. For instance, the model might have an accuracy of 98% in distinguishing between cats and dogs in a given dataset.
+Suppose you have trained a computer vision model to recognize cats and dogs, and you want to deploy this model at a pet store to monitor the animals. During the model evaluation phase, you use a labeled dataset to calculate metrics like accuracy, [precision](https://www.ultralytics.com/glossary/precision), [recall](https://www.ultralytics.com/glossary/recall), and F1 score. For instance, the model might have an accuracy of 98% in distinguishing between cats and dogs in a given dataset.
 
 After evaluation, you test the model using images from a pet store to see how well it identifies cats and dogs in more varied and realistic conditions. You check if it can correctly label cats and dogs when they are moving, in different lighting conditions, or partially obscured by objects like toys or furniture. Model testing checks that the model behaves as expected outside the controlled evaluation environment.
 
 ## Preparing for Model Testing
 
-Computer vision models learn from datasets by detecting patterns, making predictions, and evaluating their performance. These [datasets](./preprocessing_annotated_data.md) are usually divided into training and testing sets to simulate real-world conditions. Training data teaches the model while testing data verifies its accuracy.
+Computer vision models learn from datasets by detecting patterns, making predictions, and evaluating their performance. These [datasets](./preprocessing_annotated_data.md) are usually divided into training and testing sets to simulate real-world conditions. [Training data](https://www.ultralytics.com/glossary/training-data) teaches the model while testing data verifies its accuracy.
 
 Here are two points to keep in mind before testing your model:
 
@@ -61,7 +61,7 @@ If you want to test your trained YOLOv8 model on multiple images stored in a fol
 
 If you are interested in testing the basic YOLOv8 model to understand whether it can be used for your application without custom training, you can use the prediction mode. While the model is pre-trained on datasets like COCO, running predictions on your own dataset can give you a quick sense of how well it might perform in your specific context.
 
-## Overfitting and Underfitting in Machine Learning
+## Overfitting and [Underfitting](https://www.ultralytics.com/glossary/underfitting) in [Machine Learning](https://www.ultralytics.com/glossary/machine-learning-ml)
 
 When testing a machine learning model, especially in computer vision, it's important to watch out for overfitting and underfitting. These issues can significantly affect how well your model works with new data.
 
@@ -71,7 +71,7 @@ Overfitting happens when your model learns the training data too well, including
 
 #### Signs of Overfitting
 
-- **High Training Accuracy, Low Validation Accuracy:** If your model performs very well on training data but poorly on validation or test data, it's likely overfitting.
+- **High Training Accuracy, Low Validation Accuracy:** If your model performs very well on training data but poorly on validation or [test data](https://www.ultralytics.com/glossary/test-data), it's likely overfitting.
 - **Visual Inspection:** Sometimes, you can see overfitting if your model is too sensitive to minor changes or irrelevant details in images.
 
 ### Underfitting
@@ -102,7 +102,7 @@ Data leakage can be tricky to spot and often comes from hidden biases in the tra
 - **Camera Bias:** Different angles, lighting, shadows, and camera movements can introduce unwanted patterns.
 - **Overlay Bias:** Logos, timestamps, or other overlays in images can mislead the model.
 - **Font and Object Bias:** Specific fonts or objects that frequently appear in certain classes can skew the model's learning.
-- **Spatial Bias:** Imbalances in foreground-background, bounding box distributions, and object locations can affect training.
+- **Spatial Bias:** Imbalances in foreground-background, [bounding box](https://www.ultralytics.com/glossary/bounding-box) distributions, and object locations can affect training.
 - **Label and Domain Bias:** Incorrect labels or shifts in data types can lead to leakage.
 
 ### Detecting Data Leakage
@@ -139,13 +139,13 @@ These resources will help you navigate challenges and remain updated on the late
 
 ## In Summary
 
-Building trustworthy computer vision models relies on rigorous model testing. By testing the model with previously unseen data, we can analyze it and spot weaknesses like overfitting and data leakage. Addressing these issues before deployment helps the model perform well in real-world applications. It's important to remember that model testing is just as crucial as model evaluation in guaranteeing the model's long-term success and effectiveness.
+Building trustworthy computer vision models relies on rigorous model testing. By testing the model with previously unseen data, we can analyze it and spot weaknesses like [overfitting](https://www.ultralytics.com/glossary/overfitting) and data leakage. Addressing these issues before deployment helps the model perform well in real-world applications. It's important to remember that model testing is just as crucial as model evaluation in guaranteeing the model's long-term success and effectiveness.
 
 ## FAQ
 
 ### What are the key differences between model evaluation and model testing in computer vision?
 
-Model evaluation and model testing are distinct steps in a computer vision project. Model evaluation involves using a labeled dataset to compute metrics such as accuracy, precision, recall, and F1 score, providing insights into the model's performance with a controlled dataset. Model testing, on the other hand, assesses the model's performance in real-world scenarios by applying it to new, unseen data, ensuring the model's learned behavior aligns with expectations outside the evaluation environment. For a detailed guide, refer to the [steps in a computer vision project](./steps-of-a-cv-project.md).
+Model evaluation and model testing are distinct steps in a computer vision project. Model evaluation involves using a labeled dataset to compute metrics such as [accuracy](https://www.ultralytics.com/glossary/accuracy), precision, recall, and [F1 score](https://www.ultralytics.com/glossary/f1-score), providing insights into the model's performance with a controlled dataset. Model testing, on the other hand, assesses the model's performance in real-world scenarios by applying it to new, unseen data, ensuring the model's learned behavior aligns with expectations outside the evaluation environment. For a detailed guide, refer to the [steps in a computer vision project](./steps-of-a-cv-project.md).
 
 ### How can I test my Ultralytics YOLOv8 model on multiple images?
 
@@ -155,7 +155,7 @@ To test your Ultralytics YOLOv8 model on multiple images, you can use the [predi
 
 To address **overfitting**:
 
-- Regularization techniques like dropout.
+- [Regularization](https://www.ultralytics.com/glossary/regularization) techniques like dropout.
 - Increase the size of the training dataset.
 - Simplify the model architecture.
 
@@ -163,7 +163,7 @@ To address **underfitting**:
 
 - Use a more complex model.
 - Provide more relevant features.
-- Increase training iterations or epochs.
+- Increase training iterations or [epochs](https://www.ultralytics.com/glossary/epoch).
 
 Review misclassified images, perform thorough error analysis, and regularly track performance metrics to maintain a balance. For more information on these concepts, explore our section on [Overfitting and Underfitting](#overfitting-and-underfitting-in-machine-learning).
 
@@ -190,7 +190,7 @@ Post-testing, if the model performance meets the project goals, proceed with dep
 
 - Error analysis.
 - Gathering more diverse and high-quality data.
-- Hyperparameter tuning.
+- [Hyperparameter tuning](https://www.ultralytics.com/glossary/hyperparameter-tuning).
 - Retraining the model.
 
 Gain insights from the [Model Testing Vs. Model Evaluation](#model-testing-vs-model-evaluation) section to refine and enhance model effectiveness in real-world applications.

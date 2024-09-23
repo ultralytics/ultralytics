@@ -8,7 +8,7 @@ keywords: YOLOv8, Paperspace Gradient, MLOps, machine learning, training, GPUs, 
 
 Training computer vision models like [YOLOv8](https://github.com/ultralytics/ultralytics) can be complicated. It involves managing large datasets, using different types of computer hardware like GPUs, TPUs, and CPUs, and making sure data flows smoothly during the training process. Typically, developers end up spending a lot of time managing their computer systems and environments. It can be frustrating when you just want to focus on building the best model.
 
-This is where a platform like Paperspace Gradient can make things simpler. Paperspace Gradient is a MLOps platform that lets you build, train, and deploy machine learning models all in one place. With Gradient, developers can focus on training their YOLOv8 models without the hassle of managing infrastructure and environments.
+This is where a platform like Paperspace Gradient can make things simpler. Paperspace Gradient is a MLOps platform that lets you build, train, and deploy [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) models all in one place. With Gradient, developers can focus on training their YOLOv8 models without the hassle of managing infrastructure and environments.
 
 ## Paperspace
 
@@ -61,7 +61,7 @@ As you explore the Paperspace console, you'll see how each step of the machine-l
 
 - **Dataset Management:** Efficiently manage your datasets directly within Gradient. Upload, version, and pre-process data with ease, streamlining the data preparation phase of your project.
 
-- **Model Serving:** Deploy your trained YOLOv8 models as REST APIs with just a few clicks. Gradient handles the infrastructure, allowing you to easily integrate your object detection models into your applications.
+- **Model Serving:** Deploy your trained YOLOv8 models as REST APIs with just a few clicks. Gradient handles the infrastructure, allowing you to easily integrate your [object detection](https://www.ultralytics.com/glossary/object-detection) models into your applications.
 
 - **Real-time Monitoring:** Monitor the performance and health of your deployed models through Gradient's intuitive dashboard. Gain insights into inference speed, resource utilization, and potential errors.
 
@@ -83,7 +83,7 @@ This guide explored the Paperspace Gradient integration for training YOLOv8 mode
 
 For further exploration, visit [PaperSpace's official documentation](https://docs.digitalocean.com/products/paperspace/).
 
-Also, visit the [Ultralytics integration guide page](index.md) to learn more about different YOLOv8 integrations. It's full of insights and tips to take your computer vision projects to the next level.
+Also, visit the [Ultralytics integration guide page](index.md) to learn more about different YOLOv8 integrations. It's full of insights and tips to take your [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) projects to the next level.
 
 ## FAQ
 
@@ -104,7 +104,7 @@ Paperspace Gradient offers several unique advantages for training and deploying 
 
 ### Why should I choose Ultralytics YOLOv8 over other object detection models?
 
-Ultralytics YOLOv8 stands out for its real-time object detection capabilities and high accuracy. Its seamless integration with platforms like Paperspace Gradient enhances productivity by simplifying the training and deployment process. YOLOv8 supports various use cases, from security systems to retail inventory management. Explore more about YOLOv8's advantages [here](https://www.ultralytics.com/yolo).
+Ultralytics YOLOv8 stands out for its real-time object detection capabilities and high [accuracy](https://www.ultralytics.com/glossary/accuracy). Its seamless integration with platforms like Paperspace Gradient enhances productivity by simplifying the training and deployment process. YOLOv8 supports various use cases, from security systems to retail inventory management. Explore more about YOLOv8's advantages [here](https://www.ultralytics.com/yolo).
 
 ### Can I deploy my YOLOv8 model on edge devices using Paperspace Gradient?
 

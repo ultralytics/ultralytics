@@ -8,6 +8,13 @@ TRAINING_PHASE = "Training Phase"
 IMAGE_COLUMN_NAME = tlc.IMAGE
 CLASSIFY_LABEL_COLUMN_NAME = tlc.LABEL
 DETECTION_LABEL_COLUMN_NAME = "bbs.bb_list.label"
+PRECISION = "precision"
+RECALL = "recall"
+MAP = "mAP"
+MAP50_95 = "mAP50-95"
+NUM_IMAGES = "num_images"
+NUM_INSTANCES = "num_instances"
+PER_CLASS_METRICS_STREAM_NAME = "per_class_metrics"
 
 # Other
 DEFAULT_TRAIN_RUN_DESCRIPTION = ""

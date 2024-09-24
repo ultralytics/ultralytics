@@ -14,8 +14,8 @@ import numpy as np
 import psutil
 from torch.utils.data import Dataset
 
+from ultralytics.data.utils import FORMATS_HELP_MSG, HELP_URL, IMG_FORMATS
 from ultralytics.utils import DEFAULT_CFG, LOCAL_RANK, LOGGER, NUM_THREADS, TQDM
-from .utils import FORMATS_HELP_MSG, HELP_URL, IMG_FORMATS
 
 
 class BaseDataset(Dataset):
@@ -91,6 +91,11 @@ class BaseDataset(Dataset):
         self.npy_files = [Path(f).with_suffix(".npy") for f in self.im_files]
         self.cache = cache.lower() if isinstance(cache, str) else "ram" if cache is True else None
         if (self.cache == "ram" and self.check_cache_ram()) or self.cache == "disk":
+            if self.cache == "ram" and hyp.deterministic:
+                LOGGER.warning(
+                    "WARNING ⚠️ cache='ram' may produce non-deterministic training results. "
+                    "Consider cache='disk' as a deterministic alternative if your disk space allows."
+                )
             self.cache_images()
 
         # Transforms
@@ -170,7 +175,7 @@ class BaseDataset(Dataset):
             if self.augment:
                 self.ims[i], self.im_hw0[i], self.im_hw[i] = im, (h0, w0), im.shape[:2]  # im, hw_original, hw_resized
                 self.buffer.append(i)
-                if len(self.buffer) >= self.max_buffer_length:
+                if 1 < len(self.buffer) >= self.max_buffer_length:  # prevent empty buffer
                     j = self.buffer.pop(0)
                     if self.cache != "ram":
                         self.ims[j], self.im_hw0[j], self.im_hw[j] = None, None, None
@@ -298,10 +303,10 @@ class BaseDataset(Dataset):
                 im_file=im_file,
                 shape=shape,  # format: (height, width)
                 cls=cls,
-                bboxes=bboxes, # xywh
+                bboxes=bboxes,  # xywh
                 segments=segments,  # xy
-                keypoints=keypoints, # xy
-                normalized=True, # or False
+                keypoints=keypoints,  # xy
+                normalized=True,  # or False
                 bbox_format="xyxy",  # or xywh, ltwh
             )
             ```

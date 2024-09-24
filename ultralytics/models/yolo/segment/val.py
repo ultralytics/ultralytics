@@ -22,7 +22,7 @@ class SegmentationValidator(DetectionValidator):
         ```python
         from ultralytics.models.yolo.segment import SegmentationValidator
 
-        args = dict(model='yolov8n-seg.pt', data='coco8-seg.yaml')
+        args = dict(model="yolov8n-seg.pt", data="coco8-seg.yaml")
         validator = SegmentationValidator(args=args)
         validator()
         ```
@@ -48,10 +48,9 @@ class SegmentationValidator(DetectionValidator):
         self.plot_masks = []
         if self.args.save_json:
             check_requirements("pycocotools>=2.0.6")
-            self.process = ops.process_mask_upsample  # more accurate
-        else:
-            self.process = ops.process_mask  # faster
-        self.stats = dict(tp_m=[], tp=[], conf=[], pred_cls=[], target_cls=[])
+        # more accurate vs faster
+        self.process = ops.process_mask_native if self.args.save_json or self.args.save_txt else ops.process_mask
+        self.stats = dict(tp_m=[], tp=[], conf=[], pred_cls=[], target_cls=[], target_img=[])
 
     def get_desc(self):
         """Return a formatted description of evaluation metrics."""
@@ -77,7 +76,7 @@ class SegmentationValidator(DetectionValidator):
             self.args.iou,
             labels=self.lb,
             multi_label=True,
-            agnostic=self.args.single_cls,
+            agnostic=self.args.single_cls or self.args.agnostic_nms,
             max_det=self.args.max_det,
             nc=self.nc,
         )
@@ -112,6 +111,7 @@ class SegmentationValidator(DetectionValidator):
             cls, bbox = pbatch.pop("cls"), pbatch.pop("bbox")
             nl = len(cls)
             stat["target_cls"] = cls
+            stat["target_img"] = cls.unique()
             if npr == 0:
                 if nl:
                     for k in self.stats.keys():
@@ -147,14 +147,23 @@ class SegmentationValidator(DetectionValidator):
 
             # Save
             if self.args.save_json:
-                pred_masks = ops.scale_image(
-                    pred_masks.permute(1, 2, 0).contiguous().cpu().numpy(),
-                    pbatch["ori_shape"],
-                    ratio_pad=batch["ratio_pad"][si],
+                self.pred_to_json(
+                    predn,
+                    batch["im_file"][si],
+                    ops.scale_image(
+                        pred_masks.permute(1, 2, 0).contiguous().cpu().numpy(),
+                        pbatch["ori_shape"],
+                        ratio_pad=batch["ratio_pad"][si],
+                    ),
                 )
-                self.pred_to_json(predn, batch["im_file"][si], pred_masks)
-            # if self.args.save_txt:
-            #    save_one_txt(predn, save_conf, shape, file=save_dir / 'labels' / f'{path.stem}.txt')
+            if self.args.save_txt:
+                self.save_one_txt(
+                    predn,
+                    pred_masks,
+                    self.args.save_conf,
+                    pbatch["ori_shape"],
+                    self.save_dir / "labels" / f'{Path(batch["im_file"][si]).stem}.txt',
+                )
 
     def finalize_metrics(self, *args, **kwargs):
         """Sets speed and confusion matrix for evaluation metrics."""
@@ -163,14 +172,34 @@ class SegmentationValidator(DetectionValidator):
 
     def _process_batch(self, detections, gt_bboxes, gt_cls, pred_masks=None, gt_masks=None, overlap=False, masks=False):
         """
-        Return correct prediction matrix.
+        Compute correct prediction matrix for a batch based on bounding boxes and optional masks.
 
         Args:
-            detections (array[N, 6]), x1, y1, x2, y2, conf, class
-            labels (array[M, 5]), class, x1, y1, x2, y2
+            detections (torch.Tensor): Tensor of shape (N, 6) representing detected bounding boxes and
+                associated confidence scores and class indices. Each row is of the format [x1, y1, x2, y2, conf, class].
+            gt_bboxes (torch.Tensor): Tensor of shape (M, 4) representing ground truth bounding box coordinates.
+                Each row is of the format [x1, y1, x2, y2].
+            gt_cls (torch.Tensor): Tensor of shape (M,) representing ground truth class indices.
+            pred_masks (torch.Tensor | None): Tensor representing predicted masks, if available. The shape should
+                match the ground truth masks.
+            gt_masks (torch.Tensor | None): Tensor of shape (M, H, W) representing ground truth masks, if available.
+            overlap (bool): Flag indicating if overlapping masks should be considered.
+            masks (bool): Flag indicating if the batch contains mask data.
 
         Returns:
-            correct (array[N, 10]), for 10 IoU levels
+            (torch.Tensor): A correct prediction matrix of shape (N, 10), where 10 represents different IoU levels.
+
+        Note:
+            - If `masks` is True, the function computes IoU between predicted and ground truth masks.
+            - If `overlap` is True and `masks` is True, overlapping masks are taken into account when computing IoU.
+
+        Example:
+            ```python
+            detections = torch.tensor([[25, 30, 200, 300, 0.8, 1], [50, 60, 180, 290, 0.75, 0]])
+            gt_bboxes = torch.tensor([[24, 29, 199, 299], [55, 65, 185, 295]])
+            gt_cls = torch.tensor([1, 0])
+            correct_preds = validator._process_batch(detections, gt_bboxes, gt_cls)
+            ```
         """
         if masks:
             if overlap:
@@ -213,6 +242,18 @@ class SegmentationValidator(DetectionValidator):
             on_plot=self.on_plot,
         )  # pred
         self.plot_masks.clear()
+
+    def save_one_txt(self, predn, pred_masks, save_conf, shape, file):
+        """Save YOLO detections to a txt file in normalized coordinates in a specific format."""
+        from ultralytics.engine.results import Results
+
+        Results(
+            np.zeros((shape[0], shape[1]), dtype=np.uint8),
+            path=None,
+            names=self.names,
+            boxes=predn[:, :6],
+            masks=pred_masks,
+        ).save_txt(file, save_conf=save_conf)
 
     def pred_to_json(self, predn, filename, pred_masks):
         """

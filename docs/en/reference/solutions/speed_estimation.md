@@ -1,15 +1,15 @@
 ---
-description: Transform speed estimation with Ultralytics YOLO speed estimation featuring cutting-edge technology for precise real-time counting in video streams.
-keywords: Ultralytics YOLO, speed estimation software, real-time vehicle tracking solutions, video stream analysis, YOLOv8 object detection, smart counting technology, computer vision, AI-powered tracking, video analytics tools, automated monitoring.
+description: Explore the Ultralytics YOLO-based speed estimation script for real-time object tracking and speed measurement, optimized for accuracy and performance.
+keywords: Ultralytics, speed estimation, YOLO, real-time tracking, object tracking, python
 ---
 
 # Reference for `ultralytics/solutions/speed_estimation.py`
 
-!!! Note
+!!! note
 
     This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/solutions/speed_estimation.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/solutions/speed_estimation.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/solutions/speed_estimation.py) 🛠️. Thank you 🙏!
 
-<br><br>
+<br>
 
 ## ::: ultralytics.solutions.speed_estimation.SpeedEstimator
 

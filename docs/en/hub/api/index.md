@@ -17,17 +17,17 @@ Welcome to the Ultralytics "Under Construction" page! Here, we're hard at work d
 
 This placeholder page is your first stop for upcoming developments. Keep an eye out for:
 
-- **Newsletter:** Subscribe [here](https://ultralytics.com/#newsletter) for the latest news.
+- **Newsletter:** Subscribe [here](https://www.ultralytics.com/#newsletter) for the latest news.
 - **Social Media:** Follow us [here](https://www.linkedin.com/company/ultralytics) for updates and teasers.
-- **Blog:** Visit our [blog](https://ultralytics.com/blog) for detailed insights.
+- **Blog:** Visit our [blog](https://www.ultralytics.com/blog) for detailed insights.
 
 ## We Value Your Input 🗣️
 
-Your feedback shapes our future releases. Share your thoughts and suggestions [here](https://ultralytics.com/contact).
+Your feedback shapes our future releases. Share your thoughts and suggestions [here](https://www.ultralytics.com/contact).
 
 ## Thank You, Community! 🌍
 
-Your [contributions](https://docs.ultralytics.com/help/contributing) inspire our continuous [innovation](https://github.com/ultralytics/ultralytics). Stay tuned for the big reveal of what's next in AI and ML at Ultralytics!
+Your [contributions](../../help/contributing.md) inspire our continuous [innovation](https://github.com/ultralytics/ultralytics). Stay tuned for the big reveal of what's next in AI and ML at Ultralytics!
 
 ---
 

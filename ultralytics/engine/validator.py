@@ -3,7 +3,7 @@
 Check a model's accuracy on a test or val split of a dataset.
 
 Usage:
-    $ yolo mode=val model=yolov8n.pt data=coco128.yaml imgsz=640
+    $ yolo mode=val model=yolov8n.pt data=coco8.yaml imgsz=640
 
 Usage - formats:
     $ yolo mode=val model=yolov8n.pt                 # PyTorch
@@ -104,15 +104,14 @@ class BaseValidator:
 
     @smart_inference_mode()
     def __call__(self, trainer=None, model=None):
-        """Supports validation of a pre-trained model if passed or a model being trained if trainer is passed (trainer
-        gets priority).
-        """
+        """Executes validation process, running inference on dataloader and computing performance metrics."""
         self.training = trainer is not None
         augment = self.args.augment and (not self.training)
         if self.training:
             self.device = trainer.device
             self.data = trainer.data
-            self.args.half = self.device.type != "cpu"  # force FP16 val during training
+            # force FP16 val during training
+            self.args.half = self.device.type != "cpu" and trainer.amp
             model = trainer.ema.ema or trainer.model
             model = model.half() if self.args.half else model.float()
             # self.model = model
@@ -136,8 +135,8 @@ class BaseValidator:
             if engine:
                 self.args.batch = model.batch_size
             elif not pt and not jit:
-                self.args.batch = 1  # export.py models default to batch-size 1
-                LOGGER.info(f"Forcing batch=1 square inference (1,3,{imgsz},{imgsz}) for non-PyTorch models")
+                self.args.batch = model.metadata.get("batch", 1)  # export.py models default to batch-size 1
+                LOGGER.info(f"Setting batch={self.args.batch} input of shape ({self.args.batch}, 3, {imgsz}, {imgsz})")
 
             if str(self.args.data).split(".")[-1] in {"yaml", "yml"}:
                 self.data = check_det_dataset(self.args.data)
@@ -204,8 +203,9 @@ class BaseValidator:
             return {k: round(float(v), 5) for k, v in results.items()}  # return results as 5 decimal place floats
         else:
             LOGGER.info(
-                "Speed: %.1fms preprocess, %.1fms inference, %.1fms loss, %.1fms postprocess per image"
-                % tuple(self.speed.values())
+                "Speed: {:.1f}ms preprocess, {:.1f}ms inference, {:.1f}ms loss, {:.1f}ms postprocess per image".format(
+                    *tuple(self.speed.values())
+                )
             )
             if self.args.save_json and self.jdict:
                 with open(str(self.save_dir / "predictions.json"), "w") as f:
@@ -280,7 +280,7 @@ class BaseValidator:
         return batch
 
     def postprocess(self, preds):
-        """Describes and summarizes the purpose of 'postprocess()' but no details mentioned."""
+        """Preprocesses the predictions."""
         return preds
 
     def init_metrics(self, model):
@@ -317,7 +317,7 @@ class BaseValidator:
         return []
 
     def on_plot(self, name, data=None):
-        """Registers plots (e.g. to be consumed in callbacks)"""
+        """Registers plots (e.g. to be consumed in callbacks)."""
         self.plots[Path(name)] = {"data": data, "timestamp": time.time()}
 
     # TODO: may need to put these following functions into callback

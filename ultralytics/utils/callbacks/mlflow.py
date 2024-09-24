@@ -34,10 +34,14 @@ try:
     from pathlib import Path
 
     PREFIX = colorstr("MLflow: ")
-    SANITIZE = lambda x: {k.replace("(", "").replace(")", ""): float(v) for k, v in x.items()}
 
 except (ImportError, AssertionError):
     mlflow = None
+
+
+def sanitize_dict(x):
+    """Sanitize dictionary keys by removing parentheses and converting values to floats."""
+    return {k.replace("(", "").replace(")", ""): float(v) for k, v in x.items()}
 
 
 def on_pretrain_routine_end(trainer):
@@ -88,8 +92,8 @@ def on_train_epoch_end(trainer):
     if mlflow:
         mlflow.log_metrics(
             metrics={
-                **SANITIZE(trainer.lr),
-                **SANITIZE(trainer.label_loss_items(trainer.tloss, prefix="train")),
+                **sanitize_dict(trainer.lr),
+                **sanitize_dict(trainer.label_loss_items(trainer.tloss, prefix="train")),
             },
             step=trainer.epoch,
         )
@@ -98,27 +102,27 @@ def on_train_epoch_end(trainer):
 def on_fit_epoch_end(trainer):
     """Log training metrics at the end of each fit epoch to MLflow."""
     if mlflow:
-        mlflow.log_metrics(metrics=SANITIZE(trainer.metrics), step=trainer.epoch)
+        mlflow.log_metrics(metrics=sanitize_dict(trainer.metrics), step=trainer.epoch)
 
 
 def on_train_end(trainer):
     """Log model artifacts at the end of the training."""
-    if mlflow:
-        mlflow.log_artifact(str(trainer.best.parent))  # log save_dir/weights directory with best.pt and last.pt
-        for f in trainer.save_dir.glob("*"):  # log all other files in save_dir
-            if f.suffix in {".png", ".jpg", ".csv", ".pt", ".yaml"}:
-                mlflow.log_artifact(str(f))
-        keep_run_active = os.environ.get("MLFLOW_KEEP_RUN_ACTIVE", "False").lower() == "true"
-        if keep_run_active:
-            LOGGER.info(f"{PREFIX}mlflow run still alive, remember to close it using mlflow.end_run()")
-        else:
-            mlflow.end_run()
-            LOGGER.debug(f"{PREFIX}mlflow run ended")
+    if not mlflow:
+        return
+    mlflow.log_artifact(str(trainer.best.parent))  # log save_dir/weights directory with best.pt and last.pt
+    for f in trainer.save_dir.glob("*"):  # log all other files in save_dir
+        if f.suffix in {".png", ".jpg", ".csv", ".pt", ".yaml"}:
+            mlflow.log_artifact(str(f))
+    keep_run_active = os.environ.get("MLFLOW_KEEP_RUN_ACTIVE", "False").lower() == "true"
+    if keep_run_active:
+        LOGGER.info(f"{PREFIX}mlflow run still alive, remember to close it using mlflow.end_run()")
+    else:
+        mlflow.end_run()
+        LOGGER.debug(f"{PREFIX}mlflow run ended")
 
-        LOGGER.info(
-            f"{PREFIX}results logged to {mlflow.get_tracking_uri()}\n"
-            f"{PREFIX}disable with 'yolo settings mlflow=False'"
-        )
+    LOGGER.info(
+        f"{PREFIX}results logged to {mlflow.get_tracking_uri()}\n{PREFIX}disable with 'yolo settings mlflow=False'"
+    )
 
 
 callbacks = (

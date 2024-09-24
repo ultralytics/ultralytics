@@ -55,23 +55,22 @@ def request_with_credentials(url: str) -> any:
 
     display.display(
         display.Javascript(
-            """
-            window._hub_tmp = new Promise((resolve, reject) => {
+            f"""
+            window._hub_tmp = new Promise((resolve, reject) => {{
                 const timeout = setTimeout(() => reject("Failed authenticating existing browser session"), 5000)
-                fetch("%s", {
+                fetch("{url}", {{
                     method: 'POST',
                     credentials: 'include'
-                })
+                }})
                     .then((response) => resolve(response.json()))
-                    .then((json) => {
+                    .then((json) => {{
                     clearTimeout(timeout);
-                    }).catch((err) => {
+                    }}).catch((err) => {{
                     clearTimeout(timeout);
                     reject(err);
-                });
-            });
+                }});
+            }});
             """
-            % url
         )
     )
     return output.eval_js("_hub_tmp")
@@ -185,7 +184,7 @@ class Events:
     def __init__(self):
         """Initializes the Events object with default values for events, rate_limit, and metadata."""
         self.events = []  # events list
-        self.rate_limit = 60.0  # rate limit (seconds)
+        self.rate_limit = 30.0  # rate limit (seconds)
         self.t = 0.0  # rate limit timer (seconds)
         self.metadata = {
             "cli": Path(ARGV[0]).name == "yolo",

@@ -4,7 +4,6 @@
 from collections import defaultdict
 from copy import deepcopy
 
-
 # Trainer callbacks ----------------------------------------------------------------------------------------------------
 
 
@@ -193,7 +192,6 @@ def add_integration_callbacks(instance):
         instance (Trainer, Predictor, Validator, Exporter): An object with a 'callbacks' attribute that is a dictionary
             of callback lists.
     """
-
     # Load HUB callbacks
     from .hub import callbacks as hub_cb
 

@@ -52,7 +52,7 @@ To use Multi-Object Tracking with Ultralytics YOLO, you can start by using the P
         yolo track model=yolov8n.pt source="https://youtu.be/LNwODJXcvt4" conf=0.3 iou=0.5 show
         ```
 
-These commands load the YOLOv8 model and use it for tracking objects in the given video source with specific confidence (`conf`) and Intersection over Union (`iou`) thresholds. For more details, refer to the [track mode documentation](../../modes/track.md).
+These commands load the YOLOv8 model and use it for tracking objects in the given video source with specific confidence (`conf`) and [Intersection over Union](https://www.ultralytics.com/glossary/intersection-over-union-iou) (`iou`) thresholds. For more details, refer to the [track mode documentation](../../modes/track.md).
 
 ### What are the upcoming features for training trackers in Ultralytics?
 
@@ -60,7 +60,7 @@ Ultralytics is continuously enhancing its AI models. An upcoming feature will en
 
 ### Why should I use Ultralytics YOLO for multi-object tracking?
 
-Ultralytics YOLO is a state-of-the-art object detection model known for its real-time performance and high accuracy. Using YOLO for multi-object tracking provides several advantages:
+Ultralytics YOLO is a state-of-the-art [object detection](https://www.ultralytics.com/glossary/object-detection) model known for its real-time performance and high [accuracy](https://www.ultralytics.com/glossary/accuracy). Using YOLO for multi-object tracking provides several advantages:
 
 - **Real-time tracking:** Achieve efficient and high-speed tracking ideal for dynamic environments.
 - **Flexibility with pre-trained models:** No need to train from scratch; simply use pre-trained detection, segmentation, or Pose models.

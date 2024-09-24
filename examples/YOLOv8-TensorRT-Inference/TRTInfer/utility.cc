@@ -1,5 +1,5 @@
 #include "utility.h"
-namespace utilty
+namespace utility
 {
 
     void *safeCudaMalloc(size_t memSize)

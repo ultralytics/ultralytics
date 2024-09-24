@@ -5,10 +5,10 @@
 #include <NvInfer.h>
 #include <opencv2/core.hpp>
 
-namespace utilty
+namespace utility
 {
     /**
-     *@brief Safely Allocate GPU Memor
+     *@brief Safely Allocate GPU Memory
      *@param memSize The required number of GPU memory bytes for
      *@return The address header of the GPU memory address block allocated by
      */

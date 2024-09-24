@@ -81,7 +81,7 @@ TRTInfer::TRTInfer(const std::string &engine_path) : logger()
 }
 TRTInfer::~TRTInfer()
 {
-    // destory stream
+    // destroy stream
     cudaStreamDestroy(stream);
     // release cuda data
     for (auto &data : inputBindings)
@@ -147,7 +147,7 @@ void TRTInfer::get_InputNames()
                       << ",tensor format : " << engine->getTensorFormatDesc(name)
                       << std::endl;
             input_names.emplace_back(std::string(name));
-            input_size[std::string(name)] = utilty::getTensorbytes(engine->getTensorShape(name), engine->getTensorDataType(name));
+            input_size[std::string(name)] = utility::getTensorbytes(engine->getTensorShape(name), engine->getTensorDataType(name));
         }
     }
 }
@@ -167,7 +167,7 @@ void TRTInfer::get_OutputNames()
                       << std::endl;
             // second
             output_names.emplace_back(std::string(name));
-            output_size[std::string(name)] = utilty::getTensorbytes(engine->getTensorShape(name), engine->getTensorDataType(name));
+            output_size[std::string(name)] = utility::getTensorbytes(engine->getTensorShape(name), engine->getTensorDataType(name));
             // third
             // 讲tensorrt的dim类似转换为opencv的dims类型
             nvinfer1::Dims dims = engine->getTensorShape(name);
@@ -183,15 +183,15 @@ void TRTInfer::get_OutputNames()
 
 void TRTInfer::get_bindings()
 {
-    // allocate input memeory
+    // allocate input memory
     for (int i = 0; i < input_names.size(); i++)
     {
-        inputBindings[input_names[i]] = utilty::safeCudaMalloc(input_size[input_names[i]]);
+        inputBindings[input_names[i]] = utility::safeCudaMalloc(input_size[input_names[i]]);
     }
-    // allocate output memeory
+    // allocate output memory
     for (int i = 0; i < output_names.size(); i++)
     {
-        outputBindings[output_names[i]] = utilty::safeCudaMalloc(output_size[output_names[i]]);
+        outputBindings[output_names[i]] = utility::safeCudaMalloc(output_size[output_names[i]]);
     }
 }
 
@@ -261,8 +261,8 @@ std::unordered_map<std::string, cv::Mat> TRTInfer::infer(const std::unordered_ma
         cv::Mat cpu_ptr = input_data.second;
 
         // 类型转换
-        if (utilty::typeCv2Rt(cpu_ptr.type()) != engine->getTensorDataType(key.c_str()))
-            cpu_ptr.convertTo(cpu_ptr, utilty::typeRt2Cv(engine->getTensorDataType(key.c_str())));
+        if (utility::typeCv2Rt(cpu_ptr.type()) != engine->getTensorDataType(key.c_str()))
+            cpu_ptr.convertTo(cpu_ptr, utility::typeRt2Cv(engine->getTensorDataType(key.c_str())));
         auto iter = inputBindings.find(key);
         if (iter != inputBindings.end())
         {
@@ -297,7 +297,7 @@ std::unordered_map<std::string, cv::Mat> TRTInfer::infer(const std::unordered_ma
         cv::Mat output(
             output_shape[names].size(),
             output_shape[names].data(),
-            utilty::typeRt2Cv(engine->getTensorDataType(names.c_str()))
+            utility::typeRt2Cv(engine->getTensorDataType(names.c_str()))
             );
         output_blob[names] = output;
         auto &iter = outputBindings.find(names);

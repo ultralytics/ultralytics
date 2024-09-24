@@ -25,7 +25,6 @@ from ultralytics.nn.modules import (
     C2PSA,
     AConv,
     ADown,
-    SCDown,
     Bottleneck,
     BottleneckCSP,
     C2f,

@@ -2,12 +2,6 @@
 
 __version__ = "8.2.100"
 
-
-import os
-
-# Set ENV Variables (place before imports)
-os.environ["OMP_NUM_THREADS"] = "1"  # reduce CPU utilization during training
-
 import os
 
 # Set ENV Variables (place before imports)

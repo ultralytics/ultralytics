@@ -130,9 +130,7 @@ class ParkingPtsSelection:
         for box in self.rg_data:
             rs_box = [
                 (
-                    int(
-                        x * self.imgw / self.canvas.winfo_width()
-                    ),  # width scaling
+                    int(x * self.imgw / self.canvas.winfo_width()),  # width scaling
                     int(y * self.imgh / self.canvas.winfo_height()),
                 )
                 for x, y in box

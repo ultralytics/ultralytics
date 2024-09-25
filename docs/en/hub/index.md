@@ -49,7 +49,7 @@ We hope that the resources here will help you get the most out of HUB. Please br
 
 ## Introduction
 
-[Ultralytics HUB](https://www.ultralytics.com/hub) is designed to be user-friendly and intuitive, allowing users to quickly upload their datasets and train new YOLO models. It also offers a range of pre-trained models to choose from, making it extremely easy for users to get started. Once a model is trained, it can be effortlessly previewed in the [Ultralytics HUB App](app/index.md) before being deployed for real-time classification, object detection, and instance segmentation tasks.
+[Ultralytics HUB](https://www.ultralytics.com/hub) is designed to be user-friendly and intuitive, allowing users to quickly upload their datasets and train new YOLO models. It also offers a range of pre-trained models to choose from, making it extremely easy for users to get started. Once a model is trained, it can be effortlessly previewed in the [Ultralytics HUB App](app/index.md) before being deployed for real-time classification, [object detection](https://www.ultralytics.com/glossary/object-detection), and [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation) tasks.
 
 <p align="center">
   <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/lveF9iCMIzc?si=_Q4WB5kMB5qNe7q6"
@@ -117,7 +117,7 @@ Ultralytics HUB allows you to manage and organize your projects efficiently. You
 
 ### What integrations are available with Ultralytics HUB?
 
-Ultralytics HUB offers seamless integrations with various platforms to enhance your machine learning workflows. Some key integrations include:
+Ultralytics HUB offers seamless integrations with various platforms to enhance your [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) workflows. Some key integrations include:
 
 - **Roboflow:** For dataset management and model training. Learn more on the [Integrations](integrations.md) page.
 - **Google Colab:** Efficiently train models using Google Colab's cloud-based environment. Detailed steps are available in the [Google Colab](https://docs.ultralytics.com/integrations/google-colab/) section.

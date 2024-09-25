@@ -38,6 +38,9 @@ RUN pip install -e ".[export]"
 # Creates a symbolic link to make 'python' point to 'python3'
 RUN ln -sf /usr/bin/python3 /usr/bin/python
 
+# Remove persistent cache if NO_CACHE=true argument is passed 
+ARG NO_CACHE
+RUN if [ "$NO_CACHE" = true ]; then rm /root/.config/Ultralytics/persistent_cache.json ; fi
 
 # Usage Examples -------------------------------------------------------------------------------------------------------
 

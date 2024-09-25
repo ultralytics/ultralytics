@@ -44,6 +44,10 @@ RUN pip install -e ".[export]"
 RUN rm *.whl
 
 
+# Remove persistent cache if NO_CACHE=true argument is passed 
+ARG NO_CACHE
+RUN if [ "$NO_CACHE" = true ]; then rm /root/.config/Ultralytics/persistent_cache.json ; fi
+
 # Usage Examples -------------------------------------------------------------------------------------------------------
 
 # Build and Push

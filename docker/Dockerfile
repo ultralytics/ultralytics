@@ -52,6 +52,9 @@ RUN pip install numpy==1.23.5
 # Remove exported models
 RUN rm -rf tmp
 
+ARG NO_CACHE
+RUN if [ "$NO_CACHE" = true ]; then rm /root/.config/Ultralytics/persistent_cache.json ; fi
+
 
 # Usage Examples -------------------------------------------------------------------------------------------------------
 

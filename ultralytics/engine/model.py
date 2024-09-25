@@ -127,7 +127,7 @@ class Model(nn.Module):
         # Check if Ultralytics HUB model from https://hub.ultralytics.com
         if self.is_hub_model(model):
             # Fetch model from HUB
-            checks.check_requirements("hub-sdk>=0.0.8")
+            checks.check_requirements("hub-sdk>=0.0.12")
             session = HUBTrainingSession.create_session(model)
             model = session.model_file
             if session.train_args:  # training sent from HUB

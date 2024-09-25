@@ -103,5 +103,4 @@ If you use the hand-keypoints dataset in your research or development work, plea
 
     The images were collected and used under the respective licenses provided by each platform and are distributed under the [Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License](https://creativecommons.org/licenses/by-nc-sa/4.0/).
 
-
 We would also like to acknowledge the creator of this dataset, [Rion Dsilva](https://www.linkedin.com/in/rion-dsilva-043464229/), for his great contribution to Vision AI research.

@@ -88,7 +88,7 @@ Let's say you are ready to annotate now. There are several open-source tools ava
 
 - **[Label Studio](https://github.com/HumanSignal/label-studio)**: A flexible tool that supports a wide range of annotation tasks and includes features for managing projects and quality control.
 - **[CVAT](https://github.com/cvat-ai/cvat)**: A powerful tool that supports various annotation formats and customizable workflows, making it suitable for complex projects.
-- **[Labelme](https://github.com/labelmeai/labelme)**: A simple and easy-to-use tool that allows for quick annotation of images with polygons, making it ideal for straightforward tasks.
+- **[Labelme](https://github.com/wkentaro/labelme)**: A simple and easy-to-use tool that allows for quick annotation of images with polygons, making it ideal for straightforward tasks.
 
 <p align="center">
   <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/labelme-instance-segmentation-annotation.avif" alt="LabelMe Overview">
@@ -167,7 +167,7 @@ Several popular open-source tools can streamline the data annotation process:
 
 - **[Label Studio](https://github.com/HumanSignal/label-studio)**: A flexible tool supporting various annotation tasks, project management, and quality control features.
 - **[CVAT](https://www.cvat.ai/)**: Offers multiple annotation formats and customizable workflows, making it suitable for complex projects.
-- **[Labelme](https://github.com/labelmeai/labelme)**: Ideal for quick and straightforward image annotation with polygons.
+- **[Labelme](https://github.com/wkentaro/labelme)**: Ideal for quick and straightforward image annotation with polygons.
 
 These tools can help enhance the efficiency and accuracy of your annotation workflows. For extensive feature lists and guides, refer to our [data annotation tools documentation](../datasets/index.md).
 

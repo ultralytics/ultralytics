@@ -20,6 +20,7 @@ Example:
 from .block import (
     C1,
     C2,
+    C2PSA,
     C3,
     C3TR,
     CIB,
@@ -36,9 +37,12 @@ from .block import (
     Bottleneck,
     BottleneckCSP,
     C2f,
+    C2f2,
     C2fAttn,
     C2fCIB,
+    C2fPSA,
     C3Ghost,
+    C3k2,
     C3x,
     CBFuse,
     CBLinear,
@@ -52,10 +56,6 @@ from .block import (
     RepNCSPELAN4,
     RepVGGDW,
     ResNetLayer,
-    C2f2,
-    C3k2,
-    C2fPSA,
-    C2PSA,
     SCDown,
 )
 from .conv import (

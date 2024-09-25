@@ -13,6 +13,7 @@ from ultralytics.nn.modules import (
     AIFI,
     C1,
     C2,
+    C2PSA,
     C3,
     C3TR,
     ELAN1,
@@ -21,18 +22,17 @@ from ultralytics.nn.modules import (
     SPP,
     SPPELAN,
     SPPF,
-    C2fPSA,
-    C2PSA,
     AConv,
     ADown,
     Bottleneck,
     BottleneckCSP,
     C2f,
     C2f2,
-    C3k2,
     C2fAttn,
     C2fCIB,
+    C2fPSA,
     C3Ghost,
+    C3k2,
     C3x,
     CBFuse,
     CBLinear,
@@ -1010,10 +1010,26 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
                 )  # num heads
 
             args = [c1, c2, *args[1:]]
-            if m in (BottleneckCSP, C1, C2, C2f, C2f2, C3k2, C2fAttn, C3, C3TR, C3Ghost, C3x, RepC3, C2fPSA, C2fCIB, C2PSA):
+            if m in (
+                BottleneckCSP,
+                C1,
+                C2,
+                C2f,
+                C2f2,
+                C3k2,
+                C2fAttn,
+                C3,
+                C3TR,
+                C3Ghost,
+                C3x,
+                RepC3,
+                C2fPSA,
+                C2fCIB,
+                C2PSA,
+            ):
                 args.insert(2, n)  # number of repeats
                 n = 1
-            if m is C3k2 and scale in "mlx":   # for M/L/X sizes
+            if m is C3k2 and scale in "mlx":  # for M/L/X sizes
                 args[3] = True
         elif m is AIFI:
             args = [ch[f], *args]

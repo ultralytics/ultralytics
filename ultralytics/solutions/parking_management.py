@@ -131,7 +131,7 @@ class ParkingPtsSelection:
             rs_box = [
                 (
                     int(x * self.imgw / self.canvas.winfo_width()),  # width scaling
-                    int(y * self.imgh / self.canvas.winfo_height()), # height scaling
+                    int(y * self.imgh / self.canvas.winfo_height()),  # height scaling
                 )
                 for x, y in box
             ]

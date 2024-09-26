@@ -51,7 +51,7 @@ class TLCTrainerMixin(BaseTrainer):
 
             # Log parameters to 3LC
             self._log_3lc_parameters()
-
+            self._run.set_status_running()
             self._print_metrics_collection_epochs()
 
     def _log_3lc_parameters(self):

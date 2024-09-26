@@ -100,7 +100,7 @@ However, if you choose to collect images or take your own pictures, you'll need 
   <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/different-types-of-image-annotation.avif" alt="Different Types of Image Annotation">
 </p>
 
-[Data collection and annotation](./data-collection-and-annotation.md) can be a time-consuming manual effort. Annotation tools can help make this process easier. Here are some useful open annotation tools: [LabeI Studio](https://github.com/HumanSignal/label-studio), [CVAT](https://github.com/cvat-ai/cvat), and [Labelme](https://github.com/labelmeai/labelme).
+[Data collection and annotation](./data-collection-and-annotation.md) can be a time-consuming manual effort. Annotation tools can help make this process easier. Here are some useful open annotation tools: [LabeI Studio](https://github.com/HumanSignal/label-studio), [CVAT](https://github.com/cvat-ai/cvat), and [Labelme](https://github.com/wkentaro/labelme).
 
 ## Step 3: [Data Augmentation](https://www.ultralytics.com/glossary/data-augmentation) and Splitting Your Dataset
 
@@ -215,7 +215,7 @@ Data annotation is vital for teaching your model to recognize patterns. The type
 - **Object Detection**: Bounding boxes drawn around objects.
 - **Image Segmentation**: Each pixel labeled according to the object it belongs to.
 
-Tools like [Label Studio](https://github.com/HumanSignal/label-studio), [CVAT](https://github.com/cvat-ai/cvat), and [Labelme](https://github.com/labelmeai/labelme) can assist in this process. For more details, refer to our [data collection and annotation guide](./data-collection-and-annotation.md).
+Tools like [Label Studio](https://github.com/HumanSignal/label-studio), [CVAT](https://github.com/cvat-ai/cvat), and [Labelme](https://github.com/wkentaro/labelme) can assist in this process. For more details, refer to our [data collection and annotation guide](./data-collection-and-annotation.md).
 
 ### What steps should I follow to augment and split my dataset effectively?
 

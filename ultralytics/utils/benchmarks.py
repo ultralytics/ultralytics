@@ -47,7 +47,14 @@ from ultralytics.utils.torch_utils import select_device
 
 
 def benchmark(
-    model=WEIGHTS_DIR / "yolov8n.pt", data=None, imgsz=160, half=False, int8=False, device="cpu", verbose=False
+    model=WEIGHTS_DIR / "yolov8n.pt",
+    data=None,
+    imgsz=160,
+    half=False,
+    int8=False,
+    device="cpu",
+    verbose=False,
+    eps=1e-3,
 ):
     """
     Benchmark a YOLO model across different formats for speed and accuracy.
@@ -61,7 +68,7 @@ def benchmark(
         int8 (bool, optional): Use int8-precision for the model if True. Default is False.
         device (str, optional): Device to run the benchmark on, either 'cpu' or 'cuda'. Default is 'cpu'.
         verbose (bool | float | optional): If True or a float, assert benchmarks pass with given metric.
-            Default is False.
+        eps (float): Epsilon value for divide by zero prevention.
 
     Returns:
         df (pandas.DataFrame): A pandas DataFrame with benchmark results for each format, including file size,

@@ -645,9 +645,7 @@ class SAM2Model(torch.nn.Module):
         # The case of `self.num_maskmem == 0` below is primarily used for reproducing SAM on images.
         # In this case, we skip the fusion with any memory.
         if self.num_maskmem == 0:  # Disable memory and skip fusion
-            pix_feat = current_vision_feats[-1].permute(1, 2, 0).view(B, C, H, W)
-            return pix_feat
-
+            return current_vision_feats[-1].permute(1, 2, 0).view(B, C, H, W)
         num_obj_ptr_tokens = 0
         # Step 1: condition the visual features of the current frame on previous memories
         if not is_init_cond_frame:

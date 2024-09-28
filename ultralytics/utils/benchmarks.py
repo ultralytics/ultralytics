@@ -556,14 +556,17 @@ class ProfileModels:
     def print_table(table_rows):
         """Prints a formatted table of model profiling results, including speed and accuracy metrics."""
         gpu = torch.cuda.get_device_name(0) if torch.cuda.is_available() else "GPU"
-        header = (
-            f"| Model | size<br><sup>(pixels) | mAP<sup>val<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms) | "
-            f"Speed<br><sup>{gpu} TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |"
-        )
-        separator = (
-            "|-------------|---------------------|--------------------|------------------------------|"
-            "-----------------------------------|------------------|-----------------|"
-        )
+        headers = [
+            "Model",
+            "size<br><sup>(pixels)",
+            "mAP<sup>val<br>50-95",
+            "Speed<br><sup>CPU ONNX<br>(ms)",
+            f"Speed<br><sup>{gpu} TensorRT<br>(ms)",
+            "params<br><sup>(M)",
+            "FLOPs<br><sup>(B)",
+        ]
+        header = "|" + "|".join(f" {h} " for h in headers) + "|"
+        separator = "|" + "|".join("-" * (len(h) + 2) for h in headers) + "|"
 
         print(f"\n\n{header}")
         print(separator)

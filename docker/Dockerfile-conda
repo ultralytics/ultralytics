@@ -30,6 +30,8 @@ RUN conda config --set solver libmamba && \
     conda install -c conda-forge ultralytics mkl
     # conda install -c pytorch -c nvidia -c conda-forge pytorch torchvision pytorch-cuda=12.1 ultralytics mkl
 
+# Remove extra build files
+RUN rm -rf /root/.config/Ultralytics/persistent_cache.json
 
 # Usage Examples -------------------------------------------------------------------------------------------------------
 

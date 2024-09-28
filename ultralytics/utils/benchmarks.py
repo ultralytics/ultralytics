@@ -43,7 +43,7 @@ from ultralytics.utils import ARM64, ASSETS, IS_JETSON, IS_RASPBERRYPI, LINUX, L
 from ultralytics.utils.checks import IS_PYTHON_3_12, check_requirements, check_yolo
 from ultralytics.utils.downloads import safe_download
 from ultralytics.utils.files import file_size
-from ultralytics.utils.torch_utils import select_device, get_cpu_info
+from ultralytics.utils.torch_utils import get_cpu_info, select_device
 
 
 def benchmark(

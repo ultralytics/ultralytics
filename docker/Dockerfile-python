@@ -2,8 +2,8 @@
 # Builds ultralytics/ultralytics:latest-cpu image on DockerHub https://hub.docker.com/r/ultralytics/ultralytics
 # Image is CPU-optimized for ONNX, OpenVINO and PyTorch YOLOv8 deployments
 
-# Use the official Python 3.10 slim-bookworm as base image
-FROM python:3.10-slim-bookworm
+# Use official Python base image for reproducibility (3.11.10 for export and 3.12.6 for inference)
+FROM python:3.11.10-slim-bookworm
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1 \

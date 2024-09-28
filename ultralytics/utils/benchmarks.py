@@ -560,7 +560,7 @@ class ProfileModels:
             "Model",
             "size<br><sup>(pixels)",
             "mAP<sup>val<br>50-95",
-            f"Speed<br><sup>{get_cpu_info()} ONNX<br>(ms)",
+            f"Speed<br><sup>CPU ({get_cpu_info()}) ONNX<br>(ms)",
             f"Speed<br><sup>{gpu} TensorRT<br>(ms)",
             "params<br><sup>(M)",
             "FLOPs<br><sup>(B)",

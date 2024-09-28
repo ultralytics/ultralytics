@@ -49,8 +49,9 @@ RUN yolo export model=tmp/yolov8n.pt format=ncnn imgsz=32
 RUN pip install "paddlepaddle>=2.6.0" x2paddle
 # Fix error: `np.bool` was a deprecated alias for the builtin `bool` segmentation error in Tests
 RUN pip install numpy==1.23.5
-# Remove exported models
-RUN rm -rf tmp
+
+# Remove extra build files
+RUN rm -rf tmp /root/.config/Ultralytics/persistent_cache.json
 
 
 # Usage Examples -------------------------------------------------------------------------------------------------------

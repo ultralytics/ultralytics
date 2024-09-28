@@ -41,8 +41,9 @@ ADD https://nvidia.box.com/shared/static/mvdcltm9ewdy2d5nurkiqorofz1s53ww.whl on
 RUN python3 -m pip install --upgrade pip wheel
 RUN pip install onnxruntime_gpu-1.15.1-cp38-cp38-linux_aarch64.whl
 RUN pip install -e ".[export]"
-RUN rm *.whl
 
+# Remove extra build files
+RUN rm -rf *.whl /root/.config/Ultralytics/persistent_cache.json
 
 # Usage Examples -------------------------------------------------------------------------------------------------------
 

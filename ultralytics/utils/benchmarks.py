@@ -139,7 +139,7 @@ def benchmark(
                 data=data, batch=1, imgsz=imgsz, plots=False, device=device, half=half, int8=int8, verbose=False
             )
             metric, speed = results.results_dict[key], results.speed["inference"]
-            fps = round((1000 / speed), 2)  # frames per second
+            fps = round(1000 / (speed + eps), 2)  # frames per second
             y.append([name, "✅", round(file_size(filename), 1), round(metric, 4), round(speed, 2), fps])
         except Exception as e:
             if verbose:

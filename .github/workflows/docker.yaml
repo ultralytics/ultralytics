@@ -147,7 +147,7 @@ jobs:
             -f docker/${{ matrix.dockerfile }} \
             -t ultralytics/ultralytics:${{ matrix.tags }} \
             -t ultralytics/ultralytics:${{ steps.get_version.outputs.version_tag }} \
-            . --build-arg NO_CACHE=true
+            .
 
       - name: Run Tests
         if: (github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true') && matrix.platforms == 'linux/amd64' && matrix.dockerfile != 'Dockerfile-conda' # arm64 images not supported on GitHub CI runners

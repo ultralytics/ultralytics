@@ -1015,6 +1015,9 @@ class C2PSA(nn.Module):
     Methods:
         forward: Performs a forward pass through the C2PSA module, applying attention and feed-forward operations.
 
+    Notes:
+        This module essentially is the same as PSA module, but refactored to allow stacking more PSABlock modules.
+
     Examples:
         >>> c2psa = C2PSA(c1=256, c2=256, n=3, e=0.5)
         >>> input_tensor = torch.randn(1, 256, 64, 64)

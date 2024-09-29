@@ -1630,22 +1630,27 @@ class LetterBox:
 
 class CopyPaste(BaseMixTransform):
     """
-    Implements Copy-Paste augmentation as described in https://arxiv.org/abs/2012.07177.
+    CopyPaste class for applying Copy-Paste augmentation to image datasets.
 
-    This class applies Copy-Paste augmentation on images and their corresponding instances.
+    This class implements the Copy-Paste augmentation technique as described in the paper "Simple Copy-Paste is a Strong
+    Data Augmentation Method for Instance Segmentation" (https://arxiv.org/abs/2012.07177). It combines objects from
+    different images to create new training samples.
 
     Attributes:
-        dataset: The dataset on which the copypaste augmentation is applied.
-        pre_transform: The pre-transforms for the mixed labels.
-        p (float): Probability of applying the Copy-Paste augmentation. Must be between 0 and 1.
+        dataset (Any): The dataset to which Copy-Paste augmentation will be applied.
+        pre_transform (Callable | None): Optional transform to apply before Copy-Paste.
+        p (float): Probability of applying Copy-Paste augmentation.
 
     Methods:
-        __call__: Applies Copy-Paste augmentation to given image and instances.
+        get_indexes: Returns a random index from the dataset.
+        _mix_transform: Applies Copy-Paste augmentation to the input labels.
+        __call__: Applies the Copy-Paste transformation to images and annotations.
 
     Examples:
+        >>> from ultralytics.data.augment import CopyPaste
+        >>> dataset = YourDataset(...)  # Your image dataset
         >>> copypaste = CopyPaste(dataset, p=0.5)
-        >>> augmented_labels = copypaste(labels)
-        >>> augmented_image = augmented_labels["img"]
+        >>> augmented_labels = copypaste(original_labels)
     """
 
     def __init__(self, dataset, pre_transform=None, p=0.5) -> None:
@@ -1653,25 +1658,11 @@ class CopyPaste(BaseMixTransform):
         super().__init__(dataset=dataset, pre_transform=pre_transform, p=p)
 
     def get_indexes(self):
-        """
-        Get a random index from the dataset.
-
-        This method returns a single random index from the dataset, which is used to select an image for MixUp
-        augmentation.
-
-        Returns:
-            (int): A random integer index within the range of the dataset length.
-
-        Examples:
-            >>> copypaste = CopyPaste(dataset)
-            >>> index = copypaste.get_indexes()
-            >>> print(index)
-            42
-        """
+        """Returns a list of random indexes from the dataset for CopyPaste augmentation."""
         return random.randint(0, len(self.dataset) - 1)
 
     def _mix_transform(self, labels):
-        """Applies CopyPaste augmentation."""
+        """Applies Copy-Paste augmentation to combine objects from another image into the current image."""
         labels2 = labels["mix_labels"][0]
         im = labels["img"]
         cls = labels["cls"]
@@ -1703,7 +1694,7 @@ class CopyPaste(BaseMixTransform):
         return labels
 
     def __call__(self, labels):
-        """Applies pre-processing transforms and copy_paste transforms to labels data."""
+        """Applies Copy-Paste augmentation to an image and its labels."""
         if len(labels["instances"].segments) == 0 or self.p == 0:
             return labels
         # Get index of one or three other images

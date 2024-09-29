@@ -100,7 +100,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-14]
         python-version: ["3.11"]
-        model: [yolov8n]
+        model: [yolo11n]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -116,6 +116,9 @@ jobs:
         run: |
           yolo checks
           pip list
+      - name: Benchmark DetectionModel
+        shell: bash
+        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}.pt' imgsz=160 verbose=0.000
       - name: Benchmark ClassificationModel
         shell: bash
         run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-cls.pt' imgsz=160 verbose=0.166
@@ -251,15 +254,15 @@ jobs:
       - name: Pytest tests
         run: pytest --slow tests/
       - name: Benchmark ClassificationModel
-        run: python -m ultralytics.cfg.__init__ benchmark model='yolov8n-cls.pt' imgsz=160 verbose=0.166
+        run: python -m ultralytics.cfg.__init__ benchmark model='yolo11n-cls.pt' imgsz=160 verbose=0.166
       - name: Benchmark YOLOWorld DetectionModel
-        run: python -m ultralytics.cfg.__init__ benchmark model='yolov8s-worldv2.pt' imgsz=160 verbose=0.318
+        run: python -m ultralytics.cfg.__init__ benchmark model='yolo11s-worldv2.pt' imgsz=160 verbose=0.318
       - name: Benchmark SegmentationModel
-        run: python -m ultralytics.cfg.__init__ benchmark model='yolov8n-seg.pt' imgsz=160 verbose=0.267
+        run: python -m ultralytics.cfg.__init__ benchmark model='yolo11n-seg.pt' imgsz=160 verbose=0.267
       - name: Benchmark PoseModel
-        run: python -m ultralytics.cfg.__init__ benchmark model='yolov8n-pose.pt' imgsz=160 verbose=0.179
+        run: python -m ultralytics.cfg.__init__ benchmark model='yolo11n-pose.pt' imgsz=160 verbose=0.179
       - name: Benchmark OBBModel
-        run: python -m ultralytics.cfg.__init__ benchmark model='yolov8n-obb.pt' imgsz=160 verbose=0.472
+        run: python -m ultralytics.cfg.__init__ benchmark model='yolo11n-obb.pt' imgsz=160 verbose=0.472
       - name: Benchmark YOLOv10Model
         run: python -m ultralytics.cfg.__init__ benchmark model='yolov10n.pt' imgsz=160 verbose=0.178
       - name: Benchmark Summary

@@ -1676,7 +1676,6 @@ class CopyPaste(BaseMixTransform):
         ioa = bbox_ioa(instances2.bboxes, instances.bboxes)  # intersection over area, (N, M)
         indexes = np.nonzero((ioa < 0.30).all(1))[0]  # (N, )
         n = len(indexes)
-        # for j in random.sample(list(indexes), k=round(self.p * n)):
         sorted_idx = np.argsort(ioa.max(1)[indexes])
         indexes = indexes[sorted_idx]
         for j in indexes[: round(self.p * n)]:
@@ -1791,7 +1790,6 @@ class FlipCopyPaste:
             ioa = bbox_ioa(ins_flip.bboxes, instances.bboxes)  # intersection over area, (N, M)
             indexes = np.nonzero((ioa < 0.30).all(1))[0]  # (N, )
             n = len(indexes)
-            # for j in random.sample(list(indexes), k=round(self.p * n)):
             sorted_idx = np.argsort(ioa.max(1)[indexes])
             indexes = indexes[sorted_idx]
             for j in indexes[: round(self.p * n)]:

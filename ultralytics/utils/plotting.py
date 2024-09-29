@@ -707,7 +707,7 @@ class Annotator:
             txt_color (tuple): Text color. Default is (255, 255, 255).
 
         Returns:
-            float: height of the text, used for positioning other elements.
+            text_height: (float): height of the text, used for positioning other elements.
         """
         (text_width, text_height), _ = cv2.getTextSize(text, 0, self.sf, self.tf)
 

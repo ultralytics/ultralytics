@@ -1009,7 +1009,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
                 )  # num heads
 
             args = [c1, c2, *args[1:]]
-            if m in (
+            if m in {
                 BottleneckCSP,
                 C1,
                 C2,
@@ -1025,7 +1025,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
                 C2fPSA,
                 C2fCIB,
                 C2PSA,
-            ):
+            }:
                 args.insert(2, n)  # number of repeats
                 n = 1
             if m is C3k2 and scale in "mlx":  # for M/L/X sizes

@@ -176,22 +176,24 @@ class ObjectCounter:
 
                 # Count objects using line
                 elif len(self.reg_pts) == 2:
-                    if prev_position is not None and track_id not in self.count_ids:
-                        # Check if the object's movement segment intersects the counting line
-                        if LineString([(prev_position[0], prev_position[1]), (box[0], box[1])]).intersects(
+                    if (
+                        prev_position is not None
+                        and track_id not in self.count_ids
+                        and LineString([(prev_position[0], prev_position[1]), (box[0], box[1])]).intersects(
                             self.counting_line_segment
-                        ):
-                            self.count_ids.append(track_id)
+                        )
+                    ):
+                        self.count_ids.append(track_id)
 
-                            # Determine the direction of movement (IN or OUT)
-                            dx = (box[0] - prev_position[0]) * (self.counting_region.centroid.x - prev_position[0])
-                            dy = (box[1] - prev_position[1]) * (self.counting_region.centroid.y - prev_position[1])
-                            if dx > 0 and dy > 0:
-                                self.in_counts += 1
-                                self.class_wise_count[self.names[cls]]["IN"] += 1
-                            else:
-                                self.out_counts += 1
-                                self.class_wise_count[self.names[cls]]["OUT"] += 1
+                        # Determine the direction of movement (IN or OUT)
+                        dx = (box[0] - prev_position[0]) * (self.counting_region.centroid.x - prev_position[0])
+                        dy = (box[1] - prev_position[1]) * (self.counting_region.centroid.y - prev_position[1])
+                        if dx > 0 and dy > 0:
+                            self.in_counts += 1
+                            self.class_wise_count[self.names[cls]]["IN"] += 1
+                        else:
+                            self.out_counts += 1
+                            self.class_wise_count[self.names[cls]]["OUT"] += 1
 
         labels_dict = {}
 

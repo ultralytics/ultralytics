@@ -128,14 +128,13 @@ class ParkingPtsSelection:
 
         rg_data = []  # regions data
         for box in self.rg_data:
-            rs_box = []  # rescaled box list
-            for x, y in box:
-                rs_box.append(
-                    (
-                        int(x * self.imgw / self.canvas.winfo_width()),  # width scaling
-                        int(y * self.imgh / self.canvas.winfo_height()),
-                    )
-                )  # height scaling
+            rs_box = [
+                (
+                    int(x * self.imgw / self.canvas.winfo_width()),  # width scaling
+                    int(y * self.imgh / self.canvas.winfo_height()),  # height scaling
+                )
+                for x, y in box
+            ]
             rg_data.append({"points": rs_box})
         with open("bounding_boxes.json", "w") as f:
             json.dump(rg_data, f, indent=4)

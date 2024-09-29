@@ -1005,6 +1005,7 @@ class PSA(nn.Module):
         >>> input_tensor = torch.randn(1, 128, 64, 64)
         >>> output_tensor = psa.forward(input_tensor)
     """
+
     def __init__(self, c1, c2, e=0.5):
         """Initializes the PSA module with input/output channels and attention mechanism for feature extraction."""
         super().__init__()
@@ -1045,6 +1046,7 @@ class C2PSA(nn.Module):
         >>> input_tensor = torch.randn(1, 256, 64, 64)
         >>> output_tensor = c2psa(input_tensor)
     """
+
     def __init__(self, c1, c2, n=1, e=0.5):
         """Initializes the C2PSA module with specified input/output channels, number of layers, and expansion ratio."""
         super().__init__()
@@ -1086,6 +1088,7 @@ class C2fPSA(C2f):
         >>> output = model(x)
         >>> print(output.shape)
     """
+
     def __init__(self, c1, c2, n=1, e=0.5):
         """Initializes the C2fPSA module, a variant of C2f with PSA blocks for enhanced feature extraction."""
         assert c1 == c2
@@ -1116,6 +1119,7 @@ class SCDown(nn.Module):
         >>> print(y.shape)
         torch.Size([1, 128, 64, 64])
     """
+
     def __init__(self, c1, c2, k, s):
         """Initializes the SCDown module with specified input/output channels, kernel size, and stride."""
         super().__init__()

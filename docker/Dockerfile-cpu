@@ -38,12 +38,12 @@ RUN yolo export model=tmp/yolov8n.pt format=edgetpu imgsz=32
 RUN yolo export model=tmp/yolov8n.pt format=ncnn imgsz=32
 # Requires Python<=3.10, bug with paddlepaddle==2.5.0 https://github.com/PaddlePaddle/X2Paddle/issues/991
 # RUN pip install "paddlepaddle>=2.6.0" x2paddle
-# Remove exported models
-RUN rm -rf tmp
 
 # Creates a symbolic link to make 'python' point to 'python3'
 RUN ln -sf /usr/bin/python3 /usr/bin/python
 
+# Remove extra build files
+RUN rm -rf tmp /root/.config/Ultralytics/persistent_cache.json
 
 # Usage Examples -------------------------------------------------------------------------------------------------------
 

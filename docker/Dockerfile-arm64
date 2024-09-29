@@ -38,6 +38,8 @@ RUN pip install -e ".[export]"
 # Creates a symbolic link to make 'python' point to 'python3'
 RUN ln -sf /usr/bin/python3 /usr/bin/python
 
+# Remove extra build files
+RUN rm -rf /root/.config/Ultralytics/persistent_cache.json
 
 # Usage Examples -------------------------------------------------------------------------------------------------------
 

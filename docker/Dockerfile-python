@@ -2,8 +2,8 @@
 # Builds ultralytics/ultralytics:latest-cpu image on DockerHub https://hub.docker.com/r/ultralytics/ultralytics
 # Image is CPU-optimized for ONNX, OpenVINO and PyTorch YOLOv8 deployments
 
-# Use the official Python 3.10 slim-bookworm as base image
-FROM python:3.10-slim-bookworm
+# Use official Python base image for reproducibility (3.11.10 for export and 3.12.6 for inference)
+FROM python:3.11.10-slim-bookworm
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1 \
@@ -38,9 +38,9 @@ RUN yolo export model=tmp/yolov8n.pt format=edgetpu imgsz=32
 RUN yolo export model=tmp/yolov8n.pt format=ncnn imgsz=32
 # Requires Python<=3.10, bug with paddlepaddle==2.5.0 https://github.com/PaddlePaddle/X2Paddle/issues/991
 RUN pip install "paddlepaddle>=2.6.0" x2paddle
-# Remove exported models
-RUN rm -rf tmp
 
+# Remove extra build files
+RUN rm -rf tmp /root/.config/Ultralytics/persistent_cache.json
 
 # Usage Examples -------------------------------------------------------------------------------------------------------
 

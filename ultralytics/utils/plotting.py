@@ -532,7 +532,7 @@ class Annotator:
 
     def get_bbox_dimension(self, bbox=None):
         """
-         Compute the dimensions and area of a bounding box.
+        Compute the dimensions and area of a bounding box.
 
         Args:
             bbox (tuple): Coordinates of the bounding box in the format (x_min, y_min, x_max, y_max).
@@ -661,7 +661,6 @@ class Annotator:
             cv2.rectangle(im0, (rect_x1, rect_y1), (rect_x2, rect_y2), bg_color, -1)
             cv2.putText(im0, txt, (text_x, text_y), 0, self.sf, txt_color, self.tf, lineType=cv2.LINE_AA)
             text_y_offset = rect_y2
-
 
     def estimate_pose_angle(self, a, b, c):
         """

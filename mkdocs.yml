@@ -294,6 +294,7 @@ nav:
           - COCO: datasets/pose/coco.md
           - COCO8-pose: datasets/pose/coco8-pose.md
           - Tiger-pose: datasets/pose/tiger-pose.md
+          - Hand-keypoints: datasets/pose/hand-keypoints.md
       - Classification:
           - datasets/classify/index.md
           - Caltech 101: datasets/classify/caltech101.md

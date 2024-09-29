@@ -6,7 +6,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from ultralytics.utils.torch_utils import fuse_conv_and_bn
-
 from .conv import Conv, DWConv, GhostConv, LightConv, RepConv, autopad
 from .transformer import TransformerBlock
 
@@ -700,7 +699,6 @@ class CBFuse(nn.Module):
         return torch.sum(torch.stack(res + xs[-1:]), dim=0)
 
 
-# TODO: clean this
 class C2f2(nn.Module):
     """Faster Implementation of CSP Bottleneck with 2 convolutions."""
 
@@ -948,10 +946,29 @@ class Attention(nn.Module):
 
 
 class PSABlock(nn.Module):
-    """PSABlock module."""
+    """
+    PSABlock class implementing a Position-Sensitive Attention block for neural networks.
+    
+    This class encapsulates the functionality for applying multi-head attention and feed-forward neural network layers 
+    with optional shortcut connections.
+    
+    Attributes:
+        attn (Attention): Multi-head attention module.
+        ffn (nn.Sequential): Feed-forward neural network module.
+        add (bool): Flag indicating whether to add shortcut connections.
+    
+    Methods:
+        forward: Performs a forward pass through the PSABlock, applying attention and feed-forward layers.
+    
+    Examples:
+        Create a PSABlock and perform a forward pass
+        >>> psablock = PSABlock(c=128, attn_ratio=0.5, num_heads=4, shortcut=True)
+        >>> input_tensor = torch.randn(1, 128, 32, 32)
+        >>> output_tensor = psablock(input_tensor)
+    """
 
     def __init__(self, c, attn_ratio=0.5, num_heads=4, shortcut=True) -> None:
-        """Initialization."""
+        """Initializes the PSABlock with attention and feed-forward layers for enhanced feature extraction."""
         super().__init__()
 
         self.attn = Attention(c, attn_ratio=attn_ratio, num_heads=num_heads)
@@ -959,7 +976,7 @@ class PSABlock(nn.Module):
         self.add = shortcut
 
     def forward(self, x):
-        """'forward()' applies the PSABlock to input data."""
+        """Executes a forward pass through PSABlock, applying attention and feed-forward layers to the input tensor."""
         x = x + self.attn(x) if self.add else self.attn(x)
         x = x + self.ffn(x) if self.add else self.ffn(x)
         return x
@@ -967,23 +984,29 @@ class PSABlock(nn.Module):
 
 class PSA(nn.Module):
     """
-    Position-wise Spatial Attention module.
-
-    Args:
-        c1 (int): Number of input channels.
-        c2 (int): Number of output channels.
-        e (float): Expansion factor for the intermediate channels. Default is 0.5.
-
+    PSA class for implementing Position-Sensitive Attention in neural networks.
+    
+    This class encapsulates the functionality for applying position-sensitive attention and feed-forward networks to 
+    input tensors, enhancing feature extraction and processing capabilities.
+    
     Attributes:
-        c (int): Number of intermediate channels.
+        c (int): Number of hidden channels after applying the initial convolution.
         cv1 (Conv): 1x1 convolution layer to reduce the number of input channels to 2*c.
         cv2 (Conv): 1x1 convolution layer to reduce the number of output channels to c.
-        attn (Attention): Attention module for spatial attention.
-        ffn (nn.Sequential): Feed-forward network module.
+        attn (Attention): Attention module for position-sensitive attention.
+        ffn (nn.Sequential): Feed-forward network for further processing.
+    
+    Methods:
+        forward: Applies position-sensitive attention and feed-forward network to the input tensor.
+    
+    Examples:
+        Create a PSA module and apply it to an input tensor
+        >>> psa = PSA(c1=128, c2=128, e=0.5)
+        >>> input_tensor = torch.randn(1, 128, 64, 64)
+        >>> output_tensor = psa.forward(input_tensor)
     """
-
     def __init__(self, c1, c2, e=0.5):
-        """Initializes convolution layers, attention module, and feed-forward network with channel reduction."""
+        """Initializes the PSA module with input/output channels and attention mechanism for feature extraction."""
         super().__init__()
         assert c1 == c2
         self.c = int(c1 * e)
@@ -994,15 +1017,7 @@ class PSA(nn.Module):
         self.ffn = nn.Sequential(Conv(self.c, self.c * 2, 1), Conv(self.c * 2, self.c, 1, act=False))
 
     def forward(self, x):
-        """
-        Forward pass of the PSA module.
-
-        Args:
-            x (torch.Tensor): Input tensor.
-
-        Returns:
-            (torch.Tensor): Output tensor.
-        """
+        """Executes forward pass in PSA module, applying attention and feed-forward layers to the input tensor."""
         a, b = self.cv1(x).split((self.c, self.c), dim=1)
         b = b + self.attn(b)
         b = b + self.ffn(b)
@@ -1011,23 +1026,27 @@ class PSA(nn.Module):
 
 class C2PSA(nn.Module):
     """
-    Position-wise Spatial Attention module.
-
-    Args:
-        c1 (int): Number of input channels.
-        c2 (int): Number of output channels.
-        e (float): Expansion factor for the intermediate channels. Default is 0.5.
-
+    C2PSA module with attention mechanism for enhanced feature extraction and processing.
+    
+    This module implements a convolutional block with attention mechanisms to enhance feature extraction and processing 
+    capabilities. It includes a series of PSABlock modules for self-attention and feed-forward operations.
+    
     Attributes:
-        c (int): Number of intermediate channels.
+        c (int): Number of hidden channels.
         cv1 (Conv): 1x1 convolution layer to reduce the number of input channels to 2*c.
         cv2 (Conv): 1x1 convolution layer to reduce the number of output channels to c.
-        attn (Attention): Attention module for spatial attention.
-        ffn (nn.Sequential): Feed-forward network module.
+        m (nn.Sequential): Sequential container of PSABlock modules for attention and feed-forward operations.
+    
+    Methods:
+        forward: Performs a forward pass through the C2PSA module, applying attention and feed-forward operations.
+    
+    Examples:
+        >>> c2psa = C2PSA(c1=256, c2=256, n=3, e=0.5)
+        >>> input_tensor = torch.randn(1, 256, 64, 64)
+        >>> output_tensor = c2psa(input_tensor)
     """
-
     def __init__(self, c1, c2, n=1, e=0.5):
-        """Initializes the C2PSA module with input/output channels, number of layers, and expansion factor."""
+        """Initializes the C2PSA module with specified input/output channels, number of layers, and expansion ratio."""
         super().__init__()
         assert c1 == c2
         self.c = int(c1 * e)
@@ -1037,15 +1056,7 @@ class C2PSA(nn.Module):
         self.m = nn.Sequential(*(PSABlock(self.c, attn_ratio=0.5, num_heads=self.c // 64) for _ in range(n)))
 
     def forward(self, x):
-        """
-        Forward pass of the PSA module.
-
-        Args:
-            x (torch.Tensor): Input tensor.
-
-        Returns:
-            (torch.Tensor): Output tensor.
-        """
+        """Processes the input tensor 'x' through a series of PSA blocks and returns the transformed tensor."""
         a, b = self.cv1(x).split((self.c, self.c), dim=1)
         b = self.m(b)
         return self.cv2(torch.cat((a, b), 1))
@@ -1053,53 +1064,64 @@ class C2PSA(nn.Module):
 
 class C2fPSA(C2f):
     """
-    Position-wise Spatial Attention module.
-
-    Args:
-        c1 (int): Number of input channels.
-        c2 (int): Number of output channels.
-        e (float): Expansion factor for the intermediate channels. Default is 0.5.
-
+    C2fPSA module with enhanced feature extraction using PSA blocks.
+    
+    This class extends the C2f module by incorporating PSA blocks for improved attention mechanisms and feature extraction.
+    
     Attributes:
-        c (int): Number of intermediate channels.
+        c (int): Number of hidden channels.
         cv1 (Conv): 1x1 convolution layer to reduce the number of input channels to 2*c.
         cv2 (Conv): 1x1 convolution layer to reduce the number of output channels to c.
-        attn (Attention): Attention module for spatial attention.
-        ffn (nn.Sequential): Feed-forward network module.
+        m (nn.ModuleList): List of PSA blocks for feature extraction.
+    
+    Methods:
+        forward: Performs a forward pass through the C2fPSA module.
+        forward_split: Performs a forward pass using split() instead of chunk().
+    
+    Examples:
+        >>> import torch
+        >>> from ultralytics.models.common import C2fPSA
+        >>> model = C2fPSA(c1=64, c2=64, n=3, e=0.5)
+        >>> x = torch.randn(1, 64, 128, 128)
+        >>> output = model(x)
+        >>> print(output.shape)
     """
-
     def __init__(self, c1, c2, n=1, e=0.5):
-        """Initializes the C2fPSA module with specified input/output channels, layer count, and expansion factor."""
+        """Initializes the C2fPSA module, a variant of C2f with PSA blocks for enhanced feature extraction."""
         assert c1 == c2
         super().__init__(c1, c2, n=n, e=e)
         self.m = nn.ModuleList(PSABlock(self.c, attn_ratio=0.5, num_heads=self.c // 64) for _ in range(n))
 
 
 class SCDown(nn.Module):
-    """Spatial Channel Downsample (SCDown) module for reducing spatial and channel dimensions."""
-
+    """
+    SCDown module for downsampling with separable convolutions.
+    
+    This module performs downsampling using a combination of pointwise and depthwise convolutions, which helps in 
+    efficiently reducing the spatial dimensions of the input tensor while maintaining the channel information.
+    
+    Attributes:
+        cv1 (Conv): Pointwise convolution layer that reduces the number of channels.
+        cv2 (Conv): Depthwise convolution layer that performs spatial downsampling.
+    
+    Methods:
+        forward: Applies the SCDown module to the input tensor.
+    
+    Examples:
+        >>> import torch
+        >>> from ultralytics import SCDown
+        >>> model = SCDown(c1=64, c2=128, k=3, s=2)
+        >>> x = torch.randn(1, 64, 128, 128)
+        >>> y = model(x)
+        >>> print(y.shape)
+        torch.Size([1, 128, 64, 64])
+    """
     def __init__(self, c1, c2, k, s):
-        """
-        Spatial Channel Downsample (SCDown) module.
-
-        Args:
-            c1 (int): Number of input channels.
-            c2 (int): Number of output channels.
-            k (int): Kernel size for the convolutional layer.
-            s (int): Stride for the convolutional layer.
-        """
+        """Initializes the SCDown module with specified input/output channels, kernel size, and stride."""
         super().__init__()
         self.cv1 = Conv(c1, c2, 1, 1)
         self.cv2 = Conv(c2, c2, k=k, s=s, g=c2, act=False)
 
     def forward(self, x):
-        """
-        Forward pass of the SCDown module.
-
-        Args:
-            x (torch.Tensor): Input tensor.
-
-        Returns:
-            (torch.Tensor): Output tensor after applying the SCDown module.
-        """
+        """Applies convolution and downsampling to the input tensor in the SCDown module."""
         return self.cv2(self.cv1(x))

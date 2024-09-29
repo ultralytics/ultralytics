@@ -718,9 +718,8 @@ class Annotator:
             position (tuple): Coordinates (x, y) on the image where the text will be placed.
             color (RGB color): Background color of the text. Default is (104, 31, 17).
             txt_color (RGB color): Text color. Default is (255, 255, 255).
-
         Returns:
-            float: height of the text, used for positioning other elements.
+            text_height (float): height of the text, used for positioning other elements.
         """
         (text_width, text_height), _ = cv2.getTextSize(text, 0, self.sf, self.tf)
 
@@ -741,15 +740,15 @@ class Annotator:
         self, angle_text, count_text, stage_text, center_kpt, color=(104, 31, 17), txt_color=(255, 255, 255)
     ):
         """
-        Plot the pose angle, count value, and step stage.
+        Plot the pose angle, count value and step stage.
 
         Args:
-            angle_text (str): Angle value for workout monitoring
-            count_text (str): Counts value for workout monitoring
-            stage_text (str): Stage decision for workout monitoring
-            center_kpt (list): Centroid pose index for workout monitoring
-            color (RGB color, optional): Text background color
-            txt_color (RGB color, optional): Text foreground color
+            angle_text (str): angle value for workout monitoring
+            count_text (str): counts value for workout monitoring
+            stage_text (str): stage decision for workout monitoring
+            center_kpt (list): centroid pose index for workout monitoring
+            color (tuple): text background color for workout monitoring
+            txt_color (tuple): text foreground color for workout monitoring
         """
         # Format text
         angle_text, count_text, stage_text = f" {angle_text:.2f}", f"Steps : {count_text}", f" {stage_text}"

@@ -716,8 +716,8 @@ class Annotator:
         Args:
             text (str): The text to be displayed.
             position (tuple): Coordinates (x, y) on the image where the text will be placed.
-            color (tuple): Background color of the text. Default is (104, 31, 17).
-            txt_color (tuple): Text color. Default is (255, 255, 255).
+            color (RGB color): Background color of the text. Default is (104, 31, 17).
+            txt_color (RGB color): Text color. Default is (255, 255, 255).
 
         Returns:
             float: height of the text, used for positioning other elements.
@@ -748,8 +748,8 @@ class Annotator:
             count_text (str): Counts value for workout monitoring
             stage_text (str): Stage decision for workout monitoring
             center_kpt (list): Centroid pose index for workout monitoring
-            color (tuple, optional): Text background color
-            txt_color (tuple, optional): Text foreground color
+            color (RGB color, optional): Text background color
+            txt_color (RGB color, optional): Text foreground color
         """
         # Format text
         angle_text, count_text, stage_text = f" {angle_text:.2f}", f"Steps : {count_text}", f" {stage_text}"

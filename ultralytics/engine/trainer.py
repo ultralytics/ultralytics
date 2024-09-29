@@ -115,7 +115,6 @@ class BaseTrainer:
             self.args.save_dir = str(self.save_dir)
             yaml_save(self.save_dir / "args.yaml", vars(self.args))  # save run args
         self.last, self.best = self.wdir / "last.pt", self.wdir / "best.pt"  # checkpoint paths
-        self.last_mosaic = self.wdir / "last_mosaic.pt"
         self.save_period = self.args.save_period
 
         self.batch_size = self.args.batch
@@ -533,15 +532,14 @@ class BaseTrainer:
         )
         serialized_ckpt = buffer.getvalue()  # get the serialized content to save
 
-        if self.args.close_mosaic and self.epoch == (self.epochs - self.args.close_mosaic - 1):
-            self.last_mosaic.write_bytes(serialized_ckpt)  # save last.pt
-
         # Save checkpoints
         self.last.write_bytes(serialized_ckpt)  # save last.pt
         if self.best_fitness == self.fitness:
             self.best.write_bytes(serialized_ckpt)  # save best.pt
         if (self.save_period > 0) and (self.epoch % self.save_period == 0):
             (self.wdir / f"epoch{self.epoch}.pt").write_bytes(serialized_ckpt)  # save epoch, i.e. 'epoch3.pt'
+        # if self.args.close_mosaic and self.epoch == (self.epochs - self.args.close_mosaic - 1):
+        #    (self.wdir / "last_mosaic.pt").write_bytes(serialized_ckpt)  # save mosaic checkpoint
 
     def get_dataset(self):
         """

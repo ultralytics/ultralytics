@@ -536,6 +536,7 @@ class Annotator:
 
         Args:
             bbox (tuple): Coordinates of the bounding box in the format (x_min, y_min, x_max, y_max).
+
         Returns:
             width (float): Width of the bounding box.
             height (float): Height of the bounding box.

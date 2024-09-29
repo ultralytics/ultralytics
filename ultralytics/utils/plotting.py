@@ -704,6 +704,7 @@ class Annotator:
             position (tuple): Coordinates (x, y) on the image where the text will be placed.
             color (tuple): Background color of the text. Default is (104, 31, 17).
             txt_color (tuple): Text color. Default is (255, 255, 255).
+
         Returns:
             text_height: (float): height of the text, used for positioning other elements.
         """

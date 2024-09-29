@@ -20,8 +20,10 @@ RUN wget -q -O - https://repo.download.nvidia.com/jetson/jetson-ota-public.asc |
   echo "deb https://repo.download.nvidia.com/jetson/t194 r32.7 main" >> /etc/apt/sources.list.d/nvidia-l4t-apt-source.list
 
 # Install dependencies
-RUN apt update && \
-    apt install --no-install-recommends -y git python3.8 python3.8-dev python3-pip python3-libnvinfer libopenmpi-dev libopenblas-base libomp-dev gcc
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    git python3.8 python3.8-dev python3-pip python3-libnvinfer libopenmpi-dev libopenblas-base libomp-dev gcc \
+    && rm -rf /var/lib/apt/lists/*
 
 # Create symbolic links for python3.8 and pip3
 RUN ln -sf /usr/bin/python3.8 /usr/bin/python3

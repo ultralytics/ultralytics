@@ -985,7 +985,6 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             RepNCSPELAN4,
             ELAN1,
             ADown,
-            SCDown,
             AConv,
             SPPELAN,
             C2fAttn,

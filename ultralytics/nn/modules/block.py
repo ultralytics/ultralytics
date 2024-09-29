@@ -698,8 +698,7 @@ class CBFuse(nn.Module):
         """Forward pass through CBFuse layer."""
         target_size = xs[-1].shape[2:]
         res = [F.interpolate(x[self.idx[i]], size=target_size, mode="nearest") for i, x in enumerate(xs[:-1])]
-        out = torch.sum(torch.stack(res + xs[-1:]), dim=0)
-        return out
+        return torch.sum(torch.stack(res + xs[-1:]), dim=0)
 
 
 # TODO: clean this
@@ -754,6 +753,7 @@ class C3k2(C2f2):
     """Faster Implementation of CSP Bottleneck with 2 convolutions."""
 
     def __init__(self, c1, c2, n=1, c3k=False, e=0.5, g=1, shortcut=True):
+        """Initializes the C3k2 module, a faster CSP Bottleneck with 2 convolutions and optional C3k blocks."""
         super().__init__(c1, c2, n, shortcut, g, e)
         self.m = nn.ModuleList(
             C3k(self.c, self.c, 2, shortcut, g) if c3k else Bottleneck(self.c, self.c, shortcut, g) for _ in range(n)
@@ -761,7 +761,9 @@ class C3k2(C2f2):
 
 
 class C3k(C3):
+    """C3k is a CSP bottleneck module with customizable kernel sizes for feature extraction in neural networks."""
     def __init__(self, c1, c2, n=1, shortcut=True, g=1, e=0.5, k=3):
+        """Initializes the C3k module with specified channels, number of layers, and configurations."""
         super().__init__(c1, c2, n, shortcut, g, e)
         c_ = int(c2 * e)  # hidden channels
         # self.m = nn.Sequential(*(RepBottleneck(c_, c_, shortcut, g, k=(k, k), e=1.0) for _ in range(n)))
@@ -1025,6 +1027,7 @@ class C2PSA(nn.Module):
     """
 
     def __init__(self, c1, c2, n=1, e=0.5):
+        """Initializes the C2PSA module with input/output channels, number of layers, and expansion factor."""
         super().__init__()
         assert c1 == c2
         self.c = int(c1 * e)
@@ -1066,6 +1069,7 @@ class C2fPSA(C2f):
     """
 
     def __init__(self, c1, c2, n=1, e=0.5):
+        """Initializes the C2fPSA module with specified input/output channels, layer count, and expansion factor."""
         assert c1 == c2
         super().__init__(c1, c2, n=n, e=e)
         self.m = nn.ModuleList(PSABlock(self.c, attn_ratio=0.5, num_heads=self.c // 64) for _ in range(n))

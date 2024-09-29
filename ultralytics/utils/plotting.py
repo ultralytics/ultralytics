@@ -532,17 +532,17 @@ class Annotator:
 
     def get_bbox_dimension(self, bbox=None):
         """
-        Calculate the area of a bounding box.
+         Compute the dimensions and area of a bounding box.
 
         Args:
-            bbox (tuple): Bounding box coordinates in the format (x_min, y_min, x_max, y_max).
-
+            bbox (tuple): Coordinates of the bounding box in the format (x_min, y_min, x_max, y_max).
         Returns:
-            angle (degree): Degree value of angle between three points
+            width (float): Width of the bounding box.
+            height (float): Height of the bounding box.
+            area (float): Area enclosed by the bounding box.
         """
-        x_min, y_min, x_max, y_max = bbox
-        width = x_max - x_min
-        height = y_max - y_min
+        width = bbox[2] - bbox[0]
+        height = bbox[3] - bbox[1]
         return width, height, width * height
 
     def draw_region(self, reg_pts=None, color=(0, 255, 0), thickness=5):

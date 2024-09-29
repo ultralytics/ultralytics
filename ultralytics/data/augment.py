@@ -2351,11 +2351,10 @@ class RandomLoadText:
 
 
 def v8_transforms(dataset, imgsz, hyp, stretch=False):
-    """Convert images to a size suitable for YOLOv8 training."""
     """
-    Applies a series of image transformations for YOLOv8 training.
+    Applies a series of image transformations for training.
 
-    This function creates a composition of image augmentation techniques to prepare images for YOLOv8 training.
+    This function creates a composition of image augmentation techniques to prepare images for YOLO training.
     It includes operations such as mosaic, copy-paste, random perspective, mixup, and various color adjustments.
 
     Args:

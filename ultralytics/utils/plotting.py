@@ -657,7 +657,6 @@ class Annotator:
             a (float) : The value of pose point a
             b (float): The value of pose point b
             c (float): The value o pose point c
-
         Returns:
             angle (degree): Degree value of angle between three points
         """
@@ -677,7 +676,7 @@ class Annotator:
             conf_thres (float, optional): Confidence threshold for keypoints. Defaults to 0.25.
 
         Returns:
-            (numpy.ndarray): Image with drawn keypoints.
+            image (numpy.ndarray): Image with drawn keypoints.
 
         Note:
             Keypoint format: [x, y] or [x, y, confidence].
@@ -705,7 +704,6 @@ class Annotator:
             position (tuple): Coordinates (x, y) on the image where the text will be placed.
             color (tuple): Background color of the text. Default is (104, 31, 17).
             txt_color (tuple): Text color. Default is (255, 255, 255).
-
         Returns:
             text_height: (float): height of the text, used for positioning other elements.
         """

@@ -793,8 +793,6 @@ class Results(SimpleClass):
         is_obb = self.obb is not None
         data = self.obb if is_obb else self.boxes
         h, w = self.orig_shape if normalize else (1, 1)
-        h_inv = 1 / h
-        w_inv = 1 / w
         for i, row in enumerate(data):  # xyxy, track_id if tracking, conf, class_id
             class_id, conf = int(row.cls), round(row.conf.item(), decimals)
             box = (row.xyxyxyxy if is_obb else row.xyxy).squeeze().reshape(-1, 2).tolist()
@@ -807,14 +805,14 @@ class Results(SimpleClass):
                 result["track_id"] = int(row.id.item())  # track ID
             if self.masks:
                 result["segments"] = {
-                    "x": (self.masks.xy[i][:, 0] * w_inv).round(decimals).tolist(),
-                    "y": (self.masks.xy[i][:, 1] * h_inv).round(decimals).tolist(),
+                    "x": (self.masks.xy[i][:, 0] / w).round(decimals).tolist(),
+                    "y": (self.masks.xy[i][:, 1] / h).round(decimals).tolist(),
                 }
             if self.keypoints is not None:
                 x, y, visible = self.keypoints[i].data[0].cpu().unbind(dim=1)  # torch Tensor
                 result["keypoints"] = {
-                    "x": (x * w_inv).numpy().round(decimals).tolist(),  # decimals named argument required
-                    "y": (y * h_inv).numpy().round(decimals).tolist(),
+                    "x": (x / w).numpy().round(decimals).tolist(),  # decimals named argument required
+                    "y": (y / h).numpy().round(decimals).tolist(),
                     "visible": visible.numpy().round(decimals).tolist(),
                 }
             results.append(result)

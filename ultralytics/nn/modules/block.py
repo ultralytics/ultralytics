@@ -6,6 +6,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from ultralytics.utils.torch_utils import fuse_conv_and_bn
+
 from .conv import Conv, DWConv, GhostConv, LightConv, RepConv, autopad
 from .transformer import TransformerBlock
 
@@ -948,18 +949,18 @@ class Attention(nn.Module):
 class PSABlock(nn.Module):
     """
     PSABlock class implementing a Position-Sensitive Attention block for neural networks.
-    
-    This class encapsulates the functionality for applying multi-head attention and feed-forward neural network layers 
+
+    This class encapsulates the functionality for applying multi-head attention and feed-forward neural network layers
     with optional shortcut connections.
-    
+
     Attributes:
         attn (Attention): Multi-head attention module.
         ffn (nn.Sequential): Feed-forward neural network module.
         add (bool): Flag indicating whether to add shortcut connections.
-    
+
     Methods:
         forward: Performs a forward pass through the PSABlock, applying attention and feed-forward layers.
-    
+
     Examples:
         Create a PSABlock and perform a forward pass
         >>> psablock = PSABlock(c=128, attn_ratio=0.5, num_heads=4, shortcut=True)
@@ -985,20 +986,20 @@ class PSABlock(nn.Module):
 class PSA(nn.Module):
     """
     PSA class for implementing Position-Sensitive Attention in neural networks.
-    
-    This class encapsulates the functionality for applying position-sensitive attention and feed-forward networks to 
+
+    This class encapsulates the functionality for applying position-sensitive attention and feed-forward networks to
     input tensors, enhancing feature extraction and processing capabilities.
-    
+
     Attributes:
         c (int): Number of hidden channels after applying the initial convolution.
         cv1 (Conv): 1x1 convolution layer to reduce the number of input channels to 2*c.
         cv2 (Conv): 1x1 convolution layer to reduce the number of output channels to c.
         attn (Attention): Attention module for position-sensitive attention.
         ffn (nn.Sequential): Feed-forward network for further processing.
-    
+
     Methods:
         forward: Applies position-sensitive attention and feed-forward network to the input tensor.
-    
+
     Examples:
         Create a PSA module and apply it to an input tensor
         >>> psa = PSA(c1=128, c2=128, e=0.5)
@@ -1028,19 +1029,19 @@ class PSA(nn.Module):
 class C2PSA(nn.Module):
     """
     C2PSA module with attention mechanism for enhanced feature extraction and processing.
-    
-    This module implements a convolutional block with attention mechanisms to enhance feature extraction and processing 
+
+    This module implements a convolutional block with attention mechanisms to enhance feature extraction and processing
     capabilities. It includes a series of PSABlock modules for self-attention and feed-forward operations.
-    
+
     Attributes:
         c (int): Number of hidden channels.
         cv1 (Conv): 1x1 convolution layer to reduce the number of input channels to 2*c.
         cv2 (Conv): 1x1 convolution layer to reduce the number of output channels to c.
         m (nn.Sequential): Sequential container of PSABlock modules for attention and feed-forward operations.
-    
+
     Methods:
         forward: Performs a forward pass through the C2PSA module, applying attention and feed-forward operations.
-    
+
     Examples:
         >>> c2psa = C2PSA(c1=256, c2=256, n=3, e=0.5)
         >>> input_tensor = torch.randn(1, 256, 64, 64)
@@ -1067,19 +1068,19 @@ class C2PSA(nn.Module):
 class C2fPSA(C2f):
     """
     C2fPSA module with enhanced feature extraction using PSA blocks.
-    
+
     This class extends the C2f module by incorporating PSA blocks for improved attention mechanisms and feature extraction.
-    
+
     Attributes:
         c (int): Number of hidden channels.
         cv1 (Conv): 1x1 convolution layer to reduce the number of input channels to 2*c.
         cv2 (Conv): 1x1 convolution layer to reduce the number of output channels to c.
         m (nn.ModuleList): List of PSA blocks for feature extraction.
-    
+
     Methods:
         forward: Performs a forward pass through the C2fPSA module.
         forward_split: Performs a forward pass using split() instead of chunk().
-    
+
     Examples:
         >>> import torch
         >>> from ultralytics.models.common import C2fPSA
@@ -1099,17 +1100,17 @@ class C2fPSA(C2f):
 class SCDown(nn.Module):
     """
     SCDown module for downsampling with separable convolutions.
-    
-    This module performs downsampling using a combination of pointwise and depthwise convolutions, which helps in 
+
+    This module performs downsampling using a combination of pointwise and depthwise convolutions, which helps in
     efficiently reducing the spatial dimensions of the input tensor while maintaining the channel information.
-    
+
     Attributes:
         cv1 (Conv): Pointwise convolution layer that reduces the number of channels.
         cv2 (Conv): Depthwise convolution layer that performs spatial downsampling.
-    
+
     Methods:
         forward: Applies the SCDown module to the input tensor.
-    
+
     Examples:
         >>> import torch
         >>> from ultralytics import SCDown

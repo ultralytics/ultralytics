@@ -58,7 +58,7 @@ Explore the YOLOv8 Docs, a comprehensive resource designed to help you understan
 - **Predict** new images and videos with YOLOv8 &nbsp; [:octicons-image-16: Predict on Images](modes/predict.md){ .md-button }
 - **Train** a new YOLOv8 model on your own custom dataset &nbsp; [:fontawesome-solid-brain: Train a Model](modes/train.md){ .md-button }
 - **Tasks** YOLOv8 tasks like segment, classify, pose and track &nbsp; [:material-magnify-expand: Explore Tasks](tasks/index.md){ .md-button }
-- **[YOLO11](yolo11.md) NEW 🚀**: Ultralytics' latest SOTA models &nbsp; [:material-magnify-expand: Explore a Dataset](models/yolo11.md){ .md-button }
+- **[YOLO11](models/yolo11.md) NEW 🚀**: Ultralytics' latest SOTA models &nbsp; [:material-magnify-expand: Explore a Dataset](models/yolo11.md){ .md-button }
 
 <p align="center">
   <br>

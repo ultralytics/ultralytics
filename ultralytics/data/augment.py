@@ -1653,9 +1653,11 @@ class CopyPaste(BaseMixTransform):
         >>> augmented_labels = copypaste(original_labels)
     """
 
-    def __init__(self, dataset, pre_transform=None, p=0.5) -> None:
+    def __init__(self, dataset=None, pre_transform=None, p=0.5, mode="flip") -> None:
         """Initializes CopyPaste object with dataset, pre_transform, and probability of applying MixUp."""
         super().__init__(dataset=dataset, pre_transform=pre_transform, p=p)
+        assert mode in {"flip", "mixup"}, f"Expected `mode` to be `flip` or `mixup`, but got {mode}."
+        self.mode = mode
 
     def get_indexes(self):
         """Returns a list of random indexes from the dataset for CopyPaste augmentation."""
@@ -1664,38 +1666,15 @@ class CopyPaste(BaseMixTransform):
     def _mix_transform(self, labels):
         """Applies Copy-Paste augmentation to combine objects from another image into the current image."""
         labels2 = labels["mix_labels"][0]
-        im = labels["img"]
-        cls = labels["cls"]
-        h, w = im.shape[:2]
-        instances = labels.pop("instances")
-        instances.convert_bbox(format="xyxy")
-        instances.denormalize(w, h)
-
-        im_new = np.zeros(im.shape, np.uint8)
-        instances2 = labels2.pop("instances")
-        ioa = bbox_ioa(instances2.bboxes, instances.bboxes)  # intersection over area, (N, M)
-        indexes = np.nonzero((ioa < 0.30).all(1))[0]  # (N, )
-        n = len(indexes)
-        sorted_idx = np.argsort(ioa.max(1)[indexes])
-        indexes = indexes[sorted_idx]
-        for j in indexes[: round(self.p * n)]:
-            cls = np.concatenate((cls, labels2["cls"][[j]]), axis=0)
-            instances = Instances.concatenate((instances, instances2[[j]]), axis=0)
-            cv2.drawContours(im_new, instances2.segments[[j]].astype(np.int32), -1, (1, 1, 1), cv2.FILLED)
-
-        result = labels2["img"]  # augment segments
-        i = im_new.astype(bool)
-        im[i] = result[i]
-
-        labels["img"] = im
-        labels["cls"] = cls
-        labels["instances"] = instances
-        return labels
+        return self._transform(labels, labels2)
 
     def __call__(self, labels):
         """Applies Copy-Paste augmentation to an image and its labels."""
         if len(labels["instances"].segments) == 0 or self.p == 0:
             return labels
+        if self.mode == "flip":
+            return self._transform(labels)
+
         # Get index of one or three other images
         indexes = self.get_indexes()
         if isinstance(indexes, int):
@@ -1715,6 +1694,39 @@ class CopyPaste(BaseMixTransform):
         labels = self._mix_transform(labels)
         labels.pop("mix_labels", None)
         return labels
+
+    def _transform(self, labels1, labels2={}):
+        """Applies Copy-Paste augmentation to combine objects from another image into the current image."""
+        im = labels1["img"]
+        cls = labels1["cls"]
+        h, w = im.shape[:2]
+        instances = labels1.pop("instances")
+        instances.convert_bbox(format="xyxy")
+        instances.denormalize(w, h)
+
+        im_new = np.zeros(im.shape, np.uint8)
+        instances2 = labels2.pop("instances", None)
+        if instances2 is None:
+            instances2 = deepcopy(instances)
+            instances2.fliplr(w)
+        ioa = bbox_ioa(instances2.bboxes, instances.bboxes)  # intersection over area, (N, M)
+        indexes = np.nonzero((ioa < 0.30).all(1))[0]  # (N, )
+        n = len(indexes)
+        sorted_idx = np.argsort(ioa.max(1)[indexes])
+        indexes = indexes[sorted_idx]
+        for j in indexes[: round(self.p * n)]:
+            cls = np.concatenate((cls, labels2.get("cls", cls)[[j]]), axis=0)
+            instances = Instances.concatenate((instances, instances2[[j]]), axis=0)
+            cv2.drawContours(im_new, instances2.segments[[j]].astype(np.int32), -1, (1, 1, 1), cv2.FILLED)
+
+        result = labels2.get("img", cv2.flip(im, 1))  # augment segments
+        i = im_new.astype(bool)
+        im[i] = result[i]
+
+        labels1["img"] = im
+        labels1["cls"] = cls
+        labels1["instances"] = instances
+        return labels1
 
 
 class FlipCopyPaste:
@@ -2383,13 +2395,14 @@ def v8_transforms(dataset, imgsz, hyp, stretch=False):
 
     pre_transform = Compose([mosaic, affine])
     if hyp.copy_paste_mode == "flip":
-        pre_transform.insert(1, FlipCopyPaste(p=hyp.copy_paste))
+        pre_transform.insert(1, CopyPaste(p=hyp.copy_paste, mode=hyp.copy_paste_mode))
     else:
         pre_transform.append(
             CopyPaste(
                 dataset,
                 pre_transform=Compose([Mosaic(dataset, imgsz=imgsz, p=hyp.mosaic), affine]),
                 p=hyp.copy_paste,
+                mode=hyp.copy_paste_mode,
             )
         )
     flip_idx = dataset.data.get("flip_idx", [])  # for keypoints augmentation

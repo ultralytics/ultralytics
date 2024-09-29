@@ -159,11 +159,11 @@ If you use the YOLOv8 model or any other software from this repository in your w
     === "BibTeX"
 
         ```bibtex
-        @software{yolov8_ultralytics,
-          author = {Glenn Jocher and Ayush Chaurasia and Jing Qiu},
-          title = {Ultralytics YOLOv8},
-          version = {8.0.0},
-          year = {2023},
+        @software{yolo11_ultralytics,
+          author = {Glenn Jocher and Jing Qiu},
+          title = {Ultralytics YOLO11},
+          version = {11.0.0},
+          year = {2024},
           url = {https://github.com/ultralytics/ultralytics},
           orcid = {0000-0001-5950-6979, 0000-0002-7603-6750, 0000-0003-3783-7069},
           license = {AGPL-3.0}
@@ -171,66 +171,3 @@ If you use the YOLOv8 model or any other software from this repository in your w
         ```
 
 Please note that the DOI is pending and will be added to the citation once it is available. YOLOv8 models are provided under [AGPL-3.0](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) and [Enterprise](https://www.ultralytics.com/license) licenses.
-
-## FAQ
-
-### What is YOLOv8 and how does it differ from previous YOLO versions?
-
-YOLOv8 is the latest iteration in the Ultralytics YOLO series, designed to improve real-time object detection performance with advanced features. Unlike earlier versions, YOLOv8 incorporates an **anchor-free split Ultralytics head**, state-of-the-art backbone and neck architectures, and offers optimized [accuracy](https://www.ultralytics.com/glossary/accuracy)-speed tradeoff, making it ideal for diverse applications. For more details, check the [Overview](#overview) and [Key Features](#key-features) sections.
-
-### How can I use YOLOv8 for different computer vision tasks?
-
-YOLOv8 supports a wide range of computer vision tasks, including object detection, instance segmentation, pose/keypoints detection, oriented object detection, and classification. Each model variant is optimized for its specific task and compatible with various operational modes like [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md). Refer to the [Supported Tasks and Modes](#supported-tasks-and-modes) section for more information.
-
-### What are the performance metrics for YOLOv8 models?
-
-YOLOv8 models achieve state-of-the-art performance across various benchmarking datasets. For instance, the YOLOv8n model achieves a mAP (mean Average Precision) of 37.3 on the COCO dataset and a speed of 0.99 ms on A100 TensorRT. Detailed performance metrics for each model variant across different tasks and datasets can be found in the [Performance Metrics](#performance-metrics) section.
-
-### How do I train a YOLOv8 model?
-
-Training a YOLOv8 model can be done using either Python or CLI. Below are examples for training a model using a COCO-pretrained YOLOv8 model on the COCO8 dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch):
-
-!!! example
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load a COCO-pretrained YOLOv8n model
-        model = YOLO("yolov8n.pt")
-
-        # Train the model on the COCO8 example dataset for 100 epochs
-        results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
-        ```
-
-    === "CLI"
-
-        ```bash
-        yolo train model=yolov8n.pt data=coco8.yaml epochs=100 imgsz=640
-        ```
-
-For further details, visit the [Training](../modes/train.md) documentation.
-
-### Can I benchmark YOLOv8 models for performance?
-
-Yes, YOLOv8 models can be benchmarked for performance in terms of speed and accuracy across various export formats. You can use PyTorch, ONNX, TensorRT, and more for benchmarking. Below are example commands for benchmarking using Python and CLI:
-
-!!! example
-
-    === "Python"
-
-        ```python
-        from ultralytics.utils.benchmarks import benchmark
-
-        # Benchmark on GPU
-        benchmark(model="yolov8n.pt", data="coco8.yaml", imgsz=640, half=False, device=0)
-        ```
-
-    === "CLI"
-
-        ```bash
-        yolo benchmark model=yolov8n.pt data='coco8.yaml' imgsz=640 half=False device=0
-        ```
-
-For additional information, check the [Performance Metrics](#performance-metrics) section.

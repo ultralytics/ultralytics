@@ -762,6 +762,7 @@ class C3k2(C2f2):
 
 class C3k(C3):
     """C3k is a CSP bottleneck module with customizable kernel sizes for feature extraction in neural networks."""
+
     def __init__(self, c1, c2, n=1, shortcut=True, g=1, e=0.5, k=3):
         """Initializes the C3k module with specified channels, number of layers, and configurations."""
         super().__init__(c1, c2, n, shortcut, g, e)

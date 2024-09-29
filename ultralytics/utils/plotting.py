@@ -588,12 +588,10 @@ class Annotator:
 
         text_size = cv2.getTextSize(label, 0, fontScale=self.sf, thickness=self.tf)[0]
 
-        rect_width = text_size[0] + 20
-        rect_height = text_size[1] + 20
         cv2.rectangle(
             self.im,
-            (center_x - rect_width // 2, center_y - rect_height // 2),
-            (center_x + rect_width // 2, center_y + rect_height // 2),
+            (center_x - text_size[0] + 20 // 2, center_y - text_size[1] + 20 // 2),
+            (center_x + text_size[0] + 20 // 2, center_y + text_size[1] + 20 // 2),
             region_color,
             -1,
         )

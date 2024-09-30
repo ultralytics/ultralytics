@@ -42,11 +42,11 @@ TASK2DATA = {
     "obb": "dota8.yaml",
 }
 TASK2MODEL = {
-    "detect": "yolov8n.pt",
-    "segment": "yolov8n-seg.pt",
-    "classify": "yolov8n-cls.pt",
-    "pose": "yolov8n-pose.pt",
-    "obb": "yolov8n-obb.pt",
+    "detect": "yolo11n.pt",
+    "segment": "yolo11n-seg.pt",
+    "classify": "yolo11n-cls.pt",
+    "pose": "yolo11n-pose.pt",
+    "obb": "yolo11n-obb.pt",
 }
 TASK2METRIC = {
     "detect": "metrics/mAP50-95(B)",
@@ -782,7 +782,7 @@ def entrypoint(debug=""):
     # Model
     model = overrides.pop("model", DEFAULT_CFG.model)
     if model is None:
-        model = "yolov8n.pt"
+        model = "yolo11n.pt"
         LOGGER.warning(f"WARNING ⚠️ 'model' argument is missing. Using default 'model={model}'.")
     overrides["model"] = model
     stem = Path(model).stem.lower()
@@ -869,5 +869,5 @@ def copy_default_cfg():
 
 
 if __name__ == "__main__":
-    # Example: entrypoint(debug='yolo predict model=yolov8n.pt')
+    # Example: entrypoint(debug='yolo predict model=yolo11n.pt')
     entrypoint(debug="")

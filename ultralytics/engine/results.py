@@ -13,8 +13,8 @@ import torch
 from PIL import Image, ImageDraw, ImageFont
 from PIL import __version__ as pil_version
 
-from ultralytics.utils import LOGGER, TryExcept, ops, plt_settings, threaded, IS_JUPYTER
-from ultralytics.utils.checks import check_font, check_version, is_ascii, check_requirements
+from ultralytics.utils import IS_JUPYTER, LOGGER, TryExcept, ops, plt_settings, threaded
+from ultralytics.utils.checks import check_font, check_requirements, check_version, is_ascii
 from ultralytics.utils.files import increment_path
 
 

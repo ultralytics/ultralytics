@@ -40,7 +40,6 @@ def test_export_openvino():
 
 
 @pytest.mark.slow
-@pytest.mark.skipif(checks.IS_PYTHON_3_12, reason="OpenVINO not supported in Python 3.12")
 @pytest.mark.skipif(not TORCH_1_13, reason="OpenVINO requires torch>=1.13")
 @pytest.mark.parametrize(
     "task, dynamic, int8, half, batch",
@@ -187,7 +186,7 @@ def test_export_pb():
     YOLO(file)(SOURCE, imgsz=32)
 
 
-@pytest.mark.skipif(True, reason="Test disabled as Paddle protobuf and ONNX protobuf requirementsk conflict.")
+@pytest.mark.skipif(True, reason="Test disabled as Paddle protobuf and ONNX protobuf requirements conflict.")
 def test_export_paddle():
     """Test YOLO exports to Paddle format, noting protobuf conflicts with ONNX."""
     YOLO(MODEL).export(format="paddle", imgsz=32)

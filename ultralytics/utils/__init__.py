@@ -1091,9 +1091,16 @@ class JSONDict(dict):
         try:
             self.file_path.parent.mkdir(parents=True, exist_ok=True)
             with open(self.file_path, "w") as f:
-                json.dump(dict(self), f, indent=2)
+                json.dump(dict(self), f, indent=2, default=self._json_default)
         except Exception as e:
             print(f"Error writing to {self.file_path}: {e}")
+
+    @staticmethod
+    def _json_default(obj):
+        """Handle JSON serialization of Path objects."""
+        if isinstance(obj, Path):
+            return str(obj)
+        raise TypeError(f"Object of type {type(obj).__name__} is not JSON serializable")
 
     def __setitem__(self, key, value):
         """Store a key-value pair and persist to disk."""
@@ -1109,7 +1116,7 @@ class JSONDict(dict):
 
     def __str__(self):
         """Return a pretty-printed JSON string representation of the dictionary."""
-        return f'JSONDict("{self.file_path}"):\n{json.dumps(dict(self), indent=2, ensure_ascii=False)}'
+        return f'JSONDict("{self.file_path}"):\n{json.dumps(dict(self), indent=2, ensure_ascii=False, default=self._json_default)}'
 
     def update(self, *args, **kwargs):
         """Update the dictionary and persist changes."""

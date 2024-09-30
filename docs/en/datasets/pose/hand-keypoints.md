@@ -106,3 +106,70 @@ If you use the hand-keypoints dataset in your research or development work, plea
     The images were collected and used under the respective licenses provided by each platform and are distributed under the [Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License](https://creativecommons.org/licenses/by-nc-sa/4.0/).
 
 We would also like to acknowledge the creator of this dataset, [Rion Dsilva](https://www.linkedin.com/in/rion-dsilva-043464229/), for his great contribution to Vision AI research.
+
+## FAQ
+
+### How do I train a YOLOv8 model on the Hand Keypoints dataset?
+
+To train a YOLOv8 model on the Hand Keypoints dataset, you can use either Python or the command line interface (CLI). Here's an example for training a YOLOv8n-pose model for 100 epochs with an image size of 640:
+
+!!! Example
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load a model
+        model = YOLO("yolov8n-pose.pt")  # load a pretrained model (recommended for training)
+
+        # Train the model
+        results = model.train(data="hand-keypoints.yaml", epochs=100, imgsz=640)
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Start training from a pretrained *.pt model
+        yolo pose train data=hand-keypoints.yaml model=yolov8n-pose.pt epochs=100 imgsz=640
+        ```
+
+For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+
+### What are the key features of the Hand Keypoints dataset?
+
+The Hand Keypoints dataset is designed for advanced pose estimation tasks and includes several key features:
+
+- **Large Dataset**: Contains 26,768 images with hand keypoint annotations.
+- **YOLOv8 Compatibility**: Ready for use with YOLOv8 models.
+- **21 Keypoints**: Detailed hand pose representation, including wrist and finger joints.
+
+For more details, you can explore the [Hand Keypoints Dataset](#introduction) section.
+
+### What applications can benefit from using the Hand Keypoints dataset?
+
+The Hand Keypoints dataset can be applied in various fields, including:
+
+- **Gesture Recognition**: Enhancing human-computer interaction.
+- **AR/VR Controls**: Improving user experience in augmented and virtual reality.
+- **Robotic Manipulation**: Enabling precise control of robotic hands.
+- **Healthcare**: Analyzing hand movements for medical diagnostics.
+- **Animation**: Capturing motion for realistic animations.
+- **Biometric Authentication**: Enhancing security systems.
+
+For more information, refer to the [Applications](#applications) section.
+
+### How is the Hand Keypoints dataset structured?
+
+The Hand Keypoints dataset is divided into two subsets:
+
+1. **Train**: Contains 18,776 images for training pose estimation models.
+2. **Val**: Contains 7,992 images for validation purposes during model training.
+
+This structure ensures a comprehensive training and validation process. For more details, see the [Dataset Structure](#dataset-structure) section.
+
+### How do I use the dataset YAML file for training?
+
+The dataset configuration is defined in a YAML file, which includes paths, classes, and other relevant information. The `hand-keypoints.yaml` file can be found at [hand-keypoints.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/hand-keypoints.yaml).
+
+To use this YAML file for training, specify it in your training script or CLI command as shown in the training example above. For more details, refer to the [Dataset YAML](#dataset-yaml) section.

@@ -10,7 +10,6 @@ from pathlib import Path
 import cv2
 import numpy as np
 import torch
-from PIL import Image
 from torch.utils.data import ConcatDataset
 
 from ultralytics.utils import LOCAL_RANK, NUM_THREADS, TQDM, colorstr
@@ -399,7 +398,7 @@ class ClassificationDataset:
         cache_disk (bool): Indicates if caching on disk is enabled.
         samples (list): A list of tuples, each containing the path to an image, its class index, path to its .npy cache
                         file (if caching on disk), and optionally the loaded image array (if caching in RAM).
-        torch_transforms (callable): PyTorch transforms to be applied to the images.
+        transforms (callable): Image transforms to be applied to the images.
     """
 
     def __init__(self, root, args, augment=False, prefix=""):
@@ -416,7 +415,7 @@ class ClassificationDataset:
             prefix (str, optional): Prefix for logging and cache filenames, aiding in dataset identification and
                 debugging. Default is an empty string.
         """
-        import torchvision  # scope for faster 'import ultralytics'
+        import torchvision.datasets  # scope for faster 'import ultralytics'
 
         # Base class assigned as attribute rather than used as base class to allow for scoping slow torchvision import
         if TORCHVISION_0_18:  # 'allow_empty' argument first introduced in torchvision 0.18
@@ -441,8 +440,9 @@ class ClassificationDataset:
         self.samples = self.verify_images()  # filter out bad images
         self.samples = [list(x) + [Path(x[0]).with_suffix(".npy"), None] for x in self.samples]  # file, index, npy, im
         scale = (1.0 - args.scale, 1.0)  # (0.08, 1.0)
-        self.torch_transforms = (
-            classify_augmentations(
+        if augment:
+            # Using custom augmentations compatible with numpy arrays
+            self.transforms = classify_augmentations(
                 size=args.imgsz,
                 scale=scale,
                 hflip=args.fliplr,
@@ -452,27 +452,30 @@ class ClassificationDataset:
                 hsv_h=args.hsv_h,
                 hsv_s=args.hsv_s,
                 hsv_v=args.hsv_v,
+                numpy=True,  # Indicate that we're using numpy arrays
             )
-            if augment
-            else classify_transforms(size=args.imgsz, crop_fraction=args.crop_fraction)
-        )
+        else:
+            self.transforms = classify_transforms(size=args.imgsz, crop_fraction=args.crop_fraction, numpy=True)
 
     def __getitem__(self, i):
         """Returns subset of data and targets corresponding to given indices."""
         f, j, fn, im = self.samples[i]  # filename, index, filename.with_suffix('.npy'), image
-        if self.cache_ram:
-            if im is None:  # Warning: two separate if statements required here, do not combine this with previous line
-                im = self.samples[i][3] = cv2.imread(f)
-        elif self.cache_disk:
-            if not fn.exists():  # load npy
-                np.save(fn.as_posix(), cv2.imread(f), allow_pickle=False)
-            im = np.load(fn)
-        else:  # read image
-            im = cv2.imread(f)  # BGR
-        # Convert NumPy array to PIL image
-        im = Image.fromarray(cv2.cvtColor(im, cv2.COLOR_BGR2RGB))
-        sample = self.torch_transforms(im)
-        return {"img": sample, "cls": j}
+
+        # Load the image as 16-bit using OpenCV
+        im = cv2.imread(f, cv2.IMREAD_UNCHANGED)  # Load as is, preserving 16-bit depth
+
+        if im is None:
+            raise ValueError(f"Failed to load image: {f}")
+
+        # Convert from BGR to RGB if the image has 3 channels
+        if len(im.shape) == 3 and im.shape[2] == 3:  # check if image is 3-channel
+            im = cv2.cvtColor(im, cv2.COLOR_BGR2RGB)
+
+        # Apply dataset transformations (ensure they are compatible with numpy arrays)
+        if self.transforms:
+            im = self.transforms(im)
+
+        return {"img": im, "cls": j}
 
     def __len__(self) -> int:
         """Return the total number of samples in the dataset."""

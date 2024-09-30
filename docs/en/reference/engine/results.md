@@ -11,46 +11,30 @@ keywords: Ultralytics, engine results, BaseTensor, Results class, Boxes, Masks, 
 
 <br>
 
-## ::: ultralytics.engine.results.Colors
+## ::: ultralytics.engine.results.BaseTensor
 
 <br><br><hr><br>
 
-## ::: ultralytics.engine.results.Annotator
+## ::: ultralytics.engine.results.Results
 
 <br><br><hr><br>
 
-## ::: ultralytics.engine.results.plot_labels
+## ::: ultralytics.engine.results.Boxes
 
 <br><br><hr><br>
 
-## ::: ultralytics.engine.results.save_one_box
+## ::: ultralytics.engine.results.Masks
 
 <br><br><hr><br>
 
-## ::: ultralytics.engine.results.plot_images
+## ::: ultralytics.engine.results.Keypoints
 
 <br><br><hr><br>
 
-## ::: ultralytics.engine.results.plot_results
+## ::: ultralytics.engine.results.Probs
 
 <br><br><hr><br>
 
-## ::: ultralytics.engine.results.plt_color_scatter
-
-<br><br><hr><br>
-
-## ::: ultralytics.engine.results.plot_tune_results
-
-<br><br><hr><br>
-
-## ::: ultralytics.engine.results.output_to_target
-
-<br><br><hr><br>
-
-## ::: ultralytics.engine.results.output_to_rotated_target
-
-<br><br><hr><br>
-
-## ::: ultralytics.engine.results.feature_visualization
+## ::: ultralytics.engine.results.OBB
 
 <br><br>

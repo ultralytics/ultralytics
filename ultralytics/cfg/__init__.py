@@ -69,19 +69,19 @@ CLI_HELP_MSG = f"""
                     See all ARGS at https://docs.ultralytics.com/usage/cfg or with 'yolo cfg'
 
     1. Train a detection model for 10 epochs with an initial learning_rate of 0.01
-        yolo train data=coco8.yaml model=yolov8n.pt epochs=10 lr0=0.01
+        yolo train data=coco8.yaml model=yolo11n.pt epochs=10 lr0=0.01
 
     2. Predict a YouTube video using a pretrained segmentation model at image size 320:
-        yolo predict model=yolov8n-seg.pt source='https://youtu.be/LNwODJXcvt4' imgsz=320
+        yolo predict model=yolo11n-seg.pt source='https://youtu.be/LNwODJXcvt4' imgsz=320
 
     3. Val a pretrained detection model at batch-size 1 and image size 640:
-        yolo val model=yolov8n.pt data=coco8.yaml batch=1 imgsz=640
+        yolo val model=yolo11n.pt data=coco8.yaml batch=1 imgsz=640
 
-    4. Export a YOLOv8n classification model to ONNX format at image size 224 by 128 (no TASK required)
-        yolo export model=yolov8n-cls.pt format=onnx imgsz=224,128
+    4. Export a YOLO11n classification model to ONNX format at image size 224 by 128 (no TASK required)
+        yolo export model=yolo11n-cls.pt format=onnx imgsz=224,128
 
     5. Explore your datasets using semantic search and SQL with a simple GUI powered by Ultralytics Explorer API
-        yolo explorer data=data.yaml model=yolov8n.pt
+        yolo explorer data=data.yaml model=yolo11n.pt
     
     6. Streamlit real-time webcam inference GUI
         yolo streamlit-predict
@@ -517,7 +517,7 @@ def handle_yolo_settings(args: List[str]) -> None:
 
     Examples:
         >>> handle_yolo_settings(["reset"])  # Reset YOLO settings
-        >>> handle_yolo_settings(["default_cfg_path=yolov8n.yaml"])  # Update a specific setting
+        >>> handle_yolo_settings(["default_cfg_path=yolo11n.yaml"])  # Update a specific setting
 
     Notes:
         - If no arguments are provided, the function will display the current settings.
@@ -557,7 +557,7 @@ def handle_explorer(args: List[str]):
 
     Examples:
         ```bash
-        yolo explorer data=data.yaml model=yolov8n.pt
+        yolo explorer data=data.yaml model=yolo11n.pt
         ```
 
     Notes:
@@ -611,9 +611,9 @@ def parse_key_value_pair(pair: str = "key=value"):
         AssertionError: If the value is missing or empty.
 
     Examples:
-        >>> key, value = parse_key_value_pair("model=yolov8n.pt")
+        >>> key, value = parse_key_value_pair("model=yolo11n.pt")
         >>> print(f"Key: {key}, Value: {value}")
-        Key: model, Value: yolov8n.pt
+        Key: model, Value: yolo11n.pt
 
         >>> key, value = parse_key_value_pair("epochs=100")
         >>> print(f"Key: {key}, Value: {value}")
@@ -686,13 +686,13 @@ def entrypoint(debug=""):
 
     Examples:
         Train a detection model for 10 epochs with an initial learning_rate of 0.01:
-        >>> entrypoint("train data=coco8.yaml model=yolov8n.pt epochs=10 lr0=0.01")
+        >>> entrypoint("train data=coco8.yaml model=yolo11n.pt epochs=10 lr0=0.01")
 
         Predict a YouTube video using a pretrained segmentation model at image size 320:
-        >>> entrypoint("predict model=yolov8n-seg.pt source='https://youtu.be/LNwODJXcvt4' imgsz=320")
+        >>> entrypoint("predict model=yolo11n-seg.pt source='https://youtu.be/LNwODJXcvt4' imgsz=320")
 
         Validate a pretrained detection model at batch-size 1 and image size 640:
-        >>> entrypoint("val model=yolov8n.pt data=coco8.yaml batch=1 imgsz=640")
+        >>> entrypoint("val model=yolo11n.pt data=coco8.yaml batch=1 imgsz=640")
 
     Notes:
         - If no arguments are passed, the function will display the usage help message.

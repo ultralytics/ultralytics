@@ -8,12 +8,12 @@ keywords: YOLOv8, Paperspace Gradient, MLOps, machine learning, training, GPUs, 
 
 Training computer vision models like [YOLOv8](https://github.com/ultralytics/ultralytics) can be complicated. It involves managing large datasets, using different types of computer hardware like GPUs, TPUs, and CPUs, and making sure data flows smoothly during the training process. Typically, developers end up spending a lot of time managing their computer systems and environments. It can be frustrating when you just want to focus on building the best model.
 
-This is where a platform like Paperspace Gradient can make things simpler. Paperspace Gradient is a MLOps platform that lets you build, train, and deploy machine learning models all in one place. With Gradient, developers can focus on training their YOLOv8 models without the hassle of managing infrastructure and environments.
+This is where a platform like Paperspace Gradient can make things simpler. Paperspace Gradient is a MLOps platform that lets you build, train, and deploy [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) models all in one place. With Gradient, developers can focus on training their YOLOv8 models without the hassle of managing infrastructure and environments.
 
 ## Paperspace
 
 <p align="center">
-  <img width="100%" src="https://assets-global.website-files.com/5db99670374d1d829291af4f/62dde8621ae3452ade8096e7_workflows-gallery-1.png" alt="Paperspace Overview">
+  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/paperspace-overview.avif" alt="Paperspace Overview">
 </p>
 
 [Paperspace](https://www.paperspace.com/), launched in 2014 by University of Michigan graduates and acquired by DigitalOcean in 2023, is a cloud platform specifically designed for machine learning. It provides users with powerful GPUs, collaborative Jupyter notebooks, a container service for deployments, automated workflows for machine learning tasks, and high-performance virtual machines. These features aim to streamline the entire machine learning development process, from coding to deployment.
@@ -21,7 +21,7 @@ This is where a platform like Paperspace Gradient can make things simpler. Paper
 ## Paperspace Gradient
 
 <p align="center">
-  <img width="100%" src="https://assets-global.website-files.com/5db99670374d1d829291af4f/62e0184d19e4ff1f63801150_Layers-Diagram.jpg" alt="PaperSpace Gradient Overview">
+  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/paperspace-gradient-overview.avif" alt="PaperSpace Gradient Overview">
 </p>
 
 Paperspace Gradient is a suite of tools designed to make working with AI and machine learning in the cloud much faster and easier. Gradient addresses the entire machine learning development process, from building and training models to deploying them.
@@ -34,7 +34,7 @@ Paperspace Gradient makes training a YOLOv8 model possible with a few clicks. Th
 
 Sign in and then click on the “Start Machine” button shown in the image below. In a few seconds, a managed GPU environment will start up, and then you can run the notebook's cells.
 
-![Training YOLOv8 Using Paperspace Gradient](https://github.com/ultralytics/ultralytics/assets/25847604/d6bd083a-cde3-427f-8ac3-b80fa49f6ba1)
+![Training YOLOv8 Using Paperspace Gradient](https://github.com/ultralytics/docs/releases/download/0/start-machine-button.avif)
 
 Explore more capabilities of YOLOv8 and Paperspace Gradient in a discussion with Glenn Jocher, Ultralytics founder, and James Skelton from Paperspace. Watch the discussion below.
 
@@ -61,7 +61,7 @@ As you explore the Paperspace console, you'll see how each step of the machine-l
 
 - **Dataset Management:** Efficiently manage your datasets directly within Gradient. Upload, version, and pre-process data with ease, streamlining the data preparation phase of your project.
 
-- **Model Serving:** Deploy your trained YOLOv8 models as REST APIs with just a few clicks. Gradient handles the infrastructure, allowing you to easily integrate your object detection models into your applications.
+- **Model Serving:** Deploy your trained YOLOv8 models as REST APIs with just a few clicks. Gradient handles the infrastructure, allowing you to easily integrate your [object detection](https://www.ultralytics.com/glossary/object-detection) models into your applications.
 
 - **Real-time Monitoring:** Monitor the performance and health of your deployed models through Gradient's intuitive dashboard. Gain insights into inference speed, resource utilization, and potential errors.
 
@@ -83,4 +83,33 @@ This guide explored the Paperspace Gradient integration for training YOLOv8 mode
 
 For further exploration, visit [PaperSpace's official documentation](https://docs.digitalocean.com/products/paperspace/).
 
-Also, visit the [Ultralytics integration guide page](index.md) to learn more about different YOLOv8 integrations. It's full of insights and tips to take your computer vision projects to the next level.
+Also, visit the [Ultralytics integration guide page](index.md) to learn more about different YOLOv8 integrations. It's full of insights and tips to take your [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) projects to the next level.
+
+## FAQ
+
+### How do I train a YOLOv8 model using Paperspace Gradient?
+
+Training a YOLOv8 model with Paperspace Gradient is straightforward and efficient. First, sign in to the [Paperspace console](https://console.paperspace.com/github/ultralytics/ultralytics). Next, click the “Start Machine” button to initiate a managed GPU environment. Once the environment is ready, you can run the notebook's cells to start training your YOLOv8 model. For detailed instructions, refer to our [YOLOv8 Model Training guide](../modes/train.md).
+
+### What are the advantages of using Paperspace Gradient for YOLOv8 projects?
+
+Paperspace Gradient offers several unique advantages for training and deploying YOLOv8 models:
+
+- **Hardware Flexibility:** Choose from various CPU, GPU, and TPU configurations.
+- **One-Click Notebooks:** Use pre-configured Jupyter Notebooks for YOLOv8 without worrying about environment setup.
+- **Experiment Tracking:** Automatic tracking of hyperparameters, metrics, and code changes.
+- **Dataset Management:** Efficiently manage your datasets within Gradient.
+- **Model Serving:** Deploy models as REST APIs easily.
+- **Real-time Monitoring:** Monitor model performance and resource utilization through a dashboard.
+
+### Why should I choose Ultralytics YOLOv8 over other object detection models?
+
+Ultralytics YOLOv8 stands out for its real-time object detection capabilities and high [accuracy](https://www.ultralytics.com/glossary/accuracy). Its seamless integration with platforms like Paperspace Gradient enhances productivity by simplifying the training and deployment process. YOLOv8 supports various use cases, from security systems to retail inventory management. Explore more about YOLOv8's advantages [here](https://www.ultralytics.com/yolo).
+
+### Can I deploy my YOLOv8 model on edge devices using Paperspace Gradient?
+
+Yes, you can deploy YOLOv8 models on edge devices using Paperspace Gradient. The platform supports various deployment formats like TFLite and Edge TPU, which are optimized for edge devices. After training your model on Gradient, refer to our [export guide](../modes/export.md) for instructions on converting your model to the desired format.
+
+### How does experiment tracking in Paperspace Gradient help improve YOLOv8 training?
+
+Experiment tracking in Paperspace Gradient streamlines the model development process by automatically logging hyperparameters, metrics, and code changes. This allows you to easily compare different training runs, identify optimal configurations, and reproduce successful experiments.

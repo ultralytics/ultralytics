@@ -1,5 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
+import sys
 import time
 from threading import Thread
 
@@ -17,7 +18,8 @@ def _get_explorer():
     """Initializes and returns an instance of the Explorer class."""
     exp = Explorer(data=st.session_state.get("dataset"), model=st.session_state.get("model"))
     thread = Thread(
-        target=exp.create_embeddings_table, kwargs={"force": st.session_state.get("force_recreate_embeddings")}
+        target=exp.create_embeddings_table,
+        kwargs={"force": st.session_state.get("force_recreate_embeddings"), "split": st.session_state.get("split")},
     )
     thread.start()
     progress_bar = st.progress(0, text="Creating embeddings table...")
@@ -29,33 +31,45 @@ def _get_explorer():
     progress_bar.empty()
 
 
-def init_explorer_form():
+def init_explorer_form(data=None, model=None):
     """Initializes an Explorer instance and creates embeddings table with progress tracking."""
-    datasets = ROOT / "cfg" / "datasets"
-    ds = [d.name for d in datasets.glob("*.yaml")]
-    models = [
-        "yolov8n.pt",
-        "yolov8s.pt",
-        "yolov8m.pt",
-        "yolov8l.pt",
-        "yolov8x.pt",
-        "yolov8n-seg.pt",
-        "yolov8s-seg.pt",
-        "yolov8m-seg.pt",
-        "yolov8l-seg.pt",
-        "yolov8x-seg.pt",
-        "yolov8n-pose.pt",
-        "yolov8s-pose.pt",
-        "yolov8m-pose.pt",
-        "yolov8l-pose.pt",
-        "yolov8x-pose.pt",
-    ]
+    if data is None:
+        datasets = ROOT / "cfg" / "datasets"
+        ds = [d.name for d in datasets.glob("*.yaml")]
+    else:
+        ds = [data]
+
+    if model is None:
+        models = [
+            "yolov8n.pt",
+            "yolov8s.pt",
+            "yolov8m.pt",
+            "yolov8l.pt",
+            "yolov8x.pt",
+            "yolov8n-seg.pt",
+            "yolov8s-seg.pt",
+            "yolov8m-seg.pt",
+            "yolov8l-seg.pt",
+            "yolov8x-seg.pt",
+            "yolov8n-pose.pt",
+            "yolov8s-pose.pt",
+            "yolov8m-pose.pt",
+            "yolov8l-pose.pt",
+            "yolov8x-pose.pt",
+        ]
+    else:
+        models = [model]
+
+    splits = ["train", "val", "test"]
+
     with st.form(key="explorer_init_form"):
-        col1, col2 = st.columns(2)
+        col1, col2, col3 = st.columns(3)
         with col1:
-            st.selectbox("Select dataset", ds, key="dataset", index=ds.index("coco128.yaml"))
+            st.selectbox("Select dataset", ds, key="dataset")
         with col2:
             st.selectbox("Select model", models, key="model")
+        with col3:
+            st.selectbox("Select split", splits, key="split")
         st.checkbox("Force recreate embeddings", key="force_recreate_embeddings")
 
         st.form_submit_button("Explore", on_click=_get_explorer)
@@ -182,13 +196,13 @@ def utralytics_explorer_docs_callback():
         st.link_button("Ultrlaytics Explorer API", "https://docs.ultralytics.com/datasets/explorer/")
 
 
-def layout():
+def layout(data=None, model=None):
     """Resets explorer session variables and provides documentation with a link to API docs."""
     st.set_page_config(layout="wide", initial_sidebar_state="collapsed")
     st.markdown("<h1 style='text-align: center;'>Ultralytics Explorer Demo</h1>", unsafe_allow_html=True)
 
     if st.session_state.get("explorer") is None:
-        init_explorer_form()
+        init_explorer_form(data, model)
         return
 
     st.button(":arrow_backward: Select Dataset", on_click=reset_explorer)
@@ -264,4 +278,5 @@ def layout():
 
 
 if __name__ == "__main__":
-    layout()
+    kwargs = dict(zip(sys.argv[1::2], sys.argv[2::2]))
+    layout(**kwargs)

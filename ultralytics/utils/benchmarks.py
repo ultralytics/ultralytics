@@ -71,7 +71,7 @@ def benchmark(
         ```python
         from ultralytics.utils.benchmarks import benchmark
 
-        benchmark(model='yolov8n.pt', imgsz=640)
+        benchmark(model="yolov8n.pt", imgsz=640)
         ```
     """
     import pandas as pd  # scope for faster 'import ultralytics'
@@ -85,7 +85,7 @@ def benchmark(
 
     y = []
     t0 = time.time()
-    for i, (name, format, suffix, cpu, gpu) in export_formats().iterrows():  # index, (name, format, suffix, CPU, GPU)
+    for i, (name, format, suffix, cpu, gpu) in enumerate(zip(*export_formats().values())):
         emoji, filename = "❌", None  # export defaults
         try:
             # Checks
@@ -97,18 +97,17 @@ def benchmark(
                 assert MACOS or LINUX, "CoreML and TF.js export only supported on macOS and Linux"
                 assert not IS_RASPBERRYPI, "CoreML and TF.js export not supported on Raspberry Pi"
                 assert not IS_JETSON, "CoreML and TF.js export not supported on NVIDIA Jetson"
-                assert not is_end2end, "End-to-end models not supported by CoreML and TF.js yet"
-            if i in {3, 5}:  # CoreML and OpenVINO
-                assert not IS_PYTHON_3_12, "CoreML and OpenVINO not supported on Python 3.12"
-            if i in {6, 7, 8, 9, 10}:  # All TF formats
+            if i in {5}:  # CoreML
+                assert not IS_PYTHON_3_12, "CoreML not supported on Python 3.12"
+            if i in {6, 7, 8}:  # TF SavedModel, TF GraphDef, and TFLite
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 TensorFlow exports not supported by onnx2tf yet"
-                assert not is_end2end, "End-to-end models not supported by onnx2tf yet"
+            if i in {9, 10}:  # TF EdgeTPU and TF.js
+                assert not isinstance(model, YOLOWorld), "YOLOWorldv2 TensorFlow exports not supported by onnx2tf yet"
             if i in {11}:  # Paddle
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 Paddle exports not supported yet"
                 assert not is_end2end, "End-to-end models not supported by PaddlePaddle yet"
             if i in {12}:  # NCNN
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 NCNN exports not supported yet"
-                assert not is_end2end, "End-to-end models not supported by NCNN yet"
             if "cpu" in device.type:
                 assert cpu, "inference not supported on CPU"
             if "cuda" in device.type:
@@ -132,6 +131,8 @@ def benchmark(
             assert model.task != "pose" or i != 7, "GraphDef Pose inference is not supported"
             assert i not in {9, 10}, "inference not supported"  # Edge TPU and TF.js are unsupported
             assert i != 5 or platform.system() == "Darwin", "inference only supported on macOS>=10.13"  # CoreML
+            if i in {12}:
+                assert not is_end2end, "End-to-end torch.topk operation is not supported for NCNN prediction yet"
             exported_model.predict(ASSETS / "bus.jpg", imgsz=imgsz, device=device, half=half, separate_outputs=separate_outputs, export_hw_optimized=export_hw_optimized)
 
             # Validate
@@ -168,6 +169,8 @@ def benchmark(
 
 
 class RF100Benchmark:
+    """Benchmark YOLO model performance across formats for speed and accuracy."""
+
     def __init__(self):
         """Function for initialization of RF100Benchmark."""
         self.ds_names = []
@@ -182,7 +185,6 @@ class RF100Benchmark:
         Args:
             api_key (str): The API key.
         """
-
         check_requirements("roboflow")
         from roboflow import Roboflow
 
@@ -195,13 +197,12 @@ class RF100Benchmark:
         Args:
             ds_link_txt (str): Path to dataset_links file.
         """
-
         (shutil.rmtree("rf-100"), os.mkdir("rf-100")) if os.path.exists("rf-100") else os.mkdir("rf-100")
         os.chdir("rf-100")
         os.mkdir("ultralytics-benchmarks")
-        safe_download("https://ultralytics.com/assets/datasets_links.txt")
+        safe_download("https://github.com/ultralytics/assets/releases/download/v0.0.0/datasets_links.txt")
 
-        with open(ds_link_txt, "r") as file:
+        with open(ds_link_txt) as file:
             for line in file:
                 try:
                     _, url, workspace, project, version = re.split("/+", line.strip())
@@ -225,8 +226,7 @@ class RF100Benchmark:
         Args:
             path (str): YAML file path.
         """
-
-        with open(path, "r") as file:
+        with open(path) as file:
             yaml_data = yaml.safe_load(file)
         yaml_data["train"] = "train/images"
         yaml_data["val"] = "valid/images"
@@ -246,7 +246,7 @@ class RF100Benchmark:
         skip_symbols = ["🚀", "⚠️", "💡", "❌"]
         with open(yaml_path) as stream:
             class_names = yaml.safe_load(stream)["names"]
-        with open(val_log_file, "r", encoding="utf-8") as f:
+        with open(val_log_file, encoding="utf-8") as f:
             lines = f.readlines()
             eval_lines = []
             for line in lines:
@@ -302,7 +302,7 @@ class ProfileModels:
         ```python
         from ultralytics.utils.benchmarks import ProfileModels
 
-        ProfileModels(['yolov8n.yaml', 'yolov8s.yaml'], imgsz=640).profile()
+        ProfileModels(["yolov8n.yaml", "yolov8s.yaml"], imgsz=640).profile()
         ```
     """
 
@@ -326,9 +326,12 @@ class ProfileModels:
             num_warmup_runs (int, optional): Number of warmup runs before the actual profiling starts. Default is 10.
             min_time (float, optional): Minimum time in seconds for profiling a model. Default is 60.
             imgsz (int, optional): Size of the image used during profiling. Default is 640.
-            half (bool, optional): Flag to indicate whether to use half-precision floating point for profiling.
+            half (bool, optional): Flag to indicate whether to use FP16 half-precision for TensorRT profiling.
             trt (bool, optional): Flag to indicate whether to profile using TensorRT. Default is True.
             device (torch.device, optional): Device used for profiling. If None, it is determined automatically.
+
+        Notes:
+            FP16 'half' argument option removed for ONNX as slower on CPU than FP32
         """
         self.paths = paths
         self.num_timed_runs = num_timed_runs
@@ -357,10 +360,17 @@ class ProfileModels:
                 model_info = model.info()
                 if self.trt and self.device.type != "cpu" and not engine_file.is_file():
                     engine_file = model.export(
-                        format="engine", half=self.half, imgsz=self.imgsz, device=self.device, verbose=False
+                        format="engine",
+                        half=self.half,
+                        imgsz=self.imgsz,
+                        device=self.device,
+                        verbose=False,
                     )
                 onnx_file = model.export(
-                    format="onnx", half=self.half, imgsz=self.imgsz, simplify=True, device=self.device, verbose=False
+                    format="onnx",
+                    imgsz=self.imgsz,
+                    device=self.device,
+                    verbose=False,
                 )
             elif file.suffix == ".onnx":
                 model_info = self.get_onnx_model_info(file)
@@ -393,9 +403,7 @@ class ProfileModels:
         return [Path(file) for file in sorted(files)]
 
     def get_onnx_model_info(self, onnx_file: str):
-        """Retrieves the information including number of layers, parameters, gradients and FLOPs for an ONNX model
-        file.
-        """
+        """Extracts metadata from an ONNX model file including parameters, GFLOPs, and input shape."""
         return 0.0, 0.0, 0.0, 0.0  # return (num_layers, num_params, num_gradients, num_flops)
 
     @staticmethod
@@ -440,9 +448,7 @@ class ProfileModels:
         return np.mean(run_times), np.std(run_times)
 
     def profile_onnx_model(self, onnx_file: str, eps: float = 1e-3):
-        """Profiles an ONNX model by executing it multiple times and returns the mean and standard deviation of run
-        times.
-        """
+        """Profiles an ONNX model, measuring average inference time and standard deviation across multiple runs."""
         check_requirements("onnxruntime")
         import onnxruntime as ort
 

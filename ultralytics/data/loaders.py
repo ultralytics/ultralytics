@@ -84,7 +84,7 @@ class LoadStreams:
             # Start thread to read frames from video stream
             st = f"{i + 1}/{n}: {s}... "
             if urlparse(s).hostname in {"www.youtube.com", "youtube.com", "youtu.be"}:  # if source is YouTube video
-                # YouTube format i.e. 'https://www.youtube.com/watch?v=Zgi9g1ksQHc' or 'https://youtu.be/LNwODJXcvt4'
+                # YouTube format i.e. 'https://www.youtube.com/watch?v=Jsn8D3aC840' or 'https://youtu.be/Jsn8D3aC840'
                 s = get_best_youtube_url(s)
             s = eval(s) if s.isnumeric() else s  # i.e. s = '0' local webcam
             if s == 0 and (IS_COLAB or IS_KAGGLE):
@@ -240,7 +240,7 @@ class LoadScreenshots:
         return self
 
     def __next__(self):
-        """mss screen capture: get raw pixels from the screen as np array."""
+        """Screen capture with 'mss' to get raw pixels from the screen as np array."""
         im0 = np.asarray(self.sct.grab(self.monitor))[:, :, :3]  # BGRA to BGR
         s = f"screen {self.screen} (LTWH): {self.left},{self.top},{self.width},{self.height}: "
 
@@ -362,10 +362,11 @@ class LoadImagesAndVideos:
                 self.mode = "image"
                 im0 = cv2.imread(path)  # BGR
                 if im0 is None:
-                    raise FileNotFoundError(f"Image Read Error {path}")
-                paths.append(path)
-                imgs.append(im0)
-                info.append(f"image {self.count + 1}/{self.nf} {path}: ")
+                    LOGGER.warning(f"WARNING ⚠️ Image Read Error {path}")
+                else:
+                    paths.append(path)
+                    imgs.append(im0)
+                    info.append(f"image {self.count + 1}/{self.nf} {path}: ")
                 self.count += 1  # move to the next file
                 if self.count >= self.ni:  # end of image list
                     break
@@ -543,8 +544,9 @@ def get_best_youtube_url(url, method="pytube"):
         (str): The URL of the best quality MP4 video stream, or None if no suitable stream is found.
     """
     if method == "pytube":
-        check_requirements("pytube")
-        from pytube import YouTube
+        # Switched from pytube to pytubefix to resolve https://github.com/pytube/pytube/issues/1954
+        check_requirements("pytubefix>=6.5.2")
+        from pytubefix import YouTube
 
         streams = YouTube(url).streams.filter(file_extension="mp4", only_video=True)
         streams = sorted(streams, key=lambda s: s.resolution, reverse=True)  # sort streams by resolution

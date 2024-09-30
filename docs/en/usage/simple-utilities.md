@@ -7,7 +7,7 @@ keywords: Ultralytics, utilities, data processing, auto annotation, YOLO, datase
 # Simple Utilities
 
 <p align="center">
-  <img src="https://github.com/ultralytics/ultralytics/assets/62214284/516112de-4567-49f8-b93f-b55a10b79dd7" alt="code with perspective">
+  <img src="https://github.com/ultralytics/docs/releases/download/0/code-with-perspective.avif" alt="code with perspective">
 </p>
 
 The `ultralytics` package comes with a myriad of utilities that can support, enhance, and speed up your workflows. There are many more available, but here are some that will be useful for most developers. They're also a great reference point to use when learning to program.
@@ -31,7 +31,7 @@ The `ultralytics` package comes with a myriad of utilities that can support, enh
 
 ### Auto Labeling / Annotations
 
-Dataset annotation is a very resource intensive and time-consuming process. If you have a YOLO object detection model trained on a reasonable amount of data, you can use it and [SAM](../models/sam.md) to auto-annotate additional data (segmentation format).
+Dataset annotation is a very resource intensive and time-consuming process. If you have a YOLO [object detection](https://www.ultralytics.com/glossary/object-detection) model trained on a reasonable amount of data, you can use it and [SAM](../models/sam.md) to auto-annotate additional data (segmentation format).
 
 ```{ .py .annotate }
 from ultralytics.data.annotator import auto_annotate
@@ -50,6 +50,22 @@ auto_annotate(  # (1)!
 - [See the reference section for `annotator.auto_annotate`](../reference/data/annotator.md#ultralytics.data.annotator.auto_annotate) for more insight on how the function operates.
 
 - Use in combination with the [function `segments2boxes`](#convert-segments-to-bounding-boxes) to generate object detection bounding boxes as well
+
+### Convert Segmentation Masks into YOLO Format
+
+![Segmentation Masks to YOLO Format](https://github.com/ultralytics/docs/releases/download/0/segmentation-masks-to-yolo-format.avif)
+
+Use to convert a dataset of segmentation mask images to the `YOLO` segmentation format.
+This function takes the directory containing the binary format mask images and converts them into YOLO segmentation format.
+
+The converted masks will be saved in the specified output directory.
+
+```python
+from ultralytics.data.converter import convert_segment_masks_to_yolo_seg
+
+# The classes here is the total classes in the dataset, for COCO dataset we have 80 classes
+convert_segment_masks_to_yolo_seg(masks_dir="path/to/masks_dir", output_dir="path/to/output_dir", classes=80)
+```
 
 ### Convert COCO into YOLO Format
 
@@ -70,7 +86,7 @@ convert_coco(  # (1)!
 
 For additional information about the `convert_coco` function, [visit the reference page](../reference/data/converter.md#ultralytics.data.converter.convert_coco)
 
-### Get Bounding Box Dimensions
+### Get [Bounding Box](https://www.ultralytics.com/glossary/bounding-box) Dimensions
 
 ```{.py .annotate }
 from ultralytics.utils.plotting import Annotator
@@ -441,15 +457,16 @@ for obb in obb_boxes:
 image_with_obb = ann.result()
 ```
 
-#### Bounding Boxes Circle Annotation ([Circle Label](https://docs.ultralytics.com/reference/utils/plotting/#ultralytics.utils.plotting.Annotator.circle_label))
+#### Bounding Boxes Circle Annotation [Circle Label](https://docs.ultralytics.com/reference/utils/plotting/#ultralytics.utils.plotting.Annotator.circle_label)
 
 ```python
 import cv2
 
 from ultralytics import YOLO
-from ultralytics.utils.plotting import Annotator, colors
+from ultralytics.utils.plotting import Annotator
 
 model = YOLO("yolov8s.pt")
+names = model.names
 cap = cv2.VideoCapture("path/to/video/file.mp4")
 
 w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
@@ -460,15 +477,13 @@ while True:
     if not ret:
         break
 
-    annotator = Annotator(im0, line_width=2)
-
+    annotator = Annotator(im0)
     results = model.predict(im0)
     boxes = results[0].boxes.xyxy.cpu()
     clss = results[0].boxes.cls.cpu().tolist()
 
     for box, cls in zip(boxes, clss):
-        x1, y1 = int((box[0] + box[2]) // 2), int((box[1] + box[3]) // 2)
-        annotator.circle_label(box, label=model.names[int(cls)], color=colors(int(cls), True))
+        annotator.circle_label(box, label=names[int(cls)])
 
     writer.write(im0)
     cv2.imshow("Ultralytics circle annotation", im0)
@@ -481,15 +496,16 @@ cap.release()
 cv2.destroyAllWindows()
 ```
 
-#### Bounding Boxes Text Annotation ([Text Label](https://docs.ultralytics.com/reference/utils/plotting/#ultralytics.utils.plotting.Annotator.text_label))
+#### Bounding Boxes Text Annotation [Text Label](https://docs.ultralytics.com/reference/utils/plotting/#ultralytics.utils.plotting.Annotator.text_label)
 
 ```python
 import cv2
 
 from ultralytics import YOLO
-from ultralytics.utils.plotting import Annotator, colors
+from ultralytics.utils.plotting import Annotator
 
 model = YOLO("yolov8s.pt")
+names = model.names
 cap = cv2.VideoCapture("path/to/video/file.mp4")
 
 w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
@@ -500,15 +516,13 @@ while True:
     if not ret:
         break
 
-    annotator = Annotator(im0, line_width=2)
-
+    annotator = Annotator(im0)
     results = model.predict(im0)
     boxes = results[0].boxes.xyxy.cpu()
     clss = results[0].boxes.cls.cpu().tolist()
 
     for box, cls in zip(boxes, clss):
-        x1, y1 = int((box[0] + box[2]) // 2), int((box[1] + box[3]) // 2)
-        annotator.text_label(box, label=model.names[int(cls)], color=colors(int(cls), True))
+        annotator.text_label(box, label=names[int(cls)])
 
     writer.write(im0)
     cv2.imshow("Ultralytics text annotation", im0)
@@ -562,3 +576,64 @@ make_divisible(7, 3)
 make_divisible(7, 2)
 # >>> 8
 ```
+
+## FAQ
+
+### What utilities are included in the Ultralytics package to enhance [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) workflows?
+
+The Ultralytics package includes a variety of utilities designed to streamline and optimize machine learning workflows. Key utilities include [auto-annotation](../reference/data/annotator.md#ultralytics.data.annotator.auto_annotate) for labeling datasets, converting COCO to YOLO format with [convert_coco](../reference/data/converter.md#ultralytics.data.converter.convert_coco), compressing images, and dataset auto-splitting. These tools aim to reduce manual effort, ensure consistency, and enhance data processing efficiency.
+
+### How can I use Ultralytics to auto-label my dataset?
+
+If you have a pre-trained Ultralytics YOLO object detection model, you can use it with the [SAM](../models/sam.md) model to auto-annotate your dataset in segmentation format. Here's an example:
+
+```python
+from ultralytics.data.annotator import auto_annotate
+
+auto_annotate(
+    data="path/to/new/data",
+    det_model="yolov8n.pt",
+    sam_model="mobile_sam.pt",
+    device="cuda",
+    output_dir="path/to/save_labels",
+)
+```
+
+For more details, check the [auto_annotate reference section](../reference/data/annotator.md#ultralytics.data.annotator.auto_annotate).
+
+### How do I convert COCO dataset annotations to YOLO format in Ultralytics?
+
+To convert COCO JSON annotations into YOLO format for object detection, you can use the `convert_coco` utility. Here's a sample code snippet:
+
+```python
+from ultralytics.data.converter import convert_coco
+
+convert_coco(
+    "../datasets/coco/annotations/",
+    use_segments=False,
+    use_keypoints=False,
+    cls91to80=True,
+)
+```
+
+For additional information, visit the [convert_coco reference page](../reference/data/converter.md#ultralytics.data.converter.convert_coco).
+
+### What is the purpose of the YOLO Data Explorer in the Ultralytics package?
+
+The [YOLO Explorer](../datasets/explorer/index.md) is a powerful tool introduced in the `8.1.0` update to enhance dataset understanding. It allows you to use text queries to find object instances in your dataset, making it easier to analyze and manage your data. This tool provides valuable insights into dataset composition and distribution, helping to improve model training and performance.
+
+### How can I convert bounding boxes to segments in Ultralytics?
+
+To convert existing bounding box data (in `x y w h` format) to segments, you can use the `yolo_bbox2segment` function. Ensure your files are organized with separate directories for images and labels.
+
+```python
+from ultralytics.data.converter import yolo_bbox2segment
+
+yolo_bbox2segment(
+    im_dir="path/to/images",
+    save_dir=None,  # saved to "labels-segment" in the images directory
+    sam_model="sam_b.pt",
+)
+```
+
+For more information, visit the [yolo_bbox2segment reference page](../reference/data/converter.md#ultralytics.data.converter.yolo_bbox2segment).

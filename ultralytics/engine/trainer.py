@@ -27,6 +27,7 @@ from ultralytics.data.utils import check_regress_dataset
 from ultralytics.nn.tasks import attempt_load_one_weight, attempt_load_weights
 from ultralytics.utils import (
     DEFAULT_CFG,
+    LOCAL_RANK,
     LOGGER,
     RANK,
     TQDM,
@@ -42,8 +43,10 @@ from ultralytics.utils.checks import check_amp, check_file, check_imgsz, check_m
 from ultralytics.utils.dist import ddp_cleanup, generate_ddp_command
 from ultralytics.utils.files import get_latest_run
 from ultralytics.utils.torch_utils import (
+    TORCH_2_4,
     EarlyStopping,
     ModelEMA,
+    autocast,
     convert_optimizer_state_dict_to_fp16,
     init_seeds,
     one_cycle,
@@ -55,8 +58,6 @@ from ultralytics.utils.torch_utils import (
 
 class BaseTrainer:
     """
-    BaseTrainer.
-
     A base class for creating trainers.
 
     Attributes:
@@ -129,7 +130,7 @@ class BaseTrainer:
 
         # Model and Dataset
         self.model = check_model_file_from_stem(self.args.model)  # add suffix, i.e. yolov8n -> yolov8n.pt
-        with torch_distributed_zero_first(RANK):  # avoid auto-downloading dataset multiple times
+        with torch_distributed_zero_first(LOCAL_RANK):  # avoid auto-downloading dataset multiple times
             self.trainset, self.testset = self.get_dataset()
         self.ema = None
 
@@ -173,9 +174,11 @@ class BaseTrainer:
             world_size = len(self.args.device.split(","))
         elif isinstance(self.args.device, (tuple, list)):  # i.e. device=[0, 1, 2, 3] (multi-GPU from CLI is list)
             world_size = len(self.args.device)
+        elif self.args.device in {"cpu", "mps"}:  # i.e. device='cpu' or 'mps'
+            world_size = 0
         elif torch.cuda.is_available():  # i.e. device=None or device='' or device=number
             world_size = 1  # default to device 0
-        else:  # i.e. device='cpu' or 'mps'
+        else:  # i.e. device=None or device=''
             world_size = 0
 
         # Run subprocess if DDP training, else train normally
@@ -227,7 +230,6 @@ class BaseTrainer:
 
     def _setup_train(self, world_size):
         """Builds dataloaders and optimizer on correct rank process."""
-
         # Model
         self.run_callbacks("on_pretrain_routine_start")
         ckpt = self.setup_model()
@@ -265,9 +267,11 @@ class BaseTrainer:
         if RANK > -1 and world_size > 1:  # DDP
             dist.broadcast(self.amp, src=0)  # broadcast the tensor from rank 0 to all other ranks (returns None)
         self.amp = bool(self.amp)  # as boolean
-        self.scaler = torch.cuda.amp.GradScaler(enabled=self.amp)
+        self.scaler = (
+            torch.amp.GradScaler("cuda", enabled=self.amp) if TORCH_2_4 else torch.cuda.amp.GradScaler(enabled=self.amp)
+        )
         if world_size > 1:
-            self.model = nn.parallel.DistributedDataParallel(self.model, device_ids=[RANK])
+            self.model = nn.parallel.DistributedDataParallel(self.model, device_ids=[RANK], find_unused_parameters=True)
 
         # Check imgsz
         gs = max(int(self.model.stride.max() if hasattr(self.model, "stride") else 32), 32)  # grid size (max stride)
@@ -285,7 +289,7 @@ class BaseTrainer:
 
         # Dataloaders
         batch_size = self.batch_size // max(world_size, 1)
-        self.train_loader = self.get_dataloader(self.trainset, batch_size=batch_size, rank=RANK, mode="train")
+        self.train_loader = self.get_dataloader(self.trainset, batch_size=batch_size, rank=LOCAL_RANK, mode="train")
         if RANK in {-1, 0}:
             # Note: When training DOTA dataset, double batch size could get OOM on images with >2000 objects.
             self.test_loader = self.get_dataloader(
@@ -377,7 +381,7 @@ class BaseTrainer:
                             x["momentum"] = np.interp(ni, xi, [self.args.warmup_momentum, self.args.momentum])
 
                 # Forward
-                with torch.cuda.amp.autocast(self.amp):
+                with autocast(self.amp):
                     batch = self.preprocess_batch(batch)
                     self.loss, self.loss_items = self.model(batch)
                     if RANK != -1:
@@ -405,14 +409,17 @@ class BaseTrainer:
                             break
 
                 # Log
-                mem = f"{torch.cuda.memory_reserved() / 1E9 if torch.cuda.is_available() else 0:.3g}G"  # (GB)
-                loss_len = self.tloss.shape[0] if len(self.tloss.shape) else 1
-                losses = self.tloss if loss_len > 1 else torch.unsqueeze(self.tloss, 0)
-                batch_cls_ind_str = "value" if self.args.task == "regress" else "cls"
                 if RANK in {-1, 0}:
+                    loss_length = self.tloss.shape[0] if len(self.tloss.shape) else 1
                     pbar.set_description(
-                        ("%11s" * 2 + "%11.4g" * (2 + loss_len))
-                        % (f"{epoch + 1}/{self.epochs}", mem, *losses, batch[batch_cls_ind_str].shape[0], batch["img"].shape[-1])
+                        ("%11s" * 2 + "%11.4g" * (2 + loss_length))
+                        % (
+                            f"{epoch + 1}/{self.epochs}",
+                            f"{self._get_memory():.3g}G",  # (GB) GPU memory util
+                            *(self.tloss if loss_length > 1 else torch.unsqueeze(self.tloss, 0)),  # losses
+                            batch["value" if self.args.task == "regress" else "cls"].shape[0],  # batch size, i.e. 8
+                            batch["img"].shape[-1],  # imgsz, i.e 640
+                        )
                     )
                     self.run_callbacks("on_batch_end")
                     if self.args.plots and ni in self.plot_idx:
@@ -450,8 +457,7 @@ class BaseTrainer:
                 self.scheduler.last_epoch = self.epoch  # do not move
                 self.stop |= epoch >= self.epochs  # stop if exceeded epochs
             self.run_callbacks("on_fit_epoch_end")
-            gc.collect()
-            torch.cuda.empty_cache()  # clear GPU memory at end of epoch, may help reduce CUDA out of memory errors
+            self._clear_memory()
 
             # Early Stopping
             if RANK != -1:  # if DDP training
@@ -472,15 +478,38 @@ class BaseTrainer:
             if self.args.plots:
                 self.plot_metrics()
             self.run_callbacks("on_train_end")
-        gc.collect()
-        torch.cuda.empty_cache()
+        self._clear_memory()
         self.run_callbacks("teardown")
+
+    def _get_memory(self):
+        """Get accelerator memory utilization in GB."""
+        if self.device.type == "mps":
+            memory = torch.mps.driver_allocated_memory()
+        elif self.device.type == "cpu":
+            memory = 0
+        else:
+            memory = torch.cuda.memory_reserved()
+        return memory / 1e9
+
+    def _clear_memory(self):
+        """Clear accelerator memory on different platforms."""
+        gc.collect()
+        if self.device.type == "mps":
+            torch.mps.empty_cache()
+        elif self.device.type == "cpu":
+            return
+        else:
+            torch.cuda.empty_cache()
+
+    def read_results_csv(self):
+        """Read results.csv into a dict using pandas."""
+        import pandas as pd  # scope for faster 'import ultralytics'
+
+        return {k.strip(): v for k, v in pd.read_csv(self.csv).to_dict(orient="list").items()}
 
     def save_model(self):
         """Save model training checkpoints with additional metadata."""
         import io
-
-        import pandas as pd  # scope for faster 'import ultralytics'
 
         # Serialize ckpt to a byte buffer once (faster than repeated torch.save() calls)
         buffer = io.BytesIO()
@@ -494,7 +523,7 @@ class BaseTrainer:
                 "optimizer": convert_optimizer_state_dict_to_fp16(deepcopy(self.optimizer.state_dict())),
                 "train_args": vars(self.args),  # save as dict
                 "train_metrics": {**self.metrics, **{"fitness": self.fitness}},
-                "train_results": {k.strip(): v for k, v in pd.read_csv(self.csv).to_dict(orient="list").items()},
+                "train_results": self.read_results_csv(),
                 "date": datetime.now().isoformat(),
                 "version": __version__,
                 "license": "AGPL-3.0 (https://ultralytics.com/license)",
@@ -508,7 +537,7 @@ class BaseTrainer:
         self.last.write_bytes(serialized_ckpt)  # save last.pt
         if self.best_fitness == self.fitness:
             self.best.write_bytes(serialized_ckpt)  # save best.pt
-        if (self.save_period > 0) and (self.epoch > 0) and (self.epoch % self.save_period == 0):
+        if (self.save_period > 0) and (self.epoch % self.save_period == 0):
             (self.wdir / f"epoch{self.epoch}.pt").write_bytes(serialized_ckpt)  # save epoch, i.e. 'epoch3.pt'
 
     def get_dataset(self):
@@ -636,16 +665,20 @@ class BaseTrainer:
         pass
 
     def on_plot(self, name, data=None):
-        """Registers plots (e.g. to be consumed in callbacks)"""
+        """Registers plots (e.g. to be consumed in callbacks)."""
         path = Path(name)
         self.plots[path] = {"data": data, "timestamp": time.time()}
 
     def final_eval(self):
         """Performs final evaluation and validation for object detection YOLO model."""
+        ckpt = {}
         for f in self.last, self.best:
             if f.exists():
-                strip_optimizer(f)  # strip optimizers
-                if f is self.best:
+                if f is self.last:
+                    ckpt = strip_optimizer(f)
+                elif f is self.best:
+                    k = "train_results"  # update best.pt train_metrics from last.pt
+                    strip_optimizer(f, updates={k: ckpt[k]} if k in ckpt else None)
                     LOGGER.info(f"\nValidating {f}...")
                     self.validator.args.plots = self.args.plots
                     self.metrics = self.validator(model=f)
@@ -732,7 +765,6 @@ class BaseTrainer:
         Returns:
             (torch.optim.Optimizer): The constructed optimizer.
         """
-
         g = [], [], []  # optimizer parameter groups
         bn = tuple(v for k, v in nn.__dict__.items() if "Norm" in k)  # normalization layers, i.e. BatchNorm2d()
         if name == "auto":

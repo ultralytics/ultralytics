@@ -96,8 +96,11 @@ class Bboxes:
 
     def mul(self, scale):
         """
+        Multiply bounding box coordinates by scale factor(s).
+
         Args:
-            scale (tuple | list | int): the scale for four coords.
+            scale (int | tuple | list): Scale factor(s) for four coordinates.
+                If int, the same scale is applied to all coordinates.
         """
         if isinstance(scale, Number):
             scale = to_4tuple(scale)
@@ -110,8 +113,11 @@ class Bboxes:
 
     def add(self, offset):
         """
+        Add offset to bounding box coordinates.
+
         Args:
-            offset (tuple | list | int): the offset for four coords.
+            offset (int | tuple | list): Offset(s) for four coordinates.
+                If int, the same offset is applied to all coordinates.
         """
         if isinstance(offset, Number):
             offset = to_4tuple(offset)
@@ -199,7 +205,7 @@ class Instances:
         instances = Instances(
             bboxes=np.array([[10, 10, 30, 30], [20, 20, 40, 40]]),
             segments=[np.array([[5, 5], [10, 10]]), np.array([[15, 15], [20, 20]])],
-            keypoints=np.array([[[5, 5, 1], [10, 10, 1]], [[15, 15, 1], [20, 20, 1]]])
+            keypoints=np.array([[[5, 5, 1], [10, 10, 1]], [[15, 15, 1], [20, 20, 1]]]),
         )
         ```
 
@@ -210,10 +216,14 @@ class Instances:
 
     def __init__(self, bboxes, segments=None, keypoints=None, bbox_format="xywh", normalized=True) -> None:
         """
+        Initialize the object with bounding boxes, segments, and keypoints.
+
         Args:
-            bboxes (ndarray): bboxes with shape [N, 4].
-            segments (list | ndarray): segments.
-            keypoints (ndarray): keypoints(x, y, visible) with shape [N, 17, 3].
+            bboxes (np.ndarray): Bounding boxes, shape [N, 4].
+            segments (list | np.ndarray, optional): Segmentation masks. Defaults to None.
+            keypoints (np.ndarray, optional): Keypoints, shape [N, 17, 3] and format (x, y, visible). Defaults to None.
+            bbox_format (str, optional): Format of bboxes. Defaults to "xywh".
+            normalized (bool, optional): Whether the coordinates are normalized. Defaults to True.
         """
         self._bboxes = Bboxes(bboxes=bboxes, format=bbox_format)
         self.keypoints = keypoints
@@ -230,7 +240,7 @@ class Instances:
         return self._bboxes.areas()
 
     def scale(self, scale_w, scale_h, bbox_only=False):
-        """This might be similar with denormalize func but without normalized sign."""
+        """Similar to denormalize func but without normalized sign."""
         self._bboxes.mul(scale=(scale_w, scale_h, scale_w, scale_h))
         if bbox_only:
             return

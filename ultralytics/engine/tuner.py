@@ -1,7 +1,7 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 """
-This module provides functionalities for hyperparameter tuning of the Ultralytics YOLO models for object detection,
-instance segmentation, image classification, pose estimation, and multi-object tracking.
+Module provides functionalities for hyperparameter tuning of the Ultralytics YOLO models for object detection, instance
+segmentation, image classification, pose estimation, and multi-object tracking.
 
 Hyperparameter tuning is the process of systematically searching for the optimal set of hyperparameters
 that yield the best model performance. This is particularly crucial in deep learning models like YOLO,
@@ -12,8 +12,8 @@ Example:
     ```python
     from ultralytics import YOLO
 
-    model = YOLO('yolov8n.pt')
-    model.tune(data='coco8.yaml', epochs=10, iterations=300, optimizer='AdamW', plots=False, save=False, val=False)
+    model = YOLO("yolov8n.pt")
+    model.tune(data="coco8.yaml", epochs=10, iterations=300, optimizer="AdamW", plots=False, save=False, val=False)
     ```
 """
 
@@ -54,15 +54,15 @@ class Tuner:
         ```python
         from ultralytics import YOLO
 
-        model = YOLO('yolov8n.pt')
-        model.tune(data='coco8.yaml', epochs=10, iterations=300, optimizer='AdamW', plots=False, save=False, val=False)
+        model = YOLO("yolov8n.pt")
+        model.tune(data="coco8.yaml", epochs=10, iterations=300, optimizer="AdamW", plots=False, save=False, val=False)
         ```
 
         Tune with custom search space.
         ```python
         from ultralytics import YOLO
 
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
         model.tune(space={key1: val1, key2: val2})  # custom search space dictionary
         ```
     """
@@ -176,7 +176,6 @@ class Tuner:
            The method utilizes the `self.tune_csv` Path object to read and log hyperparameters and fitness scores.
            Ensure this path is set correctly in the Tuner instance.
         """
-
         t0 = time.time()
         best_save_dir, best_metrics = None, None
         (self.tune_dir / "weights").mkdir(parents=True, exist_ok=True)

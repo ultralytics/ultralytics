@@ -7,7 +7,7 @@ This repository provides a Rust demo for performing YOLOv8 tasks like `Classific
 - Add YOLOv8-OBB demo
 - Update ONNXRuntime to 1.17.x
 
-Newly updated YOLOv8 example code is located in this repository (https://github.com/jamjamjon/usls/tree/main/examples/yolov8)
+Newly updated YOLOv8 example code is located in this repository (https://github.com/jamjamjon/usls/tree/main/examples/yolo)
 
 ## Features
 

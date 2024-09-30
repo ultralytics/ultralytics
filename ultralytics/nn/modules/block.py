@@ -204,9 +204,7 @@ class C2(nn.Module):
     """CSP Bottleneck with 2 convolutions."""
 
     def __init__(self, c1, c2, n=1, shortcut=True, g=1, e=0.5):
-        """Initializes the CSP Bottleneck with 2 convolutions module with arguments ch_in, ch_out, number, shortcut,
-        groups, expansion.
-        """
+        """Initializes a CSP Bottleneck with 2 convolutions and optional shortcut connection."""
         super().__init__()
         self.c = int(c2 * e)  # hidden channels
         self.cv1 = Conv(c1, 2 * self.c, 1, 1)
@@ -224,9 +222,7 @@ class C2f(nn.Module):
     """Faster Implementation of CSP Bottleneck with 2 convolutions."""
 
     def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5):
-        """Initialize CSP bottleneck layer with two convolutions with arguments ch_in, ch_out, number, shortcut, groups,
-        expansion.
-        """
+        """Initializes a CSP bottleneck with 2 convolutions and n Bottleneck blocks for faster processing."""
         super().__init__()
         self.c = int(c2 * e)  # hidden channels
         self.cv1 = Conv(c1, 2 * self.c, 1, 1)
@@ -371,9 +367,7 @@ class Bottleneck(nn.Module):
     """Standard bottleneck."""
 
     def __init__(self, c1, c2, shortcut=True, g=1, k=(3, 3), e=0.5):
-        """Initializes a bottleneck module with given input/output channels, shortcut option, group, kernels, and
-        expansion.
-        """
+        """Initializes a standard bottleneck module with optional shortcut connection and configurable parameters."""
         super().__init__()
         c_ = int(c2 * e)  # hidden channels
         self.cv1 = Conv(c1, c_, k[0], 1)
@@ -381,7 +375,7 @@ class Bottleneck(nn.Module):
         self.add = shortcut and c1 == c2
 
     def forward(self, x):
-        """'forward()' applies the YOLO FPN to input data."""
+        """Applies the YOLO FPN to input data."""
         return x + self.cv2(self.cv1(x)) if self.add else self.cv2(self.cv1(x))
 
 
@@ -485,9 +479,7 @@ class C2fAttn(nn.Module):
     """C2f module with an additional attn module."""
 
     def __init__(self, c1, c2, n=1, ec=128, nh=1, gc=512, shortcut=False, g=1, e=0.5):
-        """Initialize CSP bottleneck layer with two convolutions with arguments ch_in, ch_out, number, shortcut, groups,
-        expansion.
-        """
+        """Initializes C2f module with attention mechanism for enhanced feature extraction and processing."""
         super().__init__()
         self.c = int(c2 * e)  # hidden channels
         self.cv1 = Conv(c1, 2 * self.c, 1, 1)
@@ -557,9 +549,7 @@ class ImagePoolingAttn(nn.Module):
 
 
 class ContrastiveHead(nn.Module):
-    """Contrastive Head for YOLO-World compute the region-text scores according to the similarity between image and text
-    features.
-    """
+    """Implements contrastive learning head for region-text similarity in vision-language models."""
 
     def __init__(self):
         """Initializes ContrastiveHead with specified region-text similarity parameters."""
@@ -605,16 +595,14 @@ class RepBottleneck(Bottleneck):
     """Rep bottleneck."""
 
     def __init__(self, c1, c2, shortcut=True, g=1, k=(3, 3), e=0.5):
-        """Initializes a RepBottleneck module with customizable in/out channels, shortcut option, groups and expansion
-        ratio.
-        """
+        """Initializes a RepBottleneck module with customizable in/out channels, shortcuts, groups and expansion."""
         super().__init__(c1, c2, shortcut, g, k, e)
         c_ = int(c2 * e)  # hidden channels
         self.cv1 = RepConv(c1, c_, k[0], 1)
 
 
 class RepCSP(C3):
-    """Rep CSP Bottleneck with 3 convolutions."""
+    """Repeatable Cross Stage Partial Network (RepCSP) module for efficient feature extraction."""
 
     def __init__(self, c1, c2, n=1, shortcut=True, g=1, e=0.5):
         """Initializes RepCSP layer with given channels, repetitions, shortcut, groups and expansion ratio."""
@@ -720,7 +708,7 @@ class CBLinear(nn.Module):
 
     def __init__(self, c1, c2s, k=1, s=1, p=None, g=1):
         """Initializes the CBLinear module, passing inputs unchanged."""
-        super(CBLinear, self).__init__()
+        super().__init__()
         self.c2s = c2s
         self.conv = nn.Conv2d(c1, sum(c2s), k, s, autopad(k, p), groups=g, bias=True)
 
@@ -734,7 +722,7 @@ class CBFuse(nn.Module):
 
     def __init__(self, idx):
         """Initializes CBFuse module with layer index for selective feature fusion."""
-        super(CBFuse, self).__init__()
+        super().__init__()
         self.idx = idx
 
     def forward(self, xs):
@@ -748,6 +736,7 @@ class RepVGGDW(torch.nn.Module):
     """RepVGGDW is a class that represents a depth wise separable convolutional block in RepVGG architecture."""
 
     def __init__(self, ed) -> None:
+        """Initializes RepVGGDW with depthwise separable convolutional layers for efficient processing."""
         super().__init__()
         self.conv = Conv(ed, ed, 7, 1, 3, g=ed, act=False)
         self.conv1 = Conv(ed, ed, 3, 1, 1, g=ed, act=False)
@@ -890,7 +879,7 @@ class Attention(nn.Module):
         self.head_dim = dim // num_heads
         self.key_dim = int(self.head_dim * attn_ratio)
         self.scale = self.key_dim**-0.5
-        nh_kd = nh_kd = self.key_dim * num_heads
+        nh_kd = self.key_dim * num_heads
         h = dim + nh_kd * 2
         self.qkv = Conv(dim, h, 1, act=False)
         self.proj = Conv(dim, dim, 1, act=False)
@@ -965,6 +954,8 @@ class PSA(nn.Module):
 
 
 class SCDown(nn.Module):
+    """Spatial Channel Downsample (SCDown) module for reducing spatial and channel dimensions."""
+
     def __init__(self, c1, c2, k, s):
         """
         Spatial Channel Downsample (SCDown) module.

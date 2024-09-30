@@ -1,9 +1,11 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
+import shutil
 import threading
 import time
 from http import HTTPStatus
 from pathlib import Path
+from urllib.parse import parse_qs, urlparse
 
 import requests
 
@@ -48,6 +50,8 @@ class HUBTrainingSession:
         self.timers = {}  # holds timers in ultralytics/utils/callbacks/hub.py
         self.model = None
         self.model_url = None
+        self.model_file = None
+        self.train_args = None
 
         # Parse input
         api_key, model_id, self.filename = self._parse_identifier(identifier)
@@ -59,23 +63,24 @@ class HUBTrainingSession:
         # Initialize client
         self.client = HUBClient(credentials)
 
-        # Load models if authenticated
-        if self.client.authenticated:
+        # Load models
+        try:
             if model_id:
                 self.load_model(model_id)  # load existing model
             else:
                 self.model = self.client.model()  # load empty model
+        except Exception:
+            if identifier.startswith(f"{HUB_WEB_ROOT}/models/") and not self.client.authenticated:
+                LOGGER.warning(
+                    f"{PREFIX}WARNING ⚠️ Please log in using 'yolo login API_KEY'. "
+                    "You can find your API Key at: https://hub.ultralytics.com/settings?tab=api+keys."
+                )
 
     @classmethod
     def create_session(cls, identifier, args=None):
         """Class method to create an authenticated HUBTrainingSession or return None."""
         try:
             session = cls(identifier)
-            if not session.client.authenticated:
-                if identifier.startswith(f"{HUB_WEB_ROOT}/models/"):
-                    LOGGER.warning(f"{PREFIX}WARNING ⚠️ Login to Ultralytics HUB with 'yolo hub login API_KEY'.")
-                    exit()
-                return None
             if args and not identifier.startswith(f"{HUB_WEB_ROOT}/models/"):  # not a HUB model URL
                 session.create_model(args)
                 assert session.model.id, "HUB model not loaded correctly"
@@ -91,10 +96,14 @@ class HUBTrainingSession:
             raise ValueError(emojis("❌ The specified HUB model does not exist"))  # TODO: improve error handling
 
         self.model_url = f"{HUB_WEB_ROOT}/models/{self.model.id}"
+        if self.model.is_trained():
+            print(emojis(f"Loading trained HUB model {self.model_url} 🚀"))
+            url = self.model.get_weights_url("best")  # download URL with auth
+            self.model_file = checks.check_file(url, download_dir=Path(SETTINGS["weights_dir"]) / "hub" / self.model.id)
+            return
 
+        # Set training args and start heartbeats for HUB to monitor agent
         self._set_train_args()
-
-        # Start heartbeats for HUB to monitor agent
         self.model.start_heartbeat(self.rate_limits["heartbeat"])
         LOGGER.info(f"{PREFIX}View model at {self.model_url} 🚀")
 
@@ -140,9 +149,8 @@ class HUBTrainingSession:
         Parses the given identifier to determine the type of identifier and extract relevant components.
 
         The method supports different identifier formats:
-            - A HUB URL, which starts with HUB_WEB_ROOT followed by '/models/'
-            - An identifier containing an API key and a model ID separated by an underscore
-            - An identifier that is solely a model ID of a fixed length
+            - A HUB model URL https://hub.ultralytics.com/models/MODEL
+            - A HUB model URL with API Key https://hub.ultralytics.com/models/MODEL?api_key=APIKEY
             - A local filename that ends with '.pt' or '.yaml'
 
         Args:
@@ -154,33 +162,16 @@ class HUBTrainingSession:
         Raises:
             HUBModelError: If the identifier format is not recognized.
         """
-
-        # Initialize variables
         api_key, model_id, filename = None, None, None
-
-        # Check if identifier is a HUB URL
-        if identifier.startswith(f"{HUB_WEB_ROOT}/models/"):
-            # Extract the model_id after the HUB_WEB_ROOT URL
-            model_id = identifier.split(f"{HUB_WEB_ROOT}/models/")[-1]
+        if Path(identifier).suffix in {".pt", ".yaml"}:
+            filename = identifier
+        elif identifier.startswith(f"{HUB_WEB_ROOT}/models/"):
+            parsed_url = urlparse(identifier)
+            model_id = Path(parsed_url.path).stem  # handle possible final backslash robustly
+            query_params = parse_qs(parsed_url.query)  # dictionary, i.e. {"api_key": ["API_KEY_HERE"]}
+            api_key = query_params.get("api_key", [None])[0]
         else:
-            # Split the identifier based on underscores only if it's not a HUB URL
-            parts = identifier.split("_")
-
-            # Check if identifier is in the format of API key and model ID
-            if len(parts) == 2 and len(parts[0]) == 42 and len(parts[1]) == 20:
-                api_key, model_id = parts
-            # Check if identifier is a single model ID
-            elif len(parts) == 1 and len(parts[0]) == 20:
-                model_id = parts[0]
-            # Check if identifier is a local filename
-            elif identifier.endswith(".pt") or identifier.endswith(".yaml"):
-                filename = identifier
-            else:
-                raise HUBModelError(
-                    f"model='{identifier}' could not be parsed. Check format is correct. "
-                    f"Supported formats are Ultralytics HUB URL, apiKey_modelId, modelId, local pt or yaml file."
-                )
-
+            raise HUBModelError(f"model='{identifier} invalid, correct format is {HUB_WEB_ROOT}/models/MODEL_ID")
         return api_key, model_id, filename
 
     def _set_train_args(self):
@@ -195,9 +186,6 @@ class HUBTrainingSession:
             ValueError: If the model is already trained, if required dataset information is missing, or if there are
                 issues with the provided training arguments.
         """
-        if self.model.is_trained():
-            raise ValueError(emojis(f"Model is already trained and uploaded to {self.model_url} 🚀"))
-
         if self.model.is_resumable():
             # Model has saved weights
             self.train_args = {"data": self.model.get_dataset_url(), "resume": True}
@@ -230,6 +218,8 @@ class HUBTrainingSession:
         *args,
         **kwargs,
     ):
+        """Attempts to execute `request_func` with retries, timeout handling, optional threading, and progress."""
+
         def retry_request():
             """Attempts to call `request_func` with retries, timeout, and optional threading."""
             t0 = time.time()  # Record the start time for the timeout
@@ -271,7 +261,7 @@ class HUBTrainingSession:
 
             # if request related to metrics upload and exceed retries
             if response is None and kwargs.get("metrics"):
-                self.metrics_upload_failed_queue.update(kwargs.get("metrics", None))
+                self.metrics_upload_failed_queue.update(kwargs.get("metrics"))
 
             return response
 
@@ -340,23 +330,34 @@ class HUBTrainingSession:
             map (float): Mean average precision of the model.
             final (bool): Indicates if the model is the final model after training.
         """
-        if Path(weights).is_file():
-            progress_total = Path(weights).stat().st_size if final else None  # Only show progress if final
-            self.request_queue(
-                self.model.upload_model,
-                epoch=epoch,
-                weights=weights,
-                is_best=is_best,
-                map=map,
-                final=final,
-                retry=10,
-                timeout=3600,
-                thread=not final,
-                progress_total=progress_total,
-                stream_response=True,
-            )
-        else:
-            LOGGER.warning(f"{PREFIX}WARNING ⚠️ Model upload issue. Missing model {weights}.")
+        weights = Path(weights)
+        if not weights.is_file():
+            last = weights.with_name(f"last{weights.suffix}")
+            if final and last.is_file():
+                LOGGER.warning(
+                    f"{PREFIX} WARNING ⚠️ Model 'best.pt' not found, copying 'last.pt' to 'best.pt' and uploading. "
+                    "This often happens when resuming training in transient environments like Google Colab. "
+                    "For more reliable training, consider using Ultralytics HUB Cloud. "
+                    "Learn more at https://docs.ultralytics.com/hub/cloud-training."
+                )
+                shutil.copy(last, weights)  # copy last.pt to best.pt
+            else:
+                LOGGER.warning(f"{PREFIX} WARNING ⚠️ Model upload issue. Missing model {weights}.")
+                return
+
+        self.request_queue(
+            self.model.upload_model,
+            epoch=epoch,
+            weights=str(weights),
+            is_best=is_best,
+            map=map,
+            final=final,
+            retry=10,
+            timeout=3600,
+            thread=not final,
+            progress_total=weights.stat().st_size if final else None,  # only show progress if final
+            stream_response=True,
+        )
 
     @staticmethod
     def _show_upload_progress(content_length: int, response: requests.Response) -> None:

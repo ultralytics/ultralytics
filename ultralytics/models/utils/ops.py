@@ -32,9 +32,7 @@ class HungarianMatcher(nn.Module):
     """
 
     def __init__(self, cost_gain=None, use_fl=True, with_mask=False, num_sample_points=12544, alpha=0.25, gamma=2.0):
-        """Initializes HungarianMatcher with cost coefficients, Focal Loss, mask prediction, sample points, and alpha
-        gamma factors.
-        """
+        """Initializes a HungarianMatcher module for optimal assignment of predicted and ground truth bounding boxes."""
         super().__init__()
         if cost_gain is None:
             cost_gain = {"class": 1, "bbox": 5, "giou": 2, "mask": 1, "dice": 1}
@@ -70,7 +68,6 @@ class HungarianMatcher(nn.Module):
                 For each batch element, it holds:
                     len(index_i) = len(index_j) = min(num_queries, num_target_boxes)
         """
-
         bs, nq, nc = pred_scores.shape
 
         if sum(gt_groups) == 0:
@@ -133,7 +130,7 @@ class HungarianMatcher(nn.Module):
     #     sample_points = torch.cat([a.repeat(b, 1, 1, 1) for a, b in zip(sample_points, num_gts) if b > 0])
     #     tgt_mask = F.grid_sample(tgt_mask, sample_points, align_corners=False).squeeze([1, 2])
     #
-    #     with torch.cuda.amp.autocast(False):
+    #     with torch.amp.autocast("cuda", enabled=False):
     #         # binary cross entropy cost
     #         pos_cost_mask = F.binary_cross_entropy_with_logits(out_mask, torch.ones_like(out_mask), reduction='none')
     #         neg_cost_mask = F.binary_cross_entropy_with_logits(out_mask, torch.zeros_like(out_mask), reduction='none')
@@ -175,7 +172,6 @@ def get_cdn_group(
             bounding boxes, attention mask and meta information for denoising. If not in training mode or 'num_dn'
             is less than or equal to 0, the function returns None for all elements in the tuple.
     """
-
     if (not training) or num_dn <= 0:
         return None, None, None, None
     gt_groups = batch["gt_groups"]

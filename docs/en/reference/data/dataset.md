@@ -5,31 +5,31 @@ keywords: Ultralytics, YOLODataset, object detection, segmentation, dataset load
 
 # Reference for `ultralytics/data/dataset.py`
 
-!!! Note
+!!! note
 
     This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/dataset.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/dataset.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/data/dataset.py) 🛠️. Thank you 🙏!
 
-<br><br>
+<br>
 
 ## ::: ultralytics.data.dataset.YOLODataset
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.data.dataset.YOLOMultiModalDataset
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.data.dataset.GroundingDataset
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.data.dataset.YOLOConcatDataset
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.data.dataset.SemanticDataset
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.data.dataset.ClassificationDataset
 

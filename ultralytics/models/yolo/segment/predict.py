@@ -17,7 +17,7 @@ class SegmentationPredictor(DetectionPredictor):
         from ultralytics.utils import ASSETS
         from ultralytics.models.yolo.segment import SegmentationPredictor
 
-        args = dict(model='yolov8n-seg.pt', source=ASSETS)
+        args = dict(model="yolov8n-seg.pt", source=ASSETS)
         predictor = SegmentationPredictor(overrides=args)
         predictor.predict_cli()
         ```
@@ -60,9 +60,7 @@ class SegmentationPredictor(DetectionPredictor):
             orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)
 
         results = []
-        for i, pred in enumerate(p):
-            orig_img = orig_imgs[i]
-            img_path = self.batch[0][i]
+        for i, (pred, orig_img, img_path) in enumerate(zip(p, orig_imgs, self.batch[0])):
             if not len(pred):  # save empty boxes
                 masks = None
             elif self.args.retina_masks:

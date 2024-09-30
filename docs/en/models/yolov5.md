@@ -8,9 +8,9 @@ keywords: YOLOv5, YOLOv5u, object detection, Ultralytics, anchor-free, pre-train
 
 ## Overview
 
-YOLOv5u represents an advancement in object detection methodologies. Originating from the foundational architecture of the [YOLOv5](https://github.com/ultralytics/yolov5) model developed by Ultralytics, YOLOv5u integrates the anchor-free, objectness-free split head, a feature previously introduced in the [YOLOv8](yolov8.md) models. This adaptation refines the model's architecture, leading to an improved accuracy-speed tradeoff in object detection tasks. Given the empirical results and its derived features, YOLOv5u provides an efficient alternative for those seeking robust solutions in both research and practical applications.
+YOLOv5u represents an advancement in [object detection](https://www.ultralytics.com/glossary/object-detection) methodologies. Originating from the foundational architecture of the [YOLOv5](https://github.com/ultralytics/yolov5) model developed by Ultralytics, YOLOv5u integrates the anchor-free, objectness-free split head, a feature previously introduced in the [YOLOv8](yolov8.md) models. This adaptation refines the model's architecture, leading to an improved accuracy-speed tradeoff in object detection tasks. Given the empirical results and its derived features, YOLOv5u provides an efficient alternative for those seeking robust solutions in both research and practical applications.
 
-![Ultralytics YOLOv5](https://raw.githubusercontent.com/ultralytics/assets/main/yolov5/v70/splash.png)
+![Ultralytics YOLOv5](https://github.com/ultralytics/docs/releases/download/0/ultralytics-yolov5-splash.avif)
 
 ## Key Features
 
@@ -32,7 +32,7 @@ This table provides a detailed overview of the YOLOv5u model variants, highlight
 
 ## Performance Metrics
 
-!!! Performance
+!!! performance
 
     === "Detection"
 
@@ -56,11 +56,11 @@ This table provides a detailed overview of the YOLOv5u model variants, highlight
 
 This example provides simple YOLOv5 training and inference examples. For full documentation on these and other [modes](../modes/index.md) see the [Predict](../modes/predict.md), [Train](../modes/train.md), [Val](../modes/val.md) and [Export](../modes/export.md) docs pages.
 
-!!! Example
+!!! example
 
     === "Python"
 
-        PyTorch pretrained `*.pt` models as well as configuration `*.yaml` files can be passed to the `YOLO()` class to create a model instance in python:
+        [PyTorch](https://www.ultralytics.com/glossary/pytorch) pretrained `*.pt` models as well as configuration `*.yaml` files can be passed to the `YOLO()` class to create a model instance in python:
 
         ```python
         from ultralytics import YOLO
@@ -94,7 +94,7 @@ This example provides simple YOLOv5 training and inference examples. For full do
 
 If you use YOLOv5 or YOLOv5u in your research, please cite the Ultralytics YOLOv5 repository as follows:
 
-!!! Quote ""
+!!! quote ""
 
     === "BibTeX"
 
@@ -111,4 +111,52 @@ If you use YOLOv5 or YOLOv5u in your research, please cite the Ultralytics YOLOv
         }
         ```
 
-Please note that YOLOv5 models are provided under [AGPL-3.0](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) and [Enterprise](https://ultralytics.com/license) licenses.
+Please note that YOLOv5 models are provided under [AGPL-3.0](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) and [Enterprise](https://www.ultralytics.com/license) licenses.
+
+## FAQ
+
+### What is Ultralytics YOLOv5u and how does it differ from YOLOv5?
+
+Ultralytics YOLOv5u is an advanced version of YOLOv5, integrating the anchor-free, objectness-free split head that enhances the [accuracy](https://www.ultralytics.com/glossary/accuracy)-speed tradeoff for real-time object detection tasks. Unlike the traditional YOLOv5, YOLOv5u adopts an anchor-free detection mechanism, making it more flexible and adaptive in diverse scenarios. For more detailed information on its features, you can refer to the [YOLOv5 Overview](#overview).
+
+### How does the anchor-free Ultralytics head improve object detection performance in YOLOv5u?
+
+The anchor-free Ultralytics head in YOLOv5u improves object detection performance by eliminating the dependency on predefined anchor boxes. This results in a more flexible and adaptive detection mechanism that can handle various object sizes and shapes with greater efficiency. This enhancement directly contributes to a balanced tradeoff between accuracy and speed, making YOLOv5u suitable for real-time applications. Learn more about its architecture in the [Key Features](#key-features) section.
+
+### Can I use pre-trained YOLOv5u models for different tasks and modes?
+
+Yes, you can use pre-trained YOLOv5u models for various tasks such as [Object Detection](../tasks/detect.md). These models support multiple modes, including [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md). This flexibility allows users to leverage the capabilities of YOLOv5u models across different operational requirements. For a detailed overview, check the [Supported Tasks and Modes](#supported-tasks-and-modes) section.
+
+### How do the performance metrics of YOLOv5u models compare on different platforms?
+
+The performance metrics of YOLOv5u models vary depending on the platform and hardware used. For example, the YOLOv5nu model achieves a 34.3 mAP on COCO dataset with a speed of 73.6 ms on CPU (ONNX) and 1.06 ms on A100 TensorRT. Detailed performance metrics for different YOLOv5u models can be found in the [Performance Metrics](#performance-metrics) section, which provides a comprehensive comparison across various devices.
+
+### How can I train a YOLOv5u model using the Ultralytics Python API?
+
+You can train a YOLOv5u model by loading a pre-trained model and running the training command with your dataset. Here's a quick example:
+
+!!! example
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load a COCO-pretrained YOLOv5n model
+        model = YOLO("yolov5n.pt")
+
+        # Display model information (optional)
+        model.info()
+
+        # Train the model on the COCO8 example dataset for 100 epochs
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Load a COCO-pretrained YOLOv5n model and train it on the COCO8 example dataset for 100 epochs
+        yolo train model=yolov5n.pt data=coco8.yaml epochs=100 imgsz=640
+        ```
+
+For more detailed instructions, visit the [Usage Examples](#usage-examples) section.

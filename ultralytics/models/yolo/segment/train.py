@@ -16,7 +16,7 @@ class SegmentationTrainer(yolo.detect.DetectionTrainer):
         ```python
         from ultralytics.models.yolo.segment import SegmentationTrainer
 
-        args = dict(model='yolov8n-seg.pt', data='coco8-seg.yaml', epochs=3)
+        args = dict(model="yolov8n-seg.pt", data="coco8-seg.yaml", epochs=3)
         trainer = SegmentationTrainer(overrides=args)
         trainer.train()
         ```

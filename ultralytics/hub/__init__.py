@@ -38,7 +38,7 @@ def login(api_key: str = None, save=True) -> bool:
     Returns:
         (bool): True if authentication is successful, False otherwise.
     """
-    checks.check_requirements("hub-sdk>=0.0.8")
+    checks.check_requirements("hub-sdk>=0.0.12")
     from hub_sdk import HUBClient
 
     api_key_url = f"{HUB_WEB_ROOT}/settings?tab=api+keys"  # set the redirect URL
@@ -79,7 +79,6 @@ def logout():
         ```
     """
     SETTINGS["api_key"] = ""
-    SETTINGS.save()
     LOGGER.info(f"{PREFIX}logged out ✅. To log in again, use 'yolo hub login'.")
 
 
@@ -136,11 +135,11 @@ def check_dataset(path: str, task: str) -> None:
         ```python
         from ultralytics.hub import check_dataset
 
-        check_dataset('path/to/coco8.zip', task='detect')  # detect dataset
-        check_dataset('path/to/coco8-seg.zip', task='segment')  # segment dataset
-        check_dataset('path/to/coco8-pose.zip', task='pose')  # pose dataset
-        check_dataset('path/to/dota8.zip', task='obb')  # OBB dataset
-        check_dataset('path/to/imagenet10.zip', task='classify')  # classification dataset
+        check_dataset("path/to/coco8.zip", task="detect")  # detect dataset
+        check_dataset("path/to/coco8-seg.zip", task="segment")  # segment dataset
+        check_dataset("path/to/coco8-pose.zip", task="pose")  # pose dataset
+        check_dataset("path/to/dota8.zip", task="obb")  # OBB dataset
+        check_dataset("path/to/imagenet10.zip", task="classify")  # classification dataset
         ```
     """
     HUBDatasetStats(path=path, task=task).get_json()

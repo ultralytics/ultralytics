@@ -58,7 +58,7 @@ Explore the Ultralytics Docs, a comprehensive resource designed to help you unde
 - **Predict** new images and videos with YOLO &nbsp; [:octicons-image-16: Predict on Images](modes/predict.md){ .md-button }
 - **Train** a new YOLO model on your own custom dataset &nbsp; [:fontawesome-solid-brain: Train a Model](modes/train.md){ .md-button }
 - **Tasks** YOLO tasks like segment, classify, pose and track &nbsp; [:material-magnify-expand: Explore Tasks](tasks/index.md){ .md-button }
-- **[YOLO11](models/yolo11.md) NEW 🚀**: Ultralytics' latest SOTA models &nbsp; [:material-magnify-expand: Explore a Dataset](models/yolo11.md){ .md-button }
+- **[YOLO11](models/yolo11.md) NEW 🚀**: Ultralytics' latest SOTA models &nbsp; [:material-magnify-expand: Explore new YOLO11 models](models/yolo11.md){ .md-button }
 
 <p align="center">
   <br>

@@ -167,3 +167,60 @@ If you use YOLO11 or any other software from this repository in your work, pleas
         ```
 
 Please note that the DOI is pending and will be added to the citation once it is available. YOLO11 models are provided under [AGPL-3.0](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) and [Enterprise](https://www.ultralytics.com/license) licenses.
+
+## FAQ
+
+### What are the key improvements in Ultralytics YOLO11 compared to previous versions?
+
+Ultralytics YOLO11 introduces several significant advancements over its predecessors. Key improvements include:
+- **Enhanced Feature Extraction:** YOLO11 employs an improved backbone and neck architecture, enhancing [feature extraction](https://www.ultralytics.com/glossary/feature-extraction) capabilities for more precise object detection.
+- **Optimized Efficiency and Speed:** Refined architectural designs and optimized training pipelines deliver faster processing speeds while maintaining a balance between accuracy and performance.
+- **Greater Accuracy with Fewer Parameters:** YOLO11m achieves higher mean Average Precision (mAP) on the COCO dataset with 22% fewer parameters than YOLOv8m, making it computationally efficient without compromising accuracy.
+- **Adaptability Across Environments:** YOLO11 can be deployed across various environments, including edge devices, cloud platforms, and systems supporting NVIDIA GPUs.
+- **Broad Range of Supported Tasks:** YOLO11 supports diverse computer vision tasks such as object detection, instance segmentation, image classification, pose estimation, and oriented object detection (OBB).
+
+### How do I train a YOLO11 model for object detection?
+
+Training a YOLO11 model for object detection can be done using Python or CLI commands. Below are examples for both methods:
+
+!!! Example
+
+    === "Python"
+    
+        ```python
+        from ultralytics import YOLO
+
+        # Load a COCO-pretrained YOLO11n model
+        model = YOLO("yolo11n.pt")
+
+        # Train the model on the COCO8 example dataset for 100 epochs
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
+        ```
+
+    === "CLI"
+    
+        ```bash
+        # Load a COCO-pretrained YOLO11n model and train it on the COCO8 example dataset for 100 epochs
+        yolo train model=yolo11n.pt data=coco8.yaml epochs=100 imgsz=640
+        ```
+
+For more detailed instructions, refer to the [Train](../modes/train.md) documentation.
+
+### What tasks can YOLO11 models perform?
+
+YOLO11 models are versatile and support a wide range of computer vision tasks, including:
+- **Object Detection:** Identifying and locating objects within an image.
+- **Instance Segmentation:** Detecting objects and delineating their boundaries.
+- **Image Classification:** Categorizing images into predefined classes.
+- **Pose Estimation:** Detecting and tracking keypoints on human bodies.
+- **Oriented Object Detection (OBB):** Detecting objects with rotation for higher precision.
+
+For more information on each task, see the [Detection](../tasks/detect.md), [Instance Segmentation](../tasks/segment.md), [Classification](../tasks/classify.md), [Pose Estimation](../tasks/pose.md), and [Oriented Detection](../tasks/obb.md) documentation.
+
+### How does YOLO11 achieve greater accuracy with fewer parameters?
+
+YOLO11 achieves greater accuracy with fewer parameters through advancements in model design and optimization techniques. The improved architecture allows for efficient feature extraction and processing, resulting in higher mean Average Precision (mAP) on datasets like COCO while using 22% fewer parameters than YOLOv8m. This makes YOLO11 computationally efficient without compromising on accuracy, making it suitable for deployment on resource-constrained devices.
+
+### Can YOLO11 be deployed on edge devices?
+
+Yes, YOLO11 is designed for adaptability across various environments, including edge devices. Its optimized architecture and efficient processing capabilities make it suitable for deployment on edge devices, cloud platforms, and systems supporting NVIDIA GPUs. This flexibility ensures that YOLO11 can be used in diverse applications, from real-time detection on mobile devices to complex segmentation tasks in cloud environments. For more details on deployment options, refer to the [Export](../modes/export.md) documentation.

@@ -529,6 +529,7 @@ class Annotator:
             check_requirements("ipython")
             try:
                 from IPython.display import display
+
                 display(im)
             except ImportError as e:
                 LOGGER.warning(f"Unable to display image in Jupyter notebooks: {e}")

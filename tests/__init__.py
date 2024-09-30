@@ -3,8 +3,8 @@
 from ultralytics.utils import ASSETS, ROOT, WEIGHTS_DIR, checks
 
 # Constants used in tests
-MODEL = WEIGHTS_DIR / "path with spaces" / "yolov8n.pt"  # test spaces in path
-CFG = "yolov8n.yaml"
+MODEL = WEIGHTS_DIR / "path with spaces" / "yolo11n.pt"  # test spaces in path
+CFG = "yolo11n.yaml"
 SOURCE = ASSETS / "bus.jpg"
 SOURCES_LIST = [ASSETS / "bus.jpg", ASSETS, ASSETS / "*", ASSETS / "**/*.jpg"]
 TMP = (ROOT / "../tests/tmp").resolve()  # temp directory for test files

@@ -13,8 +13,8 @@ import torch
 from PIL import Image, ImageDraw, ImageFont
 from PIL import __version__ as pil_version
 
-from ultralytics.utils import LOGGER, TryExcept, ops, plt_settings, threaded
-from ultralytics.utils.checks import check_font, check_version, is_ascii
+from ultralytics.utils import LOGGER, TryExcept, ops, plt_settings, threaded, IS_JUPYTER
+from ultralytics.utils.checks import check_font, check_version, is_ascii, check_requirements
 from ultralytics.utils.files import increment_path
 
 
@@ -524,7 +524,19 @@ class Annotator:
 
     def show(self, title=None):
         """Show the annotated image."""
-        Image.fromarray(np.asarray(self.im)[..., ::-1]).show(title)
+        im = Image.fromarray(np.asarray(self.im)[..., ::-1])  # Convert numpy array to PIL Image with RGB to BGR
+        if IS_JUPYTER:
+            check_requirements("ipython")
+            try:
+                from IPython.display import display
+
+                # Convert numpy array to PIL Image and display
+                display(im, title=title)  # RGB to BGR for correct display
+            except ImportError as e:
+                LOGGER.warning(f"Unable to display image in Jupyter: {e}")
+        else:
+            # Convert numpy array to PIL Image and show
+            im.show(title=title)
 
     def save(self, filename="image.jpg"):
         """Save the annotated image to 'filename'."""

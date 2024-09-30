@@ -124,7 +124,7 @@ YOLO11 [检测](https://docs.ultralytics.com/tasks/detect/)、[分割](https://d
 
 请参阅 [检测文档](https://docs.ultralytics.com/tasks/detect/) 以获取使用这些在 [COCO](https://docs.ultralytics.com/datasets/detect/coco/) 数据集上训练的模型的示例，其中包含 80 个预训练类别。
 
-| 模型                                                                                 | 尺寸<br><sup>(像素) | mAP<sup>val<br>50-95 | 速度<br><sup>CPU ONNX<br>(ms) | 速度<br><sup>Tesla T4 TensorRT<br>(ms) | 参数<br><sup>(M) | FLOPs<br><sup>(B) |
+| 模型                                                                                 | 尺寸<br><sup>(像素) | mAP<sup>val<br>50-95 | 速度<br><sup>CPU ONNX<br>(ms) | 速度<br><sup>T4 TensorRT10<br>(ms) | 参数<br><sup>(M) | FLOPs<br><sup>(B) |
 | ------------------------------------------------------------------------------------ | ------------------- | -------------------- | ----------------------------- | -------------------------------------- | ---------------- | ----------------- |
 | [YOLO11n](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11n.pt) | 640                 | 39.5                 | 56.12 ± 0.82 ms               | 1.55 ± 0.01 ms                         | 2.6              | 6.5               |
 | [YOLO11s](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11s.pt) | 640                 | 47.0                 | 90.01 ± 1.17 ms               | 2.46 ± 0.00 ms                         | 9.4              | 21.5              |
@@ -141,7 +141,7 @@ YOLO11 [检测](https://docs.ultralytics.com/tasks/detect/)、[分割](https://d
 
 请参阅 [分割文档](https://docs.ultralytics.com/tasks/segment/) 以获取使用这些在 [COCO-Seg](https://docs.ultralytics.com/datasets/segment/coco/) 数据集上训练的模型的示例，其中包含 80 个预训练类别。
 
-| 模型                                                                                         | 尺寸<br><sup>(像素) | mAP<sup>box<br>50-95 | mAP<sup>mask<br>50-95 | 速度<br><sup>CPU ONNX<br>(ms) | 速度<br><sup>Tesla T4 TensorRT<br>(ms) | 参数<br><sup>(M) | FLOPs<br><sup>(B) |
+| 模型                                                                                         | 尺寸<br><sup>(像素) | mAP<sup>box<br>50-95 | mAP<sup>mask<br>50-95 | 速度<br><sup>CPU ONNX<br>(ms) | 速度<br><sup>T4 TensorRT10<br>(ms) | 参数<br><sup>(M) | FLOPs<br><sup>(B) |
 | -------------------------------------------------------------------------------------------- | ------------------- | -------------------- | --------------------- | ----------------------------- | -------------------------------------- | ---------------- | ----------------- |
 | [YOLO11n-seg](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11n-seg.pt) | 640                 | 38.9                 | 32.0                  | 65.90 ± 1.14 ms               | 1.84 ± 0.00 ms                         | 2.9              | 10.4              |
 | [YOLO11s-seg](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11s-seg.pt) | 640                 | 46.6                 | 37.8                  | 117.56 ± 4.89 ms              | 2.94 ± 0.01 ms                         | 10.1             | 35.5              |
@@ -158,7 +158,7 @@ YOLO11 [检测](https://docs.ultralytics.com/tasks/detect/)、[分割](https://d
 
 请参阅 [姿态文档](https://docs.ultralytics.com/tasks/pose/) 以获取使用这些在 [COCO-Pose](https://docs.ultralytics.com/datasets/pose/coco/) 数据集上训练的模型的示例，其中包含 1 个预训练类别（人）。
 
-| 模型                                                                                           | 尺寸<br><sup>(像素) | mAP<sup>pose<br>50-95 | mAP<sup>pose<br>50 | 速度<br><sup>CPU ONNX<br>(ms) | 速度<br><sup>Tesla T4 TensorRT<br>(ms) | 参数<br><sup>(M) | FLOPs<br><sup>(B) |
+| 模型                                                                                           | 尺寸<br><sup>(像素) | mAP<sup>pose<br>50-95 | mAP<sup>pose<br>50 | 速度<br><sup>CPU ONNX<br>(ms) | 速度<br><sup>T4 TensorRT10<br>(ms) | 参数<br><sup>(M) | FLOPs<br><sup>(B) |
 | ---------------------------------------------------------------------------------------------- | ------------------- | --------------------- | ------------------ | ----------------------------- | -------------------------------------- | ---------------- | ----------------- |
 | [YOLO11n-pose](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11n-pose.pt) | 640                 | 50.0                  | 81.0               | 52.40 ± 0.51 ms               | 1.72 ± 0.01 ms                         | 2.9              | 7.6               |
 | [YOLO11s-pose](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11s-pose.pt) | 640                 | 58.9                  | 86.3               | 90.54 ± 0.59 ms               | 2.57 ± 0.00 ms                         | 9.9              | 23.2              |
@@ -175,7 +175,7 @@ YOLO11 [检测](https://docs.ultralytics.com/tasks/detect/)、[分割](https://d
 
 请参阅 [OBB 文档](https://docs.ultralytics.com/tasks/obb/) 以获取使用这些在 [DOTAv1](https://docs.ultralytics.com/datasets/obb/dota-v2/#dota-v10/) 数据集上训练的模型的示例，其中包含 15 个预训练类别。
 
-| 模型                                                                                         | 尺寸<br><sup>(像素) | mAP<sup>test<br>50 | 速度<br><sup>CPU ONNX<br>(ms) | 速度<br><sup>Tesla T4 TensorRT<br>(ms) | 参数<br><sup>(M) | FLOPs<br><sup>(B) |
+| 模型                                                                                         | 尺寸<br><sup>(像素) | mAP<sup>test<br>50 | 速度<br><sup>CPU ONNX<br>(ms) | 速度<br><sup>T4 TensorRT10<br>(ms) | 参数<br><sup>(M) | FLOPs<br><sup>(B) |
 | -------------------------------------------------------------------------------------------- | ------------------- | ------------------ | ----------------------------- | -------------------------------------- | ---------------- | ----------------- |
 | [YOLO11n-obb](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11n-obb.pt) | 1024                | 78.4               | 117.56 ± 0.80 ms              | 4.43 ± 0.01 ms                         | 2.7              | 17.2              |
 | [YOLO11s-obb](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11s-obb.pt) | 1024                | 79.5               | 219.41 ± 4.00 ms              | 5.13 ± 0.02 ms                         | 9.7              | 57.5              |
@@ -192,7 +192,7 @@ YOLO11 [检测](https://docs.ultralytics.com/tasks/detect/)、[分割](https://d
 
 请参阅 [分类文档](https://docs.ultralytics.com/tasks/classify/) 以获取使用这些在 [ImageNet](https://docs.ultralytics.com/datasets/classify/imagenet/) 数据集上训练的模型的示例，其中包含 1000 个预训练类别。
 
-| 模型                                                                                         | 尺寸<br><sup>(像素) | acc<br><sup>top1 | acc<br><sup>top5 | 速度<br><sup>CPU ONNX<br>(ms) | 速度<br><sup>Tesla T4 TensorRT<br>(ms) | 参数<br><sup>(M) | FLOPs<br><sup>(B) at 640 |
+| 模型                                                                                         | 尺寸<br><sup>(像素) | acc<br><sup>top1 | acc<br><sup>top5 | 速度<br><sup>CPU ONNX<br>(ms) | 速度<br><sup>T4 TensorRT10<br>(ms) | 参数<br><sup>(M) | FLOPs<br><sup>(B) at 640 |
 | -------------------------------------------------------------------------------------------- | ------------------- | ---------------- | ---------------- | ----------------------------- | -------------------------------------- | ---------------- | ------------------------ |
 | [YOLO11n-cls](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11n-cls.pt) | 224                 | 70.0             | 89.4             | 5.03 ± 0.32 ms                | 1.10 ± 0.01 ms                         | 1.6              | 3.3                      |
 | [YOLO11s-cls](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11s-cls.pt) | 224                 | 75.4             | 92.7             | 7.89 ± 0.18 ms                | 1.34 ± 0.01 ms                         | 5.5              | 12.1                     |

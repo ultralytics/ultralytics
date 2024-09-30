@@ -41,7 +41,7 @@ head:
   - [-1, 2, C3k2, [128, False]] # 19 (P2/4-xsmall)
 
   - [-1, 1, Conv, [128, 3, 2]]
-  - [[-1, 16], 1, Concat, [1]] # cat head P4
+  - [[-1, 16], 1, Concat, [1]] # cat head P3
   - [-1, 2, C3k2, [256, False]] # 22 (P3/8-small)
 
   - [-1, 1, Conv, [256, 3, 2]]
@@ -52,4 +52,4 @@ head:
   - [[-1, 10], 1, Concat, [1]] # cat head P5
   - [-1, 2, C3k2, [1024, True]] # 28 (P5/32-large)
 
-  - [[19, 22, 25, 28], 1, Detect, [nc]] # Detect(P3, P4, P5)
+  - [[19, 22, 25, 28], 1, Detect, [nc]] # Detect(P2, P3, P4, P5)

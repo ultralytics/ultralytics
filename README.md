@@ -20,11 +20,11 @@
 </div>
 <br>
 
-[Ultralytics](https://www.ultralytics.com/) [YOLOv8](https://github.com/ultralytics/ultralytics) is a cutting-edge, state-of-the-art (SOTA) model that builds upon the success of previous YOLO versions and introduces new features and improvements to further boost performance and flexibility. YOLOv8 is designed to be fast, accurate, and easy to use, making it an excellent choice for a wide range of object detection and tracking, instance segmentation, image classification and pose estimation tasks.
+[Ultralytics](https://www.ultralytics.com/) [YOLOv8](https://github.com/ultralytics/ultralytics) ультрасовременная модель (SOTA), которая развивает успех предыдущих версий YOLO и содержит новые функции и усовершенствования для дальнейшего повышения производительности и гибкости. YOLOv8 разработан таким образом, чтобы быть быстрым, точным и простым в использовании, что делает его отличным выбором для широкого спектра задач обнаружения и отслеживания объектов, сегментации экземпляров, классификации изображений и оценки позиционирования.
 
-We hope that the resources here will help you get the most out of YOLOv8. Please browse the YOLOv8 <a href="https://docs.ultralytics.com/">Docs</a> for details, raise an issue on <a href="https://github.com/ultralytics/ultralytics/issues/new/choose">GitHub</a> for support, questions, or discussions, become a member of the Ultralytics <a href="https://ultralytics.com/discord">Discord</a>, <a href="https://reddit.com/r/ultralytics">Reddit</a> and <a href="https://community.ultralytics.com">Forums</a>!
+Мы надеемся, что представленные здесь ресурсы помогут вам получить максимальную отдачу от YOLOv8. Пожалуйста, просмотрите YOLOv8 <a href="https://docs.ultralytics.com/">Docs</a> для получения подробной информации, задайте вопрос на <a href="https://github.com/ultralytics/ultralytics/issues/new/choose">GitHub</a> о поддержке, вопросах или обсуждениях, станьте участником Ultralytics <a href="https://ultralytics.com/discord">Discord</a>, <a href="https://reddit.com/r/ultralytics">Reddit</a> и <a href="https://community.ultralytics.com">форумах</a>!
 
-To request an Enterprise License please complete the form at [Ultralytics Licensing](https://www.ultralytics.com/license).
+Чтобы запросить корпоративную лицензию, пожалуйста, заполните форму по адресу [Ultralytics Licensing](https://www.ultralytics.com/license).
 
 <img width="100%" src="https://raw.githubusercontent.com/ultralytics/assets/main/yolov8/yolo-comparison-plots.png" alt="YOLOv8 performance plots"></a>
 
@@ -45,14 +45,14 @@ To request an Enterprise License please complete the form at [Ultralytics Licens
 </div>
 </div>
 
-## <div align="center">Documentation</div>
+## <div align="center">Документация</div>
 
-See below for a quickstart installation and usage example, and see the [YOLOv8 Docs](https://docs.ultralytics.com/) for full documentation on training, validation, prediction and deployment.
+Ниже приведен пример быстрой установки и использования, а полную документацию по обучению, проверке, прогнозированию и развертыванию смотрите в [YOLOv8 Docs](https://docs.ultralytics.com/).
 
 <details open>
-<summary>Install</summary>
+<summary>Установка</summary>
 
-Pip install the ultralytics package including all [requirements](https://github.com/ultralytics/ultralytics/blob/main/pyproject.toml) in a [**Python>=3.8**](https://www.python.org/) environment with [**PyTorch>=1.8**](https://pytorch.org/get-started/locally/).
+Pip устанавливает пакет ultralytics, включающий все [requirements](https://github.com/ultralytics/ultralytics/blob/main/pyproject.toml) в [**Python>=3.8**](https://www.python.org/) окружении с [**PyTorch>=1.8**](https://pytorch.org/get-started/locally/).
 
 [![PyPI - Version](https://img.shields.io/pypi/v/ultralytics?logo=pypi&logoColor=white)](https://pypi.org/project/ultralytics/) [![Downloads](https://static.pepy.tech/badge/ultralytics)](https://pepy.tech/project/ultralytics) [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/ultralytics?logo=python&logoColor=gold)](https://pypi.org/project/ultralytics/)
 
@@ -60,7 +60,7 @@ Pip install the ultralytics package including all [requirements](https://github.
 pip install ultralytics
 ```
 
-For alternative installation methods including [Conda](https://anaconda.org/conda-forge/ultralytics), [Docker](https://hub.docker.com/r/ultralytics/ultralytics), and Git, please refer to the [Quickstart Guide](https://docs.ultralytics.com/quickstart/).
+Для альтернативных методов установки, включая [Conda](https://anaconda.org/conda-forge/ultralytics), [Docker](https://hub.docker.com/r/ultralytics/ultralytics), и Git, пожалуйста, обратитесь к [Quickstart Guide](https://docs.ultralytics.com/quickstart/).
 
 [![Conda Version](https://img.shields.io/conda/vn/conda-forge/ultralytics?logo=condaforge)](https://anaconda.org/conda-forge/ultralytics) [![Docker Image Version](https://img.shields.io/docker/v/ultralytics/ultralytics?sort=semver&logo=docker)](https://hub.docker.com/r/ultralytics/ultralytics)
 

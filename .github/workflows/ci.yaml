@@ -190,11 +190,13 @@ jobs:
           pip install -e ".[export]" $torch $slow pytest-cov pytest-xdist --extra-index-url https://download.pytorch.org/whl/cpu
       - name: Check environment
         run: |
+          source .venv/bin/activate
           yolo checks
           pip list
       - name: Pytest tests
         shell: bash # for Windows compatibility
         run: |
+          source .venv/bin/activate
           slow=""
           if [[ "${{ github.event_name }}" =~ ^(schedule|workflow_dispatch)$ ]]; then
               slow="--slow"

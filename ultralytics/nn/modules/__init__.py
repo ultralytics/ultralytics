@@ -70,7 +70,9 @@ from .block import (
     C2f_SimAM, C2f_CoT, C2f_SK, C2f_Double,
     C2f_Dual,
     DySample,
-    PConv
+    PConv,
+    ASFF_2,
+    ASFF_3
 )
 from .conv import (
     CBAM,

@@ -111,7 +111,7 @@ We would also like to acknowledge the creator of this dataset, [Rion Dsilva](htt
 
 ### How do I train a YOLOv8 model on the Hand Keypoints dataset?
 
-To train a YOLOv8 model on the Hand Keypoints dataset, you can use either Python or the command line interface (CLI). Here’s an example for training a YOLOv8n-pose model for 100 epochs with an image size of 640:
+To train a YOLOv8 model on the Hand Keypoints dataset, you can use either Python or the command line interface (CLI). Here's an example for training a YOLOv8n-pose model for 100 epochs with an image size of 640:
 
 !!! Example
 

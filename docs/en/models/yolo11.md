@@ -20,7 +20,7 @@ YOLO11 is the latest iteration in the [Ultralytics](https://www.ultralytics.com)
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Ultralytics YOLO11 Announcement at [YOLO Vision 2024](https://www.ultralytics.com/events/yolovision)
+  <strong>Watch:</strong> Ultralytics YOLO11 Announcement at <a href="https://www.ultralytics.com/events/yolovision">YOLO Vision 2024</a>
 </p>
 
 ## Key Features

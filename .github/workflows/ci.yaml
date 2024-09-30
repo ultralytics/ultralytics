@@ -254,17 +254,17 @@ jobs:
       - name: Pytest tests
         run: pytest --slow tests/
       - name: Benchmark ClassificationModel
-        run: python -m ultralytics.cfg.__init__ benchmark model='yolo11n-cls.pt' imgsz=160 verbose=0.166
+        run: python -m ultralytics.cfg.__init__ benchmark model='yolo11n-cls.pt' imgsz=160 verbose=0.249
       - name: Benchmark YOLOWorld DetectionModel
-        run: python -m ultralytics.cfg.__init__ benchmark model='yolo11s-worldv2.pt' imgsz=160 verbose=0.318
+        run: python -m ultralytics.cfg.__init__ benchmark model='yolo11s-worldv2.pt' imgsz=160 verbose=0.337
       - name: Benchmark SegmentationModel
-        run: python -m ultralytics.cfg.__init__ benchmark model='yolo11n-seg.pt' imgsz=160 verbose=0.267
+        run: python -m ultralytics.cfg.__init__ benchmark model='yolo11n-seg.pt' imgsz=160 verbose=0.195
       - name: Benchmark PoseModel
-        run: python -m ultralytics.cfg.__init__ benchmark model='yolo11n-pose.pt' imgsz=160 verbose=0.179
+        run: python -m ultralytics.cfg.__init__ benchmark model='yolo11n-pose.pt' imgsz=160 verbose=0.197
       - name: Benchmark OBBModel
-        run: python -m ultralytics.cfg.__init__ benchmark model='yolo11n-obb.pt' imgsz=160 verbose=0.472
+        run: python -m ultralytics.cfg.__init__ benchmark model='yolo11n-obb.pt' imgsz=160 verbose=0.597
       - name: Benchmark YOLOv10Model
-        run: python -m ultralytics.cfg.__init__ benchmark model='yolov10n.pt' imgsz=160 verbose=0.178
+        run: python -m ultralytics.cfg.__init__ benchmark model='yolov10n.pt' imgsz=160 verbose=0.205
       - name: Benchmark Summary
         run: |
           cat benchmarks.log

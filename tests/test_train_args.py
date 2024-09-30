@@ -1,8 +1,9 @@
 import numpy as np
+import itertools
 
-step_size = 10
+step_size = 2
 
-augmenentation = {
+augment_params = {
   "hsv_h": {"from-limit": 0.0, "to-limit": 1.0, "function": np.linspace},
   "hsv_s": {"from-limit": 0.0, "to-limit": 1.0, "function": np.linspace},
   "hsv_v": {"from-limit": 0.0, "to-limit": 1.0, "function": np.linspace},
@@ -22,3 +23,31 @@ augmenentation = {
   "crop_fraction": {"from-limit": 0.1, "to-limit": 1.0, "function": np.linspace}
 }
 
+cases = dict()
+
+
+for key, values in augment_params.items():
+	if isinstance(values, list):
+		cases[key] = values
+	else:
+		cases[key] = values["function"](values["from-limit"], values["to-limit"], step_size).tolist()
+  
+
+keys = cases.keys()
+values = cases.values()
+
+
+combinations = itertools.product(*values)
+
+permutations = []
+for combination in combinations:
+    result = dict(zip(keys, combination))
+    permutations.append(result)
+
+def test_permutation(permutation):
+	from ultralytics import YOLO
+	model = YOLO("yolov8n.pt")
+	model.train(data="coco8.yaml", epochs=2)
+ 
+for permutation in permutations:
+	test_permutation(permutation)

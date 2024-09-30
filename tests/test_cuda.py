@@ -60,7 +60,7 @@ def test_train():
 @pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason="CUDA is not available")
 def test_predict_multiple_devices():
     """Validate model prediction consistency across CPU and CUDA devices."""
-    model = YOLO("yolov8n.pt")
+    model = YOLO("yolo11n.pt")
     model = model.cpu()
     assert str(model.device) == "cpu"
     _ = model(SOURCE)  # CPU inference

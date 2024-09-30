@@ -695,33 +695,30 @@ class Annotator:
                     cv2.circle(self.im, (int(x_coord), int(y_coord)), radius, (0, 255, 0), -1, lineType=cv2.LINE_AA)
         return self.im
 
-    # def plot_workout_information(self, display_text, position, color, txt_color):
-    #     """
-    #     Draw text with a background on the image.
-    #
-    #     Args:
-    #         display_text (str): The text to be displayed.
-    #         position (tuple): Coordinates (x, y) on the image where the text will be placed.
-    #         color (tuple): Background color of the text. Default is (104, 31, 17).
-    #         txt_color (tuple): Text color. Default is (255, 255, 255).
-    #
-    #     Returns:
-    #         text_height: (float): height of the text, used for positioning other elements.
-    #     """
-    #     (text_width, text_height), _ = cv2.getTextSize(display_text, 0, self.sf, self.tf)
-    #
-    #     # Draw background rectangle
-    #     cv2.rectangle(
-    #         self.im,
-    #         (position[0], position[1] - text_height - 5),
-    #         (position[0] + text_width + 10, position[1] - text_height - 5 + text_height + 10 + self.tf),
-    #         color,
-    #         -1,
-    #     )
-    #     # Draw text
-    #     cv2.putText(self.im, display_text, position, 0, self.sf, txt_color, self.tf)
-    #
-    #     return text_height
+    def plot_workout_information(self, display_text, position, color=(104, 31, 17), txt_color=(255, 255, 255)):
+        """
+        Draw text with a background on the image.
+
+        Args:
+            display_text (str): The text to be displayed.
+            position (tuple): Coordinates (x, y) on the image where the text will be placed.
+            color (tuple, optional): Text background color
+            txt_color (tuple, optional): Text foreground color
+        """
+        (text_width, text_height), _ = cv2.getTextSize(display_text, 0, self.sf, self.tf)
+
+        # Draw background rectangle
+        cv2.rectangle(
+            self.im,
+            (position[0], position[1] - text_height - 5),
+            (position[0] + text_width + 10, position[1] - text_height - 5 + text_height + 10 + self.tf),
+            color,
+            -1,
+        )
+        # Draw text
+        cv2.putText(self.im, display_text, position, 0, self.sf, txt_color, self.tf)
+
+        return text_height
 
     def plot_angle_and_count_and_stage(
         self, angle_text, count_text, stage_text, center_kpt, color=(104, 31, 17), txt_color=(255, 255, 255)

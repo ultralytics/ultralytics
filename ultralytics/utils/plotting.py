@@ -529,9 +529,7 @@ class Annotator:
             check_requirements("ipython")
             try:
                 from IPython.display import display
-
-                # Convert numpy array to PIL Image and display
-                display(im)  # RGB to BGR for correct display
+                display(im)
             except ImportError as e:
                 LOGGER.warning(f"Unable to display image in Jupyter notebooks: {e}")
         else:

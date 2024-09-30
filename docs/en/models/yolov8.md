@@ -4,7 +4,7 @@ description: Discover YOLOv8, the latest advancement in real-time object detecti
 keywords: YOLOv8, real-time object detection, YOLO series, Ultralytics, computer vision, advanced object detection, AI, machine learning, deep learning
 ---
 
-# YOLOv8
+# Ultralytics YOLOv8
 
 ## Overview
 

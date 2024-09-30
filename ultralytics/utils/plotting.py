@@ -695,12 +695,12 @@ class Annotator:
                     cv2.circle(self.im, (int(x_coord), int(y_coord)), radius, (0, 255, 0), -1, lineType=cv2.LINE_AA)
         return self.im
 
-    def plot_workout_information(self, text, position, color, txt_color):
+    def plot_workout_information(self, display_text, position, color, txt_color):
         """
         Draw text with a background on the image.
 
         Args:
-            text (str): The text to be displayed.
+            display_text (str): The text to be displayed.
             position (tuple): Coordinates (x, y) on the image where the text will be placed.
             color (tuple): Background color of the text. Default is (104, 31, 17).
             txt_color (tuple): Text color. Default is (255, 255, 255).

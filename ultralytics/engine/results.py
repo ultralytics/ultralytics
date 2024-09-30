@@ -1,1355 +1,1741 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
+"""
+Ultralytics Results, Boxes and Masks classes for handling inference results.
 
-import contextlib
-import math
-import warnings
+Usage: See https://docs.ultralytics.com/modes/predict/
+"""
+
+from copy import deepcopy
+from functools import lru_cache
 from pathlib import Path
-from typing import Callable, Dict, List, Optional, Union
 
-import cv2
-import matplotlib.pyplot as plt
 import numpy as np
 import torch
-from PIL import Image, ImageDraw, ImageFont
-from PIL import __version__ as pil_version
 
-from ultralytics.utils import IS_JUPYTER, LOGGER, TryExcept, ops, plt_settings, threaded
-from ultralytics.utils.checks import check_font, check_requirements, check_version, is_ascii
-from ultralytics.utils.files import increment_path
+from ultralytics.data.augment import LetterBox
+from ultralytics.utils import LOGGER, SimpleClass, ops
+from ultralytics.utils.checks import check_requirements
+from ultralytics.utils.plotting import Annotator, colors, save_one_box
+from ultralytics.utils.torch_utils import smart_inference_mode
 
 
-class Colors:
+class BaseTensor(SimpleClass):
     """
-    Ultralytics color palette https://docs.ultralytics.com/reference/utils/plotting/#ultralytics.utils.plotting.Colors.
-
-    This class provides methods to work with the Ultralytics color palette, including converting hex color codes to
-    RGB values.
+    Base tensor class with additional methods for easy manipulation and device handling.
 
     Attributes:
-        palette (list of tuple): List of RGB color values.
-        n (int): The number of colors in the palette.
-        pose_palette (np.ndarray): A specific color palette array with dtype np.uint8.
+        data (torch.Tensor | np.ndarray): Prediction data such as bounding boxes, masks, or keypoints.
+        orig_shape (Tuple[int, int]): Original shape of the image, typically in the format (height, width).
 
-    ## Ultralytics Color Palette
+    Methods:
+        cpu: Return a copy of the tensor stored in CPU memory.
+        numpy: Returns a copy of the tensor as a numpy array.
+        cuda: Moves the tensor to GPU memory, returning a new instance if necessary.
+        to: Return a copy of the tensor with the specified device and dtype.
 
-    | Index | Color                                                             | HEX       | RGB               |
-    |-------|-------------------------------------------------------------------|-----------|-------------------|
-    | 0     | <i class="fa-solid fa-square fa-2xl" style="color: #042aff;"></i> | `#042aff` | (4, 42, 255)      |
-    | 1     | <i class="fa-solid fa-square fa-2xl" style="color: #0bdbeb;"></i> | `#0bdbeb` | (11, 219, 235)    |
-    | 2     | <i class="fa-solid fa-square fa-2xl" style="color: #f3f3f3;"></i> | `#f3f3f3` | (243, 243, 243)   |
-    | 3     | <i class="fa-solid fa-square fa-2xl" style="color: #00dfb7;"></i> | `#00dfb7` | (0, 223, 183)     |
-    | 4     | <i class="fa-solid fa-square fa-2xl" style="color: #111f68;"></i> | `#111f68` | (17, 31, 104)     |
-    | 5     | <i class="fa-solid fa-square fa-2xl" style="color: #ff6fdd;"></i> | `#ff6fdd` | (255, 111, 221)   |
-    | 6     | <i class="fa-solid fa-square fa-2xl" style="color: #ff444f;"></i> | `#ff444f` | (255, 68, 79)     |
-    | 7     | <i class="fa-solid fa-square fa-2xl" style="color: #cced00;"></i> | `#cced00` | (204, 237, 0)     |
-    | 8     | <i class="fa-solid fa-square fa-2xl" style="color: #00f344;"></i> | `#00f344` | (0, 243, 68)      |
-    | 9     | <i class="fa-solid fa-square fa-2xl" style="color: #bd00ff;"></i> | `#bd00ff` | (189, 0, 255)     |
-    | 10    | <i class="fa-solid fa-square fa-2xl" style="color: #00b4ff;"></i> | `#00b4ff` | (0, 180, 255)     |
-    | 11    | <i class="fa-solid fa-square fa-2xl" style="color: #dd00ba;"></i> | `#dd00ba` | (221, 0, 186)     |
-    | 12    | <i class="fa-solid fa-square fa-2xl" style="color: #00ffff;"></i> | `#00ffff` | (0, 255, 255)     |
-    | 13    | <i class="fa-solid fa-square fa-2xl" style="color: #26c000;"></i> | `#26c000` | (38, 192, 0)      |
-    | 14    | <i class="fa-solid fa-square fa-2xl" style="color: #01ffb3;"></i> | `#01ffb3` | (1, 255, 179)     |
-    | 15    | <i class="fa-solid fa-square fa-2xl" style="color: #7d24ff;"></i> | `#7d24ff` | (125, 36, 255)    |
-    | 16    | <i class="fa-solid fa-square fa-2xl" style="color: #7b0068;"></i> | `#7b0068` | (123, 0, 104)     |
-    | 17    | <i class="fa-solid fa-square fa-2xl" style="color: #ff1b6c;"></i> | `#ff1b6c` | (255, 27, 108)    |
-    | 18    | <i class="fa-solid fa-square fa-2xl" style="color: #fc6d2f;"></i> | `#fc6d2f` | (252, 109, 47)    |
-    | 19    | <i class="fa-solid fa-square fa-2xl" style="color: #a2ff0b;"></i> | `#a2ff0b` | (162, 255, 11)    |
-
-    ## Pose Color Palette
-
-    | Index | Color                                                             | HEX       | RGB               |
-    |-------|-------------------------------------------------------------------|-----------|-------------------|
-    | 0     | <i class="fa-solid fa-square fa-2xl" style="color: #ff8000;"></i> | `#ff8000` | (255, 128, 0)     |
-    | 1     | <i class="fa-solid fa-square fa-2xl" style="color: #ff9933;"></i> | `#ff9933` | (255, 153, 51)    |
-    | 2     | <i class="fa-solid fa-square fa-2xl" style="color: #ffb266;"></i> | `#ffb266` | (255, 178, 102)   |
-    | 3     | <i class="fa-solid fa-square fa-2xl" style="color: #e6e600;"></i> | `#e6e600` | (230, 230, 0)     |
-    | 4     | <i class="fa-solid fa-square fa-2xl" style="color: #ff99ff;"></i> | `#ff99ff` | (255, 153, 255)   |
-    | 5     | <i class="fa-solid fa-square fa-2xl" style="color: #99ccff;"></i> | `#99ccff` | (153, 204, 255)   |
-    | 6     | <i class="fa-solid fa-square fa-2xl" style="color: #ff66ff;"></i> | `#ff66ff` | (255, 102, 255)   |
-    | 7     | <i class="fa-solid fa-square fa-2xl" style="color: #ff33ff;"></i> | `#ff33ff` | (255, 51, 255)    |
-    | 8     | <i class="fa-solid fa-square fa-2xl" style="color: #66b2ff;"></i> | `#66b2ff` | (102, 178, 255)   |
-    | 9     | <i class="fa-solid fa-square fa-2xl" style="color: #3399ff;"></i> | `#3399ff` | (51, 153, 255)    |
-    | 10    | <i class="fa-solid fa-square fa-2xl" style="color: #ff9999;"></i> | `#ff9999` | (255, 153, 153)   |
-    | 11    | <i class="fa-solid fa-square fa-2xl" style="color: #ff6666;"></i> | `#ff6666` | (255, 102, 102)   |
-    | 12    | <i class="fa-solid fa-square fa-2xl" style="color: #ff3333;"></i> | `#ff3333` | (255, 51, 51)     |
-    | 13    | <i class="fa-solid fa-square fa-2xl" style="color: #99ff99;"></i> | `#99ff99` | (153, 255, 153)   |
-    | 14    | <i class="fa-solid fa-square fa-2xl" style="color: #66ff66;"></i> | `#66ff66` | (102, 255, 102)   |
-    | 15    | <i class="fa-solid fa-square fa-2xl" style="color: #33ff33;"></i> | `#33ff33` | (51, 255, 51)     |
-    | 16    | <i class="fa-solid fa-square fa-2xl" style="color: #00ff00;"></i> | `#00ff00` | (0, 255, 0)       |
-    | 17    | <i class="fa-solid fa-square fa-2xl" style="color: #0000ff;"></i> | `#0000ff` | (0, 0, 255)       |
-    | 18    | <i class="fa-solid fa-square fa-2xl" style="color: #ff0000;"></i> | `#ff0000` | (255, 0, 0)       |
-    | 19    | <i class="fa-solid fa-square fa-2xl" style="color: #ffffff;"></i> | `#ffffff` | (255, 255, 255)   |
-
-    !!! note "Ultralytics Brand Colors"
-
-        For Ultralytics brand colors see [https://www.ultralytics.com/brand](https://www.ultralytics.com/brand). Please use the official Ultralytics colors for all marketing materials.
+    Examples:
+        >>> import torch
+        >>> data = torch.tensor([[1, 2, 3], [4, 5, 6]])
+        >>> orig_shape = (720, 1280)
+        >>> base_tensor = BaseTensor(data, orig_shape)
+        >>> cpu_tensor = base_tensor.cpu()
+        >>> numpy_array = base_tensor.numpy()
+        >>> gpu_tensor = base_tensor.cuda()
     """
 
-    def __init__(self):
-        """Initialize colors as hex = matplotlib.colors.TABLEAU_COLORS.values()."""
-        hexs = (
-            "042AFF",
-            "0BDBEB",
-            "F3F3F3",
-            "00DFB7",
-            "111F68",
-            "FF6FDD",
-            "FF444F",
-            "CCED00",
-            "00F344",
-            "BD00FF",
-            "00B4FF",
-            "DD00BA",
-            "00FFFF",
-            "26C000",
-            "01FFB3",
-            "7D24FF",
-            "7B0068",
-            "FF1B6C",
-            "FC6D2F",
-            "A2FF0B",
-        )
-        self.palette = [self.hex2rgb(f"#{c}") for c in hexs]
-        self.n = len(self.palette)
-        self.pose_palette = np.array(
-            [
-                [255, 128, 0],
-                [255, 153, 51],
-                [255, 178, 102],
-                [230, 230, 0],
-                [255, 153, 255],
-                [153, 204, 255],
-                [255, 102, 255],
-                [255, 51, 255],
-                [102, 178, 255],
-                [51, 153, 255],
-                [255, 153, 153],
-                [255, 102, 102],
-                [255, 51, 51],
-                [153, 255, 153],
-                [102, 255, 102],
-                [51, 255, 51],
-                [0, 255, 0],
-                [0, 0, 255],
-                [255, 0, 0],
-                [255, 255, 255],
-            ],
-            dtype=np.uint8,
-        )
+    def __init__(self, data, orig_shape) -> None:
+        """
+        Initialize BaseTensor with prediction data and the original shape of the image.
 
-    def __call__(self, i, bgr=False):
-        """Converts hex color codes to RGB values."""
-        c = self.palette[int(i) % self.n]
-        return (c[2], c[1], c[0]) if bgr else c
+        Args:
+            data (torch.Tensor | np.ndarray): Prediction data such as bounding boxes, masks, or keypoints.
+            orig_shape (Tuple[int, int]): Original shape of the image in (height, width) format.
 
-    @staticmethod
-    def hex2rgb(h):
-        """Converts hex color codes to RGB values (i.e. default PIL order)."""
-        return tuple(int(h[1 + i : 1 + i + 2], 16) for i in (0, 2, 4))
+        Examples:
+            >>> import torch
+            >>> data = torch.tensor([[1, 2, 3], [4, 5, 6]])
+            >>> orig_shape = (720, 1280)
+            >>> base_tensor = BaseTensor(data, orig_shape)
+        """
+        assert isinstance(data, (torch.Tensor, np.ndarray)), "data must be torch.Tensor or np.ndarray"
+        self.data = data
+        self.orig_shape = orig_shape
+
+    @property
+    def shape(self):
+        """
+        Returns the shape of the underlying data tensor.
+
+        Returns:
+            (Tuple[int, ...]): The shape of the data tensor.
+
+        Examples:
+            >>> data = torch.rand(100, 4)
+            >>> base_tensor = BaseTensor(data, orig_shape=(720, 1280))
+            >>> print(base_tensor.shape)
+            (100, 4)
+        """
+        return self.data.shape
+
+    def cpu(self):
+        """
+        Returns a copy of the tensor stored in CPU memory.
+
+        Returns:
+            (BaseTensor): A new BaseTensor object with the data tensor moved to CPU memory.
+
+        Examples:
+            >>> data = torch.tensor([[1, 2, 3], [4, 5, 6]]).cuda()
+            >>> base_tensor = BaseTensor(data, orig_shape=(720, 1280))
+            >>> cpu_tensor = base_tensor.cpu()
+            >>> isinstance(cpu_tensor, BaseTensor)
+            True
+            >>> cpu_tensor.data.device
+            device(type='cpu')
+        """
+        return self if isinstance(self.data, np.ndarray) else self.__class__(self.data.cpu(), self.orig_shape)
+
+    def numpy(self):
+        """
+        Returns a copy of the tensor as a numpy array.
+
+        Returns:
+            (np.ndarray): A numpy array containing the same data as the original tensor.
+
+        Examples:
+            >>> data = torch.tensor([[1, 2, 3], [4, 5, 6]])
+            >>> orig_shape = (720, 1280)
+            >>> base_tensor = BaseTensor(data, orig_shape)
+            >>> numpy_array = base_tensor.numpy()
+            >>> print(type(numpy_array))
+            <class 'numpy.ndarray'>
+        """
+        return self if isinstance(self.data, np.ndarray) else self.__class__(self.data.numpy(), self.orig_shape)
+
+    def cuda(self):
+        """
+        Moves the tensor to GPU memory.
+
+        Returns:
+            (BaseTensor): A new BaseTensor instance with the data moved to GPU memory if it's not already a
+                numpy array, otherwise returns self.
+
+        Examples:
+            >>> import torch
+            >>> from ultralytics.engine.results import BaseTensor
+            >>> data = torch.tensor([[1, 2, 3], [4, 5, 6]])
+            >>> base_tensor = BaseTensor(data, orig_shape=(720, 1280))
+            >>> gpu_tensor = base_tensor.cuda()
+            >>> print(gpu_tensor.data.device)
+            cuda:0
+        """
+        return self.__class__(torch.as_tensor(self.data).cuda(), self.orig_shape)
+
+    def to(self, *args, **kwargs):
+        """
+        Return a copy of the tensor with the specified device and dtype.
+
+        Args:
+            *args (Any): Variable length argument list to be passed to torch.Tensor.to().
+            **kwargs (Any): Arbitrary keyword arguments to be passed to torch.Tensor.to().
+
+        Returns:
+            (BaseTensor): A new BaseTensor instance with the data moved to the specified device and/or dtype.
+
+        Examples:
+            >>> base_tensor = BaseTensor(torch.randn(3, 4), orig_shape=(480, 640))
+            >>> cuda_tensor = base_tensor.to("cuda")
+            >>> float16_tensor = base_tensor.to(dtype=torch.float16)
+        """
+        return self.__class__(torch.as_tensor(self.data).to(*args, **kwargs), self.orig_shape)
+
+    def __len__(self):  # override len(results)
+        """
+        Returns the length of the underlying data tensor.
+
+        Returns:
+            (int): The number of elements in the first dimension of the data tensor.
+
+        Examples:
+            >>> data = torch.tensor([[1, 2, 3], [4, 5, 6]])
+            >>> base_tensor = BaseTensor(data, orig_shape=(720, 1280))
+            >>> len(base_tensor)
+            2
+        """
+        return len(self.data)
+
+    def __getitem__(self, idx):
+        """
+        Returns a new BaseTensor instance containing the specified indexed elements of the data tensor.
+
+        Args:
+            idx (int | List[int] | torch.Tensor): Index or indices to select from the data tensor.
+
+        Returns:
+            (BaseTensor): A new BaseTensor instance containing the indexed data.
+
+        Examples:
+            >>> data = torch.tensor([[1, 2, 3], [4, 5, 6]])
+            >>> base_tensor = BaseTensor(data, orig_shape=(720, 1280))
+            >>> result = base_tensor[0]  # Select the first row
+            >>> print(result.data)
+            tensor([1, 2, 3])
+        """
+        return self.__class__(self.data[idx], self.orig_shape)
 
 
-colors = Colors()  # create instance for 'from utils.plots import colors'
-
-
-class Annotator:
+class Results(SimpleClass):
     """
-    Ultralytics Annotator for train/val mosaics and JPGs and predictions annotations.
+    A class for storing and manipulating inference results.
+
+    This class encapsulates the functionality for handling detection, segmentation, pose estimation,
+    and classification results from YOLO models.
 
     Attributes:
-        im (Image.Image or numpy array): The image to annotate.
-        pil (bool): Whether to use PIL or cv2 for drawing annotations.
-        font (ImageFont.truetype or ImageFont.load_default): Font used for text annotations.
-        lw (float): Line width for drawing.
-        skeleton (List[List[int]]): Skeleton structure for keypoints.
-        limb_color (List[int]): Color palette for limbs.
-        kpt_color (List[int]): Color palette for keypoints.
+        orig_img (numpy.ndarray): Original image as a numpy array.
+        orig_shape (Tuple[int, int]): Original image shape in (height, width) format.
+        boxes (Boxes | None): Object containing detection bounding boxes.
+        masks (Masks | None): Object containing detection masks.
+        probs (Probs | None): Object containing class probabilities for classification tasks.
+        keypoints (Keypoints | None): Object containing detected keypoints for each object.
+        obb (OBB | None): Object containing oriented bounding boxes.
+        speed (Dict[str, float | None]): Dictionary of preprocess, inference, and postprocess speeds.
+        names (Dict[int, str]): Dictionary mapping class IDs to class names.
+        path (str): Path to the image file.
+        _keys (Tuple[str, ...]): Tuple of attribute names for internal use.
+
+    Methods:
+        update: Updates object attributes with new detection results.
+        cpu: Returns a copy of the Results object with all tensors on CPU memory.
+        numpy: Returns a copy of the Results object with all tensors as numpy arrays.
+        cuda: Returns a copy of the Results object with all tensors on GPU memory.
+        to: Returns a copy of the Results object with tensors on a specified device and dtype.
+        new: Returns a new Results object with the same image, path, and names.
+        plot: Plots detection results on an input image, returning an annotated image.
+        show: Shows annotated results on screen.
+        save: Saves annotated results to file.
+        verbose: Returns a log string for each task, detailing detections and classifications.
+        save_txt: Saves detection results to a text file.
+        save_crop: Saves cropped detection images.
+        tojson: Converts detection results to JSON format.
+
+    Examples:
+        >>> results = model("path/to/image.jpg")
+        >>> for result in results:
+        ...     print(result.boxes)  # Print detection boxes
+        ...     result.show()  # Display the annotated image
+        ...     result.save(filename="result.jpg")  # Save annotated image
     """
 
-    def __init__(self, im, line_width=None, font_size=None, font="Arial.ttf", pil=False, example="abc"):
-        """Initialize the Annotator class with image and line width along with color palette for keypoints and limbs."""
-        non_ascii = not is_ascii(example)  # non-latin labels, i.e. asian, arabic, cyrillic
-        input_is_pil = isinstance(im, Image.Image)
-        self.pil = pil or non_ascii or input_is_pil
-        self.lw = line_width or max(round(sum(im.size if input_is_pil else im.shape) / 2 * 0.003), 2)
-        if self.pil:  # use PIL
-            self.im = im if input_is_pil else Image.fromarray(im)
-            self.draw = ImageDraw.Draw(self.im)
-            try:
-                font = check_font("Arial.Unicode.ttf" if non_ascii else font)
-                size = font_size or max(round(sum(self.im.size) / 2 * 0.035), 12)
-                self.font = ImageFont.truetype(str(font), size)
-            except Exception:
-                self.font = ImageFont.load_default()
-            # Deprecation fix for w, h = getsize(string) -> _, _, w, h = getbox(string)
-            if check_version(pil_version, "9.2.0"):
-                self.font.getsize = lambda x: self.font.getbbox(x)[2:4]  # text width, height
-        else:  # use cv2
-            assert im.data.contiguous, "Image not contiguous. Apply np.ascontiguousarray(im) to Annotator input images."
-            self.im = im if im.flags.writeable else im.copy()
-            self.tf = max(self.lw - 1, 1)  # font thickness
-            self.sf = self.lw / 3  # font scale
-        # Pose
-        self.skeleton = [
-            [16, 14],
-            [14, 12],
-            [17, 15],
-            [15, 13],
-            [12, 13],
-            [6, 12],
-            [7, 13],
-            [6, 7],
-            [6, 8],
-            [7, 9],
-            [8, 10],
-            [9, 11],
-            [2, 3],
-            [1, 2],
-            [1, 3],
-            [2, 4],
-            [3, 5],
-            [4, 6],
-            [5, 7],
-        ]
-
-        self.limb_color = colors.pose_palette[[9, 9, 9, 9, 7, 7, 7, 0, 0, 0, 0, 0, 16, 16, 16, 16, 16, 16, 16]]
-        self.kpt_color = colors.pose_palette[[16, 16, 16, 16, 16, 0, 0, 0, 0, 0, 0, 9, 9, 9, 9, 9, 9]]
-        self.dark_colors = {
-            (235, 219, 11),
-            (243, 243, 243),
-            (183, 223, 0),
-            (221, 111, 255),
-            (0, 237, 204),
-            (68, 243, 0),
-            (255, 255, 0),
-            (179, 255, 1),
-            (11, 255, 162),
-        }
-        self.light_colors = {
-            (255, 42, 4),
-            (79, 68, 255),
-            (255, 0, 189),
-            (255, 180, 0),
-            (186, 0, 221),
-            (0, 192, 38),
-            (255, 36, 125),
-            (104, 0, 123),
-            (108, 27, 255),
-            (47, 109, 252),
-            (104, 31, 17),
-        }
-
-    def get_txt_color(self, color=(128, 128, 128), txt_color=(255, 255, 255)):
-        """Assign text color based on background color."""
-        if color in self.dark_colors:
-            return 104, 31, 17
-        elif color in self.light_colors:
-            return 255, 255, 255
-        else:
-            return txt_color
-
-    def circle_label(self, box, label="", color=(128, 128, 128), txt_color=(255, 255, 255), margin=2):
+    def __init__(
+        self, orig_img, path, names, boxes=None, masks=None, probs=None, keypoints=None, obb=None, speed=None
+    ) -> None:
         """
-        Draws a label with a background circle centered within a given bounding box.
+        Initialize the Results class for storing and manipulating inference results.
 
         Args:
-            box (tuple): The bounding box coordinates (x1, y1, x2, y2).
-            label (str): The text label to be displayed.
-            color (tuple, optional): The background color of the rectangle (B, G, R).
-            txt_color (tuple, optional): The color of the text (R, G, B).
-            margin (int, optional): The margin between the text and the rectangle border.
-        """
-        # If label have more than 3 characters, skip other characters, due to circle size
-        if len(label) > 3:
-            print(
-                f"Length of label is {len(label)}, initial 3 label characters will be considered for circle annotation!"
-            )
-            label = label[:3]
+            orig_img (numpy.ndarray): The original image as a numpy array.
+            path (str): The path to the image file.
+            names (Dict): A dictionary of class names.
+            boxes (torch.Tensor | None): A 2D tensor of bounding box coordinates for each detection.
+            masks (torch.Tensor | None): A 3D tensor of detection masks, where each mask is a binary image.
+            probs (torch.Tensor | None): A 1D tensor of probabilities of each class for classification task.
+            keypoints (torch.Tensor | None): A 2D tensor of keypoint coordinates for each detection.
+            obb (torch.Tensor | None): A 2D tensor of oriented bounding box coordinates for each detection.
+            speed (Dict | None): A dictionary containing preprocess, inference, and postprocess speeds (ms/image).
 
-        # Calculate the center of the box
-        x_center, y_center = int((box[0] + box[2]) / 2), int((box[1] + box[3]) / 2)
-        # Get the text size
-        text_size = cv2.getTextSize(str(label), cv2.FONT_HERSHEY_SIMPLEX, self.sf - 0.15, self.tf)[0]
-        # Calculate the required radius to fit the text with the margin
-        required_radius = int(((text_size[0] ** 2 + text_size[1] ** 2) ** 0.5) / 2) + margin
-        # Draw the circle with the required radius
-        cv2.circle(self.im, (x_center, y_center), required_radius, color, -1)
-        # Calculate the position for the text
-        text_x = x_center - text_size[0] // 2
-        text_y = y_center + text_size[1] // 2
-        # Draw the text
-        cv2.putText(
-            self.im,
-            str(label),
-            (text_x, text_y),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            self.sf - 0.15,
-            self.get_txt_color(color, txt_color),
-            self.tf,
-            lineType=cv2.LINE_AA,
-        )
+        Examples:
+            >>> results = model("path/to/image.jpg")
+            >>> result = results[0]  # Get the first result
+            >>> boxes = result.boxes  # Get the boxes for the first result
+            >>> masks = result.masks  # Get the masks for the first result
 
-    def text_label(self, box, label="", color=(128, 128, 128), txt_color=(255, 255, 255), margin=5):
+        Notes:
+            For the default pose model, keypoint indices for human body pose estimation are:
+            0: Nose, 1: Left Eye, 2: Right Eye, 3: Left Ear, 4: Right Ear
+            5: Left Shoulder, 6: Right Shoulder, 7: Left Elbow, 8: Right Elbow
+            9: Left Wrist, 10: Right Wrist, 11: Left Hip, 12: Right Hip
+            13: Left Knee, 14: Right Knee, 15: Left Ankle, 16: Right Ankle
         """
-        Draws a label with a background rectangle centered within a given bounding box.
+        self.orig_img = orig_img
+        self.orig_shape = orig_img.shape[:2]
+        self.boxes = Boxes(boxes, self.orig_shape) if boxes is not None else None  # native size boxes
+        self.masks = Masks(masks, self.orig_shape) if masks is not None else None  # native size or imgsz masks
+        self.probs = Probs(probs) if probs is not None else None
+        self.keypoints = Keypoints(keypoints, self.orig_shape) if keypoints is not None else None
+        self.obb = OBB(obb, self.orig_shape) if obb is not None else None
+        self.speed = speed if speed is not None else {"preprocess": None, "inference": None, "postprocess": None}
+        self.names = names
+        self.path = path
+        self.save_dir = None
+        self._keys = "boxes", "masks", "probs", "keypoints", "obb"
+
+    def __getitem__(self, idx):
+        """
+        Return a Results object for a specific index of inference results.
 
         Args:
-            box (tuple): The bounding box coordinates (x1, y1, x2, y2).
-            label (str): The text label to be displayed.
-            color (tuple, optional): The background color of the rectangle (B, G, R).
-            txt_color (tuple, optional): The color of the text (R, G, B).
-            margin (int, optional): The margin between the text and the rectangle border.
-        """
-        # Calculate the center of the bounding box
-        x_center, y_center = int((box[0] + box[2]) / 2), int((box[1] + box[3]) / 2)
-        # Get the size of the text
-        text_size = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, self.sf - 0.1, self.tf)[0]
-        # Calculate the top-left corner of the text (to center it)
-        text_x = x_center - text_size[0] // 2
-        text_y = y_center + text_size[1] // 2
-        # Calculate the coordinates of the background rectangle
-        rect_x1 = text_x - margin
-        rect_y1 = text_y - text_size[1] - margin
-        rect_x2 = text_x + text_size[0] + margin
-        rect_y2 = text_y + margin
-        # Draw the background rectangle
-        cv2.rectangle(self.im, (rect_x1, rect_y1), (rect_x2, rect_y2), color, -1)
-        # Draw the text on top of the rectangle
-        cv2.putText(
-            self.im,
-            label,
-            (text_x, text_y),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            self.sf - 0.1,
-            self.get_txt_color(color, txt_color),
-            self.tf,
-            lineType=cv2.LINE_AA,
-        )
-
-    def box_label(self, box, label="", color=(128, 128, 128), txt_color=(255, 255, 255), rotated=False):
-        """
-        Draws a bounding box to image with label.
-
-        Args:
-            box (tuple): The bounding box coordinates (x1, y1, x2, y2).
-            label (str): The text label to be displayed.
-            color (tuple, optional): The background color of the rectangle (B, G, R).
-            txt_color (tuple, optional): The color of the text (R, G, B).
-            rotated (bool, optional): Variable used to check if task is OBB
-        """
-        txt_color = self.get_txt_color(color, txt_color)
-        if isinstance(box, torch.Tensor):
-            box = box.tolist()
-        if self.pil or not is_ascii(label):
-            if rotated:
-                p1 = box[0]
-                self.draw.polygon([tuple(b) for b in box], width=self.lw, outline=color)  # PIL requires tuple box
-            else:
-                p1 = (box[0], box[1])
-                self.draw.rectangle(box, width=self.lw, outline=color)  # box
-            if label:
-                w, h = self.font.getsize(label)  # text width, height
-                outside = p1[1] >= h  # label fits outside box
-                if p1[0] > self.im.size[0] - w:  # size is (w, h), check if label extend beyond right side of image
-                    p1 = self.im.size[0] - w, p1[1]
-                self.draw.rectangle(
-                    (p1[0], p1[1] - h if outside else p1[1], p1[0] + w + 1, p1[1] + 1 if outside else p1[1] + h + 1),
-                    fill=color,
-                )
-                # self.draw.text((box[0], box[1]), label, fill=txt_color, font=self.font, anchor='ls')  # for PIL>8.0
-                self.draw.text((p1[0], p1[1] - h if outside else p1[1]), label, fill=txt_color, font=self.font)
-        else:  # cv2
-            if rotated:
-                p1 = [int(b) for b in box[0]]
-                cv2.polylines(self.im, [np.asarray(box, dtype=int)], True, color, self.lw)  # cv2 requires nparray box
-            else:
-                p1, p2 = (int(box[0]), int(box[1])), (int(box[2]), int(box[3]))
-                cv2.rectangle(self.im, p1, p2, color, thickness=self.lw, lineType=cv2.LINE_AA)
-            if label:
-                w, h = cv2.getTextSize(label, 0, fontScale=self.sf, thickness=self.tf)[0]  # text width, height
-                h += 3  # add pixels to pad text
-                outside = p1[1] >= h  # label fits outside box
-                if p1[0] > self.im.shape[1] - w:  # shape is (h, w), check if label extend beyond right side of image
-                    p1 = self.im.shape[1] - w, p1[1]
-                p2 = p1[0] + w, p1[1] - h if outside else p1[1] + h
-                cv2.rectangle(self.im, p1, p2, color, -1, cv2.LINE_AA)  # filled
-                cv2.putText(
-                    self.im,
-                    label,
-                    (p1[0], p1[1] - 2 if outside else p1[1] + h - 1),
-                    0,
-                    self.sf,
-                    txt_color,
-                    thickness=self.tf,
-                    lineType=cv2.LINE_AA,
-                )
-
-    def masks(self, masks, colors, im_gpu, alpha=0.5, retina_masks=False):
-        """
-        Plot masks on image.
-
-        Args:
-            masks (tensor): Predicted masks on cuda, shape: [n, h, w]
-            colors (List[List[Int]]): Colors for predicted masks, [[r, g, b] * n]
-            im_gpu (tensor): Image is in cuda, shape: [3, h, w], range: [0, 1]
-            alpha (float): Mask transparency: 0.0 fully transparent, 1.0 opaque
-            retina_masks (bool): Whether to use high resolution masks or not. Defaults to False.
-        """
-        if self.pil:
-            # Convert to numpy first
-            self.im = np.asarray(self.im).copy()
-        if len(masks) == 0:
-            self.im[:] = im_gpu.permute(1, 2, 0).contiguous().cpu().numpy() * 255
-        if im_gpu.device != masks.device:
-            im_gpu = im_gpu.to(masks.device)
-        colors = torch.tensor(colors, device=masks.device, dtype=torch.float32) / 255.0  # shape(n,3)
-        colors = colors[:, None, None]  # shape(n,1,1,3)
-        masks = masks.unsqueeze(3)  # shape(n,h,w,1)
-        masks_color = masks * (colors * alpha)  # shape(n,h,w,3)
-
-        inv_alpha_masks = (1 - masks * alpha).cumprod(0)  # shape(n,h,w,1)
-        mcs = masks_color.max(dim=0).values  # shape(n,h,w,3)
-
-        im_gpu = im_gpu.flip(dims=[0])  # flip channel
-        im_gpu = im_gpu.permute(1, 2, 0).contiguous()  # shape(h,w,3)
-        im_gpu = im_gpu * inv_alpha_masks[-1] + mcs
-        im_mask = im_gpu * 255
-        im_mask_np = im_mask.byte().cpu().numpy()
-        self.im[:] = im_mask_np if retina_masks else ops.scale_image(im_mask_np, self.im.shape)
-        if self.pil:
-            # Convert im back to PIL and update draw
-            self.fromarray(self.im)
-
-    def kpts(self, kpts, shape=(640, 640), radius=None, kpt_line=True, conf_thres=0.25, kpt_color=None):
-        """
-        Plot keypoints on the image.
-
-        Args:
-            kpts (torch.Tensor): Keypoints, shape [17, 3] (x, y, confidence).
-            shape (tuple, optional): Image shape (h, w). Defaults to (640, 640).
-            radius (int, optional): Keypoint radius. Defaults to 5.
-            kpt_line (bool, optional): Draw lines between keypoints. Defaults to True.
-            conf_thres (float, optional): Confidence threshold. Defaults to 0.25.
-            kpt_color (tuple, optional): Keypoint color (B, G, R). Defaults to None.
-
-        Note:
-            - `kpt_line=True` currently only supports human pose plotting.
-            - Modifies self.im in-place.
-            - If self.pil is True, converts image to numpy array and back to PIL.
-        """
-        radius = radius if radius is not None else self.lw
-        if self.pil:
-            # Convert to numpy first
-            self.im = np.asarray(self.im).copy()
-        nkpt, ndim = kpts.shape
-        is_pose = nkpt == 17 and ndim in {2, 3}
-        kpt_line &= is_pose  # `kpt_line=True` for now only supports human pose plotting
-        for i, k in enumerate(kpts):
-            color_k = kpt_color or (self.kpt_color[i].tolist() if is_pose else colors(i))
-            x_coord, y_coord = k[0], k[1]
-            if x_coord % shape[1] != 0 and y_coord % shape[0] != 0:
-                if len(k) == 3:
-                    conf = k[2]
-                    if conf < conf_thres:
-                        continue
-                cv2.circle(self.im, (int(x_coord), int(y_coord)), radius, color_k, -1, lineType=cv2.LINE_AA)
-
-        if kpt_line:
-            ndim = kpts.shape[-1]
-            for i, sk in enumerate(self.skeleton):
-                pos1 = (int(kpts[(sk[0] - 1), 0]), int(kpts[(sk[0] - 1), 1]))
-                pos2 = (int(kpts[(sk[1] - 1), 0]), int(kpts[(sk[1] - 1), 1]))
-                if ndim == 3:
-                    conf1 = kpts[(sk[0] - 1), 2]
-                    conf2 = kpts[(sk[1] - 1), 2]
-                    if conf1 < conf_thres or conf2 < conf_thres:
-                        continue
-                if pos1[0] % shape[1] == 0 or pos1[1] % shape[0] == 0 or pos1[0] < 0 or pos1[1] < 0:
-                    continue
-                if pos2[0] % shape[1] == 0 or pos2[1] % shape[0] == 0 or pos2[0] < 0 or pos2[1] < 0:
-                    continue
-                cv2.line(
-                    self.im,
-                    pos1,
-                    pos2,
-                    kpt_color or self.limb_color[i].tolist(),
-                    thickness=int(np.ceil(self.lw / 2)),
-                    lineType=cv2.LINE_AA,
-                )
-        if self.pil:
-            # Convert im back to PIL and update draw
-            self.fromarray(self.im)
-
-    def rectangle(self, xy, fill=None, outline=None, width=1):
-        """Add rectangle to image (PIL-only)."""
-        self.draw.rectangle(xy, fill, outline, width)
-
-    def text(self, xy, text, txt_color=(255, 255, 255), anchor="top", box_style=False):
-        """Adds text to an image using PIL or cv2."""
-        if anchor == "bottom":  # start y from font bottom
-            w, h = self.font.getsize(text)  # text width, height
-            xy[1] += 1 - h
-        if self.pil:
-            if box_style:
-                w, h = self.font.getsize(text)
-                self.draw.rectangle((xy[0], xy[1], xy[0] + w + 1, xy[1] + h + 1), fill=txt_color)
-                # Using `txt_color` for background and draw fg with white color
-                txt_color = (255, 255, 255)
-            if "\n" in text:
-                lines = text.split("\n")
-                _, h = self.font.getsize(text)
-                for line in lines:
-                    self.draw.text(xy, line, fill=txt_color, font=self.font)
-                    xy[1] += h
-            else:
-                self.draw.text(xy, text, fill=txt_color, font=self.font)
-        else:
-            if box_style:
-                w, h = cv2.getTextSize(text, 0, fontScale=self.sf, thickness=self.tf)[0]  # text width, height
-                h += 3  # add pixels to pad text
-                outside = xy[1] >= h  # label fits outside box
-                p2 = xy[0] + w, xy[1] - h if outside else xy[1] + h
-                cv2.rectangle(self.im, xy, p2, txt_color, -1, cv2.LINE_AA)  # filled
-                # Using `txt_color` for background and draw fg with white color
-                txt_color = (255, 255, 255)
-            cv2.putText(self.im, text, xy, 0, self.sf, txt_color, thickness=self.tf, lineType=cv2.LINE_AA)
-
-    def fromarray(self, im):
-        """Update self.im from a numpy array."""
-        self.im = im if isinstance(im, Image.Image) else Image.fromarray(im)
-        self.draw = ImageDraw.Draw(self.im)
-
-    def result(self):
-        """Return annotated image as array."""
-        return np.asarray(self.im)
-
-    def show(self, title=None):
-        """Show the annotated image."""
-        im = Image.fromarray(np.asarray(self.im)[..., ::-1])  # Convert numpy array to PIL Image with RGB to BGR
-        if IS_JUPYTER:
-            check_requirements("ipython")
-            try:
-                from IPython.display import display
-
-                # Convert numpy array to PIL Image and display
-                display(im, title=title)  # RGB to BGR for correct display
-            except ImportError as e:
-                LOGGER.warning(f"Unable to display image in Jupyter: {e}")
-        else:
-            # Convert numpy array to PIL Image and show
-            im.show(title=title)
-
-    def save(self, filename="image.jpg"):
-        """Save the annotated image to 'filename'."""
-        cv2.imwrite(filename, np.asarray(self.im))
-
-    def get_bbox_dimension(self, bbox=None):
-        """
-        Calculate the area of a bounding box.
-
-        Args:
-            bbox (tuple): Bounding box coordinates in the format (x_min, y_min, x_max, y_max).
+            idx (int | slice): Index or slice to retrieve from the Results object.
 
         Returns:
-            angle (degree): Degree value of angle between three points
+            (Results): A new Results object containing the specified subset of inference results.
+
+        Examples:
+            >>> results = model("path/to/image.jpg")  # Perform inference
+            >>> single_result = results[0]  # Get the first result
+            >>> subset_results = results[1:4]  # Get a slice of results
         """
-        x_min, y_min, x_max, y_max = bbox
-        width = x_max - x_min
-        height = y_max - y_min
-        return width, height, width * height
+        return self._apply("__getitem__", idx)
 
-    def draw_region(self, reg_pts=None, color=(0, 255, 0), thickness=5):
+    def __len__(self):
         """
-        Draw region line.
-
-        Args:
-            reg_pts (list): Region Points (for line 2 points, for region 4 points)
-            color (tuple): Region Color value
-            thickness (int): Region area thickness value
-        """
-        cv2.polylines(self.im, [np.array(reg_pts, dtype=np.int32)], isClosed=True, color=color, thickness=thickness)
-
-        # Draw small circles at the corner points
-        for point in reg_pts:
-            cv2.circle(self.im, (point[0], point[1]), thickness * 2, color, -1)  # -1 fills the circle
-
-    def draw_centroid_and_tracks(self, track, color=(255, 0, 255), track_thickness=2):
-        """
-        Draw centroid point and track trails.
-
-        Args:
-            track (list): object tracking points for trails display
-            color (tuple): tracks line color
-            track_thickness (int): track line thickness value
-        """
-        points = np.hstack(track).astype(np.int32).reshape((-1, 1, 2))
-        cv2.polylines(self.im, [points], isClosed=False, color=color, thickness=track_thickness)
-        cv2.circle(self.im, (int(track[-1][0]), int(track[-1][1])), track_thickness * 2, color, -1)
-
-    def queue_counts_display(self, label, points=None, region_color=(255, 255, 255), txt_color=(0, 0, 0)):
-        """
-        Displays queue counts on an image centered at the points with customizable font size and colors.
-
-        Args:
-            label (str): queue counts label
-            points (tuple): region points for center point calculation to display text
-            region_color (RGB): queue region color
-            txt_color (RGB): text display color
-        """
-        x_values = [point[0] for point in points]
-        y_values = [point[1] for point in points]
-        center_x = sum(x_values) // len(points)
-        center_y = sum(y_values) // len(points)
-
-        text_size = cv2.getTextSize(label, 0, fontScale=self.sf, thickness=self.tf)[0]
-        text_width = text_size[0]
-        text_height = text_size[1]
-
-        rect_width = text_width + 20
-        rect_height = text_height + 20
-        rect_top_left = (center_x - rect_width // 2, center_y - rect_height // 2)
-        rect_bottom_right = (center_x + rect_width // 2, center_y + rect_height // 2)
-        cv2.rectangle(self.im, rect_top_left, rect_bottom_right, region_color, -1)
-
-        text_x = center_x - text_width // 2
-        text_y = center_y + text_height // 2
-
-        # Draw text
-        cv2.putText(
-            self.im,
-            label,
-            (text_x, text_y),
-            0,
-            fontScale=self.sf,
-            color=txt_color,
-            thickness=self.tf,
-            lineType=cv2.LINE_AA,
-        )
-
-    def display_objects_labels(self, im0, text, txt_color, bg_color, x_center, y_center, margin):
-        """
-        Display the bounding boxes labels in parking management app.
-
-        Args:
-            im0 (ndarray): inference image
-            text (str): object/class name
-            txt_color (bgr color): display color for text foreground
-            bg_color (bgr color): display color for text background
-            x_center (float): x position center point for bounding box
-            y_center (float): y position center point for bounding box
-            margin (int): gap between text and rectangle for better display
-        """
-        text_size = cv2.getTextSize(text, 0, fontScale=self.sf, thickness=self.tf)[0]
-        text_x = x_center - text_size[0] // 2
-        text_y = y_center + text_size[1] // 2
-
-        rect_x1 = text_x - margin
-        rect_y1 = text_y - text_size[1] - margin
-        rect_x2 = text_x + text_size[0] + margin
-        rect_y2 = text_y + margin
-        cv2.rectangle(im0, (rect_x1, rect_y1), (rect_x2, rect_y2), bg_color, -1)
-        cv2.putText(im0, text, (text_x, text_y), 0, self.sf, txt_color, self.tf, lineType=cv2.LINE_AA)
-
-    def display_analytics(self, im0, text, txt_color, bg_color, margin):
-        """
-        Display the overall statistics for parking lots.
-
-        Args:
-            im0 (ndarray): inference image
-            text (dict): labels dictionary
-            txt_color (bgr color): display color for text foreground
-            bg_color (bgr color): display color for text background
-            margin (int): gap between text and rectangle for better display
-        """
-        horizontal_gap = int(im0.shape[1] * 0.02)
-        vertical_gap = int(im0.shape[0] * 0.01)
-        text_y_offset = 0
-        for label, value in text.items():
-            txt = f"{label}: {value}"
-            text_size = cv2.getTextSize(txt, 0, self.sf, self.tf)[0]
-            if text_size[0] < 5 or text_size[1] < 5:
-                text_size = (5, 5)
-            text_x = im0.shape[1] - text_size[0] - margin * 2 - horizontal_gap
-            text_y = text_y_offset + text_size[1] + margin * 2 + vertical_gap
-            rect_x1 = text_x - margin * 2
-            rect_y1 = text_y - text_size[1] - margin * 2
-            rect_x2 = text_x + text_size[0] + margin * 2
-            rect_y2 = text_y + margin * 2
-            cv2.rectangle(im0, (rect_x1, rect_y1), (rect_x2, rect_y2), bg_color, -1)
-            cv2.putText(im0, txt, (text_x, text_y), 0, self.sf, txt_color, self.tf, lineType=cv2.LINE_AA)
-            text_y_offset = rect_y2
-
-    @staticmethod
-    def estimate_pose_angle(a, b, c):
-        """
-        Calculate the pose angle for object.
-
-        Args:
-            a (float) : The value of pose point a
-            b (float): The value of pose point b
-            c (float): The value o pose point c
+        Return the number of detections in the Results object.
 
         Returns:
-            angle (degree): Degree value of angle between three points
-        """
-        a, b, c = np.array(a), np.array(b), np.array(c)
-        radians = np.arctan2(c[1] - b[1], c[0] - b[0]) - np.arctan2(a[1] - b[1], a[0] - b[0])
-        angle = np.abs(radians * 180.0 / np.pi)
-        if angle > 180.0:
-            angle = 360 - angle
-        return angle
+            (int): The number of detections, determined by the length of the first non-empty attribute
+                (boxes, masks, probs, keypoints, or obb).
 
-    def draw_specific_points(self, keypoints, indices=None, shape=(640, 640), radius=2, conf_thres=0.25):
+        Examples:
+            >>> results = Results(orig_img, path, names, boxes=torch.rand(5, 4))
+            >>> len(results)
+            5
         """
-        Draw specific keypoints for gym steps counting.
+        for k in self._keys:
+            v = getattr(self, k)
+            if v is not None:
+                return len(v)
+
+    def update(self, boxes=None, masks=None, probs=None, obb=None):
+        """
+        Updates the Results object with new detection data.
+
+        This method allows updating the boxes, masks, probabilities, and oriented bounding boxes (OBB) of the
+        Results object. It ensures that boxes are clipped to the original image shape.
 
         Args:
-            keypoints (list): Keypoints data to be plotted.
-            indices (list, optional): Keypoint indices to be plotted. Defaults to [2, 5, 7].
-            shape (tuple, optional): Image size for model inference. Defaults to (640, 640).
-            radius (int, optional): Keypoint radius. Defaults to 2.
-            conf_thres (float, optional): Confidence threshold for keypoints. Defaults to 0.25.
+            boxes (torch.Tensor | None): A tensor of shape (N, 6) containing bounding box coordinates and
+                confidence scores. The format is (x1, y1, x2, y2, conf, class).
+            masks (torch.Tensor | None): A tensor of shape (N, H, W) containing segmentation masks.
+            probs (torch.Tensor | None): A tensor of shape (num_classes,) containing class probabilities.
+            obb (torch.Tensor | None): A tensor of shape (N, 5) containing oriented bounding box coordinates.
+
+        Examples:
+            >>> results = model("image.jpg")
+            >>> new_boxes = torch.tensor([[100, 100, 200, 200, 0.9, 0]])
+            >>> results[0].update(boxes=new_boxes)
+        """
+        if boxes is not None:
+            self.boxes = Boxes(ops.clip_boxes(boxes, self.orig_shape), self.orig_shape)
+        if masks is not None:
+            self.masks = Masks(masks, self.orig_shape)
+        if probs is not None:
+            self.probs = probs
+        if obb is not None:
+            self.obb = OBB(obb, self.orig_shape)
+
+    def _apply(self, fn, *args, **kwargs):
+        """
+        Applies a function to all non-empty attributes and returns a new Results object with modified attributes.
+
+        This method is internally called by methods like .to(), .cuda(), .cpu(), etc.
+
+        Args:
+            fn (str): The name of the function to apply.
+            *args (Any): Variable length argument list to pass to the function.
+            **kwargs (Any): Arbitrary keyword arguments to pass to the function.
 
         Returns:
-            (numpy.ndarray): Image with drawn keypoints.
+            (Results): A new Results object with attributes modified by the applied function.
 
-        Note:
-            Keypoint format: [x, y] or [x, y, confidence].
-            Modifies self.im in-place.
+        Examples:
+            >>> results = model("path/to/image.jpg")
+            >>> for result in results:
+            ...     result_cuda = result.cuda()
+            ...     result_cpu = result.cpu()
         """
-        if indices is None:
-            indices = [2, 5, 7]
-        for i, k in enumerate(keypoints):
-            if i in indices:
-                x_coord, y_coord = k[0], k[1]
-                if x_coord % shape[1] != 0 and y_coord % shape[0] != 0:
-                    if len(k) == 3:
-                        conf = k[2]
-                        if conf < conf_thres:
-                            continue
-                    cv2.circle(self.im, (int(x_coord), int(y_coord)), radius, (0, 255, 0), -1, lineType=cv2.LINE_AA)
-        return self.im
+        r = self.new()
+        for k in self._keys:
+            v = getattr(self, k)
+            if v is not None:
+                setattr(r, k, getattr(v, fn)(*args, **kwargs))
+        return r
 
-    def plot_angle_and_count_and_stage(
-        self, angle_text, count_text, stage_text, center_kpt, color=(104, 31, 17), txt_color=(255, 255, 255)
+    def cpu(self):
+        """
+        Returns a copy of the Results object with all its tensors moved to CPU memory.
+
+        This method creates a new Results object with all tensor attributes (boxes, masks, probs, keypoints, obb)
+        transferred to CPU memory. It's useful for moving data from GPU to CPU for further processing or saving.
+
+        Returns:
+            (Results): A new Results object with all tensor attributes on CPU memory.
+
+        Examples:
+            >>> results = model("path/to/image.jpg")  # Perform inference
+            >>> cpu_result = results[0].cpu()  # Move the first result to CPU
+            >>> print(cpu_result.boxes.device)  # Output: cpu
+        """
+        return self._apply("cpu")
+
+    def numpy(self):
+        """
+        Converts all tensors in the Results object to numpy arrays.
+
+        Returns:
+            (Results): A new Results object with all tensors converted to numpy arrays.
+
+        Examples:
+            >>> results = model("path/to/image.jpg")
+            >>> numpy_result = results[0].numpy()
+            >>> type(numpy_result.boxes.data)
+            <class 'numpy.ndarray'>
+
+        Notes:
+            This method creates a new Results object, leaving the original unchanged. It's useful for
+            interoperability with numpy-based libraries or when CPU-based operations are required.
+        """
+        return self._apply("numpy")
+
+    def cuda(self):
+        """
+        Moves all tensors in the Results object to GPU memory.
+
+        Returns:
+            (Results): A new Results object with all tensors moved to CUDA device.
+
+        Examples:
+            >>> results = model("path/to/image.jpg")
+            >>> cuda_results = results[0].cuda()  # Move first result to GPU
+            >>> for result in results:
+            ...     result_cuda = result.cuda()  # Move each result to GPU
+        """
+        return self._apply("cuda")
+
+    def to(self, *args, **kwargs):
+        """
+        Moves all tensors in the Results object to the specified device and dtype.
+
+        Args:
+            *args (Any): Variable length argument list to be passed to torch.Tensor.to().
+            **kwargs (Any): Arbitrary keyword arguments to be passed to torch.Tensor.to().
+
+        Returns:
+            (Results): A new Results object with all tensors moved to the specified device and dtype.
+
+        Examples:
+            >>> results = model("path/to/image.jpg")
+            >>> result_cuda = results[0].to("cuda")  # Move first result to GPU
+            >>> result_cpu = results[0].to("cpu")  # Move first result to CPU
+            >>> result_half = results[0].to(dtype=torch.float16)  # Convert first result to half precision
+        """
+        return self._apply("to", *args, **kwargs)
+
+    def new(self):
+        """
+        Creates a new Results object with the same image, path, names, and speed attributes.
+
+        Returns:
+            (Results): A new Results object with copied attributes from the original instance.
+
+        Examples:
+            >>> results = model("path/to/image.jpg")
+            >>> new_result = results[0].new()
+        """
+        return Results(orig_img=self.orig_img, path=self.path, names=self.names, speed=self.speed)
+
+    def plot(
+        self,
+        conf=True,
+        line_width=None,
+        font_size=None,
+        font="Arial.ttf",
+        pil=False,
+        img=None,
+        im_gpu=None,
+        kpt_radius=5,
+        kpt_line=True,
+        labels=True,
+        boxes=True,
+        masks=True,
+        probs=True,
+        show=False,
+        save=False,
+        filename=None,
+        color_mode="class",
     ):
         """
-        Plot the pose angle, count value and step stage.
+        Plots detection results on an input RGB image.
 
         Args:
-            angle_text (str): angle value for workout monitoring
-            count_text (str): counts value for workout monitoring
-            stage_text (str): stage decision for workout monitoring
-            center_kpt (list): centroid pose index for workout monitoring
-            color (tuple): text background color for workout monitoring
-            txt_color (tuple): text foreground color for workout monitoring
+            conf (bool): Whether to plot detection confidence scores.
+            line_width (float | None): Line width of bounding boxes. If None, scaled to image size.
+            font_size (float | None): Font size for text. If None, scaled to image size.
+            font (str): Font to use for text.
+            pil (bool): Whether to return the image as a PIL Image.
+            img (np.ndarray | None): Image to plot on. If None, uses original image.
+            im_gpu (torch.Tensor | None): Normalized image on GPU for faster mask plotting.
+            kpt_radius (int): Radius of drawn keypoints.
+            kpt_line (bool): Whether to draw lines connecting keypoints.
+            labels (bool): Whether to plot labels of bounding boxes.
+            boxes (bool): Whether to plot bounding boxes.
+            masks (bool): Whether to plot masks.
+            probs (bool): Whether to plot classification probabilities.
+            show (bool): Whether to display the annotated image.
+            save (bool): Whether to save the annotated image.
+            filename (str | None): Filename to save image if save is True.
+            color_mode (bool): Specify the color mode, e.g., 'instance' or 'class'. Default to 'class'.
+
+        Returns:
+            (np.ndarray): Annotated image as a numpy array.
+
+        Examples:
+            >>> results = model("image.jpg")
+            >>> for result in results:
+            ...     im = result.plot()
+            ...     im.show()
         """
-        angle_text, count_text, stage_text = (f" {angle_text:.2f}", f"Steps : {count_text}", f" {stage_text}")
+        assert color_mode in {"instance", "class"}, f"Expected color_mode='instance' or 'class', not {color_mode}."
+        if img is None and isinstance(self.orig_img, torch.Tensor):
+            img = (self.orig_img[0].detach().permute(1, 2, 0).contiguous() * 255).to(torch.uint8).cpu().numpy()
 
-        # Draw angle
-        (angle_text_width, angle_text_height), _ = cv2.getTextSize(angle_text, 0, self.sf, self.tf)
-        angle_text_position = (int(center_kpt[0]), int(center_kpt[1]))
-        angle_background_position = (angle_text_position[0], angle_text_position[1] - angle_text_height - 5)
-        angle_background_size = (angle_text_width + 2 * 5, angle_text_height + 2 * 5 + (self.tf * 2))
-        cv2.rectangle(
-            self.im,
-            angle_background_position,
-            (
-                angle_background_position[0] + angle_background_size[0],
-                angle_background_position[1] + angle_background_size[1],
-            ),
-            color,
-            -1,
+        names = self.names
+        is_obb = self.obb is not None
+        pred_boxes, show_boxes = self.obb if is_obb else self.boxes, boxes
+        pred_masks, show_masks = self.masks, masks
+        pred_probs, show_probs = self.probs, probs
+        annotator = Annotator(
+            deepcopy(self.orig_img if img is None else img),
+            line_width,
+            font_size,
+            font,
+            pil or (pred_probs is not None and show_probs),  # Classify tasks default to pil=True
+            example=names,
         )
-        cv2.putText(self.im, angle_text, angle_text_position, 0, self.sf, txt_color, self.tf)
 
-        # Draw Counts
-        (count_text_width, count_text_height), _ = cv2.getTextSize(count_text, 0, self.sf, self.tf)
-        count_text_position = (angle_text_position[0], angle_text_position[1] + angle_text_height + 20)
-        count_background_position = (
-            angle_background_position[0],
-            angle_background_position[1] + angle_background_size[1] + 5,
-        )
-        count_background_size = (count_text_width + 10, count_text_height + 10 + self.tf)
+        # Plot Segment results
+        if pred_masks and show_masks:
+            if im_gpu is None:
+                img = LetterBox(pred_masks.shape[1:])(image=annotator.result())
+                im_gpu = (
+                    torch.as_tensor(img, dtype=torch.float16, device=pred_masks.data.device)
+                    .permute(2, 0, 1)
+                    .flip(0)
+                    .contiguous()
+                    / 255
+                )
+            idx = (
+                pred_boxes.id
+                if pred_boxes.id is not None and color_mode == "instance"
+                else pred_boxes.cls
+                if pred_boxes and color_mode == "class"
+                else reversed(range(len(pred_masks)))
+            )
+            annotator.masks(pred_masks.data, colors=[colors(x, True) for x in idx], im_gpu=im_gpu)
 
-        cv2.rectangle(
-            self.im,
-            count_background_position,
-            (
-                count_background_position[0] + count_background_size[0],
-                count_background_position[1] + count_background_size[1],
-            ),
-            color,
-            -1,
-        )
-        cv2.putText(self.im, count_text, count_text_position, 0, self.sf, txt_color, self.tf)
+        # Plot Detect results
+        if pred_boxes is not None and show_boxes:
+            for i, d in enumerate(reversed(pred_boxes)):
+                c, conf, id = int(d.cls), float(d.conf) if conf else None, None if d.id is None else int(d.id.item())
+                name = ("" if id is None else f"id:{id} ") + names[c]
+                label = (f"{name} {conf:.2f}" if conf else name) if labels else None
+                box = d.xyxyxyxy.reshape(-1, 4, 2).squeeze() if is_obb else d.xyxy.squeeze()
+                annotator.box_label(
+                    box,
+                    label,
+                    color=colors(
+                        c
+                        if color_mode == "class"
+                        else id
+                        if id is not None
+                        else i
+                        if color_mode == "instance"
+                        else None,
+                        True,
+                    ),
+                    rotated=is_obb,
+                )
 
-        # Draw Stage
-        (stage_text_width, stage_text_height), _ = cv2.getTextSize(stage_text, 0, self.sf, self.tf)
-        stage_text_position = (int(center_kpt[0]), int(center_kpt[1]) + angle_text_height + count_text_height + 40)
-        stage_background_position = (stage_text_position[0], stage_text_position[1] - stage_text_height - 5)
-        stage_background_size = (stage_text_width + 10, stage_text_height + 10)
+        # Plot Classify results
+        if pred_probs is not None and show_probs:
+            text = ",\n".join(f"{names[j] if names else j} {pred_probs.data[j]:.2f}" for j in pred_probs.top5)
+            x = round(self.orig_shape[0] * 0.03)
+            annotator.text([x, x], text, txt_color=(255, 255, 255))  # TODO: allow setting colors
 
-        cv2.rectangle(
-            self.im,
-            stage_background_position,
-            (
-                stage_background_position[0] + stage_background_size[0],
-                stage_background_position[1] + stage_background_size[1],
-            ),
-            color,
-            -1,
-        )
-        cv2.putText(self.im, stage_text, stage_text_position, 0, self.sf, txt_color, self.tf)
+        # Plot Pose results
+        if self.keypoints is not None:
+            for i, k in enumerate(reversed(self.keypoints.data)):
+                annotator.kpts(
+                    k,
+                    self.orig_shape,
+                    radius=kpt_radius,
+                    kpt_line=kpt_line,
+                    kpt_color=colors(i, True) if color_mode == "instance" else None,
+                )
 
-    def seg_bbox(self, mask, mask_color=(255, 0, 255), label=None, txt_color=(255, 255, 255)):
+        # Show results
+        if show:
+            annotator.show(self.path)
+
+        # Save results
+        if save:
+            annotator.save(filename)
+
+        return annotator.result()
+
+    def show(self, *args, **kwargs):
         """
-        Function for drawing segmented object in bounding box shape.
+        Display the image with annotated inference results.
+
+        This method plots the detection results on the original image and displays it. It's a convenient way to
+        visualize the model's predictions directly.
 
         Args:
-            mask (list): masks data list for instance segmentation area plotting
-            mask_color (RGB): mask foreground color
-            label (str): Detection label text
-            txt_color (RGB): text color
+            *args (Any): Variable length argument list to be passed to the `plot()` method.
+            **kwargs (Any): Arbitrary keyword arguments to be passed to the `plot()` method.
+
+        Examples:
+            >>> results = model("path/to/image.jpg")
+            >>> results[0].show()  # Display the first result
+            >>> for result in results:
+            ...     result.show()  # Display all results
         """
-        cv2.polylines(self.im, [np.int32([mask])], isClosed=True, color=mask_color, thickness=2)
-        text_size, _ = cv2.getTextSize(label, 0, self.sf, self.tf)
+        self.plot(show=True, *args, **kwargs)
 
-        cv2.rectangle(
-            self.im,
-            (int(mask[0][0]) - text_size[0] // 2 - 10, int(mask[0][1]) - text_size[1] - 10),
-            (int(mask[0][0]) + text_size[0] // 2 + 10, int(mask[0][1] + 10)),
-            mask_color,
-            -1,
-        )
+    def save(self, filename=None, *args, **kwargs):
+        """
+        Saves annotated inference results image to file.
 
-        if label:
-            cv2.putText(
-                self.im, label, (int(mask[0][0]) - text_size[0] // 2, int(mask[0][1])), 0, self.sf, txt_color, self.tf
+        This method plots the detection results on the original image and saves the annotated image to a file. It
+        utilizes the `plot` method to generate the annotated image and then saves it to the specified filename.
+
+        Args:
+            filename (str | Path | None): The filename to save the annotated image. If None, a default filename
+                is generated based on the original image path.
+            *args (Any): Variable length argument list to be passed to the `plot` method.
+            **kwargs (Any): Arbitrary keyword arguments to be passed to the `plot` method.
+
+        Examples:
+            >>> results = model("path/to/image.jpg")
+            >>> for result in results:
+            ...     result.save("annotated_image.jpg")
+            >>> # Or with custom plot arguments
+            >>> for result in results:
+            ...     result.save("annotated_image.jpg", conf=False, line_width=2)
+        """
+        if not filename:
+            filename = f"results_{Path(self.path).name}"
+        self.plot(save=True, filename=filename, *args, **kwargs)
+        return filename
+
+    def verbose(self):
+        """
+        Returns a log string for each task in the results, detailing detection and classification outcomes.
+
+        This method generates a human-readable string summarizing the detection and classification results. It includes
+        the number of detections for each class and the top probabilities for classification tasks.
+
+        Returns:
+            (str): A formatted string containing a summary of the results. For detection tasks, it includes the
+                number of detections per class. For classification tasks, it includes the top 5 class probabilities.
+
+        Examples:
+            >>> results = model("path/to/image.jpg")
+            >>> for result in results:
+            ...     print(result.verbose())
+            2 persons, 1 car, 3 traffic lights,
+            dog 0.92, cat 0.78, horse 0.64,
+
+        Notes:
+            - If there are no detections, the method returns "(no detections), " for detection tasks.
+            - For classification tasks, it returns the top 5 class probabilities and their corresponding class names.
+            - The returned string is comma-separated and ends with a comma and a space.
+        """
+        log_string = ""
+        probs = self.probs
+        boxes = self.boxes
+        if len(self) == 0:
+            return log_string if probs is not None else f"{log_string}(no detections), "
+        if probs is not None:
+            log_string += f"{', '.join(f'{self.names[j]} {probs.data[j]:.2f}' for j in probs.top5)}, "
+        if boxes:
+            for c in boxes.cls.unique():
+                n = (boxes.cls == c).sum()  # detections per class
+                log_string += f"{n} {self.names[int(c)]}{'s' * (n > 1)}, "
+        return log_string
+
+    def save_txt(self, txt_file, save_conf=False):
+        """
+        Save detection results to a text file.
+
+        Args:
+            txt_file (str | Path): Path to the output text file.
+            save_conf (bool): Whether to include confidence scores in the output.
+
+        Returns:
+            (str): Path to the saved text file.
+
+        Examples:
+            >>> from ultralytics import YOLO
+            >>> model = YOLO("yolov8n.pt")
+            >>> results = model("path/to/image.jpg")
+            >>> for result in results:
+            ...     result.save_txt("output.txt")
+
+        Notes:
+            - The file will contain one line per detection or classification with the following structure:
+              - For detections: `class confidence x_center y_center width height`
+              - For classifications: `confidence class_name`
+              - For masks and keypoints, the specific formats will vary accordingly.
+            - The function will create the output directory if it does not exist.
+            - If save_conf is False, the confidence scores will be excluded from the output.
+            - Existing contents of the file will not be overwritten; new results will be appended.
+        """
+        is_obb = self.obb is not None
+        boxes = self.obb if is_obb else self.boxes
+        masks = self.masks
+        probs = self.probs
+        kpts = self.keypoints
+        texts = []
+        if probs is not None:
+            # Classify
+            [texts.append(f"{probs.data[j]:.2f} {self.names[j]}") for j in probs.top5]
+        elif boxes:
+            # Detect/segment/pose
+            for j, d in enumerate(boxes):
+                c, conf, id = int(d.cls), float(d.conf), None if d.id is None else int(d.id.item())
+                line = (c, *(d.xyxyxyxyn.view(-1) if is_obb else d.xywhn.view(-1)))
+                if masks:
+                    seg = masks[j].xyn[0].copy().reshape(-1)  # reversed mask.xyn, (n,2) to (n*2)
+                    line = (c, *seg)
+                if kpts is not None:
+                    kpt = torch.cat((kpts[j].xyn, kpts[j].conf[..., None]), 2) if kpts[j].has_visible else kpts[j].xyn
+                    line += (*kpt.reshape(-1).tolist(),)
+                line += (conf,) * save_conf + (() if id is None else (id,))
+                texts.append(("%g " * len(line)).rstrip() % line)
+
+        if texts:
+            Path(txt_file).parent.mkdir(parents=True, exist_ok=True)  # make directory
+            with open(txt_file, "a") as f:
+                f.writelines(text + "\n" for text in texts)
+
+    def save_crop(self, save_dir, file_name=Path("im.jpg")):
+        """
+        Saves cropped detection images to specified directory.
+
+        This method saves cropped images of detected objects to a specified directory. Each crop is saved in a
+        subdirectory named after the object's class, with the filename based on the input file_name.
+
+        Args:
+            save_dir (str | Path): Directory path where cropped images will be saved.
+            file_name (str | Path): Base filename for the saved cropped images. Default is Path("im.jpg").
+
+        Notes:
+            - This method does not support Classify or Oriented Bounding Box (OBB) tasks.
+            - Crops are saved as 'save_dir/class_name/file_name.jpg'.
+            - The method will create necessary subdirectories if they don't exist.
+            - Original image is copied before cropping to avoid modifying the original.
+
+        Examples:
+            >>> results = model("path/to/image.jpg")
+            >>> for result in results:
+            ...     result.save_crop(save_dir="path/to/crops", file_name="detection")
+        """
+        if self.probs is not None:
+            LOGGER.warning("WARNING ⚠️ Classify task do not support `save_crop`.")
+            return
+        if self.obb is not None:
+            LOGGER.warning("WARNING ⚠️ OBB task do not support `save_crop`.")
+            return
+        for d in self.boxes:
+            save_one_box(
+                d.xyxy,
+                self.orig_img.copy(),
+                file=Path(save_dir) / self.names[int(d.cls)] / f"{Path(file_name)}.jpg",
+                BGR=True,
             )
 
-    def plot_distance_and_line(self, pixels_distance, centroids, line_color, centroid_color):
+    def summary(self, normalize=False, decimals=5):
         """
-        Plot the distance and line on frame.
+        Converts inference results to a summarized dictionary with optional normalization for box coordinates.
+
+        This method creates a list of detection dictionaries, each containing information about a single
+        detection or classification result. For classification tasks, it returns the top class and its
+        confidence. For detection tasks, it includes class information, bounding box coordinates, and
+        optionally mask segments and keypoints.
 
         Args:
-            pixels_distance (float): Pixels distance between two bbox centroids.
-            centroids (list): Bounding box centroids data.
-            line_color (RGB): Distance line color.
-            centroid_color (RGB): Bounding box centroid color.
+            normalize (bool): Whether to normalize bounding box coordinates by image dimensions. Defaults to False.
+            decimals (int): Number of decimal places to round the output values to. Defaults to 5.
+
+        Returns:
+            (List[Dict]): A list of dictionaries, each containing summarized information for a single
+                detection or classification result. The structure of each dictionary varies based on the
+                task type (classification or detection) and available information (boxes, masks, keypoints).
+
+        Examples:
+            >>> results = model("image.jpg")
+            >>> summary = results[0].summary()
+            >>> print(summary)
         """
-        # Get the text size
-        (text_width_m, text_height_m), _ = cv2.getTextSize(
-            f"Pixels Distance: {pixels_distance:.2f}", 0, self.sf, self.tf
-        )
+        # Create list of detection dictionaries
+        results = []
+        if self.probs is not None:
+            class_id = self.probs.top1
+            results.append(
+                {
+                    "name": self.names[class_id],
+                    "class": class_id,
+                    "confidence": round(self.probs.top1conf.item(), decimals),
+                }
+            )
+            return results
 
-        # Define corners with 10-pixel margin and draw rectangle
-        top_left = (15, 25)
-        bottom_right = (15 + text_width_m + 20, 25 + text_height_m + 20)
-        cv2.rectangle(self.im, top_left, bottom_right, centroid_color, -1)
+        is_obb = self.obb is not None
+        data = self.obb if is_obb else self.boxes
+        h, w = self.orig_shape if normalize else (1, 1)
+        for i, row in enumerate(data):  # xyxy, track_id if tracking, conf, class_id
+            class_id, conf = int(row.cls), round(row.conf.item(), decimals)
+            box = (row.xyxyxyxy if is_obb else row.xyxy).squeeze().reshape(-1, 2).tolist()
+            xy = {}
+            for j, b in enumerate(box):
+                xy[f"x{j + 1}"] = round(b[0] / w, decimals)
+                xy[f"y{j + 1}"] = round(b[1] / h, decimals)
+            result = {"name": self.names[class_id], "class": class_id, "confidence": conf, "box": xy}
+            if data.is_track:
+                result["track_id"] = int(row.id.item())  # track ID
+            if self.masks:
+                result["segments"] = {
+                    "x": (self.masks.xy[i][:, 0] / w).round(decimals).tolist(),
+                    "y": (self.masks.xy[i][:, 1] / h).round(decimals).tolist(),
+                }
+            if self.keypoints is not None:
+                x, y, visible = self.keypoints[i].data[0].cpu().unbind(dim=1)  # torch Tensor
+                result["keypoints"] = {
+                    "x": (x / w).numpy().round(decimals).tolist(),  # decimals named argument required
+                    "y": (y / h).numpy().round(decimals).tolist(),
+                    "visible": visible.numpy().round(decimals).tolist(),
+                }
+            results.append(result)
 
-        # Calculate the position for the text with a 10-pixel margin and draw text
-        text_position = (top_left[0] + 10, top_left[1] + text_height_m + 10)
-        cv2.putText(
-            self.im,
-            f"Pixels Distance: {pixels_distance:.2f}",
-            text_position,
-            0,
-            self.sf,
-            (255, 255, 255),
-            self.tf,
-            cv2.LINE_AA,
-        )
+        return results
 
-        cv2.line(self.im, centroids[0], centroids[1], line_color, 3)
-        cv2.circle(self.im, centroids[0], 6, centroid_color, -1)
-        cv2.circle(self.im, centroids[1], 6, centroid_color, -1)
-
-    def visioneye(self, box, center_point, color=(235, 219, 11), pin_color=(255, 0, 255)):
+    def to_df(self, normalize=False, decimals=5):
         """
-        Function for pinpoint human-vision eye mapping and plotting.
+        Converts detection results to a Pandas Dataframe.
+
+        This method converts the detection results into Pandas Dataframe format. It includes information
+        about detected objects such as bounding boxes, class names, confidence scores, and optionally
+        segmentation masks and keypoints.
 
         Args:
-            box (list): Bounding box coordinates
-            center_point (tuple): center point for vision eye view
-            color (tuple): object centroid and line color value
-            pin_color (tuple): visioneye point color value
+            normalize (bool): Whether to normalize the bounding box coordinates by the image dimensions.
+                If True, coordinates will be returned as float values between 0 and 1. Defaults to False.
+            decimals (int): Number of decimal places to round the output values to. Defaults to 5.
+
+        Returns:
+            (DataFrame): A Pandas Dataframe containing all the information in results in an organized way.
+
+        Examples:
+            >>> results = model("path/to/image.jpg")
+            >>> df_result = results[0].to_df()
+            >>> print(df_result)
         """
-        center_bbox = int((box[0] + box[2]) / 2), int((box[1] + box[3]) / 2)
-        cv2.circle(self.im, center_point, self.tf * 2, pin_color, -1)
-        cv2.circle(self.im, center_bbox, self.tf * 2, color, -1)
-        cv2.line(self.im, center_point, center_bbox, color, self.tf)
+        import pandas as pd
+
+        return pd.DataFrame(self.summary(normalize=normalize, decimals=decimals))
+
+    def to_csv(self, normalize=False, decimals=5, *args, **kwargs):
+        """
+        Converts detection results to a CSV format.
+
+        This method serializes the detection results into a CSV format. It includes information
+        about detected objects such as bounding boxes, class names, confidence scores, and optionally
+        segmentation masks and keypoints.
+
+        Args:
+            normalize (bool): Whether to normalize the bounding box coordinates by the image dimensions.
+                If True, coordinates will be returned as float values between 0 and 1. Defaults to False.
+            decimals (int): Number of decimal places to round the output values to. Defaults to 5.
+            *args (Any): Variable length argument list to be passed to pandas.DataFrame.to_csv().
+            **kwargs (Any): Arbitrary keyword arguments to be passed to pandas.DataFrame.to_csv().
 
 
-@TryExcept()  # known issue https://github.com/ultralytics/yolov5/issues/5395
-@plt_settings()
-def plot_labels(boxes, cls, names=(), save_dir=Path(""), on_plot=None):
-    """Plot training labels including class histograms and box statistics."""
-    import pandas  # scope for faster 'import ultralytics'
-    import seaborn  # scope for faster 'import ultralytics'
+        Returns:
+            (str): CSV containing all the information in results in an organized way.
 
-    # Filter matplotlib>=3.7.2 warning and Seaborn use_inf and is_categorical FutureWarnings
-    warnings.filterwarnings("ignore", category=UserWarning, message="The figure layout has changed to tight")
-    warnings.filterwarnings("ignore", category=FutureWarning)
+        Examples:
+            >>> results = model("path/to/image.jpg")
+            >>> csv_result = results[0].to_csv()
+            >>> print(csv_result)
+        """
+        return self.to_df(normalize=normalize, decimals=decimals).to_csv(*args, **kwargs)
 
-    # Plot dataset labels
-    LOGGER.info(f"Plotting labels to {save_dir / 'labels.jpg'}... ")
-    nc = int(cls.max() + 1)  # number of classes
-    boxes = boxes[:1000000]  # limit to 1M boxes
-    x = pandas.DataFrame(boxes, columns=["x", "y", "width", "height"])
+    def to_xml(self, normalize=False, decimals=5, *args, **kwargs):
+        """
+        Converts detection results to XML format.
 
-    # Seaborn correlogram
-    seaborn.pairplot(x, corner=True, diag_kind="auto", kind="hist", diag_kws=dict(bins=50), plot_kws=dict(pmax=0.9))
-    plt.savefig(save_dir / "labels_correlogram.jpg", dpi=200)
-    plt.close()
+        This method serializes the detection results into an XML format. It includes information
+        about detected objects such as bounding boxes, class names, confidence scores, and optionally
+        segmentation masks and keypoints.
 
-    # Matplotlib labels
-    ax = plt.subplots(2, 2, figsize=(8, 8), tight_layout=True)[1].ravel()
-    y = ax[0].hist(cls, bins=np.linspace(0, nc, nc + 1) - 0.5, rwidth=0.8)
-    for i in range(nc):
-        y[2].patches[i].set_color([x / 255 for x in colors(i)])
-    ax[0].set_ylabel("instances")
-    if 0 < len(names) < 30:
-        ax[0].set_xticks(range(len(names)))
-        ax[0].set_xticklabels(list(names.values()), rotation=90, fontsize=10)
-    else:
-        ax[0].set_xlabel("classes")
-    seaborn.histplot(x, x="x", y="y", ax=ax[2], bins=50, pmax=0.9)
-    seaborn.histplot(x, x="width", y="height", ax=ax[3], bins=50, pmax=0.9)
+        Args:
+            normalize (bool): Whether to normalize the bounding box coordinates by the image dimensions.
+                If True, coordinates will be returned as float values between 0 and 1. Defaults to False.
+            decimals (int): Number of decimal places to round the output values to. Defaults to 5.
+            *args (Any): Variable length argument list to be passed to pandas.DataFrame.to_xml().
+            **kwargs (Any): Arbitrary keyword arguments to be passed to pandas.DataFrame.to_xml().
 
-    # Rectangles
-    boxes[:, 0:2] = 0.5  # center
-    boxes = ops.xywh2xyxy(boxes) * 1000
-    img = Image.fromarray(np.ones((1000, 1000, 3), dtype=np.uint8) * 255)
-    for cls, box in zip(cls[:500], boxes[:500]):
-        ImageDraw.Draw(img).rectangle(box, width=1, outline=colors(cls))  # plot
-    ax[1].imshow(img)
-    ax[1].axis("off")
+        Returns:
+            (str): An XML string containing all the information in results in an organized way.
 
-    for a in [0, 1, 2, 3]:
-        for s in ["top", "right", "left", "bottom"]:
-            ax[a].spines[s].set_visible(False)
+        Examples:
+            >>> results = model("path/to/image.jpg")
+            >>> xml_result = results[0].to_xml()
+            >>> print(xml_result)
+        """
+        check_requirements("lxml")
+        df = self.to_df(normalize=normalize, decimals=decimals)
+        return '<?xml version="1.0" encoding="utf-8"?>\n<root></root>' if df.empty else df.to_xml(*args, **kwargs)
 
-    fname = save_dir / "labels.jpg"
-    plt.savefig(fname, dpi=200)
-    plt.close()
-    if on_plot:
-        on_plot(fname)
+    def tojson(self, normalize=False, decimals=5):
+        """Deprecated version of to_json()."""
+        LOGGER.warning("WARNING ⚠️ 'result.tojson()' is deprecated, replace with 'result.to_json()'.")
+        return self.to_json(normalize, decimals)
+
+    def to_json(self, normalize=False, decimals=5):
+        """
+        Converts detection results to JSON format.
+
+        This method serializes the detection results into a JSON-compatible format. It includes information
+        about detected objects such as bounding boxes, class names, confidence scores, and optionally
+        segmentation masks and keypoints.
+
+        Args:
+            normalize (bool): Whether to normalize the bounding box coordinates by the image dimensions.
+                If True, coordinates will be returned as float values between 0 and 1. Defaults to False.
+            decimals (int): Number of decimal places to round the output values to. Defaults to 5.
+
+        Returns:
+            (str): A JSON string containing the serialized detection results.
+
+        Examples:
+            >>> results = model("path/to/image.jpg")
+            >>> json_result = results[0].to_json()
+            >>> print(json_result)
+
+        Notes:
+            - For classification tasks, the JSON will contain class probabilities instead of bounding boxes.
+            - For object detection tasks, the JSON will include bounding box coordinates, class names, and
+              confidence scores.
+            - If available, segmentation masks and keypoints will also be included in the JSON output.
+            - The method uses the `summary` method internally to generate the data structure before
+              converting it to JSON.
+        """
+        import json
+
+        return json.dumps(self.summary(normalize=normalize, decimals=decimals), indent=2)
 
 
-def save_one_box(xyxy, im, file=Path("im.jpg"), gain=1.02, pad=10, square=False, BGR=False, save=True):
+class Boxes(BaseTensor):
     """
-    Save image crop as {file} with crop size multiple {gain} and {pad} pixels. Save and/or return crop.
+    A class for managing and manipulating detection boxes.
 
-    This function takes a bounding box and an image, and then saves a cropped portion of the image according
-    to the bounding box. Optionally, the crop can be squared, and the function allows for gain and padding
-    adjustments to the bounding box.
+    This class provides functionality for handling detection boxes, including their coordinates, confidence scores,
+    class labels, and optional tracking IDs. It supports various box formats and offers methods for easy manipulation
+    and conversion between different coordinate systems.
 
-    Args:
-        xyxy (torch.Tensor or list): A tensor or list representing the bounding box in xyxy format.
-        im (numpy.ndarray): The input image.
-        file (Path, optional): The path where the cropped image will be saved. Defaults to 'im.jpg'.
-        gain (float, optional): A multiplicative factor to increase the size of the bounding box. Defaults to 1.02.
-        pad (int, optional): The number of pixels to add to the width and height of the bounding box. Defaults to 10.
-        square (bool, optional): If True, the bounding box will be transformed into a square. Defaults to False.
-        BGR (bool, optional): If True, the image will be saved in BGR format, otherwise in RGB. Defaults to False.
-        save (bool, optional): If True, the cropped image will be saved to disk. Defaults to True.
+    Attributes:
+        data (torch.Tensor | numpy.ndarray): The raw tensor containing detection boxes and associated data.
+        orig_shape (Tuple[int, int]): The original image dimensions (height, width).
+        is_track (bool): Indicates whether tracking IDs are included in the box data.
+        xyxy (torch.Tensor | numpy.ndarray): Boxes in [x1, y1, x2, y2] format.
+        conf (torch.Tensor | numpy.ndarray): Confidence scores for each box.
+        cls (torch.Tensor | numpy.ndarray): Class labels for each box.
+        id (torch.Tensor | numpy.ndarray): Tracking IDs for each box (if available).
+        xywh (torch.Tensor | numpy.ndarray): Boxes in [x, y, width, height] format.
+        xyxyn (torch.Tensor | numpy.ndarray): Normalized [x1, y1, x2, y2] boxes relative to orig_shape.
+        xywhn (torch.Tensor | numpy.ndarray): Normalized [x, y, width, height] boxes relative to orig_shape.
 
-    Returns:
-        (numpy.ndarray): The cropped image.
-
-    Example:
-        ```python
-        from ultralytics.utils.plotting import save_one_box
-
-        xyxy = [50, 50, 150, 150]
-        im = cv2.imread("image.jpg")
-        cropped_im = save_one_box(xyxy, im, file="cropped.jpg", square=True)
-        ```
-    """
-    if not isinstance(xyxy, torch.Tensor):  # may be list
-        xyxy = torch.stack(xyxy)
-    b = ops.xyxy2xywh(xyxy.view(-1, 4))  # boxes
-    if square:
-        b[:, 2:] = b[:, 2:].max(1)[0].unsqueeze(1)  # attempt rectangle to square
-    b[:, 2:] = b[:, 2:] * gain + pad  # box wh * gain + pad
-    xyxy = ops.xywh2xyxy(b).long()
-    xyxy = ops.clip_boxes(xyxy, im.shape)
-    crop = im[int(xyxy[0, 1]) : int(xyxy[0, 3]), int(xyxy[0, 0]) : int(xyxy[0, 2]), :: (1 if BGR else -1)]
-    if save:
-        file.parent.mkdir(parents=True, exist_ok=True)  # make directory
-        f = str(increment_path(file).with_suffix(".jpg"))
-        # cv2.imwrite(f, crop)  # save BGR, https://github.com/ultralytics/yolov5/issues/7007 chroma subsampling issue
-        Image.fromarray(crop[..., ::-1]).save(f, quality=95, subsampling=0)  # save RGB
-    return crop
-
-
-@threaded
-def plot_images(
-    images: Union[torch.Tensor, np.ndarray],
-    batch_idx: Union[torch.Tensor, np.ndarray],
-    cls: Union[torch.Tensor, np.ndarray],
-    bboxes: Union[torch.Tensor, np.ndarray] = np.zeros(0, dtype=np.float32),
-    confs: Optional[Union[torch.Tensor, np.ndarray]] = None,
-    masks: Union[torch.Tensor, np.ndarray] = np.zeros(0, dtype=np.uint8),
-    kpts: Union[torch.Tensor, np.ndarray] = np.zeros((0, 51), dtype=np.float32),
-    paths: Optional[List[str]] = None,
-    fname: str = "images.jpg",
-    names: Optional[Dict[int, str]] = None,
-    on_plot: Optional[Callable] = None,
-    max_size: int = 1920,
-    max_subplots: int = 16,
-    save: bool = True,
-    conf_thres: float = 0.25,
-) -> Optional[np.ndarray]:
-    """
-    Plot image grid with labels, bounding boxes, masks, and keypoints.
-
-    Args:
-        images: Batch of images to plot. Shape: (batch_size, channels, height, width).
-        batch_idx: Batch indices for each detection. Shape: (num_detections,).
-        cls: Class labels for each detection. Shape: (num_detections,).
-        bboxes: Bounding boxes for each detection. Shape: (num_detections, 4) or (num_detections, 5) for rotated boxes.
-        confs: Confidence scores for each detection. Shape: (num_detections,).
-        masks: Instance segmentation masks. Shape: (num_detections, height, width) or (1, height, width).
-        kpts: Keypoints for each detection. Shape: (num_detections, 51).
-        paths: List of file paths for each image in the batch.
-        fname: Output filename for the plotted image grid.
-        names: Dictionary mapping class indices to class names.
-        on_plot: Optional callback function to be called after saving the plot.
-        max_size: Maximum size of the output image grid.
-        max_subplots: Maximum number of subplots in the image grid.
-        save: Whether to save the plotted image grid to a file.
-        conf_thres: Confidence threshold for displaying detections.
-
-    Returns:
-        np.ndarray: Plotted image grid as a numpy array if save is False, None otherwise.
-
-    Note:
-        This function supports both tensor and numpy array inputs. It will automatically
-        convert tensor inputs to numpy arrays for processing.
-    """
-    if isinstance(images, torch.Tensor):
-        images = images.cpu().float().numpy()
-    if isinstance(cls, torch.Tensor):
-        cls = cls.cpu().numpy()
-    if isinstance(bboxes, torch.Tensor):
-        bboxes = bboxes.cpu().numpy()
-    if isinstance(masks, torch.Tensor):
-        masks = masks.cpu().numpy().astype(int)
-    if isinstance(kpts, torch.Tensor):
-        kpts = kpts.cpu().numpy()
-    if isinstance(batch_idx, torch.Tensor):
-        batch_idx = batch_idx.cpu().numpy()
-
-    bs, _, h, w = images.shape  # batch size, _, height, width
-    bs = min(bs, max_subplots)  # limit plot images
-    ns = np.ceil(bs**0.5)  # number of subplots (square)
-    if np.max(images[0]) <= 1:
-        images *= 255  # de-normalise (optional)
-
-    # Build Image
-    mosaic = np.full((int(ns * h), int(ns * w), 3), 255, dtype=np.uint8)  # init
-    for i in range(bs):
-        x, y = int(w * (i // ns)), int(h * (i % ns))  # block origin
-        mosaic[y : y + h, x : x + w, :] = images[i].transpose(1, 2, 0)
-
-    # Resize (optional)
-    scale = max_size / ns / max(h, w)
-    if scale < 1:
-        h = math.ceil(scale * h)
-        w = math.ceil(scale * w)
-        mosaic = cv2.resize(mosaic, tuple(int(x * ns) for x in (w, h)))
-
-    # Annotate
-    fs = int((h + w) * ns * 0.01)  # font size
-    annotator = Annotator(mosaic, line_width=round(fs / 10), font_size=fs, pil=True, example=names)
-    for i in range(bs):
-        x, y = int(w * (i // ns)), int(h * (i % ns))  # block origin
-        annotator.rectangle([x, y, x + w, y + h], None, (255, 255, 255), width=2)  # borders
-        if paths:
-            annotator.text((x + 5, y + 5), text=Path(paths[i]).name[:40], txt_color=(220, 220, 220))  # filenames
-        if len(cls) > 0:
-            idx = batch_idx == i
-            classes = cls[idx].astype("int")
-            labels = confs is None
-
-            if len(bboxes):
-                boxes = bboxes[idx]
-                conf = confs[idx] if confs is not None else None  # check for confidence presence (label vs pred)
-                if len(boxes):
-                    if boxes[:, :4].max() <= 1.1:  # if normalized with tolerance 0.1
-                        boxes[..., [0, 2]] *= w  # scale to pixels
-                        boxes[..., [1, 3]] *= h
-                    elif scale < 1:  # absolute coords need scale if image scales
-                        boxes[..., :4] *= scale
-                boxes[..., 0] += x
-                boxes[..., 1] += y
-                is_obb = boxes.shape[-1] == 5  # xywhr
-                boxes = ops.xywhr2xyxyxyxy(boxes) if is_obb else ops.xywh2xyxy(boxes)
-                for j, box in enumerate(boxes.astype(np.int64).tolist()):
-                    c = classes[j]
-                    color = colors(c)
-                    c = names.get(c, c) if names else c
-                    if labels or conf[j] > conf_thres:
-                        label = f"{c}" if labels else f"{c} {conf[j]:.1f}"
-                        annotator.box_label(box, label, color=color, rotated=is_obb)
-
-            elif len(classes):
-                for c in classes:
-                    color = colors(c)
-                    c = names.get(c, c) if names else c
-                    annotator.text((x, y), f"{c}", txt_color=color, box_style=True)
-
-            # Plot keypoints
-            if len(kpts):
-                kpts_ = kpts[idx].copy()
-                if len(kpts_):
-                    if kpts_[..., 0].max() <= 1.01 or kpts_[..., 1].max() <= 1.01:  # if normalized with tolerance .01
-                        kpts_[..., 0] *= w  # scale to pixels
-                        kpts_[..., 1] *= h
-                    elif scale < 1:  # absolute coords need scale if image scales
-                        kpts_ *= scale
-                kpts_[..., 0] += x
-                kpts_[..., 1] += y
-                for j in range(len(kpts_)):
-                    if labels or conf[j] > conf_thres:
-                        annotator.kpts(kpts_[j], conf_thres=conf_thres)
-
-            # Plot masks
-            if len(masks):
-                if idx.shape[0] == masks.shape[0]:  # overlap_masks=False
-                    image_masks = masks[idx]
-                else:  # overlap_masks=True
-                    image_masks = masks[[i]]  # (1, 640, 640)
-                    nl = idx.sum()
-                    index = np.arange(nl).reshape((nl, 1, 1)) + 1
-                    image_masks = np.repeat(image_masks, nl, axis=0)
-                    image_masks = np.where(image_masks == index, 1.0, 0.0)
-
-                im = np.asarray(annotator.im).copy()
-                for j in range(len(image_masks)):
-                    if labels or conf[j] > conf_thres:
-                        color = colors(classes[j])
-                        mh, mw = image_masks[j].shape
-                        if mh != h or mw != w:
-                            mask = image_masks[j].astype(np.uint8)
-                            mask = cv2.resize(mask, (w, h))
-                            mask = mask.astype(bool)
-                        else:
-                            mask = image_masks[j].astype(bool)
-                        with contextlib.suppress(Exception):
-                            im[y : y + h, x : x + w, :][mask] = (
-                                im[y : y + h, x : x + w, :][mask] * 0.4 + np.array(color) * 0.6
-                            )
-                annotator.fromarray(im)
-    if not save:
-        return np.asarray(annotator.im)
-    annotator.im.save(fname)  # save
-    if on_plot:
-        on_plot(fname)
-
-
-@plt_settings()
-def plot_results(file="path/to/results.csv", dir="", segment=False, pose=False, classify=False, on_plot=None):
-    """
-    Plot training results from a results CSV file. The function supports various types of data including segmentation,
-    pose estimation, and classification. Plots are saved as 'results.png' in the directory where the CSV is located.
-
-    Args:
-        file (str, optional): Path to the CSV file containing the training results. Defaults to 'path/to/results.csv'.
-        dir (str, optional): Directory where the CSV file is located if 'file' is not provided. Defaults to ''.
-        segment (bool, optional): Flag to indicate if the data is for segmentation. Defaults to False.
-        pose (bool, optional): Flag to indicate if the data is for pose estimation. Defaults to False.
-        classify (bool, optional): Flag to indicate if the data is for classification. Defaults to False.
-        on_plot (callable, optional): Callback function to be executed after plotting. Takes filename as an argument.
-            Defaults to None.
-
-    Example:
-        ```python
-        from ultralytics.utils.plotting import plot_results
-
-        plot_results("path/to/results.csv", segment=True)
-        ```
-    """
-    import pandas as pd  # scope for faster 'import ultralytics'
-    from scipy.ndimage import gaussian_filter1d
-
-    save_dir = Path(file).parent if file else Path(dir)
-    if classify:
-        fig, ax = plt.subplots(2, 2, figsize=(6, 6), tight_layout=True)
-        index = [1, 4, 2, 3]
-    elif segment:
-        fig, ax = plt.subplots(2, 8, figsize=(18, 6), tight_layout=True)
-        index = [1, 2, 3, 4, 5, 6, 9, 10, 13, 14, 15, 16, 7, 8, 11, 12]
-    elif pose:
-        fig, ax = plt.subplots(2, 9, figsize=(21, 6), tight_layout=True)
-        index = [1, 2, 3, 4, 5, 6, 7, 10, 11, 14, 15, 16, 17, 18, 8, 9, 12, 13]
-    else:
-        fig, ax = plt.subplots(2, 5, figsize=(12, 6), tight_layout=True)
-        index = [1, 2, 3, 4, 5, 8, 9, 10, 6, 7]
-    ax = ax.ravel()
-    files = list(save_dir.glob("results*.csv"))
-    assert len(files), f"No results.csv files found in {save_dir.resolve()}, nothing to plot."
-    for f in files:
-        try:
-            data = pd.read_csv(f)
-            s = [x.strip() for x in data.columns]
-            x = data.values[:, 0]
-            for i, j in enumerate(index):
-                y = data.values[:, j].astype("float")
-                # y[y == 0] = np.nan  # don't show zero values
-                ax[i].plot(x, y, marker=".", label=f.stem, linewidth=2, markersize=8)  # actual results
-                ax[i].plot(x, gaussian_filter1d(y, sigma=3), ":", label="smooth", linewidth=2)  # smoothing line
-                ax[i].set_title(s[j], fontsize=12)
-                # if j in {8, 9, 10}:  # share train and val loss y axes
-                #     ax[i].get_shared_y_axes().join(ax[i], ax[i - 5])
-        except Exception as e:
-            LOGGER.warning(f"WARNING: Plotting error for {f}: {e}")
-    ax[1].legend()
-    fname = save_dir / "results.png"
-    fig.savefig(fname, dpi=200)
-    plt.close()
-    if on_plot:
-        on_plot(fname)
-
-
-def plt_color_scatter(v, f, bins=20, cmap="viridis", alpha=0.8, edgecolors="none"):
-    """
-    Plots a scatter plot with points colored based on a 2D histogram.
-
-    Args:
-        v (array-like): Values for the x-axis.
-        f (array-like): Values for the y-axis.
-        bins (int, optional): Number of bins for the histogram. Defaults to 20.
-        cmap (str, optional): Colormap for the scatter plot. Defaults to 'viridis'.
-        alpha (float, optional): Alpha for the scatter plot. Defaults to 0.8.
-        edgecolors (str, optional): Edge colors for the scatter plot. Defaults to 'none'.
+    Methods:
+        cpu(): Returns a copy of the object with all tensors on CPU memory.
+        numpy(): Returns a copy of the object with all tensors as numpy arrays.
+        cuda(): Returns a copy of the object with all tensors on GPU memory.
+        to(*args, **kwargs): Returns a copy of the object with tensors on specified device and dtype.
 
     Examples:
-        >>> v = np.random.rand(100)
-        >>> f = np.random.rand(100)
-        >>> plt_color_scatter(v, f)
+        >>> import torch
+        >>> boxes_data = torch.tensor([[100, 50, 150, 100, 0.9, 0], [200, 150, 300, 250, 0.8, 1]])
+        >>> orig_shape = (480, 640)  # height, width
+        >>> boxes = Boxes(boxes_data, orig_shape)
+        >>> print(boxes.xyxy)
+        >>> print(boxes.conf)
+        >>> print(boxes.cls)
+        >>> print(boxes.xywhn)
     """
-    # Calculate 2D histogram and corresponding colors
-    hist, xedges, yedges = np.histogram2d(v, f, bins=bins)
-    colors = [
-        hist[
-            min(np.digitize(v[i], xedges, right=True) - 1, hist.shape[0] - 1),
-            min(np.digitize(f[i], yedges, right=True) - 1, hist.shape[1] - 1),
+
+    def __init__(self, boxes, orig_shape) -> None:
+        """
+        Initialize the Boxes class with detection box data and the original image shape.
+
+        This class manages detection boxes, providing easy access and manipulation of box coordinates,
+        confidence scores, class identifiers, and optional tracking IDs. It supports multiple formats
+        for box coordinates, including both absolute and normalized forms.
+
+        Args:
+            boxes (torch.Tensor | np.ndarray): A tensor or numpy array with detection boxes of shape
+                (num_boxes, 6) or (num_boxes, 7). Columns should contain
+                [x1, y1, x2, y2, confidence, class, (optional) track_id].
+            orig_shape (Tuple[int, int]): The original image shape as (height, width). Used for normalization.
+
+        Attributes:
+            data (torch.Tensor): The raw tensor containing detection boxes and their associated data.
+            orig_shape (Tuple[int, int]): The original image size, used for normalization.
+            is_track (bool): Indicates whether tracking IDs are included in the box data.
+
+        Examples:
+            >>> import torch
+            >>> boxes = torch.tensor([[100, 50, 150, 100, 0.9, 0]])
+            >>> orig_shape = (480, 640)
+            >>> detection_boxes = Boxes(boxes, orig_shape)
+            >>> print(detection_boxes.xyxy)
+            tensor([[100.,  50., 150., 100.]])
+        """
+        if boxes.ndim == 1:
+            boxes = boxes[None, :]
+        n = boxes.shape[-1]
+        assert n in {6, 7}, f"expected 6 or 7 values but got {n}"  # xyxy, track_id, conf, cls
+        super().__init__(boxes, orig_shape)
+        self.is_track = n == 7
+        self.orig_shape = orig_shape
+
+    @property
+    def xyxy(self):
+        """
+        Returns bounding boxes in [x1, y1, x2, y2] format.
+
+        Returns:
+            (torch.Tensor | numpy.ndarray): A tensor or numpy array of shape (n, 4) containing bounding box
+                coordinates in [x1, y1, x2, y2] format, where n is the number of boxes.
+
+        Examples:
+            >>> results = model("image.jpg")
+            >>> boxes = results[0].boxes
+            >>> xyxy = boxes.xyxy
+            >>> print(xyxy)
+        """
+        return self.data[:, :4]
+
+    @property
+    def conf(self):
+        """
+        Returns the confidence scores for each detection box.
+
+        Returns:
+            (torch.Tensor | numpy.ndarray): A 1D tensor or array containing confidence scores for each detection,
+                with shape (N,) where N is the number of detections.
+
+        Examples:
+            >>> boxes = Boxes(torch.tensor([[10, 20, 30, 40, 0.9, 0]]), orig_shape=(100, 100))
+            >>> conf_scores = boxes.conf
+            >>> print(conf_scores)
+            tensor([0.9000])
+        """
+        return self.data[:, -2]
+
+    @property
+    def cls(self):
+        """
+        Returns the class ID tensor representing category predictions for each bounding box.
+
+        Returns:
+            (torch.Tensor | numpy.ndarray): A tensor or numpy array containing the class IDs for each detection box.
+                The shape is (N,), where N is the number of boxes.
+
+        Examples:
+            >>> results = model("image.jpg")
+            >>> boxes = results[0].boxes
+            >>> class_ids = boxes.cls
+            >>> print(class_ids)  # tensor([0., 2., 1.])
+        """
+        return self.data[:, -1]
+
+    @property
+    def id(self):
+        """
+        Returns the tracking IDs for each detection box if available.
+
+        Returns:
+            (torch.Tensor | None): A tensor containing tracking IDs for each box if tracking is enabled,
+                otherwise None. Shape is (N,) where N is the number of boxes.
+
+        Examples:
+            >>> results = model.track("path/to/video.mp4")
+            >>> for result in results:
+            ...     boxes = result.boxes
+            ...     if boxes.is_track:
+            ...         track_ids = boxes.id
+            ...         print(f"Tracking IDs: {track_ids}")
+            ...     else:
+            ...         print("Tracking is not enabled for these boxes.")
+
+        Notes:
+            - This property is only available when tracking is enabled (i.e., when `is_track` is True).
+            - The tracking IDs are typically used to associate detections across multiple frames in video analysis.
+        """
+        return self.data[:, -3] if self.is_track else None
+
+    @property
+    @lru_cache(maxsize=2)  # maxsize 1 should suffice
+    def xywh(self):
+        """
+        Convert bounding boxes from [x1, y1, x2, y2] format to [x, y, width, height] format.
+
+        Returns:
+            (torch.Tensor | numpy.ndarray): Boxes in [x_center, y_center, width, height] format, where x_center, y_center are the coordinates of
+                the center point of the bounding box, width, height are the dimensions of the bounding box and the
+                shape of the returned tensor is (N, 4), where N is the number of boxes.
+
+        Examples:
+            >>> boxes = Boxes(torch.tensor([[100, 50, 150, 100], [200, 150, 300, 250]]), orig_shape=(480, 640))
+            >>> xywh = boxes.xywh
+            >>> print(xywh)
+            tensor([[100.0000,  50.0000,  50.0000,  50.0000],
+                    [200.0000, 150.0000, 100.0000, 100.0000]])
+        """
+        return ops.xyxy2xywh(self.xyxy)
+
+    @property
+    @lru_cache(maxsize=2)
+    def xyxyn(self):
+        """
+        Returns normalized bounding box coordinates relative to the original image size.
+
+        This property calculates and returns the bounding box coordinates in [x1, y1, x2, y2] format,
+        normalized to the range [0, 1] based on the original image dimensions.
+
+        Returns:
+            (torch.Tensor | numpy.ndarray): Normalized bounding box coordinates with shape (N, 4), where N is
+                the number of boxes. Each row contains [x1, y1, x2, y2] values normalized to [0, 1].
+
+        Examples:
+            >>> boxes = Boxes(torch.tensor([[100, 50, 300, 400, 0.9, 0]]), orig_shape=(480, 640))
+            >>> normalized = boxes.xyxyn
+            >>> print(normalized)
+            tensor([[0.1562, 0.1042, 0.4688, 0.8333]])
+        """
+        xyxy = self.xyxy.clone() if isinstance(self.xyxy, torch.Tensor) else np.copy(self.xyxy)
+        xyxy[..., [0, 2]] /= self.orig_shape[1]
+        xyxy[..., [1, 3]] /= self.orig_shape[0]
+        return xyxy
+
+    @property
+    @lru_cache(maxsize=2)
+    def xywhn(self):
+        """
+        Returns normalized bounding boxes in [x, y, width, height] format.
+
+        This property calculates and returns the normalized bounding box coordinates in the format
+        [x_center, y_center, width, height], where all values are relative to the original image dimensions.
+
+        Returns:
+            (torch.Tensor | numpy.ndarray): Normalized bounding boxes with shape (N, 4), where N is the
+                number of boxes. Each row contains [x_center, y_center, width, height] values normalized
+                to [0, 1] based on the original image dimensions.
+
+        Examples:
+            >>> boxes = Boxes(torch.tensor([[100, 50, 150, 100, 0.9, 0]]), orig_shape=(480, 640))
+            >>> normalized = boxes.xywhn
+            >>> print(normalized)
+            tensor([[0.1953, 0.1562, 0.0781, 0.1042]])
+        """
+        xywh = ops.xyxy2xywh(self.xyxy)
+        xywh[..., [0, 2]] /= self.orig_shape[1]
+        xywh[..., [1, 3]] /= self.orig_shape[0]
+        return xywh
+
+
+class Masks(BaseTensor):
+    """
+    A class for storing and manipulating detection masks.
+
+    This class extends BaseTensor and provides functionality for handling segmentation masks,
+    including methods for converting between pixel and normalized coordinates.
+
+    Attributes:
+        data (torch.Tensor | numpy.ndarray): The raw tensor or array containing mask data.
+        orig_shape (tuple): Original image shape in (height, width) format.
+        xy (List[numpy.ndarray]): A list of segments in pixel coordinates.
+        xyn (List[numpy.ndarray]): A list of normalized segments.
+
+    Methods:
+        cpu(): Returns a copy of the Masks object with the mask tensor on CPU memory.
+        numpy(): Returns a copy of the Masks object with the mask tensor as a numpy array.
+        cuda(): Returns a copy of the Masks object with the mask tensor on GPU memory.
+        to(*args, **kwargs): Returns a copy of the Masks object with the mask tensor on specified device and dtype.
+
+    Examples:
+        >>> masks_data = torch.rand(1, 160, 160)
+        >>> orig_shape = (720, 1280)
+        >>> masks = Masks(masks_data, orig_shape)
+        >>> pixel_coords = masks.xy
+        >>> normalized_coords = masks.xyn
+    """
+
+    def __init__(self, masks, orig_shape) -> None:
+        """
+        Initialize the Masks class with detection mask data and the original image shape.
+
+        Args:
+            masks (torch.Tensor | np.ndarray): Detection masks with shape (num_masks, height, width).
+            orig_shape (tuple): The original image shape as (height, width). Used for normalization.
+
+        Examples:
+            >>> import torch
+            >>> from ultralytics.engine.results import Masks
+            >>> masks = torch.rand(10, 160, 160)  # 10 masks of 160x160 resolution
+            >>> orig_shape = (720, 1280)  # Original image shape
+            >>> mask_obj = Masks(masks, orig_shape)
+        """
+        if masks.ndim == 2:
+            masks = masks[None, :]
+        super().__init__(masks, orig_shape)
+
+    @property
+    @lru_cache(maxsize=1)
+    def xyn(self):
+        """
+        Returns normalized xy-coordinates of the segmentation masks.
+
+        This property calculates and caches the normalized xy-coordinates of the segmentation masks. The coordinates
+        are normalized relative to the original image shape.
+
+        Returns:
+            (List[numpy.ndarray]): A list of numpy arrays, where each array contains the normalized xy-coordinates
+                of a single segmentation mask. Each array has shape (N, 2), where N is the number of points in the
+                mask contour.
+
+        Examples:
+            >>> results = model("image.jpg")
+            >>> masks = results[0].masks
+            >>> normalized_coords = masks.xyn
+            >>> print(normalized_coords[0])  # Normalized coordinates of the first mask
+        """
+        return [
+            ops.scale_coords(self.data.shape[1:], x, self.orig_shape, normalize=True)
+            for x in ops.masks2segments(self.data)
         ]
-        for i in range(len(v))
-    ]
 
-    # Scatter plot
-    plt.scatter(v, f, c=colors, cmap=cmap, alpha=alpha, edgecolors=edgecolors)
+    @property
+    @lru_cache(maxsize=1)
+    def xy(self):
+        """
+        Returns the [x, y] pixel coordinates for each segment in the mask tensor.
+
+        This property calculates and returns a list of pixel coordinates for each segmentation mask in the
+        Masks object. The coordinates are scaled to match the original image dimensions.
+
+        Returns:
+            (List[numpy.ndarray]): A list of numpy arrays, where each array contains the [x, y] pixel
+                coordinates for a single segmentation mask. Each array has shape (N, 2), where N is the
+                number of points in the segment.
+
+        Examples:
+            >>> results = model("image.jpg")
+            >>> masks = results[0].masks
+            >>> xy_coords = masks.xy
+            >>> print(len(xy_coords))  # Number of masks
+            >>> print(xy_coords[0].shape)  # Shape of first mask's coordinates
+        """
+        return [
+            ops.scale_coords(self.data.shape[1:], x, self.orig_shape, normalize=False)
+            for x in ops.masks2segments(self.data)
+        ]
 
 
-def plot_tune_results(csv_file="tune_results.csv"):
+class Keypoints(BaseTensor):
     """
-    Plot the evolution results stored in an 'tune_results.csv' file. The function generates a scatter plot for each key
-    in the CSV, color-coded based on fitness scores. The best-performing configurations are highlighted on the plots.
+    A class for storing and manipulating detection keypoints.
 
-    Args:
-        csv_file (str, optional): Path to the CSV file containing the tuning results. Defaults to 'tune_results.csv'.
+    This class encapsulates functionality for handling keypoint data, including coordinate manipulation,
+    normalization, and confidence values.
+
+    Attributes:
+        data (torch.Tensor): The raw tensor containing keypoint data.
+        orig_shape (Tuple[int, int]): The original image dimensions (height, width).
+        has_visible (bool): Indicates whether visibility information is available for keypoints.
+        xy (torch.Tensor): Keypoint coordinates in [x, y] format.
+        xyn (torch.Tensor): Normalized keypoint coordinates in [x, y] format, relative to orig_shape.
+        conf (torch.Tensor): Confidence values for each keypoint, if available.
+
+    Methods:
+        cpu(): Returns a copy of the keypoints tensor on CPU memory.
+        numpy(): Returns a copy of the keypoints tensor as a numpy array.
+        cuda(): Returns a copy of the keypoints tensor on GPU memory.
+        to(*args, **kwargs): Returns a copy of the keypoints tensor with specified device and dtype.
 
     Examples:
-        >>> plot_tune_results("path/to/tune_results.csv")
+        >>> import torch
+        >>> from ultralytics.engine.results import Keypoints
+        >>> keypoints_data = torch.rand(1, 17, 3)  # 1 detection, 17 keypoints, (x, y, conf)
+        >>> orig_shape = (480, 640)  # Original image shape (height, width)
+        >>> keypoints = Keypoints(keypoints_data, orig_shape)
+        >>> print(keypoints.xy.shape)  # Access xy coordinates
+        >>> print(keypoints.conf)  # Access confidence values
+        >>> keypoints_cpu = keypoints.cpu()  # Move keypoints to CPU
     """
-    import pandas as pd  # scope for faster 'import ultralytics'
-    from scipy.ndimage import gaussian_filter1d
 
-    def _save_one_file(file):
-        """Save one matplotlib plot to 'file'."""
-        plt.savefig(file, dpi=200)
-        plt.close()
-        LOGGER.info(f"Saved {file}")
+    @smart_inference_mode()  # avoid keypoints < conf in-place error
+    def __init__(self, keypoints, orig_shape) -> None:
+        """
+        Initializes the Keypoints object with detection keypoints and original image dimensions.
 
-    # Scatter plots for each hyperparameter
-    csv_file = Path(csv_file)
-    data = pd.read_csv(csv_file)
-    num_metrics_columns = 1
-    keys = [x.strip() for x in data.columns][num_metrics_columns:]
-    x = data.values
-    fitness = x[:, 0]  # fitness
-    j = np.argmax(fitness)  # max fitness index
-    n = math.ceil(len(keys) ** 0.5)  # columns and rows in plot
-    plt.figure(figsize=(10, 10), tight_layout=True)
-    for i, k in enumerate(keys):
-        v = x[:, i + num_metrics_columns]
-        mu = v[j]  # best single result
-        plt.subplot(n, n, i + 1)
-        plt_color_scatter(v, fitness, cmap="viridis", alpha=0.8, edgecolors="none")
-        plt.plot(mu, fitness.max(), "k+", markersize=15)
-        plt.title(f"{k} = {mu:.3g}", fontdict={"size": 9})  # limit to 40 characters
-        plt.tick_params(axis="both", labelsize=8)  # Set axis label size to 8
-        if i % n != 0:
-            plt.yticks([])
-    _save_one_file(csv_file.with_name("tune_scatter_plots.png"))
+        This method processes the input keypoints tensor, handling both 2D and 3D formats. For 3D tensors
+        (x, y, confidence), it masks out low-confidence keypoints by setting their coordinates to zero.
 
-    # Fitness vs iteration
-    x = range(1, len(fitness) + 1)
-    plt.figure(figsize=(10, 6), tight_layout=True)
-    plt.plot(x, fitness, marker="o", linestyle="none", label="fitness")
-    plt.plot(x, gaussian_filter1d(fitness, sigma=3), ":", label="smoothed", linewidth=2)  # smoothing line
-    plt.title("Fitness vs Iteration")
-    plt.xlabel("Iteration")
-    plt.ylabel("Fitness")
-    plt.grid(True)
-    plt.legend()
-    _save_one_file(csv_file.with_name("tune_fitness.png"))
+        Args:
+            keypoints (torch.Tensor): A tensor containing keypoint data. Shape can be either:
+                - (num_objects, num_keypoints, 2) for x, y coordinates only
+                - (num_objects, num_keypoints, 3) for x, y coordinates and confidence scores
+            orig_shape (Tuple[int, int]): The original image dimensions (height, width).
+
+        Examples:
+            >>> kpts = torch.rand(1, 17, 3)  # 1 object, 17 keypoints (COCO format), x,y,conf
+            >>> orig_shape = (720, 1280)  # Original image height, width
+            >>> keypoints = Keypoints(kpts, orig_shape)
+        """
+        if keypoints.ndim == 2:
+            keypoints = keypoints[None, :]
+        if keypoints.shape[2] == 3:  # x, y, conf
+            mask = keypoints[..., 2] < 0.5  # points with conf < 0.5 (not visible)
+            keypoints[..., :2][mask] = 0
+        super().__init__(keypoints, orig_shape)
+        self.has_visible = self.data.shape[-1] == 3
+
+    @property
+    @lru_cache(maxsize=1)
+    def xy(self):
+        """
+        Returns x, y coordinates of keypoints.
+
+        Returns:
+            (torch.Tensor): A tensor containing the x, y coordinates of keypoints with shape (N, K, 2), where N is
+                the number of detections and K is the number of keypoints per detection.
+
+        Examples:
+            >>> results = model("image.jpg")
+            >>> keypoints = results[0].keypoints
+            >>> xy = keypoints.xy
+            >>> print(xy.shape)  # (N, K, 2)
+            >>> print(xy[0])  # x, y coordinates of keypoints for first detection
+
+        Notes:
+            - The returned coordinates are in pixel units relative to the original image dimensions.
+            - If keypoints were initialized with confidence values, only keypoints with confidence >= 0.5 are returned.
+            - This property uses LRU caching to improve performance on repeated access.
+        """
+        return self.data[..., :2]
+
+    @property
+    @lru_cache(maxsize=1)
+    def xyn(self):
+        """
+        Returns normalized coordinates (x, y) of keypoints relative to the original image size.
+
+        Returns:
+            (torch.Tensor | numpy.ndarray): A tensor or array of shape (N, K, 2) containing normalized keypoint
+                coordinates, where N is the number of instances, K is the number of keypoints, and the last
+                dimension contains [x, y] values in the range [0, 1].
+
+        Examples:
+            >>> keypoints = Keypoints(torch.rand(1, 17, 2), orig_shape=(480, 640))
+            >>> normalized_kpts = keypoints.xyn
+            >>> print(normalized_kpts.shape)
+            torch.Size([1, 17, 2])
+        """
+        xy = self.xy.clone() if isinstance(self.xy, torch.Tensor) else np.copy(self.xy)
+        xy[..., 0] /= self.orig_shape[1]
+        xy[..., 1] /= self.orig_shape[0]
+        return xy
+
+    @property
+    @lru_cache(maxsize=1)
+    def conf(self):
+        """
+        Returns confidence values for each keypoint.
+
+        Returns:
+            (torch.Tensor | None): A tensor containing confidence scores for each keypoint if available,
+                otherwise None. Shape is (num_detections, num_keypoints) for batched data or (num_keypoints,)
+                for single detection.
+
+        Examples:
+            >>> keypoints = Keypoints(torch.rand(1, 17, 3), orig_shape=(640, 640))  # 1 detection, 17 keypoints
+            >>> conf = keypoints.conf
+            >>> print(conf.shape)  # torch.Size([1, 17])
+        """
+        return self.data[..., 2] if self.has_visible else None
 
 
-def output_to_target(output, max_det=300):
-    """Convert model output to target format [batch_id, class_id, x, y, w, h, conf] for plotting."""
-    targets = []
-    for i, o in enumerate(output):
-        box, conf, cls = o[:max_det, :6].cpu().split((4, 1, 1), 1)
-        j = torch.full((conf.shape[0], 1), i)
-        targets.append(torch.cat((j, cls, ops.xyxy2xywh(box), conf), 1))
-    targets = torch.cat(targets, 0).numpy()
-    return targets[:, 0], targets[:, 1], targets[:, 2:-1], targets[:, -1]
-
-
-def output_to_rotated_target(output, max_det=300):
-    """Convert model output to target format [batch_id, class_id, x, y, w, h, conf] for plotting."""
-    targets = []
-    for i, o in enumerate(output):
-        box, conf, cls, angle = o[:max_det].cpu().split((4, 1, 1, 1), 1)
-        j = torch.full((conf.shape[0], 1), i)
-        targets.append(torch.cat((j, cls, box, angle, conf), 1))
-    targets = torch.cat(targets, 0).numpy()
-    return targets[:, 0], targets[:, 1], targets[:, 2:-1], targets[:, -1]
-
-
-def feature_visualization(x, module_type, stage, n=32, save_dir=Path("runs/detect/exp")):
+class Probs(BaseTensor):
     """
-    Visualize feature maps of a given model module during inference.
+    A class for storing and manipulating classification probabilities.
 
-    Args:
-        x (torch.Tensor): Features to be visualized.
-        module_type (str): Module type.
-        stage (int): Module stage within the model.
-        n (int, optional): Maximum number of feature maps to plot. Defaults to 32.
-        save_dir (Path, optional): Directory to save results. Defaults to Path('runs/detect/exp').
+    This class extends BaseTensor and provides methods for accessing and manipulating
+    classification probabilities, including top-1 and top-5 predictions.
+
+    Attributes:
+        data (torch.Tensor | numpy.ndarray): The raw tensor or array containing classification probabilities.
+        orig_shape (tuple | None): The original image shape as (height, width). Not used in this class.
+        top1 (int): Index of the class with the highest probability.
+        top5 (List[int]): Indices of the top 5 classes by probability.
+        top1conf (torch.Tensor | numpy.ndarray): Confidence score of the top 1 class.
+        top5conf (torch.Tensor | numpy.ndarray): Confidence scores of the top 5 classes.
+
+    Methods:
+        cpu(): Returns a copy of the probabilities tensor on CPU memory.
+        numpy(): Returns a copy of the probabilities tensor as a numpy array.
+        cuda(): Returns a copy of the probabilities tensor on GPU memory.
+        to(*args, **kwargs): Returns a copy of the probabilities tensor with specified device and dtype.
+
+    Examples:
+        >>> probs = torch.tensor([0.1, 0.3, 0.6])
+        >>> p = Probs(probs)
+        >>> print(p.top1)
+        2
+        >>> print(p.top5)
+        [2, 1, 0]
+        >>> print(p.top1conf)
+        tensor(0.6000)
+        >>> print(p.top5conf)
+        tensor([0.6000, 0.3000, 0.1000])
     """
-    for m in {"Detect", "Segment", "Pose", "Classify", "OBB", "RTDETRDecoder"}:  # all model heads
-        if m in module_type:
-            return
-    if isinstance(x, torch.Tensor):
-        _, channels, height, width = x.shape  # batch, channels, height, width
-        if height > 1 and width > 1:
-            f = save_dir / f"stage{stage}_{module_type.split('.')[-1]}_features.png"  # filename
 
-            blocks = torch.chunk(x[0].cpu(), channels, dim=0)  # select batch index 0, block by channels
-            n = min(n, channels)  # number of plots
-            _, ax = plt.subplots(math.ceil(n / 8), 8, tight_layout=True)  # 8 rows x n/8 cols
-            ax = ax.ravel()
-            plt.subplots_adjust(wspace=0.05, hspace=0.05)
-            for i in range(n):
-                ax[i].imshow(blocks[i].squeeze())  # cmap='gray'
-                ax[i].axis("off")
+    def __init__(self, probs, orig_shape=None) -> None:
+        """
+        Initialize the Probs class with classification probabilities.
 
-            LOGGER.info(f"Saving {f}... ({n}/{channels})")
-            plt.savefig(f, dpi=300, bbox_inches="tight")
-            plt.close()
-            np.save(str(f.with_suffix(".npy")), x[0].cpu().numpy())  # npy save
+        This class stores and manages classification probabilities, providing easy access to top predictions and their
+        confidences.
+
+        Args:
+            probs (torch.Tensor | np.ndarray): A 1D tensor or array of classification probabilities.
+            orig_shape (tuple | None): The original image shape as (height, width). Not used in this class but kept for
+                consistency with other result classes.
+
+        Attributes:
+            data (torch.Tensor | np.ndarray): The raw tensor or array containing classification probabilities.
+            top1 (int): Index of the top 1 class.
+            top5 (List[int]): Indices of the top 5 classes.
+            top1conf (torch.Tensor | np.ndarray): Confidence of the top 1 class.
+            top5conf (torch.Tensor | np.ndarray): Confidences of the top 5 classes.
+
+        Examples:
+            >>> import torch
+            >>> probs = torch.tensor([0.1, 0.3, 0.2, 0.4])
+            >>> p = Probs(probs)
+            >>> print(p.top1)
+            3
+            >>> print(p.top1conf)
+            tensor(0.4000)
+            >>> print(p.top5)
+            [3, 1, 2, 0]
+        """
+        super().__init__(probs, orig_shape)
+
+    @property
+    @lru_cache(maxsize=1)
+    def top1(self):
+        """
+        Returns the index of the class with the highest probability.
+
+        Returns:
+            (int): Index of the class with the highest probability.
+
+        Examples:
+            >>> probs = Probs(torch.tensor([0.1, 0.3, 0.6]))
+            >>> probs.top1
+            2
+        """
+        return int(self.data.argmax())
+
+    @property
+    @lru_cache(maxsize=1)
+    def top5(self):
+        """
+        Returns the indices of the top 5 class probabilities.
+
+        Returns:
+            (List[int]): A list containing the indices of the top 5 class probabilities, sorted in descending order.
+
+        Examples:
+            >>> probs = Probs(torch.tensor([0.1, 0.2, 0.3, 0.4, 0.5]))
+            >>> print(probs.top5)
+            [4, 3, 2, 1, 0]
+        """
+        return (-self.data).argsort(0)[:5].tolist()  # this way works with both torch and numpy.
+
+    @property
+    @lru_cache(maxsize=1)
+    def top1conf(self):
+        """
+        Returns the confidence score of the highest probability class.
+
+        This property retrieves the confidence score (probability) of the class with the highest predicted probability
+        from the classification results.
+
+        Returns:
+            (torch.Tensor | numpy.ndarray): A tensor containing the confidence score of the top 1 class.
+
+        Examples:
+            >>> results = model("image.jpg")  # classify an image
+            >>> probs = results[0].probs  # get classification probabilities
+            >>> top1_confidence = probs.top1conf  # get confidence of top 1 class
+            >>> print(f"Top 1 class confidence: {top1_confidence.item():.4f}")
+        """
+        return self.data[self.top1]
+
+    @property
+    @lru_cache(maxsize=1)
+    def top5conf(self):
+        """
+        Returns confidence scores for the top 5 classification predictions.
+
+        This property retrieves the confidence scores corresponding to the top 5 class probabilities
+        predicted by the model. It provides a quick way to access the most likely class predictions
+        along with their associated confidence levels.
+
+        Returns:
+            (torch.Tensor | numpy.ndarray): A tensor or array containing the confidence scores for the
+                top 5 predicted classes, sorted in descending order of probability.
+
+        Examples:
+            >>> results = model("image.jpg")
+            >>> probs = results[0].probs
+            >>> top5_conf = probs.top5conf
+            >>> print(top5_conf)  # Prints confidence scores for top 5 classes
+        """
+        return self.data[self.top5]
+
+
+class OBB(BaseTensor):
+    """
+    A class for storing and manipulating Oriented Bounding Boxes (OBB).
+
+    This class provides functionality to handle oriented bounding boxes, including conversion between
+    different formats, normalization, and access to various properties of the boxes.
+
+    Attributes:
+        data (torch.Tensor): The raw OBB tensor containing box coordinates and associated data.
+        orig_shape (tuple): Original image size as (height, width).
+        is_track (bool): Indicates whether tracking IDs are included in the box data.
+        xywhr (torch.Tensor | numpy.ndarray): Boxes in [x_center, y_center, width, height, rotation] format.
+        conf (torch.Tensor | numpy.ndarray): Confidence scores for each box.
+        cls (torch.Tensor | numpy.ndarray): Class labels for each box.
+        id (torch.Tensor | numpy.ndarray): Tracking IDs for each box, if available.
+        xyxyxyxy (torch.Tensor | numpy.ndarray): Boxes in 8-point [x1, y1, x2, y2, x3, y3, x4, y4] format.
+        xyxyxyxyn (torch.Tensor | numpy.ndarray): Normalized 8-point coordinates relative to orig_shape.
+        xyxy (torch.Tensor | numpy.ndarray): Axis-aligned bounding boxes in [x1, y1, x2, y2] format.
+
+    Methods:
+        cpu(): Returns a copy of the OBB object with all tensors on CPU memory.
+        numpy(): Returns a copy of the OBB object with all tensors as numpy arrays.
+        cuda(): Returns a copy of the OBB object with all tensors on GPU memory.
+        to(*args, **kwargs): Returns a copy of the OBB object with tensors on specified device and dtype.
+
+    Examples:
+        >>> boxes = torch.tensor([[100, 50, 150, 100, 30, 0.9, 0]])  # xywhr, conf, cls
+        >>> obb = OBB(boxes, orig_shape=(480, 640))
+        >>> print(obb.xyxyxyxy)
+        >>> print(obb.conf)
+        >>> print(obb.cls)
+    """
+
+    def __init__(self, boxes, orig_shape) -> None:
+        """
+        Initialize an OBB (Oriented Bounding Box) instance with oriented bounding box data and original image shape.
+
+        This class stores and manipulates Oriented Bounding Boxes (OBB) for object detection tasks. It provides
+        various properties and methods to access and transform the OBB data.
+
+        Args:
+            boxes (torch.Tensor | numpy.ndarray): A tensor or numpy array containing the detection boxes,
+                with shape (num_boxes, 7) or (num_boxes, 8). The last two columns contain confidence and class values.
+                If present, the third last column contains track IDs, and the fifth column contains rotation.
+            orig_shape (Tuple[int, int]): Original image size, in the format (height, width).
+
+        Attributes:
+            data (torch.Tensor | numpy.ndarray): The raw OBB tensor.
+            orig_shape (Tuple[int, int]): The original image shape.
+            is_track (bool): Whether the boxes include tracking IDs.
+
+        Raises:
+            AssertionError: If the number of values per box is not 7 or 8.
+
+        Examples:
+            >>> import torch
+            >>> boxes = torch.rand(3, 7)  # 3 boxes with 7 values each
+            >>> orig_shape = (640, 480)
+            >>> obb = OBB(boxes, orig_shape)
+            >>> print(obb.xywhr)  # Access the boxes in xywhr format
+        """
+        if boxes.ndim == 1:
+            boxes = boxes[None, :]
+        n = boxes.shape[-1]
+        assert n in {7, 8}, f"expected 7 or 8 values but got {n}"  # xywh, rotation, track_id, conf, cls
+        super().__init__(boxes, orig_shape)
+        self.is_track = n == 8
+        self.orig_shape = orig_shape
+
+    @property
+    def xywhr(self):
+        """
+        Returns boxes in [x_center, y_center, width, height, rotation] format.
+
+        Returns:
+            (torch.Tensor | numpy.ndarray): A tensor or numpy array containing the oriented bounding boxes with format
+                [x_center, y_center, width, height, rotation]. The shape is (N, 5) where N is the number of boxes.
+
+        Examples:
+            >>> results = model("image.jpg")
+            >>> obb = results[0].obb
+            >>> xywhr = obb.xywhr
+            >>> print(xywhr.shape)
+            torch.Size([3, 5])
+        """
+        return self.data[:, :5]
+
+    @property
+    def conf(self):
+        """
+        Returns the confidence scores for Oriented Bounding Boxes (OBBs).
+
+        This property retrieves the confidence values associated with each OBB detection. The confidence score
+        represents the model's certainty in the detection.
+
+        Returns:
+            (torch.Tensor | numpy.ndarray): A tensor or numpy array of shape (N,) containing confidence scores
+                for N detections, where each score is in the range [0, 1].
+
+        Examples:
+            >>> results = model("image.jpg")
+            >>> obb_result = results[0].obb
+            >>> confidence_scores = obb_result.conf
+            >>> print(confidence_scores)
+        """
+        return self.data[:, -2]
+
+    @property
+    def cls(self):
+        """
+        Returns the class values of the oriented bounding boxes.
+
+        Returns:
+            (torch.Tensor | numpy.ndarray): A tensor or numpy array containing the class values for each oriented
+                bounding box. The shape is (N,), where N is the number of boxes.
+
+        Examples:
+            >>> results = model("image.jpg")
+            >>> result = results[0]
+            >>> obb = result.obb
+            >>> class_values = obb.cls
+            >>> print(class_values)
+        """
+        return self.data[:, -1]
+
+    @property
+    def id(self):
+        """
+        Returns the tracking IDs of the oriented bounding boxes (if available).
+
+        Returns:
+            (torch.Tensor | numpy.ndarray | None): A tensor or numpy array containing the tracking IDs for each
+                oriented bounding box. Returns None if tracking IDs are not available.
+
+        Examples:
+            >>> results = model("image.jpg", tracker=True)  # Run inference with tracking
+            >>> for result in results:
+            ...     if result.obb is not None:
+            ...         track_ids = result.obb.id
+            ...         if track_ids is not None:
+            ...             print(f"Tracking IDs: {track_ids}")
+        """
+        return self.data[:, -3] if self.is_track else None
+
+    @property
+    @lru_cache(maxsize=2)
+    def xyxyxyxy(self):
+        """
+        Converts OBB format to 8-point (xyxyxyxy) coordinate format for rotated bounding boxes.
+
+        Returns:
+            (torch.Tensor | numpy.ndarray): Rotated bounding boxes in xyxyxyxy format with shape (N, 4, 2), where N is
+                the number of boxes. Each box is represented by 4 points (x, y), starting from the top-left corner and
+                moving clockwise.
+
+        Examples:
+            >>> obb = OBB(torch.tensor([[100, 100, 50, 30, 0.5, 0.9, 0]]), orig_shape=(640, 640))
+            >>> xyxyxyxy = obb.xyxyxyxy
+            >>> print(xyxyxyxy.shape)
+            torch.Size([1, 4, 2])
+        """
+        return ops.xywhr2xyxyxyxy(self.xywhr)
+
+    @property
+    @lru_cache(maxsize=2)
+    def xyxyxyxyn(self):
+        """
+        Converts rotated bounding boxes to normalized xyxyxyxy format.
+
+        Returns:
+            (torch.Tensor | numpy.ndarray): Normalized rotated bounding boxes in xyxyxyxy format with shape (N, 4, 2),
+                where N is the number of boxes. Each box is represented by 4 points (x, y), normalized relative to
+                the original image dimensions.
+
+        Examples:
+            >>> obb = OBB(torch.rand(10, 7), orig_shape=(640, 480))  # 10 random OBBs
+            >>> normalized_boxes = obb.xyxyxyxyn
+            >>> print(normalized_boxes.shape)
+            torch.Size([10, 4, 2])
+        """
+        xyxyxyxyn = self.xyxyxyxy.clone() if isinstance(self.xyxyxyxy, torch.Tensor) else np.copy(self.xyxyxyxy)
+        xyxyxyxyn[..., 0] /= self.orig_shape[1]
+        xyxyxyxyn[..., 1] /= self.orig_shape[0]
+        return xyxyxyxyn
+
+    @property
+    @lru_cache(maxsize=2)
+    def xyxy(self):
+        """
+        Converts oriented bounding boxes (OBB) to axis-aligned bounding boxes in xyxy format.
+
+        This property calculates the minimal enclosing rectangle for each oriented bounding box and returns it in
+        xyxy format (x1, y1, x2, y2). This is useful for operations that require axis-aligned bounding boxes, such
+        as IoU calculation with non-rotated boxes.
+
+        Returns:
+            (torch.Tensor | numpy.ndarray): Axis-aligned bounding boxes in xyxy format with shape (N, 4), where N
+                is the number of boxes. Each row contains [x1, y1, x2, y2] coordinates.
+
+        Examples:
+            >>> import torch
+            >>> from ultralytics import YOLO
+            >>> model = YOLO("yolov8n-obb.pt")
+            >>> results = model("path/to/image.jpg")
+            >>> for result in results:
+            ...     obb = result.obb
+            ...     if obb is not None:
+            ...         xyxy_boxes = obb.xyxy
+            ...         print(xyxy_boxes.shape)  # (N, 4)
+
+        Notes:
+            - This method approximates the OBB by its minimal enclosing rectangle.
+            - The returned format is compatible with standard object detection metrics and visualization tools.
+            - The property uses caching to improve performance for repeated access.
+        """
+        x = self.xyxyxyxy[..., 0]
+        y = self.xyxyxyxy[..., 1]
+        return (
+            torch.stack([x.amin(1), y.amin(1), x.amax(1), y.amax(1)], -1)
+            if isinstance(x, torch.Tensor)
+            else np.stack([x.min(1), y.min(1), x.max(1), y.max(1)], -1)
+        )

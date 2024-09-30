@@ -531,9 +531,9 @@ class Annotator:
                 from IPython.display import display
 
                 # Convert numpy array to PIL Image and display
-                display(im, title=title)  # RGB to BGR for correct display
+                display(im)  # RGB to BGR for correct display
             except ImportError as e:
-                LOGGER.warning(f"Unable to display image in Jupyter: {e}")
+                LOGGER.warning(f"Unable to display image in Jupyter notebooks: {e}")
         else:
             # Convert numpy array to PIL Image and show
             im.show(title=title)

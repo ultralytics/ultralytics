@@ -10,7 +10,7 @@ keywords: YOLO11, state-of-the-art object detection, YOLO series, Ultralytics, c
 
 YOLO11 is the latest iteration in the Ultralytics YOLO series of real-time object detectors, redefining what's possible with cutting-edge accuracy, speed, and efficiency. Building upon the impressive advancements of previous YOLO versions, YOLO11 introduces significant improvements in architecture and training methods, making it a versatile choice for a wide range of computer vision tasks.
 
-![Ultralytics YOLO11](https://github.com/user-attachments/assets/ca43959d-883c-4a0e-a580-5bf990d3075b)
+![Ultralytics YOLO11 Comparison Plots](https://github.com/user-attachments/assets/36e87d12-a964-4c71-a9f8-2fd50afb4914)
 
 <p align="center">
   <br>

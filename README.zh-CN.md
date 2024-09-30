@@ -26,7 +26,7 @@
 
 想申请企业许可证，请完成 [Ultralytics Licensing](https://www.ultralytics.com/license) 上的表单。
 
-<img width="100%" src="https://github.com/user-attachments/assets/ca43959d-883c-4a0e-a580-5bf990d3075b" alt="YOLO11 performance plots"></a>
+<img width="100%" src="https://github.com/user-attachments/assets/36e87d12-a964-4c71-a9f8-2fd50afb4914" alt="YOLO11 performance plots"></a>
 
 <div align="center">
   <a href="https://github.com/ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-github.png" width="2%" alt="Ultralytics GitHub"></a>

@@ -17,11 +17,13 @@ ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.ttf \
     /root/.config/Ultralytics/
 
 # Install linux packages
-RUN apt update \
-    && apt install --no-install-recommends -y libgl1
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    libgl1 \
+    && rm -rf /var/lib/apt/lists/*
 
 # Copy contents
-ADD https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n.pt .
+ADD https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11n.pt .
 
 # Install conda packages
 # mkl required to fix 'OSError: libmkl_intel_lp64.so.2: cannot open shared object file: No such file or directory'

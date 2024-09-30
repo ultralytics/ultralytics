@@ -34,7 +34,7 @@ class ExplorerDataset(YOLODataset):
             if fn.exists():  # load npy
                 im = np.load(fn)
             else:  # read image
-                im = cv2.imread(f)  # BGR
+                im = cv2.imread(f,-1)  # BGR
                 if im is None:
                     raise FileNotFoundError(f"Image Not Found {f}")
             h0, w0 = im.shape[:2]  # orig hw

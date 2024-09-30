@@ -161,7 +161,7 @@ class Yolov8TFLite:
             image_data: Preprocessed image data ready for inference.
         """
         # Read the input image using OpenCV
-        self.img = cv2.imread(self.input_image)
+        self.img = cv2.imread(self.input_image,-1)
 
         print("image before", self.img)
         # Get the height and width of the input image

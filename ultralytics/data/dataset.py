@@ -452,10 +452,9 @@ class ClassificationDataset:
                 hsv_h=args.hsv_h,
                 hsv_s=args.hsv_s,
                 hsv_v=args.hsv_v,
-                numpy=True,  # Indicate that we're using numpy arrays
             )
         else:
-            self.transforms = classify_transforms(size=args.imgsz, crop_fraction=args.crop_fraction, numpy=True)
+            self.transforms = classify_transforms(size=args.imgsz, crop_fraction=args.crop_fraction)
 
     def __getitem__(self, i):
         """Returns subset of data and targets corresponding to given indices."""

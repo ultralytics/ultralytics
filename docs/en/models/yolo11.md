@@ -173,6 +173,7 @@ Please note that the DOI is pending and will be added to the citation once it is
 ### What are the key improvements in Ultralytics YOLO11 compared to previous versions?
 
 Ultralytics YOLO11 introduces several significant advancements over its predecessors. Key improvements include:
+
 - **Enhanced Feature Extraction:** YOLO11 employs an improved backbone and neck architecture, enhancing [feature extraction](https://www.ultralytics.com/glossary/feature-extraction) capabilities for more precise object detection.
 - **Optimized Efficiency and Speed:** Refined architectural designs and optimized training pipelines deliver faster processing speeds while maintaining a balance between accuracy and performance.
 - **Greater Accuracy with Fewer Parameters:** YOLO11m achieves higher mean Average Precision (mAP) on the COCO dataset with 22% fewer parameters than YOLOv8m, making it computationally efficient without compromising accuracy.
@@ -186,7 +187,7 @@ Training a YOLO11 model for object detection can be done using Python or CLI com
 !!! Example
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
 
@@ -198,7 +199,7 @@ Training a YOLO11 model for object detection can be done using Python or CLI com
         ```
 
     === "CLI"
-    
+
         ```bash
         # Load a COCO-pretrained YOLO11n model and train it on the COCO8 example dataset for 100 epochs
         yolo train model=yolo11n.pt data=coco8.yaml epochs=100 imgsz=640
@@ -209,6 +210,7 @@ For more detailed instructions, refer to the [Train](../modes/train.md) document
 ### What tasks can YOLO11 models perform?
 
 YOLO11 models are versatile and support a wide range of computer vision tasks, including:
+
 - **Object Detection:** Identifying and locating objects within an image.
 - **Instance Segmentation:** Detecting objects and delineating their boundaries.
 - **Image Classification:** Categorizing images into predefined classes.

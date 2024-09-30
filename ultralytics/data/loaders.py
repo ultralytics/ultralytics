@@ -13,7 +13,6 @@ import cv2
 import numpy as np
 import requests
 import torch
-from PIL import Image
 
 from ultralytics.data.utils import FORMATS_HELP_MSG, IMG_FORMATS, VID_FORMATS
 from ultralytics.utils import IS_COLAB, IS_KAGGLE, LOGGER, ops
@@ -360,7 +359,7 @@ class LoadImagesAndVideos:
                         self._new_video(self.files[self.count])
             else:
                 self.mode = "image"
-                im0 = cv2.imread(path)  # BGR
+                im0 = cv2.imread(path, -1)  # BGR
                 if im0 is None:
                     LOGGER.warning(f"WARNING ⚠️ Image Read Error {path}")
                 else:
@@ -387,11 +386,11 @@ class LoadImagesAndVideos:
         return math.ceil(self.nf / self.bs)  # number of files
 
 
-class LoadPilAndNumpy:
+class LoadNumpy:
     """
-    Load images from PIL and Numpy arrays for batch processing.
+    Load images from numpy arrays for batch processing.
 
-    This class is designed to manage loading and pre-processing of image data from both PIL and Numpy formats.
+    This class is designed to manage loading and pre-processing of image data from numpy arrays.
     It performs basic validation and format conversion to ensure that the images are in the required format for
     downstream processing.
 
@@ -406,7 +405,7 @@ class LoadPilAndNumpy:
     """
 
     def __init__(self, im0):
-        """Initialize PIL and Numpy Dataloader."""
+        """Initialize Numpy Dataloader."""
         if not isinstance(im0, list):
             im0 = [im0]
         self.paths = [getattr(im, "filename", f"image{i}.jpg") for i, im in enumerate(im0)]
@@ -417,12 +416,8 @@ class LoadPilAndNumpy:
     @staticmethod
     def _single_check(im):
         """Validate and format an image to numpy array."""
-        assert isinstance(im, (Image.Image, np.ndarray)), f"Expected PIL/np.ndarray image type, but got {type(im)}"
-        if isinstance(im, Image.Image):
-            if im.mode != "RGB":
-                im = im.convert("RGB")
-            im = np.asarray(im)[:, :, ::-1]
-            im = np.ascontiguousarray(im)  # contiguous
+        assert isinstance(im, np.ndarray), f"Expected np.ndarray image type, but got {type(im)}"
+        im = np.ascontiguousarray(im)  # ensure contiguous
         return im
 
     def __len__(self):
@@ -437,7 +432,7 @@ class LoadPilAndNumpy:
         return self.paths, self.im0, [""] * self.bs
 
     def __iter__(self):
-        """Enables iteration for class LoadPilAndNumpy."""
+        """Enables iteration for class LoadNumpy."""
         self.count = 0
         return self
 
@@ -483,9 +478,9 @@ class LoadTensor:
         if im.max() > 1.0 + torch.finfo(im.dtype).eps:  # torch.float32 eps is 1.2e-07
             LOGGER.warning(
                 f"WARNING ⚠️ torch.Tensor inputs should be normalized 0.0-1.0 but max value is {im.max()}. "
-                f"Dividing input by 255."
+                f"Dividing input by 65535."
             )
-            im = im.float() / 255.0
+            im = im.float() / 65535.0
 
         return im
 
@@ -507,12 +502,22 @@ class LoadTensor:
 
 
 def autocast_list(source):
-    """Merges a list of source of different types into a list of numpy arrays or PIL images."""
+    """Merges a list of source of different types into a list of numpy arrays."""
     files = []
     for im in source:
         if isinstance(im, (str, Path)):  # filename or uri
-            files.append(Image.open(requests.get(im, stream=True).raw if str(im).startswith("http") else im))
-        elif isinstance(im, (Image.Image, np.ndarray)):  # PIL or np Image
+            if str(im).startswith("http"):
+                # Read image from URL
+                resp = requests.get(im)
+                img_array = np.asarray(bytearray(resp.content), dtype=np.uint8)
+                im = cv2.imdecode(img_array, cv2.IMREAD_UNCHANGED)
+            else:
+                # Read image from file
+                im = cv2.imread(str(im), cv2.IMREAD_UNCHANGED)
+            if im is None:
+                raise FileNotFoundError(f"Image not found or unable to read {im}")
+            files.append(im)
+        elif isinstance(im, np.ndarray):  # np Image
             files.append(im)
         else:
             raise TypeError(
@@ -574,4 +579,4 @@ def get_best_youtube_url(url, method="pytube"):
 
 
 # Define constants
-LOADERS = (LoadStreams, LoadPilAndNumpy, LoadImagesAndVideos, LoadScreenshots)
+LOADERS = (LoadStreams, LoadNumpy, LoadImagesAndVideos, LoadScreenshots)

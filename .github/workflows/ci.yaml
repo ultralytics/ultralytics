@@ -177,6 +177,8 @@ jobs:
         run: |
           # CoreML must be installed before export due to protobuf error from AutoInstall
           python -m pip install --upgrade pip wheel
+          python -m venv .venv
+          source .venv/bin/activate
           slow=""
           torch=""
           if [ "${{ matrix.torch }}" == "1.8.0" ]; then

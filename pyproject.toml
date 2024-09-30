@@ -30,7 +30,7 @@ description = "Ultralytics YOLO for SOTA object detection, multi-object tracking
 readme = "README.md"
 requires-python = ">=3.8"
 license = { "text" = "AGPL-3.0" }
-keywords = ["machine-learning", "deep-learning", "computer-vision", "ML", "DL", "AI", "YOLO", "YOLOv3", "YOLOv5", "YOLOv8", "YOLOv9", "YOLOv10", "HUB", "Ultralytics"]
+keywords = ["machine-learning", "deep-learning", "computer-vision", "ML", "DL", "AI", "YOLO", "YOLOv3", "YOLOv5", "YOLOv8", "YOLOv9", "YOLOv10", "YOLO11", "HUB", "Ultralytics"]
 authors = [
     { name = "Glenn Jocher", email = "glenn.jocher@ultralytics.com"},
     { name = "Jing Qiu", email = "jing.qiu@ultralytics.com"},
@@ -118,7 +118,7 @@ logging = [
     "dvclive>=2.12.0",
 ]
 extra = [
-    "hub-sdk>=0.0.8", # Ultralytics HUB
+    "hub-sdk>=0.0.12", # Ultralytics HUB
     "ipython", # interactive notebook
     "albumentations>=1.4.6", # training augmentations
     "pycocotools>=2.0.7", # COCO mAP

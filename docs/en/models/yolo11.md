@@ -4,7 +4,7 @@ description: Discover YOLO11, the latest advancement in state-of-the-art object 
 keywords: YOLO11, state-of-the-art object detection, YOLO series, Ultralytics, computer vision, AI, machine learning, deep learning
 ---
 
-# YOLO11
+# Ultralytics YOLO11
 
 ## Overview
 

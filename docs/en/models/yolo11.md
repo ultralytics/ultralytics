@@ -14,13 +14,13 @@ YOLO11 is the latest iteration in the Ultralytics YOLO series of real-time objec
 
 <p align="center">
   <br>
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/live/rfI5vOo3-_A?si=pRdMeLLus0ryYZP7"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/watch?v=rfI5vOo3-_A&t=5500s"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Ultralytics YOLO11 Announcement at #YV24
+  <strong>Watch:</strong> Ultralytics YOLO11 Announcement at [YOLO Vision 2024](https://www.ultralytics.com/events/yolovision)
 </p>
 
 ## Key Features

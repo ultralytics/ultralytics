@@ -177,16 +177,15 @@ The Open Images V7 dataset includes approximately 9 million images with various 
 
 ### What pretrained models are available for the Open Images V7 dataset?
 
-Ultralytics provides several YOLO11 pretrained models for the Open Images V7 dataset, each with different sizes and performance metrics:
+Ultralytics provides several YOLOv8 pretrained models for the Open Images V7 dataset, each with different sizes and performance metrics:
 
 | Model                                                                                     | size<br><sup>(pixels) | mAP<sup>val<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
 | ----------------------------------------------------------------------------------------- | --------------------- | -------------------- | ------------------------------ | ----------------------------------- | ------------------ | ----------------- |
-| [YOLO11n](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11n-oiv7.pt) | 640                   | 18.4                 | 142.4                          | 1.21                                | 3.5                | 10.5              |
-| [YOLO11s](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11s-oiv7.pt) | 640                   | 27.7                 | 183.1                          | 1.40                                | 11.4               | 29.7              |
-| [YOLO11m](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11m-oiv7.pt) | 640                   | 33.6                 | 408.5                          | 2.26                                | 26.2               | 80.6              |
-| [YOLO11l](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11l-oiv7.pt) | 640                   | 34.9                 | 596.9                          | 2.43                                | 44.1               | 167.4             |
-| [YOLO11x](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11x-oiv7.pt) | 640                   | 36.3                 | 860.6                          | 3.56                                | 68.7               | 260.6             |
-
+| [YOLOv8n](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n-oiv7.pt) | 640                   | 18.4                 | 142.4                          | 1.21                                | 3.5                | 10.5              |
+| [YOLOv8s](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8s-oiv7.pt) | 640                   | 27.7                 | 183.1                          | 1.40                                | 11.4               | 29.7              |
+| [YOLOv8m](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8m-oiv7.pt) | 640                   | 33.6                 | 408.5                          | 2.26                                | 26.2               | 80.6              |
+| [YOLOv8l](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8l-oiv7.pt) | 640                   | 34.9                 | 596.9                          | 2.43                                | 44.1               | 167.4             |
+| [YOLOv8x](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8x-oiv7.pt) | 640                   | 36.3                 | 860.6                          | 3.56                                | 68.7               | 260.6             |
 ### What applications can the Open Images V7 dataset be used for?
 
 The Open Images V7 dataset supports a variety of computer vision tasks including:

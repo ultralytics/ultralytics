@@ -231,7 +231,7 @@ download_from_url(
 )
 ```
 
-For more detailed instructions, refer to our [Sliced Inference guide](#sliced-inference-with-yolov8).
+For more detailed instructions, refer to our [Sliced Inference guide](#sliced-inference-with-yolo11).
 
 ### Why should I use SAHI with YOLO11 for object detection on large images?
 

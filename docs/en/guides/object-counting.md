@@ -386,7 +386,7 @@ Ultralytics YOLO11 provides several advantages over other object detection model
 3. **Ease of Integration:** YOLO11 offers seamless integration with various platforms and devices, including mobile and edge devices, which is crucial for modern AI applications.
 4. **Flexibility:** Supports various tasks like object detection, segmentation, and tracking with configurable models to meet specific use-case requirements.
 
-Check out Ultralytics [YOLO11 Documentation](https://docs.ultralytics.com/models/yolov8/) for a deeper dive into its features and performance comparisons.
+Check out Ultralytics [YOLO11 Documentation](https://docs.ultralytics.com/models/yolo11/) for a deeper dive into its features and performance comparisons.
 
 ### Can I use YOLO11 for advanced applications like crowd analysis and traffic management?
 

@@ -366,7 +366,7 @@ out.release()
 cv2.destroyAllWindows()
 ```
 
-For further details on configuring the `Analytics` class, visit the [Analytics using Ultralytics YOLO11 📊](#analytics-using-ultralytics-yolov8) section.
+For further details on configuring the `Analytics` class, visit the [Analytics using Ultralytics YOLO11 📊](#analytics-using-ultralytics-yolo11) section.
 
 ### What are the benefits of using Ultralytics YOLO11 for creating bar plots?
 

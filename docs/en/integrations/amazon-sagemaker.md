@@ -104,7 +104,7 @@ cdk bootstrap
 cdk deploy
 ```
 
-### Step 5: Deploy the YOLO11 Model
+### Step 5: Deploy the YOLO Model
 
 Before diving into the deployment instructions, be sure to check out the range of [YOLO11 models offered by Ultralytics](../models/index.md). This will help you choose the most appropriate model for your project requirements.
 
@@ -196,7 +196,7 @@ To deploy the Ultralytics YOLO11 model on Amazon SageMaker Endpoints, follow the
     cdk deploy
     ```
 
-For further details, review the [documentation section](#step-5-deploy-the-yolov8-model).
+For further details, review the [documentation section](#step-5-deploy-the-yolo-model).
 
 ### What are the prerequisites for deploying YOLO11 on Amazon SageMaker?
 
@@ -243,7 +243,7 @@ Yes, you can customize the inference logic for YOLO11 on Amazon SageMaker:
 
 2. **Deploy Updated Model**: Ensure you redeploy the model using Jupyter notebooks provided (`1_DeployEndpoint.ipynb`) to include these changes.
 
-Refer to the [detailed steps](#step-5-deploy-the-yolov8-model) for deploying the modified model.
+Refer to the [detailed steps](#step-5-deploy-the-yolo-model) for deploying the modified model.
 
 ### How can I test the deployed YOLO11 model on Amazon SageMaker?
 

@@ -100,7 +100,7 @@ Object cropping with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
 
 ### What is object cropping in Ultralytics YOLO11 and how does it work?
 
-Object cropping using [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics) involves isolating and extracting specific objects from an image or video based on YOLO11's detection capabilities. This process allows for focused analysis, reduced data volume, and enhanced [precision](https://www.ultralytics.com/glossary/precision) by leveraging YOLO11 to identify objects with high accuracy and crop them accordingly. For an in-depth tutorial, refer to the [object cropping example](#object-cropping-using-ultralytics-yolov8).
+Object cropping using [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics) involves isolating and extracting specific objects from an image or video based on YOLO11's detection capabilities. This process allows for focused analysis, reduced data volume, and enhanced [precision](https://www.ultralytics.com/glossary/precision) by leveraging YOLO11 to identify objects with high accuracy and crop them accordingly. For an in-depth tutorial, refer to the [object cropping example](#object-cropping-using-ultralytics-yolo11).
 
 ### Why should I use Ultralytics YOLO11 for object cropping over other solutions?
 

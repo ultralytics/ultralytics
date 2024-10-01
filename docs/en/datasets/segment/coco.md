@@ -10,7 +10,7 @@ The [COCO-Seg](https://cocodataset.org/#home) dataset, an extension of the COCO 
 
 ## COCO-Seg Pretrained Models
 
-{% include "macros/yolo11-segment-perf.md" %}
+{% include "macros/yolo-seg-perf.md" %}
 
 ## Key Features
 

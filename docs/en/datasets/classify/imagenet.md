@@ -10,7 +10,7 @@ keywords: ImageNet, deep learning, visual recognition, computer vision, pretrain
 
 ## ImageNet Pretrained Models
 
-{% include "macros/yolo11-cls-perf.md" %}
+{% include "macros/yolo-cls-perf.md" %}
 
 ## Key Features
 

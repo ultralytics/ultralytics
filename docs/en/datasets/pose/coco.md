@@ -12,7 +12,7 @@ The [COCO-Pose](https://cocodataset.org/#keypoints-2017) dataset is a specialize
 
 ## COCO-Pose Pretrained Models
 
-{% include "macros/yolo11-pose-perf.md" %}
+{% include "macros/yolo-pose-perf.md" %}
 
 ## Key Features
 

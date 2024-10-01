@@ -54,7 +54,7 @@ This table provides an overview of the YOLO11 model variants, showcasing their a
         See [Detection Docs](../tasks/detect.md) for usage examples with these models trained on [COCO](../datasets/detect/coco.md), which include 80 pre-trained classes.
 
 {% filter indent(width=8, first=False, blank=True) %}
-{% include "macros/yolo11-detect-perf.md" %}
+{% include "macros/yolo-det-perf.md" %}
 {% endfilter %}
 
     === "Segmentation (COCO)"
@@ -62,7 +62,7 @@ This table provides an overview of the YOLO11 model variants, showcasing their a
         See [Segmentation Docs](../tasks/segment.md) for usage examples with these models trained on [COCO](../datasets/segment/coco.md), which include 80 pre-trained classes.
 
 {% filter indent(width=8, first=False, blank=True) %}
-{% include "macros/yolo11-segment-perf.md" %}
+{% include "macros/yolo-seg-perf.md" %}
 {% endfilter %}
 
     === "Classification (ImageNet)"
@@ -70,7 +70,7 @@ This table provides an overview of the YOLO11 model variants, showcasing their a
         See [Classification Docs](../tasks/classify.md) for usage examples with these models trained on [ImageNet](../datasets/classify/imagenet.md), which include 1000 pre-trained classes.
 
 {% filter indent(width=8, first=False, blank=True) %}
-{% include "macros/yolo11-cls-perf.md" %}
+{% include "macros/yolo-cls-perf.md" %}
 {% endfilter %}
 
     === "Pose (COCO)"
@@ -78,7 +78,7 @@ This table provides an overview of the YOLO11 model variants, showcasing their a
         See [Pose Estimation Docs](../tasks/pose.md) for usage examples with these models trained on [COCO](../datasets/pose/coco.md), which include 1 pre-trained class, 'person'.
 
 {% filter indent(width=8, first=False, blank=True) %}
-{% include "macros/yolo11-pose-perf.md" %}
+{% include "macros/yolo-pose-perf.md" %}
 {% endfilter %}
 
     === "OBB (DOTAv1)"
@@ -86,7 +86,7 @@ This table provides an overview of the YOLO11 model variants, showcasing their a
         See [Oriented Detection Docs](../tasks/obb.md) for usage examples with these models trained on [DOTAv1](../datasets/obb/dota-v2.md#dota-v10), which include 15 pre-trained classes.
 
 {% filter indent(width=8, first=False, blank=True) %}
-{% include "macros/yolo11-obb-perf.md" %}
+{% include "macros/yolo-obb-perf.md" %}
 {% endfilter %}
 
 ## Usage Examples

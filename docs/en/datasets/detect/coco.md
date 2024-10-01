@@ -21,7 +21,7 @@ The [COCO](https://cocodataset.org/#home) (Common Objects in Context) dataset is
 
 ## COCO Pretrained Models
 
-{% include "macros/yolo11-detect-perf.md" %}
+{% include "macros/yolo-det-perf.md" %}
 
 ## Key Features
 

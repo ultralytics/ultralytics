@@ -18,7 +18,7 @@ Streamlit makes it simple to build and deploy interactive web applications. Comb
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Use Streamlit with Ultralytics for Real-Time [Computer Vision](https://www.ultralytics.com/glossary/computer-vision-cv) in Your Browser
+  <strong>Watch:</strong> How to Use Streamlit with Ultralytics for Real-Time <a href="https://www.ultralytics.com/glossary/computer-vision-cv">Computer Vision</a> in Your Browser
 </p>
 
 |                                                                Aquaculture                                                                 |                                                          Animals husbandry                                                           |

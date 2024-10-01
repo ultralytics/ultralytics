@@ -16,7 +16,7 @@ The [CIFAR-10](https://www.cs.toronto.edu/~kriz/cifar.html) (Canadian Institute 
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Train an [Image Classification](https://www.ultralytics.com/glossary/image-classification) Model with CIFAR-10 Dataset using Ultralytics YOLOv8
+  <strong>Watch:</strong> How to Train an <a href="https://www.ultralytics.com/glossary/image-classification">Image Classification</a> Model with CIFAR-10 Dataset using Ultralytics YOLOv8
 </p>
 
 ## Key Features

@@ -810,6 +810,9 @@ class Annotator:
             label (str, optional): Text label for the object. If None, no label is drawn.
             txt_color (tuple): RGB color for the label text.
         """
+        if mask.size == 0:  # no masks to plot
+            return
+
         cv2.polylines(self.im, [np.int32([mask])], isClosed=True, color=mask_color, thickness=2)
         text_size, _ = cv2.getTextSize(label, 0, self.sf, self.tf)
 

@@ -75,14 +75,14 @@ Training a custom object detection model with Ultralytics YOLO is straightforwar
         ```python
         from ultralytics import YOLO
 
-        model = YOLO("yolov8s.pt")  # Load a pre-trained YOLO model
+        model = YOLO("yolo11n.pt")  # Load a pre-trained YOLO model
         model.train(data="path/to/dataset.yaml", epochs=50)  # Train on custom dataset
         ```
 
     === "CLI"
 
         ```bash
-        yolo task=detect mode=train model=yolov8s.pt data=path/to/dataset.yaml epochs=50
+        yolo task=detect mode=train model=yolo11n.pt data=path/to/dataset.yaml epochs=50
         ```
 
 For detailed dataset formatting and additional options, refer to our [Tips for Model Training](model-training-tips.md) guide.

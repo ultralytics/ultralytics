@@ -100,7 +100,7 @@ Measuring the gap between two objects is known as distance calculation within a 
 
 ### How do I calculate distances between objects using Ultralytics YOLO11?
 
-To calculate distances between objects using [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics), you need to identify the bounding box centroids of the detected objects. This process involves initializing the `DistanceCalculation` class from Ultralytics' `solutions` module and using the model's tracking outputs to calculate the distances. You can refer to the implementation in the [distance calculation example](#distance-calculation-using-ultralytics-yolov8).
+To calculate distances between objects using [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics), you need to identify the bounding box centroids of the detected objects. This process involves initializing the `DistanceCalculation` class from Ultralytics' `solutions` module and using the model's tracking outputs to calculate the distances. You can refer to the implementation in the [distance calculation example](#distance-calculation-using-ultralytics-yolo11).
 
 ### What are the advantages of using distance calculation with Ultralytics YOLO11?
 
@@ -112,11 +112,11 @@ Using distance calculation with Ultralytics YOLO11 offers several advantages:
 
 ### Can I perform distance calculation in real-time video streams with Ultralytics YOLO11?
 
-Yes, you can perform distance calculation in real-time video streams with Ultralytics YOLO11. The process involves capturing video frames using [OpenCV](https://www.ultralytics.com/glossary/opencv), running YOLO11 [object detection](https://www.ultralytics.com/glossary/object-detection), and using the `DistanceCalculation` class to calculate distances between objects in successive frames. For a detailed implementation, see the [video stream example](#distance-calculation-using-ultralytics-yolov8).
+Yes, you can perform distance calculation in real-time video streams with Ultralytics YOLO11. The process involves capturing video frames using [OpenCV](https://www.ultralytics.com/glossary/opencv), running YOLO11 [object detection](https://www.ultralytics.com/glossary/object-detection), and using the `DistanceCalculation` class to calculate distances between objects in successive frames. For a detailed implementation, see the [video stream example](#distance-calculation-using-ultralytics-yolo11).
 
 ### How do I delete points drawn during distance calculation using Ultralytics YOLO11?
 
-To delete points drawn during distance calculation with Ultralytics YOLO11, you can use a right mouse click. This action will clear all the points you have drawn. For more details, refer to the note section under the [distance calculation example](#distance-calculation-using-ultralytics-yolov8).
+To delete points drawn during distance calculation with Ultralytics YOLO11, you can use a right mouse click. This action will clear all the points you have drawn. For more details, refer to the note section under the [distance calculation example](#distance-calculation-using-ultralytics-yolo11).
 
 ### What are the key arguments for initializing the DistanceCalculation class in Ultralytics YOLO11?
 

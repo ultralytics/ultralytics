@@ -42,7 +42,7 @@ This guide provides a comprehensive overview of three fundamental types of [data
 
         from ultralytics import YOLO, solutions
 
-        model = YOLO("yolov8s.pt")
+        model = YOLO("yolo11n.pt")
 
         cap = cv2.VideoCapture("Path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
@@ -91,7 +91,7 @@ This guide provides a comprehensive overview of three fundamental types of [data
 
         from ultralytics import YOLO, solutions
 
-        model = YOLO("yolov8s.pt")
+        model = YOLO("yolo11n.pt")
 
         cap = cv2.VideoCapture("Path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
@@ -152,7 +152,7 @@ This guide provides a comprehensive overview of three fundamental types of [data
 
         from ultralytics import YOLO, solutions
 
-        model = YOLO("yolov8s.pt")
+        model = YOLO("yolo11n.pt")
 
         cap = cv2.VideoCapture("Path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
@@ -202,7 +202,7 @@ This guide provides a comprehensive overview of three fundamental types of [data
 
         from ultralytics import YOLO, solutions
 
-        model = YOLO("yolov8s.pt")
+        model = YOLO("yolo11n.pt")
 
         cap = cv2.VideoCapture("Path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
@@ -252,7 +252,7 @@ This guide provides a comprehensive overview of three fundamental types of [data
 
         from ultralytics import YOLO, solutions
 
-        model = YOLO("yolov8s.pt")
+        model = YOLO("yolo11n.pt")
 
         cap = cv2.VideoCapture("path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
@@ -346,7 +346,7 @@ import cv2
 
 from ultralytics import YOLO, solutions
 
-model = YOLO("yolov8s.pt")
+model = YOLO("yolo11n.pt")
 cap = cv2.VideoCapture("Path/to/video/file.mp4")
 out = cv2.VideoWriter("line_plot.avi", cv2.VideoWriter_fourcc(*"MJPG"), fps, (w, h))
 
@@ -384,7 +384,7 @@ import cv2
 
 from ultralytics import YOLO, solutions
 
-model = YOLO("yolov8s.pt")
+model = YOLO("yolo11n.pt")
 cap = cv2.VideoCapture("Path/to/video/file.mp4")
 out = cv2.VideoWriter("bar_plot.avi", cv2.VideoWriter_fourcc(*"MJPG"), fps, (w, h))
 
@@ -425,7 +425,7 @@ import cv2
 
 from ultralytics import YOLO, solutions
 
-model = YOLO("yolov8s.pt")
+model = YOLO("yolo11n.pt")
 cap = cv2.VideoCapture("Path/to/video/file.mp4")
 out = cv2.VideoWriter("pie_chart.avi", cv2.VideoWriter_fourcc(*"MJPG"), fps, (w, h))
 
@@ -461,7 +461,7 @@ import cv2
 
 from ultralytics import YOLO, solutions
 
-model = YOLO("yolov8s.pt")
+model = YOLO("yolo11n.pt")
 cap = cv2.VideoCapture("Path/to/video/file.mp4")
 out = cv2.VideoWriter("line_plot.avi", cv2.VideoWriter_fourcc(*"MJPG"), fps, (w, h))
 

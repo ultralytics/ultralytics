@@ -211,7 +211,7 @@ A heatmap generated with [Ultralytics YOLO11](https://github.com/ultralytics/ult
 
         from ultralytics import YOLO, solutions
 
-        model = YOLO("yolov8s.pt")  # YOLO11 custom/pretrained model
+        model = YOLO("yolo11n.pt")  # YOLO11 custom/pretrained model
 
         im0 = cv2.imread("path/to/image.png")  # path to image file
         h, w = im0.shape[:2]  # image height and width

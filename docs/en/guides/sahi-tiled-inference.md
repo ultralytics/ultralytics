@@ -75,8 +75,8 @@ from sahi.utils.file import download_from_url
 from sahi.utils.yolov8 import download_yolov8s_model
 
 # Download YOLO11 model
-yolov8_model_path = "models/yolov8s.pt"
-download_yolov8s_model(yolov8_model_path)
+model_path = "models/yolo11s.pt"
+download_yolov8s_model(model_path)
 
 # Download test images
 download_from_url(
@@ -221,8 +221,8 @@ from sahi.utils.file import download_from_url
 from sahi.utils.yolov8 import download_yolov8s_model
 
 # Download YOLO11 model
-yolov8_model_path = "models/yolov8s.pt"
-download_yolov8s_model(yolov8_model_path)
+model_path = "models/yolo11s.pt"
+download_yolov8s_model(model_path)
 
 # Download test images
 download_from_url(

@@ -245,7 +245,7 @@ Run the following command-line code to fine tune a pretrained default YOLO11 mod
     === "CLI"
 
         ```bash
-        !yolo task=detect mode=train data={work_dir}/trash_ICRA19/config.yaml model=yolov8s.pt epochs=2 batch=32 lr0=.04 plots=True
+        !yolo task=detect mode=train data={work_dir}/trash_ICRA19/config.yaml model=yolo11n.pt epochs=2 batch=32 lr0=.04 plots=True
         ```
 
 Here's a closer look at the parameters in the model training command:

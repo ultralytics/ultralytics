@@ -49,8 +49,8 @@ Start your compute and open a Terminal:
 Create your conda virtualenv and install pip in it:
 
 ```bash
-conda create --name yolov8env -y
-conda activate yolov8env
+conda create --name yolo11env -y
+conda activate yolo11env
 conda install pip -y
 ```
 
@@ -92,11 +92,11 @@ Open the compute Terminal.
 From your compute terminal, you need to create a new ipykernel that will be used by your notebook to manage your dependencies:
 
 ```bash
-conda create --name yolov8env -y
-conda activate yolov8env
+conda create --name yolo11env -y
+conda activate yolo11env
 conda install pip -y
 conda install ipykernel -y
-python -m ipykernel install --user --name yolov8env --display-name "yolov8env"
+python -m ipykernel install --user --name yolo11env --display-name "yolo11env"
 ```
 
 Close your terminal and create a new notebook. From your Notebook, you can select the new kernel.
@@ -105,20 +105,20 @@ Then you can open a Notebook cell and install the required dependencies:
 
 ```bash
 %%bash
-source activate yolov8env
+source activate yolo11env
 cd ultralytics
 pip install -r requirements.txt
 pip install ultralytics
 pip install onnx>=1.12.0
 ```
 
-Note that we need to use the `source activate yolov8env` for all the %%bash cells, to make sure that the %%bash cell uses environment we want.
+Note that we need to use the `source activate yolo11env` for all the %%bash cells, to make sure that the %%bash cell uses environment we want.
 
 Run some predictions using the [Ultralytics CLI](../quickstart.md#use-ultralytics-with-cli):
 
 ```bash
 %%bash
-source activate yolov8env
+source activate yolo11env
 yolo predict model=yolo11n.pt source='https://ultralytics.com/images/bus.jpg'
 ```
 
@@ -162,8 +162,8 @@ Running YOLO11 on AzureML for model training involves several steps:
 2. **Setup Environment**: Start your compute instance, open a terminal, and create a conda environment:
 
     ```bash
-    conda create --name yolov8env -y
-    conda activate yolov8env
+    conda create --name yolo11env -y
+    conda activate yolo11env
     conda install pip -y
     pip install ultralytics onnx>=1.12.0
     ```

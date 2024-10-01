@@ -136,7 +136,7 @@ This structure ensures a balanced dataset for thorough model training, validatio
 
 ### Why should I use Ultralytics YOLO11 with the Package Segmentation Dataset?
 
-Ultralytics YOLO11 provides state-of-the-art [accuracy](https://www.ultralytics.com/glossary/accuracy) and speed for real-time object detection and segmentation tasks. Using it with the Package Segmentation Dataset allows you to leverage YOLO11's capabilities for precise package segmentation. This combination is especially beneficial for industries like logistics and warehouse automation, where accurate package identification is critical. For more information, check out our [page on YOLO11 segmentation](https://docs.ultralytics.com/models/yolov8/).
+Ultralytics YOLO11 provides state-of-the-art [accuracy](https://www.ultralytics.com/glossary/accuracy) and speed for real-time object detection and segmentation tasks. Using it with the Package Segmentation Dataset allows you to leverage YOLO11's capabilities for precise package segmentation. This combination is especially beneficial for industries like logistics and warehouse automation, where accurate package identification is critical. For more information, check out our [page on YOLO11 segmentation](https://docs.ultralytics.com/models/yolo11/).
 
 ### How can I access and use the package-seg.yaml file for the Package Segmentation Dataset?
 

@@ -163,7 +163,7 @@ To learn more, check out the [TFLite guide](https://ai.google.dev/edge/litert).
 
 ### Is it possible to run YOLO11 TFLite models on Raspberry Pi?
 
-Yes, you can run YOLO11 TFLite models on Raspberry Pi to improve inference speeds. First, export your model to TFLite format as explained [here](#how-do-i-export-a-yolov8-model-to-tflite-format). Then, use a tool like TensorFlow Lite Interpreter to execute the model on your Raspberry Pi.
+Yes, you can run YOLO11 TFLite models on Raspberry Pi to improve inference speeds. First, export your model to TFLite format as explained [here](#how-do-i-export-a-yolo11-model-to-tflite-format). Then, use a tool like TensorFlow Lite Interpreter to execute the model on your Raspberry Pi.
 
 For further optimizations, you might consider using [Coral Edge TPU](https://coral.withgoogle.com/). For detailed steps, refer to our [Raspberry Pi deployment guide](../guides/raspberry-pi.md).
 
@@ -181,7 +181,7 @@ TensorFlow Lite provides extensive platform compatibility, allowing you to deplo
 - **Embedded Linux**: Ideal for single-board computers such as Raspberry Pi.
 - **Microcontrollers**: Suitable for MCUs with constrained resources.
 
-For more information on deployment options, see our detailed [deployment guide](#deploying-exported-yolov8-tflite-models).
+For more information on deployment options, see our detailed [deployment guide](#deploying-exported-yolo11-tflite-models).
 
 ### How do I troubleshoot common issues during YOLO11 model export to TFLite?
 

@@ -43,7 +43,7 @@ Object counting with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
 
 |                                                                        Logistics                                                                        |                                                                         Aquaculture                                                                          |
 | :-----------------------------------------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------------------------------------------------: |
-| ![Conveyor Belt Packets Counting Using Ultralytics YOLO11](https://github.com/ultralytics/docs/releases/download/0/conveyor-belt-packets-counting.avif) | ![Fish Counting in Sea using Ultralytics YOLO11](https://github.com/ultralytics/docs/releases/download/0/fish-counting-in-sea-using-ultralytics-yolov8.avif) |
+| ![Conveyor Belt Packets Counting Using Ultralytics YOLO11](https://github.com/ultralytics/docs/releases/download/0/conveyor-belt-packets-counting.avif) | ![Fish Counting in Sea using Ultralytics YOLO11](https://github.com/ultralytics/docs/releases/download/0/fish-counting-in-sea-using-ultralytics-yolo11.avif) |
 |                                                 Conveyor Belt Packets Counting Using Ultralytics YOLO11                                                 |                                                        Fish Counting in Sea using Ultralytics YOLO11                                                         |
 
 !!! example "Object Counting using YOLO11 Example"
@@ -324,7 +324,7 @@ def count_objects_in_region(video_path, output_video_path, model_path):
 count_objects_in_region("path/to/video.mp4", "output_video.avi", "yolo11n.pt")
 ```
 
-Explore more configurations and options in the [Object Counting](#object-counting-using-ultralytics-yolov8) section.
+Explore more configurations and options in the [Object Counting](#object-counting-using-ultralytics-yolo11) section.
 
 ### What are the advantages of using Ultralytics YOLO11 for object counting?
 

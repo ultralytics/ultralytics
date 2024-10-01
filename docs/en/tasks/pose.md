@@ -60,7 +60,7 @@ The output of a pose estimation model is a set of points that represent the keyp
     15: Left Ankle
     16: Right Ankle
 
-## [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/v8)
+## [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/11)
 
 YOLOv8 pretrained Pose models are shown here. Detect, Segment and Pose models are pretrained on the [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml) dataset, while Classify models are pretrained on the [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/ImageNet.yaml) dataset.
 

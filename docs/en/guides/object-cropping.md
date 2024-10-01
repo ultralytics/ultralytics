@@ -46,7 +46,7 @@ Object cropping with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
         from ultralytics import YOLO
         from ultralytics.utils.plotting import Annotator, colors
 
-        model = YOLO("yolov8n.pt")
+        model = YOLO("yolo11n.pt")
         names = model.names
 
         cap = cv2.VideoCapture("path/to/video/file.mp4")

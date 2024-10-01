@@ -71,7 +71,7 @@ Before diving into the usage instructions, be sure to check out the range of [YO
         task = Task.init(project_name="my_project", task_name="my_yolov8_task")
 
         # Step 2: Selecting the YOLOv8 Model
-        model_variant = "yolov8n"
+        model_variant = "yolo11n"
         task.set_parameter("model_variant", model_variant)
 
         # Step 3: Loading the YOLOv8 Model
@@ -91,7 +91,7 @@ Let's understand the steps showcased in the usage code snippet above.
 
 **Step 1: Creating a ClearML Task**: A new task is initialized in ClearML, specifying your project and task names. This task will track and manage your model's training.
 
-**Step 2: Selecting the YOLOv8 Model**: The `model_variant` variable is set to 'yolov8n', one of the YOLOv8 models. This variant is then logged in ClearML for tracking.
+**Step 2: Selecting the YOLOv8 Model**: The `model_variant` variable is set to 'yolo11n', one of the YOLOv8 models. This variant is then logged in ClearML for tracking.
 
 **Step 3: Loading the YOLOv8 Model**: The selected YOLOv8 model is loaded using Ultralytics' YOLO class, preparing it for training.
 
@@ -225,7 +225,7 @@ from ultralytics import YOLO
 task = Task.init(project_name="my_project", task_name="my_yolov8_task")
 
 # Step 2: Selecting the YOLOv8 Model
-model_variant = "yolov8n"
+model_variant = "yolo11n"
 task.set_parameter("model_variant", model_variant)
 
 # Step 3: Loading the YOLOv8 Model

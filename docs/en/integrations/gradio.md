@@ -60,7 +60,7 @@ import PIL.Image as Image
 
 from ultralytics import ASSETS, YOLO
 
-model = YOLO("yolov8n.pt")
+model = YOLO("yolo11n.pt")
 
 
 def predict_image(img, conf_threshold, iou_threshold):
@@ -134,7 +134,7 @@ import gradio as gr
 
 from ultralytics import YOLO
 
-model = YOLO("yolov8n.pt")
+model = YOLO("yolo11n.pt")
 
 
 def predict_image(img, conf_threshold, iou_threshold):

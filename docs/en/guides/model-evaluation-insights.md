@@ -71,7 +71,7 @@ If you want to get a deeper understanding of your YOLOv8 model's performance, yo
         from ultralytics import YOLO
 
         # Load the model
-        model = YOLO("yolov8n.pt")
+        model = YOLO("yolo11n.pt")
 
         # Run the evaluation
         results = model.val(data="coco8.yaml")
@@ -173,7 +173,7 @@ You can access YOLOv8 model evaluation metrics using Python with the following s
         from ultralytics import YOLO
 
         # Load the model
-        model = YOLO("yolov8n.pt")
+        model = YOLO("yolo11n.pt")
 
         # Run the evaluation
         results = model.val(data="coco8.yaml")

@@ -75,13 +75,13 @@ Before diving into the usage instructions, it's important to note that while all
         from ultralytics import YOLO
 
         # Load the YOLOv8 model
-        model = YOLO("yolov8n.pt")
+        model = YOLO("yolo11n.pt")
 
         # Export the model to TF SavedModel format
-        model.export(format="saved_model")  # creates '/yolov8n_saved_model'
+        model.export(format="saved_model")  # creates '/yolo11n_saved_model'
 
         # Load the exported TF SavedModel model
-        tf_savedmodel_model = YOLO("./yolov8n_saved_model")
+        tf_savedmodel_model = YOLO("./yolo11n_saved_model")
 
         # Run inference
         results = tf_savedmodel_model("https://ultralytics.com/images/bus.jpg")
@@ -91,17 +91,17 @@ Before diving into the usage instructions, it's important to note that while all
 
         ```bash
         # Export a YOLOv8n PyTorch model to TF SavedModel format
-        yolo export model=yolov8n.pt format=saved_model  # creates '/yolov8n_saved_model'
+        yolo export model=yolo11n.pt format=saved_model  # creates '/yolo11n_saved_model'
 
         # Run inference with the exported model
-        yolo predict model='./yolov8n_saved_model' source='https://ultralytics.com/images/bus.jpg'
+        yolo predict model='./yolo11n_saved_model' source='https://ultralytics.com/images/bus.jpg'
         ```
 
 For more details about supported export options, visit the [Ultralytics documentation page on deployment options](../guides/model-deployment-options.md).
 
 ## Deploying Exported YOLOv8 TF SavedModel Models
 
-Now that you have exported your YOLOv8 model to the TF SavedModel format, the next step is to deploy it. The primary and recommended first step for running a TF GraphDef model is to use the YOLO("./yolov8n_saved_model") method, as previously shown in the usage code snippet.
+Now that you have exported your YOLOv8 model to the TF SavedModel format, the next step is to deploy it. The primary and recommended first step for running a TF GraphDef model is to use the YOLO("./yolo11n_saved_model") method, as previously shown in the usage code snippet.
 
 However, for in-depth instructions on deploying your TF SavedModel models, take a look at the following resources:
 
@@ -133,13 +133,13 @@ Exporting an Ultralytics YOLO model to the TensorFlow SavedModel format is strai
         from ultralytics import YOLO
 
         # Load the YOLOv8 model
-        model = YOLO("yolov8n.pt")
+        model = YOLO("yolo11n.pt")
 
         # Export the model to TF SavedModel format
-        model.export(format="saved_model")  # creates '/yolov8n_saved_model'
+        model.export(format="saved_model")  # creates '/yolo11n_saved_model'
 
         # Load the exported TF SavedModel for inference
-        tf_savedmodel_model = YOLO("./yolov8n_saved_model")
+        tf_savedmodel_model = YOLO("./yolo11n_saved_model")
         results = tf_savedmodel_model("https://ultralytics.com/images/bus.jpg")
         ```
 
@@ -147,10 +147,10 @@ Exporting an Ultralytics YOLO model to the TensorFlow SavedModel format is strai
 
         ```bash
         # Export the YOLOv8 model to TF SavedModel format
-        yolo export model=yolov8n.pt format=saved_model  # creates '/yolov8n_saved_model'
+        yolo export model=yolo11n.pt format=saved_model  # creates '/yolo11n_saved_model'
 
         # Run inference with the exported model
-        yolo predict model='./yolov8n_saved_model' source='https://ultralytics.com/images/bus.jpg'
+        yolo predict model='./yolo11n_saved_model' source='https://ultralytics.com/images/bus.jpg'
         ```
 
 Refer to the [Ultralytics Export documentation](../modes/export.md) for more details.

@@ -42,7 +42,7 @@ Queue management using [Ultralytics YOLOv8](https://github.com/ultralytics/ultra
 
         from ultralytics import YOLO, solutions
 
-        model = YOLO("yolov8n.pt")
+        model = YOLO("yolo11n.pt")
         cap = cv2.VideoCapture("path/to/video/file.mp4")
 
         assert cap.isOpened(), "Error reading video file"
@@ -84,7 +84,7 @@ Queue management using [Ultralytics YOLOv8](https://github.com/ultralytics/ultra
 
         from ultralytics import YOLO, solutions
 
-        model = YOLO("yolov8n.pt")
+        model = YOLO("yolo11n.pt")
         cap = cv2.VideoCapture("path/to/video/file.mp4")
 
         assert cap.isOpened(), "Error reading video file"
@@ -139,7 +139,7 @@ Queue management using [Ultralytics YOLOv8](https://github.com/ultralytics/ultra
 
 To use Ultralytics YOLOv8 for real-time queue management, you can follow these steps:
 
-1. Load the YOLOv8 model with `YOLO("yolov8n.pt")`.
+1. Load the YOLOv8 model with `YOLO("yolo11n.pt")`.
 2. Capture the video feed using `cv2.VideoCapture`.
 3. Define the region of interest (ROI) for queue management.
 4. Process frames to detect objects and manage queues.
@@ -151,7 +151,7 @@ import cv2
 
 from ultralytics import YOLO, solutions
 
-model = YOLO("yolov8n.pt")
+model = YOLO("yolo11n.pt")
 cap = cv2.VideoCapture("path/to/video.mp4")
 queue_region = [(20, 400), (1080, 404), (1080, 360), (20, 360)]
 

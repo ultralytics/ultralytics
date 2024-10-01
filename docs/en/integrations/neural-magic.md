@@ -89,10 +89,10 @@ DeepSparse Engine requires YOLOv8 models in ONNX format. Exporting your model to
 
         ```bash
         # Export YOLOv8 model to ONNX format
-        yolo task=detect mode=export model=yolov8n.pt format=onnx opset=13
+        yolo task=detect mode=export model=yolo11n.pt format=onnx opset=13
         ```
 
-This command will save the `yolov8n.onnx` model to your disk.
+This command will save the `yolo11n.onnx` model to your disk.
 
 ### Step 3: Deploying and Running Inferences
 
@@ -106,7 +106,7 @@ With your YOLOv8 model in ONNX format, you can deploy and run inferences using D
         from deepsparse import Pipeline
 
         # Specify the path to your YOLOv8 ONNX model
-        model_path = "path/to/yolov8n.onnx"
+        model_path = "path/to/yolo11n.onnx"
 
         # Set up the DeepSparse Pipeline
         yolo_pipeline = Pipeline.create(task="yolov8", model_path=model_path)
@@ -126,7 +126,7 @@ It's important to check that your YOLOv8 model is performing optimally on DeepSp
 
         ```bash
         # Benchmark performance
-        deepsparse.benchmark model_path="path/to/yolov8n.onnx" --scenario=sync --input_shapes="[1,3,640,640]"
+        deepsparse.benchmark model_path="path/to/yolo11n.onnx" --scenario=sync --input_shapes="[1,3,640,640]"
         ```
 
 ### Step 5: Additional Features
@@ -139,10 +139,10 @@ DeepSparse provides additional features for practical integration of YOLOv8 in a
 
         ```bash
         # For image annotation
-        deepsparse.yolov8.annotate --source "path/to/image.jpg" --model_filepath "path/to/yolov8n.onnx"
+        deepsparse.yolov8.annotate --source "path/to/image.jpg" --model_filepath "path/to/yolo11n.onnx"
 
         # For evaluating model performance on a dataset
-        deepsparse.yolov8.eval --model_path "path/to/yolov8n.onnx"
+        deepsparse.yolov8.eval --model_path "path/to/yolo11n.onnx"
         ```
 
 Running the annotate command processes your specified image, detecting objects, and saving the annotated image with bounding boxes and classifications. The annotated image will be stored in an annotation-results folder. This helps provide a visual representation of the model's detection capabilities.
@@ -182,17 +182,17 @@ Once installed, follow the steps provided in the [Installation section](#step-1-
 To convert YOLOv8 models to the ONNX format, which is required for compatibility with DeepSparse, you can use the following CLI command:
 
 ```bash
-yolo task=detect mode=export model=yolov8n.pt format=onnx opset=13
+yolo task=detect mode=export model=yolo11n.pt format=onnx opset=13
 ```
 
-This command will export your YOLOv8 model (`yolov8n.pt`) to a format (`yolov8n.onnx`) that can be utilized by the DeepSparse Engine. More information about model export can be found in the [Model Export section](#step-2-exporting-yolov8-to-onnx-format).
+This command will export your YOLOv8 model (`yolo11n.pt`) to a format (`yolo11n.onnx`) that can be utilized by the DeepSparse Engine. More information about model export can be found in the [Model Export section](#step-2-exporting-yolov8-to-onnx-format).
 
 ### How do I benchmark YOLOv8 performance on the DeepSparse Engine?
 
 Benchmarking YOLOv8 performance on DeepSparse helps you analyze throughput and latency to ensure your model is optimized. You can use the following CLI command to run a benchmark:
 
 ```bash
-deepsparse.benchmark model_path="path/to/yolov8n.onnx" --scenario=sync --input_shapes="[1,3,640,640]"
+deepsparse.benchmark model_path="path/to/yolo11n.onnx" --scenario=sync --input_shapes="[1,3,640,640]"
 ```
 
 This command will provide you with vital performance metrics. For more details, see the [Benchmarking Performance section](#step-4-benchmarking-performance).

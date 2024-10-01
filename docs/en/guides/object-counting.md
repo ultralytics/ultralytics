@@ -55,7 +55,7 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 
         from ultralytics import YOLO, solutions
 
-        model = YOLO("yolov8n.pt")
+        model = YOLO("yolo11n.pt")
         cap = cv2.VideoCapture("path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
@@ -97,7 +97,7 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 
         from ultralytics import YOLO, solutions
 
-        model = YOLO("yolov8n-obb.pt")
+        model = YOLO("yolo11n-obb.pt")
         cap = cv2.VideoCapture("path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
@@ -137,7 +137,7 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 
         from ultralytics import YOLO, solutions
 
-        model = YOLO("yolov8n.pt")
+        model = YOLO("yolo11n.pt")
         cap = cv2.VideoCapture("path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
@@ -178,7 +178,7 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 
         from ultralytics import YOLO, solutions
 
-        model = YOLO("yolov8n.pt")
+        model = YOLO("yolo11n.pt")
         cap = cv2.VideoCapture("path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
@@ -219,7 +219,7 @@ Object counting with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 
         from ultralytics import YOLO, solutions
 
-        model = YOLO("yolov8n.pt")
+        model = YOLO("yolo11n.pt")
         cap = cv2.VideoCapture("path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
@@ -321,7 +321,7 @@ def count_objects_in_region(video_path, output_video_path, model_path):
     cv2.destroyAllWindows()
 
 
-count_objects_in_region("path/to/video.mp4", "output_video.avi", "yolov8n.pt")
+count_objects_in_region("path/to/video.mp4", "output_video.avi", "yolo11n.pt")
 ```
 
 Explore more configurations and options in the [Object Counting](#object-counting-using-ultralytics-yolov8) section.
@@ -372,7 +372,7 @@ def count_specific_classes(video_path, output_video_path, model_path, classes_to
     cv2.destroyAllWindows()
 
 
-count_specific_classes("path/to/video.mp4", "output_specific_classes.avi", "yolov8n.pt", [0, 2])
+count_specific_classes("path/to/video.mp4", "output_specific_classes.avi", "yolo11n.pt", [0, 2])
 ```
 
 In this example, `classes_to_count=[0, 2]`, which means it counts objects of class `0` and `2` (e.g., person and car).

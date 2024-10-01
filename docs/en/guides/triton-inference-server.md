@@ -46,7 +46,7 @@ Before deploying the model on Triton, it must be exported to the ONNX format. ON
 from ultralytics import YOLO
 
 # Load a model
-model = YOLO("yolov8n.pt")  # load an official model
+model = YOLO("yolo11n.pt")  # load an official model
 
 # Export the model
 onnx_file = model.export(format="onnx", dynamic=True)
@@ -155,7 +155,7 @@ Setting up [Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8/) wit
     from ultralytics import YOLO
 
     # Load a model
-    model = YOLO("yolov8n.pt")  # load an official model
+    model = YOLO("yolo11n.pt")  # load an official model
 
     # Export the model to ONNX format
     onnx_file = model.export(format="onnx", dynamic=True)
@@ -234,7 +234,7 @@ To export your model, use:
 ```python
 from ultralytics import YOLO
 
-model = YOLO("yolov8n.pt")
+model = YOLO("yolo11n.pt")
 onnx_file = model.export(format="onnx", dynamic=True)
 ```
 

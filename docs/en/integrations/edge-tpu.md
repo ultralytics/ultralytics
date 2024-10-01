@@ -73,13 +73,13 @@ Before diving into the usage instructions, it's important to note that while all
         from ultralytics import YOLO
 
         # Load the YOLOv8 model
-        model = YOLO("yolov8n.pt")
+        model = YOLO("yolo11n.pt")
 
         # Export the model to TFLite Edge TPU format
-        model.export(format="edgetpu")  # creates 'yolov8n_full_integer_quant_edgetpu.tflite'
+        model.export(format="edgetpu")  # creates 'yolo11n_full_integer_quant_edgetpu.tflite'
 
         # Load the exported TFLite Edge TPU model
-        edgetpu_model = YOLO("yolov8n_full_integer_quant_edgetpu.tflite")
+        edgetpu_model = YOLO("yolo11n_full_integer_quant_edgetpu.tflite")
 
         # Run inference
         results = edgetpu_model("https://ultralytics.com/images/bus.jpg")
@@ -89,10 +89,10 @@ Before diving into the usage instructions, it's important to note that while all
 
         ```bash
         # Export a YOLOv8n PyTorch model to TFLite Edge TPU format
-        yolo export model=yolov8n.pt format=edgetpu  # creates 'yolov8n_full_integer_quant_edgetpu.tflite'
+        yolo export model=yolo11n.pt format=edgetpu  # creates 'yolo11n_full_integer_quant_edgetpu.tflite'
 
         # Run inference with the exported model
-        yolo predict model=yolov8n_full_integer_quant_edgetpu.tflite source='https://ultralytics.com/images/bus.jpg'
+        yolo predict model=yolo11n_full_integer_quant_edgetpu.tflite source='https://ultralytics.com/images/bus.jpg'
         ```
 
 For more details about supported export options, visit the [Ultralytics documentation page on deployment options](../guides/model-deployment-options.md).
@@ -131,13 +131,13 @@ To export a YOLOv8 model to TFLite Edge TPU format, you can follow these steps:
         from ultralytics import YOLO
 
         # Load the YOLOv8 model
-        model = YOLO("yolov8n.pt")
+        model = YOLO("yolo11n.pt")
 
         # Export the model to TFLite Edge TPU format
-        model.export(format="edgetpu")  # creates 'yolov8n_full_integer_quant_edgetpu.tflite'
+        model.export(format="edgetpu")  # creates 'yolo11n_full_integer_quant_edgetpu.tflite'
 
         # Load the exported TFLite Edge TPU model
-        edgetpu_model = YOLO("yolov8n_full_integer_quant_edgetpu.tflite")
+        edgetpu_model = YOLO("yolo11n_full_integer_quant_edgetpu.tflite")
 
         # Run inference
         results = edgetpu_model("https://ultralytics.com/images/bus.jpg")
@@ -147,10 +147,10 @@ To export a YOLOv8 model to TFLite Edge TPU format, you can follow these steps:
 
         ```bash
         # Export a YOLOv8n PyTorch model to TFLite Edge TPU format
-        yolo export model=yolov8n.pt format=edgetpu  # creates 'yolov8n_full_integer_quant_edgetpu.tflite'
+        yolo export model=yolo11n.pt format=edgetpu  # creates 'yolo11n_full_integer_quant_edgetpu.tflite'
 
         # Run inference with the exported model
-        yolo predict model=yolov8n_full_integer_quant_edgetpu.tflite source='https://ultralytics.com/images/bus.jpg'
+        yolo predict model=yolo11n_full_integer_quant_edgetpu.tflite source='https://ultralytics.com/images/bus.jpg'
         ```
 
 For complete details on exporting models to other formats, refer to our [export guide](../modes/export.md).

@@ -170,7 +170,7 @@ from sahi.predict import predict
 
 predict(
     model_type="yolov8",
-    model_path="path/to/yolov8n.pt",
+    model_path="path/to/yolo11n.pt",
     model_device="cpu",  # or 'cuda:0'
     model_confidence_threshold=0.4,
     source="path/to/dir",
@@ -281,7 +281,7 @@ from sahi.predict import predict
 
 predict(
     model_type="yolov8",
-    model_path="path/to/yolov8n.pt",
+    model_path="path/to/yolo11n.pt",
     model_device="cpu",  # or 'cuda:0'
     model_confidence_threshold=0.4,
     source="path/to/dir",

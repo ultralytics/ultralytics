@@ -79,13 +79,13 @@ Before diving into the usage instructions, it's important to note that while all
           from ultralytics import YOLO
 
           # Load the YOLOv8 model
-          model = YOLO("yolov8n.pt")
+          model = YOLO("yolo11n.pt")
 
           # Export the model to TFLite format
-          model.export(format="tflite")  # creates 'yolov8n_float32.tflite'
+          model.export(format="tflite")  # creates 'yolo11n_float32.tflite'
 
           # Load the exported TFLite model
-          tflite_model = YOLO("yolov8n_float32.tflite")
+          tflite_model = YOLO("yolo11n_float32.tflite")
 
           # Run inference
           results = tflite_model("https://ultralytics.com/images/bus.jpg")
@@ -95,10 +95,10 @@ Before diving into the usage instructions, it's important to note that while all
 
           ```bash
           # Export a YOLOv8n PyTorch model to TFLite format
-          yolo export model=yolov8n.pt format=tflite  # creates 'yolov8n_float32.tflite'
+          yolo export model=yolo11n.pt format=tflite  # creates 'yolo11n_float32.tflite'
 
           # Run inference with the exported model
-          yolo predict model='yolov8n_float32.tflite' source='https://ultralytics.com/images/bus.jpg'
+          yolo predict model='yolo11n_float32.tflite' source='https://ultralytics.com/images/bus.jpg'
           ```
 
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
@@ -137,16 +137,16 @@ Then, use the following code snippet to export your model:
 from ultralytics import YOLO
 
 # Load the YOLOv8 model
-model = YOLO("yolov8n.pt")
+model = YOLO("yolo11n.pt")
 
 # Export the model to TFLite format
-model.export(format="tflite")  # creates 'yolov8n_float32.tflite'
+model.export(format="tflite")  # creates 'yolo11n_float32.tflite'
 ```
 
 For CLI users, you can achieve this with:
 
 ```bash
-yolo export model=yolov8n.pt format=tflite  # creates 'yolov8n_float32.tflite'
+yolo export model=yolo11n.pt format=tflite  # creates 'yolo11n_float32.tflite'
 ```
 
 For more details, visit the [Ultralytics export guide](../modes/export.md).

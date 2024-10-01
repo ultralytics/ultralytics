@@ -83,13 +83,13 @@ Before diving into the usage instructions, it's important to note that while all
         from ultralytics import YOLO
 
         # Load the YOLOv8 model
-        model = YOLO("yolov8n.pt")
+        model = YOLO("yolo11n.pt")
 
         # Export the model to TorchScript format
-        model.export(format="torchscript")  # creates 'yolov8n.torchscript'
+        model.export(format="torchscript")  # creates 'yolo11n.torchscript'
 
         # Load the exported TorchScript model
-        torchscript_model = YOLO("yolov8n.torchscript")
+        torchscript_model = YOLO("yolo11n.torchscript")
 
         # Run inference
         results = torchscript_model("https://ultralytics.com/images/bus.jpg")
@@ -99,10 +99,10 @@ Before diving into the usage instructions, it's important to note that while all
 
         ```bash
         # Export a YOLOv8n PyTorch model to TorchScript format
-        yolo export model=yolov8n.pt format=torchscript  # creates 'yolov8n.torchscript'
+        yolo export model=yolo11n.pt format=torchscript  # creates 'yolo11n.torchscript'
 
         # Run inference with the exported model
-        yolo predict model=yolov8n.torchscript source='https://ultralytics.com/images/bus.jpg'
+        yolo predict model=yolo11n.torchscript source='https://ultralytics.com/images/bus.jpg'
         ```
 
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
@@ -143,13 +143,13 @@ To export a YOLOv8 model to TorchScript, you can use the following example code:
         from ultralytics import YOLO
 
         # Load the YOLOv8 model
-        model = YOLO("yolov8n.pt")
+        model = YOLO("yolo11n.pt")
 
         # Export the model to TorchScript format
-        model.export(format="torchscript")  # creates 'yolov8n.torchscript'
+        model.export(format="torchscript")  # creates 'yolo11n.torchscript'
 
         # Load the exported TorchScript model
-        torchscript_model = YOLO("yolov8n.torchscript")
+        torchscript_model = YOLO("yolo11n.torchscript")
 
         # Run inference
         results = torchscript_model("https://ultralytics.com/images/bus.jpg")
@@ -159,10 +159,10 @@ To export a YOLOv8 model to TorchScript, you can use the following example code:
 
         ```bash
         # Export a YOLOv8n PyTorch model to TorchScript format
-        yolo export model=yolov8n.pt format=torchscript  # creates 'yolov8n.torchscript'
+        yolo export model=yolo11n.pt format=torchscript  # creates 'yolo11n.torchscript'
 
         # Run inference with the exported model
-        yolo predict model=yolov8n.torchscript source='https://ultralytics.com/images/bus.jpg'
+        yolo predict model=yolo11n.torchscript source='https://ultralytics.com/images/bus.jpg'
         ```
 
 For more details about the export process, refer to the [Ultralytics documentation on exporting](../modes/export.md).

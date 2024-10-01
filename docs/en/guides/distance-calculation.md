@@ -45,7 +45,7 @@ Measuring the gap between two objects is known as distance calculation within a 
 
         from ultralytics import YOLO, solutions
 
-        model = YOLO("yolov8n.pt")
+        model = YOLO("yolo11n.pt")
         names = model.model.names
 
         cap = cv2.VideoCapture("path/to/video/file.mp4")

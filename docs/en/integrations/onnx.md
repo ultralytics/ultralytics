@@ -91,13 +91,13 @@ Before diving into the usage instructions, be sure to check out the range of [YO
         from ultralytics import YOLO
 
         # Load the YOLOv8 model
-        model = YOLO("yolov8n.pt")
+        model = YOLO("yolo11n.pt")
 
         # Export the model to ONNX format
-        model.export(format="onnx")  # creates 'yolov8n.onnx'
+        model.export(format="onnx")  # creates 'yolo11n.onnx'
 
         # Load the exported ONNX model
-        onnx_model = YOLO("yolov8n.onnx")
+        onnx_model = YOLO("yolo11n.onnx")
 
         # Run inference
         results = onnx_model("https://ultralytics.com/images/bus.jpg")
@@ -107,10 +107,10 @@ Before diving into the usage instructions, be sure to check out the range of [YO
 
         ```bash
         # Export a YOLOv8n PyTorch model to ONNX format
-        yolo export model=yolov8n.pt format=onnx  # creates 'yolov8n.onnx'
+        yolo export model=yolo11n.pt format=onnx  # creates 'yolo11n.onnx'
 
         # Run inference with the exported model
-        yolo predict model=yolov8n.onnx source='https://ultralytics.com/images/bus.jpg'
+        yolo predict model=yolo11n.onnx source='https://ultralytics.com/images/bus.jpg'
         ```
 
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
@@ -147,13 +147,13 @@ To export your YOLOv8 models to ONNX format using Ultralytics, follow these step
         from ultralytics import YOLO
 
         # Load the YOLOv8 model
-        model = YOLO("yolov8n.pt")
+        model = YOLO("yolo11n.pt")
 
         # Export the model to ONNX format
-        model.export(format="onnx")  # creates 'yolov8n.onnx'
+        model.export(format="onnx")  # creates 'yolo11n.onnx'
 
         # Load the exported ONNX model
-        onnx_model = YOLO("yolov8n.onnx")
+        onnx_model = YOLO("yolo11n.onnx")
 
         # Run inference
         results = onnx_model("https://ultralytics.com/images/bus.jpg")
@@ -163,10 +163,10 @@ To export your YOLOv8 models to ONNX format using Ultralytics, follow these step
 
         ```bash
         # Export a YOLOv8n PyTorch model to ONNX format
-        yolo export model=yolov8n.pt format=onnx  # creates 'yolov8n.onnx'
+        yolo export model=yolo11n.pt format=onnx  # creates 'yolo11n.onnx'
 
         # Run inference with the exported model
-        yolo predict model=yolov8n.onnx source='https://ultralytics.com/images/bus.jpg'
+        yolo predict model=yolo11n.onnx source='https://ultralytics.com/images/bus.jpg'
         ```
 
 For more details, visit the [export documentation](../modes/export.md).

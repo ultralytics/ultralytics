@@ -84,7 +84,7 @@ Before diving into the usage instructions for YOLOv8 model training with Weights
         wandb.init(project="ultralytics", job_type="training")
 
         # Load a YOLO model
-        model = YOLO("yolov8n.pt")
+        model = YOLO("yolo11n.pt")
 
         # Add W&B Callback for Ultralytics
         add_wandb_callback(model, enable_model_checkpointing=True)
@@ -212,7 +212,7 @@ from ultralytics import YOLO
 wandb.init(project="ultralytics", job_type="training")
 
 # Load a YOLO model
-model = YOLO("yolov8n.pt")
+model = YOLO("yolo11n.pt")
 
 # Add W&B Callback for Ultralytics
 add_wandb_callback(model, enable_model_checkpointing=True)

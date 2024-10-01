@@ -70,7 +70,7 @@ Before diving into the usage instructions, be sure to check out the range of [YO
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n.pt")
+        model = YOLO("yolo11n.pt")
 
         # Train the model
         results = model.train(
@@ -208,7 +208,7 @@ To integrate Comet ML with Ultralytics YOLOv8, follow these steps:
     ```python
     from ultralytics import YOLO
 
-    model = YOLO("yolov8n.pt")
+    model = YOLO("yolo11n.pt")
     results = model.train(
         data="coco8.yaml",
         project="comet-example-yolov8-coco128",

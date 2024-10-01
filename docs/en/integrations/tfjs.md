@@ -73,13 +73,13 @@ Before diving into the usage instructions, it's important to note that while all
         from ultralytics import YOLO
 
         # Load the YOLOv8 model
-        model = YOLO("yolov8n.pt")
+        model = YOLO("yolo11n.pt")
 
         # Export the model to TF.js format
-        model.export(format="tfjs")  # creates '/yolov8n_web_model'
+        model.export(format="tfjs")  # creates '/yolo11n_web_model'
 
         # Load the exported TF.js model
-        tfjs_model = YOLO("./yolov8n_web_model")
+        tfjs_model = YOLO("./yolo11n_web_model")
 
         # Run inference
         results = tfjs_model("https://ultralytics.com/images/bus.jpg")
@@ -89,17 +89,17 @@ Before diving into the usage instructions, it's important to note that while all
 
         ```bash
         # Export a YOLOv8n PyTorch model to TF.js format
-        yolo export model=yolov8n.pt format=tfjs  # creates '/yolov8n_web_model'
+        yolo export model=yolo11n.pt format=tfjs  # creates '/yolo11n_web_model'
 
         # Run inference with the exported model
-        yolo predict model='./yolov8n_web_model' source='https://ultralytics.com/images/bus.jpg'
+        yolo predict model='./yolo11n_web_model' source='https://ultralytics.com/images/bus.jpg'
         ```
 
 For more details about supported export options, visit the [Ultralytics documentation page on deployment options](../guides/model-deployment-options.md).
 
 ## Deploying Exported YOLOv8 TensorFlow.js Models
 
-Now that you have exported your YOLOv8 model to the TF.js format, the next step is to deploy it. The primary and recommended first step for running a TF.js is to use the YOLO("./yolov8n_web_model") method, as previously shown in the usage code snippet.
+Now that you have exported your YOLOv8 model to the TF.js format, the next step is to deploy it. The primary and recommended first step for running a TF.js is to use the YOLO("./yolo11n_web_model") method, as previously shown in the usage code snippet.
 
 However, for in-depth instructions on deploying your TF.js models, take a look at the following resources:
 
@@ -131,13 +131,13 @@ Exporting Ultralytics YOLOv8 models to TensorFlow.js (TF.js) format is straightf
         from ultralytics import YOLO
 
         # Load the YOLOv8 model
-        model = YOLO("yolov8n.pt")
+        model = YOLO("yolo11n.pt")
 
         # Export the model to TF.js format
-        model.export(format="tfjs")  # creates '/yolov8n_web_model'
+        model.export(format="tfjs")  # creates '/yolo11n_web_model'
 
         # Load the exported TF.js model
-        tfjs_model = YOLO("./yolov8n_web_model")
+        tfjs_model = YOLO("./yolo11n_web_model")
 
         # Run inference
         results = tfjs_model("https://ultralytics.com/images/bus.jpg")
@@ -147,10 +147,10 @@ Exporting Ultralytics YOLOv8 models to TensorFlow.js (TF.js) format is straightf
 
         ```bash
         # Export a YOLOv8n PyTorch model to TF.js format
-        yolo export model=yolov8n.pt format=tfjs  # creates '/yolov8n_web_model'
+        yolo export model=yolo11n.pt format=tfjs  # creates '/yolo11n_web_model'
 
         # Run inference with the exported model
-        yolo predict model='./yolov8n_web_model' source='https://ultralytics.com/images/bus.jpg'
+        yolo predict model='./yolo11n_web_model' source='https://ultralytics.com/images/bus.jpg'
         ```
 
 For more details about supported export options, visit the [Ultralytics documentation page on deployment options](../guides/model-deployment-options.md).

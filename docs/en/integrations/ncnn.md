@@ -75,13 +75,13 @@ Before diving into the usage instructions, it's important to note that while all
           from ultralytics import YOLO
 
           # Load the YOLOv8 model
-          model = YOLO("yolov8n.pt")
+          model = YOLO("yolo11n.pt")
 
           # Export the model to NCNN format
-          model.export(format="ncnn")  # creates '/yolov8n_ncnn_model'
+          model.export(format="ncnn")  # creates '/yolo11n_ncnn_model'
 
           # Load the exported NCNN model
-          ncnn_model = YOLO("./yolov8n_ncnn_model")
+          ncnn_model = YOLO("./yolo11n_ncnn_model")
 
           # Run inference
           results = ncnn_model("https://ultralytics.com/images/bus.jpg")
@@ -91,10 +91,10 @@ Before diving into the usage instructions, it's important to note that while all
 
           ```bash
           # Export a YOLOv8n PyTorch model to NCNN format
-          yolo export model=yolov8n.pt format=ncnn  # creates '/yolov8n_ncnn_model'
+          yolo export model=yolo11n.pt format=ncnn  # creates '/yolo11n_ncnn_model'
 
           # Run inference with the exported model
-          yolo predict model='./yolov8n_ncnn_model' source='https://ultralytics.com/images/bus.jpg'
+          yolo predict model='./yolo11n_ncnn_model' source='https://ultralytics.com/images/bus.jpg'
           ```
 
 For more details about supported export options, visit the [Ultralytics documentation page on deployment options](../guides/model-deployment-options.md).
@@ -131,15 +131,15 @@ To export your Ultralytics YOLOv8 model to NCNN format, follow these steps:
     from ultralytics import YOLO
 
     # Load the YOLOv8 model
-    model = YOLO("yolov8n.pt")
+    model = YOLO("yolo11n.pt")
 
     # Export to NCNN format
-    model.export(format="ncnn")  # creates '/yolov8n_ncnn_model'
+    model.export(format="ncnn")  # creates '/yolo11n_ncnn_model'
     ```
 
 - **CLI**: Use the `yolo` command with the `export` argument.
     ```bash
-    yolo export model=yolov8n.pt format=ncnn  # creates '/yolov8n_ncnn_model'
+    yolo export model=yolo11n.pt format=ncnn  # creates '/yolo11n_ncnn_model'
     ```
 
 For detailed export options, check the [Export](../modes/export.md) page in the documentation.

@@ -50,7 +50,7 @@ To install the required packages, run:
         from ultralytics import YOLO
 
         # Load a YOLOv8n model
-        model = YOLO("yolov8n.pt")
+        model = YOLO("yolo11n.pt")
 
         # Start tuning hyperparameters for YOLOv8n training on the COCO8 dataset
         result_grid = model.tune(data="coco8.yaml", use_ray=True)
@@ -109,7 +109,7 @@ In this example, we demonstrate how to use a custom search space for hyperparame
     from ultralytics import YOLO
 
     # Define a YOLO model
-    model = YOLO("yolov8n.pt")
+    model = YOLO("yolo11n.pt")
 
     # Run Ray Tune on the model
     result_grid = model.tune(
@@ -120,7 +120,7 @@ In this example, we demonstrate how to use a custom search space for hyperparame
     )
     ```
 
-In the code snippet above, we create a YOLO model with the "yolov8n.pt" pretrained weights. Then, we call the `tune()` method, specifying the dataset configuration with "coco8.yaml". We provide a custom search space for the initial learning rate `lr0` using a dictionary with the key "lr0" and the value `tune.uniform(1e-5, 1e-1)`. Finally, we pass additional training arguments, such as the number of epochs directly to the tune method as `epochs=50`.
+In the code snippet above, we create a YOLO model with the "yolo11n.pt" pretrained weights. Then, we call the `tune()` method, specifying the dataset configuration with "coco8.yaml". We provide a custom search space for the initial learning rate `lr0` using a dictionary with the key "lr0" and the value `tune.uniform(1e-5, 1e-1)`. Finally, we pass additional training arguments, such as the number of epochs directly to the tune method as `epochs=50`.
 
 ## Processing Ray Tune Results
 
@@ -203,7 +203,7 @@ To tune the hyperparameters of your Ultralytics YOLOv8 model using Ray Tune, fol
     from ultralytics import YOLO
 
     # Load a YOLOv8 model
-    model = YOLO("yolov8n.pt")
+    model = YOLO("yolo11n.pt")
 
     # Start tuning with the COCO8 dataset
     result_grid = model.tune(data="coco8.yaml", use_ray=True)
@@ -249,7 +249,7 @@ To integrate Weights & Biases (W&B) with your Ultralytics YOLOv8 tuning process:
     wandb.init(project="YOLO-Tuning", entity="your-entity")
 
     # Load YOLO model
-    model = YOLO("yolov8n.pt")
+    model = YOLO("yolo11n.pt")
 
     # Tune hyperparameters
     result_grid = model.tune(data="coco8.yaml", use_ray=True)
@@ -276,7 +276,7 @@ from ray import tune
 
 from ultralytics import YOLO
 
-model = YOLO("yolov8n.pt")
+model = YOLO("yolo11n.pt")
 search_space = {"lr0": tune.uniform(1e-5, 1e-1), "momentum": tune.uniform(0.6, 0.98)}
 result_grid = model.tune(data="coco8.yaml", space=search_space, use_ray=True)
 ```

@@ -84,7 +84,7 @@ Parking management with [Ultralytics YOLOv8](https://github.com/ultralytics/ultr
 
         # Initialize parking management object
         parking_manager = solutions.ParkingManagement(
-            model="yolov8n.pt",  # path to model file
+            model="yolo11n.pt",  # path to model file
             json_file="bounding_boxes.json",  # path to parking annotations file
         )
 

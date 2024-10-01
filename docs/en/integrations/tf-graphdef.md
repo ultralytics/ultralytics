@@ -81,13 +81,13 @@ Before diving into the usage instructions, it's important to note that while all
         from ultralytics import YOLO
 
         # Load the YOLOv8 model
-        model = YOLO("yolov8n.pt")
+        model = YOLO("yolo11n.pt")
 
         # Export the model to TF GraphDef format
-        model.export(format="pb")  # creates 'yolov8n.pb'
+        model.export(format="pb")  # creates 'yolo11n.pb'
 
         # Load the exported TF GraphDef model
-        tf_graphdef_model = YOLO("yolov8n.pb")
+        tf_graphdef_model = YOLO("yolo11n.pb")
 
         # Run inference
         results = tf_graphdef_model("https://ultralytics.com/images/bus.jpg")
@@ -97,10 +97,10 @@ Before diving into the usage instructions, it's important to note that while all
 
         ```bash
         # Export a YOLOv8n PyTorch model to TF GraphDef format
-        yolo export model=yolov8n.pt format=pb  # creates 'yolov8n.pb'
+        yolo export model=yolo11n.pt format=pb  # creates 'yolo11n.pb'
 
         # Run inference with the exported model
-        yolo predict model='yolov8n.pb' source='https://ultralytics.com/images/bus.jpg'
+        yolo predict model='yolo11n.pb' source='https://ultralytics.com/images/bus.jpg'
         ```
 
 For more details about supported export options, visit the [Ultralytics documentation page on deployment options](../guides/model-deployment-options.md).
@@ -139,13 +139,13 @@ Ultralytics YOLOv8 models can be exported to TensorFlow GraphDef (TF GraphDef) f
         from ultralytics import YOLO
 
         # Load the YOLOv8 model
-        model = YOLO("yolov8n.pt")
+        model = YOLO("yolo11n.pt")
 
         # Export the model to TF GraphDef format
-        model.export(format="pb")  # creates 'yolov8n.pb'
+        model.export(format="pb")  # creates 'yolo11n.pb'
 
         # Load the exported TF GraphDef model
-        tf_graphdef_model = YOLO("yolov8n.pb")
+        tf_graphdef_model = YOLO("yolo11n.pb")
 
         # Run inference
         results = tf_graphdef_model("https://ultralytics.com/images/bus.jpg")
@@ -155,10 +155,10 @@ Ultralytics YOLOv8 models can be exported to TensorFlow GraphDef (TF GraphDef) f
 
         ```bash
         # Export a YOLOv8n PyTorch model to TF GraphDef format
-        yolo export model="yolov8n.pt" format="pb"  # creates 'yolov8n.pb'
+        yolo export model="yolo11n.pt" format="pb"  # creates 'yolo11n.pb'
 
         # Run inference with the exported model
-        yolo predict model="yolov8n.pb" source="https://ultralytics.com/images/bus.jpg"
+        yolo predict model="yolo11n.pb" source="https://ultralytics.com/images/bus.jpg"
         ```
 
 For more information on different export options, visit the [Ultralytics documentation on model export](../modes/export.md).

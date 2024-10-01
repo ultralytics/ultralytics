@@ -202,7 +202,7 @@ y2 = y2 / 640
 **Solution**: To detect specific classes use the classes argument to specify the classes you want to include in the output. For instance, to detect only cars (assuming 'cars' have class index 2):
 
 ```shell
-yolo task=detect mode=segment model=yolov8n-seg.pt source='path/to/car.mp4' show=True classes=2
+yolo task=detect mode=segment model=yolo11n-seg.pt source='path/to/car.mp4' show=True classes=2
 ```
 
 #### Understanding Precision Metrics in YOLOv8
@@ -221,7 +221,7 @@ yolo task=detect mode=segment model=yolov8n-seg.pt source='path/to/car.mp4' show
 from ultralytics import YOLO
 
 # Load a pre-trained YOLOv8 model
-model = YOLO("yolov8n.pt")
+model = YOLO("yolo11n.pt")
 
 # Specify the source image
 source = "https://ultralytics.com/images/bus.jpg"

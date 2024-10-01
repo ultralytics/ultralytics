@@ -90,7 +90,7 @@ class ObjectDetection:
         self.email_sent = False
 
         # model information
-        self.model = YOLO("yolov8n.pt")
+        self.model = YOLO("yolo11n.pt")
 
         # visual information
         self.annotator = None

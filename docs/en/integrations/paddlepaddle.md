@@ -88,13 +88,13 @@ Before diving into the usage instructions, it's important to note that while all
         from ultralytics import YOLO
 
         # Load the YOLOv8 model
-        model = YOLO("yolov8n.pt")
+        model = YOLO("yolo11n.pt")
 
         # Export the model to PaddlePaddle format
-        model.export(format="paddle")  # creates '/yolov8n_paddle_model'
+        model.export(format="paddle")  # creates '/yolo11n_paddle_model'
 
         # Load the exported PaddlePaddle model
-        paddle_model = YOLO("./yolov8n_paddle_model")
+        paddle_model = YOLO("./yolo11n_paddle_model")
 
         # Run inference
         results = paddle_model("https://ultralytics.com/images/bus.jpg")
@@ -104,10 +104,10 @@ Before diving into the usage instructions, it's important to note that while all
 
         ```bash
         # Export a YOLOv8n PyTorch model to PaddlePaddle format
-        yolo export model=yolov8n.pt format=paddle  # creates '/yolov8n_paddle_model'
+        yolo export model=yolo11n.pt format=paddle  # creates '/yolo11n_paddle_model'
 
         # Run inference with the exported model
-        yolo predict model='./yolov8n_paddle_model' source='https://ultralytics.com/images/bus.jpg'
+        yolo predict model='./yolo11n_paddle_model' source='https://ultralytics.com/images/bus.jpg'
         ```
 
 For more details about supported export options, visit the [Ultralytics documentation page on deployment options](../guides/model-deployment-options.md).
@@ -146,13 +146,13 @@ Exporting Ultralytics YOLOv8 models to PaddlePaddle format is straightforward. Y
         from ultralytics import YOLO
 
         # Load the YOLOv8 model
-        model = YOLO("yolov8n.pt")
+        model = YOLO("yolo11n.pt")
 
         # Export the model to PaddlePaddle format
-        model.export(format="paddle")  # creates '/yolov8n_paddle_model'
+        model.export(format="paddle")  # creates '/yolo11n_paddle_model'
 
         # Load the exported PaddlePaddle model
-        paddle_model = YOLO("./yolov8n_paddle_model")
+        paddle_model = YOLO("./yolo11n_paddle_model")
 
         # Run inference
         results = paddle_model("https://ultralytics.com/images/bus.jpg")
@@ -162,10 +162,10 @@ Exporting Ultralytics YOLOv8 models to PaddlePaddle format is straightforward. Y
 
         ```bash
         # Export a YOLOv8n PyTorch model to PaddlePaddle format
-        yolo export model=yolov8n.pt format=paddle  # creates '/yolov8n_paddle_model'
+        yolo export model=yolo11n.pt format=paddle  # creates '/yolo11n_paddle_model'
 
         # Run inference with the exported model
-        yolo predict model='./yolov8n_paddle_model' source='https://ultralytics.com/images/bus.jpg'
+        yolo predict model='./yolo11n_paddle_model' source='https://ultralytics.com/images/bus.jpg'
         ```
 
 For more detailed setup and troubleshooting, check the [Ultralytics Installation Guide](../quickstart.md) and [Common Issues Guide](../guides/yolo-common-issues.md).

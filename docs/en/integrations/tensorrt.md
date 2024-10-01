@@ -85,13 +85,13 @@ Before diving into the usage instructions, be sure to check out the range of [YO
         from ultralytics import YOLO
 
         # Load the YOLOv8 model
-        model = YOLO("yolov8n.pt")
+        model = YOLO("yolo11n.pt")
 
         # Export the model to TensorRT format
-        model.export(format="engine")  # creates 'yolov8n.engine'
+        model.export(format="engine")  # creates 'yolo11n.engine'
 
         # Load the exported TensorRT model
-        tensorrt_model = YOLO("yolov8n.engine")
+        tensorrt_model = YOLO("yolo11n.engine")
 
         # Run inference
         results = tensorrt_model("https://ultralytics.com/images/bus.jpg")
@@ -101,10 +101,10 @@ Before diving into the usage instructions, be sure to check out the range of [YO
 
         ```bash
         # Export a YOLOv8n PyTorch model to TensorRT format
-        yolo export model=yolov8n.pt format=engine  # creates 'yolov8n.engine''
+        yolo export model=yolo11n.pt format=engine  # creates 'yolo11n.engine''
 
         # Run inference with the exported model
-        yolo predict model=yolov8n.engine source='https://ultralytics.com/images/bus.jpg'
+        yolo predict model=yolo11n.engine source='https://ultralytics.com/images/bus.jpg'
         ```
 
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
@@ -150,7 +150,7 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
         ```{ .py .annotate }
         from ultralytics import YOLO
 
-        model = YOLO("yolov8n.pt")
+        model = YOLO("yolo11n.pt")
         model.export(
             format="engine",
             dynamic=True,  # (1)!
@@ -161,7 +161,7 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
         )
 
         # Load the exported TensorRT INT8 model
-        model = YOLO("yolov8n.engine", task="detect")
+        model = YOLO("yolo11n.engine", task="detect")
 
         # Run inference
         result = model.predict("https://ultralytics.com/images/bus.jpg")
@@ -177,10 +177,10 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
 
         ```bash
         # Export a YOLOv8n PyTorch model to TensorRT format with INT8 quantization
-        yolo export model=yolov8n.pt format=engine batch=8 workspace=4 int8=True data=coco.yaml  # creates 'yolov8n.engine''
+        yolo export model=yolo11n.pt format=engine batch=8 workspace=4 int8=True data=coco.yaml  # creates 'yolo11n.engine''
 
         # Run inference with the exported TensorRT quantized model
-        yolo predict model=yolov8n.engine source='https://ultralytics.com/images/bus.jpg'
+        yolo predict model=yolo11n.engine source='https://ultralytics.com/images/bus.jpg'
         ```
 
 ???+ warning "Calibration Cache"
@@ -220,7 +220,7 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
         See [Detection Docs](../tasks/detect.md) for usage examples with these models trained on [COCO](../datasets/detect/coco.md), which include 80 pre-trained classes.
 
         !!! note
-            Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pre-trained weights `yolov8n.engine`
+            Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pre-trained weights `yolo11n.engine`
 
         | Precision | Eval test    | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val<br>50(B) | mAP<sup>val<br>50-95(B) | `batch` | size<br><sup>(pixels) |
         |-----------|--------------|--------------|--------------------|----------------------|-------------------------|---------|-----------------------|
@@ -236,7 +236,7 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
         See [Segmentation Docs](../tasks/segment.md) for usage examples with these models trained on [COCO](../datasets/segment/coco.md), which include 80 pre-trained classes.
 
         !!! note
-            Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pre-trained weights `yolov8n-seg.engine`
+            Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pre-trained weights `yolo11n-seg.engine`
 
         | Precision | Eval test    | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val<br>50(B) | mAP<sup>val<br>50-95(B) | mAP<sup>val<br>50(M) | mAP<sup>val<br>50-95(M) | `batch` | size<br><sup>(pixels) |
         |-----------|--------------|--------------|--------------------|----------------------|-------------------------|----------------------|-------------------------|---------|-----------------------|
@@ -252,7 +252,7 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
         See [Classification Docs](../tasks/classify.md) for usage examples with these models trained on [ImageNet](../datasets/classify/imagenet.md), which include 1000 pre-trained classes.
 
         !!! note
-            Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pre-trained weights `yolov8n-cls.engine`
+            Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pre-trained weights `yolo11n-cls.engine`
 
         | Precision | Eval test        | mean<br>(ms) | min \| max<br>(ms) | top-1 | top-5 | `batch` | size<br><sup>(pixels) |
         |-----------|------------------|--------------|--------------------|-------|-------|---------|-----------------------|
@@ -268,7 +268,7 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
         See [Pose Estimation Docs](../tasks/pose.md) for usage examples with these models trained on [COCO](../datasets/pose/coco.md), which include 1 pre-trained class, "person".
 
         !!! note
-            Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pre-trained weights `yolov8n-pose.engine`
+            Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pre-trained weights `yolo11n-pose.engine`
 
         | Precision | Eval test    | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val<br>50(B) | mAP<sup>val<br>50-95(B) | mAP<sup>val<br>50(P) | mAP<sup>val<br>50-95(P) | `batch` | size<br><sup>(pixels) |
         |-----------|--------------|--------------|--------------------|----------------------|-------------------------|----------------------|-------------------------|---------|-----------------------|
@@ -284,7 +284,7 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
         See [Oriented Detection Docs](../tasks/obb.md) for usage examples with these models trained on [DOTAv1](../datasets/obb/dota-v2.md#dota-v10), which include 15 pre-trained classes.
 
         !!! note
-            Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pre-trained weights `yolov8n-obb.engine`
+            Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pre-trained weights `yolo11n-obb.engine`
 
         | Precision | Eval test      | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val<br>50(B) | mAP<sup>val<br>50-95(B) | `batch` | size<br><sup>(pixels) |
         |-----------|----------------|--------------|--------------------|----------------------|-------------------------|---------|-----------------------|
@@ -304,7 +304,7 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
         Tested with Windows 10.0.19045, `python 3.10.9`, `ultralytics==8.2.4`, `tensorrt==10.0.0b6`
 
         !!! note
-            Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pre-trained weights `yolov8n.engine`
+            Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pre-trained weights `yolo11n.engine`
 
         | Precision | Eval test    | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val<br>50(B) | mAP<sup>val<br>50-95(B) | `batch` | size<br><sup>(pixels) |
         |-----------|--------------|--------------|--------------------|----------------------|-------------------------|---------|-----------------------|
@@ -320,7 +320,7 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
         Tested with Windows 10.0.22631, `python 3.11.9`, `ultralytics==8.2.4`, `tensorrt==10.0.1`
 
         !!! note
-            Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pre-trained weights `yolov8n.engine`
+            Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pre-trained weights `yolo11n.engine`
 
 
         | Precision | Eval test    | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val<br>50(B) | mAP<sup>val<br>50-95(B) | `batch` | size<br><sup>(pixels) |
@@ -337,7 +337,7 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
         Tested with Pop!_OS 22.04 LTS, `python 3.10.12`, `ultralytics==8.2.4`, `tensorrt==8.6.1.post1`
 
         !!! note
-            Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pre-trained weights `yolov8n.engine`
+            Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pre-trained weights `yolo11n.engine`
 
         | Precision | Eval test    | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val<br>50(B) | mAP<sup>val<br>50-95(B) | `batch` | size<br><sup>(pixels) |
         |-----------|--------------|--------------|--------------------|----------------------|-------------------------|---------|-----------------------|
@@ -357,7 +357,7 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
         Tested with JetPack 6.0 (L4T 36.3) Ubuntu 22.04.4 LTS, `python 3.10.12`, `ultralytics==8.2.16`, `tensorrt==10.0.1`
 
         !!! note
-            Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pre-trained weights `yolov8n.engine`
+            Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pre-trained weights `yolo11n.engine`
 
         | Precision | Eval test    | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val<br>50(B) | mAP<sup>val<br>50-95(B) | `batch` | size<br><sup>(pixels) |
         |-----------|--------------|--------------|--------------------|----------------------|-------------------------|---------|-----------------------|
@@ -383,7 +383,7 @@ Expand sections below for information on how these models were exported and test
     ```py
     from ultralytics import YOLO
 
-    model = YOLO("yolov8n.pt")
+    model = YOLO("yolo11n.pt")
 
     # TensorRT FP32
     out = model.export(format="engine", imgsz=640, dynamic=True, verbose=False, batch=8, workspace=2)
@@ -406,7 +406,7 @@ Expand sections below for information on how these models were exported and test
 
     from ultralytics import YOLO
 
-    model = YOLO("yolov8n.engine")
+    model = YOLO("yolo11n.engine")
     img = cv2.imread("path/to/image.jpg")
 
     for _ in range(100):
@@ -424,7 +424,7 @@ Expand sections below for information on how these models were exported and test
     ```py
     from ultralytics import YOLO
 
-    model = YOLO("yolov8n.engine")
+    model = YOLO("yolo11n.engine")
     results = model.val(
         data="data.yaml",  # COCO, ImageNet, or DOTAv1 for appropriate model task
         batch=1,
@@ -471,11 +471,11 @@ To convert your Ultralytics YOLOv8 models to TensorRT format for optimized NVIDI
     ```python
     from ultralytics import YOLO
 
-    model = YOLO("yolov8n.pt")
-    model.export(format="engine")  # creates 'yolov8n.engine'
+    model = YOLO("yolo11n.pt")
+    model.export(format="engine")  # creates 'yolo11n.engine'
 
     # Run inference
-    model = YOLO("yolov8n.engine")
+    model = YOLO("yolo11n.engine")
     results = model("https://ultralytics.com/images/bus.jpg")
     ```
 
@@ -501,7 +501,7 @@ Yes, you can export YOLOv8 models using TensorRT with INT8 quantization. This pr
     ```python
     from ultralytics import YOLO
 
-    model = YOLO("yolov8n.pt")
+    model = YOLO("yolo11n.pt")
     model.export(format="engine", batch=8, workspace=4, int8=True, data="coco.yaml")
     ```
 
@@ -510,7 +510,7 @@ Yes, you can export YOLOv8 models using TensorRT with INT8 quantization. This pr
     ```python
     from ultralytics import YOLO
 
-    model = YOLO("yolov8n.engine", task="detect")
+    model = YOLO("yolo11n.engine", task="detect")
     result = model.predict("https://ultralytics.com/images/bus.jpg")
     ```
 

@@ -128,7 +128,7 @@ To train a YOLOv8 model using JupyterLab:
     ```python
     from ultralytics import YOLO
 
-    model = YOLO("yolov8n.pt")
+    model = YOLO("yolo11n.pt")
     ```
 
 4. Train the model on your custom dataset:

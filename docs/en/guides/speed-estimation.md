@@ -47,7 +47,7 @@ keywords: Ultralytics YOLOv8, speed estimation, object tracking, computer vision
 
         from ultralytics import YOLO, solutions
 
-        model = YOLO("yolov8n.pt")
+        model = YOLO("yolo11n.pt")
         names = model.model.names
 
         cap = cv2.VideoCapture("path/to/video/file.mp4")
@@ -113,7 +113,7 @@ import cv2
 
 from ultralytics import YOLO, solutions
 
-model = YOLO("yolov8n.pt")
+model = YOLO("yolo11n.pt")
 names = model.model.names
 
 cap = cv2.VideoCapture("path/to/video/file.mp4")
@@ -159,7 +159,7 @@ Yes, YOLOv8 can be integrated with other AI frameworks like TensorFlow and PyTor
 To export a YOLOv8 model to ONNX format:
 
 ```bash
-yolo export --weights yolov8n.pt --include onnx
+yolo export --weights yolo11n.pt --include onnx
 ```
 
 Learn more about exporting models in our [guide on export](../modes/export.md).

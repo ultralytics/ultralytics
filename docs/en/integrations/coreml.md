@@ -83,13 +83,13 @@ Before diving into the usage instructions, be sure to check out the range of [YO
         from ultralytics import YOLO
 
         # Load the YOLOv8 model
-        model = YOLO("yolov8n.pt")
+        model = YOLO("yolo11n.pt")
 
         # Export the model to CoreML format
-        model.export(format="coreml")  # creates 'yolov8n.mlpackage'
+        model.export(format="coreml")  # creates 'yolo11n.mlpackage'
 
         # Load the exported CoreML model
-        coreml_model = YOLO("yolov8n.mlpackage")
+        coreml_model = YOLO("yolo11n.mlpackage")
 
         # Run inference
         results = coreml_model("https://ultralytics.com/images/bus.jpg")
@@ -99,10 +99,10 @@ Before diving into the usage instructions, be sure to check out the range of [YO
 
         ```bash
         # Export a YOLOv8n PyTorch model to CoreML format
-        yolo export model=yolov8n.pt format=coreml  # creates 'yolov8n.mlpackage''
+        yolo export model=yolo11n.pt format=coreml  # creates 'yolo11n.mlpackage''
 
         # Run inference with the exported model
-        yolo predict model=yolov8n.mlpackage source='https://ultralytics.com/images/bus.jpg'
+        yolo predict model=yolo11n.mlpackage source='https://ultralytics.com/images/bus.jpg'
         ```
 
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
@@ -148,14 +148,14 @@ Next, you can export the model using the following Python or CLI commands:
         ```python
         from ultralytics import YOLO
 
-        model = YOLO("yolov8n.pt")
+        model = YOLO("yolo11n.pt")
         model.export(format="coreml")
         ```
 
     === "CLI"
 
         ```bash
-        yolo export model=yolov8n.pt format=coreml
+        yolo export model=yolo11n.pt format=coreml
         ```
 
 For further details, refer to the [Exporting YOLOv8 Models to CoreML](../modes/export.md) section of our documentation.
@@ -205,14 +205,14 @@ Yes, you can run inference directly using the exported CoreML model. Below are t
         ```python
         from ultralytics import YOLO
 
-        coreml_model = YOLO("yolov8n.mlpackage")
+        coreml_model = YOLO("yolo11n.mlpackage")
         results = coreml_model("https://ultralytics.com/images/bus.jpg")
         ```
 
     === "CLI"
 
         ```bash
-        yolo predict model=yolov8n.mlpackage source='https://ultralytics.com/images/bus.jpg'
+        yolo predict model=yolo11n.mlpackage source='https://ultralytics.com/images/bus.jpg'
         ```
 
 For additional information, refer to the [Usage section](#usage) of the CoreML export guide.

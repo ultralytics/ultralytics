@@ -74,8 +74,8 @@ Start by running your YOLOv8 training sessions. You can use different model conf
 
 ```bash
 # Example training commands for YOLOv8 with varying configurations
-yolo train model=yolov8n.pt data=coco8.yaml epochs=5 imgsz=512
-yolo train model=yolov8n.pt data=coco8.yaml epochs=5 imgsz=640
+yolo train model=yolo11n.pt data=coco8.yaml epochs=5 imgsz=512
+yolo train model=yolo11n.pt data=coco8.yaml epochs=5 imgsz=640
 ```
 
 Adjust the model, data, [epochs](https://www.ultralytics.com/glossary/epoch), and imgsz parameters according to your specific requirements. For a detailed understanding of the model training process and best practices, refer to our [YOLOv8 Model Training guide](../modes/train.md).

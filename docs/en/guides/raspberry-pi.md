@@ -108,13 +108,13 @@ The YOLOv8n model in PyTorch format is converted to NCNN to run inference with t
         from ultralytics import YOLO
 
         # Load a YOLOv8n PyTorch model
-        model = YOLO("yolov8n.pt")
+        model = YOLO("yolo11n.pt")
 
         # Export the model to NCNN format
-        model.export(format="ncnn")  # creates 'yolov8n_ncnn_model'
+        model.export(format="ncnn")  # creates 'yolo11n_ncnn_model'
 
         # Load the exported NCNN model
-        ncnn_model = YOLO("yolov8n_ncnn_model")
+        ncnn_model = YOLO("yolo11n_ncnn_model")
 
         # Run inference
         results = ncnn_model("https://ultralytics.com/images/bus.jpg")
@@ -124,10 +124,10 @@ The YOLOv8n model in PyTorch format is converted to NCNN to run inference with t
 
         ```bash
         # Export a YOLOv8n PyTorch model to NCNN format
-        yolo export model=yolov8n.pt format=ncnn  # creates 'yolov8n_ncnn_model'
+        yolo export model=yolo11n.pt format=ncnn  # creates 'yolo11n_ncnn_model'
 
         # Run inference with the exported model
-        yolo predict model='yolov8n_ncnn_model' source='https://ultralytics.com/images/bus.jpg'
+        yolo predict model='yolo11n_ncnn_model' source='https://ultralytics.com/images/bus.jpg'
         ```
 
 !!! tip
@@ -149,7 +149,7 @@ YOLOv8 benchmarks were run by the Ultralytics team on nine different model forma
     === "YOLOv8n"
 
         <div style="text-align: center;">
-            <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/yolov8n-benchmark-comparison.avif" alt="NVIDIA Jetson Ecosystem">
+            <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/yolo11n-benchmark-comparison.avif" alt="NVIDIA Jetson Ecosystem">
         </div>
 
     === "YOLOv8s"
@@ -232,7 +232,7 @@ To reproduce the above Ultralytics benchmarks on all [export formats](../modes/e
         from ultralytics import YOLO
 
         # Load a YOLOv8n PyTorch model
-        model = YOLO("yolov8n.pt")
+        model = YOLO("yolo11n.pt")
 
         # Benchmark YOLOv8n speed and accuracy on the COCO8 dataset for all all export formats
         results = model.benchmarks(data="coco8.yaml", imgsz=640)
@@ -242,7 +242,7 @@ To reproduce the above Ultralytics benchmarks on all [export formats](../modes/e
 
         ```bash
         # Benchmark YOLOv8n speed and accuracy on the COCO8 dataset for all all export formats
-        yolo benchmark model=yolov8n.pt data=coco8.yaml imgsz=640
+        yolo benchmark model=yolo11n.pt data=coco8.yaml imgsz=640
         ```
 
     Note that benchmarking results might vary based on the exact hardware and software configuration of a system, as well as the current workload of the system at the time the benchmarks are run. For the most reliable results use a dataset with a large number of images, i.e. `data='coco8.yaml' (4 val images), or `data='coco.yaml'` (5000 val images).
@@ -300,7 +300,7 @@ There are 2 methods of using the Raspberry Pi Camera to inference YOLOv8 models.
                 picam2.start()
 
                 # Load the YOLOv8 model
-                model = YOLO("yolov8n.pt")
+                model = YOLO("yolo11n.pt")
 
                 while True:
                     # Capture frame-by-frame
@@ -341,7 +341,7 @@ There are 2 methods of using the Raspberry Pi Camera to inference YOLOv8 models.
                 from ultralytics import YOLO
 
                 # Load a YOLOv8n PyTorch model
-                model = YOLO("yolov8n.pt")
+                model = YOLO("yolo11n.pt")
 
                 # Run inference
                 results = model("tcp://127.0.0.1:8888")
@@ -350,7 +350,7 @@ There are 2 methods of using the Raspberry Pi Camera to inference YOLOv8 models.
             === "CLI"
 
                 ```bash
-                yolo predict model=yolov8n.pt source="tcp://127.0.0.1:8888"
+                yolo predict model=yolo11n.pt source="tcp://127.0.0.1:8888"
                 ```
 
 !!! tip
@@ -418,13 +418,13 @@ You can convert a PyTorch YOLOv8 model to NCNN format using either Python or CLI
         from ultralytics import YOLO
 
         # Load a YOLOv8n PyTorch model
-        model = YOLO("yolov8n.pt")
+        model = YOLO("yolo11n.pt")
 
         # Export the model to NCNN format
-        model.export(format="ncnn")  # creates 'yolov8n_ncnn_model'
+        model.export(format="ncnn")  # creates 'yolo11n_ncnn_model'
 
         # Load the exported NCNN model
-        ncnn_model = YOLO("yolov8n_ncnn_model")
+        ncnn_model = YOLO("yolo11n_ncnn_model")
 
         # Run inference
         results = ncnn_model("https://ultralytics.com/images/bus.jpg")
@@ -434,10 +434,10 @@ You can convert a PyTorch YOLOv8 model to NCNN format using either Python or CLI
 
         ```bash
         # Export a YOLOv8n PyTorch model to NCNN format
-        yolo export model=yolov8n.pt format=ncnn  # creates 'yolov8n_ncnn_model'
+        yolo export model=yolo11n.pt format=ncnn  # creates 'yolo11n_ncnn_model'
 
         # Run inference with the exported model
-        yolo predict model='yolov8n_ncnn_model' source='https://ultralytics.com/images/bus.jpg'
+        yolo predict model='yolo11n_ncnn_model' source='https://ultralytics.com/images/bus.jpg'
         ```
 
 For more details, see the [Use NCNN on Raspberry Pi](#use-ncnn-on-raspberry-pi) section.
@@ -471,7 +471,7 @@ There are two methods to set up a Raspberry Pi Camera for YOLOv8 inference:
     picam2.configure("preview")
     picam2.start()
 
-    model = YOLO("yolov8n.pt")
+    model = YOLO("yolo11n.pt")
 
     while True:
         frame = picam2.capture_array()
@@ -494,7 +494,7 @@ There are two methods to set up a Raspberry Pi Camera for YOLOv8 inference:
     ```python
     from ultralytics import YOLO
 
-    model = YOLO("yolov8n.pt")
+    model = YOLO("yolo11n.pt")
     results = model("tcp://127.0.0.1:8888")
     ```
 

@@ -19,7 +19,7 @@ YOLO11 is an AI framework that supports multiple [computer vision](https://www.u
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Explore Ultralytics YOLO Tasks: [Object Detection](https://www.ultralytics.com/glossary/object-detection), Segmentation, OBB, Tracking, and Pose Estimation.
+  <strong>Watch:</strong> Explore Ultralytics YOLO Tasks: <a href="https://www.ultralytics.com/glossary/object-detection">Object Detection</a>, Segmentation, OBB, Tracking, and Pose Estimation.
 </p>
 
 ## [Detection](detect.md)

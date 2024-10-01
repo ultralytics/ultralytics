@@ -18,7 +18,7 @@ Whether you're working on automotive research, developing AI solutions for vehic
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Carparts [Instance Segmentation](https://www.ultralytics.com/glossary/instance-segmentation) Using Ultralytics HUB
+  <strong>Watch:</strong> Carparts <a href="https://www.ultralytics.com/glossary/instance-segmentation">Instance Segmentation</a> Using Ultralytics HUB
 </p>
 
 ## Dataset Structure

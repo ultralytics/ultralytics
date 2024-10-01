@@ -16,7 +16,7 @@ The [Caltech-256](https://data.caltech.edu/records/nyy15-4j048) dataset is an ex
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Train [Image Classification](https://www.ultralytics.com/glossary/image-classification) Model using Caltech-256 Dataset with Ultralytics HUB
+  <strong>Watch:</strong> How to Train <a href="https://www.ultralytics.com/glossary/image-classification">Image Classification</a> Model using Caltech-256 Dataset with Ultralytics HUB
 </p>
 
 ## Key Features

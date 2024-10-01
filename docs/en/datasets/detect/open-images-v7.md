@@ -16,7 +16,7 @@ keywords: Open Images V7, Google dataset, computer vision, YOLOv8 models, object
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> [Object Detection](https://www.ultralytics.com/glossary/object-detection) using OpenImagesV7 Pretrained Model
+  <strong>Watch:</strong> <a href="https://www.ultralytics.com/glossary/object-detection">Object Detection</a> using OpenImagesV7 Pretrained Model
 </p>
 
 ## Open Images V7 Pretrained Models

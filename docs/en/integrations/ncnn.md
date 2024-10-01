@@ -181,6 +181,6 @@ To deploy your YOLO11 models on Android:
 1. **Build for Android**: Follow the [NCNN Build for Android](https://github.com/Tencent/ncnn/wiki/how-to-build#build-for-android) guide.
 2. **Integrate with Your App**: Use the NCNN Android SDK to integrate the exported model into your application for efficient on-device inference.
 
-For step-by-step instructions, refer to our guide on [Deploying YOLO11 NCNN Models](#deploying-exported-yolov8-ncnn-models).
+For step-by-step instructions, refer to our guide on [Deploying YOLO11 NCNN Models](#deploying-exported-yolo11-ncnn-models).
 
 For more advanced guides and use cases, visit the [Ultralytics documentation page](../guides/model-deployment-options.md).

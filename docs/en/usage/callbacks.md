@@ -41,7 +41,7 @@ def on_predict_batch_end(predictor):
 
 
 # Create a YOLO model instance
-model = YOLO("yolov8n.pt")
+model = YOLO("yolo11n.pt")
 
 # Add the custom callback to the model
 model.add_callback("on_predict_batch_end", on_predict_batch_end)
@@ -119,7 +119,7 @@ def on_predict_batch_end(predictor):
     predictor.results = zip(predictor.results, image)
 
 
-model = YOLO("yolov8n.pt")
+model = YOLO("yolo11n.pt")
 model.add_callback("on_predict_batch_end", on_predict_batch_end)
 for result, frame in model.predict():
     pass
@@ -141,7 +141,7 @@ def on_train_epoch_end(trainer):
     trainer.log({"additional_metric": additional_metric})
 
 
-model = YOLO("yolov8n.pt")
+model = YOLO("yolo11n.pt")
 model.add_callback("on_train_epoch_end", on_train_epoch_end)
 model.train(data="coco.yaml", epochs=10)
 ```
@@ -164,7 +164,7 @@ def on_val_end(validator):
     validator.log({"custom_metric": custom_metric})
 
 
-model = YOLO("yolov8n.pt")
+model = YOLO("yolo11n.pt")
 model.add_callback("on_val_end", on_val_end)
 model.val(data="coco.yaml")
 ```
@@ -187,7 +187,7 @@ def on_predict_end(predictor):
         log_prediction(result)
 
 
-model = YOLO("yolov8n.pt")
+model = YOLO("yolo11n.pt")
 model.add_callback("on_predict_end", on_predict_end)
 results = model.predict(source="image.jpg")
 ```
@@ -215,7 +215,7 @@ def on_predict_batch_end(predictor):
     predictor.results = zip(predictor.results, image)
 
 
-model = YOLO("yolov8n.pt")
+model = YOLO("yolo11n.pt")
 model.add_callback("on_predict_batch_end", on_predict_batch_end)
 for result, frame in model.predict():
     pass

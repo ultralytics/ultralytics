@@ -27,10 +27,10 @@ For example, users can load a model, train it, evaluate its performance on a val
     from ultralytics import YOLO
 
     # Create a new YOLO model from scratch
-    model = YOLO("yolov8n.yaml")
+    model = YOLO("yolo11n.yaml")
 
     # Load a pretrained YOLO model (recommended for training)
-    model = YOLO("yolov8n.pt")
+    model = YOLO("yolo11n.pt")
 
     # Train the model using the 'coco8.yaml' dataset for 3 epochs
     results = model.train(data="coco8.yaml", epochs=3)
@@ -56,7 +56,7 @@ Train mode is used for training a YOLO11 model on a custom dataset. In this mode
         ```python
         from ultralytics import YOLO
 
-        model = YOLO("yolov8n.pt")  # pass any model type
+        model = YOLO("yolo11n.pt")  # pass any model type
         results = model.train(epochs=5)
         ```
 
@@ -65,7 +65,7 @@ Train mode is used for training a YOLO11 model on a custom dataset. In this mode
         ```python
         from ultralytics import YOLO
 
-        model = YOLO("yolov8n.yaml")
+        model = YOLO("yolo11n.yaml")
         results = model.train(data="coco8.yaml", epochs=5)
         ```
 
@@ -90,7 +90,7 @@ Val mode is used for validating a YOLO11 model after it has been trained. In thi
         from ultralytics import YOLO
 
         # Load a YOLO11 model
-        model = YOLO("yolov8n.yaml")
+        model = YOLO("yolo11n.yaml")
 
         # Train the model
         model.train(data="coco8.yaml", epochs=5)
@@ -105,7 +105,7 @@ Val mode is used for validating a YOLO11 model after it has been trained. In thi
         from ultralytics import YOLO
 
         # Load a YOLO11 model
-        model = YOLO("yolov8n.yaml")
+        model = YOLO("yolo11n.yaml")
 
         # Train the model
         model.train(data="coco8.yaml", epochs=5)
@@ -195,21 +195,21 @@ Export mode is used for exporting a YOLO11 model to a format that can be used fo
 
     === "Export to ONNX"
 
-        Export an official YOLOv8n model to ONNX with dynamic batch-size and image-size.
+        Export an official YOLO11n model to ONNX with dynamic batch-size and image-size.
         ```python
         from ultralytics import YOLO
 
-        model = YOLO("yolov8n.pt")
+        model = YOLO("yolo11n.pt")
         model.export(format="onnx", dynamic=True)
         ```
 
     === "Export to TensorRT"
 
-        Export an official YOLOv8n model to TensorRT on `device=0` for acceleration on CUDA devices.
+        Export an official YOLO11n model to TensorRT on `device=0` for acceleration on CUDA devices.
         ```python
         from ultralytics import YOLO
 
-        model = YOLO("yolov8n.pt")
+        model = YOLO("yolo11n.pt")
         model.export(format="onnx", device=0)
         ```
 
@@ -227,8 +227,8 @@ Track mode is used for tracking objects in real-time using a YOLO11 model. In th
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n.pt")  # load an official detection model
-        model = YOLO("yolov8n-seg.pt")  # load an official segmentation model
+        model = YOLO("yolo11n.pt")  # load an official detection model
+        model = YOLO("yolo11n-seg.pt")  # load an official segmentation model
         model = YOLO("path/to/best.pt")  # load a custom model
 
         # Track with the model
@@ -246,12 +246,12 @@ Benchmark mode is used to profile the speed and accuracy of various export forma
 
     === "Python"
 
-        Benchmark an official YOLOv8n model across all export formats.
+        Benchmark an official YOLO11n model across all export formats.
         ```python
         from ultralytics.utils.benchmarks import benchmark
 
         # Benchmark
-        benchmark(model="yolov8n.pt", data="coco8.yaml", imgsz=640, half=False, device=0)
+        benchmark(model="yolo11n.pt", data="coco8.yaml", imgsz=640, half=False, device=0)
         ```
 
 [Benchmark Examples](../modes/benchmark.md){ .md-button }
@@ -268,7 +268,7 @@ Explorer API can be used to explore datasets with advanced semantic, vector-simi
         from ultralytics import Explorer
 
         # create an Explorer object
-        exp = Explorer(data="coco8.yaml", model="yolov8n.pt")
+        exp = Explorer(data="coco8.yaml", model="yolo11n.pt")
         exp.create_embeddings_table()
 
         similar = exp.get_similar(img="https://ultralytics.com/images/bus.jpg", limit=10)
@@ -287,7 +287,7 @@ Explorer API can be used to explore datasets with advanced semantic, vector-simi
         from ultralytics import Explorer
 
         # create an Explorer object
-        exp = Explorer(data="coco8.yaml", model="yolov8n.pt")
+        exp = Explorer(data="coco8.yaml", model="yolo11n.pt")
         exp.create_embeddings_table()
 
         similar = exp.get_similar(idx=1, limit=10)
@@ -341,7 +341,7 @@ Integrating Ultralytics YOLO11 into your Python projects is simple. You can load
 from ultralytics import YOLO
 
 # Load a pretrained YOLO model
-model = YOLO("yolov8n.pt")
+model = YOLO("yolo11n.pt")
 
 # Perform object detection on an image
 results = model("https://ultralytics.com/images/bus.jpg")
@@ -374,7 +374,7 @@ To train a custom YOLO11 model, you need to specify your dataset and other hyper
 from ultralytics import YOLO
 
 # Load the YOLO model
-model = YOLO("yolov8n.yaml")
+model = YOLO("yolo11n.yaml")
 
 # Train the model with custom dataset
 model.train(data="path/to/your/dataset.yaml", epochs=10)
@@ -390,7 +390,7 @@ Exporting YOLO11 models in a format suitable for deployment is straightforward w
 from ultralytics import YOLO
 
 # Load the YOLO model
-model = YOLO("yolov8n.pt")
+model = YOLO("yolo11n.pt")
 
 # Export the model to ONNX format
 model.export(format="onnx")
@@ -406,7 +406,7 @@ Yes, validating YOLO11 models on different datasets is possible. After training,
 from ultralytics import YOLO
 
 # Load a YOLO11 model
-model = YOLO("yolov8n.yaml")
+model = YOLO("yolo11n.yaml")
 
 # Train the model
 model.train(data="coco8.yaml", epochs=5)

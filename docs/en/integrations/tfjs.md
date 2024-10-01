@@ -99,7 +99,7 @@ For more details about supported export options, visit the [Ultralytics document
 
 ## Deploying Exported YOLO11 TensorFlow.js Models
 
-Now that you have exported your YOLO11 model to the TF.js format, the next step is to deploy it. The primary and recommended first step for running a TF.js is to use the YOLO("./yolo11n_web_model") method, as previously shown in the usage code snippet.
+Now that you have exported your YOLO11 model to the TF.js format, the next step is to deploy it. The primary and recommended first step for running a TF.js is to use the `YOLO("./yolo11n_web_model")` method, as previously shown in the usage code snippet.
 
 However, for in-depth instructions on deploying your TF.js models, take a look at the following resources:
 
@@ -185,7 +185,7 @@ Key features of TensorFlow.js include:
 - **Multiple Backends:** Supports CPU, WebGL for GPU acceleration, WebAssembly (WASM), and WebGPU for advanced operations.
 - **Offline Capabilities:** Models can run directly in the browser without internet connectivity, making it ideal for developing responsive web applications.
 
-For deployment scenarios and more in-depth information, see our section on [Deployment Options with TensorFlow.js](#deploying-exported-yolov8-tensorflowjs-models).
+For deployment scenarios and more in-depth information, see our section on [Deployment Options with TensorFlow.js](#deploying-exported-yolo11-tensorflowjs-models).
 
 ### Can I deploy a YOLO11 model on server-side Node.js applications using TensorFlow.js?
 

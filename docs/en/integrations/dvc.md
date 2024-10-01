@@ -241,7 +241,7 @@ fig = parallel_coordinates(df, columns, color="metrics.mAP50-95(B)")
 fig.show()
 ```
 
-Refer to our guide on [YOLO11 Training with DVCLive](#yolov8-training-with-dvclive) for more examples and best practices.
+Refer to our guide on [YOLO11 Training with DVCLive](#yolo11-training-with-dvclive) for more examples and best practices.
 
 ### What are the steps to configure my environment for DVCLive and YOLO11 integration?
 

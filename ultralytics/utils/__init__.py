@@ -1029,7 +1029,7 @@ def set_sentry():
             return
 
         sentry_sdk.init(
-            dsn="https://5ff1556b71594bfea135ff0203a0d290@o4504521589325824.ingest.sentry.io/4504521592406016",
+            dsn="https://888e5a0778212e1d0314c37d4b9aae5d@o4504521589325824.ingest.us.sentry.io/4504521592406016",
             debug=False,
             traces_sample_rate=1.0,
             release=__version__,
@@ -1170,25 +1170,26 @@ class SettingsManager(JSONDict):
         self.file = Path(file)
         self.version = version
         self.defaults = {
-            "settings_version": version,
-            "datasets_dir": str(datasets_root / "datasets"),
-            "weights_dir": str(root / "weights"),
-            "runs_dir": str(root / "runs"),
-            "uuid": hashlib.sha256(str(uuid.getnode()).encode()).hexdigest(),
-            "sync": True,
-            "api_key": "",
-            "openai_api_key": "",
-            "clearml": True,  # integrations
-            "comet": True,
-            "dvc": True,
-            "hub": True,
-            "mlflow": True,
-            "neptune": True,
-            "raytune": True,
-            "tensorboard": True,
-            "wandb": True,
-            "vscode_msg": True,
+            "settings_version": version,  # Settings schema version
+            "datasets_dir": str(datasets_root / "datasets"),  # Datasets directory
+            "weights_dir": str(root / "weights"),  # Model weights directory
+            "runs_dir": str(root / "runs"),  # Experiment runs directory
+            "uuid": hashlib.sha256(str(uuid.getnode()).encode()).hexdigest(),  # SHA-256 anonymized UUID hash
+            "sync": True,  # Enable synchronization
+            "api_key": "",  # Ultralytics API Key
+            "openai_api_key": "",  # OpenAI API Key
+            "clearml": True,  # ClearML integration
+            "comet": True,  # Comet integration
+            "dvc": True,  # DVC integration
+            "hub": True,  # Ultralytics HUB integration
+            "mlflow": True,  # MLflow integration
+            "neptune": True,  # Neptune integration
+            "raytune": True,  # Ray Tune integration
+            "tensorboard": True,  # TensorBoard logging
+            "wandb": True,  # Weights & Biases logging
+            "vscode_msg": True,  # VSCode messaging
         }
+
         self.help_msg = (
             f"\nView Ultralytics Settings with 'yolo settings' or at '{self.file}'"
             "\nUpdate Settings with 'yolo settings key=value', i.e. 'yolo settings runs_dir=path/to/dir'. "

@@ -18,7 +18,7 @@ Performance metrics are key tools to evaluate the [accuracy](https://www.ultraly
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong>  Ultralytics YOLOv8 Performance Metrics | MAP, F1 Score, [Precision](https://www.ultralytics.com/glossary/precision), IoU & Accuracy
+  <strong>Watch:</strong>  Ultralytics YOLOv8 Performance Metrics | MAP, F1 Score, <a href="https://www.ultralytics.com/glossary/precision">Precision</a>, IoU & Accuracy
 </p>
 
 ## Object Detection Metrics

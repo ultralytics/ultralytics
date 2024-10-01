@@ -22,7 +22,7 @@ The Security Alarm System Project utilizing Ultralytics YOLOv8 integrates advanc
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Security Alarm System Project with Ultralytics YOLOv8 [Object Detection](https://www.ultralytics.com/glossary/object-detection)
+  <strong>Watch:</strong> Security Alarm System Project with Ultralytics YOLOv8 <a href="https://www.ultralytics.com/glossary/object-detection">Object Detection</a>
 </p>
 
 ### Code

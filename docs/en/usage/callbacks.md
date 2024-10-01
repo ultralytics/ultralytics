@@ -1,7 +1,7 @@
 ---
 comments: true
 description: Explore Ultralytics callbacks for training, validation, exporting, and prediction. Learn how to use and customize them for your ML models.
-keywords: Ultralytics, callbacks, training, validation, export, prediction, ML models, YOLOv8, Python, machine learning
+keywords: Ultralytics, callbacks, training, validation, export, prediction, ML models, YOLO11, Python, machine learning
 ---
 
 ## Callbacks
@@ -16,7 +16,7 @@ Ultralytics framework supports callbacks as entry points in strategic stages of 
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Mastering Ultralytics YOLOv8: Callbacks
+  <strong>Watch:</strong> Mastering Ultralytics YOLO: Callbacks
 </p>
 
 ## Examples

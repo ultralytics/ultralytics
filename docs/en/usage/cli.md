@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Explore the YOLOv8 command line interface (CLI) for easy execution of detection tasks without needing a Python environment.
-keywords: YOLOv8 CLI, command line interface, YOLOv8 commands, detection tasks, Ultralytics, model training, model prediction
+description: Explore the YOLO11 command line interface (CLI) for easy execution of detection tasks without needing a Python environment.
+keywords: YOLO11 CLI, command line interface, YOLO11 commands, detection tasks, Ultralytics, model training, model prediction
 ---
 
 # Command Line Interface Usage
@@ -16,7 +16,7 @@ The YOLO command line interface (CLI) allows for simple single-line commands wit
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Mastering Ultralytics YOLOv8: CLI
+  <strong>Watch:</strong> Mastering Ultralytics YOLO: CLI
 </p>
 
 !!! example
@@ -75,7 +75,7 @@ The YOLO command line interface (CLI) allows for simple single-line commands wit
 
 Where:
 
-- `TASK` (optional) is one of `[detect, segment, classify, pose, obb]`. If it is not passed explicitly YOLOv8 will try to guess the `TASK` from the model type.
+- `TASK` (optional) is one of `[detect, segment, classify, pose, obb]`. If it is not passed explicitly YOLO11 will try to guess the `TASK` from the model type.
 - `MODE` (required) is one of `[train, val, predict, export, track, benchmark]`
 - `ARGS` (optional) are any number of custom `arg=value` pairs like `imgsz=320` that override defaults. For a full list of available `ARGS` see the [Configuration](cfg.md) page and `defaults.yaml`
 
@@ -167,7 +167,7 @@ Export a YOLOv8n model to a different format like ONNX, CoreML, etc.
         yolo export model=path/to/best.pt format=onnx
         ```
 
-Available YOLOv8 export formats are in the table below. You can export to any format using the `format` argument, i.e. `format='onnx'` or `format='engine'`.
+Available YOLO11 export formats are in the table below. You can export to any format using the `format` argument, i.e. `format='onnx'` or `format='engine'`.
 
 {% include "macros/export-table.md" %}
 
@@ -219,9 +219,9 @@ This will create `default_copy.yaml`, which you can then pass as `cfg=default_co
 
 ## FAQ
 
-### How do I use the Ultralytics YOLOv8 command line interface (CLI) for model training?
+### How do I use the Ultralytics YOLO11 command line interface (CLI) for model training?
 
-To train a YOLOv8 model using the CLI, you can execute a simple one-line command in the terminal. For example, to train a detection model for 10 epochs with a [learning rate](https://www.ultralytics.com/glossary/learning-rate) of 0.01, you would run:
+To train a YOLO11 model using the CLI, you can execute a simple one-line command in the terminal. For example, to train a detection model for 10 epochs with a [learning rate](https://www.ultralytics.com/glossary/learning-rate) of 0.01, you would run:
 
 ```bash
 yolo train data=coco8.yaml model=yolov8n.pt epochs=10 lr0=0.01
@@ -229,9 +229,9 @@ yolo train data=coco8.yaml model=yolov8n.pt epochs=10 lr0=0.01
 
 This command uses the `train` mode with specific arguments. Refer to the full list of available arguments in the [Configuration Guide](cfg.md).
 
-### What tasks can I perform with the Ultralytics YOLOv8 CLI?
+### What tasks can I perform with the Ultralytics YOLO11 CLI?
 
-The Ultralytics YOLOv8 CLI supports a variety of tasks including detection, segmentation, classification, validation, prediction, export, and tracking. For instance:
+The Ultralytics YOLO11 CLI supports a variety of tasks including detection, segmentation, classification, validation, prediction, export, and tracking. For instance:
 
 - **Train a Model**: Run `yolo train data=<data.yaml> model=<model.pt> epochs=<num>`.
 - **Run Predictions**: Use `yolo predict model=<model.pt> source=<data_source> imgsz=<image_size>`.
@@ -239,9 +239,9 @@ The Ultralytics YOLOv8 CLI supports a variety of tasks including detection, segm
 
 Each task can be customized with various arguments. For detailed syntax and examples, see the respective sections like [Train](#train), [Predict](#predict), and [Export](#export).
 
-### How can I validate the accuracy of a trained YOLOv8 model using the CLI?
+### How can I validate the accuracy of a trained YOLO11 model using the CLI?
 
-To validate a YOLOv8 model's accuracy, use the `val` mode. For example, to validate a pretrained detection model with a [batch size](https://www.ultralytics.com/glossary/batch-size) of 1 and image size of 640, run:
+To validate a YOLO11 model's accuracy, use the `val` mode. For example, to validate a pretrained detection model with a [batch size](https://www.ultralytics.com/glossary/batch-size) of 1 and image size of 640, run:
 
 ```bash
 yolo val model=yolov8n.pt data=coco8.yaml batch=1 imgsz=640
@@ -249,9 +249,9 @@ yolo val model=yolov8n.pt data=coco8.yaml batch=1 imgsz=640
 
 This command evaluates the model on the specified dataset and provides performance metrics. For more details, refer to the [Val](#val) section.
 
-### What formats can I export my YOLOv8 models to using the CLI?
+### What formats can I export my YOLO11 models to using the CLI?
 
-YOLOv8 models can be exported to various formats such as ONNX, CoreML, TensorRT, and more. For instance, to export a model to ONNX format, run:
+YOLO11 models can be exported to various formats such as ONNX, CoreML, TensorRT, and more. For instance, to export a model to ONNX format, run:
 
 ```bash
 yolo export model=yolov8n.pt format=onnx
@@ -259,9 +259,9 @@ yolo export model=yolov8n.pt format=onnx
 
 For complete details, visit the [Export](../modes/export.md) page.
 
-### How do I customize YOLOv8 CLI commands to override default arguments?
+### How do I customize YOLO11 CLI commands to override default arguments?
 
-To override default arguments in YOLOv8 CLI commands, pass them as `arg=value` pairs. For example, to train a model with custom arguments, use:
+To override default arguments in YOLO11 CLI commands, pass them as `arg=value` pairs. For example, to train a model with custom arguments, use:
 
 ```bash
 yolo train data=coco8.yaml model=yolov8n.pt epochs=10 lr0=0.01

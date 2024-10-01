@@ -988,7 +988,6 @@ def set_sentry():
 
     Additionally, the function sets custom tags and user information for Sentry events.
     """
-
     if (
         SETTINGS["sync"]
         and RANK in {-1, 0}

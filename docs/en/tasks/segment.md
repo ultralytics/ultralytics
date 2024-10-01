@@ -21,7 +21,7 @@ The output of an instance segmentation model is a set of masks or contours that 
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Run Segmentation with Pre-Trained Ultralytics YOLOv8 Model in Python.
+  <strong>Watch:</strong> Run Segmentation with Pre-Trained Ultralytics YOLO Model in Python.
 </p>
 
 !!! tip
@@ -210,11 +210,11 @@ Object detection identifies and localizes objects within an image by drawing bou
 
 ### Why use YOLO11 for instance segmentation?
 
-Ultralytics YOLO11 is a state-of-the-art model recognized for its high accuracy and real-time performance, making it ideal for instance segmentation tasks. YOLO11 Segment models come pretrained on the [COCO dataset](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml), ensuring robust performance across a variety of objects. Additionally, YOLOv8 supports training, validation, prediction, and export functionalities with seamless integration, making it highly versatile for both research and industry applications.
+Ultralytics YOLO11 is a state-of-the-art model recognized for its high accuracy and real-time performance, making it ideal for instance segmentation tasks. YOLO11 Segment models come pretrained on the [COCO dataset](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml), ensuring robust performance across a variety of objects. Additionally, YOLO supports training, validation, prediction, and export functionalities with seamless integration, making it highly versatile for both research and industry applications.
 
-### How do I load and validate a pretrained YOLOv8 segmentation model?
+### How do I load and validate a pretrained YOLO segmentation model?
 
-Loading and validating a pretrained YOLOv8 segmentation model is straightforward. Here's how you can do it using both Python and CLI:
+Loading and validating a pretrained YOLO segmentation model is straightforward. Here's how you can do it using both Python and CLI:
 
 !!! example
 
@@ -240,9 +240,9 @@ Loading and validating a pretrained YOLOv8 segmentation model is straightforward
 
 These steps will provide you with validation metrics like [Mean Average Precision](https://www.ultralytics.com/glossary/mean-average-precision-map) (mAP), crucial for assessing model performance.
 
-### How can I export a YOLOv8 segmentation model to ONNX format?
+### How can I export a YOLO segmentation model to ONNX format?
 
-Exporting a YOLOv8 segmentation model to ONNX format is simple and can be done using Python or CLI commands:
+Exporting a YOLO segmentation model to ONNX format is simple and can be done using Python or CLI commands:
 
 !!! example
 

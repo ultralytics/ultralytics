@@ -20,7 +20,7 @@ In the world of [machine learning](https://www.ultralytics.com/glossary/machine-
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Extract the Outputs from Ultralytics YOLOv8 Model for Custom Projects.
+  <strong>Watch:</strong> How to Extract the Outputs from Ultralytics YOLO Model for Custom Projects.
 </p>
 
 ## Real-world Applications
@@ -539,7 +539,7 @@ For more details see the [`Boxes` class documentation](../reference/engine/resul
     ```python
     from ultralytics import YOLO
 
-    # Load a pretrained YOLOv8n-seg Segment model
+    # Load a pretrained YOLO11n-seg Segment model
     model = YOLO("yolo11n-seg.pt")
 
     # Run inference on an image
@@ -572,7 +572,7 @@ For more details see the [`Masks` class documentation](../reference/engine/resul
     ```python
     from ultralytics import YOLO
 
-    # Load a pretrained YOLOv8n-pose Pose model
+    # Load a pretrained YOLO11n-pose Pose model
     model = YOLO("yolo11n-pose.pt")
 
     # Run inference on an image
@@ -606,7 +606,7 @@ For more details see the [`Keypoints` class documentation](../reference/engine/r
     ```python
     from ultralytics import YOLO
 
-    # Load a pretrained YOLOv8n-cls Classify model
+    # Load a pretrained YOLO11n-cls Classify model
     model = YOLO("yolo11n-cls.pt")
 
     # Run inference on an image
@@ -641,7 +641,7 @@ For more details see the [`Probs` class documentation](../reference/engine/resul
     ```python
     from ultralytics import YOLO
 
-    # Load a pretrained YOLOv8n model
+    # Load a pretrained YOLO11n model
     model = YOLO("yolo11n-obb.pt")
 
     # Run inference on an image
@@ -681,7 +681,7 @@ The `plot()` method in `Results` objects facilitates visualization of prediction
 
     from ultralytics import YOLO
 
-    # Load a pretrained YOLOv8n model
+    # Load a pretrained YOLO11n model
     model = YOLO("yolo11n.pt")
 
     # Run inference on 'bus.jpg'
@@ -755,7 +755,7 @@ For an in-depth look at thread-safe inference with YOLO models and step-by-step 
 
 ## Streaming Source `for`-loop
 
-Here's a Python script using OpenCV (`cv2`) and YOLOv8 to run inference on video frames. This script assumes you have already installed the necessary packages (`opencv-python` and `ultralytics`).
+Here's a Python script using OpenCV (`cv2`) and YOLO to run inference on video frames. This script assumes you have already installed the necessary packages (`opencv-python` and `ultralytics`).
 
 !!! example "Streaming for-loop"
 
@@ -764,7 +764,7 @@ Here's a Python script using OpenCV (`cv2`) and YOLOv8 to run inference on video
 
     from ultralytics import YOLO
 
-    # Load the YOLOv8 model
+    # Load the YOLO model
     model = YOLO("yolo11n.pt")
 
     # Open the video file
@@ -777,14 +777,14 @@ Here's a Python script using OpenCV (`cv2`) and YOLOv8 to run inference on video
         success, frame = cap.read()
 
         if success:
-            # Run YOLOv8 inference on the frame
+            # Run YOLO inference on the frame
             results = model(frame)
 
             # Visualize the results on the frame
             annotated_frame = results[0].plot()
 
             # Display the annotated frame
-            cv2.imshow("YOLOv8 Inference", annotated_frame)
+            cv2.imshow("YOLO Inference", annotated_frame)
 
             # Break the loop if 'q' is pressed
             if cv2.waitKey(1) & 0xFF == ord("q"):
@@ -806,22 +806,22 @@ This script will run predictions on each frame of the video, visualize the resul
 
 ## FAQ
 
-### What is Ultralytics YOLOv8 and its predict mode for real-time inference?
+### What is Ultralytics YOLO and its predict mode for real-time inference?
 
-Ultralytics YOLOv8 is a state-of-the-art model for real-time [object detection](https://www.ultralytics.com/glossary/object-detection), segmentation, and classification. Its **predict mode** allows users to perform high-speed inference on various data sources such as images, videos, and live streams. Designed for performance and versatility, it also offers batch processing and streaming modes. For more details on its features, check out the [Ultralytics YOLOv8 predict mode](#key-features-of-predict-mode).
+Ultralytics YOLO is a state-of-the-art model for real-time [object detection](https://www.ultralytics.com/glossary/object-detection), segmentation, and classification. Its **predict mode** allows users to perform high-speed inference on various data sources such as images, videos, and live streams. Designed for performance and versatility, it also offers batch processing and streaming modes. For more details on its features, check out the [Ultralytics YOLO predict mode](#key-features-of-predict-mode).
 
-### How can I run inference using Ultralytics YOLOv8 on different data sources?
+### How can I run inference using Ultralytics YOLO on different data sources?
 
-Ultralytics YOLOv8 can process a wide range of data sources, including individual images, videos, directories, URLs, and streams. You can specify the data source in the `model.predict()` call. For example, use `'image.jpg'` for a local image or `'https://ultralytics.com/images/bus.jpg'` for a URL. Check out the detailed examples for various [inference sources](#inference-sources) in the documentation.
+Ultralytics YOLO can process a wide range of data sources, including individual images, videos, directories, URLs, and streams. You can specify the data source in the `model.predict()` call. For example, use `'image.jpg'` for a local image or `'https://ultralytics.com/images/bus.jpg'` for a URL. Check out the detailed examples for various [inference sources](#inference-sources) in the documentation.
 
-### How do I optimize YOLOv8 inference speed and memory usage?
+### How do I optimize YOLO inference speed and memory usage?
 
 To optimize inference speed and manage memory efficiently, you can use the streaming mode by setting `stream=True` in the predictor's call method. The streaming mode generates a memory-efficient generator of `Results` objects instead of loading all frames into memory. For processing long videos or large datasets, streaming mode is particularly useful. Learn more about [streaming mode](#key-features-of-predict-mode).
 
-### What inference arguments does Ultralytics YOLOv8 support?
+### What inference arguments does Ultralytics YOLO support?
 
-The `model.predict()` method in YOLOv8 supports various arguments such as `conf`, `iou`, `imgsz`, `device`, and more. These arguments allow you to customize the inference process, setting parameters like confidence thresholds, image size, and the device used for computation. Detailed descriptions of these arguments can be found in the [inference arguments](#inference-arguments) section.
+The `model.predict()` method in YOLO supports various arguments such as `conf`, `iou`, `imgsz`, `device`, and more. These arguments allow you to customize the inference process, setting parameters like confidence thresholds, image size, and the device used for computation. Detailed descriptions of these arguments can be found in the [inference arguments](#inference-arguments) section.
 
-### How can I visualize and save the results of YOLOv8 predictions?
+### How can I visualize and save the results of YOLO predictions?
 
-After running inference with YOLOv8, the `Results` objects contain methods for displaying and saving annotated images. You can use methods like `result.show()` and `result.save(filename="result.jpg")` to visualize and save the results. For a comprehensive list of these methods, refer to the [working with results](#working-with-results) section.
+After running inference with YOLO, the `Results` objects contain methods for displaying and saving annotated images. You can use methods like `result.show()` and `result.save(filename="result.jpg")` to visualize and save the results. For a comprehensive list of these methods, refer to the [working with results](#working-with-results) section.

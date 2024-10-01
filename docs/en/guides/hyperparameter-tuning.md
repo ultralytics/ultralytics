@@ -23,7 +23,7 @@ Hyperparameters are high-level, structural settings for the algorithm. They are 
   <img width="640" src="https://github.com/ultralytics/docs/releases/download/0/hyperparameter-tuning-visual.avif" alt="Hyperparameter Tuning Visual">
 </p>
 
-For a full list of augmentation hyperparameters used in YOLOv8 please refer to the [configurations page](../usage/cfg.md#augmentation-settings).
+For a full list of augmentation hyperparameters used in YOLO11 please refer to the [configurations page](../usage/cfg.md#augmentation-settings).
 
 ### Genetic Evolution and Mutation
 
@@ -202,7 +202,7 @@ The hyperparameter tuning process in Ultralytics YOLO is simplified yet powerful
 
 1. [Hyperparameter Optimization in Wikipedia](https://en.wikipedia.org/wiki/Hyperparameter_optimization)
 2. [YOLOv5 Hyperparameter Evolution Guide](../yolov5/tutorials/hyperparameter_evolution.md)
-3. [Efficient Hyperparameter Tuning with Ray Tune and YOLOv8](../integrations/ray-tune.md)
+3. [Efficient Hyperparameter Tuning with Ray Tune and YOLO11](../integrations/ray-tune.md)
 
 For deeper insights, you can explore the `Tuner` class source code and accompanying documentation. Should you have any questions, feature requests, or need further assistance, feel free to reach out to us on [GitHub](https://github.com/ultralytics/ultralytics/issues/new/choose) or [Discord](https://discord.com/invite/ultralytics).
 
@@ -228,9 +228,9 @@ To optimize the learning rate for Ultralytics YOLO, start by setting an initial 
 
 For more details, check the [Ultralytics YOLO configuration page](../usage/cfg.md#augmentation-settings).
 
-### What are the benefits of using genetic algorithms for hyperparameter tuning in YOLOv8?
+### What are the benefits of using genetic algorithms for hyperparameter tuning in YOLO11?
 
-Genetic algorithms in Ultralytics YOLOv8 provide a robust method for exploring the hyperparameter space, leading to highly optimized model performance. Key benefits include:
+Genetic algorithms in Ultralytics YOLO11 provide a robust method for exploring the hyperparameter space, leading to highly optimized model performance. Key benefits include:
 
 - **Efficient Search**: Genetic algorithms like mutation can quickly explore a large set of hyperparameters.
 - **Avoiding Local Minima**: By introducing randomness, they help in avoiding local minima, ensuring better global optimization.

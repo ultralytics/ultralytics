@@ -1,10 +1,10 @@
 ---
 comments: true
-description: Learn how to run YOLOv8 on AzureML. Quickstart instructions for terminal and notebooks to harness Azure's cloud computing for efficient model training.
-keywords: YOLOv8, AzureML, machine learning, cloud computing, quickstart, terminal, notebooks, model training, Python SDK, AI, Ultralytics
+description: Learn how to run YOLO11 on AzureML. Quickstart instructions for terminal and notebooks to harness Azure's cloud computing for efficient model training.
+keywords: YOLO11, AzureML, machine learning, cloud computing, quickstart, terminal, notebooks, model training, Python SDK, AI, Ultralytics
 ---
 
-# YOLOv8 🚀 on AzureML
+# YOLO11 🚀 on AzureML
 
 ## What is Azure?
 
@@ -22,7 +22,7 @@ For users of YOLO (You Only Look Once), AzureML provides a robust, scalable, and
 - Utilize built-in tools for data preprocessing, feature selection, and model training.
 - Collaborate more efficiently with capabilities for MLOps (Machine Learning Operations), including but not limited to monitoring, auditing, and versioning of models and data.
 
-In the subsequent sections, you will find a quickstart guide detailing how to run YOLOv8 object detection models using AzureML, either from a compute terminal or a notebook.
+In the subsequent sections, you will find a quickstart guide detailing how to run YOLO11 object detection models using AzureML, either from a compute terminal or a notebook.
 
 ## Prerequisites
 
@@ -63,7 +63,7 @@ pip install ultralytics
 pip install onnx>=1.12.0
 ```
 
-### Perform YOLOv8 tasks
+### Perform YOLO11 tasks
 
 Predict:
 
@@ -137,25 +137,25 @@ results = model("https://ultralytics.com/images/bus.jpg")  # predict on an image
 path = model.export(format="onnx")  # export the model to ONNX format
 ```
 
-You can use either the Ultralytics CLI or Python interface for running YOLOv8 tasks, as described in the terminal section above.
+You can use either the Ultralytics CLI or Python interface for running YOLO11 tasks, as described in the terminal section above.
 
-By following these steps, you should be able to get YOLOv8 running quickly on AzureML for quick trials. For more advanced uses, you may refer to the full AzureML documentation linked at the beginning of this guide.
+By following these steps, you should be able to get YOLO11 running quickly on AzureML for quick trials. For more advanced uses, you may refer to the full AzureML documentation linked at the beginning of this guide.
 
 ## Explore More with AzureML
 
-This guide serves as an introduction to get you up and running with YOLOv8 on AzureML. However, it only scratches the surface of what AzureML can offer. To delve deeper and unlock the full potential of AzureML for your machine learning projects, consider exploring the following resources:
+This guide serves as an introduction to get you up and running with YOLO11 on AzureML. However, it only scratches the surface of what AzureML can offer. To delve deeper and unlock the full potential of AzureML for your machine learning projects, consider exploring the following resources:
 
 - [Create a Data Asset](https://learn.microsoft.com/azure/machine-learning/how-to-create-data-assets): Learn how to set up and manage your data assets effectively within the AzureML environment.
 - [Initiate an AzureML Job](https://learn.microsoft.com/azure/machine-learning/how-to-train-model): Get a comprehensive understanding of how to kickstart your machine learning training jobs on AzureML.
 - [Register a Model](https://learn.microsoft.com/azure/machine-learning/how-to-manage-models): Familiarize yourself with model management practices including registration, versioning, and deployment.
-- [Train YOLOv8 with AzureML Python SDK](https://medium.com/@ouphi/how-to-train-the-yolov8-model-with-azure-machine-learning-python-sdk-8268696be8ba): Explore a step-by-step guide on using the AzureML Python SDK to train your YOLOv8 models.
-- [Train YOLOv8 with AzureML CLI](https://medium.com/@ouphi/how-to-train-the-yolov8-model-with-azureml-and-the-az-cli-73d3c870ba8e): Discover how to utilize the command-line interface for streamlined training and management of YOLOv8 models on AzureML.
+- [Train YOLO11 with AzureML Python SDK](https://medium.com/@ouphi/how-to-train-the-yolov8-model-with-azure-machine-learning-python-sdk-8268696be8ba): Explore a step-by-step guide on using the AzureML Python SDK to train your YOLO11 models.
+- [Train YOLO11 with AzureML CLI](https://medium.com/@ouphi/how-to-train-the-yolov8-model-with-azureml-and-the-az-cli-73d3c870ba8e): Discover how to utilize the command-line interface for streamlined training and management of YOLO11 models on AzureML.
 
 ## FAQ
 
-### How do I run YOLOv8 on AzureML for model training?
+### How do I run YOLO11 on AzureML for model training?
 
-Running YOLOv8 on AzureML for model training involves several steps:
+Running YOLO11 on AzureML for model training involves several steps:
 
 1. **Create a Compute Instance**: From your AzureML workspace, navigate to Compute > Compute instances > New, and select the required instance.
 
@@ -168,16 +168,16 @@ Running YOLOv8 on AzureML for model training involves several steps:
     pip install ultralytics onnx>=1.12.0
     ```
 
-3. **Run YOLOv8 Tasks**: Use the Ultralytics CLI to train your model:
+3. **Run YOLO11 Tasks**: Use the Ultralytics CLI to train your model:
     ```bash
     yolo train data=coco8.yaml model=yolo11n.pt epochs=10 lr0=0.01
     ```
 
 For more details, you can refer to the [instructions to use the Ultralytics CLI](../quickstart.md#use-ultralytics-with-cli).
 
-### What are the benefits of using AzureML for YOLOv8 training?
+### What are the benefits of using AzureML for YOLO11 training?
 
-AzureML provides a robust and efficient ecosystem for training YOLOv8 models:
+AzureML provides a robust and efficient ecosystem for training YOLO11 models:
 
 - **Scalability**: Easily scale your compute resources as your data and model complexity grows.
 - **MLOps Integration**: Utilize features like versioning, monitoring, and auditing to streamline ML operations.
@@ -185,9 +185,9 @@ AzureML provides a robust and efficient ecosystem for training YOLOv8 models:
 
 These advantages make AzureML an ideal platform for projects ranging from quick prototypes to large-scale deployments. For more tips, check out [AzureML Jobs](https://learn.microsoft.com/azure/machine-learning/how-to-train-model).
 
-### How do I troubleshoot common issues when running YOLOv8 on AzureML?
+### How do I troubleshoot common issues when running YOLO11 on AzureML?
 
-Troubleshooting common issues with YOLOv8 on AzureML can involve the following steps:
+Troubleshooting common issues with YOLO11 on AzureML can involve the following steps:
 
 - **Dependency Issues**: Ensure all required packages are installed. Refer to the `requirements.txt` file for dependencies.
 - **Environment Setup**: Verify that your conda environment is correctly activated before running commands.
@@ -216,12 +216,12 @@ Yes, AzureML allows you to use both the Ultralytics CLI and the Python interface
 
 Refer to the quickstart guides for more detailed instructions [here](../quickstart.md#use-ultralytics-with-cli) and [here](../quickstart.md#use-ultralytics-with-python).
 
-### What is the advantage of using Ultralytics YOLOv8 over other [object detection](https://www.ultralytics.com/glossary/object-detection) models?
+### What is the advantage of using Ultralytics YOLO11 over other [object detection](https://www.ultralytics.com/glossary/object-detection) models?
 
-Ultralytics YOLOv8 offers several unique advantages over competing object detection models:
+Ultralytics YOLO11 offers several unique advantages over competing object detection models:
 
 - **Speed**: Faster inference and training times compared to models like Faster R-CNN and SSD.
 - **[Accuracy](https://www.ultralytics.com/glossary/accuracy)**: High accuracy in detection tasks with features like anchor-free design and enhanced augmentation strategies.
 - **Ease of Use**: Intuitive API and CLI for quick setup, making it accessible both to beginners and experts.
 
-To explore more about YOLOv8's features, visit the [Ultralytics YOLO](https://www.ultralytics.com/yolo) page for detailed insights.
+To explore more about YOLO11's features, visit the [Ultralytics YOLO](https://www.ultralytics.com/yolo) page for detailed insights.

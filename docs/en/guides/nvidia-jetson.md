@@ -1,12 +1,12 @@
 ---
 comments: true
-description: Learn to deploy Ultralytics YOLOv8 on NVIDIA Jetson devices with our detailed guide. Explore performance benchmarks and maximize AI capabilities.
-keywords: Ultralytics, YOLOv8, NVIDIA Jetson, JetPack, AI deployment, performance benchmarks, embedded systems, deep learning, TensorRT, computer vision
+description: Learn to deploy Ultralytics YOLO11 on NVIDIA Jetson devices with our detailed guide. Explore performance benchmarks and maximize AI capabilities.
+keywords: Ultralytics, YOLO11, NVIDIA Jetson, JetPack, AI deployment, performance benchmarks, embedded systems, deep learning, TensorRT, computer vision
 ---
 
-# Quick Start Guide: NVIDIA Jetson with Ultralytics YOLOv8
+# Quick Start Guide: NVIDIA Jetson with Ultralytics YOLO11
 
-This comprehensive guide provides a detailed walkthrough for deploying Ultralytics YOLOv8 on [NVIDIA Jetson](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/) devices. Additionally, it showcases performance benchmarks to demonstrate the capabilities of YOLOv8 on these small and powerful devices.
+This comprehensive guide provides a detailed walkthrough for deploying Ultralytics YOLO11 on [NVIDIA Jetson](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/) devices. Additionally, it showcases performance benchmarks to demonstrate the capabilities of YOLO11 on these small and powerful devices.
 
 <p align="center">
   <br>
@@ -16,7 +16,7 @@ This comprehensive guide provides a detailed walkthrough for deploying Ultralyti
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Setup NVIDIA Jetson with Ultralytics YOLOv8
+  <strong>Watch:</strong> How to Setup NVIDIA Jetson with Ultralytics YOLO11
 </p>
 
 <img width="1024" src="https://github.com/ultralytics/docs/releases/download/0/nvidia-jetson-ecosystem.avif" alt="NVIDIA Jetson Ecosystem">
@@ -77,7 +77,7 @@ The below table highlights NVIDIA JetPack versions supported by different NVIDIA
 
 ## Quick Start with Docker
 
-The fastest way to get started with Ultralytics YOLOv8 on NVIDIA Jetson is to run with pre-built docker images for Jetson. Refer to the table above and choose the JetPack version according to the Jetson device you own.
+The fastest way to get started with Ultralytics YOLO11 on NVIDIA Jetson is to run with pre-built docker images for Jetson. Refer to the table above and choose the JetPack version according to the Jetson device you own.
 
 === "JetPack 4"
 
@@ -278,9 +278,9 @@ The YOLOv8n model in PyTorch format is converted to TensorRT to run inference wi
 
     Visit the [Export page](../modes/export.md#arguments) to access additional arguments when exporting models to different model formats
 
-## NVIDIA Jetson Orin YOLOv8 Benchmarks
+## NVIDIA Jetson Orin YOLO11 Benchmarks
 
-YOLOv8 benchmarks were run by the Ultralytics team on 10 different model formats measuring speed and [accuracy](https://www.ultralytics.com/glossary/accuracy): PyTorch, TorchScript, ONNX, OpenVINO, TensorRT, TF SavedModel, TF GraphDef, TF Lite, PaddlePaddle, NCNN. Benchmarks were run on Seeed Studio reComputer J4012 powered by Jetson Orin NX 16GB device at FP32 [precision](https://www.ultralytics.com/glossary/precision) with default input image size of 640.
+YOLO11 benchmarks were run by the Ultralytics team on 10 different model formats measuring speed and [accuracy](https://www.ultralytics.com/glossary/accuracy): PyTorch, TorchScript, ONNX, OpenVINO, TensorRT, TF SavedModel, TF GraphDef, TF Lite, PaddlePaddle, NCNN. Benchmarks were run on Seeed Studio reComputer J4012 powered by Jetson Orin NX 16GB device at FP32 [precision](https://www.ultralytics.com/glossary/precision) with default input image size of 640.
 
 ### Comparison Chart
 
@@ -412,7 +412,7 @@ To reproduce the above Ultralytics benchmarks on all export [formats](../modes/e
 
 ## Best Practices when using NVIDIA Jetson
 
-When using NVIDIA Jetson, there are a couple of best practices to follow in order to enable maximum performance on the NVIDIA Jetson running YOLOv8.
+When using NVIDIA Jetson, there are a couple of best practices to follow in order to enable maximum performance on the NVIDIA Jetson running YOLO11.
 
 1. Enable MAX Power Mode
 
@@ -445,29 +445,29 @@ When using NVIDIA Jetson, there are a couple of best practices to follow in orde
 
 ## Next Steps
 
-Congratulations on successfully setting up YOLOv8 on your NVIDIA Jetson! For further learning and support, visit more guide at [Ultralytics YOLOv8 Docs](../index.md)!
+Congratulations on successfully setting up YOLO11 on your NVIDIA Jetson! For further learning and support, visit more guide at [Ultralytics YOLO11 Docs](../index.md)!
 
 ## FAQ
 
-### How do I deploy Ultralytics YOLOv8 on NVIDIA Jetson devices?
+### How do I deploy Ultralytics YOLO11 on NVIDIA Jetson devices?
 
-Deploying Ultralytics YOLOv8 on NVIDIA Jetson devices is a straightforward process. First, flash your Jetson device with the NVIDIA JetPack SDK. Then, either use a pre-built Docker image for quick setup or manually install the required packages. Detailed steps for each approach can be found in sections [Quick Start with Docker](#quick-start-with-docker) and [Start with Native Installation](#start-with-native-installation).
+Deploying Ultralytics YOLO11 on NVIDIA Jetson devices is a straightforward process. First, flash your Jetson device with the NVIDIA JetPack SDK. Then, either use a pre-built Docker image for quick setup or manually install the required packages. Detailed steps for each approach can be found in sections [Quick Start with Docker](#quick-start-with-docker) and [Start with Native Installation](#start-with-native-installation).
 
-### What performance benchmarks can I expect from YOLOv8 models on NVIDIA Jetson devices?
+### What performance benchmarks can I expect from YOLO11 models on NVIDIA Jetson devices?
 
-YOLOv8 models have been benchmarked on various NVIDIA Jetson devices showing significant performance improvements. For example, the TensorRT format delivers the best inference performance. The table in the [Detailed Comparison Table](#detailed-comparison-table) section provides a comprehensive view of performance metrics like mAP50-95 and inference time across different model formats.
+YOLO11 models have been benchmarked on various NVIDIA Jetson devices showing significant performance improvements. For example, the TensorRT format delivers the best inference performance. The table in the [Detailed Comparison Table](#detailed-comparison-table) section provides a comprehensive view of performance metrics like mAP50-95 and inference time across different model formats.
 
-### Why should I use TensorRT for deploying YOLOv8 on NVIDIA Jetson?
+### Why should I use TensorRT for deploying YOLO11 on NVIDIA Jetson?
 
-TensorRT is highly recommended for deploying YOLOv8 models on NVIDIA Jetson due to its optimal performance. It accelerates inference by leveraging the Jetson's GPU capabilities, ensuring maximum efficiency and speed. Learn more about how to convert to TensorRT and run inference in the [Use TensorRT on NVIDIA Jetson](#use-tensorrt-on-nvidia-jetson) section.
+TensorRT is highly recommended for deploying YOLO11 models on NVIDIA Jetson due to its optimal performance. It accelerates inference by leveraging the Jetson's GPU capabilities, ensuring maximum efficiency and speed. Learn more about how to convert to TensorRT and run inference in the [Use TensorRT on NVIDIA Jetson](#use-tensorrt-on-nvidia-jetson) section.
 
 ### How can I install PyTorch and Torchvision on NVIDIA Jetson?
 
 To install PyTorch and Torchvision on NVIDIA Jetson, first uninstall any existing versions that may have been installed via pip. Then, manually install the compatible PyTorch and Torchvision versions for the Jetson's ARM64 architecture. Detailed instructions for this process are provided in the [Install PyTorch and Torchvision](#install-pytorch-and-torchvision) section.
 
-### What are the best practices for maximizing performance on NVIDIA Jetson when using YOLOv8?
+### What are the best practices for maximizing performance on NVIDIA Jetson when using YOLO11?
 
-To maximize performance on NVIDIA Jetson with YOLOv8, follow these best practices:
+To maximize performance on NVIDIA Jetson with YOLO11, follow these best practices:
 
 1. Enable MAX Power Mode to utilize all CPU and GPU cores.
 2. Enable Jetson Clocks to run all cores at their maximum frequency.

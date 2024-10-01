@@ -1,8 +1,8 @@
 ---
 comments: true
-description: Discover how to use YOLOv8 for pose estimation tasks. Learn about model training, validation, prediction, and exporting in various formats.
-keywords: pose estimation, YOLOv8, Ultralytics, keypoints, model training, image recognition, deep learning
-model_name: yolov8n-pose
+description: Discover how to use YOLO11 for pose estimation tasks. Learn about model training, validation, prediction, and exporting in various formats.
+keywords: pose estimation, YOLO11, Ultralytics, keypoints, model training, image recognition, deep learning
+model_name: yolo11n-pose
 ---
 
 # Pose Estimation

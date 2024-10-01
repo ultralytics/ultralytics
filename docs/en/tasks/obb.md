@@ -1,8 +1,8 @@
 ---
 comments: true
-description: Discover how to detect objects with rotation for higher precision using YOLOv8 OBB models. Learn, train, validate, and export OBB models effortlessly.
-keywords: Oriented Bounding Boxes, OBB, Object Detection, YOLOv8, Ultralytics, DOTAv1, Model Training, Model Export, AI, Machine Learning
-model_name: yolov8n-obb
+description: Discover how to detect objects with rotation for higher precision using YOLO11 OBB models. Learn, train, validate, and export OBB models effortlessly.
+keywords: Oriented Bounding Boxes, OBB, Object Detection, YOLO11, Ultralytics, DOTAv1, Model Training, Model Export, AI, Machine Learning
+model_name: yolo11n-obb
 ---
 
 # Oriented Bounding Boxes [Object Detection](https://www.ultralytics.com/glossary/object-detection)

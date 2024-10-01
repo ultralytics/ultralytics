@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn about object detection with YOLOv8. Explore pretrained models, training, validation, prediction, and export details for efficient object recognition.
-keywords: object detection, YOLOv8, pretrained models, training, validation, prediction, export, machine learning, computer vision
+description: Learn about object detection with YOLO11. Explore pretrained models, training, validation, prediction, and export details for efficient object recognition.
+keywords: object detection, YOLO11, pretrained models, training, validation, prediction, export, machine learning, computer vision
 ---
 
 # Object Detection

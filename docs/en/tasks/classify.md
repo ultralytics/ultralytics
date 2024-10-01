@@ -1,8 +1,8 @@
 ---
 comments: true
-description: Master image classification using YOLOv8. Learn to train, validate, predict, and export models efficiently.
-keywords: YOLOv8, image classification, AI, machine learning, pretrained models, ImageNet, model export, predict, train, validate
-model_name: yolov8n-cls
+description: Master image classification using YOLO11. Learn to train, validate, predict, and export models efficiently.
+keywords: YOLO11, image classification, AI, machine learning, pretrained models, ImageNet, model export, predict, train, validate
+model_name: yolo11n-cls
 ---
 
 # Image Classification

@@ -39,7 +39,7 @@ To train a YOLO model on the CIFAR-100 dataset for 100 [epochs](https://www.ultr
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n-cls.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n-cls.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="cifar100", epochs=100, imgsz=32)
@@ -49,7 +49,7 @@ To train a YOLO model on the CIFAR-100 dataset for 100 [epochs](https://www.ultr
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo classify train data=cifar100 model=yolov8n-cls.pt epochs=100 imgsz=32
+        yolo classify train data=cifar100 model=yolo11n-cls.pt epochs=100 imgsz=32
         ```
 
 ## Sample Images and Annotations
@@ -97,7 +97,7 @@ You can train a YOLO model on the CIFAR-100 dataset using either Python or CLI c
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n-cls.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n-cls.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="cifar100", epochs=100, imgsz=32)
@@ -107,7 +107,7 @@ You can train a YOLO model on the CIFAR-100 dataset using either Python or CLI c
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo classify train data=cifar100 model=yolov8n-cls.pt epochs=100 imgsz=32
+        yolo classify train data=cifar100 model=yolo11n-cls.pt epochs=100 imgsz=32
         ```
 
 For a comprehensive list of available arguments, please refer to the model [Training](../../modes/train.md) page.

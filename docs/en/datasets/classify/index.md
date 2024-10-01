@@ -86,7 +86,7 @@ This structured approach ensures that the model can effectively learn from well-
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n-cls.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n-cls.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="path/to/dataset", epochs=100, imgsz=640)
@@ -96,7 +96,7 @@ This structured approach ensures that the model can effectively learn from well-
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=path/to/data model=yolov8n-cls.pt epochs=100 imgsz=640
+        yolo detect train data=path/to/data model=yolo11n-cls.pt epochs=100 imgsz=640
         ```
 
 ## Supported Datasets
@@ -170,7 +170,7 @@ To use your own dataset with Ultralytics YOLO, ensure it follows the specified d
 from ultralytics import YOLO
 
 # Load a model
-model = YOLO("yolov8n-cls.pt")  # load a pretrained model (recommended for training)
+model = YOLO("yolo11n-cls.pt")  # load a pretrained model (recommended for training)
 
 # Train the model
 results = model.train(data="path/to/your/dataset", epochs=100, imgsz=640)
@@ -182,7 +182,7 @@ More details can be found in the [Adding your own dataset](#adding-your-own-data
 
 Ultralytics YOLO offers several benefits for image classification, including:
 
-- **Pretrained Models**: Load pretrained models like `yolov8n-cls.pt` to jump-start your training process.
+- **Pretrained Models**: Load pretrained models like `yolo11n-cls.pt` to jump-start your training process.
 - **Ease of Use**: Simple API and CLI commands for training and evaluation.
 - **High Performance**: State-of-the-art [accuracy](https://www.ultralytics.com/glossary/accuracy) and speed, ideal for real-time applications.
 - **Support for Multiple Datasets**: Seamless integration with various popular datasets like CIFAR-10, ImageNet, and more.
@@ -202,7 +202,7 @@ Training a model using Ultralytics YOLO can be done easily in both Python and CL
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n-cls.pt")  # load a pretrained model
+        model = YOLO("yolo11n-cls.pt")  # load a pretrained model
 
         # Train the model
         results = model.train(data="path/to/dataset", epochs=100, imgsz=640)
@@ -213,7 +213,7 @@ Training a model using Ultralytics YOLO can be done easily in both Python and CL
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=path/to/data model=yolov8n-cls.pt epochs=100 imgsz=640
+        yolo detect train data=path/to/data model=yolo11n-cls.pt epochs=100 imgsz=640
         ```
 
 These examples demonstrate the straightforward process of training a YOLO model using either approach. For more information, visit the [Usage](#usage) section.

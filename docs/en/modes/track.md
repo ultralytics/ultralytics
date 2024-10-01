@@ -27,7 +27,7 @@ The output from Ultralytics trackers is consistent with standard [object detecti
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Object Detection and Tracking with Ultralytics YOLOv8.
+  <strong>Watch:</strong> Object Detection and Tracking with Ultralytics YOLO.
 </p>
 
 ## Real-world Applications

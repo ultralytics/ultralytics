@@ -805,10 +805,10 @@ class Annotator:
         Function for drawing segmented object in bounding box shape.
 
         Args:
-            mask (list): masks data list for instance segmentation area plotting
-            mask_color (tuple): mask foreground color
-            label (str): Detection label text
-            txt_color (tuple): text color
+            mask (np.ndarray): A 2D array of shape (N, 2) containing the contour points of the segmented object.
+            mask_color (tuple): RGB color for the contour and label background.
+            label (str, optional): Text label for the object. If None, no label is drawn.
+            txt_color (tuple): RGB color for the label text.
         """
         cv2.polylines(self.im, [np.int32([mask])], isClosed=True, color=mask_color, thickness=2)
         text_size, _ = cv2.getTextSize(label, 0, self.sf, self.tf)

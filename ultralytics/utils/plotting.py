@@ -836,8 +836,8 @@ class Annotator:
         Args:
             pixels_distance (float): Pixels distance between two bbox centroids.
             centroids (list): Bounding box centroids data.
-            line_color (tuple): Distance line color.
-            centroid_color (tuple): Bounding box centroid color.
+            line_color (tuple): RGB distance line color.
+            centroid_color (tuple): RGB bounding box centroid color.
         """
         # Get the text size
         (text_width_m, text_height_m), _ = cv2.getTextSize(

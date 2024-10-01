@@ -185,7 +185,7 @@ To convert YOLO11 models to the ONNX format, which is required for compatibility
 yolo task=detect mode=export model=yolo11n.pt format=onnx opset=13
 ```
 
-This command will export your YOLO11 model (`yolo11n.pt`) to a format (`yolo11n.onnx`) that can be utilized by the DeepSparse Engine. More information about model export can be found in the [Model Export section](#step-2-exporting-yolov8-to-onnx-format).
+This command will export your YOLO11 model (`yolo11n.pt`) to a format (`yolo11n.onnx`) that can be utilized by the DeepSparse Engine. More information about model export can be found in the [Model Export section](#step-2-exporting-yolo11-to-onnx-format).
 
 ### How do I benchmark YOLO11 performance on the DeepSparse Engine?
 
@@ -208,4 +208,4 @@ Integrating Neural Magic's DeepSparse with YOLO11 offers several benefits:
 - **Flexibility:** Supports both standard and sparsity-optimized YOLO11 models.
 - **Cost-Effective:** Reduces operational expenses through efficient resource utilization.
 
-For a deeper dive into these advantages, visit the [Benefits of Integrating Neural Magic's DeepSparse with YOLO11 section](#benefits-of-integrating-neural-magics-deepsparse-with-yolov8).
+For a deeper dive into these advantages, visit the [Benefits of Integrating Neural Magic's DeepSparse with YOLO11 section](#benefits-of-integrating-neural-magics-deepsparse-with-yolo11).

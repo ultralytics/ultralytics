@@ -64,7 +64,7 @@ There are two types of instance segmentation tracking available in the Ultralyti
                 clss = results[0].boxes.cls.cpu().tolist()
                 masks = results[0].masks.xy
                 for mask, cls in zip(masks, clss):
-                    if mask.size != 0:
+                    if mask.size > 0:
                         color = colors(int(cls), True)
                         txt_color = annotator.get_txt_color(color)
                         annotator.seg_bbox(mask=mask, mask_color=color, label=names[int(cls)], txt_color=txt_color)
@@ -113,7 +113,7 @@ There are two types of instance segmentation tracking available in the Ultralyti
                 track_ids = results[0].boxes.id.int().cpu().tolist()
 
                 for mask, track_id in zip(masks, track_ids):
-                    if mask.size != 0:
+                    if mask.size > 0:
                         color = colors(int(track_id), True)
                         txt_color = annotator.get_txt_color(color)
                         annotator.seg_bbox(mask=mask, mask_color=color, label=str(track_id), txt_color=txt_color)

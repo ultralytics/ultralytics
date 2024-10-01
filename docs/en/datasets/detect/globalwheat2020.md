@@ -48,7 +48,7 @@ To train a YOLO11n model on the Global Wheat Head Dataset for 100 [epochs](https
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="GlobalWheat2020.yaml", epochs=100, imgsz=640)
@@ -58,7 +58,7 @@ To train a YOLO11n model on the Global Wheat Head Dataset for 100 [epochs](https
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=GlobalWheat2020.yaml model=yolov8n.pt epochs=100 imgsz=640
+        yolo detect train data=GlobalWheat2020.yaml model=yolo11n.pt epochs=100 imgsz=640
         ```
 
 ## Sample Data and Annotations
@@ -108,7 +108,7 @@ To train a YOLO11n model on the Global Wheat Head Dataset, you can use the follo
         from ultralytics import YOLO
 
         # Load a pre-trained model (recommended for training)
-        model = YOLO("yolov8n.pt")
+        model = YOLO("yolo11n.pt")
 
         # Train the model
         results = model.train(data="GlobalWheat2020.yaml", epochs=100, imgsz=640)
@@ -118,7 +118,7 @@ To train a YOLO11n model on the Global Wheat Head Dataset, you can use the follo
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=GlobalWheat2020.yaml model=yolov8n.pt epochs=100 imgsz=640
+        yolo detect train data=GlobalWheat2020.yaml model=yolo11n.pt epochs=100 imgsz=640
         ```
 
 For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.

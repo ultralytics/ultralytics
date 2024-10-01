@@ -235,7 +235,7 @@ Validation of a YOLO11-pose model involves assessing its accuracy using the same
 from ultralytics import YOLO
 
 # Load a model
-model = YOLO("yolov8n-pose.pt")  # load an official model
+model = YOLO("yolo11n-pose.pt")  # load an official model
 model = YOLO("path/to/best.pt")  # load a custom model
 
 # Validate the model
@@ -252,7 +252,7 @@ Yes, you can export a YOLO11-pose model to various formats like ONNX, CoreML, Te
 from ultralytics import YOLO
 
 # Load a model
-model = YOLO("yolov8n-pose.pt")  # load an official model
+model = YOLO("yolo11n-pose.pt")  # load an official model
 model = YOLO("path/to/best.pt")  # load a custom trained model
 
 # Export the model

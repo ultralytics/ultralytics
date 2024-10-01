@@ -56,7 +56,7 @@ Here's how you can use these formats to train your model:
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
@@ -66,7 +66,7 @@ Here's how you can use these formats to train your model:
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=coco8.yaml model=yolov8n.pt epochs=100 imgsz=640
+        yolo detect train data=coco8.yaml model=yolo11n.pt epochs=100 imgsz=640
         ```
 
 ## Supported Datasets
@@ -171,14 +171,14 @@ To start training a YOLO11 model, ensure your dataset is formatted correctly and
         ```python
         from ultralytics import YOLO
 
-        model = YOLO("yolov8n.pt")  # Load a pretrained model
+        model = YOLO("yolo11n.pt")  # Load a pretrained model
         results = model.train(data="path/to/your_dataset.yaml", epochs=100, imgsz=640)
         ```
 
     === "CLI"
 
         ```bash
-        yolo detect train data=path/to/your_dataset.yaml model=yolov8n.pt epochs=100 imgsz=640
+        yolo detect train data=path/to/your_dataset.yaml model=yolo11n.pt epochs=100 imgsz=640
         ```
 
 Refer to the [Usage](#usage) section for more details on utilizing different modes, including CLI commands.

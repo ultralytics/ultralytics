@@ -57,7 +57,7 @@ To train a YOLO11n model on the VisDrone dataset for 100 [epochs](https://www.ul
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="VisDrone.yaml", epochs=100, imgsz=640)
@@ -67,7 +67,7 @@ To train a YOLO11n model on the VisDrone dataset for 100 [epochs](https://www.ul
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=VisDrone.yaml model=yolov8n.pt epochs=100 imgsz=640
+        yolo detect train data=VisDrone.yaml model=yolo11n.pt epochs=100 imgsz=640
         ```
 
 ## Sample Data and Annotations
@@ -125,7 +125,7 @@ To train a YOLO11 model on the VisDrone dataset for 100 epochs with an image siz
         from ultralytics import YOLO
 
         # Load a pretrained model
-        model = YOLO("yolov8n.pt")
+        model = YOLO("yolo11n.pt")
 
         # Train the model
         results = model.train(data="VisDrone.yaml", epochs=100, imgsz=640)
@@ -135,7 +135,7 @@ To train a YOLO11 model on the VisDrone dataset for 100 epochs with an image siz
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=VisDrone.yaml model=yolov8n.pt epochs=100 imgsz=640
+        yolo detect train data=VisDrone.yaml model=yolo11n.pt epochs=100 imgsz=640
         ```
 
 For additional configuration options, please refer to the model [Training](../../modes/train.md) page.

@@ -40,7 +40,7 @@ To train a model using these OBB formats:
         from ultralytics import YOLO
 
         # Create a new YOLO11n-OBB model from scratch
-        model = YOLO("yolov8n-obb.yaml")
+        model = YOLO("yolo11n-obb.yaml")
 
         # Train the model on the DOTAv1 dataset
         results = model.train(data="DOTAv1.yaml", epochs=100, imgsz=1024)
@@ -50,7 +50,7 @@ To train a model using these OBB formats:
 
         ```bash
         # Train a new YOLO11n-OBB model on the DOTAv1 dataset
-        yolo obb train data=DOTAv1.yaml model=yolov8n-obb.pt epochs=100 imgsz=1024
+        yolo obb train data=DOTAv1.yaml model=yolo11n-obb.pt epochs=100 imgsz=1024
         ```
 
 ## Supported Datasets
@@ -116,7 +116,7 @@ Training a YOLO11 model with OBBs involves ensuring your dataset is in the YOLO 
         from ultralytics import YOLO
 
         # Create a new YOLO11n-OBB model from scratch
-        model = YOLO("yolov8n-obb.yaml")
+        model = YOLO("yolo11n-obb.yaml")
 
         # Train the model on the custom dataset
         results = model.train(data="your_dataset.yaml", epochs=100, imgsz=640)
@@ -126,7 +126,7 @@ Training a YOLO11 model with OBBs involves ensuring your dataset is in the YOLO 
 
         ```bash
         # Train a new YOLO11n-OBB model on the custom dataset
-        yolo obb train data=your_dataset.yaml model=yolov8n-obb.yaml epochs=100 imgsz=640
+        yolo obb train data=your_dataset.yaml model=yolo11n-obb.yaml epochs=100 imgsz=640
         ```
 
 This ensures your model leverages the detailed OBB annotations for improved detection [accuracy](https://www.ultralytics.com/glossary/accuracy).

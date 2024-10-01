@@ -14,7 +14,7 @@ The [COCO-Pose](https://cocodataset.org/#keypoints-2017) dataset is a specialize
 
 | Model                                                                                                | size<br><sup>(pixels) | mAP<sup>pose<br>50-95 | mAP<sup>pose<br>50 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
 | ---------------------------------------------------------------------------------------------------- | --------------------- | --------------------- | ------------------ | ------------------------------ | ----------------------------------- | ------------------ | ----------------- |
-| [YOLO11n-pose](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n-pose.pt)       | 640                   | 50.4                  | 80.1               | 131.8                          | 1.18                                | 3.3                | 9.2               |
+| [YOLO11n-pose](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolo11n-pose.pt)       | 640                   | 50.4                  | 80.1               | 131.8                          | 1.18                                | 3.3                | 9.2               |
 | [YOLOv8s-pose](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8s-pose.pt)       | 640                   | 60.0                  | 86.2               | 233.2                          | 1.42                                | 11.6               | 30.2              |
 | [YOLOv8m-pose](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8m-pose.pt)       | 640                   | 65.0                  | 88.8               | 456.3                          | 2.00                                | 26.4               | 81.0              |
 | [YOLOv8l-pose](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8l-pose.pt)       | 640                   | 67.6                  | 90.0               | 784.5                          | 2.59                                | 44.4               | 168.6             |
@@ -61,7 +61,7 @@ To train a YOLO11n-pose model on the COCO-Pose dataset for 100 [epochs](https://
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n-pose.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n-pose.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="coco-pose.yaml", epochs=100, imgsz=640)
@@ -71,7 +71,7 @@ To train a YOLO11n-pose model on the COCO-Pose dataset for 100 [epochs](https://
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo pose train data=coco-pose.yaml model=yolov8n-pose.pt epochs=100 imgsz=640
+        yolo pose train data=coco-pose.yaml model=yolo11n-pose.pt epochs=100 imgsz=640
         ```
 
 ## Sample Images and Annotations
@@ -123,7 +123,7 @@ Training a YOLO11 model on the COCO-Pose dataset can be accomplished using eithe
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n-pose.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n-pose.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="coco-pose.yaml", epochs=100, imgsz=640)
@@ -133,7 +133,7 @@ Training a YOLO11 model on the COCO-Pose dataset can be accomplished using eithe
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo pose train data=coco-pose.yaml model=yolov8n-pose.pt epochs=100 imgsz=640
+        yolo pose train data=coco-pose.yaml model=yolo11n-pose.pt epochs=100 imgsz=640
         ```
 
 For more details on the training process and available arguments, check the [training page](../../modes/train.md).

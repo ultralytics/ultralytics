@@ -52,7 +52,7 @@ To train a YOLO11n model on the brain tumor dataset for 100 [epochs](https://www
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="brain-tumor.yaml", epochs=100, imgsz=640)
@@ -62,7 +62,7 @@ To train a YOLO11n model on the brain tumor dataset for 100 [epochs](https://www
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=brain-tumor.yaml model=yolov8n.pt epochs=100 imgsz=640
+        yolo detect train data=brain-tumor.yaml model=yolo11n.pt epochs=100 imgsz=640
         ```
 
 !!! example "Inference Example"
@@ -118,7 +118,7 @@ You can train a YOLO11 model on the brain tumor dataset for 100 epochs with an i
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="brain-tumor.yaml", epochs=100, imgsz=640)
@@ -129,7 +129,7 @@ You can train a YOLO11 model on the brain tumor dataset for 100 epochs with an i
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=brain-tumor.yaml model=yolov8n.pt epochs=100 imgsz=640
+        yolo detect train data=brain-tumor.yaml model=yolo11n.pt epochs=100 imgsz=640
         ```
 
 For a detailed list of available arguments, refer to the [Training](../../modes/train.md) page.

@@ -55,7 +55,7 @@ To train Ultralytics YOLO11n model on the Carparts Segmentation dataset for 100 
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n-seg.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n-seg.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="carparts-seg.yaml", epochs=100, imgsz=640)
@@ -65,7 +65,7 @@ To train Ultralytics YOLO11n model on the Carparts Segmentation dataset for 100 
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo segment train data=carparts-seg.yaml model=yolov8n-seg.pt epochs=100 imgsz=640
+        yolo segment train data=carparts-seg.yaml model=yolo11n-seg.pt epochs=100 imgsz=640
         ```
 
 ## Sample Data and Annotations
@@ -120,7 +120,7 @@ To train a YOLO11 model on the Carparts Segmentation dataset, you can follow the
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n-seg.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n-seg.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="carparts-seg.yaml", epochs=100, imgsz=640)
@@ -130,7 +130,7 @@ To train a YOLO11 model on the Carparts Segmentation dataset, you can follow the
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo segment train data=carparts-seg.yaml model=yolov8n-seg.pt epochs=100 imgsz=640
+        yolo segment train data=carparts-seg.yaml model=yolo11n-seg.pt epochs=100 imgsz=640
         ```
 
 For more details, refer to the [Training](../../modes/train.md) documentation.

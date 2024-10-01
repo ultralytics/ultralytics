@@ -48,7 +48,7 @@ To train a YOLO11n model on the Objects365 dataset for 100 [epochs](https://www.
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="Objects365.yaml", epochs=100, imgsz=640)
@@ -58,7 +58,7 @@ To train a YOLO11n model on the Objects365 dataset for 100 [epochs](https://www.
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=Objects365.yaml model=yolov8n.pt epochs=100 imgsz=640
+        yolo detect train data=Objects365.yaml model=yolo11n.pt epochs=100 imgsz=640
         ```
 
 ## Sample Data and Annotations
@@ -109,7 +109,7 @@ To train a YOLO11n model using the Objects365 dataset for 100 epochs with an ima
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="Objects365.yaml", epochs=100, imgsz=640)
@@ -119,7 +119,7 @@ To train a YOLO11n model using the Objects365 dataset for 100 epochs with an ima
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=Objects365.yaml model=yolov8n.pt epochs=100 imgsz=640
+        yolo detect train data=Objects365.yaml model=yolo11n.pt epochs=100 imgsz=640
         ```
 
 Refer to the [Training](../../modes/train.md) page for a comprehensive list of available arguments.

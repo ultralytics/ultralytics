@@ -53,7 +53,7 @@ To train a YOLO11n model on the African wildlife dataset for 100 [epochs](https:
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="african-wildlife.yaml", epochs=100, imgsz=640)
@@ -63,7 +63,7 @@ To train a YOLO11n model on the African wildlife dataset for 100 [epochs](https:
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=african-wildlife.yaml model=yolov8n.pt epochs=100 imgsz=640
+        yolo detect train data=african-wildlife.yaml model=yolo11n.pt epochs=100 imgsz=640
         ```
 
 !!! example "Inference Example"
@@ -119,7 +119,7 @@ You can train a YOLO11 model on the African Wildlife Dataset by using the `afric
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="african-wildlife.yaml", epochs=100, imgsz=640)
@@ -129,7 +129,7 @@ You can train a YOLO11 model on the African Wildlife Dataset by using the `afric
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=african-wildlife.yaml model=yolov8n.pt epochs=100 imgsz=640
+        yolo detect train data=african-wildlife.yaml model=yolo11n.pt epochs=100 imgsz=640
         ```
 
 For additional training parameters and options, refer to the [Training](../../modes/train.md) documentation.

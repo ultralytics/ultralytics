@@ -23,7 +23,7 @@ keywords: Open Images V7, Google dataset, computer vision, YOLO11 models, object
 
 | Model                                                                                     | size<br><sup>(pixels) | mAP<sup>val<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
 | ----------------------------------------------------------------------------------------- | --------------------- | -------------------- | ------------------------------ | ----------------------------------- | ------------------ | ----------------- |
-| [YOLO11n](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n-oiv7.pt) | 640                   | 18.4                 | 142.4                          | 1.21                                | 3.5                | 10.5              |
+| [YOLO11n](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolo11n-oiv7.pt) | 640                   | 18.4                 | 142.4                          | 1.21                                | 3.5                | 10.5              |
 | [YOLOv8s](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8s-oiv7.pt) | 640                   | 27.7                 | 183.1                          | 1.40                                | 11.4               | 29.7              |
 | [YOLOv8m](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8m-oiv7.pt) | 640                   | 33.6                 | 408.5                          | 2.26                                | 26.2               | 80.6              |
 | [YOLOv8l](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8l-oiv7.pt) | 640                   | 34.9                 | 596.9                          | 2.43                                | 44.1               | 167.4             |
@@ -88,7 +88,7 @@ To train a YOLO11n model on the Open Images V7 dataset for 100 [epochs](https://
         from ultralytics import YOLO
 
         # Load a COCO-pretrained YOLO11n model
-        model = YOLO("yolov8n.pt")
+        model = YOLO("yolo11n.pt")
 
         # Train the model on the Open Images V7 dataset
         results = model.train(data="open-images-v7.yaml", epochs=100, imgsz=640)
@@ -98,7 +98,7 @@ To train a YOLO11n model on the Open Images V7 dataset for 100 [epochs](https://
 
         ```bash
         # Train a COCO-pretrained YOLO11n model on the Open Images V7 dataset
-        yolo detect train data=open-images-v7.yaml model=yolov8n.pt epochs=100 imgsz=640
+        yolo detect train data=open-images-v7.yaml model=yolo11n.pt epochs=100 imgsz=640
         ```
 
 ## Sample Data and Annotations
@@ -148,7 +148,7 @@ To train a YOLO11 model on the Open Images V7 dataset, you can use both Python a
         from ultralytics import YOLO
 
         # Load a COCO-pretrained YOLO11n model
-        model = YOLO("yolov8n.pt")
+        model = YOLO("yolo11n.pt")
 
         # Train the model on the Open Images V7 dataset
         results = model.train(data="open-images-v7.yaml", epochs=100, imgsz=640)
@@ -159,7 +159,7 @@ To train a YOLO11 model on the Open Images V7 dataset, you can use both Python a
 
         ```bash
         # Train a COCO-pretrained YOLO11n model on the Open Images V7 dataset
-        yolo detect train data=open-images-v7.yaml model=yolov8n.pt epochs=100 imgsz=640
+        yolo detect train data=open-images-v7.yaml model=yolo11n.pt epochs=100 imgsz=640
         ```
 
 For more details on arguments and settings, refer to the [Training](../../modes/train.md) page.
@@ -181,7 +181,7 @@ Ultralytics provides several YOLO11 pretrained models for the Open Images V7 dat
 
 | Model                                                                                     | size<br><sup>(pixels) | mAP<sup>val<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
 | ----------------------------------------------------------------------------------------- | --------------------- | -------------------- | ------------------------------ | ----------------------------------- | ------------------ | ----------------- |
-| [YOLO11n](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n-oiv7.pt) | 640                   | 18.4                 | 142.4                          | 1.21                                | 3.5                | 10.5              |
+| [YOLO11n](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolo11n-oiv7.pt) | 640                   | 18.4                 | 142.4                          | 1.21                                | 3.5                | 10.5              |
 | [YOLOv8s](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8s-oiv7.pt) | 640                   | 27.7                 | 183.1                          | 1.40                                | 11.4               | 29.7              |
 | [YOLOv8m](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8m-oiv7.pt) | 640                   | 33.6                 | 408.5                          | 2.26                                | 26.2               | 80.6              |
 | [YOLOv8l](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8l-oiv7.pt) | 640                   | 34.9                 | 596.9                          | 2.43                                | 44.1               | 167.4             |

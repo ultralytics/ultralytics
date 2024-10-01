@@ -66,7 +66,7 @@ To train a YOLO11n-pose model on the Hand Keypoints dataset for 100 [epochs](htt
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n-pose.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n-pose.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="hand-keypoints.yaml", epochs=100, imgsz=640)
@@ -76,7 +76,7 @@ To train a YOLO11n-pose model on the Hand Keypoints dataset for 100 [epochs](htt
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo pose train data=hand-keypoints.yaml model=yolov8n-pose.pt epochs=100 imgsz=640
+        yolo pose train data=hand-keypoints.yaml model=yolo11n-pose.pt epochs=100 imgsz=640
         ```
 
 ## Sample Images and Annotations
@@ -121,7 +121,7 @@ To train a YOLO11 model on the Hand Keypoints dataset, you can use either Python
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n-pose.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n-pose.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="hand-keypoints.yaml", epochs=100, imgsz=640)
@@ -131,7 +131,7 @@ To train a YOLO11 model on the Hand Keypoints dataset, you can use either Python
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo pose train data=hand-keypoints.yaml model=yolov8n-pose.pt epochs=100 imgsz=640
+        yolo pose train data=hand-keypoints.yaml model=yolo11n-pose.pt epochs=100 imgsz=640
         ```
 
 For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.

@@ -34,7 +34,7 @@ To train a YOLO11n-obb model on the DOTA8 dataset for 100 [epochs](https://www.u
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n-obb.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n-obb.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="dota8.yaml", epochs=100, imgsz=640)
@@ -44,7 +44,7 @@ To train a YOLO11n-obb model on the DOTA8 dataset for 100 [epochs](https://www.u
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo obb train data=dota8.yaml model=yolov8n-obb.pt epochs=100 imgsz=640
+        yolo obb train data=dota8.yaml model=yolo11n-obb.pt epochs=100 imgsz=640
         ```
 
 ## Sample Images and Annotations
@@ -98,7 +98,7 @@ To train a YOLO11n-obb model on the DOTA8 dataset for 100 epochs with an image s
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n-obb.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n-obb.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="dota8.yaml", epochs=100, imgsz=640)
@@ -108,7 +108,7 @@ To train a YOLO11n-obb model on the DOTA8 dataset for 100 epochs with an image s
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo obb train data=dota8.yaml model=yolov8n-obb.pt epochs=100 imgsz=640
+        yolo obb train data=dota8.yaml model=yolo11n-obb.pt epochs=100 imgsz=640
         ```
 
 ### What are the key features of the DOTA dataset and where can I access the YAML file?

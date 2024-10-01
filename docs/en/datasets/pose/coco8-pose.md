@@ -34,7 +34,7 @@ To train a YOLO11n-pose model on the COCO8-Pose dataset for 100 [epochs](https:/
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n-pose.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n-pose.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="coco8-pose.yaml", epochs=100, imgsz=640)
@@ -44,7 +44,7 @@ To train a YOLO11n-pose model on the COCO8-Pose dataset for 100 [epochs](https:/
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo pose train data=coco8-pose.yaml model=yolov8n-pose.pt epochs=100 imgsz=640
+        yolo pose train data=coco8-pose.yaml model=yolo11n-pose.pt epochs=100 imgsz=640
         ```
 
 ## Sample Images and Annotations
@@ -96,7 +96,7 @@ To train a YOLO11n-pose model on the COCO8-Pose dataset for 100 epochs with an i
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n-pose.pt")
+        model = YOLO("yolo11n-pose.pt")
 
         # Train the model
         results = model.train(data="coco8-pose.yaml", epochs=100, imgsz=640)
@@ -105,7 +105,7 @@ To train a YOLO11n-pose model on the COCO8-Pose dataset for 100 epochs with an i
     === "CLI"
 
         ```bash
-        yolo pose train data=coco8-pose.yaml model=yolov8n-pose.pt epochs=100 imgsz=640
+        yolo pose train data=coco8-pose.yaml model=yolo11n-pose.pt epochs=100 imgsz=640
         ```
 
 For a comprehensive list of training arguments, refer to the model [Training](../../modes/train.md) page.

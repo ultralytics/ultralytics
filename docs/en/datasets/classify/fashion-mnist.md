@@ -64,7 +64,7 @@ To train a CNN model on the Fashion-MNIST dataset for 100 [epochs](https://www.u
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n-cls.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n-cls.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="fashion-mnist", epochs=100, imgsz=28)
@@ -74,7 +74,7 @@ To train a CNN model on the Fashion-MNIST dataset for 100 [epochs](https://www.u
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo classify train data=fashion-mnist model=yolov8n-cls.pt epochs=100 imgsz=28
+        yolo classify train data=fashion-mnist model=yolo11n-cls.pt epochs=100 imgsz=28
         ```
 
 ## Sample Images and Annotations
@@ -107,7 +107,7 @@ To train an Ultralytics YOLO model on the Fashion-MNIST dataset, you can use bot
         from ultralytics import YOLO
 
         # Load a pretrained model
-        model = YOLO("yolov8n-cls.pt")
+        model = YOLO("yolo11n-cls.pt")
 
         # Train the model on Fashion-MNIST
         results = model.train(data="fashion-mnist", epochs=100, imgsz=28)
@@ -117,7 +117,7 @@ To train an Ultralytics YOLO model on the Fashion-MNIST dataset, you can use bot
     === "CLI"
 
         ```bash
-        yolo classify train data=fashion-mnist model=yolov8n-cls.pt epochs=100 imgsz=28
+        yolo classify train data=fashion-mnist model=yolo11n-cls.pt epochs=100 imgsz=28
         ```
 
 For more detailed training parameters, refer to the [Training page](../../modes/train.md).

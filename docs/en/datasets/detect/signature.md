@@ -41,7 +41,7 @@ To train a YOLO11n model on the signature detection dataset for 100 [epochs](htt
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="signature.yaml", epochs=100, imgsz=640)
@@ -51,7 +51,7 @@ To train a YOLO11n model on the signature detection dataset for 100 [epochs](htt
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=signature.yaml model=yolov8n.pt epochs=100 imgsz=640
+        yolo detect train data=signature.yaml model=yolo11n.pt epochs=100 imgsz=640
         ```
 
 !!! example "Inference Example"
@@ -110,7 +110,7 @@ To train a YOLO11n model on the Signature Detection Dataset, follow these steps:
         from ultralytics import YOLO
 
         # Load a pretrained model
-        model = YOLO("yolov8n.pt")
+        model = YOLO("yolo11n.pt")
 
         # Train the model
         results = model.train(data="signature.yaml", epochs=100, imgsz=640)
@@ -119,7 +119,7 @@ To train a YOLO11n model on the Signature Detection Dataset, follow these steps:
     === "CLI"
 
         ```bash
-        yolo detect train data=signature.yaml model=yolov8n.pt epochs=100 imgsz=640
+        yolo detect train data=signature.yaml model=yolo11n.pt epochs=100 imgsz=640
         ```
 
 For more details, refer to the [Training](../../modes/train.md) page.

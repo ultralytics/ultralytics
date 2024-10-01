@@ -49,7 +49,7 @@ To train a YOLO11n model on the VOC dataset for 100 [epochs](https://www.ultraly
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="VOC.yaml", epochs=100, imgsz=640)
@@ -59,7 +59,7 @@ To train a YOLO11n model on the VOC dataset for 100 [epochs](https://www.ultraly
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=VOC.yaml model=yolov8n.pt epochs=100 imgsz=640
+        yolo detect train data=VOC.yaml model=yolo11n.pt epochs=100 imgsz=640
         ```
 
 ## Sample Images and Annotations
@@ -111,7 +111,7 @@ To train a YOLO11 model with the VOC dataset, you need the dataset configuration
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="VOC.yaml", epochs=100, imgsz=640)
@@ -121,7 +121,7 @@ To train a YOLO11 model with the VOC dataset, you need the dataset configuration
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=VOC.yaml model=yolov8n.pt epochs=100 imgsz=640
+        yolo detect train data=VOC.yaml model=yolo11n.pt epochs=100 imgsz=640
         ```
 
 ### What are the primary challenges included in the VOC dataset?

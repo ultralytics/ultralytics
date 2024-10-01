@@ -44,7 +44,7 @@ To train Ultralytics YOLO11n model on the Package Segmentation dataset for 100 [
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n-seg.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n-seg.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="package-seg.yaml", epochs=100, imgsz=640)
@@ -54,7 +54,7 @@ To train Ultralytics YOLO11n model on the Package Segmentation dataset for 100 [
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo segment train data=package-seg.yaml model=yolov8n-seg.pt epochs=100 imgsz=640
+        yolo segment train data=package-seg.yaml model=yolo11n-seg.pt epochs=100 imgsz=640
         ```
 
 ## Sample Data and Annotations
@@ -109,7 +109,7 @@ You can train an Ultralytics YOLO11n model using both Python and CLI methods. Us
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n-seg.pt")  # load a pretrained model
+        model = YOLO("yolo11n-seg.pt")  # load a pretrained model
 
         # Train the model
         results = model.train(data="package-seg.yaml", epochs=100, imgsz=640)
@@ -119,7 +119,7 @@ You can train an Ultralytics YOLO11n model using both Python and CLI methods. Us
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo segment train data=package-seg.yaml model=yolov8n-seg.pt epochs=100 imgsz=640
+        yolo segment train data=package-seg.yaml model=yolo11n-seg.pt epochs=100 imgsz=640
         ```
 
 Refer to the model [Training](../../modes/train.md) page for more details.

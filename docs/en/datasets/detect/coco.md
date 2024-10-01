@@ -23,7 +23,7 @@ The [COCO](https://cocodataset.org/#home) (Common Objects in Context) dataset is
 
 | Model                                                                                | size<br><sup>(pixels) | mAP<sup>val<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
 | ------------------------------------------------------------------------------------ | --------------------- | -------------------- | ------------------------------ | ----------------------------------- | ------------------ | ----------------- |
-| [YOLO11n](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n.pt) | 640                   | 37.3                 | 80.4                           | 0.99                                | 3.2                | 8.7               |
+| [YOLO11n](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolo11n.pt) | 640                   | 37.3                 | 80.4                           | 0.99                                | 3.2                | 8.7               |
 | [YOLOv8s](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8s.pt) | 640                   | 44.9                 | 128.4                          | 1.20                                | 11.2               | 28.6              |
 | [YOLOv8m](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8m.pt) | 640                   | 50.2                 | 234.7                          | 1.83                                | 25.9               | 78.9              |
 | [YOLOv8l](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8l.pt) | 640                   | 52.9                 | 375.2                          | 2.39                                | 43.7               | 165.2             |
@@ -70,7 +70,7 @@ To train a YOLO11n model on the COCO dataset for 100 [epochs](https://www.ultral
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="coco.yaml", epochs=100, imgsz=640)
@@ -80,7 +80,7 @@ To train a YOLO11n model on the COCO dataset for 100 [epochs](https://www.ultral
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=coco.yaml model=yolov8n.pt epochs=100 imgsz=640
+        yolo detect train data=coco.yaml model=yolo11n.pt epochs=100 imgsz=640
         ```
 
 ## Sample Images and Annotations
@@ -132,7 +132,7 @@ To train a YOLO11 model using the COCO dataset, you can use the following code s
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="coco.yaml", epochs=100, imgsz=640)
@@ -142,7 +142,7 @@ To train a YOLO11 model using the COCO dataset, you can use the following code s
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=coco.yaml model=yolov8n.pt epochs=100 imgsz=640
+        yolo detect train data=coco.yaml model=yolo11n.pt epochs=100 imgsz=640
         ```
 
 Refer to the [Training page](../../modes/train.md) for more details on available arguments.
@@ -160,7 +160,7 @@ The COCO dataset includes:
 
 Pretrained YOLO11 models on the COCO dataset can be downloaded from the links provided in the documentation. Examples include:
 
-- [YOLO11n](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n.pt)
+- [YOLO11n](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolo11n.pt)
 - [YOLOv8s](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8s.pt)
 - [YOLOv8m](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8m.pt)
 

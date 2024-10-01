@@ -74,7 +74,7 @@ def test_instance_segmentation():
             clss = results[0].boxes.cls.cpu().tolist()
             masks = results[0].masks.xy
             for mask, cls in zip(masks, clss):
-                if mask.size != 0:
+                if mask.size > 0:
                     annotator.seg_bbox(mask=mask, mask_color=colors(int(cls), True), label=names[int(cls)])
     cap.release()
     cv2.destroyAllWindows()

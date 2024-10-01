@@ -341,7 +341,7 @@ python3 utils/export_yoloV8.py -w yolov8s.pt --opset 12 --simplify
 
 For more details on model conversion, check out our [model export section](../modes/export.md).
 
-### What are the performance benchmarks for YOLO11 on NVIDIA Jetson Orin NX?
+### What are the performance benchmarks for YOLO on NVIDIA Jetson Orin NX?
 
 The performance of YOLO11 models on NVIDIA Jetson Orin NX 16GB varies based on TensorRT precision levels. For example, YOLOv8s models achieve:
 

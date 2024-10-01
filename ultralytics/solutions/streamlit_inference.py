@@ -67,7 +67,7 @@ def inference(model=None):
         vid_file_name = 0
 
     # Add dropdown menu for model selection
-    available_models = [x.replace("yolo", "YOLO") for x in GITHUB_ASSETS_STEMS if x.startswith("yolov8")]
+    available_models = [x.replace("yolo", "YOLO") for x in GITHUB_ASSETS_STEMS if x.startswith("yolo11")]
     if model:
         available_models.insert(0, model.split(".pt")[0])  # insert model without suffix as *.pt is added later
 

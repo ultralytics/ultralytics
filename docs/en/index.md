@@ -103,11 +103,15 @@ Ultralytics YOLO is the latest advancement in the acclaimed YOLO (You Only Look 
 
 ### How can I get started with YOLO installation and setup?
 
-Getting started with YOLO is quick and straightforward. You can install the Ultralytics package using pip and get up and running in minutes. Here's a basic installation command:
+Getting started with YOLO is quick and straightforward. You can install the Ultralytics package using [pip](https://pypi.org/project/ultralytics/) and get up and running in minutes. Here's a basic installation command:
 
-```bash
-pip install ultralytics
-```
+!!! example
+
+    === "CLI"
+
+        ```bash
+        pip install ultralytics
+        ```
 
 For a comprehensive step-by-step guide, visit our [quickstart guide](quickstart.md). This resource will help you with installation instructions, initial setup, and running your first model.
 

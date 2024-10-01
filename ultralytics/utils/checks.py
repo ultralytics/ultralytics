@@ -657,7 +657,7 @@ def check_amp(model):
     def amp_allclose(m, im):
         """All close FP32 vs AMP results."""
         batch = [im] * 8
-        imgsz = max(256, int(model.stride.max() * 4))  # max stride 32 for p5 and 64 for P6
+        imgsz = max(256, int(model.stride.max() * 4))  # max stride P5-32 and P6-64
         a = m(batch, imgsz=imgsz, device=device, verbose=False)[0].boxes.data  # FP32 inference
         with autocast(enabled=True):
             b = m(batch, imgsz=imgsz, device=device, verbose=False)[0].boxes.data  # AMP inference

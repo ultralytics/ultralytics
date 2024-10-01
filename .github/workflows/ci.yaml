@@ -320,16 +320,16 @@ jobs:
           conda list
       - name: Test CLI
         run: |
-          yolo predict model=yolov8n.pt imgsz=320
-          yolo train model=yolov8n.pt data=coco8.yaml epochs=1 imgsz=32
-          yolo val model=yolov8n.pt data=coco8.yaml imgsz=32
-          yolo export model=yolov8n.pt format=torchscript imgsz=160
+          yolo predict model=yolo11n.pt imgsz=320
+          yolo train model=yolo11n.pt data=coco8.yaml epochs=1 imgsz=32
+          yolo val model=yolo11n.pt data=coco8.yaml imgsz=32
+          yolo export model=yolo11n.pt format=torchscript imgsz=160
       - name: Test Python
         # Note this step must use the updated default bash environment, not a python environment
         run: |
           python -c "
           from ultralytics import YOLO
-          model = YOLO('yolov8n.pt')
+          model = YOLO('yolo11n.pt')
           results = model.train(data='coco8.yaml', epochs=3, imgsz=160)
           results = model.val(imgsz=160)
           results = model.predict(imgsz=160)

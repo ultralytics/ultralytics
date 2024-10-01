@@ -27,7 +27,7 @@ The output of an oriented object detector is a set of rotated bounding boxes tha
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Object Detection using Ultralytics YOLOv8 Oriented Bounding Boxes (YOLOv8-OBB)
+  <strong>Watch:</strong> Object Detection using Ultralytics YOLO Oriented Bounding Boxes (YOLO-OBB)
 </p>
 
 ## Visual Samples
@@ -94,7 +94,7 @@ Train YOLO11n-obb on the `dota8.yaml` dataset for 100 [epochs](https://www.ultra
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Train Ultralytics YOLOv8-OBB (Oriented Bounding Boxes) Models on DOTA Dataset using Ultralytics HUB
+  <strong>Watch:</strong> How to Train Ultralytics YOLO-OBB (Oriented Bounding Boxes) Models on DOTA Dataset using Ultralytics HUB
 </p>
 
 ### Dataset format
@@ -165,7 +165,7 @@ Use a trained YOLO11n-obb model to run predictions on images.
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Detect and Track Storage Tanks using Ultralytics YOLOv8-OBB | Oriented Bounding Boxes | DOTA
+  <strong>Watch:</strong> How to Detect and Track Storage Tanks using Ultralytics YOLO-OBB | Oriented Bounding Boxes | DOTA
 </p>
 
 See full `predict` mode details in the [Predict](../modes/predict.md) page.

@@ -1,14 +1,14 @@
 ---
 comments: true
-description: Learn to export YOLOv8 models to OpenVINO format for up to 3x CPU speedup and hardware acceleration on Intel GPU and NPU.
-keywords: YOLOv8, OpenVINO, model export, Intel, AI inference, CPU speedup, GPU acceleration, NPU, deep learning
+description: Learn to export YOLO11 models to OpenVINO format for up to 3x CPU speedup and hardware acceleration on Intel GPU and NPU.
+keywords: YOLO11, OpenVINO, model export, Intel, AI inference, CPU speedup, GPU acceleration, NPU, deep learning
 ---
 
 # Intel OpenVINO Export
 
 <img width="1024" src="https://github.com/ultralytics/docs/releases/download/0/openvino-ecosystem.avif" alt="OpenVINO Ecosystem">
 
-In this guide, we cover exporting YOLOv8 models to the [OpenVINO](https://docs.openvino.ai/) format, which can provide up to 3x [CPU](https://docs.openvino.ai/2024/openvino-workflow/running-inference/inference-devices-and-modes/cpu-device.html) speedup, as well as accelerating YOLO inference on Intel [GPU](https://docs.openvino.ai/2024/openvino-workflow/running-inference/inference-devices-and-modes/gpu-device.html) and [NPU](https://docs.openvino.ai/2024/openvino-workflow/running-inference/inference-devices-and-modes/npu-device.html) hardware.
+In this guide, we cover exporting YOLO11 models to the [OpenVINO](https://docs.openvino.ai/) format, which can provide up to 3x [CPU](https://docs.openvino.ai/2024/openvino-workflow/running-inference/inference-devices-and-modes/cpu-device.html) speedup, as well as accelerating YOLO inference on Intel [GPU](https://docs.openvino.ai/2024/openvino-workflow/running-inference/inference-devices-and-modes/gpu-device.html) and [NPU](https://docs.openvino.ai/2024/openvino-workflow/running-inference/inference-devices-and-modes/npu-device.html) hardware.
 
 OpenVINO, short for Open Visual Inference & [Neural Network](https://www.ultralytics.com/glossary/neural-network-nn) Optimization toolkit, is a comprehensive toolkit for optimizing and deploying AI inference models. Even though the name contains Visual, OpenVINO also supports various additional tasks including language, audio, time series, etc.
 
@@ -20,7 +20,7 @@ OpenVINO, short for Open Visual Inference & [Neural Network](https://www.ultraly
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How To Export and Optimize an Ultralytics YOLOv8 Model for Inference with OpenVINO.
+  <strong>Watch:</strong> How To Export and Optimize an Ultralytics YOLO11 Model for Inference with OpenVINO.
 </p>
 
 ## Usage Examples
@@ -73,7 +73,7 @@ Export a YOLOv8n model to OpenVINO format and run inference with the exported mo
 1. **Performance**: OpenVINO delivers high-performance inference by utilizing the power of Intel CPUs, integrated and discrete GPUs, and FPGAs.
 2. **Support for Heterogeneous Execution**: OpenVINO provides an API to write once and deploy on any supported Intel hardware (CPU, GPU, FPGA, VPU, etc.).
 3. **Model Optimizer**: OpenVINO provides a Model Optimizer that imports, converts, and optimizes models from popular [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) frameworks such as PyTorch, [TensorFlow](https://www.ultralytics.com/glossary/tensorflow), TensorFlow Lite, Keras, ONNX, PaddlePaddle, and Caffe.
-4. **Ease of Use**: The toolkit comes with more than [80 tutorial notebooks](https://github.com/openvinotoolkit/openvino_notebooks) (including [YOLOv8 optimization](https://github.com/openvinotoolkit/openvino_notebooks/tree/latest/notebooks/yolov8-optimization)) teaching different aspects of the toolkit.
+4. **Ease of Use**: The toolkit comes with more than [80 tutorial notebooks](https://github.com/openvinotoolkit/openvino_notebooks) (including [YOLO11 optimization](https://github.com/openvinotoolkit/openvino_notebooks/tree/latest/notebooks/yolov8-optimization)) teaching different aspects of the toolkit.
 
 ## OpenVINO Export Structure
 
@@ -101,9 +101,9 @@ In your deployment application, you would typically do the following steps:
 
 For more detailed steps and code snippets, refer to the [OpenVINO documentation](https://docs.openvino.ai/) or [API tutorial](https://github.com/openvinotoolkit/openvino_notebooks/blob/latest/notebooks/openvino-api/openvino-api.ipynb).
 
-## OpenVINO YOLOv8 Benchmarks
+## OpenVINO YOLO11 Benchmarks
 
-YOLOv8 benchmarks below were run by the Ultralytics team on 4 different model formats measuring speed and accuracy: PyTorch, TorchScript, ONNX and OpenVINO. Benchmarks were run on Intel Flex and Arc GPUs, and on Intel Xeon CPUs at FP32 [precision](https://www.ultralytics.com/glossary/precision) (with the `half=False` argument).
+YOLO11 benchmarks below were run by the Ultralytics team on 4 different model formats measuring speed and accuracy: PyTorch, TorchScript, ONNX and OpenVINO. Benchmarks were run on Intel Flex and Arc GPUs, and on Intel Xeon CPUs at FP32 [precision](https://www.ultralytics.com/glossary/precision) (with the `half=False` argument).
 
 !!! note
 
@@ -366,7 +366,7 @@ To reproduce the Ultralytics benchmarks above on all export [formats](../modes/e
 
 ## Conclusion
 
-The benchmarking results clearly demonstrate the benefits of exporting the YOLOv8 model to the OpenVINO format. Across different models and hardware platforms, the OpenVINO format consistently outperforms other formats in terms of inference speed while maintaining comparable accuracy.
+The benchmarking results clearly demonstrate the benefits of exporting the YOLO11 model to the OpenVINO format. Across different models and hardware platforms, the OpenVINO format consistently outperforms other formats in terms of inference speed while maintaining comparable accuracy.
 
 For the Intel® Data Center GPU Flex Series, the OpenVINO format was able to deliver inference speeds almost 10 times faster than the original PyTorch format. On the Xeon CPU, the OpenVINO format was twice as fast as the PyTorch format. The accuracy of the models remained nearly identical across the different formats.
 
@@ -376,9 +376,9 @@ For more detailed information and instructions on using OpenVINO, refer to the [
 
 ## FAQ
 
-### How do I export YOLOv8 models to OpenVINO format?
+### How do I export YOLO11 models to OpenVINO format?
 
-Exporting YOLOv8 models to the OpenVINO format can significantly enhance CPU speed and enable GPU and NPU accelerations on Intel hardware. To export, you can use either Python or CLI as shown below:
+Exporting YOLO11 models to the OpenVINO format can significantly enhance CPU speed and enable GPU and NPU accelerations on Intel hardware. To export, you can use either Python or CLI as shown below:
 
 !!! example
 
@@ -403,20 +403,20 @@ Exporting YOLOv8 models to the OpenVINO format can significantly enhance CPU spe
 
 For more information, refer to the [export formats documentation](../modes/export.md).
 
-### What are the benefits of using OpenVINO with YOLOv8 models?
+### What are the benefits of using OpenVINO with YOLO11 models?
 
-Using Intel's OpenVINO toolkit with YOLOv8 models offers several benefits:
+Using Intel's OpenVINO toolkit with YOLO11 models offers several benefits:
 
 1. **Performance**: Achieve up to 3x speedup on CPU inference and leverage Intel GPUs and NPUs for acceleration.
 2. **Model Optimizer**: Convert, optimize, and execute models from popular frameworks like PyTorch, TensorFlow, and ONNX.
-3. **Ease of Use**: Over 80 tutorial notebooks are available to help users get started, including ones for YOLOv8.
+3. **Ease of Use**: Over 80 tutorial notebooks are available to help users get started, including ones for YOLO11.
 4. **Heterogeneous Execution**: Deploy models on various Intel hardware with a unified API.
 
 For detailed performance comparisons, visit our [benchmarks section](#openvino-yolov8-benchmarks).
 
-### How can I run inference using a YOLOv8 model exported to OpenVINO?
+### How can I run inference using a YOLO11 model exported to OpenVINO?
 
-After exporting a YOLOv8 model to OpenVINO format, you can run inference using Python or CLI:
+After exporting a YOLO11 model to OpenVINO format, you can run inference using Python or CLI:
 
 !!! example
 
@@ -441,19 +441,19 @@ After exporting a YOLOv8 model to OpenVINO format, you can run inference using P
 
 Refer to our [predict mode documentation](../modes/predict.md) for more details.
 
-### Why should I choose Ultralytics YOLOv8 over other models for OpenVINO export?
+### Why should I choose Ultralytics YOLO11 over other models for OpenVINO export?
 
-Ultralytics YOLOv8 is optimized for real-time object detection with high accuracy and speed. Specifically, when combined with OpenVINO, YOLOv8 provides:
+Ultralytics YOLO11 is optimized for real-time object detection with high accuracy and speed. Specifically, when combined with OpenVINO, YOLO11 provides:
 
 - Up to 3x speedup on Intel CPUs
 - Seamless deployment on Intel GPUs and NPUs
 - Consistent and comparable accuracy across various export formats
 
-For in-depth performance analysis, check our detailed [YOLOv8 benchmarks](#openvino-yolov8-benchmarks) on different hardware.
+For in-depth performance analysis, check our detailed [YOLO11 benchmarks](#openvino-yolov8-benchmarks) on different hardware.
 
-### Can I benchmark YOLOv8 models on different formats such as PyTorch, ONNX, and OpenVINO?
+### Can I benchmark YOLO11 models on different formats such as PyTorch, ONNX, and OpenVINO?
 
-Yes, you can benchmark YOLOv8 models in various formats including PyTorch, TorchScript, ONNX, and OpenVINO. Use the following code snippet to run benchmarks on your chosen dataset:
+Yes, you can benchmark YOLO11 models in various formats including PyTorch, TorchScript, ONNX, and OpenVINO. Use the following code snippet to run benchmarks on your chosen dataset:
 
 !!! example
 

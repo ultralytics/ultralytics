@@ -971,7 +971,7 @@ def threaded(func):
 def set_sentry():
     """
     Initialize the Sentry SDK for error tracking and reporting. Only used if sentry_sdk package is installed and
-    sync=True in settings. Run 'yolo settings' to see and update settings YAML file.
+    sync=True in settings. Run 'yolo settings' to see and update settings.
 
     Conditions required to send errors (ALL conditions must be met or no errors will be reported):
         - sentry_sdk package is installed
@@ -983,35 +983,11 @@ def set_sentry():
         - online environment
         - CLI used to run package (checked with 'yolo' as the name of the main CLI command)
 
-    The function also configures Sentry SDK to ignore KeyboardInterrupt and FileNotFoundError
-    exceptions and to exclude events with 'out of memory' in their exception message.
+    The function also configures Sentry SDK to ignore KeyboardInterrupt and FileNotFoundError exceptions and to exclude
+    events with 'out of memory' in their exception message.
 
     Additionally, the function sets custom tags and user information for Sentry events.
     """
-
-    def before_send(event, hint):
-        """
-        Modify the event before sending it to Sentry based on specific exception types and messages.
-
-        Args:
-            event (dict): The event dictionary containing information about the error.
-            hint (dict): A dictionary containing additional information about the error.
-
-        Returns:
-            dict: The modified event or None if the event should not be sent to Sentry.
-        """
-        if "exc_info" in hint:
-            exc_type, exc_value, tb = hint["exc_info"]
-            if exc_type in {KeyboardInterrupt, FileNotFoundError} or "out of memory" in str(exc_value):
-                return None  # do not send event
-
-        event["tags"] = {
-            "sys_argv": ARGV[0],
-            "sys_argv_name": Path(ARGV[0]).name,
-            "install": "git" if IS_GIT_DIR else "pip" if IS_PIP_PACKAGE else "other",
-            "os": ENVIRONMENT,
-        }
-        return event
 
     if (
         SETTINGS["sync"]
@@ -1027,6 +1003,30 @@ def set_sentry():
             import sentry_sdk  # noqa
         except ImportError:
             return
+
+        def before_send(event, hint):
+            """
+            Modify the event before sending it to Sentry based on specific exception types and messages.
+
+            Args:
+                event (dict): The event dictionary containing information about the error.
+                hint (dict): A dictionary containing additional information about the error.
+
+            Returns:
+                dict: The modified event or None if the event should not be sent to Sentry.
+            """
+            if "exc_info" in hint:
+                exc_type, exc_value, _ = hint["exc_info"]
+                if exc_type in {KeyboardInterrupt, FileNotFoundError} or "out of memory" in str(exc_value):
+                    return None  # do not send event
+
+            event["tags"] = {
+                "sys_argv": ARGV[0],
+                "sys_argv_name": Path(ARGV[0]).name,
+                "install": "git" if IS_GIT_DIR else "pip" if IS_PIP_PACKAGE else "other",
+                "os": ENVIRONMENT,
+            }
+            return event
 
         sentry_sdk.init(
             dsn="https://888e5a0778212e1d0314c37d4b9aae5d@o4504521589325824.ingest.us.sentry.io/4504521592406016",

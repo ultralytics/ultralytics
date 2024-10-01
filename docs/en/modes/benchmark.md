@@ -60,13 +60,13 @@ Run YOLOv8n benchmarks on all supported export formats including ONNX, TensorRT 
         from ultralytics.utils.benchmarks import benchmark
 
         # Benchmark on GPU
-        benchmark(model="yolov8n.pt", data="coco8.yaml", imgsz=640, half=False, device=0)
+        benchmark(model="yolo11n.pt", data="coco8.yaml", imgsz=640, half=False, device=0)
         ```
 
     === "CLI"
 
         ```bash
-        yolo benchmark model=yolov8n.pt data='coco8.yaml' imgsz=640 half=False device=0
+        yolo benchmark model=yolo11n.pt data='coco8.yaml' imgsz=640 half=False device=0
         ```
 
 ## Arguments
@@ -75,7 +75,7 @@ Arguments such as `model`, `data`, `imgsz`, `half`, `device`, and `verbose` prov
 
 | Key       | Default Value | Description                                                                                                                                                                                             |
 | --------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `model`   | `None`        | Specifies the path to the model file. Accepts both `.pt` and `.yaml` formats, e.g., `"yolov8n.pt"` for pre-trained models or configuration files.                                                       |
+| `model`   | `None`        | Specifies the path to the model file. Accepts both `.pt` and `.yaml` formats, e.g., `"yolo11n.pt"` for pre-trained models or configuration files.                                                       |
 | `data`    | `None`        | Path to a YAML file defining the dataset for benchmarking, typically including paths and settings for [validation data](https://www.ultralytics.com/glossary/validation-data). Example: `"coco8.yaml"`. |
 | `imgsz`   | `640`         | The input image size for the model. Can be a single integer for square images or a tuple `(width, height)` for non-square, e.g., `(640, 480)`.                                                          |
 | `half`    | `False`       | Enables FP16 (half-precision) inference, reducing memory usage and possibly increasing speed on compatible hardware. Use `half=True` to enable.                                                         |
@@ -105,13 +105,13 @@ Ultralytics YOLOv8 offers a Benchmark mode to assess your model's performance ac
         from ultralytics.utils.benchmarks import benchmark
 
         # Benchmark on GPU
-        benchmark(model="yolov8n.pt", data="coco8.yaml", imgsz=640, half=False, device=0)
+        benchmark(model="yolo11n.pt", data="coco8.yaml", imgsz=640, half=False, device=0)
         ```
 
     === "CLI"
 
         ```bash
-        yolo benchmark model=yolov8n.pt data='coco8.yaml' imgsz=640 half=False device=0
+        yolo benchmark model=yolo11n.pt data='coco8.yaml' imgsz=640 half=False device=0
         ```
 
 For more details on benchmark arguments, visit the [Arguments](#arguments) section.
@@ -149,7 +149,7 @@ YOLOv8 supports a variety of export formats, each tailored for specific hardware
 
 When running benchmarks, several arguments can be customized to suit specific needs:
 
-- **model:** Path to the model file (e.g., "yolov8n.pt").
+- **model:** Path to the model file (e.g., "yolo11n.pt").
 - **data:** Path to a YAML file defining the dataset (e.g., "coco8.yaml").
 - **imgsz:** The input image size, either as a single integer or a tuple.
 - **half:** Enable FP16 inference for better performance.

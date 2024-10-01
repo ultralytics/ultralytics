@@ -59,9 +59,9 @@ Train YOLOv8n on the COCO8 dataset for 100 [epochs](https://www.ultralytics.com/
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n.yaml")  # build a new model from YAML
-        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
-        model = YOLO("yolov8n.yaml").load("yolov8n.pt")  # build from YAML and transfer weights
+        model = YOLO("yolo11n.yaml")  # build a new model from YAML
+        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n.yaml").load("yolo11n.pt")  # build from YAML and transfer weights
 
         # Train the model
         results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
@@ -71,13 +71,13 @@ Train YOLOv8n on the COCO8 dataset for 100 [epochs](https://www.ultralytics.com/
 
         ```bash
         # Build a new model from YAML and start training from scratch
-        yolo detect train data=coco8.yaml model=yolov8n.yaml epochs=100 imgsz=640
+        yolo detect train data=coco8.yaml model=yolo11n.yaml epochs=100 imgsz=640
 
         # Start training from a pretrained *.pt model
-        yolo detect train data=coco8.yaml model=yolov8n.pt epochs=100 imgsz=640
+        yolo detect train data=coco8.yaml model=yolo11n.pt epochs=100 imgsz=640
 
         # Build a new model from YAML, transfer pretrained weights to it and start training
-        yolo detect train data=coco8.yaml model=yolov8n.yaml pretrained=yolov8n.pt epochs=100 imgsz=640
+        yolo detect train data=coco8.yaml model=yolo11n.yaml pretrained=yolo11n.pt epochs=100 imgsz=640
         ```
 
 ### Multi-GPU Training
@@ -94,7 +94,7 @@ Multi-GPU training allows for more efficient utilization of available hardware r
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model with 2 GPUs
         results = model.train(data="coco8.yaml", epochs=100, imgsz=640, device=[0, 1])
@@ -104,7 +104,7 @@ Multi-GPU training allows for more efficient utilization of available hardware r
 
         ```bash
         # Start training from a pretrained *.pt model using GPUs 0 and 1
-        yolo detect train data=coco8.yaml model=yolov8n.pt epochs=100 imgsz=640 device=0,1
+        yolo detect train data=coco8.yaml model=yolo11n.pt epochs=100 imgsz=640 device=0,1
         ```
 
 ### Apple M1 and M2 MPS Training
@@ -121,7 +121,7 @@ To enable training on Apple M1 and M2 chips, you should specify 'mps' as your de
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model with MPS
         results = model.train(data="coco8.yaml", epochs=100, imgsz=640, device="mps")
@@ -131,7 +131,7 @@ To enable training on Apple M1 and M2 chips, you should specify 'mps' as your de
 
         ```bash
         # Start training from a pretrained *.pt model using MPS
-        yolo detect train data=coco8.yaml model=yolov8n.pt epochs=100 imgsz=640 device=mps
+        yolo detect train data=coco8.yaml model=yolo11n.pt epochs=100 imgsz=640 device=mps
         ```
 
 While leveraging the computational power of the M1/M2 chips, this enables more efficient processing of the training tasks. For more detailed guidance and advanced configuration options, please refer to the [PyTorch MPS documentation](https://pytorch.org/docs/stable/notes/mps.html).
@@ -284,7 +284,7 @@ To train an object detection model using Ultralytics YOLOv8, you can either use 
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
@@ -293,7 +293,7 @@ To train an object detection model using Ultralytics YOLOv8, you can either use 
     === "CLI"
 
         ```bash
-        yolo detect train data=coco8.yaml model=yolov8n.pt epochs=100 imgsz=640
+        yolo detect train data=coco8.yaml model=yolo11n.pt epochs=100 imgsz=640
         ```
 
 For more details, refer to the [Train Settings](#train-settings) section.
@@ -347,7 +347,7 @@ Yes, Ultralytics YOLOv8 supports training on Apple M1 and M2 chips utilizing the
         from ultralytics import YOLO
 
         # Load a pretrained model
-        model = YOLO("yolov8n.pt")
+        model = YOLO("yolo11n.pt")
 
         # Train the model on M1/M2 chip
         results = model.train(data="coco8.yaml", epochs=100, imgsz=640, device="mps")
@@ -356,7 +356,7 @@ Yes, Ultralytics YOLOv8 supports training on Apple M1 and M2 chips utilizing the
     === "CLI"
 
         ```bash
-        yolo detect train data=coco8.yaml model=yolov8n.pt epochs=100 imgsz=640 device=mps
+        yolo detect train data=coco8.yaml model=yolo11n.pt epochs=100 imgsz=640 device=mps
         ```
 
 For more details, refer to the [Apple M1 and M2 MPS Training](#apple-m1-and-m2-mps-training) section.

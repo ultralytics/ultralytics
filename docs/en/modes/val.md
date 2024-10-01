@@ -43,7 +43,7 @@ These are the notable functionalities offered by YOLOv8's Val mode:
 
 !!! tip
 
-    * YOLOv8 models automatically remember their training settings, so you can validate a model at the same image size and on the original dataset easily with just `yolo val model=yolov8n.pt` or `model('yolov8n.pt').val()`
+    * YOLOv8 models automatically remember their training settings, so you can validate a model at the same image size and on the original dataset easily with just `yolo val model=yolo11n.pt` or `model('yolo11n.pt').val()`
 
 ## Usage Examples
 
@@ -57,7 +57,7 @@ Validate trained YOLOv8n model [accuracy](https://www.ultralytics.com/glossary/a
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n.pt")  # load an official model
+        model = YOLO("yolo11n.pt")  # load an official model
         model = YOLO("path/to/best.pt")  # load a custom model
 
         # Validate the model
@@ -71,7 +71,7 @@ Validate trained YOLOv8n model [accuracy](https://www.ultralytics.com/glossary/a
     === "CLI"
 
         ```bash
-        yolo detect val model=yolov8n.pt  # val official model
+        yolo detect val model=yolo11n.pt  # val official model
         yolo detect val model=path/to/best.pt  # val custom model
         ```
 
@@ -95,7 +95,7 @@ The below examples showcase YOLO model validation with custom arguments in Pytho
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n.pt")
+        model = YOLO("yolo11n.pt")
 
         # Customize validation settings
         validation_results = model.val(data="coco8.yaml", imgsz=640, batch=16, conf=0.25, iou=0.6, device="0")
@@ -104,7 +104,7 @@ The below examples showcase YOLO model validation with custom arguments in Pytho
     === "CLI"
 
         ```bash
-        yolo val model=yolov8n.pt data=coco8.yaml imgsz=640 batch=16 conf=0.25 iou=0.6 device=0
+        yolo val model=yolo11n.pt data=coco8.yaml imgsz=640 batch=16 conf=0.25 iou=0.6 device=0
         ```
 
 ## FAQ
@@ -117,7 +117,7 @@ To validate your YOLOv8 model, you can use the Val mode provided by Ultralytics.
 from ultralytics import YOLO
 
 # Load a model
-model = YOLO("yolov8n.pt")
+model = YOLO("yolo11n.pt")
 
 # Validate the model
 metrics = model.val()
@@ -127,7 +127,7 @@ print(metrics.box.map)  # map50-95
 Alternatively, you can use the command-line interface (CLI):
 
 ```bash
-yolo val model=yolov8n.pt
+yolo val model=yolo11n.pt
 ```
 
 For further customization, you can adjust various arguments like `imgsz`, `batch`, and `conf` in both Python and CLI modes. Check the [Arguments for YOLO Model Validation](#arguments-for-yolo-model-validation) section for the full list of parameters.
@@ -173,7 +173,7 @@ Example in Python:
 from ultralytics import YOLO
 
 # Load a model
-model = YOLO("yolov8n.pt")
+model = YOLO("yolo11n.pt")
 
 # Validate with a custom dataset
 metrics = model.val(data="path/to/your/custom_dataset.yaml")
@@ -183,7 +183,7 @@ print(metrics.box.map)  # map50-95
 Example using CLI:
 
 ```bash
-yolo val model=yolov8n.pt data=path/to/your/custom_dataset.yaml
+yolo val model=yolo11n.pt data=path/to/your/custom_dataset.yaml
 ```
 
 For more customizable options during validation, see the [Example Validation with Arguments](#example-validation-with-arguments) section.
@@ -198,7 +198,7 @@ Example in Python:
 from ultralytics import YOLO
 
 # Load a model
-model = YOLO("yolov8n.pt")
+model = YOLO("yolo11n.pt")
 
 # Save validation results to JSON
 metrics = model.val(save_json=True)
@@ -207,7 +207,7 @@ metrics = model.val(save_json=True)
 Example using CLI:
 
 ```bash
-yolo val model=yolov8n.pt save_json=True
+yolo val model=yolo11n.pt save_json=True
 ```
 
 This functionality is particularly useful for further analysis or integration with other tools. Check the [Arguments for YOLO Model Validation](#arguments-for-yolo-model-validation) for more details.

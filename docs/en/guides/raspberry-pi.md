@@ -160,11 +160,11 @@ YOLO11 benchmarks were run by the Ultralytics team on nine different model forma
 
 ### Detailed Comparison Table
 
-The below table represents the benchmark results for two different models (YOLO11n, YOLOv8s) across nine different formats (PyTorch, TorchScript, ONNX, OpenVINO, TF SavedModel, TF GraphDef, TF Lite, PaddlePaddle, NCNN), running on both Raspberry Pi 4 and Raspberry Pi 5, giving us the status, size, mAP50-95(B) metric, and inference time for each combination.
+The below table represents the benchmark results for two different models (YOLOv8n, YOLOv8s) across nine different formats (PyTorch, TorchScript, ONNX, OpenVINO, TF SavedModel, TF GraphDef, TF Lite, PaddlePaddle, NCNN), running on both Raspberry Pi 4 and Raspberry Pi 5, giving us the status, size, mAP50-95(B) metric, and inference time for each combination.
 
 !!! tip "Performance"
 
-    === "YOLO11n on RPi5"
+    === "YOLOv8n on RPi5"
 
         | Format        | Status | Size on disk (MB) | mAP50-95(B) | Inference time (ms/im) |
         |---------------|--------|-------------------|-------------|------------------------|

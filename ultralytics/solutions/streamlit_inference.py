@@ -23,13 +23,13 @@ def inference(model=None):
     # Main title of streamlit application
     main_title_cfg = """<div><h1 style="color:#FF64DA; text-align:center; font-size:40px; 
                              font-family: 'Archivo', sans-serif; margin-top:-50px;margin-bottom:20px;">
-                    Ultralytics YOLOv8 Streamlit Application
+                    Ultralytics YOLO Streamlit Application
                     </h1></div>"""
 
     # Subtitle of streamlit application
     sub_title_cfg = """<div><h4 style="color:#042AFF; text-align:center; 
                     font-family: 'Archivo', sans-serif; margin-top:-15px; margin-bottom:50px;">
-                    Experience real-time object detection on your webcam with the power of Ultralytics YOLOv8! 🚀</h4>
+                    Experience real-time object detection on your webcam with the power of Ultralytics YOLO! 🚀</h4>
                     </div>"""
 
     # Set html page configuration

@@ -595,7 +595,7 @@ def strip_optimizer(f: Union[str, Path] = "best.pt", s: str = "", updates: dict 
 
     # Save
     combined = {**metadata, **x, **(updates or {})}
-    torch.save(combined, s or f, use_dill=False)  # combine dicts (prefer to the right)
+    torch.save(combined, s or f)  # combine dicts (prefer to the right)
     mb = os.path.getsize(s or f) / 1e6  # file size
     LOGGER.info(f"Optimizer stripped from {f},{f' saved as {s},' if s else ''} {mb:.1f}MB")
     return combined

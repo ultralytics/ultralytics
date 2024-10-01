@@ -161,8 +161,8 @@ The COCO dataset includes:
 Pretrained YOLO11 models on the COCO dataset can be downloaded from the links provided in the documentation. Examples include:
 
 - [YOLO11n](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11n.pt)
-- [YOLO11s](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolov8s.pt)
-- [YOLO11m](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolov8m.pt)
+- [YOLO11s](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11s.pt)
+- [YOLO11m](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11m.pt)
 
 These models vary in size, mAP, and inference speed, providing options for different performance and resource requirements.
 

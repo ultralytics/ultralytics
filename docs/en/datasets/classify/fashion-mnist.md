@@ -16,7 +16,7 @@ The [Fashion-MNIST](https://github.com/zalandoresearch/fashion-mnist) dataset is
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to do <a href="https://www.ultralytics.com/glossary/image-classification">Image Classification</a> on Fashion MNIST Dataset using Ultralytics YOLOv8
+  <strong>Watch:</strong> How to do <a href="https://www.ultralytics.com/glossary/image-classification">Image Classification</a> on Fashion MNIST Dataset using Ultralytics YOLO11
 </p>
 
 ## Key Features
@@ -128,7 +128,7 @@ The [Fashion-MNIST](https://github.com/zalandoresearch/fashion-mnist) dataset is
 
 ### Can I use Ultralytics YOLO for image classification tasks like Fashion-MNIST?
 
-Yes, Ultralytics YOLO models can be used for image classification tasks, including those involving the Fashion-MNIST dataset. YOLOv8, for example, supports various vision tasks such as detection, segmentation, and classification. To get started with image classification tasks, refer to the [Classification page](https://docs.ultralytics.com/tasks/classify/).
+Yes, Ultralytics YOLO models can be used for image classification tasks, including those involving the Fashion-MNIST dataset. YOLO11, for example, supports various vision tasks such as detection, segmentation, and classification. To get started with image classification tasks, refer to the [Classification page](https://docs.ultralytics.com/tasks/classify/).
 
 ### What are the key features and structure of the Fashion-MNIST dataset?
 

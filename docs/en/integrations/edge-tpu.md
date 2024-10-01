@@ -88,7 +88,7 @@ Before diving into the usage instructions, it's important to note that while all
     === "CLI"
 
         ```bash
-        # Export a YOLOv8n PyTorch model to TFLite Edge TPU format
+        # Export a YOLO11n PyTorch model to TFLite Edge TPU format
         yolo export model=yolo11n.pt format=edgetpu  # creates 'yolo11n_full_integer_quant_edgetpu.tflite'
 
         # Run inference with the exported model
@@ -146,7 +146,7 @@ To export a YOLO11 model to TFLite Edge TPU format, you can follow these steps:
     === "CLI"
 
         ```bash
-        # Export a YOLOv8n PyTorch model to TFLite Edge TPU format
+        # Export a YOLO11n PyTorch model to TFLite Edge TPU format
         yolo export model=yolo11n.pt format=edgetpu  # creates 'yolo11n_full_integer_quant_edgetpu.tflite'
 
         # Run inference with the exported model

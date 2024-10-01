@@ -47,7 +47,7 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 ## Usage
 
-To train a YOLOv8n model on the VisDrone dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To train a YOLO11n model on the VisDrone dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
 !!! example "Train Example"
 
@@ -113,9 +113,9 @@ The [VisDrone Dataset](https://github.com/VisDrone/VisDrone-Dataset) is a large-
 - **Diversity**: Collected across 14 cities, in urban and rural settings, under different weather and lighting conditions.
 - **Tasks**: Split into five main tasks—object detection in images and videos, single-object and multi-object tracking, and crowd counting.
 
-### How can I use the VisDrone Dataset to train a YOLOv8 model with Ultralytics?
+### How can I use the VisDrone Dataset to train a YOLO11 model with Ultralytics?
 
-To train a YOLOv8 model on the VisDrone dataset for 100 epochs with an image size of 640, you can follow these steps:
+To train a YOLO11 model on the VisDrone dataset for 100 epochs with an image size of 640, you can follow these steps:
 
 !!! example "Train Example"
 

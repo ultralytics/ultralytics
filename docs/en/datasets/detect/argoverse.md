@@ -43,7 +43,7 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 ## Usage
 
-To train a YOLOv8n model on the Argoverse dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To train a YOLO11n model on the Argoverse dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
 !!! example "Train Example"
 
@@ -104,7 +104,7 @@ The [Argoverse](https://www.argoverse.org/) dataset, developed by Argo AI, suppo
 
 ### How can I train an Ultralytics YOLO model using the Argoverse dataset?
 
-To train a YOLOv8 model with the Argoverse dataset, use the provided YAML configuration file and the following code:
+To train a YOLO11 model with the Argoverse dataset, use the provided YAML configuration file and the following code:
 
 !!! example "Train Example"
 

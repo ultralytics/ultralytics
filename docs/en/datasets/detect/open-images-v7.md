@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Explore the comprehensive Open Images V7 dataset by Google. Learn about its annotations, applications, and use YOLOv8 pretrained models for computer vision tasks.
-keywords: Open Images V7, Google dataset, computer vision, YOLOv8 models, object detection, image segmentation, visual relationships, AI research, Ultralytics
+description: Explore the comprehensive Open Images V7 dataset by Google. Learn about its annotations, applications, and use YOLO11 pretrained models for computer vision tasks.
+keywords: Open Images V7, Google dataset, computer vision, YOLO11 models, object detection, image segmentation, visual relationships, AI research, Ultralytics
 ---
 
 # Open Images V7 Dataset
@@ -23,7 +23,7 @@ keywords: Open Images V7, Google dataset, computer vision, YOLOv8 models, object
 
 | Model                                                                                     | size<br><sup>(pixels) | mAP<sup>val<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
 | ----------------------------------------------------------------------------------------- | --------------------- | -------------------- | ------------------------------ | ----------------------------------- | ------------------ | ----------------- |
-| [YOLOv8n](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n-oiv7.pt) | 640                   | 18.4                 | 142.4                          | 1.21                                | 3.5                | 10.5              |
+| [YOLO11n](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n-oiv7.pt) | 640                   | 18.4                 | 142.4                          | 1.21                                | 3.5                | 10.5              |
 | [YOLOv8s](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8s-oiv7.pt) | 640                   | 27.7                 | 183.1                          | 1.40                                | 11.4               | 29.7              |
 | [YOLOv8m](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8m-oiv7.pt) | 640                   | 33.6                 | 408.5                          | 2.26                                | 26.2               | 80.6              |
 | [YOLOv8l](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8l-oiv7.pt) | 640                   | 34.9                 | 596.9                          | 2.43                                | 44.1               | 167.4             |
@@ -69,7 +69,7 @@ Typically, datasets come with a YAML (Yet Another Markup Language) file that del
 
 ## Usage
 
-To train a YOLOv8n model on the Open Images V7 dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To train a YOLO11n model on the Open Images V7 dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
 !!! warning
 
@@ -87,7 +87,7 @@ To train a YOLOv8n model on the Open Images V7 dataset for 100 [epochs](https://
         ```python
         from ultralytics import YOLO
 
-        # Load a COCO-pretrained YOLOv8n model
+        # Load a COCO-pretrained YOLO11n model
         model = YOLO("yolov8n.pt")
 
         # Train the model on the Open Images V7 dataset
@@ -97,7 +97,7 @@ To train a YOLOv8n model on the Open Images V7 dataset for 100 [epochs](https://
     === "CLI"
 
         ```bash
-        # Train a COCO-pretrained YOLOv8n model on the Open Images V7 dataset
+        # Train a COCO-pretrained YOLO11n model on the Open Images V7 dataset
         yolo detect train data=open-images-v7.yaml model=yolov8n.pt epochs=100 imgsz=640
         ```
 
@@ -136,9 +136,9 @@ A heartfelt acknowledgment goes out to the Google AI team for creating and maint
 
 Open Images V7 is an extensive and versatile dataset created by Google, designed to advance research in computer vision. It includes image-level labels, object bounding boxes, object segmentation masks, visual relationships, and localized narratives, making it ideal for various computer vision tasks such as object detection, segmentation, and relationship detection.
 
-### How do I train a YOLOv8 model on the Open Images V7 dataset?
+### How do I train a YOLO11 model on the Open Images V7 dataset?
 
-To train a YOLOv8 model on the Open Images V7 dataset, you can use both Python and CLI commands. Here's an example of training the YOLOv8n model for 100 epochs with an image size of 640:
+To train a YOLO11 model on the Open Images V7 dataset, you can use both Python and CLI commands. Here's an example of training the YOLO11n model for 100 epochs with an image size of 640:
 
 !!! example "Train Example"
 
@@ -147,7 +147,7 @@ To train a YOLOv8 model on the Open Images V7 dataset, you can use both Python a
         ```python
         from ultralytics import YOLO
 
-        # Load a COCO-pretrained YOLOv8n model
+        # Load a COCO-pretrained YOLO11n model
         model = YOLO("yolov8n.pt")
 
         # Train the model on the Open Images V7 dataset
@@ -158,7 +158,7 @@ To train a YOLOv8 model on the Open Images V7 dataset, you can use both Python a
     === "CLI"
 
         ```bash
-        # Train a COCO-pretrained YOLOv8n model on the Open Images V7 dataset
+        # Train a COCO-pretrained YOLO11n model on the Open Images V7 dataset
         yolo detect train data=open-images-v7.yaml model=yolov8n.pt epochs=100 imgsz=640
         ```
 
@@ -177,11 +177,11 @@ The Open Images V7 dataset includes approximately 9 million images with various 
 
 ### What pretrained models are available for the Open Images V7 dataset?
 
-Ultralytics provides several YOLOv8 pretrained models for the Open Images V7 dataset, each with different sizes and performance metrics:
+Ultralytics provides several YOLO11 pretrained models for the Open Images V7 dataset, each with different sizes and performance metrics:
 
 | Model                                                                                     | size<br><sup>(pixels) | mAP<sup>val<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
 | ----------------------------------------------------------------------------------------- | --------------------- | -------------------- | ------------------------------ | ----------------------------------- | ------------------ | ----------------- |
-| [YOLOv8n](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n-oiv7.pt) | 640                   | 18.4                 | 142.4                          | 1.21                                | 3.5                | 10.5              |
+| [YOLO11n](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n-oiv7.pt) | 640                   | 18.4                 | 142.4                          | 1.21                                | 3.5                | 10.5              |
 | [YOLOv8s](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8s-oiv7.pt) | 640                   | 27.7                 | 183.1                          | 1.40                                | 11.4               | 29.7              |
 | [YOLOv8m](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8m-oiv7.pt) | 640                   | 33.6                 | 408.5                          | 2.26                                | 26.2               | 80.6              |
 | [YOLOv8l](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8l-oiv7.pt) | 640                   | 34.9                 | 596.9                          | 2.43                                | 44.1               | 167.4             |

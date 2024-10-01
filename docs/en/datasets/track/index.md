@@ -42,7 +42,7 @@ To use Multi-Object Tracking with Ultralytics YOLO, you can start by using the P
         ```python
         from ultralytics import YOLO
 
-        model = YOLO("yolov8n.pt")  # Load the YOLOv8 model
+        model = YOLO("yolov8n.pt")  # Load the YOLO11 model
         results = model.track(source="https://youtu.be/LNwODJXcvt4", conf=0.3, iou=0.5, show=True)
         ```
 
@@ -52,7 +52,7 @@ To use Multi-Object Tracking with Ultralytics YOLO, you can start by using the P
         yolo track model=yolov8n.pt source="https://youtu.be/LNwODJXcvt4" conf=0.3 iou=0.5 show
         ```
 
-These commands load the YOLOv8 model and use it for tracking objects in the given video source with specific confidence (`conf`) and [Intersection over Union](https://www.ultralytics.com/glossary/intersection-over-union-iou) (`iou`) thresholds. For more details, refer to the [track mode documentation](../../modes/track.md).
+These commands load the YOLO11 model and use it for tracking objects in the given video source with specific confidence (`conf`) and [Intersection over Union](https://www.ultralytics.com/glossary/intersection-over-union-iou) (`iou`) thresholds. For more details, refer to the [track mode documentation](../../modes/track.md).
 
 ### What are the upcoming features for training trackers in Ultralytics?
 

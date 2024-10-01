@@ -45,7 +45,7 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 ## Usage
 
-To train Ultralytics YOLOv8n model on the Carparts Segmentation dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To train Ultralytics YOLO11n model on the Carparts Segmentation dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
 !!! example "Train Example"
 
@@ -108,9 +108,9 @@ We extend our thanks to the Roboflow team for their dedication in developing and
 
 The [Roboflow Carparts Segmentation Dataset](https://universe.roboflow.com/gianmarco-russo-vt9xr/car-seg-un1pm?ref=ultralytics) is a curated collection of images and videos specifically designed for car part segmentation tasks in computer vision. This dataset includes a diverse range of visuals captured from multiple perspectives, making it an invaluable resource for training and testing segmentation models for automotive applications.
 
-### How can I use the Carparts Segmentation Dataset with Ultralytics YOLOv8?
+### How can I use the Carparts Segmentation Dataset with Ultralytics YOLO11?
 
-To train a YOLOv8 model on the Carparts Segmentation dataset, you can follow these steps:
+To train a YOLO11 model on the Carparts Segmentation dataset, you can follow these steps:
 
 !!! example "Train Example"
 

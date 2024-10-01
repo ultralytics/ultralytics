@@ -98,7 +98,7 @@ Before diving into the usage instructions, be sure to check out the range of [YO
     === "CLI"
 
         ```bash
-        # Export a YOLOv8n PyTorch model to CoreML format
+        # Export a YOLO11n PyTorch model to CoreML format
         yolo export model=yolo11n.pt format=coreml  # creates 'yolo11n.mlpackage''
 
         # Run inference with the exported model

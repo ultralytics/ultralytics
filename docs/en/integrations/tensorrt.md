@@ -100,7 +100,7 @@ Before diving into the usage instructions, be sure to check out the range of [YO
     === "CLI"
 
         ```bash
-        # Export a YOLOv8n PyTorch model to TensorRT format
+        # Export a YOLO11n PyTorch model to TensorRT format
         yolo export model=yolo11n.pt format=engine  # creates 'yolo11n.engine''
 
         # Run inference with the exported model
@@ -176,7 +176,7 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
     === "CLI"
 
         ```bash
-        # Export a YOLOv8n PyTorch model to TensorRT format with INT8 quantization
+        # Export a YOLO11n PyTorch model to TensorRT format with INT8 quantization
         yolo export model=yolo11n.pt format=engine batch=8 workspace=4 int8=True data=coco.yaml  # creates 'yolo11n.engine''
 
         # Run inference with the exported TensorRT quantized model

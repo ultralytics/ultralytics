@@ -34,7 +34,7 @@ A YAML (Yet Another Markup Language) file is employed to outline the configurati
 
 ## Usage
 
-To train Ultralytics YOLOv8n model on the Crack Segmentation dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To train Ultralytics YOLO11n model on the Crack Segmentation dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
 !!! example "Train Example"
 
@@ -98,9 +98,9 @@ We would like to acknowledge the Roboflow team for creating and maintaining the 
 
 The [Roboflow Crack Segmentation Dataset](https://universe.roboflow.com/university-bswxt/crack-bphdr?ref=ultralytics) is a comprehensive collection of 4029 static images designed specifically for transportation and public safety studies. It is ideal for tasks such as self-driving car model development and infrastructure maintenance. The dataset includes training, testing, and validation sets, aiding in accurate crack detection and segmentation.
 
-### How do I train a model using the Crack Segmentation Dataset with Ultralytics YOLOv8?
+### How do I train a model using the Crack Segmentation Dataset with Ultralytics YOLO11?
 
-To train an Ultralytics YOLOv8 model on the Crack Segmentation dataset, use the following code snippets. Detailed instructions and further parameters can be found on the model [Training](../../modes/train.md) page.
+To train an Ultralytics YOLO11 model on the Crack Segmentation dataset, use the following code snippets. Detailed instructions and further parameters can be found on the model [Training](../../modes/train.md) page.
 
 !!! example "Train Example"
 

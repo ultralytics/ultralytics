@@ -103,7 +103,7 @@ Before diving into the usage instructions, it's important to note that while all
     === "CLI"
 
         ```bash
-        # Export a YOLOv8n PyTorch model to PaddlePaddle format
+        # Export a YOLO11n PyTorch model to PaddlePaddle format
         yolo export model=yolo11n.pt format=paddle  # creates '/yolo11n_paddle_model'
 
         # Run inference with the exported model
@@ -161,7 +161,7 @@ Exporting Ultralytics YOLO11 models to PaddlePaddle format is straightforward. Y
     === "CLI"
 
         ```bash
-        # Export a YOLOv8n PyTorch model to PaddlePaddle format
+        # Export a YOLO11n PyTorch model to PaddlePaddle format
         yolo export model=yolo11n.pt format=paddle  # creates '/yolo11n_paddle_model'
 
         # Run inference with the exported model

@@ -23,7 +23,7 @@ The [COCO](https://cocodataset.org/#home) (Common Objects in Context) dataset is
 
 | Model                                                                                | size<br><sup>(pixels) | mAP<sup>val<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
 | ------------------------------------------------------------------------------------ | --------------------- | -------------------- | ------------------------------ | ----------------------------------- | ------------------ | ----------------- |
-| [YOLOv8n](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n.pt) | 640                   | 37.3                 | 80.4                           | 0.99                                | 3.2                | 8.7               |
+| [YOLO11n](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n.pt) | 640                   | 37.3                 | 80.4                           | 0.99                                | 3.2                | 8.7               |
 | [YOLOv8s](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8s.pt) | 640                   | 44.9                 | 128.4                          | 1.20                                | 11.2               | 28.6              |
 | [YOLOv8m](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8m.pt) | 640                   | 50.2                 | 234.7                          | 1.83                                | 25.9               | 78.9              |
 | [YOLOv8l](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8l.pt) | 640                   | 52.9                 | 375.2                          | 2.39                                | 43.7               | 165.2             |
@@ -60,7 +60,7 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 ## Usage
 
-To train a YOLOv8n model on the COCO dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To train a YOLO11n model on the COCO dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
 !!! example "Train Example"
 
@@ -122,7 +122,7 @@ The [COCO dataset](https://cocodataset.org/#home) (Common Objects in Context) is
 
 ### How can I train a YOLO model using the COCO dataset?
 
-To train a YOLOv8 model using the COCO dataset, you can use the following code snippets:
+To train a YOLO11 model using the COCO dataset, you can use the following code snippets:
 
 !!! example "Train Example"
 
@@ -156,11 +156,11 @@ The COCO dataset includes:
 - Standardized evaluation metrics for object detection (mAP) and segmentation (mean Average Recall, mAR).
 - **Mosaicing** technique in training batches to enhance model generalization across various object sizes and contexts.
 
-### Where can I find pretrained YOLOv8 models trained on the COCO dataset?
+### Where can I find pretrained YOLO11 models trained on the COCO dataset?
 
-Pretrained YOLOv8 models on the COCO dataset can be downloaded from the links provided in the documentation. Examples include:
+Pretrained YOLO11 models on the COCO dataset can be downloaded from the links provided in the documentation. Examples include:
 
-- [YOLOv8n](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n.pt)
+- [YOLO11n](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n.pt)
 - [YOLOv8s](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8s.pt)
 - [YOLOv8m](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8m.pt)
 

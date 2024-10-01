@@ -20,7 +20,7 @@ The output of an object detector is a set of bounding boxes that enclose the obj
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Object Detection with Pre-trained Ultralytics YOLOv8 Model.
+  <strong>Watch:</strong> Object Detection with Pre-trained Ultralytics YOLO Model.
 </p>
 
 !!! tip
@@ -215,7 +215,7 @@ Ultralytics YOLO11 offers various pretrained models for object detection, segmen
 
 For a detailed list and performance metrics, refer to the [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/11) section.
 
-### How can I validate the accuracy of my trained YOLOv8 model?
+### How can I validate the accuracy of my trained YOLO model?
 
 To validate the accuracy of your trained YOLO11 model, you can use the `.val()` method in Python or the `yolo detect val` command in CLI. This will provide metrics like mAP50-95, mAP50, and more.
 

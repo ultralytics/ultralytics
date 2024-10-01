@@ -94,7 +94,7 @@ Before diving into the usage instructions, it's important to note that while all
     === "CLI"
 
           ```bash
-          # Export a YOLOv8n PyTorch model to TFLite format
+          # Export a YOLO11n PyTorch model to TFLite format
           yolo export model=yolo11n.pt format=tflite  # creates 'yolo11n_float32.tflite'
 
           # Run inference with the exported model

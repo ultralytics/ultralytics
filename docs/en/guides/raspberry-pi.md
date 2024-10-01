@@ -98,7 +98,7 @@ Out of all the model export formats supported by Ultralytics, [NCNN](https://doc
 
 ## Convert Model to NCNN and Run Inference
 
-The YOLOv8n model in PyTorch format is converted to NCNN to run inference with the exported model.
+The YOLO11n model in PyTorch format is converted to NCNN to run inference with the exported model.
 
 !!! example
 
@@ -107,7 +107,7 @@ The YOLOv8n model in PyTorch format is converted to NCNN to run inference with t
         ```python
         from ultralytics import YOLO
 
-        # Load a YOLOv8n PyTorch model
+        # Load a YOLO11n PyTorch model
         model = YOLO("yolo11n.pt")
 
         # Export the model to NCNN format
@@ -123,7 +123,7 @@ The YOLOv8n model in PyTorch format is converted to NCNN to run inference with t
     === "CLI"
 
         ```bash
-        # Export a YOLOv8n PyTorch model to NCNN format
+        # Export a YOLO11n PyTorch model to NCNN format
         yolo export model=yolo11n.pt format=ncnn  # creates 'yolo11n_ncnn_model'
 
         # Run inference with the exported model
@@ -140,13 +140,13 @@ YOLO11 benchmarks were run by the Ultralytics team on nine different model forma
 
 !!! note
 
-    We have only included benchmarks for YOLOv8n and YOLOv8s models because other models sizes are too big to run on the Raspberry Pis and does not offer decent performance.
+    We have only included benchmarks for YOLO11n and YOLOv8s models because other models sizes are too big to run on the Raspberry Pis and does not offer decent performance.
 
 ### Comparison Chart
 
 !!! tip "Performance"
 
-    === "YOLOv8n"
+    === "YOLO11n"
 
         <div style="text-align: center;">
             <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/yolo11n-benchmark-comparison.avif" alt="NVIDIA Jetson Ecosystem">
@@ -160,11 +160,11 @@ YOLO11 benchmarks were run by the Ultralytics team on nine different model forma
 
 ### Detailed Comparison Table
 
-The below table represents the benchmark results for two different models (YOLOv8n, YOLOv8s) across nine different formats (PyTorch, TorchScript, ONNX, OpenVINO, TF SavedModel, TF GraphDef, TF Lite, PaddlePaddle, NCNN), running on both Raspberry Pi 4 and Raspberry Pi 5, giving us the status, size, mAP50-95(B) metric, and inference time for each combination.
+The below table represents the benchmark results for two different models (YOLO11n, YOLOv8s) across nine different formats (PyTorch, TorchScript, ONNX, OpenVINO, TF SavedModel, TF GraphDef, TF Lite, PaddlePaddle, NCNN), running on both Raspberry Pi 4 and Raspberry Pi 5, giving us the status, size, mAP50-95(B) metric, and inference time for each combination.
 
 !!! tip "Performance"
 
-    === "YOLOv8n on RPi5"
+    === "YOLO11n on RPi5"
 
         | Format        | Status | Size on disk (MB) | mAP50-95(B) | Inference time (ms/im) |
         |---------------|--------|-------------------|-------------|------------------------|
@@ -192,7 +192,7 @@ The below table represents the benchmark results for two different models (YOLOv
         | PaddlePaddle  | ✅      | 85.5              | 0.7136      | 1560.23                |
         | NCNN          | ✅      | 42.7              | 0.7204      | 211.26                 |
 
-    === "YOLOv8n on RPi4"
+    === "YOLO11n on RPi4"
 
         | Format        | Status | Size on disk (MB) | mAP50-95(B) | Inference time (ms/im) |
         |---------------|--------|-------------------|-------------|------------------------|
@@ -231,17 +231,17 @@ To reproduce the above Ultralytics benchmarks on all [export formats](../modes/e
         ```python
         from ultralytics import YOLO
 
-        # Load a YOLOv8n PyTorch model
+        # Load a YOLO11n PyTorch model
         model = YOLO("yolo11n.pt")
 
-        # Benchmark YOLOv8n speed and accuracy on the COCO8 dataset for all all export formats
+        # Benchmark YOLO11n speed and accuracy on the COCO8 dataset for all all export formats
         results = model.benchmarks(data="coco8.yaml", imgsz=640)
         ```
 
     === "CLI"
 
         ```bash
-        # Benchmark YOLOv8n speed and accuracy on the COCO8 dataset for all all export formats
+        # Benchmark YOLO11n speed and accuracy on the COCO8 dataset for all all export formats
         yolo benchmark model=yolo11n.pt data=coco8.yaml imgsz=640
         ```
 
@@ -340,7 +340,7 @@ There are 2 methods of using the Raspberry Pi Camera to inference YOLO11 models.
                 ```python
                 from ultralytics import YOLO
 
-                # Load a YOLOv8n PyTorch model
+                # Load a YOLO11n PyTorch model
                 model = YOLO("yolo11n.pt")
 
                 # Run inference
@@ -417,7 +417,7 @@ You can convert a PyTorch YOLO11 model to NCNN format using either Python or CLI
         ```python
         from ultralytics import YOLO
 
-        # Load a YOLOv8n PyTorch model
+        # Load a YOLO11n PyTorch model
         model = YOLO("yolo11n.pt")
 
         # Export the model to NCNN format
@@ -433,7 +433,7 @@ You can convert a PyTorch YOLO11 model to NCNN format using either Python or CLI
     === "CLI"
 
         ```bash
-        # Export a YOLOv8n PyTorch model to NCNN format
+        # Export a YOLO11n PyTorch model to NCNN format
         yolo export model=yolo11n.pt format=ncnn  # creates 'yolo11n_ncnn_model'
 
         # Run inference with the exported model

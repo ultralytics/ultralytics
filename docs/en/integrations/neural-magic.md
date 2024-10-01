@@ -22,7 +22,7 @@ This guide shows you how to deploy YOLO11 using Neural Magic's DeepSparse, how t
 
 Before diving into how to deploy YOLOV8 using DeepSparse, let's understand the benefits of using DeepSparse. Some key advantages include:
 
-- **Enhanced Inference Speed**: Achieves up to 525 FPS (on YOLOv8n), significantly speeding up YOLO11's inference capabilities compared to traditional methods.
+- **Enhanced Inference Speed**: Achieves up to 525 FPS (on YOLO11n), significantly speeding up YOLO11's inference capabilities compared to traditional methods.
 
 <p align="center">
   <img width="640" src="https://github.com/ultralytics/docs/releases/download/0/enhanced-inference-speed.avif" alt="Enhanced Inference Speed">

@@ -1,7 +1,7 @@
 ---
 comments: true
 description: Explore our African Wildlife Dataset featuring images of buffalo, elephant, rhino, and zebra for training computer vision models. Ideal for research and conservation.
-keywords: African Wildlife Dataset, South African animals, object detection, computer vision, YOLOv8, wildlife research, conservation, dataset
+keywords: African Wildlife Dataset, South African animals, object detection, computer vision, YOLO11, wildlife research, conservation, dataset
 ---
 
 # African Wildlife Dataset
@@ -16,7 +16,7 @@ This dataset showcases four common animal classes typically found in South Afric
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> African Wildlife Animals Detection using Ultralytics YOLOv8
+  <strong>Watch:</strong> African Wildlife Animals Detection using Ultralytics YOLO11
 </p>
 
 ## Dataset Structure
@@ -43,7 +43,7 @@ A YAML (Yet Another Markup Language) file defines the dataset configuration, inc
 
 ## Usage
 
-To train a YOLOv8n model on the African wildlife dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, use the provided code samples. For a comprehensive list of available parameters, refer to the model's [Training](../../modes/train.md) page.
+To train a YOLO11n model on the African wildlife dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, use the provided code samples. For a comprehensive list of available parameters, refer to the model's [Training](../../modes/train.md) page.
 
 !!! example "Train Example"
 
@@ -107,9 +107,9 @@ The dataset has been released available under the [AGPL-3.0 License](https://git
 
 The African Wildlife Dataset includes images of four common animal species found in South African nature reserves: buffalo, elephant, rhino, and zebra. It is a valuable resource for training computer vision algorithms in object detection and animal identification. The dataset supports various tasks like object tracking, research, and conservation efforts. For more information on its structure and applications, refer to the [Dataset Structure](#dataset-structure) section and [Applications](#applications) of the dataset.
 
-### How do I train a YOLOv8 model using the African Wildlife Dataset?
+### How do I train a YOLO11 model using the African Wildlife Dataset?
 
-You can train a YOLOv8 model on the African Wildlife Dataset by using the `african-wildlife.yaml` configuration file. Below is an example of how to train the YOLOv8n model for 100 epochs with an image size of 640:
+You can train a YOLO11 model on the African Wildlife Dataset by using the `african-wildlife.yaml` configuration file. Below is an example of how to train the YOLO11n model for 100 epochs with an image size of 640:
 
 !!! example
 

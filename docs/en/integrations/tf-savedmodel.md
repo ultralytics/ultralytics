@@ -90,7 +90,7 @@ Before diving into the usage instructions, it's important to note that while all
     === "CLI"
 
         ```bash
-        # Export a YOLOv8n PyTorch model to TF SavedModel format
+        # Export a YOLO11n PyTorch model to TF SavedModel format
         yolo export model=yolo11n.pt format=saved_model  # creates '/yolo11n_saved_model'
 
         # Run inference with the exported model

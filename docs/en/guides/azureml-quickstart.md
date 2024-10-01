@@ -128,7 +128,7 @@ Or with the [Ultralytics Python interface](../quickstart.md#use-ultralytics-with
 from ultralytics import YOLO
 
 # Load a model
-model = YOLO("yolo11n.pt")  # load an official YOLOv8n model
+model = YOLO("yolo11n.pt")  # load an official YOLO11n model
 
 # Use the model
 model.train(data="coco8.yaml", epochs=3)  # train the model

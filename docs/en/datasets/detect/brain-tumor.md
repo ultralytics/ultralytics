@@ -42,7 +42,7 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 ## Usage
 
-To train a YOLOv8n model on the brain tumor dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, utilize the provided code snippets. For a detailed list of available arguments, consult the model's [Training](../../modes/train.md) page.
+To train a YOLO11n model on the brain tumor dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, utilize the provided code snippets. For a detailed list of available arguments, consult the model's [Training](../../modes/train.md) page.
 
 !!! example "Train Example"
 
@@ -106,9 +106,9 @@ The dataset has been released available under the [AGPL-3.0 License](https://git
 
 The brain tumor dataset is divided into two subsets: the **training set** consists of 893 images with corresponding annotations, while the **testing set** comprises 223 images with paired annotations. This structured division aids in developing robust and accurate computer vision models for detecting brain tumors. For more information on the dataset structure, visit the [Dataset Structure](#dataset-structure) section.
 
-### How can I train a YOLOv8 model on the brain tumor dataset using Ultralytics?
+### How can I train a YOLO11 model on the brain tumor dataset using Ultralytics?
 
-You can train a YOLOv8 model on the brain tumor dataset for 100 epochs with an image size of 640px using both Python and CLI methods. Below are the examples for both:
+You can train a YOLO11 model on the brain tumor dataset for 100 epochs with an image size of 640px using both Python and CLI methods. Below are the examples for both:
 
 !!! example "Train Example"
 
@@ -138,9 +138,9 @@ For a detailed list of available arguments, refer to the [Training](../../modes/
 
 Using the brain tumor dataset in AI projects enables early diagnosis and treatment planning for brain tumors. It helps in automating brain tumor identification through computer vision, facilitating accurate and timely medical interventions, and supporting personalized treatment strategies. This application holds significant potential in improving patient outcomes and medical efficiencies.
 
-### How do I perform inference using a fine-tuned YOLOv8 model on the brain tumor dataset?
+### How do I perform inference using a fine-tuned YOLO11 model on the brain tumor dataset?
 
-Inference using a fine-tuned YOLOv8 model can be performed with either Python or CLI approaches. Here are the examples:
+Inference using a fine-tuned YOLO11 model can be performed with either Python or CLI approaches. Here are the examples:
 
 !!! example "Inference Example"
 

@@ -39,7 +39,7 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 ## Usage
 
-To train a YOLOv8n model on the VOC dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To train a YOLO11n model on the VOC dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
 !!! example "Train Example"
 
@@ -99,9 +99,9 @@ We would like to acknowledge the PASCAL VOC Consortium for creating and maintain
 
 The [PASCAL VOC](http://host.robots.ox.ac.uk/pascal/VOC/) (Visual Object Classes) dataset is a renowned benchmark for [object detection](https://www.ultralytics.com/glossary/object-detection), segmentation, and classification in computer vision. It includes comprehensive annotations like bounding boxes, class labels, and segmentation masks across 20 different object categories. Researchers use it widely to evaluate the performance of models like Faster R-CNN, YOLO, and Mask R-CNN due to its standardized evaluation metrics such as mean Average Precision (mAP).
 
-### How do I train a YOLOv8 model using the VOC dataset?
+### How do I train a YOLO11 model using the VOC dataset?
 
-To train a YOLOv8 model with the VOC dataset, you need the dataset configuration in a YAML file. Here's an example to start training a YOLOv8n model for 100 epochs with an image size of 640:
+To train a YOLO11 model with the VOC dataset, you need the dataset configuration in a YAML file. Here's an example to start training a YOLO11n model for 100 epochs with an image size of 640:
 
 !!! example "Train Example"
 

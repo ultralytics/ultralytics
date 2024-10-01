@@ -90,7 +90,7 @@ Before diving into the usage instructions, it's important to note that while all
     === "CLI"
 
           ```bash
-          # Export a YOLOv8n PyTorch model to NCNN format
+          # Export a YOLO11n PyTorch model to NCNN format
           yolo export model=yolo11n.pt format=ncnn  # creates '/yolo11n_ncnn_model'
 
           # Run inference with the exported model

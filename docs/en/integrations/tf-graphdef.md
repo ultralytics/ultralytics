@@ -96,7 +96,7 @@ Before diving into the usage instructions, it's important to note that while all
     === "CLI"
 
         ```bash
-        # Export a YOLOv8n PyTorch model to TF GraphDef format
+        # Export a YOLO11n PyTorch model to TF GraphDef format
         yolo export model=yolo11n.pt format=pb  # creates 'yolo11n.pb'
 
         # Run inference with the exported model
@@ -154,7 +154,7 @@ Ultralytics YOLO11 models can be exported to TensorFlow GraphDef (TF GraphDef) f
     === "CLI"
 
         ```bash
-        # Export a YOLOv8n PyTorch model to TF GraphDef format
+        # Export a YOLO11n PyTorch model to TF GraphDef format
         yolo export model="yolo11n.pt" format="pb"  # creates 'yolo11n.pb'
 
         # Run inference with the exported model

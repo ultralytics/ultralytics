@@ -98,7 +98,7 @@ Before diving into the usage instructions, it's important to note that while all
     === "CLI"
 
         ```bash
-        # Export a YOLOv8n PyTorch model to TorchScript format
+        # Export a YOLO11n PyTorch model to TorchScript format
         yolo export model=yolo11n.pt format=torchscript  # creates 'yolo11n.torchscript'
 
         # Run inference with the exported model
@@ -158,7 +158,7 @@ To export a YOLO11 model to TorchScript, you can use the following example code:
     === "CLI"
 
         ```bash
-        # Export a YOLOv8n PyTorch model to TorchScript format
+        # Export a YOLO11n PyTorch model to TorchScript format
         yolo export model=yolo11n.pt format=torchscript  # creates 'yolo11n.torchscript'
 
         # Run inference with the exported model

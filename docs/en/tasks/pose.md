@@ -22,7 +22,7 @@ The output of a pose estimation model is a set of points that represent the keyp
         allowfullscreen>
       </iframe>
       <br>
-      <strong>Watch:</strong> Pose Estimation with Ultralytics YOLOv8.
+      <strong>Watch:</strong> Pose Estimation with Ultralytics YOLO.
     </td>
     <td align="center">
       <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/aeAX6vWpfR0"

@@ -242,7 +242,7 @@ Out of all the model export formats supported by Ultralytics, TensorRT delivers 
 
 ## Convert Model to TensorRT and Run Inference
 
-The YOLOv8n model in PyTorch format is converted to TensorRT to run inference with the exported model.
+The YOLO11n model in PyTorch format is converted to TensorRT to run inference with the exported model.
 
 !!! example
 
@@ -251,7 +251,7 @@ The YOLOv8n model in PyTorch format is converted to TensorRT to run inference wi
         ```python
         from ultralytics import YOLO
 
-        # Load a YOLOv8n PyTorch model
+        # Load a YOLO11n PyTorch model
         model = YOLO("yolo11n.pt")
 
         # Export the model
@@ -267,7 +267,7 @@ The YOLOv8n model in PyTorch format is converted to TensorRT to run inference wi
     === "CLI"
 
         ```bash
-        # Export a YOLOv8n PyTorch model to TensorRT format
+        # Export a YOLO11n PyTorch model to TensorRT format
         yolo export model=yolo11n.pt format=engine  # creates 'yolo11n.engine'
 
         # Run inference with the exported model
@@ -292,11 +292,11 @@ Even though all model exports are working with NVIDIA Jetson, we have only inclu
 
 ### Detailed Comparison Table
 
-The below table represents the benchmark results for five different models (YOLOv8n, YOLOv8s, YOLOv8m, YOLOv8l, YOLOv8x) across ten different formats (PyTorch, TorchScript, ONNX, OpenVINO, TensorRT, TF SavedModel, TF GraphDef, TF Lite, PaddlePaddle, NCNN), giving us the status, size, mAP50-95(B) metric, and inference time for each combination.
+The below table represents the benchmark results for five different models (YOLO11n, YOLOv8s, YOLOv8m, YOLOv8l, YOLOv8x) across ten different formats (PyTorch, TorchScript, ONNX, OpenVINO, TensorRT, TF SavedModel, TF GraphDef, TF Lite, PaddlePaddle, NCNN), giving us the status, size, mAP50-95(B) metric, and inference time for each combination.
 
 !!! performance
 
-    === "YOLOv8n"
+    === "YOLO11n"
 
         | Format          | Status | Size on disk (MB) | mAP50-95(B) | Inference time (ms/im) |
         |-----------------|--------|-------------------|-------------|------------------------|
@@ -394,17 +394,17 @@ To reproduce the above Ultralytics benchmarks on all export [formats](../modes/e
         ```python
         from ultralytics import YOLO
 
-        # Load a YOLOv8n PyTorch model
+        # Load a YOLO11n PyTorch model
         model = YOLO("yolo11n.pt")
 
-        # Benchmark YOLOv8n speed and accuracy on the COCO8 dataset for all all export formats
+        # Benchmark YOLO11n speed and accuracy on the COCO8 dataset for all all export formats
         results = model.benchmarks(data="coco8.yaml", imgsz=640)
         ```
 
     === "CLI"
 
         ```bash
-        # Benchmark YOLOv8n speed and accuracy on the COCO8 dataset for all all export formats
+        # Benchmark YOLO11n speed and accuracy on the COCO8 dataset for all all export formats
         yolo benchmark model=yolo11n.pt data=coco8.yaml imgsz=640
         ```
 

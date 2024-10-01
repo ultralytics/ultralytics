@@ -106,7 +106,7 @@ Before diving into the usage instructions, be sure to check out the range of [YO
     === "CLI"
 
         ```bash
-        # Export a YOLOv8n PyTorch model to ONNX format
+        # Export a YOLO11n PyTorch model to ONNX format
         yolo export model=yolo11n.pt format=onnx  # creates 'yolo11n.onnx'
 
         # Run inference with the exported model
@@ -162,7 +162,7 @@ To export your YOLO11 models to ONNX format using Ultralytics, follow these step
     === "CLI"
 
         ```bash
-        # Export a YOLOv8n PyTorch model to ONNX format
+        # Export a YOLO11n PyTorch model to ONNX format
         yolo export model=yolo11n.pt format=onnx  # creates 'yolo11n.onnx'
 
         # Run inference with the exported model

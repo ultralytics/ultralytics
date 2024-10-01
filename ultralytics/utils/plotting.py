@@ -591,8 +591,8 @@ class Annotator:
         Args:
             label (str): queue counts label
             points (tuple): region points for center point calculation to display text
-            region_color (tuple): queue region color
-            txt_color (tuple): text display color
+            region_color (tuple): RGB queue region color.
+            txt_color (tuple): RGB text display color.
         """
         x_values = [point[0] for point in points]
         y_values = [point[1] for point in points]

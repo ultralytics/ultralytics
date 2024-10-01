@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn how to efficiently train object detection models using YOLOv8 with comprehensive instructions on settings, augmentation, and hardware utilization.
-keywords: Ultralytics, YOLOv8, model training, deep learning, object detection, GPU training, dataset augmentation, hyperparameter tuning, model performance, M1 M2 training
+description: Learn how to efficiently train object detection models using YOLO11 with comprehensive instructions on settings, augmentation, and hardware utilization.
+keywords: Ultralytics, YOLO11, model training, deep learning, object detection, GPU training, dataset augmentation, hyperparameter tuning, model performance, M1 M2 training
 ---
 
 # Model Training with Ultralytics YOLO
@@ -10,7 +10,7 @@ keywords: Ultralytics, YOLOv8, model training, deep learning, object detection, 
 
 ## Introduction
 
-Training a [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) model involves feeding it data and adjusting its parameters so that it can make accurate predictions. Train mode in Ultralytics YOLOv8 is engineered for effective and efficient training of object detection models, fully utilizing modern hardware capabilities. This guide aims to cover all the details you need to get started with training your own models using YOLOv8's robust set of features.
+Training a [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) model involves feeding it data and adjusting its parameters so that it can make accurate predictions. Train mode in Ultralytics YOLO11 is engineered for effective and efficient training of object detection models, fully utilizing modern hardware capabilities. This guide aims to cover all the details you need to get started with training your own models using YOLO11's robust set of features.
 
 <p align="center">
   <br>
@@ -20,12 +20,12 @@ Training a [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Train a YOLOv8 model on Your Custom Dataset in Google Colab.
+  <strong>Watch:</strong> How to Train a YOLO model on Your Custom Dataset in Google Colab.
 </p>
 
 ## Why Choose Ultralytics YOLO for Training?
 
-Here are some compelling reasons to opt for YOLOv8's Train mode:
+Here are some compelling reasons to opt for YOLO11's Train mode:
 
 - **Efficiency:** Make the most out of your hardware, whether you're on a single-GPU setup or scaling across multiple GPUs.
 - **Versatility:** Train on custom datasets in addition to readily available ones like COCO, VOC, and ImageNet.
@@ -34,7 +34,7 @@ Here are some compelling reasons to opt for YOLOv8's Train mode:
 
 ### Key Features of Train Mode
 
-The following are some notable features of YOLOv8's Train mode:
+The following are some notable features of YOLO11's Train mode:
 
 - **Automatic Dataset Download:** Standard datasets like COCO, VOC, and ImageNet are downloaded automatically on first use.
 - **Multi-GPU Support:** Scale your training efforts seamlessly across multiple GPUs to expedite the process.
@@ -43,11 +43,11 @@ The following are some notable features of YOLOv8's Train mode:
 
 !!! tip
 
-    * YOLOv8 datasets like COCO, VOC, ImageNet and many others automatically download on first use, i.e. `yolo train data=coco.yaml`
+    * YOLO11 datasets like COCO, VOC, ImageNet and many others automatically download on first use, i.e. `yolo train data=coco.yaml`
 
 ## Usage Examples
 
-Train YOLOv8n on the COCO8 dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) at image size 640. The training device can be specified using the `device` argument. If no argument is passed GPU `device=0` will be used if available, otherwise `device='cpu'` will be used. See Arguments section below for a full list of training arguments.
+Train YOLO11n on the COCO8 dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) at image size 640. The training device can be specified using the `device` argument. If no argument is passed GPU `device=0` will be used if available, otherwise `device='cpu'` will be used. See Arguments section below for a full list of training arguments.
 
 !!! example "Single-GPU and CPU Training Example"
 
@@ -199,7 +199,7 @@ These settings can be adjusted to meet the specific requirements of the dataset 
 
 ## Logging
 
-In training a YOLOv8 model, you might find it valuable to keep track of the model's performance over time. This is where logging comes into play. Ultralytics' YOLO provides support for three types of loggers - Comet, ClearML, and TensorBoard.
+In training a YOLO11 model, you might find it valuable to keep track of the model's performance over time. This is where logging comes into play. Ultralytics' YOLO provides support for three types of loggers - Comet, ClearML, and TensorBoard.
 
 To use a logger, select it from the dropdown menu in the code snippet above and run it. The chosen logger will be installed and initialized.
 
@@ -272,9 +272,9 @@ After setting up your logger, you can then proceed with your model training. All
 
 ## FAQ
 
-### How do I train an [object detection](https://www.ultralytics.com/glossary/object-detection) model using Ultralytics YOLOv8?
+### How do I train an [object detection](https://www.ultralytics.com/glossary/object-detection) model using Ultralytics YOLO11?
 
-To train an object detection model using Ultralytics YOLOv8, you can either use the Python API or the CLI. Below is an example for both:
+To train an object detection model using Ultralytics YOLO11, you can either use the Python API or the CLI. Below is an example for both:
 
 !!! example "Single-GPU and CPU Training Example"
 
@@ -298,9 +298,9 @@ To train an object detection model using Ultralytics YOLOv8, you can either use 
 
 For more details, refer to the [Train Settings](#train-settings) section.
 
-### What are the key features of Ultralytics YOLOv8's Train mode?
+### What are the key features of Ultralytics YOLO11's Train mode?
 
-The key features of Ultralytics YOLOv8's Train mode include:
+The key features of Ultralytics YOLO11's Train mode include:
 
 - **Automatic Dataset Download:** Automatically downloads standard datasets like COCO, VOC, and ImageNet.
 - **Multi-GPU Support:** Scale training across multiple GPUs for faster processing.
@@ -309,7 +309,7 @@ The key features of Ultralytics YOLOv8's Train mode include:
 
 These features make training efficient and customizable to your needs. For more details, see the [Key Features of Train Mode](#key-features-of-train-mode) section.
 
-### How do I resume training from an interrupted session in Ultralytics YOLOv8?
+### How do I resume training from an interrupted session in Ultralytics YOLO11?
 
 To resume training from an interrupted session, set the `resume` argument to `True` and specify the path to the last saved checkpoint.
 
@@ -335,9 +335,9 @@ To resume training from an interrupted session, set the `resume` argument to `Tr
 
 Check the section on [Resuming Interrupted Trainings](#resuming-interrupted-trainings) for more information.
 
-### Can I train YOLOv8 models on Apple M1 and M2 chips?
+### Can I train YOLO11 models on Apple M1 and M2 chips?
 
-Yes, Ultralytics YOLOv8 supports training on Apple M1 and M2 chips utilizing the Metal Performance Shaders (MPS) framework. Specify 'mps' as your training device.
+Yes, Ultralytics YOLO11 supports training on Apple M1 and M2 chips utilizing the Metal Performance Shaders (MPS) framework. Specify 'mps' as your training device.
 
 !!! example "MPS Training Example"
 
@@ -363,7 +363,7 @@ For more details, refer to the [Apple M1 and M2 MPS Training](#apple-m1-and-m2-m
 
 ### What are the common training settings, and how do I configure them?
 
-Ultralytics YOLOv8 allows you to configure a variety of training settings such as batch size, learning rate, epochs, and more through arguments. Here's a brief overview:
+Ultralytics YOLO11 allows you to configure a variety of training settings such as batch size, learning rate, epochs, and more through arguments. Here's a brief overview:
 
 | Argument | Default | Description                                                            |
 | -------- | ------- | ---------------------------------------------------------------------- |

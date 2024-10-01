@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn how to export your YOLOv8 model to various formats like ONNX, TensorRT, and CoreML. Achieve maximum compatibility and performance.
-keywords: YOLOv8, Model Export, ONNX, TensorRT, CoreML, Ultralytics, AI, Machine Learning, Inference, Deployment
+description: Learn how to export your YOLO11 model to various formats like ONNX, TensorRT, and CoreML. Achieve maximum compatibility and performance.
+keywords: YOLO11, Model Export, ONNX, TensorRT, CoreML, Ultralytics, AI, Machine Learning, Inference, Deployment
 ---
 
 # Model Export with Ultralytics YOLO
@@ -10,7 +10,7 @@ keywords: YOLOv8, Model Export, ONNX, TensorRT, CoreML, Ultralytics, AI, Machine
 
 ## Introduction
 
-The ultimate goal of training a model is to deploy it for real-world applications. Export mode in Ultralytics YOLOv8 offers a versatile range of options for exporting your trained model to different formats, making it deployable across various platforms and devices. This comprehensive guide aims to walk you through the nuances of model exporting, showcasing how to achieve maximum compatibility and performance.
+The ultimate goal of training a model is to deploy it for real-world applications. Export mode in Ultralytics YOLO11 offers a versatile range of options for exporting your trained model to different formats, making it deployable across various platforms and devices. This comprehensive guide aims to walk you through the nuances of model exporting, showcasing how to achieve maximum compatibility and performance.
 
 <p align="center">
   <br>
@@ -23,7 +23,7 @@ The ultimate goal of training a model is to deploy it for real-world application
   <strong>Watch:</strong> How To Export Custom Trained Ultralytics YOLOv8 Model and Run Live Inference on Webcam.
 </p>
 
-## Why Choose YOLOv8's Export Mode?
+## Why Choose YOLO11's Export Mode?
 
 - **Versatility:** Export to multiple formats including ONNX, TensorRT, CoreML, and more.
 - **Performance:** Gain up to 5x GPU speedup with TensorRT and 3x CPU speedup with ONNX or OpenVINO.
@@ -46,7 +46,7 @@ Here are some of the standout functionalities:
 
 ## Usage Examples
 
-Export a YOLOv8n model to a different format like ONNX or TensorRT. See the Arguments section below for a full list of export arguments.
+Export a YOLO11n model to a different format like ONNX or TensorRT. See the Arguments section below for a full list of export arguments.
 
 !!! example
 
@@ -80,15 +80,15 @@ Adjusting these parameters allows for customization of the export process to fit
 
 ## Export Formats
 
-Available YOLOv8 export formats are in the table below. You can export to any format using the `format` argument, i.e. `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, i.e. `yolo predict model=yolo11n.onnx`. Usage examples are shown for your model after export completes.
+Available YOLO11 export formats are in the table below. You can export to any format using the `format` argument, i.e. `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, i.e. `yolo predict model=yolo11n.onnx`. Usage examples are shown for your model after export completes.
 
 {% include "macros/export-table.md" %}
 
 ## FAQ
 
-### How do I export a YOLOv8 model to ONNX format?
+### How do I export a YOLO11 model to ONNX format?
 
-Exporting a YOLOv8 model to ONNX format is straightforward with Ultralytics. It provides both Python and CLI methods for exporting models.
+Exporting a YOLO11 model to ONNX format is straightforward with Ultralytics. It provides both Python and CLI methods for exporting models.
 
 !!! example
 
@@ -116,7 +116,7 @@ For more details on the process, including advanced options like handling differ
 
 ### What are the benefits of using TensorRT for model export?
 
-Using TensorRT for model export offers significant performance improvements. YOLOv8 models exported to TensorRT can achieve up to a 5x GPU speedup, making it ideal for real-time inference applications.
+Using TensorRT for model export offers significant performance improvements. YOLO11 models exported to TensorRT can achieve up to a 5x GPU speedup, making it ideal for real-time inference applications.
 
 - **Versatility:** Optimize models for a specific hardware setup.
 - **Speed:** Achieve faster inference through advanced optimizations.
@@ -124,7 +124,7 @@ Using TensorRT for model export offers significant performance improvements. YOL
 
 To learn more about integrating TensorRT, see the [TensorRT integration guide](../integrations/tensorrt.md).
 
-### How do I enable INT8 quantization when exporting my YOLOv8 model?
+### How do I enable INT8 quantization when exporting my YOLO11 model?
 
 INT8 quantization is an excellent way to compress the model and speed up inference, especially on edge devices. Here's how you can enable INT8 quantization:
 

@@ -60,7 +60,7 @@ The default tracker is BoT-SORT.
 
     If object confidence score will be low, i.e lower than [`track_high_thresh`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/trackers/bytetrack.yaml#L5), then there will be no tracks successfully returned and updated.
 
-To run the tracker on video streams, use a trained Detect, Segment or Pose model such as YOLOv8n, YOLOv8n-seg and YOLOv8n-pose.
+To run the tracker on video streams, use a trained Detect, Segment or Pose model such as YOLO11n, YOLO11n-seg and YOLO11n-pose.
 
 !!! example
 
@@ -153,7 +153,7 @@ For a comprehensive list of tracking arguments, refer to the [ultralytics/cfg/tr
 
 ### Persisting Tracks Loop
 
-Here is a Python script using [OpenCV](https://www.ultralytics.com/glossary/opencv) (`cv2`) and YOLOv8 to run object tracking on video frames. This script still assumes you have already installed the necessary packages (`opencv-python` and `ultralytics`). The `persist=True` argument tells the tracker that the current image or frame is the next in a sequence and to expect tracks from the previous image in the current image.
+Here is a Python script using [OpenCV](https://www.ultralytics.com/glossary/opencv) (`cv2`) and YOLO11 to run object tracking on video frames. This script still assumes you have already installed the necessary packages (`opencv-python` and `ultralytics`). The `persist=True` argument tells the tracker that the current image or frame is the next in a sequence and to expect tracks from the previous image in the current image.
 
 !!! example "Streaming for-loop with tracking"
 
@@ -162,7 +162,7 @@ Here is a Python script using [OpenCV](https://www.ultralytics.com/glossary/open
 
     from ultralytics import YOLO
 
-    # Load the YOLOv8 model
+    # Load the YOLO11 model
     model = YOLO("yolo11n.pt")
 
     # Open the video file
@@ -175,14 +175,14 @@ Here is a Python script using [OpenCV](https://www.ultralytics.com/glossary/open
         success, frame = cap.read()
 
         if success:
-            # Run YOLOv8 tracking on the frame, persisting tracks between frames
+            # Run YOLO11 tracking on the frame, persisting tracks between frames
             results = model.track(frame, persist=True)
 
             # Visualize the results on the frame
             annotated_frame = results[0].plot()
 
             # Display the annotated frame
-            cv2.imshow("YOLOv8 Tracking", annotated_frame)
+            cv2.imshow("YOLO11 Tracking", annotated_frame)
 
             # Break the loop if 'q' is pressed
             if cv2.waitKey(1) & 0xFF == ord("q"):
@@ -200,9 +200,9 @@ Please note the change from `model(frame)` to `model.track(frame)`, which enable
 
 ### Plotting Tracks Over Time
 
-Visualizing object tracks over consecutive frames can provide valuable insights into the movement patterns and behavior of detected objects within a video. With Ultralytics YOLOv8, plotting these tracks is a seamless and efficient process.
+Visualizing object tracks over consecutive frames can provide valuable insights into the movement patterns and behavior of detected objects within a video. With Ultralytics YOLO11, plotting these tracks is a seamless and efficient process.
 
-In the following example, we demonstrate how to utilize YOLOv8's tracking capabilities to plot the movement of detected objects across multiple video frames. This script involves opening a video file, reading it frame by frame, and utilizing the YOLO model to identify and track various objects. By retaining the center points of the detected bounding boxes and connecting them, we can draw lines that represent the paths followed by the tracked objects.
+In the following example, we demonstrate how to utilize YOLO11's tracking capabilities to plot the movement of detected objects across multiple video frames. This script involves opening a video file, reading it frame by frame, and utilizing the YOLO model to identify and track various objects. By retaining the center points of the detected bounding boxes and connecting them, we can draw lines that represent the paths followed by the tracked objects.
 
 !!! example "Plotting tracks over multiple video frames"
 
@@ -214,7 +214,7 @@ In the following example, we demonstrate how to utilize YOLOv8's tracking capabi
 
     from ultralytics import YOLO
 
-    # Load the YOLOv8 model
+    # Load the YOLO11 model
     model = YOLO("yolo11n.pt")
 
     # Open the video file
@@ -230,7 +230,7 @@ In the following example, we demonstrate how to utilize YOLOv8's tracking capabi
         success, frame = cap.read()
 
         if success:
-            # Run YOLOv8 tracking on the frame, persisting tracks between frames
+            # Run YOLO11 tracking on the frame, persisting tracks between frames
             results = model.track(frame, persist=True)
 
             # Get the boxes and track IDs
@@ -253,7 +253,7 @@ In the following example, we demonstrate how to utilize YOLOv8's tracking capabi
                 cv2.polylines(annotated_frame, [points], isClosed=False, color=(230, 230, 230), thickness=10)
 
             # Display the annotated frame
-            cv2.imshow("YOLOv8 Tracking", annotated_frame)
+            cv2.imshow("YOLO11 Tracking", annotated_frame)
 
             # Break the loop if 'q' is pressed
             if cv2.waitKey(1) & 0xFF == ord("q"):
@@ -300,7 +300,7 @@ Finally, after all threads have completed their task, the windows displaying the
         Run YOLO tracker in its own thread for concurrent processing.
 
         Args:
-            model_name (str): The YOLOv8 model object.
+            model_name (str): The YOLO11 model object.
             filename (str): The path to the video file or the identifier for the webcam/external camera source.
         """
         model = YOLO(model_name)
@@ -390,7 +390,7 @@ To run object tracking on multiple video streams simultaneously, you can use Pyt
         Run YOLO tracker in its own thread for concurrent processing.
 
         Args:
-            model_name (str): The YOLOv8 model object.
+            model_name (str): The YOLO11 model object.
             filename (str): The path to the video file or the identifier for the webcam/external camera source.
         """
         model = YOLO(model_name)
@@ -458,7 +458,7 @@ To visualize object tracks over multiple video frames, you can use the YOLO mode
                     track.pop(0)
                 points = np.hstack(track).astype(np.int32).reshape((-1, 1, 2))
                 cv2.polylines(annotated_frame, [points], isClosed=False, color=(230, 230, 230), thickness=10)
-            cv2.imshow("YOLOv8 Tracking", annotated_frame)
+            cv2.imshow("YOLO11 Tracking", annotated_frame)
             if cv2.waitKey(1) & 0xFF == ord("q"):
                 break
         else:

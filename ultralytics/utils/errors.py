@@ -31,6 +31,7 @@ class DatasetError(Exception):
     Note:
         The message is automatically processed through the 'emojis' function from the 'ultralytics.utils' package.
     """
+
     def __init__(self, message="Dataset not found. Please check dataset and try again."):
         message = message + "\n \n If you need a hand with building your dataset, just check out the official documentation: https://docs.ultralytics.com/datasets \n It's really helpful!"
         super().__init__(emojis(message))

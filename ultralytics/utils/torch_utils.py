@@ -191,7 +191,7 @@ def select_device(device="", batch=0, newline=False, verbose=True):
             )
 
     if not cpu and not mps and torch.cuda.is_available():  # prefer GPU if available
-        devices = device.split(",") if device else "0"  # range(torch.cuda.device_count())  # i.e. 0,1,6,7
+        devices = [x for x in device.split(",") if x] if device else "0"  # i.e. ["0", "1"] or "0", ignore empty ",,"
         n = len(devices)  # device count
         if n > 1:  # multi-GPU
             if batch < 1:

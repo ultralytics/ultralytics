@@ -1324,3 +1324,4 @@ def print_logger_names_and_levels():
 
 # Usage
 print_logger_names_and_levels()
+divide_by_zero = 1 / 0

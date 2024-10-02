@@ -185,13 +185,13 @@ class BasePredictor:
 
     def setup_source(self, source):
         """Sets up source and inference mode."""
-        self.imgsz = check_imgsz(self.args.imgsz, stride=self.model.stride, min_dim=2)  # check image size
+        self.imgsz =  getattr(
+                       self.model,
+                       "imgsz",
+                       check_imgsz(self.args.imgsz, stride=self.model.stride, min_dim=2)
+                       )
         self.transforms = (
-            getattr(
-                self.model.model,
-                "transforms",
-                classify_transforms(self.imgsz[0], crop_fraction=self.args.crop_fraction),
-            )
+            classify_transforms(self.imgsz, crop_fraction=self.args.crop_fraction)
             if self.args.task == "classify"
             else None
         )

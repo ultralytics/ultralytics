@@ -386,8 +386,8 @@ def set_logging(name="LOGGING_NAME", verbose=True):
     return logger
 
 
-# # Set logger
-# LOGGER = set_logging(LOGGING_NAME, verbose=VERBOSE)  # define globally (used in train.py, val.py, predict.py, etc.)
+# Set logger
+LOGGER = set_logging(LOGGING_NAME, verbose=VERBOSE)  # define globally (used in train.py, val.py, predict.py, etc.)
 # for logger in "sentry_sdk", "urllib3.connectionpool":
 #     logging.getLogger(logger).setLevel(logging.CRITICAL + 1)
 
@@ -1290,8 +1290,6 @@ torch.save = torch_save
 if WINDOWS:
     # Apply cv2 patches for non-ASCII and non-UTF characters in image paths
     cv2.imread, cv2.imwrite, cv2.imshow = imread, imwrite, imshow
-
-import logging
 
 
 def print_logger_names_and_levels():

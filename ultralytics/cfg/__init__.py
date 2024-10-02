@@ -443,8 +443,8 @@ def check_dict_alignment(base: Dict, custom: Dict, e=None):
 
 def merge_equals_args(args: List[str]) -> List[str]:
     """
-    Simplifies command-line arguments by removing spaces around equal signs and inside brackets, then splits the
-    string back into a list of arguments.
+    Simplifies command-line arguments by removing spaces around equal signs and inside brackets, then splits the string
+    back into a list of arguments.
 
     Args:
         args (List[str]): A list of command-line arguments.
@@ -457,7 +457,6 @@ def merge_equals_args(args: List[str]) -> List[str]:
         >>> merge_equals_args(args)
         ['arg1=value', 'arg2=value2', 'arg3=value3']
     """
-
     # Remove spaces around '='
     args_str = re.sub(r"\s*=\s*", "=", " ".join(args))
 

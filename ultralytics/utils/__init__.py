@@ -1035,6 +1035,7 @@ def set_sentry():
             environment="production",  # 'dev' or 'production'
             before_send=before_send,
             ignore_errors=[KeyboardInterrupt, FileNotFoundError],
+            auto_enabling_integrations=True,
         )
         sentry_sdk.set_user({"id": SETTINGS["uuid"]})  # SHA-256 anonymized UUID hash
 

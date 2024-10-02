@@ -242,7 +242,7 @@ class Predictor(BasePredictor):
             points = points[None] if points.ndim == 1 else points
             # Assuming labels are all positive if users don't pass labels.
             if labels is None:
-                labels = np.ones(points.shape[0])
+                labels = np.ones(points.shape[:-1])
             assert points.shape[-2] == labels.shape[-1], f"Number of points {points.shape[-2]} should match number of labels {labels.shape[-1]}."
             labels = torch.as_tensor(labels, dtype=torch.int32, device=self.device)
             points *= r

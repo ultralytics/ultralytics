@@ -437,9 +437,7 @@ def check_dict_alignment(base: Dict, custom: Dict, e=None):
             matches = [f"{k}={base[k]}" if base.get(k) is not None else k for k in matches]
             match_str = f"Similar arguments are i.e. {matches}." if matches else ""
             string += f"'{colorstr('red', 'bold', x)}' is not a valid YOLO argument. {match_str}\n"
-
         print(f"Warning: Some arguments will be skipped!!! {mismatched}")
-        # raise SyntaxError(string + CLI_HELP_MSG) from e
 
 
 def merge_equals_args(args: List[str]) -> List[str]:

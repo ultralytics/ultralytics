@@ -377,7 +377,7 @@ class Model(nn.Module):
         self.model.load(weights)
         return self
 
-    def save(self, filename: Union[str, Path] = "saved_model.pt", use_dill=True) -> None:
+    def save(self, filename: Union[str, Path] = "saved_model.pt") -> None:
         """
         Saves the current model state to a file.
 
@@ -386,7 +386,6 @@ class Model(nn.Module):
 
         Args:
             filename (Union[str, Path]): The name of the file to save the model to.
-            use_dill (bool): Whether to try using dill for serialization if available.
 
         Raises:
             AssertionError: If the model is not a PyTorch model.
@@ -408,7 +407,7 @@ class Model(nn.Module):
             "license": "AGPL-3.0 License (https://ultralytics.com/license)",
             "docs": "https://docs.ultralytics.com",
         }
-        torch.save({**self.ckpt, **updates}, filename, use_dill=use_dill)
+        torch.save({**self.ckpt, **updates}, filename)
 
     def info(self, detailed: bool = False, verbose: bool = True):
         """

@@ -56,7 +56,7 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 ## Usage
 
-To train a YOLOv8n model on the LVIS dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To train a YOLO11n model on the LVIS dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
 !!! example "Train Example"
 
@@ -66,7 +66,7 @@ To train a YOLOv8n model on the LVIS dataset for 100 [epochs](https://www.ultral
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="lvis.yaml", epochs=100, imgsz=640)
@@ -76,7 +76,7 @@ To train a YOLOv8n model on the LVIS dataset for 100 [epochs](https://www.ultral
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=lvis.yaml model=yolov8n.pt epochs=100 imgsz=640
+        yolo detect train data=lvis.yaml model=yolo11n.pt epochs=100 imgsz=640
         ```
 
 ## Sample Images and Annotations
@@ -114,9 +114,9 @@ We would like to acknowledge the LVIS Consortium for creating and maintaining th
 
 The [LVIS dataset](https://www.lvisdataset.org/) is a large-scale dataset with fine-grained vocabulary-level annotations developed by Facebook AI Research (FAIR). It is primarily used for object detection and instance segmentation, featuring over 1203 object categories and 2 million instance annotations. Researchers and practitioners use it to train and benchmark models like Ultralytics YOLO for advanced computer vision tasks. The dataset's extensive size and diversity make it an essential resource for pushing the boundaries of model performance in detection and segmentation.
 
-### How can I train a YOLOv8n model using the LVIS dataset?
+### How can I train a YOLO11n model using the LVIS dataset?
 
-To train a YOLOv8n model on the LVIS dataset for 100 epochs with an image size of 640, follow the example below. This process utilizes Ultralytics' framework, which offers comprehensive training features.
+To train a YOLO11n model on the LVIS dataset for 100 epochs with an image size of 640, follow the example below. This process utilizes Ultralytics' framework, which offers comprehensive training features.
 
 !!! example "Train Example"
 
@@ -126,7 +126,7 @@ To train a YOLOv8n model on the LVIS dataset for 100 epochs with an image size o
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="lvis.yaml", epochs=100, imgsz=640)
@@ -137,7 +137,7 @@ To train a YOLOv8n model on the LVIS dataset for 100 epochs with an image size o
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=lvis.yaml model=yolov8n.pt epochs=100 imgsz=640
+        yolo detect train data=lvis.yaml model=yolo11n.pt epochs=100 imgsz=640
         ```
 
 For detailed training configurations, refer to the [Training](../../modes/train.md) documentation.
@@ -148,7 +148,7 @@ The images in the LVIS dataset are the same as those in the [COCO dataset](./coc
 
 ### Why should I use Ultralytics YOLO for training on the LVIS dataset?
 
-Ultralytics YOLO models, including the latest YOLOv8, are optimized for real-time object detection with state-of-the-art [accuracy](https://www.ultralytics.com/glossary/accuracy) and speed. They support a wide range of annotations, such as the fine-grained ones provided by the LVIS dataset, making them ideal for advanced computer vision applications. Moreover, Ultralytics offers seamless integration with various [training](../../modes/train.md), [validation](../../modes/val.md), and [prediction](../../modes/predict.md) modes, ensuring efficient model development and deployment.
+Ultralytics YOLO models, including the latest YOLO11, are optimized for real-time object detection with state-of-the-art [accuracy](https://www.ultralytics.com/glossary/accuracy) and speed. They support a wide range of annotations, such as the fine-grained ones provided by the LVIS dataset, making them ideal for advanced computer vision applications. Moreover, Ultralytics offers seamless integration with various [training](../../modes/train.md), [validation](../../modes/val.md), and [prediction](../../modes/predict.md) modes, ensuring efficient model development and deployment.
 
 ### Can I see some sample annotations from the LVIS dataset?
 

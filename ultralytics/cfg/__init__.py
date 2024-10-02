@@ -1,6 +1,7 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import contextlib
+import re
 import shutil
 import subprocess
 import sys
@@ -82,10 +83,10 @@ CLI_HELP_MSG = f"""
 
     5. Explore your datasets using semantic search and SQL with a simple GUI powered by Ultralytics Explorer API
         yolo explorer data=data.yaml model=yolo11n.pt
-    
+
     6. Streamlit real-time webcam inference GUI
         yolo streamlit-predict
-        
+
     7. Run special commands:
         yolo help
         yolo checks
@@ -442,59 +443,30 @@ def check_dict_alignment(base: Dict, custom: Dict, e=None):
 
 def merge_equals_args(args: List[str]) -> List[str]:
     """
-    Merges arguments around isolated '=' in a list of strings, handling cases where values span multiple tokens,
-    including arrays or values with spaces enclosed in matching brackets (), [], {}.
+    Simplifies command-line arguments by removing spaces around equal signs and inside brackets, then splits the string
+    back into a list of arguments.
 
     Args:
-        args (List[str]): A list of strings where each element represents an argument.
+        args (List[str]): A list of command-line arguments.
 
     Returns:
-        List[str]: A list of strings where arguments and their values are properly merged.
+        (List[str]): A list of processed arguments.
 
     Examples:
-        >>> args = ["arg1", "=", "value", "arg2=", "(1,", "2)", "arg3", "=value3", "flag1", "classes=", "[5,", "10,]"]
+        >>> args = ["arg1", "=", "value", "arg2=", "value2", "arg3", "=value3"]
         >>> merge_equals_args(args)
-        ['arg1=value', 'arg2=(1,2)', 'arg3=value3', 'flag1', 'classes=[5,10,]']
+        ['arg1=value', 'arg2=value2', 'arg3=value3']
     """
-    new_args = []
-    i = 0
-    bracket_pairs = {"(": ")", "[": "]", "{": "}"}
-    while i < len(args):
-        arg = args[i]
-        if arg == "=" and 0 < i < len(args) - 1:
-            # Merge ['arg', '=', 'val']
-            new_args[-1] += f"={args[i + 1]}"
-            i += 2
-        elif arg.endswith("=") and i < len(args) - 1:
-            # Collect value tokens
-            value = args[i + 1]
-            if value and value[0] in bracket_pairs:
-                close_bracket = bracket_pairs[value[0]]
-                # Collect all tokens until we find a token ending with the matching closing bracket
-                value_tokens = [value]
-                i += 2
-                while i < len(args):
-                    value_tokens.append(args[i])
-                    if args[i].endswith(close_bracket):
-                        break
-                    i += 1
-                else:
-                    # If no matching closing bracket is found, raise an error or handle it as needed
-                    pass
-                value = "".join(value_tokens)
-                i += 1  # Move past the last token of the value
-            else:
-                i += 2
-            new_args.append(arg + value)
-        elif arg.startswith("=") and i > 0:
-            # Merge ['arg', '=value']
-            new_args[-1] += arg
-            i += 1
-        else:
-            # It's a flag or an argument without '='
-            new_args.append(arg)
-            i += 1
-    return new_args
+    # Remove spaces around '='
+    args_str = re.sub(r"\s*=\s*", "=", " ".join(args))
+
+    # Remove spaces inside brackets
+    patterns = [(r"\(\s*(.*?)\s*\)", r"(\1)"), (r"\[\s*(.*?)\s*\]", r"[\1]"), (r"\{\s*(.*?)\s*\}", r"{\1}")]
+    for pattern, repl in patterns:
+        # Use non-greedy matching inside brackets
+        args_str = re.sub(pattern, lambda m: repl.replace("\\1", m.group(1).replace(" ", "")), args_str)
+
+    return args_str.split()  # split the modified string back into arguments
 
 
 def handle_yolo_hub(args: List[str]) -> None:

@@ -182,7 +182,7 @@ class Exporter:
             import difflib
 
             # Get the closest match if format is invalid
-            matches = difflib.get_close_matches(fmt, fmts, n=1, cutoff=0.6)  # 60% similarity required to match
+            closest_match = difflib.get_close_matches(fmt, fmts, n=1, cutoff=0.6)  # 60% similarity required to match
             if closest_match:
                 LOGGER.warning(f"WARNING ⚠️ Invalid export format='{fmt}', updating to format='{matches[0]}'")
                 fmt = closest_match[0]

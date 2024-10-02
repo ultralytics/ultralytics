@@ -22,7 +22,6 @@ from typing import Union
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
-import requests
 import torch
 import yaml
 from tqdm import tqdm as tqdm_original
@@ -387,10 +386,10 @@ def set_logging(name="LOGGING_NAME", verbose=True):
     return logger
 
 
-# Set logger
-LOGGER = set_logging(LOGGING_NAME, verbose=VERBOSE)  # define globally (used in train.py, val.py, predict.py, etc.)
-for logger in "sentry_sdk", "urllib3.connectionpool":
-    logging.getLogger(logger).setLevel(logging.CRITICAL + 1)
+# # Set logger
+# LOGGER = set_logging(LOGGING_NAME, verbose=VERBOSE)  # define globally (used in train.py, val.py, predict.py, etc.)
+# for logger in "sentry_sdk", "urllib3.connectionpool":
+#     logging.getLogger(logger).setLevel(logging.CRITICAL + 1)
 
 
 def emojis(string=""):
@@ -1024,7 +1023,6 @@ def set_sentry():
 
         sentry_sdk.init(
             dsn="https://f716b248dbabaa8ec1e1dc040bd20550@o4504521589325824.ingest.us.sentry.io/4508052302921728",
-            default_integrations=False,
             debug=True,
             traces_sample_rate=1.0,
             release=__version__,
@@ -1324,4 +1322,5 @@ def print_logger_names_and_levels():
 
 # Usage
 print_logger_names_and_levels()
+
 divide_by_zero = 1 / 0

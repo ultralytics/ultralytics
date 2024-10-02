@@ -22,6 +22,7 @@ from typing import Union
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
+import requests
 import torch
 import yaml
 from tqdm import tqdm as tqdm_original
@@ -350,13 +351,13 @@ def set_logging(name="LOGGING_NAME", verbose=True):
     level = logging.INFO if verbose and RANK in {-1, 0} else logging.ERROR  # rank in world for Multi-GPU trainings
 
     # Configure the console (stdout) encoding to UTF-8, with checks for compatibility
-    formatter = logging.Formatter("%(message)s")  # Default formatter
+    formatter = logging.Formatter("%(name)s: %(message)s")  # Updated formatter to include logger name
     if WINDOWS and hasattr(sys.stdout, "encoding") and sys.stdout.encoding != "utf-8":
 
         class CustomFormatter(logging.Formatter):
             def format(self, record):
                 """Sets up logging with UTF-8 encoding and configurable verbosity."""
-                return emojis(super().format(record))
+                return emojis(f"{record.name}: {super().format(record)}")  # Updated to include logger name
 
         try:
             # Attempt to reconfigure stdout to use UTF-8 encoding if possible
@@ -988,15 +989,8 @@ def set_sentry():
 
     Additionally, the function sets custom tags and user information for Sentry events.
     """
-    if (
-        SETTINGS["sync"]
-        and RANK in {-1, 0}
-        and Path(ARGV[0]).name == "yolo"
-        and not TESTS_RUNNING
-        and ONLINE
-        and IS_PIP_PACKAGE
-        and not IS_GIT_DIR
-    ):
+
+    if True:
         # If sentry_sdk package is not installed then return and do not use Sentry
         try:
             import sentry_sdk  # noqa
@@ -1014,6 +1008,7 @@ def set_sentry():
             Returns:
                 dict: The modified event or None if the event should not be sent to Sentry.
             """
+            print("RUNNING SENTRY BEFORE SEND")
             if "exc_info" in hint:
                 exc_type, exc_value, _ = hint["exc_info"]
                 if exc_type in {KeyboardInterrupt, FileNotFoundError} or "out of memory" in str(exc_value):
@@ -1028,8 +1023,9 @@ def set_sentry():
             return event
 
         sentry_sdk.init(
-            dsn="https://888e5a0778212e1d0314c37d4b9aae5d@o4504521589325824.ingest.us.sentry.io/4504521592406016",
-            debug=False,
+            dsn="https://f716b248dbabaa8ec1e1dc040bd20550@o4504521589325824.ingest.us.sentry.io/4508052302921728",
+            default_integrations=False,
+            debug=True,
             traces_sample_rate=1.0,
             release=__version__,
             environment="production",  # 'dev' or 'production'
@@ -1296,3 +1292,35 @@ torch.save = torch_save
 if WINDOWS:
     # Apply cv2 patches for non-ASCII and non-UTF characters in image paths
     cv2.imread, cv2.imwrite, cv2.imshow = imread, imwrite, imshow
+
+import logging
+
+
+def print_logger_names_and_levels():
+    """
+    Print the names of all existing logger objects and their effective levels.
+    """
+    # Get the manager for the logging module
+    manager = logging.Logger.manager
+
+    # Mapping of level numbers to level names
+    level_names = {
+        logging.NOTSET: 'NOTSET',
+        logging.DEBUG: 'DEBUG',
+        logging.INFO: 'INFO',
+        logging.WARNING: 'WARNING',
+        logging.ERROR: 'ERROR',
+        logging.CRITICAL: 'CRITICAL'
+    }
+
+    # Iterate through all logger names and print them with their levels
+    print("Existing loggers and their levels:")
+    for logger_name in manager.loggerDict:
+        logger = logging.getLogger(logger_name)
+        level = logger.getEffectiveLevel()
+        level_name = level_names.get(level, f"UNKNOWN ({level})")
+        print(f"- {logger_name}: {level_name}")
+
+
+# Usage
+print_logger_names_and_levels()

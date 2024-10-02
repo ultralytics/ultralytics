@@ -127,10 +127,13 @@ class ObjectCounter:
         # Draw region or line
         annotator.draw_region(reg_pts=self.reg_pts, color=(104, 0, 123), thickness=self.tf * 2)
 
-        if tracks[0].boxes.id is not None:
-            boxes = tracks[0].boxes.xyxy.cpu()
-            clss = tracks[0].boxes.cls.cpu().tolist()
-            track_ids = tracks[0].boxes.id.int().cpu().tolist()
+        # Extract tracks for OBB or object detection
+        track_data = tracks[0].obb or tracks[0].boxes
+
+        if track_data and track_data.id is not None:
+            boxes = track_data.xyxy.cpu()
+            clss = track_data.cls.cpu().tolist()
+            track_ids = track_data.id.int().cpu().tolist()
 
             # Extract tracks
             for box, track_id, cls in zip(boxes, track_ids, clss):
@@ -173,22 +176,24 @@ class ObjectCounter:
 
                 # Count objects using line
                 elif len(self.reg_pts) == 2:
-                    if prev_position is not None and track_id not in self.count_ids:
-                        # Check if the object's movement segment intersects the counting line
-                        if LineString([(prev_position[0], prev_position[1]), (box[0], box[1])]).intersects(
+                    if (
+                        prev_position is not None
+                        and track_id not in self.count_ids
+                        and LineString([(prev_position[0], prev_position[1]), (box[0], box[1])]).intersects(
                             self.counting_line_segment
-                        ):
-                            self.count_ids.append(track_id)
+                        )
+                    ):
+                        self.count_ids.append(track_id)
 
-                            # Determine the direction of movement (IN or OUT)
-                            dx = (box[0] - prev_position[0]) * (self.counting_region.centroid.x - prev_position[0])
-                            dy = (box[1] - prev_position[1]) * (self.counting_region.centroid.y - prev_position[1])
-                            if dx > 0 and dy > 0:
-                                self.in_counts += 1
-                                self.class_wise_count[self.names[cls]]["IN"] += 1
-                            else:
-                                self.out_counts += 1
-                                self.class_wise_count[self.names[cls]]["OUT"] += 1
+                        # Determine the direction of movement (IN or OUT)
+                        dx = (box[0] - prev_position[0]) * (self.counting_region.centroid.x - prev_position[0])
+                        dy = (box[1] - prev_position[1]) * (self.counting_region.centroid.y - prev_position[1])
+                        if dx > 0 and dy > 0:
+                            self.in_counts += 1
+                            self.class_wise_count[self.names[cls]]["IN"] += 1
+                        else:
+                            self.out_counts += 1
+                            self.class_wise_count[self.names[cls]]["OUT"] += 1
 
         labels_dict = {}
 

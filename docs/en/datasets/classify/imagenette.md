@@ -23,7 +23,7 @@ The ImageNette dataset is split into two subsets:
 
 ## Applications
 
-The ImageNette dataset is widely used for training and evaluating deep learning models in image classification tasks, such as Convolutional Neural Networks (CNNs), and various other machine learning algorithms. The dataset's straightforward format and well-chosen classes make it a handy resource for both beginner and experienced practitioners in the field of machine learning and computer vision.
+The ImageNette dataset is widely used for training and evaluating [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models in image classification tasks, such as [Convolutional Neural Networks](https://www.ultralytics.com/glossary/convolutional-neural-network-cnn) (CNNs), and various other machine learning algorithms. The dataset's straightforward format and well-chosen classes make it a handy resource for both beginner and experienced practitioners in the field of machine learning and computer vision.
 
 ## Usage
 
@@ -37,7 +37,7 @@ To train a model on the ImageNette dataset for 100 epochs with a standard image 
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n-cls.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n-cls.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="imagenette", epochs=100, imgsz=224)
@@ -47,12 +47,12 @@ To train a model on the ImageNette dataset for 100 epochs with a standard image 
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo classify train data=imagenette model=yolov8n-cls.pt epochs=100 imgsz=224
+        yolo classify train data=imagenette model=yolo11n-cls.pt epochs=100 imgsz=224
         ```
 
 ## Sample Images and Annotations
 
-The ImageNette dataset contains colored images of various objects and scenes, providing a diverse dataset for image classification tasks. Here are some examples of images from the dataset:
+The ImageNette dataset contains colored images of various objects and scenes, providing a diverse dataset for [image classification](https://www.ultralytics.com/glossary/image-classification) tasks. Here are some examples of images from the dataset:
 
 ![Dataset sample image](https://github.com/ultralytics/docs/releases/download/0/imagenette-sample-image.avif)
 
@@ -72,7 +72,7 @@ To use these datasets, simply replace 'imagenette' with 'imagenette160' or 'imag
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n-cls.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n-cls.pt")  # load a pretrained model (recommended for training)
 
         # Train the model with ImageNette160
         results = model.train(data="imagenette160", epochs=100, imgsz=160)
@@ -82,7 +82,7 @@ To use these datasets, simply replace 'imagenette' with 'imagenette160' or 'imag
 
         ```bash
         # Start training from a pretrained *.pt model with ImageNette160
-        yolo classify train data=imagenette160 model=yolov8n-cls.pt epochs=100 imgsz=160
+        yolo classify train data=imagenette160 model=yolo11n-cls.pt epochs=100 imgsz=160
         ```
 
 !!! example "Train Example with ImageNette320"
@@ -93,7 +93,7 @@ To use these datasets, simply replace 'imagenette' with 'imagenette160' or 'imag
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n-cls.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n-cls.pt")  # load a pretrained model (recommended for training)
 
         # Train the model with ImageNette320
         results = model.train(data="imagenette320", epochs=100, imgsz=320)
@@ -103,7 +103,7 @@ To use these datasets, simply replace 'imagenette' with 'imagenette160' or 'imag
 
         ```bash
         # Start training from a pretrained *.pt model with ImageNette320
-        yolo classify train data=imagenette320 model=yolov8n-cls.pt epochs=100 imgsz=320
+        yolo classify train data=imagenette320 model=yolo11n-cls.pt epochs=100 imgsz=320
         ```
 
 These smaller versions of the dataset allow for rapid iterations during the development process while still providing valuable and realistic image classification tasks.
@@ -116,11 +116,11 @@ If you use the ImageNette dataset in your research or development work, please a
 
 ### What is the ImageNette dataset?
 
-The [ImageNette dataset](https://github.com/fastai/imagenette) is a simplified subset of the larger [ImageNet dataset](https://www.image-net.org/), featuring only 10 easily distinguishable classes such as tench, English springer, and French horn. It was created to offer a more manageable dataset for efficient training and evaluation of image classification models. This dataset is particularly useful for quick software development and educational purposes in machine learning and computer vision.
+The [ImageNette dataset](https://github.com/fastai/imagenette) is a simplified subset of the larger [ImageNet dataset](https://www.image-net.org/), featuring only 10 easily distinguishable classes such as tench, English springer, and French horn. It was created to offer a more manageable dataset for efficient training and evaluation of image classification models. This dataset is particularly useful for quick software development and educational purposes in [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) and computer vision.
 
 ### How can I use the ImageNette dataset for training a YOLO model?
 
-To train a YOLO model on the ImageNette dataset for 100 epochs, you can use the following commands. Make sure to have the Ultralytics YOLO environment set up.
+To train a YOLO model on the ImageNette dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch), you can use the following commands. Make sure to have the Ultralytics YOLO environment set up.
 
 !!! example "Train Example"
 
@@ -130,7 +130,7 @@ To train a YOLO model on the ImageNette dataset for 100 epochs, you can use the 
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n-cls.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n-cls.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="imagenette", epochs=100, imgsz=224)
@@ -140,7 +140,7 @@ To train a YOLO model on the ImageNette dataset for 100 epochs, you can use the 
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo classify train data=imagenette model=yolov8n-cls.pt epochs=100 imgsz=224
+        yolo classify train data=imagenette model=yolo11n-cls.pt epochs=100 imgsz=224
         ```
 
 For more details, see the [Training](../../modes/train.md) documentation page.
@@ -167,7 +167,7 @@ Yes, the ImageNette dataset is also available in two resized versions: ImageNett
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n-cls.pt")
+        model = YOLO("yolo11n-cls.pt")
 
         # Train the model with ImageNette160
         results = model.train(data="imagenette160", epochs=100, imgsz=160)
@@ -177,7 +177,7 @@ Yes, the ImageNette dataset is also available in two resized versions: ImageNett
 
         ```bash
         # Start training from a pretrained *.pt model with ImageNette160
-        yolo detect train data=imagenette160 model=yolov8n-cls.pt epochs=100 imgsz=160
+        yolo detect train data=imagenette160 model=yolo11n-cls.pt epochs=100 imgsz=160
         ```
 
 For more information, refer to [Training with ImageNette160 and ImageNette320](#imagenette160-and-imagenette320).
@@ -186,8 +186,8 @@ For more information, refer to [Training with ImageNette160 and ImageNette320](#
 
 The ImageNette dataset is extensively used in:
 
-- **Educational Settings**: To educate beginners in machine learning and computer vision.
+- **Educational Settings**: To educate beginners in machine learning and [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv).
 - **Software Development**: For rapid prototyping and development of image classification models.
-- **Deep Learning Research**: To evaluate and benchmark the performance of various deep learning models, especially Convolutional Neural Networks (CNNs).
+- **Deep Learning Research**: To evaluate and benchmark the performance of various deep learning models, especially Convolutional [Neural Networks](https://www.ultralytics.com/glossary/neural-network-nn) (CNNs).
 
 Explore the [Applications](#applications) section for detailed use cases.

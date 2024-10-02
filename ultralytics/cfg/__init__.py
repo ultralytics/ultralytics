@@ -437,7 +437,9 @@ def check_dict_alignment(base: Dict, custom: Dict, e=None):
             matches = [f"{k}={base[k]}" if base.get(k) is not None else k for k in matches]
             match_str = f"Similar arguments are i.e. {matches}." if matches else ""
             string += f"'{colorstr('red', 'bold', x)}' is not a valid YOLO argument. {match_str}\n"
-        raise SyntaxError(string + CLI_HELP_MSG) from e
+
+        print(f"Warning: Some arguments will be skipped!!! {mismatched}")
+        # raise SyntaxError(string + CLI_HELP_MSG) from e
 
 
 def merge_equals_args(args: List[str]) -> List[str]:
@@ -775,7 +777,8 @@ def entrypoint(debug=""):
     task = overrides.pop("task", None)
     if task:
         if task not in TASKS:
-            raise ValueError(f"Invalid 'task={task}'. Valid tasks are {TASKS}.\n{CLI_HELP_MSG}")
+            LOGGER.warning(f"WARNING ⚠️ 'task' unknown. Using default 'task=detect'.")
+            task="detect"
         if "model" not in overrides:
             overrides["model"] = TASK2MODEL[task]
 

@@ -1030,6 +1030,7 @@ def set_sentry():
         sentry_sdk.init(
             dsn="https://888e5a0778212e1d0314c37d4b9aae5d@o4504521589325824.ingest.us.sentry.io/4504521592406016",
             debug=False,
+            auto_enabling_integrations=False,
             traces_sample_rate=1.0,
             release=__version__,
             environment="production",  # 'dev' or 'production'

@@ -170,6 +170,7 @@ class Exporter:
     @smart_inference_mode()
     def __call__(self, model=None) -> str:
         """Returns list of exported files/dirs after running callbacks."""
+        import difflib
         self.run_callbacks("on_export_start")
         t = time.time()
         fmt = self.args.format.lower()  # to lowercase
@@ -178,6 +179,15 @@ class Exporter:
         if fmt in {"mlmodel", "mlpackage", "mlprogram", "apple", "ios", "coreml"}:  # 'coreml' aliases
             fmt = "coreml"
         fmts = tuple(export_formats()["Argument"][1:])  # available export formats
+        if fmt not in fmts:
+            # Get the closest match if format is invalid
+            closest_match = difflib.get_close_matches(fmt, fmts, n=1, cutoff=0.6)
+            if closest_match:
+                LOGGER.warning(
+                    f"WARNING ⚠️ Invalid export format='{fmt}'. Automatically updating to nearest valid format: '{closest_match[0]}'")
+                fmt = closest_match[0]
+            else:
+                raise ValueError(f"Invalid export format='{fmt}'. Valid formats are {fmts}")
         flags = [x == fmt for x in fmts]
         if sum(flags) != 1:
             raise ValueError(f"Invalid export format='{fmt}'. Valid formats are {fmts}")

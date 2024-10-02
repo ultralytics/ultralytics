@@ -181,7 +181,9 @@ class Exporter:
         if fmt not in fmts:
             import difflib
             # Get the closest match if format is invalid
-            closest_match = difflib.get_close_matches(fmt, fmts, n=1, cutoff=0.6)   # cutoff 0.6 mean a 60% match required for auto-selection.
+            closest_match = difflib.get_close_matches(
+                fmt, fmts, n=1, cutoff=0.6
+            )  # cutoff 0.6 mean a 60% match required for auto-selection.
             if closest_match:
                 LOGGER.warning(
                     f"WARNING ⚠️ Invalid export format='{fmt}'. Automatically updating to nearest valid format: '{closest_match[0]}'"

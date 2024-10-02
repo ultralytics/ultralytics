@@ -457,7 +457,6 @@ def merge_equals_args(args: List[str]) -> List[str]:
         >>> merge_equals_args(args)
         ['arg1=value', 'arg2=value2', 'arg3=value3']
     """
-
     # Step 1: Join all arguments into a single string
     args_str = " ".join(args)
 

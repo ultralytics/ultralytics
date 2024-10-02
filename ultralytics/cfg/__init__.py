@@ -775,8 +775,8 @@ def entrypoint(debug=""):
     task = overrides.pop("task", None)
     if task:
         if task not in TASKS:
-            LOGGER.warning(f"WARNING ⚠️ 'task' unknown. Using default 'task=detect'.")
-            task="detect"
+            LOGGER.warning("WARNING ⚠️ 'task' unknown. Using default 'task=detect'.")
+            task = "detect"
         if "model" not in overrides:
             overrides["model"] = TASK2MODEL[task]
 

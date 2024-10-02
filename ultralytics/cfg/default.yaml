@@ -56,7 +56,6 @@ plots: True # (bool) save plots and images during train/val
 # Predict settings -----------------------------------------------------------------------------------------------------
 source: # (str, optional) source directory for images or videos
 vid_stride: 1 # (int) video frame-rate stride
-stream_buffer: False # (bool) buffer all streaming frames (True) or return the most recent frame (False)
 visualize: False # (bool) visualize model features
 augment: False # (bool) apply image augmentation to prediction sources
 agnostic_nms: False # (bool) class-agnostic NMS

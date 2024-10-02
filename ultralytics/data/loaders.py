@@ -62,10 +62,9 @@ class LoadStreams:
          ```
     """
 
-    def __init__(self, sources="file.streams", vid_stride=1, buffer=False):
+    def __init__(self, sources="file.streams", vid_stride=1):
         """Initialize instance variables and check for consistent input stream shapes."""
         torch.backends.cudnn.benchmark = True  # faster for fixed-size inference
-        self.buffer = buffer  # buffer input streams
         self.running = True  # running flag for Thread
         self.mode = "stream"
         self.vid_stride = vid_stride  # video frame-rate stride
@@ -126,10 +125,8 @@ class LoadStreams:
                         im = np.zeros(self.shape[i], dtype=np.uint8)
                         LOGGER.warning("WARNING ⚠️ Video stream unresponsive, please check your IP camera connection.")
                         cap.open(stream)  # re-open stream if signal was lost
-                    if self.buffer:
-                        self.imgs[i].append(im)
-                    else:
-                        self.imgs[i] = [im]
+                        
+                    self.imgs[i] = [im]
             else:
                 time.sleep(0.01)  # wait until the buffer is empty
 
@@ -167,14 +164,8 @@ class LoadStreams:
                 if not x:
                     LOGGER.warning(f"WARNING ⚠️ Waiting for stream {i}")
 
-            # Get and remove the first frame from imgs buffer
-            if self.buffer:
-                images.append(x.pop(0))
-
-            # Get the last frame, and clear the rest from the imgs buffer
-            else:
-                images.append(x.pop(-1) if x else np.zeros(self.shape[i], dtype=np.uint8))
-                x.clear()
+            images.append(x.pop(-1) if x else np.zeros(self.shape[i], dtype=np.uint8))
+            x.clear()
 
         return self.sources, images, [""] * self.bs
 

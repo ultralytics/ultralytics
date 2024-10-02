@@ -24,6 +24,7 @@ from torch import nn, optim
 from ultralytics.cfg import get_cfg, get_save_dir
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.nn.tasks import attempt_load_one_weight, attempt_load_weights
+from ultralytics.utils.errors import DatasetError
 from ultralytics.utils import (
     DEFAULT_CFG,
     LOCAL_RANK,
@@ -560,7 +561,7 @@ class BaseTrainer:
                 if "yaml_file" in data:
                     self.args.data = data["yaml_file"]  # for validating 'yolo train data=url.zip' usage
         except Exception as e:
-            raise RuntimeError(emojis(f"Dataset '{clean_url(self.args.data)}' error ❌ {e}")) from e
+            raise DatasetError(emojis(f"Dataset '{clean_url(self.args.data)}' error ❌ {e}")) from e
         self.data = data
         return data["train"], data.get("val") or data.get("test")
 

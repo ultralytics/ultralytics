@@ -458,7 +458,7 @@ def merge_equals_args(args: List[str]) -> List[str]:
     """
     new_args = []
     i = 0
-    BRACKET_PAIRS = {'(': ')', '[': ']', '{': '}'}
+    BRACKET_PAIRS = {"(": ")", "[": "]", "{": "}"}
     while i < len(args):
         arg = args[i]
         if arg == "=" and 0 < i < len(args) - 1:

@@ -180,6 +180,7 @@ class Exporter:
         fmts = tuple(export_formats()["Argument"][1:])  # available export formats
         if fmt not in fmts:
             import difflib
+
             # Get the closest match if format is invalid
             closest_match = difflib.get_close_matches(
                 fmt, fmts, n=1, cutoff=0.6

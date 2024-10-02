@@ -458,7 +458,7 @@ def merge_equals_args(args: List[str]) -> List[str]:
     """
     new_args = []
     i = 0
-    BRACKET_PAIRS = {"(": ")", "[": "]", "{": "}"}
+    bracket_pairs = {"(": ")", "[": "]", "{": "}"}
     while i < len(args):
         arg = args[i]
         if arg == "=" and 0 < i < len(args) - 1:
@@ -468,8 +468,8 @@ def merge_equals_args(args: List[str]) -> List[str]:
         elif arg.endswith("=") and i < len(args) - 1:
             # Collect value tokens
             value = args[i + 1]
-            if value and value[0] in BRACKET_PAIRS:
-                close_bracket = BRACKET_PAIRS[value[0]]
+            if value and value[0] in bracket_pairs:
+                close_bracket = bracket_pairs[value[0]]
                 # Collect all tokens until we find a token ending with the matching closing bracket
                 value_tokens = [value]
                 i += 2

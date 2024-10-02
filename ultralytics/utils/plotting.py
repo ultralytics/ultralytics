@@ -591,8 +591,8 @@ class Annotator:
         Args:
             label (str): queue counts label
             points (tuple): region points for center point calculation to display text
-            region_color (RGB): queue region color
-            txt_color (RGB): text display color
+            region_color (tuple): RGB queue region color.
+            txt_color (tuple): RGB text display color.
         """
         x_values = [point[0] for point in points]
         y_values = [point[1] for point in points]
@@ -631,8 +631,8 @@ class Annotator:
         Args:
             im0 (ndarray): inference image
             text (str): object/class name
-            txt_color (bgr color): display color for text foreground
-            bg_color (bgr color): display color for text background
+            txt_color (tuple): display color for text foreground
+            bg_color (tuple): display color for text background
             x_center (float): x position center point for bounding box
             y_center (float): y position center point for bounding box
             margin (int): gap between text and rectangle for better display
@@ -655,8 +655,8 @@ class Annotator:
         Args:
             im0 (ndarray): inference image
             text (dict): labels dictionary
-            txt_color (bgr color): display color for text foreground
-            bg_color (bgr color): display color for text background
+            txt_color (tuple): display color for text foreground
+            bg_color (tuple): display color for text background
             margin (int): gap between text and rectangle for better display
         """
         horizontal_gap = int(im0.shape[1] * 0.02)
@@ -836,8 +836,8 @@ class Annotator:
         Args:
             pixels_distance (float): Pixels distance between two bbox centroids.
             centroids (list): Bounding box centroids data.
-            line_color (RGB): Distance line color.
-            centroid_color (RGB): Bounding box centroid color.
+            line_color (tuple): RGB distance line color.
+            centroid_color (tuple): RGB bounding box centroid color.
         """
         # Get the text size
         (text_width_m, text_height_m), _ = cv2.getTextSize(

@@ -306,26 +306,26 @@ Explorer API can be used to explore datasets with advanced semantic, vector-simi
 
 !!! tip "Detection Trainer Example"
 
-        ```python
-        from ultralytics.models.yolo import DetectionPredictor, DetectionTrainer, DetectionValidator
+    ```python
+    from ultralytics.models.yolo import DetectionPredictor, DetectionTrainer, DetectionValidator
 
-        # trainer
-        trainer = DetectionTrainer(overrides={})
-        trainer.train()
-        trained_model = trainer.best
+    # trainer
+    trainer = DetectionTrainer(overrides={})
+    trainer.train()
+    trained_model = trainer.best
 
-        # Validator
-        val = DetectionValidator(args=...)
-        val(model=trained_model)
+    # Validator
+    val = DetectionValidator(args=...)
+    val(model=trained_model)
 
-        # predictor
-        pred = DetectionPredictor(overrides={})
-        pred(source=SOURCE, model=trained_model)
+    # predictor
+    pred = DetectionPredictor(overrides={})
+    pred(source=SOURCE, model=trained_model)
 
-        # resume from last weight
-        overrides["resume"] = trainer.last
-        trainer = detect.DetectionTrainer(overrides=overrides)
-        ```
+    # resume from last weight
+    overrides["resume"] = trainer.last
+    trainer = detect.DetectionTrainer(overrides=overrides)
+    ```
 
 You can easily customize Trainers to support custom tasks or explore R&D ideas. Learn more about Customizing `Trainers`, `Validators` and `Predictors` to suit your project needs in the Customization Section.
 

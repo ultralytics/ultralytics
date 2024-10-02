@@ -442,34 +442,58 @@ def check_dict_alignment(base: Dict, custom: Dict, e=None):
 
 def merge_equals_args(args: List[str]) -> List[str]:
     """
-    Merges arguments around isolated '=' in a list of strings, handling three cases:
-    1. ['arg', '=', 'val'] becomes ['arg=val'],
-    2. ['arg=', 'val'] becomes ['arg=val'],
-    3. ['arg', '=val'] becomes ['arg=val'].
+    Merges arguments around isolated '=' in a list of strings, handling cases where values span multiple tokens,
+    including arrays or values with spaces enclosed in matching brackets (), [], {}.
 
     Args:
         args (List[str]): A list of strings where each element represents an argument.
 
     Returns:
-        (List[str]): A list of strings where the arguments around isolated '=' are merged.
+        List[str]: A list of strings where arguments and their values are properly merged.
 
     Examples:
-        >>> args = ["arg1", "=", "value", "arg2=", "value2", "arg3", "=value3"]
+        >>> args = ["arg1", "=", "value", "arg2=", "(1,", "2)", "arg3", "=value3", "flag1", "classes=", "[5,", "10,]"]
         >>> merge_equals_args(args)
-        ['arg1=value', 'arg2=value2', 'arg3=value3']
+        ['arg1=value', 'arg2=(1,2)', 'arg3=value3', 'flag1', 'classes=[5,10,]']
     """
     new_args = []
-    for i, arg in enumerate(args):
-        if arg == "=" and 0 < i < len(args) - 1:  # merge ['arg', '=', 'val']
+    i = 0
+    BRACKET_PAIRS = {'(': ')', '[': ']', '{': '}'}
+    while i < len(args):
+        arg = args[i]
+        if arg == "=" and 0 < i < len(args) - 1:
+            # Merge ['arg', '=', 'val']
             new_args[-1] += f"={args[i + 1]}"
-            del args[i + 1]
-        elif arg.endswith("=") and i < len(args) - 1 and "=" not in args[i + 1]:  # merge ['arg=', 'val']
-            new_args.append(f"{arg}{args[i + 1]}")
-            del args[i + 1]
-        elif arg.startswith("=") and i > 0:  # merge ['arg', '=val']
+            i += 2
+        elif arg.endswith("=") and i < len(args) - 1:
+            # Collect value tokens
+            value = args[i + 1]
+            if value and value[0] in BRACKET_PAIRS:
+                close_bracket = BRACKET_PAIRS[value[0]]
+                # Collect all tokens until we find a token ending with the matching closing bracket
+                value_tokens = [value]
+                i += 2
+                while i < len(args):
+                    value_tokens.append(args[i])
+                    if args[i].endswith(close_bracket):
+                        break
+                    i += 1
+                else:
+                    # If no matching closing bracket is found, raise an error or handle it as needed
+                    pass
+                value = "".join(value_tokens)
+                i += 1  # Move past the last token of the value
+            else:
+                i += 2
+            new_args.append(arg + value)
+        elif arg.startswith("=") and i > 0:
+            # Merge ['arg', '=value']
             new_args[-1] += arg
+            i += 1
         else:
+            # It's a flag or an argument without '='
             new_args.append(arg)
+            i += 1
     return new_args
 
 

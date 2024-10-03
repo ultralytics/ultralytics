@@ -2,11 +2,7 @@
 
 # Configuration for Ultralytics Solutions
 
-<<<<<<< HEAD
-model: "yolo11n.pt"  # The YOLOv8 model to be used (e.g., yolov8n.pt for YOLOv8 nano version)
-=======
-model: "yolov8n.pt" # The YOLOv8 model to be used (e.g., yolov8n.pt for YOLOv8 nano version)
->>>>>>> 47cbae046706a452f5a280b67999e51b27d740ea
+model: "yolo11n.pt"  # The Ultralytics YOLO11 model to be used (e.g., yolo11n.pt for YOLO11 nano version)
 
 region: # Object counting, queue or speed estimation region points
 line_width: 2 # Thickness of the lines used to draw regions on the image/video frames

@@ -60,8 +60,16 @@ if (autoThemeInput) {
   });
 }
 
+// Add iframe navigation
+window.onhashchange = function() {
+    window.parent.postMessage({
+        type: 'navigation',
+        hash: window.location.pathname + window.location.search + window.location.hash
+    }, '*');
+};
+
+// Add Inkeep button
 document.addEventListener("DOMContentLoaded", () => {
-  // Load the Inkeep script
   const inkeepScript = document.createElement("script");
   inkeepScript.src = "https://unpkg.com/@inkeep/uikit-js@0.3.11/dist/embed.js";
   inkeepScript.type = "module";
@@ -132,7 +140,6 @@ document.addEventListener("DOMContentLoaded", () => {
       },
     });
   };
-
   inkeepScript.addEventListener("load", () => {
     addInkeepWidget(); // initialize the widget
   });

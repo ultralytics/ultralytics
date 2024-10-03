@@ -182,10 +182,8 @@ def select_device(device="", batch=0, newline=False, verbose=True):
                 if torch.cuda.device_count() == 0
                 else ""
             )
-
-            LOGGER.warning(
-            # raise ValueError(
-                f"Invalid CUDA 'device={device}' requested. Using 'device=cpu'"
+            raise ValueError(
+                f"Invalid CUDA 'device={device}' requested."
                 f" Use 'device=cpu' or pass valid CUDA device(s) if available,"
                 f" i.e. 'device=0' or 'device=0,1,2,3' for Multi-GPU.\n"
                 f"\ntorch.cuda.is_available(): {torch.cuda.is_available()}"

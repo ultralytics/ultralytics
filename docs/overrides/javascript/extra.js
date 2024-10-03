@@ -90,7 +90,7 @@ document.addEventListener("DOMContentLoaded", () => {
       },
       properties: {
         chatButtonType: "PILL",
-        fixedPositionYOffset: "2rem",
+        fixedPositionYOffset: "3rem",
         chatButtonBgColor: "#F3F3F3",
         baseSettings: {
           apiKey: "13dfec2e75982bc9bae3199a08e13b86b5fbacd64e9b2f89", // required

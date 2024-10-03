@@ -60,16 +60,8 @@ if (autoThemeInput) {
   });
 }
 
-// Add iframe navigation
-window.onhashchange = function() {
-    window.parent.postMessage({
-        type: 'navigation',
-        hash: window.location.pathname + window.location.search + window.location.hash
-    }, '*');
-};
-
 document.addEventListener("DOMContentLoaded", () => {
-   // Load the Inkeep script
+  // Load the Inkeep script
   const inkeepScript = document.createElement("script");
   inkeepScript.src = "https://unpkg.com/@inkeep/uikit-js@0.3.11/dist/embed.js";
   inkeepScript.type = "module";
@@ -91,11 +83,11 @@ document.addEventListener("DOMContentLoaded", () => {
       properties: {
         chatButtonType: "PILL",
         baseSettings: {
-          apiKey: "INKEEP_API_KEY", // required
-          integrationId: "INKEEP_INTEGRATION_ID", // required
-          organizationId: "INKEEP_ORGANIZATION_ID", // required
-          primaryBrandColor: "#26D6FF", // your brand color, widget color scheme is derived from this
-          organizationDisplayName: "Inkeep",
+          apiKey: "13dfec2e75982bc9bae3199a08e13b86b5fbacd64e9b2f89", // required
+          integrationId: "cm1shscmm00y26sj83lgxzvkw", // required
+          organizationId: "org_e3869az6hQZ0mXdF", // required
+          primaryBrandColor: "#111F68", // Ultralytics brand color
+          organizationDisplayName: "Ultralytics",
           // ...optional settings
         },
         modalSettings: {
@@ -105,12 +97,36 @@ document.addEventListener("DOMContentLoaded", () => {
           // optional settings
         },
         aiChatSettings: {
-          // optional settings
-          botAvatarSrcUrl: "https://mydomain.com/mylogo", // use your own bot avatar
+          chatSubjectName: "Ultralytics",
+          botAvatarSrcUrl: "https://storage.googleapis.com/organization-image-assets/ultralytics-botAvatarSrcUrl-1727908259285.png",
+          botAvatarDarkSrcUrl: "https://storage.googleapis.com/organization-image-assets/ultralytics-botAvatarDarkSrcUrl-1727908258478.png",
           quickQuestions: [
-            "Example question 1?",
-            "Example question 2?",
-            "Example question 3?",
+            "What's new in Ultralytics YOLO11?",
+            "How can I get started with Ultralytics HUB?",
+            "How does Ultralytics Enterprise Licensing work?"
+          ],
+          getHelpCallToActions: [
+            {
+              name: "GitHub",
+              url: "https://github.com/ultralytics/ultralytics",
+              icon: {
+                builtIn: "FaGithub"
+              }
+            },
+            {
+              name: "Forum",
+              url: "https://community.ultralytics.com/",
+              icon: {
+                builtIn: "FaDiscourse"
+              }
+            },
+            {
+              name: "Discord",
+              url: "https://discord.com/invite/ultralytics",
+              icon: {
+                builtIn: "FaDiscord"
+              }
+            }
           ],
         },
       },
@@ -121,4 +137,3 @@ document.addEventListener("DOMContentLoaded", () => {
     addInkeepWidget(); // initialize the widget
   });
 });
-

@@ -1,14 +1,14 @@
 ---
 comments: true
-description: Learn how to use Ultralytics YOLOv8 for real-time object blurring to enhance privacy and focus in your images and videos.
-keywords: YOLOv8, object blurring, real-time processing, privacy protection, image manipulation, video editing, Ultralytics
+description: Learn how to use Ultralytics YOLO11 for real-time object blurring to enhance privacy and focus in your images and videos.
+keywords: YOLO11, object blurring, real-time processing, privacy protection, image manipulation, video editing, Ultralytics
 ---
 
-# Object Blurring using Ultralytics YOLOv8 🚀
+# Object Blurring using Ultralytics YOLO11 🚀
 
 ## What is Object Blurring?
 
-Object blurring with [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics/) involves applying a blurring effect to specific detected objects in an image or video. This can be achieved using the YOLOv8 model capabilities to identify and manipulate objects within a given scene.
+Object blurring with [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics/) involves applying a blurring effect to specific detected objects in an image or video. This can be achieved using the YOLO11 model capabilities to identify and manipulate objects within a given scene.
 
 <p align="center">
   <br>
@@ -18,16 +18,16 @@ Object blurring with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Object Blurring using Ultralytics YOLOv8
+  <strong>Watch:</strong> Object Blurring using Ultralytics YOLO11
 </p>
 
 ## Advantages of Object Blurring?
 
 - **Privacy Protection**: Object blurring is an effective tool for safeguarding privacy by concealing sensitive or personally identifiable information in images or videos.
-- **Selective Focus**: YOLOv8 allows for selective blurring, enabling users to target specific objects, ensuring a balance between privacy and retaining relevant visual information.
-- **Real-time Processing**: YOLOv8's efficiency enables object blurring in real-time, making it suitable for applications requiring on-the-fly privacy enhancements in dynamic environments.
+- **Selective Focus**: YOLO11 allows for selective blurring, enabling users to target specific objects, ensuring a balance between privacy and retaining relevant visual information.
+- **Real-time Processing**: YOLO11's efficiency enables object blurring in real-time, making it suitable for applications requiring on-the-fly privacy enhancements in dynamic environments.
 
-!!! example "Object Blurring using YOLOv8 Example"
+!!! example "Object Blurring using YOLO11 Example"
 
     === "Object Blurring"
 
@@ -37,7 +37,7 @@ Object blurring with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
         from ultralytics import YOLO
         from ultralytics.utils.plotting import Annotator, colors
 
-        model = YOLO("yolov8n.pt")
+        model = YOLO("yolo11n.pt")
         names = model.names
 
         cap = cv2.VideoCapture("path/to/video/file.mp4")
@@ -86,20 +86,20 @@ Object blurring with [Ultralytics YOLOv8](https://github.com/ultralytics/ultraly
 
 ## FAQ
 
-### What is object blurring with Ultralytics YOLOv8?
+### What is object blurring with Ultralytics YOLO11?
 
-Object blurring with [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics/) involves automatically detecting and applying a blurring effect to specific objects in images or videos. This technique enhances privacy by concealing sensitive information while retaining relevant visual data. YOLOv8's real-time processing capabilities make it suitable for applications requiring immediate privacy protection and selective focus adjustments.
+Object blurring with [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics/) involves automatically detecting and applying a blurring effect to specific objects in images or videos. This technique enhances privacy by concealing sensitive information while retaining relevant visual data. YOLO11's real-time processing capabilities make it suitable for applications requiring immediate privacy protection and selective focus adjustments.
 
-### How can I implement real-time object blurring using YOLOv8?
+### How can I implement real-time object blurring using YOLO11?
 
-To implement real-time object blurring with YOLOv8, follow the provided Python example. This involves using YOLOv8 for [object detection](https://www.ultralytics.com/glossary/object-detection) and OpenCV for applying the blur effect. Here's a simplified version:
+To implement real-time object blurring with YOLO11, follow the provided Python example. This involves using YOLO11 for [object detection](https://www.ultralytics.com/glossary/object-detection) and OpenCV for applying the blur effect. Here's a simplified version:
 
 ```python
 import cv2
 
 from ultralytics import YOLO
 
-model = YOLO("yolov8n.pt")
+model = YOLO("yolo11n.pt")
 cap = cv2.VideoCapture("path/to/video/file.mp4")
 
 while cap.isOpened():
@@ -112,7 +112,7 @@ while cap.isOpened():
         obj = im0[int(box[1]) : int(box[3]), int(box[0]) : int(box[2])]
         im0[int(box[1]) : int(box[3]), int(box[0]) : int(box[2])] = cv2.blur(obj, (50, 50))
 
-    cv2.imshow("YOLOv8 Blurring", im0)
+    cv2.imshow("YOLO11 Blurring", im0)
     if cv2.waitKey(1) & 0xFF == ord("q"):
         break
 
@@ -120,9 +120,9 @@ cap.release()
 cv2.destroyAllWindows()
 ```
 
-### What are the benefits of using Ultralytics YOLOv8 for object blurring?
+### What are the benefits of using Ultralytics YOLO11 for object blurring?
 
-Ultralytics YOLOv8 offers several advantages for object blurring:
+Ultralytics YOLO11 offers several advantages for object blurring:
 
 - **Privacy Protection**: Effectively obscure sensitive or identifiable information.
 - **Selective Focus**: Target specific objects for blurring, maintaining essential visual content.
@@ -130,10 +130,10 @@ Ultralytics YOLOv8 offers several advantages for object blurring:
 
 For more detailed applications, check the [advantages of object blurring section](#advantages-of-object-blurring).
 
-### Can I use Ultralytics YOLOv8 to blur faces in a video for privacy reasons?
+### Can I use Ultralytics YOLO11 to blur faces in a video for privacy reasons?
 
-Yes, Ultralytics YOLOv8 can be configured to detect and blur faces in videos to protect privacy. By training or using a pre-trained model to specifically recognize faces, the detection results can be processed with [OpenCV](https://www.ultralytics.com/glossary/opencv) to apply a blur effect. Refer to our guide on [object detection with YOLOv8](https://docs.ultralytics.com/models/yolov8/) and modify the code to target face detection.
+Yes, Ultralytics YOLO11 can be configured to detect and blur faces in videos to protect privacy. By training or using a pre-trained model to specifically recognize faces, the detection results can be processed with [OpenCV](https://www.ultralytics.com/glossary/opencv) to apply a blur effect. Refer to our guide on [object detection with YOLO11](https://docs.ultralytics.com/models/yolov8/) and modify the code to target face detection.
 
-### How does YOLOv8 compare to other object detection models like Faster R-CNN for object blurring?
+### How does YOLO11 compare to other object detection models like Faster R-CNN for object blurring?
 
-Ultralytics YOLOv8 typically outperforms models like Faster R-CNN in terms of speed, making it more suitable for real-time applications. While both models offer accurate detection, YOLOv8's architecture is optimized for rapid inference, which is critical for tasks like real-time object blurring. Learn more about the technical differences and performance metrics in our [YOLOv8 documentation](https://docs.ultralytics.com/models/yolov8/).
+Ultralytics YOLO11 typically outperforms models like Faster R-CNN in terms of speed, making it more suitable for real-time applications. While both models offer accurate detection, YOLO11's architecture is optimized for rapid inference, which is critical for tasks like real-time object blurring. Learn more about the technical differences and performance metrics in our [YOLO11 documentation](https://docs.ultralytics.com/models/yolov8/).

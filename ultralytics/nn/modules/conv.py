@@ -209,7 +209,8 @@ class RepConv(nn.Module):
         kernelid, biasid = self._fuse_bn_tensor(self.bn)
         return kernel3x3 + self._pad_1x1_to_3x3_tensor(kernel1x1) + kernelid, bias3x3 + bias1x1 + biasid
 
-    def _pad_1x1_to_3x3_tensor(self, kernel1x1):
+    @staticmethod
+    def _pad_1x1_to_3x3_tensor(kernel1x1):
         """Pads a 1x1 tensor to a 3x3 tensor."""
         if kernel1x1 is None:
             return 0

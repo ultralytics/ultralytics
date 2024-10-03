@@ -1,6 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 # Builds ultralytics/ultralytics:jetson-jetpack6 image on DockerHub https://hub.docker.com/r/ultralytics/ultralytics
-# Supports JetPack6.x for YOLOv8 on Jetson AGX Orin, Orin NX and Orin Nano Series
+# Supports JetPack6.x for YOLO11 on Jetson AGX Orin, Orin NX and Orin Nano Series
 
 # Start FROM https://catalog.ngc.nvidia.com/orgs/nvidia/containers/l4t-jetpack
 FROM nvcr.io/nvidia/l4t-jetpack:r36.3.0
@@ -17,8 +17,10 @@ ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.ttf \
     /root/.config/Ultralytics/
 
 # Install dependencies
-RUN apt update && \
-    apt install --no-install-recommends -y git python3-pip libopenmpi-dev libopenblas-base libomp-dev
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    git python3-pip libopenmpi-dev libopenblas-base libomp-dev \
+    && rm -rf /var/lib/apt/lists/*
 
 # Create working directory
 WORKDIR /ultralytics
@@ -26,7 +28,7 @@ WORKDIR /ultralytics
 # Copy contents and configure git
 COPY . .
 RUN sed -i '/^\[http "https:\/\/github\.com\/"\]/,+1d' .git/config
-ADD https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n.pt .
+ADD https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11n.pt .
 
 # Download onnxruntime-gpu 1.18.0 from https://elinux.org/Jetson_Zoo and https://forums.developer.nvidia.com/t/pytorch-for-jetson/72048
 ADD https://nvidia.box.com/shared/static/48dtuob7meiw6ebgfsfqakc9vse62sg4.whl onnxruntime_gpu-1.18.0-cp310-cp310-linux_aarch64.whl
@@ -38,7 +40,9 @@ RUN pip install \
     https://github.com/ultralytics/assets/releases/download/v0.0.0/torch-2.3.0-cp310-cp310-linux_aarch64.whl \
     https://github.com/ultralytics/assets/releases/download/v0.0.0/torchvision-0.18.0a0+6043bc2-cp310-cp310-linux_aarch64.whl
 RUN pip install -e ".[export]"
-RUN rm *.whl
+
+# Remove extra build files
+RUN rm -rf *.whl /root/.config/Ultralytics/persistent_cache.json
 
 # Usage Examples -------------------------------------------------------------------------------------------------------
 

@@ -95,10 +95,10 @@ You can download the model [here](https://github.com/ChaoningZhang/MobileSAM/blo
 
         # Predict a segment based on multiple points prompt
         model.predict("ultralytics/assets/zidane.jpg", points=[[400, 370], [900, 370]], labels=[1, 1])
-      
+
         # Predict a segment based on multiple points prompt per object
         model.predict("ultralytics/assets/zidane.jpg", points=[[[400, 370], [900, 370]]], labels=[[1, 1]])
-      
+
         # Predict a segment using both positive and negative prompts.
         model.predict("ultralytics/assets/zidane.jpg", points=[[[400, 370], [900, 370]]], labels=[[1, 0]])
         ```
@@ -120,10 +120,10 @@ You can download the model [here](https://github.com/ChaoningZhang/MobileSAM/blo
 
         # Predict a segment based on multiple points prompt
         model.predict("ultralytics/assets/zidane.jpg", points=[[400, 370], [900, 370]], labels=[1, 1])
-      
+
         # Predict a segment based on multiple points prompt per object
         model.predict("ultralytics/assets/zidane.jpg", points=[[[400, 370], [900, 370]]], labels=[[1, 1]])
-      
+
         # Predict a segment using both positive and negative prompts.
         model.predict("ultralytics/assets/zidane.jpg", points=[[[400, 370], [900, 370]]], labels=[[1, 0]])
         ```

@@ -8,7 +8,8 @@ from ultralytics import YOLO
 from ultralytics.utils import yaml_load
 from ultralytics.utils.checks import check_imshow
 
-from ultralytics.cfg.solutions import DEFAULT_SOL_CFG_PATH
+from pathlib import Path
+DEFAULT_SOL_CFG_PATH = Path(__file__).resolve().parents[1] / "cfg/solutions/default.yaml"
 
 
 class BaseSolution:

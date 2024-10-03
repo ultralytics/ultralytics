@@ -236,14 +236,14 @@ Object counting with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
 
 Here's a table with the `ObjectCounter` arguments:
 
-| Name          | Type   | Default                    | Description                                                            |
-|---------------|--------| -------------------------- |------------------------------------------------------------------------|
-| `model`       | `str`  | `None`                     | Path to Ultralytics YOLO Model File                                    |
-| `region`      | `list` | `[(20, 400), (1260, 400)]` | List of points defining the counting region.                           |
-| `line_width`  | `int`  | `2`                        | Line thickness for bounding boxes.                                     |
-| `show`        | `bool` | `False`                    | Flag to control whether to display the video stream.                   |
-| `show_in`     | `bool` | `True`                     | Flag to control whether to display the in counts on the video stream.  |
-| `show_out`    | `bool` | `True`                     | Flag to control whether to display the out counts on the video stream. |
+| Name         | Type   | Default                    | Description                                                            |
+|--------------|--------|----------------------------|------------------------------------------------------------------------|
+| `model`      | `str`  | `None`                     | Path to Ultralytics YOLO Model File                                    |
+| `region`     | `list` | `[(20, 400), (1260, 400)]` | List of points defining the counting region.                           |
+| `line_width` | `int`  | `2`                        | Line thickness for bounding boxes.                                     |
+| `show`       | `bool` | `False`                    | Flag to control whether to display the video stream.                   |
+| `show_in`    | `bool` | `True`                     | Flag to control whether to display the in counts on the video stream.  |
+| `show_out`   | `bool` | `True`                     | Flag to control whether to display the out counts on the video stream. |
 
 ### Arguments `model.track`
 
@@ -256,10 +256,9 @@ Here's a table with the `ObjectCounter` arguments:
 To count objects in a video using Ultralytics YOLO11, you can follow these steps:
 
 1. Import the necessary libraries (`cv2`, `ultralytics`).
-2. Load a pretrained YOLO11 model.
-3. Define the counting region (e.g., a polygon, line, etc.).
-4. Set up the video capture and initialize the object counter.
-5. Process each frame to track objects and count them within the defined region.
+2. Define the counting region (e.g., a polygon, line, etc.).
+3. Set up the video capture and initialize the object counter.
+4. Process each frame to track objects and count them within the defined region.
 
 Here's a simple example for counting in a region:
 

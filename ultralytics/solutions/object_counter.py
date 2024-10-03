@@ -102,7 +102,9 @@ class ObjectCounter(BaseSolution):
         self.annotator = Annotator(im0, line_width=self.line_width)  # Initialize annotator
         self.extract_tracks(im0)  # Extract tracks
 
-        self.annotator.draw_region(reg_pts=self.region, color=(104, 0, 123), thickness=self.line_width * 2) # Draw region
+        self.annotator.draw_region(
+            reg_pts=self.region, color=(104, 0, 123), thickness=self.line_width * 2
+        )  # Draw region
 
         # Iterate over bounding boxes, track ids and classes index
         if self.track_data is not None and self.track_data.id is not None:

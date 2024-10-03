@@ -38,7 +38,7 @@ from ultralytics.data.annotator import auto_annotate
 
 auto_annotate(  # (1)!
     data="path/to/new/data",
-    det_model="yolov8n.pt",
+    det_model="yolo11n.pt",
     sam_model="mobile_sam.pt",
     device="cuda",
     output_dir="path/to/save_labels",
@@ -93,7 +93,7 @@ from ultralytics.utils.plotting import Annotator
 from ultralytics import YOLO
 import cv2
 
-model = YOLO('yolov8n.pt')  # Load pretrain or fine-tune model
+model = YOLO('yolo11n.pt')  # Load pretrain or fine-tune model
 
 # Process the image
 source = cv2.imread('path/to/image.jpg')
@@ -468,7 +468,7 @@ import cv2
 from ultralytics import YOLO
 from ultralytics.utils.plotting import Annotator
 
-model = YOLO("yolov8s.pt")
+model = YOLO("yolo11s.pt")
 names = model.names
 cap = cv2.VideoCapture("path/to/video/file.mp4")
 
@@ -507,7 +507,7 @@ import cv2
 from ultralytics import YOLO
 from ultralytics.utils.plotting import Annotator
 
-model = YOLO("yolov8s.pt")
+model = YOLO("yolo11s.pt")
 names = model.names
 cap = cv2.VideoCapture("path/to/video/file.mp4")
 
@@ -598,7 +598,7 @@ from ultralytics.data.annotator import auto_annotate
 
 auto_annotate(
     data="path/to/new/data",
-    det_model="yolov8n.pt",
+    det_model="yolo11n.pt",
     sam_model="mobile_sam.pt",
     device="cuda",
     output_dir="path/to/save_labels",

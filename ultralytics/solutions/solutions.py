@@ -44,7 +44,6 @@ class BaseSolution:
         Args:
             im0 (ndarray): The input image or frame
         """
-
         self.tracks = self.model.track(source=im0, persist=True,
                                        classes=self.CFG["classes"])
 

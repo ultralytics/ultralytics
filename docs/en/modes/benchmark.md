@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn how to evaluate your YOLOv8 model's performance in real-world scenarios using benchmark mode. Optimize speed, accuracy, and resource allocation across export formats.
-keywords: model benchmarking, YOLOv8, Ultralytics, performance evaluation, export formats, ONNX, TensorRT, OpenVINO, CoreML, TensorFlow, optimization, mAP50-95, inference time
+description: Learn how to evaluate your YOLO11 model's performance in real-world scenarios using benchmark mode. Optimize speed, accuracy, and resource allocation across export formats.
+keywords: model benchmarking, YOLO11, Ultralytics, performance evaluation, export formats, ONNX, TensorRT, OpenVINO, CoreML, TensorFlow, optimization, mAP50-95, inference time
 ---
 
 # Model Benchmarking with Ultralytics YOLO
@@ -10,7 +10,7 @@ keywords: model benchmarking, YOLOv8, Ultralytics, performance evaluation, expor
 
 ## Introduction
 
-Once your model is trained and validated, the next logical step is to evaluate its performance in various real-world scenarios. Benchmark mode in Ultralytics YOLOv8 serves this purpose by providing a robust framework for assessing the speed and [accuracy](https://www.ultralytics.com/glossary/accuracy) of your model across a range of export formats.
+Once your model is trained and validated, the next logical step is to evaluate its performance in various real-world scenarios. Benchmark mode in Ultralytics YOLO11 serves this purpose by providing a robust framework for assessing the speed and [accuracy](https://www.ultralytics.com/glossary/accuracy) of your model across a range of export formats.
 
 <p align="center">
   <br>
@@ -50,7 +50,7 @@ Once your model is trained and validated, the next logical step is to evaluate i
 
 ## Usage Examples
 
-Run YOLOv8n benchmarks on all supported export formats including ONNX, TensorRT etc. See Arguments section below for a full list of export arguments.
+Run YOLO11n benchmarks on all supported export formats including ONNX, TensorRT etc. See Arguments section below for a full list of export arguments.
 
 !!! example
 
@@ -60,13 +60,13 @@ Run YOLOv8n benchmarks on all supported export formats including ONNX, TensorRT 
         from ultralytics.utils.benchmarks import benchmark
 
         # Benchmark on GPU
-        benchmark(model="yolov8n.pt", data="coco8.yaml", imgsz=640, half=False, device=0)
+        benchmark(model="yolo11n.pt", data="coco8.yaml", imgsz=640, half=False, device=0)
         ```
 
     === "CLI"
 
         ```bash
-        yolo benchmark model=yolov8n.pt data='coco8.yaml' imgsz=640 half=False device=0
+        yolo benchmark model=yolo11n.pt data='coco8.yaml' imgsz=640 half=False device=0
         ```
 
 ## Arguments
@@ -75,7 +75,7 @@ Arguments such as `model`, `data`, `imgsz`, `half`, `device`, and `verbose` prov
 
 | Key       | Default Value | Description                                                                                                                                                                                             |
 | --------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `model`   | `None`        | Specifies the path to the model file. Accepts both `.pt` and `.yaml` formats, e.g., `"yolov8n.pt"` for pre-trained models or configuration files.                                                       |
+| `model`   | `None`        | Specifies the path to the model file. Accepts both `.pt` and `.yaml` formats, e.g., `"yolo11n.pt"` for pre-trained models or configuration files.                                                       |
 | `data`    | `None`        | Path to a YAML file defining the dataset for benchmarking, typically including paths and settings for [validation data](https://www.ultralytics.com/glossary/validation-data). Example: `"coco8.yaml"`. |
 | `imgsz`   | `640`         | The input image size for the model. Can be a single integer for square images or a tuple `(width, height)` for non-square, e.g., `(640, 480)`.                                                          |
 | `half`    | `False`       | Enables FP16 (half-precision) inference, reducing memory usage and possibly increasing speed on compatible hardware. Use `half=True` to enable.                                                         |
@@ -93,9 +93,9 @@ See full `export` details in the [Export](../modes/export.md) page.
 
 ## FAQ
 
-### How do I benchmark my YOLOv8 model's performance using Ultralytics?
+### How do I benchmark my YOLO11 model's performance using Ultralytics?
 
-Ultralytics YOLOv8 offers a Benchmark mode to assess your model's performance across different export formats. This mode provides insights into key metrics such as [mean Average Precision](https://www.ultralytics.com/glossary/mean-average-precision-map) (mAP50-95), accuracy, and inference time in milliseconds. To run benchmarks, you can use either Python or CLI commands. For example, to benchmark on a GPU:
+Ultralytics YOLO11 offers a Benchmark mode to assess your model's performance across different export formats. This mode provides insights into key metrics such as [mean Average Precision](https://www.ultralytics.com/glossary/mean-average-precision-map) (mAP50-95), accuracy, and inference time in milliseconds. To run benchmarks, you can use either Python or CLI commands. For example, to benchmark on a GPU:
 
 !!! example
 
@@ -105,29 +105,29 @@ Ultralytics YOLOv8 offers a Benchmark mode to assess your model's performance ac
         from ultralytics.utils.benchmarks import benchmark
 
         # Benchmark on GPU
-        benchmark(model="yolov8n.pt", data="coco8.yaml", imgsz=640, half=False, device=0)
+        benchmark(model="yolo11n.pt", data="coco8.yaml", imgsz=640, half=False, device=0)
         ```
 
     === "CLI"
 
         ```bash
-        yolo benchmark model=yolov8n.pt data='coco8.yaml' imgsz=640 half=False device=0
+        yolo benchmark model=yolo11n.pt data='coco8.yaml' imgsz=640 half=False device=0
         ```
 
 For more details on benchmark arguments, visit the [Arguments](#arguments) section.
 
-### What are the benefits of exporting YOLOv8 models to different formats?
+### What are the benefits of exporting YOLO11 models to different formats?
 
-Exporting YOLOv8 models to different formats such as ONNX, TensorRT, and OpenVINO allows you to optimize performance based on your deployment environment. For instance:
+Exporting YOLO11 models to different formats such as ONNX, TensorRT, and OpenVINO allows you to optimize performance based on your deployment environment. For instance:
 
 - **ONNX:** Provides up to 3x CPU speedup.
 - **TensorRT:** Offers up to 5x GPU speedup.
 - **OpenVINO:** Specifically optimized for Intel hardware.
     These formats enhance both the speed and accuracy of your models, making them more efficient for various real-world applications. Visit the [Export](../modes/export.md) page for complete details.
 
-### Why is benchmarking crucial in evaluating YOLOv8 models?
+### Why is benchmarking crucial in evaluating YOLO11 models?
 
-Benchmarking your YOLOv8 models is essential for several reasons:
+Benchmarking your YOLO11 models is essential for several reasons:
 
 - **Informed Decisions:** Understand the trade-offs between speed and accuracy.
 - **Resource Allocation:** Gauge the performance across different hardware options.
@@ -135,9 +135,9 @@ Benchmarking your YOLOv8 models is essential for several reasons:
 - **Cost Efficiency:** Optimize hardware usage based on benchmark results.
     Key metrics such as mAP50-95, Top-5 accuracy, and inference time help in making these evaluations. Refer to the [Key Metrics](#key-metrics-in-benchmark-mode) section for more information.
 
-### Which export formats are supported by YOLOv8, and what are their advantages?
+### Which export formats are supported by YOLO11, and what are their advantages?
 
-YOLOv8 supports a variety of export formats, each tailored for specific hardware and use cases:
+YOLO11 supports a variety of export formats, each tailored for specific hardware and use cases:
 
 - **ONNX:** Best for CPU performance.
 - **TensorRT:** Ideal for GPU efficiency.
@@ -145,11 +145,11 @@ YOLOv8 supports a variety of export formats, each tailored for specific hardware
 - **CoreML & [TensorFlow](https://www.ultralytics.com/glossary/tensorflow):** Useful for iOS and general ML applications.
     For a complete list of supported formats and their respective advantages, check out the [Supported Export Formats](#supported-export-formats) section.
 
-### What arguments can I use to fine-tune my YOLOv8 benchmarks?
+### What arguments can I use to fine-tune my YOLO11 benchmarks?
 
 When running benchmarks, several arguments can be customized to suit specific needs:
 
-- **model:** Path to the model file (e.g., "yolov8n.pt").
+- **model:** Path to the model file (e.g., "yolo11n.pt").
 - **data:** Path to a YAML file defining the dataset (e.g., "coco8.yaml").
 - **imgsz:** The input image size, either as a single integer or a tuple.
 - **half:** Enable FP16 inference for better performance.

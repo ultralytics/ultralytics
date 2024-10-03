@@ -1,7 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 # Default training settings and hyperparameters for medium-augmentation COCO training
 
-
 task: detect # (str) YOLO task, i.e. detect, segment, classify, pose
 mode: train # (str) YOLO mode, i.e. train, val, predict, export, track, benchmark
 
@@ -83,7 +82,21 @@ export:
     type: str
     description: Target format for the exported model, such as 'onnx', 'torchscript', 'tensorflow', or others, defining compatibility with various deployment environments.
     default: "torchscript"
-    choices: ["torchscript", "onnx", "openvino", "engine", "coreml", "saved_model", "pb", "tflite", "edgetpu", "tfjs", "paddle", "ncnn"]
+    choices:
+      [
+        "torchscript",
+        "onnx",
+        "openvino",
+        "engine",
+        "coreml",
+        "saved_model",
+        "pb",
+        "tflite",
+        "edgetpu",
+        "tfjs",
+        "paddle",
+        "ncnn",
+      ]
   keras:
     type: bool
     description: Enables export to Keras format for TensorFlow SavedModel, providing compatibility with TensorFlow serving and APIs.
@@ -92,7 +105,7 @@ export:
     type: bool
     description: Applies optimization for mobile devices when exporting to TorchScript, potentially reducing model size and improving performance.
     default: False
-  int8: 
+  int8:
     type: bool
     description: Activates INT8 quantization, further compressing the model and speeding up inference with minimal accuracy loss, primarily for edge devices.
     default: False
@@ -213,7 +226,6 @@ hyperparameters:
     min: 1
     max: 128
 
-
 augmentation:
   hsv_h:
     type: float
@@ -245,7 +257,7 @@ augmentation:
     default: 0.1
     min: 0.0
     max: 1.0
-  scale: 
+  scale:
     type: float
     description: Scales the image by a gain factor, simulating objects at different distances from the camera.
     default: 0.5
@@ -257,7 +269,7 @@ augmentation:
     default: 0.0
     min: -180.0
     max: 180.0
-  perspective: 
+  perspective:
     type: float
     description: Applies a random perspective transformation to the image, enhancing the model's ability to understand objects in 3D space.
     default: 0.0
@@ -321,7 +333,6 @@ augmentation:
     default: 1.0
     min: 0.1
     max: 1.0
-  
 
 # Custom config.yaml ---------------------------------------------------------------------------------------------------
 cfg: # (str, optional) for overriding defaults.yaml

@@ -380,7 +380,7 @@ Expand sections below for information on how these models were exported and test
 
     See [export mode](../modes/export.md) for details regarding export configuration arguments.
 
-    ```py
+    ```python
     from ultralytics import YOLO
 
     model = YOLO("yolov8n.pt")
@@ -401,7 +401,7 @@ Expand sections below for information on how these models were exported and test
 
     See [predict mode](../modes/predict.md) for additional information.
 
-    ```py
+    ```python
     import cv2
 
     from ultralytics import YOLO
@@ -421,7 +421,7 @@ Expand sections below for information on how these models were exported and test
 
     See [`val` mode](../modes/val.md) to learn more about validation configuration arguments.
 
-    ```py
+    ```python
     from ultralytics import YOLO
 
     model = YOLO("yolov8n.engine")

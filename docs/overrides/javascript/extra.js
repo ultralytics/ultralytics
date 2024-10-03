@@ -67,3 +67,58 @@ window.onhashchange = function() {
         hash: window.location.pathname + window.location.search + window.location.hash
     }, '*');
 };
+
+document.addEventListener("DOMContentLoaded", () => {
+   // Load the Inkeep script
+  const inkeepScript = document.createElement("script");
+  inkeepScript.src = "https://unpkg.com/@inkeep/uikit-js@0.3.11/dist/embed.js";
+  inkeepScript.type = "module";
+  inkeepScript.defer = true;
+  document.head.appendChild(inkeepScript);
+
+  // Configure and initialize the widget
+  const addInkeepWidget = () => {
+    const inkeepWidget = Inkeep().embed({
+      componentType: "ChatButton",
+      colorModeSync: {
+        observedElement: document.documentElement,
+        isDarkModeCallback: (el) => {
+          const currentTheme = el.getAttribute("data-color-mode");
+          return currentTheme === "dark";
+        },
+        colorModeAttribute: "data-color-mode",
+      },
+      properties: {
+        chatButtonType: "PILL",
+        baseSettings: {
+          apiKey: "INKEEP_API_KEY", // required
+          integrationId: "INKEEP_INTEGRATION_ID", // required
+          organizationId: "INKEEP_ORGANIZATION_ID", // required
+          primaryBrandColor: "#26D6FF", // your brand color, widget color scheme is derived from this
+          organizationDisplayName: "Inkeep",
+          // ...optional settings
+        },
+        modalSettings: {
+          // optional settings
+        },
+        searchSettings: {
+          // optional settings
+        },
+        aiChatSettings: {
+          // optional settings
+          botAvatarSrcUrl: "https://mydomain.com/mylogo", // use your own bot avatar
+          quickQuestions: [
+            "Example question 1?",
+            "Example question 2?",
+            "Example question 3?",
+          ],
+        },
+      },
+    });
+  };
+
+  inkeepScript.addEventListener("load", () => {
+    addInkeepWidget(); // initialize the widget
+  });
+});
+

@@ -141,7 +141,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
         === "Black Background Pixels"
 
-            ```py
+            ```python
             # Create 3-channel mask
             mask3ch = cv2.cvtColor(b_mask, cv2.COLOR_GRAY2BGR)
 
@@ -192,7 +192,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
         === "Transparent Background Pixels"
 
-            ```py
+            ```python
             # Isolate object with transparent background (when saved as PNG)
             isolated = np.dstack([img, b_mask])
             ```
@@ -248,7 +248,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
     ??? example "Example Final Step"
 
-        ```py
+        ```python
         # Save isolated object to file
         _ = cv2.imwrite(f"{img_name}_{label}-{ci}.png", iso_crop)
         ```

@@ -170,7 +170,7 @@ def smart_request(method, url, retry=3, timeout=30, thread=True, code=-1, verbos
 class Events:
     """
     A class for collecting anonymous event analytics. Event analytics are enabled when sync=True in settings and
-    disabled when sync=False. Run 'yolo settings' to see and update settings YAML file.
+    disabled when sync=False. Run 'yolo settings' to see and update settings.
 
     Attributes:
         url (str): The URL to send anonymous events.

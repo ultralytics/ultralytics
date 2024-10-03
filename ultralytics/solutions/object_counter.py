@@ -11,7 +11,6 @@ class ObjectCounter(BaseSolution):
 
     def __init__(self, **kwargs):
         """Initialization function for Count class, a child class of BaseSolution class, can be used for counting the objects."""
-
         super().__init__(**kwargs)
 
         self.in_count = 0  # Counter for objects moving inward

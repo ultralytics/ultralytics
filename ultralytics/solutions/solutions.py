@@ -21,7 +21,6 @@ class BaseSolution:
 
         Child classes should call this with necessary parameters.
         """
-
         # Load config and update with args
         self.CFG = yaml_load(DEFAULT_SOL_CFG_PATH)
         self.CFG.update(kwargs)
@@ -45,7 +44,6 @@ class BaseSolution:
         Args:
             im0 (ndarray): The input image or frame
         """
-
         self.tracks = self.model.track(source=im0, persist=True,
                                        classes=self.CFG["classes"])
 

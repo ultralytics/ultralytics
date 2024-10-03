@@ -42,7 +42,7 @@ To train a CNN model on the MNIST dataset for 100 [epochs](https://www.ultralyti
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n-cls.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n-cls.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="mnist", epochs=100, imgsz=32)
@@ -52,7 +52,7 @@ To train a CNN model on the MNIST dataset for 100 [epochs](https://www.ultralyti
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo classify train data=mnist model=yolov8n-cls.pt epochs=100 imgsz=28
+        yolo classify train data=mnist model=yolo11n-cls.pt epochs=100 imgsz=28
         ```
 
 ## Sample Images and Annotations
@@ -103,7 +103,7 @@ To train a model on the MNIST dataset using Ultralytics YOLO, you can follow the
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n-cls.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n-cls.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="mnist", epochs=100, imgsz=32)
@@ -113,7 +113,7 @@ To train a model on the MNIST dataset using Ultralytics YOLO, you can follow the
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo classify train data=mnist model=yolov8n-cls.pt epochs=100 imgsz=28
+        yolo classify train data=mnist model=yolo11n-cls.pt epochs=100 imgsz=28
         ```
 
 For a detailed list of available training arguments, refer to the [Training](../../modes/train.md) page.

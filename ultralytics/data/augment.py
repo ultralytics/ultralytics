@@ -1628,92 +1628,105 @@ class LetterBox:
         return labels
 
 
-class CopyPaste:
+class CopyPaste(BaseMixTransform):
     """
-    Implements Copy-Paste augmentation as described in https://arxiv.org/abs/2012.07177.
+    CopyPaste class for applying Copy-Paste augmentation to image datasets.
 
-    This class applies Copy-Paste augmentation on images and their corresponding instances.
+    This class implements the Copy-Paste augmentation technique as described in the paper "Simple Copy-Paste is a Strong
+    Data Augmentation Method for Instance Segmentation" (https://arxiv.org/abs/2012.07177). It combines objects from
+    different images to create new training samples.
 
     Attributes:
-        p (float): Probability of applying the Copy-Paste augmentation. Must be between 0 and 1.
+        dataset (Any): The dataset to which Copy-Paste augmentation will be applied.
+        pre_transform (Callable | None): Optional transform to apply before Copy-Paste.
+        p (float): Probability of applying Copy-Paste augmentation.
 
     Methods:
-        __call__: Applies Copy-Paste augmentation to given image and instances.
+        get_indexes: Returns a random index from the dataset.
+        _mix_transform: Applies Copy-Paste augmentation to the input labels.
+        __call__: Applies the Copy-Paste transformation to images and annotations.
 
     Examples:
-        >>> copypaste = CopyPaste(p=0.5)
-        >>> augmented_labels = copypaste(labels)
-        >>> augmented_image = augmented_labels["img"]
+        >>> from ultralytics.data.augment import CopyPaste
+        >>> dataset = YourDataset(...)  # Your image dataset
+        >>> copypaste = CopyPaste(dataset, p=0.5)
+        >>> augmented_labels = copypaste(original_labels)
     """
 
-    def __init__(self, p=0.5) -> None:
-        """
-        Initializes the CopyPaste augmentation object.
+    def __init__(self, dataset=None, pre_transform=None, p=0.5, mode="flip") -> None:
+        """Initializes CopyPaste object with dataset, pre_transform, and probability of applying MixUp."""
+        super().__init__(dataset=dataset, pre_transform=pre_transform, p=p)
+        assert mode in {"flip", "mixup"}, f"Expected `mode` to be `flip` or `mixup`, but got {mode}."
+        self.mode = mode
 
-        This class implements the Copy-Paste augmentation as described in the paper "Simple Copy-Paste is a Strong Data
-        Augmentation Method for Instance Segmentation" (https://arxiv.org/abs/2012.07177). It applies the Copy-Paste
-        augmentation on images and their corresponding instances with a given probability.
+    def get_indexes(self):
+        """Returns a list of random indexes from the dataset for CopyPaste augmentation."""
+        return random.randint(0, len(self.dataset) - 1)
 
-        Args:
-            p (float): The probability of applying the Copy-Paste augmentation. Must be between 0 and 1.
-
-        Attributes:
-            p (float): Stores the probability of applying the augmentation.
-
-        Examples:
-            >>> augment = CopyPaste(p=0.7)
-            >>> augmented_data = augment(original_data)
-        """
-        self.p = p
+    def _mix_transform(self, labels):
+        """Applies Copy-Paste augmentation to combine objects from another image into the current image."""
+        labels2 = labels["mix_labels"][0]
+        return self._transform(labels, labels2)
 
     def __call__(self, labels):
-        """
-        Applies Copy-Paste augmentation to an image and its instances.
+        """Applies Copy-Paste augmentation to an image and its labels."""
+        if len(labels["instances"].segments) == 0 or self.p == 0:
+            return labels
+        if self.mode == "flip":
+            return self._transform(labels)
 
-        Args:
-            labels (Dict): A dictionary containing:
-                - 'img' (np.ndarray): The image to augment.
-                - 'cls' (np.ndarray): Class labels for the instances.
-                - 'instances' (ultralytics.engine.results.Instances): Object containing bounding boxes, segments, etc.
+        # Get index of one or three other images
+        indexes = self.get_indexes()
+        if isinstance(indexes, int):
+            indexes = [indexes]
 
-        Returns:
-            (Dict): Dictionary with augmented image and updated instances under 'img', 'cls', and 'instances' keys.
+        # Get images information will be used for Mosaic or MixUp
+        mix_labels = [self.dataset.get_image_and_label(i) for i in indexes]
 
-        Examples:
-            >>> labels = {"img": np.random.rand(640, 640, 3), "cls": np.array([0, 1, 2]), "instances": Instances(...)}
-            >>> augmenter = CopyPaste(p=0.5)
-            >>> augmented_labels = augmenter(labels)
-        """
-        im = labels["img"]
-        cls = labels["cls"]
+        if self.pre_transform is not None:
+            for i, data in enumerate(mix_labels):
+                mix_labels[i] = self.pre_transform(data)
+        labels["mix_labels"] = mix_labels
+
+        # Update cls and texts
+        labels = self._update_label_text(labels)
+        # Mosaic or MixUp
+        labels = self._mix_transform(labels)
+        labels.pop("mix_labels", None)
+        return labels
+
+    def _transform(self, labels1, labels2={}):
+        """Applies Copy-Paste augmentation to combine objects from another image into the current image."""
+        im = labels1["img"]
+        cls = labels1["cls"]
         h, w = im.shape[:2]
-        instances = labels.pop("instances")
+        instances = labels1.pop("instances")
         instances.convert_bbox(format="xyxy")
         instances.denormalize(w, h)
-        if self.p and len(instances.segments):
-            _, w, _ = im.shape  # height, width, channels
-            im_new = np.zeros(im.shape, np.uint8)
 
-            # Calculate ioa first then select indexes randomly
-            ins_flip = deepcopy(instances)
-            ins_flip.fliplr(w)
+        im_new = np.zeros(im.shape, np.uint8)
+        instances2 = labels2.pop("instances", None)
+        if instances2 is None:
+            instances2 = deepcopy(instances)
+            instances2.fliplr(w)
+        ioa = bbox_ioa(instances2.bboxes, instances.bboxes)  # intersection over area, (N, M)
+        indexes = np.nonzero((ioa < 0.30).all(1))[0]  # (N, )
+        n = len(indexes)
+        sorted_idx = np.argsort(ioa.max(1)[indexes])
+        indexes = indexes[sorted_idx]
+        for j in indexes[: round(self.p * n)]:
+            cls = np.concatenate((cls, labels2.get("cls", cls)[[j]]), axis=0)
+            instances = Instances.concatenate((instances, instances2[[j]]), axis=0)
+            cv2.drawContours(im_new, instances2.segments[[j]].astype(np.int32), -1, (1, 1, 1), cv2.FILLED)
 
-            ioa = bbox_ioa(ins_flip.bboxes, instances.bboxes)  # intersection over area, (N, M)
-            indexes = np.nonzero((ioa < 0.30).all(1))[0]  # (N, )
-            n = len(indexes)
-            for j in random.sample(list(indexes), k=round(self.p * n)):
-                cls = np.concatenate((cls, cls[[j]]), axis=0)
-                instances = Instances.concatenate((instances, ins_flip[[j]]), axis=0)
-                cv2.drawContours(im_new, instances.segments[[j]].astype(np.int32), -1, (1, 1, 1), cv2.FILLED)
+        result = labels2.get("img", cv2.flip(im, 1))  # augment segments
+        i = im_new.astype(bool)
+        im[i] = result[i]
 
-            result = cv2.flip(im, 1)  # augment segments (flip left-right)
-            i = cv2.flip(im_new, 1).astype(bool)
-            im[i] = result[i]
-
-        labels["img"] = im
-        labels["cls"] = cls
-        labels["instances"] = instances
-        return labels
+        labels1["img"] = im
+        labels1["cls"] = cls
+        labels1["instances"] = instances
+        return labels1
 
 
 class Albumentations:
@@ -2259,9 +2272,9 @@ class RandomLoadText:
 
 def v8_transforms(dataset, imgsz, hyp, stretch=False):
     """
-    Applies a series of image transformations for YOLOv8 training.
+    Applies a series of image transformations for training.
 
-    This function creates a composition of image augmentation techniques to prepare images for YOLOv8 training.
+    This function creates a composition of image augmentation techniques to prepare images for YOLO training.
     It includes operations such as mosaic, copy-paste, random perspective, mixup, and various color adjustments.
 
     Args:
@@ -2280,20 +2293,28 @@ def v8_transforms(dataset, imgsz, hyp, stretch=False):
         >>> transforms = v8_transforms(dataset, imgsz=640, hyp=hyp)
         >>> augmented_data = transforms(dataset[0])
     """
-    pre_transform = Compose(
-        [
-            Mosaic(dataset, imgsz=imgsz, p=hyp.mosaic),
-            CopyPaste(p=hyp.copy_paste),
-            RandomPerspective(
-                degrees=hyp.degrees,
-                translate=hyp.translate,
-                scale=hyp.scale,
-                shear=hyp.shear,
-                perspective=hyp.perspective,
-                pre_transform=None if stretch else LetterBox(new_shape=(imgsz, imgsz)),
-            ),
-        ]
+    mosaic = Mosaic(dataset, imgsz=imgsz, p=hyp.mosaic)
+    affine = RandomPerspective(
+        degrees=hyp.degrees,
+        translate=hyp.translate,
+        scale=hyp.scale,
+        shear=hyp.shear,
+        perspective=hyp.perspective,
+        pre_transform=None if stretch else LetterBox(new_shape=(imgsz, imgsz)),
     )
+
+    pre_transform = Compose([mosaic, affine])
+    if hyp.copy_paste_mode == "flip":
+        pre_transform.insert(1, CopyPaste(p=hyp.copy_paste, mode=hyp.copy_paste_mode))
+    else:
+        pre_transform.append(
+            CopyPaste(
+                dataset,
+                pre_transform=Compose([Mosaic(dataset, imgsz=imgsz, p=hyp.mosaic), affine]),
+                p=hyp.copy_paste,
+                mode=hyp.copy_paste_mode,
+            )
+        )
     flip_idx = dataset.data.get("flip_idx", [])  # for keypoints augmentation
     if dataset.use_keypoints:
         kpt_shape = dataset.data.get("kpt_shape", None)

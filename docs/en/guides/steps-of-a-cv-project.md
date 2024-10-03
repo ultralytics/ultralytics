@@ -166,7 +166,7 @@ Once your model has been thoroughly tested, it's time to deploy it. Deployment i
 
 - Setting Up the Environment: Configure the necessary infrastructure for your chosen deployment option, whether it's cloud-based (AWS, Google Cloud, Azure) or edge-based (local devices, IoT).
 
-- **[Exporting the Model](../modes/export.md):** Export your model to the appropriate format (e.g., ONNX, TensorRT, CoreML for YOLOv8) to ensure compatibility with your deployment platform.
+- **[Exporting the Model](../modes/export.md):** Export your model to the appropriate format (e.g., ONNX, TensorRT, CoreML for YOLO11) to ensure compatibility with your deployment platform.
 - **Deploying the Model:** Deploy the model by setting up APIs or endpoints and integrating it with your application.
 - **Ensuring Scalability**: Implement load balancers, auto-scaling groups, and monitoring tools to manage resources and handle increasing data and user requests.
 
@@ -188,12 +188,12 @@ Connecting with a community of computer vision enthusiasts can help you tackle a
 
 ### Community Resources
 
-- **GitHub Issues:** Check out the [YOLOv8 GitHub repository](https://github.com/ultralytics/ultralytics/issues) and use the Issues tab to ask questions, report bugs, and suggest new features. The active community and maintainers are there to help with specific issues.
+- **GitHub Issues:** Check out the [YOLO11 GitHub repository](https://github.com/ultralytics/ultralytics/issues) and use the Issues tab to ask questions, report bugs, and suggest new features. The active community and maintainers are there to help with specific issues.
 - **Ultralytics Discord Server:** Join the [Ultralytics Discord server](https://discord.com/invite/ultralytics) to interact with other users and developers, get support, and share insights.
 
 ### Official Documentation
 
-- **Ultralytics YOLOv8 Documentation:** Explore the [official YOLOv8 documentation](./index.md) for detailed guides with helpful tips on different computer vision tasks and projects.
+- **Ultralytics YOLO11 Documentation:** Explore the [official YOLO11 documentation](./index.md) for detailed guides with helpful tips on different computer vision tasks and projects.
 
 Using these resources will help you overcome challenges and stay updated with the latest trends and best practices in the computer vision community.
 
@@ -229,7 +229,7 @@ After splitting, apply data augmentation techniques like rotation, scaling, and 
 
 ### How can I export my trained computer vision model for deployment?
 
-Exporting your model ensures compatibility with different deployment platforms. Ultralytics provides multiple formats, including ONNX, TensorRT, and CoreML. To export your YOLOv8 model, follow this guide:
+Exporting your model ensures compatibility with different deployment platforms. Ultralytics provides multiple formats, including ONNX, TensorRT, and CoreML. To export your YOLO11 model, follow this guide:
 
 - Use the `export` function with the desired format parameter.
 - Ensure the exported model fits the specifications of your deployment environment (e.g., edge devices, cloud).

@@ -207,17 +207,13 @@ Object counting with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
         cap = cv2.VideoCapture("people walking gray.mp4")
         assert cap.isOpened(), "Error reading video file"
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-        
-        # line or region points
-        line_points = [(20, 400), (1080, 400)]
-        
+ 
         # Video writer
         video_writer = cv2.VideoWriter("object_counting_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
         
         # Init Object Counter
         counter = solutions.ObjectCounter(
             show=True,
-            region=line_points,
             model="yolo11n.pt",
             classes=[0, 1],
         )
@@ -234,7 +230,6 @@ Object counting with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
         cap.release()
         video_writer.release()
         cv2.destroyAllWindows()
-
         ```
 
 ### Argument `ObjectCounter`

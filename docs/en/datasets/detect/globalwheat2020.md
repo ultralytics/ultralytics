@@ -38,7 +38,7 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 ## Usage
 
-To train a YOLOv8n model on the Global Wheat Head Dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To train a YOLO11n model on the Global Wheat Head Dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
 !!! example "Train Example"
 
@@ -48,7 +48,7 @@ To train a YOLOv8n model on the Global Wheat Head Dataset for 100 [epochs](https
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="GlobalWheat2020.yaml", epochs=100, imgsz=640)
@@ -58,7 +58,7 @@ To train a YOLOv8n model on the Global Wheat Head Dataset for 100 [epochs](https
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=GlobalWheat2020.yaml model=yolov8n.pt epochs=100 imgsz=640
+        yolo detect train data=GlobalWheat2020.yaml model=yolo11n.pt epochs=100 imgsz=640
         ```
 
 ## Sample Data and Annotations
@@ -96,9 +96,9 @@ We would like to acknowledge the researchers and institutions that contributed t
 
 The Global Wheat Head Dataset is primarily used for developing and training deep learning models aimed at wheat head detection. This is crucial for applications in wheat phenotyping and crop management, allowing for more accurate estimations of wheat head density, size, and overall crop yield potential. Accurate detection methods help in assessing crop health and maturity, essential for efficient crop management.
 
-### How do I train a YOLOv8n model on the Global Wheat Head Dataset?
+### How do I train a YOLO11n model on the Global Wheat Head Dataset?
 
-To train a YOLOv8n model on the Global Wheat Head Dataset, you can use the following code snippets. Make sure you have the `GlobalWheat2020.yaml` configuration file specifying dataset paths and classes:
+To train a YOLO11n model on the Global Wheat Head Dataset, you can use the following code snippets. Make sure you have the `GlobalWheat2020.yaml` configuration file specifying dataset paths and classes:
 
 !!! example "Train Example"
 
@@ -108,7 +108,7 @@ To train a YOLOv8n model on the Global Wheat Head Dataset, you can use the follo
         from ultralytics import YOLO
 
         # Load a pre-trained model (recommended for training)
-        model = YOLO("yolov8n.pt")
+        model = YOLO("yolo11n.pt")
 
         # Train the model
         results = model.train(data="GlobalWheat2020.yaml", epochs=100, imgsz=640)
@@ -118,7 +118,7 @@ To train a YOLOv8n model on the Global Wheat Head Dataset, you can use the follo
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=GlobalWheat2020.yaml model=yolov8n.pt epochs=100 imgsz=640
+        yolo detect train data=GlobalWheat2020.yaml model=yolo11n.pt epochs=100 imgsz=640
         ```
 
 For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.

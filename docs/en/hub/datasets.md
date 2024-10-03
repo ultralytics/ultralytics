@@ -48,7 +48,7 @@ The dataset YAML is the same standard YOLOv5 and YOLOv8 YAML format.
 
 After zipping your dataset, you should [validate it](https://docs.ultralytics.com/reference/hub/__init__/#ultralytics.hub.check_dataset) before uploading it to [Ultralytics HUB](https://www.ultralytics.com/hub). [Ultralytics HUB](https://www.ultralytics.com/hub) conducts the dataset validation check post-upload, so by ensuring your dataset is correctly formatted and error-free ahead of time, you can forestall any setbacks due to dataset rejection.
 
-```py
+```python
 from ultralytics.hub import check_dataset
 
 check_dataset("path/to/dataset.zip", task="detect")

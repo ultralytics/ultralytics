@@ -72,7 +72,7 @@ The `train` and `val` fields specify the paths to the directories containing the
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n-pose.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n-pose.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="coco8-pose.yaml", epochs=100, imgsz=640)
@@ -82,7 +82,7 @@ The `train` and `val` fields specify the paths to the directories containing the
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo pose train data=coco8-pose.yaml model=yolov8n-pose.pt epochs=100 imgsz=640
+        yolo pose train data=coco8-pose.yaml model=yolo11n-pose.pt epochs=100 imgsz=640
         ```
 
 ## Supported Datasets
@@ -117,6 +117,15 @@ This section outlines the datasets that are compatible with Ultralytics YOLO for
 - **Keypoints**: 12 keypoints.
 - **Usage**: Great for animal pose or any other pose that is not human-based.
 - [Read more about Tiger-Pose](tiger-pose.md)
+
+### Hand Keypoints
+
+- **Description**: Hand keypoints pose dataset comprises nearly 26K images, with 18776 images allocated for training and 7992 for validation.
+- **Label Format**: Same as Ultralytics YOLO format as described above, but with 21 keypoints for human hand and visible dimension.
+- **Number of Classes**: 1 (Hand).
+- **Keypoints**: 21 keypoints.
+- **Usage**: Great for human hand pose estimation.
+- [Read more about Hand Keypoints](hand-keypoints.md)
 
 ### Adding your own dataset
 
@@ -162,7 +171,7 @@ To use the COCO-Pose dataset with Ultralytics YOLO:
     ```python
     from ultralytics import YOLO
 
-    model = YOLO("yolov8n-pose.pt")  # load pretrained model
+    model = YOLO("yolo11n-pose.pt")  # load pretrained model
     results = model.train(data="coco-pose.yaml", epochs=100, imgsz=640)
     ```
 
@@ -179,7 +188,7 @@ To add your dataset:
     ```python
     from ultralytics import YOLO
 
-    model = YOLO("yolov8n-pose.pt")
+    model = YOLO("yolo11n-pose.pt")
     results = model.train(data="your-dataset.yaml", epochs=100, imgsz=640)
     ```
 

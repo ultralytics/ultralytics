@@ -1,7 +1,7 @@
 ---
 comments: true
 description: Learn to extract isolated objects from inference results using Ultralytics Predict Mode. Step-by-step guide for segmentation object isolation.
-keywords: Ultralytics, segmentation, object isolation, Predict Mode, YOLOv8, machine learning, object detection, binary mask, image processing
+keywords: Ultralytics, segmentation, object isolation, Predict Mode, YOLO11, machine learning, object detection, binary mask, image processing
 ---
 
 # Isolating Segmentation Objects
@@ -24,7 +24,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
     from ultralytics import YOLO
 
     # Load a model
-    model = YOLO("yolov8n-seg.pt")
+    model = YOLO("yolo11n-seg.pt")
 
     # Run inference
     results = model.predict()
@@ -141,7 +141,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
         === "Black Background Pixels"
 
-            ```py
+            ```python
             # Create 3-channel mask
             mask3ch = cv2.cvtColor(b_mask, cv2.COLOR_GRAY2BGR)
 
@@ -192,7 +192,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
         === "Transparent Background Pixels"
 
-            ```py
+            ```python
             # Isolate object with transparent background (when saved as PNG)
             isolated = np.dstack([img, b_mask])
             ```
@@ -248,7 +248,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
     ??? example "Example Final Step"
 
-        ```py
+        ```python
         # Save isolated object to file
         _ = cv2.imwrite(f"{img_name}_{label}-{ci}.png", iso_crop)
         ```
@@ -267,7 +267,7 @@ import numpy as np
 
 from ultralytics import YOLO
 
-m = YOLO("yolov8n-seg.pt")  # (4)!
+m = YOLO("yolo11n-seg.pt")  # (4)!
 res = m.predict()  # (3)!
 
 # Iterate detection results (5)
@@ -310,16 +310,16 @@ for r in res:
 
 ## FAQ
 
-### How do I isolate objects using Ultralytics YOLOv8 for segmentation tasks?
+### How do I isolate objects using Ultralytics YOLO11 for segmentation tasks?
 
-To isolate objects using Ultralytics YOLOv8, follow these steps:
+To isolate objects using Ultralytics YOLO11, follow these steps:
 
 1. **Load the model and run inference:**
 
     ```python
     from ultralytics import YOLO
 
-    model = YOLO("yolov8n-seg.pt")
+    model = YOLO("yolo11n-seg.pt")
     results = model.predict(source="path/to/your/image.jpg")
     ```
 
@@ -345,7 +345,7 @@ Refer to the guide on [Predict Mode](../modes/predict.md) and the [Segment Task]
 
 ### What options are available for saving the isolated objects after segmentation?
 
-Ultralytics YOLOv8 offers two main options for saving isolated objects:
+Ultralytics YOLO11 offers two main options for saving isolated objects:
 
 1. **With a Black Background:**
 
@@ -361,7 +361,7 @@ Ultralytics YOLOv8 offers two main options for saving isolated objects:
 
 For further details, visit the [Predict Mode](../modes/predict.md) section.
 
-### How can I crop isolated objects to their bounding boxes using Ultralytics YOLOv8?
+### How can I crop isolated objects to their bounding boxes using Ultralytics YOLO11?
 
 To crop isolated objects to their bounding boxes:
 
@@ -378,9 +378,9 @@ To crop isolated objects to their bounding boxes:
 
 Learn more about bounding box results in the [Predict Mode](../modes/predict.md#boxes) documentation.
 
-### Why should I use Ultralytics YOLOv8 for object isolation in segmentation tasks?
+### Why should I use Ultralytics YOLO11 for object isolation in segmentation tasks?
 
-Ultralytics YOLOv8 provides:
+Ultralytics YOLO11 provides:
 
 - **High-speed** real-time object detection and segmentation.
 - **Accurate bounding box and mask generation** for precise object isolation.
@@ -388,9 +388,9 @@ Ultralytics YOLOv8 provides:
 
 Explore the benefits of using YOLO in the [Segment Task documentation](../tasks/segment.md).
 
-### Can I save isolated objects including the background using Ultralytics YOLOv8?
+### Can I save isolated objects including the background using Ultralytics YOLO11?
 
-Yes, this is a built-in feature in Ultralytics YOLOv8. Use the `save_crop` argument in the `predict()` method. For example:
+Yes, this is a built-in feature in Ultralytics YOLO11. Use the `save_crop` argument in the `predict()` method. For example:
 
 ```python
 results = model.predict(source="path/to/your/image.jpg", save_crop=True)

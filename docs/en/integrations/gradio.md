@@ -1,14 +1,14 @@
 ---
 comments: true
-description: Discover an interactive way to perform object detection with Ultralytics YOLOv8 using Gradio. Upload images and adjust settings for real-time results.
-keywords: Ultralytics, YOLOv8, Gradio, object detection, interactive, real-time, image processing, AI
+description: Discover an interactive way to perform object detection with Ultralytics YOLO11 using Gradio. Upload images and adjust settings for real-time results.
+keywords: Ultralytics, YOLO11, Gradio, object detection, interactive, real-time, image processing, AI
 ---
 
-# Interactive [Object Detection](https://www.ultralytics.com/glossary/object-detection): Gradio & Ultralytics YOLOv8 🚀
+# Interactive [Object Detection](https://www.ultralytics.com/glossary/object-detection): Gradio & Ultralytics YOLO11 🚀
 
 ## Introduction to Interactive Object Detection
 
-This Gradio interface provides an easy and interactive way to perform object detection using the [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics/) model. Users can upload images and adjust parameters like confidence threshold and intersection-over-union (IoU) threshold to get real-time detection results.
+This Gradio interface provides an easy and interactive way to perform object detection using the [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics/) model. Users can upload images and adjust parameters like confidence threshold and intersection-over-union (IoU) threshold to get real-time detection results.
 
 <p align="center">
   <br>
@@ -18,7 +18,7 @@ This Gradio interface provides an easy and interactive way to perform object det
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Gradio Integration with Ultralytics YOLOv8
+  <strong>Watch:</strong> Gradio Integration with Ultralytics YOLO11
 </p>
 
 ## Why Use Gradio for Object Detection?
@@ -52,7 +52,7 @@ pip install gradio
 
 ## Usage Example
 
-This section provides the Python code used to create the Gradio interface with the Ultralytics YOLOv8 model. Supports classification tasks, detection tasks, segmentation tasks, and key point tasks.
+This section provides the Python code used to create the Gradio interface with the Ultralytics YOLO11 model. Supports classification tasks, detection tasks, segmentation tasks, and key point tasks.
 
 ```python
 import gradio as gr
@@ -60,11 +60,11 @@ import PIL.Image as Image
 
 from ultralytics import ASSETS, YOLO
 
-model = YOLO("yolov8n.pt")
+model = YOLO("yolo11n.pt")
 
 
 def predict_image(img, conf_threshold, iou_threshold):
-    """Predicts objects in an image using a YOLOv8 model with adjustable confidence and IOU thresholds."""
+    """Predicts objects in an image using a YOLO11 model with adjustable confidence and IOU thresholds."""
     results = model.predict(
         source=img,
         conf=conf_threshold,
@@ -90,7 +90,7 @@ iface = gr.Interface(
     ],
     outputs=gr.Image(type="pil", label="Result"),
     title="Ultralytics Gradio",
-    description="Upload images for inference. The Ultralytics YOLOv8n model is used by default.",
+    description="Upload images for inference. The Ultralytics YOLO11n model is used by default.",
     examples=[
         [ASSETS / "bus.jpg", 0.25, 0.45],
         [ASSETS / "zidane.jpg", 0.25, 0.45],
@@ -119,9 +119,9 @@ if __name__ == "__main__":
 
 ## FAQ
 
-### How do I use Gradio with Ultralytics YOLOv8 for object detection?
+### How do I use Gradio with Ultralytics YOLO11 for object detection?
 
-To use Gradio with Ultralytics YOLOv8 for object detection, you can follow these steps:
+To use Gradio with Ultralytics YOLO11 for object detection, you can follow these steps:
 
 1. **Install Gradio:** Use the command `pip install gradio`.
 2. **Create Interface:** Write a Python script to initialize the Gradio interface. You can refer to the provided code example in the [documentation](#usage-example) for details.
@@ -134,7 +134,7 @@ import gradio as gr
 
 from ultralytics import YOLO
 
-model = YOLO("yolov8n.pt")
+model = YOLO("yolo11n.pt")
 
 
 def predict_image(img, conf_threshold, iou_threshold):
@@ -156,15 +156,15 @@ iface = gr.Interface(
         gr.Slider(minimum=0, maximum=1, value=0.45, label="IoU threshold"),
     ],
     outputs=gr.Image(type="pil", label="Result"),
-    title="Ultralytics Gradio YOLOv8",
-    description="Upload images for YOLOv8 object detection.",
+    title="Ultralytics Gradio YOLO11",
+    description="Upload images for YOLO11 object detection.",
 )
 iface.launch()
 ```
 
-### What are the benefits of using Gradio for Ultralytics YOLOv8 object detection?
+### What are the benefits of using Gradio for Ultralytics YOLO11 object detection?
 
-Using Gradio for Ultralytics YOLOv8 object detection offers several benefits:
+Using Gradio for Ultralytics YOLO11 object detection offers several benefits:
 
 - **User-Friendly Interface:** Gradio provides an intuitive interface for users to upload images and visualize detection results without any coding effort.
 - **Real-Time Adjustments:** You can dynamically adjust detection parameters such as confidence and IoU thresholds and see the effects immediately.
@@ -172,22 +172,22 @@ Using Gradio for Ultralytics YOLOv8 object detection offers several benefits:
 
 For more details, you can read this [blog post](https://www.ultralytics.com/blog/ai-and-radiology-a-new-era-of-precision-and-efficiency).
 
-### Can I use Gradio and Ultralytics YOLOv8 together for educational purposes?
+### Can I use Gradio and Ultralytics YOLO11 together for educational purposes?
 
-Yes, Gradio and Ultralytics YOLOv8 can be utilized together for educational purposes effectively. Gradio's intuitive web interface makes it easy for students and educators to interact with state-of-the-art [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models like Ultralytics YOLOv8 without needing advanced programming skills. This setup is ideal for demonstrating key concepts in object detection and [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv), as Gradio provides immediate visual feedback which helps in understanding the impact of different parameters on the detection performance.
+Yes, Gradio and Ultralytics YOLO11 can be utilized together for educational purposes effectively. Gradio's intuitive web interface makes it easy for students and educators to interact with state-of-the-art [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models like Ultralytics YOLO11 without needing advanced programming skills. This setup is ideal for demonstrating key concepts in object detection and [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv), as Gradio provides immediate visual feedback which helps in understanding the impact of different parameters on the detection performance.
 
-### How do I adjust the confidence and IoU thresholds in the Gradio interface for YOLOv8?
+### How do I adjust the confidence and IoU thresholds in the Gradio interface for YOLO11?
 
-In the Gradio interface for YOLOv8, you can adjust the confidence and IoU thresholds using the sliders provided. These thresholds help control the prediction [accuracy](https://www.ultralytics.com/glossary/accuracy) and object separation:
+In the Gradio interface for YOLO11, you can adjust the confidence and IoU thresholds using the sliders provided. These thresholds help control the prediction [accuracy](https://www.ultralytics.com/glossary/accuracy) and object separation:
 
 - **Confidence Threshold:** Determines the minimum confidence level for detecting objects. Slide to increase or decrease the confidence required.
 - **IoU Threshold:** Sets the intersection-over-union threshold for distinguishing between overlapping objects. Adjust this value to refine object separation.
 
 For more information on these parameters, visit the [parameters explanation section](#parameters-explanation).
 
-### What are some practical applications of using Ultralytics YOLOv8 with Gradio?
+### What are some practical applications of using Ultralytics YOLO11 with Gradio?
 
-Practical applications of combining Ultralytics YOLOv8 with Gradio include:
+Practical applications of combining Ultralytics YOLO11 with Gradio include:
 
 - **Real-Time Object Detection Demonstrations:** Ideal for showcasing how object detection works in real-time.
 - **Educational Tools:** Useful in academic settings to teach object detection and computer vision concepts.
@@ -196,4 +196,4 @@ Practical applications of combining Ultralytics YOLOv8 with Gradio include:
 
 For examples of similar use cases, check out the [Ultralytics blog](https://www.ultralytics.com/blog/monitoring-animal-behavior-using-ultralytics-yolov8).
 
-Providing this information within the documentation will help in enhancing the usability and accessibility of Ultralytics YOLOv8, making it more approachable for users at all levels of expertise.
+Providing this information within the documentation will help in enhancing the usability and accessibility of Ultralytics YOLO11, making it more approachable for users at all levels of expertise.

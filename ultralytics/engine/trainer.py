@@ -12,7 +12,7 @@ import os
 import subprocess
 import time
 import warnings
-from copy import deepcopy
+from copy import copy, deepcopy
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -749,7 +749,7 @@ class BaseTrainer:
             self.train_loader.dataset.mosaic = False
         if hasattr(self.train_loader.dataset, "close_mosaic"):
             LOGGER.info("Closing dataloader mosaic")
-            self.train_loader.dataset.close_mosaic(hyp=self.args)
+            self.train_loader.dataset.close_mosaic(hyp=copy(self.args))
 
     def build_optimizer(self, model, name="auto", lr=0.001, momentum=0.9, decay=1e-5, iterations=1e5):
         """

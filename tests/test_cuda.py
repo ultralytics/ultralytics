@@ -10,12 +10,20 @@ from tests import CUDA_DEVICE_COUNT, CUDA_IS_AVAILABLE, MODEL, SOURCE
 from ultralytics import YOLO
 from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
 from ultralytics.utils import ASSETS, WEIGHTS_DIR
+from ultralytics.utils.checks import check_amp
 
 
 def test_checks():
     """Validate CUDA settings against torch CUDA functions."""
     assert torch.cuda.is_available() == CUDA_IS_AVAILABLE
     assert torch.cuda.device_count() == CUDA_DEVICE_COUNT
+
+
+@pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason="CUDA is not available")
+def test_amp():
+    """Test AMP training checks."""
+    model = YOLO("yolo11n.pt").model.cuda()
+    assert check_amp(model)
 
 
 @pytest.mark.slow

@@ -90,12 +90,17 @@ document.addEventListener("DOMContentLoaded", () => {
       },
       properties: {
         chatButtonType: "PILL",
+        fixedPositionYOffset: "5rem"
+        chatButtonBgColor: "#F3F3F3",
         baseSettings: {
           apiKey: "13dfec2e75982bc9bae3199a08e13b86b5fbacd64e9b2f89", // required
           integrationId: "cm1shscmm00y26sj83lgxzvkw", // required
           organizationId: "org_e3869az6hQZ0mXdF", // required
           primaryBrandColor: "#111F68", // Ultralytics brand color
           organizationDisplayName: "Ultralytics",
+          theme: {
+            stylesheetUrls: ["../stylesheets/style.css"],
+          },
           // ...optional settings
         },
         modalSettings: {

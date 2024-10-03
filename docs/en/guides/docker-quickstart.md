@@ -197,10 +197,10 @@ Setup and configuration of an X11 or Wayland display server is outside the scope
 
 ### Using Docker with a GUI
 
-Now you can display graphical applications inside your Docker container. For example, you can run the following [CLI command](../usage/cli.md) to visualize the [predictions](../modes/predict.md) from a [YOLOv8 model](../models/yolov8.md):
+Now you can display graphical applications inside your Docker container. For example, you can run the following [CLI command](../usage/cli.md) to visualize the [predictions](../modes/predict.md) from a [YOLO11 model](../models/yolo11.md):
 
 ```bash
-yolo predict model=yolov8n.pt show=True
+yolo predict model=yolo11n.pt show=True
 ```
 
 ??? info "Testing"

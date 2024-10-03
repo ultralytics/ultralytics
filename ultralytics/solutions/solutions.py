@@ -1,14 +1,15 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 from collections import defaultdict
+from pathlib import Path
 
 import cv2
 from shapely.geometry import LineString, Polygon
+
 from ultralytics import YOLO
 from ultralytics.utils import yaml_load
 from ultralytics.utils.checks import check_imshow
 
-from pathlib import Path
 DEFAULT_SOL_CFG_PATH = Path(__file__).resolve().parents[1] / "cfg/solutions/default.yaml"
 
 
@@ -44,8 +45,7 @@ class BaseSolution:
         Args:
             im0 (ndarray): The input image or frame
         """
-        self.tracks = self.model.track(source=im0, persist=True,
-                                       classes=self.CFG["classes"])
+        self.tracks = self.model.track(source=im0, persist=True, classes=self.CFG["classes"])
 
         # Extract tracks for OBB or object detection
         self.track_data = self.tracks[0].obb or self.tracks[0].boxes

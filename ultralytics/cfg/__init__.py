@@ -1,7 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import contextlib
-import re
 import shutil
 import subprocess
 import sys
@@ -83,10 +82,10 @@ CLI_HELP_MSG = f"""
 
     5. Explore your datasets using semantic search and SQL with a simple GUI powered by Ultralytics Explorer API
         yolo explorer data=data.yaml model=yolo11n.pt
-
+    
     6. Streamlit real-time webcam inference GUI
         yolo streamlit-predict
-
+        
     7. Run special commands:
         yolo help
         yolo checks
@@ -443,30 +442,35 @@ def check_dict_alignment(base: Dict, custom: Dict, e=None):
 
 def merge_equals_args(args: List[str]) -> List[str]:
     """
-    Simplifies command-line arguments by removing spaces around equal signs and inside brackets, then splits the string
-    back into a list of arguments.
+    Merges arguments around isolated '=' in a list of strings, handling three cases:
+    1. ['arg', '=', 'val'] becomes ['arg=val'],
+    2. ['arg=', 'val'] becomes ['arg=val'],
+    3. ['arg', '=val'] becomes ['arg=val'].
 
     Args:
-        args (List[str]): A list of command-line arguments.
+        args (List[str]): A list of strings where each element represents an argument.
 
     Returns:
-        (List[str]): A list of processed arguments.
+        (List[str]): A list of strings where the arguments around isolated '=' are merged.
 
     Examples:
         >>> args = ["arg1", "=", "value", "arg2=", "value2", "arg3", "=value3"]
         >>> merge_equals_args(args)
         ['arg1=value', 'arg2=value2', 'arg3=value3']
     """
-    # Remove spaces around '='
-    args_str = re.sub(r"\s*=\s*", "=", " ".join(args))
-
-    # Remove spaces inside brackets
-    patterns = [(r"\(\s*(.*?)\s*\)", r"(\1)"), (r"\[\s*(.*?)\s*\]", r"[\1]"), (r"\{\s*(.*?)\s*\}", r"{\1}")]
-    for pattern, repl in patterns:
-        # Use non-greedy matching inside brackets
-        args_str = re.sub(pattern, lambda m: repl.replace("\\1", m.group(1).replace(" ", "")), args_str)
-
-    return args_str.split()  # split the modified string back into arguments
+    new_args = []
+    for i, arg in enumerate(args):
+        if arg == "=" and 0 < i < len(args) - 1:  # merge ['arg', '=', 'val']
+            new_args[-1] += f"={args[i + 1]}"
+            del args[i + 1]
+        elif arg.endswith("=") and i < len(args) - 1 and "=" not in args[i + 1]:  # merge ['arg=', 'val']
+            new_args.append(f"{arg}{args[i + 1]}")
+            del args[i + 1]
+        elif arg.startswith("=") and i > 0:  # merge ['arg', '=val']
+            new_args[-1] += arg
+        else:
+            new_args.append(arg)
+    return new_args
 
 
 def handle_yolo_hub(args: List[str]) -> None:

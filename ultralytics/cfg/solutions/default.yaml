@@ -2,11 +2,11 @@
 
 # Configuration for Ultralytics Solutions
 
-model: "yolov8n.pt"  # The YOLOv8 model to be used (e.g., yolov8n.pt for YOLOv8 nano version)
+model: "yolov8n.pt" # The YOLOv8 model to be used (e.g., yolov8n.pt for YOLOv8 nano version)
 
-region:         # Object counting, queue or speed estimation region points
-line_width: 2   # Thickness of the lines used to draw regions on the image/video frames
-show: True      # Flag to control whether to display output image or not
-show_in: True   # Flag to display objects moving *into* the defined region
-show_out: True  # Flag to display objects moving *out of* the defined region
-classes:       # To count specific classes
+region: # Object counting, queue or speed estimation region points
+line_width: 2 # Thickness of the lines used to draw regions on the image/video frames
+show: True # Flag to control whether to display output image or not
+show_in: True # Flag to display objects moving *into* the defined region
+show_out: True # Flag to display objects moving *out of* the defined region
+classes: # To count specific classes

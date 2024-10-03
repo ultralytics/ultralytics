@@ -90,7 +90,7 @@ document.addEventListener("DOMContentLoaded", () => {
       },
       properties: {
         chatButtonType: "PILL",
-        fixedPositionYOffset: "5rem"
+        fixedPositionYOffset: "2rem",
         chatButtonBgColor: "#F3F3F3",
         baseSettings: {
           apiKey: "13dfec2e75982bc9bae3199a08e13b86b5fbacd64e9b2f89", // required
@@ -120,21 +120,21 @@ document.addEventListener("DOMContentLoaded", () => {
           ],
           getHelpCallToActions: [
             {
-              name: "GitHub",
+              name: "📄Ask on Ultralytics GitHub",
               url: "https://github.com/ultralytics/ultralytics",
               icon: {
                 builtIn: "FaGithub"
               }
             },
             {
-              name: "Forum",
+              name: "💬Ask on Ultralytics Discourse Forum",
               url: "https://community.ultralytics.com/",
               icon: {
                 builtIn: "FaDiscourse"
               }
             },
             {
-              name: "Discord",
+              name: "🎧Ask on Ultralytics Discord",
               url: "https://discord.com/invite/ultralytics",
               icon: {
                 builtIn: "FaDiscord"

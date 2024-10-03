@@ -1,10 +1,10 @@
 ---
 comments: true
-description: Learn how to deploy Ultralytics YOLOv8 on NVIDIA Jetson devices using TensorRT and DeepStream SDK. Explore performance benchmarks and maximize AI capabilities.
-keywords: Ultralytics, YOLOv8, NVIDIA Jetson, JetPack, AI deployment, embedded systems, deep learning, TensorRT, DeepStream SDK, computer vision
+description: Learn how to deploy Ultralytics YOLO11 on NVIDIA Jetson devices using TensorRT and DeepStream SDK. Explore performance benchmarks and maximize AI capabilities.
+keywords: Ultralytics, YOLO11, NVIDIA Jetson, JetPack, AI deployment, embedded systems, deep learning, TensorRT, DeepStream SDK, computer vision
 ---
 
-# Ultralytics YOLOv8 on NVIDIA Jetson using DeepStream SDK and TensorRT
+# Ultralytics YOLO11 on NVIDIA Jetson using DeepStream SDK and TensorRT
 
 <p align="center">
   <br>
@@ -14,10 +14,10 @@ keywords: Ultralytics, YOLOv8, NVIDIA Jetson, JetPack, AI deployment, embedded s
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Run Multiple Streams with DeepStream SDK on Jetson Nano using Ultralytics YOLOv8
+  <strong>Watch:</strong> How to Run Multiple Streams with DeepStream SDK on Jetson Nano using Ultralytics YOLO11
 </p>
 
-This comprehensive guide provides a detailed walkthrough for deploying Ultralytics YOLOv8 on [NVIDIA Jetson](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/) devices using DeepStream SDK and TensorRT. Here we use TensorRT to maximize the inference performance on the Jetson platform.
+This comprehensive guide provides a detailed walkthrough for deploying Ultralytics YOLO11 on [NVIDIA Jetson](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/) devices using DeepStream SDK and TensorRT. Here we use TensorRT to maximize the inference performance on the Jetson platform.
 
 <img width="1024" src="https://github.com/ultralytics/docs/releases/download/0/deepstream-nvidia-jetson.avif" alt="DeepStream on NVIDIA Jetson">
 
@@ -33,7 +33,7 @@ This comprehensive guide provides a detailed walkthrough for deploying Ultralyti
 
 Before you start to follow this guide:
 
-- Visit our documentation, [Quick Start Guide: NVIDIA Jetson with Ultralytics YOLOv8](nvidia-jetson.md) to set up your NVIDIA Jetson device with Ultralytics YOLOv8
+- Visit our documentation, [Quick Start Guide: NVIDIA Jetson with Ultralytics YOLO11](nvidia-jetson.md) to set up your NVIDIA Jetson device with Ultralytics YOLO11
 - Install [DeepStream SDK](https://developer.nvidia.com/deepstream-getting-started) according to the JetPack version
 
     - For JetPack 4.6.4, install [DeepStream 6.0.1](https://docs.nvidia.com/metropolis/deepstream/6.0.1/dev-guide/text/DS_Quickstart.html)
@@ -43,7 +43,7 @@ Before you start to follow this guide:
 
     In this guide we have used the Debian package method of installing DeepStream SDK to the Jetson device. You can also visit the [DeepStream SDK on Jetson (Archived)](https://developer.nvidia.com/embedded/deepstream-on-jetson-downloads-archived) to access legacy versions of DeepStream.
 
-## DeepStream Configuration for YOLOv8
+## DeepStream Configuration for YOLO11
 
 Here we are using [marcoslucianops/DeepStream-Yolo](https://github.com/marcoslucianops/DeepStream-Yolo) GitHub repository which includes NVIDIA DeepStream SDK support for YOLO models. We appreciate the efforts of marcoslucianops for his contributions!
 
@@ -61,7 +61,7 @@ Here we are using [marcoslucianops/DeepStream-Yolo](https://github.com/marcosluc
     cd DeepStream-Yolo
     ```
 
-3.  Download Ultralytics YOLOv8 detection model (.pt) of your choice from [YOLOv8 releases](https://github.com/ultralytics/assets/releases). Here we use [yolov8s.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8s.pt).
+3.  Download Ultralytics YOLO11 detection model (.pt) of your choice from [YOLO11 releases](https://github.com/ultralytics/assets/releases). Here we use [yolov8s.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8s.pt).
 
     ```bash
     wget https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8s.pt
@@ -69,7 +69,7 @@ Here we are using [marcoslucianops/DeepStream-Yolo](https://github.com/marcosluc
 
     !!! note
 
-        You can also use a [custom trained YOLOv8 model](https://docs.ultralytics.com/modes/train/).
+        You can also use a [custom trained YOLO11 model](https://docs.ultralytics.com/modes/train/).
 
 4.  Convert model to ONNX
 
@@ -179,7 +179,7 @@ deepstream-app -c deepstream_app_config.txt
 
     It will take a long time to generate the TensorRT engine file before starting the inference. So please be patient.
 
-<div align=center><img width=1000 src="https://github.com/ultralytics/docs/releases/download/0/yolov8-with-deepstream.avif" alt="YOLOv8 with deepstream"></div>
+<div align=center><img width=1000 src="https://github.com/ultralytics/docs/releases/download/0/yolov8-with-deepstream.avif" alt="YOLO11 with deepstream"></div>
 
 !!! tip
 
@@ -317,21 +317,21 @@ This guide was initially created by our friends at Seeed Studio, Lakshantha and 
 
 ## FAQ
 
-### How do I set up Ultralytics YOLOv8 on an NVIDIA Jetson device?
+### How do I set up Ultralytics YOLO11 on an NVIDIA Jetson device?
 
-To set up Ultralytics YOLOv8 on an [NVIDIA Jetson](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/) device, you first need to install the [DeepStream SDK](https://developer.nvidia.com/deepstream-getting-started) compatible with your JetPack version. Follow the step-by-step guide in our [Quick Start Guide](nvidia-jetson.md) to configure your NVIDIA Jetson for YOLOv8 deployment.
+To set up Ultralytics YOLO11 on an [NVIDIA Jetson](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/) device, you first need to install the [DeepStream SDK](https://developer.nvidia.com/deepstream-getting-started) compatible with your JetPack version. Follow the step-by-step guide in our [Quick Start Guide](nvidia-jetson.md) to configure your NVIDIA Jetson for YOLO11 deployment.
 
-### What is the benefit of using TensorRT with YOLOv8 on NVIDIA Jetson?
+### What is the benefit of using TensorRT with YOLO11 on NVIDIA Jetson?
 
-Using TensorRT with YOLOv8 optimizes the model for inference, significantly reducing latency and improving throughput on NVIDIA Jetson devices. TensorRT provides high-performance, low-latency [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) inference through layer fusion, precision calibration, and kernel auto-tuning. This leads to faster and more efficient execution, particularly useful for real-time applications like video analytics and autonomous machines.
+Using TensorRT with YOLO11 optimizes the model for inference, significantly reducing latency and improving throughput on NVIDIA Jetson devices. TensorRT provides high-performance, low-latency [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) inference through layer fusion, precision calibration, and kernel auto-tuning. This leads to faster and more efficient execution, particularly useful for real-time applications like video analytics and autonomous machines.
 
-### Can I run Ultralytics YOLOv8 with DeepStream SDK across different NVIDIA Jetson hardware?
+### Can I run Ultralytics YOLO11 with DeepStream SDK across different NVIDIA Jetson hardware?
 
-Yes, the guide for deploying Ultralytics YOLOv8 with the DeepStream SDK and TensorRT is compatible across the entire NVIDIA Jetson lineup. This includes devices like the Jetson Orin NX 16GB with [JetPack 5.1.3](https://developer.nvidia.com/embedded/jetpack-sdk-513) and the Jetson Nano 4GB with [JetPack 4.6.4](https://developer.nvidia.com/jetpack-sdk-464). Refer to the section [DeepStream Configuration for YOLOv8](#deepstream-configuration-for-yolov8) for detailed steps.
+Yes, the guide for deploying Ultralytics YOLO11 with the DeepStream SDK and TensorRT is compatible across the entire NVIDIA Jetson lineup. This includes devices like the Jetson Orin NX 16GB with [JetPack 5.1.3](https://developer.nvidia.com/embedded/jetpack-sdk-513) and the Jetson Nano 4GB with [JetPack 4.6.4](https://developer.nvidia.com/jetpack-sdk-464). Refer to the section [DeepStream Configuration for YOLO11](#deepstream-configuration-for-yolo11) for detailed steps.
 
-### How can I convert a YOLOv8 model to ONNX for DeepStream?
+### How can I convert a YOLO11 model to ONNX for DeepStream?
 
-To convert a YOLOv8 model to ONNX format for deployment with DeepStream, use the `utils/export_yoloV8.py` script from the [DeepStream-Yolo](https://github.com/marcoslucianops/DeepStream-Yolo) repository.
+To convert a YOLO11 model to ONNX format for deployment with DeepStream, use the `utils/export_yoloV8.py` script from the [DeepStream-Yolo](https://github.com/marcoslucianops/DeepStream-Yolo) repository.
 
 Here's an example command:
 
@@ -341,12 +341,12 @@ python3 utils/export_yoloV8.py -w yolov8s.pt --opset 12 --simplify
 
 For more details on model conversion, check out our [model export section](../modes/export.md).
 
-### What are the performance benchmarks for YOLOv8 on NVIDIA Jetson Orin NX?
+### What are the performance benchmarks for YOLO on NVIDIA Jetson Orin NX?
 
-The performance of YOLOv8 models on NVIDIA Jetson Orin NX 16GB varies based on TensorRT precision levels. For example, YOLOv8s models achieve:
+The performance of YOLO11 models on NVIDIA Jetson Orin NX 16GB varies based on TensorRT precision levels. For example, YOLOv8s models achieve:
 
 - **FP32 Precision**: 15.63 ms/im, 64 FPS
 - **FP16 Precision**: 7.94 ms/im, 126 FPS
 - **INT8 Precision**: 5.53 ms/im, 181 FPS
 
-These benchmarks underscore the efficiency and capability of using TensorRT-optimized YOLOv8 models on NVIDIA Jetson hardware. For further details, see our [Benchmark Results](#benchmark-results) section.
+These benchmarks underscore the efficiency and capability of using TensorRT-optimized YOLO11 models on NVIDIA Jetson hardware. For further details, see our [Benchmark Results](#benchmark-results) section.

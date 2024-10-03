@@ -102,13 +102,13 @@ class ObjectCounter(BaseSolution):
         self.annotator = Annotator(im0, line_width=self.line_width)  # Initialize annotator
         self.extract_tracks(im0)  # Extract tracks
 
+        self.annotator.draw_region(reg_pts=self.region, color=(104, 0, 123), thickness=self.line_width * 2) # Draw region
+
         # Iterate over bounding boxes, track ids and classes index
         if self.track_data is not None and self.track_data.id is not None:
             for box, track_id, cls in zip(self.boxes, self.track_ids, self.clss):
                 # Draw bounding box and counting region
                 self.annotator.box_label(box, label=self.names[cls], color=colors(track_id, True))
-                self.annotator.draw_region(reg_pts=self.region, color=(104, 0, 123), thickness=self.line_width * 2)
-
                 self.store_tracking_history(track_id, box)  # Store track history
                 self.store_classwise_counts(cls)  # store classwise counts in dict
 

@@ -24,7 +24,7 @@ keywords: Meituan YOLOv6, object detection, real-time applications, BiC module, 
 
 YOLOv6 provides various pre-trained models with different scales:
 
-- YOLOv6-N: 37.5% AP on COCO val2017 at 1187 FPS with NVIDIA Tesla T4 GPU.
+- YOLOv6-N: 37.5% AP on COCO val2017 at 1187 FPS with NVIDIA T4 GPU.
 - YOLOv6-S: 45.0% AP at 484 FPS.
 - YOLOv6-M: 50.0% AP at 226 FPS.
 - YOLOv6-L: 52.8% AP at 116 FPS.
@@ -151,7 +151,7 @@ YOLOv6 offers multiple versions, each optimized for different performance requir
 - YOLOv6-L: 52.8% AP at 116 FPS
 - YOLOv6-L6: State-of-the-art accuracy in real-time scenarios
 
-These models are evaluated on the COCO dataset using an NVIDIA Tesla T4 GPU. For more on performance metrics, see the [Performance Metrics](#performance-metrics) section.
+These models are evaluated on the COCO dataset using an NVIDIA T4 GPU. For more on performance metrics, see the [Performance Metrics](#performance-metrics) section.
 
 ### How does the Anchor-Aided Training (AAT) strategy benefit YOLOv6?
 

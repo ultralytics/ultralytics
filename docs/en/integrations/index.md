@@ -18,7 +18,7 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Ultralytics YOLOv8 Deployment and Integrations
+  <strong>Watch:</strong> Ultralytics YOLO11 Deployment and Integrations
 </p>
 
 ## Datasets Integrations
@@ -47,7 +47,7 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 - [Amazon SageMaker](amazon-sagemaker.md): Leverage Amazon SageMaker to efficiently build, train, and deploy Ultralytics models, providing an all-in-one platform for the ML lifecycle.
 
-- [Paperspace Gradient](paperspace.md): Paperspace Gradient simplifies working on YOLOv8 projects by providing easy-to-use cloud tools for training, testing, and deploying your models quickly.
+- [Paperspace Gradient](paperspace.md): Paperspace Gradient simplifies working on YOLO11 projects by providing easy-to-use cloud tools for training, testing, and deploying your models quickly.
 
 - [Google Colab](google-colab.md): Use Google Colab to train and evaluate Ultralytics models in a cloud-based environment that supports collaboration and sharing.
 
@@ -111,7 +111,7 @@ Let's collaborate to make the Ultralytics YOLO ecosystem more expansive and feat
 
 ### What is Ultralytics HUB, and how does it streamline the ML workflow?
 
-Ultralytics HUB is a cloud-based platform designed to make machine learning (ML) workflows for Ultralytics models seamless and efficient. By using this tool, you can easily upload datasets, train models, perform real-time tracking, and deploy YOLOv8 models without needing extensive coding skills. You can explore the key features on the [Ultralytics HUB](https://hub.ultralytics.com/) page and get started quickly with our [Quickstart](https://docs.ultralytics.com/hub/quickstart/) guide.
+Ultralytics HUB is a cloud-based platform designed to make machine learning (ML) workflows for Ultralytics models seamless and efficient. By using this tool, you can easily upload datasets, train models, perform real-time tracking, and deploy YOLO11 models without needing extensive coding skills. You can explore the key features on the [Ultralytics HUB](https://hub.ultralytics.com/) page and get started quickly with our [Quickstart](https://docs.ultralytics.com/hub/quickstart/) guide.
 
 ### How do I integrate Ultralytics YOLO models with Roboflow for dataset management?
 
@@ -121,9 +121,9 @@ Integrating Ultralytics YOLO models with Roboflow enhances dataset management by
 
 Yes, you can. Integrating MLFlow with Ultralytics models allows you to track experiments, improve reproducibility, and streamline the entire ML lifecycle. Detailed instructions for setting up this integration can be found on the [MLFlow](mlflow.md) integration page. This integration is particularly useful for monitoring model metrics and managing the ML workflow efficiently.
 
-### What are the benefits of using Neural Magic for YOLOv8 model optimization?
+### What are the benefits of using Neural Magic for YOLO11 model optimization?
 
-Neural Magic optimizes YOLOv8 models by leveraging techniques like Quantization Aware Training (QAT) and pruning, resulting in highly efficient, smaller models that perform better on resource-limited hardware. Check out the [Neural Magic](neural-magic.md) integration page to learn how to implement these optimizations for superior performance and leaner models. This is especially beneficial for deployment on edge devices.
+Neural Magic optimizes YOLO11 models by leveraging techniques like Quantization Aware Training (QAT) and pruning, resulting in highly efficient, smaller models that perform better on resource-limited hardware. Check out the [Neural Magic](neural-magic.md) integration page to learn how to implement these optimizations for superior performance and leaner models. This is especially beneficial for deployment on edge devices.
 
 ### How do I deploy Ultralytics YOLO models with Gradio for interactive demos?
 

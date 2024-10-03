@@ -127,7 +127,7 @@ document.addEventListener("DOMContentLoaded", () => {
               }
             },
             {
-              name: "💬Ask on Ultralytics Discourse Forum",
+              name: "💬Ask on Ultralytics Discourse",
               url: "https://community.ultralytics.com/",
               icon: {
                 builtIn: "FaDiscourse"

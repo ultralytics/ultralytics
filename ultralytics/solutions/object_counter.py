@@ -1,17 +1,18 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 from shapely.geometry import LineString, Point
-from ultralytics.utils.plotting import Annotator, colors
 
-from ultralytics.solutions.solutions import BaseSolution    # Import a parent class
+from ultralytics.solutions.solutions import BaseSolution  # Import a parent class
+from ultralytics.utils.plotting import Annotator, colors
 
 
 class ObjectCounter(BaseSolution):
     """A class to manage the counting of objects in a real-time video stream based on their tracks."""
 
     def __init__(self, **kwargs):
-        """Initialization function for Count class, a child class of BaseSolution class, can be used for counting the objects."""
-
+        """Initialization function for Count class, a child class of BaseSolution class, can be used for counting the
+        objects.
+        """
         super().__init__(**kwargs)
 
         self.in_count = 0  # Counter for objects moving inward

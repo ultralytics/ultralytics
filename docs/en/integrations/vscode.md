@@ -134,7 +134,7 @@ The `ultra.examples` snippets are to useful for anyone looking to learn how to g
     ```python
     from ultralytics import ASSETS, YOLO
 
-    model = YOLO("yolov8n.pt", task="detect")
+    model = YOLO("yolo11n.pt", task="detect")
     results = model(source=ASSETS / "bus.jpg")
 
     for result in results:

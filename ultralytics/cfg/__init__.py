@@ -593,8 +593,8 @@ def handle_yolo_info(args: List[str]) -> None:
             else:
                 summary.append(["Model Name", file.name])
 
-            summary.append([SEPARATING_LINE] * 2)
             if _base.get("meta") and meta:
+                summary.append([SEPARATING_LINE] * 2)
                 kv_list = [
                 [str(k).capitalize(), _obj_or_dict(v)]
                 for k, v in meta.items()
@@ -607,9 +607,9 @@ def handle_yolo_info(args: List[str]) -> None:
                     summary.append(["", '\n'.join(show)])
 
             if file.suffix.lower() == ".pt":
+                summary.append([SEPARATING_LINE] * 2)
                 n_l, n_p, n_g, flops = model.info(detailed=_base.get("detailed", False), verbose=False)
                 fs = f", {flops:.1f} GFLOPs" if flops else ""
-                f"{n_l:,} layers, {n_p:,} parameters, {n_g:,} gradients{fs}"
                 summary.append(['summary', f"{n_l:,} layers, {n_p:,} parameters, {n_g:,} gradients{fs}"])
 
             lines = tabulate(summary, headers=[], tablefmt="pretty").split("\n")

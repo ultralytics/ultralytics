@@ -93,7 +93,7 @@ You can download the model [here](https://github.com/ChaoningZhang/MobileSAM/blo
         # Predict a segment based on a single point prompt
         model.predict("ultralytics/assets/zidane.jpg", points=[900, 370], labels=[1])
 
-        # Predict a segment based on multiple points prompt
+        # Predict multiple segments based on multiple points prompt
         model.predict("ultralytics/assets/zidane.jpg", points=[[400, 370], [900, 370]], labels=[1, 1])
 
         # Predict a segment based on multiple points prompt per object
@@ -118,7 +118,7 @@ You can download the model [here](https://github.com/ChaoningZhang/MobileSAM/blo
         # Predict a segment based on a single point prompt
         model.predict("ultralytics/assets/zidane.jpg", points=[900, 370], labels=[1])
 
-        # Predict a segment based on multiple points prompt
+        # Predict mutiple segments based on multiple points prompt
         model.predict("ultralytics/assets/zidane.jpg", points=[[400, 370], [900, 370]], labels=[1, 1])
 
         # Predict a segment based on multiple points prompt per object

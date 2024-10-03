@@ -10,13 +10,7 @@ keywords: ImageNet, deep learning, visual recognition, computer vision, pretrain
 
 ## ImageNet Pretrained Models
 
-| Model                                                                                        | size<br><sup>(pixels) | acc<br><sup>top1 | acc<br><sup>top5 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) at 640 |
-| -------------------------------------------------------------------------------------------- | --------------------- | ---------------- | ---------------- | ------------------------------ | ----------------------------------- | ------------------ | ------------------------ |
-| [YOLOv8n-cls](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n-cls.pt) | 224                   | 69.0             | 88.3             | 12.9                           | 0.31                                | 2.7                | 4.3                      |
-| [YOLOv8s-cls](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8s-cls.pt) | 224                   | 73.8             | 91.7             | 23.4                           | 0.35                                | 6.4                | 13.5                     |
-| [YOLOv8m-cls](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8m-cls.pt) | 224                   | 76.8             | 93.5             | 85.4                           | 0.62                                | 17.0               | 42.7                     |
-| [YOLOv8l-cls](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8l-cls.pt) | 224                   | 76.8             | 93.5             | 163.0                          | 0.87                                | 37.5               | 99.7                     |
-| [YOLOv8x-cls](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8x-cls.pt) | 224                   | 79.0             | 94.6             | 232.0                          | 1.01                                | 57.4               | 154.8                    |
+{% include "macros/yolo-cls-perf.md" %}
 
 ## Key Features
 
@@ -49,7 +43,7 @@ To train a deep learning model on the ImageNet dataset for 100 [epochs](https://
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n-cls.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n-cls.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="imagenet", epochs=100, imgsz=224)
@@ -59,7 +53,7 @@ To train a deep learning model on the ImageNet dataset for 100 [epochs](https://
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo classify train data=imagenet model=yolov8n-cls.pt epochs=100 imgsz=224
+        yolo classify train data=imagenet model=yolo11n-cls.pt epochs=100 imgsz=224
         ```
 
 ## Sample Images and Annotations
@@ -110,7 +104,7 @@ To use a pretrained Ultralytics YOLO model for image classification on the Image
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n-cls.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n-cls.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="imagenet", epochs=100, imgsz=224)
@@ -120,14 +114,14 @@ To use a pretrained Ultralytics YOLO model for image classification on the Image
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo classify train data=imagenet model=yolov8n-cls.pt epochs=100 imgsz=224
+        yolo classify train data=imagenet model=yolo11n-cls.pt epochs=100 imgsz=224
         ```
 
 For more in-depth training instruction, refer to our [Training page](../../modes/train.md).
 
-### Why should I use the Ultralytics YOLOv8 pretrained models for my ImageNet dataset projects?
+### Why should I use the Ultralytics YOLO11 pretrained models for my ImageNet dataset projects?
 
-Ultralytics YOLOv8 pretrained models offer state-of-the-art performance in terms of speed and [accuracy](https://www.ultralytics.com/glossary/accuracy) for various computer vision tasks. For example, the YOLOv8n-cls model, with a top-1 accuracy of 69.0% and a top-5 accuracy of 88.3%, is optimized for real-time applications. Pretrained models reduce the computational resources required for training from scratch and accelerate development cycles. Learn more about the performance metrics of YOLOv8 models in the [ImageNet Pretrained Models section](#imagenet-pretrained-models).
+Ultralytics YOLO11 pretrained models offer state-of-the-art performance in terms of speed and [accuracy](https://www.ultralytics.com/glossary/accuracy) for various computer vision tasks. For example, the YOLO11n-cls model, with a top-1 accuracy of 69.0% and a top-5 accuracy of 88.3%, is optimized for real-time applications. Pretrained models reduce the computational resources required for training from scratch and accelerate development cycles. Learn more about the performance metrics of YOLO11 models in the [ImageNet Pretrained Models section](#imagenet-pretrained-models).
 
 ### How is the ImageNet dataset structured, and why is it important?
 

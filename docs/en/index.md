@@ -58,7 +58,7 @@ Explore the Ultralytics Docs, a comprehensive resource designed to help you unde
 - **Predict** new images and videos with YOLO &nbsp; [:octicons-image-16: Predict on Images](modes/predict.md){ .md-button }
 - **Train** a new YOLO model on your own custom dataset &nbsp; [:fontawesome-solid-brain: Train a Model](modes/train.md){ .md-button }
 - **Tasks** YOLO tasks like segment, classify, pose and track &nbsp; [:material-magnify-expand: Explore Tasks](tasks/index.md){ .md-button }
-- **[YOLO11](models/yolo11.md) NEW 🚀**: Ultralytics' latest SOTA models &nbsp; [:material-magnify-expand: Explore a Dataset](models/yolo11.md){ .md-button }
+- **[YOLO11](models/yolo11.md) NEW 🚀**: Ultralytics' latest SOTA models &nbsp; [:material-magnify-expand: Explore new YOLO11 models](models/yolo11.md){ .md-button }
 
 <p align="center">
   <br>
@@ -81,10 +81,10 @@ Explore the Ultralytics Docs, a comprehensive resource designed to help you unde
 - [YOLOv5](https://github.com/ultralytics/yolov5) further improved the model's performance and added new features such as hyperparameter optimization, integrated experiment tracking and automatic export to popular export formats.
 - [YOLOv6](https://github.com/meituan/YOLOv6) was open-sourced by [Meituan](https://about.meituan.com/) in 2022 and is in use in many of the company's autonomous delivery robots.
 - [YOLOv7](https://github.com/WongKinYiu/yolov7) added additional tasks such as pose estimation on the COCO keypoints dataset.
-- [YOLOv8](https://github.com/ultralytics/ultralytics) is the latest version of YOLO by Ultralytics. As a cutting-edge, state-of-the-art (SOTA) model, YOLOv8 builds on the success of previous versions, introducing new features and improvements for enhanced performance, flexibility, and efficiency. YOLOv8 supports a full range of vision AI tasks, including [detection](tasks/detect.md), [segmentation](tasks/segment.md), [pose estimation](tasks/pose.md), [tracking](modes/track.md), and [classification](tasks/classify.md). This versatility allows users to leverage YOLOv8's capabilities across diverse applications and domains.
+- [YOLOv8](https://github.com/ultralytics/ultralytics) released in 2023 by Ultralytics. YOLOv8 introduced new features and improvements for enhanced performance, flexibility, and efficiency, supporting a full range of vision AI tasks,
 - [YOLOv9](models/yolov9.md) introduces innovative methods like Programmable Gradient Information (PGI) and the Generalized Efficient Layer Aggregation Network (GELAN).
 - [YOLOv10](models/yolov10.md) is created by researchers from [Tsinghua University](https://www.tsinghua.edu.cn/en/) using the [Ultralytics](https://www.ultralytics.com/) [Python package](https://pypi.org/project/ultralytics/). This version provides real-time [object detection](tasks/detect.md) advancements by introducing an End-to-End head that eliminates Non-Maximum Suppression (NMS) requirements.
-- **[YOLO11](models/yolo11.md) NEW 🚀**: Ultralytics' latest YOLO models delivering state-of-the-art (SOTA) performance across multiple tasks.
+- **[YOLO11](models/yolo11.md) NEW 🚀**: Ultralytics' latest YOLO models delivering state-of-the-art (SOTA) performance across multiple tasks, including [detection](tasks/detect.md), [segmentation](tasks/segment.md), [pose estimation](tasks/pose.md), [tracking](modes/track.md), and [classification](tasks/classify.md), leverage capabilities across diverse AI applications and domains.
 
 ## YOLO Licenses: How is Ultralytics YOLO licensed?
 
@@ -103,11 +103,15 @@ Ultralytics YOLO is the latest advancement in the acclaimed YOLO (You Only Look 
 
 ### How can I get started with YOLO installation and setup?
 
-Getting started with YOLO is quick and straightforward. You can install the Ultralytics package using pip and get up and running in minutes. Here's a basic installation command:
+Getting started with YOLO is quick and straightforward. You can install the Ultralytics package using [pip](https://pypi.org/project/ultralytics/) and get up and running in minutes. Here's a basic installation command:
 
-```bash
-pip install ultralytics
-```
+!!! example
+
+    === "CLI"
+
+        ```bash
+        pip install ultralytics
+        ```
 
 For a comprehensive step-by-step guide, visit our [quickstart guide](quickstart.md). This resource will help you with installation instructions, initial setup, and running your first model.
 
@@ -119,11 +123,28 @@ Training a custom YOLO model on your dataset involves a few detailed steps:
 2. Configure the training parameters in a YAML file.
 3. Use the `yolo train` command to start training.
 
-Here's an example command:
+Here's example code:
 
-```bash
-yolo train model=yolo11n.pt data=coco128.yaml epochs=100 imgsz=640
-```
+!!! example
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load a pre-trained YOLO model (you can choose n, s, m, l, or x versions)
+        model = YOLO("yolo11n.pt")
+
+        # Start training on your custom dataset
+        model.train(data="path/to/dataset.yaml", epochs=100, imgsz=640)
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Train a YOLO model from the command line
+        yolo train data=path/to/dataset.yaml epochs=100 imgsz=640
+        ```
 
 For a detailed walkthrough, check out our [Train a Model](modes/train.md) guide, which includes examples and tips for optimizing your training process.
 
@@ -140,8 +161,27 @@ For more details, visit our [Licensing](https://www.ultralytics.com/license) pag
 
 Ultralytics YOLO supports efficient and customizable multi-object tracking. To utilize tracking capabilities, you can use the `yolo track` command as shown below:
 
-```bash
-yolo track model=yolo11n.pt source=video.mp4
-```
+!!! example
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load a pre-trained YOLO model
+        model = YOLO("yolo11n.pt")
+
+        # Start tracking objects in a video
+        # You can also use live video streams or webcam input
+        model.track(source="path/to/video.mp4")
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Perform object tracking on a video from the command line
+        # You can specify different sources like webcam (0) or RTSP streams
+        yolo track source=path/to/video.mp4
+        ```
 
 For a detailed guide on setting up and running object tracking, check our [tracking mode](modes/track.md) documentation, which explains the configuration and practical applications in real-time scenarios.

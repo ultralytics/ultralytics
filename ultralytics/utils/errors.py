@@ -24,7 +24,7 @@ class HUBModelError(Exception):
 
 class DatasetError(Exception):
     """
-    Custom exception class for handling errors related to dataset!
+    Custom exception class for handling errors related to dataset.
 
     Attributes:
         message (str): The error message displayed when the exception is raised.
@@ -34,6 +34,7 @@ class DatasetError(Exception):
     """
 
     def __init__(self, message="Dataset not found. Please check dataset and try again."):
+        """Create an exception for when a dataset is not found or corrupted."""
         message = (
             message
             + "\n \n If you need a hand with building your dataset, just check out the official documentation: https://docs.ultralytics.com/datasets \n It's really helpful!"

@@ -13,9 +13,10 @@ import cv2
 import numpy as np
 import psutil
 from torch.utils.data import Dataset
-from ultralytics.utils.errors import DatasetError
+
 from ultralytics.data.utils import FORMATS_HELP_MSG, HELP_URL, IMG_FORMATS
 from ultralytics.utils import DEFAULT_CFG, LOCAL_RANK, LOGGER, NUM_THREADS, TQDM
+from ultralytics.utils.errors import DatasetError
 
 
 class BaseDataset(Dataset):

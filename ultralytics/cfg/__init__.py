@@ -565,7 +565,7 @@ def handle_yolo_info(args: List[str]) -> None:
     def _classes(d: dict):
         """Yields a formatted string representation of classes from a dictionary."""
         for k, v in d.items():
-            yield f"\t{k}: {_obj_or_dict(v)}"
+            yield f"{k}: {_obj_or_dict(v)}"
 
     try:
         if args:
@@ -581,18 +581,40 @@ def handle_yolo_info(args: List[str]) -> None:
             names = getattr(model, "names", {})
             show = _classes(names if _base.get("classes", False) else {})
 
-            LOGGER.info(colorstr("blue", "bold", "\nUltralytics Model Info:"))
-            LOGGER.info(f"{delim}\nModel File: {model.ckpt_path or file}")
+            from onnxslim.misc.tabulate import SEPARATING_LINE, tabulate
 
             meta: dict = model.ckpt or model.predictor.model.metadata
+
+            summary = []
+            if file.suffix.lower() == ".onnx":
+                from onnxslim.utils import summarize_model, format_model_info
+                summary = summarize_model(file.name)
+                summary = format_model_info(file.name, summary)
+            else:
+                summary.append(["Model Name", file.name])
+
+            summary.append([SEPARATING_LINE] * 2)
             if _base.get("meta") and meta:
-                f"{[LOGGER.info(f'{str(k).capitalize()}: {_obj_or_dict(v)}') for k,v in meta.items() if ((k not in skip) if _base.get('detailed') else (k in short))]}"
-                LOGGER.info(f"Classes: {'' if _base.get('classes', False) else len(names)}")
-                _ = [LOGGER.info(x) for x in show]
-                LOGGER.info(f"{delim}")
+                kv_list = [
+                [str(k).capitalize(), _obj_or_dict(v)]
+                for k, v in meta.items()
+                if (_base.get('detailed') and k not in skip) or (not _base.get('detailed') and k in short)]
+                summary.extend(kv_list)
+                summary.append([SEPARATING_LINE] * 2)
+                summary.append(["Classes", '' if _base.get('classes', False) else len(names)])
+                show = list(show)
+                if show:
+                    summary.append(["", '\n'.join(show)])
 
             if file.suffix.lower() == ".pt":
-                model.info(detailed=_base.get("detailed", False), verbose=True)
+                n_l, n_p, n_g, flops = model.info(detailed=_base.get("detailed", False), verbose=False)
+                fs = f", {flops:.1f} GFLOPs" if flops else ""
+                f"{n_l:,} layers, {n_p:,} parameters, {n_g:,} gradients{fs}"
+                summary.append(['summary', f"{n_l:,} layers, {n_p:,} parameters, {n_g:,} gradients{fs}"])
+
+            lines = tabulate(summary, headers=[], tablefmt="pretty").split("\n")
+            output = "\n".join([line if line != "| \x01 |" else lines[0] for line in lines])
+            print(output)
         else:
             checks.collect_system_info()
 

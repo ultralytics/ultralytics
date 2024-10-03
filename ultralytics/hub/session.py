@@ -63,22 +63,24 @@ class HUBTrainingSession:
         # Initialize client
         self.client = HUBClient(credentials)
 
-        # Load models if authenticated
-        if self.client.authenticated:
+        # Load models
+        try:
             if model_id:
                 self.load_model(model_id)  # load existing model
             else:
                 self.model = self.client.model()  # load empty model
+        except Exception:
+            if identifier.startswith(f"{HUB_WEB_ROOT}/models/") and not self.client.authenticated:
+                LOGGER.warning(
+                    f"{PREFIX}WARNING ⚠️ Please log in using 'yolo login API_KEY'. "
+                    "You can find your API Key at: https://hub.ultralytics.com/settings?tab=api+keys."
+                )
 
     @classmethod
     def create_session(cls, identifier, args=None):
         """Class method to create an authenticated HUBTrainingSession or return None."""
         try:
             session = cls(identifier)
-            if not session.client.authenticated:
-                if identifier.startswith(f"{HUB_WEB_ROOT}/models/"):
-                    LOGGER.warning(f"{PREFIX}WARNING ⚠️ Login to Ultralytics HUB with 'yolo hub login API_KEY'.")
-                return None
             if args and not identifier.startswith(f"{HUB_WEB_ROOT}/models/"):  # not a HUB model URL
                 session.create_model(args)
                 assert session.model.id, "HUB model not loaded correctly"

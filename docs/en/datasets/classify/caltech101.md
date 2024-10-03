@@ -36,7 +36,7 @@ To train a YOLO model on the Caltech-101 dataset for 100 epochs, you can use the
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n-cls.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n-cls.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="caltech101", epochs=100, imgsz=416)
@@ -46,7 +46,7 @@ To train a YOLO model on the Caltech-101 dataset for 100 epochs, you can use the
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo classify train data=caltech101 model=yolov8n-cls.pt epochs=100 imgsz=416
+        yolo classify train data=caltech101 model=yolo11n-cls.pt epochs=100 imgsz=416
         ```
 
 ## Sample Images and Annotations
@@ -98,7 +98,7 @@ To train an Ultralytics YOLO model on the Caltech-101 dataset, you can use the p
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n-cls.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n-cls.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="caltech101", epochs=100, imgsz=416)
@@ -108,7 +108,7 @@ To train an Ultralytics YOLO model on the Caltech-101 dataset, you can use the p
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo classify train data=caltech101 model=yolov8n-cls.pt epochs=100 imgsz=416
+        yolo classify train data=caltech101 model=yolo11n-cls.pt epochs=100 imgsz=416
         ```
 
 For more detailed arguments and options, refer to the model [Training](../../modes/train.md) page.

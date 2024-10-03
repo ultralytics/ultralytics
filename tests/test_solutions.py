@@ -14,7 +14,7 @@ WORKOUTS_SOLUTION_DEMO = "https://github.com/ultralytics/assets/releases/downloa
 def test_major_solutions():
     """Test the object counting, heatmap, speed estimation and queue management solution."""
     safe_download(url=MAJOR_SOLUTIONS_DEMO)
-    model = YOLO("yolov8n.pt")
+    model = YOLO("yolo11n.pt")
     names = model.names
     cap = cv2.VideoCapture("solutions_ci_demo.mp4")
     assert cap.isOpened(), "Error reading video file"
@@ -41,7 +41,7 @@ def test_major_solutions():
 def test_aigym():
     """Test the workouts monitoring solution."""
     safe_download(url=WORKOUTS_SOLUTION_DEMO)
-    model = YOLO("yolov8n-pose.pt")
+    model = YOLO("yolo11n-pose.pt")
     cap = cv2.VideoCapture("solution_ci_pose_demo.mp4")
     assert cap.isOpened(), "Error reading video file"
     gym_object = solutions.AIGym(line_thickness=2, pose_type="squat", kpts_to_check=[5, 11, 13])
@@ -60,7 +60,7 @@ def test_instance_segmentation():
     """Test the instance segmentation solution."""
     from ultralytics.utils.plotting import Annotator, colors
 
-    model = YOLO("yolov8n-seg.pt")
+    model = YOLO("yolo11n-seg.pt")
     names = model.names
     cap = cv2.VideoCapture("solutions_ci_demo.mp4")
     assert cap.isOpened(), "Error reading video file"

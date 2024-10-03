@@ -32,10 +32,9 @@ class ObjectCounter(BaseSolution):
             track_line (dict): last 30 frame track record
             box (list): Bounding box data for specific track in current frame
             track_id (int): track ID of the object
-            prev_position: last frame position coordinates of the track
+            prev_position (tuple): last frame position coordinates of the track
             cls (int): Class index for classwise count updates
         """
-
         if prev_position is None or track_id in self.counted_ids:
             return
 

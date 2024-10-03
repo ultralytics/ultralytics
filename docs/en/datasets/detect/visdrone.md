@@ -47,7 +47,7 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 ## Usage
 
-To train a YOLOv8n model on the VisDrone dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To train a YOLO11n model on the VisDrone dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
 !!! example "Train Example"
 
@@ -57,7 +57,7 @@ To train a YOLOv8n model on the VisDrone dataset for 100 [epochs](https://www.ul
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="VisDrone.yaml", epochs=100, imgsz=640)
@@ -67,7 +67,7 @@ To train a YOLOv8n model on the VisDrone dataset for 100 [epochs](https://www.ul
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=VisDrone.yaml model=yolov8n.pt epochs=100 imgsz=640
+        yolo detect train data=VisDrone.yaml model=yolo11n.pt epochs=100 imgsz=640
         ```
 
 ## Sample Data and Annotations
@@ -113,9 +113,9 @@ The [VisDrone Dataset](https://github.com/VisDrone/VisDrone-Dataset) is a large-
 - **Diversity**: Collected across 14 cities, in urban and rural settings, under different weather and lighting conditions.
 - **Tasks**: Split into five main tasks—object detection in images and videos, single-object and multi-object tracking, and crowd counting.
 
-### How can I use the VisDrone Dataset to train a YOLOv8 model with Ultralytics?
+### How can I use the VisDrone Dataset to train a YOLO11 model with Ultralytics?
 
-To train a YOLOv8 model on the VisDrone dataset for 100 epochs with an image size of 640, you can follow these steps:
+To train a YOLO11 model on the VisDrone dataset for 100 epochs with an image size of 640, you can follow these steps:
 
 !!! example "Train Example"
 
@@ -125,7 +125,7 @@ To train a YOLOv8 model on the VisDrone dataset for 100 epochs with an image siz
         from ultralytics import YOLO
 
         # Load a pretrained model
-        model = YOLO("yolov8n.pt")
+        model = YOLO("yolo11n.pt")
 
         # Train the model
         results = model.train(data="VisDrone.yaml", epochs=100, imgsz=640)
@@ -135,7 +135,7 @@ To train a YOLOv8 model on the VisDrone dataset for 100 epochs with an image siz
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=VisDrone.yaml model=yolov8n.pt epochs=100 imgsz=640
+        yolo detect train data=VisDrone.yaml model=yolo11n.pt epochs=100 imgsz=640
         ```
 
 For additional configuration options, please refer to the model [Training](../../modes/train.md) page.

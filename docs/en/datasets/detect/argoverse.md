@@ -43,7 +43,7 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 ## Usage
 
-To train a YOLOv8n model on the Argoverse dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To train a YOLO11n model on the Argoverse dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
 !!! example "Train Example"
 
@@ -53,7 +53,7 @@ To train a YOLOv8n model on the Argoverse dataset for 100 [epochs](https://www.u
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="Argoverse.yaml", epochs=100, imgsz=640)
@@ -63,7 +63,7 @@ To train a YOLOv8n model on the Argoverse dataset for 100 [epochs](https://www.u
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=Argoverse.yaml model=yolov8n.pt epochs=100 imgsz=640
+        yolo detect train data=Argoverse.yaml model=yolo11n.pt epochs=100 imgsz=640
         ```
 
 ## Sample Data and Annotations
@@ -104,7 +104,7 @@ The [Argoverse](https://www.argoverse.org/) dataset, developed by Argo AI, suppo
 
 ### How can I train an Ultralytics YOLO model using the Argoverse dataset?
 
-To train a YOLOv8 model with the Argoverse dataset, use the provided YAML configuration file and the following code:
+To train a YOLO11 model with the Argoverse dataset, use the provided YAML configuration file and the following code:
 
 !!! example "Train Example"
 
@@ -114,7 +114,7 @@ To train a YOLOv8 model with the Argoverse dataset, use the provided YAML config
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="Argoverse.yaml", epochs=100, imgsz=640)
@@ -125,7 +125,7 @@ To train a YOLOv8 model with the Argoverse dataset, use the provided YAML config
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=Argoverse.yaml model=yolov8n.pt epochs=100 imgsz=640
+        yolo detect train data=Argoverse.yaml model=yolo11n.pt epochs=100 imgsz=640
         ```
 
 For a detailed explanation of the arguments, refer to the model [Training](../../modes/train.md) page.

@@ -18,6 +18,7 @@ from ultralytics.utils import LOGGER, TQDM, checks, clean_url, emojis, is_online
 GITHUB_ASSETS_REPO = "ultralytics/assets"
 GITHUB_ASSETS_NAMES = (
     [f"yolov8{k}{suffix}.pt" for k in "nsmlx" for suffix in ("", "-cls", "-seg", "-pose", "-obb", "-oiv7")]
+    + [f"yolo11{k}{suffix}.pt" for k in "nsmlx" for suffix in ("", "-cls", "-seg", "-pose", "-obb")]
     + [f"yolov5{k}{resolution}u.pt" for k in "nsmlx" for resolution in ("", "6")]
     + [f"yolov3{k}u.pt" for k in ("", "-spp", "-tiny")]
     + [f"yolov8{k}-world.pt" for k in "smlx"]
@@ -408,7 +409,7 @@ def get_github_assets(repo="ultralytics/assets", version="latest", retry=False):
     return data["tag_name"], [x["name"] for x in data["assets"]]  # tag, assets i.e. ['yolov8n.pt', 'yolov8s.pt', ...]
 
 
-def attempt_download_asset(file, repo="ultralytics/assets", release="v8.2.0", **kwargs):
+def attempt_download_asset(file, repo="ultralytics/assets", release="v8.3.0", **kwargs):
     """
     Attempt to download a file from GitHub release assets if it is not found locally. The function checks for the file
     locally first, then tries to download it from the specified GitHub repository release.
@@ -416,7 +417,7 @@ def attempt_download_asset(file, repo="ultralytics/assets", release="v8.2.0", **
     Args:
         file (str | Path): The filename or file path to be downloaded.
         repo (str, optional): The GitHub repository in the format 'owner/repo'. Defaults to 'ultralytics/assets'.
-        release (str, optional): The specific release version to be downloaded. Defaults to 'v8.2.0'.
+        release (str, optional): The specific release version to be downloaded. Defaults to 'v8.3.0'.
         **kwargs (any): Additional keyword arguments for the download process.
 
     Returns:

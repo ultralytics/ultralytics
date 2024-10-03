@@ -52,7 +52,7 @@ To train a model on the xView dataset for 100 [epochs](https://www.ultralytics.c
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="xView.yaml", epochs=100, imgsz=640)
@@ -62,7 +62,7 @@ To train a model on the xView dataset for 100 [epochs](https://www.ultralytics.c
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=xView.yaml model=yolov8n.pt epochs=100 imgsz=640
+        yolo detect train data=xView.yaml model=yolo11n.pt epochs=100 imgsz=640
         ```
 
 ## Sample Data and Annotations
@@ -114,7 +114,7 @@ To train a model on the xView dataset using Ultralytics YOLO, follow these steps
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="xView.yaml", epochs=100, imgsz=640)
@@ -125,7 +125,7 @@ To train a model on the xView dataset using Ultralytics YOLO, follow these steps
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=xView.yaml model=yolov8n.pt epochs=100 imgsz=640
+        yolo detect train data=xView.yaml model=yolo11n.pt epochs=100 imgsz=640
         ```
 
 For detailed arguments and settings, refer to the model [Training](../../modes/train.md) page.

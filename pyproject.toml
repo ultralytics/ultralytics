@@ -62,7 +62,7 @@ classifiers = [
 
 # Required dependencies ------------------------------------------------------------------------------------------------
 dependencies = [
-    "numpy>=1.23.0,<2.0.0", # temporary patch for compat errors https://github.com/ultralytics/yolov5/actions/runs/9538130424/job/26286956354
+    "numpy>=1.23.0", # temporary patch for compat errors https://github.com/ultralytics/yolov5/actions/runs/9538130424/job/26286956354
     "matplotlib>=3.3.0",
     "opencv-python>=4.6.0",
     "pillow>=7.1.2",
@@ -98,6 +98,7 @@ dev = [
 export = [
     "onnx>=1.12.0", # ONNX export
     "coremltools>=7.0; platform_system != 'Windows' and python_version <= '3.11'", # CoreML supported on macOS and Linux
+    "scikit-learn>=1.3.2; platform_system != 'Windows' and python_version <= '3.11'", # CoreML k-means quantization
     "openvino>=2024.0.0", # OpenVINO export
     "tensorflow>=2.0.0", # TF bug https://github.com/ultralytics/ultralytics/issues/5161
     "tensorflowjs>=3.9.0", # TF.js export, automatically installs tensorflow

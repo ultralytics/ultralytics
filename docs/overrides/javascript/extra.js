@@ -120,21 +120,21 @@ document.addEventListener("DOMContentLoaded", () => {
           ],
           getHelpCallToActions: [
             {
-              name: "📄Ask on Ultralytics GitHub",
+              name: "Ask on Ultralytics GitHub",
               url: "https://github.com/ultralytics/ultralytics",
               icon: {
                 builtIn: "FaGithub"
               }
             },
             {
-              name: "💬Ask on Ultralytics Discourse",
+              name: "Ask on Ultralytics Discourse",
               url: "https://community.ultralytics.com/",
               icon: {
                 builtIn: "FaDiscourse"
               }
             },
             {
-              name: "🎧Ask on Ultralytics Discord",
+              name: "Ask on Ultralytics Discord",
               url: "https://discord.com/invite/ultralytics",
               icon: {
                 builtIn: "FaDiscord"

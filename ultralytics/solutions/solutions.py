@@ -21,7 +21,6 @@ class BaseSolution:
 
         Child classes should call this with necessary parameters.
         """
-
         # Load config and update with args
         self.CFG = yaml_load(DEFAULT_SOL_CFG_PATH)
         self.CFG.update(kwargs)
@@ -31,7 +30,7 @@ class BaseSolution:
         self.line_width = self.CFG["line_width"]  # Store line_width for usage
 
         # Load Model and store classes names
-        self.model = YOLO("yolov8n.pt" if self.CFG["model"] is None else self.CFG["model"])
+        self.model = YOLO(self.CFG["model"])
         self.names = self.model.names
 
         # Initialize environment and region setup

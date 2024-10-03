@@ -56,7 +56,7 @@ Here's how you can use these formats to train your model:
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
@@ -66,7 +66,7 @@ Here's how you can use these formats to train your model:
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=coco8.yaml model=yolov8n.pt epochs=100 imgsz=640
+        yolo detect train data=coco8.yaml model=yolo11n.pt epochs=100 imgsz=640
         ```
 
 ## Supported Datasets
@@ -158,11 +158,11 @@ Ultralytics YOLO supports a wide range of datasets, including:
 - [Objects365](objects365.md)
 - [OpenImagesV7](open-images-v7.md)
 
-Each dataset page provides detailed information on the structure and usage tailored for efficient YOLOv8 training. Explore the full list in the [Supported Datasets](#supported-datasets) section.
+Each dataset page provides detailed information on the structure and usage tailored for efficient YOLO11 training. Explore the full list in the [Supported Datasets](#supported-datasets) section.
 
-### How do I start training a YOLOv8 model using my dataset?
+### How do I start training a YOLO11 model using my dataset?
 
-To start training a YOLOv8 model, ensure your dataset is formatted correctly and the paths are defined in a YAML file. Use the following script to begin training:
+To start training a YOLO11 model, ensure your dataset is formatted correctly and the paths are defined in a YAML file. Use the following script to begin training:
 
 !!! example
 
@@ -171,18 +171,18 @@ To start training a YOLOv8 model, ensure your dataset is formatted correctly and
         ```python
         from ultralytics import YOLO
 
-        model = YOLO("yolov8n.pt")  # Load a pretrained model
+        model = YOLO("yolo11n.pt")  # Load a pretrained model
         results = model.train(data="path/to/your_dataset.yaml", epochs=100, imgsz=640)
         ```
 
     === "CLI"
 
         ```bash
-        yolo detect train data=path/to/your_dataset.yaml model=yolov8n.pt epochs=100 imgsz=640
+        yolo detect train data=path/to/your_dataset.yaml model=yolo11n.pt epochs=100 imgsz=640
         ```
 
 Refer to the [Usage](#usage) section for more details on utilizing different modes, including CLI commands.
 
 ### Where can I find practical examples of using Ultralytics YOLO for object detection?
 
-Ultralytics provides numerous examples and practical guides for using YOLOv8 in diverse applications. For a comprehensive overview, visit the [Ultralytics Blog](https://www.ultralytics.com/blog) where you can find case studies, detailed tutorials, and community stories showcasing object detection, segmentation, and more with YOLOv8. For specific examples, check the [Usage](../../modes/predict.md) section in the documentation.
+Ultralytics provides numerous examples and practical guides for using YOLO11 in diverse applications. For a comprehensive overview, visit the [Ultralytics Blog](https://www.ultralytics.com/blog) where you can find case studies, detailed tutorials, and community stories showcasing object detection, segmentation, and more with YOLO11. For specific examples, check the [Usage](../../modes/predict.md) section in the documentation.

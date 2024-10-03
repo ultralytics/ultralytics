@@ -14,7 +14,7 @@ YOLO settings and hyperparameters play a critical role in the model's performanc
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Mastering Ultralytics YOLOv8: Configuration
+  <strong>Watch:</strong> Mastering Ultralytics YOLO: Configuration
 </p>
 
 Ultralytics commands use the following syntax:
@@ -32,8 +32,8 @@ Ultralytics commands use the following syntax:
         ```python
         from ultralytics import YOLO
 
-        # Load a YOLOv8 model from a pre-trained weights file
-        model = YOLO("yolov8n.pt")
+        # Load a YOLO11 model from a pre-trained weights file
+        model = YOLO("yolo11n.pt")
 
         # Run MODE mode using the custom arguments ARGS (guess TASK)
         model.MODE(ARGS)
@@ -67,12 +67,12 @@ YOLO models can be used for a variety of tasks, including detection, segmentatio
 
 YOLO models can be used in different modes depending on the specific problem you are trying to solve. These modes include:
 
-- **Train**: For training a YOLOv8 model on a custom dataset.
-- **Val**: For validating a YOLOv8 model after it has been trained.
-- **Predict**: For making predictions using a trained YOLOv8 model on new images or videos.
-- **Export**: For exporting a YOLOv8 model to a format that can be used for deployment.
-- **Track**: For tracking objects in real-time using a YOLOv8 model.
-- **Benchmark**: For benchmarking YOLOv8 exports (ONNX, TensorRT, etc.) speed and accuracy.
+- **Train**: For training a YOLO11 model on a custom dataset.
+- **Val**: For validating a YOLO11 model after it has been trained.
+- **Predict**: For making predictions using a trained YOLO11 model on new images or videos.
+- **Export**: For exporting a YOLO11 model to a format that can be used for deployment.
+- **Track**: For tracking objects in real-time using a YOLO11 model.
+- **Benchmark**: For benchmarking YOLO11 exports (ONNX, TensorRT, etc.) speed and accuracy.
 
 | Argument | Default   | Description                                                                                                                                                                                                                                                                                                                                                                                   |
 | -------- | --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

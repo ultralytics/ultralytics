@@ -219,4 +219,4 @@ def update_models(model_names=("yolov8n.pt",), source_dir=Path("."), update_name
 
         # Save model using model.save()
         print(f"Re-saving {model_name} model to {save_path}")
-        model.save(save_path, use_dill=False)
+        model.save(save_path)

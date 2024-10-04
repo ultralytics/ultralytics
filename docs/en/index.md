@@ -58,7 +58,7 @@ Explore the Ultralytics Docs, a comprehensive resource designed to help you unde
 - **Predict** new images and videos with YOLO &nbsp; [:octicons-image-16: Predict on Images](modes/predict.md){ .md-button }
 - **Train** a new YOLO model on your own custom dataset &nbsp; [:fontawesome-solid-brain: Train a Model](modes/train.md){ .md-button }
 - **Tasks** YOLO tasks like segment, classify, pose and track &nbsp; [:material-magnify-expand: Explore Tasks](tasks/index.md){ .md-button }
-- **[YOLO11](models/yolo11.md) NEW 🚀**: Ultralytics' latest SOTA models &nbsp; [:material-magnify-expand: Explore new YOLO11 models](models/yolo11.md){ .md-button }
+- **[YOLO11](models/yolo11.md) 🚀 NEW**: Ultralytics' latest SOTA models &nbsp; [:material-magnify-expand: Explore new YOLO11 models](models/yolo11.md){ .md-button }
 
 <p align="center">
   <br>
@@ -84,7 +84,7 @@ Explore the Ultralytics Docs, a comprehensive resource designed to help you unde
 - [YOLOv8](https://github.com/ultralytics/ultralytics) released in 2023 by Ultralytics. YOLOv8 introduced new features and improvements for enhanced performance, flexibility, and efficiency, supporting a full range of vision AI tasks,
 - [YOLOv9](models/yolov9.md) introduces innovative methods like Programmable Gradient Information (PGI) and the Generalized Efficient Layer Aggregation Network (GELAN).
 - [YOLOv10](models/yolov10.md) is created by researchers from [Tsinghua University](https://www.tsinghua.edu.cn/en/) using the [Ultralytics](https://www.ultralytics.com/) [Python package](https://pypi.org/project/ultralytics/). This version provides real-time [object detection](tasks/detect.md) advancements by introducing an End-to-End head that eliminates Non-Maximum Suppression (NMS) requirements.
-- **[YOLO11](models/yolo11.md) NEW 🚀**: Ultralytics' latest YOLO models delivering state-of-the-art (SOTA) performance across multiple tasks, including [detection](tasks/detect.md), [segmentation](tasks/segment.md), [pose estimation](tasks/pose.md), [tracking](modes/track.md), and [classification](tasks/classify.md), leverage capabilities across diverse AI applications and domains.
+- **[YOLO11](models/yolo11.md) 🚀 NEW**: Ultralytics' latest YOLO models delivering state-of-the-art (SOTA) performance across multiple tasks, including [detection](tasks/detect.md), [segmentation](tasks/segment.md), [pose estimation](tasks/pose.md), [tracking](modes/track.md), and [classification](tasks/classify.md), leverage capabilities across diverse AI applications and domains.
 
 ## YOLO Licenses: How is Ultralytics YOLO licensed?
 

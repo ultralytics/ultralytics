@@ -90,13 +90,14 @@ document.addEventListener("DOMContentLoaded", () => {
       },
       properties: {
         chatButtonType: "PILL",
+        fixedPositionXOffset: "1rem",
         fixedPositionYOffset: "3rem",
-        chatButtonBgColor: "#F3F3F3",
+        chatButtonBgColor: "#E1FF25",
         baseSettings: {
           apiKey: "13dfec2e75982bc9bae3199a08e13b86b5fbacd64e9b2f89", // required
           integrationId: "cm1shscmm00y26sj83lgxzvkw", // required
           organizationId: "org_e3869az6hQZ0mXdF", // required
-          primaryBrandColor: "#111F68", // Ultralytics brand color
+          primaryBrandColor: "#E1FF25", // Ultralytics brand color
           organizationDisplayName: "Ultralytics",
           theme: {
             stylesheetUrls: ["../stylesheets/style.css"],

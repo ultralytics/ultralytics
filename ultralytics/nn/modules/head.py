@@ -592,7 +592,7 @@ class v10Detect(Detect):
 
 class v11Detect(Detect):
     """
-    v11 Detection head
+    V11 Detection head.
 
     Args:
         nc (int): Number of classes.
@@ -602,7 +602,6 @@ class v11Detect(Detect):
         __init__(self, nc=80, ch=()): Initializes the v11Detect object.
         forward(self, x): Performs forward pass of the v11Detect module.
         bias_init(self): Initializes biases of the Detect module.
-
     """
 
     def __init__(self, nc=80, ch=()):
@@ -610,10 +609,10 @@ class v11Detect(Detect):
         super().__init__(nc, ch)
         c3 = max(ch[0], min(self.nc, 100))  # channels
         self.cv3 = nn.ModuleList(
-                nn.Sequential(
-                    nn.Sequential(DWConv(x, x, 3), Conv(x, c3, 1)),
-                    nn.Sequential(DWConv(c3, c3, 3), Conv(c3, c3, 1)),
-                    nn.Conv2d(c3, self.nc, 1),
-                )
-                for x in ch
+            nn.Sequential(
+                nn.Sequential(DWConv(x, x, 3), Conv(x, c3, 1)),
+                nn.Sequential(DWConv(c3, c3, 3), Conv(c3, c3, 1)),
+                nn.Conv2d(c3, self.nc, 1),
             )
+            for x in ch
+        )

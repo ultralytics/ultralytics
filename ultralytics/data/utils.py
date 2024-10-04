@@ -210,7 +210,7 @@ def polygons2masks_overlap(imgsz, segments, downsample_ratio=1):
     """Return a (640, 640) overlap mask."""
     masks = np.zeros(
         (imgsz[0] // downsample_ratio, imgsz[1] // downsample_ratio),
-        dtype=np.int32,
+        dtype=np.int32 if len(segments) > 255 else np.uint8,
     )
     areas = []
     ms = []

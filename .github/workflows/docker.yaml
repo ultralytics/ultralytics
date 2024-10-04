@@ -179,7 +179,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check docker job status
-        if: needs.docker.result == 'failure'
+        if: needs.docker.result == 'failure' && github.repository == 'ultralytics/ultralytics' && github.event_name == 'push'
         uses: slackapi/slack-github-action@v1.27.0
         with:
           payload: |

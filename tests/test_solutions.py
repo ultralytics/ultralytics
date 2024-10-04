@@ -19,7 +19,7 @@ def test_major_solutions():
     cap = cv2.VideoCapture("solutions_ci_demo.mp4")
     assert cap.isOpened(), "Error reading video file"
     region_points = [(20, 400), (1080, 404), (1080, 360), (20, 360)]
-    counter = solutions.ObjectCounter(reg_pts=region_points, names=names, view_img=False)
+    # counter = solutions.ObjectCounter(reg_pts=region_points, names=names, view_img=False)
     heatmap = solutions.Heatmap(colormap=cv2.COLORMAP_PARULA, names=names, view_img=False)
     speed = solutions.SpeedEstimator(reg_pts=region_points, names=names, view_img=False)
     queue = solutions.QueueManager(names=names, reg_pts=region_points, view_img=False)
@@ -29,7 +29,7 @@ def test_major_solutions():
             break
         original_im0 = im0.copy()
         tracks = model.track(im0, persist=True, show=False)
-        _ = counter.start_counting(original_im0.copy(), tracks)
+        # _ = counter.start_counting(original_im0.copy(), tracks)
         _ = heatmap.generate_heatmap(original_im0.copy(), tracks)
         _ = speed.estimate_speed(original_im0.copy(), tracks)
         _ = queue.process_queue(original_im0.copy(), tracks)

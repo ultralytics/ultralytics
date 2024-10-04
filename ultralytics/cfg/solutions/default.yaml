@@ -1,0 +1,12 @@
+# Ultralytics YOLO 🚀, AGPL-3.0 license
+
+# Configuration for Ultralytics Solutions
+
+model: "yolo11n.pt" # The Ultralytics YOLO11 model to be used (e.g., yolo11n.pt for YOLO11 nano version)
+
+region: # Object counting, queue or speed estimation region points
+line_width: 2 # Thickness of the lines used to draw regions on the image/video frames
+show: True # Flag to control whether to display output image or not
+show_in: True # Flag to display objects moving *into* the defined region
+show_out: True # Flag to display objects moving *out of* the defined region
+classes: # To count specific classes

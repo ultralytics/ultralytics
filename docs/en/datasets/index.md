@@ -19,7 +19,7 @@ Ultralytics provides support for various datasets to facilitate computer vision 
   <strong>Watch:</strong> Ultralytics Datasets Overview
 </p>
 
-## NEW 🚀 Ultralytics Explorer
+## Ultralytics Explorer 🚀 NEW
 
 Create [embeddings](https://www.ultralytics.com/glossary/embeddings) for your dataset, search for similar images, run SQL queries, perform semantic search and even search using natural language! You can get started with our GUI app or build your own using the API. Learn more [here](explorer/index.md).
 

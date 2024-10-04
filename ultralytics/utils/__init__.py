@@ -61,8 +61,8 @@ HELP_MSG = """
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n.yaml")  # build a new model from scratch
-        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n.yaml")  # build a new model from scratch
+        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
 
         # Use the model
         results = model.train(data="coco8.yaml", epochs=3)  # train the model
@@ -77,21 +77,21 @@ HELP_MSG = """
             yolo TASK MODE ARGS
 
             Where   TASK (optional) is one of [detect, segment, classify, pose, obb]
-                    MODE (required) is one of [train, val, predict, export, benchmark]
+                    MODE (required) is one of [train, val, predict, export, track, benchmark]
                     ARGS (optional) are any number of custom "arg=value" pairs like "imgsz=320" that override defaults.
                         See all ARGS at https://docs.ultralytics.com/usage/cfg or with "yolo cfg"
 
         - Train a detection model for 10 epochs with an initial learning_rate of 0.01
-            yolo detect train data=coco8.yaml model=yolov8n.pt epochs=10 lr0=0.01
+            yolo detect train data=coco8.yaml model=yolo11n.pt epochs=10 lr0=0.01
 
         - Predict a YouTube video using a pretrained segmentation model at image size 320:
-            yolo segment predict model=yolov8n-seg.pt source='https://youtu.be/LNwODJXcvt4' imgsz=320
+            yolo segment predict model=yolo11n-seg.pt source='https://youtu.be/LNwODJXcvt4' imgsz=320
 
         - Val a pretrained detection model at batch-size 1 and image size 640:
-            yolo detect val model=yolov8n.pt data=coco8.yaml batch=1 imgsz=640
+            yolo detect val model=yolo11n.pt data=coco8.yaml batch=1 imgsz=640
 
-        - Export a YOLOv8n classification model to ONNX format at image size 224 by 128 (no TASK required)
-            yolo export model=yolov8n-cls.pt format=onnx imgsz=224,128
+        - Export a YOLO11n classification model to ONNX format at image size 224 by 128 (no TASK required)
+            yolo export model=yolo11n-cls.pt format=onnx imgsz=224,128
 
         - Run special commands:
             yolo help
@@ -111,6 +111,7 @@ torch.set_printoptions(linewidth=320, precision=4, profile="default")
 np.set_printoptions(linewidth=320, formatter={"float_kind": "{:11.5g}".format})  # format short g, %precision=5
 cv2.setNumThreads(0)  # prevent OpenCV from multithreading (incompatible with PyTorch DataLoader)
 os.environ["NUMEXPR_MAX_THREADS"] = str(NUM_THREADS)  # NumExpr max threads
+os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"  # for deterministic training to avoid CUDA warning
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # suppress verbose TF compiler warnings in Colab
 os.environ["TORCH_CPP_LOG_LEVEL"] = "ERROR"  # suppress "NNPACK.cpp could not initialize NNPACK" warnings
 os.environ["KINETO_LOG_LEVEL"] = "5"  # suppress verbose PyTorch profiler output when computing FLOPs
@@ -970,7 +971,7 @@ def threaded(func):
 def set_sentry():
     """
     Initialize the Sentry SDK for error tracking and reporting. Only used if sentry_sdk package is installed and
-    sync=True in settings. Run 'yolo settings' to see and update settings YAML file.
+    sync=True in settings. Run 'yolo settings' to see and update settings.
 
     Conditions required to send errors (ALL conditions must be met or no errors will be reported):
         - sentry_sdk package is installed
@@ -982,36 +983,11 @@ def set_sentry():
         - online environment
         - CLI used to run package (checked with 'yolo' as the name of the main CLI command)
 
-    The function also configures Sentry SDK to ignore KeyboardInterrupt and FileNotFoundError
-    exceptions and to exclude events with 'out of memory' in their exception message.
+    The function also configures Sentry SDK to ignore KeyboardInterrupt and FileNotFoundError exceptions and to exclude
+    events with 'out of memory' in their exception message.
 
     Additionally, the function sets custom tags and user information for Sentry events.
     """
-
-    def before_send(event, hint):
-        """
-        Modify the event before sending it to Sentry based on specific exception types and messages.
-
-        Args:
-            event (dict): The event dictionary containing information about the error.
-            hint (dict): A dictionary containing additional information about the error.
-
-        Returns:
-            dict: The modified event or None if the event should not be sent to Sentry.
-        """
-        if "exc_info" in hint:
-            exc_type, exc_value, tb = hint["exc_info"]
-            if exc_type in {KeyboardInterrupt, FileNotFoundError} or "out of memory" in str(exc_value):
-                return None  # do not send event
-
-        event["tags"] = {
-            "sys_argv": ARGV[0],
-            "sys_argv_name": Path(ARGV[0]).name,
-            "install": "git" if IS_GIT_DIR else "pip" if IS_PIP_PACKAGE else "other",
-            "os": ENVIRONMENT,
-        }
-        return event
-
     if (
         SETTINGS["sync"]
         and RANK in {-1, 0}
@@ -1027,9 +1003,34 @@ def set_sentry():
         except ImportError:
             return
 
+        def before_send(event, hint):
+            """
+            Modify the event before sending it to Sentry based on specific exception types and messages.
+
+            Args:
+                event (dict): The event dictionary containing information about the error.
+                hint (dict): A dictionary containing additional information about the error.
+
+            Returns:
+                dict: The modified event or None if the event should not be sent to Sentry.
+            """
+            if "exc_info" in hint:
+                exc_type, exc_value, _ = hint["exc_info"]
+                if exc_type in {KeyboardInterrupt, FileNotFoundError} or "out of memory" in str(exc_value):
+                    return None  # do not send event
+
+            event["tags"] = {
+                "sys_argv": ARGV[0],
+                "sys_argv_name": Path(ARGV[0]).name,
+                "install": "git" if IS_GIT_DIR else "pip" if IS_PIP_PACKAGE else "other",
+                "os": ENVIRONMENT,
+            }
+            return event
+
         sentry_sdk.init(
-            dsn="https://5ff1556b71594bfea135ff0203a0d290@o4504521589325824.ingest.sentry.io/4504521592406016",
+            dsn="https://888e5a0778212e1d0314c37d4b9aae5d@o4504521589325824.ingest.us.sentry.io/4504521592406016",
             debug=False,
+            auto_enabling_integrations=False,
             traces_sample_rate=1.0,
             release=__version__,
             environment="production",  # 'dev' or 'production'
@@ -1169,25 +1170,26 @@ class SettingsManager(JSONDict):
         self.file = Path(file)
         self.version = version
         self.defaults = {
-            "settings_version": version,
-            "datasets_dir": str(datasets_root / "datasets"),
-            "weights_dir": str(root / "weights"),
-            "runs_dir": str(root / "runs"),
-            "uuid": hashlib.sha256(str(uuid.getnode()).encode()).hexdigest(),
-            "sync": True,
-            "api_key": "",
-            "openai_api_key": "",
-            "clearml": True,  # integrations
-            "comet": True,
-            "dvc": True,
-            "hub": True,
-            "mlflow": True,
-            "neptune": True,
-            "raytune": True,
-            "tensorboard": True,
-            "wandb": True,
-            "vscode_msg": True,
+            "settings_version": version,  # Settings schema version
+            "datasets_dir": str(datasets_root / "datasets"),  # Datasets directory
+            "weights_dir": str(root / "weights"),  # Model weights directory
+            "runs_dir": str(root / "runs"),  # Experiment runs directory
+            "uuid": hashlib.sha256(str(uuid.getnode()).encode()).hexdigest(),  # SHA-256 anonymized UUID hash
+            "sync": True,  # Enable synchronization
+            "api_key": "",  # Ultralytics API Key
+            "openai_api_key": "",  # OpenAI API Key
+            "clearml": True,  # ClearML integration
+            "comet": True,  # Comet integration
+            "dvc": True,  # DVC integration
+            "hub": True,  # Ultralytics HUB integration
+            "mlflow": True,  # MLflow integration
+            "neptune": True,  # Neptune integration
+            "raytune": True,  # Ray Tune integration
+            "tensorboard": True,  # TensorBoard logging
+            "wandb": True,  # Weights & Biases logging
+            "vscode_msg": True,  # VSCode messaging
         }
+
         self.help_msg = (
             f"\nView Ultralytics Settings with 'yolo settings' or at '{self.file}'"
             "\nUpdate Settings with 'yolo settings key=value', i.e. 'yolo settings runs_dir=path/to/dir'. "

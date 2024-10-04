@@ -1,6 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 # Builds ultralytics/ultralytics:latest image on DockerHub https://hub.docker.com/r/ultralytics/ultralytics
-# Image is CUDA-optimized for YOLOv8 single/multi-GPU training and inference
+# Image is CUDA-optimized for YOLO11 single/multi-GPU training and inference
 
 # Start FROM PyTorch image https://hub.docker.com/r/pytorch/pytorch or nvcr.io/nvidia/pytorch:23.03-py3
 FROM pytorch/pytorch:2.3.1-cuda12.1-cudnn8-runtime
@@ -36,7 +36,7 @@ WORKDIR /ultralytics
 # Copy contents and configure git
 COPY . .
 RUN sed -i '/^\[http "https:\/\/github\.com\/"\]/,+1d' .git/config
-ADD https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n.pt .
+ADD https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11n.pt .
 
 # Install pip packages
 RUN python3 -m pip install --upgrade pip wheel
@@ -45,8 +45,8 @@ RUN pip install -e ".[export]" "tensorrt-cu12==10.1.0" "albumentations>=1.4.6" c
 
 # Run exports to AutoInstall packages
 # Edge TPU export fails the first time so is run twice here
-RUN yolo export model=tmp/yolov8n.pt format=edgetpu imgsz=32 || yolo export model=tmp/yolov8n.pt format=edgetpu imgsz=32
-RUN yolo export model=tmp/yolov8n.pt format=ncnn imgsz=32
+RUN yolo export model=tmp/yolo11n.pt format=edgetpu imgsz=32 || yolo export model=tmp/yolo11n.pt format=edgetpu imgsz=32
+RUN yolo export model=tmp/yolo11n.pt format=ncnn imgsz=32
 # Requires <= Python 3.10, bug with paddlepaddle==2.5.0 https://github.com/PaddlePaddle/X2Paddle/issues/991
 RUN pip install "paddlepaddle>=2.6.0" x2paddle
 # Fix error: `np.bool` was a deprecated alias for the builtin `bool` segmentation error in Tests

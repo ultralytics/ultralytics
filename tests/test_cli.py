@@ -117,9 +117,7 @@ def run_yolo_info(args) -> tuple[str, str]:
 def test_yolo_info_noargs():
     """Test yolo info command without arguments, same as `yolo checks`."""
     stdout, stderr = run_yolo_info("")
-    checks_out = subprocess.run(
-        f"yolo checks", shell=True, capture_output=True, text=True, encoding="utf-8"
-    ).stdout
+    checks_out = subprocess.run("yolo checks", shell=True, capture_output=True, text=True, encoding="utf-8").stdout
     assert stdout == checks_out
     assert stderr == ""
 
@@ -135,7 +133,7 @@ def test_yolo_info_with_model():
 def test_yolo_info_invalid_model():
     """Test yolo info command with an invalid model path."""
     stdout, _ = run_yolo_info("model=not-a-model.pt")
-    assert f"Model 'not-a-model.pt' not found" in stdout
+    assert "Model 'not-a-model.pt' not found" in stdout
 
 
 def test_yolo_info_with_show():
@@ -158,8 +156,10 @@ def test_train_gpu(task, model, data):
 
 
 @pytest.mark.slow
-@pytest.mark.parametrize("model", {"yolo11n.pt", "yolov8n-seg.pt", "FastSAM-s.pt", "rtdetr-l.pt", "sam_b.pt", "yolo_nas_s.pt"})
-def test_yolo_info_various_models(model:str):
+@pytest.mark.parametrize(
+    "model", {"yolo11n.pt", "yolov8n-seg.pt", "FastSAM-s.pt", "rtdetr-l.pt", "sam_b.pt", "yolo_nas_s.pt"}
+)
+def test_yolo_info_various_models(model: str):
     """Test yolo info command with various models."""
     model_path = WEIGHTS_DIR / model
     if not model_path.exists():

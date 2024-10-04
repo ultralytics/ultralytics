@@ -548,7 +548,7 @@ def handle_yolo_settings(args: List[str]) -> None:
 
 def handle_yolo_info(args: List[str]) -> None:
     """Handles YOLO info command-line interface (CLI) commands."""
-    from ultralytics import  FastSAM, NAS, RTDETR, SAM, YOLO
+    from ultralytics import NAS, RTDETR, SAM, YOLO, FastSAM
 
     nl = "\n"
     delim = "-" * 80
@@ -559,7 +559,7 @@ def handle_yolo_info(args: List[str]) -> None:
         "mobile_sam": SAM,
         "sam_": SAM,
         "sam2_": SAM,
-        "yolo_nas": NAS
+        "yolo_nas": NAS,
     }
     skip = {"model", "ema", "optimizer", "train_results"}
 
@@ -571,14 +571,14 @@ def handle_yolo_info(args: List[str]) -> None:
         """Yields a formatted string representation of classes from a dictionary."""
         for k, v in d.items():
             yield f"\t{k}: {_obj_or_dict(v)}"
-    
+
     def _args_load(a: List[str]) -> tuple[dict, str]:
         """Loads arguments from a list of strings."""
         f = a.pop(0) if "=" not in a[0] else ""
-        d:dict = dict(DEFAULT_CFG) | dict(parse_key_value_pair(e) for e in args)
+        d: dict = dict(DEFAULT_CFG) | dict(parse_key_value_pair(e) for e in args)
         check_dict_alignment(dict(DEFAULT_CFG), d)
         return d, f
-        
+
     try:
         if args:
             new, file = _args_load(args)
@@ -592,7 +592,7 @@ def handle_yolo_info(args: List[str]) -> None:
                 f'{colorstr("blue", "bold", f"{nl}Ultralytics Model Info:")}'
                 f"{nl}{delim}{nl}"
                 f"Model File: {model.ckpt_path or file}"
-                )
+            )
             # Display model metadata
             f"{[LOGGER.info(f'{str(k).capitalize()}: {_obj_or_dict(v)}') for k,v in meta.items() if k.lower() not in skip]}"
             # Display class-names & total count

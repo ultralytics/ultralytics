@@ -1,5 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-
+import os
 import subprocess
 
 import pytest
@@ -27,7 +27,7 @@ def test_special_modes():
     run("yolo version")
     run("yolo settings reset")
     run("yolo cfg")
-    run("yolo info yolov8n.pt")
+    run("yolo info yolov11n.pt")
 
 
 @pytest.mark.parametrize("task,model,data", TASK_MODEL_DATA)
@@ -108,6 +108,44 @@ def test_mobilesam():
     # model(source)
 
 
+def run_yolo_info(args) -> tuple[str, str]:
+    """Run the yolo info command with specified arguments and capture the output."""
+    result = subprocess.run(f"yolo info {args}", shell=True, capture_output=True, text=True, encoding="utf-8")
+    return result.stdout, result.stderr
+
+
+def test_yolo_info_noargs():
+    """Test yolo info command without arguments, same as `yolo checks`."""
+    stdout, stderr = run_yolo_info("")
+    checks_out = subprocess.run(
+        f"yolo checks", shell=True, capture_output=True, text=True, encoding="utf-8"
+    ).stdout
+    assert stdout == checks_out
+    assert stderr == ""
+
+
+def test_yolo_info_with_model():
+    """Test yolo info command with a specific model."""
+    model_path = WEIGHTS_DIR / "yolo11n.pt"
+    stdout, stderr = run_yolo_info(f"model={model_path.as_posix()}")
+    assert f"Model File: {model_path.as_posix().replace('/', os.sep)}" in stdout
+    assert stderr == ""
+
+
+def test_yolo_info_invalid_model():
+    """Test yolo info command with an invalid model path."""
+    stdout, _ = run_yolo_info("model=not-a-model.pt")
+    assert f"Model 'not-a-model.pt' not found" in stdout
+
+
+def test_yolo_info_with_show():
+    """Test yolo info command with verbose flag."""
+    model_path = WEIGHTS_DIR / "yolo11n.pt"
+    stdout, stderr = run_yolo_info(f"model={model_path} show=True")
+    assert "parameters" in stdout.lower()
+    assert stderr == ""
+
+
 # Slow Tests -----------------------------------------------------------------------------------------------------------
 @pytest.mark.slow
 @pytest.mark.parametrize("task,model,data", TASK_MODEL_DATA)
@@ -117,3 +155,15 @@ def test_train_gpu(task, model, data):
     """Test YOLO training on GPU(s) for various tasks and models."""
     run(f"yolo train {task} model={model} data={data} imgsz=32 epochs=1 device=0")  # single GPU
     run(f"yolo train {task} model={model} data={data} imgsz=32 epochs=1 device=0,1")  # multi GPU
+
+
+@pytest.mark.slow
+@pytest.mark.parametrize("model", {"yolo11n.pt", "yolov8n-seg.pt", "FastSAM-s.pt", "rtdetr-l.pt", "sam_b.pt", "yolo_nas_s.pt"})
+def test_yolo_info_various_models(model:str):
+    """Test yolo info command with various models."""
+    model_path = WEIGHTS_DIR / model
+    if not model_path.exists():
+        run(f"yolo predict {model}")  # download model before test
+    stdout, stderr = run_yolo_info(f"model={model_path.as_posix()}")
+    assert f"Model File: {model_path.as_posix().replace('/', os.sep)}" in stdout
+    assert stderr == ""

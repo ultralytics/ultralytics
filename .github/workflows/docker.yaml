@@ -178,7 +178,7 @@ jobs:
     if: always() # This ensures the job always runs
     runs-on: ubuntu-latest
     steps:
-      - name: Check docker job status
+      - name: Check for failure and notify
         if: needs.docker.result == 'failure' && github.repository == 'ultralytics/ultralytics' && github.event_name == 'push'
         uses: slackapi/slack-github-action@v1.27.0
         with:

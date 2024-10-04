@@ -589,6 +589,7 @@ class v10Detect(Detect):
         )
         self.one2one_cv3 = copy.deepcopy(self.cv3)
 
+
 class v11Detect(Detect):
     """
     v10 Detection head from https://arxiv.org/pdf/2405.14458.
@@ -613,10 +614,10 @@ class v11Detect(Detect):
         c3 = max(ch[0], min(self.nc, 100))  # channels
         # Light cls head
         self.cv3 = nn.ModuleList(
-                nn.Sequential(
-                    nn.Sequential(DWConv(x, x, 3), Conv(x, c3, 1)),
-                    nn.Sequential(DWConv(c3, c3, 3), Conv(c3, c3, 1)),
-                    nn.Conv2d(c3, self.nc, 1),
-                )
-                for x in ch
+            nn.Sequential(
+                nn.Sequential(DWConv(x, x, 3), Conv(x, c3, 1)),
+                nn.Sequential(DWConv(c3, c3, 3), Conv(c3, c3, 1)),
+                nn.Conv2d(c3, self.nc, 1),
             )
+            for x in ch
+        )

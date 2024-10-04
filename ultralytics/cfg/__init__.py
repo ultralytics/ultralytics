@@ -548,15 +548,20 @@ def handle_yolo_settings(args: List[str]) -> None:
 
 def handle_yolo_info(args: List[str]) -> None:
     """Handles YOLO info command-line interface (CLI) commands."""
-    from ultralytics import RTDETR, SAM, YOLO, FastSAM
+    from ultralytics import  FastSAM, NAS, RTDETR, SAM, YOLO
 
-    choose = {"yolo": YOLO, "rtdetr": RTDETR, "fastsam": FastSAM, "sam_": SAM, "sam2_": SAM}
-    _base = {"model": "yolov8n.pt", "detailed": False, "meta": False, "classes": False}
-
-    short = {"date", "version", "license", "docs", "epoch", "best_fitness"}  # metadata
-    skip = {"model", "ema", "optimizer"}
-
+    nl = "\n"
     delim = "-" * 80
+    choose = {
+        "yolo": YOLO,
+        "rtdetr": RTDETR,
+        "fastsam": FastSAM,
+        "mobile_sam": SAM,
+        "sam_": SAM,
+        "sam2_": SAM,
+        "yolo_nas": NAS
+    }
+    skip = {"model", "ema", "optimizer", "train_results"}
 
     def _obj_or_dict(x: Union[object, Dict]) -> str:
         """Returns a string representation of an object or creates a string from key-value pairs from a dictionary."""
@@ -566,43 +571,47 @@ def handle_yolo_info(args: List[str]) -> None:
         """Yields a formatted string representation of classes from a dictionary."""
         for k, v in d.items():
             yield f"\t{k}: {_obj_or_dict(v)}"
-
+    
+    def _args_load(a: List[str]) -> tuple[dict, str]:
+        """Loads arguments from a list of strings."""
+        f = a.pop(0) if "=" not in a[0] else ""
+        d:dict = dict(DEFAULT_CFG) | dict(parse_key_value_pair(e) for e in args)
+        check_dict_alignment(dict(DEFAULT_CFG), d)
+        return d, f
+        
     try:
         if args:
-            file = args.pop(0) if "=" not in args[0] else ""
-            new = dict(parse_key_value_pair(a) for a in args)
-            check_dict_alignment(_base, new)
-            _base.update(new)
+            new, file = _args_load(args)
+            file = Path(file or new.get("model", "yolo11n.pt"))
 
-            file = Path(file or _base.get("model"))
-            pick = next((t for t in choose.keys() if t in file.stem.lower()), "yolo")
-            model = choose[pick](file)
+            model = choose[next((t for t in choose.keys() if t in file.stem.lower()), "yolo")](file)
+            classes = list(_classes(getattr(model, "names", {})))
+            meta: dict = model.ckpt or getattr(model.predictor.model, "metadata", {})
 
-            names = getattr(model, "names", {})
-            show = _classes(names if _base.get("classes", False) else {})
-
-            LOGGER.info(colorstr("blue", "bold", "\nUltralytics Model Info:"))
-            LOGGER.info(f"{delim}\nModel File: {model.ckpt_path or file}")
-
-            meta: dict = model.ckpt or model.predictor.model.metadata
-            if _base.get("meta") and meta:
-                f"{[LOGGER.info(f'{str(k).capitalize()}: {_obj_or_dict(v)}') for k,v in meta.items() if ((k not in skip) if _base.get('detailed') else (k in short))]}"
-                LOGGER.info(f"Classes: {'' if _base.get('classes', False) else len(names)}")
-                _ = [LOGGER.info(x) for x in show]
-                LOGGER.info(f"{delim}")
-
+            LOGGER.info(
+                f'{colorstr("blue", "bold", f"{nl}Ultralytics Model Info:")}'
+                f"{nl}{delim}{nl}"
+                f"Model File: {model.ckpt_path or file}"
+                )
+            # Display model metadata
+            f"{[LOGGER.info(f'{str(k).capitalize()}: {_obj_or_dict(v)}') for k,v in meta.items() if k.lower() not in skip]}"
+            # Display class-names & total count
+            if "names" not in meta:
+                LOGGER.info(f"Names: total=({len(classes)})")
+                _ = [LOGGER.info(x) for x in classes]
+            LOGGER.info(f"{delim}")
+            # Display detailed model info
             if file.suffix.lower() == ".pt":
-                model.info(detailed=_base.get("detailed", False), verbose=True)
+                model.info(detailed=new.get("show", False), verbose=new.get("verbose", True))
         else:
             checks.collect_system_info()
 
     except SyntaxError as e:
-        # LOGGER.warning(f"WARNING ⚠️ info error: '{e}'. Please see {url} for help.")
         LOGGER.warning(f"WARNING ⚠️ info error: '{e}'.")
     except FileNotFoundError:
         LOGGER.error(f"Model '{file}' not found, try providing full path to file.")
     except Exception as e:
-        LOGGER.error(f"Error: {e}")
+        LOGGER.error(f"WARNING ⚠️ info error: {e}")
 
 
 def handle_explorer(args: List[str]):

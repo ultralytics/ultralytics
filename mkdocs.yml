@@ -164,7 +164,7 @@ nav:
           - guides/index.md
       - Explorer:
           - datasets/explorer/index.md
-      - NEW 🚀 Live Inference: guides/streamlit-live-inference.md # for promotion of new pages
+      - Live Inference 🚀 NEW: guides/streamlit-live-inference.md # for promotion of new pages
       - Languages:
           - 🇬🇧&nbsp English: https://ultralytics.com/docs/
           - 🇨🇳&nbsp 简体中文: https://docs.ultralytics.com/zh/
@@ -251,7 +251,7 @@ nav:
       - YOLOv8: models/yolov8.md
       - YOLOv9: models/yolov9.md
       - YOLOv10: models/yolov10.md
-      - NEW 🚀 YOLO11: models/yolo11.md
+      - YOLO11 🚀 NEW: models/yolo11.md
       - SAM (Segment Anything Model): models/sam.md
       - SAM 2 (Segment Anything Model 2): models/sam-2.md
       - MobileSAM (Mobile Segment Anything Model): models/mobile-sam.md
@@ -314,7 +314,7 @@ nav:
           - DOTA8: datasets/obb/dota8.md
       - Multi-Object Tracking:
           - datasets/track/index.md
-  - NEW 🚀 Solutions:
+  - Solutions 🚀 NEW:
       - solutions/index.md
       - Analytics: guides/analytics.md
       - Object Counting: guides/object-counting.md
@@ -330,7 +330,7 @@ nav:
       - Distance Calculation: guides/distance-calculation.md
       - Queue Management: guides/queue-management.md
       - Parking Management: guides/parking-management.md
-      - NEW 🚀 Live Inference: guides/streamlit-live-inference.md
+      - Live Inference 🚀 NEW: guides/streamlit-live-inference.md
   - Guides:
       - guides/index.md
       - YOLO Common Issues: guides/yolo-common-issues.md

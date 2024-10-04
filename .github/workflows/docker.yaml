@@ -174,9 +174,9 @@ jobs:
           fi
 
   notify:
+    runs-on: ubuntu-latest
     needs: docker
     if: always() # This ensures the job always runs
-    runs-on: ubuntu-latest
     steps:
       - name: Check for failure and notify
         if: needs.docker.result == 'failure' && github.repository == 'ultralytics/ultralytics' && github.event_name == 'push'

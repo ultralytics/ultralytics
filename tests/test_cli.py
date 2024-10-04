@@ -1,6 +1,7 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 import os
 import subprocess
+from typing import Tuple
 
 import pytest
 from PIL import Image
@@ -108,7 +109,7 @@ def test_mobilesam():
     # model(source)
 
 
-def run_yolo_info(args) -> tuple[str, str]:
+def run_yolo_info(args) -> Tuple[str, str]:
     """Run the yolo info command with specified arguments and capture the output."""
     result = subprocess.run(f"yolo info {args}", shell=True, capture_output=True, text=True, encoding="utf-8")
     return result.stdout, result.stderr

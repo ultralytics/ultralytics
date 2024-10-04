@@ -6,7 +6,7 @@ import subprocess
 import sys
 from pathlib import Path
 from types import SimpleNamespace
-from typing import Dict, List, Union
+from typing import Dict, List, Tuple, Union
 
 from ultralytics.utils import (
     ASSETS,
@@ -572,7 +572,7 @@ def handle_yolo_info(args: List[str]) -> None:
         for k, v in d.items():
             yield f"\t{k}: {_obj_or_dict(v)}"
 
-    def _args_load(a: List[str]) -> tuple[dict, str]:
+    def _args_load(a: List[str]) -> Tuple[dict, str]:
         """Loads arguments from a list of strings."""
         f = a.pop(0) if "=" not in a[0] else ""
         d: dict = dict(DEFAULT_CFG) | dict(parse_key_value_pair(e) for e in args)

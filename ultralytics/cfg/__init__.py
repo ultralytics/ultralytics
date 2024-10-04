@@ -575,7 +575,8 @@ def handle_yolo_info(args: List[str]) -> None:
     def _args_load(a: List[str]) -> Tuple[dict, str]:
         """Loads arguments from a list of strings."""
         f = a.pop(0) if "=" not in a[0] else ""
-        d: dict = dict(DEFAULT_CFG) | dict(parse_key_value_pair(e) for e in args)
+        d: dict = dict(DEFAULT_CFG)
+        d.update(dict(parse_key_value_pair(e) for e in args))
         check_dict_alignment(dict(DEFAULT_CFG), d)
         return d, f
 

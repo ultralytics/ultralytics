@@ -34,11 +34,6 @@ A heatmap generated with [Ultralytics YOLO11](https://github.com/ultralytics/ult
 | ![Ultralytics YOLO11 Transportation Heatmap](https://github.com/ultralytics/docs/releases/download/0/ultralytics-yolov8-transportation-heatmap.avif) | ![Ultralytics YOLO11 Retail Heatmap](https://github.com/ultralytics/docs/releases/download/0/ultralytics-yolov8-retail-heatmap.avif) |
 |                                                      Ultralytics YOLO11 Transportation Heatmap                                                       |                                                  Ultralytics YOLO11 Retail Heatmap                                                   |
 
-!!! tip "Heatmap Configuration"
-
-    - `heatmap_alpha`: Ensure this value is within the range (0.0 - 1.0).
-    - `decay_factor`: Used for removing heatmap after an object is no longer in the frame, its value should also be in the range (0.0 - 1.0).
-
 !!! example "Heatmaps using Ultralytics YOLO11 Example"
 
     === "Heatmap"
@@ -274,10 +269,7 @@ A heatmap generated with [Ultralytics YOLO11](https://github.com/ultralytics/ult
 | Name               | Type             | Default            | Description                                                       |
 | ------------------ | ---------------- | ------------------ | ----------------------------------------------------------------- |
 | `names`            | `list`           | `None`             | Dictionary of class names.                                        |
-| `imw`              | `int`            | `0`                | Image width.                                                      |
-| `imh`              | `int`            | `0`                | Image height.                                                     |
 | `colormap`         | `int`            | `cv2.COLORMAP_JET` | Colormap to use for the heatmap.                                  |
-| `heatmap_alpha`    | `float`          | `0.5`              | Alpha blending value for heatmap overlay.                         |
 | `view_img`         | `bool`           | `False`            | Whether to display the image with the heatmap overlay.            |
 | `view_in_counts`   | `bool`           | `True`             | Whether to display the count of objects entering the region.      |
 | `view_out_counts`  | `bool`           | `True`             | Whether to display the count of objects exiting the region.       |
@@ -288,7 +280,6 @@ A heatmap generated with [Ultralytics YOLO11](https://github.com/ultralytics/ult
 | `region_thickness` | `int`            | `5`                | Thickness of the region line.                                     |
 | `line_dist_thresh` | `int`            | `15`               | Distance threshold for line-based counting.                       |
 | `line_thickness`   | `int`            | `2`                | Thickness of the lines used in drawing.                           |
-| `decay_factor`     | `float`          | `0.99`             | Decay factor for the heatmap to reduce intensity over time.       |
 | `shape`            | `str`            | `"circle"`         | Shape of the heatmap blobs ('circle' or 'rect').                  |
 
 ### Arguments `model.track`

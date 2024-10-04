@@ -19,10 +19,7 @@ class Heatmap:
     def __init__(
         self,
         names,
-        imw=0,
-        imh=0,
         colormap=cv2.COLORMAP_JET,
-        heatmap_alpha=0.5,
         view_img=False,
         view_in_counts=True,
         view_out_counts=True,
@@ -33,7 +30,6 @@ class Heatmap:
         region_thickness=5,
         line_dist_thresh=15,
         line_thickness=2,
-        decay_factor=0.99,
         shape="circle",
     ):
         """Initializes the heatmap class with default values for Visual, Image, track, count and heatmap parameters."""
@@ -46,8 +42,6 @@ class Heatmap:
         self.names = names  # Classes names
 
         # Image information
-        self.imw = imw
-        self.imh = imh
         self.im0 = None
         self.tf = line_thickness
         self.view_in_counts = view_in_counts
@@ -56,7 +50,6 @@ class Heatmap:
         # Heatmap colormap and heatmap np array
         self.colormap = colormap
         self.heatmap = None
-        self.heatmap_alpha = heatmap_alpha
 
         # Predict/track information
         self.boxes = []
@@ -78,9 +71,6 @@ class Heatmap:
         self.count_txt_color = count_txt_color
         self.count_bg_color = count_bg_color
         self.cls_txtdisplay_gap = 50
-
-        # Decay factor
-        self.decay_factor = decay_factor
 
         # Check if environment supports imshow
         self.env_check = check_imshow(warn=True)
@@ -133,7 +123,7 @@ class Heatmap:
             self.heatmap = np.zeros((int(self.im0.shape[0]), int(self.im0.shape[1])), dtype=np.float32)
             self.initialized = True
 
-        self.heatmap *= self.decay_factor  # decay factor
+        self.heatmap *= 0.99  # decay factor
 
         self.extract_results(tracks)
         self.annotator = Annotator(self.im0, self.tf, None)
@@ -239,7 +229,7 @@ class Heatmap:
         # Normalize, apply colormap to heatmap and combine with original image
         heatmap_normalized = cv2.normalize(self.heatmap, None, 0, 255, cv2.NORM_MINMAX)
         heatmap_colored = cv2.applyColorMap(heatmap_normalized.astype(np.uint8), self.colormap)
-        self.im0 = cv2.addWeighted(self.im0, 1 - self.heatmap_alpha, heatmap_colored, self.heatmap_alpha, 0)
+        self.im0 = cv2.addWeighted(self.im0, 0.5, heatmap_colored, 0.5, 0)
 
         if self.env_check and self.view_img:
             self.display_frames()

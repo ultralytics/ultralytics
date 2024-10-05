@@ -41,16 +41,14 @@ def test_major_solutions():
 def test_aigym():
     """Test the workouts monitoring solution."""
     safe_download(url=WORKOUTS_SOLUTION_DEMO)
-    model = YOLO("yolo11n-pose.pt")
     cap = cv2.VideoCapture("solution_ci_pose_demo.mp4")
     assert cap.isOpened(), "Error reading video file"
-    gym_object = solutions.AIGym(line_thickness=2, pose_type="squat", kpts_to_check=[5, 11, 13])
+    gym = solutions.AIGym(line_width=2, kpts=[5, 11, 13])
     while cap.isOpened():
         success, im0 = cap.read()
         if not success:
             break
-        results = model.track(im0, verbose=False)
-        _ = gym_object.start_counting(im0, results)
+        _ = gym.monitor(im0)
     cap.release()
     cv2.destroyAllWindows()
 

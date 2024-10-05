@@ -1,18 +1,71 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-from ultralytics.utils import SETTINGS, TESTS_RUNNING
+from ultralytics.utils import SETTINGS
 from ultralytics.utils.torch_utils import model_info_for_loggers
 
 try:
-    assert not TESTS_RUNNING  # do not log pytest
     assert SETTINGS["wandb"] is True  # verify integration is enabled
-    import wandb as wb
+    import wandb
 
-    assert hasattr(wb, "__version__")  # verify package is not directory
-    _processed_plots = {}
-
+    DISABLED = False
 except (ImportError, AssertionError):
-    wb = None
+    DISABLED = True
+
+
+def on_pretrain_routine_start(trainer):
+    """Initiate and start project if module is present."""
+    if wandb.run:  # run should be created in user code
+        trainer.wandb_run = wandb.run
+        trainer.wandb_run.config.update({
+            "train": (wandb.config.get("train") or {}) | (vars(trainer.args))
+        })
+
+
+def on_fit_epoch_end(trainer):
+    """Logs training metrics and model information at the end of an epoch."""
+    wandb_run = getattr(trainer, "wandb_run", None)
+    if wandb_run:
+        wandb_run.log(trainer.metrics, step=trainer.epoch + 1)
+        _log_plots(wandb_run, trainer.plots, step=trainer.epoch + 1)
+        _log_plots(wandb_run, trainer.validator.plots, step=trainer.epoch + 1)
+        if trainer.epoch == 0:
+            wandb_run.log(model_info_for_loggers(trainer), step=trainer.epoch + 1)
+
+
+def on_train_epoch_end(trainer):
+    """Log metrics and save images at the end of each training epoch."""
+    wandb_run = getattr(trainer, "wandb_run", None)
+    if wandb_run:
+        wandb_run.log(trainer.label_loss_items(trainer.tloss, prefix="train"), step=trainer.epoch + 1)
+        wandb_run.log(trainer.lr, step=trainer.epoch + 1)
+        if trainer.epoch == 1:
+            _log_plots(wandb_run, trainer.plots, step=trainer.epoch + 1)
+
+
+def on_train_end(trainer):
+    """Save the best model as an artifact at end of training."""
+    wandb_run = getattr(trainer, "wandb_run", None)
+    if wandb_run:
+        _log_plots(wandb_run, trainer.validator.plots, step=trainer.epoch + 1)
+        _log_plots(wandb_run, trainer.plots, step=trainer.epoch + 1)
+        art = wandb.Artifact(type="model", name=f"run_{wandb_run.id}_model")
+        if trainer.best.exists():
+            art.add_file(trainer.best)
+            wandb_run.log_artifact(art, aliases=["best"])
+        if hasattr(trainer.validator.metrics, "curves") and hasattr(trainer.validator.metrics, "curves_results"):
+            for curve, curve_result in zip(trainer.validator.metrics.curves,
+                                           trainer.validator.metrics.curves_results):
+                x, y, x_title, y_title = curve_result
+                _plot_curve(
+                    wandb_run,
+                    x,
+                    y,
+                    names=list(trainer.validator.metrics.names.values()),
+                    id=f"curves/{curve}",
+                    title=curve,
+                    x_title=x_title,
+                    y_title=y_title,
+                )
 
 
 def _custom_table(x, y, classes, title="Precision Recall Curve", x_title="Recall", y_title="Precision"):
@@ -39,21 +92,22 @@ def _custom_table(x, y, classes, title="Precision Recall Curve", x_title="Recall
     df = pandas.DataFrame({"class": classes, "y": y, "x": x}).round(3)
     fields = {"x": "x", "y": "y", "class": "class"}
     string_fields = {"title": title, "x-axis-title": x_title, "y-axis-title": y_title}
-    return wb.plot_table(
-        "wandb/area-under-curve/v0", wb.Table(dataframe=df), fields=fields, string_fields=string_fields
+    return wandb.plot_table(
+        "wandb/area-under-curve/v0", wandb.Table(dataframe=df), fields=fields, string_fields=string_fields
     )
 
 
 def _plot_curve(
-    x,
-    y,
-    names=None,
-    id="precision-recall",
-    title="Precision Recall Curve",
-    x_title="Recall",
-    y_title="Precision",
-    num_x=100,
-    only_mean=False,
+        wandb_run,
+        x,
+        y,
+        names=None,
+        id="precision-recall",
+        title="Precision Recall Curve",
+        x_title="Recall",
+        y_title="Precision",
+        num_x=100,
+        only_mean=False,
 ):
     """
     Log a metric curve visualization.
@@ -87,77 +141,32 @@ def _plot_curve(
     y_log = np.interp(x_new, x, np.mean(y, axis=0)).round(3).tolist()
 
     if only_mean:
-        table = wb.Table(data=list(zip(x_log, y_log)), columns=[x_title, y_title])
-        wb.run.log({title: wb.plot.line(table, x_title, y_title, title=title)})
+        table = wandb.Table(data=list(zip(x_log, y_log)), columns=[x_title, y_title])
+        wandb_run.log({title: wandb.plot.line(table, x_title, y_title, title=title)})
     else:
         classes = ["mean"] * len(x_log)
         for i, yi in enumerate(y):
             x_log.extend(x_new)  # add new x
             y_log.extend(np.interp(x_new, x, yi))  # interpolate y to new x
             classes.extend([names[i]] * len(x_new))  # add class names
-        wb.log({id: _custom_table(x_log, y_log, classes, title, x_title, y_title)}, commit=False)
+        wandb.log({id: _custom_table(x_log, y_log, classes, title, x_title, y_title)}, commit=False)
 
 
-def _log_plots(plots, step):
+_processed_plots = {}
+
+
+def _log_plots(wandb_run, plots, step):
     """Logs plots from the input dictionary if they haven't been logged already at the specified step."""
     for name, params in plots.copy().items():  # shallow copy to prevent plots dict changing during iteration
         timestamp = params["timestamp"]
         if _processed_plots.get(name) != timestamp:
-            wb.run.log({name.stem: wb.Image(str(name))}, step=step)
+            wandb_run.log({name.stem: wandb.Image(str(name))}, step=step)
             _processed_plots[name] = timestamp
 
 
-def on_pretrain_routine_start(trainer):
-    """Initiate and start project if module is present."""
-    wb.run or wb.init(project=trainer.args.project or "YOLOv8", name=trainer.args.name, config=vars(trainer.args))
-
-
-def on_fit_epoch_end(trainer):
-    """Logs training metrics and model information at the end of an epoch."""
-    wb.run.log(trainer.metrics, step=trainer.epoch + 1)
-    _log_plots(trainer.plots, step=trainer.epoch + 1)
-    _log_plots(trainer.validator.plots, step=trainer.epoch + 1)
-    if trainer.epoch == 0:
-        wb.run.log(model_info_for_loggers(trainer), step=trainer.epoch + 1)
-
-
-def on_train_epoch_end(trainer):
-    """Log metrics and save images at the end of each training epoch."""
-    wb.run.log(trainer.label_loss_items(trainer.tloss, prefix="train"), step=trainer.epoch + 1)
-    wb.run.log(trainer.lr, step=trainer.epoch + 1)
-    if trainer.epoch == 1:
-        _log_plots(trainer.plots, step=trainer.epoch + 1)
-
-
-def on_train_end(trainer):
-    """Save the best model as an artifact at end of training."""
-    _log_plots(trainer.validator.plots, step=trainer.epoch + 1)
-    _log_plots(trainer.plots, step=trainer.epoch + 1)
-    art = wb.Artifact(type="model", name=f"run_{wb.run.id}_model")
-    if trainer.best.exists():
-        art.add_file(trainer.best)
-        wb.run.log_artifact(art, aliases=["best"])
-    for curve_name, curve_values in zip(trainer.validator.metrics.curves, trainer.validator.metrics.curves_results):
-        x, y, x_title, y_title = curve_values
-        _plot_curve(
-            x,
-            y,
-            names=list(trainer.validator.metrics.names.values()),
-            id=f"curves/{curve_name}",
-            title=curve_name,
-            x_title=x_title,
-            y_title=y_title,
-        )
-    wb.run.finish()  # required or run continues on dashboard
-
-
-callbacks = (
-    {
-        "on_pretrain_routine_start": on_pretrain_routine_start,
-        "on_train_epoch_end": on_train_epoch_end,
-        "on_fit_epoch_end": on_fit_epoch_end,
-        "on_train_end": on_train_end,
-    }
-    if wb
-    else {}
-)
+callbacks = {} if DISABLED else {
+    "on_pretrain_routine_start": on_pretrain_routine_start,
+    "on_train_epoch_end": on_train_epoch_end,
+    "on_fit_epoch_end": on_fit_epoch_end,
+    "on_train_end": on_train_end,
+}

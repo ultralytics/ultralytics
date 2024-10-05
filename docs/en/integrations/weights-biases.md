@@ -83,13 +83,15 @@ Before diving into the usage instructions for YOLO11 model training with Weights
     === "Python"
 
         ```python
+        import wandb
         from ultralytics import YOLO
 
         # Load a YOLO model
         model = YOLO("yolo11n.pt")
 
         # Train and Fine-Tune the Model
-        model.train(data="coco8.yaml", epochs=5, project="ultralytics", name="yolo11n")
+        with wandb.init(project="coco8", name="yolo11n"):
+            model.train(data="coco8.yaml", epochs=5)
         ```
 
     === "CLI"
@@ -101,9 +103,14 @@ Before diving into the usage instructions for YOLO11 model training with Weights
 
 ### W&B Arguments
 
+See `wandb.init()` signature at [Weights & Biases documentation](https://docs.wandb.ai/ref/python/init/).
+
+CLI arguments for `yolo train`:
+
 | Argument | Default | Description                                                                                                        |
-| -------- | ------- | ------------------------------------------------------------------------------------------------------------------ |
-| project  | `None`  | Specifies the name of the project logged locally and in W&B. This way you can group multiple runs together.        |
+|----------| ------- |--------------------------------------------------------------------------------------------------------------------|
+| entity   | `None`  | Specifies the name of the project logged locally and in W&B. This way you can group multiple runs together.        |
+| project  | `None`  | An entity is a username or team name where you're sending runs.                                                    |
 | name     | `None`  | The name of the training run. This determines the name used to create subfolders and the name used for W&B logging |
 
 !!! Tip "Enable or Disable Weights & Biases"
@@ -180,10 +187,12 @@ wandb.login(key="<API_KEY>")
 3. Train your YOLO11 model with W&B logging enabled:
 
 ```python
+import wandb
 from ultralytics import YOLO
 
 model = YOLO("yolo11n.pt")
-model.train(data="coco8.yaml", epochs=5, project="ultralytics", name="yolo11n")
+with wandb.init(project="coco8", name="yolo11n"):
+    model.train(data="coco8.yaml", epochs=5)
 ```
 
 This will automatically log metrics, hyperparameters, and model artifacts to your W&B project.

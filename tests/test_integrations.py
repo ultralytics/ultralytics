@@ -62,6 +62,22 @@ def test_mlflow_keep_run_active():
     SETTINGS["mlflow"] = False
 
 
+@pytest.mark.skipif(not check_requirements("wandb", install=False), reason="wandb not installed")
+def test_wandb():
+    """Test training with Wandb logs enabled.
+
+    See https://docs.ultralytics.com/integrations/weights-biases/ and https://wandb.ai/site/.
+    """
+    import wandb
+
+    with wandb.init(project="test", mode="offline") as run:
+        YOLO("yolo11n.yaml").train(data="coco8.yaml", imgsz=32, epochs=3, device="cpu")
+
+    assert wandb.run is None, "Wandb global run should be None on exit from the context manager"
+    assert run._is_finished is True, "Wandb run should be finished on exit from the context manager"
+    assert run.config.get("train"), "Wandb run should have training configuration"
+
+
 @pytest.mark.skipif(not check_requirements("tritonclient", install=False), reason="tritonclient[all] not installed")
 def test_triton():
     """

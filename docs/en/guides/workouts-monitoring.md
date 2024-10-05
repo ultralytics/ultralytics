@@ -129,7 +129,7 @@ cap = cv2.VideoCapture("path/to/video/file.mp4")
 assert cap.isOpened(), "Error reading video file"
 w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 
-gym_object = solutions.AIGym(
+gym = solutions.AIGym(
     line_width=2,
     show=True,
     kpts=[6, 8, 10],
@@ -140,7 +140,7 @@ while cap.isOpened():
     if not success:
         print("Video frame is empty or video processing has been successfully completed.")
         break
-    im0 = gym_object.start_counting(im0)
+    im0 = gym.monitor(im0)
 
 cv2.destroyAllWindows()
 ```
@@ -170,7 +170,7 @@ Yes, Ultralytics YOLO11 can be adapted for custom workout routines. The `AIGym` 
 ```python
 from ultralytics import solutions
 
-gym_object = solutions.AIGym(
+gym = solutions.AIGym(
     line_width=2,
     show=True,
     kpts=[6, 8, 10],
@@ -194,7 +194,7 @@ w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FR
 
 video_writer = cv2.VideoWriter("workouts.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
-gym_object = solutions.AIGym(
+gym = solutions.AIGym(
     line_width=2,
     show=True,
     kpts=[6, 8, 10],
@@ -205,7 +205,7 @@ while cap.isOpened():
     if not success:
         print("Video frame is empty or video processing has been successfully completed.")
         break
-    im0 = gym_object.start_counting(im0)
+    im0 = gym.monitor(im0)
     video_writer.write(im0)
 
 cv2.destroyAllWindows()

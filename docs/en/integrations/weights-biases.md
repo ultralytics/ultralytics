@@ -78,6 +78,7 @@ Before diving into the usage instructions for YOLO11 model training with Weights
         import wandb
         from wandb.integration.ultralytics import add_wandb_callback
 
+        import os
         from ultralytics import YOLO
 
         # Initialize a Weights & Biases run
@@ -88,6 +89,9 @@ Before diving into the usage instructions for YOLO11 model training with Weights
 
         # Add W&B Callback for Ultralytics
         add_wandb_callback(model, enable_model_checkpointing=True)
+
+        # Add run ID to env to prevent duplicates in mutli-GPU environment
+        os.environ["WANDB_RUN_ID"] = wandb.run.id
 
         # Train and Fine-Tune the Model
         model.train(project="ultralytics", data="coco8.yaml", epochs=5, imgsz=640)
@@ -206,6 +210,7 @@ For training a YOLO11 model using Weights & Biases, use the following steps in a
 import wandb
 from wandb.integration.ultralytics import add_wandb_callback
 
+import os
 from ultralytics import YOLO
 
 # Initialize a Weights & Biases run
@@ -216,6 +221,9 @@ model = YOLO("yolo11n.pt")
 
 # Add W&B Callback for Ultralytics
 add_wandb_callback(model, enable_model_checkpointing=True)
+
+# Add run ID to env to prevent duplicates in mutli-GPU environment
+os.environ["WANDB_RUN_ID"] = wandb.run.id
 
 # Train and Fine-Tune the Model
 model.train(project="ultralytics", data="coco8.yaml", epochs=5, imgsz=640)

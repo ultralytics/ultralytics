@@ -4,11 +4,13 @@ from collections import defaultdict
 from pathlib import Path
 
 import cv2
-from shapely.geometry import LineString, Polygon
 
 from ultralytics import YOLO
-from ultralytics.utils import yaml_load
-from ultralytics.utils.checks import check_imshow
+from ultralytics.utils import LOGGER, yaml_load
+from ultralytics.utils.checks import check_imshow, check_requirements
+
+check_requirements("shapely>=2.0.0")
+from shapely.geometry import LineString, Polygon
 
 DEFAULT_SOL_CFG_PATH = Path(__file__).resolve().parents[1] / "cfg/solutions/default.yaml"
 
@@ -25,7 +27,7 @@ class BaseSolution:
         # Load config and update with args
         self.CFG = yaml_load(DEFAULT_SOL_CFG_PATH)
         self.CFG.update(kwargs)
-        print("Ultralytics Solutions: ✅", self.CFG)
+        LOGGER.info(f"Ultralytics Solutions: ✅ {self.CFG}")
 
         self.region = self.CFG["region"]  # Store region data for other classes usage
         self.line_width = self.CFG["line_width"]  # Store line_width for usage
@@ -54,6 +56,8 @@ class BaseSolution:
             self.boxes = self.track_data.xyxy.cpu()
             self.clss = self.track_data.cls.cpu().tolist()
             self.track_ids = self.track_data.id.int().cpu().tolist()
+        else:
+            LOGGER.warning("WARNING ⚠️ tracks none, no keypoints will be considered.")
 
     def store_tracking_history(self, track_id, box):
         """

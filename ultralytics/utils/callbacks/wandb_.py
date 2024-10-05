@@ -113,6 +113,7 @@ def _plot_curve(
     The curve can represent aggregated data (mean) or individual class data, depending on the 'only_mean' flag.
 
     Args:
+        wandb_run (wandb.Run): Current wandb run object.
         x (np.ndarray): Data points for the x-axis with length N.
         y (np.ndarray): Corresponding data points for the y-axis with shape CxN, where C is the number of classes.
         names (list, optional): Names of the classes corresponding to the y-axis data; length C. Defaults to [].

@@ -27,7 +27,7 @@ class BaseSolution:
         # Load config and update with args
         self.CFG = yaml_load(DEFAULT_SOL_CFG_PATH)
         self.CFG.update(kwargs)
-        LOGGER.info(f"💡 Ultralytics Solutions: ✅ '{self.CFG}'")
+        LOGGER.info(f"Ultralytics Solutions: ✅ {self.CFG}")
 
         self.region = self.CFG["region"]  # Store region data for other classes usage
         self.line_width = self.CFG["line_width"]  # Store line_width for usage

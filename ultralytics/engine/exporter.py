@@ -183,11 +183,10 @@ class Exporter:
 
             # Get the closest match if format is invalid
             matches = difflib.get_close_matches(fmt, fmts, n=1, cutoff=0.6)  # 60% similarity required to match
-            if matches:
-                LOGGER.warning(f"WARNING ⚠️ Invalid export format='{fmt}', updating to format='{matches[0]}'")
-                fmt = matches[0]
-            else:
+            if not matches:
                 raise ValueError(f"Invalid export format='{fmt}'. Valid formats are {fmts}")
+            LOGGER.warning(f"WARNING ⚠️ Invalid export format='{fmt}', updating to format='{matches[0]}'")
+            fmt = matches[0]
         flags = [x == fmt for x in fmts]
         if sum(flags) != 1:
             raise ValueError(f"Invalid export format='{fmt}'. Valid formats are {fmts}")

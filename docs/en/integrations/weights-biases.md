@@ -6,7 +6,7 @@ keywords: YOLO11, Weights & Biases, model training, experiment tracking, Ultraly
 
 # Enhancing YOLO11 Experiment Tracking and Visualization with Weights & Biases
 
-[Object detection](https://www.ultralytics.com/glossary/object-detection) models like [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics) have become integral to many [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) applications. However, training, evaluating, and deploying these complex models introduces several challenges. Tracking key training metrics, comparing model variants, analyzing model behavior, and detecting issues require substantial instrumentation and experiment management.
+[Object detection](https://www.ultralytics.com/glossary/object-detection) models like [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics) have become integral to many [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) applications. However, training, evaluating, and deploying these complex models introduce several challenges. Tracking key training metrics, comparing model variants, analyzing model behavior, and detecting issues require significant instrumentation and experiment management.
 
 <p align="center">
   <br>
@@ -19,7 +19,7 @@ keywords: YOLO11, Weights & Biases, model training, experiment tracking, Ultraly
   <strong>Watch:</strong> How to use Ultralytics YOLO11 with Weights and Biases
 </p>
 
-This guide showcases Ultralytics YOLO11 integration with Weights & Biases' for enhanced experiment tracking, model-checkpointing, and visualization of model performance. It also includes instructions for setting up the integration, training, fine-tuning, and visualizing results using Weights & Biases' interactive features.
+This guide showcases Ultralytics YOLO11 integration with Weights & Biases for enhanced experiment tracking, model-checkpointing, and visualization of model performance. It also includes instructions for setting up the integration, training, fine-tuning, and visualizing results using Weights & Biases' interactive features.
 
 ## Weights & Biases
 
@@ -42,8 +42,8 @@ To install the required packages, run:
     === "CLI"
 
         ```bash
-        # Install the required packages for YOLO11 and Weights & Biases
-        pip install --upgrade ultralytics==8.0.186 wandb
+        # Install the required packages for Ultralytics YOLO and Weights & Biases
+        pip install -U ultralytics wandb
         ```
 
 For detailed instructions and best practices related to the installation process, be sure to check our [YOLO11 Installation guide](../quickstart.md). While installing the required packages for YOLO11, if you encounter any difficulties, consult our [Common Issues guide](../guides/yolo-common-issues.md) for solutions and tips.
@@ -56,12 +56,20 @@ Start by initializing the Weights & Biases environment in your workspace. You ca
 
 !!! tip "Initial SDK Setup"
 
+    === "Python"
+
+        ```python
+        import wandb
+
+        # Initialize your Weights & Biases environment
+        wandb.login(key="<API_KEY>")
+        ```
+
     === "CLI"
 
         ```bash
         # Initialize your Weights & Biases environment
-        import wandb
-        wandb.login()
+        wandb login <API_KEY>
         ```
 
 Navigate to the Weights & Biases authorization page to create and retrieve your API key. Use this key to authenticate your environment with W&B.
@@ -75,50 +83,39 @@ Before diving into the usage instructions for YOLO11 model training with Weights
     === "Python"
 
         ```python
-        import wandb
-        from wandb.integration.ultralytics import add_wandb_callback
-
         from ultralytics import YOLO
-
-        # Initialize a Weights & Biases run
-        wandb.init(project="ultralytics", job_type="training")
 
         # Load a YOLO model
         model = YOLO("yolo11n.pt")
 
-        # Add W&B Callback for Ultralytics
-        add_wandb_callback(model, enable_model_checkpointing=True)
-
         # Train and Fine-Tune the Model
-        model.train(project="ultralytics", data="coco8.yaml", epochs=5, imgsz=640)
-
-        # Validate the Model
-        model.val()
-
-        # Perform Inference and Log Results
-        model(["path/to/image1", "path/to/image2"])
-
-        # Finalize the W&B Run
-        wandb.finish()
+        model.train(data="coco8.yaml", epochs=5, project="ultralytics", name="yolo11n")
         ```
 
-### Understanding the Code
+    === "CLI"
 
-Let's understand the steps showcased in the usage code snippet above.
+        ```bash
+        # Train a YOLO11 model with Weights & Biases
+        yolo train data=coco8.yaml epochs=5 project=ultralytics name=yolo11n
+        ```
 
-- **Step 1: Initialize a Weights & Biases Run**: Start by initializing a Weights & Biases run, specifying the project name and the job type. This run will track and manage the training and validation processes of your model.
+### W&B Arguments
 
-- **Step 2: Define the YOLO11 Model and Dataset**: Specify the model variant and the dataset you wish to use. The YOLO model is then initialized with the specified model file.
+| Argument | Default | Description                                                                                                        |
+| -------- | ------- | ------------------------------------------------------------------------------------------------------------------ |
+| project  | `None`  | Specifies the name of the project logged locally and in W&B. This way you can group multiple runs together.        |
+| name     | `None`  | The name of the training run. This determines the name used to create subfolders and the name used for W&B logging |
 
-- **Step 3: Add Weights & Biases Callback for Ultralytics**: This step is crucial as it enables the automatic logging of training metrics and validation results to Weights & Biases, providing a detailed view of the model's performance.
+!!! Tip "Enable or Disable Weights & Biases"
+If you want to enable or disable Weights & Biases logging, you can use the `wandb` command. By default, Weights & Biases logging is enabled.
 
-- **Step 4: Train and Fine-Tune the Model**: Begin training the model with the specified dataset, number of epochs, and image size. The training process includes logging of metrics and predictions at the end of each [epoch](https://www.ultralytics.com/glossary/epoch), offering a comprehensive view of the model's learning progress.
+    ```bash
+    # Enable Weights & Biases logging
+    wandb enabled
 
-- **Step 5: Validate the Model**: After training, the model is validated. This step is crucial for assessing the model's performance on unseen data and ensuring its generalizability.
-
-- **Step 6: Perform Inference and Log Results**: The model performs predictions on specified images. These predictions, along with visual overlays and insights, are automatically logged in a W&B Table for interactive exploration.
-
-- **Step 7: Finalize the W&B Run**: This step marks the end of data logging and saves the final state of your model's training and validation process in the W&B dashboard.
+    # Disable Weights & Biases logging
+    wandb disabled
+    ```
 
 ### Understanding the Output
 
@@ -126,7 +123,7 @@ Upon running the usage code snippet above, you can expect the following key outp
 
 - The setup of a new run with its unique ID, indicating the start of the training process.
 - A concise summary of the model's structure, including the number of layers and parameters.
-- Regular updates on important metrics such as box loss, cls loss, dfl loss, [precision](https://www.ultralytics.com/glossary/precision), [recall](https://www.ultralytics.com/glossary/recall), and mAP scores during each training epoch.
+- Regular updates on important metrics such as box loss, cls loss, dfl loss, [precision](https://www.ultralytics.com/glossary/precision), [recall](https://www.ultralytics.com/glossary/recall), and mAP scores during each training [epoch](https://www.ultralytics.com/glossary/epoch).
 - At the end of training, detailed metrics including the model's inference speed, and overall [accuracy](https://www.ultralytics.com/glossary/accuracy) metrics are displayed.
 - Links to the Weights & Biases dashboard for in-depth analysis and visualization of the training process, along with information on local log file locations.
 
@@ -138,7 +135,7 @@ After running the usage code snippet, you can access the Weights & Biases (W&B) 
 
 - **Real-Time Metrics Tracking**: Observe metrics like loss, accuracy, and validation scores as they evolve during the training, offering immediate insights for model tuning. [See how experiments are tracked using Weights & Biases](https://imgur.com/D6NVnmN).
 
-- **Hyperparameter Optimization**: Weights & Biases aids in fine-tuning critical parameters such as [learning rate](https://www.ultralytics.com/glossary/learning-rate), batch size, and more, enhancing the performance of YOLO11.
+- **Hyperparameter Optimization**: Weights & Biases aids in fine-tuning critical parameters such as [learning rate](https://www.ultralytics.com/glossary/learning-rate), [batch size](https://www.ultralytics.com/glossary/batch-size), and more, enhancing the performance of YOLO11.
 
 - **Comparative Analysis**: The platform allows side-by-side comparisons of different training runs, essential for assessing the impact of various model configurations.
 
@@ -154,7 +151,7 @@ By using these features, you can effectively track, analyze, and optimize your Y
 
 ## Summary
 
-This guide helped you explore Ultralytics' YOLO11 integration with Weights & Biases. It illustrates the ability of this integration to efficiently track and visualize model training and prediction results.
+This guide helped you explore the Ultralytics YOLO integration with Weights & Biases. It illustrates the ability of this integration to efficiently track and visualize model training and prediction results.
 
 For further details on usage, visit [Weights & Biases' official documentation](https://docs.wandb.ai/guides/integrations/ultralytics/).
 
@@ -162,83 +159,83 @@ Also, be sure to check out the [Ultralytics integration guide page](../integrati
 
 ## FAQ
 
-### How do I install the required packages for YOLO11 and Weights & Biases?
+### How do I integrate Weights & Biases with Ultralytics YOLO11?
 
-To install the required packages for YOLO11 and Weights & Biases, open your command line interface and run:
+To integrate Weights & Biases with Ultralytics YOLO11:
+
+1. Install the required packages:
 
 ```bash
-pip install --upgrade ultralytics==8.0.186 wandb
+pip install -U ultralytics wandb
 ```
 
-For further guidance on installation steps, refer to our [YOLO11 Installation guide](../quickstart.md). If you encounter issues, consult the [Common Issues guide](../guides/yolo-common-issues.md) for troubleshooting tips.
-
-### What are the benefits of integrating Ultralytics YOLO11 with Weights & Biases?
-
-Integrating Ultralytics YOLO11 with Weights & Biases offers several benefits including:
-
-- **Real-Time Metrics Tracking:** Observe metric changes during training for immediate insights.
-- **Hyperparameter Optimization:** Improve model performance by fine-tuning learning rate, [batch size](https://www.ultralytics.com/glossary/batch-size), etc.
-- **Comparative Analysis:** Side-by-side comparison of different training runs.
-- **Resource Monitoring:** Keep track of CPU, GPU, and memory usage.
-- **Model Artifacts Management:** Easy access and sharing of model checkpoints.
-
-Explore these features in detail in the Weights & Biases Dashboard section above.
-
-### How can I configure Weights & Biases for YOLO11 training?
-
-To configure Weights & Biases for YOLO11 training, follow these steps:
-
-1. Run the command to initialize Weights & Biases:
-    ```bash
-    import wandb
-    wandb.login()
-    ```
-2. Retrieve your API key from the Weights & Biases website.
-3. Use the API key to authenticate your development environment.
-
-Detailed setup instructions can be found in the Configuring Weights & Biases section above.
-
-### How do I train a YOLO11 model using Weights & Biases?
-
-For training a YOLO11 model using Weights & Biases, use the following steps in a Python script:
+2. Log in to your Weights & Biases account:
 
 ```python
 import wandb
-from wandb.integration.ultralytics import add_wandb_callback
 
-from ultralytics import YOLO
-
-# Initialize a Weights & Biases run
-wandb.init(project="ultralytics", job_type="training")
-
-# Load a YOLO model
-model = YOLO("yolo11n.pt")
-
-# Add W&B Callback for Ultralytics
-add_wandb_callback(model, enable_model_checkpointing=True)
-
-# Train and Fine-Tune the Model
-model.train(project="ultralytics", data="coco8.yaml", epochs=5, imgsz=640)
-
-# Validate the Model
-model.val()
-
-# Perform Inference and Log Results
-model(["path/to/image1", "path/to/image2"])
-
-# Finalize the W&B Run
-wandb.finish()
+wandb.login(key="<API_KEY>")
 ```
 
-This script initializes Weights & Biases, sets up the model, trains it, and logs results. For more details, visit the Usage section above.
+3. Train your YOLO11 model with W&B logging enabled:
 
-### Why should I use Ultralytics YOLO11 with Weights & Biases over other platforms?
+```python
+from ultralytics import YOLO
 
-Ultralytics YOLO11 integrated with Weights & Biases offers several unique advantages:
+model = YOLO("yolo11n.pt")
+model.train(data="coco8.yaml", epochs=5, project="ultralytics", name="yolo11n")
+```
 
-- **High Efficiency:** Real-time tracking of training metrics and performance optimization.
-- **Scalability:** Easily manage large-scale training jobs with robust resource monitoring and utilization tools.
-- **Interactivity:** A user-friendly interactive UI for [data visualization](https://www.ultralytics.com/glossary/data-visualization) and model management.
-- **Community and Support:** Strong integration documentation and community support with flexible customization and enhancement options.
+This will automatically log metrics, hyperparameters, and model artifacts to your W&B project.
 
-For comparisons with other platforms like Comet and ClearML, refer to [Ultralytics integrations](../integrations/index.md).
+### What are the key features of Weights & Biases integration with YOLO11?
+
+The key features include:
+
+- Real-time metrics tracking during training
+- Hyperparameter optimization tools
+- Comparative analysis of different training runs
+- Visualization of training progress through graphs
+- Resource monitoring (CPU, GPU, memory usage)
+- Model artifacts management and sharing
+- Viewing inference results with image overlays
+
+These features help in tracking experiments, optimizing models, and collaborating more effectively on YOLO11 projects.
+
+### How can I view the Weights & Biases dashboard for my YOLO11 training?
+
+After running your training script with W&B integration:
+
+1. A link to your W&B dashboard will be provided in the console output.
+2. Click on the link or go to [wandb.ai](https://wandb.ai) and log in to your account.
+3. Navigate to your project to view detailed metrics, visualizations, and model performance data.
+
+The dashboard offers insights into your model's training process, allowing you to analyze and improve your YOLO11 models effectively.
+
+### Can I disable Weights & Biases logging for YOLO11 training?
+
+Yes, you can disable W&B logging using the following command:
+
+```bash
+wandb disabled
+```
+
+To re-enable logging, use:
+
+```bash
+wandb enabled
+```
+
+This allows you to control when you want to use W&B logging without modifying your training scripts.
+
+### How does Weights & Biases help in optimizing YOLO11 models?
+
+Weights & Biases helps optimize YOLO11 models by:
+
+1. Providing detailed visualizations of training metrics
+2. Enabling easy comparison between different model versions
+3. Offering tools for [hyperparameter tuning](https://www.ultralytics.com/glossary/hyperparameter-tuning)
+4. Allowing for collaborative analysis of model performance
+5. Facilitating easy sharing of model artifacts and results
+
+These features help researchers and developers iterate faster and make data-driven decisions to improve their YOLO11 models.

@@ -66,6 +66,7 @@ Monitoring workouts through pose estimation with [Ultralytics YOLO11](https://gi
 
         ```python
         import cv2
+
         from ultralytics import solutions
 
         cap = cv2.VideoCapture("path/to/video/file.mp4")
@@ -97,13 +98,13 @@ Monitoring workouts through pose estimation with [Ultralytics YOLO11](https://gi
 
 ### Arguments `AIGym`
 
-| Name         | Type    | Default  | Description                                                                            |
-|--------------| ------- | -------- | -------------------------------------------------------------------------------------- |
-| `kpts`       | `list`  | `None`   | List of three keypoints index, for counting specific workout, followed by keypoint Map |
-| `line_width` | `int`   | `2`      | Thickness of the lines drawn.                                                          |
-| `show`       | `bool`  | `False`  | Flag to display the image.                                                             |
-| `up_angle`   | `float` | `145.0`  | Angle threshold for the 'up' pose.                                                     |
-| `down_angle` | `float` | `90.0`   | Angle threshold for the 'down' pose.                                                   |
+| Name         | Type    | Default | Description                                                                            |
+| ------------ | ------- | ------- | -------------------------------------------------------------------------------------- |
+| `kpts`       | `list`  | `None`  | List of three keypoints index, for counting specific workout, followed by keypoint Map |
+| `line_width` | `int`   | `2`     | Thickness of the lines drawn.                                                          |
+| `show`       | `bool`  | `False` | Flag to display the image.                                                             |
+| `up_angle`   | `float` | `145.0` | Angle threshold for the 'up' pose.                                                     |
+| `down_angle` | `float` | `90.0`  | Angle threshold for the 'down' pose.                                                   |
 
 ### Arguments `model.predict`
 

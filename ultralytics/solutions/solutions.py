@@ -7,7 +7,7 @@ import cv2
 from shapely.geometry import LineString, Polygon
 
 from ultralytics import YOLO
-from ultralytics.utils import yaml_load, LOGGER
+from ultralytics.utils import LOGGER, yaml_load
 from ultralytics.utils.checks import check_imshow
 
 DEFAULT_SOL_CFG_PATH = Path(__file__).resolve().parents[1] / "cfg/solutions/default.yaml"
@@ -55,7 +55,7 @@ class BaseSolution:
             self.clss = self.track_data.cls.cpu().tolist()
             self.track_ids = self.track_data.id.int().cpu().tolist()
         else:
-            LOGGER.warning(f"WARNING ⚠️ tracks none, no keypoints will be considered.")
+            LOGGER.warning("WARNING ⚠️ tracks none, no keypoints will be considered.")
 
     def store_tracking_history(self, track_id, box):
         """

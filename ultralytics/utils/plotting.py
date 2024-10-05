@@ -753,7 +753,7 @@ class Annotator:
         return text_height
 
     def plot_angle_and_count_and_stage(
-            self, angle_text, count_text, stage_text, center_kpt, color=(104, 31, 17), txt_color=(255, 255, 255)
+        self, angle_text, count_text, stage_text, center_kpt, color=(104, 31, 17), txt_color=(255, 255, 255)
     ):
         """
         Plot the pose angle, count value, and step stage.

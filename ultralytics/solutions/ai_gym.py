@@ -1,15 +1,16 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-from ultralytics.utils.plotting import Annotator
-
 from ultralytics.solutions.solutions import BaseSolution  # Import a parent class
+from ultralytics.utils.plotting import Annotator
 
 
 class AIGym(BaseSolution):
     """A class to manage the gym steps of people in a real-time video stream based on their poses."""
 
     def __init__(self, **kwargs):
-        """Initialization function for AiGYM class, a child class of BaseSolution class, can be used for workouts monitoring."""
+        """Initialization function for AiGYM class, a child class of BaseSolution class, can be used for workouts
+        monitoring.
+        """
         # Check if the model name ends with '-pose'
         if "model" in kwargs and "-pose" not in kwargs["model"]:
             kwargs["model"] = "yolo11n-pose.pt"
@@ -25,7 +26,7 @@ class AIGym(BaseSolution):
         self.up_angle = float(self.CFG["up_angle"])  # Pose up predefined angle to consider up pose
         self.down_angle = float(self.CFG["down_angle"])  # Pose down predefined angle to consider down pose
         self.kpts = self.CFG["kpts"]  # User selected kpts of workouts storage for further usage
-        self.lw = self.CFG["line_width"]     # Store line_width for usage
+        self.lw = self.CFG["line_width"]  # Store line_width for usage
 
     def monitor(self, im0):
         """

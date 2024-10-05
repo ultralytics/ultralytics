@@ -1006,15 +1006,15 @@ def set_sentry():
 
     def before_send(event, hint):
         """
-            Modify the event before sending it to Sentry based on specific exception types and messages.
+        Modify the event before sending it to Sentry based on specific exception types and messages.
 
-            Args:
-                event (dict): The event dictionary containing information about the error.
-                hint (dict): A dictionary containing additional information about the error.
+        Args:
+            event (dict): The event dictionary containing information about the error.
+            hint (dict): A dictionary containing additional information about the error.
 
-            Returns:
-                dict: The modified event or None if the event should not be sent to Sentry.
-            """
+        Returns:
+            dict: The modified event or None if the event should not be sent to Sentry.
+        """
         if "exc_info" in hint:
             exc_type, exc_value, _ = hint["exc_info"]
             if exc_type in {KeyboardInterrupt, FileNotFoundError} or "out of memory" in str(exc_value):

@@ -4,11 +4,13 @@ from collections import defaultdict
 from pathlib import Path
 
 import cv2
-from shapely.geometry import LineString, Polygon
 
 from ultralytics import YOLO
 from ultralytics.utils import LOGGER, yaml_load
-from ultralytics.utils.checks import check_imshow
+from ultralytics.utils.checks import check_imshow, check_requirements
+
+check_requirements("shapely>=2.0.0")
+from shapely.geometry import LineString, Polygon
 
 DEFAULT_SOL_CFG_PATH = Path(__file__).resolve().parents[1] / "cfg/solutions/default.yaml"
 

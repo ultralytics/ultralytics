@@ -16,9 +16,7 @@ def on_pretrain_routine_start(trainer):
     """Initiate and start project if module is present."""
     if wandb.run:  # run should be created in user code
         trainer.wandb_run = wandb.run
-        trainer.wandb_run.config.update({
-            "train": (wandb.config.get("train") or {}) | (vars(trainer.args))
-        })
+        trainer.wandb_run.config.update({"train": (wandb.config.get("train") or {}) | (vars(trainer.args))})
 
 
 def on_fit_epoch_end(trainer):
@@ -53,8 +51,7 @@ def on_train_end(trainer):
             art.add_file(trainer.best)
             wandb_run.log_artifact(art, aliases=["best"])
         if hasattr(trainer.validator.metrics, "curves") and hasattr(trainer.validator.metrics, "curves_results"):
-            for curve, curve_result in zip(trainer.validator.metrics.curves,
-                                           trainer.validator.metrics.curves_results):
+            for curve, curve_result in zip(trainer.validator.metrics.curves, trainer.validator.metrics.curves_results):
                 x, y, x_title, y_title = curve_result
                 _plot_curve(
                     wandb_run,
@@ -98,16 +95,16 @@ def _custom_table(x, y, classes, title="Precision Recall Curve", x_title="Recall
 
 
 def _plot_curve(
-        wandb_run,
-        x,
-        y,
-        names=None,
-        id="precision-recall",
-        title="Precision Recall Curve",
-        x_title="Recall",
-        y_title="Precision",
-        num_x=100,
-        only_mean=False,
+    wandb_run,
+    x,
+    y,
+    names=None,
+    id="precision-recall",
+    title="Precision Recall Curve",
+    x_title="Recall",
+    y_title="Precision",
+    num_x=100,
+    only_mean=False,
 ):
     """
     Log a metric curve visualization.
@@ -164,9 +161,13 @@ def _log_plots(wandb_run, plots, step):
             _processed_plots[name] = timestamp
 
 
-callbacks = {} if DISABLED else {
-    "on_pretrain_routine_start": on_pretrain_routine_start,
-    "on_train_epoch_end": on_train_epoch_end,
-    "on_fit_epoch_end": on_fit_epoch_end,
-    "on_train_end": on_train_end,
-}
+callbacks = (
+    {}
+    if DISABLED
+    else {
+        "on_pretrain_routine_start": on_pretrain_routine_start,
+        "on_train_epoch_end": on_train_epoch_end,
+        "on_fit_epoch_end": on_fit_epoch_end,
+        "on_train_end": on_train_end,
+    }
+)

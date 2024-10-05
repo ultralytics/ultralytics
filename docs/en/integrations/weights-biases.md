@@ -84,6 +84,7 @@ Before diving into the usage instructions for YOLO11 model training with Weights
 
         ```python
         import wandb
+
         from ultralytics import YOLO
 
         # Load a YOLO model
@@ -108,7 +109,7 @@ See `wandb.init()` signature at [Weights & Biases documentation](https://docs.wa
 CLI arguments for `yolo train`:
 
 | Argument | Default | Description                                                                                                        |
-|----------| ------- |--------------------------------------------------------------------------------------------------------------------|
+| -------- | ------- | ------------------------------------------------------------------------------------------------------------------ |
 | entity   | `None`  | Specifies the name of the project logged locally and in W&B. This way you can group multiple runs together.        |
 | project  | `None`  | An entity is a username or team name where you're sending runs.                                                    |
 | name     | `None`  | The name of the training run. This determines the name used to create subfolders and the name used for W&B logging |
@@ -188,6 +189,7 @@ wandb.login(key="<API_KEY>")
 
 ```python
 import wandb
+
 from ultralytics import YOLO
 
 model = YOLO("yolo11n.pt")

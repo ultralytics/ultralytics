@@ -64,7 +64,8 @@ def test_mlflow_keep_run_active():
 
 @pytest.mark.skipif(not check_requirements("wandb", install=False), reason="wandb not installed")
 def test_wandb():
-    """Test training with Wandb logs enabled.
+    """
+    Test training with Wandb logs enabled.
 
     See https://docs.ultralytics.com/integrations/weights-biases/ and https://wandb.ai/site/.
     """

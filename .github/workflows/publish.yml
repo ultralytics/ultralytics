@@ -90,7 +90,7 @@ jobs:
         if: (github.event_name == 'push' || github.event.inputs.pypi == 'true')  && steps.check_pypi.outputs.increment == 'True'
         run: |
           python -m build
-          python -m twine upload dist/* -u __token__ -p ${{ secrets.PYPI_TOKEN }}
+          python -m twine upload dist/*
       - name: Publish new tag
         if: (github.event_name == 'push' || github.event.inputs.pypi == 'true')  && steps.check_pypi.outputs.increment == 'True'
         run: |

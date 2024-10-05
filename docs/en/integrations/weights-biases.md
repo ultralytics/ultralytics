@@ -75,10 +75,11 @@ Before diving into the usage instructions for YOLO11 model training with Weights
     === "Python"
 
         ```python
+        import os
+
         import wandb
         from wandb.integration.ultralytics import add_wandb_callback
 
-        import os
         from ultralytics import YOLO
 
         # Initialize a Weights & Biases run
@@ -207,10 +208,11 @@ Detailed setup instructions can be found in the Configuring Weights & Biases sec
 For training a YOLO11 model using Weights & Biases, use the following steps in a Python script:
 
 ```python
+import os
+
 import wandb
 from wandb.integration.ultralytics import add_wandb_callback
 
-import os
 from ultralytics import YOLO
 
 # Initialize a Weights & Biases run

@@ -91,7 +91,7 @@ Before diving into the usage instructions for YOLO11 model training with Weights
         # Add W&B Callback for Ultralytics
         add_wandb_callback(model, enable_model_checkpointing=True)
 
-        # Add run ID to env to prevent duplicates in mutli-GPU environment
+        # Add run ID to env to prevent duplicates in multi-GPU environment
         os.environ["WANDB_RUN_ID"] = wandb.run.id
 
         # Train and Fine-Tune the Model
@@ -224,7 +224,7 @@ model = YOLO("yolo11n.pt")
 # Add W&B Callback for Ultralytics
 add_wandb_callback(model, enable_model_checkpointing=True)
 
-# Add run ID to env to prevent duplicates in mutli-GPU environment
+# Add run ID to env to prevent duplicates in multi-GPU environment
 os.environ["WANDB_RUN_ID"] = wandb.run.id
 
 # Train and Fine-Tune the Model

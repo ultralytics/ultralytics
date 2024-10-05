@@ -34,7 +34,6 @@ keywords = ["machine-learning", "deep-learning", "computer-vision", "ML", "DL", 
 authors = [
     { name = "Glenn Jocher", email = "glenn.jocher@ultralytics.com" },
     { name = "Jing Qiu", email = "jing.qiu@ultralytics.com" },
-    { name = "Ayush Chaurasia" },
 ]
 maintainers = [
     { name = "Ultralytics", email = "hello@ultralytics.com" },

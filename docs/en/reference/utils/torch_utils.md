@@ -35,6 +35,10 @@ keywords: Ultralytics, torch utils, model optimization, device selection, infere
 
 <br><br><hr><br>
 
+## ::: ultralytics.utils.torch_utils.get_gpu_info
+
+<br><br><hr><br>
+
 ## ::: ultralytics.utils.torch_utils.select_device
 
 <br><br><hr><br>

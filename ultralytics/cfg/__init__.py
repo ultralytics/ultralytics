@@ -31,10 +31,6 @@ from ultralytics.utils import (
     yaml_print,
 )
 
-
-
-# Define valid solutions
-SOLUTIONS = {"count"}
 # Define valid tasks and modes
 MODES = {"train", "val", "predict", "export", "track", "benchmark"}
 TASKS = {"detect", "segment", "classify", "pose", "obb"}
@@ -68,7 +64,7 @@ CLI_HELP_MSG = f"""
         yolo TASK MODE ARGS
 
         Where   TASK (optional) is one of {TASKS}
-                MODE (required) is one of {MODES} or {SOLUTIONS}
+                MODE (required) is one of {MODES}
                 ARGS (optional) are any number of custom 'arg=value' pairs like 'imgsz=320' that override defaults.
                     See all ARGS at https://docs.ultralytics.com/usage/cfg or with 'yolo cfg'
 
@@ -90,11 +86,7 @@ CLI_HELP_MSG = f"""
     6. Streamlit real-time webcam inference GUI
         yolo streamlit-predict
     
-    7. Run Ultralytics object counting solutions
-        yolo solutions # By default object counting
-        yolo solutions name="count"
-        
-    8. Run special commands:
+    7. Run special commands:
         yolo help
         yolo checks
         yolo version

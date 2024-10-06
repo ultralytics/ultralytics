@@ -1,0 +1,16 @@
+# Ultralytics YOLO 🚀, AGPL-3.0 license
+
+# Configuration for Ultralytics Solutions
+
+model: "yolo11n.pt" # The Ultralytics YOLO11 model to be used (e.g., yolo11n.pt for YOLO11 nano version)
+
+region: # Object counting, queue or speed estimation region points
+line_width: 2 # Thickness of the lines used to draw regions on the image/video frames
+show: True # Flag to control whether to display output image or not
+show_in: True # Flag to display objects moving *into* the defined region
+show_out: True # Flag to display objects moving *out of* the defined region
+classes: # To count specific classes
+up_angle: 145.0 # Workouts up_angle for counts, 145.0 is default value
+down_angle: 90 # Workouts down_angle for counts, 90 is default value
+kpts: [6, 8, 10] # Keypoints for workouts monitoring
+colormap: # Colormap for heatmap

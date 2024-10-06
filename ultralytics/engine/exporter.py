@@ -722,7 +722,9 @@ class Exporter:
         if self.args.dla:
             LOGGER.info(f"{prefix} enabling DLA...")
             if not self.args.half and not self.args.int8:
-                raise ValueError("DLA requires either 'half=True' (FP16) or 'int8=True' (INT8) to be enabled. Please enable one of them and try again.")
+                raise ValueError(
+                    "DLA requires either 'half=True' (FP16) or 'int8=True' (INT8) to be enabled. Please enable one of them and try again."
+                )
             config.default_device_type = trt.DeviceType.DLA
             config.DLA_core = self.args.dla_core
             config.set_flag(trt.BuilderFlag.GPU_FALLBACK)

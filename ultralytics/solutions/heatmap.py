@@ -6,9 +6,10 @@ from astroid.nodes.scoped_nodes.scoped_nodes import objects
 
 from ultralytics.utils.plotting import Annotator
 from ultralytics.solutions.solutions import BaseSolution  # Import a parent class
+from ultralytics.solutions.object_counter import ObjectCounter
 
 
-class Heatmap(BaseSolution):
+class Heatmap(ObjectCounter):
     """A class to draw heatmaps in real-time video stream based on their tracks."""
 
     def __init__(self, **kwargs):
@@ -17,9 +18,11 @@ class Heatmap(BaseSolution):
 
         if self.region is not None:
             self.initialize_region()
+
         self.initialized = False  # bool variable for heatmap initialization
 
-        self.colormap = cv2.COLORMAP_PARULA # Store colormap for heatmap
+        # store colormap
+        self.colormap = cv2.COLORMAP_PARULA if self.CFG["colormap"] is None else self.CFG["colormap"]
 
     def heatmap_effect(self, box):
         """

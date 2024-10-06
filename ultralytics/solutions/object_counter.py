@@ -19,8 +19,7 @@ class ObjectCounter(BaseSolution):
         self.out_count = 0  # Counter for objects moving outward
         self.counted_ids = []  # List of IDs of objects that have been counted
         self.classwise_counts = {}  # Dictionary for counts, categorized by object class
-
-        self.initialize_region()  # Setup region and counting areas
+        self.region_initialized = False     # Bool variable for region initialization
 
         self.show_in = self.CFG["show_in"]
         self.show_out = self.CFG["show_out"]
@@ -99,6 +98,10 @@ class ObjectCounter(BaseSolution):
         Returns
             im0 (ndarray): The processed image for more usage
         """
+        if not self.region_initialized:
+            self.initialize_region()
+            self.region_initialized = True
+
         self.annotator = Annotator(im0, line_width=self.line_width)  # Initialize annotator
         self.extract_tracks(im0)  # Extract tracks
 

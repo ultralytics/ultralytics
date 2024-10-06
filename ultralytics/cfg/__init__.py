@@ -82,10 +82,10 @@ CLI_HELP_MSG = f"""
 
     5. Explore your datasets using semantic search and SQL with a simple GUI powered by Ultralytics Explorer API
         yolo explorer data=data.yaml model=yolo11n.pt
-
+    
     6. Streamlit real-time webcam inference GUI
         yolo streamlit-predict
-
+        
     7. Run special commands:
         yolo help
         yolo checks

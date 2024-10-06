@@ -88,5 +88,4 @@ class Heatmap(ObjectCounter):
         )
 
         self.display_output(im0)  # display output with base class function
-
         return im0  # return output image for more usage

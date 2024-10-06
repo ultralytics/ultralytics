@@ -469,11 +469,11 @@ class BaseTrainer:
 
         if RANK in {-1, 0}:
             # Do final val with best.pt
-            total_epochs = epoch - self.start_epoch + 1
-            total_seconds = time.time() - self.train_time_start
-            LOGGER.info(f"\n{total_epochs} epochs completed in {total_seconds / 3600:.3f} hours.")
+            epochs = epoch - self.start_epoch + 1  # total training epochs
+            seconds = time.time() - self.train_time_start  # total training seconds
+            LOGGER.info(f"\n{epochs} epochs completed in {seconds / 3600:.3f} hours.")
             self.final_eval()
-            self.validator.metrics.training = {"epochs": total_epochs, "seconds": total_seconds}  # add training speed
+            self.validator.metrics.training = {"epochs": epochs, "seconds": seconds}  # add training speed
             if self.args.plots:
                 self.plot_metrics()
             self.run_callbacks("on_train_end")

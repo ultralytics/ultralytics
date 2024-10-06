@@ -469,11 +469,11 @@ class BaseTrainer:
 
         if RANK in {-1, 0}:
             # Do final val with best.pt
-            LOGGER.info(
-                f"\n{epoch - self.start_epoch + 1} epochs completed in "
-                f"{(time.time() - self.train_time_start) / 3600:.3f} hours."
-            )
+            total_epochs = epoch - self.start_epoch + 1
+            total_seconds = time.time() - self.train_time_start
+            LOGGER.info(f"\n{total_epochs} epochs completed in {total_seconds / 3600:.3f} hours.")
             self.final_eval()
+            self.metrics["train_speed"] = {"epochs": total_epochs, "seconds": total_seconds}
             if self.args.plots:
                 self.plot_metrics()
             self.run_callbacks("on_train_end")

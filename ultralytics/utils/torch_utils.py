@@ -124,7 +124,7 @@ def get_cpu_info():
 
 
 def get_gpu_info(index):
-    """Return a string with system CPU information, i.e. 'Tesla T4 (15.10 GB)'."""
+    """Return a string with system GPU information, i.e. 'Tesla T4, 15102MiB'."""
     properties = torch.cuda.get_device_properties(index)
     return f"{properties.name}, {properties.total_memory / (1 << 20):.0f}MiB"
 

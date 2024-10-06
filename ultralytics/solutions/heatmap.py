@@ -14,10 +14,9 @@ class Heatmap(ObjectCounter):
         """Initializes function for heatmap class with default values."""
         super().__init__(**kwargs)
 
-        if self.region is not None:
-            self.initialize_region()
-
         self.initialized = False  # bool variable for heatmap initialization
+        if self.region is not None:  # check if user provided the region coordinates
+            self.initialize_region()
 
         # store colormap
         self.colormap = cv2.COLORMAP_PARULA if self.CFG["colormap"] is None else self.CFG["colormap"]
@@ -78,14 +77,11 @@ class Heatmap(ObjectCounter):
 
         # Normalize, apply colormap to heatmap and combine with original image
         im0 = cv2.addWeighted(
-            im0,
-            0.5,
+            im0,0.5,
             cv2.applyColorMap(
                 cv2.normalize(self.heatmap, None, 0, 255, cv2.NORM_MINMAX).astype(np.uint8), self.colormap
             ),
-            0.5,
-            0,
-        )
+            0.5, 0,)
 
         self.display_output(im0)  # display output with base class function
         return im0  # return output image for more usage

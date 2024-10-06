@@ -56,7 +56,6 @@ class BaseSolution:
             self.boxes = self.track_data.xyxy.cpu()
             self.clss = self.track_data.cls.cpu().tolist()
             self.track_ids = self.track_data.id.int().cpu().tolist()
-
         else:
             LOGGER.warning("WARNING ⚠️ tracks none, no keypoints will be considered.")
             self.boxes, self.clss, self.track_ids = [], [], []

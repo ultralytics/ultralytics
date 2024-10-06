@@ -59,19 +59,18 @@ class Heatmap(ObjectCounter):
         self.extract_tracks(im0)  # Extract tracks
 
         # Iterate over bounding boxes, track ids and classes index
-        if self.track_data is not None and self.track_data.id is not None:
-            for box, track_id, cls in zip(self.boxes, self.track_ids, self.clss):
-                # Draw bounding box and counting region
-                self.heatmap_effect(box)
+        for box, track_id, cls in zip(self.boxes, self.track_ids, self.clss):
+            # Draw bounding box and counting region
+            self.heatmap_effect(box)
 
-                if self.region is not None:
-                    self.annotator.draw_region(reg_pts=self.region, color=(104, 0, 123), thickness=self.line_width * 2)
-                    self.store_tracking_history(track_id, box)  # Store track history
-                    self.store_classwise_counts(cls)  # store classwise counts in dict
+            if self.region is not None:
+                self.annotator.draw_region(reg_pts=self.region, color=(104, 0, 123), thickness=self.line_width * 2)
+                self.store_tracking_history(track_id, box)  # Store track history
+                self.store_classwise_counts(cls)  # store classwise counts in dict
 
-                    # Store tracking previous position and perform object counting
-                    prev_position = self.track_history[track_id][-2] if len(self.track_history[track_id]) > 1 else None
-                    self.count_objects(self.track_line, box, track_id, prev_position, cls)  # Perform object counting
+                # Store tracking previous position and perform object counting
+                prev_position = self.track_history[track_id][-2] if len(self.track_history[track_id]) > 1 else None
+                self.count_objects(self.track_line, box, track_id, prev_position, cls)  # Perform object counting
 
         self.display_counts(im0) if self.region is not None else None  # Display the counts on the frame
 

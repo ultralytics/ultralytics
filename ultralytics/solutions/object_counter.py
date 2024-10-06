@@ -110,21 +110,20 @@ class ObjectCounter(BaseSolution):
         )  # Draw region
 
         # Iterate over bounding boxes, track ids and classes index
-        if self.track_data is not None and self.track_data.id is not None:
-            for box, track_id, cls in zip(self.boxes, self.track_ids, self.clss):
-                # Draw bounding box and counting region
-                self.annotator.box_label(box, label=self.names[cls], color=colors(track_id, True))
-                self.store_tracking_history(track_id, box)  # Store track history
-                self.store_classwise_counts(cls)  # store classwise counts in dict
+        for box, track_id, cls in zip(self.boxes, self.track_ids, self.clss):
+            # Draw bounding box and counting region
+            self.annotator.box_label(box, label=self.names[cls], color=colors(track_id, True))
+            self.store_tracking_history(track_id, box)  # Store track history
+            self.store_classwise_counts(cls)  # store classwise counts in dict
 
-                # Draw centroid of objects
-                self.annotator.draw_centroid_and_tracks(
-                    self.track_line, color=colors(int(track_id), True), track_thickness=self.line_width
-                )
+            # Draw centroid of objects
+            self.annotator.draw_centroid_and_tracks(
+                self.track_line, color=colors(int(track_id), True), track_thickness=self.line_width
+            )
 
-                # store previous position of track for object counting
-                prev_position = self.track_history[track_id][-2] if len(self.track_history[track_id]) > 1 else None
-                self.count_objects(self.track_line, box, track_id, prev_position, cls)  # Perform object counting
+            # store previous position of track for object counting
+            prev_position = self.track_history[track_id][-2] if len(self.track_history[track_id]) > 1 else None
+            self.count_objects(self.track_line, box, track_id, prev_position, cls)  # Perform object counting
 
         self.display_counts(im0)  # Display the counts on the frame
         self.display_output(im0)  # display output with base class function

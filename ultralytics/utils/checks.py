@@ -595,17 +595,21 @@ def collect_system_info():
     from ultralytics.utils import ENVIRONMENT  # scope to avoid circular import
     from ultralytics.utils.torch_utils import get_cpu_info, get_gpu_info
 
+    gib = 1 << 30  # bytes per GiB
     cuda = torch and torch.cuda.is_available()
-    ram_info = psutil.virtual_memory().total / (1024**3)  # Convert bytes to GB
     check_yolo()
+    total, used, free = shutil.disk_usage("/")
     LOGGER.info(
         f"\n{'OS':<20}{platform.platform()}\n"
         f"{'Environment':<20}{ENVIRONMENT}\n"
         f"{'Python':<20}{PYTHON_VERSION}\n"
         f"{'Install':<20}{'git' if IS_GIT_DIR else 'pip' if IS_PIP_PACKAGE else 'other'}\n"
-        f"{'RAM':<20}{ram_info:.2f} GB\n"
+        f"{'RAM':<20}{psutil.virtual_memory().total / gib:.2f} GB\n"
+        f"{'Disk':<20}{(total - free) / gib:.1f}/{total / gib:.1f} GB\n"
         f"{'CPU':<20}{get_cpu_info()}\n"
+        f"{'CPU count':<20}{os.cpu_count()}\n"
         f"{'GPU':<20}{get_gpu_info(index=0) if cuda else None}\n"
+        f"{'GPU count':<20}{torch.cuda.device_count() if cuda else None}\n"
         f"{'CUDA':<20}{torch.version.cuda if cuda else None}\n"
     )
 

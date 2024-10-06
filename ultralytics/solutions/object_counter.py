@@ -19,8 +19,7 @@ class ObjectCounter(BaseSolution):
         self.out_count = 0  # Counter for objects moving outward
         self.counted_ids = []  # List of IDs of objects that have been counted
         self.classwise_counts = {}  # Dictionary for counts, categorized by object class
-
-        self.initialize_region()  # Setup region and counting areas
+        self.region_initialized = False  # Bool variable for region initialization
 
         self.show_in = self.CFG["show_in"]
         self.show_out = self.CFG["show_out"]
@@ -99,6 +98,10 @@ class ObjectCounter(BaseSolution):
         Returns
             im0 (ndarray): The processed image for more usage
         """
+        if not self.region_initialized:
+            self.initialize_region()
+            self.region_initialized = True
+
         self.annotator = Annotator(im0, line_width=self.line_width)  # Initialize annotator
         self.extract_tracks(im0)  # Extract tracks
 
@@ -107,21 +110,20 @@ class ObjectCounter(BaseSolution):
         )  # Draw region
 
         # Iterate over bounding boxes, track ids and classes index
-        if self.track_data is not None and self.track_data.id is not None:
-            for box, track_id, cls in zip(self.boxes, self.track_ids, self.clss):
-                # Draw bounding box and counting region
-                self.annotator.box_label(box, label=self.names[cls], color=colors(track_id, True))
-                self.store_tracking_history(track_id, box)  # Store track history
-                self.store_classwise_counts(cls)  # store classwise counts in dict
+        for box, track_id, cls in zip(self.boxes, self.track_ids, self.clss):
+            # Draw bounding box and counting region
+            self.annotator.box_label(box, label=self.names[cls], color=colors(track_id, True))
+            self.store_tracking_history(track_id, box)  # Store track history
+            self.store_classwise_counts(cls)  # store classwise counts in dict
 
-                # Draw centroid of objects
-                self.annotator.draw_centroid_and_tracks(
-                    self.track_line, color=colors(int(track_id), True), track_thickness=self.line_width
-                )
+            # Draw centroid of objects
+            self.annotator.draw_centroid_and_tracks(
+                self.track_line, color=colors(int(track_id), True), track_thickness=self.line_width
+            )
 
-                # store previous position of track for object counting
-                prev_position = self.track_history[track_id][-2] if len(self.track_history[track_id]) > 1 else None
-                self.count_objects(self.track_line, box, track_id, prev_position, cls)  # Perform object counting
+            # store previous position of track for object counting
+            prev_position = self.track_history[track_id][-2] if len(self.track_history[track_id]) > 1 else None
+            self.count_objects(self.track_line, box, track_id, prev_position, cls)  # Perform object counting
 
         self.display_counts(im0)  # Display the counts on the frame
         self.display_output(im0)  # display output with base class function

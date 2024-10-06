@@ -2,11 +2,9 @@
 
 import cv2
 import numpy as np
-from astroid.nodes.scoped_nodes.scoped_nodes import objects
 
-from ultralytics.utils.plotting import Annotator
-from ultralytics.solutions.solutions import BaseSolution  # Import a parent class
 from ultralytics.solutions.object_counter import ObjectCounter
+from ultralytics.utils.plotting import Annotator
 
 
 class Heatmap(ObjectCounter):

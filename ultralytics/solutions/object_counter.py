@@ -19,7 +19,7 @@ class ObjectCounter(BaseSolution):
         self.out_count = 0  # Counter for objects moving outward
         self.counted_ids = []  # List of IDs of objects that have been counted
         self.classwise_counts = {}  # Dictionary for counts, categorized by object class
-        self.region_initialized = False     # Bool variable for region initialization
+        self.region_initialized = False  # Bool variable for region initialization
 
         self.show_in = self.CFG["show_in"]
         self.show_out = self.CFG["show_out"]

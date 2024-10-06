@@ -85,7 +85,7 @@ CLI_HELP_MSG = f"""
     
     6. Streamlit real-time webcam inference GUI
         yolo streamlit-predict
-    
+
     7. Run special commands:
         yolo help
         yolo checks

@@ -94,13 +94,13 @@ document.addEventListener("DOMContentLoaded", () => {
         fixedPositionYOffset: "3rem",
         chatButtonBgColor: "#E1FF25",
         baseSettings: {
-          apiKey: "13dfec2e75982bc9bae3199a08e13b86b5fbacd64e9b2f89", // required
-          integrationId: "cm1shscmm00y26sj83lgxzvkw", // required
-          organizationId: "org_e3869az6hQZ0mXdF", // required
-          primaryBrandColor: "#E1FF25", // Ultralytics brand color
+          apiKey: "13dfec2e75982bc9bae3199a08e13b86b5fbacd64e9b2f89",
+          integrationId: "cm1shscmm00y26sj83lgxzvkw",
+          organizationId: "org_e3869az6hQZ0mXdF",
+          primaryBrandColor: "#E1FF25",
           organizationDisplayName: "Ultralytics",
           theme: {
-            stylesheetUrls: ["../stylesheets/style.css"],
+            stylesheetUrls: ["/stylesheets/style.css"],
           },
           // ...optional settings
         },

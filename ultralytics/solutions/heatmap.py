@@ -75,7 +75,7 @@ class Heatmap(ObjectCounter):
         self.display_counts(im0) if self.region is not None else None  # Display the counts on the frame
 
         # Normalize, apply colormap to heatmap and combine with original image
-        im0 = cv2.addWeighted(
+        im0 = im0 if self.track_data.id is None else cv2.addWeighted(
             im0,
             0.5,
             cv2.applyColorMap(

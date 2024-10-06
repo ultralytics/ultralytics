@@ -173,8 +173,13 @@ jobs:
             docker push $t
           fi
 
-      - name: Notify on failure
-        if: github.event_name == 'push' && failure() # do not notify on cancelled() as cancelling is performed by hand
+  notify:
+    runs-on: ubuntu-latest
+    needs: docker
+    if: always() # This ensures the job always runs
+    steps:
+      - name: Check for failure and notify
+        if: needs.docker.result == 'failure' && github.repository == 'ultralytics/ultralytics' && github.event_name == 'push'
         uses: slackapi/slack-github-action@v1.27.0
         with:
           payload: |

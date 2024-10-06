@@ -601,17 +601,17 @@ def collect_system_info():
     total, used, free = shutil.disk_usage("/")
 
     info_dict = {
-        'OS': platform.platform(),
-        'Environment': ENVIRONMENT,
-        'Python': PYTHON_VERSION,
-        'Install': 'git' if IS_GIT_DIR else 'pip' if IS_PIP_PACKAGE else 'other',
-        'RAM': f"{psutil.virtual_memory().total / gib:.2f} GB",
-        'Disk': f"{(total - free) / gib:.1f}/{total / gib:.1f} GB",
-        'CPU': get_cpu_info(),
-        'CPU count': os.cpu_count(),
-        'GPU': get_gpu_info(index=0) if cuda else None,
-        'GPU count': torch.cuda.device_count() if cuda else None,
-        'CUDA': torch.version.cuda if cuda else None,
+        "OS": platform.platform(),
+        "Environment": ENVIRONMENT,
+        "Python": PYTHON_VERSION,
+        "Install": "git" if IS_GIT_DIR else "pip" if IS_PIP_PACKAGE else "other",
+        "RAM": f"{psutil.virtual_memory().total / gib:.2f} GB",
+        "Disk": f"{(total - free) / gib:.1f}/{total / gib:.1f} GB",
+        "CPU": get_cpu_info(),
+        "CPU count": os.cpu_count(),
+        "GPU": get_gpu_info(index=0) if cuda else None,
+        "GPU count": torch.cuda.device_count() if cuda else None,
+        "CUDA": torch.version.cuda if cuda else None,
     }
     LOGGER.info("\n" + "\n".join(f"{k:<20}{v}" for k, v in info_dict.items()) + "\n")
 
@@ -626,19 +626,19 @@ def collect_system_info():
         package_info[r.name] = f"{is_met}{current}{r.specifier}"
         LOGGER.info(f"{r.name:<20}{package_info[r.name]}")
 
-    info_dict['Package Info'] = package_info
+    info_dict["Package Info"] = package_info
 
     if is_github_action_running():
         github_info = {
-            'RUNNER_OS': os.getenv('RUNNER_OS'),
-            'GITHUB_EVENT_NAME': os.getenv('GITHUB_EVENT_NAME'),
-            'GITHUB_WORKFLOW': os.getenv('GITHUB_WORKFLOW'),
-            'GITHUB_ACTOR': os.getenv('GITHUB_ACTOR'),
-            'GITHUB_REPOSITORY': os.getenv('GITHUB_REPOSITORY'),
-            'GITHUB_REPOSITORY_OWNER': os.getenv('GITHUB_REPOSITORY_OWNER'),
+            "RUNNER_OS": os.getenv("RUNNER_OS"),
+            "GITHUB_EVENT_NAME": os.getenv("GITHUB_EVENT_NAME"),
+            "GITHUB_WORKFLOW": os.getenv("GITHUB_WORKFLOW"),
+            "GITHUB_ACTOR": os.getenv("GITHUB_ACTOR"),
+            "GITHUB_REPOSITORY": os.getenv("GITHUB_REPOSITORY"),
+            "GITHUB_REPOSITORY_OWNER": os.getenv("GITHUB_REPOSITORY_OWNER"),
         }
         LOGGER.info("\n" + "\n".join(f"{k}: {v}" for k, v in github_info.items()))
-        info_dict['GitHub Info'] = github_info
+        info_dict["GitHub Info"] = github_info
 
     return info_dict
 

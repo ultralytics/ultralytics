@@ -13,4 +13,8 @@ keywords: YOLO batch size, CUDA memory, PyTorch autobatch, Ultralytics, machine 
 
 ## ::: ultralytics.utils.autobatch.check_train_batch_size
 
+<br><br><hr><br>
+
+## ::: ultralytics.utils.autobatch.autobatch
+
 <br><br>

@@ -543,7 +543,11 @@ class Model(nn.Module):
         prompts = args.pop("prompts", None)  # for SAM-type models
 
         if not self.predictor:
-            self.predictor = predictor or self._smart_load("predictor")(overrides=args, _callbacks=self.callbacks)
+            if predictor is None:
+                self.predictor = self._smart_load("predictor")(overrides=args, _callbacks=self.callbacks)
+            else:
+                self.predictor = predictor
+                self.predictor.args = get_cfg(self.predictor.args, args)
             self.predictor.setup_model(model=self.model, verbose=is_cli)
         else:  # only update args if predictor is already setup
             self.predictor.args = get_cfg(self.predictor.args, args)

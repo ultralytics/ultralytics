@@ -599,7 +599,6 @@ def yolo_bbox2segment(im_dir, save_dir=None, sam_model="sam_b.pt"):
                 ├─ ...
                 └─ NNN.txt
     """
-
     from ultralytics import SAM
     from ultralytics.data import YOLODataset
     from ultralytics.utils import LOGGER

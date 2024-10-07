@@ -599,7 +599,6 @@ def yolo_bbox2segment(im_dir, save_dir=None, sam_model="sam_b.pt"):
                 ├─ ...
                 └─ NNN.txt
     """
-    from tqdm import tqdm
 
     from ultralytics import SAM
     from ultralytics.data import YOLODataset
@@ -614,7 +613,7 @@ def yolo_bbox2segment(im_dir, save_dir=None, sam_model="sam_b.pt"):
 
     LOGGER.info("Detection labels detected, generating segment labels by SAM model!")
     sam_model = SAM(sam_model)
-    for label in tqdm(dataset.labels, total=len(dataset.labels), desc="Generating segment labels"):
+    for label in TQDM(dataset.labels, total=len(dataset.labels), desc="Generating segment labels"):
         h, w = label["shape"]
         boxes = label["bboxes"]
         if len(boxes) == 0:  # skip empty labels
@@ -664,7 +663,7 @@ def create_synthetic_coco_dataset(segments=True):
 
         label_dir = dir / "labels" / subset
         if label_dir.exists():
-            for label_file in TQDM(label_dir.glob("*.txt"), desc=f"Generating synthetic images for {subset}"):
+            for label_file in TQDM(list(label_dir.glob("*.txt")), desc=f"Generating synthetic images for {subset}"):
                 image_file = subset_dir / f"{label_file.stem}.jpg"
                 if not image_file.exists():
                     size = (random.randint(480, 640), random.randint(480, 640))

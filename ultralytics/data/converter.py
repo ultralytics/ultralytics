@@ -678,4 +678,4 @@ def create_synthetic_coco_dataset(segments=True):
         else:
             print(f"Warning: Label directory {label_dir} does not exist. Skipping image creation for {subset}.")
 
-    print("Synthetic COCO dataset created successfully (without test2017).")
+    print("Synthetic COCO dataset created successfully.")

@@ -662,14 +662,12 @@ def profile(input, ops, n=10, device=None):
                     t[0] = time_sync()
                     y = m(x)
                     t[1] = time_sync()
-                    try:
-                        (sum(yi.sum() for yi in y) if isinstance(y, list) else y).sum().backward()
-                        t[2] = time_sync()
-                    except Exception:  # no backward method
-                        # print(e)  # for debug
-                        t[2] = float("nan")
-                    tf += (t[1] - t[0]) * 1000 / n  # ms per op forward
-                    tb += (t[2] - t[1]) * 1000 / n  # ms per op backward
+                    getattr((sum(yi.sum() for yi in y) if isinstance(y, list) else y).sum(), "backwards", lambda: None)()
+                    t[2] = time_sync()
+                    tf += (t[1] - t[0]) * 1000  # ms per op forward
+                    tb += (t[2] - t[1]) * 1000  # ms per op backward
+                tf /= n
+                tb /= n
                 mem = torch.cuda.memory_reserved() / 1e9 if torch.cuda.is_available() else 0  # (GB)
                 s_in, s_out = (tuple(x.shape) if isinstance(x, torch.Tensor) else "list" for x in (x, y))  # shapes
                 p = sum(x.numel() for x in m.parameters()) if isinstance(m, nn.Module) else 0  # parameters

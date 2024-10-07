@@ -158,8 +158,8 @@ Find comprehensive information on the [Predict](../modes/predict.md) page for fu
 
         from ultralytics import YOLO
 
-        os.environ['TPU_DEVICE'] = ':0'  # Select the first TPU
-        os.environ['TPU_DEVICE'] = ':1'  # Select the second TPU
+        os.environ["TPU_DEVICE"] = ":0"  # Select the first TPU
+        os.environ["TPU_DEVICE"] = ":1"  # Select the second TPU
 
         # Load a model
         model = YOLO("path/to/<model_name>_full_integer_quant_edgetpu.tflite")  # Load an official model or custom model

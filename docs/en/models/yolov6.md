@@ -24,13 +24,13 @@ keywords: Meituan YOLOv6, object detection, real-time applications, BiC module, 
 
 YOLOv6 provides various pre-trained models with different scales:
 
-- YOLOv6-N: 37.5% AP on COCO val2017 at 1187 FPS with NVIDIA Tesla T4 GPU.
+- YOLOv6-N: 37.5% AP on COCO val2017 at 1187 FPS with NVIDIA T4 GPU.
 - YOLOv6-S: 45.0% AP at 484 FPS.
 - YOLOv6-M: 50.0% AP at 226 FPS.
 - YOLOv6-L: 52.8% AP at 116 FPS.
 - YOLOv6-L6: State-of-the-art accuracy in real-time.
 
-YOLOv6 also provides quantized models for different precisions and models optimized for mobile platforms.
+YOLOv6 also provides quantized models for different [precisions](https://www.ultralytics.com/glossary/precision) and models optimized for mobile platforms.
 
 ## Usage Examples
 
@@ -40,7 +40,7 @@ This example provides simple YOLOv6 training and inference examples. For full do
 
     === "Python"
 
-        PyTorch pretrained `*.pt` models as well as configuration `*.yaml` files can be passed to the `YOLO()` class to create a model instance in python:
+        [PyTorch](https://www.ultralytics.com/glossary/pytorch) pretrained `*.pt` models as well as configuration `*.yaml` files can be passed to the `YOLO()` class to create a model instance in python:
 
         ```python
         from ultralytics import YOLO
@@ -72,7 +72,7 @@ This example provides simple YOLOv6 training and inference examples. For full do
 
 ## Supported Tasks and Modes
 
-The YOLOv6 series offers a range of models, each optimized for high-performance [Object Detection](../tasks/detect.md). These models cater to varying computational needs and accuracy requirements, making them versatile for a wide array of applications.
+The YOLOv6 series offers a range of models, each optimized for high-performance [Object Detection](../tasks/detect.md). These models cater to varying computational needs and [accuracy](https://www.ultralytics.com/glossary/accuracy) requirements, making them versatile for a wide array of applications.
 
 | Model Type | Pre-trained Weights | Tasks Supported                        | Inference | Validation | Training | Export |
 | ---------- | ------------------- | -------------------------------------- | --------- | ---------- | -------- | ------ |
@@ -82,7 +82,7 @@ The YOLOv6 series offers a range of models, each optimized for high-performance 
 | YOLOv6-L   | `yolov6-l.pt`       | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
 | YOLOv6-L6  | `yolov6-l6.pt`      | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
 
-This table provides a detailed overview of the YOLOv6 model variants, highlighting their capabilities in object detection tasks and their compatibility with various operational modes such as [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md). This comprehensive support ensures that users can fully leverage the capabilities of YOLOv6 models in a broad range of object detection scenarios.
+This table provides a detailed overview of the YOLOv6 model variants, highlighting their capabilities in [object detection](https://www.ultralytics.com/glossary/object-detection) tasks and their compatibility with various operational modes such as [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md). This comprehensive support ensures that users can fully leverage the capabilities of YOLOv6 models in a broad range of object detection scenarios.
 
 ## Citations and Acknowledgements
 
@@ -151,11 +151,11 @@ YOLOv6 offers multiple versions, each optimized for different performance requir
 - YOLOv6-L: 52.8% AP at 116 FPS
 - YOLOv6-L6: State-of-the-art accuracy in real-time scenarios
 
-These models are evaluated on the COCO dataset using an NVIDIA Tesla T4 GPU. For more on performance metrics, see the [Performance Metrics](#performance-metrics) section.
+These models are evaluated on the COCO dataset using an NVIDIA T4 GPU. For more on performance metrics, see the [Performance Metrics](#performance-metrics) section.
 
 ### How does the Anchor-Aided Training (AAT) strategy benefit YOLOv6?
 
-Anchor-Aided Training (AAT) in YOLOv6 combines elements of anchor-based and anchor-free approaches, enhancing the model's detection capabilities without compromising inference efficiency. This strategy leverages anchors during training to improve bounding box predictions, making YOLOv6 effective in diverse object detection tasks.
+Anchor-Aided Training (AAT) in YOLOv6 combines elements of anchor-based and anchor-free approaches, enhancing the model's detection capabilities without compromising inference efficiency. This strategy leverages anchors during training to improve [bounding box](https://www.ultralytics.com/glossary/bounding-box) predictions, making YOLOv6 effective in diverse object detection tasks.
 
 ### Which operational modes are supported by YOLOv6 models in Ultralytics?
 

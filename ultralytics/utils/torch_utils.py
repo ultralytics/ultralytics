@@ -110,15 +110,23 @@ def autocast(enabled: bool, device: str = "cuda"):
 
 def get_cpu_info():
     """Return a string with system CPU information, i.e. 'Apple M2'."""
-    with contextlib.suppress(Exception):
-        import cpuinfo  # pip install py-cpuinfo
+    from ultralytics.utils import PERSISTENT_CACHE  # avoid circular import error
 
-        k = "brand_raw", "hardware_raw", "arch_string_raw"  # keys sorted by preference (not all keys always available)
-        info = cpuinfo.get_cpu_info()  # info dict
-        string = info.get(k[0] if k[0] in info else k[1] if k[1] in info else k[2], "unknown")
-        return string.replace("(R)", "").replace("CPU ", "").replace("@ ", "")
+    if "cpu_info" not in PERSISTENT_CACHE:
+        with contextlib.suppress(Exception):
+            import cpuinfo  # pip install py-cpuinfo
 
-    return "unknown"
+            k = "brand_raw", "hardware_raw", "arch_string_raw"  # keys sorted by preference
+            info = cpuinfo.get_cpu_info()  # info dict
+            string = info.get(k[0] if k[0] in info else k[1] if k[1] in info else k[2], "unknown")
+            PERSISTENT_CACHE["cpu_info"] = string.replace("(R)", "").replace("CPU ", "").replace("@ ", "")
+    return PERSISTENT_CACHE.get("cpu_info", "unknown")
+
+
+def get_gpu_info(index):
+    """Return a string with system GPU information, i.e. 'Tesla T4, 15102MiB'."""
+    properties = torch.cuda.get_device_properties(index)
+    return f"{properties.name}, {properties.total_memory / (1 << 20):.0f}MiB"
 
 
 def select_device(device="", batch=0, newline=False, verbose=True):
@@ -157,7 +165,7 @@ def select_device(device="", batch=0, newline=False, verbose=True):
     if isinstance(device, torch.device):
         return device
 
-    s = f"Ultralytics YOLOv{__version__} 🚀 Python-{PYTHON_VERSION} torch-{torch.__version__} "
+    s = f"Ultralytics {__version__} 🚀 Python-{PYTHON_VERSION} torch-{torch.__version__} "
     device = str(device).lower()
     for remove in "cuda:", "none", "(", ")", "[", "]", "'", " ":
         device = device.replace(remove, "")  # to string, 'cuda:0' -> '0' and '(0, 1)' -> '0,1'
@@ -168,6 +176,8 @@ def select_device(device="", batch=0, newline=False, verbose=True):
     elif device:  # non-cpu device requested
         if device == "cuda":
             device = "0"
+        if "," in device:
+            device = ",".join([x for x in device.split(",") if x])  # remove sequential commas, i.e. "0,,1" -> "0,1"
         visible = os.environ.get("CUDA_VISIBLE_DEVICES", None)
         os.environ["CUDA_VISIBLE_DEVICES"] = device  # set environment variable - must be before assert is_available()
         if not (torch.cuda.is_available() and torch.cuda.device_count() >= len(device.split(","))):
@@ -189,7 +199,7 @@ def select_device(device="", batch=0, newline=False, verbose=True):
             )
 
     if not cpu and not mps and torch.cuda.is_available():  # prefer GPU if available
-        devices = device.split(",") if device else "0"  # range(torch.cuda.device_count())  # i.e. 0,1,6,7
+        devices = device.split(",") if device else "0"  # i.e. "0,1" -> ["0", "1"]
         n = len(devices)  # device count
         if n > 1:  # multi-GPU
             if batch < 1:
@@ -204,8 +214,7 @@ def select_device(device="", batch=0, newline=False, verbose=True):
                 )
         space = " " * (len(s) + 1)
         for i, d in enumerate(devices):
-            p = torch.cuda.get_device_properties(i)
-            s += f"{'' if i == 0 else space}CUDA:{d} ({p.name}, {p.total_memory / (1 << 20):.0f}MiB)\n"  # bytes to MB
+            s += f"{'' if i == 0 else space}CUDA:{d} ({get_gpu_info(i)})\n"  # bytes to MB
         arg = "cuda:0"
     elif mps and TORCH_2_0 and torch.backends.mps.is_available():
         # Prefer MPS if available
@@ -247,7 +256,7 @@ def fuse_conv_and_bn(conv, bn):
     )
 
     # Prepare filters
-    w_conv = conv.weight.clone().view(conv.out_channels, -1)
+    w_conv = conv.weight.view(conv.out_channels, -1)
     w_bn = torch.diag(bn.weight.div(torch.sqrt(bn.eps + bn.running_var)))
     fusedconv.weight.copy_(torch.mm(w_bn, w_conv).view(fusedconv.weight.shape))
 
@@ -278,7 +287,7 @@ def fuse_deconv_and_bn(deconv, bn):
     )
 
     # Prepare filters
-    w_deconv = deconv.weight.clone().view(deconv.out_channels, -1)
+    w_deconv = deconv.weight.view(deconv.out_channels, -1)
     w_bn = torch.diag(bn.weight.div(torch.sqrt(bn.eps + bn.running_var)))
     fuseddconv.weight.copy_(torch.mm(w_bn, w_deconv).view(fuseddconv.weight.shape))
 
@@ -593,7 +602,7 @@ def strip_optimizer(f: Union[str, Path] = "best.pt", s: str = "", updates: dict 
 
     # Save
     combined = {**metadata, **x, **(updates or {})}
-    torch.save(combined, s or f, use_dill=False)  # combine dicts (prefer to the right)
+    torch.save(combined, s or f)  # combine dicts (prefer to the right)
     mb = os.path.getsize(s or f) / 1e6  # file size
     LOGGER.info(f"Optimizer stripped from {f},{f' saved as {s},' if s else ''} {mb:.1f}MB")
     return combined

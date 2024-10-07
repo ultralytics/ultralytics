@@ -6,7 +6,7 @@ keywords: YOLOv5 architecture, object detection, Ultralytics, YOLO, model struct
 
 # Ultralytics YOLOv5 Architecture
 
-YOLOv5 (v6.0/6.1) is a powerful object detection algorithm developed by Ultralytics. This article dives deep into the YOLOv5 architecture, data augmentation strategies, training methodologies, and loss computation techniques. This comprehensive understanding will help improve your practical application of object detection in various fields, including surveillance, autonomous vehicles, and image recognition.
+YOLOv5 (v6.0/6.1) is a powerful object detection algorithm developed by Ultralytics. This article dives deep into the YOLOv5 architecture, [data augmentation](https://www.ultralytics.com/glossary/data-augmentation) strategies, training methodologies, and loss computation techniques. This comprehensive understanding will help improve your practical application of object detection in various fields, including surveillance, autonomous vehicles, and [image recognition](https://www.ultralytics.com/glossary/image-recognition).
 
 ## 1. Model Structure
 
@@ -104,9 +104,9 @@ SPPF time: 0.20780706405639648
 
 ## 2. Data Augmentation Techniques
 
-YOLOv5 employs various data augmentation techniques to improve the model's ability to generalize and reduce overfitting. These techniques include:
+YOLOv5 employs various data augmentation techniques to improve the model's ability to generalize and reduce [overfitting](https://www.ultralytics.com/glossary/overfitting). These techniques include:
 
-- **Mosaic Augmentation**: An image processing technique that combines four training images into one in ways that encourage object detection models to better handle various object scales and translations.
+- **Mosaic Augmentation**: An image processing technique that combines four training images into one in ways that encourage [object detection](https://www.ultralytics.com/glossary/object-detection) models to better handle various object scales and translations.
 
     ![mosaic](https://github.com/ultralytics/docs/releases/download/0/mosaic-augmentation.avif)
 
@@ -138,9 +138,9 @@ YOLOv5 applies several sophisticated training strategies to enhance the model's 
 
 - **Multiscale Training**: The input images are randomly rescaled within a range of 0.5 to 1.5 times their original size during the training process.
 - **AutoAnchor**: This strategy optimizes the prior anchor boxes to match the statistical characteristics of the ground truth boxes in your custom data.
-- **Warmup and Cosine LR Scheduler**: A method to adjust the learning rate to enhance model performance.
+- **Warmup and Cosine LR Scheduler**: A method to adjust the [learning rate](https://www.ultralytics.com/glossary/learning-rate) to enhance model performance.
 - **Exponential Moving Average (EMA)**: A strategy that uses the average of parameters over past steps to stabilize the training process and reduce generalization error.
-- **Mixed Precision Training**: A method to perform operations in half-precision format, reducing memory usage and enhancing computational speed.
+- **[Mixed Precision](https://www.ultralytics.com/glossary/mixed-precision) Training**: A method to perform operations in half-[precision](https://www.ultralytics.com/glossary/precision) format, reducing memory usage and enhancing computational speed.
 - **Hyperparameter Evolution**: A strategy to automatically tune hyperparameters to achieve optimal performance.
 
 ## 4. Additional Features
@@ -153,7 +153,7 @@ The loss in YOLOv5 is computed as a combination of three individual loss compone
 - **Objectness Loss (BCE Loss)**: Another Binary Cross-Entropy loss, calculates the error in detecting whether an object is present in a particular grid cell or not.
 - **Location Loss (CIoU Loss)**: Complete IoU loss, measures the error in localizing the object within the grid cell.
 
-The overall loss function is depicted by:
+The overall [loss function](https://www.ultralytics.com/glossary/loss-function) is depicted by:
 
 ![loss](https://latex.codecogs.com/svg.image?Loss=\lambda_1L_{cls}+\lambda_2L_{obj}+\lambda_3L_{loc})
 
@@ -176,7 +176,7 @@ The YOLOv5 architecture makes some important changes to the box prediction strat
 
 However, in YOLOv5, the formula for predicting the box coordinates has been updated to reduce grid sensitivity and prevent the model from predicting unbounded box dimensions.
 
-The revised formulas for calculating the predicted bounding box are as follows:
+The revised formulas for calculating the predicted [bounding box](https://www.ultralytics.com/glossary/bounding-box) are as follows:
 
 ![bx](<https://latex.codecogs.com/svg.image?b_x=(2\cdot\sigma(t_x)-0.5)+c_x>)
 ![by](<https://latex.codecogs.com/svg.image?b_y=(2\cdot\sigma(t_y)-0.5)+c_y>)
@@ -193,7 +193,7 @@ Compare the height and width scaling ratio(relative to anchor) before and after 
 
 ### 4.4 Build Targets
 
-The build target process in YOLOv5 is critical for training efficiency and model accuracy. It involves assigning ground truth boxes to the appropriate grid cells in the output map and matching them with the appropriate anchor boxes.
+The build target process in YOLOv5 is critical for training efficiency and model [accuracy](https://www.ultralytics.com/glossary/accuracy). It involves assigning ground truth boxes to the appropriate grid cells in the output map and matching them with the appropriate anchor boxes.
 
 This process follows these steps:
 

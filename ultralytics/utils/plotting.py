@@ -13,8 +13,8 @@ import torch
 from PIL import Image, ImageDraw, ImageFont
 from PIL import __version__ as pil_version
 
-from ultralytics.utils import LOGGER, TryExcept, ops, plt_settings, threaded
-from ultralytics.utils.checks import check_font, check_version, is_ascii
+from ultralytics.utils import IS_JUPYTER, LOGGER, TryExcept, ops, plt_settings, threaded
+from ultralytics.utils.checks import check_font, check_requirements, check_version, is_ascii
 from ultralytics.utils.files import increment_path
 
 
@@ -419,7 +419,7 @@ class Annotator:
             # Convert im back to PIL and update draw
             self.fromarray(self.im)
 
-    def kpts(self, kpts, shape=(640, 640), radius=5, kpt_line=True, conf_thres=0.25, kpt_color=None):
+    def kpts(self, kpts, shape=(640, 640), radius=None, kpt_line=True, conf_thres=0.25, kpt_color=None):
         """
         Plot keypoints on the image.
 
@@ -436,6 +436,7 @@ class Annotator:
             - Modifies self.im in-place.
             - If self.pil is True, converts image to numpy array and back to PIL.
         """
+        radius = radius if radius is not None else self.lw
         if self.pil:
             # Convert to numpy first
             self.im = np.asarray(self.im).copy()
@@ -471,7 +472,7 @@ class Annotator:
                     pos1,
                     pos2,
                     kpt_color or self.limb_color[i].tolist(),
-                    thickness=2,
+                    thickness=int(np.ceil(self.lw / 2)),
                     lineType=cv2.LINE_AA,
                 )
         if self.pil:
@@ -523,7 +524,18 @@ class Annotator:
 
     def show(self, title=None):
         """Show the annotated image."""
-        Image.fromarray(np.asarray(self.im)[..., ::-1]).show(title)
+        im = Image.fromarray(np.asarray(self.im)[..., ::-1])  # Convert numpy array to PIL Image with RGB to BGR
+        if IS_JUPYTER:
+            check_requirements("ipython")
+            try:
+                from IPython.display import display
+
+                display(im)
+            except ImportError as e:
+                LOGGER.warning(f"Unable to display image in Jupyter notebooks: {e}")
+        else:
+            # Convert numpy array to PIL Image and show
+            im.show(title=title)
 
     def save(self, filename="image.jpg"):
         """Save the annotated image to 'filename'."""
@@ -579,8 +591,8 @@ class Annotator:
         Args:
             label (str): queue counts label
             points (tuple): region points for center point calculation to display text
-            region_color (RGB): queue region color
-            txt_color (RGB): text display color
+            region_color (tuple): RGB queue region color.
+            txt_color (tuple): RGB text display color.
         """
         x_values = [point[0] for point in points]
         y_values = [point[1] for point in points]
@@ -619,8 +631,8 @@ class Annotator:
         Args:
             im0 (ndarray): inference image
             text (str): object/class name
-            txt_color (bgr color): display color for text foreground
-            bg_color (bgr color): display color for text background
+            txt_color (tuple): display color for text foreground
+            bg_color (tuple): display color for text background
             x_center (float): x position center point for bounding box
             y_center (float): y position center point for bounding box
             margin (int): gap between text and rectangle for better display
@@ -643,8 +655,8 @@ class Annotator:
         Args:
             im0 (ndarray): inference image
             text (dict): labels dictionary
-            txt_color (bgr color): display color for text foreground
-            bg_color (bgr color): display color for text background
+            txt_color (tuple): display color for text foreground
+            bg_color (tuple): display color for text background
             margin (int): gap between text and rectangle for better display
         """
         horizontal_gap = int(im0.shape[1] * 0.02)
@@ -685,14 +697,13 @@ class Annotator:
             angle = 360 - angle
         return angle
 
-    def draw_specific_points(self, keypoints, indices=None, shape=(640, 640), radius=2, conf_thres=0.25):
+    def draw_specific_points(self, keypoints, indices=None, radius=2, conf_thres=0.25):
         """
         Draw specific keypoints for gym steps counting.
 
         Args:
             keypoints (list): Keypoints data to be plotted.
             indices (list, optional): Keypoint indices to be plotted. Defaults to [2, 5, 7].
-            shape (tuple, optional): Image size for model inference. Defaults to (640, 640).
             radius (int, optional): Keypoint radius. Defaults to 2.
             conf_thres (float, optional): Confidence threshold for keypoints. Defaults to 0.25.
 
@@ -703,101 +714,85 @@ class Annotator:
             Keypoint format: [x, y] or [x, y, confidence].
             Modifies self.im in-place.
         """
-        if indices is None:
-            indices = [2, 5, 7]
-        for i, k in enumerate(keypoints):
-            if i in indices:
-                x_coord, y_coord = k[0], k[1]
-                if x_coord % shape[1] != 0 and y_coord % shape[0] != 0:
-                    if len(k) == 3:
-                        conf = k[2]
-                        if conf < conf_thres:
-                            continue
-                    cv2.circle(self.im, (int(x_coord), int(y_coord)), radius, (0, 255, 0), -1, lineType=cv2.LINE_AA)
+        indices = indices or [2, 5, 7]
+        points = [(int(k[0]), int(k[1])) for i, k in enumerate(keypoints) if i in indices and k[2] >= conf_thres]
+
+        # Draw lines between consecutive points
+        for start, end in zip(points[:-1], points[1:]):
+            cv2.line(self.im, start, end, (0, 255, 0), 2, lineType=cv2.LINE_AA)
+
+        # Draw circles for keypoints
+        for pt in points:
+            cv2.circle(self.im, pt, radius, (0, 0, 255), -1, lineType=cv2.LINE_AA)
+
         return self.im
+
+    def plot_workout_information(self, display_text, position, color=(104, 31, 17), txt_color=(255, 255, 255)):
+        """
+        Draw text with a background on the image.
+
+        Args:
+            display_text (str): The text to be displayed.
+            position (tuple): Coordinates (x, y) on the image where the text will be placed.
+            color (tuple, optional): Text background color
+            txt_color (tuple, optional): Text foreground color
+        """
+        (text_width, text_height), _ = cv2.getTextSize(display_text, 0, self.sf, self.tf)
+
+        # Draw background rectangle
+        cv2.rectangle(
+            self.im,
+            (position[0], position[1] - text_height - 5),
+            (position[0] + text_width + 10, position[1] - text_height - 5 + text_height + 10 + self.tf),
+            color,
+            -1,
+        )
+        # Draw text
+        cv2.putText(self.im, display_text, position, 0, self.sf, txt_color, self.tf)
+
+        return text_height
 
     def plot_angle_and_count_and_stage(
         self, angle_text, count_text, stage_text, center_kpt, color=(104, 31, 17), txt_color=(255, 255, 255)
     ):
         """
-        Plot the pose angle, count value and step stage.
+        Plot the pose angle, count value, and step stage.
 
         Args:
-            angle_text (str): angle value for workout monitoring
-            count_text (str): counts value for workout monitoring
-            stage_text (str): stage decision for workout monitoring
-            center_kpt (list): centroid pose index for workout monitoring
-            color (tuple): text background color for workout monitoring
-            txt_color (tuple): text foreground color for workout monitoring
+            angle_text (str): Angle value for workout monitoring
+            count_text (str): Counts value for workout monitoring
+            stage_text (str): Stage decision for workout monitoring
+            center_kpt (list): Centroid pose index for workout monitoring
+            color (tuple, optional): Text background color
+            txt_color (tuple, optional): Text foreground color
         """
-        angle_text, count_text, stage_text = (f" {angle_text:.2f}", f"Steps : {count_text}", f" {stage_text}")
+        # Format text
+        angle_text, count_text, stage_text = f" {angle_text:.2f}", f"Steps : {count_text}", f" {stage_text}"
 
-        # Draw angle
-        (angle_text_width, angle_text_height), _ = cv2.getTextSize(angle_text, 0, self.sf, self.tf)
-        angle_text_position = (int(center_kpt[0]), int(center_kpt[1]))
-        angle_background_position = (angle_text_position[0], angle_text_position[1] - angle_text_height - 5)
-        angle_background_size = (angle_text_width + 2 * 5, angle_text_height + 2 * 5 + (self.tf * 2))
-        cv2.rectangle(
-            self.im,
-            angle_background_position,
-            (
-                angle_background_position[0] + angle_background_size[0],
-                angle_background_position[1] + angle_background_size[1],
-            ),
-            color,
-            -1,
+        # Draw angle, count and stage text
+        angle_height = self.plot_workout_information(
+            angle_text, (int(center_kpt[0]), int(center_kpt[1])), color, txt_color
         )
-        cv2.putText(self.im, angle_text, angle_text_position, 0, self.sf, txt_color, self.tf)
-
-        # Draw Counts
-        (count_text_width, count_text_height), _ = cv2.getTextSize(count_text, 0, self.sf, self.tf)
-        count_text_position = (angle_text_position[0], angle_text_position[1] + angle_text_height + 20)
-        count_background_position = (
-            angle_background_position[0],
-            angle_background_position[1] + angle_background_size[1] + 5,
+        count_height = self.plot_workout_information(
+            count_text, (int(center_kpt[0]), int(center_kpt[1]) + angle_height + 20), color, txt_color
         )
-        count_background_size = (count_text_width + 10, count_text_height + 10 + self.tf)
-
-        cv2.rectangle(
-            self.im,
-            count_background_position,
-            (
-                count_background_position[0] + count_background_size[0],
-                count_background_position[1] + count_background_size[1],
-            ),
-            color,
-            -1,
+        self.plot_workout_information(
+            stage_text, (int(center_kpt[0]), int(center_kpt[1]) + angle_height + count_height + 40), color, txt_color
         )
-        cv2.putText(self.im, count_text, count_text_position, 0, self.sf, txt_color, self.tf)
-
-        # Draw Stage
-        (stage_text_width, stage_text_height), _ = cv2.getTextSize(stage_text, 0, self.sf, self.tf)
-        stage_text_position = (int(center_kpt[0]), int(center_kpt[1]) + angle_text_height + count_text_height + 40)
-        stage_background_position = (stage_text_position[0], stage_text_position[1] - stage_text_height - 5)
-        stage_background_size = (stage_text_width + 10, stage_text_height + 10)
-
-        cv2.rectangle(
-            self.im,
-            stage_background_position,
-            (
-                stage_background_position[0] + stage_background_size[0],
-                stage_background_position[1] + stage_background_size[1],
-            ),
-            color,
-            -1,
-        )
-        cv2.putText(self.im, stage_text, stage_text_position, 0, self.sf, txt_color, self.tf)
 
     def seg_bbox(self, mask, mask_color=(255, 0, 255), label=None, txt_color=(255, 255, 255)):
         """
         Function for drawing segmented object in bounding box shape.
 
         Args:
-            mask (list): masks data list for instance segmentation area plotting
-            mask_color (RGB): mask foreground color
-            label (str): Detection label text
-            txt_color (RGB): text color
+            mask (np.ndarray): A 2D array of shape (N, 2) containing the contour points of the segmented object.
+            mask_color (tuple): RGB color for the contour and label background.
+            label (str, optional): Text label for the object. If None, no label is drawn.
+            txt_color (tuple): RGB color for the label text.
         """
+        if mask.size == 0:  # no masks to plot
+            return
+
         cv2.polylines(self.im, [np.int32([mask])], isClosed=True, color=mask_color, thickness=2)
         text_size, _ = cv2.getTextSize(label, 0, self.sf, self.tf)
 
@@ -821,8 +816,8 @@ class Annotator:
         Args:
             pixels_distance (float): Pixels distance between two bbox centroids.
             centroids (list): Bounding box centroids data.
-            line_color (RGB): Distance line color.
-            centroid_color (RGB): Bounding box centroid color.
+            line_color (tuple): RGB distance line color.
+            centroid_color (tuple): RGB bounding box centroid color.
         """
         # Get the text size
         (text_width_m, text_height_m), _ = cv2.getTextSize(

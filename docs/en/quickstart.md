@@ -1,12 +1,12 @@
 ---
 comments: true
-description: Learn how to install Ultralytics using pip, conda, or Docker. Follow our step-by-step guide for a seamless setup of YOLOv8 with thorough instructions.
-keywords: Ultralytics, YOLOv8, Install Ultralytics, pip, conda, Docker, GitHub, machine learning, object detection
+description: Learn how to install Ultralytics using pip, conda, or Docker. Follow our step-by-step guide for a seamless setup of YOLO with thorough instructions.
+keywords: Ultralytics, YOLO11, Install Ultralytics, pip, conda, Docker, GitHub, machine learning, object detection
 ---
 
 ## Install Ultralytics
 
-Ultralytics provides various installation methods including pip, conda, and Docker. Install YOLOv8 via the `ultralytics` pip package for the latest stable release or by cloning the [Ultralytics GitHub repository](https://github.com/ultralytics/ultralytics) for the most up-to-date version. Docker can be used to execute the package in an isolated container, avoiding local installation.
+Ultralytics provides various installation methods including pip, conda, and Docker. Install YOLO via the `ultralytics` pip package for the latest stable release or by cloning the [Ultralytics GitHub repository](https://github.com/ultralytics/ultralytics) for the most up-to-date version. Docker can be used to execute the package in an isolated container, avoiding local installation.
 
 <p align="center">
   <br>
@@ -143,7 +143,7 @@ See the `ultralytics` [pyproject.toml](https://github.com/ultralytics/ultralytic
 
 !!! tip
 
-    PyTorch requirements vary by operating system and CUDA requirements, so it's recommended to install PyTorch first following instructions at [https://pytorch.org/get-started/locally](https://pytorch.org/get-started/locally/).
+    [PyTorch](https://www.ultralytics.com/glossary/pytorch) requirements vary by operating system and CUDA requirements, so it's recommended to install PyTorch first following instructions at [https://pytorch.org/get-started/locally](https://pytorch.org/get-started/locally/).
 
     <a href="https://pytorch.org/get-started/locally/">
         <img width="800" alt="PyTorch Installation Instructions" src="https://github.com/ultralytics/docs/releases/download/0/pytorch-installation-instructions.avif">
@@ -151,7 +151,7 @@ See the `ultralytics` [pyproject.toml](https://github.com/ultralytics/ultralytic
 
 ## Use Ultralytics with CLI
 
-The Ultralytics command line interface (CLI) allows for simple single-line commands without the need for a Python environment. CLI requires no customization or Python code. You can simply run all tasks from the terminal with the `yolo` command. Check out the [CLI Guide](usage/cli.md) to learn more about using YOLOv8 from the command line.
+The Ultralytics command line interface (CLI) allows for simple single-line commands without the need for a Python environment. CLI requires no customization or Python code. You can simply run all tasks from the terminal with the `yolo` command. Check out the [CLI Guide](usage/cli.md) to learn more about using YOLO from the command line.
 
 !!! example
 
@@ -170,30 +170,30 @@ The Ultralytics command line interface (CLI) allows for simple single-line comma
 
     === "Train"
 
-        Train a detection model for 10 epochs with an initial learning_rate of 0.01
+        Train a detection model for 10 [epochs](https://www.ultralytics.com/glossary/epoch) with an initial learning_rate of 0.01
         ```bash
-        yolo train data=coco8.yaml model=yolov8n.pt epochs=10 lr0=0.01
+        yolo train data=coco8.yaml model=yolo11n.pt epochs=10 lr0=0.01
         ```
 
     === "Predict"
 
         Predict a YouTube video using a pretrained segmentation model at image size 320:
         ```bash
-        yolo predict model=yolov8n-seg.pt source='https://youtu.be/LNwODJXcvt4' imgsz=320
+        yolo predict model=yolo11n-seg.pt source='https://youtu.be/LNwODJXcvt4' imgsz=320
         ```
 
     === "Val"
 
         Val a pretrained detection model at batch-size 1 and image size 640:
         ```bash
-        yolo val model=yolov8n.pt data=coco8.yaml batch=1 imgsz=640
+        yolo val model=yolo11n.pt data=coco8.yaml batch=1 imgsz=640
         ```
 
     === "Export"
 
-        Export a YOLOv8n classification model to ONNX format at image size 224 by 128 (no TASK required)
+        Export a yolo11n classification model to ONNX format at image size 224 by 128 (no TASK required)
         ```bash
-        yolo export model=yolov8n-cls.pt format=onnx imgsz=224,128
+        yolo export model=yolo11n-cls.pt format=onnx imgsz=224,128
         ```
 
     === "Special"
@@ -212,18 +212,18 @@ The Ultralytics command line interface (CLI) allows for simple single-line comma
 
     Arguments must be passed as `arg=val` pairs, split by an equals `=` sign and delimited by spaces between pairs. Do not use `--` argument prefixes or commas `,` between arguments.
 
-    - `yolo predict model=yolov8n.pt imgsz=640 conf=0.25`  ✅
-    - `yolo predict model yolov8n.pt imgsz 640 conf 0.25`  ❌ (missing `=`)
-    - `yolo predict model=yolov8n.pt, imgsz=640, conf=0.25`  ❌ (do not use `,`)
-    - `yolo predict --model yolov8n.pt --imgsz 640 --conf 0.25`  ❌ (do not use `--`)
+    - `yolo predict model=yolo11n.pt imgsz=640 conf=0.25`  ✅
+    - `yolo predict model yolo11n.pt imgsz 640 conf 0.25`  ❌ (missing `=`)
+    - `yolo predict model=yolo11n.pt, imgsz=640, conf=0.25`  ❌ (do not use `,`)
+    - `yolo predict --model yolo11n.pt --imgsz 640 --conf 0.25`  ❌ (do not use `--`)
 
 [CLI Guide](usage/cli.md){ .md-button }
 
 ## Use Ultralytics with Python
 
-YOLOv8's Python interface allows for seamless integration into your Python projects, making it easy to load, run, and process the model's output. Designed with simplicity and ease of use in mind, the Python interface enables users to quickly implement object detection, segmentation, and classification in their projects. This makes YOLOv8's Python interface an invaluable tool for anyone looking to incorporate these functionalities into their Python projects.
+YOLO's Python interface allows for seamless integration into your Python projects, making it easy to load, run, and process the model's output. Designed with simplicity and ease of use in mind, the Python interface enables users to quickly implement [object detection](https://www.ultralytics.com/glossary/object-detection), segmentation, and classification in their projects. This makes YOLO's Python interface an invaluable tool for anyone looking to incorporate these functionalities into their Python projects.
 
-For example, users can load a model, train it, evaluate its performance on a validation set, and even export it to ONNX format with just a few lines of code. Check out the [Python Guide](usage/python.md) to learn more about using YOLOv8 within your Python projects.
+For example, users can load a model, train it, evaluate its performance on a validation set, and even export it to ONNX format with just a few lines of code. Check out the [Python Guide](usage/python.md) to learn more about using YOLO within your Python projects.
 
 !!! example
 
@@ -231,10 +231,10 @@ For example, users can load a model, train it, evaluate its performance on a val
     from ultralytics import YOLO
 
     # Create a new YOLO model from scratch
-    model = YOLO("yolov8n.yaml")
+    model = YOLO("yolo11n.yaml")
 
     # Load a pretrained YOLO model (recommended for training)
-    model = YOLO("yolov8n.pt")
+    model = YOLO("yolo11n.pt")
 
     # Train the model using the 'coco8.yaml' dataset for 3 epochs
     results = model.train(data="coco8.yaml", epochs=3)
@@ -253,7 +253,7 @@ For example, users can load a model, train it, evaluate its performance on a val
 
 ## Ultralytics Settings
 
-The Ultralytics library provides a powerful settings management system to enable fine-grained control over your experiments. By making use of the `SettingsManager` housed within the `ultralytics.utils` module, users can readily access and alter their settings. These are stored in a YAML file and can be viewed or modified either directly within the Python environment or via the Command-Line Interface (CLI).
+The Ultralytics library provides a powerful settings management system to enable fine-grained control over your experiments. By making use of the `SettingsManager` housed within the `ultralytics.utils` module, users can readily access and alter their settings. These are stored in a JSON file in the environment user configuration directory, and can be viewed or modified directly within the Python environment or via the Command-Line Interface (CLI).
 
 ### Inspecting Settings
 
@@ -321,33 +321,33 @@ Ultralytics allows users to easily modify their settings. Changes can be perform
 
 The table below provides an overview of the settings available for adjustment within Ultralytics. Each setting is outlined along with an example value, the data type, and a brief description.
 
-| Name               | Example Value         | Data Type | Description                                                                                  |
-| ------------------ | --------------------- | --------- | -------------------------------------------------------------------------------------------- |
-| `settings_version` | `'0.0.4'`             | `str`     | Ultralytics _settings_ version (different from Ultralytics [pip] version)                    |
-| `datasets_dir`     | `'/path/to/datasets'` | `str`     | The directory where the datasets are stored                                                  |
-| `weights_dir`      | `'/path/to/weights'`  | `str`     | The directory where the model weights are stored                                             |
-| `runs_dir`         | `'/path/to/runs'`     | `str`     | The directory where the experiment runs are stored                                           |
-| `uuid`             | `'a1b2c3d4'`          | `str`     | The unique identifier for the current settings                                               |
-| `sync`             | `True`                | `bool`    | Whether to sync analytics and crashes to HUB                                                 |
-| `api_key`          | `''`                  | `str`     | Ultralytics HUB [API Key]                                                                    |
-| `clearml`          | `True`                | `bool`    | Whether to use [ClearML] logging                                                             |
-| `comet`            | `True`                | `bool`    | Whether to use [Comet ML] for experiment tracking and visualization                          |
-| `dvc`              | `True`                | `bool`    | Whether to use [DVC for experiment tracking] and version control                             |
-| `hub`              | `True`                | `bool`    | Whether to use [Ultralytics HUB] integration                                                 |
-| `mlflow`           | `True`                | `bool`    | Whether to use [MLFlow] for experiment tracking                                              |
-| `neptune`          | `True`                | `bool`    | Whether to use [Neptune] for experiment tracking                                             |
-| `raytune`          | `True`                | `bool`    | Whether to use [Ray Tune] for hyperparameter tuning                                          |
-| `tensorboard`      | `True`                | `bool`    | Whether to use [TensorBoard] for visualization                                               |
-| `wandb`            | `True`                | `bool`    | Whether to use [Weights & Biases] logging                                                    |
-| `vscode_msg`       | `True`                | `bool`    | When VS Code terminal detected, enables prompt to download [Ultralytics-Snippets] extension. |
+| Name               | Example Value         | Data Type | Description                                                                                                       |
+| ------------------ | --------------------- | --------- | ----------------------------------------------------------------------------------------------------------------- |
+| `settings_version` | `'0.0.4'`             | `str`     | Ultralytics _settings_ version (different from Ultralytics [pip] version)                                         |
+| `datasets_dir`     | `'/path/to/datasets'` | `str`     | The directory where the datasets are stored                                                                       |
+| `weights_dir`      | `'/path/to/weights'`  | `str`     | The directory where the model weights are stored                                                                  |
+| `runs_dir`         | `'/path/to/runs'`     | `str`     | The directory where the experiment runs are stored                                                                |
+| `uuid`             | `'a1b2c3d4'`          | `str`     | The unique identifier for the current settings                                                                    |
+| `sync`             | `True`                | `bool`    | Whether to sync analytics and crashes to HUB                                                                      |
+| `api_key`          | `''`                  | `str`     | Ultralytics HUB [API Key]                                                                                         |
+| `clearml`          | `True`                | `bool`    | Whether to use [ClearML] logging                                                                                  |
+| `comet`            | `True`                | `bool`    | Whether to use [Comet ML] for experiment tracking and visualization                                               |
+| `dvc`              | `True`                | `bool`    | Whether to use [DVC for experiment tracking] and version control                                                  |
+| `hub`              | `True`                | `bool`    | Whether to use [Ultralytics HUB] integration                                                                      |
+| `mlflow`           | `True`                | `bool`    | Whether to use [MLFlow] for experiment tracking                                                                   |
+| `neptune`          | `True`                | `bool`    | Whether to use [Neptune] for experiment tracking                                                                  |
+| `raytune`          | `True`                | `bool`    | Whether to use [Ray Tune] for [hyperparameter tuning](https://www.ultralytics.com/glossary/hyperparameter-tuning) |
+| `tensorboard`      | `True`                | `bool`    | Whether to use [TensorBoard] for visualization                                                                    |
+| `wandb`            | `True`                | `bool`    | Whether to use [Weights & Biases] logging                                                                         |
+| `vscode_msg`       | `True`                | `bool`    | When VS Code terminal detected, enables prompt to download [Ultralytics-Snippets] extension.                      |
 
 As you navigate through your projects or experiments, be sure to revisit these settings to ensure that they are optimally configured for your needs.
 
 ## FAQ
 
-### How do I install Ultralytics YOLOv8 using pip?
+### How do I install Ultralytics using pip?
 
-To install Ultralytics YOLOv8 with pip, execute the following command:
+To install Ultralytics with pip, execute the following command:
 
 ```bash
 pip install ultralytics
@@ -363,9 +363,9 @@ pip install git+https://github.com/ultralytics/ultralytics.git
 
 Make sure to have the Git command-line tool installed on your system.
 
-### Can I install Ultralytics YOLOv8 using conda?
+### Can I install Ultralytics YOLO using conda?
 
-Yes, you can install Ultralytics YOLOv8 using conda by running:
+Yes, you can install Ultralytics YOLO using conda by running:
 
 ```bash
 conda install -c conda-forge ultralytics
@@ -379,9 +379,9 @@ conda install -c pytorch -c nvidia -c conda-forge pytorch torchvision pytorch-cu
 
 For more instructions, visit the [Conda quickstart guide](guides/conda-quickstart.md).
 
-### What are the advantages of using Docker to run Ultralytics YOLOv8?
+### What are the advantages of using Docker to run Ultralytics YOLO?
 
-Using Docker to run Ultralytics YOLOv8 provides an isolated and consistent environment, ensuring smooth performance across different systems. It also eliminates the complexity of local installation. Official Docker images from Ultralytics are available on [Docker Hub](https://hub.docker.com/r/ultralytics/ultralytics), with different variants tailored for GPU, CPU, ARM64, NVIDIA Jetson, and Conda environments. Below are the commands to pull and run the latest image:
+Using Docker to run Ultralytics YOLO provides an isolated and consistent environment, ensuring smooth performance across different systems. It also eliminates the complexity of local installation. Official Docker images from Ultralytics are available on [Docker Hub](https://hub.docker.com/r/ultralytics/ultralytics), with different variants tailored for GPU, CPU, ARM64, NVIDIA Jetson, and Conda environments. Below are the commands to pull and run the latest image:
 
 ```bash
 # Pull the latest ultralytics image from Docker Hub
@@ -410,9 +410,9 @@ pip install -e .
 
 This approach allows you to contribute to the project or experiment with the latest source code. For more details, visit the [Ultralytics GitHub repository](https://github.com/ultralytics/ultralytics).
 
-### Why should I use Ultralytics YOLOv8 CLI?
+### Why should I use Ultralytics YOLO CLI?
 
-The Ultralytics YOLOv8 command line interface (CLI) simplifies running object detection tasks without requiring Python code. You can execute single-line commands for tasks like training, validation, and prediction straight from your terminal. The basic syntax for `yolo` commands is:
+The Ultralytics YOLO command line interface (CLI) simplifies running object detection tasks without requiring Python code. You can execute single-line commands for tasks like training, validation, and prediction straight from your terminal. The basic syntax for `yolo` commands is:
 
 ```bash
 yolo TASK MODE ARGS
@@ -421,7 +421,7 @@ yolo TASK MODE ARGS
 For example, to train a detection model with specified parameters:
 
 ```bash
-yolo train data=coco8.yaml model=yolov8n.pt epochs=10 lr0=0.01
+yolo train data=coco8.yaml model=yolo11n.pt epochs=10 lr0=0.01
 ```
 
 Check out the full [CLI Guide](usage/cli.md) to explore more commands and usage examples.

@@ -1,7 +1,7 @@
 ---
 comments: true
 description: Explore Ultralytics callbacks for training, validation, exporting, and prediction. Learn how to use and customize them for your ML models.
-keywords: Ultralytics, callbacks, training, validation, export, prediction, ML models, YOLOv8, Python, machine learning
+keywords: Ultralytics, callbacks, training, validation, export, prediction, ML models, YOLO11, Python, machine learning
 ---
 
 ## Callbacks
@@ -16,7 +16,7 @@ Ultralytics framework supports callbacks as entry points in strategic stages of 
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Mastering Ultralytics YOLOv8: Callbacks
+  <strong>Watch:</strong> Mastering Ultralytics YOLO: Callbacks
 </p>
 
 ## Examples
@@ -41,7 +41,7 @@ def on_predict_batch_end(predictor):
 
 
 # Create a YOLO model instance
-model = YOLO("yolov8n.pt")
+model = YOLO("yolo11n.pt")
 
 # Add the custom callback to the model
 model.add_callback("on_predict_batch_end", on_predict_batch_end)
@@ -57,22 +57,22 @@ Here are all supported callbacks. See callbacks [source code](https://github.com
 
 ### Trainer Callbacks
 
-| Callback                    | Description                                             |
-| --------------------------- | ------------------------------------------------------- |
-| `on_pretrain_routine_start` | Triggered at the beginning of pre-training routine      |
-| `on_pretrain_routine_end`   | Triggered at the end of pre-training routine            |
-| `on_train_start`            | Triggered when the training starts                      |
-| `on_train_epoch_start`      | Triggered at the start of each training epoch           |
-| `on_train_batch_start`      | Triggered at the start of each training batch           |
-| `optimizer_step`            | Triggered during the optimizer step                     |
-| `on_before_zero_grad`       | Triggered before gradients are zeroed                   |
-| `on_train_batch_end`        | Triggered at the end of each training batch             |
-| `on_train_epoch_end`        | Triggered at the end of each training epoch             |
-| `on_fit_epoch_end`          | Triggered at the end of each fit epoch                  |
-| `on_model_save`             | Triggered when the model is saved                       |
-| `on_train_end`              | Triggered when the training process ends                |
-| `on_params_update`          | Triggered when model parameters are updated             |
-| `teardown`                  | Triggered when the training process is being cleaned up |
+| Callback                    | Description                                                                                 |
+| --------------------------- | ------------------------------------------------------------------------------------------- |
+| `on_pretrain_routine_start` | Triggered at the beginning of pre-training routine                                          |
+| `on_pretrain_routine_end`   | Triggered at the end of pre-training routine                                                |
+| `on_train_start`            | Triggered when the training starts                                                          |
+| `on_train_epoch_start`      | Triggered at the start of each training [epoch](https://www.ultralytics.com/glossary/epoch) |
+| `on_train_batch_start`      | Triggered at the start of each training batch                                               |
+| `optimizer_step`            | Triggered during the optimizer step                                                         |
+| `on_before_zero_grad`       | Triggered before gradients are zeroed                                                       |
+| `on_train_batch_end`        | Triggered at the end of each training batch                                                 |
+| `on_train_epoch_end`        | Triggered at the end of each training epoch                                                 |
+| `on_fit_epoch_end`          | Triggered at the end of each fit epoch                                                      |
+| `on_model_save`             | Triggered when the model is saved                                                           |
+| `on_train_end`              | Triggered when the training process ends                                                    |
+| `on_params_update`          | Triggered when model parameters are updated                                                 |
+| `teardown`                  | Triggered when the training process is being cleaned up                                     |
 
 ### Validator Callbacks
 
@@ -119,7 +119,7 @@ def on_predict_batch_end(predictor):
     predictor.results = zip(predictor.results, image)
 
 
-model = YOLO("yolov8n.pt")
+model = YOLO("yolo11n.pt")
 model.add_callback("on_predict_batch_end", on_predict_batch_end)
 for result, frame in model.predict():
     pass
@@ -141,7 +141,7 @@ def on_train_epoch_end(trainer):
     trainer.log({"additional_metric": additional_metric})
 
 
-model = YOLO("yolov8n.pt")
+model = YOLO("yolo11n.pt")
 model.add_callback("on_train_epoch_end", on_train_epoch_end)
 model.train(data="coco.yaml", epochs=10)
 ```
@@ -164,7 +164,7 @@ def on_val_end(validator):
     validator.log({"custom_metric": custom_metric})
 
 
-model = YOLO("yolov8n.pt")
+model = YOLO("yolo11n.pt")
 model.add_callback("on_val_end", on_val_end)
 model.val(data="coco.yaml")
 ```
@@ -187,7 +187,7 @@ def on_predict_end(predictor):
         log_prediction(result)
 
 
-model = YOLO("yolov8n.pt")
+model = YOLO("yolo11n.pt")
 model.add_callback("on_predict_end", on_predict_end)
 results = model.predict(source="image.jpg")
 ```
@@ -199,7 +199,7 @@ For more comprehensive usage, refer to the [Prediction Guide](../modes/predict.m
 Ultralytics YOLO supports various practical implementations of callbacks to enhance and customize different phases like training, validation, and prediction. Some practical examples include:
 
 1. **Logging Custom Metrics**: Log additional metrics at different stages, such as the end of training or validation epochs.
-2. **Data Augmentation**: Implement custom data transformations or augmentations during prediction or training batches.
+2. **[Data Augmentation](https://www.ultralytics.com/glossary/data-augmentation)**: Implement custom data transformations or augmentations during prediction or training batches.
 3. **Intermediate Results**: Save intermediate results such as predictions or frames for further analysis or visualization.
 
 Example: Combining frames with prediction results during prediction using `on_predict_batch_end`:
@@ -215,7 +215,7 @@ def on_predict_batch_end(predictor):
     predictor.results = zip(predictor.results, image)
 
 
-model = YOLO("yolov8n.pt")
+model = YOLO("yolo11n.pt")
 model.add_callback("on_predict_batch_end", on_predict_batch_end)
 for result, frame in model.predict():
     pass

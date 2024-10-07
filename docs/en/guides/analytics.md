@@ -1,14 +1,25 @@
 ---
 comments: true
 description: Learn to create line graphs, bar plots, and pie charts using Python with guided instructions and code snippets. Maximize your data visualization skills!.
-keywords: Ultralytics, YOLOv8, data visualization, line graphs, bar plots, pie charts, Python, analytics, tutorial, guide
+keywords: Ultralytics, YOLO11, data visualization, line graphs, bar plots, pie charts, Python, analytics, tutorial, guide
 ---
 
-# Analytics using Ultralytics YOLOv8
+# Analytics using Ultralytics YOLO11
 
 ## Introduction
 
-This guide provides a comprehensive overview of three fundamental types of data visualizations: line graphs, bar plots, and pie charts. Each section includes step-by-step instructions and code snippets on how to create these visualizations using Python.
+This guide provides a comprehensive overview of three fundamental types of [data visualizations](https://www.ultralytics.com/glossary/data-visualization): line graphs, bar plots, and pie charts. Each section includes step-by-step instructions and code snippets on how to create these visualizations using Python.
+
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/tVuLIMt4DMY"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to generate Analytical Graphs using Ultralytics | Line Graphs, Bar Plots, Area and Pie Charts
+</p>
 
 ### Visual Samples
 
@@ -31,7 +42,7 @@ This guide provides a comprehensive overview of three fundamental types of data 
 
         from ultralytics import YOLO, solutions
 
-        model = YOLO("yolov8s.pt")
+        model = YOLO("yolo11n.pt")
 
         cap = cv2.VideoCapture("Path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
@@ -80,7 +91,7 @@ This guide provides a comprehensive overview of three fundamental types of data 
 
         from ultralytics import YOLO, solutions
 
-        model = YOLO("yolov8s.pt")
+        model = YOLO("yolo11n.pt")
 
         cap = cv2.VideoCapture("Path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
@@ -141,7 +152,7 @@ This guide provides a comprehensive overview of three fundamental types of data 
 
         from ultralytics import YOLO, solutions
 
-        model = YOLO("yolov8s.pt")
+        model = YOLO("yolo11n.pt")
 
         cap = cv2.VideoCapture("Path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
@@ -191,7 +202,7 @@ This guide provides a comprehensive overview of three fundamental types of data 
 
         from ultralytics import YOLO, solutions
 
-        model = YOLO("yolov8s.pt")
+        model = YOLO("yolo11n.pt")
 
         cap = cv2.VideoCapture("Path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
@@ -241,7 +252,7 @@ This guide provides a comprehensive overview of three fundamental types of data 
 
         from ultralytics import YOLO, solutions
 
-        model = YOLO("yolov8s.pt")
+        model = YOLO("yolo11n.pt")
 
         cap = cv2.VideoCapture("path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
@@ -319,11 +330,11 @@ Understanding when and how to use different types of visualizations is crucial f
 
 ## FAQ
 
-### How do I create a line graph using Ultralytics YOLOv8 Analytics?
+### How do I create a line graph using Ultralytics YOLO11 Analytics?
 
-To create a line graph using Ultralytics YOLOv8 Analytics, follow these steps:
+To create a line graph using Ultralytics YOLO11 Analytics, follow these steps:
 
-1. Load a YOLOv8 model and open your video file.
+1. Load a YOLO11 model and open your video file.
 2. Initialize the `Analytics` class with the type set to "line."
 3. Iterate through video frames, updating the line graph with relevant data, such as object counts per frame.
 4. Save the output video displaying the line graph.
@@ -335,7 +346,7 @@ import cv2
 
 from ultralytics import YOLO, solutions
 
-model = YOLO("yolov8s.pt")
+model = YOLO("yolo11n.pt")
 cap = cv2.VideoCapture("Path/to/video/file.mp4")
 out = cv2.VideoWriter("line_plot.avi", cv2.VideoWriter_fourcc(*"MJPG"), fps, (w, h))
 
@@ -355,13 +366,13 @@ out.release()
 cv2.destroyAllWindows()
 ```
 
-For further details on configuring the `Analytics` class, visit the [Analytics using Ultralytics YOLOv8 📊](#analytics-using-ultralytics-yolov8) section.
+For further details on configuring the `Analytics` class, visit the [Analytics using Ultralytics YOLO11 📊](#analytics-using-ultralytics-yolo11) section.
 
-### What are the benefits of using Ultralytics YOLOv8 for creating bar plots?
+### What are the benefits of using Ultralytics YOLO11 for creating bar plots?
 
-Using Ultralytics YOLOv8 for creating bar plots offers several benefits:
+Using Ultralytics YOLO11 for creating bar plots offers several benefits:
 
-1. **Real-time Data Visualization**: Seamlessly integrate object detection results into bar plots for dynamic updates.
+1. **Real-time Data Visualization**: Seamlessly integrate [object detection](https://www.ultralytics.com/glossary/object-detection) results into bar plots for dynamic updates.
 2. **Ease of Use**: Simple API and functions make it straightforward to implement and visualize data.
 3. **Customization**: Customize titles, labels, colors, and more to fit your specific requirements.
 4. **Efficiency**: Efficiently handle large amounts of data and update plots in real-time during video processing.
@@ -373,7 +384,7 @@ import cv2
 
 from ultralytics import YOLO, solutions
 
-model = YOLO("yolov8s.pt")
+model = YOLO("yolo11n.pt")
 cap = cv2.VideoCapture("Path/to/video/file.mp4")
 out = cv2.VideoWriter("bar_plot.avi", cv2.VideoWriter_fourcc(*"MJPG"), fps, (w, h))
 
@@ -398,9 +409,9 @@ cv2.destroyAllWindows()
 
 To learn more, visit the [Bar Plot](#visual-samples) section in the guide.
 
-### Why should I use Ultralytics YOLOv8 for creating pie charts in my data visualization projects?
+### Why should I use Ultralytics YOLO11 for creating pie charts in my data visualization projects?
 
-Ultralytics YOLOv8 is an excellent choice for creating pie charts because:
+Ultralytics YOLO11 is an excellent choice for creating pie charts because:
 
 1. **Integration with Object Detection**: Directly integrate object detection results into pie charts for immediate insights.
 2. **User-Friendly API**: Simple to set up and use with minimal code.
@@ -414,7 +425,7 @@ import cv2
 
 from ultralytics import YOLO, solutions
 
-model = YOLO("yolov8s.pt")
+model = YOLO("yolo11n.pt")
 cap = cv2.VideoCapture("Path/to/video/file.mp4")
 out = cv2.VideoWriter("pie_chart.avi", cv2.VideoWriter_fourcc(*"MJPG"), fps, (w, h))
 
@@ -439,9 +450,9 @@ cv2.destroyAllWindows()
 
 For more information, refer to the [Pie Chart](#visual-samples) section in the guide.
 
-### Can Ultralytics YOLOv8 be used to track objects and dynamically update visualizations?
+### Can Ultralytics YOLO11 be used to track objects and dynamically update visualizations?
 
-Yes, Ultralytics YOLOv8 can be used to track objects and dynamically update visualizations. It supports tracking multiple objects in real-time and can update various visualizations like line graphs, bar plots, and pie charts based on the tracked objects' data.
+Yes, Ultralytics YOLO11 can be used to track objects and dynamically update visualizations. It supports tracking multiple objects in real-time and can update various visualizations like line graphs, bar plots, and pie charts based on the tracked objects' data.
 
 Example for tracking and updating a line graph:
 
@@ -450,7 +461,7 @@ import cv2
 
 from ultralytics import YOLO, solutions
 
-model = YOLO("yolov8s.pt")
+model = YOLO("yolo11n.pt")
 cap = cv2.VideoCapture("Path/to/video/file.mp4")
 out = cv2.VideoWriter("line_plot.avi", cv2.VideoWriter_fourcc(*"MJPG"), fps, (w, h))
 
@@ -472,11 +483,11 @@ cv2.destroyAllWindows()
 
 To learn about the complete functionality, see the [Tracking](../modes/track.md) section.
 
-### What makes Ultralytics YOLOv8 different from other object detection solutions like OpenCV and TensorFlow?
+### What makes Ultralytics YOLO11 different from other object detection solutions like [OpenCV](https://www.ultralytics.com/glossary/opencv) and [TensorFlow](https://www.ultralytics.com/glossary/tensorflow)?
 
-Ultralytics YOLOv8 stands out from other object detection solutions like OpenCV and TensorFlow for multiple reasons:
+Ultralytics YOLO11 stands out from other object detection solutions like OpenCV and TensorFlow for multiple reasons:
 
-1. **State-of-the-art Accuracy**: YOLOv8 provides superior accuracy in object detection, segmentation, and classification tasks.
+1. **State-of-the-art [Accuracy](https://www.ultralytics.com/glossary/accuracy)**: YOLO11 provides superior accuracy in object detection, segmentation, and classification tasks.
 2. **Ease of Use**: User-friendly API allows for quick implementation and integration without extensive coding.
 3. **Real-time Performance**: Optimized for high-speed inference, suitable for real-time applications.
 4. **Diverse Applications**: Supports various tasks including multi-object tracking, custom model training, and exporting to different formats like ONNX, TensorRT, and CoreML.

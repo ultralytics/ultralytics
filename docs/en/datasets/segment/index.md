@@ -74,7 +74,7 @@ The `train` and `val` fields specify the paths to the directories containing the
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n-seg.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n-seg.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="coco8-seg.yaml", epochs=100, imgsz=640)
@@ -84,16 +84,16 @@ The `train` and `val` fields specify the paths to the directories containing the
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo segment train data=coco8-seg.yaml model=yolov8n-seg.pt epochs=100 imgsz=640
+        yolo segment train data=coco8-seg.yaml model=yolo11n-seg.pt epochs=100 imgsz=640
         ```
 
 ## Supported Datasets
 
 ## Supported Datasets
 
-- [COCO](coco.md): A comprehensive dataset for object detection, segmentation, and captioning, featuring over 200K labeled images across a wide range of categories.
+- [COCO](coco.md): A comprehensive dataset for [object detection](https://www.ultralytics.com/glossary/object-detection), segmentation, and captioning, featuring over 200K labeled images across a wide range of categories.
 - [COCO8-seg](coco8-seg.md): A compact, 8-image subset of COCO designed for quick testing of segmentation model training, ideal for CI checks and workflow validation in the `ultralytics` repository.
-- [COCO128-seg](coco.md): A smaller dataset for instance segmentation tasks, containing a subset of 128 COCO images with segmentation annotations.
+- [COCO128-seg](coco.md): A smaller dataset for [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation) tasks, containing a subset of 128 COCO images with segmentation annotations.
 - [Carparts-seg](carparts-seg.md): A specialized dataset focused on the segmentation of car parts, ideal for automotive applications. It includes a variety of vehicles with detailed annotations of individual car components.
 - [Crack-seg](crack-seg.md): A dataset tailored for the segmentation of cracks in various surfaces. Essential for infrastructure maintenance and quality control, it provides detailed imagery for training models to identify structural weaknesses.
 - [Package-seg](package-seg.md): A dataset dedicated to the segmentation of different types of packaging materials and shapes. It's particularly useful for logistics and warehouse automation, aiding in the development of systems for package handling and sorting.
@@ -137,13 +137,13 @@ To auto-annotate your dataset using the Ultralytics framework, you can use the `
         ```python
         from ultralytics.data.annotator import auto_annotate
 
-        auto_annotate(data="path/to/images", det_model="yolov8x.pt", sam_model="sam_b.pt")
+        auto_annotate(data="path/to/images", det_model="yolo11x.pt", sam_model="sam_b.pt")
         ```
 
 | Argument     | Type                    | Description                                                                                                 | Default        |
 | ------------ | ----------------------- | ----------------------------------------------------------------------------------------------------------- | -------------- |
 | `data`       | `str`                   | Path to a folder containing images to be annotated.                                                         | `None`         |
-| `det_model`  | `str, optional`         | Pre-trained YOLO detection model. Defaults to `'yolov8x.pt'`.                                               | `'yolov8x.pt'` |
+| `det_model`  | `str, optional`         | Pre-trained YOLO detection model. Defaults to `'yolo11x.pt'`.                                               | `'yolo11x.pt'` |
 | `sam_model`  | `str, optional`         | Pre-trained SAM segmentation model. Defaults to `'sam_b.pt'`.                                               | `'sam_b.pt'`   |
 | `device`     | `str, optional`         | Device to run the models on. Defaults to an empty string (CPU or GPU, if available).                        | `''`           |
 | `output_dir` | `str or None, optional` | Directory to save the annotated results. Defaults to a `'labels'` folder in the same directory as `'data'`. | `None`         |
@@ -195,7 +195,7 @@ Auto-annotation in Ultralytics YOLO allows you to generate segmentation annotati
 ```python
 from ultralytics.data.annotator import auto_annotate
 
-auto_annotate(data="path/to/images", det_model="yolov8x.pt", sam_model="sam_b.pt")
+auto_annotate(data="path/to/images", det_model="yolo11x.pt", sam_model="sam_b.pt")
 ```
 
 This function automates the annotation process, making it faster and more efficient. For more details, explore the [Auto-Annotation](#auto-annotation) section.

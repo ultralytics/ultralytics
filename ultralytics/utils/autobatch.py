@@ -1,17 +1,17 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 """Functions for estimating the best YOLO batch size to use a fraction of the available CUDA memory in PyTorch."""
+
 import json
 import subprocess
 import sys
 import tempfile
-from copy import deepcopy
 from pathlib import Path
 
 import numpy as np
 import torch
 
 from ultralytics.utils import DEFAULT_CFG, LOGGER, colorstr
-from ultralytics.utils.torch_utils import autocast, profile
+from ultralytics.utils.torch_utils import profile
 
 
 def check_train_batch_size(model, imgsz=640, amp=True, batch=-1):

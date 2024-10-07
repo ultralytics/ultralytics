@@ -5,7 +5,9 @@ __version__ = "8.3.7"
 import os
 
 # Set ENV Variables (place before imports), ONLY if ENV variable not set
-os.environ["OMP_NUM_THREADS"] = os.environ.get("OMP_NUM_THREADS", "1")  # default for reduced CPU utilization during training 
+os.environ["OMP_NUM_THREADS"] = os.environ.get(
+    "OMP_NUM_THREADS", "1"
+)  # default for reduced CPU utilization during training
 
 from ultralytics.data.explorer.explorer import Explorer
 from ultralytics.models import NAS, RTDETR, SAM, YOLO, FastSAM, YOLOWorld

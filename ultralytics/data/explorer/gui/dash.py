@@ -39,24 +39,11 @@ def init_explorer_form(data=None, model=None):
     else:
         ds = [data]
 
+    prefixes = ["yolov8", "yolo11"]
+    sizes = ["n", "s", "m", "l", "x"]
+    tasks = ["", "-seg", "-pose"]
     if model is None:
-        models = [
-            "yolov8n.pt",
-            "yolov8s.pt",
-            "yolov8m.pt",
-            "yolov8l.pt",
-            "yolov8x.pt",
-            "yolov8n-seg.pt",
-            "yolov8s-seg.pt",
-            "yolov8m-seg.pt",
-            "yolov8l-seg.pt",
-            "yolov8x-seg.pt",
-            "yolov8n-pose.pt",
-            "yolov8s-pose.pt",
-            "yolov8m-pose.pt",
-            "yolov8l-pose.pt",
-            "yolov8x-pose.pt",
-        ]
+        models = [f"{p}{s}{t}" for p in prefixes for s in sizes for t in tasks]
     else:
         models = [model]
 

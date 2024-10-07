@@ -11,7 +11,7 @@ import cv2
 import numpy as np
 from PIL import Image
 
-from ultralytics.utils import DATASETS_DIR, LOGGER, TQDM, NUM_THREADS
+from ultralytics.utils import DATASETS_DIR, LOGGER, NUM_THREADS, TQDM
 from ultralytics.utils.downloads import download
 from ultralytics.utils.files import increment_path
 
@@ -654,13 +654,13 @@ def create_synthetic_image(image_file):
 def create_synthetic_coco_dataset():
     """
     Creates a synthetic COCO dataset with random images and existing labels.
-    
+
     This function downloads COCO labels, creates synthetic images for train2017 and val2017 subsets, and organizes
     them in the COCO dataset structure. It uses multithreading to generate images efficiently.
-    
+
     Examples:
         >>> create_synthetic_coco_dataset()
-    
+
     Notes:
         - Requires internet connection to download label files.
         - Generates random RGB images of varying sizes (480x480 to 640x640 pixels).

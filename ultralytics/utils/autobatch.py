@@ -12,6 +12,7 @@ from ultralytics.utils.torch_utils import autocast, profile
 
 
 def run_autobatch(model, imgsz, fraction, batch_size, return_dict):
+    """Run autobatch to find optimal batch size for training."""
     try:
         result = autobatch(model, imgsz, fraction, batch_size)
         return_dict["result"] = result
@@ -23,6 +24,19 @@ def run_autobatch(model, imgsz, fraction, batch_size, return_dict):
 
 
 def check_train_batch_size(model, imgsz=640, amp=True, batch=-1):
+    """
+    Compute optimal YOLO training batch size using the autobatch() function.
+    Args:
+        model (torch.nn.Module): YOLO model to check batch size for.
+        imgsz (int, optional): Image size used for training.
+        amp (bool, optional): Use automatic mixed precision if True.
+        batch (float, optional): Fraction of GPU memory to use. If -1, use default.
+    Returns:
+        (int): Optimal batch size computed using the autobatch() function.
+    Note:
+        If 0.0 < batch < 1.0, it's used as the fraction of GPU memory to use.
+        Otherwise, a default fraction of 0.6 is used.
+    """
     with autocast(enabled=amp):
         manager = multiprocessing.Manager()
         return_dict = manager.dict()
@@ -53,6 +67,7 @@ def check_train_batch_size(model, imgsz=640, amp=True, batch=-1):
 
 
 def autobatch(model, imgsz=640, fraction=0.60, batch_size=DEFAULT_CFG.batch):
+    """Autobatch inner function."""
     prefix = colorstr("AutoBatch: ")
     LOGGER.info(f"{prefix}Computing optimal batch size for imgsz={imgsz} at {fraction * 100}% CUDA memory utilization.")
     device = next(model.parameters()).device

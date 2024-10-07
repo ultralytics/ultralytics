@@ -4,6 +4,8 @@
 import json
 import subprocess
 import sys
+import tempfile
+from pathlib import Path
 
 import numpy as np
 import torch
@@ -29,26 +31,29 @@ def check_train_batch_size(model, imgsz=640, amp=True, batch=-1):
     LOGGER.info(f"{prefix}Computing optimal batch size for imgsz={imgsz}")
 
     device = next(model.parameters()).device
-    if device.type in {"cpu", "mps"}:
-        LOGGER.info(f"{prefix}⚠️ CUDA not detected, using default CPU batch-size {DEFAULT_CFG.batch}")
-        return DEFAULT_CFG.batch
+    # if device.type in {"cpu", "mps"}:
+    #     LOGGER.info(f"{prefix}⚠️ CUDA not detected, using default CPU batch-size {DEFAULT_CFG.batch}")
+    #     return DEFAULT_CFG.batch
 
-    fraction = batch if 0.0 < batch < 1.0 else 0.67
+    fraction = batch if 0.0 < batch < 1.0 else 0.60
 
-    # Prepare the Python code to be executed in the subprocess
-    code = f"""
+    try:
+        # Save model to a temporary file
+        with tempfile.NamedTemporaryFile(suffix=".pt", delete=False) as tmp_file:
+            torch.save(model, tmp_file.name)
+            tmp_file_path = Path(tmp_file.name)
+
+        # Prepare the Python code to be executed in the subprocess
+        code = f"""
 import torch
 from ultralytics.utils.autobatch import autobatch
-from ultralytics import YOLO
 import json
 
-model = YOLO("{model.__class__.__name__}")
-with torch.cuda.device('{device}'):
-    batch_size = autobatch(model.model, imgsz={imgsz}, fraction={fraction}, amp={amp})
+model = torch.load('{tmp_file_path}', map_location='{device}')
+batch_size = autobatch(model, imgsz={imgsz}, fraction={fraction}, amp={amp})
 print(json.dumps({{"batch_size": int(batch_size)}}))
 """
 
-    try:
         # Run the code as a separate process
         result = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, check=True)
 
@@ -62,17 +67,19 @@ print(json.dumps({{"batch_size": int(batch_size)}}))
         LOGGER.warning(f"{prefix}Using default batch-size {DEFAULT_CFG.batch}")
         return DEFAULT_CFG.batch
     finally:
+        # Delete the temporary file
+        tmp_file_path.unlink(missing_ok=True)
         torch.cuda.empty_cache()
 
 
-def autobatch(model, imgsz=640, fraction=0.67, batch_size=DEFAULT_CFG.batch, amp=True):
+def autobatch(model, imgsz=640, fraction=0.60, batch_size=DEFAULT_CFG.batch, amp=True):
     """
     Automatically estimate the best YOLO batch size to use a fraction of the available CUDA memory.
 
     Args:
         model (torch.nn.module): YOLO model to compute batch size for.
         imgsz (int, optional): The image size used as input for the YOLO model. Defaults to 640.
-        fraction (float, optional): The fraction of available CUDA memory to use. Defaults to 0.67.
+        fraction (float, optional): The fraction of available CUDA memory to use. Defaults to 0.60.
         batch_size (int, optional): The default batch size to use if an error is detected. Defaults to 16.
         amp (bool, optional): Use automatic mixed precision if True. Defaults to True.
 
@@ -102,7 +109,7 @@ def autobatch(model, imgsz=640, fraction=0.67, batch_size=DEFAULT_CFG.batch, amp
     try:
         with autocast(enabled=amp):
             img = [torch.empty(b, 3, imgsz, imgsz) for b in batch_sizes]
-            results = profile(img, model, n=3, device=device)
+            results = profile(img, model, n=1, device=device)
 
         # Fit a solution
         y = [x[2] for x in results if x]  # memory [2]

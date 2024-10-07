@@ -10,7 +10,7 @@ import cv2
 import numpy as np
 from PIL import Image
 
-from ultralytics.utils import DATASETS_DIR, LOGGER, TQDM
+from ultralytics.utils import LOGGER, TQDM, DATASETS_DIR, NUM_THREADS
 from ultralytics.utils.downloads import download
 from ultralytics.utils.files import increment_path
 
@@ -642,7 +642,13 @@ def yolo_bbox2segment(im_dir, save_dir=None, sam_model="sam_b.pt"):
 
 
 def create_synthetic_coco_dataset(segments=True):
-    """Generate a synthetic COCO dataset for benchmarking training speeds."""
+    """
+    Generate a synthetic COCO dataset for benchmarking training speeds.
+
+    Examples:
+        >>> from ultralytics.data.converter import create_synthetic_coco_dataset
+        >>> create_synthetic_coco_dataset()
+    """
     dir = DATASETS_DIR / "coco"
 
     # Download labels
@@ -658,7 +664,7 @@ def create_synthetic_coco_dataset(segments=True):
 
         label_dir = dir / "labels" / subset
         if label_dir.exists():
-            for label_file in label_dir.glob("*.txt"):
+            for label_file in TQDM(label_dir.glob("*.txt"), desc=f"Generating synthetic images for {label_dir}"):
                 image_file = subset_dir / f"{label_file.stem}.jpg"
                 if not image_file.exists():
                     size = (random.randint(480, 640), random.randint(480, 640))

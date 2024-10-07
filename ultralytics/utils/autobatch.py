@@ -96,15 +96,15 @@ def autobatch(model, imgsz=640, fraction=0.60, batch_size=DEFAULT_CFG.batch):
         img = [torch.empty(b, 3, imgsz, imgsz) for b in batch_sizes]
         results = profile(img, model, n=3, device=device)
 
-        y = [x[2] for x in results if x]
-        p = np.polyfit(batch_sizes[: len(y)], y, deg=1)
-        b = int((f * fraction - p[1]) / p[0])
-
-        if None in results:
-            i = results.index(None)
-            if b >= batch_sizes[i]:
-                b = batch_sizes[max(i - 1, 0)]
-        if b < 1 or b > 1024:
+        # Fit a solution
+        y = [x[2] for x in results if x]  # memory [2]
+        p = np.polyfit(batch_sizes[: len(y)], y, deg=1)  # first degree polynomial fit
+        b = int((f * fraction - p[1]) / p[0])  # y intercept (optimal batch size)
+        if None in results:  # some sizes failed
+            i = results.index(None)  # first fail index
+            if b >= batch_sizes[i]:  # y intercept above failure point
+                b = batch_sizes[max(i - 1, 0)]  # select prior safe point
+        if b < 1 or b > 1024:  # b outside of safe range
             b = batch_size
             LOGGER.info(f"{prefix}WARNING ⚠️ CUDA anomaly detected, using default batch-size {batch_size}.")
 

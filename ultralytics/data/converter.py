@@ -664,7 +664,7 @@ def create_synthetic_coco_dataset(segments=True):
 
         label_dir = dir / "labels" / subset
         if label_dir.exists():
-            for label_file in TQDM(label_dir.glob("*.txt"), desc=f"Generating synthetic images for {label_dir}"):
+            for label_file in TQDM(label_dir.glob("*.txt"), desc=f"Generating synthetic images for {subset}"):
                 image_file = subset_dir / f"{label_file.stem}.jpg"
                 if not image_file.exists():
                     size = (random.randint(480, 640), random.randint(480, 640))

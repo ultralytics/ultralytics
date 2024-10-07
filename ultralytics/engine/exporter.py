@@ -1047,6 +1047,9 @@ class Exporter:
         import onnx
         from model_compression_toolkit.core.pytorch.pytorch_device_config import get_working_device, set_working_device
         from sony_custom_layers.pytorch.object_detection.nms import multiclass_nms
+        from model_compression_toolkit.core.common.network_editors import NodeNameScopeFilter
+        from model_compression_toolkit.core import BitWidthConfig
+
 
         set_working_device(str(self.device))
 
@@ -1095,11 +1098,26 @@ class Exporter:
                 yield [img]
 
         tpc = mct.get_target_platform_capabilities(
-            fw_name="pytorch", target_platform_name="imx500", target_platform_version="v3"
+            fw_name="pytorch", 
+            target_platform_name="imx500", 
+            target_platform_version="v3"
         )
+        
+        # Configure MCT manually for specific layers
+        bit_cfg = BitWidthConfig()
+        bit_cfg.set_manual_activation_bit_width(
+            [NodeNameScopeFilter('mul'),
+            NodeNameScopeFilter('sub'),
+            # NodeNameScopeFilter('sub_1'),
+            NodeNameScopeFilter('add_6'),
+            # NodeNameScopeFilter('add_7'),
+            # NodeNameScopeFilter('stack')
+            ], 16)
+
         config = mct.core.CoreConfig(
             mixed_precision_config=mct.core.MixedPrecisionQuantizationConfig(num_of_images=10),
             quantization_config=mct.core.QuantizationConfig(concat_threshold_update=True),
+            bit_width_config=bit_cfg
         )
 
         resource_utilization = mct.core.ResourceUtilization(weights_memory=3146176 * 0.76)

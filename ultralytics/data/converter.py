@@ -10,7 +10,7 @@ import cv2
 import numpy as np
 from PIL import Image
 
-from ultralytics.utils import LOGGER, TQDM, DATASETS_DIR, NUM_THREADS
+from ultralytics.utils import DATASETS_DIR, LOGGER, TQDM
 from ultralytics.utils.downloads import download
 from ultralytics.utils.files import increment_path
 

@@ -1103,11 +1103,14 @@ class Exporter:
         # Configure MCT manually for specific layers
         bit_cfg = BitWidthConfig()
         bit_cfg.set_manual_activation_bit_width(
-        [NodeNameScopeFilter('mul'),
-        NodeNameScopeFilter('sub'),
-        NodeNameScopeFilter('add_6'),
-        NodeNameScopeFilter('cat_17')
-        ], 16)
+            [
+                NodeNameScopeFilter("mul"),
+                NodeNameScopeFilter("sub"),
+                NodeNameScopeFilter("add_6"),
+                NodeNameScopeFilter("cat_17"),
+            ],
+            16,
+        )
 
         config = mct.core.CoreConfig(
             mixed_precision_config=mct.core.MixedPrecisionQuantizationConfig(num_of_images=10),

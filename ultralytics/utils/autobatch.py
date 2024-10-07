@@ -2,47 +2,55 @@
 """Functions for estimating the best YOLO batch size to use a fraction of the available CUDA memory in PyTorch."""
 
 import multiprocessing
-import torch
-import numpy as np
 from copy import deepcopy
+
+import numpy as np
+import torch
+
 from ultralytics.utils import DEFAULT_CFG, LOGGER, colorstr
 from ultralytics.utils.torch_utils import autocast, profile
+
 
 def run_autobatch(model, imgsz, fraction, batch_size, return_dict):
     try:
         result = autobatch(model, imgsz, fraction, batch_size)
-        return_dict['result'] = result
+        return_dict["result"] = result
     except Exception as e:
-        return_dict['error'] = str(e)
+        return_dict["error"] = str(e)
     finally:
         # Explicitly clear CUDA cache
         torch.cuda.empty_cache()
+
 
 def check_train_batch_size(model, imgsz=640, amp=True, batch=-1):
     with autocast(enabled=amp):
         manager = multiprocessing.Manager()
         return_dict = manager.dict()
-        
+
         # Create a separate CUDA context for the new process
         torch.cuda.empty_cache()
         torch.cuda.set_device(model.device)
-        
-        p = multiprocessing.Process(target=run_autobatch, args=(deepcopy(model).train(), imgsz, batch if 0.0 < batch < 1.0 else 0.6, DEFAULT_CFG.batch, return_dict))
+
+        p = multiprocessing.Process(
+            target=run_autobatch,
+            args=(deepcopy(model).train(), imgsz, batch if 0.0 < batch < 1.0 else 0.6, DEFAULT_CFG.batch, return_dict),
+        )
         p.start()
         p.join()
-        
+
         # Ensure the process has terminated
         p.terminate()
         p.join()
-        
-        if 'error' in return_dict:
+
+        if "error" in return_dict:
             LOGGER.warning(f"Error in autobatch: {return_dict['error']}")
             return DEFAULT_CFG.batch
-        
+
         # Clear CUDA cache in the main process
         torch.cuda.empty_cache()
-        
-        return return_dict['result']
+
+        return return_dict["result"]
+
 
 def autobatch(model, imgsz=640, fraction=0.60, batch_size=DEFAULT_CFG.batch):
     prefix = colorstr("AutoBatch: ")
@@ -73,7 +81,7 @@ def autobatch(model, imgsz=640, fraction=0.60, batch_size=DEFAULT_CFG.batch):
         y = [x[2] for x in results if x]
         p = np.polyfit(batch_sizes[: len(y)], y, deg=1)
         b = int((f * fraction - p[1]) / p[0])
-        
+
         if None in results:
             i = results.index(None)
             if b >= batch_sizes[i]:

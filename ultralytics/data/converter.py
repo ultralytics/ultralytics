@@ -1,13 +1,17 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import json
+import random
+import shutil
 from collections import defaultdict
 from pathlib import Path
 
 import cv2
 import numpy as np
+from PIL import Image
 
-from ultralytics.utils import LOGGER, TQDM
+from ultralytics.utils import LOGGER, TQDM, DATASETS_DIR
+from ultralytics.utils.downloads import download
 from ultralytics.utils.files import increment_path
 
 
@@ -588,11 +592,11 @@ def yolo_bbox2segment(im_dir, save_dir=None, sam_model="sam_b.pt"):
 
             - im_dir
                 ├─ 001.jpg
-                ├─ ..
+                ├─ ...
                 └─ NNN.jpg
             - labels
                 ├─ 001.txt
-                ├─ ..
+                ├─ ...
                 └─ NNN.txt
     """
     from tqdm import tqdm
@@ -635,3 +639,39 @@ def yolo_bbox2segment(im_dir, save_dir=None, sam_model="sam_b.pt"):
             with open(txt_file, "a") as f:
                 f.writelines(text + "\n" for text in texts)
     LOGGER.info(f"Generated segment labels saved in {save_dir}")
+
+
+def create_synthetic_coco_dataset(segments=True):
+    """Generate a synthetic COCO dataset for benchmarking training speeds."""
+    dir = DATASETS_DIR / "coco"
+
+    # Download labels
+    url = "https://github.com/ultralytics/assets/releases/download/v0.0.0/"
+    label_zip = "coco2017labels-segments.zip" if segments else "coco2017labels.zip"
+    download([url + label_zip], dir=dir.parent)
+
+    # Create synthetic images
+    shutil.rmtree(dir / "labels" / "test2017", ignore_errors=True)  # Remove test2017 directory as not needed
+    for subset in ["train2017", "val2017"]:
+        subset_dir = dir / "images" / subset
+        subset_dir.mkdir(parents=True, exist_ok=True)
+
+        label_dir = dir / "labels" / subset
+        if label_dir.exists():
+            for label_file in label_dir.glob("*.txt"):
+                image_file = subset_dir / f"{label_file.stem}.jpg"
+                if not image_file.exists():
+                    size = (random.randint(480, 640), random.randint(480, 640))
+                    Image.new(
+                        "RGB",
+                        size,
+                        color=(
+                            random.randint(0, 255),
+                            random.randint(0, 255),
+                            random.randint(0, 255),
+                        ),
+                    ).save(image_file)
+        else:
+            print(f"Warning: Label directory {label_dir} does not exist. Skipping image creation for {subset}.")
+
+    print("Synthetic COCO dataset created successfully (without test2017).")

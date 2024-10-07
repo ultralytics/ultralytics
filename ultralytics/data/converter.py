@@ -1,13 +1,18 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import json
+import random
+import shutil
 from collections import defaultdict
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 import cv2
 import numpy as np
+from PIL import Image
 
-from ultralytics.utils import LOGGER, TQDM
+from ultralytics.utils import DATASETS_DIR, LOGGER, NUM_THREADS, TQDM
+from ultralytics.utils.downloads import download
 from ultralytics.utils.files import increment_path
 
 
@@ -588,15 +593,13 @@ def yolo_bbox2segment(im_dir, save_dir=None, sam_model="sam_b.pt"):
 
             - im_dir
                 ├─ 001.jpg
-                ├─ ..
+                ├─ ...
                 └─ NNN.jpg
             - labels
                 ├─ 001.txt
-                ├─ ..
+                ├─ ...
                 └─ NNN.txt
     """
-    from tqdm import tqdm
-
     from ultralytics import SAM
     from ultralytics.data import YOLODataset
     from ultralytics.utils import LOGGER
@@ -610,7 +613,7 @@ def yolo_bbox2segment(im_dir, save_dir=None, sam_model="sam_b.pt"):
 
     LOGGER.info("Detection labels detected, generating segment labels by SAM model!")
     sam_model = SAM(sam_model)
-    for label in tqdm(dataset.labels, total=len(dataset.labels), desc="Generating segment labels"):
+    for label in TQDM(dataset.labels, total=len(dataset.labels), desc="Generating segment labels"):
         h, w = label["shape"]
         boxes = label["bboxes"]
         if len(boxes) == 0:  # skip empty labels
@@ -635,3 +638,58 @@ def yolo_bbox2segment(im_dir, save_dir=None, sam_model="sam_b.pt"):
             with open(txt_file, "a") as f:
                 f.writelines(text + "\n" for text in texts)
     LOGGER.info(f"Generated segment labels saved in {save_dir}")
+
+
+def create_synthetic_coco_dataset():
+    """
+    Creates a synthetic COCO dataset with random images and existing labels.
+
+    This function downloads COCO labels, creates synthetic images for train2017 and val2017 subsets, and organizes
+    them in the COCO dataset structure. It uses multithreading to generate images efficiently.
+
+    Examples:
+        >>> create_synthetic_coco_dataset()
+
+    Notes:
+        - Requires internet connection to download label files.
+        - Generates random RGB images of varying sizes (480x480 to 640x640 pixels).
+        - Existing test2017 directory is removed as it's not needed.
+        - If label directories don't exist, image creation for that subset is skipped.
+    """
+
+    def create_synthetic_image(image_file):
+        """Generates synthetic images with random sizes and colors for dataset augmentation or testing purposes."""
+        if not image_file.exists():
+            size = (random.randint(480, 640), random.randint(480, 640))
+            Image.new(
+                "RGB",
+                size=size,
+                color=(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)),
+            ).save(image_file)
+
+    # Download labels
+    dir = DATASETS_DIR / "coco"
+    url = "https://github.com/ultralytics/assets/releases/download/v0.0.0/"
+    label_zip = "coco2017labels-segments.zip"
+    download([url + label_zip], dir=dir.parent)
+
+    # Create synthetic images
+    shutil.rmtree(dir / "labels" / "test2017", ignore_errors=True)  # Remove test2017 directory as not needed
+    with ThreadPoolExecutor(max_workers=NUM_THREADS) as executor:
+        for subset in ["train2017", "val2017"]:
+            subset_dir = dir / "images" / subset
+            subset_dir.mkdir(parents=True, exist_ok=True)
+
+            label_dir = dir / "labels" / subset
+            if label_dir.exists():
+                label_files = list(label_dir.glob("*.txt"))
+                image_files = [subset_dir / f"{label_file.stem}.jpg" for label_file in label_files]
+
+                # Submit all tasks
+                futures = [executor.submit(create_synthetic_image, image_file) for image_file in image_files]
+                for _ in TQDM(as_completed(futures), total=len(futures), desc=f"Generating images for {subset}"):
+                    pass  # The actual work is done in the background
+            else:
+                print(f"Warning: Label directory {label_dir} does not exist. Skipping image creation for {subset}.")
+
+    print("Synthetic COCO dataset created successfully.")

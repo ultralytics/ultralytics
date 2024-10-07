@@ -685,7 +685,7 @@ def create_synthetic_coco_dataset():
             # Read image filenames from label list file
             label_list_file = dir / f"{subset}.txt"
             if label_list_file.exists():
-                with open(label_list_file, "r") as f:
+                with open(label_list_file) as f:
                     image_files = [dir / line.strip() for line in f]
 
                 # Submit all tasks

@@ -47,15 +47,15 @@ keywords: Ultralytics, YOLO, nn tasks, DetectionModel, PoseModel, RTDETRDetectio
 
 <br><br><hr><br>
 
-## ::: ultralytics.nn.tasks.torchfx
-
-<br><br><hr><br>
-
 ## ::: ultralytics.nn.tasks.SafeClass
 
 <br><br><hr><br>
 
 ## ::: ultralytics.nn.tasks.SafeUnpickler
+
+<br><br><hr><br>
+
+## ::: ultralytics.nn.tasks.torchfx
 
 <br><br><hr><br>
 

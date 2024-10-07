@@ -667,7 +667,6 @@ def create_synthetic_coco_dataset():
         - Existing test2017 directory is removed as it's not needed.
         - If label directories don't exist, image creation for that subset is skipped.
     """
-
     dir = DATASETS_DIR / "coco"
 
     # Download labels

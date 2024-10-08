@@ -60,12 +60,14 @@ def exif_size(img: Image.Image):
     """Returns exif-corrected PIL size."""
     s = img.size  # (width, height)
     if img.format == "JPEG":  # only support JPEG images
-        with contextlib.suppress(Exception):
+        try:
             exif = img.getexif()
             if exif:
                 rotation = exif.get(274, None)  # the EXIF key for the orientation tag is 274
                 if rotation in {6, 8}:  # rotation 270 or 90
                     s = s[1], s[0]
+        except: # noqa E722
+            pass
     return s
 
 

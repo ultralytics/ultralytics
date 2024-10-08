@@ -2,10 +2,10 @@
 
 import contextlib
 import pickle
+import re
 import types
 from copy import deepcopy
 from pathlib import Path
-import re
 
 import torch
 import torch.nn as nn

@@ -703,7 +703,7 @@ def entrypoint(debug=""):
     if not args:  # no arguments passed
         LOGGER.info(CLI_HELP_MSG)
         return
-    
+
     from ultralytics.solutions.serve import run
 
     special = {

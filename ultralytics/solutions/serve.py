@@ -1,9 +1,12 @@
-import litserve as ls
-from ultralytics import YOLO
-import numpy as np
 import base64
-from PIL import Image
 import io
+
+import litserve as ls
+import numpy as np
+from PIL import Image
+
+from ultralytics import YOLO
+
 
 class YOLOServe(ls.LitAPI):
     def setup(self, device):

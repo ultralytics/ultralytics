@@ -4,7 +4,7 @@ __version__ = "8.3.7"
 
 import os
 
-# Set ENV Variables (place before imports), ONLY if ENV variable not set
+# Set ENV variables (place before imports)
 if not os.environ.get("OMP_NUM_THREADS"):
     os.environ["OMP_NUM_THREADS"] = "1"  # default for reduced CPU utilization during training
 

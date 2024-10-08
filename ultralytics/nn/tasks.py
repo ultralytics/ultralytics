@@ -1137,17 +1137,23 @@ def guess_model_task(model):
 
     # Guess from model cfg
     if isinstance(model, dict):
-        with contextlib.suppress(Exception):
+        try:
             return cfg2task(model)
+        except:  # noqa E722
+            pass
 
     # Guess from PyTorch model
     if isinstance(model, nn.Module):  # PyTorch model
         for x in "model.args", "model.model.args", "model.model.model.args":
-            with contextlib.suppress(Exception):
+            try:
                 return eval(x)["task"]
+            except:  # noqa E722
+                pass
         for x in "model.yaml", "model.model.yaml", "model.model.model.yaml":
-            with contextlib.suppress(Exception):
+            try:
                 return cfg2task(eval(x))
+            except:  # noqa E722
+                pass
 
         for m in model.modules():
             if isinstance(m, Segment):

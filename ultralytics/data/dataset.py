@@ -469,7 +469,11 @@ class ClassificationDataset:
         # Convert from BGR to RGB if the image has 3 channels
         if len(im.shape) == 3 and im.shape[2] == 3:  # check if image is 3-channel
             im = cv2.cvtColor(im, cv2.COLOR_BGR2RGB)
-
+        if im.shape[0] < 2 or im.shape[1] < 2:
+            print(f"Image {f} has invalid dimensions: {im.shape}")
+        if im.ndim == 2:  # Grayscale image
+            print(f"Image {f} is 2-channel dimension")
+            im = np.expand_dims(im, axis=-1) 
         # Apply dataset transformations (ensure they are compatible with numpy arrays)
         if self.transforms:
             im = self.transforms(im)

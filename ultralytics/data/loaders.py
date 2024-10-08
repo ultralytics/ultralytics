@@ -363,6 +363,8 @@ class LoadImagesAndVideos:
                 if im0 is None:
                     LOGGER.warning(f"WARNING ⚠️ Image Read Error {path}")
                 else:
+                    if im0.ndim == 2:  # Grayscale image
+                        im0 = np.expand_dims(im0, axis=-1) 
                     paths.append(path)
                     imgs.append(im0)
                     info.append(f"image {self.count + 1}/{self.nf} {path}: ")

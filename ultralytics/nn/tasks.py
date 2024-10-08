@@ -309,6 +309,9 @@ class DetectionModel(BaseModel):
 
         # Define model
         ch = self.yaml["ch"] = self.yaml.get("ch", ch)  # input channels
+        ch = 1
+        if ch:
+            LOGGER.info(f"Overriding model.yaml ch={self.yaml['ch']} with ch={ch}")
         if nc and nc != self.yaml["nc"]:
             LOGGER.info(f"Overriding model.yaml nc={self.yaml['nc']} with nc={nc}")
             self.yaml["nc"] = nc  # override YAML value
@@ -1060,6 +1063,7 @@ def yaml_model_load(path):
     unified_path = re.sub(r"(\d+)([nslmx])(.+)?$", r"\1\3", str(path))  # i.e. yolov8x.yaml -> yolov8.yaml
     yaml_file = check_yaml(unified_path, hard=False) or check_yaml(path)
     d = yaml_load(yaml_file)  # model dict
+    print(d)
     d["scale"] = guess_model_scale(path)
     d["yaml_file"] = str(path)
     return d

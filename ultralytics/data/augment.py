@@ -200,8 +200,208 @@ class Mosaic(BaseMixTransform):
             self._mosaic3(labels) if self.n == 3 else self._mosaic4(labels) if self.n == 4 else self._mosaic9(labels)
         )  # This code is modified for mosaic3 method.
 
-    # The implementations of _mosaic3, _mosaic4, _mosaic9, _update_labels, and _cat_labels remain the same.
+    def _mosaic3(self, labels):
+        mosaic_labels = []
+        s = self.imgsz
+        for i in range(3):
+            labels_patch = labels if i == 0 else labels["mix_labels"][i - 1]
+            # Load image
+            img = labels_patch["img"]
+            h, w = labels_patch.pop("resized_shape")
 
+            # Determine fill value and dtype dynamically
+            fill_value = np.iinfo(img.dtype).max * 114 // 255  # Adjust fill value based on data type
+            # Place img in img3
+            if i == 0:  # center
+                img3 = np.full((s * 3, s * 3, img.shape[2]), fill_value, dtype=img.dtype)  # base image with 3 tiles
+                h0, w0 = h, w
+                c = s, s, s + w, s + h  # xmin, ymin, xmax, ymax (base) coordinates
+            elif i == 1:  # right
+                c = s + w0, s, s + w0 + w, s + h
+            elif i == 2:  # left
+                c = s - w, s + h0 - h, s, s + h0
+
+            padw, padh = c[:2]
+            x1, y1, x2, y2 = (max(x, 0) for x in c)  # allocate coords
+
+            img3[y1:y2, x1:x2] = img[y1 - padh :, x1 - padw :]  # Place image in mosaic
+            # Update labels
+            labels_patch = self._update_labels(labels_patch, padw + self.border[0], padh + self.border[1])
+            mosaic_labels.append(labels_patch)
+
+        final_labels = self._cat_labels(mosaic_labels)
+        final_labels["img"] = img3[-self.border[0] : self.border[0], -self.border[1] : self.border[1]]
+        return final_labels
+
+
+    def _mosaic4(self, labels):
+        mosaic_labels = []
+        s = self.imgsz
+        yc, xc = (int(random.uniform(-x, 2 * s + x)) for x in self.border)  # mosaic center x, y
+        for i in range(4):
+            labels_patch = labels if i == 0 else labels["mix_labels"][i - 1]
+            # Load image
+            img = labels_patch["img"]
+            h, w = labels_patch.pop("resized_shape")
+
+            # Determine fill value and dtype dynamically
+            fill_value = np.iinfo(img.dtype).max * 114 // 255  # Adjust fill value based on data type
+
+            # Place img in img4
+            if i == 0:  # top left
+                img4 = np.full((s * 2, s * 2, img.shape[2]), fill_value, dtype=img.dtype)  # base image with 4 tiles
+                x1a, y1a, x2a, y2a = max(xc - w, 0), max(yc - h, 0), xc, yc
+                x1b, y1b, x2b, y2b = w - (x2a - x1a), h - (y2a - y1a), w, h
+            elif i == 1:  # top right
+                x1a, y1a, x2a, y2a = xc, max(yc - h, 0), min(xc + w, s * 2), yc
+                x1b, y1b, x2b, y2b = 0, h - (y2a - y1a), min(w, x2a - x1a), h
+            elif i == 2:  # bottom left
+                x1a, y1a, x2a, y2a = max(xc - w, 0), yc, xc, min(s * 2, yc + h)
+                x1b, y1b, x2b, y2b = w - (x2a - x1a), 0, w, min(y2a - y1a, h)
+            elif i == 3:  # bottom right
+                x1a, y1a, x2a, y2a = xc, yc, min(xc + w, s * 2), min(s * 2, yc + h)
+                x1b, y1b, x2b, y2b = 0, 0, min(w, x2a - x1a), min(y2a - y1a, h)
+
+            img4[y1a:y2a, x1a:x2a] = img[y1b:y2b, x1b:x2b]  # Place image in mosaic
+            padw = x1a - x1b
+            padh = y1a - y1b
+
+            # Update labels
+            labels_patch = self._update_labels(labels_patch, padw, padh)
+            mosaic_labels.append(labels_patch)
+
+        final_labels = self._cat_labels(mosaic_labels)
+        final_labels["img"] = img4
+        return final_labels
+
+
+    def _mosaic9(self, labels):
+        mosaic_labels = []
+        s = self.imgsz
+        hp, wp = -1, -1  # height, width previous
+        for i in range(9):
+            labels_patch = labels if i == 0 else labels["mix_labels"][i - 1]
+            # Load image
+            img = labels_patch["img"]
+            h, w = labels_patch.pop("resized_shape")
+
+            # Determine fill value and dtype dynamically
+            fill_value = np.iinfo(img.dtype).max * 114 // 255  # Adjust fill value based on data type
+
+            # Place img in img9
+            if i == 0:  # center
+                img9 = np.full((s * 3, s * 3, img.shape[2]), fill_value, dtype=img.dtype)  # base image with 9 tiles
+                h0, w0 = h, w
+                c = s, s, s + w, s + h
+            elif i == 1:  # top
+                c = s, s - h, s + w, s
+            elif i == 2:  # top right
+                c = s + wp, s - h, s + wp + w, s
+            elif i == 3:  # right
+                c = s + w0, s, s + w0 + w, s + h
+            elif i == 4:  # bottom right
+                c = s + w0, s + hp, s + w0 + w, s + hp + h
+            elif i == 5:  # bottom
+                c = s + w0 - w, s + h0, s + w0, s + h0 + h
+            elif i == 6:  # bottom left
+                c = s + w0 - wp - w, s + h0, s + w0 - wp, s + h0 + h
+            elif i == 7:  # left
+                c = s - w, s + h0 - h, s, s + h0
+            elif i == 8:  # top left
+                c = s - w, s + h0 - hp - h, s, s + h0 - hp
+
+            padw, padh = c[:2]
+            x1, y1, x2, y2 = (max(x, 0) for x in c)
+
+            # Place image in mosaic
+            img9[y1:y2, x1:x2] = img[y1 - padh :, x1 - padw :]
+            hp, wp = h, w  # Update previous height and width
+
+            # Update labels
+            labels_patch = self._update_labels(labels_patch, padw + self.border[0], padh + self.border[1])
+            mosaic_labels.append(labels_patch)
+
+        final_labels = self._cat_labels(mosaic_labels)
+        final_labels["img"] = img9[-self.border[0] : self.border[0], -self.border[1] : self.border[1]]
+        return final_labels
+
+    @staticmethod
+    def _update_labels(labels, padw, padh):
+        """
+        Updates label coordinates with padding values.
+
+        This method adjusts the bounding box coordinates of object instances in the labels by adding padding
+        values. It also denormalizes the coordinates if they were previously normalized.
+
+        Args:
+            labels (Dict): A dictionary containing image and instance information.
+            padw (int): Padding width to be added to the x-coordinates.
+            padh (int): Padding height to be added to the y-coordinates.
+
+        Returns:
+            (Dict): Updated labels dictionary with adjusted instance coordinates.
+
+        Examples:
+            >>> labels = {"img": np.zeros((100, 100, 3)), "instances": Instances(...)}
+            >>> padw, padh = 50, 50
+            >>> updated_labels = Mosaic._update_labels(labels, padw, padh)
+        """
+        nh, nw = labels["img"].shape[:2]
+        labels["instances"].convert_bbox(format="xyxy")
+        labels["instances"].denormalize(nw, nh)
+        labels["instances"].add_padding(padw, padh)
+        return labels
+
+    def _cat_labels(self, mosaic_labels):
+        """
+        Concatenates and processes labels for mosaic augmentation.
+
+        This method combines labels from multiple images used in mosaic augmentation, clips instances to the
+        mosaic border, and removes zero-area boxes.
+
+        Args:
+            mosaic_labels (List[Dict]): A list of label dictionaries for each image in the mosaic.
+
+        Returns:
+            (Dict): A dictionary containing concatenated and processed labels for the mosaic image, including:
+                - im_file (str): File path of the first image in the mosaic.
+                - ori_shape (Tuple[int, int]): Original shape of the first image.
+                - resized_shape (Tuple[int, int]): Shape of the mosaic image (imgsz * 2, imgsz * 2).
+                - cls (np.ndarray): Concatenated class labels.
+                - instances (Instances): Concatenated instance annotations.
+                - mosaic_border (Tuple[int, int]): Mosaic border size.
+                - texts (List[str], optional): Text labels if present in the original labels.
+
+        Examples:
+            >>> mosaic = Mosaic(dataset, imgsz=640)
+            >>> mosaic_labels = [{"cls": np.array([0, 1]), "instances": Instances(...)} for _ in range(4)]
+            >>> result = mosaic._cat_labels(mosaic_labels)
+            >>> print(result.keys())
+            dict_keys(['im_file', 'ori_shape', 'resized_shape', 'cls', 'instances', 'mosaic_border'])
+        """
+        if len(mosaic_labels) == 0:
+            return {}
+        cls = []
+        instances = []
+        imgsz = self.imgsz * 2  # mosaic imgsz
+        for labels in mosaic_labels:
+            cls.append(labels["cls"])
+            instances.append(labels["instances"])
+        # Final labels
+        final_labels = {
+            "im_file": mosaic_labels[0]["im_file"],
+            "ori_shape": mosaic_labels[0]["ori_shape"],
+            "resized_shape": (imgsz, imgsz),
+            "cls": np.concatenate(cls, 0),
+            "instances": Instances.concatenate(instances, axis=0),
+            "mosaic_border": self.border,
+        }
+        final_labels["instances"].clip(imgsz, imgsz)
+        good = final_labels["instances"].remove_zero_area_boxes()
+        final_labels["cls"] = final_labels["cls"][good]
+        if "texts" in mosaic_labels[0]:
+            final_labels["texts"] = mosaic_labels[0]["texts"]
+        return final_labels
 
 class MixUp(BaseMixTransform):
     """
@@ -290,14 +490,233 @@ class RandomPerspective:
                 img = cv2.warpAffine(img, M[:2], dsize=self.size, borderValue=(114, 114, 114))
         return img, M, s
 
-    # The implementations of apply_bboxes, apply_segments, apply_keypoints, __call__, and box_candidates remain the same.
+    def apply_bboxes(self, bboxes, M):
+        """
+        Apply affine transformation to bounding boxes.
 
+        This function applies an affine transformation to a set of bounding boxes using the provided
+        transformation matrix.
+
+        Args:
+            bboxes (torch.Tensor): Bounding boxes in xyxy format with shape (N, 4), where N is the number
+                of bounding boxes.
+            M (torch.Tensor): Affine transformation matrix with shape (3, 3).
+
+        Returns:
+            (torch.Tensor): Transformed bounding boxes in xyxy format with shape (N, 4).
+
+        Examples:
+            >>> bboxes = torch.tensor([[10, 10, 20, 20], [30, 30, 40, 40]])
+            >>> M = torch.eye(3)
+            >>> transformed_bboxes = apply_bboxes(bboxes, M)
+        """
+        n = len(bboxes)
+        if n == 0:
+            return bboxes
+
+        xy = np.ones((n * 4, 3), dtype=bboxes.dtype)
+        xy[:, :2] = bboxes[:, [0, 1, 2, 3, 0, 3, 2, 1]].reshape(n * 4, 2)  # x1y1, x2y2, x1y2, x2y1
+        xy = xy @ M.T  # transform
+        xy = (xy[:, :2] / xy[:, 2:3] if self.perspective else xy[:, :2]).reshape(n, 8)  # perspective rescale or affine
+
+        # Create new boxes
+        x = xy[:, [0, 2, 4, 6]]
+        y = xy[:, [1, 3, 5, 7]]
+        return np.concatenate((x.min(1), y.min(1), x.max(1), y.max(1)), dtype=bboxes.dtype).reshape(4, n).T
+
+    def apply_segments(self, segments, M):
+        """
+        Apply affine transformations to segments and generate new bounding boxes.
+
+        This function applies affine transformations to input segments and generates new bounding boxes based on
+        the transformed segments. It clips the transformed segments to fit within the new bounding boxes.
+
+        Args:
+            segments (np.ndarray): Input segments with shape (N, M, 2), where N is the number of segments and M is the
+                number of points in each segment.
+            M (np.ndarray): Affine transformation matrix with shape (3, 3).
+
+        Returns:
+            (Tuple[np.ndarray, np.ndarray]): A tuple containing:
+                - New bounding boxes with shape (N, 4) in xyxy format.
+                - Transformed and clipped segments with shape (N, M, 2).
+
+        Examples:
+            >>> segments = np.random.rand(10, 500, 2)  # 10 segments with 500 points each
+            >>> M = np.eye(3)  # Identity transformation matrix
+            >>> new_bboxes, new_segments = apply_segments(segments, M)
+        """
+        n, num = segments.shape[:2]
+        if n == 0:
+            return [], segments
+
+        xy = np.ones((n * num, 3), dtype=segments.dtype)
+        segments = segments.reshape(-1, 2)
+        xy[:, :2] = segments
+        xy = xy @ M.T  # transform
+        xy = xy[:, :2] / xy[:, 2:3]
+        segments = xy.reshape(n, -1, 2)
+        bboxes = np.stack([segment2box(xy, self.size[0], self.size[1]) for xy in segments], 0)
+        segments[..., 0] = segments[..., 0].clip(bboxes[:, 0:1], bboxes[:, 2:3])
+        segments[..., 1] = segments[..., 1].clip(bboxes[:, 1:2], bboxes[:, 3:4])
+        return bboxes, segments
+
+    def apply_keypoints(self, keypoints, M):
+        """
+        Applies affine transformation to keypoints.
+
+        This method transforms the input keypoints using the provided affine transformation matrix. It handles
+        perspective rescaling if necessary and updates the visibility of keypoints that fall outside the image
+        boundaries after transformation.
+
+        Args:
+            keypoints (np.ndarray): Array of keypoints with shape (N, 17, 3), where N is the number of instances,
+                17 is the number of keypoints per instance, and 3 represents (x, y, visibility).
+            M (np.ndarray): 3x3 affine transformation matrix.
+
+        Returns:
+            (np.ndarray): Transformed keypoints array with the same shape as input (N, 17, 3).
+
+        Examples:
+            >>> random_perspective = RandomPerspective()
+            >>> keypoints = np.random.rand(5, 17, 3)  # 5 instances, 17 keypoints each
+            >>> M = np.eye(3)  # Identity transformation
+            >>> transformed_keypoints = random_perspective.apply_keypoints(keypoints, M)
+        """
+        n, nkpt = keypoints.shape[:2]
+        if n == 0:
+            return keypoints
+        xy = np.ones((n * nkpt, 3), dtype=keypoints.dtype)
+        visible = keypoints[..., 2].reshape(n * nkpt, 1)
+        xy[:, :2] = keypoints[..., :2].reshape(n * nkpt, 2)
+        xy = xy @ M.T  # transform
+        xy = xy[:, :2] / xy[:, 2:3]  # perspective rescale or affine
+        out_mask = (xy[:, 0] < 0) | (xy[:, 1] < 0) | (xy[:, 0] > self.size[0]) | (xy[:, 1] > self.size[1])
+        visible[out_mask] = 0
+        return np.concatenate([xy, visible], axis=-1).reshape(n, nkpt, 3)
+
+    def __call__(self, labels):
+        """
+        Applies random perspective and affine transformations to an image and its associated labels.
+
+        This method performs a series of transformations including rotation, translation, scaling, shearing,
+        and perspective distortion on the input image and adjusts the corresponding bounding boxes, segments,
+        and keypoints accordingly.
+
+        Args:
+            labels (Dict): A dictionary containing image data and annotations.
+                Must include:
+                    'img' (ndarray): The input image.
+                    'cls' (ndarray): Class labels.
+                    'instances' (Instances): Object instances with bounding boxes, segments, and keypoints.
+                May include:
+                    'mosaic_border' (Tuple[int, int]): Border size for mosaic augmentation.
+
+        Returns:
+            (Dict): Transformed labels dictionary containing:
+                - 'img' (np.ndarray): The transformed image.
+                - 'cls' (np.ndarray): Updated class labels.
+                - 'instances' (Instances): Updated object instances.
+                - 'resized_shape' (Tuple[int, int]): New image shape after transformation.
+
+        Examples:
+            >>> transform = RandomPerspective()
+            >>> image = np.random.randint(0, 255, (640, 640, 3), dtype=np.uint8)
+            >>> labels = {
+            ...     "img": image,
+            ...     "cls": np.array([0, 1, 2]),
+            ...     "instances": Instances(bboxes=np.array([[10, 10, 50, 50], [100, 100, 150, 150]])),
+            ... }
+            >>> result = transform(labels)
+            >>> assert result["img"].shape[:2] == result["resized_shape"]
+        """
+        if self.pre_transform and "mosaic_border" not in labels:
+            labels = self.pre_transform(labels)
+        labels.pop("ratio_pad", None)  # do not need ratio pad
+
+        img = labels["img"]
+        cls = labels["cls"]
+        instances = labels.pop("instances")
+        # Make sure the coord formats are right
+        instances.convert_bbox(format="xyxy")
+        instances.denormalize(*img.shape[:2][::-1])
+
+        border = labels.pop("mosaic_border", self.border)
+        self.size = img.shape[1] + border[1] * 2, img.shape[0] + border[0] * 2  # w, h
+        # M is affine matrix
+        # Scale for func:`box_candidates`
+        img, M, scale = self.affine_transform(img, border)
+
+        bboxes = self.apply_bboxes(instances.bboxes, M)
+
+        segments = instances.segments
+        keypoints = instances.keypoints
+        # Update bboxes if there are segments.
+        if len(segments):
+            bboxes, segments = self.apply_segments(segments, M)
+
+        if keypoints is not None:
+            keypoints = self.apply_keypoints(keypoints, M)
+        new_instances = Instances(bboxes, segments, keypoints, bbox_format="xyxy", normalized=False)
+        # Clip
+        new_instances.clip(*self.size)
+
+        # Filter instances
+        instances.scale(scale_w=scale, scale_h=scale, bbox_only=True)
+        # Make the bboxes have the same scale with new_bboxes
+        i = self.box_candidates(
+            box1=instances.bboxes.T, box2=new_instances.bboxes.T, area_thr=0.01 if len(segments) else 0.10
+        )
+        labels["instances"] = new_instances[i]
+        labels["cls"] = cls[i]
+        labels["img"] = img
+        labels["resized_shape"] = img.shape[:2]
+        return labels
+
+    def box_candidates(self, box1, box2, wh_thr=2, ar_thr=100, area_thr=0.1, eps=1e-16):
+        """
+        Compute candidate boxes for further processing based on size and aspect ratio criteria.
+
+        This method compares boxes before and after augmentation to determine if they meet specified
+        thresholds for width, height, aspect ratio, and area. It's used to filter out boxes that have
+        been overly distorted or reduced by the augmentation process.
+
+        Args:
+            box1 (numpy.ndarray): Original boxes before augmentation, shape (4, N) where n is the
+                number of boxes. Format is [x1, y1, x2, y2] in absolute coordinates.
+            box2 (numpy.ndarray): Augmented boxes after transformation, shape (4, N). Format is
+                [x1, y1, x2, y2] in absolute coordinates.
+            wh_thr (float): Width and height threshold in pixels. Boxes smaller than this in either
+                dimension are rejected.
+            ar_thr (float): Aspect ratio threshold. Boxes with an aspect ratio greater than this
+                value are rejected.
+            area_thr (float): Area ratio threshold. Boxes with an area ratio (new/old) less than
+                this value are rejected.
+            eps (float): Small epsilon value to prevent division by zero.
+
+        Returns:
+            (numpy.ndarray): Boolean array of shape (n,) indicating which boxes are candidates.
+                True values correspond to boxes that meet all criteria.
+
+        Examples:
+            >>> random_perspective = RandomPerspective()
+            >>> box1 = np.array([[0, 0, 100, 100], [0, 0, 50, 50]]).T
+            >>> box2 = np.array([[10, 10, 90, 90], [5, 5, 45, 45]]).T
+            >>> candidates = random_perspective.box_candidates(box1, box2)
+            >>> print(candidates)
+            [True True]
+        """
+        w1, h1 = box1[2] - box1[0], box1[3] - box1[1]
+        w2, h2 = box2[2] - box2[0], box2[3] - box2[1]
+        ar = np.maximum(w2 / (h2 + eps), h2 / (w2 + eps))  # aspect ratio
+        return (w2 > wh_thr) & (h2 > wh_thr) & (w2 * h2 / (w1 * h1 + eps) > area_thr) & (ar < ar_thr)  # candidates
 
 class RandomHSV:
     """
     Randomly adjusts the Hue, Saturation, and Value (HSV) channels of an image.
 
     This class applies random HSV augmentation to images within predefined limits set by hgain, sgain, and vgain.
+    For single-channel images, only the Value (brightness) is adjusted.
     """
 
     def __init__(self, hgain=0.5, sgain=0.5, vgain=0.5) -> None:
@@ -313,32 +732,55 @@ class RandomHSV:
             # Determine the data type range
             dtype = img.dtype
             if dtype == np.uint8:
-                max_value = 255
-                hsv_max = np.array([180, 255, 255], dtype=np.float32)
+                max_value = 255.0
             elif dtype == np.uint16:
-                max_value = 65535
-                hsv_max = np.array([180, 65535, 65535], dtype=np.float32)
+                max_value = 65535.0
             else:
                 LOGGER.warning(f"RandomHSV: Unsupported image dtype {dtype}, skipping HSV augmentation.")
                 return labels
 
-            img = img.astype(np.float32)
-            img /= max_value  # Normalize to [0, 1]
+            # Check if image has 3 channels (color image)
+            if img.ndim == 3 and img.shape[2] == 3:
+                # Convert image to float32 and normalize
+                img = img.astype(np.float32) / max_value
 
-            # Convert to HSV
-            img_hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-            h, s, v = cv2.split(img_hsv)
-            r = np.random.uniform(-1, 1, 3) * [self.hgain, self.sgain, self.vgain] + 1  # random gains
+                # Convert to HSV color space
+                img_hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
-            h = ((h * r[0]) % 1.0).clip(0, 1)
-            s = (s * r[1]).clip(0, 1)
-            v = (v * r[2]).clip(0, 1)
+                # Generate random gains for H, S, and V channels
+                r = np.random.uniform(-1, 1, 3) * [self.hgain, self.sgain, self.vgain] + 1  # random gains
+                h, s, v = cv2.split(img_hsv)
 
-            img_hsv = cv2.merge((h, s, v))
-            img = cv2.cvtColor(img_hsv, cv2.COLOR_HSV2BGR)
+                # Apply random gains and clip values to valid range
+                h = ((h * r[0]) % 1.0).clip(0, 1)
+                s = (s * r[1]).clip(0, 1)
+                v = (v * r[2]).clip(0, 1)
 
-            img = (img * max_value).astype(dtype)
-            labels["img"] = img
+                # Merge channels back and convert to BGR color space
+                img_hsv = cv2.merge((h, s, v))
+                img = cv2.cvtColor(img_hsv, cv2.COLOR_HSV2BGR)
+
+                # Denormalize and convert back to original data type
+                img = (img * max_value).astype(dtype)
+                labels["img"] = img
+            elif img.ndim == 2 or (img.ndim == 3 and img.shape[2] == 1):
+                # Grayscale image: adjust brightness only if vgain is set
+                if self.vgain:
+                    img = img.astype(np.float32) / max_value
+
+                    # Generate random gain for brightness
+                    r = np.random.uniform(-1, 1) * self.vgain + 1  # random gain for brightness
+
+                    # Apply gain and clip values
+                    img = (img * r).clip(0, 1)
+
+                    # Denormalize and convert back to original data type
+                    img = (img * max_value).astype(dtype)
+                    labels["img"] = img
+                else:
+                    LOGGER.info("RandomHSV: Grayscale image, but vgain is 0. Skipping brightness adjustment.")
+            else:
+                LOGGER.warning(f"RandomHSV: Unsupported image shape {img.shape}, skipping HSV augmentation.")
         return labels
 
 
@@ -685,12 +1127,25 @@ class Format:
 
     def _format_img(self, img):
         """Formats an image for YOLO from a Numpy array to a PyTorch tensor."""
+        # Ensure the image has at least 3 dimensions (H, W, C)
         if len(img.shape) < 3:
-            img = np.expand_dims(img, -1)
-        img = img.transpose(2, 0, 1)
-        img = np.ascontiguousarray(img[::-1] if random.uniform(0, 1) > self.bgr else img)
+            img = np.expand_dims(img, -1)  # Add a channel dimension
+        img = img.transpose(2, 0, 1)  # Convert from HWC to CHW format
+        
+        # Check if the image has 3 channels (color image)
+        if img.shape[0] == 3:
+            # Randomly decide whether to swap channels based on self.bgr
+            if random.uniform(0, 1) > self.bgr:
+                img = img[[2, 1, 0], :, :]  # Swap channels (BGR to RGB or vice versa)
+        # For images with less than 3 channels (e.g., grayscale), skip channel swapping
+        
+        # Ensure the array is contiguous
+        img = np.ascontiguousarray(img)
+        
+        # Convert to PyTorch tensor
         img = torch.from_numpy(img)
-        # Change: Normalize image depending on its data type
+        
+        # Normalize image depending on its data type
         if img.dtype == torch.uint8:
             img = img.float() / 255.0
         elif img.dtype == torch.uint16:

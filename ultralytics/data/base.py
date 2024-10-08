@@ -153,6 +153,7 @@ class BaseDataset(Dataset):
             if fn.exists():  # load npy
                 try:
                     im = np.load(fn)
+
                 except Exception as e:
                     LOGGER.warning(f"{self.prefix}WARNING ⚠️ Removing corrupt *.npy image file {fn} due to: {e}")
                     Path(fn).unlink(missing_ok=True)
@@ -179,9 +180,11 @@ class BaseDataset(Dataset):
                     j = self.buffer.pop(0)
                     if self.cache != "ram":
                         self.ims[j], self.im_hw0[j], self.im_hw[j] = None, None, None
-
+            if im.ndim == 2:  # Grayscale image
+                im = np.expand_dims(im, axis=-1) 
             return im, (h0, w0), im.shape[:2]
-
+        if self.ims[i].ndim == 2:  # Grayscale image
+            self.ims[i] = np.expand_dims(self.ims[i], axis=-1) 
         return self.ims[i], self.im_hw0[i], self.im_hw[i]
 
     def cache_images(self):

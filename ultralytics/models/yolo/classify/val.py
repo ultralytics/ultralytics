@@ -6,7 +6,7 @@ from ultralytics.data import ClassificationDataset, build_dataloader
 from ultralytics.engine.validator import BaseValidator
 from ultralytics.utils import LOGGER
 from ultralytics.utils.metrics import ClassifyMetrics, ConfusionMatrix
-from ultralytics.utils.plotting import plot_images
+from ultralytics.utils.plotting import plot_images  # Ensure this function is updated to eliminate PIL usage
 
 
 class ClassificationValidator(BaseValidator):
@@ -102,7 +102,7 @@ class ClassificationValidator(BaseValidator):
         )
 
     def plot_predictions(self, batch, preds, ni):
-        """Plots predicted bounding boxes on input images and saves the result."""
+        """Plots predicted classes on input images and saves the result."""
         plot_images(
             batch["img"],
             batch_idx=torch.arange(len(batch["img"])),
@@ -110,4 +110,4 @@ class ClassificationValidator(BaseValidator):
             fname=self.save_dir / f"val_batch{ni}_pred.jpg",
             names=self.names,
             on_plot=self.on_plot,
-        )  # pred
+        )

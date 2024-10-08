@@ -78,7 +78,6 @@ def verify_image(args):
         assert img is not None, f"Image Not Readable"
         shape = img.shape[:2]  # (height, width)
         assert (shape[0] > 9) & (shape[1] > 9), f"image size {shape} <10 pixels"
-
         # Check for corrupt JPEG by checking EOF marker
         if suffix in {"jpg", "jpeg"}:
             with open(im_file, "rb") as f:

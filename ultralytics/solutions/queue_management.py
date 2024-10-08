@@ -54,7 +54,7 @@ class QueueManager(BaseSolution):
 
         # Display queue counts
         self.annotator.queue_counts_display(
-            f"Queue Counts : {str(self.counts)}",points=self.region,region_color=self.rect_color,
+            f"Queue Counts : {str(self.counts)}",points=self.region, region_color=self.rect_color,
             txt_color=(104, 31, 17))
         self.display_output(im0)  # display output with base class function
 

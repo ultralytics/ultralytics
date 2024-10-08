@@ -1,7 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import ast
-import contextlib
 import json
 import platform
 import zipfile
@@ -45,8 +44,10 @@ def check_class_names(names):
 def default_class_names(data=None):
     """Applies default class names to an input YAML file or returns numerical class names."""
     if data:
-        with contextlib.suppress(Exception):
+        try:
             return yaml_load(check_yaml(data))["names"]
+        except:  # noqa E722
+            pass
     return {i: f"class{i}" for i in range(999)}  # return default if above errors
 
 
@@ -321,8 +322,10 @@ class AutoBackend(nn.Module):
             with open(w, "rb") as f:
                 gd.ParseFromString(f.read())
             frozen_func = wrap_frozen_graph(gd, inputs="x:0", outputs=gd_outputs(gd))
-            with contextlib.suppress(StopIteration):  # find metadata in SavedModel alongside GraphDef
+            try:  # find metadata in SavedModel alongside GraphDef
                 metadata = next(Path(w).resolve().parent.rglob(f"{Path(w).stem}_saved_model*/metadata.yaml"))
+            except StopIteration:
+                pass
 
         # TFLite or TFLite Edge TPU
         elif tflite or edgetpu:  # https://www.tensorflow.org/lite/guide/python#install_tensorflow_lite_for_python
@@ -345,10 +348,12 @@ class AutoBackend(nn.Module):
             input_details = interpreter.get_input_details()  # inputs
             output_details = interpreter.get_output_details()  # outputs
             # Load metadata
-            with contextlib.suppress(zipfile.BadZipFile):
+            try:
                 with zipfile.ZipFile(w, "r") as model:
                     meta_file = model.namelist()[0]
                     metadata = ast.literal_eval(model.read(meta_file).decode("utf-8"))
+            except zipfile.BadZipFile:
+                pass
 
         # TF.js
         elif tfjs:

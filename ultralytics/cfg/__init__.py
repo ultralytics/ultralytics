@@ -669,9 +669,10 @@ def smart_value(v):
     elif v_lower == "false":
         return False
     else:
-        with contextlib.suppress(Exception):
+        try:
             return eval(v)
-        return v
+        except:  # noqa E722
+            return v
 
 
 def entrypoint(debug=""):

@@ -1,9 +1,9 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-from ultralytics.utils.plotting import Annotator, colors
-from ultralytics.solutions.solutions import BaseSolution  # Import a parent class
-
 from shapely.geometry import Point
+
+from ultralytics.solutions.solutions import BaseSolution  # Import a parent class
+from ultralytics.utils.plotting import Annotator, colors
 
 
 class QueueManager(BaseSolution):
@@ -14,8 +14,8 @@ class QueueManager(BaseSolution):
         super().__init__(**kwargs)
         self.initialize_region()
         self.counts = 0  # Queue counts Information
-        self.rect_color = (255, 255, 255)   # Rectangle color
-        self.region_length = len(self.region)   # Store region length for further usage
+        self.rect_color = (255, 255, 255)  # Rectangle color
+        self.region_length = len(self.region)  # Store region length for further usage
 
     def process_queue(self, im0):
         """
@@ -54,8 +54,11 @@ class QueueManager(BaseSolution):
 
         # Display queue counts
         self.annotator.queue_counts_display(
-            f"Queue Counts : {str(self.counts)}",points=self.region, region_color=self.rect_color,
-            txt_color=(104, 31, 17))
+            f"Queue Counts : {str(self.counts)}",
+            points=self.region,
+            region_color=self.rect_color,
+            txt_color=(104, 31, 17),
+        )
         self.display_output(im0)  # display output with base class function
 
         return im0  # return output image for more usage

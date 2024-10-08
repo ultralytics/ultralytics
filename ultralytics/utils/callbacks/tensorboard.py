@@ -1,6 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-import contextlib
 
 from ultralytics.utils import LOGGER, SETTINGS, TESTS_RUNNING, colorstr
 
@@ -51,7 +50,7 @@ def _log_tensorboard_graph(trainer):
             LOGGER.info(f"{PREFIX}model graph visualization added ✅")
             return
 
-        except: # noqa E722
+        except:  # noqa E722
             # Fallback to TorchScript export steps (RTDETR)
             try:
                 model = deepcopy(de_parallel(trainer.model))

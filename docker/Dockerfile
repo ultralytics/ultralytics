@@ -11,7 +11,8 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
     PIP_BREAK_SYSTEM_PACKAGES=1 \
-    MKL_THREADING_LAYER=GNU
+    MKL_THREADING_LAYER=GNU \
+    OMP_NUM_THREADS=1 
 
 # Downloads to user config dir
 ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.ttf \

@@ -643,7 +643,8 @@ def profile(input, ops, n=10, device=None):
         f"{'Params':>12s}{'GFLOPs':>12s}{'GPU_mem (GB)':>14s}{'forward (ms)':>14s}{'backward (ms)':>14s}"
         f"{'input':>24s}{'output':>24s}"
     )
-
+    gc.collect()  # attempt to free unused memory
+    torch.cuda.empty_cache()
     for x in input if isinstance(input, list) else [input]:
         x = x.to(device)
         x.requires_grad = True
@@ -677,8 +678,9 @@ def profile(input, ops, n=10, device=None):
             except Exception as e:
                 LOGGER.info(e)
                 results.append(None)
-            gc.collect()  # attempt to free unused memory
-            torch.cuda.empty_cache()
+            finally:
+                gc.collect()  # attempt to free unused memory
+                torch.cuda.empty_cache()
     return results
 
 

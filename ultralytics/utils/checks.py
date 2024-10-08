@@ -619,7 +619,7 @@ def collect_system_info():
     for r in parse_requirements(package="ultralytics"):
         try:
             current = metadata.version(r.name)
-            is_met = "✅ " if check_version(current, str(r.specifier), hard=True) else "❌ "
+            is_met = "✅ " if check_version(current, str(r.specifier),  name=r.name, hard=True) else "❌ "
         except metadata.PackageNotFoundError:
             current = "(not installed)"
             is_met = "❌ "
@@ -767,3 +767,4 @@ def cuda_is_available() -> bool:
 # Define constants
 IS_PYTHON_MINIMUM_3_10 = check_python("3.10", hard=False)
 IS_PYTHON_3_12 = PYTHON_VERSION.startswith("3.12")
+

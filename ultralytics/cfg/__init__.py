@@ -703,6 +703,8 @@ def entrypoint(debug=""):
     if not args:  # no arguments passed
         LOGGER.info(CLI_HELP_MSG)
         return
+    
+    from ultralytics.solutions.serve import run
 
     special = {
         "help": lambda: LOGGER.info(CLI_HELP_MSG),
@@ -716,6 +718,7 @@ def entrypoint(debug=""):
         "copy-cfg": copy_default_cfg,
         "explorer": lambda: handle_explorer(args[1:]),
         "streamlit-predict": lambda: handle_streamlit_inference(),
+        "serve": lambda: run(),
     }
     full_args_dict = {**DEFAULT_CFG_DICT, **{k: None for k in TASKS}, **{k: None for k in MODES}, **special}
 

@@ -527,7 +527,6 @@ def read_device_model() -> str:
         with open("/proc/device-tree/model") as f:
             return f.read()
     except:  # noqa E722
-
         return ""
 
 
@@ -718,6 +717,7 @@ def get_git_origin_url():
         except subprocess.CalledProcessError:
             return None
 
+
 def get_git_branch():
     """
     Returns the current git branch name. If not in a git repository, returns None.
@@ -760,6 +760,7 @@ def get_ubuntu_version():
                 return re.search(r'VERSION_ID="(\d+\.\d+)"', f.read())[1]
         except (FileNotFoundError, AttributeError):
             return None
+
 
 def get_user_config_dir(sub_dir="Ultralytics"):
     """

@@ -22,7 +22,7 @@ def test_major_solutions():
     counter = solutions.ObjectCounter(region=region_points, model="yolo11n.pt", show=False)
     heatmap = solutions.Heatmap(colormap=cv2.COLORMAP_PARULA, model="yolo11n.pt", show=False)
     speed = solutions.SpeedEstimator(reg_pts=region_points, names=names, view_img=False)
-    queue = solutions.QueueManager(names=names, reg_pts=region_points, view_img=False)
+    queue = solutions.QueueManager(region=region_points, model="yolo11n.pt", show=False)
     while cap.isOpened():
         success, im0 = cap.read()
         if not success:
@@ -32,7 +32,7 @@ def test_major_solutions():
         _ = counter.count(original_im0.copy())
         _ = heatmap.generate_heatmap(original_im0.copy())
         _ = speed.estimate_speed(original_im0.copy(), tracks)
-        _ = queue.process_queue(original_im0.copy(), tracks)
+        _ = queue.process_queue(original_im0.copy())
     cap.release()
     cv2.destroyAllWindows()
 

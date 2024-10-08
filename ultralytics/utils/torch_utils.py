@@ -1,6 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-import contextlib
 import gc
 import math
 import os
@@ -113,13 +112,15 @@ def get_cpu_info():
     from ultralytics.utils import PERSISTENT_CACHE  # avoid circular import error
 
     if "cpu_info" not in PERSISTENT_CACHE:
-        with contextlib.suppress(Exception):
+        try:
             import cpuinfo  # pip install py-cpuinfo
 
             k = "brand_raw", "hardware_raw", "arch_string_raw"  # keys sorted by preference
             info = cpuinfo.get_cpu_info()  # info dict
             string = info.get(k[0] if k[0] in info else k[1] if k[1] in info else k[2], "unknown")
             PERSISTENT_CACHE["cpu_info"] = string.replace("(R)", "").replace("CPU ", "").replace("@ ", "")
+        except:  # noqa E722
+            pass
     return PERSISTENT_CACHE.get("cpu_info", "unknown")
 
 

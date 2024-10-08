@@ -1,6 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-import contextlib
 import math
 import warnings
 from pathlib import Path
@@ -13,8 +12,8 @@ import torch
 from PIL import Image, ImageDraw, ImageFont
 from PIL import __version__ as pil_version
 
-from ultralytics.utils import IS_JUPYTER, LOGGER, TryExcept, ops, plt_settings, threaded
-from ultralytics.utils.checks import check_font, check_requirements, check_version, is_ascii
+from ultralytics.utils import IS_COLAB, IS_KAGGLE, LOGGER, TryExcept, ops, plt_settings, threaded
+from ultralytics.utils.checks import check_font, check_version, is_ascii
 from ultralytics.utils.files import increment_path
 
 
@@ -525,16 +524,12 @@ class Annotator:
     def show(self, title=None):
         """Show the annotated image."""
         im = Image.fromarray(np.asarray(self.im)[..., ::-1])  # Convert numpy array to PIL Image with RGB to BGR
-        if IS_JUPYTER:
-            check_requirements("ipython")
+        if IS_COLAB or IS_KAGGLE:  # can not use IS_JUPYTER as will run for all ipython environments
             try:
-                from IPython.display import display
-
-                display(im)
+                display(im)  # noqa - display() function only available in ipython environments
             except ImportError as e:
                 LOGGER.warning(f"Unable to display image in Jupyter notebooks: {e}")
         else:
-            # Convert numpy array to PIL Image and show
             im.show(title=title)
 
     def save(self, filename="image.jpg"):
@@ -1119,10 +1114,12 @@ def plot_images(
                             mask = mask.astype(bool)
                         else:
                             mask = image_masks[j].astype(bool)
-                        with contextlib.suppress(Exception):
+                        try:
                             im[y : y + h, x : x + w, :][mask] = (
                                 im[y : y + h, x : x + w, :][mask] * 0.4 + np.array(color) * 0.6
                             )
+                        except:  # noqa E722
+                            pass
                 annotator.fromarray(im)
     if not save:
         return np.asarray(annotator.im)

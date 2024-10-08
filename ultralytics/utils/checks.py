@@ -619,7 +619,7 @@ def collect_system_info():
     for r in parse_requirements(package="ultralytics"):
         try:
             current = metadata.version(r.name)
-            is_met = "✅ " if check_version(current, str(r.specifier), hard=True) else "❌ "
+            is_met = "✅ " if check_version(current, str(r.specifier), name=r.name, hard=True) else "❌ "
         except metadata.PackageNotFoundError:
             current = "(not installed)"
             is_met = "❌ "

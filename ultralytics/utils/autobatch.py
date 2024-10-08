@@ -58,7 +58,6 @@ def autobatch(model, imgsz=640, fraction=0.60, batch_size=DEFAULT_CFG.batch):
 
     # Inspect CUDA memory
     gb = 1 << 30  # bytes to GiB (1024 ** 3)
-    # d = str(device).upper()  # 'CUDA:0'
     d = f"CUDA:{os.getenv('CUDA_VISIBLE_DEVICES', '0').strip()[0]}"  # 'CUDA:0'
     properties = torch.cuda.get_device_properties(device)  # device properties
     t = properties.total_memory / gb  # GiB total

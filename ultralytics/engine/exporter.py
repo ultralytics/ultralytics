@@ -193,7 +193,9 @@ class Exporter:
         flags = [x == fmt for x in fmts]
         if sum(flags) != 1:
             raise ValueError(f"Invalid export format='{fmt}'. Valid formats are {fmts}")
-        jit, onnx, xml, engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, paddle, ncnn, mnn = flags  # export booleans
+        jit, onnx, xml, engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, paddle, ncnn, mnn = (
+            flags  # export booleans
+        )
         is_tf_format = any((saved_model, pb, tflite, edgetpu, tfjs))
 
         # Device
@@ -613,15 +615,15 @@ class Exporter:
     def export_mnn(self, prefix=colorstr("MNN:")):
         """YOLOv8 MNN export using MNN https://github.com/alibaba/MNN."""
         check_requirements("MNN")
-        import MNN # noqa
+        import MNN  # noqa
         from MNN.tools.mnnconvert import Tools
 
         # Setup and checks
         LOGGER.info(f"\n{prefix} starting export with MNN {MNN.version()}...")
-        f_onnx = str(self.file.with_suffix(".onnx")) # onnx model file
+        f_onnx = str(self.file.with_suffix(".onnx"))  # onnx model file
         assert Path(f_onnx).exists(), f"failed to export ONNX file: {f_onnx}"
         f = str(self.file.with_suffix(".mnn"))  # MNN model file
-        args = ['', '-f', 'ONNX', '--modelFile', f_onnx, '--MNNModel', f, '--fp16']
+        args = ["", "-f", "ONNX", "--modelFile", f_onnx, "--MNNModel", f, "--fp16"]
         Tools.mnnconvert(args)
         return f, None
 

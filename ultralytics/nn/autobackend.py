@@ -400,8 +400,10 @@ class AutoBackend(nn.Module):
             import MNN
 
             net = MNN.nn.load_module_from_file(w, [], [])
-            mnn_preprocess = lambda x: MNN.expr.convert(MNN.expr.const(x, x.shape), MNN.expr.NC4HW4)
-            mnn_postprocess = lambda x: MNN.expr.convert(x, MNN.expr.NCHW)
+            def mnn_preprocess(x):
+                return MNN.expr.convert(MNN.expr.const(x, x.shape), MNN.expr.NC4HW4)
+            def mnn_postprocess(x):
+                return MNN.expr.convert(x, MNN.expr.NCHW)
 
         # NVIDIA Triton Inference Server
         elif triton:

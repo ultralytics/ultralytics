@@ -25,7 +25,7 @@ class Detect(nn.Module):
     anchors = torch.empty(0)  # init
     strides = torch.empty(0)  # init
 
-    def __init__(self, nc=80, ch=()):
+    def __init__(self, nc=80, ch=()):  # ch is a list of number of channels in input layer
         """Initializes the YOLOv8 detection layer with specified number of classes and channels."""
         super().__init__()
         self.nc = nc  # number of classes
@@ -34,16 +34,26 @@ class Detect(nn.Module):
         self.no = nc + self.reg_max * 4  # number of outputs per anchor
         self.stride = torch.zeros(self.nl)  # strides computed during build
         c2, c3 = max((16, ch[0] // 4, self.reg_max * 4)), max(ch[0], min(self.nc, 100))  # channels
+        # cv2 is bbox
         self.cv2 = nn.ModuleList(
             nn.Sequential(Conv(x, c2, 3), Conv(c2, c2, 3), nn.Conv2d(c2, 4 * self.reg_max, 1)) for x in ch)
-        self.cv3 = nn.ModuleList(nn.Sequential(Conv(x, c3, 3), Conv(c3, c3, 3), nn.Conv2d(c3, self.nc, 1)) for x in ch)
+        # cv3 is classification
+        self.cv3 = nn.ModuleList(nn.Sequential(Conv(x, c3, 3), Conv(c3, c3, 3),  # output of this is embedding
+                                               nn.Conv2d(c3, self.nc, 1)) for x in ch)
+        # TODO embeddings
+        self.embeddings = nn.ModuleList(nn.Sequential(Conv(x, c3, 3), Conv(c3, c3, 3)) for x in ch)  # output of this is embedding
+        self.prediction = nn.ModuleList(nn.Conv2d(c3, self.nc, 1) for _ in ch)
         self.dfl = DFL(self.reg_max) if self.reg_max > 1 else nn.Identity()
 
     def forward(self, x):
         """Concatenates and returns predicted bounding boxes and class probabilities."""
         shape = x[0].shape  # BCHW
         for i in range(self.nl):
-            x[i] = torch.cat((self.cv2[i](x[i]), self.cv3[i](x[i])), 1)
+            bboxes = self.cv2[i](x[i])
+            embeddings = self.embeddings[i](x[i])
+            predictions = self.prediction[i](embeddings)
+            x[i] = torch.cat((bboxes, embeddings, predictions), 1)
+            
         if self.training:
             return x
         elif self.dynamic or self.shape != shape:

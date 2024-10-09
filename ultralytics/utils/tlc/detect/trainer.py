@@ -42,6 +42,7 @@ class TLCDetectionTrainer(TLCTrainerMixin, DetectionTrainer):
             rect=mode == "val",
             stride=gs,
             exclude_zero=exclude_zero,
+            class_map=self.data["3lc_class_to_range"],
         )
 
     def get_validator(self, dataloader=None):

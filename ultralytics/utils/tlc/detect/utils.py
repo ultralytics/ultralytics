@@ -75,6 +75,7 @@ def build_tlc_yolo_dataset(
     stride=32,
     multi_modal=False,
     exclude_zero=False,
+    class_map=None,
 ):
     if multi_modal:
         return ValueError("Multi-modal datasets are not supported in the 3LC YOLOv8 integration.")
@@ -82,6 +83,7 @@ def build_tlc_yolo_dataset(
     return TLCYOLODataset(
         table,
         exclude_zero=exclude_zero,
+        class_map=class_map,
         imgsz=cfg.imgsz,
         batch_size=batch,
         augment=mode == "train",  # augmentation

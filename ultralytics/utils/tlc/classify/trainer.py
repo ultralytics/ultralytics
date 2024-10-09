@@ -40,6 +40,7 @@ class TLCClassificationTrainer(TLCTrainerMixin, yolo.classify.ClassificationTrai
             image_column_name=self._image_column_name,
             label_column_name=self._label_column_name,
             exclude_zero=exclude_zero,
+            class_map=self.data["3lc_class_to_range"],
         )
 
     def get_validator(self, dataloader=None):

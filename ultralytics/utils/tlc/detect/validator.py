@@ -38,6 +38,7 @@ class TLCDetectionValidator(TLCValidatorMixin, DetectionValidator):
             mode=mode,
             stride=self.stride,
             exclude_zero=self._settings.exclude_zero_weight_collection,
+            class_map=self.data["3lc_class_to_range"],
         )
 
     def postprocess(self, preds):
@@ -48,7 +49,7 @@ class TLCDetectionValidator(TLCValidatorMixin, DetectionValidator):
         loss_schemas = yolo_loss_schemas(training=self._training) if self._settings.collect_loss else {}
 
         return {
-            tlc.PREDICTED_BOUNDING_BOXES: yolo_predicted_bounding_box_schema(self.data["names"]),
+            tlc.PREDICTED_BOUNDING_BOXES: yolo_predicted_bounding_box_schema(self.data["names_3lc"]),
             **loss_schemas, }
 
     def _compute_3lc_metrics(self, preds, batch):
@@ -104,7 +105,7 @@ class TLCDetectionValidator(TLCValidatorMixin, DetectionValidator):
             for pi in range(len(predictions)):
                 annotations.append({
                     'score': conf[pi],
-                    'category_id': int(pred_cls[pi]),
+                    'category_id': self.data["range_to_3lc_class"][int(pred_cls[pi])],
                     'bbox': pred_xywh[pi, :].cpu().tolist(),
                     'iou': box_ious[pi], })
 

@@ -16,12 +16,22 @@ from ultralytics.utils import LOGGER, NUM_THREADS, TQDM
 from typing import Any
 
 
+class IdentityDict(dict):
+
+    def __missing__(self, key):
+        return key
+
+
 class TLCYOLODataset(TLCDatasetMixin, YOLODataset):
 
-    def __init__(self, table, data=None, task="detect", exclude_zero=False, **kwargs):
+    def __init__(self, table, data=None, task="detect", exclude_zero=False, class_map=None, **kwargs):
+        """ 3LC equivalent of YOLODataset, populating the data fields from a 3LC Table.
+        
+        """
         assert task == "detect", f"Unsupported task: {task} for TLCYOLODataset. Only 'detect' is supported."
         self.table = table
         self._exclude_zero = exclude_zero
+        self.class_map = class_map if class_map is not None else IdentityDict()
 
         from ultralytics.utils.tlc.detect.utils import is_coco_table, is_yolo_table
         if is_yolo_table(self.table):
@@ -49,7 +59,7 @@ class TLCYOLODataset(TLCDatasetMixin, YOLODataset):
 
             self.example_ids.append(example_id)
             self.im_files.append(tlc.Url(row[tlc.IMAGE]).to_absolute().to_str())
-            self.labels.append(tlc_table_row_to_yolo_label(row, self._table_format))
+            self.labels.append(tlc_table_row_to_yolo_label(row, self._table_format, self.class_map))
 
         # Scan images if not already scanned
         if not self._is_scanned():
@@ -126,11 +136,11 @@ def unpack_box(bbox: dict[str, int | float]) -> tuple[int | float]:
     return bbox[tlc.LABEL], [bbox[tlc.X0], bbox[tlc.Y0], bbox[tlc.X1], bbox[tlc.Y1]]
 
 
-def unpack_boxes(bboxes: list[dict[str, int | float]]) -> tuple[np.ndarray, np.ndarray]:
+def unpack_boxes(bboxes: list[dict[str, int | float]], class_map: dict[int, int]) -> tuple[np.ndarray, np.ndarray]:
     classes_list, boxes_list = [], []
     for bbox in bboxes:
         _class, box = unpack_box(bbox)
-        classes_list.append(_class)
+        classes_list.append(class_map[_class])
         boxes_list.append(box)
 
     # Convert to np array
@@ -143,8 +153,8 @@ def unpack_boxes(bboxes: list[dict[str, int | float]]) -> tuple[np.ndarray, np.n
     return classes, boxes
 
 
-def tlc_table_row_to_yolo_label(row, table_format: str) -> dict[str, Any]:
-    classes, bboxes = unpack_boxes(row[tlc.BOUNDING_BOXES][tlc.BOUNDING_BOX_LIST])
+def tlc_table_row_to_yolo_label(row, table_format: str, class_map: dict[int, int]) -> dict[str, Any]:
+    classes, bboxes = unpack_boxes(row[tlc.BOUNDING_BOXES][tlc.BOUNDING_BOX_LIST], class_map)
 
     if table_format == "COCO":
         # Convert from ltwh absolute to xywh relative

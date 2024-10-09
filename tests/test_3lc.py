@@ -6,9 +6,13 @@ import pandas as pd
 import pytest
 import tlc
 
-from tests import TMP
+from ultralytics.utils.tlc import Settings, TLCYOLO, TLCClassificationTrainer, TLCDetectionTrainer
+from ultralytics.utils.tlc.classify.utils import tlc_check_cls_dataset
+from ultralytics.utils.tlc.detect.utils import tlc_check_det_dataset
+from ultralytics.utils.tlc.utils import check_tlc_dataset
 from ultralytics.models.yolo import YOLO
-from ultralytics.utils.tlc import TLCYOLO, Settings, TLCClassificationTrainer, TLCDetectionTrainer
+
+from tests import TMP
 from ultralytics.utils.tlc.constants import (
     DEFAULT_COLLECT_RUN_DESCRIPTION,
     MAP,
@@ -23,17 +27,16 @@ from ultralytics.utils.tlc.constants import (
 
 TMP_PROJECT_ROOT_URL = tlc.Url(TMP / "3LC")
 tlc.Configuration.instance().project_root_url = TMP_PROJECT_ROOT_URL
-tlc.TableIndexingTable.instance().add_scan_url(
-    {
-        "url": tlc.Url(TMP_PROJECT_ROOT_URL),
-        "layout": "project",
-        "object_type": "table",
-        "static": True,
-    }
-)
+tlc.TableIndexingTable.instance().add_scan_url({
+    "url": tlc.Url(TMP_PROJECT_ROOT_URL),
+    "layout": "project",
+    "object_type": "table",
+    "static": True, })
 
 TASK2DATASET = {"detect": "coco8.yaml", "classify": "imagenet10"}
 TASK2MODEL = {"detect": "yolov8n.pt", "classify": "yolov8n-cls.pt"}
+TASK2LABEL_COLUMN_NAME = {"detect": "bbs.bb_list.label", "classify": "label"}
+TASK2PREDICTED_LABEL_COLUMN_NAME = {"detect": "bbs_predicted.bb_list.label", "classify": "predicted"}
 
 try:
     import umap
@@ -61,8 +64,7 @@ def test_detect_training() -> None:
         "batch": 4,
         "device": "cpu",
         "save": False,
-        "plots": False,
-    }
+        "plots": False, }
 
     # Compare results from 3LC with ultralytics
     model_ultralytics = YOLO("yolov8n.pt")
@@ -83,9 +85,8 @@ def test_detect_training() -> None:
     assert results_3lc, "Detection training failed"
 
     # Compare 3LC integration with ultralytics results
-    assert (
-        results_ultralytics.results_dict == results_3lc.results_dict
-    ), "Results validation metrics 3LC different from Ultralytics"
+    assert (results_ultralytics.results_dict == results_3lc.results_dict
+            ), "Results validation metrics 3LC different from Ultralytics"
     assert results_ultralytics.names == results_3lc.names, "Results validation names"
 
     # Get 3LC run and inspect the results
@@ -97,9 +98,8 @@ def test_detect_training() -> None:
     assert run.description == settings.run_description, "Description mismatch"
     # Check that hyperparameters and overrides are saved
     for key, value in overrides.items():
-        assert (
-            run.constants["parameters"][key] == value
-        ), f"Parameter {key} mismatch, {run.constants['parameters'][key]} != {value}"
+        assert (run.constants["parameters"][key] == value
+                ), f"Parameter {key} mismatch, {run.constants['parameters'][key]} != {value}"
 
     # Check that there is a per-epoch value written
     assert len(run.constants["outputs"]) > 0, "No outputs written"
@@ -120,9 +120,8 @@ def test_detect_training() -> None:
     assert 1 in metrics_df[TRAINING_PHASE], "Expected metrics from after training"
 
     # model.predict() should work and be the same as vanilla ultralytics
-    assert all(
-        model_ultralytics.predict(imgsz=320)[0].boxes.cls == model_3lc.predict(imgsz=320)[0].boxes.cls
-    ), "Predictions mismatch"
+    assert all(model_ultralytics.predict(imgsz=320)[0].boxes.cls == model_3lc.predict(
+        imgsz=320)[0].boxes.cls), "Predictions mismatch"
 
     per_class_metrics_tables = metrics_tables[PER_CLASS_METRICS_STREAM_NAME]
     assert len(per_class_metrics_tables) == 4, "Expected 4 per-class metrics tables to be written"
@@ -163,9 +162,8 @@ def test_classify_training() -> None:
 
     assert results_3lc, "Classification training failed"
 
-    assert (
-        results_ultralytics.results_dict == results_3lc.results_dict
-    ), "Results validation metrics 3LC different from Ultralytics"
+    assert (results_ultralytics.results_dict == results_3lc.results_dict
+            ), "Results validation metrics 3LC different from Ultralytics"
 
     run = _get_run_from_settings(settings)
 
@@ -204,9 +202,8 @@ def test_classify_training() -> None:
         settings=settings,
     )
 
-    assert (
-        results_dict["val"].results_dict == results_ultralytics.results_dict
-    ), "Results validation metrics collection onlywith  3LC different from Ultralytics"
+    assert (results_dict["val"].results_dict == results_ultralytics.results_dict
+            ), "Results validation metrics collection onlywith  3LC different from Ultralytics"
 
     # model.predict() should work and be the same as vanilla ultralytics
     preds_3lc = model_3lc.predict(imgsz=320)
@@ -329,7 +326,8 @@ def test_sampling_weights() -> None:
     edited_table = tlc.EditedTable(
         url=trainer.trainset.url.create_sibling("jonas"),
         input_table_url=trainer.trainset,
-        edits={tlc.SAMPLE_WEIGHT: {"runs_and_values": [[0], 2.0]}},
+        edits={tlc.SAMPLE_WEIGHT: {
+            "runs_and_values": [[0], 2.0]}},
     )
 
     dataloader = trainer.get_dataloader(edited_table, batch_size=2, rank=-1)
@@ -359,7 +357,8 @@ def test_exclude_zero_weight_training() -> None:
     edited_table = tlc.EditedTable(
         url=trainer.trainset.url.create_sibling("jonas"),
         input_table_url=trainer.trainset,
-        edits={tlc.SAMPLE_WEIGHT: {"runs_and_values": [[0], 0.0]}},
+        edits={tlc.SAMPLE_WEIGHT: {
+            "runs_and_values": [[0], 0.0]}},
     )
 
     dataloader = trainer.get_dataloader(edited_table, batch_size=2, rank=-1)
@@ -371,9 +370,8 @@ def test_exclude_zero_weight_training() -> None:
     assert len(sampled_example_ids) == len(edited_table) - 1, "Expected one sample to be excluded"
 
 
-@pytest.mark.parametrize(
-    "task,trainer_class", [("detect", TLCDetectionTrainer), ("classify", TLCClassificationTrainer)]
-)
+@pytest.mark.parametrize("task,trainer_class", [("detect", TLCDetectionTrainer),
+                                                ("classify", TLCClassificationTrainer)])
 def test_exclude_zero_weight_collection(task, trainer_class) -> None:
     # Test that sampling weights are correctly applied during metrics collection
     settings = Settings(project_name=f"test_sampling_weights_collection_{task}", exclude_zero_weight_collection=True)
@@ -387,7 +385,8 @@ def test_exclude_zero_weight_collection(task, trainer_class) -> None:
     edited_table = tlc.EditedTable(
         url=trainer.trainset.url.create_sibling(f"erna_{task}"),
         input_table_url=trainer.trainset,
-        edits={tlc.SAMPLE_WEIGHT: {"runs_and_values": [[0, 3], 0.0]}},
+        edits={tlc.SAMPLE_WEIGHT: {
+            "runs_and_values": [[0, 3], 0.0]}},
     )
 
     dataloader = trainer.get_dataloader(edited_table, batch_size=2, rank=-1, mode="val")
@@ -433,6 +432,155 @@ def test_get_metrics_collection_epochs(start, interval, epochs, disable, expecte
     else:
         with pytest.raises(expected):
             settings.get_metrics_collection_epochs(epochs)
+
+
+@pytest.mark.parametrize("task", ["detect", "classify"])
+def test_arbitrary_class_indices(task) -> None:
+    # Test that arbitrary class indices can be used
+    settings = Settings(
+        project_name=f"test_arbitrary_class_indices_{task}",
+        run_name=f"test_arbitrary_class_indices_{task}",
+    )
+
+    label_column_name = TASK2LABEL_COLUMN_NAME[task]
+    predicted_label_column_name = TASK2PREDICTED_LABEL_COLUMN_NAME[task]
+
+    if task == "detect":
+        data_dict = tlc_check_det_dataset(
+            data=TASK2DATASET["detect"],
+            tables=None,
+            image_column_name="image",
+            label_column_name=label_column_name,
+            project_name=settings.project_name,
+        )
+    elif task == "classify":
+        data_dict = tlc_check_cls_dataset(
+            data=TASK2DATASET["classify"],
+            tables=None,
+            image_column_name="image",
+            label_column_name=label_column_name,
+            project_name=settings.project_name,
+        )
+
+    # Create edited tables where class indices are changed
+    edited_tables = {}
+    for split in ("train", "val"):
+        table = data_dict[split]
+        table_value_map = table.get_value_map(label_column_name)
+        label_map = {k: -k ** 2 for k in table_value_map.keys()}  # 0, 1, 2, ... -> 0, -1, -4, ...
+        edited_value_map = {label_map[k]: v for k, v in table_value_map.items()}
+        edited_schema_table = table.set_value_map(label_column_name, edited_value_map)
+
+        if task == "detect":
+            bbs_edits = []
+            for i, row in enumerate(edited_schema_table.table_rows):
+                bb_list_override = []
+                for bb in row["bbs"]["bb_list"]:
+                    bb_list_override.append({**bb, "label": label_map[bb["label"]]})
+
+                bbs_edits.append([i])
+                bbs_edits.append({**row["bbs"], "bb_list": bb_list_override})
+
+            edited_tables[split] = tlc.EditedTable(
+                url=edited_schema_table.url.create_sibling(f"edited_value_map_and_values_{task}"),
+                input_table_url=edited_schema_table,
+                edits={"bbs": {
+                    "runs_and_values": bbs_edits}},
+            )
+        elif task == "classify":
+            edits = []
+            for i, row in enumerate(edited_schema_table.table_rows):
+                edits.append([i])
+                edits.append(label_map[row[label_column_name]])
+
+            edited_tables[split] = tlc.EditedTable(
+                url=edited_schema_table.url.create_sibling(f"edited_value_map_and_values_{task}"),
+                input_table_url=edited_schema_table,
+                edits={label_column_name: {
+                    "runs_and_values": edits}},
+            )
+
+    # Check that the edited table can be used for training and validation
+    model = TLCYOLO(TASK2MODEL[task])
+    results = model.train(tables=edited_tables, settings=settings, epochs=1, device="cpu")
+
+    assert results, f"{task} training with arbitrary class indices failed"
+
+    run = _get_run_from_settings(settings)
+
+    # Verify metrics have the expected class indices
+    sample_metrics_tables = [
+        m for m in run.metrics_tables if TASK2PREDICTED_LABEL_COLUMN_NAME[task].split(".")[0] in m.columns]
+    metrics_df = pd.concat(
+        [metrics_table.to_pandas() for metrics_table in sample_metrics_tables],
+        ignore_index=True,
+    )
+
+    if task == "detect":
+        for i in range(len(metrics_df)):
+            assert all(bb["label"] <= 0 for bb in metrics_df["bbs_predicted"][i]["bb_list"])
+
+        # Verify that a giraffe is predicted in the second image
+        predicted_label = np.sqrt(-metrics_df["bbs_predicted"][1]["bb_list"][0]["label"])
+        assert table_value_map[predicted_label]["internal_name"] == "giraffe"
+    elif task == "classify":
+        assert all(label <= 0 for label in metrics_df[predicted_label_column_name]), "Predicted label indices mismatch"
+
+    # Verify that the metrics schema is correct
+    label_value_map = edited_tables["train"].get_value_map(label_column_name)
+    predicted_label_value_map = sample_metrics_tables[0].get_value_map(predicted_label_column_name)
+    assert label_value_map == predicted_label_value_map, "Predicted label value map mismatch"
+
+
+def test_check_tlc_dataset_different_categories() -> None:
+    # Test that an error is raised if the categories of the tables are different
+    project_name = "test_check_tlc_dataset_different_categories"
+
+    train_structure = {"image": tlc.ImagePath("image"), "label": tlc.CategoricalLabel("label", classes=["a", "b", "c"])}
+    val_structure = {"image": tlc.ImagePath("image"), "label": tlc.CategoricalLabel("label", classes=["a", "b", "d"])}
+
+    train_table = tlc.Table.from_dict(
+        {
+            "image": ["a.jpg", "b.jpg"],
+            "label": [0, 1]},
+        structure=train_structure,
+        project_name=project_name,
+        dataset_name="train",
+    )
+    val_table = tlc.Table.from_dict(
+        {
+            "image": ["c.jpg", "d.jpg"],
+            "label": [0, 1]},
+        structure=val_structure,
+        project_name=project_name,
+        dataset_name="val",
+    )
+
+    with pytest.raises(ValueError):
+        check_tlc_dataset(
+            data="",
+            tables={
+                "train": train_table,
+                "val": val_table, },
+            image_column_name="image",
+            label_column_name="label",
+        )
+
+
+def test_check_tlc_dataset_bad_tables() -> None:
+    # Test that an error is raised if tables or urls are not provided properly
+    tables = {"train": [1, 2, 3], "val": [4, 5, 6]}
+
+    with pytest.raises(ValueError):
+        check_tlc_dataset(data="", tables=tables, image_column_name="a", label_column_name="b")
+
+
+def test_check_tlc_dataset_bad_url() -> None:
+    # Test that an error is raised if a non-valid url is provided
+    tables = {"train": "some_url", "val": "some_other_url"}
+
+    with pytest.raises(ValueError):
+        check_tlc_dataset(data="", tables=tables, image_column_name="a", label_column_name="b")
 
 
 # HELPERS

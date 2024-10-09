@@ -37,19 +37,24 @@ class TLCClassificationValidator(TLCValidatorMixin, yolo.classify.Classification
             image_column_name=self._image_column_name,
             label_column_name=self._label_column_name,
             exclude_zero=self._settings.exclude_zero_weight_collection,
+            class_map=self.data["3lc_class_to_range"],
         )
 
     def _get_metrics_schemas(self):
-        class_names = [
-            value['internal_name']
-            for value in self.dataloader.dataset.table.get_value_map(self._label_column_name).values()]
+        predicted_value_map = {float(k): tlc.MapElement(v) for k, v in self.data["names_3lc"].items()}
+        predicted_value = tlc.Int32Value(value_map=predicted_value_map)
+        predicted_schema = tlc.Schema(
+            "Predicted",
+            "The highest confidence class predicted by the model.",
+            writable=False,
+            value=predicted_value,
+        )
+
         column_schemas = {
             "loss":
             tlc.Schema("Loss", "Cross Entropy Loss", writable=False, value=tlc.Float32Value()),
             "predicted":
-            tlc.CategoricalLabelSchema(class_names=class_names,
-                                       display_name="Predicted",
-                                       description="The highest confidence class predicted by the model."),
+            predicted_schema,
             "confidence":
             tlc.Schema("Confidence",
                        "The confidence of the prediction",
@@ -57,7 +62,7 @@ class TLCClassificationValidator(TLCValidatorMixin, yolo.classify.Classification
             "top1_accuracy":
             tlc.Schema("Top-1 Accuracy", "The correctness of the prediction", value=tlc.Float32Value()), }
 
-        if len(class_names) > 5:
+        if len(predicted_value_map) > 5:
             column_schemas["top5_accuracy"] = tlc.Schema(
                 "Top-5 Accuracy",
                 "The correctness of any of the top five confidence predictions",
@@ -72,7 +77,7 @@ class TLCClassificationValidator(TLCValidatorMixin, yolo.classify.Classification
         batch_metrics = {
             "loss": torch.nn.functional.nll_loss(torch.log(preds), batch["cls"],
                                                  reduction="none"),  #nll since preds are normalized
-            "predicted": predicted,
+            "predicted": [self.data["range_to_3lc_class"][int(p)] for p in predicted.tolist()],
             "confidence": confidence,
             "top1_accuracy": (torch.argmax(preds, dim=1) == batch["cls"]).to(torch.float32), }
 

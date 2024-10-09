@@ -41,16 +41,13 @@ class SpeedEstimator(BaseSolution):
         for box, track_id, cls in zip(self.boxes, self.track_ids, self.clss):
             self.store_tracking_history(track_id, box)  # Store track history
 
+            # Check if track_id is already in self.trk_pp or trk_pt initialize if not
             if track_id not in self.trk_pt:
                 self.trk_pt[track_id] = 0
-
-            # Check if track_id is already in self.trk_pp, initialize if not
             if track_id not in self.trk_pp:
-                # Initialize with the current track point if it's missing
                 self.trk_pp[track_id] = self.track_line[-1]
 
             speed_label = f"{int(self.spd[track_id])} km/h" if track_id in self.spd else self.names[int(cls)]
-
             self.annotator.box_label(box, label=speed_label, color=colors(track_id, True))  # Draw bounding box
 
             # Draw tracks of objects

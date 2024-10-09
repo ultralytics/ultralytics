@@ -523,10 +523,11 @@ def read_device_model() -> str:
     Returns:
         (str): Model file contents if read successfully or empty string otherwise.
     """
-    with contextlib.suppress(Exception):
+    try:
         with open("/proc/device-tree/model") as f:
             return f.read()
-    return ""
+    except:  # noqa E722
+        return ""
 
 
 def is_ubuntu() -> bool:
@@ -536,10 +537,11 @@ def is_ubuntu() -> bool:
     Returns:
         (bool): True if OS is Ubuntu, False otherwise.
     """
-    with contextlib.suppress(FileNotFoundError):
+    try:
         with open("/etc/os-release") as f:
             return "ID=ubuntu" in f.read()
-    return False
+    except FileNotFoundError:
+        return False
 
 
 def is_colab():
@@ -569,11 +571,7 @@ def is_jupyter():
     Returns:
         (bool): True if running inside a Jupyter Notebook, False otherwise.
     """
-    with contextlib.suppress(Exception):
-        from IPython import get_ipython
-
-        return get_ipython() is not None
-    return False
+    return "get_ipython" in locals()
 
 
 def is_docker() -> bool:
@@ -583,10 +581,11 @@ def is_docker() -> bool:
     Returns:
         (bool): True if the script is running inside a Docker container, False otherwise.
     """
-    with contextlib.suppress(Exception):
+    try:
         with open("/proc/self/cgroup") as f:
             return "docker" in f.read()
-    return False
+    except:  # noqa E722
+        return False
 
 
 def is_raspberrypi() -> bool:
@@ -617,14 +616,15 @@ def is_online() -> bool:
     Returns:
         (bool): True if connection is successful, False otherwise.
     """
-    with contextlib.suppress(Exception):
+    try:
         assert str(os.getenv("YOLO_OFFLINE", "")).lower() != "true"  # check if ENV var YOLO_OFFLINE="True"
         import socket
 
         for dns in ("1.1.1.1", "8.8.8.8"):  # check Cloudflare and Google DNS
             socket.create_connection(address=(dns, 80), timeout=2.0).close()
             return True
-    return False
+    except:  # noqa E722
+        return False
 
 
 def is_pip_package(filepath: str = __name__) -> bool:
@@ -711,9 +711,11 @@ def get_git_origin_url():
         (str | None): The origin URL of the git repository or None if not git directory.
     """
     if IS_GIT_DIR:
-        with contextlib.suppress(subprocess.CalledProcessError):
+        try:
             origin = subprocess.check_output(["git", "config", "--get", "remote.origin.url"])
             return origin.decode().strip()
+        except subprocess.CalledProcessError:
+            return None
 
 
 def get_git_branch():
@@ -724,9 +726,11 @@ def get_git_branch():
         (str | None): The current git branch name or None if not a git directory.
     """
     if IS_GIT_DIR:
-        with contextlib.suppress(subprocess.CalledProcessError):
+        try:
             origin = subprocess.check_output(["git", "rev-parse", "--abbrev-ref", "HEAD"])
             return origin.decode().strip()
+        except subprocess.CalledProcessError:
+            return None
 
 
 def get_default_args(func):
@@ -751,9 +755,11 @@ def get_ubuntu_version():
         (str): Ubuntu version or None if not an Ubuntu OS.
     """
     if is_ubuntu():
-        with contextlib.suppress(FileNotFoundError, AttributeError):
+        try:
             with open("/etc/os-release") as f:
                 return re.search(r'VERSION_ID="(\d+\.\d+)"', f.read())[1]
+        except (FileNotFoundError, AttributeError):
+            return None
 
 
 def get_user_config_dir(sub_dir="Ultralytics"):

@@ -9,9 +9,10 @@ import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
+from PIL import Image
 
 from ultralytics.utils import IS_COLAB, IS_KAGGLE, LOGGER, TryExcept, ops, plt_settings, threaded
-from ultralytics.utils.checks import check_font, check_version, is_ascii
+from ultralytics.utils.checks import is_ascii
 from ultralytics.utils.files import increment_path
 
 
@@ -164,8 +165,7 @@ class Annotator:
 
     def __init__(self, im, line_width=None, font_size=None, font="Arial.ttf", pil=False, example="abc"):
         """Initialize the Annotator class with image and line width along with color palette for keypoints and limbs."""
-        non_ascii = not is_ascii(example)  # non-latin labels, i.e. asian, arabic, cyrillic
-        input_is_pil = False
+        not is_ascii(example)  # non-latin labels, i.e. asian, arabic, cyrillic
         self.lw = line_width or max(round(sum(im.shape) / 2 * 0.003), 2)
 
         assert im.data.contiguous, "Image not contiguous. Apply np.ascontiguousarray(im) to Annotator input images."
@@ -360,7 +360,6 @@ class Annotator:
             alpha (float): Mask transparency: 0.0 fully transparent, 1.0 opaque
             retina_masks (bool): Whether to use high resolution masks or not. Defaults to False.
         """
-
         if len(masks) == 0:
             self.im[:] = im_gpu.permute(1, 2, 0).contiguous().cpu().numpy() * 255
         if im_gpu.device != masks.device:
@@ -379,7 +378,6 @@ class Annotator:
         im_mask = im_gpu * 255
         im_mask_np = im_mask.byte().cpu().numpy()
         self.im[:] = im_mask_np if retina_masks else ops.scale_image(im_mask_np, self.im.shape)
-
 
     def kpts(self, kpts, shape=(640, 640), radius=None, kpt_line=True, conf_thres=0.25, kpt_color=None):
         """
@@ -436,7 +434,6 @@ class Annotator:
                     lineType=cv2.LINE_AA,
                 )
 
-
     def rectangle(self, xy, fill=None, outline=None, width=1):
         """Add rectangle to image (CV-only)."""
         # Extract rectangle coordinates
@@ -474,12 +471,23 @@ class Annotator:
             txt_color = (255, 255, 255)
         cv2.putText(self.im, text, xy, 0, self.sf, txt_color, thickness=self.tf, lineType=cv2.LINE_AA)
 
-
-
     def result(self):
         """Return annotated image as array."""
         return np.asarray(self.im)
 
+    def show(self, title=None):
+        """Show the annotated image."""
+        drawIm = self.im
+        if drawIm.dtype == np.uint16:
+            drawIm = (drawIm / 65535.0) * 255.0  # Converts uint16 to uint8 for plotting purposes
+        im = Image.fromarray(np.asarray(drawIm)[..., ::-1])  # Convert numpy array to PIL Image with RGB to BGR
+        if IS_COLAB or IS_KAGGLE:  # can not use IS_JUPYTER as will run for all ipython environments
+            try:
+                display(im)  # noqa - display() function only available in ipython environments
+            except ImportError as e:
+                LOGGER.warning(f"Unable to display image in Jupyter notebooks: {e}")
+        else:
+            im.show(title=title)
 
     def save(self, filename="image.jpg"):
         """Save the annotated image to 'filename'."""
@@ -958,7 +966,6 @@ def plot_images(
         np.ndarray: Plotted image grid as a numpy array if save is False, None otherwise.
     """
     import math
-    from PIL import Image
 
     # Convert torch tensors to numpy arrays
     if isinstance(images, torch.Tensor):
@@ -977,7 +984,7 @@ def plot_images(
     # Get image dimensions and batch size
     bs, channels, h, w = images.shape  # batch size, channels, height, width
     bs = min(bs, max_subplots)  # limit plot images
-    ns = int(np.ceil(bs ** 0.5))  # number of subplots (square)
+    ns = int(np.ceil(bs**0.5))  # number of subplots (square)
 
     # Determine image data type
     img_dtype = images.dtype
@@ -985,6 +992,8 @@ def plot_images(
         max_pixel_value = 255
     elif img_dtype == np.uint16:
         max_pixel_value = 65535
+    elif img_dtype == np.float32:
+        max_pixel_value = 1.0
     else:
         max_pixel_value = images.max()
 
@@ -995,7 +1004,6 @@ def plot_images(
     for i in range(bs):
         x, y = int(w * (i % ns)), int(h * (i // ns))  # Block origin
         image = images[i].transpose(1, 2, 0)  # Convert from CHW to HWC
-
         # Handle images with different numbers of channels
         if image.shape[2] == 1:
             image = np.repeat(image, 3, axis=2)  # Grayscale to RGB-like (still uint16)
@@ -1008,10 +1016,20 @@ def plot_images(
             image = image[:, :, :3]
 
         # Place image in mosaic
+
         mosaic[y : y + h, x : x + w, :] = image
 
+    if img_dtype == np.uint16:
+        mosaic = (mosaic / 65535.0).astype(np.float32)
+    elif img_dtype == np.uint8:
+        mosaic = (mosaic / 255.0).astype(np.float32)
+    else:
+        mosaic = (mosaic / max_pixel_value).astype(np.float32)
+
+    mosaic = (mosaic * 255).astype(np.uint8)
     # Resize the mosaic if necessary
     scale = max_size / ns / max(h, w)
+
     if scale < 1:
         h_new = math.ceil(scale * h * ns)
         w_new = math.ceil(scale * w * ns)
@@ -1023,19 +1041,8 @@ def plot_images(
     fs = int((h + w) * ns * 0.01)  # Font size
     line_width = max(fs // 10, 1)
 
-    # Since PIL's ImageDraw does not support uint16 images, we need to handle annotations carefully
-    # Convert mosaic to float32 in [0, 1] range for annotation, then scale back to original dtype
-    if img_dtype == np.uint16:
-        mosaic_display = (mosaic / 65535.0).astype(np.float32)
-    elif img_dtype == np.uint8:
-        mosaic_display = (mosaic / 255.0).astype(np.float32)
-    else:
-        # For other dtypes, normalize based on max value
-        mosaic_display = (mosaic / max_pixel_value).astype(np.float32)
-
     # Create an annotator instance
-    annotator = Annotator((mosaic_display * 255).astype(np.uint8), line_width=line_width, font_size=fs, pil=True, example=names)
-
+    annotator = Annotator(mosaic, line_width=line_width, font_size=fs, pil=True, example=names)
     for i in range(bs):
         x, y = int(w * (i % ns)), int(h * (i // ns))  # Block origin
         annotator.rectangle([x, y, x + w, y + h], None, (255, 255, 255), width=2)  # Borders
@@ -1099,23 +1106,25 @@ def plot_images(
                     image_masks = np.repeat(image_masks, nl, axis=0)
                     image_masks = np.where(image_masks == index, 1.0, 0.0)
 
-                im = np.asarray(annotator.im).copy()
+                np.asarray(annotator.im).copy()
                 for j in range(len(image_masks)):
                     if labels or conf[j] > conf_thres:
-                        color = colors(classes[j])
-                        mh, mw = image_masks[j].shape
-                        if mh != h or mw != w:
-                            mask = image_masks[j].astype(np.uint8)
-                            mask = cv2.resize(mask, (w, h), interpolation=cv2.INTER_NEAREST)
-                            mask = mask.astype(bool)
-                        else:
-                            mask = image_masks[j].astype(bool)
-                        try:
-                            im[y : y + h, x : x + w, :][mask] = (
-                                im[y : y + h, x : x + w, :][mask] * 0.4 + np.array(color, dtype=np.uint8) * 0.6
-                            )
-                        except Exception:
-                            pass
+                        # color = colors(classes[j])
+                        # mh, mw = image_masks[j].shape
+                        # if mh != h or mw != w:
+                        #     mask = image_masks[j].astype(np.uint8)
+                        #     mask = cv2.resize(mask, (w, h), interpolation=cv2.INTER_NEAREST)
+                        #     mask = mask.astype(bool)
+                        # else:
+                        #     mask = image_masks[j].astype(bool)
+                        # try:
+                        #     im[y : y + h, x : x + w, :][mask] = (
+                        #         im[y : y + h, x : x + w, :][mask] * 0.4 + np.array(color, dtype=np.uint8) * 0.6
+                        #     )
+                        # except Exception:
+                        #     pass
+                        annotator.masks(image_masks, colors)
+                        # annotator.fromarray(im)
 
     # After annotations, scale the annotated image back to original dtype if necessary
     annotated_image = np.asarray(annotator.im)
@@ -1126,10 +1135,9 @@ def plot_images(
 
     if not save:
         return annotated_image
-    
-    # Save the image in a format that supports uint16
 
-    cv2.imwrite(fname,annotated_image)
+    # Save the image in a format that supports uint16
+    cv2.imwrite(fname, annotated_image)
     if on_plot:
         on_plot(fname)
 

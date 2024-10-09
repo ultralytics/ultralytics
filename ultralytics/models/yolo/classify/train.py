@@ -85,9 +85,9 @@ class ClassificationTrainer(BaseTrainer):
         # Attach inference transforms
         if mode != "train":
             if is_parallel(self.model):
-                self.model.module.transforms = loader.dataset.transforms
+                self.model.module.transforms = loader.dataset.torch_transforms
             else:
-                self.model.transforms = loader.dataset.transforms
+                self.model.transforms = loader.dataset.torch_transforms
         return loader
 
     def preprocess_batch(self, batch):

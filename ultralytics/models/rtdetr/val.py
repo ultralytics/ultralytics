@@ -45,6 +45,7 @@ class RTDETRDataset(YOLODataset):
                 batch_idx=True,
                 mask_ratio=hyp.mask_ratio,
                 mask_overlap=hyp.overlap_mask,
+                image_channels=hyp.ch,  # Number of channels should be specified in the cfg file
             )
         )
         return transforms

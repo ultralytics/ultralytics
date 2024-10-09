@@ -50,7 +50,7 @@ class DetectionValidator(BaseValidator):
     def preprocess(self, batch):
         """Preprocesses batch of images for YOLO training."""
         batch["img"] = batch["img"].to(self.device, non_blocking=True)
-        batch["img"] = (batch["img"].half() if self.args.half else batch["img"].float()) / 255
+        batch["img"] = batch["img"].half() if self.args.half else batch["img"].float()  # / 255 #WARNING
         for k in ["batch_idx", "cls", "bboxes"]:
             batch[k] = batch[k].to(self.device)
 
@@ -155,8 +155,8 @@ class DetectionValidator(BaseValidator):
             # Evaluate
             if nl:
                 stat["tp"] = self._process_batch(predn, bbox, cls)
-                if self.args.plots:
-                    self.confusion_matrix.process_batch(predn, bbox, cls)
+            if self.args.plots:
+                self.confusion_matrix.process_batch(predn, bbox, cls)
             for k in self.stats.keys():
                 self.stats[k].append(stat[k])
 

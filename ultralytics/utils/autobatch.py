@@ -11,15 +11,17 @@ from ultralytics.utils import DEFAULT_CFG, LOGGER, colorstr
 from ultralytics.utils.torch_utils import autocast, profile
 
 
-def check_train_batch_size(model, imgsz=640, amp=True, batch=-1):
+def check_train_batch_size(model, imgsz=640,  ch=3,amp=True, batch=-1, max_num_obj=1):
     """
     Compute optimal YOLO training batch size using the autobatch() function.
 
     Args:
         model (torch.nn.Module): YOLO model to check batch size for.
         imgsz (int, optional): Image size used for training.
+        ch (int, optional): Number of channels of the original image.
         amp (bool, optional): Use automatic mixed precision if True.
         batch (float, optional): Fraction of GPU memory to use. If -1, use default.
+        max_num_obj (int, optional): The maximum number of objects from dataset.
 
     Returns:
         (int): Optimal batch size computed using the autobatch() function.
@@ -29,18 +31,22 @@ def check_train_batch_size(model, imgsz=640, amp=True, batch=-1):
         Otherwise, a default fraction of 0.6 is used.
     """
     with autocast(enabled=amp):
-        return autobatch(deepcopy(model).train(), imgsz, fraction=batch if 0.0 < batch < 1.0 else 0.6)
+        return autobatch(
+            deepcopy(model).train(), imgsz, ch=ch, fraction=batch if 0.0 < batch < 1.0 else 0.6, max_num_obj=max_num_obj
+        )
 
 
-def autobatch(model, imgsz=640, fraction=0.60, batch_size=DEFAULT_CFG.batch):
+def autobatch(model, imgsz=640, ch=3, fraction=0.60, batch_size=DEFAULT_CFG.batch, max_num_obj=1):
     """
     Automatically estimate the best YOLO batch size to use a fraction of the available CUDA memory.
 
     Args:
         model (torch.nn.module): YOLO model to compute batch size for.
         imgsz (int, optional): The image size used as input for the YOLO model. Defaults to 640.
+        ch (int, optional): Number of channels of the original image. Defaults to 3
         fraction (float, optional): The fraction of available CUDA memory to use. Defaults to 0.60.
         batch_size (int, optional): The default batch size to use if an error is detected. Defaults to 16.
+        max_num_obj (int, optional): The maximum number of objects from dataset.
 
     Returns:
         (int): The optimal batch size.
@@ -69,8 +75,8 @@ def autobatch(model, imgsz=640, fraction=0.60, batch_size=DEFAULT_CFG.batch):
     # Profile batch sizes
     batch_sizes = [1, 2, 4, 8, 16] if t < 16 else [1, 2, 4, 8, 16, 32, 64]
     try:
-        img = [torch.empty(b, 3, imgsz, imgsz) for b in batch_sizes]
-        results = profile(img, model, n=1, device=device)
+        img = [torch.empty(b, ch, imgsz, imgsz) for b in batch_sizes]
+        results = profile(img, model, n=1, device=device, max_num_obj=max_num_obj)
 
         # Fit a solution
         y = [x[2] for x in results if x]  # memory [2]

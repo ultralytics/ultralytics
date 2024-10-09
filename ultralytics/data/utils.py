@@ -13,8 +13,6 @@ from tarfile import is_tarfile
 
 import cv2
 import numpy as np
-# Removed PIL import since we're eliminating PIL usage
-# from PIL import Image, ImageOps
 
 from ultralytics.nn.autobackend import check_class_names
 from ultralytics.utils import (
@@ -74,7 +72,7 @@ def verify_image(args):
         suffix = Path(im_file).suffix[1:].lower()
         assert suffix in IMG_FORMATS, f"Invalid image format {suffix}. {FORMATS_HELP_MSG}"
         img = cv2.imread(im_file, cv2.IMREAD_UNCHANGED)
-        assert img is not None, f"Image Not Readable"
+        assert img is not None, "Image Not Readable"
         shape = img.shape[:2]  # (height, width)
         assert (shape[0] > 9) & (shape[1] > 9), f"image size {shape} <10 pixels"
         # Check for corrupt JPEG by checking EOF marker
@@ -110,7 +108,7 @@ def verify_image_label(args):
         suffix = Path(im_file).suffix[1:].lower()
         assert suffix in IMG_FORMATS, f"Invalid image format {suffix}. {FORMATS_HELP_MSG}"
         im = cv2.imread(im_file, cv2.IMREAD_UNCHANGED)
-        assert im is not None, f"Image Not Readable"
+        assert im is not None, "Image Not Readable"
         shape = im.shape[:2]  # (height, width)
         assert (shape[0] > 9) & (shape[1] > 9), f"image size {shape} <10 pixels"
 
@@ -588,8 +586,8 @@ class HUBDatasetStats:
 
 def compress_one_image(f, f_new=None, max_dim=1920, quality=50):
     """
-    Compresses a single image file to reduced size while preserving its aspect ratio and quality using OpenCV.
-    If the input image is smaller than the maximum dimension, it will not be resized.
+    Compresses a single image file to reduced size while preserving its aspect ratio and quality using OpenCV. If the
+    input image is smaller than the maximum dimension, it will not be resized.
 
     Args:
         f (str): The path to the input image file.
@@ -619,9 +617,9 @@ def compress_one_image(f, f_new=None, max_dim=1920, quality=50):
         # Set compression parameters
         params = []
         ext = os.path.splitext(f)[1].lower()
-        if ext in ['.jpg', '.jpeg']:
+        if ext in [".jpg", ".jpeg"]:
             params = [cv2.IMWRITE_JPEG_QUALITY, quality]
-        elif ext == '.png':
+        elif ext == ".png":
             # For PNG, quality is from 0 to 9, where 0 is no compression
             compression = max(9 - int(quality / 10), 0)
             params = [cv2.IMWRITE_PNG_COMPRESSION, compression]

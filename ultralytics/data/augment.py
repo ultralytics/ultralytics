@@ -26,8 +26,8 @@ class BaseTransform:
     """
     Base class for image transformations in the Ultralytics library.
 
-    This class serves as a foundation for implementing various image processing operations, designed to be
-    compatible with both classification and semantic segmentation tasks.
+    This class serves as a foundation for implementing various image processing operations, designed to be compatible
+    with both classification and semantic segmentation tasks.
     """
 
     def __init__(self) -> None:
@@ -54,9 +54,7 @@ class BaseTransform:
 
 
 class Compose:
-    """
-    A class for composing multiple image transformations.
-    """
+    """A class for composing multiple image transformations."""
 
     def __init__(self, transforms):
         """Initializes the Compose object with a list of transforms."""
@@ -108,8 +106,8 @@ class BaseMixTransform:
     """
     Base class for mix transformations like MixUp and Mosaic.
 
-    This class provides a foundation for implementing mix transformations on datasets. It handles the
-    probability-based application of transforms and manages the mixing of multiple images and labels.
+    This class provides a foundation for implementing mix transformations on datasets. It handles the probability-based
+    application of transforms and manages the mixing of multiple images and labels.
     """
 
     def __init__(self, dataset, pre_transform=None, p=0.0) -> None:
@@ -172,8 +170,8 @@ class Mosaic(BaseMixTransform):
     """
     Mosaic augmentation for image datasets.
 
-    This class performs mosaic augmentation by combining multiple (4 or 9) images into a single mosaic image.
-    The augmentation is applied to a dataset with a given probability.
+    This class performs mosaic augmentation by combining multiple (4 or 9) images into a single mosaic image. The
+    augmentation is applied to a dataset with a given probability.
     """
 
     def __init__(self, dataset, imgsz=640, p=1.0, n=4):
@@ -233,7 +231,6 @@ class Mosaic(BaseMixTransform):
         final_labels["img"] = img3[-self.border[0] : self.border[0], -self.border[1] : self.border[1]]
         return final_labels
 
-
     def _mosaic4(self, labels):
         mosaic_labels = []
         s = self.imgsz
@@ -273,7 +270,6 @@ class Mosaic(BaseMixTransform):
         final_labels = self._cat_labels(mosaic_labels)
         final_labels["img"] = img4
         return final_labels
-
 
     def _mosaic9(self, labels):
         mosaic_labels = []
@@ -403,12 +399,15 @@ class Mosaic(BaseMixTransform):
             final_labels["texts"] = mosaic_labels[0]["texts"]
         return final_labels
 
+
 class MixUp(BaseMixTransform):
     """
     Applies MixUp augmentation to image datasets.
 
     This class implements the MixUp augmentation technique as described in the paper "mixup: Beyond Empirical Risk
-    Minimization" (https://arxiv.org/abs/1710.09412). MixUp combines two images and their labels using a random weight.
+    Minimization" (
+    https://arxiv.org/abs/1710.09412).
+    MixUp combines two images and their labels using a random weight.
     """
 
     def __init__(self, dataset, pre_transform=None, p=0.0) -> None:
@@ -435,8 +434,8 @@ class RandomPerspective:
     """
     Implements random perspective and affine transformations on images and corresponding annotations.
 
-    This class applies random rotations, translations, scaling, shearing, and perspective transformations
-    to images and their associated bounding boxes, segments, and keypoints.
+    This class applies random rotations, translations, scaling, shearing, and perspective transformations to images and
+    their associated bounding boxes, segments, and keypoints.
     """
 
     def __init__(
@@ -711,12 +710,13 @@ class RandomPerspective:
         ar = np.maximum(w2 / (h2 + eps), h2 / (w2 + eps))  # aspect ratio
         return (w2 > wh_thr) & (h2 > wh_thr) & (w2 * h2 / (w1 * h1 + eps) > area_thr) & (ar < ar_thr)  # candidates
 
+
 class RandomHSV:
     """
     Randomly adjusts the Hue, Saturation, and Value (HSV) channels of an image.
 
-    This class applies random HSV augmentation to images within predefined limits set by hgain, sgain, and vgain.
-    For single-channel images, only the Value (brightness) is adjusted.
+    This class applies random HSV augmentation to images within predefined limits set by hgain, sgain, and vgain. For
+    single-channel images, only the Value (brightness) is adjusted.
     """
 
     def __init__(self, hgain=0.5, sgain=0.5, vgain=0.5) -> None:
@@ -727,6 +727,7 @@ class RandomHSV:
 
     def __call__(self, labels):
         """Applies random HSV augmentation to an image within predefined limits."""
+        return labels
         img = labels["img"]
         if self.hgain or self.sgain or self.vgain:
             # Determine the data type range
@@ -788,8 +789,8 @@ class RandomFlip:
     """
     Applies a random horizontal or vertical flip to an image with a given probability.
 
-    This class performs random image flipping and updates corresponding instance annotations such as
-    bounding boxes and keypoints.
+    This class performs random image flipping and updates corresponding instance annotations such as bounding boxes and
+    keypoints.
     """
 
     def __init__(self, p=0.5, direction="horizontal", flip_idx=None) -> None:
@@ -829,8 +830,8 @@ class LetterBox:
     """
     Resize image and padding for detection, instance segmentation, pose.
 
-    This class resizes and pads images to a specified shape while preserving aspect ratio. It also updates
-    corresponding labels and bounding boxes.
+    This class resizes and pads images to a specified shape while preserving aspect ratio. It also updates corresponding
+    labels and bounding boxes.
     """
 
     def __init__(self, new_shape=(640, 640), auto=False, scaleFill=False, scaleup=True, center=True, stride=32):
@@ -851,7 +852,6 @@ class LetterBox:
         new_shape = labels.pop("rect_shape", self.new_shape)
         if isinstance(new_shape, int):
             new_shape = (new_shape, new_shape)
-
         # Scale ratio (new / old)
         r = min(new_shape[0] / shape[0], new_shape[1] / shape[1])
         if not self.scaleup:  # only scale down, do not scale up (for better val mAP)
@@ -881,6 +881,8 @@ class LetterBox:
         )  # add border
         if labels.get("ratio_pad"):
             labels["ratio_pad"] = (labels["ratio_pad"], (left, top))  # for evaluation
+        if (len(img.shape)) == 2:
+            img = np.expand_dims(img, -1)
 
         if len(labels):
             labels = self._update_labels(labels, ratio, dw, dh)
@@ -1129,6 +1131,7 @@ class Format:
         mask_overlap=True,
         batch_idx=True,
         bgr=0.0,
+        image_channels=3,
     ):
         """Initializes the Format class with given parameters for image and instance annotation formatting."""
         self.bbox_format = bbox_format
@@ -1140,6 +1143,7 @@ class Format:
         self.mask_overlap = mask_overlap
         self.batch_idx = batch_idx  # keep the batch indexes
         self.bgr = bgr
+        self.image_channels = image_channels
 
     def __call__(self, labels):
         """Formats image annotations for object detection, instance segmentation, and pose estimation tasks."""
@@ -1182,25 +1186,51 @@ class Format:
         return labels
 
     def _format_img(self, img):
-        """Formats an image for YOLO from a Numpy array to a PyTorch tensor."""
+        """
+        Formats an image for YOLO from a Numpy array to a PyTorch tensor.
+
+        This function performs the following operations:
+        1. Ensures the image has 3 dimensions (adds a channel dimension if needed).
+        2. Transposes the image from HWC to CHW format.
+        3. Adjusts the number of channels to match the expected `image_channels`.
+        4. Optionally flips the color channels from RGB to BGR.
+        5. Converts the image to a contiguous array.
+        6. Converts the Numpy array to a PyTorch tensor.
+
+        Args:
+            img (np.ndarray): Input image as a Numpy array with shape (H, W, C) or (H, W).
+            image_channels (int): The expected number of channels in the output image.
+
+        Returns:
+            (torch.Tensor): Formatted image as a PyTorch tensor with shape (C, H, W).
+
+        Examples:
+            >>> import numpy as np
+            >>> img = np.random.rand(100, 100, 3)
+            >>> formatted_img = self._format_img(img, image_channels=3)
+            >>> print(formatted_img.shape)
+            torch.Size([3, 100, 100])
+        """
         # Ensure the image has at least 3 dimensions (H, W, C)
         if len(img.shape) < 3:
             img = np.expand_dims(img, -1)  # Add a channel dimension
+
         img = img.transpose(2, 0, 1)  # Convert from HWC to CHW format
-        
-        # Check if the image has 3 channels (color image)
-        if img.shape[0] == 3:
-            # Randomly decide whether to swap channels based on self.bgr
-            if random.uniform(0, 1) > self.bgr:
-                img = img[[2, 1, 0], :, :]  # Swap channels (BGR to RGB or vice versa)
-        # For images with less than 3 channels (e.g., grayscale), skip channel swapping
-        
-        # Ensure the array is contiguous
+        # Adjust the number of channels to match `image_channels`
+        if img.shape[0] < self.image_channels:
+            # If the image has fewer channels, repeat the channels to match the target
+            img = np.tile(img, (self.image_channels // img.shape[0], 1, 1))[: self.image_channels, :, :]
+        elif img.shape[0] > self.image_channels:
+            # If the image has more channels, select the first `image_channels`
+            img = img[: self.image_channels, :, :]
+
+        # Optionally swap channels (e.g., BGR to RGB)
+        if img.shape[0] == 3 and random.uniform(0, 1) > self.bgr:
+            img = img[[2, 1, 0], :, :]  # Swap channels (BGR to RGB or vice versa)
+
         img = np.ascontiguousarray(img)
-        
-        # Convert to PyTorch tensor
         img = torch.from_numpy(img)
-        
+
         # Normalize image depending on its data type
         if img.dtype == torch.uint8:
             img = img.float() / 255.0
@@ -1208,6 +1238,7 @@ class Format:
             img = img.float() / 65535.0
         else:
             img = img.float()
+
         return img
 
     def _format_segments(self, instances, cls, w, h):
@@ -1228,9 +1259,9 @@ class RandomLoadText:
     """
     Randomly samples positive and negative texts and updates class indices accordingly.
 
-    This class is responsible for sampling texts from a given set of class texts, including both positive
-    (present in the image) and negative (not present in the image) samples. It updates the class indices
-    to reflect the sampled texts and can optionally pad the text list to a fixed length.
+    This class is responsible for sampling texts from a given set of class texts, including both positive (present in
+    the image) and negative (not present in the image) samples. It updates the class indices to reflect the sampled
+    texts and can optionally pad the text list to a fixed length.
     """
 
     def __init__(
@@ -1299,10 +1330,10 @@ def v8_transforms(dataset, imgsz, hyp, stretch=False):
     """
     Applies a series of image transformations for training.
 
-    This function creates a composition of image augmentation techniques to prepare images for YOLO training.
-    It includes operations such as mosaic, copy-paste, random perspective, mixup, and various color adjustments.
+    This function creates a composition of image augmentation techniques to prepare images for YOLO training. It
+    includes operations such as mosaic, copy-paste, random perspective, mixup, and various color adjustments.
     """
-    mosaic = Mosaic(dataset, imgsz=imgsz, p=hyp.mosaic)
+    mosaic = Mosaic(dataset, imgsz=imgsz, p=hyp.mosaic, n=hyp.mosaic_size)
     affine = RandomPerspective(
         degrees=hyp.degrees,
         translate=hyp.translate,
@@ -1319,7 +1350,7 @@ def v8_transforms(dataset, imgsz, hyp, stretch=False):
         pre_transform.append(
             CopyPaste(
                 dataset,
-                pre_transform=Compose([Mosaic(dataset, imgsz=imgsz, p=hyp.mosaic), affine]),
+                pre_transform=Compose([Mosaic(dataset, imgsz=imgsz, p=hyp.mosaic, n=hyp.mosaic_size), affine]),
                 p=hyp.copy_paste,
                 mode=hyp.copy_paste_mode,
             )
@@ -1350,7 +1381,7 @@ def classify_transforms(
     size=224,
     mean=DEFAULT_MEAN,
     std=DEFAULT_STD,
-    interpolation=cv2.INTER_LINEAR,  # Change: Use OpenCV interpolation
+    interpolation="BILINEAR",
     crop_fraction: float = DEFAULT_CROP_FRACTION,
 ):
     """
@@ -1376,50 +1407,30 @@ def classify_transforms(
         >>> img = cv2.imread("path/to/image.jpg")
         >>> transformed_img = transforms(img)
     """
+    import torchvision.transforms as T  # scope for faster 'import ultralytics'
 
-    def transform(img):
-        if isinstance(size, (tuple, list)):
-            assert len(size) == 2, f"'size' tuples must be length 2, not length {len(size)}"
-            scale_size = tuple(int(math.floor(x / crop_fraction)) for x in size)
-            target_size = size
-        else:
-            scale_size = int(math.floor(size / crop_fraction))
-            scale_size = (scale_size, scale_size)
-            target_size = (size, size)
+    if isinstance(size, (tuple, list)):
+        assert len(size) == 2, f"'size' tuples must be length 2, not length {len(size)}"
+        scale_size = tuple(math.floor(x / crop_fraction) for x in size)
+    else:
+        scale_size = math.floor(size / crop_fraction)
+        scale_size = (scale_size, scale_size)
 
-        # Resize the image
-        im_h, im_w = img.shape[:2]
-        # Determine new size preserving aspect ratio
-        if (im_w <= im_h and im_w == scale_size[0]) or (im_h <= im_w and im_h == scale_size[1]):
-            resized_img = img
-        else:
-            # Resize preserving aspect ratio
-            r = max(scale_size[0] / im_w, scale_size[1] / im_h)
-            new_size = (int(im_w * r), int(im_h * r))
-            resized_img = cv2.resize(img, new_size, interpolation=interpolation)
-
-        # Center crop
-        im_h, im_w = resized_img.shape[:2]
-        crop_h, crop_w = target_size
-        start_x = (im_w - crop_w) // 2
-        start_y = (im_h - crop_h) // 2
-        cropped_img = resized_img[start_y:start_y + crop_h, start_x:start_x + crop_w]
-
-        # Convert to tensor and normalize
-        img = cropped_img.astype(np.float32)
-        # Change: Normalize image depending on its data type
-        if img.dtype == np.uint8:
-            img /= 255.0
-        elif img.dtype == np.uint16:
-            img /= 65535.0
-
-        img = img.transpose(2, 0, 1)  # HWC to CHW
-        img = img[[2, 1, 0], :, :]  # BGR to RGB
-        img = torch.from_numpy(img)
-        img = (img - torch.tensor(mean).view(3, 1, 1)) / torch.tensor(std).view(3, 1, 1)
-        return img
-
-    return transform
+    # Aspect ratio is preserved, crops center within image, no borders are added, image is lost
+    if scale_size[0] == scale_size[1]:
+        # Simple case, use torchvision built-in Resize with the shortest edge mode (scalar size arg)
+        tfl = [T.Resize(scale_size[0], interpolation=getattr(T.InterpolationMode, interpolation))]
+    else:
+        # Resize the shortest edge to matching target dim for non-square target
+        tfl = [T.Resize(scale_size)]
+    tfl.extend(
+        [
+            T.CenterCrop(size),
+            T.ToTensor(),
+            T.Normalize(mean=torch.tensor(mean), std=torch.tensor(std)),
+        ]
+    )
+    return T.Compose(tfl)
 
 
 # Classification training augmentations --------------------------------------------------------------------------------
@@ -1437,73 +1448,68 @@ def classify_augmentations(
     hsv_v=0.4,  # image HSV-Value augmentation (fraction)
     force_color_jitter=False,
     erasing=0.0,
-    interpolation=cv2.INTER_LINEAR,  # Change: Use OpenCV interpolation
+    interpolation="BILINEAR",
 ):
     """
     Creates a composition of image augmentation transforms for classification tasks.
 
     This function generates a set of image transformations suitable for training classification models.
     """
+    import torchvision.transforms as T  # scope for faster 'import ultralytics'
 
-    def transform(img):
-        # Random Resized Crop
-        im_h, im_w = img.shape[:2]
-        area = im_h * im_w
-        for attempt in range(10):
-            target_area = random.uniform(scale[0], scale[1]) * area
-            log_ratio = (math.log(ratio[0]), math.log(ratio[1]))
-            aspect_ratio = math.exp(random.uniform(*log_ratio))
+    if not isinstance(size, int):
+        raise TypeError(f"classify_transforms() size {size} must be integer, not (list, tuple)")
+    scale = tuple(scale or (0.08, 1.0))  # default imagenet scale range
+    ratio = tuple(ratio or (3.0 / 4.0, 4.0 / 3.0))  # default imagenet ratio range
+    interpolation = getattr(T.InterpolationMode, interpolation)
+    primary_tfl = [T.RandomResizedCrop(size, scale=scale, ratio=ratio, interpolation=interpolation)]
+    if hflip > 0.0:
+        primary_tfl.append(T.RandomHorizontalFlip(p=hflip))
+    if vflip > 0.0:
+        primary_tfl.append(T.RandomVerticalFlip(p=vflip))
 
-            w = int(round(math.sqrt(target_area * aspect_ratio)))
-            h = int(round(math.sqrt(target_area / aspect_ratio)))
+    secondary_tfl = []
+    disable_color_jitter = False
+    if auto_augment:
+        assert isinstance(auto_augment, str), f"Provided argument should be string, but got type {type(auto_augment)}"
+        # color jitter is typically disabled if AA/RA on,
+        # this allows override without breaking old hparm cfgs
+        disable_color_jitter = not force_color_jitter
 
-            if 0 < w <= im_w and 0 < h <= im_h:
-                x1 = random.randint(0, im_w - w)
-                y1 = random.randint(0, im_h - h)
+        if auto_augment == "randaugment":
+            if TORCHVISION_0_11:
+                secondary_tfl.append(T.RandAugment(interpolation=interpolation))
+            else:
+                LOGGER.warning('"auto_augment=randaugment" requires torchvision >= 0.11.0. Disabling it.')
 
-                img_cropped = img[y1:y1 + h, x1:x1 + w]
-                img_resized = cv2.resize(img_cropped, (size, size), interpolation=interpolation)
-                break
+        elif auto_augment == "augmix":
+            if TORCHVISION_0_13:
+                secondary_tfl.append(T.AugMix(interpolation=interpolation))
+            else:
+                LOGGER.warning('"auto_augment=augmix" requires torchvision >= 0.13.0. Disabling it.')
+
+        elif auto_augment == "autoaugment":
+            if TORCHVISION_0_10:
+                secondary_tfl.append(T.AutoAugment(interpolation=interpolation))
+            else:
+                LOGGER.warning('"auto_augment=autoaugment" requires torchvision >= 0.10.0. Disabling it.')
+
         else:
-            # Fallback
-            img_resized = cv2.resize(img, (size, size), interpolation=interpolation)
+            raise ValueError(
+                f'Invalid auto_augment policy: {auto_augment}. Should be one of "randaugment", '
+                f'"augmix", "autoaugment" or None'
+            )
 
-        # Horizontal Flip
-        if hflip > 0 and random.random() < hflip:
-            img_resized = cv2.flip(img_resized, 1)
+    if not disable_color_jitter:
+        secondary_tfl.append(T.ColorJitter(brightness=hsv_v, contrast=hsv_v, saturation=hsv_s, hue=hsv_h))
 
-        # Vertical Flip
-        if vflip > 0 and random.random() < vflip:
-            img_resized = cv2.flip(img_resized, 0)
+    final_tfl = [
+        T.ToTensor(),
+        T.Normalize(mean=torch.tensor(mean), std=torch.tensor(std)),
+        T.RandomErasing(p=erasing, inplace=True),
+    ]
 
-        # Color Jitter
-        if force_color_jitter or not auto_augment:
-            if hsv_h or hsv_s or hsv_v:
-                hsv_transform = RandomHSV(hgain=hsv_h, sgain=hsv_s, vgain=hsv_v)
-                img_resized = hsv_transform({"img": img_resized})["img"]
-
-        # Additional augmentations like auto_augment can be added here if re-implemented without PIL
-
-        # Convert to tensor and normalize
-        img = img_resized.astype(np.float32)
-        # Change: Normalize image depending on its data type
-        if img.dtype == np.uint8:
-            img /= 255.0
-        elif img.dtype == np.uint16:
-            img /= 65535.0
-
-        img = img.transpose(2, 0, 1)  # HWC to CHW
-        img = img[[2, 1, 0], :, :]  # BGR to RGB
-        img = torch.from_numpy(img)
-        img = (img - torch.tensor(mean).view(3, 1, 1)) / torch.tensor(std).view(3, 1, 1)
-
-        # Random Erasing
-        if erasing > 0 and random.random() < erasing:
-            img = random_erasing(img)
-
-        return img
-
-    return transform
+    return T.Compose(primary_tfl + secondary_tfl + final_tfl)
 
 
 def random_erasing(img, sl=0.02, sh=0.4, r1=0.3):
@@ -1521,7 +1527,7 @@ def random_erasing(img, sl=0.02, sh=0.4, r1=0.3):
         if erasing_h < h and erasing_w < w:
             x1 = random.randint(0, h - erasing_h)
             y1 = random.randint(0, w - erasing_w)
-            img[:, x1:x1 + erasing_h, y1:y1 + erasing_w] = torch.rand(c, erasing_h, erasing_w)
+            img[:, x1 : x1 + erasing_h, y1 : y1 + erasing_w] = torch.rand(c, erasing_h, erasing_w)
             return img
     return img
 
@@ -1547,11 +1553,10 @@ class CenterCrop:
         imh, imw = im.shape[:2]
         m = min(imh, imw)  # min dimension
         top, left = (imh - m) // 2, (imw - m) // 2
-        im_cropped = im[top:top + m, left:left + m]
+        im_cropped = im[top : top + m, left : left + m]
         im_resized = cv2.resize(im_cropped, (self.w, self.h), interpolation=cv2.INTER_LINEAR)
         return im_resized
 
 
 # NOTE: The ClassifyLetterBox and ToTensor classes are no longer needed as we have integrated their functionality
 # directly into the classify_transforms and classify_augmentations functions.
-

@@ -29,7 +29,6 @@ import numpy as np
 import torch
 
 from ultralytics.cfg import get_cfg, get_save_dir
-from ultralytics.data import ClassificationDataset, build_dataloader
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.nn.autobackend import AutoBackend
 from ultralytics.utils import LOGGER, TQDM, callbacks, colorstr, emojis
@@ -104,7 +103,6 @@ class BaseValidator:
         self.plots = {}
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
 
-
     @smart_inference_mode()
     def __call__(self, trainer=None, model=None):
         """Executes validation process, running inference on dataloader and computing performance metrics."""
@@ -158,7 +156,7 @@ class BaseValidator:
             self.dataloader = self.dataloader or self.get_dataloader(self.data.get(self.args.split), self.args.batch)
 
             model.eval()
-            model.warmup(imgsz=(1 if pt else self.args.batch, 1, imgsz, imgsz))  # warmup WARNING: Set ch to 1
+            model.warmup(imgsz=(1 if pt else self.args.batch, self.args.ch, imgsz, imgsz))  # warmup
         self.run_callbacks("on_val_start")
         dt = (
             Profile(device=self.device),
@@ -215,7 +213,7 @@ class BaseValidator:
             if self.args.plots or self.args.save_json:
                 LOGGER.info(f"Results saved to {colorstr('bold', self.save_dir)}")
             return stats
-        
+
     def match_predictions(self, pred_classes, true_classes, iou, use_scipy=False):
         """
         Matches predictions to ground truth objects (pred_classes, true_classes) using IoU.
@@ -257,7 +255,6 @@ class BaseValidator:
                         matches = matches[np.unique(matches[:, 0], return_index=True)[1]]
                     correct[matches[:, 1].astype(int), i] = True
         return torch.tensor(correct, dtype=torch.bool, device=pred_classes.device)
-
 
     def add_callback(self, event: str, callback):
         """Appends the given callback."""

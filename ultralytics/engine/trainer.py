@@ -503,6 +503,7 @@ class BaseTrainer:
     def read_results_csv(self):
         """Read results.csv into a dict using pandas."""
         import pandas as pd  # scope for faster 'import ultralytics'
+
         return pd.read_csv(self.csv).to_dict(orient="list")
 
     def save_model(self):

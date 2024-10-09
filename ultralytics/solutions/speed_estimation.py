@@ -1,14 +1,10 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-from collections import defaultdict
 from time import time
-
-import cv2
 import numpy as np
 
-from ultralytics.utils.checks import check_imshow
 from ultralytics.utils.plotting import Annotator, colors
-from ultralytics.solutions.solutions import BaseSolution
+from ultralytics.solutions.solutions import BaseSolution, LineString
 
 
 class SpeedEstimator(BaseSolution):
@@ -16,6 +12,10 @@ class SpeedEstimator(BaseSolution):
 
     def __init__(self, **kwargs):
         """Initializes the SpeedEstimator with the given parameters."""
+        super().__init__(**kwargs)
+
+        self.initialize_region()    # Initialize speed region
+
         self.spd = {}  # set for speed data
         self.trkd_ids = []  # list for already speed_estimated and tracked ID's
         self.trk_pt = {}  # set for tracks previous time
@@ -38,39 +38,41 @@ class SpeedEstimator(BaseSolution):
             reg_pts=self.region, color=(104, 0, 123), thickness=self.line_width * 2
         )  # Draw region
 
-        for box, t_id, cls in zip(self.boxes, self.tracks, self.clss):
-            self.store_tracking_history(t_id, box)  # Store track history
+        for box, track_id, cls in zip(self.boxes, self.track_ids, self.clss):
+            self.store_tracking_history(track_id, box)  # Store track history
 
-            trk_pts = np.hstack(track).astype(np.int32).reshape((-1, 1, 2))
-            if t_id not in self.trk_pt:
-                self.trk_pt[t_id] = 0
+            if track_id not in self.trk_pt:
+                self.trk_pt[track_id] = 0
 
-            speed_label = f"{int(self.spd[t_id])} km/h" if t_id in self.spd else self.names[int(cls)]
-            bbox_color = colors(int(t_id), True)
+            # Check if track_id is already in self.trk_pp, initialize if not
+            if track_id not in self.trk_pp:
+                # Initialize with the current track point if it's missing
+                self.trk_pp[track_id] = self.track_line[-1]
 
-            annotator.box_label(box, speed_label, bbox_color)
-            cv2.polylines(im0, [trk_pts], isClosed=False, color=bbox_color, thickness=self.tf)
-            cv2.circle(im0, (int(track[-1][0]), int(track[-1][1])), self.tf * 2, bbox_color, -1)
+            speed_label = f"{int(self.spd[track_id])} km/h" if track_id in self.spd else self.names[int(cls)]
 
-            # Calculation of object speed
-            if not self.reg_pts[0][0] < track[-1][0] < self.reg_pts[1][0]:
-                return
-            if self.reg_pts[1][1] - 10 < track[-1][1] < self.reg_pts[1][1] + 10:
-                direction = "known"
-            elif self.reg_pts[0][1] - 10 < track[-1][1] < self.reg_pts[0][1] + 10:
+            self.annotator.box_label(box, label=speed_label, color=colors(track_id, True))  # Draw bounding box
+
+            # Draw tracks of objects
+            self.annotator.draw_centroid_and_tracks(
+                self.track_line, color=colors(int(track_id), True), track_thickness=self.line_width
+            )
+
+            # Calculate object speed and direction based on region intersection
+            if LineString([self.trk_pp[track_id], self.track_line[-1]]).intersects(self.l_s):
                 direction = "known"
             else:
                 direction = "unknown"
 
-            if self.trk_pt.get(t_id) != 0 and direction != "unknown" and t_id not in self.trkd_ids:
-                self.trkd_ids.append(t_id)
-
-                time_difference = time() - self.trk_pt[t_id]
+            # Perform speed calculation and tracking updates if direction is valid
+            if direction == "known" and track_id not in self.trkd_ids:
+                self.trkd_ids.append(track_id)
+                time_difference = time() - self.trk_pt[track_id]
                 if time_difference > 0:
-                    self.spd[t_id] = np.abs(track[-1][1] - self.trk_pp[t_id][1]) / time_difference
+                    self.spd[track_id] = np.abs(self.track_line[-1][1] - self.trk_pp[track_id][1]) / time_difference
 
-            self.trk_pt[t_id] = time()
-            self.trk_pp[t_id] = track[-1]
+            self.trk_pt[track_id] = time()
+            self.trk_pp[track_id] = self.track_line[-1]
 
         self.display_output(im0)  # display output with base class function
 

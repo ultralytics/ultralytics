@@ -11,6 +11,14 @@ keywords: TODO ADD KEYWORDS
 
 <br>
 
+## ::: ultralytics.solutions.serve.UltralyticsRequest
+
+<br><br><hr><br>
+
+## ::: ultralytics.solutions.serve.UltralyticsResponse
+
+<br><br><hr><br>
+
 ## ::: ultralytics.solutions.serve.YOLOServe
 
 <br><br><hr><br>

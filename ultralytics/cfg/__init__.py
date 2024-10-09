@@ -829,7 +829,8 @@ def entrypoint(debug=""):
             LOGGER.warning(f"WARNING ⚠️ 'format' argument is missing. Using default 'format={overrides['format']}'.")
 
     # Run command in python
-    getattr(model, mode)(**overrides)  # default args from model
+    for _ in getattr(model, mode)(**overrides):  # default args from model
+        pass
 
     # Show help
     LOGGER.info(f"💡 Learn more at https://docs.ultralytics.com/modes/{mode}")

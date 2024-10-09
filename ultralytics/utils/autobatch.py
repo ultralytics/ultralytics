@@ -10,7 +10,7 @@ from ultralytics.utils import DEFAULT_CFG, LOGGER, colorstr
 from ultralytics.utils.torch_utils import autocast, profile
 
 
-def check_train_batch_size(model, imgsz=640, amp=True, batch=-1):
+def check_train_batch_size(model, imgsz=640, ch=3,amp=True, batch=-1):
     """
     Compute optimal YOLO training batch size using the autobatch() function.
 
@@ -28,10 +28,10 @@ def check_train_batch_size(model, imgsz=640, amp=True, batch=-1):
         Otherwise, a default fraction of 0.6 is used.
     """
     with autocast(enabled=amp):
-        return autobatch(deepcopy(model).train(), imgsz, fraction=batch if 0.0 < batch < 1.0 else 0.6)
+        return autobatch(deepcopy(model).train(), imgsz, ch=ch, fraction=batch if 0.0 < batch < 1.0 else 0.6)
 
 
-def autobatch(model, imgsz=640, fraction=0.60, batch_size=DEFAULT_CFG.batch):
+def autobatch(model, imgsz=640, ch=3, fraction=0.60, batch_size=DEFAULT_CFG.batch):
     """
     Automatically estimate the best YOLO batch size to use a fraction of the available CUDA memory.
 
@@ -68,7 +68,7 @@ def autobatch(model, imgsz=640, fraction=0.60, batch_size=DEFAULT_CFG.batch):
     # Profile batch sizes
     batch_sizes = [1, 2, 4, 8, 16]
     try:
-        img = [torch.empty(b, 3, imgsz, imgsz) for b in batch_sizes]
+        img = [torch.empty(b, ch, imgsz, imgsz) for b in batch_sizes]
         results = profile(img, model, n=3, device=device)
 
         # Fit a solution

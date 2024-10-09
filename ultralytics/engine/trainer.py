@@ -282,6 +282,7 @@ class BaseTrainer:
             self.args.batch = self.batch_size = check_train_batch_size(
                 model=self.model,
                 imgsz=self.args.imgsz,
+                ch=self.args.ch,
                 amp=self.amp,
                 batch=self.batch_size,
             )

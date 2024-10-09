@@ -65,14 +65,18 @@ The YOLO command line interface (CLI) allows for simple single-line commands wit
 
         Run special commands to see version, view settings, run checks and more:
         ```bash
-        yolo help
+        yolo cfg # (3)
         yolo checks
-        yolo version
-        yolo settings
         yolo copy-cfg
-        yolo cfg
-        yolo info
+        yolo help
+        yolo info model=yolo11n.pt # (1)
+        yolo settings # (2)
+        yolo version
         ```
+
+        1. Learn more about [`yolo info`](#info) command.
+        2. Learn more about [`yolo settings`](../quickstart.md#ultralytics-settings)
+        3. Learn more about [`yolo cfg`](#overriding-default-config-file)
 
 Where:
 

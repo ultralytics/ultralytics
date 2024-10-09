@@ -1,10 +1,11 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 from time import time
+
 import numpy as np
 
-from ultralytics.utils.plotting import Annotator, colors
 from ultralytics.solutions.solutions import BaseSolution, LineString
+from ultralytics.utils.plotting import Annotator, colors
 
 
 class SpeedEstimator(BaseSolution):
@@ -14,13 +15,12 @@ class SpeedEstimator(BaseSolution):
         """Initializes the SpeedEstimator with the given parameters."""
         super().__init__(**kwargs)
 
-        self.initialize_region()    # Initialize speed region
+        self.initialize_region()  # Initialize speed region
 
         self.spd = {}  # set for speed data
         self.trkd_ids = []  # list for already speed_estimated and tracked ID's
         self.trk_pt = {}  # set for tracks previous time
         self.trk_pp = {}  # set for tracks previous point
-
 
     def estimate_speed(self, im0):
         """

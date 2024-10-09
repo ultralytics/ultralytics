@@ -1,25 +1,30 @@
 import base64
 import io
+from typing import Dict, List
+
 import litserve as ls
 import numpy as np
 from PIL import Image
-from ultralytics.engine.results import Results
-from ultralytics import YOLO
-from pydantic import BaseModel  
-from typing import List, Dict
+from pydantic import BaseModel
 
-class UltralyticsRequest(BaseModel):  
+from ultralytics import YOLO
+from ultralytics.engine.results import Results
+
+
+class UltralyticsRequest(BaseModel):
     image: str
 
-class UltralyticsResponse(BaseModel):  
-    status: str = "success"  
+
+class UltralyticsResponse(BaseModel):
+    status: str = "success"
     results: List[List[Dict]]
+
 
 class YOLOServe(ls.LitAPI):
     def __init__(self, model) -> None:
         self.model = model
         super().__init__()
-        
+
     def setup(self, device):
         self.model = YOLO(model=self.model)
 
@@ -29,11 +34,11 @@ class YOLOServe(ls.LitAPI):
         image = Image.open(io.BytesIO(img_data))
         image_array = np.array(image)
         return image_array
-    
-    def encode_response(self, results: Results) -> UltralyticsResponse:  
-        image_results = []  
+
+    def encode_response(self, results: Results) -> UltralyticsResponse:
+        image_results = []
         for result in results:
-            image_results.append(result.to_json())  
+            image_results.append(result.to_json())
         return UltralyticsResponse(results=[r.to_dict() for r in results])
 
     def predict(self, x):

@@ -672,7 +672,8 @@ def smart_value(v):
         with contextlib.suppress(Exception):
             return eval(v)
         return v
-    
+
+
 def yolo_litserve(args: List[str]):
     """
     Run the Ultralytics LitServe server for serving YOLO models.
@@ -682,8 +683,9 @@ def yolo_litserve(args: List[str]):
     """
     checks.check_requirements("litserve>=0.2.3")
     from ultralytics.solutions.serve import run
+
     args_dict = dict(parse_key_value_pair(a) for a in args)
-    run(args_dict) # model and format
+    run(args_dict)  # model and format
 
 
 def entrypoint(debug=""):

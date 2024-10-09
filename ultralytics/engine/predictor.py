@@ -271,7 +271,9 @@ class BasePredictor:
                         "postprocess": profilers[2].dt * 1e3 / n,
                     }
                     if self.args.verbose or self.args.save or self.args.save_txt or self.args.show:
-                        s[i] += self.write_results(i, Path(paths[i]), im, s)
+                        # In case of empty paths, set a default value here
+                        path = paths[i] if len(paths[i]) else f"image{i}.jpg"
+                        s[i] += self.write_results(i, Path(path), im, s)
 
                 # Print batch results
                 if self.args.verbose:

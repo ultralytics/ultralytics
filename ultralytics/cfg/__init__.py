@@ -672,6 +672,18 @@ def smart_value(v):
         with contextlib.suppress(Exception):
             return eval(v)
         return v
+    
+def yolo_litserve(args: List[str]):
+    """
+    Run the Ultralytics LitServe server for serving YOLO models.
+
+    Args:
+        args (List[str]): A list of command line arguments.
+    """
+    checks.check_requirements("litserve>=0.2.3")
+    from ultralytics.solutions.serve import run
+    args_dict = dict(parse_key_value_pair(a) for a in args)
+    run(args_dict) # model and format
 
 
 def entrypoint(debug=""):
@@ -704,8 +716,6 @@ def entrypoint(debug=""):
         LOGGER.info(CLI_HELP_MSG)
         return
 
-    from ultralytics.solutions.serve import run
-
     special = {
         "help": lambda: LOGGER.info(CLI_HELP_MSG),
         "checks": checks.collect_system_info,
@@ -718,7 +728,7 @@ def entrypoint(debug=""):
         "copy-cfg": copy_default_cfg,
         "explorer": lambda: handle_explorer(args[1:]),
         "streamlit-predict": lambda: handle_streamlit_inference(),
-        "serve": lambda: run(),
+        "serve": lambda: yolo_litserve(args[1:]),
     }
     full_args_dict = {**DEFAULT_CFG_DICT, **{k: None for k in TASKS}, **{k: None for k in MODES}, **special}
 

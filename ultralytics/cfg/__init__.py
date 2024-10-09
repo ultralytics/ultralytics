@@ -583,9 +583,10 @@ def handle_yolo_info(args: List[str]) -> None:
     try:
         if args:
             new, file = _args_load(args)
+            t, v = new.get("task", "detect"), new.get("verbose", True)
             file = Path(file or new.get("model", "yolo11n.pt"))
 
-            model = choose[next((t for t in choose.keys() if t in file.stem.lower()), "yolo")](file)
+            model = choose[next((t for t in choose.keys() if t in file.stem.lower()), "yolo")](file, task=t, verbose=v)
             classes = list(_classes(getattr(model, "names", {})))
             meta: dict = model.ckpt or getattr(model.predictor.model, "metadata", {})
 

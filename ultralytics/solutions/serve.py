@@ -14,7 +14,6 @@ from ultralytics.engine.results import Results
 class UltralyticsRequest(BaseModel):
     image: str
 
-
 class UltralyticsResponse(BaseModel):
     status: str = "success"
     results: List[List[Dict]]
@@ -22,11 +21,22 @@ class UltralyticsResponse(BaseModel):
 
 class YOLOServe(ls.LitAPI):
     def __init__(self, model) -> None:
-        self.model = model
+        """
+        Litserve API for YOLO model:
+        Call order is:
+            setup -> batch -> decode_request -> predict -> unbatch -> encode_response
+
+        Args:
+            model (str): Model name to use
+        """
+        self.model_name = model
         super().__init__()
 
     def setup(self, device):
-        self.model = YOLO(model=self.model)
+        self.model = YOLO(model=self.model_name)
+        
+    def batch(self, inputs):
+        return list(inputs)
 
     def decode_request(self, request: UltralyticsRequest):
         base64_str = request.image
@@ -34,16 +44,18 @@ class YOLOServe(ls.LitAPI):
         image = Image.open(io.BytesIO(img_data))
         image_array = np.array(image)
         return image_array
-
-    def encode_response(self, results: Results) -> UltralyticsResponse:
-        image_results = []
-        for result in results:
-            image_results.append(result.to_json())
-        return UltralyticsResponse(results=[r.to_dict() for r in results])
-
+    
     def predict(self, x):
         result = self.model(x)
         return result
+
+    def unbatch(self, output):
+        return list(output)
+    
+    def encode_response(self, result: List[Results]) -> UltralyticsResponse:
+        return UltralyticsResponse(results=[r.to_dict() for r in result])
+    
+   
 
 
 def run(args):
@@ -51,5 +63,5 @@ def run(args):
         model = args["model"]
     else:
         model = "yolo11n.pt"
-    server = ls.LitServer(YOLOServe(model), accelerator="auto", max_batch_size=1, batch_timeout=0.05)
+    server = ls.LitServer(YOLOServe(model), accelerator="auto", max_batch_size=15, batch_timeout=0.05)
     server.run(port=8000)

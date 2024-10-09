@@ -203,8 +203,8 @@ See [CLI syntax section in the quickstart](../quickstart.md/#__tabbed_2_1) or in
 
         ```bash
         # Fetch info for PyTorch model (1)
-        yolo model=yolo11n.pt 
-        
+        yolo model=yolo11n.pt
+
         ```
 
         1. It's possible to use _any_ supported [export format](../modes/export.md#export-formats) model weights.
@@ -213,7 +213,7 @@ See [CLI syntax section in the quickstart](../quickstart.md/#__tabbed_2_1) or in
 
             Output shown for `.pt` model, however depending on model weights framework or model-type, the output could look different.
 
-            ```                        
+            ```
             Ultralytics Model Info:
             --------------------------------------------------------------------------------
             Model File: yolo11n.pt
@@ -224,7 +224,7 @@ See [CLI syntax section in the quickstart](../quickstart.md/#__tabbed_2_1) or in
             Epoch: -1
             Best_fitness: None
             Updates: None
-            Train_args: 
+            Train_args:
                     task: detect
                     mode: train
                     model: yolo11n.yaml
@@ -429,7 +429,7 @@ See [CLI syntax section in the quickstart](../quickstart.md/#__tabbed_2_1) or in
                     79: toothbrush
             --------------------------------------------------------------------------------
             ```
-        
+
         ??? success "Preview ONNX Weights Output"
 
             ```
@@ -529,7 +529,7 @@ See [CLI syntax section in the quickstart](../quickstart.md/#__tabbed_2_1) or in
                     79: toothbrush
             --------------------------------------------------------------------------------
             ```
-    
+
     === "Show Model Layers"
 
         Same information from [Basic](cli.md#__tabbed_6_1) with the addition of model layer information.
@@ -544,7 +544,7 @@ See [CLI syntax section in the quickstart](../quickstart.md/#__tabbed_2_1) or in
 
         ??? success "Preview of Additional Output"
 
-            ```                        
+            ```
             layer                                   name  gradient   parameters                shape         mu      sigma
               0                      model.0.conv.weight     False          432        [16, 3, 3, 3]   -0.00165       0.14 torch.float32
               1                        model.0.bn.weight     False           16                 [16]       3.07        1.9 torch.float32
@@ -804,11 +804,11 @@ See [CLI syntax section in the quickstart](../quickstart.md/#__tabbed_2_1) or in
             255                 model.23.dfl.conv.weight     False           16        [1, 16, 1, 1]        7.5       4.76 torch.float32
             YOLO11n summary: 319 layers, 2,624,080 parameters, 0 gradients, 6.6 GFLOPs
             ```
-    
+
     === "Custom Model"
 
-        Unless the custom model file is in your current working directory, try using the full path to the model weights. 
-        
+        Unless the custom model file is in your current working directory, try using the full path to the model weights.
+
         ```bash
         yolo info model=/path/to/yolo_model.pt
         ```
@@ -820,7 +820,7 @@ See [CLI syntax section in the quickstart](../quickstart.md/#__tabbed_2_1) or in
             # Rename to include model-type
             - `best.pt`
             + `best_yolo.pt`  # include "yolo" in filename
-                
+
             - `best.pt`
             + `best_rtdetr.pt`  # include "rtdetr" in filename
             ```
@@ -855,7 +855,7 @@ What's the advantage of using the `yolo info` CLI command? With the CLI command,
             output=$(yolo info model="$file") && \
             [[ "$output" == *"$ver"* ]] && echo "$file"; done
         ```
-    
+
         1. Set version to find
         2. List filenames for weights to check
 
@@ -889,7 +889,7 @@ What's the advantage of using the `yolo info` CLI command? With the CLI command,
         done
         echo "Matching models: ${models[@]}"
         ```
-    
+
         1. Set version to find.
         2. List filenames for weights to check.
         3. Variable to add filenames with matching conditions into.

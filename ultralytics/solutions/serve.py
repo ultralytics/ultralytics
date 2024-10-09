@@ -14,6 +14,7 @@ from ultralytics.engine.results import Results
 class UltralyticsRequest(BaseModel):
     image: str
 
+
 class UltralyticsResponse(BaseModel):
     status: str = "success"
     results: List[List[Dict]]
@@ -24,7 +25,7 @@ class YOLOServe(ls.LitAPI):
         """
         Litserve API for YOLO model:
         Call order is:
-            setup -> batch -> decode_request -> predict -> unbatch -> encode_response
+            setup -> batch -> decode_request -> predict -> unbatch -> encode_response.
 
         Args:
             model (str): Model name to use
@@ -34,7 +35,7 @@ class YOLOServe(ls.LitAPI):
 
     def setup(self, device):
         self.model = YOLO(model=self.model_name)
-        
+
     def batch(self, inputs):
         return list(inputs)
 
@@ -44,18 +45,16 @@ class YOLOServe(ls.LitAPI):
         image = Image.open(io.BytesIO(img_data))
         image_array = np.array(image)
         return image_array
-    
+
     def predict(self, x):
         result = self.model(x)
         return result
 
     def unbatch(self, output):
         return list(output)
-    
+
     def encode_response(self, result: List[Results]) -> UltralyticsResponse:
         return UltralyticsResponse(results=[r.to_dict() for r in result])
-    
-   
 
 
 def run(args):

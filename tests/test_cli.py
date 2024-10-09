@@ -8,7 +8,7 @@ from PIL import Image
 
 from tests import CUDA_DEVICE_COUNT, CUDA_IS_AVAILABLE
 from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
-from ultralytics.utils import ASSETS, WEIGHTS_DIR, checks
+from ultralytics.utils import ASSETS, WEIGHTS_DIR, checks, remove_colorstr
 from ultralytics.utils.torch_utils import TORCH_1_9
 
 # Constants
@@ -115,34 +115,25 @@ def run_yolo_info(args) -> Tuple[str, str]:
     return result.stdout, result.stderr
 
 
-def test_yolo_info_noargs():
-    """Test yolo info command without arguments, same as `yolo checks`."""
+def test_yolo_info():
+    """Test yolo info CLI command with various argument configurations."""
+    # Test without arguments, same as `yolo checks`
     stdout, stderr = run_yolo_info("")
     checks_out = subprocess.run("yolo checks", shell=True, capture_output=True, text=True, encoding="utf-8").stdout
-    assert stdout == checks_out
-    assert stderr == ""
+    assert stdout == checks_out and stderr == ""
 
-
-def test_yolo_info_with_model():
-    """Test yolo info command with a specific model."""
+    # Test with model argument
     model_path = WEIGHTS_DIR / "yolo11n.pt"
     stdout, stderr = run_yolo_info(f"model={model_path.as_posix()}")
-    assert f"Model File: {model_path.as_posix().replace('/', os.sep)}" in stdout
-    assert stderr == ""
+    assert f"Model File: {model_path.as_posix().replace('/', os.sep)}" in stdout and stderr == ""
 
-
-def test_yolo_info_invalid_model():
-    """Test yolo info command with an invalid model path."""
+    # Test with non-existent model file
     stdout, _ = run_yolo_info("model=not-a-model.pt")
-    assert "Model 'not-a-model.pt' not found" in stdout
+    assert "Model 'not-a-model.pt' not found" in remove_colorstr(stdout)
 
-
-def test_yolo_info_with_show():
-    """Test yolo info command with verbose flag."""
-    model_path = WEIGHTS_DIR / "yolo11n.pt"
+    # Test with show=True argument to display `model.info()`
     stdout, stderr = run_yolo_info(f"model={model_path} show=True")
-    assert "parameters" in stdout.lower()
-    assert stderr == ""
+    assert "parameters" in stdout.lower() and stderr == ""
 
 
 # Slow Tests -----------------------------------------------------------------------------------------------------------

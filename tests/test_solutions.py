@@ -14,24 +14,21 @@ WORKOUTS_SOLUTION_DEMO = "https://github.com/ultralytics/assets/releases/downloa
 def test_major_solutions():
     """Test the object counting, heatmap, speed estimation and queue management solution."""
     safe_download(url=MAJOR_SOLUTIONS_DEMO)
-    model = YOLO("yolo11n.pt")
-    names = model.names
     cap = cv2.VideoCapture("solutions_ci_demo.mp4")
     assert cap.isOpened(), "Error reading video file"
     region_points = [(20, 400), (1080, 404), (1080, 360), (20, 360)]
     counter = solutions.ObjectCounter(region=region_points, model="yolo11n.pt", show=False)
     heatmap = solutions.Heatmap(colormap=cv2.COLORMAP_PARULA, model="yolo11n.pt", show=False)
-    speed = solutions.SpeedEstimator(reg_pts=region_points, names=names, view_img=False)
+    speed = solutions.SpeedEstimator(region=region_points, model="yolo11n.pt", show=False)
     queue = solutions.QueueManager(region=region_points, model="yolo11n.pt", show=False)
     while cap.isOpened():
         success, im0 = cap.read()
         if not success:
             break
         original_im0 = im0.copy()
-        tracks = model.track(im0, persist=True, show=False)
         _ = counter.count(original_im0.copy())
         _ = heatmap.generate_heatmap(original_im0.copy())
-        _ = speed.estimate_speed(original_im0.copy(), tracks)
+        _ = speed.estimate_speed(original_im0.copy())
         _ = queue.process_queue(original_im0.copy())
     cap.release()
     cv2.destroyAllWindows()

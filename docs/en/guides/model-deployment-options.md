@@ -258,6 +258,9 @@ NCNN is a high-performance neural network inference framework optimized for the 
 
 - **Hardware Acceleration**: Tailored for ARM CPUs and GPUs, with specific optimizations for these architectures.
 
+#### MNN
+MNN is a highly efficient and lightweight deep learning framework. It supports inference and training of deep learning models and has industry-leading performance for inference and training on-device. In addition, MNN is also used on embedded devices, such as IoT.
+
 ## Comparative Analysis of YOLO11 Deployment Options
 
 The following table provides a snapshot of the various deployment options available for YOLO11 models, helping you to assess which may best fit your project needs based on several critical criteria. For an in-depth look at each deployment option's format, please see the [Ultralytics documentation page on export formats](../modes/export.md#export-formats).

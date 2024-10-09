@@ -74,6 +74,7 @@ class AutoBackend(nn.Module):
             | TensorFlow Edge TPU   | *_edgetpu.tflite |
             | PaddlePaddle          | *_paddle_model   |
             | NCNN                  | *_ncnn_model     |
+            | MNN                   | *.mnn            |
 
     This class offers dynamic backend switching capabilities based on the input model format, making it easier to deploy
     models across various platforms.
@@ -121,6 +122,7 @@ class AutoBackend(nn.Module):
             tfjs,
             paddle,
             ncnn,
+            mnn,
             triton,
         ) = self._model_type(w)
         fp16 &= pt or jit or onnx or xml or engine or nn_module or triton  # FP16
@@ -391,6 +393,16 @@ class AutoBackend(nn.Module):
             net.load_model(str(w.with_suffix(".bin")))
             metadata = w.parent / "metadata.yaml"
 
+        # MNN
+        elif mnn:
+            LOGGER.info(f"Loading {w} for MNN inference...")
+            check_requirements("MNN")  # requires MNN
+            import MNN
+
+            net = MNN.nn.load_module_from_file(w, [], [])
+            mnn_preprocess = lambda x: MNN.expr.convert(MNN.expr.const(x, x.shape), MNN.expr.NC4HW4)
+            mnn_postprocess = lambda x: MNN.expr.convert(x, MNN.expr.NCHW)
+
         # NVIDIA Triton Inference Server
         elif triton:
             check_requirements("tritonclient[all]")
@@ -556,6 +568,14 @@ class AutoBackend(nn.Module):
                 ex.input(self.net.input_names()[0], mat_in)
                 # WARNING: 'output_names' sorted as a temporary fix for https://github.com/pnnx/pnnx/issues/130
                 y = [np.array(ex.extract(x)[1])[None] for x in sorted(self.net.output_names())]
+
+        # MNN
+        elif self.mnn:
+            im = im.cpu().numpy()  # torch to numpy
+            input_var = self.mnn_preprocess(im)
+            output_var = self.net.forward(input_var)
+            output_var = self.mnn_postprocess(output_var)
+            y = output_var.read()
 
         # NVIDIA Triton Inference Server
         elif self.triton:

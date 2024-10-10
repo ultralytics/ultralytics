@@ -144,7 +144,7 @@ class Analytics(BaseSolution):
                 color=color,
                 linewidth=self.line_width,
                 marker="o",
-                markersize=self.line_width*3,
+                markersize=self.line_width * 3,
                 label=f"{key} Data Points",
             )
 
@@ -182,7 +182,6 @@ class Analytics(BaseSolution):
         self.display(im0)
         return im0
 
-
     def update_multiple_lines(self, counts_dict, labels_list, frame_number):
         """
         Update the line graph with multiple classes.
@@ -194,7 +193,7 @@ class Analytics(BaseSolution):
         """
         for obj in labels_list:
             if obj not in self.lines:
-                (line,) = self.ax.plot([], [], label=obj, marker="o", markersize=self.line_width*3)
+                (line,) = self.ax.plot([], [], label=obj, marker="o", markersize=self.line_width * 3)
                 self.lines[obj] = line
 
             x_data = self.lines[obj].get_xdata()

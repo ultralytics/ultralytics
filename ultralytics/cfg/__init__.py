@@ -585,7 +585,7 @@ def handle_yolo_info(args: List[str]) -> None:
             meta: dict = model.ckpt or getattr(model.predictor.model, "metadata", {})
 
             LOGGER.info(
-                f'{colorstr("blue", "bold", f"Ultralytics Model Info:")}'
+                f'{colorstr("blue", "bold", "Ultralytics Model Info:")}'
                 f"\n{delim}"
                 f"\nModel File: {model.ckpt_path or f}"
             )

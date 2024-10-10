@@ -17,6 +17,7 @@ TensorFlow Edge TPU     | `edgetpu`                 | yolov8n_edgetpu.tflite
 TensorFlow.js           | `tfjs`                    | yolov8n_web_model/
 PaddlePaddle            | `paddle`                  | yolov8n_paddle_model/
 NCNN                    | `ncnn`                    | yolov8n_ncnn_model/
+Sony MCT                | `mct`                     | yolov8n_mct_model.onnx
 
 Requirements:
     $ pip install "ultralytics[export]"
@@ -42,6 +43,7 @@ Inference:
                          yolov8n_edgetpu.tflite     # TensorFlow Edge TPU
                          yolov8n_paddle_model       # PaddlePaddle
                          yolov8n_ncnn_model         # NCNN
+                         yolov8n_mct_model.onnx     # Sony MCT
 
 TensorFlow.js:
     $ cd .. && git clone https://github.com/zldrobit/tfjs-yolov5-example.git && cd tfjs-yolov5-example
@@ -1109,11 +1111,6 @@ class Exporter:
                     NodeNameScopeFilter("add_6"),
                     NodeNameScopeFilter("cat_17"),
                 ],
-                16,
-            )
-        else:  # yolo11 model
-            bit_cfg.set_manual_activation_bit_width(
-                [NodeNameScopeFilter("sub")],
                 16,
             )
 

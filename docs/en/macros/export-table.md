@@ -13,3 +13,4 @@
 | [TF.js](../integrations/tfjs.md)                  | `tfjs`            | `{{ model_name or "yolo11n" }}_web_model/`      | ✅       | `imgsz`, `half`, `int8`, `batch`                                     |
 | [PaddlePaddle](../integrations/paddlepaddle.md)   | `paddle`          | `{{ model_name or "yolo11n" }}_paddle_model/`   | ✅       | `imgsz`, `batch`                                                     |
 | [NCNN](../integrations/ncnn.md)                   | `ncnn`            | `{{ model_name or "yolo11n" }}_ncnn_model/`     | ✅       | `imgsz`, `half`, `batch`                                             |
+| [Sony MCT](../integrations/sony-mct.md)           | `mct`             | `{{ model_name or "yolo11n" }}_mct_model/`      | ✅       | `imgsz`, `gptq`, `nms`                                               |

@@ -198,6 +198,7 @@ def test_export_ncnn():
     file = YOLO(MODEL).export(format="ncnn", imgsz=32)
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
 
+
 @pytest.mark.slow
 def test_export_mnn():
     """Test YOLO exports to MNN format."""

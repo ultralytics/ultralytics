@@ -576,9 +576,13 @@ def handle_yolo_info(args: List[str]) -> None:
     def _args_load(a: List[str]) -> Tuple[dict, str]:
         """Loads arguments from a list of strings."""
         f = a.pop(0) if "=" not in a[0] else ""
-        d: dict = dict(DEFAULT_CFG)
-        d.update(dict(parse_key_value_pair(e) for e in args))
-        check_dict_alignment(dict(DEFAULT_CFG), d)
+        d: dict = DEFAULT_CFG_DICT
+        for e in args:
+            if "=" in e:
+                k, v = parse_key_value_pair(e)
+                d[k] = v
+            d["verbose"] = True if e == "verbose" else False  # default to False
+        check_dict_alignment(DEFAULT_CFG_DICT, d)
         return d, f
 
     try:
@@ -604,7 +608,7 @@ def handle_yolo_info(args: List[str]) -> None:
             LOGGER.info(f"{delim}")
             # Display detailed model info
             if file.suffix.lower() == ".pt":
-                model.info(detailed=new.get("show", False), verbose=new.get("verbose", True))
+                model.info(detailed=new["verbose"])
         else:
             checks.collect_system_info()
 

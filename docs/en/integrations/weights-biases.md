@@ -106,16 +106,19 @@ Before diving into the usage instructions for YOLO11 model training with Weights
 | project  | `None`  | Specifies the name of the project logged locally and in W&B. This way you can group multiple runs together.        |
 | name     | `None`  | The name of the training run. This determines the name used to create subfolders and the name used for W&B logging |
 
-!!! Tip "Enable or Disable Weights & Biases"
-If you want to enable or disable Weights & Biases logging, you can use the `wandb` command. By default, Weights & Biases logging is enabled.
+!!! tip "Enable or Disable Weights & Biases"
 
-    ```bash
-    # Enable Weights & Biases logging
-    wandb enabled
+    If you want to enable or disable Weights & Biases logging, you can use the `wandb` command. By default, Weights & Biases logging is enabled.
 
-    # Disable Weights & Biases logging
-    wandb disabled
-    ```
+    === "CLI"
+
+        ```bash
+        # Enable Weights & Biases logging
+        wandb enabled
+
+        # Disable Weights & Biases logging
+        wandb disabled
+        ```
 
 ### Understanding the Output
 

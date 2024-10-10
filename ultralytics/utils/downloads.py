@@ -1,6 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-import contextlib
 import re
 import shutil
 import subprocess
@@ -53,7 +52,7 @@ def is_url(url, check=False):
         valid = is_url("https://www.example.com")
         ```
     """
-    with contextlib.suppress(Exception):
+    try:
         url = str(url)
         result = parse.urlparse(url)
         assert all([result.scheme, result.netloc])  # check if is url
@@ -61,7 +60,8 @@ def is_url(url, check=False):
             with request.urlopen(url) as response:
                 return response.getcode() == 200  # check if exists online
         return True
-    return False
+    except:  # noqa E722
+        return False
 
 
 def delete_dsstore(path, files_to_delete=(".DS_Store", "__MACOSX")):

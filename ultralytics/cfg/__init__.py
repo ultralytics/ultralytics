@@ -93,6 +93,7 @@ CLI_HELP_MSG = f"""
         yolo settings
         yolo copy-cfg
         yolo cfg
+        yolo info
 
     Docs: https://docs.ultralytics.com
     Community: https://community.ultralytics.com

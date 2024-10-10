@@ -392,35 +392,35 @@ nav:
               - Clearml Logging: yolov5/tutorials/clearml_logging_integration.md
   - Integrations:
       - integrations/index.md
-      - TorchScript: integrations/torchscript.md
+      - Amazon SageMaker: integrations/amazon-sagemaker.md
+      - ClearML: integrations/clearml.md
+      - Comet ML: integrations/comet.md
+      - CoreML: integrations/coreml.md
+      - DVC: integrations/dvc.md
+      - Google Colab: integrations/google-colab.md
+      - Gradio: integrations/gradio.md
+      - IBM Watsonx: integrations/ibm-watsonx.md
+      - JupyterLab: integrations/jupyterlab.md
+      - Kaggle: integrations/kaggle.md
+      - MLflow: integrations/mlflow.md
+      - NCNN: integrations/ncnn.md
+      - Neural Magic: integrations/neural-magic.md
       - ONNX: integrations/onnx.md
       - OpenVINO: integrations/openvino.md
-      - TensorRT: integrations/tensorrt.md
-      - CoreML: integrations/coreml.md
-      - TF SavedModel: integrations/tf-savedmodel.md
-      - TF GraphDef: integrations/tf-graphdef.md
-      - TFLite: integrations/tflite.md
-      - TFLite Edge TPU: integrations/edge-tpu.md
-      - TF.js: integrations/tfjs.md
       - PaddlePaddle: integrations/paddlepaddle.md
-      - NCNN: integrations/ncnn.md
-      - Comet ML: integrations/comet.md
+      - Paperspace Gradient: integrations/paperspace.md
       - Ray Tune: integrations/ray-tune.md
       - Roboflow: integrations/roboflow.md
-      - MLflow: integrations/mlflow.md
-      - ClearML: integrations/clearml.md
-      - DVC: integrations/dvc.md
-      - Weights & Biases: integrations/weights-biases.md
-      - Neural Magic: integrations/neural-magic.md
-      - Gradio: integrations/gradio.md
+      - TF GraphDef: integrations/tf-graphdef.md
+      - TF SavedModel: integrations/tf-savedmodel.md
+      - TF.js: integrations/tfjs.md
+      - TFLite: integrations/tflite.md
+      - TFLite Edge TPU: integrations/edge-tpu.md
       - TensorBoard: integrations/tensorboard.md
-      - Amazon SageMaker: integrations/amazon-sagemaker.md
-      - Paperspace Gradient: integrations/paperspace.md
-      - Google Colab: integrations/google-colab.md
-      - Kaggle: integrations/kaggle.md
-      - JupyterLab: integrations/jupyterlab.md
-      - IBM Watsonx: integrations/ibm-watsonx.md
+      - TensorRT: integrations/tensorrt.md
+      - TorchScript: integrations/torchscript.md
       - VS Code: integrations/vscode.md
+      - Weights & Biases: integrations/weights-biases.md
   - HUB:
       - hub/index.md
       - Web:

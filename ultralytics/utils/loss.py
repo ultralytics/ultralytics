@@ -164,10 +164,10 @@ class v8DetectionLoss:
     def __call__(self, preds, batch):
         """Calculate the sum of the loss for box, cls and dfl multiplied by batch size."""
         loss = torch.zeros(3, device=self.device)  # box, cls, dfl
-        feats = preds[1] if isinstance(preds, tuple) else preds
-        pred_distri, pred_scores = torch.cat([xi.view(feats[0].shape[0], self.no, -1) for xi in feats], 2).split(
-            (self.reg_max * 4, self.nc), 1)
-
+        feats = preds[1] if isinstance(preds, tuple) else preds  # feats contains (predicted bboxes attributes, predicted classes, predcited embeddings)
+        pred_distri, pred_scores, embeddings = torch.cat([xi.view(feats[0].shape[0], self.no, -1) for xi in feats], 2).split(
+            (self.reg_max * 4, self.nc, self.no - (self.reg_max * 4 + self.nc)), 1)
+        
         pred_scores = pred_scores.permute(0, 2, 1).contiguous()
         pred_distri = pred_distri.permute(0, 2, 1).contiguous()
 
@@ -391,10 +391,10 @@ class v8PoseLoss(v8DetectionLoss):
 
     def __call__(self, preds, batch):
         """Calculate the total loss and detach it."""
-        loss = torch.zeros(5, device=self.device)  # box, cls, dfl, kpt_location, kpt_visibility
+        loss = torch.zeros(6, device=self.device)  # box, cls, dfl, kpt_location, kpt_visibility, triplet loss
         feats, pred_kpts = preds if isinstance(preds[0], list) else preds[1]
-        pred_distri, pred_scores = torch.cat([xi.view(feats[0].shape[0], self.no, -1) for xi in feats], 2).split(
-            (self.reg_max * 4, self.nc), 1)
+        pred_distri, pred_scores, embeddings = torch.cat([xi.view(feats[0].shape[0], self.no, -1) for xi in feats], 2).split(
+            (self.reg_max * 4, self.nc, self.no - (self.reg_max * 4 + self.nc)), 1)
 
         # B, grids, ..
         pred_scores = pred_scores.permute(0, 2, 1).contiguous()
@@ -417,7 +417,7 @@ class v8PoseLoss(v8DetectionLoss):
         pred_bboxes = self.bbox_decode(anchor_points, pred_distri)  # xyxy, (b, h*w, 4)
         pred_kpts = self.kpts_decode(anchor_points, pred_kpts.view(batch_size, -1, *self.kpt_shape))  # (b, h*w, 17, 3)
 
-        _, target_bboxes, target_scores, fg_mask, target_gt_idx = self.assigner(
+        target_labels, target_bboxes, target_scores, fg_mask, target_gt_idx = self.assigner(
             pred_scores.detach().sigmoid(), (pred_bboxes.detach() * stride_tensor).type(gt_bboxes.dtype),
             anchor_points * stride_tensor, gt_labels, gt_bboxes, mask_gt)
 
@@ -444,6 +444,44 @@ class v8PoseLoss(v8DetectionLoss):
         loss[2] *= self.hyp.kobj  # kobj gain
         loss[3] *= self.hyp.cls  # cls gain
         loss[4] *= self.hyp.dfl  # dfl gain
+
+        #TODO: create a custom criterion for contrastive learning
+        # target_gt_idx (B, n_anchors)
+        # target_labels (B, n_anchors)
+        # embeddings (B, n_features, N_anchors)
+        triplet_loss = 0
+        import torch.nn.functional as F
+        for b in range(batch_size):
+            n_samples = 4
+            # pull random indices from target_gt_idx for two cases. 1) target_lables=0, 2) target_labels=1
+            if len(torch.where(target_labels[b] == 0)[0]) < n_samples*2 or len(torch.where(target_labels[b] == 1)[0]) < n_samples:
+                continue
+            anc_indices = torch.where(target_labels[b] == 0)[0]
+            rand_indices = torch.randint(0, anc_indices.nelement(), (n_samples*2,))
+            rand_anc_indices = anc_indices[:n_samples]
+            rand_pos_indices = anc_indices[n_samples:]
+
+            neg_indices = torch.where(target_labels[b] == 1)[0]
+            rand_indices = torch.randint(0, neg_indices.nelement(), (n_samples,))
+            rand_neg_indices = neg_indices[rand_indices]
+
+            # get target labels for anchors
+            # target_labels_anc = target_labels[b][rand_anc_indices]  # target labels for anchors
+            target_labels_anc = torch.zeros(n_samples).to(self.device)
+
+            # pull anchor, positive, and negative embeddings
+            emb = embeddings.permute(0, 2, 1)  # (1, n_anchors, n_features)
+            emb_anc = emb[b][rand_anc_indices]  # anchor embeddings  (1, n_features)
+            emb_pos = emb[b][rand_pos_indices]  # positive embeddings  (1, n_features)
+            emb_neg = emb[b][rand_neg_indices]  # negative embeddings  (1, n_features)
+
+            # compute triplet loss
+            for i in range(n_samples):
+                logit = (emb_anc[i] * emb_pos[i]).sum().unsqueeze(0) - (emb_anc[i] * emb_neg[i]).sum().unsqueeze(0)
+                # emb_anc[i] * (emb_pos[i] - emb_neg[i]).sum().unsqueeze(0)
+                # prob = torch.sigmoid(logit)  # prob = sigmoid((anc, pos) - (anc, neg))
+                target = torch.tensor([target_labels_anc[i]]).float().to(self.device)
+                triplet_loss += F.binary_cross_entropy_with_logits(logit, target)
 
         return loss.sum() * batch_size, loss.detach()  # loss(box, cls, dfl)
 

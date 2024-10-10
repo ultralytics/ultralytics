@@ -71,7 +71,7 @@ class BaseModel(nn.Module):
             (torch.Tensor): The last output of the model.
         """
         y, dt = [], []  # outputs
-        for m in self.model:  # model here could mean a list of layers
+        for m in self.model:  # a list of layers in sequence (torch.nn.modules.container.Sequential)
             if m.f != -1:  # if not from previous layer
                 x = y[m.f] if isinstance(m.f, int) else [x if j == -1 else y[j] for j in m.f]  # from earlier layers
             if profile:
@@ -80,7 +80,7 @@ class BaseModel(nn.Module):
             y.append(x if m.i in self.save else None)  # save output
             if visualize:
                 feature_visualization(x, m.type, m.i, save_dir=visualize)
-        return x
+        return x  # tuple(x[0],x[1]) where x[0] contains (B,C,H,W) for small, med, large & x[1] contains (B,?,n_total_anchors)
 
     def _predict_augment(self, x):
         """Perform augmentations on input image x and return augmented inference."""

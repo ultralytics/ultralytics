@@ -605,11 +605,8 @@ def handle_yolo_info(args: List[str]) -> None:
     except SyntaxError as e:
         LOGGER.warning(f"WARNING ⚠️ info error: '{e}'.")
     except FileNotFoundError:
-        fp_ex = Path.cwd().absolute() / f  # show file and current working directory as full-path example
         LOGGER.error(
-            f"{colorstr('red', 'bold', 'ERROR:')} Model '{colorstr('yellow', f)}' not found, try providing full path to file."
-            "\n"
-            f"\t{colorstr('underline', 'Usage:')} {colorstr('cyan',f'yolo info model={fp_ex}')}"
+            f"{colorstr('red', 'bold', 'ERROR:')} Model '{colorstr('yellow', f)}' not found⚠️, missing path '{f}'."
         )
     except Exception as e:
         LOGGER.error(f"WARNING ⚠️ info error: {e}")

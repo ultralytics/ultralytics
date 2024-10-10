@@ -203,7 +203,7 @@ See [CLI syntax section in the quickstart](../quickstart.md/#__tabbed_2_1) or in
 
         ```bash
         # Fetch info for PyTorch model (1)
-        yolo model=yolo11n.pt
+        yolo info model=yolo11n.pt
 
         ```
 
@@ -428,6 +428,7 @@ See [CLI syntax section in the quickstart](../quickstart.md/#__tabbed_2_1) or in
                     78: hair drier
                     79: toothbrush
             --------------------------------------------------------------------------------
+            YOLO11n summary: 319 layers, 2,624,080 parameters, 0 gradients, 6.6 GFLOPs
             ```
 
         ??? success "Preview ONNX Weights Output"
@@ -539,7 +540,7 @@ See [CLI syntax section in the quickstart](../quickstart.md/#__tabbed_2_1) or in
             Only valid for native PyTorch `.pt` models. If using exported model weights, nothing additional will be shown.
 
         ```bash
-        yolo model=yolov11n.pt show=True
+        yolo info model=yolov11n.pt show=True
         ```
 
         ??? success "Preview of Additional Output"

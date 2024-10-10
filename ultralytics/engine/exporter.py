@@ -299,6 +299,9 @@ class Exporter:
             y = model(im)  # dry runs
         if self.args.half and onnx and self.device.type != "cpu":
             im, model = im.half(), model.half()  # to FP16
+            
+        if mct and "C2f" not in model.__str__():
+            raise ValueError("MCT export is only supported for YOLOv8 detection models")
 
         # Filter warnings
         warnings.filterwarnings("ignore", category=torch.jit.TracerWarning)  # suppress TracerWarning
@@ -1103,16 +1106,15 @@ class Exporter:
 
         # Configure MCT manually for specific layers
         bit_cfg = BitWidthConfig()
-        if "C2f" in self.model.__str__():  # yolov8 model
-            bit_cfg.set_manual_activation_bit_width(
-                [
-                    NodeNameScopeFilter("mul"),
-                    NodeNameScopeFilter("sub"),
-                    NodeNameScopeFilter("add_6"),
-                    NodeNameScopeFilter("cat_17"),
-                ],
-                16,
-            )
+        bit_cfg.set_manual_activation_bit_width(
+            [
+                NodeNameScopeFilter("mul"),
+                NodeNameScopeFilter("sub"),
+                NodeNameScopeFilter("add_6"),
+                NodeNameScopeFilter("cat_17"),
+            ],
+            16,
+        )
 
         config = mct.core.CoreConfig(
             mixed_precision_config=mct.core.MixedPrecisionQuantizationConfig(num_of_images=10),

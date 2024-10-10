@@ -91,6 +91,9 @@ def benchmark(
     t0 = time.time()
     for i, (name, format, suffix, cpu, gpu) in enumerate(zip(*export_formats().values())):
         emoji, filename = "❌", None  # export defaults
+        print("%"*50)
+        print(i, name, format, suffix, cpu, gpu)
+        print("%"*50)
         try:
             # Checks
             if i == 7:  # TF GraphDef
@@ -115,6 +118,7 @@ def benchmark(
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 NCNN exports not supported yet"
             if i in {13}:  # MCT
                 assert model.task == "detect", "MCT only supported for detection task"
+                assert "C2f" in model.__str__(), "MCT only supported for YOLOv8"
             if "cpu" in device.type:
                 assert cpu, "inference not supported on CPU"
             if "cuda" in device.type:

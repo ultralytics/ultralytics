@@ -234,7 +234,7 @@ class Yolov8TFLite:
                 self.draw_detections(input_image, box, score, class_id)
 
         return input_image
-        
+
     def main(self):
         """
         Performs inference using a TFLite model and returns the output image with drawn detections.

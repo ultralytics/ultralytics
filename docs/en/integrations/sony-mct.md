@@ -1,7 +1,7 @@
 ---
 comments: true
-description: 
-keywords: 
+description:
+keywords:
 ---
 
 # Supported Features of MCT
@@ -13,18 +13,20 @@ MCT offers a comprehensive suite of features designed to optimize neural network
 MCT supports several quantization methods, each with varying levels of complexity and computational cost:
 
 - **Post-training quantization (PTQ)**:
-  - Available via Keras API and PyTorch API.
-  - Complexity: Low
-  - Computational Cost: Low (order of minutes)
+
+    - Available via Keras API and PyTorch API.
+    - Complexity: Low
+    - Computational Cost: Low (order of minutes)
 
 - **Gradient-based post-training quantization (GPTQ)**:
-  - Available via Keras API and PyTorch API.
-  - Complexity: Mild
-  - Computational Cost: Mild (order of 2-3 hours)
+
+    - Available via Keras API and PyTorch API.
+    - Complexity: Mild
+    - Computational Cost: Mild (order of 2-3 hours)
 
 - **Quantization-aware training (QAT)**:
-  - Complexity: High
-  - Computational Cost: High (order of 12-36 hours)
+    - Complexity: High
+    - Computational Cost: High (order of 12-36 hours)
 
 In addition, MCT supports various quantization schemes for weights and activations:
 
@@ -37,9 +39,9 @@ In addition, MCT supports various quantization schemes for weights and activatio
 - **Graph Optimizations**: Transform models into more efficient versions (e.g., folding batch-normalization layers into preceding linear layers).
 - **Quantization Parameter Search**: Minimize quantization noise using methods like Mean-Square-Error or other metrics like No-Clipping and Mean-Average-Error.
 - **Advanced Quantization Algorithms**:
-  - **Shift Negative Correction**: Addresses performance issues from symmetric activation quantization.
-  - **Outliers Filtering**: Uses z-score to detect and remove outliers.
-  - **Clustering**: Utilizes non-uniform quantization grids for better distribution matching.
+    - **Shift Negative Correction**: Addresses performance issues from symmetric activation quantization.
+    - **Outliers Filtering**: Uses z-score to detect and remove outliers.
+    - **Clustering**: Utilizes non-uniform quantization grids for better distribution matching.
 - **Mixed-Precision Search**: Assigns quantization bit-width per layer based on sensitivity to various bit-widths.
 - **Visualization**: Use TensorBoard to observe model performance insights, like quantization phases and bit-width configurations.
 
@@ -83,8 +85,8 @@ Before diving into the usage instructions, be sure to check out the range of [YO
         model = YOLO("yolo11n.pt")
 
         # Export the model to MCT format
-        model.export(format="mct") # export with ptq quantization by default 
-        # or 
+        model.export(format="mct")  # export with ptq quantization by default
+        # or
         # model.export(format="mct", gptq=True) # export with gptq quantization
 
 

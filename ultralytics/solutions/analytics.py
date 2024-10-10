@@ -1,6 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-import warnings
 from itertools import cycle
 
 import cv2
@@ -24,15 +23,15 @@ class Analytics(BaseSolution):
         self.fg_color = "white"
         self.title = "Ultralytics YOLO Analytics"
         self.max_points = 30
-        x_label = "x"
-        y_label = "y"
+        x_label = "Frame#"
+        y_label = "Total Counts"
         self.fontsize = 13
         self.type = self.CFG["analytics_type"]
         self.total_counts = 0
         # Set figure size based on image shape
         figsize = (1280 / 100, 720 / 100)
 
-        if self.type in {"line", "area"}:
+        if self.type in {"line", "multiline", "area"}:
             # Initialize line or area plot
             self.lines = {}
             self.fig = Figure(facecolor=self.bg_color, figsize=figsize)
@@ -72,12 +71,13 @@ class Analytics(BaseSolution):
 
     def process_data(self, im0, frame_number):
         self.extract_tracks(im0)  # Extract tracks
-
+        print("self.type : ", self.type)
         if self.type == "line":
             for box in self.boxes:
                 self.total_counts += 1
             self.update_line(frame_number)
         elif self.type == "multiline":
+            labels, data = [], {}
             for box, track_id, cls in zip(self.boxes, self.track_ids, self.clss):
                 # Store each class label
                 if self.names[int(cls)] not in labels:
@@ -88,6 +88,8 @@ class Analytics(BaseSolution):
                     data[self.names[int(cls)]] += 1
                 else:
                     data[self.names[int(cls)]] = 0
+            self.update_multiple_lines(data, labels, frame_number)
+
         elif self.type == "pie" or self.type == "bar" or self.type == "area":
             for box, cls in zip(boxes, clss):
                 if self.names[int(cls)] in clswise_count:
@@ -96,6 +98,7 @@ class Analytics(BaseSolution):
                     clswise_count[self.names[int(cls)]] = 1
         else:
             Print(f"{self.type} is not supported")
+        return im0
 
     def update_area(self, frame_number, counts_dict):
         """
@@ -177,6 +180,7 @@ class Analytics(BaseSolution):
         self.canvas.draw()
         im0 = np.array(self.canvas.renderer.buffer_rgba())
         self.display(im0)
+        return im0
 
 
     def update_multiple_lines(self, counts_dict, labels_list, frame_number):
@@ -188,7 +192,6 @@ class Analytics(BaseSolution):
             labels_list (int): list include each classes names.
             frame_number (int): The current frame number.
         """
-        warnings.warn("Display is not supported for multiple lines, output will be stored normally!")
         for obj in labels_list:
             if obj not in self.lines:
                 (line,) = self.ax.plot([], [], label=obj, marker="o", markersize=self.line_width*3)
@@ -214,6 +217,7 @@ class Analytics(BaseSolution):
         im0 = np.array(self.canvas.renderer.buffer_rgba())
         self.view_img = False  # for multiple line view_img not supported yet, coming soon!
         self.display(im0)
+        return im0
 
     def display(self, im0):
         """

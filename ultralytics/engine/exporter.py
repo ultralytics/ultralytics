@@ -299,7 +299,7 @@ class Exporter:
             y = model(im)  # dry runs
         if self.args.half and onnx and self.device.type != "cpu":
             im, model = im.half(), model.half()  # to FP16
-            
+
         if mct and "C2f" not in model.__str__():
             raise ValueError("MCT export is only supported for YOLOv8 detection models")
 

@@ -91,9 +91,9 @@ def benchmark(
     t0 = time.time()
     for i, (name, format, suffix, cpu, gpu) in enumerate(zip(*export_formats().values())):
         emoji, filename = "❌", None  # export defaults
-        print("%"*50)
+        print("%" * 50)
         print(i, name, format, suffix, cpu, gpu)
-        print("%"*50)
+        print("%" * 50)
         try:
             # Checks
             if i == 7:  # TF GraphDef

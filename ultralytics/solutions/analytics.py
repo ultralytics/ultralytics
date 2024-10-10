@@ -8,6 +8,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from matplotlib.figure import Figure
+from sympy.codegen import Print
+
 from ultralytics.solutions.solutions import BaseSolution  # Import a parent class
 
 
@@ -22,23 +24,24 @@ class Analytics(BaseSolution):
         self.fg_color = "white"
         self.title = "Ultralytics YOLO Analytics"
         self.max_points = 30
-        self.x_label = "x"
-        self.y_label = "y"
+        x_label = "x"
+        y_label = "y"
         self.fontsize = 13
-
+        self.type = self.CFG["analytics_type"]
+        self.total_counts = 0
         # Set figure size based on image shape
-        figsize = (im0_shape[0] / 100, im0_shape[1] / 100)
+        figsize = (1280 / 100, 720 / 100)
 
-        if type in {"line", "area"}:
+        if self.type in {"line", "area"}:
             # Initialize line or area plot
             self.lines = {}
             self.fig = Figure(facecolor=self.bg_color, figsize=figsize)
             self.canvas = FigureCanvas(self.fig)
             self.ax = self.fig.add_subplot(111, facecolor=self.bg_color)
-            if type == "line":
+            if self.type == "line":
                 (self.line,) = self.ax.plot([], [], color="cyan", linewidth=self.line_width)
 
-        elif type in {"bar", "pie"}:
+        elif self.type in {"bar", "pie"}:
             # Initialize bar or pie plot
             self.fig, self.ax = plt.subplots(figsize=figsize, facecolor=self.bg_color)
             self.ax.set_facecolor(self.bg_color)
@@ -62,10 +65,37 @@ class Analytics(BaseSolution):
             self.ax.axis("equal") if type == "pie" else None
 
         # Set common axis properties
-        self.ax.set_title(self.title, color=self.fg_color, fontsize=self.fontsize)
+        self.ax.set_title(self.title, color=self.fg_color, fontsize=13)
         self.ax.set_xlabel(x_label, color=self.fg_color, fontsize=self.fontsize - 3)
         self.ax.set_ylabel(y_label, color=self.fg_color, fontsize=self.fontsize - 3)
         self.ax.tick_params(axis="both", colors=self.fg_color)
+
+    def process_data(self, im0, frame_number):
+        self.extract_tracks(im0)  # Extract tracks
+
+        if self.type == "line":
+            for box in self.boxes:
+                self.total_counts += 1
+            self.update_line(frame_number)
+        elif self.type == "multiline":
+            for box, track_id, cls in zip(self.boxes, self.track_ids, self.clss):
+                # Store each class label
+                if self.names[int(cls)] not in labels:
+                    labels.append(self.names[int(cls)])
+
+                # Store each class count
+                if self.names[int(cls)] in data:
+                    data[self.names[int(cls)]] += 1
+                else:
+                    data[self.names[int(cls)]] = 0
+        elif self.type == "pie" or self.type == "bar" or self.type == "area":
+            for box, cls in zip(boxes, clss):
+                if self.names[int(cls)] in clswise_count:
+                    clswise_count[self.names[int(cls)]] += 1
+                else:
+                    clswise_count[self.names[int(cls)]] = 1
+        else:
+            Print(f"{self.type} is not supported")
 
     def update_area(self, frame_number, counts_dict):
         """
@@ -128,25 +158,26 @@ class Analytics(BaseSolution):
         im0 = np.array(self.canvas.renderer.buffer_rgba())
         self.display(im0)
 
-    def update_line(self, frame_number, total_counts):
+    def update_line(self, frame_number):
         """
         Update the line graph with new data.
 
         Args:
             frame_number (int): The current frame number.
-            total_counts (int): The total counts to plot.
         """
         # Update line graph data
         x_data = self.line.get_xdata()
         y_data = self.line.get_ydata()
         x_data = np.append(x_data, float(frame_number))
-        y_data = np.append(y_data, float(total_counts))
+        y_data = np.append(y_data, float(self.total_counts))
         self.line.set_data(x_data, y_data)
+        self.total_counts = 0
         self.ax.relim()
         self.ax.autoscale_view()
         self.canvas.draw()
         im0 = np.array(self.canvas.renderer.buffer_rgba())
         self.display(im0)
+
 
     def update_multiple_lines(self, counts_dict, labels_list, frame_number):
         """

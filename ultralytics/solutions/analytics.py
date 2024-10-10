@@ -8,62 +8,28 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from matplotlib.figure import Figure
+from ultralytics.solutions.solutions import BaseSolution  # Import a parent class
 
 
-class Analytics:
+class Analytics(BaseSolution):
     """A class to create and update various types of charts (line, bar, pie, area) for visual analytics."""
 
-    def __init__(
-        self,
-        type,
-        writer,
-        im0_shape,
-        title="ultralytics",
-        x_label="x",
-        y_label="y",
-        bg_color="white",
-        fg_color="black",
-        line_color="yellow",
-        line_width=2,
-        points_width=10,
-        fontsize=13,
-        view_img=False,
-        save_img=True,
-        max_points=50,
-    ):
-        """
-        Initialize the Analytics class with various chart types.
+    def __init__(self, **kwargs):
+        """Initialize the Analytics class with various chart types."""
+        super().__init__(**kwargs)
 
-        Args:
-            type (str): Type of chart to initialize ('line', 'bar', 'pie', or 'area').
-            writer (object): Video writer object to save the frames.
-            im0_shape (tuple): Shape of the input image (width, height).
-            title (str): Title of the chart.
-            x_label (str): Label for the x-axis.
-            y_label (str): Label for the y-axis.
-            bg_color (str): Background color of the chart.
-            fg_color (str): Foreground (text) color of the chart.
-            line_color (str): Line color for line charts.
-            line_width (int): Width of the lines in line charts.
-            points_width (int): Width of line points highlighter
-            fontsize (int): Font size for chart text.
-            view_img (bool): Whether to display the image.
-            save_img (bool): Whether to save the image.
-            max_points (int): Specifies when to remove the oldest points in a graph for multiple lines.
-        """
-        self.bg_color = bg_color
-        self.fg_color = fg_color
-        self.view_img = view_img
-        self.save_img = save_img
-        self.title = title
-        self.writer = writer
-        self.max_points = max_points
-        self.line_color = line_color
-        self.x_label = x_label
-        self.y_label = y_label
-        self.points_width = points_width
-        self.line_width = line_width
-        self.fontsize = fontsize
+        self.bg_color = "black"
+        self.fg_color = "white"
+        self.view_img = True
+        self.save_img = True
+        self.title = "ultralytics"
+        self.max_points = 30
+        self.line_color = "green"
+        self.x_label = "x"
+        self.y_label = "y"
+        self.points_width = 2 * 3
+        self.line_width = 2
+        self.fontsize = 13
 
         # Set figure size based on image shape
         figsize = (im0_shape[0] / 100, im0_shape[1] / 100)
@@ -231,7 +197,6 @@ class Analytics:
         """
         im0 = cv2.cvtColor(im0[:, :, :3], cv2.COLOR_RGBA2BGR)
         cv2.imshow(self.title, im0) if self.view_img else None
-        self.writer.write(im0) if self.save_img else None
 
     def update_bar(self, count_dict):
         """
@@ -301,7 +266,3 @@ class Analytics:
         im0 = self.fig.canvas.draw()
         im0 = np.array(self.fig.canvas.renderer.buffer_rgba())
         self.write_and_display(im0)
-
-
-if __name__ == "__main__":
-    Analytics("line", writer=None, im0_shape=None)

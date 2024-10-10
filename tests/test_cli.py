@@ -8,7 +8,7 @@ from PIL import Image
 
 from tests import CUDA_DEVICE_COUNT, CUDA_IS_AVAILABLE
 from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
-from ultralytics.utils import ASSETS, WEIGHTS_DIR, checks, remove_colorstr
+from ultralytics.utils import ASSETS, WEIGHTS_DIR, checks
 from ultralytics.utils.torch_utils import TORCH_1_9
 
 # Constants
@@ -128,6 +128,7 @@ def test_yolo_info():
     assert f"Model File: {model_path.as_posix().replace('/', os.sep)}" in stdout and stderr == ""
     assert "parameters" in stdout.lower() and stderr == ""
 
+    from ultralytics.utils import remove_colorstr
     # Test with non-existent model file
     stdout, _ = run_yolo_info("model=not-a-model.pt")
     assert "Model 'not-a-model.pt' not found" in remove_colorstr(stdout)

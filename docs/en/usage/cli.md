@@ -186,8 +186,8 @@ View model weights file information directly in terminal. This can be especially
 
 The following table outlines the accepted arguments for the `yolo info` CLI command. Any other arguments provided will be ignored.
 
-| Name    | Type   | Default | Description                                                                                                |
-| -----   | :----: | :-----: | ---------------------------------------------------------------------------------------------------------- |
+| Name    |  Type  | Default | Description                                                                                                |
+| ------- | :----: | :-----: | ---------------------------------------------------------------------------------------------------------- |
 | model   | `str`  | `None`  | Path or filename to model weights to return info about. Helpful to ensure model-type is in filename.       |
 | verbose | `bool` | `False` | Optional argument to show model layer information (only available for PyTorch models), default is `False`. |
 

@@ -293,7 +293,7 @@ class Exporter:
 
             if isinstance(m, C2f) and mct:
                 m.forward = m.forward_fx
-                
+
         if mct:
             if model.end2end:
                 raise ValueError("MCT export is not supported for end2end models.")

@@ -295,7 +295,7 @@ class Exporter:
                 m.forward = m.forward_fx
 
         if mct:
-            if model.end2end:
+            if getattr(model, "end2end", False):
                 raise ValueError("MCT export is not supported for end2end models.")
             if "C2f" not in model.__str__():
                 raise ValueError("MCT export is only supported for YOLOv8 detection models")

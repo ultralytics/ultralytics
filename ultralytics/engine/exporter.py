@@ -1041,7 +1041,7 @@ class Exporter:
 
     @try_export
     def export_mct(self, prefix=colorstr("Sony MCT:")):
-        check_requirements(["mct-nightly","sony-custom-layers[torch]"])
+        check_requirements(["mct-nightly", "sony-custom-layers[torch]"])
         import model_compression_toolkit as mct
         import onnx
         from model_compression_toolkit.core import BitWidthConfig

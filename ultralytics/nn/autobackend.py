@@ -362,22 +362,19 @@ class AutoBackend(nn.Module):
                     tf.lite.experimental.load_delegate,
                 )
             if edgetpu:  # TF Edge TPU https://coral.ai/software/#edgetpu-runtime
-                LOGGER.info(f"Loading {w} for TensorFlow Lite Edge TPU inference...")
+                device = device[3:] if str(device).startswith("tpu") else ":0"
+
+                LOGGER.info(f"Loading {w} on device {device[1:]} for TensorFlow Lite Edge TPU inference...")
                 delegate = {
                     "Linux": "libedgetpu.so.1",
                     "Darwin": "libedgetpu.1.dylib",
                     "Windows": "edgetpu.dll",
                 }[platform.system()]
-                # TODO: load_delegate('libedgetpu.so.1', options={"device": ":1"})
-                import os
 
-                if "TPU_DEVICE" in os.environ:
-                    interpreter = Interpreter(
-                        model_path=w,
-                        experimental_delegates=[load_delegate(delegate, options={"device": os.environ["TPU_DEVICE"]})],
-                    )
-                else:
-                    interpreter = Interpreter(model_path=w, experimental_delegates=[load_delegate(delegate)])
+                interpreter = Interpreter(
+                    model_path=w,
+                    experimental_delegates=[load_delegate(delegate, options={"device": device})],
+                )
             else:  # TFLite
                 LOGGER.info(f"Loading {w} for TensorFlow Lite inference...")
                 interpreter = Interpreter(model_path=w)  # load TFLite model

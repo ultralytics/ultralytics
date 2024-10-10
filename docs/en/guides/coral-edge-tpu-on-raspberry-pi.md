@@ -147,25 +147,24 @@ Now you can run inference using the following code:
 
 Find comprehensive information on the [Predict](../modes/predict.md) page for full prediction mode details.
 
-!!! note "Inferencing with multiple Edge TPUs"
+!!! note "Inference with multiple Edge TPUs"
 
     If you have multiple Edge TPUs you can use the following code to select a specific TPU.
 
     === "Python"
 
         ```python
-        import os
-
         from ultralytics import YOLO
-
-        os.environ["TPU_DEVICE"] = ":0"  # Select the first TPU
-        os.environ["TPU_DEVICE"] = ":1"  # Select the second TPU
 
         # Load a model
         model = YOLO("path/to/<model_name>_full_integer_quant_edgetpu.tflite")  # Load an official model or custom model
 
         # Run Prediction
-        model.predict("path/to/source.png")
+        model.predict("path/to/source.png")  # Inference defaults to the first TPU
+
+        model.predict("path/to/source.png", device="tpu:0")  # Select the first TPU
+
+        model.predict("path/to/source.png", device="tpu:1")  # Select the second TPU
         ```
 
 ## FAQ

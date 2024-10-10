@@ -1041,7 +1041,6 @@ class Exporter:
 
     @try_export
     def export_mct(self, prefix=colorstr("Sony MCT:")):
-        # pip install --upgrade -force-reinstall git+https://github.com/ambitious-octopus/model_optimization.git@get-output-fix
         check_requirements("mct-nightly")
         import model_compression_toolkit as mct
         import onnx
@@ -1099,18 +1098,25 @@ class Exporter:
         tpc = mct.get_target_platform_capabilities(
             fw_name="pytorch", target_platform_name="imx500", target_platform_version="v3"
         )
-
+        
         # Configure MCT manually for specific layers
         bit_cfg = BitWidthConfig()
-        bit_cfg.set_manual_activation_bit_width(
-            [
-                NodeNameScopeFilter("mul"),
-                NodeNameScopeFilter("sub"),
-                NodeNameScopeFilter("add_6"),
-                NodeNameScopeFilter("cat_17"),
-            ],
-            16,
-        )
+        if "C2f" in self.model.__str__(): # yolov8 model
+            bit_cfg.set_manual_activation_bit_width(
+                [
+                    NodeNameScopeFilter("mul"),
+                    NodeNameScopeFilter("sub"),
+                    NodeNameScopeFilter("add_6"),
+                    NodeNameScopeFilter("cat_17"),
+                ],
+                16,
+            )
+        else: # yolo11 model
+            bit_cfg.set_manual_activation_bit_width(
+                [NodeNameScopeFilter("sub")],
+                16,
+            )
+            
 
         config = mct.core.CoreConfig(
             mixed_precision_config=mct.core.MixedPrecisionQuantizationConfig(num_of_images=10),

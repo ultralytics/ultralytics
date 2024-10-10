@@ -124,16 +124,13 @@ def test_yolo_info():
 
     # Test with model argument
     model_path = WEIGHTS_DIR / "yolo11n.pt"
-    stdout, stderr = run_yolo_info(f"model={model_path.as_posix()}")
+    stdout, stderr = run_yolo_info(f"model={model_path.as_posix()} verbose")
     assert f"Model File: {model_path.as_posix().replace('/', os.sep)}" in stdout and stderr == ""
+    assert "parameters" in stdout.lower() and stderr == ""
 
     # Test with non-existent model file
     stdout, _ = run_yolo_info("model=not-a-model.pt")
     assert "Model 'not-a-model.pt' not found" in remove_colorstr(stdout)
-
-    # Test with show=True argument to display `model.info()`
-    stdout, stderr = run_yolo_info(f"model={model_path} show=True")
-    assert "parameters" in stdout.lower() and stderr == ""
 
 
 # Slow Tests -----------------------------------------------------------------------------------------------------------

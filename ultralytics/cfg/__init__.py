@@ -553,7 +553,7 @@ def handle_yolo_info(args: List[str]) -> None:
 
     nl = "\n"
     delim = "-" * 80
-    choose = {
+    model_list = {
         "yolo": YOLO,
         "rtdetr": RTDETR,
         "fastsam": FastSAM,
@@ -568,56 +568,47 @@ def handle_yolo_info(args: List[str]) -> None:
         """Returns a string representation of an object or creates a string from key-value pairs from a dictionary."""
         return f"{x}" if not isinstance(x, dict) else "".join([f"\n\t{str(k)}: {v}" for k, v in x.items()])
 
-    def _classes(d: dict):
-        """Yields a formatted string representation of classes from a dictionary."""
-        for k, v in d.items():
-            yield f"\t{k}: {_obj_or_dict(v)}"
-
-    def _args_load(a: List[str]) -> Tuple[dict, str]:
-        """Loads arguments from a list of strings."""
-        f = a.pop(0) if "=" not in a[0] else ""
-        d: dict = DEFAULT_CFG_DICT
-        for e in args:
-            if "=" in e:
-                k, v = parse_key_value_pair(e)
-                d[k] = v
-            d["verbose"] = True if e == "verbose" else False  # default to False
-        check_dict_alignment(DEFAULT_CFG_DICT, d)
-        return d, f
-
     try:
         if args:
-            new, file = _args_load(args)
-            file = Path(file or new.get("model", "yolo11n.pt"))
+            f, d = args.pop(0) if "=" not in args[0] else "", {}
+            d["verbose"] = False  # default to False
+            for e in args:
+                if "=" in e:
+                    k, v = parse_key_value_pair(e)
+                    d[k] = v
+                elif e == "verbose":
+                    d["verbose"] = True
+            check_dict_alignment(DEFAULT_CFG_DICT, d)
+            f = Path(f or d.get("model", "yolo11n.pt"))
 
-            model = choose[next((t for t in choose.keys() if t in file.stem.lower()), "yolo")](file)
-            classes = list(_classes(getattr(model, "names", {})))
+            model = model_list[next((t for t in model_list.keys() if t in f.stem.lower()), "yolo")](f)
             meta: dict = model.ckpt or getattr(model.predictor.model, "metadata", {})
 
             LOGGER.info(
                 f'{colorstr("blue", "bold", f"{nl}Ultralytics Model Info:")}'
                 f"{nl}{delim}{nl}"
-                f"Model File: {model.ckpt_path or file}"
+                f"Model File: {model.ckpt_path or f}"
             )
             # Display model metadata
             f"{[LOGGER.info(f'{str(k).capitalize()}: {_obj_or_dict(v)}') for k,v in meta.items() if k.lower() not in skip]}"
             # Display class-names & total count
             if "names" not in meta:
-                LOGGER.info(f"Names: total=({len(classes)})")
-                _ = [LOGGER.info(x) for x in classes]
+                names = getattr(model, "names", {})
+                LOGGER.info(f"Names: total=({len(names)})")
+                _ = [LOGGER.info(f"\t{k}: {v}") for k, v in names.items()]
             LOGGER.info(f"{delim}")
             # Display detailed model info
-            if file.suffix.lower() == ".pt":
-                model.info(detailed=new["verbose"])
+            if f.suffix.lower() == ".pt":
+                model.info(detailed=d["verbose"])
         else:
             checks.collect_system_info()
 
     except SyntaxError as e:
         LOGGER.warning(f"WARNING ⚠️ info error: '{e}'.")
     except FileNotFoundError:
-        fp_ex = Path.cwd().absolute() / file  # show file and current working directory as full-path example
+        fp_ex = Path.cwd().absolute() / f  # show file and current working directory as full-path example
         LOGGER.error(
-            f"{colorstr('red', 'bold', 'ERROR:')} Model '{colorstr('yellow', file)}' not found, try providing full path to file."
+            f"{colorstr('red', 'bold', 'ERROR:')} Model '{colorstr('yellow', f)}' not found, try providing full path to file."
             "\n"
             f"\t{colorstr('underline', 'Usage:')} {colorstr('cyan',f'yolo info model={fp_ex}')}"
         )

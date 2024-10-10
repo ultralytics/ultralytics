@@ -20,15 +20,10 @@ class Analytics(BaseSolution):
 
         self.bg_color = "black"
         self.fg_color = "white"
-        self.view_img = True
-        self.save_img = True
-        self.title = "ultralytics"
+        self.title = "Ultralytics YOLO Analytics"
         self.max_points = 30
-        self.line_color = "green"
         self.x_label = "x"
         self.y_label = "y"
-        self.points_width = 2 * 3
-        self.line_width = 2
         self.fontsize = 13
 
         # Set figure size based on image shape
@@ -41,7 +36,7 @@ class Analytics(BaseSolution):
             self.canvas = FigureCanvas(self.fig)
             self.ax = self.fig.add_subplot(111, facecolor=self.bg_color)
             if type == "line":
-                (self.line,) = self.ax.plot([], [], color=self.line_color, linewidth=self.line_width)
+                (self.line,) = self.ax.plot([], [], color="cyan", linewidth=self.line_width)
 
         elif type in {"bar", "pie"}:
             # Initialize bar or pie plot
@@ -116,7 +111,7 @@ class Analytics(BaseSolution):
                 color=color,
                 linewidth=self.line_width,
                 marker="o",
-                markersize=self.points_width,
+                markersize=self.line_width*3,
                 label=f"{key} Data Points",
             )
 
@@ -131,7 +126,7 @@ class Analytics(BaseSolution):
 
         self.canvas.draw()
         im0 = np.array(self.canvas.renderer.buffer_rgba())
-        self.write_and_display(im0)
+        self.display(im0)
 
     def update_line(self, frame_number, total_counts):
         """
@@ -151,7 +146,7 @@ class Analytics(BaseSolution):
         self.ax.autoscale_view()
         self.canvas.draw()
         im0 = np.array(self.canvas.renderer.buffer_rgba())
-        self.write_and_display(im0)
+        self.display(im0)
 
     def update_multiple_lines(self, counts_dict, labels_list, frame_number):
         """
@@ -165,7 +160,7 @@ class Analytics(BaseSolution):
         warnings.warn("Display is not supported for multiple lines, output will be stored normally!")
         for obj in labels_list:
             if obj not in self.lines:
-                (line,) = self.ax.plot([], [], label=obj, marker="o", markersize=self.points_width)
+                (line,) = self.ax.plot([], [], label=obj, marker="o", markersize=self.line_width*3)
                 self.lines[obj] = line
 
             x_data = self.lines[obj].get_xdata()
@@ -187,16 +182,16 @@ class Analytics(BaseSolution):
 
         im0 = np.array(self.canvas.renderer.buffer_rgba())
         self.view_img = False  # for multiple line view_img not supported yet, coming soon!
-        self.write_and_display(im0)
+        self.display(im0)
 
-    def write_and_display(self, im0):
+    def display(self, im0):
         """
         Write and display the line graph
         Args:
             im0 (ndarray): Image for processing.
         """
         im0 = cv2.cvtColor(im0[:, :, :3], cv2.COLOR_RGBA2BGR)
-        cv2.imshow(self.title, im0) if self.view_img else None
+        self.display_output(im0)
 
     def update_bar(self, count_dict):
         """
@@ -234,7 +229,7 @@ class Analytics(BaseSolution):
         canvas.draw()
         buf = canvas.buffer_rgba()
         im0 = np.asarray(buf)
-        self.write_and_display(im0)
+        self.display(im0)
 
     def update_pie(self, classes_dict):
         """
@@ -265,4 +260,4 @@ class Analytics(BaseSolution):
         # Display and save the updated chart
         im0 = self.fig.canvas.draw()
         im0 = np.array(self.fig.canvas.renderer.buffer_rgba())
-        self.write_and_display(im0)
+        self.display(im0)

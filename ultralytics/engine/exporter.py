@@ -1098,10 +1098,10 @@ class Exporter:
         tpc = mct.get_target_platform_capabilities(
             fw_name="pytorch", target_platform_name="imx500", target_platform_version="v3"
         )
-        
+
         # Configure MCT manually for specific layers
         bit_cfg = BitWidthConfig()
-        if "C2f" in self.model.__str__(): # yolov8 model
+        if "C2f" in self.model.__str__():  # yolov8 model
             bit_cfg.set_manual_activation_bit_width(
                 [
                     NodeNameScopeFilter("mul"),
@@ -1111,12 +1111,11 @@ class Exporter:
                 ],
                 16,
             )
-        else: # yolo11 model
+        else:  # yolo11 model
             bit_cfg.set_manual_activation_bit_width(
                 [NodeNameScopeFilter("sub")],
                 16,
             )
-            
 
         config = mct.core.CoreConfig(
             mixed_precision_config=mct.core.MixedPrecisionQuantizationConfig(num_of_images=10),

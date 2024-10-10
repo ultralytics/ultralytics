@@ -551,7 +551,6 @@ def handle_yolo_info(args: List[str]) -> None:
     """Handles YOLO info command-line interface (CLI) commands."""
     from ultralytics import NAS, RTDETR, SAM, YOLO, FastSAM
 
-    nl = "\n"
     delim = "-" * 80
     model_list = {
         "yolo": YOLO,
@@ -566,7 +565,7 @@ def handle_yolo_info(args: List[str]) -> None:
 
     def _obj_or_dict(x: Union[object, Dict]) -> str:
         """Returns a string representation of an object or creates a string from key-value pairs from a dictionary."""
-        return f"{x}" if not isinstance(x, dict) else "".join([f"\n\t{str(k)}: {v}" for k, v in x.items()])
+        return "".join([f"\n\t{str(k)}: {v}" for k, v in x.items()]) if isinstance(x, dict) else f"{x}"
 
     try:
         if args:
@@ -582,18 +581,18 @@ def handle_yolo_info(args: List[str]) -> None:
             f = Path(f or d.get("model", "yolo11n.pt"))
 
             model = model_list[next((t for t in model_list.keys() if t in f.stem.lower()), "yolo")](f)
+            names = getattr(model, "names", {})  # create predictor to get meta info.
             meta: dict = model.ckpt or getattr(model.predictor.model, "metadata", {})
 
             LOGGER.info(
-                f'{colorstr("blue", "bold", f"{nl}Ultralytics Model Info:")}'
-                f"{nl}{delim}{nl}"
-                f"Model File: {model.ckpt_path or f}"
+                f'{colorstr("blue", "bold", f"Ultralytics Model Info:")}'
+                f"\n{delim}"
+                f"\nModel File: {model.ckpt_path or f}"
             )
             # Display model metadata
             f"{[LOGGER.info(f'{str(k).capitalize()}: {_obj_or_dict(v)}') for k,v in meta.items() if k.lower() not in skip]}"
             # Display class-names & total count
             if "names" not in meta:
-                names = getattr(model, "names", {})
                 LOGGER.info(f"Names: total=({len(names)})")
                 _ = [LOGGER.info(f"\t{k}: {v}") for k, v in names.items()]
             LOGGER.info(f"{delim}")

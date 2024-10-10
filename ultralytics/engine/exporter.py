@@ -293,15 +293,18 @@ class Exporter:
 
             if isinstance(m, C2f) and mct:
                 m.forward = m.forward_fx
+                
+        if mct:
+            if model.end2end:
+                raise ValueError("MCT export is not supported for end2end models.")
+            if "C2f" not in model.__str__():
+                raise ValueError("MCT export is only supported for YOLOv8 detection models")
 
         y = None
         for _ in range(2):
             y = model(im)  # dry runs
         if self.args.half and onnx and self.device.type != "cpu":
             im, model = im.half(), model.half()  # to FP16
-
-        if mct and "C2f" not in model.__str__():
-            raise ValueError("MCT export is only supported for YOLOv8 detection models")
 
         # Filter warnings
         warnings.filterwarnings("ignore", category=torch.jit.TracerWarning)  # suppress TracerWarning

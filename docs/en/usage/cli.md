@@ -186,10 +186,10 @@ View model weights file information directly in terminal. This can be especially
 
 The following table outlines the accepted arguments for the `yolo info` CLI command. Any other arguments provided will be ignored.
 
-| Name  |  Type  | Default | Description                                                                                                |
-| ----- | :----: | :-----: | ---------------------------------------------------------------------------------------------------------- |
-| model | `str`  | `None`  | Path or filename to model weights to return info about. Helpful to ensure model-type is in filename.       |
-| show  | `bool` | `False` | Optional argument to show model layer information (only available for PyTorch models), default is `False`. |
+| Name    | Type   | Default | Description                                                                                                |
+| -----   | :----: | :-----: | ---------------------------------------------------------------------------------------------------------- |
+| model   | `str`  | `None`  | Path or filename to model weights to return info about. Helpful to ensure model-type is in filename.       |
+| verbose | `bool` | `False` | Optional argument to show model layer information (only available for PyTorch models), default is `False`. |
 
 See [CLI syntax section in the quickstart](../quickstart.md/#__tabbed_2_1) or in the [Examples](#example-use-of-yolo-info) section for how to correctly pass arguments to CLI commands.
 
@@ -540,7 +540,7 @@ See [CLI syntax section in the quickstart](../quickstart.md/#__tabbed_2_1) or in
             Only valid for native PyTorch `.pt` models. If using exported model weights, nothing additional will be shown.
 
         ```bash
-        yolo info model=yolov11n.pt show=True
+        yolo info model=yolov11n.pt verbose
         ```
 
         ??? success "Preview of Additional Output"

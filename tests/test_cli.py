@@ -129,6 +129,7 @@ def test_yolo_info():
     assert "parameters" in stdout.lower() and stderr == ""
 
     from ultralytics.utils import remove_colorstr
+
     # Test with non-existent model file
     stdout, _ = run_yolo_info("model=not-a-model.pt")
     assert "Model 'not-a-model.pt' not found" in remove_colorstr(stdout)

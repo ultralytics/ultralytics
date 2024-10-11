@@ -185,7 +185,7 @@ jobs:
         run: |
           gh workflow run deploy_cloud_run.yml \
             --repo ultralytics/assistant \
-            --ref main \
+            --ref main
 
   notify:
     runs-on: ubuntu-latest

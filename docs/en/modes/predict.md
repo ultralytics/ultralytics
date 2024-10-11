@@ -409,7 +409,7 @@ YOLO11 supports various image and video formats, as specified in [ultralytics/da
 The below table contains valid Ultralytics image formats.
 
 | Image Suffixes | Example Predict Command          | Reference                                                                  |
-|----------------|----------------------------------| -------------------------------------------------------------------------- |
+| -------------- | -------------------------------- | -------------------------------------------------------------------------- |
 | `.bmp`         | `yolo predict source=image.bmp`  | [Microsoft BMP File Format](https://en.wikipedia.org/wiki/BMP_file_format) |
 | `.dng`         | `yolo predict source=image.dng`  | [Adobe DNG](https://en.wikipedia.org/wiki/Digital_Negative)                |
 | `.jpeg`        | `yolo predict source=image.jpeg` | [JPEG](https://en.wikipedia.org/wiki/JPEG)                                 |
@@ -421,8 +421,6 @@ The below table contains valid Ultralytics image formats.
 | `.webp`        | `yolo predict source=image.webp` | [WebP](https://en.wikipedia.org/wiki/WebP)                                 |
 | `.pfm`         | `yolo predict source=image.pfm`  | [Portable FloatMap](https://en.wikipedia.org/wiki/Netpbm#File_formats)     |
 | `.HEIC`        | `yolo predict source=image.HEIC` | [High Efficiency Image Format](https://en.wikipedia.org/wiki/HEIF)         |
-
-
 
 ### Videos
 

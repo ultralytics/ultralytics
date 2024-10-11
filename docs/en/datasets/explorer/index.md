@@ -21,4 +21,4 @@ Ultralytics Explorer is a tool for exploring CV datasets using semantic search, 
 
 ### Community Note
 
-- Support for Ultralytics Explorer has been deprecated as of version 8.3.10. We’re excited to offer similar features in [Ultralytics HUB](https://hub.ultralytics.com/), our no-code platform. 🚀
+- Support for Ultralytics Explorer has been deprecated as of version 8.3.10. We're excited to offer similar features in [Ultralytics HUB](https://hub.ultralytics.com/), our no-code platform. 🚀

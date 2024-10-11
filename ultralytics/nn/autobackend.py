@@ -412,7 +412,9 @@ class AutoBackend(nn.Module):
                 return MNN.expr.convert(MNN.expr.const(x, x.shape), MNN.expr.NC4HW4)
 
             def mnn_postprocess(x):
-                return MNN.expr.convert(x, MNN.expr.NCHW)
+                if isinstance(x, list):
+                    return [MNN.expr.convert(y, MNN.expr.NCHW).read() for y in x]
+                return MNN.expr.convert(x, MNN.expr.NCHW).read()
 
             metadata = Path(w).parent / "metadata.yaml"
 
@@ -586,9 +588,8 @@ class AutoBackend(nn.Module):
         elif self.mnn:
             im = im.cpu().numpy()  # torch to numpy
             input_var = self.mnn_preprocess(im)
-            output_var = self.net.forward(input_var)
-            output_var = self.mnn_postprocess(output_var)
-            y = output_var.read()
+            output_var = self.net.onForward([input_var])
+            y = self.mnn_postprocess(output_var)
 
         # NVIDIA Triton Inference Server
         elif self.triton:

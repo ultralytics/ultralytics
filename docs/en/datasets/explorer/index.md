@@ -8,17 +8,6 @@ keywords: Ultralytics Explorer, CV datasets, semantic search, SQL queries, vecto
 
 Ultralytics Explorer is a tool for exploring CV datasets using semantic search, SQL queries, vector similarity search and even using natural language. It is also a Python API for accessing the same functionality.
 
-<p align="center">
-  <br>
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/3VryynorQeo"
-    title="YouTube video player" frameborder="0"
-    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-    allowfullscreen>
-  </iframe>
-  <br>
-  <strong>Watch:</strong> Ultralytics Explorer API | Semantic Search, SQL Queries & Ask AI Features
-</p>
+### Community Note ⚠️
 
-### Community Note
-
-- Support for Ultralytics Explorer has been deprecated as of version 8.3.10. We're excited to offer similar features in [Ultralytics HUB](https://hub.ultralytics.com/), our no-code platform. 🚀
+- As of **`ultralytics>=8.3.10`**, Ultralytics explorer support has been deprecated. But don’t worry! You can now access similar and even enhanced functionality through [Ultralytics HUB](https://hub.ultralytics.com/), our intuitive no-code platform designed to streamline your workflow. With Ultralytics HUB, you can continue exploring, visualizing, and managing your data effortlessly, all without writing a single line of code. Make sure to check it out and take advantage of its powerful features!🚀

@@ -362,16 +362,15 @@ class LoadImagesAndVideos:
             else:
                 # Handle image files (including HEIC)
                 self.mode = "image"
-                suffix = Path(path).suffix.lower()
-                if suffix in [".heic", ".heif"]:
+                if path.split(".")[-1].lower() == "heic":
                     # Load HEIC image using Pillow with pillow-heif
-                    check_requirements("pillow-heif")  # Ensure pillow-heif is installed
+                    check_requirements('pillow-heif')
+                    
                     from pillow_heif import register_heif_opener
 
                     register_heif_opener()  # Register HEIF opener with Pillow
-
                     with Image.open(path) as img:
-                        im0 = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
+                        im0 = cv2.cvtColor(np.asarray(img), cv2.COLOR_RGB2BGR)
                 else:
                     # Load other image formats using OpenCV
                     im0 = cv2.imread(path)  # BGR

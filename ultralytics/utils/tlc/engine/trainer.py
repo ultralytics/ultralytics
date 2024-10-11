@@ -9,6 +9,7 @@ from ultralytics.utils.tlc.constants import TLC_COLORSTR, DEFAULT_TRAIN_RUN_DESC
 from ultralytics.utils.tlc.utils import reduce_embeddings
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
 from ultralytics.utils.torch_utils import strip_optimizer
+from ultralytics.utils.metrics import smooth
 
 
 class TLCTrainerMixin(BaseTrainer):
@@ -140,8 +141,9 @@ class TLCTrainerMixin(BaseTrainer):
                     if not self._settings.collection_val_only and not self._settings.collection_disable:
                         self.train_validator(model=f)
                     self.validator.args.plots = self.args.plots
-                    self.metrics = self.validator(model=f)
+                    self.metrics = self.validator(model=f)  # Only a dict! strange..? 
                     self.metrics.pop("fitness", None)
+                    self._save_confidence_metrics()
                     self.run_callbacks("on_fit_epoch_end")
 
         if RANK in {-1, 0}:
@@ -154,6 +156,31 @@ class TLCTrainerMixin(BaseTrainer):
                     foreign_table_url=foreign_table_url,
                 )
             self._run.set_status_completed()
+
+    def _save_confidence_metrics(self):
+
+        if self.args.task != "detect":
+            return
+        
+        try:
+            curves = [
+                self.validator.metrics.box.f1_curve, # (nc, 1000)
+                self.validator.metrics.box.r_curve, # (nc, 1000)
+                self.validator.metrics.box.p_curve, # (nc, 1000)
+            ]
+            names = ["F1_curve", "Recall", "Precision"]
+            px = self.validator.metrics.box.px # (1000,) (linspace(0, 1)
+            
+            values = {}
+            for py, name in zip(curves, names):
+                y = smooth(py.mean(0), 0.05)
+                best_val = y.max()
+                best_conf = px[y.argmax()]
+                values[f"3LC/{name}"] = {"best_val": best_val, "best_conf": best_conf}
+            
+            self._run.set_parameters(values)
+        except Exception as e:
+            LOGGER.error(TLC_COLORSTR + f"Failed to save confidence metrics: {e}")
 
     def save_metrics(self, metrics):
         # Log aggregate metrics after every epoch

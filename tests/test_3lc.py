@@ -101,6 +101,11 @@ def test_detect_training() -> None:
         assert (run.constants["parameters"][key] == value
                 ), f"Parameter {key} mismatch, {run.constants['parameters'][key]} != {value}"
 
+    # Check that confidence-recall-precision-f1 data is written
+    assert "3LC/Precision" in run.constants["parameters"]
+    assert "3LC/Recall" in run.constants["parameters"]
+    assert "3LC/F1_Score" in run.constants["parameters"]
+    
     # Check that there is a per-epoch value written
     assert len(run.constants["outputs"]) > 0, "No outputs written"
     metrics_tables = get_metrics_tables_from_run(run)

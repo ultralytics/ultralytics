@@ -125,7 +125,6 @@ class AutoBackend(nn.Module):
             mnn,
             triton,
         ) = self._model_type(w)
-        mnn_fp16 = fp16  # MNN FP16 inference, input tensor still using fp32
         fp16 &= pt or jit or onnx or xml or engine or nn_module or triton  # FP16
         nhwc = coreml or saved_model or pb or tflite or edgetpu  # BHWC formats (vs torch BCWH)
         stride = 32  # default stride
@@ -398,15 +397,15 @@ class AutoBackend(nn.Module):
         elif mnn:
             LOGGER.info(f"Loading {w} for MNN inference...")
             check_requirements("MNN")  # requires MNN
+            import os
             import MNN
 
             config = {}
-            config["precision"] = "low" if mnn_fp16 else "normal"
-            config["memory"] = "low"
-            config["backend"] = "AUTO"
-            config["numThread"] = 4
+            config["precision"] = "low"
+            config["backend"] = "CPU"
+            config["numThread"] = os.cpu_count()
             rt = MNN.nn.create_runtime_manager((config,))
-            net = MNN.nn.load_module_from_file(w, [], [], runtime_manager=rt)
+            net = MNN.nn.load_module_from_file(w, [], [], runtime_manager=rt, rearrange=True)
 
             def mnn_preprocess(x):
                 return MNN.expr.convert(MNN.expr.const(x, x.shape), MNN.expr.NC4HW4)

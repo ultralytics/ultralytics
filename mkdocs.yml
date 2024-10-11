@@ -657,9 +657,9 @@ plugins:
   - mkdocs-jupyter
   - redirects:
       redirect_maps:
+        datasets/explorer/api.md: datasets/explorer/index.md
         datasets/explorer/dashboard.md: datasets/explorer/index.md
         datasets/explorer/explorer.ipynb: datasets/explorer/index.md
-        datasets/explorer/api.md: datasets/explorer/index.md
         reference/data/explorer/gui/dash.md: reference/data/explorer/explorer.md
         reference/data/explorer/utils.md: reference/data/explorer/explorer.md
         hi/index.md: index.md

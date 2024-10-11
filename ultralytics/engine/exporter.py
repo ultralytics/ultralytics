@@ -630,7 +630,7 @@ class Exporter:
         if self.args.half:
             args.append("--fp16")
         Tools.mnnconvert(args)
-        yaml_save("metadata.yaml", self.metadata)  # add metadata.yaml
+        yaml_save(Path(f).parent / "metadata.yaml", self.metadata)  # add metadata.yaml
         return f, None
 
     @try_export

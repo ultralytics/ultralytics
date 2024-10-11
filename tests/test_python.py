@@ -160,9 +160,9 @@ def test_predict_grey_and_4ch():
         f.unlink()  # cleanup
 
 
-@pytest.mark.slow
-@pytest.mark.skipif(not ONLINE, reason="environment is offline")
-@pytest.mark.skipif(is_github_action_running(), reason="No auth https://github.com/JuanBindez/pytubefix/issues/166")
+# @pytest.mark.slow
+# @pytest.mark.skipif(not ONLINE, reason="environment is offline")
+# @pytest.mark.skipif(is_github_action_running(), reason="No auth https://github.com/JuanBindez/pytubefix/issues/166")
 def test_youtube():
     """Test YOLO model on a YouTube video stream, handling potential network-related errors."""
     model = YOLO(MODEL)
@@ -369,7 +369,7 @@ def test_cfg_init():
 
 def test_utils_init():
     """Test initialization utilities in the Ultralytics library."""
-    from ultralytics.utils import get_git_branch, get_git_origin_url, get_ubuntu_version, is_github_action_running
+    from ultralytics.utils import get_git_branch, get_git_origin_url, get_ubuntu_version
 
     get_ubuntu_version()
     is_github_action_running()

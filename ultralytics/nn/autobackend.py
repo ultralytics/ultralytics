@@ -405,7 +405,6 @@ class AutoBackend(nn.Module):
             config["memory"] = "low"
             config["backend"] = "AUTO"
             config["numThread"] = 4
-            print(config)
             rt = MNN.nn.create_runtime_manager((config,))
             net = MNN.nn.load_module_from_file(w, [], [], runtime_manager=rt)
 

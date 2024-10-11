@@ -409,7 +409,8 @@ class LoadPilAndNumpy:
         """Initialize PIL and Numpy Dataloader."""
         if not isinstance(im0, list):
             im0 = [im0]
-        self.paths = [getattr(im, "filename", f"image{i}.jpg") for i, im in enumerate(im0)]
+        # use `image{i}.jpg` when Image.filename returns an empty path.
+        self.paths = [getattr(im, "filename", "") or f"image{i}.jpg" for i, im in enumerate(im0)]
         self.im0 = [self._single_check(im) for im in im0]
         self.mode = "image"
         self.bs = len(self.im0)

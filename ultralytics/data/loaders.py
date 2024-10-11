@@ -336,6 +336,7 @@ class LoadImagesAndVideos:
                 if not self.cap or not self.cap.isOpened():
                     self._new_video(path)
 
+                success = False
                 for _ in range(self.vid_stride):
                     success = self.cap.grab()
                     if not success:
@@ -359,8 +360,20 @@ class LoadImagesAndVideos:
                     if self.count < self.nf:
                         self._new_video(self.files[self.count])
             else:
+                # Handle image files (including HEIC)
                 self.mode = "image"
-                im0 = cv2.imread(path)  # BGR
+                suffix = Path(path).suffix.lower()
+                if suffix in ['.heic', '.heif']:
+                    # Load HEIC image using Pillow with pillow-heif
+                    check_requirements('pillow-heif')  # Ensure pillow-heif is installed
+                    from pillow_heif import register_heif_opener
+                    register_heif_opener()  # Register HEIF opener with Pillow
+
+                    with Image.open(path) as img:
+                        im0 = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
+                else:
+                    # Load other image formats using OpenCV
+                    im0 = cv2.imread(path)  # BGR
                 if im0 is None:
                     LOGGER.warning(f"WARNING ⚠️ Image Read Error {path}")
                 else:
@@ -384,7 +397,7 @@ class LoadImagesAndVideos:
 
     def __len__(self):
         """Returns the number of batches in the object."""
-        return math.ceil(self.nf / self.bs)  # number of files
+        return math.ceil(self.nf / self.bs)  # number of batches
 
 
 class LoadPilAndNumpy:

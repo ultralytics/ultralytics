@@ -374,8 +374,6 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
         ```
     """
     prefix = colorstr("red", "bold", "requirements:")
-    check_python()  # check python version
-    check_torchvision()  # check torch-torchvision compatibility
     if isinstance(requirements, Path):  # requirements.txt file
         file = requirements.resolve()
         assert file.exists(), f"{prefix} {file} not found, check failed."
@@ -400,6 +398,8 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
 
     s = " ".join(f'"{x}"' for x in pkgs)  # console string
     if s:
+        check_python()  # check python version
+        check_torchvision()  # check torch-torchvision compatibility
         if install and AUTOINSTALL:  # check environment variable
             n = len(pkgs)  # number of packages updates
             LOGGER.info(f"{prefix} Ultralytics requirement{'s' * (n > 1)} {pkgs} not found, attempting AutoUpdate...")

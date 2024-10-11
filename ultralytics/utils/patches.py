@@ -7,9 +7,6 @@ from pathlib import Path
 import cv2
 import numpy as np
 import torch
-from PIL import Image
-
-from ultralytics.utils.checks import check_requirements
 
 # OpenCV Multilanguage-friendly functions ------------------------------------------------------------------------------
 _imshow = cv2.imshow  # copy to avoid recursion errors
@@ -26,16 +23,6 @@ def imread(filename: str, flags: int = cv2.IMREAD_COLOR):
     Returns:
         (np.ndarray): The read image.
     """
-    if filename.split(".")[-1].lower() == "heic":
-        # Load HEIC image using Pillow with pillow-heif
-        check_requirements("pillow-heif")
-
-        from pillow_heif import register_heif_opener
-
-        register_heif_opener()  # Register HEIF opener with Pillow
-        with Image.open(filename) as img:
-            return cv2.cvtColor(np.asarray(img), cv2.COLOR_RGB2BGR)  # convert image to BGR nparray
-
     return cv2.imdecode(np.fromfile(filename, np.uint8), flags)
 
 

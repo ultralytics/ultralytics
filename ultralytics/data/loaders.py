@@ -411,7 +411,17 @@ class LoadImagesAndVideos:
             else:
                 # Handle image files (including HEIC)
                 self.mode = "image"
-                im0 = imread(path)  # BGR
+                if path.split(".")[-1].lower() == "heic":
+                    # Load HEIC image using Pillow with pillow-heif
+                    check_requirements("pillow-heif")
+
+                    from pillow_heif import register_heif_opener
+
+                    register_heif_opener()  # Register HEIF opener with Pillow
+                    with Image.open(path) as img:
+                        im0 = cv2.cvtColor(np.asarray(img), cv2.COLOR_RGB2BGR)  # convert image to BGR nparray
+                else:
+                    im0 = imread(path)  # BGR
                 if im0 is None:
                     LOGGER.warning(f"WARNING ⚠️ Image Read Error {path}")
                 else:

@@ -13,21 +13,8 @@ import torch
 import torch.nn as nn
 from PIL import Image
 
-from ultralytics.utils import (
-    ARM64,
-    IS_JETSON,
-    IS_RASPBERRYPI,
-    LINUX,
-    LOGGER,
-    ROOT,
-    yaml_load,
-)
-from ultralytics.utils.checks import (
-    check_requirements,
-    check_suffix,
-    check_version,
-    check_yaml,
-)
+from ultralytics.utils import ARM64, IS_JETSON, IS_RASPBERRYPI, LINUX, LOGGER, ROOT, yaml_load
+from ultralytics.utils.checks import check_requirements, check_suffix, check_version, check_yaml
 from ultralytics.utils.downloads import attempt_download_asset, is_url
 
 
@@ -169,10 +156,7 @@ class AutoBackend(nn.Module):
             from ultralytics.nn.tasks import attempt_load_weights
 
             model = attempt_load_weights(
-                weights if isinstance(weights, list) else w,
-                device=device,
-                inplace=True,
-                fuse=fuse,
+                weights if isinstance(weights, list) else w, device=device, inplace=True, fuse=fuse
             )
             if hasattr(model, "kpt_shape"):
                 kpt_shape = model.kpt_shape  # pose-only
@@ -245,11 +229,7 @@ class AutoBackend(nn.Module):
                     check_requirements("tensorrt>7.0.0,<=10.1.0")
                 import tensorrt as trt  # noqa
             check_version(trt.__version__, ">=7.0.0", hard=True)
-            check_version(
-                trt.__version__,
-                "<=10.1.0",
-                msg="https://github.com/ultralytics/ultralytics/pull/14239",
-            )
+            check_version(trt.__version__, "<=10.1.0", msg="https://github.com/ultralytics/ultralytics/pull/14239")
             if device.type == "cpu":
                 device = torch.device("cuda:0")
             Binding = namedtuple("Binding", ("name", "dtype", "shape", "data", "ptr"))
@@ -336,10 +316,7 @@ class AutoBackend(nn.Module):
                 """Wrap frozen graphs for deployment."""
                 x = tf.compat.v1.wrap_function(lambda: tf.compat.v1.import_graph_def(gd, name=""), [])  # wrapped
                 ge = x.graph.as_graph_element
-                return x.prune(
-                    tf.nest.map_structure(ge, inputs),
-                    tf.nest.map_structure(ge, outputs),
-                )
+                return x.prune(tf.nest.map_structure(ge, inputs), tf.nest.map_structure(ge, outputs))
 
             gd = tf.Graph().as_graph_def()  # TF GraphDef
             with open(w, "rb") as f:
@@ -357,24 +334,14 @@ class AutoBackend(nn.Module):
             except ImportError:
                 import tensorflow as tf
 
-                Interpreter, load_delegate = (
-                    tf.lite.Interpreter,
-                    tf.lite.experimental.load_delegate,
-                )
+                Interpreter, load_delegate = tf.lite.Interpreter, tf.lite.experimental.load_delegate
             if edgetpu:  # TF Edge TPU https://coral.ai/software/#edgetpu-runtime
                 device = device[3:] if str(device).startswith("tpu") else ":0"
-
                 LOGGER.info(f"Loading {w} on device {device[1:]} for TensorFlow Lite Edge TPU inference...")
-                delegate = {
-                    "Linux": "libedgetpu.so.1",
-                    "Darwin": "libedgetpu.1.dylib",
-                    "Windows": "edgetpu.dll",
-                }[platform.system()]
-
-                interpreter = Interpreter(
-                    model_path=w,
-                    experimental_delegates=[load_delegate(delegate, options={"device": device})],
-                )
+                delegate = {"Linux": "libedgetpu.so.1", "Darwin": "libedgetpu.1.dylib", "Windows": "edgetpu.dll"}[
+                    platform.system()
+                ]
+                interpreter = Interpreter(model_path=w, experimental_delegates=[load_delegate(delegate, options={"device": device})])
             else:  # TFLite
                 LOGGER.info(f"Loading {w} for TensorFlow Lite inference...")
                 interpreter = Interpreter(model_path=w)  # load TFLite model
@@ -513,10 +480,7 @@ class AutoBackend(nn.Module):
         elif self.xml:
             im = im.cpu().numpy()  # FP32
 
-            if self.inference_mode in {
-                "THROUGHPUT",
-                "CUMULATIVE_THROUGHPUT",
-            }:  # optimized for larger batch-sizes
+            if self.inference_mode in {"THROUGHPUT", "CUMULATIVE_THROUGHPUT"}:  # optimized for larger batch-sizes
                 n = im.shape[0]  # number of images in batch
                 results = [None] * n  # preallocate list with None to match the number of images
 
@@ -610,10 +574,7 @@ class AutoBackend(nn.Module):
                 y = self.frozen_func(x=self.tf.constant(im))
             else:  # Lite or Edge TPU
                 details = self.input_details[0]
-                is_int = details["dtype"] in {
-                    np.int8,
-                    np.int16,
-                }  # is TFLite quantized int8 or int16 model
+                is_int = details["dtype"] in {np.int8, np.int16}  # is TFLite quantized int8 or int16 model
                 if is_int:
                     scale, zero_point = details["quantization"]
                     im = (im / scale + zero_point).astype(details["dtype"])  # de-scale
@@ -677,22 +638,9 @@ class AutoBackend(nn.Module):
         """
         import torchvision  # noqa (import here so torchvision import time not recorded in postprocess time)
 
-        warmup_types = (
-            self.pt,
-            self.jit,
-            self.onnx,
-            self.engine,
-            self.saved_model,
-            self.pb,
-            self.triton,
-            self.nn_module,
-        )
+        warmup_types = self.pt, self.jit, self.onnx, self.engine, self.saved_model, self.pb, self.triton, self.nn_module
         if any(warmup_types) and (self.device.type != "cpu" or self.triton):
-            im = torch.empty(
-                *imgsz,
-                dtype=torch.half if self.fp16 else torch.float,
-                device=self.device,
-            )  # input
+            im = torch.empty(*imgsz, dtype=torch.half if self.fp16 else torch.float, device=self.device)  # input
             for _ in range(2 if self.jit else 1):
                 self.forward(im)  # warmup
 

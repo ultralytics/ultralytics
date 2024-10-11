@@ -95,9 +95,7 @@ from ultralytics.utils.torch_utils import TORCH_1_13, get_latest_opset, select_d
 
 
 def export_formats():
-    """YOLOv8 export formats."""
-    import pandas  # scope for faster 'import ultralytics'
-
+    """Ultralytics YOLO export formats."""
     x = [
         ["PyTorch", "-", ".pt", True, True],
         ["TorchScript", "torchscript", ".torchscript", True, True],
@@ -113,7 +111,7 @@ def export_formats():
         ["PaddlePaddle", "paddle", "_paddle_model", True, True],
         ["NCNN", "ncnn", "_ncnn_model", True, True],
     ]
-    return pandas.DataFrame(x, columns=["Format", "Argument", "Suffix", "CPU", "GPU"])
+    return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU"], zip(*x)))
 
 
 def gd_outputs(gd):
@@ -180,6 +178,15 @@ class Exporter:
         if fmt in {"mlmodel", "mlpackage", "mlprogram", "apple", "ios", "coreml"}:  # 'coreml' aliases
             fmt = "coreml"
         fmts = tuple(export_formats()["Argument"][1:])  # available export formats
+        if fmt not in fmts:
+            import difflib
+
+            # Get the closest match if format is invalid
+            matches = difflib.get_close_matches(fmt, fmts, n=1, cutoff=0.6)  # 60% similarity required to match
+            if not matches:
+                raise ValueError(f"Invalid export format='{fmt}'. Valid formats are {fmts}")
+            LOGGER.warning(f"WARNING ⚠️ Invalid export format='{fmt}', updating to format='{matches[0]}'")
+            fmt = matches[0]
         flags = [x == fmt for x in fmts]
         if sum(flags) != 1:
             raise ValueError(f"Invalid export format='{fmt}'. Valid formats are {fmts}")
@@ -391,7 +398,7 @@ class Exporter:
         """YOLOv8 ONNX export."""
         requirements = ["onnx>=1.12.0"]
         if self.args.simplify:
-            requirements += ["onnxslim==0.1.32", "onnxruntime" + ("-gpu" if torch.cuda.is_available() else "")]
+            requirements += ["onnxslim==0.1.34", "onnxruntime" + ("-gpu" if torch.cuda.is_available() else "")]
         check_requirements(requirements)
         import onnx  # noqa
 

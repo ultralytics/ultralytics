@@ -44,7 +44,7 @@ class NASValidator(DetectionValidator):
             self.args.iou,
             labels=self.lb,
             multi_label=False,
-            agnostic=self.args.single_cls,
+            agnostic=self.args.single_cls or self.args.agnostic_nms,
             max_det=self.args.max_det,
             max_time_img=0.5,
         )

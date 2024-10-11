@@ -41,7 +41,7 @@ Raspberry Pi is a small, affordable, single-board computer. It has become popula
 
 ## What is Raspberry Pi OS?
 
-[Raspberry Pi OS](https://www.raspberrypi.com/software) (formerly known as Raspbian) is a Unix-like operating system based on the Debian GNU/Linux distribution for the Raspberry Pi family of compact single-board computers distributed by the Raspberry Pi Foundation. Raspberry Pi OS is highly optimized for the Raspberry Pi with ARM CPUs and uses a modified LXDE desktop environment with the Openbox stacking window manager. Raspberry Pi OS is under active development, with an emphasis on improving the stability and performance of as many Debian packages as possible on Raspberry Pi.
+[Raspberry Pi OS](https://www.raspberrypi.com/software/) (formerly known as Raspbian) is a Unix-like operating system based on the Debian GNU/Linux distribution for the Raspberry Pi family of compact single-board computers distributed by the Raspberry Pi Foundation. Raspberry Pi OS is highly optimized for the Raspberry Pi with ARM CPUs and uses a modified LXDE desktop environment with the Openbox stacking window manager. Raspberry Pi OS is under active development, with an emphasis on improving the stability and performance of as many Debian packages as possible on Raspberry Pi.
 
 ## Flash Raspberry Pi OS to Raspberry Pi
 
@@ -49,7 +49,7 @@ The first thing to do after getting your hands on a Raspberry Pi is to flash a m
 
 ## Set Up Ultralytics
 
-There are two ways of setting up Ultralytics package on Raspberry Pi to build your next Computer Vision project. You can use either of them.
+There are two ways of setting up Ultralytics package on Raspberry Pi to build your next [Computer Vision](https://www.ultralytics.com/glossary/computer-vision-cv) project. You can use either of them.
 
 - [Start with Docker](#start-with-docker)
 - [Start without Docker](#start-without-docker)
@@ -70,7 +70,7 @@ After this is done, skip to [Use NCNN on Raspberry Pi section](#use-ncnn-on-rasp
 
 #### Install Ultralytics Package
 
-Here we will install Ultralytics package on the Raspberry Pi with optional dependencies so that we can export the PyTorch models to other different formats.
+Here we will install Ultralytics package on the Raspberry Pi with optional dependencies so that we can export the [PyTorch](https://www.ultralytics.com/glossary/pytorch) models to other different formats.
 
 1. Update packages list, install pip and upgrade to latest
 
@@ -94,7 +94,7 @@ Here we will install Ultralytics package on the Raspberry Pi with optional depen
 
 ## Use NCNN on Raspberry Pi
 
-Out of all the model export formats supported by Ultralytics, [NCNN](https://docs.ultralytics.com/integrations/ncnn) delivers the best inference performance when working with Raspberry Pi devices because NCNN is highly optimized for mobile/ embedded platforms (such as ARM architecture). Therefor our recommendation is to use NCNN with Raspberry Pi.
+Out of all the model export formats supported by Ultralytics, [NCNN](https://docs.ultralytics.com/integrations/ncnn/) delivers the best inference performance when working with Raspberry Pi devices because NCNN is highly optimized for mobile/ embedded platforms (such as ARM architecture). Therefor our recommendation is to use NCNN with Raspberry Pi.
 
 ## Convert Model to NCNN and Run Inference
 
@@ -132,11 +132,11 @@ The YOLOv8n model in PyTorch format is converted to NCNN to run inference with t
 
 !!! tip
 
-    For more details about supported export options, visit the [Ultralytics documentation page on deployment options](https://docs.ultralytics.com/guides/model-deployment-options).
+    For more details about supported export options, visit the [Ultralytics documentation page on deployment options](https://docs.ultralytics.com/guides/model-deployment-options/).
 
 ## Raspberry Pi 5 vs Raspberry Pi 4 YOLOv8 Benchmarks
 
-YOLOv8 benchmarks were run by the Ultralytics team on nine different model formats measuring speed and accuracy: PyTorch, TorchScript, ONNX, OpenVINO, TF SavedModel, TF GraphDef, TF Lite, PaddlePaddle, NCNN. Benchmarks were run on both Raspberry Pi 5 and Raspberry Pi 4 at FP32 precision with default input image size of 640.
+YOLOv8 benchmarks were run by the Ultralytics team on nine different model formats measuring speed and [accuracy](https://www.ultralytics.com/glossary/accuracy): PyTorch, TorchScript, ONNX, OpenVINO, TF SavedModel, TF GraphDef, TF Lite, PaddlePaddle, NCNN. Benchmarks were run on both Raspberry Pi 5 and Raspberry Pi 4 at FP32 [precision](https://www.ultralytics.com/glossary/precision) with default input image size of 640.
 
 !!! note
 
@@ -249,7 +249,7 @@ To reproduce the above Ultralytics benchmarks on all [export formats](../modes/e
 
 ## Use Raspberry Pi Camera
 
-When using Raspberry Pi for Computer Vision projects, it can be essentially to grab real-time video feeds to perform inference. The onboard MIPI CSI connector on the Raspberry Pi allows you to connect official Raspberry PI camera modules. In this guide, we have used a [Raspberry Pi Camera Module 3](https://www.raspberrypi.com/products/camera-module-3) to grab the video feeds and perform inference using YOLOv8 models.
+When using Raspberry Pi for Computer Vision projects, it can be essentially to grab real-time video feeds to perform inference. The onboard MIPI CSI connector on the Raspberry Pi allows you to connect official Raspberry PI camera modules. In this guide, we have used a [Raspberry Pi Camera Module 3](https://www.raspberrypi.com/products/camera-module-3/) to grab the video feeds and perform inference using YOLOv8 models.
 
 !!! tip
 
@@ -257,7 +257,7 @@ When using Raspberry Pi for Computer Vision projects, it can be essentially to g
 
 !!! note
 
-    Raspberry Pi 5 uses smaller CSI connectors than the Raspberry Pi 4 (15-pin vs 22-pin), so you will need a [15-pin to 22pin adapter cable](https://www.raspberrypi.com/products/camera-cable) to connect to a Raspberry Pi Camera.
+    Raspberry Pi 5 uses smaller CSI connectors than the Raspberry Pi 4 (15-pin vs 22-pin), so you will need a [15-pin to 22pin adapter cable](https://www.raspberrypi.com/products/camera-cable/) to connect to a Raspberry Pi Camera.
 
 ### Test the Camera
 

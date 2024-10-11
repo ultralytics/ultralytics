@@ -12,7 +12,7 @@ You can also explore other quickstart options for YOLOv5, such as our [Colab Not
 
 ## Prerequisites
 
-1. **NVIDIA Driver**: Version 455.23 or higher. Download from [Nvidia's website](https://www.nvidia.com/Download/index.aspx).
+1. **NVIDIA Driver**: Version 455.23 or higher. Download from [NVIDIA's website](https://www.nvidia.com/Download/index.aspx).
 2. **NVIDIA-Docker**: Allows Docker to interact with your local GPU. Installation instructions are available on the [NVIDIA-Docker GitHub repository](https://github.com/NVIDIA/nvidia-docker).
 3. **Docker Engine - CE**: Version 19.03 or higher. Download and installation instructions can be found on the [Docker website](https://docs.docker.com/get-started/get-docker/).
 
@@ -36,7 +36,7 @@ sudo docker run --ipc=host -it ultralytics/yolov5:latest
 
 ### Container with local file access:
 
-To run a container with access to local files (e.g., COCO training data in `/datasets`), use the `-v` flag:
+To run a container with access to local files (e.g., COCO [training data](https://www.ultralytics.com/glossary/training-data) in `/datasets`), use the `-v` flag:
 
 ```bash
 sudo docker run --ipc=host -it -v "$(pwd)"/datasets:/usr/src/datasets ultralytics/yolov5:latest

@@ -26,7 +26,7 @@ Navigate to the [Projects](https://hub.ultralytics.com/projects) page by clickin
 
 ![Ultralytics HUB screenshot of the Projects page with an arrow pointing to the Projects button in the sidebar and one to the Create Project button](https://github.com/ultralytics/docs/releases/download/0/ultralytics-hub-create-project-page.avif)
 
-??? tip "Tip"
+??? tip
 
     You can create a project directly from the [Home](https://hub.ultralytics.com/home) page.
 
@@ -52,11 +52,11 @@ Next, [train a model](./models.md#train-model) inside your project.
 
 ## Share Project
 
-!!! info "Info"
+!!! info
 
     [Ultralytics HUB](https://www.ultralytics.com/hub)'s sharing functionality provides a convenient way to share projects with others. This feature is designed to accommodate both existing [Ultralytics HUB](https://www.ultralytics.com/hub) users and those who have yet to create an account.
 
-??? note "Note"
+??? note
 
     You have control over the general access of your projects.
 
@@ -66,7 +66,7 @@ Navigate to the Project page of the project you want to share, open the project 
 
 ![Ultralytics HUB screenshot of the Project page with an arrow pointing to the Share option](https://github.com/ultralytics/docs/releases/download/0/ultralytics-hub-share-project-dialog.avif)
 
-??? tip "Tip"
+??? tip
 
     You can share a project directly from the [Projects](https://hub.ultralytics.com/projects) page.
 
@@ -76,13 +76,13 @@ Set the general access to "Unlisted" and click **Save**.
 
 ![Ultralytics HUB screenshot of the Share Project dialog with an arrow pointing to the dropdown and one to the Save button](https://github.com/ultralytics/docs/releases/download/0/hub-share-project-dialog.avif)
 
-!!! warning "Warning"
+!!! warning
 
     When changing the general access of a project, the general access of the models inside the project will be changed as well.
 
 Now, anyone who has the direct link to your project can view it.
 
-??? tip "Tip"
+??? tip
 
     You can easily click on the project's link shown in the **Share Project** dialog to copy it.
 
@@ -94,7 +94,7 @@ Navigate to the Project page of the project you want to edit, open the project a
 
 ![Ultralytics HUB screenshot of the Project page with an arrow pointing to the Edit option](https://github.com/ultralytics/docs/releases/download/0/hub-edit-project-1.avif)
 
-??? tip "Tip"
+??? tip
 
     You can edit a project directly from the [Projects](https://hub.ultralytics.com/projects) page.
 
@@ -110,17 +110,17 @@ Navigate to the Project page of the project you want to delete, open the project
 
 ![Ultralytics HUB screenshot of the Project page with an arrow pointing to the Delete option](https://github.com/ultralytics/docs/releases/download/0/hub-delete-project-option.avif)
 
-??? tip "Tip"
+??? tip
 
     You can delete a project directly from the [Projects](https://hub.ultralytics.com/projects) page.
 
     ![Ultralytics HUB screenshot of the Projects page with an arrow pointing to the Delete option of one of the projects](https://github.com/ultralytics/docs/releases/download/0/hub-delete-project-option-1.avif)
 
-!!! warning "Warning"
+!!! warning
 
     When deleting a project, the models inside the project will be deleted as well.
 
-!!! note "Note"
+!!! note
 
     If you change your mind, you can restore the project from the [Trash](https://hub.ultralytics.com/trash) page.
 
@@ -136,7 +136,7 @@ This will display all the relevant charts. Each chart corresponds to a different
 
 ![Ultralytics HUB screenshot of the Charts tab inside the Project page](https://github.com/ultralytics/docs/releases/download/0/ultralytics-hub-charts-tab.avif)
 
-??? tip "Tip"
+??? tip
 
     Each chart can be enlarged for better visualization.
 
@@ -148,7 +148,7 @@ This will display all the relevant charts. Each chart corresponds to a different
 
     ![Ultralytics HUB screenshot of the Charts tab inside the Project page with one of the charts expanded and zoomed](https://github.com/ultralytics/docs/releases/download/0/hub-charts-tab-expanded-zoomed.avif)
 
-??? tip "Tip"
+??? tip
 
     You have the flexibility to customize your view by selectively hiding certain models. This feature allows you to concentrate on the models of interest.
 
@@ -156,7 +156,7 @@ This will display all the relevant charts. Each chart corresponds to a different
 
 ## Reorder Models
 
-??? note "Note"
+??? note
 
     Ultralytics HUB's reordering functionality works only inside projects you own.
 
@@ -170,7 +170,7 @@ Navigate to the Project page of the project where the model you want to mode is 
 
 ![Ultralytics HUB screenshot of the Project page with an arrow pointing to the Transfer option of one of the models](https://github.com/ultralytics/docs/releases/download/0/hub-transfer-models-1.avif)
 
-??? tip "Tip"
+??? tip
 
     You can also transfer a model directly from the [Models](https://hub.ultralytics.com/models) page.
 

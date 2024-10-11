@@ -4,13 +4,24 @@ description: Discover MobileSAM, a lightweight and fast image segmentation model
 keywords: MobileSAM, image segmentation, lightweight model, fast segmentation, mobile applications, SAM, ViT encoder, Tiny-ViT, Ultralytics
 ---
 
-![MobileSAM Logo](https://github.com/ChaoningZhang/MobileSAM/blob/master/assets/logo2.png)
+![MobileSAM Logo](https://raw.githubusercontent.com/ChaoningZhang/MobileSAM/master/assets/logo2.png)
 
 # Mobile Segment Anything (MobileSAM)
 
 The MobileSAM paper is now available on [arXiv](https://arxiv.org/pdf/2306.14289.pdf).
 
 A demonstration of MobileSAM running on a CPU can be accessed at this [demo link](https://huggingface.co/spaces/dhkim2810/MobileSAM). The performance on a Mac i5 CPU takes approximately 3 seconds. On the Hugging Face demo, the interface and lower-performance CPUs contribute to a slower response, but it continues to function effectively.
+
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/yXQPLMrNX2s"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to Run Inference with MobileSAM using Ultralytics | Step-by-Step Guide 🎉
+</p>
 
 MobileSAM is implemented in various projects including [Grounding-SAM](https://github.com/IDEA-Research/Grounded-Segment-Anything), [AnyLabeling](https://github.com/vietanhdev/anylabeling), and [Segment Anything in 3D](https://github.com/Jumpat/SegmentAnythingin3D).
 
@@ -122,7 +133,7 @@ If you find MobileSAM useful in your research or development work, please consid
 
 ### What is MobileSAM and how does it differ from the original SAM model?
 
-MobileSAM is a lightweight, fast image segmentation model designed for mobile applications. It retains the same pipeline as the original SAM but replaces the heavyweight ViT-H encoder (632M parameters) with a smaller Tiny-ViT encoder (5M parameters). This change results in MobileSAM being approximately 5 times smaller and 7 times faster than the original SAM. For instance, MobileSAM operates at about 12ms per image, compared to the original SAM's 456ms. You can learn more about the MobileSAM implementation in various projects [here](https://github.com/ChaoningZhang/MobileSAM).
+MobileSAM is a lightweight, fast [image segmentation](https://www.ultralytics.com/glossary/image-segmentation) model designed for mobile applications. It retains the same pipeline as the original SAM but replaces the heavyweight ViT-H encoder (632M parameters) with a smaller Tiny-ViT encoder (5M parameters). This change results in MobileSAM being approximately 5 times smaller and 7 times faster than the original SAM. For instance, MobileSAM operates at about 12ms per image, compared to the original SAM's 456ms. You can learn more about the MobileSAM implementation in various projects [here](https://github.com/ChaoningZhang/MobileSAM).
 
 ### How can I test MobileSAM using Ultralytics?
 
@@ -152,7 +163,7 @@ MobileSAM was trained on a single GPU with a 100k dataset, which is 1% of the or
 
 MobileSAM is designed for fast and efficient image segmentation in mobile environments. Primary use cases include:
 
-- **Real-time object detection and segmentation** for mobile applications.
+- **Real-time [object detection](https://www.ultralytics.com/glossary/object-detection) and segmentation** for mobile applications.
 - **Low-latency image processing** in devices with limited computational resources.
 - **Integration in AI-driven mobile apps** for tasks such as augmented reality (AR) and real-time analytics.
 

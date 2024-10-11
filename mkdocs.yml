@@ -404,6 +404,7 @@ nav:
       - TF.js: integrations/tfjs.md
       - PaddlePaddle: integrations/paddlepaddle.md
       - NCNN: integrations/ncnn.md
+      - MNN: integrations/mnn.md
       - Comet ML: integrations/comet.md
       - Ray Tune: integrations/ray-tune.md
       - Roboflow: integrations/roboflow.md

@@ -250,9 +250,9 @@ class LoadScreenshots:
 
 class LoadImagesAndVideos:
     """
-    YOLOv8 image/video dataloader.
+    YOLO image/video dataloader.
 
-    This class manages the loading and pre-processing of image and video data for YOLOv8. It supports loading from
+    This class manages the loading and pre-processing of image and video data for YOLO. It supports loading from
     various formats, including single image files, video files, and lists of image and video paths.
 
     Attributes:

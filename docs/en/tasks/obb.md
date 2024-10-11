@@ -49,7 +49,7 @@ YOLO11 pretrained OBB models are shown here, which are pretrained on the [DOTAv1
 
 ## Train
 
-Train YOLO11n-obb on the `dota8.yaml` dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) at image size 640. For a full list of available arguments see the [Configuration](../usage/cfg.md) page.
+Train YOLO11n-obb on the DOTA8 dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) at image size 640. For a full list of available arguments see the [Configuration](../usage/cfg.md) page.
 
 !!! example
 

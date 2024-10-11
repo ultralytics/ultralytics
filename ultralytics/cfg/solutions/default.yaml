@@ -2,15 +2,15 @@
 
 # Configuration for Ultralytics Solutions
 
-model: "yolo11n.pt" # The Ultralytics YOLO11 model to be used (e.g., yolo11n.pt for YOLO11 nano version)
+model: "yolo11n.pt" # The Ultralytics YOLO11 model to be used (e.g., yolo11n.pt for YOLO11 nano version and yolov8n.pt for YOLOv8 nano version)
 
-region: # Object counting, queue or speed estimation region points
-line_width: 2 # Thickness of the lines used to draw regions on the image/video frames
-show: True # Flag to control whether to display output image or not
+region: # Object counting, queue or speed estimation region points. Default region points are [(20, 400), (1080, 404), (1080, 360), (20, 360)]
+line_width: 2 # Width of the annotator used to draw regions on the image/video frames + bounding boxes and tracks drawing. Default value is 2.
+show: True # Flag to control whether to display output image or not, you can set this as False i.e. when deploying it on some embedded devices.
 show_in: True # Flag to display objects moving *into* the defined region
 show_out: True # Flag to display objects moving *out of* the defined region
-classes: # To count specific classes
-up_angle: 145.0 # Workouts up_angle for counts, 145.0 is default value
-down_angle: 90 # Workouts down_angle for counts, 90 is default value
-kpts: [6, 8, 10] # Keypoints for workouts monitoring
-colormap: # Colormap for heatmap
+classes: # To count specific classes. i.e, if you want to detect, track and count the person with COCO model, you can use classes=0, Default its None
+up_angle: 145.0 # Workouts up_angle for counts, 145.0 is default value. You can adjust it for different workouts, based on position of keypoints.
+down_angle: 90 # Workouts down_angle for counts, 90 is default value. You can change it for different workouts, based on position of keypoints.
+kpts: [6, 8, 10] # Keypoints for workouts monitoring, i.e. If you want to consider keypoints for pushups that have mostly values of [6, 8, 10].
+colormap: # Colormap for heatmap, Only OPENCV supported colormaps can be used. By default COLORMAP_PARULA will be used for visualization.

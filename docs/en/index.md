@@ -56,56 +56,55 @@ Explore the Ultralytics Docs, a comprehensive resource designed to help you unde
 
 <div class="grid cards" markdown>
 
--   :material-download:{ .lg .middle } :material-clock-fast:{ .lg .middle } **Install and Getting Started**
+- :material-download:{ .lg .middle } :material-clock-fast:{ .lg .middle } **Install and Getting Started**
 
-    ---
+    ***
 
     Install `ultralytics` with pip and get up and running in minutes to train a YOLO model
 
     [:octicons-arrow-right-24: Quickstart](quickstart.md)
 
--   :material-image:{ .lg .middle } :material-video:{ .lg .middle } **Predict**
+- :material-image:{ .lg .middle } :material-video:{ .lg .middle } **Predict**
 
-    ---
+    ***
 
     Predict on new images, videos and streams with YOLO
 
     [:octicons-arrow-right-24: Mode: Predict](modes/predict.md)
 
--   :fontawesome-solid-brain:{ .lg .middle } **Train a Model**
+- :fontawesome-solid-brain:{ .lg .middle } **Train a Model**
 
-    ---
+    ***
 
     Train a new YOLO model on your own custom dataset from scratch or use the power of transfer learning and load and train on a pretrained model
 
     [:octicons-arrow-right-24: Mode: Train](modes/train.md)
 
--   :material-magnify-expand:{ .lg .middle } **Explore Tasks**
+- :material-magnify-expand:{ .lg .middle } **Explore Tasks**
 
-    ---
+    ***
 
     Discover YOLO tasks like detect, segment, classify, pose, OBB and track
 
     [:octicons-arrow-right-24: Explore Tasks](tasks/index.md)
 
--   :rocket:{ .lg .middle } **Explore YOLO11 models 🚀 NEW**
+- :rocket:{ .lg .middle } **Explore YOLO11 models 🚀 NEW**
 
-    ---
+    ***
 
     Discover Ultralytics' latest state-of-the-art YOLO11 models and their capabilities
 
     [:octicons-arrow-right-24: YOLO11 Models](models/yolo11.md)
 
--   :material-scale-balance:{ .lg .middle } **Open Source, AGPL-3.0**
+- :material-scale-balance:{ .lg .middle } **Open Source, AGPL-3.0**
 
-    ---
+    ***
 
     Ultralytics offers two licensing options for YOLO: AGPL-3.0 License and Enterprise License. Ultralytics is available on [GitHub](https://github.com/ultralytics/ultralytics)
 
     [:octicons-arrow-right-24: License](https://www.ultralytics.com/license)
 
 </div>
-
 
 <p align="center">
   <br>

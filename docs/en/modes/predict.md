@@ -410,7 +410,7 @@ The below table contains valid Ultralytics image formats.
 
 !!! note
 
-    HEIC images are supported for inference only, not for training. 
+    HEIC images are supported for inference only, not for training.
 
 | Image Suffixes | Example Predict Command          | Reference                                                                  |
 | -------------- | -------------------------------- | -------------------------------------------------------------------------- |

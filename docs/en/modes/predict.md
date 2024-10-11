@@ -408,6 +408,10 @@ YOLO11 supports various image and video formats, as specified in [ultralytics/da
 
 The below table contains valid Ultralytics image formats.
 
+!!! note
+
+    HEIC images are supported for inference only, not for training. 
+
 | Image Suffixes | Example Predict Command          | Reference                                                                  |
 | -------------- | -------------------------------- | -------------------------------------------------------------------------- |
 | `.bmp`         | `yolo predict source=image.bmp`  | [Microsoft BMP File Format](https://en.wikipedia.org/wiki/BMP_file_format) |

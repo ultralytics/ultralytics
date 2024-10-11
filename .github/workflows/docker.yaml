@@ -176,14 +176,16 @@ jobs:
   trigger-actions:
     runs-on: ubuntu-latest
     needs: docker
-    if: success() && github.repository == 'ultralytics/ultralytics' && github.event_name == 'push'
+    # Only trigger actions on new Ultralytics releases
+    if: success() && github.repository == 'ultralytics/ultralytics' && github.event_name == 'push' && steps.check_tag.outputs.exists == 'false'
     steps:
       - name: Trigger Additional GitHub Actions
+        env:
+          GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         run: |
           gh workflow run deploy_cloud_run.yml \
             --repo ultralytics/assistant \
-            --ref main \
-            --token ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+            --ref main
 
   notify:
     runs-on: ubuntu-latest

@@ -451,7 +451,6 @@ class v8PoseLoss(v8DetectionLoss):
         # fg_mask (B, n_anchors) <-- boolean tensor vector showing which anchor (candidate) has a match with the ground truth
         import torch.nn.functional as F
         triplet_loss = 0
-        triplet_loss1 = 0
         for b in range(batch_size):
             if fg_mask[b].sum() == 0:  # skip if there is no match between anchors and ground truths
                 continue

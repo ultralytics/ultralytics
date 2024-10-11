@@ -18,6 +18,7 @@ from PIL import Image
 from ultralytics.data.utils import FORMATS_HELP_MSG, IMG_FORMATS, VID_FORMATS
 from ultralytics.utils import IS_COLAB, IS_KAGGLE, LOGGER, ops
 from ultralytics.utils.checks import check_requirements
+from ultralytics.utils.patches import imread
 
 
 @dataclass
@@ -410,17 +411,7 @@ class LoadImagesAndVideos:
             else:
                 # Handle image files (including HEIC)
                 self.mode = "image"
-                if path.split(".")[-1].lower() == "heic":
-                    # Load HEIC image using Pillow with pillow-heif
-                    check_requirements("pillow-heif")
-
-                    from pillow_heif import register_heif_opener
-
-                    register_heif_opener()  # Register HEIF opener with Pillow
-                    with Image.open(path) as img:
-                        im0 = cv2.cvtColor(np.asarray(img), cv2.COLOR_RGB2BGR)  # convert image to BGR nparray
-                else:
-                    im0 = cv2.imread(path)  # BGR
+                im0 = imread(path)  # BGR
                 if im0 is None:
                     LOGGER.warning(f"WARNING ⚠️ Image Read Error {path}")
                 else:

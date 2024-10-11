@@ -24,15 +24,15 @@ from ultralytics.utils.checks import check_requirements
 class SourceTypes:
     """
     Class to represent various types of input sources for predictions.
-    
+
     This class uses dataclass to define boolean flags for different types of input sources that can be used for
     making predictions with YOLO models.
-    
+
     Attributes:
         stream (bool): Flag indicating if the input source is a video stream.
         screenshot (bool): Flag indicating if the input source is a screenshot.
         from_img (bool): Flag indicating if the input source is an image file.
-    
+
     Examples:
         >>> source_types = SourceTypes(stream=True, screenshot=False, from_img=False)
         >>> print(source_types.stream)
@@ -50,10 +50,10 @@ class SourceTypes:
 class LoadStreams:
     """
     Stream Loader for various types of video streams.
-    
+
     Supports RTSP, RTMP, HTTP, and TCP streams. This class handles the loading and processing of multiple video
     streams simultaneously, making it suitable for real-time video analysis tasks.
-    
+
     Attributes:
         sources (List[str]): The source input paths or URLs for the video streams.
         vid_stride (int): Video frame-rate stride.
@@ -67,21 +67,21 @@ class LoadStreams:
         shape (List[Tuple[int, int, int]]): List of shapes for each stream.
         caps (List[cv2.VideoCapture]): List of cv2.VideoCapture objects for each stream.
         bs (int): Batch size for processing.
-    
+
     Methods:
         update: Read stream frames in daemon thread.
         close: Close stream loader and release resources.
         __iter__: Returns an iterator object for the class.
         __next__: Returns source paths, transformed, and original images for processing.
         __len__: Return the length of the sources object.
-    
+
     Examples:
-        >>> stream_loader = LoadStreams('rtsp://example.com/stream1.mp4')
+        >>> stream_loader = LoadStreams("rtsp://example.com/stream1.mp4")
         >>> for sources, imgs, _ in stream_loader:
         ...     # Process the images
         ...     pass
         >>> stream_loader.close()
-    
+
     Notes:
         - The class uses threading to efficiently load frames from multiple streams simultaneously.
         - It automatically handles YouTube links, converting them to the best available stream URL.
@@ -212,10 +212,10 @@ class LoadStreams:
 class LoadScreenshots:
     """
     Ultralytics screenshot dataloader for capturing and processing screen images.
-    
+
     This class manages the loading of screenshot images for processing with YOLO. It is suitable for use with
     `yolo predict source=screen`.
-    
+
     Attributes:
         source (str): The source input indicating which screen to capture.
         screen (int): The screen number to capture.
@@ -229,13 +229,13 @@ class LoadScreenshots:
         bs (int): Batch size, set to 1.
         fps (int): Frames per second, set to 30.
         monitor (Dict[str, int]): Monitor configuration details.
-    
+
     Methods:
         __iter__: Returns an iterator object.
         __next__: Captures the next screenshot and returns it.
-    
+
     Examples:
-        >>> loader = LoadScreenshots('0 100 100 640 480')  # screen 0, top-left (100,100), 640x480
+        >>> loader = LoadScreenshots("0 100 100 640 480")  # screen 0, top-left (100,100), 640x480
         >>> for source, im, im0s, vid_cap, s in loader:
         ...     print(f"Captured frame: {im.shape}")
     """
@@ -283,10 +283,10 @@ class LoadScreenshots:
 class LoadImagesAndVideos:
     """
     A class for loading and processing images and videos for YOLO object detection.
-    
+
     This class manages the loading and pre-processing of image and video data from various sources, including
     single image files, video files, and lists of image and video paths.
-    
+
     Attributes:
         files (List[str]): List of image and video file paths.
         nf (int): Total number of files (images and videos).
@@ -299,20 +299,20 @@ class LoadImagesAndVideos:
         frames (int): Total number of frames in the video.
         count (int): Counter for iteration, initialized at 0 during __iter__().
         ni (int): Number of images.
-    
+
     Methods:
         __init__: Initialize the LoadImagesAndVideos object.
         __iter__: Returns an iterator object for VideoStream or ImageFolder.
         __next__: Returns the next batch of images or video frames along with their paths and metadata.
         _new_video: Creates a new video capture object for the given path.
         __len__: Returns the number of batches in the object.
-    
+
     Examples:
-        >>> loader = LoadImagesAndVideos('path/to/data', batch=32, vid_stride=1)
+        >>> loader = LoadImagesAndVideos("path/to/data", batch=32, vid_stride=1)
         >>> for paths, imgs, info in loader:
         ...     # Process batch of images or video frames
         ...     pass
-    
+
     Notes:
         - Supports various image formats including HEIC.
         - Handles both local files and directories.
@@ -450,23 +450,23 @@ class LoadImagesAndVideos:
 class LoadPilAndNumpy:
     """
     Load images from PIL and Numpy arrays for batch processing.
-    
+
     This class manages loading and pre-processing of image data from both PIL and Numpy formats. It performs basic
     validation and format conversion to ensure that the images are in the required format for downstream processing.
-    
+
     Attributes:
         paths (List[str]): List of image paths or autogenerated filenames.
         im0 (List[np.ndarray]): List of images stored as Numpy arrays.
         mode (str): Type of data being processed, set to 'image'.
         bs (int): Batch size, equivalent to the length of `im0`.
-    
+
     Methods:
         _single_check: Validate and format a single image to a Numpy array.
-    
+
     Examples:
         >>> from PIL import Image
         >>> import numpy as np
-        >>> pil_img = Image.new('RGB', (100, 100))
+        >>> pil_img = Image.new("RGB", (100, 100))
         >>> np_img = np.random.randint(0, 255, (100, 100, 3), dtype=np.uint8)
         >>> loader = LoadPilAndNumpy([pil_img, np_img])
         >>> paths, images, _ = next(iter(loader))
@@ -515,19 +515,19 @@ class LoadPilAndNumpy:
 class LoadTensor:
     """
     A class for loading and processing tensor data for object detection tasks.
-    
+
     This class handles the loading and pre-processing of image data from PyTorch tensors, preparing them for
     further processing in object detection pipelines.
-    
+
     Attributes:
         im0 (torch.Tensor): The input tensor containing the image(s) with shape (B, C, H, W).
         bs (int): Batch size, inferred from the shape of `im0`.
         mode (str): Current processing mode, set to 'image'.
         paths (List[str]): List of image paths or auto-generated filenames.
-    
+
     Methods:
         _single_check: Validates and formats an input tensor.
-    
+
     Examples:
         >>> import torch
         >>> tensor = torch.rand(1, 3, 640, 640)
@@ -603,21 +603,21 @@ def autocast_list(source):
 def get_best_youtube_url(url, method="pytube"):
     """
     Retrieves the URL of the best quality MP4 video stream from a given YouTube video.
-    
+
     Args:
         url (str): The URL of the YouTube video.
         method (str): The method to use for extracting video info. Options are "pytube", "pafy", and "yt-dlp".
             Defaults to "pytube".
-    
+
     Returns:
         (str | None): The URL of the best quality MP4 video stream, or None if no suitable stream is found.
-    
+
     Examples:
         >>> url = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
         >>> best_url = get_best_youtube_url(url)
         >>> print(best_url)
         https://rr4---sn-q4flrnek.googlevideo.com/videoplayback?expire=...
-    
+
     Notes:
         - Requires additional libraries based on the chosen method: pytubefix, pafy, or yt-dlp.
         - The function prioritizes streams with at least 1080p resolution when available.

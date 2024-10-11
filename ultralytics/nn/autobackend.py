@@ -341,7 +341,9 @@ class AutoBackend(nn.Module):
                 delegate = {"Linux": "libedgetpu.so.1", "Darwin": "libedgetpu.1.dylib", "Windows": "edgetpu.dll"}[
                     platform.system()
                 ]
-                interpreter = Interpreter(model_path=w, experimental_delegates=[load_delegate(delegate, options={"device": device})])
+                interpreter = Interpreter(
+                    model_path=w, experimental_delegates=[load_delegate(delegate, options={"device": device})]
+                )
             else:  # TFLite
                 LOGGER.info(f"Loading {w} for TensorFlow Lite inference...")
                 interpreter = Interpreter(model_path=w)  # load TFLite model

@@ -181,7 +181,7 @@ There are over 💯 keyword arguments for all of the various Ultralytics [tasks]
         conf=0.25,  # (float) minimum confidence threshold
         iou=0.7,  # (float) intersection over union (IoU) threshold for NMS
         vid_stride=1,  # (int) video frame-rate stride
-        stream_buffer=False,  # (bool) buffer all streaming frames (True) or return the most recent frame (False)
+        stream_buffer=False,  # (bool) buffer incoming frames in a queue (True) or only keep the most recent frame (False)
         visualize=False,  # (bool) visualize model features
         augment=False,  # (bool) apply image augmentation to prediction sources
         agnostic_nms=False,  # (bool) class-agnostic NMS

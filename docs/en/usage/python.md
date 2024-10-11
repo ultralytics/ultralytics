@@ -51,7 +51,7 @@ Train mode is used for training a YOLO11 model on a custom dataset. In this mode
 
 !!! example "Train"
 
-    === "From pretrained(recommended)"
+    === "From pretrained (recommended)"
 
         ```python
         from ultralytics import YOLO

@@ -4,10 +4,6 @@ description: Explore the Ultralytics data explorer functions including YOLO data
 keywords: Ultralytics, YOLO, data explorer, image querying, embeddings, similarity index, python, machine learning
 ---
 
-# Reference for `ultralytics/data/explorer/explorer.py`
-
-!!! note
-
-    This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/explorer/explorer.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/explorer/explorer.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/data/explorer/explorer.py) 🛠️. Thank you 🙏!
+Support for Ultralytics Explorer has been deprecated as of version 8.3.10. We’re excited to offer similar features in [Ultralytics HUB](https://hub.ultralytics.com/), our no-code platform. 🚀
 
 <br>

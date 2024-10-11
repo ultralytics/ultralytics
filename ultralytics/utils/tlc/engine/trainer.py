@@ -168,7 +168,7 @@ class TLCTrainerMixin(BaseTrainer):
                 self.validator.metrics.box.r_curve, # (nc, 1000)
                 self.validator.metrics.box.p_curve, # (nc, 1000)
             ]
-            names = ["F1_curve", "Recall", "Precision"]
+            names = ["F1_score", "Recall", "Precision"]
             px = self.validator.metrics.box.px # (1000,) (linspace(0, 1)
             
             values = {}

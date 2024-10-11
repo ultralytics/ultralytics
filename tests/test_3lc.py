@@ -104,7 +104,7 @@ def test_detect_training() -> None:
     # Check that confidence-recall-precision-f1 data is written
     assert "3LC/Precision" in run.constants["parameters"]
     assert "3LC/Recall" in run.constants["parameters"]
-    assert "3LC/F1_Score" in run.constants["parameters"]
+    assert "3LC/F1_score" in run.constants["parameters"]
     
     # Check that there is a per-epoch value written
     assert len(run.constants["outputs"]) > 0, "No outputs written"

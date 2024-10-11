@@ -26,7 +26,6 @@ def imread(filename: str, flags: int = cv2.IMREAD_COLOR):
     Returns:
         (np.ndarray): The read image.
     """
-
     if filename.split(".")[-1].lower() == "heic":
         # Load HEIC image using Pillow with pillow-heif
         check_requirements("pillow-heif")

@@ -4,8 +4,6 @@ description: Explore the Ultralytics data explorer functions including YOLO data
 keywords: Ultralytics, YOLO, data explorer, image querying, embeddings, similarity index, python, machine learning
 ---
 
-### Community Note ⚠️
-
-- As of **`ultralytics>=8.3.10`**, Ultralytics explorer support has been deprecated. But don’t worry! You can now access similar and even enhanced functionality through [Ultralytics HUB](https://hub.ultralytics.com/), our intuitive no-code platform designed to streamline your workflow. With Ultralytics HUB, you can continue exploring, visualizing, and managing your data effortlessly, all without writing a single line of code. Make sure to check it out and take advantage of its powerful features!🚀
+Support for Ultralytics Explorer has been deprecated as of version 8.3.10. We’re excited to offer similar features in [Ultralytics HUB](https://hub.ultralytics.com/), our no-code platform. 🚀
 
 <br>

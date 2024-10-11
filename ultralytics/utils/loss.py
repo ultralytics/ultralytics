@@ -444,46 +444,74 @@ class v8PoseLoss(v8DetectionLoss):
         loss[2] *= self.hyp.kobj  # kobj gain
         loss[3] *= self.hyp.cls  # cls gain
         loss[4] *= self.hyp.dfl  # dfl gain
-
-        #TODO: create a custom criterion for contrastive learning
-        # target_gt_idx (B, n_anchors)
+        
+        # custom triplet loss for classification
         # target_labels (B, n_anchors)
-        # embeddings (B, n_features, N_anchors)
-        triplet_loss = 0
+        # embeddings (B, n_features, n_anchors)
+        # fg_mask (B, n_anchors) <-- boolean tensor vector showing which anchor (candidate) has a match with the ground truth
         import torch.nn.functional as F
+        triplet_loss = 0
+        triplet_loss1 = 0
         for b in range(batch_size):
-            n_samples = 4
-            # pull random indices from target_gt_idx for two cases. 1) target_lables=0, 2) target_labels=1
-            if len(torch.where(target_labels[b] == 0)[0]) < n_samples*2 or len(torch.where(target_labels[b] == 1)[0]) < n_samples:
+            if fg_mask[b].sum() == 0:  # skip if there is no match between anchors and ground truths
                 continue
-            anc_indices = torch.where(target_labels[b] == 0)[0]
-            rand_indices = torch.randint(0, anc_indices.nelement(), (n_samples*2,))
-            rand_anc_indices = anc_indices[:n_samples]
-            rand_pos_indices = anc_indices[n_samples:]
 
-            neg_indices = torch.where(target_labels[b] == 1)[0]
-            rand_indices = torch.randint(0, neg_indices.nelement(), (n_samples,))
-            rand_neg_indices = neg_indices[rand_indices]
+            # apply foreground masking 
+            targets = target_labels[b][fg_mask[b]]  # ground truth labels that have a match with a detection candidate (anchor)
+            embs = embeddings[b].permute(1, 0)  # (n_features, n_anchors) -> (n_anchors, n_features)
+            embs = embs[fg_mask[b]]  # embeddings that have a match with a ground truth (n_matches, n_features)
 
-            # get target labels for anchors
-            # target_labels_anc = target_labels[b][rand_anc_indices]  # target labels for anchors
-            target_labels_anc = torch.zeros(n_samples).to(self.device)
+            # find unique classes
+            uniq_classes = torch.unique(targets)
+            if len(uniq_classes) < 2:  # skip if there are not enough classes to make a triplet
+                continue
 
-            # pull anchor, positive, and negative embeddings
-            emb = embeddings.permute(0, 2, 1)  # (1, n_anchors, n_features)
-            emb_anc = emb[b][rand_anc_indices]  # anchor embeddings  (1, n_features)
-            emb_pos = emb[b][rand_pos_indices]  # positive embeddings  (1, n_features)
-            emb_neg = emb[b][rand_neg_indices]  # negative embeddings  (1, n_features)
+            # pull random indices (ok to be redundant) for query, positive, and negative
+            n_samples = 10
 
-            # compute triplet loss
-            for i in range(n_samples):
-                logit = (emb_anc[i] * emb_pos[i]).sum().unsqueeze(0) - (emb_anc[i] * emb_neg[i]).sum().unsqueeze(0)
-                # emb_anc[i] * (emb_pos[i] - emb_neg[i]).sum().unsqueeze(0)
-                # prob = torch.sigmoid(logit)  # prob = sigmoid((anc, pos) - (anc, neg))
-                target = torch.tensor([target_labels_anc[i]]).float().to(self.device)
-                triplet_loss += F.binary_cross_entropy_with_logits(logit, target)
+            query_class_indices = torch.randint(0, len(uniq_classes), (n_samples,))  # query class indices (n_samples,)
+            neg_class_indices = torch.randint(0, len(uniq_classes) - 1, (n_samples,))  # negative class indices
+            neg_class_indices[neg_class_indices >= query_class_indices] += 1  # ensure each negative class index is different from a corresponding query class index (n_samples,)
+            
+            def select_rand_idx_per_class(targets, class_indices):
+                # Fetch the actual class labels
+                class_labels = uniq_classes[class_indices]  # Shape: (n_samples,)
+                # Create a boolean mask where each row shows which target label == class label
+                mask = targets.unsqueeze(0) == class_labels.unsqueeze(1)  # (n_samples, n_targets)
+                # Convert mask to float for torch.multinomial
+                probs = mask.float()
+                # take one index per sample where mask is True
+                selected_indices = torch.multinomial(probs, num_samples=1).squeeze(1)  # Shape: (n_samples,)
+                return selected_indices
+        
+            query_indices = select_rand_idx_per_class(targets, query_class_indices)  # query sample indices (n_samples,)
+            # pos_indices = query_indices[torch.randperm(len(query_indices))]  # positive sample indices (n_samples,)
+            pos_indices = select_rand_idx_per_class(targets, query_class_indices)  # positive sample indices (n_samples,)
+            neg_indices = select_rand_idx_per_class(targets, neg_class_indices)  # negative sample indices (n_samples,)
 
-        return loss.sum() * batch_size, loss.detach()  # loss(box, cls, dfl)
+            # extract embeddings for query, positive, and negative samples
+            embs_query = embs[query_indices]  # query embeddings  (n_samples, n_features) 
+            embs_pos = embs[pos_indices]  # positive embeddings  (n_samples, n_features)
+            embs_neg = embs[neg_indices]  # negative embeddings  (n_samples, n_features)
+
+            # # compute triplet loss
+            # for i in range(n_samples):
+            #     triplets = (embs_query[i], embs_pos[i], embs_neg[i])  # embeddings for query, positive, and negative samples
+            #     logit = torch.dot(triplets[0], (triplets[1] - triplets[2]))  # dot(query, pos) - dot(query, neg)
+            #     y = torch.ones_like(logit)  # (n_samples,)
+            #     triplet_loss += F.binary_cross_entropy_with_logits(logit, y)
+
+            # compute triplet loss (vectorization method)
+            diff = embs_pos - embs_neg  # (n_samples, n_features)
+            logits = torch.sum(embs_query * diff, dim=1)  # Shape: (n_samples,)
+            y = torch.ones_like(logits)  # y is always 1 if we consider (query, pos) as a positive pair; (n_samples,)
+            triplet_loss += F.binary_cross_entropy_with_logits(logits, y, reduction='sum')
+            #TODO: figure out how other losses are calculated (e.g., mean, sum, etc.)
+
+        triplet_loss /= batch_size
+        loss[5] = triplet_loss
+
+        return loss.sum() * batch_size, loss.detach()  # loss(box, pose, kobj, cls, dfl, triplet)
 
     @staticmethod
     def kpts_decode(anchor_points, pred_kpts):

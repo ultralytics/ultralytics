@@ -176,7 +176,8 @@ jobs:
   trigger-actions:
     runs-on: ubuntu-latest
     needs: docker
-    if: success() && github.repository == 'ultralytics/ultralytics' && github.event_name == 'push'
+    # Only trigger actions on new Ultralytics releases
+    if: success() && github.repository == 'ultralytics/ultralytics' && github.event_name == 'push' && steps.check_tag.outputs.exists == 'false'
     steps:
       - name: Trigger Additional GitHub Actions
         run: |

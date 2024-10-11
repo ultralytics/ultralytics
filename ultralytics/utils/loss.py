@@ -484,7 +484,6 @@ class v8PoseLoss(v8DetectionLoss):
                 return selected_indices
         
             query_indices = select_rand_idx_per_class(targets, query_class_indices)  # query sample indices (n_samples,)
-            # pos_indices = query_indices[torch.randperm(len(query_indices))]  # positive sample indices (n_samples,)
             pos_indices = select_rand_idx_per_class(targets, query_class_indices)  # positive sample indices (n_samples,)
             neg_indices = select_rand_idx_per_class(targets, neg_class_indices)  # negative sample indices (n_samples,)
 

@@ -623,8 +623,14 @@ class Exporter:
         f_onnx = str(self.file.with_suffix(".onnx"))  # onnx model file
         assert Path(f_onnx).exists(), f"failed to export ONNX file: {f_onnx}"
         f = str(self.file.with_suffix(".mnn"))  # MNN model file
-        args = ["", "-f", "ONNX", "--modelFile", f_onnx, "--MNNModel", f, "--fp16"]
+        args = ["", "-f", "ONNX", "--modelFile", f_onnx, "--MNNModel", f]
+        if self.args.int8:
+            args.append("--weightQuantBits")
+            args.append("8")
+        if self.args.half:
+            args.append("--fp16")
         Tools.mnnconvert(args)
+        yaml_save("metadata.yaml", self.metadata)  # add metadata.yaml
         return f, None
 
     @try_export

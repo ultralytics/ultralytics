@@ -73,7 +73,7 @@ YOLO11 pretrained Pose models are shown here. Detect, Segment and Pose models ar
 
 ## Train
 
-Train a YOLO11-pose model on the COCO128-pose dataset.
+Train a YOLO11-pose model on the COCO8-pose dataset.
 
 !!! example
 
@@ -110,7 +110,7 @@ YOLO pose dataset format can be found in detail in the [Dataset Guide](../datase
 
 ## Val
 
-Validate trained YOLO11n-pose model [accuracy](https://www.ultralytics.com/glossary/accuracy) on the COCO128-pose dataset. No arguments are needed as the `model` retains its training `data` and arguments as model attributes.
+Validate trained YOLO11n-pose model [accuracy](https://www.ultralytics.com/glossary/accuracy) on the COCO8-pose dataset. No arguments are needed as the `model` retains its training `data` and arguments as model attributes.
 
 !!! example
 

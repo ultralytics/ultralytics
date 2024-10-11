@@ -391,8 +391,9 @@ class v8PoseLoss(v8DetectionLoss):
 
     def __call__(self, preds, batch):
         """Calculate the total loss and detach it."""
-        loss = torch.zeros(6, device=self.device)  # box, cls, dfl, kpt_location, kpt_visibility, triplet loss
+        loss = torch.zeros(5+2, device=self.device)  # box, cls, dfl, kpt_location, kpt_visibility, triplet loss, avg_logits
         feats, pred_kpts = preds if isinstance(preds[0], list) else preds[1]
+
         pred_distri, pred_scores, embeddings = torch.cat([xi.view(feats[0].shape[0], self.no, -1) for xi in feats], 2).split(
             (self.reg_max * 4, self.nc, self.no - (self.reg_max * 4 + self.nc)), 1)
 
@@ -400,6 +401,7 @@ class v8PoseLoss(v8DetectionLoss):
         pred_scores = pred_scores.permute(0, 2, 1).contiguous()
         pred_distri = pred_distri.permute(0, 2, 1).contiguous()
         pred_kpts = pred_kpts.permute(0, 2, 1).contiguous()
+        embeddings = embeddings.permute(0, 2, 1).contiguous()  # (B, n_features, n_anchors) -> (B, n_anchors, n_features)
 
         dtype = pred_scores.dtype
         imgsz = torch.tensor(feats[0].shape[2:], device=self.device, dtype=dtype) * self.stride[0]  # image size (h,w)
@@ -444,6 +446,9 @@ class v8PoseLoss(v8DetectionLoss):
         loss[2] *= self.hyp.kobj  # kobj gain
         loss[3] *= self.hyp.cls  # cls gain
         loss[4] *= self.hyp.dfl  # dfl gain
+
+        #TODO: conduct experiment with sub-features per embedding
+        embeddings = embeddings[:,:,embeddings.shape[2]//2:]  # last 32 embeddings
         
         # custom triplet loss for classification
         # target_labels (B, n_anchors)
@@ -451,14 +456,14 @@ class v8PoseLoss(v8DetectionLoss):
         # fg_mask (B, n_anchors) <-- boolean tensor vector showing which anchor (candidate) has a match with the ground truth
         import torch.nn.functional as F
         triplet_loss = 0
+        logits_avg = 0
         for b in range(batch_size):
             if fg_mask[b].sum() == 0:  # skip if there is no match between anchors and ground truths
                 continue
 
             # apply foreground masking 
             targets = target_labels[b][fg_mask[b]]  # ground truth labels that have a match with a detection candidate (anchor)
-            embs = embeddings[b].permute(1, 0)  # (n_features, n_anchors) -> (n_anchors, n_features)
-            embs = embs[fg_mask[b]]  # embeddings that have a match with a ground truth (n_matches, n_features)
+            embs = embeddings[b][fg_mask[b]]  # embeddings that have a match with a ground truth (n_matches, n_features)
 
             # find unique classes
             uniq_classes = torch.unique(targets)
@@ -479,7 +484,7 @@ class v8PoseLoss(v8DetectionLoss):
                 mask = targets.unsqueeze(0) == class_labels.unsqueeze(1)  # (n_samples, n_targets)
                 # Convert mask to float for torch.multinomial
                 probs = mask.float()
-                # take one index per sample where mask is True
+                # Take one index per row (target labels) where mask is True
                 selected_indices = torch.multinomial(probs, num_samples=1).squeeze(1)  # Shape: (n_samples,)
                 return selected_indices
         
@@ -501,15 +506,20 @@ class v8PoseLoss(v8DetectionLoss):
 
             # compute triplet loss (vectorization method)
             diff = embs_pos - embs_neg  # (n_samples, n_features)
-            logits = torch.sum(embs_query * diff, dim=1)  # Shape: (n_samples,)
+            logits = torch.sum(embs_query * diff, dim=1)  # (n_samples,)
+            logits_avg += logits.mean().item()
             y = torch.ones_like(logits)  # y is always 1 if we consider (query, pos) as a positive pair; (n_samples,)
             triplet_loss += F.binary_cross_entropy_with_logits(logits, y, reduction='sum')
-            #TODO: figure out how other losses are calculated (e.g., mean, sum, etc.)
 
         triplet_loss /= batch_size
         loss[5] = triplet_loss
 
-        return loss.sum() * batch_size, loss.detach()  # loss(box, pose, kobj, cls, dfl, triplet)
+        #TODO: report avg logits to wandb for validating our apporach
+        logits_avg /= batch_size
+        loss[6] = logits_avg
+        print("-----------------avg logits", logits_avg)
+
+        return loss[:6].sum() * batch_size, loss.detach()  # loss(box, pose, kobj, cls, dfl, triplet)
 
     @staticmethod
     def kpts_decode(anchor_points, pred_kpts):

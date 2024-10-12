@@ -8,6 +8,7 @@ import numpy as np
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from matplotlib.figure import Figure
 from sympy.codegen import Print
+from tensorflow.python.ops.signal.shape_ops import frame
 
 from ultralytics.solutions.solutions import BaseSolution  # Import a parent class
 
@@ -19,17 +20,17 @@ class Analytics(BaseSolution):
         """Initialize the Analytics class with various chart types."""
         super().__init__(**kwargs)
 
-        self.bg_color = "white"     # background color of frame
-        self.fg_color = "#111e68"     # foreground color of frame
+        self.bg_color = "#00F344"     # background color of frame
+        self.fg_color = "#111E68"     # foreground color of frame
         self.title = "Ultralytics Solutions"
-        self.max_points = 30
+        self.max_points = 45
         x_label = "Frame#"
         y_label = "Total Counts"
-        self.fontsize = 13
+        self.fontsize = 25
         self.type = self.CFG["analytics_type"]
         self.total_counts = 0
         # Set figure size based on image shape
-        figsize = (1280 / 100, 720 / 100)
+        figsize = (19.2 , 10.8)
 
         if self.type in {"line", "multiline", "area"}:
             # Initialize line or area plot
@@ -64,31 +65,30 @@ class Analytics(BaseSolution):
             self.ax.axis("equal") if type == "pie" else None
 
         # Set common axis properties
-        self.ax.set_title(self.title, color=self.fg_color, fontsize=13)
-        self.ax.set_xlabel(x_label, color=self.fg_color, fontsize=self.fontsize - 3)
-        self.ax.set_ylabel(y_label, color=self.fg_color, fontsize=self.fontsize - 3)
+        self.ax.set_title(self.title, color=self.fg_color, fontsize=self.fontsize)
+        self.ax.set_xlabel(x_label, color=self.fg_color, fontsize=self.fontsize - 5)
+        self.ax.set_ylabel(y_label, color=self.fg_color, fontsize=self.fontsize - 5)
         self.ax.tick_params(axis="both", colors=self.fg_color)
 
     def process_data(self, im0, frame_number):
         self.extract_tracks(im0)  # Extract tracks
-        print("self.type : ", self.type)
+
         if self.type == "line":
             for box in self.boxes:
                 self.total_counts += 1
-            self.update_line(frame_number)
-        elif self.type == "multiline":
+            self.update_lines(frame_number=frame_number)
+            self.total_counts = 0
+        if self.type == "multiline":
             labels, data = [], {}
             for box, track_id, cls in zip(self.boxes, self.track_ids, self.clss):
-                # Store each class label
+                # Store each class label and count
                 if self.names[int(cls)] not in labels:
                     labels.append(self.names[int(cls)])
-
-                # Store each class count
                 if self.names[int(cls)] in data:
                     data[self.names[int(cls)]] += 1
                 else:
                     data[self.names[int(cls)]] = 0
-            self.update_multiple_lines(data, labels, frame_number)
+            self.update_lines(counts_dict=data, labels_list=labels, frame_number=frame_number)
 
         elif self.type == "pie" or self.type == "bar" or self.type == "area":
             for box, cls in zip(boxes, clss):
@@ -151,7 +151,7 @@ class Analytics(BaseSolution):
         self.ax.set_title(self.title, color=self.fg_color, fontsize=self.fontsize)
         self.ax.set_xlabel(self.x_label, color=self.fg_color, fontsize=self.fontsize - 3)
         self.ax.set_ylabel(self.y_label, color=self.fg_color, fontsize=self.fontsize - 3)
-        legend = self.ax.legend(loc="upper left", fontsize=13, facecolor=self.bg_color, edgecolor=self.fg_color)
+        legend = self.ax.legend(loc="upper left", fontsize=13, facecolor=self.fg_color, edgecolor=self.fg_color)
 
         # Set legend text color
         for text in legend.get_texts():
@@ -161,62 +161,52 @@ class Analytics(BaseSolution):
         im0 = np.array(self.canvas.renderer.buffer_rgba())
         self.display(im0)
 
-    def update_line(self, frame_number):
+    def update_lines(self, counts_dict=None, labels_list=None, frame_number=None):
         """
-        Update the line graph with new data.
+        Update the line graph with new data for single or multiple classes.
+        Removes old points after reaching max_points and applies custom style.
 
         Args:
+            counts_dict (dict, optional): Dictionary with class counts for multiple lines. Defaults to None.
+            labels_list (list, optional): List of class labels for multiple lines. Defaults to None.
             frame_number (int): The current frame number.
         """
-        # Update line graph data
-        x_data = self.line.get_xdata()
-        y_data = self.line.get_ydata()
-        x_data = np.append(x_data, float(frame_number))
-        y_data = np.append(y_data, float(self.total_counts))
-        self.line.set_data(x_data, y_data)
-        self.total_counts = 0
-        self.ax.relim()
-        self.ax.autoscale_view()
-        self.canvas.draw()
-        im0 = np.array(self.canvas.renderer.buffer_rgba())
-        self.display(im0)
-        return im0
+        if counts_dict is None:
+            # Append new data point for single line
+            x_data = np.append(self.line.get_xdata(), float(frame_number))
+            y_data = np.append(self.line.get_ydata(), float(self.total_counts))
 
-    def update_multiple_lines(self, counts_dict, labels_list, frame_number):
-        """
-        Update the line graph with multiple classes.
+            if len(x_data) > self.max_points:   # Trim excess points for single line
+                x_data, y_data = x_data[-self.max_points:], y_data[-self.max_points:]
 
-        Args:
-            counts_dict (int): Dictionary include each class counts.
-            labels_list (int): list include each classes names.
-            frame_number (int): The current frame number.
-        """
-        for obj in labels_list:
-            if obj not in self.lines:
-                (line,) = self.ax.plot([], [], label=obj, marker="o", markersize=self.line_width * 3)
-                self.lines[obj] = line
+            # Update style and data for single line
+            self.line.set_data(x_data, y_data)
+            self.line.set_label("Counts")
+            self.line.set_color("#7b0068")  # Pink color
+            self.line.set_marker("*")
+            self.line.set_markersize(self.line_width * 5)
+        else:
+            for obj in labels_list:  # Multiple lines update logic
+                if obj not in self.lines:
+                    (line,) = self.ax.plot([], [], label=obj, marker="o", markersize=self.line_width * 5)
+                    self.lines[obj] = line
 
-            x_data = self.lines[obj].get_xdata()
-            y_data = self.lines[obj].get_ydata()
+                # Append new data point for each class
+                x_data = np.append(self.lines[obj].get_xdata(), float(frame_number))
+                y_data = np.append(self.lines[obj].get_ydata(), float(counts_dict.get(obj, 0)))
+                self.lines[obj].set_data(x_data, y_data)
+                # Trim excess points for each class
+                if len(x_data) >= self.max_points:
+                    x_data, y_data = x_data[1:], y_data[1:]
 
-            # Remove the initial point if the number of points exceeds max_points
-            if len(x_data) >= self.max_points:
-                x_data = np.delete(x_data, 0)
-                y_data = np.delete(y_data, 0)
-
-            x_data = np.append(x_data, float(frame_number))  # Ensure frame_number is converted to float
-            y_data = np.append(y_data, float(counts_dict.get(obj, 0)))  # Ensure total_count is converted to float
-            self.lines[obj].set_data(x_data, y_data)
-
+        # Redraw graph, update view, capture and display the updated plot
         self.ax.relim()
         self.ax.autoscale_view()
         self.ax.legend()
         self.canvas.draw()
-
         im0 = np.array(self.canvas.renderer.buffer_rgba())
-        self.view_img = False  # for multiple line view_img not supported yet, coming soon!
         self.display(im0)
-        return im0
+        return im0  # return image
 
     def display(self, im0):
         """

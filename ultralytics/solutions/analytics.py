@@ -63,7 +63,7 @@ class Analytics(BaseSolution):
         if self.type == "line":
             for box in self.boxes:
                 self.total_counts += 1
-            self.update_graph(frame_number=frame_number)
+            im0 = self.update_graph(frame_number=frame_number)
             self.total_counts = 0
         elif self.type == "pie" or self.type == "bar" or self.type == "area":
             self.clswise_count = {}
@@ -72,7 +72,7 @@ class Analytics(BaseSolution):
                     self.clswise_count[self.names[int(cls)]] += 1
                 else:
                     self.clswise_count[self.names[int(cls)]] = 1
-            self.update_graph(frame_number=frame_number, count_dict=self.clswise_count, plot=self.type)
+            im0 = self.update_graph(frame_number=frame_number, count_dict=self.clswise_count, plot=self.type)
         else:
             raise ModuleNotFoundError(f"{self.type} chart is not supported ❌")
         return im0
@@ -188,15 +188,7 @@ class Analytics(BaseSolution):
         self.ax.autoscale_view()
         self.canvas.draw()
         im0 = np.array(self.canvas.renderer.buffer_rgba())
-        self.display(im0)
-
-        return im0  # Return the image
-
-    def display(self, im0):
-        """
-        Write and display the line graph
-        Args:
-            im0 (ndarray): Image for processing.
-        """
         im0 = cv2.cvtColor(im0[:, :, :3], cv2.COLOR_RGBA2BGR)
         self.display_output(im0)
+
+        return im0  # Return the image

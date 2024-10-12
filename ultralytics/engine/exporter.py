@@ -334,11 +334,10 @@ class Exporter:
                 f[9], _ = self.export_tfjs()
         if paddle:  # PaddlePaddle
             f[10], _ = self.export_paddle()
-        if mnn: # MNN
+        if mnn:  # MNN
             f[11], _ = self.export_mnn()
         if ncnn:  # NCNN
             f[12], _ = self.export_ncnn()
-
 
         # Finish
         f = [str(x) for x in f if x]  # filter out '' and None

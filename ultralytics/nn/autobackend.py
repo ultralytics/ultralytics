@@ -383,7 +383,9 @@ class AutoBackend(nn.Module):
             LOGGER.info(f"Loading {w} for MNN inference...")
             check_requirements("MNN")  # requires MNN
             import os
+
             import MNN
+
             config = {}
             config["precision"] = "low"
             config["backend"] = "CPU"

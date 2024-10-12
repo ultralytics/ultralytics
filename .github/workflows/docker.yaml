@@ -81,6 +81,8 @@ jobs:
           # - dockerfile: "Dockerfile-conda"
           #   tags: "latest-conda"
           #   platforms: "linux/amd64"
+    outputs:
+      new_release: ${{ steps.check_tag.outputs.new_release }}
     steps:
       - name: Cleanup disk
         # Free up to 30GB of disk space per https://github.com/ultralytics/ultralytics/pull/15848
@@ -111,7 +113,6 @@ jobs:
           VERSION=$(grep "^__version__ =" ultralytics/__init__.py | awk -F'"' '{print $2}')
           echo "Retrieved Ultralytics version: $VERSION"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
-
           VERSION_TAG=$(echo "${{ matrix.tags }}" | sed "s/latest/${VERSION}/")
           echo "Intended version tag: $VERSION_TAG"
           echo "version_tag=$VERSION_TAG" >> $GITHUB_OUTPUT
@@ -123,13 +124,13 @@ jobs:
           MESSAGE=$(echo $RESPONSE | jq -r '.message')
           if [[ "$MESSAGE" == "null" ]]; then
               echo "Tag $VERSION_TAG already exists on DockerHub."
-              echo "exists=true" >> $GITHUB_OUTPUT
+              echo "new_release=false" >> $GITHUB_OUTPUT
           elif [[ "$MESSAGE" == *"404"* ]]; then
               echo "Tag $VERSION_TAG does not exist on DockerHub."
-              echo "exists=false" >> $GITHUB_OUTPUT
+              echo "new_release=true" >> $GITHUB_OUTPUT
           else
               echo "Unexpected response from DockerHub. Please check manually."
-              echo "exists=false" >> $GITHUB_OUTPUT
+              echo "new_release=false" >> $GITHUB_OUTPUT
           fi
         env:
           VERSION_TAG: ${{ steps.get_version.outputs.version_tag }}
@@ -159,7 +160,7 @@ jobs:
         run: docker run ultralytics/ultralytics:${{ matrix.tags }} yolo benchmark model=yolo11n.pt imgsz=160 verbose=0.309
 
       - name: Push Docker Image with Ultralytics version tag
-        if: (github.event_name == 'push' || (github.event.inputs[matrix.dockerfile] == 'true' && github.event.inputs.push == 'true')) && steps.check_tag.outputs.exists == 'false' && matrix.dockerfile != 'Dockerfile-conda'
+        if: (github.event_name == 'push' || (github.event.inputs[matrix.dockerfile] == 'true' && github.event.inputs.push == 'true')) && steps.check_tag.outputs.new_release == 'true' && matrix.dockerfile != 'Dockerfile-conda'
         run: |
           docker push ultralytics/ultralytics:${{ steps.get_version.outputs.version_tag }}
 
@@ -172,12 +173,12 @@ jobs:
             docker build -f docker/Dockerfile-runner -t $t .
             docker push $t
           fi
-  
+
   trigger-actions:
     runs-on: ubuntu-latest
     needs: docker
     # Only trigger actions on new Ultralytics releases
-    if: success() && github.repository == 'ultralytics/ultralytics' && github.event_name == 'push' && steps.check_tag.outputs.exists == 'false'
+    if: success() && github.repository == 'ultralytics/ultralytics' && github.event_name == 'push' && needs.docker.outputs.new_release == 'true'
     steps:
       - name: Trigger Additional GitHub Actions
         env:
@@ -190,7 +191,7 @@ jobs:
   notify:
     runs-on: ubuntu-latest
     needs: [docker, trigger-actions]
-    if: always() # This ensures the job always runs
+    if: always()
     steps:
       - name: Check for failure and notify
         if: needs.docker.result == 'failure' && github.repository == 'ultralytics/ultralytics' && github.event_name == 'push'

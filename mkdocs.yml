@@ -749,6 +749,6 @@ plugins:
         yolov5/environments/yolov5_amazon_web_services_quickstart_tutorial.md: yolov5/environments/aws_quickstart_tutorial.md
         yolov5/environments/yolov5_google_cloud_platform_quickstart_tutorial.md: yolov5/environments/google_cloud_quickstart_tutorial.md
         yolov5/environments/yolov5_docker_image_quickstart_tutorial.md: yolov5/environments/docker_image_quickstart_tutorial.md
-        reference/data/explorer/explorer: datasets/explorer/index.md
+        reference/data/explorer/explorer.md: datasets/explorer/index.md
         reference/data/explorer/gui/dash.md: datasets/explorer/index.md
         reference/data/explorer/utils.md: datasets/explorer/index.md

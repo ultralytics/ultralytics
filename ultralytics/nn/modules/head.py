@@ -57,11 +57,11 @@ class Detect(nn.Module):
 
     def forward(self, x):
         """Concatenates and returns predicted bounding boxes and class probabilities."""
-        shared_conv1_weight = self.cls_preds[0].weight
-        shared_conv2_weight = self.cls_preds[1].weight
-        shared_conv3_weight = self.cls_preds[2].weight
-        print(f"conv1==conv2: {torch.equal(shared_conv1_weight, shared_conv2_weight)}")
-        print(f"conv2==conv3: {torch.equal(shared_conv2_weight, shared_conv3_weight)}")
+        # shared_conv1_weight = self.cls_preds[0].weight
+        # shared_conv2_weight = self.cls_preds[1].weight
+        # shared_conv3_weight = self.cls_preds[2].weight
+        # print(f"conv1==conv2: {torch.equal(shared_conv1_weight, shared_conv2_weight)}")
+        # print(f"conv2==conv3: {torch.equal(shared_conv2_weight, shared_conv3_weight)}")
         
         shape = x[0].shape  # BCHW
         for i in range(self.nl):  # e.g., per detection scale (small, medium, or large)

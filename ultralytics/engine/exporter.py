@@ -890,17 +890,17 @@ class Exporter:
         )
         yaml_save(f / "metadata.yaml", self.metadata)  # add metadata.yaml
 
-        # # Remove/rename TFLite models
-        # if self.args.int8:
-        #     tmp_file.unlink(missing_ok=True)
-        #     for file in f.rglob("*_dynamic_range_quant.tflite"):
-        #         file.rename(file.with_name(file.stem.replace("_dynamic_range_quant", "_int8") + file.suffix))
-        #     for file in f.rglob("*_integer_quant_with_int16_act.tflite"):
-        #         file.unlink()  # delete extra fp16 activation TFLite files
-        #
-        # # Add TFLite metadata
-        # for file in f.rglob("*.tflite"):
-        #     f.unlink() if "quant_with_int16_act.tflite" in str(f) else self._add_tflite_metadata(file)
+        # Remove/rename TFLite models
+        if self.args.int8:
+            tmp_file.unlink(missing_ok=True)
+            for file in f.rglob("*_dynamic_range_quant.tflite"):
+                file.rename(file.with_name(file.stem.replace("_dynamic_range_quant", "_int8") + file.suffix))
+            for file in f.rglob("*_integer_quant_with_int16_act.tflite"):
+                file.unlink()  # delete extra fp16 activation TFLite files
+
+        # Add TFLite metadata
+        for file in f.rglob("*.tflite"):
+            f.unlink() if "quant_with_int16_act.tflite" in str(f) else self._add_tflite_metadata(file)
 
         return str(f), keras_model  # or keras_model = tf.saved_model.load(f, tags=None, options=None)
 

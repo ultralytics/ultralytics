@@ -24,50 +24,39 @@ class Analytics(BaseSolution):
         self.fg_color = "#111E68"     # foreground color of frame
         self.title = "Ultralytics Solutions"
         self.max_points = 45
-        x_label = "Frame#"
-        y_label = "Total Counts"
+        self.x_label = "Frame#"
+        self.y_label = "Total Counts"
         self.fontsize = 25
         self.type = self.CFG["analytics_type"]
+
         self.total_counts = 0
+        self.clswise_count = {}
+
+        self.color_cycle = cycle(["#DD00BA", "#042AFF", "#FF4447", "#7D24FF", "#BD00FF"])
+
         # Set figure size based on image shape
         figsize = (19.2 , 10.8)
 
-        if self.type in {"line", "multiline", "area"}:
-            # Initialize line or area plot
+        # Ensure line and area chart
+        if self.type in {"line", "area"}:
             self.lines = {}
             self.fig = Figure(facecolor=self.bg_color, figsize=figsize)
             self.canvas = FigureCanvas(self.fig)
             self.ax = self.fig.add_subplot(111, facecolor=self.bg_color)
             if self.type == "line":
                 (self.line,) = self.ax.plot([], [], color="cyan", linewidth=self.line_width)
-
         elif self.type in {"bar", "pie"}:
             # Initialize bar or pie plot
             self.fig, self.ax = plt.subplots(figsize=figsize, facecolor=self.bg_color)
+            self.canvas = FigureCanvas(self.fig)
             self.ax.set_facecolor(self.bg_color)
-            color_palette = [
-                (31, 119, 180),
-                (255, 127, 14),
-                (44, 160, 44),
-                (214, 39, 40),
-                (148, 103, 189),
-                (140, 86, 75),
-                (227, 119, 194),
-                (127, 127, 127),
-                (188, 189, 34),
-                (23, 190, 207),
-            ]
-            self.color_palette = [(r / 255, g / 255, b / 255, 1) for r, g, b in color_palette]
-            self.color_cycle = cycle(self.color_palette)
             self.color_mapping = {}
-
-            # Ensure pie chart is circular
-            self.ax.axis("equal") if type == "pie" else None
+            self.ax.axis("equal") if type == "pie" else None  # Ensure pie chart is circular
 
         # Set common axis properties
         self.ax.set_title(self.title, color=self.fg_color, fontsize=self.fontsize)
-        self.ax.set_xlabel(x_label, color=self.fg_color, fontsize=self.fontsize - 5)
-        self.ax.set_ylabel(y_label, color=self.fg_color, fontsize=self.fontsize - 5)
+        self.ax.set_xlabel(self.x_label, color=self.fg_color, fontsize=self.fontsize - 5)
+        self.ax.set_ylabel(self.y_label, color=self.fg_color, fontsize=self.fontsize - 5)
         self.ax.tick_params(axis="both", colors=self.fg_color)
 
     def process_data(self, im0, frame_number):
@@ -76,137 +65,122 @@ class Analytics(BaseSolution):
         if self.type == "line":
             for box in self.boxes:
                 self.total_counts += 1
-            self.update_lines(frame_number=frame_number)
+            self.update_lines_and_area(frame_number=frame_number)
             self.total_counts = 0
-        if self.type == "multiline":
-            labels, data = [], {}
-            for box, track_id, cls in zip(self.boxes, self.track_ids, self.clss):
-                # Store each class label and count
-                if self.names[int(cls)] not in labels:
-                    labels.append(self.names[int(cls)])
-                if self.names[int(cls)] in data:
-                    data[self.names[int(cls)]] += 1
-                else:
-                    data[self.names[int(cls)]] = 0
-            self.update_lines(counts_dict=data, labels_list=labels, frame_number=frame_number)
-
         elif self.type == "pie" or self.type == "bar" or self.type == "area":
-            for box, cls in zip(boxes, clss):
-                if self.names[int(cls)] in clswise_count:
-                    clswise_count[self.names[int(cls)]] += 1
+            self.clswise_count = {}
+            for box, cls in zip(self.boxes, self.clss):
+                if self.names[int(cls)] in self.clswise_count:
+                    self.clswise_count[self.names[int(cls)]] += 1
                 else:
-                    clswise_count[self.names[int(cls)]] = 1
+                    self.clswise_count[self.names[int(cls)]] = 1
+            if self.type=="area":
+                self.update_graph(frame_number=frame_number,
+                                  count_dict=self.clswise_count, plot="area")
+            if self.type=="bar":
+                self.update_graph(frame_number=frame_number,
+                                  count_dict=self.clswise_count, plot="bar")
+
         else:
             Print(f"{self.type} is not supported")
         return im0
 
-    def update_area(self, frame_number, counts_dict):
+    def update_graph(self, frame_number, count_dict=None, plot="line"):
         """
-        Update the area graph with new data for multiple classes.
+        Update the graph (line or area) with new data for single or multiple classes.
 
         Args:
             frame_number (int): The current frame number.
-            counts_dict (dict): Dictionary with class names as keys and counts as values.
+            count_dict (dict, optional): Dictionary with class names as keys and counts as values for multiple classes.
+                                          If None, updates a single line graph.
+            plot (str): Type of the plot i.e. line, bar or area.
         """
-        x_data = np.array([])
-        y_data_dict = {key: np.array([]) for key in counts_dict.keys()}
-
-        if self.ax.lines:
-            x_data = self.ax.lines[0].get_xdata()
-            for line, key in zip(self.ax.lines, counts_dict.keys()):
-                y_data_dict[key] = line.get_ydata()
-
-        x_data = np.append(x_data, float(frame_number))
-        max_length = len(x_data)
-
-        for key in counts_dict.keys():
-            y_data_dict[key] = np.append(y_data_dict[key], float(counts_dict[key]))
-            if len(y_data_dict[key]) < max_length:
-                y_data_dict[key] = np.pad(y_data_dict[key], (0, max_length - len(y_data_dict[key])), "constant")
-
-        # Remove the oldest points if the number of points exceeds max_points
-        if len(x_data) > self.max_points:
-            x_data = x_data[1:]
-            for key in counts_dict.keys():
-                y_data_dict[key] = y_data_dict[key][1:]
-
-        self.ax.clear()
-
-        colors = ["#E1FF25", "#0BDBEB", "#FF64DA", "#111F68", "#042AFF"]
-        color_cycle = cycle(colors)
-
-        for key, y_data in y_data_dict.items():
-            color = next(color_cycle)
-            self.ax.fill_between(x_data, y_data, color=color, alpha=0.6)
-            self.ax.plot(
-                x_data,
-                y_data,
-                color=color,
-                linewidth=self.line_width,
-                marker="o",
-                markersize=self.line_width * 3,
-                label=f"{key} Data Points",
-            )
-
-        self.ax.set_title(self.title, color=self.fg_color, fontsize=self.fontsize)
-        self.ax.set_xlabel(self.x_label, color=self.fg_color, fontsize=self.fontsize - 3)
-        self.ax.set_ylabel(self.y_label, color=self.fg_color, fontsize=self.fontsize - 3)
-        legend = self.ax.legend(loc="upper left", fontsize=13, facecolor=self.fg_color, edgecolor=self.fg_color)
-
-        # Set legend text color
-        for text in legend.get_texts():
-            text.set_color(self.fg_color)
-
-        self.canvas.draw()
-        im0 = np.array(self.canvas.renderer.buffer_rgba())
-        self.display(im0)
-
-    def update_lines(self, counts_dict=None, labels_list=None, frame_number=None):
-        """
-        Update the line graph with new data for single or multiple classes.
-        Removes old points after reaching max_points and applies custom style.
-
-        Args:
-            counts_dict (dict, optional): Dictionary with class counts for multiple lines. Defaults to None.
-            labels_list (list, optional): List of class labels for multiple lines. Defaults to None.
-            frame_number (int): The current frame number.
-        """
-        if counts_dict is None:
-            # Append new data point for single line
+        if count_dict is None:
+            # Single line update
             x_data = np.append(self.line.get_xdata(), float(frame_number))
             y_data = np.append(self.line.get_ydata(), float(self.total_counts))
 
-            if len(x_data) > self.max_points:   # Trim excess points for single line
+            if len(x_data) > self.max_points:
                 x_data, y_data = x_data[-self.max_points:], y_data[-self.max_points:]
 
-            # Update style and data for single line
             self.line.set_data(x_data, y_data)
             self.line.set_label("Counts")
             self.line.set_color("#7b0068")  # Pink color
             self.line.set_marker("*")
             self.line.set_markersize(self.line_width * 5)
         else:
-            for obj in labels_list:  # Multiple lines update logic
-                if obj not in self.lines:
-                    (line,) = self.ax.plot([], [], label=obj, marker="o", markersize=self.line_width * 5)
-                    self.lines[obj] = line
+            if plot=="area":
+                color_cycle = cycle(["#DD00BA", "#042AFF", "#FF4447", "#7D24FF", "#BD00FF"])
+                # Multiple lines or area update
+                x_data = self.ax.lines[0].get_xdata() if self.ax.lines else np.array([])
+                y_data_dict = {key: np.array([]) for key in count_dict.keys()}
 
-                # Append new data point for each class
-                x_data = np.append(self.lines[obj].get_xdata(), float(frame_number))
-                y_data = np.append(self.lines[obj].get_ydata(), float(counts_dict.get(obj, 0)))
-                self.lines[obj].set_data(x_data, y_data)
-                # Trim excess points for each class
-                if len(x_data) >= self.max_points:
-                    x_data, y_data = x_data[1:], y_data[1:]
+                if self.ax.lines:
+                    for line, key in zip(self.ax.lines, count_dict.keys()):
+                        y_data_dict[key] = line.get_ydata()
 
-        # Redraw graph, update view, capture and display the updated plot
+                x_data = np.append(x_data, float(frame_number))
+                max_length = len(x_data)
+
+                for key in count_dict.keys():
+                    y_data_dict[key] = np.append(y_data_dict[key], float(count_dict[key]))
+                    if len(y_data_dict[key]) < max_length:
+                        y_data_dict[key] = np.pad(y_data_dict[key], (0, max_length - len(y_data_dict[key])), "constant")
+
+                if len(x_data) > self.max_points:
+                    x_data = x_data[1:]
+                    for key in count_dict.keys():
+                        y_data_dict[key] = y_data_dict[key][1:]
+
+                self.ax.clear()
+
+                for key, y_data in y_data_dict.items():
+                    color = next(color_cycle)
+                    self.ax.fill_between(x_data, y_data, color=color, alpha=0.7)
+                    self.ax.plot(x_data, y_data, color=color, linewidth=self.line_width, marker="o",
+                                 markersize=self.line_width * 3, label=f"{key} Data Points")
+            if plot=="bar":
+                self.ax.clear()     # clear bar data
+                labels = list(count_dict.keys())
+                counts = list(count_dict.values())
+                for label in labels:    # Map labels to colors
+                    if label not in self.color_mapping:
+                        self.color_mapping[label] = next(self.color_cycle)
+                colors = [self.color_mapping[label] for label in labels]
+                bars = self.ax.bar(labels, counts, color=colors)
+                for bar, count in zip(bars, counts):
+                    self.ax.text(
+                        bar.get_x() + bar.get_width() / 2,
+                        bar.get_height(),
+                        str(count),
+                        ha="center",
+                        va="bottom",
+                        color=self.fg_color,
+                    )
+                # Create the legend using labels from the bars
+                for bar, label in zip(bars, labels):
+                    bar.set_label(label)  # Assign label to each bar
+                self.ax.legend(loc="upper left", fontsize=13, facecolor=self.fg_color, edgecolor=self.fg_color)
+
+        # Common plot settings
+        self.ax.set_facecolor("#f0f0f0")  # Set to light gray or any other color you like
+        self.ax.set_title(self.title, color=self.fg_color, fontsize=self.fontsize)
+        self.ax.set_xlabel(self.x_label, color=self.fg_color, fontsize=self.fontsize - 3)
+        self.ax.set_ylabel(self.y_label, color=self.fg_color, fontsize=self.fontsize - 3)
+
+        # Add and format legend
+        legend = self.ax.legend(loc="upper left", fontsize=13, facecolor=self.bg_color, edgecolor=self.bg_color)
+        for text in legend.get_texts():
+            text.set_color(self.fg_color)
+
+        # Redraw graph, update view, capture, and display the updated plot
         self.ax.relim()
         self.ax.autoscale_view()
-        self.ax.legend()
         self.canvas.draw()
         im0 = np.array(self.canvas.renderer.buffer_rgba())
         self.display(im0)
-        return im0  # return image
+
+        return im0  # Return the image
 
     def display(self, im0):
         """
@@ -216,44 +190,6 @@ class Analytics(BaseSolution):
         """
         im0 = cv2.cvtColor(im0[:, :, :3], cv2.COLOR_RGBA2BGR)
         self.display_output(im0)
-
-    def update_bar(self, count_dict):
-        """
-        Update the bar graph with new data.
-
-        Args:
-            count_dict (dict): Dictionary containing the count data to plot.
-        """
-        # Update bar graph data
-        self.ax.clear()
-        self.ax.set_facecolor(self.bg_color)
-        labels = list(count_dict.keys())
-        counts = list(count_dict.values())
-
-        # Map labels to colors
-        for label in labels:
-            if label not in self.color_mapping:
-                self.color_mapping[label] = next(self.color_cycle)
-
-        colors = [self.color_mapping[label] for label in labels]
-
-        bars = self.ax.bar(labels, counts, color=colors)
-        for bar, count in zip(bars, counts):
-            self.ax.text(
-                bar.get_x() + bar.get_width() / 2,
-                bar.get_height(),
-                str(count),
-                ha="center",
-                va="bottom",
-                color=self.fg_color,
-            )
-
-        # Display and save the updated graph
-        canvas = FigureCanvas(self.fig)
-        canvas.draw()
-        buf = canvas.buffer_rgba()
-        im0 = np.asarray(buf)
-        self.display(im0)
 
     def update_pie(self, classes_dict):
         """

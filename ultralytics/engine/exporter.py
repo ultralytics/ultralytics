@@ -1,52 +1,52 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 """
-Export a YOLOv8 PyTorch model to other formats. TensorFlow exports authored by https://github.com/zldrobit.
+Export a YOLO PyTorch model to other formats. TensorFlow exports authored by https://github.com/zldrobit.
 
 Format                  | `format=argument`         | Model
 ---                     | ---                       | ---
-PyTorch                 | -                         | yolov8n.pt
-TorchScript             | `torchscript`             | yolov8n.torchscript
-ONNX                    | `onnx`                    | yolov8n.onnx
-OpenVINO                | `openvino`                | yolov8n_openvino_model/
-TensorRT                | `engine`                  | yolov8n.engine
-CoreML                  | `coreml`                  | yolov8n.mlpackage
-TensorFlow SavedModel   | `saved_model`             | yolov8n_saved_model/
-TensorFlow GraphDef     | `pb`                      | yolov8n.pb
-TensorFlow Lite         | `tflite`                  | yolov8n.tflite
-TensorFlow Edge TPU     | `edgetpu`                 | yolov8n_edgetpu.tflite
-TensorFlow.js           | `tfjs`                    | yolov8n_web_model/
-PaddlePaddle            | `paddle`                  | yolov8n_paddle_model/
-NCNN                    | `ncnn`                    | yolov8n_ncnn_model/
+PyTorch                 | -                         | yolo11n.pt
+TorchScript             | `torchscript`             | yolo11n.torchscript
+ONNX                    | `onnx`                    | yolo11n.onnx
+OpenVINO                | `openvino`                | yolo11n_openvino_model/
+TensorRT                | `engine`                  | yolo11n.engine
+CoreML                  | `coreml`                  | yolo11n.mlpackage
+TensorFlow SavedModel   | `saved_model`             | yolo11n_saved_model/
+TensorFlow GraphDef     | `pb`                      | yolo11n.pb
+TensorFlow Lite         | `tflite`                  | yolo11n.tflite
+TensorFlow Edge TPU     | `edgetpu`                 | yolo11n_edgetpu.tflite
+TensorFlow.js           | `tfjs`                    | yolo11n_web_model/
+PaddlePaddle            | `paddle`                  | yolo11n_paddle_model/
+NCNN                    | `ncnn`                    | yolo11n_ncnn_model/
 
 Requirements:
     $ pip install "ultralytics[export]"
 
 Python:
     from ultralytics import YOLO
-    model = YOLO('yolov8n.pt')
+    model = YOLO('yolo11n.pt')
     results = model.export(format='onnx')
 
 CLI:
-    $ yolo mode=export model=yolov8n.pt format=onnx
+    $ yolo mode=export model=yolo11n.pt format=onnx
 
 Inference:
-    $ yolo predict model=yolov8n.pt                 # PyTorch
-                         yolov8n.torchscript        # TorchScript
-                         yolov8n.onnx               # ONNX Runtime or OpenCV DNN with dnn=True
-                         yolov8n_openvino_model     # OpenVINO
-                         yolov8n.engine             # TensorRT
-                         yolov8n.mlpackage          # CoreML (macOS-only)
-                         yolov8n_saved_model        # TensorFlow SavedModel
-                         yolov8n.pb                 # TensorFlow GraphDef
-                         yolov8n.tflite             # TensorFlow Lite
-                         yolov8n_edgetpu.tflite     # TensorFlow Edge TPU
-                         yolov8n_paddle_model       # PaddlePaddle
-                         yolov8n_ncnn_model         # NCNN
+    $ yolo predict model=yolo11n.pt                 # PyTorch
+                         yolo11n.torchscript        # TorchScript
+                         yolo11n.onnx               # ONNX Runtime or OpenCV DNN with dnn=True
+                         yolo11n_openvino_model     # OpenVINO
+                         yolo11n.engine             # TensorRT
+                         yolo11n.mlpackage          # CoreML (macOS-only)
+                         yolo11n_saved_model        # TensorFlow SavedModel
+                         yolo11n.pb                 # TensorFlow GraphDef
+                         yolo11n.tflite             # TensorFlow Lite
+                         yolo11n_edgetpu.tflite     # TensorFlow Edge TPU
+                         yolo11n_paddle_model       # PaddlePaddle
+                         yolo11n_ncnn_model         # NCNN
 
 TensorFlow.js:
     $ cd .. && git clone https://github.com/zldrobit/tfjs-yolov5-example.git && cd tfjs-yolov5-example
     $ npm install
-    $ ln -s ../../yolov5/yolov8n_web_model public/yolov8n_web_model
+    $ ln -s ../../yolo11n_web_model public/yolo11n_web_model
     $ npm start
 """
 
@@ -124,7 +124,7 @@ def gd_outputs(gd):
 
 
 def try_export(inner_func):
-    """YOLOv8 export decorator, i.e. @try_export."""
+    """YOLO export decorator, i.e. @try_export."""
     inner_args = get_default_args(inner_func)
 
     def outer_func(*args, **kwargs):
@@ -378,7 +378,7 @@ class Exporter:
 
     @try_export
     def export_torchscript(self, prefix=colorstr("TorchScript:")):
-        """YOLOv8 TorchScript model export."""
+        """YOLO TorchScript model export."""
         LOGGER.info(f"\n{prefix} starting export with torch {torch.__version__}...")
         f = self.file.with_suffix(".torchscript")
 
@@ -395,7 +395,7 @@ class Exporter:
 
     @try_export
     def export_onnx(self, prefix=colorstr("ONNX:")):
-        """YOLOv8 ONNX export."""
+        """YOLO ONNX export."""
         requirements = ["onnx>=1.12.0"]
         if self.args.simplify:
             requirements += ["onnxslim==0.1.34", "onnxruntime" + ("-gpu" if torch.cuda.is_available() else "")]
@@ -452,7 +452,7 @@ class Exporter:
 
     @try_export
     def export_openvino(self, prefix=colorstr("OpenVINO:")):
-        """YOLOv8 OpenVINO export."""
+        """YOLO OpenVINO export."""
         check_requirements(f'openvino{"<=2024.0.0" if ARM64 else ">=2024.0.0"}')  # fix OpenVINO issue on ARM64
         import openvino as ov
 
@@ -466,7 +466,7 @@ class Exporter:
 
         def serialize(ov_model, file):
             """Set RT info, serialize and save metadata YAML."""
-            ov_model.set_rt_info("YOLOv8", ["model_info", "model_type"])
+            ov_model.set_rt_info("YOLO", ["model_info", "model_type"])
             ov_model.set_rt_info(True, ["model_info", "reverse_input_channels"])
             ov_model.set_rt_info(114, ["model_info", "pad_value"])
             ov_model.set_rt_info([255.0], ["model_info", "scale_values"])
@@ -524,7 +524,7 @@ class Exporter:
 
     @try_export
     def export_paddle(self, prefix=colorstr("PaddlePaddle:")):
-        """YOLOv8 Paddle export."""
+        """YOLO Paddle export."""
         check_requirements(("paddlepaddle", "x2paddle"))
         import x2paddle  # noqa
         from x2paddle.convert import pytorch2paddle  # noqa
@@ -538,7 +538,7 @@ class Exporter:
 
     @try_export
     def export_ncnn(self, prefix=colorstr("NCNN:")):
-        """YOLOv8 NCNN export using PNNX https://github.com/pnnx/pnnx."""
+        """YOLO NCNN export using PNNX https://github.com/pnnx/pnnx."""
         check_requirements("ncnn")
         import ncnn  # noqa
 
@@ -606,7 +606,7 @@ class Exporter:
 
     @try_export
     def export_coreml(self, prefix=colorstr("CoreML:")):
-        """YOLOv8 CoreML export."""
+        """YOLO CoreML export."""
         mlmodel = self.args.format.lower() == "mlmodel"  # legacy *.mlmodel export format requested
         check_requirements("coremltools>=6.0,<=6.2" if mlmodel else "coremltools>=7.0")
         import coremltools as ct  # noqa
@@ -683,7 +683,7 @@ class Exporter:
 
     @try_export
     def export_engine(self, prefix=colorstr("TensorRT:")):
-        """YOLOv8 TensorRT export https://developer.nvidia.com/tensorrt."""
+        """YOLO TensorRT export https://developer.nvidia.com/tensorrt."""
         assert self.im.device.type != "cpu", "export running on CPU but must be on GPU, i.e. use 'device=0'"
         f_onnx, _ = self.export_onnx()  # run before TRT import https://github.com/ultralytics/ultralytics/issues/7016
 
@@ -817,7 +817,7 @@ class Exporter:
 
     @try_export
     def export_saved_model(self, prefix=colorstr("TensorFlow SavedModel:")):
-        """YOLOv8 TensorFlow SavedModel export."""
+        """YOLO TensorFlow SavedModel export."""
         cuda = torch.cuda.is_available()
         try:
             import tensorflow as tf  # noqa
@@ -890,23 +890,23 @@ class Exporter:
         )
         yaml_save(f / "metadata.yaml", self.metadata)  # add metadata.yaml
 
-        # Remove/rename TFLite models
-        if self.args.int8:
-            tmp_file.unlink(missing_ok=True)
-            for file in f.rglob("*_dynamic_range_quant.tflite"):
-                file.rename(file.with_name(file.stem.replace("_dynamic_range_quant", "_int8") + file.suffix))
-            for file in f.rglob("*_integer_quant_with_int16_act.tflite"):
-                file.unlink()  # delete extra fp16 activation TFLite files
-
-        # Add TFLite metadata
-        for file in f.rglob("*.tflite"):
-            f.unlink() if "quant_with_int16_act.tflite" in str(f) else self._add_tflite_metadata(file)
+        # # Remove/rename TFLite models
+        # if self.args.int8:
+        #     tmp_file.unlink(missing_ok=True)
+        #     for file in f.rglob("*_dynamic_range_quant.tflite"):
+        #         file.rename(file.with_name(file.stem.replace("_dynamic_range_quant", "_int8") + file.suffix))
+        #     for file in f.rglob("*_integer_quant_with_int16_act.tflite"):
+        #         file.unlink()  # delete extra fp16 activation TFLite files
+        #
+        # # Add TFLite metadata
+        # for file in f.rglob("*.tflite"):
+        #     f.unlink() if "quant_with_int16_act.tflite" in str(f) else self._add_tflite_metadata(file)
 
         return str(f), keras_model  # or keras_model = tf.saved_model.load(f, tags=None, options=None)
 
     @try_export
     def export_pb(self, keras_model, prefix=colorstr("TensorFlow GraphDef:")):
-        """YOLOv8 TensorFlow GraphDef *.pb export https://github.com/leimao/Frozen_Graph_TensorFlow."""
+        """YOLO TensorFlow GraphDef *.pb export https://github.com/leimao/Frozen_Graph_TensorFlow."""
         import tensorflow as tf  # noqa
         from tensorflow.python.framework.convert_to_constants import convert_variables_to_constants_v2  # noqa
 
@@ -922,7 +922,7 @@ class Exporter:
 
     @try_export
     def export_tflite(self, keras_model, nms, agnostic_nms, prefix=colorstr("TensorFlow Lite:")):
-        """YOLOv8 TensorFlow Lite export."""
+        """YOLO TensorFlow Lite export."""
         # BUG https://github.com/ultralytics/ultralytics/issues/13436
         import tensorflow as tf  # noqa
 
@@ -938,7 +938,7 @@ class Exporter:
 
     @try_export
     def export_edgetpu(self, tflite_model="", prefix=colorstr("Edge TPU:")):
-        """YOLOv8 Edge TPU export https://coral.ai/docs/edgetpu/models-intro/."""
+        """YOLO Edge TPU export https://coral.ai/docs/edgetpu/models-intro/."""
         LOGGER.warning(f"{prefix} WARNING ⚠️ Edge TPU known bug https://github.com/ultralytics/ultralytics/issues/1185")
 
         cmd = "edgetpu_compiler --version"
@@ -968,7 +968,7 @@ class Exporter:
 
     @try_export
     def export_tfjs(self, prefix=colorstr("TensorFlow.js:")):
-        """YOLOv8 TensorFlow.js export."""
+        """YOLO TensorFlow.js export."""
         check_requirements("tensorflowjs")
         if ARM64:
             # Fix error: `np.object` was a deprecated alias for the builtin `object` when exporting to TF.js on ARM64
@@ -1067,7 +1067,7 @@ class Exporter:
         tmp_file.unlink()
 
     def _pipeline_coreml(self, model, weights_dir=None, prefix=colorstr("CoreML Pipeline:")):
-        """YOLOv8 CoreML pipeline."""
+        """YOLO CoreML pipeline."""
         import coremltools as ct  # noqa
 
         LOGGER.info(f"{prefix} starting pipeline with coremltools {ct.__version__}...")

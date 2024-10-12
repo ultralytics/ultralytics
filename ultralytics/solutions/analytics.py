@@ -38,18 +38,17 @@ class Analytics(BaseSolution):
         if self.type in {"line", "area"}:
             self.lines = {}
             self.fig = Figure(facecolor=self.bg_color, figsize=figsize)
+            self.canvas = FigureCanvas(self.fig)  # Set common axis properties
             self.ax = self.fig.add_subplot(111, facecolor=self.bg_color)
             if self.type == "line":
                 (self.line,) = self.ax.plot([], [], color="cyan", linewidth=self.line_width)
         elif self.type in {"bar", "pie"}:
             # Initialize bar or pie plot
             self.fig, self.ax = plt.subplots(figsize=figsize, facecolor=self.bg_color)
+            self.canvas = FigureCanvas(self.fig)  # Set common axis properties
             self.ax.set_facecolor(self.bg_color)
             self.color_mapping = {}
             self.ax.axis("equal") if type == "pie" else None  # Ensure pie chart is circular
-
-        # Set common axis properties
-        self.canvas = FigureCanvas(self.fig)
 
     def process_data(self, im0, frame_number):
         """

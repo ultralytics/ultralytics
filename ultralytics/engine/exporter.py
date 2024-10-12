@@ -880,7 +880,7 @@ class Exporter:
             verbosity = "error"
 
         LOGGER.info(f"{prefix} starting TFLite export with onnx2tf {onnx2tf.__version__}...")
-        onnx2tf.convert(
+        keras_model = onnx2tf.convert(
             input_onnx_file_path=f_onnx,
             output_folder_path=str(f),
             not_use_onnxsim=True,
@@ -905,7 +905,8 @@ class Exporter:
         for file in f.rglob("*.tflite"):
             f.unlink() if "quant_with_int16_act.tflite" in str(f) else self._add_tflite_metadata(file)
 
-        return str(f), tf.saved_model.load(f, tags=None, options=None)  # load saved_model as Keras model
+        # deprecated: keras_model = tf.saved_model.load(f, tags=None, options=None)  # load saved_model as Keras model
+        return str(f), keras_model
 
     @try_export
     def export_pb(self, keras_model, prefix=colorstr("TensorFlow GraphDef:")):

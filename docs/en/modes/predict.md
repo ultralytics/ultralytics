@@ -120,7 +120,7 @@ YOLO11 can process different types of input sources for inference, as shown in t
 | YouTube ✅                                            | `'https://youtu.be/LNwODJXcvt4'`           | `str`           | URL to a YouTube video.                                                                     |
 | stream ✅                                             | `'rtsp://example.com/media.mp4'`           | `str`           | URL for streaming protocols such as RTSP, RTMP, TCP, or an IP address.                      |
 | multi-stream ✅                                       | `'list.streams'`                           | `str` or `Path` | `*.streams` text file with one stream URL per row, i.e. 8 streams will run at batch-size 8. |
-| camera ✅                                       | `0`                           | `int` | Index of the connected camera device to run inference on. |
+| camera ✅                                             | `0`                                        | `int`           | Index of the connected camera device to run inference on.                                   |
 
 Below are code examples for using each source type:
 

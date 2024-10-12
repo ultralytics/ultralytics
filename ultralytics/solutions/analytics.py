@@ -19,9 +19,9 @@ class Analytics(BaseSolution):
         """Initialize the Analytics class with various chart types."""
         super().__init__(**kwargs)
 
-        self.bg_color = "black"
-        self.fg_color = "white"
-        self.title = "Ultralytics YOLO Analytics"
+        self.bg_color = "white"     # background color of frame
+        self.fg_color = "#111e68"     # foreground color of frame
+        self.title = "Ultralytics Solutions"
         self.max_points = 30
         x_label = "Frame#"
         y_label = "Total Counts"

@@ -73,8 +73,8 @@ class AutoBackend(nn.Module):
             | TensorFlow Lite       | *.tflite         |
             | TensorFlow Edge TPU   | *_edgetpu.tflite |
             | PaddlePaddle          | *_paddle_model   |
-            | NCNN                  | *_ncnn_model     |
             | MNN                   | *.mnn            |
+            | NCNN                  | *_ncnn_model     |
 
     This class offers dynamic backend switching capabilities based on the input model format, making it easier to deploy
     models across various platforms.
@@ -121,8 +121,8 @@ class AutoBackend(nn.Module):
             edgetpu,
             tfjs,
             paddle,
-            ncnn,
             mnn,
+            ncnn,
             triton,
         ) = self._model_type(w)
         fp16 &= pt or jit or onnx or xml or engine or nn_module or triton  # FP16
@@ -378,6 +378,24 @@ class AutoBackend(nn.Module):
             output_names = predictor.get_output_names()
             metadata = w.parents[1] / "metadata.yaml"
 
+        # MNN
+        elif mnn:
+            LOGGER.info(f"Loading {w} for MNN inference...")
+            check_requirements("MNN")  # requires MNN
+            import os
+            import MNN
+            config = {}
+            config["precision"] = "low"
+            config["backend"] = "CPU"
+            config["numThread"] = os.cpu_count() // 2
+            rt = MNN.nn.create_runtime_manager((config,))
+            net = MNN.nn.load_module_from_file(w, [], [], runtime_manager=rt, rearrange=True)
+
+            def torch_to_mnn(x):
+                return MNN.expr.const(x.data_ptr(), x.shape)
+
+            metadata = Path(w).parent / "metadata.yaml"
+
         # NCNN
         elif ncnn:
             LOGGER.info(f"Loading {w} for NCNN inference...")
@@ -392,31 +410,6 @@ class AutoBackend(nn.Module):
             net.load_param(str(w))
             net.load_model(str(w.with_suffix(".bin")))
             metadata = w.parent / "metadata.yaml"
-
-        # MNN
-        elif mnn:
-            LOGGER.info(f"Loading {w} for MNN inference...")
-            check_requirements("MNN")  # requires MNN
-            import os
-
-            import MNN
-
-            config = {}
-            config["precision"] = "low"
-            config["backend"] = "CPU"
-            config["numThread"] = os.cpu_count()
-            rt = MNN.nn.create_runtime_manager((config,))
-            net = MNN.nn.load_module_from_file(w, [], [], runtime_manager=rt, rearrange=True)
-
-            def mnn_preprocess(x):
-                return MNN.expr.convert(MNN.expr.const(x, x.shape), MNN.expr.NC4HW4)
-
-            def mnn_postprocess(x):
-                if isinstance(x, list):
-                    return [MNN.expr.convert(y, MNN.expr.NCHW).read() for y in x]
-                return MNN.expr.convert(x, MNN.expr.NCHW).read()
-
-            metadata = Path(w).parent / "metadata.yaml"
 
         # NVIDIA Triton Inference Server
         elif triton:
@@ -576,6 +569,12 @@ class AutoBackend(nn.Module):
             self.predictor.run()
             y = [self.predictor.get_output_handle(x).copy_to_cpu() for x in self.output_names]
 
+        # MNN
+        elif self.mnn:
+            input_var = self.torch_to_mnn(im)
+            output_var = self.net.onForward([input_var])
+            y = [x.read() for x in output_var]
+
         # NCNN
         elif self.ncnn:
             mat_in = self.pyncnn.Mat(im[0].cpu().numpy())
@@ -583,13 +582,6 @@ class AutoBackend(nn.Module):
                 ex.input(self.net.input_names()[0], mat_in)
                 # WARNING: 'output_names' sorted as a temporary fix for https://github.com/pnnx/pnnx/issues/130
                 y = [np.array(ex.extract(x)[1])[None] for x in sorted(self.net.output_names())]
-
-        # MNN
-        elif self.mnn:
-            im = im.cpu().numpy()  # torch to numpy
-            input_var = self.mnn_preprocess(im)
-            output_var = self.net.onForward([input_var])
-            y = self.mnn_postprocess(output_var)
 
         # NVIDIA Triton Inference Server
         elif self.triton:

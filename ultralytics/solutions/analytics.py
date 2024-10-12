@@ -8,7 +8,6 @@ import numpy as np
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from matplotlib.figure import Figure
 from sympy.codegen import Print
-from tensorflow.python.ops.signal.shape_ops import frame
 
 from ultralytics.solutions.solutions import BaseSolution  # Import a parent class
 
@@ -20,8 +19,8 @@ class Analytics(BaseSolution):
         """Initialize the Analytics class with various chart types."""
         super().__init__(**kwargs)
 
-        self.bg_color = "#00F344"     # background color of frame
-        self.fg_color = "#111E68"     # foreground color of frame
+        self.bg_color = "#00F344"  # background color of frame
+        self.fg_color = "#111E68"  # foreground color of frame
         self.title = "Ultralytics Solutions"
         self.max_points = 45
         self.x_label = "Frame#"
@@ -35,7 +34,7 @@ class Analytics(BaseSolution):
         self.color_cycle = cycle(["#DD00BA", "#042AFF", "#FF4447", "#7D24FF", "#BD00FF"])
 
         # Set figure size based on image shape
-        figsize = (19.2 , 10.8)
+        figsize = (19.2, 10.8)
 
         # Ensure line and area chart
         if self.type in {"line", "area"}:
@@ -74,12 +73,10 @@ class Analytics(BaseSolution):
                     self.clswise_count[self.names[int(cls)]] += 1
                 else:
                     self.clswise_count[self.names[int(cls)]] = 1
-            if self.type=="area":
-                self.update_graph(frame_number=frame_number,
-                                  count_dict=self.clswise_count, plot="area")
-            if self.type=="bar":
-                self.update_graph(frame_number=frame_number,
-                                  count_dict=self.clswise_count, plot="bar")
+            if self.type == "area":
+                self.update_graph(frame_number=frame_number, count_dict=self.clswise_count, plot="area")
+            if self.type == "bar":
+                self.update_graph(frame_number=frame_number, count_dict=self.clswise_count, plot="bar")
 
         else:
             Print(f"{self.type} is not supported")
@@ -101,7 +98,7 @@ class Analytics(BaseSolution):
             y_data = np.append(self.line.get_ydata(), float(self.total_counts))
 
             if len(x_data) > self.max_points:
-                x_data, y_data = x_data[-self.max_points:], y_data[-self.max_points:]
+                x_data, y_data = x_data[-self.max_points :], y_data[-self.max_points :]
 
             self.line.set_data(x_data, y_data)
             self.line.set_label("Counts")
@@ -109,7 +106,7 @@ class Analytics(BaseSolution):
             self.line.set_marker("*")
             self.line.set_markersize(self.line_width * 5)
         else:
-            if plot=="area":
+            if plot == "area":
                 color_cycle = cycle(["#DD00BA", "#042AFF", "#FF4447", "#7D24FF", "#BD00FF"])
                 # Multiple lines or area update
                 x_data = self.ax.lines[0].get_xdata() if self.ax.lines else np.array([])
@@ -137,13 +134,20 @@ class Analytics(BaseSolution):
                 for key, y_data in y_data_dict.items():
                     color = next(color_cycle)
                     self.ax.fill_between(x_data, y_data, color=color, alpha=0.7)
-                    self.ax.plot(x_data, y_data, color=color, linewidth=self.line_width, marker="o",
-                                 markersize=self.line_width * 3, label=f"{key} Data Points")
-            if plot=="bar":
-                self.ax.clear()     # clear bar data
+                    self.ax.plot(
+                        x_data,
+                        y_data,
+                        color=color,
+                        linewidth=self.line_width,
+                        marker="o",
+                        markersize=self.line_width * 3,
+                        label=f"{key} Data Points",
+                    )
+            if plot == "bar":
+                self.ax.clear()  # clear bar data
                 labels = list(count_dict.keys())
                 counts = list(count_dict.values())
-                for label in labels:    # Map labels to colors
+                for label in labels:  # Map labels to colors
                     if label not in self.color_mapping:
                         self.color_mapping[label] = next(self.color_cycle)
                 colors = [self.color_mapping[label] for label in labels]

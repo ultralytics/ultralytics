@@ -19,8 +19,8 @@ class Analytics(BaseSolution):
         """Initialize the Analytics class with various chart types."""
         super().__init__(**kwargs)
 
-        self.bg_color = "white"     # background color of frame
-        self.fg_color = "#111e68"     # foreground color of frame
+        self.bg_color = "white"  # background color of frame
+        self.fg_color = "#111e68"  # foreground color of frame
         self.title = "Ultralytics Solutions"
         self.max_points = 30
         x_label = "Frame#"

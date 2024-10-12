@@ -670,7 +670,7 @@ class BaseTrainer:
             pd.DataFrame(formatted_metrics).to_csv(self.csv, index=False)
         else:
             formatted_l = [str(v).rjust(w + col_spacing) for v, w in zip(current_values, self.csv_col_width.values())]
-            with open(self.csv, 'a') as file:
+            with open(self.csv, "a") as file:
                 file.write(f"{','.join(formatted_l)}\n")
 
     def save_metrics(self, metrics):

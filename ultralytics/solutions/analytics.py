@@ -52,6 +52,13 @@ class Analytics(BaseSolution):
         self.canvas = FigureCanvas(self.fig)
 
     def process_data(self, im0, frame_number):
+        """
+        Process the image data, run object tracking.
+
+        Args:
+            im0 (ndarray): Input image for processing.
+            frame_number (int): Video frame # for plotting the data.
+        """
         self.extract_tracks(im0)  # Extract tracks
 
         if self.type == "line":

@@ -38,25 +38,37 @@ class Detect(nn.Module):
         self.cv2 = nn.ModuleList(
             nn.Sequential(Conv(x, c2, 3), Conv(c2, c2, 3), nn.Conv2d(c2, 4 * self.reg_max, 1)) for x in ch)
         
-        # cv3 is for predicting classes (last layer's out_channel is nc)
-        self.cv3 = nn.ModuleList(nn.Sequential(Conv(x, c3, 3), Conv(c3, c3, 3),  # output of this is embedding
-                                               nn.Conv2d(c3, self.nc, 1)) for x in ch)
+        # # cv3 is for predicting classes (last layer's out_channel is nc)
+        # self.cv3 = nn.ModuleList(nn.Sequential(Conv(x, c3, 3), Conv(c3, c3, 3),  # output of this is embedding
+        #                                        nn.Conv2d(c3, self.nc, 1)) for x in ch)
         
         # a list of sequences of layers that output embeddings of predicted bboxes (for small, medium, large)
         self.embedding_layers = nn.ModuleList(nn.Sequential(Conv(x, c3, 3), Conv(c3, c3, 3)) for x in ch)
+
+        # pre-define a convolution classification layer for weight-sharing
+        self.shared_conv = nn.Conv2d(c3, self.nc, 1)
+
         # a list of layers that output logit (raw score) for classification (for small, medium, large)
-        self.cls_preds = nn.ModuleList(nn.Conv2d(c3, self.nc, 1) for _ in ch)
+        # self.cls_preds = nn.ModuleList(nn.Conv2d(c3, self.nc, 1) for _ in ch)
+        self.cls_preds = nn.ModuleList(self.shared_conv for _ in ch)  # TODO: check whether this really shares the weights --> Shares the weights
+
         # distribution focal loss
         self.dfl = DFL(self.reg_max) if self.reg_max > 1 else nn.Identity()
 
     def forward(self, x):
         """Concatenates and returns predicted bounding boxes and class probabilities."""
+        shared_conv1_weight = self.cls_preds[0].weight
+        shared_conv2_weight = self.cls_preds[1].weight
+        shared_conv3_weight = self.cls_preds[2].weight
+        print(f"conv1==conv2: {torch.equal(shared_conv1_weight, shared_conv2_weight)}")
+        print(f"conv2==conv3: {torch.equal(shared_conv2_weight, shared_conv3_weight)}")
+        
         shape = x[0].shape  # BCHW
         for i in range(self.nl):  # e.g., per detection scale (small, medium, or large)
             bboxes = self.cv2[i](x[i])  # (B, 4 * reg_max, H, W)
             embeddings = self.embedding_layers[i](x[i])  # (B, n_features, H, W)
-            cls_predidctions = self.cls_preds[i](embeddings)  # (B, nc, H, W)
-            x[i] = torch.cat((bboxes, cls_predidctions, embeddings), 1)  # (B, 4 * reg_max + nc + n_features, H, W)
+            cls_predictions = self.cls_preds[i](embeddings)  # (B, nc, H, W)
+            x[i] = torch.cat((bboxes, cls_predictions, embeddings), 1)  # (B, 4 * reg_max + nc + n_features, H, W)
             
         if self.training:
             return x
@@ -91,9 +103,9 @@ class Detect(nn.Module):
         m = self  # self.model[-1]  # Detect() module
         # cf = torch.bincount(torch.tensor(np.concatenate(dataset.labels, 0)[:, 0]).long(), minlength=nc) + 1
         # ncf = math.log(0.6 / (m.nc - 0.999999)) if cf is None else torch.log(cf / cf.sum())  # nominal class frequency
-        for a, b, s in zip(m.cv2, m.cv3, m.stride):  # from
+        for a, s in zip(m.cv2, m.stride):  # from
             a[-1].bias.data[:] = 1.0  # box
-            b[-1].bias.data[:m.nc] = math.log(5 / m.nc / (640 / s) ** 2)  # cls (.01 objects, 80 classes, 640 img)
+        self.shared_conv.bias.data[:m.nc] = math.log(5 / m.nc / (640 / s) ** 2)  # cls (.01 objects, 80 classes, 640 img)
 
 
 class Segment(Detect):

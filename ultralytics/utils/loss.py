@@ -516,10 +516,9 @@ class v8PoseLoss(v8DetectionLoss):
 
         #TODO: report avg logits to wandb for validating our apporach
         logits_avg /= batch_size
-        loss[6] = logits_avg
-        print("-----------------avg logits", logits_avg)
+        # loss[6] = logits_avg
 
-        return loss[:6].sum() * batch_size, loss.detach()  # loss(box, pose, kobj, cls, dfl, triplet)
+        return loss.sum() * batch_size, loss.detach()  # loss(box, pose, kobj, cls, dfl, triplet)
 
     @staticmethod
     def kpts_decode(anchor_points, pred_kpts):

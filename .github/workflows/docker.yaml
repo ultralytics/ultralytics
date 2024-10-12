@@ -172,10 +172,24 @@ jobs:
             docker build -f docker/Dockerfile-runner -t $t .
             docker push $t
           fi
+  
+  trigger-actions:
+    runs-on: ubuntu-latest
+    needs: docker
+    # Only trigger actions on new Ultralytics releases
+    if: success() && github.repository == 'ultralytics/ultralytics' && github.event_name == 'push' && steps.check_tag.outputs.exists == 'false'
+    steps:
+      - name: Trigger Additional GitHub Actions
+        env:
+          GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+        run: |
+          gh workflow run deploy_cloud_run.yml \
+            --repo ultralytics/assistant \
+            --ref main
 
   notify:
     runs-on: ubuntu-latest
-    needs: docker
+    needs: [docker, trigger-actions]
     if: always() # This ensures the job always runs
     steps:
       - name: Check for failure and notify

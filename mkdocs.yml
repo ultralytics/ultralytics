@@ -162,8 +162,6 @@ nav:
           - solutions/index.md
       - Guides:
           - guides/index.md
-      - Explorer:
-          - datasets/explorer/index.md
       - Live Inference 🚀 NEW: guides/streamlit-live-inference.md # for promotion of new pages
       - Languages:
           - 🇬🇧&nbsp English: https://ultralytics.com/docs/

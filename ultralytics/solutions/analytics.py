@@ -7,8 +7,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from matplotlib.figure import Figure
-from sympy.codegen import Print
-from tensorflow.python.ops.signal.shape_ops import frame
 
 from ultralytics.solutions.solutions import BaseSolution  # Import a parent class
 
@@ -20,44 +18,38 @@ class Analytics(BaseSolution):
         """Initialize the Analytics class with various chart types."""
         super().__init__(**kwargs)
 
+        self.type = self.CFG["analytics_type"]  # extract type of analytics
+        self.x_label = "Classes" if self.type in {"bar", "pie"} else "Frame#"
+        self.y_label = "Total Counts"
+
+        # Predefined data
         self.bg_color = "#00F344"     # background color of frame
         self.fg_color = "#111E68"     # foreground color of frame
-        self.title = "Ultralytics Solutions"
-        self.max_points = 45
-        self.x_label = "Frame#"
-        self.y_label = "Total Counts"
-        self.fontsize = 25
-        self.type = self.CFG["analytics_type"]
-
-        self.total_counts = 0
-        self.clswise_count = {}
-
+        self.title = "Ultralytics Solutions"    # window name
+        self.max_points = 45    # maximum points to be drawn on window
+        self.fontsize = 25      # text font size for display
+        figsize = (19.2, 10.8)  # Set output image size 1920 * 1080
         self.color_cycle = cycle(["#DD00BA", "#042AFF", "#FF4447", "#7D24FF", "#BD00FF"])
 
-        # Set figure size based on image shape
-        figsize = (19.2 , 10.8)
+        self.total_counts = 0       # count variable for storing total counts i.e for line
+        self.clswise_count = {}     # dictionary for classwise counts
 
         # Ensure line and area chart
         if self.type in {"line", "area"}:
             self.lines = {}
             self.fig = Figure(facecolor=self.bg_color, figsize=figsize)
-            self.canvas = FigureCanvas(self.fig)
             self.ax = self.fig.add_subplot(111, facecolor=self.bg_color)
             if self.type == "line":
                 (self.line,) = self.ax.plot([], [], color="cyan", linewidth=self.line_width)
         elif self.type in {"bar", "pie"}:
             # Initialize bar or pie plot
             self.fig, self.ax = plt.subplots(figsize=figsize, facecolor=self.bg_color)
-            self.canvas = FigureCanvas(self.fig)
             self.ax.set_facecolor(self.bg_color)
             self.color_mapping = {}
             self.ax.axis("equal") if type == "pie" else None  # Ensure pie chart is circular
 
         # Set common axis properties
-        self.ax.set_title(self.title, color=self.fg_color, fontsize=self.fontsize)
-        self.ax.set_xlabel(self.x_label, color=self.fg_color, fontsize=self.fontsize - 5)
-        self.ax.set_ylabel(self.y_label, color=self.fg_color, fontsize=self.fontsize - 5)
-        self.ax.tick_params(axis="both", colors=self.fg_color)
+        self.canvas = FigureCanvas(self.fig)
 
     def process_data(self, im0, frame_number):
         self.extract_tracks(im0)  # Extract tracks
@@ -65,7 +57,7 @@ class Analytics(BaseSolution):
         if self.type == "line":
             for box in self.boxes:
                 self.total_counts += 1
-            self.update_lines_and_area(frame_number=frame_number)
+            self.update_graph(frame_number=frame_number)
             self.total_counts = 0
         elif self.type == "pie" or self.type == "bar" or self.type == "area":
             self.clswise_count = {}
@@ -74,15 +66,11 @@ class Analytics(BaseSolution):
                     self.clswise_count[self.names[int(cls)]] += 1
                 else:
                     self.clswise_count[self.names[int(cls)]] = 1
-            if self.type=="area":
-                self.update_graph(frame_number=frame_number,
-                                  count_dict=self.clswise_count, plot="area")
-            if self.type=="bar":
-                self.update_graph(frame_number=frame_number,
-                                  count_dict=self.clswise_count, plot="bar")
-
+            self.update_graph(frame_number=frame_number,
+                              count_dict=self.clswise_count,
+                              plot=self.type)
         else:
-            Print(f"{self.type} is not supported")
+            raise ModuleNotFoundError(f"{self.type} chart is not supported ❌")
         return im0
 
     def update_graph(self, frame_number, count_dict=None, plot="line"):
@@ -109,40 +97,36 @@ class Analytics(BaseSolution):
             self.line.set_marker("*")
             self.line.set_markersize(self.line_width * 5)
         else:
+            labels = list(count_dict.keys())
+            counts = list(count_dict.values())
             if plot=="area":
                 color_cycle = cycle(["#DD00BA", "#042AFF", "#FF4447", "#7D24FF", "#BD00FF"])
                 # Multiple lines or area update
                 x_data = self.ax.lines[0].get_xdata() if self.ax.lines else np.array([])
                 y_data_dict = {key: np.array([]) for key in count_dict.keys()}
-
                 if self.ax.lines:
                     for line, key in zip(self.ax.lines, count_dict.keys()):
                         y_data_dict[key] = line.get_ydata()
 
                 x_data = np.append(x_data, float(frame_number))
                 max_length = len(x_data)
-
                 for key in count_dict.keys():
                     y_data_dict[key] = np.append(y_data_dict[key], float(count_dict[key]))
                     if len(y_data_dict[key]) < max_length:
                         y_data_dict[key] = np.pad(y_data_dict[key], (0, max_length - len(y_data_dict[key])), "constant")
-
                 if len(x_data) > self.max_points:
                     x_data = x_data[1:]
                     for key in count_dict.keys():
                         y_data_dict[key] = y_data_dict[key][1:]
 
                 self.ax.clear()
-
                 for key, y_data in y_data_dict.items():
                     color = next(color_cycle)
                     self.ax.fill_between(x_data, y_data, color=color, alpha=0.7)
                     self.ax.plot(x_data, y_data, color=color, linewidth=self.line_width, marker="o",
-                                 markersize=self.line_width * 3, label=f"{key} Data Points")
+                                 markersize=self.line_width * 5, label=f"{key} Data Points")
             if plot=="bar":
                 self.ax.clear()     # clear bar data
-                labels = list(count_dict.keys())
-                counts = list(count_dict.values())
                 for label in labels:    # Map labels to colors
                     if label not in self.color_mapping:
                         self.color_mapping[label] = next(self.color_cycle)
@@ -161,6 +145,20 @@ class Analytics(BaseSolution):
                 for bar, label in zip(bars, labels):
                     bar.set_label(label)  # Assign label to each bar
                 self.ax.legend(loc="upper left", fontsize=13, facecolor=self.fg_color, edgecolor=self.fg_color)
+            if plot=="pie":
+                total = sum(counts)
+                percentages = [size / total * 100 for size in counts]
+                start_angle = 90
+                self.ax.clear()
+
+                # Create pie chart and create legend labels with percentages
+                wedges, autotexts = self.ax.pie(counts, labels=labels, startangle=start_angle,
+                                                textprops={"color": self.fg_color}, autopct=None)
+                legend_labels = [f"{label} ({percentage:.1f}%)" for label, percentage in zip(labels, percentages)]
+
+                # Assign the legend using the wedges and manually created labels
+                self.ax.legend(wedges, legend_labels, title="Classes", loc="center left", bbox_to_anchor=(1, 0, 0.5, 1))
+                self.fig.subplots_adjust(left=0.1, right=0.75)  # Adjust layout to fit the legend
 
         # Common plot settings
         self.ax.set_facecolor("#f0f0f0")  # Set to light gray or any other color you like
@@ -190,34 +188,3 @@ class Analytics(BaseSolution):
         """
         im0 = cv2.cvtColor(im0[:, :, :3], cv2.COLOR_RGBA2BGR)
         self.display_output(im0)
-
-    def update_pie(self, classes_dict):
-        """
-        Update the pie chart with new data.
-
-        Args:
-            classes_dict (dict): Dictionary containing the class data to plot.
-        """
-        # Update pie chart data
-        labels = list(classes_dict.keys())
-        sizes = list(classes_dict.values())
-        total = sum(sizes)
-        percentages = [size / total * 100 for size in sizes]
-        start_angle = 90
-        self.ax.clear()
-
-        # Create pie chart without labels inside the slices
-        wedges, autotexts = self.ax.pie(sizes, autopct=None, startangle=start_angle, textprops={"color": self.fg_color})
-
-        # Construct legend labels with percentages
-        legend_labels = [f"{label} ({percentage:.1f}%)" for label, percentage in zip(labels, percentages)]
-        self.ax.legend(wedges, legend_labels, title="Classes", loc="center left", bbox_to_anchor=(1, 0, 0.5, 1))
-
-        # Adjust layout to fit the legend
-        self.fig.tight_layout()
-        self.fig.subplots_adjust(left=0.1, right=0.75)
-
-        # Display and save the updated chart
-        im0 = self.fig.canvas.draw()
-        im0 = np.array(self.fig.canvas.renderer.buffer_rgba())
-        self.display(im0)

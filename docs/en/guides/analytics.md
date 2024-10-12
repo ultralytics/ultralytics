@@ -39,33 +39,36 @@ This guide provides a comprehensive overview of three fundamental types of [data
 
         ```python
         import cv2
+
         from ultralytics import solutions
-        
+
         cap = cv2.VideoCapture("Path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
-        
+
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-        
-        out = cv2.VideoWriter("ultralytics_analytics.avi",
-                              cv2.VideoWriter_fourcc(*"MJPG"), fps,
-                              (1920, 1080)  # This is fixed
-                              )
-        
+
+        out = cv2.VideoWriter(
+            "ultralytics_analytics.avi",
+            cv2.VideoWriter_fourcc(*"MJPG"),
+            fps,
+            (1920, 1080),  # This is fixed
+        )
+
         analytics = solutions.Analytics(
             analytics_type="line",
             show=True,
         )
-        
+
         frame_count = 0
         while cap.isOpened():
             success, im0 = cap.read()
             if success:
                 frame_count += 1
-                im0 = analytics.process_data(im0, frame_count)    # update analytics graph every frame
+                im0 = analytics.process_data(im0, frame_count)  # update analytics graph every frame
                 out.write(im0)  # write the video file
             else:
                 break
-        
+
         cap.release()
         out.release()
         cv2.destroyAllWindows()
@@ -75,33 +78,36 @@ This guide provides a comprehensive overview of three fundamental types of [data
 
         ```python
         import cv2
+
         from ultralytics import solutions
-        
+
         cap = cv2.VideoCapture("Path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
-        
+
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-        
-        out = cv2.VideoWriter("ultralytics_analytics.avi",
-                              cv2.VideoWriter_fourcc(*"MJPG"), fps,
-                              (1920, 1080)  # This is fixed
-                              )
-        
+
+        out = cv2.VideoWriter(
+            "ultralytics_analytics.avi",
+            cv2.VideoWriter_fourcc(*"MJPG"),
+            fps,
+            (1920, 1080),  # This is fixed
+        )
+
         analytics = solutions.Analytics(
             analytics_type="pie",
             show=True,
         )
-        
+
         frame_count = 0
         while cap.isOpened():
             success, im0 = cap.read()
             if success:
                 frame_count += 1
-                im0 = analytics.process_data(im0, frame_count)    # update analytics graph every frame
+                im0 = analytics.process_data(im0, frame_count)  # update analytics graph every frame
                 out.write(im0)  # write the video file
             else:
                 break
-        
+
         cap.release()
         out.release()
         cv2.destroyAllWindows()
@@ -111,33 +117,36 @@ This guide provides a comprehensive overview of three fundamental types of [data
 
         ```python
         import cv2
+
         from ultralytics import solutions
-        
+
         cap = cv2.VideoCapture("Path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
-        
+
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-        
-        out = cv2.VideoWriter("ultralytics_analytics.avi",
-                              cv2.VideoWriter_fourcc(*"MJPG"), fps,
-                              (1920, 1080)  # This is fixed
-                              )
-        
+
+        out = cv2.VideoWriter(
+            "ultralytics_analytics.avi",
+            cv2.VideoWriter_fourcc(*"MJPG"),
+            fps,
+            (1920, 1080),  # This is fixed
+        )
+
         analytics = solutions.Analytics(
             analytics_type="bar",
             show=True,
         )
-        
+
         frame_count = 0
         while cap.isOpened():
             success, im0 = cap.read()
             if success:
                 frame_count += 1
-                im0 = analytics.process_data(im0, frame_count)    # update analytics graph every frame
+                im0 = analytics.process_data(im0, frame_count)  # update analytics graph every frame
                 out.write(im0)  # write the video file
             else:
                 break
-        
+
         cap.release()
         out.release()
         cv2.destroyAllWindows()
@@ -147,33 +156,36 @@ This guide provides a comprehensive overview of three fundamental types of [data
 
         ```python
         import cv2
+
         from ultralytics import solutions
-        
+
         cap = cv2.VideoCapture("Path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
-        
+
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-        
-        out = cv2.VideoWriter("ultralytics_analytics.avi",
-                              cv2.VideoWriter_fourcc(*"MJPG"), fps,
-                              (1920, 1080)  # This is fixed
-                              )
-        
+
+        out = cv2.VideoWriter(
+            "ultralytics_analytics.avi",
+            cv2.VideoWriter_fourcc(*"MJPG"),
+            fps,
+            (1920, 1080),  # This is fixed
+        )
+
         analytics = solutions.Analytics(
             analytics_type="area",
             show=True,
         )
-        
+
         frame_count = 0
         while cap.isOpened():
             success, im0 = cap.read()
             if success:
                 frame_count += 1
-                im0 = analytics.process_data(im0, frame_count)    # update analytics graph every frame
+                im0 = analytics.process_data(im0, frame_count)  # update analytics graph every frame
                 out.write(im0)  # write the video file
             else:
                 break
-        
+
         cap.release()
         out.release()
         cv2.destroyAllWindows()
@@ -184,7 +196,7 @@ This guide provides a comprehensive overview of three fundamental types of [data
 Here's a table with the `Analytics` arguments:
 
 | Name             | Type   | Default | Description                                          |
-|------------------|--------|---------|------------------------------------------------------|
+| ---------------- | ------ | ------- | ---------------------------------------------------- |
 | `analytics_type` | `str`  | `line`  | Type of graph i.e "line", "bar", "area", "pie"       |
 | `model`          | `str`  | `None`  | Path to Ultralytics YOLO Model File                  |
 | `line_width`     | `int`  | `2`     | Line thickness for bounding boxes.                   |
@@ -213,6 +225,7 @@ Example:
 
 ```python
 import cv2
+
 from ultralytics import solutions
 
 cap = cv2.VideoCapture("Path/to/video/file.mp4")
@@ -220,10 +233,12 @@ assert cap.isOpened(), "Error reading video file"
 
 w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 
-out = cv2.VideoWriter("ultralytics_analytics.avi",
-                      cv2.VideoWriter_fourcc(*"MJPG"), fps,
-                      (1920, 1080)  # This is fixed
-                      )
+out = cv2.VideoWriter(
+    "ultralytics_analytics.avi",
+    cv2.VideoWriter_fourcc(*"MJPG"),
+    fps,
+    (1920, 1080),  # This is fixed
+)
 
 analytics = solutions.Analytics(
     analytics_type="line",
@@ -235,7 +250,7 @@ while cap.isOpened():
     success, im0 = cap.read()
     if success:
         frame_count += 1
-        im0 = analytics.process_data(im0, frame_count)    # update analytics graph every frame
+        im0 = analytics.process_data(im0, frame_count)  # update analytics graph every frame
         out.write(im0)  # write the video file
     else:
         break
@@ -260,6 +275,7 @@ Use the following example to generate a bar plot:
 
 ```python
 import cv2
+
 from ultralytics import solutions
 
 cap = cv2.VideoCapture("Path/to/video/file.mp4")
@@ -267,10 +283,12 @@ assert cap.isOpened(), "Error reading video file"
 
 w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 
-out = cv2.VideoWriter("ultralytics_analytics.avi",
-                      cv2.VideoWriter_fourcc(*"MJPG"), fps,
-                      (1920, 1080)  # This is fixed
-                      )
+out = cv2.VideoWriter(
+    "ultralytics_analytics.avi",
+    cv2.VideoWriter_fourcc(*"MJPG"),
+    fps,
+    (1920, 1080),  # This is fixed
+)
 
 analytics = solutions.Analytics(
     analytics_type="bar",
@@ -282,7 +300,7 @@ while cap.isOpened():
     success, im0 = cap.read()
     if success:
         frame_count += 1
-        im0 = analytics.process_data(im0, frame_count)    # update analytics graph every frame
+        im0 = analytics.process_data(im0, frame_count)  # update analytics graph every frame
         out.write(im0)  # write the video file
     else:
         break
@@ -307,6 +325,7 @@ Here's a quick example:
 
 ```python
 import cv2
+
 from ultralytics import solutions
 
 cap = cv2.VideoCapture("Path/to/video/file.mp4")
@@ -314,10 +333,12 @@ assert cap.isOpened(), "Error reading video file"
 
 w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 
-out = cv2.VideoWriter("ultralytics_analytics.avi",
-                      cv2.VideoWriter_fourcc(*"MJPG"), fps,
-                      (1920, 1080)  # This is fixed
-                      )
+out = cv2.VideoWriter(
+    "ultralytics_analytics.avi",
+    cv2.VideoWriter_fourcc(*"MJPG"),
+    fps,
+    (1920, 1080),  # This is fixed
+)
 
 analytics = solutions.Analytics(
     analytics_type="pie",
@@ -329,7 +350,7 @@ while cap.isOpened():
     success, im0 = cap.read()
     if success:
         frame_count += 1
-        im0 = analytics.process_data(im0, frame_count)    # update analytics graph every frame
+        im0 = analytics.process_data(im0, frame_count)  # update analytics graph every frame
         out.write(im0)  # write the video file
     else:
         break
@@ -349,6 +370,7 @@ Example for tracking and updating a line graph:
 
 ```python
 import cv2
+
 from ultralytics import solutions
 
 cap = cv2.VideoCapture("Path/to/video/file.mp4")
@@ -356,10 +378,12 @@ assert cap.isOpened(), "Error reading video file"
 
 w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 
-out = cv2.VideoWriter("ultralytics_analytics.avi",
-                      cv2.VideoWriter_fourcc(*"MJPG"), fps,
-                      (1920, 1080)  # This is fixed
-                      )
+out = cv2.VideoWriter(
+    "ultralytics_analytics.avi",
+    cv2.VideoWriter_fourcc(*"MJPG"),
+    fps,
+    (1920, 1080),  # This is fixed
+)
 
 analytics = solutions.Analytics(
     analytics_type="line",
@@ -371,7 +395,7 @@ while cap.isOpened():
     success, im0 = cap.read()
     if success:
         frame_count += 1
-        im0 = analytics.process_data(im0, frame_count)    # update analytics graph every frame
+        im0 = analytics.process_data(im0, frame_count)  # update analytics graph every frame
         out.write(im0)  # write the video file
     else:
         break

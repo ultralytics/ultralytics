@@ -97,8 +97,11 @@ def test_mobilesam():
     # Source
     source = ASSETS / "zidane.jpg"
 
-    # Predict a segment based on a point prompt
+    # Predict a segment based on a 1D point prompt and 1D labels.
     model.predict(source, points=[900, 370], labels=[1])
+
+    # Predict a segment based on 3D points and 2D labels (multiple points per object).
+    model.predict(source, points=[[[900, 370], [1000, 100]]], labels=[[1, 1]])
 
     # Predict a segment based on a box prompt
     model.predict(source, bboxes=[439, 437, 524, 709], save=True)

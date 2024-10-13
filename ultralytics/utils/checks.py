@@ -1,6 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-import contextlib
 import glob
 import inspect
 import math
@@ -239,12 +238,14 @@ def check_version(
     c = parse_version(current)  # '1.2.3' -> (1, 2, 3)
     for r in required.strip(",").split(","):
         op, version = re.match(r"([^0-9]*)([\d.]+)", r).groups()  # split '>=22.04' -> ('>=', '22.04')
+        if not op:
+            op = ">="  # assume >= if no op passed
         v = parse_version(version)  # '1.2.3' -> (1, 2, 3)
         if op == "==" and c != v:
             result = False
         elif op == "!=" and c == v:
             result = False
-        elif op in {">=", ""} and not (c >= v):  # if no constraint passed assume '>=required'
+        elif op == ">=" and not (c >= v):
             result = False
         elif op == "<=" and not (c <= v):
             result = False
@@ -271,11 +272,13 @@ def check_latest_pypi_version(package_name="ultralytics"):
     Returns:
         (str): The latest version of the package.
     """
-    with contextlib.suppress(Exception):
+    try:
         requests.packages.urllib3.disable_warnings()  # Disable the InsecureRequestWarning
         response = requests.get(f"https://pypi.org/pypi/{package_name}/json", timeout=3)
         if response.status_code == 200:
             return response.json()["info"]["version"]
+    except:  # noqa E722
+        return None
 
 
 def check_pip_update_available():
@@ -286,7 +289,7 @@ def check_pip_update_available():
         (bool): True if an update is available, False otherwise.
     """
     if ONLINE and IS_PIP_PACKAGE:
-        with contextlib.suppress(Exception):
+        try:
             from ultralytics import __version__
 
             latest = check_latest_pypi_version()
@@ -296,6 +299,8 @@ def check_pip_update_available():
                     f"Update with 'pip install -U ultralytics'"
                 )
                 return True
+        except:  # noqa E722
+            pass
     return False
 
 
@@ -330,18 +335,19 @@ def check_font(font="Arial.ttf"):
         return file
 
 
-def check_python(minimum: str = "3.8.0", hard: bool = True) -> bool:
+def check_python(minimum: str = "3.8.0", hard: bool = True, verbose: bool = True) -> bool:
     """
     Check current python version against the required minimum version.
 
     Args:
         minimum (str): Required minimum version of python.
         hard (bool, optional): If True, raise an AssertionError if the requirement is not met.
+        verbose (bool, optional): If True, print warning message if requirement is not met.
 
     Returns:
         (bool): Whether the installed Python version meets the minimum constraints.
     """
-    return check_version(PYTHON_VERSION, minimum, name="Python", hard=hard)
+    return check_version(PYTHON_VERSION, minimum, name="Python", hard=hard, verbose=verbose)
 
 
 @TryExcept()
@@ -371,8 +377,6 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
         ```
     """
     prefix = colorstr("red", "bold", "requirements:")
-    check_python()  # check python version
-    check_torchvision()  # check torch-torchvision compatibility
     if isinstance(requirements, Path):  # requirements.txt file
         file = requirements.resolve()
         assert file.exists(), f"{prefix} {file} not found, check failed."
@@ -454,7 +458,7 @@ def check_torchvision():
             )
 
 
-def check_suffix(file="yolov8n.pt", suffix=".pt", msg=""):
+def check_suffix(file="yolo11n.pt", suffix=".pt", msg=""):
     """Check file(s) for acceptable suffix."""
     if file and suffix:
         if isinstance(suffix, str):
@@ -577,10 +581,12 @@ def check_yolo(verbose=True, device=""):
         ram = psutil.virtual_memory().total
         total, used, free = shutil.disk_usage("/")
         s = f"({os.cpu_count()} CPUs, {ram / gib:.1f} GB RAM, {(total - free) / gib:.1f}/{total / gib:.1f} GB disk)"
-        with contextlib.suppress(Exception):  # clear display if ipython is installed
+        try:
             from IPython import display
 
-            display.clear_output()
+            display.clear_output()  # clear display if notebook
+        except ImportError:
+            pass
     else:
         s = ""
 
@@ -593,38 +599,54 @@ def collect_system_info():
     import psutil
 
     from ultralytics.utils import ENVIRONMENT  # scope to avoid circular import
-    from ultralytics.utils.torch_utils import get_cpu_info
+    from ultralytics.utils.torch_utils import get_cpu_info, get_gpu_info
 
-    ram_info = psutil.virtual_memory().total / (1024**3)  # Convert bytes to GB
+    gib = 1 << 30  # bytes per GiB
+    cuda = torch and torch.cuda.is_available()
     check_yolo()
-    LOGGER.info(
-        f"\n{'OS':<20}{platform.platform()}\n"
-        f"{'Environment':<20}{ENVIRONMENT}\n"
-        f"{'Python':<20}{PYTHON_VERSION}\n"
-        f"{'Install':<20}{'git' if IS_GIT_DIR else 'pip' if IS_PIP_PACKAGE else 'other'}\n"
-        f"{'RAM':<20}{ram_info:.2f} GB\n"
-        f"{'CPU':<20}{get_cpu_info()}\n"
-        f"{'CUDA':<20}{torch.version.cuda if torch and torch.cuda.is_available() else None}\n"
-    )
+    total, used, free = shutil.disk_usage("/")
 
+    info_dict = {
+        "OS": platform.platform(),
+        "Environment": ENVIRONMENT,
+        "Python": PYTHON_VERSION,
+        "Install": "git" if IS_GIT_DIR else "pip" if IS_PIP_PACKAGE else "other",
+        "RAM": f"{psutil.virtual_memory().total / gib:.2f} GB",
+        "Disk": f"{(total - free) / gib:.1f}/{total / gib:.1f} GB",
+        "CPU": get_cpu_info(),
+        "CPU count": os.cpu_count(),
+        "GPU": get_gpu_info(index=0) if cuda else None,
+        "GPU count": torch.cuda.device_count() if cuda else None,
+        "CUDA": torch.version.cuda if cuda else None,
+    }
+    LOGGER.info("\n" + "\n".join(f"{k:<20}{v}" for k, v in info_dict.items()) + "\n")
+
+    package_info = {}
     for r in parse_requirements(package="ultralytics"):
         try:
             current = metadata.version(r.name)
-            is_met = "✅ " if check_version(current, str(r.specifier), hard=True) else "❌ "
+            is_met = "✅ " if check_version(current, str(r.specifier), name=r.name, hard=True) else "❌ "
         except metadata.PackageNotFoundError:
             current = "(not installed)"
             is_met = "❌ "
-        LOGGER.info(f"{r.name:<20}{is_met}{current}{r.specifier}")
+        package_info[r.name] = f"{is_met}{current}{r.specifier}"
+        LOGGER.info(f"{r.name:<20}{package_info[r.name]}")
+
+    info_dict["Package Info"] = package_info
 
     if is_github_action_running():
-        LOGGER.info(
-            f"\nRUNNER_OS: {os.getenv('RUNNER_OS')}\n"
-            f"GITHUB_EVENT_NAME: {os.getenv('GITHUB_EVENT_NAME')}\n"
-            f"GITHUB_WORKFLOW: {os.getenv('GITHUB_WORKFLOW')}\n"
-            f"GITHUB_ACTOR: {os.getenv('GITHUB_ACTOR')}\n"
-            f"GITHUB_REPOSITORY: {os.getenv('GITHUB_REPOSITORY')}\n"
-            f"GITHUB_REPOSITORY_OWNER: {os.getenv('GITHUB_REPOSITORY_OWNER')}\n"
-        )
+        github_info = {
+            "RUNNER_OS": os.getenv("RUNNER_OS"),
+            "GITHUB_EVENT_NAME": os.getenv("GITHUB_EVENT_NAME"),
+            "GITHUB_WORKFLOW": os.getenv("GITHUB_WORKFLOW"),
+            "GITHUB_ACTOR": os.getenv("GITHUB_ACTOR"),
+            "GITHUB_REPOSITORY": os.getenv("GITHUB_REPOSITORY"),
+            "GITHUB_REPOSITORY_OWNER": os.getenv("GITHUB_REPOSITORY_OWNER"),
+        }
+        LOGGER.info("\n" + "\n".join(f"{k}: {v}" for k, v in github_info.items()))
+        info_dict["GitHub Info"] = github_info
+
+    return info_dict
 
 
 def check_amp(model):
@@ -691,9 +713,10 @@ def check_amp(model):
 
 def git_describe(path=ROOT):  # path must be a directory
     """Return human-readable git description, i.e. v5.0-5-g3e25f1e https://git-scm.com/docs/git-describe."""
-    with contextlib.suppress(Exception):
+    try:
         return subprocess.check_output(f"git -C {path} describe --tags --long --always", shell=True).decode()[:-1]
-    return ""
+    except:  # noqa E722
+        return ""
 
 
 def print_args(args: Optional[dict] = None, show_file=True, show_func=False):
@@ -748,6 +771,8 @@ def cuda_is_available() -> bool:
     return cuda_device_count() > 0
 
 
-# Define constants
+# Run checks and define constants
+check_python("3.8", hard=False, verbose=True)  # check python version
+check_torchvision()  # check torch-torchvision compatibility
 IS_PYTHON_MINIMUM_3_10 = check_python("3.10", hard=False)
 IS_PYTHON_3_12 = PYTHON_VERSION.startswith("3.12")

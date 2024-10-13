@@ -10,8 +10,8 @@
     <a href="https://github.com/ultralytics/ultralytics/actions/workflows/ci.yaml"><img src="https://github.com/ultralytics/ultralytics/actions/workflows/ci.yaml/badge.svg" alt="Ultralytics CI"></a>
     <a href="https://zenodo.org/badge/latestdoi/264818686"><img src="https://zenodo.org/badge/264818686.svg" alt="Ultralytics YOLO Citation"></a>
     <a href="https://hub.docker.com/r/ultralytics/ultralytics"><img src="https://img.shields.io/docker/pulls/ultralytics/ultralytics?logo=docker" alt="Ultralytics Docker Pulls"></a>
-    <a href="https://ultralytics.com/discord"><img alt="Ultralytics Discord" src="https://img.shields.io/discord/1089800235347353640?logo=discord&logoColor=white&label=Discord&color=blue"></a>
-    <a href="https://community.ultralytics.com"><img alt="Ultralytics Forums" src="https://img.shields.io/discourse/users?server=https%3A%2F%2Fcommunity.ultralytics.com&logo=discourse&label=Forums&color=blue"></a>
+    <a href="https://discord.com/invite/ultralytics"><img alt="Ultralytics Discord" src="https://img.shields.io/discord/1089800235347353640?logo=discord&logoColor=white&label=Discord&color=blue"></a>
+    <a href="https://community.ultralytics.com/"><img alt="Ultralytics Forums" src="https://img.shields.io/discourse/users?server=https%3A%2F%2Fcommunity.ultralytics.com&logo=discourse&label=Forums&color=blue"></a>
     <a href="https://reddit.com/r/ultralytics"><img alt="Ultralytics Reddit" src="https://img.shields.io/reddit/subreddit-subscribers/ultralytics?style=flat&logo=reddit&logoColor=white&label=Reddit&color=blue"></a>
     <br>
     <a href="https://console.paperspace.com/github/ultralytics/ultralytics"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run Ultralytics on Gradient"></a>
@@ -22,7 +22,7 @@
 
 [Ultralytics](https://www.ultralytics.com/) [YOLO11](https://github.com/ultralytics/ultralytics) 是一个尖端的、最先进（SOTA）的模型，基于之前 YOLO 版本的成功，并引入了新功能和改进以进一步提升性能和灵活性。YOLO11 被设计得快速、准确且易于使用，是进行广泛对象检测和跟踪、实例分割、图像分类和姿态估计任务的理想选择。
 
-我们希望这里的资源能帮助你充分利用 YOLO。请浏览 Ultralytics <a href="https://docs.ultralytics.com/">文档</a> 以获取详细信息，在 <a href="https://github.com/ultralytics/ultralytics/issues/new/choose">GitHub</a> 上提出问题或讨论，成为 Ultralytics <a href="https://ultralytics.com/discord">Discord</a>、<a href="https://reddit.com/r/ultralytics">Reddit</a> 和 <a href="https://community.ultralytics.com">论坛</a> 的成员！
+我们希望这里的资源能帮助你充分利用 YOLO。请浏览 Ultralytics <a href="https://docs.ultralytics.com/">文档</a> 以获取详细信息，在 <a href="https://github.com/ultralytics/ultralytics/issues/new/choose">GitHub</a> 上提出问题或讨论，成为 Ultralytics <a href="https://discord.com/invite/ultralytics">Discord</a>、<a href="https://reddit.com/r/ultralytics">Reddit</a> 和 <a href="https://community.ultralytics.com/">论坛</a> 的成员！
 
 想申请企业许可证，请完成 [Ultralytics Licensing](https://www.ultralytics.com/license) 上的表单。
 
@@ -41,7 +41,7 @@
   <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="2%" alt="space">
   <a href="https://ultralytics.com/bilibili"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-bilibili.png" width="2%" alt="Ultralytics BiliBili"></a>
   <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="2%" alt="space">
-  <a href="https://ultralytics.com/discord"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-discord.png" width="2%" alt="Ultralytics Discord"></a>
+  <a href="https://discord.com/invite/ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-discord.png" width="2%" alt="Ultralytics Discord"></a>
 </div>
 </div>
 
@@ -210,7 +210,7 @@ YOLO11 [检测](https://docs.ultralytics.com/tasks/detect/)、[分割](https://d
 我们与领先的 AI 平台的关键集成扩展了 Ultralytics 产品的功能，增强了数据集标记、训练、可视化和模型管理等任务的能力。了解 Ultralytics 如何与 [Roboflow](https://roboflow.com/?ref=ultralytics)、ClearML、[Comet](https://bit.ly/yolov8-readme-comet)、Neural Magic 和 [OpenVINO](https://docs.ultralytics.com/integrations/openvino/) 合作，优化您的 AI 工作流程。
 
 <br>
-<a href="https://ultralytics.com/hub" target="_blank">
+<a href="https://www.ultralytics.com/hub" target="_blank">
 <img width="100%" src="https://github.com/ultralytics/assets/raw/main/yolov8/banner-integrations.png" alt="Ultralytics active learning integrations"></a>
 <br>
 <br>
@@ -237,7 +237,7 @@ YOLO11 [检测](https://docs.ultralytics.com/tasks/detect/)、[分割](https://d
 
 体验无缝 AI 使用 [Ultralytics HUB](https://www.ultralytics.com/hub) ⭐，一个集数据可视化、YOLO11 🚀 模型训练和部署于一体的解决方案，无需编写代码。利用我们最先进的平台和用户友好的 [Ultralytics 应用](https://www.ultralytics.com/app-install)，将图像转换为可操作见解，并轻松实现您的 AI 愿景。免费开始您的旅程！
 
-<a href="https://ultralytics.com/hub" target="_blank">
+<a href="https://www.ultralytics.com/hub" target="_blank">
 <img width="100%" src="https://github.com/ultralytics/assets/raw/main/im/ultralytics-hub.png" alt="Ultralytics HUB preview image"></a>
 
 ## <div align="center">贡献</div>
@@ -274,5 +274,5 @@ Ultralytics 提供两种许可选项以适应各种用例：
   <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="3%" alt="space">
   <a href="https://ultralytics.com/bilibili"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-bilibili.png" width="3%" alt="Ultralytics BiliBili"></a>
   <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="3%" alt="space">
-  <a href="https://ultralytics.com/discord"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-discord.png" width="3%" alt="Ultralytics Discord"></a>
+  <a href="https://discord.com/invite/ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-discord.png" width="3%" alt="Ultralytics Discord"></a>
 </div>

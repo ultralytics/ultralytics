@@ -25,10 +25,6 @@ The `ultralytics` package comes with a myriad of utilities that can support, enh
 
 ## Data
 
-### YOLO Data Explorer
-
-[YOLO Explorer](../datasets/explorer/index.md) was added in the `8.1.0` anniversary update and is a powerful tool you can use to better understand your dataset. One of the key functions that YOLO Explorer provides, is the ability to use text queries to find object instances in your dataset.
-
 ### Auto Labeling / Annotations
 
 Dataset annotation is a very resource intensive and time-consuming process. If you have a YOLO [object detection](https://www.ultralytics.com/glossary/object-detection) model trained on a reasonable amount of data, you can use it and [SAM](../models/sam.md) to auto-annotate additional data (segmentation format).

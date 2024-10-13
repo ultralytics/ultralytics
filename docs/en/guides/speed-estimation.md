@@ -45,40 +45,33 @@ keywords: Ultralytics YOLO11, speed estimation, object tracking, computer vision
         ```python
         import cv2
 
-        from ultralytics import YOLO, solutions
+        from ultralytics import solutions
 
-        model = YOLO("yolo11n.pt")
-        names = model.model.names
+        cap = cv2.VideoCapture("Path/to/video/file.mp4")
 
-        cap = cv2.VideoCapture("path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 
-        # Video writer
-        video_writer = cv2.VideoWriter("speed_estimation.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
+        video_writer = cv2.VideoWriter("speed_management.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
-        line_pts = [(0, 360), (1280, 360)]
+        speed_region = [(20, 400), (1080, 404), (1080, 360), (20, 360)]
 
-        # Init speed-estimation obj
-        speed_obj = solutions.SpeedEstimator(
-            reg_pts=line_pts,
-            names=names,
-            view_img=True,
-        )
+        speed = solutions.SpeedEstimator(model="yolo11n.pt", region=speed_region, show=True)
 
         while cap.isOpened():
             success, im0 = cap.read()
-            if not success:
-                print("Video frame is empty or video processing has been successfully completed.")
-                break
 
-            tracks = model.track(im0, persist=True)
+            if success:
+                out = speed.estimate_speed(im0)
+                video_writer.write(im0)
+                if cv2.waitKey(1) & 0xFF == ord("q"):
+                    break
+                continue
 
-            im0 = speed_obj.estimate_speed(im0, tracks)
-            video_writer.write(im0)
+            print("Video frame is empty or video processing has been successfully completed.")
+            break
 
         cap.release()
-        video_writer.release()
         cv2.destroyAllWindows()
         ```
 
@@ -88,13 +81,12 @@ keywords: Ultralytics YOLO11, speed estimation, object tracking, computer vision
 
 ### Arguments `SpeedEstimator`
 
-| Name               | Type   | Default                    | Description                                          |
-| ------------------ | ------ | -------------------------- | ---------------------------------------------------- |
-| `names`            | `dict` | `None`                     | Dictionary of class names.                           |
-| `reg_pts`          | `list` | `[(20, 400), (1260, 400)]` | List of region points for speed estimation.          |
-| `view_img`         | `bool` | `False`                    | Whether to display the image with annotations.       |
-| `line_thickness`   | `int`  | `2`                        | Thickness of the lines for drawing boxes and tracks. |
-| `spdl_dist_thresh` | `int`  | `10`                       | Distance threshold for speed calculation.            |
+| Name         | Type   | Default                    | Description                                          |
+| ------------ | ------ | -------------------------- | ---------------------------------------------------- |
+| `model`      | `str`  | `None`                     | Path to Ultralytics YOLO Model File                  |
+| `region`     | `list` | `[(20, 400), (1260, 400)]` | List of points defining the counting region.         |
+| `line_width` | `int`  | `2`                        | Line thickness for bounding boxes.                   |
+| `show`       | `bool` | `False`                    | Flag to control whether to display the video stream. |
 
 ### Arguments `model.track`
 
@@ -111,10 +103,7 @@ Estimating object speed with Ultralytics YOLO11 involves combining [object detec
 ```python
 import cv2
 
-from ultralytics import YOLO, solutions
-
-model = YOLO("yolo11n.pt")
-names = model.model.names
+from ultralytics import solutions
 
 cap = cv2.VideoCapture("path/to/video/file.mp4")
 w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
@@ -122,17 +111,16 @@ video_writer = cv2.VideoWriter("speed_estimation.avi", cv2.VideoWriter_fourcc(*"
 
 # Initialize SpeedEstimator
 speed_obj = solutions.SpeedEstimator(
-    reg_pts=[(0, 360), (1280, 360)],
-    names=names,
-    view_img=True,
+    region=[(0, 360), (1280, 360)],
+    model="yolo11n.pt",
+    show=True,
 )
 
 while cap.isOpened():
     success, im0 = cap.read()
     if not success:
         break
-    tracks = model.track(im0, persist=True, show=False)
-    im0 = speed_obj.estimate_speed(im0, tracks)
+    im0 = speed_obj.estimate_speed(im0)
     video_writer.write(im0)
 
 cap.release()

@@ -458,7 +458,7 @@ def check_torchvision():
             )
 
 
-def check_suffix(file="yolov8n.pt", suffix=".pt", msg=""):
+def check_suffix(file="yolo11n.pt", suffix=".pt", msg=""):
     """Check file(s) for acceptable suffix."""
     if file and suffix:
         if isinstance(suffix, str):

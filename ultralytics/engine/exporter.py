@@ -963,10 +963,10 @@ class Exporter:
         cmd = (
             "edgetpu_compiler "
             f'--out_dir "{Path(f).parent}" '
-            "--speed "
-            "--debug "
-            "--max_clustering_iterations 3 "
-            "--compiler_timeout 300 "
+            "--show_operations "
+            "--search_delegate "
+            "--delegate_search_step 3 "
+            "--timeout_sec 180 "
             "--optimization_level 1 "
             f'"{tflite_model}"'
         )

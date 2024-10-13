@@ -693,7 +693,7 @@ class Results(SimpleClass):
 
         Examples:
             >>> from ultralytics import YOLO
-            >>> model = YOLO("yolov8n.pt")
+            >>> model = YOLO("yolo11n.pt")
             >>> results = model("path/to/image.jpg")
             >>> for result in results:
             ...     result.save_txt("output.txt")

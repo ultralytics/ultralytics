@@ -107,7 +107,6 @@ class BaseValidator:
     @smart_inference_mode()
     def __call__(self, trainer=None, model=None):
         """Executes validation process, running inference on dataloader and computing performance metrics."""
-
         # Clear the false negative and false positive folder to avoid conflict of final val and prev val
         if os.path.exists(str(self.save_dir / "false_negative_underkill")):
             shutil.rmtree(str(self.save_dir / "false_negative_underkill"))

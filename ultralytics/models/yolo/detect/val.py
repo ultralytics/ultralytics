@@ -7,7 +7,6 @@ import numpy as np
 import torch
 
 from ultralytics.data import build_dataloader, build_yolo_dataset, converter
-from ultralytics.data import build_dataloader, build_yolo_dataset
 from ultralytics.engine.results import Results
 from ultralytics.engine.validator import BaseValidator
 from ultralytics.utils import LOGGER, ops
@@ -252,7 +251,7 @@ class DetectionValidator(BaseValidator):
         # We need to find the pairs not in matches here. That is iou < iou_thres
         # Find the ground truth box without prediction box, and prediction box without ground truth
         x = torch.where(iou > self.confusion_matrix.iou_thres)
-        y = torch.where(iou <= self.confusion_matrix.iou_thres)  # y[0] is label, y[1] is predict
+        torch.where(iou <= self.confusion_matrix.iou_thres)  # y[0] is label, y[1] is predict
         labels_matches = matches[:, 0]
         pred_matches = matches[:, 1]
 
@@ -304,7 +303,7 @@ class DetectionValidator(BaseValidator):
 
             label_color_list = [colors.GREEN_COLOR] * labels.shape[0]
             detection_color_list = [colors.BLUE_COLOR] * detections.shape[0]
-            color_list = [colors.GREEN_COLOR] * detections.shape[0] + [colors.BLUE_COLOR] * labels.shape[0]
+            [colors.GREEN_COLOR] * detections.shape[0] + [colors.BLUE_COLOR] * labels.shape[0]
             for i in false_positive:
                 detection_color_list[i] = colors.RED_COLOR  # Replace the false positive part with red color
             file_name = batch["im_file"][si]

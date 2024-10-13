@@ -6,7 +6,7 @@ keywords: Ultralytics HUB, YOLO models, mobile app, iOS, Android, hardware accel
 
 # Ultralytics HUB App
 
-<a href="https://ultralytics.com/hub" target="_blank">
+<a href="https://www.ultralytics.com/hub" target="_blank">
   <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/ultralytics-hub.avif" alt="Ultralytics HUB preview image"></a>
 <br>
 <div align="center">
@@ -22,7 +22,7 @@ keywords: Ultralytics HUB, YOLO models, mobile app, iOS, Android, hardware accel
   <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="3%" alt="space">
   <a href="https://ultralytics.com/bilibili"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-bilibili.png" width="3%" alt="Ultralytics BiliBili"></a>
   <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="3%" alt="space">
-  <a href="https://ultralytics.com/discord"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-discord.png" width="3%" alt="Ultralytics Discord"></a>
+  <a href="https://discord.com/invite/ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-discord.png" width="3%" alt="Ultralytics Discord"></a>
   <br>
   <br>
   <a href="https://apps.apple.com/xk/app/ultralytics/id1583935240" style="text-decoration:none;">

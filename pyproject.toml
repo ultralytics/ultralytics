@@ -19,7 +19,7 @@
 # For comprehensive documentation and usage instructions, visit: https://docs.ultralytics.com
 
 [build-system]
-requires = ["setuptools>=57.0.0", "wheel"]
+requires = ["setuptools>=70.0.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 # Project settings -----------------------------------------------------------------------------------------------------
@@ -34,7 +34,6 @@ keywords = ["machine-learning", "deep-learning", "computer-vision", "ML", "DL", 
 authors = [
     { name = "Glenn Jocher", email = "glenn.jocher@ultralytics.com" },
     { name = "Jing Qiu", email = "jing.qiu@ultralytics.com" },
-    { name = "Ayush Chaurasia" },
 ]
 maintainers = [
     { name = "Ultralytics", email = "hello@ultralytics.com" },
@@ -108,10 +107,9 @@ export = [
     "numpy==1.23.5; platform_machine == 'aarch64'", # fix error: `np.bool` was a deprecated alias for the builtin `bool` when using TensorRT models on NVIDIA Jetson
     "h5py!=3.11.0; platform_machine == 'aarch64'", # fix h5py build issues due to missing aarch64 wheels in 3.11 release
 ]
-explorer = [
-    "lancedb", # vector search
-    "duckdb<=0.9.2", # SQL queries, duckdb==0.10.0 bug https://github.com/ultralytics/ultralytics/pull/8181
-    "streamlit", # visualizing with GUI
+solutions = [
+    "shapely>=2.0.0",    # shapely for point and polygon data matching
+    "streamlit",    # for live inference on web browser i.e `yolo streamlit-predict`
 ]
 logging = [
     "comet", # https://docs.ultralytics.com/integrations/comet/

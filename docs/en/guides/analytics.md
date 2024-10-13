@@ -40,103 +40,32 @@ This guide provides a comprehensive overview of three fundamental types of [data
         ```python
         import cv2
 
-        from ultralytics import YOLO, solutions
-
-        model = YOLO("yolo11n.pt")
+        from ultralytics import solutions
 
         cap = cv2.VideoCapture("Path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
+
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 
-        out = cv2.VideoWriter("line_plot.avi", cv2.VideoWriter_fourcc(*"MJPG"), fps, (w, h))
-
-        analytics = solutions.Analytics(
-            type="line",
-            writer=out,
-            im0_shape=(w, h),
-            view_img=True,
+        out = cv2.VideoWriter(
+            "ultralytics_analytics.avi",
+            cv2.VideoWriter_fourcc(*"MJPG"),
+            fps,
+            (1920, 1080),  # This is fixed
         )
-        total_counts = 0
-        frame_count = 0
-
-        while cap.isOpened():
-            success, frame = cap.read()
-
-            if success:
-                frame_count += 1
-                results = model.track(frame, persist=True, verbose=True)
-
-                if results[0].boxes.id is not None:
-                    boxes = results[0].boxes.xyxy.cpu()
-                    for box in boxes:
-                        total_counts += 1
-
-                analytics.update_line(frame_count, total_counts)
-
-                total_counts = 0
-                if cv2.waitKey(1) & 0xFF == ord("q"):
-                    break
-            else:
-                break
-
-        cap.release()
-        out.release()
-        cv2.destroyAllWindows()
-        ```
-
-    === "Multiple Lines"
-
-        ```python
-        import cv2
-
-        from ultralytics import YOLO, solutions
-
-        model = YOLO("yolo11n.pt")
-
-        cap = cv2.VideoCapture("Path/to/video/file.mp4")
-        assert cap.isOpened(), "Error reading video file"
-        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-        out = cv2.VideoWriter("multiple_line_plot.avi", cv2.VideoWriter_fourcc(*"MJPG"), fps, (w, h))
 
         analytics = solutions.Analytics(
-            type="line",
-            writer=out,
-            im0_shape=(w, h),
-            view_img=True,
-            max_points=200,
+            analytics_type="line",
+            show=True,
         )
 
         frame_count = 0
-        data = {}
-        labels = []
-
         while cap.isOpened():
-            success, frame = cap.read()
-
+            success, im0 = cap.read()
             if success:
                 frame_count += 1
-
-                results = model.track(frame, persist=True)
-
-                if results[0].boxes.id is not None:
-                    boxes = results[0].boxes.xyxy.cpu()
-                    track_ids = results[0].boxes.id.int().cpu().tolist()
-                    clss = results[0].boxes.cls.cpu().tolist()
-
-                    for box, track_id, cls in zip(boxes, track_ids, clss):
-                        # Store each class label
-                        if model.names[int(cls)] not in labels:
-                            labels.append(model.names[int(cls)])
-
-                        # Store each class count
-                        if model.names[int(cls)] in data:
-                            data[model.names[int(cls)]] += 1
-                        else:
-                            data[model.names[int(cls)]] = 0
-
-                # update lines every frame
-                analytics.update_multiple_lines(data, labels, frame_count)
-                data = {}  # clear the data list for next frame
+                im0 = analytics.process_data(im0, frame_count)  # update analytics graph every frame
+                out.write(im0)  # write the video file
             else:
                 break
 
@@ -150,43 +79,32 @@ This guide provides a comprehensive overview of three fundamental types of [data
         ```python
         import cv2
 
-        from ultralytics import YOLO, solutions
-
-        model = YOLO("yolo11n.pt")
+        from ultralytics import solutions
 
         cap = cv2.VideoCapture("Path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
+
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 
-        out = cv2.VideoWriter("pie_chart.avi", cv2.VideoWriter_fourcc(*"MJPG"), fps, (w, h))
-
-        analytics = solutions.Analytics(
-            type="pie",
-            writer=out,
-            im0_shape=(w, h),
-            view_img=True,
+        out = cv2.VideoWriter(
+            "ultralytics_analytics.avi",
+            cv2.VideoWriter_fourcc(*"MJPG"),
+            fps,
+            (1920, 1080),  # This is fixed
         )
 
-        clswise_count = {}
+        analytics = solutions.Analytics(
+            analytics_type="pie",
+            show=True,
+        )
 
+        frame_count = 0
         while cap.isOpened():
-            success, frame = cap.read()
+            success, im0 = cap.read()
             if success:
-                results = model.track(frame, persist=True, verbose=True)
-                if results[0].boxes.id is not None:
-                    boxes = results[0].boxes.xyxy.cpu()
-                    clss = results[0].boxes.cls.cpu().tolist()
-                    for box, cls in zip(boxes, clss):
-                        if model.names[int(cls)] in clswise_count:
-                            clswise_count[model.names[int(cls)]] += 1
-                        else:
-                            clswise_count[model.names[int(cls)]] = 1
-
-                    analytics.update_pie(clswise_count)
-                    clswise_count = {}
-
-                if cv2.waitKey(1) & 0xFF == ord("q"):
-                    break
+                frame_count += 1
+                im0 = analytics.process_data(im0, frame_count)  # update analytics graph every frame
+                out.write(im0)  # write the video file
             else:
                 break
 
@@ -200,43 +118,32 @@ This guide provides a comprehensive overview of three fundamental types of [data
         ```python
         import cv2
 
-        from ultralytics import YOLO, solutions
-
-        model = YOLO("yolo11n.pt")
+        from ultralytics import solutions
 
         cap = cv2.VideoCapture("Path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
+
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 
-        out = cv2.VideoWriter("bar_plot.avi", cv2.VideoWriter_fourcc(*"MJPG"), fps, (w, h))
-
-        analytics = solutions.Analytics(
-            type="bar",
-            writer=out,
-            im0_shape=(w, h),
-            view_img=True,
+        out = cv2.VideoWriter(
+            "ultralytics_analytics.avi",
+            cv2.VideoWriter_fourcc(*"MJPG"),
+            fps,
+            (1920, 1080),  # This is fixed
         )
 
-        clswise_count = {}
+        analytics = solutions.Analytics(
+            analytics_type="bar",
+            show=True,
+        )
 
+        frame_count = 0
         while cap.isOpened():
-            success, frame = cap.read()
+            success, im0 = cap.read()
             if success:
-                results = model.track(frame, persist=True, verbose=True)
-                if results[0].boxes.id is not None:
-                    boxes = results[0].boxes.xyxy.cpu()
-                    clss = results[0].boxes.cls.cpu().tolist()
-                    for box, cls in zip(boxes, clss):
-                        if model.names[int(cls)] in clswise_count:
-                            clswise_count[model.names[int(cls)]] += 1
-                        else:
-                            clswise_count[model.names[int(cls)]] = 1
-
-                    analytics.update_bar(clswise_count)
-                    clswise_count = {}
-
-                if cv2.waitKey(1) & 0xFF == ord("q"):
-                    break
+                frame_count += 1
+                im0 = analytics.process_data(im0, frame_count)  # update analytics graph every frame
+                out.write(im0)  # write the video file
             else:
                 break
 
@@ -250,46 +157,32 @@ This guide provides a comprehensive overview of three fundamental types of [data
         ```python
         import cv2
 
-        from ultralytics import YOLO, solutions
+        from ultralytics import solutions
 
-        model = YOLO("yolo11n.pt")
-
-        cap = cv2.VideoCapture("path/to/video/file.mp4")
+        cap = cv2.VideoCapture("Path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
+
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 
-        out = cv2.VideoWriter("area_plot.avi", cv2.VideoWriter_fourcc(*"MJPG"), fps, (w, h))
-
-        analytics = solutions.Analytics(
-            type="area",
-            writer=out,
-            im0_shape=(w, h),
-            view_img=True,
+        out = cv2.VideoWriter(
+            "ultralytics_analytics.avi",
+            cv2.VideoWriter_fourcc(*"MJPG"),
+            fps,
+            (1920, 1080),  # This is fixed
         )
 
-        clswise_count = {}
-        frame_count = 0
+        analytics = solutions.Analytics(
+            analytics_type="area",
+            show=True,
+        )
 
+        frame_count = 0
         while cap.isOpened():
-            success, frame = cap.read()
+            success, im0 = cap.read()
             if success:
                 frame_count += 1
-                results = model.track(frame, persist=True, verbose=True)
-
-                if results[0].boxes.id is not None:
-                    boxes = results[0].boxes.xyxy.cpu()
-                    clss = results[0].boxes.cls.cpu().tolist()
-
-                    for box, cls in zip(boxes, clss):
-                        if model.names[int(cls)] in clswise_count:
-                            clswise_count[model.names[int(cls)]] += 1
-                        else:
-                            clswise_count[model.names[int(cls)]] = 1
-
-                analytics.update_area(frame_count, clswise_count)
-                clswise_count = {}
-                if cv2.waitKey(1) & 0xFF == ord("q"):
-                    break
+                im0 = analytics.process_data(im0, frame_count)  # update analytics graph every frame
+                out.write(im0)  # write the video file
             else:
                 break
 
@@ -302,23 +195,12 @@ This guide provides a comprehensive overview of three fundamental types of [data
 
 Here's a table with the `Analytics` arguments:
 
-| Name           | Type              | Default       | Description                                                                      |
-| -------------- | ----------------- | ------------- | -------------------------------------------------------------------------------- |
-| `type`         | `str`             | `None`        | Type of data or object.                                                          |
-| `im0_shape`    | `tuple`           | `None`        | Shape of the initial image.                                                      |
-| `writer`       | `cv2.VideoWriter` | `None`        | Object for writing video files.                                                  |
-| `title`        | `str`             | `ultralytics` | Title for the visualization.                                                     |
-| `x_label`      | `str`             | `x`           | Label for the x-axis.                                                            |
-| `y_label`      | `str`             | `y`           | Label for the y-axis.                                                            |
-| `bg_color`     | `str`             | `white`       | Background color.                                                                |
-| `fg_color`     | `str`             | `black`       | Foreground color.                                                                |
-| `line_color`   | `str`             | `yellow`      | Color of the lines.                                                              |
-| `line_width`   | `int`             | `2`           | Width of the lines.                                                              |
-| `fontsize`     | `int`             | `13`          | Font size for text.                                                              |
-| `view_img`     | `bool`            | `False`       | Flag to display the image or video.                                              |
-| `save_img`     | `bool`            | `True`        | Flag to save the image or video.                                                 |
-| `max_points`   | `int`             | `50`          | For multiple lines, total points drawn on frame, before deleting initial points. |
-| `points_width` | `int`             | `15`          | Width of line points highlighter.                                                |
+| Name             | Type   | Default | Description                                          |
+| ---------------- | ------ | ------- | ---------------------------------------------------- |
+| `analytics_type` | `str`  | `line`  | Type of graph i.e "line", "bar", "area", "pie"       |
+| `model`          | `str`  | `None`  | Path to Ultralytics YOLO Model File                  |
+| `line_width`     | `int`  | `2`     | Line thickness for bounding boxes.                   |
+| `show`           | `bool` | `False` | Flag to control whether to display the video stream. |
 
 ### Arguments `model.track`
 
@@ -344,21 +226,33 @@ Example:
 ```python
 import cv2
 
-from ultralytics import YOLO, solutions
+from ultralytics import solutions
 
-model = YOLO("yolo11n.pt")
 cap = cv2.VideoCapture("Path/to/video/file.mp4")
-out = cv2.VideoWriter("line_plot.avi", cv2.VideoWriter_fourcc(*"MJPG"), fps, (w, h))
+assert cap.isOpened(), "Error reading video file"
 
-analytics = solutions.Analytics(type="line", writer=out, im0_shape=(w, h), view_img=True)
+w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 
+out = cv2.VideoWriter(
+    "ultralytics_analytics.avi",
+    cv2.VideoWriter_fourcc(*"MJPG"),
+    fps,
+    (1920, 1080),  # This is fixed
+)
+
+analytics = solutions.Analytics(
+    analytics_type="line",
+    show=True,
+)
+
+frame_count = 0
 while cap.isOpened():
-    success, frame = cap.read()
+    success, im0 = cap.read()
     if success:
-        results = model.track(frame, persist=True)
-        total_counts = sum([1 for box in results[0].boxes.xyxy])
-        analytics.update_line(frame_count, total_counts)
-    if cv2.waitKey(1) & 0xFF == ord("q"):
+        frame_count += 1
+        im0 = analytics.process_data(im0, frame_count)  # update analytics graph every frame
+        out.write(im0)  # write the video file
+    else:
         break
 
 cap.release()
@@ -382,24 +276,33 @@ Use the following example to generate a bar plot:
 ```python
 import cv2
 
-from ultralytics import YOLO, solutions
+from ultralytics import solutions
 
-model = YOLO("yolo11n.pt")
 cap = cv2.VideoCapture("Path/to/video/file.mp4")
-out = cv2.VideoWriter("bar_plot.avi", cv2.VideoWriter_fourcc(*"MJPG"), fps, (w, h))
+assert cap.isOpened(), "Error reading video file"
 
-analytics = solutions.Analytics(type="bar", writer=out, im0_shape=(w, h), view_img=True)
+w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 
+out = cv2.VideoWriter(
+    "ultralytics_analytics.avi",
+    cv2.VideoWriter_fourcc(*"MJPG"),
+    fps,
+    (1920, 1080),  # This is fixed
+)
+
+analytics = solutions.Analytics(
+    analytics_type="bar",
+    show=True,
+)
+
+frame_count = 0
 while cap.isOpened():
-    success, frame = cap.read()
+    success, im0 = cap.read()
     if success:
-        results = model.track(frame, persist=True)
-        clswise_count = {
-            model.names[int(cls)]: boxes.size(0)
-            for cls, boxes in zip(results[0].boxes.cls.tolist(), results[0].boxes.xyxy)
-        }
-        analytics.update_bar(clswise_count)
-    if cv2.waitKey(1) & 0xFF == ord("q"):
+        frame_count += 1
+        im0 = analytics.process_data(im0, frame_count)  # update analytics graph every frame
+        out.write(im0)  # write the video file
+    else:
         break
 
 cap.release()
@@ -423,24 +326,33 @@ Here's a quick example:
 ```python
 import cv2
 
-from ultralytics import YOLO, solutions
+from ultralytics import solutions
 
-model = YOLO("yolo11n.pt")
 cap = cv2.VideoCapture("Path/to/video/file.mp4")
-out = cv2.VideoWriter("pie_chart.avi", cv2.VideoWriter_fourcc(*"MJPG"), fps, (w, h))
+assert cap.isOpened(), "Error reading video file"
 
-analytics = solutions.Analytics(type="pie", writer=out, im0_shape=(w, h), view_img=True)
+w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 
+out = cv2.VideoWriter(
+    "ultralytics_analytics.avi",
+    cv2.VideoWriter_fourcc(*"MJPG"),
+    fps,
+    (1920, 1080),  # This is fixed
+)
+
+analytics = solutions.Analytics(
+    analytics_type="pie",
+    show=True,
+)
+
+frame_count = 0
 while cap.isOpened():
-    success, frame = cap.read()
+    success, im0 = cap.read()
     if success:
-        results = model.track(frame, persist=True)
-        clswise_count = {
-            model.names[int(cls)]: boxes.size(0)
-            for cls, boxes in zip(results[0].boxes.cls.tolist(), results[0].boxes.xyxy)
-        }
-        analytics.update_pie(clswise_count)
-    if cv2.waitKey(1) & 0xFF == ord("q"):
+        frame_count += 1
+        im0 = analytics.process_data(im0, frame_count)  # update analytics graph every frame
+        out.write(im0)  # write the video file
+    else:
         break
 
 cap.release()
@@ -459,21 +371,33 @@ Example for tracking and updating a line graph:
 ```python
 import cv2
 
-from ultralytics import YOLO, solutions
+from ultralytics import solutions
 
-model = YOLO("yolo11n.pt")
 cap = cv2.VideoCapture("Path/to/video/file.mp4")
-out = cv2.VideoWriter("line_plot.avi", cv2.VideoWriter_fourcc(*"MJPG"), fps, (w, h))
+assert cap.isOpened(), "Error reading video file"
 
-analytics = solutions.Analytics(type="line", writer=out, im0_shape=(w, h), view_img=True)
+w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 
+out = cv2.VideoWriter(
+    "ultralytics_analytics.avi",
+    cv2.VideoWriter_fourcc(*"MJPG"),
+    fps,
+    (1920, 1080),  # This is fixed
+)
+
+analytics = solutions.Analytics(
+    analytics_type="line",
+    show=True,
+)
+
+frame_count = 0
 while cap.isOpened():
-    success, frame = cap.read()
+    success, im0 = cap.read()
     if success:
-        results = model.track(frame, persist=True)
-        total_counts = sum([1 for box in results[0].boxes.xyxy])
-        analytics.update_line(frame_count, total_counts)
-    if cv2.waitKey(1) & 0xFF == ord("q"):
+        frame_count += 1
+        im0 = analytics.process_data(im0, frame_count)  # update analytics graph every frame
+        out.write(im0)  # write the video file
+    else:
         break
 
 cap.release()

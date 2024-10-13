@@ -286,7 +286,7 @@ def count_objects_in_region(video_path, output_video_path, model_path):
         if not success:
             print("Video frame is empty or video processing has been successfully completed.")
             break
-        im0 = counter.start_counting(im0)
+        im0 = counter.count(im0)
         video_writer.write(im0)
 
     cap.release()
@@ -334,7 +334,7 @@ def count_specific_classes(video_path, output_video_path, model_path, classes_to
         if not success:
             print("Video frame is empty or video processing has been successfully completed.")
             break
-        im0 = counter.start_counting(im0)
+        im0 = counter.count(im0)
         video_writer.write(im0)
 
     cap.release()

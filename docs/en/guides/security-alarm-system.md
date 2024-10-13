@@ -8,7 +8,7 @@ keywords: YOLO11, Security Alarm System, real-time object detection, Ultralytics
 
 <img src="https://github.com/ultralytics/docs/releases/download/0/security-alarm-system-ultralytics-yolov8.avif" alt="Security Alarm System">
 
-The Security Alarm System Project utilizing Ultralytics YOLO11 integrates advanced [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) capabilities to enhance security measures. YOLO11, developed by Ultralytics, provides real-time object detection, allowing the system to identify and respond to potential security threats promptly. This project offers several advantages:
+The Security Alarm System Project utilizing Ultralytics YOLO11 integrates advanced [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) capabilities to enhance security measures. YOLO11, developed by Ultralytics, provides real-time [object detection](https://www.ultralytics.com/glossary/object-detection), allowing the system to identify and respond to potential security threats promptly. This project offers several advantages:
 
 - **Real-time Detection:** YOLO11's efficiency enables the Security Alarm System to detect and respond to security incidents in real-time, minimizing response time.
 - **[Accuracy](https://www.ultralytics.com/glossary/accuracy):** YOLO11 is known for its accuracy in object detection, reducing false positives and enhancing the reliability of the security alarm system.

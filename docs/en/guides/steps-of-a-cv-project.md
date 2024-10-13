@@ -147,7 +147,7 @@ It's important to keep in mind that proper dataset management is vital for effic
 
 It's important to assess your model's performance using various metrics and refine it to improve [accuracy](https://www.ultralytics.com/glossary/accuracy). [Evaluating](../modes/val.md) helps identify areas where the model excels and where it may need improvement. Fine-tuning ensures the model is optimized for the best possible performance.
 
-- **[Performance Metrics](./yolo-performance-metrics.md):** Use metrics like accuracy, [precision](https://www.ultralytics.com/glossary/precision), recall, and F1-score to evaluate your model's performance. These metrics provide insights into how well your model is making predictions.
+- **[Performance Metrics](./yolo-performance-metrics.md):** Use metrics like accuracy, [precision](https://www.ultralytics.com/glossary/precision), [recall](https://www.ultralytics.com/glossary/recall), and F1-score to evaluate your model's performance. These metrics provide insights into how well your model is making predictions.
 - **[Hyperparameter Tuning](./hyperparameter-tuning.md):** Adjust hyperparameters to optimize model performance. Techniques like grid search or random search can help find the best hyperparameter values.
 
 - Fine-Tuning: Make small adjustments to the model architecture or training process to enhance performance. This might involve tweaking [learning rates](https://www.ultralytics.com/glossary/learning-rate), [batch sizes](https://www.ultralytics.com/glossary/batch-size), or other model parameters.

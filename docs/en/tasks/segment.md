@@ -41,7 +41,7 @@ YOLO11 pretrained Segment models are shown here. Detect, Segment and Pose models
 
 ## Train
 
-Train YOLO11n-seg on the COCO128-seg dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) at image size 640. For a full list of available arguments see the [Configuration](../usage/cfg.md) page.
+Train YOLO11n-seg on the COCO8-seg dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) at image size 640. For a full list of available arguments see the [Configuration](../usage/cfg.md) page.
 
 !!! example
 
@@ -78,7 +78,7 @@ YOLO segmentation dataset format can be found in detail in the [Dataset Guide](.
 
 ## Val
 
-Validate trained YOLO11n-seg model [accuracy](https://www.ultralytics.com/glossary/accuracy) on the COCO128-seg dataset. No arguments are needed as the `model` retains its training `data` and arguments as model attributes.
+Validate trained YOLO11n-seg model [accuracy](https://www.ultralytics.com/glossary/accuracy) on the COCO8-seg dataset. No arguments are needed as the `model` retains its training `data` and arguments as model attributes.
 
 !!! example
 

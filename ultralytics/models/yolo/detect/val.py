@@ -22,7 +22,7 @@ class DetectionValidator(BaseValidator):
         ```python
         from ultralytics.models.yolo.detect import DetectionValidator
 
-        args = dict(model="yolov8n.pt", data="coco8.yaml")
+        args = dict(model="yolo11n.pt", data="coco8.yaml")
         validator = DetectionValidator(args=args)
         validator()
         ```

@@ -720,6 +720,8 @@ class Exporter:
 
         # Optionally switch to DLA if enabled
         if self.args.dla:
+            if not IS_JETSON:
+                raise ValueError("DLA is only available on NVIDIA Jetson devices")
             LOGGER.info(f"{prefix} enabling DLA...")
             if not self.args.half and not self.args.int8:
                 raise ValueError(

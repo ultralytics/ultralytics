@@ -28,7 +28,7 @@ def run_ray_tune(
         from ultralytics import YOLO
 
         # Load a YOLOv8n model
-        model = YOLO("yolov8n.pt")
+        model = YOLO("yolo11n.pt")
 
         # Start tuning hyperparameters for YOLOv8n training on the COCO8 dataset
         result_grid = model.tune(data="coco8.yaml", use_ray=True)

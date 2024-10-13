@@ -381,7 +381,7 @@ class BasePredictor:
 
         # Save images
         else:
-            cv2.imwrite(save_path, im)
+            cv2.imwrite(str(Path(save_path).with_suffix(".jpg")), im)  # save to JPG for best support
 
     def show(self, p=""):
         """Display an image in a window using the OpenCV imshow function."""

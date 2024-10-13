@@ -47,7 +47,7 @@ from ultralytics.utils.torch_utils import get_cpu_info, select_device
 
 
 def benchmark(
-    model=WEIGHTS_DIR / "yolov8n.pt",
+    model=WEIGHTS_DIR / "yolo11n.pt",
     data=None,
     imgsz=160,
     half=False,
@@ -76,7 +76,7 @@ def benchmark(
     Examples:
         Benchmark a YOLO model with default settings:
         >>> from ultralytics.utils.benchmarks import benchmark
-        >>> benchmark(model="yolov8n.pt", imgsz=640)
+        >>> benchmark(model="yolo11n.pt", imgsz=640)
     """
     import pandas as pd  # scope for faster 'import ultralytics'
 

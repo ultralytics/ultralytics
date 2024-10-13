@@ -967,7 +967,6 @@ class Exporter:
             "--search_delegate "
             "--delegate_search_step 3 "
             "--timeout_sec 180 "
-            "--optimization_level 1 "
             f'"{tflite_model}"'
         )
         LOGGER.info(f"{prefix} running '{cmd}'")

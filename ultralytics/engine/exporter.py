@@ -960,7 +960,16 @@ class Exporter:
         LOGGER.info(f"\n{prefix} starting export with Edge TPU compiler {ver}...")
         f = str(tflite_model).replace(".tflite", "_edgetpu.tflite")  # Edge TPU model
 
-        cmd = f'edgetpu_compiler -s -d -k 10 --out_dir "{Path(f).parent}" "{tflite_model}"'
+        cmd = (
+            "edgetpu_compiler "
+            f'--out_dir "{Path(f).parent}" '
+            "--speed "
+            "--debug "
+            "--max_clustering_iterations 3 "
+            "--compiler_timeout 300 "
+            "--optimization_level 1 "
+            f'"{tflite_model}"'
+        )
         LOGGER.info(f"{prefix} running '{cmd}'")
         subprocess.run(cmd, shell=True)
         self._add_tflite_metadata(f)

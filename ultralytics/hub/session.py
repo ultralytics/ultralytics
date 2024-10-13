@@ -1,17 +1,19 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
+import shutil
 import threading
 import time
 from http import HTTPStatus
 from pathlib import Path
+from urllib.parse import parse_qs, urlparse
 
 import requests
 
-from ultralytics.hub.utils import HUB_WEB_ROOT, HELP_MSG, PREFIX, TQDM
-from ultralytics.utils import LOGGER, SETTINGS, __version__, checks, emojis, is_colab
+from ultralytics.hub.utils import HELP_MSG, HUB_WEB_ROOT, PREFIX, TQDM
+from ultralytics.utils import IS_COLAB, LOGGER, SETTINGS, __version__, checks, emojis
 from ultralytics.utils.errors import HUBModelError
 
-AGENT_NAME = f"python-{__version__}-colab" if is_colab() else f"python-{__version__}-local"
+AGENT_NAME = f"python-{__version__}-colab" if IS_COLAB else f"python-{__version__}-local"
 
 
 class HUBTrainingSession:
@@ -19,16 +21,12 @@ class HUBTrainingSession:
     HUB training session for Ultralytics HUB YOLO models. Handles model initialization, heartbeats, and checkpointing.
 
     Attributes:
-        agent_id (str): Identifier for the instance communicating with the server.
         model_id (str): Identifier for the YOLO model being trained.
         model_url (str): URL for the model in Ultralytics HUB.
-        api_url (str): API URL for the model in Ultralytics HUB.
-        auth_header (dict): Authentication header for the Ultralytics HUB API requests.
         rate_limits (dict): Rate limits for different API calls (in seconds).
         timers (dict): Timers for rate limiting.
         metrics_queue (dict): Queue for the model's metrics.
         model (dict): Model data fetched from Ultralytics HUB.
-        alive (bool): Indicates if the heartbeat loop is active.
     """
 
     def __init__(self, identifier):
@@ -46,13 +44,14 @@ class HUBTrainingSession:
         """
         from hub_sdk import HUBClient
 
-        self.rate_limits = {
-            "metrics": 3.0,
-            "ckpt": 900.0,
-            "heartbeat": 300.0,
-        }  # rate limits (seconds)
+        self.rate_limits = {"metrics": 3, "ckpt": 900, "heartbeat": 300}  # rate limits (seconds)
         self.metrics_queue = {}  # holds metrics for each epoch until upload
+        self.metrics_upload_failed_queue = {}  # holds metrics for each epoch if upload failed
         self.timers = {}  # holds timers in ultralytics/utils/callbacks/hub.py
+        self.model = None
+        self.model_url = None
+        self.model_file = None
+        self.train_args = None
 
         # Parse input
         api_key, model_id, self.filename = self._parse_identifier(identifier)
@@ -64,10 +63,31 @@ class HUBTrainingSession:
         # Initialize client
         self.client = HUBClient(credentials)
 
-        if model_id:
-            self.load_model(model_id)  # load existing model
-        else:
-            self.model = self.client.model()  # load empty model
+        # Load models
+        try:
+            if model_id:
+                self.load_model(model_id)  # load existing model
+            else:
+                self.model = self.client.model()  # load empty model
+        except Exception:
+            if identifier.startswith(f"{HUB_WEB_ROOT}/models/") and not self.client.authenticated:
+                LOGGER.warning(
+                    f"{PREFIX}WARNING ⚠️ Please log in using 'yolo login API_KEY'. "
+                    "You can find your API Key at: https://hub.ultralytics.com/settings?tab=api+keys."
+                )
+
+    @classmethod
+    def create_session(cls, identifier, args=None):
+        """Class method to create an authenticated HUBTrainingSession or return None."""
+        try:
+            session = cls(identifier)
+            if args and not identifier.startswith(f"{HUB_WEB_ROOT}/models/"):  # not a HUB model URL
+                session.create_model(args)
+                assert session.model.id, "HUB model not loaded correctly"
+            return session
+        # PermissionError and ModuleNotFoundError indicate hub-sdk not installed
+        except (PermissionError, ModuleNotFoundError, AssertionError):
+            return None
 
     def load_model(self, model_id):
         """Loads an existing model from Ultralytics HUB using the provided model identifier."""
@@ -76,10 +96,14 @@ class HUBTrainingSession:
             raise ValueError(emojis("❌ The specified HUB model does not exist"))  # TODO: improve error handling
 
         self.model_url = f"{HUB_WEB_ROOT}/models/{self.model.id}"
+        if self.model.is_trained():
+            print(emojis(f"Loading trained HUB model {self.model_url} 🚀"))
+            url = self.model.get_weights_url("best")  # download URL with auth
+            self.model_file = checks.check_file(url, download_dir=Path(SETTINGS["weights_dir"]) / "hub" / self.model.id)
+            return
 
+        # Set training args and start heartbeats for HUB to monitor agent
         self._set_train_args()
-
-        # Start heartbeats for HUB to monitor agent
         self.model.start_heartbeat(self.rate_limits["heartbeat"])
         LOGGER.info(f"{PREFIX}View model at {self.model_url} 🚀")
 
@@ -91,14 +115,12 @@ class HUBTrainingSession:
                 "epochs": model_args.get("epochs", 300),
                 "imageSize": model_args.get("imgsz", 640),
                 "patience": model_args.get("patience", 100),
-                "device": model_args.get("device", ""),
-                "cache": model_args.get("cache", "ram"),
+                "device": str(model_args.get("device", "")),  # convert None to string
+                "cache": str(model_args.get("cache", "ram")),  # convert True, False, None to string
             },
             "dataset": {"name": model_args.get("data")},
             "lineage": {
-                "architecture": {
-                    "name": self.filename.replace(".pt", "").replace(".yaml", ""),
-                },
+                "architecture": {"name": self.filename.replace(".pt", "").replace(".yaml", "")},
                 "parent": {},
             },
             "meta": {"name": self.filename},
@@ -112,7 +134,7 @@ class HUBTrainingSession:
         # Model could not be created
         # TODO: improve error handling
         if not self.model.id:
-            return
+            return None
 
         self.model_url = f"{HUB_WEB_ROOT}/models/{self.model.id}"
 
@@ -121,14 +143,14 @@ class HUBTrainingSession:
 
         LOGGER.info(f"{PREFIX}View model at {self.model_url} 🚀")
 
-    def _parse_identifier(self, identifier):
+    @staticmethod
+    def _parse_identifier(identifier):
         """
         Parses the given identifier to determine the type of identifier and extract relevant components.
 
         The method supports different identifier formats:
-            - A HUB URL, which starts with HUB_WEB_ROOT followed by '/models/'
-            - An identifier containing an API key and a model ID separated by an underscore
-            - An identifier that is solely a model ID of a fixed length
+            - A HUB model URL https://hub.ultralytics.com/models/MODEL
+            - A HUB model URL with API Key https://hub.ultralytics.com/models/MODEL?api_key=APIKEY
             - A local filename that ends with '.pt' or '.yaml'
 
         Args:
@@ -140,67 +162,46 @@ class HUBTrainingSession:
         Raises:
             HUBModelError: If the identifier format is not recognized.
         """
-
-        # Initialize variables
         api_key, model_id, filename = None, None, None
-
-        # Check if identifier is a HUB URL
-        if identifier.startswith(f"{HUB_WEB_ROOT}/models/"):
-            # Extract the model_id after the HUB_WEB_ROOT URL
-            model_id = identifier.split(f"{HUB_WEB_ROOT}/models/")[-1]
+        if Path(identifier).suffix in {".pt", ".yaml"}:
+            filename = identifier
+        elif identifier.startswith(f"{HUB_WEB_ROOT}/models/"):
+            parsed_url = urlparse(identifier)
+            model_id = Path(parsed_url.path).stem  # handle possible final backslash robustly
+            query_params = parse_qs(parsed_url.query)  # dictionary, i.e. {"api_key": ["API_KEY_HERE"]}
+            api_key = query_params.get("api_key", [None])[0]
         else:
-            # Split the identifier based on underscores only if it's not a HUB URL
-            parts = identifier.split("_")
-
-            # Check if identifier is in the format of API key and model ID
-            if len(parts) == 2 and len(parts[0]) == 42 and len(parts[1]) == 20:
-                api_key, model_id = parts
-            # Check if identifier is a single model ID
-            elif len(parts) == 1 and len(parts[0]) == 20:
-                model_id = parts[0]
-            # Check if identifier is a local filename
-            elif identifier.endswith(".pt") or identifier.endswith(".yaml"):
-                filename = identifier
-            else:
-                raise HUBModelError(
-                    f"model='{identifier}' could not be parsed. Check format is correct. "
-                    f"Supported formats are Ultralytics HUB URL, apiKey_modelId, modelId, local pt or yaml file."
-                )
-
+            raise HUBModelError(f"model='{identifier} invalid, correct format is {HUB_WEB_ROOT}/models/MODEL_ID")
         return api_key, model_id, filename
 
-    def _set_train_args(self, **kwargs):
-        """Initializes training arguments and creates a model entry on the Ultralytics HUB."""
-        if self.model.is_trained():
-            # Model is already trained
-            raise ValueError(emojis(f"Model is already trained and uploaded to {self.model_url} 🚀"))
+    def _set_train_args(self):
+        """
+        Initializes training arguments and creates a model entry on the Ultralytics HUB.
 
+        This method sets up training arguments based on the model's state and updates them with any additional
+        arguments provided. It handles different states of the model, such as whether it's resumable, pretrained,
+        or requires specific file setup.
+
+        Raises:
+            ValueError: If the model is already trained, if required dataset information is missing, or if there are
+                issues with the provided training arguments.
+        """
         if self.model.is_resumable():
             # Model has saved weights
             self.train_args = {"data": self.model.get_dataset_url(), "resume": True}
             self.model_file = self.model.get_weights_url("last")
         else:
             # Model has no saved weights
-            def get_train_args(config):
-                """Parses an identifier to extract API key, model ID, and filename if applicable."""
-                return {
-                    "batch": config["batchSize"],
-                    "epochs": config["epochs"],
-                    "imgsz": config["imageSize"],
-                    "patience": config["patience"],
-                    "device": config["device"],
-                    "cache": config["cache"],
-                    "data": self.model.get_dataset_url(),
-                }
+            self.train_args = self.model.data.get("train_args")  # new response
 
-            self.train_args = get_train_args(self.model.data.get("config"))
             # Set the model file as either a *.pt or *.yaml file
             self.model_file = (
                 self.model.get_weights_url("parent") if self.model.is_pretrained() else self.model.get_architecture()
             )
 
-        if not self.train_args.get("data"):
-            raise ValueError("Dataset may still be processing. Please wait a minute and try again.")  # RF fix
+        if "data" not in self.train_args:
+            # RF bug - datasets are sometimes not exported
+            raise ValueError("Dataset may still be processing. Please wait a minute and try again.")
 
         self.model_file = checks.check_yolov5u_filename(self.model_file, verbose=False)  # YOLOv5->YOLOv5u
         self.model_id = self.model.id
@@ -213,12 +214,16 @@ class HUBTrainingSession:
         thread=True,
         verbose=True,
         progress_total=None,
+        stream_response=None,
         *args,
         **kwargs,
     ):
+        """Attempts to execute `request_func` with retries, timeout handling, optional threading, and progress."""
+
         def retry_request():
             """Attempts to call `request_func` with retries, timeout, and optional threading."""
             t0 = time.time()  # Record the start time for the timeout
+            response = None
             for i in range(retry + 1):
                 if (time.time() - t0) > timeout:
                     LOGGER.warning(f"{PREFIX}Timeout for request reached. {HELP_MSG}")
@@ -232,8 +237,13 @@ class HUBTrainingSession:
 
                 if progress_total:
                     self._show_upload_progress(progress_total, response)
+                elif stream_response:
+                    self._iterate_content(response)
 
                 if HTTPStatus.OK <= response.status_code < HTTPStatus.MULTIPLE_CHOICES:
+                    # if request related to metrics upload
+                    if kwargs.get("metrics"):
+                        self.metrics_upload_failed_queue = {}
                     return response  # Success, no need to retry
 
                 if i == 0:
@@ -249,6 +259,10 @@ class HUBTrainingSession:
 
                 time.sleep(2**i)  # Exponential backoff for retries
 
+            # if request related to metrics upload and exceed retries
+            if response is None and kwargs.get("metrics"):
+                self.metrics_upload_failed_queue.update(kwargs.get("metrics"))
+
             return response
 
         if thread:
@@ -258,7 +272,8 @@ class HUBTrainingSession:
             # If running in the main thread, call retry_request directly
             return retry_request()
 
-    def _should_retry(self, status_code):
+    @staticmethod
+    def _should_retry(status_code):
         """Determines if a request should be retried based on the HTTP status code."""
         retry_codes = {
             HTTPStatus.REQUEST_TIMEOUT,
@@ -315,24 +330,37 @@ class HUBTrainingSession:
             map (float): Mean average precision of the model.
             final (bool): Indicates if the model is the final model after training.
         """
-        if Path(weights).is_file():
-            progress_total = Path(weights).stat().st_size if final else None  # Only show progress if final
-            self.request_queue(
-                self.model.upload_model,
-                epoch=epoch,
-                weights=weights,
-                is_best=is_best,
-                map=map,
-                final=final,
-                retry=10,
-                timeout=3600,
-                thread=not final,
-                progress_total=progress_total,
-            )
-        else:
-            LOGGER.warning(f"{PREFIX}WARNING ⚠️ Model upload issue. Missing model {weights}.")
+        weights = Path(weights)
+        if not weights.is_file():
+            last = weights.with_name(f"last{weights.suffix}")
+            if final and last.is_file():
+                LOGGER.warning(
+                    f"{PREFIX} WARNING ⚠️ Model 'best.pt' not found, copying 'last.pt' to 'best.pt' and uploading. "
+                    "This often happens when resuming training in transient environments like Google Colab. "
+                    "For more reliable training, consider using Ultralytics HUB Cloud. "
+                    "Learn more at https://docs.ultralytics.com/hub/cloud-training."
+                )
+                shutil.copy(last, weights)  # copy last.pt to best.pt
+            else:
+                LOGGER.warning(f"{PREFIX} WARNING ⚠️ Model upload issue. Missing model {weights}.")
+                return
 
-    def _show_upload_progress(self, content_length: int, response: requests.Response) -> None:
+        self.request_queue(
+            self.model.upload_model,
+            epoch=epoch,
+            weights=str(weights),
+            is_best=is_best,
+            map=map,
+            final=final,
+            retry=10,
+            timeout=3600,
+            thread=not final,
+            progress_total=weights.stat().st_size if final else None,  # only show progress if final
+            stream_response=True,
+        )
+
+    @staticmethod
+    def _show_upload_progress(content_length: int, response: requests.Response) -> None:
         """
         Display a progress bar to track the upload progress of a file download.
 
@@ -346,3 +374,17 @@ class HUBTrainingSession:
         with TQDM(total=content_length, unit="B", unit_scale=True, unit_divisor=1024) as pbar:
             for data in response.iter_content(chunk_size=1024):
                 pbar.update(len(data))
+
+    @staticmethod
+    def _iterate_content(response: requests.Response) -> None:
+        """
+        Process the streamed HTTP response data.
+
+        Args:
+            response (requests.Response): The response object from the file download request.
+
+        Returns:
+            None
+        """
+        for _ in response.iter_content(chunk_size=1024):
+            pass  # Do nothing with data chunks

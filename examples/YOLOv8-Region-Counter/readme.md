@@ -50,7 +50,7 @@ python yolov8_region_counter.py --source "path/to/video.mp4" --save-img --weight
 # If you want to detect specific class (first class and third class)
 python yolov8_region_counter.py --source "path/to/video.mp4" --classes 0 2 --weights "path/to/model.pt"
 
-# If you dont want to save results
+# If you don't want to save results
 python yolov8_region_counter.py --source "path/to/video.mp4" --view-img
 ```
 
@@ -91,9 +91,7 @@ counting_regions = [
     },
     {
         "name": "YOLOv8 Rectangle Region",
-        "polygon": Polygon(
-            [(200, 250), (440, 250), (440, 550), (200, 550)]
-        ),  # Rectangle with four points
+        "polygon": Polygon([(200, 250), (440, 250), (440, 550), (200, 550)]),  # Rectangle with four points
         "counts": 0,
         "dragging": False,
         "region_color": (37, 255, 225),  # BGR Value

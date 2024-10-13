@@ -3,7 +3,7 @@
 import subprocess
 
 from ultralytics.cfg import TASK2DATA, TASK2METRIC, get_save_dir
-from ultralytics.utils import DEFAULT_CFG, DEFAULT_CFG_DICT, LOGGER, NUM_THREADS
+from ultralytics.utils import DEFAULT_CFG, DEFAULT_CFG_DICT, LOGGER, NUM_THREADS, checks
 
 
 def run_ray_tune(
@@ -28,19 +28,18 @@ def run_ray_tune(
         from ultralytics import YOLO
 
         # Load a YOLOv8n model
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolo11n.pt")
 
         # Start tuning hyperparameters for YOLOv8n training on the COCO8 dataset
-        result_grid = model.tune(data='coco8.yaml', use_ray=True)
+        result_grid = model.tune(data="coco8.yaml", use_ray=True)
         ```
     """
-
     LOGGER.info("💡 Learn about RayTune at https://docs.ultralytics.com/integrations/ray-tune")
     if train_args is None:
         train_args = {}
 
     try:
-        subprocess.run("pip install ray[tune]".split(), check=True)
+        subprocess.run("pip install ray[tune]".split(), check=True)  # do not add single quotes here
 
         import ray
         from ray import tune
@@ -48,7 +47,7 @@ def run_ray_tune(
         from ray.air.integrations.wandb import WandbLoggerCallback
         from ray.tune.schedulers import ASHAScheduler
     except ImportError:
-        raise ModuleNotFoundError('Tuning hyperparameters requires Ray Tune. Install with: pip install "ray[tune]"')
+        raise ModuleNotFoundError('Ray Tune required but not found. To install run: pip install "ray[tune]"')
 
     try:
         import wandb
@@ -57,6 +56,7 @@ def run_ray_tune(
     except (ImportError, AssertionError):
         wandb = False
 
+    checks.check_version(ray.__version__, ">=2.0.0", "ray")
     default_space = {
         # 'optimizer': tune.choice(['SGD', 'Adam', 'AdamW', 'NAdam', 'RAdam', 'RMSProp']),
         "lr0": tune.uniform(1e-5, 1e-1),
@@ -77,6 +77,7 @@ def run_ray_tune(
         "perspective": tune.uniform(0.0, 0.001),  # image perspective (+/- fraction), range 0-0.001
         "flipud": tune.uniform(0.0, 1.0),  # image flip up-down (probability)
         "fliplr": tune.uniform(0.0, 1.0),  # image flip left-right (probability)
+        "bgr": tune.uniform(0.0, 1.0),  # image channel BGR (probability)
         "mosaic": tune.uniform(0.0, 1.0),  # image mixup (probability)
         "mixup": tune.uniform(0.0, 1.0),  # image mixup (probability)
         "copy_paste": tune.uniform(0.0, 1.0),  # segment copy-paste (probability)
@@ -142,5 +143,10 @@ def run_ray_tune(
     # Run the hyperparameter search
     tuner.fit()
 
-    # Return the results of the hyperparameter search
-    return tuner.get_results()
+    # Get the results of the hyperparameter search
+    results = tuner.get_results()
+
+    # Shut down Ray to clean up workers
+    ray.shutdown()
+
+    return results

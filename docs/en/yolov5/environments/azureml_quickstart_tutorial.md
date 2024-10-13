@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Azure Machine Learning YOLOv5 quickstart
-keywords: Ultralytics, YOLO, Deep Learning, Object detection, quickstart, Azure, AzureML
+description: Learn how to set up and run YOLOv5 on AzureML. Follow this quickstart guide for easy configuration and model training on an AzureML compute instance.
+keywords: YOLOv5, AzureML, machine learning, compute instance, quickstart, model training, virtual environment, Python, AI, deep learning
 ---
 
 # YOLOv5 🚀 on AzureML
@@ -22,13 +22,13 @@ You need an [AzureML workspace](https://learn.microsoft.com/azure/machine-learni
 
 From your AzureML workspace, select Compute > Compute instances > New, select the instance with the resources you need.
 
-<img width="1741" alt="create-compute-arrow" src="https://github.com/ouphi/ultralytics/assets/17216799/3e92fcc0-a08e-41a4-af81-d289cfe3b8f2">
+<img width="1741" alt="create-compute-arrow" src="https://github.com/ultralytics/docs/releases/download/0/create-compute-arrow.avif">
 
 ## Open a Terminal
 
 Now from the Notebooks view, open a Terminal and select your compute.
 
-![open-terminal-arrow](https://github.com/ouphi/ultralytics/assets/17216799/c4697143-7234-4a04-89ea-9084ed9c6312)
+![open-terminal-arrow](https://github.com/ultralytics/docs/releases/download/0/open-terminal-arrow.avif)
 
 ## Setup and run YOLOv5
 
@@ -61,7 +61,7 @@ Train the YOLOv5 model:
 python train.py
 ```
 
-Validate the model for Precision, Recall, and mAP
+Validate the model for [Precision](https://www.ultralytics.com/glossary/precision), [Recall](https://www.ultralytics.com/glossary/recall), and mAP
 
 ```bash
 python val.py --weights yolov5s.pt

@@ -33,4 +33,4 @@ names:
   15: container crane
 
 # Download script/URL (optional)
-download: https://github.com/ultralytics/yolov5/releases/download/v1.0/DOTAv1.5.zip
+download: https://github.com/ultralytics/assets/releases/download/v0.0.0/DOTAv1.5.zip

@@ -15,9 +15,12 @@ img_height = 640
 
 
 class LetterBox:
+    """Resizes and reshapes images while maintaining aspect ratio by adding padding, suitable for YOLO models."""
+
     def __init__(
         self, new_shape=(img_width, img_height), auto=False, scaleFill=False, scaleup=True, center=True, stride=32
     ):
+        """Initializes LetterBox with parameters for reshaping and transforming image while maintaining aspect ratio."""
         self.new_shape = new_shape
         self.auto = auto
         self.scaleFill = scaleFill
@@ -27,7 +30,6 @@ class LetterBox:
 
     def __call__(self, labels=None, image=None):
         """Return updated labels and image with added border."""
-
         if labels is None:
             labels = {}
         img = labels.get("img") if image is None else image
@@ -76,7 +78,6 @@ class LetterBox:
 
     def _update_labels(self, labels, ratio, padw, padh):
         """Update labels."""
-
         labels["instances"].convert_bbox(format="xyxy")
         labels["instances"].denormalize(*labels["img"].shape[:2][::-1])
         labels["instances"].scale(*ratio)
@@ -85,6 +86,8 @@ class LetterBox:
 
 
 class Yolov8TFLite:
+    """Class for performing object detection using YOLOv8 model converted to TensorFlow Lite format."""
+
     def __init__(self, tflite_model, input_image, confidence_thres, iou_thres):
         """
         Initializes an instance of the Yolov8TFLite class.
@@ -95,14 +98,13 @@ class Yolov8TFLite:
             confidence_thres: Confidence threshold for filtering detections.
             iou_thres: IoU (Intersection over Union) threshold for non-maximum suppression.
         """
-
         self.tflite_model = tflite_model
         self.input_image = input_image
         self.confidence_thres = confidence_thres
         self.iou_thres = iou_thres
 
         # Load the class names from the COCO dataset
-        self.classes = yaml_load(check_yaml("coco128.yaml"))["names"]
+        self.classes = yaml_load(check_yaml("coco8.yaml"))["names"]
 
         # Generate a color palette for the classes
         self.color_palette = np.random.uniform(0, 255, size=(len(self.classes), 3))
@@ -120,7 +122,6 @@ class Yolov8TFLite:
         Returns:
             None
         """
-
         # Extract the coordinates of the bounding box
         x1, y1, w, h = box
 
@@ -159,7 +160,6 @@ class Yolov8TFLite:
         Returns:
             image_data: Preprocessed image data ready for inference.
         """
-
         # Read the input image using OpenCV
         self.img = cv2.imread(self.input_image)
 
@@ -188,7 +188,6 @@ class Yolov8TFLite:
         Returns:
             numpy.ndarray: The input image with detections drawn on it.
         """
-
         boxes = []
         scores = []
         class_ids = []
@@ -233,7 +232,6 @@ class Yolov8TFLite:
         Returns:
             output_img: The output image with drawn detections.
         """
-
         # Create an interpreter for the TFLite model
         interpreter = tflite.Interpreter(model_path=self.tflite_model)
         self.model = interpreter
@@ -258,7 +256,8 @@ class Yolov8TFLite:
         img_data = img_data.transpose((0, 2, 3, 1))
 
         scale, zero_point = input_details[0]["quantization"]
-        interpreter.set_tensor(input_details[0]["index"], img_data)
+        img_data_int8 = (img_data / scale + zero_point).astype(np.int8)
+        interpreter.set_tensor(input_details[0]["index"], img_data_int8)
 
         # Run inference
         interpreter.invoke()

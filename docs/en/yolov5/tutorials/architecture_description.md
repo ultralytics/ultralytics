@@ -1,12 +1,12 @@
 ---
 comments: true
-description: Explore the architecture of YOLOv5, an object detection algorithm by Ultralytics. Understand the model structure, data augmentation methods, training strategies, and loss computation techniques.
-keywords: Ultralytics, YOLOv5, Object Detection, Architecture, Model Structure, Data Augmentation, Training Strategies, Loss Computation
+description: Dive deep into the powerful YOLOv5 architecture by Ultralytics, exploring its model structure, data augmentation techniques, training strategies, and loss computations.
+keywords: YOLOv5 architecture, object detection, Ultralytics, YOLO, model structure, data augmentation, training strategies, loss computations, deep learning, machine learning
 ---
 
 # Ultralytics YOLOv5 Architecture
 
-YOLOv5 (v6.0/6.1) is a powerful object detection algorithm developed by Ultralytics. This article dives deep into the YOLOv5 architecture, data augmentation strategies, training methodologies, and loss computation techniques. This comprehensive understanding will help improve your practical application of object detection in various fields, including surveillance, autonomous vehicles, and image recognition.
+YOLOv5 (v6.0/6.1) is a powerful object detection algorithm developed by Ultralytics. This article dives deep into the YOLOv5 architecture, [data augmentation](https://www.ultralytics.com/glossary/data-augmentation) strategies, training methodologies, and loss computation techniques. This comprehensive understanding will help improve your practical application of object detection in various fields, including surveillance, autonomous vehicles, and [image recognition](https://www.ultralytics.com/glossary/image-recognition).
 
 ## 1. Model Structure
 
@@ -18,7 +18,7 @@ YOLOv5's architecture consists of three main parts:
 
 The structure of the model is depicted in the image below. The model structure details can be found in `yolov5l.yaml`.
 
-![yolov5](https://user-images.githubusercontent.com/31005897/172404576-c260dcf9-76bb-4bc8-b6a9-f2d987792583.png)
+![yolov5](https://github.com/ultralytics/docs/releases/download/0/yolov5-model-structure.avif)
 
 YOLOv5 introduces some minor changes compared to its predecessors:
 
@@ -32,18 +32,21 @@ To test the speed of `SPP` and `SPPF`, the following code can be used:
 
 ```python
 import time
+
 import torch
 import torch.nn as nn
 
 
 class SPP(nn.Module):
     def __init__(self):
+        """Initializes an SPP module with three different sizes of max pooling layers."""
         super().__init__()
         self.maxpool1 = nn.MaxPool2d(5, 1, padding=2)
         self.maxpool2 = nn.MaxPool2d(9, 1, padding=4)
         self.maxpool3 = nn.MaxPool2d(13, 1, padding=6)
 
     def forward(self, x):
+        """Applies three max pooling layers on input `x` and concatenates results along channel dimension."""
         o1 = self.maxpool1(x)
         o2 = self.maxpool2(x)
         o3 = self.maxpool3(x)
@@ -52,10 +55,12 @@ class SPP(nn.Module):
 
 class SPPF(nn.Module):
     def __init__(self):
+        """Initializes an SPPF module with a specific configuration of MaxPool2d layer."""
         super().__init__()
         self.maxpool = nn.MaxPool2d(5, 1, padding=2)
 
     def forward(self, x):
+        """Applies sequential max pooling and concatenates results with input tensor."""
         o1 = self.maxpool(x)
         o2 = self.maxpool(o1)
         o3 = self.maxpool(o2)
@@ -63,6 +68,7 @@ class SPPF(nn.Module):
 
 
 def main():
+    """Compares outputs and performance of SPP and SPPF on a random tensor (8, 32, 16, 16)."""
     input_tensor = torch.rand(8, 32, 16, 16)
     spp = SPP()
     sppf = SPPF()
@@ -82,7 +88,7 @@ def main():
     print(f"SPPF time: {time.time() - t_start}")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
 ```
 
@@ -98,33 +104,33 @@ SPPF time: 0.20780706405639648
 
 ## 2. Data Augmentation Techniques
 
-YOLOv5 employs various data augmentation techniques to improve the model's ability to generalize and reduce overfitting. These techniques include:
+YOLOv5 employs various data augmentation techniques to improve the model's ability to generalize and reduce [overfitting](https://www.ultralytics.com/glossary/overfitting). These techniques include:
 
-- **Mosaic Augmentation**: An image processing technique that combines four training images into one in ways that encourage object detection models to better handle various object scales and translations.
+- **Mosaic Augmentation**: An image processing technique that combines four training images into one in ways that encourage [object detection](https://www.ultralytics.com/glossary/object-detection) models to better handle various object scales and translations.
 
-  ![mosaic](https://user-images.githubusercontent.com/31005897/159109235-c7aad8f2-1d4f-41f9-8d5f-b2fde6f2885e.png)
+    ![mosaic](https://github.com/ultralytics/docs/releases/download/0/mosaic-augmentation.avif)
 
 - **Copy-Paste Augmentation**: An innovative data augmentation method that copies random patches from an image and pastes them onto another randomly chosen image, effectively generating a new training sample.
 
-  ![copy-paste](https://user-images.githubusercontent.com/31005897/159116277-91b45033-6bec-4f82-afc4-41138866628e.png)
+    ![copy-paste](https://github.com/ultralytics/docs/releases/download/0/copy-paste.avif)
 
 - **Random Affine Transformations**: This includes random rotation, scaling, translation, and shearing of the images.
 
-  ![random-affine](https://user-images.githubusercontent.com/31005897/159109326-45cd5acb-14fa-43e7-9235-0f21b0021c7d.png)
+    ![random-affine](https://github.com/ultralytics/docs/releases/download/0/random-affine-transformations.avif)
 
 - **MixUp Augmentation**: A method that creates composite images by taking a linear combination of two images and their associated labels.
 
-  ![mixup](https://user-images.githubusercontent.com/31005897/159109361-3b24333b-f481-478b-ae00-df7838f0b5cd.png)
+    ![mixup](https://github.com/ultralytics/docs/releases/download/0/mixup.avif)
 
 - **Albumentations**: A powerful library for image augmenting that supports a wide variety of augmentation techniques.
 
 - **HSV Augmentation**: Random changes to the Hue, Saturation, and Value of the images.
 
-  ![hsv](https://user-images.githubusercontent.com/31005897/159109407-83d100ba-1aba-4f4b-aa03-4f048f815981.png)
+    ![hsv](https://github.com/ultralytics/docs/releases/download/0/hsv-augmentation.avif)
 
 - **Random Horizontal Flip**: An augmentation method that randomly flips images horizontally.
 
-  ![horizontal-flip](https://user-images.githubusercontent.com/31005897/159109429-0d44619a-a76a-49eb-bfc0-6709860c043e.png)
+    ![horizontal-flip](https://github.com/ultralytics/docs/releases/download/0/random-horizontal-flip.avif)
 
 ## 3. Training Strategies
 
@@ -132,9 +138,9 @@ YOLOv5 applies several sophisticated training strategies to enhance the model's 
 
 - **Multiscale Training**: The input images are randomly rescaled within a range of 0.5 to 1.5 times their original size during the training process.
 - **AutoAnchor**: This strategy optimizes the prior anchor boxes to match the statistical characteristics of the ground truth boxes in your custom data.
-- **Warmup and Cosine LR Scheduler**: A method to adjust the learning rate to enhance model performance.
+- **Warmup and Cosine LR Scheduler**: A method to adjust the [learning rate](https://www.ultralytics.com/glossary/learning-rate) to enhance model performance.
 - **Exponential Moving Average (EMA)**: A strategy that uses the average of parameters over past steps to stabilize the training process and reduce generalization error.
-- **Mixed Precision Training**: A method to perform operations in half-precision format, reducing memory usage and enhancing computational speed.
+- **[Mixed Precision](https://www.ultralytics.com/glossary/mixed-precision) Training**: A method to perform operations in half-[precision](https://www.ultralytics.com/glossary/precision) format, reducing memory usage and enhancing computational speed.
 - **Hyperparameter Evolution**: A strategy to automatically tune hyperparameters to achieve optimal performance.
 
 ## 4. Additional Features
@@ -147,7 +153,7 @@ The loss in YOLOv5 is computed as a combination of three individual loss compone
 - **Objectness Loss (BCE Loss)**: Another Binary Cross-Entropy loss, calculates the error in detecting whether an object is present in a particular grid cell or not.
 - **Location Loss (CIoU Loss)**: Complete IoU loss, measures the error in localizing the object within the grid cell.
 
-The overall loss function is depicted by:
+The overall [loss function](https://www.ultralytics.com/glossary/loss-function) is depicted by:
 
 ![loss](https://latex.codecogs.com/svg.image?Loss=\lambda_1L_{cls}+\lambda_2L_{obj}+\lambda_3L_{loc})
 
@@ -170,7 +176,7 @@ The YOLOv5 architecture makes some important changes to the box prediction strat
 
 However, in YOLOv5, the formula for predicting the box coordinates has been updated to reduce grid sensitivity and prevent the model from predicting unbounded box dimensions.
 
-The revised formulas for calculating the predicted bounding box are as follows:
+The revised formulas for calculating the predicted [bounding box](https://www.ultralytics.com/glossary/bounding-box) are as follows:
 
 ![bx](<https://latex.codecogs.com/svg.image?b_x=(2\cdot\sigma(t_x)-0.5)+c_x>)
 ![by](<https://latex.codecogs.com/svg.image?b_y=(2\cdot\sigma(t_y)-0.5)+c_y>)
@@ -187,7 +193,7 @@ Compare the height and width scaling ratio(relative to anchor) before and after 
 
 ### 4.4 Build Targets
 
-The build target process in YOLOv5 is critical for training efficiency and model accuracy. It involves assigning ground truth boxes to the appropriate grid cells in the output map and matching them with the appropriate anchor boxes.
+The build target process in YOLOv5 is critical for training efficiency and model [accuracy](https://www.ultralytics.com/glossary/accuracy). It involves assigning ground truth boxes to the appropriate grid cells in the output map and matching them with the appropriate anchor boxes.
 
 This process follows these steps:
 

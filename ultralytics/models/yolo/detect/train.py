@@ -24,7 +24,7 @@ class DetectionTrainer(BaseTrainer):
         ```python
         from ultralytics.models.yolo.detect import DetectionTrainer
 
-        args = dict(model='yolov8n.pt', data='coco8.yaml', epochs=3)
+        args = dict(model="yolo11n.pt", data="coco8.yaml", epochs=3)
         trainer = DetectionTrainer(overrides=args)
         trainer.train()
         ```
@@ -44,7 +44,7 @@ class DetectionTrainer(BaseTrainer):
 
     def get_dataloader(self, dataset_path, batch_size=16, rank=0, mode="train"):
         """Construct and return dataloader."""
-        assert mode in ["train", "val"]
+        assert mode in {"train", "val"}, f"Mode must be 'train' or 'val', not {mode}."
         with torch_distributed_zero_first(rank):  # init dataset *.cache only once if DDP
             dataset = self.build_dataset(dataset_path, mode, batch_size)
         shuffle = mode == "train"
@@ -60,7 +60,7 @@ class DetectionTrainer(BaseTrainer):
         if self.args.multi_scale:
             imgs = batch["img"]
             sz = (
-                random.randrange(self.args.imgsz * 0.5, self.args.imgsz * 1.5 + self.stride)
+                random.randrange(int(self.args.imgsz * 0.5), int(self.args.imgsz * 1.5 + self.stride))
                 // self.stride
                 * self.stride
             )  # size

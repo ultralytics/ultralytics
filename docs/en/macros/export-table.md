@@ -1,0 +1,15 @@
+| Format                                            | `format` Argument | Model                                           | Metadata | Arguments                                                            |
+| ------------------------------------------------- | ----------------- | ----------------------------------------------- | -------- | -------------------------------------------------------------------- |
+| [PyTorch](https://pytorch.org/)                   | -                 | `{{ model_name or "yolo11n" }}.pt`              | ✅       | -                                                                    |
+| [TorchScript](../integrations/torchscript.md)     | `torchscript`     | `{{ model_name or "yolo11n" }}.torchscript`     | ✅       | `imgsz`, `optimize`, `batch`                                         |
+| [ONNX](../integrations/onnx.md)                   | `onnx`            | `{{ model_name or "yolo11n" }}.onnx`            | ✅       | `imgsz`, `half`, `dynamic`, `simplify`, `opset`, `batch`             |
+| [OpenVINO](../integrations/openvino.md)           | `openvino`        | `{{ model_name or "yolo11n" }}_openvino_model/` | ✅       | `imgsz`, `half`, `int8`, `batch`                                     |
+| [TensorRT](../integrations/tensorrt.md)           | `engine`          | `{{ model_name or "yolo11n" }}.engine`          | ✅       | `imgsz`, `half`, `dynamic`, `simplify`, `workspace`, `int8`, `batch` |
+| [CoreML](../integrations/coreml.md)               | `coreml`          | `{{ model_name or "yolo11n" }}.mlpackage`       | ✅       | `imgsz`, `half`, `int8`, `nms`, `batch`                              |
+| [TF SavedModel](../integrations/tf-savedmodel.md) | `saved_model`     | `{{ model_name or "yolo11n" }}_saved_model/`    | ✅       | `imgsz`, `keras`, `int8`, `batch`                                    |
+| [TF GraphDef](../integrations/tf-graphdef.md)     | `pb`              | `{{ model_name or "yolo11n" }}.pb`              | ❌       | `imgsz`, `batch`                                                     |
+| [TF Lite](../integrations/tflite.md)              | `tflite`          | `{{ model_name or "yolo11n" }}.tflite`          | ✅       | `imgsz`, `half`, `int8`, `batch`                                     |
+| [TF Edge TPU](../integrations/edge-tpu.md)        | `edgetpu`         | `{{ model_name or "yolo11n" }}_edgetpu.tflite`  | ✅       | `imgsz`                                                              |
+| [TF.js](../integrations/tfjs.md)                  | `tfjs`            | `{{ model_name or "yolo11n" }}_web_model/`      | ✅       | `imgsz`, `half`, `int8`, `batch`                                     |
+| [PaddlePaddle](../integrations/paddlepaddle.md)   | `paddle`          | `{{ model_name or "yolo11n" }}_paddle_model/`   | ✅       | `imgsz`, `batch`                                                     |
+| [NCNN](../integrations/ncnn.md)                   | `ncnn`            | `{{ model_name or "yolo11n" }}_ncnn_model/`     | ✅       | `imgsz`, `half`, `batch`                                             |

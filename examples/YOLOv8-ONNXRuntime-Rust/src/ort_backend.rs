@@ -161,7 +161,7 @@ impl OrtBackend {
                 Ok(metadata) => match metadata.custom("task") {
                     Err(_) => panic!("Can not get custom value. Try making it explicit by `--task`"),
                     Ok(value) => match value {
-                        None => panic!("No correspoing value of `task` found in metadata. Make it explicit by `--task`"),
+                        None => panic!("No corresponding value of `task` found in metadata. Make it explicit by `--task`"),
                         Some(task) => match task.as_str() {
                             "classify" => YOLOTask::Classify,
                             "detect" => YOLOTask::Detect,

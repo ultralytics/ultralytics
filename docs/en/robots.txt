@@ -4,7 +4,6 @@ Sitemap: https://docs.ultralytics.com/ar/sitemap.xml
 Sitemap: https://docs.ultralytics.com/de/sitemap.xml
 Sitemap: https://docs.ultralytics.com/es/sitemap.xml
 Sitemap: https://docs.ultralytics.com/fr/sitemap.xml
-Sitemap: https://docs.ultralytics.com/hi/sitemap.xml
 Sitemap: https://docs.ultralytics.com/it/sitemap.xml
 Sitemap: https://docs.ultralytics.com/ja/sitemap.xml
 Sitemap: https://docs.ultralytics.com/ko/sitemap.xml

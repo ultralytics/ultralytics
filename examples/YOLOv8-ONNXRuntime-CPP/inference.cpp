@@ -221,8 +221,8 @@ char* YOLO_V8::TensorProcess(clock_t& starttime_1, cv::Mat& iImg, N& blob, std::
     case YOLO_DETECT_V8:
     case YOLO_DETECT_V8_HALF:
     {
-        int strideNum = outputNodeDims[1];//8400
-        int signalResultNum = outputNodeDims[2];//84
+        int signalResultNum = outputNodeDims[1];//84
+        int strideNum = outputNodeDims[2];//8400
         std::vector<int> class_ids;
         std::vector<float> confidences;
         std::vector<cv::Rect> boxes;
@@ -230,18 +230,18 @@ char* YOLO_V8::TensorProcess(clock_t& starttime_1, cv::Mat& iImg, N& blob, std::
         if (modelType == YOLO_DETECT_V8)
         {
             // FP32
-            rawData = cv::Mat(strideNum, signalResultNum, CV_32F, output);
+            rawData = cv::Mat(signalResultNum, strideNum, CV_32F, output);
         }
         else
         {
             // FP16
-            rawData = cv::Mat(strideNum, signalResultNum, CV_16F, output);
+            rawData = cv::Mat(signalResultNum, strideNum, CV_16F, output);
             rawData.convertTo(rawData, CV_32F);
         }
-        //Note:
-        //ultralytics add transpose operator to the output of yolov8 model.which make yolov8/v5/v7 has same shape
-        //https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8n.pt
-        //rowData = rowData.t();
+        // Note:
+        // ultralytics add transpose operator to the output of yolov8 model.which make yolov8/v5/v7 has same shape
+        // https://github.com/ultralytics/assets/releases/download/v8.3.0/yolov8n.pt
+        rawData = rawData.t();
 
         float* data = (float*)rawData.data;
 
@@ -301,12 +301,24 @@ char* YOLO_V8::TensorProcess(clock_t& starttime_1, cv::Mat& iImg, N& blob, std::
         break;
     }
     case YOLO_CLS:
+    case YOLO_CLS_HALF:
     {
+        cv::Mat rawData;
+        if (modelType == YOLO_CLS) {
+            // FP32
+            rawData = cv::Mat(1, this->classes.size(), CV_32F, output);
+        } else {
+            // FP16
+            rawData = cv::Mat(1, this->classes.size(), CV_16F, output);
+            rawData.convertTo(rawData, CV_32F);
+        }
+        float *data = (float *) rawData.data;
+
         DL_RESULT result;
         for (int i = 0; i < this->classes.size(); i++)
         {
             result.classId = i;
-            result.confidence = output[i];
+            result.confidence = data[i];
             oResult.push_back(result);
         }
         break;

@@ -7,8 +7,6 @@ try:
     assert SETTINGS["clearml"] is True  # verify integration is enabled
     import clearml
     from clearml import Task
-    from clearml.binding.frameworks.pytorch_bind import PatchPyTorchModelIO
-    from clearml.binding.matplotlib_bind import PatchedMatplotlib
 
     assert hasattr(clearml, "__version__")  # verify package is not directory
 
@@ -61,15 +59,18 @@ def on_pretrain_routine_start(trainer):
     """Runs at start of pretraining routine; initializes and connects/ logs task to ClearML."""
     try:
         if task := Task.current_task():
-            # Make sure the automatic pytorch and matplotlib bindings are disabled!
+            # WARNING: make sure the automatic pytorch and matplotlib bindings are disabled!
             # We are logging these plots and model files manually in the integration
+            from clearml.binding.frameworks.pytorch_bind import PatchPyTorchModelIO
+            from clearml.binding.matplotlib_bind import PatchedMatplotlib
+
             PatchPyTorchModelIO.update_current_task(None)
             PatchedMatplotlib.update_current_task(None)
         else:
             task = Task.init(
-                project_name=trainer.args.project or "YOLOv8",
+                project_name=trainer.args.project or "Ultralytics",
                 task_name=trainer.args.name,
-                tags=["YOLOv8"],
+                tags=["Ultralytics"],
                 output_uri=True,
                 reuse_last_task_id=False,
                 auto_connect_frameworks={"pytorch": False, "matplotlib": False},

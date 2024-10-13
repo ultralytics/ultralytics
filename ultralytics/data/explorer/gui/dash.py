@@ -1,9 +1,8 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
+import sys
 import time
 from threading import Thread
-
-import pandas as pd
 
 from ultralytics import Explorer
 from ultralytics.utils import ROOT, SETTINGS
@@ -19,7 +18,8 @@ def _get_explorer():
     """Initializes and returns an instance of the Explorer class."""
     exp = Explorer(data=st.session_state.get("dataset"), model=st.session_state.get("model"))
     thread = Thread(
-        target=exp.create_embeddings_table, kwargs={"force": st.session_state.get("force_recreate_embeddings")}
+        target=exp.create_embeddings_table,
+        kwargs={"force": st.session_state.get("force_recreate_embeddings"), "split": st.session_state.get("split")},
     )
     thread.start()
     progress_bar = st.progress(0, text="Creating embeddings table...")
@@ -31,33 +31,32 @@ def _get_explorer():
     progress_bar.empty()
 
 
-def init_explorer_form():
+def init_explorer_form(data=None, model=None):
     """Initializes an Explorer instance and creates embeddings table with progress tracking."""
-    datasets = ROOT / "cfg" / "datasets"
-    ds = [d.name for d in datasets.glob("*.yaml")]
-    models = [
-        "yolov8n.pt",
-        "yolov8s.pt",
-        "yolov8m.pt",
-        "yolov8l.pt",
-        "yolov8x.pt",
-        "yolov8n-seg.pt",
-        "yolov8s-seg.pt",
-        "yolov8m-seg.pt",
-        "yolov8l-seg.pt",
-        "yolov8x-seg.pt",
-        "yolov8n-pose.pt",
-        "yolov8s-pose.pt",
-        "yolov8m-pose.pt",
-        "yolov8l-pose.pt",
-        "yolov8x-pose.pt",
-    ]
+    if data is None:
+        datasets = ROOT / "cfg" / "datasets"
+        ds = [d.name for d in datasets.glob("*.yaml")]
+    else:
+        ds = [data]
+
+    prefixes = ["yolov8", "yolo11"]
+    sizes = ["n", "s", "m", "l", "x"]
+    tasks = ["", "-seg", "-pose"]
+    if model is None:
+        models = [f"{p}{s}{t}" for p in prefixes for s in sizes for t in tasks]
+    else:
+        models = [model]
+
+    splits = ["train", "val", "test"]
+
     with st.form(key="explorer_init_form"):
-        col1, col2 = st.columns(2)
+        col1, col2, col3 = st.columns(3)
         with col1:
-            st.selectbox("Select dataset", ds, key="dataset", index=ds.index("coco128.yaml"))
+            st.selectbox("Select dataset", ds, key="dataset")
         with col2:
             st.selectbox("Select model", models, key="model")
+        with col3:
+            st.selectbox("Select split", splits, key="split")
         st.checkbox("Force recreate embeddings", key="force_recreate_embeddings")
 
         st.form_submit_button("Explore", on_click=_get_explorer)
@@ -144,16 +143,18 @@ def run_sql_query():
 def run_ai_query():
     """Execute SQL query and update session state with query results."""
     if not SETTINGS["openai_api_key"]:
-        st.session_state[
-            "error"
-        ] = 'OpenAI API key not found in settings. Please run yolo settings openai_api_key="..."'
+        st.session_state["error"] = (
+            'OpenAI API key not found in settings. Please run yolo settings openai_api_key="..."'
+        )
         return
+    import pandas  # scope for faster 'import ultralytics'
+
     st.session_state["error"] = None
     query = st.session_state.get("ai_query")
     if query.rstrip().lstrip():
         exp = st.session_state["explorer"]
         res = exp.ask_ai(query)
-        if not isinstance(res, pd.DataFrame) or res.empty:
+        if not isinstance(res, pandas.DataFrame) or res.empty:
             st.session_state["error"] = "No results found using AI generated query. Try another query or rerun it."
             return
         st.session_state["imgs"] = res["im_file"].to_list()
@@ -182,13 +183,13 @@ def utralytics_explorer_docs_callback():
         st.link_button("Ultrlaytics Explorer API", "https://docs.ultralytics.com/datasets/explorer/")
 
 
-def layout():
+def layout(data=None, model=None):
     """Resets explorer session variables and provides documentation with a link to API docs."""
     st.set_page_config(layout="wide", initial_sidebar_state="collapsed")
     st.markdown("<h1 style='text-align: center;'>Ultralytics Explorer Demo</h1>", unsafe_allow_html=True)
 
     if st.session_state.get("explorer") is None:
-        init_explorer_form()
+        init_explorer_form(data, model)
         return
 
     st.button(":arrow_backward: Select Dataset", on_click=reset_explorer)
@@ -197,12 +198,11 @@ def layout():
     imgs = []
     if st.session_state.get("error"):
         st.error(st.session_state["error"])
+    elif st.session_state.get("imgs"):
+        imgs = st.session_state.get("imgs")
     else:
-        if st.session_state.get("imgs"):
-            imgs = st.session_state.get("imgs")
-        else:
-            imgs = exp.table.to_lance().to_table(columns=["im_file"]).to_pydict()["im_file"]
-            st.session_state["res"] = exp.table.to_arrow()
+        imgs = exp.table.to_lance().to_table(columns=["im_file"]).to_pydict()["im_file"]
+        st.session_state["res"] = exp.table.to_arrow()
     total_imgs, selected_imgs = len(imgs), []
     with col1:
         subcol1, subcol2, subcol3, subcol4, subcol5 = st.columns(5)
@@ -260,9 +260,10 @@ def layout():
 
     with col2:
         similarity_form(selected_imgs)
-        display_labels = st.checkbox("Labels", value=False, key="display_labels")
+        st.checkbox("Labels", value=False, key="display_labels")
         utralytics_explorer_docs_callback()
 
 
 if __name__ == "__main__":
-    layout()
+    kwargs = dict(zip(sys.argv[1::2], sys.argv[2::2]))
+    layout(**kwargs)

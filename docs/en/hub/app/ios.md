@@ -1,13 +1,13 @@
 ---
 comments: true
-description: Execute object detection in real-time on your iOS devices utilizing YOLO models. Leverage the power of the Apple Neural Engine and Core ML for fast and efficient object detection.
-keywords: Ultralytics, iOS app, object detection, YOLO models, real time, Apple Neural Engine, Core ML, FP16, INT8, quantization
+description: Discover the Ultralytics iOS App for running YOLO models on your iPhone or iPad. Achieve fast, real-time object detection with Apple Neural Engine.
+keywords: Ultralytics, iOS App, YOLO models, real-time object detection, Apple Neural Engine, Core ML, FP16 quantization, INT8 quantization, machine learning
 ---
 
-# Ultralytics iOS App: Real-time Object Detection with YOLO Models
+# Ultralytics iOS App: Real-time [Object Detection](https://www.ultralytics.com/glossary/object-detection) with YOLO Models
 
-<a href="https://bit.ly/ultralytics_hub" target="_blank">
-  <img width="100%" src="https://user-images.githubusercontent.com/26833433/281124469-6b3b0945-dbb1-44c8-80a9-ef6bc778b299.jpg" alt="Ultralytics HUB preview image"></a>
+<a href="https://www.ultralytics.com/hub" target="_blank">
+  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/ultralytics-android-app-detection.avif" alt="Ultralytics HUB preview image"></a>
 <br>
 <div align="center">
   <a href="https://github.com/ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-github.png" width="3%" alt="Ultralytics GitHub"></a>
@@ -16,13 +16,13 @@ keywords: Ultralytics, iOS app, object detection, YOLO models, real time, Apple 
   <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="3%" alt="space">
   <a href="https://twitter.com/ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-twitter.png" width="3%" alt="Ultralytics Twitter"></a>
   <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="3%" alt="space">
-  <a href="https://youtube.com/ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-youtube.png" width="3%" alt="Ultralytics YouTube"></a>
+  <a href="https://youtube.com/ultralytics?sub_confirmation=1"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-youtube.png" width="3%" alt="Ultralytics YouTube"></a>
   <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="3%" alt="space">
   <a href="https://www.tiktok.com/@ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-tiktok.png" width="3%" alt="Ultralytics TikTok"></a>
   <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="3%" alt="space">
-  <a href="https://www.instagram.com/ultralytics/"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-instagram.png" width="3%" alt="Ultralytics Instagram"></a>
+  <a href="https://ultralytics.com/bilibili"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-bilibili.png" width="3%" alt="Ultralytics BiliBili"></a>
   <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="3%" alt="space">
-  <a href="https://ultralytics.com/discord"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-discord.png" width="3%" alt="Ultralytics Discord"></a>
+  <a href="https://discord.com/invite/ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-discord.png" width="3%" alt="Ultralytics Discord"></a>
   <br>
   <br>
   <a href="https://apps.apple.com/xk/app/ultralytics/id1583935240" style="text-decoration:none;">
@@ -31,9 +31,20 @@ keywords: Ultralytics, iOS app, object detection, YOLO models, real time, Apple 
 
 The Ultralytics iOS App is a powerful tool that allows you to run YOLO models directly on your iPhone or iPad for real-time object detection. This app utilizes the Apple Neural Engine and Core ML for model optimization and acceleration, enabling fast and efficient object detection.
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/AIvrQ7y0aLo"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> Getting Started with the Ultralytics HUB App (IOS & Android)
+</p>
+
 ## Quantization and Acceleration
 
-To achieve real-time performance on your iOS device, YOLO models are quantized to either FP16 or INT8 precision. Quantization is a process that reduces the numerical precision of the model's weights and biases, thus reducing the model's size and the amount of computation required. This results in faster inference times without significantly affecting the model's accuracy.
+To achieve real-time performance on your iOS device, YOLO models are quantized to either FP16 or INT8 [precision](https://www.ultralytics.com/glossary/precision). Quantization is a process that reduces the numerical precision of the model's weights and biases, thus reducing the model's size and the amount of computation required. This results in faster inference times without significantly affecting the model's [accuracy](https://www.ultralytics.com/glossary/accuracy).
 
 ### FP16 Quantization
 
@@ -45,12 +56,12 @@ INT8 (or 8-bit integer) quantization further reduces the model's size and comput
 
 ## Apple Neural Engine
 
-The Apple Neural Engine (ANE) is a dedicated hardware component integrated into Apple's A-series and M-series chips. It's designed to accelerate machine learning tasks, particularly for neural networks, allowing for faster and more efficient execution of your YOLO models.
+The Apple Neural Engine (ANE) is a dedicated hardware component integrated into Apple's A-series and M-series chips. It's designed to accelerate [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) tasks, particularly for [neural networks](https://www.ultralytics.com/glossary/neural-network-nn), allowing for faster and more efficient execution of your YOLO models.
 
 By combining quantized YOLO models with the Apple Neural Engine, the Ultralytics iOS App achieves real-time object detection on your iOS device without compromising on accuracy or performance.
 
 | Release Year | iPhone Name                                          | Chipset Name                                          | Node Size | ANE TOPs |
-|--------------|------------------------------------------------------|-------------------------------------------------------|-----------|----------|
+| ------------ | ---------------------------------------------------- | ----------------------------------------------------- | --------- | -------- |
 | 2017         | [iPhone X](https://en.wikipedia.org/wiki/IPhone_X)   | [A11 Bionic](https://en.wikipedia.org/wiki/Apple_A11) | 10 nm     | 0.6      |
 | 2018         | [iPhone XS](https://en.wikipedia.org/wiki/IPhone_XS) | [A12 Bionic](https://en.wikipedia.org/wiki/Apple_A12) | 7 nm      | 5        |
 | 2019         | [iPhone 11](https://en.wikipedia.org/wiki/IPhone_11) | [A13 Bionic](https://en.wikipedia.org/wiki/Apple_A13) | 7 nm      | 6        |

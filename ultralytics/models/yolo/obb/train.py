@@ -15,7 +15,7 @@ class OBBTrainer(yolo.detect.DetectionTrainer):
         ```python
         from ultralytics.models.yolo.obb import OBBTrainer
 
-        args = dict(model='yolov8n-seg.pt', data='coco8-seg.yaml', epochs=3)
+        args = dict(model="yolov8n-obb.pt", data="dota8.yaml", epochs=3)
         trainer = OBBTrainer(overrides=args)
         trainer.train()
         ```

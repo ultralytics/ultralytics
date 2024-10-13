@@ -20,7 +20,7 @@ class PoseValidator(DetectionValidator):
         ```python
         from ultralytics.models.yolo.pose import PoseValidator
 
-        args = dict(model='yolov8n-pose.pt', data='coco8-pose.yaml')
+        args = dict(model="yolov8n-pose.pt", data="coco8-pose.yaml")
         validator = PoseValidator(args=args)
         validator()
         ```
@@ -69,7 +69,7 @@ class PoseValidator(DetectionValidator):
             self.args.iou,
             labels=self.lb,
             multi_label=True,
-            agnostic=self.args.single_cls,
+            agnostic=self.args.single_cls or self.args.agnostic_nms,
             max_det=self.args.max_det,
             nc=self.nc,
         )
@@ -81,7 +81,7 @@ class PoseValidator(DetectionValidator):
         is_pose = self.kpt_shape == [17, 3]
         nkpt = self.kpt_shape[0]
         self.sigma = OKS_SIGMA if is_pose else np.ones(nkpt) / nkpt
-        self.stats = dict(tp_p=[], tp=[], conf=[], pred_cls=[], target_cls=[])
+        self.stats = dict(tp_p=[], tp=[], conf=[], pred_cls=[], target_cls=[], target_img=[])
 
     def _prepare_batch(self, si, batch):
         """Prepares a batch for processing by converting keypoints to float and moving to device."""
@@ -118,6 +118,7 @@ class PoseValidator(DetectionValidator):
             cls, bbox = pbatch.pop("cls"), pbatch.pop("bbox")
             nl = len(cls)
             stat["target_cls"] = cls
+            stat["target_img"] = cls.unique()
             if npr == 0:
                 if nl:
                     for k in self.stats.keys():
@@ -146,24 +147,45 @@ class PoseValidator(DetectionValidator):
             # Save
             if self.args.save_json:
                 self.pred_to_json(predn, batch["im_file"][si])
-            # if self.args.save_txt:
-            #    save_one_txt(predn, save_conf, shape, file=save_dir / 'labels' / f'{path.stem}.txt')
+            if self.args.save_txt:
+                self.save_one_txt(
+                    predn,
+                    pred_kpts,
+                    self.args.save_conf,
+                    pbatch["ori_shape"],
+                    self.save_dir / "labels" / f'{Path(batch["im_file"][si]).stem}.txt',
+                )
 
     def _process_batch(self, detections, gt_bboxes, gt_cls, pred_kpts=None, gt_kpts=None):
         """
-        Return correct prediction matrix.
+        Return correct prediction matrix by computing Intersection over Union (IoU) between detections and ground truth.
 
         Args:
-            detections (torch.Tensor): Tensor of shape [N, 6] representing detections.
-                Each detection is of the format: x1, y1, x2, y2, conf, class.
-            labels (torch.Tensor): Tensor of shape [M, 5] representing labels.
-                Each label is of the format: class, x1, y1, x2, y2.
-            pred_kpts (torch.Tensor, optional): Tensor of shape [N, 51] representing predicted keypoints.
-                51 corresponds to 17 keypoints each with 3 values.
-            gt_kpts (torch.Tensor, optional): Tensor of shape [N, 51] representing ground truth keypoints.
+            detections (torch.Tensor): Tensor with shape (N, 6) representing detection boxes and scores, where each
+                detection is of the format (x1, y1, x2, y2, conf, class).
+            gt_bboxes (torch.Tensor): Tensor with shape (M, 4) representing ground truth bounding boxes, where each
+                box is of the format (x1, y1, x2, y2).
+            gt_cls (torch.Tensor): Tensor with shape (M,) representing ground truth class indices.
+            pred_kpts (torch.Tensor | None): Optional tensor with shape (N, 51) representing predicted keypoints, where
+                51 corresponds to 17 keypoints each having 3 values.
+            gt_kpts (torch.Tensor | None): Optional tensor with shape (N, 51) representing ground truth keypoints.
 
         Returns:
-            torch.Tensor: Correct prediction matrix of shape [N, 10] for 10 IoU levels.
+            torch.Tensor: A tensor with shape (N, 10) representing the correct prediction matrix for 10 IoU levels,
+                where N is the number of detections.
+
+        Example:
+            ```python
+            detections = torch.rand(100, 6)  # 100 predictions: (x1, y1, x2, y2, conf, class)
+            gt_bboxes = torch.rand(50, 4)  # 50 ground truth boxes: (x1, y1, x2, y2)
+            gt_cls = torch.randint(0, 2, (50,))  # 50 ground truth class indices
+            pred_kpts = torch.rand(100, 51)  # 100 predicted keypoints
+            gt_kpts = torch.rand(50, 51)  # 50 ground truth keypoints
+            correct_preds = _process_batch(detections, gt_bboxes, gt_cls, pred_kpts, gt_kpts)
+            ```
+
+        Note:
+            `0.53` scale factor used in area computation is referenced from https://github.com/jin-s13/xtcocoapi/blob/master/xtcocotools/cocoeval.py#L384.
         """
         if pred_kpts is not None and gt_kpts is not None:
             # `0.53` is from https://github.com/jin-s13/xtcocoapi/blob/master/xtcocotools/cocoeval.py#L384
@@ -200,6 +222,18 @@ class PoseValidator(DetectionValidator):
             names=self.names,
             on_plot=self.on_plot,
         )  # pred
+
+    def save_one_txt(self, predn, pred_kpts, save_conf, shape, file):
+        """Save YOLO detections to a txt file in normalized coordinates in a specific format."""
+        from ultralytics.engine.results import Results
+
+        Results(
+            np.zeros((shape[0], shape[1]), dtype=np.uint8),
+            path=None,
+            names=self.names,
+            boxes=predn[:, :6],
+            keypoints=pred_kpts,
+        ).save_txt(file, save_conf=save_conf)
 
     def pred_to_json(self, predn, filename):
         """Converts YOLO predictions to COCO JSON format."""

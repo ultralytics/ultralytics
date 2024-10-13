@@ -3,7 +3,7 @@
 import requests
 
 from ultralytics.hub.utils import HUB_API_ROOT, HUB_WEB_ROOT, PREFIX, request_with_credentials
-from ultralytics.utils import LOGGER, SETTINGS, emojis, is_colab
+from ultralytics.utils import IS_COLAB, LOGGER, SETTINGS, emojis
 
 API_KEY_URL = f"{HUB_WEB_ROOT}/settings?tab=api+keys"
 
@@ -27,10 +27,14 @@ class Auth:
 
     def __init__(self, api_key="", verbose=False):
         """
-        Initialize the Auth class with an optional API key.
+        Initialize Auth class and authenticate user.
+
+        Handles API key validation, Google Colab authentication, and new key requests. Updates SETTINGS upon successful
+        authentication.
 
         Args:
-            api_key (str, optional): May be an API key or a combination API key and model ID, i.e. key_id
+            api_key (str): API key or combined key_id format.
+            verbose (bool): Enable verbose logging.
         """
         # Split the input API key in case it contains a combined key_model and keep only the API key part
         api_key = api_key.split("_")[0]
@@ -50,7 +54,7 @@ class Auth:
                 # Attempt to authenticate with the provided API key
                 success = self.authenticate()
         # If the API key is not provided and the environment is a Google Colab notebook
-        elif is_colab():
+        elif IS_COLAB:
             # Attempt to authenticate using browser cookies
             success = self.auth_with_cookies()
         else:
@@ -64,7 +68,7 @@ class Auth:
             if verbose:
                 LOGGER.info(f"{PREFIX}New authentication successful ✅")
         elif verbose:
-            LOGGER.info(f"{PREFIX}Retrieve API key from {API_KEY_URL}")
+            LOGGER.info(f"{PREFIX}Get API key from {API_KEY_URL} and then run 'yolo hub login API_KEY'")
 
     def request_api_key(self, max_attempts=3):
         """
@@ -109,7 +113,7 @@ class Auth:
         Returns:
             (bool): True if authentication is successful, False otherwise.
         """
-        if not is_colab():
+        if not IS_COLAB:
             return False  # Currently only works with Colab
         try:
             authn = request_with_credentials(f"{HUB_API_ROOT}/v1/auth/auto")

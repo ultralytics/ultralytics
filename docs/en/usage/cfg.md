@@ -41,8 +41,8 @@ Ultralytics commands use the following syntax:
 
 Where:
 
-- `TASK` (optional) is one of ([detect](../tasks/detect.md), [segment](../tasks/segment.md), [classify](../tasks/classify.md), [pose](../tasks/pose.md))
-- `MODE` (required) is one of ([train](../modes/train.md), [val](../modes/val.md), [predict](../modes/predict.md), [export](../modes/export.md), [track](../modes/track.md))
+- `TASK` (optional) is one of ([detect](../tasks/detect.md), [segment](../tasks/segment.md), [classify](../tasks/classify.md), [pose](../tasks/pose.md), [obb](../tasks/obb.md))
+- `MODE` (required) is one of ([train](../modes/train.md), [val](../modes/val.md), [predict](../modes/predict.md), [export](../modes/export.md), [track](../modes/track.md), [benchmark](../modes/benchmark.md))
 - `ARGS` (optional) are `arg=value` pairs like `imgsz=640` that override defaults.
 
 Default `ARG` values are defined on this page from the `cfg/defaults.yaml` [file](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/default.yaml).
@@ -59,7 +59,7 @@ YOLO models can be used for a variety of tasks, including detection, segmentatio
 
 | Argument | Default    | Description                                                                                                                                                                                                                                                                                                                                                                  |
 | -------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `task`   | `'detect'` | Specifies the YOLO task to be executed. Options include `detect` for [object detection](https://www.ultralytics.com/glossary/object-detection), `segment` for segmentation, `classify` for classification, `pose` for pose estimation and `OBB` for oriented bounding boxes. Each task is tailored to specific types of output and problems within image and video analysis. |
+| `task`   | `'detect'` | Specifies the YOLO task to be executed. Options include `detect` for [object detection](https://www.ultralytics.com/glossary/object-detection), `segment` for segmentation, `classify` for classification, `pose` for pose estimation and `obb` for oriented bounding boxes. Each task is tailored to specific types of output and problems within image and video analysis. |
 
 [Tasks Guide](../tasks/index.md){ .md-button }
 

@@ -226,7 +226,7 @@ def remove_macros():
     # Create a set of indices to remove (including lines before and after)
     indices_to_remove = set()
     for i in macros_indices:
-        indices_to_remove.update(range(i - 1, i + 4))  # i-1, i, i+1, i+2, i+3
+        indices_to_remove.update(range(i - 1, i + 3))  # i-1, i, i+1, i+2, i+3
 
     # Create new list of lines, excluding the ones to remove
     new_lines = [line for i, line in enumerate(lines) if i not in indices_to_remove]

@@ -1,6 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-import contextlib
 import gc
 import math
 import os
@@ -113,14 +112,22 @@ def get_cpu_info():
     from ultralytics.utils import PERSISTENT_CACHE  # avoid circular import error
 
     if "cpu_info" not in PERSISTENT_CACHE:
-        with contextlib.suppress(Exception):
+        try:
             import cpuinfo  # pip install py-cpuinfo
 
             k = "brand_raw", "hardware_raw", "arch_string_raw"  # keys sorted by preference
             info = cpuinfo.get_cpu_info()  # info dict
             string = info.get(k[0] if k[0] in info else k[1] if k[1] in info else k[2], "unknown")
             PERSISTENT_CACHE["cpu_info"] = string.replace("(R)", "").replace("CPU ", "").replace("@ ", "")
+        except:  # noqa E722
+            pass
     return PERSISTENT_CACHE.get("cpu_info", "unknown")
+
+
+def get_gpu_info(index):
+    """Return a string with system GPU information, i.e. 'Tesla T4, 15102MiB'."""
+    properties = torch.cuda.get_device_properties(index)
+    return f"{properties.name}, {properties.total_memory / (1 << 20):.0f}MiB"
 
 
 def select_device(device="", batch=0, newline=False, verbose=True):
@@ -208,8 +215,7 @@ def select_device(device="", batch=0, newline=False, verbose=True):
                 )
         space = " " * (len(s) + 1)
         for i, d in enumerate(devices):
-            p = torch.cuda.get_device_properties(i)
-            s += f"{'' if i == 0 else space}CUDA:{d} ({p.name}, {p.total_memory / (1 << 20):.0f}MiB)\n"  # bytes to MB
+            s += f"{'' if i == 0 else space}CUDA:{d} ({get_gpu_info(i)})\n"  # bytes to MB
         arg = "cuda:0"
     elif mps and TORCH_2_0 and torch.backends.mps.is_available():
         # Prefer MPS if available
@@ -638,7 +644,8 @@ def profile(input, ops, n=10, device=None):
         f"{'Params':>12s}{'GFLOPs':>12s}{'GPU_mem (GB)':>14s}{'forward (ms)':>14s}{'backward (ms)':>14s}"
         f"{'input':>24s}{'output':>24s}"
     )
-
+    gc.collect()  # attempt to free unused memory
+    torch.cuda.empty_cache()
     for x in input if isinstance(input, list) else [input]:
         x = x.to(device)
         x.requires_grad = True
@@ -672,8 +679,9 @@ def profile(input, ops, n=10, device=None):
             except Exception as e:
                 LOGGER.info(e)
                 results.append(None)
-            gc.collect()  # attempt to free unused memory
-            torch.cuda.empty_cache()
+            finally:
+                gc.collect()  # attempt to free unused memory
+                torch.cuda.empty_cache()
     return results
 
 

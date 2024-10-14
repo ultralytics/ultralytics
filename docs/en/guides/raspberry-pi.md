@@ -180,7 +180,6 @@ The below table represents the benchmark results for two different models (YOLO1
         | PaddlePaddle  | ✅      | 72.5              | 0.7416      | 1567.824               |
         | NCNN          | ✅      | 36.2              | 0.7419      | 197.358                |
 
-
 ## Reproduce Our Results
 
 To reproduce the above Ultralytics benchmarks on all [export formats](../modes/export.md), run this code:

@@ -1,3 +1,8 @@
+---
+description: Review the terms for contributing to Ultralytics projects. Learn about copyright, patent licenses, and moral rights for your contributions.
+keywords: Ultralytics, Contributor License Agreement, open source, contributions, copyright license, patent license, moral rights
+---
+
 # Ultralytics Individual Contributor License Agreement
 
 Thank you for your interest in contributing to software projects managed by Ultralytics Inc. ("**Ultralytics**", "**We**" or "**Us**"). This Contributor License Agreement ("**Agreement**") sets out the rights granted by contributors ("**You**" or "**Your**") to Us and the terms governing any contributions as defined in Section 1. This license is for your protection as a Contributor as well as the protection of Ultralytics; it does not change your rights to use your own Contributions for any other purpose.

@@ -1,9 +1,11 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import math
+
 import cv2
-from ultralytics.utils.plotting import Annotator, colors
+
 from ultralytics.solutions.solutions import BaseSolution  # Import a parent class
+from ultralytics.utils.plotting import Annotator, colors
 
 
 class DistanceCalculation(BaseSolution):
@@ -11,7 +13,6 @@ class DistanceCalculation(BaseSolution):
 
     def __init__(self, **kwargs):
         """Initializes the DistanceCalculation class with the given parameters."""
-
         super().__init__(**kwargs)
 
         # Mouse event information
@@ -46,6 +47,7 @@ class DistanceCalculation(BaseSolution):
 
         Args:
             im0 (ndarray): The image frame.
+
         Returns:
             (ndarray): The processed image frame.
         """

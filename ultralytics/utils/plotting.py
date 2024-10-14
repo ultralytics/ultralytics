@@ -804,7 +804,9 @@ class Annotator:
                 self.im, label, (int(mask[0][0]) - text_size[0] // 2, int(mask[0][1])), 0, self.sf, txt_color, self.tf
             )
 
-    def plot_distance_and_line(self, pixels_distance, centroids, line_color=(104, 31, 17), centroid_color=(255, 0, 255)):
+    def plot_distance_and_line(
+        self, pixels_distance, centroids, line_color=(104, 31, 17), centroid_color=(255, 0, 255)
+    ):
         """
         Plot the distance and line on frame.
 

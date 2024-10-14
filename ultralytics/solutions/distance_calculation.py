@@ -1,7 +1,7 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import math
-
+import cv2
 from ultralytics.utils.plotting import Annotator, colors
 from ultralytics.solutions.solutions import BaseSolution  # Import a parent class
 
@@ -13,10 +13,6 @@ class DistanceCalculation(BaseSolution):
         """Initializes the DistanceCalculation class with the given parameters."""
 
         super().__init__(**kwargs)
-
-        # box, track and centroids information
-        self.boxes = None
-        self.trk_ids = None
 
         # Mouse event information
         self.left_mouse_count = 0
@@ -36,7 +32,7 @@ class DistanceCalculation(BaseSolution):
         if event == cv2.EVENT_LBUTTONDOWN:
             self.left_mouse_count += 1
             if self.left_mouse_count <= 2:
-                for box, track_id in zip(self.boxes, self.trk_ids):
+                for box, track_id in zip(self.boxes, self.track_ids):
                     if box[0] < x < box[2] and box[1] < y < box[3] and track_id not in self.selected_boxes:
                         self.selected_boxes[track_id] = box
 
@@ -74,10 +70,11 @@ class DistanceCalculation(BaseSolution):
             pixels_distance = math.sqrt(
                 (self.centroids[0][0] - self.centroids[1][0]) ** 2 + (self.centroids[0][1] - self.centroids[1][1]) ** 2
             )
-            self.annotator.plot_distance_and_line(pixels_distance, self.centroids, self.line_color, self.centroid_color)
+            self.annotator.plot_distance_and_line(pixels_distance, self.centroids)
 
         self.centroids = []
 
         self.display_output(im0)  # display output with base class function
+        cv2.setMouseCallback("Ultralytics Solutions", self.mouse_event_for_distance)
 
         return im0  # return output image for more usage

@@ -804,31 +804,30 @@ class Annotator:
                 self.im, label, (int(mask[0][0]) - text_size[0] // 2, int(mask[0][1])), 0, self.sf, txt_color, self.tf
             )
 
-    def plot_distance_and_line(self, pixels_distance, centroids, line_color, centroid_color):
+    def plot_distance_and_line(
+        self, pixels_distance, centroids, line_color=(104, 31, 17), centroid_color=(255, 0, 255)
+    ):
         """
         Plot the distance and line on frame.
 
         Args:
             pixels_distance (float): Pixels distance between two bbox centroids.
             centroids (list): Bounding box centroids data.
-            line_color (tuple): RGB distance line color.
-            centroid_color (tuple): RGB bounding box centroid color.
+            line_color (tuple, optional): Distance line color.
+            centroid_color (tuple, optional): Bounding box centroid color.
         """
         # Get the text size
-        (text_width_m, text_height_m), _ = cv2.getTextSize(
-            f"Pixels Distance: {pixels_distance:.2f}", 0, self.sf, self.tf
-        )
+        text = f"Pixels Distance: {pixels_distance:.2f}"
+        (text_width_m, text_height_m), _ = cv2.getTextSize(text, 0, self.sf, self.tf)
 
         # Define corners with 10-pixel margin and draw rectangle
-        top_left = (15, 25)
-        bottom_right = (15 + text_width_m + 20, 25 + text_height_m + 20)
-        cv2.rectangle(self.im, top_left, bottom_right, centroid_color, -1)
+        cv2.rectangle(self.im, (15, 25), (15 + text_width_m + 20, 25 + text_height_m + 20), line_color, -1)
 
         # Calculate the position for the text with a 10-pixel margin and draw text
-        text_position = (top_left[0] + 10, top_left[1] + text_height_m + 10)
+        text_position = (25, 25 + text_height_m + 10)
         cv2.putText(
             self.im,
-            f"Pixels Distance: {pixels_distance:.2f}",
+            text,
             text_position,
             0,
             self.sf,

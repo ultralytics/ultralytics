@@ -97,23 +97,23 @@ The Effective Date of this Agreement shall be the date You execute this Agreemen
 
 The Ultralytics CLA defines the terms under which you contribute to Ultralytics' software projects. It outlines the rights and obligations related to your contributions, including granting copyright and patent licenses, and addressing the handling of third-party content.
 
-###  Why do I need to agree to the Copyright License in the CLA?
+### Why do I need to agree to the Copyright License in the CLA?
 
 Agreeing to the Copyright License allows Ultralytics and its users to use, modify, distribute, and create derivative works from your contributions. This ensures that your contributions can be integrated into Ultralytics projects and shared with the community, fostering collaboration and software development.
 
-###  How does the Patent License benefit both contributors and Ultralytics?
+### How does the Patent License benefit both contributors and Ultralytics?
 
 The Patent License grants Ultralytics the rights to use, make, and sell contributions covered by your patents. This is essential for product development and commercialization. In return, your patented innovations gain wider use and recognition, promoting innovation within the community.
 
-###  What should I do if my contribution includes third-party content?
+### What should I do if my contribution includes third-party content?
 
 If your contribution includes third-party content, you must clearly mark it and provide comprehensive details about its source and any applicable licenses or restrictions. This ensures proper attribution and legal compliance within Ultralytics projects, maintaining transparency and respecting the rights of original content creators.
 
-###  What happens if Ultralytics decides not to use my contribution?
+### What happens if Ultralytics decides not to use my contribution?
 
 Ultralytics is not obligated to use or incorporate your contributions into any projects. The decision to use your contributions is entirely at Ultralytics' discretion, meaning that while your contributions are valuable, they may not always align with the project's current needs or directions.
 
---- 
+---
 
 **Need More Help?**
 

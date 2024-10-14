@@ -17,7 +17,6 @@ class DistanceCalculation(BaseSolution):
         # box, track and centroids information
         self.boxes = None
         self.trk_ids = None
-        self.centroids = []
 
         # Mouse event information
         self.left_mouse_count = 0

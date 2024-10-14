@@ -1,9 +1,11 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import math
+
 import cv2
-from ultralytics.utils.plotting import Annotator, colors
+
 from ultralytics.solutions.solutions import BaseSolution  # Import a parent class
+from ultralytics.utils.plotting import Annotator, colors
 
 
 class DistanceCalculation(BaseSolution):

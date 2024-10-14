@@ -147,6 +147,15 @@ SAM 2 can be utilized across a broad spectrum of tasks, including real-time vide
 
         # Segment with point prompt
         results = model("path/to/image.jpg", points=[150, 150], labels=[1])
+
+        # Run inference with multiple points
+        results = predictor(points=[[400, 370], [900, 370]], labels=[1, 1])
+
+        # Run inference with multiple points prompt per object
+        results = predictor(points=[[[400, 370], [900, 370]]], labels=[[1, 1]])
+
+        # Run inference with negative points prompt
+        results = predictor(points=[[[400, 370], [900, 370]]], labels=[[1, 0]])
         ```
 
 #### Segment Everything

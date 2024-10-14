@@ -4,20 +4,20 @@ Export a YOLO PyTorch model to other formats. TensorFlow exports authored by htt
 
 Format                  | `format=argument`         | Model
 ---                     | ---                       | ---
-PyTorch                 | -                         | yolov8n.pt
-TorchScript             | `torchscript`             | yolov8n.torchscript
-ONNX                    | `onnx`                    | yolov8n.onnx
-OpenVINO                | `openvino`                | yolov8n_openvino_model/
-TensorRT                | `engine`                  | yolov8n.engine
-CoreML                  | `coreml`                  | yolov8n.mlpackage
-TensorFlow SavedModel   | `saved_model`             | yolov8n_saved_model/
-TensorFlow GraphDef     | `pb`                      | yolov8n.pb
-TensorFlow Lite         | `tflite`                  | yolov8n.tflite
-TensorFlow Edge TPU     | `edgetpu`                 | yolov8n_edgetpu.tflite
-TensorFlow.js           | `tfjs`                    | yolov8n_web_model/
-PaddlePaddle            | `paddle`                  | yolov8n_paddle_model/
-MNN                     | `mnn`                     | yolov8n.mnn
-NCNN                    | `ncnn`                    | yolov8n_ncnn_model/
+PyTorch                 | -                         | yolo11n.pt
+TorchScript             | `torchscript`             | yolo11n.torchscript
+ONNX                    | `onnx`                    | yolo11n.onnx
+OpenVINO                | `openvino`                | yolo11n_openvino_model/
+TensorRT                | `engine`                  | yolo11n.engine
+CoreML                  | `coreml`                  | yolo11n.mlpackage
+TensorFlow SavedModel   | `saved_model`             | yolo11n_saved_model/
+TensorFlow GraphDef     | `pb`                      | yolo11n.pb
+TensorFlow Lite         | `tflite`                  | yolo11n.tflite
+TensorFlow Edge TPU     | `edgetpu`                 | yolo11n_edgetpu.tflite
+TensorFlow.js           | `tfjs`                    | yolo11n_web_model/
+PaddlePaddle            | `paddle`                  | yolo11n_paddle_model/
+MNN                     | `mnn`                     | yolo11n.mnn
+NCNN                    | `ncnn`                    | yolo11n_ncnn_model/
 
 Requirements:
     $ pip install "ultralytics[export]"
@@ -31,19 +31,19 @@ CLI:
     $ yolo mode=export model=yolo11n.pt format=onnx
 
 Inference:
-    $ yolo predict model=yolov8n.pt                 # PyTorch
-                         yolov8n.torchscript        # TorchScript
-                         yolov8n.onnx               # ONNX Runtime or OpenCV DNN with dnn=True
-                         yolov8n_openvino_model     # OpenVINO
-                         yolov8n.engine             # TensorRT
-                         yolov8n.mlpackage          # CoreML (macOS-only)
-                         yolov8n_saved_model        # TensorFlow SavedModel
-                         yolov8n.pb                 # TensorFlow GraphDef
-                         yolov8n.tflite             # TensorFlow Lite
-                         yolov8n_edgetpu.tflite     # TensorFlow Edge TPU
-                         yolov8n_paddle_model       # PaddlePaddle
-                         yolov8n.mnn                # MNN
-                         yolov8n_ncnn_model         # NCNN
+    $ yolo predict model=yolo11n.pt                 # PyTorch
+                         yolo11n.torchscript        # TorchScript
+                         yolo11n.onnx               # ONNX Runtime or OpenCV DNN with dnn=True
+                         yolo11n_openvino_model     # OpenVINO
+                         yolo11n.engine             # TensorRT
+                         yolo11n.mlpackage          # CoreML (macOS-only)
+                         yolo11n_saved_model        # TensorFlow SavedModel
+                         yolo11n.pb                 # TensorFlow GraphDef
+                         yolo11n.tflite             # TensorFlow Lite
+                         yolo11n_edgetpu.tflite     # TensorFlow Edge TPU
+                         yolo11n_paddle_model       # PaddlePaddle
+                         yolo11n.mnn                # MNN
+                         yolo11n_ncnn_model         # NCNN
 
 TensorFlow.js:
     $ cd .. && git clone https://github.com/zldrobit/tfjs-yolov5-example.git && cd tfjs-yolov5-example

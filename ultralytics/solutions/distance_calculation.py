@@ -11,7 +11,6 @@ class DistanceCalculation(BaseSolution):
 
     def __init__(self, **kwargs):
         """Initializes the DistanceCalculation class with the given parameters."""
-
         super().__init__(**kwargs)
 
         # Mouse event information
@@ -46,6 +45,7 @@ class DistanceCalculation(BaseSolution):
 
         Args:
             im0 (ndarray): The image frame.
+
         Returns:
             (ndarray): The processed image frame.
         """

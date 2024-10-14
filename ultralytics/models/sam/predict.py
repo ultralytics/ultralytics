@@ -762,6 +762,36 @@ class SAM2Predictor(Predictor):
         # `d` could be 1 or 3 depends on `multimask_output`.
         return pred_masks.flatten(0, 1), pred_scores.flatten(0, 1)
 
+    def _prepare_prompts(self, dst_shape, bboxes=None, points=None, labels=None, masks=None):
+        """
+        Prepares and transforms the input prompts for processing based on the destination shape.
+        Args:
+            dst_shape (tuple): The target shape (height, width) for the prompts.
+            bboxes (np.ndarray | List | None): Bounding boxes in XYXY format with shape (N, 4).
+            points (np.ndarray | List | None): Points indicating object locations with shape (N, 2) or (N, num_points, 2), in pixels.
+            labels (np.ndarray | List | None): Point prompt labels with shape (N,) or (N, num_points). 1 for foreground, 0 for background.
+            masks (List | np.ndarray, Optional): Masks for the objects, where each mask is a 2D array.
+
+        Raises:
+            AssertionError: If the number of points don't match the number of labels, in case labels were passed.
+
+        Returns:
+            (tuple): A tuple containing transformed bounding boxes, points, labels, and masks.
+        """
+        bboxes, points, labels, masks = super()._prepare_prompts(dst_shape, bboxes, points, labels, masks)
+        if bboxes is not None:
+            bboxes = bboxes.view(-1, 2, 2)
+            bbox_labels = torch.tensor([[2, 3]], dtype=torch.int32, device=bboxes.device).expand(len(bboxes), -1)
+            # NOTE: merge "boxes" and "points" into a single "points" input
+            # (where boxes are added at the beginning) to model.sam_prompt_encoder
+            if points is not None:
+                points = torch.cat([bboxes, points], dim=1)
+                labels = torch.cat([bbox_labels, labels], dim=1)
+            else:
+                points, labels = bboxes, bbox_labels
+        return bboxes, points, labels, masks
+
+
     def set_image(self, image):
         """
         Preprocesses and sets a single image for inference using the SAM2 model.

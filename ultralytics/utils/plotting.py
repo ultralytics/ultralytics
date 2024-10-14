@@ -1156,16 +1156,16 @@ def plot_results(file="path/to/results.csv", dir="", segment=False, pose=False, 
     save_dir = Path(file).parent if file else Path(dir)
     if classify:
         fig, ax = plt.subplots(2, 2, figsize=(6, 6), tight_layout=True)
-        index = [1, 4, 2, 3]
+        index = [2, 5, 3, 4]
     elif segment:
         fig, ax = plt.subplots(2, 8, figsize=(18, 6), tight_layout=True)
-        index = [1, 2, 3, 4, 5, 6, 9, 10, 13, 14, 15, 16, 7, 8, 11, 12]
+        index = [2, 3, 4, 5, 6, 7, 10, 11, 14, 15, 16, 17, 8, 9, 12, 13]
     elif pose:
         fig, ax = plt.subplots(2, 9, figsize=(21, 6), tight_layout=True)
-        index = [1, 2, 3, 4, 5, 6, 7, 10, 11, 14, 15, 16, 17, 18, 8, 9, 12, 13]
+        index = [2, 3, 4, 5, 6, 7, 8, 11, 12, 15, 16, 17, 18, 19, 9, 10, 13, 14]
     else:
         fig, ax = plt.subplots(2, 5, figsize=(12, 6), tight_layout=True)
-        index = [1, 2, 3, 4, 5, 8, 9, 10, 6, 7]
+        index = [2, 3, 4, 5, 6, 9, 10, 11, 7, 8]
     ax = ax.ravel()
     files = list(save_dir.glob("results*.csv"))
     assert len(files), f"No results.csv files found in {save_dir.resolve()}, nothing to plot."

@@ -222,6 +222,7 @@ A heatmap generated with [Ultralytics YOLO11](https://github.com/ultralytics/ult
 
 | Name         | Type   | Default            | Description                                                       |
 | ------------ | ------ | ------------------ | ----------------------------------------------------------------- |
+| `model`      | `str`  | `None`             | Path to Ultralytics YOLO Model File                               |
 | `colormap`   | `int`  | `cv2.COLORMAP_JET` | Colormap to use for the heatmap.                                  |
 | `show`       | `bool` | `False`            | Whether to display the image with the heatmap overlay.            |
 | `show_in`    | `bool` | `True`             | Whether to display the count of objects entering the region.      |

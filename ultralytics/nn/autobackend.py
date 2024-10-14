@@ -83,7 +83,7 @@ class AutoBackend(nn.Module):
     @torch.no_grad()
     def __init__(
         self,
-        weights="yolov8n.pt",
+        weights="yolo11n.pt",
         device=torch.device("cpu"),
         dnn=False,
         data=None,

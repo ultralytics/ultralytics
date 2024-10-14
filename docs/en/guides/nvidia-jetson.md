@@ -296,10 +296,7 @@ The following Jetson devices are equipped with DLA hardware:
         model = YOLO("yolov8n.pt")
 
         # Export the model to TensorRT with DLA enabled (only works with FP16 or INT8)
-        model.export(format="engine", dla=True, half=True)  # creates 'yolov8n.engine'
-
-        # Alternatively, you can assign which DLA core to use on the Jetson device
-        model.export(format="engine", dla=True, dla_core=1)  # use DLA core 1 instead of 0 (default)
+        model.export(format="engine", dla=0, half=True)  # dla=0 or dla=1 corresponds to the DLA cores
 
         # Load the exported TensorRT model
         trt_model = YOLO("yolov8n.engine")
@@ -312,10 +309,7 @@ The following Jetson devices are equipped with DLA hardware:
 
         ```bash
         # Export a YOLOv8n PyTorch model to TensorRT format with DLA enabled (only works with FP16 or INT8)
-        yolo export model=yolov8n.pt format=engine dla=True half=True  # create 'yolov8n.engine'
-
-        # Alternatively, you can assign which DLA core to use on the Jetson device
-        yolo export model=yolov8n.pt format=engine dla=True half=True dla_core=1  # use DLA core 1 instead of 0 (default)
+        yolo export model=yolov8n.pt format=engine dla=0 half=True  # dla=0 or dla=1 corresponds to the DLA cores
 
         # Run inference with the exported model on the DLA
         yolo predict model=yolov8n.engine source='https://ultralytics.com/images/bus.jpg'

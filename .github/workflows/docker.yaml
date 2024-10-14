@@ -184,6 +184,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         run: |
+          sleep 60
           gh workflow run deploy_cloud_run.yml \
             --repo ultralytics/assistant \
             --ref main

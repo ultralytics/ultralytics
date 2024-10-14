@@ -256,6 +256,7 @@ class Predictor(BasePredictor):
     def _prepare_prompts(self, dst_shape, bboxes=None, points=None, labels=None, masks=None):
         """
         Prepares and transforms the input prompts for processing based on the destination shape.
+
         Args:
             dst_shape (tuple): The target shape (height, width) for the prompts.
             bboxes (np.ndarray | List | None): Bounding boxes in XYXY format with shape (N, 4).
@@ -738,6 +739,7 @@ class SAM2Predictor(Predictor):
     def _prepare_prompts(self, dst_shape, bboxes=None, points=None, labels=None, masks=None):
         """
         Prepares and transforms the input prompts for processing based on the destination shape.
+
         Args:
             dst_shape (tuple): The target shape (height, width) for the prompts.
             bboxes (np.ndarray | List | None): Bounding boxes in XYXY format with shape (N, 4).

@@ -5,13 +5,13 @@ keywords: Ultralytics, Contributor License Agreement, open source, contributions
 
 # Ultralytics Individual Contributor License Agreement
 
-Thank you for your interest in contributing to software projects managed by Ultralytics Inc. (“**Ultralytics**”, “**We**” or “**Us**”). This Contributor License Agreement (“**Agreement**”) sets out the rights granted by contributors (“**You**” or “**Your**”) to Us and the terms governing any contributions as defined in Section 1\. This license is for your protection as a Contributor as well as the protection of Ultralytics; it does not change your rights to use your own Contributions for any other purpose.
+Thank you for your interest in contributing to software projects managed by Ultralytics Inc. (“**Ultralytics**”, “**We**” or “**Us**”). This Contributor License Agreement (“**Agreement**”) sets out the rights granted by contributors (“**You**” or “**Your**”) to Us and the terms governing any contributions as defined in Section 1. This license is for your protection as a Contributor as well as the protection of Ultralytics; it does not change your rights to use your own Contributions for any other purpose.
 
 By accepting and agreeing to these terms and conditions You accept and agree to the following terms and conditions for Your past, present and future Contributions submitted to Ultralytics. Except for the license granted herein to Ultralytics and recipients of software distributed by Ultralytics, You reserve all right, title, and interest in and to Your Contributions.
 
 If you have any questions respecting this Agreement, please contact hello@ultralytics.com.
 
-**1\. Definitions**
+**1. Definitions**
 
 **1.1** “**You**” **or** “**Your**” shall mean the individual who submits a Contribution to Ultralytics or the legal entity authorized by the copyright owner that is making this Agreement with Ultralytics. For legal entities, the entity making a Contribution and all other entities that control, are controlled by, or are under common control with that entity are considered to be a single Contributor. For the purposes of this definition, "control" means (i) the power, direct or indirect, to cause the direction or management of such entity, whether by contract or otherwise, or (ii) ownership of fifty percent (50%) or more of the outstanding shares, or (iii) beneficial ownership of such entity.
 
@@ -23,7 +23,7 @@ If you have any questions respecting this Agreement, please contact hello@ultral
 
 **1.5** “**Project**” shall mean any of the software projects owned, managed, or maintained by Ultralytics, including but not limited to open-source projects made available by Ultralytics to which Contributions may be submitted.
 
-**2\. Grant of Rights**
+**2. Grant of Rights**
 
 **2.1 Copyright License**
 
@@ -41,27 +41,27 @@ Based on the grant of rights in Sections 2.1 and 2.2, if We include Your Contrib
 
 To the fullest extent permitted by law, You hereby waive, and agree not to assert, all of Your “moral rights” in or relating to Your Contributions for the benefit of Ultralytics, its assigns, and their respective direct and indirect sublicensees.
 
-**3\. Representations and Warranties**
+**3. Representations and Warranties**
 
 You represent that:
 
 (a) You have the legal authority to enter into this Agreement.
 
-(b) You own the Copyright and patent claims covering the Contribution which are required to grant the rights under Section 2\.
+(b) You own the Copyright and patent claims covering the Contribution which are required to grant the rights under Section 2.
 
 (c) The grant of rights under Section 2 does not violate any grant of rights which You have made to third parties, including Your employer. If Your Contributions were created in the course of Your employment with Your past or present employer(s), You represent that such employer(s) has authorized You to make Contributions on behalf of such employer(s) or such employer(s) has waived all of their right, title, or interest in or to Your Contributions.
 
 (d) You have followed the instructions provided by Ultralytics if You do not own the Copyright in the entire work of authorship submitted.
 
-(e) Should You wish to submit work that is not Your original creation, You may submit it to Ultralytics separately from any Contribution, identifying the complete details of its source and of any license or other restriction (including, but not limited to, related patents, trademarks, and license agreements) of which You are personally aware, and conspicuously marking the work as “Submitted on behalf of a third-party: \[named here\].”
+(e) Should You wish to submit work that is not Your original creation, You may submit it to Ultralytics separately from any Contribution, identifying the complete details of its source and of any license or other restriction (including, but not limited to, related patents, trademarks, and license agreements) of which You are personally aware, and conspicuously marking the work as “Submitted on behalf of a third-party: [named here].”
 
 (f) You agree to notify Ultralytics of any facts or circumstances of which You become aware that would make these representations inaccurate in any respect.
 
-**4\. Disclaimer of Warranties**
+**4. Disclaimer of Warranties**
 
 EXCEPT FOR THE EXPRESS WARRANTIES IN SECTION 3, THE CONTRIBUTION IS PROVIDED "AS IS". MORE PARTICULARLY, ALL EXPRESS OR IMPLIED WARRANTIES INCLUDING, WITHOUT LIMITATION, ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT ARE EXPRESSLY DISCLAIMED BY YOU TO US. TO THE EXTENT THAT ANY SUCH WARRANTIES CANNOT BE DISCLAIMED, SUCH WARRANTY IS LIMITED IN DURATION TO THE MINIMUM PERIOD PERMITTED BY LAW.
 
-**5\. Miscellaneous**
+**5. Miscellaneous**
 
 **5.1 Governing Law and Jurisdiction**
 

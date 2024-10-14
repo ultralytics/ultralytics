@@ -141,7 +141,6 @@ class ClassificationTrainer(BaseTrainer):
                     self.metrics = self.validator(model=f)
                     self.metrics.pop("fitness", None)
                     self.run_callbacks("on_fit_epoch_end")
-        LOGGER.info(f"Results saved to {colorstr('bold', self.save_dir)}")
 
     def plot_training_samples(self, batch, ni):
         """Plots training samples with their annotations."""

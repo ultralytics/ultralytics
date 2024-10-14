@@ -38,7 +38,7 @@ if __name__ == "__main__":
         optimizer='SGD',
         lr0=0.01,
         lrf=0.01,
-        epochs=300,
+        epochs=500,
         flipud=0.5,
         fliplr=0.5,
         scale=0.2,
@@ -48,6 +48,7 @@ if __name__ == "__main__":
         batch=128,
         name=experiment_name,
         device=[0, 1, 2, 3, 4, 5, 6, 7],
+        patience=300,
     )
 
     latest_weights_dir = GetLatestWeightsDir()

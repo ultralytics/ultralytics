@@ -42,15 +42,19 @@ class Detect(nn.Module):
         # self.cv3 = nn.ModuleList(nn.Sequential(Conv(x, c3, 3), Conv(c3, c3, 3),  # output of this is embedding
         #                                        nn.Conv2d(c3, self.nc, 1)) for x in ch)
         
+        # expand out_channels for conv layer before classification layer to separate embedding dimension for classification and contrastive learning tasks
+        self.c3_cls_contrastive = c3 * 2  # e.g., 64 + 64 = 128
+
         # a list of sequences of layers that output embeddings of predicted bboxes (for small, medium, large)
-        self.embedding_layers = nn.ModuleList(nn.Sequential(Conv(x, c3, 3), Conv(c3, c3, 3)) for x in ch)
+        # self.embedding_layers = nn.ModuleList(nn.Sequential(Conv(x, c3, 3), Conv(c3, c3, 3)) for x in ch)
+        self.embedding_layers = nn.ModuleList(nn.Sequential(Conv(x, c3, 3), Conv(c3, self.c3_cls_contrastive, 3)) for x in ch)
 
         # pre-define a convolution classification layer for weight-sharing
         self.shared_conv = nn.Conv2d(c3, self.nc, 1)
 
         # a list of layers that output logit (raw score) for classification (for small, medium, large)
         # self.cls_preds = nn.ModuleList(nn.Conv2d(c3, self.nc, 1) for _ in ch)
-        self.cls_preds = nn.ModuleList(self.shared_conv for _ in ch)  # TODO: check whether this really shares the weights --> Shares the weights
+        self.cls_preds = nn.ModuleList(self.shared_conv for _ in ch)
 
         # distribution focal loss
         self.dfl = DFL(self.reg_max) if self.reg_max > 1 else nn.Identity()
@@ -66,9 +70,14 @@ class Detect(nn.Module):
         shape = x[0].shape  # BCHW
         for i in range(self.nl):  # e.g., per detection scale (small, medium, or large)
             bboxes = self.cv2[i](x[i])  # (B, 4 * reg_max, H, W)
-            embeddings = self.embedding_layers[i](x[i])  # (B, n_features, H, W)
-            cls_predictions = self.cls_preds[i](embeddings)  # (B, nc, H, W)
-            x[i] = torch.cat((bboxes, cls_predictions, embeddings), 1)  # (B, 4 * reg_max + nc + n_features, H, W)
+            # embeddings = self.embedding_layers[i](x[i])  # (B, n_features, H, W)
+            # cls_predictions = self.cls_preds[i](embeddings)  # (B, nc, H, W)
+            # x[i] = torch.cat((bboxes, cls_predictions, embeddings), 1)  # (B, 4 * reg_max + nc + n_features, H, W)
+            # split embeddings by first half for classification and second half for contrastive task
+            embeddings_cls = self.embedding_layers[i](x[i])[:, :self.c3_cls_contrastive // 2, :, :]  # (B, first half of n_features, H, W)
+            embeddings_contrastive = self.embedding_layers[i](x[i])[:, self.c3_cls_contrastive // 2:, :, :]  # (B, second half of n_features, H, W)
+            cls_predictions = self.cls_preds[i](embeddings_cls)  # (B, nc, H, W)
+            x[i] = torch.cat((bboxes, cls_predictions, embeddings_contrastive), 1)  # (B, 4 * reg_max + nc + n_features, H, W)
             
         if self.training:
             return x

@@ -446,9 +446,6 @@ class v8PoseLoss(v8DetectionLoss):
         loss[2] *= self.hyp.kobj  # kobj gain
         loss[3] *= self.hyp.cls  # cls gain
         loss[4] *= self.hyp.dfl  # dfl gain
-
-        #TODO: conduct experiment with sub-features per embedding
-        embeddings = embeddings[:,:,embeddings.shape[2]//2:]  # last 32 embeddings
         
         # custom triplet loss for classification
         # target_labels (B, n_anchors)

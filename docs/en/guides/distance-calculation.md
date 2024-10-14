@@ -115,10 +115,8 @@ To delete points drawn during distance calculation with Ultralytics YOLO11, you 
 
 The key arguments for initializing the `DistanceCalculation` class in Ultralytics YOLO11 include:
 
-- `names`: Dictionary mapping class indices to class names.
-- `view_img`: Flag to indicate if the video stream should be displayed.
-- `line_thickness`: Thickness of the lines drawn on the image.
-- `line_color`: Color of the lines drawn on the image (BGR format).
-- `centroid_color`: Color of the centroids (BGR format).
+- `model`: Model file path.
+- `show`: Flag to indicate if the video stream should be displayed.
+- `line_width`: Thickness of bounding box and the lines drawn on the image.
 
 For an exhaustive list and default values, see the [arguments of DistanceCalculation](#arguments-distancecalculation).

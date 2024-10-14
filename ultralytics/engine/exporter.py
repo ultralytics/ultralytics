@@ -43,6 +43,7 @@ Inference:
                          yolo11n_edgetpu.tflite     # TensorFlow Edge TPU
                          yolo11n_paddle_model       # PaddlePaddle
                          yolo11n_ncnn_model         # NCNN
+                         yolo11n_mct_model.onnx     # Sony MCT
 
 TensorFlow.js:
     $ cd .. && git clone https://github.com/zldrobit/tfjs-yolov5-example.git && cd tfjs-yolov5-example

@@ -819,7 +819,7 @@ class Annotator:
         (text_width_m, text_height_m), _ = cv2.getTextSize(text, 0, self.sf, self.tf)
 
         # Define corners with 10-pixel margin and draw rectangle
-        cv2.rectangle(self.im, (15, 25), (15 + text_width_m + 20, 25 + text_height_m + 20), centroid_color, -1)
+        cv2.rectangle(self.im, (15, 25), (15 + text_width_m + 20, 25 + text_height_m + 20), line_color, -1)
 
         # Calculate the position for the text with a 10-pixel margin and draw text
         text_position = (25, 25 + text_height_m + 10)

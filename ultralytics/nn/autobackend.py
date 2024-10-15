@@ -389,7 +389,7 @@ class AutoBackend(nn.Module):
             config = {}
             config["precision"] = "low"
             config["backend"] = "CPU"
-            config["numThread"] = os.cpu_count() // 2
+            config["numThread"] = (os.cpu_count() + 1) // 2
             rt = MNN.nn.create_runtime_manager((config,))
             net = MNN.nn.load_module_from_file(w, [], [], runtime_manager=rt, rearrange=True)
 

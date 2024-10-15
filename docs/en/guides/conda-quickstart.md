@@ -135,7 +135,7 @@ Congratulations! You have successfully set up a Conda environment, installed the
 Setting up a Conda environment for Ultralytics projects is straightforward and ensures smooth package management. First, create a new Conda environment using the following command:
 
 ```bash
-conda create --name ultralytics-env python=3.8 -y
+conda create --name ultralytics-env python=3.10 -y
 ```
 
 Then, activate the new environment with:

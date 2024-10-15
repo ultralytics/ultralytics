@@ -126,7 +126,7 @@ class AutoBackend(nn.Module):
         fp16 &= pt or jit or onnx or xml or engine or nn_module or triton  # FP16
         nhwc = coreml or saved_model or pb or tflite or edgetpu  # BHWC formats (vs torch BCWH)
         stride = 32  # default stride
-        model, metadata = None, None
+        model, metadata, task = None, None, None
 
         # Set device
         cuda = torch.cuda.is_available() and device.type != "cpu"  # use CUDA
@@ -608,9 +608,7 @@ class AutoBackend(nn.Module):
         # for x in y:
         #     print(type(x), len(x)) if isinstance(x, (list, tuple)) else print(type(x), x.shape)  # debug shapes
         if isinstance(y, (list, tuple)):
-            if len(self.names) == 999 and (
-                getattr(self, "task", "") == "segment" or len(y) == 2
-            ):  # segments and names not defined
+            if len(self.names) == 999 and (self.task == "segment" or len(y) == 2):  # segments and names not defined
                 ip, ib = (0, 1) if len(y[0].shape) == 4 else (1, 0)  # index of protos, boxes
                 nc = y[ib].shape[1] - y[ip].shape[3] - 4  # y = (1, 160, 160, 32), (1, 116, 8400)
                 self.names = {i: f"class{i}" for i in range(nc)}

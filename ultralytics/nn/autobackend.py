@@ -516,7 +516,9 @@ class AutoBackend(nn.Module):
                         self.bindings[name].data.resize_(tuple(self.context.get_binding_shape(i)))
 
             s = self.bindings["images"].shape
-            assert im.shape[0] == self.batch, f"batch size mismatch: input batch size {im.shape[0]}, exported model batch size {self.batch}"
+            assert (
+                im.shape[0] == self.batch
+            ), f"batch size mismatch: input batch size {im.shape[0]}, exported model batch size {self.batch}"
             assert im.shape == s, f"input size {im.shape} {'>' if self.dynamic else 'not equal to'} max model size {s}"
             self.binding_addrs["images"] = int(im.data_ptr())
             self.context.execute_v2(list(self.binding_addrs.values()))

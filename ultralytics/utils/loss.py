@@ -509,6 +509,7 @@ class v8PoseLoss(v8DetectionLoss):
             triplet_loss += F.binary_cross_entropy_with_logits(logits, y, reduction='sum')
 
         triplet_loss /= batch_size
+        triplet_loss = 0  # disable triplet loss
         loss[5] = triplet_loss
 
         #TODO: report avg logits to wandb for validating our apporach

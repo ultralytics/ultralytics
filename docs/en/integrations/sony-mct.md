@@ -21,6 +21,7 @@ Export a YOLOv8 model to MCT format and run inference with the exported model.
     === "Python"
         ```python
         from ultralytics import YOLO
+
         # Load the YOLOv8n model
         model = YOLO("yolov8n.pt")
         # Export the model to MCT format with Post-Training Quantization (PTQ)
@@ -61,14 +62,13 @@ MCT supports several quantization methods to reduce model size and improve infer
 - **Quantization-Aware Training (QAT)**:
     - Complexity: High
     - Computational Cost: High (12-36 hours)
-  
 
 MCT also supports various quantization schemes for weights and activations:
 
 - **Power-of-Two** (hardware-friendly)
 - **Symmetric**
 - **Uniform**
-  
+
 ### Main Features
 
 - **Graph Optimizations**: Transforms models into more efficient versions by folding layers like batch normalization into preceding layers.
@@ -79,7 +79,7 @@ MCT also supports various quantization schemes for weights and activations:
     - **Clustering**: Utilizes non-uniform quantization grids for better distribution matching.
 - **Mixed-Precision Search**: Assigns different quantization bit-widths per layer based on sensitivity.
 - **Visualization**: Use TensorBoard to observe model performance insights, quantization phases, and bit-width configurations.
-  
+
 #### Enhanced Post-Training Quantization (EPTQ)
 
 As part of GPTQ, MCT includes the Enhanced Post-Training Quantization (EPTQ) algorithm for advanced optimization. EPTQ aims to further reduce quantization error without requiring labeled data. For more details, refer to the paper: [EPTQ: Enhanced Post-Training Quantization via Label-Free Hessian](https://github.com/sony/model_optimization).
@@ -92,10 +92,10 @@ MCT introduces structured, hardware-aware model pruning designed for specific ha
 
 When exporting a model to MCT format, you can specify various arguments:
 
-| Key         | Value    | Description                                                                 |
-|-------------|----------|-----------------------------------------------------------------------------|
-| `format`    | `'mct'`  | Format to export to (MCT)                                                   |
-| `gptq`      | `False`  | Use Gradient-based Post-Training Quantization (GPTQ) instead of PTQ         |
+| Key      | Value   | Description                                                         |
+| -------- | ------- | ------------------------------------------------------------------- |
+| `format` | `'mct'` | Format to export to (MCT)                                           |
+| `gptq`   | `False` | Use Gradient-based Post-Training Quantization (GPTQ) instead of PTQ |
 
 ## Benefits of Using MCT
 
@@ -141,9 +141,10 @@ For more information and detailed guidelines, refer to Sony's [Model Compression
 
 You can export YOLOv8 models to MCT format using either Python or CLI commands:
 !!! example
-    === "Python"
-        ```python
-        from ultralytics import YOLO
+=== "Python"
+```python
+from ultralytics import YOLO
+
         # Load the YOLOv8n model
         model = YOLO("YOLOv8n.pt")
         # Export the model to MCT format
@@ -162,7 +163,7 @@ MCT supports several quantization methods:
 - **Post-Training Quantization (PTQ)**
 - **Gradient-based Post-Training Quantization (GPTQ)**
 - **Quantization-Aware Training (QAT)**
-These methods vary in complexity and computational cost, allowing you to choose the one that best fits your needs.
+    These methods vary in complexity and computational cost, allowing you to choose the one that best fits your needs.
 
 ### Can I apply structured pruning with MCT?
 

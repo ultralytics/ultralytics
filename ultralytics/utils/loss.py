@@ -189,7 +189,7 @@ class v8DetectionLoss:
             pred_scores.detach().sigmoid(), (pred_bboxes.detach() * stride_tensor).type(gt_bboxes.dtype),
             anchor_points * stride_tensor, gt_labels, gt_bboxes, mask_gt)
 
-        target_scores_sum = max(target_scores.sum(), 1)
+        target_scores_sum = max(target_scores.sum(), 1)  # target_scores.sum() is actually the same as fg_mask
 
         # Cls loss
         # loss[1] = self.varifocal_loss(pred_scores, target_scores, target_labels) / target_scores_sum  # VFL way
@@ -419,9 +419,12 @@ class v8PoseLoss(v8DetectionLoss):
         pred_bboxes = self.bbox_decode(anchor_points, pred_distri)  # xyxy, (b, h*w, 4)
         pred_kpts = self.kpts_decode(anchor_points, pred_kpts.view(batch_size, -1, *self.kpt_shape))  # (b, h*w, 17, 3)
 
-        target_labels, target_bboxes, target_scores, fg_mask, target_gt_idx = self.assigner(
+        # TODO: modify gt labels to have "0" labels for classification; This is okay as BCE loss will do binary classification per each class (predicted label vs none) per detection
+        label_for_single_class_cls = 0
+        gt_labels_single_class_cls = torch.full_like(gt_labels, label_for_single_class_cls)
+        _, target_bboxes, target_scores, fg_mask, target_gt_idx = self.assigner(
             pred_scores.detach().sigmoid(), (pred_bboxes.detach() * stride_tensor).type(gt_bboxes.dtype),
-            anchor_points * stride_tensor, gt_labels, gt_bboxes, mask_gt)
+            anchor_points * stride_tensor, gt_labels_single_class_cls, gt_bboxes, mask_gt)
 
         target_scores_sum = max(target_scores.sum(), 1)
 
@@ -454,12 +457,21 @@ class v8PoseLoss(v8DetectionLoss):
         import torch.nn.functional as F
         triplet_loss = 0
         logits_avg = 0
+
+        # TODO : find target labels using gt_labels (bs, n_max_boxes, 1) & target_gt_idx (bs, n_total_anchors)
+        gt_labels = gt_labels.squeeze(-1)  # (bs, n_max_boxes)
+
         for b in range(batch_size):
+            # for i, idx in enumerate(target_gt_idx[b]):  # find target labels using gt_labels (bs, n_max_boxes, 1) & target_gt_idx (bs, n_total_anchors)
+            #     target_labels[i] = gt_labels[b][idx]  # (n_total_anchors,)
+            target_labels = gt_labels[b][target_gt_idx[b]]  # (n_total_anchors,)
+
             if fg_mask[b].sum() == 0:  # skip if there is no match between anchors and ground truths
                 continue
-
+            
             # apply foreground masking 
-            targets = target_labels[b][fg_mask[b]]  # ground truth labels that have a match with a detection candidate (anchor)
+            # targets = target_labels[b][fg_mask[b]]  # ground truth labels that have a match with an anchor cnadidate (n_matches,)
+            targets = target_labels[fg_mask[b]]  # ground truth labels that have a match with an anchor candidate (n_matches,)
             embs = embeddings[b][fg_mask[b]]  # embeddings that have a match with a ground truth (n_matches, n_features)
 
             # find unique classes
@@ -509,7 +521,6 @@ class v8PoseLoss(v8DetectionLoss):
             triplet_loss += F.binary_cross_entropy_with_logits(logits, y, reduction='sum')
 
         triplet_loss /= batch_size
-        triplet_loss = 0  # disable triplet loss
         loss[5] = triplet_loss
 
         #TODO: report avg logits to wandb for validating our apporach

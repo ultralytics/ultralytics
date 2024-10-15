@@ -65,7 +65,7 @@ class Analytics(BaseSolution):
                 self.total_counts += 1
             im0 = self.update_graph(frame_number=frame_number)
             self.total_counts = 0
-        elif self.type in ["pie", "bar", "area"]:
+        elif self.type in {"pie", "bar", "area"}:
             self.clswise_count = {}
             for box, cls in zip(self.boxes, self.clss):
                 if self.names[int(cls)] in self.clswise_count:

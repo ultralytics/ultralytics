@@ -142,7 +142,8 @@ For more information and detailed guidelines, refer to Sony's [Model Compression
 You can export YOLOv8 models to MCT format using either Python or CLI commands:
 !!! example
 === "Python"
-```python
+
+````python
 from ultralytics import YOLO
 
         # Load the YOLOv8n model
@@ -176,3 +177,4 @@ By reducing model size through quantization and pruning, MCT decreases the compu
 ### Where can I find more information about MCT?
 
 For more detailed information, refer to Sony's [Model Compression Toolkit documentation](#) or the official [MCT GitHub repository](#).
+````

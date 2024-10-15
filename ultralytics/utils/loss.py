@@ -462,9 +462,12 @@ class v8PoseLoss(v8DetectionLoss):
         gt_labels = gt_labels.squeeze(-1)  # (bs, n_max_boxes)
 
         for b in range(batch_size):
+            if gt_labels[b].size(0) == 0:  # skip if there is no ground truth boxes and labels for the input image
+                continue
             # for i, idx in enumerate(target_gt_idx[b]):  # find target labels using gt_labels (bs, n_max_boxes, 1) & target_gt_idx (bs, n_total_anchors)
             #     target_labels[i] = gt_labels[b][idx]  # (n_total_anchors,)
-            target_labels = gt_labels[b][target_gt_idx[b]]  # (n_total_anchors,)
+            target_gt_idx_batch = target_gt_idx[b].long()
+            target_labels = gt_labels[b][target_gt_idx_batch]  # (n_total_anchors,)
 
             if fg_mask[b].sum() == 0:  # skip if there is no match between anchors and ground truths
                 continue

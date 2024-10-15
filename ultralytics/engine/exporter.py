@@ -548,21 +548,20 @@ class Exporter:
         """YOLOv8 MNN export using MNN https://github.com/alibaba/MNN."""
         check_requirements("MNN")
         import MNN  # noqa
-        from MNN.tools.mnnconvert import Tools
+        from MNN.tools import mnnconvert
 
         # Setup and checks
         LOGGER.info(f"\n{prefix} starting export with MNN {MNN.version()}...")
         f_onnx = str(self.file.with_suffix(".onnx"))  # onnx model file
         assert Path(f_onnx).exists(), f"failed to export ONNX file: {f_onnx}"
         f = str(self.file.with_suffix(".mnn"))  # MNN model file
-        args = ["", "-f", "ONNX", "--modelFile", f_onnx, "--MNNModel", f]
+        args = ["", "-f", "ONNX", "--modelFile", f_onnx, "--MNNModel", f, "--bizCode", json.dumps(self.metadata)]
         if self.args.int8:
             args.append("--weightQuantBits")
             args.append("8")
         if self.args.half:
             args.append("--fp16")
-        Tools.mnnconvert(args)
-        yaml_save(Path(f).parent / "metadata.yaml", self.metadata)  # add metadata.yaml
+        mnnconvert.convert(args)
         return f, None
 
     @try_export

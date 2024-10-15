@@ -959,8 +959,10 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
         m = getattr(torch.nn, m[3:]) if "nn." in m else globals()[m]  # get module
         for j, a in enumerate(args):
             if isinstance(a, str):
-                with contextlib.suppress(ValueError):
+                try:
                     args[j] = locals()[a] if a in locals() else ast.literal_eval(a)
+                except ValueError:
+                    pass
         n = n_ = max(round(n * depth), 1) if n > 1 else n  # depth gain
         if m in {
             Classify,

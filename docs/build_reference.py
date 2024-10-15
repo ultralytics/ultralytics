@@ -1,8 +1,8 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 """
-Helper file to build Ultralytics Docs reference section. Recursively walks through the 'ultralytics' directory
-and builds an MkDocs reference section of *.md files. These files are composed of classes and functions,
-and also creates a navigation menu for use in the mkdocs.yaml file.
+Helper file to build Ultralytics Docs reference section. Recursively walks through the 'ultralytics' directory and
+builds an MkDocs reference section of *.md files. These files are composed of classes and functions, and also creates a
+navigation menu for use in the mkdocs.yaml file.
 
 Note: This script must be run from the repository root directory, not the 'docs' directory.
 """
@@ -155,7 +155,9 @@ def main():
         if classes or functions:  # If there are any classes or functions, generate a Markdown file
             py_filepath_rel = py_filepath.relative_to(PACKAGE_DIR)  # Get the relative path of the Python file
             md_filepath = REFERENCE_DIR / py_filepath_rel  # Define the path where the Markdown file will be saved
-            module_path = f"{PACKAGE_DIR.name}.{py_filepath_rel.with_suffix('').as_posix().replace('/', '.')}"  # Get module path
+            module_path = (
+                f"{PACKAGE_DIR.name}.{py_filepath_rel.with_suffix('').as_posix().replace('/', '.')}"  # Get module path
+            )
             md_rel_filepath = create_markdown(md_filepath, module_path, classes, functions)  # Create the Markdown
             nav_items.append(str(md_rel_filepath))  # Add the Markdown file to the nav items list
 

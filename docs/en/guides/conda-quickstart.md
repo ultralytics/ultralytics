@@ -37,7 +37,7 @@ This guide provides a comprehensive introduction to setting up a Conda environme
 First, let's create a new Conda environment. Open your terminal and run the following command:
 
 ```bash
-conda create --name ultralytics-env python=3.8 -y
+conda create --name ultralytics-env python=3.10 -y
 ```
 
 Activate the new environment:

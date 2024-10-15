@@ -396,7 +396,7 @@ class AutoBackend(nn.Module):
             def torch_to_mnn(x):
                 return MNN.expr.const(x.data_ptr(), x.shape)
 
-            metadata = json.loads(net.get_info()['bizCode'])
+            metadata = json.loads(net.get_info()["bizCode"])
 
         # NCNN
         elif ncnn:

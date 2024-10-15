@@ -46,7 +46,7 @@ def default_class_names(data=None):
     if data:
         try:
             return yaml_load(check_yaml(data))["names"]
-        except:  # noqa E722
+        except Exception:
             pass
     return {i: f"class{i}" for i in range(999)}  # return default if above errors
 
@@ -82,7 +82,7 @@ class AutoBackend(nn.Module):
     @torch.no_grad()
     def __init__(
         self,
-        weights="yolov8n.pt",
+        weights="yolo11n.pt",
         device=torch.device("cpu"),
         dnn=False,
         data=None,

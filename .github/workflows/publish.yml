@@ -23,7 +23,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.PERSONAL_ACCESS_TOKEN || secrets.GITHUB_TOKEN }} # use your PAT here
+          token: ${{ secrets._GITHUB_TOKEN }} # use your PAT here
       - name: Git config
         run: |
           git config --global user.name "UltralyticsAssistant"
@@ -103,7 +103,7 @@ jobs:
         if: (github.event_name == 'push' || github.event.inputs.pypi == 'true')  && steps.check_pypi.outputs.increment == 'True'
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN || secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets._GITHUB_TOKEN }}
           CURRENT_TAG: ${{ steps.check_pypi.outputs.current_tag }}
           PREVIOUS_TAG: ${{ steps.check_pypi.outputs.previous_tag }}
         run: |
@@ -111,7 +111,7 @@ jobs:
         shell: bash
       - name: Extract PR Details
         env:
-          GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN || secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets._GITHUB_TOKEN }}
         run: |
           # Check if the event is a pull request or pull_request_target
           if [ "${{ github.event_name }}" = "pull_request" ] || [ "${{ github.event_name }}" = "pull_request_target" ]; then

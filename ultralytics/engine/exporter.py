@@ -546,7 +546,7 @@ class Exporter:
     @try_export
     def export_mnn(self, prefix=colorstr("MNN:")):
         """YOLOv8 MNN export using MNN https://github.com/alibaba/MNN."""
-        check_requirements("MNN")
+        check_requirements("MNN>=2.9.6")
         import MNN  # noqa
         from MNN.tools import mnnconvert
 

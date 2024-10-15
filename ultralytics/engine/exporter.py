@@ -315,7 +315,7 @@ class Exporter:
             f[0], _ = self.export_torchscript()
         if engine:  # TensorRT required before ONNX
             f[1], _ = self.export_engine()
-        if onnx or mnn:  # ONNX
+        if onnx:  # ONNX
             f[2], _ = self.export_onnx()
         if xml:  # OpenVINO
             f[3], _ = self.export_openvino()
@@ -546,13 +546,14 @@ class Exporter:
     @try_export
     def export_mnn(self, prefix=colorstr("MNN:")):
         """YOLOv8 MNN export using MNN https://github.com/alibaba/MNN."""
+        f_onnx, _ = self.export_onnx()  # get onnx model first
+
         check_requirements("MNN>=2.9.6")
         import MNN  # noqa
         from MNN.tools import mnnconvert
 
         # Setup and checks
         LOGGER.info(f"\n{prefix} starting export with MNN {MNN.version()}...")
-        f_onnx = str(self.file.with_suffix(".onnx"))  # onnx model file
         assert Path(f_onnx).exists(), f"failed to export ONNX file: {f_onnx}"
         f = str(self.file.with_suffix(".mnn"))  # MNN model file
         args = ["", "-f", "ONNX", "--modelFile", f_onnx, "--MNNModel", f, "--bizCode", json.dumps(self.metadata)]

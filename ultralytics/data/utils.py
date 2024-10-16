@@ -65,7 +65,7 @@ def exif_size(img: Image.Image):
                 rotation = exif.get(274, None)  # the EXIF key for the orientation tag is 274
                 if rotation in {6, 8}:  # rotation 270 or 90
                     s = s[1], s[0]
-        except:  # noqa E722
+        except Exception:
             pass
     return s
 

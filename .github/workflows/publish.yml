@@ -36,7 +36,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip wheel
-          pip install requests build twine toml
+          pip install ultralytics-actions build twine toml
       - name: Check PyPI version
         shell: python
         run: |
@@ -106,8 +106,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets._GITHUB_TOKEN }}
           CURRENT_TAG: ${{ steps.check_pypi.outputs.current_tag }}
           PREVIOUS_TAG: ${{ steps.check_pypi.outputs.previous_tag }}
-        run: |
-          curl -s "https://raw.githubusercontent.com/ultralytics/actions/main/utils/summarize_release.py" | python -
+        run: ultralytics-actions-summarize-release
         shell: bash
       - name: Extract PR Details
         env:

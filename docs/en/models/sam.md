@@ -59,16 +59,16 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
         results = model("ultralytics/assets/zidane.jpg", bboxes=[439, 437, 524, 709])
 
         # Run inference with single point
-        results = predictor(points=[900, 370], labels=[1])
+        results = model(points=[900, 370], labels=[1])
 
         # Run inference with multiple points
-        results = predictor(points=[[400, 370], [900, 370]], labels=[1, 1])
+        results = model(points=[[400, 370], [900, 370]], labels=[1, 1])
 
         # Run inference with multiple points prompt per object
-        results = predictor(points=[[[400, 370], [900, 370]]], labels=[[1, 1]])
+        results = model(points=[[[400, 370], [900, 370]]], labels=[[1, 1]])
 
         # Run inference with negative points prompt
-        results = predictor(points=[[[400, 370], [900, 370]]], labels=[[1, 0]])
+        results = model(points=[[[400, 370], [900, 370]]], labels=[[1, 0]])
         ```
 
 !!! example "Segment everything"

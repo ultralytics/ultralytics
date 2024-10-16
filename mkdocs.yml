@@ -162,9 +162,7 @@ nav:
           - solutions/index.md
       - Guides:
           - guides/index.md
-      - Explorer:
-          - datasets/explorer/index.md
-      - Live Inference 🚀 NEW: guides/streamlit-live-inference.md # for promotion of new pages
+      - YOLO11 🚀 NEW: models/yolo11.md # for promotion of new pages
       - Languages:
           - 🇬🇧&nbsp English: https://ultralytics.com/docs/
           - 🇨🇳&nbsp 简体中文: https://docs.ultralytics.com/zh/
@@ -261,11 +259,6 @@ nav:
       - YOLO-World (Real-Time Open-Vocabulary Object Detection): models/yolo-world.md
   - Datasets:
       - datasets/index.md
-      - Explorer:
-          - datasets/explorer/index.md
-          - Explorer API: datasets/explorer/api.md
-          - Explorer Dashboard: datasets/explorer/dashboard.md
-          - VOC Exploration Example: datasets/explorer/explorer.ipynb
       - Detection:
           - datasets/detect/index.md
           - Argoverse: datasets/detect/argoverse.md
@@ -476,11 +469,6 @@ nav:
           - build: reference/data/build.md
           - converter: reference/data/converter.md
           - dataset: reference/data/dataset.md
-          - explorer:
-              - explorer: reference/data/explorer/explorer.md
-              - gui:
-                  - dash: reference/data/explorer/gui/dash.md
-              - utils: reference/data/explorer/utils.md
           - loaders: reference/data/loaders.md
           - split_dota: reference/data/split_dota.md
           - utils: reference/data/utils.md
@@ -761,3 +749,6 @@ plugins:
         yolov5/environments/yolov5_amazon_web_services_quickstart_tutorial.md: yolov5/environments/aws_quickstart_tutorial.md
         yolov5/environments/yolov5_google_cloud_platform_quickstart_tutorial.md: yolov5/environments/google_cloud_quickstart_tutorial.md
         yolov5/environments/yolov5_docker_image_quickstart_tutorial.md: yolov5/environments/docker_image_quickstart_tutorial.md
+        reference/data/explorer/explorer.md: datasets/explorer/index.md
+        reference/data/explorer/gui/dash.md: datasets/explorer/index.md
+        reference/data/explorer/utils.md: datasets/explorer/index.md

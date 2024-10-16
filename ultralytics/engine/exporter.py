@@ -563,6 +563,10 @@ class Exporter:
         if self.args.half:
             args.append("--fp16")
         mnnconvert.convert(args)
+        # remove scratch file for model convert optimize
+        convert_scratch = Path(self.file.parent / ".__convert_external_data.bin")
+        if convert_scratch.exists():
+            convert_scratch.unlink()
         return f, None
 
     @try_export

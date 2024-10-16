@@ -7,6 +7,8 @@ from pathlib import Path
 from types import SimpleNamespace
 from typing import Dict, List, Union
 
+import cv2
+
 from ultralytics.utils import (
     ASSETS,
     DEFAULT_CFG,
@@ -29,8 +31,10 @@ from ultralytics.utils import (
     yaml_load,
     yaml_print,
 )
+from ultralytics.utils.downloads import safe_download
 
-# Define valid tasks and modes
+# Define valid tasks, modes and solutions
+SOLUTIONS = {"count", "heatmap", "queue"}
 MODES = {"train", "val", "predict", "export", "track", "benchmark"}
 TASKS = {"detect", "segment", "classify", "pose", "obb"}
 TASK2DATA = {
@@ -78,10 +82,10 @@ CLI_HELP_MSG = f"""
 
     4. Export a YOLO11n classification model to ONNX format at image size 224 by 128 (no TASK required)
         yolo export model=yolo11n-cls.pt format=onnx imgsz=224,128
-    
+
     5. Streamlit real-time webcam inference GUI
         yolo streamlit-predict
-        
+
     6. Run special commands:
         yolo help
         yolo checks
@@ -542,6 +546,34 @@ def handle_yolo_settings(args: List[str]) -> None:
         LOGGER.warning(f"WARNING ⚠️ settings error: '{e}'. Please see {url} for help.")
 
 
+def handle_solutions(argv):
+    from ultralytics.solutions.solutions import DEFAULT_SOL_CFG_PATH
+    from ultralytics import solutions
+    SOL_CFG_DICT = yaml_load(DEFAULT_SOL_CFG_PATH)
+    argv = {item.split('=')[0]: eval(item.split('=')[1]) for item in argv[2:]}
+    check_dict_alignment(SOL_CFG_DICT, argv)
+    SOL_CFG_DICT.update(argv)
+    # check if source is None
+    if SOL_CFG_DICT["source"] is None:
+        safe_download("https://github.com/ultralytics/yolov5/releases/download/v1.0/solutions_ci_demo.mp4")
+        SOL_CFG_DICT["source"] = "solutions_ci_demo.mp4"
+
+    cap = cv2.VideoCapture(SOL_CFG_DICT["source"])
+    w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
+    writer = cv2.VideoWriter("solutions.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
+    kwargs = {key: value for key, value in argv.items() if key != 'source'}
+    counter = solutions.ObjectCounter(**kwargs)
+    while cap.isOpened():
+        s, im0 = cap.read()
+        if not s:
+            break
+        im0 = counter.count(im0)
+        writer.write(im0)
+    cap.release()
+    writer.release()
+    cv2.destroyAllWindows()
+
+
 def handle_streamlit_inference():
     """
     Open the Ultralytics Live Inference Streamlit app for real-time object detection.
@@ -683,6 +715,7 @@ def entrypoint(debug=""):
         "logout": lambda: handle_yolo_hub(args),
         "copy-cfg": copy_default_cfg,
         "streamlit-predict": lambda: handle_streamlit_inference(),
+        "solutions": lambda: handle_solutions(args)
     }
     full_args_dict = {**DEFAULT_CFG_DICT, **{k: None for k in TASKS}, **{k: None for k in MODES}, **special}
 

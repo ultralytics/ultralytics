@@ -52,7 +52,8 @@ class Heatmap(ObjectCounter):
         Returns:
             im0 (ndarray): Processed image for further usage
         """
-        self.heatmap = np.zeros_like(im0, dtype=np.float32) * 0.99 if not self.initialized else self.heatmap
+        if not self.initialized:
+            self.heatmap = np.zeros_like(im0, dtype=np.float32) * 0.99
         self.initialized = True  # Initialize heatmap only once
 
         self.annotator = Annotator(im0, line_width=self.line_width)  # Initialize annotator

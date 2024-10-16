@@ -18,8 +18,8 @@ class Analytics(BaseSolution):
         """Initialize the Analytics class with various chart types."""
         super().__init__(**kwargs)
 
-        self.analytics_type = self.CFG["analytics_type"]  # extract type of analytics
-        self.x_label = "Classes" if self.analytics_type in {"bar", "pie"} else "Frame#"
+        self.type = self.CFG["analytics_type"]  # extract type of analytics
+        self.x_label = "Classes" if self.type in {"bar", "pie"} else "Frame#"
         self.y_label = "Total Counts"
 
         # Predefined data
@@ -35,20 +35,20 @@ class Analytics(BaseSolution):
         self.clswise_count = {}  # dictionary for classwise counts
 
         # Ensure line and area chart
-        if self.analytics_type in {"line", "area"}:
+        if self.type in {"line", "area"}:
             self.lines = {}
             self.fig = Figure(facecolor=self.bg_color, figsize=figsize)
             self.canvas = FigureCanvas(self.fig)  # Set common axis properties
             self.ax = self.fig.add_subplot(111, facecolor=self.bg_color)
-            if self.analytics_type == "line":
+            if self.type == "line":
                 (self.line,) = self.ax.plot([], [], color="cyan", linewidth=self.line_width)
-        elif self.analytics_type in {"bar", "pie"}:
+        elif self.type in {"bar", "pie"}:
             # Initialize bar or pie plot
             self.fig, self.ax = plt.subplots(figsize=figsize, facecolor=self.bg_color)
             self.canvas = FigureCanvas(self.fig)  # Set common axis properties
             self.ax.set_facecolor(self.bg_color)
             self.color_mapping = {}
-            self.ax.axis("equal") if self.analytics_type == "pie" else None  # Ensure pie chart is circular
+            self.ax.axis("equal") if self.type == "pie" else None  # Ensure pie chart is circular
 
     def process_data(self, im0, frame_number):
         """
@@ -60,21 +60,21 @@ class Analytics(BaseSolution):
         """
         self.extract_tracks(im0)  # Extract tracks
 
-        if self.analytics_type == "line":
+        if self.type == "line":
             for _ in self.boxes:
                 self.total_counts += 1
             im0 = self.update_graph(frame_number=frame_number)
             self.total_counts = 0
-        elif self.analytics_type in {"pie", "bar", "area"}:
+        elif self.type in {"pie", "bar", "area"}:
             self.clswise_count = {}
             for box, cls in zip(self.boxes, self.clss):
                 if self.names[int(cls)] in self.clswise_count:
                     self.clswise_count[self.names[int(cls)]] += 1
                 else:
                     self.clswise_count[self.names[int(cls)]] = 1
-            im0 = self.update_graph(frame_number=frame_number, count_dict=self.clswise_count, plot=self.analytics_type)
+            im0 = self.update_graph(frame_number=frame_number, count_dict=self.clswise_count, plot=self.type)
         else:
-            raise ModuleNotFoundError(f"{self.analytics_type} chart is not supported ❌")
+            raise ModuleNotFoundError(f"{self.type} chart is not supported ❌")
         return im0
 
     def update_graph(self, frame_number, count_dict=None, plot="line"):

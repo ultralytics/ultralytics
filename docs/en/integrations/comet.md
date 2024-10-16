@@ -50,17 +50,21 @@ After installing the required packages, you'll need to sign up, get a [Comet API
 
 Then, you can initialize your Comet project. Comet will automatically detect the API key and proceed with the setup.
 
-```python
-import comet_ml
+!!! example "Initialize Comet project"
 
-comet_ml.login(project_name="comet-example-yolov8-coco128")
-```
+    === "Python"
+
+        ```python
+        import comet_ml
+
+        comet_ml.login(project_name="comet-example-yolo11-coco128")
+        ```
 
 If you are using a Google Colab notebook, the code above will prompt you to enter your API key for initialization.
 
 ## Usage
 
-Before diving into the usage instructions, be sure to check out the range of [YOLO11 models offered by Ultralytics](../models/index.md). This will help you choose the most appropriate model for your project requirements.
+Before diving into the usage instructions, be sure to check out the range of [YOLO11 models offered by Ultralytics](../models/yolo11.md). This will help you choose the most appropriate model for your project requirements.
 
 !!! example "Usage"
 
@@ -75,7 +79,7 @@ Before diving into the usage instructions, be sure to check out the range of [YO
         # Train the model
         results = model.train(
             data="coco8.yaml",
-            project="comet-example-yolov8-coco128",
+            project="comet-example-yolo11-coco128",
             batch=32,
             save_period=1,
             save_json=True,
@@ -200,7 +204,7 @@ To integrate Comet ML with Ultralytics YOLO11, follow these steps:
     ```python
     import comet_ml
 
-    comet_ml.login(project_name="comet-example-yolov8-coco128")
+    comet_ml.login(project_name="comet-example-yolo11-coco128")
     ```
 
 4. **Train your YOLO11 model and log metrics**:
@@ -211,7 +215,7 @@ To integrate Comet ML with Ultralytics YOLO11, follow these steps:
     model = YOLO("yolo11n.pt")
     results = model.train(
         data="coco8.yaml",
-        project="comet-example-yolov8-coco128",
+        project="comet-example-yolo11-coco128",
         batch=32,
         save_period=1,
         save_json=True,

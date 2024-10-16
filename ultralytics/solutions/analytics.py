@@ -61,11 +61,11 @@ class Analytics(BaseSolution):
         self.extract_tracks(im0)  # Extract tracks
 
         if self.type == "line":
-            for box in self.boxes:
+            for _ in self.boxes:
                 self.total_counts += 1
             im0 = self.update_graph(frame_number=frame_number)
             self.total_counts = 0
-        elif self.type == "pie" or self.type == "bar" or self.type == "area":
+        elif self.type in {"pie", "bar", "area"}:
             self.clswise_count = {}
             for box, cls in zip(self.boxes, self.clss):
                 if self.names[int(cls)] in self.clswise_count:

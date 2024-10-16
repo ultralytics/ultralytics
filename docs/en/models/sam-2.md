@@ -142,11 +142,20 @@ SAM 2 can be utilized across a broad spectrum of tasks, including real-time vide
         # Display model information (optional)
         model.info()
 
-        # Segment with bounding box prompt
+        # Run inference with bboxes prompt
         results = model("path/to/image.jpg", bboxes=[100, 100, 200, 200])
 
-        # Segment with point prompt
-        results = model("path/to/image.jpg", points=[150, 150], labels=[1])
+        # Run inference with single point
+        results = model(points=[900, 370], labels=[1])
+
+        # Run inference with multiple points
+        results = model(points=[[400, 370], [900, 370]], labels=[1, 1])
+
+        # Run inference with multiple points prompt per object
+        results = model(points=[[[400, 370], [900, 370]]], labels=[[1, 1]])
+
+        # Run inference with negative points prompt
+        results = model(points=[[[400, 370], [900, 370]]], labels=[[1, 0]])
         ```
 
 #### Segment Everything

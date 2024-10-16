@@ -106,6 +106,7 @@ Monitoring workouts through pose estimation with [Ultralytics YOLO11](https://gi
 | `show`       | `bool`  | `False` | Flag to display the image.                                                             |
 | `up_angle`   | `float` | `145.0` | Angle threshold for the 'up' pose.                                                     |
 | `down_angle` | `float` | `90.0`  | Angle threshold for the 'down' pose.                                                   |
+| `model`      | `str`   | `None`  | Path to Ultralytics YOLO Pose Model File                                               |
 
 ### Arguments `model.predict`
 

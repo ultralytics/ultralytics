@@ -4,7 +4,7 @@ description: Learn to freeze YOLOv5 layers for efficient transfer learning, redu
 keywords: YOLOv5, transfer learning, freeze layers, machine learning, deep learning, model training, PyTorch, Ultralytics
 ---
 
-📚 This guide explains how to **freeze** YOLOv5 🚀 layers when **transfer learning**. Transfer learning is a useful way to quickly retrain a model on new data without having to retrain the entire network. Instead, part of the initial weights are frozen in place, and the rest of the weights are used to compute loss and are updated by the optimizer. This requires less resources than normal training and allows for faster training times, though it may also result in reductions to final trained accuracy.
+📚 This guide explains how to **freeze** YOLOv5 🚀 layers when **[transfer learning](https://www.ultralytics.com/glossary/transfer-learning)**. Transfer learning is a useful way to quickly retrain a model on new data without having to retrain the entire network. Instead, part of the initial weights are frozen in place, and the rest of the weights are used to compute loss and are updated by the optimizer. This requires less resources than normal training and allows for faster training times, though it may also result in reductions to final trained accuracy.
 
 ## Before You Start
 
@@ -121,7 +121,7 @@ train.py --batch 48 --weights yolov5m.pt --data voc.yaml --epochs 50 --cache --i
 
 ### Accuracy Comparison
 
-The results show that freezing speeds up training, but reduces final accuracy slightly.
+The results show that freezing speeds up training, but reduces final [accuracy](https://www.ultralytics.com/glossary/accuracy) slightly.
 
 ![Freezing training mAP50 results](https://github.com/ultralytics/docs/releases/download/0/freezing-training-map50-results.avif)
 

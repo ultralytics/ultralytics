@@ -2,6 +2,7 @@
 
 import contextlib
 import pickle
+import re
 import types
 from copy import deepcopy
 from pathlib import Path
@@ -13,6 +14,7 @@ from ultralytics.nn.modules import (
     AIFI,
     C1,
     C2,
+    C2PSA,
     C3,
     C3TR,
     ELAN1,
@@ -28,7 +30,9 @@ from ultralytics.nn.modules import (
     C2f,
     C2fAttn,
     C2fCIB,
+    C2fPSA,
     C3Ghost,
+    C3k2,
     C3x,
     CBFuse,
     CBLinear,
@@ -955,9 +959,10 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
         m = getattr(torch.nn, m[3:]) if "nn." in m else globals()[m]  # get module
         for j, a in enumerate(args):
             if isinstance(a, str):
-                with contextlib.suppress(ValueError):
+                try:
                     args[j] = locals()[a] if a in locals() else ast.literal_eval(a)
-
+                except ValueError:
+                    pass
         n = n_ = max(round(n * depth), 1) if n > 1 else n  # depth gain
         if m in {
             Classify,
@@ -968,12 +973,15 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             GhostBottleneck,
             SPP,
             SPPF,
+            C2fPSA,
+            C2PSA,
             DWConv,
             Focus,
             BottleneckCSP,
             C1,
             C2,
             C2f,
+            C3k2,
             RepNCSPELAN4,
             ELAN1,
             ADown,
@@ -1001,9 +1009,26 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
                 )  # num heads
 
             args = [c1, c2, *args[1:]]
-            if m in {BottleneckCSP, C1, C2, C2f, C2fAttn, C3, C3TR, C3Ghost, C3x, RepC3, C2fCIB}:
+            if m in {
+                BottleneckCSP,
+                C1,
+                C2,
+                C2f,
+                C3k2,
+                C2fAttn,
+                C3,
+                C3TR,
+                C3Ghost,
+                C3x,
+                RepC3,
+                C2fPSA,
+                C2fCIB,
+                C2PSA,
+            }:
                 args.insert(2, n)  # number of repeats
                 n = 1
+            if m is C3k2 and scale in "mlx":  # for M/L/X sizes
+                args[3] = True
         elif m is AIFI:
             args = [ch[f], *args]
         elif m in {HGStem, HGBlock}:
@@ -1035,10 +1060,10 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
 
         m_ = nn.Sequential(*(m(*args) for _ in range(n))) if n > 1 else m(*args)  # module
         t = str(m)[8:-2].replace("__main__.", "")  # module type
-        m.np = sum(x.numel() for x in m_.parameters())  # number params
+        m_.np = sum(x.numel() for x in m_.parameters())  # number params
         m_.i, m_.f, m_.type = i, f, t  # attach index, 'from' index, type
         if verbose:
-            LOGGER.info(f"{i:>3}{str(f):>20}{n_:>3}{m.np:10.0f}  {t:<45}{str(args):<30}")  # print
+            LOGGER.info(f"{i:>3}{str(f):>20}{n_:>3}{m_.np:10.0f}  {t:<45}{str(args):<30}")  # print
         save.extend(x % i for x in ([f] if isinstance(f, int) else f) if x != -1)  # append to savelist
         layers.append(m_)
         if i == 0:
@@ -1049,8 +1074,6 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
 
 def yaml_model_load(path):
     """Load a YOLOv8 model from a YAML file."""
-    import re
-
     path = Path(path)
     if path.stem in (f"yolov{d}{x}6" for x in "nsmlx" for d in (5, 8)):
         new_stem = re.sub(r"(\d+)([nslmx])6(.+)?$", r"\1\2-p6\3", path.stem)
@@ -1077,11 +1100,10 @@ def guess_model_scale(model_path):
     Returns:
         (str): The size character of the model's scale, which can be n, s, m, l, or x.
     """
-    with contextlib.suppress(AttributeError):
-        import re
-
-        return re.search(r"yolov\d+([nslmx])", Path(model_path).stem).group(1)  # n, s, m, l, or x
-    return ""
+    try:
+        return re.search(r"yolo[v]?\d+([nslmx])", Path(model_path).stem).group(1)  # noqa, returns n, s, m, l, or x
+    except AttributeError:
+        return ""
 
 
 def guess_model_task(model):
@@ -1114,17 +1136,23 @@ def guess_model_task(model):
 
     # Guess from model cfg
     if isinstance(model, dict):
-        with contextlib.suppress(Exception):
+        try:
             return cfg2task(model)
+        except Exception:
+            pass
 
     # Guess from PyTorch model
     if isinstance(model, nn.Module):  # PyTorch model
         for x in "model.args", "model.model.args", "model.model.model.args":
-            with contextlib.suppress(Exception):
+            try:
                 return eval(x)["task"]
+            except Exception:
+                pass
         for x in "model.yaml", "model.model.yaml", "model.model.model.yaml":
-            with contextlib.suppress(Exception):
+            try:
                 return cfg2task(eval(x))
+            except Exception:
+                pass
 
         for m in model.modules():
             if isinstance(m, Segment):

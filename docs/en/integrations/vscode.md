@@ -15,7 +15,7 @@ keywords: Visual Studio Code, VS Code, deep learning, convolutional neural netwo
 
 ## Features and Benefits
 
-✅ Are you a data scientist or machine learning engineer building computer vision applications with Ultralytics?
+✅ Are you a data scientist or [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) engineer building computer vision applications with Ultralytics?
 
 ✅ Do you despise writing the same blocks of code repeatedly?
 
@@ -134,7 +134,7 @@ The `ultra.examples` snippets are to useful for anyone looking to learn how to g
     ```python
     from ultralytics import ASSETS, YOLO
 
-    model = YOLO("yolov8n.pt", task="detect")
+    model = YOLO("yolo11n.pt", task="detect")
     results = model(source=ASSETS / "bus.jpg")
 
     for result in results:
@@ -181,7 +181,7 @@ There are over 💯 keyword arguments for all of the various Ultralytics [tasks]
         conf=0.25,  # (float) minimum confidence threshold
         iou=0.7,  # (float) intersection over union (IoU) threshold for NMS
         vid_stride=1,  # (int) video frame-rate stride
-        stream_buffer=False,  # (bool) buffer all streaming frames (True) or return the most recent frame (False)
+        stream_buffer=False,  # (bool) buffer incoming frames in a queue (True) or only keep the most recent frame (False)
         visualize=False,  # (bool) visualize model features
         augment=False,  # (bool) apply image augmentation to prediction sources
         agnostic_nms=False,  # (bool) class-agnostic NMS
@@ -207,7 +207,7 @@ The best way to find out what snippets are available is to download and install 
 
 ## Conclusion
 
-The Ultralytics-Snippets extension for VS Code is designed to empower data scientists and machine learning engineers to build computer vision applications using Ultralytics YOLO more efficiently. By providing pre-built code snippets and useful examples, we help you focus on what matters most: creating innovative solutions. Please share your feedback by visiting the [extension page on the VS Code marketplace] and leaving a review. ⭐
+The Ultralytics-Snippets extension for VS Code is designed to empower data scientists and machine learning engineers to build [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) applications using Ultralytics YOLO more efficiently. By providing pre-built code snippets and useful examples, we help you focus on what matters most: creating innovative solutions. Please share your feedback by visiting the [extension page on the VS Code marketplace] and leaving a review. ⭐
 
 ## FAQ
 

@@ -35,7 +35,7 @@ This structure enables a diverse and extensive testing ground for object detecti
 
 ## Benchmarking
 
-Dataset benchmarking evaluates machine learning model performance on specific datasets using standardized metrics like accuracy, mean average precision and F1-score.
+Dataset benchmarking evaluates machine learning model performance on specific datasets using standardized metrics like [accuracy](https://www.ultralytics.com/glossary/accuracy), [mean average precision](https://www.ultralytics.com/glossary/mean-average-precision-map) and F1-score.
 
 !!! tip "Benchmarking"
 
@@ -67,7 +67,7 @@ Dataset benchmarking evaluates machine learning model performance on specific da
             if path.exists():
                 # Fix YAML file and run training
                 benchmark.fix_yaml(str(path))
-                os.system(f"yolo detect train data={path} model=yolov8s.pt epochs=1 batch=16")
+                os.system(f"yolo detect train data={path} model=yolo11s.pt epochs=1 batch=16")
 
                 # Run validation and evaluate
                 os.system(f"yolo detect val data={path} model=runs/detect/train/weights/best.pt > {val_log_file} 2>&1")
@@ -85,7 +85,7 @@ Dataset benchmarking evaluates machine learning model performance on specific da
 
 ## Applications
 
-Roboflow 100 is invaluable for various applications related to computer vision and deep learning. Researchers and engineers can use this benchmark to:
+Roboflow 100 is invaluable for various applications related to [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) and [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl). Researchers and engineers can use this benchmark to:
 
 - Evaluate the performance of object detection models in a multi-domain context.
 - Test the adaptability of models to real-world scenarios beyond common object recognition.
@@ -127,7 +127,7 @@ If you use the Roboflow 100 dataset in your research or development work, please
 
 Our thanks go to the Roboflow team and all the contributors for their hard work in creating and sustaining the Roboflow 100 dataset.
 
-If you are interested in exploring more datasets to enhance your object detection and machine learning projects, feel free to visit [our comprehensive dataset collection](../index.md).
+If you are interested in exploring more datasets to enhance your object detection and [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) projects, feel free to visit [our comprehensive dataset collection](../index.md).
 
 ## FAQ
 
@@ -165,7 +165,7 @@ To use the Roboflow 100 dataset for benchmarking, you can implement the RF100Ben
             if path.exists():
                 # Fix YAML file and run training
                 benchmark.fix_yaml(str(path))
-                os.system(f"yolo detect train data={path} model=yolov8s.pt epochs=1 batch=16")
+                os.system(f"yolo detect train data={path} model=yolo11n.pt epochs=1 batch=16")
 
                 # Run validation and evaluate
                 os.system(f"yolo detect val data={path} model=runs/detect/train/weights/best.pt > {val_log_file} 2>&1")
@@ -183,7 +183,7 @@ To use the Roboflow 100 dataset for benchmarking, you can implement the RF100Ben
 
 ### Which domains are covered by the Roboflow 100 dataset?
 
-The **Roboflow 100** dataset spans seven domains, each providing unique challenges and applications for object detection models:
+The **Roboflow 100** dataset spans seven domains, each providing unique challenges and applications for [object detection](https://www.ultralytics.com/glossary/object-detection) models:
 
 1. **Aerial**: 7 datasets, 9,683 images, 24 classes
 2. **Video Games**: 7 datasets, 11,579 images, 88 classes

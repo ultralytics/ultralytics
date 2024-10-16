@@ -119,7 +119,7 @@ def get_cpu_info():
             info = cpuinfo.get_cpu_info()  # info dict
             string = info.get(k[0] if k[0] in info else k[1] if k[1] in info else k[2], "unknown")
             PERSISTENT_CACHE["cpu_info"] = string.replace("(R)", "").replace("CPU ", "").replace("@ ", "")
-        except:  # noqa E722
+        except Exception:
             pass
     return PERSISTENT_CACHE.get("cpu_info", "unknown")
 

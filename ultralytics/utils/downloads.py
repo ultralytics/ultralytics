@@ -60,7 +60,7 @@ def is_url(url, check=False):
             with request.urlopen(url) as response:
                 return response.getcode() == 200  # check if exists online
         return True
-    except:  # noqa E722
+    except Exception:
         return False
 
 

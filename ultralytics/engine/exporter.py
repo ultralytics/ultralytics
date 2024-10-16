@@ -968,7 +968,7 @@ class Exporter:
             f'--out_dir "{Path(f).parent}" '
             "--show_operations "
             "--search_delegate "
-            "--delegate_search_step 3 "
+            "--delegate_search_step 30 "
             "--timeout_sec 180 "
             f'"{tflite_model}"'
         )

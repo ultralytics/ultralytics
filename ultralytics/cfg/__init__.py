@@ -640,7 +640,7 @@ def smart_value(v):
     else:
         try:
             return eval(v)
-        except:  # noqa E722
+        except Exception:
             return v
 
 

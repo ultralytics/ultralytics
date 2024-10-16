@@ -663,10 +663,9 @@ def profile(input, ops, n=10, device=None):
                     t[0] = time_sync()
                     y = m(x)
                     t[1] = time_sync()
-                    getattr(
+                    t[2] = time_sync() if getattr(
                         (sum(yi.sum() for yi in y) if isinstance(y, list) else y).sum(), "backwards", lambda: None
-                    )()
-                    t[2] = time_sync()
+                    )() else float("nan")
                     tf += (t[1] - t[0]) * 1000 / n  # ms per op forward
                     tb += (t[2] - t[1]) * 1000 / n  # ms per op backward
                 mem = torch.cuda.memory_reserved() / 1e9 if torch.cuda.is_available() else 0  # (GB)

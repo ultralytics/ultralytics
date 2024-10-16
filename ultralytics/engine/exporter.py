@@ -1025,7 +1025,7 @@ class Exporter:
         """YOLOv8 RKNN model export."""
         LOGGER.info(f"\n{prefix} starting export with torch {torch.__version__}...")
 
-        check_requirements("rknn-toolkit>=1.4.0")
+        check_requirements("rknn-toolkit2")
         from rknn.api import RKNN  # type: ignore
 
         f, _ = self.export_onnx()

@@ -1,5 +1,7 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
+__version__ = "8.3.14"
+
 import os
 
 # Set ENV variables (place before imports)
@@ -12,7 +14,6 @@ from ultralytics.utils.checks import check_yolo as checks
 from ultralytics.utils.downloads import download
 
 settings = SETTINGS
-__version__ = "8.3.14"
 __all__ = (
     "__version__",
     "ASSETS",

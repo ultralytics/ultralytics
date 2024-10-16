@@ -277,7 +277,7 @@ def check_latest_pypi_version(package_name="ultralytics"):
         response = requests.get(f"https://pypi.org/pypi/{package_name}/json", timeout=3)
         if response.status_code == 200:
             return response.json()["info"]["version"]
-    except:  # noqa E722
+    except Exception:
         return None
 
 
@@ -299,7 +299,7 @@ def check_pip_update_available():
                     f"Update with 'pip install -U ultralytics'"
                 )
                 return True
-        except:  # noqa E722
+        except Exception:
             pass
     return False
 
@@ -715,7 +715,7 @@ def git_describe(path=ROOT):  # path must be a directory
     """Return human-readable git description, i.e. v5.0-5-g3e25f1e https://git-scm.com/docs/git-describe."""
     try:
         return subprocess.check_output(f"git -C {path} describe --tags --long --always", shell=True).decode()[:-1]
-    except:  # noqa E722
+    except Exception:
         return ""
 
 

@@ -17,6 +17,7 @@ TensorFlow Edge TPU     | `edgetpu`                 | yolo11n_edgetpu.tflite
 TensorFlow.js           | `tfjs`                    | yolo11n_web_model/
 PaddlePaddle            | `paddle`                  | yolo11n_paddle_model/
 NCNN                    | `ncnn`                    | yolo11n_ncnn_model/
+Sony MCT                | `mct`                     | yolo11n_mct_model.onnx
 
 Requirements:
     $ pip install "ultralytics[export]"
@@ -42,6 +43,7 @@ Inference:
                          yolo11n_edgetpu.tflite     # TensorFlow Edge TPU
                          yolo11n_paddle_model       # PaddlePaddle
                          yolo11n_ncnn_model         # NCNN
+                         yolo11n_mct_model.onnx     # Sony MCT
 
 TensorFlow.js:
     $ cd .. && git clone https://github.com/zldrobit/tfjs-yolov5-example.git && cd tfjs-yolov5-example
@@ -91,7 +93,7 @@ from ultralytics.utils.checks import check_imgsz, check_is_path_safe, check_requ
 from ultralytics.utils.downloads import attempt_download_asset, get_github_assets, safe_download
 from ultralytics.utils.files import file_size, spaces_in_path
 from ultralytics.utils.ops import Profile
-from ultralytics.utils.torch_utils import TORCH_1_13, get_latest_opset, select_device, smart_inference_mode
+from ultralytics.utils.torch_utils import TORCH_1_13, get_latest_opset, select_device
 
 
 def export_formats():
@@ -110,6 +112,7 @@ def export_formats():
         ["TensorFlow.js", "tfjs", "_web_model", True, False],
         ["PaddlePaddle", "paddle", "_paddle_model", True, True],
         ["NCNN", "ncnn", "_ncnn_model", True, True],
+        ["Sony MCT", "mct", "_mct_model.onnx", True, True],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU"], zip(*x)))
 
@@ -167,7 +170,7 @@ class Exporter:
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
         callbacks.add_integration_callbacks(self)
 
-    @smart_inference_mode()
+    # @smart_inference_mode()
     def __call__(self, model=None) -> str:
         """Returns list of exported files/dirs after running callbacks."""
         self.run_callbacks("on_export_start")
@@ -190,15 +193,30 @@ class Exporter:
         flags = [x == fmt for x in fmts]
         if sum(flags) != 1:
             raise ValueError(f"Invalid export format='{fmt}'. Valid formats are {fmts}")
-        jit, onnx, xml, engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, paddle, ncnn = flags  # export booleans
+        (
+            jit,
+            onnx,
+            xml,
+            engine,
+            coreml,
+            saved_model,
+            pb,
+            tflite,
+            edgetpu,
+            tfjs,
+            paddle,
+            ncnn,
+            mct,
+        ) = flags  # export booleans
         is_tf_format = any((saved_model, pb, tflite, edgetpu, tfjs))
-
+        if mct:
+            LOGGER.warning("WARNING ⚠️ Sony MCT only supports int8 export, setting int8=True.")
+            self.args.int8 = True
         # Device
         if fmt == "engine" and self.args.device is None:
             LOGGER.warning("WARNING ⚠️ TensorRT requires GPU export, automatically assigning device=0")
             self.args.device = "0"
         self.device = select_device("cpu" if self.args.device is None else self.args.device)
-
         # Checks
         if not hasattr(model, "names"):
             model.names = default_class_names()
@@ -259,6 +277,28 @@ class Exporter:
             elif isinstance(m, C2f) and not is_tf_format:
                 # EdgeTPU does not support FlexSplitV while split provides cleaner ONNX graph
                 m.forward = m.forward_split
+            if isinstance(m, Detect) and mct:
+                from ultralytics.utils.tal import make_anchors
+
+                anchors, strides = (
+                    x.transpose(0, 1)
+                    for x in make_anchors(
+                        torch.cat([s / m.stride.unsqueeze(-1) for s in self.imgsz], dim=1),
+                        m.stride,
+                        0.5,
+                    )
+                )
+                m.anchors = anchors
+                m.strides = strides
+
+            if isinstance(m, C2f) and mct:
+                m.forward = m.forward_fx
+
+        if mct:
+            if getattr(model, "end2end", False):
+                raise ValueError("MCT export is not supported for end2end models.")
+            if "C2f" not in model.__str__():
+                raise ValueError("MCT export is only supported for YOLOv8 detection models")
 
         y = None
         for _ in range(2):
@@ -331,6 +371,8 @@ class Exporter:
             f[10], _ = self.export_paddle()
         if ncnn:  # NCNN
             f[11], _ = self.export_ncnn()
+        if mct:
+            f[12], _ = self.export_mct()
 
         # Finish
         f = [str(x) for x in f if x]  # filter out '' and None
@@ -1008,6 +1050,137 @@ class Exporter:
 
         # Add metadata
         yaml_save(Path(f) / "metadata.yaml", self.metadata)  # add metadata.yaml
+        return f, None
+
+    @try_export
+    def export_mct(self, prefix=colorstr("Sony MCT:")):
+        check_requirements(["mct-nightly", "sony-custom-layers[torch]"])
+        import model_compression_toolkit as mct
+        import onnx
+        from model_compression_toolkit.core import BitWidthConfig
+        from model_compression_toolkit.core.common.network_editors import NodeNameScopeFilter
+        from model_compression_toolkit.core.pytorch.pytorch_device_config import get_working_device, set_working_device
+        from sony_custom_layers.pytorch.object_detection.nms import multiclass_nms
+
+        set_working_device(str(self.device))
+
+        class PostProcessWrapper(torch.nn.Module):
+            def __init__(
+                self,
+                model: torch.nn.Module,
+                score_threshold: float = 0.001,
+                iou_threshold: float = 0.7,
+                max_detections: int = 300,
+            ):
+                """
+                Wrapping PyTorch Module with multiclass_nms layer from sony_custom_layers.
+
+                Args:
+                    model (nn.Module): Model instance.
+                    score_threshold (float): Score threshold for non-maximum suppression.
+                    iou_threshold (float): Intersection over union threshold for non-maximum suppression.
+                    max_detections (float): The number of detections to return.
+                """
+                super().__init__()
+                self.model = model
+                self.score_threshold = score_threshold
+                self.iou_threshold = iou_threshold
+                self.max_detections = max_detections
+
+            def forward(self, images):
+                # model inference
+                outputs = self.model(images)
+
+                boxes = outputs[0]
+                scores = outputs[1]
+                nms = multiclass_nms(
+                    boxes=boxes,
+                    scores=scores,
+                    score_threshold=self.score_threshold,
+                    iou_threshold=self.iou_threshold,
+                    max_detections=self.max_detections,
+                )
+                return nms
+
+        def representative_dataset_gen(dataloader=self.get_int8_calibration_dataloader(prefix)):
+            for batch in dataloader:
+                img = batch["img"]
+                img = img / 255.0
+                yield [img]
+
+        tpc = mct.get_target_platform_capabilities(
+            fw_name="pytorch", target_platform_name="imx500", target_platform_version="v3"
+        )
+
+        # Configure MCT manually for specific layers
+        bit_cfg = BitWidthConfig()
+        bit_cfg.set_manual_activation_bit_width(
+            [
+                NodeNameScopeFilter("mul"),
+                NodeNameScopeFilter("sub"),
+                NodeNameScopeFilter("add_6"),
+                NodeNameScopeFilter("cat_17"),
+            ],
+            16,
+        )
+
+        config = mct.core.CoreConfig(
+            mixed_precision_config=mct.core.MixedPrecisionQuantizationConfig(num_of_images=10),
+            quantization_config=mct.core.QuantizationConfig(concat_threshold_update=True),
+            bit_width_config=bit_cfg,
+        )
+
+        resource_utilization = mct.core.ResourceUtilization(weights_memory=3146176 * 0.76)
+
+        if not self.args.gptq:
+            # Perform post training quantization
+            quant_model, _ = mct.ptq.pytorch_post_training_quantization(
+                in_module=self.model,
+                representative_data_gen=representative_dataset_gen,
+                target_resource_utilization=resource_utilization,
+                core_config=config,
+                target_platform_capabilities=tpc,
+            )
+            print("Quantized model is ready")
+
+        else:
+            gptq_config = mct.gptq.get_pytorch_gptq_config(n_epochs=1000, use_hessian_based_weights=False)
+
+            # Perform Gradient-Based Post Training Quantization
+
+            quant_model, _ = mct.gptq.pytorch_gradient_post_training_quantization(
+                model=self.model,
+                representative_data_gen=representative_dataset_gen,
+                target_resource_utilization=resource_utilization,
+                gptq_config=gptq_config,
+                core_config=config,
+                target_platform_capabilities=tpc,
+            )
+
+            print("Quantized-PTQ model is ready")
+
+        if self.args.nms:
+            # Define PostProcess params
+            score_threshold = 0.001
+            iou_threshold = 0.7
+            max_detections = 300
+
+            quant_model = PostProcessWrapper(
+                model=quant_model,
+                score_threshold=score_threshold,
+                iou_threshold=iou_threshold,
+                max_detections=max_detections,
+            ).to(device=get_working_device())
+
+        f = Path(str(self.file).replace(self.file.suffix, "_mct_model.onnx"))  # js dir
+        mct.exporter.pytorch_export_model(model=quant_model, save_model_path=f, repr_dataset=representative_dataset_gen)
+
+        model_onnx = onnx.load(f)  # load onnx model
+        for k, v in self.metadata.items():
+            meta = model_onnx.metadata_props.add()
+            meta.key, meta.value = k, str(v)
+
+        onnx.save(model_onnx, f)
         return f, None
 
     def _add_tflite_metadata(self, file):

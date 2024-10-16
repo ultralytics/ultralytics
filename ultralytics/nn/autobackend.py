@@ -107,22 +107,9 @@ class AutoBackend(nn.Module):
         super().__init__()
         w = str(weights[0] if isinstance(weights, list) else weights)
         nn_module = isinstance(weights, torch.nn.Module)
-        (
-            pt,
-            jit,
-            onnx,
-            xml,
-            engine,
-            coreml,
-            saved_model,
-            pb,
-            tflite,
-            edgetpu,
-            tfjs,
-            paddle,
-            ncnn,
-            triton,
-        ) = self._model_type(w)
+        (pt, jit, onnx, xml, engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, paddle, ncnn, mct, triton) = (
+            self._model_type(w)
+        )
         fp16 &= pt or jit or onnx or xml or engine or nn_module or triton  # FP16
         nhwc = coreml or saved_model or pb or tflite or edgetpu  # BHWC formats (vs torch BCWH)
         stride = 32  # default stride
@@ -180,7 +167,7 @@ class AutoBackend(nn.Module):
             check_requirements("opencv-python>=4.5.4")
             net = cv2.dnn.readNetFromONNX(w)
 
-        # ONNX Runtime
+        # ONNX Runtime and MCT
         elif onnx:
             LOGGER.info(f"Loading {w} for ONNX Runtime inference...")
             check_requirements(("onnx", "onnxruntime-gpu" if cuda else "onnxruntime"))
@@ -190,7 +177,18 @@ class AutoBackend(nn.Module):
             import onnxruntime
 
             providers = ["CUDAExecutionProvider", "CPUExecutionProvider"] if cuda else ["CPUExecutionProvider"]
-            session = onnxruntime.InferenceSession(w, providers=providers)
+            if mct:
+                check_requirements(["mct-nightly", "sony-custom-layers[torch]"])
+                LOGGER.info(f"Loading {w} for ONNX MCT quantization inference...")
+                import mct_quantizers as mctq
+                from sony_custom_layers.pytorch.object_detection import nms_ort  # noqa
+
+                session = onnxruntime.InferenceSession(
+                    w, mctq.get_ort_session_options(), providers=["CPUExecutionProvider"]
+                )
+                task = "detect"
+            else:
+                session = onnxruntime.InferenceSession(w, providers=providers)
             output_names = [x.name for x in session.get_outputs()]
             metadata = session.get_modelmeta().custom_metadata_map
 
@@ -474,6 +472,10 @@ class AutoBackend(nn.Module):
         elif self.onnx:
             im = im.cpu().numpy()  # torch to numpy
             y = self.session.run(self.output_names, {self.session.get_inputs()[0].name: im})
+            if self.mct:
+                from ultralytics.utils.ops import xyxy2xywh
+
+                y = np.concatenate([xyxy2xywh(y[0]), y[1]], axis=-1).transpose(0, 2, 1)
 
         # OpenVINO
         elif self.xml:

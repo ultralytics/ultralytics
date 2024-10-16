@@ -113,6 +113,11 @@ def benchmark(
                 assert LINUX or MACOS, "Windows Paddle exports not supported yet"
             if i in {12}:  # NCNN
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 NCNN exports not supported yet"
+            if i in {13}:  # MCT
+                assert not is_end2end
+                assert not isinstance(model, YOLOWorld), "YOLOWorldv2 MCT exports not supported"
+                assert model.task == "detect", "MCT only supported for detection task"
+                assert "C2f" in model.__str__(), "MCT only supported for YOLOv8"
             if "cpu" in device.type:
                 assert cpu, "inference not supported on CPU"
             if "cuda" in device.type:

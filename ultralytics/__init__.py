@@ -1,7 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-__version__ = "8.3.14"
-
 import os
 
 # Set ENV variables (place before imports)
@@ -27,3 +25,4 @@ __all__ = (
     "download",
     "settings",
 )
+__version__ = "8.3.14"

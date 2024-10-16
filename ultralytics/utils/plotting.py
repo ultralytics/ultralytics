@@ -1117,7 +1117,7 @@ def plot_images(
                             im[y : y + h, x : x + w, :][mask] = (
                                 im[y : y + h, x : x + w, :][mask] * 0.4 + np.array(color) * 0.6
                             )
-                        except:  # noqa E722
+                        except Exception:
                             pass
                 annotator.fromarray(im)
     if not save:

@@ -2,6 +2,7 @@
 
 # Configuration for Ultralytics Solutions
 
+source: # Only for the Ultralytics solutions usage via CLI (Command line Interface)
 model: "yolo11n.pt" # The Ultralytics YOLO11 model to be used (e.g., yolo11n.pt for YOLO11 nano version and yolov8n.pt for YOLOv8 nano version)
 
 region: # Object counting, queue or speed estimation region points. Default region points are [(20, 400), (1080, 404), (1080, 360), (20, 360)]

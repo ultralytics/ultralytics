@@ -1032,13 +1032,17 @@ class Exporter:
 
         # Adapted from https://github.com/airockchip/rknn_model_zoo/tree/main/examples/yolov8/python
         platform = self.args.name
+
+        export_path = Path(f"{Path(f).stem}_rknn_model")
+        export_path.mkdir(exist_ok=True)
+
         rknn = RKNN(verbose=False)
         rknn.config(mean_values=[[0, 0, 0]], std_values=[[255, 255, 255]], target_platform=platform)
-
         _ = rknn.load_onnx(model=f)
         _ = rknn.build(do_quantization=False)  # requires quantization: {'rv1103', 'rv1106','rv1103b'} # TODO
-        _ = rknn.export_rknn(f.replace(".onnx", f"-{platform}.rknn"))
-        yaml_save(Path(f).parent / "metadata.yaml", self.metadata)  # add metadata.yaml
+        f = f.replace(".onnx", f"-{platform}.rknn")
+        _ = rknn.export_rknn(f"{export_path / f}")
+        yaml_save(export_path / "metadata.yaml", self.metadata)  # add metadata.yaml
 
         LOGGER.info(f"\n{prefix} model exported as {f}.\n")
         return f, None

@@ -402,6 +402,7 @@ class AutoBackend(nn.Module):
 
         # RKNN
         elif rknn:
+            LOGGER.info(f"Loading {w} for RKNN inference...")
             # check_requirements()  # TODO add logic for RKNN wheel install from system info
             from rknnlite.api import RKNNLite
 
@@ -410,7 +411,7 @@ class AutoBackend(nn.Module):
             ret = rknn_model.init_runtime()
             if ret != 0:
                 ...  # TODO add logging
-            metadata = Path(w).parent / "metadata.yaml"
+            metadata = w.parent / "metadata.yaml"
 
         # Any other format (unsupported)
         else:

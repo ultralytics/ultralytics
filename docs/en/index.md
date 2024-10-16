@@ -70,7 +70,7 @@ Explore the Ultralytics Docs, a comprehensive resource designed to help you unde
 
     ***
 
-    Predict on new images, videos and streams with YOLO <br />
+    Predict on new images, videos and streams with YOLO <br /> &nbsp;
 
     ***
 
@@ -90,7 +90,7 @@ Explore the Ultralytics Docs, a comprehensive resource designed to help you unde
 
     ***
 
-    Discover YOLO tasks like detect, segment, classify, pose, OBB and track <br />
+    Discover YOLO tasks like detect, segment, classify, pose, OBB and track <br /> &nbsp;
 
     ***
 
@@ -100,7 +100,7 @@ Explore the Ultralytics Docs, a comprehensive resource designed to help you unde
 
     ***
 
-    Discover Ultralytics' latest state-of-the-art YOLO11 models and their capabilities <br />
+    Discover Ultralytics' latest state-of-the-art YOLO11 models and their capabilities <br /> &nbsp;
 
     ***
 

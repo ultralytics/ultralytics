@@ -106,7 +106,7 @@ When deploying [machine learning](https://www.ultralytics.com/glossary/machine-l
 - **Profile the Inference Pipeline:** Identifying bottlenecks in the inference pipeline can help pinpoint the source of delays. Use profiling tools to analyze each step of the inference process, identifying and addressing any stages that cause significant delays, such as inefficient layers or data transfer issues.
 - **Use Appropriate Precision:** Using higher precision than necessary can slow down inference times. Experiment with using lower precision, such as FP16 (half-precision), instead of FP32 (full-precision). While FP16 can reduce inference time, also keep in mind that it can impact model accuracy.
 
-If you are facing this issue while deploying YOLO11, consider that YOLO11 offers [various model sizes](../models/yolov8.md), such as YOLO11n (nano) for devices with lower memory capacity and YOLOv8x (extra-large) for more powerful GPUs. Choosing the right model variant for your hardware can help balance memory usage and processing time.
+If you are facing this issue while deploying YOLO11, consider that YOLO11 offers [various model sizes](../models/yolo11.md), such as YOLO11n (nano) for devices with lower memory capacity and YOLO11x (extra-large) for more powerful GPUs. Choosing the right model variant for your hardware can help balance memory usage and processing time.
 
 Also keep in mind that the size of the input images directly impacts memory usage and processing time. Lower resolutions reduce memory usage and speed up inference, while higher resolutions improve accuracy but require more memory and processing power.
 

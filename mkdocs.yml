@@ -162,7 +162,7 @@ nav:
           - solutions/index.md
       - Guides:
           - guides/index.md
-      - Live Inference 🚀 NEW: guides/streamlit-live-inference.md # for promotion of new pages
+      - YOLO11 🚀 NEW: models/yolo11.md # for promotion of new pages
       - Languages:
           - 🇬🇧&nbsp English: https://ultralytics.com/docs/
           - 🇨🇳&nbsp 简体中文: https://docs.ultralytics.com/zh/

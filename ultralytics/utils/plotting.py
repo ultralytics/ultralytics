@@ -804,31 +804,30 @@ class Annotator:
                 self.im, label, (int(mask[0][0]) - text_size[0] // 2, int(mask[0][1])), 0, self.sf, txt_color, self.tf
             )
 
-    def plot_distance_and_line(self, pixels_distance, centroids, line_color, centroid_color):
+    def plot_distance_and_line(
+        self, pixels_distance, centroids, line_color=(104, 31, 17), centroid_color=(255, 0, 255)
+    ):
         """
         Plot the distance and line on frame.
 
         Args:
             pixels_distance (float): Pixels distance between two bbox centroids.
             centroids (list): Bounding box centroids data.
-            line_color (tuple): RGB distance line color.
-            centroid_color (tuple): RGB bounding box centroid color.
+            line_color (tuple, optional): Distance line color.
+            centroid_color (tuple, optional): Bounding box centroid color.
         """
         # Get the text size
-        (text_width_m, text_height_m), _ = cv2.getTextSize(
-            f"Pixels Distance: {pixels_distance:.2f}", 0, self.sf, self.tf
-        )
+        text = f"Pixels Distance: {pixels_distance:.2f}"
+        (text_width_m, text_height_m), _ = cv2.getTextSize(text, 0, self.sf, self.tf)
 
         # Define corners with 10-pixel margin and draw rectangle
-        top_left = (15, 25)
-        bottom_right = (15 + text_width_m + 20, 25 + text_height_m + 20)
-        cv2.rectangle(self.im, top_left, bottom_right, centroid_color, -1)
+        cv2.rectangle(self.im, (15, 25), (15 + text_width_m + 20, 25 + text_height_m + 20), line_color, -1)
 
         # Calculate the position for the text with a 10-pixel margin and draw text
-        text_position = (top_left[0] + 10, top_left[1] + text_height_m + 10)
+        text_position = (25, 25 + text_height_m + 10)
         cv2.putText(
             self.im,
-            f"Pixels Distance: {pixels_distance:.2f}",
+            text,
             text_position,
             0,
             self.sf,
@@ -1118,7 +1117,7 @@ def plot_images(
                             im[y : y + h, x : x + w, :][mask] = (
                                 im[y : y + h, x : x + w, :][mask] * 0.4 + np.array(color) * 0.6
                             )
-                        except:  # noqa E722
+                        except Exception:
                             pass
                 annotator.fromarray(im)
     if not save:
@@ -1156,16 +1155,16 @@ def plot_results(file="path/to/results.csv", dir="", segment=False, pose=False, 
     save_dir = Path(file).parent if file else Path(dir)
     if classify:
         fig, ax = plt.subplots(2, 2, figsize=(6, 6), tight_layout=True)
-        index = [1, 4, 2, 3]
+        index = [2, 5, 3, 4]
     elif segment:
         fig, ax = plt.subplots(2, 8, figsize=(18, 6), tight_layout=True)
-        index = [1, 2, 3, 4, 5, 6, 9, 10, 13, 14, 15, 16, 7, 8, 11, 12]
+        index = [2, 3, 4, 5, 6, 7, 10, 11, 14, 15, 16, 17, 8, 9, 12, 13]
     elif pose:
         fig, ax = plt.subplots(2, 9, figsize=(21, 6), tight_layout=True)
-        index = [1, 2, 3, 4, 5, 6, 7, 10, 11, 14, 15, 16, 17, 18, 8, 9, 12, 13]
+        index = [2, 3, 4, 5, 6, 7, 8, 11, 12, 15, 16, 17, 18, 19, 9, 10, 13, 14]
     else:
         fig, ax = plt.subplots(2, 5, figsize=(12, 6), tight_layout=True)
-        index = [1, 2, 3, 4, 5, 8, 9, 10, 6, 7]
+        index = [2, 3, 4, 5, 6, 9, 10, 11, 7, 8]
     ax = ax.ravel()
     files = list(save_dir.glob("results*.csv"))
     assert len(files), f"No results.csv files found in {save_dir.resolve()}, nothing to plot."

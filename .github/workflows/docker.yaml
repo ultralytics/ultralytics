@@ -182,7 +182,7 @@ jobs:
     steps:
       - name: Trigger Additional GitHub Actions
         env:
-          GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          GH_TOKEN: ${{ secrets._GITHUB_TOKEN }}
         run: |
           sleep 60
           gh workflow run deploy_cloud_run.yml \

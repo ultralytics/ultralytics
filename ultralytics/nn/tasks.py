@@ -963,7 +963,6 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
                     args[j] = locals()[a] if a in locals() else ast.literal_eval(a)
                 except ValueError:
                     pass
-
         n = n_ = max(round(n * depth), 1) if n > 1 else n  # depth gain
         if m in {
             Classify,
@@ -1102,7 +1101,7 @@ def guess_model_scale(model_path):
         (str): The size character of the model's scale, which can be n, s, m, l, or x.
     """
     try:
-        return re.search(r"yolo[v]?\d+([nslmx])", Path(model_path).stem).group(1)  # n, s, m, l, or x
+        return re.search(r"yolo[v]?\d+([nslmx])", Path(model_path).stem).group(1)  # noqa, returns n, s, m, l, or x
     except AttributeError:
         return ""
 
@@ -1139,7 +1138,7 @@ def guess_model_task(model):
     if isinstance(model, dict):
         try:
             return cfg2task(model)
-        except:  # noqa E722
+        except Exception:
             pass
 
     # Guess from PyTorch model
@@ -1147,12 +1146,12 @@ def guess_model_task(model):
         for x in "model.args", "model.model.args", "model.model.model.args":
             try:
                 return eval(x)["task"]
-            except:  # noqa E722
+            except Exception:
                 pass
         for x in "model.yaml", "model.model.yaml", "model.model.model.yaml":
             try:
                 return cfg2task(eval(x))
-            except:  # noqa E722
+            except Exception:
                 pass
 
         for m in model.modules():

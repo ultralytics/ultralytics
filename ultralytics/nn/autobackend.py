@@ -501,7 +501,7 @@ class AutoBackend(nn.Module):
 
         # TensorRT
         elif self.engine:
-            if self.dynamic or im.shape != self.bindings["images"].shape:
+            if self.dynamic and im.shape != self.bindings["images"].shape:
                 if self.is_trt10:
                     self.context.set_input_shape("images", im.shape)
                     self.bindings["images"] = self.bindings["images"]._replace(shape=im.shape)

@@ -132,7 +132,7 @@ class YOLODataset(BaseDataset):
 
     def get_labels(self):
         """Returns dictionary of labels for YOLO training."""
-        self.label_files = img2label_paths(self.im_files)
+        self.label_files = img2label_paths(self.im_files, self.data.get("labels_base_dir"))
         cache_path = Path(self.label_files[0]).parent.with_suffix(".cache")
         try:
             cache, exists = load_dataset_cache_file(cache_path), True  # attempt to load a *.cache file

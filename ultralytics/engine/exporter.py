@@ -717,6 +717,20 @@ class Exporter:
         network = builder.create_network(flag)
         half = builder.platform_has_fast_fp16 and self.args.half
         int8 = builder.platform_has_fast_int8 and self.args.int8
+
+        # Optionally switch to DLA if enabled
+        if self.args.dla is not None:
+            if not IS_JETSON:
+                raise ValueError("DLA is only available on NVIDIA Jetson devices")
+            LOGGER.info(f"{prefix} enabling DLA on core {self.args.dla}...")
+            if not self.args.half and not self.args.int8:
+                raise ValueError(
+                    "DLA requires either 'half=True' (FP16) or 'int8=True' (INT8) to be enabled. Please enable one of them and try again."
+                )
+            config.default_device_type = trt.DeviceType.DLA
+            config.DLA_core = self.args.dla
+            config.set_flag(trt.BuilderFlag.GPU_FALLBACK)
+
         # Read ONNX file
         parser = trt.OnnxParser(network, logger)
         if not parser.parse_from_file(f_onnx):

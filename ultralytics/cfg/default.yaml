@@ -84,6 +84,7 @@ dynamic: False # (bool) ONNX/TF/TensorRT: dynamic axes
 simplify: True # (bool) ONNX: simplify model using `onnxslim`
 opset: # (int, optional) ONNX: opset version
 workspace: 4 # (int) TensorRT: workspace size (GB)
+dla: None # (None | int) TensorRT: None for no NVIDIA DLA (NVDLA), 0 for DLA core 0, 1 for DLA core 1
 nms: False # (bool) CoreML: add NMS
 
 # Hyperparameters ------------------------------------------------------------------------------------------------------

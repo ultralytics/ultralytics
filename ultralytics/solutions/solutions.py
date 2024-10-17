@@ -22,7 +22,7 @@ class BaseSolution:
         Child classes should call this with necessary parameters.
         """
         check_requirements("shapely>=2.0.0")
-        from shapely.geometry import LineString, Polygon, Point
+        from shapely.geometry import LineString, Point, Polygon
 
         self.LineString = LineString
         self.Polygon = Polygon

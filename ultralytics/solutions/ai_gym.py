@@ -31,7 +31,7 @@ class AIGym(BaseSolution):
 
     def monitor(self, im0):
         """
-        Monitor the workouts using Ultralytics YOLOv8 Pose Model: https://docs.ultralytics.com/tasks/pose/.
+        Monitor the workouts using Ultralytics YOLO Pose Model: https://docs.ultralytics.com/tasks/pose/.
 
         Args:
             im0 (ndarray): The input image that will be used for processing

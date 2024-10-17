@@ -622,6 +622,7 @@ class Annotator:
     def display_objects_labels(self, im0, text, txt_color, bg_color, x_center, y_center, margin):
         """
         Display the bounding boxes labels in parking management app.
+
         Args:
             im0 (ndarray): inference image
             text (str): object/class name

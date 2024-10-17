@@ -126,7 +126,7 @@ class AutoBackend(nn.Module):
         fp16 &= pt or jit or onnx or xml or engine or nn_module or triton  # FP16
         nhwc = coreml or saved_model or pb or tflite or edgetpu  # BHWC formats (vs torch BCWH)
         stride = 32  # default stride
-        model, metadata = None, None
+        model, metadata, task = None, None, None
 
         # Set device
         cuda = torch.cuda.is_available() and device.type != "cpu"  # use CUDA

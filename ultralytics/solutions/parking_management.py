@@ -1,14 +1,12 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import json
-
 import cv2
 import numpy as np
+from PIL import Image, ImageTk
 
 from ultralytics.utils.plotting import Annotator
 from ultralytics.solutions.solutions import BaseSolution, LOGGER, check_requirements
-
-from PIL import Image, ImageTk
 
 
 class ParkingPtsSelection:
@@ -111,7 +109,6 @@ class ParkingManagement(BaseSolution):
 
     def __init__(self, **kwargs):
         """Initializes the parking management system with a YOLO model and visualization settings."""
-
         super().__init__(**kwargs)
 
         self.json_file = self.CFG["json_file"]   # Load JSON data
@@ -131,12 +128,10 @@ class ParkingManagement(BaseSolution):
     def process_data(self, im0):
         """
         Process the model data for parking lot management.
-
         Args:
             im0 (ndarray): inference image
         """
         self.extract_tracks(im0)    # extract tracks from im0
-
         es, fs = len(self.json), 0  # empty slots, filled slots
         annotator = Annotator(im0, self.line_width)  # init annotator
 
@@ -156,11 +151,8 @@ class ParkingManagement(BaseSolution):
             cv2.polylines(im0, [pts_array], isClosed=True,
                           color=self.occ if rg_occupied else self.arc, thickness=2)
 
-        self.pr_info["Occupancy"] = fs
-        self.pr_info["Available"] = es
+        self.pr_info["Occupancy"], self.pr_info["Available"] = fs, es
 
         annotator.display_analytics(im0, self.pr_info, (104, 31, 17), (255, 255, 255), 10)
-
         self.display_output(im0)  # display output with base class function
-
         return im0  # return output image for more usage

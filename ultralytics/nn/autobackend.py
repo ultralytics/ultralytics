@@ -342,7 +342,7 @@ class AutoBackend(nn.Module):
                     platform.system()
                 ]
                 interpreter = Interpreter(
-                    model_path=w, 
+                    model_path=w,
                     experimental_delegates=[load_delegate(delegate, options={"device": device})],
                 )
             else:  # TFLite

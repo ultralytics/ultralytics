@@ -207,7 +207,7 @@ YOLO11 [检测](https://docs.ultralytics.com/tasks/detect/)、[分割](https://d
 
 ## <div align="center">集成</div>
 
-我们与领先的 AI 平台的关键集成扩展了 Ultralytics 产品的功能，增强了数据集标记、训练、可视化和模型管理等任务的能力。了解 Ultralytics 如何与 [Roboflow](https://roboflow.com/?ref=ultralytics)、ClearML、[Comet](https://bit.ly/yolov8-readme-comet)、Neural Magic 和 [OpenVINO](https://docs.ultralytics.com/integrations/openvino/) 合作，优化您的 AI 工作流程。
+我们与领先的 AI 平台的关键集成扩展了 Ultralytics 产品的功能，增强了数据集标记、训练、可视化和模型管理等任务的能力。了解 Ultralytics 如何与 [W&B](https://docs.wandb.ai/guides/integrations/ultralytics/)、[Comet](https://bit.ly/yolov8-readme-comet)、[Roboflow](https://roboflow.com/?ref=ultralytics), Neural Magic 和 [OpenVINO](https://docs.ultralytics.com/integrations/openvino/) 合作，优化您的 AI 工作流程。
 
 <br>
 <a href="https://www.ultralytics.com/hub" target="_blank">
@@ -232,7 +232,7 @@ YOLO11 [检测](https://docs.ultralytics.com/tasks/detect/)、[分割](https://d
 
 |                                                       Ultralytics HUB 🚀                                                       |                                                 W&B                                                 |                                                                        Comet ⭐ 全新                                                                        |                                              Neural Magic                                              |
 |:------------------------------------------------------------------------------------------------------------------------------:|:---------------------------------------------------------------------------------------------------:|:---------------------------------------------------------------------------------------------------------------------------------------------------------:|:------------------------------------------------------------------------------------------------------:|
-| 简化 YOLO 工作流程：通过 [Ultralytics HUB](https://ultralytics.com/hub) 轻松标注、训练和部署。立即试用！  | 使用 [Weights & Biases](https://wandb.ai/site/yolo) 跟踪实验、超参数和结果 | 永久免费，[Comet](https://bit.ly/yolov5-readme-comet) 允许您保存 YOLO11 模型、恢复训练，并交互式地可视化和调试预测结果 | 使用 [Neural Magic DeepSparse](https://bit.ly/yolov5-neuralmagic) 运行 YOLO11 推理，速度提升至 6 倍 |
+| 简化 YOLO 工作流程：通过 [Ultralytics HUB](https://ultralytics.com/hub) 轻松标注、训练和部署。立即试用！  | 使用 [Weights & Biases](https://docs.wandb.ai/guides/integrations/ultralytics/) 跟踪实验、超参数和结果 | 永久免费，[Comet](https://bit.ly/yolov5-readme-comet) 允许您保存 YOLO11 模型、恢复训练，并交互式地可视化和调试预测结果 | 使用 [Neural Magic DeepSparse](https://bit.ly/yolov5-neuralmagic) 运行 YOLO11 推理，速度提升至 6 倍 |
 
 
 ## <div align="center">Ultralytics HUB</div>

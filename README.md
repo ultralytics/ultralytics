@@ -207,7 +207,7 @@ See [OBB Docs](https://docs.ultralytics.com/tasks/obb/) for usage examples with 
 
 ## <div align="center">Integrations</div>
 
-Our key integrations with leading AI platforms extend the functionality of Ultralytics' offerings, enhancing tasks like dataset labeling, training, visualization, and model management. Discover how Ultralytics, in collaboration with [Roboflow](https://roboflow.com/?ref=ultralytics), ClearML, [Comet](https://bit.ly/yolov8-readme-comet), Neural Magic and [OpenVINO](https://docs.ultralytics.com/integrations/openvino/), can optimize your AI workflow.
+Our key integrations with leading AI platforms extend the functionality of Ultralytics' offerings, enhancing tasks like dataset labeling, training, visualization, and model management. Discover how Ultralytics, in collaboration with [W&B](https://docs.wandb.ai/guides/integrations/ultralytics/)、[Comet](https://bit.ly/yolov8-readme-comet)、[Roboflow](https://roboflow.com/?ref=ultralytics), Neural Magic and [OpenVINO](https://docs.ultralytics.com/integrations/openvino/), can optimize your AI workflow.
 
 <br>
 <a href="https://www.ultralytics.com/hub" target="_blank">
@@ -231,7 +231,7 @@ Our key integrations with leading AI platforms extend the functionality of Ultra
 
 |                                                       Ultralytics HUB 🚀                                                       |                                                 W&B                                                 |                                                                        Comet ⭐ NEW                                                                        |                                              Neural Magic                                              |
 |:------------------------------------------------------------------------------------------------------------------------------:|:---------------------------------------------------------------------------------------------------:|:---------------------------------------------------------------------------------------------------------------------------------------------------------:|:------------------------------------------------------------------------------------------------------:|
-| Streamline YOLO workflows: Label, train, and deploy effortlessly with [Ultralytics HUB](https://ultralytics.com/hub). Try now! | Track experiments, hyperparameters, and results with [Weights & Biases](https://wandb.ai/site/yolo) | Free forever, [Comet](https://bit.ly/yolov5-readme-comet) lets you save YOLO11 models, resume training, and interactively visualize and debug predictions | Run YOLO11 inference up to 6x faster with [Neural Magic DeepSparse](https://bit.ly/yolov5-neuralmagic) |
+| Streamline YOLO workflows: Label, train, and deploy effortlessly with [Ultralytics HUB](https://ultralytics.com/hub). Try now! | Track experiments, hyperparameters, and results with [Weights & Biases](https://docs.wandb.ai/guides/integrations/ultralytics/) | Free forever, [Comet](https://bit.ly/yolov5-readme-comet) lets you save YOLO11 models, resume training, and interactively visualize and debug predictions | Run YOLO11 inference up to 6x faster with [Neural Magic DeepSparse](https://bit.ly/yolov5-neuralmagic) |
 
 ## <div align="center">Ultralytics HUB</div>
 

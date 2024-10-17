@@ -2332,6 +2332,7 @@ def v8_transforms(dataset, imgsz, hyp, stretch=False):
             RandomHSV(hgain=hyp.hsv_h, sgain=hyp.hsv_s, vgain=hyp.hsv_v),
             RandomFlip(direction="vertical", p=hyp.flipud),
             RandomFlip(direction="horizontal", p=hyp.fliplr, flip_idx=flip_idx),
+            RandomRotation90(p=hyp.rotate90),
         ]
     )  # transforms
 
@@ -2736,3 +2737,84 @@ class ToTensor:
         im = im.half() if self.half else im.float()  # uint8 to fp16/32
         im /= 255.0  # 0-255 to 0.0-1.0
         return im
+
+
+class RandomRotation90:
+    """
+    Applies a 90 degree rotation to the image and labels (bboxes, segments, keypoints). Clockwise or counter-clockwise
+    randomly.
+
+    Attributes:
+        p (float): Probability of applying the transformations.
+
+    Methods:
+        __call__: Applies the RandomRotation90 transformations to the input images and labels.
+
+    Examples:
+    >>> transform = RandomRotation90(p=0.5)
+    >>> rotated_labels = transform(labels)
+    """
+
+    def __init__(self, p: float = 0.0):
+        """
+        Initializes the RandomRotation90 class with probability.
+
+        Args:
+            p (float, optional): The probability of applying the rotation. Must be between 0 and 1, default is 0.0.
+        """
+        self.p = p
+
+    def _apply_keypoints(self, keypoints, k):
+        if not np.any(keypoints):
+            return keypoints
+        if k == 1:
+            return np.stack([keypoints[:, :, 1], 1 - keypoints[:, :, 0], keypoints[:, :, 2]], axis=-1)
+        else:
+            return np.stack([1 - keypoints[:, :, 1], keypoints[:, :, 0], keypoints[:, :, 2]], axis=-1)
+
+    def _apply_segments(self, segments, k):
+        if not np.any(segments):
+            return segments
+        if k == 1:
+            return np.stack([segments[:, :, 1], 1 - segments[:, :, 0]], axis=-1)
+        else:
+            return np.stack([1 - segments[:, :, 1], segments[:, :, 0]], axis=-1)
+
+    def _apply_bboxes(self, bboxes, k):
+        if not np.any(bboxes):
+            return bboxes
+        for idx, bbox in enumerate(bboxes):
+            x1, y1, x2, y2 = bbox
+            if k == 1:
+                bboxes[idx] = np.array([y1, 1 - x2, y2, 1 - x1])
+            else:
+                bboxes[idx] = np.array([1 - y2, x1, 1 - y1, x2])
+        return bboxes
+
+    def __call__(self, labels):
+        """
+        Applies a 90 degree rotation to the image and labels. Clockwise or counter-clockwise randomly.
+
+        Args:
+            labels (dict): A dictionary containing the keys 'img'. 'img' is the image to be rotated.
+
+        Returns:
+            (dict): The same dict with the rotated image and updated instance under the 'img' key.
+        """
+        if random.random() < self.p:
+            img = labels["img"]
+            instances = labels.pop("instances")
+            instances.convert_bbox(format="xyxy")
+            k = random.choice([1, 3])
+
+            img = np.rot90(img, k=k)
+            labels["img"] = np.ascontiguousarray(img)
+            new_instances = Instances(
+                self._apply_bboxes(instances.bboxes, k),
+                self._apply_segments(instances.segments, k),
+                self._apply_keypoints(instances.keypoints, k),
+                bbox_format="xyxy",
+                normalized=True,
+            )
+            labels["instances"] = new_instances
+        return labels

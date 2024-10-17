@@ -14,6 +14,7 @@ import cv2
 
 from ultralytics import YOLO
 
+
 def predict_image(model, batch):
     """Get a frame and predict it, then push result to another queue."""
     images = []

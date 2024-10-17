@@ -125,8 +125,11 @@ class Tuner:
             (dict): A dictionary containing mutated hyperparameters.
         """
         if self.tune_csv.exists():  # if CSV file exists: select best hyps and mutate
+            LOGGER.info("Found existing CSV results, loading tuning history...")
             # Select parent(s)
             x = np.loadtxt(self.tune_csv, ndmin=2, delimiter=",", skiprows=1)
+            LOGGER.info(f"Found {len(x)} previous iterations...")
+
             fitness = x[:, 0]  # first column
             n = min(n, len(x))  # number of previous results to consider
             x = x[np.argsort(-fitness)][:n]  # top n mutations
@@ -179,7 +182,14 @@ class Tuner:
         t0 = time.time()
         best_save_dir, best_metrics = None, None
         (self.tune_dir / "weights").mkdir(parents=True, exist_ok=True)
-        for i in range(iterations):
+
+        previous_iteration_count = 0
+
+        if self.tune_csv.exists():
+            x = np.loadtxt(self.tune_csv, ndmin=2, delimiter=",", skiprows=1)
+            previous_iteration_count = len(x)
+
+        for i in range(previous_iteration_count, iterations + previous_iteration_count):
             # Mutate hyperparameters
             mutated_hyp = self._mutate()
             LOGGER.info(f"{self.prefix}Starting iteration {i + 1}/{iterations} with hyperparameters: {mutated_hyp}")

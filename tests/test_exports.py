@@ -186,7 +186,6 @@ def test_export_pb():
     YOLO(file)(SOURCE, imgsz=32)
 
 
-@pytest.mark.skipif(True, reason="Test disabled as Paddle protobuf and ONNX protobuf requirements conflict.")
 def test_export_paddle():
     """Test YOLO exports to Paddle format, noting protobuf conflicts with ONNX."""
     YOLO(MODEL).export(format="paddle", imgsz=32)

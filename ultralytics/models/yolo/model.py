@@ -98,11 +98,18 @@ class YOLOWorld(Model):
         Args:
             classes (List(str)): A list of categories i.e. ["person"].
         """
-        self.model.set_classes(classes)
-        # Remove background if it's given
+        # Add background if missing
         background = " "
-        if background in classes:
-            classes.remove(background)
+        if classes[-1].strip() == "":
+            classes[-1] = background
+        else:
+            classes.append(background)
+
+        # Set classes
+        self.model.set_classes(classes)
+
+        # Remove background
+        classes.remove(background)
         self.model.names = classes
 
         # Reset method class names

@@ -1,0 +1,6 @@
+framework module Pods_onnxTests {
+  umbrella header "Pods-onnxTests-umbrella.h"
+
+  export *
+  module * { export * }
+}

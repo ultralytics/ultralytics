@@ -8,8 +8,9 @@ from types import SimpleNamespace
 from typing import Dict, List, Union
 
 import cv2
+from openvino.tools.accuracy_checker.utils import overrides
 
-from ultralytics import settings
+# from ultralytics import settings
 from ultralytics.utils import (
     ASSETS,
     DEFAULT_CFG,
@@ -552,11 +553,43 @@ def handle_solutions(argv):
     from ultralytics.solutions.solutions import DEFAULT_SOL_CFG_PATH
     from ultralytics import solutions
     SOL_CFG_DICT = yaml_load(DEFAULT_SOL_CFG_PATH)
-    argv = {item.split('=')[0]: eval(item.split('=')[1]) for item in argv[2:]}
-    check_dict_alignment(SOL_CFG_DICT, argv)
-    save_dir = get_save_dir(DEFAULT_CFG)
-    print(save_dir)
-    SOL_CFG_DICT.update(argv)
+
+    for ind, a in enumerate(merge_equals_args(argv[2:])):  # merge spaces around '=' sign
+        if a in SOL_CFG_DICT:
+            print("Test")
+        if a.startswith("--"):
+            LOGGER.warning(f"WARNING ⚠️ argument '{a}' does not require leading dashes '--', updating to '{a[2:]}'.")
+            argv[ind] = a[2:]
+        if a.endswith(","):
+            LOGGER.warning(f"WARNING ⚠️ argument '{a}' does not require trailing comma ',', updating to '{a[:-1]}'.")
+            argv[ind] = a[:-1]
+
+
+    overrides = {}  # Initialize the result dictionary
+    # Iterate through the list and handle 'key=value' separately
+    i = 0
+    argv = argv[2:]
+    while i < len(argv):
+        item = argv[i]
+        # If the item is in 'key=value' form, split it
+        if isinstance(item, str) and '=' in item:
+            print("hello")
+            key, value = item.split('=')
+            overrides[key] = value
+            i += 1
+        else:
+            # Otherwise, treat it as a normal key-value pair
+            if item not in SOL_CFG_DICT:
+                continue
+            else:
+                overrides[item] = argv[i + 1]
+                i += 2
+
+    print(overrides)
+    check_dict_alignment(SOL_CFG_DICT, overrides)    # Check keys
+
+    # argv = {item.split('=')[0]: eval(item.split('=')[1]) for item in argv[2:]}
+    # SOL_CFG_DICT.update(argv)
 
     # check if source is None
     if SOL_CFG_DICT["source"] is None:
@@ -565,14 +598,16 @@ def handle_solutions(argv):
 
     cap = cv2.VideoCapture(SOL_CFG_DICT["source"])
     w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-    writer = cv2.VideoWriter(save_dir, cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
+    writer = cv2.VideoWriter("solutions output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
     kwargs = {key: value for key, value in argv.items() if key != 'source'}
-    counter = solutions.ObjectCounter(**kwargs)
+    sol = None
+    if argv[2] in SOLUTIONS:
+        sol = getattr(solutions, argv[2])(**kwargs)
     while cap.isOpened():
         s, im0 = cap.read()
         if not s:
             break
-        im0 = counter.count(im0)
+        im0 = sol.count(im0)
         writer.write(im0)
     cap.release()
     writer.release()

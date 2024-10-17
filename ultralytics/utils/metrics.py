@@ -330,7 +330,9 @@ class ConfusionMatrix:
             gt_cls (Array[M]): The class labels.
         """
         if gt_cls.shape[0] == 0:  # Check if labels is empty
-            if detections is not None:
+            if detections is None:
+                self.matrix[self.nc, self.nc] += 1  # true positives backgrounds
+            else:
                 detections = detections[detections[:, 4] > self.conf]
                 detection_classes = detections[:, 5].int()
                 for dc in detection_classes:

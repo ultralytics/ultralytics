@@ -138,11 +138,11 @@ class DetectionValidator(BaseValidator):
             stat["target_cls"] = cls
             stat["target_img"] = cls.unique()
             if npr == 0:
-                if nl:
-                    for k in self.stats.keys():
-                        self.stats[k].append(stat[k])
-                    if self.args.plots:
-                        self.confusion_matrix.process_batch(detections=None, gt_bboxes=bbox, gt_cls=cls)
+                for k in self.stats.keys():
+                    self.stats[k].append(stat[k])
+                if self.args.plots:
+                    self.confusion_matrix.process_batch(detections=None, gt_bboxes=bbox, gt_cls=cls)
+
                 continue
 
             # Predictions

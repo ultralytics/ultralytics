@@ -30,9 +30,9 @@ from ultralytics.utils import (
     yaml_load,
     yaml_save,
 )
-from ultralytics.utils.errors import DatasetError
 from ultralytics.utils.checks import check_file, check_font, is_ascii
 from ultralytics.utils.downloads import download, safe_download, unzip_file
+from ultralytics.utils.errors import DatasetError
 from ultralytics.utils.ops import segments2boxes
 
 HELP_URL = "See https://docs.ultralytics.com/datasets for dataset formatting guidance."
@@ -289,7 +289,9 @@ def check_det_dataset(dataset, autodownload=True):
             LOGGER.info("WARNING ⚠️ renaming data YAML 'validation' key to 'val' to match YOLO format.")
             data["val"] = data.pop("validation")  # replace 'validation' key with 'val' key
     if "names" not in data and "nc" not in data:
-        raise DatasetError(emojis(f"{dataset} key missing ❌.\n either 'names' or 'nc' are required in all data YAMLs."))
+        raise DatasetError(
+            emojis(f"{dataset} key missing ❌.\n either 'names' or 'nc' are required in all data YAMLs.")
+        )
     if "names" in data and "nc" in data and len(data["names"]) != data["nc"]:
         raise DatasetError(emojis(f"{dataset} 'names' length {len(data['names'])} and 'nc: {data['nc']}' must match."))
     if "names" not in data:

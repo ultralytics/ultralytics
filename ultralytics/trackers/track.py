@@ -1,6 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-from functools import partial
 from pathlib import Path
 
 import torch
@@ -15,13 +14,12 @@ from .byte_tracker import BYTETracker
 TRACKER_MAP = {"bytetrack": BYTETracker, "botsort": BOTSORT}
 
 
-def on_predict_start(predictor: object, persist: bool = False) -> None:
+def on_predict_start(predictor: object) -> None:
     """
     Initialize trackers for object tracking during prediction.
 
     Args:
         predictor (object): The predictor object to initialize trackers for.
-        persist (bool): Whether to persist the trackers if they already exist.
 
     Raises:
         AssertionError: If the tracker_type is not 'bytetrack' or 'botsort'.
@@ -29,9 +27,9 @@ def on_predict_start(predictor: object, persist: bool = False) -> None:
     Examples:
         Initialize trackers for a predictor object:
         >>> predictor = SomePredictorClass()
-        >>> on_predict_start(predictor, persist=True)
+        >>> on_predict_start(predictor)
     """
-    if hasattr(predictor, "trackers") and persist:
+    if hasattr(predictor, "trackers") and predictor.args.persist:
         return
 
     tracker = check_yaml(predictor.args.tracker)
@@ -50,18 +48,17 @@ def on_predict_start(predictor: object, persist: bool = False) -> None:
     predictor.vid_path = [None] * predictor.dataset.bs  # for determining when to reset tracker on new video
 
 
-def on_predict_postprocess_end(predictor: object, persist: bool = False) -> None:
+def on_predict_postprocess_end(predictor: object) -> None:
     """
     Postprocess detected boxes and update with object tracking.
 
     Args:
         predictor (object): The predictor object containing the predictions.
-        persist (bool): Whether to persist the trackers if they already exist.
 
     Examples:
         Postprocess predictions and update with tracking
         >>> predictor = YourPredictorClass()
-        >>> on_predict_postprocess_end(predictor, persist=True)
+        >>> on_predict_postprocess_end(predictor)
     """
     path, im0s = predictor.batch[:2]
 
@@ -70,7 +67,7 @@ def on_predict_postprocess_end(predictor: object, persist: bool = False) -> None
     for i in range(len(im0s)):
         tracker = predictor.trackers[i if is_stream else 0]
         vid_path = predictor.save_dir / Path(path[i]).name
-        if not persist and predictor.vid_path[i if is_stream else 0] != vid_path:
+        if not predictor.args.persist and predictor.vid_path[i if is_stream else 0] != vid_path:
             tracker.reset()
             predictor.vid_path[i if is_stream else 0] = vid_path
 
@@ -87,18 +84,17 @@ def on_predict_postprocess_end(predictor: object, persist: bool = False) -> None
         predictor.results[i].update(**update_args)
 
 
-def register_tracker(model: object, persist: bool) -> None:
+def register_tracker(model: object) -> None:
     """
     Register tracking callbacks to the model for object tracking during prediction.
 
     Args:
         model (object): The model object to register tracking callbacks for.
-        persist (bool): Whether to persist the trackers if they already exist.
 
     Examples:
         Register tracking callbacks to a YOLO model
         >>> model = YOLOModel()
-        >>> register_tracker(model, persist=True)
+        >>> register_tracker(model)
     """
-    model.add_callback("on_predict_start", partial(on_predict_start, persist=persist))
-    model.add_callback("on_predict_postprocess_end", partial(on_predict_postprocess_end, persist=persist))
+    model.add_callback("on_predict_start", on_predict_start)
+    model.add_callback("on_predict_postprocess_end", on_predict_postprocess_end)

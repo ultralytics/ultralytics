@@ -143,7 +143,7 @@ class ParkingPtsSelection:
 
 
 class ParkingManagement:
-    """Manages parking occupancy and availability using YOLOv8 for real-time monitoring and visualization."""
+    """Manages parking occupancy and availability using YOLO model for real-time monitoring and visualization."""
 
     def __init__(
         self,
@@ -153,10 +153,10 @@ class ParkingManagement:
         available_region_color=(0, 255, 0),  # available region color
     ):
         """
-        Initializes the parking management system with a YOLOv8 model and visualization settings.
+        Initializes the parking management system with a YOLO model and visualization settings.
 
         Args:
-            model (str): Path to the YOLOv8 model.
+            model (str): Path to the YOLO model.
             json_file (str): file that have all parking slot points data
             occupied_region_color (tuple): RGB color tuple for occupied regions.
             available_region_color (tuple): RGB color tuple for available regions.

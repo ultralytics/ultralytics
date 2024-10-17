@@ -20,6 +20,7 @@ from ultralytics import YOLO
 AVI = "video/x-msvideo"  # AVI
 MP4 = "video/mp4"
 
+
 def get_supported_mime_types():
     """Get supported mime types of media like avi."""
     result = []
@@ -28,20 +29,22 @@ def get_supported_mime_types():
         result.append(mime_type.name())
     return result
 
+
 allimg = []
 # index = 0
 Result_in_queue_maxsize = 100
 result_que = Queue(maxsize=Result_in_queue_maxsize)
 
+
 class ThreadQ(QThread):
     """
     The thread which read frame from source and send it to the slot.
-    
+
     read frame from video or image directory or camera.
-    
+
     send frame signal to the slot of class Camera(QMainWindow).
     """
-    
+
     updateFrame = Signal(cv2.Mat)
 
     def __init__(self, parent=None):
@@ -377,7 +380,7 @@ class ThreadQ(QThread):
 
 class Camera(QMainWindow):
     """Including slot functions, bind with slots."""
-    
+
     def __init__(self):
         """Initialize variables."""
         super().__init__()
@@ -415,7 +418,11 @@ class Camera(QMainWindow):
 
     @Slot()
     def open_video(self):
-        """Open the FileDialog. Choose a video file or Choose a directory which contains images."""
+        """
+        Open the FileDialog.
+
+        Choose a video file or Choose a directory which contains images.
+        """
         self._ui.save.setEnabled(True)
         self.th.set_input(self._ui.input.currentText())
         if self.th.input == "video":
@@ -558,13 +565,15 @@ class Camera(QMainWindow):
         self.th.set_input(text)
 
     @Slot()
-    def save(self,):
-        """A slot which set whether or not save ploted frame to a video."""
+    def save(
+        self,
+    ):
+        """A slot which set whether or not save plotted frame to a video."""
         self.th.checked = self._ui.save.isChecked()
 
     @Slot(cv2.Mat)
     def setImage(self, image: cv2.Mat):
-        """A slot which pad the ploted frame with letterbox padding and draw it to the label."""
+        """A slot which pad the plotted frame with letterbox padding and draw it to the label."""
         # Creating and scaling QImage
         h, w, ch = image.shape
         size = self._ui.label.size()
@@ -589,6 +598,7 @@ class Camera(QMainWindow):
         # self._ui.centralwidget.restoreGeometry(self.centralwidget_status)
         # self._ui.label.adjustSize()
         # self.update()
+
 
 if __name__ == "__main__":
     # pyside6-rcc style.qrc -o style_rc.py

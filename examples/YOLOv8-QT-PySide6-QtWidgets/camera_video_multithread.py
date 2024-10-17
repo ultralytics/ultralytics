@@ -40,7 +40,7 @@ informa_que = Queue(1)
 
 class get_image(QThread):
     """A thread generate frame to a queue."""
-    
+
     def __init__(self, parent=None):
         """Initialize variables."""
         QThread.__init__(self, parent)
@@ -97,9 +97,10 @@ class get_image(QThread):
                 image_que.put(frame)
         image_que.put(0)
 
+
 class predict_image(QThread):
     """A thread get a frame from the queue, predict the frame, the push result to another queue."""
-    
+
     def __init__(self, parent=None):
         """Initialize variables."""
         QThread.__init__(self, parent)
@@ -139,6 +140,7 @@ class predict_image(QThread):
             if isinstance(image, int):
                 break
         result_que.put(0)
+
 
 class write_video(QThread):
     """Get the predicted result and push it to a queue."""
@@ -202,9 +204,10 @@ class write_video(QThread):
             self.videowriter.release()
             self.videowriter = True
 
+
 class Camera(QMainWindow):
     """Including slot functions, bind with slots."""
-    
+
     def __init__(self):
         """Initialize variables."""
         super().__init__()
@@ -246,7 +249,11 @@ class Camera(QMainWindow):
 
     @Slot()
     def open_video(self):
-        """Open the FileDialog. Choose a video file or Choose a directory which contains images."""
+        """
+        Open the FileDialog.
+
+        Choose a video file or Choose a directory which contains images.
+        """
         self._ui.save.setEnabled(True)
         self.th.set_input(self._ui.input.currentText())
         if self.th.input == "video":
@@ -398,13 +405,15 @@ class Camera(QMainWindow):
         self.th.set_input(text)
 
     @Slot()
-    def save(self,):
-        """A slot which set whether or not save ploted frame to a video."""
+    def save(
+        self,
+    ):
+        """A slot which set whether or not save plotted frame to a video."""
         self.write.checked = self._ui.save.isChecked()
 
     @Slot(cv2.Mat)
     def setImage(self, image: cv2.Mat):
-        """A slot which pad the ploted frame with letterbox padding and draw it to the label."""
+        """A slot which pad the plotted frame with letterbox padding and draw it to the label."""
         # Creating and scaling QImage
         h, w, ch = image.shape
         size = self._ui.label.size()
@@ -424,6 +433,7 @@ class Camera(QMainWindow):
         # image = image.scaled(self._ui.label.size(), Qt.KeepAspectRatio,
         #   Qt.SmoothTransformation)
         self._ui.label.setPixmap(QPixmap.fromImage(image))
+
 
 if __name__ == "__main__":
     # pyside6-rcc style.qrc -o style_rc.py

@@ -28888,12 +28888,15 @@ qt_resource_struct = b"\
 \x00\x00\x01\x92\x9a\xd17\xae\
 "
 
+
 def qInitResources():
     """Init rc."""
     QtCore.qRegisterResourceData(0x03, qt_resource_struct, qt_resource_name, qt_resource_data)
 
+
 def qCleanupResources():
     """Clean rc."""
     QtCore.qUnregisterResourceData(0x03, qt_resource_struct, qt_resource_name, qt_resource_data)
+
 
 qInitResources()

@@ -76,49 +76,263 @@ show_boxes: True # (bool) show prediction boxes
 line_width: # (int, optional) line width of the bounding boxes. Scaled to image size if None.
 
 # Export settings ------------------------------------------------------------------------------------------------------
-format: torchscript # (str) format to export to, choices at https://docs.ultralytics.com/modes/export/#export-formats
-keras: False # (bool) use Kera=s
-optimize: False # (bool) TorchScript: optimize for mobile
-int8: False # (bool) CoreML/TF INT8 quantization
-dynamic: False # (bool) ONNX/TF/TensorRT: dynamic axes
-simplify: True # (bool) ONNX: simplify model using `onnxslim`
-opset: # (int, optional) ONNX: opset version
-workspace: 4 # (int) TensorRT: workspace size (GB)
-nms: False # (bool) CoreML: add NMS
 
-# Hyperparameters ------------------------------------------------------------------------------------------------------
-lr0: 0.01 # (float) initial learning rate (i.e. SGD=1E-2, Adam=1E-3)
-lrf: 0.01 # (float) final learning rate (lr0 * lrf)
-momentum: 0.937 # (float) SGD momentum/Adam beta1
-weight_decay: 0.0005 # (float) optimizer weight decay 5e-4
-warmup_epochs: 3.0 # (float) warmup epochs (fractions ok)
-warmup_momentum: 0.8 # (float) warmup initial momentum
-warmup_bias_lr: 0.1 # (float) warmup initial bias lr
-box: 7.5 # (float) box loss gain
-cls: 0.5 # (float) cls loss gain (scale with pixels)
-dfl: 1.5 # (float) dfl loss gain
-pose: 12.0 # (float) pose loss gain
-kobj: 1.0 # (float) keypoint obj loss gain
-label_smoothing: 0.0 # (float) label smoothing (fraction)
-nbs: 64 # (int) nominal batch size
-hsv_h: 0.015 # (float) image HSV-Hue augmentation (fraction)
-hsv_s: 0.7 # (float) image HSV-Saturation augmentation (fraction)
-hsv_v: 0.4 # (float) image HSV-Value augmentation (fraction)
-degrees: 0.0 # (float) image rotation (+/- deg)
-translate: 0.1 # (float) image translation (+/- fraction)
-scale: 0.5 # (float) image scale (+/- gain)
-shear: 0.0 # (float) image shear (+/- deg)
-perspective: 0.0 # (float) image perspective (+/- fraction), range 0-0.001
-flipud: 0.0 # (float) image flip up-down (probability)
-fliplr: 0.5 # (float) image flip left-right (probability)
-bgr: 0.0 # (float) image channel BGR (probability)
-mosaic: 1.0 # (float) image mosaic (probability)
-mixup: 0.0 # (float) image mixup (probability)
-copy_paste: 0.0 # (float) segment copy-paste (probability)
-copy_paste_mode: "flip" # (str) the method to do copy_paste augmentation (flip, mixup)
-auto_augment: randaugment # (str) auto augmentation policy for classification (randaugment, autoaugment, augmix)
-erasing: 0.4 # (float) probability of random erasing during classification training (0-0.9), 0 means no erasing, must be less than 1.0.
-crop_fraction: 1.0 # (float) image crop fraction for classification (0.1-1), 1.0 means no crop, must be greater than 0.
+export:
+  format:
+    type: str
+    description: Target format for the exported model, such as 'onnx', 'torchscript', 'tensorflow', or others, defining compatibility with various deployment environments.
+    default: "torchscript"
+    choices:
+      [
+        "torchscript",
+        "onnx",
+        "openvino",
+        "engine",
+        "coreml",
+        "saved_model",
+        "pb",
+        "tflite",
+        "edgetpu",
+        "tfjs",
+        "paddle",
+        "ncnn",
+      ]
+  keras:
+    type: bool
+    description: Enables export to Keras format for TensorFlow SavedModel, providing compatibility with TensorFlow serving and APIs.
+    default: False
+  optimize:
+    type: bool
+    description: Applies optimization for mobile devices when exporting to TorchScript, potentially reducing model size and improving performance.
+    default: False
+  int8:
+    type: bool
+    description: Activates INT8 quantization, further compressing the model and speeding up inference with minimal accuracy loss, primarily for edge devices.
+    default: False
+  dynamic:
+    type: bool
+    description: Allows dynamic input sizes for ONNX, TensorRT and OpenVINO exports, enhancing flexibility in handling varying image dimensions.
+    default: False
+  simplify:
+    type: bool
+    description: Simplifies the model graph for ONNX exports with onnxslim, potentially improving performance and compatibility.
+    default: True
+  opset:
+    type: int
+    description: Specifies the ONNX opset version for compatibility with different ONNX parsers and runtimes. If not set, uses the latest supported version.
+    default: None
+  workspace:
+    type: int
+    description: Sets the maximum workspace size in GiB for TensorRT optimizations, balancing memory usage and performance.
+    default: 4
+    min: 0.5 # todo: Not sure about this 0.5
+    max: 16 # todo: Not sure about this 16.0
+  nms:
+    type: bool
+    description: Adds Non-Maximum Suppression (NMS) to the CoreML export, essential for accurate and efficient detection post-processing.
+    default: False
+  batch:
+    type: int
+    description: Specifies export model batch inference size or the max number of images the exported model will process concurrently in predict mode.
+    default: 1
+    min: 1
+    max: 64
+
+hyperparameters:
+  lr0:
+    type: float
+    description: Initial learning rate (i.e. SGD=1E-2, Adam=1E-3) . Adjusting this value is crucial for the optimization process, influencing how rapidly model weights are updated.
+    default: 0.01
+    min: 0.0001
+    max: 0.1
+    scale: log
+  lrf:
+    type: float
+    description: Final learning rate as a fraction of the initial rate = (lr0 * lrf), used in conjunction with schedulers to adjust the learning rate over time.
+    default: 0.01
+    min: 0.0001
+    max: 0.1
+    scale: log
+  momentum:
+    type: float
+    description: Momentum factor for SGD or beta1 for Adam optimizers, influencing the incorporation of past gradients in the current update.
+    default: 0.937
+    min: 0.0
+    max: 1.0
+  weight_decay:
+    type: float
+    description: L2 regularization term, penalizing large weights to prevent overfitting.
+    default: 0.0005
+    min: 0.0
+    max: 0.01
+  warmup_epochs:
+    type: float
+    description: Number of epochs for learning rate warmup, gradually increasing the learning rate from a low value to the initial learning rate to stabilize training early on.
+    default: 3.0
+    min: 0.0
+    max: 10.0
+  warmup_momentum:
+    type: float
+    description: Initial momentum for warmup phase, gradually adjusting to the set momentum over the warmup period.
+    default: 0.8
+    min: 0.0
+    max: 1.0
+  warmup_bias_lr:
+    type: float
+    description: Learning rate for bias parameters during the warmup phase, helping stabilize model training in the initial epochs.
+    default: 0.1
+    min: 0.0
+    max: 1.0
+  box:
+    type: float
+    description: Weight of the box loss component in the loss function, influencing how much emphasis is placed on accurately predicting bounding box coordinates.
+    default: 7.5
+    min: 0.0
+    max: 10.0
+  cls:
+    type: float
+    description: Weight of the classification loss in the total loss function, affecting the importance of correct class prediction relative to other components.
+    default: 0.5
+    min: 0.0
+    max: 1.0
+  dfl:
+    type: float
+    description: Weight of the distribution focal loss, used in certain YOLO versions for fine-grained classification.
+    default: 1.5
+    min: 0.0
+    max: 2.0
+  pose:
+    type: float
+    description: Weight of the pose loss in models trained for pose estimation, influencing the emphasis on accurately predicting pose keypoints.
+    default: 12.0
+    min: 0.0
+    max: 20.0
+  kobj:
+    type: float
+    description: Weight of the keypoint objectness loss in pose estimation models, balancing detection confidence with pose accuracy.
+    default: 1.0
+    min: 0.0
+    max: 2.0
+  label_smoothing:
+    type: float
+    description: Applies label smoothing, softening hard labels to a mix of the target label and a uniform distribution over labels, can improve generalization.
+    default: 0.0
+    min: 0.0
+    max: 0.1
+  nbs:
+    type: int
+    description: Nominal batch size for normalization of loss.
+    default: 64
+    min: 1
+    max: 128
+
+augmentation:
+  hsv_h:
+    type: float
+    description: Adjusts the hue of the image by a fraction of the color wheel, introducing color variability. Helps the model generalize across different lighting conditions.
+    default: 0.015
+    min: 0.0
+    max: 1.0
+  hsv_s:
+    type: float
+    description: Alters the saturation of the image by a fraction, affecting the intensity of colors. Useful for simulating different environmental conditions.
+    default: 0.7
+    min: 0.0
+    max: 1.0
+  hsv_v:
+    type: float
+    description: Modifies the value (brightness) of the image by a fraction, helping the model to perform well under various lighting conditions.
+    default: 0.4
+    min: 0.0
+    max: 1.0
+  degrees:
+    type: float
+    description: Rotates the image randomly within the specified degree range, improving the model's ability to recognize objects at various orientations.
+    default: 0.0
+    min: -180.0
+    max: 180.0
+  translate:
+    type: float
+    description: Translates the image horizontally and vertically by a fraction of the image size, aiding in learning to detect partially visible objects.
+    default: 0.1
+    min: 0.0
+    max: 1.0
+  scale:
+    type: float
+    description: Scales the image by a gain factor, simulating objects at different distances from the camera.
+    default: 0.5
+    min: 0.0
+    max: 1.0 # todo: Not sure about this 1.0 should be original shape
+  shear:
+    type: float
+    description: Shears the image by a specified degree, mimicking the effect of objects being viewed from different angles.
+    default: 0.0
+    min: -180.0
+    max: 180.0
+  perspective:
+    type: float
+    description: Applies a random perspective transformation to the image, enhancing the model's ability to understand objects in 3D space.
+    default: 0.0
+    min: 0.0
+    max: 0.001
+  flipud:
+    type: float
+    description: Flips the image upside down with the specified probability, increasing the data variability without affecting the object's characteristics.
+    default: 0.0
+    min: 0.0
+    max: 1.0
+  fliplr:
+    type: float
+    description: Flips the image left to right with the specified probability, useful for learning symmetrical objects and increasing dataset diversity.
+    default: 0.5
+    min: 0.0
+    max: 1.0
+  bgr:
+    type: float
+    description: Flips the image channels from RGB to BGR with the specified probability, useful for increasing robustness to incorrect channel ordering.
+    default: 0.0
+    min: 0.0
+    max: 1.0
+  mosaic:
+    type: float
+    description: Combines four training images into one, simulating different scene compositions and object interactions. Highly effective for complex scene understanding.
+    default: 1.0
+    min: 0.0
+    max: 1.0
+  mixup:
+    type: float
+    description: Blends two images and their labels, creating a composite image. Enhances the model's ability to generalize by introducing label noise and visual variability.
+    default: 0.0
+    min: 0.0
+    max: 1.0
+  copy_paste:
+    type: float
+    description: Copies objects from one image and pastes them onto another, useful for increasing object instances and learning object occlusion.
+    default: 0.0
+    min: 0.0
+    max: 1.0
+  copy_paste_mode:
+    type: str
+    description: Copy-Paste augmentation method selection among the options of ("flip", "mixup").
+    default: "flip"
+    choices: ["flip", "mixup"]
+  auto_augment:
+    type: str
+    description: Automatically applies a predefined augmentation policy (randaugment, autoaugment, augmix), optimizing for classification tasks by diversifying the visual features.
+    default: "randaugment"
+    choices: ["randaugment", "autoaugment", "augmix"]
+  erasing:
+    type: float
+    description: Randomly erases a portion of the image during classification training, encouraging the model to focus on less obvious features for recognition.
+    default: 0.4
+    min: 0.0
+    max: 0.9
+  crop_fraction:
+    type: float
+    description: Crops the classification image to a fraction of its size to emphasize central features and adapt to object scales, reducing background distractions.
+    default: 1.0
+    min: 0.1
+    max: 1.0
 
 # Custom config.yaml ---------------------------------------------------------------------------------------------------
 cfg: # (str, optional) for overriding defaults.yaml

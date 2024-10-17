@@ -1,0 +1,365 @@
+{
+  "task": "detect",
+  "mode": "train",
+  "model": null,
+  "data": null,
+  "epochs": 100,
+  "time": null,
+  "patience": 100,
+  "batch": 16,
+  "imgsz": 640,
+  "save": true,
+  "save_period": -1,
+  "cache": false,
+  "device": null,
+  "workers": 8,
+  "project": null,
+  "name": null,
+  "exist_ok": false,
+  "pretrained": true,
+  "optimizer": "auto",
+  "verbose": true,
+  "seed": 0,
+  "deterministic": true,
+  "single_cls": false,
+  "rect": false,
+  "cos_lr": false,
+  "close_mosaic": 10,
+  "resume": false,
+  "amp": true,
+  "fraction": 1.0,
+  "profile": false,
+  "freeze": "None",
+  "multi_scale": false,
+  "overlap_mask": true,
+  "mask_ratio": 4,
+  "dropout": 0.0,
+  "val": true,
+  "split": "val",
+  "save_json": false,
+  "save_hybrid": false,
+  "conf": null,
+  "iou": 0.7,
+  "max_det": 300,
+  "half": false,
+  "dnn": false,
+  "plots": true,
+  "source": null,
+  "vid_stride": 1,
+  "stream_buffer": false,
+  "visualize": false,
+  "augment": false,
+  "agnostic_nms": false,
+  "classes": null,
+  "retina_masks": false,
+  "embed": null,
+  "show": false,
+  "save_frames": false,
+  "save_txt": false,
+  "save_conf": false,
+  "save_crop": false,
+  "show_labels": true,
+  "show_conf": true,
+  "show_boxes": true,
+  "line_width": null,
+  "export": {
+    "format": {
+      "type": "str",
+      "description": "Target format for the exported model, such as 'onnx', 'torchscript', 'tensorflow', or others, defining compatibility with various deployment environments.",
+      "default": "torchscript",
+      "choices": [
+        "torchscript",
+        "onnx",
+        "openvino",
+        "engine",
+        "coreml",
+        "saved_model",
+        "pb",
+        "tflite",
+        "edgetpu",
+        "tfjs",
+        "paddle",
+        "ncnn"
+      ]
+    },
+    "keras": {
+      "type": "bool",
+      "description": "Enables export to Keras format for TensorFlow SavedModel, providing compatibility with TensorFlow serving and APIs.",
+      "default": false
+    },
+    "optimize": {
+      "type": "bool",
+      "description": "Applies optimization for mobile devices when exporting to TorchScript, potentially reducing model size and improving performance.",
+      "default": false
+    },
+    "int8": {
+      "type": "bool",
+      "description": "Activates INT8 quantization, further compressing the model and speeding up inference with minimal accuracy loss, primarily for edge devices.",
+      "default": false
+    },
+    "dynamic": {
+      "type": "bool",
+      "description": "Allows dynamic input sizes for ONNX, TensorRT and OpenVINO exports, enhancing flexibility in handling varying image dimensions.",
+      "default": false
+    },
+    "simplify": {
+      "type": "bool",
+      "description": "Simplifies the model graph for ONNX exports with onnxslim, potentially improving performance and compatibility.",
+      "default": true
+    },
+    "opset": {
+      "type": "int",
+      "description": "Specifies the ONNX opset version for compatibility with different ONNX parsers and runtimes. If not set, uses the latest supported version.",
+      "default": "None"
+    },
+    "workspace": {
+      "type": "int",
+      "description": "Sets the maximum workspace size in GiB for TensorRT optimizations, balancing memory usage and performance.",
+      "default": 4,
+      "min": 0.5,
+      "max": 16
+    },
+    "nms": {
+      "type": "bool",
+      "description": "Adds Non-Maximum Suppression (NMS) to the CoreML export, essential for accurate and efficient detection post-processing.",
+      "default": false
+    },
+    "batch": {
+      "type": "int",
+      "description": "Specifies export model batch inference size or the max number of images the exported model will process concurrently in predict mode.",
+      "default": 1,
+      "min": 1,
+      "max": 64
+    }
+  },
+  "hyperparameters": {
+    "lr0": {
+      "type": "float",
+      "description": "Initial learning rate (i.e. SGD=1E-2, Adam=1E-3) . Adjusting this value is crucial for the optimization process, influencing how rapidly model weights are updated.",
+      "default": 0.01,
+      "min": 0.0001,
+      "max": 0.1,
+      "scale": "log"
+    },
+    "lrf": {
+      "type": "float",
+      "description": "Final learning rate as a fraction of the initial rate = (lr0 * lrf), used in conjunction with schedulers to adjust the learning rate over time.",
+      "default": 0.01,
+      "min": 0.0001,
+      "max": 0.1,
+      "scale": "log"
+    },
+    "momentum": {
+      "type": "float",
+      "description": "Momentum factor for SGD or beta1 for Adam optimizers, influencing the incorporation of past gradients in the current update.",
+      "default": 0.937,
+      "min": 0.0,
+      "max": 1.0
+    },
+    "weight_decay": {
+      "type": "float",
+      "description": "L2 regularization term, penalizing large weights to prevent overfitting.",
+      "default": 0.0005,
+      "min": 0.0,
+      "max": 0.01
+    },
+    "warmup_epochs": {
+      "type": "float",
+      "description": "Number of epochs for learning rate warmup, gradually increasing the learning rate from a low value to the initial learning rate to stabilize training early on.",
+      "default": 3.0,
+      "min": 0.0,
+      "max": 10.0
+    },
+    "warmup_momentum": {
+      "type": "float",
+      "description": "Initial momentum for warmup phase, gradually adjusting to the set momentum over the warmup period.",
+      "default": 0.8,
+      "min": 0.0,
+      "max": 1.0
+    },
+    "warmup_bias_lr": {
+      "type": "float",
+      "description": "Learning rate for bias parameters during the warmup phase, helping stabilize model training in the initial epochs.",
+      "default": 0.1,
+      "min": 0.0,
+      "max": 1.0
+    },
+    "box": {
+      "type": "float",
+      "description": "Weight of the box loss component in the loss function, influencing how much emphasis is placed on accurately predicting bounding box coordinates.",
+      "default": 7.5,
+      "min": 0.0,
+      "max": 10.0
+    },
+    "cls": {
+      "type": "float",
+      "description": "Weight of the classification loss in the total loss function, affecting the importance of correct class prediction relative to other components.",
+      "default": 0.5,
+      "min": 0.0,
+      "max": 1.0
+    },
+    "dfl": {
+      "type": "float",
+      "description": "Weight of the distribution focal loss, used in certain YOLO versions for fine-grained classification.",
+      "default": 1.5,
+      "min": 0.0,
+      "max": 2.0
+    },
+    "pose": {
+      "type": "float",
+      "description": "Weight of the pose loss in models trained for pose estimation, influencing the emphasis on accurately predicting pose keypoints.",
+      "default": 12.0,
+      "min": 0.0,
+      "max": 20.0
+    },
+    "kobj": {
+      "type": "float",
+      "description": "Weight of the keypoint objectness loss in pose estimation models, balancing detection confidence with pose accuracy.",
+      "default": 1.0,
+      "min": 0.0,
+      "max": 2.0
+    },
+    "label_smoothing": {
+      "type": "float",
+      "description": "Applies label smoothing, softening hard labels to a mix of the target label and a uniform distribution over labels, can improve generalization.",
+      "default": 0.0,
+      "min": 0.0,
+      "max": 0.1
+    },
+    "nbs": {
+      "type": "int",
+      "description": "Nominal batch size for normalization of loss.",
+      "default": 64,
+      "min": 1,
+      "max": 128
+    }
+  },
+  "augmentation": {
+    "hsv_h": {
+      "type": "float",
+      "description": "Adjusts the hue of the image by a fraction of the color wheel, introducing color variability. Helps the model generalize across different lighting conditions.",
+      "default": 0.015,
+      "min": 0.0,
+      "max": 1.0
+    },
+    "hsv_s": {
+      "type": "float",
+      "description": "Alters the saturation of the image by a fraction, affecting the intensity of colors. Useful for simulating different environmental conditions.",
+      "default": 0.7,
+      "min": 0.0,
+      "max": 1.0
+    },
+    "hsv_v": {
+      "type": "float",
+      "description": "Modifies the value (brightness) of the image by a fraction, helping the model to perform well under various lighting conditions.",
+      "default": 0.4,
+      "min": 0.0,
+      "max": 1.0
+    },
+    "degrees": {
+      "type": "float",
+      "description": "Rotates the image randomly within the specified degree range, improving the model's ability to recognize objects at various orientations.",
+      "default": 0.0,
+      "min": -180.0,
+      "max": 180.0
+    },
+    "translate": {
+      "type": "float",
+      "description": "Translates the image horizontally and vertically by a fraction of the image size, aiding in learning to detect partially visible objects.",
+      "default": 0.1,
+      "min": 0.0,
+      "max": 1.0
+    },
+    "scale": {
+      "type": "float",
+      "description": "Scales the image by a gain factor, simulating objects at different distances from the camera.",
+      "default": 0.5,
+      "min": 0.0,
+      "max": 1.0
+    },
+    "shear": {
+      "type": "float",
+      "description": "Shears the image by a specified degree, mimicking the effect of objects being viewed from different angles.",
+      "default": 0.0,
+      "min": -180.0,
+      "max": 180.0
+    },
+    "perspective": {
+      "type": "float",
+      "description": "Applies a random perspective transformation to the image, enhancing the model's ability to understand objects in 3D space.",
+      "default": 0.0,
+      "min": 0.0,
+      "max": 0.001
+    },
+    "flipud": {
+      "type": "float",
+      "description": "Flips the image upside down with the specified probability, increasing the data variability without affecting the object's characteristics.",
+      "default": 0.0,
+      "min": 0.0,
+      "max": 1.0
+    },
+    "fliplr": {
+      "type": "float",
+      "description": "Flips the image left to right with the specified probability, useful for learning symmetrical objects and increasing dataset diversity.",
+      "default": 0.5,
+      "min": 0.0,
+      "max": 1.0
+    },
+    "bgr": {
+      "type": "float",
+      "description": "Flips the image channels from RGB to BGR with the specified probability, useful for increasing robustness to incorrect channel ordering.",
+      "default": 0.0,
+      "min": 0.0,
+      "max": 1.0
+    },
+    "mosaic": {
+      "type": "float",
+      "description": "Combines four training images into one, simulating different scene compositions and object interactions. Highly effective for complex scene understanding.",
+      "default": 1.0,
+      "min": 0.0,
+      "max": 1.0
+    },
+    "mixup": {
+      "type": "float",
+      "description": "Blends two images and their labels, creating a composite image. Enhances the model's ability to generalize by introducing label noise and visual variability.",
+      "default": 0.0,
+      "min": 0.0,
+      "max": 1.0
+    },
+    "copy_paste": {
+      "type": "float",
+      "description": "Copies objects from one image and pastes them onto another, useful for increasing object instances and learning object occlusion.",
+      "default": 0.0,
+      "min": 0.0,
+      "max": 1.0
+    },
+    "copy_paste_mode": {
+      "type": "str",
+      "description": "Copy-Paste augmentation method selection among the options of (\"flip\", \"mixup\").",
+      "default": "flip",
+      "choices": ["flip", "mixup"]
+    },
+    "auto_augment": {
+      "type": "str",
+      "description": "Automatically applies a predefined augmentation policy (randaugment, autoaugment, augmix), optimizing for classification tasks by diversifying the visual features.",
+      "default": "randaugment",
+      "choices": ["randaugment", "autoaugment", "augmix"]
+    },
+    "erasing": {
+      "type": "float",
+      "description": "Randomly erases a portion of the image during classification training, encouraging the model to focus on less obvious features for recognition.",
+      "default": 0.4,
+      "min": 0.0,
+      "max": 0.9
+    },
+    "crop_fraction": {
+      "type": "float",
+      "description": "Crops the classification image to a fraction of its size to emphasize central features and adapt to object scales, reducing background distractions.",
+      "default": 1.0,
+      "min": 0.1,
+      "max": 1.0
+    }
+  },
+  "cfg": null,
+  "tracker": "botsort.yaml"
+}

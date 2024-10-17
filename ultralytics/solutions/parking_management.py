@@ -4,7 +4,6 @@ import json
 
 import cv2
 import numpy as np
-from PIL import Image, ImageTk
 
 from ultralytics.solutions.solutions import LOGGER, BaseSolution, check_requirements
 from ultralytics.utils.plotting import Annotator
@@ -53,6 +52,7 @@ class ParkingPtsSelection:
 
     def upload_image(self):
         """Uploads an image, resizes it to fit the canvas, and displays it."""
+        from PIL import Image, ImageTk  # scope because ImageTk requires tkinter package
         self.image = Image.open(self.filedialog.askopenfilename(filetypes=[("Image Files", "*.png;*.jpg;*.jpeg")]))
         if not self.image:
             return

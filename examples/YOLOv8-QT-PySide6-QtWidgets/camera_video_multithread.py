@@ -22,6 +22,7 @@ MP4 = "video/mp4"
 
 
 def get_supported_mime_types():
+    """Get supported mime types of media like avi."""
     result = []
     for f in QMediaFormat().supportedFileFormats(QMediaFormat.Decode):
         mime_type = QMediaFormat(f).mimeType()
@@ -38,7 +39,10 @@ informa_que = Queue(1)
 
 
 class get_image(QThread):
+    """A thread generate frame to a queue."""
+    
     def __init__(self, parent=None):
+        """Initialize variables."""
         QThread.__init__(self, parent)
         self.trained_file = None
         self.status = True
@@ -48,6 +52,7 @@ class get_image(QThread):
         self.m = None
 
     def set_input(self, fname):
+        """Set input type."""
         self.input = fname
 
     """
@@ -57,6 +62,7 @@ class get_image(QThread):
     """
 
     def run(self):
+        """Open a video or directory and push frame to a queue."""
         global image_que, informa_que
         if self.input == "camera":
             self.cap = cv2.VideoCapture(0)
@@ -91,14 +97,17 @@ class get_image(QThread):
                 image_que.put(frame)
         image_que.put(0)
 
-
 class predict_image(QThread):
+    """A thread get a frame from the queue, predict the frame, the push result to another queue."""
+    
     def __init__(self, parent=None):
+        """Initialize variables."""
         QThread.__init__(self, parent)
         self.model = "yolov8n.pt"
         self.m = None
 
     def set_model(self):
+        """Initialize the model."""
         if self.m is not None:
             del self.m
             import gc
@@ -107,6 +116,7 @@ class predict_image(QThread):
         self.m = YOLO(self.model)
 
     def run(self):
+        """Get a frame and predict the frame, push the result to another queue."""
         global result_que, image_que
         self.set_model()
         images = []
@@ -130,17 +140,20 @@ class predict_image(QThread):
                 break
         result_que.put(0)
 
-
 class write_video(QThread):
+    """Get the predicted result and push it to a queue."""
+
     updateFrame = Signal(cv2.Mat)
 
     def __init__(self, parent=None):
+        """Initialize variables."""
         QThread.__init__(self, parent)
         self.checked = False
         self.videowriter = True
         self.image_stop = False
 
     def run(self):
+        """Get a result frame, send it to the slot, write to video."""
         global informa_que, result_que
         if self.checked:
             fps, frame_width, frame_height = informa_que.get()
@@ -189,9 +202,11 @@ class write_video(QThread):
             self.videowriter.release()
             self.videowriter = True
 
-
 class Camera(QMainWindow):
+    """Including slot functions, bind with slots."""
+    
     def __init__(self):
+        """Initialize variables."""
         super().__init__()
         self._ui = Ui_camera_video()
         self._ui.setupUi(self)
@@ -215,6 +230,7 @@ class Camera(QMainWindow):
 
     @Slot()
     def open(self):
+        """Open the FileDialog and Choose a model from the directory."""
         file_dialog = QFileDialog(self)
         # self._mime_types = ["pth", "pt", "caffemodel", "pb", "tflite", "weight"]
         # file_dialog.setMimeTypeFilters(self._mime_types)
@@ -230,6 +246,7 @@ class Camera(QMainWindow):
 
     @Slot()
     def open_video(self):
+        """Open the FileDialog. Choose a video file or Choose a directory which contains images."""
         self._ui.save.setEnabled(True)
         self.th.set_input(self._ui.input.currentText())
         if self.th.input == "video":
@@ -279,6 +296,7 @@ class Camera(QMainWindow):
 
     @Slot()
     def kill_thread(self):
+        """A common function called by stop() terminate the thread and reinitialize variable."""
         if not isinstance(self.th.cap, bool):
             self.th.cap.release()
         if self.write.checked:
@@ -304,6 +322,7 @@ class Camera(QMainWindow):
 
     @Slot()
     def start(self):
+        """Unable some buttons and start the Thread."""
         self._ui.video.setEnabled(False)
         self._ui.stop.setEnabled(True)
         self._ui.start.setEnabled(False)
@@ -328,6 +347,7 @@ class Camera(QMainWindow):
 
     @Slot()
     def setlast(self):
+        """When stopped, set a blank image to replace the last frame."""
         size = self._ui.label.size()
         hei = size.height()
         wid = size.width()
@@ -338,6 +358,7 @@ class Camera(QMainWindow):
 
     @Slot()
     def stop(self):
+        """A slot which receive signal from QtWidgets.Stop the Thread."""
         self.write.image_stop = True
         self.kill_thread()
         self._ui.start.setEnabled(True)
@@ -355,6 +376,7 @@ class Camera(QMainWindow):
 
     @Slot()
     def input(self, text):
+        """A slot which set the input type."""
         self._ui.save.setEnabled(True)
         if text == "camera":
             self._ui.start.setEnabled(True)
@@ -376,13 +398,13 @@ class Camera(QMainWindow):
         self.th.set_input(text)
 
     @Slot()
-    def save(
-        self,
-    ):
+    def save(self,):
+        """A slot which set whether or not save ploted frame to a video."""
         self.write.checked = self._ui.save.isChecked()
 
     @Slot(cv2.Mat)
     def setImage(self, image: cv2.Mat):
+        """A slot which pad the ploted frame with letterbox padding and draw it to the label."""
         # Creating and scaling QImage
         h, w, ch = image.shape
         size = self._ui.label.size()
@@ -402,7 +424,6 @@ class Camera(QMainWindow):
         # image = image.scaled(self._ui.label.size(), Qt.KeepAspectRatio,
         #   Qt.SmoothTransformation)
         self._ui.label.setPixmap(QPixmap.fromImage(image))
-
 
 if __name__ == "__main__":
     # pyside6-rcc style.qrc -o style_rc.py

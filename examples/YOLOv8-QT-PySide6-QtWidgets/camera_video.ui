@@ -20,7 +20,7 @@
    </sizepolicy>
   </property>
   <property name="windowTitle">
-   <string>Yolov* Camera Video</string>
+   <string>Yolo11 Camera Video</string>
   </property>
   <property name="documentMode">
    <bool>false</bool>
@@ -82,7 +82,7 @@ selection-color: rgb(43, 82, 255);</string>
        <item row="0" column="1" alignment="Qt::AlignmentFlag::AlignLeft">
         <widget class="QLineEdit" name="lineEdit">
          <property name="text">
-          <string>yolov8n.pt</string>
+          <string>yolo11n.pt</string>
          </property>
         </widget>
        </item>

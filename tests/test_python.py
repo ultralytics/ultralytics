@@ -622,3 +622,21 @@ def test_yolov10():
     model.val(data="coco8.yaml", imgsz=32)
     model.predict(imgsz=32, save_txt=True, save_crop=True, augment=True)
     model(SOURCE)
+
+
+def test_image_channel_order():
+    source = ASSETS / "bus.jpg"
+
+    model = YOLO("yolov8n.pt")
+    path_results = model(source)
+
+    bgr_im = cv2.imread(source)
+    bgr_results = model(bgr_im)
+
+    rgb_im = cv2.cvtColor(bgr_im, cv2.COLOR_BGR2RGB)
+    rgb_wrong_results = model(rgb_im)
+    rgb_correct_results = model(rgb_im, rgb_input=True)
+
+    assert torch.equal(path_results[0].boxes.data, rgb_correct_results[0].boxes.data)
+    assert not torch.equal(path_results[0].boxes.data, rgb_wrong_results[0].boxes.data)
+    assert torch.equal(path_results[0].boxes.data, bgr_results[0].boxes.data)

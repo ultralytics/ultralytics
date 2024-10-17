@@ -181,6 +181,7 @@ CFG_BOOL_KEYS = {  # boolean-only arguments
     "profile",
     "multi_scale",
 }
+RKNN_CHIPS = {"rk3566", "rk3568", "rk3588", "rk3562", "rk3576", "rk2118"}
 
 
 def cfg2dict(cfg):

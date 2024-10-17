@@ -371,8 +371,8 @@ def model_info_for_loggers(trainer):
     return results
 
 
-def get_flops(model, imgsz=640):
-    """Return a YOLO model's FLOPs."""
+def get_flops_with_thop(model, imgsz=640):
+    """Return a YOLO model's FLOPs (deprecated to eliminate thop dependency)."""
     if not thop:
         return 0.0  # if not installed return 0.0 GFLOPs
 
@@ -395,7 +395,7 @@ def get_flops(model, imgsz=640):
         return 0.0
 
 
-def get_flops_with_torch_profiler(model, imgsz=640):
+def get_flops(model, imgsz=640):
     """Compute model FLOPs (thop package alternative, but 2-10x slower unfortunately)."""
     if not TORCH_2_0:  # torch profiler implemented in torch>=2.0
         return 0.0

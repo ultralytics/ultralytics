@@ -9,6 +9,7 @@ from typing import Dict, List, Union
 
 import cv2
 
+from ultralytics import settings
 from ultralytics.utils import (
     ASSETS,
     DEFAULT_CFG,
@@ -354,13 +355,14 @@ def get_save_dir(args, name=None):
     """
     if getattr(args, "save_dir", None):
         save_dir = args.save_dir
+        print(save_dir)
     else:
         from ultralytics.utils.files import increment_path
 
         project = args.project or (ROOT.parent / "tests/tmp/runs" if TESTS_RUNNING else RUNS_DIR) / args.task
         name = name or args.name or f"{args.mode}"
         save_dir = increment_path(Path(project) / name, exist_ok=args.exist_ok if RANK in {-1, 0} else True)
-
+        print(save_dir)
     return Path(save_dir)
 
 
@@ -552,7 +554,10 @@ def handle_solutions(argv):
     SOL_CFG_DICT = yaml_load(DEFAULT_SOL_CFG_PATH)
     argv = {item.split('=')[0]: eval(item.split('=')[1]) for item in argv[2:]}
     check_dict_alignment(SOL_CFG_DICT, argv)
+    save_dir = get_save_dir(DEFAULT_CFG)
+    print(save_dir)
     SOL_CFG_DICT.update(argv)
+
     # check if source is None
     if SOL_CFG_DICT["source"] is None:
         safe_download("https://github.com/ultralytics/yolov5/releases/download/v1.0/solutions_ci_demo.mp4")
@@ -560,7 +565,7 @@ def handle_solutions(argv):
 
     cap = cv2.VideoCapture(SOL_CFG_DICT["source"])
     w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-    writer = cv2.VideoWriter("solutions.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
+    writer = cv2.VideoWriter(save_dir, cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
     kwargs = {key: value for key, value in argv.items() if key != 'source'}
     counter = solutions.ObjectCounter(**kwargs)
     while cap.isOpened():

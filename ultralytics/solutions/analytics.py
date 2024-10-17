@@ -31,8 +31,8 @@ class Analytics(BaseSolution):
         figsize = (19.2, 10.8)  # Set output image size 1920 * 1080
         self.color_cycle = cycle(["#DD00BA", "#042AFF", "#FF4447", "#7D24FF", "#BD00FF"])
 
-        self.total_counts = 0  # count variable for storing total counts i.e for line
-        self.clswise_count = {}  # dictionary for classwise counts
+        self.total_counts = 0  # count variable for storing total counts i.e. for line
+        self.clswise_count = {}  # dictionary for class-wise counts
 
         # Ensure line and area chart
         if self.type in {"line", "area"}:

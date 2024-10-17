@@ -3,7 +3,7 @@
 import cv2
 import numpy as np
 
-from ultralytics.solutions.object_counter import ObjectCounter  # Import object counter class
+from ultralytics.solutions.object_counter import ObjectCounter
 from ultralytics.utils.plotting import Annotator
 
 

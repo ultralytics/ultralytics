@@ -4,7 +4,7 @@ import math
 
 import cv2
 
-from ultralytics.solutions.solutions import BaseSolution  # Import a parent class
+from ultralytics.solutions.solutions import BaseSolution
 from ultralytics.utils.plotting import Annotator, colors
 
 

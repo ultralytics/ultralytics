@@ -144,6 +144,7 @@ class BaseTrainer:
         self.tloss = None
         self.loss_names = ["Loss"]
         self.csv = self.save_dir / "results.csv"
+        self.csv_col_width = {}
         self.plot_idx = [0, 1, 2]
 
         # HUB
@@ -502,7 +503,7 @@ class BaseTrainer:
         """Read results.csv into a dict using pandas."""
         import pandas as pd  # scope for faster 'import ultralytics'
 
-        return pd.read_csv(self.csv).to_dict(orient="list")
+        return {k.strip(): v for k, v in pd.read_csv(self.csv).to_dict(orient="list").items()}
 
     def save_model(self):
         """Save model training checkpoints with additional metadata."""
@@ -649,14 +650,35 @@ class BaseTrainer:
         """Plots training labels for YOLO model."""
         pass
 
+    def save_format_csv(self, keys, current_values):
+        """Automatically adjust the distance of data columns in the results.csv."""
+        import pandas as pd
+
+        b_rewrite = False
+        col_spacing = 3
+        for key, current_value in zip(keys, current_values):
+            col_width = self.csv_col_width.get(key, len(key))
+            b_rewrite = True if b_rewrite or not self.csv.exists() or len(current_value) > col_width else False
+            self.csv_col_width[key] = max(col_width, len(current_value))
+        if b_rewrite:
+            formatted_metrics = {}
+            metrics = pd.read_csv(self.csv).to_dict(orient="list") if self.csv.exists() else {k: [] for k in keys}
+            for current_value, (key, values) in zip(current_values, metrics.items()):
+                key, values = str(key).strip(), [str(v).strip() for v in values]
+                col_width = self.csv_col_width[key] + col_spacing
+                formatted_metrics[f"{key:>{col_width}}"] = [f"{v:>{col_width}}" for v in values + [current_value]]
+            pd.DataFrame(formatted_metrics).to_csv(self.csv, index=False)
+        else:
+            formatted_l = [str(v).rjust(w + col_spacing) for v, w in zip(current_values, self.csv_col_width.values())]
+            with open(self.csv, "a") as file:
+                file.write(f"{','.join(formatted_l)}\n")
+
     def save_metrics(self, metrics):
         """Saves training metrics to a CSV file."""
         keys, vals = list(metrics.keys()), list(metrics.values())
-        n = len(metrics) + 2  # number of cols
-        s = "" if self.csv.exists() else (("%s," * n % tuple(["epoch", "time"] + keys)).rstrip(",") + "\n")  # header
         t = time.time() - self.train_time_start
-        with open(self.csv, "a") as f:
-            f.write(s + ("%.6g," * n % tuple([self.epoch + 1, t] + vals)).rstrip(",") + "\n")
+        keys, vals = ["epoch", "time"] + keys, [f"{str(v):.6}" for v in [self.epoch + 1, t] + vals]
+        self.save_format_csv(keys, vals)
 
     def plot_metrics(self):
         """Plot and display metrics visually."""

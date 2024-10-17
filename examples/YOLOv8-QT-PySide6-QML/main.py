@@ -1,6 +1,3 @@
-# Copyright (C) 2022 The Qt Company Ltd.
-# SPDX-License-Identifier: LicenseRef-Qt-Commercial
-
 import os
 import sys
 import time
@@ -33,28 +30,18 @@ result_que = Queue(maxsize=Result_in_queue_maxsize)
 
 
 class ThreadQ(QThread):
-<<<<<<< HEAD
     """
-    the thread which read frame from source and send it to the slot
-    read frame from video or image directory or camera
-    send frame signal to the slot of qml
-    """
-    updateFrame = Signal(QPixmap)
-
-    def __init__(self, parent=None):
-        """
-        initialize variables
-        """
-=======
-    """The thread which read frame from source and send it to the slot read frame from video or image directory or
-    camera send frame signal to the slot of qml.
+    The thread which read frame from source and send it to the slot.
+    
+    read frame from video or image directory or camera.
+    
+    send frame signal to the slot of qml.
     """
 
     updateFrame = Signal(QPixmap)
 
     def __init__(self, parent=None):
         """Initialize variables."""
->>>>>>> 0222f6f00d8f6e59ea157a96fc188ebd7ad5a863
         QThread.__init__(self, parent)
         self.trained_file = None
         self.status = True
@@ -71,24 +58,12 @@ class ThreadQ(QThread):
         image = QImage(image.data, w, h, 3 * w, QImage.Format_RGB888)
         self.zeros = QPixmap.fromImage(image)
 
-    def set_input(self, fname):
-<<<<<<< HEAD
-        """
-        set input
-        """
-        self.input = fname
-
-    def set_model(self):
-        """
-        initialize yolo model
-        """
-=======
+    def set_input(self, fname: str):
         """Set input."""
         self.input = fname
 
     def set_model(self):
         """Initialize yolo model."""
->>>>>>> 0222f6f00d8f6e59ea157a96fc188ebd7ad5a863
         if self.m is not None:
             del self.m
             import gc
@@ -103,14 +78,7 @@ class ThreadQ(QThread):
     """
 
     def run(self):
-<<<<<<< HEAD
-        """
-        read frame from video or camera or directory
-        then send the frame signal to the slot of qml
-        """
-=======
         """Read frame from video or camera or directory then send the frame signal to the slot of qml."""
->>>>>>> 0222f6f00d8f6e59ea157a96fc188ebd7ad5a863
         self.set_model()
         if self.input == "camera":
             self.cap = cv2.VideoCapture(0)
@@ -194,7 +162,6 @@ class ThreadQ(QThread):
             self.videowriter.release()
             self.videowriter = True
 
-
 # updateModel = Signal(str)
 # @Slot()
 # def open_model(path:QUrl):
@@ -202,29 +169,14 @@ class ThreadQ(QThread):
 #     model = path.toString()[2**3:]
 #     updateModel.emit(model)
 
-
 @QmlElement  # 装饰器，表示信号传递给这些槽，下面的函数都是槽，信号都在qml文件中
 # class Camera_video(QObject):
 class Camera_video(QQuickImageProvider):
-<<<<<<< HEAD
-    """
-    including slot functions, bind with qml slots
-    """
-    imageChange = Signal(bool)
-
-    def __init__(self):
-        """
-        initialize variables
-        
-        """
-=======
     """Including slot functions, bind with qml slots."""
-
     imageChange = Signal(bool)
 
     def __init__(self):
         """Initialize variables."""
->>>>>>> 0222f6f00d8f6e59ea157a96fc188ebd7ad5a863
         # super().__init__(QQuickImageProvider)
         super().__init__(QQmlImageProviderBase.ImageType.Pixmap)
         # Thread in charge of updating the image
@@ -240,13 +192,7 @@ class Camera_video(QQuickImageProvider):
         self.pixmap = self.th.zeros
 
     def requestPixmap(self, id="image_elementll", size=QSize(0, 0), requestedSize=QSize(0, 0)):
-<<<<<<< HEAD
-        """
-        qml function, which send frame to qml
-        """
-=======
         """Qml function, which send frame to qml."""
->>>>>>> 0222f6f00d8f6e59ea157a96fc188ebd7ad5a863
         # w, h = 640, 600
         # # image = np.zeros((w, h, 3)) * 255
         # image = cv2.imread(np.random.choice(self.imagelist, 1)[0])
@@ -258,82 +204,39 @@ class Camera_video(QQuickImageProvider):
 
     @Slot(QPixmap)
     def updateImage(self, image):
-<<<<<<< HEAD
-        """
-        a slot which receive frame from thread and send signal to qml'slot
-        """
-=======
         """A slot which receive frame from thread and send signal to qml'slot."""
->>>>>>> 0222f6f00d8f6e59ea157a96fc188ebd7ad5a863
         self.pixmap = image
         self.imageChange.emit(True)
 
     @Slot(str, result=None)
     def get_model(self, model):
-<<<<<<< HEAD
-        """
-        a slot which receive signal from qml'FileDialog
-        """
-=======
         """A slot which receive signal from qml'FileDialog."""
->>>>>>> 0222f6f00d8f6e59ea157a96fc188ebd7ad5a863
         self.th.model = model.replace("file:///", "")
 
     @Slot(str, result=None)
     def get_video(self, video):
-<<<<<<< HEAD
-        """
-        a slot which receive signal from qml'FileDialog
-        """
-=======
         """A slot which receive signal from qml'FileDialog."""
->>>>>>> 0222f6f00d8f6e59ea157a96fc188ebd7ad5a863
         self.th.video = video.replace("file:///", "")
 
     @Slot(str, result=None)
     def get_type(self, type):
-<<<<<<< HEAD
-        """
-        a slot which receive signal from qml'Button
-        """
-=======
         """A slot which receive signal from qml'Button."""
->>>>>>> 0222f6f00d8f6e59ea157a96fc188ebd7ad5a863
         self.th.input = type
 
     @Slot(bool)
     def get_checked(self, ischecked):
-<<<<<<< HEAD
-        """
-        a slot which receive signal from qml'CheckBox
-        """
-=======
         """A slot which receive signal from qml'CheckBox."""
->>>>>>> 0222f6f00d8f6e59ea157a96fc188ebd7ad5a863
         self.th.checked = ischecked
 
     @Slot()
     def start(self):
-<<<<<<< HEAD
-        """
-        a slot which receive signal from qml'Button
-        """
-=======
         """A slot which receive signal from qml'Button."""
->>>>>>> 0222f6f00d8f6e59ea157a96fc188ebd7ad5a863
         self.th.start()
         # self.showFullScreen()
 
     @Slot()
     def kill_thread(self):
-<<<<<<< HEAD
-        """
-        a common function called by stop()
-        terminate the thread and reinitialize variable
-        """
-=======
         """A common function called by stop() terminate the thread and reinitialize variable."""
->>>>>>> 0222f6f00d8f6e59ea157a96fc188ebd7ad5a863
         print("Finishing...")
         if not isinstance(self.th.cap, bool):
             self.th.cap.release()
@@ -352,13 +255,7 @@ class Camera_video(QQuickImageProvider):
 
     @Slot()
     def stop(self):
-<<<<<<< HEAD
-        """
-        a slot which receive signal from qml'Button
-        """
-=======
         """A slot which receive signal from qml'Button."""
->>>>>>> 0222f6f00d8f6e59ea157a96fc188ebd7ad5a863
         self.th.image_stop = True
         self.kill_thread()
 

@@ -9,9 +9,6 @@ from ultralytics import YOLO
 from ultralytics.utils import LOGGER, yaml_load
 from ultralytics.utils.checks import check_imshow, check_requirements
 
-check_requirements("shapely>=2.0.0")
-from shapely.geometry import LineString, Polygon
-
 DEFAULT_SOL_CFG_PATH = Path(__file__).resolve().parents[1] / "cfg/solutions/default.yaml"
 
 
@@ -24,6 +21,13 @@ class BaseSolution:
 
         Child classes should call this with necessary parameters.
         """
+        check_requirements("shapely>=2.0.0")
+        from shapely.geometry import LineString, Point, Polygon
+
+        self.LineString = LineString
+        self.Polygon = Polygon
+        self.Point = Point
+
         # Load config and update with args
         self.CFG = yaml_load(DEFAULT_SOL_CFG_PATH)
         self.CFG.update(kwargs)
@@ -76,11 +80,12 @@ class BaseSolution:
 
     def initialize_region(self):
         """Initialize the counting region and line segment based on config."""
-        self.region = [(20, 400), (1080, 404), (1080, 360), (20, 360)] if self.region is None else self.region
-        self.r_s = Polygon(self.region) if len(self.region) >= 3 else LineString(self.region)  # region segment
-        self.l_s = LineString(
+        if self.region is None:
+            self.region = [(20, 400), (1080, 404), (1080, 360), (20, 360)]
+        self.r_s = self.Polygon(self.region) if len(self.region) >= 3 else self.LineString(self.region)  # region
+        self.l_s = self.LineString(
             [(self.region[0][0], self.region[0][1]), (self.region[1][0], self.region[1][1])]
-        )  # line segment
+        )  # line
 
     def display_output(self, im0):
         """

@@ -1,8 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-from shapely.geometry import LineString, Point
-
-from ultralytics.solutions.solutions import BaseSolution  # Import a parent class
+from ultralytics.solutions.solutions import BaseSolution
 from ultralytics.utils.plotting import Annotator, colors
 
 
@@ -42,7 +40,7 @@ class ObjectCounter(BaseSolution):
         dx = (box[0] - prev_position[0]) * (centroid.x - prev_position[0])
         dy = (box[1] - prev_position[1]) * (centroid.y - prev_position[1])
 
-        if len(self.region) >= 3 and self.r_s.contains(Point(track_line[-1])):
+        if len(self.region) >= 3 and self.r_s.contains(self.Point(track_line[-1])):
             self.counted_ids.append(track_id)
             # For polygon region
             if dx > 0:
@@ -52,7 +50,7 @@ class ObjectCounter(BaseSolution):
                 self.out_count += 1
                 self.classwise_counts[self.names[cls]]["OUT"] += 1
 
-        elif len(self.region) < 3 and LineString([prev_position, box[:2]]).intersects(self.l_s):
+        elif len(self.region) < 3 and self.LineString([prev_position, box[:2]]).intersects(self.l_s):
             self.counted_ids.append(track_id)
             # For linear region
             if dx > 0 and dy > 0:

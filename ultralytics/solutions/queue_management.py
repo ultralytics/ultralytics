@@ -1,8 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-from shapely.geometry import Point
-
-from ultralytics.solutions.solutions import BaseSolution  # Import a parent class
+from ultralytics.solutions.solutions import BaseSolution
 from ultralytics.utils.plotting import Annotator, colors
 
 
@@ -49,7 +47,7 @@ class QueueManager(BaseSolution):
 
             # store previous position of track and check if the object is inside the counting region
             prev_position = track_history[-2] if len(track_history) > 1 else None
-            if self.region_length >= 3 and prev_position and self.r_s.contains(Point(self.track_line[-1])):
+            if self.region_length >= 3 and prev_position and self.r_s.contains(self.Point(self.track_line[-1])):
                 self.counts += 1
 
         # Display queue counts

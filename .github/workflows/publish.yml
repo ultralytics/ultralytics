@@ -18,7 +18,7 @@ jobs:
     name: Publish
     runs-on: ubuntu-latest
     permissions:
-      id-token: write  # for PyPI trusted publishing
+      id-token: write # for PyPI trusted publishing
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

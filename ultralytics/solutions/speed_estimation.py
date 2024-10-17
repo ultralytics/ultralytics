@@ -4,7 +4,7 @@ from time import time
 
 import numpy as np
 
-from ultralytics.solutions.solutions import BaseSolution, LineString
+from ultralytics.solutions.solutions import BaseSolution
 from ultralytics.utils.plotting import Annotator, colors
 
 
@@ -56,7 +56,7 @@ class SpeedEstimator(BaseSolution):
             )
 
             # Calculate object speed and direction based on region intersection
-            if LineString([self.trk_pp[track_id], self.track_line[-1]]).intersects(self.l_s):
+            if self.LineString([self.trk_pp[track_id], self.track_line[-1]]).intersects(self.l_s):
                 direction = "known"
             else:
                 direction = "unknown"

@@ -13,9 +13,6 @@ from tqdm import tqdm
 from ultralytics.data.utils import exif_size, img2label_paths
 from ultralytics.utils.checks import check_requirements
 
-check_requirements("shapely")
-from shapely.geometry import Polygon
-
 
 def bbox_iof(polygon1, bbox2, eps=1e-6):
     """
@@ -33,6 +30,9 @@ def bbox_iof(polygon1, bbox2, eps=1e-6):
         Polygon format: [x1, y1, x2, y2, x3, y3, x4, y4].
         Bounding box format: [x_min, y_min, x_max, y_max].
     """
+    check_requirements("shapely")
+    from shapely.geometry import Polygon
+
     polygon1 = polygon1.reshape(-1, 4, 2)
     lt_point = np.min(polygon1, axis=-2)  # left-top
     rb_point = np.max(polygon1, axis=-2)  # right-bottom

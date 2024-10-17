@@ -143,7 +143,10 @@ class ParkingManagement(BaseSolution):
                 xc, yc = int((box[0] + box[2]) / 2), int((box[1] + box[3]) / 2)
                 dist = cv2.pointPolygonTest(pts_array, (xc, yc), False)
                 if dist >= 0:
-                    cv2.circle(im0, (xc, yc), radius=self.line_width * 3, color=self.dc, thickness=-1)
+                    # cv2.circle(im0, (xc, yc), radius=self.line_width * 4, color=self.dc, thickness=-1)
+                    annotator.display_objects_labels(
+                        im0, self.model.names[int(cls)], (104, 31, 17), (255, 255, 255), xc, yc, 10
+                    )
                     rg_occupied = True
                     break
             fs, es = (fs + 1, es - 1) if rg_occupied else (fs, es)

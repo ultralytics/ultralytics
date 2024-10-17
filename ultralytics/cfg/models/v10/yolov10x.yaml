@@ -5,21 +5,23 @@
 nc: 80 # number of classes
 scales: # model compound scaling constants, i.e. 'model=yolov10n.yaml' will call yolov10.yaml with scale 'n'
   # [depth, width, max_channels]
-  x: [1.00, 1.25, 512]
+  x: [1.00, 1.50, 512]
 
 backbone:
   # [from, repeats, module, args]
   - [-1, 1, Conv, [64, 3, 2]] # 0-P1/2
   - [-1, 1, Conv, [128, 3, 2]] # 1-P2/4
-  - [-1, 3, C2f, [128, True]]
+  - [-1, 4, C2f, [128, True]]
   - [-1, 1, Conv, [256, 3, 2]] # 3-P3/8
-  - [-1, 6, C2f, [256, True]]
+  - [-1, 1, CBAM, [256]] # Add CBAM layer after P3 Conv layer
+  - [-1, 8, C2f, [256, True]]
   - [-1, 1, SCDown, [512, 3, 2]] # 5-P4/16
-  - [-1, 6, C2fCIB, [512, True]]
+  - [-1, 1, CBAM, [512]] # Add CBAM layer after P4 Conv layer
+  - [-1, 8, C2fCIB, [512, True]]
   - [-1, 1, SCDown, [1024, 3, 2]] # 7-P5/32
   - [-1, 3, C2fCIB, [1024, True]]
-  - [-1, 1, SPPF, [1024, 5]] # 9
-  - [-1, 1, PSA, [1024]] # 10
+  - [-1, 1, SPPF, [1024, 9]]
+  - [-1, 1, PSA, [1024, 4]]
 
 # YOLOv10.0n head
 head:
@@ -40,3 +42,4 @@ head:
   - [-1, 3, C2fCIB, [1024, True]] # 22 (P5/32-large)
 
   - [[16, 19, 22], 1, v10Detect, [nc]] # Detect(P3, P4, P5)
+

@@ -281,12 +281,14 @@ class ChannelAttention(nn.Module):
         """Initializes the class and sets the basic configurations and instance variables required."""
         super().__init__()
         self.pool = nn.AdaptiveAvgPool2d(1)
-        self.fc = nn.Conv2d(channels, channels, 1, 1, 0, bias=True)
+        self.fc1 = nn.Conv2d(channels, channels // 16, kernel_size=1, bias=True)  # First Conv layer
+        self.relu = nn.ReLU()  # ReLU activation
+        self.fc2 = nn.Conv2d(channels // 16, channels, kernel_size=1, bias=True)  # Second Conv layer
         self.act = nn.Sigmoid()
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Applies forward pass using activation on convolutions of the input, optionally using batch normalization."""
-        return x * self.act(self.fc(self.pool(x)))
+        return x * self.act(self.fc2(self.fc1(self.pool(x))))
 
 
 class SpatialAttention(nn.Module):

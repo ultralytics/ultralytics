@@ -23,6 +23,7 @@ from ultralytics.nn.modules import (
     SPP,
     SPPELAN,
     SPPF,
+    CBAM,
     AConv,
     ADown,
     Bottleneck,
@@ -956,7 +957,11 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
     ch = [ch]
     layers, save, c2 = [], [], ch[-1]  # layers, savelist, ch out
     for i, (f, n, m, args) in enumerate(d["backbone"] + d["head"]):  # from, number, module, args
-        m = getattr(torch.nn, m[3:]) if "nn." in m else globals()[m]  # get module
+        try:
+            m = getattr(torch.nn, m[3:]) if "nn." in m else globals()[m]
+        except (AttributeError, KeyError) as e:
+            print(f"Error: {e}. Check if '{m}' is a valid module.")
+
         for j, a in enumerate(args):
             if isinstance(a, str):
                 try:
@@ -1024,6 +1029,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
                 C2fPSA,
                 C2fCIB,
                 C2PSA,
+                
             }:
                 args.insert(2, n)  # number of repeats
                 n = 1

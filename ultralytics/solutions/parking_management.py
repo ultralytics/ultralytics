@@ -182,9 +182,9 @@ class ParkingManagement(BaseSolution):
             rg_occupied = False  # occupied region initialization
             for box, cls in zip(self.boxes, self.clss):
                 xc, yc = int((box[0] + box[2]) / 2), int((box[1] + box[3]) / 2)
-                cv2.circle(im0, (xc, yc), radius=self.line_width * 3, color=self.dc, thickness=-1)
                 dist = cv2.pointPolygonTest(pts_array, (xc, yc), False)
                 if dist >= 0:
+                    cv2.circle(im0, (xc, yc), radius=self.line_width * 3, color=self.dc, thickness=-1)
                     rg_occupied = True
                     break
             fs, es = (fs + 1, es - 1) if rg_occupied else (fs, es)

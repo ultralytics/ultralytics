@@ -557,7 +557,6 @@ class Model(nn.Module):
         self,
         source: Union[str, Path, int, list, tuple, np.ndarray, torch.Tensor] = None,
         stream: bool = False,
-        persist: bool = False,
         **kwargs,
     ) -> List[Results]:
         """
@@ -571,7 +570,6 @@ class Model(nn.Module):
             source (Union[str, Path, int, List, Tuple, np.ndarray, torch.Tensor], optional): Input source for object
                 tracking. Can be a file path, URL, or video stream.
             stream (bool): If True, treats the input source as a continuous video stream. Defaults to False.
-            persist (bool): If True, persists trackers between different calls to this method. Defaults to False.
             **kwargs (Any): Additional keyword arguments for configuring the tracking process.
 
         Returns:
@@ -594,7 +592,7 @@ class Model(nn.Module):
         if not hasattr(self.predictor, "trackers"):
             from ultralytics.trackers import register_tracker
 
-            register_tracker(self, persist)
+            register_tracker(self)
         kwargs["conf"] = kwargs.get("conf") or 0.1  # ByteTrack-based method needs low confidence predictions as input
         kwargs["batch"] = kwargs.get("batch") or 1  # batch-size 1 for tracking in videos
         kwargs["mode"] = "track"

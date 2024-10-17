@@ -124,7 +124,7 @@ class BasePredictor:
             im = np.stack(self.pre_transform(im))
             im = im[..., ::-1].transpose((0, 3, 1, 2))  # BGR to RGB, BHWC to BCHW, (n, 3, h, w)
             im = np.ascontiguousarray(im)  # contiguous
-            im = torch.from_numpy(im)
+            im = torch.from_numpy(np.asarray(im))  # np.asarray conversion
 
         im = im.to(self.device)
         im = im.half() if self.model.fp16 else im.float()  # uint8 to fp16/32

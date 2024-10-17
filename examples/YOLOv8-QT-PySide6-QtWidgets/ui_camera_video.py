@@ -29,14 +29,14 @@ from PySide6.QtWidgets import (
 
 class Ui_camera_video:
     """
-    WARNING!
+    WARNING.
 
     All changes made in this file will be lost when recompiling UI file.
     """
 
     def setupUi(self, camera_video):
         """
-        WARNING!
+        WARNING.
 
         All changes made in this file will be lost when recompiling UI file.
         """
@@ -157,7 +157,7 @@ class Ui_camera_video:
 
     def retranslateUi(self, camera_video):
         """
-        WARNING!
+        WARNING.
 
         All changes made in this file will be lost when recompiling UI file.
         """

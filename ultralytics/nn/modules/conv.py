@@ -281,9 +281,9 @@ class ChannelAttention(nn.Module):
         """Initializes the class and sets the basic configurations and instance variables required."""
         super().__init__()
         self.pool = nn.AdaptiveAvgPool2d(1)
-        self.fc1 = nn.Conv2d(channels, channels, kernel_size=1, bias=True)  # First Conv layer
+        self.fc1 = nn.Conv2d(channels, channels, 1, 1, 0, bias=True)  # First Conv layer
         self.relu = nn.ReLU()  # ReLU activation
-        self.fc2 = nn.Conv2d(channels, channels, kernel_size=1, bias=True)  # Second Conv layer
+        self.fc2 = nn.Conv2d(channels, channels, 1, 1, 0, bias=True)  # Second Conv layer
         self.act = nn.Sigmoid()
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:

@@ -324,7 +324,7 @@ def model_info(model, detailed=False, verbose=True, imgsz=640):
 
     flops = get_flops(model, imgsz)
     fused = " (fused)" if getattr(model, "is_fused", lambda: False)() else ""
-    fs = f", {flops:.1f} GFLOPs" if flops else ""
+    fs = f", {flops:.1f} GFLOPs (imgsz={imgsz})" if flops else ""
     yaml_file = getattr(model, "yaml_file", "") or getattr(model, "yaml", {}).get("yaml_file", "")
     model_name = Path(yaml_file).stem.replace("yolo", "YOLO") or "Model"
     LOGGER.info(f"{model_name} summary{fused}: {n_l:,} layers, {n_p:,} parameters, {n_g:,} gradients{fs}")

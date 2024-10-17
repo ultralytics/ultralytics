@@ -12,11 +12,11 @@ from PySide6.QtMultimedia import (
     QMediaFormat,
 )
 from PySide6.QtWidgets import QApplication, QDialog, QFileDialog, QMainWindow
-from ui_camera_video import Ui_camera_video
+from camera_video_ui import Ui_camera_video
 
 from ultralytics import YOLO
 
-# pyside6-uic camera_video.ui -o ui_camera_video.py
+# pyside6-uic camera_video.ui -o camera_video_ui.py
 AVI = "video/x-msvideo"  # AVI
 MP4 = "video/mp4"
 

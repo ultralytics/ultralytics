@@ -207,7 +207,7 @@ YOLO11 [检测](https://docs.ultralytics.com/tasks/detect/)、[分割](https://d
 
 ## <div align="center">集成</div>
 
-我们与领先的 AI 平台的关键集成扩展了 Ultralytics 产品的功能，增强了数据集标记、训练、可视化和模型管理等任务的能力。了解 Ultralytics 如何与 [W&B](https://docs.wandb.ai/guides/integrations/ultralytics/)、[Comet](https://bit.ly/yolov8-readme-comet)、[Roboflow](https://roboflow.com/?ref=ultralytics), Neural Magic 和 [OpenVINO](https://docs.ultralytics.com/integrations/openvino/) 合作，优化您的 AI 工作流程。
+我们与领先的 AI 平台的关键集成扩展了 Ultralytics 产品的功能，提升了数据集标注、训练、可视化和模型管理等任务。探索 Ultralytics 如何通过与 [W&B](https://docs.wandb.ai/guides/integrations/ultralytics/)、[Comet](https://bit.ly/yolov8-readme-comet)、[Roboflow](https://roboflow.com/?ref=ultralytics) 和 [OpenVINO](https://docs.ultralytics.com/integrations/openvino/) 的合作，优化您的 AI 工作流程。
 
 <br>
 <a href="https://www.ultralytics.com/hub" target="_blank">

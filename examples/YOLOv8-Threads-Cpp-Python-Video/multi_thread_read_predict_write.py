@@ -14,8 +14,8 @@ import cv2
 
 from ultralytics import YOLO
 
-
 def predict_image(model, batch):
+    """Get a frame and predict it, then push result to another queue."""
     images = []
     while True:
         image = 0
@@ -39,6 +39,7 @@ def predict_image(model, batch):
 
 
 def get_image(pth):
+    """Read video frame and put it to a queue."""
     cap = cv2.VideoCapture(pth)
     if not cap.isOpened():
         cap.release()
@@ -60,6 +61,7 @@ def get_image(pth):
 
 
 def write_video(write_path):
+    """Get a result frame and write it to a video."""
     fps, frame_width, frame_height = informa_que.get()
     if fps < 0 and frame_width < 0 and frame_height < 0:
         return

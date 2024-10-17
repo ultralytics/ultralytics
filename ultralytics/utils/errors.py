@@ -1,7 +1,7 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 from ultralytics.utils import emojis
-
+from ultralytics.data.utils import HELP_URL
 
 class HUBModelError(Exception):
     """
@@ -35,8 +35,5 @@ class DatasetError(Exception):
 
     def __init__(self, message="Dataset not found. Please check dataset and try again."):
         """Create an exception for when a dataset is not found or corrupted."""
-        message = (
-            message
-            + "\n \n If you need a hand with building your dataset, just check out the official documentation: https://docs.ultralytics.com/datasets \n It's really helpful!"
-        )
+        message = f"{message}\n \n If you're looking for assistance in building your dataset, be sure to explore the official documentation at: {HELP_URL}."
         super().__init__(emojis(message))

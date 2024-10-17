@@ -106,8 +106,6 @@ Parking management with [Ultralytics YOLO11](https://github.com/ultralytics/ultr
 | ------------------------ | ------- | ------------- | -------------------------------------------------------------- |
 | `model`                  | `str`   | `None`        | Path to the YOLO11 model.                                      |
 | `json_file`              | `str`   | `None`        | Path to the JSON file, that have all parking coordinates data. |
-| `occupied_region_color`  | `tuple` | `(0, 0, 255)` | RGB color for occupied regions.                                |
-| `available_region_color` | `tuple` | `(0, 255, 0)` | RGB color for available regions.                               |
 
 ### Arguments `model.track`
 

@@ -333,7 +333,17 @@ class DetectionModel(BaseModel):
                     return self.forward(x)["one2many"]
                 return self.forward(x)[0] if isinstance(m, (Segment, Pose, OBB)) else self.forward(x)
 
-            m.stride = torch.tensor([s / x.shape[-2] for x in _forward(torch.zeros(1, ch, s, s))])  # forward
+            try:
+                m.stride = torch.tensor([s / x.shape[-2] for x in _forward(torch.zeros(1, ch, s, s))])  # forward on CPU
+            except RuntimeError:
+                try:
+                    self.model.to(torch.device("cuda"))
+                    m.stride = torch.tensor(
+                        [s / x.shape[-2] for x in _forward(torch.zeros(1, ch, s, s).to(torch.device("cuda")))]
+                    )  # forward on CUDA
+                except RuntimeError as error:
+                    raise error
+
             self.stride = m.stride
             m.bias_init()  # only run once
         else:

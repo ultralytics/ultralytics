@@ -6,13 +6,13 @@ from queue import Queue
 
 import cv2
 import numpy as np
+from camera_video_ui import Ui_camera_video
 from PySide6.QtCore import QStandardPaths, QThread, Signal, Slot
 from PySide6.QtGui import QIcon, QImage, QPixmap
 from PySide6.QtMultimedia import (
     QMediaFormat,
 )
 from PySide6.QtWidgets import QApplication, QDialog, QFileDialog, QMainWindow
-from camera_video_ui import Ui_camera_video
 
 from ultralytics import YOLO
 

@@ -102,10 +102,10 @@ Parking management with [Ultralytics YOLO11](https://github.com/ultralytics/ultr
 
 ### Optional Arguments `ParkingManagement`
 
-| Name                     | Type    | Default       | Description                                                    |
-| ------------------------ | ------- | ------------- | -------------------------------------------------------------- |
-| `model`                  | `str`   | `None`        | Path to the YOLO11 model.                                      |
-| `json_file`              | `str`   | `None`        | Path to the JSON file, that have all parking coordinates data. |
+| Name        | Type  | Default | Description                                                    |
+| ----------- | ----- | ------- | -------------------------------------------------------------- |
+| `model`     | `str` | `None`  | Path to the YOLO11 model.                                      |
+| `json_file` | `str` | `None`  | Path to the JSON file, that have all parking coordinates data. |
 
 ### Arguments `model.track`
 

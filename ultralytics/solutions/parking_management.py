@@ -5,8 +5,8 @@ import json
 import cv2
 import numpy as np
 
-from ultralytics.utils.checks import check_imshow, check_requirements
 from ultralytics.utils.plotting import Annotator
+from ultralytics.solutions.solutions import BaseSolution, LOGGER
 
 
 class ParkingPtsSelection:
@@ -142,40 +142,26 @@ class ParkingPtsSelection:
         messagebox.showinfo("Success", "Bounding boxes saved to bounding_boxes.json")
 
 
-class ParkingManagement:
+class ParkingManagement(BaseSolution):
     """Manages parking occupancy and availability using YOLO model for real-time monitoring and visualization."""
 
-    def __init__(
-        self,
-        model,  # Ultralytics YOLO model file path
-        json_file,  # Parking management annotation file created from Parking Annotator
-        occupied_region_color=(0, 0, 255),  # occupied region color
-        available_region_color=(0, 255, 0),  # available region color
-    ):
-        """
-        Initializes the parking management system with a YOLO model and visualization settings.
+    def __init__(self, **kwargs):
+        """Initializes the parking management system with a YOLO model and visualization settings."""
 
-        Args:
-            model (str): Path to the YOLO model.
-            json_file (str): file that have all parking slot points data
-            occupied_region_color (tuple): RGB color tuple for occupied regions.
-            available_region_color (tuple): RGB color tuple for available regions.
-        """
-        # Model initialization
-        from ultralytics import YOLO
+        super().__init__(**kwargs)
 
-        self.model = YOLO(model)
+        self.json = self.CFG["json_file"]   # Load JSON data
+        if self.json is None:
+            LOGGER.warning("❌ json_file argument missing. Parking region details required.")
+            raise ValueError("❌ Json file path can not be empty")
 
-        # Load JSON data
         with open(json_file) as f:
             self.json_data = json.load(f)
 
         self.pr_info = {"Occupancy": 0, "Available": 0}  # dictionary for parking information
 
-        self.occ = occupied_region_color
-        self.arc = available_region_color
-
-        self.env_check = check_imshow(warn=True)  # check if environment supports imshow
+        self.arc = (0, 0, 255)      # available region color
+        self.ocr = (0, 255, 0)      # occupied region color
 
     def process_data(self, im0):
         """
@@ -184,28 +170,18 @@ class ParkingManagement:
         Args:
             im0 (ndarray): inference image
         """
-        results = self.model.track(im0, persist=True, show=False)  # object tracking
-
         es, fs = len(self.json_data), 0  # empty slots, filled slots
         annotator = Annotator(im0)  # init annotator
-
-        # extract tracks data
-        if results[0].boxes.id is None:
-            self.display_frames(im0)
-            return im0
-
-        boxes = results[0].boxes.xyxy.cpu().tolist()
-        clss = results[0].boxes.cls.cpu().tolist()
 
         for region in self.json_data:
             # Convert points to a NumPy array with the correct dtype and reshape properly
             pts_array = np.array(region["points"], dtype=np.int32).reshape((-1, 1, 2))
             rg_occupied = False  # occupied region initialization
-            for box, cls in zip(boxes, clss):
+            for box, cls in zip(self.boxes, self.clss):
                 xc = int((box[0] + box[2]) / 2)
                 yc = int((box[1] + box[3]) / 2)
                 annotator.display_objects_labels(
-                    im0, self.model.names[int(cls)], (104, 31, 17), (255, 255, 255), xc, yc, 10
+                    im0, self.names[int(cls)], (104, 31, 17), (255, 255, 255), xc, yc, 10
                 )
                 dist = cv2.pointPolygonTest(pts_array, (xc, yc), False)
                 if dist >= 0:
@@ -224,18 +200,6 @@ class ParkingManagement:
 
         annotator.display_analytics(im0, self.pr_info, (104, 31, 17), (255, 255, 255), 10)
 
-        self.display_frames(im0)
-        return im0
+        self.display_output(im0)  # display output with base class function
 
-    def display_frames(self, im0):
-        """
-        Display frame.
-
-        Args:
-            im0 (ndarray): inference image
-        """
-        if self.env_check:
-            cv2.imshow("Ultralytics Parking Manager", im0)
-            # Break Window
-            if cv2.waitKey(1) & 0xFF == ord("q"):
-                return
+        return im0  # return output image for more usage

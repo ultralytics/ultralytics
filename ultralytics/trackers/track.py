@@ -1,6 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-from functools import partial
 from pathlib import Path
 
 import torch

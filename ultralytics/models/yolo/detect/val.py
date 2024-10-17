@@ -241,6 +241,13 @@ class DetectionValidator(BaseValidator):
     def get_dataloader(self, dataset_path, batch_size):
         """Construct and return dataloader."""
         dataset = self.build_dataset(dataset_path, batch=batch_size, mode="val")
+        image_count = len(dataset.im_files)
+        if image_count % batch_size != 0:
+            LOGGER.warning(
+                f"WARNING ⚠️ Dataset image count ({image_count}) is not a multiple of batch_size ({batch_size}). "
+                f"This can cause issues with models that don't support dynamic batch sizes. "
+                f"E.g. the engine format with dynamic=false"
+            )
         return build_dataloader(dataset, batch_size, self.args.workers, shuffle=False, rank=-1)  # return dataloader
 
     def plot_val_samples(self, batch, ni):

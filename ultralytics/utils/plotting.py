@@ -454,7 +454,7 @@ class Annotator:
 
         if kpt_line:
             ndim = kpts.shape[-1]
-            for i, sk in enumerate(self.skeleton):
+            for limb_color, sk in zip(self.limb_color, self.skeleton):
                 pos1 = (int(kpts[(sk[0] - 1), 0]), int(kpts[(sk[0] - 1), 1]))
                 pos2 = (int(kpts[(sk[1] - 1), 0]), int(kpts[(sk[1] - 1), 1]))
                 if ndim == 3:
@@ -470,7 +470,7 @@ class Annotator:
                     self.im,
                     pos1,
                     pos2,
-                    kpt_color or self.limb_color[i].tolist(),
+                    kpt_color or limb_color.tolist(),
                     thickness=int(np.ceil(self.lw / 2)),
                     lineType=cv2.LINE_AA,
                 )

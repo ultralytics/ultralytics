@@ -148,7 +148,7 @@ def remove_small_regions(mask: np.ndarray, area_thresh: float, mode: str) -> Tup
     working_mask = (correct_holes ^ mask).astype(np.uint8)
     n_labels, regions, stats, _ = cv2.connectedComponentsWithStats(working_mask, 8)
     sizes = stats[:, -1][1:]  # Row 0 is background label
-    small_regions = [i + 1 for i, s in enumerate(sizes) if s < area_thresh]
+    small_regions = [i for i, s in enumerate(sizes, 1) if s < area_thresh]
     if not small_regions:
         return mask, False
     fill_labels = [0] + small_regions

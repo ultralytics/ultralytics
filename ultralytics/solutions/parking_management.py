@@ -150,18 +150,19 @@ class ParkingManagement(BaseSolution):
 
         super().__init__(**kwargs)
 
-        self.json = self.CFG["json_file"]   # Load JSON data
-        if self.json is None:
+        self.json_file = self.CFG["json_file"]   # Load JSON data
+        if self.json_file is None:
             LOGGER.warning("❌ json_file argument missing. Parking region details required.")
             raise ValueError("❌ Json file path can not be empty")
 
-        with open(json_file) as f:
-            self.json_data = json.load(f)
+        with open(self.json_file) as f:
+            self.json = json.load(f)
 
         self.pr_info = {"Occupancy": 0, "Available": 0}  # dictionary for parking information
 
         self.arc = (0, 0, 255)      # available region color
-        self.ocr = (0, 255, 0)      # occupied region color
+        self.occ = (0, 255, 0)      # occupied region color
+        self.dc = (255, 0, 189)     # centroid color for each box
 
     def process_data(self, im0):
         """
@@ -170,30 +171,26 @@ class ParkingManagement(BaseSolution):
         Args:
             im0 (ndarray): inference image
         """
-        es, fs = len(self.json_data), 0  # empty slots, filled slots
-        annotator = Annotator(im0)  # init annotator
+        self.extract_tracks(im0)    # extract tracks from im0
 
-        for region in self.json_data:
+        es, fs = len(self.json), 0  # empty slots, filled slots
+        annotator = Annotator(im0, self.line_width)  # init annotator
+
+        for region in self.json:
             # Convert points to a NumPy array with the correct dtype and reshape properly
             pts_array = np.array(region["points"], dtype=np.int32).reshape((-1, 1, 2))
             rg_occupied = False  # occupied region initialization
             for box, cls in zip(self.boxes, self.clss):
-                xc = int((box[0] + box[2]) / 2)
-                yc = int((box[1] + box[3]) / 2)
-                annotator.display_objects_labels(
-                    im0, self.names[int(cls)], (104, 31, 17), (255, 255, 255), xc, yc, 10
-                )
+                xc, yc = int((box[0] + box[2]) / 2), int((box[1] + box[3]) / 2)
+                cv2.circle(im0, (xc, yc), radius=self.line_width * 3, color=self.dc, thickness=-1)
                 dist = cv2.pointPolygonTest(pts_array, (xc, yc), False)
                 if dist >= 0:
                     rg_occupied = True
                     break
-            if rg_occupied:
-                fs += 1
-                es -= 1
-
+            fs, es = (fs + 1, es - 1) if rg_occupied else (fs, es)
             # Plotting regions
-            color = self.occ if rg_occupied else self.arc
-            cv2.polylines(im0, [pts_array], isClosed=True, color=color, thickness=2)
+            cv2.polylines(im0, [pts_array], isClosed=True,
+                          color=self.occ if rg_occupied else self.arc, thickness=2)
 
         self.pr_info["Occupancy"] = fs
         self.pr_info["Available"] = es

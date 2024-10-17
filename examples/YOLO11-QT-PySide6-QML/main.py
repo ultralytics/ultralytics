@@ -32,9 +32,9 @@ result_que = Queue(maxsize=Result_in_queue_maxsize)
 class ThreadQ(QThread):
     """
     The thread which read frame from source and send it to the slot.
-    
+
     read frame from video or image directory or camera.
-    
+
     send frame signal to the slot of qml.
     """
 
@@ -162,6 +162,7 @@ class ThreadQ(QThread):
             self.videowriter.release()
             self.videowriter = True
 
+
 # updateModel = Signal(str)
 # @Slot()
 # def open_model(path:QUrl):
@@ -169,10 +170,12 @@ class ThreadQ(QThread):
 #     model = path.toString()[2**3:]
 #     updateModel.emit(model)
 
+
 @QmlElement  # 装饰器，表示信号传递给这些槽，下面的函数都是槽，信号都在qml文件中
 # class Camera_video(QObject):
 class Camera_video(QQuickImageProvider):
     """Including slot functions, bind with qml slots."""
+
     imageChange = Signal(bool)
 
     def __init__(self):

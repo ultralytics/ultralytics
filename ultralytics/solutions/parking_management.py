@@ -14,7 +14,7 @@ class ParkingPtsSelection:
     """Class for selecting and managing parking zone points on images using a Tkinter-based UI."""
 
     def __init__(self):
-        """Class initialization method"""
+        """Class initialization method."""
         check_requirements("tkinter")
         import tkinter as tk
         from tkinter import filedialog, messagebox

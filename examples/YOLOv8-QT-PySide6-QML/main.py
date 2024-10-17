@@ -33,17 +33,17 @@ result_que = Queue(maxsize=Result_in_queue_maxsize)
 # https://doc.qt.io/qtforpython-6/PySide6/QtQuick/index.html
 
 class ThreadQ(QThread):
-    '''
+    """
     the thread which read frame from source and send it to the slot
     read frame from video or image directory or camera
     send frame signal to the slot of qml
-    '''
+    """
     updateFrame = Signal(QPixmap)
 
     def __init__(self, parent=None):
-        '''
+        """
         initialize variables
-        '''
+        """
         QThread.__init__(self, parent)
         self.trained_file = None
         self.status = True
@@ -61,15 +61,15 @@ class ThreadQ(QThread):
         self.zeros = QPixmap.fromImage(image)
 
     def set_input(self, fname):
-        '''
+        """
         set input
-        '''
+        """
         self.input = fname
 
     def set_model(self):
-        '''
+        """
         initialize yolo model
-        '''
+        """
         if self.m is not None:
             del self.m
             import gc
@@ -84,10 +84,10 @@ class ThreadQ(QThread):
     """
 
     def run(self):
-        '''
+        """
         read frame from video or camera or directory
         then send the frame signal to the slot of qml
-        '''
+        """
         self.set_model()
         if self.input == "camera":
             self.cap = cv2.VideoCapture(0)
@@ -183,16 +183,16 @@ class ThreadQ(QThread):
 @QmlElement  # 装饰器，表示信号传递给这些槽，下面的函数都是槽，信号都在qml文件中
 # class Camera_video(QObject):
 class Camera_video(QQuickImageProvider):
-    '''
+    """
     including slot functions, bind with qml slots
-    '''
+    """
     imageChange = Signal(bool)
 
     def __init__(self):
-        '''
+        """
         initialize variables
         
-        '''
+        """
         # super().__init__(QQuickImageProvider)
         super().__init__(QQmlImageProviderBase.ImageType.Pixmap)
         # Thread in charge of updating the image
@@ -208,9 +208,9 @@ class Camera_video(QQuickImageProvider):
         self.pixmap = self.th.zeros
 
     def requestPixmap(self, id="image_elementll", size=QSize(0, 0), requestedSize=QSize(0, 0)):
-        '''
+        """
         qml function, which send frame to qml
-        '''
+        """
         # w, h = 640, 600
         # # image = np.zeros((w, h, 3)) * 255
         # image = cv2.imread(np.random.choice(self.imagelist, 1)[0])
@@ -222,54 +222,54 @@ class Camera_video(QQuickImageProvider):
 
     @Slot(QPixmap)
     def updateImage(self, image):
-        '''
+        """
         a slot which receive frame from thread and send signal to qml'slot
-        '''
+        """
         self.pixmap = image
         self.imageChange.emit(True)
 
     @Slot(str, result=None)
     def get_model(self, model):
-        '''
+        """
         a slot which receive signal from qml'FileDialog
-        '''
+        """
         self.th.model = model.replace("file:///", "")
 
     @Slot(str, result=None)
     def get_video(self, video):
-        '''
+        """
         a slot which receive signal from qml'FileDialog
-        '''
+        """
         self.th.video = video.replace("file:///", "")
 
     @Slot(str, result=None)
     def get_type(self, type):
-        '''
+        """
         a slot which receive signal from qml'Button
-        '''
+        """
         self.th.input = type
 
     @Slot(bool)
     def get_checked(self, ischecked):
-        '''
+        """
         a slot which receive signal from qml'CheckBox
-        '''
+        """
         self.th.checked = ischecked
 
     @Slot()
     def start(self):
-        '''
+        """
         a slot which receive signal from qml'Button
-        '''
+        """
         self.th.start()
         # self.showFullScreen()
 
     @Slot()
     def kill_thread(self):
-        '''
+        """
         a common function called by stop()
         terminate the thread and reinitialize variable
-        '''
+        """
         print("Finishing...")
         if not isinstance(self.th.cap, bool):
             self.th.cap.release()
@@ -288,9 +288,9 @@ class Camera_video(QQuickImageProvider):
 
     @Slot()
     def stop(self):
-        '''
+        """
         a slot which receive signal from qml'Button
-        '''
+        """
         self.th.image_stop = True
         self.kill_thread()
 

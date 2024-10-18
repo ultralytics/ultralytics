@@ -932,6 +932,7 @@ class SegmentMetrics(SimpleClass):
         self.seg = Metric()
         self.speed = {"preprocess": 0.0, "inference": 0.0, "loss": 0.0, "postprocess": 0.0}
         self.task = "segment"
+        self.iou = None  # init miou list
 
     def process(self, tp, tp_m, conf, pred_cls, target_cls):
         """
@@ -971,10 +972,13 @@ class SegmentMetrics(SimpleClass):
         self.box.nc = len(self.names)
         self.box.update(results_box)
 
+        if self.iou:
+            self.iou = [self.iou[i] for i in self.ap_class_index]
+
     @property
     def keys(self):
         """Returns a list of keys for accessing metrics."""
-        return [
+        keys = [
             "metrics/precision(B)",
             "metrics/recall(B)",
             "metrics/mAP50(B)",
@@ -984,14 +988,17 @@ class SegmentMetrics(SimpleClass):
             "metrics/mAP50(M)",
             "metrics/mAP50-95(M)",
         ]
+        return keys + ["metrics/mIoU"] if self.iou else keys
 
     def mean_results(self):
         """Return the mean metrics for bounding box and segmentation results."""
-        return self.box.mean_results() + self.seg.mean_results()
+        mean_results = self.box.mean_results() + self.seg.mean_results()
+        return mean_results + [self.mIoU] if self.iou else mean_results
 
     def class_result(self, i):
         """Returns classification results for a specified class index."""
-        return self.box.class_result(i) + self.seg.class_result(i)
+        class_result = self.box.class_result(i) + self.seg.class_result(i)
+        return class_result + (self.iou[i],) if self.iou else class_result
 
     @property
     def maps(self):
@@ -1031,6 +1038,10 @@ class SegmentMetrics(SimpleClass):
     def curves_results(self):
         """Returns dictionary of computed performance metrics and statistics."""
         return self.box.curves_results + self.seg.curves_results
+
+    @property
+    def mIoU(self):
+        return sum(self.iou) / len(self.iou) if self.iou else None
 
 
 class PoseMetrics(SegmentMetrics):

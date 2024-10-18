@@ -38,4 +38,5 @@ class DatasetError(Exception):
         message = f"{message}\n \n If you're looking for assistance in building your dataset, be sure to explore the official documentation at: https://docs.ultralytics.com/datasets."
         super().__init__(emojis(message))
 
-DatasetError.__module__ = 'Ultralytics'   # To have Ultralytics.DatasetError
+
+DatasetError.__module__ = "Ultralytics"  # To have Ultralytics.DatasetError

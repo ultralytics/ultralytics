@@ -1,16 +1,40 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-from ultralytics.solutions.solutions import BaseSolution  # Import a parent class
+from ultralytics.solutions.solutions import BaseSolution
 from ultralytics.utils.plotting import Annotator
 
 
 class AIGym(BaseSolution):
-    """A class to manage the gym steps of people in a real-time video stream based on their poses."""
+    """
+    A class to manage gym steps of people in a real-time video stream based on their poses.
+
+    This class extends BaseSolution to monitor workouts using YOLO pose estimation models. It tracks and counts
+    repetitions of exercises based on predefined angle thresholds for up and down positions.
+
+    Attributes:
+        count (List[int]): Repetition counts for each detected person.
+        angle (List[float]): Current angle of the tracked body part for each person.
+        stage (List[str]): Current exercise stage ('up', 'down', or '-') for each person.
+        initial_stage (str | None): Initial stage of the exercise.
+        up_angle (float): Angle threshold for considering the 'up' position of an exercise.
+        down_angle (float): Angle threshold for considering the 'down' position of an exercise.
+        kpts (List[int]): Indices of keypoints used for angle calculation.
+        lw (int): Line width for drawing annotations.
+        annotator (Annotator): Object for drawing annotations on the image.
+
+    Methods:
+        monitor: Processes a frame to detect poses, calculate angles, and count repetitions.
+
+    Examples:
+        >>> gym = AIGym(model="yolov8n-pose.pt")
+        >>> image = cv2.imread("gym_scene.jpg")
+        >>> processed_image = gym.monitor(image)
+        >>> cv2.imshow("Processed Image", processed_image)
+        >>> cv2.waitKey(0)
+    """
 
     def __init__(self, **kwargs):
-        """Initialization function for AiGYM class, a child class of BaseSolution class, can be used for workouts
-        monitoring.
-        """
+        """Initializes AIGym for workout monitoring using pose estimation and predefined angles."""
         # Check if the model name ends with '-pose'
         if "model" in kwargs and "-pose" not in kwargs["model"]:
             kwargs["model"] = "yolo11n-pose.pt"
@@ -31,12 +55,22 @@ class AIGym(BaseSolution):
 
     def monitor(self, im0):
         """
-        Monitor the workouts using Ultralytics YOLO Pose Model: https://docs.ultralytics.com/tasks/pose/.
+        Monitors workouts using Ultralytics YOLO Pose Model.
+
+        This function processes an input image to track and analyze human poses for workout monitoring. It uses
+        the YOLO Pose model to detect keypoints, estimate angles, and count repetitions based on predefined
+        angle thresholds.
 
         Args:
-            im0 (ndarray): The input image that will be used for processing
-        Returns
-            im0 (ndarray): The processed image for more usage
+            im0 (ndarray): Input image for processing.
+
+        Returns:
+            (ndarray): Processed image with annotations for workout monitoring.
+
+        Examples:
+            >>> gym = AIGym()
+            >>> image = cv2.imread("workout.jpg")
+            >>> processed_image = gym.monitor(image)
         """
         # Extract tracks
         tracks = self.model.track(source=im0, persist=True, classes=self.CFG["classes"])[0]

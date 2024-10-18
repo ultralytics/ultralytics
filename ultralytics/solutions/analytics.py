@@ -12,10 +12,41 @@ from ultralytics.solutions.solutions import BaseSolution  # Import a parent clas
 
 
 class Analytics(BaseSolution):
-    """A class to create and update various types of charts (line, bar, pie, area) for visual analytics."""
+    """
+    A class for creating and updating various types of charts for visual analytics.
+
+    This class extends BaseSolution to provide functionality for generating line, bar, pie, and area charts
+    based on object detection and tracking data.
+
+    Attributes:
+        type (str): The type of analytics chart to generate ('line', 'bar', 'pie', or 'area').
+        x_label (str): Label for the x-axis.
+        y_label (str): Label for the y-axis.
+        bg_color (str): Background color of the chart frame.
+        fg_color (str): Foreground color of the chart frame.
+        title (str): Title of the chart window.
+        max_points (int): Maximum number of data points to display on the chart.
+        fontsize (int): Font size for text display.
+        color_cycle (cycle): Cyclic iterator for chart colors.
+        total_counts (int): Total count of detected objects (used for line charts).
+        clswise_count (Dict[str, int]): Dictionary for class-wise object counts.
+        fig (Figure): Matplotlib figure object for the chart.
+        ax (Axes): Matplotlib axes object for the chart.
+        canvas (FigureCanvas): Canvas for rendering the chart.
+
+    Methods:
+        process_data: Processes image data and updates the chart.
+        update_graph: Updates the chart with new data points.
+
+    Examples:
+        >>> analytics = Analytics(analytics_type="line")
+        >>> frame = cv2.imread("image.jpg")
+        >>> processed_frame = analytics.process_data(frame, frame_number=1)
+        >>> cv2.imshow("Analytics", processed_frame)
+    """
 
     def __init__(self, **kwargs):
-        """Initialize the Analytics class with various chart types."""
+        """Initialize Analytics class with various chart types for visual data representation."""
         super().__init__(**kwargs)
 
         self.type = self.CFG["analytics_type"]  # extract type of analytics
@@ -31,8 +62,8 @@ class Analytics(BaseSolution):
         figsize = (19.2, 10.8)  # Set output image size 1920 * 1080
         self.color_cycle = cycle(["#DD00BA", "#042AFF", "#FF4447", "#7D24FF", "#BD00FF"])
 
-        self.total_counts = 0  # count variable for storing total counts i.e for line
-        self.clswise_count = {}  # dictionary for classwise counts
+        self.total_counts = 0  # count variable for storing total counts i.e. for line
+        self.clswise_count = {}  # dictionary for class-wise counts
 
         # Ensure line and area chart
         if self.type in {"line", "area"}:
@@ -48,15 +79,28 @@ class Analytics(BaseSolution):
             self.canvas = FigureCanvas(self.fig)  # Set common axis properties
             self.ax.set_facecolor(self.bg_color)
             self.color_mapping = {}
-            self.ax.axis("equal") if self.type == "pie" else None  # Ensure pie chart is circular
+
+            if self.type == "pie":  # Ensure pie chart is circular
+                self.ax.axis("equal")
 
     def process_data(self, im0, frame_number):
         """
-        Process the image data, run object tracking.
+        Processes image data and runs object tracking to update analytics charts.
 
         Args:
-            im0 (ndarray): Input image for processing.
-            frame_number (int): Video frame # for plotting the data.
+            im0 (np.ndarray): Input image for processing.
+            frame_number (int): Video frame number for plotting the data.
+
+        Returns:
+            (np.ndarray): Processed image with updated analytics chart.
+
+        Raises:
+            ModuleNotFoundError: If an unsupported chart type is specified.
+
+        Examples:
+            >>> analytics = Analytics(analytics_type="line")
+            >>> frame = np.zeros((480, 640, 3), dtype=np.uint8)
+            >>> processed_frame = analytics.process_data(frame, frame_number=1)
         """
         self.extract_tracks(im0)  # Extract tracks
 
@@ -79,13 +123,22 @@ class Analytics(BaseSolution):
 
     def update_graph(self, frame_number, count_dict=None, plot="line"):
         """
-        Update the graph (line or area) with new data for single or multiple classes.
+        Updates the graph with new data for single or multiple classes.
 
         Args:
             frame_number (int): The current frame number.
-            count_dict (dict, optional): Dictionary with class names as keys and counts as values for multiple classes.
-                                          If None, updates a single line graph.
-            plot (str): Type of the plot i.e. line, bar or area.
+            count_dict (Dict[str, int] | None): Dictionary with class names as keys and counts as values for multiple
+                classes. If None, updates a single line graph.
+            plot (str): Type of the plot. Options are 'line', 'bar', 'pie', or 'area'.
+
+        Returns:
+            (np.ndarray): Updated image containing the graph.
+
+        Examples:
+            >>> analytics = Analytics()
+            >>> frame_number = 10
+            >>> count_dict = {"person": 5, "car": 3}
+            >>> updated_image = analytics.update_graph(frame_number, count_dict, plot="bar")
         """
         if count_dict is None:
             # Single line update

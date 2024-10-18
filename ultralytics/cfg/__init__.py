@@ -508,7 +508,7 @@ def handle_yolo_hub(args: List[str]) -> None:
 
     Examples:
         ```bash
-        yolo hub login YOUR_API_KEY
+        yolo login YOUR_API_KEY
         ```
 
     Notes:

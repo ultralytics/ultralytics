@@ -732,7 +732,7 @@ class Exporter:
                     "DLA requires either 'half=True' (FP16) or 'int8=True' (INT8) to be enabled. Please enable one of them and try again."
                 )
             config.default_device_type = trt.DeviceType.DLA
-            config.DLA_core = self.dla_core
+            config.DLA_core = int(self.dla_core)
             config.set_flag(trt.BuilderFlag.GPU_FALLBACK)
 
         # Read ONNX file

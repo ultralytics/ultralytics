@@ -296,7 +296,7 @@ The following Jetson devices are equipped with DLA hardware:
         model = YOLO("yolov8n.pt")
 
         # Export the model to TensorRT with DLA enabled (only works with FP16 or INT8)
-        model.export(format="engine", dla=0, half=True)  # dla=0 or dla=1 corresponds to the DLA cores
+        model.export(format="engine", device="dla:0", half=True)  # dla:0 or dla:1 corresponds to the DLA cores
 
         # Load the exported TensorRT model
         trt_model = YOLO("yolov8n.engine")

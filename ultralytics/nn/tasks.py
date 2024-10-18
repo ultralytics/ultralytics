@@ -90,9 +90,32 @@ except ImportError:
     thop = None
 
 
+def torchfx():
+    try:
+        from torch.fx._symbolic_trace import is_fx_tracing
+    except ModuleNotFoundError:  # 1.x torch versions does not have this module.
+        is_fx_tracing = None
+
+    def decorator(func):
+        """Decorator to apply temporary rc parameters and backend to a function."""
+
+        def wrapper(self, x, *args, **kwargs):
+            """Sets rc parameters and backend, calls the original function, and restores the settings."""
+            if is_fx_tracing is not None and is_fx_tracing():
+                result = func(self, x=x)  # torch.fx does not work with `*args` and `**kwargs` function argument
+            else:
+                result = func(self, x=x, *args, **kwargs)
+            return result
+
+        return wrapper
+
+    return decorator
+
+
 class BaseModel(nn.Module):
     """The BaseModel class serves as a base class for all the models in the Ultralytics YOLO family."""
 
+    @torchfx()
     def forward(self, x, *args, **kwargs):
         """
         Perform forward pass of the model for either training or inference.

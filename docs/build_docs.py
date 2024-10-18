@@ -199,7 +199,7 @@ def convert_plaintext_links_to_html(content):
         for text_node in paragraph.find_all(string=True, recursive=False):
             if text_node.parent.name not in {"a", "code"}:  # Ignore links and code blocks
                 new_text = re.sub(
-                    r'(https?://[^\s()<>]+(?:\.[^\s()<>]+)+)(?<![.,:;\'"])',
+                    r'\b(https?://(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(?:/[a-zA-Z0-9\-._~:/?#[\]@!$&\'()*+,;=%]*)?)(?<![.,:;\'"])',
                     r'<a href="\1">\1</a>',
                     str(text_node),
                 )
@@ -226,7 +226,7 @@ def remove_macros():
     # Create a set of indices to remove (including lines before and after)
     indices_to_remove = set()
     for i in macros_indices:
-        indices_to_remove.update(range(i - 1, i + 4))  # i-1, i, i+1, i+2, i+3
+        indices_to_remove.update(range(i - 1, i + 3))  # i-1, i, i+1, i+2, i+3
 
     # Create new list of lines, excluding the ones to remove
     new_lines = [line for i, line in enumerate(lines) if i not in indices_to_remove]

@@ -46,6 +46,7 @@ val: True # (bool) validate/test during training
 split: val # (str) dataset split to use for validation, i.e. 'val', 'test' or 'train'
 save_json: False # (bool) save results to JSON file
 save_hybrid: False # (bool) save hybrid version of labels (labels + additional predictions)
+save_dir: # (str) path to directory to save results to.
 conf: # (float, optional) object confidence threshold for detection (default 0.25 predict, 0.001 val)
 iou: 0.7 # (float) intersection over union (IoU) threshold for NMS
 max_det: 300 # (int) maximum number of detections per image

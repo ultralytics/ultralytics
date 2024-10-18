@@ -56,7 +56,7 @@ class SpeedEstimator(BaseSolution):
             )
 
             # Calculate object speed and direction based on region intersection
-            if self.LineString([self.trk_pp[track_id], self.track_line[-1]]).intersects(self.l_s):
+            if self.LineString([self.trk_pp[track_id], self.track_line[-1]]).intersects(self.r_s):
                 direction = "known"
             else:
                 direction = "unknown"

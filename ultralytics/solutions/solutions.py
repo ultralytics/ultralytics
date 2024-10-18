@@ -83,9 +83,6 @@ class BaseSolution:
         if self.region is None:
             self.region = [(20, 400), (1080, 404), (1080, 360), (20, 360)]
         self.r_s = self.Polygon(self.region) if len(self.region) >= 3 else self.LineString(self.region)  # region
-        self.l_s = self.LineString(
-            [(self.region[0][0], self.region[0][1]), (self.region[1][0], self.region[1][1])]
-        )  # line
 
     def display_output(self, im0):
         """

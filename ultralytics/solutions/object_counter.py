@@ -50,7 +50,7 @@ class ObjectCounter(BaseSolution):
                 self.out_count += 1
                 self.classwise_counts[self.names[cls]]["OUT"] += 1
 
-        elif len(self.region) < 3 and self.LineString([prev_position, box[:2]]).intersects(self.l_s):
+        elif len(self.region) < 3 and self.LineString([prev_position, box[:2]]).intersects(self.r_s):
             self.counted_ids.append(track_id)
             # For linear region
             if dx > 0 and dy > 0:

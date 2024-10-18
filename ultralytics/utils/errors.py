@@ -37,3 +37,5 @@ class DatasetError(Exception):
         """Create an exception for when a dataset is not found or corrupted."""
         message = f"{message}\n \n If you're looking for assistance in building your dataset, be sure to explore the official documentation at: https://docs.ultralytics.com/datasets."
         super().__init__(emojis(message))
+
+DatasetError.__module__ = 'Ultralytics'   # To have Ultralytics.DatasetError

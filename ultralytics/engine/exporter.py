@@ -194,6 +194,10 @@ class Exporter:
         is_tf_format = any((saved_model, pb, tflite, edgetpu, tfjs))
 
         # Device
+        if fmt == "engine" and "dla" in self.args.device:
+            self.dla = True
+            self.dla_core = self.args.device.split(":")[-1]
+            self.args.device = "0"
         if fmt == "engine" and self.args.device is None:
             LOGGER.warning("WARNING ⚠️ TensorRT requires GPU export, automatically assigning device=0")
             self.args.device = "0"
@@ -719,17 +723,16 @@ class Exporter:
         int8 = builder.platform_has_fast_int8 and self.args.int8
 
         # Optionally switch to DLA if enabled
-        if isinstance(self.device, str) and "dla" in self.device:
+        if self.dla:
             if not IS_JETSON:
                 raise ValueError("DLA is only available on NVIDIA Jetson devices")
-            core = self.device.split(":")[-1]
-            LOGGER.info(f"{prefix} enabling DLA on core {core}...")
+            LOGGER.info(f"{prefix} enabling DLA on core {self.dla_core}...")
             if not self.args.half and not self.args.int8:
                 raise ValueError(
                     "DLA requires either 'half=True' (FP16) or 'int8=True' (INT8) to be enabled. Please enable one of them and try again."
                 )
             config.default_device_type = trt.DeviceType.DLA
-            config.DLA_core = core
+            config.DLA_core = self.dla_core
             config.set_flag(trt.BuilderFlag.GPU_FALLBACK)
 
         # Read ONNX file

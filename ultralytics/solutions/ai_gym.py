@@ -7,10 +7,10 @@ from ultralytics.utils.plotting import Annotator
 class AIGym(BaseSolution):
     """
     A class to manage gym steps of people in a real-time video stream based on their poses.
-    
+
     This class extends BaseSolution to monitor workouts using YOLO pose estimation models. It tracks and counts
     repetitions of exercises based on predefined angle thresholds for up and down positions.
-    
+
     Attributes:
         count (List[int]): Repetition counts for each detected person.
         angle (List[float]): Current angle of the tracked body part for each person.
@@ -21,10 +21,10 @@ class AIGym(BaseSolution):
         kpts (List[int]): Indices of keypoints used for angle calculation.
         lw (int): Line width for drawing annotations.
         annotator (Annotator): Object for drawing annotations on the image.
-    
+
     Methods:
         monitor: Processes a frame to detect poses, calculate angles, and count repetitions.
-    
+
     Examples:
         >>> gym = AIGym(model="yolov8n-pose.pt")
         >>> image = cv2.imread("gym_scene.jpg")
@@ -56,20 +56,20 @@ class AIGym(BaseSolution):
     def monitor(self, im0):
         """
         Monitors workouts using Ultralytics YOLO Pose Model.
-        
+
         This function processes an input image to track and analyze human poses for workout monitoring. It uses
         the YOLO Pose model to detect keypoints, estimate angles, and count repetitions based on predefined
         angle thresholds.
-        
+
         Args:
             im0 (ndarray): Input image for processing.
-        
+
         Returns:
             (ndarray): Processed image with annotations for workout monitoring.
-        
+
         Examples:
             >>> gym = AIGym()
-            >>> image = cv2.imread('workout.jpg')
+            >>> image = cv2.imread("workout.jpg")
             >>> processed_image = gym.monitor(image)
         """
         # Extract tracks

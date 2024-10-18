@@ -11,10 +11,10 @@ from ultralytics.utils.plotting import Annotator, colors
 class SpeedEstimator(BaseSolution):
     """
     A class to estimate the speed of objects in a real-time video stream based on their tracks.
-    
+
     This class extends the BaseSolution class and provides functionality for estimating object speeds using
     tracking data in video streams.
-    
+
     Attributes:
         spd (Dict[int, float]): Dictionary storing speed data for tracked objects.
         trkd_ids (List[int]): List of tracked object IDs that have already been speed-estimated.
@@ -24,19 +24,19 @@ class SpeedEstimator(BaseSolution):
         region (List[Tuple[int, int]]): List of points defining the speed estimation region.
         track_line (List[Tuple[float, float]]): List of points representing the object's track.
         r_s (LineString): LineString object representing the speed estimation region.
-    
+
     Methods:
         initialize_region: Initializes the speed estimation region.
         estimate_speed: Estimates the speed of objects based on tracking data.
         store_tracking_history: Stores the tracking history for an object.
         extract_tracks: Extracts tracks from the current frame.
         display_output: Displays the output with annotations.
-    
+
     Examples:
         >>> estimator = SpeedEstimator()
-        >>> frame = cv2.imread('frame.jpg')
+        >>> frame = cv2.imread("frame.jpg")
         >>> processed_frame = estimator.estimate_speed(frame)
-        >>> cv2.imshow('Speed Estimation', processed_frame)
+        >>> cv2.imshow("Speed Estimation", processed_frame)
     """
 
     def __init__(self, **kwargs):
@@ -53,13 +53,13 @@ class SpeedEstimator(BaseSolution):
     def estimate_speed(self, im0):
         """
         Estimates the speed of objects based on tracking data.
-        
+
         Args:
             im0 (np.ndarray): Input image for processing. Shape is typically (H, W, C) for RGB images.
-        
+
         Returns:
             (np.ndarray): Processed image with speed estimations and annotations.
-        
+
         Examples:
             >>> estimator = SpeedEstimator()
             >>> image = np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8)

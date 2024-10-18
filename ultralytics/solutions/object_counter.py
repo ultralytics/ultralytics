@@ -7,10 +7,10 @@ from ultralytics.utils.plotting import Annotator, colors
 class ObjectCounter(BaseSolution):
     """
     A class to manage the counting of objects in a real-time video stream based on their tracks.
-    
+
     This class extends the BaseSolution class and provides functionality for counting objects moving in and out of a
     specified region in a video stream. It supports both polygonal and linear regions for counting.
-    
+
     Attributes:
         in_count (int): Counter for objects moving inward.
         out_count (int): Counter for objects moving outward.
@@ -19,16 +19,16 @@ class ObjectCounter(BaseSolution):
         region_initialized (bool): Flag indicating whether the counting region has been initialized.
         show_in (bool): Flag to control display of inward count.
         show_out (bool): Flag to control display of outward count.
-    
+
     Methods:
         count_objects: Counts objects within a polygonal or linear region.
         store_classwise_counts: Initializes class-wise counts if not already present.
         display_counts: Displays object counts on the frame.
         count: Processes input data (frames or object tracks) and updates counts.
-    
+
     Examples:
         >>> counter = ObjectCounter()
-        >>> frame = cv2.imread('frame.jpg')
+        >>> frame = cv2.imread("frame.jpg")
         >>> processed_frame = counter.count(frame)
         >>> print(f"Inward count: {counter.in_count}, Outward count: {counter.out_count}")
     """
@@ -49,14 +49,14 @@ class ObjectCounter(BaseSolution):
     def count_objects(self, track_line, box, track_id, prev_position, cls):
         """
         Counts objects within a polygonal or linear region based on their tracks.
-        
+
         Args:
             track_line (Dict): Last 30 frame track record for the object.
             box (List[float]): Bounding box coordinates [x1, y1, x2, y2] for the specific track in the current frame.
             track_id (int): Unique identifier for the tracked object.
             prev_position (Tuple[float, float]): Last frame position coordinates (x, y) of the track.
             cls (int): Class index for classwise count updates.
-        
+
         Examples:
             >>> counter = ObjectCounter()
             >>> track_line = {1: [100, 200], 2: [110, 210], 3: [120, 220]}
@@ -96,13 +96,13 @@ class ObjectCounter(BaseSolution):
     def store_classwise_counts(self, cls):
         """
         Initialize class-wise counts for a specific object class if not already present.
-        
+
         Args:
             cls (int): Class index for classwise count updates.
-        
+
         This method ensures that the 'classwise_counts' dictionary contains an entry for the specified class,
         initializing 'IN' and 'OUT' counts to zero if the class is not already present.
-        
+
         Examples:
             >>> counter = ObjectCounter()
             >>> counter.store_classwise_counts(0)  # Initialize counts for class index 0
@@ -115,13 +115,13 @@ class ObjectCounter(BaseSolution):
     def display_counts(self, im0):
         """
         Displays object counts on the input image or frame.
-        
+
         Args:
             im0 (numpy.ndarray): The input image or frame to display counts on.
-        
+
         Examples:
             >>> counter = ObjectCounter()
-            >>> frame = cv2.imread('image.jpg')
+            >>> frame = cv2.imread("image.jpg")
             >>> counter.display_counts(frame)
         """
         labels_dict = {
@@ -137,19 +137,19 @@ class ObjectCounter(BaseSolution):
     def count(self, im0):
         """
         Processes input data (frames or object tracks) and updates object counts.
-        
+
         This method initializes the counting region, extracts tracks, draws bounding boxes and regions, updates
         object counts, and displays the results on the input image.
-        
+
         Args:
             im0 (numpy.ndarray): The input image or frame to be processed.
-        
+
         Returns:
             (numpy.ndarray): The processed image with annotations and count information.
-        
+
         Examples:
             >>> counter = ObjectCounter()
-            >>> frame = cv2.imread('path/to/image.jpg')
+            >>> frame = cv2.imread("path/to/image.jpg")
             >>> processed_frame = counter.count(frame)
         """
         if not self.region_initialized:

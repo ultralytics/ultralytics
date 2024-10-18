@@ -12,10 +12,10 @@ from ultralytics.utils.plotting import Annotator
 class ParkingPtsSelection:
     """
     A class for selecting and managing parking zone points on images using a Tkinter-based UI.
-    
+
     This class provides functionality to upload an image, select points to define parking zones, and save the
     selected points to a JSON file. It uses Tkinter for the graphical user interface.
-    
+
     Attributes:
         tk (module): The Tkinter module for GUI operations.
         filedialog (module): Tkinter's filedialog module for file selection operations.
@@ -30,7 +30,7 @@ class ParkingPtsSelection:
         imgh (int): Original height of the uploaded image.
         canvas_max_width (int): Maximum width of the canvas.
         canvas_max_height (int): Maximum height of the canvas.
-    
+
     Methods:
         setup_ui: Sets up the Tkinter UI components.
         initialize_properties: Initializes the necessary properties.
@@ -40,7 +40,7 @@ class ParkingPtsSelection:
         remove_last_bounding_box: Removes the last bounding box and redraws the canvas.
         redraw_canvas: Redraws the canvas with the image and all bounding boxes.
         save_to_json: Saves the bounding boxes to a JSON file.
-    
+
     Examples:
         >>> parking_selector = ParkingPtsSelection()
         >>> # Use the GUI to upload an image, select parking zones, and save the data
@@ -150,10 +150,10 @@ class ParkingPtsSelection:
 class ParkingManagement(BaseSolution):
     """
     Manages parking occupancy and availability using YOLO model for real-time monitoring and visualization.
-    
+
     This class extends BaseSolution to provide functionality for parking lot management, including detection of
     occupied spaces, visualization of parking regions, and display of occupancy statistics.
-    
+
     Attributes:
         json_file (str): Path to the JSON file containing parking region details.
         json (List[Dict]): Loaded JSON data containing parking region information.
@@ -161,14 +161,14 @@ class ParkingManagement(BaseSolution):
         arc (Tuple[int, int, int]): RGB color tuple for available region visualization.
         occ (Tuple[int, int, int]): RGB color tuple for occupied region visualization.
         dc (Tuple[int, int, int]): RGB color tuple for centroid visualization of detected objects.
-    
+
     Methods:
         process_data: Processes model data for parking lot management and visualization.
-    
+
     Examples:
         >>> from ultralytics.solutions import ParkingManagement
-        >>> parking_manager = ParkingManagement(model='yolov8n.pt', json_file='parking_regions.json')
-        >>> results = parking_manager(source='parking_lot_video.mp4')
+        >>> parking_manager = ParkingManagement(model="yolov8n.pt", json_file="parking_regions.json")
+        >>> results = parking_manager(source="parking_lot_video.mp4")
         >>> print(f"Occupied spaces: {parking_manager.pr_info['Occupancy']}")
         >>> print(f"Available spaces: {parking_manager.pr_info['Available']}")
     """
@@ -194,17 +194,17 @@ class ParkingManagement(BaseSolution):
     def process_data(self, im0):
         """
         Processes the model data for parking lot management.
-        
+
         This function analyzes the input image, extracts tracks, and determines the occupancy status of parking
         regions defined in the JSON file. It annotates the image with occupied and available parking spots,
         and updates the parking information.
-        
+
         Args:
             im0 (np.ndarray): The input inference image.
-        
+
         Examples:
-            >>> parking_manager = ParkingManagement(json_file='parking_regions.json')
-            >>> image = cv2.imread('parking_lot.jpg')
+            >>> parking_manager = ParkingManagement(json_file="parking_regions.json")
+            >>> image = cv2.imread("parking_lot.jpg")
             >>> parking_manager.process_data(image)
         """
         self.extract_tracks(im0)  # extract tracks from im0

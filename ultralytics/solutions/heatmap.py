@@ -10,28 +10,28 @@ from ultralytics.utils.plotting import Annotator
 class Heatmap(ObjectCounter):
     """
     A class to draw heatmaps in real-time video streams based on object tracks.
-    
+
     This class extends the ObjectCounter class to generate and visualize heatmaps of object movements in video
     streams. It uses tracked object positions to create a cumulative heatmap effect over time.
-    
+
     Attributes:
         initialized (bool): Flag indicating whether the heatmap has been initialized.
         colormap (int): OpenCV colormap used for heatmap visualization.
         heatmap (np.ndarray): Array storing the cumulative heatmap data.
         annotator (Annotator): Object for drawing annotations on the image.
-    
+
     Methods:
         heatmap_effect: Calculates and updates the heatmap effect for a given bounding box.
         generate_heatmap: Generates and applies the heatmap effect to each frame.
-    
+
     Examples:
         >>> from ultralytics.solutions import Heatmap
-        >>> heatmap = Heatmap(model='yolov8n.pt', colormap=cv2.COLORMAP_JET)
-        >>> results = heatmap('path/to/video.mp4')
+        >>> heatmap = Heatmap(model="yolov8n.pt", colormap=cv2.COLORMAP_JET)
+        >>> results = heatmap("path/to/video.mp4")
         >>> for result in results:
         ...     print(result.speed)  # Print inference speed
-        ...     cv2.imshow('Heatmap', result.plot())
-        ...     if cv2.waitKey(1) & 0xFF == ord('q'):
+        ...     cv2.imshow("Heatmap", result.plot())
+        ...     if cv2.waitKey(1) & 0xFF == ord("q"):
         ...         break
     """
 
@@ -49,10 +49,10 @@ class Heatmap(ObjectCounter):
     def heatmap_effect(self, box):
         """
         Efficiently calculates heatmap area and effect location for applying colormap.
-        
+
         Args:
             box (List[float]): Bounding box coordinates [x0, y0, x1, y1].
-        
+
         Examples:
             >>> heatmap = Heatmap()
             >>> box = [100, 100, 200, 200]
@@ -76,16 +76,16 @@ class Heatmap(ObjectCounter):
     def generate_heatmap(self, im0):
         """
         Generate heatmap for each frame using Ultralytics.
-        
+
         Args:
             im0 (np.ndarray): Input image array for processing.
-        
+
         Returns:
             (np.ndarray): Processed image with heatmap overlay and object counts (if region is specified).
-        
+
         Examples:
             >>> heatmap = Heatmap()
-            >>> im0 = cv2.imread('image.jpg')
+            >>> im0 = cv2.imread("image.jpg")
             >>> result = heatmap.generate_heatmap(im0)
         """
         if not self.initialized:
@@ -115,9 +115,15 @@ class Heatmap(ObjectCounter):
 
         # Normalize, apply colormap to heatmap and combine with original image
         if self.track_data.id is not None:
-            im0 = cv2.addWeighted(im0, 0.5, cv2.applyColorMap(
-                cv2.normalize(self.heatmap, None, 0, 255, cv2.NORM_MINMAX).astype(np.uint8), self.colormap),
-                                  0.5, 0,)
+            im0 = cv2.addWeighted(
+                im0,
+                0.5,
+                cv2.applyColorMap(
+                    cv2.normalize(self.heatmap, None, 0, 255, cv2.NORM_MINMAX).astype(np.uint8), self.colormap
+                ),
+                0.5,
+                0,
+            )
 
         self.display_output(im0)  # display output with base class function
         return im0  # return output image for more usage

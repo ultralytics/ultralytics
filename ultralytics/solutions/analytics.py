@@ -14,10 +14,10 @@ from ultralytics.solutions.solutions import BaseSolution  # Import a parent clas
 class Analytics(BaseSolution):
     """
     A class for creating and updating various types of charts for visual analytics.
-    
+
     This class extends BaseSolution to provide functionality for generating line, bar, pie, and area charts
     based on object detection and tracking data.
-    
+
     Attributes:
         type (str): The type of analytics chart to generate ('line', 'bar', 'pie', or 'area').
         x_label (str): Label for the x-axis.
@@ -33,16 +33,16 @@ class Analytics(BaseSolution):
         fig (Figure): Matplotlib figure object for the chart.
         ax (Axes): Matplotlib axes object for the chart.
         canvas (FigureCanvas): Canvas for rendering the chart.
-    
+
     Methods:
         process_data: Processes image data and updates the chart.
         update_graph: Updates the chart with new data points.
-    
+
     Examples:
-        >>> analytics = Analytics(analytics_type='line')
-        >>> frame = cv2.imread('image.jpg')
+        >>> analytics = Analytics(analytics_type="line")
+        >>> frame = cv2.imread("image.jpg")
         >>> processed_frame = analytics.process_data(frame, frame_number=1)
-        >>> cv2.imshow('Analytics', processed_frame)
+        >>> cv2.imshow("Analytics", processed_frame)
     """
 
     def __init__(self, **kwargs):
@@ -84,19 +84,19 @@ class Analytics(BaseSolution):
     def process_data(self, im0, frame_number):
         """
         Processes image data and runs object tracking to update analytics charts.
-        
+
         Args:
             im0 (np.ndarray): Input image for processing.
             frame_number (int): Video frame number for plotting the data.
-        
+
         Returns:
             (np.ndarray): Processed image with updated analytics chart.
-        
+
         Raises:
             ModuleNotFoundError: If an unsupported chart type is specified.
-        
+
         Examples:
-            >>> analytics = Analytics(analytics_type='line')
+            >>> analytics = Analytics(analytics_type="line")
             >>> frame = np.zeros((480, 640, 3), dtype=np.uint8)
             >>> processed_frame = analytics.process_data(frame, frame_number=1)
         """
@@ -122,21 +122,21 @@ class Analytics(BaseSolution):
     def update_graph(self, frame_number, count_dict=None, plot="line"):
         """
         Updates the graph with new data for single or multiple classes.
-        
+
         Args:
             frame_number (int): The current frame number.
             count_dict (Dict[str, int] | None): Dictionary with class names as keys and counts as values for multiple
                 classes. If None, updates a single line graph.
             plot (str): Type of the plot. Options are 'line', 'bar', 'pie', or 'area'.
-        
+
         Returns:
             (np.ndarray): Updated image containing the graph.
-        
+
         Examples:
             >>> analytics = Analytics()
             >>> frame_number = 10
-            >>> count_dict = {'person': 5, 'car': 3}
-            >>> updated_image = analytics.update_graph(frame_number, count_dict, plot='bar')
+            >>> count_dict = {"person": 5, "car": 3}
+            >>> updated_image = analytics.update_graph(frame_number, count_dict, plot="bar")
         """
         if count_dict is None:
             # Single line update

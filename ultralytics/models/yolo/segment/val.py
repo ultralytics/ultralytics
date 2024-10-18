@@ -26,6 +26,14 @@ class SegmentationValidator(DetectionValidator):
         validator = SegmentationValidator(args=args)
         validator()
         ```
+
+        ```python
+        from ultralytics.models.yolo.segment import SegmentationValidator
+
+        args = dict(model="yolov8n-seg.pt", data="coco8-seg.yaml", eval_backend="faster_coco_eval")
+        validator = SegmentationValidator(args=args)
+        validator()
+        ```
     """
 
     def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None):
@@ -33,6 +41,7 @@ class SegmentationValidator(DetectionValidator):
         super().__init__(dataloader, save_dir, pbar, args, _callbacks)
         self.plot_masks = None
         self.process = None
+        self.eval_backend = self.args.get("eval_backend", "pycocotools")
         self.args.task = "segment"
         self.metrics = SegmentMetrics(save_dir=self.save_dir, on_plot=self.on_plot)
 
@@ -47,7 +56,11 @@ class SegmentationValidator(DetectionValidator):
         super().init_metrics(model)
         self.plot_masks = []
         if self.args.save_json:
-            check_requirements("pycocotools>=2.0.6")
+            if self.eval_backend == "faster_coco_eval":
+                check_requirements("faster-coco-eval>=1.6.3")
+            else:
+                check_requirements("pycocotools>=2.0.6")
+
         # more accurate vs faster
         self.process = ops.process_mask_native if self.args.save_json or self.args.save_txt else ops.process_mask
         self.stats = dict(tp_m=[], tp=[], conf=[], pred_cls=[], target_cls=[], target_img=[])
@@ -293,12 +306,22 @@ class SegmentationValidator(DetectionValidator):
         if self.args.save_json and self.is_coco and len(self.jdict):
             anno_json = self.data["path"] / "annotations/instances_val2017.json"  # annotations
             pred_json = self.save_dir / "predictions.json"  # predictions
-            LOGGER.info(f"\nEvaluating pycocotools mAP using {pred_json} and {anno_json}...")
             try:  # https://github.com/cocodataset/cocoapi/blob/master/PythonAPI/pycocoEvalDemo.ipynb
-                check_requirements("pycocotools>=2.0.6")
-                from pycocotools.coco import COCO  # noqa
-                from pycocotools.cocoeval import COCOeval  # noqa
+                if self.eval_backend == "faster_coco_eval":
+                    pkg = "faster-coco-eval"
+                    check_requirements("faster-coco-eval>=1.6.3")
+                else:
+                    pkg = "pycocotools"
+                    check_requirements("pycocotools>=2.0.6")
 
+                LOGGER.info(f"\nEvaluating {pkg} mAP using {pred_json} and {anno_json}...")
+
+                if self.eval_backend == "faster_coco_eval":
+                    from faster_coco_eval import COCO, COCOeval_faster as COCOeval
+                else:
+                    from pycocotools.coco import COCO  # noqa
+                    from pycocotools.cocoeval import COCOeval  # noqa
+                
                 for x in anno_json, pred_json:
                     assert x.is_file(), f"{x} file not found"
                 anno = COCO(str(anno_json))  # init annotations api

@@ -26,6 +26,14 @@ class DetectionValidator(BaseValidator):
         validator = DetectionValidator(args=args)
         validator()
         ```
+
+        ```python
+        from ultralytics.models.yolo.detect import DetectionValidator
+
+        args = dict(model="yolo11n.pt", data="coco8.yaml", eval_backend="faster_coco_eval")
+        validator = DetectionValidator(args=args)
+        validator()
+        ```
     """
 
     def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None):
@@ -35,6 +43,7 @@ class DetectionValidator(BaseValidator):
         self.nt_per_image = None
         self.is_coco = False
         self.is_lvis = False
+        self.eval_backend = self.args.get("eval_backend", "pycocotools")
         self.class_map = None
         self.args.task = "detect"
         self.metrics = DetMetrics(save_dir=self.save_dir, on_plot=self.on_plot)
@@ -304,30 +313,43 @@ class DetectionValidator(BaseValidator):
                 / "annotations"
                 / ("instances_val2017.json" if self.is_coco else f"lvis_v1_{self.args.split}.json")
             )  # annotations
-            pkg = "pycocotools" if self.is_coco else "lvis"
+            
+            if self.eval_backend == "faster_coco_eval":
+                pkg = "faster-coco-eval"
+                check_requirements("faster-coco-eval>=1.6.3")
+            else:
+                pkg = "pycocotools" if self.is_coco else "lvis"
+                check_requirements("pycocotools>=2.0.6" if self.is_coco else "lvis>=0.5.3")
+
             LOGGER.info(f"\nEvaluating {pkg} mAP using {pred_json} and {anno_json}...")
             try:  # https://github.com/cocodataset/cocoapi/blob/master/PythonAPI/pycocoEvalDemo.ipynb
                 for x in pred_json, anno_json:
                     assert x.is_file(), f"{x} file not found"
-                check_requirements("pycocotools>=2.0.6" if self.is_coco else "lvis>=0.5.3")
-                if self.is_coco:
-                    from pycocotools.coco import COCO  # noqa
-                    from pycocotools.cocoeval import COCOeval  # noqa
+                if self.eval_backend == "faster_coco_eval":
+                    from faster_coco_eval import COCO, COCOeval_faster
 
                     anno = COCO(str(anno_json))  # init annotations api
                     pred = anno.loadRes(str(pred_json))  # init predictions api (must pass string, not Path)
-                    val = COCOeval(anno, pred, "bbox")
+                    val = COCOeval_faster(anno, pred, "bbox", lvis_style=self.is_lvis)
                 else:
-                    from lvis import LVIS, LVISEval
+                    if self.is_coco:
+                        from pycocotools.coco import COCO  # noqa
+                        from pycocotools.cocoeval import COCOeval  # noqa
 
-                    anno = LVIS(str(anno_json))  # init annotations api
-                    pred = anno._load_json(str(pred_json))  # init predictions api (must pass string, not Path)
-                    val = LVISEval(anno, pred, "bbox")
+                        anno = COCO(str(anno_json))  # init annotations api
+                        pred = anno.loadRes(str(pred_json))  # init predictions api (must pass string, not Path)
+                        val = COCOeval(anno, pred, "bbox")
+                    else:
+                        from lvis import LVIS, LVISEval
+
+                        anno = LVIS(str(anno_json))  # init annotations api
+                        pred = anno._load_json(str(pred_json))  # init predictions api (must pass string, not Path)
+                        val = LVISEval(anno, pred, "bbox")
                 val.params.imgIds = [int(Path(x).stem) for x in self.dataloader.dataset.im_files]  # images to eval
                 val.evaluate()
                 val.accumulate()
                 val.summarize()
-                if self.is_lvis:
+                if self.is_lvis and (self.eval_backend != "faster_coco_eval"):
                     val.print_results()  # explicitly call print_results
                 # update mAP50-95 and mAP50
                 stats[self.metrics.keys[-1]], stats[self.metrics.keys[-2]] = (

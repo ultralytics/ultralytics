@@ -17,10 +17,15 @@ def test_major_solutions():
     cap = cv2.VideoCapture("solutions_ci_demo.mp4")
     assert cap.isOpened(), "Error reading video file"
     region_points = [(20, 400), (1080, 404), (1080, 360), (20, 360)]
-    counter = solutions.ObjectCounter(region=region_points, model="yolo11n.pt", show=False)
-    heatmap = solutions.Heatmap(colormap=cv2.COLORMAP_PARULA, model="yolo11n.pt", show=False)
-    speed = solutions.SpeedEstimator(region=region_points, model="yolo11n.pt", show=False)
-    queue = solutions.QueueManager(region=region_points, model="yolo11n.pt", show=False)
+    counter = solutions.ObjectCounter(region=region_points, model="yolo11n.pt", show=False)     # Test object counter
+    heatmap = solutions.Heatmap(colormap=cv2.COLORMAP_PARULA, model="yolo11n.pt", show=False)   # Test heatmaps
+    speed = solutions.SpeedEstimator(region=region_points, model="yolo11n.pt", show=False)  # Test queue manager
+    queue = solutions.QueueManager(region=region_points, model="yolo11n.pt", show=False)    # Test speed estimation
+    line_analytics = solutions.Analytics(analytics_type="line", model="yolo11n.pt", show=False)  # line analytics
+    pie_analytics = solutions.Analytics(analytics_type="pie", model="yolo11n.pt", show=False)  # line analytics
+    bar_analytics = solutions.Analytics(analytics_type="bar", model="yolo11n.pt", show=False)  # line analytics
+    area_analytics = solutions.Analytics(analytics_type="area", model="yolo11n.pt", show=False)  # line analytics
+    frame_count = 0     # Required for analytics
     while cap.isOpened():
         success, im0 = cap.read()
         if not success:
@@ -30,6 +35,10 @@ def test_major_solutions():
         _ = heatmap.generate_heatmap(original_im0.copy())
         _ = speed.estimate_speed(original_im0.copy())
         _ = queue.process_queue(original_im0.copy())
+        _ = line_analytics.process_data(original_im0.copy(), frame_count)
+        _ = pie_analytics.process_data(original_im0.copy(), frame_count)
+        _ = bar_analytics.process_data(original_im0.copy(), frame_count)
+        _ = area_analytics.process_data(original_im0.copy(), frame_count)
     cap.release()
     cv2.destroyAllWindows()
 
@@ -48,6 +57,18 @@ def test_aigym():
         _ = gym.monitor(im0)
     cap.release()
     cv2.destroyAllWindows()
+
+
+@pytest.mark.slow
+def test_analytics():
+    """Test the ultralytics analytics solution."""
+    cap = cv2.VideoCapture("solutions_ci_demo.mp4")
+    assert cap.isOpened(), "Error reading video file"
+    while cap.isOpened():
+        success, im0 = cap.read()
+        if not success:
+            break
+        original_im0 = im0.copy()
 
 
 @pytest.mark.slow

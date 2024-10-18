@@ -935,6 +935,9 @@ class Results(SimpleClass):
 
         return json.dumps(self.summary(normalize=normalize, decimals=decimals), indent=2)
 
+    def to_dict(self, normalize=False, decimals=5):
+        return self.summary(normalize=normalize, decimals=decimals)
+
 
 class Boxes(BaseTensor):
     """

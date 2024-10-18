@@ -82,7 +82,7 @@ class BaseSolution:
         """Initialize the counting region and line segment based on config."""
         if self.region is None:
             self.region = [(20, 400), (1080, 404), (1080, 360), (20, 360)]
-        self.r_s = self.Polygon(self.region) if len(self.region) >= 3 else self.LineString(self.region)  # region
+        self.r_s = self.Polygon(self.region) if len(self.region) >= 3 else self.LineString(self.region)  # region or line
 
     def display_output(self, im0):
         """

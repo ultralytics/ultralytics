@@ -8,10 +8,35 @@ from ultralytics.utils.plotting import Annotator
 
 
 class Heatmap(ObjectCounter):
-    """A class to draw heatmaps in real-time video stream based on their tracks."""
+    """
+    A class to draw heatmaps in real-time video streams based on object tracks.
+    
+    This class extends the ObjectCounter class to generate and visualize heatmaps of object movements in video
+    streams. It uses tracked object positions to create a cumulative heatmap effect over time.
+    
+    Attributes:
+        initialized (bool): Flag indicating whether the heatmap has been initialized.
+        colormap (int): OpenCV colormap used for heatmap visualization.
+        heatmap (np.ndarray): Array storing the cumulative heatmap data.
+        annotator (Annotator): Object for drawing annotations on the image.
+    
+    Methods:
+        heatmap_effect: Calculates and updates the heatmap effect for a given bounding box.
+        generate_heatmap: Generates and applies the heatmap effect to each frame.
+    
+    Examples:
+        >>> from ultralytics.solutions import Heatmap
+        >>> heatmap = Heatmap(model='yolov8n.pt', colormap=cv2.COLORMAP_JET)
+        >>> results = heatmap('path/to/video.mp4')
+        >>> for result in results:
+        ...     print(result.speed)  # Print inference speed
+        ...     cv2.imshow('Heatmap', result.plot())
+        ...     if cv2.waitKey(1) & 0xFF == ord('q'):
+        ...         break
+    """
 
     def __init__(self, **kwargs):
-        """Initializes function for heatmap class with default values."""
+        """Initializes the Heatmap class for real-time video stream heatmap generation based on object tracks."""
         super().__init__(**kwargs)
 
         self.initialized = False  # bool variable for heatmap initialization
@@ -23,10 +48,15 @@ class Heatmap(ObjectCounter):
 
     def heatmap_effect(self, box):
         """
-        Efficient calculation of heatmap area and effect location for applying colormap.
-
+        Efficiently calculates heatmap area and effect location for applying colormap.
+        
         Args:
-            box (list): Bounding Box coordinates data [x0, y0, x1, y1]
+            box (List[float]): Bounding box coordinates [x0, y0, x1, y1].
+        
+        Examples:
+            >>> heatmap = Heatmap()
+            >>> box = [100, 100, 200, 200]
+            >>> heatmap.heatmap_effect(box)
         """
         x0, y0, x1, y1 = map(int, box)
         radius_squared = (min(x1 - x0, y1 - y0) // 2) ** 2
@@ -46,11 +76,17 @@ class Heatmap(ObjectCounter):
     def generate_heatmap(self, im0):
         """
         Generate heatmap for each frame using Ultralytics.
-
+        
         Args:
-            im0 (ndarray): Input image array for processing
+            im0 (np.ndarray): Input image array for processing.
+        
         Returns:
-            im0 (ndarray): Processed image for further usage
+            (np.ndarray): Processed image with heatmap overlay and object counts (if region is specified).
+        
+        Examples:
+            >>> heatmap = Heatmap()
+            >>> im0 = cv2.imread('image.jpg')
+            >>> result = heatmap.generate_heatmap(im0)
         """
         if not self.initialized:
             self.heatmap = np.zeros_like(im0, dtype=np.float32) * 0.99

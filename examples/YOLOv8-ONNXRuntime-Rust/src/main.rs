@@ -6,7 +6,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Args::parse();
 
     // 1. load image
-    let x = image::io::Reader::open(&args.source)?
+    let x = image::ImageReader::open(&args.source)?
         .with_guessed_format()?
         .decode()?;
 

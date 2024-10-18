@@ -4,7 +4,6 @@ import json
 
 import cv2
 import numpy as np
-from PIL import Image, ImageTk
 
 from ultralytics.solutions.solutions import LOGGER, BaseSolution, check_requirements
 from ultralytics.utils.plotting import Annotator
@@ -37,6 +36,7 @@ class ParkingPtsSelection:
         # Button frame with buttons
         button_frame = self.tk.Frame(self.master)
         button_frame.pack(side=self.tk.TOP)
+
         for text, cmd in [
             ("Upload Image", self.upload_image),
             ("Remove Last BBox", self.remove_last_bounding_box),
@@ -53,6 +53,8 @@ class ParkingPtsSelection:
 
     def upload_image(self):
         """Uploads an image, resizes it to fit the canvas, and displays it."""
+        from PIL import Image, ImageTk  # scope because ImageTk requires tkinter package
+
         self.image = Image.open(self.filedialog.askopenfilename(filetypes=[("Image Files", "*.png;*.jpg;*.jpeg")]))
         if not self.image:
             return
@@ -67,14 +69,11 @@ class ParkingPtsSelection:
         )
 
         self.canvas.config(width=canvas_width, height=canvas_height)
-        self.display_image(canvas_width, canvas_height)
-        self.rg_data.clear(), self.current_box.clear()
-
-    def display_image(self, width, height):
-        """Displays the resized image on the canvas."""
-        self.canvas_image = ImageTk.PhotoImage(self.image.resize((width, height), Image.LANCZOS))
+        self.canvas_image = ImageTk.PhotoImage(self.image.resize((canvas_width, canvas_height), Image.LANCZOS))
         self.canvas.create_image(0, 0, anchor=self.tk.NW, image=self.canvas_image)
         self.canvas.bind("<Button-1>", self.on_canvas_click)
+
+        self.rg_data.clear(), self.current_box.clear()
 
     def on_canvas_click(self, event):
         """Handles mouse clicks to add points for bounding boxes."""

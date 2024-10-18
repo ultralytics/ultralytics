@@ -91,7 +91,9 @@ class QueueManager(BaseSolution):
             track_history = self.track_history.get(track_id, [])
 
             # store previous position of track and check if the object is inside the counting region
-            prev_position = track_history[-2] if len(track_history) > 1 else None
+            prev_position = None
+            if len(track_history) > 1:
+                prev_position = track_history[-2]
             if self.region_length >= 3 and prev_position and self.r_s.contains(self.Point(self.track_line[-1])):
                 self.counts += 1
 

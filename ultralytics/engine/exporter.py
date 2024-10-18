@@ -194,9 +194,10 @@ class Exporter:
         is_tf_format = any((saved_model, pb, tflite, edgetpu, tfjs))
 
         # Device
+        dla = None
         if fmt == "engine" and "dla" in self.args.device:
-            self.dla = True
-            self.dla_core = self.args.device.split(":")[-1]
+            dla = self.args.device.split(":")[-1]
+            assert dla in ["0", "1"], f"Expected dla=0 or 1, but got {dla}"
             self.args.device = "0"
         if fmt == "engine" and self.args.device is None:
             LOGGER.warning("WARNING ⚠️ TensorRT requires GPU export, automatically assigning device=0")
@@ -313,7 +314,7 @@ class Exporter:
         if jit or ncnn:  # TorchScript
             f[0], _ = self.export_torchscript()
         if engine:  # TensorRT required before ONNX
-            f[1], _ = self.export_engine()
+            f[1], _ = self.export_engine(dla=dla)
         if onnx:  # ONNX
             f[2], _ = self.export_onnx()
         if xml:  # OpenVINO
@@ -686,7 +687,7 @@ class Exporter:
         return f, ct_model
 
     @try_export
-    def export_engine(self, prefix=colorstr("TensorRT:")):
+    def export_engine(self, prefix=colorstr("TensorRT:"), dla=None):
         """YOLO TensorRT export https://developer.nvidia.com/tensorrt."""
         assert self.im.device.type != "cpu", "export running on CPU but must be on GPU, i.e. use 'device=0'"
         f_onnx, _ = self.export_onnx()  # run before TRT import https://github.com/ultralytics/ultralytics/issues/7016
@@ -723,16 +724,16 @@ class Exporter:
         int8 = builder.platform_has_fast_int8 and self.args.int8
 
         # Optionally switch to DLA if enabled
-        if self.dla:
+        if dla is not None:
             if not IS_JETSON:
                 raise ValueError("DLA is only available on NVIDIA Jetson devices")
-            LOGGER.info(f"{prefix} enabling DLA on core {self.dla_core}...")
+            LOGGER.info(f"{prefix} enabling DLA on core {dla}...")
             if not self.args.half and not self.args.int8:
                 raise ValueError(
                     "DLA requires either 'half=True' (FP16) or 'int8=True' (INT8) to be enabled. Please enable one of them and try again."
                 )
             config.default_device_type = trt.DeviceType.DLA
-            config.DLA_core = int(self.dla_core)
+            config.DLA_core = int(dla)
             config.set_flag(trt.BuilderFlag.GPU_FALLBACK)
 
         # Read ONNX file

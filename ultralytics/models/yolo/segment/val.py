@@ -317,11 +317,12 @@ class SegmentationValidator(DetectionValidator):
                 LOGGER.info(f"\nEvaluating {pkg} mAP using {pred_json} and {anno_json}...")
 
                 if self.eval_backend == "faster_coco_eval":
-                    from faster_coco_eval import COCO, COCOeval_faster as COCOeval
+                    from faster_coco_eval import COCO
+                    from faster_coco_eval import COCOeval_faster as COCOeval
                 else:
                     from pycocotools.coco import COCO  # noqa
                     from pycocotools.cocoeval import COCOeval  # noqa
-                
+
                 for x in anno_json, pred_json:
                     assert x.is_file(), f"{x} file not found"
                 anno = COCO(str(anno_json))  # init annotations api

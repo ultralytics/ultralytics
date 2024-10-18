@@ -266,7 +266,7 @@ class PoseValidator(DetectionValidator):
         if self.args.save_json and self.is_coco and len(self.jdict):
             anno_json = self.data["path"] / "annotations/person_keypoints_val2017.json"  # annotations
             pred_json = self.save_dir / "predictions.json"  # predictions
-            
+
             try:  # https://github.com/cocodataset/cocoapi/blob/master/PythonAPI/pycocoEvalDemo.ipynb
                 if self.eval_backend == "faster_coco_eval":
                     pkg = "faster-coco-eval"
@@ -274,11 +274,12 @@ class PoseValidator(DetectionValidator):
                 else:
                     pkg = "pycocotools"
                     check_requirements("pycocotools>=2.0.6")
-                
+
                 LOGGER.info(f"\nEvaluating {pkg} mAP using {pred_json} and {anno_json}...")
 
                 if self.eval_backend == "faster_coco_eval":
-                    from faster_coco_eval import COCO, COCOeval_faster as COCOeval
+                    from faster_coco_eval import COCO
+                    from faster_coco_eval import COCOeval_faster as COCOeval
                 else:
                     from pycocotools.coco import COCO  # noqa
                     from pycocotools.cocoeval import COCOeval  # noqa

@@ -313,7 +313,7 @@ class DetectionValidator(BaseValidator):
                 / "annotations"
                 / ("instances_val2017.json" if self.is_coco else f"lvis_v1_{self.args.split}.json")
             )  # annotations
-            
+
             if self.eval_backend == "faster_coco_eval":
                 pkg = "faster-coco-eval"
                 check_requirements("faster-coco-eval>=1.6.3")

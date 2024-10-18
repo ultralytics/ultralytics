@@ -107,6 +107,7 @@ def inference(model=None):
             if not success:
                 st.warning("Failed to read frame from webcam. Please make sure the webcam is connected properly.")
                 break
+
             prev_time = time.time()  # Store initial time for FPS calculation
 
             # Store model predictions

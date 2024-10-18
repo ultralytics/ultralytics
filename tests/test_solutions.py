@@ -45,7 +45,7 @@ def test_major_solutions():
     safe_download(url=WORKOUTS_SOLUTION_DEMO)
     cap1 = cv2.VideoCapture("solution_ci_pose_demo.mp4")
     assert cap1.isOpened(), "Error reading video file"
-    gym = solutions.AIGym(line_width=2, kpts=[5, 11, 13])
+    gym = solutions.AIGym(line_width=2, kpts=[5, 11, 13], show=False)
     while cap1.isOpened():
         success, im0 = cap1.read()
         if not success:

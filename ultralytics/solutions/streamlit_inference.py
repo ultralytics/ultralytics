@@ -107,8 +107,7 @@ def inference(model=None):
             if not success:
                 st.warning("Failed to read frame from webcam. Please make sure the webcam is connected properly.")
                 break
-
-            prev_time = time.time()
+            prev_time = time.time()  # Store initial time for FPS calculation
 
             # Store model predictions
             if enable_trk == "Yes":
@@ -120,7 +119,6 @@ def inference(model=None):
             # Calculate model FPS
             curr_time = time.time()
             fps = 1 / (curr_time - prev_time)
-            prev_time = curr_time
 
             # display frame
             org_frame.image(frame, channels="BGR")

@@ -15,10 +15,10 @@ DEFAULT_SOL_CFG_PATH = Path(__file__).resolve().parents[1] / "cfg/solutions/defa
 class BaseSolution:
     """
     A base class for managing Ultralytics Solutions.
-    
+
     This class provides core functionality for various Ultralytics Solutions, including model loading, object tracking,
     and region initialization.
-    
+
     Attributes:
         LineString (shapely.geometry.LineString): Class for creating line string geometries.
         Polygon (shapely.geometry.Polygon): Class for creating polygon geometries.
@@ -30,17 +30,17 @@ class BaseSolution:
         names (Dict[int, str]): Dictionary mapping class indices to class names.
         env_check (bool): Flag indicating whether the environment supports image display.
         track_history (collections.defaultdict): Dictionary to store tracking history for each object.
-    
+
     Methods:
         extract_tracks: Apply object tracking and extract tracks from an input image.
         store_tracking_history: Store object tracking history for a given track ID and bounding box.
         initialize_region: Initialize the counting region and line segment based on configuration.
         display_output: Display the results of processing, including showing frames or saving results.
-    
+
     Examples:
-        >>> solution = BaseSolution(model='yolov8n.pt', region=[(0, 0), (100, 0), (100, 100), (0, 100)])
+        >>> solution = BaseSolution(model="yolov8n.pt", region=[(0, 0), (100, 0), (100, 100), (0, 100)])
         >>> solution.initialize_region()
-        >>> image = cv2.imread('image.jpg')
+        >>> image = cv2.imread("image.jpg")
         >>> solution.extract_tracks(image)
         >>> solution.display_output(image)
     """
@@ -73,13 +73,13 @@ class BaseSolution:
     def extract_tracks(self, im0):
         """
         Applies object tracking and extracts tracks from an input image or frame.
-        
+
         Args:
             im0 (ndarray): The input image or frame.
-        
+
         Examples:
             >>> solution = BaseSolution()
-            >>> frame = cv2.imread('path/to/image.jpg')
+            >>> frame = cv2.imread("path/to/image.jpg")
             >>> solution.extract_tracks(frame)
         """
         self.tracks = self.model.track(source=im0, persist=True, classes=self.CFG["classes"])
@@ -98,14 +98,14 @@ class BaseSolution:
     def store_tracking_history(self, track_id, box):
         """
         Stores the tracking history of an object.
-        
+
         This method updates the tracking history for a given object by appending the center point of its
         bounding box to the track line. It maintains a maximum of 30 points in the tracking history.
-        
+
         Args:
             track_id (int): The unique identifier for the tracked object.
             box (List[float]): The bounding box coordinates of the object in the format [x1, y1, x2, y2].
-        
+
         Examples:
             >>> solution = BaseSolution()
             >>> solution.store_tracking_history(1, [100, 200, 300, 400])
@@ -127,18 +127,18 @@ class BaseSolution:
     def display_output(self, im0):
         """
         Display the results of the processing, which could involve showing frames, printing counts, or saving results.
-        
+
         This method is responsible for visualizing the output of the object detection and tracking process. It displays
         the processed frame with annotations, and allows for user interaction to close the display.
-        
+
         Args:
             im0 (numpy.ndarray): The input image or frame that has been processed and annotated.
-        
+
         Examples:
             >>> solution = BaseSolution()
-            >>> frame = cv2.imread('path/to/image.jpg')
+            >>> frame = cv2.imread("path/to/image.jpg")
             >>> solution.display_output(frame)
-        
+
         Notes:
             - This method will only display output if the 'show' configuration is set to True and the environment
               supports image display.

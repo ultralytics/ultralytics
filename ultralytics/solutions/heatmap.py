@@ -106,22 +106,18 @@ class Heatmap(ObjectCounter):
                 self.store_classwise_counts(cls)  # store classwise counts in dict
 
                 # Store tracking previous position and perform object counting
-                prev_position = self.track_history[track_id][-2] if len(self.track_history[track_id]) > 1 else None
+                if len(self.track_history[track_id]) > 1:
+                    prev_position = self.track_history[track_id][-2]
                 self.count_objects(self.track_line, box, track_id, prev_position, cls)  # Perform object counting
 
-        self.display_counts(im0) if self.region is not None else None  # Display the counts on the frame
+        if self.region is not None:
+            self.display_counts(im0)  # Display the counts on the frame
 
         # Normalize, apply colormap to heatmap and combine with original image
         if self.track_data.id is not None:
-            im0 = cv2.addWeighted(
-                im0,
-                0.5,
-                cv2.applyColorMap(
-                    cv2.normalize(self.heatmap, None, 0, 255, cv2.NORM_MINMAX).astype(np.uint8), self.colormap
-                ),
-                0.5,
-                0,
-            )
+            im0 = cv2.addWeighted(im0, 0.5, cv2.applyColorMap(
+                cv2.normalize(self.heatmap, None, 0, 255, cv2.NORM_MINMAX).astype(np.uint8), self.colormap),
+                                  0.5, 0,)
 
         self.display_output(im0)  # display output with base class function
         return im0  # return output image for more usage

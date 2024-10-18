@@ -60,18 +60,6 @@ def test_aigym():
 
 
 @pytest.mark.slow
-def test_analytics():
-    """Test the ultralytics analytics solution."""
-    cap = cv2.VideoCapture("solutions_ci_demo.mp4")
-    assert cap.isOpened(), "Error reading video file"
-    while cap.isOpened():
-        success, im0 = cap.read()
-        if not success:
-            break
-        original_im0 = im0.copy()
-
-
-@pytest.mark.slow
 def test_instance_segmentation():
     """Test the instance segmentation solution."""
     from ultralytics.utils.plotting import Annotator, colors

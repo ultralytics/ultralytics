@@ -8,7 +8,7 @@ use rand::{thread_rng, Rng};
 use std::path::PathBuf;
 
 use crate::{
-    gen_time_string, non_max_suppression, Args, Batch, Bbox, Embedding, OrtBackend,
+    load_font, gen_time_string, non_max_suppression, Args, Batch, Bbox, Embedding, OrtBackend,
     OrtConfig, OrtEP, Point2, YOLOResult, YOLOTask, SKELETON,
 };
 
@@ -418,7 +418,7 @@ impl YOLOv8 {
         skeletons: Option<&[(usize, usize)]>,
     ) {
         // check font then load
-        let font: FontArc = FontArc::try_from_slice(include_bytes!("ARIALN.TTF")).expect("can't open this font");
+        let font: FontArc = load_font();
         for (_idb, (img0, y)) in xs0.iter().zip(ys.iter()).enumerate() {
             let mut img = img0.to_rgb8();
 

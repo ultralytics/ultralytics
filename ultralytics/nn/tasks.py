@@ -870,8 +870,9 @@ def torch_safe_load(weight, safe_only=False):
             # Model is likely using a Detect head prior to 8.3.0
             LOGGER.warning(
                 f"WARNING ⚠️ '{weight}' appears to be a YOLO model trained with ultralytics<8.3.0. "
-                f"Training this model with ultralytics>=8.3.0 will use the updated YOLO11 head instead of original head."
-                f"The pretrained weights of the last layer will not be transferred during training, and the number of parameters and GFLOPs will differ from the original. "
+                f"Training this model with ultralytics>=8.3.0 will use the updated YOLO11 head instead of "
+                f"the original head. The pretrained weights of the last layer will not be transferred during "
+                f"training, and the number of parameters and GFLOPs will differ from the original."
             )
 
     return ckpt, file

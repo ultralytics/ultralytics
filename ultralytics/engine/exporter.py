@@ -398,7 +398,7 @@ class Exporter:
         """YOLO ONNX export."""
         requirements = ["onnx>=1.12.0"]
         if self.args.simplify:
-            requirements += ["onnxslim", "onnxruntime" + ("-gpu" if torch.cuda.is_available() else "")]
+            requirements += ["onnxslim"]
         check_requirements(requirements)
         import onnx  # noqa
 

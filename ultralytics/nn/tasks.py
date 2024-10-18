@@ -864,6 +864,17 @@ def torch_safe_load(weight, safe_only=False):
         )
         ckpt = {"model": ckpt.model}
 
+    if isinstance(ckpt["model"].model[-1], Detect):
+        l = ckpt["model"].model[-1].cv3
+        if not any([isinstance(m[1], DWConv) for m in l.named_modules()]):
+            # Model is likely using a Detect head prior to 8.3.0
+            LOGGER.warning(
+                f"WARNING ⚠️ '{weight}' appears to be a YOLO model trained with ultralytics<8.3.0. "
+                f"Training this model with ultralytics>=8.3.0 will use the updated YOLO11 head instead of original head."
+                f"The pretrained weights of the last layer will not be transfered during training, and the number of parameters and GFLOPs will differ from the original. "
+            )
+
+
     return ckpt, file
 
 

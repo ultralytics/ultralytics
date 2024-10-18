@@ -44,6 +44,10 @@ This table provides an at-a-glance view of the capabilities of each YOLOv3 varia
 
 This example provides simple YOLOv3 training and inference examples. For full documentation on these and other [modes](../modes/index.md) see the [Predict](../modes/predict.md), [Train](../modes/train.md), [Val](../modes/val.md) and [Export](../modes/export.md) docs pages.
 
+!!! warning
+
+    Training YOLOv3 with `ultralytics>=8.3.0` will make use of an updated head based on YOLO11. This means the number of parameters and GFLOPs will be different from the original model, and the pretrained weights for the final layer will not get transfered during training. If you wish to train using the original head, you would need to use `ultralytics<8.3.0`.
+
 !!! example
 
     === "Python"

@@ -129,6 +129,10 @@ This example provides simple YOLOv8 training and inference examples. For full do
 
 Note the below example is for YOLOv8 [Detect](../tasks/detect.md) models for object detection. For additional supported tasks see the [Segment](../tasks/segment.md), [Classify](../tasks/classify.md), [OBB](../tasks/obb.md) docs and [Pose](../tasks/pose.md) docs.
 
+!!! warning
+
+    Training YOLOv8 with `ultralytics>=8.3.0` will make use of an updated head based on YOLO11. This means the number of parameters and GFLOPs will be different from the original model, and the pretrained weights for the final layer will not get transfered during training. If you wish to train using the original head, you would need to use `ultralytics<8.3.0`.
+
 !!! example
 
     === "Python"

@@ -36,6 +36,10 @@ YOLOv6 also provides quantized models for different [precisions](https://www.ult
 
 This example provides simple YOLOv6 training and inference examples. For full documentation on these and other [modes](../modes/index.md) see the [Predict](../modes/predict.md), [Train](../modes/train.md), [Val](../modes/val.md) and [Export](../modes/export.md) docs pages.
 
+!!! warning
+
+    Training YOLOv6 with `ultralytics>=8.3.0` will make use of an updated head based on YOLO11. This means the number of parameters and GFLOPs will be different from the original model, and the pretrained weights for the final layer will not get transfered during training. If you wish to train using the original head, you would need to use `ultralytics<8.3.0`.
+
 !!! example
 
     === "Python"

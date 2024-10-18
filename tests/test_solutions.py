@@ -17,15 +17,15 @@ def test_major_solutions():
     cap = cv2.VideoCapture("solutions_ci_demo.mp4")
     assert cap.isOpened(), "Error reading video file"
     region_points = [(20, 400), (1080, 404), (1080, 360), (20, 360)]
-    counter = solutions.ObjectCounter(region=region_points, model="yolo11n.pt", show=False)     # Test object counter
-    heatmap = solutions.Heatmap(colormap=cv2.COLORMAP_PARULA, model="yolo11n.pt", show=False)   # Test heatmaps
+    counter = solutions.ObjectCounter(region=region_points, model="yolo11n.pt", show=False)  # Test object counter
+    heatmap = solutions.Heatmap(colormap=cv2.COLORMAP_PARULA, model="yolo11n.pt", show=False)  # Test heatmaps
     speed = solutions.SpeedEstimator(region=region_points, model="yolo11n.pt", show=False)  # Test queue manager
-    queue = solutions.QueueManager(region=region_points, model="yolo11n.pt", show=False)    # Test speed estimation
+    queue = solutions.QueueManager(region=region_points, model="yolo11n.pt", show=False)  # Test speed estimation
     line_analytics = solutions.Analytics(analytics_type="line", model="yolo11n.pt", show=False)  # line analytics
     pie_analytics = solutions.Analytics(analytics_type="pie", model="yolo11n.pt", show=False)  # line analytics
     bar_analytics = solutions.Analytics(analytics_type="bar", model="yolo11n.pt", show=False)  # line analytics
     area_analytics = solutions.Analytics(analytics_type="area", model="yolo11n.pt", show=False)  # line analytics
-    frame_count = 0     # Required for analytics
+    frame_count = 0  # Required for analytics
     while cap.isOpened():
         success, im0 = cap.read()
         if not success:

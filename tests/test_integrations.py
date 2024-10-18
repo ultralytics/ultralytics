@@ -165,7 +165,8 @@ def test_faster_coco_eval():
         "data": "coco8.yaml",
         "save_json": True,
         "imgsz": 64,
-        "eval_backend": "faster_coco_eval", }
+        "eval_backend": "faster_coco_eval",
+    }
     validator = DetectionValidator(args=args)
     validator()
     validator.is_coco = True
@@ -177,7 +178,8 @@ def test_faster_coco_eval():
         "data": "coco8-seg.yaml",
         "save_json": True,
         "imgsz": 64,
-        "eval_backend": "faster_coco_eval", }
+        "eval_backend": "faster_coco_eval",
+    }
     validator = SegmentationValidator(args=args)
     validator()
     validator.is_coco = True
@@ -189,7 +191,8 @@ def test_faster_coco_eval():
         "data": "coco8-pose.yaml",
         "save_json": True,
         "imgsz": 64,
-        "eval_backend": "faster_coco_eval", }
+        "eval_backend": "faster_coco_eval",
+    }
     validator = PoseValidator(args=args)
     validator()
     validator.is_coco = True

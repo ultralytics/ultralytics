@@ -79,7 +79,9 @@ class Analytics(BaseSolution):
             self.canvas = FigureCanvas(self.fig)  # Set common axis properties
             self.ax.set_facecolor(self.bg_color)
             self.color_mapping = {}
-            self.ax.axis("equal") if self.type == "pie" else None  # Ensure pie chart is circular
+
+            if self.type == "pie":   # Ensure pie chart is circular
+                self.ax.axis("equal")
 
     def process_data(self, im0, frame_number):
         """

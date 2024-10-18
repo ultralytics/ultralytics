@@ -176,7 +176,9 @@ class ObjectCounter(BaseSolution):
             )
 
             # store previous position of track for object counting
-            prev_position = self.track_history[track_id][-2] if len(self.track_history[track_id]) > 1 else None
+            prev_position = None
+            if len(self.track_history[track_id]) > 1:
+                prev_position = self.track_history[track_id][-2]
             self.count_objects(self.track_line, box, track_id, prev_position, cls)  # Perform object counting
 
         self.display_counts(im0)  # Display the counts on the frame

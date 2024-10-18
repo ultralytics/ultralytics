@@ -11,7 +11,7 @@ from ultralytics.utils.downloads import GITHUB_ASSETS_STEMS
 
 
 def inference(model=None):
-    """Runs real-time object detection on video input using Ultralytics YOLO11 in a Streamlit application."""
+    """Performs real-time object detection on video input using YOLO in a Streamlit web application."""
     check_requirements("streamlit>=1.29.0")  # scope imports for faster ultralytics package load speeds
     import streamlit as st
 

@@ -96,9 +96,10 @@ extra: # version:
 
 extra_css:
   - stylesheets/style.css
+  - stylesheets/lite-yt-embed.css
 extra_javascript:
   - javascript/extra.js
-
+  - javascript/lite-yt-embed.js
 markdown_extensions:
   - admonition
   - md_in_html

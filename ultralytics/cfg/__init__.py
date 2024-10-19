@@ -8,7 +8,6 @@ from types import SimpleNamespace
 from typing import Dict, List, Union
 
 from ultralytics.data.utils import IMG_FORMATS
-from ultralytics.solutions.solutions import BaseSolution
 from ultralytics.utils import (
     ASSETS,
     DEFAULT_CFG,
@@ -780,6 +779,7 @@ def entrypoint(debug=""):
     if solution in SOLUTIONS:
         LOGGER.warning(f"'solution' {solution}.")
         overrides["mode"] = "predict"
+        overrides["task"] = "detect"
 
     # Mode
     mode = overrides.get("mode")
@@ -797,73 +797,75 @@ def entrypoint(debug=""):
         if "model" not in overrides:
             overrides["model"] = TASK2MODEL[task]
 
-    # Model
-    model = overrides.pop("model", DEFAULT_CFG.model)
-    if model is None:
-        model = "yolo11n.pt"
-        LOGGER.warning(f"WARNING ⚠️ 'model' argument is missing. Using default 'model={model}'.")
-    overrides["model"] = model
-    stem = Path(model).stem.lower()
-    if "rtdetr" in stem:  # guess architecture
-        from ultralytics import RTDETR
+    if solution is None:
+        # Model
+        model = overrides.pop("model", DEFAULT_CFG.model)
+        if model is None:
+            model = "yolo11n.pt"
+            LOGGER.warning(f"WARNING ⚠️ 'model' argument is missing. Using default 'model={model}'.")
+        overrides["model"] = model
+        stem = Path(model).stem.lower()
+        if "rtdetr" in stem:  # guess architecture
+            from ultralytics import RTDETR
 
-        model = RTDETR(model)  # no task argument
-    elif "fastsam" in stem:
-        from ultralytics import FastSAM
+            model = RTDETR(model)  # no task argument
+        elif "fastsam" in stem:
+            from ultralytics import FastSAM
 
-        model = FastSAM(model)
-    elif "sam_" in stem or "sam2_" in stem:
-        from ultralytics import SAM
+            model = FastSAM(model)
+        elif "sam_" in stem or "sam2_" in stem:
+            from ultralytics import SAM
 
-        model = SAM(model)
-    else:
-        from ultralytics import YOLO
+            model = SAM(model)
+        else:
+            from ultralytics import YOLO
 
-        model = YOLO(model, task=task)
-    if isinstance(overrides.get("pretrained"), str):
-        model.load(overrides["pretrained"])
+            model = YOLO(model, task=task)
+        if isinstance(overrides.get("pretrained"), str):
+            model.load(overrides["pretrained"])
 
-    # Task Update
-    if task != model.task:
-        if task:
-            LOGGER.warning(
-                f"WARNING ⚠️ conflicting 'task={task}' passed with 'task={model.task}' model. "
-                f"Ignoring 'task={task}' and updating to 'task={model.task}' to match model."
-            )
-        task = model.task
+        # Task Update
+        if task != model.task:
+            if task:
+                LOGGER.warning(
+                    f"WARNING ⚠️ conflicting 'task={task}' passed with 'task={model.task}' model. "
+                    f"Ignoring 'task={task}' and updating to 'task={model.task}' to match model."
+                )
+            task = model.task
 
     # Mode
-    if mode in {"predict", "track"} and "source" not in overrides:
-        overrides["source"] = DEFAULT_CFG.source or ASSETS
-        LOGGER.warning(f"WARNING ⚠️ 'source' argument is missing. Using default 'source={overrides['source']}'.")
-    elif mode in {"train", "val"}:
-        if "data" not in overrides and "resume" not in overrides:
-            overrides["data"] = DEFAULT_CFG.data or TASK2DATA.get(task or DEFAULT_CFG.task, DEFAULT_CFG.data)
-            LOGGER.warning(f"WARNING ⚠️ 'data' argument is missing. Using default 'data={overrides['data']}'.")
-    elif mode == "export":
-        if "format" not in overrides:
-            overrides["format"] = DEFAULT_CFG.format or "torchscript"
-            LOGGER.warning(f"WARNING ⚠️ 'format' argument is missing. Using default 'format={overrides['format']}'.")
+    if solution is None:
+        if mode in {"predict", "track"} and "source" not in overrides:
+            overrides["source"] = DEFAULT_CFG.source or ASSETS
+            LOGGER.warning(f"WARNING ⚠️ 'source' argument is missing. Using default 'source={overrides['source']}'.")
+        elif mode in {"train", "val"}:
+            if "data" not in overrides and "resume" not in overrides:
+                overrides["data"] = DEFAULT_CFG.data or TASK2DATA.get(task or DEFAULT_CFG.task, DEFAULT_CFG.data)
+                LOGGER.warning(f"WARNING ⚠️ 'data' argument is missing. Using default 'data={overrides['data']}'.")
+        elif mode == "export":
+            if "format" not in overrides:
+                overrides["format"] = DEFAULT_CFG.format or "torchscript"
+                LOGGER.warning(f"WARNING ⚠️ 'format' argument is missing. Using default 'format={overrides['format']}'.")
 
     # Run command in python
     if solution is None:
         getattr(model, mode)(**overrides)  # default args from model
     else:
-        if overrides["source"] in IMG_FORMATS:
-            print("Image Not supported!!!")
-            print("Downloading model!!!")
-        else:
-            import cv2
-            sol = ultralytics.solutions(IS_CLI=True)
-            cap = cv2.VideoCapture(overrides["source"])
-            solution = solutions.ObjectCounter(**full_args_dict)
-            while cap.isOpened():
-                s, f = cap.read()
-                if not s:
-                    break
-                cv2.imshow("test", f)
-                if cv2.waitKey(1) & 0xFF == ord("q"):
-                    break
+        import cv2
+        from ultralytics import solutions
+        cap = cv2.VideoCapture(overrides["source"])
+        # full_args_dict = dict(list(full_args_dict.items())[:15])
+        # sol = solutions.Heatmap(**full_args_dict)
+        while cap.isOpened():
+            s, f = cap.read()
+            if not s:
+                break
+            # f = sol.generate_heatmap(f)
+            cv2.imshow("F", f)
+            # Break the loop on 'q' key press
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                LOGGER.info("Quitting video stream.")
+                break
             cap.release()
             cv2.destroyAllWindows()
     # Show help

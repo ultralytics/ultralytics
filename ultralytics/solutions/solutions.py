@@ -45,7 +45,7 @@ class BaseSolution:
         >>> solution.display_output(image)
     """
 
-    def __init__(self, IS_CLI=False, **kwargs, ):
+    def __init__(self, **kwargs):
         """Initializes the BaseSolution class with configuration settings and YOLO model for Ultralytics solutions."""
         check_requirements("shapely>=2.0.0")
         from shapely.geometry import LineString, Point, Polygon
@@ -63,9 +63,8 @@ class BaseSolution:
         self.line_width = self.CFG["line_width"]  # Store line_width for usage
 
         # Load Model and store classes names
-        if not IS_CLI:
-            self.model = YOLO(self.CFG["model"])
-            self.names = self.model.names
+        self.model = YOLO(self.CFG["model"])
+        self.names = self.model.names
 
         # Initialize environment and region setup
         self.env_check = check_imshow(warn=True)

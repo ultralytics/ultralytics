@@ -203,9 +203,7 @@ def convert_plaintext_links_to_html(content):
                     r'<a href="\1">\1</a>',
                     str(text_node),
                 )
-
                 if "<a" in new_text:
-                    # text_node.replace_with(new_text)
                     new_soup = BeautifulSoup(new_text, "html.parser")
                     text_node.replace_with(new_soup)
                     modified = True

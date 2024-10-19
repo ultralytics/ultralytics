@@ -30,6 +30,9 @@ from ultralytics.utils import (
     yaml_print,
 )
 
+# Define solutions
+SOLUTIONS = {"count", "heatmaps", "queue", "speed", "distance"}
+
 # Define valid tasks and modes
 MODES = {"train", "val", "predict", "export", "track", "benchmark"}
 TASKS = {"detect", "segment", "classify", "pose", "obb"}
@@ -63,7 +66,7 @@ CLI_HELP_MSG = f"""
         yolo TASK MODE ARGS
 
         Where   TASK (optional) is one of {TASKS}
-                MODE (required) is one of {MODES}
+                MODE (required) is one of {MODES} or SOLUTIONS (required) is one of {SOLUTIONS}
                 ARGS (optional) are any number of custom 'arg=value' pairs like 'imgsz=320' that override defaults.
                     See all ARGS at https://docs.ultralytics.com/usage/cfg or with 'yolo cfg'
 
@@ -710,7 +713,13 @@ def entrypoint(debug=""):
         "copy-cfg": copy_default_cfg,
         "streamlit-predict": lambda: handle_streamlit_inference(),
     }
-    full_args_dict = {**DEFAULT_CFG_DICT, **{k: None for k in TASKS}, **{k: None for k in MODES}, **special}
+
+    # for Ultralytics solutions
+    from ultralytics.solutions.solutions import DEFAULT_SOL_CFG_PATH
+    DEFAULT_SOLUTION_CFG_DICT = yaml_load(DEFAULT_SOL_CFG_PATH)
+
+    full_args_dict = {**DEFAULT_CFG_DICT, **DEFAULT_SOLUTION_CFG_DICT, "solution": None, **{k: None for k in TASKS}, **{k: None for k in MODES}, **special}
+    print(full_args_dict)
 
     # Define common misuses of special commands, i.e. -h, -help, --help
     special.update({k[0]: v for k, v in special.items()})  # singular
@@ -740,6 +749,8 @@ def entrypoint(debug=""):
             overrides["task"] = a
         elif a in MODES:
             overrides["mode"] = a
+        elif a in SOLUTIONS:
+            overrides["solution"] = a
         elif a.lower() in special:
             special[a.lower()]()
             return
@@ -756,12 +767,18 @@ def entrypoint(debug=""):
     # Check keys
     check_dict_alignment(full_args_dict, overrides)
 
+    # SOLUTION
+    solution = overrides.get("solution")
+    if solution in SOLUTIONS:
+        LOGGER.warning(f"'solution' {solution}.")
+        overrides["mode"] = "predict"
+
     # Mode
     mode = overrides.get("mode")
     if mode is None:
         mode = DEFAULT_CFG.mode or "predict"
         LOGGER.warning(f"WARNING ⚠️ 'mode' argument is missing. Valid modes are {MODES}. Using default 'mode={mode}'.")
-    elif mode not in MODES:
+    elif mode not in MODES and solution not in SOLUTIONS:
         raise ValueError(f"Invalid 'mode={mode}'. Valid modes are {MODES}.\n{CLI_HELP_MSG}")
 
     # Task

@@ -776,28 +776,24 @@ def entrypoint(debug=""):
 
     # SOLUTION
     solution = overrides.get("solution")
-    if solution in SOLUTIONS:
-        LOGGER.warning(f"'solution' {solution}.")
-        overrides["mode"] = "predict"
-        overrides["task"] = "detect"
-
-    # Mode
-    mode = overrides.get("mode")
-    if mode is None:
-        mode = DEFAULT_CFG.mode or "predict"
-        LOGGER.warning(f"WARNING ⚠️ 'mode' argument is missing. Valid modes are {MODES}. Using default 'mode={mode}'.")
-    elif mode not in MODES:
-        raise ValueError(f"Invalid 'mode={mode}'. Valid modes are {MODES}.\n{CLI_HELP_MSG}")
-
-    # Task
-    task = overrides.pop("task", None)
-    if task:
-        if task not in TASKS:
-            raise ValueError(f"Invalid 'task={task}'. Valid tasks are {TASKS}.\n{CLI_HELP_MSG}")
-        if "model" not in overrides:
-            overrides["model"] = TASK2MODEL[task]
-
     if solution is None:
+        print("X This is not valid solution!!!")
+        # Mode
+        mode = overrides.get("mode")
+        if mode is None:
+            mode = DEFAULT_CFG.mode or "predict"
+            LOGGER.warning(f"WARNING ⚠️ 'mode' argument is missing. Valid modes are {MODES}. Using default 'mode={mode}'.")
+        elif mode not in MODES:
+            raise ValueError(f"Invalid 'mode={mode}'. Valid modes are {MODES}.\n{CLI_HELP_MSG}")
+
+        # Task
+        task = overrides.pop("task", None)
+        if task:
+            if task not in TASKS:
+                raise ValueError(f"Invalid 'task={task}'. Valid tasks are {TASKS}.\n{CLI_HELP_MSG}")
+            if "model" not in overrides:
+                overrides["model"] = TASK2MODEL[task]
+
         # Model
         model = overrides.pop("model", DEFAULT_CFG.model)
         if model is None:
@@ -833,8 +829,6 @@ def entrypoint(debug=""):
                 )
             task = model.task
 
-    # Mode
-    if solution is None:
         if mode in {"predict", "track"} and "source" not in overrides:
             overrides["source"] = DEFAULT_CFG.source or ASSETS
             LOGGER.warning(f"WARNING ⚠️ 'source' argument is missing. Using default 'source={overrides['source']}'.")
@@ -847,29 +841,32 @@ def entrypoint(debug=""):
                 overrides["format"] = DEFAULT_CFG.format or "torchscript"
                 LOGGER.warning(f"WARNING ⚠️ 'format' argument is missing. Using default 'format={overrides['format']}'.")
 
-    # Run command in python
-    if solution is None:
         getattr(model, mode)(**overrides)  # default args from model
+        # Show help
+        LOGGER.info(f"💡 Learn more at https://docs.ultralytics.com/modes/{mode}")
+
     else:
+        LOGGER.warning(f"'solution' {solution}.")
+        overrides["mode"] = "predict"
+        overrides["task"] = "detect"
         import cv2
         from ultralytics import solutions
         cap = cv2.VideoCapture(overrides["source"])
-        # full_args_dict = dict(list(full_args_dict.items())[:15])
-        # sol = solutions.Heatmap(**full_args_dict)
+        print("Video File : ", overrides["source"])
+        sol = solutions.Heatmap()
         while cap.isOpened():
             s, f = cap.read()
             if not s:
+                print(s)
                 break
-            # f = sol.generate_heatmap(f)
+            f = sol.generate_heatmap(f)
             cv2.imshow("F", f)
             # Break the loop on 'q' key press
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 LOGGER.info("Quitting video stream.")
                 break
-            cap.release()
-            cv2.destroyAllWindows()
-    # Show help
-    LOGGER.info(f"💡 Learn more at https://docs.ultralytics.com/modes/{mode}")
+        cap.release()
+        cv2.destroyAllWindows()
 
     # Recommend VS Code extension
     if IS_VSCODE and SETTINGS.get("vscode_msg", True):

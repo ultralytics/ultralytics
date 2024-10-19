@@ -82,8 +82,7 @@ class BaseSolution:
             >>> frame = cv2.imread("path/to/image.jpg")
             >>> solution.extract_tracks(frame)
         """
-        self.tracks = self.model.track(source=im0, persist=True, classes=self.CFG["classes"])
-
+        self.tracks = self.model.predict(source=im0, classes=self.CFG["classes"])
         # Extract tracks for OBB or object detection
         self.track_data = self.tracks[0].obb or self.tracks[0].boxes
 

@@ -18,7 +18,7 @@ Computer vision is a subfield of [artificial intelligence](https://www.ultralyti
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Do [Computer Vision](https://www.ultralytics.com/glossary/computer-vision-cv) Projects | A Step-by-Step Guide
+  <strong>Watch:</strong> How to Do <a href="https://www.ultralytics.com/glossary/computer-vision-cv">Computer Vision</a> Projects | A Step-by-Step Guide
 </p>
 
 Computer vision techniques like [object detection](../tasks/detect.md), [image classification](../tasks/classify.md), and [instance segmentation](../tasks/segment.md) can be applied across various industries, from [autonomous driving](https://www.ultralytics.com/solutions/ai-in-self-driving) to [medical imaging](https://www.ultralytics.com/solutions/ai-in-healthcare) to gain valuable insights.

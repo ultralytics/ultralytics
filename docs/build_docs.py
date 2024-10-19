@@ -200,11 +200,11 @@ def convert_plaintext_links_to_html(content):
             text_node_string = str(text_node)
             if text_node.parent.name not in {"a", "code"}:  # Ignore links and code blocks
                 new_text = re.sub(
-                    r'(https?://[^\s()<>]+)',
+                    r"(https?://[^\s()<>]+)",
                     r'<a href="\1">\1</a>',
                     text_node_string,
                 )
-                
+
                 if "<a" in new_text:
                     text_node.replace_with(new_text)
                     # new_soup = BeautifulSoup(new_text, "html.parser")
@@ -214,12 +214,11 @@ def convert_plaintext_links_to_html(content):
     return str(soup) if modified else content
 
 
-import re
 
 for text_node in paragraph.find_all(string=True, recursive=False):
     if text_node.parent.name not in {"a", "code"}:  # Ignore links and code blocks
         new_text = re.sub(
-            r'(https?://[^\s()<>]+)',
+            r"(https?://[^\s()<>]+)",
             r'<a href="\1">\1</a>',
             str(text_node),
         )

@@ -7,6 +7,8 @@ from pathlib import Path
 from types import SimpleNamespace
 from typing import Dict, List, Union
 
+from ultralytics.data.utils import IMG_FORMATS
+from ultralytics.solutions.solutions import BaseSolution
 from ultralytics.utils import (
     ASSETS,
     DEFAULT_CFG,
@@ -29,6 +31,10 @@ from ultralytics.utils import (
     yaml_load,
     yaml_print,
 )
+
+# For ultralytics solutions
+DEFAULT_SOL_CFG_PATH = Path(__file__).resolve().parents[1] / "cfg/solutions/default.yaml"
+DEFAULT_SOLUTION_CFG_DICT = yaml_load(DEFAULT_SOL_CFG_PATH)
 
 # Define solutions
 SOLUTIONS = {"count", "heatmaps", "queue", "speed", "distance"}
@@ -244,7 +250,14 @@ def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace] = DEFAULT_CFG_DICT, ove
           `project` and `name` to strings and validating configuration keys and values.
         - The function performs type and value checks on the configuration data.
     """
-    cfg = cfg2dict(cfg)
+
+    # Default solutions configuration
+    DEFAULT_SOL_CFG = IterableSimpleNamespace(**DEFAULT_SOLUTION_CFG_DICT)
+
+    # Convert both to dictionaries and merge them
+    merged_dict = {**cfg.__dict__, **DEFAULT_SOL_CFG.__dict__, "solution": None}
+    cfg = cfg2dict(IterableSimpleNamespace(**merged_dict))
+    print(cfg)
 
     # Merge overrides
     if overrides:
@@ -714,12 +727,7 @@ def entrypoint(debug=""):
         "streamlit-predict": lambda: handle_streamlit_inference(),
     }
 
-    # for Ultralytics solutions
-    from ultralytics.solutions.solutions import DEFAULT_SOL_CFG_PATH
-    DEFAULT_SOLUTION_CFG_DICT = yaml_load(DEFAULT_SOL_CFG_PATH)
-
     full_args_dict = {**DEFAULT_CFG_DICT, **DEFAULT_SOLUTION_CFG_DICT, "solution": None, **{k: None for k in TASKS}, **{k: None for k in MODES}, **special}
-    print(full_args_dict)
 
     # Define common misuses of special commands, i.e. -h, -help, --help
     special.update({k[0]: v for k, v in special.items()})  # singular
@@ -838,8 +846,26 @@ def entrypoint(debug=""):
             LOGGER.warning(f"WARNING ⚠️ 'format' argument is missing. Using default 'format={overrides['format']}'.")
 
     # Run command in python
-    getattr(model, mode)(**overrides)  # default args from model
-
+    if solution is None:
+        getattr(model, mode)(**overrides)  # default args from model
+    else:
+        if overrides["source"] in IMG_FORMATS:
+            print("Image Not supported!!!")
+            print("Downloading model!!!")
+        else:
+            import cv2
+            sol = ultralytics.solutions(IS_CLI=True)
+            cap = cv2.VideoCapture(overrides["source"])
+            solution = solutions.ObjectCounter(**full_args_dict)
+            while cap.isOpened():
+                s, f = cap.read()
+                if not s:
+                    break
+                cv2.imshow("test", f)
+                if cv2.waitKey(1) & 0xFF == ord("q"):
+                    break
+            cap.release()
+            cv2.destroyAllWindows()
     # Show help
     LOGGER.info(f"💡 Learn more at https://docs.ultralytics.com/modes/{mode}")
 

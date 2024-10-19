@@ -22,8 +22,7 @@ on:
   workflow_dispatch:
     inputs:
       publish_docs:
-        description: 'Publish live to gh-pages'
-        required: true
+        description: 'Publish live to https://docs.ultralytics.com'
         default: 'true'
         type: boolean
 

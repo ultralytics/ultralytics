@@ -199,7 +199,7 @@ def convert_plaintext_links_to_html(content):
         for text_node in paragraph.find_all(string=True, recursive=False):
             if text_node.parent.name not in {"a", "code"}:  # Ignore links and code blocks
                 new_text = re.sub(
-                    r'\b(https?://(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(?:/[a-zA-Z0-9\-._~:/?#[\]@!$&\'()*+,;=%]*)?)(?<![.,:;\'"])',
+                    r'(https?://[^\s()<>]+(?:\.[^\s()<>]+)+)(?<![.,:;\'"])',
                     r'<a href="\1">\1</a>',
                     str(text_node),
                 )

@@ -11,7 +11,7 @@ from ultralytics.utils.downloads import GITHUB_ASSETS_STEMS
 
 
 def inference(model=None):
-    """Runs real-time object detection on video input using Ultralytics YOLO11 in a Streamlit application."""
+    """Performs real-time object detection on video input using YOLO in a Streamlit web application."""
     check_requirements("streamlit>=1.29.0")  # scope imports for faster ultralytics package load speeds
     import streamlit as st
 
@@ -108,7 +108,7 @@ def inference(model=None):
                 st.warning("Failed to read frame from webcam. Please make sure the webcam is connected properly.")
                 break
 
-            prev_time = time.time()
+            prev_time = time.time()  # Store initial time for FPS calculation
 
             # Store model predictions
             if enable_trk == "Yes":
@@ -120,7 +120,6 @@ def inference(model=None):
             # Calculate model FPS
             curr_time = time.time()
             fps = 1 / (curr_time - prev_time)
-            prev_time = curr_time
 
             # display frame
             org_frame.image(frame, channels="BGR")

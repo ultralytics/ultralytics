@@ -7,10 +7,6 @@ from pathlib import Path
 from types import SimpleNamespace
 from typing import Dict, List, Union
 
-import cv2
-from openvino.tools.accuracy_checker.utils import overrides
-
-# from ultralytics import settings
 from ultralytics.utils import (
     ASSETS,
     DEFAULT_CFG,
@@ -33,10 +29,8 @@ from ultralytics.utils import (
     yaml_load,
     yaml_print,
 )
-from ultralytics.utils.downloads import safe_download
 
-# Define valid tasks, modes and solutions
-SOLUTIONS = {"count", "heatmap", "queue"}
+# Define valid tasks and modes
 MODES = {"train", "val", "predict", "export", "track", "benchmark"}
 TASKS = {"detect", "segment", "classify", "pose", "obb"}
 TASK2DATA = {
@@ -356,14 +350,13 @@ def get_save_dir(args, name=None):
     """
     if getattr(args, "save_dir", None):
         save_dir = args.save_dir
-        print(save_dir)
     else:
         from ultralytics.utils.files import increment_path
 
         project = args.project or (ROOT.parent / "tests/tmp/runs" if TESTS_RUNNING else RUNS_DIR) / args.task
         name = name or args.name or f"{args.mode}"
         save_dir = increment_path(Path(project) / name, exist_ok=args.exist_ok if RANK in {-1, 0} else True)
-        print(save_dir)
+
     return Path(save_dir)
 
 
@@ -445,34 +438,60 @@ def check_dict_alignment(base: Dict, custom: Dict, e=None):
 
 def merge_equals_args(args: List[str]) -> List[str]:
     """
-    Merges arguments around isolated '=' in a list of strings, handling three cases:
-    1. ['arg', '=', 'val'] becomes ['arg=val'],
-    2. ['arg=', 'val'] becomes ['arg=val'],
-    3. ['arg', '=val'] becomes ['arg=val'].
+    Merges arguments around isolated '=' in a list of strings and joins fragments with brackets.
+
+    This function handles the following cases:
+    1. ['arg', '=', 'val'] becomes ['arg=val']
+    2. ['arg=', 'val'] becomes ['arg=val']
+    3. ['arg', '=val'] becomes ['arg=val']
+    4. Joins fragments with brackets, e.g., ['imgsz=[3,', '640,', '640]'] becomes ['imgsz=[3,640,640]']
 
     Args:
-        args (List[str]): A list of strings where each element represents an argument.
+        args (List[str]): A list of strings where each element represents an argument or fragment.
 
     Returns:
-        (List[str]): A list of strings where the arguments around isolated '=' are merged.
+        List[str]: A list of strings where the arguments around isolated '=' are merged and fragments with brackets are joined.
 
     Examples:
-        >>> args = ["arg1", "=", "value", "arg2=", "value2", "arg3", "=value3"]
-        >>> merge_equals_args(args)
-        ['arg1=value', 'arg2=value2', 'arg3=value3']
+        >>> args = ["arg1", "=", "value", "arg2=", "value2", "arg3", "=value3", "imgsz=[3,", "640,", "640]"]
+        >>> merge_and_join_args(args)
+        ['arg1=value', 'arg2=value2', 'arg3=value3', 'imgsz=[3,640,640]']
     """
     new_args = []
-    for i, arg in enumerate(args):
+    current = ""
+    depth = 0
+
+    i = 0
+    while i < len(args):
+        arg = args[i]
+
+        # Handle equals sign merging
         if arg == "=" and 0 < i < len(args) - 1:  # merge ['arg', '=', 'val']
             new_args[-1] += f"={args[i + 1]}"
-            del args[i + 1]
+            i += 2
+            continue
         elif arg.endswith("=") and i < len(args) - 1 and "=" not in args[i + 1]:  # merge ['arg=', 'val']
             new_args.append(f"{arg}{args[i + 1]}")
-            del args[i + 1]
+            i += 2
+            continue
         elif arg.startswith("=") and i > 0:  # merge ['arg', '=val']
             new_args[-1] += arg
-        else:
-            new_args.append(arg)
+            i += 1
+            continue
+
+        # Handle bracket joining
+        depth += arg.count("[") - arg.count("]")
+        current += arg
+        if depth == 0:
+            new_args.append(current)
+            current = ""
+
+        i += 1
+
+    # Append any remaining current string
+    if current:
+        new_args.append(current)
+
     return new_args
 
 
@@ -489,7 +508,7 @@ def handle_yolo_hub(args: List[str]) -> None:
 
     Examples:
         ```bash
-        yolo hub login YOUR_API_KEY
+        yolo login YOUR_API_KEY
         ```
 
     Notes:
@@ -547,71 +566,6 @@ def handle_yolo_settings(args: List[str]) -> None:
         LOGGER.info(f"💡 Learn more about Ultralytics Settings at {url}")
     except Exception as e:
         LOGGER.warning(f"WARNING ⚠️ settings error: '{e}'. Please see {url} for help.")
-
-
-def handle_solutions(argv):
-    from ultralytics.solutions.solutions import DEFAULT_SOL_CFG_PATH
-    from ultralytics import solutions
-    SOL_CFG_DICT = yaml_load(DEFAULT_SOL_CFG_PATH)
-
-    for ind, a in enumerate(merge_equals_args(argv[2:])):  # merge spaces around '=' sign
-        if a in SOL_CFG_DICT:
-            print("Test")
-        if a.startswith("--"):
-            LOGGER.warning(f"WARNING ⚠️ argument '{a}' does not require leading dashes '--', updating to '{a[2:]}'.")
-            argv[ind] = a[2:]
-        if a.endswith(","):
-            LOGGER.warning(f"WARNING ⚠️ argument '{a}' does not require trailing comma ',', updating to '{a[:-1]}'.")
-            argv[ind] = a[:-1]
-
-
-    overrides = {}  # Initialize the result dictionary
-    # Iterate through the list and handle 'key=value' separately
-    i = 0
-    argv = argv[2:]
-    while i < len(argv):
-        item = argv[i]
-        # If the item is in 'key=value' form, split it
-        if isinstance(item, str) and '=' in item:
-            print("hello")
-            key, value = item.split('=')
-            overrides[key] = value
-            i += 1
-        else:
-            # Otherwise, treat it as a normal key-value pair
-            if item not in SOL_CFG_DICT:
-                continue
-            else:
-                overrides[item] = argv[i + 1]
-                i += 2
-
-    print(overrides)
-    check_dict_alignment(SOL_CFG_DICT, overrides)    # Check keys
-
-    # argv = {item.split('=')[0]: eval(item.split('=')[1]) for item in argv[2:]}
-    # SOL_CFG_DICT.update(argv)
-
-    # check if source is None
-    if SOL_CFG_DICT["source"] is None:
-        safe_download("https://github.com/ultralytics/yolov5/releases/download/v1.0/solutions_ci_demo.mp4")
-        SOL_CFG_DICT["source"] = "solutions_ci_demo.mp4"
-
-    cap = cv2.VideoCapture(SOL_CFG_DICT["source"])
-    w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-    writer = cv2.VideoWriter("solutions output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
-    kwargs = {key: value for key, value in argv.items() if key != 'source'}
-    sol = None
-    if argv[2] in SOLUTIONS:
-        sol = getattr(solutions, argv[2])(**kwargs)
-    while cap.isOpened():
-        s, im0 = cap.read()
-        if not s:
-            break
-        im0 = sol.count(im0)
-        writer.write(im0)
-    cap.release()
-    writer.release()
-    cv2.destroyAllWindows()
 
 
 def handle_streamlit_inference():
@@ -755,7 +709,6 @@ def entrypoint(debug=""):
         "logout": lambda: handle_yolo_hub(args),
         "copy-cfg": copy_default_cfg,
         "streamlit-predict": lambda: handle_streamlit_inference(),
-        "solutions": lambda: handle_solutions(args)
     }
     full_args_dict = {**DEFAULT_CFG_DICT, **{k: None for k in TASKS}, **{k: None for k in MODES}, **special}
 

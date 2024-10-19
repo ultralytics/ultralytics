@@ -118,8 +118,6 @@ Explore the Ultralytics Docs, a comprehensive resource designed to help you unde
 
 </div>
 
-NORMAL VERSION
-
 <p align="center">
   <br>
   <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/LNwODJXcvt4?si=7n1UvGRLSd9p5wKs"
@@ -127,14 +125,6 @@ NORMAL VERSION
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </iframe>
-  <br>
-  <strong>Watch:</strong> How to Train a YOLO model on Your Custom Dataset in <a href="https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb" target="_blank">Google Colab</a>.
-</p>
-
-LITE VERSION
-
-<p align="center">
-  <lite-youtube videoid="LNwODJXcvt4" title="How to Train a YOLO model on Your Custom Dataset"></lite-youtube>
   <br>
   <strong>Watch:</strong> How to Train a YOLO model on Your Custom Dataset in <a href="https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb" target="_blank">Google Colab</a>.
 </p>

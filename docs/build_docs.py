@@ -214,17 +214,6 @@ def convert_plaintext_links_to_html(content):
     return str(soup) if modified else content
 
 
-for text_node in paragraph.find_all(string=True, recursive=False):
-    if text_node.parent.name not in {"a", "code"}:  # Ignore links and code blocks
-        new_text = re.sub(
-            r"(https?://[^\s()<>]+)",
-            r'<a href="\1">\1</a>',
-            str(text_node),
-        )
-        # Replace the old text with the new text containing hyperlinks
-        text_node.replace_with(new_text)
-
-
 def remove_macros():
     """Removes the /macros directory and related entries in sitemap.xml from the built site."""
     shutil.rmtree(SITE / "macros", ignore_errors=True)

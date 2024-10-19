@@ -622,3 +622,10 @@ def test_yolov10():
     model.val(data="coco8.yaml", imgsz=32)
     model.predict(imgsz=32, save_txt=True, save_crop=True, augment=True)
     model(SOURCE)
+
+
+def test_mask_iou():
+    from ultralytics.utils.metrics import mask_iou
+
+    iou = mask_iou(torch.ones(1, 10000, dtype=torch.uint8), torch.ones(1, 10000, dtype=torch.uint8))
+    assert iou[0, 0] == 1.0

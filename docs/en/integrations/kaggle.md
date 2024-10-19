@@ -95,7 +95,7 @@ Interested in more YOLO11 integrations? Check out the[ Ultralytics integration g
 
 ### How do I train a YOLO11 model on Kaggle?
 
-Training a YOLO11 model on Kaggle is straightforward. First, access the [Kaggle YOLO11 Notebook](https://www.kaggle.com/models/ultralytics/yolov8). Sign in to your Kaggle account, copy and edit the notebook, and select a GPU under the accelerator settings. Run the notebook cells to start training. For more detailed steps, refer to our [YOLO11 Model Training guide](../modes/train.md).
+Training a YOLO11 model on Kaggle is straightforward. First, access the [Kaggle YOLO11 Notebook](https://www.kaggle.com/code/glennjocherultralytics/yolo11). Sign in to your Kaggle account, copy and edit the notebook, and select a GPU under the accelerator settings. Run the notebook cells to start training. For more detailed steps, refer to our [YOLO11 Model Training guide](../modes/train.md).
 
 ### What are the benefits of using Kaggle for YOLO11 model training?
 

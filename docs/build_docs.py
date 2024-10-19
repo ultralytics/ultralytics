@@ -199,11 +199,11 @@ def convert_plaintext_links_to_html(content):
         for text_node in paragraph.find_all(string=True, recursive=False):
             if text_node.parent.name not in {"a", "code"}:  # Ignore links and code blocks
                 new_text = re.sub(
-                    r"(https?://[^\s()<>]+)",
+                    r"(https?://[^\s()<>]*[^\s()<>.,:;!?])",
                     r'<a href="\1">\1</a>',
                     str(text_node),
                 )
-                if "<a" in new_text:
+                if "<a href=" in new_text:
                     new_soup = BeautifulSoup(new_text, "html.parser")
                     text_node.replace_with(new_soup)
                     modified = True

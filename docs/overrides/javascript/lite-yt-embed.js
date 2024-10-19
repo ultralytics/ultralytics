@@ -107,8 +107,8 @@ class LiteYTEmbed extends HTMLElement {
         LiteYTEmbed.addPrefetch('preconnect', 'https://www.google.com');
 
         // Not certain if these ad related domains are in the critical path. Could verify with domain-specific throttling.
-        LiteYTEmbed.addPrefetch('preconnect', 'https://googleads.g.doubleclick.net');
-        LiteYTEmbed.addPrefetch('preconnect', 'https://static.doubleclick.net');
+        LiteYTEmbed.addPrefetch('preconnect', 'https://googleads.g.double-click.net');
+        LiteYTEmbed.addPrefetch('preconnect', 'https://static.double-click.net');
 
         LiteYTEmbed.preconnected = true;
     }
@@ -165,7 +165,7 @@ class LiteYTEmbed extends HTMLElement {
     addNoscriptIframe() {
         const iframeEl = this.createBasicIframe();
         const noscriptEl = document.createElement('noscript');
-        // Appending into noscript isn't equivalant for mysterious reasons: https://html.spec.whatwg.org/multipage/scripting.html#the-noscript-element
+        // Appending into noscript isn't equivalent for mysterious reasons: https://html.spec.whatwg.org/multipage/scripting.html#the-noscript-element
         noscriptEl.innerHTML = iframeEl.outerHTML;
         this.append(noscriptEl);
     }

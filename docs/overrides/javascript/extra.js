@@ -112,7 +112,7 @@ document.addEventListener("DOMContentLoaded", () => {
         },
         aiChatSettings: {
           chatSubjectName: "Ultralytics",
-          botAvatarSrcUrl: "https://storage.googleapis.com/organization-image-assets/ultralytics-botAvatarSrcUrl-1727908259285.png",
+          botAvatarSrcUrl: "https://storage.googleapis.com/organization-image-assets/ultralytics-botAvatarSrcUrl-1729379860806.svg",
           quickQuestions: [
             "What's new in Ultralytics YOLO11?",
             "How can I get started with Ultralytics HUB?",

@@ -778,7 +778,7 @@ def entrypoint(debug=""):
     if mode is None:
         mode = DEFAULT_CFG.mode or "predict"
         LOGGER.warning(f"WARNING ⚠️ 'mode' argument is missing. Valid modes are {MODES}. Using default 'mode={mode}'.")
-    elif mode not in MODES and solution not in SOLUTIONS:
+    elif mode not in MODES:
         raise ValueError(f"Invalid 'mode={mode}'. Valid modes are {MODES}.\n{CLI_HELP_MSG}")
 
     # Task

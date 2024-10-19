@@ -17,7 +17,7 @@ const applyAutoTheme = () => {
 // Function that checks and applies light/dark theme based on the user's preference (if auto theme is enabled)
 function checkAutoTheme() {
   // Array of supported language codes -> each language has its own palette (stored in local storage)
-  const supportedLangCodes = ["en", "zh", "ko", "ja", "ru", "de", "fr", "es", "pt", "it", "tr", "vi", "nl"];
+  const supportedLangCodes = ["en", "zh", "ko", "ja", "ru", "de", "fr", "es", "pt", "it", "tr", "vi", "ar"];
   // Get the URL path
   const path = window.location.pathname;
   // Extract the language code from the URL (assuming it's in the format /xx/...)
@@ -113,7 +113,6 @@ document.addEventListener("DOMContentLoaded", () => {
         aiChatSettings: {
           chatSubjectName: "Ultralytics",
           botAvatarSrcUrl: "https://storage.googleapis.com/organization-image-assets/ultralytics-botAvatarSrcUrl-1727908259285.png",
-          botAvatarDarkSrcUrl: "https://storage.googleapis.com/organization-image-assets/ultralytics-botAvatarDarkSrcUrl-1727908258478.png",
           quickQuestions: [
             "What's new in Ultralytics YOLO11?",
             "How can I get started with Ultralytics HUB?",

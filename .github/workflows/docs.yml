@@ -22,7 +22,7 @@ on:
   workflow_dispatch:
     inputs:
       publish_docs:
-        description: 'Publish docs to gh-pages'
+        description: 'Publish live to gh-pages'
         required: true
         default: 'true'
         type: boolean

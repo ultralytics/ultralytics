@@ -76,7 +76,6 @@ div.highlight {
 .banner-wrapper {
   justify-content: space-between;
   gap: 16px;
-
   padding: 16px;
 }
 
@@ -121,7 +120,6 @@ div.highlight {
 .banner-wrapper > .banner-button-wrapper,
 .banner-wrapper > .banner-button-wrapper > .banner-button-wrapper {
   padding: 2px;
-
   background-color: rgba(222, 255, 56, 0.2);
 }
 
@@ -131,13 +129,10 @@ div.highlight {
 
 .banner-wrapper > .banner-button-wrapper > .banner-button-wrapper > button {
   cursor: pointer;
-
   min-width: 132px;
   padding: 10px;
-
   font-weight: 500;
   color: #111f68;
-
   background-color: rgb(222, 255, 56);
 }
 
@@ -156,13 +151,11 @@ div.highlight {
 
   .banner-wrapper {
     gap: 32px;
-
     padding: 12px;
   }
 
   .banner-wrapper > .banner-content-wrapper {
     gap: 24px;
-
     margin: 0 auto;
   }
 }

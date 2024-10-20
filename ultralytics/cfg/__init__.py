@@ -7,7 +7,6 @@ from pathlib import Path
 from types import SimpleNamespace
 from typing import Dict, List, Union
 
-from ultralytics.data.utils import IMG_FORMATS
 from ultralytics.utils import (
     ASSETS,
     DEFAULT_CFG,
@@ -30,13 +29,6 @@ from ultralytics.utils import (
     yaml_load,
     yaml_print,
 )
-
-# For ultralytics solutions
-DEFAULT_SOL_CFG_PATH = Path(__file__).resolve().parents[1] / "cfg/solutions/default.yaml"
-DEFAULT_SOLUTION_CFG_DICT = yaml_load(DEFAULT_SOL_CFG_PATH)
-
-# Define solutions
-SOLUTIONS = {"count", "heatmaps", "queue", "speed", "distance"}
 
 # Define valid tasks and modes
 MODES = {"train", "val", "predict", "export", "track", "benchmark"}
@@ -71,7 +63,7 @@ CLI_HELP_MSG = f"""
         yolo TASK MODE ARGS
 
         Where   TASK (optional) is one of {TASKS}
-                MODE (required) is one of {MODES} or SOLUTIONS (required) is one of {SOLUTIONS}
+                MODE (required) is one of {MODES}
                 ARGS (optional) are any number of custom 'arg=value' pairs like 'imgsz=320' that override defaults.
                     See all ARGS at https://docs.ultralytics.com/usage/cfg or with 'yolo cfg'
 
@@ -86,10 +78,10 @@ CLI_HELP_MSG = f"""
 
     4. Export a YOLO11n classification model to ONNX format at image size 224 by 128 (no TASK required)
         yolo export model=yolo11n-cls.pt format=onnx imgsz=224,128
-
+    
     5. Streamlit real-time webcam inference GUI
         yolo streamlit-predict
-
+        
     6. Run special commands:
         yolo help
         yolo checks
@@ -249,14 +241,7 @@ def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace] = DEFAULT_CFG_DICT, ove
           `project` and `name` to strings and validating configuration keys and values.
         - The function performs type and value checks on the configuration data.
     """
-
-    # Default solutions configuration
-    DEFAULT_SOL_CFG = IterableSimpleNamespace(**DEFAULT_SOLUTION_CFG_DICT)
-
-    # Convert both to dictionaries and merge them
-    merged_dict = {**cfg.__dict__, **DEFAULT_SOL_CFG.__dict__, "solution": None}
-    cfg = cfg2dict(IterableSimpleNamespace(**merged_dict))
-    print(cfg)
+    cfg = cfg2dict(cfg)
 
     # Merge overrides
     if overrides:
@@ -725,10 +710,8 @@ def entrypoint(debug=""):
         "copy-cfg": copy_default_cfg,
         "streamlit-predict": lambda: handle_streamlit_inference(),
     }
+    full_args_dict = {**DEFAULT_CFG_DICT, **{k: None for k in TASKS}, **{k: None for k in MODES}, **special}
 
-    full_args_dict = {**DEFAULT_CFG_DICT, **DEFAULT_SOLUTION_CFG_DICT, "solution": None, **{k: None for k in TASKS}, **{k: None for k in MODES}, **special}
-    full_args_sol_dict = {**DEFAULT_SOLUTION_CFG_DICT, "solution": None}
-    print(full_args_sol_dict)
     # Define common misuses of special commands, i.e. -h, -help, --help
     special.update({k[0]: v for k, v in special.items()})  # singular
     special.update({k[:-1]: v for k, v in special.items() if len(k) > 1 and k.endswith("s")})  # singular
@@ -757,114 +740,95 @@ def entrypoint(debug=""):
             overrides["task"] = a
         elif a in MODES:
             overrides["mode"] = a
-        elif a in SOLUTIONS:
-            overrides["solution"] = a
         elif a.lower() in special:
             special[a.lower()]()
             return
-        # elif a in (DEFAULT_CFG_DICT or DEFAULT_SOLUTION_CFG_DICT) and isinstance(DEFAULT_CFG_DICT[a], bool):
-        #     overrides[a] = True  # auto-True for default bool args, i.e. 'yolo show' sets show=True
-        # elif a in DEFAULT_CFG_DICT or DEFAULT_SOLUTION_CFG_DICT:
-        #     raise SyntaxError(
-        #         f"'{colorstr('red', 'bold', a)}' is a valid YOLO argument but is missing an '=' sign "
-        #         f"to set its value, i.e. try '{a}={DEFAULT_CFG_DICT[a]}'\n{CLI_HELP_MSG}"
-        #     )
-        # else:
-        #     check_dict_alignment(full_args_dict, {a: ""})
+        elif a in DEFAULT_CFG_DICT and isinstance(DEFAULT_CFG_DICT[a], bool):
+            overrides[a] = True  # auto-True for default bool args, i.e. 'yolo show' sets show=True
+        elif a in DEFAULT_CFG_DICT:
+            raise SyntaxError(
+                f"'{colorstr('red', 'bold', a)}' is a valid YOLO argument but is missing an '=' sign "
+                f"to set its value, i.e. try '{a}={DEFAULT_CFG_DICT[a]}'\n{CLI_HELP_MSG}"
+            )
+        else:
+            check_dict_alignment(full_args_dict, {a: ""})
 
     # Check keys
-    if overrides["solution"] is not None:
-        # check_dict_alignment(full_args_sol_dict, overrides)
-        print(overrides["solution"])
-        import cv2
-        from ultralytics import solutions
-        cap = cv2.VideoCapture(overrides["source"])
-        print("Video File : ", overrides["source"])
-        sol_type = solutions.Heatmap()
-        while cap.isOpened():
-            s, f = cap.read()
-            if not s:
-                break
-            f = sol_type.generate_heatmap(f)
-            cv2.imshow("F", f)
-            # Break the loop on 'q' key press
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
-        cap.release()
-        cv2.destroyAllWindows()
-    # else:
-    #     check_dict_alignment(full_args_dict, overrides)
-    #
-    #     # Mode
-    #     mode = overrides.get("mode")
-    #     if mode is None:
-    #         mode = DEFAULT_CFG.mode or "predict"
-    #         LOGGER.warning(f"WARNING ⚠️ 'mode' argument is missing. Valid modes are {MODES}. Using default 'mode={mode}'.")
-    #     elif mode not in MODES:
-    #         raise ValueError(f"Invalid 'mode={mode}'. Valid modes are {MODES}.\n{CLI_HELP_MSG}")
-    #
-    #     # Task
-    #     task = overrides.pop("task", None)
-    #     if task:
-    #         if task not in TASKS:
-    #             raise ValueError(f"Invalid 'task={task}'. Valid tasks are {TASKS}.\n{CLI_HELP_MSG}")
-    #         if "model" not in overrides:
-    #             overrides["model"] = TASK2MODEL[task]
-    #
-    #     # Model
-    #     model = overrides.pop("model", DEFAULT_CFG.model)
-    #     if model is None:
-    #         model = "yolo11n.pt"
-    #         LOGGER.warning(f"WARNING ⚠️ 'model' argument is missing. Using default 'model={model}'.")
-    #     overrides["model"] = model
-    #     stem = Path(model).stem.lower()
-    #     if "rtdetr" in stem:  # guess architecture
-    #         from ultralytics import RTDETR
-    #
-    #         model = RTDETR(model)  # no task argument
-    #     elif "fastsam" in stem:
-    #         from ultralytics import FastSAM
-    #
-    #         model = FastSAM(model)
-    #     elif "sam_" in stem or "sam2_" in stem:
-    #         from ultralytics import SAM
-    #
-    #         model = SAM(model)
-    #     else:
-    #         from ultralytics import YOLO
-    #
-    #         model = YOLO(model, task=task)
-    #     if isinstance(overrides.get("pretrained"), str):
-    #         model.load(overrides["pretrained"])
-    #
-    #     # Task Update
-    #     if task != model.task:
-    #         if task:
-    #             LOGGER.warning(
-    #                 f"WARNING ⚠️ conflicting 'task={task}' passed with 'task={model.task}' model. "
-    #                 f"Ignoring 'task={task}' and updating to 'task={model.task}' to match model."
-    #             )
-    #         task = model.task
-    #
-    #     if mode in {"predict", "track"} and "source" not in overrides:
-    #         overrides["source"] = DEFAULT_CFG.source or ASSETS
-    #         LOGGER.warning(f"WARNING ⚠️ 'source' argument is missing. Using default 'source={overrides['source']}'.")
-    #     elif mode in {"train", "val"}:
-    #         if "data" not in overrides and "resume" not in overrides:
-    #             overrides["data"] = DEFAULT_CFG.data or TASK2DATA.get(task or DEFAULT_CFG.task, DEFAULT_CFG.data)
-    #             LOGGER.warning(f"WARNING ⚠️ 'data' argument is missing. Using default 'data={overrides['data']}'.")
-    #     elif mode == "export":
-    #         if "format" not in overrides:
-    #             overrides["format"] = DEFAULT_CFG.format or "torchscript"
-    #             LOGGER.warning(f"WARNING ⚠️ 'format' argument is missing. Using default 'format={overrides['format']}'.")
-    #
-    #     getattr(model, mode)(**overrides)  # default args from model
-    #     # Show help
-    #     LOGGER.info(f"💡 Learn more at https://docs.ultralytics.com/modes/{mode}")
-    #
-    # # Recommend VS Code extension
-    # if IS_VSCODE and SETTINGS.get("vscode_msg", True):
-    #     LOGGER.info(vscode_msg())
+    check_dict_alignment(full_args_dict, overrides)
+
+    # Mode
+    mode = overrides.get("mode")
+    if mode is None:
+        mode = DEFAULT_CFG.mode or "predict"
+        LOGGER.warning(f"WARNING ⚠️ 'mode' argument is missing. Valid modes are {MODES}. Using default 'mode={mode}'.")
+    elif mode not in MODES:
+        raise ValueError(f"Invalid 'mode={mode}'. Valid modes are {MODES}.\n{CLI_HELP_MSG}")
+
+    # Task
+    task = overrides.pop("task", None)
+    if task:
+        if task not in TASKS:
+            raise ValueError(f"Invalid 'task={task}'. Valid tasks are {TASKS}.\n{CLI_HELP_MSG}")
+        if "model" not in overrides:
+            overrides["model"] = TASK2MODEL[task]
+
+    # Model
+    model = overrides.pop("model", DEFAULT_CFG.model)
+    if model is None:
+        model = "yolo11n.pt"
+        LOGGER.warning(f"WARNING ⚠️ 'model' argument is missing. Using default 'model={model}'.")
+    overrides["model"] = model
+    stem = Path(model).stem.lower()
+    if "rtdetr" in stem:  # guess architecture
+        from ultralytics import RTDETR
+
+        model = RTDETR(model)  # no task argument
+    elif "fastsam" in stem:
+        from ultralytics import FastSAM
+
+        model = FastSAM(model)
+    elif "sam_" in stem or "sam2_" in stem:
+        from ultralytics import SAM
+
+        model = SAM(model)
+    else:
+        from ultralytics import YOLO
+
+        model = YOLO(model, task=task)
+    if isinstance(overrides.get("pretrained"), str):
+        model.load(overrides["pretrained"])
+
+    # Task Update
+    if task != model.task:
+        if task:
+            LOGGER.warning(
+                f"WARNING ⚠️ conflicting 'task={task}' passed with 'task={model.task}' model. "
+                f"Ignoring 'task={task}' and updating to 'task={model.task}' to match model."
+            )
+        task = model.task
+
+    # Mode
+    if mode in {"predict", "track"} and "source" not in overrides:
+        overrides["source"] = DEFAULT_CFG.source or ASSETS
+        LOGGER.warning(f"WARNING ⚠️ 'source' argument is missing. Using default 'source={overrides['source']}'.")
+    elif mode in {"train", "val"}:
+        if "data" not in overrides and "resume" not in overrides:
+            overrides["data"] = DEFAULT_CFG.data or TASK2DATA.get(task or DEFAULT_CFG.task, DEFAULT_CFG.data)
+            LOGGER.warning(f"WARNING ⚠️ 'data' argument is missing. Using default 'data={overrides['data']}'.")
+    elif mode == "export":
+        if "format" not in overrides:
+            overrides["format"] = DEFAULT_CFG.format or "torchscript"
+            LOGGER.warning(f"WARNING ⚠️ 'format' argument is missing. Using default 'format={overrides['format']}'.")
+
+    # Run command in python
+    getattr(model, mode)(**overrides)  # default args from model
+
+    # Show help
+    LOGGER.info(f"💡 Learn more at https://docs.ultralytics.com/modes/{mode}")
+
+    # Recommend VS Code extension
+    if IS_VSCODE and SETTINGS.get("vscode_msg", True):
+        LOGGER.info(vscode_msg())
 
 
 # Special modes --------------------------------------------------------------------------------------------------------

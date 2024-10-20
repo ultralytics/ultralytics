@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleExecutable</key>
+	<string>onnxruntime_extensions</string>
+	<key>CFBundleName</key>
+	<string>onnxruntime_extensions</string>
+	<key>CFBundleIdentifier</key>
+	<string>com.microsoft.onnxruntime_extensions</string>
+	<key>CFBundleVersion</key>
+	<string>0.10.0</string>
+	<key>CFBundleShortVersionString</key>
+	<string>0.10.0</string>
+	<key>CFBundleSignature</key>
+	<string>????</string>
+	<key>CFBundlePackageType</key>
+	<string>FMWK</string>
+</dict>
+</plist>

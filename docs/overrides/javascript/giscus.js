@@ -1,5 +1,8 @@
 // Giscus functionality
 function loadGiscus() {
+  const giscusContainer = document.getElementById("giscus-container");
+  if (!giscusContainer || giscusContainer.querySelector("script")) return;
+
   const script = document.createElement("script");
   script.src = "https://giscus.app/client.js";
   script.setAttribute("data-repo", "ultralytics/ultralytics");
@@ -17,41 +20,38 @@ function loadGiscus() {
   script.setAttribute("crossorigin", "anonymous");
   script.setAttribute("async", "");
 
-  const giscusContainer = document.getElementById("giscus-container");
-  if (giscusContainer) {
-    giscusContainer.appendChild(script);
+  giscusContainer.appendChild(script);
 
-    // Synchronize Giscus theme with palette
-    var palette = __md_get("__palette");
-    if (palette && typeof palette.color === "object") {
-      var theme = palette.color.scheme === "slate" ? "dark" : "light";
-      script.setAttribute("data-theme", theme);
-    }
+  // Synchronize Giscus theme with palette
+  var palette = __md_get("__palette");
+  if (palette && typeof palette.color === "object") {
+    var theme = palette.color.scheme === "slate" ? "dark" : "light";
+    script.setAttribute("data-theme", theme);
+  }
 
-    // Register event handlers for theme changes
-    var ref = document.querySelector("[data-md-component=palette]");
-    if (ref) {
-      ref.addEventListener("change", function () {
-        var palette = __md_get("__palette");
-        if (palette && typeof palette.color === "object") {
-          var theme = palette.color.scheme === "slate" ? "dark" : "light";
+  // Register event handlers for theme changes
+  var ref = document.querySelector("[data-md-component=palette]");
+  if (ref) {
+    ref.addEventListener("change", function () {
+      var palette = __md_get("__palette");
+      if (palette && typeof palette.color === "object") {
+        var theme = palette.color.scheme === "slate" ? "dark" : "light";
 
-          // Instruct Giscus to change theme
-          var frame = document.querySelector(".giscus-frame");
-          if (frame) {
-            frame.contentWindow.postMessage(
-              { giscus: { setConfig: { theme } } },
-              "https://giscus.app",
-            );
-          }
+        // Instruct Giscus to change theme
+        var frame = document.querySelector(".giscus-frame");
+        if (frame) {
+          frame.contentWindow.postMessage(
+            { giscus: { setConfig: { theme } } },
+            "https://giscus.app",
+          );
         }
-      });
-    }
+      }
+    });
   }
 }
 
 // Use Intersection Observer to load Giscus when the container is visible
-document.addEventListener("DOMContentLoaded", function () {
+function setupGiscusLoader() {
   const giscusContainer = document.getElementById("giscus-container");
 
   if (giscusContainer) {
@@ -66,4 +66,15 @@ document.addEventListener("DOMContentLoaded", function () {
 
     observer.observe(giscusContainer);
   }
-});
+}
+
+// Hook into MkDocs' navigation system
+if (typeof document$ !== "undefined") {
+  document$.subscribe(() => {
+    // This function is called on every page load/change
+    setupGiscusLoader();
+  });
+} else {
+  console.warn("MkDocs document$ not found. Falling back to DOMContentLoaded.");
+  document.addEventListener("DOMContentLoaded", setupGiscusLoader);
+}

@@ -83,6 +83,7 @@ class BaseSolution:
             >>> solution.extract_tracks(frame)
         """
         self.tracks = self.model.track(source=im0, persist=True, classes=self.CFG["classes"])
+
         # Extract tracks for OBB or object detection
         self.track_data = self.tracks[0].obb or self.tracks[0].boxes
 

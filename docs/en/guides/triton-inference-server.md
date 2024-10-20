@@ -92,7 +92,7 @@ The Triton Model Repository is a storage location where Triton can access and lo
                     {
                         "name": "tensorrt",
                         "parameters": {"key": "precision_mode", "value": "FP16"},
-                        "parameters": {"key": "max_workspace_size_bytes", "value": "1073741824"},
+                        "parameters": {"key": "max_workspace_size_bytes", "value": "3221225472"},
                         "parameters": {"key": "trt_engine_cache_enable", "value": "1"},
                     }
                 ]

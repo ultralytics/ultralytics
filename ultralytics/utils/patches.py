@@ -103,10 +103,11 @@ def torch_save(*args, **kwargs):
                 raise e
             time.sleep((2**i) / 2)  # exponential standoff: 0.5s, 1.0s, 2.0s
 
+
 def torch_gather(input, dim, index):
     """
     Provides a workaround for MPS `torch.gather` bug.
-    https://github.com/ultralytics/ultralytics/issues/17054
+    https://github.com/ultralytics/ultralytics/issues/17054.
 
     Args:
         input (torch.Tensor): The source tensor.

@@ -84,30 +84,22 @@ The Triton Model Repository is a storage location where Triton can access and lo
     # (Optional) Enable TensorRT for GPU inference
     # First run will be slow due to TensorRT engine conversion
     import json
+
     data = {
         "optimization": {
             "execution_accelerators": {
                 "gpu_execution_accelerator": [
                     {
                         "name": "tensorrt",
-                        "parameters": {
-                            "key": "precision_mode",
-                            "value": "FP16"
-                        },
-                        "parameters": {
-                            "key": "max_workspace_size_bytes",
-                            "value": "1073741824"
-                        },
-                        "parameters": {
-                            "key": "trt_engine_cache_enable",
-                            "value": "1"
-                        }
+                        "parameters": {"key": "precision_mode", "value": "FP16"},
+                        "parameters": {"key": "max_workspace_size_bytes", "value": "1073741824"},
+                        "parameters": {"key": "trt_engine_cache_enable", "value": "1"},
                     }
                 ]
             }
         }
     }
-    
+
     with open(triton_model_path / "config.pbtxt", "w") as f:
         json.dump(data, f, indent=4)
     ```

@@ -209,7 +209,7 @@ Setting up [Ultralytics YOLO11](https://docs.ultralytics.com/models/yolov8/) wit
     from tritonclient.http import InferenceServerClient
 
     # Define image https://catalog.ngc.nvidia.com/orgs/nvidia/containers/tritonserver
-    tag = "nvcr.io/nvidia/tritonserver:23.09-py3"
+    tag = "nvcr.io/nvidia/tritonserver:24.09-py3"
 
     subprocess.call(f"docker pull {tag}", shell=True)
 

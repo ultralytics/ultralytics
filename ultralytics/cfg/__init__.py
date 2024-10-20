@@ -571,6 +571,42 @@ def handle_yolo_settings(args: List[str]) -> None:
 def handle_yolo_solutions(args: List[str]) -> None:
     print(args)
 
+    from ultralytics.solutions.solutions import DEFAULT_SOL_CFG_PATH
+    DEFAULT_SOL_PATH = Path(__file__).resolve().parents[1] / "cfg/solutions/default.yaml"
+    full_sol_dict = {**yaml_load(DEFAULT_SOL_PATH)}
+    overrides = {}  # basic overrides, i.e. imgsz=320
+    # for a in merge_equals_args(args):  # merge spaces around '=' sign
+    #     if a.startswith("--"):
+    #         LOGGER.warning(f"WARNING ⚠️ argument '{a}' does not require leading dashes '--', updating to '{a[2:]}'.")
+    #         a = a[2:]
+    #     if a.endswith(","):
+    #         LOGGER.warning(f"WARNING ⚠️ argument '{a}' does not require trailing comma ',', updating to '{a[:-1]}'.")
+    #         a = a[:-1]
+    #     if "=" in a:
+    #         try:
+    #             k, v = parse_key_value_pair(a)
+    #             if k == "cfg" and v is not None:  # custom.yaml passed
+    #                 LOGGER.info(f"Overriding {DEFAULT_SOL_PATH} with {v}")
+    #                 overrides = {k: val for k, val in yaml_load(checks.check_yaml(v)).items() if k != "cfg"}
+    #             else:
+    #                 overrides[k] = v
+    #         except (NameError, SyntaxError, ValueError, AssertionError) as e:
+    #             check_dict_alignment(full_sol_dict, {a: ""}, e)
+    #     elif a in TASKS:
+    #         overrides["task"] = a
+    #     elif a in DEFAULT_CFG_DICT and isinstance(DEFAULT_CFG_DICT[a], bool):
+    #         overrides[a] = True  # auto-True for default bool args, i.e. 'yolo show' sets show=True
+    #     elif a in DEFAULT_CFG_DICT:
+    #         raise SyntaxError(
+    #             f"'{colorstr('red', 'bold', a)}' is a valid YOLO argument but is missing an '=' sign "
+    #             f"to set its value, i.e. try '{a}={DEFAULT_CFG_DICT[a]}'\n{CLI_HELP_MSG}"
+    #         )
+    #     else:
+    #         check_dict_alignment(full_args_dict, {a: ""})
+    #
+    # # Check keys
+    # check_dict_alignment(full_args_dict, overrides)
+
 
 def handle_streamlit_inference():
     """

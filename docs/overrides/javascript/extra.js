@@ -1,12 +1,32 @@
 // Apply theme based on user preference
 const applyTheme = (isDark) => {
-  document.body.setAttribute("data-md-color-scheme", isDark ? "slate" : "default");
-  document.body.setAttribute("data-md-color-primary", isDark ? "black" : "indigo");
+  document.body.setAttribute(
+    "data-md-color-scheme",
+    isDark ? "slate" : "default",
+  );
+  document.body.setAttribute(
+    "data-md-color-primary",
+    isDark ? "black" : "indigo",
+  );
 };
 
 // Check and apply auto theme
 const checkAutoTheme = () => {
-  const supportedLangCodes = ["en", "zh", "ko", "ja", "ru", "de", "fr", "es", "pt", "it", "tr", "vi", "ar"];
+  const supportedLangCodes = [
+    "en",
+    "zh",
+    "ko",
+    "ja",
+    "ru",
+    "de",
+    "fr",
+    "es",
+    "pt",
+    "it",
+    "tr",
+    "vi",
+    "ar",
+  ];
   const langCode = window.location.pathname.split("/")[1];
   const localStorageKey = `${supportedLangCodes.includes(langCode) ? `/${langCode}` : ""}/.__palette`;
   const palette = JSON.parse(localStorage.getItem(localStorageKey) || "{}");
@@ -33,10 +53,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // Iframe navigation
 window.onhashchange = () => {
-  window.parent.postMessage({
-    type: 'navigation',
-    hash: window.location.pathname + window.location.search + window.location.hash
-  }, '*');
+  window.parent.postMessage(
+    {
+      type: "navigation",
+      hash:
+        window.location.pathname +
+        window.location.search +
+        window.location.hash,
+    },
+    "*",
+  );
 };
 
 // Add Inkeep button
@@ -83,34 +109,35 @@ document.addEventListener("DOMContentLoaded", () => {
         },
         aiChatSettings: {
           chatSubjectName: "Ultralytics",
-          botAvatarSrcUrl: "https://storage.googleapis.com/organization-image-assets/ultralytics-botAvatarSrcUrl-1729379860806.svg",
+          botAvatarSrcUrl:
+            "https://storage.googleapis.com/organization-image-assets/ultralytics-botAvatarSrcUrl-1729379860806.svg",
           quickQuestions: [
             "What's new in Ultralytics YOLO11?",
             "How can I get started with Ultralytics HUB?",
-            "How does Ultralytics Enterprise Licensing work?"
+            "How does Ultralytics Enterprise Licensing work?",
           ],
           getHelpCallToActions: [
             {
               name: "Ask on Ultralytics GitHub",
               url: "https://github.com/ultralytics/ultralytics",
               icon: {
-                builtIn: "FaGithub"
-              }
+                builtIn: "FaGithub",
+              },
             },
             {
               name: "Ask on Ultralytics Discourse",
               url: "https://community.ultralytics.com/",
               icon: {
-                builtIn: "FaDiscourse"
-              }
+                builtIn: "FaDiscourse",
+              },
             },
             {
               name: "Ask on Ultralytics Discord",
               url: "https://discord.com/invite/ultralytics",
               icon: {
-                builtIn: "FaDiscord"
-              }
-            }
+                builtIn: "FaDiscord",
+              },
+            },
           ],
         },
       },
@@ -121,67 +148,66 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-
 // Giscus functionality
 function loadGiscus() {
-    const script = document.createElement('script');
-    script.src = 'https://giscus.app/client.js';
-    script.setAttribute('data-repo', 'ultralytics/ultralytics');
-    script.setAttribute('data-repo-id', 'R_kgDOH-jzvQ');
-    script.setAttribute('data-category', 'Docs');
-    script.setAttribute('data-category-id', 'DIC_kwDOH-jzvc4CWLkL');
-    script.setAttribute('data-mapping', 'pathname');
-    script.setAttribute('data-strict', '1');
-    script.setAttribute('data-reactions-enabled', '1');
-    script.setAttribute('data-emit-metadata', '0');
-    script.setAttribute('data-input-position', 'top');
-    script.setAttribute('data-theme', 'preferred_color_scheme');
-    script.setAttribute('data-lang', 'en');
-    script.setAttribute('data-loading', 'lazy');
-    script.setAttribute('crossorigin', 'anonymous');
-    script.setAttribute('async', '');
+  const script = document.createElement("script");
+  script.src = "https://giscus.app/client.js";
+  script.setAttribute("data-repo", "ultralytics/ultralytics");
+  script.setAttribute("data-repo-id", "R_kgDOH-jzvQ");
+  script.setAttribute("data-category", "Docs");
+  script.setAttribute("data-category-id", "DIC_kwDOH-jzvc4CWLkL");
+  script.setAttribute("data-mapping", "pathname");
+  script.setAttribute("data-strict", "1");
+  script.setAttribute("data-reactions-enabled", "1");
+  script.setAttribute("data-emit-metadata", "0");
+  script.setAttribute("data-input-position", "top");
+  script.setAttribute("data-theme", "preferred_color_scheme");
+  script.setAttribute("data-lang", "en");
+  script.setAttribute("data-loading", "lazy");
+  script.setAttribute("crossorigin", "anonymous");
+  script.setAttribute("async", "");
 
-    const giscusContainer = document.getElementById('giscus-container');
-    if (giscusContainer) {
-        giscusContainer.appendChild(script);
+  const giscusContainer = document.getElementById("giscus-container");
+  if (giscusContainer) {
+    giscusContainer.appendChild(script);
 
-        // Synchronize Giscus theme with palette
-        var palette = __md_get("__palette")
-        if (palette && typeof palette.color === "object") {
-            var theme = palette.color.scheme === "slate" ? "dark" : "light"
-            script.setAttribute("data-theme", theme)
-        }
-
-        // Register event handlers for theme changes
-        var ref = document.querySelector("[data-md-component=palette]")
-        if (ref) {
-            ref.addEventListener("change", function() {
-                var palette = __md_get("__palette")
-                if (palette && typeof palette.color === "object") {
-                    var theme = palette.color.scheme === "slate" ? "dark" : "light"
-
-                    // Instruct Giscus to change theme
-                    var frame = document.querySelector(".giscus-frame")
-                    if (frame) {
-                        frame.contentWindow.postMessage(
-                            { giscus: { setConfig: { theme } } },
-                            "https://giscus.app"
-                        )
-                    }
-                }
-            })
-        }
+    // Synchronize Giscus theme with palette
+    var palette = __md_get("__palette");
+    if (palette && typeof palette.color === "object") {
+      var theme = palette.color.scheme === "slate" ? "dark" : "light";
+      script.setAttribute("data-theme", theme);
     }
+
+    // Register event handlers for theme changes
+    var ref = document.querySelector("[data-md-component=palette]");
+    if (ref) {
+      ref.addEventListener("change", function () {
+        var palette = __md_get("__palette");
+        if (palette && typeof palette.color === "object") {
+          var theme = palette.color.scheme === "slate" ? "dark" : "light";
+
+          // Instruct Giscus to change theme
+          var frame = document.querySelector(".giscus-frame");
+          if (frame) {
+            frame.contentWindow.postMessage(
+              { giscus: { setConfig: { theme } } },
+              "https://giscus.app",
+            );
+          }
+        }
+      });
+    }
+  }
 }
 
 // MkDocs specific: Load Giscus when the page content is fully loaded
-document.addEventListener('DOMContentLoaded', function() {
-    var observer = new MutationObserver(function(mutations) {
-        if (document.getElementById('giscus-container')) {
-            loadGiscus();
-            observer.disconnect();
-        }
-    });
+document.addEventListener("DOMContentLoaded", function () {
+  var observer = new MutationObserver(function (mutations) {
+    if (document.getElementById("giscus-container")) {
+      loadGiscus();
+      observer.disconnect();
+    }
+  });
 
-    observer.observe(document.body, { childList: true, subtree: true });
+  observer.observe(document.body, { childList: true, subtree: true });
 });

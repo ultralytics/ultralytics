@@ -240,7 +240,7 @@ def remove_macros():
 
 def minify_html_files():
     """Minifies all HTML files in the site directory and prints reduction stats."""
-    from htmlmin import minify
+    from minify_html import minify  # pip install minify-html
 
     html_files = list(SITE.rglob("*.html"))
     total_original_size = 0
@@ -251,7 +251,7 @@ def minify_html_files():
             content = f.read()
 
         original_size = len(content)
-        minified_content = minify(content, remove_comments=True, remove_empty_space=True)
+        minified_content = minify(content)
         minified_size = len(minified_content)
 
         total_original_size += original_size
@@ -280,7 +280,7 @@ def main():
     update_docs_html()
 
     # Minify HTML files
-    # minify_html_files()
+    minify_html_files()
 
     # Show command to serve built website
     print('Docs built correctly ✅\nServe site at http://localhost:8000 with "python -m http.server --directory site"')

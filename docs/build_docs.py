@@ -240,7 +240,10 @@ def remove_macros():
 
 def minify_html_files():
     """Minifies all HTML files in the site directory and prints reduction stats."""
-    from minify_html import minify  # pip install minify-html
+    try:
+        from minify_html import minify  # pip install minify-html
+    except ImportError:
+        return
 
     html_files = list(SITE.rglob("*.html"))
     total_original_size = 0

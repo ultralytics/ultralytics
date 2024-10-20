@@ -17,6 +17,7 @@ Usage - formats:
                           yolov8n.tflite             # TensorFlow Lite
                           yolov8n_edgetpu.tflite     # TensorFlow Edge TPU
                           yolov8n_paddle_model       # PaddlePaddle
+                          yolov8n.mnn                # MNN
                           yolov8n_ncnn_model         # NCNN
 """
 

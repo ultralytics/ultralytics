@@ -238,8 +238,37 @@ def remove_macros():
     print(f"Removed {len(macros_indices)} URLs containing '/macros/' from {sitemap}")
 
 
+def minify_html_files():
+    """Minifies all HTML files in the site directory and prints reduction stats."""
+    from htmlmin import minify
+
+    html_files = list(SITE.rglob("*.html"))
+    total_original_size = 0
+    total_minified_size = 0
+
+    for html_file in tqdm(html_files, desc="Minifying HTML files"):
+        with open(html_file, 'r', encoding='utf-8') as f:
+            content = f.read()
+
+        original_size = len(content)
+        minified_content = minify(content, remove_comments=True, remove_empty_space=True)
+        minified_size = len(minified_content)
+
+        total_original_size += original_size
+        total_minified_size += minified_size
+
+        with open(html_file, 'w', encoding='utf-8') as f:
+            f.write(minified_content)
+
+    total_reduction = total_original_size - total_minified_size
+    total_percent_reduction = (total_reduction / total_original_size) * 100
+    print(f"\nTotal reduction: {total_percent_reduction:.2f}% "
+          f"({total_reduction / 1024:.2f} KB saved)")
+    print(f"Minified {len(html_files)} HTML files.")
+
+
 def main():
-    """Builds docs, updates titles and edit links, and prints local server command."""
+    """Builds docs, updates titles and edit links, minifies HTML, and prints local server command."""
     prepare_docs_markdown()
 
     # Build the main documentation
@@ -250,6 +279,9 @@ def main():
 
     # Update docs HTML pages
     update_docs_html()
+
+    # Minify HTML files
+    # minify_html_files()
 
     # Show command to serve built website
     print('Docs built correctly ✅\nServe site at http://localhost:8000 with "python -m http.server --directory site"')

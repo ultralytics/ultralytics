@@ -810,7 +810,7 @@ def entrypoint(debug=""):
     # Mode
     if mode in {"predict", "track"} and "source" not in overrides:
         overrides["source"] = DEFAULT_CFG.source or ASSETS
-        if task == "obb":   # use oriented bounding box assets
+        if task == "obb":  # use oriented bounding box assets
             overrides["source"] = overrides["source"] / "obb"
         LOGGER.warning(f"WARNING ⚠️ 'source' argument is missing. Using default 'source={overrides['source']}'.")
     elif mode in {"train", "val"}:

@@ -247,7 +247,7 @@ def minify_html_files():
     total_minified_size = 0
 
     for html_file in tqdm(html_files, desc="Minifying HTML files"):
-        with open(html_file, 'r', encoding='utf-8') as f:
+        with open(html_file, encoding="utf-8") as f:
             content = f.read()
 
         original_size = len(content)
@@ -257,13 +257,12 @@ def minify_html_files():
         total_original_size += original_size
         total_minified_size += minified_size
 
-        with open(html_file, 'w', encoding='utf-8') as f:
+        with open(html_file, "w", encoding="utf-8") as f:
             f.write(minified_content)
 
     total_reduction = total_original_size - total_minified_size
     total_percent_reduction = (total_reduction / total_original_size) * 100
-    print(f"\nTotal reduction: {total_percent_reduction:.2f}% "
-          f"({total_reduction / 1024:.2f} KB saved)")
+    print(f"\nTotal reduction: {total_percent_reduction:.2f}% " f"({total_reduction / 1024:.2f} KB saved)")
     print(f"Minified {len(html_files)} HTML files.")
 
 

@@ -50,14 +50,20 @@ function loadGiscus() {
   }
 }
 
-// MkDocs specific: Load Giscus when the page content is fully loaded
+// Use Intersection Observer to load Giscus when the container is visible
 document.addEventListener("DOMContentLoaded", function () {
-  var observer = new MutationObserver(function (mutations) {
-    if (document.getElementById("giscus-container")) {
-      loadGiscus();
-      observer.disconnect();
-    }
-  });
+  const giscusContainer = document.getElementById("giscus-container");
 
-  observer.observe(document.body, { childList: true, subtree: true });
+  if (giscusContainer) {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          loadGiscus();
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1 }); // Trigger when 10% of the element is visible
+
+    observer.observe(giscusContainer);
+  }
 });

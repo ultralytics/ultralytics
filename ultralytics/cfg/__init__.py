@@ -568,6 +568,10 @@ def handle_yolo_settings(args: List[str]) -> None:
         LOGGER.warning(f"WARNING ⚠️ settings error: '{e}'. Please see {url} for help.")
 
 
+def handle_yolo_solutions(args: List[str]) -> None:
+    print(args)
+
+
 def handle_streamlit_inference():
     """
     Open the Ultralytics Live Inference Streamlit app for real-time object detection.
@@ -709,6 +713,7 @@ def entrypoint(debug=""):
         "logout": lambda: handle_yolo_hub(args),
         "copy-cfg": copy_default_cfg,
         "streamlit-predict": lambda: handle_streamlit_inference(),
+        "solutions": lambda: handle_yolo_solutions(args),
     }
     full_args_dict = {**DEFAULT_CFG_DICT, **{k: None for k in TASKS}, **{k: None for k in MODES}, **special}
 

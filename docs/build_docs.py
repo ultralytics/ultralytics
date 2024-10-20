@@ -245,11 +245,9 @@ def minify_html_files():
     except ImportError:
         return
 
-    html_files = list(SITE.rglob("*.html"))
     total_original_size = 0
     total_minified_size = 0
-
-    for html_file in tqdm(html_files, desc="Minifying HTML files"):
+    for html_file in tqdm(SITE.rglob("*.html"), desc="Minifying HTML files"):
         with open(html_file, encoding="utf-8") as f:
             content = f.read()
 
@@ -265,8 +263,7 @@ def minify_html_files():
 
     total_reduction = total_original_size - total_minified_size
     total_percent_reduction = (total_reduction / total_original_size) * 100
-    print(f"\nTotal reduction: {total_percent_reduction:.2f}% " f"({total_reduction / 1024:.2f} KB saved)")
-    print(f"Minified {len(html_files)} HTML files.")
+    print(f"Minify HTML reduction: {total_percent_reduction:.2f}% " f"({total_reduction / 1024:.2f} KB saved)")
 
 
 def main():

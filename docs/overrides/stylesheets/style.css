@@ -51,102 +51,118 @@ div.highlight {
 
 /* Banner (same as the one on the Ultralytics website) -------------------------------------------------------------- */
 .md-banner {
-  background: url(https://assets-global.website-files.com/646dd1f1a3703e451ba81ecc/66e9a211bf6831d112fd6ce3_banner_yv24.avif)
-    center/cover;
+  background-image: url(https://assets-global.website-files.com/646dd1f1a3703e451ba81ecc/66e9a211bf6831d112fd6ce3_banner_yv24.avif);
+  background-size: cover;
+  background-position: center;
 }
 
 .md-banner__inner {
-  margin: 0 !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
 }
 
 .banner-wrapper,
-.banner-content-wrapper,
-.banner-info-wrapper {
+.banner-wrapper > .banner-content-wrapper,
+.banner-wrapper > .banner-content-wrapper > .banner-info-wrapper {
   display: flex;
   align-items: center;
 }
 
-.banner-wrapper {
+.banner-wrapper,
+.banner-wrapper > .banner-content-wrapper {
   flex-direction: column;
+}
+
+.banner-wrapper {
   justify-content: space-between;
   gap: 16px;
+
   padding: 16px;
 }
 
-.banner-content-wrapper {
-  flex-direction: column;
+.banner-wrapper > .banner-content-wrapper,
+.banner-wrapper > .banner-content-wrapper > .banner-info-wrapper {
   justify-content: center;
+}
+
+.banner-wrapper > .banner-content-wrapper {
   gap: 8px;
 }
 
-.banner-info-wrapper {
-  justify-content: center;
+.banner-wrapper > .banner-content-wrapper > .banner-info-wrapper {
   gap: 4px;
 }
 
-.banner-content-wrapper > p,
-.banner-info-wrapper > p {
+.banner-wrapper > .banner-content-wrapper > p,
+.banner-wrapper > .banner-content-wrapper > .banner-info-wrapper > p {
   margin: 0;
 }
 
-.banner-content-wrapper > p {
+.banner-wrapper > .banner-content-wrapper > p {
   font-size: 20px;
   font-weight: 500;
 }
 
-.banner-info-wrapper > p,
-.banner-button-wrapper button {
+.banner-wrapper > .banner-content-wrapper > .banner-info-wrapper > p,
+.banner-wrapper > .banner-button-wrapper > .banner-button-wrapper > button {
   font-size: 14px;
 }
 
-.banner-info-wrapper > p {
+.banner-wrapper > .banner-content-wrapper > .banner-info-wrapper > p {
   color: #f3f3f3;
 }
 
-.banner-button-wrapper,
-.banner-button-wrapper > div,
-.banner-button-wrapper button {
+.banner-wrapper > .banner-button-wrapper,
+.banner-wrapper > .banner-button-wrapper > .banner-button-wrapper,
+.banner-wrapper > .banner-button-wrapper > .banner-button-wrapper > button {
   border-radius: 100px;
 }
 
-.banner-button-wrapper,
-.banner-button-wrapper > div {
+.banner-wrapper > .banner-button-wrapper,
+.banner-wrapper > .banner-button-wrapper > .banner-button-wrapper {
   padding: 2px;
+
   background-color: rgba(222, 255, 56, 0.2);
 }
 
-.banner-button-wrapper > .large {
+.banner-wrapper > .banner-button-wrapper > .banner-button-wrapper.large {
   padding: 4px;
 }
 
-.banner-button-wrapper button {
+.banner-wrapper > .banner-button-wrapper > .banner-button-wrapper > button {
   cursor: pointer;
+
   min-width: 132px;
   padding: 10px;
+
   font-weight: 500;
   color: #111f68;
+
   background-color: rgb(222, 255, 56);
-  border: none;
-  transition: background-color 0.3s ease;
 }
 
-.banner-button-wrapper button:hover {
+.banner-wrapper
+  > .banner-button-wrapper
+  > .banner-button-wrapper
+  > button:hover {
   background-color: rgba(222, 255, 56, 0.85);
 }
 
 @media screen and (min-width: 768px) {
   .banner-wrapper,
-  .banner-content-wrapper {
+  .banner-wrapper > .banner-content-wrapper {
     flex-direction: row;
   }
 
   .banner-wrapper {
     gap: 32px;
+
     padding: 12px;
   }
 
-  .banner-content-wrapper {
+  .banner-wrapper > .banner-content-wrapper {
     gap: 24px;
+
     margin: 0 auto;
   }
 }

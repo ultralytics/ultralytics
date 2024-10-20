@@ -312,6 +312,238 @@ def non_max_suppression(
     return output
 
 
+##⚒️FIXME by SH for NMM⚒️
+def calculate_bbox_iou_and_union(pred1, pred2):
+    """Returns the ratio of intersection area to the union and calculated IoU."""
+    box1 = np.array(pred1[:4])
+    box2 = np.array(pred2[:4])
+    area1 = (box1[2] - box1[0]) * (box1[3] - box1[1])
+    area2 = (box2[2] - box2[0]) * (box2[3] - box2[1])
+    left_top = np.maximum(box1[:2], box2[:2])
+    right_bottom = np.minimum(box1[2:], box2[2:])
+    width_height = (right_bottom - left_top).clip(min=0)
+    intersect = width_height[0] * width_height[1]
+    return intersect / (area1 + area2 - intersect), list(np.concatenate((left_top, right_bottom)))
+
+
+def nmm(prediction, match_metric: str = "IOU", match_threshold: float = 0.5):
+    keep_to_merge_list = {}
+    merge_to_keep = {}
+
+    # Extract coordinates and confidence scores
+    x1, y1, x2, y2 = prediction[:, 0], prediction[:, 1], prediction[:, 2], prediction[:, 3]
+    areas = (x2 - x1) * (y2 - y1)
+
+    # Sort the prediction boxes by confidence scores in descending order
+    order = prediction[:, 4].argsort(descending=True)
+    order_list = order.tolist()  # Convert to list for efficient indexing in loops
+
+    for ind in range(len(order_list)):
+        pred_ind = order_list[ind]
+        if pred_ind in merge_to_keep:  # Skip if this box is already merged
+            continue
+
+        other_pred_inds = order_list[ind + 1 :]  # Remaining boxes
+
+        # Select coordinates of BBoxes according to the indices in order
+        xx1 = torch.max(x1[other_pred_inds], x1[pred_ind])
+        yy1 = torch.max(y1[other_pred_inds], y1[pred_ind])
+        xx2 = torch.min(x2[other_pred_inds], x2[pred_ind])
+        yy2 = torch.min(y2[other_pred_inds], y2[pred_ind])
+
+        # Calculate width and height of the intersection boxes
+        w = torch.clamp(xx2 - xx1, min=0.0)
+        h = torch.clamp(yy2 - yy1, min=0.0)
+
+        # Calculate intersection area
+        inter = w * h
+
+        # Calculate areas of remaining boxes
+        rem_areas = areas[other_pred_inds]
+
+        # Calculate union and IoU
+        if match_metric == "IOU":
+            union = (rem_areas - inter) + areas[pred_ind]
+            match_metric_value = inter / union
+        elif match_metric == "IOS":
+            smaller = torch.min(rem_areas, areas[pred_ind])
+            match_metric_value = inter / smaller
+
+        # Identify matched boxes based on IoU threshold
+        mask = match_metric_value >= match_threshold
+        matched_box_indices = [other_pred_inds[i] for i in mask.nonzero(as_tuple=True)[0].tolist()]
+
+        # Create keep to merge list mapping
+        if pred_ind not in merge_to_keep:
+            keep_to_merge_list[pred_ind] = []
+            for matched_box_ind in matched_box_indices:
+                if matched_box_ind not in merge_to_keep:
+                    keep_to_merge_list[pred_ind].append(matched_box_ind)
+                    merge_to_keep[matched_box_ind] = pred_ind
+        else:
+            keep = merge_to_keep[pred_ind]
+            for matched_box_ind in matched_box_indices:
+                if matched_box_ind not in merge_to_keep:
+                    keep_to_merge_list[keep].append(matched_box_ind)
+                    merge_to_keep[matched_box_ind] = keep
+
+    return keep_to_merge_list
+
+
+def non_max_merging(
+    prediction,
+    conf_thres=0.25,
+    iou_thres=0.45,
+    classes=None,
+    agnostic=False,
+    multi_label=False,
+    labels=(),
+    max_det=300,
+    nc=0,  # number of classes (optional)
+    max_time_img=0.05,
+    max_nmm=30000,
+    max_wh=7680,
+    in_place=True,
+    rotated=False,
+):
+    """
+    Perform non-maximum Merging (NMM) on a set of boxes, with support for masks and multiple labels per box.
+
+    Args:
+        prediction (torch.Tensor): A tensor of shape (batch_size, num_classes + 4 + num_masks, num_boxes)
+            containing the predicted boxes, classes, and masks. The tensor should be in the format
+            output by a model, such as YOLO.
+        conf_thres (float): The confidence threshold below which boxes will be filtered out.
+            Valid values are between 0.0 and 1.0.
+        iou_thres (float): The IoU threshold below which boxes will be filtered out during NMS.
+            Valid values are between 0.0 and 1.0.
+        classes (List[int]): A list of class indices to consider. If None, all classes will be considered.
+        agnostic (bool): If True, the model is agnostic to the number of classes, and all
+            classes will be considered as one.
+        multi_label (bool): If True, each box may have multiple labels.
+        labels (List[List[Union[int, float, torch.Tensor]]]): A list of lists, where each inner
+            list contains the apriori labels for a given image. The list should be in the format
+            output by a dataloader, with each label being a tuple of (class_index, x1, y1, x2, y2).
+        max_det (int): The maximum number of boxes to keep after NMS.
+        nc (int, optional): The number of classes output by the model. Any indices after this will be considered masks.
+        max_time_img (float): The maximum time (seconds) for processing one image.
+        max_nmm (int): The maximum number of boxes into nmm.
+        max_wh (int): The maximum box width and height in pixels.
+        in_place (bool): If True, the input prediction tensor will be modified in place.
+
+    Returns:
+        (List[torch.Tensor]): A list of length batch_size, where each element is a tensor of
+            shape (num_boxes, 6 + num_masks) containing the kept boxes, with columns
+            (x1, y1, x2, y2, confidence, class, mask1, mask2, ...).
+    """
+    # Checks
+    assert 0 <= conf_thres <= 1, f"Invalid Confidence threshold {conf_thres}, valid values are between 0.0 and 1.0"
+    assert 0 <= iou_thres <= 1, f"Invalid IoU {iou_thres}, valid values are between 0.0 and 1.0"
+    if isinstance(prediction, (list, tuple)):  # YOLOv8 model in validation model, output = (inference_out, loss_out)
+        prediction = prediction[0]  # select only inference output
+
+    if prediction.shape[-1] == 6:  # end-to-end model
+        return [pred[pred[:, 4] > conf_thres] for pred in prediction]
+
+    bs = prediction.shape[0]  # batch size
+    nc = nc or (prediction.shape[1] - 4)  # number of classes
+    nm = prediction.shape[1] - nc - 4  # number of masks
+    mi = 4 + nc  # mask start index
+    xc = prediction[:, 4:mi].amax(1) > conf_thres  # candidates
+
+    # Settings
+    # min_wh = 2  # (pixels) minimum box width and height
+    time_limit = 2.0 + max_time_img * bs  # seconds to quit after
+    multi_label &= nc > 1  # multiple labels per box (adds 0.5ms/img)
+
+    prediction = prediction.transpose(-1, -2)  # shape(1,84,6300) to shape(1,6300,84)
+    if not rotated:
+        if in_place:
+            prediction[..., :4] = xywh2xyxy(prediction[..., :4])  # xywh to xyxy
+        else:
+            prediction = torch.cat((xywh2xyxy(prediction[..., :4]), prediction[..., 4:]), dim=-1)  # xywh to xyxy
+
+    t = time.time()
+    output = [torch.zeros((0, 6 + nm), device=prediction.device)] * bs
+
+    for xi, x in enumerate(prediction):  # image index, image inference
+        # Apply constraints
+        # x[((x[:, 2:4] < min_wh) | (x[:, 2:4] > max_wh)).any(1), 4] = 0  # width-height
+        x = x[xc[xi]]  # confidence
+
+        # Cat apriori labels if autolabelling
+        if labels and len(labels[xi]) and not rotated:
+            lb = labels[xi]
+            v = torch.zeros((len(lb), nc + nm + 4), device=x.device)
+            v[:, :4] = xywh2xyxy(lb[:, 1:5])  # box
+            v[range(len(lb)), lb[:, 0].long() + 4] = 1.0  # cls
+            x = torch.cat((x, v), 0)
+
+        # If none remain process next image
+        if not x.shape[0]:
+            continue
+
+        # Detections matrix nx6 (xyxy, conf, cls)
+        box, cls, mask = x.split((4, nc, nm), 1)
+
+        if multi_label:
+            i, j = torch.where(cls > conf_thres)
+            x = torch.cat((box[i], x[i, 4 + j, None], j[:, None].float(), mask[i]), 1)
+        else:  # best class only
+            conf, j = cls.max(1, keepdim=True)
+            x = torch.cat((box, conf, j.float(), mask), 1)[conf.view(-1) > conf_thres]
+
+        # Filter by class
+        if classes is not None:
+            x = x[(x[:, 5:6] == torch.tensor(classes, device=x.device)).any(1)]
+
+        # Check shape
+        n = x.shape[0]  # number of boxes
+        if not n:  # no boxes
+            continue
+        if n > max_nmm:  # excess boxes
+            x = x[x[:, 4].argsort(descending=True)[:max_nmm]]  # sort by confidence and remove excess boxes
+
+        category_ids = x[:, 5]  # .squeeze()
+        keep_to_merge_list = {}
+        for category_id in torch.unique(category_ids):
+            curr_indices = torch.where(category_ids == category_id)[0]
+            curr_keep_to_merge_list = nmm(x[curr_indices], "IOU", iou_thres)  ##⚒️Match Metric IOU vs IOS
+            for curr_keep, curr_merge_list in curr_keep_to_merge_list.items():
+                keep_to_merge_list[curr_indices[curr_keep].item()] = [
+                    curr_indices[merge_ind].item() for merge_ind in curr_merge_list
+                ]
+
+        selected_object_predictions = []
+        for keep_ind, merge_ind_list in keep_to_merge_list.items():
+            keep_box = x[keep_ind, :4]
+            keep_score = x[keep_ind, 4]
+            keep_category = x[keep_ind, 5]
+            for merge_ind in merge_ind_list:
+                merge_box = x[merge_ind, :4]
+                merge_score = x[merge_ind, 4]
+                iou, union = calculate_bbox_iou_and_union(keep_box.tolist(), merge_box.tolist())
+                if iou > iou_thres:
+                    union_tensor = torch.tensor(union, device=x.device)
+                    if keep_score > merge_score:
+                        score_tensor = keep_score.unsqueeze(0)
+                        category_tensor = keep_category.unsqueeze(0)
+                    else:
+                        score_tensor = merge_score.unsqueeze(0)
+                        category_tensor = x[merge_ind, 5].unsqueeze(0)
+                    x[keep_ind, :4] = union_tensor
+                    x[keep_ind, 4] = score_tensor
+                    x[keep_ind, 5] = category_tensor
+            selected_object_predictions.append(x[keep_ind])
+        output[xi] = torch.stack(selected_object_predictions)
+
+        if (time.time() - t) > time_limit:
+            LOGGER.warning(f"WARNING ⚠️ NMM time limit {time_limit:.3f}s exceeded")
+            break  # time limit exceeded
+
+    return output
+
+
 def clip_boxes(boxes, shape):
     """
     Takes a list of bounding boxes and a shape (height, width) and clips the bounding boxes to the shape.

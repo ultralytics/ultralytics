@@ -35,6 +35,18 @@ keywords: Ultralytics, utility operations, non-max suppression, bounding box tra
 
 <br><br><hr><br>
 
+## ::: ultralytics.utils.ops.calculate_bbox_iou_and_union
+
+<br><br><hr><br>
+
+## ::: ultralytics.utils.ops.nmm
+
+<br><br><hr><br>
+
+## ::: ultralytics.utils.ops.non_max_merging
+
+<br><br><hr><br>
+
 ## ::: ultralytics.utils.ops.clip_boxes
 
 <br><br><hr><br>

@@ -178,7 +178,9 @@ class AutoBackend(nn.Module):
 
             providers = ["CUDAExecutionProvider", "CPUExecutionProvider"] if cuda else ["CPUExecutionProvider"]
             if mct:
-                check_requirements(["model_compression_toolkit==2.1.0", "sony-custom-layers[torch]", "onnxruntime-extensions"])
+                check_requirements(
+                    ["model_compression_toolkit==2.1.0", "sony-custom-layers[torch]", "onnxruntime-extensions"]
+                )
                 LOGGER.info(f"Loading {w} for ONNX MCT quantization inference...")
                 import mct_quantizers as mctq
                 from sony_custom_layers.pytorch.object_detection import nms_ort  # noqa

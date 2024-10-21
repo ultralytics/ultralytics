@@ -1055,9 +1055,10 @@ class Exporter:
     @try_export
     def export_mct(self, prefix=colorstr("Sony MCT:")):
         check_requirements(["model_compression_toolkit==2.1.0", "sony-custom-layers[torch]"])
+        import subprocess
+
         import model_compression_toolkit as mct
         import onnx
-        import subprocess
         from model_compression_toolkit.core.pytorch.pytorch_device_config import get_working_device, set_working_device
         from sony_custom_layers.pytorch.object_detection.nms import multiclass_nms
 
@@ -1113,7 +1114,7 @@ class Exporter:
 
         config = mct.core.CoreConfig(
             mixed_precision_config=mct.core.MixedPrecisionQuantizationConfig(num_of_images=10),
-            quantization_config=mct.core.QuantizationConfig(concat_threshold_update=True)
+            quantization_config=mct.core.QuantizationConfig(concat_threshold_update=True),
         )
 
         resource_utilization = mct.core.ResourceUtilization(weights_memory=3146176 * 0.76)
@@ -1154,7 +1155,7 @@ class Exporter:
                 iou_threshold=iou_threshold,
                 max_detections=max_detections,
             ).to(device=get_working_device())
-            
+
         f = Path(str(self.file).replace(self.file.suffix, "_mct_model.onnx"))  # js dir
         mct.exporter.pytorch_export_model(model=quant_model, save_model_path=f, repr_dataset=representative_dataset_gen)
 
@@ -1164,7 +1165,7 @@ class Exporter:
             meta.key, meta.value = k, str(v)
 
         onnx.save(model_onnx, f)
-        
+
         if not LINUX:
             LOGGER.warning(f"{prefix} WARNING ⚠️ MCT imx500-converter is only supported on Linux.")
         else:
@@ -1172,11 +1173,13 @@ class Exporter:
             try:
                 subprocess.run(["java", "--version"], check=True)
             except FileNotFoundError:
-                LOGGER.error("Java 17 is required for the imx500 conversion. \n Please install Java with: \n sudo apt install openjdk-17-jdk openjdk-17-jre")
+                LOGGER.error(
+                    "Java 17 is required for the imx500 conversion. \n Please install Java with: \n sudo apt install openjdk-17-jdk openjdk-17-jre"
+                )
                 return None
-        
+
             subprocess.run(["imxconv-pt", "-i", "yolov8n_mct_model.onnx", "-o", "yolov8n_imx500_model"], check=True)
-        
+
         return f, None
 
     def _add_tflite_metadata(self, file):

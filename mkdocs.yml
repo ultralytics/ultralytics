@@ -96,8 +96,10 @@ extra: # version:
 
 extra_css:
   - stylesheets/style.css
+
 extra_javascript:
   - javascript/extra.js
+  - javascript/giscus.js
 
 markdown_extensions:
   - admonition

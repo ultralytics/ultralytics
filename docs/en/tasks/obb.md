@@ -147,8 +147,8 @@ Use a trained YOLO11n-obb model to run predictions on images.
     === "CLI"
 
         ```bash
-        yolo obb predict model=yolo11n-obb.pt source='https://ultralytics.com/images/bus.jpg'  # predict with official model
-        yolo obb predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg'  # predict with custom model
+        yolo obb predict model=yolo11n-obb.pt source='https://ultralytics.com/images/boats.jpg'  # predict with official model
+        yolo obb predict model=path/to/best.pt source='https://ultralytics.com/images/boats.jpg'  # predict with custom model
         ```
 
 <p align="center">

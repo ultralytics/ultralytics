@@ -1,0 +1,12 @@
+# Build Folders
+.gradle/
+.idea/
+app/build/
+app/.cxx/
+
+# External libraries
+app/src/main/jni/ncnn-20230816-android-vulkan/
+app/src/main/jni/opencv-mobile-4.6.0-android
+
+# Models
+app/src/main/assets/

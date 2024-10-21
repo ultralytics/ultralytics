@@ -141,7 +141,7 @@ Use a trained YOLO11n-obb model to run predictions on images.
         model = YOLO("path/to/best.pt")  # load a custom model
 
         # Predict with the model
-        results = model("https://ultralytics.com/images/bus.jpg")  # predict on an image
+        results = model("https://ultralytics.com/images/boats.jpg")  # predict on an image
         ```
 
     === "CLI"

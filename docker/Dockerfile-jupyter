@@ -1,0 +1,4 @@
+FROM ultralytics/ultralytics:latest-python
+
+RUN /usr/local/bin/pip install jupyterlab
+ENTRYPOINT ["/usr/local/bin/jupyter", "lab", "--allow-root", "/ultralytics/examples/tutorial.ipynb"]

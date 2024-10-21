@@ -69,9 +69,26 @@ class ObjectCounter(BaseSolution):
         if prev_position is None or track_id in self.counted_ids:
             return
 
-        centroid = self.r_s.centroid
-        dx = (box[0] - prev_position[0]) * (centroid.x - prev_position[0])
-        dy = (box[1] - prev_position[1]) * (centroid.y - prev_position[1])
+        # dx = (box[0] - prev_position[0]) * (centroid.x - prev_position[0])
+        # dy = (box[1] - prev_position[1]) * (centroid.y - prev_position[1])
+
+        curr_pos = prev_position
+        prev_pos = self.track_history[track_id][-3] if len(self.track_history[track_id]) > 2 else None
+        if prev_pos is None:
+            return
+
+        start_point = self.region[0]
+        end_point = self.region[1]
+        # A((curr_pos[0]-prev_pos[0]), (curr_pos[1]-prev_pos[1]))
+        # B((end_point[0]-start_point[0]), (end_point[1]-start_point[1]))
+        d = (curr_pos[0] - prev_pos[0]) * (end_point[1] - start_point[1]) - (curr_pos[1] - prev_pos[1]) * (
+            end_point[0] - start_point[0]
+        )
+        dx = 1
+        if d < 0:
+            dy = 1
+        else:
+            dy = -1
 
         if len(self.region) >= 3 and self.r_s.contains(self.Point(track_line[-1])):
             self.counted_ids.append(track_id)

@@ -102,3 +102,22 @@ def torch_save(*args, **kwargs):
             if i == 3:
                 raise e
             time.sleep((2**i) / 2)  # exponential standoff: 0.5s, 1.0s, 2.0s
+
+
+def torch_gather(input, dim, index):
+    """
+    Provides a workaround for MPS `torch.gather` bug.
+    https://github.com/ultralytics/ultralytics/issues/17054.
+
+    Args:
+        input (torch.Tensor): The source tensor.
+        dim (int): The axis along which to index.
+        index (torch.LongTensor): The indices of elements to gather.
+
+    Returns:
+        (torch.Tensor): The gathered tensor.
+    """
+    if input.shape[-1] == 1:
+        return torch.gather(input.unsqueeze(-1), dim - 1 if dim < 0 else dim, index.unsqueeze(-1)).squeeze(-1)
+    else:
+        return torch.gather(input, dim, index)

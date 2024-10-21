@@ -697,7 +697,8 @@ def check_amp(model):
         LOGGER.info(f"{prefix}checks passed ✅")
     except ConnectionError:
         LOGGER.warning(
-            f"{prefix}checks skipped ⚠️, offline and unable to download YOLO11n for AMP checks. {warning_msg}"
+            f"{prefix}checks skipped ⚠️. "
+            f"Offline and unable to download YOLO11n for AMP checks. {warning_msg}"
         )
     except (AttributeError, ModuleNotFoundError):
         LOGGER.warning(

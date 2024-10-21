@@ -10,7 +10,7 @@ In this guide, we cover exporting Ultralytics YOLOv8 models to Sony's Model Comp
 
 ## Introduction to Sony MCT
 
-Sony's Model Compression Toolkit (MCT) is a powerful tool for optimizing deep learning models through quantization and pruning. It supports various quantization methods and provides advanced algorithms to reduce model size and computational complexity without significantly sacrificing accuracy. MCT is particularly useful for deploying models on resource-constrained devices, ensuring efficient inference and reduced latency. 
+Sony's Model Compression Toolkit (MCT) is a powerful tool for optimizing deep learning models through quantization and pruning. It supports various quantization methods and provides advanced algorithms to reduce model size and computational complexity without significantly sacrificing accuracy. MCT is particularly useful for deploying models on resource-constrained devices, ensuring efficient inference and reduced latency.
 
 ### IMX 500 Converter Tool
 
@@ -19,7 +19,6 @@ The IMX 500 Converter Tool is integral to the MCT framework, allowing the conver
 !!! warning
 
     The IMX 500 Converter Tool is only available for linux and raspberry pi os and requires `JVM>=17`.
-    
 
 ## Usage Examples
 

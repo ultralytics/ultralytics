@@ -665,7 +665,7 @@ For more details see the [`Probs` class documentation](../reference/engine/resul
     model = YOLO("yolo11n-obb.pt")
 
     # Run inference on an image
-    results = model("bus.jpg")  # results list
+    results = model("boats.jpg")  # results list
 
     # View results
     for r in results:

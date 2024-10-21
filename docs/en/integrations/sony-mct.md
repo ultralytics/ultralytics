@@ -6,11 +6,20 @@ keywords: YOLOv8, Sony MCT, model export, quantization, pruning, deep learning o
 
 # Sony MCT Export
 
-In this guide, we cover exporting YOLOv8 models to Sony's Model Compression Toolkit (MCT) format, which offers a comprehensive suite of features designed to optimize neural network models for efficient deployment. These features enhance model performance and compatibility across various platforms by leveraging advanced quantization and pruning techniques.
+In this guide, we cover exporting Ultralytics YOLOv8 models to Sony's Model Compression Toolkit (MCT) format, which offers a comprehensive suite of features designed to optimize neural network models for efficient deployment. These features enhance model performance and compatibility across various platforms by leveraging advanced quantization and pruning techniques.
 
 ## Introduction to Sony MCT
 
-Sony's Model Compression Toolkit (MCT) is a powerful tool for optimizing deep learning models through quantization and pruning. It supports various quantization methods and provides advanced algorithms to reduce model size and computational complexity without significantly sacrificing accuracy. MCT is particularly useful for deploying models on resource-constrained devices, ensuring efficient inference and reduced latency.
+Sony's Model Compression Toolkit (MCT) is a powerful tool for optimizing deep learning models through quantization and pruning. It supports various quantization methods and provides advanced algorithms to reduce model size and computational complexity without significantly sacrificing accuracy. MCT is particularly useful for deploying models on resource-constrained devices, ensuring efficient inference and reduced latency. 
+
+### IMX 500 Converter Tool
+
+The IMX 500 Converter Tool is integral to the MCT framework, allowing the conversion of models for deployment on Raspberry Pi AI Cameras that feature the Sony IMX500 sensor. This tool facilitates the transition of YOLOv8 models processed through Ultralytics software, ensuring they are compatible and perform efficiently on the specified hardware. The export procedure following model quantization involves the generation of binary files that encapsulate essential data and device-specific configurations, streamlining the deployment process on the Raspberry Pi AI Camera.
+
+!!! warning
+
+    The IMX 500 Converter Tool is only available for linux and raspberry pi os and requires `JVM>=17`.
+    
 
 ## Usage Examples
 
@@ -96,6 +105,7 @@ When exporting a model to MCT format, you can specify various arguments:
 | -------- | ------- | ------------------------------------------------------------------- |
 | `format` | `'mct'` | Format to export to (MCT)                                           |
 | `gptq`   | `False` | Use Gradient-based Post-Training Quantization (GPTQ) instead of PTQ |
+| `nms`    | `False` | Add Non-Maximum Suppression (NMS) to the MCT export                 |
 
 ## Benefits of Using MCT
 
@@ -103,7 +113,7 @@ When exporting a model to MCT format, you can specify various arguments:
 2. **Inference Speedup**: Improves inference speed by optimizing computations.
 3. **Hardware Compatibility**: Generates models optimized for specific hardware architectures.
 4. **Advanced Algorithms**: Utilizes state-of-the-art quantization and pruning algorithms.
-5. **Ease of Integration**: Seamlessly integrates with Keras and PyTorch models.
+5. **Ease of Integration**: Seamlessly integrates with PyTorch models.
 
 ## Installation
 

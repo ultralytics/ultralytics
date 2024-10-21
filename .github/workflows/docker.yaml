@@ -43,6 +43,10 @@ on:
         type: boolean
         description: Use Dockerfile-conda
         default: true
+      Dockerfile-jupyter:
+        type: boolean
+        description: Use Dockerfile-jupyter
+        default: true
       push:
         type: boolean
         description: Publish all Images to Docker Hub
@@ -77,6 +81,9 @@ jobs:
             platforms: "linux/arm64"
           - dockerfile: "Dockerfile-python"
             tags: "latest-python"
+            platforms: "linux/amd64"
+          - dockerfile: "Dockerfile-jupyter"
+            tags: "latest-jupyter"
             platforms: "linux/amd64"
           # - dockerfile: "Dockerfile-conda"
           #   tags: "latest-conda"

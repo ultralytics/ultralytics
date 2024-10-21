@@ -10,19 +10,20 @@ In this guide, we cover exporting Ultralytics YOLOv8 models to Sony's Model Comp
 
 ## Introduction to Sony MCT
 
-Sony's Model Compression Toolkit (MCT) is a powerful tool for optimizing deep learning models through quantization and pruning. It supports various quantization methods and provides advanced algorithms to reduce model size and computational complexity without significantly sacrificing accuracy. MCT is particularly useful for deploying models on resource-constrained devices, ensuring efficient inference and reduced latency.
+Sony's Model Compression Toolkit (MCT) is a powerful tool for optimizing deep learning models through quantization and pruning. It supports various quantization methods and provides advanced algorithms to reduce model size and computational complexity without significantly sacrificing accuracy. MCT is particularly useful for deploying models on resource-constrained devices, ensuring efficient inference and reduced latency. 
 
 ### IMX 500 Converter Tool
 
-The IMX 500 Converter Tool is integral to the MCT framework, allowing the conversion of models for deployment on Raspberry Pi AI Cameras that feature the Sony IMX500 sensor. This tool facilitates the transition of YOLOv8 models processed through Ultralytics software, ensuring they are compatible and perform efficiently on the specified hardware. The export procedure following model quantization involves the generation of binary files that encapsulate essential data and device-specific configurations, streamlining the deployment process on the Raspberry Pi AI Camera.
+The IMX 500 Converter Tool is integral to the MCT framework, allowing the conversion of models for deployment on Raspberry Pi AI Cameras that feature the Sony IMX500 sensor. This tool facilitates the transition of Ultralytics YOLOv8 models processed through Ultralytics software, ensuring they are compatible and perform efficiently on the specified hardware. The export procedure following model quantization involves the generation of binary files that encapsulate essential data and device-specific configurations, streamlining the deployment process on the Raspberry Pi AI Camera.
 
 !!! warning
 
     The IMX 500 Converter Tool is only available for linux and raspberry pi os and requires `JVM>=17`.
+    
 
 ## Usage Examples
 
-Export a YOLOv8 model to MCT format and run inference with the exported model.
+Export an Ultralytics YOLOv8 model to MCT format and run inference with the exported model.
 
 !!! example
 
@@ -116,7 +117,7 @@ When exporting a model to MCT format, you can specify various arguments:
 
 ## Installation
 
-To use MCT with YOLOv8, ensure you have the latest version of the Ultralytics package installed:
+To use MCT with Ultralytics YOLOv8, ensure you have the latest version of the Ultralytics package installed:
 
 !!! tip "Installation"
 
@@ -126,11 +127,11 @@ To use MCT with YOLOv8, ensure you have the latest version of the Ultralytics pa
         pip install ultralytics
         ```
 
-For detailed instructions and best practices, refer to the [YOLOv8 Installation Guide](../quickstart.md). If you encounter any issues, consult our [Common Issues Guide](../guides/yolo-common-issues.md) for solutions and tips.
+For detailed instructions and best practices, refer to the [Ultralytics YOLOv8 Installation Guide](../quickstart.md). If you encounter any issues, consult our [Common Issues Guide](../guides/yolo-common-issues.md) for solutions and tips.
 
 ## Using MCT Export in Deployment
 
-After exporting your YOLOv8 model to MCT format, you can deploy it using standard ONNX runtime environments. The MCT export generates an optimized ONNX model that can be integrated into your deployment pipeline.
+After exporting your Ultralytics YOLOv8 model to MCT format, you can deploy it using standard ONNX runtime environments. The MCT export generates an optimized ONNX model that can be integrated into your deployment pipeline.
 
 ### Steps for Deployment
 
@@ -141,14 +142,14 @@ After exporting your YOLOv8 model to MCT format, you can deploy it using standar
 
 ## Conclusion
 
-Exporting YOLOv8 models to Sony's MCT format allows you to optimize your models for efficient deployment on various hardware platforms. By leveraging advanced quantization and pruning techniques, you can reduce model size and improve inference speed without significantly compromising accuracy.
+Exporting Ultralytics YOLOv8 models to Sony's MCT format allows you to optimize your models for efficient deployment on various hardware platforms. By leveraging advanced quantization and pruning techniques, you can reduce model size and improve inference speed without significantly compromising accuracy.
 For more information and detailed guidelines, refer to Sony's [Model Compression Toolkit documentation](https://github.com/sony/model_optimization).
 
 ## FAQ
 
-### How do I export YOLOv8 models to MCT format?
+### How do I export an Ultralytics YOLOv8 models to MCT format?
 
-You can export YOLOv8 models to MCT format using either Python or CLI commands:
+You can export an Ultralytics YOLOv8 models to MCT format using either Python or CLI commands:
 !!! example
 === "Python"
 
@@ -156,14 +157,14 @@ You can export YOLOv8 models to MCT format using either Python or CLI commands:
 from ultralytics import YOLO
 
         # Load the YOLOv8n model
-        model = YOLO("YOLOv8n.pt")
+        model = YOLO("yolov8n.pt")
         # Export the model to MCT format
         model.export(format="mct")
         ```
     === "CLI"
         ```bash
         # Export YOLOv8n to MCT format
-        yolo export model=YOLOv8n.pt format=mct
+        yolo export model=yolov8n.pt format=mct
         ```
 
 ### What quantization methods does MCT support?

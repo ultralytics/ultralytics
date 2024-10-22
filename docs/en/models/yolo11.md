@@ -10,7 +10,7 @@ keywords: YOLO11, state-of-the-art object detection, YOLO series, Ultralytics, c
 
 !!! tip "Ultralytics YOLO11 Publication"
 
-    There is no official Ultralytics YOLO11 research paper. For comprehensive details on YOLO11, please refer to the official [documentation](https://docs.ultralytics.com) and [GitHub repository](https://github.com/ultralytics/ultralytics). Although formal academic papers may not be available, these resources offer in-depth information on model architectures, features, and usage.
+    Ultralytics has not published a formal research paper for YOLO11 due to the rapidly evolving nature of the models. We focus on advancing the technology and making it easier to use, rather than producing static documentation. For the most up-to-date information on YOLO11’s architecture, features, and usage, please refer to our [GitHub repository](https://github.com/ultralytics/ultralytics) and [documentation](https://docs.ultralytics.com).
 
 YOLO11 is the latest iteration in the [Ultralytics](https://www.ultralytics.com/) YOLO series of real-time object detectors, redefining what's possible with cutting-edge [accuracy](https://www.ultralytics.com/glossary/accuracy), speed, and efficiency. Building upon the impressive advancements of previous YOLO versions, YOLO11 introduces significant improvements in architecture and training methods, making it a versatile choice for a wide range of [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) tasks.
 

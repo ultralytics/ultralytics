@@ -8,7 +8,7 @@ keywords: YOLO11, state-of-the-art object detection, YOLO series, Ultralytics, c
 
 ## Overview
 
-!!! tip "Ultralytics YOLO11 Research Paper"
+!!! tip "Ultralytics YOLO11 Publication"
 
     There is no official Ultralytics YOLO11 research paper. For comprehensive details on YOLO11, please refer to the official [documentation](https://docs.ultralytics.com) and [GitHub repository](https://github.com/ultralytics/ultralytics). Although formal academic papers may not be available, these resources offer in-depth information on model architectures, features, and usage.
 

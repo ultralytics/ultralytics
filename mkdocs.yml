@@ -96,8 +96,10 @@ extra: # version:
 
 extra_css:
   - stylesheets/style.css
+
 extra_javascript:
   - javascript/extra.js
+  - javascript/giscus.js
 
 markdown_extensions:
   - admonition
@@ -555,6 +557,7 @@ nav:
               - utils: reference/nn/modules/utils.md
           - tasks: reference/nn/tasks.md
       - solutions:
+          - solutions: reference/solutions/solutions.md
           - ai_gym: reference/solutions/ai_gym.md
           - analytics: reference/solutions/analytics.md
           - distance_calculation: reference/solutions/distance_calculation.md

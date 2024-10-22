@@ -173,7 +173,6 @@ Remember that checkpoints are saved at the end of every epoch by default, or at 
 
 ## Train Settings
 
-
 The training settings for YOLO models encompass various hyperparameters and configurations used during the training process. These settings influence the model's performance, speed, and [accuracy](https://www.ultralytics.com/glossary/accuracy). Key training settings include batch size, learning rate, momentum, and weight decay. Additionally, the choice of optimizer, [loss function](https://www.ultralytics.com/glossary/loss-function), and training dataset composition can impact the training process. Careful tuning and experimentation with these settings are crucial for optimizing performance.
 
 {% include "macros/train-args.md" %}

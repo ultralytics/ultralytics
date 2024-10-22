@@ -1,6 +1,7 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 from ultralytics.utils import LOGGER, RANK, SETTINGS, TESTS_RUNNING, ops
+from ultralytics.utils.metrics import SegmentMetrics, PoseMetrics, DetMetrics, OBBMetrics, ClassifyMetrics
 
 try:
     assert not TESTS_RUNNING  # do not log pytest
@@ -16,8 +17,11 @@ try:
     COMET_SUPPORTED_TASKS = ["detect"]
 
     # Names of plots created by Ultralytics that are logged to Comet
-    EVALUATION_PLOT_NAMES = "F1_curve", "P_curve", "R_curve", "PR_curve", "confusion_matrix"
+    CONFUSION_MATRIX_PLOT_NAMES = "confusion_matrix", "confusion_matrix_normalized"
+    EVALUATION_PLOT_NAMES = "F1_curve", "P_curve", "R_curve", "PR_curve"
     LABEL_PLOT_NAMES = "labels", "labels_correlogram"
+    SEGMENT_METRICS_PLOT_PREFIX = "Box", "Mask"
+    POSE_METRICS_PLOT_PREFIX = "Box", "Pose"
 
     _comet_image_prediction_count = 0
 
@@ -274,11 +278,25 @@ def _log_image_predictions(experiment, validator, curr_step):
 
 def _log_plots(experiment, trainer):
     """Logs evaluation plots and label plots for the experiment."""
-    plot_filenames = [trainer.save_dir / f"{plots}.png" for plots in EVALUATION_PLOT_NAMES]
-    _log_images(experiment, plot_filenames, None)
+    plot_filenames = None
+    if isinstance(trainer.validator.metrics, SegmentMetrics) and trainer.validator.metrics.task == "segment":
+        plot_filenames = [trainer.save_dir / f"{prefix}{plots}.png" for plots in EVALUATION_PLOT_NAMES
+                          for prefix in SEGMENT_METRICS_PLOT_PREFIX]
+    elif isinstance(trainer.validator.metrics, PoseMetrics):
+        plot_filenames = [trainer.save_dir / f"{prefix}{plots}.png" for plots in EVALUATION_PLOT_NAMES
+                          for prefix in POSE_METRICS_PLOT_PREFIX]
+    elif isinstance(trainer.validator.metrics, DetMetrics) or isinstance(trainer.validator.metrics, OBBMetrics):
+        plot_filenames = [trainer.save_dir / f"{plots}.png" for plots in EVALUATION_PLOT_NAMES]
 
-    label_plot_filenames = [trainer.save_dir / f"{labels}.jpg" for labels in LABEL_PLOT_NAMES]
-    _log_images(experiment, label_plot_filenames, None)
+    if plot_filenames is not None:
+        _log_images(experiment, plot_filenames, None)
+
+    confusion_matrix_filenames = [trainer.save_dir / f"{plots}.png" for plots in CONFUSION_MATRIX_PLOT_NAMES]
+    _log_images(experiment, confusion_matrix_filenames, None)
+
+    if not isinstance(trainer.validator.metrics, ClassifyMetrics):
+        label_plot_filenames = [trainer.save_dir / f"{labels}.jpg" for labels in LABEL_PLOT_NAMES]
+        _log_images(experiment, label_plot_filenames, None)
 
 
 def _log_model(experiment, trainer):

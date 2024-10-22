@@ -280,17 +280,21 @@ class PoseValidator(DetectionValidator):
                 if self.eval_backend == "faster_coco_eval":
                     from faster_coco_eval import COCO
                     from faster_coco_eval import COCOeval_faster as COCOeval
+
                     extra_kwargs = dict(print_function=print)
                 else:
                     from pycocotools.coco import COCO  # noqa
                     from pycocotools.cocoeval import COCOeval  # noqa
+
                     extra_kwargs = dict()
-                
+
                 for x in anno_json, pred_json:
                     assert x.is_file(), f"{x} file not found"
                 anno = COCO(str(anno_json))  # init annotations api
                 pred = anno.loadRes(str(pred_json))  # init predictions api (must pass string, not Path)
-                for i, eval in enumerate([COCOeval(anno, pred, "bbox", **extra_kwargs), COCOeval(anno, pred, "keypoints", **extra_kwargs)]):
+                for i, eval in enumerate(
+                    [COCOeval(anno, pred, "bbox", **extra_kwargs), COCOeval(anno, pred, "keypoints", **extra_kwargs)]
+                ):
                     if self.is_coco:
                         eval.params.imgIds = [int(Path(x).stem) for x in self.dataloader.dataset.im_files]  # im to eval
                     eval.evaluate()

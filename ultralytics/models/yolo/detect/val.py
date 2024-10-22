@@ -327,10 +327,8 @@ class DetectionValidator(BaseValidator):
                     assert x.is_file(), f"{x} file not found"
                 if self.eval_backend == "faster_coco_eval":
                     from faster_coco_eval import COCO, COCOeval_faster
-                    extra_kwargs = dict(
-                        print_function=print,
-                        lvis_style=self.is_lvis
-                    )
+
+                    extra_kwargs = dict(print_function=print, lvis_style=self.is_lvis)
                     anno = COCO(str(anno_json))  # init annotations api
                     pred = anno.loadRes(str(pred_json))  # init predictions api (must pass string, not Path)
                     val = COCOeval_faster(anno, pred, "bbox", **extra_kwargs)

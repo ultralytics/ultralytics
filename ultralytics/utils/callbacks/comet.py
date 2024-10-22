@@ -325,9 +325,6 @@ def on_train_epoch_end(trainer):
 
     experiment.log_metrics(trainer.label_loss_items(trainer.tloss, prefix="train"), step=curr_step, epoch=curr_epoch)
 
-    if curr_epoch == 1:
-        _log_images(experiment, trainer.save_dir.glob("train_batch*.jpg"), curr_step)
-
 
 def on_fit_epoch_end(trainer):
     """Logs model assets at the end of each epoch."""
@@ -374,6 +371,7 @@ def on_train_end(trainer):
 
     _log_confusion_matrix(experiment, trainer, curr_step, curr_epoch)
     _log_image_predictions(experiment, trainer.validator, curr_step)
+    _log_images(experiment, trainer.save_dir.glob("train_batch*.jpg"), curr_step)
     experiment.end()
 
     global _comet_image_prediction_count

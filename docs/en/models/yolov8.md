@@ -6,6 +6,10 @@ keywords: YOLOv8, real-time object detection, YOLO series, Ultralytics, computer
 
 # Ultralytics YOLOv8
 
+!!! tip "Ultralytics YOLOv8 Research Paper"
+    
+    There is no official research paper for Ultralytics YOLOv8. For detailed information on YOLOv8, please refer to the official [documentation](https://docs.ultralytics.com) and [GitHub repository](https://github.com/ultralytics/ultralytics). While formal academic papers may not be available, these resources provide comprehensive insights into the model architectures, features, and usage.
+
 ## Overview
 
 YOLOv8 is the latest iteration in the YOLO series of real-time object detectors, offering cutting-edge performance in terms of accuracy and speed. Building upon the advancements of previous YOLO versions, YOLOv8 introduces new features and optimizations that make it an ideal choice for various [object detection](https://www.ultralytics.com/glossary/object-detection) tasks in a wide range of applications.

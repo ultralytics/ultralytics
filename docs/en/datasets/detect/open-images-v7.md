@@ -29,8 +29,6 @@ keywords: Open Images V7, Google dataset, computer vision, YOLO11 models, object
 | [YOLOv8l](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8l-oiv7.pt) | 640                   | 34.9                 | 596.9                          | 2.43                                | 44.1               | 167.4             |
 | [YOLOv8x](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8x-oiv7.pt) | 640                   | 36.3                 | 860.6                          | 3.56                                | 68.7               | 260.6             |
 
-![Open Images V7 classes visual](https://github.com/ultralytics/docs/releases/download/0/open-images-v7-classes-visual.avif)
-
 You can use these pretrained for inference or fine-tuning as follows.
 
 !!! example "Pretrained Model Usage Example"
@@ -59,6 +57,8 @@ You can use these pretrained for inference or fine-tuning as follows.
         # Start training from an Open Images Dataset V7 pretrained checkpoint
         yolo detect train data=coco8.yaml model=yolov8n-oiv7.pt epochs=100 imgsz=640
         ```
+
+![Open Images V7 classes visual](https://github.com/ultralytics/docs/releases/download/0/open-images-v7-classes-visual.avif)
 
 ## Key Features
 

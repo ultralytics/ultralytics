@@ -5,268 +5,232 @@ import json
 import cv2
 import numpy as np
 
-from ultralytics.utils.checks import check_imshow, check_requirements
+from ultralytics.solutions.solutions import LOGGER, BaseSolution, check_requirements
 from ultralytics.utils.plotting import Annotator
 
 
 class ParkingPtsSelection:
-    """Class for selecting and managing parking zone points on images using a Tkinter-based UI."""
+    """
+    A class for selecting and managing parking zone points on images using a Tkinter-based UI.
+
+    This class provides functionality to upload an image, select points to define parking zones, and save the
+    selected points to a JSON file. It uses Tkinter for the graphical user interface.
+
+    Attributes:
+        tk (module): The Tkinter module for GUI operations.
+        filedialog (module): Tkinter's filedialog module for file selection operations.
+        messagebox (module): Tkinter's messagebox module for displaying message boxes.
+        master (tk.Tk): The main Tkinter window.
+        canvas (tk.Canvas): The canvas widget for displaying the image and drawing bounding boxes.
+        image (PIL.Image.Image): The uploaded image.
+        canvas_image (ImageTk.PhotoImage): The image displayed on the canvas.
+        rg_data (List[List[Tuple[int, int]]]): List of bounding boxes, each defined by 4 points.
+        current_box (List[Tuple[int, int]]): Temporary storage for the points of the current bounding box.
+        imgw (int): Original width of the uploaded image.
+        imgh (int): Original height of the uploaded image.
+        canvas_max_width (int): Maximum width of the canvas.
+        canvas_max_height (int): Maximum height of the canvas.
+
+    Methods:
+        setup_ui: Sets up the Tkinter UI components.
+        initialize_properties: Initializes the necessary properties.
+        upload_image: Uploads an image, resizes it to fit the canvas, and displays it.
+        on_canvas_click: Handles mouse clicks to add points for bounding boxes.
+        draw_box: Draws a bounding box on the canvas.
+        remove_last_bounding_box: Removes the last bounding box and redraws the canvas.
+        redraw_canvas: Redraws the canvas with the image and all bounding boxes.
+        save_to_json: Saves the bounding boxes to a JSON file.
+
+    Examples:
+        >>> parking_selector = ParkingPtsSelection()
+        >>> # Use the GUI to upload an image, select parking zones, and save the data
+    """
 
     def __init__(self):
-        """Initializes the UI for selecting parking zone points in a tkinter window."""
+        """Initializes the ParkingPtsSelection class, setting up UI and properties for parking zone point selection."""
         check_requirements("tkinter")
+        import tkinter as tk
+        from tkinter import filedialog, messagebox
 
-        import tkinter as tk  # scope for multi-environment compatibility
+        self.tk, self.filedialog, self.messagebox = tk, filedialog, messagebox
+        self.setup_ui()
+        self.initialize_properties()
+        self.master.mainloop()
 
-        self.tk = tk
-        self.master = tk.Tk()
+    def setup_ui(self):
+        """Sets up the Tkinter UI components for the parking zone points selection interface."""
+        self.master = self.tk.Tk()
         self.master.title("Ultralytics Parking Zones Points Selector")
-
-        # Disable window resizing
         self.master.resizable(False, False)
 
-        # Setup canvas for image display
+        # Canvas for image display
         self.canvas = self.tk.Canvas(self.master, bg="white")
+        self.canvas.pack(side=self.tk.BOTTOM)
 
-        # Setup buttons
+        # Button frame with buttons
         button_frame = self.tk.Frame(self.master)
         button_frame.pack(side=self.tk.TOP)
 
-        self.tk.Button(button_frame, text="Upload Image", command=self.upload_image).grid(row=0, column=0)
-        self.tk.Button(button_frame, text="Remove Last BBox", command=self.remove_last_bounding_box).grid(
-            row=0, column=1
-        )
-        self.tk.Button(button_frame, text="Save", command=self.save_to_json).grid(row=0, column=2)
+        for text, cmd in [
+            ("Upload Image", self.upload_image),
+            ("Remove Last BBox", self.remove_last_bounding_box),
+            ("Save", self.save_to_json),
+        ]:
+            self.tk.Button(button_frame, text=text, command=cmd).pack(side=self.tk.LEFT)
 
-        # Initialize properties
-        self.image_path = None
-        self.image = None
-        self.canvas_image = None
-        self.bounding_boxes = []
-        self.current_box = []
-        self.img_width = 0
-        self.img_height = 0
-
-        # Constants
-        self.canvas_max_width = 1280
-        self.canvas_max_height = 720
-
-        self.master.mainloop()
+    def initialize_properties(self):
+        """Initialize properties for image, canvas, bounding boxes, and dimensions."""
+        self.image = self.canvas_image = None
+        self.rg_data, self.current_box = [], []
+        self.imgw = self.imgh = 0
+        self.canvas_max_width, self.canvas_max_height = 1280, 720
 
     def upload_image(self):
-        """Upload an image and resize it to fit canvas."""
-        from tkinter import filedialog
-
+        """Uploads and displays an image on the canvas, resizing it to fit within specified dimensions."""
         from PIL import Image, ImageTk  # scope because ImageTk requires tkinter package
 
-        self.image_path = filedialog.askopenfilename(filetypes=[("Image Files", "*.png;*.jpg;*.jpeg")])
-        if not self.image_path:
+        self.image = Image.open(self.filedialog.askopenfilename(filetypes=[("Image Files", "*.png;*.jpg;*.jpeg")]))
+        if not self.image:
             return
 
-        self.image = Image.open(self.image_path)
-        self.img_width, self.img_height = self.image.size
+        self.imgw, self.imgh = self.image.size
+        aspect_ratio = self.imgw / self.imgh
+        canvas_width = (
+            min(self.canvas_max_width, self.imgw) if aspect_ratio > 1 else int(self.canvas_max_height * aspect_ratio)
+        )
+        canvas_height = (
+            min(self.canvas_max_height, self.imgh) if aspect_ratio <= 1 else int(canvas_width / aspect_ratio)
+        )
 
-        # Calculate the aspect ratio and resize image
-        aspect_ratio = self.img_width / self.img_height
-        if aspect_ratio > 1:
-            # Landscape orientation
-            canvas_width = min(self.canvas_max_width, self.img_width)
-            canvas_height = int(canvas_width / aspect_ratio)
-        else:
-            # Portrait orientation
-            canvas_height = min(self.canvas_max_height, self.img_height)
-            canvas_width = int(canvas_height * aspect_ratio)
-
-        # Check if canvas is already initialized
-        if self.canvas:
-            self.canvas.destroy()  # Destroy previous canvas
-
-        self.canvas = self.tk.Canvas(self.master, bg="white", width=canvas_width, height=canvas_height)
-        resized_image = self.image.resize((canvas_width, canvas_height), Image.LANCZOS)
-        self.canvas_image = ImageTk.PhotoImage(resized_image)
+        self.canvas.config(width=canvas_width, height=canvas_height)
+        self.canvas_image = ImageTk.PhotoImage(self.image.resize((canvas_width, canvas_height), Image.LANCZOS))
         self.canvas.create_image(0, 0, anchor=self.tk.NW, image=self.canvas_image)
-
-        self.canvas.pack(side=self.tk.BOTTOM)
         self.canvas.bind("<Button-1>", self.on_canvas_click)
 
-        # Reset bounding boxes and current box
-        self.bounding_boxes = []
-        self.current_box = []
+        self.rg_data.clear(), self.current_box.clear()
 
     def on_canvas_click(self, event):
-        """Handle mouse clicks on canvas to create points for bounding boxes."""
+        """Handles mouse clicks to add points for bounding boxes on the canvas."""
         self.current_box.append((event.x, event.y))
-        x0, y0 = event.x - 3, event.y - 3
-        x1, y1 = event.x + 3, event.y + 3
-        self.canvas.create_oval(x0, y0, x1, y1, fill="red")
-
+        self.canvas.create_oval(event.x - 3, event.y - 3, event.x + 3, event.y + 3, fill="red")
         if len(self.current_box) == 4:
-            self.bounding_boxes.append(self.current_box)
-            self.draw_bounding_box(self.current_box)
-            self.current_box = []
+            self.rg_data.append(self.current_box.copy())
+            self.draw_box(self.current_box)
+            self.current_box.clear()
 
-    def draw_bounding_box(self, box):
-        """
-        Draw bounding box on canvas.
-
-        Args:
-            box (list): Bounding box data
-        """
+    def draw_box(self, box):
+        """Draws a bounding box on the canvas using the provided coordinates."""
         for i in range(4):
-            x1, y1 = box[i]
-            x2, y2 = box[(i + 1) % 4]
-            self.canvas.create_line(x1, y1, x2, y2, fill="blue", width=2)
+            self.canvas.create_line(box[i], box[(i + 1) % 4], fill="blue", width=2)
 
     def remove_last_bounding_box(self):
-        """Remove the last drawn bounding box from canvas."""
-        from tkinter import messagebox  # scope for multi-environment compatibility
+        """Removes the last bounding box from the list and redraws the canvas."""
+        if not self.rg_data:
+            self.messagebox.showwarning("Warning", "No bounding boxes to remove.")
+            return
+        self.rg_data.pop()
+        self.redraw_canvas()
 
-        if self.bounding_boxes:
-            self.bounding_boxes.pop()  # Remove the last bounding box
-            self.canvas.delete("all")  # Clear the canvas
-            self.canvas.create_image(0, 0, anchor=self.tk.NW, image=self.canvas_image)  # Redraw the image
-
-            # Redraw all bounding boxes
-            for box in self.bounding_boxes:
-                self.draw_bounding_box(box)
-
-            messagebox.showinfo("Success", "Last bounding box removed.")
-        else:
-            messagebox.showwarning("Warning", "No bounding boxes to remove.")
+    def redraw_canvas(self):
+        """Redraws the canvas with the image and all bounding boxes."""
+        self.canvas.delete("all")
+        self.canvas.create_image(0, 0, anchor=self.tk.NW, image=self.canvas_image)
+        for box in self.rg_data:
+            self.draw_box(box)
 
     def save_to_json(self):
-        """Saves rescaled bounding boxes to 'bounding_boxes.json' based on image-to-canvas size ratio."""
-        from tkinter import messagebox  # scope for multi-environment compatibility
-
-        canvas_width, canvas_height = self.canvas.winfo_width(), self.canvas.winfo_height()
-        width_scaling_factor = self.img_width / canvas_width
-        height_scaling_factor = self.img_height / canvas_height
-        bounding_boxes_data = []
-        for box in self.bounding_boxes:
-            rescaled_box = []
-            for x, y in box:
-                rescaled_x = int(x * width_scaling_factor)
-                rescaled_y = int(y * height_scaling_factor)
-                rescaled_box.append((rescaled_x, rescaled_y))
-            bounding_boxes_data.append({"points": rescaled_box})
+        """Saves the selected parking zone points to a JSON file with scaled coordinates."""
+        scale_w, scale_h = self.imgw / self.canvas.winfo_width(), self.imgh / self.canvas.winfo_height()
+        data = [{"points": [(int(x * scale_w), int(y * scale_h)) for x, y in box]} for box in self.rg_data]
         with open("bounding_boxes.json", "w") as f:
-            json.dump(bounding_boxes_data, f, indent=4)
+            json.dump(data, f, indent=4)
+        self.messagebox.showinfo("Success", "Bounding boxes saved to bounding_boxes.json")
 
-        messagebox.showinfo("Success", "Bounding boxes saved to bounding_boxes.json")
 
+class ParkingManagement(BaseSolution):
+    """
+    Manages parking occupancy and availability using YOLO model for real-time monitoring and visualization.
 
-class ParkingManagement:
-    """Manages parking occupancy and availability using YOLOv8 for real-time monitoring and visualization."""
+    This class extends BaseSolution to provide functionality for parking lot management, including detection of
+    occupied spaces, visualization of parking regions, and display of occupancy statistics.
 
-    def __init__(
-        self,
-        model_path,
-        txt_color=(0, 0, 0),
-        bg_color=(255, 255, 255),
-        occupied_region_color=(0, 255, 0),
-        available_region_color=(0, 0, 255),
-        margin=10,
-    ):
+    Attributes:
+        json_file (str): Path to the JSON file containing parking region details.
+        json (List[Dict]): Loaded JSON data containing parking region information.
+        pr_info (Dict[str, int]): Dictionary storing parking information (Occupancy and Available spaces).
+        arc (Tuple[int, int, int]): RGB color tuple for available region visualization.
+        occ (Tuple[int, int, int]): RGB color tuple for occupied region visualization.
+        dc (Tuple[int, int, int]): RGB color tuple for centroid visualization of detected objects.
+
+    Methods:
+        process_data: Processes model data for parking lot management and visualization.
+
+    Examples:
+        >>> from ultralytics.solutions import ParkingManagement
+        >>> parking_manager = ParkingManagement(model="yolov8n.pt", json_file="parking_regions.json")
+        >>> results = parking_manager(source="parking_lot_video.mp4")
+        >>> print(f"Occupied spaces: {parking_manager.pr_info['Occupancy']}")
+        >>> print(f"Available spaces: {parking_manager.pr_info['Available']}")
+    """
+
+    def __init__(self, **kwargs):
+        """Initializes the parking management system with a YOLO model and visualization settings."""
+        super().__init__(**kwargs)
+
+        self.json_file = self.CFG["json_file"]  # Load JSON data
+        if self.json_file is None:
+            LOGGER.warning("❌ json_file argument missing. Parking region details required.")
+            raise ValueError("❌ Json file path can not be empty")
+
+        with open(self.json_file) as f:
+            self.json = json.load(f)
+
+        self.pr_info = {"Occupancy": 0, "Available": 0}  # dictionary for parking information
+
+        self.arc = (0, 0, 255)  # available region color
+        self.occ = (0, 255, 0)  # occupied region color
+        self.dc = (255, 0, 189)  # centroid color for each box
+
+    def process_data(self, im0):
         """
-        Initializes the parking management system with a YOLOv8 model and visualization settings.
+        Processes the model data for parking lot management.
+
+        This function analyzes the input image, extracts tracks, and determines the occupancy status of parking
+        regions defined in the JSON file. It annotates the image with occupied and available parking spots,
+        and updates the parking information.
 
         Args:
-            model_path (str): Path to the YOLOv8 model.
-            txt_color (tuple): RGB color tuple for text.
-            bg_color (tuple): RGB color tuple for background.
-            occupied_region_color (tuple): RGB color tuple for occupied regions.
-            available_region_color (tuple): RGB color tuple for available regions.
-            margin (int): Margin for text display.
+            im0 (np.ndarray): The input inference image.
+
+        Examples:
+            >>> parking_manager = ParkingManagement(json_file="parking_regions.json")
+            >>> image = cv2.imread("parking_lot.jpg")
+            >>> parking_manager.process_data(image)
         """
-        # Model path and initialization
-        self.model_path = model_path
-        self.model = self.load_model()
+        self.extract_tracks(im0)  # extract tracks from im0
+        es, fs = len(self.json), 0  # empty slots, filled slots
+        annotator = Annotator(im0, self.line_width)  # init annotator
 
-        # Labels dictionary
-        self.labels_dict = {"Occupancy": 0, "Available": 0}
-
-        # Visualization details
-        self.margin = margin
-        self.bg_color = bg_color
-        self.txt_color = txt_color
-        self.occupied_region_color = occupied_region_color
-        self.available_region_color = available_region_color
-
-        self.window_name = "Ultralytics YOLOv8 Parking Management System"
-        # Check if environment supports imshow
-        self.env_check = check_imshow(warn=True)
-
-    def load_model(self):
-        """Load the Ultralytics YOLO model for inference and analytics."""
-        from ultralytics import YOLO
-
-        return YOLO(self.model_path)
-
-    @staticmethod
-    def parking_regions_extraction(json_file):
-        """
-        Extract parking regions from json file.
-
-        Args:
-            json_file (str): file that have all parking slot points
-        """
-        with open(json_file) as f:
-            return json.load(f)
-
-    def process_data(self, json_data, im0, boxes, clss):
-        """
-        Process the model data for parking lot management.
-
-        Args:
-            json_data (str): json data for parking lot management
-            im0 (ndarray): inference image
-            boxes (list): bounding boxes data
-            clss (list): bounding boxes classes list
-
-        Returns:
-            filled_slots (int): total slots that are filled in parking lot
-            empty_slots (int): total slots that are available in parking lot
-        """
-        annotator = Annotator(im0)
-        empty_slots, filled_slots = len(json_data), 0
-        for region in json_data:
-            points_array = np.array(region["points"], dtype=np.int32).reshape((-1, 1, 2))
-            region_occupied = False
-
-            for box, cls in zip(boxes, clss):
-                x_center = int((box[0] + box[2]) / 2)
-                y_center = int((box[1] + box[3]) / 2)
-                text = f"{self.model.names[int(cls)]}"
-
-                annotator.display_objects_labels(
-                    im0, text, self.txt_color, self.bg_color, x_center, y_center, self.margin
-                )
-                dist = cv2.pointPolygonTest(points_array, (x_center, y_center), False)
+        for region in self.json:
+            # Convert points to a NumPy array with the correct dtype and reshape properly
+            pts_array = np.array(region["points"], dtype=np.int32).reshape((-1, 1, 2))
+            rg_occupied = False  # occupied region initialization
+            for box, cls in zip(self.boxes, self.clss):
+                xc, yc = int((box[0] + box[2]) / 2), int((box[1] + box[3]) / 2)
+                dist = cv2.pointPolygonTest(pts_array, (xc, yc), False)
                 if dist >= 0:
-                    region_occupied = True
+                    # cv2.circle(im0, (xc, yc), radius=self.line_width * 4, color=self.dc, thickness=-1)
+                    annotator.display_objects_labels(
+                        im0, self.model.names[int(cls)], (104, 31, 17), (255, 255, 255), xc, yc, 10
+                    )
+                    rg_occupied = True
                     break
+            fs, es = (fs + 1, es - 1) if rg_occupied else (fs, es)
+            # Plotting regions
+            cv2.polylines(im0, [pts_array], isClosed=True, color=self.occ if rg_occupied else self.arc, thickness=2)
 
-            color = self.occupied_region_color if region_occupied else self.available_region_color
-            cv2.polylines(im0, [points_array], isClosed=True, color=color, thickness=2)
-            if region_occupied:
-                filled_slots += 1
-                empty_slots -= 1
+        self.pr_info["Occupancy"], self.pr_info["Available"] = fs, es
 
-        self.labels_dict["Occupancy"] = filled_slots
-        self.labels_dict["Available"] = empty_slots
-
-        annotator.display_analytics(im0, self.labels_dict, self.txt_color, self.bg_color, self.margin)
-
-    def display_frames(self, im0):
-        """
-        Display frame.
-
-        Args:
-            im0 (ndarray): inference image
-        """
-        if self.env_check:
-            cv2.namedWindow(self.window_name)
-            cv2.imshow(self.window_name, im0)
-            # Break Window
-            if cv2.waitKey(1) & 0xFF == ord("q"):
-                return
+        annotator.display_analytics(im0, self.pr_info, (104, 31, 17), (255, 255, 255), 10)
+        self.display_output(im0)  # display output with base class function
+        return im0  # return output image for more usage

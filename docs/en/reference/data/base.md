@@ -5,7 +5,7 @@ keywords: Ultralytics, BaseDataset, image processing, data augmentation, YOLO, d
 
 # Reference for `ultralytics/data/base.py`
 
-!!! Note
+!!! note
 
     This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/base.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/base.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/data/base.py) 🛠️. Thank you 🙏!
 

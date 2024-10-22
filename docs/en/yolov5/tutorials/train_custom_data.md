@@ -18,7 +18,7 @@ pip install -r requirements.txt  # install
 
 ## Train On Custom Data
 
-<a href="https://ultralytics.com/hub" target="_blank">
+<a href="https://www.ultralytics.com/hub" target="_blank">
 <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/ultralytics-active-learning-loop.avif" alt="Ultralytics active learning"></a>
 <br>
 <br>
@@ -42,7 +42,7 @@ YOLOv5 models must be trained on labelled data in order to learn classes of obje
 
 Your model will learn by example. Training on images similar to the ones it will see in the wild is of the utmost importance. Ideally, you will collect a wide variety of images from the same configuration (camera, angle, lighting, etc.) as you will ultimately deploy your project.
 
-If this is not possible, you can start from [a public dataset](https://universe.roboflow.com/?ref=ultralytics) to train your initial model and then [sample images from the wild during inference](https://blog.roboflow.com/computer-vision-active-learning-tips/?ref=ultralytics) to improve your dataset and model iteratively.
+If this is not possible, you can start from [a public dataset](https://universe.roboflow.com/?ref=ultralytics) to train your initial model and then [sample images from the wild during inference](https://blog.roboflow.com/what-is-active-learning/?ref=ultralytics) to improve your dataset and model iteratively.
 
 ### 1.2 Create Labels
 
@@ -77,7 +77,7 @@ Export in `YOLOv5 Pytorch` format, then copy the snippet into your training scri
 
 ### 2.1 Create `dataset.yaml`
 
-[COCO128](https://www.kaggle.com/ultralytics/coco128) is an example small tutorial dataset composed of the first 128 images in [COCO](https://cocodataset.org/) train2017. These same 128 images are used for both training and validation to verify our training pipeline is capable of overfitting. [data/coco128.yaml](https://github.com/ultralytics/yolov5/blob/master/data/coco128.yaml), shown below, is the dataset config file that defines 1) the dataset root directory `path` and relative paths to `train` / `val` / `test` image directories (or `*.txt` files with image paths) and 2) a class `names` dictionary:
+[COCO128](https://www.kaggle.com/datasets/ultralytics/coco128) is an example small tutorial dataset composed of the first 128 images in [COCO](https://cocodataset.org/) train2017. These same 128 images are used for both training and validation to verify our training pipeline is capable of [overfitting](https://www.ultralytics.com/glossary/overfitting). [data/coco128.yaml](https://github.com/ultralytics/yolov5/blob/master/data/coco128.yaml), shown below, is the dataset config file that defines 1) the dataset root directory `path` and relative paths to `train` / `val` / `test` image directories (or `*.txt` files with image paths) and 2) a class `names` dictionary:
 
 ```yaml
 # Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
@@ -137,15 +137,15 @@ Train a YOLOv5s model on COCO128 by specifying dataset, batch-size, image size a
 python train.py --img 640 --epochs 3 --data coco128.yaml --weights yolov5s.pt
 ```
 
-!!! tip "Tip"
+!!! tip
 
     💡 Add `--cache ram` or `--cache disk` to speed up training (requires significant RAM/disk resources).
 
-!!! tip "Tip"
+!!! tip
 
     💡 Always train from a local dataset. Mounted or network drives like Google Drive will be very slow.
 
-All training results are saved to `runs/train/` with incrementing run directories, i.e. `runs/train/exp2`, `runs/train/exp3` etc. For more details see the Training section of our tutorial notebook. <a href="https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> <a href="https://www.kaggle.com/ultralytics/yolov5"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
+All training results are saved to `runs/train/` with incrementing run directories, i.e. `runs/train/exp2`, `runs/train/exp3` etc. For more details see the Training section of our tutorial notebook. <a href="https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> <a href="https://www.kaggle.com/models/ultralytics/yolov5"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
 
 ## 5. Visualize
 
@@ -183,11 +183,11 @@ You can use ClearML Data to version your dataset and then pass it to YOLOv5 simp
 
 Training results are automatically logged with [Tensorboard](https://www.tensorflow.org/tensorboard) and [CSV](https://github.com/ultralytics/yolov5/pull/4148) loggers to `runs/train`, with a new experiment directory created for each new training as `runs/train/exp2`, `runs/train/exp3`, etc.
 
-This directory contains train and val statistics, mosaics, labels, predictions and augmented mosaics, as well as metrics and charts including precision-recall (PR) curves and confusion matrices.
+This directory contains train and val statistics, mosaics, labels, predictions and augmented mosaics, as well as metrics and charts including [precision](https://www.ultralytics.com/glossary/precision)-[recall](https://www.ultralytics.com/glossary/recall) (PR) curves and confusion matrices.
 
 <img alt="Local logging results" src="https://github.com/ultralytics/docs/releases/download/0/local-logging-results.avif" width="1280">
 
-Results file `results.csv` is updated after each epoch, and then plotted as `results.png` (below) after training completes. You can also plot any `results.csv` file manually:
+Results file `results.csv` is updated after each [epoch](https://www.ultralytics.com/glossary/epoch), and then plotted as `results.png` (below) after training completes. You can also plot any `results.csv` file manually:
 
 ```python
 from utils.plots import plot_results
@@ -202,8 +202,8 @@ plot_results("path/to/results.csv")  # plot 'results.csv' as 'results.png'
 Once your model is trained you can use your best checkpoint `best.pt` to:
 
 - Run [CLI](https://github.com/ultralytics/yolov5#quick-start-examples) or [Python](./pytorch_hub_model_loading.md) inference on new images and videos
-- [Validate](https://github.com/ultralytics/yolov5/blob/master/val.py) accuracy on train, val and test splits
-- [Export](./model_export.md) to TensorFlow, Keras, ONNX, TFlite, TF.js, CoreML and TensorRT formats
+- [Validate](https://github.com/ultralytics/yolov5/blob/master/val.py) [accuracy](https://www.ultralytics.com/glossary/accuracy) on train, val and test splits
+- [Export](./model_export.md) to [TensorFlow](https://www.ultralytics.com/glossary/tensorflow), Keras, ONNX, TFlite, TF.js, CoreML and TensorRT formats
 - [Evolve](./hyperparameter_evolution.md) hyperparameters to improve performance
 - [Improve](https://docs.roboflow.com/adding-data/upload-api?ref=ultralytics) your model by sampling real-world images and adding them to your dataset
 
@@ -211,7 +211,7 @@ Once your model is trained you can use your best checkpoint `best.pt` to:
 
 Ultralytics provides a range of ready-to-use environments, each pre-installed with essential dependencies such as [CUDA](https://developer.nvidia.com/cuda-zone), [CUDNN](https://developer.nvidia.com/cudnn), [Python](https://www.python.org/), and [PyTorch](https://pytorch.org/), to kickstart your projects.
 
-- **Free GPU Notebooks**: <a href="https://bit.ly/yolov5-paperspace-notebook"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run on Gradient"></a> <a href="https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> <a href="https://www.kaggle.com/ultralytics/yolov5"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
+- **Free GPU Notebooks**: <a href="https://bit.ly/yolov5-paperspace-notebook"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run on Gradient"></a> <a href="https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> <a href="https://www.kaggle.com/models/ultralytics/yolov5"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
 - **Google Cloud**: [GCP Quickstart Guide](../environments/google_cloud_quickstart_tutorial.md)
 - **Amazon**: [AWS Quickstart Guide](../environments/aws_quickstart_tutorial.md)
 - **Azure**: [AzureML Quickstart Guide](../environments/azureml_quickstart_tutorial.md)

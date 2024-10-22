@@ -61,7 +61,7 @@ Train the YOLOv5 model:
 python train.py
 ```
 
-Validate the model for Precision, Recall, and mAP
+Validate the model for [Precision](https://www.ultralytics.com/glossary/precision), [Recall](https://www.ultralytics.com/glossary/recall), and mAP
 
 ```bash
 python val.py --weights yolov5s.pt

@@ -6,7 +6,7 @@ keywords: Ultralytics, datasets, computer vision, object detection, instance seg
 
 # Datasets Overview
 
-Ultralytics provides support for various datasets to facilitate computer vision tasks such as detection, instance segmentation, pose estimation, classification, and multi-object tracking. Below is a list of the main Ultralytics datasets, followed by a summary of each computer vision task and the respective datasets.
+Ultralytics provides support for various datasets to facilitate computer vision tasks such as detection, [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation), pose estimation, classification, and multi-object tracking. Below is a list of the main Ultralytics datasets, followed by a summary of each computer vision task and the respective datasets.
 
 <p align="center">
   <br>
@@ -19,9 +19,9 @@ Ultralytics provides support for various datasets to facilitate computer vision 
   <strong>Watch:</strong> Ultralytics Datasets Overview
 </p>
 
-## NEW 🚀 Ultralytics Explorer
+## Ultralytics Explorer 🚀 NEW
 
-Create embeddings for your dataset, search for similar images, run SQL queries, perform semantic search and even search using natural language! You can get started with our GUI app or build your own using the API. Learn more [here](explorer/index.md).
+Create [embeddings](https://www.ultralytics.com/glossary/embeddings) for your dataset, search for similar images, run SQL queries, perform semantic search and even search using natural language! You can get started with our GUI app or build your own using the API. Learn more [here](explorer/index.md).
 
 <p>
 <img alt="Ultralytics Explorer Screenshot" src="https://github.com/ultralytics/docs/releases/download/0/ultralytics-explorer-screenshot.avif">
@@ -32,7 +32,7 @@ Create embeddings for your dataset, search for similar images, run SQL queries, 
 
 ## [Object Detection](detect/index.md)
 
-Bounding box object detection is a computer vision technique that involves detecting and localizing objects in an image by drawing a bounding box around each object.
+[Bounding box](https://www.ultralytics.com/glossary/bounding-box) object detection is a computer vision technique that involves detecting and localizing objects in an image by drawing a bounding box around each object.
 
 - [Argoverse](detect/argoverse.md): A dataset containing 3D tracking and motion forecasting data from urban environments with rich annotations.
 - [COCO](detect/coco.md): Common Objects in Context (COCO) is a large-scale object detection, segmentation, and captioning dataset with 80 object categories.
@@ -69,10 +69,11 @@ Pose estimation is a technique used to determine the pose of the object relative
 - [COCO](pose/coco.md): A large-scale dataset with human pose annotations designed for pose estimation tasks.
 - [COCO8-pose](pose/coco8-pose.md): A smaller dataset for pose estimation tasks, containing a subset of 8 COCO images with human pose annotations.
 - [Tiger-pose](pose/tiger-pose.md): A compact dataset consisting of 263 images focused on tigers, annotated with 12 keypoints per tiger for pose estimation tasks.
+- [Hand-Keypoints](pose/hand-keypoints.md): A concise dataset featuring over 26,000 images centered on human hands, annotated with 21 keypoints per hand, designed for pose estimation tasks.
 
 ## [Classification](classify/index.md)
 
-Image classification is a computer vision task that involves categorizing an image into one or more predefined classes or categories based on its visual content.
+[Image classification](https://www.ultralytics.com/glossary/image-classification) is a computer vision task that involves categorizing an image into one or more predefined classes or categories based on its visual content.
 
 - [Caltech 101](classify/caltech101.md): A dataset containing images of 101 object categories for image classification tasks.
 - [Caltech 256](classify/caltech256.md): An extended version of Caltech 101 with 256 object categories and more challenging images.
@@ -84,6 +85,7 @@ Image classification is a computer vision task that involves categorizing an ima
 - [Imagenette](classify/imagenette.md): A smaller subset of ImageNet that contains 10 easily distinguishable classes for quicker training and testing.
 - [Imagewoof](classify/imagewoof.md): A more challenging subset of ImageNet containing 10 dog breed categories for image classification tasks.
 - [MNIST](classify/mnist.md): A dataset of 70,000 grayscale images of handwritten digits for image classification tasks.
+- [MNIST160](classify/mnist.md): First 8 images of each MNIST category from the MNIST dataset. Dataset contains 160 images total.
 
 ## [Oriented Bounding Boxes (OBB)](obb/index.md)
 
@@ -123,7 +125,7 @@ Contributing a new dataset involves several steps to ensure that it aligns well 
 5. **Create a `data.yaml` File**: In your dataset's root directory, create a `data.yaml` file that describes the dataset, classes, and other necessary information.
 6. **Optimize Images (Optional)**: If you want to reduce the size of the dataset for more efficient processing, you can optimize the images using the code below. This is not required, but recommended for smaller dataset sizes and faster download speeds.
 7. **Zip Dataset**: Compress the entire dataset folder into a zip file.
-8. **Document and PR**: Create a documentation page describing your dataset and how it fits into the existing framework. After that, submit a Pull Request (PR). Refer to [Ultralytics Contribution Guidelines](https://docs.ultralytics.com/help/contributing) for more details on how to submit a PR.
+8. **Document and PR**: Create a documentation page describing your dataset and how it fits into the existing framework. After that, submit a Pull Request (PR). Refer to [Ultralytics Contribution Guidelines](https://docs.ultralytics.com/help/contributing/) for more details on how to submit a PR.
 
 ### Example Code to Optimize and Zip a Dataset
 
@@ -152,7 +154,7 @@ By following these steps, you can contribute a new dataset that integrates well 
 
 ## FAQ
 
-### What datasets does Ultralytics support for object detection?
+### What datasets does Ultralytics support for [object detection](https://www.ultralytics.com/glossary/object-detection)?
 
 Ultralytics supports a wide variety of datasets for object detection, including:
 
@@ -175,7 +177,7 @@ Contributing a new dataset involves several steps:
 5. **Create a `data.yaml` File**: Include dataset descriptions, classes, and other relevant information.
 6. **Optimize Images (Optional)**: Reduce dataset size for efficiency.
 7. **Zip Dataset**: Compress the dataset into a zip file.
-8. **Document and PR**: Describe your dataset and submit a Pull Request following [Ultralytics Contribution Guidelines](https://docs.ultralytics.com/help/contributing).
+8. **Document and PR**: Describe your dataset and submit a Pull Request following [Ultralytics Contribution Guidelines](https://docs.ultralytics.com/help/contributing/).
 
 Visit [Contribute New Datasets](#contribute-new-datasets) for a comprehensive guide.
 
@@ -190,7 +192,7 @@ Ultralytics Explorer offers powerful features for dataset analysis, including:
 
 Explore the [Ultralytics Explorer](explorer/index.md) for more information and to try the [GUI Demo](explorer/index.md).
 
-### What are the unique features of Ultralytics YOLO models for computer vision?
+### What are the unique features of Ultralytics YOLO models for [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv)?
 
 Ultralytics YOLO models provide several unique features:
 

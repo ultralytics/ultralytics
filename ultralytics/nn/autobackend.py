@@ -1,7 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import ast
-import contextlib
 import json
 import platform
 import zipfile
@@ -45,8 +44,10 @@ def check_class_names(names):
 def default_class_names(data=None):
     """Applies default class names to an input YAML file or returns numerical class names."""
     if data:
-        with contextlib.suppress(Exception):
+        try:
             return yaml_load(check_yaml(data))["names"]
+        except Exception:
+            pass
     return {i: f"class{i}" for i in range(999)}  # return default if above errors
 
 
@@ -81,7 +82,7 @@ class AutoBackend(nn.Module):
     @torch.no_grad()
     def __init__(
         self,
-        weights="yolov8n.pt",
+        weights="yolo11n.pt",
         device=torch.device("cpu"),
         dnn=False,
         data=None,
@@ -125,7 +126,7 @@ class AutoBackend(nn.Module):
         fp16 &= pt or jit or onnx or xml or engine or nn_module or triton  # FP16
         nhwc = coreml or saved_model or pb or tflite or edgetpu  # BHWC formats (vs torch BCWH)
         stride = 32  # default stride
-        model, metadata = None, None
+        model, metadata, task = None, None, None
 
         # Set device
         cuda = torch.cuda.is_available() and device.type != "cpu"  # use CUDA
@@ -225,10 +226,10 @@ class AutoBackend(nn.Module):
                 import tensorrt as trt  # noqa https://developer.nvidia.com/nvidia-tensorrt-download
             except ImportError:
                 if LINUX:
-                    check_requirements("tensorrt>7.0.0,<=10.1.0")
+                    check_requirements("tensorrt>7.0.0,!=10.1.0")
                 import tensorrt as trt  # noqa
             check_version(trt.__version__, ">=7.0.0", hard=True)
-            check_version(trt.__version__, "<=10.1.0", msg="https://github.com/ultralytics/ultralytics/pull/14239")
+            check_version(trt.__version__, "!=10.1.0", msg="https://github.com/ultralytics/ultralytics/pull/14239")
             if device.type == "cpu":
                 device = torch.device("cuda:0")
             Binding = namedtuple("Binding", ("name", "dtype", "shape", "data", "ptr"))
@@ -264,8 +265,8 @@ class AutoBackend(nn.Module):
                         if -1 in tuple(model.get_tensor_shape(name)):
                             dynamic = True
                             context.set_input_shape(name, tuple(model.get_tensor_profile_shape(name, 0)[1]))
-                            if dtype == np.float16:
-                                fp16 = True
+                        if dtype == np.float16:
+                            fp16 = True
                     else:
                         output_names.append(name)
                     shape = tuple(context.get_tensor_shape(name))
@@ -321,8 +322,10 @@ class AutoBackend(nn.Module):
             with open(w, "rb") as f:
                 gd.ParseFromString(f.read())
             frozen_func = wrap_frozen_graph(gd, inputs="x:0", outputs=gd_outputs(gd))
-            with contextlib.suppress(StopIteration):  # find metadata in SavedModel alongside GraphDef
+            try:  # find metadata in SavedModel alongside GraphDef
                 metadata = next(Path(w).resolve().parent.rglob(f"{Path(w).stem}_saved_model*/metadata.yaml"))
+            except StopIteration:
+                pass
 
         # TFLite or TFLite Edge TPU
         elif tflite or edgetpu:  # https://www.tensorflow.org/lite/guide/python#install_tensorflow_lite_for_python
@@ -333,11 +336,15 @@ class AutoBackend(nn.Module):
 
                 Interpreter, load_delegate = tf.lite.Interpreter, tf.lite.experimental.load_delegate
             if edgetpu:  # TF Edge TPU https://coral.ai/software/#edgetpu-runtime
-                LOGGER.info(f"Loading {w} for TensorFlow Lite Edge TPU inference...")
+                device = device[3:] if str(device).startswith("tpu") else ":0"
+                LOGGER.info(f"Loading {w} on device {device[1:]} for TensorFlow Lite Edge TPU inference...")
                 delegate = {"Linux": "libedgetpu.so.1", "Darwin": "libedgetpu.1.dylib", "Windows": "edgetpu.dll"}[
                     platform.system()
                 ]
-                interpreter = Interpreter(model_path=w, experimental_delegates=[load_delegate(delegate)])
+                interpreter = Interpreter(
+                    model_path=w,
+                    experimental_delegates=[load_delegate(delegate, options={"device": device})],
+                )
             else:  # TFLite
                 LOGGER.info(f"Loading {w} for TensorFlow Lite inference...")
                 interpreter = Interpreter(model_path=w)  # load TFLite model
@@ -345,10 +352,12 @@ class AutoBackend(nn.Module):
             input_details = interpreter.get_input_details()  # inputs
             output_details = interpreter.get_output_details()  # outputs
             # Load metadata
-            with contextlib.suppress(zipfile.BadZipFile):
+            try:
                 with zipfile.ZipFile(w, "r") as model:
                     meta_file = model.namelist()[0]
                     metadata = ast.literal_eval(model.read(meta_file).decode("utf-8"))
+            except zipfile.BadZipFile:
+                pass
 
         # TF.js
         elif tfjs:
@@ -398,8 +407,8 @@ class AutoBackend(nn.Module):
             from ultralytics.engine.exporter import export_formats
 
             raise TypeError(
-                f"model='{w}' is not a supported model format. "
-                f"See https://docs.ultralytics.com/modes/predict for help.\n\n{export_formats()}"
+                f"model='{w}' is not a supported model format. Ultralytics supports: {export_formats()['Format']}\n"
+                f"See https://docs.ultralytics.com/modes/predict for help."
             )
 
         # Load external metadata YAML
@@ -496,7 +505,7 @@ class AutoBackend(nn.Module):
 
         # TensorRT
         elif self.engine:
-            if self.dynamic or im.shape != self.bindings["images"].shape:
+            if self.dynamic and im.shape != self.bindings["images"].shape:
                 if self.is_trt10:
                     self.context.set_input_shape("images", im.shape)
                     self.bindings["images"] = self.bindings["images"]._replace(shape=im.shape)
@@ -653,7 +662,7 @@ class AutoBackend(nn.Module):
         """
         from ultralytics.engine.exporter import export_formats
 
-        sf = list(export_formats().Suffix)  # export suffixes
+        sf = export_formats()["Suffix"]  # export suffixes
         if not is_url(p) and not isinstance(p, str):
             check_suffix(p, sf)  # checks
         name = Path(p).name

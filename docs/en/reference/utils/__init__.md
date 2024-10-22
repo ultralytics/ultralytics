@@ -5,7 +5,7 @@ keywords: Ultralytics, utils, TQDM, Python, ML, Machine Learning utilities, YOLO
 
 # Reference for `ultralytics/utils/__init__.py`
 
-!!! Note
+!!! note
 
     This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/\_\_init\_\_.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/__init__.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/utils/__init__.py) 🛠️. Thank you 🙏!
 
@@ -32,6 +32,10 @@ keywords: Ultralytics, utils, TQDM, Python, ML, Machine Learning utilities, YOLO
 <br><br><hr><br>
 
 ## ::: ultralytics.utils.Retry
+
+<br><br><hr><br>
+
+## ::: ultralytics.utils.JSONDict
 
 <br><br><hr><br>
 

@@ -14,45 +14,44 @@ WORKOUTS_SOLUTION_DEMO = "https://github.com/ultralytics/assets/releases/downloa
 def test_major_solutions():
     """Test the object counting, heatmap, speed estimation and queue management solution."""
     safe_download(url=MAJOR_SOLUTIONS_DEMO)
-    model = YOLO("yolov8n.pt")
-    names = model.names
     cap = cv2.VideoCapture("solutions_ci_demo.mp4")
     assert cap.isOpened(), "Error reading video file"
     region_points = [(20, 400), (1080, 404), (1080, 360), (20, 360)]
-    counter = solutions.ObjectCounter(reg_pts=region_points, names=names, view_img=False)
-    heatmap = solutions.Heatmap(colormap=cv2.COLORMAP_PARULA, names=names, view_img=False)
-    speed = solutions.SpeedEstimator(reg_pts=region_points, names=names, view_img=False)
-    queue = solutions.QueueManager(names=names, reg_pts=region_points, view_img=False)
+    counter = solutions.ObjectCounter(region=region_points, model="yolo11n.pt", show=False)  # Test object counter
+    heatmap = solutions.Heatmap(colormap=cv2.COLORMAP_PARULA, model="yolo11n.pt", show=False)  # Test heatmaps
+    speed = solutions.SpeedEstimator(region=region_points, model="yolo11n.pt", show=False)  # Test queue manager
+    queue = solutions.QueueManager(region=region_points, model="yolo11n.pt", show=False)  # Test speed estimation
+    line_analytics = solutions.Analytics(analytics_type="line", model="yolo11n.pt", show=False)  # line analytics
+    pie_analytics = solutions.Analytics(analytics_type="pie", model="yolo11n.pt", show=False)  # line analytics
+    bar_analytics = solutions.Analytics(analytics_type="bar", model="yolo11n.pt", show=False)  # line analytics
+    area_analytics = solutions.Analytics(analytics_type="area", model="yolo11n.pt", show=False)  # line analytics
+    frame_count = 0  # Required for analytics
     while cap.isOpened():
         success, im0 = cap.read()
         if not success:
             break
         original_im0 = im0.copy()
-        tracks = model.track(im0, persist=True, show=False)
-        _ = counter.start_counting(original_im0.copy(), tracks)
-        _ = heatmap.generate_heatmap(original_im0.copy(), tracks)
-        _ = speed.estimate_speed(original_im0.copy(), tracks)
-        _ = queue.process_queue(original_im0.copy(), tracks)
+        _ = counter.count(original_im0.copy())
+        _ = heatmap.generate_heatmap(original_im0.copy())
+        _ = speed.estimate_speed(original_im0.copy())
+        _ = queue.process_queue(original_im0.copy())
+        _ = line_analytics.process_data(original_im0.copy(), frame_count)
+        _ = pie_analytics.process_data(original_im0.copy(), frame_count)
+        _ = bar_analytics.process_data(original_im0.copy(), frame_count)
+        _ = area_analytics.process_data(original_im0.copy(), frame_count)
     cap.release()
-    cv2.destroyAllWindows()
 
-
-@pytest.mark.slow
-def test_aigym():
-    """Test the workouts monitoring solution."""
+    # Test workouts monitoring
     safe_download(url=WORKOUTS_SOLUTION_DEMO)
-    model = YOLO("yolov8n-pose.pt")
-    cap = cv2.VideoCapture("solution_ci_pose_demo.mp4")
-    assert cap.isOpened(), "Error reading video file"
-    gym_object = solutions.AIGym(line_thickness=2, pose_type="squat", kpts_to_check=[5, 11, 13])
-    while cap.isOpened():
-        success, im0 = cap.read()
+    cap1 = cv2.VideoCapture("solution_ci_pose_demo.mp4")
+    assert cap1.isOpened(), "Error reading video file"
+    gym = solutions.AIGym(line_width=2, kpts=[5, 11, 13], show=False)
+    while cap1.isOpened():
+        success, im0 = cap1.read()
         if not success:
             break
-        results = model.track(im0, verbose=False)
-        _ = gym_object.start_counting(im0, results)
-    cap.release()
-    cv2.destroyAllWindows()
+        _ = gym.monitor(im0)
+    cap1.release()
 
 
 @pytest.mark.slow
@@ -60,7 +59,7 @@ def test_instance_segmentation():
     """Test the instance segmentation solution."""
     from ultralytics.utils.plotting import Annotator, colors
 
-    model = YOLO("yolov8n-seg.pt")
+    model = YOLO("yolo11n-seg.pt")
     names = model.names
     cap = cv2.VideoCapture("solutions_ci_demo.mp4")
     assert cap.isOpened(), "Error reading video file"

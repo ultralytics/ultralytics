@@ -1,7 +1,7 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 from ultralytics.utils import LOGGER, RANK, SETTINGS, TESTS_RUNNING, ops
-from ultralytics.utils.metrics import SegmentMetrics, PoseMetrics, DetMetrics, OBBMetrics, ClassifyMetrics
+from ultralytics.utils.metrics import ClassifyMetrics, DetMetrics, OBBMetrics, PoseMetrics, SegmentMetrics
 
 try:
     assert not TESTS_RUNNING  # do not log pytest
@@ -280,11 +280,17 @@ def _log_plots(experiment, trainer):
     """Logs evaluation plots and label plots for the experiment."""
     plot_filenames = None
     if isinstance(trainer.validator.metrics, SegmentMetrics) and trainer.validator.metrics.task == "segment":
-        plot_filenames = [trainer.save_dir / f"{prefix}{plots}.png" for plots in EVALUATION_PLOT_NAMES
-                          for prefix in SEGMENT_METRICS_PLOT_PREFIX]
+        plot_filenames = [
+            trainer.save_dir / f"{prefix}{plots}.png"
+            for plots in EVALUATION_PLOT_NAMES
+            for prefix in SEGMENT_METRICS_PLOT_PREFIX
+        ]
     elif isinstance(trainer.validator.metrics, PoseMetrics):
-        plot_filenames = [trainer.save_dir / f"{prefix}{plots}.png" for plots in EVALUATION_PLOT_NAMES
-                          for prefix in POSE_METRICS_PLOT_PREFIX]
+        plot_filenames = [
+            trainer.save_dir / f"{prefix}{plots}.png"
+            for plots in EVALUATION_PLOT_NAMES
+            for prefix in POSE_METRICS_PLOT_PREFIX
+        ]
     elif isinstance(trainer.validator.metrics, DetMetrics) or isinstance(trainer.validator.metrics, OBBMetrics):
         plot_filenames = [trainer.save_dir / f"{plots}.png" for plots in EVALUATION_PLOT_NAMES]
 

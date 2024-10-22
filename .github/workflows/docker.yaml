@@ -43,10 +43,6 @@ on:
         type: boolean
         description: Use Dockerfile-conda
         default: true
-      Dockerfile-jupyter:
-        type: boolean
-        description: Use Dockerfile-jupyter
-        default: true
       push:
         type: boolean
         description: Publish all Images to Docker Hub
@@ -81,9 +77,6 @@ jobs:
             platforms: "linux/arm64"
           - dockerfile: "Dockerfile-python"
             tags: "latest-python"
-            platforms: "linux/amd64"
-          - dockerfile: "Dockerfile-jupyter"
-            tags: "latest-jupyter"
             platforms: "linux/amd64"
           # - dockerfile: "Dockerfile-conda"
           #   tags: "latest-conda"
@@ -180,6 +173,22 @@ jobs:
             docker build -f docker/Dockerfile-runner -t $t .
             docker push $t
           fi
+
+      - name: Build Dockerfile-jupyter
+        if: github.event_name == 'push' || matrix.dockerfile == 'Dockerfile-python'
+        run: |
+          docker build \
+          --platform linux/amd64 \
+          -f docker/Dockerfile-jupyter \
+          -t ultralytics/ultralytics:latest-jupyter \
+          -t ultralytics/ultralytics:${{ steps.get_version.outputs.version_tag }}-jupyter \
+          .
+
+      - name: Push Dockerfile-jupyter Image
+        if: github.event_name == 'push' || matrix.dockerfile == 'Dockerfile-python'
+        run: |
+          docker push ultralytics/ultralytics:latest-jupyter
+          docker push ultralytics/ultralytics:${{ steps.get_version.outputs.version_tag }}-jupyter
 
   trigger-actions:
     runs-on: ubuntu-latest

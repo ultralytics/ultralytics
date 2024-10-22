@@ -31,6 +31,35 @@ keywords: Open Images V7, Google dataset, computer vision, YOLO11 models, object
 
 ![Open Images V7 classes visual](https://github.com/ultralytics/docs/releases/download/0/open-images-v7-classes-visual.avif)
 
+You can use these pretrained for inference or fine-tuning as follows.
+
+!!! example "Pretrained Model Usage Example"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load an Open Images Dataset V7 pretrained YOLOv8n model
+        model = YOLO("yolov8n-oiv7.pt")
+
+        # Run prediction
+        results = model.predict(source="image.jpg")
+
+        # Start training from the pretrained checkpoint
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Predict using an Open Images Dataset V7 pretrained model
+        yolo detect predict source=image.jpg model=yolov8n-oiv7.pt
+
+        # Start training from an Open Images Dataset V7 pretrained checkpoint
+        yolo detect train data=coco8.yaml model=yolov8n-oiv7.pt epochs=100 imgsz=640
+        ```
+
 ## Key Features
 
 - Encompasses ~9M images annotated in various ways to suit multiple computer vision tasks.

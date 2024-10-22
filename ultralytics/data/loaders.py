@@ -109,7 +109,7 @@ class LoadStreams:
         self.sources = [ops.clean_str(x) for x in sources]  # clean source names for later
         for i, s in enumerate(sources):  # index, source
             # Start thread to read frames from video stream
-            st = f"{i + 1}/{n}: {s}... "
+            st =f"{i + 1}/{n}: {s}... "
             if urlparse(s).hostname in {"www.youtube.com", "youtube.com", "youtu.be"}:  # if source is YouTube video
                 # YouTube format i.e. 'https://www.youtube.com/watch?v=Jsn8D3aC840' or 'https://youtu.be/Jsn8D3aC840'
                 s = get_best_youtube_url(s)

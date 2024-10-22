@@ -90,7 +90,7 @@ def _create_experiment(args):
                 "max_image_predictions": _get_max_image_predictions_to_log(),
             }
         )
-        experiment.log_other("Created from", "yolov8")
+        experiment.log_other("Created from", "yolov11")
 
     except Exception as e:
         LOGGER.warning(f"WARNING ⚠️ Comet installed but not initialized correctly, not logging this run. {e}")

@@ -56,7 +56,7 @@ class BaseSolution:
         DEFAULT_CFG_DICT.update(kwargs)
         self.CFG = {**DEFAULT_SOL_DICT, **DEFAULT_CFG_DICT}
         LOGGER.info(f"Ultralytics Solutions: ✅ {DEFAULT_SOL_DICT}")
-        
+
         self.region = self.CFG["region"]  # Store region data for other classes usage
         self.line_width = (
             self.CFG["line_width"] if self.CFG["line_width"] is not None else 2

@@ -6,7 +6,7 @@ from pathlib import Path
 import cv2
 
 from ultralytics import YOLO
-from ultralytics.utils import LOGGER, yaml_load
+from ultralytics.utils import LOGGER, yaml_load, DEFAULT_CFG_DICT
 from ultralytics.utils.checks import check_imshow, check_requirements
 
 DEFAULT_SOL_CFG_PATH = Path(__file__).resolve().parents[1] / "cfg/solutions/default.yaml"
@@ -55,12 +55,13 @@ class BaseSolution:
         self.Point = Point
 
         # Load config and update with args
-        self.CFG = yaml_load(DEFAULT_SOL_CFG_PATH)
+        DEFAULT_SOL_DICT = yaml_load(DEFAULT_SOL_CFG_PATH)
+        self.CFG = {**DEFAULT_SOL_DICT, **DEFAULT_CFG_DICT}
         self.CFG.update(kwargs)
-        LOGGER.info(f"Ultralytics Solutions: ✅ {self.CFG}")
+        LOGGER.info(f"Ultralytics Solutions: ✅ {DEFAULT_SOL_DICT}")
 
         self.region = self.CFG["region"]  # Store region data for other classes usage
-        self.line_width = self.CFG["line_width"]  # Store line_width for usage
+        self.line_width = self.CFG["line_width"] if self.CFG["line_width"] is not None else 2  # Store line_width for usage
 
         # Load Model and store classes names
         self.model = YOLO(self.CFG["model"])

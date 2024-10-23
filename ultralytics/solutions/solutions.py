@@ -6,10 +6,9 @@ from pathlib import Path
 import cv2
 
 from ultralytics import YOLO
-from ultralytics.utils import LOGGER, yaml_load, DEFAULT_CFG_DICT
+from ultralytics.utils import LOGGER, yaml_load, DEFAULT_CFG_DICT, DEFAULT_SOL_DICT
 from ultralytics.utils.checks import check_imshow, check_requirements
 
-DEFAULT_SOL_CFG_PATH = Path(__file__).resolve().parents[1] / "cfg/solutions/default.yaml"
 
 
 class BaseSolution:
@@ -55,7 +54,6 @@ class BaseSolution:
         self.Point = Point
 
         # Load config and update with args
-        DEFAULT_SOL_DICT = yaml_load(DEFAULT_SOL_CFG_PATH)
         self.CFG = {**DEFAULT_SOL_DICT, **DEFAULT_CFG_DICT}
         self.CFG.update(kwargs)
         LOGGER.info(f"Ultralytics Solutions: ✅ {DEFAULT_SOL_DICT}")

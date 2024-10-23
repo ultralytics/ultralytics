@@ -687,7 +687,7 @@ class Exporter:
         return f, ct_model
 
     @try_export
-    def export_engine(self, prefix=colorstr("TensorRT:"), dla=None):
+    def export_engine(self, dla=None, prefix=colorstr("TensorRT:")):
         """YOLO TensorRT export https://developer.nvidia.com/tensorrt."""
         assert self.im.device.type != "cpu", "export running on CPU but must be on GPU, i.e. use 'device=0'"
         f_onnx, _ = self.export_onnx()  # run before TRT import https://github.com/ultralytics/ultralytics/issues/7016

@@ -615,20 +615,23 @@ def handle_yolo_solutions(args: List[str]) -> None:
         LOGGER.warning(f"WARNING ⚠️ solution name missing. Updating to 'name=count'.")
         sol_name = "count"
     elif sol_name not in SOLUTIONS:
-        LOGGER.warning(f"WARNING ⚠️ solution name should be in the defined solutions {SOLUTIONS}. Updating to 'name=count'")
+        LOGGER.warning(f"WARNING ⚠️ {sol_name} is not valid solution. It should be in {SOLUTIONS}. Updating to 'name=count'")
         sol_name = "count"
 
     # Call ultralytics solutions
     from ultralytics import solutions
     sol_obj = getattr(solutions, SOLUTIONS2CALL[sol_name])(**overrides)
-    SOLUTIONS2FUNCTIONS
+
     # video capture and iterate over video file
     cap = cv2.VideoCapture(overrides["source"])
     while cap.isOpened():
         s, f = cap.read()
         if not s:
             break
-        _ = sol_obj.count(f)
+        if sol_name=="count":
+            _ = sol_obj.count(f)
+        elif sol_name=="heatmap":
+            _ = sol_obj.generate_heatmap(f)
         if cv2.waitKey(1) & 0xFF == ord("q"):
             return
     cap.release()

@@ -197,7 +197,7 @@ class Exporter:
         dla = None
         if fmt == "engine" and "dla" in self.args.device:
             dla = self.args.device.split(":")[-1]
-            assert dla in ["0", "1"], f"Expected self.args.device='dla:0' or 'dla:1, but got {self.args.device}."
+            assert dla in {"0", "1"}, f"Expected self.args.device='dla:0' or 'dla:1, but got {self.args.device}."
             self.args.device = "0"
         if fmt == "engine" and self.args.device is None:
             LOGGER.warning("WARNING ⚠️ TensorRT requires GPU export, automatically assigning device=0")

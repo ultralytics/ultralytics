@@ -52,10 +52,11 @@ class BaseSolution:
         self.Point = Point
 
         # Load config and update with args
+        DEFAULT_SOL_DICT.update(kwargs)
+        DEFAULT_CFG_DICT.update(kwargs)
         self.CFG = {**DEFAULT_SOL_DICT, **DEFAULT_CFG_DICT}
-        self.CFG.update(kwargs)
         LOGGER.info(f"Ultralytics Solutions: ✅ {DEFAULT_SOL_DICT}")
-
+        
         self.region = self.CFG["region"]  # Store region data for other classes usage
         self.line_width = (
             self.CFG["line_width"] if self.CFG["line_width"] is not None else 2

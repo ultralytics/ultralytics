@@ -3,7 +3,6 @@
 import contextlib
 import importlib.metadata
 import inspect
-import json
 import logging.config
 import os
 import platform
@@ -15,7 +14,6 @@ import time
 import urllib
 import uuid
 from pathlib import Path
-from threading import Lock
 from types import SimpleNamespace
 from typing import Union
 
@@ -61,8 +59,8 @@ HELP_MSG = """
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolo11n.yaml")  # build a new model from scratch
-        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolov8n.yaml")  # build a new model from scratch
+        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
 
         # Use the model
         results = model.train(data="coco8.yaml", epochs=3)  # train the model
@@ -77,21 +75,21 @@ HELP_MSG = """
             yolo TASK MODE ARGS
 
             Where   TASK (optional) is one of [detect, segment, classify, pose, obb]
-                    MODE (required) is one of [train, val, predict, export, track, benchmark]
+                    MODE (required) is one of [train, val, predict, export, benchmark]
                     ARGS (optional) are any number of custom "arg=value" pairs like "imgsz=320" that override defaults.
                         See all ARGS at https://docs.ultralytics.com/usage/cfg or with "yolo cfg"
 
         - Train a detection model for 10 epochs with an initial learning_rate of 0.01
-            yolo detect train data=coco8.yaml model=yolo11n.pt epochs=10 lr0=0.01
+            yolo detect train data=coco8.yaml model=yolov8n.pt epochs=10 lr0=0.01
 
         - Predict a YouTube video using a pretrained segmentation model at image size 320:
-            yolo segment predict model=yolo11n-seg.pt source='https://youtu.be/LNwODJXcvt4' imgsz=320
+            yolo segment predict model=yolov8n-seg.pt source='https://youtu.be/LNwODJXcvt4' imgsz=320
 
         - Val a pretrained detection model at batch-size 1 and image size 640:
-            yolo detect val model=yolo11n.pt data=coco8.yaml batch=1 imgsz=640
+            yolo detect val model=yolov8n.pt data=coco8.yaml batch=1 imgsz=640
 
-        - Export a YOLO11n classification model to ONNX format at image size 224 by 128 (no TASK required)
-            yolo export model=yolo11n-cls.pt format=onnx imgsz=224,128
+        - Export a YOLOv8n classification model to ONNX format at image size 224 by 128 (no TASK required)
+            yolo export model=yolov8n-cls.pt format=onnx imgsz=224,128
 
         - Run special commands:
             yolo help
@@ -111,7 +109,7 @@ torch.set_printoptions(linewidth=320, precision=4, profile="default")
 np.set_printoptions(linewidth=320, formatter={"float_kind": "{:11.5g}".format})  # format short g, %precision=5
 cv2.setNumThreads(0)  # prevent OpenCV from multithreading (incompatible with PyTorch DataLoader)
 os.environ["NUMEXPR_MAX_THREADS"] = str(NUM_THREADS)  # NumExpr max threads
-os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"  # for deterministic training to avoid CUDA warning
+os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"  # for deterministic training
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # suppress verbose TF compiler warnings in Colab
 os.environ["TORCH_CPP_LOG_LEVEL"] = "ERROR"  # suppress "NNPACK.cpp could not initialize NNPACK" warnings
 os.environ["KINETO_LOG_LEVEL"] = "5"  # suppress verbose PyTorch profiler output when computing FLOPs
@@ -523,11 +521,10 @@ def read_device_model() -> str:
     Returns:
         (str): Model file contents if read successfully or empty string otherwise.
     """
-    try:
+    with contextlib.suppress(Exception):
         with open("/proc/device-tree/model") as f:
             return f.read()
-    except:  # noqa E722
-        return ""
+    return ""
 
 
 def is_ubuntu() -> bool:
@@ -537,11 +534,10 @@ def is_ubuntu() -> bool:
     Returns:
         (bool): True if OS is Ubuntu, False otherwise.
     """
-    try:
+    with contextlib.suppress(FileNotFoundError):
         with open("/etc/os-release") as f:
             return "ID=ubuntu" in f.read()
-    except FileNotFoundError:
-        return False
+    return False
 
 
 def is_colab():
@@ -571,7 +567,11 @@ def is_jupyter():
     Returns:
         (bool): True if running inside a Jupyter Notebook, False otherwise.
     """
-    return "get_ipython" in locals()
+    with contextlib.suppress(Exception):
+        from IPython import get_ipython
+
+        return get_ipython() is not None
+    return False
 
 
 def is_docker() -> bool:
@@ -581,11 +581,10 @@ def is_docker() -> bool:
     Returns:
         (bool): True if the script is running inside a Docker container, False otherwise.
     """
-    try:
+    with contextlib.suppress(Exception):
         with open("/proc/self/cgroup") as f:
             return "docker" in f.read()
-    except:  # noqa E722
-        return False
+    return False
 
 
 def is_raspberrypi() -> bool:
@@ -616,15 +615,14 @@ def is_online() -> bool:
     Returns:
         (bool): True if connection is successful, False otherwise.
     """
-    try:
+    with contextlib.suppress(Exception):
         assert str(os.getenv("YOLO_OFFLINE", "")).lower() != "true"  # check if ENV var YOLO_OFFLINE="True"
         import socket
 
         for dns in ("1.1.1.1", "8.8.8.8"):  # check Cloudflare and Google DNS
             socket.create_connection(address=(dns, 80), timeout=2.0).close()
             return True
-    except:  # noqa E722
-        return False
+    return False
 
 
 def is_pip_package(filepath: str = __name__) -> bool:
@@ -711,11 +709,9 @@ def get_git_origin_url():
         (str | None): The origin URL of the git repository or None if not git directory.
     """
     if IS_GIT_DIR:
-        try:
+        with contextlib.suppress(subprocess.CalledProcessError):
             origin = subprocess.check_output(["git", "config", "--get", "remote.origin.url"])
             return origin.decode().strip()
-        except subprocess.CalledProcessError:
-            return None
 
 
 def get_git_branch():
@@ -726,11 +722,9 @@ def get_git_branch():
         (str | None): The current git branch name or None if not a git directory.
     """
     if IS_GIT_DIR:
-        try:
+        with contextlib.suppress(subprocess.CalledProcessError):
             origin = subprocess.check_output(["git", "rev-parse", "--abbrev-ref", "HEAD"])
             return origin.decode().strip()
-        except subprocess.CalledProcessError:
-            return None
 
 
 def get_default_args(func):
@@ -755,11 +749,9 @@ def get_ubuntu_version():
         (str): Ubuntu version or None if not an Ubuntu OS.
     """
     if is_ubuntu():
-        try:
+        with contextlib.suppress(FileNotFoundError, AttributeError):
             with open("/etc/os-release") as f:
                 return re.search(r'VERSION_ID="(\d+\.\d+)"', f.read())[1]
-        except (FileNotFoundError, AttributeError):
-            return None
 
 
 def get_user_config_dir(sub_dir="Ultralytics"):
@@ -808,7 +800,7 @@ IS_RASPBERRYPI = is_raspberrypi()
 GIT_DIR = get_git_dir()
 IS_GIT_DIR = is_git_dir()
 USER_CONFIG_DIR = Path(os.getenv("YOLO_CONFIG_DIR") or get_user_config_dir())  # Ultralytics settings dir
-SETTINGS_FILE = USER_CONFIG_DIR / "settings.json"
+SETTINGS_YAML = USER_CONFIG_DIR / "settings.yaml"
 
 
 def colorstr(*input):
@@ -977,7 +969,7 @@ def threaded(func):
 def set_sentry():
     """
     Initialize the Sentry SDK for error tracking and reporting. Only used if sentry_sdk package is installed and
-    sync=True in settings. Run 'yolo settings' to see and update settings.
+    sync=True in settings. Run 'yolo settings' to see and update settings YAML file.
 
     Conditions required to send errors (ALL conditions must be met or no errors will be reported):
         - sentry_sdk package is installed
@@ -989,26 +981,11 @@ def set_sentry():
         - online environment
         - CLI used to run package (checked with 'yolo' as the name of the main CLI command)
 
-    The function also configures Sentry SDK to ignore KeyboardInterrupt and FileNotFoundError exceptions and to exclude
-    events with 'out of memory' in their exception message.
+    The function also configures Sentry SDK to ignore KeyboardInterrupt and FileNotFoundError
+    exceptions and to exclude events with 'out of memory' in their exception message.
 
     Additionally, the function sets custom tags and user information for Sentry events.
     """
-    if (
-        not SETTINGS["sync"]
-        or RANK not in {-1, 0}
-        or Path(ARGV[0]).name != "yolo"
-        or TESTS_RUNNING
-        or not ONLINE
-        or not IS_PIP_PACKAGE
-        or IS_GIT_DIR
-    ):
-        return
-    # If sentry_sdk package is not installed then return and do not use Sentry
-    try:
-        import sentry_sdk  # noqa
-    except ImportError:
-        return
 
     def before_send(event, hint):
         """
@@ -1022,7 +999,7 @@ def set_sentry():
             dict: The modified event or None if the event should not be sent to Sentry.
         """
         if "exc_info" in hint:
-            exc_type, exc_value, _ = hint["exc_info"]
+            exc_type, exc_value, tb = hint["exc_info"]
             if exc_type in {KeyboardInterrupt, FileNotFoundError} or "out of memory" in str(exc_value):
                 return None  # do not send event
 
@@ -1034,141 +1011,48 @@ def set_sentry():
         }
         return event
 
-    sentry_sdk.init(
-        dsn="https://888e5a0778212e1d0314c37d4b9aae5d@o4504521589325824.ingest.us.sentry.io/4504521592406016",
-        debug=False,
-        auto_enabling_integrations=False,
-        traces_sample_rate=1.0,
-        release=__version__,
-        environment="production",  # 'dev' or 'production'
-        before_send=before_send,
-        ignore_errors=[KeyboardInterrupt, FileNotFoundError],
-    )
-    sentry_sdk.set_user({"id": SETTINGS["uuid"]})  # SHA-256 anonymized UUID hash
-
-
-class JSONDict(dict):
-    """
-    A dictionary-like class that provides JSON persistence for its contents.
-
-    This class extends the built-in dictionary to automatically save its contents to a JSON file whenever they are
-    modified. It ensures thread-safe operations using a lock.
-
-    Attributes:
-        file_path (Path): The path to the JSON file used for persistence.
-        lock (threading.Lock): A lock object to ensure thread-safe operations.
-
-    Methods:
-        _load: Loads the data from the JSON file into the dictionary.
-        _save: Saves the current state of the dictionary to the JSON file.
-        __setitem__: Stores a key-value pair and persists it to disk.
-        __delitem__: Removes an item and updates the persistent storage.
-        update: Updates the dictionary and persists changes.
-        clear: Clears all entries and updates the persistent storage.
-
-    Examples:
-        >>> json_dict = JSONDict("data.json")
-        >>> json_dict["key"] = "value"
-        >>> print(json_dict["key"])
-        value
-        >>> del json_dict["key"]
-        >>> json_dict.update({"new_key": "new_value"})
-        >>> json_dict.clear()
-    """
-
-    def __init__(self, file_path: Union[str, Path] = "data.json"):
-        """Initialize a JSONDict object with a specified file path for JSON persistence."""
-        super().__init__()
-        self.file_path = Path(file_path)
-        self.lock = Lock()
-        self._load()
-
-    def _load(self):
-        """Load the data from the JSON file into the dictionary."""
+    if (
+        SETTINGS["sync"]
+        and RANK in {-1, 0}
+        and Path(ARGV[0]).name == "yolo"
+        and not TESTS_RUNNING
+        and ONLINE
+        and IS_PIP_PACKAGE
+        and not IS_GIT_DIR
+    ):
+        # If sentry_sdk package is not installed then return and do not use Sentry
         try:
-            if self.file_path.exists():
-                with open(self.file_path) as f:
-                    self.update(json.load(f))
-        except json.JSONDecodeError:
-            print(f"Error decoding JSON from {self.file_path}. Starting with an empty dictionary.")
-        except Exception as e:
-            print(f"Error reading from {self.file_path}: {e}")
+            import sentry_sdk  # noqa
+        except ImportError:
+            return
 
-    def _save(self):
-        """Save the current state of the dictionary to the JSON file."""
-        try:
-            self.file_path.parent.mkdir(parents=True, exist_ok=True)
-            with open(self.file_path, "w") as f:
-                json.dump(dict(self), f, indent=2, default=self._json_default)
-        except Exception as e:
-            print(f"Error writing to {self.file_path}: {e}")
-
-    @staticmethod
-    def _json_default(obj):
-        """Handle JSON serialization of Path objects."""
-        if isinstance(obj, Path):
-            return str(obj)
-        raise TypeError(f"Object of type {type(obj).__name__} is not JSON serializable")
-
-    def __setitem__(self, key, value):
-        """Store a key-value pair and persist to disk."""
-        with self.lock:
-            super().__setitem__(key, value)
-            self._save()
-
-    def __delitem__(self, key):
-        """Remove an item and update the persistent storage."""
-        with self.lock:
-            super().__delitem__(key)
-            self._save()
-
-    def __str__(self):
-        """Return a pretty-printed JSON string representation of the dictionary."""
-        return f'JSONDict("{self.file_path}"):\n{json.dumps(dict(self), indent=2, ensure_ascii=False, default=self._json_default)}'
-
-    def update(self, *args, **kwargs):
-        """Update the dictionary and persist changes."""
-        with self.lock:
-            super().update(*args, **kwargs)
-            self._save()
-
-    def clear(self):
-        """Clear all entries and update the persistent storage."""
-        with self.lock:
-            super().clear()
-            self._save()
+        sentry_sdk.init(
+            dsn="https://5ff1556b71594bfea135ff0203a0d290@o4504521589325824.ingest.sentry.io/4504521592406016",
+            debug=False,
+            traces_sample_rate=1.0,
+            release=__version__,
+            environment="production",  # 'dev' or 'production'
+            before_send=before_send,
+            ignore_errors=[KeyboardInterrupt, FileNotFoundError],
+        )
+        sentry_sdk.set_user({"id": SETTINGS["uuid"]})  # SHA-256 anonymized UUID hash
 
 
-class SettingsManager(JSONDict):
+class SettingsManager(dict):
     """
-    SettingsManager class for managing and persisting Ultralytics settings.
+    Manages Ultralytics settings stored in a YAML file.
 
-    This class extends JSONDict to provide JSON persistence for settings, ensuring thread-safe operations and default
-    values. It validates settings on initialization and provides methods to update or reset settings.
-
-    Attributes:
-        file (Path): The path to the JSON file used for persistence.
-        version (str): The version of the settings schema.
-        defaults (Dict): A dictionary containing default settings.
-        help_msg (str): A help message for users on how to view and update settings.
-
-    Methods:
-        _validate_settings: Validates the current settings and resets if necessary.
-        update: Updates settings, validating keys and types.
-        reset: Resets the settings to default and saves them.
-
-    Examples:
-        Initialize and update settings:
-        >>> settings = SettingsManager()
-        >>> settings.update(runs_dir="/new/runs/dir")
-        >>> print(settings["runs_dir"])
-        /new/runs/dir
+    Args:
+        file (str | Path): Path to the Ultralytics settings YAML file. Default is USER_CONFIG_DIR / 'settings.yaml'.
+        version (str): Settings version. In case of local version mismatch, new default settings will be saved.
     """
 
-    def __init__(self, file=SETTINGS_FILE, version="0.0.6"):
+    def __init__(self, file=SETTINGS_YAML, version="0.0.5"):
         """Initializes the SettingsManager with default settings and loads user settings."""
+        import copy
         import hashlib
 
+        from ultralytics.utils.checks import check_version
         from ultralytics.utils.torch_utils import torch_distributed_zero_first
 
         root = GIT_DIR or Path()
@@ -1177,63 +1061,65 @@ class SettingsManager(JSONDict):
         self.file = Path(file)
         self.version = version
         self.defaults = {
-            "settings_version": version,  # Settings schema version
-            "datasets_dir": str(datasets_root / "datasets"),  # Datasets directory
-            "weights_dir": str(root / "weights"),  # Model weights directory
-            "runs_dir": str(root / "runs"),  # Experiment runs directory
-            "uuid": hashlib.sha256(str(uuid.getnode()).encode()).hexdigest(),  # SHA-256 anonymized UUID hash
-            "sync": True,  # Enable synchronization
-            "api_key": "",  # Ultralytics API Key
-            "openai_api_key": "",  # OpenAI API Key
-            "clearml": True,  # ClearML integration
-            "comet": True,  # Comet integration
-            "dvc": True,  # DVC integration
-            "hub": True,  # Ultralytics HUB integration
-            "mlflow": True,  # MLflow integration
-            "neptune": True,  # Neptune integration
-            "raytune": True,  # Ray Tune integration
-            "tensorboard": True,  # TensorBoard logging
-            "wandb": True,  # Weights & Biases logging
-            "vscode_msg": True,  # VSCode messaging
+            "settings_version": version,
+            "datasets_dir": str(datasets_root / "datasets"),
+            "weights_dir": str(root / "weights"),
+            "runs_dir": str(root / "runs"),
+            "uuid": hashlib.sha256(str(uuid.getnode()).encode()).hexdigest(),
+            "sync": True,
+            "api_key": "",
+            "openai_api_key": "",
+            "clearml": True,  # integrations
+            "comet": True,
+            "dvc": True,
+            "hub": True,
+            "mlflow": True,
+            "neptune": True,
+            "raytune": True,
+            "tensorboard": True,
+            "wandb": True,
+            "vscode_msg": True,
         }
-
         self.help_msg = (
-            f"\nView Ultralytics Settings with 'yolo settings' or at '{self.file}'"
-            "\nUpdate Settings with 'yolo settings key=value', i.e. 'yolo settings runs_dir=path/to/dir'. "
+            f"\nView settings with 'yolo settings' or at '{self.file}'"
+            "\nUpdate settings with 'yolo settings key=value', i.e. 'yolo settings runs_dir=path/to/dir'. "
             "For help see https://docs.ultralytics.com/quickstart/#ultralytics-settings."
         )
 
-        with torch_distributed_zero_first(RANK):
-            super().__init__(self.file)
+        super().__init__(copy.deepcopy(self.defaults))
 
-            if not self.file.exists() or not self:  # Check if file doesn't exist or is empty
-                LOGGER.info(f"Creating new Ultralytics Settings v{version} file ✅ {self.help_msg}")
+        with torch_distributed_zero_first(RANK):
+            if not self.file.exists():
+                self.save()
+
+            self.load()
+            correct_keys = self.keys() == self.defaults.keys()
+            correct_types = all(type(a) is type(b) for a, b in zip(self.values(), self.defaults.values()))
+            correct_version = check_version(self["settings_version"], self.version)
+            if not (correct_keys and correct_types and correct_version):
+                LOGGER.warning(
+                    "WARNING ⚠️ Ultralytics settings reset to default values. This may be due to a possible problem "
+                    f"with your settings or a recent ultralytics package update. {self.help_msg}"
+                )
                 self.reset()
 
-            self._validate_settings()
+            if self.get("datasets_dir") == self.get("runs_dir"):
+                LOGGER.warning(
+                    f"WARNING ⚠️ Ultralytics setting 'datasets_dir: {self.get('datasets_dir')}' "
+                    f"must be different than 'runs_dir: {self.get('runs_dir')}'. "
+                    f"Please change one to avoid possible issues during training. {self.help_msg}"
+                )
 
-    def _validate_settings(self):
-        """Validate the current settings and reset if necessary."""
-        correct_keys = set(self.keys()) == set(self.defaults.keys())
-        correct_types = all(isinstance(self.get(k), type(v)) for k, v in self.defaults.items())
-        correct_version = self.get("settings_version", "") == self.version
+    def load(self):
+        """Loads settings from the YAML file."""
+        super().update(yaml_load(self.file))
 
-        if not (correct_keys and correct_types and correct_version):
-            LOGGER.warning(
-                "WARNING ⚠️ Ultralytics settings reset to default values. This may be due to a possible problem "
-                f"with your settings or a recent ultralytics package update. {self.help_msg}"
-            )
-            self.reset()
-
-        if self.get("datasets_dir") == self.get("runs_dir"):
-            LOGGER.warning(
-                f"WARNING ⚠️ Ultralytics setting 'datasets_dir: {self.get('datasets_dir')}' "
-                f"must be different than 'runs_dir: {self.get('runs_dir')}'. "
-                f"Please change one to avoid possible issues during training. {self.help_msg}"
-            )
+    def save(self):
+        """Saves the current settings to the YAML file."""
+        yaml_save(self.file, dict(self))
 
     def update(self, *args, **kwargs):
-        """Updates settings, validating keys and types."""
+        """Updates a setting value in the current settings."""
         for k, v in kwargs.items():
             if k not in self.defaults:
                 raise KeyError(f"No Ultralytics setting '{k}'. {self.help_msg}")
@@ -1241,16 +1127,20 @@ class SettingsManager(JSONDict):
             if not isinstance(v, t):
                 raise TypeError(f"Ultralytics setting '{k}' must be of type '{t}', not '{type(v)}'. {self.help_msg}")
         super().update(*args, **kwargs)
+        self.save()
 
     def reset(self):
         """Resets the settings to default and saves them."""
         self.clear()
         self.update(self.defaults)
+        self.save()
 
 
 def deprecation_warn(arg, new_arg):
     """Issue a deprecation warning when a deprecated argument is used, suggesting an updated argument."""
-    LOGGER.warning(f"WARNING ⚠️ '{arg}' is deprecated and will be removed in in the future. Use '{new_arg}' instead.")
+    LOGGER.warning(
+        f"WARNING ⚠️ '{arg}' is deprecated and will be removed in in the future. " f"Please use '{new_arg}' instead."
+    )
 
 
 def clean_url(url):
@@ -1269,8 +1159,11 @@ def vscode_msg(ext="ultralytics.ultralytics-snippets") -> str:
     path = (USER_CONFIG_DIR.parents[2] if WINDOWS else USER_CONFIG_DIR.parents[1]) / ".vscode/extensions"
     obs_file = path / ".obsolete"  # file tracks uninstalled extensions, while source directory remains
     installed = any(path.glob(f"{ext}*")) and ext not in (obs_file.read_text("utf-8") if obs_file.exists() else "")
-    url = "https://docs.ultralytics.com/integrations/vscode"
-    return "" if installed else f"{colorstr('VS Code:')} view Ultralytics VS Code Extension ⚡ at {url}"
+    return (
+        ""
+        if installed
+        else f"{colorstr('VS Code:')} view Ultralytics VS Code Extension ⚡ at https://docs.ultralytics.com/integrations/vscode"
+    )
 
 
 # Run below code on utils init ------------------------------------------------------------------------------------
@@ -1278,7 +1171,6 @@ def vscode_msg(ext="ultralytics.ultralytics-snippets") -> str:
 # Check first-install steps
 PREFIX = colorstr("Ultralytics: ")
 SETTINGS = SettingsManager()  # initialize settings
-PERSISTENT_CACHE = JSONDict(USER_CONFIG_DIR / "persistent_cache.json")  # initialize persistent cache
 DATASETS_DIR = Path(SETTINGS["datasets_dir"])  # global datasets directory
 WEIGHTS_DIR = Path(SETTINGS["weights_dir"])  # global weights directory
 RUNS_DIR = Path(SETTINGS["runs_dir"])  # global runs directory

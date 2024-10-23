@@ -2,7 +2,7 @@
 
 # 3LC Integration
 
-This document outlines how to use the 3LC integration available for Ultralytics YOLO classification and object detection.
+This document outlines how to use the 3LC integration available for YOLOv8 classification and object detection.
 
 For any questions or problems, please reach out on the [3LC Discord](https://discord.com/channels/1236027984150794290/1236118620002586655).
 
@@ -43,7 +43,7 @@ settings = Settings(
 )
 
 # Initialize and run training
-model = TLCYOLO("yolo11n.pt") # Or e.g. "yolo11n-cls.pt" for classification
+model = TLCYOLO("yolov8n.pt") # Or e.g. "yolov8n-cls.pt" for classification
 model.train(data="coco128.yaml", settings=settings) # See the section 'Dataset Specification' for how to specify which data to use
 ```
 </details>
@@ -56,7 +56,7 @@ In the background, 3LC will create `tlc.Table`s and collect metrics with the tra
 
 ![Banner image with tasks](https://raw.githubusercontent.com/ultralytics/assets/main/im/banner-tasks.png)
 
-A good starting point for using the integration is usually to use the dataset you are already using with Ultralytics YOLO. In this case, you can get started by setting `data=<path to your dataset>` like you are already doing. See the [Ultralytics Documentation](https://docs.ultralytics.com/datasets/) to learn more. 3LC parses these datasets and creates a table for each split, which can be viewed in the Dashboard. Once you make some new versions of your data in the 3LC Dashboard you can use the same command with `data=<path to your dataset>`, and the latest version will be used automatically.
+A good starting point for using the integration is usually to use the dataset you are already using with YOLOv8. In this case, you can get started by setting `data=<path to your dataset>` like you are already doing. See the [Ultralytics Documentation](https://docs.ultralytics.com/datasets/) to learn more. 3LC parses these datasets and creates a table for each split, which can be viewed in the Dashboard. Once you make some new versions of your data in the 3LC Dashboard you can use the same command with `data=<path to your dataset>`, and the latest version will be used automatically.
 
 As an alternative, if you would like to train again with a specific version, or have your own `tlc.Table`s you would like to use, there are two ways to specify this:
 
@@ -106,11 +106,11 @@ It is possible to create runs where only metrics collection, and no training, is
 
 Use the method `model.collect()` to perform metrics collection only. Either pass `data` (a path to a yaml file) and `splits` (an iterable of split names to collect metrics for), or a dictionary `tables` like detailed in the previous section, to define which data to collect metrics on. This will create a run, collect the metrics on each split by calling `model.val()` and finally reduce any embeddings that were collected. Any additional arguments, such as `imgsz` and `batch`, are forwarded as `model.val(**kwargs)`.
 
-The following code snippet shows how to collect metrics on the train and validation splits of the `coco128` dataset with `yolo11m.pt`:
+The following code snippet shows how to collect metrics on the train and validation splits of the `coco128` dataset with `yolov8m.pt`:
 ```python
 from ultralytics.utils.tlc import Settings, TLCYOLO
 
-model = TLCYOLO("yolo11m.pt")
+model = TLCYOLO("yolov8m.pt")
 
 settings = Settings(
     image_embeddings_dim=2,
@@ -128,7 +128,7 @@ model.collect(
 
 ## 3LC Settings
 
-The integration offers a rich set of settings and features which can be set through an instance of `Settings`, which are in addition to the regular YOLO settings. They allow specifying which metrics to collect, how often to collect them, and whether to use sampling weights during training.
+The integration offers a rich set of settings and features which can be set through an instance of `Settings`, which are in addition to the regular YOLOv8 settings. They allow specifying which metrics to collect, how often to collect them, and whether to use sampling weights during training.
 
 The available 3LC settings can be seen in the `Settings` class in [settings.py](settings.py).
 
@@ -168,15 +168,15 @@ Use `collection_epoch_start` and `collection_epoch_interval` to define when to c
 
 ## Other output
 
-When viewing all your YOLO runs in the 3LC Dashboard, charts will show up with per-epoch aggregate metrics produced by YOLO for each run. This allows you to follow your runs in real-time, and compare them with each other.
+When viewing all your YOLOv8 runs in the 3LC Dashboard, charts will show up with per-epoch aggregate metrics produced by YOLOv8 for each run. This allows you to follow your runs in real-time, and compare them with each other.
 
 # Frequently Asked Questions
 
 ## What is the difference between before and after training metrics?
 
-By default, the 3LC integration collects metrics only after training with the `best.pt` weights written by YOLO. These are the after training metrics.
+By default, the 3LC integration collects metrics only after training with the `best.pt` weights written by YOLOv8. These are the after training metrics.
 
-If a starting metrics collection epoch is provided (optionally with an interval), metrics are also collected during training, this time with the exponential moving average that YOLO uses for its validation passes.
+If a starting metrics collection epoch is provided (optionally with an interval), metrics are also collected during training, this time with the exponential moving average that YOLOv8 uses for its validation passes.
 
 ## What happens if I use early stopping? Does it interfere with 3LC?
 
@@ -190,6 +190,6 @@ Embeddings collection has an extra dependency for the library used for reduction
 
 In order to collect embeddings (or other additional metrics) for each bounding box, refer to the [3LC Bounding Box Example Notebooks](https://docs.3lc.ai/3lc/latest/public-notebooks/add-bb-embeddings.html).
 
-## Can I use the Ultralytics YOLO CLI commands in the integration to train and collect metrics?
+## Can I use the YOLOv8 CLI commands in the integration to train and collect metrics?
 
 This is not supported yet, but will be added in a future commit!

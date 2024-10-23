@@ -85,3 +85,4 @@ jobs:
           print(f"Branches updated: {updated_branches}")
           print(f"Branches already up-to-date: {up_to_date_branches}")
           print(f"Total errors: {errors}")
+

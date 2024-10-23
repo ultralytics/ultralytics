@@ -5,7 +5,7 @@ keywords: Ultralytics, YOLO, neural networks, block modules, DFL, Proto, HGStem,
 
 # Reference for `ultralytics/nn/modules/block.py`
 
-!!! note
+!!! Note
 
     This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/block.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/block.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/nn/modules/block.py) 🛠️. Thank you 🙏!
 
@@ -143,18 +143,6 @@ keywords: Ultralytics, YOLO, neural networks, block modules, DFL, Proto, HGStem,
 
 <br><br><hr><br>
 
-## ::: ultralytics.nn.modules.block.C3f
-
-<br><br><hr><br>
-
-## ::: ultralytics.nn.modules.block.C3k2
-
-<br><br><hr><br>
-
-## ::: ultralytics.nn.modules.block.C3k
-
-<br><br><hr><br>
-
 ## ::: ultralytics.nn.modules.block.RepVGGDW
 
 <br><br><hr><br>
@@ -171,19 +159,7 @@ keywords: Ultralytics, YOLO, neural networks, block modules, DFL, Proto, HGStem,
 
 <br><br><hr><br>
 
-## ::: ultralytics.nn.modules.block.PSABlock
-
-<br><br><hr><br>
-
 ## ::: ultralytics.nn.modules.block.PSA
-
-<br><br><hr><br>
-
-## ::: ultralytics.nn.modules.block.C2PSA
-
-<br><br><hr><br>
-
-## ::: ultralytics.nn.modules.block.C2fPSA
 
 <br><br><hr><br>
 

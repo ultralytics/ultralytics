@@ -69,7 +69,7 @@ class PoseValidator(DetectionValidator):
             self.args.iou,
             labels=self.lb,
             multi_label=True,
-            agnostic=self.args.single_cls or self.args.agnostic_nms,
+            agnostic=self.args.single_cls,
             max_det=self.args.max_det,
             nc=self.nc,
         )

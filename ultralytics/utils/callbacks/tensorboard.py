@@ -1,5 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
+import contextlib
 
 from ultralytics.utils import LOGGER, SETTINGS, TESTS_RUNNING, colorstr
 
@@ -44,27 +45,26 @@ def _log_tensorboard_graph(trainer):
         warnings.simplefilter("ignore", category=torch.jit.TracerWarning)  # suppress jit trace warning
 
         # Try simple method first (YOLO)
-        try:
+        with contextlib.suppress(Exception):
             trainer.model.eval()  # place in .eval() mode to avoid BatchNorm statistics changes
             WRITER.add_graph(torch.jit.trace(de_parallel(trainer.model), im, strict=False), [])
             LOGGER.info(f"{PREFIX}model graph visualization added ✅")
             return
 
-        except:  # noqa E722
-            # Fallback to TorchScript export steps (RTDETR)
-            try:
-                model = deepcopy(de_parallel(trainer.model))
-                model.eval()
-                model = model.fuse(verbose=False)
-                for m in model.modules():
-                    if hasattr(m, "export"):  # Detect, RTDETRDecoder (Segment and Pose use Detect base class)
-                        m.export = True
-                        m.format = "torchscript"
-                model(im)  # dry run
-                WRITER.add_graph(torch.jit.trace(model, im, strict=False), [])
-                LOGGER.info(f"{PREFIX}model graph visualization added ✅")
-            except Exception as e:
-                LOGGER.warning(f"{PREFIX}WARNING ⚠️ TensorBoard graph visualization failure {e}")
+        # Fallback to TorchScript export steps (RTDETR)
+        try:
+            model = deepcopy(de_parallel(trainer.model))
+            model.eval()
+            model = model.fuse(verbose=False)
+            for m in model.modules():
+                if hasattr(m, "export"):  # Detect, RTDETRDecoder (Segment and Pose use Detect base class)
+                    m.export = True
+                    m.format = "torchscript"
+            model(im)  # dry run
+            WRITER.add_graph(torch.jit.trace(model, im, strict=False), [])
+            LOGGER.info(f"{PREFIX}model graph visualization added ✅")
+        except Exception as e:
+            LOGGER.warning(f"{PREFIX}WARNING ⚠️ TensorBoard graph visualization failure {e}")
 
 
 def on_pretrain_routine_start(trainer):

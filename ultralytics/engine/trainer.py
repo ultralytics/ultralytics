@@ -12,7 +12,7 @@ import os
 import subprocess
 import time
 import warnings
-from copy import copy, deepcopy
+from copy import deepcopy
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -28,6 +28,7 @@ from ultralytics.utils import (
     DEFAULT_CFG,
     LOCAL_RANK,
     LOGGER,
+    MACOS,
     RANK,
     TQDM,
     __version__,
@@ -408,17 +409,13 @@ class BaseTrainer:
                             break
 
                 # Log
+                mem = f"{torch.cuda.memory_reserved() / 1E9 if torch.cuda.is_available() else 0:.3g}G"  # (GB)
+                loss_len = self.tloss.shape[0] if len(self.tloss.shape) else 1
+                losses = self.tloss if loss_len > 1 else torch.unsqueeze(self.tloss, 0)
                 if RANK in {-1, 0}:
-                    loss_length = self.tloss.shape[0] if len(self.tloss.shape) else 1
                     pbar.set_description(
-                        ("%11s" * 2 + "%11.4g" * (2 + loss_length))
-                        % (
-                            f"{epoch + 1}/{self.epochs}",
-                            f"{self._get_memory():.3g}G",  # (GB) GPU memory util
-                            *(self.tloss if loss_length > 1 else torch.unsqueeze(self.tloss, 0)),  # losses
-                            batch["cls"].shape[0],  # batch size, i.e. 8
-                            batch["img"].shape[-1],  # imgsz, i.e 640
-                        )
+                        ("%11s" * 2 + "%11.4g" * (2 + loss_len))
+                        % (f"{epoch + 1}/{self.epochs}", mem, *losses, batch["cls"].shape[0], batch["img"].shape[-1])
                     )
                     self.run_callbacks("on_batch_end")
                     if self.args.plots and ni in self.plot_idx:
@@ -456,7 +453,11 @@ class BaseTrainer:
                 self.scheduler.last_epoch = self.epoch  # do not move
                 self.stop |= epoch >= self.epochs  # stop if exceeded epochs
             self.run_callbacks("on_fit_epoch_end")
-            self._clear_memory()
+            gc.collect()
+            if MACOS:
+                torch.mps.empty_cache()  # clear unified memory at end of epoch, may help MPS' management of 'unlimited' virtual memoy
+            else:
+                torch.cuda.empty_cache()  # clear GPU memory at end of epoch, may help reduce CUDA out of memory errors
 
             # Early Stopping
             if RANK != -1:  # if DDP training
@@ -469,40 +470,27 @@ class BaseTrainer:
 
         if RANK in {-1, 0}:
             # Do final val with best.pt
-            seconds = time.time() - self.train_time_start
-            LOGGER.info(f"\n{epoch - self.start_epoch + 1} epochs completed in {seconds / 3600:.3f} hours.")
+            LOGGER.info(
+                f"\n{epoch - self.start_epoch + 1} epochs completed in "
+                f"{(time.time() - self.train_time_start) / 3600:.3f} hours."
+            )
             self.final_eval()
             if self.args.plots:
                 self.plot_metrics()
             self.run_callbacks("on_train_end")
-        self._clear_memory()
-        self.run_callbacks("teardown")
-
-    def _get_memory(self):
-        """Get accelerator memory utilization in GB."""
-        if self.device.type == "mps":
-            memory = torch.mps.driver_allocated_memory()
-        elif self.device.type == "cpu":
-            memory = 0
-        else:
-            memory = torch.cuda.memory_reserved()
-        return memory / 1e9
-
-    def _clear_memory(self):
-        """Clear accelerator memory on different platforms."""
         gc.collect()
-        if self.device.type == "mps":
+        if MACOS:
             torch.mps.empty_cache()
-        elif self.device.type == "cpu":
-            return
         else:
             torch.cuda.empty_cache()
+
+        self.run_callbacks("teardown")
 
     def read_results_csv(self):
         """Read results.csv into a dict using pandas."""
         import pandas as pd  # scope for faster 'import ultralytics'
 
-        return pd.read_csv(self.csv).to_dict(orient="list")
+        return {k.strip(): v for k, v in pd.read_csv(self.csv).to_dict(orient="list").items()}
 
     def save_model(self):
         """Save model training checkpoints with additional metadata."""
@@ -536,8 +524,6 @@ class BaseTrainer:
             self.best.write_bytes(serialized_ckpt)  # save best.pt
         if (self.save_period > 0) and (self.epoch % self.save_period == 0):
             (self.wdir / f"epoch{self.epoch}.pt").write_bytes(serialized_ckpt)  # save epoch, i.e. 'epoch3.pt'
-        # if self.args.close_mosaic and self.epoch == (self.epochs - self.args.close_mosaic - 1):
-        #    (self.wdir / "last_mosaic.pt").write_bytes(serialized_ckpt)  # save mosaic checkpoint
 
     def get_dataset(self):
         """
@@ -652,11 +638,10 @@ class BaseTrainer:
     def save_metrics(self, metrics):
         """Saves training metrics to a CSV file."""
         keys, vals = list(metrics.keys()), list(metrics.values())
-        n = len(metrics) + 2  # number of cols
-        s = "" if self.csv.exists() else (("%s," * n % tuple(["epoch", "time"] + keys)).rstrip(",") + "\n")  # header
-        t = time.time() - self.train_time_start
+        n = len(metrics) + 1  # number of cols
+        s = "" if self.csv.exists() else (("%23s," * n % tuple(["epoch"] + keys)).rstrip(",") + "\n")  # header
         with open(self.csv, "a") as f:
-            f.write(s + ("%.6g," * n % tuple([self.epoch + 1, t] + vals)).rstrip(",") + "\n")
+            f.write(s + ("%23.5g," * n % tuple([self.epoch + 1] + vals)).rstrip(",") + "\n")
 
     def plot_metrics(self):
         """Plot and display metrics visually."""
@@ -669,14 +654,13 @@ class BaseTrainer:
 
     def final_eval(self):
         """Performs final evaluation and validation for object detection YOLO model."""
-        ckpt = {}
         for f in self.last, self.best:
             if f.exists():
-                if f is self.last:
-                    ckpt = strip_optimizer(f)
-                elif f is self.best:
-                    k = "train_results"  # update best.pt train_metrics from last.pt
-                    strip_optimizer(f, updates={k: ckpt[k]} if k in ckpt else None)
+                strip_optimizer(f)  # strip optimizers
+                if f is self.best:
+                    if self.last.is_file():  # update best.pt train_metrics from last.pt
+                        k = "train_results"
+                        torch.save({**torch.load(self.best), **{k: torch.load(self.last)[k]}}, self.best)
                     LOGGER.info(f"\nValidating {f}...")
                     self.validator.args.plots = self.args.plots
                     self.metrics = self.validator(model=f)
@@ -699,12 +683,7 @@ class BaseTrainer:
                 resume = True
                 self.args = get_cfg(ckpt_args)
                 self.args.model = self.args.resume = str(last)  # reinstate model
-                for k in (
-                    "imgsz",
-                    "batch",
-                    "device",
-                    "close_mosaic",
-                ):  # allow arg updates to reduce memory or update device on resume
+                for k in "imgsz", "batch", "device":  # allow arg updates to reduce memory or update device on resume
                     if k in overrides:
                         setattr(self.args, k, overrides[k])
 
@@ -748,7 +727,7 @@ class BaseTrainer:
             self.train_loader.dataset.mosaic = False
         if hasattr(self.train_loader.dataset, "close_mosaic"):
             LOGGER.info("Closing dataloader mosaic")
-            self.train_loader.dataset.close_mosaic(hyp=copy(self.args))
+            self.train_loader.dataset.close_mosaic(hyp=self.args)
 
     def build_optimizer(self, model, name="auto", lr=0.001, momentum=0.9, decay=1e-5, iterations=1e5):
         """

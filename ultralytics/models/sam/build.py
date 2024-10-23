@@ -210,6 +210,8 @@ def _build_sam(
             state_dict = torch.load(f)
         sam.load_state_dict(state_dict)
     sam.eval()
+    # sam.load_state_dict(torch.load(checkpoint), strict=True)
+    # sam.eval()
     return sam
 
 

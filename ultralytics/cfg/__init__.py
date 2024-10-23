@@ -11,6 +11,7 @@ import cv2
 
 from ultralytics.utils import (
     ASSETS,
+    SOLUTIONS_ASSETS,
     DEFAULT_CFG,
     DEFAULT_CFG_DICT,
     DEFAULT_CFG_PATH,
@@ -33,6 +34,7 @@ from ultralytics.utils import (
     yaml_load,
     yaml_print,
 )
+from ultralytics.utils.downloads import safe_download
 
 # Define valid tasks and modes
 SOLUTIONS = {"count", "heatmap", "queue", "speed"}
@@ -42,10 +44,7 @@ SOLUTIONS2CALL = {
     "count": "ObjectCounter",
     "heatmap": "Heatmap"
 }
-SOLUTIONS2FUNCTIONS = {
-    "ObjectCounter": "count",
-    "Heatmap": "generate_heatmap"
-}
+
 TASK2DATA = {
     "detect": "coco8.yaml",
     "segment": "coco8-seg.yaml",
@@ -582,8 +581,8 @@ def handle_yolo_settings(args: List[str]) -> None:
 
 
 def handle_yolo_solutions(args: List[str]) -> None:
-    full_args_dict = {**DEFAULT_SOL_DICT, **DEFAULT_CFG_DICT, "source": None, "name": None}
-    overrides = {}  # basic solution overrides, i.e. show=True
+    full_args_dict = {**DEFAULT_SOL_DICT, **DEFAULT_CFG_DICT, "name": None}
+    overrides = {}  # basic solution overrides, i.e. name=count
     for a in merge_equals_args(args[0:]):  # merge spaces around '=' sign
         if a.startswith("--"):
             LOGGER.warning(f"WARNING ⚠️ argument '{a}' does not require leading dashes '--', updating to '{a[2:]}'.")
@@ -623,7 +622,17 @@ def handle_yolo_solutions(args: List[str]) -> None:
     sol_obj = getattr(solutions, SOLUTIONS2CALL[sol_name])(**overrides)
 
     # video capture and iterate over video file
-    cap = cv2.VideoCapture(overrides["source"])
+    source = overrides.pop("source", None)
+    if source is None:
+        LOGGER.warning(f"WARNING ⚠️ source is missing. using ultralytics assets video.")
+        if sol_name not in "workouts":
+            safe_download(f"{SOLUTIONS_ASSETS}/solutions_ci_demo.mp4")
+            source = "solutions_ci_demo.mp4"
+        else:
+            safe_download(f"{SOLUTIONS_ASSETS}/solution_ci_pose_demo.mp4")
+            source = "solution_ci_pose_demo.mp4"
+
+    cap = cv2.VideoCapture(source)
     while cap.isOpened():
         s, f = cap.read()
         if not s:

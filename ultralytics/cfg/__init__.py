@@ -570,9 +570,6 @@ def handle_yolo_settings(args: List[str]) -> None:
 
 def handle_yolo_solutions(args: List[str]) -> None:
     print(args)
-
-    from ultralytics.solutions.solutions import DEFAULT_SOL_CFG_PATH
-    DEFAULT_SOL_PATH = Path(__file__).resolve().parents[1] / "cfg/solutions/default.yaml"
     full_sol_dict = {**yaml_load(DEFAULT_SOL_PATH)}
     overrides = {}  # basic overrides, i.e. imgsz=320
     # for a in merge_equals_args(args):  # merge spaces around '=' sign

@@ -837,13 +837,95 @@ class SAM2Model(torch.nn.Module):
         # is predicted to be occluded (i.e. no object is appearing in the frame)
         if self.no_obj_embed_spatial is not None:
             is_obj_appearing = (object_score_logits > 0).float()
-            maskmem_features += (
-                1 - is_obj_appearing[..., None, None]
-            ) * self.no_obj_embed_spatial[..., None, None].expand(
-                *maskmem_features.shape
-            )
+            maskmem_features += (1 - is_obj_appearing[..., None, None]) * self.no_obj_embed_spatial[
+                ..., None, None
+            ].expand(*maskmem_features.shape)
 
         return maskmem_features, maskmem_pos_enc
+
+    def _track_step(
+        self,
+        frame_idx,
+        is_init_cond_frame,
+        current_vision_feats,
+        current_vision_pos_embeds,
+        feat_sizes,
+        point_inputs,
+        mask_inputs,
+        output_dict,
+        num_frames,
+        prev_sam_mask_logits,
+    ):
+        """Performs a single tracking step, updating object masks and memory features based on current frame inputs."""
+        current_out = {"point_inputs": point_inputs, "mask_inputs": mask_inputs}
+        # High-resolution feature maps for the SAM head, reshape (HW)BC => BCHW
+        if len(current_vision_feats) > 1:
+            high_res_features = [
+                x.permute(1, 2, 0).view(x.size(1), x.size(2), *s)
+                for x, s in zip(current_vision_feats[:-1], feat_sizes[:-1])
+            ]
+        else:
+            high_res_features = None
+        if mask_inputs is not None and self.use_mask_input_as_output_without_sam:
+            # When use_mask_input_as_output_without_sam=True, we directly output the mask input
+            # (see it as a GT mask) without using a SAM prompt encoder + mask decoder.
+            pix_feat = current_vision_feats[-1].permute(1, 2, 0)
+            pix_feat = pix_feat.view(-1, self.hidden_dim, *feat_sizes[-1])
+            sam_outputs = self._use_mask_as_output(pix_feat, high_res_features, mask_inputs)
+        else:
+            # fused the visual feature with previous memory features in the memory bank
+            pix_feat = self._prepare_memory_conditioned_features(
+                frame_idx=frame_idx,
+                is_init_cond_frame=is_init_cond_frame,
+                current_vision_feats=current_vision_feats[-1:],
+                current_vision_pos_embeds=current_vision_pos_embeds[-1:],
+                feat_sizes=feat_sizes[-1:],
+                output_dict=output_dict,
+                num_frames=num_frames,
+                track_in_reverse=track_in_reverse,
+            )
+            # apply SAM-style segmentation head
+            # here we might feed previously predicted low-res SAM mask logits into the SAM mask decoder,
+            # e.g. in demo where such logits come from earlier interaction instead of correction sampling
+            # (in this case, any `mask_inputs` shouldn't reach here as they are sent to _use_mask_as_output instead)
+            if prev_sam_mask_logits is not None:
+                assert point_inputs is not None and mask_inputs is None
+                mask_inputs = prev_sam_mask_logits
+            multimask_output = self._use_multimask(is_init_cond_frame, point_inputs)
+            sam_outputs = self._forward_sam_heads(
+                backbone_features=pix_feat,
+                point_inputs=point_inputs,
+                mask_inputs=mask_inputs,
+                high_res_features=high_res_features,
+                multimask_output=multimask_output,
+            )
+        return current_out, sam_outputs, high_res_features, pix_feat
+
+    def _encode_memory_in_output(
+        self,
+        current_vision_feats,
+        feat_sizes,
+        point_inputs,
+        run_mem_encoder,
+        high_res_masks,
+        object_score_logits,
+        current_out,
+    ):
+        """Finally run the memory encoder on the predicted mask to encode, it into a new memory feature (that can be used in future frames)"""
+        if run_mem_encoder and self.num_maskmem > 0:
+            high_res_masks_for_mem_enc = high_res_masks
+            maskmem_features, maskmem_pos_enc = self._encode_new_memory(
+                current_vision_feats=current_vision_feats,
+                feat_sizes=feat_sizes,
+                pred_masks_high_res=high_res_masks_for_mem_enc,
+                object_score_logits=object_score_logits,
+                is_mask_from_pts=(point_inputs is not None),
+            )
+            current_out["maskmem_features"] = maskmem_features
+            current_out["maskmem_pos_enc"] = maskmem_pos_enc
+        else:
+            current_out["maskmem_features"] = None
+            current_out["maskmem_pos_enc"] = None
 
     def track_step(
         self,
@@ -867,48 +949,20 @@ class SAM2Model(torch.nn.Module):
         prev_sam_mask_logits=None,
     ):
         """Performs a single tracking step, updating object masks and memory features based on current frame inputs."""
-        current_out = {"point_inputs": point_inputs, "mask_inputs": mask_inputs}
-        # High-resolution feature maps for the SAM head, reshape (HW)BC => BCHW
-        if len(current_vision_feats) > 1:
-            high_res_features = [
-                x.permute(1, 2, 0).view(x.size(1), x.size(2), *s)
-                for x, s in zip(current_vision_feats[:-1], feat_sizes[:-1])
-            ]
-        else:
-            high_res_features = None
-        if mask_inputs is not None and self.use_mask_input_as_output_without_sam:
-            # When use_mask_input_as_output_without_sam=True, we directly output the mask input
-            # (see it as a GT mask) without using a SAM prompt encoder + mask decoder.
-            pix_feat = current_vision_feats[-1].permute(1, 2, 0)
-            pix_feat = pix_feat.view(-1, self.hidden_dim, *feat_sizes[-1])
-            sam_outputs = self._use_mask_as_output(pix_feat, high_res_features, mask_inputs)
-        else:
-            # fused the visual feature with previous memory features in the memory bank
-            pix_feat_with_mem = self._prepare_memory_conditioned_features(
-                frame_idx=frame_idx,
-                is_init_cond_frame=is_init_cond_frame,
-                current_vision_feats=current_vision_feats[-1:],
-                current_vision_pos_embeds=current_vision_pos_embeds[-1:],
-                feat_sizes=feat_sizes[-1:],
-                output_dict=output_dict,
-                num_frames=num_frames,
-                track_in_reverse=track_in_reverse,
-            )
-            # apply SAM-style segmentation head
-            # here we might feed previously predicted low-res SAM mask logits into the SAM mask decoder,
-            # e.g. in demo where such logits come from earlier interaction instead of correction sampling
-            # (in this case, any `mask_inputs` shouldn't reach here as they are sent to _use_mask_as_output instead)
-            if prev_sam_mask_logits is not None:
-                assert point_inputs is not None and mask_inputs is None
-                mask_inputs = prev_sam_mask_logits
-            multimask_output = self._use_multimask(is_init_cond_frame, point_inputs)
-            sam_outputs = self._forward_sam_heads(
-                backbone_features=pix_feat_with_mem,
-                point_inputs=point_inputs,
-                mask_inputs=mask_inputs,
-                high_res_features=high_res_features,
-                multimask_output=multimask_output,
-            )
+        current_out, sam_outputs, _, _ = self._track_step(
+            frame_idx,
+            is_init_cond_frame,
+            current_vision_feats,
+            current_vision_pos_embeds,
+            feat_sizes,
+            point_inputs,
+            mask_inputs,
+            output_dict,
+            num_frames,
+            track_in_reverse,
+            prev_sam_mask_logits,
+        )
+
         (
             _,
             _,
@@ -916,28 +970,28 @@ class SAM2Model(torch.nn.Module):
             low_res_masks,
             high_res_masks,
             obj_ptr,
-            _,
+            object_score_logits,
         ) = sam_outputs
 
         current_out["pred_masks"] = low_res_masks
         current_out["pred_masks_high_res"] = high_res_masks
         current_out["obj_ptr"] = obj_ptr
+        if not self.training:
+            # Only add this in inference (to avoid unused param in activation checkpointing;
+            # it's mainly used in the demo to encode spatial memories w/ consolidated masks)
+            current_out["object_score_logits"] = object_score_logits
 
         # Finally run the memory encoder on the predicted mask to encode
         # it into a new memory feature (that can be used in future frames)
-        if run_mem_encoder and self.num_maskmem > 0:
-            high_res_masks_for_mem_enc = high_res_masks
-            maskmem_features, maskmem_pos_enc = self._encode_new_memory(
-                current_vision_feats=current_vision_feats,
-                feat_sizes=feat_sizes,
-                pred_masks_high_res=high_res_masks_for_mem_enc,
-                is_mask_from_pts=(point_inputs is not None),
-            )
-            current_out["maskmem_features"] = maskmem_features
-            current_out["maskmem_pos_enc"] = maskmem_pos_enc
-        else:
-            current_out["maskmem_features"] = None
-            current_out["maskmem_pos_enc"] = None
+        self._encode_memory_in_output(
+            current_vision_feats,
+            feat_sizes,
+            point_inputs,
+            run_mem_encoder,
+            high_res_masks,
+            object_score_logits,
+            current_out,
+        )
 
         return current_out
 

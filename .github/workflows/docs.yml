@@ -20,6 +20,11 @@ on:
   pull_request:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      publish_docs:
+        description: "Publish live to https://docs.ultralytics.com"
+        default: "true"
+        type: boolean
 
 jobs:
   Docs:
@@ -43,7 +48,7 @@ jobs:
           python-version: "3.x"
           cache: "pip" # caching pip dependencies
       - name: Install Dependencies
-        run: pip install ruff black tqdm mkdocs-material "mkdocstrings[python]" mkdocs-jupyter mkdocs-redirects mkdocs-ultralytics-plugin mkdocs-macros-plugin
+        run: pip install ruff black tqdm minify-html mkdocs-material "mkdocstrings[python]" mkdocs-jupyter mkdocs-redirects mkdocs-ultralytics-plugin mkdocs-macros-plugin
       - name: Ruff fixes
         continue-on-error: true
         run: ruff check --fix --unsafe-fixes --select D --ignore=D100,D104,D203,D205,D212,D213,D401,D406,D407,D413 .
@@ -80,7 +85,7 @@ jobs:
             echo "No changes to commit"
           fi
       - name: Publish Docs to https://docs.ultralytics.com
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.publish_docs == 'true')
         run: |
           git clone https://github.com/ultralytics/docs.git docs-repo
           cd docs-repo

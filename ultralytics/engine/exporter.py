@@ -195,13 +195,12 @@ class Exporter:
 
         # Device
         dla = None
-        if fmt == "engine" and "dla" in self.args.device:
-            dla = self.args.device.split(":")[-1]
-            assert dla in {"0", "1"}, f"Expected self.args.device='dla:0' or 'dla:1, but got {self.args.device}."
-            self.args.device = "0"
         if fmt == "engine" and self.args.device is None:
             LOGGER.warning("WARNING ⚠️ TensorRT requires GPU export, automatically assigning device=0")
             self.args.device = "0"
+        if fmt == "engine" and "dla" in str(self.args.device):  # convert int/list to str first
+            dla = self.args.device.split(":")[-1]
+            assert dla in {"0", "1"}, f"Expected self.args.device='dla:0' or 'dla:1, but got {self.args.device}."
         self.device = select_device("cpu" if self.args.device is None else self.args.device)
 
         # Checks

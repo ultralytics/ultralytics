@@ -46,7 +46,7 @@ class SegmentationValidator(DetectionValidator):
         """Initialize metrics and select mask processing function based on save_json flag."""
         super().init_metrics(model)
         self.plot_masks = []
-        
+
         if self.args.save_json:
             if check_requirements("faster-coco-eval>=1.6.3", install=False):
                 self.pkg = "faster-coco-eval"

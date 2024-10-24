@@ -85,7 +85,7 @@ class DetectionValidator(BaseValidator):
                 elif self.is_coco:
                     check_requirements("pycocotools>=2.0.6")
                     self.pkg = "pycocotools"
-        
+
         self.class_map = converter.coco80_to_coco91_class() if self.is_coco else list(range(len(model.names)))
         self.args.save_json |= self.args.val and (self.is_coco or self.is_lvis) and not self.training  # run final val
         self.names = model.names
@@ -316,7 +316,7 @@ class DetectionValidator(BaseValidator):
                 / "annotations"
                 / ("instances_val2017.json" if self.is_coco else f"lvis_v1_{self.args.split}.json")
             )  # annotations
-                
+
             LOGGER.info(f"\nEvaluating {self.pkg} mAP using {pred_json} and {anno_json}...")
             try:  # https://github.com/cocodataset/cocoapi/blob/master/PythonAPI/pycocoEvalDemo.ipynb
                 for x in pred_json, anno_json:

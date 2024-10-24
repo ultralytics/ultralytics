@@ -579,7 +579,7 @@ def is_jupyter():
     Returns:
         (bool): True if running inside a Jupyter Notebook, False otherwise.
     """
-    return "get_ipython" in locals()
+    return "get_ipython" in globals()
 
 
 def is_docker() -> bool:

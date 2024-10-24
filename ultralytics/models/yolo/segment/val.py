@@ -47,12 +47,6 @@ class SegmentationValidator(DetectionValidator):
         super().init_metrics(model)
         self.plot_masks = []
 
-        if self.args.save_json:
-            if check_requirements("faster-coco-eval>=1.6.3", install=False):
-                self.pkg = "faster-coco-eval"
-            elif check_requirements("pycocotools>=2.0.6"):
-                self.pkg = "pycocotools"
-
         # more accurate vs faster
         self.process = ops.process_mask_native if self.args.save_json or self.args.save_txt else ops.process_mask
         self.stats = dict(tp_m=[], tp=[], conf=[], pred_cls=[], target_cls=[], target_img=[])
@@ -296,12 +290,17 @@ class SegmentationValidator(DetectionValidator):
     def eval_json(self, stats):
         """Return COCO-style object detection evaluation metrics."""
         if self.args.save_json and self.is_coco and len(self.jdict):
+            if check_requirements("faster-coco-eval>=1.6.3", install=False):
+                pkg = "faster-coco-eval"
+            elif check_requirements("pycocotools>=2.0.6"):
+                pkg = "pycocotools"
+            
             anno_json = self.data["path"] / "annotations/instances_val2017.json"  # annotations
             pred_json = self.save_dir / "predictions.json"  # predictions
             try:  # https://github.com/cocodataset/cocoapi/blob/master/PythonAPI/pycocoEvalDemo.ipynb
-                LOGGER.info(f"\nEvaluating {self.pkg} mAP using {pred_json} and {anno_json}...")
+                LOGGER.info(f"\nEvaluating {pkg} mAP using {pred_json} and {anno_json}...")
 
-                if self.pkg == "faster-coco-eval":
+                if pkg == "faster-coco-eval":
                     from faster_coco_eval import COCO
                     from faster_coco_eval import COCOeval_faster as COCOeval
 
@@ -329,5 +328,5 @@ class SegmentationValidator(DetectionValidator):
                         :2
                     ]  # update mAP50-95 and mAP50
             except Exception as e:
-                LOGGER.warning(f"{self.pkg} unable to run: {e}")
+                LOGGER.warning(f"{pkg} unable to run: {e}")
         return stats

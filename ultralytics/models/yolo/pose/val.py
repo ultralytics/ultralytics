@@ -83,12 +83,6 @@ class PoseValidator(DetectionValidator):
         self.sigma = OKS_SIGMA if is_pose else np.ones(nkpt) / nkpt
         self.stats = dict(tp_p=[], tp=[], conf=[], pred_cls=[], target_cls=[], target_img=[])
 
-        if self.args.save_json:
-            if check_requirements("faster-coco-eval>=1.6.3", install=False):
-                self.pkg = "faster-coco-eval"
-            elif check_requirements("pycocotools>=2.0.6"):
-                self.pkg = "pycocotools"
-
     def _prepare_batch(self, si, batch):
         """Prepares a batch for processing by converting keypoints to float and moving to device."""
         pbatch = super()._prepare_batch(si, batch)
@@ -261,13 +255,18 @@ class PoseValidator(DetectionValidator):
     def eval_json(self, stats):
         """Evaluates object detection model using COCO JSON format."""
         if self.args.save_json and self.is_coco and len(self.jdict):
+            if check_requirements("faster-coco-eval>=1.6.3", install=False):
+                pkg = "faster-coco-eval"
+            elif check_requirements("pycocotools>=2.0.6"):
+                pkg = "pycocotools"
+            
             anno_json = self.data["path"] / "annotations/person_keypoints_val2017.json"  # annotations
             pred_json = self.save_dir / "predictions.json"  # predictions
 
             try:  # https://github.com/cocodataset/cocoapi/blob/master/PythonAPI/pycocoEvalDemo.ipynb
-                LOGGER.info(f"\nEvaluating {self.pkg} mAP using {pred_json} and {anno_json}...")
+                LOGGER.info(f"\nEvaluating {pkg} mAP using {pred_json} and {anno_json}...")
 
-                if self.pkg == "faster-coco-eval":
+                if pkg == "faster-coco-eval":
                     from faster_coco_eval import COCO
                     from faster_coco_eval import COCOeval_faster as COCOeval
 
@@ -295,5 +294,5 @@ class PoseValidator(DetectionValidator):
                         :2
                     ]  # update mAP50-95 and mAP50
             except Exception as e:
-                LOGGER.warning(f"{self.pkg} unable to run: {e}")
+                LOGGER.warning(f"{pkg} unable to run: {e}")
         return stats

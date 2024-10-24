@@ -364,7 +364,7 @@ class LoadImagesAndVideos:
                     LOGGER.warning(f"WARNING ⚠️ Image Read Error {path}")
                 else:
                     if im0.ndim == 2:  # Grayscale image
-                        im0 = np.expand_dims(im0, axis=-1) 
+                        im0 = np.expand_dims(im0, axis=-1)
                     paths.append(path)
                     imgs.append(im0)
                     info.append(f"image {self.count + 1}/{self.nf} {path}: ")
@@ -511,7 +511,7 @@ def autocast_list(source):
             if str(im).startswith("http"):
                 # Read image from URL
                 resp = requests.get(im)
-                img_array = np.asarray(bytearray(resp.content), dtype=np.uint8) # WARNING: Forces image to uint8
+                img_array = np.asarray(bytearray(resp.content), dtype=np.uint8)  # WARNING: Forces image to uint8
                 im = cv2.imdecode(img_array, cv2.IMREAD_UNCHANGED)
             else:
                 # Read image from file

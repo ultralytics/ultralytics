@@ -473,7 +473,7 @@ class ClassificationDataset:
             print(f"Image {f} has invalid dimensions: {im.shape}")
         if im.ndim == 2:  # Grayscale image
             print(f"Image {f} is 2-channel dimension")
-            im = np.expand_dims(im, axis=-1) 
+            im = np.expand_dims(im, axis=-1)
         # Apply dataset transformations (ensure they are compatible with numpy arrays)
         if self.transforms:
             im = self.transforms(im)

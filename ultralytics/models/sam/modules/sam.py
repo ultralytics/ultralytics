@@ -911,7 +911,9 @@ class SAM2Model(torch.nn.Module):
         object_score_logits,
         current_out,
     ):
-        """Finally run the memory encoder on the predicted mask to encode, it into a new memory feature (that can be used in future frames)"""
+        """Finally run the memory encoder on the predicted mask to encode, it into a new memory feature (that can be
+        used in future frames).
+        """
         if run_mem_encoder and self.num_maskmem > 0:
             high_res_masks_for_mem_enc = high_res_masks
             maskmem_features, maskmem_pos_enc = self._encode_new_memory(

@@ -952,7 +952,6 @@ def plot_images(
     """
     import math
 
-
     # Convert torch tensors to numpy arrays
     if isinstance(images, torch.Tensor):
         images = images.cpu().numpy()

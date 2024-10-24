@@ -96,8 +96,10 @@ extra: # version:
 
 extra_css:
   - stylesheets/style.css
+
 extra_javascript:
   - javascript/extra.js
+  - javascript/giscus.js
 
 markdown_extensions:
   - admonition
@@ -272,7 +274,7 @@ nav:
           - VisDrone: datasets/detect/visdrone.md
           - VOC: datasets/detect/voc.md
           - xView: datasets/detect/xview.md
-          - Roboflow 100: datasets/detect/roboflow-100.md
+          - RF100: datasets/detect/roboflow-100.md
           - Brain-tumor: datasets/detect/brain-tumor.md
           - African-wildlife: datasets/detect/african-wildlife.md
           - Signature: datasets/detect/signature.md
@@ -555,6 +557,7 @@ nav:
               - utils: reference/nn/modules/utils.md
           - tasks: reference/nn/tasks.md
       - solutions:
+          - solutions: reference/solutions/solutions.md
           - ai_gym: reference/solutions/ai_gym.md
           - analytics: reference/solutions/analytics.md
           - distance_calculation: reference/solutions/distance_calculation.md

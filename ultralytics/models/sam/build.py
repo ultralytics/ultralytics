@@ -263,7 +263,7 @@ def _build_sam2(
     memory_attention = MemoryAttention(d_model=256, pos_enc_at_input=True, num_layers=4, layer=MemoryAttentionLayer())
     memory_encoder = MemoryEncoder(out_dim=64)
 
-    is_sam2_1 = "sam2.1" in checkpoint
+    is_sam2_1 = checkpoint is not None and "sam2.1" in checkpoint
     sam2 = SAM2Model(
         image_encoder=image_encoder,
         memory_attention=memory_attention,

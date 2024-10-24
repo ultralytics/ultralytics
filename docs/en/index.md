@@ -28,7 +28,7 @@ keywords: Ultralytics, YOLO, YOLO11, object detection, image segmentation, deep 
 <br>
 <a href="https://console.paperspace.com/github/ultralytics/ultralytics"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run on Gradient"></a>
 <a href="https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a>
-<a href="https://www.kaggle.com/ultralytics/yolov8"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
+<a href="https://www.kaggle.com/models/ultralytics/yolo11"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
 </div>
 
 Introducing [Ultralytics](https://www.ultralytics.com/) [YOLO11](https://github.com/ultralytics/ultralytics), the latest version of the acclaimed real-time object detection and image segmentation model. YOLO11 is built on cutting-edge advancements in [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) and [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv), offering unparalleled performance in terms of speed and [accuracy](https://www.ultralytics.com/glossary/accuracy). Its streamlined design makes it suitable for various applications and easily adaptable to different hardware platforms, from edge devices to cloud APIs.

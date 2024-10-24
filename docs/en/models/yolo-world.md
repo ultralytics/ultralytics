@@ -320,7 +320,7 @@ This approach provides a powerful means of customizing state-of-the-art object d
 
 ## Citations and Acknowledgements
 
-We extend our gratitude to the [Tencent AILab Computer Vision Center](https://ai.tencent.com/) for their pioneering work in real-time open-vocabulary object detection with YOLO-World:
+We extend our gratitude to the [Tencent AILab Computer Vision Center](https://www.tencent.com/) for their pioneering work in real-time open-vocabulary object detection with YOLO-World:
 
 !!! quote ""
 

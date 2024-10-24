@@ -688,7 +688,7 @@ def check_amp(model):
 
     im = ASSETS / "bus.jpg"  # image to check
     prefix = colorstr("AMP: ")
-    LOGGER.info(f"{prefix}running Automatic Mixed Precision (AMP) checks with YOLO11n...")
+    LOGGER.info(f"{prefix}running Automatic Mixed Precision (AMP) checks...")
     warning_msg = "Setting 'amp=True'. If you experience zero-mAP or NaN losses you can disable AMP with amp=False."
     try:
         from ultralytics import YOLO
@@ -696,11 +696,13 @@ def check_amp(model):
         assert amp_allclose(YOLO("yolo11n.pt"), im)
         LOGGER.info(f"{prefix}checks passed ✅")
     except ConnectionError:
-        LOGGER.warning(f"{prefix}checks skipped ⚠️, offline and unable to download YOLO11n. {warning_msg}")
+        LOGGER.warning(
+            f"{prefix}checks skipped ⚠️. " f"Offline and unable to download YOLO11n for AMP checks. {warning_msg}"
+        )
     except (AttributeError, ModuleNotFoundError):
         LOGGER.warning(
             f"{prefix}checks skipped ⚠️. "
-            f"Unable to load YOLO11n due to possible Ultralytics package modifications. {warning_msg}"
+            f"Unable to load YOLO11n for AMP checks due to possible Ultralytics package modifications. {warning_msg}"
         )
     except AssertionError:
         LOGGER.warning(

@@ -34,17 +34,20 @@ from ultralytics.utils import (
     yaml_load,
     yaml_print,
 )
-from ultralytics.utils.downloads import safe_download
 
-# Define valid tasks and modes
-SOLUTIONS = {"count", "heatmap", "queue", "speed"}
-MODES = {"train", "val", "predict", "export", "track", "benchmark"}
-TASKS = {"detect", "segment", "classify", "pose", "obb"}
+# Define valid solutions
+SOLUTIONS = {"count", "heatmap", "queue", "speed", "aigym"}
 SOLUTIONS2CALL = {
     "count": "ObjectCounter",
-    "heatmap": "Heatmap"
+    "heatmap": "Heatmap",
+    "queue": "QueueManager",
+    "speed": "SpeedEstimator",
+    "workouts": "AIGym"
 }
 
+# Define valid tasks and modes
+MODES = {"train", "val", "predict", "export", "track", "benchmark"}
+TASKS = {"detect", "segment", "classify", "pose", "obb"}
 TASK2DATA = {
     "detect": "coco8.yaml",
     "segment": "coco8-seg.yaml",
@@ -624,6 +627,7 @@ def handle_yolo_solutions(args: List[str]) -> None:
     # video capture and iterate over video file
     source = overrides.pop("source", None)
     if source is None:
+        from ultralytics.utils.downloads import safe_download
         LOGGER.warning(f"WARNING ⚠️ source is missing. using ultralytics assets video.")
         if sol_name not in "workouts":
             safe_download(f"{SOLUTIONS_ASSETS}/solutions_ci_demo.mp4")
@@ -641,6 +645,12 @@ def handle_yolo_solutions(args: List[str]) -> None:
             _ = sol_obj.count(f)
         elif sol_name=="heatmap":
             _ = sol_obj.generate_heatmap(f)
+        elif sol_name=="queue":
+            _ = sol_obj.process_queue(f)
+        elif sol_name=="speed":
+            _ = sol_obj.estimate_speed(f)
+        elif sol_name=="workouts":
+            _ = sol_obj.monitor(f)
         if cv2.waitKey(1) & 0xFF == ord("q"):
             return
     cap.release()

@@ -26,14 +26,6 @@ class SegmentationValidator(DetectionValidator):
         validator = SegmentationValidator(args=args)
         validator()
         ```
-
-        ```python
-        from ultralytics.models.yolo.segment import SegmentationValidator
-
-        args = dict(model="yolov8n-seg.pt", data="coco8-seg.yaml", eval_backend="faster_coco_eval")
-        validator = SegmentationValidator(args=args)
-        validator()
-        ```
     """
 
     def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None):
@@ -41,7 +33,6 @@ class SegmentationValidator(DetectionValidator):
         super().__init__(dataloader, save_dir, pbar, args, _callbacks)
         self.plot_masks = None
         self.process = None
-        self.eval_backend = self.args.get("eval_backend", "pycocotools")
         self.args.task = "segment"
         self.metrics = SegmentMetrics(save_dir=self.save_dir, on_plot=self.on_plot)
 
@@ -55,11 +46,12 @@ class SegmentationValidator(DetectionValidator):
         """Initialize metrics and select mask processing function based on save_json flag."""
         super().init_metrics(model)
         self.plot_masks = []
+        
         if self.args.save_json:
-            if self.eval_backend == "faster_coco_eval":
-                check_requirements("faster-coco-eval>=1.6.3")
-            else:
-                check_requirements("pycocotools>=2.0.6")
+            if check_requirements("faster-coco-eval>=1.6.3", install=False):
+                self.pkg = "faster-coco-eval"
+            elif check_requirements("pycocotools>=2.0.6"):
+                self.pkg = "pycocotools"
 
         # more accurate vs faster
         self.process = ops.process_mask_native if self.args.save_json or self.args.save_txt else ops.process_mask
@@ -307,16 +299,9 @@ class SegmentationValidator(DetectionValidator):
             anno_json = self.data["path"] / "annotations/instances_val2017.json"  # annotations
             pred_json = self.save_dir / "predictions.json"  # predictions
             try:  # https://github.com/cocodataset/cocoapi/blob/master/PythonAPI/pycocoEvalDemo.ipynb
-                if self.eval_backend == "faster_coco_eval":
-                    pkg = "faster-coco-eval"
-                    check_requirements("faster-coco-eval>=1.6.3")
-                else:
-                    pkg = "pycocotools"
-                    check_requirements("pycocotools>=2.0.6")
+                LOGGER.info(f"\nEvaluating {self.pkg} mAP using {pred_json} and {anno_json}...")
 
-                LOGGER.info(f"\nEvaluating {pkg} mAP using {pred_json} and {anno_json}...")
-
-                if self.eval_backend == "faster_coco_eval":
+                if self.pkg == "faster-coco-eval":
                     from faster_coco_eval import COCO
                     from faster_coco_eval import COCOeval_faster as COCOeval
 
@@ -344,5 +329,5 @@ class SegmentationValidator(DetectionValidator):
                         :2
                     ]  # update mAP50-95 and mAP50
             except Exception as e:
-                LOGGER.warning(f"pycocotools unable to run: {e}")
+                LOGGER.warning(f"{self.pkg} unable to run: {e}")
         return stats

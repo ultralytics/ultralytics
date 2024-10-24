@@ -26,14 +26,6 @@ class DetectionValidator(BaseValidator):
         validator = DetectionValidator(args=args)
         validator()
         ```
-
-        ```python
-        from ultralytics.models.yolo.detect import DetectionValidator
-
-        args = dict(model="yolo11n.pt", data="coco8.yaml", eval_backend="faster_coco_eval")
-        validator = DetectionValidator(args=args)
-        validator()
-        ```
     """
 
     def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None):
@@ -43,7 +35,6 @@ class DetectionValidator(BaseValidator):
         self.nt_per_image = None
         self.is_coco = False
         self.is_lvis = False
-        self.eval_backend = self.args.get("eval_backend", "pycocotools")
         self.class_map = None
         self.args.task = "detect"
         self.metrics = DetMetrics(save_dir=self.save_dir, on_plot=self.on_plot)
@@ -83,6 +74,18 @@ class DetectionValidator(BaseValidator):
             and (val.endswith(f"{os.sep}val2017.txt") or val.endswith(f"{os.sep}test-dev2017.txt"))
         )  # is COCO
         self.is_lvis = isinstance(val, str) and "lvis" in val and not self.is_coco  # is LVIS
+
+        if self.args.save_json and (self.is_coco or self.is_lvis):
+            if check_requirements("faster-coco-eval>=1.6.3", install=False):
+                self.pkg = "faster-coco-eval"
+            else:
+                if self.is_lvis:
+                    check_requirements("lvis>=0.5.3")
+                    self.pkg = "lvis"
+                elif self.is_coco:
+                    check_requirements("pycocotools>=2.0.6")
+                    self.pkg = "pycocotools"
+        
         self.class_map = converter.coco80_to_coco91_class() if self.is_coco else list(range(len(model.names)))
         self.args.save_json |= self.args.val and (self.is_coco or self.is_lvis) and not self.training  # run final val
         self.names = model.names
@@ -313,19 +316,12 @@ class DetectionValidator(BaseValidator):
                 / "annotations"
                 / ("instances_val2017.json" if self.is_coco else f"lvis_v1_{self.args.split}.json")
             )  # annotations
-
-            if self.eval_backend == "faster_coco_eval":
-                pkg = "faster-coco-eval"
-                check_requirements("faster-coco-eval>=1.6.3")
-            else:
-                pkg = "pycocotools" if self.is_coco else "lvis"
-                check_requirements("pycocotools>=2.0.6" if self.is_coco else "lvis>=0.5.3")
-
-            LOGGER.info(f"\nEvaluating {pkg} mAP using {pred_json} and {anno_json}...")
+                
+            LOGGER.info(f"\nEvaluating {self.pkg} mAP using {pred_json} and {anno_json}...")
             try:  # https://github.com/cocodataset/cocoapi/blob/master/PythonAPI/pycocoEvalDemo.ipynb
                 for x in pred_json, anno_json:
                     assert x.is_file(), f"{x} file not found"
-                if self.eval_backend == "faster_coco_eval":
+                if self.pkg == "faster-coco-eval":
                     from faster_coco_eval import COCO, COCOeval_faster
 
                     extra_kwargs = dict(print_function=print, lvis_style=self.is_lvis)
@@ -350,12 +346,12 @@ class DetectionValidator(BaseValidator):
                 val.evaluate()
                 val.accumulate()
                 val.summarize()
-                if self.is_lvis and (self.eval_backend != "faster_coco_eval"):
+                if self.is_lvis and self.pkg == "lvis":
                     val.print_results()  # explicitly call print_results
                 # update mAP50-95 and mAP50
                 stats[self.metrics.keys[-1]], stats[self.metrics.keys[-2]] = (
                     val.stats[:2] if self.is_coco else [val.results["AP50"], val.results["AP"]]
                 )
             except Exception as e:
-                LOGGER.warning(f"{pkg} unable to run: {e}")
+                LOGGER.warning(f"{self.pkg} unable to run: {e}")
         return stats

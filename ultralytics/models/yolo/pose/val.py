@@ -24,14 +24,6 @@ class PoseValidator(DetectionValidator):
         validator = PoseValidator(args=args)
         validator()
         ```
-
-        ```python
-        from ultralytics.models.yolo.pose import PoseValidator
-
-        args = dict(model="yolov8n-pose.pt", data="coco8-pose.yaml", eval_backend="faster_coco_eval")
-        validator = PoseValidator(args=args)
-        validator()
-        ```
     """
 
     def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None):
@@ -39,7 +31,6 @@ class PoseValidator(DetectionValidator):
         super().__init__(dataloader, save_dir, pbar, args, _callbacks)
         self.sigma = None
         self.kpt_shape = None
-        self.eval_backend = self.args.get("eval_backend", "pycocotools")
         self.args.task = "pose"
         self.metrics = PoseMetrics(save_dir=self.save_dir, on_plot=self.on_plot)
         if isinstance(self.args.device, str) and self.args.device.lower() == "mps":
@@ -91,6 +82,12 @@ class PoseValidator(DetectionValidator):
         nkpt = self.kpt_shape[0]
         self.sigma = OKS_SIGMA if is_pose else np.ones(nkpt) / nkpt
         self.stats = dict(tp_p=[], tp=[], conf=[], pred_cls=[], target_cls=[], target_img=[])
+
+        if self.args.save_json:
+            if check_requirements("faster-coco-eval>=1.6.3", install=False):
+                self.pkg = "faster-coco-eval"
+            elif check_requirements("pycocotools>=2.0.6"):
+                self.pkg = "pycocotools"
 
     def _prepare_batch(self, si, batch):
         """Prepares a batch for processing by converting keypoints to float and moving to device."""
@@ -268,16 +265,9 @@ class PoseValidator(DetectionValidator):
             pred_json = self.save_dir / "predictions.json"  # predictions
 
             try:  # https://github.com/cocodataset/cocoapi/blob/master/PythonAPI/pycocoEvalDemo.ipynb
-                if self.eval_backend == "faster_coco_eval":
-                    pkg = "faster-coco-eval"
-                    check_requirements("faster-coco-eval>=1.6.3")
-                else:
-                    pkg = "pycocotools"
-                    check_requirements("pycocotools>=2.0.6")
+                LOGGER.info(f"\nEvaluating {self.pkg} mAP using {pred_json} and {anno_json}...")
 
-                LOGGER.info(f"\nEvaluating {pkg} mAP using {pred_json} and {anno_json}...")
-
-                if self.eval_backend == "faster_coco_eval":
+                if self.pkg == "faster-coco-eval":
                     from faster_coco_eval import COCO
                     from faster_coco_eval import COCOeval_faster as COCOeval
 
@@ -305,5 +295,5 @@ class PoseValidator(DetectionValidator):
                         :2
                     ]  # update mAP50-95 and mAP50
             except Exception as e:
-                LOGGER.warning(f"{pkg} unable to run: {e}")
+                LOGGER.warning(f"{self.pkg} unable to run: {e}")
         return stats

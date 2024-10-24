@@ -240,7 +240,7 @@ pip install onnxruntime_gpu-1.17.0-cp38-cp38-linux_aarch64.whl
 
 Out of all the model export formats supported by Ultralytics, TensorRT delivers the best inference performance when working with NVIDIA Jetson devices and our recommendation is to use TensorRT with Jetson. We also have a detailed document on TensorRT [here](../integrations/tensorrt.md).
 
-## Convert Model to TensorRT and Run Inference
+### Convert Model to TensorRT and Run Inference
 
 The YOLOv8n model in PyTorch format is converted to TensorRT to run inference with the exported model.
 
@@ -254,7 +254,7 @@ The YOLOv8n model in PyTorch format is converted to TensorRT to run inference wi
         # Load a YOLOv8n PyTorch model
         model = YOLO("yolov8n.pt")
 
-        # Export the model
+        # Export the model to TensorRT
         model.export(format="engine")  # creates 'yolov8n.engine'
 
         # Load the exported TensorRT model
@@ -271,6 +271,47 @@ The YOLOv8n model in PyTorch format is converted to TensorRT to run inference wi
         yolo export model=yolov8n.pt format=engine  # creates 'yolov8n.engine'
 
         # Run inference with the exported model
+        yolo predict model=yolov8n.engine source='https://ultralytics.com/images/bus.jpg'
+        ```
+
+### Use NVIDIA Deep Learning Accelerator (DLA)
+
+[NVIDIA Deep Learning Accelerator (DLA)](https://developer.nvidia.com/deep-learning-accelerator) is a specialized hardware component built into NVIDIA Jetson devices that optimizes deep learning inference for energy efficiency and performance. By offloading tasks from the GPU (freeing it up for more intensive processes), DLA enables models to run with lower power consumption while maintaining high throughput, ideal for embedded systems and real-time AI applications.
+
+The following Jetson devices are equipped with DLA hardware:
+
+- Jetson Orin NX 16GB
+- Jetson AGX Orin Series
+- Jetson AGX Xavier Series
+- Jetson Xavier NX Series
+
+!!! example
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load a YOLOv8n PyTorch model
+        model = YOLO("yolov8n.pt")
+
+        # Export the model to TensorRT with DLA enabled (only works with FP16 or INT8)
+        model.export(format="engine", device="dla:0", half=True)  # dla:0 or dla:1 corresponds to the DLA cores
+
+        # Load the exported TensorRT model
+        trt_model = YOLO("yolov8n.engine")
+
+        # Run inference
+        results = trt_model("https://ultralytics.com/images/bus.jpg")
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Export a YOLOv8n PyTorch model to TensorRT format with DLA enabled (only works with FP16 or INT8)
+        yolo export model=yolov8n.pt format=engine device="dla:0" half=True  # dla:0 or dla:1 corresponds to the DLA cores
+
+        # Run inference with the exported model on the DLA
         yolo predict model=yolov8n.engine source='https://ultralytics.com/images/bus.jpg'
         ```
 

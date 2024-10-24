@@ -9,21 +9,51 @@ from ultralytics import YOLO
 from ultralytics.utils import LOGGER, yaml_load
 from ultralytics.utils.checks import check_imshow, check_requirements
 
-check_requirements("shapely>=2.0.0")
-from shapely.geometry import LineString, Polygon
-
 DEFAULT_SOL_CFG_PATH = Path(__file__).resolve().parents[1] / "cfg/solutions/default.yaml"
 
 
 class BaseSolution:
-    """A class to manage all the Ultralytics Solutions: https://docs.ultralytics.com/solutions/."""
+    """
+    A base class for managing Ultralytics Solutions.
+
+    This class provides core functionality for various Ultralytics Solutions, including model loading, object tracking,
+    and region initialization.
+
+    Attributes:
+        LineString (shapely.geometry.LineString): Class for creating line string geometries.
+        Polygon (shapely.geometry.Polygon): Class for creating polygon geometries.
+        Point (shapely.geometry.Point): Class for creating point geometries.
+        CFG (Dict): Configuration dictionary loaded from a YAML file and updated with kwargs.
+        region (List[Tuple[int, int]]): List of coordinate tuples defining a region of interest.
+        line_width (int): Width of lines used in visualizations.
+        model (ultralytics.YOLO): Loaded YOLO model instance.
+        names (Dict[int, str]): Dictionary mapping class indices to class names.
+        env_check (bool): Flag indicating whether the environment supports image display.
+        track_history (collections.defaultdict): Dictionary to store tracking history for each object.
+
+    Methods:
+        extract_tracks: Apply object tracking and extract tracks from an input image.
+        store_tracking_history: Store object tracking history for a given track ID and bounding box.
+        initialize_region: Initialize the counting region and line segment based on configuration.
+        display_output: Display the results of processing, including showing frames or saving results.
+
+    Examples:
+        >>> solution = BaseSolution(model="yolov8n.pt", region=[(0, 0), (100, 0), (100, 100), (0, 100)])
+        >>> solution.initialize_region()
+        >>> image = cv2.imread("image.jpg")
+        >>> solution.extract_tracks(image)
+        >>> solution.display_output(image)
+    """
 
     def __init__(self, **kwargs):
-        """
-        Base initializer for all solutions.
+        """Initializes the BaseSolution class with configuration settings and YOLO model for Ultralytics solutions."""
+        check_requirements("shapely>=2.0.0")
+        from shapely.geometry import LineString, Point, Polygon
 
-        Child classes should call this with necessary parameters.
-        """
+        self.LineString = LineString
+        self.Polygon = Polygon
+        self.Point = Point
+
         # Load config and update with args
         self.CFG = yaml_load(DEFAULT_SOL_CFG_PATH)
         self.CFG.update(kwargs)
@@ -42,10 +72,15 @@ class BaseSolution:
 
     def extract_tracks(self, im0):
         """
-        Apply object tracking and extract tracks.
+        Applies object tracking and extracts tracks from an input image or frame.
 
         Args:
-            im0 (ndarray): The input image or frame
+            im0 (ndarray): The input image or frame.
+
+        Examples:
+            >>> solution = BaseSolution()
+            >>> frame = cv2.imread("path/to/image.jpg")
+            >>> solution.extract_tracks(frame)
         """
         self.tracks = self.model.track(source=im0, persist=True, classes=self.CFG["classes"])
 
@@ -62,11 +97,18 @@ class BaseSolution:
 
     def store_tracking_history(self, track_id, box):
         """
-        Store object tracking history.
+        Stores the tracking history of an object.
+
+        This method updates the tracking history for a given object by appending the center point of its
+        bounding box to the track line. It maintains a maximum of 30 points in the tracking history.
 
         Args:
-            track_id (int): The track ID of the object
-            box (list): Bounding box coordinates of the object
+            track_id (int): The unique identifier for the tracked object.
+            box (List[float]): The bounding box coordinates of the object in the format [x1, y1, x2, y2].
+
+        Examples:
+            >>> solution = BaseSolution()
+            >>> solution.store_tracking_history(1, [100, 200, 300, 400])
         """
         # Store tracking history
         self.track_line = self.track_history[track_id]
@@ -75,19 +117,32 @@ class BaseSolution:
             self.track_line.pop(0)
 
     def initialize_region(self):
-        """Initialize the counting region and line segment based on config."""
-        self.region = [(20, 400), (1080, 404), (1080, 360), (20, 360)] if self.region is None else self.region
-        self.r_s = Polygon(self.region) if len(self.region) >= 3 else LineString(self.region)  # region segment
-        self.l_s = LineString(
-            [(self.region[0][0], self.region[0][1]), (self.region[1][0], self.region[1][1])]
-        )  # line segment
+        """Initialize the counting region and line segment based on configuration settings."""
+        if self.region is None:
+            self.region = [(20, 400), (1080, 404), (1080, 360), (20, 360)]
+        self.r_s = (
+            self.Polygon(self.region) if len(self.region) >= 3 else self.LineString(self.region)
+        )  # region or line
 
     def display_output(self, im0):
         """
         Display the results of the processing, which could involve showing frames, printing counts, or saving results.
 
+        This method is responsible for visualizing the output of the object detection and tracking process. It displays
+        the processed frame with annotations, and allows for user interaction to close the display.
+
         Args:
-            im0 (ndarray): The input image or frame
+            im0 (numpy.ndarray): The input image or frame that has been processed and annotated.
+
+        Examples:
+            >>> solution = BaseSolution()
+            >>> frame = cv2.imread("path/to/image.jpg")
+            >>> solution.display_output(frame)
+
+        Notes:
+            - This method will only display output if the 'show' configuration is set to True and the environment
+              supports image display.
+            - The display can be closed by pressing the 'q' key.
         """
         if self.CFG.get("show") and self.env_check:
             cv2.imshow("Ultralytics Solutions", im0)

@@ -28,7 +28,7 @@ from ultralytics.utils import (
     __version__,
     colorstr,
 )
-from ultralytics.utils.checks import check_version
+from ultralytics.utils.checks import check_requirements, check_version
 
 try:
     import thop
@@ -172,7 +172,8 @@ def select_device(device="", batch=0, newline=False, verbose=True):
         device = device.replace(remove, "")  # to string, 'cuda:0' -> '0' and '(0, 1)' -> '0,1'
     cpu = device == "cpu"
     mps = device in {"mps", "mps:0"}  # Apple Metal Performance Shaders (MPS)
-    if cpu or mps:
+    npu = "npu" in device  # Huawei Ascend NPU
+    if cpu or mps or npu:
         os.environ["CUDA_VISIBLE_DEVICES"] = "-1"  # force torch.cuda.is_available() = False
     elif device:  # non-cpu device requested
         if device == "cuda":
@@ -221,6 +222,16 @@ def select_device(device="", batch=0, newline=False, verbose=True):
         # Prefer MPS if available
         s += f"MPS ({get_cpu_info()})\n"
         arg = "mps"
+    elif npu:
+        check_requirements("torch_npu")
+        import torch_npu
+
+        if not torch.npu.is_available():
+            raise ValueError("Ascend NPU is not available")
+        device_split = device.split(":")
+        device_index = int(device_split[1]) if len(device_split) == 2 else 0
+        s += f"torch-npu-{torch_npu.__version__} NPU:{device_index}"
+        arg = f"npu:{device_index}"
     else:  # revert to CPU
         s += f"CPU ({get_cpu_info()})\n"
         arg = "cpu"

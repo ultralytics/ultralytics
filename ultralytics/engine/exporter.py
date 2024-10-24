@@ -191,7 +191,7 @@ class Exporter:
         if sum(flags) != 1:
             raise ValueError(f"Invalid export format='{fmt}'. Valid formats are {fmts}")
         jit, onnx, xml, engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, paddle, ncnn = flags  # export booleans
-        is_tf_format = any((saved_model, pb, tflite, edgetpu, tfjs))
+        self.is_tf_format = any((saved_model, pb, tflite, edgetpu, tfjs))
 
         # Device
         dla = None
@@ -260,7 +260,7 @@ class Exporter:
                 m.export = True
                 m.format = self.args.format
                 m.max_det = self.args.max_det
-            elif isinstance(m, C2f) and not is_tf_format:
+            elif isinstance(m, C2f) and not self.is_tf_format:
                 # EdgeTPU does not support FlexSplitV while split provides cleaner ONNX graph
                 m.forward = m.forward_split
 
@@ -320,7 +320,7 @@ class Exporter:
             f[3], _ = self.export_openvino()
         if coreml:  # CoreML
             f[4], _ = self.export_coreml()
-        if is_tf_format:  # TensorFlow formats
+        if self.is_tf_format:  # TensorFlow formats
             self.args.int8 |= edgetpu
             f[5], keras_model = self.export_saved_model()
             if pb or tfjs:  # pb prerequisite to tfjs
@@ -371,7 +371,7 @@ class Exporter:
             data[self.args.split or "val"],
             data=data,
             task=self.model.task,
-            imgsz=self.imgsz[0],
+            imgsz=self.imgsz[0] if not self.is_tf_format else max(self.imgsz),
             augment=False,
             batch_size=batch,
         )
@@ -883,11 +883,6 @@ class Exporter:
         self.args.simplify = True
         f_onnx, _ = self.export_onnx()
         
-        custom_imgsz = None
-        if len(set(self.imgsz)) == 2:
-            custom_imgsz = self.imgsz
-            self.imgsz = [max(self.imgsz)]
-
         # Export to TF
         np_data = None
         if self.args.int8:      
@@ -895,8 +890,8 @@ class Exporter:
             if self.args.data:
                 f.mkdir()
                 images = [batch["img"].permute(0, 2, 3, 1) for batch in self.get_int8_calibration_dataloader(prefix)]
-                if custom_imgsz is not None:
-                    images = [img[:,:custom_imgsz[0],:custom_imgsz[1], :] for img in images]
+                if len(set(self.imgsz)) == 2:
+                    images = [img[:,:self.imgsz[0],:self.imgsz[1], :] for img in images]
                 images = torch.cat(images, 0).float()
                 np.save(str(tmp_file), images.numpy().astype(np.float32))  # BHWC
                 np_data = [["images", tmp_file, [[[[0, 0, 0]]]], [[[[255, 255, 255]]]]]]

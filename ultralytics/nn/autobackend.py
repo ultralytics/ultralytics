@@ -126,7 +126,7 @@ class AutoBackend(nn.Module):
         fp16 &= pt or jit or onnx or xml or engine or nn_module or triton  # FP16
         nhwc = coreml or saved_model or pb or tflite or edgetpu  # BHWC formats (vs torch BCWH)
         stride = 32  # default stride
-        model, metadata = None, None
+        model, metadata, task = None, None, None
 
         # Set device
         cuda = torch.cuda.is_available() and device.type != "cpu"  # use CUDA
@@ -226,10 +226,10 @@ class AutoBackend(nn.Module):
                 import tensorrt as trt  # noqa https://developer.nvidia.com/nvidia-tensorrt-download
             except ImportError:
                 if LINUX:
-                    check_requirements("tensorrt>7.0.0,<=10.1.0")
+                    check_requirements("tensorrt>7.0.0,!=10.1.0")
                 import tensorrt as trt  # noqa
             check_version(trt.__version__, ">=7.0.0", hard=True)
-            check_version(trt.__version__, "<=10.1.0", msg="https://github.com/ultralytics/ultralytics/pull/14239")
+            check_version(trt.__version__, "!=10.1.0", msg="https://github.com/ultralytics/ultralytics/pull/14239")
             if device.type == "cpu":
                 device = torch.device("cuda:0")
             Binding = namedtuple("Binding", ("name", "dtype", "shape", "data", "ptr"))
@@ -336,11 +336,15 @@ class AutoBackend(nn.Module):
 
                 Interpreter, load_delegate = tf.lite.Interpreter, tf.lite.experimental.load_delegate
             if edgetpu:  # TF Edge TPU https://coral.ai/software/#edgetpu-runtime
-                LOGGER.info(f"Loading {w} for TensorFlow Lite Edge TPU inference...")
+                device = device[3:] if str(device).startswith("tpu") else ":0"
+                LOGGER.info(f"Loading {w} on device {device[1:]} for TensorFlow Lite Edge TPU inference...")
                 delegate = {"Linux": "libedgetpu.so.1", "Darwin": "libedgetpu.1.dylib", "Windows": "edgetpu.dll"}[
                     platform.system()
                 ]
-                interpreter = Interpreter(model_path=w, experimental_delegates=[load_delegate(delegate)])
+                interpreter = Interpreter(
+                    model_path=w,
+                    experimental_delegates=[load_delegate(delegate, options={"device": device})],
+                )
             else:  # TFLite
                 LOGGER.info(f"Loading {w} for TensorFlow Lite inference...")
                 interpreter = Interpreter(model_path=w)  # load TFLite model
@@ -501,7 +505,7 @@ class AutoBackend(nn.Module):
 
         # TensorRT
         elif self.engine:
-            if self.dynamic or im.shape != self.bindings["images"].shape:
+            if self.dynamic and im.shape != self.bindings["images"].shape:
                 if self.is_trt10:
                     self.context.set_input_shape("images", im.shape)
                     self.bindings["images"] = self.bindings["images"]._replace(shape=im.shape)

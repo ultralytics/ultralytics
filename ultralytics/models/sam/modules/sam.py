@@ -262,7 +262,7 @@ class SAM2Model(torch.nn.Module):
         # Part 2: memory attention to condition current frame's visual features
         # with memories (and obj ptrs) from past frames
         self.memory_attention = memory_attention
-        self.hidden_dim = image_encoder.neck.d_model
+        self.hidden_dim = memory_attention.d_model
 
         # Part 3: memory encoder for the previous frame's outputs
         self.memory_encoder = memory_encoder

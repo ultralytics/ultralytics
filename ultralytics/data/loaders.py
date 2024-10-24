@@ -580,7 +580,7 @@ def autocast_list(source):
             if str(im).startswith("http"):
                 # Read image from URL
                 resp = requests.get(im)
-                img_array = np.asarray(bytearray(resp.content), dtype=np.uint8)
+                img_array = np.asarray(bytearray(resp.content), dtype=np.uint8) # WARNING: Forces image to uint8
                 im = cv2.imdecode(img_array, cv2.IMREAD_UNCHANGED)
             else:
                 # Read image from file

@@ -727,6 +727,7 @@ class RandomHSV:
 
     def __call__(self, labels):
         """Applies random HSV augmentation to an image within predefined limits."""
+        return labels
         img = labels["img"]
         if self.hgain or self.sgain or self.vgain:
             # Determine the data type range
@@ -1200,7 +1201,6 @@ class Format:
         
         # Convert to PyTorch tensor
         img = torch.from_numpy(img)
-        
         # Normalize image depending on its data type
         if img.dtype == torch.uint8:
             img = img.float() / 255.0

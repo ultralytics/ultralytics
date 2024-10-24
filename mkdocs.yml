@@ -403,6 +403,9 @@ nav:
       - ONNX: integrations/onnx.md
       - OpenVINO: integrations/openvino.md
       - PaddlePaddle: integrations/paddlepaddle.md
+      - NCNN: integrations/ncnn.md
+      - MNN: integrations/mnn.md
+      - Comet ML: integrations/comet.md
       - Paperspace Gradient: integrations/paperspace.md
       - Ray Tune: integrations/ray-tune.md
       - Roboflow: integrations/roboflow.md

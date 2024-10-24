@@ -137,17 +137,19 @@ def on_train_end(trainer):
     if trainer.best.exists():
         art.add_file(trainer.best)
         wb.run.log_artifact(art, aliases=["best"])
-    for curve_name, curve_values in zip(trainer.validator.metrics.curves, trainer.validator.metrics.curves_results):
-        x, y, x_title, y_title = curve_values
-        _plot_curve(
-            x,
-            y,
-            names=list(trainer.validator.metrics.names.values()),
-            id=f"curves/{curve_name}",
-            title=curve_name,
-            x_title=x_title,
-            y_title=y_title,
-        )
+    # Check if we actually have plots to save
+    if trainer.args.plots:
+        for curve_name, curve_values in zip(trainer.validator.metrics.curves, trainer.validator.metrics.curves_results):
+            x, y, x_title, y_title = curve_values
+            _plot_curve(
+                x,
+                y,
+                names=list(trainer.validator.metrics.names.values()),
+                id=f"curves/{curve_name}",
+                title=curve_name,
+                x_title=x_title,
+                y_title=y_title,
+            )
     wb.run.finish()  # required or run continues on dashboard
 
 

@@ -80,6 +80,28 @@ The Triton Model Repository is a storage location where Triton can access and lo
 
     # Create config file
     (triton_model_path / "config.pbtxt").touch()
+
+    # (Optional) Enable TensorRT for GPU inference
+    # First run will be slow due to TensorRT engine conversion
+    import json
+
+    data = {
+        "optimization": {
+            "execution_accelerators": {
+                "gpu_execution_accelerator": [
+                    {
+                        "name": "tensorrt",
+                        "parameters": {"key": "precision_mode", "value": "FP16"},
+                        "parameters": {"key": "max_workspace_size_bytes", "value": "3221225472"},
+                        "parameters": {"key": "trt_engine_cache_enable", "value": "1"},
+                    }
+                ]
+            }
+        }
+    }
+
+    with open(triton_model_path / "config.pbtxt", "w") as f:
+        json.dump(data, f, indent=4)
     ```
 
 ## Running Triton Inference Server
@@ -94,7 +116,7 @@ import time
 from tritonclient.http import InferenceServerClient
 
 # Define image https://catalog.ngc.nvidia.com/orgs/nvidia/containers/tritonserver
-tag = "nvcr.io/nvidia/tritonserver:23.09-py3"  # 6.4 GB
+tag = "nvcr.io/nvidia/tritonserver:24.09-py3"  # 8.57 GB
 
 # Pull the image
 subprocess.call(f"docker pull {tag}", shell=True)
@@ -187,7 +209,7 @@ Setting up [Ultralytics YOLO11](https://docs.ultralytics.com/models/yolov8/) wit
     from tritonclient.http import InferenceServerClient
 
     # Define image https://catalog.ngc.nvidia.com/orgs/nvidia/containers/tritonserver
-    tag = "nvcr.io/nvidia/tritonserver:23.09-py3"
+    tag = "nvcr.io/nvidia/tritonserver:24.09-py3"
 
     subprocess.call(f"docker pull {tag}", shell=True)
 

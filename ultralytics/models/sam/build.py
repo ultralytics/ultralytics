@@ -288,6 +288,9 @@ def _build_sam2(
         multimask_max_pt_num=1,
         use_mlp_for_obj_ptr_proj=True,
         compile_image_encoder=False,
+        no_obj_embed_spatial=True,
+        proj_tpos_enc_in_obj_ptrs=True,
+        use_signed_tpos_enc_to_obj_ptrs=True,
         sam_mask_decoder_extra_args=dict(
             dynamic_multimask_via_stability=True,
             dynamic_multimask_stability_delta=0.05,

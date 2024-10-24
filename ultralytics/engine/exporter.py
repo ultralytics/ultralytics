@@ -882,14 +882,21 @@ class Exporter:
         # Export to ONNX
         self.args.simplify = True
         f_onnx, _ = self.export_onnx()
+        
+        custom_imgsz = None
+        if len(set(self.imgsz)) == 2:
+            custom_imgsz = self.imgsz
+            self.imgsz = [max(self.imgsz)]
 
         # Export to TF
         np_data = None
-        if self.args.int8:
+        if self.args.int8:      
             tmp_file = f / "tmp_tflite_int8_calibration_images.npy"  # int8 calibration images file
             if self.args.data:
                 f.mkdir()
                 images = [batch["img"].permute(0, 2, 3, 1) for batch in self.get_int8_calibration_dataloader(prefix)]
+                if custom_imgsz is not None:
+                    images = [img[:,:custom_imgsz[0],:custom_imgsz[1], :] for img in images]
                 images = torch.cat(images, 0).float()
                 np.save(str(tmp_file), images.numpy().astype(np.float32))  # BHWC
                 np_data = [["images", tmp_file, [[[[0, 0, 0]]]], [[[[255, 255, 255]]]]]]

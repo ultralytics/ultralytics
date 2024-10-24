@@ -279,8 +279,8 @@ class RepC3(nn.Module):
         """Initialize CSP Bottleneck with a single convolution using input channels, output channels, and number."""
         super().__init__()
         c_ = int(c2 * e)  # hidden channels
-        self.cv1 = Conv(c1, c2, 1, 1)
-        self.cv2 = Conv(c1, c2, 1, 1)
+        self.cv1 = Conv(c1, c_, 1, 1)
+        self.cv2 = Conv(c1, c_, 1, 1)
         self.m = nn.Sequential(*[RepConv(c_, c_) for _ in range(n)])
         self.cv3 = Conv(c_, c2, 1, 1) if c_ != c2 else nn.Identity()
 

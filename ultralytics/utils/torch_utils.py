@@ -119,7 +119,7 @@ def get_cpu_info():
             info = cpuinfo.get_cpu_info()  # info dict
             string = info.get(k[0] if k[0] in info else k[1] if k[1] in info else k[2], "unknown")
             PERSISTENT_CACHE["cpu_info"] = string.replace("(R)", "").replace("CPU ", "").replace("@ ", "")
-        except:  # noqa E722
+        except Exception:
             pass
     return PERSISTENT_CACHE.get("cpu_info", "unknown")
 
@@ -163,7 +163,7 @@ def select_device(device="", batch=0, newline=False, verbose=True):
     Note:
         Sets the 'CUDA_VISIBLE_DEVICES' environment variable for specifying which GPUs to use.
     """
-    if isinstance(device, torch.device):
+    if isinstance(device, torch.device) or str(device).startswith("tpu"):
         return device
 
     s = f"Ultralytics {__version__} 🚀 Python-{PYTHON_VERSION} torch-{torch.__version__} "

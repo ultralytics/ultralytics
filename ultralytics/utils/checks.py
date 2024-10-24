@@ -277,7 +277,7 @@ def check_latest_pypi_version(package_name="ultralytics"):
         response = requests.get(f"https://pypi.org/pypi/{package_name}/json", timeout=3)
         if response.status_code == 200:
             return response.json()["info"]["version"]
-    except:  # noqa E722
+    except Exception:
         return None
 
 
@@ -299,7 +299,7 @@ def check_pip_update_available():
                     f"Update with 'pip install -U ultralytics'"
                 )
                 return True
-        except:  # noqa E722
+        except Exception:
             pass
     return False
 
@@ -688,7 +688,7 @@ def check_amp(model):
 
     im = ASSETS / "bus.jpg"  # image to check
     prefix = colorstr("AMP: ")
-    LOGGER.info(f"{prefix}running Automatic Mixed Precision (AMP) checks with YOLO11n...")
+    LOGGER.info(f"{prefix}running Automatic Mixed Precision (AMP) checks...")
     warning_msg = "Setting 'amp=True'. If you experience zero-mAP or NaN losses you can disable AMP with amp=False."
     try:
         from ultralytics import YOLO
@@ -696,11 +696,13 @@ def check_amp(model):
         assert amp_allclose(YOLO("yolo11n.pt"), im)
         LOGGER.info(f"{prefix}checks passed ✅")
     except ConnectionError:
-        LOGGER.warning(f"{prefix}checks skipped ⚠️, offline and unable to download YOLO11n. {warning_msg}")
+        LOGGER.warning(
+            f"{prefix}checks skipped ⚠️. " f"Offline and unable to download YOLO11n for AMP checks. {warning_msg}"
+        )
     except (AttributeError, ModuleNotFoundError):
         LOGGER.warning(
             f"{prefix}checks skipped ⚠️. "
-            f"Unable to load YOLO11n due to possible Ultralytics package modifications. {warning_msg}"
+            f"Unable to load YOLO11n for AMP checks due to possible Ultralytics package modifications. {warning_msg}"
         )
     except AssertionError:
         LOGGER.warning(
@@ -715,7 +717,7 @@ def git_describe(path=ROOT):  # path must be a directory
     """Return human-readable git description, i.e. v5.0-5-g3e25f1e https://git-scm.com/docs/git-describe."""
     try:
         return subprocess.check_output(f"git -C {path} describe --tags --long --always", shell=True).decode()[:-1]
-    except:  # noqa E722
+    except Exception:
         return ""
 
 

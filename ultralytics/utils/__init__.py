@@ -526,7 +526,7 @@ def read_device_model() -> str:
     try:
         with open("/proc/device-tree/model") as f:
             return f.read()
-    except:  # noqa E722
+    except Exception:
         return ""
 
 
@@ -571,7 +571,7 @@ def is_jupyter():
     Returns:
         (bool): True if running inside a Jupyter Notebook, False otherwise.
     """
-    return "get_ipython" in locals()
+    return "get_ipython" in globals()
 
 
 def is_docker() -> bool:
@@ -584,7 +584,7 @@ def is_docker() -> bool:
     try:
         with open("/proc/self/cgroup") as f:
             return "docker" in f.read()
-    except:  # noqa E722
+    except Exception:
         return False
 
 
@@ -623,7 +623,7 @@ def is_online() -> bool:
         for dns in ("1.1.1.1", "8.8.8.8"):  # check Cloudflare and Google DNS
             socket.create_connection(address=(dns, 80), timeout=2.0).close()
             return True
-    except:  # noqa E722
+    except Exception:
         return False
 
 

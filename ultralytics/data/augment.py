@@ -15,7 +15,6 @@ from ultralytics.utils.checks import check_version
 from ultralytics.utils.instance import Instances
 from ultralytics.utils.metrics import bbox_ioa
 from ultralytics.utils.ops import segment2box, xyxyxyxy2xywhr
-from ultralytics.utils.torch_utils import TORCHVISION_0_10, TORCHVISION_0_11, TORCHVISION_0_13
 
 DEFAULT_MEAN = (0.0, 0.0, 0.0)
 DEFAULT_STD = (1.0, 1.0, 1.0)
@@ -26,8 +25,8 @@ class BaseTransform:
     """
     Base class for image transformations in the Ultralytics library.
 
-    This class serves as a foundation for implementing various image processing operations, designed to be
-    compatible with both classification and semantic segmentation tasks.
+    This class serves as a foundation for implementing various image processing operations, designed to be compatible
+    with both classification and semantic segmentation tasks.
     """
 
     def __init__(self) -> None:
@@ -54,9 +53,7 @@ class BaseTransform:
 
 
 class Compose:
-    """
-    A class for composing multiple image transformations.
-    """
+    """A class for composing multiple image transformations."""
 
     def __init__(self, transforms):
         """Initializes the Compose object with a list of transforms."""
@@ -108,8 +105,8 @@ class BaseMixTransform:
     """
     Base class for mix transformations like MixUp and Mosaic.
 
-    This class provides a foundation for implementing mix transformations on datasets. It handles the
-    probability-based application of transforms and manages the mixing of multiple images and labels.
+    This class provides a foundation for implementing mix transformations on datasets. It handles the probability-based
+    application of transforms and manages the mixing of multiple images and labels.
     """
 
     def __init__(self, dataset, pre_transform=None, p=0.0) -> None:
@@ -172,8 +169,8 @@ class Mosaic(BaseMixTransform):
     """
     Mosaic augmentation for image datasets.
 
-    This class performs mosaic augmentation by combining multiple (4 or 9) images into a single mosaic image.
-    The augmentation is applied to a dataset with a given probability.
+    This class performs mosaic augmentation by combining multiple (4 or 9) images into a single mosaic image. The
+    augmentation is applied to a dataset with a given probability.
     """
 
     def __init__(self, dataset, imgsz=640, p=1.0, n=4):
@@ -233,7 +230,6 @@ class Mosaic(BaseMixTransform):
         final_labels["img"] = img3[-self.border[0] : self.border[0], -self.border[1] : self.border[1]]
         return final_labels
 
-
     def _mosaic4(self, labels):
         mosaic_labels = []
         s = self.imgsz
@@ -273,7 +269,6 @@ class Mosaic(BaseMixTransform):
         final_labels = self._cat_labels(mosaic_labels)
         final_labels["img"] = img4
         return final_labels
-
 
     def _mosaic9(self, labels):
         mosaic_labels = []
@@ -403,12 +398,15 @@ class Mosaic(BaseMixTransform):
             final_labels["texts"] = mosaic_labels[0]["texts"]
         return final_labels
 
+
 class MixUp(BaseMixTransform):
     """
     Applies MixUp augmentation to image datasets.
 
     This class implements the MixUp augmentation technique as described in the paper "mixup: Beyond Empirical Risk
-    Minimization" (https://arxiv.org/abs/1710.09412). MixUp combines two images and their labels using a random weight.
+    Minimization" (
+    https://arxiv.org/abs/1710.09412).
+    MixUp combines two images and their labels using a random weight.
     """
 
     def __init__(self, dataset, pre_transform=None, p=0.0) -> None:
@@ -435,8 +433,8 @@ class RandomPerspective:
     """
     Implements random perspective and affine transformations on images and corresponding annotations.
 
-    This class applies random rotations, translations, scaling, shearing, and perspective transformations
-    to images and their associated bounding boxes, segments, and keypoints.
+    This class applies random rotations, translations, scaling, shearing, and perspective transformations to images and
+    their associated bounding boxes, segments, and keypoints.
     """
 
     def __init__(
@@ -711,12 +709,13 @@ class RandomPerspective:
         ar = np.maximum(w2 / (h2 + eps), h2 / (w2 + eps))  # aspect ratio
         return (w2 > wh_thr) & (h2 > wh_thr) & (w2 * h2 / (w1 * h1 + eps) > area_thr) & (ar < ar_thr)  # candidates
 
+
 class RandomHSV:
     """
     Randomly adjusts the Hue, Saturation, and Value (HSV) channels of an image.
 
-    This class applies random HSV augmentation to images within predefined limits set by hgain, sgain, and vgain.
-    For single-channel images, only the Value (brightness) is adjusted.
+    This class applies random HSV augmentation to images within predefined limits set by hgain, sgain, and vgain. For
+    single-channel images, only the Value (brightness) is adjusted.
     """
 
     def __init__(self, hgain=0.5, sgain=0.5, vgain=0.5) -> None:
@@ -789,8 +788,8 @@ class RandomFlip:
     """
     Applies a random horizontal or vertical flip to an image with a given probability.
 
-    This class performs random image flipping and updates corresponding instance annotations such as
-    bounding boxes and keypoints.
+    This class performs random image flipping and updates corresponding instance annotations such as bounding boxes and
+    keypoints.
     """
 
     def __init__(self, p=0.5, direction="horizontal", flip_idx=None) -> None:
@@ -830,8 +829,8 @@ class LetterBox:
     """
     Resize image and padding for detection, instance segmentation, pose.
 
-    This class resizes and pads images to a specified shape while preserving aspect ratio. It also updates
-    corresponding labels and bounding boxes.
+    This class resizes and pads images to a specified shape while preserving aspect ratio. It also updates corresponding
+    labels and bounding boxes.
     """
 
     def __init__(self, new_shape=(640, 640), auto=False, scaleFill=False, scaleup=True, center=True, stride=32):
@@ -1188,17 +1187,17 @@ class Format:
         if len(img.shape) < 3:
             img = np.expand_dims(img, -1)  # Add a channel dimension
         img = img.transpose(2, 0, 1)  # Convert from HWC to CHW format
-        
+
         # Check if the image has 3 channels (color image)
         if img.shape[0] == 3:
             # Randomly decide whether to swap channels based on self.bgr
             if random.uniform(0, 1) > self.bgr:
                 img = img[[2, 1, 0], :, :]  # Swap channels (BGR to RGB or vice versa)
         # For images with less than 3 channels (e.g., grayscale), skip channel swapping
-        
+
         # Ensure the array is contiguous
         img = np.ascontiguousarray(img)
-        
+
         # Convert to PyTorch tensor
         img = torch.from_numpy(img)
         # Normalize image depending on its data type
@@ -1228,9 +1227,9 @@ class RandomLoadText:
     """
     Randomly samples positive and negative texts and updates class indices accordingly.
 
-    This class is responsible for sampling texts from a given set of class texts, including both positive
-    (present in the image) and negative (not present in the image) samples. It updates the class indices
-    to reflect the sampled texts and can optionally pad the text list to a fixed length.
+    This class is responsible for sampling texts from a given set of class texts, including both positive (present in
+    the image) and negative (not present in the image) samples. It updates the class indices to reflect the sampled
+    texts and can optionally pad the text list to a fixed length.
     """
 
     def __init__(
@@ -1403,7 +1402,7 @@ def classify_transforms(
         crop_h, crop_w = target_size
         start_x = (im_w - crop_w) // 2
         start_y = (im_h - crop_h) // 2
-        cropped_img = resized_img[start_y:start_y + crop_h, start_x:start_x + crop_w]
+        cropped_img = resized_img[start_y : start_y + crop_h, start_x : start_x + crop_w]
 
         # Convert to tensor and normalize
         img = cropped_img.astype(np.float32)
@@ -1461,7 +1460,7 @@ def classify_augmentations(
                 x1 = random.randint(0, im_w - w)
                 y1 = random.randint(0, im_h - h)
 
-                img_cropped = img[y1:y1 + h, x1:x1 + w]
+                img_cropped = img[y1 : y1 + h, x1 : x1 + w]
                 img_resized = cv2.resize(img_cropped, (size, size), interpolation=interpolation)
                 break
         else:
@@ -1521,7 +1520,7 @@ def random_erasing(img, sl=0.02, sh=0.4, r1=0.3):
         if erasing_h < h and erasing_w < w:
             x1 = random.randint(0, h - erasing_h)
             y1 = random.randint(0, w - erasing_w)
-            img[:, x1:x1 + erasing_h, y1:y1 + erasing_w] = torch.rand(c, erasing_h, erasing_w)
+            img[:, x1 : x1 + erasing_h, y1 : y1 + erasing_w] = torch.rand(c, erasing_h, erasing_w)
             return img
     return img
 
@@ -1547,11 +1546,10 @@ class CenterCrop:
         imh, imw = im.shape[:2]
         m = min(imh, imw)  # min dimension
         top, left = (imh - m) // 2, (imw - m) // 2
-        im_cropped = im[top:top + m, left:left + m]
+        im_cropped = im[top : top + m, left : left + m]
         im_resized = cv2.resize(im_cropped, (self.w, self.h), interpolation=cv2.INTER_LINEAR)
         return im_resized
 
 
 # NOTE: The ClassifyLetterBox and ToTensor classes are no longer needed as we have integrated their functionality
 # directly into the classify_transforms and classify_augmentations functions.
-

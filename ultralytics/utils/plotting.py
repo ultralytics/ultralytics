@@ -164,8 +164,7 @@ class Annotator:
 
     def __init__(self, im, line_width=None, font_size=None, font="Arial.ttf", pil=False, example="abc"):
         """Initialize the Annotator class with image and line width along with color palette for keypoints and limbs."""
-        non_ascii = not is_ascii(example)  # non-latin labels, i.e. asian, arabic, cyrillic
-        input_is_pil = False
+        not is_ascii(example)  # non-latin labels, i.e. asian, arabic, cyrillic
         self.lw = line_width or max(round(sum(im.shape) / 2 * 0.003), 2)
 
         assert im.data.contiguous, "Image not contiguous. Apply np.ascontiguousarray(im) to Annotator input images."
@@ -360,7 +359,6 @@ class Annotator:
             alpha (float): Mask transparency: 0.0 fully transparent, 1.0 opaque
             retina_masks (bool): Whether to use high resolution masks or not. Defaults to False.
         """
-
         if len(masks) == 0:
             self.im[:] = im_gpu.permute(1, 2, 0).contiguous().cpu().numpy() * 255
         if im_gpu.device != masks.device:
@@ -379,7 +377,6 @@ class Annotator:
         im_mask = im_gpu * 255
         im_mask_np = im_mask.byte().cpu().numpy()
         self.im[:] = im_mask_np if retina_masks else ops.scale_image(im_mask_np, self.im.shape)
-
 
     def kpts(self, kpts, shape=(640, 640), radius=None, kpt_line=True, conf_thres=0.25, kpt_color=None):
         """
@@ -436,7 +433,6 @@ class Annotator:
                     lineType=cv2.LINE_AA,
                 )
 
-
     def rectangle(self, xy, fill=None, outline=None, width=1):
         """Add rectangle to image (CV-only)."""
         # Extract rectangle coordinates
@@ -474,12 +470,9 @@ class Annotator:
             txt_color = (255, 255, 255)
         cv2.putText(self.im, text, xy, 0, self.sf, txt_color, thickness=self.tf, lineType=cv2.LINE_AA)
 
-
-
     def result(self):
         """Return annotated image as array."""
         return np.asarray(self.im)
-
 
     def save(self, filename="image.jpg"):
         """Save the annotated image to 'filename'."""
@@ -958,7 +951,7 @@ def plot_images(
         np.ndarray: Plotted image grid as a numpy array if save is False, None otherwise.
     """
     import math
-    from PIL import Image
+
 
     # Convert torch tensors to numpy arrays
     if isinstance(images, torch.Tensor):
@@ -977,7 +970,7 @@ def plot_images(
     # Get image dimensions and batch size
     bs, channels, h, w = images.shape  # batch size, channels, height, width
     bs = min(bs, max_subplots)  # limit plot images
-    ns = int(np.ceil(bs ** 0.5))  # number of subplots (square)
+    ns = int(np.ceil(bs**0.5))  # number of subplots (square)
 
     # Determine image data type
     img_dtype = images.dtype
@@ -989,7 +982,6 @@ def plot_images(
         max_pixel_value = 1.0
     else:
         max_pixel_value = images.max()
-
 
     # Build the mosaic image with appropriate data type
     mosaic_shape = (int(ns * h), int(ns * w), 3)
@@ -1037,7 +1029,9 @@ def plot_images(
         mosaic_display = (mosaic / max_pixel_value).astype(np.float32)
 
     # Create an annotator instance
-    annotator = Annotator((mosaic_display * 255).astype(np.uint8), line_width=line_width, font_size=fs, pil=True, example=names)
+    annotator = Annotator(
+        (mosaic_display * 255).astype(np.uint8), line_width=line_width, font_size=fs, pil=True, example=names
+    )
     for i in range(bs):
         x, y = int(w * (i % ns)), int(h * (i // ns))  # Block origin
         annotator.rectangle([x, y, x + w, y + h], None, (255, 255, 255), width=2)  # Borders
@@ -1128,9 +1122,9 @@ def plot_images(
 
     if not save:
         return annotated_image
-    
+
     # Save the image in a format that supports uint16
-    cv2.imwrite(fname,annotated_image)
+    cv2.imwrite(fname, annotated_image)
     if on_plot:
         on_plot(fname)
 

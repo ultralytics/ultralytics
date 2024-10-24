@@ -1,18 +1,40 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-from shapely.geometry import LineString, Point
-
-from ultralytics.solutions.solutions import BaseSolution  # Import a parent class
+from ultralytics.solutions.solutions import BaseSolution
 from ultralytics.utils.plotting import Annotator, colors
 
 
 class ObjectCounter(BaseSolution):
-    """A class to manage the counting of objects in a real-time video stream based on their tracks."""
+    """
+    A class to manage the counting of objects in a real-time video stream based on their tracks.
+
+    This class extends the BaseSolution class and provides functionality for counting objects moving in and out of a
+    specified region in a video stream. It supports both polygonal and linear regions for counting.
+
+    Attributes:
+        in_count (int): Counter for objects moving inward.
+        out_count (int): Counter for objects moving outward.
+        counted_ids (List[int]): List of IDs of objects that have been counted.
+        classwise_counts (Dict[str, Dict[str, int]]): Dictionary for counts, categorized by object class.
+        region_initialized (bool): Flag indicating whether the counting region has been initialized.
+        show_in (bool): Flag to control display of inward count.
+        show_out (bool): Flag to control display of outward count.
+
+    Methods:
+        count_objects: Counts objects within a polygonal or linear region.
+        store_classwise_counts: Initializes class-wise counts if not already present.
+        display_counts: Displays object counts on the frame.
+        count: Processes input data (frames or object tracks) and updates counts.
+
+    Examples:
+        >>> counter = ObjectCounter()
+        >>> frame = cv2.imread("frame.jpg")
+        >>> processed_frame = counter.count(frame)
+        >>> print(f"Inward count: {counter.in_count}, Outward count: {counter.out_count}")
+    """
 
     def __init__(self, **kwargs):
-        """Initialization function for Count class, a child class of BaseSolution class, can be used for counting the
-        objects.
-        """
+        """Initializes the ObjectCounter class for real-time object counting in video streams."""
         super().__init__(**kwargs)
 
         self.in_count = 0  # Counter for objects moving inward
@@ -26,14 +48,23 @@ class ObjectCounter(BaseSolution):
 
     def count_objects(self, track_line, box, track_id, prev_position, cls):
         """
-        Helper function to count objects within a polygonal region.
+        Counts objects within a polygonal or linear region based on their tracks.
 
         Args:
-            track_line (dict): last 30 frame track record
-            box (list): Bounding box data for specific track in current frame
-            track_id (int): track ID of the object
-            prev_position (tuple): last frame position coordinates of the track
-            cls (int): Class index for classwise count updates
+            track_line (Dict): Last 30 frame track record for the object.
+            box (List[float]): Bounding box coordinates [x1, y1, x2, y2] for the specific track in the current frame.
+            track_id (int): Unique identifier for the tracked object.
+            prev_position (Tuple[float, float]): Last frame position coordinates (x, y) of the track.
+            cls (int): Class index for classwise count updates.
+
+        Examples:
+            >>> counter = ObjectCounter()
+            >>> track_line = {1: [100, 200], 2: [110, 210], 3: [120, 220]}
+            >>> box = [130, 230, 150, 250]
+            >>> track_id = 1
+            >>> prev_position = (120, 220)
+            >>> cls = 0
+            >>> counter.count_objects(track_line, box, track_id, prev_position, cls)
         """
         if prev_position is None or track_id in self.counted_ids:
             return
@@ -42,7 +73,7 @@ class ObjectCounter(BaseSolution):
         dx = (box[0] - prev_position[0]) * (centroid.x - prev_position[0])
         dy = (box[1] - prev_position[1]) * (centroid.y - prev_position[1])
 
-        if len(self.region) >= 3 and self.r_s.contains(Point(track_line[-1])):
+        if len(self.region) >= 3 and self.r_s.contains(self.Point(track_line[-1])):
             self.counted_ids.append(track_id)
             # For polygon region
             if dx > 0:
@@ -52,7 +83,7 @@ class ObjectCounter(BaseSolution):
                 self.out_count += 1
                 self.classwise_counts[self.names[cls]]["OUT"] += 1
 
-        elif len(self.region) < 3 and LineString([prev_position, box[:2]]).intersects(self.l_s):
+        elif len(self.region) < 3 and self.LineString([prev_position, box[:2]]).intersects(self.r_s):
             self.counted_ids.append(track_id)
             # For linear region
             if dx > 0 and dy > 0:
@@ -64,20 +95,34 @@ class ObjectCounter(BaseSolution):
 
     def store_classwise_counts(self, cls):
         """
-        Initialize class-wise counts if not already present.
+        Initialize class-wise counts for a specific object class if not already present.
 
         Args:
-            cls (int): Class index for classwise count updates
+            cls (int): Class index for classwise count updates.
+
+        This method ensures that the 'classwise_counts' dictionary contains an entry for the specified class,
+        initializing 'IN' and 'OUT' counts to zero if the class is not already present.
+
+        Examples:
+            >>> counter = ObjectCounter()
+            >>> counter.store_classwise_counts(0)  # Initialize counts for class index 0
+            >>> print(counter.classwise_counts)
+            {'person': {'IN': 0, 'OUT': 0}}
         """
         if self.names[cls] not in self.classwise_counts:
             self.classwise_counts[self.names[cls]] = {"IN": 0, "OUT": 0}
 
     def display_counts(self, im0):
         """
-        Helper function to display object counts on the frame.
+        Displays object counts on the input image or frame.
 
         Args:
-            im0 (ndarray): The input image or frame
+            im0 (numpy.ndarray): The input image or frame to display counts on.
+
+        Examples:
+            >>> counter = ObjectCounter()
+            >>> frame = cv2.imread("image.jpg")
+            >>> counter.display_counts(frame)
         """
         labels_dict = {
             str.capitalize(key): f"{'IN ' + str(value['IN']) if self.show_in else ''} "
@@ -91,12 +136,21 @@ class ObjectCounter(BaseSolution):
 
     def count(self, im0):
         """
-        Processes input data (frames or object tracks) and updates counts.
+        Processes input data (frames or object tracks) and updates object counts.
+
+        This method initializes the counting region, extracts tracks, draws bounding boxes and regions, updates
+        object counts, and displays the results on the input image.
 
         Args:
-            im0 (ndarray): The input image that will be used for processing
-        Returns
-            im0 (ndarray): The processed image for more usage
+            im0 (numpy.ndarray): The input image or frame to be processed.
+
+        Returns:
+            (numpy.ndarray): The processed image with annotations and count information.
+
+        Examples:
+            >>> counter = ObjectCounter()
+            >>> frame = cv2.imread("path/to/image.jpg")
+            >>> processed_frame = counter.count(frame)
         """
         if not self.region_initialized:
             self.initialize_region()
@@ -122,7 +176,9 @@ class ObjectCounter(BaseSolution):
             )
 
             # store previous position of track for object counting
-            prev_position = self.track_history[track_id][-2] if len(self.track_history[track_id]) > 1 else None
+            prev_position = None
+            if len(self.track_history[track_id]) > 1:
+                prev_position = self.track_history[track_id][-2]
             self.count_objects(self.track_line, box, track_id, prev_position, cls)  # Perform object counting
 
         self.display_counts(im0)  # Display the counts on the frame

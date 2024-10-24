@@ -1004,8 +1004,11 @@ def plot_images(
         max_pixel_value = 255
     elif img_dtype == np.uint16:
         max_pixel_value = 65535
+    elif img_dtype == np.float32:
+        max_pixel_value = 1.0
     else:
         max_pixel_value = images.max()
+
 
     # Build the mosaic image with appropriate data type
     mosaic_shape = (int(ns * h), int(ns * w), 3)
@@ -1014,7 +1017,6 @@ def plot_images(
     for i in range(bs):
         x, y = int(w * (i % ns)), int(h * (i // ns))  # Block origin
         image = images[i].transpose(1, 2, 0)  # Convert from CHW to HWC
-
         # Handle images with different numbers of channels
         if image.shape[2] == 1:
             image = np.repeat(image, 3, axis=2)  # Grayscale to RGB-like (still uint16)
@@ -1027,6 +1029,7 @@ def plot_images(
             image = image[:, :, :3]
 
         # Place image in mosaic
+
         mosaic[y : y + h, x : x + w, :] = image
 
     # Resize the mosaic if necessary
@@ -1054,7 +1057,6 @@ def plot_images(
 
     # Create an annotator instance
     annotator = Annotator((mosaic_display * 255).astype(np.uint8), line_width=line_width, font_size=fs, pil=True, example=names)
-
     for i in range(bs):
         x, y = int(w * (i % ns)), int(h * (i // ns))  # Block origin
         annotator.rectangle([x, y, x + w, y + h], None, (255, 255, 255), width=2)  # Borders
@@ -1145,7 +1147,6 @@ def plot_images(
         return annotated_image
     
     # Save the image in a format that supports uint16
-
     cv2.imwrite(fname,annotated_image)
     if on_plot:
         on_plot(fname)

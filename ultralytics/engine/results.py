@@ -181,7 +181,11 @@ class BaseTensor(SimpleClass):
             >>> print(result.data)
             tensor([1, 2, 3])
         """
-        return self.__class__(self.data[idx], self.orig_shape)
+        return self.__class__(
+            self.data[idx],
+            self.orig_shape,
+            **{k: v for k, v in self.__dict__.items() if k not in ("data", "orig_shape")},
+        )
 
 
 class Results(SimpleClass):
@@ -228,7 +232,17 @@ class Results(SimpleClass):
     """
 
     def __init__(
-        self, orig_img, path, names, boxes=None, masks=None, probs=None, keypoints=None, obb=None, speed=None
+        self,
+        orig_img,
+        path,
+        names,
+        boxes=None,
+        masks=None,
+        probs=None,
+        keypoints=None,
+        obb=None,
+        speed=None,
+        is_soft: bool = False,
     ) -> None:
         """
         Initialize the Results class for storing and manipulating inference results.
@@ -257,9 +271,12 @@ class Results(SimpleClass):
             9: Left Wrist, 10: Right Wrist, 11: Left Hip, 12: Right Hip
             13: Left Knee, 14: Right Knee, 15: Left Ankle, 16: Right Ankle
         """
+        self.is_soft = is_soft
         self.orig_img = orig_img
         self.orig_shape = orig_img.shape[:2]
-        self.boxes = Boxes(boxes, self.orig_shape) if boxes is not None else None  # native size boxes
+        self.boxes = (
+            Boxes(boxes, self.orig_shape, soft_labels=is_soft) if boxes is not None else None
+        )  # native size boxes
         self.masks = Masks(masks, self.orig_shape) if masks is not None else None  # native size or imgsz masks
         self.probs = Probs(probs) if probs is not None else None
         self.keypoints = Keypoints(keypoints, self.orig_shape) if keypoints is not None else None
@@ -325,7 +342,7 @@ class Results(SimpleClass):
             >>> results[0].update(boxes=new_boxes)
         """
         if boxes is not None:
-            self.boxes = Boxes(ops.clip_boxes(boxes, self.orig_shape), self.orig_shape)
+            self.boxes = Boxes(ops.clip_boxes(boxes, self.orig_shape), self.orig_shape, soft_labels=self.is_soft)
         if masks is not None:
             self.masks = Masks(masks, self.orig_shape)
         if probs is not None:
@@ -702,7 +719,11 @@ class Results(SimpleClass):
         elif boxes:
             # Detect/segment/pose
             for j, d in enumerate(boxes):
-                c, conf, id = int(d.cls), float(d.conf), None if d.id is None else int(d.id.item())
+                c, conf, id = (
+                    int(d.cls),
+                    float(d.conf) if d.conf.ndim == 1 else d.conf.flatten().tolist(),
+                    None if d.id is None else int(d.id.item()),
+                )
                 line = (c, *(d.xyxyxyxyn.view(-1) if is_obb else d.xywhn.view(-1)))
                 if masks:
                     seg = masks[j].xyn[0].copy().reshape(-1)  # reversed mask.xyn, (n,2) to (n*2)
@@ -710,7 +731,7 @@ class Results(SimpleClass):
                 if kpts is not None:
                     kpt = torch.cat((kpts[j].xyn, kpts[j].conf[..., None]), 2) if kpts[j].has_visible else kpts[j].xyn
                     line += (*kpt.reshape(-1).tolist(),)
-                line += (conf,) * save_conf + (() if id is None else (id,))
+                line += (tuple(conf) if isinstance(conf, list) else (conf,)) * save_conf + (() if id is None else (id,))
                 texts.append(("%g " * len(line)).rstrip() % line)
 
         if texts:
@@ -973,7 +994,7 @@ class Boxes(BaseTensor):
         >>> print(boxes.xywhn)
     """
 
-    def __init__(self, boxes, orig_shape) -> None:
+    def __init__(self, boxes, orig_shape, is_track: bool = False, soft_labels: bool = False) -> None:
         """
         Initialize the Boxes class with detection box data and the original image shape.
 
@@ -1003,10 +1024,12 @@ class Boxes(BaseTensor):
         if boxes.ndim == 1:
             boxes = boxes[None, :]
         n = boxes.shape[-1]
-        assert n in {6, 7}, f"expected 6 or 7 values but got {n}"  # xyxy, track_id, conf, cls
+        if not soft_labels:
+            assert n in {6, 7}, f"expected 6 or 7 values but got {n}"  # xyxy, track_id, conf, cls
         super().__init__(boxes, orig_shape)
-        self.is_track = n == 7
+        self.is_track = is_track or n == 7
         self.orig_shape = orig_shape
+        self.soft_labels = soft_labels
 
     @property
     def xyxy(self):
@@ -1040,7 +1063,7 @@ class Boxes(BaseTensor):
             >>> print(conf_scores)
             tensor([0.9000])
         """
-        return self.data[:, -2]
+        return self.data[:, -2] if not self.soft_labels else self.data[:, 4:]
 
     @property
     def cls(self):
@@ -1057,7 +1080,7 @@ class Boxes(BaseTensor):
             >>> class_ids = boxes.cls
             >>> print(class_ids)  # tensor([0., 2., 1.])
         """
-        return self.data[:, -1]
+        return self.data[:, -1] if not self.soft_labels else self.data[:, 4:].max(1, keepdim=True)[1]
 
     @property
     def id(self):

@@ -161,7 +161,6 @@ class SAM2Model(torch.nn.Module):
         use_multimask_token_for_obj_ptr: bool = False,
         iou_prediction_use_sigmoid=False,
         memory_temporal_stride_for_eval=1,
-        add_all_frames_to_correct_as_cond=False,
         non_overlap_masks_for_mem_enc=False,
         use_obj_ptrs_in_encoder=False,
         max_obj_ptrs_in_encoder=16,
@@ -205,8 +204,6 @@ class SAM2Model(torch.nn.Module):
             use_multimask_token_for_obj_ptr (bool): Whether to use multimask tokens for object pointers.
             iou_prediction_use_sigmoid (bool): Whether to use sigmoid to restrict IoU prediction to [0-1].
             memory_temporal_stride_for_eval (int): Memory bank's temporal stride during evaluation.
-            add_all_frames_to_correct_as_cond (bool): Whether to append frames with correction clicks to conditioning
-                frame list.
             non_overlap_masks_for_mem_enc (bool): Whether to apply non-overlapping constraints on object masks in
                 memory encoder during evaluation.
             use_obj_ptrs_in_encoder (bool): Whether to cross-attend to object pointers from other frames in the encoder.
@@ -311,7 +308,6 @@ class SAM2Model(torch.nn.Module):
         self.use_mlp_for_obj_ptr_proj = use_mlp_for_obj_ptr_proj
 
         self._build_sam_heads()
-        self.add_all_frames_to_correct_as_cond = add_all_frames_to_correct_as_cond
         self.max_cond_frames_in_attn = max_cond_frames_in_attn
 
         # Model compilation

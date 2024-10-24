@@ -115,7 +115,6 @@ CFG_FRACTION_KEYS = {  # fractional float arguments with 0.0<=values<=1.0
     "weight_decay",
     "warmup_momentum",
     "warmup_bias_lr",
-    "label_smoothing",
     "hsv_h",
     "hsv_s",
     "hsv_v",
@@ -180,6 +179,9 @@ CFG_BOOL_KEYS = {  # boolean-only arguments
     "nms",
     "profile",
     "multi_scale",
+}
+DEPRECATED_KEYS = {
+    "label_smoothing",
 }
 
 
@@ -423,6 +425,12 @@ def check_dict_alignment(base: Dict, custom: Dict, e=None):
     """
     custom = _handle_deprecation(custom)
     base_keys, custom_keys = (set(x.keys()) for x in (base, custom))
+    removed = {k for k in custom_keys if k in DEPRECATED_KEYS}
+    if removed:
+        LOGGER.warning(
+            f"WARNING ⚠️ the following arguments are {colorstr('red', 'bold', 'deprecated')} and will be ignored:\n {', '.join([str(k) for k in removed])}"
+        )
+        custom_keys -= removed
     mismatched = [k for k in custom_keys if k not in base_keys]
     if mismatched:
         from difflib import get_close_matches

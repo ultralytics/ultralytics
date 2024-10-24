@@ -259,7 +259,7 @@ class PoseValidator(DetectionValidator):
                 pkg = "faster-coco-eval"
             elif check_requirements("pycocotools>=2.0.6"):
                 pkg = "pycocotools"
-            
+
             anno_json = self.data["path"] / "annotations/person_keypoints_val2017.json"  # annotations
             pred_json = self.save_dir / "predictions.json"  # predictions
 

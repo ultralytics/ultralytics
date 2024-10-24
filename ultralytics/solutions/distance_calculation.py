@@ -4,15 +4,41 @@ import math
 
 import cv2
 
-from ultralytics.solutions.solutions import BaseSolution  # Import a parent class
+from ultralytics.solutions.solutions import BaseSolution
 from ultralytics.utils.plotting import Annotator, colors
 
 
 class DistanceCalculation(BaseSolution):
-    """A class to calculate distance between two objects in a real-time video stream based on their tracks."""
+    """
+    A class to calculate distance between two objects in a real-time video stream based on their tracks.
+
+    This class extends BaseSolution to provide functionality for selecting objects and calculating the distance
+    between them in a video stream using YOLO object detection and tracking.
+
+    Attributes:
+        left_mouse_count (int): Counter for left mouse button clicks.
+        selected_boxes (Dict[int, List[float]]): Dictionary to store selected bounding boxes and their track IDs.
+        annotator (Annotator): An instance of the Annotator class for drawing on the image.
+        boxes (List[List[float]]): List of bounding boxes for detected objects.
+        track_ids (List[int]): List of track IDs for detected objects.
+        clss (List[int]): List of class indices for detected objects.
+        names (List[str]): List of class names that the model can detect.
+        centroids (List[List[int]]): List to store centroids of selected bounding boxes.
+
+    Methods:
+        mouse_event_for_distance: Handles mouse events for selecting objects in the video stream.
+        calculate: Processes video frames and calculates the distance between selected objects.
+
+    Examples:
+        >>> distance_calc = DistanceCalculation()
+        >>> frame = cv2.imread("frame.jpg")
+        >>> processed_frame = distance_calc.calculate(frame)
+        >>> cv2.imshow("Distance Calculation", processed_frame)
+        >>> cv2.waitKey(0)
+    """
 
     def __init__(self, **kwargs):
-        """Initializes the DistanceCalculation class with the given parameters."""
+        """Initializes the DistanceCalculation class for measuring object distances in video streams."""
         super().__init__(**kwargs)
 
         # Mouse event information
@@ -21,14 +47,18 @@ class DistanceCalculation(BaseSolution):
 
     def mouse_event_for_distance(self, event, x, y, flags, param):
         """
-        Handles mouse events to select regions in a real-time video stream.
+        Handles mouse events to select regions in a real-time video stream for distance calculation.
 
         Args:
-            event (int): Type of mouse event (e.g., cv2.EVENT_MOUSEMOVE, cv2.EVENT_LBUTTONDOWN, etc.).
+            event (int): Type of mouse event (e.g., cv2.EVENT_MOUSEMOVE, cv2.EVENT_LBUTTONDOWN).
             x (int): X-coordinate of the mouse pointer.
             y (int): Y-coordinate of the mouse pointer.
-            flags (int): Flags associated with the event (e.g., cv2.EVENT_FLAG_CTRLKEY, cv2.EVENT_FLAG_SHIFTKEY, etc.).
-            param (dict): Additional parameters passed to the function.
+            flags (int): Flags associated with the event (e.g., cv2.EVENT_FLAG_CTRLKEY, cv2.EVENT_FLAG_SHIFTKEY).
+            param (Dict): Additional parameters passed to the function.
+
+        Examples:
+            >>> # Assuming 'dc' is an instance of DistanceCalculation
+            >>> cv2.setMouseCallback("window_name", dc.mouse_event_for_distance)
         """
         if event == cv2.EVENT_LBUTTONDOWN:
             self.left_mouse_count += 1
@@ -43,13 +73,23 @@ class DistanceCalculation(BaseSolution):
 
     def calculate(self, im0):
         """
-        Processes the video frame and calculates the distance between two bounding boxes.
+        Processes a video frame and calculates the distance between two selected bounding boxes.
+
+        This method extracts tracks from the input frame, annotates bounding boxes, and calculates the distance
+        between two user-selected objects if they have been chosen.
 
         Args:
-            im0 (ndarray): The image frame.
+            im0 (numpy.ndarray): The input image frame to process.
 
         Returns:
-            (ndarray): The processed image frame.
+            (numpy.ndarray): The processed image frame with annotations and distance calculations.
+
+        Examples:
+            >>> import numpy as np
+            >>> from ultralytics.solutions import DistanceCalculation
+            >>> dc = DistanceCalculation()
+            >>> frame = np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8)
+            >>> processed_frame = dc.calculate(frame)
         """
         self.annotator = Annotator(im0, line_width=self.line_width)  # Initialize annotator
         self.extract_tracks(im0)  # Extract tracks

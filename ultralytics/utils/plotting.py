@@ -12,7 +12,7 @@ import torch
 from PIL import Image, ImageOps
 
 from ultralytics.utils import IS_COLAB, IS_KAGGLE, LOGGER, TryExcept, ops, plt_settings, threaded
-from ultralytics.utils.checks import check_font, check_version, is_ascii
+from ultralytics.utils.checks import is_ascii
 from ultralytics.utils.files import increment_path
 
 
@@ -474,6 +474,20 @@ class Annotator:
     def result(self):
         """Return annotated image as array."""
         return np.asarray(self.im)
+
+    def show(self, title=None):
+        """Show the annotated image."""
+        drawIm = self.im
+        if drawIm.dtype == np.uint16:
+            drawIm = (drawIm / 65535.0)*255.0 # Converts uint16 to uint8 for plotting purposes
+        im = Image.fromarray(np.asarray(drawIm)[..., ::-1])  # Convert numpy array to PIL Image with RGB to BGR
+        if IS_COLAB or IS_KAGGLE:  # can not use IS_JUPYTER as will run for all ipython environments
+            try:
+                display(im)  # noqa - display() function only available in ipython environments
+            except ImportError as e:
+                LOGGER.warning(f"Unable to display image in Jupyter notebooks: {e}")
+        else:
+            im.show(title=title)
 
     def save(self, filename="image.jpg"):
         """Save the annotated image to 'filename'."""
@@ -1112,7 +1126,8 @@ def plot_images(
                             )
                         except Exception:
                             pass
-
+                        annotator.fromarray(im)
+                        
     # After annotations, scale the annotated image back to original dtype if necessary
     annotated_image = np.asarray(annotator.im)
     # if img_dtype == np.uint16:

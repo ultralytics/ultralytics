@@ -572,7 +572,7 @@ def is_jupyter():
 
     Returns:
         (bool): True if running inside a Jupyter Notebook, False otherwise.
-        
+
     Note:
         - Only works on Colab and Kaggle, other environments like Jupyterlab and Paperspace are not reliably detectable.
         - "get_ipython" in globals() method suffers false positives when IPython package installed manually.

@@ -10,6 +10,7 @@ import cv2
 import numpy as np
 import torch
 from torch.utils.data import ConcatDataset
+from PIL import Image
 
 from ultralytics.utils import LOCAL_RANK, NUM_THREADS, TQDM, colorstr
 from ultralytics.utils.ops import resample_segments
@@ -414,7 +415,7 @@ class ClassificationDataset:
             prefix (str, optional): Prefix for logging and cache filenames, aiding in dataset identification and
                 debugging. Default is an empty string.
         """
-        import torchvision.datasets  # scope for faster 'import ultralytics'
+        import torchvision  # scope for faster 'import ultralytics'
 
         # Base class assigned as attribute rather than used as base class to allow for scoping slow torchvision import
         if TORCHVISION_0_18:  # 'allow_empty' argument first introduced in torchvision 0.18
@@ -439,9 +440,8 @@ class ClassificationDataset:
         self.samples = self.verify_images()  # filter out bad images
         self.samples = [list(x) + [Path(x[0]).with_suffix(".npy"), None] for x in self.samples]  # file, index, npy, im
         scale = (1.0 - args.scale, 1.0)  # (0.08, 1.0)
-        if augment:
-            # Using custom augmentations compatible with numpy arrays
-            self.transforms = classify_augmentations(
+        self.torch_transforms = (
+            classify_augmentations(
                 size=args.imgsz,
                 scale=scale,
                 hflip=args.fliplr,
@@ -452,18 +452,23 @@ class ClassificationDataset:
                 hsv_s=args.hsv_s,
                 hsv_v=args.hsv_v,
             )
-        else:
-            self.transforms = classify_transforms(size=args.imgsz, crop_fraction=args.crop_fraction)
+            if augment
+            else classify_transforms(size=args.imgsz, crop_fraction=args.crop_fraction)
+        )
 
     def __getitem__(self, i):
         """Returns subset of data and targets corresponding to given indices."""
         f, j, fn, im = self.samples[i]  # filename, index, filename.with_suffix('.npy'), image
 
-        # Load the image as 16-bit using OpenCV
-        im = cv2.imread(f, cv2.IMREAD_UNCHANGED)  # Load as is, preserving 16-bit depth
-
-        if im is None:
-            raise ValueError(f"Failed to load image: {f}")
+        if self.cache_ram:
+            if im is None:  # Warning: two separate if statements required here, do not combine this with previous line
+                im = self.samples[i][3] = cv2.imread(f, cv2.IMREAD_UNCHANGED)
+        elif self.cache_disk:
+            if not fn.exists():  # load npy
+                np.save(fn.as_posix(), cv2.imread(f, cv2.IMREAD_UNCHANGED), allow_pickle=False)
+            im = np.load(fn)
+        else:  # read image
+            im = cv2.imread(f, cv2.IMREAD_UNCHANGED)  # BGR
 
         # Convert from BGR to RGB if the image has 3 channels
         if len(im.shape) == 3 and im.shape[2] == 3:  # check if image is 3-channel
@@ -473,11 +478,11 @@ class ClassificationDataset:
         if im.ndim == 2:  # Grayscale image
             print(f"Image {f} is 2-channel dimension")
             im = np.expand_dims(im, axis=-1)
+        
         # Apply dataset transformations (ensure they are compatible with numpy arrays)
-        if self.transforms:
-            im = self.transforms(im)
-
-        return {"img": im, "cls": j}
+        im = Image.fromarray(im)
+        sample = self.torch_transforms(im)
+        return {"img": sample, "cls": j}
 
     def __len__(self) -> int:
         """Return the total number of samples in the dataset."""

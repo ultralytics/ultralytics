@@ -25,10 +25,6 @@ The `ultralytics` package comes with a myriad of utilities that can support, enh
 
 ## Data
 
-### YOLO Data Explorer
-
-[YOLO Explorer](../datasets/explorer/index.md) was added in the `8.1.0` anniversary update and is a powerful tool you can use to better understand your dataset. One of the key functions that YOLO Explorer provides, is the ability to use text queries to find object instances in your dataset.
-
 ### Auto Labeling / Annotations
 
 Dataset annotation is a very resource intensive and time-consuming process. If you have a YOLO [object detection](https://www.ultralytics.com/glossary/object-detection) model trained on a reasonable amount of data, you can use it and [SAM](../models/sam.md) to auto-annotate additional data (segmentation format).
@@ -38,7 +34,7 @@ from ultralytics.data.annotator import auto_annotate
 
 auto_annotate(  # (1)!
     data="path/to/new/data",
-    det_model="yolov8n.pt",
+    det_model="yolo11n.pt",
     sam_model="mobile_sam.pt",
     device="cuda",
     output_dir="path/to/save_labels",
@@ -93,7 +89,7 @@ from ultralytics.utils.plotting import Annotator
 from ultralytics import YOLO
 import cv2
 
-model = YOLO('yolov8n.pt')  # Load pretrain or fine-tune model
+model = YOLO('yolo11n.pt')  # Load pretrain or fine-tune model
 
 # Process the image
 source = cv2.imread('path/to/image.jpg')
@@ -468,7 +464,7 @@ import cv2
 from ultralytics import YOLO
 from ultralytics.utils.plotting import Annotator
 
-model = YOLO("yolov8s.pt")
+model = YOLO("yolo11s.pt")
 names = model.names
 cap = cv2.VideoCapture("path/to/video/file.mp4")
 
@@ -507,7 +503,7 @@ import cv2
 from ultralytics import YOLO
 from ultralytics.utils.plotting import Annotator
 
-model = YOLO("yolov8s.pt")
+model = YOLO("yolo11s.pt")
 names = model.names
 cap = cv2.VideoCapture("path/to/video/file.mp4")
 
@@ -598,7 +594,7 @@ from ultralytics.data.annotator import auto_annotate
 
 auto_annotate(
     data="path/to/new/data",
-    det_model="yolov8n.pt",
+    det_model="yolo11n.pt",
     sam_model="mobile_sam.pt",
     device="cuda",
     output_dir="path/to/save_labels",

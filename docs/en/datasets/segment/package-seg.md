@@ -34,7 +34,7 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 ## Usage
 
-To train Ultralytics YOLOv8n model on the Package Segmentation dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To train Ultralytics YOLO11n model on the Package Segmentation dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
 !!! example "Train Example"
 
@@ -44,7 +44,7 @@ To train Ultralytics YOLOv8n model on the Package Segmentation dataset for 100 [
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n-seg.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n-seg.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="package-seg.yaml", epochs=100, imgsz=640)
@@ -54,7 +54,7 @@ To train Ultralytics YOLOv8n model on the Package Segmentation dataset for 100 [
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo segment train data=package-seg.yaml model=yolov8n-seg.pt epochs=100 imgsz=640
+        yolo segment train data=package-seg.yaml model=yolo11n-seg.pt epochs=100 imgsz=640
         ```
 
 ## Sample Data and Annotations
@@ -97,9 +97,9 @@ We express our gratitude to the Roboflow team for their efforts in creating and 
 
 The [Roboflow Package Segmentation Dataset](https://universe.roboflow.com/factorypackage/factory_package?ref=ultralytics) is a curated collection of images tailored for tasks involving package segmentation. It includes diverse images of packages in various contexts, making it invaluable for training and evaluating segmentation models. This dataset is particularly useful for applications in logistics, warehouse automation, and any project requiring precise package analysis. It helps optimize logistics and enhance vision models for accurate package identification and sorting.
 
-### How do I train an Ultralytics YOLOv8 model on the Package Segmentation Dataset?
+### How do I train an Ultralytics YOLO11 model on the Package Segmentation Dataset?
 
-You can train an Ultralytics YOLOv8n model using both Python and CLI methods. Use the snippets below:
+You can train an Ultralytics YOLO11n model using both Python and CLI methods. Use the snippets below:
 
 !!! example "Train Example"
 
@@ -109,7 +109,7 @@ You can train an Ultralytics YOLOv8n model using both Python and CLI methods. Us
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n-seg.pt")  # load a pretrained model
+        model = YOLO("yolo11n-seg.pt")  # load a pretrained model
 
         # Train the model
         results = model.train(data="package-seg.yaml", epochs=100, imgsz=640)
@@ -119,7 +119,7 @@ You can train an Ultralytics YOLOv8n model using both Python and CLI methods. Us
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo segment train data=package-seg.yaml model=yolov8n-seg.pt epochs=100 imgsz=640
+        yolo segment train data=package-seg.yaml model=yolo11n-seg.pt epochs=100 imgsz=640
         ```
 
 Refer to the model [Training](../../modes/train.md) page for more details.
@@ -134,9 +134,9 @@ The dataset is structured into three main components:
 
 This structure ensures a balanced dataset for thorough model training, validation, and testing, enhancing the performance of segmentation algorithms.
 
-### Why should I use Ultralytics YOLOv8 with the Package Segmentation Dataset?
+### Why should I use Ultralytics YOLO11 with the Package Segmentation Dataset?
 
-Ultralytics YOLOv8 provides state-of-the-art [accuracy](https://www.ultralytics.com/glossary/accuracy) and speed for real-time object detection and segmentation tasks. Using it with the Package Segmentation Dataset allows you to leverage YOLOv8's capabilities for precise package segmentation. This combination is especially beneficial for industries like logistics and warehouse automation, where accurate package identification is critical. For more information, check out our [page on YOLOv8 segmentation](https://docs.ultralytics.com/models/yolov8/).
+Ultralytics YOLO11 provides state-of-the-art [accuracy](https://www.ultralytics.com/glossary/accuracy) and speed for real-time object detection and segmentation tasks. Using it with the Package Segmentation Dataset allows you to leverage YOLO11's capabilities for precise package segmentation. This combination is especially beneficial for industries like logistics and warehouse automation, where accurate package identification is critical. For more information, check out our [page on YOLO11 segmentation](https://docs.ultralytics.com/models/yolo11/).
 
 ### How can I access and use the package-seg.yaml file for the Package Segmentation Dataset?
 

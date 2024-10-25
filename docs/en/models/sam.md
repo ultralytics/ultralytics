@@ -58,8 +58,17 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
         # Run inference with bboxes prompt
         results = model("ultralytics/assets/zidane.jpg", bboxes=[439, 437, 524, 709])
 
-        # Run inference with points prompt
-        results = model("ultralytics/assets/zidane.jpg", points=[900, 370], labels=[1])
+        # Run inference with single point
+        results = model(points=[900, 370], labels=[1])
+
+        # Run inference with multiple points
+        results = model(points=[[400, 370], [900, 370]], labels=[1, 1])
+
+        # Run inference with multiple points prompt per object
+        results = model(points=[[[400, 370], [900, 370]]], labels=[[1, 1]])
+
+        # Run inference with negative points prompt
+        results = model(points=[[[400, 370], [900, 370]]], labels=[[1, 0]])
         ```
 
 !!! example "Segment everything"
@@ -107,7 +116,15 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
         predictor.set_image("ultralytics/assets/zidane.jpg")  # set with image file
         predictor.set_image(cv2.imread("ultralytics/assets/zidane.jpg"))  # set with np.ndarray
         results = predictor(bboxes=[439, 437, 524, 709])
+
+        # Run inference with single point prompt
         results = predictor(points=[900, 370], labels=[1])
+
+        # Run inference with multiple points prompt
+        results = predictor(points=[[400, 370], [900, 370]], labels=[[1, 1]])
+
+        # Run inference with negative points prompt
+        results = predictor(points=[[[400, 370], [900, 370]]], labels=[[1, 0]])
 
         # Reset image
         predictor.reset_image()
@@ -245,6 +262,15 @@ model("ultralytics/assets/zidane.jpg", bboxes=[439, 437, 524, 709])
 
 # Segment with points prompt
 model("ultralytics/assets/zidane.jpg", points=[900, 370], labels=[1])
+
+# Segment with multiple points prompt
+model("ultralytics/assets/zidane.jpg", points=[[400, 370], [900, 370]], labels=[[1, 1]])
+
+# Segment with multiple points prompt per object
+model("ultralytics/assets/zidane.jpg", points=[[[400, 370], [900, 370]]], labels=[[1, 1]])
+
+# Segment with negative points prompt.
+model("ultralytics/assets/zidane.jpg", points=[[[400, 370], [900, 370]]], labels=[[1, 0]])
 ```
 
 Alternatively, you can run inference with SAM in the command line interface (CLI):

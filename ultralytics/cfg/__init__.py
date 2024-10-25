@@ -1,6 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-import contextlib
 import shutil
 import subprocess
 import sys
@@ -42,11 +41,11 @@ TASK2DATA = {
     "obb": "dota8.yaml",
 }
 TASK2MODEL = {
-    "detect": "yolov8n.pt",
-    "segment": "yolov8n-seg.pt",
-    "classify": "yolov8n-cls.pt",
-    "pose": "yolov8n-pose.pt",
-    "obb": "yolov8n-obb.pt",
+    "detect": "yolo11n.pt",
+    "segment": "yolo11n-seg.pt",
+    "classify": "yolo11n-cls.pt",
+    "pose": "yolo11n-pose.pt",
+    "obb": "yolo11n-obb.pt",
 }
 TASK2METRIC = {
     "detect": "metrics/mAP50-95(B)",
@@ -69,24 +68,21 @@ CLI_HELP_MSG = f"""
                     See all ARGS at https://docs.ultralytics.com/usage/cfg or with 'yolo cfg'
 
     1. Train a detection model for 10 epochs with an initial learning_rate of 0.01
-        yolo train data=coco8.yaml model=yolov8n.pt epochs=10 lr0=0.01
+        yolo train data=coco8.yaml model=yolo11n.pt epochs=10 lr0=0.01
 
     2. Predict a YouTube video using a pretrained segmentation model at image size 320:
-        yolo predict model=yolov8n-seg.pt source='https://youtu.be/LNwODJXcvt4' imgsz=320
+        yolo predict model=yolo11n-seg.pt source='https://youtu.be/LNwODJXcvt4' imgsz=320
 
     3. Val a pretrained detection model at batch-size 1 and image size 640:
-        yolo val model=yolov8n.pt data=coco8.yaml batch=1 imgsz=640
+        yolo val model=yolo11n.pt data=coco8.yaml batch=1 imgsz=640
 
-    4. Export a YOLOv8n classification model to ONNX format at image size 224 by 128 (no TASK required)
-        yolo export model=yolov8n-cls.pt format=onnx imgsz=224,128
-
-    5. Explore your datasets using semantic search and SQL with a simple GUI powered by Ultralytics Explorer API
-        yolo explorer data=data.yaml model=yolov8n.pt
+    4. Export a YOLO11n classification model to ONNX format at image size 224 by 128 (no TASK required)
+        yolo export model=yolo11n-cls.pt format=onnx imgsz=224,128
     
-    6. Streamlit real-time webcam inference GUI
+    5. Streamlit real-time webcam inference GUI
         yolo streamlit-predict
         
-    7. Run special commands:
+    6. Run special commands:
         yolo help
         yolo checks
         yolo version
@@ -442,34 +438,60 @@ def check_dict_alignment(base: Dict, custom: Dict, e=None):
 
 def merge_equals_args(args: List[str]) -> List[str]:
     """
-    Merges arguments around isolated '=' in a list of strings, handling three cases:
-    1. ['arg', '=', 'val'] becomes ['arg=val'],
-    2. ['arg=', 'val'] becomes ['arg=val'],
-    3. ['arg', '=val'] becomes ['arg=val'].
+    Merges arguments around isolated '=' in a list of strings and joins fragments with brackets.
+
+    This function handles the following cases:
+    1. ['arg', '=', 'val'] becomes ['arg=val']
+    2. ['arg=', 'val'] becomes ['arg=val']
+    3. ['arg', '=val'] becomes ['arg=val']
+    4. Joins fragments with brackets, e.g., ['imgsz=[3,', '640,', '640]'] becomes ['imgsz=[3,640,640]']
 
     Args:
-        args (List[str]): A list of strings where each element represents an argument.
+        args (List[str]): A list of strings where each element represents an argument or fragment.
 
     Returns:
-        (List[str]): A list of strings where the arguments around isolated '=' are merged.
+        List[str]: A list of strings where the arguments around isolated '=' are merged and fragments with brackets are joined.
 
     Examples:
-        >>> args = ["arg1", "=", "value", "arg2=", "value2", "arg3", "=value3"]
-        >>> merge_equals_args(args)
-        ['arg1=value', 'arg2=value2', 'arg3=value3']
+        >>> args = ["arg1", "=", "value", "arg2=", "value2", "arg3", "=value3", "imgsz=[3,", "640,", "640]"]
+        >>> merge_and_join_args(args)
+        ['arg1=value', 'arg2=value2', 'arg3=value3', 'imgsz=[3,640,640]']
     """
     new_args = []
-    for i, arg in enumerate(args):
+    current = ""
+    depth = 0
+
+    i = 0
+    while i < len(args):
+        arg = args[i]
+
+        # Handle equals sign merging
         if arg == "=" and 0 < i < len(args) - 1:  # merge ['arg', '=', 'val']
             new_args[-1] += f"={args[i + 1]}"
-            del args[i + 1]
+            i += 2
+            continue
         elif arg.endswith("=") and i < len(args) - 1 and "=" not in args[i + 1]:  # merge ['arg=', 'val']
             new_args.append(f"{arg}{args[i + 1]}")
-            del args[i + 1]
+            i += 2
+            continue
         elif arg.startswith("=") and i > 0:  # merge ['arg', '=val']
             new_args[-1] += arg
-        else:
-            new_args.append(arg)
+            i += 1
+            continue
+
+        # Handle bracket joining
+        depth += arg.count("[") - arg.count("]")
+        current += arg
+        if depth == 0:
+            new_args.append(current)
+            current = ""
+
+        i += 1
+
+    # Append any remaining current string
+    if current:
+        new_args.append(current)
+
     return new_args
 
 
@@ -486,7 +508,7 @@ def handle_yolo_hub(args: List[str]) -> None:
 
     Examples:
         ```bash
-        yolo hub login YOUR_API_KEY
+        yolo login YOUR_API_KEY
         ```
 
     Notes:
@@ -517,7 +539,7 @@ def handle_yolo_settings(args: List[str]) -> None:
 
     Examples:
         >>> handle_yolo_settings(["reset"])  # Reset YOLO settings
-        >>> handle_yolo_settings(["default_cfg_path=yolov8n.yaml"])  # Update a specific setting
+        >>> handle_yolo_settings(["default_cfg_path=yolo11n.yaml"])  # Update a specific setting
 
     Notes:
         - If no arguments are provided, the function will display the current settings.
@@ -544,35 +566,6 @@ def handle_yolo_settings(args: List[str]) -> None:
         LOGGER.info(f"💡 Learn more about Ultralytics Settings at {url}")
     except Exception as e:
         LOGGER.warning(f"WARNING ⚠️ settings error: '{e}'. Please see {url} for help.")
-
-
-def handle_explorer(args: List[str]):
-    """
-    Launches a graphical user interface that provides tools for interacting with and analyzing datasets using the
-    Ultralytics Explorer API. It checks for the required 'streamlit' package and informs the user that the Explorer
-    dashboard is loading.
-
-    Args:
-        args (List[str]): A list of optional command line arguments.
-
-    Examples:
-        ```bash
-        yolo explorer data=data.yaml model=yolov8n.pt
-        ```
-
-    Notes:
-        - Requires 'streamlit' package version 1.29.0 or higher.
-        - The function does not take any arguments or return any values.
-        - It is typically called from the command line interface using the 'yolo explorer' command.
-    """
-    checks.check_requirements("streamlit>=1.29.0")
-    LOGGER.info("💡 Loading Explorer dashboard...")
-    cmd = ["streamlit", "run", ROOT / "data/explorer/gui/dash.py", "--server.maxMessageSize", "2048"]
-    new = dict(parse_key_value_pair(a) for a in args)
-    check_dict_alignment(base={k: DEFAULT_CFG_DICT[k] for k in ["model", "data"]}, custom=new)
-    for k, v in new.items():
-        cmd += [k, v]
-    subprocess.run(cmd)
 
 
 def handle_streamlit_inference():
@@ -611,9 +604,9 @@ def parse_key_value_pair(pair: str = "key=value"):
         AssertionError: If the value is missing or empty.
 
     Examples:
-        >>> key, value = parse_key_value_pair("model=yolov8n.pt")
+        >>> key, value = parse_key_value_pair("model=yolo11n.pt")
         >>> print(f"Key: {key}, Value: {value}")
-        Key: model, Value: yolov8n.pt
+        Key: model, Value: yolo11n.pt
 
         >>> key, value = parse_key_value_pair("epochs=100")
         >>> print(f"Key: {key}, Value: {value}")
@@ -669,9 +662,10 @@ def smart_value(v):
     elif v_lower == "false":
         return False
     else:
-        with contextlib.suppress(Exception):
+        try:
             return eval(v)
-        return v
+        except Exception:
+            return v
 
 
 def entrypoint(debug=""):
@@ -686,13 +680,13 @@ def entrypoint(debug=""):
 
     Examples:
         Train a detection model for 10 epochs with an initial learning_rate of 0.01:
-        >>> entrypoint("train data=coco8.yaml model=yolov8n.pt epochs=10 lr0=0.01")
+        >>> entrypoint("train data=coco8.yaml model=yolo11n.pt epochs=10 lr0=0.01")
 
         Predict a YouTube video using a pretrained segmentation model at image size 320:
-        >>> entrypoint("predict model=yolov8n-seg.pt source='https://youtu.be/LNwODJXcvt4' imgsz=320")
+        >>> entrypoint("predict model=yolo11n-seg.pt source='https://youtu.be/LNwODJXcvt4' imgsz=320")
 
         Validate a pretrained detection model at batch-size 1 and image size 640:
-        >>> entrypoint("val model=yolov8n.pt data=coco8.yaml batch=1 imgsz=640")
+        >>> entrypoint("val model=yolo11n.pt data=coco8.yaml batch=1 imgsz=640")
 
     Notes:
         - If no arguments are passed, the function will display the usage help message.
@@ -714,7 +708,6 @@ def entrypoint(debug=""):
         "login": lambda: handle_yolo_hub(args),
         "logout": lambda: handle_yolo_hub(args),
         "copy-cfg": copy_default_cfg,
-        "explorer": lambda: handle_explorer(args[1:]),
         "streamlit-predict": lambda: handle_streamlit_inference(),
     }
     full_args_dict = {**DEFAULT_CFG_DICT, **{k: None for k in TASKS}, **{k: None for k in MODES}, **special}
@@ -782,7 +775,7 @@ def entrypoint(debug=""):
     # Model
     model = overrides.pop("model", DEFAULT_CFG.model)
     if model is None:
-        model = "yolov8n.pt"
+        model = "yolo11n.pt"
         LOGGER.warning(f"WARNING ⚠️ 'model' argument is missing. Using default 'model={model}'.")
     overrides["model"] = model
     stem = Path(model).stem.lower()
@@ -794,7 +787,7 @@ def entrypoint(debug=""):
         from ultralytics import FastSAM
 
         model = FastSAM(model)
-    elif "sam_" in stem or "sam2_" in stem:
+    elif "sam_" in stem or "sam2_" in stem or "sam2.1_" in stem:
         from ultralytics import SAM
 
         model = SAM(model)
@@ -869,5 +862,5 @@ def copy_default_cfg():
 
 
 if __name__ == "__main__":
-    # Example: entrypoint(debug='yolo predict model=yolov8n.pt')
+    # Example: entrypoint(debug='yolo predict model=yolo11n.pt')
     entrypoint(debug="")

@@ -11,7 +11,7 @@ from torch.nn.init import constant_, xavier_uniform_
 from ultralytics.utils.tal import TORCH_1_10, dist2bbox, dist2rbox, make_anchors
 
 from .block import DFL, BNContrastiveHead, ContrastiveHead, Proto
-from .conv import Conv
+from .conv import Conv, DWConv
 from .transformer import MLP, DeformableTransformerDecoder, DeformableTransformerDecoderLayer
 from .utils import bias_init_with_prob, linear_init
 
@@ -19,7 +19,7 @@ __all__ = "Detect", "Segment", "Pose", "Classify", "OBB", "RTDETRDecoder", "v10D
 
 
 class Detect(nn.Module):
-    """YOLOv8 Detect head for detection models."""
+    """YOLO Detect head for detection models."""
 
     dynamic = False  # force grid reconstruction
     export = False  # export mode
@@ -28,9 +28,10 @@ class Detect(nn.Module):
     shape = None
     anchors = torch.empty(0)  # init
     strides = torch.empty(0)  # init
+    legacy = False  # backward compatibility for v3/v5/v8/v9 models
 
     def __init__(self, nc=80, ch=(), norm_type=None):
-        """Initializes the YOLOv8 detection layer with specified number of classes and channels."""
+        """Initializes the YOLO detection layer with specified number of classes and channels."""
         super().__init__()
         self.nc = nc  # number of classes
         self.nl = len(ch)  # number of detection layers
@@ -52,6 +53,7 @@ class Detect(nn.Module):
             )
             for x in ch
         )
+
         self.dfl = DFL(self.reg_max) if self.reg_max > 1 else nn.Identity()
 
         if self.end2end:
@@ -165,7 +167,7 @@ class Detect(nn.Module):
 
 
 class Segment(Detect):
-    """YOLOv8 Segment head for segmentation models."""
+    """YOLO Segment head for segmentation models."""
 
     def __init__(self, nc=80, nm=32, npr=256, ch=(), norm_type=None):
         """Initialize the YOLO model attributes such as the number of masks, prototypes, and the convolution layers."""
@@ -195,7 +197,7 @@ class Segment(Detect):
 
 
 class OBB(Detect):
-    """YOLOv8 OBB detection head for detection with rotation models."""
+    """YOLO OBB detection head for detection with rotation models."""
 
     def __init__(self, nc=80, ne=1, ch=(), norm_type=None):
         """Initialize OBB with number of classes `nc` and layer channels `ch`."""
@@ -230,7 +232,7 @@ class OBB(Detect):
 
 
 class Pose(Detect):
-    """YOLOv8 Pose head for keypoints models."""
+    """YOLO Pose head for keypoints models."""
 
     def __init__(self, nc=80, kpt_shape=(17, 3), ch=(), norm_type=None):
         """Initialize YOLO network with default parameters and Convolutional Layers."""
@@ -275,10 +277,10 @@ class Pose(Detect):
 
 
 class Classify(nn.Module):
-    """YOLOv8 classification head, i.e. x(b,c1,20,20) to x(b,c2)."""
+    """YOLO classification head, i.e. x(b,c1,20,20) to x(b,c2)."""
 
     def __init__(self, c1, c2, k=1, s=1, p=None, g=1, norm_type=None):
-        """Initializes YOLOv8 classification head to transform input tensor from (b,c1,20,20) to (b,c2) shape."""
+        """Initializes YOLO classification head to transform input tensor from (b,c1,20,20) to (b,c2) shape."""
         super().__init__()
         c_ = 1280  # efficientnet_b0 size
         self.conv = Conv(c1, c_, k, s, p, g, norm_type=norm_type)
@@ -295,10 +297,10 @@ class Classify(nn.Module):
 
 
 class WorldDetect(Detect):
-    """Head for integrating YOLOv8 detection models with semantic understanding from text embeddings."""
+    """Head for integrating YOLO detection models with semantic understanding from text embeddings."""
 
     def __init__(self, nc=80, embed=512, with_bn=False, ch=(), norm_type=None):
-        """Initialize YOLOv8 detection layer with nc classes and layer channels ch."""
+        """Initialize YOLO detection layer with nc classes and layer channels ch."""
         super().__init__(nc, ch)
         c3 = max(ch[0], min(self.nc, 100))
         self.cv3 = nn.ModuleList(

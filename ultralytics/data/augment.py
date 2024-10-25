@@ -15,6 +15,7 @@ from ultralytics.utils.checks import check_version
 from ultralytics.utils.instance import Instances
 from ultralytics.utils.metrics import bbox_ioa
 from ultralytics.utils.ops import segment2box, xyxyxyxy2xywhr
+from ultralytics.utils.torch_utils import TORCHVISION_0_10, TORCHVISION_0_11, TORCHVISION_0_13
 
 DEFAULT_MEAN = (0.0, 0.0, 0.0)
 DEFAULT_STD = (1.0, 1.0, 1.0)
@@ -1349,7 +1350,7 @@ def classify_transforms(
     size=224,
     mean=DEFAULT_MEAN,
     std=DEFAULT_STD,
-    interpolation=cv2.INTER_LINEAR,  # Change: Use OpenCV interpolation
+    interpolation="BILINEAR",
     crop_fraction: float = DEFAULT_CROP_FRACTION,
 ):
     """
@@ -1417,7 +1418,7 @@ def classify_augmentations(
     hsv_v=0.4,  # image HSV-Value augmentation (fraction)
     force_color_jitter=False,
     erasing=0.0,
-    interpolation=cv2.INTER_LINEAR,  # Change: Use OpenCV interpolation
+    interpolation="BILINEAR",
 ):
     """
     Creates a composition of image augmentation transforms for classification tasks.
@@ -1425,65 +1426,61 @@ def classify_augmentations(
     This function generates a set of image transformations suitable for training classification models.
     """
 
-    def transform(img):
-        # Random Resized Crop
-        im_h, im_w = img.shape[:2]
-        area = im_h * im_w
-        for attempt in range(10):
-            target_area = random.uniform(scale[0], scale[1]) * area
-            log_ratio = (math.log(ratio[0]), math.log(ratio[1]))
-            aspect_ratio = math.exp(random.uniform(*log_ratio))
+    import torchvision.transforms as T  # scope for faster 'import ultralytics'
 
-            w = int(round(math.sqrt(target_area * aspect_ratio)))
-            h = int(round(math.sqrt(target_area / aspect_ratio)))
+    if not isinstance(size, int):
+        raise TypeError(f"classify_transforms() size {size} must be integer, not (list, tuple)")
+    scale = tuple(scale or (0.08, 1.0))  # default imagenet scale range
+    ratio = tuple(ratio or (3.0 / 4.0, 4.0 / 3.0))  # default imagenet ratio range
+    interpolation = getattr(T.InterpolationMode, interpolation)
+    primary_tfl = [T.RandomResizedCrop(size, scale=scale, ratio=ratio, interpolation=interpolation)]
+    if hflip > 0.0:
+        primary_tfl.append(T.RandomHorizontalFlip(p=hflip))
+    if vflip > 0.0:
+        primary_tfl.append(T.RandomVerticalFlip(p=vflip))
 
-            if 0 < w <= im_w and 0 < h <= im_h:
-                x1 = random.randint(0, im_w - w)
-                y1 = random.randint(0, im_h - h)
+    secondary_tfl = []
+    disable_color_jitter = False
+    if auto_augment:
+        assert isinstance(auto_augment, str), f"Provided argument should be string, but got type {type(auto_augment)}"
+        # color jitter is typically disabled if AA/RA on,
+        # this allows override without breaking old hparm cfgs
+        disable_color_jitter = not force_color_jitter
 
-                img_cropped = img[y1 : y1 + h, x1 : x1 + w]
-                img_resized = cv2.resize(img_cropped, (size, size), interpolation=interpolation)
-                break
+        if auto_augment == "randaugment":
+            if TORCHVISION_0_11:
+                secondary_tfl.append(T.RandAugment(interpolation=interpolation))
+            else:
+                LOGGER.warning('"auto_augment=randaugment" requires torchvision >= 0.11.0. Disabling it.')
+
+        elif auto_augment == "augmix":
+            if TORCHVISION_0_13:
+                secondary_tfl.append(T.AugMix(interpolation=interpolation))
+            else:
+                LOGGER.warning('"auto_augment=augmix" requires torchvision >= 0.13.0. Disabling it.')
+
+        elif auto_augment == "autoaugment":
+            if TORCHVISION_0_10:
+                secondary_tfl.append(T.AutoAugment(interpolation=interpolation))
+            else:
+                LOGGER.warning('"auto_augment=autoaugment" requires torchvision >= 0.10.0. Disabling it.')
+
         else:
-            # Fallback
-            img_resized = cv2.resize(img, (size, size), interpolation=interpolation)
+            raise ValueError(
+                f'Invalid auto_augment policy: {auto_augment}. Should be one of "randaugment", '
+                f'"augmix", "autoaugment" or None'
+            )
 
-        # Horizontal Flip
-        if hflip > 0 and random.random() < hflip:
-            img_resized = cv2.flip(img_resized, 1)
+    if not disable_color_jitter:
+        secondary_tfl.append(T.ColorJitter(brightness=hsv_v, contrast=hsv_v, saturation=hsv_s, hue=hsv_h))
 
-        # Vertical Flip
-        if vflip > 0 and random.random() < vflip:
-            img_resized = cv2.flip(img_resized, 0)
+    final_tfl = [
+        T.ToTensor(),
+        T.Normalize(mean=torch.tensor(mean), std=torch.tensor(std)),
+        T.RandomErasing(p=erasing, inplace=True),
+    ]
 
-        # Color Jitter
-        if force_color_jitter or not auto_augment:
-            if hsv_h or hsv_s or hsv_v:
-                hsv_transform = RandomHSV(hgain=hsv_h, sgain=hsv_s, vgain=hsv_v)
-                img_resized = hsv_transform({"img": img_resized})["img"]
-
-        # Additional augmentations like auto_augment can be added here if re-implemented without PIL
-
-        # Convert to tensor and normalize
-        img = img_resized.astype(np.float32)
-        # Change: Normalize image depending on its data type
-        if img.dtype == np.uint8:
-            img /= 255.0
-        elif img.dtype == np.uint16:
-            img /= 65535.0
-
-        img = img.transpose(2, 0, 1)  # HWC to CHW
-        img = img[[2, 1, 0], :, :]  # BGR to RGB
-        img = torch.from_numpy(img)
-        img = (img - torch.tensor(mean).view(3, 1, 1)) / torch.tensor(std).view(3, 1, 1)
-
-        # Random Erasing
-        if erasing > 0 and random.random() < erasing:
-            img = random_erasing(img)
-
-        return img
-
-    return transform
+    return T.Compose(primary_tfl + secondary_tfl + final_tfl)
 
 
 def random_erasing(img, sl=0.02, sh=0.4, r1=0.3):

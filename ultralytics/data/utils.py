@@ -13,9 +13,8 @@ from tarfile import is_tarfile
 
 import cv2
 import numpy as np
+from PIL import Image, ImageOps
 
-# Removed PIL import since we're eliminating PIL usage
-# from PIL import Image, ImageOps
 from ultralytics.nn.autobackend import check_class_names
 from ultralytics.utils import (
     DATASETS_DIR,

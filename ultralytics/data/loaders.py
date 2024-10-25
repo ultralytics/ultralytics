@@ -13,6 +13,7 @@ import cv2
 import numpy as np
 import requests
 import torch
+from PIL import Image, ImageOps
 
 from ultralytics.data.utils import FORMATS_HELP_MSG, IMG_FORMATS, VID_FORMATS
 from ultralytics.utils import IS_COLAB, IS_KAGGLE, LOGGER, ops

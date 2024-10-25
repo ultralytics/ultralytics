@@ -29,7 +29,6 @@ from ultralytics.utils import (
     yaml_load,
     yaml_print,
 )
-from ultralytics.utils.downloads import safe_download
 
 # Define valid tasks and modes
 MODES = {"train", "val", "predict", "export", "track", "benchmark"}
@@ -811,6 +810,7 @@ def entrypoint(debug=""):
     # Mode
     if mode in {"predict", "track"} and "source" not in overrides:
         if task == "obb":
+
             overrides["source"] = "https://ultralytics.com/images/boats.jpg"
         else:
             overrides["source"] = DEFAULT_CFG.source or ASSETS

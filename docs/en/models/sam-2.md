@@ -1,8 +1,12 @@
 ---
 comments: true
 description: Discover SAM 2, the next generation of Meta's Segment Anything Model, supporting real-time promptable segmentation in both images and videos with state-of-the-art performance. Learn about its key features, datasets, and how to use it.
-keywords: SAM 2, Segment Anything, video segmentation, image segmentation, promptable segmentation, zero-shot performance, SA-V dataset, Ultralytics, real-time segmentation, AI, machine learning
+keywords: SAM 2, SAM 2.1, Segment Anything, video segmentation, image segmentation, promptable segmentation, zero-shot performance, SA-V dataset, Ultralytics, real-time segmentation, AI, machine learning
 ---
+
+!!! tip "SAM 2.1"
+
+    We have just supported the more accurate SAM2.1 model. Please give it a try!
 
 # SAM 2: Segment Anything Model 2
 
@@ -11,6 +15,17 @@ SAM 2, the successor to Meta's [Segment Anything Model (SAM)](sam.md), is a cutt
 ![SAM 2 Example Results](https://github.com/ultralytics/docs/releases/download/0/sa-v-dataset.avif)
 
 ## Key Features
+
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/yXQPLMrNX2s"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to Run Inference with Meta's SAM2 using Ultralytics | Step-by-Step Guide 🎉
+</p>
 
 ### Unified Model Architecture
 
@@ -38,23 +53,23 @@ For a deeper understanding of SAM 2's architecture and capabilities, explore the
 
 SAM 2 sets a new benchmark in the field, outperforming previous models on various metrics:
 
-| Metric                             | SAM 2         | Previous SOTA |
-| ---------------------------------- | ------------- | ------------- |
-| **Interactive Video Segmentation** | **Best**      | -             |
-| **Human Interactions Required**    | **3x fewer**  | Baseline      |
-| **Image Segmentation Accuracy**    | **Improved**  | SAM           |
-| **Inference Speed**                | **6x faster** | SAM           |
+| Metric                                                                                     | SAM 2         | Previous SOTA |
+| ------------------------------------------------------------------------------------------ | ------------- | ------------- |
+| **Interactive Video Segmentation**                                                         | **Best**      | -             |
+| **Human Interactions Required**                                                            | **3x fewer**  | Baseline      |
+| **[Image Segmentation](https://www.ultralytics.com/glossary/image-segmentation) Accuracy** | **Improved**  | SAM           |
+| **Inference Speed**                                                                        | **6x faster** | SAM           |
 
 ## Model Architecture
 
 ### Core Components
 
-- **Image and Video Encoder**: Utilizes a transformer-based architecture to extract high-level features from both images and video frames. This component is responsible for understanding the visual content at each timestep.
+- **Image and Video Encoder**: Utilizes a [transformer](https://www.ultralytics.com/glossary/transformer)-based architecture to extract high-level features from both images and video frames. This component is responsible for understanding the visual content at each timestep.
 - **Prompt Encoder**: Processes user-provided prompts (points, boxes, masks) to guide the segmentation task. This allows SAM 2 to adapt to user input and target specific objects within a scene.
 - **Memory Mechanism**: Includes a memory encoder, memory bank, and memory attention module. These components collectively store and utilize information from past frames, enabling the model to maintain consistent object tracking over time.
 - **Mask Decoder**: Generates the final segmentation masks based on the encoded image features and prompts. In video, it also uses memory context to ensure accurate tracking across frames.
 
-![SAM 2 Architecture Diagram](https://github.com/facebookresearch/segment-anything-2/blob/main/assets/model_diagram.png)
+![SAM 2 Architecture Diagram](https://raw.githubusercontent.com/facebookresearch/sam2/refs/heads/main/assets/model_diagram.png)
 
 ### Memory Mechanism and Occlusion Handling
 
@@ -103,12 +118,16 @@ pip install ultralytics
 
 The following table details the available SAM 2 models, their pre-trained weights, supported tasks, and compatibility with different operating modes like [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md).
 
-| Model Type  | Pre-trained Weights                                                                   | Tasks Supported                              | Inference | Validation | Training | Export |
-| ----------- | ------------------------------------------------------------------------------------- | -------------------------------------------- | --------- | ---------- | -------- | ------ |
-| SAM 2 tiny  | [sam2_t.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/sam2_t.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ❌         | ❌       | ❌     |
-| SAM 2 small | [sam2_s.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/sam2_s.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ❌         | ❌       | ❌     |
-| SAM 2 base  | [sam2_b.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/sam2_b.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ❌         | ❌       | ❌     |
-| SAM 2 large | [sam2_l.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/sam2_l.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ❌         | ❌       | ❌     |
+| Model Type    | Pre-trained Weights                                                                       | Tasks Supported                              | Inference | Validation | Training | Export |
+| ------------- | ----------------------------------------------------------------------------------------- | -------------------------------------------- | --------- | ---------- | -------- | ------ |
+| SAM 2 tiny    | [sam2_t.pt](https://github.com/ultralytics/assets/releases/download/v8.3.0/sam2_t.pt)     | [Instance Segmentation](../tasks/segment.md) | ✅        | ❌         | ❌       | ❌     |
+| SAM 2 small   | [sam2_s.pt](https://github.com/ultralytics/assets/releases/download/v8.3.0/sam2_s.pt)     | [Instance Segmentation](../tasks/segment.md) | ✅        | ❌         | ❌       | ❌     |
+| SAM 2 base    | [sam2_b.pt](https://github.com/ultralytics/assets/releases/download/v8.3.0/sam2_b.pt)     | [Instance Segmentation](../tasks/segment.md) | ✅        | ❌         | ❌       | ❌     |
+| SAM 2 large   | [sam2_l.pt](https://github.com/ultralytics/assets/releases/download/v8.3.0/sam2_l.pt)     | [Instance Segmentation](../tasks/segment.md) | ✅        | ❌         | ❌       | ❌     |
+| SAM 2.1 tiny  | [sam2.1_t.pt](https://github.com/ultralytics/assets/releases/download/v8.3.0/sam2.1_t.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ❌         | ❌       | ❌     |
+| SAM 2.1 small | [sam2.1_s.pt](https://github.com/ultralytics/assets/releases/download/v8.3.0/sam2.1_s.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ❌         | ❌       | ❌     |
+| SAM 2.1 base  | [sam2.1_b.pt](https://github.com/ultralytics/assets/releases/download/v8.3.0/sam2.1_b.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ❌         | ❌       | ❌     |
+| SAM 2.1 large | [sam2.1_l.pt](https://github.com/ultralytics/assets/releases/download/v8.3.0/sam2.1_l.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ❌         | ❌       | ❌     |
 
 ### SAM 2 Prediction Examples
 
@@ -126,16 +145,25 @@ SAM 2 can be utilized across a broad spectrum of tasks, including real-time vide
         from ultralytics import SAM
 
         # Load a model
-        model = SAM("sam2_b.pt")
+        model = SAM("sam2.1_b.pt")
 
         # Display model information (optional)
         model.info()
 
-        # Segment with bounding box prompt
+        # Run inference with bboxes prompt
         results = model("path/to/image.jpg", bboxes=[100, 100, 200, 200])
 
-        # Segment with point prompt
-        results = model("path/to/image.jpg", points=[150, 150], labels=[1])
+        # Run inference with single point
+        results = model(points=[900, 370], labels=[1])
+
+        # Run inference with multiple points
+        results = model(points=[[400, 370], [900, 370]], labels=[1, 1])
+
+        # Run inference with multiple points prompt per object
+        results = model(points=[[[400, 370], [900, 370]]], labels=[[1, 1]])
+
+        # Run inference with negative points prompt
+        results = model(points=[[[400, 370], [900, 370]]], labels=[[1, 0]])
         ```
 
 #### Segment Everything
@@ -150,7 +178,7 @@ SAM 2 can be utilized across a broad spectrum of tasks, including real-time vide
         from ultralytics import SAM
 
         # Load a model
-        model = SAM("sam2_b.pt")
+        model = SAM("sam2.1_b.pt")
 
         # Display model information (optional)
         model.info()
@@ -163,7 +191,7 @@ SAM 2 can be utilized across a broad spectrum of tasks, including real-time vide
 
         ```bash
         # Run inference with a SAM 2 model
-        yolo predict model=sam2_b.pt source=path/to/video.mp4
+        yolo predict model=sam2.1_b.pt source=path/to/video.mp4
         ```
 
 - This example demonstrates how SAM 2 can be used to segment the entire content of an image or video if no prompts (bboxes/points/masks) are provided.
@@ -242,7 +270,7 @@ Despite its strengths, SAM 2 has certain limitations:
 - **Tracking Stability**: SAM 2 may lose track of objects during extended sequences or significant viewpoint changes.
 - **Object Confusion**: The model can sometimes confuse similar-looking objects, particularly in crowded scenes.
 - **Efficiency with Multiple Objects**: Segmentation efficiency decreases when processing multiple objects simultaneously due to the lack of inter-object communication.
-- **Detail Accuracy**: May miss fine details, especially with fast-moving objects. Additional prompts can partially address this issue, but temporal smoothness is not guaranteed.
+- **Detail [Accuracy](https://www.ultralytics.com/glossary/accuracy)**: May miss fine details, especially with fast-moving objects. Additional prompts can partially address this issue, but temporal smoothness is not guaranteed.
 
 ## Citations and Acknowledgements
 
@@ -327,7 +355,7 @@ This mechanism ensures continuity even when objects are temporarily obscured or 
 
 ### How does SAM 2 compare to other segmentation models like YOLOv8?
 
-SAM 2 and Ultralytics YOLOv8 serve different purposes and excel in different areas. While SAM 2 is designed for comprehensive object segmentation with advanced features like zero-shot generalization and real-time performance, YOLOv8 is optimized for speed and efficiency in object detection and segmentation tasks. Here's a comparison:
+SAM 2 and Ultralytics YOLOv8 serve different purposes and excel in different areas. While SAM 2 is designed for comprehensive object segmentation with advanced features like zero-shot generalization and real-time performance, YOLOv8 is optimized for speed and efficiency in [object detection](https://www.ultralytics.com/glossary/object-detection) and segmentation tasks. Here's a comparison:
 
 | Model                                          | Size<br><sup>(MB)</sup> | Parameters<br><sup>(M)</sup> | Speed (CPU)<br><sup>(ms/im)</sup> |
 | ---------------------------------------------- | ----------------------- | ---------------------------- | --------------------------------- |

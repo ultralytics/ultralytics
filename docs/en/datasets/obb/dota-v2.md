@@ -6,7 +6,7 @@ keywords: DOTA dataset, object detection, aerial images, oriented bounding boxes
 
 # DOTA Dataset with OBB
 
-[DOTA](https://captain-whu.github.io/DOTA/index.html) stands as a specialized dataset, emphasizing object detection in aerial images. Originating from the DOTA series of datasets, it offers annotated images capturing a diverse array of aerial scenes with Oriented Bounding Boxes (OBB).
+[DOTA](https://captain-whu.github.io/DOTA/index.html) stands as a specialized dataset, emphasizing [object detection](https://www.ultralytics.com/glossary/object-detection) in aerial images. Originating from the DOTA series of datasets, it offers annotated images capturing a diverse array of aerial scenes with Oriented Bounding Boxes (OBB).
 
 ![DOTA classes visual](https://github.com/ultralytics/docs/releases/download/0/dota-classes-visual.avif)
 
@@ -108,8 +108,8 @@ To train a model on the DOTA v1 dataset, you can utilize the following code snip
         ```python
         from ultralytics import YOLO
 
-        # Create a new YOLOv8n-OBB model from scratch
-        model = YOLO("yolov8n-obb.yaml")
+        # Create a new YOLO11n-OBB model from scratch
+        model = YOLO("yolo11n-obb.yaml")
 
         # Train the model on the DOTAv1 dataset
         results = model.train(data="DOTAv1.yaml", epochs=100, imgsz=1024)
@@ -118,8 +118,8 @@ To train a model on the DOTA v1 dataset, you can utilize the following code snip
     === "CLI"
 
         ```bash
-        # Train a new YOLOv8n-OBB model on the DOTAv1 dataset
-        yolo obb train data=DOTAv1.yaml model=yolov8n-obb.pt epochs=100 imgsz=1024
+        # Train a new YOLO11n-OBB model on the DOTAv1 dataset
+        yolo obb train data=DOTAv1.yaml model=yolo11n-obb.pt epochs=100 imgsz=1024
         ```
 
 ## Sample Data and Annotations
@@ -128,7 +128,7 @@ Having a glance at the dataset illustrates its depth:
 
 ![Dataset sample image](https://github.com/ultralytics/docs/releases/download/0/instances-DOTA.avif)
 
-- **DOTA examples**: This snapshot underlines the complexity of aerial scenes and the significance of Oriented Bounding Box annotations, capturing objects in their natural orientation.
+- **DOTA examples**: This snapshot underlines the complexity of aerial scenes and the significance of Oriented [Bounding Box](https://www.ultralytics.com/glossary/bounding-box) annotations, capturing objects in their natural orientation.
 
 The dataset's richness offers invaluable insights into object detection challenges exclusive to aerial imagery.
 
@@ -176,8 +176,8 @@ To train a model on the DOTA dataset, you can use the following example with Ult
         ```python
         from ultralytics import YOLO
 
-        # Create a new YOLOv8n-OBB model from scratch
-        model = YOLO("yolov8n-obb.yaml")
+        # Create a new YOLO11n-OBB model from scratch
+        model = YOLO("yolo11n-obb.yaml")
 
         # Train the model on the DOTAv1 dataset
         results = model.train(data="DOTAv1.yaml", epochs=100, imgsz=1024)
@@ -186,8 +186,8 @@ To train a model on the DOTA dataset, you can use the following example with Ult
     === "CLI"
 
         ```bash
-        # Train a new YOLOv8n-OBB model on the DOTAv1 dataset
-        yolo obb train data=DOTAv1.yaml model=yolov8n-obb.pt epochs=100 imgsz=1024
+        # Train a new YOLO11n-OBB model on the DOTAv1 dataset
+        yolo obb train data=DOTAv1.yaml model=yolo11n-obb.pt epochs=100 imgsz=1024
         ```
 
 For more details on how to split and preprocess the DOTA images, refer to the [split DOTA images section](#split-dota-images).

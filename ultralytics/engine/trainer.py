@@ -12,7 +12,7 @@ import os
 import subprocess
 import time
 import warnings
-from copy import deepcopy
+from copy import copy, deepcopy
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -470,10 +470,8 @@ class BaseTrainer:
 
         if RANK in {-1, 0}:
             # Do final val with best.pt
-            LOGGER.info(
-                f"\n{epoch - self.start_epoch + 1} epochs completed in "
-                f"{(time.time() - self.train_time_start) / 3600:.3f} hours."
-            )
+            seconds = time.time() - self.train_time_start
+            LOGGER.info(f"\n{epoch - self.start_epoch + 1} epochs completed in {seconds / 3600:.3f} hours.")
             self.final_eval()
             if self.args.plots:
                 self.plot_metrics()
@@ -505,7 +503,7 @@ class BaseTrainer:
         """Read results.csv into a dict using pandas."""
         import pandas as pd  # scope for faster 'import ultralytics'
 
-        return {k.strip(): v for k, v in pd.read_csv(self.csv).to_dict(orient="list").items()}
+        return pd.read_csv(self.csv).to_dict(orient="list")
 
     def save_model(self):
         """Save model training checkpoints with additional metadata."""
@@ -539,6 +537,8 @@ class BaseTrainer:
             self.best.write_bytes(serialized_ckpt)  # save best.pt
         if (self.save_period > 0) and (self.epoch % self.save_period == 0):
             (self.wdir / f"epoch{self.epoch}.pt").write_bytes(serialized_ckpt)  # save epoch, i.e. 'epoch3.pt'
+        # if self.args.close_mosaic and self.epoch == (self.epochs - self.args.close_mosaic - 1):
+        #    (self.wdir / "last_mosaic.pt").write_bytes(serialized_ckpt)  # save mosaic checkpoint
 
     def get_dataset(self):
         """
@@ -653,10 +653,11 @@ class BaseTrainer:
     def save_metrics(self, metrics):
         """Saves training metrics to a CSV file."""
         keys, vals = list(metrics.keys()), list(metrics.values())
-        n = len(metrics) + 1  # number of cols
-        s = "" if self.csv.exists() else (("%23s," * n % tuple(["epoch"] + keys)).rstrip(",") + "\n")  # header
+        n = len(metrics) + 2  # number of cols
+        s = "" if self.csv.exists() else (("%s," * n % tuple(["epoch", "time"] + keys)).rstrip(",") + "\n")  # header
+        t = time.time() - self.train_time_start
         with open(self.csv, "a") as f:
-            f.write(s + ("%23.5g," * n % tuple([self.epoch + 1] + vals)).rstrip(",") + "\n")
+            f.write(s + ("%.6g," * n % tuple([self.epoch + 1, t] + vals)).rstrip(",") + "\n")
 
     def plot_metrics(self):
         """Plot and display metrics visually."""
@@ -699,7 +700,12 @@ class BaseTrainer:
                 resume = True
                 self.args = get_cfg(ckpt_args)
                 self.args.model = self.args.resume = str(last)  # reinstate model
-                for k in "imgsz", "batch", "device":  # allow arg updates to reduce memory or update device on resume
+                for k in (
+                    "imgsz",
+                    "batch",
+                    "device",
+                    "close_mosaic",
+                ):  # allow arg updates to reduce memory or update device on resume
                     if k in overrides:
                         setattr(self.args, k, overrides[k])
 
@@ -743,7 +749,7 @@ class BaseTrainer:
             self.train_loader.dataset.mosaic = False
         if hasattr(self.train_loader.dataset, "close_mosaic"):
             LOGGER.info("Closing dataloader mosaic")
-            self.train_loader.dataset.close_mosaic(hyp=self.args)
+            self.train_loader.dataset.close_mosaic(hyp=copy(self.args))
 
     def build_optimizer(self, model, name="auto", lr=0.001, momentum=0.9, decay=1e-5, iterations=1e5):
         """

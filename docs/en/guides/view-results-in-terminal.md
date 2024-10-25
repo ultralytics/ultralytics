@@ -47,7 +47,7 @@ The VSCode compatible protocols for viewing images using the integrated terminal
     from ultralytics import YOLO
 
     # Load a model
-    model = YOLO("yolov8n.pt")
+    model = YOLO("yolo11n.pt")
 
     # Run inference on an image
     results = model.predict(source="ultralytics/assets/bus.jpg")
@@ -58,7 +58,7 @@ The VSCode compatible protocols for viewing images using the integrated terminal
 
     1. See [plot method parameters](../modes/predict.md#plot-method-parameters) to see possible arguments to use.
 
-4. Now, use OpenCV to convert the `numpy.ndarray` to `bytes` data. Then use `io.BytesIO` to make a "file-like" object.
+4. Now, use [OpenCV](https://www.ultralytics.com/glossary/opencv) to convert the `numpy.ndarray` to `bytes` data. Then use `io.BytesIO` to make a "file-like" object.
 
     ```{ .py .annotate }
     import io
@@ -111,7 +111,7 @@ from sixel import SixelWriter
 from ultralytics import YOLO
 
 # Load a model
-model = YOLO("yolov8n.pt")
+model = YOLO("yolo11n.pt")
 
 # Run inference on an image
 results = model.predict(source="ultralytics/assets/bus.jpg")
@@ -164,7 +164,7 @@ To view YOLO inference results in a VSCode terminal on macOS or Linux, follow th
     ```python
     from ultralytics import YOLO
 
-    model = YOLO("yolov8n.pt")
+    model = YOLO("yolo11n.pt")
     results = model.predict(source="path_to_image")
     plot = results[0].plot()
     ```

@@ -22,7 +22,7 @@ from ultralytics.utils import (
     LOGGER,
     NUM_THREADS,
     ROOT,
-    SETTINGS_YAML,
+    SETTINGS_FILE,
     TQDM,
     clean_url,
     colorstr,
@@ -36,7 +36,7 @@ from ultralytics.utils.downloads import download, safe_download, unzip_file
 from ultralytics.utils.ops import segments2boxes
 
 HELP_URL = "See https://docs.ultralytics.com/datasets for dataset formatting guidance."
-IMG_FORMATS = {"bmp", "dng", "jpeg", "jpg", "mpo", "png", "tif", "tiff", "webp", "pfm"}  # image suffixes
+IMG_FORMATS = {"bmp", "dng", "jpeg", "jpg", "mpo", "png", "tif", "tiff", "webp", "pfm", "heic"}  # image suffixes
 VID_FORMATS = {"asf", "avi", "gif", "m4v", "mkv", "mov", "mp4", "mpeg", "mpg", "ts", "wmv", "webm"}  # video suffixes
 PIN_MEMORY = str(os.getenv("PIN_MEMORY", True)).lower() == "true"  # global pin_memory for dataloaders
 FORMATS_HELP_MSG = f"Supported formats are:\nimages: {IMG_FORMATS}\nvideos: {VID_FORMATS}"
@@ -54,6 +54,21 @@ def get_hash(paths):
     h = hashlib.sha256(str(size).encode())  # hash sizes
     h.update("".join(paths).encode())  # hash paths
     return h.hexdigest()  # return hash
+
+
+def exif_size(img: Image.Image):
+    """Returns exif-corrected PIL size."""
+    s = img.size  # (width, height)
+    if img.format == "JPEG":  # only support JPEG images
+        try:
+            exif = img.getexif()
+            if exif:
+                rotation = exif.get(274, None)  # the EXIF key for the orientation tag is 274
+                if rotation in {6, 8}:  # rotation 270 or 90
+                    s = s[1], s[0]
+        except Exception:
+            pass
+    return s
 
 
 def verify_image(args):
@@ -223,7 +238,7 @@ def polygons2masks_overlap(imgsz, segments, downsample_ratio=1):
     ms = []
     for si in range(len(segments)):
         mask = polygon2mask(imgsz, [segments[si].reshape(-1)], downsample_ratio=downsample_ratio, color=1)
-        ms.append(mask)
+        ms.append(mask.astype(masks.dtype))
         areas.append(mask.sum())
     areas = np.asarray(areas)
     index = np.argsort(-areas)
@@ -331,7 +346,7 @@ def check_det_dataset(dataset, autodownload=True):
             if s and autodownload:
                 LOGGER.warning(m)
             else:
-                m += f"\nNote dataset download directory is '{DATASETS_DIR}'. You can update this in '{SETTINGS_YAML}'"
+                m += f"\nNote dataset download directory is '{DATASETS_DIR}'. You can update this in '{SETTINGS_FILE}'"
                 raise FileNotFoundError(m)
             t = time.time()
             r = None  # success
@@ -459,12 +474,12 @@ class HUBDatasetStats:
         path = Path(path).resolve()
         LOGGER.info(f"Starting HUB dataset checks for {path}....")
 
-        self.task = task  # detect, segment, pose, classify
+        self.task = task  # detect, segment, pose, classify, obb
         if self.task == "classify":
             unzip_dir = unzip_file(path)
             data = check_cls_dataset(unzip_dir)
             data["path"] = unzip_dir
-        else:  # detect, segment, pose
+        else:  # detect, segment, pose, obb
             _, data_dir, yaml_path = self._unzip(Path(path))
             try:
                 # Load YAML with checks

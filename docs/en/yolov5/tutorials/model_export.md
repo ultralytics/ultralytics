@@ -6,7 +6,7 @@ keywords: YOLOv5 export, TFLite, ONNX, CoreML, TensorRT, model conversion, YOLOv
 
 # TFLite, ONNX, CoreML, TensorRT Export
 
-📚 This guide explains how to export a trained YOLOv5 🚀 model from PyTorch to ONNX and TorchScript formats.
+📚 This guide explains how to export a trained YOLOv5 🚀 model from [PyTorch](https://www.ultralytics.com/glossary/pytorch) to ONNX and TorchScript formats.
 
 ## Before You Start
 
@@ -103,7 +103,7 @@ This command exports a pretrained YOLOv5s model to TorchScript and ONNX formats.
 python export.py --weights yolov5s.pt --include torchscript onnx
 ```
 
-💡 ProTip: Add `--half` to export models at FP16 half precision for smaller file sizes
+💡 ProTip: Add `--half` to export models at FP16 half [precision](https://www.ultralytics.com/glossary/precision) for smaller file sizes
 
 Output:
 
@@ -205,7 +205,7 @@ results.print()  # or .show(), .save(), .crop(), .pandas(), etc.
 
 ## OpenCV DNN inference
 
-OpenCV inference with ONNX models:
+[OpenCV](https://www.ultralytics.com/glossary/opencv) inference with ONNX models:
 
 ```bash
 python export.py --weights yolov5s.pt --include onnx
@@ -234,7 +234,7 @@ YOLOv5 OpenVINO C++ inference examples:
 
 Ultralytics provides a range of ready-to-use environments, each pre-installed with essential dependencies such as [CUDA](https://developer.nvidia.com/cuda-zone), [CUDNN](https://developer.nvidia.com/cudnn), [Python](https://www.python.org/), and [PyTorch](https://pytorch.org/), to kickstart your projects.
 
-- **Free GPU Notebooks**: <a href="https://bit.ly/yolov5-paperspace-notebook"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run on Gradient"></a> <a href="https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> <a href="https://www.kaggle.com/ultralytics/yolov5"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
+- **Free GPU Notebooks**: <a href="https://bit.ly/yolov5-paperspace-notebook"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run on Gradient"></a> <a href="https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> <a href="https://www.kaggle.com/models/ultralytics/yolov5"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
 - **Google Cloud**: [GCP Quickstart Guide](../environments/google_cloud_quickstart_tutorial.md)
 - **Amazon**: [AWS Quickstart Guide](../environments/aws_quickstart_tutorial.md)
 - **Azure**: [AzureML Quickstart Guide](../environments/azureml_quickstart_tutorial.md)

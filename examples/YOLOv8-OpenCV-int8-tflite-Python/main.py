@@ -188,38 +188,48 @@ class Yolov8TFLite:
         Returns:
             numpy.ndarray: The input image with detections drawn on it.
         """
+        # Transpose predictions outside the loop
+        output = [np.transpose(pred) for pred in output]
+
         boxes = []
         scores = []
         class_ids = []
-        for pred in output:
-            pred = np.transpose(pred)
-            for box in pred:
-                x, y, w, h = box[:4]
-                x1 = x - w / 2
-                y1 = y - h / 2
-                boxes.append([x1, y1, w, h])
-                idx = np.argmax(box[4:])
-                scores.append(box[idx + 4])
-                class_ids.append(idx)
 
+        # Vectorize extraction of bounding boxes, scores, and class IDs
+        for pred in output:
+            x, y, w, h = pred[:, 0], pred[:, 1], pred[:, 2], pred[:, 3]
+            x1 = x - w / 2
+            y1 = y - h / 2
+            boxes.extend(np.column_stack([x1, y1, w, h]))
+
+            # Argmax and score extraction for all predictions at once
+            idx = np.argmax(pred[:, 4:], axis=1)
+            scores.extend(pred[np.arange(pred.shape[0]), idx + 4])
+            class_ids.extend(idx)
+
+        # Precompute gain and pad once
+        img_height, img_width = input_image.shape[:2]
+        gain = min(img_width / self.img_width, img_height / self.img_height)
+        pad = (
+            round((img_width - self.img_width * gain) / 2 - 0.1),
+            round((img_height - self.img_height * gain) / 2 - 0.1),
+        )
+
+        # Non-Maximum Suppression (NMS) in one go
         indices = cv2.dnn.NMSBoxes(boxes, scores, self.confidence_thres, self.iou_thres)
 
-        for i in indices:
-            # Get the box, score, and class ID corresponding to the index
+        # Process selected indices
+        for i in indices.flatten():
             box = boxes[i]
-            gain = min(img_width / self.img_width, img_height / self.img_height)
-            pad = (
-                round((img_width - self.img_width * gain) / 2 - 0.1),
-                round((img_height - self.img_height * gain) / 2 - 0.1),
-            )
             box[0] = (box[0] - pad[0]) / gain
             box[1] = (box[1] - pad[1]) / gain
             box[2] = box[2] / gain
             box[3] = box[3] / gain
+
             score = scores[i]
             class_id = class_ids[i]
+
             if score > 0.25:
-                print(box, score, class_id)
                 # Draw the detection on the input image
                 self.draw_detections(input_image, box, score, class_id)
 

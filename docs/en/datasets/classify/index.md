@@ -86,7 +86,7 @@ This structured approach ensures that the model can effectively learn from well-
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n-cls.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n-cls.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="path/to/dataset", epochs=100, imgsz=640)
@@ -96,23 +96,24 @@ This structured approach ensures that the model can effectively learn from well-
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=path/to/data model=yolov8n-cls.pt epochs=100 imgsz=640
+        yolo detect train data=path/to/data model=yolo11n-cls.pt epochs=100 imgsz=640
         ```
 
 ## Supported Datasets
 
 Ultralytics supports the following datasets with automatic download:
 
-- [Caltech 101](caltech101.md): A dataset containing images of 101 object categories for image classification tasks.
+- [Caltech 101](caltech101.md): A dataset containing images of 101 object categories for [image classification](https://www.ultralytics.com/glossary/image-classification) tasks.
 - [Caltech 256](caltech256.md): An extended version of Caltech 101 with 256 object categories and more challenging images.
 - [CIFAR-10](cifar10.md): A dataset of 60K 32x32 color images in 10 classes, with 6K images per class.
 - [CIFAR-100](cifar100.md): An extended version of CIFAR-10 with 100 object categories and 600 images per class.
 - [Fashion-MNIST](fashion-mnist.md): A dataset consisting of 70,000 grayscale images of 10 fashion categories for image classification tasks.
-- [ImageNet](imagenet.md): A large-scale dataset for object detection and image classification with over 14 million images and 20,000 categories.
+- [ImageNet](imagenet.md): A large-scale dataset for [object detection](https://www.ultralytics.com/glossary/object-detection) and image classification with over 14 million images and 20,000 categories.
 - [ImageNet-10](imagenet10.md): A smaller subset of ImageNet with 10 categories for faster experimentation and testing.
 - [Imagenette](imagenette.md): A smaller subset of ImageNet that contains 10 easily distinguishable classes for quicker training and testing.
 - [Imagewoof](imagewoof.md): A more challenging subset of ImageNet containing 10 dog breed categories for image classification tasks.
 - [MNIST](mnist.md): A dataset of 70,000 grayscale images of handwritten digits for image classification tasks.
+- [MNIST160](mnist.md): First 8 images of each MNIST category from the MNIST dataset. Dataset contains 160 images total.
 
 ### Adding your own dataset
 
@@ -170,7 +171,7 @@ To use your own dataset with Ultralytics YOLO, ensure it follows the specified d
 from ultralytics import YOLO
 
 # Load a model
-model = YOLO("yolov8n-cls.pt")  # load a pretrained model (recommended for training)
+model = YOLO("yolo11n-cls.pt")  # load a pretrained model (recommended for training)
 
 # Train the model
 results = model.train(data="path/to/your/dataset", epochs=100, imgsz=640)
@@ -182,9 +183,9 @@ More details can be found in the [Adding your own dataset](#adding-your-own-data
 
 Ultralytics YOLO offers several benefits for image classification, including:
 
-- **Pretrained Models**: Load pretrained models like `yolov8n-cls.pt` to jump-start your training process.
+- **Pretrained Models**: Load pretrained models like `yolo11n-cls.pt` to jump-start your training process.
 - **Ease of Use**: Simple API and CLI commands for training and evaluation.
-- **High Performance**: State-of-the-art accuracy and speed, ideal for real-time applications.
+- **High Performance**: State-of-the-art [accuracy](https://www.ultralytics.com/glossary/accuracy) and speed, ideal for real-time applications.
 - **Support for Multiple Datasets**: Seamless integration with various popular datasets like CIFAR-10, ImageNet, and more.
 - **Community and Support**: Access to extensive documentation and an active community for troubleshooting and improvements.
 
@@ -202,7 +203,7 @@ Training a model using Ultralytics YOLO can be done easily in both Python and CL
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n-cls.pt")  # load a pretrained model
+        model = YOLO("yolo11n-cls.pt")  # load a pretrained model
 
         # Train the model
         results = model.train(data="path/to/dataset", epochs=100, imgsz=640)
@@ -213,7 +214,7 @@ Training a model using Ultralytics YOLO can be done easily in both Python and CL
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=path/to/data model=yolov8n-cls.pt epochs=100 imgsz=640
+        yolo detect train data=path/to/data model=yolo11n-cls.pt epochs=100 imgsz=640
         ```
 
 These examples demonstrate the straightforward process of training a YOLO model using either approach. For more information, visit the [Usage](#usage) section.

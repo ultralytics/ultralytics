@@ -27,7 +27,7 @@ This comprehensive guide provides a detailed walkthrough for deploying Ultralyti
 
 ## What is NVIDIA Jetson?
 
-NVIDIA Jetson is a series of embedded computing boards designed to bring accelerated AI (artificial intelligence) computing to edge devices. These compact and powerful devices are built around NVIDIA's GPU architecture and are capable of running complex AI algorithms and deep learning models directly on the device, without needing to rely on cloud computing resources. Jetson boards are often used in robotics, autonomous vehicles, industrial automation, and other applications where AI inference needs to be performed locally with low latency and high efficiency. Additionally, these boards are based on the ARM64 architecture and runs on lower power compared to traditional GPU computing devices.
+NVIDIA Jetson is a series of embedded computing boards designed to bring accelerated AI (artificial intelligence) computing to edge devices. These compact and powerful devices are built around NVIDIA's GPU architecture and are capable of running complex AI algorithms and [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models directly on the device, without needing to rely on [cloud computing](https://www.ultralytics.com/glossary/cloud-computing) resources. Jetson boards are often used in robotics, autonomous vehicles, industrial automation, and other applications where AI inference needs to be performed locally with low latency and high efficiency. Additionally, these boards are based on the ARM64 architecture and runs on lower power compared to traditional GPU computing devices.
 
 ## NVIDIA Jetson Series Comparison
 
@@ -46,7 +46,7 @@ For a more detailed comparison table, please visit the **Technical Specification
 
 ## What is NVIDIA JetPack?
 
-[NVIDIA JetPack SDK](https://developer.nvidia.com/embedded/jetpack) powering the Jetson modules is the most comprehensive solution and provides full development environment for building end-to-end accelerated AI applications and shortens time to market. JetPack includes Jetson Linux with bootloader, Linux kernel, Ubuntu desktop environment, and a complete set of libraries for acceleration of GPU computing, multimedia, graphics, and computer vision. It also includes samples, documentation, and developer tools for both host computer and developer kit, and supports higher level SDKs such as DeepStream for streaming video analytics, Isaac for robotics, and Riva for conversational AI.
+[NVIDIA JetPack SDK](https://developer.nvidia.com/embedded/jetpack) powering the Jetson modules is the most comprehensive solution and provides full development environment for building end-to-end accelerated AI applications and shortens time to market. JetPack includes Jetson Linux with bootloader, Linux kernel, Ubuntu desktop environment, and a complete set of libraries for acceleration of GPU computing, multimedia, graphics, and [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv). It also includes samples, documentation, and developer tools for both host computer and developer kit, and supports higher level SDKs such as DeepStream for streaming video analytics, Isaac for robotics, and Riva for conversational AI.
 
 ## Flash JetPack to NVIDIA Jetson
 
@@ -110,7 +110,7 @@ For a native installation without Docker, please refer to the steps below.
 
 #### Install Ultralytics Package
 
-Here we will install Ultralytics package on the Jetson with optional dependencies so that we can export the PyTorch models to other different formats. We will mainly focus on [NVIDIA TensorRT exports](../integrations/tensorrt.md) because TensorRT will make sure we can get the maximum performance out of the Jetson devices.
+Here we will install Ultralytics package on the Jetson with optional dependencies so that we can export the [PyTorch](https://www.ultralytics.com/glossary/pytorch) models to other different formats. We will mainly focus on [NVIDIA TensorRT exports](../integrations/tensorrt.md) because TensorRT will make sure we can get the maximum performance out of the Jetson devices.
 
 1. Update packages list, install pip and upgrade to latest
 
@@ -240,7 +240,7 @@ pip install onnxruntime_gpu-1.17.0-cp38-cp38-linux_aarch64.whl
 
 Out of all the model export formats supported by Ultralytics, TensorRT delivers the best inference performance when working with NVIDIA Jetson devices and our recommendation is to use TensorRT with Jetson. We also have a detailed document on TensorRT [here](../integrations/tensorrt.md).
 
-## Convert Model to TensorRT and Run Inference
+### Convert Model to TensorRT and Run Inference
 
 The YOLOv8n model in PyTorch format is converted to TensorRT to run inference with the exported model.
 
@@ -254,7 +254,7 @@ The YOLOv8n model in PyTorch format is converted to TensorRT to run inference wi
         # Load a YOLOv8n PyTorch model
         model = YOLO("yolov8n.pt")
 
-        # Export the model
+        # Export the model to TensorRT
         model.export(format="engine")  # creates 'yolov8n.engine'
 
         # Load the exported TensorRT model
@@ -274,13 +274,54 @@ The YOLOv8n model in PyTorch format is converted to TensorRT to run inference wi
         yolo predict model=yolov8n.engine source='https://ultralytics.com/images/bus.jpg'
         ```
 
+### Use NVIDIA Deep Learning Accelerator (DLA)
+
+[NVIDIA Deep Learning Accelerator (DLA)](https://developer.nvidia.com/deep-learning-accelerator) is a specialized hardware component built into NVIDIA Jetson devices that optimizes deep learning inference for energy efficiency and performance. By offloading tasks from the GPU (freeing it up for more intensive processes), DLA enables models to run with lower power consumption while maintaining high throughput, ideal for embedded systems and real-time AI applications.
+
+The following Jetson devices are equipped with DLA hardware:
+
+- Jetson Orin NX 16GB
+- Jetson AGX Orin Series
+- Jetson AGX Xavier Series
+- Jetson Xavier NX Series
+
+!!! example
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load a YOLOv8n PyTorch model
+        model = YOLO("yolov8n.pt")
+
+        # Export the model to TensorRT with DLA enabled (only works with FP16 or INT8)
+        model.export(format="engine", device="dla:0", half=True)  # dla:0 or dla:1 corresponds to the DLA cores
+
+        # Load the exported TensorRT model
+        trt_model = YOLO("yolov8n.engine")
+
+        # Run inference
+        results = trt_model("https://ultralytics.com/images/bus.jpg")
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Export a YOLOv8n PyTorch model to TensorRT format with DLA enabled (only works with FP16 or INT8)
+        yolo export model=yolov8n.pt format=engine device="dla:0" half=True  # dla:0 or dla:1 corresponds to the DLA cores
+
+        # Run inference with the exported model on the DLA
+        yolo predict model=yolov8n.engine source='https://ultralytics.com/images/bus.jpg'
+        ```
+
 !!! note
 
     Visit the [Export page](../modes/export.md#arguments) to access additional arguments when exporting models to different model formats
 
 ## NVIDIA Jetson Orin YOLOv8 Benchmarks
 
-YOLOv8 benchmarks were run by the Ultralytics team on 10 different model formats measuring speed and accuracy: PyTorch, TorchScript, ONNX, OpenVINO, TensorRT, TF SavedModel, TF GraphDef, TF Lite, PaddlePaddle, NCNN. Benchmarks were run on Seeed Studio reComputer J4012 powered by Jetson Orin NX 16GB device at FP32 precision with default input image size of 640.
+YOLOv8 benchmarks were run by the Ultralytics team on 10 different model formats measuring speed and [accuracy](https://www.ultralytics.com/glossary/accuracy): PyTorch, TorchScript, ONNX, OpenVINO, TensorRT, TF SavedModel, TF GraphDef, TF Lite, PaddlePaddle, NCNN. Benchmarks were run on Seeed Studio reComputer J4012 powered by Jetson Orin NX 16GB device at FP32 [precision](https://www.ultralytics.com/glossary/precision) with default input image size of 640.
 
 ### Comparison Chart
 

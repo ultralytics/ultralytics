@@ -1424,7 +1424,6 @@ def classify_augmentations(
 
     This function generates a set of image transformations suitable for training classification models.
     """
-
     import torchvision.transforms as T  # scope for faster 'import ultralytics'
 
     if not isinstance(size, int):

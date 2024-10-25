@@ -8,7 +8,7 @@ import numpy as np
 import torch
 
 # Removed PIL import since we're eliminating PIL usage
-# from PIL import Image
+from PIL import Image
 from torch.utils.data import dataloader, distributed
 
 from ultralytics.data.dataset import GroundingDataset, YOLODataset, YOLOMultiModalDataset
@@ -164,8 +164,8 @@ def check_source(source):
         source = autocast_list(source)  # convert all list elements to numpy arrays
         from_img = True
     # Removed PIL Image check since we're eliminating PIL usage
-    # elif isinstance(source, (Image.Image, np.ndarray)):
-    elif isinstance(source, np.ndarray):
+    elif isinstance(source, (Image.Image, np.ndarray)):
+    # elif isinstance(source, np.ndarray):
         from_img = True
     elif isinstance(source, torch.Tensor):
         tensor = True

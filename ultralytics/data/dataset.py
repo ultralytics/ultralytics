@@ -9,8 +9,8 @@ from pathlib import Path
 import cv2
 import numpy as np
 import torch
-from torch.utils.data import ConcatDataset
 from PIL import Image
+from torch.utils.data import ConcatDataset
 
 from ultralytics.utils import LOCAL_RANK, NUM_THREADS, TQDM, colorstr
 from ultralytics.utils.ops import resample_segments
@@ -478,7 +478,7 @@ class ClassificationDataset:
         if im.ndim == 2:  # Grayscale image
             print(f"Image {f} is 2-channel dimension")
             im = np.expand_dims(im, axis=-1)
-        
+
         # Apply dataset transformations (ensure they are compatible with numpy arrays)
         im = Image.fromarray(im)
         sample = self.torch_transforms(im)

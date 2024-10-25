@@ -444,25 +444,25 @@ class Results(SimpleClass):
         return Results(orig_img=self.orig_img, path=self.path, names=self.names, speed=self.speed)
 
     def plot(
-            self,
-            conf=True,
-            line_width=None,
-            font_size=None,
-            font="Arial.ttf",
-            pil=False,
-            img=None,
-            im_gpu=None,
-            kpt_radius=5,
-            kpt_line=True,
-            labels=True,
-            boxes=True,
-            masks=True,
-            probs=True,
-            show=False,
-            save=False,
-            filename=None,
-            color_mode="class",
-            label_pos=None,  # New parameter
+        self,
+        conf=True,
+        line_width=None,
+        font_size=None,
+        font="Arial.ttf",
+        pil=False,
+        img=None,
+        im_gpu=None,
+        kpt_radius=5,
+        kpt_line=True,
+        labels=True,
+        boxes=True,
+        masks=True,
+        probs=True,
+        show=False,
+        save=False,
+        filename=None,
+        color_mode="class",
+        label_pos=None,  # New parameter
     ):
         """
         Plots detection results on an input RGB image.
@@ -514,11 +514,11 @@ class Results(SimpleClass):
             if im_gpu is None:
                 img = LetterBox(pred_masks.shape[1:])(image=annotator.result())
                 im_gpu = (
-                        torch.as_tensor(img, dtype=torch.float16, device=pred_masks.data.device)
-                        .permute(2, 0, 1)
-                        .flip(0)
-                        .contiguous()
-                        / 255
+                    torch.as_tensor(img, dtype=torch.float16, device=pred_masks.data.device)
+                    .permute(2, 0, 1)
+                    .flip(0)
+                    .contiguous()
+                    / 255
                 )
             idx = (
                 pred_boxes.id
@@ -566,7 +566,7 @@ class Results(SimpleClass):
                         True,
                     ),
                     rotated=is_obb,
-                    label_pos_xy=label_pos_xy  # Pass the calculated position
+                    label_pos_xy=label_pos_xy,  # Pass the calculated position
                 )
 
         # Plot Classify results
@@ -595,7 +595,7 @@ class Results(SimpleClass):
             annotator.save(filename)
 
         return annotator.result()
-        
+
     def show(self, *args, **kwargs):
         """
         Display the image with annotated inference results.

@@ -324,8 +324,9 @@ class Annotator:
             lineType=cv2.LINE_AA,
         )
 
-    def box_label(self, box, label="", color=(128, 128, 128), txt_color=(255, 255, 255), rotated=False,
-                  label_pos_xy=None):
+    def box_label(
+        self, box, label="", color=(128, 128, 128), txt_color=(255, 255, 255), rotated=False, label_pos_xy=None
+    ):
         """
         Draws a bounding box to the image with a label.
 
@@ -393,7 +394,7 @@ class Annotator:
                     thickness=self.tf,
                     lineType=cv2.LINE_AA,
                 )
-                
+
     def masks(self, masks, colors, im_gpu, alpha=0.5, retina_masks=False):
         """
         Plot masks on image.

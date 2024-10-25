@@ -51,6 +51,7 @@ iou: 0.7 # (float) intersection over union (IoU) threshold for NMS
 max_det: 300 # (int) maximum number of detections per image
 half: False # (bool) use half precision (FP16)
 dnn: False # (bool) use OpenCV DNN for ONNX inference
+fuse: True # (bool) whether to fuse conv and batch-norm operations for val
 plots: True # (bool) save plots and images during train/val
 
 # Predict settings -----------------------------------------------------------------------------------------------------

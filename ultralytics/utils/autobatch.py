@@ -18,6 +18,7 @@ def check_train_batch_size(model, imgsz=640, ch=3, amp=True, batch=-1):
     Args:
         model (torch.nn.Module): YOLO model to check batch size for.
         imgsz (int, optional): Image size used for training.
+        ch (int, optional): Number of channels of the original image.
         amp (bool, optional): Use automatic mixed precision if True.
         batch (float, optional): Fraction of GPU memory to use. If -1, use default.
 
@@ -39,6 +40,7 @@ def autobatch(model, imgsz=640, ch=3, fraction=0.60, batch_size=DEFAULT_CFG.batc
     Args:
         model (torch.nn.module): YOLO model to compute batch size for.
         imgsz (int, optional): The image size used as input for the YOLO model. Defaults to 640.
+        ch (int, optional): Number of channels of the original image. Defaults to 3
         fraction (float, optional): The fraction of available CUDA memory to use. Defaults to 0.60.
         batch_size (int, optional): The default batch size to use if an error is detected. Defaults to 16.
 

@@ -79,7 +79,7 @@ def test_predict_txt():
         for src in SOURCES_LIST:
             f.write(f"{src}\n")
     results = YOLO(MODEL)(source=file, imgsz=32)
-    assert len(results) == 10  # 1 + 3 + 3 + 3 = 10 images
+    assert len(results) == 7  # 1 + 2 + 2 + 2 = 7 images
 
 
 @pytest.mark.skipif(True, reason="disabled for testing")

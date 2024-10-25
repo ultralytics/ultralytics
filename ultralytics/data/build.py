@@ -165,7 +165,7 @@ def check_source(source):
         from_img = True
     # Removed PIL Image check since we're eliminating PIL usage
     elif isinstance(source, (Image.Image, np.ndarray)):
-    # elif isinstance(source, np.ndarray):
+        # elif isinstance(source, np.ndarray):
         from_img = True
     elif isinstance(source, torch.Tensor):
         tensor = True

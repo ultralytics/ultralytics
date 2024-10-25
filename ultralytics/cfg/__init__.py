@@ -810,7 +810,6 @@ def entrypoint(debug=""):
     # Mode
     if mode in {"predict", "track"} and "source" not in overrides:
         if task == "obb":
-
             overrides["source"] = "https://ultralytics.com/images/boats.jpg"
         else:
             overrides["source"] = DEFAULT_CFG.source or ASSETS

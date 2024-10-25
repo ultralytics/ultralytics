@@ -1392,49 +1392,30 @@ def classify_transforms(
         >>> transformed_img = transforms(img)
     """
 
-    def transform(img):
-        if isinstance(size, (tuple, list)):
-            assert len(size) == 2, f"'size' tuples must be length 2, not length {len(size)}"
-            scale_size = tuple(int(math.floor(x / crop_fraction)) for x in size)
-            target_size = size
-        else:
-            scale_size = int(math.floor(size / crop_fraction))
-            scale_size = (scale_size, scale_size)
-            target_size = (size, size)
+    import torchvision.transforms as T  # scope for faster 'import ultralytics'
 
-        # Resize the image
-        im_h, im_w = img.shape[:2]
-        # Determine new size preserving aspect ratio
-        if (im_w <= im_h and im_w == scale_size[0]) or (im_h <= im_w and im_h == scale_size[1]):
-            resized_img = img
-        else:
-            # Resize preserving aspect ratio
-            r = max(scale_size[0] / im_w, scale_size[1] / im_h)
-            new_size = (int(im_w * r), int(im_h * r))
-            resized_img = cv2.resize(img, new_size, interpolation=interpolation)
+    if isinstance(size, (tuple, list)):
+        assert len(size) == 2, f"'size' tuples must be length 2, not length {len(size)}"
+        scale_size = tuple(math.floor(x / crop_fraction) for x in size)
+    else:
+        scale_size = math.floor(size / crop_fraction)
+        scale_size = (scale_size, scale_size)
 
-        # Center crop
-        im_h, im_w = resized_img.shape[:2]
-        crop_h, crop_w = target_size
-        start_x = (im_w - crop_w) // 2
-        start_y = (im_h - crop_h) // 2
-        cropped_img = resized_img[start_y : start_y + crop_h, start_x : start_x + crop_w]
-
-        # Convert to tensor and normalize
-        img = cropped_img.astype(np.float32)
-        # Change: Normalize image depending on its data type
-        if img.dtype == np.uint8:
-            img /= 255.0
-        elif img.dtype == np.uint16:
-            img /= 65535.0
-
-        img = img.transpose(2, 0, 1)  # HWC to CHW
-        img = img[[2, 1, 0], :, :]  # BGR to RGB
-        img = torch.from_numpy(img)
-        img = (img - torch.tensor(mean).view(3, 1, 1)) / torch.tensor(std).view(3, 1, 1)
-        return img
-
-    return transform
+    # Aspect ratio is preserved, crops center within image, no borders are added, image is lost
+    if scale_size[0] == scale_size[1]:
+        # Simple case, use torchvision built-in Resize with the shortest edge mode (scalar size arg)
+        tfl = [T.Resize(scale_size[0], interpolation=getattr(T.InterpolationMode, interpolation))]
+    else:
+        # Resize the shortest edge to matching target dim for non-square target
+        tfl = [T.Resize(scale_size)]
+    tfl.extend(
+        [
+            T.CenterCrop(size),
+            T.ToTensor(),
+            T.Normalize(mean=torch.tensor(mean), std=torch.tensor(std)),
+        ]
+    )
+    return T.Compose(tfl)
 
 
 # Classification training augmentations --------------------------------------------------------------------------------

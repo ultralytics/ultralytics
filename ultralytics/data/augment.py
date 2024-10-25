@@ -1376,7 +1376,6 @@ def classify_transforms(
         >>> img = cv2.imread("path/to/image.jpg")
         >>> transformed_img = transforms(img)
     """
-
     import torchvision.transforms as T  # scope for faster 'import ultralytics'
 
     if isinstance(size, (tuple, list)):

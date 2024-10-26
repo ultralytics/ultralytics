@@ -491,13 +491,10 @@ class AutoBackend(nn.Module):
 
         # ONNX Runtime
         elif self.onnx:
-            device_type = im.device.type
-            device_id = im.device.index if device_type == "cuda" else 0
-
             self.io.bind_input(
                 name="images",
-                device_type=device_type,
-                device_id=device_id,
+                device_type=im.device.type,
+                device_id=im.device.index if device_type == "cuda" else 0,
                 element_type=np.float16 if self.fp16 else np.float32,
                 shape=tuple(im.shape),
                 buffer_ptr=im.data_ptr(),

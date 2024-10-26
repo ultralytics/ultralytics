@@ -196,7 +196,9 @@ class AutoBackend(nn.Module):
             io = session.io_binding()
             bindings = []
             for output in session.get_outputs():
-                y_tensor = torch.empty(output.shape, dtype=torch.float16 if fp16 else torch.float32).to(device).contiguous()
+                y_tensor = (
+                    torch.empty(output.shape, dtype=torch.float16 if fp16 else torch.float32).to(device).contiguous()
+                )
                 io.bind_output(
                     name=output.name,
                     device_type=device.type,
@@ -489,17 +491,17 @@ class AutoBackend(nn.Module):
 
         # ONNX Runtime
         elif self.onnx:
-            device_type=im.device.type
-            device_id=im.device.index if device_type == "cuda" else 0
-    
+            device_type = im.device.type
+            device_id = im.device.index if device_type == "cuda" else 0
+
             self.io.bind_input(
-                name='images',
+                name="images",
                 device_type=device_type,
                 device_id=device_id,
                 element_type=np.float16 if self.fp16 else np.float32,
                 shape=tuple(im.shape),
                 buffer_ptr=im.data_ptr(),
-                )
+            )
 
             y = self.bindings
             self.session.run_with_iobinding(self.io)

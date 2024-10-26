@@ -494,7 +494,7 @@ class AutoBackend(nn.Module):
             self.io.bind_input(
                 name="images",
                 device_type=im.device.type,
-                device_id=im.device.index if device_type == "cuda" else 0,
+                device_id=im.device.index if im.device.type == "cuda" else 0,
                 element_type=np.float16 if self.fp16 else np.float32,
                 shape=tuple(im.shape),
                 buffer_ptr=im.data_ptr(),

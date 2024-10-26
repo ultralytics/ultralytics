@@ -503,8 +503,8 @@ class AutoBackend(nn.Module):
                 buffer_ptr=im.data_ptr(),
             )
 
-            y = self.bindings
             self.session.run_with_iobinding(self.io)
+            y = self.bindings
 
         # OpenVINO
         elif self.xml:

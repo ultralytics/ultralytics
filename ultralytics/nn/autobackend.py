@@ -193,10 +193,10 @@ class AutoBackend(nn.Module):
             session = onnxruntime.InferenceSession(w, providers=providers)
             output_names = [x.name for x in session.get_outputs()]
             metadata = session.get_modelmeta().custom_metadata_map
-            io = session.io_binding()
-            bindings = []
             dynamic = isinstance(session.get_outputs()[0].shape[0], str)
             if not dynamic:
+                io = session.io_binding()
+                bindings = []
                 for output in session.get_outputs():
                     y_tensor = (
                         torch.empty(output.shape, dtype=torch.float16 if fp16 else torch.float32)

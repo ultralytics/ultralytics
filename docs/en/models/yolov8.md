@@ -6,9 +6,9 @@ keywords: YOLOv8, real-time object detection, YOLO series, Ultralytics, computer
 
 # Ultralytics YOLOv8
 
-!!! tip "Ultralytics YOLOv8 Research Paper"
+!!! tip "Ultralytics YOLOv8 Publication"
 
-    There is no official research paper for Ultralytics YOLOv8. For detailed information on YOLOv8, please refer to the official [documentation](https://docs.ultralytics.com) and [GitHub repository](https://github.com/ultralytics/ultralytics). While formal academic papers may not be available, these resources provide comprehensive insights into the model architectures, features, and usage.
+    Ultralytics has not published a formal research paper for YOLOv8 due to the rapidly evolving nature of the models. We focus on advancing the technology and making it easier to use, rather than producing static documentation. For the most up-to-date information on YOLO architecture, features, and usage, please refer to our [GitHub repository](https://github.com/ultralytics/ultralytics) and [documentation](https://docs.ultralytics.com).
 
 ## Overview
 

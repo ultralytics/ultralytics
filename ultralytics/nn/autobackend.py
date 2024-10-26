@@ -195,19 +195,21 @@ class AutoBackend(nn.Module):
             metadata = session.get_modelmeta().custom_metadata_map
             io = session.io_binding()
             bindings = []
-            for output in session.get_outputs():
-                y_tensor = (
-                    torch.empty(output.shape, dtype=torch.float16 if fp16 else torch.float32).to(device).contiguous()
-                )
-                io.bind_output(
-                    name=output.name,
-                    device_type=device.type,
-                    device_id=device.index if cuda else 0,
-                    element_type=np.float16 if fp16 else np.float32,
-                    shape=tuple(y_tensor.shape),
-                    buffer_ptr=y_tensor.data_ptr(),
-                )
-                bindings.append(y_tensor)
+            dynamic = isinstance(session.get_outputs()[0].shape[0], str)
+            if not dynamic:
+                for output in session.get_outputs():
+                    y_tensor = (
+                        torch.empty(output.shape, dtype=torch.float16 if fp16 else torch.float32).to(device).contiguous()
+                    )
+                    io.bind_output(
+                        name=output.name,
+                        device_type=device.type,
+                        device_id=device.index if cuda else 0,
+                        element_type=np.float16 if fp16 else np.float32,
+                        shape=tuple(y_tensor.shape),
+                        buffer_ptr=y_tensor.data_ptr(),
+                    )
+                    bindings.append(y_tensor)
 
         # OpenVINO
         elif xml:
@@ -491,17 +493,20 @@ class AutoBackend(nn.Module):
 
         # ONNX Runtime
         elif self.onnx:
-            self.io.bind_input(
-                name="images",
-                device_type=im.device.type,
-                device_id=im.device.index if im.device.type == "cuda" else 0,
-                element_type=np.float16 if self.fp16 else np.float32,
-                shape=tuple(im.shape),
-                buffer_ptr=im.data_ptr(),
-            )
-
-            self.session.run_with_iobinding(self.io)
-            y = self.bindings
+            if not self.dynamic:
+                self.io.bind_input(
+                    name="images",
+                    device_type=im.device.type,
+                    device_id=im.device.index if im.device.type == "cuda" else 0,
+                    element_type=np.float16 if self.fp16 else np.float32,
+                    shape=tuple(im.shape),
+                    buffer_ptr=im.data_ptr(),
+                )
+                self.session.run_with_iobinding(self.io)
+                y = self.bindings
+            else:
+                im = im.cpu().numpy() # torch to numpy
+                y = self.session.run(self.output_names, {self.session.get_inputs()[0].name: im})
 
         # OpenVINO
         elif self.xml:

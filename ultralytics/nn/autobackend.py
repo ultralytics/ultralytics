@@ -199,7 +199,9 @@ class AutoBackend(nn.Module):
             if not dynamic:
                 for output in session.get_outputs():
                     y_tensor = (
-                        torch.empty(output.shape, dtype=torch.float16 if fp16 else torch.float32).to(device).contiguous()
+                        torch.empty(output.shape, dtype=torch.float16 if fp16 else torch.float32)
+                        .to(device)
+                        .contiguous()
                     )
                     io.bind_output(
                         name=output.name,
@@ -505,7 +507,7 @@ class AutoBackend(nn.Module):
                 self.session.run_with_iobinding(self.io)
                 y = self.bindings
             else:
-                im = im.cpu().numpy() # torch to numpy
+                im = im.cpu().numpy()  # torch to numpy
                 y = self.session.run(self.output_names, {self.session.get_inputs()[0].name: im})
 
         # OpenVINO

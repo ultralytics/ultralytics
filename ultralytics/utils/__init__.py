@@ -38,6 +38,7 @@ FILE = Path(__file__).resolve()
 ROOT = FILE.parents[1]  # YOLO
 ASSETS = ROOT / "assets"  # default images
 DEFAULT_CFG_PATH = ROOT / "cfg/default.yaml"
+DEFAULT_SOL_CFG_PATH = ROOT / "cfg/solutions/default.yaml"  # Ultralytics solutions yaml path
 NUM_THREADS = min(8, max(1, os.cpu_count() - 1))  # number of YOLO multiprocessing threads
 AUTOINSTALL = str(os.getenv("YOLO_AUTOINSTALL", True)).lower() == "true"  # global auto-install mode
 VERBOSE = str(os.getenv("YOLO_VERBOSE", True)).lower() == "true"  # global verbose mode
@@ -61,8 +62,8 @@ HELP_MSG = """
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n.yaml")  # build a new model from scratch
-        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n.yaml")  # build a new model from scratch
+        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
 
         # Use the model
         results = model.train(data="coco8.yaml", epochs=3)  # train the model
@@ -77,21 +78,21 @@ HELP_MSG = """
             yolo TASK MODE ARGS
 
             Where   TASK (optional) is one of [detect, segment, classify, pose, obb]
-                    MODE (required) is one of [train, val, predict, export, benchmark]
+                    MODE (required) is one of [train, val, predict, export, track, benchmark]
                     ARGS (optional) are any number of custom "arg=value" pairs like "imgsz=320" that override defaults.
                         See all ARGS at https://docs.ultralytics.com/usage/cfg or with "yolo cfg"
 
         - Train a detection model for 10 epochs with an initial learning_rate of 0.01
-            yolo detect train data=coco8.yaml model=yolov8n.pt epochs=10 lr0=0.01
+            yolo detect train data=coco8.yaml model=yolo11n.pt epochs=10 lr0=0.01
 
         - Predict a YouTube video using a pretrained segmentation model at image size 320:
-            yolo segment predict model=yolov8n-seg.pt source='https://youtu.be/LNwODJXcvt4' imgsz=320
+            yolo segment predict model=yolo11n-seg.pt source='https://youtu.be/LNwODJXcvt4' imgsz=320
 
         - Val a pretrained detection model at batch-size 1 and image size 640:
-            yolo detect val model=yolov8n.pt data=coco8.yaml batch=1 imgsz=640
+            yolo detect val model=yolo11n.pt data=coco8.yaml batch=1 imgsz=640
 
-        - Export a YOLOv8n classification model to ONNX format at image size 224 by 128 (no TASK required)
-            yolo export model=yolov8n-cls.pt format=onnx imgsz=224,128
+        - Export a YOLO11n classification model to ONNX format at image size 224 by 128 (no TASK required)
+            yolo export model=yolo11n-cls.pt format=onnx imgsz=224,128
 
         - Run special commands:
             yolo help
@@ -508,6 +509,7 @@ def yaml_print(yaml_file: Union[str, Path, dict]) -> None:
 
 # Default configuration
 DEFAULT_CFG_DICT = yaml_load(DEFAULT_CFG_PATH)
+DEFAULT_SOL_DICT = yaml_load(DEFAULT_SOL_CFG_PATH)  # Ultralytics solutions configuration
 for k, v in DEFAULT_CFG_DICT.items():
     if isinstance(v, str) and v.lower() == "none":
         DEFAULT_CFG_DICT[k] = None
@@ -523,10 +525,11 @@ def read_device_model() -> str:
     Returns:
         (str): Model file contents if read successfully or empty string otherwise.
     """
-    with contextlib.suppress(Exception):
+    try:
         with open("/proc/device-tree/model") as f:
             return f.read()
-    return ""
+    except Exception:
+        return ""
 
 
 def is_ubuntu() -> bool:
@@ -536,10 +539,11 @@ def is_ubuntu() -> bool:
     Returns:
         (bool): True if OS is Ubuntu, False otherwise.
     """
-    with contextlib.suppress(FileNotFoundError):
+    try:
         with open("/etc/os-release") as f:
             return "ID=ubuntu" in f.read()
-    return False
+    except FileNotFoundError:
+        return False
 
 
 def is_colab():
@@ -564,16 +568,16 @@ def is_kaggle():
 
 def is_jupyter():
     """
-    Check if the current script is running inside a Jupyter Notebook. Verified on Colab, Jupyterlab, Kaggle, Paperspace.
+    Check if the current script is running inside a Jupyter Notebook.
 
     Returns:
         (bool): True if running inside a Jupyter Notebook, False otherwise.
-    """
-    with contextlib.suppress(Exception):
-        from IPython import get_ipython
 
-        return get_ipython() is not None
-    return False
+    Note:
+        - Only works on Colab and Kaggle, other environments like Jupyterlab and Paperspace are not reliably detectable.
+        - "get_ipython" in globals() method suffers false positives when IPython package installed manually.
+    """
+    return IS_COLAB or IS_KAGGLE
 
 
 def is_docker() -> bool:
@@ -583,10 +587,11 @@ def is_docker() -> bool:
     Returns:
         (bool): True if the script is running inside a Docker container, False otherwise.
     """
-    with contextlib.suppress(Exception):
+    try:
         with open("/proc/self/cgroup") as f:
             return "docker" in f.read()
-    return False
+    except Exception:
+        return False
 
 
 def is_raspberrypi() -> bool:
@@ -617,14 +622,15 @@ def is_online() -> bool:
     Returns:
         (bool): True if connection is successful, False otherwise.
     """
-    with contextlib.suppress(Exception):
+    try:
         assert str(os.getenv("YOLO_OFFLINE", "")).lower() != "true"  # check if ENV var YOLO_OFFLINE="True"
         import socket
 
         for dns in ("1.1.1.1", "8.8.8.8"):  # check Cloudflare and Google DNS
             socket.create_connection(address=(dns, 80), timeout=2.0).close()
             return True
-    return False
+    except Exception:
+        return False
 
 
 def is_pip_package(filepath: str = __name__) -> bool:
@@ -711,9 +717,11 @@ def get_git_origin_url():
         (str | None): The origin URL of the git repository or None if not git directory.
     """
     if IS_GIT_DIR:
-        with contextlib.suppress(subprocess.CalledProcessError):
+        try:
             origin = subprocess.check_output(["git", "config", "--get", "remote.origin.url"])
             return origin.decode().strip()
+        except subprocess.CalledProcessError:
+            return None
 
 
 def get_git_branch():
@@ -724,9 +732,11 @@ def get_git_branch():
         (str | None): The current git branch name or None if not a git directory.
     """
     if IS_GIT_DIR:
-        with contextlib.suppress(subprocess.CalledProcessError):
+        try:
             origin = subprocess.check_output(["git", "rev-parse", "--abbrev-ref", "HEAD"])
             return origin.decode().strip()
+        except subprocess.CalledProcessError:
+            return None
 
 
 def get_default_args(func):
@@ -751,9 +761,11 @@ def get_ubuntu_version():
         (str): Ubuntu version or None if not an Ubuntu OS.
     """
     if is_ubuntu():
-        with contextlib.suppress(FileNotFoundError, AttributeError):
+        try:
             with open("/etc/os-release") as f:
                 return re.search(r'VERSION_ID="(\d+\.\d+)"', f.read())[1]
+        except (FileNotFoundError, AttributeError):
+            return None
 
 
 def get_user_config_dir(sub_dir="Ultralytics"):
@@ -793,10 +805,10 @@ def get_user_config_dir(sub_dir="Ultralytics"):
 PROC_DEVICE_MODEL = read_device_model()  # is_jetson() and is_raspberrypi() depend on this constant
 ONLINE = is_online()
 IS_COLAB = is_colab()
+IS_KAGGLE = is_kaggle()
 IS_DOCKER = is_docker()
 IS_JETSON = is_jetson()
 IS_JUPYTER = is_jupyter()
-IS_KAGGLE = is_kaggle()
 IS_PIP_PACKAGE = is_pip_package()
 IS_RASPBERRYPI = is_raspberrypi()
 GIT_DIR = get_git_dir()
@@ -989,55 +1001,56 @@ def set_sentry():
     Additionally, the function sets custom tags and user information for Sentry events.
     """
     if (
-        SETTINGS["sync"]
-        and RANK in {-1, 0}
-        and Path(ARGV[0]).name == "yolo"
-        and not TESTS_RUNNING
-        and ONLINE
-        and IS_PIP_PACKAGE
-        and not IS_GIT_DIR
+        not SETTINGS["sync"]
+        or RANK not in {-1, 0}
+        or Path(ARGV[0]).name != "yolo"
+        or TESTS_RUNNING
+        or not ONLINE
+        or not IS_PIP_PACKAGE
+        or IS_GIT_DIR
     ):
-        # If sentry_sdk package is not installed then return and do not use Sentry
-        try:
-            import sentry_sdk  # noqa
-        except ImportError:
-            return
+        return
+    # If sentry_sdk package is not installed then return and do not use Sentry
+    try:
+        import sentry_sdk  # noqa
+    except ImportError:
+        return
 
-        def before_send(event, hint):
-            """
-            Modify the event before sending it to Sentry based on specific exception types and messages.
+    def before_send(event, hint):
+        """
+        Modify the event before sending it to Sentry based on specific exception types and messages.
 
-            Args:
-                event (dict): The event dictionary containing information about the error.
-                hint (dict): A dictionary containing additional information about the error.
+        Args:
+            event (dict): The event dictionary containing information about the error.
+            hint (dict): A dictionary containing additional information about the error.
 
-            Returns:
-                dict: The modified event or None if the event should not be sent to Sentry.
-            """
-            if "exc_info" in hint:
-                exc_type, exc_value, _ = hint["exc_info"]
-                if exc_type in {KeyboardInterrupt, FileNotFoundError} or "out of memory" in str(exc_value):
-                    return None  # do not send event
+        Returns:
+            dict: The modified event or None if the event should not be sent to Sentry.
+        """
+        if "exc_info" in hint:
+            exc_type, exc_value, _ = hint["exc_info"]
+            if exc_type in {KeyboardInterrupt, FileNotFoundError} or "out of memory" in str(exc_value):
+                return None  # do not send event
 
-            event["tags"] = {
-                "sys_argv": ARGV[0],
-                "sys_argv_name": Path(ARGV[0]).name,
-                "install": "git" if IS_GIT_DIR else "pip" if IS_PIP_PACKAGE else "other",
-                "os": ENVIRONMENT,
-            }
-            return event
+        event["tags"] = {
+            "sys_argv": ARGV[0],
+            "sys_argv_name": Path(ARGV[0]).name,
+            "install": "git" if IS_GIT_DIR else "pip" if IS_PIP_PACKAGE else "other",
+            "os": ENVIRONMENT,
+        }
+        return event
 
-        sentry_sdk.init(
-            dsn="https://888e5a0778212e1d0314c37d4b9aae5d@o4504521589325824.ingest.us.sentry.io/4504521592406016",
-            debug=False,
-            auto_enabling_integrations=False,
-            traces_sample_rate=1.0,
-            release=__version__,
-            environment="production",  # 'dev' or 'production'
-            before_send=before_send,
-            ignore_errors=[KeyboardInterrupt, FileNotFoundError],
-        )
-        sentry_sdk.set_user({"id": SETTINGS["uuid"]})  # SHA-256 anonymized UUID hash
+    sentry_sdk.init(
+        dsn="https://888e5a0778212e1d0314c37d4b9aae5d@o4504521589325824.ingest.us.sentry.io/4504521592406016",
+        debug=False,
+        auto_enabling_integrations=False,
+        traces_sample_rate=1.0,
+        release=__version__,
+        environment="production",  # 'dev' or 'production'
+        before_send=before_send,
+        ignore_errors=[KeyboardInterrupt, FileNotFoundError],
+    )
+    sentry_sdk.set_user({"id": SETTINGS["uuid"]})  # SHA-256 anonymized UUID hash
 
 
 class JSONDict(dict):
@@ -1186,7 +1199,7 @@ class SettingsManager(JSONDict):
             "neptune": True,  # Neptune integration
             "raytune": True,  # Ray Tune integration
             "tensorboard": True,  # TensorBoard logging
-            "wandb": True,  # Weights & Biases logging
+            "wandb": False,  # Weights & Biases logging
             "vscode_msg": True,  # VSCode messaging
         }
 

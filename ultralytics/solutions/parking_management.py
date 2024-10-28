@@ -168,7 +168,6 @@ class ParkingManagement(BaseSolution):
     Examples:
         >>> from ultralytics.solutions import ParkingManagement
         >>> parking_manager = ParkingManagement(model="yolov8n.pt", json_file="parking_regions.json")
-        >>> results = parking_manager(source="parking_lot_video.mp4")
         >>> print(f"Occupied spaces: {parking_manager.pr_info['Occupancy']}")
         >>> print(f"Available spaces: {parking_manager.pr_info['Available']}")
     """

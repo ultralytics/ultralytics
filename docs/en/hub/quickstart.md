@@ -98,4 +98,4 @@ You can report a bug, request a feature, or ask a question on <a href="https://g
 
 ??? tip
 
-    You can join our <a href="https://ultralytics.com/discord">Discord</a> community for questions and discussions!
+    You can join our <a href="https://discord.com/invite/ultralytics">Discord</a> community for questions and discussions!

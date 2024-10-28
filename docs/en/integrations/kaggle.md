@@ -20,7 +20,7 @@ With more than [10 million users](https://www.kaggle.com/discussions/general/332
 
 Training YOLO11 models on Kaggle is simple and efficient, thanks to the platform's access to powerful GPUs.
 
-To get started, access the [Kaggle YOLO11 Notebook](https://www.kaggle.com/code/ultralytics/yolov8). Kaggle's environment comes with pre-installed libraries like [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) and [PyTorch](https://www.ultralytics.com/glossary/pytorch), making the setup process hassle-free.
+To get started, access the [Kaggle YOLO11 Notebook](https://www.kaggle.com/code/glennjocherultralytics/yolo11). Kaggle's environment comes with pre-installed libraries like [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) and [PyTorch](https://www.ultralytics.com/glossary/pytorch), making the setup process hassle-free.
 
 ![What is the kaggle integration with respect to YOLO11?](https://github.com/ultralytics/docs/releases/download/0/kaggle-integration-yolov8.avif)
 
@@ -28,7 +28,7 @@ Once you sign in to your Kaggle account, you can click on the option to copy and
 
 ![Using kaggle for machine learning model training with a GPU](https://github.com/ultralytics/docs/releases/download/0/using-kaggle-for-machine-learning-model-training-with-a-gpu.avif)
 
-On the [official YOLO11 Kaggle notebook page](https://www.kaggle.com/code/ultralytics/yolov8), if you click on the three dots in the upper right-hand corner, you'll notice more options will pop up.
+On the [official YOLO11 Kaggle notebook page](https://www.kaggle.com/code/glennjocherultralytics/yolo11), if you click on the three dots in the upper right-hand corner, you'll notice more options will pop up.
 
 ![Overview of Options From the Official YOLO11 Kaggle Notebook Page](https://github.com/ultralytics/docs/releases/download/0/overview-options-yolov8-kaggle-notebook.avif)
 
@@ -48,7 +48,7 @@ These options include:
 
 When working with Kaggle, you might come across some common issues. Here are some points to help you navigate the platform smoothly:
 
-- **Access to GPUs**: In your Kaggle notebooks, you can activate a GPU at any time, with usage allowed for up to 30 hours per week. Kaggle provides the Nvidia Tesla P100 GPU with 16GB of memory and also offers the option of using a Nvidia GPU T4 x2. Powerful hardware accelerates your machine-learning tasks, making model training and inference much faster.
+- **Access to GPUs**: In your Kaggle notebooks, you can activate a GPU at any time, with usage allowed for up to 30 hours per week. Kaggle provides the NVIDIA Tesla P100 GPU with 16GB of memory and also offers the option of using a NVIDIA GPU T4 x2. Powerful hardware accelerates your machine-learning tasks, making model training and inference much faster.
 - **Kaggle Kernels**: Kaggle Kernels are free Jupyter notebook servers that can integrate GPUs, allowing you to perform machine learning operations on cloud computers. You don't have to rely on your own computer's CPU, avoiding overload and freeing up your local resources.
 - **Kaggle Datasets**: Kaggle datasets are free to download. However, it's important to check the license for each dataset to understand any usage restrictions. Some datasets may have limitations on academic publications or commercial use. You can download datasets directly to your Kaggle notebook or anywhere else via the Kaggle API.
 - **Saving and Committing Notebooks**: To save and commit a notebook on Kaggle, click "Save Version." This saves the current state of your notebook. Once the background kernel finishes generating the output files, you can access them from the Output tab on the main notebook page.
@@ -95,13 +95,13 @@ Interested in more YOLO11 integrations? Check out the[ Ultralytics integration g
 
 ### How do I train a YOLO11 model on Kaggle?
 
-Training a YOLO11 model on Kaggle is straightforward. First, access the [Kaggle YOLO11 Notebook](https://www.kaggle.com/ultralytics/yolov8). Sign in to your Kaggle account, copy and edit the notebook, and select a GPU under the accelerator settings. Run the notebook cells to start training. For more detailed steps, refer to our [YOLO11 Model Training guide](../modes/train.md).
+Training a YOLO11 model on Kaggle is straightforward. First, access the [Kaggle YOLO11 Notebook](https://www.kaggle.com/code/glennjocherultralytics/yolo11). Sign in to your Kaggle account, copy and edit the notebook, and select a GPU under the accelerator settings. Run the notebook cells to start training. For more detailed steps, refer to our [YOLO11 Model Training guide](../modes/train.md).
 
 ### What are the benefits of using Kaggle for YOLO11 model training?
 
 Kaggle offers several advantages for training YOLO11 models:
 
-- **Free GPU Access**: Utilize powerful GPUs like Nvidia Tesla P100 or T4 x2 for up to 30 hours per week.
+- **Free GPU Access**: Utilize powerful GPUs like NVIDIA Tesla P100 or T4 x2 for up to 30 hours per week.
 - **Pre-installed Libraries**: Libraries like TensorFlow and PyTorch are pre-installed, simplifying the setup.
 - **Community Collaboration**: Engage with a vast community of data scientists and machine learning enthusiasts.
 - **Version Control**: Easily manage different versions of your notebooks and revert to previous versions if needed.

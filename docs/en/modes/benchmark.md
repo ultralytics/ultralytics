@@ -16,8 +16,8 @@ keywords: model benchmarking, YOLO11, Ultralytics, performance evaluation, expor
   <label><input type="checkbox" name="algorithm" value="YOLOv7"><span>YOLOv7</span></label>
   <label><input type="checkbox" name="algorithm" value="YOLOv10"><span>YOLOv10</span></label>
   <label><input type="checkbox" name="algorithm" value="YOLOv9"><span>YOLOv9</span></label>
-   <label><input type="checkbox" name="algorithm" value="YOLOv8"><span>Ultralytics YOLOv8</span></label>
-   <label><input type="checkbox" name="algorithm" value="PPYOLOE"><span>PPYOLOE</span></label>
+  <label><input type="checkbox" name="algorithm" value="YOLOv8"><span>Ultralytics YOLOv8</span></label>
+  <label><input type="checkbox" name="algorithm" value="PPYOLOE"><span>PPYOLOE</span></label>
   <label><input type="checkbox" name="algorithm" value="YOLOv5"><span>Ultralytics YOLOv5</span></label>
 </div>
 <canvas id="chart" width="400" height="200"></canvas>

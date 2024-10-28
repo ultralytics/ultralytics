@@ -98,7 +98,7 @@ extra_css:
   - stylesheets/style.css
 
 extra_javascript:
-  - https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js  # for benchmark.md, dynamic model points plotting.
+  - https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js # for benchmark.md, dynamic model points plotting.
   - javascript/extra.js
   - javascript/giscus.js
 

@@ -149,32 +149,17 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 const data = {
-    'YOLO11': {
-        s: { speed: 1.55, mAP: 39.5 },
-        m: { speed: 2.63, mAP: 47.0 },
-        x: { speed: 5.27, mAP: 51.4 }
-    },
-    'YOLOv10': {
-        s: { speed: 1.56, mAP: 39.5 },
-        m: { speed: 2.66, mAP: 46.7 },
-        x: { speed: 5.48, mAP: 51.3 }
-    },
-    'YOLOv9': {
-        s: { speed: 2.30, mAP: 37.8 },
-        m: { speed: 3.54, mAP: 46.5 },
-        x: { speed: 6.43, mAP: 51.5 }
-    },
-    'YOLOv5': {
-        s: { speed: 1.92, mAP: 37.4 },
-        m: { speed: 4.03, mAP: 45.4 },
-        x: { speed: 6.61, mAP: 49.0 }
-    }
-};
+    'YOLO11': {s: { speed: 1.55, mAP: 39.5 }, m: { speed: 2.63, mAP: 47.0 },
+    x: { speed: 5.27, mAP: 51.4 }},
+    'YOLOv10': {s: { speed: 1.56, mAP: 39.5 }, m: { speed: 2.66, mAP: 46.7 },
+    x: { speed: 5.48, mAP: 51.3 }},
+    'YOLOv9': {s: { speed: 2.30, mAP: 37.8 }, m: { speed: 3.54, mAP: 46.5 },
+    x: { speed: 6.43, mAP: 51.5 }},
+    'YOLOv5': {s: { speed: 1.92, mAP: 37.4 }, m: { speed: 4.03, mAP: 45.4 },
+    x: { speed: 6.61, mAP: 49.0 }}};
 
 let chart = null;
-
-function updateChart() {
-    if (chart) { chart.destroy(); }
+function updateChart() {if (chart) { chart.destroy(); }
 
     const selectedAlgorithms = [...document.querySelectorAll('input[name="algorithm"]:checked')].map(e => e.value);
     const datasets = selectedAlgorithms.map((algorithm, index) => ({
@@ -192,10 +177,8 @@ function updateChart() {
     }));
 
     if (datasets.length === 0) return;
-
     chart = new Chart(document.getElementById('chart').getContext('2d'), {
-        type: 'line',
-        data: { datasets },
+        type: 'line', data: { datasets },
         options: {
             plugins: {
                 legend: { display: true, position: 'top', labels: { color: '#111e68' } },

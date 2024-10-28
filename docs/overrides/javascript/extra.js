@@ -147,3 +147,92 @@ document.addEventListener("DOMContentLoaded", () => {
     addInkeepWidget(); // initialize the widget
   });
 });
+
+const data = {
+    'YOLO11': {
+        s: { speed: 1.55, mAP: 39.5 },
+        m: { speed: 2.63, mAP: 47.0 },
+        x: { speed: 5.27, mAP: 51.4 }
+    },
+    'YOLOv10': {
+        s: { speed: 1.56, mAP: 39.5 },
+        m: { speed: 2.66, mAP: 46.7 },
+        x: { speed: 5.48, mAP: 51.3 }
+    },
+    'YOLOv9': {
+        s: { speed: 2.30, mAP: 37.8 },
+        m: { speed: 3.54, mAP: 46.5 },
+        x: { speed: 6.43, mAP: 51.5 }
+    },
+    'YOLOv5': {
+        s: { speed: 1.92, mAP: 37.4 },
+        m: { speed: 4.03, mAP: 45.4 },
+        x: { speed: 6.61, mAP: 49.0 }
+    }
+};
+
+let chart = null;
+
+function updateChart() {
+    if (chart) { chart.destroy(); }
+
+    const selectedAlgorithms = [...document.querySelectorAll('input[name="algorithm"]:checked')].map(e => e.value);
+    const datasets = selectedAlgorithms.map((algorithm, index) => ({
+        label: algorithm,
+        data: Object.entries(data[algorithm]).map(([version, point]) => ({
+            x: point.speed, y: point.mAP,
+            version: version.toUpperCase() // Store version as additional data
+        })),
+        fill: false,
+        borderColor: `hsl(${index * 90}, 70%, 50%)`,
+        tension: 0.3, // Smooth line
+        pointRadius: 5, // Increased dot size
+        pointHoverRadius: 10,
+        borderWidth: 2 // Line thickness
+    }));
+
+    if (datasets.length === 0) return;
+
+    chart = new Chart(document.getElementById('chart').getContext('2d'), {
+        type: 'line',
+        data: { datasets },
+        options: {
+            plugins: {
+                legend: { display: true, position: 'top', labels: { color: '#111e68' } },
+                tooltip: {
+                    callbacks: {
+                        label: (tooltipItem) => {
+                            const { dataset, dataIndex } = tooltipItem;
+                            const point = dataset.data[dataIndex];
+                            return `${dataset.label}${point.version.toLowerCase()}: Speed = ${point.x}, mAP = ${point.y}`;
+                        }
+                    },
+                    mode: 'nearest',
+                    intersect: false
+                }
+            },
+            interaction: { mode: 'nearest', axis: 'x', intersect: false },
+            scales: {
+                x: {
+                    type: 'linear',
+                    position: 'bottom',
+                    title: { display: true, text: 'Latency T4 TensorRT10 FP16 (ms/img)', color: '#111e68' },
+                    grid: { color: '#e0e0e0' },
+                    ticks: { color: '#111e68' }
+                },
+                y: {
+                    title: { display: true, text: 'mAP', color: '#111e68' },
+                    grid: { color: '#e0e0e0' },
+                    ticks: { color: '#111e68' }
+                }
+            }
+        }
+    });
+}
+
+// Attach event listeners to checkboxes
+document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll('input[name="algorithm"]').forEach(checkbox =>
+        checkbox.addEventListener('change', updateChart)
+    );
+});

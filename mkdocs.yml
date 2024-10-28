@@ -102,7 +102,6 @@ extra_javascript:
   - javascript/extra.js
   - javascript/giscus.js
 
-
 markdown_extensions:
   - admonition
   - md_in_html

@@ -18,8 +18,6 @@ keywords: model benchmarking, YOLO11, Ultralytics, performance evaluation, expor
 </div>
 <canvas id="chart" width="400" height="200"></canvas>
 
-
-
 ## Introduction
 
 Once your model is trained and validated, the next logical step is to evaluate its performance in various real-world scenarios. Benchmark mode in Ultralytics YOLO11 serves this purpose by providing a robust framework for assessing the speed and [accuracy](https://www.ultralytics.com/glossary/accuracy) of your model across a range of export formats.

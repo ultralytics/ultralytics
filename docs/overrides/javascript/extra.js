@@ -181,6 +181,8 @@ function updateChart() {
     }));
 
     if (datasets.length === 0) return;
+
+    // Create the new chart.
     chart = new Chart(document.getElementById('chart').getContext('2d'), {
         type: 'line', data: { datasets },
         options: {

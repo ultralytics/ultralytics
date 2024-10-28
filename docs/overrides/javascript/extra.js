@@ -148,6 +148,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
+// Models for comparison.
 const data = {
     'YOLOv5':  {s: {speed: 1.92, mAP: 37.4}, m: {speed: 4.03, mAP: 45.4}, l: {speed: 6.61, mAP: 49.0}, x: {speed: 11.89, mAP: 50.7}},
     'YOLOv6':  {n: {speed: 1.17, mAP: 37.5}, s: {speed: 2.66, mAP: 45.0}, m: {speed: 5.28, mAP: 50.0}, l: {speed: 8.95, mAP: 52.8}},
@@ -159,16 +160,19 @@ const data = {
     'YOLO11':  {n: {speed: 1.55, mAP: 39.5}, s: {speed: 2.63, mAP: 47.0}, m: {speed: 5.27, mAP: 51.4}, l: {speed: 6.84, mAP: 53.2}, x: {speed: 12.49, mAP: 54.7}}};
 
 let chart = null;
-function updateChart() {if (chart) { chart.destroy(); }
 
+// Function to update the benchmarks chart.
+function updateChart() {
+    if (chart) { chart.destroy(); }     // destroy chart if already exist.
     const selectedAlgorithms = [...document.querySelectorAll('input[name="algorithm"]:checked')].map(e => e.value);
     const datasets = selectedAlgorithms.map((algorithm, index) => ({
-        label: algorithm,
+        label: algorithm,  // label name for each data point.
         data: Object.entries(data[algorithm]).map(([version, point]) => ({
-            x: point.speed, y: point.mAP,
+            x: point.speed,     // on x-axis, there will be speed data points
+            y: point.mAP,       // on y-axis, there will be mAP data points
             version: version.toUpperCase() // Store version as additional data
         })),
-        fill: false,
+        fill: false,    // we don't need to fill the chart
         borderColor: `hsl(${index * 90}, 70%, 50%)`,
         tension: 0.3, // Smooth line
         pointRadius: 5, // Increased dot size

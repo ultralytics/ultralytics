@@ -116,7 +116,7 @@ def test_predict_sam():
     from ultralytics.models.sam import Predictor as SAMPredictor
 
     # Load a model
-    model = SAM(WEIGHTS_DIR / "sam_b.pt")
+    model = SAM(WEIGHTS_DIR / "sam2.1_b.pt")
 
     # Display model information (optional)
     model.info()

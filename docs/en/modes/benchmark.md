@@ -10,6 +10,10 @@ keywords: model benchmarking, YOLO11, Ultralytics, performance evaluation, expor
 
 ## Benchmark Visualization
 
+!!! tip "Refresh Browser"
+
+    You may need to refresh the page to view the graphs correctly due to potential cookie issues.
+
 <div>
   <label><input type="checkbox" name="algorithm" value="YOLO11"><span>Ultralytics YOLO11</span></label>
   <label><input type="checkbox" name="algorithm" value="YOLOv6"><span>YOLOv6</span></label>

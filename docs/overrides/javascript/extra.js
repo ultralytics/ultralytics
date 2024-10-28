@@ -231,4 +231,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.querySelectorAll('input[name="algorithm"]').forEach(checkbox =>
         checkbox.addEventListener('change', updateChart)
     );
+    // Call updateChart on initial load
+    updateChart();
+    console.log("DOM loaded, initial chart render attempted");
 });

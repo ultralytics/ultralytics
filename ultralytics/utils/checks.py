@@ -335,7 +335,7 @@ def check_font(font="Arial.ttf"):
         return file
 
 
-def check_python(minimum: str = "3.8.0", hard: bool = True, verbose: bool = True) -> bool:
+def check_python(minimum: str = "3.8.0", hard: bool = True, verbose: bool = False) -> bool:
     """
     Check current python version against the required minimum version.
 

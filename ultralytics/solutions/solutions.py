@@ -1,15 +1,12 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 from collections import defaultdict
-from pathlib import Path
 
 import cv2
 
 from ultralytics import YOLO
-from ultralytics.utils import LOGGER, yaml_load
+from ultralytics.utils import DEFAULT_CFG_DICT, DEFAULT_SOL_DICT, LOGGER
 from ultralytics.utils.checks import check_imshow, check_requirements
-
-DEFAULT_SOL_CFG_PATH = Path(__file__).resolve().parents[1] / "cfg/solutions/default.yaml"
 
 
 class BaseSolution:
@@ -55,15 +52,18 @@ class BaseSolution:
         self.Point = Point
 
         # Load config and update with args
-        self.CFG = yaml_load(DEFAULT_SOL_CFG_PATH)
-        self.CFG.update(kwargs)
-        LOGGER.info(f"Ultralytics Solutions: ✅ {self.CFG}")
+        DEFAULT_SOL_DICT.update(kwargs)
+        DEFAULT_CFG_DICT.update(kwargs)
+        self.CFG = {**DEFAULT_SOL_DICT, **DEFAULT_CFG_DICT}
+        LOGGER.info(f"Ultralytics Solutions: ✅ {DEFAULT_SOL_DICT}")
 
         self.region = self.CFG["region"]  # Store region data for other classes usage
-        self.line_width = self.CFG["line_width"]  # Store line_width for usage
+        self.line_width = (
+            self.CFG["line_width"] if self.CFG["line_width"] is not None else 2
+        )  # Store line_width for usage
 
         # Load Model and store classes names
-        self.model = YOLO(self.CFG["model"])
+        self.model = YOLO(self.CFG["model"] if self.CFG["model"] else "yolov8n.pt")
         self.names = self.model.names
 
         # Initialize environment and region setup

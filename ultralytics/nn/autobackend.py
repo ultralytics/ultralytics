@@ -191,6 +191,10 @@ class AutoBackend(nn.Module):
 
             providers = ["CUDAExecutionProvider", "CPUExecutionProvider"] if cuda else ["CPUExecutionProvider"]
             session = onnxruntime.InferenceSession(w, providers=providers)
+            if cuda and not "CUDAExecutionProvider" in session.get_providers():
+                LOGGER.warning(f"WARNING ⚠️ Failed to start ONNX Runtime session on CUDA. Falling back to CPU...")
+                cuda = False
+                device = torch.device("cpu")
             output_names = [x.name for x in session.get_outputs()]
             metadata = session.get_modelmeta().custom_metadata_map
             dynamic = isinstance(session.get_outputs()[0].shape[0], str)
@@ -496,6 +500,8 @@ class AutoBackend(nn.Module):
         # ONNX Runtime
         elif self.onnx:
             if not self.dynamic:
+                if not self.cuda:
+                    im = im.cpu()
                 self.io.bind_input(
                     name="images",
                     device_type=im.device.type,

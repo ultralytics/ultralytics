@@ -191,8 +191,8 @@ class AutoBackend(nn.Module):
 
             providers = ["CUDAExecutionProvider", "CPUExecutionProvider"] if cuda else ["CPUExecutionProvider"]
             session = onnxruntime.InferenceSession(w, providers=providers)
-            if cuda and not "CUDAExecutionProvider" in session.get_providers():
-                LOGGER.warning(f"WARNING ⚠️ Failed to start ONNX Runtime session on CUDA. Falling back to CPU...")
+            if cuda and "CUDAExecutionProvider" not in session.get_providers():
+                LOGGER.warning("WARNING ⚠️ Failed to start ONNX Runtime session on CUDA. Falling back to CPU...")
                 cuda = False
                 device = torch.device("cpu")
             output_names = [x.name for x in session.get_outputs()]

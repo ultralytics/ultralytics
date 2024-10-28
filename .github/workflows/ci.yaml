@@ -96,6 +96,8 @@ jobs:
   Benchmarks:
     if: github.event_name != 'workflow_dispatch' || github.event.inputs.benchmarks == 'true'
     runs-on: ${{ matrix.os }}
+    env:
+      OMP_WAIT_POLICY: PASSIVE
     strategy:
       fail-fast: false
       matrix:
@@ -234,9 +236,11 @@ jobs:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   RaspberryPi:
-    if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event.inputs.raspberrypi == 'true')
+    # if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event.inputs.raspberrypi == 'true')
     timeout-minutes: 120
     runs-on: raspberry-pi
+    env:
+      OMP_WAIT_POLICY: PASSIVE
     steps:
       - uses: actions/checkout@v4
       - name: Activate Virtual Environment

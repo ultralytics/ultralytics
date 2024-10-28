@@ -193,16 +193,13 @@ function updateChart() {if (chart) { chart.destroy(); }
             interaction: { mode: 'nearest', axis: 'x', intersect: false },
             scales: {
                 x: {
-                    type: 'linear',
-                    position: 'bottom',
+                    type: 'linear', position: 'bottom',
                     title: { display: true, text: 'Latency T4 TensorRT10 FP16 (ms/img)', color: '#111e68' },
-                    grid: { color: '#e0e0e0' },
-                    ticks: { color: '#111e68' }
+                    grid: { color: '#e0e0e0' }, ticks: { color: '#111e68' }
                 },
                 y: {
                     title: { display: true, text: 'mAP', color: '#111e68' },
-                    grid: { color: '#e0e0e0' },
-                    ticks: { color: '#111e68' }
+                    grid: { color: '#e0e0e0' }, ticks: { color: '#111e68' }
                 }
             }
         }

@@ -184,6 +184,7 @@ class NeuronAutoBackend(nn.Module):
             if extra_files["config.txt"]:  # load metadata dict
                 metadata = json.loads(extra_files["config.txt"], object_hook=lambda x: dict(x.items()))
         ## Neuron
+        elif neuron:
             import torch_neuron
             LOGGER.info(f"Loading {w} for Neuron inference...")
             extra_files = {"config.txt": ""}  # model metadata
@@ -478,6 +479,8 @@ class NeuronAutoBackend(nn.Module):
             y = self.model(im)
         
         elif self.neuronx:
+            y = self.model(im)
+        elif self.neuron:
             y = self.model(im)
         # ONNX OpenCV DNN
         elif self.dnn:

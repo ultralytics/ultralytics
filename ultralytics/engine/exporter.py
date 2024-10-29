@@ -890,8 +890,10 @@ class Exporter:
             tmp_file = f / "tmp_tflite_int8_calibration_images.npy"  # int8 calibration images file
             if self.args.data:
                 f.mkdir()
-                images = [batch["img"].permute(0, 2, 3, 1) for batch in self.get_int8_calibration_dataloader(prefix)]
-                images = torch.cat(images, 0).float()
+                images = [batch["img"] for batch in self.get_int8_calibration_dataloader(prefix)]
+                images = torch.nn.functional.interpolate(torch.cat(images, 0).float(), size=self.imgsz).permute(
+                    0, 2, 3, 1
+                )
                 np.save(str(tmp_file), images.numpy().astype(np.float32))  # BHWC
                 np_data = [["images", tmp_file, [[[[0, 0, 0]]]], [[[[255, 255, 255]]]]]]
 

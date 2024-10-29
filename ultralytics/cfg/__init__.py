@@ -649,7 +649,7 @@ def handle_yolo_solutions(args: List[str]) -> None:
     if not source:
         from ultralytics.utils.downloads import safe_download
 
-        safe_download(f"{SOLUTIONS_ASSETS}/{default_source}")   # download sample video
+        safe_download(f"{SOLUTIONS_ASSETS}/{default_source}")  # download sample video
         source = default_source
 
     # Declare and initialize ultralytics solution
@@ -664,7 +664,7 @@ def handle_yolo_solutions(args: List[str]) -> None:
     if s_n != "analytics":
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
     else:
-        w, h, fps = 1920, 1080, cv2.CAP_PROP_FPS    # analytical graphs will always have fixed dimensions for frame.
+        w, h, fps = 1920, 1080, cv2.CAP_PROP_FPS  # analytical graphs will always have fixed dimensions for frame.
 
     # Save directory
     from ultralytics.utils.files import increment_path
@@ -680,7 +680,7 @@ def handle_yolo_solutions(args: List[str]) -> None:
             success, frame = cap.read()
             if not success:
                 break
-            process_method(frame, (f_n := f_n + 1) if s_n == "analytics" else None) # pass frame number for analytics
+            process_method(frame, (f_n := f_n + 1) if s_n == "analytics" else None)  # pass frame number for analytics
             vw.write(im0)  # write the video frame
             if cv2.waitKey(1) & 0xFF == ord("q"):
                 break

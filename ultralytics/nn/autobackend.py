@@ -512,7 +512,6 @@ class AutoBackend(nn.Module):
                 self.session.run_with_iobinding(self.io)
                 y = self.bindings
 
-
         # OpenVINO
         elif self.xml:
             im = im.cpu().numpy()  # FP32

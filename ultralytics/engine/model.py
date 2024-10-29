@@ -841,6 +841,7 @@ class Model(nn.Module):
             >>> print(results)
         """
         self._check_is_pytorch_model()
+        checks.check_requirements("numpy<=2.0.0")
         if use_ray:
             from ultralytics.utils.tuner import run_ray_tune
 

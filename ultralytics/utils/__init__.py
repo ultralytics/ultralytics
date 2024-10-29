@@ -574,7 +574,7 @@ def is_jupyter():
     Returns:
         (bool): True if running inside a Jupyter Notebook, False otherwise.
     """
-    return "get_ipython" in globals()
+    return IS_COLAB or IS_KAGGLE
 
 
 def is_docker() -> bool:

@@ -176,16 +176,17 @@ class SPPF(nn.Module):
         This module is equivalent to SPP(k=(5, 9, 13)).
         """
         super().__init__()
-        c_ = c1 // 2  # hidden channels
-        self.cv1 = Conv(c1, c_, 1, 1)
-        self.cv2 = Conv(c_ * 4, c2, 1, 1)
-        self.m = nn.MaxPool2d(kernel_size=k, stride=1, padding=k // 2)
+        self.cv1 = Conv(c1, c2 // 2, 1, 1)
+        self.maxpool = nn.MaxPool2d(k, 1, padding=k // 2)
+        self.cv2 = Conv(c2 // 2 * 4, c2, 1, 1)
 
     def forward(self, x):
         """Forward pass through Ghost Convolution block."""
-        y = [self.cv1(x)]
-        y.extend(self.m(y[-1]) for _ in range(3))
-        return self.cv2(torch.cat(y, 1))
+        x = self.cv1(x)
+        y1 = self.maxpool(x)
+        y2 = self.maxpool(y1)
+        y3 = self.maxpool(y2)
+        return self.cv2(torch.cat([x, y1, y2, y3], 1))
 
 
 class C1(nn.Module):

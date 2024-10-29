@@ -8,6 +8,7 @@ from types import SimpleNamespace
 from typing import Dict, List, Union
 
 import cv2
+
 from ultralytics.utils import (
     ASSETS,
     DEFAULT_CFG,

@@ -86,7 +86,7 @@ Mixed precision training is straightforward when working with YOLO11. You can us
 
 Using pretrained weights is a smart way to speed up your model's training process. Pretrained weights come from models already trained on large datasets, giving your model a head start. [Transfer learning](https://www.ultralytics.com/glossary/transfer-learning) adapts pretrained models to new, related tasks. Fine-tuning a pre-trained model involves starting with these weights and then continuing training on your specific dataset. This method of training results in faster training times and often better performance because the model starts with a solid understanding of basic features.
 
-The `pretrained` parameter makes transfer learning easy with YOLO11. Setting `pretrained=True` will use default pre-trained weights, or you can specify a path to a custom pre-trained model. Using pre-trained weights and transfer learning effectively boosts your model's capabilities and reduces training costs.
+Passing a `.pt` checkpoint file such as `yolo11n.pt` as `model` during training allows you to make use of the pre-trained weights for transfer learning. Using pre-trained weights and transfer learning effectively boosts your model's capabilities and reduces training costs.
 
 ### Other Techniques to Consider When Handling a Large Dataset
 

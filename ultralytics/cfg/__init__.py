@@ -611,11 +611,13 @@ def handle_yolo_solutions(args: List[str]) -> None:
     source = overrides.pop("source", None)
     if not source:
         from ultralytics.utils.downloads import safe_download  # download sample video
+
         safe_download(f"{SOLUTIONS_ASSETS}/{default_source}")
         source = default_source
 
     # Declare and initialize ultralytics solution
     from ultralytics import solutions
+
     solution = getattr(solutions, cls_name)(**overrides)
     process_method = getattr(solution, method_name)
 
@@ -629,8 +631,8 @@ def handle_yolo_solutions(args: List[str]) -> None:
 
     # Output directory
     from ultralytics.utils.files import increment_path
-    save_dir = increment_path(
-        get_save_dir(SimpleNamespace(project="runs", name="solution", exist_ok=True)) / f"{s_n}")
+
+    save_dir = increment_path(get_save_dir(SimpleNamespace(project="runs", name="solution", exist_ok=True)) / f"{s_n}")
     save_dir.mkdir(parents=True, exist_ok=True)
     vw = cv2.VideoWriter(os.path.join(save_dir, "solution.avi"), cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 

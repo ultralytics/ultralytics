@@ -1,5 +1,4 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-import os.path
 import shutil
 import subprocess
 import sys

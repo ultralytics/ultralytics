@@ -456,8 +456,8 @@ class Exporter:
 
     @try_export
     def export_openvino(self, prefix=colorstr("OpenVINO:")):
-        """YOLOv8 OpenVINO export."""
-        check_requirements("openvino-nightly")
+        """YOLO OpenVINO export."""
+        check_requirements("openvino>=2024.5.0")
         import openvino as ov
 
         LOGGER.info(f"\n{prefix} starting export with openvino {ov.__version__}...")

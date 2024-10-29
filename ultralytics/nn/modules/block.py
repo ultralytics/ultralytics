@@ -167,8 +167,6 @@ class SPP(nn.Module):
 
 
 class SPPF(nn.Module):
-    """Spatial Pyramid Pooling - Fast (SPPF) layer for YOLOv5 by Glenn Jocher."""
-
     def __init__(self, c1, c2, k=5):
         """
         Initializes the SPPF layer with given input/output channels and kernel size.
@@ -177,17 +175,16 @@ class SPPF(nn.Module):
         """
         super().__init__()
         self.cv1 = Conv(c1, c2 // 2, 1, 1)
-        self.maxpool = nn.MaxPool2d(k, 1, padding=k // 2)
+        self.maxpool = nn.MaxPool2d(kernel_size=k, stride=1, padding=k // 2)
         self.cv2 = Conv(c2 // 2 * 4, c2, 1, 1)
 
     def forward(self, x):
-        """Forward pass through Ghost Convolution block."""
+        """Applies sequential max pooling and concatenates results with input tensor."""
         x = self.cv1(x)
         y1 = self.maxpool(x)
         y2 = self.maxpool(y1)
         y3 = self.maxpool(y2)
-        return self.cv2(torch.cat([x, y1, y2, y3], 1))
-
+        return self.cv2(torch.cat([x, y1, y2, y3], dim=1))
 
 class C1(nn.Module):
     """CSP Bottleneck with 1 convolution."""
@@ -984,13 +981,15 @@ class PSA(nn.Module):
     def __init__(self, c1, c2, e=0.5):
         """Initializes the PSA module with input/output channels and attention mechanism for feature extraction."""
         super().__init__()
-        assert c1 == c2
+        c2 = c1  # Since c1 == c2
         self.c = int(c1 * e)
         self.cv1 = Conv(c1, 2 * self.c, 1, 1)
         self.cv2 = Conv(2 * self.c, c1, 1)
-
         self.attn = Attention(self.c, attn_ratio=0.5, num_heads=self.c // 64)
-        self.ffn = nn.Sequential(Conv(self.c, self.c * 2, 1), Conv(self.c * 2, self.c, 1, act=False))
+        self.ffn = nn.Sequential(
+            Conv(self.c, self.c * 2, 1),
+            Conv(self.c * 2, self.c, 1, act=False)
+        )
 
     def forward(self, x):
         """Executes forward pass in PSA module, applying attention and feed-forward layers to the input tensor."""

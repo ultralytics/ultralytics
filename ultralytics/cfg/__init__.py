@@ -36,13 +36,13 @@ from ultralytics.utils import (
 )
 
 # Define valid solutions
-SOLUTIONS = {"count", "heatmap", "queue", "speed", "aigym"}
-SOLUTIONS2CALL = {
-    "count": "ObjectCounter",
-    "heatmap": "Heatmap",
-    "queue": "QueueManager",
-    "speed": "SpeedEstimator",
-    "workouts": "AIGym"
+SOLUTIONS = {"count", "heatmap", "queue", "speed", "workout"}
+SOLUTION_MAP = {
+    'count': ('ObjectCounter', 'count', 'solutions_ci_demo.mp4'),
+    'heatmap': ('Heatmap', 'generate_heatmap', 'solutions_ci_demo.mp4'),
+    'queue': ('QueueManager', 'process_queue', 'solutions_ci_demo.mp4'),
+    'speed': ('SpeedEstimator', 'estimate_speed', 'solutions_ci_demo.mp4'),
+    'workout': ('AIGym', 'monitor', 'solution_ci_pose_demo.mp4')
 }
 
 # Define valid tasks and modes
@@ -584,76 +584,52 @@ def handle_yolo_settings(args: List[str]) -> None:
 
 
 def handle_yolo_solutions(args: List[str]) -> None:
-    full_args_dict = {**DEFAULT_SOL_DICT, **DEFAULT_CFG_DICT, "name": None}
-    overrides = {}  # basic solution overrides, i.e. name=count
-    for a in merge_equals_args(args[0:]):  # merge spaces around '=' sign
-        if a.startswith("--"):
-            LOGGER.warning(f"WARNING ⚠️ argument '{a}' does not require leading dashes '--', updating to '{a[2:]}'.")
-            a = a[2:]
-        if a.endswith(","):
-            LOGGER.warning(f"WARNING ⚠️ argument '{a}' does not require trailing comma ',', updating to '{a[:-1]}'.")
-            a = a[:-1]
-        if "=" in a:
+    # Parse arguments
+    full_args_dict = {**DEFAULT_SOL_DICT, **DEFAULT_CFG_DICT}
+    overrides = {}
+
+    for arg in merge_equals_args(args):
+        arg = arg.lstrip('-').rstrip(',')
+        if "=" in arg:
             try:
-                k, v = parse_key_value_pair(a)
+                k, v = parse_key_value_pair(arg)
                 overrides[k] = v
             except (NameError, SyntaxError, ValueError, AssertionError) as e:
-                check_dict_alignment(full_args_dict, {a: ""}, e)
-        elif a in (DEFAULT_SOL_DICT or DEFAULT_CFG_DICT) and isinstance((DEFAULT_SOL_DICT[a] or DEFAULT_CFG_DICT), bool):
-            overrides[a] = True  # auto-True for default bool args, i.e. 'yolo show' sets show=True
-        elif a in DEFAULT_SOL_DICT or DEFAULT_CFG_DICT:
-            raise SyntaxError(
-                f"'{colorstr('red', 'bold', a)}' is a valid SOLUTIONS argument but is missing an '=' sign "
-                f"to set its value, i.e. try '{a}={DEFAULT_SOL_DICT[a]}'\n{CLI_HELP_MSG}"
-            )
-        else:
-            check_dict_alignment(full_args_dict, {a: ""})
-    # Check keys
+                check_dict_alignment(full_args_dict, {arg: ""}, e)
+        elif arg in full_args_dict and isinstance(full_args_dict.get(arg), bool):
+            overrides[arg] = True
+
     check_dict_alignment(full_args_dict, overrides)
 
-    # Solution name
-    sol_name = overrides.pop("name", None)
-    if sol_name is None:
-        LOGGER.warning(f"WARNING ⚠️ solution name missing. Updating to 'name=count'.")
-        sol_name = "count"
-    elif sol_name not in SOLUTIONS:
-        LOGGER.warning(f"WARNING ⚠️ {sol_name} is not valid solution. It should be in {SOLUTIONS}. Updating to 'name=count'")
-        sol_name = "count"
+    # Get solution name and setup
+    s_n = overrides.pop("name", None)
+    if s_n not in SOLUTIONS:
+        LOGGER.warning(f"WARNING ⚠️ Invalid solution {s_n}. Using 'name=count'")
+        s_n = "count"
 
-    # Call ultralytics solutions
-    from ultralytics import solutions
-    sol_obj = getattr(solutions, SOLUTIONS2CALL[sol_name])(**overrides)
-
-    # video capture and iterate over video file
+    cls_name, method_name, default_source = SOLUTION_MAP[s_n]
     source = overrides.pop("source", None)
-    if source is None:
+    if not source:
         from ultralytics.utils.downloads import safe_download
-        LOGGER.warning(f"WARNING ⚠️ source is missing. using ultralytics assets video.")
-        if sol_name not in "workouts":
-            safe_download(f"{SOLUTIONS_ASSETS}/solutions_ci_demo.mp4")
-            source = "solutions_ci_demo.mp4"
-        else:
-            safe_download(f"{SOLUTIONS_ASSETS}/solution_ci_pose_demo.mp4")
-            source = "solution_ci_pose_demo.mp4"
+        safe_download(f"{SOLUTIONS_ASSETS}/{default_source}")
+        source = default_source
+
+    # Initialize and run solution
+    from ultralytics import solutions
+    solution = getattr(solutions, cls_name)(**overrides)
+    process_method = getattr(solution, method_name)
 
     cap = cv2.VideoCapture(source)
-    while cap.isOpened():
-        s, f = cap.read()
-        if not s:
-            break
-        if sol_name=="count":
-            _ = sol_obj.count(f)
-        elif sol_name=="heatmap":
-            _ = sol_obj.generate_heatmap(f)
-        elif sol_name=="queue":
-            _ = sol_obj.process_queue(f)
-        elif sol_name=="speed":
-            _ = sol_obj.estimate_speed(f)
-        elif sol_name=="workouts":
-            _ = sol_obj.monitor(f)
-        if cv2.waitKey(1) & 0xFF == ord("q"):
-            return
-    cap.release()
+    try:
+        while cap.isOpened():
+            success, frame = cap.read()
+            if not success:
+                break
+            process_method(frame)
+            if cv2.waitKey(1) & 0xFF == ord("q"):
+                break
+    finally:
+        cap.release()
 
 
 def handle_streamlit_inference():
@@ -797,7 +773,7 @@ def entrypoint(debug=""):
         "logout": lambda: handle_yolo_hub(args),
         "copy-cfg": copy_default_cfg,
         "streamlit-predict": lambda: handle_streamlit_inference(),
-        "solutions": lambda: handle_yolo_solutions(args[1:]),
+        "solution": lambda: handle_yolo_solutions(args[1:])
     }
     full_args_dict = {**DEFAULT_CFG_DICT, **{k: None for k in TASKS}, **{k: None for k in MODES}, **special}
 

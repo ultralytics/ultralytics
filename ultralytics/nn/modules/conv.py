@@ -281,15 +281,12 @@ class ChannelAttention(nn.Module):
         """Initializes the class and sets the basic configurations and instance variables required."""
         super().__init__()
         self.pool = nn.AdaptiveAvgPool2d(1)
-        self.fc1 = nn.Conv2d(channels, channels, 1, 1, 0, bias=True)  # First Conv layer
-        self.relu = nn.ReLU()  # ReLU activation
-        self.fc2 = nn.Conv2d(channels, channels, 1, 1, 0, bias=True)  # Second Conv layer
+        self.fc = nn.Conv2d(channels, channels, 1, 1, 0, bias=True)
         self.act = nn.Sigmoid()
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Applies forward pass using activation on convolutions of the input, optionally using batch normalization."""
-        return x * self.act(self.fc2(self.relu(self.fc1(self.pool(x)))))
-
+        return x * self.act(self.fc(self.pool(x)))
 
 class SpatialAttention(nn.Module):
     """Spatial-attention module."""
@@ -308,17 +305,20 @@ class SpatialAttention(nn.Module):
 
 
 class CBAM(nn.Module):
-    """Convolutional Block Attention Module."""
-
-    def __init__(self, c1, kernel_size=7):
-        """Initialize CBAM with given input channel (c1) and kernel size."""
+    def __init__(self, kernel_size=7):
         super().__init__()
-        self.channel_attention = ChannelAttention(c1)
-        self.spatial_attention = SpatialAttention(kernel_size)
+        self.kernel_size = kernel_size
+        self.channel_attention = None
+        self.spatial_attention = None
 
     def forward(self, x):
-        """Applies the forward pass through C1 module."""
-        return self.spatial_attention(self.channel_attention(x))
+        if self.channel_attention is None:
+            channels = x.size(1)
+            self.channel_attention = ChannelAttention(channels).to(x.device)
+            self.spatial_attention = SpatialAttention(self.kernel_size).to(x.device)
+        x = self.channel_attention(x)
+        x = self.spatial_attention(x)
+        return x
 
 
 class Concat(nn.Module):

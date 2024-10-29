@@ -196,6 +196,7 @@ class AutoBackend(nn.Module):
                 LOGGER.warning("WARNING ⚠️ Failed to start ONNX Runtime session with CUDA. Falling back to CPU...")
                 device = torch.device("cpu")
                 cuda = False
+            LOGGER.info(f"Preferring ONNX Runtime {providers[0]}")
             session = onnxruntime.InferenceSession(w, providers=providers)
             output_names = [x.name for x in session.get_outputs()]
             metadata = session.get_modelmeta().custom_metadata_map

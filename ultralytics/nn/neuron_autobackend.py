@@ -110,6 +110,7 @@ class NeuronAutoBackend(nn.Module):
             pt,
             jit,
             neuronx,
+            neuron,
             onnx,
             xml,
             engine,
@@ -182,6 +183,15 @@ class NeuronAutoBackend(nn.Module):
             model.half() if fp16 else model.float()
             if extra_files["config.txt"]:  # load metadata dict
                 metadata = json.loads(extra_files["config.txt"], object_hook=lambda x: dict(x.items()))
+        ## Neuron
+            import torch_neuron
+            LOGGER.info(f"Loading {w} for Neuron inference...")
+            extra_files = {"config.txt": ""}  # model metadata
+            model = torch.jit.load(w, _extra_files=extra_files, map_location=device)
+            model.half() if fp16 else model.float()
+            if extra_files["config.txt"]:  # load metadata dict
+                metadata = json.loads(extra_files["config.txt"], object_hook=lambda x: dict(x.items()))
+
         # ONNX OpenCV DNN
         elif dnn:
             LOGGER.info(f"Loading {w} for ONNX OpenCV DNN inference...")

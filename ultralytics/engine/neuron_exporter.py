@@ -105,6 +105,7 @@ def export_formats():
         ["PyTorch", "-", ".pt", True, True],
         ["TorchScript", "torchscript", ".torchscript", True, True],
         ["AWS NeuronX", "neuronx", ".neuronx", True, True],
+        ["AWS Neuron", "neuron", ".neuron", True, True],
         ["ONNX", "onnx", ".onnx", True, True],
         ["OpenVINO", "openvino", "_openvino_model", True, False],
         ["TensorRT", "engine", ".engine", False, True],
@@ -173,7 +174,22 @@ class NeuronExporter(Exporter):
         flags = [x == fmt for x in fmts]
         if sum(flags) != 1:
             raise ValueError(f"Invalid export format='{fmt}'. Valid formats are {fmts}")
-        jit, neuronx, onnx, xml, engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, paddle, ncnn = flags  # export booleans
+        (
+            jit,
+            neuronx,
+            neuron,
+            onnx,
+            xml,
+            engine,
+            coreml,
+            saved_model,
+            pb,
+            tflite,
+            edgetpu,
+            tfjs,
+            paddle,
+            ncnn,
+        ) = flags  # export booleans
         is_tf_format = any((saved_model, pb, tflite, edgetpu, tfjs))
 
         # Device
@@ -315,6 +331,8 @@ class NeuronExporter(Exporter):
             f[11], _ = self.export_ncnn()
         if neuronx:  # NeuronX
             f[12], _ = self.export_neuronx()
+        if neuron:  # Neuron
+            f[13], _ = self.export_neuron()
 
         # Finish
         f = [str(x) for x in f if x]  # filter out '' and None
@@ -354,6 +372,16 @@ class NeuronExporter(Exporter):
             from torch.utils.mobile_optimizer import optimize_for_mobile
 
             optimize_for_mobile(ts)._save_for_lite_interpreter(str(f), _extra_files=extra_files)
-        else:
-            ts.save(str(f), _extra_files=extra_files)
+        extra_files = {"config.txt": json.dumps(self.metadata)}
+        ts.save(str(f), _extra_files=extra_files)
+        return f, None
+
+    @try_export
+    def export_neuron(self, prefix=colorstr("AWS Neuron:")):
+        """YOLOv8 Neuron model export."""
+        LOGGER.info(f"\n{prefix} starting export with torch {torch_neuron.__version__}...")
+        f = self.file.with_suffix(".neuron")
+        ts = torch_neuron.trace(self.model, self.im, strict=False)
+        extra_files = {"config.txt": json.dumps(self.metadata)}
+        ts.save(str(f), _extra_files=extra_files)
         return f, None

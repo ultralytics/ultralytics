@@ -40,7 +40,7 @@ def run_ray_tune(
 
     try:
         # checks.check_requirements("numpy==1.26.4")
-        subprocess.run("pip install ray[tune] numpy==1.26.4".split(), check=True)  # do not add single quotes here
+        subprocess.run(["pip","install","ray[tune]", "numpy==1.26.4"], check=True)  # do not add single quotes here
 
         import ray
         from ray import tune

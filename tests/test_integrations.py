@@ -14,7 +14,7 @@ from ultralytics.utils import DATASETS_DIR, SETTINGS
 from ultralytics.utils.checks import check_requirements
 
 
-@pytest.mark.skipif(not check_requirements("ray", install=False), reason="ray[tune] not installed")
+# @pytest.mark.skipif(not check_requirements("ray", install=False), reason="ray[tune] not installed")
 def test_model_ray_tune():
     """Tune YOLO model using Ray for hyperparameter optimization."""
     YOLO("yolo11n-cls.yaml").tune(

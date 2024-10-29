@@ -24,7 +24,7 @@ backbone:
   - [-1, 1, SCDown, [1024, 3, 2]] #12-P5/32, output channels: 1024
   - [-1, 3, C2fCIB, [1024, True]] #13, output channels: 1024
   - [-1, 1, CBAM, [1280]] #14, CBAM with in_channels=1280
-  - [-1, 1, SPPF, [1280, 1024, 5]] #15, SPPF module with c1=1280, c2=1024, k=5
+  - [-1, 1, SPPF, [1024, 5]] #15, SPPF module with c1=1280, c2=1024, k=5
   - [-1, 1, PSA, [1024]] #16, PSA module with in_channels=1024
 
 head:

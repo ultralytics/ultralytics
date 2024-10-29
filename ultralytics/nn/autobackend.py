@@ -193,7 +193,8 @@ class AutoBackend(nn.Module):
             session = onnxruntime.InferenceSession(w, providers=providers)
             output_names = [x.name for x in session.get_outputs()]
             metadata = session.get_modelmeta().custom_metadata_map
-
+            if "float16" in session.get_inputs()[0].type:
+                fp16 = True
         # OpenVINO
         elif xml:
             LOGGER.info(f"Loading {w} for OpenVINO inference...")

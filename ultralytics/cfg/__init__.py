@@ -7,6 +7,7 @@ from pathlib import Path
 from types import SimpleNamespace
 from typing import Dict, List, Union
 
+import cv2
 from ultralytics.utils import (
     ASSETS,
     DEFAULT_CFG,
@@ -31,7 +32,6 @@ from ultralytics.utils import (
     vscode_msg,
     yaml_load,
     yaml_print,
-    cv2,
 )
 
 # Define valid solutions

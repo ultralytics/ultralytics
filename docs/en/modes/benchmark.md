@@ -2,6 +2,9 @@
 comments: true
 description: Learn how to evaluate your YOLO11 model's performance in real-world scenarios using benchmark mode. Optimize speed, accuracy, and resource allocation across export formats.
 keywords: model benchmarking, YOLO11, Ultralytics, performance evaluation, export formats, ONNX, TensorRT, OpenVINO, CoreML, TensorFlow, optimization, mAP50-95, inference time
+
+extra_javascript:
+    - https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js # for benchmark.md, dynamic model points plotting.
 ---
 
 # Model Benchmarking with Ultralytics YOLO

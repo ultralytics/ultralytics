@@ -202,11 +202,7 @@ class AutoBackend(nn.Module):
                 io = session.io_binding()
                 bindings = []
                 for output in session.get_outputs():
-                    y_tensor = (
-                        torch.empty(output.shape, dtype=torch.float16 if fp16 else torch.float32)
-                        .to(device)
-                        .contiguous()
-                    )
+                    y_tensor = torch.empty(output.shape, dtype=torch.float16 if fp16 else torch.float32).to(device)
                     io.bind_output(
                         name=output.name,
                         device_type=device.type,

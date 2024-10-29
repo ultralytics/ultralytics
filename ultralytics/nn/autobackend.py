@@ -345,6 +345,7 @@ class AutoBackend(nn.Module):
                     model_path=w,
                     experimental_delegates=[load_delegate(delegate, options={"device": device})],
                 )
+                device = "cpu"  # Required, otherwise PyTorch will try to use the wrong device
             else:  # TFLite
                 LOGGER.info(f"Loading {w} for TensorFlow Lite inference...")
                 interpreter = Interpreter(model_path=w)  # load TFLite model

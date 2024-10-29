@@ -11,6 +11,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Union
 
+
 import numpy as np
 import torch
 import torch.distributed as dist
@@ -76,7 +77,7 @@ def smart_inference_mode():
     return decorate
 
 
-def autocast(enabled: bool, device: str = "cuda"):
+def autocast(enabled: bool, device: str = "musa"):
     """
     Get the appropriate autocast context manager based on PyTorch version and AMP setting.
 
@@ -101,7 +102,9 @@ def autocast(enabled: bool, device: str = "cuda"):
             pass
         ```
     """
-    if TORCH_1_13:
+    if has_musa:
+        return torch.musa.amp.autocast(enabled)
+    elif TORCH_1_13:
         return torch.amp.autocast(device, enabled=enabled)
     else:
         return torch.cuda.amp.autocast(enabled)
@@ -124,9 +127,19 @@ def get_cpu_info():
     return PERSISTENT_CACHE.get("cpu_info", "unknown")
 
 
+has_musa = False
+try:
+    import torch_musa
+    has_musa = True
+except ImportError:
+    pass
+
 def get_gpu_info(index):
     """Return a string with system GPU information, i.e. 'Tesla T4, 15102MiB'."""
-    properties = torch.cuda.get_device_properties(index)
+    if has_musa:
+        properties = torch.musa.get_device_properties(index)
+    else:
+        properties = torch.cuda.get_device_properties(index)
     return f"{properties.name}, {properties.total_memory / (1 << 20):.0f}MiB"
 
 
@@ -168,38 +181,63 @@ def select_device(device="", batch=0, newline=False, verbose=True):
 
     s = f"Ultralytics {__version__} 🚀 Python-{PYTHON_VERSION} torch-{torch.__version__} "
     device = str(device).lower()
-    for remove in "cuda:", "none", "(", ")", "[", "]", "'", " ":
+    for remove in "musa:" if has_musa else "cuda:", "none", "(", ")", "[", "]", "'", " ":
         device = device.replace(remove, "")  # to string, 'cuda:0' -> '0' and '(0, 1)' -> '0,1'
     cpu = device == "cpu"
     mps = device in {"mps", "mps:0"}  # Apple Metal Performance Shaders (MPS)
     if cpu or mps:
         os.environ["CUDA_VISIBLE_DEVICES"] = "-1"  # force torch.cuda.is_available() = False
     elif device:  # non-cpu device requested
-        if device == "cuda":
-            device = "0"
-        if "," in device:
-            device = ",".join([x for x in device.split(",") if x])  # remove sequential commas, i.e. "0,,1" -> "0,1"
-        visible = os.environ.get("CUDA_VISIBLE_DEVICES", None)
-        os.environ["CUDA_VISIBLE_DEVICES"] = device  # set environment variable - must be before assert is_available()
-        if not (torch.cuda.is_available() and torch.cuda.device_count() >= len(device.split(","))):
-            LOGGER.info(s)
-            install = (
-                "See https://pytorch.org/get-started/locally/ for up-to-date torch install instructions if no "
-                "CUDA devices are seen by torch.\n"
-                if torch.cuda.device_count() == 0
-                else ""
-            )
-            raise ValueError(
-                f"Invalid CUDA 'device={device}' requested."
-                f" Use 'device=cpu' or pass valid CUDA device(s) if available,"
-                f" i.e. 'device=0' or 'device=0,1,2,3' for Multi-GPU.\n"
-                f"\ntorch.cuda.is_available(): {torch.cuda.is_available()}"
-                f"\ntorch.cuda.device_count(): {torch.cuda.device_count()}"
-                f"\nos.environ['CUDA_VISIBLE_DEVICES']: {visible}\n"
-                f"{install}"
-            )
+        if has_musa:
+            if device == "musa":
+                device = "0"
+            if "," in device:
+                device = ",".join([x for x in device.split(",") if x])  # remove sequential commas, i.e. "0,,1" -> "0,1"
+            visible = os.environ.get("MUSA_VISIBLE_DEVICES", None)
+            os.environ["MUSA_VISIBLE_DEVICES"] = device  # set environment variable - must be before assert is_available()
+            if not (torch.musa.is_available() and torch.musa.device_count() >= len(device.split(","))):
+                LOGGER.info(s)
+                install = (
+                    "See https://github.com/MooreThreads/torch_musa for up-to-date torch install instructions if no "
+                    "MUSA devices are seen by torch.\n"
+                    if torch.musa.device_count() == 0
+                    else ""
+                )
+                raise ValueError(
+                    f"Invalid MUSA 'device={device}' requested."
+                    f" Use 'device=cpu' or pass valid MUSA device(s) if available,"
+                    f" i.e. 'device=0' or 'device=0,1,2,3' for Multi-GPU.\n"
+                    f"\ntorch.musa.is_available(): {torch.musa.is_available()}"
+                    f"\ntorch.musa.device_count(): {torch.musa.device_count()}"
+                    f"\nos.environ['MUSA_VISIBLE_DEVICES']: {visible}\n"
+                    f"{install}"
+                )
+        else:
+            if device == "cuda":
+                device = "0"
+            if "," in device:
+                device = ",".join([x for x in device.split(",") if x])  # remove sequential commas, i.e. "0,,1" -> "0,1"
+            visible = os.environ.get("CUDA_VISIBLE_DEVICES", None)
+            os.environ["CUDA_VISIBLE_DEVICES"] = device  # set environment variable - must be before assert is_available()
+            if not (torch.cuda.is_available() and torch.cuda.device_count() >= len(device.split(","))):
+                LOGGER.info(s)
+                install = (
+                    "See https://pytorch.org/get-started/locally/ for up-to-date torch install instructions if no "
+                    "CUDA devices are seen by torch.\n"
+                    if torch.cuda.device_count() == 0
+                    else ""
+                )
+                raise ValueError(
+                    f"Invalid CUDA 'device={device}' requested."
+                    f" Use 'device=cpu' or pass valid CUDA device(s) if available,"
+                    f" i.e. 'device=0' or 'device=0,1,2,3' for Multi-GPU.\n"
+                    f"\ntorch.cuda.is_available(): {torch.cuda.is_available()}"
+                    f"\ntorch.cuda.device_count(): {torch.cuda.device_count()}"
+                    f"\nos.environ['CUDA_VISIBLE_DEVICES']: {visible}\n"
+                    f"{install}"
+                )
 
-    if not cpu and not mps and torch.cuda.is_available():  # prefer GPU if available
+    if not cpu and not mps and (has_musa or torch.cuda.is_available()):  # prefer GPU if available
         devices = device.split(",") if device else "0"  # i.e. "0,1" -> ["0", "1"]
         n = len(devices)  # device count
         if n > 1:  # multi-GPU
@@ -214,9 +252,15 @@ def select_device(device="", batch=0, newline=False, verbose=True):
                     f"'batch={batch // n * n + n}', the nearest batch sizes evenly divisible by {n}."
                 )
         space = " " * (len(s) + 1)
-        for i, d in enumerate(devices):
-            s += f"{'' if i == 0 else space}CUDA:{d} ({get_gpu_info(i)})\n"  # bytes to MB
-        arg = "cuda:0"
+
+        if has_musa:
+            for i, d in enumerate(devices):
+                s += f"{'' if i == 0 else space}MUSA:{d} ({get_gpu_info(i)})\n"  # bytes to MB
+            arg = "musa:0"
+        else:
+            for i, d in enumerate(devices):
+                s += f"{'' if i == 0 else space}CUDA:{d} ({get_gpu_info(i)})\n"  # bytes to MB
+            arg = "cuda:0"
     elif mps and TORCH_2_0 and torch.backends.mps.is_available():
         # Prefer MPS if available
         s += f"MPS ({get_cpu_info()})\n"
@@ -234,8 +278,12 @@ def select_device(device="", batch=0, newline=False, verbose=True):
 
 def time_sync():
     """PyTorch-accurate time."""
-    if torch.cuda.is_available():
-        torch.cuda.synchronize()
+    if has_musa:
+        if torch.musa.is_available():
+            torch.musa.synchronize()
+    else:
+        if torch.cuda.is_available():
+            torch.cuda.synchronize()
     return time.time()
 
 

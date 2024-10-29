@@ -50,11 +50,12 @@ def benchmark(
     model=WEIGHTS_DIR / "yolo11n.pt",
     data=None,
     imgsz=160,
+    batch=64,
     half=False,
     int8=False,
     device="cpu",
     verbose=False,
-    eps=1e-3,
+    eps=1e-3
 ):
     """
     Benchmark a YOLO model across different formats for speed and accuracy.
@@ -140,7 +141,7 @@ def benchmark(
             data = data or TASK2DATA[model.task]  # task to dataset, i.e. coco8.yaml for task=detect
             key = TASK2METRIC[model.task]  # task to metric, i.e. metrics/mAP50-95(B) for task=detect
             results = exported_model.val(
-                data=data, batch=1, imgsz=imgsz, plots=False, device=device, half=half, int8=int8, verbose=False
+                data=data, batch=batch, imgsz=imgsz, plots=False, device=device, half=half, int8=int8, verbose=False
             )
             metric, speed = results.results_dict[key], results.speed["inference"]
             fps = round(1000 / (speed + eps), 2)  # frames per second

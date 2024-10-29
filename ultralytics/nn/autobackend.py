@@ -189,12 +189,14 @@ class AutoBackend(nn.Module):
                 check_requirements("numpy==1.23.5")
             import onnxruntime
 
-            providers = ["CUDAExecutionProvider", "CPUExecutionProvider"] if cuda else ["CPUExecutionProvider"]
+            providers = onnxruntime.get_available_providers()
+            if not cuda and "CUDAExecutionProvider" in providers:
+               providers.remove("CUDAExecutionProvider")
+            elif cuda and "CUDAExecutionProvider" not in providers:
+               LOGGER.warning("WARNING ⚠️ Failed to start ONNX Runtime session with CUDA. Falling back to CPU...")
+               device = torch.device("cpu")
+               cuda = False
             session = onnxruntime.InferenceSession(w, providers=providers)
-            if cuda and "CUDAExecutionProvider" not in session.get_providers():
-                LOGGER.warning("WARNING ⚠️ Failed to start ONNX Runtime session with CUDA. Falling back to CPU...")
-                cuda = False
-                device = torch.device("cpu")
             output_names = [x.name for x in session.get_outputs()]
             metadata = session.get_modelmeta().custom_metadata_map
             dynamic = isinstance(session.get_outputs()[0].shape[0], str)

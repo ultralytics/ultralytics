@@ -378,6 +378,7 @@ class NeuronExporter(Exporter):
 
     @try_export
     def export_neuron(self, prefix=colorstr("AWS Neuron:")):
+        import torch_neuron
         """YOLOv8 Neuron model export."""
         LOGGER.info(f"\n{prefix} starting export with torch {torch_neuron.__version__}...")
         f = self.file.with_suffix(".neuron")

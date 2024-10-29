@@ -97,7 +97,10 @@ CLI_HELP_MSG = f"""
     5. Streamlit real-time webcam inference GUI
         yolo streamlit-predict
         
-    6. Run special commands:
+    6. Ultralytics solutions usage
+        yolo solution source="path/to/video/file.mp4" name=count or name in {list(SOLUTION_MAP.keys())}
+        
+    7. Run special commands:
         yolo help
         yolo checks
         yolo version
@@ -106,6 +109,7 @@ CLI_HELP_MSG = f"""
         yolo cfg
 
     Docs: https://docs.ultralytics.com
+    Solutions: https://docs.ultralytics.com/solutions/
     Community: https://community.ultralytics.com
     GitHub: https://github.com/ultralytics/ultralytics
     """
@@ -583,6 +587,38 @@ def handle_yolo_settings(args: List[str]) -> None:
 
 
 def handle_yolo_solutions(args: List[str]) -> None:
+    """
+    Processes YOLO solution arguments and runs the specified computer vision solution pipeline.
+
+    Args:
+        args (List[str]): Command-line arguments for configuring and running the Ultralytics YOLO
+            solutions: https://docs.ultralytics.com/solutions/, It can include solution name, source,
+            and other configuration parameters.
+
+    Returns:
+        None: The function processes video frames and saves the output but doesn't return any value.
+
+    Examples:
+        Run people counting solution with default settings:
+        >>> handle_yolo_solutions(["name=count"])
+
+        Generate heatmaps with custom source:
+        >>> handle_yolo_solutions(["source=path/to/video/file.mp4", "name=heatmap"])
+
+        Run analytics with custom configuration:
+        >>> handle_yolo_solutions(["name=analytics", "conf=0.25", "source=path/to/video/file.mp4"])
+
+    Notes:
+        - Default configurations are merged from DEFAULT_SOL_DICT and DEFAULT_CFG_DICT
+        - Arguments can be provided in the format 'key=value' or as boolean flags
+        - Available solutions are defined in SOLUTION_MAP with their respective classes and methods
+        - If an invalid solution name is provided, defaults to 'count' solution
+        - Output videos are saved in 'runs/solution/{solution_name}' directory
+        - For 'analytics' solution, frame numbers are tracked for generating analytical graphs
+        - Video processing can be interrupted by pressing 'q'
+        - Processes video frames sequentially and saves output in .avi format
+        - If no source is specified, downloads and uses a default sample video
+    """
     full_args_dict = {**DEFAULT_SOL_DICT, **DEFAULT_CFG_DICT}  # Parse arguments
     overrides = {}
 

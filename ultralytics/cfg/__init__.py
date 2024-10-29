@@ -42,6 +42,7 @@ SOLUTION_MAP = {
     "queue": ("QueueManager", "process_queue", "solutions_ci_demo.mp4"),
     "speed": ("SpeedEstimator", "estimate_speed", "solutions_ci_demo.mp4"),
     "workout": ("AIGym", "monitor", "solution_ci_pose_demo.mp4"),
+    "analytics": ("Analytics", "process_data", "solutions_ci_demo.mp4")
 }
 
 # Define valid tasks and modes
@@ -603,7 +604,7 @@ def handle_yolo_solutions(args: List[str]) -> None:
     # Get solution name and setup
     s_n = overrides.pop("name", None)
     if s_n not in SOLUTION_MAP:
-        LOGGER.warning(f"WARNING ⚠️ Invalid solution {s_n}. Using 'name=count'")
+        LOGGER.warning(f"WARNING ⚠️ Invalid solution {s_n}. Defined solutions are {list(SOLUTION_MAP.keys())}, Using solution 'name=count'")
         s_n = "count"
 
     cls_name, method_name, default_source = SOLUTION_MAP[s_n]
@@ -622,11 +623,12 @@ def handle_yolo_solutions(args: List[str]) -> None:
 
     cap = cv2.VideoCapture(source)
     try:
+        f_n = 0     # frame number, required for analytical graphs
         while cap.isOpened():
             success, frame = cap.read()
             if not success:
                 break
-            process_method(frame)
+            process_method(f, f_n) if s_n=="analytics" else process_method(f)
             if cv2.waitKey(1) & 0xFF == ord("q"):
                 break
     finally:

@@ -11,7 +11,6 @@ import cv2
 
 from ultralytics.utils import (
     ASSETS,
-    SOLUTIONS_ASSETS,
     DEFAULT_CFG,
     DEFAULT_CFG_DICT,
     DEFAULT_CFG_PATH,
@@ -24,6 +23,7 @@ from ultralytics.utils import (
     RUNS_DIR,
     SETTINGS,
     SETTINGS_FILE,
+    SOLUTIONS_ASSETS,
     TESTS_RUNNING,
     IterableSimpleNamespace,
     __version__,
@@ -38,11 +38,11 @@ from ultralytics.utils import (
 # Define valid solutions
 SOLUTIONS = {"count", "heatmap", "queue", "speed", "workout"}
 SOLUTION_MAP = {
-    'count': ('ObjectCounter', 'count', 'solutions_ci_demo.mp4'),
-    'heatmap': ('Heatmap', 'generate_heatmap', 'solutions_ci_demo.mp4'),
-    'queue': ('QueueManager', 'process_queue', 'solutions_ci_demo.mp4'),
-    'speed': ('SpeedEstimator', 'estimate_speed', 'solutions_ci_demo.mp4'),
-    'workout': ('AIGym', 'monitor', 'solution_ci_pose_demo.mp4')
+    "count": ("ObjectCounter", "count", "solutions_ci_demo.mp4"),
+    "heatmap": ("Heatmap", "generate_heatmap", "solutions_ci_demo.mp4"),
+    "queue": ("QueueManager", "process_queue", "solutions_ci_demo.mp4"),
+    "speed": ("SpeedEstimator", "estimate_speed", "solutions_ci_demo.mp4"),
+    "workout": ("AIGym", "monitor", "solution_ci_pose_demo.mp4"),
 }
 
 # Define valid tasks and modes
@@ -589,7 +589,7 @@ def handle_yolo_solutions(args: List[str]) -> None:
     overrides = {}
 
     for arg in merge_equals_args(args):
-        arg = arg.lstrip('-').rstrip(',')
+        arg = arg.lstrip("-").rstrip(",")
         if "=" in arg:
             try:
                 k, v = parse_key_value_pair(arg)
@@ -611,11 +611,13 @@ def handle_yolo_solutions(args: List[str]) -> None:
     source = overrides.pop("source", None)
     if not source:
         from ultralytics.utils.downloads import safe_download
+
         safe_download(f"{SOLUTIONS_ASSETS}/{default_source}")
         source = default_source
 
     # Initialize and run solution
     from ultralytics import solutions
+
     solution = getattr(solutions, cls_name)(**overrides)
     process_method = getattr(solution, method_name)
 
@@ -773,7 +775,7 @@ def entrypoint(debug=""):
         "logout": lambda: handle_yolo_hub(args),
         "copy-cfg": copy_default_cfg,
         "streamlit-predict": lambda: handle_streamlit_inference(),
-        "solution": lambda: handle_yolo_solutions(args[1:])
+        "solution": lambda: handle_yolo_solutions(args[1:]),
     }
     full_args_dict = {**DEFAULT_CFG_DICT, **{k: None for k in TASKS}, **{k: None for k in MODES}, **special}
 

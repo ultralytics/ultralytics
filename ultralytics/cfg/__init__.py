@@ -42,7 +42,7 @@ SOLUTION_MAP = {
     "queue": ("QueueManager", "process_queue", "solutions_ci_demo.mp4"),
     "speed": ("SpeedEstimator", "estimate_speed", "solutions_ci_demo.mp4"),
     "workout": ("AIGym", "monitor", "solution_ci_pose_demo.mp4"),
-    "analytics": ("Analytics", "process_data", "solutions_ci_demo.mp4")
+    "analytics": ("Analytics", "process_data", "solutions_ci_demo.mp4"),
 }
 
 # Define valid tasks and modes
@@ -584,7 +584,7 @@ def handle_yolo_settings(args: List[str]) -> None:
 
 
 def handle_yolo_solutions(args: List[str]) -> None:
-    full_args_dict = {**DEFAULT_SOL_DICT, **DEFAULT_CFG_DICT}   # Parse arguments
+    full_args_dict = {**DEFAULT_SOL_DICT, **DEFAULT_CFG_DICT}  # Parse arguments
     overrides = {}
 
     # check dictionary alignment
@@ -598,31 +598,35 @@ def handle_yolo_solutions(args: List[str]) -> None:
                 check_dict_alignment(full_args_dict, {arg: ""}, e)
         elif arg in full_args_dict and isinstance(full_args_dict.get(arg), bool):
             overrides[arg] = True
-    check_dict_alignment(full_args_dict, overrides) # dict alignment
+    check_dict_alignment(full_args_dict, overrides)  # dict alignment
 
     # Get solution name
     s_n = overrides.pop("name", None)
     if s_n not in SOLUTION_MAP:
-        LOGGER.warning(f"WARNING ⚠️ Invalid solution {s_n}. Defined solutions are {list(SOLUTION_MAP.keys())}, Using solution 'name=count'")
+        LOGGER.warning(
+            f"WARNING ⚠️ Invalid solution {s_n}. Defined solutions are {list(SOLUTION_MAP.keys())}, Using solution 'name=count'"
+        )
         s_n = "count"
 
     # Extract solution class and method name + set source name default
     cls_name, method_name, default_source = SOLUTION_MAP[s_n]
     source = overrides.pop("source", None)
     if not source:
-        from ultralytics.utils.downloads import safe_download   # download sample video
+        from ultralytics.utils.downloads import safe_download  # download sample video
+
         safe_download(f"{SOLUTIONS_ASSETS}/{default_source}")
         source = default_source
 
     # Declare and initialize ultralytics solution
     from ultralytics import solutions
+
     solution = getattr(solutions, cls_name)(**overrides)
     process_method = getattr(solution, method_name)
 
     cap = cv2.VideoCapture(source)  # read the video file
 
     # Create output directory
-    if s_n!="analytics":
+    if s_n != "analytics":
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
     else:
         w, h, fps = 1920, 1080, cv2.CAP_PROP_FPS
@@ -634,21 +638,21 @@ def handle_yolo_solutions(args: List[str]) -> None:
 
     # Process video frames
     try:
-        f_n = 0     # frame number, required for analytical graphs
+        f_n = 0  # frame number, required for analytical graphs
         while cap.isOpened():
             success, frame = cap.read()
             if not success:
                 break
-            if s_n=="analytics": # pass frame number for analytics solution
+            if s_n == "analytics":  # pass frame number for analytics solution
                 f_n += 1
                 im0 = process_method(frame, f_n)
             else:
                 im0 = process_method(frame)
-            vw.write(im0)   # write the video frame
+            vw.write(im0)  # write the video frame
             if cv2.waitKey(1) & 0xFF == ord("q"):
                 break
     finally:
-        cap.release()   # release the video capture
+        cap.release()  # release the video capture
 
 
 def handle_streamlit_inference():

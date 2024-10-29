@@ -38,7 +38,6 @@ def run_ray_tune(
         train_args = {}
 
     try:
-        # checks.check_requirements(("ray[tune]", "numpy<=1.26.4"))
         checks.check_requirements(("ray[tune]", "numpy<2.0.0"))
 
         import ray

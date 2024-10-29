@@ -200,10 +200,10 @@ class AutoBackend(nn.Module):
             session = onnxruntime.InferenceSession(w, providers=providers)
             output_names = [x.name for x in session.get_outputs()]
             metadata = session.get_modelmeta().custom_metadata_map
-            
+
             if "float16" in session.get_inputs()[0].type:
                 fp16 = True
-      
+
             dynamic = isinstance(session.get_outputs()[0].shape[0], str)
             if not dynamic:
                 io = session.io_binding()

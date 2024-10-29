@@ -305,20 +305,17 @@ class SpatialAttention(nn.Module):
 
 
 class CBAM(nn.Module):
-    def __init__(self, kernel_size=7):
+    """Convolutional Block Attention Module."""
+
+    def __init__(self, c1, kernel_size=7):
+        """Initialize CBAM with given input channel (c1) and kernel size."""
         super().__init__()
-        self.kernel_size = kernel_size
-        self.channel_attention = None
-        self.spatial_attention = None
+        self.channel_attention = ChannelAttention(c1)
+        self.spatial_attention = SpatialAttention(kernel_size)
 
     def forward(self, x):
-        if self.channel_attention is None:
-            channels = x.size(1)
-            self.channel_attention = ChannelAttention(channels).to(x.device)
-            self.spatial_attention = SpatialAttention(self.kernel_size).to(x.device)
-        x = self.channel_attention(x)
-        x = self.spatial_attention(x)
-        return x
+        """Applies the forward pass through C1 module."""
+        return self.spatial_attention(self.channel_attention(x))
 
 
 class Concat(nn.Module):

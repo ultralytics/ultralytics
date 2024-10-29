@@ -36,7 +36,6 @@ from ultralytics.utils import (
 )
 
 # Define valid solutions
-SOLUTIONS = {"count", "heatmap", "queue", "speed", "workout"}
 SOLUTION_MAP = {
     "count": ("ObjectCounter", "count", "solutions_ci_demo.mp4"),
     "heatmap": ("Heatmap", "generate_heatmap", "solutions_ci_demo.mp4"),
@@ -603,7 +602,7 @@ def handle_yolo_solutions(args: List[str]) -> None:
 
     # Get solution name and setup
     s_n = overrides.pop("name", None)
-    if s_n not in SOLUTIONS:
+    if s_n not in SOLUTION_MAP:
         LOGGER.warning(f"WARNING ⚠️ Invalid solution {s_n}. Using 'name=count'")
         s_n = "count"
 

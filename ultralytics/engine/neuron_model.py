@@ -1,6 +1,7 @@
 from pathlib import Path
-from ultralytics.engine.model import Model
 from typing import Union
+
+from ultralytics.engine.model import Model
 
 
 class NeuronModel(Model):
@@ -51,6 +52,4 @@ class NeuronModel(Model):
             **kwargs,
             "mode": "export",
         }  # highest priority args on the right
-        return NeuronExporter(overrides=args, _callbacks=self.callbacks)(
-            model=self.model
-        )
+        return NeuronExporter(overrides=args, _callbacks=self.callbacks)(model=self.model)

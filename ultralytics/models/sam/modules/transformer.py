@@ -170,7 +170,6 @@ class TwoWayAttentionBlock(nn.Module):
 
     def forward(self, queries: Tensor, keys: Tensor, query_pe: Tensor, key_pe: Tensor) -> Tuple[Tensor, Tensor]:
         """Apply self-attention and cross-attention to queries and keys and return the processed embeddings."""
-
         # Self attention block
         if self.skip_first_layer_pe:
             queries = self.self_attn(q=queries, k=queries, v=queries)
@@ -251,7 +250,6 @@ class Attention(nn.Module):
 
     def forward(self, q: Tensor, k: Tensor, v: Tensor) -> Tensor:
         """Compute the attention output given the input query, key, and value tensors."""
-
         # Input projections
         q = self.q_proj(q)
         k = self.k_proj(k)

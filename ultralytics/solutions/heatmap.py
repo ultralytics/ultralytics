@@ -37,7 +37,6 @@ class Heatmap:
         shape="circle",
     ):
         """Initializes the heatmap class with default values for Visual, Image, track, count and heatmap parameters."""
-
         # Visual information
         self.annotator = None
         self.view_img = view_img

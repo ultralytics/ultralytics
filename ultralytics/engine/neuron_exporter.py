@@ -1,6 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 """
-Export a YOLOv8 PyTorch model to other formats. TensorFlow exports authored by https://github.com/zldrobit
+Export a YOLOv8 PyTorch model to other formats. TensorFlow exports authored by https://github.com/zldrobit.
 
 Format                  | `format=argument`         | Model
 ---                     | ---                       | ---
@@ -52,49 +52,32 @@ TensorFlow.js:
     $ npm start
 """
 
-import gc
 import json
-import os
-import shutil
-import subprocess
 import time
 import warnings
 from copy import deepcopy
 from datetime import datetime
 from pathlib import Path
 
-import numpy as np
 import torch
 
-from ultralytics.cfg import TASK2DATA, get_cfg
-from ultralytics.data import build_dataloader
-from ultralytics.data.dataset import YOLODataset
-from ultralytics.data.utils import check_cls_dataset, check_det_dataset
+from ultralytics.cfg import TASK2DATA
+from ultralytics.engine.exporter import Exporter
 from ultralytics.nn.autobackend import check_class_names, default_class_names
 from ultralytics.nn.modules import C2f, Detect, RTDETRDecoder
-from ultralytics.nn.tasks import DetectionModel, SegmentationModel, WorldModel
+from ultralytics.nn.tasks import WorldModel
 from ultralytics.utils import (
-    ARM64,
     DEFAULT_CFG,
-    IS_JETSON,
     LINUX,
     LOGGER,
-    MACOS,
-    PYTHON_VERSION,
-    ROOT,
-    WINDOWS,
     __version__,
-    callbacks,
     colorstr,
     get_default_args,
-    yaml_save,
 )
-from ultralytics.utils.checks import check_imgsz, check_is_path_safe, check_requirements, check_version
-from ultralytics.utils.downloads import attempt_download_asset, get_github_assets, safe_download
-from ultralytics.utils.files import file_size, spaces_in_path
+from ultralytics.utils.checks import check_imgsz
+from ultralytics.utils.files import file_size
 from ultralytics.utils.ops import Profile
-from ultralytics.utils.torch_utils import TORCH_1_13, get_latest_opset, select_device, smart_inference_mode
-from ultralytics.engine.exporter import Exporter
+from ultralytics.utils.torch_utils import select_device, smart_inference_mode
 
 
 def export_formats():
@@ -160,6 +143,7 @@ class NeuronExporter(Exporter):
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         super().__init__(cfg, overrides, _callbacks)
+
     @smart_inference_mode()
     def __call__(self, model=None) -> str:
         """Returns list of exported files/dirs after running callbacks."""
@@ -358,9 +342,11 @@ class NeuronExporter(Exporter):
 
         self.run_callbacks("on_export_end")
         return f  # return list of exported files/dirs
+
     @try_export
     def export_neuronx(self, prefix=colorstr("AWS NeuronX:")):
         import torch_neuronx
+
         """YOLOv8 NeuronX model export."""
         LOGGER.info(f"\n{prefix} starting export with torch {torch_neuronx.__version__}...")
         f = self.file.with_suffix(".neuronx")
@@ -379,6 +365,7 @@ class NeuronExporter(Exporter):
     @try_export
     def export_neuron(self, prefix=colorstr("AWS Neuron:")):
         import torch_neuron
+
         """YOLOv8 Neuron model export."""
         LOGGER.info(f"\n{prefix} starting export with torch {torch_neuron.__version__}...")
         f = self.file.with_suffix(".neuron")

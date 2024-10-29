@@ -316,7 +316,6 @@ def check_cfg(cfg, hard=True):
 
 def get_save_dir(args, name=None):
     """Returns the directory path for saving outputs, derived from arguments or default settings."""
-
     if getattr(args, "save_dir", None):
         save_dir = args.save_dir
     else:
@@ -331,7 +330,6 @@ def get_save_dir(args, name=None):
 
 def _handle_deprecation(custom):
     """Handles deprecated configuration keys by mapping them to current equivalents with deprecation warnings."""
-
     for key in custom.copy().keys():
         if key == "boxes":
             deprecation_warn(key, "show_boxes")

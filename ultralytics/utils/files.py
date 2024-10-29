@@ -48,7 +48,6 @@ def spaces_in_path(path):
             # Your code here
         ```
     """
-
     # If path has spaces, replace them with underscores
     if " " in str(path):
         string = isinstance(path, str)  # input type

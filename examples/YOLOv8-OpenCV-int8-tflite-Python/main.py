@@ -28,7 +28,6 @@ class LetterBox:
 
     def __call__(self, labels=None, image=None):
         """Return updated labels and image with added border."""
-
         if labels is None:
             labels = {}
         img = labels.get("img") if image is None else image
@@ -77,7 +76,6 @@ class LetterBox:
 
     def _update_labels(self, labels, ratio, padw, padh):
         """Update labels."""
-
         labels["instances"].convert_bbox(format="xyxy")
         labels["instances"].denormalize(*labels["img"].shape[:2][::-1])
         labels["instances"].scale(*ratio)
@@ -96,7 +94,6 @@ class Yolov8TFLite:
             confidence_thres: Confidence threshold for filtering detections.
             iou_thres: IoU (Intersection over Union) threshold for non-maximum suppression.
         """
-
         self.tflite_model = tflite_model
         self.input_image = input_image
         self.confidence_thres = confidence_thres
@@ -121,7 +118,6 @@ class Yolov8TFLite:
         Returns:
             None
         """
-
         # Extract the coordinates of the bounding box
         x1, y1, w, h = box
 
@@ -160,7 +156,6 @@ class Yolov8TFLite:
         Returns:
             image_data: Preprocessed image data ready for inference.
         """
-
         # Read the input image using OpenCV
         self.img = cv2.imread(self.input_image)
 
@@ -189,7 +184,6 @@ class Yolov8TFLite:
         Returns:
             numpy.ndarray: The input image with detections drawn on it.
         """
-
         boxes = []
         scores = []
         class_ids = []
@@ -234,7 +228,6 @@ class Yolov8TFLite:
         Returns:
             output_img: The output image with drawn detections.
         """
-
         # Create an interpreter for the TFLite model
         interpreter = tflite.Interpreter(model_path=self.tflite_model)
         self.model = interpreter

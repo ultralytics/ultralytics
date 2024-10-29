@@ -1,7 +1,6 @@
 from ultralytics.engine.predictor import BasePredictor
-from ultralytics.utils import DEFAULT_CFG
-from ultralytics.utils.torch_utils import select_device
 from ultralytics.nn.neuron_autobackend import NeuronAutoBackend
+from ultralytics.utils.torch_utils import select_device
 
 
 class NeuronPredictor(BasePredictor):

@@ -495,7 +495,10 @@ class AutoBackend(nn.Module):
 
         # ONNX Runtime
         elif self.onnx:
-            if not self.dynamic:
+            if self.dynamic:
+                im = im.cpu().numpy()  # torch to numpy
+                y = self.session.run(self.output_names, {self.session.get_inputs()[0].name: im})
+            else:
                 if not self.cuda:
                     im = im.cpu()
                 self.io.bind_input(
@@ -508,9 +511,7 @@ class AutoBackend(nn.Module):
                 )
                 self.session.run_with_iobinding(self.io)
                 y = self.bindings
-            else:
-                im = im.cpu().numpy()  # torch to numpy
-                y = self.session.run(self.output_names, {self.session.get_inputs()[0].name: im})
+
 
         # OpenVINO
         elif self.xml:

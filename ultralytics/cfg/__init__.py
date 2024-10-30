@@ -637,41 +637,37 @@ def handle_yolo_solutions(args: List[str]) -> None:
 
     # Get solution name
     s_n = overrides.pop("name", None)
-    if s_n not in SOLUTION_MAP:
+    if s_n not in SOLUTION_MAP or s_n is None:
         LOGGER.warning(
-            f"WARNING ⚠️ {s_n} is not valid solution. Defined solutions are {list(SOLUTION_MAP.keys())}, Using solution 'name=count'"
+            f"WARNING ⚠️ {s_n} is not valid solution. Defined solutions are {list(SOLUTION_MAP.keys())}, using solution 'name=count'"
         )
         s_n = "count"
 
-    # Extract solution class and method name + set source name default
-    cls_name, method_name, default_source = SOLUTION_MAP[s_n]
+    cls, method, d_s = SOLUTION_MAP[s_n]    # solution class name, method name and default source
     source = overrides.pop("source", None)
     if not source:
         from ultralytics.utils.downloads import safe_download
 
-        safe_download(f"{SOLUTIONS_ASSETS}/{default_source}")   # download sample video
-        source = default_source
+        safe_download(f"{SOLUTIONS_ASSETS}/{d_s}")   # download sample video
+        source = d_s
 
     # Declare and initialize ultralytics solution
     from ultralytics import solutions
 
-    solution = getattr(solutions, cls_name)(**overrides)
-    process_method = getattr(solution, method_name)
+    solution = getattr(solutions, cls)(**overrides)     # get solution class i.e ObjectCounter
+    process = getattr(solution, method)     # get specific function of class for processing
 
     cap = cv2.VideoCapture(source)  # read the video file
-
-    # Create output directory
-    if s_n != "analytics":
-        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-    else:
-        w, h, fps = 1920, 1080, cv2.CAP_PROP_FPS    # analytical graphs will always have fixed dimensions for frame.
 
     # Save directory
     from ultralytics.utils.files import increment_path
 
     save_dir = increment_path(get_save_dir(SimpleNamespace(project="runs", name="solution", exist_ok=True)) / f"{s_n}")
     save_dir.mkdir(parents=True, exist_ok=True)
-    vw = cv2.VideoWriter(os.path.join(save_dir, "solution.avi"), cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
+    w, h, fps = (int(cap.get(x)) for x in   # extract width, height and fps of input video
+                 (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS)) if s_n != "analytics" else (
+        1920, 1080, cv2.CAP_PROP_FPS)
+    vw = cv2.VideoWriter(os.path.join(save_dir, "solution.avi"), cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))  # video writer
 
     # Process video frames
     try:
@@ -680,7 +676,11 @@ def handle_yolo_solutions(args: List[str]) -> None:
             success, frame = cap.read()
             if not success:
                 break
-            process_method(frame, (f_n := f_n + 1) if s_n == "analytics" else None) # pass frame number for analytics
+            if s_n == "analytics":
+                f_n += 1        # increment frame number
+                process(frame, f_n) # pass frame number for analytics
+            else:
+                process(frame)
             vw.write(im0)  # write the video frame
             if cv2.waitKey(1) & 0xFF == ord("q"):
                 break

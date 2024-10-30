@@ -637,9 +637,7 @@ def handle_yolo_solutions(args: List[str]) -> None:
 
     # Get solution name
     s_n = overrides.pop("name", None)
-    if (
-        s_n not in SOLUTION_MAP or s_n is None
-    ):  # check if solution is not in defined solution, use solution name s_n=count
+    if s_n not in SOLUTION_MAP or s_n is None:  # check if solution is not in defined solution, use solution name=count
         LOGGER.warning(
             f"WARNING ⚠️ {s_n} is not valid solution. Defined solutions are {list(SOLUTION_MAP.keys())}, using solution 'name=count'"
         )

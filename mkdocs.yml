@@ -398,7 +398,6 @@ nav:
       - JupyterLab: integrations/jupyterlab.md
       - Kaggle: integrations/kaggle.md
       - MLflow: integrations/mlflow.md
-      - NCNN: integrations/ncnn.md
       - Neural Magic: integrations/neural-magic.md
       - ONNX: integrations/onnx.md
       - OpenVINO: integrations/openvino.md

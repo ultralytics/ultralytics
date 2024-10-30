@@ -178,7 +178,6 @@ class AutoBackend(nn.Module):
 
             # providers = ["CUDAExecutionProvider", "CPUExecutionProvider"] if cuda else ["CPUExecutionProvider"]
             providers = ["CPUExecutionProvider"]
-            
 
             if not cuda and "CUDAExecutionProvider" in providers:
                 providers.remove("CUDAExecutionProvider")
@@ -201,7 +200,7 @@ class AutoBackend(nn.Module):
                 task = "detect"
             else:
                 session = onnxruntime.InferenceSession(w, providers=providers)
-            
+
             output_names = [x.name for x in session.get_outputs()]
             metadata = session.get_modelmeta().custom_metadata_map
             dynamic = isinstance(session.get_outputs()[0].shape[0], str)
@@ -521,6 +520,7 @@ class AutoBackend(nn.Module):
                 y = self.bindings
             if self.mct:
                 from ultralytics.utils.ops import xyxy2xywh
+
                 y = np.concatenate([xyxy2xywh(y[0]), y[1]], axis=-1).transpose(0, 2, 1)
 
         # OpenVINO

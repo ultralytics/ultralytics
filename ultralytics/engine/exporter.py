@@ -170,7 +170,6 @@ class Exporter:
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
         callbacks.add_integration_callbacks(self)
 
-    # @smart_inference_mode()
     def __call__(self, model=None) -> str:
         """Returns list of exported files/dirs after running callbacks."""
         self.run_callbacks("on_export_start")
@@ -297,12 +296,6 @@ class Exporter:
 
             if isinstance(m, C2f) and mct:
                 m.forward = m.forward_fx
-
-        if mct:
-            if getattr(model, "end2end", False):
-                raise ValueError("MCT export is not supported for end2end models.")
-            if "C2f" not in model.__str__():
-                raise ValueError("MCT export is only supported for YOLOv8 detection models")
 
         y = None
         for _ in range(2):
@@ -1075,6 +1068,10 @@ class Exporter:
 
     @try_export
     def export_mct(self, prefix=colorstr("Sony MCT:")):
+        if getattr(self.model, "end2end", False):
+            raise ValueError("MCT export is not supported for end2end models.")
+        if "C2f" not in self.model.__str__():
+            raise ValueError("MCT export is only supported for YOLOv8 detection models")
         check_requirements(["model-compression-toolkit==2.1.1", "sony-custom-layers[torch]"])
         import subprocess
 

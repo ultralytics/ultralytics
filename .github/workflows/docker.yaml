@@ -172,7 +172,7 @@ jobs:
           fi
 
       - name: Build Dockerfile-jupyter
-        if: github.event_name == 'push' || matrix.dockerfile == 'Dockerfile-python'
+        if: github.event_name == 'push' && matrix.dockerfile == 'Dockerfile-python'
         run: |
           docker build \
           --platform linux/amd64 \
@@ -182,7 +182,7 @@ jobs:
           .
 
       - name: Push Dockerfile-jupyter Image
-        if: github.event_name == 'push' || matrix.dockerfile == 'Dockerfile-python'
+        if: github.event_name == 'push' && matrix.dockerfile == 'Dockerfile-python'
         run: |
           docker push ultralytics/ultralytics:latest-jupyter
           docker push ultralytics/ultralytics:${{ steps.get_version.outputs.version_tag }}-jupyter

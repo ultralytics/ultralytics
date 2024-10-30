@@ -59,21 +59,22 @@ class AutoBackend(nn.Module):
     range of formats, each with specific naming conventions as outlined below:
 
         Supported Formats and Naming Conventions:
-            | Format                | File Suffix      |
-            |-----------------------|------------------|
-            | PyTorch               | *.pt             |
-            | TorchScript           | *.torchscript    |
-            | ONNX Runtime          | *.onnx           |
-            | ONNX OpenCV DNN       | *.onnx (dnn=True)|
-            | OpenVINO              | *openvino_model/ |
-            | CoreML                | *.mlpackage      |
-            | TensorRT              | *.engine         |
-            | TensorFlow SavedModel | *_saved_model    |
-            | TensorFlow GraphDef   | *.pb             |
-            | TensorFlow Lite       | *.tflite         |
-            | TensorFlow Edge TPU   | *_edgetpu.tflite |
-            | PaddlePaddle          | *_paddle_model   |
-            | NCNN                  | *_ncnn_model     |
+            | Format                | File Suffix       |
+            |-----------------------|-------------------|
+            | PyTorch               | *.pt              |
+            | TorchScript           | *.torchscript     |
+            | ONNX Runtime          | *.onnx            |
+            | ONNX OpenCV DNN       | *.onnx (dnn=True) |
+            | OpenVINO              | *openvino_model/  |
+            | CoreML                | *.mlpackage       |
+            | TensorRT              | *.engine          |
+            | TensorFlow SavedModel | *_saved_model/    |
+            | TensorFlow GraphDef   | *.pb              |
+            | TensorFlow Lite       | *.tflite          |
+            | TensorFlow Edge TPU   | *_edgetpu.tflite  |
+            | PaddlePaddle          | *_paddle_model/   |
+            | MNN                   | *.mnn             |
+            | NCNN                  | *_ncnn_model/     |
 
     This class offers dynamic backend switching capabilities based on the input model format, making it easier to deploy
     models across various platforms.
@@ -120,6 +121,7 @@ class AutoBackend(nn.Module):
             edgetpu,
             tfjs,
             paddle,
+            mnn,
             ncnn,
             triton,
         ) = self._model_type(w)
@@ -403,6 +405,26 @@ class AutoBackend(nn.Module):
             output_names = predictor.get_output_names()
             metadata = w.parents[1] / "metadata.yaml"
 
+        # MNN
+        elif mnn:
+            LOGGER.info(f"Loading {w} for MNN inference...")
+            check_requirements("MNN")  # requires MNN
+            import os
+
+            import MNN
+
+            config = {}
+            config["precision"] = "low"
+            config["backend"] = "CPU"
+            config["numThread"] = (os.cpu_count() + 1) // 2
+            rt = MNN.nn.create_runtime_manager((config,))
+            net = MNN.nn.load_module_from_file(w, [], [], runtime_manager=rt, rearrange=True)
+
+            def torch_to_mnn(x):
+                return MNN.expr.const(x.data_ptr(), x.shape)
+
+            metadata = json.loads(net.get_info()["bizCode"])
+
         # NCNN
         elif ncnn:
             LOGGER.info(f"Loading {w} for NCNN inference...")
@@ -589,6 +611,12 @@ class AutoBackend(nn.Module):
             self.input_handle.copy_from_cpu(im)
             self.predictor.run()
             y = [self.predictor.get_output_handle(x).copy_to_cpu() for x in self.output_names]
+
+        # MNN
+        elif self.mnn:
+            input_var = self.torch_to_mnn(im)
+            output_var = self.net.onForward([input_var])
+            y = [x.read() for x in output_var]
 
         # NCNN
         elif self.ncnn:

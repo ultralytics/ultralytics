@@ -1072,10 +1072,9 @@ class Exporter:
             raise ValueError("MCT export is not supported for end2end models.")
         if "C2f" not in self.model.__str__():
             raise ValueError("MCT export is only supported for YOLOv8 detection models")
-        check_requirements(["model-compression-toolkit==2.1.1", "sony-custom-layers[torch]"])
+        check_requirements("model-compression-toolkit==2.1.1")
         import model_compression_toolkit as mct
         import onnx
-        from sony_custom_layers.pytorch.object_detection.nms import multiclass_nms
 
         def representative_dataset_gen(dataloader=self.get_int8_calibration_dataloader(prefix)):
             for batch in dataloader:
@@ -1119,6 +1118,8 @@ class Exporter:
             )
 
         if self.args.nms:
+            check_requirements("sony-custom-layers[torch]")
+            from sony_custom_layers.pytorch.object_detection.nms import multiclass_nms
 
             class NMSWrapper(torch.nn.Module):
                 def __init__(

@@ -16,8 +16,8 @@ TensorFlow Lite         | `tflite`                  | yolo11n.tflite
 TensorFlow Edge TPU     | `edgetpu`                 | yolo11n_edgetpu.tflite
 TensorFlow.js           | `tfjs`                    | yolo11n_web_model/
 PaddlePaddle            | `paddle`                  | yolo11n_paddle_model/
-NCNN                    | `ncnn`                    | yolo11n_ncnn_model/
 MNN                     | `mnn`                     | yolo11n.mnn
+NCNN                    | `ncnn`                    | yolo11n_ncnn_model/
 
 Requirements:
     $ pip install "ultralytics[export]"
@@ -42,8 +42,8 @@ Inference:
                          yolo11n.tflite             # TensorFlow Lite
                          yolo11n_edgetpu.tflite     # TensorFlow Edge TPU
                          yolo11n_paddle_model       # PaddlePaddle
-                         yolo11n_ncnn_model         # NCNN
                          yolo11n.mnn                # MNN
+                         yolo11n_ncnn_model         # NCNN
 
 TensorFlow.js:
     $ cd .. && git clone https://github.com/zldrobit/tfjs-yolov5-example.git && cd tfjs-yolov5-example
@@ -111,8 +111,8 @@ def export_formats():
         ["TensorFlow Edge TPU", "edgetpu", "_edgetpu.tflite", True, False],
         ["TensorFlow.js", "tfjs", "_web_model", True, False],
         ["PaddlePaddle", "paddle", "_paddle_model", True, True],
-        ["NCNN", "ncnn", "_ncnn_model", True, True],
         ["MNN", "mnn", ".mnn", True, True],
+        ["NCNN", "ncnn", "_ncnn_model", True, True],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU"], zip(*x)))
 
@@ -193,7 +193,7 @@ class Exporter:
         flags = [x == fmt for x in fmts]
         if sum(flags) != 1:
             raise ValueError(f"Invalid export format='{fmt}'. Valid formats are {fmts}")
-        jit, onnx, xml, engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, paddle, ncnn, mnn = (
+        jit, onnx, xml, engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, paddle, mnn, ncnn = (
             flags  # export booleans
         )
         is_tf_format = any((saved_model, pb, tflite, edgetpu, tfjs))
@@ -338,10 +338,10 @@ class Exporter:
                 f[9], _ = self.export_tfjs()
         if paddle:  # PaddlePaddle
             f[10], _ = self.export_paddle()
-        if ncnn:  # NCNN
-            f[11], _ = self.export_ncnn()
         if mnn:  # MNN
-            f[12], _ = self.export_mnn()
+            f[11], _ = self.export_mnn()
+        if ncnn:  # NCNN
+            f[12], _ = self.export_ncnn()
 
         # Finish
         f = [str(x) for x in f if x]  # filter out '' and None

@@ -325,6 +325,12 @@ jobs:
           yolo train model=yolo11n.pt data=coco8.yaml epochs=1 imgsz=32
           yolo val model=yolo11n.pt data=coco8.yaml imgsz=32
           yolo export model=yolo11n.pt format=torchscript imgsz=160
+          yolo solution model=yolo11n.pt name=count 
+          yolo solution model=yolo11n.pt name=queue
+          yolo solution model=yolo11n.pt name=heatmap
+          yolo solution model=yolo11n.pt name=speed
+          yolo solution name=workout
+          yolo solution name=analytics analytics_type=bar
       - name: Test Python
         # Note this step must use the updated default bash environment, not a python environment
         run: |

@@ -1171,21 +1171,21 @@ class Exporter:
 
         onnx.save(model_onnx, f)
 
-        # if not LINUX:
-        #     LOGGER.warning(f"{prefix} WARNING ⚠️ MCT imx500-converter is only supported on Linux.")
-        # else:
-        #     check_requirements("imx500-converter[pt]==3.14.1")
-        #     try:
-        #         import subprocess
-        #
-        #         subprocess.run(["java", "--version"], check=True)
-        #     except FileNotFoundError:
-        #         LOGGER.error(
-        #             "Java 17 is required for the imx500 conversion. \n Please install Java with: \n sudo apt install openjdk-17-jdk openjdk-17-jre"
-        #         )
-        #         return None
-        #
-        #     subprocess.run(["imxconv-pt", "-i", "yolov8n_mct_model.onnx", "-o", "yolov8n_imx500_model"], check=True)
+        if not LINUX:
+            LOGGER.warning(f"{prefix} WARNING ⚠️ MCT imx500-converter is only supported on Linux.")
+        else:
+            check_requirements("imx500-converter[pt]==3.14.1")
+            try:
+                import subprocess
+
+                subprocess.run(["java", "--version"], check=True)
+            except FileNotFoundError:
+                LOGGER.error(
+                    "Java 17 is required for the imx500 conversion. \n Please install Java with: \n sudo apt install openjdk-17-jdk openjdk-17-jre"
+                )
+                return None
+
+            subprocess.run(["imxconv-pt", "-i", "yolov8n_mct_model.onnx", "-o", "yolov8n_imx500_model"], check=True)
 
         return f, None
 

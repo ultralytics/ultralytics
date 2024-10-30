@@ -1,22 +1,21 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 # SKU-110K retail items dataset https://github.com/eg4000/SKU110K_CVPR19 by Trax Retail
+# Documentation: https://docs.ultralytics.com/datasets/detect/sku-110k/
 # Example usage: yolo train data=SKU-110K.yaml
 # parent
 # ├── ultralytics
 # └── datasets
 #     └── SKU-110K  ← downloads here (13.6 GB)
 
-
 # Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
-path: ../datasets/SKU-110K  # dataset root dir
-train: train.txt  # train images (relative to 'path')  8219 images
-val: val.txt  # val images (relative to 'path')  588 images
-test: test.txt  # test images (optional)  2936 images
+path: ../datasets/SKU-110K # dataset root dir
+train: train.txt # train images (relative to 'path')  8219 images
+val: val.txt # val images (relative to 'path')  588 images
+test: test.txt # test images (optional)  2936 images
 
 # Classes
 names:
   0: object
-
 
 # Download script/URL (optional) ---------------------------------------------------------------------------------------
 download: |

@@ -4,10 +4,9 @@
 - Regions can be adjusted to suit the user's preferences and requirements.
 
 <div>
-  <p align="center">
-  <img src="https://github.com/RizwanMunawar/ultralytics/assets/62513924/5ab3bbd7-fd12-4849-928e-5f294d6c3fcf" width="45%"/>
-    <img src="https://github.com/RizwanMunawar/ultralytics/assets/62513924/e7c1aea7-474d-4d78-8d48-b50854ffe1ca" width="45%"/>
-&nbsp; &nbsp; &nbsp; &nbsp;
+<p align="center">
+  <img src="https://github.com/RizwanMunawar/ultralytics/assets/62513924/5ab3bbd7-fd12-4849-928e-5f294d6c3fcf" width="45%" alt="YOLOv8 region counting visual 1">
+  <img src="https://github.com/RizwanMunawar/ultralytics/assets/62513924/e7c1aea7-474d-4d78-8d48-b50854ffe1ca" width="45%" alt="YOLOv8 region counting visual 2">
 </p>
 </div>
 
@@ -48,7 +47,10 @@ python yolov8_region_counter.py --source "path/to/video.mp4" --save-img --view-i
 # If you want to change model file
 python yolov8_region_counter.py --source "path/to/video.mp4" --save-img --weights "path/to/model.pt"
 
-# If you dont want to save results
+# If you want to detect specific class (first class and third class)
+python yolov8_region_counter.py --source "path/to/video.mp4" --classes 0 2 --weights "path/to/model.pt"
+
+# If you don't want to save results
 python yolov8_region_counter.py --source "path/to/video.mp4" --view-img
 ```
 
@@ -58,6 +60,7 @@ python yolov8_region_counter.py --source "path/to/video.mp4" --view-img
 - `--device`: Specifies the device `cpu` or `0`
 - `--save-img`: Flag to save the detection results as images.
 - `--weights`: Specifies a different YOLOv8 model file (e.g., `yolov8n.pt`, `yolov8s.pt`, `yolov8m.pt`, `yolov8l.pt`, `yolov8x.pt`).
+- `--classes`: Specifies the class to be detected
 - `--line-thickness`: Specifies the bounding box thickness
 - `--region-thickness`: Specifies the region boxes thickness
 - `--track-thickness`: Specifies the track line thickness
@@ -73,6 +76,8 @@ Region counting is a computational method utilized to ascertain the quantity of 
 The Region Counter offers the capability to create regions in various formats, such as polygons and rectangles. You have the flexibility to modify region attributes, including coordinates, colors, and other details, as demonstrated in the following code:
 
 ```python
+from shapely.geometry import Polygon
+
 counting_regions = [
     {
         "name": "YOLOv8 Polygon Region",
@@ -86,9 +91,7 @@ counting_regions = [
     },
     {
         "name": "YOLOv8 Rectangle Region",
-        "polygon": Polygon(
-            [(200, 250), (440, 250), (440, 550), (200, 550)]
-        ),  # Rectangle with four points
+        "polygon": Polygon([(200, 250), (440, 250), (440, 550), (200, 550)]),  # Rectangle with four points
         "counts": 0,
         "dragging": False,
         "region_color": (37, 255, 225),  # BGR Value

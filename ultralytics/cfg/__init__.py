@@ -655,6 +655,7 @@ def handle_yolo_solutions(args: List[str]) -> None:
 
     source = overrides.pop("source", None)  # extract source from overrides dict
     if not source:
+        LOGGER.warning(f"⚠️ WARNING: source not provided. using default source {SOLUTIONS_ASSETS}/{d_s}")
         from ultralytics.utils.downloads import safe_download
 
         safe_download(f"{SOLUTIONS_ASSETS}/{d_s}")  # download source from ultralytics assets
@@ -678,10 +679,10 @@ def handle_yolo_solutions(args: List[str]) -> None:
             success, frame = cap.read()
             if not success:
                 break
-            process(frame, f_n := f_n + 1) if s_n == "analytics" else process(
+            frame = process(frame, f_n := f_n + 1) if s_n == "analytics" else process(
                 frame
             )  # increment frame number and pass it for analytics mode, otherwise just process frame
-            vw.write(im0)  # write the video frame
+            vw.write(frame)  # write the video frame
             if cv2.waitKey(1) & 0xFF == ord("q"):
                 break
     finally:

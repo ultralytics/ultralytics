@@ -572,8 +572,8 @@ class Exporter:
             unzip_dir = safe_download(f"https://github.com/pnnx/pnnx/releases/download/{release}/{asset}", delete=True)
             if check_is_path_safe(Path.cwd(), unzip_dir):  # avoid path traversal security vulnerability
                 shutil.move(src=unzip_dir / name, dst=pnnx)  # move binary to ROOT
-                # pnnx.chmod(0o777)  # set read, write, and execute permissions for everyone
-                # shutil.rmtree(unzip_dir)  # delete unzip dir
+                pnnx.chmod(0o777)  # set read, write, and execute permissions for everyone
+                shutil.rmtree(unzip_dir)  # delete unzip dir
 
         ncnn_args = [
             f'ncnnparam={f / "model.ncnn.param"}',
@@ -602,9 +602,9 @@ class Exporter:
         subprocess.run(cmd, check=True)
 
         # Remove debug files
-        # pnnx_files = [x.split("=")[-1] for x in pnnx_args]
-        # for f_debug in ("debug.bin", "debug.param", "debug2.bin", "debug2.param", *pnnx_files):
-        #     Path(f_debug).unlink(missing_ok=True)
+        pnnx_files = [x.split("=")[-1] for x in pnnx_args]
+        for f_debug in ("debug.bin", "debug.param", "debug2.bin", "debug2.param", *pnnx_files):
+            Path(f_debug).unlink(missing_ok=True)
 
         yaml_save(f / "metadata.yaml", self.metadata)  # add metadata.yaml
         return str(f), None

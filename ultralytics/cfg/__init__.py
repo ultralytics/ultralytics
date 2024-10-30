@@ -635,9 +635,10 @@ def handle_yolo_solutions(args: List[str]) -> None:
     check_dict_alignment(full_args_dict, overrides)  # dict alignment
 
     # Import necessary libraries
-    import os   # for directory creation
-    from ultralytics.utils.files import increment_path
+    import os  # for directory creation
+
     from ultralytics import solutions  # import ultralytics solutions
+    from ultralytics.utils.files import increment_path
 
     # Get solution name
     s_n = overrides.pop("name", None)
@@ -660,7 +661,6 @@ def handle_yolo_solutions(args: List[str]) -> None:
     process = getattr(solution, method)  # get specific function of class for processing i.e, count from ObjectCounter
 
     cap = cv2.VideoCapture(source)  # read the video file
-
 
     save_dir = increment_path(get_save_dir(SimpleNamespace(project="runs", name="solution", exist_ok=True)) / f"{s_n}")
     save_dir.mkdir(parents=True, exist_ok=True)

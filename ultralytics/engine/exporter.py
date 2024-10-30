@@ -1093,29 +1093,24 @@ class Exporter:
 
         resource_utilization = mct.core.ResourceUtilization(weights_memory=3146176 * 0.76)
 
-        if not self.args.gptq:
-            # Perform post training quantization
-            quant_model, _ = mct.ptq.pytorch_post_training_quantization(
+        quant_model = (
+            mct.gptq.pytorch_gradient_post_training_quantization(  # Perform Gradient-Based Post Training Quantization
+                model=self.model,
+                representative_data_gen=representative_dataset_gen,
+                target_resource_utilization=resource_utilization,
+                gptq_config=mct.gptq.get_pytorch_gptq_config(n_epochs=1000, use_hessian_based_weights=False),
+                core_config=config,
+                target_platform_capabilities=tpc,
+            )
+            if self.args.gptq
+            else mct.ptq.pytorch_post_training_quantization(  # Perform post training quantization
                 in_module=self.model,
                 representative_data_gen=representative_dataset_gen,
                 target_resource_utilization=resource_utilization,
                 core_config=config,
                 target_platform_capabilities=tpc,
             )
-
-        else:
-            gptq_config = mct.gptq.get_pytorch_gptq_config(n_epochs=1000, use_hessian_based_weights=False)
-
-            # Perform Gradient-Based Post Training Quantization
-
-            quant_model, _ = mct.gptq.pytorch_gradient_post_training_quantization(
-                model=self.model,
-                representative_data_gen=representative_dataset_gen,
-                target_resource_utilization=resource_utilization,
-                gptq_config=gptq_config,
-                core_config=config,
-                target_platform_capabilities=tpc,
-            )
+        )
 
         if self.args.nms:
             check_requirements("sony-custom-layers[torch]")

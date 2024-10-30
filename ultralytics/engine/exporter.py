@@ -1073,52 +1073,9 @@ class Exporter:
         if "C2f" not in self.model.__str__():
             raise ValueError("MCT export is only supported for YOLOv8 detection models")
         check_requirements(["model-compression-toolkit==2.1.1", "sony-custom-layers[torch]"])
-        import subprocess
-
         import model_compression_toolkit as mct
         import onnx
-        from model_compression_toolkit.core.pytorch.pytorch_device_config import get_working_device, set_working_device
         from sony_custom_layers.pytorch.object_detection.nms import multiclass_nms
-
-        set_working_device(str(self.device))
-
-        class NMSWrapper(torch.nn.Module):
-            def __init__(
-                self,
-                model: torch.nn.Module,
-                score_threshold: float = 0.001,
-                iou_threshold: float = 0.7,
-                max_detections: int = 300,
-            ):
-                """
-                Wrapping PyTorch Module with multiclass_nms layer from sony_custom_layers.
-
-                Args:
-                    model (nn.Module): Model instance.
-                    score_threshold (float): Score threshold for non-maximum suppression.
-                    iou_threshold (float): Intersection over union threshold for non-maximum suppression.
-                    max_detections (float): The number of detections to return.
-                """
-                super().__init__()
-                self.model = model
-                self.score_threshold = score_threshold
-                self.iou_threshold = iou_threshold
-                self.max_detections = max_detections
-
-            def forward(self, images):
-                # model inference
-                outputs = self.model(images)
-
-                boxes = outputs[0]
-                scores = outputs[1]
-                nms = multiclass_nms(
-                    boxes=boxes,
-                    scores=scores,
-                    score_threshold=self.score_threshold,
-                    iou_threshold=self.iou_threshold,
-                    max_detections=self.max_detections,
-                )
-                return nms
 
         def representative_dataset_gen(dataloader=self.get_int8_calibration_dataloader(prefix)):
             for batch in dataloader:
@@ -1162,17 +1119,51 @@ class Exporter:
             )
 
         if self.args.nms:
-            # Define PostProcess params
-            score_threshold = 0.001
-            iou_threshold = 0.7
-            max_detections = 300
+
+            class NMSWrapper(torch.nn.Module):
+                def __init__(
+                    self,
+                    model: torch.nn.Module,
+                    score_threshold: float = 0.001,
+                    iou_threshold: float = 0.7,
+                    max_detections: int = 300,
+                ):
+                    """
+                    Wrapping PyTorch Module with multiclass_nms layer from sony_custom_layers.
+
+                    Args:
+                        model (nn.Module): Model instance.
+                        score_threshold (float): Score threshold for non-maximum suppression.
+                        iou_threshold (float): Intersection over union threshold for non-maximum suppression.
+                        max_detections (float): The number of detections to return.
+                    """
+                    super().__init__()
+                    self.model = model
+                    self.score_threshold = score_threshold
+                    self.iou_threshold = iou_threshold
+                    self.max_detections = max_detections
+
+                def forward(self, images):
+                    # model inference
+                    outputs = self.model(images)
+
+                    boxes = outputs[0]
+                    scores = outputs[1]
+                    nms = multiclass_nms(
+                        boxes=boxes,
+                        scores=scores,
+                        score_threshold=self.score_threshold,
+                        iou_threshold=self.iou_threshold,
+                        max_detections=self.max_detections,
+                    )
+                    return nms
 
             quant_model = NMSWrapper(
                 model=quant_model,
-                score_threshold=score_threshold,
-                iou_threshold=iou_threshold,
-                max_detections=max_detections,
-            ).to(device=get_working_device())
+                score_threshold=self.args.conf,
+                iou_threshold=self.args.iou,
+                max_detections=self.args.max_det,
+            ).to(self.device)
 
         f = Path(str(self.file).replace(self.file.suffix, "_mct_model.onnx"))  # js dir
         mct.exporter.pytorch_export_model(model=quant_model, save_model_path=f, repr_dataset=representative_dataset_gen)
@@ -1189,6 +1180,8 @@ class Exporter:
         else:
             check_requirements("imx500-converter[pt]==3.14.1")
             try:
+                import subprocess
+
                 subprocess.run(["java", "--version"], check=True)
             except FileNotFoundError:
                 LOGGER.error(

@@ -635,9 +635,10 @@ def handle_yolo_solutions(args: List[str]) -> None:
     check_dict_alignment(full_args_dict, overrides)  # dict alignment
 
     # Import necessary libraries
-    import os   # for directory creation
-    from ultralytics.utils.files import increment_path
+    import os  # for directory creation
+
     from ultralytics import solutions  # import ultralytics solutions
+    from ultralytics.utils.files import increment_path
 
     # Get solution name
     s_n = overrides.pop("name", None)

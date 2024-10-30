@@ -637,25 +637,24 @@ def handle_yolo_solutions(args: List[str]) -> None:
 
     # Get solution name
     s_n = overrides.pop("name", None)
-    if s_n not in SOLUTION_MAP or s_n is None:
+    if s_n not in SOLUTION_MAP or s_n is None:  # check if solution is not in defined solution, use solution name s_n=count
         LOGGER.warning(
             f"WARNING ⚠️ {s_n} is not valid solution. Defined solutions are {list(SOLUTION_MAP.keys())}, using solution 'name=count'"
         )
         s_n = "count"
 
     cls, method, d_s = SOLUTION_MAP[s_n]    # solution class name, method name and default source
-    source = overrides.pop("source", None)
+    source = overrides.pop("source", None)  # extract source from overrides dict
     if not source:
         from ultralytics.utils.downloads import safe_download
 
-        safe_download(f"{SOLUTIONS_ASSETS}/{d_s}")   # download sample video
-        source = d_s
+        safe_download(f"{SOLUTIONS_ASSETS}/{d_s}")   # download source from ultralytics assets
+        source = d_s  # set default source
 
-    # Declare and initialize ultralytics solution
-    from ultralytics import solutions
+    from ultralytics import solutions   # import ultralytics solutions
 
     solution = getattr(solutions, cls)(**overrides)     # get solution class i.e ObjectCounter
-    process = getattr(solution, method)     # get specific function of class for processing
+    process = getattr(solution, method)     # get specific function of class for processing i.e, count from ObjectCounter
 
     cap = cv2.VideoCapture(source)  # read the video file
 
@@ -677,8 +676,8 @@ def handle_yolo_solutions(args: List[str]) -> None:
             if not success:
                 break
             if s_n == "analytics":
-                f_n += 1        # increment frame number
-                process(frame, f_n) # pass frame number for analytics
+                f_n += 1  # increment frame number
+                process(frame, f_n)  # pass frame number for analytics
             else:
                 process(frame)
             vw.write(im0)  # write the video frame

@@ -571,6 +571,7 @@ class BaseTrainer:
         ckpt = None
         if str(self.model).endswith(".pt"):
             weights, ckpt = attempt_load_one_weight(self.model)
+            weights = None if self.args.pretrained is False else weights
             cfg = weights.yaml
         elif isinstance(self.args.pretrained, (str, Path)):
             weights, _ = attempt_load_one_weight(self.args.pretrained)

@@ -50,7 +50,7 @@ class ClassificationTrainer(BaseTrainer):
             model.load(weights)
 
         for m in model.modules():
-            if not self.args.pretrained and hasattr(m, "reset_parameters"):
+            if self.args.pretrained is False and hasattr(m, "reset_parameters"):
                 m.reset_parameters()
             if isinstance(m, torch.nn.Dropout) and self.args.dropout:
                 m.p = self.args.dropout  # set dropout
@@ -64,7 +64,7 @@ class ClassificationTrainer(BaseTrainer):
 
         if str(self.model) in torchvision.models.__dict__:
             self.model = torchvision.models.__dict__[self.model](
-                weights="IMAGENET1K_V1" if self.args.pretrained else None
+                weights="IMAGENET1K_V1" if self.args.pretrained is True else None
             )
             ckpt = None
         else:

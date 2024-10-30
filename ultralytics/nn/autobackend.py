@@ -191,8 +191,45 @@ class AutoBackend(nn.Module):
                 task = "detect"
             else:
                 session = onnxruntime.InferenceSession(w, providers=providers)
+            providers = onnxruntime.get_available_providers()
+            if mct:
+                check_requirements(
+                    ["model-compression-toolkit==2.1.1", "sony-custom-layers[torch]", "onnxruntime-extensions"]
+                )
+                LOGGER.info(f"Loading {w} for ONNX MCT quantization inference...")
+                import mct_quantizers as mctq
+                from sony_custom_layers.pytorch.object_detection import nms_ort  # noqa
+
+                session = onnxruntime.InferenceSession(
+                    w, mctq.get_ort_session_options(), providers=["CPUExecutionProvider"]
+                )
+                task = "detect"
+            else:
+                if not cuda and "CUDAExecutionProvider" in providers:
+                    providers.remove("CUDAExecutionProvider")
+                elif cuda and "CUDAExecutionProvider" not in providers:
+                    LOGGER.warning("WARNING ⚠️ Failed to start ONNX Runtime session with CUDA. Falling back to CPU...")
+                    device = torch.device("cpu")
+                    cuda = False
+                LOGGER.info(f"Preferring ONNX Runtime {providers[0]}")
+                session = onnxruntime.InferenceSession(w, providers=providers)
             output_names = [x.name for x in session.get_outputs()]
             metadata = session.get_modelmeta().custom_metadata_map
+            dynamic = isinstance(session.get_outputs()[0].shape[0], str)
+            if not dynamic:
+                io = session.io_binding()
+                bindings = []
+                for output in session.get_outputs():
+                    y_tensor = torch.empty(output.shape, dtype=torch.float16 if fp16 else torch.float32).to(device)
+                    io.bind_output(
+                        name=output.name,
+                        device_type=device.type,
+                        device_id=device.index if cuda else 0,
+                        element_type=np.float16 if fp16 else np.float32,
+                        shape=tuple(y_tensor.shape),
+                        buffer_ptr=y_tensor.data_ptr(),
+                    )
+                    bindings.append(y_tensor)
 
         # OpenVINO
         elif xml:
@@ -483,6 +520,22 @@ class AutoBackend(nn.Module):
                 from ultralytics.utils.ops import xyxy2xywh
 
                 y = np.concatenate([xyxy2xywh(y[0]), y[1]], axis=-1).transpose(0, 2, 1)
+            if self.dynamic:
+                im = im.cpu().numpy()  # torch to numpy
+                y = self.session.run(self.output_names, {self.session.get_inputs()[0].name: im})
+            else:
+                if not self.cuda:
+                    im = im.cpu()
+                self.io.bind_input(
+                    name="images",
+                    device_type=im.device.type,
+                    device_id=im.device.index if im.device.type == "cuda" else 0,
+                    element_type=np.float16 if self.fp16 else np.float32,
+                    shape=tuple(im.shape),
+                    buffer_ptr=im.data_ptr(),
+                )
+                self.session.run_with_iobinding(self.io)
+                y = self.bindings
 
         # OpenVINO
         elif self.xml:

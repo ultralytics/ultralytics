@@ -63,7 +63,7 @@ class BaseSolution:
         )  # Store line_width for usage
 
         # Load Model and store classes names
-        self.model = YOLO(self.CFG["model"] if self.CFG["model"] else "yolov8n.pt")
+        self.model = YOLO(self.CFG["model"] if self.CFG["model"] else "yolo11n.pt")
         self.names = self.model.names
 
         # Initialize environment and region setup

@@ -637,24 +637,26 @@ def handle_yolo_solutions(args: List[str]) -> None:
 
     # Get solution name
     s_n = overrides.pop("name", None)
-    if s_n not in SOLUTION_MAP or s_n is None:  # check if solution is not in defined solution, use solution name s_n=count
+    if (
+        s_n not in SOLUTION_MAP or s_n is None
+    ):  # check if solution is not in defined solution, use solution name s_n=count
         LOGGER.warning(
             f"WARNING ⚠️ {s_n} is not valid solution. Defined solutions are {list(SOLUTION_MAP.keys())}, using solution 'name=count'"
         )
         s_n = "count"
 
-    cls, method, d_s = SOLUTION_MAP[s_n]    # solution class name, method name and default source
+    cls, method, d_s = SOLUTION_MAP[s_n]  # solution class name, method name and default source
     source = overrides.pop("source", None)  # extract source from overrides dict
     if not source:
         from ultralytics.utils.downloads import safe_download
 
-        safe_download(f"{SOLUTIONS_ASSETS}/{d_s}")   # download source from ultralytics assets
+        safe_download(f"{SOLUTIONS_ASSETS}/{d_s}")  # download source from ultralytics assets
         source = d_s  # set default source
 
-    from ultralytics import solutions   # import ultralytics solutions
+    from ultralytics import solutions  # import ultralytics solutions
 
-    solution = getattr(solutions, cls)(**overrides)     # get solution class i.e ObjectCounter
-    process = getattr(solution, method)     # get specific function of class for processing i.e, count from ObjectCounter
+    solution = getattr(solutions, cls)(**overrides)  # get solution class i.e ObjectCounter
+    process = getattr(solution, method)  # get specific function of class for processing i.e, count from ObjectCounter
 
     cap = cv2.VideoCapture(source)  # read the video file
 
@@ -663,10 +665,21 @@ def handle_yolo_solutions(args: List[str]) -> None:
 
     save_dir = increment_path(get_save_dir(SimpleNamespace(project="runs", name="solution", exist_ok=True)) / f"{s_n}")
     save_dir.mkdir(parents=True, exist_ok=True)
-    w, h, fps = (int(cap.get(x)) for x in   # extract width, height and fps of input video
-                 (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS)) if s_n != "analytics" else (
-        1920, 1080, cv2.CAP_PROP_FPS)
-    vw = cv2.VideoWriter(os.path.join(save_dir, "solution.avi"), cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))  # video writer
+    w, h, fps = (
+        (
+            int(cap.get(x))
+            for x in (  # extract width, height and fps of input video
+                cv2.CAP_PROP_FRAME_WIDTH,
+                cv2.CAP_PROP_FRAME_HEIGHT,
+                cv2.CAP_PROP_FPS,
+            )
+        )
+        if s_n != "analytics"
+        else (1920, 1080, cv2.CAP_PROP_FPS)
+    )
+    vw = cv2.VideoWriter(
+        os.path.join(save_dir, "solution.avi"), cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h)
+    )  # video writer
 
     # Process video frames
     try:

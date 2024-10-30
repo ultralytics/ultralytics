@@ -636,7 +636,6 @@ def handle_yolo_solutions(args: List[str]) -> None:
 
     # Import necessary libraries
     import os  # for directory creation
-
     from ultralytics import solutions  # import ultralytics solutions
     from ultralytics.utils.files import increment_path
 
@@ -660,14 +659,15 @@ def handle_yolo_solutions(args: List[str]) -> None:
 
         safe_download(f"{SOLUTIONS_ASSETS}/{d_s}")  # download source from ultralytics assets
         source = d_s  # set default source
+
     cap = cv2.VideoCapture(source)  # read the video file
 
-    save_dir = increment_path(get_save_dir(SimpleNamespace(project="runs", name="solution", exist_ok=True)) / f"{s_n}")
-    save_dir.mkdir(parents=True, exist_ok=True)
     # extract width, height and fps of the video file
     w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
     if s_n == "analytics":  # analytical graphs follow same shape for output i.e w=1920, h=1080
         w, h = 1920, 1080
+    save_dir = increment_path(Path("runs") / "solution" / f"{s_n}", exist_ok=False)
+    save_dir.mkdir(parents=True, exist_ok=True)  # create the output directory
     vw = cv2.VideoWriter(
         os.path.join(save_dir, "solution.avi"), cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h)
     )  # video writer
@@ -679,9 +679,8 @@ def handle_yolo_solutions(args: List[str]) -> None:
             success, frame = cap.read()
             if not success:
                 break
-            frame = process(frame, f_n := f_n + 1) if s_n == "analytics" else process(
-                frame
-            )  # increment frame number and pass it for analytics mode, otherwise just process frame
+            # increment frame number and pass it for analytics mode, otherwise just process frame
+            frame = process(frame, f_n := f_n + 1) if s_n == "analytics" else process(frame)
             vw.write(frame)  # write the video frame
             if cv2.waitKey(1) & 0xFF == ord("q"):
                 break

@@ -121,8 +121,8 @@ class AutoBackend(nn.Module):
             edgetpu,
             tfjs,
             paddle,
-            mnn,
             ncnn,
+            mnn,
             triton,
         ) = self._model_type(w)
         fp16 &= pt or jit or onnx or xml or engine or nn_module or triton  # FP16

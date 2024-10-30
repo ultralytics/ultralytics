@@ -1164,6 +1164,7 @@ class Exporter:
         mct.exporter.pytorch_export_model(model=quant_model, save_model_path=f, repr_dataset=representative_dataset_gen)
 
         import onnx
+
         model_onnx = onnx.load(f)  # load onnx model
         for k, v in self.metadata.items():
             meta = model_onnx.metadata_props.add()

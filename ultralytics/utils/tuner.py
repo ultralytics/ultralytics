@@ -5,7 +5,12 @@ from ultralytics.utils import DEFAULT_CFG, DEFAULT_CFG_DICT, LOGGER, NUM_THREADS
 
 
 def run_ray_tune(
-    model, space: dict = None, grace_period: int = 10, gpu_per_trial: int = None, max_samples: int = 10, **train_args,
+    model,
+    space: dict = None,
+    grace_period: int = 10,
+    gpu_per_trial: int = None,
+    max_samples: int = 10,
+    **train_args,
 ):
     """
     Runs hyperparameter tuning using Ray Tune.

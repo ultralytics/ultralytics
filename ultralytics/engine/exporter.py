@@ -1074,7 +1074,6 @@ class Exporter:
             raise ValueError("MCT export is only supported for YOLOv8 detection models")
         check_requirements("model-compression-toolkit==2.1.1")
         import model_compression_toolkit as mct
-        import onnx
 
         def representative_dataset_gen(dataloader=self.get_int8_calibration_dataloader(prefix)):
             for batch in dataloader:
@@ -1164,6 +1163,7 @@ class Exporter:
         f = Path(str(self.file).replace(self.file.suffix, "_mct_model.onnx"))  # js dir
         mct.exporter.pytorch_export_model(model=quant_model, save_model_path=f, repr_dataset=representative_dataset_gen)
 
+        import onnx
         model_onnx = onnx.load(f)  # load onnx model
         for k, v in self.metadata.items():
             meta = model_onnx.metadata_props.add()

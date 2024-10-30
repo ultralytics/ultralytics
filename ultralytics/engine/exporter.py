@@ -1082,7 +1082,7 @@ class Exporter:
 
         set_working_device(str(self.device))
 
-        class PostProcessWrapper(torch.nn.Module):
+        class NMSWrapper(torch.nn.Module):
             def __init__(
                 self,
                 model: torch.nn.Module,
@@ -1167,7 +1167,7 @@ class Exporter:
             iou_threshold = 0.7
             max_detections = 300
 
-            quant_model = PostProcessWrapper(
+            quant_model = NMSWrapper(
                 model=quant_model,
                 score_threshold=score_threshold,
                 iou_threshold=iou_threshold,
@@ -1362,9 +1362,9 @@ class Exporter:
         model = ct.models.MLModel(pipeline.spec, weights_dir=weights_dir)
         model.input_description["image"] = "Input image"
         model.input_description["iouThreshold"] = f"(optional) IoU threshold override (default: {nms.iouThreshold})"
-        model.input_description["confidenceThreshold"] = (
-            f"(optional) Confidence threshold override (default: {nms.confidenceThreshold})"
-        )
+        model.input_description[
+            "confidenceThreshold"
+        ] = f"(optional) Confidence threshold override (default: {nms.confidenceThreshold})"
         model.output_description["confidence"] = 'Boxes × Class confidence (see user-defined metadata "classes")'
         model.output_description["coordinates"] = "Boxes × [x, y, width, height] (relative to image size)"
         LOGGER.info(f"{prefix} pipeline success")

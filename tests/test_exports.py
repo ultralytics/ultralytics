@@ -199,6 +199,13 @@ def test_export_ncnn():
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
 
 
+@pytest.mark.slow
+def test_export_mnn():
+    """Test YOLO exports to MNN format."""
+    file = YOLO(MODEL).export(format="mnn", imgsz=32)
+    YOLO(file)(SOURCE, imgsz=32)  # exported model inference
+
+
 @pytest.mark.skipif(True, reason="Test disabled")
 def test_export_mct():
     """Test YOLOv8n exports to MCT format."""

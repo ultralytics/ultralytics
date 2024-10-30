@@ -73,8 +73,8 @@ class AutoBackend(nn.Module):
             | TensorFlow Lite       | *.tflite         |
             | TensorFlow Edge TPU   | *_edgetpu.tflite |
             | PaddlePaddle          | *_paddle_model   |
-            | MNN                   | *.mnn            |
             | NCNN                  | *_ncnn_model     |
+            | MNN                   | *.mnn            |
 
     This class offers dynamic backend switching capabilities based on the input model format, making it easier to deploy
     models across various platforms.

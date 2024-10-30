@@ -1101,7 +1101,7 @@ class Exporter:
                 gptq_config=mct.gptq.get_pytorch_gptq_config(n_epochs=1000, use_hessian_based_weights=False),
                 core_config=config,
                 target_platform_capabilities=tpc,
-            )
+            )[0]
             if self.args.gptq
             else mct.ptq.pytorch_post_training_quantization(  # Perform post training quantization
                 in_module=self.model,
@@ -1109,7 +1109,7 @@ class Exporter:
                 target_resource_utilization=resource_utilization,
                 core_config=config,
                 target_platform_capabilities=tpc,
-            )
+            )[0]
         )
 
         if self.args.nms:
@@ -1171,21 +1171,21 @@ class Exporter:
 
         onnx.save(model_onnx, f)
 
-        if not LINUX:
-            LOGGER.warning(f"{prefix} WARNING ⚠️ MCT imx500-converter is only supported on Linux.")
-        else:
-            check_requirements("imx500-converter[pt]==3.14.1")
-            try:
-                import subprocess
-
-                subprocess.run(["java", "--version"], check=True)
-            except FileNotFoundError:
-                LOGGER.error(
-                    "Java 17 is required for the imx500 conversion. \n Please install Java with: \n sudo apt install openjdk-17-jdk openjdk-17-jre"
-                )
-                return None
-
-            subprocess.run(["imxconv-pt", "-i", "yolov8n_mct_model.onnx", "-o", "yolov8n_imx500_model"], check=True)
+        # if not LINUX:
+        #     LOGGER.warning(f"{prefix} WARNING ⚠️ MCT imx500-converter is only supported on Linux.")
+        # else:
+        #     check_requirements("imx500-converter[pt]==3.14.1")
+        #     try:
+        #         import subprocess
+        #
+        #         subprocess.run(["java", "--version"], check=True)
+        #     except FileNotFoundError:
+        #         LOGGER.error(
+        #             "Java 17 is required for the imx500 conversion. \n Please install Java with: \n sudo apt install openjdk-17-jdk openjdk-17-jre"
+        #         )
+        #         return None
+        #
+        #     subprocess.run(["imxconv-pt", "-i", "yolov8n_mct_model.onnx", "-o", "yolov8n_imx500_model"], check=True)
 
         return f, None
 

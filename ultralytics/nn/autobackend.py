@@ -176,10 +176,20 @@ class AutoBackend(nn.Module):
                 check_requirements("numpy==1.23.5")
             import onnxruntime
 
-            providers = ["CUDAExecutionProvider", "CPUExecutionProvider"] if cuda else ["CPUExecutionProvider"]
+            # providers = ["CUDAExecutionProvider", "CPUExecutionProvider"] if cuda else ["CPUExecutionProvider"]
+            providers = ["CPUExecutionProvider"]
+            
+
+            if not cuda and "CUDAExecutionProvider" in providers:
+                providers.remove("CUDAExecutionProvider")
+            elif cuda and "CUDAExecutionProvider" not in providers:
+                LOGGER.warning("WARNING ⚠️ Failed to start ONNX Runtime session with CUDA. Falling back to CPU...")
+                device = torch.device("cpu")
+                cuda = False
+            LOGGER.info(f"Preferring ONNX Runtime {providers[0]}")
             if mct:
                 check_requirements(
-                    ["model-compression-toolkit==2.1.1", "sony-custom-layers[torch]", "onnxruntime-extensions"]
+                    ["model-compression-toolkit==2.1.1", "sony-custom-layers[torch]==0.2.0", "onnxruntime-extensions"]
                 )
                 LOGGER.info(f"Loading {w} for ONNX MCT quantization inference...")
                 import mct_quantizers as mctq
@@ -191,28 +201,7 @@ class AutoBackend(nn.Module):
                 task = "detect"
             else:
                 session = onnxruntime.InferenceSession(w, providers=providers)
-            providers = onnxruntime.get_available_providers()
-            if mct:
-                check_requirements(
-                    ["model-compression-toolkit==2.1.1", "sony-custom-layers[torch]", "onnxruntime-extensions"]
-                )
-                LOGGER.info(f"Loading {w} for ONNX MCT quantization inference...")
-                import mct_quantizers as mctq
-                from sony_custom_layers.pytorch.object_detection import nms_ort  # noqa
-
-                session = onnxruntime.InferenceSession(
-                    w, mctq.get_ort_session_options(), providers=["CPUExecutionProvider"]
-                )
-                task = "detect"
-            else:
-                if not cuda and "CUDAExecutionProvider" in providers:
-                    providers.remove("CUDAExecutionProvider")
-                elif cuda and "CUDAExecutionProvider" not in providers:
-                    LOGGER.warning("WARNING ⚠️ Failed to start ONNX Runtime session with CUDA. Falling back to CPU...")
-                    device = torch.device("cpu")
-                    cuda = False
-                LOGGER.info(f"Preferring ONNX Runtime {providers[0]}")
-                session = onnxruntime.InferenceSession(w, providers=providers)
+            
             output_names = [x.name for x in session.get_outputs()]
             metadata = session.get_modelmeta().custom_metadata_map
             dynamic = isinstance(session.get_outputs()[0].shape[0], str)
@@ -514,12 +503,6 @@ class AutoBackend(nn.Module):
 
         # ONNX Runtime
         elif self.onnx:
-            im = im.cpu().numpy()  # torch to numpy
-            y = self.session.run(self.output_names, {self.session.get_inputs()[0].name: im})
-            if self.mct:
-                from ultralytics.utils.ops import xyxy2xywh
-
-                y = np.concatenate([xyxy2xywh(y[0]), y[1]], axis=-1).transpose(0, 2, 1)
             if self.dynamic:
                 im = im.cpu().numpy()  # torch to numpy
                 y = self.session.run(self.output_names, {self.session.get_inputs()[0].name: im})
@@ -536,6 +519,9 @@ class AutoBackend(nn.Module):
                 )
                 self.session.run_with_iobinding(self.io)
                 y = self.bindings
+            if self.mct:
+                from ultralytics.utils.ops import xyxy2xywh
+                y = np.concatenate([xyxy2xywh(y[0]), y[1]], axis=-1).transpose(0, 2, 1)
 
         # OpenVINO
         elif self.xml:

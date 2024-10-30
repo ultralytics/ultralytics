@@ -634,6 +634,11 @@ def handle_yolo_solutions(args: List[str]) -> None:
             overrides[arg] = True
     check_dict_alignment(full_args_dict, overrides)  # dict alignment
 
+    # Import necessary libraries
+    import os   # for directory creation
+    from ultralytics.utils.files import increment_path
+    from ultralytics import solutions  # import ultralytics solutions
+
     # Get solution name
     s_n = overrides.pop("name", None)
     if s_n not in SOLUTION_MAP or s_n is None:  # check if solution is not in defined solution, use solution name=count
@@ -651,15 +656,11 @@ def handle_yolo_solutions(args: List[str]) -> None:
         safe_download(f"{SOLUTIONS_ASSETS}/{d_s}")  # download source from ultralytics assets
         source = d_s  # set default source
 
-    from ultralytics import solutions  # import ultralytics solutions
-
     solution = getattr(solutions, cls)(**overrides)  # get solution class i.e ObjectCounter
     process = getattr(solution, method)  # get specific function of class for processing i.e, count from ObjectCounter
 
     cap = cv2.VideoCapture(source)  # read the video file
 
-    # Save directory
-    from ultralytics.utils.files import increment_path
 
     save_dir = increment_path(get_save_dir(SimpleNamespace(project="runs", name="solution", exist_ok=True)) / f"{s_n}")
     save_dir.mkdir(parents=True, exist_ok=True)

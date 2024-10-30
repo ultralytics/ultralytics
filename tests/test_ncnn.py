@@ -18,4 +18,4 @@ def test_ncnn():
     # )
     # then export onnx
     model = YOLO("yolo11n.pt")
-    filename = model.export(imgsz=160, format="onnx", half=False, int8=False, device="cpu", verbose=False)
+    model.export(imgsz=160, format="onnx", half=False, int8=False, device="cpu", verbose=False)

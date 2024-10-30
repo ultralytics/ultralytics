@@ -649,18 +649,16 @@ def handle_yolo_solutions(args: List[str]) -> None:
         s_n = "count"
 
     cls, method, d_s = SOLUTION_MAP[s_n]  # solution class name, method name and default source
+    solution = getattr(solutions, cls)(**overrides)  # get solution class i.e ObjectCounter
+    process = getattr(solution, method)  # get specific function of class for processing i.e, count from ObjectCounter
+
     source = overrides.pop("source", None)  # extract source from overrides dict
     if not source:
         from ultralytics.utils.downloads import safe_download
 
         safe_download(f"{SOLUTIONS_ASSETS}/{d_s}")  # download source from ultralytics assets
         source = d_s  # set default source
-
-    solution = getattr(solutions, cls)(**overrides)  # get solution class i.e ObjectCounter
-    process = getattr(solution, method)  # get specific function of class for processing i.e, count from ObjectCounter
-
     cap = cv2.VideoCapture(source)  # read the video file
-
 
     save_dir = increment_path(get_save_dir(SimpleNamespace(project="runs", name="solution", exist_ok=True)) / f"{s_n}")
     save_dir.mkdir(parents=True, exist_ok=True)

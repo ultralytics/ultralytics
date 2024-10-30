@@ -1101,6 +1101,7 @@ class Exporter:
 
     @try_export
     def export_mct(self, prefix=colorstr("Sony MCT:")):
+        """YOLO Sony MCT export."""
         if getattr(self.model, "end2end", False):
             raise ValueError("MCT export is not supported for end2end models.")
         if "C2f" not in self.model.__str__():

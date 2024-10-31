@@ -5,7 +5,9 @@ from pathlib import Path
 from ultralytics import SAM, YOLO
 
 
-def auto_annotate(data, det_model="yolov8x.pt", sam_model="sam_b.pt", device="", conf=0.25, iou=0.45, imgsz=640, output_dir=None):
+def auto_annotate(
+    data, det_model="yolov8x.pt", sam_model="sam_b.pt", device="", conf=0.25, iou=0.45, imgsz=640, output_dir=None
+):
     """
     Automatically annotates images using a YOLO object detection model and a SAM segmentation model.
 
@@ -21,6 +23,7 @@ def auto_annotate(data, det_model="yolov8x.pt", sam_model="sam_b.pt", device="",
         iou (float): IoU threshold for filtering overlapping boxes in detection results; default is 0.45.
         imgsz (int): Input image resize dimension; default is 640.
         output_dir (str | None): Directory to save the annotated results. If None, a default directory is created.
+
     Examples:
         >>> from ultralytics.data.annotator import auto_annotate
         >>> auto_annotate(data="ultralytics/assets", det_model="yolo11n.pt", sam_model="mobile_sam.pt")

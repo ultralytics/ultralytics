@@ -246,8 +246,11 @@ class Pose(Detect):
     def kpts_decode(self, bs, kpts):
         """Decodes keypoints."""
         ndim = self.kpt_shape[1]
-        if self.export:  
-            if self.format in {"tflite", "edgetpu"}:  # required for TFLite export to avoid 'PLACEHOLDER_FOR_GREATER_OP_CODES' bug
+        if self.export:
+            if self.format in {
+                "tflite",
+                "edgetpu",
+            }:  # required for TFLite export to avoid 'PLACEHOLDER_FOR_GREATER_OP_CODES' bug
                 # Precompute normalization factor to increase numerical stability
                 y = kpts.view(bs, *self.kpt_shape, -1)
                 grid_h, grid_w = self.shape[2], self.shape[3]

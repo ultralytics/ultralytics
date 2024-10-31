@@ -237,5 +237,4 @@ function initializeApp() {
         setTimeout(initializeApp, 100);  // Retry every 100ms
     }
 }
-
 document.addEventListener("DOMContentLoaded", initializeApp); // Initial chart rendering on page load

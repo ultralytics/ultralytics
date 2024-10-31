@@ -195,7 +195,7 @@ function updateChart() {
         data: { datasets },
         options: {
             plugins: {
-                legend: { display: true, position: 'top', labels: { color: '#111e68' } }, // Configure the legend.
+                legend: { display: true, position: 'top', labels: {color: '#808080'} }, // Configure the legend.
                 tooltip: {
                     callbacks: {
                         label: (tooltipItem) => {
@@ -212,14 +212,14 @@ function updateChart() {
             scales: {
                 x: {
                     type: 'linear', position: 'bottom',
-                    title: { display: true, text: 'Latency T4 TensorRT10 FP16 (ms/img)', color: '#111e68' }, // X-axis title.
+                    title: { display: true, text: 'Latency T4 TensorRT10 FP16 (ms/img)', color: '#808080'}, // X-axis title.
                     grid: { color: '#e0e0e0' }, // Grid line color.
-                    ticks: { color: '#111e68' } // Tick label color.
+                    ticks: { color: '#808080' } // Tick label color.
                 },
                 y: {
-                    title: { display: true, text: 'mAP', color: '#111e68' }, // Y-axis title.
+                    title: { display: true, text: 'mAP', color: '#808080'}, // Y-axis title.
                     grid: { color: '#e0e0e0' }, // Grid line color.
-                    ticks: { color: '#111e68' } // Tick label color.
+                    ticks: { color: '#808080' } // Tick label color.
                 }
             }
         }
@@ -238,4 +238,4 @@ function initializeApp() {
     }
 }
 
-document.addEventListener("DOMContentLoaded", initializeApp);
+document.addEventListener("DOMContentLoaded", initializeApp); // Initial chart rendering on page load

@@ -34,7 +34,7 @@ Albumentations offers many useful features that simplify complex image augmentat
 
 ![Overview of the Different Levels of Augmentations](https://github.com/user-attachments/assets/9ac3af13-ecf5-41d8-b7df-0faebdf2eefe)
 
--  **[Benchmarking Results](https://albumentations.ai/docs/benchmarking_results/)**: When it comes to benchmarking, Albumentations consistently outperforms other libraries, especially with large datasets.
+- **[Benchmarking Results](https://albumentations.ai/docs/benchmarking_results/)**: When it comes to benchmarking, Albumentations consistently outperforms other libraries, especially with large datasets.
 
 ## Why Should You Use Albumentations for Your Vision AI Projects?
 
@@ -48,7 +48,7 @@ With respect to image augmentation, Albumentations stands out as a reliable tool
 
 ## How to Use Albumentations to Augment Data for YOLO11 Training
 
-Now that we’ve covered what Albumentations is and what it can do, let’s look at how to use it to augment your data for YOLO11 model training. It’s easy to set up because it integrates directly into [Ultralytics’ training mode](../modes/train.md) and applies automatically if you have the Albumentations package installed. 
+Now that we’ve covered what Albumentations is and what it can do, let’s look at how to use it to augment your data for YOLO11 model training. It’s easy to set up because it integrates directly into [Ultralytics’ training mode](../modes/train.md) and applies automatically if you have the Albumentations package installed.
 
 ### Installation
 
@@ -99,7 +99,7 @@ Here are the parameters and values used in this integration:
 
 ### Median Blur
 
-The MedianBlur transformation in Albumentations applies a median blur effect to the image, which is particularly useful for reducing noise while preserving edges. Unlike typical blurring methods, MedianBlur uses a median filter, which is especially effective at removing salt-and-pepper noise while maintaining sharpness around the edges. 
+The MedianBlur transformation in Albumentations applies a median blur effect to the image, which is particularly useful for reducing noise while preserving edges. Unlike typical blurring methods, MedianBlur uses a median filter, which is especially effective at removing salt-and-pepper noise while maintaining sharpness around the edges.
 
 Here are the parameters and values used in this integration:
 

@@ -209,7 +209,7 @@ To auto-annotate your dataset with the Ultralytics framework, use the `auto_anno
         ```
 
 | Argument     | Type                  | Description                                                                                             | Default        |
-| ------------ | --------------------- | ------------------------------------------------------------------------------------------------------- |----------------|
+| ------------ | --------------------- | ------------------------------------------------------------------------------------------------------- | -------------- |
 | `data`       | `str`                 | Path to a folder containing images to be annotated.                                                     |                |
 | `det_model`  | `str`, optional       | Pre-trained YOLO detection model. Defaults to 'yolo11x.pt'.                                             | `'yolov8x.pt'` |
 | `sam_model`  | `str`, optional       | Pre-trained SAM segmentation model. Defaults to 'sam_b.pt'.                                             | `'sam_b.pt'`   |

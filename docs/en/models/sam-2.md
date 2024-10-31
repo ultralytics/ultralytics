@@ -254,7 +254,7 @@ To auto-annotate your dataset using SAM 2, follow this example:
     ```
 
 | Argument     | Type                    | Description                                                                                             | Default        |
-| ------------ | ----------------------- | ------------------------------------------------------------------------------------------------------- |----------------|
+| ------------ | ----------------------- | ------------------------------------------------------------------------------------------------------- | -------------- |
 | `data`       | `str`                   | Path to a folder containing images to be annotated.                                                     |                |
 | `det_model`  | `str`, optional         | Pre-trained YOLO detection model. Defaults to 'yolo11x.pt'.                                             | `'yolov8x.pt'` |
 | `sam_model`  | `str`, optional         | Pre-trained SAM 2 segmentation model. Defaults to 'sam2_b.pt'.                                          | `'sam2_b.pt'`  |

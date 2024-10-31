@@ -205,13 +205,13 @@ To auto-annotate your dataset with the Ultralytics framework, use the `auto_anno
         ```python
         from ultralytics.data.annotator import auto_annotate
 
-        auto_annotate(data="path/to/images", det_model="yolov8x.pt", sam_model="sam_b.pt")
+        auto_annotate(data="path/to/images", det_model="yolo11x.pt", sam_model="sam_b.pt")
         ```
 
 | Argument     | Type                  | Description                                                                                             | Default        |
 | ------------ | --------------------- | ------------------------------------------------------------------------------------------------------- | -------------- |
 | `data`       | `str`                 | Path to a folder containing images to be annotated.                                                     |                |
-| `det_model`  | `str`, optional       | Pre-trained YOLO detection model. Defaults to 'yolov8x.pt'.                                             | `'yolov8x.pt'` |
+| `det_model`  | `str`, optional       | Pre-trained YOLO detection model. Defaults to 'yolo11x.pt'.                                             | `'yolov8x.pt'` |
 | `sam_model`  | `str`, optional       | Pre-trained SAM segmentation model. Defaults to 'sam_b.pt'.                                             | `'sam_b.pt'`   |
 | `device`     | `str`, optional       | Device to run the models on. Defaults to an empty string (CPU or GPU, if available).                    |                |
 | `output_dir` | `str`, None, optional | Directory to save the annotated results. Defaults to a 'labels' folder in the same directory as 'data'. | `None`         |

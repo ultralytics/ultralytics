@@ -253,7 +253,6 @@ To auto-annotate your dataset using SAM 2, follow this example:
     auto_annotate(data="path/to/images", det_model="yolov8x.pt", sam_model="sam2_b.pt")
     ```
 
-<<<<<<< HEAD
 | Argument     | Type            | Description                                                                                             | Default        |
 | ------------ |-----------------| ------------------------------------------------------------------------------------------------------- |----------------|
 | `data`       | `str`           | Path to a folder containing images to be annotated.                                                     |                |

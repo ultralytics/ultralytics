@@ -1,0 +1,87 @@
+# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Automatically merges repository 'main' branch into all open PRs to keep them up-to-date
+# Action runs on updates to main branch so when one PR merges to main all others update
+
+name: Merge main into PRs
+
+on:
+  workflow_dispatch:
+  # push:
+  #   branches:
+  #     - ${{ github.event.repository.default_branch }}
+
+jobs:
+  Merge:
+    if: github.repository == 'ultralytics/ultralytics'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+          cache: "pip"
+      - name: Install requirements
+        run: |
+          pip install pygithub
+      - name: Merge default branch into PRs
+        shell: python
+        run: |
+          from github import Github
+          import os
+          import time
+
+          g = Github("${{ secrets._GITHUB_TOKEN }}")
+          repo = g.get_repo("${{ github.repository }}")
+
+          # Fetch the default branch name
+          default_branch_name = repo.default_branch
+          default_branch = repo.get_branch(default_branch_name)
+
+          # Initialize counters
+          updated_branches = 0
+          up_to_date_branches = 0
+          errors = 0
+
+          for pr in repo.get_pulls(state='open', sort='created'):
+              try:
+                  # Label PRs as popular for positive reactions
+                  reactions = pr.as_issue().get_reactions()
+                  if sum([(1 if r.content not in {"-1", "confused"} else 0) for r in reactions]) > 5:
+                      pr.set_labels(*("popular",) + tuple(l.name for l in pr.get_labels()))
+
+                  # Get full names for repositories and branches
+                  base_repo_name = repo.full_name
+                  head_repo_name = pr.head.repo.full_name
+                  base_branch_name = pr.base.ref
+                  head_branch_name = pr.head.ref
+
+                  # Check if PR is behind the default branch
+                  comparison = repo.compare(default_branch.commit.sha, pr.head.sha)
+                  if comparison.behind_by > 0:
+                      print(f"⚠️ PR #{pr.number} ({head_repo_name}:{head_branch_name} -> {base_repo_name}:{base_branch_name}) is behind {default_branch_name} by {comparison.behind_by} commit(s).")
+                      
+                      # Attempt to update the branch
+                      try:
+                          success = pr.update_branch()
+                          assert success, "Branch update failed"
+                          print(f"✅ Successfully merged '{default_branch_name}' into PR #{pr.number} ({head_repo_name}:{head_branch_name} -> {base_repo_name}:{base_branch_name}).")
+                          updated_branches += 1
+                          time.sleep(10)  # rate limit merges
+                      except Exception as update_error:
+                          print(f"❌ Could not update PR #{pr.number} ({head_repo_name}:{head_branch_name} -> {base_repo_name}:{base_branch_name}): {update_error}")
+                          errors += 1
+                  else:
+                      print(f"✅ PR #{pr.number} ({head_repo_name}:{head_branch_name} -> {base_repo_name}:{base_branch_name}) is already up to date with {default_branch_name}, no merge required.")
+                      up_to_date_branches += 1
+              except Exception as e:
+                  print(f"❌ Could not process PR #{pr.number}: {e}")
+                  errors += 1
+
+          # Print summary
+          print("\n\nSummary:")
+          print(f"Branches updated: {updated_branches}")
+          print(f"Branches already up-to-date: {up_to_date_branches}")
+          print(f"Total errors: {errors}")

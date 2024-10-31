@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Improve YOLOv5 model efficiency by pruning with Ultralytics. Understand the process, conduct tests and view the impact on accuracy and sparsity. Test-maintained API environments.
-keywords: YOLOv5, YOLO, Ultralytics, model pruning, PyTorch, machine learning, deep learning, computer vision, object detection
+description: Learn how to prune YOLOv5 models for improved performance. Follow this step-by-step guide to optimize your YOLOv5 models effectively.
+keywords: YOLOv5 pruning, model pruning, YOLOv5 optimization, YOLOv5 guide, machine learning pruning
 ---
 
 📚 This guide explains how to apply **pruning** to YOLOv5 🚀 models.
@@ -58,7 +58,7 @@ Results saved to runs/val/exp
 
 We repeat the above test with a pruned model by using the `torch_utils.prune()` command. We update `val.py` to prune YOLOv5x to 0.3 sparsity:
 
-<img width="894" alt="Screenshot 2022-02-02 at 22 54 18" src="https://user-images.githubusercontent.com/26833433/152243799-b0ac2777-b1a8-47b1-801a-2e4c93c06ead.png">
+<img width="894" alt="Screenshot 2022-02-02 at 22 54 18" src="https://github.com/ultralytics/docs/releases/download/0/sparsity-test-yolov5x-coco.avif">
 
 30% pruned output:
 
@@ -95,9 +95,9 @@ In the results we can observe that we have achieved a **sparsity of 30%** in our
 
 ## Supported Environments
 
-Ultralytics provides a range of ready-to-use environments, each pre-installed with essential dependencies such as [CUDA](https://developer.nvidia.com/cuda), [CUDNN](https://developer.nvidia.com/cudnn), [Python](https://www.python.org/), and [PyTorch](https://pytorch.org/), to kickstart your projects.
+Ultralytics provides a range of ready-to-use environments, each pre-installed with essential dependencies such as [CUDA](https://developer.nvidia.com/cuda-zone), [CUDNN](https://developer.nvidia.com/cudnn), [Python](https://www.python.org/), and [PyTorch](https://pytorch.org/), to kickstart your projects.
 
-- **Free GPU Notebooks**: <a href="https://bit.ly/yolov5-paperspace-notebook"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run on Gradient"></a> <a href="https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> <a href="https://www.kaggle.com/ultralytics/yolov5"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
+- **Free GPU Notebooks**: <a href="https://bit.ly/yolov5-paperspace-notebook"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run on Gradient"></a> <a href="https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> <a href="https://www.kaggle.com/models/ultralytics/yolov5"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
 - **Google Cloud**: [GCP Quickstart Guide](../environments/google_cloud_quickstart_tutorial.md)
 - **Amazon**: [AWS Quickstart Guide](../environments/aws_quickstart_tutorial.md)
 - **Azure**: [AzureML Quickstart Guide](../environments/azureml_quickstart_tutorial.md)

@@ -1,265 +1,130 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-from collections import defaultdict
-
 import cv2
 import numpy as np
 
-from ultralytics.utils.checks import check_imshow, check_requirements
+from ultralytics.solutions.object_counter import ObjectCounter
 from ultralytics.utils.plotting import Annotator
 
-check_requirements('shapely>=2.0.0')
 
-from shapely.geometry import LineString, Point, Polygon
+class Heatmap(ObjectCounter):
+    """
+    A class to draw heatmaps in real-time video streams based on object tracks.
 
+    This class extends the ObjectCounter class to generate and visualize heatmaps of object movements in video
+    streams. It uses tracked object positions to create a cumulative heatmap effect over time.
 
-class Heatmap:
-    """A class to draw heatmaps in real-time video stream based on their tracks."""
+    Attributes:
+        initialized (bool): Flag indicating whether the heatmap has been initialized.
+        colormap (int): OpenCV colormap used for heatmap visualization.
+        heatmap (np.ndarray): Array storing the cumulative heatmap data.
+        annotator (Annotator): Object for drawing annotations on the image.
 
-    def __init__(self):
-        """Initializes the heatmap class with default values for Visual, Image, track, count and heatmap parameters."""
+    Methods:
+        heatmap_effect: Calculates and updates the heatmap effect for a given bounding box.
+        generate_heatmap: Generates and applies the heatmap effect to each frame.
 
-        # Visual information
-        self.annotator = None
-        self.view_img = False
-        self.shape = 'circle'
+    Examples:
+        >>> from ultralytics.solutions import Heatmap
+        >>> heatmap = Heatmap(model="yolov8n.pt", colormap=cv2.COLORMAP_JET)
+        >>> results = heatmap("path/to/video.mp4")
+        >>> for result in results:
+        ...     print(result.speed)  # Print inference speed
+        ...     cv2.imshow("Heatmap", result.plot())
+        ...     if cv2.waitKey(1) & 0xFF == ord("q"):
+        ...         break
+    """
 
-        # Image information
-        self.imw = None
-        self.imh = None
-        self.im0 = None
+    def __init__(self, **kwargs):
+        """Initializes the Heatmap class for real-time video stream heatmap generation based on object tracks."""
+        super().__init__(**kwargs)
 
-        # Heatmap colormap and heatmap np array
-        self.colormap = None
-        self.heatmap = None
-        self.heatmap_alpha = 0.5
+        self.initialized = False  # bool variable for heatmap initialization
+        if self.region is not None:  # check if user provided the region coordinates
+            self.initialize_region()
 
-        # Predict/track information
-        self.boxes = None
-        self.track_ids = None
-        self.clss = None
-        self.track_history = defaultdict(list)
+        # store colormap
+        self.colormap = cv2.COLORMAP_PARULA if self.CFG["colormap"] is None else self.CFG["colormap"]
 
-        # Region & Line Information
-        self.count_reg_pts = None
-        self.counting_region = None
-        self.line_dist_thresh = 15
-        self.region_thickness = 5
-        self.region_color = (255, 0, 255)
-
-        # Object Counting Information
-        self.in_counts = 0
-        self.out_counts = 0
-        self.counting_list = []
-        self.count_txt_thickness = 0
-        self.count_txt_color = (0, 0, 0)
-        self.count_color = (255, 255, 255)
-
-        # Decay factor
-        self.decay_factor = 0.99
-
-        # Check if environment support imshow
-        self.env_check = check_imshow(warn=True)
-
-    def set_args(self,
-                 imw,
-                 imh,
-                 colormap=cv2.COLORMAP_JET,
-                 heatmap_alpha=0.5,
-                 view_img=False,
-                 count_reg_pts=None,
-                 count_txt_thickness=2,
-                 count_txt_color=(0, 0, 0),
-                 count_color=(255, 255, 255),
-                 count_reg_color=(255, 0, 255),
-                 region_thickness=5,
-                 line_dist_thresh=15,
-                 decay_factor=0.99,
-                 shape='circle'):
+    def heatmap_effect(self, box):
         """
-        Configures the heatmap colormap, width, height and display parameters.
+        Efficiently calculates heatmap area and effect location for applying colormap.
 
         Args:
-            colormap (cv2.COLORMAP): The colormap to be set.
-            imw (int): The width of the frame.
-            imh (int): The height of the frame.
-            heatmap_alpha (float): alpha value for heatmap display
-            view_img (bool): Flag indicating frame display
-            count_reg_pts (list): Object counting region points
-            count_txt_thickness (int): Text thickness for object counting display
-            count_txt_color (RGB color): count text color value
-            count_color (RGB color): count text background color value
-            count_reg_color (RGB color): Color of object counting region
-            region_thickness (int): Object counting Region thickness
-            line_dist_thresh (int): Euclidean Distance threshold for line counter
-            decay_factor (float): value for removing heatmap area after object passed
-            shape (str): Heatmap shape, rect or circle shape supported
+            box (List[float]): Bounding box coordinates [x0, y0, x1, y1].
+
+        Examples:
+            >>> heatmap = Heatmap()
+            >>> box = [100, 100, 200, 200]
+            >>> heatmap.heatmap_effect(box)
         """
-        self.imw = imw
-        self.imh = imh
-        self.heatmap_alpha = heatmap_alpha
-        self.view_img = view_img
-        self.colormap = colormap
+        x0, y0, x1, y1 = map(int, box)
+        radius_squared = (min(x1 - x0, y1 - y0) // 2) ** 2
 
-        # Region and line selection
-        if count_reg_pts is not None:
+        # Create a meshgrid with region of interest (ROI) for vectorized distance calculations
+        xv, yv = np.meshgrid(np.arange(x0, x1), np.arange(y0, y1))
 
-            if len(count_reg_pts) == 2:
-                print('Line Counter Initiated.')
-                self.count_reg_pts = count_reg_pts
-                self.counting_region = LineString(count_reg_pts)
+        # Calculate squared distances from the center
+        dist_squared = (xv - ((x0 + x1) // 2)) ** 2 + (yv - ((y0 + y1) // 2)) ** 2
 
-            elif len(count_reg_pts) == 4:
-                print('Region Counter Initiated.')
-                self.count_reg_pts = count_reg_pts
-                self.counting_region = Polygon(self.count_reg_pts)
+        # Create a mask of points within the radius
+        within_radius = dist_squared <= radius_squared
 
-            else:
-                print('Region or line points Invalid, 2 or 4 points supported')
-                print('Using Line Counter Now')
-                self.counting_region = Polygon([(20, 400), (1260, 400)])  # dummy points
+        # Update only the values within the bounding box in a single vectorized operation
+        self.heatmap[y0:y1, x0:x1][within_radius] += 2
 
-        # Heatmap new frame
-        self.heatmap = np.zeros((int(self.imw), int(self.imh)), dtype=np.float32)
-
-        self.count_txt_thickness = count_txt_thickness
-        self.count_txt_color = count_txt_color
-        self.count_color = count_color
-        self.region_color = count_reg_color
-        self.region_thickness = region_thickness
-        self.decay_factor = decay_factor
-        self.line_dist_thresh = line_dist_thresh
-        self.shape = shape
-
-        # shape of heatmap, if not selected
-        if self.shape not in ['circle', 'rect']:
-            print("Unknown shape value provided, 'circle' & 'rect' supported")
-            print('Using Circular shape now')
-            self.shape = 'circle'
-
-    def extract_results(self, tracks):
+    def generate_heatmap(self, im0):
         """
-        Extracts results from the provided data.
+        Generate heatmap for each frame using Ultralytics.
 
         Args:
-            tracks (list): List of tracks obtained from the object tracking process.
+            im0 (np.ndarray): Input image array for processing.
+
+        Returns:
+            (np.ndarray): Processed image with heatmap overlay and object counts (if region is specified).
+
+        Examples:
+            >>> heatmap = Heatmap()
+            >>> im0 = cv2.imread("image.jpg")
+            >>> result = heatmap.generate_heatmap(im0)
         """
-        self.boxes = tracks[0].boxes.xyxy.cpu()
-        self.clss = tracks[0].boxes.cls.cpu().tolist()
-        self.track_ids = tracks[0].boxes.id.int().cpu().tolist()
+        if not self.initialized:
+            self.heatmap = np.zeros_like(im0, dtype=np.float32) * 0.99
+        self.initialized = True  # Initialize heatmap only once
 
-    def generate_heatmap(self, im0, tracks):
-        """
-        Generate heatmap based on tracking data.
+        self.annotator = Annotator(im0, line_width=self.line_width)  # Initialize annotator
+        self.extract_tracks(im0)  # Extract tracks
 
-        Args:
-            im0 (nd array): Image
-            tracks (list): List of tracks obtained from the object tracking process.
-        """
-        self.im0 = im0
-        if tracks[0].boxes.id is None:
-            return self.im0
+        # Iterate over bounding boxes, track ids and classes index
+        for box, track_id, cls in zip(self.boxes, self.track_ids, self.clss):
+            # Draw bounding box and counting region
+            self.heatmap_effect(box)
 
-        self.heatmap *= self.decay_factor  # decay factor
-        self.extract_results(tracks)
-        self.annotator = Annotator(self.im0, self.count_txt_thickness, None)
+            if self.region is not None:
+                self.annotator.draw_region(reg_pts=self.region, color=(104, 0, 123), thickness=self.line_width * 2)
+                self.store_tracking_history(track_id, box)  # Store track history
+                self.store_classwise_counts(cls)  # store classwise counts in dict
 
-        if self.count_reg_pts is not None:
+                # Store tracking previous position and perform object counting
+                prev_position = None
+                if len(self.track_history[track_id]) > 1:
+                    prev_position = self.track_history[track_id][-2]
+                self.count_objects(self.track_line, box, track_id, prev_position, cls)  # Perform object counting
 
-            # Draw counting region
-            self.annotator.draw_region(reg_pts=self.count_reg_pts,
-                                       color=self.region_color,
-                                       thickness=self.region_thickness)
-
-            for box, cls, track_id in zip(self.boxes, self.clss, self.track_ids):
-
-                if self.shape == 'circle':
-                    center = (int((box[0] + box[2]) // 2), int((box[1] + box[3]) // 2))
-                    radius = min(int(box[2]) - int(box[0]), int(box[3]) - int(box[1])) // 2
-
-                    y, x = np.ogrid[0:self.heatmap.shape[0], 0:self.heatmap.shape[1]]
-                    mask = (x - center[0]) ** 2 + (y - center[1]) ** 2 <= radius ** 2
-
-                    self.heatmap[int(box[1]):int(box[3]), int(box[0]):int(box[2])] += \
-                        (2 * mask[int(box[1]):int(box[3]), int(box[0]):int(box[2])])
-
-                else:
-                    self.heatmap[int(box[1]):int(box[3]), int(box[0]):int(box[2])] += 2
-
-                # Store tracking hist
-                track_line = self.track_history[track_id]
-                track_line.append((float((box[0] + box[2]) / 2), float((box[1] + box[3]) / 2)))
-                if len(track_line) > 30:
-                    track_line.pop(0)
-
-                # Count objects
-                if len(self.count_reg_pts) == 4:
-                    if self.counting_region.contains(Point(track_line[-1])):
-                        if track_id not in self.counting_list:
-                            self.counting_list.append(track_id)
-                            if box[0] < self.counting_region.centroid.x:
-                                self.out_counts += 1
-                            else:
-                                self.in_counts += 1
-
-                elif len(self.count_reg_pts) == 2:
-                    distance = Point(track_line[-1]).distance(self.counting_region)
-                    if distance < self.line_dist_thresh:
-                        if track_id not in self.counting_list:
-                            self.counting_list.append(track_id)
-                            if box[0] < self.counting_region.centroid.x:
-                                self.out_counts += 1
-                            else:
-                                self.in_counts += 1
-        else:
-            for box, cls in zip(self.boxes, self.clss):
-
-                if self.shape == 'circle':
-                    center = (int((box[0] + box[2]) // 2), int((box[1] + box[3]) // 2))
-                    radius = min(int(box[2]) - int(box[0]), int(box[3]) - int(box[1])) // 2
-
-                    y, x = np.ogrid[0:self.heatmap.shape[0], 0:self.heatmap.shape[1]]
-                    mask = (x - center[0]) ** 2 + (y - center[1]) ** 2 <= radius ** 2
-
-                    self.heatmap[int(box[1]):int(box[3]), int(box[0]):int(box[2])] += \
-                        (2 * mask[int(box[1]):int(box[3]), int(box[0]):int(box[2])])
-
-                else:
-                    self.heatmap[int(box[1]):int(box[3]), int(box[0]):int(box[2])] += 2
+        if self.region is not None:
+            self.display_counts(im0)  # Display the counts on the frame
 
         # Normalize, apply colormap to heatmap and combine with original image
-        heatmap_normalized = cv2.normalize(self.heatmap, None, 0, 255, cv2.NORM_MINMAX)
-        heatmap_colored = cv2.applyColorMap(heatmap_normalized.astype(np.uint8), self.colormap)
+        if self.track_data.id is not None:
+            im0 = cv2.addWeighted(
+                im0,
+                0.5,
+                cv2.applyColorMap(
+                    cv2.normalize(self.heatmap, None, 0, 255, cv2.NORM_MINMAX).astype(np.uint8), self.colormap
+                ),
+                0.5,
+                0,
+            )
 
-        if self.count_reg_pts is not None:
-            incount_label = 'InCount : ' + f'{self.in_counts}'
-            outcount_label = 'OutCount : ' + f'{self.out_counts}'
-            self.annotator.count_labels(in_count=incount_label,
-                                        out_count=outcount_label,
-                                        count_txt_size=self.count_txt_thickness,
-                                        txt_color=self.count_txt_color,
-                                        color=self.count_color)
-
-        im0_with_heatmap = cv2.addWeighted(self.im0, 1 - self.heatmap_alpha, heatmap_colored, self.heatmap_alpha, 0)
-
-        if self.env_check and self.view_img:
-            self.display_frames(im0_with_heatmap)
-
-        return im0_with_heatmap
-
-    @staticmethod
-    def display_frames(im0_with_heatmap):
-        """
-        Display heatmap.
-
-        Args:
-            im0_with_heatmap (nd array): Original Image with heatmap
-        """
-        cv2.imshow('Ultralytics Heatmap', im0_with_heatmap)
-
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            return
-
-
-if __name__ == '__main__':
-    Heatmap()
+        self.display_output(im0)  # display output with base class function
+        return im0  # return output image for more usage

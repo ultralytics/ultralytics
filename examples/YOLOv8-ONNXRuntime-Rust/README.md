@@ -1,10 +1,17 @@
 # YOLOv8-ONNXRuntime-Rust for All the Key YOLO Tasks
 
-This repository provides a Rust demo for performing YOLOv8 tasks like `Classification`, `Segmentation`, `Detection` and `Pose Detection` using ONNXRuntime.
+This repository provides a Rust demo for performing YOLOv8 tasks like `Classification`, `Segmentation`, `Detection`, `Pose Detection` and `OBB` using ONNXRuntime.
+
+## Recently Updated
+
+- Add YOLOv8-OBB demo
+- Update ONNXRuntime to 1.19.x
+
+Newly updated YOLOv8 example code is located in this repository (https://github.com/jamjamjon/usls/tree/main/examples/yolo)
 
 ## Features
 
-- Support `Classification`, `Segmentation`, `Detection`, `Pose(Keypoints)-Detection` tasks.
+- Support `Classification`, `Segmentation`, `Detection`, `Pose(Keypoints)-Detection`, `OBB` tasks.
 - Support `FP16` & `FP32` ONNX models.
 - Support `CPU`, `CUDA` and `TensorRT` execution provider to accelerate computation.
 - Support dynamic input shapes(`batch`, `width`, `height`).
@@ -26,7 +33,7 @@ You can follow the instruction with `ort` doc or simply do this:
 
 On ubuntu, You can do like this:
 
-```
+```bash
 vim ~/.bashrc
 
 # Add the path of ONNXRUntime lib
@@ -65,25 +72,25 @@ yolo export model=yolov8m-seg.pt format=onnx  simplify
 
 It will perform inference with the ONNX model on the source image.
 
-```
+```bash
 cargo run --release -- --model <MODEL> --source <SOURCE>
 ```
 
 Set `--cuda` to use CUDA execution provider to speed up inference.
 
-```
+```bash
 cargo run --release -- --cuda --model <MODEL> --source <SOURCE>
 ```
 
 Set `--trt` to use TensorRT execution provider, and you can set `--fp16` at the same time to use TensorRT FP16 engine.
 
-```
+```bash
 cargo run --release -- --trt --fp16 --model <MODEL> --source <SOURCE>
 ```
 
 Set `--device_id` to select which device to run. When you have only one GPU, and you set `device_id` to 1 will not cause program panic, the `ort` would automatically fall back to `CPU` EP.
 
-```
+```bash
 cargo run --release -- --cuda --device_id 0 --model <MODEL> --source <SOURCE>
 ```
 
@@ -91,25 +98,25 @@ Set `--batch` to do multi-batch-size inference.
 
 If you're using `--trt`, you can also set `--batch-min` and `--batch-max` to explicitly specify min/max/opt batch for dynamic batch input.(https://onnxruntime.ai/docs/execution-providers/TensorRT-ExecutionProvider.html#explicit-shape-range-for-dynamic-shape-input).(Note that the ONNX model should exported with dynamic shapes)
 
-```
+```bash
 cargo run --release -- --cuda --batch 2 --model <MODEL> --source <SOURCE>
 ```
 
 Set `--height` and `--width` to do dynamic image size inference. (Note that the ONNX model should exported with dynamic shapes)
 
-```
+```bash
 cargo run --release -- --cuda --width 480 --height 640 --model <MODEL> --source <SOURCE>
 ```
 
 Set `--profile` to check time consumed in each stage.(Note that the model usually needs to take 1~3 times dry run to warmup. Make sure to run enough times to evaluate the result.)
 
-```
+```bash
 cargo run --release -- --trt --fp16 --profile --model <MODEL> --source <SOURCE>
 ```
 
 Results: (yolov8m.onnx, batch=1, 3 times, trt, fp16, RTX 3060Ti)
 
-```
+```bash
 ==> 0
 [Model Preprocess]: 12.75788ms
 [ORT H2D]: 237.118µs
@@ -145,7 +152,7 @@ And also:
 
 you can check out all CLI arguments by:
 
-```
+```bash
 git clone https://github.com/ultralytics/ultralytics
 cd ultralytics/examples/YOLOv8-ONNXRuntime-Rust
 cargo run --release -- --help
@@ -153,17 +160,19 @@ cargo run --release -- --help
 
 ## Examples
 
+![Ultralytics YOLO Tasks](https://raw.githubusercontent.com/ultralytics/assets/main/im/banner-tasks.png)
+
 ### Classification
 
 Running dynamic shape ONNX model on `CPU` with image size `--height 224 --width 224`. Saving plotted image in `runs` directory.
 
-```
+```bash
 cargo run --release -- --model ../assets/weights/yolov8m-cls-dyn.onnx --source ../assets/images/dog.jpg --height 224 --width 224 --plot --profile
 ```
 
 You will see result like:
 
-```
+```bash
 Summary:
 > Task: Classify (Ultralytics 8.0.217)
 > EP: Cpu
@@ -185,37 +194,28 @@ Summary:
         Masks: None,
     },
 ]
-
 ```
-
-![2023-11-25-22-02-02-156623351](https://github.com/jamjamjon/ultralytics/assets/51357717/ef75c2ae-c5ab-44cc-9d9e-e60b51e39662)
 
 ### Object Detection
 
 Using `CUDA` EP and dynamic image size `--height 640 --width 480`
 
-```
+```bash
 cargo run --release -- --cuda --model ../assets/weights/yolov8m-dynamic.onnx --source ../assets/images/bus.jpg --plot --height 640 --width 480
 ```
-
-![det](https://github.com/jamjamjon/ultralytics/assets/51357717/5d89a19d-0c96-4a59-875c-defab6887a2c)
 
 ### Pose Detection
 
 using `TensorRT` EP
 
-```
+```bash
 cargo run --release -- --trt --model ../assets/weights/yolov8m-pose.onnx --source ../assets/images/bus.jpg --plot
 ```
-
-![2023-11-25-22-31-45-127054025](https://github.com/jamjamjon/ultralytics/assets/51357717/157b5ba7-bfcf-47cf-bee7-68b62e0de1c4)
 
 ### Instance Segmentation
 
 using `TensorRT` EP and FP16 model `--fp16`
 
-```
+```bash
 cargo run --release --  --trt --fp16 --model ../assets/weights/yolov8m-seg.onnx --source ../assets/images/0172.jpg --plot
 ```
-
-![seg](https://github.com/jamjamjon/ultralytics/assets/51357717/cf046f4f-9533-478a-adc7-4de22443a641)

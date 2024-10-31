@@ -17,6 +17,6 @@ class HUBModelError(Exception):
         The message is automatically processed through the 'emojis' function from the 'ultralytics.utils' package.
     """
 
-    def __init__(self, message='Model not found. Please check model URL and try again.'):
+    def __init__(self, message="Model not found. Please check model URL and try again."):
         """Create an exception for when a model is not found."""
         super().__init__(emojis(message))

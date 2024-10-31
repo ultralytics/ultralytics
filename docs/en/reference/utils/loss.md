@@ -1,52 +1,60 @@
 ---
-description: Explore Ultralytics' versatile loss functions - VarifocalLoss, BboxLoss, v8DetectionLoss, v8PoseLoss. Improve your accuracy on YOLO implementations.
-keywords: Ultralytics, Loss functions, VarifocalLoss, BboxLoss, v8DetectionLoss, v8PoseLoss, YOLO, Ultralytics Documentation
+description: Explore detailed descriptions and implementations of various loss functions used in Ultralytics models, including Varifocal Loss, Focal Loss, Bbox Loss, and more.
+keywords: Ultralytics, loss functions, Varifocal Loss, Focal Loss, Bbox Loss, Rotated Bbox Loss, Keypoint Loss, YOLO, model training, documentation
 ---
 
 # Reference for `ultralytics/utils/loss.py`
 
-!!! Note
+!!! note
 
     This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/loss.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/loss.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/utils/loss.py) 🛠️. Thank you 🙏!
 
-<br><br>
+<br>
 
 ## ::: ultralytics.utils.loss.VarifocalLoss
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.utils.loss.FocalLoss
 
-<br><br>
+<br><br><hr><br>
+
+## ::: ultralytics.utils.loss.DFLoss
+
+<br><br><hr><br>
 
 ## ::: ultralytics.utils.loss.BboxLoss
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.utils.loss.RotatedBboxLoss
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.utils.loss.KeypointLoss
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.utils.loss.v8DetectionLoss
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.utils.loss.v8SegmentationLoss
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.utils.loss.v8PoseLoss
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.utils.loss.v8ClassificationLoss
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.utils.loss.v8OBBLoss
+
+<br><br><hr><br>
+
+## ::: ultralytics.utils.loss.E2EDetectLoss
 
 <br><br>

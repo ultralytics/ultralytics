@@ -1,6 +1,7 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 # Continuous Integration (CI) GitHub Actions tests broken link checker using https://github.com/lycheeverse/lychee
 # Ignores the following status codes to reduce false positives:
+#   - 401(Vimeo, 'unauthorized')
 #   - 403(OpenVINO, 'forbidden')
 #   - 429(Instagram, 'too many requests')
 #   - 500(Zenodo, 'cached')
@@ -12,7 +13,7 @@ name: Check Broken links
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 0 * * *'  # runs at 00:00 UTC every day
+    - cron: "0 0 * * *" # runs at 00:00 UTC every day
 
 jobs:
   Links:
@@ -28,14 +29,18 @@ jobs:
           sudo mv lychee /usr/local/bin
 
       - name: Test Markdown and HTML links with retry
-        uses: nick-invision/retry@v2
+        uses: nick-invision/retry@v3
         with:
           timeout_minutes: 5
           retry_wait_seconds: 60
           max_attempts: 3
           command: |
-            lychee --accept 403,429,500,502,999 \
-            --exclude-loopback \
+            lychee \
+            --scheme https \
+            --timeout 60 \
+            --insecure \
+            --accept 401,403,429,500,502,999 \
+            --exclude-all-private \
             --exclude 'https?://(www\.)?(linkedin\.com|twitter\.com|instagram\.com|kaggle\.com|fonts\.gstatic\.com|url\.com)' \
             --exclude-path docs/zh \
             --exclude-path docs/es \
@@ -47,20 +52,25 @@ jobs:
             --exclude-path docs/ko \
             --exclude-path docs/hi \
             --exclude-path docs/ar \
-            --exclude-mail \
             --github-token ${{ secrets.GITHUB_TOKEN }} \
-            './**/*.md' './**/*.html'
+            --header "User-Agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.6478.183 Safari/537.36" \
+            './**/*.md' \
+            './**/*.html'
 
       - name: Test Markdown, HTML, YAML, Python and Notebook links with retry
         if: github.event_name == 'workflow_dispatch'
-        uses: nick-invision/retry@v2
+        uses: nick-invision/retry@v3
         with:
           timeout_minutes: 5
           retry_wait_seconds: 60
           max_attempts: 3
           command: |
-            lychee --accept 429,999 \
-            --exclude-loopback \
+            lychee \
+            --scheme https \
+            --timeout 60 \
+            --insecure \
+            --accept 401,403,429,500,502,999 \
+            --exclude-all-private \
             --exclude 'https?://(www\.)?(linkedin\.com|twitter\.com|instagram\.com|kaggle\.com|fonts\.gstatic\.com|url\.com)' \
             --exclude-path '**/ci.yaml' \
             --exclude-path docs/zh \
@@ -73,6 +83,11 @@ jobs:
             --exclude-path docs/ko \
             --exclude-path docs/hi \
             --exclude-path docs/ar \
-            --exclude-mail \
             --github-token ${{ secrets.GITHUB_TOKEN }} \
-            './**/*.md' './**/*.html' './**/*.yml' './**/*.yaml' './**/*.py' './**/*.ipynb'
+            --header "User-Agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.6478.183 Safari/537.36" \
+            './**/*.md' \
+            './**/*.html' \
+            './**/*.yml' \
+            './**/*.yaml' \
+            './**/*.py' \
+            './**/*.ipynb'

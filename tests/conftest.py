@@ -3,9 +3,7 @@
 import shutil
 from pathlib import Path
 
-import pytest
-
-TMP = Path(__file__).resolve().parent / 'tmp'  # temp directory for test files
+from tests import TMP
 
 
 def pytest_addoption(parser):
@@ -13,43 +11,28 @@ def pytest_addoption(parser):
     Add custom command-line options to pytest.
 
     Args:
-        parser (pytest.config.Parser): The pytest parser object.
+        parser (pytest.config.Parser): The pytest parser object for adding custom command-line options.
+
+    Returns:
+        (None)
     """
-    parser.addoption('--slow', action='store_true', default=False, help='Run slow tests')
-
-
-def pytest_configure(config):
-    """
-    Register custom markers to avoid pytest warnings.
-
-    Args:
-        config (pytest.config.Config): The pytest config object.
-    """
-    config.addinivalue_line('markers', 'slow: mark test as slow to run')
-
-
-def pytest_runtest_setup(item):
-    """
-    Setup hook to skip tests marked as slow if the --slow option is not provided.
-
-    Args:
-        item (pytest.Item): The test item object.
-    """
-    if 'slow' in item.keywords and not item.config.getoption('--slow'):
-        pytest.skip('skip slow tests unless --slow is set')
+    parser.addoption("--slow", action="store_true", default=False, help="Run slow tests")
 
 
 def pytest_collection_modifyitems(config, items):
     """
-    Modify the list of test items to remove tests marked as slow if the --slow option is not provided.
+    Modify the list of test items to exclude tests marked as slow if the --slow option is not specified.
 
     Args:
-        config (pytest.config.Config): The pytest config object.
-        items (list): List of test items to be executed.
+        config (pytest.config.Config): The pytest configuration object that provides access to command-line options.
+        items (list): The list of collected pytest item objects to be modified based on the presence of --slow option.
+
+    Returns:
+        (None) The function modifies the 'items' list in place, and does not return a value.
     """
-    if not config.getoption('--slow'):
+    if not config.getoption("--slow"):
         # Remove the item entirely from the list of test items if it's marked as 'slow'
-        items[:] = [item for item in items if 'slow' not in item.keywords]
+        items[:] = [item for item in items if "slow" not in item.keywords]
 
 
 def pytest_sessionstart(session):
@@ -61,6 +44,9 @@ def pytest_sessionstart(session):
 
     Args:
         session (pytest.Session): The pytest session object.
+
+    Returns:
+        (None)
     """
     from ultralytics.utils.torch_utils import init_seeds
 
@@ -77,18 +63,21 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
     and directories used during testing.
 
     Args:
-        terminalreporter (pytest.terminal.TerminalReporter): The terminal reporter object.
+        terminalreporter (pytest.terminal.TerminalReporter): The terminal reporter object used for terminal output.
         exitstatus (int): The exit status of the test run.
         config (pytest.config.Config): The pytest config object.
+
+    Returns:
+        (None)
     """
     from ultralytics.utils import WEIGHTS_DIR
 
     # Remove files
-    models = [path for x in ['*.onnx', '*.torchscript'] for path in WEIGHTS_DIR.rglob(x)]
-    for file in ['bus.jpg', 'yolov8n.onnx', 'yolov8n.torchscript'] + models:
+    models = [path for x in ["*.onnx", "*.torchscript"] for path in WEIGHTS_DIR.rglob(x)]
+    for file in ["bus.jpg", "yolo11n.onnx", "yolo11n.torchscript"] + models:
         Path(file).unlink(missing_ok=True)
 
     # Remove directories
-    models = [path for x in ['*.mlpackage', '*_openvino_model'] for path in WEIGHTS_DIR.rglob(x)]
-    for directory in [TMP.parents[1] / '.pytest_cache', TMP] + models:
+    models = [path for x in ["*.mlpackage", "*_openvino_model"] for path in WEIGHTS_DIR.rglob(x)]
+    for directory in [TMP.parents[1] / ".pytest_cache", TMP] + models:
         shutil.rmtree(directory, ignore_errors=True)

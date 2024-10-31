@@ -247,7 +247,6 @@ class Pose(Detect):
         """Decodes keypoints."""
         ndim = self.kpt_shape[1]
         if self.export:
-            # required for TFLite export to avoid 'PLACEHOLDER_FOR_GREATER_OP_CODES' bug
             if self.format in {"tflite", "edgetpu"}:
                 # Precompute normalization factor to increase numerical stability
                 y = kpts.view(bs, *self.kpt_shape, -1)
@@ -256,6 +255,7 @@ class Pose(Detect):
                 norm = self.strides / (self.stride[0] * grid_size)
                 a = (y[:, :, :2] * 2.0 + (self.anchors - 0.5)) * norm
             else:
+                # required for TFLite export to avoid 'PLACEHOLDER_FOR_GREATER_OP_CODES' bug and for NCNN
                 y = kpts.view(bs, *self.kpt_shape, -1)
                 a = (y[:, :, :2] * 2.0 + (self.anchors - 0.5)) * self.strides
             if ndim == 3:

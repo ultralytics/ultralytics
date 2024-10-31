@@ -1189,7 +1189,7 @@ class Exporter:
 
             quant_model = NMSWrapper(
                 model=quant_model,
-                score_threshold=self.args.conf,
+                score_threshold=self.args.conf or 0.001,
                 iou_threshold=self.args.iou,
                 max_detections=self.args.max_det,
             ).to(self.device)

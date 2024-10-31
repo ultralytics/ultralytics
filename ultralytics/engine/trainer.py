@@ -790,6 +790,7 @@ class BaseTrainer:
                     g[1].append(param)
                 else:  # weight (with decay)
                     g[0].append(param)
+
         # Normalize the optimizer name to handle case insensitivity
         name = {"nadam": "NAdam", "radam": "RAdam", "adamw": "AdamW"}.get(name.lower(), name.capitalize())
         if name in {"Adam", "Adamax", "AdamW", "NAdam", "RAdam"}:

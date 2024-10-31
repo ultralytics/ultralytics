@@ -790,7 +790,9 @@ class BaseTrainer:
                     g[1].append(param)
                 else:  # weight (with decay)
                     g[0].append(param)
-
+        # Normalize the optimizer name to handle case insensitivity:
+        name = "NAdam" if name.lower() == "nadam" else "RAdam" if name.lower() == "radam" else "AdamW" \
+            if name.lower() == "adamw" else name.capitalize()
         if name in {"Adam", "Adamax", "AdamW", "NAdam", "RAdam"}:
             optimizer = getattr(optim, name, optim.Adam)(g[2], lr=lr, betas=(momentum, 0.999), weight_decay=0.0)
         elif name == "RMSProp":

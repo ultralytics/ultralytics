@@ -391,17 +391,15 @@ class v8PoseLoss(v8DetectionLoss):
 
     def __call__(self, preds, batch):
         """Calculate the total loss and detach it."""
-        loss = torch.zeros(5+2, device=self.device)  # box, cls, dfl, kpt_location, kpt_visibility, triplet loss, avg_logits
+        loss = torch.zeros(5+2, device=self.device)  # box, cls, dfl, kpt_location, kpt_visibility, placeholders for 0 triplet loss and 0 avg_logits
         feats, pred_kpts = preds if isinstance(preds[0], list) else preds[1]
-
-        pred_distri, pred_scores, embeddings = torch.cat([xi.view(feats[0].shape[0], self.no, -1) for xi in feats], 2).split(
-            (self.reg_max * 4, self.nc, self.no - (self.reg_max * 4 + self.nc)), 1)
+        pred_distri, pred_scores = torch.cat([xi.view(feats[0].shape[0], self.no, -1) for xi in feats], 2).split(
+            (self.reg_max * 4, self.nc), 1)
 
         # B, grids, ..
         pred_scores = pred_scores.permute(0, 2, 1).contiguous()
         pred_distri = pred_distri.permute(0, 2, 1).contiguous()
         pred_kpts = pred_kpts.permute(0, 2, 1).contiguous()
-        embeddings = embeddings.permute(0, 2, 1).contiguous()  # (B, n_features, n_anchors) -> (B, n_anchors, n_features)
 
         dtype = pred_scores.dtype
         imgsz = torch.tensor(feats[0].shape[2:], device=self.device, dtype=dtype) * self.stride[0]  # image size (h,w)
@@ -419,12 +417,9 @@ class v8PoseLoss(v8DetectionLoss):
         pred_bboxes = self.bbox_decode(anchor_points, pred_distri)  # xyxy, (b, h*w, 4)
         pred_kpts = self.kpts_decode(anchor_points, pred_kpts.view(batch_size, -1, *self.kpt_shape))  # (b, h*w, 17, 3)
 
-        # TODO: modify gt labels to have "0" labels for classification; This is okay as BCE loss will do binary classification per each class (predicted label vs none) per detection
-        label_for_single_class_cls = 0
-        gt_labels_single_class_cls = torch.full_like(gt_labels, label_for_single_class_cls)
         _, target_bboxes, target_scores, fg_mask, target_gt_idx = self.assigner(
             pred_scores.detach().sigmoid(), (pred_bboxes.detach() * stride_tensor).type(gt_bboxes.dtype),
-            anchor_points * stride_tensor, gt_labels_single_class_cls, gt_bboxes, mask_gt)
+            anchor_points * stride_tensor, gt_labels, gt_bboxes, mask_gt)
 
         target_scores_sum = max(target_scores.sum(), 1)
 
@@ -449,88 +444,11 @@ class v8PoseLoss(v8DetectionLoss):
         loss[2] *= self.hyp.kobj  # kobj gain
         loss[3] *= self.hyp.cls  # cls gain
         loss[4] *= self.hyp.dfl  # dfl gain
-        
-        # custom triplet loss for classification
-        # target_labels (B, n_anchors)
-        # embeddings (B, n_features, n_anchors)
-        # fg_mask (B, n_anchors) <-- boolean tensor vector showing which anchor (candidate) has a match with the ground truth
-        import torch.nn.functional as F
-        triplet_loss = 0
-        logits_avg = 0
 
-        # TODO : find target labels using gt_labels (bs, n_max_boxes, 1) & target_gt_idx (bs, n_total_anchors)
-        gt_labels = gt_labels.squeeze(-1)  # (bs, n_max_boxes)
+        # placeholder for 0 triplet loss and 0 avg_logits
+        loss[5], loss[6] = torch.tensor(0.0).to(dtype), torch.tensor(0.0).to(dtype)
 
-        for b in range(batch_size):
-            if gt_labels[b].size(0) == 0:  # skip if there is no ground truth boxes and labels for the input image
-                continue
-            # for i, idx in enumerate(target_gt_idx[b]):  # find target labels using gt_labels (bs, n_max_boxes, 1) & target_gt_idx (bs, n_total_anchors)
-            #     target_labels[i] = gt_labels[b][idx]  # (n_total_anchors,)
-            target_gt_idx_batch = target_gt_idx[b].long()
-            target_labels = gt_labels[b][target_gt_idx_batch]  # (n_total_anchors,)
-
-            if fg_mask[b].sum() == 0:  # skip if there is no match between anchors and ground truths
-                continue
-            
-            # apply foreground masking 
-            # targets = target_labels[b][fg_mask[b]]  # ground truth labels that have a match with an anchor cnadidate (n_matches,)
-            targets = target_labels[fg_mask[b]]  # ground truth labels that have a match with an anchor candidate (n_matches,)
-            embs = embeddings[b][fg_mask[b]]  # embeddings that have a match with a ground truth (n_matches, n_features)
-
-            # find unique classes
-            uniq_classes = torch.unique(targets)
-            if len(uniq_classes) < 2:  # skip if there are not enough classes to make a triplet
-                continue
-
-            # pull random indices (ok to be redundant) for query, positive, and negative
-            n_samples = 10
-
-            query_class_indices = torch.randint(0, len(uniq_classes), (n_samples,))  # query class indices (n_samples,)
-            neg_class_indices = torch.randint(0, len(uniq_classes) - 1, (n_samples,))  # negative class indices
-            neg_class_indices[neg_class_indices >= query_class_indices] += 1  # ensure each negative class index is different from a corresponding query class index (n_samples,)
-            
-            def select_rand_idx_per_class(targets, class_indices):
-                # Fetch the actual class labels
-                class_labels = uniq_classes[class_indices]  # Shape: (n_samples,)
-                # Create a boolean mask where each row shows which target label == class label
-                mask = targets.unsqueeze(0) == class_labels.unsqueeze(1)  # (n_samples, n_targets)
-                # Convert mask to float for torch.multinomial
-                probs = mask.float()
-                # Take one index per row (target labels) where mask is True
-                selected_indices = torch.multinomial(probs, num_samples=1).squeeze(1)  # Shape: (n_samples,)
-                return selected_indices
-        
-            query_indices = select_rand_idx_per_class(targets, query_class_indices)  # query sample indices (n_samples,)
-            pos_indices = select_rand_idx_per_class(targets, query_class_indices)  # positive sample indices (n_samples,)
-            neg_indices = select_rand_idx_per_class(targets, neg_class_indices)  # negative sample indices (n_samples,)
-
-            # extract embeddings for query, positive, and negative samples
-            embs_query = embs[query_indices]  # query embeddings  (n_samples, n_features) 
-            embs_pos = embs[pos_indices]  # positive embeddings  (n_samples, n_features)
-            embs_neg = embs[neg_indices]  # negative embeddings  (n_samples, n_features)
-
-            # # compute triplet loss
-            # for i in range(n_samples):
-            #     triplets = (embs_query[i], embs_pos[i], embs_neg[i])  # embeddings for query, positive, and negative samples
-            #     logit = torch.dot(triplets[0], (triplets[1] - triplets[2]))  # dot(query, pos) - dot(query, neg)
-            #     y = torch.ones_like(logit)  # (n_samples,)
-            #     triplet_loss += F.binary_cross_entropy_with_logits(logit, y)
-
-            # compute triplet loss (vectorization method)
-            diff = embs_pos - embs_neg  # (n_samples, n_features)
-            logits = torch.sum(embs_query * diff, dim=1)  # (n_samples,)
-            logits_avg += logits.mean().item()
-            y = torch.ones_like(logits)  # y is always 1 if we consider (query, pos) as a positive pair; (n_samples,)
-            triplet_loss += F.binary_cross_entropy_with_logits(logits, y, reduction='sum')
-
-        triplet_loss /= batch_size
-        loss[5] = triplet_loss
-
-        #TODO: report avg logits to wandb for validating our apporach
-        logits_avg /= batch_size
-        loss[6] = logits_avg
-
-        return loss[:6].sum() * batch_size, loss.detach()  # loss(box, pose, kobj, cls, dfl, triplet)
+        return loss.sum() * batch_size, loss.detach()  # loss(box, cls, dfl)
 
     @staticmethod
     def kpts_decode(anchor_points, pred_kpts):
@@ -610,6 +528,161 @@ class v8PoseLoss(v8DetectionLoss):
                 kpts_obj_loss = self.bce_pose(pred_kpt[..., 2], kpt_mask.float())  # keypoint obj loss
 
         return kpts_loss, kpts_obj_loss
+
+
+class v8PoseContrastiveLoss(v8PoseLoss):
+    """Criterion class for computing training losses."""
+    def __init__(self, model):
+        """Initializes the v8PoseContrastiveLoss class."""
+        super().__init__(model)
+        self.n_samples = 10  # number of negative samples
+
+    def __call__(self, preds, batch):
+        """Calculate the total loss and detach it."""
+        loss = torch.zeros(5+2, device=self.device)  # box, cls, dfl, kpt_location, kpt_visibility, triplet loss, avg_logits
+        feats, pred_kpts = preds if isinstance(preds[0], list) else preds[1]
+
+        pred_distri, pred_scores, embeddings = torch.cat([xi.view(feats[0].shape[0], self.no, -1) for xi in feats], 2).split(
+            (self.reg_max * 4, self.nc, self.no - (self.reg_max * 4 + self.nc)), 1)
+
+        # B, grids, ..
+        pred_scores = pred_scores.permute(0, 2, 1).contiguous()
+        pred_distri = pred_distri.permute(0, 2, 1).contiguous()
+        pred_kpts = pred_kpts.permute(0, 2, 1).contiguous()
+        embeddings = embeddings.permute(0, 2, 1).contiguous()  # (B, n_features, n_anchors) -> (B, n_anchors, n_features)
+
+        dtype = pred_scores.dtype
+        imgsz = torch.tensor(feats[0].shape[2:], device=self.device, dtype=dtype) * self.stride[0]  # image size (h,w)
+        anchor_points, stride_tensor = make_anchors(feats, self.stride, 0.5)
+
+        # Targets
+        batch_size = pred_scores.shape[0]
+        batch_idx = batch['batch_idx'].view(-1, 1)
+        targets = torch.cat((batch_idx, batch['cls'].view(-1, 1), batch['bboxes']), 1)
+        targets = self.preprocess(targets.to(self.device), batch_size, scale_tensor=imgsz[[1, 0, 1, 0]])
+        gt_labels, gt_bboxes = targets.split((1, 4), 2)  # cls, xyxy
+        mask_gt = gt_bboxes.sum(2, keepdim=True).gt_(0)
+
+        # Pboxes
+        pred_bboxes = self.bbox_decode(anchor_points, pred_distri)  # xyxy, (b, h*w, 4)
+        pred_kpts = self.kpts_decode(anchor_points, pred_kpts.view(batch_size, -1, *self.kpt_shape))  # (b, h*w, 17, 3)
+
+        # Cls loss
+        # # Modify gt labels to have "0" labels for classification.
+        # # BCE loss will do binary classification per each class (predicted label vs none) per detection.
+        # # This is equivalent to Plant vs. None (background) classification.
+        # # This minimizes classification’s impact on generating embeddings 
+        # # while triplet loss is encouraging the model to distinguish one class from another.
+        label_for_single_class_cls = 0
+        gt_labels_single_class_cls = torch.full_like(gt_labels, label_for_single_class_cls)
+        _, target_bboxes, target_scores, fg_mask, target_gt_idx = self.assigner(
+            pred_scores.detach().sigmoid(), (pred_bboxes.detach() * stride_tensor).type(gt_bboxes.dtype),
+            anchor_points * stride_tensor, gt_labels_single_class_cls, gt_bboxes, mask_gt)
+
+        target_scores_sum = max(target_scores.sum(), 1)
+
+        loss[3] = self.bce(pred_scores, target_scores.to(dtype)).sum() / target_scores_sum  # BCE
+
+        # Bbox loss
+        if fg_mask.sum():
+            target_bboxes /= stride_tensor
+            loss[0], loss[4] = self.bbox_loss(pred_distri, pred_bboxes, anchor_points, target_bboxes, target_scores,
+                                              target_scores_sum, fg_mask)
+            keypoints = batch['keypoints'].to(self.device).float().clone()
+            keypoints[..., 0] *= imgsz[1]
+            keypoints[..., 1] *= imgsz[0]
+
+            loss[1], loss[2] = self.calculate_keypoints_loss(fg_mask, target_gt_idx, keypoints, batch_idx,
+                                                             stride_tensor, target_bboxes, pred_kpts, batch['ignore_kpt'])
+
+        loss[0] *= self.hyp.box  # box gain
+        loss[1] *= self.hyp.pose  # pose gain
+        loss[2] *= self.hyp.kobj  # kobj gain
+        loss[3] *= self.hyp.cls  # cls gain
+        loss[4] *= self.hyp.dfl  # dfl gain
+        
+        # Custom triplet loss for contrastive learning
+        """
+        # gt_labels (B, n_gt_labels, 1)
+        # target_labels (B, n_anchors)
+        # embeddings (B, n_features, n_anchors)
+        # fg_mask (B, n_anchors) <-- boolean vector showing which anchor (detection candidate) has a match with the GT boxes
+        """
+        triplet_loss = 0
+        logits_avg = 0
+
+        gt_labels = gt_labels.squeeze(-1)  # (B, n_gt_labels)
+
+        for b in range(batch_size):
+            # skip if there is no ground truth boxes and labels for the input image
+            # OR if there is no match between anchors and ground truths
+            if gt_labels[b].size(0) == 0 or fg_mask[b].sum() == 0:
+                continue
+            
+            # find labels of targets using ground truth labels
+            target_gt_idx_batch = target_gt_idx[b].long()  # (n_total_anchors,)
+            target_labels = gt_labels[b][target_gt_idx_batch]  # (n_total_anchors,)
+
+            # apply foreground masking 
+            targets = target_labels[fg_mask[b]]  # ground truth labels that have a match with an anchor candidate (n_matches,)
+            embs = embeddings[b][fg_mask[b]]  # embeddings that have a match with a ground truth (n_matches, n_features)
+
+            # find unique classes
+            uniq_classes = torch.unique(targets)
+            if len(uniq_classes) < 2:  # skip if there are not enough classes to make a triplet (it's ok to have query and positive samples from the same class)
+                continue
+            
+            # pull random indices (ok to be redundant) for query, positive, and negative
+            n_samples = self.n_samples
+            query_class_indices = torch.randint(0, len(uniq_classes), (n_samples,))  # query class indices (n_samples,)
+            neg_class_indices = torch.randint(0, len(uniq_classes) - 1, (n_samples,))  # negative class indices (n_samples,)
+            neg_class_indices[neg_class_indices >= query_class_indices] += 1  # ensure each negative class index is different from a corresponding query class index (n_samples,)
+            
+            def select_rand_idx_per_class(targets, class_indices):
+                """
+                Select random indices per class from the target labels.
+                """
+                # fetch the actual class labels for the given class indices
+                class_labels = uniq_classes[class_indices]  # (n_samples,)
+                # create a boolean mask where each row shows which target label == class label
+                mask = targets.unsqueeze(0) == class_labels.unsqueeze(1)  # (n_samples, n_matches)
+                # convert mask to float for torch.multinomial
+                probs = mask.float()
+                # take one index per row (target labels) where mask is True
+                selected_indices = torch.multinomial(probs, num_samples=1).squeeze(1)  # (n_samples,)
+                return selected_indices
+            
+            query_indices = select_rand_idx_per_class(targets, query_class_indices)  # query sample indices (n_samples,)
+            pos_indices = select_rand_idx_per_class(targets, query_class_indices)  # positive sample indices (n_samples,)
+            neg_indices = select_rand_idx_per_class(targets, neg_class_indices)  # negative sample indices (n_samples,)
+
+            # extract embeddings for query, positive, and negative samples
+            embs_query = embs[query_indices]  # query embeddings  (n_samples, n_features) 
+            embs_pos = embs[pos_indices]  # positive embeddings  (n_samples, n_features)
+            embs_neg = embs[neg_indices]  # negative embeddings  (n_samples, n_features)
+
+            # compute triplet loss (vectorization method)
+            # equivalent to this brute force method:
+            # for i in range(n_samples):
+            #   triplets = (embs_query[i], embs_pos[i], embs_neg[i])  # embeddings for query, positive, and negative samples
+            #   logit = torch.dot(triplets[0], (triplets[1] - triplets[2]))  # dot(query, pos) - dot(query, neg)
+            #   y = torch.ones_like(logit)  # (n_samples,)
+            #   triplet_loss += F.binary_cross_entropy_with_logits(logit, y)
+            diff = embs_pos - embs_neg  # (n_samples, n_features)
+            logits = torch.sum(embs_query * diff, dim=1)  # (n_samples,)
+            logits_avg += logits.mean().item()
+            y = torch.ones_like(logits)  # y is always 1 if we consider (query, pos) as a positive pair; (n_samples,)
+            triplet_loss += F.binary_cross_entropy_with_logits(logits, y, reduction='sum')
+
+        # compute triplet loss
+        triplet_loss /= batch_size
+        loss[5] = triplet_loss
+
+        # compute average logits for monitoring (not for backprop)
+        logits_avg /= batch_size
+        loss[6] = logits_avg
+
+        return loss[:6].sum() * batch_size, loss.detach()  # loss(box, pose, kobj, cls, dfl, triplet)
 
 
 class v8ClassificationLoss:

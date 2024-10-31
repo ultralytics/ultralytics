@@ -14,7 +14,7 @@ from .conv import Conv
 from .transformer import MLP, DeformableTransformerDecoder, DeformableTransformerDecoderLayer
 from .utils import bias_init_with_prob, linear_init_
 
-__all__ = 'Detect', 'Segment', 'Pose', 'Classify', 'RTDETRDecoder'
+__all__ = 'Detect', 'DetectContrastive', 'Segment', 'Pose', 'PoseContrastive', 'Classify', 'RTDETRDecoder'
 
 class Detect(nn.Module):
     """YOLOv8 Detect head for detection models."""
@@ -24,8 +24,75 @@ class Detect(nn.Module):
     anchors = torch.empty(0)  # init
     strides = torch.empty(0)  # init
 
-    def __init__(self, nc=80, ch=()):  # ch is a list of number of channels in input layer (e.g., [ch_small, ch_medium, ch_large])
+    def __init__(self, nc=80, ch=()):
         """Initializes the YOLOv8 detection layer with specified number of classes and channels."""
+        super().__init__()
+        self.nc = nc  # number of classes
+        self.nl = len(ch)  # number of detection layers
+        self.reg_max = 16  # DFL channels (ch[0] // 16 to scale 4/8/12/16/20 for n/s/m/l/x)
+        self.no = nc + self.reg_max * 4  # number of outputs per anchor
+        self.stride = torch.zeros(self.nl)  # strides computed during build
+        c2, c3 = max((16, ch[0] // 4, self.reg_max * 4)), max(ch[0], min(self.nc, 100))  # channels
+        self.cv2 = nn.ModuleList(
+            nn.Sequential(Conv(x, c2, 3), Conv(c2, c2, 3), nn.Conv2d(c2, 4 * self.reg_max, 1)) for x in ch)
+        self.cv3 = nn.ModuleList(nn.Sequential(Conv(x, c3, 3), Conv(c3, c3, 3), nn.Conv2d(c3, self.nc, 1)) for x in ch)
+        self.dfl = DFL(self.reg_max) if self.reg_max > 1 else nn.Identity()
+
+    def forward(self, x):
+        """Concatenates and returns predicted bounding boxes and class probabilities."""
+        shape = x[0].shape  # BCHW
+        for i in range(self.nl):
+            x[i] = torch.cat((self.cv2[i](x[i]), self.cv3[i](x[i])), 1)
+        if self.training:
+            return x
+        elif self.dynamic or self.shape != shape:
+            self.anchors, self.strides = (x.transpose(0, 1) for x in make_anchors(x, self.stride, 0.5))
+            self.shape = shape
+
+        x_cat = torch.cat([xi.view(shape[0], self.no, -1) for xi in x], 2)
+        if self.export and self.format in ('saved_model', 'pb', 'tflite', 'edgetpu', 'tfjs'):  # avoid TF FlexSplitV ops
+            box = x_cat[:, :self.reg_max * 4]
+            cls = x_cat[:, self.reg_max * 4:]
+        else:
+            box, cls = x_cat.split((self.reg_max * 4, self.nc), 1)
+        dbox = dist2bbox(self.dfl(box), self.anchors.unsqueeze(0), xywh=True, dim=1) * self.strides
+
+        if self.export and self.format in ('tflite', 'edgetpu'):
+            # Normalize xywh with image size to mitigate quantization error of TFLite integer models as done in YOLOv5:
+            # https://github.com/ultralytics/yolov5/blob/0c8de3fca4a702f8ff5c435e67f378d1fce70243/models/tf.py#L307-L309
+            # See this PR for details: https://github.com/ultralytics/ultralytics/pull/1695
+            img_h = shape[2] * self.stride[0]
+            img_w = shape[3] * self.stride[0]
+            img_size = torch.tensor([img_w, img_h, img_w, img_h], device=dbox.device).reshape(1, 4, 1)
+            dbox /= img_size
+
+        y = torch.cat((dbox, cls.sigmoid()), 1)
+        return y if self.export else (y, x)
+
+    def bias_init(self):
+        """Initialize Detect() biases, WARNING: requires stride availability."""
+        m = self  # self.model[-1]  # Detect() module
+        # cf = torch.bincount(torch.tensor(np.concatenate(dataset.labels, 0)[:, 0]).long(), minlength=nc) + 1
+        # ncf = math.log(0.6 / (m.nc - 0.999999)) if cf is None else torch.log(cf / cf.sum())  # nominal class frequency
+        for a, b, s in zip(m.cv2, m.cv3, m.stride):  # from
+            a[-1].bias.data[:] = 1.0  # box
+            b[-1].bias.data[:m.nc] = math.log(5 / m.nc / (640 / s) ** 2)  # cls (.01 objects, 80 classes, 640 img)
+
+
+class DetectContrastive(nn.Module):
+    """YOLOv8 Detect head for detection models using Contrastive Learning."""
+    dynamic = False  # force grid reconstruction
+    export = False  # export mode
+    shape = None
+    anchors = torch.empty(0)  # init
+    strides = torch.empty(0)  # init
+
+    def __init__(self, nc=80, ch=()):  # ch is a list of number of channels in input layer (e.g., [ch_small, ch_medium, ch_large])
+        """Initializes the YOLOv8 detection layer with specified number of classes and channels.
+        This implementation has an additional contrastive learning task for embeddings of predicted bboxes.
+        This expands (doubles) the out_channels of the last convolution layer before classification layer 
+        to split embedding dimension for classification and contrastive learning tasks.
+        """
         super().__init__()
         self.nc = nc  # number of classes
         self.nl = len(ch)  # number of detection layers (e.g., small, medium, large for 3-scale detections)
@@ -38,41 +105,33 @@ class Detect(nn.Module):
         self.cv2 = nn.ModuleList(
             nn.Sequential(Conv(x, c2, 3), Conv(c2, c2, 3), nn.Conv2d(c2, 4 * self.reg_max, 1)) for x in ch)
         
-        # # cv3 is for predicting classes (last layer's out_channel is nc)
-        # self.cv3 = nn.ModuleList(nn.Sequential(Conv(x, c3, 3), Conv(c3, c3, 3),  # output of this is embedding
-        #                                        nn.Conv2d(c3, self.nc, 1)) for x in ch)
-        
-        # expand out_channels for conv layer before classification layer to separate embedding dimension for classification and contrastive learning tasks
+        # expand out_channels for conv layer before classification layer to split embedding dimension for classification and contrastive learning tasks
         self.c3_cls_contrastive = c3 * 2  # e.g., 64 + 64 = 128
 
         # a list of sequences of layers that output embeddings of predicted bboxes (for small, medium, large)
-        # self.embedding_layers = nn.ModuleList(nn.Sequential(Conv(x, c3, 3), Conv(c3, c3, 3)) for x in ch)
         self.embedding_layers = nn.ModuleList(nn.Sequential(Conv(x, c3, 3), Conv(c3, self.c3_cls_contrastive, 3)) for x in ch)
 
         # pre-define a convolution classification layer for weight-sharing
         self.shared_conv = nn.Conv2d(c3, self.nc, 1)
 
         # a list of layers that output logit (raw score) for classification (for small, medium, large)
-        # self.cls_preds = nn.ModuleList(nn.Conv2d(c3, self.nc, 1) for _ in ch)
         self.cls_preds = nn.ModuleList(self.shared_conv for _ in ch)
 
         # distribution focal loss
         self.dfl = DFL(self.reg_max) if self.reg_max > 1 else nn.Identity()
 
     def forward(self, x):
-        """Concatenates and returns predicted bounding boxes and class probabilities."""
-        # shared_conv1_weight = self.cls_preds[0].weight
-        # shared_conv2_weight = self.cls_preds[1].weight
-        # shared_conv3_weight = self.cls_preds[2].weight
-        # print(f"conv1==conv2: {torch.equal(shared_conv1_weight, shared_conv2_weight)}")
-        # print(f"conv2==conv3: {torch.equal(shared_conv2_weight, shared_conv3_weight)}")
-        
+        """Concatenates and returns predicted bounding boxes and class probabilities.
+        For training, it returns concatenated outputs of:
+        - bbox predictions, 
+        - classification predictions, 
+        - embeddings for contrastive learning.
+        """
         shape = x[0].shape  # BCHW
+
         for i in range(self.nl):  # e.g., per detection scale (small, medium, or large)
             bboxes = self.cv2[i](x[i])  # (B, 4 * reg_max, H, W)
-            # embeddings = self.embedding_layers[i](x[i])  # (B, n_features, H, W)
-            # cls_predictions = self.cls_preds[i](embeddings)  # (B, nc, H, W)
-            # x[i] = torch.cat((bboxes, cls_predictions, embeddings), 1)  # (B, 4 * reg_max + nc + n_features, H, W)
+            
             # split embeddings by first half for classification and second half for contrastive task
             embeddings_cls = self.embedding_layers[i](x[i])[:, :self.c3_cls_contrastive // 2, :, :]  # (B, first half of n_features, H, W)
             embeddings_contrastive = self.embedding_layers[i](x[i])[:, self.c3_cls_contrastive // 2:, :, :]  # (B, second half of n_features, H, W)
@@ -89,10 +148,9 @@ class Detect(nn.Module):
         if self.export and self.format in ('saved_model', 'pb', 'tflite', 'edgetpu', 'tfjs'):  # avoid TF FlexSplitV ops
             box = x_cat[:, :self.reg_max * 4]
             cls = x_cat[:, self.reg_max * 4: self.reg_max * 4 + self.nc]
-            emb = x_cat[:, self.reg_max * 4 + self.nc:]
+            _ = x_cat[:, self.reg_max * 4 + self.nc:]  # embeddings for contrastive learning
         else:
-            # box, cls = x_cat.split((self.reg_max * 4, self.nc), 1)
-            box, cls, emb = x_cat.split((self.reg_max * 4, self.nc, (self.no - self.reg_max * 4 - self.nc)), 1)
+            box, cls, _ = x_cat.split((self.reg_max * 4, self.nc, (self.no - self.reg_max * 4 - self.nc)), 1)  # box, cls, embeddings
         dbox = dist2bbox(self.dfl(box), self.anchors.unsqueeze(0), xywh=True, dim=1) * self.strides
 
         if self.export and self.format in ('tflite', 'edgetpu'):
@@ -152,6 +210,47 @@ class Pose(Detect):
         self.kpt_shape = kpt_shape  # number of keypoints, number of dims (2 for x,y or 3 for x,y,visible)
         self.nk = kpt_shape[0] * kpt_shape[1]  # number of keypoints total
         self.detect = Detect.forward
+
+        c4 = max(ch[0] // 4, self.nk)
+        self.cv4 = nn.ModuleList(nn.Sequential(Conv(x, c4, 3), Conv(c4, c4, 3), nn.Conv2d(c4, self.nk, 1)) for x in ch)
+
+    def forward(self, x):
+        """Perform forward pass through YOLO model and return predictions."""
+        bs = x[0].shape[0]  # batch size
+        kpt = torch.cat([self.cv4[i](x[i]).view(bs, self.nk, -1) for i in range(self.nl)], -1)  # (bs, 17*3, h*w)
+        x = self.detect(self, x)
+        if self.training:
+            return x, kpt
+        pred_kpt = self.kpts_decode(bs, kpt)
+        return torch.cat([x, pred_kpt], 1) if self.export else (torch.cat([x[0], pred_kpt], 1), (x[1], kpt))
+
+    def kpts_decode(self, bs, kpts):
+        """Decodes keypoints."""
+        ndim = self.kpt_shape[1]
+        if self.export:  # required for TFLite export to avoid 'PLACEHOLDER_FOR_GREATER_OP_CODES' bug
+            y = kpts.view(bs, *self.kpt_shape, -1)
+            a = (y[:, :, :2] * 2.0 + (self.anchors - 0.5)) * self.strides
+            if ndim == 3:
+                a = torch.cat((a, y[:, :, 2:3].sigmoid()), 2)
+            return a.view(bs, self.nk, -1)
+        else:
+            y = kpts.clone()
+            if ndim == 3:
+                y[:, 2::3].sigmoid_()  # inplace sigmoid
+            y[:, 0::ndim] = (y[:, 0::ndim] * 2.0 + (self.anchors[0] - 0.5)) * self.strides
+            y[:, 1::ndim] = (y[:, 1::ndim] * 2.0 + (self.anchors[1] - 0.5)) * self.strides
+            return y
+
+
+class PoseContrastive(DetectContrastive):
+    """YOLOv8 Pose head for keypoints models using Contrastive Learning."""
+
+    def __init__(self, nc=80, kpt_shape=(17, 3), ch=()):
+        """Initialize YOLO network with default parameters and Convolutional Layers."""
+        super().__init__(nc, ch)
+        self.kpt_shape = kpt_shape  # number of keypoints, number of dims (2 for x,y or 3 for x,y,visible)
+        self.nk = kpt_shape[0] * kpt_shape[1]  # number of keypoints total
+        self.detect = DetectContrastive.forward
 
         c4 = max(ch[0] // 4, self.nk)
         self.cv4 = nn.ModuleList(nn.Sequential(Conv(x, c4, 3), Conv(c4, c4, 3), nn.Conv2d(c4, self.nk, 1)) for x in ch)

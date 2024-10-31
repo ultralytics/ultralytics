@@ -165,7 +165,7 @@ let chart = null;  // chart variable will hold the reference to the current char
 // This function is responsible for updating the benchmarks chart.
 function updateChart() {
     // If a chart instance already exists, destroy it.
-    if (chart) { chart.destroy(); }
+    if (chart) chart.destroy();
 
     // Get the selected algorithms from the checkboxes.
     const selectedAlgorithms = [...document.querySelectorAll('input[name="algorithm"]:checked')].map(e => e.value);
@@ -226,12 +226,16 @@ function updateChart() {
     });
 }
 
-// Add event listeners to the checkboxes to trigger the chart update.
-document.addEventListener("DOMContentLoaded", () => {
-    document.querySelectorAll('input[name="algorithm"]').forEach(checkbox =>
-        checkbox.addEventListener('change', updateChart)
-    );
-    // Call updateChart on initial load
-    updateChart();
-    console.log("DOM loaded, initial chart render attempted");
-});
+// Poll for Chart.js to load, then initialize checkboxes and chart
+function initializeApp() {
+    if (typeof Chart !== 'undefined') {
+        document.querySelectorAll('input[name="algorithm"]').forEach(checkbox =>
+            checkbox.addEventListener('change', updateChart)
+        );
+        updateChart();
+    } else {
+        setTimeout(initializeApp, 100);  // Retry every 100ms
+    }
+}
+
+document.addEventListener("DOMContentLoaded", initializeApp);

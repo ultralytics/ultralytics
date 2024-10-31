@@ -191,8 +191,8 @@ def test_export_paddle():
     """Test YOLO exports to Paddle format, noting protobuf conflicts with ONNX."""
     YOLO(MODEL).export(format="paddle", imgsz=32)
 
-
 @pytest.mark.slow
+@pytest.mark.skipif(IS_RASPBERRYPI, reason="MNN not supported on Raspberry Pi")
 def test_export_mnn():
     """Test YOLO exports to MNN format (WARNING: MNN test must precede NCNN test or CI error on Windows)."""
     file = YOLO(MODEL).export(format="mnn", imgsz=32)

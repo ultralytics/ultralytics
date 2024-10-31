@@ -5,7 +5,7 @@ from pathlib import Path
 from ultralytics import SAM, YOLO
 
 
-def auto_annotate(data, det_model="yolov8x.pt", sam_model="sam_b.pt", device="", output_dir=None):
+def auto_annotate(data, det_model="yolo11x.pt", sam_model="sam_b.pt", device="", output_dir=None):
     """
     Automatically annotates images using a YOLO object detection model and a SAM segmentation model.
 

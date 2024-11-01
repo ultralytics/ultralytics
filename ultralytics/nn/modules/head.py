@@ -148,7 +148,6 @@ class DetectContrastive(nn.Module):
         if self.export and self.format in ('saved_model', 'pb', 'tflite', 'edgetpu', 'tfjs'):  # avoid TF FlexSplitV ops
             box = x_cat[:, :self.reg_max * 4]
             cls = x_cat[:, self.reg_max * 4: self.reg_max * 4 + self.nc]
-            _ = x_cat[:, self.reg_max * 4 + self.nc:]  # embeddings for contrastive learning
         else:
             box, cls, _ = x_cat.split((self.reg_max * 4, self.nc, (self.no - self.reg_max * 4 - self.nc)), 1)  # box, cls, embeddings
         dbox = dist2bbox(self.dfl(box), self.anchors.unsqueeze(0), xywh=True, dim=1) * self.strides

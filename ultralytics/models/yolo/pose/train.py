@@ -79,15 +79,15 @@ class PoseContrastiveTrainer(PoseTrainer):
 
     Example:
         ```python
-        from ultralytics.models.yolo.pose import PoseTrainer
+        from ultralytics.models.yolo.pose import PoseContrastiveTrainer
 
-        args = dict(model='yolov8n-pose.pt', data='coco8-pose.yaml', epochs=3)
-        trainer = PoseTrainer(overrides=args)
+        args = dict(model='yolov8n-pose-contrastive.pt', data='coco8-pose.yaml', epochs=3)
+        trainer = PoseContrastiveTrainer(overrides=args)
         trainer.train()
         ```
     """
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
-        """Initialize a PoseTrainer object with specified configurations and overrides."""
+        """Initialize a PoseContrastiveTrainer object with specified configurations and overrides."""
         if overrides is None:
             overrides = {}
         overrides['task'] = 'pose_contrastive'

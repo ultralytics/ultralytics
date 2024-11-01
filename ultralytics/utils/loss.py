@@ -114,7 +114,6 @@ class KeypointLoss(nn.Module):
 
 class v8DetectionLoss:
     """Criterion class for computing training losses."""
-
     def __init__(self, model):  # model must be de-paralleled
         """Initializes v8DetectionLoss with the model, defining model-related properties and BCE loss function."""
         device = next(model.parameters()).device  # get model device
@@ -164,10 +163,10 @@ class v8DetectionLoss:
     def __call__(self, preds, batch):
         """Calculate the sum of the loss for box, cls and dfl multiplied by batch size."""
         loss = torch.zeros(3, device=self.device)  # box, cls, dfl
-        feats = preds[1] if isinstance(preds, tuple) else preds  # feats contains (predicted bboxes attributes, predicted classes, predcited embeddings)
-        pred_distri, pred_scores, embeddings = torch.cat([xi.view(feats[0].shape[0], self.no, -1) for xi in feats], 2).split(
-            (self.reg_max * 4, self.nc, self.no - (self.reg_max * 4 + self.nc)), 1)
-        
+        feats = preds[1] if isinstance(preds, tuple) else preds
+        pred_distri, pred_scores = torch.cat([xi.view(feats[0].shape[0], self.no, -1) for xi in feats], 2).split(
+            (self.reg_max * 4, self.nc), 1)
+
         pred_scores = pred_scores.permute(0, 2, 1).contiguous()
         pred_distri = pred_distri.permute(0, 2, 1).contiguous()
 
@@ -185,11 +184,11 @@ class v8DetectionLoss:
         # Pboxes
         pred_bboxes = self.bbox_decode(anchor_points, pred_distri)  # xyxy, (b, h*w, 4)
 
-        target_labels, target_bboxes, target_scores, fg_mask, _ = self.assigner(
+        _, target_bboxes, target_scores, fg_mask, _ = self.assigner(
             pred_scores.detach().sigmoid(), (pred_bboxes.detach() * stride_tensor).type(gt_bboxes.dtype),
             anchor_points * stride_tensor, gt_labels, gt_bboxes, mask_gt)
 
-        target_scores_sum = max(target_scores.sum(), 1)  # target_scores.sum() is actually the same as fg_mask
+        target_scores_sum = max(target_scores.sum(), 1)
 
         # Cls loss
         # loss[1] = self.varifocal_loss(pred_scores, target_scores, target_labels) / target_scores_sum  # VFL way
@@ -204,9 +203,6 @@ class v8DetectionLoss:
         loss[0] *= self.hyp.box  # box gain
         loss[1] *= self.hyp.cls  # cls gain
         loss[2] *= self.hyp.dfl  # dfl gain
-
-        # TODO: pull embeddings
-        # TODO: use target labels and embeddings to create triplet loss
 
         return loss.sum() * batch_size, loss.detach()  # loss(box, cls, dfl)
 
@@ -391,7 +387,7 @@ class v8PoseLoss(v8DetectionLoss):
 
     def __call__(self, preds, batch):
         """Calculate the total loss and detach it."""
-        loss = torch.zeros(5+2, device=self.device)  # box, cls, dfl, kpt_location, kpt_visibility, placeholders for 0 triplet loss and 0 avg_logits
+        loss = torch.zeros(7, device=self.device)  # box, cls, dfl, kpt_location, kpt_visibility, triplet loss and avg_logits
         feats, pred_kpts = preds if isinstance(preds[0], list) else preds[1]
         pred_distri, pred_scores = torch.cat([xi.view(feats[0].shape[0], self.no, -1) for xi in feats], 2).split(
             (self.reg_max * 4, self.nc), 1)
@@ -444,9 +440,6 @@ class v8PoseLoss(v8DetectionLoss):
         loss[2] *= self.hyp.kobj  # kobj gain
         loss[3] *= self.hyp.cls  # cls gain
         loss[4] *= self.hyp.dfl  # dfl gain
-
-        # placeholder for 0 triplet loss and 0 avg_logits
-        loss[5], loss[6] = torch.tensor(0.0).to(dtype), torch.tensor(0.0).to(dtype)
 
         return loss.sum() * batch_size, loss.detach()  # loss(box, cls, dfl)
 
@@ -539,7 +532,7 @@ class v8PoseContrastiveLoss(v8PoseLoss):
 
     def __call__(self, preds, batch):
         """Calculate the total loss and detach it."""
-        loss = torch.zeros(5+2, device=self.device)  # box, cls, dfl, kpt_location, kpt_visibility, triplet loss, avg_logits
+        loss = torch.zeros(7, device=self.device)  # box, cls, dfl, kpt_location, kpt_visibility, triplet loss, avg_logits
         feats, pred_kpts = preds if isinstance(preds[0], list) else preds[1]
 
         pred_distri, pred_scores, embeddings = torch.cat([xi.view(feats[0].shape[0], self.no, -1) for xi in feats], 2).split(
@@ -616,12 +609,14 @@ class v8PoseContrastiveLoss(v8PoseLoss):
         for b in range(batch_size):
             # skip if there is no ground truth boxes and labels for the input image
             # OR if there is no match between anchors and ground truths
-            if gt_labels[b].size(0) == 0 or fg_mask[b].sum() == 0:
+            # if gt_labels[b].size(0) == 0 or fg_mask[b].sum() == 0:
+            #     continue
+            if fg_mask[b].sum() < 2:  # skip if there are not enough positive samples to make a triplet
                 continue
             
             # find labels of targets using ground truth labels
-            target_gt_idx_batch = target_gt_idx[b].long()  # (n_total_anchors,)
-            target_labels = gt_labels[b][target_gt_idx_batch]  # (n_total_anchors,)
+            target_gt_idx_batch = target_gt_idx[b].long()  # (n_anchors)
+            target_labels = gt_labels[b][target_gt_idx_batch]  # (n_achors)
 
             # apply foreground masking 
             targets = target_labels[fg_mask[b]]  # ground truth labels that have a match with an anchor candidate (n_matches,)
@@ -672,7 +667,7 @@ class v8PoseContrastiveLoss(v8PoseLoss):
             logits = torch.sum(embs_query * diff, dim=1)  # (n_samples,)
             logits_avg += logits.mean().item()
             y = torch.ones_like(logits)  # y is always 1 if we consider (query, pos) as a positive pair; (n_samples,)
-            triplet_loss += F.binary_cross_entropy_with_logits(logits, y, reduction='sum')
+            triplet_loss += F.binary_cross_entropy_with_logits(logits, y, reduction='sum') / n_samples  # normalize by number of samples
 
         # compute triplet loss
         triplet_loss /= batch_size

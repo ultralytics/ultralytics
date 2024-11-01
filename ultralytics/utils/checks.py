@@ -23,7 +23,6 @@ from ultralytics.utils import (
     AUTOINSTALL,
     IS_COLAB,
     IS_GIT_DIR,
-    IS_JUPYTER,
     IS_KAGGLE,
     IS_PIP_PACKAGE,
     LINUX,
@@ -570,7 +569,7 @@ def check_yolo(verbose=True, device=""):
     from ultralytics.utils.torch_utils import select_device
 
     if IS_COLAB:
-            shutil.rmtree("sample_data", ignore_errors=True)  # remove colab /sample_data directory
+        shutil.rmtree("sample_data", ignore_errors=True)  # remove colab /sample_data directory
 
     if verbose:
         # System info

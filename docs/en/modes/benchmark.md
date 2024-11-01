@@ -16,17 +16,19 @@ keywords: model benchmarking, YOLO11, Ultralytics, performance evaluation, expor
 
     You may need to refresh the page to view the graphs correctly due to potential cookie issues.
 
-<div>
-  <label><input type="checkbox" name="algorithm" value="YOLO11"><span>Ultralytics YOLO11</span></label>
-  <label><input type="checkbox" name="algorithm" value="YOLOv6"><span>YOLOv6</span></label>
-  <label><input type="checkbox" name="algorithm" value="YOLOv7"><span>YOLOv7</span></label>
-  <label><input type="checkbox" name="algorithm" value="YOLOv10"><span>YOLOv10</span></label>
-  <label><input type="checkbox" name="algorithm" value="YOLOv9"><span>YOLOv9</span></label>
-  <label><input type="checkbox" name="algorithm" value="YOLOv8"><span>Ultralytics YOLOv8</span></label>
-  <label><input type="checkbox" name="algorithm" value="PPYOLOE"><span>PPYOLOE</span></label>
-  <label><input type="checkbox" name="algorithm" value="YOLOv5"><span>Ultralytics YOLOv5</span></label>
+<div style="display: flex; align-items: flex-start;">
+  <div style="margin-right: 20px;">
+    <label><input type="checkbox" name="algorithm" value="YOLO11" checked><span>Ultralytics YOLO11</span></label><br>
+    <label><input type="checkbox" name="algorithm" value="YOLOv6" checked><span>YOLOv6</span></label><br>
+    <label><input type="checkbox" name="algorithm" value="YOLOv7" checked><span>YOLOv7</span></label><br>
+    <label><input type="checkbox" name="algorithm" value="YOLOv10" checked><span>YOLOv10</span></label><br>
+    <label><input type="checkbox" name="algorithm" value="YOLOv9" checked><span>YOLOv9</span></label><br>
+    <label><input type="checkbox" name="algorithm" value="YOLOv8" checked><span>Ultralytics YOLOv8</span></label><br>
+    <label><input type="checkbox" name="algorithm" value="PPYOLOE" checked><span>PPYOLOE</span></label><br>
+    <label><input type="checkbox" name="algorithm" value="YOLOv5" checked><span>Ultralytics YOLOv5</span></label>
+  </div>
+  <div style="flex-grow: 1;"><canvas id="chart"></canvas></div> <!-- Canva for plotting benchmarks -->
 </div>
-<canvas id="chart" width="400" height="200"></canvas>
 
 ## Introduction
 

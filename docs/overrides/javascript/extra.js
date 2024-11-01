@@ -165,7 +165,7 @@ let chart = null;  // chart variable will hold the reference to the current char
 // This function is responsible for updating the benchmarks chart.
 function updateChart() {
     // If a chart instance already exists, destroy it.
-    if (chart) { chart.destroy(); }
+    if (chart) chart.destroy();
 
     // Get the selected algorithms from the checkboxes.
     const selectedAlgorithms = [...document.querySelectorAll('input[name="algorithm"]:checked')].map(e => e.value);
@@ -195,7 +195,7 @@ function updateChart() {
         data: { datasets },
         options: {
             plugins: {
-                legend: { display: true, position: 'top', labels: { color: '#111e68' } }, // Configure the legend.
+                legend: { display: true, position: 'top', labels: {color: '#808080'} }, // Configure the legend.
                 tooltip: {
                     callbacks: {
                         label: (tooltipItem) => {
@@ -212,26 +212,29 @@ function updateChart() {
             scales: {
                 x: {
                     type: 'linear', position: 'bottom',
-                    title: { display: true, text: 'Latency T4 TensorRT10 FP16 (ms/img)', color: '#111e68' }, // X-axis title.
+                    title: { display: true, text: 'Latency T4 TensorRT10 FP16 (ms/img)', color: '#808080'}, // X-axis title.
                     grid: { color: '#e0e0e0' }, // Grid line color.
-                    ticks: { color: '#111e68' } // Tick label color.
+                    ticks: { color: '#808080' } // Tick label color.
                 },
                 y: {
-                    title: { display: true, text: 'mAP', color: '#111e68' }, // Y-axis title.
+                    title: { display: true, text: 'mAP', color: '#808080'}, // Y-axis title.
                     grid: { color: '#e0e0e0' }, // Grid line color.
-                    ticks: { color: '#111e68' } // Tick label color.
+                    ticks: { color: '#808080' } // Tick label color.
                 }
             }
         }
     });
 }
 
-// Add event listeners to the checkboxes to trigger the chart update.
-document.addEventListener("DOMContentLoaded", () => {
-    document.querySelectorAll('input[name="algorithm"]').forEach(checkbox =>
-        checkbox.addEventListener('change', updateChart)
-    );
-    // Call updateChart on initial load
-    updateChart();
-    console.log("DOM loaded, initial chart render attempted");
-});
+// Poll for Chart.js to load, then initialize checkboxes and chart
+function initializeApp() {
+    if (typeof Chart !== 'undefined') {
+        document.querySelectorAll('input[name="algorithm"]').forEach(checkbox =>
+            checkbox.addEventListener('change', updateChart)
+        );
+        updateChart();
+    } else {
+        setTimeout(initializeApp, 100);  // Retry every 100ms
+    }
+}
+document.addEventListener("DOMContentLoaded", initializeApp); // Initial chart rendering on page load

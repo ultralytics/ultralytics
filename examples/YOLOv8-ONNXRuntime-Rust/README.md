@@ -27,11 +27,11 @@ Please follow the Rust official installation. (https://www.rust-lang.org/tools/i
 - #### For detailed setup instructions, refer to the [ORT documentation](https://ort.pyke.io/setup/linking).
 
 - #### For Linux or macOS Users:
-    - Download the ONNX Runtime package from the [Releases page](https://github.com/microsoft/onnxruntime/releases).
-    - Set up the library path by exporting the `ORT_DYLIB_PATH` environment variable:
-       ```shell
-       export ORT_DYLIB_PATH=/path/to/onnxruntime/lib/libonnxruntime.so.1.19.0
-       ```
+  - Download the ONNX Runtime package from the [Releases page](https://github.com/microsoft/onnxruntime/releases).
+  - Set up the library path by exporting the `ORT_DYLIB_PATH` environment variable:
+    ```shell
+    export ORT_DYLIB_PATH=/path/to/onnxruntime/lib/libonnxruntime.so.1.19.0
+    ```
 
 ### 3. \[Optional\] Install CUDA & CuDNN & TensorRT
 

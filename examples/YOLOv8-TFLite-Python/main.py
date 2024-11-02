@@ -183,7 +183,6 @@ class YOLOv8TFLite:
 
 
 if __name__ == "__main__":
-    # Create an argument parser to handle command-line arguments
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--model",

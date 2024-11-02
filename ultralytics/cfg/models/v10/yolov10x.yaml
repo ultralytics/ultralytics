@@ -1,51 +1,42 @@
-# yolov10_cbam.yaml
-
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-# YOLOv10 object detection model with CBAM and custom modules
+# YOLOv10 object detection model. For Usage examples see https://docs.ultralytics.com/tasks/detect
 
 # Parameters
 nc: 80 # number of classes
-scales: # model compound scaling constants
+scales: # model compound scaling constants, i.e. 'model=yolov10n.yaml' will call yolov10.yaml with scale 'n'
+  # [depth, width, max_channels]
   x: [1.00, 1.25, 512]
 
 backbone:
-  - [-1, 1, Conv, [64, 3, 2]] # 0-P1/2, output channels: 64
-  - [-1, 1, Conv, [128, 3, 2]] # 1-P2/4, output channels: 128
-  - [-1, 1, CBAM, []] # 2, CBAM with in_channels=128
-  - [-1, 3, C2f, [128, True]] # 3, output channels: 128
-  - [-1, 1, CBAM, []] # 4, CBAM with no params, handled in parse_model
-  - [-1, 1, Conv, [256, 3, 2]] # 5-P3/8, output channels: 256
-  - [-1, 1, CBAM, []] # 6, CBAM with in_channels=256
-  - [-1, 6, C2f, [256, True]] # 7, output channels: 256
-  - [-1, 1, CBAM, []] # 8, CBAM with in_channels=320
-  - [-1, 1, SCDown, [512, 3, 2]] # 9-P4/16, output channels: 512
-  - [-1, 6, C2fCIB, [512, True]] #10, output channels: 512
-  - [-1, 1, CBAM, []] #11, CBAM with in_channels=640
-  - [-1, 1, SCDown, [1024, 3, 2]] #12-P5/32, output channels: 1024
-  - [-1, 3, C2fCIB, [1024, True]] #13, output channels: 1024
-  - [-1, 1, CBAM, []] #14, CBAM with in_channels=1280
-  - [-1, 1, SPPF, [1024, 5]] #15, SPPF module with c1=1280, c2=1024, k=5
-  - [-1, 1, PSA, [1024]] #16, PSA module with in_channels=1024
+  # [from, repeats, module, args]
+  - [-1, 1, Conv, [64, 3, 2]] # 0-P1/2
+  - [-1, 1, Conv, [128, 3, 2]] # 1-P2/4
+  - [-1, 3, C2f, [128, True]]
+  - [-1, 1, Conv, [256, 3, 2]] # 3-P3/8
+  - [-1, 6, C2f, [256, True]]
+  - [-1, 1, SCDown, [512, 3, 2]] # 5-P4/16
+  - [-1, 6, C2fCIB, [512, True]]
+  - [-1, 1, SCDown, [1024, 3, 2]] # 7-P5/32
+  - [-1, 3, C2fCIB, [1024, True]]
+  - [-1, 1, SPPF, [1024, 5]] # 9
+  - [-1, 1, PSA, [1024]] # 10
 
+# YOLOv10.0n head
 head:
-  - [-1, 1, nn.Upsample, [None, 2, "nearest"]] #17
-  - [[-1, 10], 1, Concat, [1]] #18 cat backbone P4
-  - [-1, 3, C2fCIB, [512, True]] #19
-  - [-1, 1, CBAM, []] #20, CBAM with in_channels=512
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [[-1, 6], 1, Concat, [1]] # cat backbone P4
+  - [-1, 3, C2fCIB, [512, True]] # 13
 
-  - [-1, 1, nn.Upsample, [None, 2, "nearest"]] #21
-  - [[-1, 7], 1, Concat, [1]] #22 cat backbone P3
-  - [-1, 3, C2f, [256]] #23 (P3/8-small)
-  - [-1, 1, CBAM, []] #24, CBAM with in_channels=256
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [[-1, 4], 1, Concat, [1]] # cat backbone P3
+  - [-1, 3, C2f, [256]] # 16 (P3/8-small)
 
-  - [-1, 1, Conv, [256, 3, 2]] #25
-  - [[-1, 19], 1, Concat, [1]] #26 cat head P4
-  - [-1, 3, C2fCIB, [512, True]] #27 (P4/16-medium)
-  - [-1, 1, CBAM, []] #28, CBAM with in_channels=512
+  - [-1, 1, Conv, [256, 3, 2]]
+  - [[-1, 13], 1, Concat, [1]] # cat head P4
+  - [-1, 3, C2fCIB, [512, True]] # 19 (P4/16-medium)
 
-  - [-1, 1, SCDown, [512, 3, 2]] #29
-  - [[-1, 16], 1, Concat, [1]] #30 cat head P5
-  - [-1, 3, C2fCIB, [1024, True]] #31 (P5/32-large)
-  - [-1, 1, CBAM, []] #32, CBAM with in_channels=1024
+  - [-1, 1, SCDown, [512, 3, 2]]
+  - [[-1, 10], 1, Concat, [1]] # cat head P5
+  - [-1, 3, C2fCIB, [1024, True]] # 22 (P5/32-large)
 
-  - [[23, 27, 31], 1, v10Detect, [nc]] #33 Detect(P3, P4, P5)
+  - [[16, 19, 22], 1, v10Detect, [nc]] # Detect(P3, P4, P5)

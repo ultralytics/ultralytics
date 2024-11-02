@@ -664,7 +664,7 @@ def handle_yolo_solutions(args: List[str]) -> None:
         LOGGER.warning(f"⚠️ WARNING: source not provided. using default source {SOLUTIONS_ASSETS}/{d_s}")
         from ultralytics.utils.downloads import safe_download
 
-        safe_download(f"{SOLUTIONS_ASSETS}{d_s}")  # download source from ultralytics assets
+        safe_download(f"{SOLUTIONS_ASSETS}/{d_s}")  # download source from ultralytics assets
         source = d_s  # set default source
 
     cap = cv2.VideoCapture(source)  # read the video file

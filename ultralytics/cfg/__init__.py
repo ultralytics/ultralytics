@@ -674,7 +674,7 @@ def handle_yolo_solutions(args: List[str]) -> None:
     w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
     if s_n == "analytics":  # analytical graphs follow fixed shape for output i.e w=1920, h=1080
         w, h = 1920, 1080
-    save_dir = increment_path(Path("runs") / "solution" / f"{s_n}", exist_ok=False)
+    save_dir = increment_path(Path("runs") / "solutions" / f"{s_n}", exist_ok=False)
     save_dir.mkdir(parents=True, exist_ok=True)  # create the output directory
     vw = cv2.VideoWriter(os.path.join(save_dir, "solution.avi"), cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 

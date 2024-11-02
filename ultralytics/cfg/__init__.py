@@ -97,7 +97,7 @@ CLI_HELP_MSG = f"""
         yolo streamlit-predict
         
     6. Ultralytics solutions usage
-        yolo solution source="path/to/video/file.mp4" name=count or name in {list(SOLUTION_MAP.keys())}
+        yolo solution count or in {list(SOLUTION_MAP.keys())} source="path/to/video/file.mp4"
         
     7. Run special commands:
         yolo help
@@ -106,6 +106,7 @@ CLI_HELP_MSG = f"""
         yolo settings
         yolo copy-cfg
         yolo cfg
+        yolo solutions-help
 
     Docs: https://docs.ultralytics.com
     Solutions: https://docs.ultralytics.com/solutions/
@@ -600,13 +601,13 @@ def handle_yolo_solutions(args: List[str]) -> None:
 
     Examples:
         Run people counting solution with default settings:
-        >>> handle_yolo_solutions(["name=count"])
+        >>> handle_yolo_solutions(["count"])
 
         Generate heatmaps with custom source:
-        >>> handle_yolo_solutions(["source=path/to/video/file.mp4", "name=heatmap"])
+        >>> handle_yolo_solutions(["heatmap", "source=path/to/video/file.mp4", ])
 
         Run analytics with custom configuration:
-        >>> handle_yolo_solutions(["name=analytics", "conf=0.25", "source=path/to/video/file.mp4"])
+        >>> handle_yolo_solutions(["analytics", "conf=0.25", "source=path/to/video/file.mp4"])
 
     Notes:
         - Default configurations are merged from DEFAULT_SOL_DICT and DEFAULT_CFG_DICT
@@ -641,13 +642,10 @@ def handle_yolo_solutions(args: List[str]) -> None:
     check_dict_alignment(full_args_dict, overrides)  # dict alignment
 
     # Get solution name
-    s_n = overrides.pop("name", None)
-    if s_n not in SOLUTION_MAP or s_n is None:  # check if solution is not in defined solution, use solution name=count
-        LOGGER.warning(
-            f"⚠️ WARNING: '{s_n}' is not a valid solution. Available solutions are: {', '.join(SOLUTION_MAP.keys())}. "
-            f"Default to solution 'name=count'."
-        )
-        s_n = "count"
+    if args and args[0] in SOLUTION_MAP:  # Check if the first argument is a solution name without key=value format
+        s_n = args.pop(0)  # Extract the solution name directly
+    else:
+        s_n = "count"  # Default solution if none provided
 
     cls, method, d_s = SOLUTION_MAP[s_n]  # solution class name, method name and default source
     solution = getattr(solutions, cls)(**overrides)  # get solution class i.e ObjectCounter
@@ -828,7 +826,8 @@ def entrypoint(debug=""):
         "logout": lambda: handle_yolo_hub(args),
         "copy-cfg": copy_default_cfg,
         "streamlit-predict": lambda: handle_streamlit_inference(),
-        "solution": lambda: handle_yolo_solutions(args[1:]),
+        "solutions": lambda: handle_yolo_solutions(args[1:]),
+        "solutions-help": lambda: handle_yolo_solutions(args[1:]),
     }
     full_args_dict = {**DEFAULT_CFG_DICT, **{k: None for k in TASKS}, **{k: None for k in MODES}, **special}
 

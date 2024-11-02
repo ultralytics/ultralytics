@@ -624,7 +624,7 @@ def handle_yolo_solutions(args: List[str]) -> None:
     from ultralytics import solutions  # import ultralytics solutions
     from ultralytics.utils.files import increment_path  # for output directory path update
 
-    full_args_dict = {**DEFAULT_SOL_DICT, **DEFAULT_CFG_DICT}  # Parse arguments
+    full_args_dict = {**DEFAULT_SOL_DICT, **DEFAULT_CFG_DICT}  # arguments dictionary
     overrides = {}
 
     # check dictionary alignment
@@ -645,8 +645,7 @@ def handle_yolo_solutions(args: List[str]) -> None:
     if s_n not in SOLUTION_MAP or s_n is None:  # check if solution is not in defined solution, use solution name=count
         LOGGER.warning(
             f"⚠️ WARNING: '{s_n}' is not a valid solution. Available solutions are: {', '.join(SOLUTION_MAP.keys())}. "
-            f"Default to solution 'name=count'."
-        )
+            f"Default to solution 'name=count'.")
         s_n = "count"
 
     cls, method, d_s = SOLUTION_MAP[s_n]  # solution class name, method name and default source

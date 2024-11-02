@@ -170,22 +170,13 @@ jobs:
             docker build -f docker/Dockerfile-runner -t $t .
             docker push $t
           fi
-
-      - name: Build Dockerfile-jupyter
-        if: github.event_name == 'push' && matrix.dockerfile == 'Dockerfile-python'
-        run: |
-          docker build \
-          --platform linux/amd64 \
-          -f docker/Dockerfile-jupyter \
-          -t ultralytics/ultralytics:latest-jupyter \
-          -t ultralytics/ultralytics:${{ steps.get_version.outputs.version_tag }}-jupyter \
-          .
-
-      - name: Push Dockerfile-jupyter Image
-        if: github.event_name == 'push' && matrix.dockerfile == 'Dockerfile-python'
-        run: |
-          docker push ultralytics/ultralytics:latest-jupyter
-          docker push ultralytics/ultralytics:${{ steps.get_version.outputs.version_tag }}-jupyter
+          if [[ "${{ matrix.tags }}" == "latest-python" ]]; then
+            t=ultralytics/ultralytics:latest-jupyter
+            v=ultralytics/ultralytics:${{ steps.get_version.outputs.version_tag }}-jupyter
+            docker build -f docker/Dockerfile-jupyter -t $t -t $v .
+            docker push $t
+            docker push $v
+          fi
 
   trigger-actions:
     runs-on: ubuntu-latest

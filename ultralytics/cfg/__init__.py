@@ -649,7 +649,11 @@ def handle_yolo_solutions(args: List[str]) -> None:
     # Get solution name
     if args and args[0] in SOLUTION_MAP:  # Check if the first argument is a solution name without key=value format
         s_n = args.pop(0)  # Extract the solution name directly
+        LOGGER.warning(
+            f"✅ Using solution {s_n}")
     else:
+        LOGGER.warning(
+            f"⚠️ No valid solution provided. Using default 'count'. Available: {', '.join(SOLUTION_MAP.keys())}")
         s_n = "count"  # Default solution if none provided
 
     cls, method, d_s = SOLUTION_MAP[s_n]  # solution class name, method name and default source

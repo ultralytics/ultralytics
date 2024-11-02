@@ -19,7 +19,7 @@ except ImportError:
 
 class YOLOv8TFLite:
     """
-    YOLOv8TFLite
+    YOLOv8TFLite.
 
     A class for performing object detection using the YOLOv8 model with TensorFlow Lite.
 

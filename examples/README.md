@@ -21,6 +21,7 @@ This directory features a collection of real-world applications and walkthroughs
 | [YOLOv8 OpenCV INT8 TFLite Python](./YOLOv8-TFLite-Python)                                                                                | Python             | [Wamiq Raza](https://github.com/wamiqraza)                                                |
 | [YOLOv8 All Tasks ONNXRuntime Rust](./YOLOv8-ONNXRuntime-Rust)                                                                            | Rust/ONNXRuntime   | [jamjamjon](https://github.com/jamjamjon)                                                 |
 | [YOLOv8 OpenVINO CPP](./YOLOv8-OpenVINO-CPP-Inference)                                                                                    | C++/OpenVINO       | [Erlangga Yudi Pradana](https://github.com/rlggyp)                                        |
+| [YOLOv5-YOLO11 ONNXRuntime Rust](./YOLO-Series-ONNXRuntime-Rust)                                                                          | Rust/ONNXRuntime   | [jamjamjon](https://github.com/jamjamjon)                                                 |
 
 ### How to Contribute
 

@@ -619,11 +619,10 @@ def handle_yolo_solutions(args: List[str]) -> None:
         - Processes video frames sequentially and saves output in .avi format
         - If no source is specified, downloads and uses a default sample video
     """
-    # Import necessary libraries
     import os  # for directory creation
 
     from ultralytics import solutions  # import ultralytics solutions
-    from ultralytics.utils.files import increment_path
+    from ultralytics.utils.files import increment_path  # for output directory path update
 
     full_args_dict = {**DEFAULT_SOL_DICT, **DEFAULT_CFG_DICT}  # Parse arguments
     overrides = {}
@@ -664,15 +663,13 @@ def handle_yolo_solutions(args: List[str]) -> None:
 
     cap = cv2.VideoCapture(source)  # read the video file
 
-    # extract width, height and fps of the video file
+    # extract width, height and fps of the video file, create save directory and initialize video writer
     w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-    if s_n == "analytics":  # analytical graphs follow same shape for output i.e w=1920, h=1080
+    if s_n == "analytics":  # analytical graphs follow fixed shape for output i.e w=1920, h=1080
         w, h = 1920, 1080
     save_dir = increment_path(Path("runs") / "solution" / f"{s_n}", exist_ok=False)
     save_dir.mkdir(parents=True, exist_ok=True)  # create the output directory
-    vw = cv2.VideoWriter(
-        os.path.join(save_dir, "solution.avi"), cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h)
-    )  # video writer
+    vw = cv2.VideoWriter(os.path.join(save_dir, "solution.avi"), cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
     # Process video frames
     try:

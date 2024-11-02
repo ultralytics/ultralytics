@@ -998,6 +998,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             DWConvTranspose2d,
             C3x,
             RepC3,
+            CBAM,
             PSA,
             SCDown,
             C2fCIB,
@@ -1063,13 +1064,6 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             args = [c1, c2, *args[1:]]
         elif m is CBFuse:
             c2 = ch[f[-1]]
-        elif m is CBAM:
-            c1 = ch[f]
-            c2 = c1  # CBAM does not change the number of channels
-            if len(args) == 0:
-                args = [c1]  # Use default kernel_size=7
-            else:
-                args = [c1] + args  # Prepend c1 to args
         else:
             c2 = ch[f]
 

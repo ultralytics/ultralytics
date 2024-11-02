@@ -37,7 +37,7 @@ ARGV = sys.argv or ["", ""]  # sometimes sys.argv = []
 FILE = Path(__file__).resolve()
 ROOT = FILE.parents[1]  # YOLO
 ASSETS = ROOT / "assets"  # default images
-SOLUTIONS_ASSETS = "https://github.com/ultralytics/assets/releases/download/v0.0.0/"  # assets directory path
+SOLUTIONS_ASSETS = "https://github.com/ultralytics/assets/releases/download/v0.0.0/"  # assets url path
 DEFAULT_CFG_PATH = ROOT / "cfg/default.yaml"
 DEFAULT_SOL_CFG_PATH = ROOT / "cfg/solutions/default.yaml"  # Ultralytics solutions yaml path
 NUM_THREADS = min(8, max(1, os.cpu_count() - 1))  # number of YOLO multiprocessing threads

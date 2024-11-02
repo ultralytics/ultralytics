@@ -619,6 +619,11 @@ def handle_yolo_solutions(args: List[str]) -> None:
         - Processes video frames sequentially and saves output in .avi format
         - If no source is specified, downloads and uses a default sample video
     """
+    # Import necessary libraries
+    import os  # for directory creation
+    from ultralytics import solutions  # import ultralytics solutions
+    from ultralytics.utils.files import increment_path
+
     full_args_dict = {**DEFAULT_SOL_DICT, **DEFAULT_CFG_DICT}  # Parse arguments
     overrides = {}
 
@@ -634,12 +639,6 @@ def handle_yolo_solutions(args: List[str]) -> None:
         elif arg in full_args_dict and isinstance(full_args_dict.get(arg), bool):
             overrides[arg] = True
     check_dict_alignment(full_args_dict, overrides)  # dict alignment
-
-    # Import necessary libraries
-    import os  # for directory creation
-
-    from ultralytics import solutions  # import ultralytics solutions
-    from ultralytics.utils.files import increment_path
 
     # Get solution name
     s_n = overrides.pop("name", None)

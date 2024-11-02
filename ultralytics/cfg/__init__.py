@@ -113,6 +113,7 @@ CLI_HELP_MSG = f"""
     Community: https://community.ultralytics.com
     GitHub: https://github.com/ultralytics/ultralytics
     """
+SOLUTIONS_CLI_MESSAGE = f""""""
 
 # Define keys for arg type checks
 CFG_FLOAT_KEYS = {  # integer or float arguments, i.e. x=2 and x=2.0
@@ -589,7 +590,7 @@ def handle_yolo_settings(args: List[str]) -> None:
 
 def handle_yolo_solutions(args: List[str]) -> None:
     """
-    Processes YOLO solution arguments and runs the specified computer vision solution pipeline.
+    Processes YOLO solutions arguments and runs the specified computer vision solutions pipeline.
 
     Args:
         args (List[str]): Command-line arguments for configuring and running the Ultralytics YOLO
@@ -618,7 +619,7 @@ def handle_yolo_solutions(args: List[str]) -> None:
         - Default configurations are merged from DEFAULT_SOL_DICT and DEFAULT_CFG_DICT
         - Arguments can be provided in the format 'key=value' or as boolean flags
         - Available solutions are defined in SOLUTION_MAP with their respective classes and methods
-        - If an invalid solution name is provided, defaults to 'count' solution
+        - If an invalid solution is provided, defaults to 'count' solution
         - Output videos are saved in 'runs/solution/{solution_name}' directory
         - For 'analytics' solution, frame numbers are tracked for generating analytical graphs
         - Video processing can be interrupted by pressing 'q'

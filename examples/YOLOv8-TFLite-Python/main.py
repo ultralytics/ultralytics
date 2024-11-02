@@ -18,9 +18,25 @@ except ImportError:
 
 
 class YOLOv8TFLite:
+    """
+    YOLOv8TFLite
+
+    A class for performing object detection using the YOLOv8 model with TensorFlow Lite.
+
+    Attributes:
+        model (str): Path to the TensorFlow Lite model file.
+        conf (float): Confidence threshold for filtering detections.
+        iou (float): Intersection over Union threshold for non-maximum suppression.
+        metadata (Optional[str]): Path to the metadata file, if any.
+
+    Methods:
+        detect(img_path: str) -> np.ndarray:
+            Performs inference and returns the output image with drawn detections.
+    """
+
     def __init__(self, model: str, conf: float = 0.25, iou: float = 0.45, metadata: Union[str, None] = None):
         """
-        Initializes an instance of the Yolov8TFLite class.
+        Initializes an instance of the YOLOv8TFLite class.
 
         Args:
             model (str): Path to the TFLite model.

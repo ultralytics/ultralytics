@@ -132,7 +132,7 @@ class YOLOv8TFLite:
         Returns:
             Tuple[np.ndarray, Tuple[float, float]]: A tuple containing:
                 - The preprocessed image (np.ndarray).
-                - A tuple of two float values representing the padding applied (left/right, top/bottom).
+                - A tuple of two float values representing the padding applied (top/bottom, left/right).
         """
         img, pad = self.letterbox(img, (self.in_width, self.in_height))
         img = img[..., ::-1][None]  # N,H,W,C for TFLite

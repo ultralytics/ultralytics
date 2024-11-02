@@ -97,7 +97,7 @@ CLI_HELP_MSG = f"""
         yolo streamlit-predict
         
     6. Ultralytics solutions usage
-        yolo solution count or in {list(SOLUTION_MAP.keys())} source="path/to/video/file.mp4"
+        yolo solutions count or in {list(SOLUTION_MAP.keys())} source="path/to/video/file.mp4"
         
     7. Run special commands:
         yolo help
@@ -665,7 +665,7 @@ def handle_yolo_solutions(args: List[str]) -> None:
         LOGGER.warning(f"⚠️ WARNING: source not provided. using default source {SOLUTIONS_ASSETS}/{d_s}")
         from ultralytics.utils.downloads import safe_download
 
-        safe_download(f"{SOLUTIONS_ASSETS}/{d_s}")  # download source from ultralytics assets
+        safe_download(f"{SOLUTIONS_ASSETS}{d_s}")  # download source from ultralytics assets
         source = d_s  # set default source
 
     cap = cv2.VideoCapture(source)  # read the video file

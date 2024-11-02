@@ -33,7 +33,7 @@ class YOLOv8TFLite:
         if metadata is None:
             self.classes = {i: i for i in range(1000)}
         else:
-            with open("yolo11n_saved_model/metadata.yaml") as f:
+            with open(metadata) as f:
                 self.classes = yaml.safe_load(f)["names"]
         np.random.seed(42)
         self.color_palette = np.random.uniform(128, 255, size=(len(self.classes), 3))

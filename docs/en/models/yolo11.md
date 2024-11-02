@@ -14,6 +14,10 @@ keywords: YOLO11, state-of-the-art object detection, YOLO series, Ultralytics, c
 
 YOLO11 is the latest iteration in the [Ultralytics](https://www.ultralytics.com/) YOLO series of real-time object detectors, redefining what's possible with cutting-edge [accuracy](https://www.ultralytics.com/glossary/accuracy), speed, and efficiency. Building upon the impressive advancements of previous YOLO versions, YOLO11 introduces significant improvements in architecture and training methods, making it a versatile choice for a wide range of [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) tasks.
 
+!!! tip "Ultralytics YOLO11 Enterprise Models"
+
+    Explore our enterprise models, trained on an exclusive internal dataset to provide robust, more efficient detection with a wider range of object detection classes. These models are available directly to enterprise customers on our no-code platform, [Ultralytics HUB](https://hub.ultralytics.com/). Ready to see them in action? Visit our Visual Comparison to explore their capabilities and get started 🚀
+
 ![Ultralytics YOLO11 Comparison Plots](https://raw.githubusercontent.com/ultralytics/assets/refs/heads/main/yolo/performance-comparison.png)
 
 <p align="center">

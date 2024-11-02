@@ -604,7 +604,12 @@ def handle_yolo_solutions(args: List[str]) -> None:
         >>> handle_yolo_solutions(["count"])
 
         Generate heatmaps with custom source:
-        >>> handle_yolo_solutions(["heatmap", "source=path/to/video/file.mp4", ])
+        >>> handle_yolo_solutions(
+        ...     [
+        ...         "heatmap",
+        ...         "source=path/to/video/file.mp4",
+        ...     ]
+        ... )
 
         Run analytics with custom configuration:
         >>> handle_yolo_solutions(["analytics", "conf=0.25", "source=path/to/video/file.mp4"])

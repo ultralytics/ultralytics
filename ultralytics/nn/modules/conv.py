@@ -6,6 +6,7 @@ import math
 import numpy as np
 import torch
 import torch.nn as nn
+import warnings
 
 __all__ = (
     "Conv",
@@ -295,10 +296,12 @@ class ChannelAttention(nn.Module):
          Returns:
              out (torch.Tensor): Output tensor after applying channel attention.
         """
-        avg_out = self.f2(self.relu(self.f1(self.avg_pool(x))))
-        max_out = self.f2(self.relu(self.f1(self.max_pool(x))))
-        out = self.sigmoid(avg_out + max_out)
-        return out
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')
+            avg_out = self.f2(self.relu(self.f1(self.avg_pool(x))))
+            max_out = self.f2(self.relu(self.f1(self.max_pool(x))))
+            out = self.sigmoid(avg_out + max_out)
+            return out
 
 class SpatialAttention(nn.Module):
     """Spatial-attention module."""
@@ -348,10 +351,12 @@ class CBAM(nn.Module):
         Returns:
             out (torch.Tensor): Output tensor after applying the CBAM bottleneck.
         """
-        x2 = self.cv2(self.cv1(x))
-        out = self.channel_attention(x2) * x2
-        out = self.spatial_attention(out) * out
-        return x + out if self.add else out
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')
+            x2 = self.cv2(self.cv1(x))
+            out = self.channel_attention(x2) * x2
+            out = self.spatial_attention(out) * out
+            return x + out if self.add else out
 
 
 class Concat(nn.Module):

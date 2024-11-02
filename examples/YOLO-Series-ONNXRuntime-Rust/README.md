@@ -1,6 +1,6 @@
 # YOLO-Series ONNXRuntime Rust Demo for Core YOLO Tasks
 
-This repository provides a Rust demo for key YOLO-Series tasks such as `Classification`, `Segmentation`, `Detection`, `Pose Detection`, and `OBB` using ONNXRuntime. It supports various YOLO models (v5 - v11) across multiple vision tasks.
+This repository provides a Rust demo for key YOLO-Series tasks such as `Classification`, `Segmentation`, `Detection`, `Pose Detection`, and `OBB` using ONNXRuntime. It supports various YOLO models (v5 - 11) across multiple vision tasks.
 
 ## Introduction
 
@@ -84,7 +84,7 @@ cargo run -r -- --task segment --ver v8 --scale n  # YOLOv8-Segment
 cargo run -r -- --task segment --ver v11 --scale n  # YOLOv8-Segment
 cargo run -r -- --task segment --ver v8 --model yolo/FastSAM-s-dyn-f16.onnx  # FastSAM
 
-# Obb
+# OBB
 cargo run -r -- --ver v8 --task obb --scale n --width 1024 --height 1024 --source images/dota.png  # YOLOv8-Obb
 cargo run -r -- --ver v11 --task obb --scale n --width 1024 --height 1024 --source images/dota.png  # YOLOv11-Obb
 ```

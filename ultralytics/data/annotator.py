@@ -6,8 +6,17 @@ from ultralytics import SAM, YOLO
 
 
 def auto_annotate(
-        data, det_model="yolo11x.pt", sam_model="sam_b.pt", device="", conf=0.25, iou=0.45, imgsz=640, max_det=300,
-        classes=None, output_dir=None,):
+    data,
+    det_model="yolo11x.pt",
+    sam_model="sam_b.pt",
+    device="",
+    conf=0.25,
+    iou=0.45,
+    imgsz=640,
+    max_det=300,
+    classes=None,
+    output_dir=None,
+):
     """
     Automatically annotates images using a YOLO object detection model and a SAM segmentation model.
 
@@ -43,8 +52,9 @@ def auto_annotate(
         output_dir = data.parent / f"{data.stem}_auto_annotate_labels"
     Path(output_dir).mkdir(exist_ok=True, parents=True)
 
-    det_results = det_model(data, stream=True, device=device, conf=conf, iou=iou, imgsz=imgsz, max_det=max_det,
-                            classes=classes)
+    det_results = det_model(
+        data, stream=True, device=device, conf=conf, iou=iou, imgsz=imgsz, max_det=max_det, classes=classes
+    )
 
     for result in det_results:
         class_ids = result.boxes.cls.int().tolist()  # noqa

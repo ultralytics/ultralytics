@@ -113,7 +113,7 @@ CLI_HELP_MSG = f"""
     Community: https://community.ultralytics.com
     GitHub: https://github.com/ultralytics/ultralytics
     """
-SOLUTIONS_CLI_MESSAGE = f""""""
+SOLUTIONS_CLI_MESSAGE = """"""
 
 # Define keys for arg type checks
 CFG_FLOAT_KEYS = {  # integer or float arguments, i.e. x=2 and x=2.0

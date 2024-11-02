@@ -16,7 +16,7 @@ YOLO11 is the latest iteration in the [Ultralytics](https://www.ultralytics.com/
 
 !!! tip "Ultralytics YOLO11 Enterprise Models"
 
-    Explore our enterprise models, trained on an exclusive internal dataset to provide robust, more efficient detection with a wider range of object detection classes. These models are available directly to enterprise customers on our no-code platform, [Ultralytics HUB](https://hub.ultralytics.com/). Ready to see them in action? Visit our Visual Comparison to explore their capabilities and get started 🚀
+    Explore our enterprise models, trained on an exclusive internal dataset to provide robust, more efficient detection with a wider range of object detection classes. These models are available directly to enterprise customers on our no-code platform, [Ultralytics HUB](https://hub.ultralytics.com/). Ready to see them in action? Visit our [visual comparison of models](visual-comparison.md) to explore their capabilities and get started 🚀
 
 ![Ultralytics YOLO11 Comparison Plots](https://raw.githubusercontent.com/ultralytics/assets/refs/heads/main/yolo/performance-comparison.png)
 

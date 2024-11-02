@@ -175,7 +175,9 @@ jobs:
             v=ultralytics/ultralytics:${{ steps.get_version.outputs.version_tag }}-jupyter
             docker build -f docker/Dockerfile-jupyter -t $t -t $v .
             docker push $t
-            docker push $v
+            if [[ "${{ steps.check_tag.outputs.new_release }}" == "true" ]]; then
+              docker push $v
+            fi
           fi
 
   trigger-actions:

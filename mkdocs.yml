@@ -398,11 +398,12 @@ nav:
       - JupyterLab: integrations/jupyterlab.md
       - Kaggle: integrations/kaggle.md
       - MLflow: integrations/mlflow.md
-      - NCNN: integrations/ncnn.md
       - Neural Magic: integrations/neural-magic.md
       - ONNX: integrations/onnx.md
       - OpenVINO: integrations/openvino.md
       - PaddlePaddle: integrations/paddlepaddle.md
+      - MNN: integrations/mnn.md
+      - NCNN: integrations/ncnn.md
       - Paperspace Gradient: integrations/paperspace.md
       - Ray Tune: integrations/ray-tune.md
       - Roboflow: integrations/roboflow.md

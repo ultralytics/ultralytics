@@ -8,7 +8,7 @@ use rand::{thread_rng, Rng};
 use std::path::PathBuf;
 
 use crate::{
-    load_font, gen_time_string, non_max_suppression, Args, Batch, Bbox, Embedding, OrtBackend,
+    gen_time_string, load_font, non_max_suppression, Args, Batch, Bbox, Embedding, OrtBackend,
     OrtConfig, OrtEP, Point2, YOLOResult, YOLOTask, SKELETON,
 };
 
@@ -40,7 +40,7 @@ impl YOLOv8 {
             OrtEP::CUDA(config.device_id)
         } else {
             OrtEP::CPU
-        }; 
+        };
 
         // batch
         let batch = Batch {
@@ -463,7 +463,7 @@ impl YOLOv8 {
                         image::Rgb(self.color_palette[bbox.id()].into()),
                         bbox.xmin() as i32,
                         (bbox.ymin() - legend_size as f32) as i32,
-                        legend_size as  f32,
+                        legend_size as f32,
                         &font,
                         &legend,
                     );

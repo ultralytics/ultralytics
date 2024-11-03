@@ -71,6 +71,7 @@ Without further ado, let's dive in!
 3. Now, read the contents of the dataset YAML file and extract the indices of the class labels.
 
     ```python
+    import yaml
     yaml_file = "path/to/data.yaml"  # your data YAML with data directories and names dictionary
     with open(yaml_file, "r", encoding="utf8") as y:
         classes = yaml.safe_load(y)["names"]

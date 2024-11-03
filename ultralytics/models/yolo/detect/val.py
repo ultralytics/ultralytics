@@ -346,10 +346,15 @@ class DetectionValidator(BaseValidator):
                 val.summarize()
                 if self.is_lvis and pkg == "lvis":
                     val.print_results()  # explicitly call print_results
+                
                 # update mAP50-95 and mAP50
-                stats[self.metrics.keys[-1]], stats[self.metrics.keys[-2]] = (
-                    val.stats[:2] if self.is_coco else [val.results["AP50"], val.results["AP"]]
-                )
+                if pkg == "faster-coco-eval":
+                    # mAP50-95 -> AP_all
+                    stats[self.metrics.keys[-1]], stats[self.metrics.keys[-2]] = val.stats_as_dict["AP_all"], val.stats_as_dict["AP_50"]
+                else:
+                    stats[self.metrics.keys[-1]], stats[self.metrics.keys[-2]] = (
+                        val.stats[:2] if self.is_coco else [val.results["AP50"], val.results["AP"]]
+                    )
             except Exception as e:
                 LOGGER.warning(f"{pkg} unable to run: {e}")
         return stats

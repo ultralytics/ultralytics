@@ -81,16 +81,16 @@ SOLUTIONS_HELP_MSG = f"""
               ARGS (optional) are any number of custom 'arg=value' pairs like 'show_in=True' that override defaults.
                 See all ARGS at https://docs.ultralytics.com/usage/cfg or with 'yolo cfg'
     
-    1. Call Object Counting Solution
+    1. Call object counting solution
         yolo solutions count source="path/to/video/file.mp4" region=[(20, 400), (1080, 404), (1080, 360), (20, 360)]
        
-    2. Call Heatmaps Solution
+    2. Call heatmaps solution
         yolo solutions heatmap colormap=cv2.COLORMAP_PARAULA model=yolo11n.pt
     
-    3. Call Queue Management Solution
+    3. Call queue management solution
         yolo solutions queue region=[(20, 400), (1080, 404), (1080, 360), (20, 360)] model=yolo11n.pt
     
-    4. Call Workouts Monitoring Solution for Push-ups
+    4. Call workouts monitoring solution for push-ups
         yolo solutions workout model=yolo11n-pose.pt kpts=[6, 8, 10]
     """
 CLI_HELP_MSG = f"""

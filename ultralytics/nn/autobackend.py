@@ -16,6 +16,7 @@ from PIL import Image
 from ultralytics.utils import ARM64, IS_JETSON, IS_RASPBERRYPI, LINUX, LOGGER, ROOT, yaml_load
 from ultralytics.utils.checks import check_requirements, check_suffix, check_version, check_yaml
 from ultralytics.utils.downloads import attempt_download_asset, is_url
+from ultralytics.utils.torch_utils import smart_inference_mode
 
 
 def check_class_names(names):
@@ -80,7 +81,8 @@ class AutoBackend(nn.Module):
     models across various platforms.
     """
 
-    @torch.no_grad()
+    # @torch.no_grad()
+    # @smart_inference_mode()
     def __init__(
         self,
         weights="yolo11n.pt",
@@ -486,6 +488,7 @@ class AutoBackend(nn.Module):
 
         self.__dict__.update(locals())  # assign all variables to self
 
+    # @smart_inference_mode()
     def forward(self, im, augment=False, visualize=False, embed=None):
         """
         Runs inference on the YOLOv8 MultiBackend model.

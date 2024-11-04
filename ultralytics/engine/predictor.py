@@ -215,6 +215,9 @@ class BasePredictor:
     @smart_inference_mode()
     def stream_inference(self, source=None, model=None, *args, **kwargs):
         """Streams real-time inference on camera feed and saves results to file."""
+        print("stream_inference" + "=" * 50)
+        print(f"inference mode: {torch.is_inference_mode_enabled()}")
+        print("stream_inference" + "=" * 50)
         if self.args.verbose:
             LOGGER.info("")
 

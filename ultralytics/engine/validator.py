@@ -105,6 +105,9 @@ class BaseValidator:
 
     @smart_inference_mode()
     def __call__(self, trainer=None, model=None):
+        print("BaseValidator __call__" + "=" * 50)
+        print(f"inference mode: {torch.is_inference_mode_enabled()}")
+        print("BaseValidator __call__" + "=" * 50)
         """Executes validation process, running inference on dataloader and computing performance metrics."""
         self.training = trainer is not None
         augment = self.args.augment and (not self.training)

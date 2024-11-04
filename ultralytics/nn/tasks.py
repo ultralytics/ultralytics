@@ -107,6 +107,9 @@ class BaseModel(nn.Module):
         Returns:
             (torch.Tensor): Loss if x is a dict (training), or network predictions (inference).
         """
+        print("forward" + "=" * 50)
+        print(f"inference mode: {torch.is_inference_mode_enabled()}")
+        print("forward" + "=" * 50)
         if isinstance(x, dict):  # for cases of training and validating while training.
             return self.loss(x, *args, **kwargs)
         return self.predict(x, *args, **kwargs)

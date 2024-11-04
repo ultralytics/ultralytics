@@ -32,7 +32,7 @@ class Detect(nn.Module):
         self.reg_max = 16  # DFL channels (ch[0] // 16 to scale 4/8/12/16/20 for n/s/m/l/x)
         self.no = nc + self.reg_max * 4  # number of outputs per anchor
         self.stride = torch.zeros(self.nl)  # strides computed during build
-        c2, c3 = max((16, ch[0] // 4, self.reg_max * 4)), max(ch[0], min(self.nc, 100))  # channels
+        c2, c3 = max(16, ch[0] // 4, self.reg_max * 4), max(ch[0], min(self.nc, 100))  # channels
         self.cv2 = nn.ModuleList(
             nn.Sequential(Conv(x, c2, 3), Conv(c2, c2, 3), nn.Conv2d(c2, 4 * self.reg_max, 1)) for x in ch)
         self.cv3 = nn.ModuleList(nn.Sequential(Conv(x, c3, 3), Conv(c3, c3, 3), nn.Conv2d(c3, self.nc, 1)) for x in ch)
@@ -97,22 +97,27 @@ class DetectContrastive(nn.Module):
         self.nc = nc  # number of classes
         self.nl = len(ch)  # number of detection layers (e.g., small, medium, large for 3-scale detections)
         self.reg_max = 16  # DFL channels (ch[0] // 16 to scale 4/8/12/16/20 for n/s/m/l/x)
-        c2, c3 = max((16, ch[0] // 4, self.reg_max * 4)), max(ch[0], min(self.nc, 100))  # channels
-        self.no = nc + self.reg_max * 4 + c3  # number of outputs per anchor (nc is num classes, reg_max is # predicted bboxes & 4 is bbox attributes (x, y, w, h), c3 is num features in final classification layer's embeddings)
+        c2 = max(16, ch[0] // 4, self.reg_max * 4)  # channels
+        self.c3 = max(ch[0], min(self.nc, 100))  # channels
         self.stride = torch.zeros(self.nl)  # strides computed during build
 
         # cv2 is for predicting bboxes (last layer's out_channel is 4 * reg_max)
         self.cv2 = nn.ModuleList(
             nn.Sequential(Conv(x, c2, 3), Conv(c2, c2, 3), nn.Conv2d(c2, 4 * self.reg_max, 1)) for x in ch)
         
-        # expand out_channels for conv layer before classification layer to split embedding dimension for classification and contrastive learning tasks
-        self.c3_cls_contrastive = c3 * 2  # e.g., 64 + 64 = 128
+        # define the number of features in embedding for contrastive learning task
+        self.c3_cls_contrastive = self.c3
 
-        # a list of sequences of layers that output embeddings of predicted bboxes (for small, medium, large)
-        self.embedding_layers = nn.ModuleList(nn.Sequential(Conv(x, c3, 3), Conv(c3, self.c3_cls_contrastive, 3)) for x in ch)
+        # number of outputs per anchor
+        # (nc is # classes, reg_max is # predicted bboxes & 4 is bbox attributes (x, y, w, h), c3_cls_contrastive is # features in final classification layer's embeddings for contrastive learning)
+        self.no = nc + self.reg_max * 4 + self.c3_cls_contrastive
+
+        # a list of sequences of layers that output embeddings of predicted bboxes for small, medium, or large detection scale
+        # (in the last convolution block, c3 is num features for classification, c3_cls_contrastive is num features for contrastive learning)
+        self.embedding_layers = nn.ModuleList(nn.Sequential(Conv(x, self.c3, 3), Conv(self.c3, self.c3 + self.c3_cls_contrastive, 3)) for x in ch)
 
         # pre-define a convolution classification layer for weight-sharing
-        self.shared_conv = nn.Conv2d(c3, self.nc, 1)
+        self.shared_conv = nn.Conv2d(self.c3, self.nc, 1)
 
         # a list of layers that output logit (raw score) for classification (for small, medium, large)
         self.cls_preds = nn.ModuleList(self.shared_conv for _ in ch)
@@ -133,17 +138,17 @@ class DetectContrastive(nn.Module):
             bboxes = self.cv2[i](x[i])  # (B, 4 * reg_max, H, W)
             
             # split embeddings by first half for classification and second half for contrastive task
-            embeddings_cls = self.embedding_layers[i](x[i])[:, :self.c3_cls_contrastive // 2, :, :]  # (B, first half of n_features, H, W)
-            embeddings_contrastive = self.embedding_layers[i](x[i])[:, self.c3_cls_contrastive // 2:, :, :]  # (B, second half of n_features, H, W)
+            embeddings_cls = self.embedding_layers[i](x[i])[:, :self.c3, :, :]  # (B, n_features for cls, H, W)
+            embeddings_contrastive = self.embedding_layers[i](x[i])[:, self.c3:, :, :]  # (B, n_features for contrastive learning, H, W)
             cls_predictions = self.cls_preds[i](embeddings_cls)  # (B, nc, H, W)
-            x[i] = torch.cat((bboxes, cls_predictions, embeddings_contrastive), 1)  # (B, 4 * reg_max + nc + n_features, H, W)
+            x[i] = torch.cat((bboxes, cls_predictions, embeddings_contrastive), 1)  # (B, 4 * reg_max + nc + n_features for contrastive learning, H, W) == (B, no, H, W)
             
         if self.training:
             return x
         elif self.dynamic or self.shape != shape:
             self.anchors, self.strides = (x.transpose(0, 1) for x in make_anchors(x, self.stride, 0.5))
             self.shape = shape
-
+            
         x_cat = torch.cat([xi.view(shape[0], self.no, -1) for xi in x], 2)
         if self.export and self.format in ('saved_model', 'pb', 'tflite', 'edgetpu', 'tfjs'):  # avoid TF FlexSplitV ops
             box = x_cat[:, :self.reg_max * 4]

@@ -25,14 +25,14 @@ Albumentations offers many useful features that simplify complex image augmentat
 - **Wide Range of Transformations**: Albumentations offers over [70 different transformations](https://github.com/albumentations-team/albumentations?tab=readme-ov-file#list-of-augmentations), including geometric changes (e.g., rotation, flipping), color adjustments (e.g., brightness, contrast), and noise addition (e.g., Gaussian noise). Having multiple options enables the creation of highly diverse and robust training datasets.
 
 <p align="center">
-  <img width="100%" src="https://albumentations.ai/docs/images/introduction/image_augmentation/augmentation.jpg" alt="Example of Image Augmentations">
+  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/albumentations-augmentation.avif" alt="Example of Image Augmentations">
 </p>
 
 - **High Performance Optimization**: Built on OpenCV and NumPy, Albumentations uses advanced optimization techniques like SIMD (Single Instruction, Multiple Data), which processes multiple data points simultaneously to speed up processing. It handles large datasets quickly, making it one of the fastest options available for image augmentation.
 
 - **Three Levels of Augmentation**: Albumentations supports three levels of augmentation: pixel-level transformations, spatial-level transformations, and mixing-level transformation. Pixel-level transformations only affect the input images without altering masks, bounding boxes, or key points. Meanwhile, both the image and its elements, like masks and bounding boxes, are transformed using spatial-level transformations. Furthermore, mixing-level transformations are a unique way to augment data as it combines multiple images into one.
 
-![Overview of the Different Levels of Augmentations](https://github.com/user-attachments/assets/9ac3af13-ecf5-41d8-b7df-0faebdf2eefe)
+![Overview of the Different Levels of Augmentations](https://github.com/ultralytics/docs/releases/download/0/levels-of-augmentation.avif)
 
 - **[Benchmarking Results](https://albumentations.ai/docs/benchmarking_results/)**: When it comes to benchmarking, Albumentations consistently outperforms other libraries, especially with large datasets.
 
@@ -95,7 +95,7 @@ Here are the parameters and values used in this integration:
 
 - **p**: The probability of applying the blur. In the integration, p=0.01, so there’s a 1% chance that this blur will be applied to each image. The low probability allows for occasional blur effects, introducing a bit of variation to help the model generalize without over-blurring the images.
 
-<img width="776" alt="An Example of the Blur Augmentation" src="https://github.com/user-attachments/assets/d7b6ad78-52be-4887-b9c5-5f134b502d80">
+<img width="776" alt="An Example of the Blur Augmentation" src="https://github.com/ultralytics/docs/releases/download/0/albumentations-blur.avif">
 
 ### Median Blur
 
@@ -109,7 +109,7 @@ Here are the parameters and values used in this integration:
 
 The image below shows an example of this augmentation applied to an image.
 
-<img width="764" alt="An Example of the MedianBlur Augmentation" src="https://github.com/user-attachments/assets/b692e135-a2d6-4dbe-8805-57d6c66e477e">
+<img width="764" alt="An Example of the MedianBlur Augmentation" src="https://github.com/ultralytics/docs/releases/download/0/albumentations-median-blur.avif">
 
 ### Grayscale
 
@@ -125,7 +125,7 @@ Here are the parameters and values used in this integration:
 
 The image below shows an example of this grayscale transformation applied.
 
-<img width="759" alt="An Example of the ToGray Augmentation" src="https://github.com/user-attachments/assets/792c079b-4c80-4bf1-b7cc-cea2c47cbc44">
+<img width="759" alt="An Example of the ToGray Augmentation" src="https://github.com/ultralytics/docs/releases/download/0/albumentations-grayscale.avif">
 
 ### Contrast Limited Adaptive Histogram Equalization (CLAHE)
 
@@ -141,7 +141,7 @@ Here are the parameters and values used in this integration:
 
 The image below shows an example of the CLAHE transformation applied.
 
-<img width="760" alt="An Example of the CLAHE Augmentation" src="https://github.com/user-attachments/assets/b83ff6d9-409a-4ab0-8217-99181b705352">
+<img width="760" alt="An Example of the CLAHE Augmentation" src="https://github.com/ultralytics/docs/releases/download/0/albumentations-CLAHE.avif">
 
 ## Keep Learning about Albumentations
 

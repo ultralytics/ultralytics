@@ -303,7 +303,13 @@ def check_det_dataset(dataset, autodownload=True):
     if 'names' not in data:
         data['names'] = [f'class_{i}' for i in range(data['nc'])]
     else:
-        data['nc'] = len(data['names'])
+        training_task = os.environ.get("TASK")
+        # for pose-contrastive task, enfoce num classes to be 1
+        if training_task == 'pose-contrastive':
+            data['nc'] = 1
+            print("Setting nc to 1 for pose-contrastive task")
+        else:
+            data['nc'] = len(data['names'])
 
     data['names'] = check_class_names(data['names'])
 

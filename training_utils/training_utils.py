@@ -27,7 +27,7 @@ def PrepareDataset(coco_classes_file, dataset_yaml, training_task):
         for i in range(len(classes)):
             f.write(f"  {i}: {classes[i]}\n")
         if training_task == "pose" or training_task == "pose-contrastive":
-            f.write("\nkpt_shape: [1, 3]\n")
+            f.write("\nkpt_shape: [1, 3]\n")  # enforce keypoint shape to [1, 3] for pose models
     return
 
 

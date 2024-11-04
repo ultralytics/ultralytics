@@ -92,6 +92,9 @@ SOLUTIONS_HELP_MSG = f"""
     
     4. Call workouts monitoring solution for push-ups
         yolo solutions workout model=yolo11n-pose.pt kpts=[6, 8, 10]
+        
+    5. Generate analytical graphs
+        yolo solutions analytics analytics_type="pie"
     """
 CLI_HELP_MSG = f"""
     Arguments received: {str(['yolo'] + ARGV[1:])}. Ultralytics 'yolo' commands use the following syntax:

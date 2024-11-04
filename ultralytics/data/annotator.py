@@ -6,7 +6,16 @@ from ultralytics import SAM, YOLO
 
 
 def auto_annotate(
-    data, det_model="yolo11x.pt", sam_model="sam_b.pt", device="", conf=0.25, iou=0.45, imgsz=640, output_dir=None
+    data,
+    det_model="yolo11x.pt",
+    sam_model="sam_b.pt",
+    device="",
+    conf=0.25,
+    iou=0.45,
+    imgsz=640,
+    max_det=300,
+    classes=None,
+    output_dir=None,
 ):
     """
     Automatically annotates images using a YOLO object detection model and a SAM segmentation model.
@@ -22,6 +31,8 @@ def auto_annotate(
         conf (float): Confidence threshold for detection model; default is 0.25.
         iou (float): IoU threshold for filtering overlapping boxes in detection results; default is 0.45.
         imgsz (int): Input image resize dimension; default is 640.
+        max_det (int): Limits detections per image to control outputs in dense scenes.
+        classes (list): Filters predictions to specified class IDs, returning only relevant detections.
         output_dir (str | None): Directory to save the annotated results. If None, a default directory is created.
 
     Examples:
@@ -41,7 +52,9 @@ def auto_annotate(
         output_dir = data.parent / f"{data.stem}_auto_annotate_labels"
     Path(output_dir).mkdir(exist_ok=True, parents=True)
 
-    det_results = det_model(data, stream=True, device=device, conf=conf, iou=iou, imgsz=imgsz)
+    det_results = det_model(
+        data, stream=True, device=device, conf=conf, iou=iou, imgsz=imgsz, max_det=max_det, classes=classes
+    )
 
     for result in det_results:
         class_ids = result.boxes.cls.int().tolist()  # noqa

@@ -71,6 +71,32 @@ TASK2METRIC = {
 MODELS = {TASK2MODEL[task] for task in TASKS}
 
 ARGV = sys.argv or ["", ""]  # sometimes sys.argv = []
+SOLUTIONS_HELP_MSG = f"""
+    Arguments received: {str(['yolo'] + ARGV[1:])}. Ultralytics 'yolo solutions' usage overview:
+    
+        yolo SOLUTIONS SOLUTION ARGS
+        
+        Where SOLUTIONS (required) is a keyword
+              SOLUTION (optional) is one of {list(SOLUTION_MAP.keys())}
+              ARGS (optional) are any number of custom 'arg=value' pairs like 'show_in=True' that override defaults.
+                See all ARGS at https://docs.ultralytics.com/usage/cfg or with 'yolo cfg'
+    
+    1. Call Object Counting Solution
+        yolo solutions count model=yolo11n.pt source="path/to/video/file.mp4" region=
+        yolo solutions count region=[(20, 400), (1080, 404), (1080, 360), (20, 360)]
+    
+    2. Call Heatmaps Solution
+        yolo solutions heatmap model=yolo11n.pt
+        yolo solutions heatmap colormap=cv2.COLORMAP_PARAULA
+    
+    3. Call Queue Management Solution
+        yolo solutions queue model=yolo11n.pt
+        yolo solutions queue region=[(20, 400), (1080, 404), (1080, 360), (20, 360)] 
+    
+    4. Call Workouts Monitoring Solution
+        yolo solutions workout model=yolo11n-pose.pt
+        yolo solutions workout ktps=[6, 8, 10] # for push-ups
+    """
 CLI_HELP_MSG = f"""
     Arguments received: {str(['yolo'] + ARGV[1:])}. Ultralytics 'yolo' commands use the following syntax:
 
@@ -836,7 +862,7 @@ def entrypoint(debug=""):
         "copy-cfg": copy_default_cfg,
         "streamlit-predict": lambda: handle_streamlit_inference(),
         "solutions": lambda: handle_yolo_solutions(args[1:]),
-        "solutions-help": lambda: handle_yolo_solutions(args[1:]),
+        "solutions-help": lambda: LOGGER.info(SOLUTIONS_HELP_MSG),
     }
     full_args_dict = {**DEFAULT_CFG_DICT, **{k: None for k in TASKS}, **{k: None for k in MODES}, **special}
 

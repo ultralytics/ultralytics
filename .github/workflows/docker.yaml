@@ -170,6 +170,15 @@ jobs:
             docker build -f docker/Dockerfile-runner -t $t .
             docker push $t
           fi
+          if [[ "${{ matrix.tags }}" == "latest-python" ]]; then
+            t=ultralytics/ultralytics:latest-jupyter
+            v=ultralytics/ultralytics:${{ steps.get_version.outputs.version_tag }}-jupyter
+            docker build -f docker/Dockerfile-jupyter -t $t -t $v .
+            docker push $t
+            if [[ "${{ steps.check_tag.outputs.new_release }}" == "true" ]]; then
+              docker push $v
+            fi
+          fi
 
   trigger-actions:
     runs-on: ubuntu-latest

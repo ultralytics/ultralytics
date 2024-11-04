@@ -82,20 +82,16 @@ SOLUTIONS_HELP_MSG = f"""
                 See all ARGS at https://docs.ultralytics.com/usage/cfg or with 'yolo cfg'
     
     1. Call Object Counting Solution
-        yolo solutions count model=yolo11n.pt source="path/to/video/file.mp4" region=
-        yolo solutions count region=[(20, 400), (1080, 404), (1080, 360), (20, 360)]
-    
+        yolo solutions count source="path/to/video/file.mp4" region=[(20, 400), (1080, 404), (1080, 360), (20, 360)]
+       
     2. Call Heatmaps Solution
-        yolo solutions heatmap model=yolo11n.pt
-        yolo solutions heatmap colormap=cv2.COLORMAP_PARAULA
+        yolo solutions heatmap colormap=cv2.COLORMAP_PARAULA model=yolo11n.pt
     
     3. Call Queue Management Solution
-        yolo solutions queue model=yolo11n.pt
-        yolo solutions queue region=[(20, 400), (1080, 404), (1080, 360), (20, 360)] 
+        yolo solutions queue region=[(20, 400), (1080, 404), (1080, 360), (20, 360)] model=yolo11n.pt
     
-    4. Call Workouts Monitoring Solution
-        yolo solutions workout model=yolo11n-pose.pt
-        yolo solutions workout ktps=[6, 8, 10] # for push-ups
+    4. Call Workouts Monitoring Solution for Push-ups
+        yolo solutions workout model=yolo11n-pose.pt kpts=[6, 8, 10]
     """
 CLI_HELP_MSG = f"""
     Arguments received: {str(['yolo'] + ARGV[1:])}. Ultralytics 'yolo' commands use the following syntax:

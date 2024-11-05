@@ -73,26 +73,26 @@ MODELS = {TASK2MODEL[task] for task in TASKS}
 ARGV = sys.argv or ["", ""]  # sometimes sys.argv = []
 SOLUTIONS_HELP_MSG = f"""
     Arguments received: {str(['yolo'] + ARGV[1:])}. Ultralytics 'yolo solutions' usage overview:
-    
+
         yolo SOLUTIONS SOLUTION ARGS
-        
+
         Where SOLUTIONS (required) is a keyword
               SOLUTION (optional) is one of {list(SOLUTION_MAP.keys())}
               ARGS (optional) are any number of custom 'arg=value' pairs like 'show_in=True' that override defaults.
                 See all ARGS at https://docs.ultralytics.com/usage/cfg or with 'yolo cfg'
-    
+
     1. Call object counting solution
         yolo solutions count source="path/to/video/file.mp4" region=[(20, 400), (1080, 404), (1080, 360), (20, 360)]
-       
+
     2. Call heatmaps solution
         yolo solutions heatmap colormap=cv2.COLORMAP_PARAULA model=yolo11n.pt
-    
+
     3. Call queue management solution
         yolo solutions queue region=[(20, 400), (1080, 404), (1080, 360), (20, 360)] model=yolo11n.pt
-    
+
     4. Call workouts monitoring solution for push-ups
         yolo solutions workout model=yolo11n-pose.pt kpts=[6, 8, 10]
-        
+
     5. Generate analytical graphs
         yolo solutions analytics analytics_type="pie"
     """
@@ -117,13 +117,13 @@ CLI_HELP_MSG = f"""
 
     4. Export a YOLO11n classification model to ONNX format at image size 224 by 128 (no TASK required)
         yolo export model=yolo11n-cls.pt format=onnx imgsz=224,128
-    
+
     5. Streamlit real-time webcam inference GUI
         yolo streamlit-predict
-        
+
     6. Ultralytics solutions usage
         yolo solutions count or in {list(SOLUTION_MAP.keys())} source="path/to/video/file.mp4"
-        
+
     7. Run special commands:
         yolo help
         yolo checks

@@ -35,16 +35,16 @@ A heatmap generated with [Ultralytics YOLO11](https://github.com/ultralytics/ult
 |                                                      Ultralytics YOLO11 Transportation Heatmap                                                       |                                                  Ultralytics YOLO11 Retail Heatmap                                                   |
 
 !!! example "Heatmaps using YOLO11"
-    
+
     === "CLI"
         ```bash
         yolo solutions heatmap show=True
-        
+
         # pass the source
         yolo solutions heatmap source="path/to/video/file.mp4"
 
         # heatmap + object counting
-        yolo solutions heatmap region=[(20, 400), (1080, 404), (1080, 360), (20, 360)] 
+        yolo solutions heatmap region=[(20, 400), (1080, 404), (1080, 360), (20, 360)]
         ```
 
     === "Python"

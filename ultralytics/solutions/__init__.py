@@ -2,12 +2,12 @@
 
 from .ai_gym import AIGym
 from .analytics import Analytics
+from .crowd_density_estimation import CrowdDensityEstimation
 from .distance_calculation import DistanceCalculation
 from .heatmap import Heatmap
 from .object_counter import ObjectCounter
 from .parking_management import ParkingManagement, ParkingPtsSelection
 from .queue_management import QueueManager
-from .crowd_density_estimation import CrowdDensityEstimation
 from .speed_estimation import SpeedEstimator
 from .streamlit_inference import inference
 

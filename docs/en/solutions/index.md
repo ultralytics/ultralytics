@@ -32,15 +32,20 @@ Here's our curated list of Ultralytics solutions that can be used to create awes
 
 ## Solutions Usage
 
-!!! Command Info
+!!! tip "Command Info"
 
-    "yolo solutions <name of solution> args"
+    `yolo SOLUTIONS SOLUTION_NAME ARGS`
 
-=== "CLI"
-`bash
-        yolo solutions count show=True  # for object counting
-        yolo solutions source="path/to/video/file.mp4 # use the video file path
-        `
+    - **SOLUTIONS** is a required keyword.
+    - **SOLUTION_NAME** (optional) is one of: `['count', 'heatmap', 'queue', 'speed', 'workout', 'analytics']`.
+    - **ARGS** (optional) are custom `arg=value` pairs, such as `show_in=True`, to override default settings.
+
+    === "CLI"
+    ```bash
+    yolo solutions count show=True  # for object counting
+
+    yolo solutions source="path/to/video/file.mp4"  # specify video file path
+    ```
 
 ## Contribute to Our Solutions
 

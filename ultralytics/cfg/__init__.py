@@ -629,14 +629,6 @@ def handle_yolo_solutions(args: List[str]) -> None:
         Run people counting solution with default settings:
         >>> handle_yolo_solutions(["count"])
 
-        Generate heatmaps with custom source:
-        >>> handle_yolo_solutions(
-        ...     [
-        ...         "heatmap",
-        ...         "source=path/to/video/file.mp4",
-        ...     ]
-        ... )
-
         Run analytics with custom configuration:
         >>> handle_yolo_solutions(["analytics", "conf=0.25", "source=path/to/video/file.mp4"])
 
@@ -701,20 +693,15 @@ def handle_yolo_solutions(args: List[str]) -> None:
     save_dir.mkdir(parents=True, exist_ok=True)  # create the output directory
     vw = cv2.VideoWriter(os.path.join(save_dir, "solution.avi"), cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
-    # Process video frames
-    try:
-        f_n = 0  # frame number, required for analytical graphs
-        while cap.isOpened():
-            success, frame = cap.read()
-            if not success:
-                break
-            # increment frame number and pass it for analytics mode, otherwise just process frame
+    try:    # Process video frames
+        f_n = 0     # frame number, required for analytical graphs
+        while cap.isOpened() and (success := cap.read()[0]):
             frame = process(frame, f_n := f_n + 1) if s_n == "analytics" else process(frame)
-            vw.write(frame)  # write the video frame
+            vw.write(frame)
             if cv2.waitKey(1) & 0xFF == ord("q"):
                 break
     finally:
-        cap.release()  # release the video capture
+        cap.release()
 
 
 def handle_streamlit_inference():

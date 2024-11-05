@@ -34,7 +34,16 @@ Monitoring workouts through pose estimation with [Ultralytics YOLO11](https://gi
 | ![PushUps Counting](https://github.com/ultralytics/docs/releases/download/0/pushups-counting.avif) | ![PullUps Counting](https://github.com/ultralytics/docs/releases/download/0/pullups-counting.avif) |
 |                                          PushUps Counting                                          |                                          PullUps Counting                                          |
 
-!!! example "Workouts Monitoring Example"
+!!! New 🚀 "Ultralytics Solutions CLI"
+
+    === "CLI"
+        ```bash
+        yolo solutions workout show=True
+        yolo solutions workout source="path/to/video/file.mp4" # pass the source of the video file.
+        yolo solutions workout kpts=[6, 8, 10] # monitor pushups exercise
+        ```
+
+!!! example "Workouts Monitoring using YOLO11 with Solutions API Call"
 
     === "Workouts Monitoring"
 

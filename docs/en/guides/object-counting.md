@@ -47,7 +47,7 @@ Object counting with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
 |                                                 Conveyor Belt Packets Counting Using Ultralytics YOLO11                                                 |                                                        Fish Counting in Sea using Ultralytics YOLO11                                                         |
 
 !!! New 🚀 "Ultralytics Solutions CLI"
-    
+
     === "CLI"
         ```bash
         yolo solutions count

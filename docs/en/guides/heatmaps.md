@@ -35,7 +35,7 @@ A heatmap generated with [Ultralytics YOLO11](https://github.com/ultralytics/ult
 |                                                      Ultralytics YOLO11 Transportation Heatmap                                                       |                                                  Ultralytics YOLO11 Retail Heatmap                                                   |
 
 !!! New 🚀 "Ultralytics Solutions CLI"
-    
+
     === "CLI"
         ```bash
         yolo solutions heatmap show=True

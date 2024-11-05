@@ -55,7 +55,7 @@ Object counting with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
         yolo solutions count region=[(20, 400), (1080, 404), (1080, 360), (20, 360)] # configure the region coordinates
         ```
 
-!!! example "Object Counting using YOLO11 Example"
+!!! example "Object Counting using YOLO11 with Solutions API Call"
 
     === "Count in Region"
 

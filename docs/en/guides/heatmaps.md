@@ -43,7 +43,7 @@ A heatmap generated with [Ultralytics YOLO11](https://github.com/ultralytics/ult
         yolo solutions heatmap region=[(20, 400), (1080, 404), (1080, 360), (20, 360)] # heatmap + object counting
         ```
 
-!!! example "Heatmaps using Ultralytics YOLO11 Example"
+!!! example "Heatmaps using YOLO11 with Solutions API Call"
 
     === "Heatmap"
 

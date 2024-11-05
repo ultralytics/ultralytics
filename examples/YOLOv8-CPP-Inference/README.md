@@ -3,8 +3,6 @@
 This example demonstrates how to perform inference using YOLOv8 and YOLOv5 models in C++ with OpenCV's DNN API.
 On the basis of OpenCV DNN, extension is performed using TensorRT to run YOLO models.I will explain with two examples: OpenCV-Onnx and TensorRT.
 
-
-
 ## OpenCV-Onnx Example
 
 ### Usage
@@ -54,19 +52,20 @@ This repository utilizes OpenCV's DNN API to run ONNX exported models of YOLOv5 
 
 The **main** branch version uses Qt as a GUI wrapper. The primary focus here is the **Inference** class file, which demonstrates how to transpose YOLOv8 models to work as YOLOv5 models.
 
-
 ## TensorRT Example
+
 - TensorRT 10.0.1.6
 - OpenCV 4.5.5
 - Cuda 11.8
 
 After installing the above dependencies, please modify the following fields in the CMakeLists.txt file
+
 ```cmake
 set(TensorRT_DIR "E:/lib/Tensorrt/TensorRT-10.0.1.6")
 set(CUDA_DIR "E:/lib/cudalib-11.8/development")
 ```
-to TensorRT and Cuda path,so that add dependencies.
 
+to TensorRT and Cuda path,so that add dependencies.
 
 ### Build
 

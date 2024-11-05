@@ -34,7 +34,7 @@ This guide provides a comprehensive overview of three fundamental types of [data
 - Lastly, pie charts are effective for illustrating proportions among categories and showing parts of a whole.
 
 !!! New 🚀 "Ultralytics Solutions CLI"
-    
+
     === "CLI"
         ```bash
         yolo solutions analytics  # be default line analytics will be called.
@@ -45,7 +45,7 @@ This guide provides a comprehensive overview of three fundamental types of [data
 !!! analytics "Analytics Examples" with Ultralytics Solutions API Call
 
     === "Line Graph"
-        
+
         ```python
         import cv2
 

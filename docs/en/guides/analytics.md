@@ -42,7 +42,7 @@ This guide provides a comprehensive overview of three fundamental types of [data
         yolo solutions analytics analytics_type="bar" # generate bar graphs for processed video
         ```
 
-!!! analytics "Analytics Examples using YOLO11 with Solutions API Call" 
+!!! analytics "Analytics Examples using YOLO11 with Solutions API Call"
 
     === "Line Graph"
 

@@ -34,7 +34,7 @@ Queue management using [Ultralytics YOLO11](https://github.com/ultralytics/ultra
 |                                                               Queue management at airport ticket counter Using Ultralytics YOLO11                                                               |                                                         Queue monitoring in crowd Ultralytics YOLO11                                                          |
 
 !!! New 🚀 "Ultralytics Solutions CLI"
-    
+
     === "CLI"
         ```bash
         yolo solutions queue

@@ -33,6 +33,15 @@ Queue management using [Ultralytics YOLO11](https://github.com/ultralytics/ultra
 | ![Queue management at airport ticket counter using Ultralytics YOLO11](https://github.com/ultralytics/docs/releases/download/0/queue-management-airport-ticket-counter-ultralytics-yolov8.avif) | ![Queue monitoring in crowd using Ultralytics YOLO11](https://github.com/ultralytics/docs/releases/download/0/queue-monitoring-crowd-ultralytics-yolov8.avif) |
 |                                                               Queue management at airport ticket counter Using Ultralytics YOLO11                                                               |                                                         Queue monitoring in crowd Ultralytics YOLO11                                                          |
 
+!!! New 🚀 "Ultralytics Solutions CLI"
+    
+    === "CLI"
+        ```bash
+        yolo solutions queue
+        yolo solutions queue source="path/to/video/file.mp4" # pass the source of the video file.
+        yolo solutions queue region=[(20, 400), (1080, 404), (1080, 360), (20, 360)] # configure the region coordinates
+        ```
+
 !!! example "Queue Management using YOLO11 Example"
 
     === "Queue Manager"

@@ -46,7 +46,7 @@ class BaseSolution:
         """
         Initializes the `BaseSolution` class with configuration settings and the YOLO model for Ultralytics solutions.
 
-            IS_CLI (optional): Enables CLI mode if set.
+        IS_CLI (optional): Enables CLI mode if set.
         """
         check_requirements("shapely>=2.0.0")
         from shapely.geometry import LineString, Point, Polygon

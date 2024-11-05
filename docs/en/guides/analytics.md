@@ -37,7 +37,7 @@ This guide provides a comprehensive overview of three fundamental types of [data
     
     === "CLI"
         ```bash
-        yolo solutions analytics  # be default line analytics will be called.
+        yolo solutions analytics  # by default line analytics will be called.
         yolo solutions analytics source="path/to/video/file.mp4" # pass the source of the video file.
         yolo solutions analytics analytics_type="bar" # generate bar graphs for processed video
         ```

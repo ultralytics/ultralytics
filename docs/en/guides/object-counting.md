@@ -46,15 +46,14 @@ Object counting with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
 | ![Conveyor Belt Packets Counting Using Ultralytics YOLO11](https://github.com/ultralytics/docs/releases/download/0/conveyor-belt-packets-counting.avif) | ![Fish Counting in Sea using Ultralytics YOLO11](https://github.com/ultralytics/docs/releases/download/0/fish-counting-in-sea-using-ultralytics-yolov8.avif) |
 |                                                 Conveyor Belt Packets Counting Using Ultralytics YOLO11                                                 |                                                        Fish Counting in Sea using Ultralytics YOLO11                                                         |
 
-
 !!! example "Object Counting using YOLO11"
-    
+
     === "CLI"
         ```bash
         yolo solutions count show=True
 
         # pass the source
-        yolo solutions count source="path/to/video/file.mp4" 
+        yolo solutions count source="path/to/video/file.mp4"
 
          # configure the region coordinates
         yolo solutions count region=[(20, 400), (1080, 404), (1080, 360), (20, 360)]

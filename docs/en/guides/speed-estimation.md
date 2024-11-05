@@ -39,13 +39,13 @@ keywords: Ultralytics YOLO11, speed estimation, object tracking, computer vision
 |                                                          Speed Estimation on Road using Ultralytics YOLO11                                                           |                                                           Speed Estimation on Bridge using Ultralytics YOLO11                                                            |
 
 !!! example "Speed Estimation using YOLO11"
-    
+
     === "CLI"
         ```bash
         yolo solutions speed show=True
-        
+
         # pass the source
-        yolo solutions speed source="path/to/video/file.mp4" 
+        yolo solutions speed source="path/to/video/file.mp4"
         ```
 
     === "Python"

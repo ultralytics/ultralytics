@@ -693,8 +693,8 @@ def handle_yolo_solutions(args: List[str]) -> None:
     save_dir.mkdir(parents=True, exist_ok=True)  # create the output directory
     vw = cv2.VideoWriter(os.path.join(save_dir, "solution.avi"), cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
-    try:    # Process video frames
-        f_n = 0     # frame number, required for analytical graphs
+    try:  # Process video frames
+        f_n = 0  # frame number, required for analytical graphs
         while cap.isOpened():
             success, frame = cap.read()
             if not success:

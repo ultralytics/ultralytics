@@ -683,11 +683,10 @@ def handle_yolo_solutions(args: List[str]) -> None:
 
     from ultralytics import solutions  # import ultralytics solutions
 
-    process = getattr(
-        getattr(solutions, cls)(IS_CLI=True, **overrides), method
-    )  # get specific function of class for processing i.e, count from ObjectCounter
+    solution = getattr(solutions, cls)(IS_CLI=True, **overrides)  # get solution class i.e ObjectCounter
+    process = getattr(solution, method)  # get specific function of class for processing i.e, count from ObjectCounter
 
-    cap = cv2.VideoCapture(overrides["source"])  # read the video file
+    cap = cv2.VideoCapture(solution.CFG["source"])  # read the video file
 
     # extract width, height and fps of the video file, create save directory and initialize video writer
     import os  # for directory creation
@@ -700,18 +699,18 @@ def handle_yolo_solutions(args: List[str]) -> None:
         w, h = 1920, 1080
     save_dir = increment_path(Path("runs") / "solutions" / "exp", exist_ok=False)
     save_dir.mkdir(parents=True, exist_ok=True)  # create the output directory
-    self.vw = cv2.VideoWriter(os.path.join(save_dir, "solution.avi"), cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
+    vw = cv2.VideoWriter(os.path.join(save_dir, "solution.avi"), cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
     # Process video frames
     try:
         f_n = 0  # frame number, required for analytical graphs
-        while cap.cap.isOpened():
-            success, frame = solution.cap.read()
+        while cap.isOpened():
+            success, frame = cap.read()
             if not success:
                 break
             # increment frame number and pass it for analytics mode, otherwise just process frame
             frame = process(frame, f_n := f_n + 1) if s_n == "analytics" else process(frame)
-            solution.vw.write(frame)  # write the video frame
+            vw.write(frame)  # write the video frame
             if cv2.waitKey(1) & 0xFF == ord("q"):
                 break
     finally:

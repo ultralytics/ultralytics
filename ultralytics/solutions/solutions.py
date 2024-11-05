@@ -67,12 +67,14 @@ class BaseSolution:
         )  # Store line_width for usage
 
         # Load Model and store classes names
-        self.model = YOLO(self.CFG["model"] if self.CFG["model"] else "yolo11n.pt")
+        if self.CFG["model"] is None:
+            self.CFG["model"] = "yolo11n.pt"
+        self.model = YOLO(self.CFG["model"])
         self.names = self.model.names
 
         if IS_CLI:  # for CLI, download the source and init video writer
             if self.CFG["source"] is None:
-                d_s = "solutions_ci_demo.mp4"
+                d_s = "solutions_ci_demo.mp4" if "-pose" not in self.CFG["model"] else "solution_ci_pose_demo.mp4"
                 LOGGER.warning(f"⚠️ WARNING: source not provided. using default source {SOLUTIONS_ASSETS}/{d_s}")
                 from ultralytics.utils.downloads import safe_download
 

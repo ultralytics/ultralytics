@@ -42,6 +42,7 @@ SOLUTION_MAP = {
     "speed": ("SpeedEstimator", "estimate_speed"),
     "workout": ("AIGym", "monitor"),
     "analytics": ("Analytics", "process_data"),
+    "help": None,
 }
 
 # Define valid tasks and modes
@@ -131,7 +132,7 @@ CLI_HELP_MSG = f"""
         yolo settings
         yolo copy-cfg
         yolo cfg
-        yolo solutions-help
+        yolo solutions help
 
     Docs: https://docs.ultralytics.com
     Solutions: https://docs.ultralytics.com/solutions/
@@ -667,13 +668,17 @@ def handle_yolo_solutions(args: List[str]) -> None:
     check_dict_alignment(full_args_dict, overrides)  # dict alignment
 
     # Get solution name
-    if args and args[0] in SOLUTION_MAP:  # Check if the first argument is a solution name without key=value format
-        s_n = args.pop(0)  # Extract the solution name directly
-    else:
-        LOGGER.warning(
-            f"⚠️ No valid solution provided. Using default 'count'. Available: {', '.join(SOLUTION_MAP.keys())}"
-        )
-        s_n = "count"  # Default solution if none provided
+    if args:
+        if args[0]=="help":
+            LOGGER.info(CLI_HELP_MSG),
+            return
+        elif args[0] in SOLUTION_MAP:  # Check if the first argument is a solution name without key=value format
+            s_n = args.pop(0)  # Extract the solution name directly
+        else:
+            LOGGER.warning(
+                f"⚠️ No valid solution provided. Using default 'count'. Available: {', '.join(SOLUTION_MAP.keys())}"
+            )
+            s_n = "count"  # Default solution if none provided
 
     cls, method = SOLUTION_MAP[s_n]  # solution class name, method name and default source
 
@@ -853,7 +858,6 @@ def entrypoint(debug=""):
         "copy-cfg": copy_default_cfg,
         "streamlit-predict": lambda: handle_streamlit_inference(),
         "solutions": lambda: handle_yolo_solutions(args[1:]),
-        "solutions-help": lambda: LOGGER.info(SOLUTIONS_HELP_MSG),
     }
     full_args_dict = {**DEFAULT_CFG_DICT, **{k: None for k in TASKS}, **{k: None for k in MODES}, **special}
 

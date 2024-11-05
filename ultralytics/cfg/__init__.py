@@ -669,8 +669,8 @@ def handle_yolo_solutions(args: List[str]) -> None:
 
     # Get solution name
     if args:
-        if args[0]=="help":
-            LOGGER.info(CLI_HELP_MSG),
+        if args[0] == "help":
+            (LOGGER.info(CLI_HELP_MSG),)
             return
         elif args[0] in SOLUTION_MAP:  # Check if the first argument is a solution name without key=value format
             s_n = args.pop(0)  # Extract the solution name directly

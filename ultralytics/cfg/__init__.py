@@ -36,12 +36,12 @@ from ultralytics.utils import (
 
 # Define valid solutions
 SOLUTION_MAP = {
-    "count": ("ObjectCounter", "count", "solutions_ci_demo.mp4"),
-    "heatmap": ("Heatmap", "generate_heatmap", "solutions_ci_demo.mp4"),
-    "queue": ("QueueManager", "process_queue", "solutions_ci_demo.mp4"),
-    "speed": ("SpeedEstimator", "estimate_speed", "solutions_ci_demo.mp4"),
-    "workout": ("AIGym", "monitor", "solution_ci_pose_demo.mp4"),
-    "analytics": ("Analytics", "process_data", "solutions_ci_demo.mp4"),
+    "count": ("ObjectCounter", "count"),
+    "heatmap": ("Heatmap", "generate_heatmap"),
+    "queue": ("QueueManager", "process_queue"),
+    "speed": ("SpeedEstimator", "estimate_speed"),
+    "workout": ("AIGym", "monitor"),
+    "analytics": ("Analytics", "process_data"),
 }
 
 # Define valid tasks and modes
@@ -650,11 +650,6 @@ def handle_yolo_solutions(args: List[str]) -> None:
         - Processes video frames sequentially and saves output in .avi format
         - If no source is specified, downloads and uses a default sample video
     """
-    import os  # for directory creation
-
-    from ultralytics import solutions  # import ultralytics solutions
-    from ultralytics.utils.files import increment_path  # for output directory path update
-
     full_args_dict = {**DEFAULT_SOL_DICT, **DEFAULT_CFG_DICT}  # arguments dictionary
     overrides = {}
 
@@ -680,38 +675,36 @@ def handle_yolo_solutions(args: List[str]) -> None:
         )
         s_n = "count"  # Default solution if none provided
 
-    cls, method, d_s = SOLUTION_MAP[s_n]  # solution class name, method name and default source
-    solution = getattr(solutions, cls)(**overrides)  # get solution class i.e ObjectCounter
-    process = getattr(solution, method)  # get specific function of class for processing i.e, count from ObjectCounter
+    cls, method = SOLUTION_MAP[s_n]  # solution class name, method name and default source
 
-    source = overrides.pop("source", None)  # extract source from overrides dict
-    if not source:
-        LOGGER.warning(f"⚠️ WARNING: source not provided. using default source {SOLUTIONS_ASSETS}/{d_s}")
-        from ultralytics.utils.downloads import safe_download
+    from ultralytics import solutions  # import ultralytics solutions
+    process = getattr(getattr(solutions, cls)(IS_CLI=True, **overrides), method)  # get specific function of class for processing i.e, count from ObjectCounter
 
-        safe_download(f"{SOLUTIONS_ASSETS}/{d_s}")  # download source from ultralytics assets
-        source = d_s  # set default source
-
-    cap = cv2.VideoCapture(source)  # read the video file
+    cap = cv2.VideoCapture(overrides["source"])  # read the video file
 
     # extract width, height and fps of the video file, create save directory and initialize video writer
-    w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
+    import os  # for directory creation
+    from pathlib import Path
+    from ultralytics.utils.files import increment_path  # for output directory path update
+    w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH,
+                                                cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
     if s_n == "analytics":  # analytical graphs follow fixed shape for output i.e w=1920, h=1080
         w, h = 1920, 1080
-    save_dir = increment_path(Path("runs") / "solutions" / f"{s_n}", exist_ok=False)
+    save_dir = increment_path(Path("runs") / "solutions" / "exp", exist_ok=False)
     save_dir.mkdir(parents=True, exist_ok=True)  # create the output directory
-    vw = cv2.VideoWriter(os.path.join(save_dir, "solution.avi"), cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
+    self.vw = cv2.VideoWriter(os.path.join(save_dir, "solution.avi"), cv2.VideoWriter_fourcc(*"mp4v"),
+                              fps, (w, h))
 
     # Process video frames
     try:
         f_n = 0  # frame number, required for analytical graphs
-        while cap.isOpened():
-            success, frame = cap.read()
+        while cap.cap.isOpened():
+            success, frame = solution.cap.read()
             if not success:
                 break
             # increment frame number and pass it for analytics mode, otherwise just process frame
             frame = process(frame, f_n := f_n + 1) if s_n == "analytics" else process(frame)
-            vw.write(frame)  # write the video frame
+            solution.vw.write(frame)  # write the video frame
             if cv2.waitKey(1) & 0xFF == ord("q"):
                 break
     finally:

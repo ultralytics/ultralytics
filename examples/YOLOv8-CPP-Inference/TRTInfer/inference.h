@@ -11,8 +11,8 @@
 #include <opencv2/imgproc.hpp>
 #include <opencv2/opencv.hpp>
 #include <opencv2/dnn.hpp>
-
-struct Detection
+#include "config.h"
+struct CPP_API Detection
 {
     int class_id{0};
     std::string className{};
@@ -21,7 +21,7 @@ struct Detection
     cv::Rect box{};
 };
 
-class Inference
+class CPP_API Inference
 {
 public:
     Inference(const std::string &onnxModelPath, const cv::Size &modelInputShape = {640, 640}, const std::string &classesTxtFile = "", const bool &runWithCuda = true);
@@ -40,9 +40,9 @@ private:
 
     cv::Size2f modelShape{};
 
-    float modelConfidenceThreshold {0.25};
-    float modelScoreThreshold      {0.45};
-    float modelNMSThreshold        {0.50};
+    float modelConfidenceThreshold{0.25};
+    float modelScoreThreshold{0.45};
+    float modelNMSThreshold{0.50};
 
     bool letterBoxForSquare = true;
 

@@ -37,7 +37,7 @@ Queue management using [Ultralytics YOLO11](https://github.com/ultralytics/ultra
     
     === "CLI"
         ```bash
-        yolo solutions queue
+        yolo solutions queue show=True
         yolo solutions queue source="path/to/video/file.mp4" # pass the source of the video file.
         yolo solutions queue region=[(20, 400), (1080, 404), (1080, 360), (20, 360)] # configure the region coordinates
         ```

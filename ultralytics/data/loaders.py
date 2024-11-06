@@ -601,7 +601,7 @@ def autocast_list(source):
             if im is None:
                 raise FileNotFoundError(f"Image not found or unable to read {im}")
             files.append(im)
-        elif isinstance(im, np.ndarray):  # np Image
+        elif isinstance(im, (Image.Image, np.ndarray)):  # np Image
             files.append(im)
         else:
             raise TypeError(

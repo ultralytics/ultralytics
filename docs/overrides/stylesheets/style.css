@@ -273,5 +273,5 @@ div.highlight {
 
 /* Target all images except the first one on a page */
 img:not(:first-of-type) {
-    loading: lazy;
+  loading: lazy;
 }

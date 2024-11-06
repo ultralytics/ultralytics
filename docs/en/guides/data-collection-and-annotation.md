@@ -1,183 +1,352 @@
 ---
 comments: true
-description: Data collection and annotation are vital steps in any computer vision project. Explore the tools, techniques, and best practices for collecting and annotating data.
-keywords: What is Data Annotation, Data Annotation Tools, Annotating Data, Avoiding Bias in Data Collection, Ethical Data Collection, Annotation Strategies
+description: Learn how to deploy Ultralytics YOLO11 on NVIDIA Jetson devices using TensorRT and DeepStream SDK. Explore performance benchmarks and maximize AI capabilities.
+keywords: Ultralytics, YOLO11, NVIDIA Jetson, JetPack, AI deployment, embedded systems, deep learning, TensorRT, DeepStream SDK, computer vision
 ---
 
-# Data Collection and Annotation Strategies for Computer Vision
-
-## Introduction
-
-The key to success in any [computer vision project](./steps-of-a-cv-project.md) starts with effective data collection and annotation strategies. The quality of the data directly impacts model performance, so it's important to understand the best practices related to data collection and data annotation.
-
-Every consideration regarding the data should closely align with [your project's goals](./defining-project-goals.md). Changes in your annotation strategies could shift the project's focus or effectiveness and vice versa. With this in mind, let's take a closer look at the best ways to approach data collection and annotation.
-
-## Setting Up Classes and Collecting Data
-
-Collecting images and video for a computer vision project involves defining the number of classes, sourcing data, and considering ethical implications. Before you start gathering your data, you need to be clear about:
-
-### Choosing the Right Classes for Your Project
-
-One of the first questions when starting a computer vision project is how many classes to include. You need to determine the class membership, which is involves the different categories or labels that you want your model to recognize and differentiate. The number of classes should be determined by the specific goals of your project.
-
-For example, if you want to monitor traffic, your classes might include "car," "truck," "bus," "motorcycle," and "bicycle." On the other hand, for tracking items in a store, your classes could be "fruits," "vegetables," "beverages," and "snacks." Defining classes based on your project goals helps keep your dataset relevant and focused.
-
-When you define your classes, another important distinction to make is whether to choose coarse or fine class counts. 'Count' refers to the number of distinct classes you are interested in. This decision influences the granularity of your data and the complexity of your model. Here are the considerations for each approach:
-
-- **Coarse Class-Count**: These are broader, more inclusive categories, such as "vehicle" and "non-vehicle." They simplify annotation and require fewer computational resources but provide less detailed information, potentially limiting the model's effectiveness in complex scenarios.
-- **Fine Class-Count**: More categories with finer distinctions, such as "sedan," "SUV," "pickup truck," and "motorcycle." They capture more detailed information, improving model accuracy and performance. However, they are more time-consuming and labor-intensive to annotate and require more computational resources.
-
-Something to note is that starting with more specific classes can be very helpful, especially in complex projects where details are important. More specific classes lets you collect more detailed data, and gain deeper insights and clearer distinctions between categories. Not only does it improve the accuracy of the model, but it also makes it easier to adjust the model later if needed, saving both time and resources.
-
-### Sources of Data
-
-You can use public datasets or gather your own custom data. Public datasets like those on [Kaggle](https://www.kaggle.com/datasets) and [Google Dataset Search Engine](https://datasetsearch.research.google.com/) offer well-annotated, standardized data, making them great starting points for training and validating models.
-
-Custom data collection, on the other hand, allows you to customize your dataset to your specific needs. You might capture images and videos with cameras or drones, scrape the web for images, or use existing internal data from your organization. Custom data gives you more control over its quality and relevance. Combining both public and custom data sources helps create a diverse and comprehensive dataset.
-
-### Avoiding [Bias in](https://www.ultralytics.com/glossary/bias-in-ai) Data Collection
-
-Bias occurs when certain groups or scenarios are underrepresented or overrepresented in your dataset. It leads to a model that performs well on some data but poorly on others. It's crucial to avoid bias so that your computer vision model can perform well in a variety of scenarios.
-
-Here is how you can avoid bias while collecting data:
-
-- **Diverse Sources**: Collect data from many sources to capture different perspectives and scenarios.
-- **Balanced Representation**: Include balanced representation from all relevant groups. For example, consider different ages, genders, and ethnicities.
-- **Continuous Monitoring**: Regularly review and update your dataset to identify and address any emerging biases.
-- **Bias Mitigation Techniques**: Use methods like oversampling underrepresented classes, [data augmentation](https://www.ultralytics.com/glossary/data-augmentation), and fairness-aware algorithms.
-
-Following these practices helps create a more robust and fair model that can generalize well in real-world applications.
-
-## What is Data Annotation?
-
-Data annotation is the process of labeling data to make it usable for training [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) models. In computer vision, this means labeling images or videos with the information that a model needs to learn from. Without properly annotated data, models cannot accurately learn the relationships between inputs and outputs.
-
-### Types of Data Annotation
-
-Depending on the specific requirements of a [computer vision task](../tasks/index.md), there are different types of data annotation. Here are some examples:
-
-- **Bounding Boxes**: Rectangular boxes drawn around objects in an image, used primarily for object detection tasks. These boxes are defined by their top-left and bottom-right coordinates.
-- **Polygons**: Detailed outlines for objects, allowing for more precise annotation than bounding boxes. Polygons are used in tasks like [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation), where the shape of the object is important.
-- **Masks**: Binary masks where each pixel is either part of an object or the background. Masks are used in semantic segmentation tasks to provide pixel-level detail.
-- **Keypoints**: Specific points marked within an image to identify locations of interest. Keypoints are used in tasks like pose estimation and facial landmark detection.
+# Ultralytics YOLO11 on NVIDIA Jetson using DeepStream SDK and TensorRT
 
 <p align="center">
-  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/types-of-data-annotation.avif" alt="Types of Data Annotation">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/wWmXKIteRLA"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to Run Multiple Streams with DeepStream SDK on Jetson Nano using Ultralytics YOLO11
 </p>
 
-### Common Annotation Formats
+This comprehensive guide provides a detailed walkthrough for deploying Ultralytics YOLO11 on [NVIDIA Jetson](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/) devices using DeepStream SDK and TensorRT. Here we use TensorRT to maximize the inference performance on the Jetson platform.
 
-After selecting a type of annotation, it's important to choose the appropriate format for storing and sharing annotations.
+<img width="1024" src="https://github.com/ultralytics/docs/releases/download/0/deepstream-nvidia-jetson.avif" alt="DeepStream on NVIDIA Jetson">
 
-Commonly used formats include [COCO](../datasets/detect/coco.md), which supports various annotation types like [object detection](https://www.ultralytics.com/glossary/object-detection), keypoint detection, stuff segmentation, [panoptic segmentation](https://www.ultralytics.com/glossary/panoptic-segmentation), and image captioning, stored in JSON. [Pascal VOC](../datasets/detect/voc.md) uses XML files and is popular for object detection tasks. YOLO, on the other hand, creates a .txt file for each image, containing annotations like object class, coordinates, height, and width, making it suitable for object detection.
+!!! note
 
-### Techniques of Annotation
+    This guide has been tested with both [Seeed Studio reComputer J4012](https://www.seeedstudio.com/reComputer-J4012-p-5586.html) which is based on NVIDIA Jetson Orin NX 16GB running JetPack release of [JP5.1.3](https://developer.nvidia.com/embedded/jetpack-sdk-513) and [Seeed Studio reComputer J1020 v2](https://www.seeedstudio.com/reComputer-J1020-v2-p-5498.html) which is based on NVIDIA Jetson Nano 4GB running JetPack release of [JP4.6.4](https://developer.nvidia.com/jetpack-sdk-464). It is expected to work across all the NVIDIA Jetson hardware lineup including latest and legacy.
 
-Now, assuming you've chosen a type of annotation and format, it's time to establish clear and objective labeling rules. These rules are like a roadmap for consistency and [accuracy](https://www.ultralytics.com/glossary/accuracy) throughout the annotation process. Key aspects of these rules include:
+## What is NVIDIA DeepStream?
 
-- **Clarity and Detail**: Make sure your instructions are clear. Use examples and illustrations to understand what's expected.
-- **Consistency**: Keep your annotations uniform. Set standard criteria for annotating different types of data, so all annotations follow the same rules.
-- **Reducing Bias**: Stay neutral. Train yourself to be objective and minimize personal biases to ensure fair annotations.
-- **Efficiency**: Work smarter, not harder. Use tools and workflows that automate repetitive tasks, making the annotation process faster and more efficient.
+[NVIDIA's DeepStream SDK](https://developer.nvidia.com/deepstream-sdk) is a complete streaming analytics toolkit based on GStreamer for AI-based multi-sensor processing, video, audio, and image understanding. It's ideal for vision AI developers, software partners, startups, and OEMs building IVA (Intelligent Video Analytics) apps and services. You can now create stream-processing pipelines that incorporate [neural networks](https://www.ultralytics.com/glossary/neural-network-nn) and other complex processing tasks like tracking, video encoding/decoding, and video rendering. These pipelines enable real-time analytics on video, image, and sensor data. DeepStream's multi-platform support gives you a faster, easier way to develop vision AI applications and services on-premise, at the edge, and in the cloud.
 
-Regularly reviewing and updating your labeling rules will help keep your annotations accurate, consistent, and aligned with your project goals.
+## Prerequisites
 
-### Popular Annotation Tools
+Before you start to follow this guide:
 
-Let's say you are ready to annotate now. There are several open-source tools available to help streamline the data annotation process. Here are some useful open annotation tools:
+- Visit our documentation, [Quick Start Guide: NVIDIA Jetson with Ultralytics YOLO11](nvidia-jetson.md) to set up your NVIDIA Jetson device with Ultralytics YOLO11
+- Install [DeepStream SDK](https://developer.nvidia.com/deepstream-getting-started) according to the JetPack version
 
-- **[Label Studio](https://github.com/HumanSignal/label-studio)**: A flexible tool that supports a wide range of annotation tasks and includes features for managing projects and quality control.
-- **[CVAT](https://github.com/cvat-ai/cvat)**: A powerful tool that supports various annotation formats and customizable workflows, making it suitable for complex projects.
-- **[Labelme](https://github.com/wkentaro/labelme)**: A simple and easy-to-use tool that allows for quick annotation of images with polygons, making it ideal for straightforward tasks.
+    - For JetPack 4.6.4, install [DeepStream 6.0.1](https://docs.nvidia.com/metropolis/deepstream/6.0.1/dev-guide/text/DS_Quickstart.html)
+    - For JetPack 5.1.3, install [DeepStream 6.3](https://docs.nvidia.com/metropolis/deepstream/6.3/dev-guide/text/DS_Quickstart.html)
 
-<p align="center">
-  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/labelme-instance-segmentation-annotation.avif" alt="LabelMe Overview" loading="lazy">
-</p>
+!!! tip
 
-These open-source tools are budget-friendly and provide a range of features to meet different annotation needs.
+    In this guide we have used the Debian package method of installing DeepStream SDK to the Jetson device. You can also visit the [DeepStream SDK on Jetson (Archived)](https://developer.nvidia.com/embedded/deepstream-on-jetson-downloads-archived) to access legacy versions of DeepStream.
 
-### Some More Things to Consider Before Annotating Data
+## DeepStream Configuration for YOLO11
 
-Before you dive into annotating your data, there are a few more things to keep in mind. You should be aware of accuracy, [precision](https://www.ultralytics.com/glossary/precision), outliers, and quality control to avoid labeling your data in a counterproductive manner.
+Here we are using [marcoslucianops/DeepStream-Yolo](https://github.com/marcoslucianops/DeepStream-Yolo) GitHub repository which includes NVIDIA DeepStream SDK support for YOLO models. We appreciate the efforts of marcoslucianops for his contributions!
 
-#### Understanding Accuracy and Precision
+1.  Install dependencies
 
-It's important to understand the difference between accuracy and precision and how it relates to annotation. Accuracy refers to how close the annotated data is to the true values. It helps us measure how closely the labels reflect real-world scenarios. Precision indicates the consistency of annotations. It checks if you are giving the same label to the same object or feature throughout the dataset. High accuracy and precision lead to better-trained models by reducing noise and improving the model's ability to generalize from the [training data](https://www.ultralytics.com/glossary/training-data).
+    ```bash
+    pip install cmake
+    pip install onnxsim
+    ```
 
-<p align="center">
-  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/example-of-precision.avif" alt="Example of Precision" loading="lazy">
-</p>
+2.  Clone the following repository
 
-#### Identifying Outliers
+    ```bash
+    git clone https://github.com/marcoslucianops/DeepStream-Yolo
+    cd DeepStream-Yolo
+    ```
 
-Outliers are data points that deviate quite a bit from other observations in the dataset. With respect to annotations, an outlier could be an incorrectly labeled image or an annotation that doesn't fit with the rest of the dataset. Outliers are concerning because they can distort the model's learning process, leading to inaccurate predictions and poor generalization.
+3.  Download Ultralytics YOLO11 detection model (.pt) of your choice from [YOLO11 releases](https://github.com/ultralytics/assets/releases). Here we use [yolov8s.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8s.pt).
 
-You can use various methods to detect and correct outliers:
+    ```bash
+    wget https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8s.pt
+    ```
 
-- **Statistical Techniques**: To detect outliers in numerical features like pixel values, [bounding box](https://www.ultralytics.com/glossary/bounding-box) coordinates, or object sizes, you can use methods such as box plots, histograms, or z-scores.
-- **Visual Techniques**: To spot anomalies in categorical features like object classes, colors, or shapes, use visual methods like plotting images, labels, or heat maps.
-- **Algorithmic Methods**: Use tools like clustering (e.g., K-means clustering, DBSCAN) and [anomaly detection](https://www.ultralytics.com/glossary/anomaly-detection) algorithms to identify outliers based on data distribution patterns.
+    !!! note
 
-#### Quality Control of Annotated Data
+        You can also use a [custom trained YOLO11 model](https://docs.ultralytics.com/modes/train/).
 
-Just like other technical projects, quality control is a must for annotated data. It is a good practice to regularly check annotations to make sure they are accurate and consistent. This can be done in a few different ways:
+4.  Convert model to ONNX
 
-- Reviewing samples of annotated data
-- Using automated tools to spot common errors
-- Having another person double-check the annotations
+    ```bash
+    python3 utils/export_yoloV8.py -w yolov8s.pt
+    ```
 
-If you are working with multiple people, consistency between different annotators is important. Good inter-annotator agreement means that the guidelines are clear and everyone is following them the same way. It keeps everyone on the same page and the annotations consistent.
+    !!! note "Pass the below arguments to the above command"
 
-While reviewing, if you find errors, correct them and update the guidelines to avoid future mistakes. Provide feedback to annotators and offer regular training to help reduce errors. Having a strong process for handling errors keeps your dataset accurate and reliable.
+        For DeepStream 6.0.1, use opset 12 or lower. The default opset is 16.
 
-## Share Your Thoughts with the Community
+        ```bash
+        --opset 12
+        ```
 
-Bouncing your ideas and queries off other [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) enthusiasts can help accelerate your projects. Here are some great ways to learn, troubleshoot, and network:
+        To change the inference size (default: 640)
 
-### Where to Find Help and Support
+        ```bash
+        -s SIZE
+        --size SIZE
+        -s HEIGHT WIDTH
+        --size HEIGHT WIDTH
+        ```
 
-- **GitHub Issues:** Visit the YOLO11 GitHub repository and use the [Issues tab](https://github.com/ultralytics/ultralytics/issues) to raise questions, report bugs, and suggest features. The community and maintainers are there to help with any issues you face.
-- **Ultralytics Discord Server:** Join the [Ultralytics Discord server](https://discord.com/invite/ultralytics) to connect with other users and developers, get support, share knowledge, and brainstorm ideas.
+        Example for 1280:
 
-### Official Documentation
+        ```bash
+        -s 1280
+        or
+        -s 1280 1280
+        ```
 
-- **Ultralytics YOLO11 Documentation:** Refer to the [official YOLO11 documentation](./index.md) for thorough guides and valuable insights on numerous computer vision tasks and projects.
+        To simplify the ONNX model (DeepStream >= 6.0)
 
-## Conclusion
+        ```bash
+        --simplify
+        ```
 
-By following the best practices for collecting and annotating data, avoiding bias, and using the right tools and techniques, you can significantly improve your model's performance. Engaging with the community and using available resources will keep you informed and help you troubleshoot issues effectively. Remember, quality data is the foundation of a successful project, and the right strategies will help you build robust and reliable models.
+        To use dynamic batch-size (DeepStream >= 6.1)
+
+        ```bash
+        --dynamic
+        ```
+
+        To use static batch-size (example for batch-size = 4)
+
+        ```bash
+        --batch 4
+        ```
+
+5.  Set the CUDA version according to the JetPack version installed
+
+    For JetPack 4.6.4:
+
+    ```bash
+    export CUDA_VER=10.2
+    ```
+
+    For JetPack 5.1.3:
+
+    ```bash
+    export CUDA_VER=11.4
+    ```
+
+6.  Compile the library
+
+    ```bash
+    make -C nvdsinfer_custom_impl_Yolo clean && make -C nvdsinfer_custom_impl_Yolo
+    ```
+
+7.  Edit the `config_infer_primary_yoloV8.txt` file according to your model (for YOLOv8s with 80 classes)
+
+    ```bash
+    [property]
+    ...
+    onnx-file=yolov8s.onnx
+    ...
+    num-detected-classes=80
+    ...
+    ```
+
+8.  Edit the `deepstream_app_config` file
+
+    ```bash
+    ...
+    [primary-gie]
+    ...
+    config-file=config_infer_primary_yoloV8.txt
+    ```
+
+9.  You can also change the video source in `deepstream_app_config` file. Here a default video file is loaded
+
+    ```bash
+    ...
+    [source0]
+    ...
+    uri=file:///opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h264.mp4
+    ```
+
+### Run Inference
+
+```bash
+deepstream-app -c deepstream_app_config.txt
+```
+
+!!! note
+
+    It will take a long time to generate the TensorRT engine file before starting the inference. So please be patient.
+
+<div align=center><img width=1000 src="https://github.com/ultralytics/docs/releases/download/0/yolov8-with-deepstream.avif" alt="YOLO11 with deepstream"></div>
+
+!!! tip
+
+    If you want to convert the model to FP16 [precision](https://www.ultralytics.com/glossary/precision), simply set `model-engine-file=model_b1_gpu0_fp16.engine` and `network-mode=2` inside `config_infer_primary_yoloV8.txt`
+
+## INT8 Calibration
+
+If you want to use INT8 precision for inference, you need to follow the steps below
+
+1.  Set `OPENCV` environment variable
+
+    ```bash
+    export OPENCV=1
+    ```
+
+2.  Compile the library
+
+    ```bash
+    make -C nvdsinfer_custom_impl_Yolo clean && make -C nvdsinfer_custom_impl_Yolo
+    ```
+
+3.  For COCO dataset, download the [val2017](http://images.cocodataset.org/zips/val2017.zip), extract, and move to `DeepStream-Yolo` folder
+
+4.  Make a new directory for calibration images
+
+    ```bash
+    mkdir calibration
+    ```
+
+5.  Run the following to select 1000 random images from COCO dataset to run calibration
+
+    ```bash
+    for jpg in $(ls -1 val2017/*.jpg | sort -R | head -1000); do \
+        cp ${jpg} calibration/; \
+    done
+    ```
+
+    !!! note
+
+        NVIDIA recommends at least 500 images to get a good [accuracy](https://www.ultralytics.com/glossary/accuracy). On this example, 1000 images are chosen to get better accuracy (more images = more accuracy). You can set it from **head -1000**. For example, for 2000 images, **head -2000**. This process can take a long time.
+
+6.  Create the `calibration.txt` file with all selected images
+
+    ```bash
+    realpath calibration/*jpg > calibration.txt
+    ```
+
+7.  Set environment variables
+
+    ```bash
+    export INT8_CALIB_IMG_PATH=calibration.txt
+    export INT8_CALIB_BATCH_SIZE=1
+    ```
+
+    !!! note
+
+        Higher INT8_CALIB_BATCH_SIZE values will result in more accuracy and faster calibration speed. Set it according to you GPU memory.
+
+8.  Update the `config_infer_primary_yoloV8.txt` file
+
+    From
+
+    ```bash
+    ...
+    model-engine-file=model_b1_gpu0_fp32.engine
+    #int8-calib-file=calib.table
+    ...
+    network-mode=0
+    ...
+    ```
+
+    To
+
+    ```bash
+    ...
+    model-engine-file=model_b1_gpu0_int8.engine
+    int8-calib-file=calib.table
+    ...
+    network-mode=1
+    ...
+    ```
+
+### Run Inference
+
+```bash
+deepstream-app -c deepstream_app_config.txt
+```
+
+## MultiStream Setup
+
+To set up multiple streams under a single deepstream application, you can do the following changes to the `deepstream_app_config.txt` file
+
+1. Change the rows and columns to build a grid display according to the number of streams you want to have. For example, for 4 streams, we can add 2 rows and 2 columns.
+
+    ```bash
+    [tiled-display]
+    rows=2
+    columns=2
+    ```
+
+2. Set `num-sources=4` and add `uri` of all the 4 streams
+
+    ```bash
+    [source0]
+    enable=1
+    type=3
+    uri=<path_to_video>
+    uri=<path_to_video>
+    uri=<path_to_video>
+    uri=<path_to_video>
+    num-sources=4
+    ```
+
+### Run Inference
+
+```bash
+deepstream-app -c deepstream_app_config.txt
+```
+
+<div align=center><img width=1000 src="https://github.com/ultralytics/docs/releases/download/0/multistream-setup.avif" alt="Multistream setup"></div>
+
+## Benchmark Results
+
+The following table summarizes how YOLOv8s models perform at different TensorRT precision levels with an input size of 640x640 on NVIDIA Jetson Orin NX 16GB.
+
+| Model Name | Precision | Inference Time (ms/im) | FPS |
+| ---------- | --------- | ---------------------- | --- |
+| YOLOv8s    | FP32      | 15.63                  | 64  |
+|            | FP16      | 7.94                   | 126 |
+|            | INT8      | 5.53                   | 181 |
+
+### Acknowledgements
+
+This guide was initially created by our friends at Seeed Studio, Lakshantha and Elaine.
 
 ## FAQ
 
-### What is the best way to avoid bias in data collection for computer vision projects?
+### How do I set up Ultralytics YOLO11 on an NVIDIA Jetson device?
 
-Avoiding bias in data collection ensures that your computer vision model performs well across various scenarios. To minimize bias, consider collecting data from diverse sources to capture different perspectives and scenarios. Ensure balanced representation among all relevant groups, such as different ages, genders, and ethnicities. Regularly review and update your dataset to identify and address any emerging biases. Techniques such as oversampling underrepresented classes, data augmentation, and fairness-aware algorithms can also help mitigate bias. By employing these strategies, you maintain a robust and fair dataset that enhances your model's generalization capability.
+To set up Ultralytics YOLO11 on an [NVIDIA Jetson](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/) device, you first need to install the [DeepStream SDK](https://developer.nvidia.com/deepstream-getting-started) compatible with your JetPack version. Follow the step-by-step guide in our [Quick Start Guide](nvidia-jetson.md) to configure your NVIDIA Jetson for YOLO11 deployment.
 
-### How can I ensure high consistency and accuracy in data annotation?
+### What is the benefit of using TensorRT with YOLO11 on NVIDIA Jetson?
 
-Ensuring high consistency and accuracy in data annotation involves establishing clear and objective labeling guidelines. Your instructions should be detailed, with examples and illustrations to clarify expectations. Consistency is achieved by setting standard criteria for annotating various data types, ensuring all annotations follow the same rules. To reduce personal biases, train annotators to stay neutral and objective. Regular reviews and updates of labeling rules help maintain accuracy and alignment with project goals. Using automated tools to check for consistency and getting feedback from other annotators also contribute to maintaining high-quality annotations.
+Using TensorRT with YOLO11 optimizes the model for inference, significantly reducing latency and improving throughput on NVIDIA Jetson devices. TensorRT provides high-performance, low-latency [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) inference through layer fusion, precision calibration, and kernel auto-tuning. This leads to faster and more efficient execution, particularly useful for real-time applications like video analytics and autonomous machines.
 
-### How many images do I need for training Ultralytics YOLO models?
+### Can I run Ultralytics YOLO11 with DeepStream SDK across different NVIDIA Jetson hardware?
 
-For effective [transfer learning](https://www.ultralytics.com/glossary/transfer-learning) and object detection with Ultralytics YOLO models, start with a minimum of a few hundred annotated objects per class. If training for just one class, begin with at least 100 annotated images and train for approximately 100 [epochs](https://www.ultralytics.com/glossary/epoch). More complex tasks might require thousands of images per class to achieve high reliability and performance. Quality annotations are crucial, so ensure your data collection and annotation processes are rigorous and aligned with your project's specific goals. Explore detailed training strategies in the [YOLO11 training guide](../modes/train.md).
+Yes, the guide for deploying Ultralytics YOLO11 with the DeepStream SDK and TensorRT is compatible across the entire NVIDIA Jetson lineup. This includes devices like the Jetson Orin NX 16GB with [JetPack 5.1.3](https://developer.nvidia.com/embedded/jetpack-sdk-513) and the Jetson Nano 4GB with [JetPack 4.6.4](https://developer.nvidia.com/jetpack-sdk-464). Refer to the section [DeepStream Configuration for YOLO11](#deepstream-configuration-for-yolo11) for detailed steps.
 
-### What are some popular tools for data annotation?
+### How can I convert a YOLO11 model to ONNX for DeepStream?
 
-Several popular open-source tools can streamline the data annotation process:
+To convert a YOLO11 model to ONNX format for deployment with DeepStream, use the `utils/export_yoloV8.py` script from the [DeepStream-Yolo](https://github.com/marcoslucianops/DeepStream-Yolo) repository.
 
-- **[Label Studio](https://github.com/HumanSignal/label-studio)**: A flexible tool supporting various annotation tasks, project management, and quality control features.
-- **[CVAT](https://www.cvat.ai/)**: Offers multiple annotation formats and customizable workflows, making it suitable for complex projects.
-- **[Labelme](https://github.com/wkentaro/labelme)**: Ideal for quick and straightforward image annotation with polygons.
+Here's an example command:
 
-These tools can help enhance the efficiency and accuracy of your annotation workflows. For extensive feature lists and guides, refer to our [data annotation tools documentation](../datasets/index.md).
+```bash
+python3 utils/export_yoloV8.py -w yolov8s.pt --opset 12 --simplify
+```
 
-### What types of data annotation are commonly used in computer vision?
+For more details on model conversion, check out our [model export section](../modes/export.md).
 
-Different types of data annotation cater to various computer vision tasks:
+### What are the performance benchmarks for YOLO on NVIDIA Jetson Orin NX?
 
-- **Bounding Boxes**: Used primarily for object detection, these are rectangular boxes around objects in an image.
-- **Polygons**: Provide more precise object outlines suitable for instance segmentation tasks.
-- **Masks**: Offer pixel-level detail, used in [semantic segmentation](https://www.ultralytics.com/glossary/semantic-segmentation) to differentiate objects from the background.
-- **Keypoints**: Identify specific points of interest within an image, useful for tasks like pose estimation and facial landmark detection.
+The performance of YOLO11 models on NVIDIA Jetson Orin NX 16GB varies based on TensorRT precision levels. For example, YOLOv8s models achieve:
 
-Selecting the appropriate annotation type depends on your project's requirements. Learn more about how to implement these annotations and their formats in our [data annotation guide](#what-is-data-annotation).
+- **FP32 Precision**: 15.63 ms/im, 64 FPS
+- **FP16 Precision**: 7.94 ms/im, 126 FPS
+- **INT8 Precision**: 5.53 ms/im, 181 FPS
+
+These benchmarks underscore the efficiency and capability of using TensorRT-optimized YOLO11 models on NVIDIA Jetson hardware. For further details, see our [Benchmark Results](#benchmark-results) section.

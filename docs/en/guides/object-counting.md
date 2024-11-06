@@ -48,6 +48,18 @@ Object counting with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
 
 !!! example "Object Counting using YOLO11 Example"
 
+    === "CLI"
+        ```bash
+        # by default line analytics will be called.
+        yolo solutions analytics show=True  
+        
+        # pass the source
+        yolo solutions analytics source="path/to/video/file.mp4"
+        
+        # generate bar graphs for processed video
+        yolo solutions analytics analytics_type="bar" 
+        ```
+        
     === "Count in Region"
 
         ```python

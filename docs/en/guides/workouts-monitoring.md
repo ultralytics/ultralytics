@@ -36,6 +36,18 @@ Monitoring workouts through pose estimation with [Ultralytics YOLO11](https://gi
 
 !!! example "Workouts Monitoring Example"
 
+    === "CLI"
+
+        ```bash
+        yolo solutions workout show=True
+
+        # pass the source
+        yolo solutions workout source="path/to/video/file.mp4"
+
+        # use keypoints for pushups
+        yolo solutions queue kpts=[6, 8, 10]
+        ```
+        
     === "Workouts Monitoring"
 
         ```python

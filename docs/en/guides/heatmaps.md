@@ -34,20 +34,10 @@ A heatmap generated with [Ultralytics YOLO11](https://github.com/ultralytics/ult
 | ![Ultralytics YOLO11 Transportation Heatmap](https://github.com/ultralytics/docs/releases/download/0/ultralytics-yolov8-transportation-heatmap.avif) | ![Ultralytics YOLO11 Retail Heatmap](https://github.com/ultralytics/docs/releases/download/0/ultralytics-yolov8-retail-heatmap.avif) |
 |                                                      Ultralytics YOLO11 Transportation Heatmap                                                       |                                                  Ultralytics YOLO11 Retail Heatmap                                                   |
 
-!!! example "Heatmaps using YOLO11"
+!!! example "Heatmaps using Ultralytics YOLO11 Example"
 
-    === "CLI"
-        ```bash
-        yolo solutions heatmap show=True
+    === "Heatmap"
 
-        # pass the source
-        yolo solutions heatmap source="path/to/video/file.mp4"
-
-        # heatmap + object counting
-        yolo solutions heatmap region=[(20, 400), (1080, 404), (1080, 360), (20, 360)]
-        ```
-
-    === "Python"
         ```python
         import cv2
 
@@ -65,6 +55,154 @@ A heatmap generated with [Ultralytics YOLO11](https://github.com/ultralytics/ult
             show=True,
             model="yolo11n.pt",
             colormap=cv2.COLORMAP_PARULA,
+        )
+
+        while cap.isOpened():
+            success, im0 = cap.read()
+            if not success:
+                print("Video frame is empty or video processing has been successfully completed.")
+                break
+            im0 = heatmap.generate_heatmap(im0)
+            video_writer.write(im0)
+
+        cap.release()
+        video_writer.release()
+        cv2.destroyAllWindows()
+        ```
+
+    === "Line Counting"
+
+        ```python
+        import cv2
+
+        from ultralytics import solutions
+
+        cap = cv2.VideoCapture("Path/to/video/file.mp4")
+        assert cap.isOpened(), "Error reading video file"
+        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
+
+        # Video writer
+        video_writer = cv2.VideoWriter("heatmap_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
+
+        # line for object counting
+        line_points = [(20, 400), (1080, 404)]
+
+        # Init heatmap
+        heatmap = solutions.Heatmap(
+            show=True,
+            model="yolo11n.pt",
+            colormap=cv2.COLORMAP_PARULA,
+            region=line_points,
+        )
+
+        while cap.isOpened():
+            success, im0 = cap.read()
+            if not success:
+                print("Video frame is empty or video processing has been successfully completed.")
+                break
+            im0 = heatmap.generate_heatmap(im0)
+            video_writer.write(im0)
+
+        cap.release()
+        video_writer.release()
+        cv2.destroyAllWindows()
+        ```
+
+    === "Polygon Counting"
+
+        ```python
+        import cv2
+
+        from ultralytics import solutions
+
+        cap = cv2.VideoCapture("Path/to/video/file.mp4")
+        assert cap.isOpened(), "Error reading video file"
+        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
+
+        # Video writer
+        video_writer = cv2.VideoWriter("heatmap_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
+
+        # Define polygon points
+        region_points = [(20, 400), (1080, 404), (1080, 360), (20, 360), (20, 400)]
+
+        # Init heatmap
+        heatmap = solutions.Heatmap(
+            show=True,
+            model="yolo11n.pt",
+            colormap=cv2.COLORMAP_PARULA,
+            region=region_points,
+        )
+
+        while cap.isOpened():
+            success, im0 = cap.read()
+            if not success:
+                print("Video frame is empty or video processing has been successfully completed.")
+                break
+            im0 = heatmap.generate_heatmap(im0)
+            video_writer.write(im0)
+
+        cap.release()
+        video_writer.release()
+        cv2.destroyAllWindows()
+        ```
+
+    === "Region Counting"
+
+        ```python
+        import cv2
+
+        from ultralytics import solutions
+
+        cap = cv2.VideoCapture("Path/to/video/file.mp4")
+        assert cap.isOpened(), "Error reading video file"
+        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
+
+        # Video writer
+        video_writer = cv2.VideoWriter("heatmap_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
+
+        # Define region points
+        region_points = [(20, 400), (1080, 404), (1080, 360), (20, 360)]
+
+        # Init heatmap
+        heatmap = solutions.Heatmap(
+            show=True,
+            model="yolo11n.pt",
+            colormap=cv2.COLORMAP_PARULA,
+            region=region_points,
+        )
+
+        while cap.isOpened():
+            success, im0 = cap.read()
+            if not success:
+                print("Video frame is empty or video processing has been successfully completed.")
+                break
+            im0 = heatmap.generate_heatmap(im0)
+            video_writer.write(im0)
+
+        cap.release()
+        video_writer.release()
+        cv2.destroyAllWindows()
+        ```
+
+    === "Specific Classes"
+
+        ```python
+        import cv2
+
+        from ultralytics import solutions
+
+        cap = cv2.VideoCapture("Path/to/video/file.mp4")
+        assert cap.isOpened(), "Error reading video file"
+        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
+
+        # Video writer
+        video_writer = cv2.VideoWriter("heatmap_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
+
+        # Init heatmap
+        heatmap = solutions.Heatmap(
+            show=True,
+            model="yolo11n.pt",
+            classes=[0, 2],
         )
 
         while cap.isOpened():

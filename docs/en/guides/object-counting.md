@@ -46,20 +46,10 @@ Object counting with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
 | ![Conveyor Belt Packets Counting Using Ultralytics YOLO11](https://github.com/ultralytics/docs/releases/download/0/conveyor-belt-packets-counting.avif) | ![Fish Counting in Sea using Ultralytics YOLO11](https://github.com/ultralytics/docs/releases/download/0/fish-counting-in-sea-using-ultralytics-yolov8.avif) |
 |                                                 Conveyor Belt Packets Counting Using Ultralytics YOLO11                                                 |                                                        Fish Counting in Sea using Ultralytics YOLO11                                                         |
 
-!!! example "Object Counting using YOLO11"
+!!! example "Object Counting using YOLO11 Example"
 
-    === "CLI"
-        ```bash
-        yolo solutions count show=True
+    === "Count in Region"
 
-        # pass the source
-        yolo solutions count source="path/to/video/file.mp4"
-
-         # configure the region coordinates
-        yolo solutions count region=[(20, 400), (1080, 404), (1080, 360), (20, 360)]
-        ```
-
-    === "Python"
         ```python
         import cv2
 
@@ -80,6 +70,155 @@ Object counting with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
             show=True,
             region=region_points,
             model="yolo11n.pt",
+        )
+
+        # Process video
+        while cap.isOpened():
+            success, im0 = cap.read()
+            if not success:
+                print("Video frame is empty or video processing has been successfully completed.")
+                break
+            im0 = counter.count(im0)
+            video_writer.write(im0)
+
+        cap.release()
+        video_writer.release()
+        cv2.destroyAllWindows()
+        ```
+
+    === "OBB Object Counting"
+
+        ```python
+        import cv2
+
+        from ultralytics import solutions
+
+        cap = cv2.VideoCapture("path/to/video/file.mp4")
+        assert cap.isOpened(), "Error reading video file"
+        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
+
+        # line or region points
+        line_points = [(20, 400), (1080, 400)]
+
+        # Video writer
+        video_writer = cv2.VideoWriter("object_counting_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
+
+        # Init Object Counter
+        counter = solutions.ObjectCounter(
+            show=True,
+            region=line_points,
+            model="yolo11n-obb.pt",
+        )
+
+        # Process video
+        while cap.isOpened():
+            success, im0 = cap.read()
+            if not success:
+                print("Video frame is empty or video processing has been successfully completed.")
+                break
+            im0 = counter.count(im0)
+            video_writer.write(im0)
+
+        cap.release()
+        video_writer.release()
+        cv2.destroyAllWindows()
+        ```
+
+    === "Count in Polygon"
+
+        ```python
+        import cv2
+
+        from ultralytics import solutions
+
+        cap = cv2.VideoCapture("path/to/video/file.mp4")
+        assert cap.isOpened(), "Error reading video file"
+        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
+
+        # Define region points
+        region_points = [(20, 400), (1080, 404), (1080, 360), (20, 360), (20, 400)]
+
+        # Video writer
+        video_writer = cv2.VideoWriter("object_counting_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
+
+        # Init Object Counter
+        counter = solutions.ObjectCounter(
+            show=True,
+            region=region_points,
+            model="yolo11n.pt",
+        )
+
+        # Process video
+        while cap.isOpened():
+            success, im0 = cap.read()
+            if not success:
+                print("Video frame is empty or video processing has been successfully completed.")
+                break
+            im0 = counter.count(im0)
+            video_writer.write(im0)
+
+        cap.release()
+        video_writer.release()
+        cv2.destroyAllWindows()
+        ```
+
+    === "Count in Line"
+
+        ```python
+        import cv2
+
+        from ultralytics import solutions
+
+        cap = cv2.VideoCapture("path/to/video/file.mp4")
+        assert cap.isOpened(), "Error reading video file"
+        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
+
+        # Define region points
+        line_points = [(20, 400), (1080, 400)]
+
+        # Video writer
+        video_writer = cv2.VideoWriter("object_counting_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
+
+        # Init Object Counter
+        counter = solutions.ObjectCounter(
+            show=True,
+            region=line_points,
+            model="yolo11n.pt",
+        )
+
+        # Process video
+        while cap.isOpened():
+            success, im0 = cap.read()
+            if not success:
+                print("Video frame is empty or video processing has been successfully completed.")
+                break
+            im0 = counter.count(im0)
+            video_writer.write(im0)
+
+        cap.release()
+        video_writer.release()
+        cv2.destroyAllWindows()
+        ```
+
+    === "Specific Classes"
+
+        ```python
+        import cv2
+
+        from ultralytics import solutions
+
+        cap = cv2.VideoCapture("path/to/video/file.mp4")
+        assert cap.isOpened(), "Error reading video file"
+        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
+
+        # Video writer
+        video_writer = cv2.VideoWriter("object_counting_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
+
+        # Init Object Counter
+        counter = solutions.ObjectCounter(
+            show=True,
+            model="yolo11n.pt",
+            classes=[0, 1],
         )
 
         # Process video

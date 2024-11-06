@@ -42,7 +42,7 @@ Let's focus on two specific mAP metrics:
 Other mAP metrics include mAP@0.75, which uses a stricter IoU threshold of 0.75, and mAP@small, medium, and large, which evaluate precision across objects of different sizes.
 
 <p align="center">
-  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/mean-average-precision-overview.avif" alt="Mean Average Precision Overview">
+  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/mean-average-precision-overview.avif" alt="Mean Average Precision Overview" loading="lazy">
 </p>
 
 ## Evaluating YOLO11 Model Performance

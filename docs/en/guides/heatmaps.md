@@ -39,11 +39,13 @@ A heatmap generated with [Ultralytics YOLO11](https://github.com/ultralytics/ult
     === "CLI"
 
         ```bash
-        # by default line analytics will be called.
-        yolo solutions heatmap show=True
+         yolo solutions heatmap show=True
 
         # pass the source
         yolo solutions heatmap source="path/to/video/file.mp4"
+
+        # choose colormap
+        yolo solutions heatmap colormap=cv2.COLORMAP_INFERNO
         ```
 
     === "Heatmap"

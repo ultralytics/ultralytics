@@ -39,6 +39,7 @@ Monitoring workouts through pose estimation with [Ultralytics YOLO11](https://gi
     === "CLI"
 
         ```bash
+        # Run a workout example
         yolo solutions workout show=True
 
         # Pass a source video

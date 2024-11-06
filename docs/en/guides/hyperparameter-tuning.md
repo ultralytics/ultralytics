@@ -157,7 +157,7 @@ This is a plot displaying fitness (typically a performance metric like AP50) aga
 - **Usage**: Performance visualization
 
 <p align="center">
-  <img width="640" src="https://github.com/ultralytics/docs/releases/download/0/best-fitness.avif" alt="Hyperparameter Tuning Fitness vs Iteration">
+  <img width="640" src="https://github.com/ultralytics/docs/releases/download/0/best-fitness.avif" alt="Hyperparameter Tuning Fitness vs Iteration" loading="lazy">
 </p>
 
 #### tune_results.csv

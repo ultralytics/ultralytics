@@ -37,17 +37,17 @@ A heatmap generated with [Ultralytics YOLO11](https://github.com/ultralytics/ult
 !!! example "Heatmaps using Ultralytics YOLO11 Example"
 
     === "CLI"
-    
-        ```bash 
+
+        ```bash
         # by default line analytics will be called.
-        yolo solutions heatmap show=True  
-        
+        yolo solutions heatmap show=True
+
         # pass the source
         yolo solutions heatmap source="path/to/video/file.mp4"
         ```
-        
+
     === "Heatmap"
-    
+
         ```python
         import cv2
 

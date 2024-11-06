@@ -148,6 +148,23 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
+// Optimize image loading for SEO and performance:
+ //  - Applies lazy loading to all images on a page except the first one.
+ //  - Ensures the first image loads immediately to enhance SEO relevance and improve page rendering.
+ //  - Use lazy loading, reducing initial load time and improving user experience on documentation pages.*/
+// More robust selector that targets the first image on the page
+const firstImage = document.querySelector('.md-content img');
+if (firstImage) {
+    firstImage.setAttribute('loading', 'eager');
+}
+
+// Apply lazy loading to all other images
+document.querySelectorAll('.md-content img').forEach((img) => {
+    if (img !== firstImage) {
+        img.setAttribute('loading', 'lazy');
+    }
+});
+
 // This object contains the benchmark data for various object detection models.
 const data = {
     'YOLOv5':  {s: {speed: 1.92, mAP: 37.4}, m: {speed: 4.03, mAP: 45.4}, l: {speed: 6.61, mAP: 49.0}, x: {speed: 11.89, mAP: 50.7}},

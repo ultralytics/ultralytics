@@ -30,6 +30,23 @@ Here's our curated list of Ultralytics solutions that can be used to create awes
 - [Analytics](../guides/analytics.md) 📊 NEW: Conduct comprehensive data analysis to discover patterns and make informed decisions, leveraging YOLO11 for descriptive, predictive, and prescriptive analytics.
 - [Live Inference with Streamlit](../guides/streamlit-live-inference.md) 🚀: Leverage the power of YOLO11 for real-time [object detection](https://www.ultralytics.com/glossary/object-detection) directly through your web browser with a user-friendly Streamlit interface.
 
+## Solutions Usage
+
+!!! tip "Command Info"
+
+    `yolo SOLUTIONS SOLUTION_NAME ARGS`
+
+    - **SOLUTIONS** is a required keyword.
+    - **SOLUTION_NAME** (optional) is one of: `['count', 'heatmap', 'queue', 'speed', 'workout', 'analytics']`.
+    - **ARGS** (optional) are custom `arg=value` pairs, such as `show_in=True`, to override default settings.
+
+    === "CLI"
+    ```bash
+    yolo solutions count show=True  # for object counting
+
+    yolo solutions source="path/to/video/file.mp4"  # specify video file path
+    ```
+
 ## Contribute to Our Solutions
 
 We welcome contributions from the community! If you've mastered a particular aspect of Ultralytics YOLO that's not yet covered in our solutions, we encourage you to share your expertise. Writing a guide is a great way to give back to the community and help us make our documentation more comprehensive and user-friendly.

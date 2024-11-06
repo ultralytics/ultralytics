@@ -8,7 +8,7 @@ keywords: Ultralytics, YOLO, object detection, deep learning, machine learning, 
 
 <p align="center"> <iframe src="https://player.vimeo.com/video/639236696?h=740f412ce5" width="640" height="360" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe></p>
 <p align="center"><a href="https://vimeo.com/639236696">ROS Introduction (captioned)</a> from <a href="https://vimeo.com/osrfoundation">Open Robotics</a> on <a href="https://vimeo.com/">Vimeo</a>.</p>
-
+  
 ## What is ROS?
 
 The [Robot Operating System (ROS)](https://www.ros.org/) is an open-source framework widely used in robotics research and industry. ROS provides a collection of [libraries and tools](https://www.ros.org/blog/ecosystem/) to help developers create robot applications. ROS is designed to work with various [robotic platforms](https://robots.ros.org/), making it a flexible and powerful tool for roboticists.
@@ -48,7 +48,7 @@ In ROS, communication between nodes is facilitated through [messages](https://wi
 This guide has been tested using [this ROS environment](https://github.com/ambitious-octopus/rosbot_ros/tree/noetic), which is a fork of the [ROSbot ROS repository](https://github.com/husarion/rosbot_ros). This environment includes the Ultralytics YOLO package, a Docker container for easy setup, comprehensive ROS packages, and Gazebo worlds for rapid testing. It is designed to work with the [Husarion ROSbot 2 PRO](https://husarion.com/manuals/rosbot/). The code examples provided will work in any ROS Noetic/Melodic environment, including both simulation and real-world.
 
 <p align="center">
-  <img width="50%" src="https://github.com/ultralytics/docs/releases/download/0/husarion-rosbot-2-pro.avif" alt="Husarion ROSbot 2 PRO">
+  <img width="50%" src="https://github.com/ultralytics/docs/releases/download/0/husarion-rosbot-2-pro.avif" alt="Husarion ROSbot 2 PRO" loading="lazy">
 </p>
 
 ### Dependencies Installation
@@ -72,7 +72,7 @@ Apart from the ROS environment, you will need to install the following dependenc
 The `sensor_msgs/Image` [message type](https://docs.ros.org/en/api/sensor_msgs/html/msg/Image.html) is commonly used in ROS for representing image data. It contains fields for encoding, height, width, and pixel data, making it suitable for transmitting images captured by cameras or other sensors. Image messages are widely used in robotic applications for tasks such as visual perception, [object detection](https://www.ultralytics.com/glossary/object-detection), and navigation.
 
 <p align="center">
-  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/detection-segmentation-ros-gazebo.avif" alt="Detection and Segmentation in ROS Gazebo">
+  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/detection-segmentation-ros-gazebo.avif" alt="Detection and Segmentation in ROS Gazebo" loading="lazy">
 </p>
 
 ### Image Step-by-Step Usage
@@ -345,7 +345,7 @@ while True:
 ## Use Ultralytics with ROS `sensor_msgs/PointCloud2`
 
 <p align="center">
-  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/detection-segmentation-ros-gazebo-1.avif" alt="Detection and Segmentation in ROS Gazebo">
+  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/detection-segmentation-ros-gazebo-1.avif" alt="Detection and Segmentation in ROS Gazebo" loading="lazy">
 </p>
 
 The `sensor_msgs/PointCloud2` [message type](https://docs.ros.org/en/api/sensor_msgs/html/msg/PointCloud2.html) is a data structure used in ROS to represent 3D point cloud data. This message type is integral to robotic applications, enabling tasks such as 3D mapping, object recognition, and localization.
@@ -510,7 +510,7 @@ for index, class_id in enumerate(classes):
     ```
 
 <p align="center">
-  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/point-cloud-segmentation-ultralytics.avif" alt="Point Cloud Segmentation with Ultralytics ">
+  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/point-cloud-segmentation-ultralytics.avif" alt="Point Cloud Segmentation with Ultralytics" loading="lazy">
 </p>
 
 ## FAQ

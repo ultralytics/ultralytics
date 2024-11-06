@@ -14,4 +14,4 @@
 | [PaddlePaddle](../integrations/paddlepaddle.md)   | `paddle`          | `{{ model_name or "yolo11n" }}_paddle_model/`   | ✅       | `imgsz`, `batch`                                                     |
 | [MNN](../integrations/mnn.md)                     | `mnn`             | `{{ model_name or "yolo11n" }}.mnn`             | ✅       | `imgsz`, `batch`, `int8`, `half`                                     |
 | [NCNN](../integrations/ncnn.md)                   | `ncnn`            | `{{ model_name or "yolo11n" }}_ncnn_model/`     | ✅       | `imgsz`, `half`, `batch`                                             |
-| [Sony MCT](../integrations/sony-mct.md)           | `mct`             | `{{ model_name or "yolo11n" }}_mct_model/`      | ✅       | `imgsz`, `gptq`, `nms`                                               |
+| [IMX500](../integrations/imx500.md)               | `imx500`          | `{{ model_name or "yolo11n" }}_mct_model/`      | ✅       | `imgsz`, `gptq`                                                      |

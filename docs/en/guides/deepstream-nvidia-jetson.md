@@ -179,9 +179,7 @@ deepstream-app -c deepstream_app_config.txt
 
     It will take a long time to generate the TensorRT engine file before starting the inference. So please be patient.
 
-<div align="center">
-  <img width="1000" src="https://github.com/ultralytics/docs/releases/download/0/yolov8-with-deepstream.avif" alt="YOLO11 with deepstream" loading="lazy">
-</div>
+<div align="center"><img width="1000" src="https://github.com/ultralytics/docs/releases/download/0/yolov8-with-deepstream.avif" alt="YOLO11 with deepstream" loading="lazy"></div>
 
 !!! tip
 

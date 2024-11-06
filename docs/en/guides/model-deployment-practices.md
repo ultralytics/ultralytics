@@ -68,7 +68,7 @@ Pruning reduces the size of the model by removing weights that contribute little
 Quantization converts the model's weights and activations from high [precision](https://www.ultralytics.com/glossary/precision) (like 32-bit floats) to lower precision (like 8-bit integers). By reducing the model size, it speeds up inference. Quantization-aware training (QAT) is a method where the model is trained with quantization in mind, preserving accuracy better than post-training quantization. By handling quantization during the training phase, the model learns to adjust to lower precision, maintaining performance while reducing computational demands.
 
 <p align="center">
-  <img width="100%" src="https://miro.medium.com/v2/resize:fit:1032/format:webp/1*Jlq_cyLvRdmp_K5jCd3LkA.png" alt="Model Quantization Overview" loading="lazy">
+  <img width="100%" src="https://miro.medium.com/v2/resize:fit:1032/format:webp/1*Jlq_cyLvRdmp_K5jCd3LkA.png" alt="Model Quantization Overview">
 </p>
 
 ### Knowledge Distillation
@@ -76,7 +76,7 @@ Quantization converts the model's weights and activations from high [precision](
 Knowledge distillation involves training a smaller, simpler model (the student) to mimic the outputs of a larger, more complex model (the teacher). The student model learns to approximate the teacher's predictions, resulting in a compact model that retains much of the teacher's [accuracy](https://www.ultralytics.com/glossary/accuracy). This technique is beneficial for creating efficient models suitable for deployment on edge devices with constrained resources.
 
 <p align="center">
-  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/knowledge-distillation-overview.avif" alt="Knowledge Distillation Overview" loading="lazy">
+  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/knowledge-distillation-overview.avif" alt="Knowledge Distillation Overview">
 </p>
 
 ## Troubleshooting Deployment Issues

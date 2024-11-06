@@ -74,7 +74,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
 4.  Start with generating a binary mask from the source image and then draw a filled contour onto the mask. This will allow the object to be isolated from the other parts of the image. An example from `bus.jpg` for one of the detected `person` class objects is shown on the right.
 
-    <img src="https://github.com/ultralytics/ultralytics/assets/62214284/59bce684-fdda-4b17-8104-0b4b51149aca" alt="Binary Mask Image" width="240" align="right" loading="lazy">
+    ![Binary Mask Image](https://github.com/ultralytics/ultralytics/assets/62214284/59bce684-fdda-4b17-8104-0b4b51149aca){ width="240", align="right" }
 
     ```{ .py .annotate }
     import cv2
@@ -162,7 +162,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
                 There are no additional steps required if keeping full size image.
 
                 <figure markdown>
-                    <img src="https://github.com/ultralytics/docs/releases/download/0/full-size-isolated-object-black-background.avif" alt="Example Full size Isolated Object Image Black Background" width="240" loading="lazy">
+                    ![Example Full size Isolated Object Image Black Background](https://github.com/ultralytics/docs/releases/download/0/full-size-isolated-object-black-background.avif){ width=240 }
                     <figcaption>Example full-size output</figcaption>
                 </figure>
 
@@ -170,7 +170,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
                 Additional steps required to crop image to only include object region.
 
-                <img src="https://github.com/ultralytics/docs/releases/download/0/example-crop-isolated-object-image-black-background.avif" alt="Example Crop Isolated Object Image Black Background" align="right" loading="lazy">
+                ![Example Crop Isolated Object Image Black Background](https://github.com/ultralytics/docs/releases/download/0/example-crop-isolated-object-image-black-background.avif){ align="right" }
                 ```{ .py .annotate }
                 # (1) Bounding box coordinates
                 x1, y1, x2, y2 = c.boxes.xyxy.cpu().numpy().squeeze().astype(np.int32)

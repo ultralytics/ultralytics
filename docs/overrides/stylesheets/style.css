@@ -271,7 +271,11 @@ div.highlight {
 }
 /* Inkeep button ---------------------------------------------------------------------------------------------------- */
 
-/* Target all images except the first one on a page */
+/* Optimize image loading for SEO and performance: ---------------------------------------------------------------------
+   - Applies lazy loading to all images on a page except the first one.
+   - Ensures the first image loads immediately to enhance SEO relevance and improve page rendering.
+   - Use lazy loading, reducing initial load time and improving user experience on documentation pages.*/
 img:not(:first-of-type) {
   loading: lazy;
 }
+/* Image load optimization ------------------------------------------------------------------------------------------ */

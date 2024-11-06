@@ -53,7 +53,7 @@ keywords: Ultralytics YOLO11, speed estimation, object tracking, computer vision
         ```
 
     === "Python"
-      
+
         ```python
         import cv2
 

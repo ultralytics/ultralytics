@@ -1209,7 +1209,7 @@ class Exporter:
         if not LINUX:
             LOGGER.warning(f"{prefix} WARNING ⚠️ MCT imx500-converter is only supported on Linux.")
         else:
-            check_requirements("imx500-converter[pt]==3.14.1")
+            check_requirements("imx500-converter[pt]==3.14.3")
             try:
                 import subprocess
 

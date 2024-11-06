@@ -82,7 +82,7 @@ Next, let's look at a few common discussion points in the community regarding co
 The most popular computer vision tasks include [image classification](https://www.ultralytics.com/glossary/image-classification), [object detection](https://www.ultralytics.com/glossary/object-detection), and [image segmentation](https://www.ultralytics.com/glossary/image-segmentation).
 
 <p align="center">
-  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/image-classification-vs-object-detection-vs-image-segmentation.avif" alt="Overview of Computer Vision Tasks">
+  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/image-classification-vs-object-detection-vs-image-segmentation.avif" alt="Overview of Computer Vision Tasks" loading="lazy">
 </p>
 
 For a detailed explanation of various tasks, please take a look at the Ultralytics Docs page on [YOLO11 Tasks](../tasks/index.md).
@@ -92,7 +92,7 @@ For a detailed explanation of various tasks, please take a look at the Ultralyti
 No, pre-trained models don't "remember" classes in the traditional sense. They learn patterns from massive datasets, and during custom training (fine-tuning), these patterns are adjusted for your specific task. The model's capacity is limited, and focusing on new information can overwrite some previous learnings.
 
 <p align="center">
-  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/overview-of-transfer-learning.avif" alt="Overview of Transfer Learning">
+  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/overview-of-transfer-learning.avif" alt="Overview of Transfer Learning" loading="lazy">
 </p>
 
 If you want to use the classes the model was pre-trained on, a practical approach is to use two models: one retains the original performance, and the other is fine-tuned for your specific task. This way, you can combine the outputs of both models. There are other options like freezing layers, using the pre-trained model as a feature extractor, and task-specific branching, but these are more complex solutions and require more expertise.

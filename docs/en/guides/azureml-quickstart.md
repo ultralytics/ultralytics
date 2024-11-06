@@ -41,7 +41,7 @@ From your AzureML workspace, select Compute > Compute instances > New, select th
 Start your compute and open a Terminal:
 
 <p align="center">
-  <img width="480" src="https://github.com/ultralytics/docs/releases/download/0/open-terminal.avif" alt="Open Terminal" loading="lazy">
+  <img width="480" src="https://github.com/ultralytics/docs/releases/download/0/open-terminal.avif" alt="Open Terminal">
 </p>
 
 ### Create virtualenv
@@ -86,7 +86,7 @@ You can find more [instructions to use the Ultralytics CLI here](../quickstart.m
 Open the compute Terminal.
 
 <p align="center">
-  <img width="480" src="https://github.com/ultralytics/docs/releases/download/0/open-terminal.avif" alt="Open Terminal" loading="lazy">
+  <img width="480" src="https://github.com/ultralytics/docs/releases/download/0/open-terminal.avif" alt="Open Terminal">
 </p>
 
 From your compute terminal, you need to create a new ipykernel that will be used by your notebook to manage your dependencies:

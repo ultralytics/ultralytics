@@ -49,7 +49,7 @@ Object counting with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
 !!! example "Object Counting using YOLO11 Example"
 
     === "CLI"
-    
+
         ```bash
         # by default line analytics will be called.
         yolo solutions count show=True

@@ -555,9 +555,7 @@ class AutoBackend(nn.Module):
                 self.session.run_with_iobinding(self.io)
                 y = self.bindings
             if self.mct:
-                from ultralytics.utils.ops import xyxy2xywh
-
-                y = np.concatenate([xyxy2xywh(y[0]), y[1]], axis=-1).transpose(0, 2, 1)
+                y = np.concatenate([y[0], y[1][:, :, None], y[2][:, :, None]], axis=-1)
 
         # OpenVINO
         elif self.xml:

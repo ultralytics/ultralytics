@@ -1112,22 +1112,23 @@ def plot_images(
                 im = np.asarray(annotator.im).copy()
                 for j in range(len(image_masks)):
                     if labels or conf[j] > conf_thres:
-                        color = colors(classes[j])
-                        mh, mw = image_masks[j].shape
-                        if mh != h or mw != w:
-                            mask = image_masks[j].astype(np.uint8)
-                            mask = cv2.resize(mask, (w, h), interpolation=cv2.INTER_NEAREST)
-                            mask = mask.astype(bool)
-                        else:
-                            mask = image_masks[j].astype(bool)
-                        try:
-                            im[y : y + h, x : x + w, :][mask] = (
-                                im[y : y + h, x : x + w, :][mask] * 0.4 + np.array(color, dtype=np.uint8) * 0.6
-                            )
-                        except Exception:
-                            pass
-                        annotator.fromarray(im)
-                        
+                        # color = colors(classes[j])
+                        # mh, mw = image_masks[j].shape
+                        # if mh != h or mw != w:
+                        #     mask = image_masks[j].astype(np.uint8)
+                        #     mask = cv2.resize(mask, (w, h), interpolation=cv2.INTER_NEAREST)
+                        #     mask = mask.astype(bool)
+                        # else:
+                        #     mask = image_masks[j].astype(bool)
+                        # try:
+                        #     im[y : y + h, x : x + w, :][mask] = (
+                        #         im[y : y + h, x : x + w, :][mask] * 0.4 + np.array(color, dtype=np.uint8) * 0.6
+                        #     )
+                        # except Exception:
+                        #     pass
+                        annotator.masks(image_masks,colors)
+                        # annotator.fromarray(im)
+
     # After annotations, scale the annotated image back to original dtype if necessary
     annotated_image = np.asarray(annotator.im)
     # if img_dtype == np.uint16:

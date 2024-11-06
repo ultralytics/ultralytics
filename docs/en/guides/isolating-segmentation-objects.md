@@ -74,7 +74,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
 4.  Start with generating a binary mask from the source image and then draw a filled contour onto the mask. This will allow the object to be isolated from the other parts of the image. An example from `bus.jpg` for one of the detected `person` class objects is shown on the right.
 
-    ![Binary Mask Image](https://github.com/ultralytics/ultralytics/assets/62214284/59bce684-fdda-4b17-8104-0b4b51149aca){ width="240", align="right" }
+    <img src="https://github.com/ultralytics/ultralytics/assets/62214284/59bce684-fdda-4b17-8104-0b4b51149aca" alt="Binary Mask Image" width="240" align="right" loading="lazy">
 
     ```{ .py .annotate }
     import cv2
@@ -133,114 +133,114 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
     ***
 
-5.  Next there are 2 options for how to move forward with the image from this point and a subsequent option for each.
+   5.  Next there are 2 options for how to move forward with the image from this point and a subsequent option for each.
 
-    ### Object Isolation Options
+       ### Object Isolation Options
 
-    !!! example
+       !!! example
 
-        === "Black Background Pixels"
+           === "Black Background Pixels"
 
-            ```python
-            # Create 3-channel mask
-            mask3ch = cv2.cvtColor(b_mask, cv2.COLOR_GRAY2BGR)
+               ```python
+               # Create 3-channel mask
+               mask3ch = cv2.cvtColor(b_mask, cv2.COLOR_GRAY2BGR)
 
-            # Isolate object with binary mask
-            isolated = cv2.bitwise_and(mask3ch, img)
-            ```
+               # Isolate object with binary mask
+               isolated = cv2.bitwise_and(mask3ch, img)
+               ```
 
-            ??? question "How does this work?"
+               ??? question "How does this work?"
 
-                - First, the binary mask is first converted from a single-channel image to a three-channel image. This conversion is necessary for the subsequent step where the mask and the original image are combined. Both images must have the same number of channels to be compatible with the blending operation.
+                   - First, the binary mask is first converted from a single-channel image to a three-channel image. This conversion is necessary for the subsequent step where the mask and the original image are combined. Both images must have the same number of channels to be compatible with the blending operation.
 
-                - The original image and the three-channel binary mask are merged using the OpenCV function `bitwise_and()`. This operation retains <u>only</u> pixel values that are greater than zero `(> 0)` from both images. Since the mask pixels are greater than zero `(> 0)` <u>only</u> within the contour region, the pixels remaining from the original image are those that overlap with the contour.
+                   - The original image and the three-channel binary mask are merged using the OpenCV function `bitwise_and()`. This operation retains <u>only</u> pixel values that are greater than zero `(> 0)` from both images. Since the mask pixels are greater than zero `(> 0)` <u>only</u> within the contour region, the pixels remaining from the original image are those that overlap with the contour.
 
-            ### Isolate with Black Pixels: Sub-options
+               ### Isolate with Black Pixels: Sub-options
 
-            ??? info "Full-size Image"
+               ??? info "Full-size Image"
 
-                There are no additional steps required if keeping full size image.
+                   There are no additional steps required if keeping full size image.
 
-                <figure markdown>
-                    ![Example Full size Isolated Object Image Black Background](https://github.com/ultralytics/docs/releases/download/0/full-size-isolated-object-black-background.avif){ width=240 }
-                    <figcaption>Example full-size output</figcaption>
-                </figure>
+                   <figure markdown>
+                       <img src="https://github.com/ultralytics/docs/releases/download/0/full-size-isolated-object-black-background.avif" alt="Example Full size Isolated Object Image Black Background" width="240" loading="lazy">
+                       <figcaption>Example full-size output</figcaption>
+                   </figure>
 
-            ??? info "Cropped object Image"
+               ??? info "Cropped object Image"
 
-                Additional steps required to crop image to only include object region.
+                   Additional steps required to crop image to only include object region.
 
-                ![Example Crop Isolated Object Image Black Background](https://github.com/ultralytics/docs/releases/download/0/example-crop-isolated-object-image-black-background.avif){ align="right" }
-                ```{ .py .annotate }
-                # (1) Bounding box coordinates
-                x1, y1, x2, y2 = c.boxes.xyxy.cpu().numpy().squeeze().astype(np.int32)
-                # Crop image to object region
-                iso_crop = isolated[y1:y2, x1:x2]
-                ```
+                   <img src="https://github.com/ultralytics/docs/releases/download/0/example-crop-isolated-object-image-black-background.avif" alt="Example Crop Isolated Object Image Black Background" align="right" loading="lazy">
+                   ```{ .py .annotate }
+                   # (1) Bounding box coordinates
+                   x1, y1, x2, y2 = c.boxes.xyxy.cpu().numpy().squeeze().astype(np.int32)
+                   # Crop image to object region
+                   iso_crop = isolated[y1:y2, x1:x2]
+                   ```
 
-                1.  For more information on [bounding box](https://www.ultralytics.com/glossary/bounding-box) results, see [Boxes Section from Predict Mode](../modes/predict.md/#boxes)
+                   1.  For more information on [bounding box](https://www.ultralytics.com/glossary/bounding-box) results, see [Boxes Section from Predict Mode](../modes/predict.md/#boxes)
 
-                ??? question "What does this code do?"
+                   ??? question "What does this code do?"
 
-                    - The `c.boxes.xyxy.cpu().numpy()` call retrieves the bounding boxes as a NumPy array in the `xyxy` format, where `xmin`, `ymin`, `xmax`, and `ymax` represent the coordinates of the bounding box rectangle. See [Boxes Section from Predict Mode](../modes/predict.md/#boxes) for more details.
+                       - The `c.boxes.xyxy.cpu().numpy()` call retrieves the bounding boxes as a NumPy array in the `xyxy` format, where `xmin`, `ymin`, `xmax`, and `ymax` represent the coordinates of the bounding box rectangle. See [Boxes Section from Predict Mode](../modes/predict.md/#boxes) for more details.
 
-                    - The `squeeze()` operation removes any unnecessary dimensions from the NumPy array, ensuring it has the expected shape.
+                       - The `squeeze()` operation removes any unnecessary dimensions from the NumPy array, ensuring it has the expected shape.
 
-                    - Converting the coordinate values using `.astype(np.int32)` changes the box coordinates data type from `float32` to `int32`, making them compatible for image cropping using index slices.
+                       - Converting the coordinate values using `.astype(np.int32)` changes the box coordinates data type from `float32` to `int32`, making them compatible for image cropping using index slices.
 
-                    - Finally, the bounding box region is cropped from the image using index slicing. The bounds are defined by the `[ymin:ymax, xmin:xmax]` coordinates of the detection bounding box.
+                       - Finally, the bounding box region is cropped from the image using index slicing. The bounds are defined by the `[ymin:ymax, xmin:xmax]` coordinates of the detection bounding box.
 
-        === "Transparent Background Pixels"
+           === "Transparent Background Pixels"
 
-            ```python
-            # Isolate object with transparent background (when saved as PNG)
-            isolated = np.dstack([img, b_mask])
-            ```
+               ```python
+               # Isolate object with transparent background (when saved as PNG)
+               isolated = np.dstack([img, b_mask])
+               ```
 
-            ??? question "How does this work?"
+               ??? question "How does this work?"
 
-                - Using the NumPy `dstack()` function (array stacking along depth-axis) in conjunction with the binary mask generated, will create an image with four channels. This allows for all pixels outside of the object contour to be transparent when saving as a `PNG` file.
+                   - Using the NumPy `dstack()` function (array stacking along depth-axis) in conjunction with the binary mask generated, will create an image with four channels. This allows for all pixels outside of the object contour to be transparent when saving as a `PNG` file.
 
-            ### Isolate with Transparent Pixels: Sub-options
+               ### Isolate with Transparent Pixels: Sub-options
 
-            ??? info "Full-size Image"
+               ??? info "Full-size Image"
 
-                There are no additional steps required if keeping full size image.
+                   There are no additional steps required if keeping full size image.
 
-                <figure markdown>
-                    ![Example Full size Isolated Object Image No Background](https://github.com/ultralytics/docs/releases/download/0/example-full-size-isolated-object-image-no-background.avif){ width=240 }
-                    <figcaption>Example full-size output + transparent background</figcaption>
-                </figure>
+                   <figure markdown>
+                       ![Example Full size Isolated Object Image No Background](https://github.com/ultralytics/docs/releases/download/0/example-full-size-isolated-object-image-no-background.avif){ width=240 }
+                       <figcaption>Example full-size output + transparent background</figcaption>
+                   </figure>
 
-            ??? info "Cropped object Image"
+               ??? info "Cropped object Image"
 
-                Additional steps required to crop image to only include object region.
+                   Additional steps required to crop image to only include object region.
 
-                ![Example Crop Isolated Object Image No Background](https://github.com/ultralytics/docs/releases/download/0/example-crop-isolated-object-image-no-background.avif){ align="right" }
-                ```{ .py .annotate }
-                # (1) Bounding box coordinates
-                x1, y1, x2, y2 = c.boxes.xyxy.cpu().numpy().squeeze().astype(np.int32)
-                # Crop image to object region
-                iso_crop = isolated[y1:y2, x1:x2]
-                ```
+                   ![Example Crop Isolated Object Image No Background](https://github.com/ultralytics/docs/releases/download/0/example-crop-isolated-object-image-no-background.avif){ align="right" }
+                   ```{ .py .annotate }
+                   # (1) Bounding box coordinates
+                   x1, y1, x2, y2 = c.boxes.xyxy.cpu().numpy().squeeze().astype(np.int32)
+                   # Crop image to object region
+                   iso_crop = isolated[y1:y2, x1:x2]
+                   ```
 
-                1.  For more information on bounding box results, see [Boxes Section from Predict Mode](../modes/predict.md/#boxes)
+                   1.  For more information on bounding box results, see [Boxes Section from Predict Mode](../modes/predict.md/#boxes)
 
-                ??? question "What does this code do?"
+                   ??? question "What does this code do?"
 
-                    - When using `c.boxes.xyxy.cpu().numpy()`, the bounding boxes are returned as a NumPy array, using the `xyxy` box coordinates format, which correspond to the points `xmin, ymin, xmax, ymax` for the bounding box (rectangle), see [Boxes Section from Predict Mode](../modes/predict.md/#boxes) for more information.
+                       - When using `c.boxes.xyxy.cpu().numpy()`, the bounding boxes are returned as a NumPy array, using the `xyxy` box coordinates format, which correspond to the points `xmin, ymin, xmax, ymax` for the bounding box (rectangle), see [Boxes Section from Predict Mode](../modes/predict.md/#boxes) for more information.
 
-                    - Adding `squeeze()` ensures that any extraneous dimensions are removed from the NumPy array.
+                       - Adding `squeeze()` ensures that any extraneous dimensions are removed from the NumPy array.
 
-                    - Converting the coordinate values using `.astype(np.int32)` changes the box coordinates data type from `float32` to `int32` which will be compatible when cropping the image using index slices.
+                       - Converting the coordinate values using `.astype(np.int32)` changes the box coordinates data type from `float32` to `int32` which will be compatible when cropping the image using index slices.
 
-                    - Finally the image region for the bounding box is cropped using index slicing, where the bounds are set using the `[ymin:ymax, xmin:xmax]` coordinates of the detection bounding box.
+                       - Finally the image region for the bounding box is cropped using index slicing, where the bounds are set using the `[ymin:ymax, xmin:xmax]` coordinates of the detection bounding box.
 
-    ??? question "What if I want the cropped object **including** the background?"
+       ??? question "What if I want the cropped object **including** the background?"
 
-        This is a built in feature for the Ultralytics library. See the `save_crop` argument for  [Predict Mode Inference Arguments](../modes/predict.md/#inference-arguments) for details.
+           This is a built in feature for the Ultralytics library. See the `save_crop` argument for  [Predict Mode Inference Arguments](../modes/predict.md/#inference-arguments) for details.
 
-    ***
+       ***
 
 6.  <u>What to do next is entirely left to you as the developer.</u> A basic example of one possible next step (saving the image to file for future use) is shown.
 

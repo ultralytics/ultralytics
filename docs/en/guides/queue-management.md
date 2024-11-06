@@ -46,7 +46,7 @@ Queue management using [Ultralytics YOLO11](https://github.com/ultralytics/ultra
         # pass the queue coordinates
         yolo solutions queue region=[(20, 400), (1080, 404), (1080, 360), (20, 360)]
         ```
-        
+
     === "Queue Manager"
 
         ```python

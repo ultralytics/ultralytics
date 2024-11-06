@@ -46,7 +46,7 @@ This guide provides a comprehensive overview of three fundamental types of [data
         # generate the pie chart
         yolo solutions analytics analytics_type="pie" show=True
         ```
-        
+
     === "Line Graph"
 
         ```python

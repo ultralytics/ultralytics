@@ -51,12 +51,13 @@ Object counting with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
     === "CLI"
 
         ```bash
+        # Run a counting example
         yolo solutions count show=True
 
-        # pass the source
+        # Pass a source video
         yolo solutions count source="path/to/video/file.mp4"
 
-        # pass the region coordinates
+        # Pass region coordinates
         yolo solutions count region=[(20, 400), (1080, 404), (1080, 360), (20, 360)]
         ```
 

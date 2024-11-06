@@ -40,8 +40,20 @@ keywords: Ultralytics YOLO11, speed estimation, object tracking, computer vision
 
 !!! example "Speed Estimation using YOLO11 Example"
 
-    === "Speed Estimation"
+    === "CLI"
 
+        ```bash
+        yolo solutions speed show=True
+
+        # pass the source
+        yolo solutions speed source="path/to/video/file.mp4"
+
+        # pass the region coordinates
+        yolo solutions speed region=[(20, 400), (1080, 404), (1080, 360), (20, 360)]
+        ```
+
+    === "Python"
+      
         ```python
         import cv2
 

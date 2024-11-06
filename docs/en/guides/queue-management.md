@@ -47,7 +47,7 @@ Queue management using [Ultralytics YOLO11](https://github.com/ultralytics/ultra
         yolo solutions queue region=[(20, 400), (1080, 404), (1080, 360), (20, 360)]
         ```
 
-    === "Queue Manager"
+    === "Python"
 
         ```python
         import cv2

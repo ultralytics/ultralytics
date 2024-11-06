@@ -51,7 +51,6 @@ Object counting with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
     === "CLI"
 
         ```bash
-        # by default line analytics will be called.
         yolo solutions count show=True
 
         # pass the source

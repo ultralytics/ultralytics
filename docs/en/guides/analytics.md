@@ -47,7 +47,7 @@ This guide provides a comprehensive overview of three fundamental types of [data
         yolo solutions analytics analytics_type="pie" show=True
         ```
 
-    === "Line Graph"
+    === "Python"
 
         ```python
         import cv2

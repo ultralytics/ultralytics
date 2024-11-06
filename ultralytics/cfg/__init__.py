@@ -22,7 +22,7 @@ from ultralytics.utils import (
     RUNS_DIR,
     SETTINGS,
     SETTINGS_FILE,
-    SOLUTIONS_ASSETS,
+    ASSETS_URL,
     TESTS_RUNNING,
     IterableSimpleNamespace,
     __version__,

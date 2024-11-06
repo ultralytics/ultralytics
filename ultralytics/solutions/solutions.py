@@ -5,7 +5,7 @@ from collections import defaultdict
 import cv2
 
 from ultralytics import YOLO
-from ultralytics.utils import DEFAULT_CFG_DICT, DEFAULT_SOL_DICT, LOGGER, SOLUTIONS_ASSETS
+from ultralytics.utils import DEFAULT_CFG_DICT, DEFAULT_SOL_DICT, LOGGER, ASSETS_URL
 from ultralytics.utils.checks import check_imshow, check_requirements
 
 
@@ -75,10 +75,10 @@ class BaseSolution:
         if IS_CLI:  # for CLI, download the source and init video writer
             if self.CFG["source"] is None:
                 d_s = "solutions_ci_demo.mp4" if "-pose" not in self.CFG["model"] else "solution_ci_pose_demo.mp4"
-                LOGGER.warning(f"⚠️ WARNING: source not provided. using default source {SOLUTIONS_ASSETS}/{d_s}")
+                LOGGER.warning(f"⚠️ WARNING: source not provided. using default source {ASSETS_URL}/{d_s}")
                 from ultralytics.utils.downloads import safe_download
 
-                safe_download(f"{SOLUTIONS_ASSETS}/{d_s}")  # download source from ultralytics assets
+                safe_download(f"{ASSETS_URL}/{d_s}")  # download source from ultralytics assets
                 self.CFG["source"] = d_s  # set default source
 
         # Initialize environment and region setup

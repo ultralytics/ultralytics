@@ -270,3 +270,8 @@ div.highlight {
   color: #111f68;
 }
 /* Inkeep button ---------------------------------------------------------------------------------------------------- */
+
+/* Target all images except the first one on a page */
+img:not(:first-of-type) {
+    loading: lazy;
+}

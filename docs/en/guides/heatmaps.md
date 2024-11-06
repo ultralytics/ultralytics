@@ -40,7 +40,7 @@ A heatmap generated with [Ultralytics YOLO11](https://github.com/ultralytics/ult
 
         ```bash
         # Run a heatmap example
-         yolo solutions heatmap show=True
+        yolo solutions heatmap show=True
 
         # Pass a source video
         yolo solutions heatmap source="path/to/video/file.mp4"

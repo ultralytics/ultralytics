@@ -48,7 +48,7 @@ Monitoring workouts through pose estimation with [Ultralytics YOLO11](https://gi
         yolo solutions queue kpts=[6, 8, 10]
         ```
 
-    === "Workouts Monitoring"
+    === "Python"
 
         ```python
         import cv2

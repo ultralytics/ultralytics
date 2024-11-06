@@ -75,7 +75,7 @@ Caching can be controlled when training YOLO11 using the `cache` parameter:
 Mixed precision training uses both 16-bit (FP16) and 32-bit (FP32) floating-point types. The strengths of both FP16 and FP32 are leveraged by using FP16 for faster computation and FP32 to maintain precision where needed. Most of the [neural network](https://www.ultralytics.com/glossary/neural-network-nn)'s operations are done in FP16 to benefit from faster computation and lower memory usage. However, a master copy of the model's weights is kept in FP32 to ensure accuracy during the weight update steps. You can handle larger models or larger batch sizes within the same hardware constraints.
 
 <p align="center">
-  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/mixed-precision-training-overview.avif" alt="Mixed Precision Training Overview">
+  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/mixed-precision-training-overview.avif" alt="Mixed Precision Training Overview" loading="lazy">
 </p>
 
 To implement mixed precision training, you'll need to modify your training scripts and ensure your hardware (like GPUs) supports it. Many modern [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) frameworks, such as [Tensorflow](https://www.ultralytics.com/glossary/tensorflow), offer built-in support for mixed precision.
@@ -110,7 +110,7 @@ Early stopping is a valuable technique for optimizing model training. By monitor
 The process involves setting a patience parameter that determines how many [epochs](https://www.ultralytics.com/glossary/epoch) to wait for an improvement in validation metrics before stopping training. If the model's performance does not improve within these epochs, training is stopped to avoid wasting time and resources.
 
 <p align="center">
-  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/early-stopping-overview.avif" alt="Early Stopping Overview">
+  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/early-stopping-overview.avif" alt="Early Stopping Overview" loading="lazy">
 </p>
 
 For YOLO11, you can enable early stopping by setting the patience parameter in your training configuration. For example, `patience=5` means training will stop if there's no improvement in validation metrics for 5 consecutive epochs. Using this method ensures the training process remains efficient and achieves optimal performance without excessive computation.

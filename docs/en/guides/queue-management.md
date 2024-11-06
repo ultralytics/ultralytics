@@ -38,12 +38,13 @@ Queue management using [Ultralytics YOLO11](https://github.com/ultralytics/ultra
     === "CLI"
 
         ```bash
+        # Run a queue example
         yolo solutions queue show=True
 
-        # pass the source
+        # Pass a source video
         yolo solutions queue source="path/to/video/file.mp4"
 
-        # pass the queue coordinates
+        # Pass queue coordinates
         yolo solutions queue region=[(20, 400), (1080, 404), (1080, 360), (20, 360)]
         ```
 

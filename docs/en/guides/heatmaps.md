@@ -48,7 +48,7 @@ A heatmap generated with [Ultralytics YOLO11](https://github.com/ultralytics/ult
         yolo solutions heatmap colormap=cv2.COLORMAP_INFERNO
         ```
 
-    === "Heatmap"
+    === "Python"
 
         ```python
         import cv2

@@ -1111,8 +1111,8 @@ class Exporter:
             raise ValueError("IMX500 export is only supported for YOLOv8 detection models")
         check_requirements(("model-compression-toolkit==2.1.1", "sony-custom-layers[torch]"))
         import model_compression_toolkit as mct
-        from sony_custom_layers.pytorch.object_detection.nms import multiclass_nms
         import onnx
+        from sony_custom_layers.pytorch.object_detection.nms import multiclass_nms
 
         def representative_dataset_gen(dataloader=self.get_int8_calibration_dataloader(prefix)):
             for batch in dataloader:
@@ -1194,7 +1194,7 @@ class Exporter:
             iou_threshold=self.args.iou,
             max_detections=self.args.max_det,
         ).to(self.device)
-        
+
         f = Path(str(self.file).replace(self.file.suffix, "_imx500_model.onnx"))  # js dir
         mct.exporter.pytorch_export_model(model=quant_model, save_model_path=f, repr_dataset=representative_dataset_gen)
 
@@ -1222,7 +1222,7 @@ class Exporter:
             output_dir = Path(str(self.file).replace(self.file.suffix, "_imx500_model"))
 
             subprocess.run(["imxconv-pt", "-i", str(f), "-o", str(output_dir)], check=True)
-            
+
             with open(output_dir / "labels.txt", "w") as file:
                 file.writelines([f"{name}\n" for _, name in self.model.names.items()])
 

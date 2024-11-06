@@ -41,10 +41,10 @@ Monitoring workouts through pose estimation with [Ultralytics YOLO11](https://gi
         ```bash
         yolo solutions workout show=True
 
-        # pass the source
+        # Pass a source video
         yolo solutions workout source="path/to/video/file.mp4"
 
-        # use keypoints for pushups
+        # Use keypoints for pushups
         yolo solutions queue kpts=[6, 8, 10]
         ```
 

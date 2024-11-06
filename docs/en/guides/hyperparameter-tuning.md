@@ -182,7 +182,7 @@ This file contains scatter plots generated from `tune_results.csv`, helping you 
 - **Usage**: Exploratory data analysis
 
 <p align="center">
-  <img width="1000" src="https://github.com/ultralytics/docs/releases/download/0/tune-scatter-plots.avif" alt="Hyperparameter Tuning Scatter Plots">
+  <img width="1000" src="https://github.com/ultralytics/docs/releases/download/0/tune-scatter-plots.avif" alt="Hyperparameter Tuning Scatter Plots" loading="lazy">
 </p>
 
 #### weights/

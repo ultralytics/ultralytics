@@ -207,8 +207,8 @@ def test_export_ncnn():
 
 
 @pytest.mark.skipif(True, reason="Test disabled")
-def test_export_mct():
+def test_export_imx500():
     """Test YOLOv8n exports to MCT format."""
     model = YOLO("yolov8n.pt")
-    file = model.export(format="mct", imgsz=32)
+    file = model.export(format="imx500", imgsz=32)
     YOLO(file)(SOURCE, imgsz=32)

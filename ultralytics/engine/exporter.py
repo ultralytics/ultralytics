@@ -18,7 +18,7 @@ TensorFlow.js           | `tfjs`                    | yolo11n_web_model/
 PaddlePaddle            | `paddle`                  | yolo11n_paddle_model/
 MNN                     | `mnn`                     | yolo11n.mnn
 NCNN                    | `ncnn`                    | yolo11n_ncnn_model/
-Sony MCT                | `mct`                     | yolo11n_mct_model.onnx
+imx500                  | `imx500`                  | yolo11n_imx500_model.onnx
 
 Requirements:
     $ pip install "ultralytics[export]"
@@ -45,7 +45,7 @@ Inference:
                          yolo11n_paddle_model       # PaddlePaddle
                          yolo11n.mnn                # MNN
                          yolo11n_ncnn_model         # NCNN
-                         yolo11n_mct_model.onnx     # Sony MCT
+                         yolo11n_imx500_model.onnx  # IMX500
 
 TensorFlow.js:
     $ cd .. && git clone https://github.com/zldrobit/tfjs-yolov5-example.git && cd tfjs-yolov5-example
@@ -115,7 +115,7 @@ def export_formats():
         ["PaddlePaddle", "paddle", "_paddle_model", True, True],
         ["MNN", "mnn", ".mnn", True, True],
         ["NCNN", "ncnn", "_ncnn_model", True, True],
-        ["Sony MCT", "mct", "_mct_model.onnx", True, True],
+        ["IMX500", "imx500", "_imx500_model.onnx", True, True],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU"], zip(*x)))
 
@@ -209,12 +209,12 @@ class Exporter:
             paddle,
             mnn,
             ncnn,
-            mct,
+            imx500,
         ) = flags  # export booleans
 
         is_tf_format = any((saved_model, pb, tflite, edgetpu, tfjs))
-        if mct:
-            LOGGER.warning("WARNING ⚠️ Sony MCT only supports int8 export, setting int8=True.")
+        if imx500:
+            LOGGER.warning("WARNING ⚠️ IMX500 only supports int8 export, setting int8=True.")
             self.args.int8 = True
         # Device
         dla = None
@@ -285,7 +285,7 @@ class Exporter:
             elif isinstance(m, C2f) and not is_tf_format:
                 # EdgeTPU does not support FlexSplitV while split provides cleaner ONNX graph
                 m.forward = m.forward_split
-            if isinstance(m, Detect) and mct:
+            if isinstance(m, Detect) and imx500:
                 from ultralytics.utils.tal import make_anchors
 
                 anchors, strides = (
@@ -299,7 +299,7 @@ class Exporter:
                 m.anchors = anchors
                 m.strides = strides
 
-            if isinstance(m, C2f) and mct:
+            if isinstance(m, C2f) and imx500:
                 m.forward = m.forward_fx
 
         y = None
@@ -375,8 +375,8 @@ class Exporter:
             f[11], _ = self.export_mnn()
         if ncnn:  # NCNN
             f[12], _ = self.export_ncnn()
-        if mct:
-            f[13], _ = self.export_mct()
+        if imx500:
+            f[13], _ = self.export_imx500()
 
         # Finish
         f = [str(x) for x in f if x]  # filter out '' and None
@@ -1100,12 +1100,12 @@ class Exporter:
         return f, None
 
     @try_export
-    def export_mct(self, prefix=colorstr("Sony MCT:")):
-        """YOLO Sony MCT export."""
+    def export_imx500(self, prefix=colorstr("IMX500:")):
+        """YOLO IMX500 export."""
         if getattr(self.model, "end2end", False):
-            raise ValueError("MCT export is not supported for end2end models.")
+            raise ValueError("IMX500 export is not supported for end2end models.")
         if "C2f" not in self.model.__str__():
-            raise ValueError("MCT export is only supported for YOLOv8 detection models")
+            raise ValueError("IMX500 export is only supported for YOLOv8 detection models")
         check_requirements(("model-compression-toolkit==2.1.1", "sony-custom-layers[torch]"))
         from sony_custom_layers.pytorch.object_detection.nms import multiclass_nms
         import model_compression_toolkit as mct
@@ -1191,7 +1191,7 @@ class Exporter:
             max_detections=self.args.max_det,
         ).to(self.device)
 
-        f = Path(str(self.file).replace(self.file.suffix, "_mct_model.onnx"))  # js dir
+        f = Path(str(self.file).replace(self.file.suffix, "_imx500_model.onnx"))  # js dir
         mct.exporter.pytorch_export_model(model=quant_model, save_model_path=f, repr_dataset=representative_dataset_gen)
 
         import onnx
@@ -1204,7 +1204,7 @@ class Exporter:
         onnx.save(model_onnx, f)
 
         if not LINUX:
-            LOGGER.warning(f"{prefix} WARNING ⚠️ MCT imx500-converter is only supported on Linux.")
+            LOGGER.warning(f"{prefix} WARNING ⚠️ imx500-converter is only supported on Linux.")
         else:
             check_requirements("imx500-converter[pt]==3.14.3")
             try:
@@ -1217,7 +1217,7 @@ class Exporter:
                 )
                 return None
 
-            subprocess.run(["imxconv-pt", "-i", "yolov8n_mct_model.onnx", "-o", "yolov8n_imx500_model"], check=True)
+            subprocess.run(["imxconv-pt", "-i", "yolov8n_imx500_model.onnx", "-o", "yolov8n_imx500_model"], check=True)
 
         return f, None
 

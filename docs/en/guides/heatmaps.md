@@ -36,8 +36,21 @@ A heatmap generated with [Ultralytics YOLO11](https://github.com/ultralytics/ult
 
 !!! example "Heatmaps using Ultralytics YOLO11 Example"
 
+    === "CLI"
+    
+        ```bash 
+        # by default line analytics will be called.
+        yolo solutions analytics show=True  
+        
+        # pass the source
+        yolo solutions analytics source="path/to/video/file.mp4"
+        
+        # generate bar graphs for processed video
+        yolo solutions analytics analytics_type="bar" 
+        ```
+        
     === "Heatmap"
-
+    
         ```python
         import cv2
 

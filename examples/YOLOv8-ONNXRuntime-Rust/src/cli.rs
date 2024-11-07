@@ -15,7 +15,7 @@ pub struct Args {
 
     /// device id
     #[arg(long, default_value_t = 0)]
-    pub device_id: u32,
+    pub device_id: i32,
 
     /// using TensorRT EP
     #[arg(long)]

@@ -7,11 +7,15 @@ from pathlib import Path
 from types import SimpleNamespace
 from typing import Dict, List, Union
 
+import cv2
+
 from ultralytics.utils import (
     ASSETS,
+    ASSETS_URL,
     DEFAULT_CFG,
     DEFAULT_CFG_DICT,
     DEFAULT_CFG_PATH,
+    DEFAULT_SOL_DICT,
     IS_VSCODE,
     LOGGER,
     RANK,
@@ -29,6 +33,17 @@ from ultralytics.utils import (
     yaml_load,
     yaml_print,
 )
+
+# Define valid solutions
+SOLUTION_MAP = {
+    "count": ("ObjectCounter", "count"),
+    "heatmap": ("Heatmap", "generate_heatmap"),
+    "queue": ("QueueManager", "process_queue"),
+    "speed": ("SpeedEstimator", "estimate_speed"),
+    "workout": ("AIGym", "monitor"),
+    "analytics": ("Analytics", "process_data"),
+    "help": None,
+}
 
 # Define valid tasks and modes
 MODES = {"train", "val", "predict", "export", "track", "benchmark"}
@@ -57,6 +72,31 @@ TASK2METRIC = {
 MODELS = {TASK2MODEL[task] for task in TASKS}
 
 ARGV = sys.argv or ["", ""]  # sometimes sys.argv = []
+SOLUTIONS_HELP_MSG = f"""
+    Arguments received: {str(['yolo'] + ARGV[1:])}. Ultralytics 'yolo solutions' usage overview:
+
+        yolo SOLUTIONS SOLUTION ARGS
+
+        Where SOLUTIONS (required) is a keyword
+              SOLUTION (optional) is one of {list(SOLUTION_MAP.keys())}
+              ARGS (optional) are any number of custom 'arg=value' pairs like 'show_in=True' that override defaults.
+                See all ARGS at https://docs.ultralytics.com/usage/cfg or with 'yolo cfg'
+
+    1. Call object counting solution
+        yolo solutions count source="path/to/video/file.mp4" region=[(20, 400), (1080, 404), (1080, 360), (20, 360)]
+
+    2. Call heatmaps solution
+        yolo solutions heatmap colormap=cv2.COLORMAP_PARAULA model=yolo11n.pt
+
+    3. Call queue management solution
+        yolo solutions queue region=[(20, 400), (1080, 404), (1080, 360), (20, 360)] model=yolo11n.pt
+
+    4. Call workouts monitoring solution for push-ups
+        yolo solutions workout model=yolo11n-pose.pt kpts=[6, 8, 10]
+
+    5. Generate analytical graphs
+        yolo solutions analytics analytics_type="pie"
+    """
 CLI_HELP_MSG = f"""
     Arguments received: {str(['yolo'] + ARGV[1:])}. Ultralytics 'yolo' commands use the following syntax:
 
@@ -78,19 +118,24 @@ CLI_HELP_MSG = f"""
 
     4. Export a YOLO11n classification model to ONNX format at image size 224 by 128 (no TASK required)
         yolo export model=yolo11n-cls.pt format=onnx imgsz=224,128
-    
+
     5. Streamlit real-time webcam inference GUI
         yolo streamlit-predict
-        
-    6. Run special commands:
+
+    6. Ultralytics solutions usage
+        yolo solutions count or in {list(SOLUTION_MAP.keys())} source="path/to/video/file.mp4"
+
+    7. Run special commands:
         yolo help
         yolo checks
         yolo version
         yolo settings
         yolo copy-cfg
         yolo cfg
+        yolo solutions help
 
     Docs: https://docs.ultralytics.com
+    Solutions: https://docs.ultralytics.com/solutions/
     Community: https://community.ultralytics.com
     GitHub: https://github.com/ultralytics/ultralytics
     """
@@ -568,6 +613,100 @@ def handle_yolo_settings(args: List[str]) -> None:
         LOGGER.warning(f"WARNING ⚠️ settings error: '{e}'. Please see {url} for help.")
 
 
+def handle_yolo_solutions(args: List[str]) -> None:
+    """
+    Processes YOLO solutions arguments and runs the specified computer vision solutions pipeline.
+
+    Args:
+        args (List[str]): Command-line arguments for configuring and running the Ultralytics YOLO
+            solutions: https://docs.ultralytics.com/solutions/, It can include solution name, source,
+            and other configuration parameters.
+
+    Returns:
+        None: The function processes video frames and saves the output but doesn't return any value.
+
+    Examples:
+        Run people counting solution with default settings:
+        >>> handle_yolo_solutions(["count"])
+
+        Run analytics with custom configuration:
+        >>> handle_yolo_solutions(["analytics", "conf=0.25", "source=path/to/video/file.mp4"])
+
+    Notes:
+        - Default configurations are merged from DEFAULT_SOL_DICT and DEFAULT_CFG_DICT
+        - Arguments can be provided in the format 'key=value' or as boolean flags
+        - Available solutions are defined in SOLUTION_MAP with their respective classes and methods
+        - If an invalid solution is provided, defaults to 'count' solution
+        - Output videos are saved in 'runs/solution/{solution_name}' directory
+        - For 'analytics' solution, frame numbers are tracked for generating analytical graphs
+        - Video processing can be interrupted by pressing 'q'
+        - Processes video frames sequentially and saves output in .avi format
+        - If no source is specified, downloads and uses a default sample video
+    """
+    full_args_dict = {**DEFAULT_SOL_DICT, **DEFAULT_CFG_DICT}  # arguments dictionary
+    overrides = {}
+
+    # check dictionary alignment
+    for arg in merge_equals_args(args):
+        arg = arg.lstrip("-").rstrip(",")
+        if "=" in arg:
+            try:
+                k, v = parse_key_value_pair(arg)
+                overrides[k] = v
+            except (NameError, SyntaxError, ValueError, AssertionError) as e:
+                check_dict_alignment(full_args_dict, {arg: ""}, e)
+        elif arg in full_args_dict and isinstance(full_args_dict.get(arg), bool):
+            overrides[arg] = True
+    check_dict_alignment(full_args_dict, overrides)  # dict alignment
+
+    # Get solution name
+    if args and args[0] in SOLUTION_MAP:
+        if args[0] != "help":
+            s_n = args.pop(0)  # Extract the solution name directly
+        else:
+            LOGGER.info(SOLUTIONS_HELP_MSG)
+    else:
+        LOGGER.warning(
+            f"⚠️ No valid solution provided. Using default 'count'. Available: {', '.join(SOLUTION_MAP.keys())}"
+        )
+        s_n = "count"  # Default solution if none provided
+
+    cls, method = SOLUTION_MAP[s_n]  # solution class name, method name and default source
+
+    from ultralytics import solutions  # import ultralytics solutions
+
+    solution = getattr(solutions, cls)(IS_CLI=True, **overrides)  # get solution class i.e ObjectCounter
+    process = getattr(solution, method)  # get specific function of class for processing i.e, count from ObjectCounter
+
+    cap = cv2.VideoCapture(solution.CFG["source"])  # read the video file
+
+    # extract width, height and fps of the video file, create save directory and initialize video writer
+    import os  # for directory creation
+    from pathlib import Path
+
+    from ultralytics.utils.files import increment_path  # for output directory path update
+
+    w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
+    if s_n == "analytics":  # analytical graphs follow fixed shape for output i.e w=1920, h=1080
+        w, h = 1920, 1080
+    save_dir = increment_path(Path("runs") / "solutions" / "exp", exist_ok=False)
+    save_dir.mkdir(parents=True, exist_ok=True)  # create the output directory
+    vw = cv2.VideoWriter(os.path.join(save_dir, "solution.avi"), cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
+
+    try:  # Process video frames
+        f_n = 0  # frame number, required for analytical graphs
+        while cap.isOpened():
+            success, frame = cap.read()
+            if not success:
+                break
+            frame = process(frame, f_n := f_n + 1) if s_n == "analytics" else process(frame)
+            vw.write(frame)
+            if cv2.waitKey(1) & 0xFF == ord("q"):
+                break
+    finally:
+        cap.release()
+
+
 def handle_streamlit_inference():
     """
     Open the Ultralytics Live Inference Streamlit app for real-time object detection.
@@ -709,6 +848,7 @@ def entrypoint(debug=""):
         "logout": lambda: handle_yolo_hub(args),
         "copy-cfg": copy_default_cfg,
         "streamlit-predict": lambda: handle_streamlit_inference(),
+        "solutions": lambda: handle_yolo_solutions(args[1:]),
     }
     full_args_dict = {**DEFAULT_CFG_DICT, **{k: None for k in TASKS}, **{k: None for k in MODES}, **special}
 

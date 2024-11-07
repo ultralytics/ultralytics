@@ -28,7 +28,7 @@ from ultralytics.utils import (
     __version__,
     colorstr,
 )
-from ultralytics.utils.checks import check_version
+from ultralytics.utils.checks import check_requirements, check_version
 
 try:
     import thop
@@ -140,7 +140,7 @@ def select_device(device="", batch=0, newline=False, verbose=True):
 
     Args:
         device (str | torch.device, optional): Device string or torch.device object.
-            Options are 'None', 'cpu', or 'cuda', or '0' or '0,1,2,3'. Defaults to an empty string, which auto-selects
+            Options are 'None', 'cpu', 'cuda' or '0' or '0,1,2,3', 'ocl' or 'ocl:num', where 'num' represents the opencl device which is usually 0. Defaults to an empty string, which auto-selects
             the first available GPU, or CPU if no GPU is available.
         batch (int, optional): Batch size being used in your model. Defaults to 0.
         newline (bool, optional): If True, adds a newline at the end of the log string. Defaults to False.
@@ -172,7 +172,8 @@ def select_device(device="", batch=0, newline=False, verbose=True):
         device = device.replace(remove, "")  # to string, 'cuda:0' -> '0' and '(0, 1)' -> '0,1'
     cpu = device == "cpu"
     mps = device in {"mps", "mps:0"}  # Apple Metal Performance Shaders (MPS)
-    if cpu or mps:
+    ocl = device.startswith("ocl")  # PyTorch OpenCL
+    if cpu or mps or ocl:
         os.environ["CUDA_VISIBLE_DEVICES"] = "-1"  # force torch.cuda.is_available() = False
     elif device:  # non-cpu device requested
         if device == "cuda":
@@ -221,6 +222,19 @@ def select_device(device="", batch=0, newline=False, verbose=True):
         # Prefer MPS if available
         s += f"MPS ({get_cpu_info()})\n"
         arg = "mps"
+    elif ocl:
+        check_requirements(
+            ["torch>=2.4.0", "torchvision>=0.19.0"]
+        )  # current pytorch_ocl build requires PyTorch 2.4.0 or 2.4.1
+
+        try:
+            import pytorch_ocl  # check if pytorch_ocl is installed
+        except ModuleNotFoundError:
+            raise ModuleNotFoundError(
+                "pytorch_ocl not found. Please install pytorch_ocl from https://github.com/artyom-beilis/pytorch_dlprim/releases/latest"
+            )
+
+        arg = "ocl:0" if device == "ocl" else device  # 'ocl' defaults to device 0
     else:  # revert to CPU
         s += f"CPU ({get_cpu_info()})\n"
         arg = "cpu"
@@ -681,7 +695,7 @@ def profile(input, ops, n=10, device=None):
                 results.append(None)
             finally:
                 gc.collect()  # attempt to free unused memory
-                torch.cuda.empty_cache()
+                torch.ocl.empty_cache() if device.type == "ocl" else torch.cuda.empty_cache()
     return results
 
 

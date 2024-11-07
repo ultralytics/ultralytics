@@ -15,7 +15,7 @@ cd examples/YOLOv8-CPP-Inference
 ```
 second,change the CMakeLists.txt at 14 row
 ```cmake
-set(CUDA_TOOLKIT_ROOT_DIR "E:/lib/cudalib-11.8/development")
+set(CUDA_TOOLKIT_ROOT_DIR "/usr/local/cuda")
 ```
 change it as your own CUDA path , linux system like "/usr/local/cuda".And then
 ```bash
@@ -71,9 +71,9 @@ After installing the above dependencies, please modify the following fields in t
 ```cmake
 if(WITH_TENSORRT)
     message("Build TensorRT example!")
-    set(TensorRT_DIR "E:/lib/Tensorrt/TensorRT-10.0.1.6")
+    set(TensorRT_DIR "/usr/local/tensorrt-10.0.1.6")
 endif()
-set(CUDA_TOOLKIT_ROOT_DIR "E:/lib/cudalib-11.8/development")
+set(CUDA_TOOLKIT_ROOT_DIR "/usr/local/cuda")
 ```
 
 change them to TensorRT and Cuda project path,so that add dependencies.

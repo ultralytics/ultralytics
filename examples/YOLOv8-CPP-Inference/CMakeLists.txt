@@ -9,9 +9,9 @@ option(WITH_TENSORRT "Build tensorrt example ?" OFF)
 # set dependencies lib path
 if(WITH_TENSORRT)
     message("Build TensorRT example!")
-    set(TensorRT_DIR "E:/lib/Tensorrt/TensorRT-10.0.1.6")
+    set(TensorRT_DIR "/usr/local/tensorrt-10.0.1.6")
 endif()
-set(CUDA_TOOLKIT_ROOT_DIR "E:/lib/cudalib-11.8/development")
+set(CUDA_TOOLKIT_ROOT_DIR "/usr/local/cuda")
 
 
 # set lib type

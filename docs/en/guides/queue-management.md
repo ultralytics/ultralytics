@@ -35,7 +35,20 @@ Queue management using [Ultralytics YOLO11](https://github.com/ultralytics/ultra
 
 !!! example "Queue Management using YOLO11 Example"
 
-    === "Queue Manager"
+    === "CLI"
+
+        ```bash
+        # Run a queue example
+        yolo solutions queue show=True
+
+        # Pass a source video
+        yolo solutions queue source="path/to/video/file.mp4"
+
+        # Pass queue coordinates
+        yolo solutions queue region=[(20, 400), (1080, 404), (1080, 360), (20, 360)]
+        ```
+
+    === "Python"
 
         ```python
         import cv2

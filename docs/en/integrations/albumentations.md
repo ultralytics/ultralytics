@@ -8,7 +8,7 @@ keywords: Albumentations, YOLO11, data augmentation, Ultralytics, computer visio
 
 When you are building [computer vision models](../models/index.md), the quality and variety of your [training data](../datasets/index.md) can play a big role in how well your model performs. Albumentations offers a fast, flexible, and efficient way to apply a wide range of image transformations that can improve your model's ability to adapt to real-world scenarios. It easily integrates with [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics) and can help you create robust datasets for [object detection](../tasks/detect.md), [segmentation](../tasks/segment.md), and [classification](../tasks/classify.md) tasks.
 
-By using Albumentations, you can boost your YOLO11 training data with techniques like geometric transformations and color adjustments. In this article, we’ll see how Albumentations can improve your [data augmentation](../guides/preprocessing_annotated_data.md) process and make your [YOLO11 projects](../solutions/index.md) even more impactful. Let’s get started!
+By using Albumentations, you can boost your YOLO11 training data with techniques like geometric transformations and color adjustments. In this article, we'll see how Albumentations can improve your [data augmentation](../guides/preprocessing_annotated_data.md) process and make your [YOLO11 projects](../solutions/index.md) even more impactful. Let's get started!
 
 ## Albumentations for Image Augmentation
 
@@ -40,7 +40,7 @@ Albumentations offers many useful features that simplify complex image augmentat
 
 With respect to image augmentation, Albumentations stands out as a reliable tool for computer vision tasks. Here are a few key reasons why you should consider using it for your Vision AI projects:
 
-- **Easy-to-Use API**: Albumentations provides a single, straightforward API for applying a wide range of augmentations to images, masks, bounding boxes, and keypoints. It’s designed to adapt easily to different datasets, making [data preparation](../guides/data-collection-and-annotation.md) simpler and more efficient.
+- **Easy-to-Use API**: Albumentations provides a single, straightforward API for applying a wide range of augmentations to images, masks, bounding boxes, and keypoints. It's designed to adapt easily to different datasets, making [data preparation](../guides/data-collection-and-annotation.md) simpler and more efficient.
 
 - **Rigorous Bug Testing**: Bugs in the augmentation pipeline can silently corrupt input data, often going unnoticed but ultimately degrading model performance. Albumentations addresses this with a thorough test suite that helps catch bugs early in development.
 
@@ -48,11 +48,11 @@ With respect to image augmentation, Albumentations stands out as a reliable tool
 
 ## How to Use Albumentations to Augment Data for YOLO11 Training
 
-Now that we’ve covered what Albumentations is and what it can do, let’s look at how to use it to augment your data for YOLO11 model training. It’s easy to set up because it integrates directly into [Ultralytics’ training mode](../modes/train.md) and applies automatically if you have the Albumentations package installed.
+Now that we've covered what Albumentations is and what it can do, let's look at how to use it to augment your data for YOLO11 model training. It's easy to set up because it integrates directly into [Ultralytics' training mode](../modes/train.md) and applies automatically if you have the Albumentations package installed.
 
 ### Installation
 
-To use Albumentations with YOLOv11, start by making sure you have the necessary packages installed. If Albumentations isn’t installed, the augmentations won’t be applied during training. Once set up, you’ll be ready to create an augmented dataset for training, with Albumentations integrated to enhance your model automatically.
+To use Albumentations with YOLOv11, start by making sure you have the necessary packages installed. If Albumentations isn't installed, the augmentations won't be applied during training. Once set up, you'll be ready to create an augmented dataset for training, with Albumentations integrated to enhance your model automatically.
 
 !!! tip "Installation"
 
@@ -67,7 +67,7 @@ For detailed instructions and best practices related to the installation process
 
 ### Usage
 
-After installing the necessary packages, you’re ready to start using Albumentations with YOLO11. When you train YOLOv11, a set of augmentations is automatically applied through its integration with Albumentations, making it easy to enhance your model’s performance.
+After installing the necessary packages, you're ready to start using Albumentations with YOLO11. When you train YOLOv11, a set of augmentations is automatically applied through its integration with Albumentations, making it easy to enhance your model's performance.
 
 !!! example "Usage"
 
@@ -83,17 +83,17 @@ After installing the necessary packages, you’re ready to start using Albumenta
         results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
         ```
 
-Next, let’s take look a closer look at the specific augmentations that are applied during training.
+Next, let's take look a closer look at the specific augmentations that are applied during training.
 
 ### Blur
 
-The Blur transformation in Albumentations applies a simple blur effect to the image by averaging pixel values within a small square area, or kernel. This is done using OpenCV’s `cv2.blur` function, which helps reduce noise in the image, though it also slightly reduces image details.
+The Blur transformation in Albumentations applies a simple blur effect to the image by averaging pixel values within a small square area, or kernel. This is done using OpenCV's `cv2.blur` function, which helps reduce noise in the image, though it also slightly reduces image details.
 
 Here are the parameters and values used in this integration:
 
 - **blur_limit**: This controls the size range of the blur effect. The default range is (3, 7), meaning the kernel size for the blur can vary between 3 and 7 pixels, with only odd numbers allowed to keep the blur centered.
 
-- **p**: The probability of applying the blur. In the integration, p=0.01, so there’s a 1% chance that this blur will be applied to each image. The low probability allows for occasional blur effects, introducing a bit of variation to help the model generalize without over-blurring the images.
+- **p**: The probability of applying the blur. In the integration, p=0.01, so there's a 1% chance that this blur will be applied to each image. The low probability allows for occasional blur effects, introducing a bit of variation to help the model generalize without over-blurring the images.
 
 <img width="776" alt="An Example of the Blur Augmentation" src="https://github.com/ultralytics/docs/releases/download/0/albumentations-blur.avif">
 
@@ -117,7 +117,7 @@ The ToGray transformation in Albumentations converts an image to grayscale, redu
 
 Here are the parameters and values used in this integration:
 
-- **num_output_channels**: Sets the number of channels in the output image. If this value is more than 1, the single grayscale channel will be replicated to create a multi-channel grayscale image. By default, it’s set to 3, giving a grayscale image with three identical channels.
+- **num_output_channels**: Sets the number of channels in the output image. If this value is more than 1, the single grayscale channel will be replicated to create a multi-channel grayscale image. By default, it's set to 3, giving a grayscale image with three identical channels.
 
 - **method**: Defines the grayscale conversion method. The default method, "weighted_average", applies a formula (0.299R + 0.587G + 0.114B) that closely aligns with human perception, providing a natural-looking grayscale effect. Other options, like "from_lab", "desaturation", "average", "max", and "pca", offer alternative ways to create grayscale images based on various needs for speed, brightness emphasis, or detail preservation.
 

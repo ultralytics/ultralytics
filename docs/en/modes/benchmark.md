@@ -8,6 +8,28 @@ keywords: model benchmarking, YOLO11, Ultralytics, performance evaluation, expor
 
 <img width="1024" src="https://github.com/ultralytics/docs/releases/download/0/ultralytics-yolov8-ecosystem-integrations.avif" alt="Ultralytics YOLO ecosystem and integrations">
 
+## Benchmark Visualization
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+
+!!! tip "Refresh Browser"
+
+    You may need to refresh the page to view the graphs correctly due to potential cookie issues.
+
+<div style="display: flex; align-items: flex-start;">
+  <div style="margin-right: 20px;">
+    <label><input type="checkbox" name="algorithm" value="YOLO11" checked><span>Ultralytics YOLO11</span></label><br>
+    <label><input type="checkbox" name="algorithm" value="YOLOv6" checked><span>YOLOv6</span></label><br>
+    <label><input type="checkbox" name="algorithm" value="YOLOv7" checked><span>YOLOv7</span></label><br>
+    <label><input type="checkbox" name="algorithm" value="YOLOv10" checked><span>YOLOv10</span></label><br>
+    <label><input type="checkbox" name="algorithm" value="YOLOv9" checked><span>YOLOv9</span></label><br>
+    <label><input type="checkbox" name="algorithm" value="YOLOv8" checked><span>Ultralytics YOLOv8</span></label><br>
+    <label><input type="checkbox" name="algorithm" value="PPYOLOE" checked><span>PPYOLOE</span></label><br>
+    <label><input type="checkbox" name="algorithm" value="YOLOv5" checked><span>Ultralytics YOLOv5</span></label>
+  </div>
+  <div style="flex-grow: 1;"><canvas id="chart"></canvas></div> <!-- Canva for plotting benchmarks -->
+</div>
+
 ## Introduction
 
 Once your model is trained and validated, the next logical step is to evaluate its performance in various real-world scenarios. Benchmark mode in Ultralytics YOLO11 serves this purpose by providing a robust framework for assessing the speed and [accuracy](https://www.ultralytics.com/glossary/accuracy) of your model across a range of export formats.

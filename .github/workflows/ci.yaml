@@ -325,6 +325,7 @@ jobs:
           yolo train model=yolo11n.pt data=coco8.yaml epochs=1 imgsz=32
           yolo val model=yolo11n.pt data=coco8.yaml imgsz=32
           yolo export model=yolo11n.pt format=torchscript imgsz=160
+          yolo solutions
       - name: Test Python
         # Note this step must use the updated default bash environment, not a python environment
         run: |
@@ -335,6 +336,8 @@ jobs:
           results = model.val(imgsz=160)
           results = model.predict(imgsz=160)
           results = model.export(format='onnx', imgsz=160)
+          from ultralytics.cfg import handle_yolo_solutions
+          handle_yolo_solutions(["show=False"])
           "
       - name: PyTest
         run: |

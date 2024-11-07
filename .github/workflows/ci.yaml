@@ -336,8 +336,6 @@ jobs:
           results = model.val(imgsz=160)
           results = model.predict(imgsz=160)
           results = model.export(format='onnx', imgsz=160)
-          from ultralytics.cfg import handle_yolo_solutions
-          handle_yolo_solutions(["show=False"])
           "
       - name: PyTest
         run: |

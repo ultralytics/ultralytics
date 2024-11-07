@@ -9,11 +9,11 @@ edition = "2021"
 
 [dependencies]
 clap = { version = "4.2.4", features = ["derive"] }
-image = { version = "0.24.7", default-features = false, features = ["jpeg", "png", "webp-encoder"] }
-imageproc = { version = "0.23.0", default-features = false }
-ndarray = { version = "0.15.6" }
-ort = { version = "1.16.3", default-features = false, features = ["load-dynamic", "copy-dylibs", "half"] }
-rusttype = { version = "0.9", default-features = false }
+image = { version = "0.25.2"}
+imageproc = { version = "0.25.0"}
+ndarray = { version = "0.16" }
+ort = { version = "2.0.0-rc.5", features = ["cuda", "tensorrt", "load-dynamic", "copy-dylibs", "half"]}
+rusttype = { version = "0.9.3" }
 anyhow = { version = "1.0.75" }
 regex = { version = "1.5.4" }
 rand = { version = "0.8.5" }
@@ -21,3 +21,4 @@ chrono = { version = "0.4.30" }
 half = { version = "2.3.1" }
 dirs = { version = "5.0.1" }
 ureq = { version = "2.9.1" }
+ab_glyph = "0.2.29"

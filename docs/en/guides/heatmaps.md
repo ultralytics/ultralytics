@@ -36,7 +36,20 @@ A heatmap generated with [Ultralytics YOLO11](https://github.com/ultralytics/ult
 
 !!! example "Heatmaps using Ultralytics YOLO11 Example"
 
-    === "Heatmap"
+    === "CLI"
+
+        ```bash
+        # Run a heatmap example
+        yolo solutions heatmap show=True
+
+        # Pass a source video
+        yolo solutions heatmap source="path/to/video/file.mp4"
+
+        # Pass a custom colormap
+        yolo solutions heatmap colormap=cv2.COLORMAP_INFERNO
+        ```
+
+    === "Python"
 
         ```python
         import cv2

@@ -1183,23 +1183,39 @@ class Format:
         return labels
 
     def _format_img(self, img):
-        """Formats an image for YOLO from a Numpy array to a PyTorch tensor."""
-        # Ensure the image has at least 3 dimensions (H, W, C)
+        """
+        Formats an image for YOLO from a Numpy array to a PyTorch tensor.
+
+        This function performs the following operations:
+        1. Ensures the image has 3 dimensions (adds a channel dimension if needed).
+        2. Transposes the image from HWC to CHW format.
+        3. Optionally flips the color channels from RGB to BGR.
+        4. Converts the image to a contiguous array.
+        5. Converts the Numpy array to a PyTorch tensor.
+
+        Args:
+            img (np.ndarray): Input image as a Numpy array with shape (H, W, C) or (H, W).
+
+        Returns:
+            (torch.Tensor): Formatted image as a PyTorch tensor with shape (C, H, W).
+
+        Examples:
+            >>> import numpy as np
+            >>> img = np.random.rand(100, 100, 3)
+            >>> formatted_img = self._format_img(img)
+            >>> print(formatted_img.shape)
+            torch.Size([3, 100, 100])
+        """        # Ensure the image has at least 3 dimensions (H, W, C)
         if len(img.shape) < 3:
             img = np.expand_dims(img, -1)  # Add a channel dimension
         img = img.transpose(2, 0, 1)  # Convert from HWC to CHW format
 
-        # Check if the image has 3 channels (color image)
         if img.shape[0] == 3:
-            # Randomly decide whether to swap channels based on self.bgr
             if random.uniform(0, 1) > self.bgr:
                 img = img[[2, 1, 0], :, :]  # Swap channels (BGR to RGB or vice versa)
-        # For images with less than 3 channels (e.g., grayscale), skip channel swapping
 
-        # Ensure the array is contiguous
         img = np.ascontiguousarray(img)
 
-        # Convert to PyTorch tensor
         img = torch.from_numpy(img)
         # Normalize image depending on its data type
         if img.dtype == torch.uint8:

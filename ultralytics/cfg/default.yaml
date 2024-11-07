@@ -36,7 +36,7 @@ profile: False # (bool) profile ONNX and TensorRT speeds during training for log
 freeze: None # (int | list, optional) freeze first n layers, or freeze list of layer indices during training
 multi_scale: False # (bool) Whether to use multiscale during training
 # Segmentation
-overlap_mask: True # (bool) masks should overlap during training (segment train only)
+overlap_mask: True # (bool) merge object masks into a single image mask during training (segment train only)
 mask_ratio: 4 # (int) mask downsample ratio (segment train only)
 # Classification
 dropout: 0.0 # (float) use dropout regularization (classify train only)

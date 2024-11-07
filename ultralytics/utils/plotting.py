@@ -1109,7 +1109,7 @@ def plot_images(
                     image_masks = np.repeat(image_masks, nl, axis=0)
                     image_masks = np.where(image_masks == index, 1.0, 0.0)
 
-                im = np.asarray(annotator.im).copy()
+                np.asarray(annotator.im).copy()
                 for j in range(len(image_masks)):
                     if labels or conf[j] > conf_thres:
                         # color = colors(classes[j])
@@ -1126,7 +1126,7 @@ def plot_images(
                         #     )
                         # except Exception:
                         #     pass
-                        annotator.masks(image_masks,colors)
+                        annotator.masks(image_masks, colors)
                         # annotator.fromarray(im)
 
     # After annotations, scale the annotated image back to original dtype if necessary

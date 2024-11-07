@@ -1205,7 +1205,7 @@ class Format:
             >>> formatted_img = self._format_img(img)
             >>> print(formatted_img.shape)
             torch.Size([3, 100, 100])
-        """        # Ensure the image has at least 3 dimensions (H, W, C)
+        """  # Ensure the image has at least 3 dimensions (H, W, C)
         if len(img.shape) < 3:
             img = np.expand_dims(img, -1)  # Add a channel dimension
         img = img.transpose(2, 0, 1)  # Convert from HWC to CHW format

@@ -1022,12 +1022,12 @@ def forked(timeout=None):
                 LOGGER.warning("WARNING ⚠️ Function exceeded time limit and was terminated.")
                 return
 
-            result, error = result_queue.get()
-            if error:
-                LOGGER.warning(f"WARNING ⚠️ {error}")
-            else:
-                return result
-
+            result = None
+            try:
+                result, error = result_queue.get_nowait()
+            except:
+                LOGGER.warning(f"WARNING ⚠️ Function failed to execute.")
+            return result
         return wrapper
 
     return decorator

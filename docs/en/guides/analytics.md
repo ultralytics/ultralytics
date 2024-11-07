@@ -33,9 +33,21 @@ This guide provides a comprehensive overview of three fundamental types of [data
 - Bar plots, on the other hand, are suitable for comparing quantities across different categories and showing relationships between a category and its numerical value.
 - Lastly, pie charts are effective for illustrating proportions among categories and showing parts of a whole.
 
-!!! analytics "Analytics Examples"
+!!! example "Analytics Examples"
 
-    === "Line Graph"
+    === "CLI"
+
+        ```bash
+         yolo solutions analytics show=True
+
+        # pass the source
+        yolo solutions analytics source="path/to/video/file.mp4"
+
+        # generate the pie chart
+        yolo solutions analytics analytics_type="pie" show=True
+        ```
+
+    === "Python"
 
         ```python
         import cv2

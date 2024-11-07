@@ -1,7 +1,7 @@
 ---
 comments: true
 description: Learn how to efficiently train object detection models using YOLO11 with comprehensive instructions on settings, augmentation, and hardware utilization.
-keywords: Ultralytics, YOLO11, model training, deep learning, object detection, GPU training, dataset augmentation, hyperparameter tuning, model performance, M1 M2 training
+keywords: Ultralytics, YOLO11, model training, deep learning, object detection, GPU training, dataset augmentation, hyperparameter tuning, model performance, apple silicon training
 ---
 
 # Model Training with Ultralytics YOLO
@@ -107,11 +107,11 @@ Multi-GPU training allows for more efficient utilization of available hardware r
         yolo detect train data=coco8.yaml model=yolo11n.pt epochs=100 imgsz=640 device=0,1
         ```
 
-### Apple M1 and M2 MPS Training
+### Apple Silicon MPS Training
 
-With the support for Apple M1 and M2 chips integrated in the Ultralytics YOLO models, it's now possible to train your models on devices utilizing the powerful Metal Performance Shaders (MPS) framework. The MPS offers a high-performance way of executing computation and image processing tasks on Apple's custom silicon.
+With the support for Apple silicon chips integrated in the Ultralytics YOLO models, it's now possible to train your models on devices utilizing the powerful Metal Performance Shaders (MPS) framework. The MPS offers a high-performance way of executing computation and image processing tasks on Apple's custom silicon.
 
-To enable training on Apple M1 and M2 chips, you should specify 'mps' as your device when initiating the training process. Below is an example of how you could do this in Python and via the command line:
+To enable training on Apple silicon chips, you should specify 'mps' as your device when initiating the training process. Below is an example of how you could do this in Python and via the command line:
 
 !!! example "MPS Training Example"
 
@@ -134,7 +134,7 @@ To enable training on Apple M1 and M2 chips, you should specify 'mps' as your de
         yolo detect train data=coco8.yaml model=yolo11n.pt epochs=100 imgsz=640 device=mps
         ```
 
-While leveraging the computational power of the M1/M2 chips, this enables more efficient processing of the training tasks. For more detailed guidance and advanced configuration options, please refer to the [PyTorch MPS documentation](https://pytorch.org/docs/stable/notes/mps.html).
+While leveraging the computational power of the Apple silicon chips, this enables more efficient processing of the training tasks. For more detailed guidance and advanced configuration options, please refer to the [PyTorch MPS documentation](https://pytorch.org/docs/stable/notes/mps.html).
 
 ### Resuming Interrupted Trainings
 
@@ -335,9 +335,9 @@ To resume training from an interrupted session, set the `resume` argument to `Tr
 
 Check the section on [Resuming Interrupted Trainings](#resuming-interrupted-trainings) for more information.
 
-### Can I train YOLO11 models on Apple M1 and M2 chips?
+### Can I train YOLO11 models on Apple silicon chips?
 
-Yes, Ultralytics YOLO11 supports training on Apple M1 and M2 chips utilizing the Metal Performance Shaders (MPS) framework. Specify 'mps' as your training device.
+Yes, Ultralytics YOLO11 supports training on Apple silicon chips utilizing the Metal Performance Shaders (MPS) framework. Specify 'mps' as your training device.
 
 !!! example "MPS Training Example"
 
@@ -349,7 +349,7 @@ Yes, Ultralytics YOLO11 supports training on Apple M1 and M2 chips utilizing the
         # Load a pretrained model
         model = YOLO("yolo11n.pt")
 
-        # Train the model on M1/M2 chip
+        # Train the model on Apple silicon chip (M1/M2/M3/M4)
         results = model.train(data="coco8.yaml", epochs=100, imgsz=640, device="mps")
         ```
 
@@ -359,7 +359,7 @@ Yes, Ultralytics YOLO11 supports training on Apple M1 and M2 chips utilizing the
         yolo detect train data=coco8.yaml model=yolo11n.pt epochs=100 imgsz=640 device=mps
         ```
 
-For more details, refer to the [Apple M1 and M2 MPS Training](#apple-m1-and-m2-mps-training) section.
+For more details, refer to the [Apple Silicon MPS Training](#apple-silicon-mps-training) section.
 
 ### What are the common training settings, and how do I configure them?
 

@@ -243,6 +243,8 @@ class Exporter:
         if self.args.optimize:
             assert not ncnn, "optimize=True not compatible with format='ncnn', i.e. use optimize=False"
             assert self.device.type == "cpu", "optimize=True not compatible with cuda devices, i.e. use device='cpu'"
+        if self.args.int8 and tflite:
+            assert not getattr(model, "end2end", False), "TFLite INT8 export not supported for end2end models."
         if edgetpu or imx500:
             if not LINUX:
                 raise SystemError("Edge TPU (https://coral.ai/docs/edgetpu/compiler) and IMX500 (https://developer.aitrios.sony-semicon.com/en/raspberrypi-ai-camera/documentation/imx500-converter) export only supported on Linux.")

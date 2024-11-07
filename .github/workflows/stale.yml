@@ -5,6 +5,10 @@ on:
   schedule:
     - cron: "0 0 * * *" # Runs at 00:00 UTC every day
 
+permissions:
+  pull-requests: write
+  issues: write
+  
 jobs:
   stale:
     runs-on: ubuntu-latest

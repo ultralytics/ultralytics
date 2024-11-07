@@ -5,19 +5,26 @@ This example demonstrates how to perform inference using YOLOv8 and YOLOv5 model
 On the basis of OpenCV DNN, the optional extension is performed using TensorRT to run YOLO models.I will explain with two examples: OpenCV-Onnx and TensorRT.
 
 ## OpenCV-Onnx Example(default)
+
 ### Usage
+
 first,clone ultralytics repo
+
 ```bash
 git clone ultralytics
 cd ultralytics
 pip install .
 cd examples/YOLOv8-CPP-Inference
 ```
+
 second,change the CMakeLists.txt at 14 row
+
 ```cmake
 set(CUDA_TOOLKIT_ROOT_DIR "/usr/local/cuda")
 ```
+
 change it as your own CUDA path , linux system like "/usr/local/cuda".And then
+
 ```bash
 # Add a **yolov8\_.onnx** and/or **yolov5\_.onnx** model(s) to the ultralytics folder.
 # Edit the **main.cpp** to change the **projectBasePath** to match your user.
@@ -30,7 +37,7 @@ cd build
 cmake ..
 make
 
-# run 
+# run
 ./build/OnnxExample
 ```
 
@@ -61,7 +68,9 @@ This repository utilizes OpenCV's DNN API to run ONNX exported models of YOLOv5 
 The **main** branch version uses Qt as a GUI wrapper. The primary focus here is the **Inference** class file, which demonstrates how to transpose YOLOv8 models to work as YOLOv5 models.
 
 ## TensorRT Example(Optional)
-Environment 
+
+Environment
+
 - TensorRT 10.0.1.6
 - OpenCV 4.5.5
 - Cuda 11.8
@@ -81,7 +90,7 @@ change them to TensorRT and Cuda project path,so that add dependencies.
 ### Build
 
 ```bash
-# if you want to build tensorrt example ,it is nessary to add -DWITH_TENSORRT=ON.
+# if you want to build tensorrt example ,it is necessary to add -DWITH_TENSORRT=ON.
 cmake -S . -B build -DWITH_TENSORRT=ON
 cmake --build build --config release
 ```

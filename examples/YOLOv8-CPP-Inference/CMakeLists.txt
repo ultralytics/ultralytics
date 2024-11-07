@@ -4,27 +4,39 @@ project(Yolov8CPPInference VERSION 0.2)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
+# set dependencies lib path
+set(TensorRT_DIR "E:/lib/Tensorrt/TensorRT-10.0.1.6")
+set(CUDA_TOOLKIT_ROOT_DIR "E:/lib/cudalib-11.8/development")
+
 
 # set lib type
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     message("Window operating system build SHARED library")
-    # set dependencies lib path
-    set(TensorRT_DIR "E:/lib/Tensorrt/TensorRT-10.0.1.6")
-    set(CUDA_DIR "E:/lib/cudalib-11.8/development")
+
     # set TensorRT and cuda library and include directory
     set(TensorRT_INCLUDE_DIR "${TensorRT_DIR}/include")
     file(GLOB TensorRT_LIBS "${TensorRT_DIR}/lib/*.lib")
-    set(CUDA_INCLUDE_DIR "${CUDA_DIR}/include")
-    file(GLOB CUDA_LIBS "${CUDA_DIR}/lib/x64/*.lib")
+    set(CUDA_INCLUDE_DIR "${CUDA_TOOLKIT_ROOT_DIR}/include")
+    file(GLOB CUDA_LIBS "${CUDA_TOOLKIT_ROOT_DIR}/lib/x64/*.lib")
+
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     message("Linux operating system build SHARED library")
-    # CUDA
-    set(CUDA_TOOLKIT_ROOT_DIR "/usr/local/cuda")
-    find_package(CUDA 11 REQUIRED)
+    # CUDA(old)
+    # set(CUDA_TOOLKIT_ROOT_DIR "/usr/local/cuda")
+    # find_package(CUDA 11 REQUIRED)
+    # set(CMAKE_CUDA_STANDARD 11)
+    # set(CMAKE_CUDA_STANDARD_REQUIRED ON)
 
-    set(CMAKE_CUDA_STANDARD 11)
-    set(CMAKE_CUDA_STANDARD_REQUIRED ON)
+    # set TensorRT and cuda library and include directory
+    set(TensorRT_INCLUDE_DIR "${TensorRT_DIR}/include")
+    file(GLOB TensorRT_LIBS "${TensorRT_DIR}/targets/x86_64-linux-gnu/lib/stubs/*.so")
+    set(CUDA_INCLUDE_DIR "${CUDA_TOOLKIT_ROOT_DIR}/include")
+    file(GLOB CUDA_LIBS "${CUDA_TOOLKIT_ROOT_DIR}/lib64/*.so")
 endif()
+
+
+
+
 
 # OpenCV
 find_package(OpenCV REQUIRED)

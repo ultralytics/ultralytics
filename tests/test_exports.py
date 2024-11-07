@@ -193,6 +193,14 @@ def test_export_paddle():
 
 
 @pytest.mark.slow
+@pytest.mark.skipif(IS_RASPBERRYPI, reason="MNN not supported on Raspberry Pi")
+def test_export_mnn():
+    """Test YOLO exports to MNN format (WARNING: MNN test must precede NCNN test or CI error on Windows)."""
+    file = YOLO(MODEL).export(format="mnn", imgsz=32)
+    YOLO(file)(SOURCE, imgsz=32)  # exported model inference
+
+
+@pytest.mark.slow
 def test_export_ncnn():
     """Test YOLO exports to NCNN format."""
     file = YOLO(MODEL).export(format="ncnn", imgsz=32)

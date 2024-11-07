@@ -881,7 +881,7 @@ class Model(nn.Module):
         return self
 
     @property
-    def names(self) -> list:
+    def names(self) -> dict[int, str]:
         """
         Retrieves the class names associated with the loaded model.
 

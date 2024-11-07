@@ -47,7 +47,9 @@ checkAutoTheme();
 document.addEventListener("DOMContentLoaded", () => {
   const autoThemeInput = document.getElementById("__palette_1");
   autoThemeInput?.addEventListener("click", () => {
-    if (autoThemeInput.checked) setTimeout(checkAutoTheme);
+    if (autoThemeInput.checked) {
+      setTimeout(checkAutoTheme);
+    }
   });
 });
 
@@ -165,7 +167,9 @@ let chart = null;  // chart variable will hold the reference to the current char
 // This function is responsible for updating the benchmarks chart.
 function updateChart() {
     // If a chart instance already exists, destroy it.
-    if (chart) chart.destroy();
+    if (chart) {
+      chart.destroy();
+    }
 
     // Get the selected algorithms from the checkboxes.
     const selectedAlgorithms = [...document.querySelectorAll('input[name="algorithm"]:checked')].map(e => e.value);
@@ -187,7 +191,9 @@ function updateChart() {
     }));
 
     // If there are no selected algorithms, return without creating a new chart.
-    if (datasets.length === 0) return;
+    if (datasets.length === 0) {
+      return;
+    }
 
     // Create a new chart instance.
     chart = new Chart(document.getElementById('chart').getContext('2d'), {

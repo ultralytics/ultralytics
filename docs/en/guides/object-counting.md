@@ -48,7 +48,20 @@ Object counting with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
 
 !!! example "Object Counting using YOLO11 Example"
 
-    === "Count in Region"
+    === "CLI"
+
+        ```bash
+        # Run a counting example
+        yolo solutions count show=True
+
+        # Pass a source video
+        yolo solutions count source="path/to/video/file.mp4"
+
+        # Pass region coordinates
+        yolo solutions count region=[(20, 400), (1080, 404), (1080, 360), (20, 360)]
+        ```
+
+    === "Python"
 
         ```python
         import cv2

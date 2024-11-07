@@ -1026,8 +1026,9 @@ def forked(timeout=None):
             try:
                 result, error = result_queue.get_nowait()
             except:
-                LOGGER.warning(f"WARNING ⚠️ Function failed to execute.")
+                LOGGER.warning("WARNING ⚠️ Function failed to execute.")
             return result
+
         return wrapper
 
     return decorator

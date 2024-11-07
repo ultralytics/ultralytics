@@ -17,13 +17,16 @@ jobs:
     if: github.repository == 'ultralytics/ultralytics' && github.actor == 'glenn-jocher'
     name: Publish
     runs-on: ubuntu-latest
+    environment:  # for GitHub Deployments tab
+      name: Release - PyPI
+      url: https://pypi.org/p/ultralytics
     permissions:
       id-token: write # for PyPI trusted publishing
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets._GITHUB_TOKEN }} # use your PAT here
+          token: ${{ secrets._GITHUB_TOKEN }}
       - name: Git config
         run: |
           git config --global user.name "UltralyticsAssistant"
@@ -32,7 +35,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.x"
-          cache: "pip" # caching pip dependencies
+          cache: "pip"
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip wheel

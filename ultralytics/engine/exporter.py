@@ -568,8 +568,7 @@ class Exporter:
         f = str(self.file.with_suffix(".mnn"))  # MNN model file
         args = ["", "-f", "ONNX", "--modelFile", f_onnx, "--MNNModel", f, "--bizCode", json.dumps(self.metadata)]
         if self.args.int8:
-            args.append("--weightQuantBits")
-            args.append("8")
+            args.extend(("--weightQuantBits", "8"))
         if self.args.half:
             args.append("--fp16")
         mnnconvert.convert(args)

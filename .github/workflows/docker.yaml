@@ -170,6 +170,15 @@ jobs:
             docker build -f docker/Dockerfile-runner -t $t .
             docker push $t
           fi
+          if [[ "${{ matrix.tags }}" == "latest-python" ]]; then
+            t=ultralytics/ultralytics:latest-jupyter
+            v=ultralytics/ultralytics:${{ steps.get_version.outputs.version_tag }}-jupyter
+            docker build -f docker/Dockerfile-jupyter -t $t -t $v .
+            docker push $t
+            if [[ "${{ steps.check_tag.outputs.new_release }}" == "true" ]]; then
+              docker push $v
+            fi
+          fi
 
   trigger-actions:
     runs-on: ubuntu-latest
@@ -192,7 +201,7 @@ jobs:
     if: always()
     steps:
       - name: Check for failure and notify
-        if: needs.docker.result == 'failure' && github.repository == 'ultralytics/ultralytics' && github.event_name == 'push'
+        if: needs.docker.result == 'failure' && github.repository == 'ultralytics/ultralytics' && github.event_name == 'push' && github.run_attempt == '1'
         uses: slackapi/slack-github-action@v1.27.0
         with:
           payload: |

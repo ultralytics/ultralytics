@@ -243,9 +243,9 @@ class Exporter:
         if self.args.optimize:
             assert not ncnn, "optimize=True not compatible with format='ncnn', i.e. use optimize=False"
             assert self.device.type == "cpu", "optimize=True not compatible with cuda devices, i.e. use device='cpu'"
-        if edgetpu:
+        if edgetpu or imx500:
             if not LINUX:
-                raise SystemError("Edge TPU export only supported on Linux. See https://coral.ai/docs/edgetpu/compiler")
+                raise SystemError("Edge TPU (https://coral.ai/docs/edgetpu/compiler) and IMX500 (https://developer.aitrios.sony-semicon.com/en/raspberrypi-ai-camera/documentation/imx500-converter) export only supported on Linux.")
             elif self.args.batch != 1:  # see github.com/ultralytics/ultralytics/pull/13420
                 LOGGER.warning("WARNING ⚠️ Edge TPU export requires batch size 1, setting batch=1.")
                 self.args.batch = 1
@@ -1109,10 +1109,18 @@ class Exporter:
             raise ValueError("IMX500 export is not supported for end2end models.")
         if "C2f" not in self.model.__str__():
             raise ValueError("IMX500 export is only supported for YOLOv8 detection models")
-        check_requirements(("model-compression-toolkit==2.1.1", "sony-custom-layers[torch]"))
+        check_requirements(("model-compression-toolkit==2.1.1", "sony-custom-layers==0.2.0", "tensorflow==2.12.0"))
+        check_requirements("imx500-converter[pt]==3.14.3")
+        
         import model_compression_toolkit as mct
         import onnx
+        import subprocess
         from sony_custom_layers.pytorch.object_detection.nms import multiclass_nms
+        
+        try:
+            subprocess.run(["java", "--version"], check=True)
+        except EnvironmentError:
+            raise EnvironmentError("Java 17 is required for the imx500 conversion. \n Please install Java with: \n sudo apt install openjdk-17-jdk openjdk-17-jre")
 
         def representative_dataset_gen(dataloader=self.get_int8_calibration_dataloader(prefix)):
             for batch in dataloader:
@@ -1204,27 +1212,13 @@ class Exporter:
             meta.key, meta.value = k, str(v)
 
         onnx.save(model_onnx, f)
+                
+        output_dir = Path(str(self.file).replace(self.file.suffix, "_imx500_model"))
 
-        if not LINUX:
-            LOGGER.warning(f"{prefix} WARNING ⚠️ imx500-converter is only supported on Linux.")
-        else:
-            check_requirements("imx500-converter[pt]==3.14.3")
-            try:
-                import subprocess
+        subprocess.run(["imxconv-pt", "-i", str(f), "-o", str(output_dir), "--no-input-persistency", "--overwrite-output"], check=True)
 
-                subprocess.run(["java", "--version"], check=True)
-            except FileNotFoundError:
-                LOGGER.error(
-                    "Java 17 is required for the imx500 conversion. \n Please install Java with: \n sudo apt install openjdk-17-jdk openjdk-17-jre"
-                )
-                return None
-
-            output_dir = Path(str(self.file).replace(self.file.suffix, "_imx500_model"))
-
-            subprocess.run(["imxconv-pt", "-i", str(f), "-o", str(output_dir)], check=True)
-
-            with open(output_dir / "labels.txt", "w") as file:
-                file.writelines([f"{name}\n" for _, name in self.model.names.items()])
+        with open(output_dir / "labels.txt", "w") as file:
+            file.writelines([f"{name}\n" for _, name in self.model.names.items()])
 
         return f, None
 

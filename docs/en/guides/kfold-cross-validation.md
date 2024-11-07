@@ -263,6 +263,7 @@ fold_lbl_distrb.to_csv(save_path / "kfold_label_distribution.csv")
 
     for k in range(ksplit):
         dataset_yaml = ds_yamls[k]
+        model = YOLO(weights_path, task="detect")
         model.train(data=dataset_yaml, epochs=epochs, batch=batch, project=project)  # include any train arguments
         results[k] = model.metrics  # save output metrics for further analysis
     ```

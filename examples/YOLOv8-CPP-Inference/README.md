@@ -102,4 +102,4 @@ run command
 - 480 the width of input image
 
 and the result image
-!["result"](./result/result.jpg)
+!["result"](https://github.com/user-attachments/assets/bc0736a9-238a-4420-a02f-b522979140b1)

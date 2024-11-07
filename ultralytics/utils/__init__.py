@@ -980,6 +980,7 @@ def threaded(func):
 
     return wrapper
 
+
 def forked(timeout=None):
     """
     Decorator to run a function in a separate process with an optional timeout.
@@ -997,10 +998,11 @@ def forked(timeout=None):
     Examples:
         >>> @forked(timeout=5)
         >>> def long_running_function():
-        >>>     # Your code here
+        >>> # Your code here
         >>>     pass
     """
     import multiprocessing
+
     def decorator(func):
         def wrapper(*args, **kwargs):
             result_queue = multiprocessing.Queue()
@@ -1025,8 +1027,11 @@ def forked(timeout=None):
                 LOGGER.warning(f"WARNING ⚠️ {error}")
             else:
                 return result
+
         return wrapper
+
     return decorator
+
 
 def set_sentry():
     """

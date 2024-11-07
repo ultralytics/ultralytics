@@ -4,18 +4,24 @@ project(Yolov8CPPInference VERSION 0.2)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
+option(WITH_TENSORRT "Build tensorrt example ?" OFF)
+
 # set dependencies lib path
-set(TensorRT_DIR "E:/lib/Tensorrt/TensorRT-10.0.1.6")
+if(WITH_TENSORRT)
+    message("Build TensorRT example!")
+    set(TensorRT_DIR "E:/lib/Tensorrt/TensorRT-10.0.1.6")
+endif()
 set(CUDA_TOOLKIT_ROOT_DIR "E:/lib/cudalib-11.8/development")
 
 
 # set lib type
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     message("Window operating system build SHARED library")
-
-    # set TensorRT and cuda library and include directory
-    set(TensorRT_INCLUDE_DIR "${TensorRT_DIR}/include")
-    file(GLOB TensorRT_LIBS "${TensorRT_DIR}/lib/*.lib")
+    if(WITH_TENSORRT)
+        # set TensorRT and cuda library and include directory
+        set(TensorRT_INCLUDE_DIR "${TensorRT_DIR}/include")
+        file(GLOB TensorRT_LIBS "${TensorRT_DIR}/lib/*.lib")
+    endif()
     set(CUDA_INCLUDE_DIR "${CUDA_TOOLKIT_ROOT_DIR}/include")
     file(GLOB CUDA_LIBS "${CUDA_TOOLKIT_ROOT_DIR}/lib/x64/*.lib")
 
@@ -26,10 +32,11 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     # find_package(CUDA 11 REQUIRED)
     # set(CMAKE_CUDA_STANDARD 11)
     # set(CMAKE_CUDA_STANDARD_REQUIRED ON)
-
+    if(WITH_TENSORRT)
     # set TensorRT and cuda library and include directory
-    set(TensorRT_INCLUDE_DIR "${TensorRT_DIR}/include")
-    file(GLOB TensorRT_LIBS "${TensorRT_DIR}/targets/x86_64-linux-gnu/lib/stubs/*.so")
+        set(TensorRT_INCLUDE_DIR "${TensorRT_DIR}/include")
+        file(GLOB TensorRT_LIBS "${TensorRT_DIR}/targets/x86_64-linux-gnu/lib/stubs/*.so")
+    endif()
     set(CUDA_INCLUDE_DIR "${CUDA_TOOLKIT_ROOT_DIR}/include")
     file(GLOB CUDA_LIBS "${CUDA_TOOLKIT_ROOT_DIR}/lib64/*.so")
 endif()
@@ -48,19 +55,21 @@ include_directories(
 )
 # !OpenCV
 
+if(WITH_TENSORRT)
+    # generate library
+    add_library(trtemplate SHARED
+        TRTInfer/TRTinfer.cpp
+        TRTInfer/utility.cpp
+    )
+    target_link_libraries(trtemplate 
+    PRIVATE
+        ${CUDA_LIBS}
+        ${TensorRT_LIBS}
+    PUBLIC
+        ${OpenCV_LIBS}
+    )
+endif()
 
-# generate library
-add_library(trtemplate SHARED
-    TRTInfer/TRTinfer.cpp
-    TRTInfer/utility.cpp
-)
-target_link_libraries(trtemplate 
-PRIVATE
-    ${CUDA_LIBS}
-    ${TensorRT_LIBS}
-PUBLIC
-    ${OpenCV_LIBS}
-)
 # opencv onnx example files
 add_library(Inferdll SHARED
     TRTInfer/inference.h
@@ -75,9 +84,10 @@ add_executable(OnnxExample OnnxExample.cpp)
 target_link_libraries(OnnxExample 
     Inferdll
 )
-
-# tensorrt example
-add_executable(TrtExample TrtExample.cpp)
-target_link_libraries(TrtExample
-    trtemplate
-)
+if(WITH_TENSORRT)
+    # tensorrt example
+    add_executable(TrtExample TrtExample.cpp)
+    target_link_libraries(TrtExample
+        trtemplate
+    )
+endif()

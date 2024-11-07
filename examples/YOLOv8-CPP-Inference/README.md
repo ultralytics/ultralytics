@@ -1,18 +1,24 @@
 # YOLOv8/YOLOv5 Inference C++
 
 This example demonstrates how to perform inference using YOLOv8 and YOLOv5 models in C++ with OpenCV's DNN API.
-On the basis of OpenCV DNN, extension is performed using TensorRT to run YOLO models.I will explain with two examples: OpenCV-Onnx and TensorRT.
 
-## OpenCV-Onnx Example
+On the basis of OpenCV DNN, the optional extension is performed using TensorRT to run YOLO models.I will explain with two examples: OpenCV-Onnx and TensorRT.
 
+## OpenCV-Onnx Example(default)
 ### Usage
-
+first,clone ultralytics repo
 ```bash
 git clone ultralytics
 cd ultralytics
 pip install .
 cd examples/YOLOv8-CPP-Inference
-
+```
+second,change the CMakeLists.txt at 14 row
+```cmake
+set(CUDA_TOOLKIT_ROOT_DIR "E:/lib/cudalib-11.8/development")
+```
+change it as your own CUDA path , linux system like "/usr/local/cuda".And then
+```bash
 # Add a **yolov8\_.onnx** and/or **yolov5\_.onnx** model(s) to the ultralytics folder.
 # Edit the **main.cpp** to change the **projectBasePath** to match your user.
 
@@ -23,20 +29,22 @@ mkdir build
 cd build
 cmake ..
 make
-./Yolov8CPPInference
+
+# run 
+./build/OnnxExample
 ```
 
 ### Exporting YOLOv8 and YOLOv5 Models
 
 To export YOLOv8 models:
 
-```commandline
+```bash
 yolo export model=yolov8s.pt imgsz=480,640 format=onnx opset=12
 ```
 
 To export YOLOv5 models:
 
-```commandline
+```bash
 python3 export.py --weights yolov5s.pt --img 480 640 --include onnx --opset 12
 ```
 
@@ -52,25 +60,29 @@ This repository utilizes OpenCV's DNN API to run ONNX exported models of YOLOv5 
 
 The **main** branch version uses Qt as a GUI wrapper. The primary focus here is the **Inference** class file, which demonstrates how to transpose YOLOv8 models to work as YOLOv5 models.
 
-## TensorRT Example
-
+## TensorRT Example(Optional)
+Environment 
 - TensorRT 10.0.1.6
 - OpenCV 4.5.5
 - Cuda 11.8
 
-After installing the above dependencies, please modify the following fields in the CMakeLists.txt file
+After installing the above dependencies, please modify the following fields in the CMakeLists.txt file at 12 and 14 row
 
 ```cmake
-set(TensorRT_DIR "E:/lib/Tensorrt/TensorRT-10.0.1.6")
-set(CUDA_DIR "E:/lib/cudalib-11.8/development")
+if(WITH_TENSORRT)
+    message("Build TensorRT example!")
+    set(TensorRT_DIR "E:/lib/Tensorrt/TensorRT-10.0.1.6")
+endif()
+set(CUDA_TOOLKIT_ROOT_DIR "E:/lib/cudalib-11.8/development")
 ```
 
-to TensorRT and Cuda path,so that add dependencies.
+change them to TensorRT and Cuda project path,so that add dependencies.
 
 ### Build
 
 ```bash
-cmake -S . -B build
+# if you want to build tensorrt example ,it is nessary to add -DWITH_TENSORRT=ON.
+cmake -S . -B build -DWITH_TENSORRT=ON
 cmake --build build --config release
 ```
 

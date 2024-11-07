@@ -417,6 +417,7 @@ nav:
       - TorchScript: integrations/torchscript.md
       - VS Code: integrations/vscode.md
       - Weights & Biases: integrations/weights-biases.md
+      - Albumentations: integrations/albumentations.md
   - HUB:
       - hub/index.md
       - Web:

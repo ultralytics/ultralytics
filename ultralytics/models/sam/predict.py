@@ -478,7 +478,7 @@ class Predictor(BasePredictor):
         results = []
         for masks, orig_img, img_path in zip([pred_masks], orig_imgs, self.batch[0]):
             if len(masks) == 0:
-                masks = None
+                masks, pred_bboxes = None, torch.zeros((0, 6), device=pred_masks.device)
             else:
                 masks = ops.scale_masks(masks[None].float(), orig_img.shape[:2], padding=False)[0]
                 masks = masks > self.model.mask_threshold  # to bool

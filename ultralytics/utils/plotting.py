@@ -12,7 +12,7 @@ import torch
 from PIL import Image, ImageDraw, ImageFont
 from PIL import __version__ as pil_version
 
-from ultralytics.utils import IS_COLAB, IS_KAGGLE, LOGGER, TryExcept, ops, plt_settings, threaded
+from ultralytics.utils import IS_COLAB, IS_KAGGLE, LOGGER, ops, plt_settings, threaded, forked
 from ultralytics.utils.checks import check_font, check_version, is_ascii
 from ultralytics.utils.files import increment_path
 
@@ -856,7 +856,7 @@ class Annotator:
         cv2.line(self.im, center_point, center_bbox, color, self.tf)
 
 
-@TryExcept()  # known issue https://github.com/ultralytics/yolov5/issues/5395
+@forked(timeout=60)  # known issue https://github.com/ultralytics/yolov5/issues/5395
 @plt_settings()
 def plot_labels(boxes, cls, names=(), save_dir=Path(""), on_plot=None):
     """Plot training labels including class histograms and box statistics."""

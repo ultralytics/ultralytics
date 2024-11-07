@@ -980,6 +980,53 @@ def threaded(func):
 
     return wrapper
 
+def forked(timeout=None):
+    """
+    Decorator to run a function in a separate process with an optional timeout.
+
+    This decorator allows a function to be executed in a separate process, with the ability to specify a timeout.
+    If the function exceeds the specified time limit, it will be terminated.
+
+    Args:
+        func (Callable): The function to be executed in a separate process.
+        timeout (int, optional): The maximum time (in seconds) to allow the function to run. Defaults to None.
+
+    Returns:
+        Callable: A wrapped function that runs in a separate process with an optional timeout.
+
+    Examples:
+        >>> @forked(timeout=5)
+        >>> def long_running_function():
+        >>>     # Your code here
+        >>>     pass
+    """
+    import multiprocessing
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            result_queue = multiprocessing.Queue()
+
+            def target():
+                try:
+                    result_queue.put((func(*args, **kwargs), None))
+                except Exception as e:
+                    result_queue.put((None, e))
+
+            process = multiprocessing.Process(target=target)
+            process.start()
+            process.join(timeout)
+
+            if process.is_alive():
+                process.terminate()
+                LOGGER.warning("WARNING ⚠️ Function exceeded time limit and was terminated.")
+                return
+
+            result, error = result_queue.get()
+            if error:
+                LOGGER.warning(f"WARNING ⚠️ {error}")
+            else:
+                return result
+        return wrapper
+    return decorator
 
 def set_sentry():
     """

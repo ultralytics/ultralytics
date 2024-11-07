@@ -854,6 +854,7 @@ class SAM2Model(torch.nn.Module):
         mask_inputs,
         output_dict,
         num_frames,
+        track_in_reverse,
         prev_sam_mask_logits,
     ):
         """Performs a single tracking step, updating object masks and memory features based on current frame inputs."""

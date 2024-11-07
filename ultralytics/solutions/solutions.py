@@ -72,14 +72,13 @@ class BaseSolution:
         self.model = YOLO(self.CFG["model"])
         self.names = self.model.names
 
-        if IS_CLI:  # for CLI, download the source and init video writer
-            if self.CFG["source"] is None:
-                d_s = "solutions_ci_demo.mp4" if "-pose" not in self.CFG["model"] else "solution_ci_pose_demo.mp4"
-                LOGGER.warning(f"⚠️ WARNING: source not provided. using default source {ASSETS_URL}/{d_s}")
-                from ultralytics.utils.downloads import safe_download
+        if IS_CLI and self.CFG["source"] is None:
+            d_s = "solutions_ci_demo.mp4" if "-pose" not in self.CFG["model"] else "solution_ci_pose_demo.mp4"
+            LOGGER.warning(f"⚠️ WARNING: source not provided. using default source {ASSETS_URL}/{d_s}")
+            from ultralytics.utils.downloads import safe_download
 
-                safe_download(f"{ASSETS_URL}/{d_s}")  # download source from ultralytics assets
-                self.CFG["source"] = d_s  # set default source
+            safe_download(f"{ASSETS_URL}/{d_s}")  # download source from ultralytics assets
+            self.CFG["source"] = d_s  # set default source
 
         # Initialize environment and region setup
         self.env_check = check_imshow(warn=True)

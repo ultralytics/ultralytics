@@ -1020,7 +1020,6 @@ def forked(timeout=None):
             if process.is_alive():
                 process.terminate()
                 LOGGER.warning("WARNING ⚠️ Function exceeded time limit and was terminated.")
-                return
 
             result = None
             try:

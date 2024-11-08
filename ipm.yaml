@@ -10,7 +10,7 @@ model: ./yolov8n.yaml # (str, optional) path to model file, i.e. yolov8n.pt, yol
 ch: 3
 data: /opt/DSI/python/ultralytics_16U/ipmdata.yaml # (str, optional) path to data file, i.e. coco8.yaml
 epochs: 1000 # (int) number of epochs to train for
-time:  # (float, optional) number of hours to train for, overrides epochs if supplied
+time: # (float, optional) number of hours to train for, overrides epochs if supplied
 patience: 10000 # (int) epochs to wait for no observable improvement for early stopping of training
 batch: 8 # (int) number of images per batch (-1 for AutoBatch)
 imgsz: 1024 # (int | list) input images size as int for train and val modes, or list[h,w] for predict and export modes

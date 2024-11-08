@@ -128,18 +128,18 @@ class BasePredictor:
             if im.dtype == np.uint16:
                 max_value = 65535.0
             im = im[..., ::-1].transpose((0, 3, 1, 2))  # BGR to RGB, BHWC to BCHW, (n, 3, h, w)
-            
+
             if im.shape[1] < self.args.ch:
-                im = np.tile(im, (1, self.args.ch // im.shape[1], 1, 1))[:, :self.args.ch, :, :]
+                im = np.tile(im, (1, self.args.ch // im.shape[1], 1, 1))[:, : self.args.ch, :, :]
             elif im.shape[1] > self.args.ch:
-                im = im[:, :self.args.ch, :, :]
+                im = im[:, : self.args.ch, :, :]
 
             im = np.ascontiguousarray(im)  # Ensure contiguous array
             im = torch.from_numpy(im)
 
         im = im.to(self.device)
         im = im.half() if self.model.fp16 else im.float()  # uint8 to fp16/32
-        
+
         if not_tensor:
             im /= max_value  # Normalize from 0 - max_value to 0.0 - 1.0
 

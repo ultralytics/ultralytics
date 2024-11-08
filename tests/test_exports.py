@@ -207,7 +207,7 @@ def test_export_ncnn():
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
 
 
-@pytest.mark.skipif(True, reason="Test disabled as keras and tensorflow version conflicts with tflite")
+@pytest.mark.skipif(True, reason="Test disabled as keras and tensorflow version conflicts with tflite export.")
 @pytest.mark.skipif(not LINUX or MACOS, reason="Skipping test on Windows and Macos")
 def test_export_imx500_ptq():
     """Test YOLOv8n exports to imx500 format."""

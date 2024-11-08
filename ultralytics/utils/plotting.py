@@ -1019,8 +1019,17 @@ def plot_images(
 
         mosaic[y : y + h, x : x + w, :] = image
 
+    if img_dtype == np.uint16:
+        mosaic = (mosaic / 65535.0).astype(np.float32)
+    elif img_dtype == np.uint8:
+        mosaic = (mosaic / 255.0).astype(np.float32)
+    else:
+        mosaic = (mosaic / max_pixel_value).astype(np.float32)
+
+    mosaic = (mosaic * 255).astype(np.uint8)
     # Resize the mosaic if necessary
     scale = max_size / ns / max(h, w)
+
     if scale < 1:
         h_new = math.ceil(scale * h * ns)
         w_new = math.ceil(scale * w * ns)
@@ -1032,19 +1041,10 @@ def plot_images(
     fs = int((h + w) * ns * 0.01)  # Font size
     line_width = max(fs // 10, 1)
 
-    # Since PIL's ImageDraw does not support uint16 images, we need to handle annotations carefully
-    # Convert mosaic to float32 in [0, 1] range for annotation, then scale back to original dtype
-    if img_dtype == np.uint16:
-        mosaic_display = (mosaic / 65535.0).astype(np.float32)
-    elif img_dtype == np.uint8:
-        mosaic_display = (mosaic / 255.0).astype(np.float32)
-    else:
-        # For other dtypes, normalize based on max value
-        mosaic_display = (mosaic / max_pixel_value).astype(np.float32)
 
     # Create an annotator instance
     annotator = Annotator(
-        (mosaic_display * 255).astype(np.uint8), line_width=line_width, font_size=fs, pil=True, example=names
+        mosaic, line_width=line_width, font_size=fs, pil=True, example=names
     )
     for i in range(bs):
         x, y = int(w * (i % ns)), int(h * (i // ns))  # Block origin

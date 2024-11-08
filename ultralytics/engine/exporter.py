@@ -1123,10 +1123,8 @@ class Exporter:
 
         try:
             subprocess.run(["java", "--version"], check=True)
-        except OSError:
-            raise OSError(
-                "Java 17 is required for the imx500 conversion. \n Please install Java with: \n sudo apt install openjdk-17-jdk openjdk-17-jre"
-            )
+        except FileNotFoundError:
+            subprocess.run(["apt", "install", "-y", "openjdk-17-jdk", "openjdk-17-jre"], check=True)
 
         def representative_dataset_gen(dataloader=self.get_int8_calibration_dataloader(prefix)):
             for batch in dataloader:

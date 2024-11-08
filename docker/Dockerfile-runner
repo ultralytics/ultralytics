@@ -27,7 +27,8 @@ RUN pip install pytest-cov
 RUN ./bin/installdependencies.sh && \
     apt-get -y install libicu-dev
 
-RUN apt update && apt install -y openjdk-17-jdk openjdk-17-jre
+# Install Java 17 for imx500 export tests
+RUN apt update && apt install -y openjdk-17-jdk openjdk-17-jre 
 
 # Inline ENTRYPOINT command to configure and start runner with default TOKEN and NAME
 ENTRYPOINT sh -c './config.sh --url https://github.com/ultralytics/ultralytics \

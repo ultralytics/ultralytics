@@ -29,12 +29,12 @@ jobs:
           sudo mv lychee /usr/local/bin
 
       - name: Test Markdown and HTML links with retry
-        uses: nick-invision/retry@v3
+        uses: ultralytics/actions/retry@main
         with:
-          timeout_minutes: 5
-          retry_wait_seconds: 60
-          max_attempts: 3
-          command: |
+          timeout_minutes: 60
+          retry_delay_seconds: 300
+          retries: 2
+          run: |
             lychee \
             --scheme https \
             --timeout 60 \
@@ -59,12 +59,12 @@ jobs:
 
       - name: Test Markdown, HTML, YAML, Python and Notebook links with retry
         if: github.event_name == 'workflow_dispatch'
-        uses: nick-invision/retry@v3
+        uses: ultralytics/actions/retry@main
         with:
-          timeout_minutes: 5
-          retry_wait_seconds: 60
-          max_attempts: 3
-          command: |
+          timeout_minutes: 60
+          retry_delay_seconds: 300
+          retries: 2
+          run: |
             lychee \
             --scheme https \
             --timeout 60 \

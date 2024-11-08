@@ -1,7 +1,9 @@
 // Giscus functionality
 function loadGiscus() {
   const giscusContainer = document.getElementById("giscus-container");
-  if (!giscusContainer || giscusContainer.querySelector("script")) return;
+  if (!giscusContainer || giscusContainer.querySelector("script")) {
+    return;
+  }
 
   const script = document.createElement("script");
   script.src = "https://giscus.app/client.js";

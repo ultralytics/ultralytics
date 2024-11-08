@@ -789,7 +789,7 @@ def masks2segments(masks, strategy="all"):
 
     Args:
         masks (torch.Tensor): the output of the model, which is a tensor of shape (batch_size, 160, 160)
-        strategy (str): 'concat' or 'largest'. Defaults to largest
+        strategy (str): 'all' or 'largest'. Defaults to largest
 
     Returns:
         segments (List): list of segment masks

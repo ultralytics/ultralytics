@@ -129,13 +129,10 @@ class BasePredictor:
                 max_value = 65535.0
             im = im[..., ::-1].transpose((0, 3, 1, 2))  # BGR to RGB, BHWC to BCHW, (n, 3, h, w)
             
-            # Ensure the image has exactly `self.model.ch` channels
-            if im.shape[1] < self.model.ch:
-                # Repeat channels to match `self.model.ch`
-                im = np.tile(im, (1, self.model.ch // im.shape[1], 1, 1))[:, :self.model.ch, :, :]
-            elif im.shape[1] > self.model.ch:
-                # Trim channels to match `self.model.ch`
-                im = im[:, :self.model.ch, :, :]
+            if im.shape[1] < self.args.ch:
+                im = np.tile(im, (1, self.args.ch // im.shape[1], 1, 1))[:, :self.args.ch, :, :]
+            elif im.shape[1] > self.args.ch:
+                im = im[:, :self.args.ch, :, :]
 
             im = np.ascontiguousarray(im)  # Ensure contiguous array
             im = torch.from_numpy(im)

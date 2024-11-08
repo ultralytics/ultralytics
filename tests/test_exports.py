@@ -18,7 +18,7 @@ from ultralytics.utils import (
     checks,
 )
 from ultralytics.utils.torch_utils import TORCH_1_9, TORCH_1_13
-import importlib
+
 
 def test_export_torchscript():
     """Test YOLO model exporting to TorchScript format for compatibility and correctness."""
@@ -205,6 +205,7 @@ def test_export_ncnn():
     """Test YOLO exports to NCNN format."""
     file = YOLO(MODEL).export(format="ncnn", imgsz=32)
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
+
 
 @pytest.mark.skipif(True, reason="Test disabled as keras and tensorflow version conflicts with tflite")
 @pytest.mark.skipif(not LINUX or MACOS, reason="Skipping test on Windows and Macos")

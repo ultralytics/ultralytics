@@ -1114,9 +1114,10 @@ class Exporter:
         if "C2f" not in self.model.__str__():
             raise ValueError("IMX500 export is only supported for YOLOv8 detection models")
         check_requirements(("model-compression-toolkit==2.1.1", "sony-custom-layers==0.2.0", "tensorflow==2.12.0"))
-        check_requirements(("imx500-converter[pt]==3.14.3"))  # Separate requirements for imx500-converter
-        
+        check_requirements("imx500-converter[pt]==3.14.3")  # Separate requirements for imx500-converter
+
         import subprocess
+
         import model_compression_toolkit as mct
         import onnx
         from sony_custom_layers.pytorch.object_detection.nms import multiclass_nms

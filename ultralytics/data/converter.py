@@ -636,8 +636,8 @@ def yolo_bbox2segment(im_dir, save_dir=None, sam_model="sam_b.pt"):
                 continue
             line = (int(cls[i]), *s.reshape(-1))
             texts.append(("%g " * len(line)).rstrip() % line)
-            with open(txt_file, "a") as f:
-                f.writelines(text + "\n" for text in texts)
+        with open(txt_file, "a") as f:
+            f.writelines(text + "\n" for text in texts)
     LOGGER.info(f"Generated segment labels saved in {save_dir}")
 
 

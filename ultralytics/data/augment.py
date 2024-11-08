@@ -1219,10 +1219,10 @@ class Format:
         # Adjust the number of channels to match `image_channels`
         if img.shape[0] < self.image_channels:
             # If the image has fewer channels, repeat the channels to match the target
-            img = np.tile(img, (self.image_channels // img.shape[0], 1, 1))[:self.image_channels, :, :]
+            img = np.tile(img, (self.image_channels // img.shape[0], 1, 1))[: self.image_channels, :, :]
         elif img.shape[0] > self.image_channels:
             # If the image has more channels, select the first `image_channels`
-            img = img[:self.image_channels, :, :]
+            img = img[: self.image_channels, :, :]
 
         # Optionally swap channels (e.g., BGR to RGB)
         if img.shape[0] == 3 and random.uniform(0, 1) > self.bgr:

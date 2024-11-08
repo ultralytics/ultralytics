@@ -31,12 +31,14 @@ def test_export_onnx():
     file = YOLO(MODEL).export(format="onnx", dynamic=True, imgsz=32)
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
 
+
 @pytest.mark.skipif(not LINUX or MACOS, reason="Skipping test on Windows and Macos")
 def test_export_imx500_ptq():
     """Test YOLOv8n exports to imx500 format."""
     model = YOLO("yolov8n.pt")
     file = model.export(format="imx500", imgsz=32, gptq=False)
     YOLO(file)(SOURCE, imgsz=32)
+
 
 @pytest.mark.slow
 @pytest.mark.skipif(IS_RASPBERRYPI or not LINUX or MACOS, reason="Skipping test on Raspberry Pi and Windows")
@@ -45,6 +47,7 @@ def test_export_imx500_gptq():
     model = YOLO("yolov8n.pt")
     file = model.export(format="imx500", imgsz=32, gptq=True)
     YOLO(file)(SOURCE, imgsz=32)
+
 
 @pytest.mark.skipif(not TORCH_1_13, reason="OpenVINO requires torch>=1.13")
 def test_export_openvino():
@@ -219,6 +222,3 @@ def test_export_ncnn():
     """Test YOLO exports to NCNN format."""
     file = YOLO(MODEL).export(format="ncnn", imgsz=32)
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
-
-
-

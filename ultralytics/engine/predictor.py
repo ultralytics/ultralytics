@@ -118,7 +118,7 @@ class BasePredictor:
         Prepares input image before inference.
 
         Args:
-            im (torch.Tensor | List(np.ndarray)): BCHW for tensor, [(HWC) x B] for list.
+            im (torch.Tensor | List[np.ndarray]): BCHW for tensor, [(HWC) x B] for list.
         """
         not_tensor = not isinstance(im, torch.Tensor)
         max_value = 255.0
@@ -127,8 +127,21 @@ class BasePredictor:
             im = np.stack(self.pre_transform(im))
             if im.dtype == np.uint16:
                 max_value = 65535.0
-            im = im[..., ::-1].transpose((0, 3, 1, 2))  # BGR to RGB, BHWC to BCHW, (n, 3, h, w)
-            
+
+            # Ensure the input has the right number of dimensions
+            if len(im.shape) == 3:  # Single image without a batch dimension
+                im = np.expand_dims(im, axis=0)  # Add a batch dimension (1, H, W, C)
+            elif len(im.shape) == 2:  # Grayscale image without channel dimension
+                im = np.expand_dims(im, axis=-1)  # Add channel dimension (H, W, 1)
+                im = np.expand_dims(im, axis=0)  # Add batch dimension (1, H, W, 1)
+
+            # Adjust the number of channels to match `self.args.ch`
+            if im.shape[-1] == 1 and self.args.ch > 1:
+                im = np.tile(im, (1, 1, 1, self.args.ch))
+
+            im = im[..., ::-1].transpose((0, 3, 1, 2))  # BGR to RGB, BHWC to BCHW
+
+            # Ensure the image has exactly `self.args.ch` channels
             if im.shape[1] < self.args.ch:
                 im = np.tile(im, (1, self.args.ch // im.shape[1], 1, 1))[:, :self.args.ch, :, :]
             elif im.shape[1] > self.args.ch:

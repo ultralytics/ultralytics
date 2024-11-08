@@ -134,12 +134,12 @@ jobs:
 
       - name: Build Image
         if: github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true'
-        uses: nick-invision/retry@v3
+        uses: ultralytics/actions/retry@main
         with:
           timeout_minutes: 120
-          retry_wait_seconds: 60
-          max_attempts: 3 # retry twice
-          command: |
+          retry_delay_seconds: 60
+          retries: 2
+          run: |
             docker build \
             --platform ${{ matrix.platforms }} \
             -f docker/${{ matrix.dockerfile }} \

@@ -1318,7 +1318,7 @@ def v8_transforms(dataset, imgsz, hyp, stretch=False):
     This function creates a composition of image augmentation techniques to prepare images for YOLO training.
     It includes operations such as mosaic, copy-paste, random perspective, mixup, and various color adjustments.
     """
-    mosaic = Mosaic(dataset, imgsz=imgsz, p=hyp.mosaic)
+    mosaic = Mosaic(dataset, imgsz=imgsz, p=hyp.mosaic,n=hyp.mosaic_size)
     affine = RandomPerspective(
         degrees=hyp.degrees,
         translate=hyp.translate,
@@ -1335,7 +1335,7 @@ def v8_transforms(dataset, imgsz, hyp, stretch=False):
         pre_transform.append(
             CopyPaste(
                 dataset,
-                pre_transform=Compose([Mosaic(dataset, imgsz=imgsz, p=hyp.mosaic), affine]),
+                pre_transform=Compose([Mosaic(dataset, imgsz=imgsz, p=hyp.mosaic,n=hyp.mosaic_size), affine]),
                 p=hyp.copy_paste,
                 mode=hyp.copy_paste_mode,
             )

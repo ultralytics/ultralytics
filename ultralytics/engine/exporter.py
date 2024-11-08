@@ -1117,7 +1117,6 @@ class Exporter:
         check_requirements("imx500-converter[pt]==3.14.3")
 
         import subprocess
-
         import model_compression_toolkit as mct
         import onnx
         from sony_custom_layers.pytorch.object_detection.nms import multiclass_nms

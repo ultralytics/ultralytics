@@ -207,9 +207,16 @@ def test_export_ncnn():
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
 
 
-@pytest.mark.skipif(True, reason="Test disabled")
-def test_export_imx500():
-    """Test YOLOv8n exports to MCT format."""
+@pytest.mark.skipif(not LINUX or MACOS, reason="Skipping test on Windows and Macos")
+def test_export_imx500_ptq():
+    """Test YOLOv8n exports to imx500 format."""
     model = YOLO("yolov8n.pt")
-    file = model.export(format="imx500", imgsz=32)
+    file = model.export(format="imx500", imgsz=32, gptq=False)
+    YOLO(file)(SOURCE, imgsz=32)
+    
+@pytest.mark.skipif(IS_RASPBERRYPI or not LINUX or MACOS, reason="Skipping test on Raspberry Pi and Windows")
+def test_export_imx500_gptq():
+    """Test YOLOv8n exports to imx500 format with gptq."""
+    model = YOLO("yolov8n.pt")
+    file = model.export(format="imx500", imgsz=32, gptq=True)
     YOLO(file)(SOURCE, imgsz=32)

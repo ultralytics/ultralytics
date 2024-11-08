@@ -6,6 +6,8 @@ from pathlib import Path
 
 import numpy as np
 import torch
+
+# Removed PIL import since we're eliminating PIL usage
 from PIL import Image
 from torch.utils.data import dataloader, distributed
 
@@ -13,7 +15,7 @@ from ultralytics.data.dataset import GroundingDataset, YOLODataset, YOLOMultiMod
 from ultralytics.data.loaders import (
     LOADERS,
     LoadImagesAndVideos,
-    LoadPilAndNumpy,
+    LoadNumpy,  # Added LoadNumpy to handle numpy arrays directly
     LoadScreenshots,
     LoadStreams,
     LoadTensor,
@@ -159,9 +161,11 @@ def check_source(source):
     elif isinstance(source, LOADERS):
         in_memory = True
     elif isinstance(source, (list, tuple)):
-        source = autocast_list(source)  # convert all list elements to PIL or np arrays
+        source = autocast_list(source)  # convert all list elements to numpy arrays
         from_img = True
+    # Removed PIL Image check since we're eliminating PIL usage
     elif isinstance(source, (Image.Image, np.ndarray)):
+        # elif isinstance(source, np.ndarray):
         from_img = True
     elif isinstance(source, torch.Tensor):
         tensor = True
@@ -176,7 +180,7 @@ def load_inference_source(source=None, batch=1, vid_stride=1, buffer=False):
     Loads an inference source for object detection and applies necessary transformations.
 
     Args:
-        source (str, Path, Tensor, PIL.Image, np.ndarray): The input source for inference.
+        source (str, Path, Tensor, np.ndarray): The input source for inference.
         batch (int, optional): Batch size for dataloaders. Default is 1.
         vid_stride (int, optional): The frame interval for video sources. Default is 1.
         buffer (bool, optional): Determined whether stream frames will be buffered. Default is False.
@@ -197,7 +201,9 @@ def load_inference_source(source=None, batch=1, vid_stride=1, buffer=False):
     elif screenshot:
         dataset = LoadScreenshots(source)
     elif from_img:
-        dataset = LoadPilAndNumpy(source)
+        # Replaced LoadPilAndNumpy with LoadNumpy since we're eliminating PIL usage
+        # dataset = LoadPilAndNumpy(source)
+        dataset = LoadNumpy(source)
     else:
         dataset = LoadImagesAndVideos(source, batch=batch, vid_stride=vid_stride)
 

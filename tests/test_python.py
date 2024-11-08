@@ -111,7 +111,7 @@ def test_predict_csv_single_row():
 def test_predict_img(model_name):
     """Test YOLO model predictions on various image input types and sources, including online images."""
     model = YOLO(WEIGHTS_DIR / model_name)
-    im = cv2.imread(str(SOURCE))  # uint8 numpy array
+    im = cv2.imread(str(SOURCE), -1)  # uint8 numpy array
     assert len(model(source=Image.open(SOURCE), save=True, verbose=True, imgsz=32)) == 1  # PIL
     assert len(model(source=im, save=True, save_txt=True, imgsz=32)) == 1  # ndarray
     assert len(model(torch.rand((2, 3, 32, 32)), imgsz=32)) == 2  # batch-size 2 Tensor, FP32 0.0-1.0 RGB order
@@ -122,7 +122,7 @@ def test_predict_img(model_name):
         str(SOURCE),  # filename
         Path(SOURCE),  # Path
         "https://github.com/ultralytics/assets/releases/download/v0.0.0/zidane.jpg" if ONLINE else SOURCE,  # URI
-        cv2.imread(str(SOURCE)),  # OpenCV
+        cv2.imread(str(SOURCE), -1),  # OpenCV
         Image.open(SOURCE),  # PIL
         np.zeros((320, 640, 3), dtype=np.uint8),  # numpy
     ]

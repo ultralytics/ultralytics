@@ -156,8 +156,7 @@ class BaseValidator:
             self.dataloader = self.dataloader or self.get_dataloader(self.data.get(self.args.split), self.args.batch)
 
             model.eval()
-            model.warmup(imgsz=(1 if pt else self.args.batch, 3, imgsz, imgsz))  # warmup
-
+            model.warmup(imgsz=(1 if pt else self.args.batch, self.args.ch, imgsz, imgsz))  # warmup
         self.run_callbacks("on_val_start")
         dt = (
             Profile(device=self.device),
@@ -171,20 +170,16 @@ class BaseValidator:
         for batch_i, batch in enumerate(bar):
             self.run_callbacks("on_val_batch_start")
             self.batch_i = batch_i
-            # Preprocess
             with dt[0]:
                 batch = self.preprocess(batch)
 
-            # Inference
             with dt[1]:
                 preds = model(batch["img"], augment=augment)
 
-            # Loss
             with dt[2]:
                 if self.training:
                     self.loss += model.loss(batch, preds)[1]
 
-            # Postprocess
             with dt[3]:
                 preds = self.postprocess(preds)
 
@@ -203,7 +198,7 @@ class BaseValidator:
         if self.training:
             model.float()
             results = {**stats, **trainer.label_loss_items(self.loss.cpu() / len(self.dataloader), prefix="val")}
-            return {k: round(float(v), 5) for k, v in results.items()}  # return results as 5 decimal place floats
+            return {k: round(float(v), 5) for k, v in results.items()}
         else:
             LOGGER.info(
                 "Speed: {:.1f}ms preprocess, {:.1f}ms inference, {:.1f}ms loss, {:.1f}ms postprocess per image".format(
@@ -213,8 +208,8 @@ class BaseValidator:
             if self.args.save_json and self.jdict:
                 with open(str(self.save_dir / "predictions.json"), "w") as f:
                     LOGGER.info(f"Saving {f.name}...")
-                    json.dump(self.jdict, f)  # flatten and save
-                stats = self.eval_json(stats)  # update stats
+                    json.dump(self.jdict, f)
+                stats = self.eval_json(stats)
             if self.args.plots or self.args.save_json:
                 LOGGER.info(f"Results saved to {colorstr('bold', self.save_dir)}")
             return stats
@@ -280,6 +275,9 @@ class BaseValidator:
 
     def preprocess(self, batch):
         """Preprocesses an input batch."""
+        batch["img"] = batch["img"].to(self.device, non_blocking=True)
+        batch["img"] = batch["img"].half() if self.args.half else batch["img"].float()
+        batch["cls"] = batch["cls"].to(self.device)
         return batch
 
     def postprocess(self, preds):

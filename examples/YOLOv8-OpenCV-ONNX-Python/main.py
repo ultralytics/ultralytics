@@ -46,7 +46,7 @@ def main(onnx_model, input_image):
     model: cv2.dnn.Net = cv2.dnn.readNetFromONNX(onnx_model)
 
     # Read the input image
-    original_image: np.ndarray = cv2.imread(input_image)
+    original_image: np.ndarray = cv2.imread(input_image, -1)
     [height, width, _] = original_image.shape
 
     # Prepare a square image for inference

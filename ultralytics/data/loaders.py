@@ -18,7 +18,6 @@ from PIL import Image
 from ultralytics.data.utils import FORMATS_HELP_MSG, IMG_FORMATS, VID_FORMATS
 from ultralytics.utils import IS_COLAB, IS_KAGGLE, LOGGER, ops
 from ultralytics.utils.checks import check_requirements
-from ultralytics.utils.patches import imread
 
 
 @dataclass
@@ -421,10 +420,12 @@ class LoadImagesAndVideos:
                     with Image.open(path) as img:
                         im0 = cv2.cvtColor(np.asarray(img), cv2.COLOR_RGB2BGR)  # convert image to BGR nparray
                 else:
-                    im0 = imread(path)  # BGR
+                    im0 = cv2.imread(path, cv2.IMREAD_UNCHANGED)  # BGR
                 if im0 is None:
                     LOGGER.warning(f"WARNING ⚠️ Image Read Error {path}")
                 else:
+                    if im0.ndim == 2:  # Grayscale image
+                        im0 = np.expand_dims(im0, axis=-1)
                     paths.append(path)
                     imgs.append(im0)
                     info.append(f"image {self.count + 1}/{self.nf} {path}: ")
@@ -448,9 +449,9 @@ class LoadImagesAndVideos:
         return math.ceil(self.nf / self.bs)  # number of batches
 
 
-class LoadPilAndNumpy:
+class LoadNumpy:
     """
-    Load images from PIL and Numpy arrays for batch processing.
+    Load images from numpy arrays for batch processing.
 
     This class manages loading and pre-processing of image data from both PIL and Numpy formats. It performs basic
     validation and format conversion to ensure that the images are in the required format for downstream processing.
@@ -493,7 +494,7 @@ class LoadPilAndNumpy:
             if im.mode != "RGB":
                 im = im.convert("RGB")
             im = np.asarray(im)[:, :, ::-1]
-            im = np.ascontiguousarray(im)  # contiguous
+        im = np.ascontiguousarray(im)  # contiguous
         return im
 
     def __len__(self):
@@ -561,9 +562,9 @@ class LoadTensor:
         if im.max() > 1.0 + torch.finfo(im.dtype).eps:  # torch.float32 eps is 1.2e-07
             LOGGER.warning(
                 f"WARNING ⚠️ torch.Tensor inputs should be normalized 0.0-1.0 but max value is {im.max()}. "
-                f"Dividing input by 255."
+                f"Dividing input by 65535."
             )
-            im = im.float() / 255.0
+            im = im.float() / 65535.0
 
         return im
 
@@ -589,8 +590,18 @@ def autocast_list(source):
     files = []
     for im in source:
         if isinstance(im, (str, Path)):  # filename or uri
-            files.append(Image.open(requests.get(im, stream=True).raw if str(im).startswith("http") else im))
-        elif isinstance(im, (Image.Image, np.ndarray)):  # PIL or np Image
+            if str(im).startswith("http"):
+                # Read image from URL
+                resp = requests.get(im)
+                img_array = np.asarray(bytearray(resp.content), dtype=np.uint8)  # WARNING: Forces image to uint8
+                im = cv2.imdecode(img_array, cv2.IMREAD_UNCHANGED)
+            else:
+                # Read image from file
+                im = cv2.imread(str(im), cv2.IMREAD_UNCHANGED)
+            if im is None:
+                raise FileNotFoundError(f"Image not found or unable to read {im}")
+            files.append(im)
+        elif isinstance(im, (Image.Image, np.ndarray)):  # np Image
             files.append(im)
         else:
             raise TypeError(
@@ -655,4 +666,4 @@ def get_best_youtube_url(url, method="pytube"):
 
 
 # Define constants
-LOADERS = (LoadStreams, LoadPilAndNumpy, LoadImagesAndVideos, LoadScreenshots)
+LOADERS = (LoadStreams, LoadNumpy, LoadImagesAndVideos, LoadScreenshots)

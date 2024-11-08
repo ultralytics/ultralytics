@@ -398,7 +398,7 @@ class ClassificationDataset:
         cache_disk (bool): Indicates if caching on disk is enabled.
         samples (list): A list of tuples, each containing the path to an image, its class index, path to its .npy cache
                         file (if caching on disk), and optionally the loaded image array (if caching in RAM).
-        torch_transforms (callable): PyTorch transforms to be applied to the images.
+        transforms (callable): Image transforms to be applied to the images.
     """
 
     def __init__(self, root, args, augment=False, prefix=""):
@@ -459,17 +459,28 @@ class ClassificationDataset:
     def __getitem__(self, i):
         """Returns subset of data and targets corresponding to given indices."""
         f, j, fn, im = self.samples[i]  # filename, index, filename.with_suffix('.npy'), image
+
         if self.cache_ram:
             if im is None:  # Warning: two separate if statements required here, do not combine this with previous line
-                im = self.samples[i][3] = cv2.imread(f)
+                im = self.samples[i][3] = cv2.imread(f, cv2.IMREAD_UNCHANGED)
         elif self.cache_disk:
             if not fn.exists():  # load npy
-                np.save(fn.as_posix(), cv2.imread(f), allow_pickle=False)
+                np.save(fn.as_posix(), cv2.imread(f, cv2.IMREAD_UNCHANGED), allow_pickle=False)
             im = np.load(fn)
         else:  # read image
-            im = cv2.imread(f)  # BGR
-        # Convert NumPy array to PIL image
-        im = Image.fromarray(cv2.cvtColor(im, cv2.COLOR_BGR2RGB))
+            im = cv2.imread(f, cv2.IMREAD_UNCHANGED)  # BGR
+
+        # Convert from BGR to RGB if the image has 3 channels
+        if len(im.shape) == 3 and im.shape[2] == 3:  # check if image is 3-channel
+            im = cv2.cvtColor(im, cv2.COLOR_BGR2RGB)
+        if im.shape[0] < 2 or im.shape[1] < 2:
+            print(f"Image {f} has invalid dimensions: {im.shape}")
+        if im.ndim == 2:  # Grayscale image
+            print(f"Image {f} is 2-channel dimension")
+            im = np.expand_dims(im, axis=-1)
+
+        # Apply dataset transformations (ensure they are compatible with numpy arrays)
+        im = Image.fromarray(im)
         sample = self.torch_transforms(im)
         return {"img": sample, "cls": j}
 

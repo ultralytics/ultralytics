@@ -328,7 +328,7 @@ if __name__ == "__main__":
     model = YOLOv8Seg(args.model)
 
     # Read image by OpenCV
-    img = cv2.imread(args.source)
+    img = cv2.imread(args.source, -1)
 
     # Inference
     boxes, segments, _ = model(img, conf_threshold=args.conf, iou_threshold=args.iou)

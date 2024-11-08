@@ -50,7 +50,7 @@ class DetectionValidator(BaseValidator):
     def preprocess(self, batch):
         """Preprocesses batch of images for YOLO training."""
         batch["img"] = batch["img"].to(self.device, non_blocking=True)
-        batch["img"] = (batch["img"].half() if self.args.half else batch["img"].float()) / 255
+        batch["img"] = batch["img"].half() if self.args.half else batch["img"].float()  # / 255 #WARNING
         for k in ["batch_idx", "cls", "bboxes"]:
             batch[k] = batch[k].to(self.device)
 

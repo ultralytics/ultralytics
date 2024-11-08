@@ -507,7 +507,7 @@ def convert_dota_to_yolo_obb(dota_root_path: str):
             if image_path.suffix != ".png":
                 continue
             image_name_without_ext = image_path.stem
-            img = cv2.imread(str(image_path))
+            img = cv2.imread(str(image_path), -1)
             h, w = img.shape[:2]
             convert_label(image_name_without_ext, w, h, orig_label_dir, save_dir)
 
@@ -620,7 +620,7 @@ def yolo_bbox2segment(im_dir, save_dir=None, sam_model="sam_b.pt"):
             continue
         boxes[:, [0, 2]] *= w
         boxes[:, [1, 3]] *= h
-        im = cv2.imread(label["im_file"])
+        im = cv2.imread(label["im_file"], -1)
         sam_results = sam_model(im, bboxes=xywh2xyxy(boxes), verbose=False, save=False)
         label["segments"] = sam_results[0].masks.xyn
 

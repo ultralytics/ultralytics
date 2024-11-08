@@ -13,7 +13,7 @@ from tarfile import is_tarfile
 
 import cv2
 import numpy as np
-from PIL import Image, ImageOps
+from PIL import Image
 
 from ultralytics.nn.autobackend import check_class_names
 from ultralytics.utils import (
@@ -76,18 +76,28 @@ def verify_image(args):
     # Number (found, corrupt), message
     nf, nc, msg = 0, 0, ""
     try:
-        im = Image.open(im_file)
-        im.verify()  # PIL verify
-        shape = exif_size(im)  # image size
-        shape = (shape[1], shape[0])  # hw
+        # Removed PIL usage and replaced with OpenCV
+        # im = Image.open(im_file)
+        # im.verify()  # PIL verify
+        # shape = exif_size(im)  # image size
+        # shape = (shape[1], shape[0])  # hw
+        # assert (shape[0] > 9) & (shape[1] > 9), f"image size {shape} <10 pixels"
+        # assert im.format.lower() in IMG_FORMATS, f"Invalid image format {im.format}. {FORMATS_HELP_MSG}"
+
+        # Using OpenCV to read the image and get its shape
+        suffix = Path(im_file).suffix[1:].lower()
+        assert suffix in IMG_FORMATS, f"Invalid image format {suffix}. {FORMATS_HELP_MSG}"
+        img = cv2.imread(im_file, cv2.IMREAD_UNCHANGED)
+        assert img is not None, "Image Not Readable"
+        shape = img.shape[:2]  # (height, width)
         assert (shape[0] > 9) & (shape[1] > 9), f"image size {shape} <10 pixels"
-        assert im.format.lower() in IMG_FORMATS, f"Invalid image format {im.format}. {FORMATS_HELP_MSG}"
-        if im.format.lower() in {"jpg", "jpeg"}:
+        # Check for corrupt JPEG by checking EOF marker
+        if suffix in {"jpg", "jpeg"}:
             with open(im_file, "rb") as f:
                 f.seek(-2, 2)
                 if f.read() != b"\xff\xd9":  # corrupt JPEG
-                    ImageOps.exif_transpose(Image.open(im_file)).save(im_file, "JPEG", subsampling=0, quality=100)
-                    msg = f"{prefix}WARNING ⚠️ {im_file}: corrupt JPEG restored and saved"
+                    # Cannot fix without PIL, so log a warning
+                    msg = f"{prefix}WARNING ⚠️ {im_file}: corrupt JPEG file"
         nf = 1
     except Exception as e:
         nc = 1
@@ -101,19 +111,29 @@ def verify_image_label(args):
     # Number (missing, found, empty, corrupt), message, segments, keypoints
     nm, nf, ne, nc, msg, segments, keypoints = 0, 0, 0, 0, "", [], None
     try:
+        # Removed PIL usage and replaced with OpenCV
         # Verify images
-        im = Image.open(im_file)
-        im.verify()  # PIL verify
-        shape = exif_size(im)  # image size
-        shape = (shape[1], shape[0])  # hw
+        # im = Image.open(im_file)
+        # im.verify()  # PIL verify
+        # shape = exif_size(im)  # image size
+        # shape = (shape[1], shape[0])  # hw
+        # assert (shape[0] > 9) & (shape[1] > 9), f"image size {shape} <10 pixels"
+        # assert im.format.lower() in IMG_FORMATS, f"invalid image format {im.format}. {FORMATS_HELP_MSG}"
+
+        # Using OpenCV to read the image and get its shape
+        suffix = Path(im_file).suffix[1:].lower()
+        assert suffix in IMG_FORMATS, f"Invalid image format {suffix}. {FORMATS_HELP_MSG}"
+        im = cv2.imread(im_file, cv2.IMREAD_UNCHANGED)
+        assert im is not None, "Image Not Readable"
+        shape = im.shape[:2]  # (height, width)
         assert (shape[0] > 9) & (shape[1] > 9), f"image size {shape} <10 pixels"
-        assert im.format.lower() in IMG_FORMATS, f"invalid image format {im.format}. {FORMATS_HELP_MSG}"
-        if im.format.lower() in {"jpg", "jpeg"}:
+
+        # Check for corrupt JPEG by checking EOF marker
+        if suffix in {"jpg", "jpeg"}:
             with open(im_file, "rb") as f:
                 f.seek(-2, 2)
                 if f.read() != b"\xff\xd9":  # corrupt JPEG
-                    ImageOps.exif_transpose(Image.open(im_file)).save(im_file, "JPEG", subsampling=0, quality=100)
-                    msg = f"{prefix}WARNING ⚠️ {im_file}: corrupt JPEG restored and saved"
+                    msg = f"{prefix}WARNING ⚠️ {im_file}: corrupt JPEG file"
 
         # Verify labels
         if os.path.isfile(lb_file):
@@ -153,7 +173,7 @@ def verify_image_label(args):
                 lb = np.zeros((0, (5 + nkpt * ndim) if keypoint else 5), dtype=np.float32)
         else:
             nm = 1  # label missing
-            lb = np.zeros((0, (5 + nkpt * ndim) if keypoints else 5), dtype=np.float32)
+            lb = np.zeros((0, (5 + nkpt * ndim) if keypoint else 5), dtype=np.float32)
         if keypoint:
             keypoints = lb[:, 5:].reshape(-1, nkpt, ndim)
             if ndim == 2:
@@ -208,7 +228,7 @@ def polygons2masks(imgsz, polygons, color, downsample_ratio=1):
 
 
 def polygons2masks_overlap(imgsz, segments, downsample_ratio=1):
-    """Return a (640, 640) overlap mask."""
+    """Return a (height, width) overlap mask."""
     masks = np.zeros(
         (imgsz[0] // downsample_ratio, imgsz[1] // downsample_ratio),
         dtype=np.int32 if len(segments) > 255 else np.uint8,
@@ -582,9 +602,8 @@ class HUBDatasetStats:
 
 def compress_one_image(f, f_new=None, max_dim=1920, quality=50):
     """
-    Compresses a single image file to reduced size while preserving its aspect ratio and quality using either the Python
-    Imaging Library (PIL) or OpenCV library. If the input image is smaller than the maximum dimension, it will not be
-    resized.
+    Compresses a single image file to reduced size while preserving its aspect ratio and quality using OpenCV. If the
+    input image is smaller than the maximum dimension, it will not be resized.
 
     Args:
         f (str): The path to the input image file.
@@ -601,20 +620,30 @@ def compress_one_image(f, f_new=None, max_dim=1920, quality=50):
             compress_one_image(f)
         ```
     """
-    try:  # use PIL
-        im = Image.open(f)
-        r = max_dim / max(im.height, im.width)  # ratio
-        if r < 1.0:  # image too large
-            im = im.resize((int(im.width * r), int(im.height * r)))
-        im.save(f_new or f, "JPEG", quality=quality, optimize=True)  # save
-    except Exception as e:  # use OpenCV
-        LOGGER.info(f"WARNING ⚠️ HUB ops PIL failure {f}: {e}")
-        im = cv2.imread(f)
+    try:
+        # Removed PIL usage and using OpenCV directly
+        im = cv2.imread(f, cv2.IMREAD_UNCHANGED)
+        if im is None:
+            LOGGER.warning(f"Unable to read image {f}")
+            return
         im_height, im_width = im.shape[:2]
         r = max_dim / max(im_height, im_width)  # ratio
         if r < 1.0:  # image too large
             im = cv2.resize(im, (int(im_width * r), int(im_height * r)), interpolation=cv2.INTER_AREA)
-        cv2.imwrite(str(f_new or f), im)
+        # Set compression parameters
+        params = []
+        ext = os.path.splitext(f)[1].lower()
+        if ext in [".jpg", ".jpeg"]:
+            params = [cv2.IMWRITE_JPEG_QUALITY, quality]
+        elif ext == ".png":
+            # For PNG, quality is from 0 to 9, where 0 is no compression
+            compression = max(9 - int(quality / 10), 0)
+            params = [cv2.IMWRITE_PNG_COMPRESSION, compression]
+        else:
+            LOGGER.warning(f"Unsupported image format {ext} for compression")
+        cv2.imwrite(str(f_new or f), im, params)
+    except Exception as e:
+        LOGGER.warning(f"Failed to compress image {f}: {e}")
 
 
 def autosplit(path=DATASETS_DIR / "coco8/images", weights=(0.9, 0.1, 0.0), annotated_only=False):

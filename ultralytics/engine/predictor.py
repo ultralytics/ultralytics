@@ -122,18 +122,30 @@ class BasePredictor:
         """
         not_tensor = not isinstance(im, torch.Tensor)
         max_value = 255.0
+
         if not_tensor:
             im = np.stack(self.pre_transform(im))
             if im.dtype == np.uint16:
                 max_value = 65535.0
             im = im[..., ::-1].transpose((0, 3, 1, 2))  # BGR to RGB, BHWC to BCHW, (n, 3, h, w)
-            im = np.ascontiguousarray(im)  # contiguous
+            
+            # Ensure the image has exactly `self.model.ch` channels
+            if im.shape[1] < self.model.ch:
+                # Repeat channels to match `self.model.ch`
+                im = np.tile(im, (1, self.model.ch // im.shape[1], 1, 1))[:, :self.model.ch, :, :]
+            elif im.shape[1] > self.model.ch:
+                # Trim channels to match `self.model.ch`
+                im = im[:, :self.model.ch, :, :]
+
+            im = np.ascontiguousarray(im)  # Ensure contiguous array
             im = torch.from_numpy(im)
 
         im = im.to(self.device)
         im = im.half() if self.model.fp16 else im.float()  # uint8 to fp16/32
+        
         if not_tensor:
-            im /= max_value  # 0 - max_value to 0.0 - 1.0
+            im /= max_value  # Normalize from 0 - max_value to 0.0 - 1.0
+
         return im
 
     def inference(self, im, *args, **kwargs):

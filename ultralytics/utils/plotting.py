@@ -479,7 +479,7 @@ class Annotator:
         """Show the annotated image."""
         drawIm = self.im
         if drawIm.dtype == np.uint16:
-            drawIm = (drawIm / 65535.0)*255.0 # Converts uint16 to uint8 for plotting purposes
+            drawIm = (drawIm / 65535.0) * 255.0  # Converts uint16 to uint8 for plotting purposes
         im = Image.fromarray(np.asarray(drawIm)[..., ::-1])  # Convert numpy array to PIL Image with RGB to BGR
         if IS_COLAB or IS_KAGGLE:  # can not use IS_JUPYTER as will run for all ipython environments
             try:

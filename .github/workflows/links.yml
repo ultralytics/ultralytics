@@ -33,7 +33,7 @@ jobs:
         with:
           timeout_minutes: 60
           retry_delay_seconds: 300
-          retries: 3
+          retries: 2
           run: |
             lychee \
             --scheme https \
@@ -63,7 +63,7 @@ jobs:
         with:
           timeout_minutes: 60
           retry_delay_seconds: 300
-          retries: 3
+          retries: 2
           run: |
             lychee \
             --scheme https \

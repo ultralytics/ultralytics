@@ -481,8 +481,12 @@ class LoadNumpy:
     @staticmethod
     def _single_check(im):
         """Validate and format an image to numpy array."""
-        assert isinstance(im, np.ndarray), f"Expected np.ndarray image type, but got {type(im)}"
-        im = np.ascontiguousarray(im)  # ensure contiguous
+        assert isinstance(im, (Image.Image, np.ndarray)), f"Expected PIL/np.ndarray image type, but got {type(im)}"
+        if isinstance(im, Image.Image):
+            if im.mode != "RGB":
+                im = im.convert("RGB")
+            im = np.asarray(im)[:, :, ::-1]
+        im = np.ascontiguousarray(im)  # contiguous
         return im
 
     def __len__(self):

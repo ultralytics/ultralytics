@@ -1130,7 +1130,7 @@ class Format:
         mask_overlap=True,
         batch_idx=True,
         bgr=0.0,
-        image_channels=3
+        image_channels=3,
     ):
         """Initializes the Format class with given parameters for image and instance annotation formatting."""
         self.bbox_format = bbox_format
@@ -1240,8 +1240,6 @@ class Format:
             img = img.float()
 
         return img
-
-    
 
     def _format_segments(self, instances, cls, w, h):
         """Converts polygon segments to bitmap masks."""

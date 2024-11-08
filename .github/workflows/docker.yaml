@@ -138,7 +138,7 @@ jobs:
         with:
           timeout_minutes: 120
           retry_delay_seconds: 60
-          retries: 3 # retry twice
+          retries: 2
           run: |
             docker build \
             --platform ${{ matrix.platforms }} \

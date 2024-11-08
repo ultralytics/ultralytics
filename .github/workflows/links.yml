@@ -31,8 +31,8 @@ jobs:
       - name: Test Markdown and HTML links with retry
         uses: nick-invision/retry@v3
         with:
-          timeout_minutes: 5
-          retry_wait_seconds: 60
+          timeout_minutes: 60
+          retry_wait_seconds: 300
           max_attempts: 3
           command: |
             lychee \
@@ -61,8 +61,8 @@ jobs:
         if: github.event_name == 'workflow_dispatch'
         uses: nick-invision/retry@v3
         with:
-          timeout_minutes: 5
-          retry_wait_seconds: 60
+          timeout_minutes: 60
+          retry_wait_seconds: 300
           max_attempts: 3
           command: |
             lychee \

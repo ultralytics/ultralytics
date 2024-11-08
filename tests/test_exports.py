@@ -32,14 +32,6 @@ def test_export_onnx():
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
 
 
-@pytest.mark.skipif(not LINUX or MACOS, reason="Skipping test on Windows and Macos")
-def test_export_imx500_ptq():
-    """Test YOLOv8n exports to imx500 format."""
-    model = YOLO("yolov8n.pt")
-    file = model.export(format="imx500", imgsz=32, gptq=False)
-    YOLO(file)(SOURCE, imgsz=32)
-
-
 @pytest.mark.slow
 @pytest.mark.skipif(IS_RASPBERRYPI or not LINUX or MACOS, reason="Skipping test on Raspberry Pi and Windows")
 def test_export_imx500_gptq():

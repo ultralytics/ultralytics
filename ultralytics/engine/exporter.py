@@ -1123,9 +1123,9 @@ class Exporter:
         from sony_custom_layers.pytorch.object_detection.nms import multiclass_nms
 
         try:
-            subprocess.run(["java", "--version"], check=True)
+            subprocess.run(["java", "--version"], check=True) # Java 17 is required for imx500-converter
         except FileNotFoundError:
-            subprocess.run(["apt", "install", "-y", "openjdk-17-jdk", "openjdk-17-jre"], check=True)
+            subprocess.run(["sudo", "apt", "install", "-y", "openjdk-17-jdk", "openjdk-17-jre"], check=True)
 
         def representative_dataset_gen(dataloader=self.get_int8_calibration_dataloader(prefix)):
             for batch in dataloader:

@@ -1130,6 +1130,7 @@ class Format:
         mask_overlap=True,
         batch_idx=True,
         bgr=0.0,
+        image_channels=3
     ):
         """Initializes the Format class with given parameters for image and instance annotation formatting."""
         self.bbox_format = bbox_format
@@ -1141,6 +1142,7 @@ class Format:
         self.mask_overlap = mask_overlap
         self.batch_idx = batch_idx  # keep the batch indexes
         self.bgr = bgr
+        self.image_channels = image_channels
 
     def __call__(self, labels):
         """Formats image annotations for object detection, instance segmentation, and pose estimation tasks."""
@@ -1182,19 +1184,21 @@ class Format:
             labels["batch_idx"] = torch.zeros(nl)
         return labels
 
-    def _format_img(self, img):
+    def _format_img(self, img, image_channels=3):
         """
         Formats an image for YOLO from a Numpy array to a PyTorch tensor.
 
         This function performs the following operations:
         1. Ensures the image has 3 dimensions (adds a channel dimension if needed).
         2. Transposes the image from HWC to CHW format.
-        3. Optionally flips the color channels from RGB to BGR.
-        4. Converts the image to a contiguous array.
-        5. Converts the Numpy array to a PyTorch tensor.
+        3. Adjusts the number of channels to match the expected `image_channels`.
+        4. Optionally flips the color channels from RGB to BGR.
+        5. Converts the image to a contiguous array.
+        6. Converts the Numpy array to a PyTorch tensor.
 
         Args:
             img (np.ndarray): Input image as a Numpy array with shape (H, W, C) or (H, W).
+            image_channels (int): The expected number of channels in the output image.
 
         Returns:
             (torch.Tensor): Formatted image as a PyTorch tensor with shape (C, H, W).
@@ -1202,21 +1206,31 @@ class Format:
         Examples:
             >>> import numpy as np
             >>> img = np.random.rand(100, 100, 3)
-            >>> formatted_img = self._format_img(img)
+            >>> formatted_img = self._format_img(img, image_channels=3)
             >>> print(formatted_img.shape)
             torch.Size([3, 100, 100])
-        """  # Ensure the image has at least 3 dimensions (H, W, C)
+        """
+        # Ensure the image has at least 3 dimensions (H, W, C)
         if len(img.shape) < 3:
             img = np.expand_dims(img, -1)  # Add a channel dimension
+
         img = img.transpose(2, 0, 1)  # Convert from HWC to CHW format
 
-        if img.shape[0] == 3:
-            if random.uniform(0, 1) > self.bgr:
-                img = img[[2, 1, 0], :, :]  # Swap channels (BGR to RGB or vice versa)
+        # Adjust the number of channels to match `image_channels`
+        if img.shape[0] < image_channels:
+            # If the image has fewer channels, repeat the channels to match the target
+            img = np.tile(img, (image_channels // img.shape[0], 1, 1))[:image_channels, :, :]
+        elif img.shape[0] > image_channels:
+            # If the image has more channels, select the first `image_channels`
+            img = img[:image_channels, :, :]
+
+        # Optionally swap channels (e.g., BGR to RGB)
+        if img.shape[0] == 3 and random.uniform(0, 1) > self.bgr:
+            img = img[[2, 1, 0], :, :]  # Swap channels (BGR to RGB or vice versa)
 
         img = np.ascontiguousarray(img)
-
         img = torch.from_numpy(img)
+
         # Normalize image depending on its data type
         if img.dtype == torch.uint8:
             img = img.float() / 255.0
@@ -1224,7 +1238,10 @@ class Format:
             img = img.float() / 65535.0
         else:
             img = img.float()
+
         return img
+
+    
 
     def _format_segments(self, instances, cls, w, h):
         """Converts polygon segments to bitmap masks."""

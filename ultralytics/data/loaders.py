@@ -322,7 +322,6 @@ class LoadImagesAndVideos:
     def __init__(self, path, batch=1, vid_stride=1):
         """Initialize dataloader for images and videos, supporting various input formats."""
         parent = None
-        print("INIT DATALOADER")
         if isinstance(path, str) and Path(path).suffix == ".txt":  # *.txt file with img/vid/dir on each line
             parent = Path(path).parent
             path = Path(path).read_text().splitlines()  # list of sources

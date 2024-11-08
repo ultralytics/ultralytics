@@ -1041,11 +1041,8 @@ def plot_images(
     fs = int((h + w) * ns * 0.01)  # Font size
     line_width = max(fs // 10, 1)
 
-
     # Create an annotator instance
-    annotator = Annotator(
-        mosaic, line_width=line_width, font_size=fs, pil=True, example=names
-    )
+    annotator = Annotator(mosaic, line_width=line_width, font_size=fs, pil=True, example=names)
     for i in range(bs):
         x, y = int(w * (i % ns)), int(h * (i // ns))  # Block origin
         annotator.rectangle([x, y, x + w, y + h], None, (255, 255, 255), width=2)  # Borders

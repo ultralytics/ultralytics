@@ -22,23 +22,22 @@ class RegionCounter(BaseSolution):
 
     def add_region(self, name, polygon_points, region_color, text_color):
         """
-               Adds a new region based on the template with specific attributes.
+        Adds a new region based on the template with specific attributes.
 
-               Args:
-                   name (str): Name of the region.
-                   polygon_points (list of tuples): List of (x, y) coordinates defining the polygon.
-                   region_color (tuple): BGR color tuple for the region.
-                   text_color (tuple): BGR color tuple for the text.
-               """
-        # Create a deep copy of the template and update it
-        region = self.region_template.copy()
+        Args:
+           name (str): Name of the region.
+           polygon_points (list of tuples): List of (x, y) coordinates defining the polygon.
+           region_color (tuple): BGR color tuple for the region.
+           text_color (tuple): BGR color tuple for the text.
+       """
+        region = self.region_template.copy()     # Create a deep copy of the template and update it
         region.update({
             "name": name,
             "polygon": self.Polygon(polygon_points),
             "region_color": region_color,
             "text_color": text_color
         })
-        self.counting_regions.append(region)
+        self.counting_regions.append(region)    # Append new region
 
     def count(self, im0):
         self.annotator = Annotator(im0, line_width=self.line_width)  # Initialize annotator
@@ -50,17 +49,11 @@ class RegionCounter(BaseSolution):
             self.annotator.draw_region(
                 reg_pts=self.region, color=(104, 0, 123), thickness=self.line_width * 2
             )
-        elif isinstance(self.region, dict):
-            # Multiple regions passed as a dictionary
-            idx = 0
-            for region_name, reg_pts in self.region.items():
-                idx+=1
-                color=colors(int(idx), True)
-                txt_color=self.annotator.get_txt_color()
-                self.annotator.draw_region(
-                    reg_pts=reg_pts, color=color, thickness=self.line_width * 2
-                )
-                self.add_region(region_name, reg_pts, color, txt_color)
+        if isinstance(self.region, dict):
+            for idx, (region_name, reg_pts) in enumerate(self.region.items(), start=1):
+                color = colors(idx, True)
+                self.annotator.draw_region(reg_pts=reg_pts, color=color, thickness=self.line_width * 2)
+                self.add_region(region_name, reg_pts, color, self.annotator.get_txt_color())
 
         for box, track_id, cls in zip(self.boxes, self.track_ids, self.clss):
             # Draw bounding box and counting region
@@ -75,14 +68,10 @@ class RegionCounter(BaseSolution):
 
         # Optionally, reset counts for each frame if needed
         for region in self.counting_regions:
-            box = list(region["polygon"].exterior.coords)
-            # Get bounding box as (min_x, min_y, max_x, max_y)
-            bbox = (min(x for x, y in box), min(y for x, y in box),
-                    max(x for x, y in box), max(y for x, y in box))
-
-            print(region["polygon"].centroid)
-            self.annotator.box_label(bbox)
-            self.annotator.text_label(bbox, label=str(region["counts"]))
+            box = region["polygon"].bounds
+            self.annotator.box_label(box, color=region["region_color"])
+            self.annotator.text_label(box, label=str(region["counts"]),
+                                      color=region["region_color"], txt_color=region["txt_color"])
 
         self.display_output(im0)  # display output with base class function
 

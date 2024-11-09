@@ -1,6 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-from ultralytics.solutions.solutions import BaseSolution
+from ultralytics.solutions.solutions import BaseSolution, cv2
 from ultralytics.utils.plotting import Annotator, colors
 
 
@@ -18,7 +18,6 @@ class RegionCounter(BaseSolution):
             "text_color": (0, 0, 0),  # Default text color
         }
         self.counting_regions = []
-        self.current_region = None
 
     def add_region(self, name, polygon_points, region_color, text_color):
         """
@@ -43,35 +42,33 @@ class RegionCounter(BaseSolution):
         self.annotator = Annotator(im0, line_width=self.line_width)  # Initialize annotator
         self.extract_tracks(im0)  # Extract tracks
 
-        # Check if `self.region` is a list (single region) or dictionary (multiple regions)
-        if isinstance(self.region, list):
-            # Single region passed as a list
-            self.annotator.draw_region(
-                reg_pts=self.region, color=(104, 0, 123), thickness=self.line_width * 2
-            )
-        if isinstance(self.region, dict):
-            for idx, (region_name, reg_pts) in enumerate(self.region.items(), start=1):
-                color = colors(idx, True)
-                self.annotator.draw_region(reg_pts=reg_pts, color=color, thickness=self.line_width * 2)
-                self.add_region(region_name, reg_pts, color, self.annotator.get_txt_color())
+        # Convert single region list to dictionary format if needed
+        regions = self.region if isinstance(self.region, dict) else {"Region#01": self.region}
 
-        for box, track_id, cls in zip(self.boxes, self.track_ids, self.clss):
-            # Draw bounding box and counting region
-            self.annotator.box_label(box, label=self.names[cls], color=colors(cls, True))
-            self.store_tracking_history(track_id, box)  # Store track history
-            bbox_center = (box[0] + box[2]) / 2, (box[1] + box[3]) / 2  # Bbox center
+        # Iterate through all regions (single or multiple)
+        for idx, (region_name, reg_pts) in enumerate(regions.items(), start=1):
+            color = colors(idx, True)
+            self.annotator.draw_region(reg_pts=reg_pts, color=color, thickness=self.line_width * 2)
+            self.add_region(region_name, reg_pts, color, self.annotator.get_txt_color())
 
-            # Check if the bbox center is inside the polygon region
-            for region in self.counting_regions:
-                if region["polygon"].contains(self.Point(bbox_center)):
-                    region["counts"] += 1  # Update the count for the region if an object is inside
-
-        # Optionally, reset counts for each frame if needed
+        # Preprocess regions for faster containment checks (if many regions)
         for region in self.counting_regions:
-            box = region["polygon"].bounds
-            self.annotator.box_label(box, color=region["region_color"])
-            self.annotator.text_label(box, label=str(region["counts"]),
-                                      color=region["region_color"], txt_color=region["txt_color"])
+            region["prepared_polygon"] = self.prep(region["polygon"])
+
+        # Process bounding boxes and track information
+        for box, cls in zip(self.boxes, self.clss):
+            self.annotator.box_label(box, label=self.names[cls], color=colors(cls, True))   # Draw bounding box
+            bbox_center = ((box[0] + box[2]) / 2, (box[1] + box[3]) / 2)    # Calculate the bounding box center once
+
+            for region in self.counting_regions:    # Check if the bbox center is inside any region
+                if region["prepared_polygon"].contains(self.Point(bbox_center)):
+                    region["counts"] += 1  # Increment count if inside region
+
+        # Batch draw region counts and reset
+        for region in self.counting_regions:
+            self.annotator.text_label(region["polygon"].bounds, label=str(region["counts"]),
+                                      color=region["region_color"], txt_color=region["text_color"])
+            region["counts"] = 0  # Reset count for next frame
 
         self.display_output(im0)  # display output with base class function
 

@@ -51,6 +51,7 @@ class BaseSolution:
         check_requirements("shapely>=2.0.0")
         from shapely.geometry import LineString, Point, Polygon
         from shapely.prepared import prep
+
         self.LineString = LineString
         self.Polygon = Polygon
         self.Point = Point
@@ -148,6 +149,7 @@ class BaseSolution:
 
         Args:
             im0 (numpy.ndarray): The input image or frame that has been processed and annotated.
+
         Examples:
             >>> solution = BaseSolution()
             >>> frame = cv2.imread("path/to/image.jpg")

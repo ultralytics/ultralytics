@@ -45,8 +45,11 @@ keywords: object counting, regions, YOLOv8, computer vision, Ultralytics, effici
          cap = cv2.VideoCapture("Path/to/video/file.mp4")
          assert cap.isOpened(), "Error reading video file"
          w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-         
+
          # Define region points
+         # region_points = [(20, 400), (1080, 404), (1080, 360), (20, 360)] # Pass region as list
+         
+         # pass region as dictionary
          region_points = {
              "region-01": [(50, 50), (250, 50), (250, 250), (50, 250)],
              "region-02": [(640, 640), (780, 640), (780, 720), (640, 720)]

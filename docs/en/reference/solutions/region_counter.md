@@ -3,7 +3,7 @@ description: Explore the Ultralytics Object Counter for real-time video streams.
 keywords: Ultralytics, Object Counter, Real-time Tracking, Video Stream, Python, Object Detection
 ---
 
-# Reference for `ultralytics/solutions/object_counter.py`
+# Reference for `ultralytics/solutions/region_counter.py`
 
 !!! note
 

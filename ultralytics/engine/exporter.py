@@ -1224,6 +1224,7 @@ class Exporter:
             check=True,
         )
 
+        # Needed for imx500 models.
         with open(output_dir / "labels.txt", "w") as file:
             file.writelines([f"{name}\n" for _, name in self.model.names.items()])
 

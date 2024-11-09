@@ -214,7 +214,7 @@ class Exporter:
         ) = flags  # export booleans
 
         is_tf_format = any((saved_model, pb, tflite, edgetpu, tfjs))
-        if imx500:
+        if imx500 and not self.args.int8:
             LOGGER.warning("WARNING ⚠️ IMX500 only supports int8 export, setting int8=True.")
             self.args.int8 = True
         # Device
@@ -245,11 +245,9 @@ class Exporter:
             assert self.device.type == "cpu", "optimize=True not compatible with cuda devices, i.e. use device='cpu'"
         if self.args.int8 and tflite:
             assert not getattr(model, "end2end", False), "TFLite INT8 export not supported for end2end models."
-        if edgetpu or imx500:
+        if edgetpu:
             if not LINUX:
-                raise SystemError(
-                    "Edge TPU (https://coral.ai/docs/edgetpu/compiler) and IMX500 (https://developer.aitrios.sony-semicon.com/en/raspberrypi-ai-camera/documentation/imx500-converter) export only supported on Linux."
-                )
+                raise SystemError("Edge TPU export only supported on Linux. See https://coral.ai/docs/edgetpu/compiler")
             elif self.args.batch != 1:  # see github.com/ultralytics/ultralytics/pull/13420
                 LOGGER.warning("WARNING ⚠️ Edge TPU export requires batch size 1, setting batch=1.")
                 self.args.batch = 1
@@ -1108,6 +1106,8 @@ class Exporter:
     @try_export
     def export_imx500(self, prefix=colorstr("IMX500:")):
         """YOLO IMX500 export."""
+
+        assert LINUX, f"export only supported on Linux. See https://developer.aitrios.sony-semicon.com/en/raspberrypi-ai-camera/documentation/imx500-converter"
         if getattr(self.model, "end2end", False):
             raise ValueError("IMX500 export is not supported for end2end models.")
         if "C2f" not in self.model.__str__():
@@ -1391,9 +1391,9 @@ class Exporter:
         model = ct.models.MLModel(pipeline.spec, weights_dir=weights_dir)
         model.input_description["image"] = "Input image"
         model.input_description["iouThreshold"] = f"(optional) IoU threshold override (default: {nms.iouThreshold})"
-        model.input_description["confidenceThreshold"] = (
-            f"(optional) Confidence threshold override (default: {nms.confidenceThreshold})"
-        )
+        model.input_description[
+            "confidenceThreshold"
+        ] = f"(optional) Confidence threshold override (default: {nms.confidenceThreshold})"
         model.output_description["confidence"] = 'Boxes × Class confidence (see user-defined metadata "classes")'
         model.output_description["coordinates"] = "Boxes × [x, y, width, height] (relative to image size)"
         LOGGER.info(f"{prefix} pipeline success")

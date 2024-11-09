@@ -116,7 +116,7 @@ Follow these steps to run object counting in Ultralytics YOLOv8:
     python yolov8_region_counter.py --source "path/to/video.mp4" --save-img
     ```
 
-For more options, visit the [Run Region Counting](#steps-to-run) section.
+For more options, visit the [Run Region Counting](https://github.com/ultralytics/ultralytics/blob/main/examples/YOLOv8-Region-Counter/readme.md) section.
 
 ### Why should I use Ultralytics YOLOv8 for object counting in regions?
 
@@ -130,7 +130,7 @@ Explore deeper benefits in the [Advantages](#advantages-of-object-counting-in-re
 
 ### Can the defined regions be adjusted during video playback?
 
-Yes, with Ultralytics YOLOv8, regions can be interactively moved during video playback. Simply click and drag with the left mouse button to reposition the region. This feature enhances flexibility for dynamic environments. Learn more in the tip section for [movable regions](#step-2-run-region-counting-using-ultralytics-yolov8).
+Yes, with Ultralytics YOLOv8, regions can be interactively moved during video playback. Simply click and drag with the left mouse button to reposition the region. This feature enhances flexibility for dynamic environments. Learn more in the tip section for [movable regions](https://github.com/ultralytics/ultralytics/blob/33cdaa5782efb2bc2b5ede945771ba647882830d/examples/YOLOv8-Region-Counter/yolov8_region_counter.py#L39).
 
 ### What are some real-world applications of object counting in regions?
 

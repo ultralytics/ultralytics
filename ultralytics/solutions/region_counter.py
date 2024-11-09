@@ -1,3 +1,9 @@
+# Ultralytics YOLO 🚀, AGPL-3.0 license
+
+from ultralytics.solutions.solutions import BaseSolution
+from ultralytics.utils.plotting import Annotator, colors
+
+
 class RegionCounter(BaseSolution):
     """
     A class designed for real-time counting of objects within user-defined regions in a video stream.

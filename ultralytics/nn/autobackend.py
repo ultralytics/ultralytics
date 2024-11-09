@@ -192,8 +192,7 @@ class AutoBackend(nn.Module):
                 check_requirements("numpy==1.23.5")
             import onnxruntime
 
-            # providers = ["CUDAExecutionProvider", "CPUExecutionProvider"] if cuda else ["CPUExecutionProvider"]
-            providers = ["CPUExecutionProvider"]
+            providers = onnxruntime.get_available_providers()
 
             if not cuda and "CUDAExecutionProvider" in providers:
                 providers.remove("CUDAExecutionProvider")

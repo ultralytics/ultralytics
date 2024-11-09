@@ -193,7 +193,6 @@ class AutoBackend(nn.Module):
             import onnxruntime
 
             providers = onnxruntime.get_available_providers()
-
             if not cuda and "CUDAExecutionProvider" in providers:
                 providers.remove("CUDAExecutionProvider")
             elif cuda and "CUDAExecutionProvider" not in providers:

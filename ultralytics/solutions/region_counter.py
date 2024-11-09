@@ -49,12 +49,14 @@ class RegionCounter(BaseSolution):
             text_color (tuple): BGR color for the text within the region.
         """
         region = self.region_template.copy()
-        region.update({
-            "name": name,
-            "polygon": self.Polygon(polygon_points),
-            "region_color": region_color,
-            "text_color": text_color
-        })
+        region.update(
+            {
+                "name": name,
+                "polygon": self.Polygon(polygon_points),
+                "region_color": region_color,
+                "text_color": text_color,
+            }
+        )
         self.counting_regions.append(region)
 
     def count(self, im0):
@@ -98,8 +100,12 @@ class RegionCounter(BaseSolution):
 
         # Display counts in each region
         for region in self.counting_regions:
-            self.annotator.text_label(region["polygon"].bounds, label=str(region["counts"]),
-                                      color=region["region_color"], txt_color=region["text_color"])
+            self.annotator.text_label(
+                region["polygon"].bounds,
+                label=str(region["counts"]),
+                color=region["region_color"],
+                txt_color=region["text_color"],
+            )
             region["counts"] = 0  # Reset count for next frame
 
         self.display_output(im0)

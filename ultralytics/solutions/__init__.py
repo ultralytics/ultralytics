@@ -9,6 +9,7 @@ from .parking_management import ParkingManagement, ParkingPtsSelection
 from .queue_management import QueueManager
 from .speed_estimation import SpeedEstimator
 from .streamlit_inference import inference
+from .region_counter import RegionCounter
 
 __all__ = (
     "AIGym",
@@ -21,4 +22,5 @@ __all__ = (
     "SpeedEstimator",
     "Analytics",
     "inference",
+    "RegionCounter",
 )

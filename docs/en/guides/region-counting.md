@@ -80,9 +80,9 @@ keywords: object counting, regions, YOLOv8, computer vision, Ultralytics, effici
 
       The Ultralytics region counting module is available in our [examples section](https://github.com/ultralytics/ultralytics/blob/main/examples/YOLOv8-Region-Counter/yolov8_region_counter.py). You can explore this example for code customization and modify it to suit your specific use case.
 
-### Argument `ObjectCounter`
+### Argument `RegionCounter`
 
-Here's a table with the `ObjectCounter` arguments:
+Here's a table with the `RegionCounter` arguments:
 
 | Name         | Type   | Default                    | Description                                          |
 |--------------|--------|----------------------------|------------------------------------------------------|

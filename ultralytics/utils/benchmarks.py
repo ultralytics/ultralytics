@@ -118,7 +118,7 @@ def benchmark(
                 assert not IS_JETSON, "MNN export not supported on NVIDIA Jetson"
             if i == 13:  # NCNN
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 NCNN exports not supported yet"
-            if i in 14:  # IMX
+            if i == 14:  # IMX
                 assert not is_end2end
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 IMX exports not supported"
                 assert model.task == "detect", "IMX only supported for detection task"

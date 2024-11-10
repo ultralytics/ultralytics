@@ -1,7 +1,7 @@
 ---
 comments: true
 description: Learn to export Ultralytics YOLOv8 models to Sony's IMX500 format to optimize your models for efficient deployment.
-keywords: YOLOv8, IMX500, MCT, model export, quantization, pruning, deep learning optimization, Raspberry Pi AI Camera, edge AI, PyTorch, IMX
+keywords: YOLOv8, IMX500, IMX 500, MCT, model export, quantization, pruning, deep learning optimization, Raspberry Pi AI Camera, edge AI, PyTorch, IMX
 ---
 
 # IMX500 Export for Ultralytics YOLOv8

@@ -260,8 +260,8 @@ To export a YOLOv8 model to IMX500 format, use either the Python API or CLI comm
 ```python
 from ultralytics import YOLO
 
-model = YOLO('yolov8n.pt')
-model.export(format='imx')  # Exports with PTQ quantization by default
+model = YOLO("yolov8n.pt")
+model.export(format="imx")  # Exports with PTQ quantization by default
 ```
 
 The export process will create a directory containing the necessary files for deployment, including `packerOut.zip` which can be used with the IMX500 packager tool on Raspberry Pi.

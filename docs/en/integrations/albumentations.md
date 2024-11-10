@@ -197,13 +197,7 @@ You can customize the augmentation pipeline by modifying the probabilities and p
 
 ```python
 # Custom augmentation settings
-augment_args = {
-    'blur_limit': (3, 7),
-    'p_blur': 0.01,
-    'p_grayscale': 0.02,
-    'clahe_clip_limit': (1, 4),
-    'p_clahe': 0.01
-}
+augment_args = {"blur_limit": (3, 7), "p_blur": 0.01, "p_grayscale": 0.02, "clahe_clip_limit": (1, 4), "p_clahe": 0.01}
 
 # Train with custom settings
 model.train(data="coco8.yaml", epochs=100, augment=augment_args)

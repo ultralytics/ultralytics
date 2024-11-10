@@ -322,3 +322,4 @@ cd picamera2 && pip install -e . --break-system-packages
 
 ```bash
 python imx500_object_detection_demo.py --model <path to network.rpk> --fps 25 --bbox-normalization --labels <path to labels.txt>
+```

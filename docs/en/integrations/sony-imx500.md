@@ -73,7 +73,7 @@ Export an Ultralytics YOLOv8 model to IMX500 format and run inference with the e
          yolo predict model=yolov8n_imx_model source='https://ultralytics.com/images/bus.jpg'
          ```
 
-The export process will create an ONNX model for quantization validation, along with a directory named `<model-name>_imx500_model`. This directory will include the `packerOut.zip` file, which is essential for packaging the model for deployment on the IMX500 hardware. Additionally, the `<model-name>_imx500_model` folder will contain a text file (`labels.txt`) listing all the labels associated with the model.
+The export process will create an ONNX model for quantization validation, along with a directory named `<model-name>_imx_model`. This directory will include the `packerOut.zip` file, which is essential for packaging the model for deployment on the IMX500 hardware. Additionally, the `<model-name>_imx_model` folder will contain a text file (`labels.txt`) listing all the labels associated with the model.
 
 ```bash
 yolov8n_imx_model
@@ -159,7 +159,7 @@ pip install -e .  --break-system-packages
 cd examples/imx500
 ```
 
-Step 3: Run YOLOv8 object detection, using the labels.txt file that has been generated during the imx500 export.
+Step 3: Run YOLOv8 object detection, using the labels.txt file that has been generated during the IMX500 export.
 
 ```bash
 python imx500_object_detection_demo.py --model <path to network.rpk> --fps 25 --bbox-normalization --ignore-dash-labels --bbox-order xy –labels <path to labels.txt>

@@ -93,6 +93,7 @@ When exporting a model to IMX500 format, you can specify various arguments:
 | -------- | ------ | -------------------------------------------------------- |
 | `format` | `imx`  | Format to export to (imx)                                |
 | `int8`   | `True` | Enable INT8 quantization for the model (default: `True`) |
+| `imgsz`  | `640`  | Image size for the model input (default: `640`)          |
 
 ## Using IMX500 Export in Deployment
 

@@ -90,7 +90,7 @@ yolov8n_imx_model
 When exporting a model to IMX500 format, you can specify various arguments:
 
 | Key      | Value  | Description                                              |
-| -------- | ------ | -------------------------------------------------------- |
+|----------|--------|----------------------------------------------------------|
 | `format` | `imx`  | Format to export to (imx)                                |
 | `int8`   | `True` | Enable INT8 quantization for the model (default: `True`) |
 | `imgsz`  | `640`  | Image size for the model input (default: `640`)          |
@@ -126,7 +126,7 @@ Step 2: Install IMX500 firmware which is required to operate the IMX500 sensor a
 sudo apt install imx500-all imx500-tools
 ```
 
-Step 3: Install prerequisites to run `picamera2` application. We will use this applicaiton later for the deployment process.
+Step 3: Install prerequisites to run `picamera2` application. We will use this application later for the deployment process.
 
 ```bash
 sudo apt install python3-opencv python3-munkres
@@ -165,7 +165,7 @@ Step 3: Run YOLOv8 object detection, using the labels.txt file that has been gen
 python imx500_object_detection_demo.py --model <path to network.rpk> --fps 25 --bbox-normalization --ignore-dash-labels --bbox-order xy –labels <path to labels.txt>
 ```
 
-Finally you will be able to see live inference output as follows
+Then you will be able to see live inference output as follows
 
 <p align="center">
   <img width="100%" src="https://github.com/ultralytics/assets/releases/download/v8.3.0/imx500-inference-rpi.avif" alt="Inference on Raspberry Pi AI Camera">
@@ -176,8 +176,8 @@ Finally you will be able to see live inference output as follows
 YOLOv8 benchmarks below were run by the Ultralytics team on Raspberry Pi AI Camera with `imx` model format measuring speed and accuracy.
 
 | Model   | Format | Status | Size (MB) | mAP50-95(B) | Inference time (ms/im) |
-| ------- | ------ | ------ | --------- | ----------- | ---------------------- |
-| YOLOv8n | imx    | ✅     | 2.9       | 0.522       | 66.66                  |
+|---------|--------|--------|-----------|-------------|------------------------|
+| YOLOv8n | imx    | ✅      | 2.9       | 0.522       | 66.66                  |
 
 !!! note
 
@@ -247,5 +247,6 @@ Export to IMX500 format has wide applicability across industries. Here are some 
 
 ## Conclusion
 
-Exporting Ultralytics YOLOv8 models to Sony's IMX500 format allows you to deploy your models for efficient inference on IMX500-based cameras. By leveraging advanced quantization and pruning techniques, you can reduce model size and improve inference speed without significantly compromising accuracy.  
+Exporting Ultralytics YOLOv8 models to Sony's IMX500 format allows you to deploy your models for efficient inference on IMX500-based cameras. By leveraging advanced quantization and pruning techniques, you can reduce model size and improve inference speed without significantly compromising accuracy.
+
 For more information and detailed guidelines, refer to Sony's [IMX500 website](https://developer.aitrios.sony-semicon.com/en/raspberrypi-ai-camera).

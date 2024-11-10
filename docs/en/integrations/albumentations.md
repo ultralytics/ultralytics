@@ -166,13 +166,9 @@ Also, if you'd like to know more about other Ultralytics YOLO11 integrations, vi
 Albumentations integrates seamlessly with YOLO11 and applies automatically during training if you have the package installed. Here's how to get started:
 
 ```python
-from ultralytics import YOLO
-
 # Install required packages
-!pip
-install
-albumentations
-ultralytics
+# !pip install albumentations ultralytics
+from ultralytics import YOLO
 
 # Load and train model with automatic augmentations
 model = YOLO("yolo11n.pt")
@@ -190,20 +186,6 @@ Albumentations stands out for several reasons:
 3. Compatibility: Works seamlessly with popular frameworks like [PyTorch](../integrations/torchscript.md) and [TensorFlow](../integrations/tensorboard.md)
 4. Reliability: Extensive test suite prevents silent data corruption
 5. Ease of use: Single unified API for all augmentation types
-
-### How do I customize Albumentations transformations for my specific use case?
-
-You can customize the augmentation pipeline by modifying the probabilities and parameters in your [training configuration](../modes/train.md). For example:
-
-```python
-# Custom augmentation settings
-augment_args = {"blur_limit": (3, 7), "p_blur": 0.01, "p_grayscale": 0.02, "clahe_clip_limit": (1, 4), "p_clahe": 0.01}
-
-# Train with custom settings
-model.train(data="coco8.yaml", epochs=100, augment=augment_args)
-```
-
-This allows you to fine-tune the augmentation strategy based on your dataset characteristics and model requirements.
 
 ### What types of computer vision tasks can benefit from Albumentations augmentation?
 

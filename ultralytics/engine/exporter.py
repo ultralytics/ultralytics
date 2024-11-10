@@ -1206,7 +1206,9 @@ class Exporter:
         f = Path(str(self.file).replace(self.file.suffix, "_imx_model"))
         os.mkdir(f)
         onnx_model = f / Path(str(self.file).replace(self.file.suffix, "_imx.onnx"))  # js dir
-        mct.exporter.pytorch_export_model(model=quant_model, save_model_path=onnx_model, repr_dataset=representative_dataset_gen)
+        mct.exporter.pytorch_export_model(
+            model=quant_model, save_model_path=onnx_model, repr_dataset=representative_dataset_gen
+        )
 
         model_onnx = onnx.load(onnx_model)  # load onnx model
         for k, v in self.metadata.items():

@@ -90,7 +90,7 @@ yolov8n_imx_model
 When exporting a model to IMX500 format, you can specify various arguments:
 
 | Key      | Value  | Description                                              |
-| -------- | ------ | -------------------------------------------------------- |
+|----------|--------|----------------------------------------------------------|
 | `format` | `imx`  | Format to export to (imx)                                |
 | `int8`   | `True` | Enable INT8 quantization for the model (default: `True`) |
 | `imgsz`  | `640`  | Image size for the model input (default: `640`)          |
@@ -176,8 +176,8 @@ Then you will be able to see live inference output as follows
 YOLOv8 benchmarks below were run by the Ultralytics team on Raspberry Pi AI Camera with `imx` model format measuring speed and accuracy.
 
 | Model   | Format | Status | Size (MB) | mAP50-95(B) | Inference time (ms/im) |
-| ------- | ------ | ------ | --------- | ----------- | ---------------------- |
-| YOLOv8n | imx    | ✅     | 2.9       | 0.522       | 66.66                  |
+|---------|--------|--------|-----------|-------------|------------------------|
+| YOLOv8n | imx    | ✅      | 2.9       | 0.522       | 66.66                  |
 
 !!! note
 
@@ -307,19 +307,19 @@ After exporting to IMX500 format:
 
 1. Use the packager tool to create an RPK file:
 
-```bash
-imx500-package -i <path to packerOut.zip> -o <output folder>
-```
+   ```bash
+   imx500-package -i <path to packerOut.zip> -o <output folder>
+   ```
 
 2. Clone and install picamera2:
 
-```bash
-git clone -b next https://github.com/raspberrypi/picamera2
-cd picamera2 && pip install -e . --break-system-packages
-```
+   ```bash
+   git clone -b next https://github.com/raspberrypi/picamera2
+   cd picamera2 && pip install -e . --break-system-packages
+   ```
 
 3. Run inference using the generated RPK file:
 
-```bash
-python imx500_object_detection_demo.py --model <path to network.rpk> --fps 25 --bbox-normalization --labels <path to labels.txt>
-```
+   ```bash
+   python imx500_object_detection_demo.py --model <path to network.rpk> --fps 25 --bbox-normalization --labels <path to labels.txt>
+   ```

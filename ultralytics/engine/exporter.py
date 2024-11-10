@@ -18,7 +18,7 @@ TensorFlow.js           | `tfjs`                    | yolo11n_web_model/
 PaddlePaddle            | `paddle`                  | yolo11n_paddle_model/
 MNN                     | `mnn`                     | yolo11n.mnn
 NCNN                    | `ncnn`                    | yolo11n_ncnn_model/
-imx500                  | `imx500`                  | yolo11n_imx500_model.onnx
+IMX                     | `imx`                     | yolo11n_imx_model/
 
 Requirements:
     $ pip install "ultralytics[export]"
@@ -45,7 +45,7 @@ Inference:
                          yolo11n_paddle_model       # PaddlePaddle
                          yolo11n.mnn                # MNN
                          yolo11n_ncnn_model         # NCNN
-                         yolo11n_imx500_model.onnx  # IMX500
+                         yolo11n_imx_model          # IMX
 
 TensorFlow.js:
     $ cd .. && git clone https://github.com/zldrobit/tfjs-yolov5-example.git && cd tfjs-yolov5-example
@@ -116,7 +116,7 @@ def export_formats():
         ["PaddlePaddle", "paddle", "_paddle_model", True, True],
         ["MNN", "mnn", ".mnn", True, True],
         ["NCNN", "ncnn", "_ncnn_model", True, True],
-        ["IMX500", "imx500", "_imx500_model.onnx", True, True],
+        ["IMX", "imx", "_imx.onnx", True, True],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU"], zip(*x)))
 
@@ -210,12 +210,12 @@ class Exporter:
             paddle,
             mnn,
             ncnn,
-            imx500,
+            imx,
         ) = flags  # export booleans
 
         is_tf_format = any((saved_model, pb, tflite, edgetpu, tfjs))
-        if imx500 and not self.args.int8:
-            LOGGER.warning("WARNING ⚠️ IMX500 only supports int8 export, setting int8=True.")
+        if imx and not self.args.int8:
+            LOGGER.warning("WARNING ⚠️ IMX only supports int8 export, setting int8=True.")
             self.args.int8 = True
         # Device
         dla = None
@@ -290,7 +290,7 @@ class Exporter:
             elif isinstance(m, C2f) and not is_tf_format:
                 # EdgeTPU does not support FlexSplitV while split provides cleaner ONNX graph
                 m.forward = m.forward_split
-            if isinstance(m, Detect) and imx500:
+            if isinstance(m, Detect) and imx:
                 from ultralytics.utils.tal import make_anchors
 
                 m.anchors, m.strides = (
@@ -300,7 +300,7 @@ class Exporter:
                     )
                 )
 
-            if isinstance(m, C2f) and imx500:
+            if isinstance(m, C2f) and imx:
                 m.forward = m.forward_fx
 
         y = None
@@ -376,8 +376,8 @@ class Exporter:
             f[11], _ = self.export_mnn()
         if ncnn:  # NCNN
             f[12], _ = self.export_ncnn()
-        if imx500:
-            f[13], _ = self.export_imx500()
+        if imx:
+            f[13], _ = self.export_imx()
 
         # Finish
         f = [str(x) for x in f if x]  # filter out '' and None
@@ -1100,13 +1100,14 @@ class Exporter:
         return f, None
 
     @try_export
-    def export_imx500(self, prefix=colorstr("IMX500:")):
-        """YOLO IMX500 export."""
+    def export_imx(self, prefix=colorstr("IMX:")):
+        """YOLO IMX export."""
+        gptq = False
         assert LINUX, "export only supported on Linux. See https://developer.aitrios.sony-semicon.com/en/raspberrypi-ai-camera/documentation/imx500-converter"
         if getattr(self.model, "end2end", False):
-            raise ValueError("IMX500 export is not supported for end2end models.")
+            raise ValueError("IMX export is not supported for end2end models.")
         if "C2f" not in self.model.__str__():
-            raise ValueError("IMX500 export is only supported for YOLOv8 detection models")
+            raise ValueError("IMX export is only supported for YOLOv8 detection models")
         check_requirements(("model-compression-toolkit==2.1.1", "sony-custom-layers==0.2.0", "tensorflow==2.12.0"))
         check_requirements("imx500-converter[pt]==3.14.3")  # Separate requirements for imx500-converter
 
@@ -1147,7 +1148,7 @@ class Exporter:
                 core_config=config,
                 target_platform_capabilities=tpc,
             )[0]
-            if self.args.gptq
+            if gptq
             else mct.ptq.pytorch_post_training_quantization(  # Perform post training quantization
                 in_module=self.model,
                 representative_data_gen=representative_dataset_gen,
@@ -1202,7 +1203,7 @@ class Exporter:
             max_detections=self.args.max_det,
         ).to(self.device)
 
-        f = Path(str(self.file).replace(self.file.suffix, "_imx500_model.onnx"))  # js dir
+        f = Path(str(self.file).replace(self.file.suffix, "_imx.onnx"))  # js dir
         mct.exporter.pytorch_export_model(model=quant_model, save_model_path=f, repr_dataset=representative_dataset_gen)
 
         model_onnx = onnx.load(f)  # load onnx model
@@ -1212,14 +1213,14 @@ class Exporter:
 
         onnx.save(model_onnx, f)
 
-        output_dir = Path(str(self.file).replace(self.file.suffix, "_imx500_model"))
+        output_dir = Path(str(self.file).replace(self.file.suffix, "_imx_model"))
 
         subprocess.run(
             ["imxconv-pt", "-i", str(f), "-o", str(output_dir), "--no-input-persistency", "--overwrite-output"],
             check=True,
         )
 
-        # Needed for imx500 models.
+        # Needed for imx models.
         with open(output_dir / "labels.txt", "w") as file:
             file.writelines([f"{name}\n" for _, name in self.model.names.items()])
 

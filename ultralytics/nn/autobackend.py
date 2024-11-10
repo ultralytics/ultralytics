@@ -123,7 +123,7 @@ class AutoBackend(nn.Module):
             paddle,
             mnn,
             ncnn,
-            imx500,
+            imx,
             triton,
         ) = self._model_type(w)
         fp16 &= pt or jit or onnx or xml or engine or nn_module or triton  # FP16
@@ -183,7 +183,7 @@ class AutoBackend(nn.Module):
             check_requirements("opencv-python>=4.5.4")
             net = cv2.dnn.readNetFromONNX(w)
 
-        # ONNX Runtime and IMX500
+        # ONNX Runtime and IMX
         elif onnx:
             LOGGER.info(f"Loading {w} for ONNX Runtime inference...")
             check_requirements(("onnx", "onnxruntime-gpu" if cuda else "onnxruntime"))
@@ -200,11 +200,11 @@ class AutoBackend(nn.Module):
                 device = torch.device("cpu")
                 cuda = False
             LOGGER.info(f"Preferring ONNX Runtime {providers[0]}")
-            if imx500:
+            if imx:
                 check_requirements(
                     ["model-compression-toolkit==2.1.1", "sony-custom-layers[torch]==0.2.0", "onnxruntime-extensions"]
                 )
-                LOGGER.info(f"Loading {w} for ONNX IMX500 inference...")
+                LOGGER.info(f"Loading {w} for ONNX IMX inference...")
                 import mct_quantizers as mctq
                 from sony_custom_layers.pytorch.object_detection import nms_ort  # noqa
 
@@ -552,7 +552,7 @@ class AutoBackend(nn.Module):
                 )
                 self.session.run_with_iobinding(self.io)
                 y = self.bindings
-            if self.imx500:
+            if self.imx:
                 # boxes, conf, cls
                 y = np.concatenate([y[0], y[1][:, :, None], y[2][:, :, None]], axis=-1)
 

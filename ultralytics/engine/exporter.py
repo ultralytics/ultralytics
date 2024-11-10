@@ -293,16 +293,10 @@ class Exporter:
             if isinstance(m, Detect) and imx500:
                 from ultralytics.utils.tal import make_anchors
 
-                anchors, strides = (
+                m.anchors, m.strides = (
                     x.transpose(0, 1)
-                    for x in make_anchors(
-                        torch.cat([s / m.stride.unsqueeze(-1) for s in self.imgsz], dim=1),
-                        m.stride,
-                        0.5,
-                    )
+                    for x in make_anchors(torch.cat([s / m.stride.unsqueeze(-1) for s in self.imgsz], dim=1), m.stride, 0.5)
                 )
-                m.anchors = anchors
-                m.strides = strides
 
             if isinstance(m, C2f) and imx500:
                 m.forward = m.forward_fx

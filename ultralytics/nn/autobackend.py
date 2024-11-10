@@ -184,7 +184,7 @@ class AutoBackend(nn.Module):
             net = cv2.dnn.readNetFromONNX(w)
 
         # ONNX Runtime and IMX
-        elif onnx:
+        elif onnx or imx:
             LOGGER.info(f"Loading {w} for ONNX Runtime inference...")
             check_requirements(("onnx", "onnxruntime-gpu" if cuda else "onnxruntime"))
             if IS_RASPBERRYPI or IS_JETSON:
@@ -204,6 +204,7 @@ class AutoBackend(nn.Module):
                 check_requirements(
                     ["model-compression-toolkit==2.1.1", "sony-custom-layers[torch]==0.2.0", "onnxruntime-extensions"]
                 )
+                w = [i for i in Path(w).iterdir() if i.name.endswith("onnx")][0]
                 LOGGER.info(f"Loading {w} for ONNX IMX inference...")
                 import mct_quantizers as mctq
                 from sony_custom_layers.pytorch.object_detection import nms_ort  # noqa
@@ -535,7 +536,7 @@ class AutoBackend(nn.Module):
             y = self.net.forward()
 
         # ONNX Runtime
-        elif self.onnx:
+        elif self.onnx or self.imx:
             if self.dynamic:
                 im = im.cpu().numpy()  # torch to numpy
                 y = self.session.run(self.output_names, {self.session.get_inputs()[0].name: im})

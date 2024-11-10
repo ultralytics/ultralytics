@@ -57,7 +57,7 @@ Export an Ultralytics YOLOv8 model to IMX500 format and run inference with the e
          model.export(format="imx")  # exports with PTQ quantization by default
 
          # Load the exported model
-         imx_model = YOLO("yolov8n_imx.onnx")
+         imx_model = YOLO("yolov8n_imx_model")
 
          # Run inference
          results = imx_model("https://ultralytics.com/images/bus.jpg")
@@ -70,19 +70,19 @@ Export an Ultralytics YOLOv8 model to IMX500 format and run inference with the e
          yolo export model=yolov8n.pt format=imx
 
          # Run inference with the exported model
-         yolo predict model=yolov8n_imx.onnx source='https://ultralytics.com/images/bus.jpg'
+         yolo predict model=yolov8n_imx_model source='https://ultralytics.com/images/bus.jpg'
          ```
 
 The export process will create an ONNX model for quantization validation, along with a directory named `<model-name>_imx500_model`. This directory will include the `packerOut.zip` file, which is essential for packaging the model for deployment on the IMX500 hardware. Additionally, the `<model-name>_imx500_model` folder will contain a text file (`labels.txt`) listing all the labels associated with the model.
 
 ```bash
-├── yolov8n_imx_model
-│   ├── dnnParams.xml
-│   ├── labels.txt
-│   ├── packerOut.zip
-│   ├── yolov8n_imx500_model_MemoryReport.json
-│   └── yolov8n_imx500_model.pbtxt
-└── yolov8n_imx.onnx
+yolov8n_imx_model
+├── dnnParams.xml
+├── labels.txt
+├── packerOut.zip
+├── yolov8n_imx.onnx
+├── yolov8n_imx500_model_MemoryReport.json
+└── yolov8n_imx500_model.pbtxt
 ```
 
 ## Arguments

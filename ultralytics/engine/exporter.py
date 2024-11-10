@@ -116,7 +116,7 @@ def export_formats():
         ["PaddlePaddle", "paddle", "_paddle_model", True, True],
         ["MNN", "mnn", ".mnn", True, True],
         ["NCNN", "ncnn", "_ncnn_model", True, True],
-        ["IMX", "imx", "_imx.onnx", True, True],
+        ["IMX", "imx", "_imx_model", True, True],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU"], zip(*x)))
 
@@ -1202,8 +1202,11 @@ class Exporter:
             iou_threshold=self.args.iou,
             max_detections=self.args.max_det,
         ).to(self.device)
-
-        f = Path(str(self.file).replace(self.file.suffix, "_imx.onnx"))  # js dir
+        
+        
+        output_dir = Path(str(self.file).replace(self.file.suffix, "_imx_model"))
+        os.mkdir(output_dir)
+        f = output_dir / Path(str(self.file).replace(self.file.suffix, "_imx.onnx"))  # js dir
         mct.exporter.pytorch_export_model(model=quant_model, save_model_path=f, repr_dataset=representative_dataset_gen)
 
         model_onnx = onnx.load(f)  # load onnx model
@@ -1213,10 +1216,10 @@ class Exporter:
 
         onnx.save(model_onnx, f)
 
-        output_dir = Path(str(self.file).replace(self.file.suffix, "_imx_model"))
+        
 
         subprocess.run(
-            ["imxconv-pt", "-i", str(f), "-o", str(output_dir), "--no-input-persistency", "--overwrite-output"],
+            ["imxconv-pt", "-i", str(f), "-o", str(output_dir), "--no-input-persistency"],
             check=True,
         )
 
@@ -1224,7 +1227,7 @@ class Exporter:
         with open(output_dir / "labels.txt", "w") as file:
             file.writelines([f"{name}\n" for _, name in self.model.names.items()])
 
-        return f, None
+        return output_dir, None
 
     def _add_tflite_metadata(self, file):
         """Add metadata to *.tflite models per https://www.tensorflow.org/lite/models/convert/metadata."""

@@ -89,10 +89,10 @@ yolov8n_imx_model
 
 When exporting a model to IMX500 format, you can specify various arguments:
 
-| Key      | Value | Description                                              |
-| -------- | ----- | -------------------------------------------------------- |
-| `format` | `imx` | Format to export to (imx)                                |
-| `int8`   | `True`| Enable INT8 quantization for the model (default: `True`) |
+| Key      | Value  | Description                                              |
+| -------- | ------ | -------------------------------------------------------- |
+| `format` | `imx`  | Format to export to (imx)                                |
+| `int8`   | `True` | Enable INT8 quantization for the model (default: `True`) |
 
 ## Using IMX500 Export in Deployment
 

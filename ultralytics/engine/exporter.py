@@ -212,11 +212,8 @@ class Exporter:
             ncnn,
             imx,
         ) = flags  # export booleans
-
         is_tf_format = any((saved_model, pb, tflite, edgetpu, tfjs))
-        if imx and not self.args.int8:
-            LOGGER.warning("WARNING ⚠️ IMX only supports int8 export, setting int8=True.")
-            self.args.int8 = True
+
         # Device
         dla = None
         if fmt == "engine" and self.args.device is None:
@@ -226,6 +223,7 @@ class Exporter:
             dla = self.args.device.split(":")[-1]
             assert dla in {"0", "1"}, f"Expected self.args.device='dla:0' or 'dla:1, but got {self.args.device}."
         self.device = select_device("cpu" if self.args.device is None else self.args.device)
+
         # Checks
         if not hasattr(model, "names"):
             model.names = default_class_names()
@@ -266,6 +264,10 @@ class Exporter:
             )
         if mnn and (IS_RASPBERRYPI or IS_JETSON):
             raise SystemError("MNN export not supported on Raspberry Pi and NVIDIA Jetson")
+        if imx and not self.args.int8:
+            LOGGER.warning("WARNING ⚠️ IMX only supports int8 export, setting int8=True.")
+            self.args.int8 = True
+
         # Input
         im = torch.zeros(self.args.batch, 3, *self.imgsz).to(self.device)
         file = Path(

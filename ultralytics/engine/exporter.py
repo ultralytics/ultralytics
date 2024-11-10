@@ -1202,8 +1202,7 @@ class Exporter:
             iou_threshold=self.args.iou,
             max_detections=self.args.max_det,
         ).to(self.device)
-        
-        
+
         output_dir = Path(str(self.file).replace(self.file.suffix, "_imx_model"))
         os.mkdir(output_dir)
         f = output_dir / Path(str(self.file).replace(self.file.suffix, "_imx.onnx"))  # js dir
@@ -1215,8 +1214,6 @@ class Exporter:
             meta.key, meta.value = k, str(v)
 
         onnx.save(model_onnx, f)
-
-        
 
         subprocess.run(
             ["imxconv-pt", "-i", str(f), "-o", str(output_dir), "--no-input-persistency"],

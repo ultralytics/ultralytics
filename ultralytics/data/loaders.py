@@ -420,7 +420,7 @@ class LoadImagesAndVideos:
                     with Image.open(path) as img:
                         im0 = cv2.cvtColor(np.asarray(img), cv2.COLOR_RGB2BGR)  # convert image to BGR nparray
                 else:
-                    im0 = cv2.imread(path,cv2.IMREAD_UNCHANGED)
+                    im0 = cv2.imread(path, cv2.IMREAD_UNCHANGED)
                     if im0.ndim == 2:  # Grayscale image
                         im0 = np.expand_dims(im0, axis=-1)
                         im0 = np.ascontiguousarray(im0)

@@ -1110,8 +1110,6 @@ class Exporter:
         check_requirements(("model-compression-toolkit==2.1.1", "sony-custom-layers==0.2.0", "tensorflow==2.12.0"))
         check_requirements("imx500-converter[pt]==3.14.3")  # Separate requirements for imx500-converter
 
-        import subprocess
-
         import model_compression_toolkit as mct
         import onnx
         from sony_custom_layers.pytorch.object_detection.nms import multiclass_nms
@@ -1203,7 +1201,7 @@ class Exporter:
         ).to(self.device)
 
         f = Path(str(self.file).replace(self.file.suffix, "_imx_model"))
-        os.mkdir(f)
+        f.mkdir(exist_ok=True)
         onnx_model = f / Path(str(self.file).replace(self.file.suffix, "_imx.onnx"))  # js dir
         mct.exporter.pytorch_export_model(
             model=quant_model, save_model_path=onnx_model, repr_dataset=representative_dataset_gen

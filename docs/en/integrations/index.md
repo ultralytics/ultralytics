@@ -61,7 +61,7 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 - [Albumentations](albumentations.md): Enhance your Ultralytics models with powerful image augmentations to improve model robustness and generalization.
 
-- [SONY IMX500](sony-imx500.md): Optimize and deploy Ultralytics YOLOv8 models on Raspberry Pi AI Cameras with the IMX500 sensor for fast, low-power performance.
+- [SONY IMX500](sony-imx500.md): Optimize and deploy [Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8/) models on Raspberry Pi AI Cameras with the IMX500 sensor for fast, low-power performance.
 
 ## Deployment Integrations
 

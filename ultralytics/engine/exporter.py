@@ -302,9 +302,6 @@ class Exporter:
                     )
                 )
 
-            if isinstance(m, C2f) and imx:
-                m.forward = m.forward_fx
-
         y = None
         for _ in range(2):
             y = model(im)  # dry runs

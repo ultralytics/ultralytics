@@ -283,6 +283,10 @@ class Exporter:
         model.eval()
         model.float()
         model = model.fuse()
+
+        if imx:
+            from ultralytics.utils.torch_utils import FXModel
+            model = FXModel(model)
         for m in model.modules():
             if isinstance(m, (Detect, RTDETRDecoder)):  # includes all Detect subclasses like Segment, Pose, OBB
                 m.dynamic = self.args.dynamic
@@ -301,26 +305,6 @@ class Exporter:
                         torch.cat([s / m.stride.unsqueeze(-1) for s in self.imgsz], dim=1), m.stride, 0.5
                     )
                 )
-
-                # NOTE: create `FXModel` for torch.fx compatibility.
-                class FXModel(torch.nn.Module):
-                    def __init__(self, model) -> None:
-                        super().__init__()
-                        copy_attr(self, model)
-                        # need explicitly set `model` since `copy_attr` somehow does not copy it.
-                        self.model = model.model
-
-                    def forward(self, x):
-                        y = []  # outputs
-                        for m in self.model:
-                            if m.f != -1:  # if not from previous layer
-                                # from earlier layers
-                                x = y[m.f] if isinstance(m.f, int) else [x if j == -1 else y[j] for j in m.f]
-                            x = m(x)  # run
-                            y.append(x)  # save output
-                        return x
-
-                model = FXModel(model)
 
         y = None
         for _ in range(2):
@@ -1407,9 +1391,9 @@ class Exporter:
         model = ct.models.MLModel(pipeline.spec, weights_dir=weights_dir)
         model.input_description["image"] = "Input image"
         model.input_description["iouThreshold"] = f"(optional) IoU threshold override (default: {nms.iouThreshold})"
-        model.input_description["confidenceThreshold"] = (
-            f"(optional) Confidence threshold override (default: {nms.confidenceThreshold})"
-        )
+        model.input_description[
+            "confidenceThreshold"
+        ] = f"(optional) Confidence threshold override (default: {nms.confidenceThreshold})"
         model.output_description["confidence"] = 'Boxes × Class confidence (see user-defined metadata "classes")'
         model.output_description["coordinates"] = "Boxes × [x, y, width, height] (relative to image size)"
         LOGGER.info(f"{prefix} pipeline success")

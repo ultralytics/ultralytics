@@ -588,28 +588,40 @@ class LoadTensor:
 
 def autocast_list(source):
     """Merges a list of source of different types into a list of numpy arrays."""
+    # files = []
+    # for im in source:
+    #     if isinstance(im, (str, Path)):  # filename or uri
+    #         if str(im).startswith("http"):
+    #             # Read image from URL
+    #             resp = requests.get(im)
+    #             img_array = np.asarray(bytearray(resp.content), dtype=np.uint8)  # WARNING: Forces image to uint8
+    #             im = cv2.imdecode(img_array, cv2.IMREAD_UNCHANGED)
+    #         else:
+    #             # Read image from file
+    #             im = cv2.imread(str(im), cv2.IMREAD_UNCHANGED)
+    #         if im is None:
+    #             raise FileNotFoundError(f"Image not found or unable to read {im}")
+    #         files.append(im)
+    #     elif isinstance(im, (Image.Image, np.ndarray)):  # np Image
+    #         files.append(im)
+    #     else:
+    #         raise TypeError(
+    #             f"type {type(im).__name__} is not a supported Ultralytics prediction source type. \n"
+    #             f"See https://docs.ultralytics.com/modes/predict for supported source types."
+    #         )
+
+    # return files
     files = []
     for im in source:
         if isinstance(im, (str, Path)):  # filename or uri
-            if str(im).startswith("http"):
-                # Read image from URL
-                resp = requests.get(im)
-                img_array = np.asarray(bytearray(resp.content), dtype=np.uint8)  # WARNING: Forces image to uint8
-                im = cv2.imdecode(img_array, cv2.IMREAD_UNCHANGED)
-            else:
-                # Read image from file
-                im = cv2.imread(str(im), cv2.IMREAD_UNCHANGED)
-            if im is None:
-                raise FileNotFoundError(f"Image not found or unable to read {im}")
-            files.append(im)
-        elif isinstance(im, (Image.Image, np.ndarray)):  # np Image
+            files.append(Image.open(requests.get(im, stream=True).raw if str(im).startswith("http") else im))
+        elif isinstance(im, (Image.Image, np.ndarray)):  # PIL or np Image
             files.append(im)
         else:
             raise TypeError(
                 f"type {type(im).__name__} is not a supported Ultralytics prediction source type. \n"
                 f"See https://docs.ultralytics.com/modes/predict for supported source types."
             )
-
     return files
 
 

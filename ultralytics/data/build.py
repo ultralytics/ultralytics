@@ -163,7 +163,6 @@ def check_source(source):
     elif isinstance(source, (list, tuple)):
         source = autocast_list(source)  # convert all list elements to numpy arrays
         from_img = True
-    # Removed PIL Image check since we're eliminating PIL usage
     elif isinstance(source, (Image.Image, np.ndarray)):
         # elif isinstance(source, np.ndarray):
         from_img = True

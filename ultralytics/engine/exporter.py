@@ -1120,7 +1120,9 @@ class Exporter:
         from sony_custom_layers.pytorch.object_detection.nms import multiclass_nms
 
         try:
-            out = subprocess.run(["java", "--version"], check=True, capture_output=True)  # Java 17 is required for imx500-converter
+            out = subprocess.run(
+                ["java", "--version"], check=True, capture_output=True
+            )  # Java 17 is required for imx500-converter
             if "openjdk 17" not in str(out.stdout):
                 raise FileNotFoundError
         except FileNotFoundError:

@@ -881,8 +881,8 @@ class LetterBox:
         )  # add border
         if labels.get("ratio_pad"):
             labels["ratio_pad"] = (labels["ratio_pad"], (left, top))  # for evaluation
-        if (len(img.shape))==2:
-            img = np.expand_dims(img,-1)
+        if (len(img.shape)) == 2:
+            img = np.expand_dims(img, -1)
 
         if len(labels):
             labels = self._update_labels(labels, ratio, dw, dh)

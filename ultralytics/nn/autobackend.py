@@ -200,11 +200,13 @@ class AutoBackend(nn.Module):
                 device = torch.device("cpu")
                 cuda = False
             LOGGER.info(f"Preferring ONNX Runtime {providers[0]}")
-            if imx:
+            if onnx:
+                session = onnxruntime.InferenceSession(w, providers=providers)
+            else:
                 check_requirements(
                     ["model-compression-toolkit==2.1.1", "sony-custom-layers[torch]==0.2.0", "onnxruntime-extensions"]
                 )
-                w = [i for i in Path(w).iterdir() if i.name.endswith("onnx")][0]
+                w = next(Path(w).glob("*.onnx"))
                 LOGGER.info(f"Loading {w} for ONNX IMX inference...")
                 import mct_quantizers as mctq
                 from sony_custom_layers.pytorch.object_detection import nms_ort  # noqa
@@ -213,8 +215,6 @@ class AutoBackend(nn.Module):
                     w, mctq.get_ort_session_options(), providers=["CPUExecutionProvider"]
                 )
                 task = "detect"
-            else:
-                session = onnxruntime.InferenceSession(w, providers=providers)
 
             output_names = [x.name for x in session.get_outputs()]
             metadata = session.get_modelmeta().custom_metadata_map

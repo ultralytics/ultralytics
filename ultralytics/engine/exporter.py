@@ -225,6 +225,9 @@ class Exporter:
         self.device = select_device("cpu" if self.args.device is None else self.args.device)
 
         # Checks
+        if imx and not self.args.int8:
+            LOGGER.warning("WARNING ⚠️ IMX only supports int8 export, setting int8=True.")
+            self.args.int8 = True
         if not hasattr(model, "names"):
             model.names = default_class_names()
         model.names = check_class_names(model.names)
@@ -264,9 +267,6 @@ class Exporter:
             )
         if mnn and (IS_RASPBERRYPI or IS_JETSON):
             raise SystemError("MNN export not supported on Raspberry Pi and NVIDIA Jetson")
-        if imx and not self.args.int8:
-            LOGGER.warning("WARNING ⚠️ IMX only supports int8 export, setting int8=True.")
-            self.args.int8 = True
 
         # Input
         im = torch.zeros(self.args.batch, 3, *self.imgsz).to(self.device)

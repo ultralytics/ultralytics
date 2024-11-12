@@ -19,7 +19,7 @@ Object counting with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
         allowfullscreen>
       </iframe>
       <br>
-      <strong>Watch:</strong> Object Counting using Ultralytics YOLO11
+      <strong>Watch:</strong> Object Counting using Ultralytics YOLOv8
     </td>
     <td align="center">
       <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/Fj9TStNBVoY"

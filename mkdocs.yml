@@ -412,12 +412,14 @@ nav:
       - TF.js: integrations/tfjs.md
       - TFLite: integrations/tflite.md
       - TFLite Edge TPU: integrations/edge-tpu.md
+      - Sony IMX500: integrations/sony-imx500.md
       - TensorBoard: integrations/tensorboard.md
       - TensorRT: integrations/tensorrt.md
       - TorchScript: integrations/torchscript.md
       - VS Code: integrations/vscode.md
       - Weights & Biases: integrations/weights-biases.md
       - Albumentations: integrations/albumentations.md
+      - SONY IMX500: integrations/sony-imx500.md
   - HUB:
       - hub/index.md
       - Web:
@@ -559,7 +561,6 @@ nav:
               - utils: reference/nn/modules/utils.md
           - tasks: reference/nn/tasks.md
       - solutions:
-          - solutions: reference/solutions/solutions.md
           - ai_gym: reference/solutions/ai_gym.md
           - analytics: reference/solutions/analytics.md
           - distance_calculation: reference/solutions/distance_calculation.md
@@ -567,6 +568,7 @@ nav:
           - object_counter: reference/solutions/object_counter.md
           - parking_management: reference/solutions/parking_management.md
           - queue_management: reference/solutions/queue_management.md
+          - solutions: reference/solutions/solutions.md
           - speed_estimation: reference/solutions/speed_estimation.md
           - streamlit_inference: reference/solutions/streamlit_inference.md
       - trackers:

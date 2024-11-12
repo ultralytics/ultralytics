@@ -53,8 +53,9 @@ Measuring the gap between two objects is known as distance calculation within a 
         video_writer = cv2.VideoWriter("distance_calculation.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
         # Init distance-calculation obj
-        distance = solutions.DistanceCalculation(model="yolo11n.pt", show=True)
-
+        distance = solutions.DistanceCalculation(model="yolo11n.pt",show=True)
+        
+        # Process video
         while cap.isOpened():
             success, im0 = cap.read()
             if not success:

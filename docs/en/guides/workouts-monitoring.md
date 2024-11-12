@@ -62,14 +62,16 @@ Monitoring workouts through pose estimation with [Ultralytics YOLO11](https://gi
 
         # Video writer
         video_writer = cv2.VideoWriter("workouts.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
-
+        
+        # Init AIGym
         gym = solutions.AIGym(
             show=True,  # Display the frame
             kpts=[6, 8, 10],  # keypoints index of person for monitoring specific exercise, by default it's for pushup
             model="yolo11n-pose.pt",  # Path to the YOLO11 pose estimation model file
             # line_width=2,  # Adjust the line width for bounding boxes and text display
         )
-
+        
+        # Process video
         while cap.isOpened():
             success, im0 = cap.read()
             if not success:

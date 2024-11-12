@@ -352,7 +352,7 @@ class CBAM(nn.Module):
         """
         x2 = self.cv2(self.cv1(x))
         out = self.channel_attention(x2) * x2
-        out = self.spatial_attention(out) * out
+        # out = self.spatial_attention(out) * out
         return x + out if self.add else out
 
 

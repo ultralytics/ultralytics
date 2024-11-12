@@ -718,7 +718,7 @@ class Results(SimpleClass):
             with open(txt_file, "a") as f:
                 f.writelines(text + "\n" for text in texts)
 
-    def save_crop(self, save_dir, file_name=Path("im")):
+    def save_crop(self, save_dir, file_name=Path("im.jpg")):
         """
         Saves cropped detection images to specified directory.
 
@@ -750,7 +750,7 @@ class Results(SimpleClass):
             save_one_box(
                 d.xyxy,
                 self.orig_img.copy(),
-                file=Path(save_dir) / self.names[int(d.cls)] / f"{Path(file_name)}.jpg",
+                file=Path(save_dir) / self.names[int(d.cls)] / Path(file_name).with_suffix('.jpg'),
                 BGR=True,
             )
 

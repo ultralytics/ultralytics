@@ -73,16 +73,17 @@ A heatmap generated with [Ultralytics YOLO11](https://github.com/ultralytics/ult
 
         # Init heatmap
         heatmap = solutions.Heatmap(
-            show=True,
-            model="yolo11n.pt",
-            colormap=cv2.COLORMAP_PARULA,
+            show=True,  # Display the output
+            model="yolo11n.pt",     # Path to the YOLO11 model file
+            colormap=cv2.COLORMAP_PARULA,   # Colormap of heatmap
             # region=region_points,  # If you want to do object counting with heatmaps, you can pass region_points
             # classes=[0, 2],  # If you want to generate heatmap for specific classes i.e person and car.
             # show_in=True,  # Display in counts
             # show_out=True,  # Display out counts
             # line_width=2,  # Adjust the line width for bounding boxes and text display
         )
-
+        
+        # Process video
         while cap.isOpened():
             success, im0 = cap.read()
             if not success:

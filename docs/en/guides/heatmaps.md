@@ -47,6 +47,9 @@ A heatmap generated with [Ultralytics YOLO11](https://github.com/ultralytics/ult
 
         # Pass a custom colormap
         yolo solutions heatmap colormap=cv2.COLORMAP_INFERNO
+        
+        # Heatmaps + object counting
+        yolo solutions heatmap region=[(20, 400), (1080, 404), (1080, 360), (20, 360)]
         ```
 
     === "Python"

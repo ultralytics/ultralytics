@@ -63,7 +63,7 @@ This guide provides a comprehensive overview of three fundamental types of [data
         cap = cv2.VideoCapture("Path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-        
+
         # Video writer
         out = cv2.VideoWriter(
             "ultralytics_analytics.avi",
@@ -71,7 +71,7 @@ This guide provides a comprehensive overview of three fundamental types of [data
             fps,
             (1920, 1080),  # This is fixed
         )
-        
+
         # Init analytics
         analytics = solutions.Analytics(
             show=True,  # Display the output
@@ -79,7 +79,7 @@ This guide provides a comprehensive overview of three fundamental types of [data
             model="yolo11n.pt",  # Path to the YOLO11 model file
             # classes=[0, 2],  # If you want to count specific classes i.e person and car with COCO pretrained model.
         )
-        
+
         # Process video
         frame_count = 0
         while cap.isOpened():

@@ -277,16 +277,16 @@ class RepConv(nn.Module):
 
 
 class ChannelAttention(nn.Module):
-    """Channel-attention module https://github.com/open-mmlab/mmdetection/tree/v3.0.0rc1/configs/rtmdet."""
+    """Channel-attention module."""
 
-    def __init__(self, in_planes, ratio=16) -> None:
-        """Initializes the class and sets the basic configurations and instance variables required."""
+    def __init__(self, in_planes, ratio=16):
         super().__init__()
+        hidden_planes = max(1, in_planes // ratio)
         self.avg_pool = nn.AdaptiveAvgPool2d(1)
         self.max_pool = nn.AdaptiveMaxPool2d(1)
-        self.f1 = nn.Conv2d(in_planes, in_planes // ratio, 1, bias=False)
+        self.f1 = nn.Conv2d(in_planes, hidden_planes, 1, bias=False)
         self.relu = nn.ReLU()
-        self.f2 = nn.Conv2d(in_planes // ratio, in_planes, 1, bias=False)
+        self.f2 = nn.Conv2d(hidden_planes, in_planes, 1, bias=False)
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, x):
@@ -315,8 +315,11 @@ class SpatialAttention(nn.Module):
 
     def forward(self, x):
         """Apply channel and spatial attention on input for feature recalibration."""
-        return x * self.act(self.cv1(torch.cat([torch.mean(x, 1, keepdim=True), torch.max(x, 1, keepdim=True)[0]], 1)))
-
+        attn = self.act(self.cv1(torch.cat([
+            torch.mean(x, 1, keepdim=True),
+            torch.max(x, 1, keepdim=True)[0]
+        ], 1)))
+        return attn
 
 class CBAM(nn.Module):
     """Convolutional Block Attention Module."""
@@ -351,8 +354,8 @@ class CBAM(nn.Module):
             out (torch.Tensor): Output tensor after applying the CBAM bottleneck.
         """
         x2 = self.cv2(self.cv1(x))
-        out = self.channel_attention(x2) * x2
-        # out = self.spatial_attention(out) * out
+        out = x2 * self.channel_attention(x2)
+        out = out * self.spatial_attention(out)
         return x + out if self.add else out
 
 

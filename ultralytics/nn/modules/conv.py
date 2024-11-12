@@ -6,7 +6,6 @@ import math
 import numpy as np
 import torch
 import torch.nn as nn
-import warnings
 
 __all__ = (
     "Conv",
@@ -24,6 +23,8 @@ __all__ = (
     "RepConv",
 )
 
+import warnings
+warnings.filterwarnings('ignore', category=UserWarning)
 
 def autopad(k, p=None, d=1):  # kernel, padding, dilation
     """Pad to 'same' shape outputs."""
@@ -296,12 +297,10 @@ class ChannelAttention(nn.Module):
          Returns:
              out (torch.Tensor): Output tensor after applying channel attention.
         """
-        with warnings.catch_warnings():
-            warnings.simplefilter('ignore')
-            avg_out = self.f2(self.relu(self.f1(self.avg_pool(x))))
-            max_out = self.f2(self.relu(self.f1(self.max_pool(x))))
-            out = self.sigmoid(avg_out + max_out)
-            return out
+        avg_out = self.f2(self.relu(self.f1(self.avg_pool(x))))
+        max_out = self.f2(self.relu(self.f1(self.max_pool(x))))
+        out = self.sigmoid(avg_out + max_out)
+        return out
 
 class SpatialAttention(nn.Module):
     """Spatial-attention module."""
@@ -351,12 +350,10 @@ class CBAM(nn.Module):
         Returns:
             out (torch.Tensor): Output tensor after applying the CBAM bottleneck.
         """
-        with warnings.catch_warnings():
-            warnings.simplefilter('ignore')
-            x2 = self.cv2(self.cv1(x))
-            out = self.channel_attention(x2) * x2
-            out = self.spatial_attention(out) * out
-            return x + out if self.add else out
+        x2 = self.cv2(self.cv1(x))
+        out = self.channel_attention(x2) * x2
+        out = self.spatial_attention(out) * out
+        return x + out if self.add else out
 
 
 class Concat(nn.Module):

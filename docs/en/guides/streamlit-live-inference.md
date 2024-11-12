@@ -39,7 +39,7 @@ Streamlit makes it simple to build and deploy interactive web applications. Comb
     Before you start building the application, ensure you have the Ultralytics Python Package installed. You can install it using the command **pip install ultralytics**
 
 !!! example "Streamlit Application"
-    
+
     === "CLI"
 
         ```bash

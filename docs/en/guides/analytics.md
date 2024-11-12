@@ -48,7 +48,7 @@ This guide provides a comprehensive overview of three fundamental types of [data
 
         # generate the bar plots
         yolo solutions analytics analytics_type="bar" show=True
-        
+
         # generate the area plots
         yolo solutions analytics analytics_type="area" show=True
         ```
@@ -75,7 +75,7 @@ This guide provides a comprehensive overview of three fundamental types of [data
         analytics = solutions.Analytics(
             show=True,  # Display the output
             analytics_type="line",  # Pass the analytics type, could be "pie", "bar" or "area".
-            model="yolo11n.pt",     # Path to the YOLO11 model file
+            model="yolo11n.pt",  # Path to the YOLO11 model file
             # classes=[0, 2],  # If you want to count specific classes i.e person and car with COCO pretrained model.
         )
 

@@ -85,9 +85,10 @@ Object counting with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
             show=True,  # Display the output
             region=region_points,  # Pass region points
             model="yolo11n.pt", # model="yolo11n-obb.pt" for object counting using YOLO11 OBB model.
-            classes=[0, 2],  # If you want to count specific classes i.e person and car with COCO pretrained model.
-            show_in=True,  # Display in counts
-            show_out=True,  # Display out counts
+            # classes=[0, 2],  # If you want to count specific classes i.e person and car with COCO pretrained model.
+            # show_in=True,  # Display in counts
+            # show_out=True,  # Display out counts
+            # line_width=2,  # Adjust the line width for bounding boxes and text display
         )
 
         # Process video

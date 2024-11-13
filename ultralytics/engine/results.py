@@ -750,7 +750,7 @@ class Results(SimpleClass):
             save_one_box(
                 d.xyxy,
                 self.orig_img.copy(),
-                file=Path(save_dir) / self.names[int(d.cls)] / f"{Path(file_name)}.jpg",
+                file=Path(save_dir) / self.names[int(d.cls)] / Path(file_name).with_suffix(".jpg"),
                 BGR=True,
             )
 

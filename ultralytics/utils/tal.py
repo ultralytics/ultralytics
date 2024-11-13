@@ -58,43 +58,24 @@ class TaskAlignedAssigner(nn.Module):
         """
         self.bs = pd_scores.shape[0]
         self.n_max_boxes = gt_bboxes.shape[1]
-
+        device = gt_bboxes.device
+    
         if self.n_max_boxes == 0:
-            device = gt_bboxes.device
             return (
-                torch.full_like(pd_scores[..., 0], self.bg_idx).to(device),
-                torch.zeros_like(pd_bboxes).to(device),
-                torch.zeros_like(pd_scores).to(device),
-                torch.zeros_like(pd_scores[..., 0]).to(device),
-                torch.zeros_like(pd_scores[..., 0]).to(device),
+                torch.full_like(pd_scores[..., 0], self.bg_idx),
+                torch.zeros_like(pd_bboxes),
+                torch.zeros_like(pd_scores),
+                torch.zeros_like(pd_scores[..., 0]),
+                torch.zeros_like(pd_scores[..., 0])
             )
-
+    
         try:
-            target_labels, target_bboxes, target_scores, fg_mask, target_gt_idx = self._forward(
-                pd_scores,
-                pd_bboxes,
-                anc_points,
-                gt_labels,
-                gt_bboxes,
-                mask_gt,
-            )
+            return self._forward(pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt)
         except torch.OutOfMemoryError:
-            device = gt_bboxes.device
-            target_labels, target_bboxes, target_scores, fg_mask, target_gt_idx = self._forward(
-                pd_scores.cpu(),
-                pd_bboxes.cpu(),
-                anc_points.cpu(),
-                gt_labels.cpu(),
-                gt_bboxes.cpu(),
-                mask_gt.cpu(),
-            )
-            target_labels, target_bboxes, target_scores, fg_mask, target_gt_idx = (
-                target_labels.to(device),
-                target_bboxes.to(device),
-                target_scores.to(device),
-                fg_mask.to(device),
-                target_gt_idx.to(device),
-            )
+            # Move tensors to CPU, compute, then move back to original device
+            cpu_tensors = [t.cpu() for t in (pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt)]
+            result = self._forward(*cpu_tensors)
+            return tuple(t.to(device) for t in result)
 
         return target_labels, target_bboxes, target_scores, fg_mask, target_gt_idx
 

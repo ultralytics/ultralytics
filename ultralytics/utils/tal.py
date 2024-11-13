@@ -77,8 +77,6 @@ class TaskAlignedAssigner(nn.Module):
             result = self._forward(*cpu_tensors)
             return tuple(t.to(device) for t in result)
 
-        return target_labels, target_bboxes, target_scores, fg_mask, target_gt_idx
-
     def _forward(self, pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt):
         """
         Compute the task-aligned assignment. Reference code is available at

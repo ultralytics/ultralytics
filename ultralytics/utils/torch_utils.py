@@ -623,7 +623,7 @@ def convert_optimizer_state_dict_to_fp16(state_dict):
     return state_dict
 
 
-def profile(input, ops, n=10, device=None):
+def profile(input, ops, n=10, device=None, max_num_obj=0):
     """
     Ultralytics speed, memory and FLOPs profiler.
 
@@ -671,6 +671,8 @@ def profile(input, ops, n=10, device=None):
                         t[2] = float("nan")
                     tf += (t[1] - t[0]) * 1000 / n  # ms per op forward
                     tb += (t[2] - t[1]) * 1000 / n  # ms per op backward
+                    if max_num_obj:   # 4 for mosaic augmentation
+                        torch.randn(x.shape[0], int(max_num_obj * 4), 8400, device=device, dtype=torch.float32)
                 mem = torch.cuda.memory_reserved() / 1e9 if torch.cuda.is_available() else 0  # (GB)
                 s_in, s_out = (tuple(x.shape) if isinstance(x, torch.Tensor) else "list" for x in (x, y))  # shapes
                 p = sum(x.numel() for x in m.parameters()) if isinstance(m, nn.Module) else 0  # parameters

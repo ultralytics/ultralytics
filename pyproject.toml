@@ -64,7 +64,7 @@ dependencies = [
     "numpy>=1.23.0",
     "numpy<2.0.0; sys_platform == 'darwin'", # macOS OpenVINO errors https://github.com/ultralytics/ultralytics/pull/17221
     "matplotlib>=3.3.0",
-    "opencv-python>=4.6.0",
+    "opencv-python>=4.6.0; extra != 'headless'", # extra markers are yet to be supported in Poetry https://github.com/python-poetry/poetry/pull/9553
     "pillow>=7.1.2",
     "pyyaml>=5.3.1",
     "requests>=2.23.0",
@@ -75,13 +75,20 @@ dependencies = [
     "tqdm>=4.64.0", # progress bars
     "psutil", # system utilization
     "py-cpuinfo", # display CPU info
-    "pandas>=1.1.4",
-    "seaborn>=0.11.0", # plotting
     "ultralytics-thop>=2.0.0", # FLOPs computation https://github.com/ultralytics/thop
 ]
 
 # Optional dependencies ------------------------------------------------------------------------------------------------
 [project.optional-dependencies]
+headless = [
+    "opencv-python-headless>=4.6.0"
+]
+
+train = [
+    "pandas>=1.1.4",
+    "seaborn>=0.11.0", # plotting
+]
+
 dev = [
     "ipython",
     "pytest",

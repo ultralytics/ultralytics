@@ -475,14 +475,13 @@ class BaseTrainer:
 
     def auto_batch(self, max_num_obj=0):
         """Get batch size by calculating memory occupation of model."""
-        batch_size = check_train_batch_size(
+        return check_train_batch_size(
             model=self.model,
             imgsz=self.args.imgsz,
             amp=self.amp,
             batch=self.batch_size,
             max_num_obj=max_num_obj,
-        )
-        return batch_size
+        )  # returns batch size
 
     def _get_memory(self):
         """Get accelerator memory utilization in GB."""

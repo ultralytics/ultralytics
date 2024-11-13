@@ -14,3 +14,4 @@
 | [PaddlePaddle](../integrations/paddlepaddle.md)   | `paddle`          | `{{ model_name or "yolo11n" }}_paddle_model/`   | ✅       | `imgsz`, `batch`                                                     |
 | [MNN](../integrations/mnn.md)                     | `mnn`             | `{{ model_name or "yolo11n" }}.mnn`             | ✅       | `imgsz`, `batch`, `int8`, `half`                                     |
 | [NCNN](../integrations/ncnn.md)                   | `ncnn`            | `{{ model_name or "yolo11n" }}_ncnn_model/`     | ✅       | `imgsz`, `half`, `batch`                                             |
+| [IMX500](../integrations/sony-imx500.md)          | `imx`             | `{{ model_name or "yolo11n" }}_imx_model/`      | ✅       | `imgsz`, `int8`                                                      |

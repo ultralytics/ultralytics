@@ -54,7 +54,7 @@ class Analytics(BaseSolution):
         self.y_label = "Total Counts"
 
         # Predefined data
-        self.bg_color = "#00F344"  # background color of frame
+        self.bg_color = "#F3F3F3"  # background color of frame
         self.fg_color = "#111E68"  # foreground color of frame
         self.title = "Ultralytics Solutions"  # window name
         self.max_points = 45  # maximum points to be drawn on window

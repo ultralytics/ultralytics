@@ -671,11 +671,11 @@ def profile(input, ops, n=10, device=None, max_num_obj=0):
                         t[2] = float("nan")
                     tf += (t[1] - t[0]) * 1000 / n  # ms per op forward
                     tb += (t[2] - t[1]) * 1000 / n  # ms per op backward
-                    if max_num_obj:  # 4 for mosaic augmentation
+                    if max_num_obj:
                         torch.randn(
                             x.shape[0],
-                            int(max_num_obj * 4),
-                            sum([(x.shape[-1] / s) * (x.shape[-2] / s) for s in m.stride]),
+                            max_num_obj,
+                            sum([(x.shape[-1] / s) * (x.shape[-2] / s) for s in m.stride.item()]),
                             device=device,
                             dtype=torch.float32,
                         )

@@ -671,7 +671,7 @@ def profile(input, ops, n=10, device=None, max_num_obj=0):
                         t[2] = float("nan")
                     tf += (t[1] - t[0]) * 1000 / n  # ms per op forward
                     tb += (t[2] - t[1]) * 1000 / n  # ms per op backward
-                    if max_num_obj:
+                    if max_num_obj:  # simulate training with predictions per image grid (for AutoBatch)
                         torch.randn(
                             x.shape[0],
                             max_num_obj,

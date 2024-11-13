@@ -3,6 +3,7 @@
 import torch
 import torch.nn as nn
 
+from . import LOGGER
 from .checks import check_version
 from .metrics import bbox_iou, probiou
 from .ops import xywhr2xyxyxyxy
@@ -73,6 +74,7 @@ class TaskAlignedAssigner(nn.Module):
             return self._forward(pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt)
         except torch.OutOfMemoryError:
             # Move tensors to CPU, compute, then move back to original device
+            LOGGER.warning("WARNING: CUDA OutOfMemoryError in TaskAlignedAssigner, using CPU")
             cpu_tensors = [t.cpu() for t in (pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt)]
             result = self._forward(*cpu_tensors)
             return tuple(t.to(device) for t in result)

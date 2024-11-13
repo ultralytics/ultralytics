@@ -67,11 +67,11 @@ from .conv import (
     DWConv,
     DWConvTranspose2d,
     Focus,
+    GAM_Attention,
     GhostConv,
     LightConv,
     RepConv,
     SpatialAttention,
-    GAM_Attention,
 )
 from .head import OBB, Classify, Detect, Pose, RTDETRDecoder, Segment, WorldDetect, v10Detect
 from .transformer import (

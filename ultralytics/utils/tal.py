@@ -59,16 +59,16 @@ class TaskAlignedAssigner(nn.Module):
         self.bs = pd_scores.shape[0]
         self.n_max_boxes = gt_bboxes.shape[1]
         device = gt_bboxes.device
-    
+
         if self.n_max_boxes == 0:
             return (
                 torch.full_like(pd_scores[..., 0], self.bg_idx),
                 torch.zeros_like(pd_bboxes),
                 torch.zeros_like(pd_scores),
                 torch.zeros_like(pd_scores[..., 0]),
-                torch.zeros_like(pd_scores[..., 0])
+                torch.zeros_like(pd_scores[..., 0]),
             )
-    
+
         try:
             return self._forward(pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt)
         except torch.OutOfMemoryError:

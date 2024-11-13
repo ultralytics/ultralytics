@@ -651,6 +651,7 @@ def profile(input, ops, n=10, device=None, max_num_obj=0):
         x.requires_grad = True
         for m in ops if isinstance(ops, list) else [ops]:
             m = m.to(device) if hasattr(m, "to") else m  # device
+            print()
             m = m.half() if hasattr(m, "half") and isinstance(x, torch.Tensor) and x.dtype is torch.float16 else m
             tf, tb, t = 0, 0, [0, 0, 0]  # dt forward, backward
             try:
@@ -672,7 +673,13 @@ def profile(input, ops, n=10, device=None, max_num_obj=0):
                     tf += (t[1] - t[0]) * 1000 / n  # ms per op forward
                     tb += (t[2] - t[1]) * 1000 / n  # ms per op backward
                     if max_num_obj:  # 4 for mosaic augmentation
-                        torch.randn(x.shape[0], int(max_num_obj * 4), 8400, device=device, dtype=torch.float32)
+                        torch.randn(
+                            x.shape[0],
+                            int(max_num_obj * 4),
+                            sum([(x.shape[-1] / s) * (x.shape[-2] / s) for s in m.stride]),
+                            device=device,
+                            dtype=torch.float32,
+                        )
                 mem = torch.cuda.memory_reserved() / 1e9 if torch.cuda.is_available() else 0  # (GB)
                 s_in, s_out = (tuple(x.shape) if isinstance(x, torch.Tensor) else "list" for x in (x, y))  # shapes
                 p = sum(x.numel() for x in m.parameters()) if isinstance(m, nn.Module) else 0  # parameters

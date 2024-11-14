@@ -141,7 +141,9 @@ class BaseValidator:
                 self.args.batch = model.metadata.get("batch", 1)  # export.py models default to batch-size 1
                 LOGGER.info(f"Setting batch={self.args.batch} input of shape ({self.args.batch}, 3, {imgsz}, {imgsz})")
 
-            if str(self.args.data).split(".")[-1] in {"yaml", "yml"}:
+            if self.data:
+                pass
+            elif str(self.args.data).split(".")[-1] in {"yaml", "yml"}:
                 self.data = check_det_dataset(self.args.data)
             elif self.args.task == "classify":
                 self.data = check_cls_dataset(self.args.data, split=self.args.split)

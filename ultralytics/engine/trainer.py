@@ -418,7 +418,7 @@ class BaseTrainer:
                         )
                     )
                     self.run_callbacks("on_batch_end")
-                    if self.args.plots and ni in self.plot_idx:
+                    if self.args.plots:
                         self.plot_training_samples(batch, ni)
 
                 self.run_callbacks("on_train_batch_end")

@@ -520,10 +520,12 @@ class BaseTrainer:
             {
                 "epoch": self.epoch,
                 "best_fitness": self.best_fitness,
-                "model": None,  # resume and final checkpoints derive from EMA
+                # "model": None,  # resume and final checkpoints derive from EMA
+                "model": deepcopy(self.model).half(),  # resume and final checkpoints derive from EMA
                 "ema": deepcopy(self.ema.ema).half(),
                 "updates": self.ema.updates,
-                "optimizer": convert_optimizer_state_dict_to_fp16(deepcopy(self.optimizer.state_dict())),
+                # "optimizer": convert_optimizer_state_dict_to_fp16(deepcopy(self.optimizer.state_dict())),
+                "optimizer": deepcopy(self.optimizer.state_dict()),
                 "train_args": vars(self.args),  # save as dict
                 "train_metrics": {**self.metrics, **{"fitness": self.fitness}},
                 "train_results": self.read_results_csv(),
@@ -576,7 +578,9 @@ class BaseTrainer:
         cfg, weights = self.model, None
         ckpt = None
         if str(self.model).endswith(".pt"):
-            weights, ckpt = attempt_load_one_weight(self.model)
+            # weights, ckpt = attempt_load_one_weight(self.model)
+            ckpt = torch.load(self.model)
+            weights = ckpt["model"]
             cfg = weights.yaml
         elif isinstance(self.args.pretrained, (str, Path)):
             weights, _ = attempt_load_one_weight(self.args.pretrained)

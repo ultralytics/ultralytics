@@ -364,16 +364,16 @@ class BaseTrainer:
                 self.run_callbacks("on_train_batch_start")
                 # Warmup
                 ni = i + nb * epoch
-                # if ni <= nw:
-                #     xi = [0, nw]  # x interp
-                #     self.accumulate = max(1, int(np.interp(ni, xi, [1, self.args.nbs / self.batch_size]).round()))
-                #     for j, x in enumerate(self.optimizer.param_groups):
-                #         # Bias lr falls from 0.1 to lr0, all other lrs rise from 0.0 to lr0
-                #         x["lr"] = np.interp(
-                #             ni, xi, [self.args.warmup_bias_lr if j == 0 else 0.0, x["initial_lr"] * self.lf(epoch)]
-                #         )
-                #         if "momentum" in x:
-                #             x["momentum"] = np.interp(ni, xi, [self.args.warmup_momentum, self.args.momentum])
+                if ni <= nw:
+                    xi = [0, nw]  # x interp
+                    self.accumulate = max(1, int(np.interp(ni, xi, [1, self.args.nbs / self.batch_size]).round()))
+                    for j, x in enumerate(self.optimizer.param_groups):
+                        # Bias lr falls from 0.1 to lr0, all other lrs rise from 0.0 to lr0
+                        x["lr"] = np.interp(
+                            ni, xi, [self.args.warmup_bias_lr if j == 0 else 0.0, x["initial_lr"] * self.lf(epoch)]
+                        )
+                        if "momentum" in x:
+                            x["momentum"] = np.interp(ni, xi, [self.args.warmup_momentum, self.args.momentum])
 
                 # Forward
                 with autocast(self.amp):
@@ -387,22 +387,21 @@ class BaseTrainer:
 
                 # Backward
                 self.scaler.scale(self.loss).backward()
-                self.optimizer_step()
 
                 # Optimize - https://pytorch.org/docs/master/notes/amp_examples.html
-                # if ni - last_opt_step >= self.accumulate:
-                #     self.optimizer_step()
-                #     last_opt_step = ni
-                #
-                #     # Timed stopping
-                #     if self.args.time:
-                #         self.stop = (time.time() - self.train_time_start) > (self.args.time * 3600)
-                #         if RANK != -1:  # if DDP training
-                #             broadcast_list = [self.stop if RANK == 0 else None]
-                #             dist.broadcast_object_list(broadcast_list, 0)  # broadcast 'stop' to all ranks
-                #             self.stop = broadcast_list[0]
-                #         if self.stop:  # training time exceeded
-                #             break
+                if ni - last_opt_step >= self.accumulate:
+                    self.optimizer_step()
+                    last_opt_step = ni
+
+                    # Timed stopping
+                    if self.args.time:
+                        self.stop = (time.time() - self.train_time_start) > (self.args.time * 3600)
+                        if RANK != -1:  # if DDP training
+                            broadcast_list = [self.stop if RANK == 0 else None]
+                            dist.broadcast_object_list(broadcast_list, 0)  # broadcast 'stop' to all ranks
+                            self.stop = broadcast_list[0]
+                        if self.stop:  # training time exceeded
+                            break
 
                 # Log
                 if RANK in {-1, 0}:

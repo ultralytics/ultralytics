@@ -623,7 +623,7 @@ def convert_optimizer_state_dict_to_fp16(state_dict):
     return state_dict
 
 
-def profile(input, ops, n=10, device=None):
+def profile(input, ops, n=10, device=None, max_num_obj=0):
     """
     Ultralytics speed, memory and FLOPs profiler.
 
@@ -671,6 +671,14 @@ def profile(input, ops, n=10, device=None):
                         t[2] = float("nan")
                     tf += (t[1] - t[0]) * 1000 / n  # ms per op forward
                     tb += (t[2] - t[1]) * 1000 / n  # ms per op backward
+                    if max_num_obj:  # simulate training with predictions per image grid (for AutoBatch)
+                        torch.randn(
+                            x.shape[0],
+                            max_num_obj,
+                            int(sum([(x.shape[-1] / s) * (x.shape[-2] / s) for s in m.stride.tolist()])),
+                            device=device,
+                            dtype=torch.float32,
+                        )
                 mem = torch.cuda.memory_reserved() / 1e9 if torch.cuda.is_available() else 0  # (GB)
                 s_in, s_out = (tuple(x.shape) if isinstance(x, torch.Tensor) else "list" for x in (x, y))  # shapes
                 p = sum(x.numel() for x in m.parameters()) if isinstance(m, nn.Module) else 0  # parameters
@@ -731,19 +739,6 @@ class EarlyStopping:
         return stop
 
 
-def zero_count(model: torch.nn.Module) -> int:
-    """
-    Calculates the number of zero-valued parameters in a given PyTorch model.
-
-    Args:
-        model (torch.nn.Module): The PyTorch model.
-
-    Returns:
-        int: The count of zero-valued parameters in the model.
-    """
-    return get_num_params(model) - sum([p.count_nonzero().item() for p in model.parameters()])
-
-
 def prune_model(
     model: torch.nn.Module,
     fraction2prune: float = 0.2,
@@ -780,3 +775,48 @@ def prune_model(
             prune.remove(module, name="weight")
 
     LOGGER.info(f"Model sparsity achieved {zero_count(model) / param:.2%} from {z0:.2%}")
+
+    
+    class FXModel(nn.Module):
+    """
+    A custom model class for torch.fx compatibility.
+
+    This class extends `torch.nn.Module` and is designed to ensure compatibility with torch.fx for tracing and graph manipulation.
+    It copies attributes from an existing model and explicitly sets the model attribute to ensure proper copying.
+
+    Args:
+        model (torch.nn.Module): The original model to wrap for torch.fx compatibility.
+    """
+
+    def __init__(self, model):
+        """
+        Initialize the FXModel.
+
+        Args:
+            model (torch.nn.Module): The original model to wrap for torch.fx compatibility.
+        """
+        super().__init__()
+        copy_attr(self, model)
+        # Explicitly set `model` since `copy_attr` somehow does not copy it.
+        self.model = model.model
+
+    def forward(self, x):
+        """
+        Forward pass through the model.
+
+        This method performs the forward pass through the model, handling the dependencies between layers and saving intermediate outputs.
+
+        Args:
+            x (torch.Tensor): The input tensor to the model.
+
+        Returns:
+            (torch.Tensor): The output tensor from the model.
+        """
+        y = []  # outputs
+        for m in self.model:
+            if m.f != -1:  # if not from previous layer
+                # from earlier layers
+                x = y[m.f] if isinstance(m.f, int) else [x if j == -1 else y[j] for j in m.f]
+            x = m(x)  # run
+            y.append(x)  # save output
+        return x

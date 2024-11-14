@@ -47,6 +47,11 @@ class InfiniteDataLoader(dataloader.DataLoader):
         for _ in range(len(self)):
             yield next(self.iterator)
 
+    def set_epoch(self, epoch=0):
+        """Iterates the dataloader in advance for better resuming experience."""
+        for _ in range(len(self) * epoch):
+            next(self.iterator)
+
     def reset(self):
         """
         Reset iterator.

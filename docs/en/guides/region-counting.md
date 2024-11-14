@@ -34,56 +34,65 @@ keywords: object counting, regions, YOLOv8, computer vision, Ultralytics, effici
 | ![People Counting in Different Region using Ultralytics YOLOv8](https://github.com/ultralytics/docs/releases/download/0/people-counting-different-region-ultralytics-yolov8.avif) | ![Crowd Counting in Different Region using Ultralytics YOLOv8](https://github.com/ultralytics/docs/releases/download/0/crowd-counting-different-region-ultralytics-yolov8.avif) |
 |                                                           People Counting in Different Region using Ultralytics YOLOv8                                                            |                                                           Crowd Counting in Different Region using Ultralytics YOLOv8                                                           |
 
-## Steps to Run
+!!! example "Region Counting Example"
 
-### Step 1: Install Required Libraries
+    === "Python"
 
-Begin by cloning the Ultralytics repository, installing dependencies, and navigating to the local directory using the provided commands in Step 2.
+        ```python
+         import cv2
+         from ultralytics import solutions
 
-```bash
-# Clone Ultralytics repo
-git clone https://github.com/ultralytics/ultralytics
+         cap = cv2.VideoCapture("Path/to/video/file.mp4")
+         assert cap.isOpened(), "Error reading video file"
+         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 
-# Navigate to the local directory
-cd ultralytics/examples/YOLOv8-Region-Counter
-```
+         # Define region points
+         # region_points = [(20, 400), (1080, 404), (1080, 360), (20, 360)] # Pass region as list
 
-### Step 2: Run Region Counting Using Ultralytics YOLOv8
+         # pass region as dictionary
+         region_points = {
+             "region-01": [(50, 50), (250, 50), (250, 250), (50, 250)],
+             "region-02": [(640, 640), (780, 640), (780, 720), (640, 720)]
+         }
 
-Execute the following basic commands for inference.
+         # Video writer
+         video_writer = cv2.VideoWriter("region_counting.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
-???+ tip "Region is Movable"
+         # Init Object Counter
+         region = solutions.RegionCounter(
+             show=True,
+             region=region_points,
+             model="yolo11n.pt",
+         )
 
-    During video playback, you can interactively move the region within the video by clicking and dragging using the left mouse button.
+         # Process video
+         while cap.isOpened():
+             success, im0 = cap.read()
+             if not success:
+                 print("Video frame is empty or video processing has been successfully completed.")
+                 break
+             im0 = region.count(im0)
+             video_writer.write(im0)
 
-```bash
-# Save results
-python yolov8_region_counter.py --source "path/to/video.mp4" --save-img
+         cap.release()
+         video_writer.release()
+         cv2.destroyAllWindows()
+        ```
 
-# Run model on CPU
-python yolov8_region_counter.py --source "path/to/video.mp4" --device cpu
+!!! tip "Ultralytics Example Code"
 
-# Change model file
-python yolov8_region_counter.py --source "path/to/video.mp4" --weights "path/to/model.pt"
+      The Ultralytics region counting module is available in our [examples section](https://github.com/ultralytics/ultralytics/blob/main/examples/YOLOv8-Region-Counter/yolov8_region_counter.py). You can explore this example for code customization and modify it to suit your specific use case.
 
-# Detect specific classes (e.g., first and third classes)
-python yolov8_region_counter.py --source "path/to/video.mp4" --classes 0 2
+### Argument `RegionCounter`
 
-# View results without saving
-python yolov8_region_counter.py --source "path/to/video.mp4" --view-img
-```
+Here's a table with the `RegionCounter` arguments:
 
-### Optional Arguments
-
-| Name                 | Type   | Default      | Description                                                                 |
-| -------------------- | ------ | ------------ | --------------------------------------------------------------------------- |
-| `--source`           | `str`  | `None`       | Path to video file, for webcam 0                                            |
-| `--line_thickness`   | `int`  | `2`          | [Bounding Box](https://www.ultralytics.com/glossary/bounding-box) thickness |
-| `--save-img`         | `bool` | `False`      | Save the predicted video/image                                              |
-| `--weights`          | `str`  | `yolov8n.pt` | Weights file path                                                           |
-| `--classes`          | `list` | `None`       | Detect specific classes i.e. --classes 0 2                                  |
-| `--region-thickness` | `int`  | `2`          | Region Box thickness                                                        |
-| `--track-thickness`  | `int`  | `2`          | Tracking line thickness                                                     |
+| Name         | Type   | Default                    | Description                                          |
+| ------------ | ------ | -------------------------- | ---------------------------------------------------- |
+| `model`      | `str`  | `None`                     | Path to Ultralytics YOLO Model File                  |
+| `region`     | `list` | `[(20, 400), (1260, 400)]` | List of points defining the counting region.         |
+| `line_width` | `int`  | `2`                        | Line thickness for bounding boxes.                   |
+| `show`       | `bool` | `False`                    | Flag to control whether to display the video stream. |
 
 ## FAQ
 
@@ -107,7 +116,7 @@ Follow these steps to run object counting in Ultralytics YOLOv8:
     python yolov8_region_counter.py --source "path/to/video.mp4" --save-img
     ```
 
-For more options, visit the [Run Region Counting](#steps-to-run) section.
+For more options, visit the [Run Region Counting](https://github.com/ultralytics/ultralytics/blob/main/examples/YOLOv8-Region-Counter/readme.md) section.
 
 ### Why should I use Ultralytics YOLOv8 for object counting in regions?
 
@@ -121,7 +130,7 @@ Explore deeper benefits in the [Advantages](#advantages-of-object-counting-in-re
 
 ### Can the defined regions be adjusted during video playback?
 
-Yes, with Ultralytics YOLOv8, regions can be interactively moved during video playback. Simply click and drag with the left mouse button to reposition the region. This feature enhances flexibility for dynamic environments. Learn more in the tip section for [movable regions](#step-2-run-region-counting-using-ultralytics-yolov8).
+Yes, with Ultralytics YOLOv8, regions can be interactively moved during video playback. Simply click and drag with the left mouse button to reposition the region. This feature enhances flexibility for dynamic environments. Learn more in the tip section for [movable regions](https://github.com/ultralytics/ultralytics/blob/33cdaa5782efb2bc2b5ede945771ba647882830d/examples/YOLOv8-Region-Counter/yolov8_region_counter.py#L39).
 
 ### What are some real-world applications of object counting in regions?
 

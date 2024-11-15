@@ -473,7 +473,7 @@ class BaseTrainer:
         self._clear_memory()
         self.run_callbacks("teardown")
 
-    def auto_batch(self, ch=3,max_num_obj=0):
+    def auto_batch(self, ch=3, max_num_obj=0):
         """Get batch size by calculating memory occupation of model."""
         return check_train_batch_size(
             model=self.model,

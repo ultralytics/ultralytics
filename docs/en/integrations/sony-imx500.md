@@ -4,7 +4,7 @@ description: Learn to export Ultralytics YOLOv8 models to Sony's IMX500 format t
 keywords: Sony, IMX500, IMX 500, Atrios, MCT, model export, quantization, pruning, deep learning optimization, Raspberry Pi AI Camera, edge AI, PyTorch, IMX
 ---
 
-# IMX500 Export for Ultralytics YOLOv8
+# Sony IMX500 Export for Ultralytics YOLOv8
 
 This guide covers exporting and deploying Ultralytics YOLOv8 models to Raspberry Pi AI Cameras that feature the Sony IMX500 sensor.
 
@@ -29,7 +29,7 @@ The IMX500 works with quantized models. Quantization makes models smaller and fa
 
 **IMX500 Key Features:**
 
-- **Metadata Output:** Instead of transmitting full images, the IMX500 outputs only metadata, minimizing data size, reducing bandwidth, and lowering costs.
+- **Metadata Output:** Instead of transmitting images only, the IMX500 can output both image and metadata (inference result), and can output metadata only for minimizing data size, reducing bandwidth, and lowering costs.
 - **Addresses Privacy Concerns:** By processing data on the device, the IMX500 addresses privacy concerns, ideal for human-centric applications like person counting and occupancy tracking.
 - **Real-time Processing:** Fast, on-sensor processing supports real-time decisions, perfect for edge AI applications such as autonomous systems.
 
@@ -247,7 +247,7 @@ Export to IMX500 format has wide applicability across industries. Here are some 
 
 ## Conclusion
 
-Exporting Ultralytics YOLOv8 models to Sony's IMX500 format allows you to deploy your models for efficient inference on IMX500-based cameras. By leveraging advanced quantization and pruning techniques, you can reduce model size and improve inference speed without significantly compromising accuracy.
+Exporting Ultralytics YOLOv8 models to Sony's IMX500 format allows you to deploy your models for efficient inference on IMX500-based cameras. By leveraging advanced quantization techniques, you can reduce model size and improve inference speed without significantly compromising accuracy.
 
 For more information and detailed guidelines, refer to Sony's [IMX500 website](https://developer.aitrios.sony-semicon.com/en/raspberrypi-ai-camera).
 
@@ -271,7 +271,7 @@ The export process will create a directory containing the necessary files for de
 The IMX500 format offers several important advantages for edge deployment:
 
 - On-chip AI processing reduces latency and power consumption
-- Outputs metadata instead of full images, minimizing bandwidth usage
+- Outputs both image and metadata (inference result) instead of images only
 - Enhanced privacy by processing data locally without cloud dependency
 - Real-time processing capabilities ideal for time-sensitive applications
 - Optimized quantization for efficient model deployment on resource-constrained devices

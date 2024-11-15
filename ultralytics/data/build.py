@@ -15,7 +15,7 @@ from ultralytics.data.dataset import GroundingDataset, YOLODataset, YOLOMultiMod
 from ultralytics.data.loaders import (
     LOADERS,
     LoadImagesAndVideos,
-    LoadNumpy,  # Added LoadNumpy to handle numpy arrays directly
+    LoadPilAndNumpy,
     LoadScreenshots,
     LoadStreams,
     LoadTensor,
@@ -163,7 +163,6 @@ def check_source(source):
     elif isinstance(source, (list, tuple)):
         source = autocast_list(source)  # convert all list elements to numpy arrays
         from_img = True
-    # Removed PIL Image check since we're eliminating PIL usage
     elif isinstance(source, (Image.Image, np.ndarray)):
         # elif isinstance(source, np.ndarray):
         from_img = True
@@ -202,8 +201,7 @@ def load_inference_source(source=None, batch=1, vid_stride=1, buffer=False):
         dataset = LoadScreenshots(source)
     elif from_img:
         # Replaced LoadPilAndNumpy with LoadNumpy since we're eliminating PIL usage
-        # dataset = LoadPilAndNumpy(source)
-        dataset = LoadNumpy(source)
+        dataset = LoadPilAndNumpy(source)
     else:
         dataset = LoadImagesAndVideos(source, batch=batch, vid_stride=vid_stride)
 

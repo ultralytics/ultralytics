@@ -852,7 +852,6 @@ class LetterBox:
         new_shape = labels.pop("rect_shape", self.new_shape)
         if isinstance(new_shape, int):
             new_shape = (new_shape, new_shape)
-
         # Scale ratio (new / old)
         r = min(new_shape[0] / shape[0], new_shape[1] / shape[1])
         if not self.scaleup:  # only scale down, do not scale up (for better val mAP)
@@ -882,6 +881,8 @@ class LetterBox:
         )  # add border
         if labels.get("ratio_pad"):
             labels["ratio_pad"] = (labels["ratio_pad"], (left, top))  # for evaluation
+        if (len(img.shape)) == 2:
+            img = np.expand_dims(img, -1)
 
         if len(labels):
             labels = self._update_labels(labels, ratio, dw, dh)
@@ -1215,7 +1216,6 @@ class Format:
             img = np.expand_dims(img, -1)  # Add a channel dimension
 
         img = img.transpose(2, 0, 1)  # Convert from HWC to CHW format
-
         # Adjust the number of channels to match `image_channels`
         if img.shape[0] < self.image_channels:
             # If the image has fewer channels, repeat the channels to match the target

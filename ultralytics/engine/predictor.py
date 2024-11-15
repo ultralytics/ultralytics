@@ -155,7 +155,6 @@ class BasePredictor:
 
         if not_tensor:
             im /= max_value  # Normalize from 0 - max_value to 0.0 - 1.0
-
         return im
 
     def inference(self, im, *args, **kwargs):

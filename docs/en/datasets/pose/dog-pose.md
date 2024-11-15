@@ -66,27 +66,31 @@ If you use the Dog-Pose dataset in your research or development work, please cit
     === "BibTeX"
 
         ```bibtex
-        @misc{lin2015microsoft,
-              title={Microsoft COCO: Common Objects in Context},
-              author={Tsung-Yi Lin and Michael Maire and Serge Belongie and Lubomir Bourdev and Ross Girshick and James Hays and Pietro Perona and Deva Ramanan and C. Lawrence Zitnick and Piotr Dollár},
-              year={2015},
-              eprint={1405.0312},
-              archivePrefix={arXiv},
-              primaryClass={cs.CV}
+        @inproceedings{khosla2011fgvc,
+          title={Novel dataset for Fine-Grained Image Categorization},
+          author={Aditya Khosla and Nityananda Jayadevaprakash and Bangpeng Yao and Li Fei-Fei},
+          booktitle={First Workshop on Fine-Grained Visual Categorization (FGVC), IEEE Conference on Computer Vision and Pattern Recognition (CVPR)},
+          year={2011}
+        }
+        @inproceedings{deng2009imagenet,
+          title={ImageNet: A Large-Scale Hierarchical Image Database},
+          author={Jia Deng and Wei Dong and Richard Socher and Li-Jia Li and Kai Li and Li Fei-Fei},
+          booktitle={IEEE Computer Vision and Pattern Recognition (CVPR)},
+          year={2009}
         }
         ```
 
-We would like to acknowledge the COCO Consortium for creating and maintaining this valuable resource for the [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) community. For more information about the COCO dataset and its creators, visit the [COCO dataset website](https://cocodataset.org/#home).
+We would like to acknowledge the Stanford team for creating and maintaining this valuable resource for the [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) community. For more information about the Dog-Pose dataset and its creators, visit the [Stanford Dogs Dataset website](http://vision.stanford.edu/aditya86/ImageNetDogs/).
 
 ## FAQ
 
-### What is the COCO8-Pose dataset, and how is it used with Ultralytics YOLO11?
+### What is the Dog-Pose dataset, and how is it used with Ultralytics YOLO11?
 
 The COCO8-Pose dataset is a small, versatile pose detection dataset that includes the first 8 images from the COCO train 2017 set, with 4 images for training and 4 for validation. It's designed for testing and debugging object detection models and experimenting with new detection approaches. This dataset is ideal for quick experiments with [Ultralytics YOLO11](https://docs.ultralytics.com/models/yolo11/). For more details on dataset configuration, check out the dataset YAML file [here](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco8-pose.yaml).
 
-### How do I train a YOLO11 model using the COCO8-Pose dataset in Ultralytics?
+### How do I train a YOLO11 model using the Dog-Pose dataset in Ultralytics?
 
-To train a YOLO11n-pose model on the COCO8-Pose dataset for 100 epochs with an image size of 640, follow these examples:
+To train a YOLO11n-pose model on the Dog-Pose dataset for 100 epochs with an image size of 640, follow these examples:
 
 !!! example "Train Example"
 
@@ -99,33 +103,34 @@ To train a YOLO11n-pose model on the COCO8-Pose dataset for 100 epochs with an i
         model = YOLO("yolo11n-pose.pt")
 
         # Train the model
-        results = model.train(data="coco8-pose.yaml", epochs=100, imgsz=640)
+        results = model.train(data="dog-pose.yaml", epochs=100, imgsz=640)
         ```
 
     === "CLI"
 
         ```bash
-        yolo pose train data=coco8-pose.yaml model=yolo11n-pose.pt epochs=100 imgsz=640
+        yolo pose train data=dog-pose.yaml model=yolo11n-pose.pt epochs=100 imgsz=640
         ```
 
 For a comprehensive list of training arguments, refer to the model [Training](../../modes/train.md) page.
 
-### What are the benefits of using the COCO8-Pose dataset?
+### What are the benefits of using the Dog-Pose dataset?
 
-The COCO8-Pose dataset offers several benefits:
+The Dog-Pose dataset offers several benefits:
 
-- **Compact Size**: With only 8 images, it is easy to manage and perfect for quick experiments.
-- **Diverse Data**: Despite its small size, it includes a variety of scenes, useful for thorough pipeline testing.
-- **Error Debugging**: Ideal for identifying training errors and performing sanity checks before scaling up to larger datasets.
+**Large and Diverse Dataset**: With 6,000 images, it provides a substantial amount of data covering a wide range of dog poses, breeds, and contexts, enabling robust model training and evaluation.
+**Pose-Specific Annotations**: Offers detailed annotations for pose estimation, ensuring high-quality data for training pose detection models.
+**Real-World Scenarios**: Includes images from varied environments, enhancing the model's ability to generalize to real-world applications.
+**Model Performance Improvement**: The diversity and scale of the dataset help improve model accuracy and robustness, particularly for tasks involving fine-grained pose estimation.
 
 For more about its features and usage, see the [Dataset Introduction](#introduction) section.
 
-### How does mosaicing benefit the YOLO11 training process using the COCO8-Pose dataset?
+### How does mosaicing benefit the YOLO11 training process using the Dog-Pose dataset?
 
-Mosaicing, demonstrated in the sample images of the COCO8-Pose dataset, combines multiple images into one, increasing the variety of objects and scenes within each training batch. This technique helps improve the model's ability to generalize across various object sizes, aspect ratios, and contexts, ultimately enhancing model performance. See the [Sample Images and Annotations](#sample-images-and-annotations) section for example images.
+Mosaicing, as illustrated in the sample images from the Dog-Pose dataset, merges multiple images into a single composite, enriching the diversity of objects and scenes in each training batch. This approach enhances the model's capacity to generalize across different object sizes, aspect ratios, and contexts, leading to improved performance. For example images, refer to the [Sample Images and Annotations](#sample-images-and-annotations) section.
 
-### Where can I find the COCO8-Pose dataset YAML file and how do I use it?
+### Where can I find the Dog-Pose dataset YAML file and how do I use it?
 
-The COCO8-Pose dataset YAML file can be found [here](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco8-pose.yaml). This file defines the dataset configuration, including paths, classes, and other relevant information. Use this file with the YOLO11 training scripts as mentioned in the [Train Example](#how-do-i-train-a-yolo11-model-using-the-coco8-pose-dataset-in-ultralytics) section.
+The Dog-Pose dataset YAML file can be found [here](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/dog-pose.yaml). This file defines the dataset configuration, including paths, classes, and other relevant information. Use this file with the YOLO11 training scripts as mentioned in the [Train Example](#how-do-i-train-a-yolo11-model-using-the-coco8-pose-dataset-in-ultralytics) section.
 
 For more FAQs and detailed documentation, visit the [Ultralytics Documentation](https://docs.ultralytics.com/).

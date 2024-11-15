@@ -1,30 +1,30 @@
 ---
 comments: true
-description: Explore the compact, versatile COCO8-Pose dataset for testing and debugging object detection models. Ideal for quick experiments with YOLO11.
-keywords: COCO8-Pose, Ultralytics, pose detection dataset, object detection, YOLO11, machine learning, computer vision, training data
+description: Discover the Dog-Pose dataset for pose detection. Featuring 6,773 training and 1,703 test images, it's a robust dataset for training YOLO11 models.
+keywords: Dog-Pose, Ultralytics, pose detection dataset, YOLO11, machine learning, computer vision, training data
 ---
 
 # Dog-Pose Dataset
 
 ## Introduction
 
-[Ultralytics](https://www.ultralytics.com/) Dog-Pose is a small, but versatile pose detection dataset composed of the first 8 images of the COCO train 2017 set, 4 for training and 4 for validation. This dataset is ideal for testing and debugging [object detection](https://www.ultralytics.com/glossary/object-detection) models, or for experimenting with new detection approaches. With 8 images, it is small enough to be easily manageable, yet diverse enough to test training pipelines for errors and act as a sanity check before training larger datasets.
+The [Ultralytics](https://www.ultralytics.com/) Dog-Pose dataset is a high-quality and extensive dataset specifically curated for dog keypoint estimation. With 6,773 training images and 1,703 test images, this dataset provides a solid foundation for training robust pose estimation models. Each annotated image includes 24 keypoints with 3 dimensions per keypoint (x, y, visibility), making it a valuable resource for advanced research and development in computer vision.
 
 This dataset is intended for use with Ultralytics [HUB](https://hub.ultralytics.com/) and [YOLO11](https://github.com/ultralytics/ultralytics).
 
 ## Dataset YAML
 
-A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. In the case of the COCO8-Pose dataset, the `coco8-pose.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco8-pose.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco8-pose.yaml).
+The dataset configuration is defined in a YAML file that includes paths, keypoint details, and other relevant information. In the case of the Dog-Pose dataset, The `dog-pose.yaml` is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/dog-pose.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/dog-pose.yaml).
 
-!!! example "ultralytics/cfg/datasets/coco8-pose.yaml"
+!!! example "ultralytics/cfg/datasets/dog-pose.yaml"
 
     ```yaml
-    --8<-- "ultralytics/cfg/datasets/coco8-pose.yaml"
+    --8<-- "ultralytics/cfg/datasets/dog-pose.yaml"
     ```
 
 ## Usage
 
-To train a YOLO11n-pose model on the COCO8-Pose dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To train a YOLO11n-pose model on the Dog-Pose dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
 !!! example "Train Example"
 
@@ -37,29 +37,29 @@ To train a YOLO11n-pose model on the COCO8-Pose dataset for 100 [epochs](https:/
         model = YOLO("yolo11n-pose.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
-        results = model.train(data="coco8-pose.yaml", epochs=100, imgsz=640)
+        results = model.train(data="dog-pose.yaml", epochs=100, imgsz=640)
         ```
 
     === "CLI"
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo pose train data=coco8-pose.yaml model=yolo11n-pose.pt epochs=100 imgsz=640
+        yolo pose train data=dog-pose.yaml model=yolo11n-pose.pt epochs=100 imgsz=640
         ```
 
 ## Sample Images and Annotations
 
-Here are some examples of images from the COCO8-Pose dataset, along with their corresponding annotations:
+Here are some examples of images from the Dog-Pose dataset, along with their corresponding annotations:
 
-<img src="https://github.com/ultralytics/docs/releases/download/0/mosaiced-training-batch-5.avif" alt="Dataset sample image" width="800">
+<img src="https://github.com/ultralytics/docs/releases/download/0/mosaiced-training-batch-2-dog-pose.avif" alt="Dataset sample image" width="800">
 
 - **Mosaiced Image**: This image demonstrates a training batch composed of mosaiced dataset images. Mosaicing is a technique used during training that combines multiple images into a single image to increase the variety of objects and scenes within each training batch. This helps improve the model's ability to generalize to different object sizes, aspect ratios, and contexts.
 
-The example showcases the variety and complexity of the images in the COCO8-Pose dataset and the benefits of using mosaicing during the training process.
+The example showcases the variety and complexity of the images in the Dog-Pose dataset and the benefits of using mosaicing during the training process.
 
 ## Citations and Acknowledgments
 
-If you use the COCO dataset in your research or development work, please cite the following paper:
+If you use the Dog-Pose dataset in your research or development work, please cite the following paper:
 
 !!! quote ""
 

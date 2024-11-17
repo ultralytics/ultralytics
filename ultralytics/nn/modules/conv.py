@@ -361,13 +361,13 @@ class SpatialAttention(nn.Module):
 class CBAM(nn.Module):
     """Convolutional Block Attention Module with BatchNorm and Softmax."""
 
-    def __init__(self, c1, c2, kernel_size=3, shortcut=True, g=1, e=0.5, ratio=16):
+    def __init__(self, c1, c2, k=3, shortcut=True, g=1, e=0.5, ratio=16):
         """
         Initializes the CBAM module.
         Args:
             c1 (int): Number of input channels.
             c2 (int): Number of output channels.
-            kernel_size (int): Kernel size for convolutional layers.
+            k (int): Kernel size for convolutional layers (default is 3).
             shortcut (bool): Whether to include a residual connection.
             g (int): Number of groups for grouped convolution.
             e (float): Expansion factor for hidden channels.
@@ -376,15 +376,15 @@ class CBAM(nn.Module):
         super().__init__()
         c_ = int(c2 * e)  # Calculate number of hidden channels
         # First convolutional layer to reduce channel dimensions
-        self.cv1 = Conv(c1, c_, kernel_size=1, stride=1)
+        self.cv1 = Conv(c1, c_, k=1, s=1)
         # Second convolutional layer
-        self.cv2 = Conv(c_, c2, kernel_size=kernel_size, stride=1, groups=g)
+        self.cv2 = Conv(c_, c2, k=k, s=1, g=g)
         # Determine whether to add residual connection
         self.add = shortcut and c1 == c2
         # Initialize channel and spatial attention modules
         self.channel_attention = ChannelAttention(c2, ratio)
-        self.spatial_attention = SpatialAttention(kernel_size)
-
+        self.spatial_attention = SpatialAttention(k)
+    
     def forward(self, x):
         """
         Forward pass for the CBAM module.
@@ -406,7 +406,6 @@ class CBAM(nn.Module):
         if self.add:
             x += x_residual  # Element-wise addition
         return x
-
 
 class Concat(nn.Module):
     """Concatenate a list of tensors along dimension."""

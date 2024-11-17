@@ -277,86 +277,135 @@ class RepConv(nn.Module):
 
 
 class ChannelAttention(nn.Module):
-    """Channel-attention module."""
+    """Channel-attention module with BatchNorm and Softmax."""
 
     def __init__(self, in_planes, ratio=16):
         super().__init__()
         hidden_planes = max(1, in_planes // ratio)
-        self.avg_pool = nn.AdaptiveAvgPool2d(1)
-        self.max_pool = nn.AdaptiveMaxPool2d(1)
-        self.f1 = nn.Conv2d(in_planes, hidden_planes, 1, bias=False)
-        self.relu = nn.ReLU()
-        self.f2 = nn.Conv2d(hidden_planes, in_planes, 1, bias=False)
-        self.sigmoid = nn.Sigmoid()
+        # Shared MLP layers with BatchNorm and ReLU activation
+        self.shared_MLP = nn.Sequential(
+            nn.Conv2d(in_planes, hidden_planes, kernel_size=1, bias=False),
+            nn.BatchNorm2d(hidden_planes),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(hidden_planes, in_planes, kernel_size=1, bias=False),
+            nn.BatchNorm2d(in_planes)
+        )
+        # Adaptive pooling layers for channel-wise statistics
+        self.avg_pool = nn.AdaptiveAvgPool2d(1)  # Output size: (batch, channels, 1, 1)
+        self.max_pool = nn.AdaptiveMaxPool2d(1)  # Output size: (batch, channels, 1, 1)
+        # Softmax activation to generate attention weights across channels
+        self.softmax = nn.Softmax(dim=1)  # Apply softmax over the channel dimension
 
     def forward(self, x):
         """
-         Forward pass of the Channel Attention module.
-         Args:
-             x (torch.Tensor): Input tensor.
-         Returns:
-             out (torch.Tensor): Output tensor after applying channel attention.
+        Forward pass for the ChannelAttention module.
+        Args:
+            x (torch.Tensor): Input tensor with shape (batch, channels, height, width).
+        Returns:
+            out (torch.Tensor): Output tensor after applying channel attention.
         """
-        avg_out = self.f2(self.relu(self.f1(self.avg_pool(x))))
-        max_out = self.f2(self.relu(self.f1(self.max_pool(x))))
-        out = self.sigmoid(avg_out + max_out)
+        # Apply average pooling to get average representation
+        avg_out = self.shared_MLP(self.avg_pool(x))  # Shape: (batch, channels, 1, 1)
+        # Apply max pooling to get max representation
+        max_out = self.shared_MLP(self.max_pool(x))  # Shape: (batch, channels, 1, 1)
+        # Sum the average and max pooled outputs
+        out = avg_out + max_out  # Shape: (batch, channels, 1, 1)
+        # Apply softmax across the channel dimension to get attention weights
+        out = self.softmax(out)  # Shape: (batch, channels, 1, 1), values sum to 1 across channels
+        # Multiply input features by the attention weights
+        out = x * out  # Element-wise multiplication, broadcasting over spatial dimensions
         return out
 
 class SpatialAttention(nn.Module):
-    """Spatial-attention module."""
+    """Spatial-attention module with BatchNorm and Softmax."""
 
     def __init__(self, kernel_size=7):
-        """Initialize Spatial-attention module with kernel size argument."""
         super().__init__()
-        assert kernel_size in {3, 7}, "kernel size must be 3 or 7"
-        padding = 3 if kernel_size == 7 else 1
-        self.cv1 = nn.Conv2d(2, 1, kernel_size, padding=padding, bias=False)
-        self.act = nn.Sigmoid()
+        assert kernel_size in {3, 7}, "Kernel size must be 3 or 7"
+        padding = (kernel_size - 1) // 2  # Calculate padding to keep output size same
+        # Convolutional layer with BatchNorm to compute spatial attention map
+        self.conv = nn.Sequential(
+            nn.Conv2d(2, 1, kernel_size=kernel_size, padding=padding, bias=False),
+            nn.BatchNorm2d(1)
+        )
+        # Softmax activation to generate attention weights across spatial dimensions
+        self.softmax = nn.Softmax(dim=2)  # Apply softmax over the spatial dimensions
 
     def forward(self, x):
-        """Apply channel and spatial attention on input for feature recalibration."""
-        attn = self.act(self.cv1(torch.cat([
-            torch.mean(x, 1, keepdim=True),
-            torch.max(x, 1, keepdim=True)[0]
-        ], 1)))
-        return attn
+        """
+        Forward pass for the SpatialAttention module.
+        Args:
+            x (torch.Tensor): Input tensor with shape (batch, channels, height, width).
+        Returns:
+            out (torch.Tensor): Output tensor after applying spatial attention.
+        """
+        # Compute mean across the channel dimension
+        avg_out = torch.mean(x, dim=1, keepdim=True)  # Shape: (batch, 1, height, width)
+        # Compute max across the channel dimension
+        max_out, _ = torch.max(x, dim=1, keepdim=True)  # Shape: (batch, 1, height, width)
+        # Concatenate along the channel dimension
+        x_cat = torch.cat([avg_out, max_out], dim=1)  # Shape: (batch, 2, height, width)
+        # Apply convolution to generate spatial attention map
+        x_conv = self.conv(x_cat)  # Shape: (batch, 1, height, width)
+        # Reshape to (batch, 1, height * width) for softmax
+        batch, _, height, width = x_conv.size()
+        x_flat = x_conv.view(batch, 1, -1)  # Shape: (batch, 1, height * width)
+        # Apply softmax over the spatial dimensions
+        attention = self.softmax(x_flat)  # Shape: (batch, 1, height * width)
+        # Reshape back to (batch, 1, height, width)
+        attention = attention.view(batch, 1, height, width)
+        # Multiply input features by the attention weights
+        out = x * attention  # Element-wise multiplication, broadcasting over channel dimension
+        return out
 
 class CBAM(nn.Module):
-    """Convolutional Block Attention Module."""
+    """Convolutional Block Attention Module with BatchNorm and Softmax."""
 
-    # ch_in, ch_out, shortcut, groups, expansion, ratio, kernel_size
     def __init__(self, c1, c2, kernel_size=3, shortcut=True, g=1, e=0.5, ratio=16):
         """
-        Initialize the CBAM (Convolutional Block Attention Module) .
+        Initializes the CBAM module.
         Args:
             c1 (int): Number of input channels.
             c2 (int): Number of output channels.
-            kernel_size (int): Size of the convolutional kernel.
-            shortcut (bool): Whether to use a shortcut connection.
-            g (int): Number of groups for grouped convolutions.
+            kernel_size (int): Kernel size for convolutional layers.
+            shortcut (bool): Whether to include a residual connection.
+            g (int): Number of groups for grouped convolution.
             e (float): Expansion factor for hidden channels.
-            ratio (int): Reduction ratio for the hidden channels in the channel attention block.
+            ratio (int): Reduction ratio for the channel attention module.
         """
         super().__init__()
-        c_ = int(c2 * e)  # hidden channels
-        self.cv1 = Conv(c1, c_, 1, 1)
-        self.cv2 = Conv(c_, c2, 3, 1, g=g)
+        c_ = int(c2 * e)  # Calculate number of hidden channels
+        # First convolutional layer to reduce channel dimensions
+        self.cv1 = Conv(c1, c_, kernel_size=1, stride=1)
+        # Second convolutional layer
+        self.cv2 = Conv(c_, c2, kernel_size=kernel_size, stride=1, groups=g)
+        # Determine whether to add residual connection
         self.add = shortcut and c1 == c2
+        # Initialize channel and spatial attention modules
         self.channel_attention = ChannelAttention(c2, ratio)
         self.spatial_attention = SpatialAttention(kernel_size)
- 
+
     def forward(self, x):
         """
-        Forward pass of the CBAM .
+        Forward pass for the CBAM module.
         Args:
-            x (torch.Tensor): Input tensor.
+            x (torch.Tensor): Input tensor with shape (batch, channels, height, width).
         Returns:
-            out (torch.Tensor): Output tensor after applying the CBAM bottleneck.
+            out (torch.Tensor): Output tensor after applying CBAM.
         """
-        x2 = self.cv2(self.cv1(x))
-        out = x2 * self.channel_attention(x2)
-        out = out * self.spatial_attention(out)
-        return x + out if self.add else out
+        x_residual = x  # Save residual connection
+        # Apply first convolutional layer
+        x = self.cv1(x)
+        # Apply second convolutional layer
+        x = self.cv2(x)
+        # Apply Channel Attention module
+        x = self.channel_attention(x)
+        # Apply Spatial Attention module
+        x = self.spatial_attention(x)
+        # Add residual connection if applicable
+        if self.add:
+            x += x_residual  # Element-wise addition
+        return x
 
 
 class Concat(nn.Module):

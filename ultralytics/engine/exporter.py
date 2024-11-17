@@ -79,7 +79,6 @@ from ultralytics.utils import (
     ARM64,
     DEFAULT_CFG,
     IS_JETSON,
-    IS_RASPBERRYPI,
     LINUX,
     LOGGER,
     MACOS,

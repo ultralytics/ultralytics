@@ -1,0 +1,23 @@
+# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Dogs dataset http://vision.stanford.edu/aditya86/ImageNetDogs/ by Stanford
+# Documentation: https://docs.ultralytics.com/datasets/pose/dog-pose/
+# Example usage: yolo train data=dog-pose.yaml
+# parent
+# ├── ultralytics
+# └── datasets
+#     └── dog-pose  ← downloads here (337 MB)
+
+# Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
+path: ../datasets/dog-pose # dataset root dir
+train: train # train images (relative to 'path') 6773 images
+val: val # val images (relative to 'path') 1703 images
+
+# Keypoints
+kpt_shape: [24, 3] # number of keypoints, number of dims (2 for x,y or 3 for x,y,visible)
+
+# Classes
+names:
+  0: dog
+
+# Download script/URL (optional)
+download: https://github.com/ultralytics/assets/releases/download/v0.0.0/dog-pose.zip

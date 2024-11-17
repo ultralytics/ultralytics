@@ -277,43 +277,34 @@ class RepConv(nn.Module):
 
 
 class ChannelAttention(nn.Module):
-    """Channel-attention module with BatchNorm and Softmax."""
+    """Channel-attention module without normalization layers."""
 
     def __init__(self, in_planes, ratio=16):
         super().__init__()
         hidden_planes = max(1, in_planes // ratio)
-        # Shared MLP layers with BatchNorm and ReLU activation
+        # Shared MLP layers without normalization
         self.shared_MLP = nn.Sequential(
             nn.Conv2d(in_planes, hidden_planes, kernel_size=1, bias=False),
-            nn.BatchNorm2d(hidden_planes),
             nn.ReLU(inplace=True),
-            nn.Conv2d(hidden_planes, in_planes, kernel_size=1, bias=False),
-            nn.BatchNorm2d(in_planes)
+            nn.Conv2d(hidden_planes, in_planes, kernel_size=1, bias=False)
         )
-        # Adaptive pooling layers for channel-wise statistics
-        self.avg_pool = nn.AdaptiveAvgPool2d(1)  # Output size: (batch, channels, 1, 1)
-        self.max_pool = nn.AdaptiveMaxPool2d(1)  # Output size: (batch, channels, 1, 1)
-        # Softmax activation to generate attention weights across channels
-        self.softmax = nn.Softmax(dim=1)  # Apply softmax over the channel dimension
+        # Adaptive pooling layers
+        self.avg_pool = nn.AdaptiveAvgPool2d(1)
+        self.max_pool = nn.AdaptiveMaxPool2d(1)
+        # Softmax activation
+        self.softmax = nn.Softmax(dim=1)
 
     def forward(self, x):
-        """
-        Forward pass for the ChannelAttention module.
-        Args:
-            x (torch.Tensor): Input tensor with shape (batch, channels, height, width).
-        Returns:
-            out (torch.Tensor): Output tensor after applying channel attention.
-        """
-        # Apply average pooling to get average representation
-        avg_out = self.shared_MLP(self.avg_pool(x))  # Shape: (batch, channels, 1, 1)
-        # Apply max pooling to get max representation
-        max_out = self.shared_MLP(self.max_pool(x))  # Shape: (batch, channels, 1, 1)
-        # Sum the average and max pooled outputs
-        out = avg_out + max_out  # Shape: (batch, channels, 1, 1)
-        # Apply softmax across the channel dimension to get attention weights
-        out = self.softmax(out)  # Shape: (batch, channels, 1, 1), values sum to 1 across channels
-        # Multiply input features by the attention weights
-        out = x * out  # Element-wise multiplication, broadcasting over spatial dimensions
+        # Apply average pooling
+        avg_out = self.shared_MLP(self.avg_pool(x))
+        # Apply max pooling
+        max_out = self.shared_MLP(self.max_pool(x))
+        # Sum the outputs
+        out = avg_out + max_out
+        # Apply Softmax over channels
+        out = self.softmax(out)
+        # Scale the input features
+        out = x * out
         return out
 
 class SpatialAttention(nn.Module):

@@ -138,7 +138,7 @@ def on_train_end(trainer):
         art.add_file(trainer.best)
         wb.run.log_artifact(art, aliases=["best"])
     # Check if we actually have plots to save
-    if trainer.args.plots:
+    if trainer.args.plots and hasattr(trainer.validator.metrics, "curves_results"):
         for curve_name, curve_values in zip(trainer.validator.metrics.curves, trainer.validator.metrics.curves_results):
             x, y, x_title, y_title = curve_values
             _plot_curve(

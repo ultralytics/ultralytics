@@ -73,26 +73,23 @@ class ObjectCounter(BaseSolution):
             # Check if the line intersects the trajectory of the object
             line = self.LineString(self.region)
             if line.intersects(self.LineString([prev_position, current_centroid])):
-                # Update direction and counts
-                if current_centroid[1] > prev_position[1]:  # Moving downward
-                    self.in_count += 1
-                    self.classwise_counts[self.names[cls]]["IN"] += 1
-                else:  # Moving upward
-                    self.out_count += 1
-                    self.classwise_counts[self.names[cls]]["OUT"] += 1
-                self.counted_ids.append(track_id)
-
-        elif len(self.region) > 2:  # Polygonal region
-            # Check if the current centroid is inside the polygon
-            polygon = self.Polygon(self.region)
-            if polygon.contains(self.Point(current_centroid)):
-                # Update direction and counts
-                if current_centroid[1] > prev_position[1]:  # Moving downward
-                    self.in_count += 1
-                    self.classwise_counts[self.names[cls]]["IN"] += 1
-                else:  # Moving upward
-                    self.out_count += 1
-                    self.classwise_counts[self.names[cls]]["OUT"] += 1
+                # Determine orientation of the region (vertical or horizontal)
+                if abs(self.region[0][0] - self.region[1][0]) < abs(self.region[0][1] - self.region[1][1]):
+                    # Vertical region: Compare x-coordinates to determine direction
+                    if current_centroid[0] > prev_position[0]:  # Moving right
+                        self.in_count += 1
+                        self.classwise_counts[self.names[cls]]["IN"] += 1
+                    else:  # Moving left
+                        self.out_count += 1
+                        self.classwise_counts[self.names[cls]]["OUT"] += 1
+                else:
+                    # Horizontal region: Compare y-coordinates to determine direction
+                    if current_centroid[1] > prev_position[1]:  # Moving downward
+                        self.in_count += 1
+                        self.classwise_counts[self.names[cls]]["IN"] += 1
+                    else:  # Moving upward
+                        self.out_count += 1
+                        self.classwise_counts[self.names[cls]]["OUT"] += 1
                 self.counted_ids.append(track_id)
 
     def store_classwise_counts(self, cls):

@@ -46,12 +46,11 @@ class ObjectCounter(BaseSolution):
         self.show_in = self.CFG["show_in"]
         self.show_out = self.CFG["show_out"]
 
-    def count_objects(self, track_line, current_centroid, track_id, prev_position, cls):
+    def count_objects(self, current_centroid, track_id, prev_position, cls):
         """
         Counts objects within a polygonal or linear region based on their tracks.
 
         Args:
-            track_line (Dict): Last 30 frame track record for the object.
             current_centroid (Tuple[float, float]): Current centroid values in the current frame.
             track_id (int): Unique identifier for the tracked object.
             prev_position (Tuple[float, float]): Last frame position coordinates (x, y) of the track.
@@ -200,7 +199,7 @@ class ObjectCounter(BaseSolution):
             prev_position = None
             if len(self.track_history[track_id]) > 1:
                 prev_position = self.track_history[track_id][-2]
-            self.count_objects(self.track_line, current_centroid, track_id, prev_position, cls)  # Perform object counting
+            self.count_objects(current_centroid, track_id, prev_position, cls)  # Perform object counting
 
         self.display_counts(im0)  # Display the counts on the frame
         self.display_output(im0)  # display output with base class function

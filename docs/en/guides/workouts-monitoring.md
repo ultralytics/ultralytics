@@ -36,34 +36,20 @@ Monitoring workouts through pose estimation with [Ultralytics YOLO11](https://gi
 
 !!! example "Workouts Monitoring Example"
 
-    === "Workouts Monitoring"
+    === "CLI"
 
-        ```python
-        import cv2
+        ```bash
+        # Run a workout example
+        yolo solutions workout show=True
 
-        from ultralytics import solutions
+        # Pass a source video
+        yolo solutions workout source="path/to/video/file.mp4"
 
-        cap = cv2.VideoCapture("path/to/video/file.mp4")
-        assert cap.isOpened(), "Error reading video file"
-        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-
-        gym = solutions.AIGym(
-            model="yolo11n-pose.pt",
-            show=True,
-            kpts=[6, 8, 10],
-        )
-
-        while cap.isOpened():
-            success, im0 = cap.read()
-            if not success:
-                print("Video frame is empty or video processing has been successfully completed.")
-                break
-            im0 = gym.monitor(im0)
-
-        cv2.destroyAllWindows()
+        # Use keypoints for pushups
+        yolo solutions workout kpts=[6, 8, 10]
         ```
 
-    === "Workouts Monitoring with Save Output"
+    === "Python"
 
         ```python
         import cv2
@@ -74,13 +60,18 @@ Monitoring workouts through pose estimation with [Ultralytics YOLO11](https://gi
         assert cap.isOpened(), "Error reading video file"
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 
+        # Video writer
         video_writer = cv2.VideoWriter("workouts.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
+        # Init AIGym
         gym = solutions.AIGym(
-            show=True,
-            kpts=[6, 8, 10],
+            show=True,  # Display the frame
+            kpts=[6, 8, 10],  # keypoints index of person for monitoring specific exercise, by default it's for pushup
+            model="yolo11n-pose.pt",  # Path to the YOLO11 pose estimation model file
+            # line_width=2,  # Adjust the line width for bounding boxes and text display
         )
 
+        # Process video
         while cap.isOpened():
             success, im0 = cap.read()
             if not success:

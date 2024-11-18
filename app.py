@@ -91,11 +91,11 @@
 #     Built with ❤️ using [Streamlit](https://streamlit.io/) and YOLOv8.
 #     """
 # )
-import streamlit as st
-from ultralytics import YOLO
-from PIL import Image
-import numpy as np
 import cv2
+import numpy as np
+import streamlit as st
+
+from ultralytics import YOLO
 
 # Load the YOLO model
 MODEL_PATH = "/Users/solomon1.odum/Documents/Anemia_prediction/runs/classify/train8/weights/best.pt"

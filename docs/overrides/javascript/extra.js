@@ -172,35 +172,20 @@ function lightenHexColor(color, amount = 0.5) {
     const r = parseInt(color.slice(1, 3), 16);
     const g = parseInt(color.slice(3, 5), 16);
     const b = parseInt(color.slice(5, 7), 16);
-
     const newR = Math.min(255, Math.round(r + (255 - r) * amount));
     const newG = Math.min(255, Math.round(g + (255 - g) * amount));
     const newB = Math.min(255, Math.round(b + (255 - b) * amount));
-
     return `#${newR.toString(16).padStart(2, '0')}${newG.toString(16).padStart(2, '0')}${newB.toString(16).padStart(2, '0')}`;
 }
 
 // Function to update the benchmarks chart.
 function updateChart() {
-    // If a chart instance already exists, destroy it.
-    if (chart) {
-        chart.destroy();
-    }
+    if (chart) {chart.destroy();}  // If a chart instance already exists, destroy it.
 
     // Define a specific color map for models.
-    const colorMap = {
-        'YOLO11': '#0b23a9',
-        'YOLOv10': '#ff7f0e',
-        'YOLOv9': '#2ca02c',
-        'YOLOv8': '#d62728',
-        'YOLOv7': '#9467bd',
-        'YOLOv6-3.0': '#8c564b',
-        'YOLOv5': '#e377c2',
-        'PP-YOLOE+': '#7f7f7f',
-        'DAMO-YOLO': '#bcbd22',
-        'YOLOX': '#17becf',
-        'RTDETRv2': '#eccd22'
-    };
+    const colorMap = {'YOLO11': '#0b23a9', 'YOLOv10': '#ff7f0e', 'YOLOv9': '#2ca02c', 'YOLOv8': '#d62728',
+                        'YOLOv7': '#9467bd', 'YOLOv6-3.0': '#8c564b', 'YOLOv5': '#e377c2', 'PP-YOLOE+': '#7f7f7f',
+                        'DAMO-YOLO': '#bcbd22', 'YOLOX': '#17becf', 'RTDETRv2': '#eccd22'};
 
     // Get the selected algorithms from the checkboxes.
     const selectedAlgorithms = [...document.querySelectorAll('input[name="algorithm"]:checked')].map(e => e.value);
@@ -222,14 +207,13 @@ function updateChart() {
             tension: 0.3, // Smooth the line.
             pointRadius: i === 0 ? 7 : 4, // Highlight primary dataset points.
             pointHoverRadius: i === 0 ? 9 : 6, // Highlight hover for primary dataset.
+            pointBackgroundColor: lineColor, // Fill points with the line color.
+            pointBorderColor: '#ffffff', // Add a border around points for contrast.
             borderWidth: i === 0 ? 3 : 1.5 // Slightly increase line size for the primary dataset.
         };
     });
 
-    // If there are no selected algorithms, return without creating a new chart.
-    if (datasets.length === 0) {
-        return;
-    }
+    if (datasets.length === 0) {return;}  // If there are no selected algorithms, return without creating a new chart.
 
     // Create a new chart instance.
     chart = new Chart(document.getElementById('chart').getContext('2d'), {
@@ -246,8 +230,7 @@ function updateChart() {
                             return `${dataset.label}${point.version.toLowerCase()}: Speed = ${point.x}, mAP = ${point.y}`; // Custom tooltip label.
                         }
                     },
-                    mode: 'nearest',
-                    intersect: false
+                    mode: 'nearest', intersect: false
                 } // Configure the tooltip.
             },
             interaction: { mode: 'nearest', axis: 'x', intersect: false }, // Configure the interaction mode.

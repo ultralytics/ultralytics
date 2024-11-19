@@ -64,52 +64,53 @@ class FastSAMPredictor(SegmentationPredictor):
         if not isinstance(results, list):
             results = [results]
         for result in results:
-            masks = result.masks.data
-            if masks.shape[1:] != result.orig_shape:
-                masks = scale_masks(masks[None], result.orig_shape)[0]
-            # bboxes prompt
             idx = torch.zeros(len(result), dtype=torch.bool, device=self.device)
-            if bboxes is not None:
-                bboxes = torch.as_tensor(bboxes, dtype=torch.int32, device=self.device)
-                bboxes = bboxes[None] if bboxes.ndim == 1 else bboxes
-                bbox_areas = (bboxes[:, 3] - bboxes[:, 1]) * (bboxes[:, 2] - bboxes[:, 0])
-                mask_areas = torch.stack([masks[:, b[1] : b[3], b[0] : b[2]].sum(dim=(1, 2)) for b in bboxes])
-                full_mask_areas = torch.sum(masks, dim=(1, 2))
+            if result.masks is not None:
+                masks = result.masks.data
+                if masks.shape[1:] != result.orig_shape:
+                    masks = scale_masks(masks[None], result.orig_shape)[0]
+                # bboxes prompt
+                if bboxes is not None:
+                    bboxes = torch.as_tensor(bboxes, dtype=torch.int32, device=self.device)
+                    bboxes = bboxes[None] if bboxes.ndim == 1 else bboxes
+                    bbox_areas = (bboxes[:, 3] - bboxes[:, 1]) * (bboxes[:, 2] - bboxes[:, 0])
+                    mask_areas = torch.stack([masks[:, b[1] : b[3], b[0] : b[2]].sum(dim=(1, 2)) for b in bboxes])
+                    full_mask_areas = torch.sum(masks, dim=(1, 2))
 
-                union = bbox_areas[:, None] + full_mask_areas - mask_areas
-                idx[torch.argmax(mask_areas / union, dim=1)] = True
-            if points is not None:
-                points = torch.as_tensor(points, dtype=torch.int32, device=self.device)
-                points = points[None] if points.ndim == 1 else points
-                if labels is None:
-                    labels = torch.ones(points.shape[0])
-                labels = torch.as_tensor(labels, dtype=torch.int32, device=self.device)
-                assert len(labels) == len(
-                    points
-                ), f"Excepted `labels` got same size as `point`, but got {len(labels)} and {len(points)}"
-                point_idx = (
-                    torch.ones(len(result), dtype=torch.bool, device=self.device)
-                    if labels.sum() == 0  # all negative points
-                    else torch.zeros(len(result), dtype=torch.bool, device=self.device)
-                )
-                for point, label in zip(points, labels):
-                    point_idx[torch.nonzero(masks[:, point[1], point[0]], as_tuple=True)[0]] = bool(label)
-                idx |= point_idx
-            if texts is not None:
-                if isinstance(texts, str):
-                    texts = [texts]
-                crop_ims, filter_idx = [], []
-                for i, b in enumerate(result.boxes.xyxy.tolist()):
-                    x1, y1, x2, y2 = (int(x) for x in b)
-                    if masks[i].sum() <= 100:
-                        filter_idx.append(i)
-                        continue
-                    crop_ims.append(Image.fromarray(result.orig_img[y1:y2, x1:x2, ::-1]))
-                similarity = self._clip_inference(crop_ims, texts)
-                text_idx = torch.argmax(similarity, dim=-1)  # (M, )
-                if len(filter_idx):
-                    text_idx += (torch.tensor(filter_idx, device=self.device)[None] <= int(text_idx)).sum(0)
-                idx[text_idx] = True
+                    union = bbox_areas[:, None] + full_mask_areas - mask_areas
+                    idx[torch.argmax(mask_areas / union, dim=1)] = True
+                if points is not None:
+                    points = torch.as_tensor(points, dtype=torch.int32, device=self.device)
+                    points = points[None] if points.ndim == 1 else points
+                    if labels is None:
+                        labels = torch.ones(points.shape[0])
+                    labels = torch.as_tensor(labels, dtype=torch.int32, device=self.device)
+                    assert len(labels) == len(
+                        points
+                    ), f"Excepted `labels` got same size as `point`, but got {len(labels)} and {len(points)}"
+                    point_idx = (
+                        torch.ones(len(result), dtype=torch.bool, device=self.device)
+                        if labels.sum() == 0  # all negative points
+                        else torch.zeros(len(result), dtype=torch.bool, device=self.device)
+                    )
+                    for point, label in zip(points, labels):
+                        point_idx[torch.nonzero(masks[:, point[1], point[0]], as_tuple=True)[0]] = bool(label)
+                    idx |= point_idx
+                if texts is not None:
+                    if isinstance(texts, str):
+                        texts = [texts]
+                    crop_ims, filter_idx = [], []
+                    for i, b in enumerate(result.boxes.xyxy.tolist()):
+                        x1, y1, x2, y2 = (int(x) for x in b)
+                        if masks[i].sum() <= 100:
+                            filter_idx.append(i)
+                            continue
+                        crop_ims.append(Image.fromarray(result.orig_img[y1:y2, x1:x2, ::-1]))
+                    similarity = self._clip_inference(crop_ims, texts)
+                    text_idx = torch.argmax(similarity, dim=-1)  # (M, )
+                    if len(filter_idx):
+                        text_idx += (torch.tensor(filter_idx, device=self.device)[None] <= int(text_idx)).sum(0)
+                    idx[text_idx] = True
 
             prompt_results.append(result[idx])
 

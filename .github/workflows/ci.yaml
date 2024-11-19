@@ -52,16 +52,15 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-          cache: "pip" # caching pip dependencies
+      - uses: astral-sh/setup-uv@v3
       - name: Install requirements
         shell: bash # for Windows compatibility
         run: |
-          python -m pip install --upgrade pip wheel
-          pip install . --extra-index-url https://download.pytorch.org/whl/cpu
+          uv pip install --system . --extra-index-url https://download.pytorch.org/whl/cpu
       - name: Check environment
         run: |
           yolo checks
-          pip list
+          uv pip list
       - name: Test HUB training
         shell: python
         env:
@@ -111,6 +110,7 @@ jobs:
       - name: Install requirements
         shell: bash # for Windows compatibility
         run: |
+          # Warnings: uv causes numpy errors during benchmarking
           python -m pip install --upgrade pip wheel
           pip install -e ".[export]" "coverage[toml]" --extra-index-url https://download.pytorch.org/whl/cpu
       - name: Check environment
@@ -172,12 +172,11 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-          cache: "pip" # caching pip dependencies
+      - uses: astral-sh/setup-uv@v3
       - name: Install requirements
         shell: bash # for Windows compatibility
         run: |
           # CoreML must be installed before export due to protobuf error from AutoInstall
-          python -m pip install --upgrade pip wheel
           slow=""
           torch=""
           if [ "${{ matrix.torch }}" == "1.8.0" ]; then
@@ -186,11 +185,11 @@ jobs:
           if [[ "${{ github.event_name }}" =~ ^(schedule|workflow_dispatch)$ ]]; then
               slow="pycocotools mlflow"
           fi
-          pip install -e ".[export]" $torch $slow pytest-cov --extra-index-url https://download.pytorch.org/whl/cpu
+          uv pip install --system -e ".[export]" $torch $slow pytest-cov --extra-index-url https://download.pytorch.org/whl/cpu
       - name: Check environment
         run: |
           yolo checks
-          pip list
+          uv pip list
       - name: Pytest tests
         shell: bash # for Windows compatibility
         run: |
@@ -213,12 +212,13 @@ jobs:
     runs-on: gpu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
       - name: Install requirements
-        run: pip install . pytest-cov
+        run: uv pip install --system . pytest-cov
       - name: Check environment
         run: |
           yolo checks
-          pip list
+          uv pip list
       - name: Pytest tests
         run: |
           slow=""
@@ -294,13 +294,8 @@ jobs:
           channels: conda-forge,defaults
           channel-priority: true
           activate-environment: anaconda-client-env
-      - name: Cleanup toolcache
-        run: |
-          echo "Free space before deletion:"
-          df -h /
-          rm -rf /opt/hostedtoolcache
-          echo "Free space after deletion:"
-          df -h /
+      - name: Cleanup disk space
+        uses: ultralytics/actions/cleanup-disk@main
       - name: Install Linux packages
         run: |
           # Fix cv2 ImportError: 'libEGL.so.1: cannot open shared object file: No such file or directory'

@@ -171,14 +171,28 @@ let chart = null;  // chart variable will hold the reference to the current char
 function updateChart() {
     // If a chart instance already exists, destroy it.
     if (chart) {
-      chart.destroy();
+        chart.destroy();
     }
 
+    // Define a specific color map for models.
+    const colorMap = {
+        'YOLO11': '#1014EF',
+        'YOLOv10': '#FF444F',
+        'YOLOv9': '#BD00FF',
+        'YOLOv8': '#DD00BA',
+        'YOLOv7': '#7B0068',
+        'YOLOv6-3.0': '#0BDBEB',
+        'YOLOv5': '#00F344',
+        'PP-YOLOE+': '#00B4FF',
+        'DAMO-YOLO': '#7D24FF',
+        'YOLOX': '#FF64DA',
+        'RTDETRv2': '#FC6D2F'
+    };
     // Get the selected algorithms from the checkboxes.
     const selectedAlgorithms = [...document.querySelectorAll('input[name="algorithm"]:checked')].map(e => e.value);
 
     // Create the datasets for the selected algorithms.
-    const datasets = selectedAlgorithms.map((algorithm, index) => ({
+    const datasets = selectedAlgorithms.map((algorithm) => ({
         label: algorithm,  // Label for the data points in the legend.
         data: Object.entries(data[algorithm]).map(([version, point]) => ({
             x: point.speed,     // Speed data points on the x-axis.
@@ -186,16 +200,16 @@ function updateChart() {
             version: version.toUpperCase() // Store the version as additional data.
         })),
         fill: false,    // Don't fill the chart.
-        borderColor: `hsl(${index * 90}, 70%, 50%)`,  // Assign a unique color to each dataset.
+        borderColor: colorMap[algorithm] || `hsl(${Math.random() * 360}, 70%, 50%)`,  // Use specific color or fallback to random.
         tension: 0.3, // Smooth the line.
         pointRadius: 5, // Increase the dot size.
-        pointHoverRadius: 10, // Increase the dot size on hover.
-        borderWidth: 2 // Set the line thickness.
+        pointHoverRadius: 7, // Increase the dot size on hover.
+        borderWidth: algorithm === 'YOLO11' ? 3 : 1.5 // Slightly increase line size for YOLO11.
     }));
 
     // If there are no selected algorithms, return without creating a new chart.
     if (datasets.length === 0) {
-      return;
+        return;
     }
 
     // Create a new chart instance.

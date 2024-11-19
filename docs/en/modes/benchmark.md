@@ -16,7 +16,7 @@ keywords: model benchmarking, YOLO11, Ultralytics, performance evaluation, expor
 
     You may need to refresh the page to view the graphs correctly due to potential cookie issues.
 
-<div style="display: flex; align-items: flex-start;">
+<div style="display: flex; align-items: flex-start;">  
   <div style="margin-right: 20px;">
     <label><input type="checkbox" name="algorithm" value="YOLO11" checked><span>YOLO11</span></label><br>
 <label><input type="checkbox" name="algorithm" value="YOLOv10" checked><span>YOLOv10</span></label><br>
@@ -29,7 +29,7 @@ keywords: model benchmarking, YOLO11, Ultralytics, performance evaluation, expor
     <label><input type="checkbox" name="algorithm" value="DAMO-YOLO" checked><span>DAMO-YOLO</span></label><br>
     <label><input type="checkbox" name="algorithm" value="YOLOX" checked><span>YOLOX</span></label><br>
     <label><input type="checkbox" name="algorithm" value="RTDETRv2" checked><span>RTDETRv2</span></label>
-</div>
+</div> 
   <div style="flex-grow: 1;"><canvas id="chart"></canvas></div> <!-- Canva for plotting benchmarks -->
 </div>
 

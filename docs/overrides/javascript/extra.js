@@ -159,7 +159,8 @@ const data = {
     'YOLOv9':  {t: {speed: 2.30, mAP: 37.8}, s: {speed: 3.54, mAP: 46.5}, m: {speed: 6.43, mAP: 51.5}, c: {speed: 7.16, mAP: 52.8}, e: {speed: 16.77, mAP: 55.1}},
     'YOLOv10': {n: {speed: 1.56, mAP: 39.5}, s: {speed: 2.66, mAP: 46.7}, m: {speed: 5.48, mAP: 51.3}, b: {speed: 6.54, mAP: 52.7}, l: {speed: 8.33, mAP: 53.3}, x: {speed: 12.2, mAP: 54.4}},
     'PPYOLOE': {t: {speed: 2.84, mAP: 39.9}, s: {speed: 2.62, mAP: 43.7}, m: {speed: 5.56, mAP: 49.8}, l: {speed: 8.36, mAP: 52.9}, x: {speed: 14.3, mAP: 54.7}},
-    'YOLO11':  {n: {speed: 1.55, mAP: 39.5}, s: {speed: 2.63, mAP: 47.0}, m: {speed: 5.27, mAP: 51.4}, l: {speed: 6.84, mAP: 53.2}, x: {speed: 12.49, mAP: 54.7}}
+    'YOLO11':  {n: {speed: 1.55, mAP: 39.5}, s: {speed: 2.63, mAP: 47.0}, m: {speed: 5.27, mAP: 51.4}, l: {speed: 6.84, mAP: 53.2}, x: {speed: 12.49, mAP: 54.7}},
+    "RTDETRv2": {s: {speed: 5.03, mAP: 48.1}, m: {speed: 7.51, mAP: 51.9}, l: {speed: 9.76, mAP: 53.4}, x: {speed: 15.03, mAP: 54.3}}
 };
 
 let chart = null;  // chart variable will hold the reference to the current chart instance.

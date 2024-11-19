@@ -63,7 +63,7 @@ class ObjectCounter(BaseSolution):
             >>> track_id = 1
             >>> prev_position = (120, 220)
             >>> cls = 0
-            >>> counter.count_objects(track_line, box, track_id, prev_position, cls)
+            >>> counter.count_objects(current_centroid, track_id, prev_position, cls)
         """
         if prev_position is None or track_id in self.counted_ids:
             return

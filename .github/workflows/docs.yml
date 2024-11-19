@@ -29,7 +29,7 @@ on:
 jobs:
   Docs:
     if: github.repository == 'ultralytics/ultralytics'
-    runs-on: macos-14
+    runs-on: ubuntu-latest
     steps:
       - name: Git config
         run: |

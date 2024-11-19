@@ -107,7 +107,6 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           cache: "pip" # caching pip dependencies
-      - uses: astral-sh/setup-uv@v3
       - name: Install requirements
         shell: bash # for Windows compatibility
         run: |
@@ -117,7 +116,7 @@ jobs:
       - name: Check environment
         run: |
           yolo checks
-          uv pip list
+          pip list
       - name: Benchmark DetectionModel
         shell: bash
         run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}.pt' imgsz=160 verbose=0.309

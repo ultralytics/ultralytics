@@ -167,7 +167,20 @@ const data = {
 
 let chart = null;  // chart variable will hold the reference to the current chart instance.
 
-// This function is responsible for updating the benchmarks chart.
+// Function to lighten a hex color by a specified amount.
+function lightenHexColor(color, amount = 0.5) {
+    const r = parseInt(color.slice(1, 3), 16);
+    const g = parseInt(color.slice(3, 5), 16);
+    const b = parseInt(color.slice(5, 7), 16);
+
+    const newR = Math.min(255, Math.round(r + (255 - r) * amount));
+    const newG = Math.min(255, Math.round(g + (255 - g) * amount));
+    const newB = Math.min(255, Math.round(b + (255 - b) * amount));
+
+    return `#${newR.toString(16).padStart(2, '0')}${newG.toString(16).padStart(2, '0')}${newB.toString(16).padStart(2, '0')}`;
+}
+
+// Function to update the benchmarks chart.
 function updateChart() {
     // If a chart instance already exists, destroy it.
     if (chart) {
@@ -176,36 +189,42 @@ function updateChart() {
 
     // Define a specific color map for models.
     const colorMap = {
-        'YOLO11': '#1014EF',
-        'YOLOv10': '#FF444F',
-        'YOLOv9': '#BD00FF',
-        'YOLOv8': '#DD00BA',
-        'YOLOv7': '#7B0068',
-        'YOLOv6-3.0': '#0BDBEB',
-        'YOLOv5': '#00F344',
-        'PP-YOLOE+': '#00B4FF',
-        'DAMO-YOLO': '#7D24FF',
-        'YOLOX': '#FF64DA',
-        'RTDETRv2': '#FC6D2F'
+        'YOLO11': '#0b23a9',
+        'YOLOv10': '#ff7f0e',
+        'YOLOv9': '#2ca02c',
+        'YOLOv8': '#d62728',
+        'YOLOv7': '#9467bd',
+        'YOLOv6-3.0': '#8c564b',
+        'YOLOv5': '#e377c2',
+        'PP-YOLOE+': '#7f7f7f',
+        'DAMO-YOLO': '#bcbd22',
+        'YOLOX': '#17becf',
+        'RTDETRv2': '#eccd22'
     };
+
     // Get the selected algorithms from the checkboxes.
     const selectedAlgorithms = [...document.querySelectorAll('input[name="algorithm"]:checked')].map(e => e.value);
 
     // Create the datasets for the selected algorithms.
-    const datasets = selectedAlgorithms.map((algorithm) => ({
-        label: algorithm,  // Label for the data points in the legend.
-        data: Object.entries(data[algorithm]).map(([version, point]) => ({
-            x: point.speed,     // Speed data points on the x-axis.
-            y: point.mAP,       // mAP data points on the y-axis.
-            version: version.toUpperCase() // Store the version as additional data.
-        })),
-        fill: false,    // Don't fill the chart.
-        borderColor: colorMap[algorithm] || `hsl(${Math.random() * 360}, 70%, 50%)`,  // Use specific color or fallback to random.
-        tension: 0.3, // Smooth the line.
-        pointRadius: 5, // Increase the dot size.
-        pointHoverRadius: 7, // Increase the dot size on hover.
-        borderWidth: algorithm === 'YOLO11' ? 3 : 1.5 // Slightly increase line size for YOLO11.
-    }));
+    const datasets = selectedAlgorithms.map((algorithm, i) => {
+        const baseColor = colorMap[algorithm] || `hsl(${Math.random() * 360}, 70%, 50%)`;
+        const lineColor = i === 0 ? baseColor : lightenHexColor(baseColor, 0.6); // Lighten non-primary lines.
+
+        return {
+            label: algorithm,  // Label for the data points in the legend.
+            data: Object.entries(data[algorithm]).map(([version, point]) => ({
+                x: point.speed,     // Speed data points on the x-axis.
+                y: point.mAP,       // mAP data points on the y-axis.
+                version: version.toUpperCase() // Store the version as additional data.
+            })),
+            fill: false,    // Don't fill the chart.
+            borderColor: lineColor,  // Use the lightened color for the line.
+            tension: 0.3, // Smooth the line.
+            pointRadius: i === 0 ? 7 : 4, // Highlight primary dataset points.
+            pointHoverRadius: i === 0 ? 9 : 6, // Highlight hover for primary dataset.
+            borderWidth: i === 0 ? 3 : 1.5 // Slightly increase line size for the primary dataset.
+        };
+    });
 
     // If there are no selected algorithms, return without creating a new chart.
     if (datasets.length === 0) {
@@ -218,7 +237,7 @@ function updateChart() {
         data: { datasets },
         options: {
             plugins: {
-                legend: { display: true, position: 'top', labels: {color: '#808080'} }, // Configure the legend.
+                legend: { display: true, position: 'top', labels: { color: '#808080' } }, // Configure the legend.
                 tooltip: {
                     callbacks: {
                         label: (tooltipItem) => {
@@ -235,12 +254,12 @@ function updateChart() {
             scales: {
                 x: {
                     type: 'linear', position: 'bottom',
-                    title: { display: true, text: 'Latency T4 TensorRT10 FP16 (ms/img)', color: '#808080'}, // X-axis title.
+                    title: { display: true, text: 'Latency T4 TensorRT10 FP16 (ms/img)', color: '#808080' }, // X-axis title.
                     grid: { color: '#e0e0e0' }, // Grid line color.
                     ticks: { color: '#808080' } // Tick label color.
                 },
                 y: {
-                    title: { display: true, text: 'mAP', color: '#808080'}, // Y-axis title.
+                    title: { display: true, text: 'mAP', color: '#808080' }, // Y-axis title.
                     grid: { color: '#e0e0e0' }, // Grid line color.
                     ticks: { color: '#808080' } // Tick label color.
                 }

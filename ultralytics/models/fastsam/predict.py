@@ -64,7 +64,7 @@ class FastSAMPredictor(SegmentationPredictor):
         if not isinstance(results, list):
             results = [results]
         for result in results:
-            if result.masks is None:
+            if len(result) == 0:
                 prompt_results.append(result)
                 continue
             masks = result.masks.data

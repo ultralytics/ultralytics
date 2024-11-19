@@ -109,9 +109,12 @@ def _log_plots(plots, step):
 
 def on_pretrain_routine_start(trainer):
     """Initiate and start project if module is present."""
-    project = trainer.args.project.replace("/", "-")
-    name = trainer.args.name.replace("/", "-")
-    wb.run or wb.init(project=project or "Ultralytics", name=name, config=vars(trainer.args))
+    if not wb.run:
+        wb.init(
+            project=str(trainer.args.project).replace("/", "-") if trainer.args.project else "Ultralytics", 
+            name=str(trainer.args.name).replace("/", "-"), 
+            config=vars(trainer.args),
+               )
 
 
 def on_fit_epoch_end(trainer):

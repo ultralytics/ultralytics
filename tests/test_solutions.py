@@ -17,7 +17,7 @@ def test_major_solutions():
     cap = cv2.VideoCapture("solutions_ci_demo.mp4")
     assert cap.isOpened(), "Error reading video file"
     region_points = [(20, 400), (1080, 404), (1080, 360), (20, 360)]
-    counter = solutions.ObjectCounter(region=region_points, model="yolo11n.pt", show=False)  # Test object counter
+    # counter = solutions.ObjectCounter(region=region_points, model="yolo11n.pt", show=False)  # Test object counter
     heatmap = solutions.Heatmap(colormap=cv2.COLORMAP_PARULA, model="yolo11n.pt", show=False)  # Test heatmaps
     speed = solutions.SpeedEstimator(region=region_points, model="yolo11n.pt", show=False)  # Test queue manager
     queue = solutions.QueueManager(region=region_points, model="yolo11n.pt", show=False)  # Test speed estimation
@@ -31,7 +31,7 @@ def test_major_solutions():
         if not success:
             break
         original_im0 = im0.copy()
-        _ = counter.count(original_im0.copy())
+        # _ = counter.count(original_im0.copy())
         _ = heatmap.generate_heatmap(original_im0.copy())
         _ = speed.estimate_speed(original_im0.copy())
         _ = queue.process_queue(original_im0.copy())

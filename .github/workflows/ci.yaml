@@ -108,15 +108,15 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           cache: "pip" # caching pip dependencies
+      - uses: astral-sh/setup-uv@v3
       - name: Install requirements
         shell: bash # for Windows compatibility
         run: |
-          python -m pip install --upgrade pip wheel
-          pip install -e ".[export]" "coverage[toml]" --extra-index-url https://download.pytorch.org/whl/cpu
+          uv pip install --system -e ".[export]" "coverage[toml]" --extra-index-url https://download.pytorch.org/whl/cpu
       - name: Check environment
         run: |
           yolo checks
-          pip list
+          uv pip list
       - name: Benchmark DetectionModel
         shell: bash
         run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}.pt' imgsz=160 verbose=0.309

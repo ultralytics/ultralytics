@@ -111,10 +111,10 @@ def on_pretrain_routine_start(trainer):
     """Initiate and start project if module is present."""
     if not wb.run:
         wb.init(
-            project=str(trainer.args.project).replace("/", "-") if trainer.args.project else "Ultralytics", 
-            name=str(trainer.args.name).replace("/", "-"), 
+            project=str(trainer.args.project).replace("/", "-") if trainer.args.project else "Ultralytics",
+            name=str(trainer.args.name).replace("/", "-"),
             config=vars(trainer.args),
-               )
+        )
 
 
 def on_fit_epoch_end(trainer):

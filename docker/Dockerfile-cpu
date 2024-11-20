@@ -47,7 +47,6 @@ RUN rm -rf tmp /root/.config/Ultralytics/persistent_cache.json
 # Set default command to bash
 ENTRYPOINT ["/bin/bash"]
 
-
 # Usage Examples -------------------------------------------------------------------------------------------------------
 
 # Build and Push

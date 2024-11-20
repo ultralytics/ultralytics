@@ -178,6 +178,7 @@ docstring-code-format = true
 [tool.uv]
 conflicts = [
     [
+        { extra = "numpy" },
         { export = "numpy==1.23.5; platform_machine == 'aarch64'" },
     ]
 ]

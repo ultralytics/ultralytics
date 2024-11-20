@@ -45,7 +45,7 @@ RUN pip install "paddlepaddle>=2.6.0" x2paddle
 RUN rm -rf tmp /root/.config/Ultralytics/persistent_cache.json
 
 # Set default command to bash
-ENTRYPOINT ["/bin/bash"]
+CMD ["/bin/bash"]
 
 # Usage Examples -------------------------------------------------------------------------------------------------------
 

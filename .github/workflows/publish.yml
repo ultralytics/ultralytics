@@ -17,7 +17,7 @@ jobs:
     if: github.repository == 'ultralytics/ultralytics' && github.actor == 'glenn-jocher'
     name: Publish
     runs-on: ubuntu-latest
-    environment:  # for GitHub Deployments tab
+    environment: # for GitHub Deployments tab
       name: Release - PyPI
       url: https://pypi.org/p/ultralytics
     permissions:

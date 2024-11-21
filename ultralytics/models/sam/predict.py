@@ -97,7 +97,7 @@ class Predictor(BasePredictor):
         """
         if overrides is None:
             overrides = {}
-        overrides.update(dict(task="segment", mode="predict"))
+        overrides.update(dict(task="segment", mode="predict", batch=1))
         super().__init__(cfg, overrides, _callbacks)
         self.args.retina_masks = True
         self.im = None

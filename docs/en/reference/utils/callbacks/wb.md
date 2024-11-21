@@ -11,15 +11,15 @@ keywords: Ultralytics, YOLO, WandB, callbacks, logging, metrics, visualizations,
 
 <br>
 
-## ::: ultralytics.utils.callbacks.wb._custom_table
+## ::: ultralytics.utils.callbacks.wb.\_custom_table
 
 <br><br><hr><br>
 
-## ::: ultralytics.utils.callbacks.wb._plot_curve
+## ::: ultralytics.utils.callbacks.wb.\_plot_curve
 
 <br><br><hr><br>
 
-## ::: ultralytics.utils.callbacks.wb._log_plots
+## ::: ultralytics.utils.callbacks.wb.\_log_plots
 
 <br><br><hr><br>
 

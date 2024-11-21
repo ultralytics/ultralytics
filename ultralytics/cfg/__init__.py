@@ -671,6 +671,9 @@ def handle_yolo_solutions(args: List[str]) -> None:
         )
         s_n = "count"  # Default solution if none provided
 
+    if args and args[0] == "help":  # Add check for return if user call `yolo solutions help`
+        return
+
     cls, method = SOLUTION_MAP[s_n]  # solution class name, method name and default source
 
     from ultralytics import solutions  # import ultralytics solutions

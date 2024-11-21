@@ -714,7 +714,7 @@ class SAM2Predictor(Predictor):
         """
         features = self.get_im_features(im) if self.features is None else self.features
 
-        bboxes, points, labels, masks = self._prepare_prompts(im.shape[2:], bboxes, points, labels, masks)
+        points, labels, masks = self._prepare_prompts(im.shape[2:], bboxes, points, labels, masks)
         points = (points, labels) if points is not None else None
 
         sparse_embeddings, dense_embeddings = self.model.sam_prompt_encoder(
@@ -766,7 +766,7 @@ class SAM2Predictor(Predictor):
                 labels = torch.cat([bbox_labels, labels], dim=1)
             else:
                 points, labels = bboxes, bbox_labels
-        return bboxes, points, labels, masks
+        return points, labels, masks
 
     def set_image(self, image):
         """

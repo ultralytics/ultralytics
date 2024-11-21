@@ -80,6 +80,7 @@ class ObjectCounter(BaseSolution):
                     else:  # Moving left
                         self.out_count += 1
                         self.classwise_counts[self.names[cls]]["OUT"] += 1
+                # Horizontal region: Compare y-coordinates to determine direction
                 elif current_centroid[1] > prev_position[1]:  # Moving downward
                     self.in_count += 1
                     self.classwise_counts[self.names[cls]]["IN"] += 1

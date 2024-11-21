@@ -11,15 +11,15 @@ keywords: Ultralytics, NeptuneAI, YOLO, experiment logging, machine learning, AI
 
 <br>
 
-## ::: ultralytics.utils.callbacks.neptune.\_log_scalars
+## ::: ultralytics.utils.callbacks.neptune._log_scalars
 
 <br><br><hr><br>
 
-## ::: ultralytics.utils.callbacks.neptune.\_log_images
+## ::: ultralytics.utils.callbacks.neptune._log_images
 
 <br><br><hr><br>
 
-## ::: ultralytics.utils.callbacks.neptune.\_log_plot
+## ::: ultralytics.utils.callbacks.neptune._log_plot
 
 <br><br><hr><br>
 

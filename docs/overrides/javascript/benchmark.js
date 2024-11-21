@@ -188,7 +188,7 @@ document$.subscribe(function () {
       document
         .querySelectorAll('input[name="algorithm"]')
         .forEach((checkbox) =>
-          checkbox.addEventListener("change", updateChart)
+          checkbox.addEventListener("change", updateChart),
         );
       updateChart();
     } else {

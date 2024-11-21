@@ -13,8 +13,8 @@ keywords: model benchmarking, YOLO11, Ultralytics, performance evaluation, expor
   anotherScript.src = "../../javascript/benchmark.js";
   document.head.appendChild(anotherScript);
 </script>
- 
-# Model Benchmarking with Ultralytics YOLO 
+
+# Model Benchmarking with Ultralytics YOLO
 
 <img width="1024" src="https://github.com/ultralytics/docs/releases/download/0/ultralytics-yolov8-ecosystem-integrations.avif" alt="Ultralytics YOLO ecosystem and integrations">
 

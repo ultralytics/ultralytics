@@ -225,9 +225,6 @@ CFG_BOOL_KEYS = {  # boolean-only arguments
     "profile",
     "multi_scale",
 }
-DEPRECATED_KEYS = {
-    "label_smoothing",
-}
 
 
 def cfg2dict(cfg):

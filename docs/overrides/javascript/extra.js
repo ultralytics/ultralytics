@@ -30,7 +30,9 @@ checkAutoTheme();
 document.addEventListener("DOMContentLoaded", () => {
   const autoThemeInput = document.getElementById("__palette_1");
   autoThemeInput?.addEventListener("click", () => {
-    if (autoThemeInput.checked) setTimeout(checkAutoTheme);
+    if (autoThemeInput.checked) {
+      setTimeout(checkAutoTheme);
+    }
   });
 });
 

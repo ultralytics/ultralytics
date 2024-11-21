@@ -80,37 +80,33 @@ class ObjectCounter(BaseSolution):
                     else:  # Moving left
                         self.out_count += 1
                         self.classwise_counts[self.names[cls]]["OUT"] += 1
-                else:
-                    # Horizontal region: Compare y-coordinates to determine direction
-                    if current_centroid[1] > prev_position[1]:  # Moving downward
-                        self.in_count += 1
-                        self.classwise_counts[self.names[cls]]["IN"] += 1
-                    else:  # Moving upward
-                        self.out_count += 1
-                        self.classwise_counts[self.names[cls]]["OUT"] += 1
+                # Horizontal region: Compare y-coordinates to determine direction
+                elif current_centroid[1] > prev_position[1]:  # Moving downward
+                    self.in_count += 1
+                    self.classwise_counts[self.names[cls]]["IN"] += 1
+                else:  # Moving upward
+                    self.out_count += 1
+                    self.classwise_counts[self.names[cls]]["OUT"] += 1
                 self.counted_ids.append(track_id)
 
         elif len(self.region) > 2:  # Polygonal region
             polygon = self.Polygon(self.region)
             if polygon.contains(self.Point(current_centroid)):
                 # Determine motion direction for vertical or horizontal polygons
-                region_width = max([p[0] for p in self.region]) - min([p[0] for p in self.region])
-                region_height = max([p[1] for p in self.region]) - min([p[1] for p in self.region])
+                region_width = max(p[0] for p in self.region) - min(p[0] for p in self.region)
+                region_height = max(p[1] for p in self.region) - min(p[1] for p in self.region)
 
-                if region_width < region_height:  # Vertical-oriented polygon
-                    if current_centroid[0] > prev_position[0]:  # Moving right
-                        self.in_count += 1
-                        self.classwise_counts[self.names[cls]]["IN"] += 1
-                    else:  # Moving left
-                        self.out_count += 1
-                        self.classwise_counts[self.names[cls]]["OUT"] += 1
-                else:  # Horizontal-oriented polygon
-                    if current_centroid[1] > prev_position[1]:  # Moving downward
-                        self.in_count += 1
-                        self.classwise_counts[self.names[cls]]["IN"] += 1
-                    else:  # Moving upward
-                        self.out_count += 1
-                        self.classwise_counts[self.names[cls]]["OUT"] += 1
+                if (
+                    region_width < region_height
+                    and current_centroid[0] > prev_position[0]
+                    or region_width >= region_height
+                    and current_centroid[1] > prev_position[1]
+                ):  # Moving right
+                    self.in_count += 1
+                    self.classwise_counts[self.names[cls]]["IN"] += 1
+                else:  # Moving left
+                    self.out_count += 1
+                    self.classwise_counts[self.names[cls]]["OUT"] += 1
                 self.counted_ids.append(track_id)
 
     def store_classwise_counts(self, cls):

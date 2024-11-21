@@ -11,11 +11,11 @@ keywords: Ultralytics, TensorBoard, callbacks, machine learning, training visual
 
 <br>
 
-## ::: ultralytics.utils.callbacks.tensorboard.\_log_scalars
+## ::: ultralytics.utils.callbacks.tensorboard._log_scalars
 
 <br><br><hr><br>
 
-## ::: ultralytics.utils.callbacks.tensorboard.\_log_tensorboard_graph
+## ::: ultralytics.utils.callbacks.tensorboard._log_tensorboard_graph
 
 <br><br><hr><br>
 

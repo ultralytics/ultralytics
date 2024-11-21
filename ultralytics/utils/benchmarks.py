@@ -114,8 +114,6 @@ def benchmark(
                 assert LINUX or MACOS, "Windows Paddle exports not supported yet"
             if i == 12:  # MNN
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 MNN exports not supported yet"
-                assert not IS_RASPBERRYPI, "MNN export not supported on Raspberry Pi"
-                assert not IS_JETSON, "MNN export not supported on NVIDIA Jetson"
             if i == 13:  # NCNN
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 NCNN exports not supported yet"
             if i == 14:  # IMX

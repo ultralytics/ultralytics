@@ -1,9 +1,9 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 # Builds ultralytics/ultralytics:latest image on DockerHub https://hub.docker.com/r/ultralytics/ultralytics
-# Image is CUDA-optimized for YOLOv8 single/multi-GPU training and inference
+# Image is CUDA-optimized for YOLO11 single/multi-GPU training and inference
 
 # Start FROM PyTorch image https://hub.docker.com/r/pytorch/pytorch or nvcr.io/nvidia/pytorch:23.03-py3
-FROM pytorch/pytorch:2.3.1-cuda12.1-cudnn8-runtime
+FROM pytorch/pytorch:2.5.0-cuda12.4-cudnn9-runtime
 
 # Set environment variables
 # Avoid DDP error "MKL_THREADING_LAYER=INTEL is incompatible with libgomp.so.1 library" https://github.com/pytorch/pytorch/issues/37377
@@ -11,7 +11,8 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
     PIP_BREAK_SYSTEM_PACKAGES=1 \
-    MKL_THREADING_LAYER=GNU
+    MKL_THREADING_LAYER=GNU \
+    OMP_NUM_THREADS=1 
 
 # Downloads to user config dir
 ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.ttf \
@@ -21,8 +22,10 @@ ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.ttf \
 # Install linux packages
 # g++ required to build 'tflite_support' and 'lap' packages, libusb-1.0-0 required for 'tflite_support' package
 # libsm6 required by libqxcb to create QT-based windows for visualization; set 'QT_DEBUG_PLUGINS=1' to test in docker
-RUN apt update \
-    && apt install --no-install-recommends -y gcc git zip unzip wget curl htop libgl1 libglib2.0-0 libpython3-dev gnupg g++ libusb-1.0-0 libsm6
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    gcc git zip unzip wget curl htop libgl1 libglib2.0-0 libpython3-dev gnupg g++ libusb-1.0-0 libsm6 \
+    && rm -rf /var/lib/apt/lists/*
 
 # Security updates
 # https://security.snyk.io/vuln/SNYK-UBUNTU1804-OPENSSL-3314796
@@ -34,24 +37,24 @@ WORKDIR /ultralytics
 # Copy contents and configure git
 COPY . .
 RUN sed -i '/^\[http "https:\/\/github\.com\/"\]/,+1d' .git/config
-ADD https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n.pt .
+ADD https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11n.pt .
 
 # Install pip packages
 RUN python3 -m pip install --upgrade pip wheel
-# Pin TensorRT-cu12==10.1.0 to avoid 10.2.0 bug https://github.com/ultralytics/ultralytics/pull/14239 (note -cu12 must be used)
-RUN pip install -e ".[export]" "tensorrt-cu12==10.1.0" "albumentations>=1.4.6" comet pycocotools
+# Note -cu12 must be used with tensorrt)
+RUN pip install -e ".[export]" tensorrt-cu12 "albumentations>=1.4.6" comet pycocotools
 
 # Run exports to AutoInstall packages
 # Edge TPU export fails the first time so is run twice here
-RUN yolo export model=tmp/yolov8n.pt format=edgetpu imgsz=32 || yolo export model=tmp/yolov8n.pt format=edgetpu imgsz=32
-RUN yolo export model=tmp/yolov8n.pt format=ncnn imgsz=32
+RUN yolo export model=tmp/yolo11n.pt format=edgetpu imgsz=32 || yolo export model=tmp/yolo11n.pt format=edgetpu imgsz=32
+RUN yolo export model=tmp/yolo11n.pt format=ncnn imgsz=32
 # Requires <= Python 3.10, bug with paddlepaddle==2.5.0 https://github.com/PaddlePaddle/X2Paddle/issues/991
 RUN pip install "paddlepaddle>=2.6.0" x2paddle
 # Fix error: `np.bool` was a deprecated alias for the builtin `bool` segmentation error in Tests
 RUN pip install numpy==1.23.5
-# Remove exported models
-RUN rm -rf tmp
 
+# Remove extra build files
+RUN rm -rf tmp /root/.config/Ultralytics/persistent_cache.json
 
 # Usage Examples -------------------------------------------------------------------------------------------------------
 

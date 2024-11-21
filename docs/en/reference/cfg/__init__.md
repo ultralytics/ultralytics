@@ -47,7 +47,7 @@ keywords: Ultralytics, YOLO, configuration, cfg2dict, get_cfg, check_cfg, save_d
 
 <br><br><hr><br>
 
-## ::: ultralytics.cfg.handle_explorer
+## ::: ultralytics.cfg.handle_yolo_solutions
 
 <br><br><hr><br>
 

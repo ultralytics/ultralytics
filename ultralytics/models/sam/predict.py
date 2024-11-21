@@ -198,6 +198,7 @@ class Predictor(BasePredictor):
         bboxes = self.prompts.pop("bboxes", bboxes)
         points = self.prompts.pop("points", points)
         masks = self.prompts.pop("masks", masks)
+        labels = self.prompts.pop("labels", labels)
 
         if all(i is None for i in [bboxes, points, masks]):
             return self.generate(im, *args, **kwargs)
@@ -214,10 +215,13 @@ class Predictor(BasePredictor):
         Args:
             im (torch.Tensor): Preprocessed input image tensor with shape (N, C, H, W).
             bboxes (np.ndarray | List | None): Bounding boxes in XYXY format with shape (N, 4).
-            points (np.ndarray | List | None): Points indicating object locations with shape (N, 2), in pixels.
-            labels (np.ndarray | List | None): Point prompt labels with shape (N,). 1 for foreground, 0 for background.
+            points (np.ndarray | List | None): Points indicating object locations with shape (N, 2) or (N, num_points, 2), in pixels.
+            labels (np.ndarray | List | None): Point prompt labels with shape (N,) or (N, num_points). 1 for foreground, 0 for background.
             masks (np.ndarray | None): Low-res masks from previous predictions with shape (N, H, W). For SAM, H=W=256.
             multimask_output (bool): Flag to return multiple masks for ambiguous prompts.
+
+        Raises:
+            AssertionError: If the number of points don't match the number of labels, in case labels were passed.
 
         Returns:
             (tuple): Tuple containing:
@@ -251,17 +255,19 @@ class Predictor(BasePredictor):
         # `d` could be 1 or 3 depends on `multimask_output`.
         return pred_masks.flatten(0, 1), pred_scores.flatten(0, 1)
 
-    def _prepare_prompts(self, dst_shape, bboxes=None, points=None, labels=None, masks=None, merge_point=False):
+    def _prepare_prompts(self, dst_shape, bboxes=None, points=None, labels=None, masks=None):
         """
         Prepares and transforms the input prompts for processing based on the destination shape.
 
         Args:
             dst_shape (tuple): The target shape (height, width) for the prompts.
-            bboxes (List | np.ndarray, Optional): Bounding boxes in the format [[x1, y1, x2, y2], ...].
-            points (List | np.ndarray, Optional): Points of interest in the format [[x1, y1], ...].
-            labels (List | np.ndarray, Optional): Labels corresponding to the points.
+            bboxes (np.ndarray | List | None): Bounding boxes in XYXY format with shape (N, 4).
+            points (np.ndarray | List | None): Points indicating object locations with shape (N, 2) or (N, num_points, 2), in pixels.
+            labels (np.ndarray | List | None): Point prompt labels with shape (N,) or (N, num_points). 1 for foreground, 0 for background.
             masks (List | np.ndarray, Optional): Masks for the objects, where each mask is a 2D array.
-            merge_point (bool, Optional): Whether to merge points into a single object or treat them independently.
+
+        Raises:
+            AssertionError: If the number of points don't match the number of labels, in case labels were passed.
 
         Returns:
             (tuple): A tuple containing transformed bounding boxes, points, labels, and masks.
@@ -274,17 +280,15 @@ class Predictor(BasePredictor):
             points = points[None] if points.ndim == 1 else points
             # Assuming labels are all positive if users don't pass labels.
             if labels is None:
-                labels = np.ones(points.shape[0])
+                labels = np.ones(points.shape[:-1])
             labels = torch.as_tensor(labels, dtype=torch.int32, device=self.device)
+            assert (
+                points.shape[-2] == labels.shape[-1]
+            ), f"Number of points {points.shape[-2]} should match number of labels {labels.shape[-1]}."
             points *= r
-            if merge_point:
-                # NOTE: use multiple points to locate one object
-                # (N, 2) --> (1, N, 2), (N, ) --> (1, N)
-                points, labels = points[None], labels[None]
-            else:
-                # NOTE: treat points as independent ones
+            if points.ndim == 2:
                 # (N, 2) --> (N, 1, 2), (N, ) --> (N, 1)
-                points, labels = points[:, None], labels[:, None]
+                points, labels = points[:, None, :], labels[:, None]
         if bboxes is not None:
             bboxes = torch.as_tensor(bboxes, dtype=torch.float32, device=self.device)
             bboxes = bboxes[None] if bboxes.ndim == 1 else bboxes
@@ -476,7 +480,7 @@ class Predictor(BasePredictor):
         results = []
         for masks, orig_img, img_path in zip([pred_masks], orig_imgs, self.batch[0]):
             if len(masks) == 0:
-                masks = None
+                masks, pred_bboxes = None, torch.zeros((0, 6), device=pred_masks.device)
             else:
                 masks = ops.scale_masks(masks[None].float(), orig_img.shape[:2], padding=False)[0]
                 masks = masks > self.model.mask_threshold  # to bool
@@ -734,22 +738,24 @@ class SAM2Predictor(Predictor):
         # `d` could be 1 or 3 depends on `multimask_output`.
         return pred_masks.flatten(0, 1), pred_scores.flatten(0, 1)
 
-    def _prepare_prompts(self, dst_shape, bboxes=None, points=None, labels=None, masks=None, merge_point=False):
+    def _prepare_prompts(self, dst_shape, bboxes=None, points=None, labels=None, masks=None):
         """
         Prepares and transforms the input prompts for processing based on the destination shape.
 
         Args:
             dst_shape (tuple): The target shape (height, width) for the prompts.
-            bboxes (List | np.ndarray, Optional): Bounding boxes in the format [[x1, y1, x2, y2], ...].
-            points (List | np.ndarray, Optional): Points of interest in the format [[x1, y1], ...].
-            labels (List | np.ndarray, Optional): Labels corresponding to the points.
+            bboxes (np.ndarray | List | None): Bounding boxes in XYXY format with shape (N, 4).
+            points (np.ndarray | List | None): Points indicating object locations with shape (N, 2) or (N, num_points, 2), in pixels.
+            labels (np.ndarray | List | None): Point prompt labels with shape (N,) or (N, num_points). 1 for foreground, 0 for background.
             masks (List | np.ndarray, Optional): Masks for the objects, where each mask is a 2D array.
-            merge_point (bool, Optional): Whether to merge points into a single object or treat them independently.
+
+        Raises:
+            AssertionError: If the number of points don't match the number of labels, in case labels were passed.
 
         Returns:
             (tuple): A tuple containing transformed bounding boxes, points, labels, and masks.
         """
-        bboxes, points, labels, masks = super()._prepare_prompts(dst_shape, bboxes, points, labels, masks, merge_point)
+        bboxes, points, labels, masks = super()._prepare_prompts(dst_shape, bboxes, points, labels, masks)
         if bboxes is not None:
             bboxes = bboxes.view(-1, 2, 2)
             bbox_labels = torch.tensor([[2, 3]], dtype=torch.int32, device=bboxes.device).expand(len(bboxes), -1)
@@ -760,7 +766,7 @@ class SAM2Predictor(Predictor):
                 labels = torch.cat([bbox_labels, labels], dim=1)
             else:
                 points, labels = bboxes, bbox_labels
-        return points, labels, masks
+        return bboxes, points, labels, masks
 
     def set_image(self, image):
         """

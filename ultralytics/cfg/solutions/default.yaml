@@ -1,0 +1,19 @@
+# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Configuration for Ultralytics Solutions
+
+# Object counting settings
+region: # Object counting, queue or speed estimation region points. Default region points are [(20, 400), (1080, 404), (1080, 360), (20, 360)]
+show_in: True # Flag to display objects moving *into* the defined region
+show_out: True # Flag to display objects moving *out of* the defined region
+
+# Heatmaps settings
+colormap: # Colormap for heatmap, Only OPENCV supported colormaps can be used. By default COLORMAP_PARULA will be used for visualization.
+
+# Workouts monitoring settings
+up_angle: 145.0 # Workouts up_angle for counts, 145.0 is default value. You can adjust it for different workouts, based on position of keypoints.
+down_angle: 90 # Workouts down_angle for counts, 90 is default value. You can change it for different workouts, based on position of keypoints.
+kpts: [6, 8, 10] # Keypoints for workouts monitoring, i.e. If you want to consider keypoints for pushups that have mostly values of [6, 8, 10].
+
+# Analytics settings
+analytics_type: "line" # Analytics type i.e "line", "pie", "bar" or "area" charts. By default, "line" analytics will be used for processing.
+json_file: # parking system regions file path.

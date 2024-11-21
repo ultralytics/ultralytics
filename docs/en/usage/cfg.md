@@ -14,7 +14,7 @@ YOLO settings and hyperparameters play a critical role in the model's performanc
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Mastering Ultralytics YOLOv8: Configuration
+  <strong>Watch:</strong> Mastering Ultralytics YOLO: Configuration
 </p>
 
 Ultralytics commands use the following syntax:
@@ -32,8 +32,8 @@ Ultralytics commands use the following syntax:
         ```python
         from ultralytics import YOLO
 
-        # Load a YOLOv8 model from a pre-trained weights file
-        model = YOLO("yolov8n.pt")
+        # Load a YOLO11 model from a pre-trained weights file
+        model = YOLO("yolo11n.pt")
 
         # Run MODE mode using the custom arguments ARGS (guess TASK)
         model.MODE(ARGS)
@@ -41,8 +41,8 @@ Ultralytics commands use the following syntax:
 
 Where:
 
-- `TASK` (optional) is one of ([detect](../tasks/detect.md), [segment](../tasks/segment.md), [classify](../tasks/classify.md), [pose](../tasks/pose.md))
-- `MODE` (required) is one of ([train](../modes/train.md), [val](../modes/val.md), [predict](../modes/predict.md), [export](../modes/export.md), [track](../modes/track.md))
+- `TASK` (optional) is one of ([detect](../tasks/detect.md), [segment](../tasks/segment.md), [classify](../tasks/classify.md), [pose](../tasks/pose.md), [obb](../tasks/obb.md))
+- `MODE` (required) is one of ([train](../modes/train.md), [val](../modes/val.md), [predict](../modes/predict.md), [export](../modes/export.md), [track](../modes/track.md), [benchmark](../modes/benchmark.md))
 - `ARGS` (optional) are `arg=value` pairs like `imgsz=640` that override defaults.
 
 Default `ARG` values are defined on this page from the `cfg/defaults.yaml` [file](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/default.yaml).
@@ -59,7 +59,7 @@ YOLO models can be used for a variety of tasks, including detection, segmentatio
 
 | Argument | Default    | Description                                                                                                                                                                                                                                                                                                                                                                  |
 | -------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `task`   | `'detect'` | Specifies the YOLO task to be executed. Options include `detect` for [object detection](https://www.ultralytics.com/glossary/object-detection), `segment` for segmentation, `classify` for classification, `pose` for pose estimation and `OBB` for oriented bounding boxes. Each task is tailored to specific types of output and problems within image and video analysis. |
+| `task`   | `'detect'` | Specifies the YOLO task to be executed. Options include `detect` for [object detection](https://www.ultralytics.com/glossary/object-detection), `segment` for segmentation, `classify` for classification, `pose` for pose estimation and `obb` for oriented bounding boxes. Each task is tailored to specific types of output and problems within image and video analysis. |
 
 [Tasks Guide](../tasks/index.md){ .md-button }
 
@@ -67,12 +67,12 @@ YOLO models can be used for a variety of tasks, including detection, segmentatio
 
 YOLO models can be used in different modes depending on the specific problem you are trying to solve. These modes include:
 
-- **Train**: For training a YOLOv8 model on a custom dataset.
-- **Val**: For validating a YOLOv8 model after it has been trained.
-- **Predict**: For making predictions using a trained YOLOv8 model on new images or videos.
-- **Export**: For exporting a YOLOv8 model to a format that can be used for deployment.
-- **Track**: For tracking objects in real-time using a YOLOv8 model.
-- **Benchmark**: For benchmarking YOLOv8 exports (ONNX, TensorRT, etc.) speed and accuracy.
+- **Train**: For training a YOLO11 model on a custom dataset.
+- **Val**: For validating a YOLO11 model after it has been trained.
+- **Predict**: For making predictions using a trained YOLO11 model on new images or videos.
+- **Export**: For exporting a YOLO11 model to a format that can be used for deployment.
+- **Track**: For tracking objects in real-time using a YOLO11 model.
+- **Benchmark**: For benchmarking YOLO11 exports (ONNX, TensorRT, etc.) speed and accuracy.
 
 | Argument | Default   | Description                                                                                                                                                                                                                                                                                                                                                                                   |
 | -------- | --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

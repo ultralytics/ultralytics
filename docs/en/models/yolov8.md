@@ -4,7 +4,7 @@ description: Discover YOLOv8, the latest advancement in real-time object detecti
 keywords: YOLOv8, real-time object detection, YOLO series, Ultralytics, computer vision, advanced object detection, AI, machine learning, deep learning
 ---
 
-# YOLOv8
+# Ultralytics YOLOv8
 
 ## Overview
 
@@ -164,6 +164,10 @@ Note the below example is for YOLOv8 [Detect](../tasks/detect.md) models for obj
         ```
 
 ## Citations and Acknowledgements
+
+!!! tip "Ultralytics YOLOv8 Publication"
+
+    Ultralytics has not published a formal research paper for YOLOv8 due to the rapidly evolving nature of the models. We focus on advancing the technology and making it easier to use, rather than producing static documentation. For the most up-to-date information on YOLO architecture, features, and usage, please refer to our [GitHub repository](https://github.com/ultralytics/ultralytics) and [documentation](https://docs.ultralytics.com/).
 
 If you use the YOLOv8 model or any other software from this repository in your work, please cite it using the following format:
 

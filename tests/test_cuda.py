@@ -10,12 +10,20 @@ from tests import CUDA_DEVICE_COUNT, CUDA_IS_AVAILABLE, MODEL, SOURCE
 from ultralytics import YOLO
 from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
 from ultralytics.utils import ASSETS, WEIGHTS_DIR
+from ultralytics.utils.checks import check_amp
 
 
 def test_checks():
     """Validate CUDA settings against torch CUDA functions."""
     assert torch.cuda.is_available() == CUDA_IS_AVAILABLE
     assert torch.cuda.device_count() == CUDA_DEVICE_COUNT
+
+
+@pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason="CUDA is not available")
+def test_amp():
+    """Test AMP training checks."""
+    model = YOLO("yolo11n.pt").model.cuda()
+    assert check_amp(model)
 
 
 @pytest.mark.slow
@@ -60,7 +68,7 @@ def test_train():
 @pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason="CUDA is not available")
 def test_predict_multiple_devices():
     """Validate model prediction consistency across CPU and CUDA devices."""
-    model = YOLO("yolov8n.pt")
+    model = YOLO("yolo11n.pt")
     model = model.cpu()
     assert str(model.device) == "cpu"
     _ = model(SOURCE)  # CPU inference
@@ -108,7 +116,7 @@ def test_predict_sam():
     from ultralytics.models.sam import Predictor as SAMPredictor
 
     # Load a model
-    model = SAM(WEIGHTS_DIR / "sam_b.pt")
+    model = SAM(WEIGHTS_DIR / "sam2.1_b.pt")
 
     # Display model information (optional)
     model.info()
@@ -119,8 +127,20 @@ def test_predict_sam():
     # Run inference with bboxes prompt
     model(SOURCE, bboxes=[439, 437, 524, 709], device=0)
 
-    # Run inference with points prompt
+    # Run inference with no labels
+    model(ASSETS / "zidane.jpg", points=[900, 370], device=0)
+
+    # Run inference with 1D points and 1D labels
     model(ASSETS / "zidane.jpg", points=[900, 370], labels=[1], device=0)
+
+    # Run inference with 2D points and 1D labels
+    model(ASSETS / "zidane.jpg", points=[[900, 370]], labels=[1], device=0)
+
+    # Run inference with multiple 2D points and 1D labels
+    model(ASSETS / "zidane.jpg", points=[[400, 370], [900, 370]], labels=[1, 1], device=0)
+
+    # Run inference with 3D points and 2D labels (multiple points per object)
+    model(ASSETS / "zidane.jpg", points=[[[900, 370], [1000, 100]]], labels=[[1, 1]], device=0)
 
     # Create SAMPredictor
     overrides = dict(conf=0.25, task="segment", mode="predict", imgsz=1024, model=WEIGHTS_DIR / "mobile_sam.pt")

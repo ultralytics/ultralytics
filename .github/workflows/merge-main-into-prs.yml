@@ -33,7 +33,7 @@ jobs:
           import os
           import time
 
-          g = Github("${{ secrets.PERSONAL_ACCESS_TOKEN }}")
+          g = Github("${{ secrets._GITHUB_TOKEN }}")
           repo = g.get_repo("${{ github.repository }}")
 
           # Fetch the default branch name
@@ -85,4 +85,3 @@ jobs:
           print(f"Branches updated: {updated_branches}")
           print(f"Branches already up-to-date: {up_to_date_branches}")
           print(f"Total errors: {errors}")
-

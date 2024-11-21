@@ -22,7 +22,6 @@ document.addEventListener('DOMContentLoaded', () => {
   checkTheme();
 });
 
-
 // Inkeep --------------------------------------------------------------------------------------------------------------
 document.addEventListener("DOMContentLoaded", () => {
   const enableSearchBar = true;

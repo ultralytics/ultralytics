@@ -1,39 +1,25 @@
-// Light/Dark Mode -----------------------------------------------------------------------------------------------------
-const applyTheme = (isDark) => {
-  document.body.setAttribute(
-    "data-md-color-scheme",
-    isDark ? "slate" : "default",
-  );
-  document.body.setAttribute(
-    "data-md-color-primary",
-    isDark ? "black" : "indigo",
-  );
+// Apply theme colors based on dark/light mode -------------------------------------------------------------------------
+  document.body.setAttribute('data-md-color-scheme', isDark ? 'slate' : 'default');
+  document.body.setAttribute('data-md-color-primary', isDark ? 'black' : 'indigo');
 };
 
-// Check and apply auto theme
-const checkAutoTheme = () => {
-  const palette = JSON.parse(localStorage.getItem(".__palette") || "{}");
-
-  if (palette.index === 0) {
-    applyTheme(window.matchMedia("(prefers-color-scheme: dark)").matches);
+// Check and apply appropriate theme based on system/user preference
+const checkTheme = () => {
+  const palette = JSON.parse(localStorage.getItem('.__palette') || '{}');
+  if (palette.index === 0) {  // Auto mode is selected
+    applyTheme(window.matchMedia('(prefers-color-scheme: dark)').matches);
   }
 };
 
-// Event listeners for theme changes
-const mediaQueryList = window.matchMedia("(prefers-color-scheme: dark)");
-mediaQueryList.addListener(checkAutoTheme);
+// Watch for system theme changes
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', checkTheme);
 
-// Initial theme check
-checkAutoTheme();
-
-// Auto theme input listener
-document.addEventListener("DOMContentLoaded", () => {
-  const autoThemeInput = document.getElementById("__palette_1");
-  autoThemeInput?.addEventListener("click", () => {
-    if (autoThemeInput.checked) {
-      setTimeout(checkAutoTheme);
-    }
-  });
+// Initialize theme handling on page load
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('__palette_1')?.addEventListener('change', e =>
+    e.target.checked && setTimeout(checkTheme)
+  );
+  checkTheme();
 });
 
 // Inkeep --------------------------------------------------------------------------------------------------------------

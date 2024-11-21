@@ -112,15 +112,15 @@ To enable `libmamba` as the solver for Conda, you can perform the following step
 
 1. First, install the `conda-libmamba-solver` package. This can be skipped if your Conda version is 4.11 or above, as `libmamba` is included by default.
 
-    ```bash
-    conda install conda-libmamba-solver
-    ```
+   ```bash
+   conda install conda-libmamba-solver
+   ```
 
 2. Next, configure Conda to use `libmamba` as the solver:
 
-    ```bash
-    conda config --set solver libmamba
-    ```
+   ```bash
+   conda config --set solver libmamba
+   ```
 
 And that's it! Your Conda installation will now use `libmamba` as the solver, which should result in a faster package installation process.
 

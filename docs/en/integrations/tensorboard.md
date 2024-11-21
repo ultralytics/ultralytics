@@ -116,15 +116,15 @@ Scalars in the TensorBoard are crucial for plotting and analyzing simple metrics
 
 - **Metrics Tags**: Scalars include performance indicators such as:
 
-    - `mAP50 (B)`: Mean Average [Precision](https://www.ultralytics.com/glossary/precision) at 50% [Intersection over Union](https://www.ultralytics.com/glossary/intersection-over-union-iou) (IoU), crucial for assessing object detection accuracy.
+  - `mAP50 (B)`: Mean Average [Precision](https://www.ultralytics.com/glossary/precision) at 50% [Intersection over Union](https://www.ultralytics.com/glossary/intersection-over-union-iou) (IoU), crucial for assessing object detection accuracy.
 
-    - `mAP50-95 (B)`: [Mean Average Precision](https://www.ultralytics.com/glossary/mean-average-precision-map) calculated over a range of IoU thresholds, offering a more comprehensive evaluation of accuracy.
+  - `mAP50-95 (B)`: [Mean Average Precision](https://www.ultralytics.com/glossary/mean-average-precision-map) calculated over a range of IoU thresholds, offering a more comprehensive evaluation of accuracy.
 
-    - `Precision (B)`: Indicates the ratio of correctly predicted positive observations, key to understanding prediction [accuracy](https://www.ultralytics.com/glossary/accuracy).
+  - `Precision (B)`: Indicates the ratio of correctly predicted positive observations, key to understanding prediction [accuracy](https://www.ultralytics.com/glossary/accuracy).
 
-    - `Recall (B)`: Important for models where missing a detection is significant, this metric measures the ability to detect all relevant instances.
+  - `Recall (B)`: Important for models where missing a detection is significant, this metric measures the ability to detect all relevant instances.
 
-    - To learn more about the different metrics, read our guide on [performance metrics](../guides/yolo-performance-metrics.md).
+  - To learn more about the different metrics, read our guide on [performance metrics](../guides/yolo-performance-metrics.md).
 
 - **Training and Validation Tags (`train`, `val`)**: These tags display metrics specifically for the training and validation datasets, allowing for a comparative analysis of model performance across different data sets.
 

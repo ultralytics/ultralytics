@@ -316,30 +316,30 @@ To isolate objects using Ultralytics YOLO11, follow these steps:
 
 1. **Load the model and run inference:**
 
-    ```python
-    from ultralytics import YOLO
+   ```python
+   from ultralytics import YOLO
 
-    model = YOLO("yolo11n-seg.pt")
-    results = model.predict(source="path/to/your/image.jpg")
-    ```
+   model = YOLO("yolo11n-seg.pt")
+   results = model.predict(source="path/to/your/image.jpg")
+   ```
 
 2. **Generate a binary mask and draw contours:**
 
-    ```python
-    import cv2
-    import numpy as np
+   ```python
+   import cv2
+   import numpy as np
 
-    img = np.copy(results[0].orig_img)
-    b_mask = np.zeros(img.shape[:2], np.uint8)
-    contour = results[0].masks.xy[0].astype(np.int32).reshape(-1, 1, 2)
-    cv2.drawContours(b_mask, [contour], -1, (255, 255, 255), cv2.FILLED)
-    ```
+   img = np.copy(results[0].orig_img)
+   b_mask = np.zeros(img.shape[:2], np.uint8)
+   contour = results[0].masks.xy[0].astype(np.int32).reshape(-1, 1, 2)
+   cv2.drawContours(b_mask, [contour], -1, (255, 255, 255), cv2.FILLED)
+   ```
 
 3. **Isolate the object using the binary mask:**
-    ```python
-    mask3ch = cv2.cvtColor(b_mask, cv2.COLOR_GRAY2BGR)
-    isolated = cv2.bitwise_and(mask3ch, img)
-    ```
+   ```python
+   mask3ch = cv2.cvtColor(b_mask, cv2.COLOR_GRAY2BGR)
+   isolated = cv2.bitwise_and(mask3ch, img)
+   ```
 
 Refer to the guide on [Predict Mode](../modes/predict.md) and the [Segment Task](../tasks/segment.md) for more information.
 
@@ -349,15 +349,15 @@ Ultralytics YOLO11 offers two main options for saving isolated objects:
 
 1. **With a Black Background:**
 
-    ```python
-    mask3ch = cv2.cvtColor(b_mask, cv2.COLOR_GRAY2BGR)
-    isolated = cv2.bitwise_and(mask3ch, img)
-    ```
+   ```python
+   mask3ch = cv2.cvtColor(b_mask, cv2.COLOR_GRAY2BGR)
+   isolated = cv2.bitwise_and(mask3ch, img)
+   ```
 
 2. **With a Transparent Background:**
-    ```python
-    isolated = np.dstack([img, b_mask])
-    ```
+   ```python
+   isolated = np.dstack([img, b_mask])
+   ```
 
 For further details, visit the [Predict Mode](../modes/predict.md) section.
 
@@ -367,14 +367,14 @@ To crop isolated objects to their bounding boxes:
 
 1. **Retrieve bounding box coordinates:**
 
-    ```python
-    x1, y1, x2, y2 = results[0].boxes.xyxy[0].cpu().numpy().astype(np.int32)
-    ```
+   ```python
+   x1, y1, x2, y2 = results[0].boxes.xyxy[0].cpu().numpy().astype(np.int32)
+   ```
 
 2. **Crop the isolated image:**
-    ```python
-    iso_crop = isolated[y1:y2, x1:x2]
-    ```
+   ```python
+   iso_crop = isolated[y1:y2, x1:x2]
+   ```
 
 Learn more about bounding box results in the [Predict Mode](../modes/predict.md#boxes) documentation.
 

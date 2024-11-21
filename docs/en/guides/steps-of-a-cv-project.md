@@ -49,14 +49,14 @@ Here are some examples of project objectives and the computer vision tasks that 
 
 - **Objective:** To develop a system that can monitor and manage the flow of different vehicle types on highways, improving traffic management and safety.
 
-    - **Computer Vision Task:** Object detection is ideal for traffic monitoring because it efficiently locates and identifies multiple vehicles. It is less computationally demanding than image segmentation, which provides unnecessary detail for this task, ensuring faster, real-time analysis.
+  - **Computer Vision Task:** Object detection is ideal for traffic monitoring because it efficiently locates and identifies multiple vehicles. It is less computationally demanding than image segmentation, which provides unnecessary detail for this task, ensuring faster, real-time analysis.
 
 - **Objective:** To develop a tool that assists radiologists by providing precise, pixel-level outlines of tumors in medical imaging scans.
 
-    - **Computer Vision Task:** Image segmentation is suitable for medical imaging because it provides accurate and detailed boundaries of tumors that are crucial for assessing size, shape, and treatment planning.
+  - **Computer Vision Task:** Image segmentation is suitable for medical imaging because it provides accurate and detailed boundaries of tumors that are crucial for assessing size, shape, and treatment planning.
 
 - **Objective:** To create a digital system that categorizes various documents (e.g., invoices, receipts, legal paperwork) to improve organizational efficiency and document retrieval.
-    - **Computer Vision Task:** [Image classification](https://www.ultralytics.com/glossary/image-classification) is ideal here as it handles one document at a time, without needing to consider the document's position in the image. This approach simplifies and accelerates the sorting process.
+  - **Computer Vision Task:** [Image classification](https://www.ultralytics.com/glossary/image-classification) is ideal here as it handles one document at a time, without needing to consider the document's position in the image. This approach simplifies and accelerates the sorting process.
 
 ### Step 1.5: Selecting the Right Model and Training Approach
 

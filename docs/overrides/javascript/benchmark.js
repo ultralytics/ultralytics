@@ -1,4 +1,4 @@
-// This object contains the benchmark data for various object detection models.
+// YOLO models chart ---------------------------------------------------------------------------------------------------
 const data = {
   YOLO11: {
     n: { speed: 1.55, mAP: 39.5 },

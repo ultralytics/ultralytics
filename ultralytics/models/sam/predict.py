@@ -1445,6 +1445,14 @@ class SAM2VideoPredictor(SAM2Predictor):
                 dtype=torch.float32,
                 device=self.device,
             ),
+            "object_score_logits": torch.full(
+                size=(batch_size, 1),
+                # default to 10.0 for object_score_logits, i.e. assuming the object is
+                # present as sigmoid(10)=1, same as in `predict_masks` of `MaskDecoder`
+                fill_value=10.0,
+                dtype=torch.float32,
+                device=self.device,
+            ),
         }
         for obj_idx in range(batch_size):
             obj_temp_output_dict = self.inference_state["temp_output_dict_per_obj"][obj_idx]
@@ -1488,6 +1496,7 @@ class SAM2VideoPredictor(SAM2Predictor):
                 batch_size=batch_size,
                 high_res_masks=high_res_masks,
                 is_mask_from_pts=True,  # these frames are what the user interacted with
+                object_score_logits=consolidated_out["object_score_logits"],
             )
 
         return consolidated_out
@@ -1523,7 +1532,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         )
         return current_out["obj_ptr"]
 
-    def _run_memory_encoder(self, batch_size, high_res_masks, is_mask_from_pts):
+    def _run_memory_encoder(self, batch_size, high_res_masks, object_score_logits, is_mask_from_pts):
         """
         Run the memory encoder on masks.
 
@@ -1533,6 +1542,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         Args:
             batch_size (int): The batch size for processing the frame.
             high_res_masks (torch.Tensor): High-resolution masks for which to compute the memory.
+            object_score_logits (torch.Tensor): Logits representing the object scores.
             is_mask_from_pts (bool): Indicates if the mask is derived from point interactions.
 
         Returns:
@@ -1545,6 +1555,7 @@ class SAM2VideoPredictor(SAM2Predictor):
             feat_sizes=feat_sizes,
             pred_masks_high_res=high_res_masks,
             is_mask_from_pts=is_mask_from_pts,
+            object_score_logits=object_score_logits,
         )
 
         # "maskmem_pos_enc" is the same across frames, so we only need to store one copy of it

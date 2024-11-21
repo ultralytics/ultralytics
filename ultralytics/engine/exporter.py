@@ -79,7 +79,6 @@ from ultralytics.utils import (
     ARM64,
     DEFAULT_CFG,
     IS_JETSON,
-    IS_RASPBERRYPI,
     LINUX,
     LOGGER,
     MACOS,
@@ -265,8 +264,6 @@ class Exporter:
                 "WARNING ⚠️ INT8 export requires a missing 'data' arg for calibration. "
                 f"Using default 'data={self.args.data}'."
             )
-        if mnn and (IS_RASPBERRYPI or IS_JETSON):
-            raise SystemError("MNN export not supported on Raspberry Pi and NVIDIA Jetson")
 
         # Input
         im = torch.zeros(self.args.batch, 3, *self.imgsz).to(self.device)

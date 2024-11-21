@@ -106,15 +106,15 @@ Follow these steps to run object counting in Ultralytics YOLOv8:
 
 1. Clone the Ultralytics repository and navigate to the directory:
 
-   ```bash
-   git clone https://github.com/ultralytics/ultralytics
-   cd ultralytics/examples/YOLOv8-Region-Counter
-   ```
+    ```bash
+    git clone https://github.com/ultralytics/ultralytics
+    cd ultralytics/examples/YOLOv8-Region-Counter
+    ```
 
 2. Execute the region counting script:
-   ```bash
-   python yolov8_region_counter.py --source "path/to/video.mp4" --save-img
-   ```
+    ```bash
+    python yolov8_region_counter.py --source "path/to/video.mp4" --save-img
+    ```
 
 For more options, visit the [Run Region Counting](https://github.com/ultralytics/ultralytics/blob/main/examples/YOLOv8-Region-Counter/readme.md) section.
 

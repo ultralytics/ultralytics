@@ -36,12 +36,12 @@ Throughput optimization is crucial for scenarios serving numerous inference requ
 
 1. **OpenVINO Performance Hints:** A high-level, future-proof method to enhance throughput across devices using performance hints.
 
-   ```python
-   import openvino.properties.hint as hints
+    ```python
+    import openvino.properties.hint as hints
 
-   config = {hints.performance_mode: hints.PerformanceMode.THROUGHPUT}
-   compiled_model = core.compile_model(model, "GPU", config)
-   ```
+    config = {hints.performance_mode: hints.PerformanceMode.THROUGHPUT}
+    compiled_model = core.compile_model(model, "GPU", config)
+    ```
 
 2. **Explicit Batching and Streams:** A more granular approach involving explicit batching and the use of streams for advanced performance tuning.
 

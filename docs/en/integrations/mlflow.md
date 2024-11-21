@@ -66,33 +66,33 @@ Make sure that MLflow logging is enabled in Ultralytics settings. Usually, this 
 
 1. **Set a Project Name**: You can set the project name via an environment variable:
 
-   ```bash
-   export MLFLOW_EXPERIMENT_NAME=<your_experiment_name>
-   ```
+    ```bash
+    export MLFLOW_EXPERIMENT_NAME=<your_experiment_name>
+    ```
 
-   Or use the `project=<project>` argument when training a YOLO model, i.e. `yolo train project=my_project`.
+    Or use the `project=<project>` argument when training a YOLO model, i.e. `yolo train project=my_project`.
 
 2. **Set a Run Name**: Similar to setting a project name, you can set the run name via an environment variable:
 
-   ```bash
-   export MLFLOW_RUN=<your_run_name>
-   ```
+    ```bash
+    export MLFLOW_RUN=<your_run_name>
+    ```
 
-   Or use the `name=<name>` argument when training a YOLO model, i.e. `yolo train project=my_project name=my_name`.
+    Or use the `name=<name>` argument when training a YOLO model, i.e. `yolo train project=my_project name=my_name`.
 
 3. **Start Local MLflow Server**: To start tracking, use:
 
-   ```bash
-   mlflow server --backend-store-uri runs/mlflow'
-   ```
+    ```bash
+    mlflow server --backend-store-uri runs/mlflow'
+    ```
 
-   This will start a local server at http://127.0.0.1:5000 by default and save all mlflow logs to the 'runs/mlflow' directory. To specify a different URI, set the `MLFLOW_TRACKING_URI` environment variable.
+    This will start a local server at http://127.0.0.1:5000 by default and save all mlflow logs to the 'runs/mlflow' directory. To specify a different URI, set the `MLFLOW_TRACKING_URI` environment variable.
 
 4. **Kill MLflow Server Instances**: To stop all running MLflow instances, run:
 
-   ```bash
-   ps aux | grep 'mlflow' | grep -v 'grep' | awk '{print $2}' | xargs kill -9
-   ```
+    ```bash
+    ps aux | grep 'mlflow' | grep -v 'grep' | awk '{print $2}' | xargs kill -9
+    ```
 
 ### Logging
 

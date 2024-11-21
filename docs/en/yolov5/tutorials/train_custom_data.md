@@ -88,13 +88,13 @@ test: # test images (optional)
 
 # Classes (80 COCO classes)
 names:
-  0: person
-  1: bicycle
-  2: car
-  # ...
-  77: teddy bear
-  78: hair drier
-  79: toothbrush
+    0: person
+    1: bicycle
+    2: car
+    # ...
+    77: teddy bear
+    78: hair drier
+    79: toothbrush
 ```
 
 ### 2.2 Create Labels
@@ -231,16 +231,16 @@ Training YOLOv5 on a custom dataset involves several steps:
 
 1. **Prepare Your Dataset**: Collect and label images. Use tools like [Roboflow](https://roboflow.com/?ref=ultralytics) to organize data and export in [YOLOv5 format](https://roboflow.com/formats/yolov5-pytorch-txt?ref=ultralytics).
 2. **Setup Environment**: Clone the YOLOv5 repo and install dependencies:
-   ```bash
-   git clone https://github.com/ultralytics/yolov5
-   cd yolov5
-   pip install -r requirements.txt
-   ```
+    ```bash
+    git clone https://github.com/ultralytics/yolov5
+    cd yolov5
+    pip install -r requirements.txt
+    ```
 3. **Create Dataset Configuration**: Write a `dataset.yaml` file defining train/val paths and class names.
 4. **Train the Model**:
-   ```bash
-   python train.py --img 640 --epochs 3 --data dataset.yaml --weights yolov5s.pt
-   ```
+    ```bash
+    python train.py --img 640 --epochs 3 --data dataset.yaml --weights yolov5s.pt
+    ```
 
 ### What tools can I use to annotate my YOLOv5 dataset?
 

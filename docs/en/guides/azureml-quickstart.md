@@ -161,17 +161,17 @@ Running YOLO11 on AzureML for model training involves several steps:
 
 2. **Setup Environment**: Start your compute instance, open a terminal, and create a conda environment:
 
-   ```bash
-   conda create --name yolo11env -y
-   conda activate yolo11env
-   conda install pip -y
-   pip install ultralytics onnx>=1.12.0
-   ```
+    ```bash
+    conda create --name yolo11env -y
+    conda activate yolo11env
+    conda install pip -y
+    pip install ultralytics onnx>=1.12.0
+    ```
 
 3. **Run YOLO11 Tasks**: Use the Ultralytics CLI to train your model:
-   ```bash
-   yolo train data=coco8.yaml model=yolo11n.pt epochs=10 lr0=0.01
-   ```
+    ```bash
+    yolo train data=coco8.yaml model=yolo11n.pt epochs=10 lr0=0.01
+    ```
 
 For more details, you can refer to the [instructions to use the Ultralytics CLI](../quickstart.md#use-ultralytics-with-cli).
 
@@ -201,18 +201,18 @@ Yes, AzureML allows you to use both the Ultralytics CLI and the Python interface
 
 - **CLI**: Ideal for quick tasks and running standard scripts directly from the terminal.
 
-  ```bash
-  yolo predict model=yolo11n.pt source='https://ultralytics.com/images/bus.jpg'
-  ```
+    ```bash
+    yolo predict model=yolo11n.pt source='https://ultralytics.com/images/bus.jpg'
+    ```
 
 - **Python Interface**: Useful for more complex tasks requiring custom coding and integration within notebooks.
 
-  ```python
-  from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-  model = YOLO("yolo11n.pt")
-  model.train(data="coco8.yaml", epochs=3)
-  ```
+    model = YOLO("yolo11n.pt")
+    model.train(data="coco8.yaml", epochs=3)
+    ```
 
 Refer to the quickstart guides for more detailed instructions [here](../quickstart.md#use-ultralytics-with-cli) and [here](../quickstart.md#use-ultralytics-with-python).
 

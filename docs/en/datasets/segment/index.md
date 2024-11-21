@@ -15,8 +15,8 @@ The dataset label format used for training YOLO segmentation models is as follow
 1. One text file per image: Each image in the dataset has a corresponding text file with the same name as the image file and the ".txt" extension.
 2. One row per object: Each row in the text file corresponds to one object instance in the image.
 3. Object information per row: Each row contains the following information about the object instance:
-   - Object class index: An integer representing the class of the object (e.g., 0 for person, 1 for car, etc.).
-   - Object bounding coordinates: The bounding coordinates around the mask area, normalized to be between 0 and 1.
+    - Object class index: An integer representing the class of the object (e.g., 0 for person, 1 for car, etc.).
+    - Object bounding coordinates: The bounding coordinates around the mask area, normalized to be between 0 and 1.
 
 The format for a single row in the segmentation dataset file is as follows:
 
@@ -51,13 +51,13 @@ test: # test images (optional)
 
 # Classes (80 COCO classes)
 names:
-  0: person
-  1: bicycle
-  2: car
-  # ...
-  77: teddy bear
-  78: hair drier
-  79: toothbrush
+    0: person
+    1: bicycle
+    2: car
+    # ...
+    77: teddy bear
+    78: hair drier
+    79: toothbrush
 ```
 
 The `train` and `val` fields specify the paths to the directories containing the training and validation images, respectively.
@@ -180,10 +180,10 @@ train: images/train # train images (relative to 'path')
 val: images/val # val images (relative to 'path')
 
 names:
-  0: person
-  1: bicycle
-  2: car
-  # ...
+    0: person
+    1: bicycle
+    2: car
+    # ...
 ```
 
 Ensure you update the paths and class names according to your dataset. For more information, check the [Dataset YAML Format](#dataset-yaml-format) section.

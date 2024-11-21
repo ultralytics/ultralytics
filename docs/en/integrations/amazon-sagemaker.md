@@ -178,23 +178,23 @@ To deploy the Ultralytics YOLO11 model on Amazon SageMaker Endpoints, follow the
 
 1. **Set Up Your AWS Environment**: Ensure you have an AWS Account, IAM roles with necessary permissions, and the AWS CLI configured. Install AWS CDK if not already done (refer to the [AWS CDK instructions](https://docs.aws.amazon.com/cdk/v2/guide/getting_started.html#getting_started_install)).
 2. **Clone the YOLO11 SageMaker Repository**:
-   ```bash
-   git clone https://github.com/aws-samples/host-yolov8-on-sagemaker-endpoint.git
-   cd host-yolov8-on-sagemaker-endpoint/yolov8-pytorch-cdk
-   ```
+    ```bash
+    git clone https://github.com/aws-samples/host-yolov8-on-sagemaker-endpoint.git
+    cd host-yolov8-on-sagemaker-endpoint/yolov8-pytorch-cdk
+    ```
 3. **Set Up the CDK Environment**: Create a Python virtual environment, activate it, install dependencies, and upgrade AWS CDK library.
-   ```bash
-   python3 -m venv .venv
-   source .venv/bin/activate
-   pip3 install -r requirements.txt
-   pip install --upgrade aws-cdk-lib
-   ```
+    ```bash
+    python3 -m venv .venv
+    source .venv/bin/activate
+    pip3 install -r requirements.txt
+    pip install --upgrade aws-cdk-lib
+    ```
 4. **Deploy using AWS CDK**: Synthesize and deploy the CloudFormation stack, bootstrap the environment.
-   ```bash
-   cdk synth
-   cdk bootstrap
-   cdk deploy
-   ```
+    ```bash
+    cdk synth
+    cdk bootstrap
+    cdk deploy
+    ```
 
 For further details, review the [documentation section](#step-5-deploy-the-yolo-model).
 
@@ -227,19 +227,19 @@ Yes, you can customize the inference logic for YOLO11 on Amazon SageMaker:
 
 1. **Modify `inference.py`**: Locate and customize the `output_fn` function in the `inference.py` file to tailor output formats.
 
-   ```python
-   import json
+    ```python
+    import json
 
 
-   def output_fn(prediction_output):
-       """Formats model outputs as JSON string, extracting attributes like boxes, masks, keypoints."""
-       infer = {}
-       for result in prediction_output:
-           if result.boxes is not None:
-               infer["boxes"] = result.boxes.numpy().data.tolist()
-           # Add more processing logic if necessary
-       return json.dumps(infer)
-   ```
+    def output_fn(prediction_output):
+        """Formats model outputs as JSON string, extracting attributes like boxes, masks, keypoints."""
+        infer = {}
+        for result in prediction_output:
+            if result.boxes is not None:
+                infer["boxes"] = result.boxes.numpy().data.tolist()
+            # Add more processing logic if necessary
+        return json.dumps(infer)
+    ```
 
 2. **Deploy Updated Model**: Ensure you redeploy the model using Jupyter notebooks provided (`1_DeployEndpoint.ipynb`) to include these changes.
 

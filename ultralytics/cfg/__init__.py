@@ -438,6 +438,9 @@ def _handle_deprecation(custom):
         if key == "line_thickness":
             deprecation_warn(key, "line_width")
             custom["line_width"] = custom.pop("line_thickness")
+        if key == "label_smoothing":
+            deprecation_warn(key)
+            custom.pop("label_smoothing")
 
     return custom
 

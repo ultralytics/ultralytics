@@ -1,4 +1,4 @@
-// Light/Dark Mode -----------------------------------------------------------------------------------------------------
+// Apply theme colors based on dark/light mode
 const applyTheme = (isDark) => {
   document.body.setAttribute(
     "data-md-color-scheme",
@@ -10,28 +10,31 @@ const applyTheme = (isDark) => {
   );
 };
 
-// Check and apply auto theme
-const checkAutoTheme = () => {
+// Check and apply appropriate theme based on system/user preference
+const checkTheme = () => {
   const palette = JSON.parse(localStorage.getItem(".__palette") || "{}");
-
   if (palette.index === 0) {
+    // Auto mode is selected
     applyTheme(window.matchMedia("(prefers-color-scheme: dark)").matches);
   }
 };
 
-// Event listeners for theme changes
-const mediaQueryList = window.matchMedia("(prefers-color-scheme: dark)");
-mediaQueryList.addListener(checkAutoTheme);
+// Watch for system theme changes
+window
+  .matchMedia("(prefers-color-scheme: dark)")
+  .addEventListener("change", checkTheme);
 
-// Initial theme check
-checkAutoTheme();
-
-// Auto theme input listener
+// Initialize theme handling on page load
 document.addEventListener("DOMContentLoaded", () => {
-  const autoThemeInput = document.getElementById("__palette_1");
-  autoThemeInput?.addEventListener("click", () => {
-    if (autoThemeInput.checked) setTimeout(checkAutoTheme);
-  });
+  // Watch for theme toggle changes
+  document
+    .getElementById("__palette_1")
+    ?.addEventListener(
+      "change",
+      (e) => e.target.checked && setTimeout(checkTheme),
+    );
+  // Initial theme check
+  checkTheme();
 });
 
 // Inkeep --------------------------------------------------------------------------------------------------------------

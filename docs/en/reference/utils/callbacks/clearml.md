@@ -11,11 +11,11 @@ keywords: Ultralytics, YOLO, ClearML, integration, callbacks, pretraining, train
 
 <br>
 
-## ::: ultralytics.utils.callbacks.clearml._log_debug_samples
+## ::: ultralytics.utils.callbacks.clearml.\_log_debug_samples
 
 <br><br><hr><br>
 
-## ::: ultralytics.utils.callbacks.clearml._log_plot
+## ::: ultralytics.utils.callbacks.clearml.\_log_plot
 
 <br><br><hr><br>
 

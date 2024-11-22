@@ -466,7 +466,7 @@ image_with_obb = ann.result()
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Heatmaps using Ultralytics YOLO11
+  <strong>Watch:</strong> In-Depth Guide to Text & Circle Annotations with Python Live Demos | Ultralytics Annotations 🚀
 </p>
 
 ```python

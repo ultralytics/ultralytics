@@ -10,6 +10,17 @@ keywords: Hand KeyPoints, pose estimation, dataset, keypoints, MediaPipe, YOLO, 
 
 The hand-keypoints dataset contains 26,768 images of hands annotated with keypoints, making it suitable for training models like Ultralytics YOLO for pose estimation tasks. The annotations were generated using the Google MediaPipe library, ensuring high [accuracy](https://www.ultralytics.com/glossary/accuracy) and consistency, and the dataset is compatible [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics) formats.
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/fd6u1TW_AGY"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> Hand Keypoints Estimation with Ultralytics YOLO11 | Human Hand Pose Estimation Tutorial
+</p>
+
 ## Hand Landmarks
 
 ![Hand Landmarks](https://github.com/ultralytics/docs/releases/download/0/hand_landmarks.jpg)

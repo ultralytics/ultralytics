@@ -202,6 +202,15 @@ class BaseTrainer:
                 raise e
             finally:
                 ddp_cleanup(self, str(file))
+                import psutil
+                current_process = psutil.Process()
+                children = current_process.children(recursive=True)
+                for child in children:
+                    try:
+                        child.kill()
+                    except psutil.NoSuchProcess:
+                        pass
+
 
         else:
             self._do_train(world_size)

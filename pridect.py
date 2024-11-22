@@ -1,5 +1,6 @@
-from ultralytics import YOLO
 import os
+
+from ultralytics import YOLO
 
 # 加载训练好的模型
 model = YOLO("runs/detect/train23/weights/best.pt")
@@ -8,7 +9,8 @@ model = YOLO("runs/detect/train23/weights/best.pt")
 image_dir = r"C:\Users\42919\PycharmProjects\yolov11_mask\datasets\mask\mask"
 
 # 获取目录中的所有图片文件
-image_files = [os.path.join(image_dir, f) for f in os.listdir(image_dir) if f.endswith(('.jpg', '.jpeg', '.png'))]
+image_files = [os.path.join(image_dir, f) for f in os.listdir(image_dir) if f.endswith((".jpg", ".jpeg", ".png"))]
+
 
 # 运行测试集评估并保存结果
 def detect_and_save(model, image_files):
@@ -22,6 +24,7 @@ def detect_and_save(model, image_files):
             print(f"标注后的图片和标签文件已保存至: {os.path.dirname(save_dir)}")
         else:
             print(f"图片 {image_path} 没有检测结果保存。")
+
 
 # 直接运行目标检测函数
 detect_and_save(model, image_files)

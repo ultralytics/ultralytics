@@ -1,7 +1,7 @@
-path: ../datasets/face_mask_yolo  # dataset root dir
+path: ../datasets/face_mask_yolo # dataset root dir
 train: train/images # train images (relative to 'path') 1052 images
 val: val/images # val images (relative to 'path') 225 images
 test: test/images # test images (relative to 'path') 227 images
 
 nc: 1
-names: ['mask']
+names: ["mask"]

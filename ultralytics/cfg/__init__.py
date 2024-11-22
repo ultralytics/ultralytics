@@ -189,6 +189,8 @@ CFG_INT_KEYS = {  # integer-only arguments
     "line_width",
     "nbs",
     "save_period",
+    "ch",
+    "mosaic_size"
 }
 CFG_BOOL_KEYS = {  # boolean-only arguments
     "save",

@@ -4,13 +4,21 @@ description: Learn how to evaluate your YOLO11 model's performance in real-world
 keywords: model benchmarking, YOLO11, Ultralytics, performance evaluation, export formats, ONNX, TensorRT, OpenVINO, CoreML, TensorFlow, optimization, mAP50-95, inference time
 ---
 
+<script>
+  const script = document.createElement('script');
+  script.src = "https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js";
+  document.head.appendChild(script);
+
+  const anotherScript = document.createElement('script');
+  anotherScript.src = "../../javascript/benchmark.js";
+  document.head.appendChild(anotherScript);
+</script>
+
 # Model Benchmarking with Ultralytics YOLO
 
 <img width="1024" src="https://github.com/ultralytics/docs/releases/download/0/ultralytics-yolov8-ecosystem-integrations.avif" alt="Ultralytics YOLO ecosystem and integrations">
 
 ## Benchmark Visualization
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
 
 !!! tip "Refresh Browser"
 
@@ -18,16 +26,19 @@ keywords: model benchmarking, YOLO11, Ultralytics, performance evaluation, expor
 
 <div style="display: flex; align-items: flex-start;">
   <div style="margin-right: 20px;">
-    <label><input type="checkbox" name="algorithm" value="YOLO11" checked><span>Ultralytics YOLO11</span></label><br>
-    <label><input type="checkbox" name="algorithm" value="YOLOv6" checked><span>YOLOv6</span></label><br>
-    <label><input type="checkbox" name="algorithm" value="YOLOv7" checked><span>YOLOv7</span></label><br>
+    <label><input type="checkbox" name="algorithm" value="YOLO11" checked><span>YOLO11</span></label><br>
     <label><input type="checkbox" name="algorithm" value="YOLOv10" checked><span>YOLOv10</span></label><br>
     <label><input type="checkbox" name="algorithm" value="YOLOv9" checked><span>YOLOv9</span></label><br>
-    <label><input type="checkbox" name="algorithm" value="YOLOv8" checked><span>Ultralytics YOLOv8</span></label><br>
-    <label><input type="checkbox" name="algorithm" value="PPYOLOE" checked><span>PPYOLOE</span></label><br>
-    <label><input type="checkbox" name="algorithm" value="YOLOv5" checked><span>Ultralytics YOLOv5</span></label>
-  </div>
-  <div style="flex-grow: 1;"><canvas id="chart"></canvas></div> <!-- Canva for plotting benchmarks -->
+    <label><input type="checkbox" name="algorithm" value="YOLOv8" checked><span>YOLOv8</span></label><br>
+    <label><input type="checkbox" name="algorithm" value="YOLOv7" checked><span>YOLOv7</span></label><br>
+    <label><input type="checkbox" name="algorithm" value="YOLOv6-3.0" checked><span>YOLOv6-3.0</span></label><br>
+    <label><input type="checkbox" name="algorithm" value="YOLOv5" checked><span>YOLOv5</span></label><br>
+    <label><input type="checkbox" name="algorithm" value="PP-YOLOE+" checked><span>PP-YOLOE+</span></label><br>
+    <label><input type="checkbox" name="algorithm" value="DAMO-YOLO" checked><span>DAMO-YOLO</span></label><br>
+    <label><input type="checkbox" name="algorithm" value="YOLOX" checked><span>YOLOX</span></label><br>
+    <label><input type="checkbox" name="algorithm" value="RTDETRv2" checked><span>RTDETRv2</span></label>
+</div> 
+  <div style="flex-grow: 1;"><canvas id="chart"></canvas></div>
 </div>
 
 ## Introduction
@@ -102,7 +113,7 @@ Arguments such as `model`, `data`, `imgsz`, `half`, `device`, and `verbose` prov
 | `imgsz`   | `640`         | The input image size for the model. Can be a single integer for square images or a tuple `(width, height)` for non-square, e.g., `(640, 480)`.                                                          |
 | `half`    | `False`       | Enables FP16 (half-precision) inference, reducing memory usage and possibly increasing speed on compatible hardware. Use `half=True` to enable.                                                         |
 | `int8`    | `False`       | Activates INT8 quantization for further optimized performance on supported devices, especially useful for edge devices. Set `int8=True` to use.                                                         |
-| `device`  | `None`        | Defines the computation device(s) for benchmarking, such as `"cpu"`, `"cuda:0"`, or a list of devices like `"cuda:0,1"` for multi-GPU setups.                                                           |
+| `device`  | `None`        | Defines the computation device(s) for benchmarking, such as `"cpu"` or `"cuda:0"`.                                                                                                                      |
 | `verbose` | `False`       | Controls the level of detail in logging output. A boolean value; set `verbose=True` for detailed logs or a float for thresholding errors.                                                               |
 
 ## Export Formats

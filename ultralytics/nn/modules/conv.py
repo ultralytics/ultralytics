@@ -50,7 +50,7 @@ class Conv(nn.Module):
         return self.act(self.bn(self.conv(x)))
 
     def forward_fuse(self, x):
-       """Apply convolution and activation without batch normalization."""
+        """Apply convolution and activation without batch normalization."""
         return self.act(self.conv(x))
 
 

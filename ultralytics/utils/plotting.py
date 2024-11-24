@@ -824,7 +824,8 @@ class Annotator:
                 self.im,
                 (line_x - text_width // 2 - 10, line_y // 2 - text_height // 2 - 10),
                 (line_x + text_width // 2 + 10, line_y // 2 + text_height // 2 + 10),
-                color, -1
+                color,
+                -1,
             )
             cv2.putText(
                 self.im,
@@ -833,7 +834,7 @@ class Annotator:
                 cv2.FONT_HERSHEY_SIMPLEX,
                 self.sf,
                 txt_color,
-                self.tf
+                self.tf,
             )
 
     def plot_distance_and_line(

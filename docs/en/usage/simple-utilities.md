@@ -374,7 +374,6 @@ See docstring for each function or visit the `ultralytics.utils.ops` [reference 
 
 Ultralytics includes an Annotator class that can be used to annotate any kind of data. It's easiest to use with [object detection bounding boxes](../modes/predict.md#boxes), [pose key points](../modes/predict.md#keypoints), and [oriented bounding boxes](../modes/predict.md#obb).
 
-
 #### Ultralytics Sweep Annotation
 
 !!! example "Python Examples using YOLO11 🚀"

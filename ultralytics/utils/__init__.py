@@ -613,7 +613,6 @@ def is_jetson() -> bool:
     Returns:
         (bool): True if running on a Jetson Nano or Jetson Orin, False otherwise.
     """
-    # return "NVIDIA" in PROC_DEVICE_MODEL  # i.e. "NVIDIA Jetson Nano" or "NVIDIA Orin NX"
     return any(keyword in PROC_DEVICE_MODEL.lower() for keyword in ("nvidia", "jetson"))
 
 

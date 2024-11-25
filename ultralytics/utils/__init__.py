@@ -607,8 +607,7 @@ def is_raspberrypi() -> bool:
 
 def is_jetson() -> bool:
     """
-    Determines if the Python environment is running on an NVIDIA Jetson device by checking the device model
-    information.
+    Determines if the Python environment is running on an NVIDIA Jetson device by checking the device model information.
 
     Returns:
         (bool): True if running on an NVIDIA Jetson device, False otherwise.

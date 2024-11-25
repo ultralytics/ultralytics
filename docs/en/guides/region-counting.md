@@ -47,7 +47,7 @@ keywords: object counting, regions, YOLOv8, computer vision, Ultralytics, effici
          w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 
          # Define region points
-         # region_points = [(20, 400), (1080, 404), (1080, 360), (20, 360)] # Pass region as list
+         # region_points = [(20, 400), (1080, 400), (1080, 360), (20, 360)] # Pass region as list
 
          # pass region as dictionary
          region_points = {

@@ -150,8 +150,8 @@ YOLO11 [检测](https://docs.ultralytics.com/tasks/detect/)、[分割](https://d
 | [YOLO11l-seg](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11l-seg.pt) | 640                 | 53.4                 | 42.9                  | 344.2 ± 3.2                   | 7.8 ± 0.2                          | 27.6             | 142.2             |
 | [YOLO11x-seg](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11x-seg.pt) | 640                 | 54.7                 | 43.8                  | 664.5 ± 3.2                   | 15.8 ± 0.7                         | 62.1             | 319.0             |
 
-- **mAP<sup>val</sup>** 值针对单模型单尺度在 [COCO val2017](https://cocodataset.org/) 数据集上进行。 <br>复制命令 `yolo val segment data=coco-seg.yaml device=0`
-- **速度**在使用 [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) 实例的 COCO 验证图像上平均。 <br>复制命令 `yolo val segment data=coco-seg.yaml batch=1 device=0|cpu`
+- **mAP<sup>val</sup>** 值针对单模型单尺度在 [COCO val2017](https://cocodataset.org/) 数据集上进行。 <br>复制命令 `yolo val segment data=coco.yaml device=0`
+- **速度**在使用 [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) 实例的 COCO 验证图像上平均。 <br>复制命令 `yolo val segment data=coco.yaml batch=1 device=0|cpu`
 
 </details>
 

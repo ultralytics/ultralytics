@@ -378,11 +378,7 @@ Ultralytics includes an Annotator class that can be used to annotate any kind of
 
 !!! example "Python Examples using YOLO11 🚀"
 
-    Just set your video path and model file to get started :) great for trying out custom models for inference. 
-    
-    🚀 Also, explore sweeping annotation visuals and per-frame counting in action!"
-
-    === "Detection"
+    === "Python"
    
         ```python
         import cv2
@@ -390,9 +386,9 @@ Ultralytics includes an Annotator class that can be used to annotate any kind of
         from ultralytics import YOLO
         from ultralytics.utils.plotting import Annotator, colors
         
-        # User defined video path and model file.
+        # User defined video path and model file
         cap = cv2.VideoCapture("Path/to/video/file.mp4")
-        model = YOLO(model="yolo11s.pt")
+        model = YOLO(model="yolo11s-seg.pt")  # model file i.e. yolo11s.pt or yolo11m-seg.pt
         
         if not cap.isOpened():
             print("Error: Could not open video.")
@@ -403,9 +399,9 @@ Ultralytics includes an Annotator class that can be used to annotate any kind of
                                                cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
         video_writer = cv2.VideoWriter("ultralytics.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
         
-        f = 0    # Initialize frame count variable for enabling mouse event.
-        line_x = w    # Store width of line.
-        dragging = False   # Initialize bool variable for line dragging.
+        f = 0  # Initialize frame count variable for enabling mouse event.
+        line_x = w  # Store width of line.
+        dragging = False  # Initialize bool variable for line dragging.
         classes = model.names  # Store model classes names for plotting.
         window_name = "Ultralytics Sweep Annotator"
         
@@ -421,101 +417,36 @@ Ultralytics includes an Annotator class that can be used to annotate any kind of
             ret, im0 = cap.read()
             if not ret:
                 break
-            f = f+1  # Increment frame count.
+            f = f + 1  # Increment frame count.
             count = 0  # Re-initialize count variable on every frame for precise counts.
             annotator = Annotator(im0)
             results = model.track(im0, persist=True)  # Track objects using track method.
             if f == 1:
                 cv2.namedWindow(window_name)
                 cv2.setMouseCallback(window_name, drag_line)
+        
+            masks = None
         
             if results[0].boxes.id is not None:
+                if results[0].masks is not None:
+                    masks = results[0].masks.xy
                 track_ids = results[0].boxes.id.int().cpu().tolist()
                 clss = results[0].boxes.cls.cpu().tolist()
                 boxes = results[0].boxes.xyxy.cpu()
         
-                for box, cls, t_id in zip(boxes, clss, track_ids):  # loop over each list object
+                for mask, box, cls, t_id in zip(masks or [None] * len(boxes), boxes, clss, track_ids):
                     color = colors(t_id, True)  # Assign different color to each tracked object.
-                    if box[0] > line_x:
-                        count += 1
-                        annotator.box_label(box=box, color=color,
-                                            label=str(classes[cls]))
-        
-            annotator.sweep_annotator(line_x=line_x, line_y=h, label=f"COUNT:{count}")
-            cv2.imshow(window_name, im0)
-            video_writer.write(im0)
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
-        
-        cap.release()  # Release the video capture.
-        video_writer.release()  # Release the video writer.
-        cv2.destroyAllWindows()  # Destroy all opened windows.
-        ```
-
-    === "Segmentation"
-
-        ```python
-        import cv2
-        import numpy as np
-        from ultralytics import YOLO
-        from ultralytics.utils.plotting import Annotator, colors
-        
-        # User defined video path and model file
-        cap = cv2.VideoCapture("Path/to/video/file.mp4")
-        model = YOLO(model="yolo11s-seg.pt")
-        
-        if not cap.isOpened():
-            print("Error: Could not open video.")
-            exit()
-        
-        # Initialize the video writer object.
-        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH,
-                                               cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-        video_writer = cv2.VideoWriter("ultralytics.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
-        
-        f = 0    # Initialize frame count variable for enabling mouse event.
-        line_x = w    # Store width of line.
-        dragging = False   # Initialize bool variable for line dragging.
-        classes = model.names  # Store model classes names for plotting.
-        window_name = "Ultralytics Sweep Annotator"
-        
-        
-        def drag_line(event, x, y, flags, param):  # Mouse callback for dragging line.
-            global line_x, dragging
-            if event == cv2.EVENT_LBUTTONDOWN or (flags & cv2.EVENT_FLAG_LBUTTON):
-                line_x = max(0, min(x, w))
-                dragging = True
-        
-        
-        while cap.isOpened():   # Loop over the video capture object.
-            ret, im0 = cap.read()
-            if not ret:
-                break
-            f = f+1  # Increment frame count.
-            count = 0  # Re-initialize count variable on every frame for precise counts.
-            annotator = Annotator(im0)
-            results = model.track(im0, persist=True)  # Track objects using track method.
-            if f == 1:
-                cv2.namedWindow(window_name)
-                cv2.setMouseCallback(window_name, drag_line)
-        
-            if results[0].boxes.id is not None and results[0].masks is not None:
-                masks = results[0].masks.xy
-                track_ids = results[0].boxes.id.int().cpu().tolist()
-                clss = results[0].boxes.cls.cpu().tolist()
-                boxes = results[0].boxes.xyxy.cpu()
-        
-                for mask, box, cls, t_id in zip(masks, boxes, clss, track_ids):  # loop over each list object
-                    color = colors(t_id, True)  # Assign different color to each tracked object.
-                    if mask.size > 0:
+                    if mask is not None and mask.size > 0:
                         mask[:, 0] = np.clip(mask[:, 0], line_x, w)
                         mask_img = cv2.fillPoly(im0.copy(), [mask.astype(int)], color)
                         cv2.addWeighted(mask_img, 0.5, im0, 0.5, 0, im0)  # Apply cv2 weighted mask operation.
-        
                         if box[0] > line_x:
                             count += 1
-                            annotator.seg_bbox(mask=mask, mask_color=color,
-                                               label=str(classes[cls]))  # Draw segmentation masks.
+                            annotator.seg_bbox(mask=mask, mask_color=color, label=str(classes[cls]))  # Draw segmentation masks.
+                    else:
+                        if box[0] > line_x:
+                            count += 1
+                            annotator.box_label(box=box, color=color, label=str(classes[cls]))
         
             annotator.sweep_annotator(line_x=line_x, line_y=h, label=f"COUNT:{count}")
             cv2.imshow(window_name, im0)
@@ -526,8 +457,8 @@ Ultralytics includes an Annotator class that can be used to annotate any kind of
         cap.release()  # Release the video capture.
         video_writer.release()  # Release the video writer.
         cv2.destroyAllWindows()  # Destroy all opened windows.
-
-        ```
+   
+     ```
 
 #### Horizontal Bounding Boxes
 

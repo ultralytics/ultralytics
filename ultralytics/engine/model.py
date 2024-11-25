@@ -1135,7 +1135,7 @@ class Model(nn.Module):
         that behave differently during training and evaluation.
 
         Returns:
-            self: The model instance with evaluation mode set.
+            (Model): The model instance with evaluation mode set.
 
         Examples:
             >>model = YOLO("yolo11n.pt")

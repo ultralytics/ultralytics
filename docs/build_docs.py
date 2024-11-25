@@ -252,7 +252,7 @@ def minify_html_files():
             content = f.read()
 
         original_size = len(content)
-        minified_content = minify(content)
+        minified_content = minify(content, keep_closing_tags=True, minify_css=True, minify_js=True)
         minified_size = len(minified_content)
 
         total_original_size += original_size

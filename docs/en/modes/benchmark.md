@@ -4,13 +4,21 @@ description: Learn how to evaluate your YOLO11 model's performance in real-world
 keywords: model benchmarking, YOLO11, Ultralytics, performance evaluation, export formats, ONNX, TensorRT, OpenVINO, CoreML, TensorFlow, optimization, mAP50-95, inference time
 ---
 
+<script>
+  const script = document.createElement('script');
+  script.src = "https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js";
+  document.head.appendChild(script);
+
+  const anotherScript = document.createElement('script');
+  anotherScript.src = "../../javascript/benchmark.js";
+  document.head.appendChild(anotherScript);
+</script>
+
 # Model Benchmarking with Ultralytics YOLO
 
 <img width="1024" src="https://github.com/ultralytics/docs/releases/download/0/ultralytics-yolov8-ecosystem-integrations.avif" alt="Ultralytics YOLO ecosystem and integrations">
 
 ## Benchmark Visualization
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
 
 !!! tip "Refresh Browser"
 
@@ -19,7 +27,7 @@ keywords: model benchmarking, YOLO11, Ultralytics, performance evaluation, expor
 <div style="display: flex; align-items: flex-start;">
   <div style="margin-right: 20px;">
     <label><input type="checkbox" name="algorithm" value="YOLO11" checked><span>YOLO11</span></label><br>
-<label><input type="checkbox" name="algorithm" value="YOLOv10" checked><span>YOLOv10</span></label><br>
+    <label><input type="checkbox" name="algorithm" value="YOLOv10" checked><span>YOLOv10</span></label><br>
     <label><input type="checkbox" name="algorithm" value="YOLOv9" checked><span>YOLOv9</span></label><br>
     <label><input type="checkbox" name="algorithm" value="YOLOv8" checked><span>YOLOv8</span></label><br>
     <label><input type="checkbox" name="algorithm" value="YOLOv7" checked><span>YOLOv7</span></label><br>
@@ -30,7 +38,7 @@ keywords: model benchmarking, YOLO11, Ultralytics, performance evaluation, expor
     <label><input type="checkbox" name="algorithm" value="YOLOX" checked><span>YOLOX</span></label><br>
     <label><input type="checkbox" name="algorithm" value="RTDETRv2" checked><span>RTDETRv2</span></label>
 </div> 
-  <div style="flex-grow: 1;"><canvas id="chart"></canvas></div> <!-- Canva for plotting benchmarks -->
+  <div style="flex-grow: 1;"><canvas id="chart"></canvas></div>
 </div>
 
 ## Introduction

@@ -628,8 +628,8 @@ nav:
 # Plugins including 301 redirects navigation ---------------------------------------------------------------------------
 plugins:
   - macros
-  - search:
-      lang: en
+  # - search:
+  #     lang: en
   - mkdocstrings:
       enabled: true
       default_handler: python

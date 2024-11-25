@@ -1255,9 +1255,12 @@ class SettingsManager(JSONDict):
         self.update(self.defaults)
 
 
-def deprecation_warn(arg, new_arg):
+def deprecation_warn(arg, new_arg=None):
     """Issue a deprecation warning when a deprecated argument is used, suggesting an updated argument."""
-    LOGGER.warning(f"WARNING ⚠️ '{arg}' is deprecated and will be removed in in the future. Use '{new_arg}' instead.")
+    msg = f"WARNING ⚠️ '{arg}' is deprecated and will be removed in in the future."
+    if new_arg is not None:
+        msg += f" Use '{new_arg}' instead."
+    LOGGER.warning(msg)
 
 
 def clean_url(url):

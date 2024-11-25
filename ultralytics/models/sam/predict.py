@@ -1481,8 +1481,7 @@ class SAM2VideoPredictor(SAM2Predictor):
             consolidated_out["pred_masks"][obj_idx : obj_idx + 1] = out["pred_masks"]
             consolidated_out["obj_ptr"][obj_idx : obj_idx + 1] = out["obj_ptr"]
 
-        # Optionally, apply non-overlapping constraints on the consolidated scores
-        # and rerun the memory encoder
+        # Optionally, apply non-overlapping constraints on the consolidated scores and rerun the memory encoder
         if run_mem_encoder:
             high_res_masks = F.interpolate(
                 consolidated_out["pred_masks"],

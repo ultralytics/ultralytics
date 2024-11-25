@@ -1,6 +1,7 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import os
+import psutil
 import shutil
 import socket
 import sys
@@ -70,3 +71,10 @@ def ddp_cleanup(trainer, file):
     """Delete temp file if created."""
     if f"{id(trainer)}.py" in file:  # if temp_file suffix in file
         os.remove(file)
+    current_process = psutil.Process()
+    children = current_process.children(recursive=True)
+    for child in children:
+        try:
+            child.kill()
+        except psutil.NoSuchProcess:
+            pass    

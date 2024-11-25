@@ -183,10 +183,9 @@ class Predictor(BasePredictor):
             **kwargs (Any): Additional keyword arguments.
 
         Returns:
-            (tuple): Contains the following three elements:
-                - np.ndarray: The output masks in shape (C, H, W), where C is the number of generated masks.
-                - np.ndarray: An array of length C containing quality scores predicted by the model for each mask.
-                - np.ndarray: Low-resolution logits of shape (C, H, W) for subsequent inference, where H=W=256.
+            (np.ndarray): The output masks in shape (C, H, W), where C is the number of generated masks.
+            (np.ndarray): An array of length C containing quality scores predicted by the model for each mask.
+            (np.ndarray): Low-resolution logits of shape (C, H, W) for subsequent inference, where H=W=256.
 
         Examples:
             >>> predictor = Predictor()
@@ -224,10 +223,9 @@ class Predictor(BasePredictor):
             AssertionError: If the number of points don't match the number of labels, in case labels were passed.
 
         Returns:
-            (tuple): Tuple containing:
-                - np.ndarray: Output masks with shape (C, H, W), where C is the number of generated masks.
-                - np.ndarray: Quality scores predicted by the model for each mask, with length C.
-                - np.ndarray: Low-resolution logits with shape (C, H, W) for subsequent inference, where H=W=256.
+            (np.ndarray): Output masks with shape (C, H, W), where C is the number of generated masks.
+            (np.ndarray): Quality scores predicted by the model for each mask, with length C.
+            (np.ndarray): Low-resolution logits with shape (C, H, W) for subsequent inference, where H=W=256.
 
         Examples:
             >>> predictor = Predictor()
@@ -588,9 +586,8 @@ class Predictor(BasePredictor):
             nms_thresh (float): IoU threshold for the NMS algorithm to remove duplicate boxes.
 
         Returns:
-            (tuple):
-                - new_masks (torch.Tensor): Processed masks with small regions removed, shape (N, H, W).
-                - keep (List[int]): Indices of remaining masks after NMS, for filtering corresponding boxes.
+            new_masks (torch.Tensor): Processed masks with small regions removed, shape (N, H, W).
+            keep (List[int]): Indices of remaining masks after NMS, for filtering corresponding boxes.
 
         Examples:
             >>> masks = torch.rand(5, 640, 640) > 0.5  # 5 random binary masks
@@ -692,10 +689,9 @@ class SAM2Predictor(Predictor):
             img_idx (int): Index of the image in the batch to process.
 
         Returns:
-            (tuple): Tuple containing:
-                - np.ndarray: Output masks with shape (C, H, W), where C is the number of generated masks.
-                - np.ndarray: Quality scores for each mask, with length C.
-                - np.ndarray: Low-resolution logits with shape (C, 256, 256) for subsequent inference.
+            (np.ndarray): Output masks with shape (C, H, W), where C is the number of generated masks.
+            (np.ndarray): Quality scores for each mask, with length C.
+            (np.ndarray): Low-resolution logits with shape (C, 256, 256) for subsequent inference.
 
         Examples:
             >>> predictor = SAM2Predictor(cfg)
@@ -895,10 +891,9 @@ class SAM2VideoPredictor(SAM2Predictor):
             masks (np.ndarray, optional): Low-resolution masks from previous predictions shape (N,H,W). For SAM H=W=256.
 
         Returns:
-            (tuple): Contains the following three elements.
-                - np.ndarray: The output masks in shape CxHxW, where C is the number of generated masks.
-                - np.ndarray: An array of length C containing quality scores predicted by the model for each mask.
-                - np.ndarray: Low-resolution logits of shape CxHxW for subsequent inference, where H=W=256.
+            (np.ndarray): The output masks in shape CxHxW, where C is the number of generated masks.
+            (np.ndarray): An array of length C containing quality scores predicted by the model for each mask.
+            (np.ndarray): Low-resolution logits of shape CxHxW for subsequent inference, where H=W=256.
         """
         # Override prompts if any stored in self.prompts
         bboxes = self.prompts.pop("bboxes", bboxes)
@@ -1207,10 +1202,9 @@ class SAM2VideoPredictor(SAM2Predictor):
             batch (int, optional): The batch size for expanding features if there are multiple prompts. Defaults to 1.
 
         Returns:
-            (tuple): A tuple containing:
-                - vis_feats (torch.Tensor): The visual features extracted from the image.
-                - vis_pos_embed (torch.Tensor): The positional embeddings for the visual features.
-                - feat_sizes (List): A list containing the sizes of the extracted features.
+            vis_feats (torch.Tensor): The visual features extracted from the image.
+            vis_pos_embed (torch.Tensor): The positional embeddings for the visual features.
+            feat_sizes (List): A list containing the sizes of the extracted features.
 
         Note:
             - If `batch` is greater than 1, the features are expanded to fit the batch size.

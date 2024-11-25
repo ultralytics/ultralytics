@@ -1138,8 +1138,8 @@ class Model(nn.Module):
             (Model): The model instance with evaluation mode set.
 
         Examples:
-            >>model = YOLO("yolo11n.pt")
-            >>model.eval()
+            >> model = YOLO("yolo11n.pt")
+            >> model.eval()
         """
         self.model.eval()
         return self

@@ -1126,3 +1126,20 @@ class Model(nn.Module):
             description of the expected behavior and structure.
         """
         raise NotImplementedError("Please provide task map for your model!")
+
+    def eval(self):
+        """
+        Sets the model to evaluation mode.
+
+        This method changes the model's mode to evaluation, which affects layers like dropout and batch normalization
+        that behave differently during training and evaluation.
+
+        Returns:
+            (Model): The model instance with evaluation mode set.
+
+        Examples:
+            >> model = YOLO("yolo11n.pt")
+            >> model.eval()
+        """
+        self.model.eval()
+        return self

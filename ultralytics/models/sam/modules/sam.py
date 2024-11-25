@@ -947,16 +947,7 @@ class SAM2Model(torch.nn.Module):
             track_in_reverse,
             prev_sam_mask_logits,
         )
-
-        (
-            _,
-            _,
-            _,
-            low_res_masks,
-            high_res_masks,
-            obj_ptr,
-            object_score_logits,
-        ) = sam_outputs
+        _, _, _, low_res_masks, high_res_masks, obj_ptr, object_score_logits = sam_outputs
 
         current_out["pred_masks"] = low_res_masks
         current_out["pred_masks_high_res"] = high_res_masks
@@ -966,8 +957,7 @@ class SAM2Model(torch.nn.Module):
             # it's mainly used in the demo to encode spatial memories w/ consolidated masks)
             current_out["object_score_logits"] = object_score_logits
 
-        # Finally run the memory encoder on the predicted mask to encode
-        # it into a new memory feature (that can be used in future frames)
+        # Run memory encoder on the predicted mask to encode it into a new memory feature (for use in future frames)
         self._encode_memory_in_output(
             current_vision_feats,
             feat_sizes,

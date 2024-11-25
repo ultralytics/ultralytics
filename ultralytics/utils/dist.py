@@ -1,11 +1,12 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import os
-import psutil
 import shutil
 import socket
 import sys
 import tempfile
+
+import psutil
 
 from . import USER_CONFIG_DIR
 from .torch_utils import TORCH_1_9
@@ -77,4 +78,4 @@ def ddp_cleanup(trainer, file):
         try:
             child.kill()
         except psutil.NoSuchProcess:
-            pass    
+            pass

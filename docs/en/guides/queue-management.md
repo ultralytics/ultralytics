@@ -45,7 +45,7 @@ Queue management using [Ultralytics YOLO11](https://github.com/ultralytics/ultra
         yolo solutions queue source="path/to/video/file.mp4"
 
         # Pass queue coordinates
-        yolo solutions queue region=[(20, 400), (1080, 404), (1080, 360), (20, 360)]
+        yolo solutions queue region=[(20, 400), (1080, 400), (1080, 360), (20, 360)]
         ```
 
     === "Python"
@@ -64,8 +64,8 @@ Queue management using [Ultralytics YOLO11](https://github.com/ultralytics/ultra
         video_writer = cv2.VideoWriter("queue_management.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
         # Define queue region points
-        queue_region = [(20, 400), (1080, 404), (1080, 360), (20, 360)]  # Define queue region points
-        # queue_region = [(20, 400), (1080, 404), (1080, 360), (20, 360), (20, 400)]  # Define queue polygon points
+        queue_region = [(20, 400), (1080, 400), (1080, 360), (20, 360)]  # Define queue region points
+        # queue_region = [(20, 400), (1080, 400), (1080, 360), (20, 360), (20, 400)]  # Define queue polygon points
 
         # Init Queue Manager
         queue = solutions.QueueManager(
@@ -126,7 +126,7 @@ import cv2
 from ultralytics import solutions
 
 cap = cv2.VideoCapture("path/to/video.mp4")
-queue_region = [(20, 400), (1080, 404), (1080, 360), (20, 360)]
+queue_region = [(20, 400), (1080, 400), (1080, 360), (20, 360)]
 
 queue = solutions.QueueManager(
     model="yolo11n.pt",

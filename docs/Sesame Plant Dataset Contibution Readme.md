@@ -23,12 +23,12 @@ The dataset is organized into two subsets:
 
 1. **Training Set**:
 
-   - **Images**: 262
-   - **Annotations**: Corresponding YOLO format labels.
+    - **Images**: 262
+    - **Annotations**: Corresponding YOLO format labels.
 
 2. **Validation Set**:
-   - **Images**: 31
-   - **Annotations**: Corresponding YOLO format labels.
+    - **Images**: 31
+    - **Annotations**: Corresponding YOLO format labels.
 
 ### Annotation Format
 

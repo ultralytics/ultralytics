@@ -416,7 +416,7 @@ class Predictor(BasePredictor):
         parameters for image normalization and other Ultralytics compatibility settings.
 
         Args:
-            model (torch.nn.Module): A pre-trained SAM model. If None, a model will be built based on configuration.
+            model (torch.nn.Module | None): A pretrained SAM model. If None, a new model is built based on config.
             verbose (bool): If True, prints selected device information.
 
         Examples:
@@ -1011,6 +1011,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         assert (masks is None) ^ (points is None), "'masks' and 'points' prompts are not compatible with each other."
         obj_idx = self._obj_id_to_idx(obj_id)
 
+        point_inputs = None
         pop_key = "point_inputs_per_obj"
         if points is not None:
             point_inputs = {"point_coords": points, "point_labels": labels}

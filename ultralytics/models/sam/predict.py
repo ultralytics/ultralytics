@@ -753,7 +753,7 @@ class SAM2Predictor(Predictor):
             AssertionError: If the number of points don't match the number of labels, in case labels were passed.
 
         Returns:
-            (tuple): A tuple containing transformed bounding boxes, points, labels, and masks.
+            (tuple): A tuple containing transformed points, labels, and masks.
         """
         bboxes, points, labels, masks = super()._prepare_prompts(dst_shape, bboxes, points, labels, masks)
         if bboxes is not None:

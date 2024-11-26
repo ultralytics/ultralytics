@@ -1205,7 +1205,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         Returns:
             vis_feats (torch.Tensor): The visual features extracted from the image.
             vis_pos_embed (torch.Tensor): The positional embeddings for the visual features.
-            feat_sizes (List): A list containing the sizes of the extracted features.
+            feat_sizes (List(Tuple[int])): A list containing the sizes of the extracted features.
 
         Note:
             - If `batch` is greater than 1, the features are expanded to fit the batch size.

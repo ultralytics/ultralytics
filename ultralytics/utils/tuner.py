@@ -1,13 +1,16 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-import subprocess
-
 from ultralytics.cfg import TASK2DATA, TASK2METRIC, get_save_dir
 from ultralytics.utils import DEFAULT_CFG, DEFAULT_CFG_DICT, LOGGER, NUM_THREADS, checks
 
 
 def run_ray_tune(
-    model, space: dict = None, grace_period: int = 10, gpu_per_trial: int = None, max_samples: int = 10, **train_args
+    model,
+    space: dict = None,
+    grace_period: int = 10,
+    gpu_per_trial: int = None,
+    max_samples: int = 10,
+    **train_args,
 ):
     """
     Runs hyperparameter tuning using Ray Tune.
@@ -28,7 +31,7 @@ def run_ray_tune(
         from ultralytics import YOLO
 
         # Load a YOLOv8n model
-        model = YOLO("yolov8n.pt")
+        model = YOLO("yolo11n.pt")
 
         # Start tuning hyperparameters for YOLOv8n training on the COCO8 dataset
         result_grid = model.tune(data="coco8.yaml", use_ray=True)
@@ -39,7 +42,7 @@ def run_ray_tune(
         train_args = {}
 
     try:
-        subprocess.run("pip install ray[tune]".split(), check=True)  # do not add single quotes here
+        checks.check_requirements("ray[tune]")
 
         import ray
         from ray import tune

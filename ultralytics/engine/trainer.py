@@ -12,7 +12,7 @@ import os
 import subprocess
 import time
 import warnings
-from copy import deepcopy
+from copy import copy, deepcopy
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -118,7 +118,7 @@ class BaseTrainer:
         self.save_period = self.args.save_period
 
         self.batch_size = self.args.batch
-        self.epochs = self.args.epochs
+        self.epochs = self.args.epochs or 100  # in case users accidentally pass epochs=None with timed training
         self.start_epoch = 0
         if RANK == -1:
             print_args(vars(self.args))
@@ -279,12 +279,7 @@ class BaseTrainer:
 
         # Batch size
         if self.batch_size < 1 and RANK == -1:  # single-GPU only, estimate best batch size
-            self.args.batch = self.batch_size = check_train_batch_size(
-                model=self.model,
-                imgsz=self.args.imgsz,
-                amp=self.amp,
-                batch=self.batch_size,
-            )
+            self.args.batch = self.batch_size = self.auto_batch()
 
         # Dataloaders
         batch_size = self.batch_size // max(world_size, 1)
@@ -469,16 +464,24 @@ class BaseTrainer:
 
         if RANK in {-1, 0}:
             # Do final val with best.pt
-            LOGGER.info(
-                f"\n{epoch - self.start_epoch + 1} epochs completed in "
-                f"{(time.time() - self.train_time_start) / 3600:.3f} hours."
-            )
+            seconds = time.time() - self.train_time_start
+            LOGGER.info(f"\n{epoch - self.start_epoch + 1} epochs completed in {seconds / 3600:.3f} hours.")
             self.final_eval()
             if self.args.plots:
                 self.plot_metrics()
             self.run_callbacks("on_train_end")
         self._clear_memory()
         self.run_callbacks("teardown")
+
+    def auto_batch(self, max_num_obj=0):
+        """Get batch size by calculating memory occupation of model."""
+        return check_train_batch_size(
+            model=self.model,
+            imgsz=self.args.imgsz,
+            amp=self.amp,
+            batch=self.batch_size,
+            max_num_obj=max_num_obj,
+        )  # returns batch size
 
     def _get_memory(self):
         """Get accelerator memory utilization in GB."""
@@ -504,7 +507,7 @@ class BaseTrainer:
         """Read results.csv into a dict using pandas."""
         import pandas as pd  # scope for faster 'import ultralytics'
 
-        return {k.strip(): v for k, v in pd.read_csv(self.csv).to_dict(orient="list").items()}
+        return pd.read_csv(self.csv).to_dict(orient="list")
 
     def save_model(self):
         """Save model training checkpoints with additional metadata."""
@@ -654,10 +657,11 @@ class BaseTrainer:
     def save_metrics(self, metrics):
         """Saves training metrics to a CSV file."""
         keys, vals = list(metrics.keys()), list(metrics.values())
-        n = len(metrics) + 1  # number of cols
-        s = "" if self.csv.exists() else (("%23s," * n % tuple(["epoch"] + keys)).rstrip(",") + "\n")  # header
+        n = len(metrics) + 2  # number of cols
+        s = "" if self.csv.exists() else (("%s," * n % tuple(["epoch", "time"] + keys)).rstrip(",") + "\n")  # header
+        t = time.time() - self.train_time_start
         with open(self.csv, "a") as f:
-            f.write(s + ("%23.5g," * n % tuple([self.epoch + 1] + vals)).rstrip(",") + "\n")
+            f.write(s + ("%.6g," * n % tuple([self.epoch + 1, t] + vals)).rstrip(",") + "\n")
 
     def plot_metrics(self):
         """Plot and display metrics visually."""
@@ -749,7 +753,7 @@ class BaseTrainer:
             self.train_loader.dataset.mosaic = False
         if hasattr(self.train_loader.dataset, "close_mosaic"):
             LOGGER.info("Closing dataloader mosaic")
-            self.train_loader.dataset.close_mosaic(hyp=self.args)
+            self.train_loader.dataset.close_mosaic(hyp=copy(self.args))
 
     def build_optimizer(self, model, name="auto", lr=0.001, momentum=0.9, decay=1e-5, iterations=1e5):
         """
@@ -792,6 +796,8 @@ class BaseTrainer:
                 else:  # weight (with decay)
                     g[0].append(param)
 
+        optimizers = {"Adam", "Adamax", "AdamW", "NAdam", "RAdam", "RMSProp", "SGD", "auto"}
+        name = {x.lower(): x for x in optimizers}.get(name.lower())
         if name in {"Adam", "Adamax", "AdamW", "NAdam", "RAdam"}:
             optimizer = getattr(optim, name, optim.Adam)(g[2], lr=lr, betas=(momentum, 0.999), weight_decay=0.0)
         elif name == "RMSProp":
@@ -800,9 +806,8 @@ class BaseTrainer:
             optimizer = optim.SGD(g[2], lr=lr, momentum=momentum, nesterov=True)
         else:
             raise NotImplementedError(
-                f"Optimizer '{name}' not found in list of available optimizers "
-                f"[Adam, AdamW, NAdam, RAdam, RMSProp, SGD, auto]."
-                "To request support for addition optimizers please visit https://github.com/ultralytics/ultralytics."
+                f"Optimizer '{name}' not found in list of available optimizers {optimizers}. "
+                "Request support for addition optimizers at https://github.com/ultralytics/ultralytics."
             )
 
         optimizer.add_param_group({"params": g[0], "weight_decay": decay})  # add g0 with weight_decay

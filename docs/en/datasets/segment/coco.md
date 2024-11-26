@@ -1,7 +1,7 @@
 ---
 comments: true
 description: Explore the COCO-Seg dataset, an extension of COCO, with detailed segmentation annotations. Learn how to train YOLO models with COCO-Seg.
-keywords: COCO-Seg, dataset, YOLO models, instance segmentation, object detection, COCO dataset, YOLOv8, computer vision, Ultralytics, machine learning
+keywords: COCO-Seg, dataset, YOLO models, instance segmentation, object detection, COCO dataset, YOLO11, computer vision, Ultralytics, machine learning
 ---
 
 # COCO-Seg Dataset
@@ -10,13 +10,7 @@ The [COCO-Seg](https://cocodataset.org/#home) dataset, an extension of the COCO 
 
 ## COCO-Seg Pretrained Models
 
-| Model                                                                                        | size<br><sup>(pixels) | mAP<sup>box<br>50-95 | mAP<sup>mask<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
-| -------------------------------------------------------------------------------------------- | --------------------- | -------------------- | --------------------- | ------------------------------ | ----------------------------------- | ------------------ | ----------------- |
-| [YOLOv8n-seg](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n-seg.pt) | 640                   | 36.7                 | 30.5                  | 96.1                           | 1.21                                | 3.4                | 12.6              |
-| [YOLOv8s-seg](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8s-seg.pt) | 640                   | 44.6                 | 36.8                  | 155.7                          | 1.47                                | 11.8               | 42.6              |
-| [YOLOv8m-seg](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8m-seg.pt) | 640                   | 49.9                 | 40.8                  | 317.0                          | 2.18                                | 27.3               | 110.2             |
-| [YOLOv8l-seg](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8l-seg.pt) | 640                   | 52.3                 | 42.6                  | 572.4                          | 2.79                                | 46.0               | 220.5             |
-| [YOLOv8x-seg](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8x-seg.pt) | 640                   | 53.4                 | 43.4                  | 712.1                          | 4.02                                | 71.8               | 344.1             |
+{% include "macros/yolo-seg-perf.md" %}
 
 ## Key Features
 
@@ -49,7 +43,7 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 ## Usage
 
-To train a YOLOv8n-seg model on the COCO-Seg dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To train a YOLO11n-seg model on the COCO-Seg dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
 !!! example "Train Example"
 
@@ -59,17 +53,17 @@ To train a YOLOv8n-seg model on the COCO-Seg dataset for 100 [epochs](https://ww
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n-seg.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n-seg.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
-        results = model.train(data="coco-seg.yaml", epochs=100, imgsz=640)
+        results = model.train(data="coco.yaml", epochs=100, imgsz=640)
         ```
 
     === "CLI"
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo segment train data=coco-seg.yaml model=yolov8n-seg.pt epochs=100 imgsz=640
+        yolo segment train data=coco.yaml model=yolo11n-seg.pt epochs=100 imgsz=640
         ```
 
 ## Sample Images and Annotations
@@ -109,9 +103,9 @@ We extend our thanks to the COCO Consortium for creating and maintaining this in
 
 The [COCO-Seg](https://cocodataset.org/#home) dataset is an extension of the original COCO (Common Objects in Context) dataset, specifically designed for instance segmentation tasks. While it uses the same images as the COCO dataset, COCO-Seg includes more detailed segmentation annotations, making it a powerful resource for researchers and developers focusing on object instance segmentation.
 
-### How can I train a YOLOv8 model using the COCO-Seg dataset?
+### How can I train a YOLO11 model using the COCO-Seg dataset?
 
-To train a YOLOv8n-seg model on the COCO-Seg dataset for 100 epochs with an image size of 640, you can use the following code snippets. For a detailed list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To train a YOLO11n-seg model on the COCO-Seg dataset for 100 epochs with an image size of 640, you can use the following code snippets. For a detailed list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
 !!! example "Train Example"
 
@@ -121,17 +115,17 @@ To train a YOLOv8n-seg model on the COCO-Seg dataset for 100 epochs with an imag
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n-seg.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n-seg.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
-        results = model.train(data="coco-seg.yaml", epochs=100, imgsz=640)
+        results = model.train(data="coco.yaml", epochs=100, imgsz=640)
         ```
 
     === "CLI"
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo segment train data=coco-seg.yaml model=yolov8n-seg.pt epochs=100 imgsz=640
+        yolo segment train data=coco.yaml model=yolo11n-seg.pt epochs=100 imgsz=640
         ```
 
 ### What are the key features of the COCO-Seg dataset?
@@ -145,15 +139,9 @@ The COCO-Seg dataset includes several key features:
 
 ### What pretrained models are available for COCO-Seg, and what are their performance metrics?
 
-The COCO-Seg dataset supports multiple pretrained YOLOv8 segmentation models with varying performance metrics. Here's a summary of the available models and their key metrics:
+The COCO-Seg dataset supports multiple pretrained YOLO11 segmentation models with varying performance metrics. Here's a summary of the available models and their key metrics:
 
-| Model                                                                                        | size<br><sup>(pixels) | mAP<sup>box<br>50-95 | mAP<sup>mask<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
-| -------------------------------------------------------------------------------------------- | --------------------- | -------------------- | --------------------- | ------------------------------ | ----------------------------------- | ------------------ | ----------------- |
-| [YOLOv8n-seg](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n-seg.pt) | 640                   | 36.7                 | 30.5                  | 96.1                           | 1.21                                | 3.4                | 12.6              |
-| [YOLOv8s-seg](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8s-seg.pt) | 640                   | 44.6                 | 36.8                  | 155.7                          | 1.47                                | 11.8               | 42.6              |
-| [YOLOv8m-seg](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8m-seg.pt) | 640                   | 49.9                 | 40.8                  | 317.0                          | 2.18                                | 27.3               | 110.2             |
-| [YOLOv8l-seg](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8l-seg.pt) | 640                   | 52.3                 | 42.6                  | 572.4                          | 2.79                                | 46.0               | 220.5             |
-| [YOLOv8x-seg](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8x-seg.pt) | 640                   | 53.4                 | 43.4                  | 712.1                          | 4.02                                | 71.8               | 344.1             |
+{% include "macros/yolo-seg-perf.md" %}
 
 ### How is the COCO-Seg dataset structured and what subsets does it contain?
 

@@ -1,6 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-import contextlib
 import gc
 import math
 import os
@@ -113,14 +112,22 @@ def get_cpu_info():
     from ultralytics.utils import PERSISTENT_CACHE  # avoid circular import error
 
     if "cpu_info" not in PERSISTENT_CACHE:
-        with contextlib.suppress(Exception):
+        try:
             import cpuinfo  # pip install py-cpuinfo
 
             k = "brand_raw", "hardware_raw", "arch_string_raw"  # keys sorted by preference
             info = cpuinfo.get_cpu_info()  # info dict
             string = info.get(k[0] if k[0] in info else k[1] if k[1] in info else k[2], "unknown")
             PERSISTENT_CACHE["cpu_info"] = string.replace("(R)", "").replace("CPU ", "").replace("@ ", "")
+        except Exception:
+            pass
     return PERSISTENT_CACHE.get("cpu_info", "unknown")
+
+
+def get_gpu_info(index):
+    """Return a string with system GPU information, i.e. 'Tesla T4, 15102MiB'."""
+    properties = torch.cuda.get_device_properties(index)
+    return f"{properties.name}, {properties.total_memory / (1 << 20):.0f}MiB"
 
 
 def select_device(device="", batch=0, newline=False, verbose=True):
@@ -156,7 +163,7 @@ def select_device(device="", batch=0, newline=False, verbose=True):
     Note:
         Sets the 'CUDA_VISIBLE_DEVICES' environment variable for specifying which GPUs to use.
     """
-    if isinstance(device, torch.device):
+    if isinstance(device, torch.device) or str(device).startswith("tpu"):
         return device
 
     s = f"Ultralytics {__version__} 🚀 Python-{PYTHON_VERSION} torch-{torch.__version__} "
@@ -170,6 +177,8 @@ def select_device(device="", batch=0, newline=False, verbose=True):
     elif device:  # non-cpu device requested
         if device == "cuda":
             device = "0"
+        if "," in device:
+            device = ",".join([x for x in device.split(",") if x])  # remove sequential commas, i.e. "0,,1" -> "0,1"
         visible = os.environ.get("CUDA_VISIBLE_DEVICES", None)
         os.environ["CUDA_VISIBLE_DEVICES"] = device  # set environment variable - must be before assert is_available()
         if not (torch.cuda.is_available() and torch.cuda.device_count() >= len(device.split(","))):
@@ -191,7 +200,7 @@ def select_device(device="", batch=0, newline=False, verbose=True):
             )
 
     if not cpu and not mps and torch.cuda.is_available():  # prefer GPU if available
-        devices = device.split(",") if device else "0"  # range(torch.cuda.device_count())  # i.e. 0,1,6,7
+        devices = device.split(",") if device else "0"  # i.e. "0,1" -> ["0", "1"]
         n = len(devices)  # device count
         if n > 1:  # multi-GPU
             if batch < 1:
@@ -206,8 +215,7 @@ def select_device(device="", batch=0, newline=False, verbose=True):
                 )
         space = " " * (len(s) + 1)
         for i, d in enumerate(devices):
-            p = torch.cuda.get_device_properties(i)
-            s += f"{'' if i == 0 else space}CUDA:{d} ({p.name}, {p.total_memory / (1 << 20):.0f}MiB)\n"  # bytes to MB
+            s += f"{'' if i == 0 else space}CUDA:{d} ({get_gpu_info(i)})\n"  # bytes to MB
         arg = "cuda:0"
     elif mps and TORCH_2_0 and torch.backends.mps.is_available():
         # Prefer MPS if available
@@ -595,7 +603,7 @@ def strip_optimizer(f: Union[str, Path] = "best.pt", s: str = "", updates: dict 
 
     # Save
     combined = {**metadata, **x, **(updates or {})}
-    torch.save(combined, s or f, use_dill=False)  # combine dicts (prefer to the right)
+    torch.save(combined, s or f)  # combine dicts (prefer to the right)
     mb = os.path.getsize(s or f) / 1e6  # file size
     LOGGER.info(f"Optimizer stripped from {f},{f' saved as {s},' if s else ''} {mb:.1f}MB")
     return combined
@@ -615,7 +623,7 @@ def convert_optimizer_state_dict_to_fp16(state_dict):
     return state_dict
 
 
-def profile(input, ops, n=10, device=None):
+def profile(input, ops, n=10, device=None, max_num_obj=0):
     """
     Ultralytics speed, memory and FLOPs profiler.
 
@@ -636,7 +644,8 @@ def profile(input, ops, n=10, device=None):
         f"{'Params':>12s}{'GFLOPs':>12s}{'GPU_mem (GB)':>14s}{'forward (ms)':>14s}{'backward (ms)':>14s}"
         f"{'input':>24s}{'output':>24s}"
     )
-
+    gc.collect()  # attempt to free unused memory
+    torch.cuda.empty_cache()
     for x in input if isinstance(input, list) else [input]:
         x = x.to(device)
         x.requires_grad = True
@@ -662,6 +671,14 @@ def profile(input, ops, n=10, device=None):
                         t[2] = float("nan")
                     tf += (t[1] - t[0]) * 1000 / n  # ms per op forward
                     tb += (t[2] - t[1]) * 1000 / n  # ms per op backward
+                    if max_num_obj:  # simulate training with predictions per image grid (for AutoBatch)
+                        torch.randn(
+                            x.shape[0],
+                            max_num_obj,
+                            int(sum((x.shape[-1] / s) * (x.shape[-2] / s) for s in m.stride.tolist())),
+                            device=device,
+                            dtype=torch.float32,
+                        )
                 mem = torch.cuda.memory_reserved() / 1e9 if torch.cuda.is_available() else 0  # (GB)
                 s_in, s_out = (tuple(x.shape) if isinstance(x, torch.Tensor) else "list" for x in (x, y))  # shapes
                 p = sum(x.numel() for x in m.parameters()) if isinstance(m, nn.Module) else 0  # parameters
@@ -670,8 +687,9 @@ def profile(input, ops, n=10, device=None):
             except Exception as e:
                 LOGGER.info(e)
                 results.append(None)
-            gc.collect()  # attempt to free unused memory
-            torch.cuda.empty_cache()
+            finally:
+                gc.collect()  # attempt to free unused memory
+                torch.cuda.empty_cache()
     return results
 
 
@@ -719,3 +737,48 @@ class EarlyStopping:
                 f"i.e. `patience=300` or use `patience=0` to disable EarlyStopping."
             )
         return stop
+
+
+class FXModel(nn.Module):
+    """
+    A custom model class for torch.fx compatibility.
+
+    This class extends `torch.nn.Module` and is designed to ensure compatibility with torch.fx for tracing and graph manipulation.
+    It copies attributes from an existing model and explicitly sets the model attribute to ensure proper copying.
+
+    Args:
+        model (torch.nn.Module): The original model to wrap for torch.fx compatibility.
+    """
+
+    def __init__(self, model):
+        """
+        Initialize the FXModel.
+
+        Args:
+            model (torch.nn.Module): The original model to wrap for torch.fx compatibility.
+        """
+        super().__init__()
+        copy_attr(self, model)
+        # Explicitly set `model` since `copy_attr` somehow does not copy it.
+        self.model = model.model
+
+    def forward(self, x):
+        """
+        Forward pass through the model.
+
+        This method performs the forward pass through the model, handling the dependencies between layers and saving intermediate outputs.
+
+        Args:
+            x (torch.Tensor): The input tensor to the model.
+
+        Returns:
+            (torch.Tensor): The output tensor from the model.
+        """
+        y = []  # outputs
+        for m in self.model:
+            if m.f != -1:  # if not from previous layer
+                # from earlier layers
+                x = y[m.f] if isinstance(m.f, int) else [x if j == -1 else y[j] for j in m.f]
+            x = m(x)  # run
+            y.append(x)  # save output
+        return x

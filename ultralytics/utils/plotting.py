@@ -584,8 +584,8 @@ class Annotator:
         Displays queue counts on an image centered at the points with customizable font size and colors.
 
         Args:
-            label (str): queue counts label
-            points (tuple): region points for center point calculation to display text
+            label (str): Queue counts label.
+            points (tuple): Region points for center point calculation to display text.
             region_color (tuple): RGB queue region color.
             txt_color (tuple): RGB text display color.
         """
@@ -624,13 +624,13 @@ class Annotator:
         Display the bounding boxes labels in parking management app.
 
         Args:
-            im0 (ndarray): inference image
-            text (str): object/class name
-            txt_color (tuple): display color for text foreground
-            bg_color (tuple): display color for text background
-            x_center (float): x position center point for bounding box
-            y_center (float): y position center point for bounding box
-            margin (int): gap between text and rectangle for better display
+            im0 (ndarray): Inference image.
+            text (str): Object/class name.
+            txt_color (tuple): Display color for text foreground.
+            bg_color (tuple): Display color for text background.
+            x_center (float): The x position center point for bounding box.
+            y_center (float): The y position center point for bounding box.
+            margin (int): The gap between text and rectangle for better display.
         """
         text_size = cv2.getTextSize(text, 0, fontScale=self.sf, thickness=self.tf)[0]
         text_x = x_center - text_size[0] // 2
@@ -648,11 +648,11 @@ class Annotator:
         Display the overall statistics for parking lots.
 
         Args:
-            im0 (ndarray): inference image
-            text (dict): labels dictionary
-            txt_color (tuple): display color for text foreground
-            bg_color (tuple): display color for text background
-            margin (int): gap between text and rectangle for better display
+            im0 (ndarray): Inference image.
+            text (dict): Labels dictionary.
+            txt_color (tuple): Display color for text foreground.
+            bg_color (tuple): Display color for text background.
+            margin (int): Gap between text and rectangle for better display.
         """
         horizontal_gap = int(im0.shape[1] * 0.02)
         vertical_gap = int(im0.shape[0] * 0.01)

@@ -64,7 +64,7 @@ class SAHIInference:
                 break
             annotator = Annotator(frame)  # Initialize annotator for plotting detection and tracking results
             results = get_sliced_prediction(
-                frame,
+                frame[..., ::-1],
                 self.detection_model,
                 slice_height=512,
                 slice_width=512,

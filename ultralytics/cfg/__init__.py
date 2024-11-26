@@ -160,7 +160,6 @@ CFG_FRACTION_KEYS = {  # fractional float arguments with 0.0<=values<=1.0
     "weight_decay",
     "warmup_momentum",
     "warmup_bias_lr",
-    "label_smoothing",
     "hsv_h",
     "hsv_s",
     "hsv_v",
@@ -436,6 +435,9 @@ def _handle_deprecation(custom):
         if key == "line_thickness":
             deprecation_warn(key, "line_width")
             custom["line_width"] = custom.pop("line_thickness")
+        if key == "label_smoothing":
+            deprecation_warn(key)
+            custom.pop("label_smoothing")
 
     return custom
 
@@ -738,9 +740,8 @@ def parse_key_value_pair(pair: str = "key=value"):
         pair (str): A string containing a key-value pair in the format "key=value".
 
     Returns:
-        (tuple): A tuple containing two elements:
-            - key (str): The parsed key.
-            - value (str): The parsed value.
+        key (str): The parsed key.
+        value (str): The parsed value.
 
     Raises:
         AssertionError: If the value is missing or empty.

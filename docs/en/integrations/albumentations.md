@@ -158,3 +158,42 @@ If you are interested in learning more about Albumentations, check out the follo
 In this guide, we explored the key aspects of Albumentations, a great Python library for image augmentation. We discussed its wide range of transformations, optimized performance, and how you can use it in your next YOLO11 project.
 
 Also, if you'd like to know more about other Ultralytics YOLO11 integrations, visit our [integration guide page](../integrations/index.md). You'll find valuable resources and insights there.
+
+## FAQ
+
+### How can I integrate Albumentations with YOLO11 for improved data augmentation?
+
+Albumentations integrates seamlessly with YOLO11 and applies automatically during training if you have the package installed. Here's how to get started:
+
+```python
+# Install required packages
+# !pip install albumentations ultralytics
+from ultralytics import YOLO
+
+# Load and train model with automatic augmentations
+model = YOLO("yolo11n.pt")
+model.train(data="coco8.yaml", epochs=100)
+```
+
+The integration includes optimized augmentations like blur, median blur, grayscale conversion, and CLAHE with carefully tuned probabilities to enhance model performance.
+
+### What are the key benefits of using Albumentations over other augmentation libraries?
+
+Albumentations stands out for several reasons:
+
+1. Performance: Built on OpenCV and NumPy with SIMD optimization for superior speed
+2. Flexibility: Supports 70+ transformations across pixel-level, spatial-level, and mixing-level augmentations
+3. Compatibility: Works seamlessly with popular frameworks like [PyTorch](../integrations/torchscript.md) and [TensorFlow](../integrations/tensorboard.md)
+4. Reliability: Extensive test suite prevents silent data corruption
+5. Ease of use: Single unified API for all augmentation types
+
+### What types of computer vision tasks can benefit from Albumentations augmentation?
+
+Albumentations enhances various [computer vision tasks](../tasks/index.md) including:
+
+- [Object Detection](../tasks/detect.md): Improves model robustness to lighting, scale, and orientation variations
+- [Instance Segmentation](../tasks/segment.md): Enhances mask prediction accuracy through diverse transformations
+- [Classification](../tasks/classify.md): Increases model generalization with color and geometric augmentations
+- [Pose Estimation](../tasks/pose.md): Helps models adapt to different viewpoints and lighting conditions
+
+The library's diverse augmentation options make it valuable for any vision task requiring robust model performance.

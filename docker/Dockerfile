@@ -56,7 +56,6 @@ RUN pip install numpy==1.23.5
 # Remove extra build files
 RUN rm -rf tmp /root/.config/Ultralytics/persistent_cache.json
 
-
 # Usage Examples -------------------------------------------------------------------------------------------------------
 
 # Build and Push

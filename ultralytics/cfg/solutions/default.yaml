@@ -2,7 +2,7 @@
 # Configuration for Ultralytics Solutions
 
 # Object counting settings
-region: # Object counting, queue or speed estimation region points. Default region points are [(20, 400), (1080, 404), (1080, 360), (20, 360)]
+region: # Object counting, queue or speed estimation region points. Default region points are [(20, 400), (1080, 400), (1080, 360), (20, 360)]
 show_in: True # Flag to display objects moving *into* the defined region
 show_out: True # Flag to display objects moving *out of* the defined region
 

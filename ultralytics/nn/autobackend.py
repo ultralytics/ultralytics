@@ -123,6 +123,7 @@ class AutoBackend(nn.Module):
             paddle,
             mnn,
             ncnn,
+            imx,
             triton,
         ) = self._model_type(w)
         fp16 &= pt or jit or onnx or xml or engine or nn_module or triton  # FP16
@@ -182,8 +183,8 @@ class AutoBackend(nn.Module):
             check_requirements("opencv-python>=4.5.4")
             net = cv2.dnn.readNetFromONNX(w)
 
-        # ONNX Runtime
-        elif onnx:
+        # ONNX Runtime and IMX
+        elif onnx or imx:
             LOGGER.info(f"Loading {w} for ONNX Runtime inference...")
             check_requirements(("onnx", "onnxruntime-gpu" if cuda else "onnxruntime"))
             if IS_RASPBERRYPI or IS_JETSON:
@@ -199,7 +200,22 @@ class AutoBackend(nn.Module):
                 device = torch.device("cpu")
                 cuda = False
             LOGGER.info(f"Preferring ONNX Runtime {providers[0]}")
-            session = onnxruntime.InferenceSession(w, providers=providers)
+            if onnx:
+                session = onnxruntime.InferenceSession(w, providers=providers)
+            else:
+                check_requirements(
+                    ["model-compression-toolkit==2.1.1", "sony-custom-layers[torch]==0.2.0", "onnxruntime-extensions"]
+                )
+                w = next(Path(w).glob("*.onnx"))
+                LOGGER.info(f"Loading {w} for ONNX IMX inference...")
+                import mct_quantizers as mctq
+                from sony_custom_layers.pytorch.object_detection import nms_ort  # noqa
+
+                session = onnxruntime.InferenceSession(
+                    w, mctq.get_ort_session_options(), providers=["CPUExecutionProvider"]
+                )
+                task = "detect"
+
             output_names = [x.name for x in session.get_outputs()]
             metadata = session.get_modelmeta().custom_metadata_map
             dynamic = isinstance(session.get_outputs()[0].shape[0], str)
@@ -520,7 +536,7 @@ class AutoBackend(nn.Module):
             y = self.net.forward()
 
         # ONNX Runtime
-        elif self.onnx:
+        elif self.onnx or self.imx:
             if self.dynamic:
                 im = im.cpu().numpy()  # torch to numpy
                 y = self.session.run(self.output_names, {self.session.get_inputs()[0].name: im})
@@ -537,6 +553,9 @@ class AutoBackend(nn.Module):
                 )
                 self.session.run_with_iobinding(self.io)
                 y = self.bindings
+            if self.imx:
+                # boxes, conf, cls
+                y = np.concatenate([y[0], y[1][:, :, None], y[2][:, :, None]], axis=-1)
 
         # OpenVINO
         elif self.xml:

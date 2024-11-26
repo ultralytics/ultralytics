@@ -6,10 +6,12 @@ import { detectImage } from "./utils/detect";
 import { download } from "./utils/download";
 import "./style/App.css";
 
-
 const App = () => {
   const [session, setSession] = useState(null);
-  const [loading, setLoading] = useState({ text: "Loading OpenCV.js", progress: null });
+  const [loading, setLoading] = useState({
+    text: "Loading OpenCV.js",
+    progress: null,
+  });
   const [image, setImage] = useState(null);
   const inputImage = useRef(null);
   const imageRef = useRef(null);
@@ -51,11 +53,19 @@ const App = () => {
               video.style.display = "block";
               let start = Date.now();
               cap.read(src);
-              detectImage(src, canvas, session, topk, iouThreshold, scoreThreshold, modelInputShape, true);
+              detectImage(
+                src,
+                canvas,
+                session,
+                topk,
+                iouThreshold,
+                scoreThreshold,
+                modelInputShape,
+                true,
+              );
               let end = Date.now();
               let time = end - start;
               time_element.innerHTML = "Time: " + time + "ms";
-
             } catch (err) {
               alert(err);
             }
@@ -66,8 +76,7 @@ const App = () => {
         .catch(function (err) {
           console.log("An error occurred! " + err);
         });
-    }
-    else {
+    } else {
       streaming = null;
       // close webcam
       video.style.display = "none";
@@ -79,8 +88,8 @@ const App = () => {
       time_element.innerHTML = "Time: 0ms";
     }
 
-    button_webcam_element.innerHTML = (streaming === "camera" ? "Close" : "Open") + " Webcam";
-
+    button_webcam_element.innerHTML =
+      (streaming === "camera" ? "Close" : "Open") + " Webcam";
   };
 
   // Configs
@@ -97,14 +106,14 @@ const App = () => {
     // create session
     const arrBufNet = await download(
       `${baseModelURL}/${modelName}`, // url
-      ["Loading YOLOv8 Pose model", setLoading] // logger
+      ["Loading YOLOv8 Pose model", setLoading], // logger
     );
 
     let yolov8 = await InferenceSession.create(arrBufNet);
 
     const arrBufNMS = await download(
       `${baseModelURL}/modified-nms-yolov8-pose.onnx`, // url
-      ["Loading NMS model", setLoading] // logger
+      ["Loading NMS model", setLoading], // logger
     );
     const nms = await InferenceSession.create(arrBufNMS);
 
@@ -113,7 +122,7 @@ const App = () => {
     const tensor = new Tensor(
       "float32",
       new Float32Array(modelInputShape.reduce((a, b) => a * b)),
-      modelInputShape
+      modelInputShape,
     );
 
     await yolov8.run({ images: tensor });
@@ -126,7 +135,9 @@ const App = () => {
     <div className="App">
       {loading && (
         <Loader>
-          {loading.progress ? `${loading.text} - ${loading.progress}%` : loading.text}
+          {loading.progress
+            ? `${loading.text} - ${loading.progress}%`
+            : loading.text}
         </Loader>
       )}
       <div className="header">
@@ -155,12 +166,19 @@ const App = () => {
               topk,
               iouThreshold,
               scoreThreshold,
-              modelInputShape
+              modelInputShape,
             );
           }}
         />
 
-        <video id="vid" ref={videoRef} autoPlay playsInline muted style={{ inlineSize: "fit-content" }} />
+        <video
+          id="vid"
+          ref={videoRef}
+          autoPlay
+          playsInline
+          muted
+          style={{ inlineSize: "fit-content" }}
+        />
 
         <canvas
           id="canvas"
@@ -206,7 +224,12 @@ const App = () => {
               setImage(null);
               //clear canvas
               const ctx = canvasRef.current.getContext("2d");
-              ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+              ctx.clearRect(
+                0,
+                0,
+                canvasRef.current.width,
+                canvasRef.current.height,
+              );
             }}
           >
             Close image

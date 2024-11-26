@@ -21,31 +21,43 @@ export const detectImage = async (
   scoreThreshold,
   inputShape,
   isVideo,
-  callback = () => { },
+  callback = () => {},
 ) => {
   const [modelWidth] = inputShape.slice(2);
   const [modelHeight] = inputShape.slice(3);
-  const [input, xRatio, yRatio] = preprocessing(image, modelWidth, modelHeight, isVideo);
+  const [input, xRatio, yRatio] = preprocessing(
+    image,
+    modelWidth,
+    modelHeight,
+    isVideo,
+  );
 
   const tensor = new Tensor("float32", input.data32F, inputShape); // to ort.Tensor
-  const config = new Tensor("float32",
+  const config = new Tensor(
+    "float32",
     new Float32Array([
       topk, // topk per class
       iouThreshold, // iou threshold
       scoreThreshold, // score threshold
-    ])
+    ]),
   ); // nms config tensor
 
   // console.time("session")
   const { output0 } = await session.net.run({ images: tensor }); // run session and get output layer
   // console.timeEnd("session")
-  const { selected } = await session.nms.run({ detection: output0, config: config }); // perform nms and filter boxes
+  const { selected } = await session.nms.run({
+    detection: output0,
+    config: config,
+  }); // perform nms and filter boxes
 
   const boxes = [];
 
   // looping through output
   for (let idx = 0; idx < selected.dims[1]; idx++) {
-    const data = selected.data.slice(idx * selected.dims[2], (idx + 1) * selected.dims[2]); // get rows
+    const data = selected.data.slice(
+      idx * selected.dims[2],
+      (idx + 1) * selected.dims[2],
+    ); // get rows
     const box = data.slice(0, 4);
     const score = data.slice(4, 5); // classes probability scores
     const landmarks = data.slice(5); // maximum probability scores
@@ -62,7 +74,7 @@ export const detectImage = async (
       label: label,
       probability: score,
       bounding: [x, y, w, h], // upscale box
-      landmarks: landmarks
+      landmarks: landmarks,
     }); // update boxes to draw later
   }
   renderBoxes(canvas, boxes, xRatio, yRatio); // Draw boxes
@@ -85,7 +97,7 @@ const preprocessing = (source, modelWidth, modelHeight, isVideo) => {
   const maxSize = Math.max(mat.rows, mat.cols); // get max size from width and height
   const xPad = maxSize - mat.cols, // set xPadding
     xRatio = maxSize / mat.cols; // set xRatio
-    const yPad = maxSize - mat.rows, // set yPadding
+  const yPad = maxSize - mat.rows, // set yPadding
     yRatio = maxSize / mat.rows; // set yRatio
   const matPad = new cv.Mat(); // new mat for padded image
 
@@ -98,7 +110,7 @@ const preprocessing = (source, modelWidth, modelHeight, isVideo) => {
     new cv.Size(modelWidth, modelHeight), // resize to model input size
     new cv.Scalar(0, 0, 0),
     true, // swapRB
-    false // crop
+    false, // crop
   ); // preprocessing image matrix
 
   // release mat opencv

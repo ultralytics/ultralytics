@@ -50,7 +50,7 @@ class Conv(nn.Module):
         return self.act(self.bn(self.conv(x)))
 
     def forward_fuse(self, x):
-        """Perform transposed convolution of 2D data."""
+        """Apply convolution and activation without batch normalization."""
         return self.act(self.conv(x))
 
 

@@ -254,24 +254,24 @@ def minify_files(html=True, css=True, js=True):
 
     stats = {}
     for ext, minifier in {
-        'html': (lambda x: minify(x, keep_closing_tags=True, minify_css=True, minify_js=True)) if html else None,
-        'css': compress if css else None,
-        'js': jsmin.jsmin if js else None
+        "html": (lambda x: minify(x, keep_closing_tags=True, minify_css=True, minify_js=True)) if html else None,
+        "css": compress if css else None,
+        "js": jsmin.jsmin if js else None,
     }.items():
         if not minifier:
             continue
 
-        stats[ext] = {'original': 0, 'minified': 0}
+        stats[ext] = {"original": 0, "minified": 0}
         for f in tqdm(SITE.rglob(f"*.{ext}"), desc=f"Minifying {ext.upper()}"):
             content = f.read_text(encoding="utf-8")
             minified = minifier(content)
-            stats[ext]['original'] += len(content)
-            stats[ext]['minified'] += len(minified)
+            stats[ext]["original"] += len(content)
+            stats[ext]["minified"] += len(minified)
             f.write_text(minified, encoding="utf-8")
 
     for ext, data in stats.items():
-        if data['original']:
-            r = data['original'] - data['minified']  # reduction
+        if data["original"]:
+            r = data["original"] - data["minified"]  # reduction
             print(f"Total {ext.upper()} reduction: {(r / data['original']) * 100:.2f}% ({r / 1024:.2f} KB saved)")
 
 

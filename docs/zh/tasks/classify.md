@@ -31,9 +31,9 @@ keywords: Ultralytics, YOLOv8, 图像分类, 预训练模型, YOLOv8n-cls, 训�
 | [YOLOv8x-cls](https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8x-cls.pt) | 224                 | 78.4                | 94.3                | 232.0                         | 1.01                               | 57.4             | 154.8                    |
 
 - **准确率** 是模型在[ImageNet](https://www.image-net.org/)数据集验证集上的准确度。
-    <br>通过`yolo val classify data=path/to/ImageNet device=0`复现结果。
+  <br>通过`yolo val classify data=path/to/ImageNet device=0`复现结果。
 - **速度** 是在使用[Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/)实例时，ImageNet验证图像的平均处理速度。
-    <br>通过`yolo val classify data=path/to/ImageNet batch=1 device=0|cpu`复现结果。
+  <br>通过`yolo val classify data=path/to/ImageNet batch=1 device=0|cpu`复现结果。
 
 ## 训练
 

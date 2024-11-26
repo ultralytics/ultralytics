@@ -329,10 +329,9 @@ class Predictor(BasePredictor):
             crop_nms_thresh (float): IoU cutoff for NMS to remove duplicate masks between crops.
 
         Returns:
-            (Tuple[torch.Tensor, torch.Tensor, torch.Tensor]): A tuple containing:
-                - pred_masks (torch.Tensor): Segmented masks with shape (N, H, W).
-                - pred_scores (torch.Tensor): Confidence scores for each mask with shape (N,).
-                - pred_bboxes (torch.Tensor): Bounding boxes for each mask with shape (N, 4).
+            pred_masks (torch.Tensor): Segmented masks with shape (N, H, W).
+            pred_scores (torch.Tensor): Confidence scores for each mask with shape (N,).
+            pred_bboxes (torch.Tensor): Bounding boxes for each mask with shape (N, 4).
 
         Examples:
             >>> predictor = Predictor()
@@ -1230,7 +1229,7 @@ class SAM2VideoPredictor(SAM2Predictor):
             obj_id (int): The unique identifier of the object provided by the client side.
 
         Returns:
-            int: The index of the object on the model side.
+            (int): The index of the object on the model side.
 
         Raises:
             RuntimeError: If an attempt is made to add a new object after tracking has started.

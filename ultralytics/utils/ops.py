@@ -317,11 +317,11 @@ def clip_boxes(boxes, shape):
     Takes a list of bounding boxes and a shape (height, width) and clips the bounding boxes to the shape.
 
     Args:
-        boxes (torch.Tensor): the bounding boxes to clip
-        shape (tuple): the shape of the image
+        boxes (torch.Tensor): The bounding boxes to clip.
+        shape (tuple): The shape of the image.
 
     Returns:
-        (torch.Tensor | numpy.ndarray): Clipped boxes
+        (torch.Tensor | numpy.ndarray): The clipped boxes.
     """
     if isinstance(boxes, torch.Tensor):  # faster individually (WARNING: inplace .clamp_() Apple MPS bug)
         boxes[..., 0] = boxes[..., 0].clamp(0, shape[1])  # x1
@@ -359,9 +359,9 @@ def scale_image(masks, im0_shape, ratio_pad=None):
     Takes a mask, and resizes it to the original image size.
 
     Args:
-        masks (np.ndarray): resized and padded masks/images, [h, w, num]/[h, w, 3].
-        im0_shape (tuple): the original image shape
-        ratio_pad (tuple): the ratio of the padding to the original image.
+        masks (np.ndarray): Resized and padded masks/images, [h, w, num]/[h, w, 3].
+        im0_shape (tuple): The original image shape.
+        ratio_pad (tuple): The ratio of the padding to the original image.
 
     Returns:
         masks (np.ndarray): The masks that are being returned with shape [h, w, num].
@@ -692,12 +692,12 @@ def process_mask_native(protos, masks_in, bboxes, shape):
 
     Args:
         protos (torch.Tensor): [mask_dim, mask_h, mask_w]
-        masks_in (torch.Tensor): [n, mask_dim], n is number of masks after nms
-        bboxes (torch.Tensor): [n, 4], n is number of masks after nms
-        shape (tuple): the size of the input image (h,w)
+        masks_in (torch.Tensor): [n, mask_dim], n is number of masks after nms.
+        bboxes (torch.Tensor): [n, 4], n is number of masks after nms.
+        shape (tuple): The size of the input image (h,w).
 
     Returns:
-        masks (torch.Tensor): The returned masks with dimensions [h, w, n]
+        masks (torch.Tensor): The returned masks with dimensions [h, w, n].
     """
     c, mh, mw = protos.shape  # CHW
     masks = (masks_in @ protos.float().view(c, -1)).view(-1, mh, mw)

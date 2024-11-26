@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Explore Ultralytics HUB for easy training, analysis, preview, deployment and sharing of custom vision AI models using YOLOv8. Start training today!.
-keywords: Ultralytics HUB, YOLOv8, custom AI models, model training, model deployment, model analysis, vision AI
+description: Explore Ultralytics HUB for easy training, analysis, preview, deployment and sharing of custom vision AI models using YOLO11. Start training today!.
+keywords: Ultralytics HUB, YOLO11, custom AI models, model training, model deployment, model analysis, vision AI
 ---
 
 # Ultralytics HUB Models
@@ -66,7 +66,7 @@ In this step, you have to choose the project in which you want to create your mo
 
 !!! info
 
-    You can read more about the available [YOLOv8](https://docs.ultralytics.com/models/yolov8/) (and [YOLOv5](https://docs.ultralytics.com/models/yolov5/)) architectures in our documentation.
+    You can read more about the available [YOLO models](https://docs.ultralytics.com/models/) and architectures in our documentation.
 
 By default, your model will use a pre-trained model (trained on the [COCO](https://docs.ultralytics.com/datasets/detect/coco/) dataset) to reduce training time. You can change this behavior and tweak your model's configuration by opening the **Advanced Model Configuration** accordion.
 

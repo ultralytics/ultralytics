@@ -1506,7 +1506,7 @@ class SAM2VideoPredictor(SAM2Predictor):
             torch.Tensor: A tensor representing the dummy object pointer generated from the empty mask.
         """
         # Retrieve correct image features
-        current_vision_feats, current_vision_pos_embeds, feat_sizes = self.get_im_features(frame_idx)
+        current_vision_feats, current_vision_pos_embeds, feat_sizes = self.get_im_features(self.inference_state["im"])
 
         # Feed the empty mask and image feature above to get a dummy object pointer
         current_out = self.model.track_step(

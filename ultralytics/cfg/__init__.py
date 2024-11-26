@@ -83,13 +83,13 @@ SOLUTIONS_HELP_MSG = f"""
                 See all ARGS at https://docs.ultralytics.com/usage/cfg or with 'yolo cfg'
 
     1. Call object counting solution
-        yolo solutions count source="path/to/video/file.mp4" region=[(20, 400), (1080, 404), (1080, 360), (20, 360)]
+        yolo solutions count source="path/to/video/file.mp4" region=[(20, 400), (1080, 400), (1080, 360), (20, 360)]
 
     2. Call heatmaps solution
         yolo solutions heatmap colormap=cv2.COLORMAP_PARAULA model=yolo11n.pt
 
     3. Call queue management solution
-        yolo solutions queue region=[(20, 400), (1080, 404), (1080, 360), (20, 360)] model=yolo11n.pt
+        yolo solutions queue region=[(20, 400), (1080, 400), (1080, 360), (20, 360)] model=yolo11n.pt
 
     4. Call workouts monitoring solution for push-ups
         yolo solutions workout model=yolo11n-pose.pt kpts=[6, 8, 10]
@@ -160,7 +160,6 @@ CFG_FRACTION_KEYS = {  # fractional float arguments with 0.0<=values<=1.0
     "weight_decay",
     "warmup_momentum",
     "warmup_bias_lr",
-    "label_smoothing",
     "hsv_h",
     "hsv_s",
     "hsv_v",
@@ -436,6 +435,9 @@ def _handle_deprecation(custom):
         if key == "line_thickness":
             deprecation_warn(key, "line_width")
             custom["line_width"] = custom.pop("line_thickness")
+        if key == "label_smoothing":
+            deprecation_warn(key)
+            custom.pop("label_smoothing")
 
     return custom
 
@@ -671,6 +673,9 @@ def handle_yolo_solutions(args: List[str]) -> None:
         )
         s_n = "count"  # Default solution if none provided
 
+    if args and args[0] == "help":  # Add check for return if user call `yolo solutions help`
+        return
+
     cls, method = SOLUTION_MAP[s_n]  # solution class name, method name and default source
 
     from ultralytics import solutions  # import ultralytics solutions
@@ -735,9 +740,8 @@ def parse_key_value_pair(pair: str = "key=value"):
         pair (str): A string containing a key-value pair in the format "key=value".
 
     Returns:
-        (tuple): A tuple containing two elements:
-            - key (str): The parsed key.
-            - value (str): The parsed value.
+        key (str): The parsed key.
+        value (str): The parsed value.
 
     Raises:
         AssertionError: If the value is missing or empty.

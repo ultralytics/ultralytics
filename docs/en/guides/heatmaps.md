@@ -49,7 +49,7 @@ A heatmap generated with [Ultralytics YOLO11](https://github.com/ultralytics/ult
         yolo solutions heatmap colormap=cv2.COLORMAP_INFERNO
 
         # Heatmaps + object counting
-        yolo solutions heatmap region=[(20, 400), (1080, 404), (1080, 360), (20, 360)]
+        yolo solutions heatmap region=[(20, 400), (1080, 400), (1080, 360), (20, 360)]
         ```
 
     === "Python"
@@ -67,9 +67,9 @@ A heatmap generated with [Ultralytics YOLO11](https://github.com/ultralytics/ult
         video_writer = cv2.VideoWriter("heatmap_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
         # In case you want to apply object counting + heatmaps, you can pass region points.
-        # region_points = [(20, 400), (1080, 404)]  # Define line points
-        # region_points = [(20, 400), (1080, 404), (1080, 360), (20, 360)]  # Define region points
-        # region_points = [(20, 400), (1080, 404), (1080, 360), (20, 360), (20, 400)]  # Define polygon points
+        # region_points = [(20, 400), (1080, 400)]  # Define line points
+        # region_points = [(20, 400), (1080, 400), (1080, 360), (20, 360)]  # Define region points
+        # region_points = [(20, 400), (1080, 400), (1080, 360), (20, 360), (20, 400)]  # Define polygon points
 
         # Init heatmap
         heatmap = solutions.Heatmap(

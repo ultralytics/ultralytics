@@ -50,10 +50,12 @@ class BaseSolution:
         """
         check_requirements("shapely>=2.0.0")
         from shapely.geometry import LineString, Point, Polygon
+        from shapely.prepared import prep
 
         self.LineString = LineString
         self.Polygon = Polygon
         self.Point = Point
+        self.prep = prep
 
         # Load config and update with args
         DEFAULT_SOL_DICT.update(kwargs)
@@ -133,7 +135,7 @@ class BaseSolution:
     def initialize_region(self):
         """Initialize the counting region and line segment based on configuration settings."""
         if self.region is None:
-            self.region = [(20, 400), (1080, 404), (1080, 360), (20, 360)]
+            self.region = [(20, 400), (1080, 400), (1080, 360), (20, 360)]
         self.r_s = (
             self.Polygon(self.region) if len(self.region) >= 3 else self.LineString(self.region)
         )  # region or line

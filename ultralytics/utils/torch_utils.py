@@ -675,7 +675,7 @@ def profile(input, ops, n=10, device=None, max_num_obj=0):
                         torch.randn(
                             x.shape[0],
                             max_num_obj,
-                            int(sum([(x.shape[-1] / s) * (x.shape[-2] / s) for s in m.stride.tolist()])),
+                            int(sum((x.shape[-1] / s) * (x.shape[-2] / s) for s in m.stride.tolist())),
                             device=device,
                             dtype=torch.float32,
                         )

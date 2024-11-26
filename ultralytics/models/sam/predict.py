@@ -691,7 +691,6 @@ class SAM2Predictor(Predictor):
         Returns:
             (np.ndarray): Output masks with shape (C, H, W), where C is the number of generated masks.
             (np.ndarray): Quality scores for each mask, with length C.
-            (np.ndarray): Low-resolution logits with shape (C, 256, 256) for subsequent inference.
 
         Examples:
             >>> predictor = SAM2Predictor(cfg)
@@ -893,7 +892,6 @@ class SAM2VideoPredictor(SAM2Predictor):
         Returns:
             (np.ndarray): The output masks in shape CxHxW, where C is the number of generated masks.
             (np.ndarray): An array of length C containing quality scores predicted by the model for each mask.
-            (np.ndarray): Low-resolution logits of shape CxHxW for subsequent inference, where H=W=256.
         """
         # Override prompts if any stored in self.prompts
         bboxes = self.prompts.pop("bboxes", bboxes)
@@ -1300,7 +1298,7 @@ class SAM2VideoPredictor(SAM2Predictor):
             prev_sam_mask_logits (torch.Tensor, Optional): Previous mask logits for the current object. Defaults to None.
 
         Returns:
-            Dict: A dictionary containing the output of the tracking step, including updated features and predictions.
+            (dict): A dictionary containing the output of the tracking step, including updated features and predictions.
 
         Raises:
             AssertionError: If both `point_inputs` and `mask_inputs` are provided, or neither is provided.
@@ -1364,7 +1362,7 @@ class SAM2VideoPredictor(SAM2Predictor):
                 Should be a list of tensors or None.
 
         Returns:
-            List[torch.Tensor]: The positional encoding for mask memory, either cached or expanded.
+            (List[torch.Tensor]): The positional encoding for mask memory, either cached or expanded.
 
         Note:
             - The method assumes that `out_maskmem_pos_enc` is a list of tensors or None.
@@ -1410,7 +1408,7 @@ class SAM2VideoPredictor(SAM2Predictor):
                 consolidating the outputs. Defaults to False.
 
         Returns:
-            Dict: A consolidated output dictionary containing the combined results for all objects.
+            (dict): A consolidated output dictionary containing the combined results for all objects.
 
         Note:
             - The method initializes the consolidated output with placeholder values for missing objects.
@@ -1503,7 +1501,7 @@ class SAM2VideoPredictor(SAM2Predictor):
             frame_idx (int): The index of the current frame for which to generate the dummy object pointer.
 
         Returns:
-            torch.Tensor: A tensor representing the dummy object pointer generated from the empty mask.
+            (torch.Tensor): A tensor representing the dummy object pointer generated from the empty mask.
         """
         # Retrieve correct image features
         current_vision_feats, current_vision_pos_embeds, feat_sizes = self.get_im_features(self.inference_state["im"])
@@ -1540,7 +1538,7 @@ class SAM2VideoPredictor(SAM2Predictor):
             is_mask_from_pts (bool): Indicates if the mask is derived from point interactions.
 
         Returns:
-            Tuple[torch.Tensor, torch.Tensor]: A tuple containing the encoded mask features and positional encoding.
+            (tuple[torch.Tensor, torch.Tensor]): A tuple containing the encoded mask features and positional encoding.
         """
         # Retrieve correct image features
         current_vision_feats, _, feat_sizes = self.get_im_features(self.inference_state["im"], batch_size)

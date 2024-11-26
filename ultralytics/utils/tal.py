@@ -129,28 +129,6 @@ class TaskAlignedAssigner(nn.Module):
 
         return mask_pos, align_metric, overlaps
 
-    # def get_box_metrics(self, pd_scores, pd_bboxes, gt_labels, gt_bboxes, mask_gt):
-    #     """Compute alignment metric given predicted and ground truth bounding boxes."""
-    #     na = pd_bboxes.shape[-2]
-    #     mask_gt = mask_gt.bool()  # b, max_num_obj, h*w
-    #     overlaps = torch.zeros([self.bs, self.n_max_boxes, na], dtype=pd_bboxes.dtype, device=pd_bboxes.device)
-    #     bbox_scores = torch.zeros([self.bs, self.n_max_boxes, na], dtype=pd_scores.dtype, device=pd_scores.device)
-
-    #     ind = torch.zeros([2, self.bs, self.n_max_boxes], dtype=torch.long)  # 2, b, max_num_obj
-    #     ind[0] = torch.arange(end=self.bs).view(-1, 1).expand(-1, self.n_max_boxes)  # b, max_num_obj
-    #     ind[1] = gt_labels.squeeze(-1)  # b, max_num_obj
-
-    #     # Get the scores of each grid for each gt cls
-    #     bbox_scores[mask_gt] = pd_scores[ind[0], :, ind[1]][mask_gt]  # b, max_num_obj, h*w
-
-    #     # (b, max_num_obj, 1, 4), (b, 1, h*w, 4)
-    #     pd_boxes = pd_bboxes.unsqueeze(1).expand(-1, self.n_max_boxes, -1, -1)[mask_gt]
-    #     gt_boxes = gt_bboxes.unsqueeze(2).expand(-1, -1, na, -1)[mask_gt]
-    #     overlaps[mask_gt] = self.iou_calculation(gt_boxes, pd_boxes)
-
-    #     align_metric = bbox_scores.pow(self.alpha) * overlaps.pow(self.beta)
-    #     return align_metric, overlaps
-
     def get_box_metrics(self, pd_scores, pd_bboxes, gt_labels, gt_bboxes, mask_gt):
         """Compute alignment metric given predicted and ground truth bounding boxes."""
         na = pd_bboxes.shape[-2]
@@ -158,18 +136,15 @@ class TaskAlignedAssigner(nn.Module):
         overlaps = torch.zeros([self.bs, self.n_max_boxes, na], dtype=pd_bboxes.dtype, device=pd_bboxes.device)
         bbox_scores = torch.zeros([self.bs, self.n_max_boxes, na], dtype=pd_scores.dtype, device=pd_scores.device)
 
-        # Индексация по измерению батча и количеству объектов
         ind = torch.zeros([2, self.bs, self.n_max_boxes], dtype=torch.long)  # 2, b, max_num_obj
         ind[0] = torch.arange(end=self.bs).view(-1, 1).expand(-1, self.n_max_boxes)  # b, max_num_obj
 
-        # Нам нужно обрабатывать все активные метки как бинарные представления
         for b in range(self.bs):
             for n in range(self.n_max_boxes):
-                active_labels = gt_labels[b, n] > 0  # Определяем активные классы
+                active_labels = gt_labels[b, n] > 0
                 if active_labels.any():
                     bbox_scores[b, n] = pd_scores[b, :, active_labels].amax(dim=-1)
 
-        # Вычисляем IoU и обновляем `overlaps` и `align_metric`.
         pd_boxes = pd_bboxes.unsqueeze(1).expand(-1, self.n_max_boxes, -1, -1)[mask_gt]
         gt_boxes = gt_bboxes.unsqueeze(2).expand(-1, -1, na, -1)[mask_gt]
         overlaps[mask_gt] = self.iou_calculation(gt_boxes, pd_boxes)

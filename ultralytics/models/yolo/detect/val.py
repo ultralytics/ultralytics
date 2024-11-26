@@ -135,8 +135,6 @@ class DetectionValidator(BaseValidator):
             pbatch = self._prepare_batch(si, batch)
             cls, bbox = pbatch.pop("cls"), pbatch.pop("bbox")
             nl = len(cls)
-            # print("preds", pred.shape)  # torch.Size([66, 6])
-            # print("cls", cls.shape)  # torch.Size([8, 23])
             stat["target_cls"] = cls
             stat["target_img"] = cls.nonzero()[:, 1].unique()
             if npr == 0:
@@ -227,9 +225,6 @@ class DetectionValidator(BaseValidator):
             intermediate representation used for evaluating predictions against ground truth.
         """
         iou = box_iou(gt_bboxes, detections[:, :4])
-        # detections torch.Size([162, 6]) -> [162]
-        # gt_cls torch.Size([3, 23])
-        # iou torch.Size([3, 162])
         return self.match_predictions(detections[:, 5], gt_cls, iou)
 
     def build_dataset(self, img_path, mode="val", batch=None):

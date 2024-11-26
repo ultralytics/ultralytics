@@ -35,7 +35,6 @@ ENTRYPOINT sh -c './config.sh --url https://github.com/ultralytics/ultralytics \
                               --replace && \
                   ./run.sh'
 
-
 # Usage Examples -------------------------------------------------------------------------------------------------------
 
 # Build and Push

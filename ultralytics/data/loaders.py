@@ -1,8 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-import glob
 import math
-import os
 import time
 from dataclasses import dataclass
 from pathlib import Path
@@ -97,7 +95,7 @@ class LoadStreams:
         self.mode = "stream"
         self.vid_stride = vid_stride  # video frame-rate stride
 
-        sources = Path(sources).read_text().rsplit() if os.path.isfile(sources) else [sources]
+        sources = Path(sources).read_text().rsplit() if Path(sources).is_file() else [sources]
         n = len(sources)
         self.bs = n
         self.fps = [0] * n  # frames per second
@@ -323,20 +321,23 @@ class LoadImagesAndVideos:
     def __init__(self, path, batch=1, vid_stride=1):
         """Initialize dataloader for images and videos, supporting various input formats."""
         parent = None
-        if isinstance(path, str) and Path(path).suffix == ".txt":  # *.txt file with img/vid/dir on each line
+        if isinstance(path, str) and Path(path).suffix == ".txt":
             parent = Path(path).parent
-            path = Path(path).read_text().splitlines()  # list of sources
+            path = Path(path).read_text().splitlines()
+
         files = []
-        for p in sorted(path) if isinstance(path, (list, tuple)) else [path]:
-            a = str(Path(p).absolute())  # do not use .resolve() https://github.com/ultralytics/ultralytics/issues/2912
-            if "*" in a:
-                files.extend(sorted(glob.glob(a, recursive=True)))  # glob
-            elif os.path.isdir(a):
-                files.extend(sorted(glob.glob(os.path.join(a, "*.*"))))  # dir
-            elif os.path.isfile(a):
-                files.append(a)  # files (absolute or relative to CWD)
+        paths = sorted(path) if isinstance(path, (list, tuple)) else [path]
+
+        for p in paths:
+            abs_path = Path(p).absolute()
+            if "*" in str(abs_path):
+                files.extend([str(path) for path in sorted(abs_path.parent.glob(abs_path.name))])
+            elif abs_path.is_dir():
+                files.extend([str(path) for path in sorted(abs_path.glob("*.*"))])
+            elif abs_path.is_file():
+                files.append(str(abs_path))
             elif parent and (parent / p).is_file():
-                files.append(str((parent / p).absolute()))  # files (relative to *.txt file parent)
+                files.append(str((parent / p).absolute()))
             else:
                 raise FileNotFoundError(f"{p} does not exist")
 

@@ -943,6 +943,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         self._add_output_per_object(frame, current_out, storage_key)
         self.inference_state["frames_already_tracked"].append(frame)
         pred_masks = current_out["pred_masks"].flatten(0, 1)
+        pred_masks = pred_masks[(pred_masks > self.model.mask_threshold).sum((1, 2)) > 0] # filter blank masks
 
         return pred_masks, torch.ones(len(pred_masks), dtype=pred_masks.dtype, device=pred_masks.device)
 
@@ -968,6 +969,8 @@ class SAM2VideoPredictor(SAM2Predictor):
         results = super().postprocess(preds, img, orig_imgs)
         if self.non_overlap_masks:
             for result in results:
+                if result.masks is None or len(result.masks) == 0:
+                    continue
                 result.masks.data = self.model._apply_non_overlapping_constraints(result.masks.data.unsqueeze(0))[0]
         return results
 

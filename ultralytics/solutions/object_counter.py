@@ -46,13 +46,12 @@ class ObjectCounter(BaseSolution):
         self.show_in = self.CFG["show_in"]
         self.show_out = self.CFG["show_out"]
 
-    def count_objects(self, track_line, box, track_id, prev_position, cls):
+    def count_objects(self, current_centroid, track_id, prev_position, cls):
         """
         Counts objects within a polygonal or linear region based on their tracks.
 
         Args:
-            track_line (Dict): Last 30 frame track record for the object.
-            box (List[float]): Bounding box coordinates [x1, y1, x2, y2] for the specific track in the current frame.
+            current_centroid (Tuple[float, float]): Current centroid values in the current frame.
             track_id (int): Unique identifier for the tracked object.
             prev_position (Tuple[float, float]): Last frame position coordinates (x, y) of the track.
             cls (int): Class index for classwise count updates.
@@ -64,34 +63,51 @@ class ObjectCounter(BaseSolution):
             >>> track_id = 1
             >>> prev_position = (120, 220)
             >>> cls = 0
-            >>> counter.count_objects(track_line, box, track_id, prev_position, cls)
+            >>> counter.count_objects(current_centroid, track_id, prev_position, cls)
         """
         if prev_position is None or track_id in self.counted_ids:
             return
 
-        centroid = self.r_s.centroid
-        dx = (box[0] - prev_position[0]) * (centroid.x - prev_position[0])
-        dy = (box[1] - prev_position[1]) * (centroid.y - prev_position[1])
+        if len(self.region) == 2:  # Linear region (defined as a line segment)
+            line = self.LineString(self.region)  # Check if the line intersects the trajectory of the object
+            if line.intersects(self.LineString([prev_position, current_centroid])):
+                # Determine orientation of the region (vertical or horizontal)
+                if abs(self.region[0][0] - self.region[1][0]) < abs(self.region[0][1] - self.region[1][1]):
+                    # Vertical region: Compare x-coordinates to determine direction
+                    if current_centroid[0] > prev_position[0]:  # Moving right
+                        self.in_count += 1
+                        self.classwise_counts[self.names[cls]]["IN"] += 1
+                    else:  # Moving left
+                        self.out_count += 1
+                        self.classwise_counts[self.names[cls]]["OUT"] += 1
+                # Horizontal region: Compare y-coordinates to determine direction
+                elif current_centroid[1] > prev_position[1]:  # Moving downward
+                    self.in_count += 1
+                    self.classwise_counts[self.names[cls]]["IN"] += 1
+                else:  # Moving upward
+                    self.out_count += 1
+                    self.classwise_counts[self.names[cls]]["OUT"] += 1
+                self.counted_ids.append(track_id)
 
-        if len(self.region) >= 3 and self.r_s.contains(self.Point(track_line[-1])):
-            self.counted_ids.append(track_id)
-            # For polygon region
-            if dx > 0:
-                self.in_count += 1
-                self.classwise_counts[self.names[cls]]["IN"] += 1
-            else:
-                self.out_count += 1
-                self.classwise_counts[self.names[cls]]["OUT"] += 1
+        elif len(self.region) > 2:  # Polygonal region
+            polygon = self.Polygon(self.region)
+            if polygon.contains(self.Point(current_centroid)):
+                # Determine motion direction for vertical or horizontal polygons
+                region_width = max(p[0] for p in self.region) - min(p[0] for p in self.region)
+                region_height = max(p[1] for p in self.region) - min(p[1] for p in self.region)
 
-        elif len(self.region) < 3 and self.LineString([prev_position, box[:2]]).intersects(self.r_s):
-            self.counted_ids.append(track_id)
-            # For linear region
-            if dx > 0 and dy > 0:
-                self.in_count += 1
-                self.classwise_counts[self.names[cls]]["IN"] += 1
-            else:
-                self.out_count += 1
-                self.classwise_counts[self.names[cls]]["OUT"] += 1
+                if (
+                    region_width < region_height
+                    and current_centroid[0] > prev_position[0]
+                    or region_width >= region_height
+                    and current_centroid[1] > prev_position[1]
+                ):  # Moving right
+                    self.in_count += 1
+                    self.classwise_counts[self.names[cls]]["IN"] += 1
+                else:  # Moving left
+                    self.out_count += 1
+                    self.classwise_counts[self.names[cls]]["OUT"] += 1
+                self.counted_ids.append(track_id)
 
     def store_classwise_counts(self, cls):
         """
@@ -174,12 +190,12 @@ class ObjectCounter(BaseSolution):
             self.annotator.draw_centroid_and_tracks(
                 self.track_line, color=colors(int(cls), True), track_thickness=self.line_width
             )
-
+            current_centroid = ((box[0] + box[2]) / 2, (box[1] + box[3]) / 2)
             # store previous position of track for object counting
             prev_position = None
             if len(self.track_history[track_id]) > 1:
                 prev_position = self.track_history[track_id][-2]
-            self.count_objects(self.track_line, box, track_id, prev_position, cls)  # Perform object counting
+            self.count_objects(current_centroid, track_id, prev_position, cls)  # Perform object counting
 
         self.display_counts(im0)  # Display the counts on the frame
         self.display_output(im0)  # display output with base class function

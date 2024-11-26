@@ -109,7 +109,12 @@ def _log_plots(plots, step):
 
 def on_pretrain_routine_start(trainer):
     """Initiate and start project if module is present."""
-    wb.run or wb.init(project=trainer.args.project or "Ultralytics", name=trainer.args.name, config=vars(trainer.args))
+    if not wb.run:
+        wb.init(
+            project=str(trainer.args.project).replace("/", "-") if trainer.args.project else "Ultralytics",
+            name=str(trainer.args.name).replace("/", "-"),
+            config=vars(trainer.args),
+        )
 
 
 def on_fit_epoch_end(trainer):
@@ -138,7 +143,7 @@ def on_train_end(trainer):
         art.add_file(trainer.best)
         wb.run.log_artifact(art, aliases=["best"])
     # Check if we actually have plots to save
-    if trainer.args.plots:
+    if trainer.args.plots and hasattr(trainer.validator.metrics, "curves_results"):
         for curve_name, curve_values in zip(trainer.validator.metrics.curves, trainer.validator.metrics.curves_results):
             x, y, x_title, y_title = curve_values
             _plot_curve(

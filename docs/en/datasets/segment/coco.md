@@ -56,14 +56,14 @@ To train a YOLO11n-seg model on the COCO-Seg dataset for 100 [epochs](https://ww
         model = YOLO("yolo11n-seg.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
-        results = model.train(data="coco-seg.yaml", epochs=100, imgsz=640)
+        results = model.train(data="coco.yaml", epochs=100, imgsz=640)
         ```
 
     === "CLI"
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo segment train data=coco-seg.yaml model=yolo11n-seg.pt epochs=100 imgsz=640
+        yolo segment train data=coco.yaml model=yolo11n-seg.pt epochs=100 imgsz=640
         ```
 
 ## Sample Images and Annotations
@@ -118,14 +118,14 @@ To train a YOLO11n-seg model on the COCO-Seg dataset for 100 epochs with an imag
         model = YOLO("yolo11n-seg.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
-        results = model.train(data="coco-seg.yaml", epochs=100, imgsz=640)
+        results = model.train(data="coco.yaml", epochs=100, imgsz=640)
         ```
 
     === "CLI"
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo segment train data=coco-seg.yaml model=yolo11n-seg.pt epochs=100 imgsz=640
+        yolo segment train data=coco.yaml model=yolo11n-seg.pt epochs=100 imgsz=640
         ```
 
 ### What are the key features of the COCO-Seg dataset?

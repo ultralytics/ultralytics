@@ -247,9 +247,7 @@ class YOLODataset(BaseDataset):
 
 
 class YOLOMultilabelDataset(YOLODataset):
-    """
-    Dataset class for multilabel object detection
-    """
+    """Dataset class for multilabel object detection."""
 
     def cache_labels(self, path=Path("./labels.cache")):
         """

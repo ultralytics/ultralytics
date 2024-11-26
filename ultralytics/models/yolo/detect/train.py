@@ -7,7 +7,7 @@ from copy import copy
 import numpy as np
 import torch.nn as nn
 
-from ultralytics.data import build_dataloader, build_yolo_dataset, YOLOConcatDataset
+from ultralytics.data import YOLOConcatDataset, build_dataloader, build_yolo_dataset
 from ultralytics.engine.trainer import BaseTrainer
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import DetectionModel

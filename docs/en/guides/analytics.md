@@ -45,6 +45,12 @@ This guide provides a comprehensive overview of three fundamental types of [data
 
         # generate the pie chart
         yolo solutions analytics analytics_type="pie" show=True
+
+        # generate the bar plots
+        yolo solutions analytics analytics_type="bar" show=True
+
+        # generate the area plots
+        yolo solutions analytics analytics_type="area" show=True
         ```
 
     === "Python"
@@ -56,9 +62,9 @@ This guide provides a comprehensive overview of three fundamental types of [data
 
         cap = cv2.VideoCapture("Path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
-
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 
+        # Video writer
         out = cv2.VideoWriter(
             "ultralytics_analytics.avi",
             cv2.VideoWriter_fourcc(*"MJPG"),
@@ -66,128 +72,15 @@ This guide provides a comprehensive overview of three fundamental types of [data
             (1920, 1080),  # This is fixed
         )
 
+        # Init analytics
         analytics = solutions.Analytics(
-            analytics_type="line",
-            show=True,
+            show=True,  # Display the output
+            analytics_type="line",  # Pass the analytics type, could be "pie", "bar" or "area".
+            model="yolo11n.pt",  # Path to the YOLO11 model file
+            # classes=[0, 2],  # If you want to count specific classes i.e person and car with COCO pretrained model.
         )
 
-        frame_count = 0
-        while cap.isOpened():
-            success, im0 = cap.read()
-            if success:
-                frame_count += 1
-                im0 = analytics.process_data(im0, frame_count)  # update analytics graph every frame
-                out.write(im0)  # write the video file
-            else:
-                break
-
-        cap.release()
-        out.release()
-        cv2.destroyAllWindows()
-        ```
-
-    === "Pie Chart"
-
-        ```python
-        import cv2
-
-        from ultralytics import solutions
-
-        cap = cv2.VideoCapture("Path/to/video/file.mp4")
-        assert cap.isOpened(), "Error reading video file"
-
-        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-
-        out = cv2.VideoWriter(
-            "ultralytics_analytics.avi",
-            cv2.VideoWriter_fourcc(*"MJPG"),
-            fps,
-            (1920, 1080),  # This is fixed
-        )
-
-        analytics = solutions.Analytics(
-            analytics_type="pie",
-            show=True,
-        )
-
-        frame_count = 0
-        while cap.isOpened():
-            success, im0 = cap.read()
-            if success:
-                frame_count += 1
-                im0 = analytics.process_data(im0, frame_count)  # update analytics graph every frame
-                out.write(im0)  # write the video file
-            else:
-                break
-
-        cap.release()
-        out.release()
-        cv2.destroyAllWindows()
-        ```
-
-    === "Bar Plot"
-
-        ```python
-        import cv2
-
-        from ultralytics import solutions
-
-        cap = cv2.VideoCapture("Path/to/video/file.mp4")
-        assert cap.isOpened(), "Error reading video file"
-
-        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-
-        out = cv2.VideoWriter(
-            "ultralytics_analytics.avi",
-            cv2.VideoWriter_fourcc(*"MJPG"),
-            fps,
-            (1920, 1080),  # This is fixed
-        )
-
-        analytics = solutions.Analytics(
-            analytics_type="bar",
-            show=True,
-        )
-
-        frame_count = 0
-        while cap.isOpened():
-            success, im0 = cap.read()
-            if success:
-                frame_count += 1
-                im0 = analytics.process_data(im0, frame_count)  # update analytics graph every frame
-                out.write(im0)  # write the video file
-            else:
-                break
-
-        cap.release()
-        out.release()
-        cv2.destroyAllWindows()
-        ```
-
-    === "Area chart"
-
-        ```python
-        import cv2
-
-        from ultralytics import solutions
-
-        cap = cv2.VideoCapture("Path/to/video/file.mp4")
-        assert cap.isOpened(), "Error reading video file"
-
-        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-
-        out = cv2.VideoWriter(
-            "ultralytics_analytics.avi",
-            cv2.VideoWriter_fourcc(*"MJPG"),
-            fps,
-            (1920, 1080),  # This is fixed
-        )
-
-        analytics = solutions.Analytics(
-            analytics_type="area",
-            show=True,
-        )
-
+        # Process video
         frame_count = 0
         while cap.isOpened():
             success, im0 = cap.read()

@@ -192,7 +192,7 @@ class v8DetectionLoss:
                 n = matches.sum()
                 if n:
                     out[j, :n] = targets[matches, 1:]
-            out[..., 1:5] = xywh2xyxy(out[..., 1:5].mul_(scale_tensor))
+            out[..., -4:] = xywh2xyxy(out[..., -4:].mul_(scale_tensor))
         return out
 
     def bbox_decode(self, anchor_points, pred_dist):
@@ -221,9 +221,9 @@ class v8DetectionLoss:
         anchor_points, stride_tensor = make_anchors(feats, self.stride, 0.5)
 
         # Targets
-        targets = torch.cat((batch["batch_idx"].view(-1, 1), batch["cls"].view(-1, 1), batch["bboxes"]), 1)
+        targets = torch.cat((batch["batch_idx"].view(-1, 1), batch["cls"], batch["bboxes"]), 1)
         targets = self.preprocess(targets.to(self.device), batch_size, scale_tensor=imgsz[[1, 0, 1, 0]])
-        gt_labels, gt_bboxes = targets.split((1, 4), 2)  # cls, xyxy
+        gt_labels, gt_bboxes = targets.split((self.nc, 4), 2)  # cls, xyxy
         mask_gt = gt_bboxes.sum(2, keepdim=True).gt_(0.0)
 
         # Pboxes

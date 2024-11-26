@@ -64,6 +64,9 @@ class FastSAMPredictor(SegmentationPredictor):
         if not isinstance(results, list):
             results = [results]
         for result in results:
+            if len(result) == 0:
+                prompt_results.append(result)
+                continue
             masks = result.masks.data
             if masks.shape[1:] != result.orig_shape:
                 masks = scale_masks(masks[None], result.orig_shape)[0]

@@ -116,7 +116,7 @@ class Predictor(BasePredictor):
             im (torch.Tensor | List[np.ndarray]): Input image(s) in BCHW tensor format or list of HWC numpy arrays.
 
         Returns:
-            (torch.Tensor): The preprocessed image tensor, normalized and converted to the appropriate dtype.
+            im (torch.Tensor): The preprocessed image tensor, normalized and converted to the appropriate dtype.
 
         Examples:
             >>> predictor = Predictor()
@@ -225,7 +225,6 @@ class Predictor(BasePredictor):
         Returns:
             (np.ndarray): Output masks with shape (C, H, W), where C is the number of generated masks.
             (np.ndarray): Quality scores predicted by the model for each mask, with length C.
-            (np.ndarray): Low-resolution logits with shape (C, H, W) for subsequent inference, where H=W=256.
 
         Examples:
             >>> predictor = Predictor()
@@ -458,7 +457,7 @@ class Predictor(BasePredictor):
             orig_imgs (List[np.ndarray] | torch.Tensor): The original, unprocessed images.
 
         Returns:
-            (List[Results]): List of Results objects containing detection masks, bounding boxes, and other
+            results (List[Results]): List of Results objects containing detection masks, bounding boxes, and other
                 metadata for each processed image.
 
         Examples:
@@ -960,7 +959,7 @@ class SAM2VideoPredictor(SAM2Predictor):
             orig_imgs (List[np.ndarray]): The original images before processing.
 
         Returns:
-            (list): The post-processed predictions.
+            results (list): The post-processed predictions.
 
         Note:
             If `non_overlap_masks` is True, the method applies constraints to ensure non-overlapping masks.
@@ -1229,7 +1228,7 @@ class SAM2VideoPredictor(SAM2Predictor):
             obj_id (int): The unique identifier of the object provided by the client side.
 
         Returns:
-            (int): The index of the object on the model side.
+            obj_idx (int): The index of the object on the model side.
 
         Raises:
             RuntimeError: If an attempt is made to add a new object after tracking has started.
@@ -1300,7 +1299,7 @@ class SAM2VideoPredictor(SAM2Predictor):
             prev_sam_mask_logits (torch.Tensor, Optional): Previous mask logits for the current object. Defaults to None.
 
         Returns:
-            (dict): A dictionary containing the output of the tracking step, including updated features and predictions.
+            current_out (dict): A dictionary containing the output of the tracking step, including updated features and predictions.
 
         Raises:
             AssertionError: If both `point_inputs` and `mask_inputs` are provided, or neither is provided.
@@ -1364,7 +1363,7 @@ class SAM2VideoPredictor(SAM2Predictor):
                 Should be a list of tensors or None.
 
         Returns:
-            (List[torch.Tensor]): The positional encoding for mask memory, either cached or expanded.
+            out_maskmem_pos_enc (List[torch.Tensor]): The positional encoding for mask memory, either cached or expanded.
 
         Note:
             - The method assumes that `out_maskmem_pos_enc` is a list of tensors or None.
@@ -1410,7 +1409,7 @@ class SAM2VideoPredictor(SAM2Predictor):
                 consolidating the outputs. Defaults to False.
 
         Returns:
-            (dict): A consolidated output dictionary containing the combined results for all objects.
+            consolidated_out (dict): A consolidated output dictionary containing the combined results for all objects.
 
         Note:
             - The method initializes the consolidated output with placeholder values for missing objects.

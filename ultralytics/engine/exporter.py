@@ -220,6 +220,7 @@ class Exporter:
             self.args.device = "0"
         if fmt == "engine" and "dla" in str(self.args.device):  # convert int/list to str first
             dla = self.args.device.split(":")[-1]
+            self.args.device = "0"  # update device to "0"
             assert dla in {"0", "1"}, f"Expected self.args.device='dla:0' or 'dla:1, but got {self.args.device}."
         self.device = select_device("cpu" if self.args.device is None else self.args.device)
 
@@ -781,10 +782,10 @@ class Exporter:
         # Engine builder
         builder = trt.Builder(logger)
         config = builder.create_builder_config()
-        workspace = int(self.args.workspace * (1 << 30))
-        if is_trt10:
+        workspace = int(self.args.workspace * (1 << 30)) if self.args.workspace is not None else 0
+        if is_trt10 and workspace > 0:
             config.set_memory_pool_limit(trt.MemoryPoolType.WORKSPACE, workspace)
-        else:  # TensorRT versions 7, 8
+        elif workspace > 0 and not is_trt10:  # TensorRT versions 7, 8
             config.max_workspace_size = workspace
         flag = 1 << int(trt.NetworkDefinitionCreationFlag.EXPLICIT_BATCH)
         network = builder.create_network(flag)
@@ -823,7 +824,7 @@ class Exporter:
                 LOGGER.warning(f"{prefix} WARNING ⚠️ 'dynamic=True' model requires max batch size, i.e. 'batch=16'")
             profile = builder.create_optimization_profile()
             min_shape = (1, shape[1], 32, 32)  # minimum input shape
-            max_shape = (*shape[:2], *(int(max(1, self.args.workspace) * d) for d in shape[2:]))  # max input shape
+            max_shape = (*shape[:2], *(int(max(1, workspace) * d) for d in shape[2:]))  # max input shape
             for inp in inputs:
                 profile.set_shape(inp.name, min=min_shape, opt=shape, max=max_shape)
             config.add_optimization_profile(profile)

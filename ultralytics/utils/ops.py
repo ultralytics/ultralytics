@@ -783,23 +783,29 @@ def regularize_rboxes(rboxes):
     return torch.stack([x, y, w_, h_, t], dim=-1)  # regularized boxes
 
 
-def masks2segments(masks, strategy="largest"):
+def masks2segments(masks, strategy="all"):
     """
     It takes a list of masks(n,h,w) and returns a list of segments(n,xy).
 
     Args:
         masks (torch.Tensor): the output of the model, which is a tensor of shape (batch_size, 160, 160)
-        strategy (str): 'concat' or 'largest'. Defaults to largest
+        strategy (str): 'all' or 'largest'. Defaults to all
 
     Returns:
         segments (List): list of segment masks
     """
+    from ultralytics.data.converter import merge_multi_segment
+
     segments = []
     for x in masks.int().cpu().numpy().astype("uint8"):
         c = cv2.findContours(x, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[0]
         if c:
-            if strategy == "concat":  # concatenate all segments
-                c = np.concatenate([x.reshape(-1, 2) for x in c])
+            if strategy == "all":  # merge and concatenate all segments
+                c = (
+                    np.concatenate(merge_multi_segment([x.reshape(-1, 2) for x in c]))
+                    if len(c) > 1
+                    else c[0].reshape(-1, 2)
+                )
             elif strategy == "largest":  # select largest segment
                 c = np.array(c[np.array([len(x) for x in c]).argmax()]).reshape(-1, 2)
         else:

@@ -2111,10 +2111,9 @@ class Format:
             h (int): Height of the image.
 
         Returns:
-            (tuple): Tuple containing:
-                masks (numpy.ndarray): Bitmap masks with shape (N, H, W) or (1, H, W) if mask_overlap is True.
-                instances (Instances): Updated instances object with sorted segments if mask_overlap is True.
-                cls (numpy.ndarray): Updated class labels, sorted if mask_overlap is True.
+            masks (numpy.ndarray): Bitmap masks with shape (N, H, W) or (1, H, W) if mask_overlap is True.
+            instances (Instances): Updated instances object with sorted segments if mask_overlap is True.
+            cls (numpy.ndarray): Updated class labels, sorted if mask_overlap is True.
 
         Notes:
             - If self.mask_overlap is True, masks are overlapped and sorted by area.

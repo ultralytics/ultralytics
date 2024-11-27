@@ -505,7 +505,7 @@ class Exporter:
         check_requirements("openvino>=2024.5.0")
         import openvino as ov
 
-        LOGGER.info(f"\n{prefix} starting export with openvino {ov.__version__}...")
+        # LOGGER.info(f"\n{prefix} starting export with openvino {ov.__version__}...")
         assert TORCH_1_13, f"OpenVINO export requires torch>=1.13.0 but torch=={torch.__version__} is installed"
         ov_model = ov.convert_model(
             self.model,

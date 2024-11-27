@@ -291,8 +291,8 @@ class ChannelAttention(nn.Module):
         # Adaptive pooling layers
         self.avg_pool = nn.AdaptiveAvgPool2d(1)
         self.max_pool = nn.AdaptiveMaxPool2d(1)
-        # Softmax activation
-        self.softmax = nn.Softmax(dim=1)
+        
+        self.activate = nn.Sigmoid()
 
     def forward(self, x):
         # Apply average pooling
@@ -302,7 +302,7 @@ class ChannelAttention(nn.Module):
         # Sum the outputs
         out = avg_out + max_out
         # Apply Softmax over channels
-        out = self.softmax(out)
+        out = self.activate(out)
         # Scale the input features
         out = x * out
         return out
@@ -319,8 +319,8 @@ class SpatialAttention(nn.Module):
             nn.Conv2d(2, 1, kernel_size=kernel_size, padding=padding, bias=False),
             nn.BatchNorm2d(1)
         )
-        # Softmax activation to generate attention weights across spatial dimensions
-        self.softmax = nn.Softmax(dim=2)  # Apply softmax over the spatial dimensions
+
+        self.activate = nn.Sigmoid()  
 
     def forward(self, x):
         """
@@ -341,8 +341,8 @@ class SpatialAttention(nn.Module):
         # Reshape to (batch, 1, height * width) for softmax
         batch, _, height, width = x_conv.size()
         x_flat = x_conv.view(batch, 1, -1)  # Shape: (batch, 1, height * width)
-        # Apply softmax over the spatial dimensions
-        attention = self.softmax(x_flat)  # Shape: (batch, 1, height * width)
+
+        attention = self.activate(x_flat)  # Shape: (batch, 1, height * width)
         # Reshape back to (batch, 1, height, width)
         attention = attention.view(batch, 1, height, width)
         # Multiply input features by the attention weights

@@ -262,7 +262,8 @@ def minify_files(html=True, css=True, js=True):
             continue
 
         stats[ext] = {"original": 0, "minified": 0}
-        for f in tqdm(SITE.rglob(f"*.{ext}"), desc=f"Minifying {ext.upper()}"):
+        directory = ""  # "stylesheets" if ext == css else "javascript" if ext == "js" else ""
+        for f in tqdm((SITE / directory).rglob(f"*.{ext}"), desc=f"Minifying {ext.upper()}"):
             content = f.read_text(encoding="utf-8")
             minified = minifier(content)
             stats[ext]["original"] += len(content)
@@ -289,7 +290,7 @@ def main():
     update_docs_html()
 
     # Minify files
-    minify_files(html=False)
+    minify_files(html=False, css=False, js=False)
 
     # Show command to serve built website
     print('Docs built correctly ✅\nServe site at http://localhost:8000 with "python -m http.server --directory site"')

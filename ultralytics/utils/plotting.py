@@ -791,17 +791,50 @@ class Annotator:
         cv2.polylines(self.im, [np.int32([mask])], isClosed=True, color=mask_color, thickness=2)
         text_size, _ = cv2.getTextSize(label, 0, self.sf, self.tf)
 
-        cv2.rectangle(
-            self.im,
-            (int(mask[0][0]) - text_size[0] // 2 - 10, int(mask[0][1]) - text_size[1] - 10),
-            (int(mask[0][0]) + text_size[0] // 2 + 10, int(mask[0][1] + 10)),
-            mask_color,
-            -1,
-        )
-
         if label:
+            cv2.rectangle(
+                self.im,
+                (int(mask[0][0]) - text_size[0] // 2 - 10, int(mask[0][1]) - text_size[1] - 10),
+                (int(mask[0][0]) + text_size[0] // 2 + 10, int(mask[0][1] + 10)),
+                mask_color,
+                -1,
+            )
             cv2.putText(
                 self.im, label, (int(mask[0][0]) - text_size[0] // 2, int(mask[0][1])), 0, self.sf, txt_color, self.tf
+            )
+
+    def sweep_annotator(self, line_x=0, line_y=0, label=None, color=(221, 0, 186), txt_color=(255, 255, 255)):
+        """
+        Function for drawing a sweep annotation line and an optional label.
+
+        Args:
+            line_x (int): The x-coordinate of the sweep line.
+            line_y (int): The y-coordinate limit of the sweep line.
+            label (str, optional): Text label to be drawn in center of sweep line. If None, no label is drawn.
+            color (tuple): RGB color for the line and label background.
+            txt_color (tuple): RGB color for the label text.
+        """
+        # Draw the sweep line
+        cv2.line(self.im, (line_x, 0), (line_x, line_y), color, self.tf * 2)
+
+        # Draw label, if provided
+        if label:
+            (text_width, text_height), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, self.sf, self.tf)
+            cv2.rectangle(
+                self.im,
+                (line_x - text_width // 2 - 10, line_y // 2 - text_height // 2 - 10),
+                (line_x + text_width // 2 + 10, line_y // 2 + text_height // 2 + 10),
+                color,
+                -1,
+            )
+            cv2.putText(
+                self.im,
+                label,
+                (line_x - text_width // 2, line_y // 2 + text_height // 2),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                self.sf,
+                txt_color,
+                self.tf,
             )
 
     def plot_distance_and_line(

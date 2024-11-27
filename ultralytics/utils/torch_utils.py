@@ -301,7 +301,7 @@ def fuse_deconv_and_bn(deconv, bn):
 
 
 def model_info(model, detailed=False, verbose=True, imgsz=640):
-    """Print and return detailed model information layer by layer"""
+    """Print and return detailed model information layer by layer."""
     if not verbose:
         return
     n_p = get_num_params(model)  # number of parameters

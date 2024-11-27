@@ -128,68 +128,82 @@ If you're planning to develop and release your own project using YOLO models, th
 You can kick-start your project using one of these approaches:
 
 1. **Fork the Ultralytics YOLO Repository**  
-   Fork the official Ultralytics YOLO repository directly from [https://github.com/ultralytics/ultralytics](https://github.com/ultralytics/ultralytics).  
-   - Use this option if you plan to build directly on the latest YOLO implementation.
-   - Modify the forked code as needed while ensuring compliance with AGPL-3.0.
+   Fork the official Ultralytics YOLO repository directly from [https://github.com/ultralytics/ultralytics](https://github.com/ultralytics/ultralytics).
+
+    - Use this option if you plan to build directly on the latest YOLO implementation.
+    - Modify the forked code as needed while ensuring compliance with AGPL-3.0.
 
 2. **Start from the Ultralytics Template Repository**  
-   Use the Ultralytics template repository available at [https://github.com/ultralytics/template](https://github.com/ultralytics/template).  
-   - Ideal for starting a clean, modular project with pre-configured best practices.
-   - This option provides a lightweight starting point for projects that integrate or extend YOLO models.
+   Use the Ultralytics template repository available at [https://github.com/ultralytics/template](https://github.com/ultralytics/template).
+    - Ideal for starting a clean, modular project with pre-configured best practices.
+    - This option provides a lightweight starting point for projects that integrate or extend YOLO models.
 
 ### What You Need to Open-Source
 
 To comply with AGPL-3.0, you must make the following components of your project openly available:
 
 1. **Your Entire Source Code**:
-   - Include all code for the larger project containing your YOLO models, scripts, and utilities.
+
+    - Include all code for the larger project containing your YOLO models, scripts, and utilities.
 
 2. **Model Weights** (if modified):
-   - Share any fine-tuned or modified model weights as part of the open-source project.
+
+    - Share any fine-tuned or modified model weights as part of the open-source project.
 
 3. **Configuration Files**:
-   - Provide configuration files such as `.yaml` or `.json` that define the training setup, hyperparameters, or deployment configurations.
+
+    - Provide configuration files such as `.yaml` or `.json` that define the training setup, hyperparameters, or deployment configurations.
 
 4. **Training Data (if redistributable)**:
-   - If you include preprocessed or generated data that is redistributable, ensure it is part of the repository or clearly linked.
+
+    - If you include preprocessed or generated data that is redistributable, ensure it is part of the repository or clearly linked.
 
 5. **Web Application Components**:
-   - Include all backend and frontend source code if your project is a web application, especially server-side components.
+
+    - Include all backend and frontend source code if your project is a web application, especially server-side components.
 
 6. **Documentation**:
-   - Include clear documentation on how to use, build, and extend your project.
+
+    - Include clear documentation on how to use, build, and extend your project.
 
 7. **Build and Deployment Scripts**:
-   - Share scripts for setting up the environment, building the application, and deploying it, such as `Dockerfiles`, `requirements.txt`, or `Makefiles`.
+
+    - Share scripts for setting up the environment, building the application, and deploying it, such as `Dockerfiles`, `requirements.txt`, or `Makefiles`.
 
 8. **Testing Framework**:
-   - Open-source your test cases, such as unit and integration tests, to ensure reproducibility and reliability.
+
+    - Open-source your test cases, such as unit and integration tests, to ensure reproducibility and reliability.
 
 9. **Third-Party Modifications**:
-   - Provide source code for any third-party libraries you’ve modified.
+    - Provide source code for any third-party libraries you’ve modified.
 
 ### Steps to Open-Source Your Project
 
 1. **Choose Your Starting Point**:
-   - Fork the Ultralytics YOLO repository or start from the Ultralytics template repository.
+
+    - Fork the Ultralytics YOLO repository or start from the Ultralytics template repository.
 
 2. **Set Your License**:
-   - Add a `LICENSE` file containing the AGPL-3.0 text.
+
+    - Add a `LICENSE` file containing the AGPL-3.0 text.
 
 3. **Credit Upstream Contributions**:
-   - Include attribution to Ultralytics YOLO in your README. For example:
-     ```
-     This project builds on [Ultralytics YOLO](https://github.com/ultralytics/ultralytics), licensed under AGPL-3.0.
-     ```
+
+    - Include attribution to Ultralytics YOLO in your README. For example:
+        ```
+        This project builds on [Ultralytics YOLO](https://github.com/ultralytics/ultralytics), licensed under AGPL-3.0.
+        ```
 
 4. **Make Your Code Public**:
-   - Push your entire project (including the components listed above) to a public GitHub repository.
+
+    - Push your entire project (including the components listed above) to a public GitHub repository.
 
 5. **Document Your Project**:
-   - Write a clear `README.md` with instructions for setup, usage, and contributions.
+
+    - Write a clear `README.md` with instructions for setup, usage, and contributions.
 
 6. **Enable Contributions**:
-   - Set up an issue tracker and contribution guidelines to foster collaboration.
+    - Set up an issue tracker and contribution guidelines to foster collaboration.
 
 By following these steps and ensuring you include all necessary components, you’ll comply with AGPL-3.0 and contribute meaningfully to the open-source community. Let’s continue fostering collaboration and innovation in computer vision together! 🚀
 

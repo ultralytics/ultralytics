@@ -199,7 +199,7 @@ To comply with AGPL-3.0, you must make the following components of your project 
     - Open-source your test cases, such as unit and integration tests, to ensure reproducibility and reliability.
 
 9. **Third-Party Modifications**:
-    - Provide source code for any third-party libraries you’ve modified.
+    - Provide source code for any third-party libraries you've modified.
 
 ### Steps to Open-Source Your Project
 

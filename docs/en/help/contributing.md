@@ -140,30 +140,35 @@ If you're considering building on YOLO models and releasing your work as open-so
 You can kick-start your project using one of these approaches:
 
 1. **Fork the Ultralytics YOLO Repository**  
-   Fork the official Ultralytics YOLO repository directly from [https://github.com/ultralytics/ultralytics](https://github.com/ultralytics/ultralytics).  
-   - Use this option if you plan to build directly on the latest YOLO implementation.
-   - Modify the forked code as needed while ensuring compliance with AGPL-3.0.
+   Fork the official Ultralytics YOLO repository directly from [https://github.com/ultralytics/ultralytics](https://github.com/ultralytics/ultralytics).
+
+    - Use this option if you plan to build directly on the latest YOLO implementation.
+    - Modify the forked code as needed while ensuring compliance with AGPL-3.0.
 
 2. **Start from the Ultralytics Template Repository**  
-   Use the Ultralytics template repository available at [https://github.com/ultralytics/template](https://github.com/ultralytics/template).  
-   - Ideal for starting a clean, modular project with pre-configured best practices.
-   - This option provides a lightweight starting point for projects that integrate or extend YOLO models.
+   Use the Ultralytics template repository available at [https://github.com/ultralytics/template](https://github.com/ultralytics/template).
+    - Ideal for starting a clean, modular project with pre-configured best practices.
+    - This option provides a lightweight starting point for projects that integrate or extend YOLO models.
 
 ### Checklist for AGPL-3.0 Compliance
 
 1. **License Consistency**:
+
     - Your project must also be licensed under AGPL-3.0.
     - Include a `LICENSE` file with the AGPL-3.0 text in your repository.
 
 2. **Source Code Availability**:
+
     - Provide access to the full source code of your project, including all modifications and derivative works of YOLO models.
     - If your project includes a web application, ensure users can access the source code of the server-side components.
 
 3. **Prominent Notices**:
+
     - Clearly state that your project is licensed under AGPL-3.0.
     - Attribute Ultralytics YOLO in your README or project documentation.
 
 4. **Modification and Distribution**:
+
     - Inform users that they can modify and distribute your project under the same license terms.
 
 5. **Compliance with Dependencies**:
@@ -172,19 +177,23 @@ You can kick-start your project using one of these approaches:
 ### Steps to Open-Source Your Project
 
 1. **Choose AGPL-3.0 as Your License**:
+
     - Add a `LICENSE` file to your repository with the AGPL-3.0 license text. You can copy this text from [here](https://www.gnu.org/licenses/agpl-3.0.txt).
 
 2. **Acknowledge Upstream Contributions**:
+
     - In your README file, credit Ultralytics YOLO and link to its repository. For example:
-      ```
-      This project builds on [Ultralytics YOLO](https://github.com/ultralytics/ultralytics), licensed under AGPL-3.0.
-      ```
+        ```
+        This project builds on [Ultralytics YOLO](https://github.com/ultralytics/ultralytics), licensed under AGPL-3.0.
+        ```
 
 3. **Provide Complete Source Code**:
+
     - Upload all source code to a public repository (e.g., GitHub or GitLab).
     - Include any configuration files, scripts, or dependencies required to run the project.
 
 4. **Enable Issue Tracking and Contributions**:
+
     - Set up an issue tracker for bug reports and feature requests.
     - Provide guidelines for external contributions, including pull requests and coding standards.
 

@@ -58,7 +58,7 @@ Object counting with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
         yolo solutions count source="path/to/video/file.mp4"
 
         # Pass region coordinates
-        yolo solutions count region=[(20, 400), (1080, 404), (1080, 360), (20, 360)]
+        yolo solutions count region=[(20, 400), (1080, 400), (1080, 360), (20, 360)]
         ```
 
     === "Python"
@@ -74,8 +74,8 @@ Object counting with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
 
         # Define region points
         # region_points = [(20, 400), (1080, 400)]  # For line counting
-        region_points = [(20, 400), (1080, 404), (1080, 360), (20, 360)]  # For rectangle region counting
-        # region_points = [(20, 400), (1080, 404), (1080, 360), (20, 360), (20, 400)]  # For polygon region counting
+        region_points = [(20, 400), (1080, 400), (1080, 360), (20, 360)]  # For rectangle region counting
+        # region_points = [(20, 400), (1080, 400), (1080, 360), (20, 360), (20, 400)]  # For polygon region counting
 
         # Video writer
         video_writer = cv2.VideoWriter("object_counting_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
@@ -148,7 +148,7 @@ def count_objects_in_region(video_path, output_video_path, model_path):
     w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
     video_writer = cv2.VideoWriter(output_video_path, cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
-    region_points = [(20, 400), (1080, 404), (1080, 360), (20, 360)]
+    region_points = [(20, 400), (1080, 400), (1080, 360), (20, 360)]
     counter = solutions.ObjectCounter(show=True, region=region_points, model=model_path)
 
     while cap.isOpened():

@@ -318,8 +318,7 @@ def model_info(model, detailed=False, verbose=True, imgsz=640):
         for i, (name, p) in enumerate(model.named_parameters()):
             name = name.replace("module_list.", "")
             LOGGER.info(
-                "%5g %40s %9s %12g %20s %10.3g %10.3g %10s"
-                % (i, name, p.requires_grad, p.numel(), list(p.shape), p.mean(), p.std(), p.dtype)
+                f"{i:>5g} {name:>40s} {p.requires_grad:>9s} {p.numel():>12g} {list(p.shape):>20s} {p.mean():>10.3g} {p.std():>10.3g} {p.dtype:>10s}"
             )
 
     flops = get_flops(model, imgsz)

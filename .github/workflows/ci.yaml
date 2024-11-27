@@ -115,7 +115,7 @@ jobs:
           # Warnings: uv causes numpy errors during benchmarking
           python -m pip install --upgrade pip wheel
           pip install -e ".[export]" "coverage[toml]" --extra-index-url https://download.pytorch.org/whl/cpu
-          pip uninstall openvino
+          pip install -U openvino
           pip install https://github.com/allnes/openvino/raw/refs/heads/an/test_wheel/wheels/openvino-2025.0.0-17432-cp311-cp311-macosx_15_0_arm64.whl  https://github.com/allnes/openvino/raw/refs/heads/an/test_wheel/wheels/openvino_dev-2025.0.0-17432-py3-none-any.whl
       - name: Check environment
         run: |

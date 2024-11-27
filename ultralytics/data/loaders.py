@@ -321,21 +321,21 @@ class LoadImagesAndVideos:
     def __init__(self, path, batch=1, vid_stride=1):
         """Initialize dataloader for images and videos, supporting various input formats."""
         parent = None
-        if isinstance(path, str) and Path(path).suffix == ".txt":
-            parent = Path(path).parent
-            path = Path(path).read_text().splitlines()
+        path = Path(path)
+
+        if path.suffix == ".txt":
+            parent = path.parent
+            path = path.read_text().splitlines()
 
         files = []
-        paths = sorted(path) if isinstance(path, (list, tuple)) else [path]
-
-        for p in paths:
-            abs_path = Path(p).absolute()
-            if "*" in str(abs_path):
-                files.extend([str(path) for path in sorted(abs_path.parent.glob(abs_path.name))])
-            elif abs_path.is_dir():
-                files.extend([str(path) for path in sorted(abs_path.glob("*.*"))])
-            elif abs_path.is_file():
-                files.append(str(abs_path))
+        for p in sorted(path) if isinstance(path, (list, tuple)) else [path]:
+            a = Path(p).absolute()
+            if "*" in str(a):
+                files.extend(sorted(Path(p).parent.glob(str(a.name))))
+            elif a.is_dir():
+                files.extend(sorted(a.glob("*.*")))
+            elif a.is_file():
+                files.append(str(a))
             elif parent and (parent / p).is_file():
                 files.append(str((parent / p).absolute()))
             else:

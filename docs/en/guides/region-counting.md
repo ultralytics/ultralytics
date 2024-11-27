@@ -4,7 +4,7 @@ description: Learn how to use Ultralytics YOLOv8 for precise object counting in 
 keywords: object counting, regions, YOLOv8, computer vision, Ultralytics, efficiency, accuracy, automation, real-time, applications, surveillance, monitoring
 ---
 
-# Object Counting in Different Regions using Ultralytics YOLOv8 🚀
+# Object Counting in Different Regions using Ultralytics YOLO 🚀
 
 ## What is Object Counting in Regions?
 
@@ -30,7 +30,7 @@ keywords: object counting, regions, YOLOv8, computer vision, Ultralytics, effici
 ## Real World Applications
 
 |                                                                                      Retail                                                                                       |                                                                                 Market Streets                                                                                  |
-| :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
+|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
 | ![People Counting in Different Region using Ultralytics YOLOv8](https://github.com/ultralytics/docs/releases/download/0/people-counting-different-region-ultralytics-yolov8.avif) | ![Crowd Counting in Different Region using Ultralytics YOLOv8](https://github.com/ultralytics/docs/releases/download/0/crowd-counting-different-region-ultralytics-yolov8.avif) |
 |                                                           People Counting in Different Region using Ultralytics YOLOv8                                                            |                                                           Crowd Counting in Different Region using Ultralytics YOLOv8                                                           |
 
@@ -38,33 +38,33 @@ keywords: object counting, regions, YOLOv8, computer vision, Ultralytics, effici
 
     === "Python"
 
-        ```python
+         ```python
          import cv2
          from ultralytics import solutions
-
+         
          cap = cv2.VideoCapture("Path/to/video/file.mp4")
          assert cap.isOpened(), "Error reading video file"
          w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-
+         
          # Define region points
          # region_points = [(20, 400), (1080, 400), (1080, 360), (20, 360)] # Pass region as list
-
+         
          # pass region as dictionary
          region_points = {
              "region-01": [(50, 50), (250, 50), (250, 250), (50, 250)],
              "region-02": [(640, 640), (780, 640), (780, 720), (640, 720)]
          }
-
+         
          # Video writer
          video_writer = cv2.VideoWriter("region_counting.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
-
+         
          # Init Object Counter
          region = solutions.RegionCounter(
              show=True,
              region=region_points,
              model="yolo11n.pt",
          )
-
+         
          # Process video
          while cap.isOpened():
              success, im0 = cap.read()
@@ -73,11 +73,11 @@ keywords: object counting, regions, YOLOv8, computer vision, Ultralytics, effici
                  break
              im0 = region.count(im0)
              video_writer.write(im0)
-
+         
          cap.release()
          video_writer.release()
          cv2.destroyAllWindows()
-        ```
+         ```
 
 !!! tip "Ultralytics Example Code"
 
@@ -88,7 +88,7 @@ keywords: object counting, regions, YOLOv8, computer vision, Ultralytics, effici
 Here's a table with the `RegionCounter` arguments:
 
 | Name         | Type   | Default                    | Description                                          |
-| ------------ | ------ | -------------------------- | ---------------------------------------------------- |
+|--------------|--------|----------------------------|------------------------------------------------------|
 | `model`      | `str`  | `None`                     | Path to Ultralytics YOLO Model File                  |
 | `region`     | `list` | `[(20, 400), (1260, 400)]` | List of points defining the counting region.         |
 | `line_width` | `int`  | `2`                        | Line thickness for bounding boxes.                   |

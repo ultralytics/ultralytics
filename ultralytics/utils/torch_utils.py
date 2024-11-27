@@ -316,7 +316,7 @@ def model_info(model, detailed=False, verbose=True, imgsz=640):
                 f"{p.mean():>10.3g}{p.std():>10.3g}{str(p.dtype):>15s}"
             )
 
-    flops = get_flops(model, imgsz)  # imgsz may be int or list, i.e. imgsz=640 or imgsz=[640, 320].
+    flops = get_flops(model, imgsz)  # imgsz may be int or list, i.e. imgsz=640 or imgsz=[640, 320]
     fused = " (fused)" if getattr(model, "is_fused", lambda: False)() else ""
     fs = f", {flops:.1f} GFLOPs" if flops else ""
     yaml_file = getattr(model, "yaml_file", "") or getattr(model, "yaml", {}).get("yaml_file", "")

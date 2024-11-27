@@ -110,7 +110,7 @@ jobs:
       - name: Install requirements
         shell: bash # for Windows compatibility
         run: |
-          uv pip install --index-strategy unsafe-best-match --system -e ".[export]" "coverage[toml]" --extra-index-url https://download.pytorch.org/whl/cpu
+          uv pip install --system -e ".[export]" "coverage[toml]" --extra-index-url https://download.pytorch.org/whl/cpu
       - name: Check environment
         run: |
           yolo checks

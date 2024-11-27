@@ -143,35 +143,27 @@ You can kick-start your project using one of these approaches:
 To comply with AGPL-3.0, you must make the following components of your project openly available:
 
 1. **Your Entire Project Source Code**:
-
     - Include all code for the larger project containing your YOLO models, scripts, and utilities.
 
 2. **Model Weights** (if modified):
-
     - Share any fine-tuned or modified model weights as part of the open-source project.
 
 3. **Configuration Files**:
-
     - Provide configuration files such as `.yaml` or `.json` that define the training setup, hyperparameters, or deployment configurations.
 
 4. **Training Data (if redistributable)**:
-
     - If you include preprocessed or generated data that is redistributable, ensure it is part of the repository or clearly linked.
 
 5. **Web Application Components**:
-
     - Include all backend and frontend source code if your project is a web application, especially server-side components.
 
 6. **Documentation**:
-
     - Include clear documentation on how to use, build, and extend your project.
 
 7. **Build and Deployment Scripts**:
-
     - Share scripts for setting up the environment, building the application, and deploying it, such as `Dockerfiles`, `requirements.txt`, or `Makefiles`.
 
 8. **Testing Framework**:
-
     - Open-source your test cases, such as unit and integration tests, to ensure reproducibility and reliability.
 
 9. **Third-Party Modifications**:
@@ -181,27 +173,23 @@ To comply with AGPL-3.0, you must make the following components of your project 
 
 1. **Choose Your Starting Point**:
     - Fork the Ultralytics YOLO repository or start from the Ultralytics template repository.
-    -
-2. **Set Your License**:
 
+3. **Set Your License**:
     - Add a `LICENSE` file containing the AGPL-3.0 text.
 
-3. **Credit Upstream Contributions**:
-
+4. **Credit Upstream Contributions**:
     - Include attribution to Ultralytics YOLO in your README. For example:
         ```
         This project builds on [Ultralytics YOLO](https://github.com/ultralytics/ultralytics), licensed under AGPL-3.0.
         ```
 
-4. **Make Your Code Public**:
-
+5. **Make Your Code Public**:
     - Push your entire project (including the components listed above) to a public GitHub repository.
 
-5. **Document Your Project**:
-
+6. **Document Your Project**:
     - Write a clear `README.md` with instructions for setup, usage, and contributions.
 
-6. **Enable Contributions**:
+7. **Enable Contributions**:
     - Set up an issue tracker and contribution guidelines to foster collaboration.
 
 By following these steps and ensuring you include all necessary components, you’ll comply with AGPL-3.0 and contribute meaningfully to the open-source community. Let’s continue fostering collaboration and innovation in computer vision together! 🚀

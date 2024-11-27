@@ -318,7 +318,7 @@ def model_info(model, detailed=False, verbose=True, imgsz=640):
         for i, (name, p) in enumerate(model.named_parameters()):
             name = name.replace("module_list.", "")
             LOGGER.info(
-                f"{i:>5g} {name:>40s} {str(p.requires_grad):>9s} {p.numel():>12g} {list(p.shape):>20s} {p.mean():>10.3g} {p.std():>10.3g} {p.dtype:>10s}"
+                f"{i:>5g} {name:>40s} {p.requires_grad!r:>9} {p.numel():>12g} {str(list(p.shape)):>20s} {p.mean():>10.3g} {p.std():>10.3g} {p.dtype:>10s}"
             )
 
     flops = get_flops(model, imgsz)

@@ -342,6 +342,7 @@ class Annotator:
         Args:
             box (tuple): The bounding box coordinates (x1, y1, x2, y2).
             label (str): The text label to be displayed.
+            conf_label (str): The confidence score label to be displayed.
             color (tuple, optional): The background color of the rectangle (B, G, R).
             txt_color (tuple, optional): The color of the text (R, G, B).
             rotated (bool, optional): Variable used to check if task is OBB

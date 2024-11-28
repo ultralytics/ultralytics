@@ -214,9 +214,9 @@ See [OBB Docs](https://docs.ultralytics.com/tasks/obb/) for usage examples with 
 
 Our key integrations with leading AI platforms extend the functionality of Ultralytics' offerings, enhancing tasks like dataset labeling, training, visualization, and model management. Discover how Ultralytics, in collaboration with [W&B](https://docs.wandb.ai/guides/integrations/ultralytics/), [Comet](https://bit.ly/yolov8-readme-comet), [Roboflow](https://roboflow.com/?ref=ultralytics) and [OpenVINO](https://docs.ultralytics.com/integrations/openvino/), can optimize your AI workflow.
 
-<br>
 <a href="https://www.ultralytics.com/hub" target="_blank">
-<img width="100%" src="https://github.com/ultralytics/assets/raw/main/yolov8/banner-integrations.png" alt="Ultralytics active learning integrations"></a>
+    <img width="100%" src="https://github.com/ultralytics/assets/raw/main/yolov8/banner-integrations.png" alt="Ultralytics active learning integrations">
+</a>
 <br>
 <br>
 

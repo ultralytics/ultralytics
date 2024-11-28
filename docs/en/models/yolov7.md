@@ -153,4 +153,3 @@ YOLOv7 offers several key features that revolutionize real-time object detection
 - **Efficiency**: Reduces parameter count by 40% and computation by 50% compared to other state-of-the-art models while achieving faster inference speeds.
 
 For further details on these features, see the [YOLOv7 Overview](#overview) section.
-

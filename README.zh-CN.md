@@ -117,13 +117,13 @@ path = model.export(format="onnx")  # 返回导出模型的路径
 
 ## <div align="center">模型</div>
 
-YOLO11 [检测](https://docs.ultralytics.com/tasks/detect/)、[分割](https://docs.ultralytics.com/tasks/segment/) 和 [姿态](https://docs.ultralytics.com/tasks/pose/) 模型在 [COCO](https://docs.ultralytics.com/datasets/detect/coco/) 数据集上进行预训练，这些模型可在此处获得，此外还有在 [ImageNet](https://docs.ultralytics.com/datasets/classify/imagenet/) 数据集上预训练的 YOLO11 [分类](https://docs.ultralytics.com/tasks/classify/) 模型。所有检测、分割和姿态模型均支持 [跟踪](https://docs.ultralytics.com/modes/track/) 模式。
+YOLO11 [检测](https://docs.ultralytics.com/tasks/detect/)、[分割](https://docs.ultralytics.com/tasks/segment/) 和 [姿态](https://docs.ultralytics.com/tasks/pose/) 模型在 [COCO](https://docs.ultralytics.com/datasets/detect/coco/) 数据集上进行预训练，这些模型可在此处获得，此外还有在 [ImageNet](https://docs.ultralytics.com/datasets/classify/imagenet/) 数据集上预训练的 YOLO11 [分类](https://docs.ultralytics.com/tasks/classify/) 模型。所有检测、分割和姿态模型均支持 [跟踪](https://docs.ultralytics.com/modes/track/) 模式。所有[模型](https://docs.ultralytics.com/models/)在首次使用时自动从最新的 Ultralytics [发布](https://github.com/ultralytics/assets/releases)下载。
 
 <a href="https://docs.ultralytics.com/tasks/" target="_blank">
     <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/ultralytics-yolov8-tasks-banner.avif" alt="Ultralytics YOLO supported tasks">
 </a>
-
-所有[模型](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models)在首次使用时自动从最新的 Ultralytics [发布](https://github.com/ultralytics/assets/releases)下载。
+<br>
+<br>
 
 <details open><summary>检测 (COCO)</summary>
 
@@ -214,9 +214,9 @@ YOLO11 [检测](https://docs.ultralytics.com/tasks/detect/)、[分割](https://d
 
 我们与领先的 AI 平台的关键集成扩展了 Ultralytics 产品的功能，提升了数据集标注、训练、可视化和模型管理等任务。探索 Ultralytics 如何通过与 [W&B](https://docs.wandb.ai/guides/integrations/ultralytics/)、[Comet](https://bit.ly/yolov8-readme-comet)、[Roboflow](https://roboflow.com/?ref=ultralytics) 和 [OpenVINO](https://docs.ultralytics.com/integrations/openvino/) 的合作，优化您的 AI 工作流程。
 
-<br>
 <a href="https://www.ultralytics.com/hub" target="_blank">
-<img width="100%" src="https://github.com/ultralytics/assets/raw/main/yolov8/banner-integrations.png" alt="Ultralytics active learning integrations"></a>
+    <img width="100%" src="https://github.com/ultralytics/assets/raw/main/yolov8/banner-integrations.png" alt="Ultralytics active learning integrations">
+</a>
 <br>
 <br>
 

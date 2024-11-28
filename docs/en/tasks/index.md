@@ -6,7 +6,6 @@ keywords: Ultralytics YOLO11, detection, segmentation, classification, oriented 
 
 # Ultralytics YOLO11 Tasks
 
-<br>
 <img width="1024" src="https://github.com/ultralytics/docs/releases/download/0/ultralytics-yolov8-tasks-banner.avif" alt="Ultralytics YOLO supported tasks">
 
 YOLO11 is an AI framework that supports multiple [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) **tasks**. The framework can be used to perform [detection](detect.md), [segmentation](segment.md), [obb](obb.md), [classification](classify.md), and [pose](pose.md) estimation. Each of these tasks has a different objective and use case.

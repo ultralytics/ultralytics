@@ -238,7 +238,16 @@ class Annotator:
         }
 
     def get_txt_color(self, color=(128, 128, 128), txt_color=(255, 255, 255)):
-        """Assign text color based on background color."""
+        """
+        Assign text color based on background color.
+
+        Args:
+            color (tuple, optional): The background color of the rectangle for text (B, G, R).
+            txt_color (tuple, optional): The color of the text (R, G, B).
+
+        Returns:
+            txt_color (tuple): Text color for label
+        """
         if color in self.dark_colors:
             return 104, 31, 17
         elif color in self.light_colors:
@@ -544,7 +553,9 @@ class Annotator:
             bbox (tuple): Bounding box coordinates in the format (x_min, y_min, x_max, y_max).
 
         Returns:
-            angle (degree): Degree value of angle between three points
+            width (float): Width of the bounding box.
+            height (float): Height of the bounding box.
+            area (float): Area enclosed by the bounding box.
         """
         x_min, y_min, x_max, y_max = bbox
         width = x_max - x_min
@@ -584,8 +595,8 @@ class Annotator:
         Displays queue counts on an image centered at the points with customizable font size and colors.
 
         Args:
-            label (str): queue counts label
-            points (tuple): region points for center point calculation to display text
+            label (str): Queue counts label.
+            points (tuple): Region points for center point calculation to display text.
             region_color (tuple): RGB queue region color.
             txt_color (tuple): RGB text display color.
         """
@@ -624,13 +635,13 @@ class Annotator:
         Display the bounding boxes labels in parking management app.
 
         Args:
-            im0 (ndarray): inference image
-            text (str): object/class name
-            txt_color (tuple): display color for text foreground
-            bg_color (tuple): display color for text background
-            x_center (float): x position center point for bounding box
-            y_center (float): y position center point for bounding box
-            margin (int): gap between text and rectangle for better display
+            im0 (ndarray): Inference image.
+            text (str): Object/class name.
+            txt_color (tuple): Display color for text foreground.
+            bg_color (tuple): Display color for text background.
+            x_center (float): The x position center point for bounding box.
+            y_center (float): The y position center point for bounding box.
+            margin (int): The gap between text and rectangle for better display.
         """
         text_size = cv2.getTextSize(text, 0, fontScale=self.sf, thickness=self.tf)[0]
         text_x = x_center - text_size[0] // 2
@@ -648,11 +659,11 @@ class Annotator:
         Display the overall statistics for parking lots.
 
         Args:
-            im0 (ndarray): inference image
-            text (dict): labels dictionary
-            txt_color (tuple): display color for text foreground
-            bg_color (tuple): display color for text background
-            margin (int): gap between text and rectangle for better display
+            im0 (ndarray): Inference image.
+            text (dict): Labels dictionary.
+            txt_color (tuple): Display color for text foreground.
+            bg_color (tuple): Display color for text background.
+            margin (int): Gap between text and rectangle for better display.
         """
         horizontal_gap = int(im0.shape[1] * 0.02)
         vertical_gap = int(im0.shape[0] * 0.01)
@@ -791,17 +802,50 @@ class Annotator:
         cv2.polylines(self.im, [np.int32([mask])], isClosed=True, color=mask_color, thickness=2)
         text_size, _ = cv2.getTextSize(label, 0, self.sf, self.tf)
 
-        cv2.rectangle(
-            self.im,
-            (int(mask[0][0]) - text_size[0] // 2 - 10, int(mask[0][1]) - text_size[1] - 10),
-            (int(mask[0][0]) + text_size[0] // 2 + 10, int(mask[0][1] + 10)),
-            mask_color,
-            -1,
-        )
-
         if label:
+            cv2.rectangle(
+                self.im,
+                (int(mask[0][0]) - text_size[0] // 2 - 10, int(mask[0][1]) - text_size[1] - 10),
+                (int(mask[0][0]) + text_size[0] // 2 + 10, int(mask[0][1] + 10)),
+                mask_color,
+                -1,
+            )
             cv2.putText(
                 self.im, label, (int(mask[0][0]) - text_size[0] // 2, int(mask[0][1])), 0, self.sf, txt_color, self.tf
+            )
+
+    def sweep_annotator(self, line_x=0, line_y=0, label=None, color=(221, 0, 186), txt_color=(255, 255, 255)):
+        """
+        Function for drawing a sweep annotation line and an optional label.
+
+        Args:
+            line_x (int): The x-coordinate of the sweep line.
+            line_y (int): The y-coordinate limit of the sweep line.
+            label (str, optional): Text label to be drawn in center of sweep line. If None, no label is drawn.
+            color (tuple): RGB color for the line and label background.
+            txt_color (tuple): RGB color for the label text.
+        """
+        # Draw the sweep line
+        cv2.line(self.im, (line_x, 0), (line_x, line_y), color, self.tf * 2)
+
+        # Draw label, if provided
+        if label:
+            (text_width, text_height), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, self.sf, self.tf)
+            cv2.rectangle(
+                self.im,
+                (line_x - text_width // 2 - 10, line_y // 2 - text_height // 2 - 10),
+                (line_x + text_width // 2 + 10, line_y // 2 + text_height // 2 + 10),
+                color,
+                -1,
+            )
+            cv2.putText(
+                self.im,
+                label,
+                (line_x - text_width // 2, line_y // 2 + text_height // 2),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                self.sf,
+                txt_color,
+                self.tf,
             )
 
     def plot_distance_and_line(

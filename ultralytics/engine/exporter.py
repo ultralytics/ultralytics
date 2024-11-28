@@ -220,6 +220,7 @@ class Exporter:
             self.args.device = "0"
         if fmt == "engine" and "dla" in str(self.args.device):  # convert int/list to str first
             dla = self.args.device.split(":")[-1]
+            self.args.device = "0"  # update device to "0"
             assert dla in {"0", "1"}, f"Expected self.args.device='dla:0' or 'dla:1, but got {self.args.device}."
         self.device = select_device("cpu" if self.args.device is None else self.args.device)
 

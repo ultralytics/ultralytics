@@ -552,9 +552,8 @@ class v8PoseLoss(v8DetectionLoss):
             pred_kpts (torch.Tensor): Predicted keypoints, shape (BS, N_anchors, N_kpts_per_object, kpts_dim).
 
         Returns:
-            (tuple): Returns a tuple containing:
-                - kpts_loss (torch.Tensor): The keypoints loss.
-                - kpts_obj_loss (torch.Tensor): The keypoints object loss.
+            kpts_loss (torch.Tensor): The keypoints loss.
+            kpts_obj_loss (torch.Tensor): The keypoints object loss.
         """
         batch_idx = batch_idx.flatten()
         batch_size = len(masks)

@@ -22,7 +22,7 @@ theme:
   language: en
   custom_dir: docs/overrides/
   logo: https://raw.githubusercontent.com/ultralytics/assets/main/logo/Ultralytics_Logotype_Reverse.svg
-  favicon: assets/favicon.ico
+  favicon: https://raw.githubusercontent.com/ultralytics/assets/refs/heads/main/logo/favicon-yolo.png
   icon:
     repo: fontawesome/brands/github
   # font:  # disabled for faster page load times

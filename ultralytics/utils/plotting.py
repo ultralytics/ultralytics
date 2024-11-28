@@ -333,7 +333,9 @@ class Annotator:
             lineType=cv2.LINE_AA,
         )
 
-    def box_label(self, box, label="", conf_label=None, color=(128, 128, 128), txt_color=(255, 255, 255), rotated=False):
+    def box_label(
+        self, box, label="", conf_label=None, color=(128, 128, 128), txt_color=(255, 255, 255), rotated=False
+    ):
         """
         Draws a bounding box to image with label.
 

@@ -238,7 +238,16 @@ class Annotator:
         }
 
     def get_txt_color(self, color=(128, 128, 128), txt_color=(255, 255, 255)):
-        """Assign text color based on background color."""
+        """
+        Assign text color based on background color.
+
+        Args:
+            color (tuple, optional): The background color of the rectangle for text (B, G, R).
+            txt_color (tuple, optional): The color of the text (R, G, B).
+
+        Returns:
+            txt_color (tuple): Text color for label
+        """
         if color in self.dark_colors:
             return 104, 31, 17
         elif color in self.light_colors:
@@ -544,7 +553,9 @@ class Annotator:
             bbox (tuple): Bounding box coordinates in the format (x_min, y_min, x_max, y_max).
 
         Returns:
-            angle (degree): Degree value of angle between three points
+            width (float): Width of the bounding box.
+            height (float): Height of the bounding box.
+            area (float): Area enclosed by the bounding box.
         """
         x_min, y_min, x_max, y_max = bbox
         width = x_max - x_min

@@ -18,7 +18,7 @@ keywords: object counting, regions, YOLOv8, computer vision, Ultralytics, effici
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to do Object Counting in Different Regions using Ultralytics YOLO11 | Ultralytics Solutions 🚀
+  <strong>Watch:</strong> Object Counting in Different Regions using Ultralytics YOLO11 | Ultralytics Solutions 🚀
 </p>
 
 ## Advantages of Object Counting in Regions?

@@ -18,7 +18,7 @@ Whether you're working on automotive research, developing AI solutions for vehic
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Carparts <a href="https://www.ultralytics.com/glossary/instance-segmentation">Instance Segmentation</a> with Ultralytics YOLO11: A Step-by-Step Image Segmentation Tutorial
+  <strong>Watch:</strong> Carparts <a href="https://www.ultralytics.com/glossary/instance-segmentation">Instance Segmentation</a> with Ultralytics YOLO11
 </p>
 
 ## Dataset Structure

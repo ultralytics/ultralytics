@@ -53,7 +53,7 @@ Once your model is trained and validated, the next logical step is to evaluate i
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Benchmark Ultralytics YOLO11 Models | How to Compare Model Performance on Different Hardware?
+  <strong>Watch:</strong> Benchmark Ultralytics YOLO11 Models | How to Compare Model Performance on Different Hardware?
 </p>
 
 ## Why Is Benchmarking Crucial?

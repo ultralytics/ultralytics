@@ -14,7 +14,11 @@ from torch import nn
 from torch.nn.init import trunc_normal_
 
 from ultralytics.trackers.utils.kalman_filter import KalmanFilterXYAH
+from ultralytics.trackers.byte_tracker import STrack
+from ultralytics.utils.metrics import bbox_ioa
 from ultralytics.nn.modules import MLP
+import numpy as np
+
 
 from .blocks import SAM2TwoWayTransformer
 from .decoders import MaskDecoder, SAM2MaskDecoder
@@ -553,10 +557,6 @@ class SAM2Model(torch.nn.Module):
             if sam_output_tokens.size(1) > 1:
                 sam_output_token = sam_output_tokens[batch_inds, best_iou_inds]
             if self.samurai_mode:
-                from ultralytics.trackers.byte_tracker import STrack
-                from ultralytics.utils.metrics import bbox_ioa
-                import numpy as np
-
                 scores = ious[batch_inds, best_iou_inds]
                 high_res_bbox = (
                     batched_mask_to_box(high_res_masks[:, 0, :, :] > self.mask_threshold).cpu().numpy()

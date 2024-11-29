@@ -571,7 +571,7 @@ class SAM2Model(torch.nn.Module):
                         high_res_boxes = (
                             batched_mask_to_box(high_res_multimasks[i, :, :, :] > self.mask_threshold).cpu().numpy()
                         )
-                        d.predict()
+                        d.predict()   # get Kalman prediction
                         # (B, )
                         kf_iou = torch.tensor(bbox_ioa(np.array(d.xyxy)[None], high_res_boxes), device=device)[0]
                         kf_ious.append(kf_iou)

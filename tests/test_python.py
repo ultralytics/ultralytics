@@ -161,6 +161,7 @@ def test_predict_grey_and_4ch():
 
 
 def test_nms():
+    """Test YOLO model with standard NMS, agnostic NMS, and hybrid-agnostic NMS."""
     model = YOLO("yolov8n.pt")
     classes = [
         29,  # frisbee

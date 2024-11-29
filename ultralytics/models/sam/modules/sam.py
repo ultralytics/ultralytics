@@ -16,6 +16,7 @@ from torch.nn.init import trunc_normal_
 from ultralytics.trackers.utils.kalman_filter import KalmanFilterXYAH
 from ultralytics.trackers.byte_tracker import STrack
 from ultralytics.utils.metrics import bbox_ioa
+from ultralytics.utils.ops import xyxy2xywh
 from ultralytics.nn.modules import MLP
 import numpy as np
 
@@ -551,8 +552,10 @@ class SAM2Model(torch.nn.Module):
                 sam_output_token = sam_output_tokens[batch_inds, best_iou_inds]
             if samurai_mode:
                 scores = ious[batch_inds, best_iou_inds]
-                # B, 4
-                high_res_bbox = batched_mask_to_box(high_res_masks[:, 0, :, :] > self.mask_threshold).cpu().numpy()
+                # (B, 4), STrack needs `xywh` format.
+                high_res_bbox = xyxy2xywh(
+                    batched_mask_to_box(high_res_masks[:, 0, :, :] > self.mask_threshold).cpu().numpy()
+                )
                 det = np.concatenate((high_res_bbox, np.arange(B)[:, None]), axis=1)  # concatenate index
                 # NOTE: `scores[i].item()` as score, and `i` as cls.
                 det = [STrack(d, scores[i].item(), i) for i, d in enumerate(det)]
@@ -581,9 +584,11 @@ class SAM2Model(torch.nn.Module):
                             sam_output_token[i] = sam_output_tokens[i, best_iou_ind]
 
                         if ious[i][best_iou_ind] >= self.stable_ious_threshold:  # matching
-                            high_res_bbox = high_res_boxes[best_iou_ind]
+                            high_res_box = high_res_boxes[best_iou_ind]
                             d.update(
-                                STrack(np.concatenate([high_res_bbox, np.array([i])]), ious[i][best_iou_ind], i),
+                                STrack(
+                                    np.concatenate([xyxy2xywh(high_res_box), np.array([i])]), ious[i][best_iou_ind], i
+                                ),
                                 self.frame_idx,
                             )
                         else:

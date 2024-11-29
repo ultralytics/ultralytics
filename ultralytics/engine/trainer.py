@@ -379,7 +379,7 @@ class BaseTrainer:
                     batch = self.preprocess_batch(batch)
                     self.loss, self.loss_items = self.model(batch)
                     if RANK != -1:
-                        self.loss *= world_size
+                        self.loss = self.loss * world_size
                     self.tloss = (
                         (self.tloss * i + self.loss_items) / (i + 1) if self.tloss is not None else self.loss_items
                     )

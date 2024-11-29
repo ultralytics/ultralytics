@@ -540,7 +540,7 @@ class SAM2Model(torch.nn.Module):
         )
 
         sam_output_token = sam_output_tokens[:, 0]
-        kf_ious = []
+        kf_ious = torch.zeros(B, device=device)
         batch_inds = torch.arange(B, device=device)
         if multimask_output:
             # take the best mask prediction (with the highest IoU estimation)
@@ -566,12 +566,14 @@ class SAM2Model(torch.nn.Module):
                         high_res_boxes = (
                             batched_mask_to_box(high_res_multimasks[i, :, :, :] > self.mask_threshold).cpu().numpy()
                         )
-                        d.predict()   # get Kalman prediction
+                        d.predict()  # get Kalman prediction
                         # (B, )
-                        kf_iou = torch.tensor(bbox_ioa(np.array(d.xyxy)[None], high_res_boxes), device=device)[0]
-                        kf_ious.append(kf_iou)
+                        kf_iou = torch.tensor(
+                            bbox_ioa(np.array(d.xyxy)[None], high_res_boxes, iou=True), device=device
+                        )[0]
                         weighted_iou = self.kf_score_weight * kf_iou + (1 - self.kf_score_weight) * ious[i]
                         best_iou_ind = torch.argmax(weighted_iou, dim=-1)
+                        kf_ious[i] = kf_iou[best_iou_ind]
                         best_iou_inds[i] = best_iou_ind
                         low_res_masks[i] = low_res_multimasks[i, best_iou_ind].unsqueeze(0)
                         high_res_masks[i] = high_res_multimasks[i, best_iou_ind].unsqueeze(0)
@@ -608,14 +610,7 @@ class SAM2Model(torch.nn.Module):
                 obj_ptr = lambda_is_obj_appearing * obj_ptr
             obj_ptr = obj_ptr + (1 - lambda_is_obj_appearing) * self.no_obj_ptr
 
-        return (
-            low_res_masks,
-            high_res_masks,
-            obj_ptr,
-            object_score_logits,
-            ious[batch_inds, best_iou_inds],
-            torch.cat(kf_ious) if len(kf_ious) else None,
-        )
+        return low_res_masks, high_res_masks, obj_ptr, object_score_logits, ious[batch_inds, best_iou_inds], kf_ious
 
     def _use_mask_as_output(self, backbone_features, high_res_features, mask_inputs):
         """Processes mask inputs directly as output, bypassing SAM encoder/decoder."""
@@ -738,17 +733,13 @@ class SAM2Model(torch.nn.Module):
                     # Get object score
                     obj_score = output_dict["non_cond_frame_outputs"][i]["object_score_logits"]
                     # Get motion score if available
-                    kf_score = (
-                        output_dict["non_cond_frame_outputs"][i]["kf_score"]
-                        if "kf_score" in output_dict["non_cond_frame_outputs"][i]
-                        else None
-                    )
+                    kf_score = output_dict["non_cond_frame_outputs"][i]["kf_score"]
                     # Check if the scores meet the criteria for being a valid index
                     # NOTE: use mean value as standard for multiple objects
                     if (
                         iou_score.mean().item() > self.memory_bank_iou_threshold
                         and obj_score.mean().item() > self.memory_bank_obj_score_threshold
-                        and (kf_score is None or kf_score.mean().item() > self.memory_bank_kf_score_threshold)
+                        and kf_score.mean().item() > self.memory_bank_kf_score_threshold
                     ):
                         valid_indices.insert(0, i)
                     # Check the number of valid indices
@@ -1039,7 +1030,7 @@ class SAM2Model(torch.nn.Module):
         run_mem_encoder=True,
         # The previously predicted SAM mask logits (which can be fed together with new clicks in demo).
         prev_sam_mask_logits=None,
-        samurai_mode = False,
+        samurai_mode=False,
     ):
         """Performs a single tracking step, updating object masks and memory features based on current frame inputs."""
         current_out, sam_outputs, _, _ = self._track_step(
@@ -1062,7 +1053,7 @@ class SAM2Model(torch.nn.Module):
         current_out["pred_masks_high_res"] = high_res_masks
         current_out["obj_ptr"] = obj_ptr
         current_out["best_iou_score"] = best_iou_score
-        current_out["kf_ious"] = kf_ious
+        current_out["kf_score"] = kf_ious
         if not self.training:
             # Only add this in inference (to avoid unused param in activation checkpointing;
             # it's mainly used in the demo to encode spatial memories w/ consolidated masks)

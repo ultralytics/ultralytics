@@ -1029,8 +1029,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         obj_temp_output_dict = self.inference_state["temp_output_dict_per_obj"][obj_idx]
         # Add a frame to conditioning output if it's an initial conditioning frame or
         # if the model sees all frames receiving clicks/mask as conditioning frames.
-        is_cond = is_init_cond_frame or self.model.add_all_frames_to_correct_as_cond
-        storage_key = "cond_frame_outputs" if is_cond else "non_cond_frame_outputs"
+        storage_key = "cond_frame_outputs" if is_init_cond_frame else "non_cond_frame_outputs"
 
         # Get any previously predicted mask logits on this object and feed it along with
         # the new clicks into the SAM mask decoder.
@@ -1069,7 +1068,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         # Resize the output mask to the original video resolution
         consolidated_out = self._consolidate_temp_output_across_obj(
             frame_idx,
-            is_cond=is_cond,
+            is_cond=is_init_cond_frame,
             run_mem_encoder=False,
         )
         pred_masks = consolidated_out["pred_masks"].flatten(0, 1)

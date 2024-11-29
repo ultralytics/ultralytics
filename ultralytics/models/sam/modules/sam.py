@@ -180,8 +180,6 @@ class SAM2Model(torch.nn.Module):
         no_obj_embed_spatial: bool = False,
         sam_mask_decoder_extra_args=None,
         compile_image_encoder: bool = False,
-        # Whether to use SAMURAI or original SAM 2
-        samurai_mode: bool = True,
         # Hyperparameters for SAMURAI
         stable_frames_threshold: int = 15,
         stable_ious_threshold: float = 0.3,
@@ -335,9 +333,6 @@ class SAM2Model(torch.nn.Module):
         self._build_sam_heads()
         self.max_cond_frames_in_attn = max_cond_frames_in_attn
 
-        # Whether to use SAMURAI or original SAM 2
-        self.samurai_mode = samurai_mode
-
         # Init Kalman Filter
         self.kf = KalmanFilterXYAH()
         self.kf_mean = None
@@ -431,6 +426,7 @@ class SAM2Model(torch.nn.Module):
         mask_inputs=None,
         high_res_features=None,
         multimask_output=False,
+        samurai_mode=False,
     ):
         """
         Forward pass through SAM prompt encoders and mask heads.
@@ -451,6 +447,7 @@ class SAM2Model(torch.nn.Module):
                 for SAM decoder.
             multimask_output (bool): If True, output 3 candidate masks and their IoU estimates; if False,
                 output only 1 mask and its IoU estimate.
+            samurai_mode (bool): If True, use SAMURAI mode for tracking.
 
         Returns:
             (torch.Tensor): The tensor of shape (B, M) with estimated IoU for each output mask.
@@ -554,7 +551,7 @@ class SAM2Model(torch.nn.Module):
             high_res_masks = high_res_multimasks[batch_inds, best_iou_inds].unsqueeze(1)  # B, 1, H, W
             if sam_output_tokens.size(1) > 1:
                 sam_output_token = sam_output_tokens[batch_inds, best_iou_inds]
-            if self.samurai_mode:
+            if samurai_mode:
                 scores = ious[batch_inds, best_iou_inds]
                 # B, 4
                 high_res_bbox = batched_mask_to_box(high_res_masks[:, 0, :, :] > self.mask_threshold).cpu().numpy()
@@ -704,6 +701,7 @@ class SAM2Model(torch.nn.Module):
         output_dict,
         num_frames,
         track_in_reverse=False,  # tracking in reverse time order (for demo usage)
+        samurai_mode=False,
     ):
         """Prepares memory-conditioned features by fusing current frame's visual features with previous memories."""
         B = current_vision_feats[-1].size(1)  # batch size on this frame
@@ -735,7 +733,7 @@ class SAM2Model(torch.nn.Module):
             # we take (self.num_maskmem - 2) frames among every r-th frames plus the last frame.
             r = 1 if self.training else self.memory_temporal_stride_for_eval
             valid_indices = []
-            if self.samurai_mode:
+            if samurai_mode:
                 for i in range(frame_idx - 1, 1, -1):  # Iterate backwards through previous frames
                     # Get mask affinity score
                     iou_score = output_dict["non_cond_frame_outputs"][i]["best_iou_score"]
@@ -763,7 +761,7 @@ class SAM2Model(torch.nn.Module):
 
             for t_pos in range(1, self.num_maskmem):
                 t_rel = self.num_maskmem - t_pos  # how many frames before current frame
-                if self.samurai_mode:
+                if samurai_mode:
                     if -t_rel < -len(valid_indices):  # Skip if index is out of bounds
                         continue
                     prev_frame_idx = valid_indices[-t_rel]
@@ -946,6 +944,7 @@ class SAM2Model(torch.nn.Module):
         num_frames,
         track_in_reverse,
         prev_sam_mask_logits,
+        samurai_mode=False,
     ):
         """Performs a single tracking step, updating object masks and memory features based on current frame inputs."""
         current_out = {"point_inputs": point_inputs, "mask_inputs": mask_inputs}
@@ -974,6 +973,7 @@ class SAM2Model(torch.nn.Module):
                 output_dict=output_dict,
                 num_frames=num_frames,
                 track_in_reverse=track_in_reverse,
+                samurai_mode=samurai_mode,
             )
             # apply SAM-style segmentation head
             # here we might feed previously predicted low-res SAM mask logits into the SAM mask decoder,
@@ -989,6 +989,7 @@ class SAM2Model(torch.nn.Module):
                 mask_inputs=mask_inputs,
                 high_res_features=high_res_features,
                 multimask_output=multimask_output,
+                samurai_mode=samurai_mode,
             )
         return current_out, sam_outputs, high_res_features, pix_feat
 
@@ -1040,6 +1041,7 @@ class SAM2Model(torch.nn.Module):
         run_mem_encoder=True,
         # The previously predicted SAM mask logits (which can be fed together with new clicks in demo).
         prev_sam_mask_logits=None,
+        samurai_mode = False,
     ):
         """Performs a single tracking step, updating object masks and memory features based on current frame inputs."""
         current_out, sam_outputs, _, _ = self._track_step(
@@ -1054,6 +1056,7 @@ class SAM2Model(torch.nn.Module):
             num_frames,
             track_in_reverse,
             prev_sam_mask_logits,
+            samurai_mode,
         )
         low_res_masks, high_res_masks, obj_ptr, object_score_logits, best_iou_score, kf_ious = sam_outputs
 

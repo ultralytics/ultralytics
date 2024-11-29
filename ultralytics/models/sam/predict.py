@@ -838,7 +838,7 @@ class SAM2VideoPredictor(SAM2Predictor):
 
     # fill_hole_area = 8  # not used
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
+    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None, samurai=False):
         """
         Initialize the predictor with configuration and optional overrides.
 
@@ -850,6 +850,7 @@ class SAM2VideoPredictor(SAM2Predictor):
             cfg (Dict): Configuration dictionary containing default settings.
             overrides (Dict | None): Dictionary of values to override default configuration.
             _callbacks (Dict | None): Dictionary of callback functions to customize behavior.
+            samurai (bool): Flag to indicate if use SAMURAI model to track objects.
 
         Examples:
             >>> predictor = SAM2VideoPredictor(cfg=DEFAULT_CFG)
@@ -859,6 +860,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         super().__init__(cfg, overrides, _callbacks)
         self.inference_state = {}
         self.non_overlap_masks = True
+        self.samurai = samurai
         self.clear_non_cond_mem_around_input = False
         self.clear_non_cond_mem_for_multi_obj = False
         self.callbacks["on_predict_start"].append(self.init_state)
@@ -1330,6 +1332,7 @@ class SAM2VideoPredictor(SAM2Predictor):
             track_in_reverse=reverse,
             run_mem_encoder=run_mem_encoder,
             prev_sam_mask_logits=prev_sam_mask_logits,
+            samurai_mode=self.samurai,
         )
 
         maskmem_features = current_out["maskmem_features"]

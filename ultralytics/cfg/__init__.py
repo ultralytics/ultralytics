@@ -11,7 +11,6 @@ import cv2
 
 from ultralytics.utils import (
     ASSETS,
-    ASSETS_URL,
     DEFAULT_CFG,
     DEFAULT_CFG_DICT,
     DEFAULT_CFG_PATH,

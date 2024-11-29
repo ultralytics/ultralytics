@@ -453,14 +453,13 @@ class SAM2Model(torch.nn.Module):
                 output only 1 mask and its IoU estimate.
 
         Returns:
-            (Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]):
-                low_res_multimasks: Tensor of shape (B, M, H*4, W*4) with SAM output mask logits.
-                high_res_multimasks: Tensor of shape (B, M, H*16, W*16) with upsampled mask logits.
-                ious: Tensor of shape (B, M) with estimated IoU for each output mask.
-                low_res_masks: Tensor of shape (B, 1, H*4, W*4) with the best low-resolution mask.
-                high_res_masks: Tensor of shape (B, 1, H*16, W*16) with the best high-resolution mask.
-                obj_ptr: Tensor of shape (B, C) with object pointer vector for the output mask.
-                object_score_logits: Tensor of shape (B,) with object score logits.
+            (torch.Tensor): The tensor of shape (B, M) with estimated IoU for each output mask.
+            (torch.Tensor): The tensor of shape (B, 1, H*4, W*4) with the best low-resolution mask.
+            (torch.Tensor): The tensor of shape (B, 1, H*16, W*16) with the best high-resolution mask.
+            (torch.Tensor): The tensor of shape (B, C) with object pointer vector for the output mask.
+            (torch.Tensor): The tensor of shape (B,) with object score logits.
+            (torch.Tensor): The tensor of shape (B,) with object iou scores.
+            (torch.Tensor): The tensor of shape (B,) with object Kalman scores.
 
             Where M is 3 if multimask_output=True, and 1 if multimask_output=False.
 

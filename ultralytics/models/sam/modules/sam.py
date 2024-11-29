@@ -750,7 +750,7 @@ class SAM2Model(torch.nn.Module):
                     if (
                         iou_score.mean().item() > self.memory_bank_iou_threshold
                         and obj_score.mean().item() > self.memory_bank_obj_score_threshold
-                        and (kf_score is None or kf_score.item() > self.memory_bank_kf_score_threshold)
+                        and (kf_score is None or kf_score.mean().item() > self.memory_bank_kf_score_threshold)
                     ):
                         valid_indices.insert(0, i)
                     # Check the number of valid indices

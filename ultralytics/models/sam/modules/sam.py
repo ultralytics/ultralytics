@@ -13,12 +13,14 @@ import torch.nn.functional as F
 from torch import nn
 from torch.nn.init import trunc_normal_
 
+from ultralytics.trackers.utils.kalman_filter import KalmanFilterXYAH
 from ultralytics.nn.modules import MLP
 
 from .blocks import SAM2TwoWayTransformer
 from .decoders import MaskDecoder, SAM2MaskDecoder
 from .encoders import ImageEncoderViT, PromptEncoder
 from .utils import get_1d_sine_pe, select_closest_cond_frames
+from ..amg import batched_mask_to_box
 
 # a large negative value as a placeholder score for missing objects
 NO_OBJ_SCORE = -1024.0
@@ -174,6 +176,16 @@ class SAM2Model(torch.nn.Module):
         no_obj_embed_spatial: bool = False,
         sam_mask_decoder_extra_args=None,
         compile_image_encoder: bool = False,
+        # Whether to use SAMURAI or original SAM 2
+        samurai_mode: bool = True,
+        # Hyperparameters for SAMURAI
+        stable_frames_threshold: int = 15,
+        stable_ious_threshold: float = 0.3,
+        min_obj_score_logits: float = -1,
+        kf_score_weight: float = 0.25,
+        memory_bank_iou_threshold: float = 0.5,
+        memory_bank_obj_score_threshold: float = 0.0,
+        memory_bank_kf_score_threshold: float = 0.0,
     ):
         """
         Initializes the SAM2Model for video object segmentation with memory-based tracking.
@@ -318,6 +330,26 @@ class SAM2Model(torch.nn.Module):
 
         self._build_sam_heads()
         self.max_cond_frames_in_attn = max_cond_frames_in_attn
+
+        # Whether to use SAMURAI or original SAM 2
+        self.samurai_mode = samurai_mode
+
+        # Init Kalman Filter
+        self.kf = KalmanFilterXYAH()
+        self.kf_mean = None
+        self.kf_covariance = None
+        self.stable_frames = 0
+        self.frame_idx = 0
+        self.tracked_stracks = []
+
+        # Hyperparameters for SAMURAI
+        self.stable_frames_threshold = stable_frames_threshold
+        self.stable_ious_threshold = stable_ious_threshold
+        self.min_obj_score_logits = min_obj_score_logits
+        self.kf_score_weight = kf_score_weight
+        self.memory_bank_iou_threshold = memory_bank_iou_threshold
+        self.memory_bank_obj_score_threshold = memory_bank_obj_score_threshold
+        self.memory_bank_kf_score_threshold = memory_bank_kf_score_threshold
 
         # Model compilation
         if compile_image_encoder:
@@ -495,15 +527,15 @@ class SAM2Model(torch.nn.Module):
             high_res_features=high_res_features,
         )
         if self.pred_obj_scores:
-            is_obj_appearing = object_score_logits > 0
+            is_obj_appearing = object_score_logits > self.min_obj_score_logits
 
             # Spatial memory mask is a *hard* choice between obj and no obj, consistent with actual mask prediction
             low_res_multimasks = torch.where(is_obj_appearing[:, None, None], low_res_multimasks, NO_OBJ_SCORE)
 
         # convert masks from possibly bfloat16 (or float16) to float32
         # (older PyTorch versions before 2.1 don't support `interpolate` on bf16)
-        low_res_multimasks = low_res_multimasks.float()
-        high_res_multimasks = F.interpolate(
+        low_res_multimasks = low_res_multimasks.float()  # B, N, H/4, W/4
+        high_res_multimasks = F.interpolate(  # B, N, H, W
             low_res_multimasks,
             size=(self.image_size, self.image_size),
             mode="bilinear",
@@ -511,15 +543,137 @@ class SAM2Model(torch.nn.Module):
         )
 
         sam_output_token = sam_output_tokens[:, 0]
+        kf_ious = []
+        batch_inds = torch.arange(B, device=device)
         if multimask_output:
             # take the best mask prediction (with the highest IoU estimation)
             best_iou_inds = torch.argmax(ious, dim=-1)
-            batch_inds = torch.arange(B, device=device)
-            low_res_masks = low_res_multimasks[batch_inds, best_iou_inds].unsqueeze(1)
-            high_res_masks = high_res_multimasks[batch_inds, best_iou_inds].unsqueeze(1)
+            low_res_masks = low_res_multimasks[batch_inds, best_iou_inds].unsqueeze(1)  # B, 1, H/4, W/4
+            high_res_masks = high_res_multimasks[batch_inds, best_iou_inds].unsqueeze(1)  # B, 1, H, W
             if sam_output_tokens.size(1) > 1:
                 sam_output_token = sam_output_tokens[batch_inds, best_iou_inds]
+            if self.samurai_mode:
+                from ultralytics.trackers.byte_tracker import STrack
+                from ultralytics.utils.metrics import bbox_ioa
+                import numpy as np
+
+                scores = ious[batch_inds, best_iou_inds]
+                high_res_bbox = (
+                    batched_mask_to_box(high_res_masks[:, 0, :, :] > self.mask_threshold).cpu().numpy()
+                )  # B, 4
+                det = np.concatenate((high_res_bbox, np.arange(B)[:, None]), axis=1)  # concatenate index
+                # NOTE: `scores[i].item()` as score, and `i` as cls.
+                det = [STrack(d, scores[i].item(), i) for i, d in enumerate(det)]
+                for i, d in enumerate(self.tracked_stracks):
+                    if d.tracklet_len < self.stable_frames_threshold:
+                        if det[i].score > self.stable_ious_threshold:
+                            d.update(det[i], self.frame_idx)
+                        else:
+                            d.activate(self.kf, self.frame_idx)  # reset
+                    else:
+                        high_res_boxes = (
+                            batched_mask_to_box(high_res_multimasks[i, :, :, :] > self.mask_threshold).cpu().numpy()
+                        )
+                        d.predict()
+                        # (B, )
+                        kf_iou = torch.tensor(bbox_ioa(np.array(d.xyxy)[None], high_res_boxes), device=device)[0]
+                        kf_ious.append(kf_iou)
+                        weighted_iou = self.kf_score_weight * kf_iou + (1 - self.kf_score_weight) * ious[i]
+                        best_iou_ind = torch.argmax(weighted_iou, dim=-1)
+                        best_iou_inds[i] = best_iou_ind
+                        low_res_masks[i] = low_res_multimasks[i, best_iou_ind].unsqueeze(0)
+                        high_res_masks[i] = high_res_multimasks[i, best_iou_ind].unsqueeze(0)
+                        if sam_output_tokens.size(1) > 1:
+                            sam_output_token[i] = sam_output_tokens[i, best_iou_ind]
+
+                        if ious[i][best_iou_ind] >= self.stable_ious_threshold:  # matching
+                            high_res_bbox = high_res_boxes[best_iou_ind]
+                            d.update(
+                                STrack(np.concatenate([high_res_bbox, np.array([i])]), ious[i][best_iou_ind], i),
+                                self.stable_frames,
+                            )
+                        else:
+                            d.activate(self.kf, self.frame_idx)  # reset
+                if len(self.tracked_stracks) == 0:
+                    for d in det:
+                        d.activate(self.kf, self.frame_idx)
+                    self.tracked_stracks = det
+
+                # if self.stable_frames == 0:
+                #     # TODO: implement for single object for now
+                #     det.activate(self.kf, self.stable_frames)
+                #     self.tracked_stracks.append(det)
+                #     self.stable_frames += 1
+                # elif self.stable_frames < self.stable_frames_threshold:
+                #     if ious[0][best_iou_inds] > self.stable_ious_threshold:  # matching
+                #         self.tracked_stracks[0].update(det, self.stable_frames)
+                #         self.stable_frames += 1
+                #     else:
+                #         self.stable_frames = 0
+                #         self.tracked_stracks.clear()
+                # else:
+                #     STrack.multi_predict(self.tracked_stracks)
+                #     high_res_multibboxes = (
+                #         batched_mask_to_box(high_res_multimasks[0, :, :, :] > self.mask_threshold).cpu().numpy()
+                #     )
+                #     # kf_ious = torch.tensor(self.kf.compute_iou(self.kf_mean[:4], high_res_multibboxes), device=device)
+                #     kf_ious = torch.tensor(
+                #         bbox_ioa(np.array(self.tracked_stracks[0].xyxy)[None], high_res_multibboxes), device=device
+                #     )[0]
+                #     # weighted iou
+                #     weighted_ious = self.kf_score_weight * kf_ious + (1 - self.kf_score_weight) * ious
+                #     best_iou_inds = torch.argmax(weighted_ious, dim=-1)
+                #     low_res_masks = low_res_multimasks[batch_inds, best_iou_inds].unsqueeze(1)
+                #     high_res_masks = high_res_multimasks[batch_inds, best_iou_inds].unsqueeze(1)
+                #     if sam_output_tokens.size(1) > 1:
+                #         sam_output_token = sam_output_tokens[batch_inds, best_iou_inds]
+                #     if ious[0][best_iou_inds] >= self.stable_ious_threshold:  # matching
+                #         high_res_bbox = high_res_multibboxes[best_iou_inds].tolist()
+                #         high_res_bbox.append(1)
+                #         det = STrack(np.array(high_res_bbox), 1, 1)
+                #         self.tracked_stracks[0].update(det, self.stable_frames)
+                #     else:
+                #         self.stable_frames = 0
+                #         self.tracked_stracks.clear()
+                self.frame_idx += 1
+
+                # if self.kf_mean is None and self.kf_covariance is None or self.stable_frames == 0:
+                #     # TODO: fix hardcoding
+                #     high_res_bbox = batched_mask_to_box(high_res_masks[:, 0, :, :] > self.mask_threshold).tolist()[0]
+                #     self.kf_mean, self.kf_covariance = self.kf.initiate(self.kf.xyxy_to_xyah(high_res_bbox))
+                #     self.stable_frames += 1
+                # elif self.stable_frames < self.stable_frames_threshold:
+                #     self.kf_mean, self.kf_covariance = self.kf.predict(self.kf_mean, self.kf_covariance)
+                #     # TODO: fix hardcoding
+                #     high_res_bbox = batched_mask_to_box(high_res_masks[:, 0, :, :] > self.mask_threshold).tolist()[0]
+                #     if ious[0][best_iou_inds] > self.stable_ious_threshold:
+                #         self.kf_mean, self.kf_covariance = self.kf.update(
+                #             self.kf_mean, self.kf_covariance, self.kf.xyxy_to_xyah(high_res_bbox)
+                #         )
+                #         self.stable_frames += 1
+                #     else:
+                #         self.stable_frames = 0
+                # else:
+                #     self.kf_mean, self.kf_covariance = self.kf.predict(self.kf_mean, self.kf_covariance)
+                #     # compute the IoU between the predicted bbox and the high_res_multibboxes
+                #     # TODO: fix hardcoding
+                #     high_res_multibboxes = batched_mask_to_box(high_res_multimasks[0, :, :, :] > self.mask_threshold).tolist()
+                #     kf_ious = torch.tensor(self.kf.compute_iou(self.kf_mean[:4], high_res_multibboxes), device=device)
+                #     # weighted iou
+                #     weighted_ious = self.kf_score_weight * kf_ious + (1 - self.kf_score_weight) * ious
+                #     best_iou_inds = torch.argmax(weighted_ious, dim=-1)
+                #     low_res_masks = low_res_multimasks[batch_inds, best_iou_inds].unsqueeze(1)
+                #     high_res_masks = high_res_multimasks[batch_inds, best_iou_inds].unsqueeze(1)
+                #     if sam_output_tokens.size(1) > 1:
+                #         sam_output_token = sam_output_tokens[batch_inds, best_iou_inds]
+                #     if ious[0][best_iou_inds] < self.stable_ious_threshold:
+                #         self.stable_frames = 0
+                #     else:
+                #         self.kf_mean, self.kf_covariance = self.kf.update(
+                #             self.kf_mean, self.kf_covariance, self.kf.xyxy_to_xyah(high_res_multibboxes[best_iou_inds])
+                #         )
         else:
+            best_iou_inds = 0
             low_res_masks, high_res_masks = low_res_multimasks, high_res_multimasks
 
         # Extract object pointer from the SAM output token (with occlusion handling)
@@ -536,13 +690,12 @@ class SAM2Model(torch.nn.Module):
             obj_ptr = obj_ptr + (1 - lambda_is_obj_appearing) * self.no_obj_ptr
 
         return (
-            low_res_multimasks,
-            high_res_multimasks,
-            ious,
             low_res_masks,
             high_res_masks,
             obj_ptr,
             object_score_logits,
+            ious[batch_inds, best_iou_inds],
+            torch.cat(kf_ious) if len(kf_ious) else None,
         )
 
     def _use_mask_as_output(self, backbone_features, high_res_features, mask_inputs):
@@ -565,7 +718,7 @@ class SAM2Model(torch.nn.Module):
             obj_ptr = torch.zeros(mask_inputs.size(0), self.hidden_dim, device=mask_inputs.device)
         else:
             # produce an object pointer using the SAM decoder from the mask input
-            _, _, _, _, _, obj_ptr, _ = self._forward_sam_heads(
+            _, _, obj_ptr, _, _, _ = self._forward_sam_heads(
                 backbone_features=backbone_features,
                 mask_inputs=self.mask_downsample(mask_inputs_float),
                 high_res_features=high_res_features,
@@ -657,9 +810,40 @@ class SAM2Model(torch.nn.Module):
             # We also allow taking the memory frame non-consecutively (with r>1), in which case
             # we take (self.num_maskmem - 2) frames among every r-th frames plus the last frame.
             r = 1 if self.training else self.memory_temporal_stride_for_eval
+            valid_indices = []
+            if self.samurai_mode:
+                for i in range(frame_idx - 1, 1, -1):  # Iterate backwards through previous frames
+                    # Get mask affinity score
+                    iou_score = output_dict["non_cond_frame_outputs"][i]["best_iou_score"]
+                    # Get object score
+                    obj_score = output_dict["non_cond_frame_outputs"][i]["object_score_logits"]
+                    # Get motion score if available
+                    kf_score = (
+                        output_dict["non_cond_frame_outputs"][i]["kf_score"]
+                        if "kf_score" in output_dict["non_cond_frame_outputs"][i]
+                        else None
+                    )
+                    # Check if the scores meet the criteria for being a valid index
+                    # NOTE: use mean value as standard for multiple objects
+                    if (
+                        iou_score.mean().item() > self.memory_bank_iou_threshold
+                        and obj_score.mean().item() > self.memory_bank_obj_score_threshold
+                        and (kf_score is None or kf_score.item() > self.memory_bank_kf_score_threshold)
+                    ):
+                        valid_indices.insert(0, i)
+                    # Check the number of valid indices
+                    if len(valid_indices) >= self.max_obj_ptrs_in_encoder - 1:
+                        break
+                if frame_idx - 1 not in valid_indices:
+                    valid_indices.append(frame_idx - 1)
+
             for t_pos in range(1, self.num_maskmem):
                 t_rel = self.num_maskmem - t_pos  # how many frames before current frame
-                if t_rel == 1:
+                if self.samurai_mode:
+                    if -t_rel < -len(valid_indices):  # Skip if index is out of bounds
+                        continue
+                    prev_frame_idx = valid_indices[-t_rel]
+                elif t_rel == 1:
                     # for t_rel == 1, we take the last frame (regardless of r)
                     prev_frame_idx = frame_idx + t_rel if track_in_reverse else frame_idx - t_rel
                 elif not track_in_reverse:
@@ -947,11 +1131,13 @@ class SAM2Model(torch.nn.Module):
             track_in_reverse,
             prev_sam_mask_logits,
         )
-        _, _, _, low_res_masks, high_res_masks, obj_ptr, object_score_logits = sam_outputs
+        low_res_masks, high_res_masks, obj_ptr, object_score_logits, best_iou_score, kf_ious = sam_outputs
 
         current_out["pred_masks"] = low_res_masks
         current_out["pred_masks_high_res"] = high_res_masks
         current_out["obj_ptr"] = obj_ptr
+        current_out["best_iou_score"] = best_iou_score
+        current_out["kf_ious"] = kf_ious
         if not self.training:
             # Only add this in inference (to avoid unused param in activation checkpointing;
             # it's mainly used in the demo to encode spatial memories w/ consolidated masks)

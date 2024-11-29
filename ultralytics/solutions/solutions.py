@@ -75,7 +75,8 @@ class BaseSolution:
         self.names = self.model.names
 
         self.track_add_args = {  # Tracker additional arguments for advance configuration
-            k: self.CFG[k] for k in ["verbose", "iou", "conf", "device", "max_det", "half", "tracker"]}
+            k: self.CFG[k] for k in ["verbose", "iou", "conf", "device", "max_det", "half", "tracker"]
+        }
 
         if IS_CLI and self.CFG["source"] is None:
             d_s = "solutions_ci_demo.mp4" if "-pose" not in self.CFG["model"] else "solution_ci_pose_demo.mp4"

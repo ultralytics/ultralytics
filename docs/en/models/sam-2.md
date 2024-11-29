@@ -4,9 +4,9 @@ description: Discover SAM 2, the next generation of Meta's Segment Anything Mode
 keywords: SAM 2, SAM 2.1, Segment Anything, video segmentation, image segmentation, promptable segmentation, zero-shot performance, SA-V dataset, Ultralytics, real-time segmentation, AI, machine learning
 ---
 
-!!! tip "SAM 2.1"
+!!! tip "SAMURAI"
 
-    We have just supported the more accurate SAM2.1 model. Please give it a try!
+    We have just supported [SAMURAI tracking](#segment-video-and-track-objects). Please give it a try!
 
 # SAM 2: Segment Anything Model 2
 
@@ -200,13 +200,35 @@ SAM 2 can be utilized across a broad spectrum of tasks, including real-time vide
 
     Segment the entire video content with specific prompts and track objects.
 
-    === "Python"
+    === "SAMURAI"
 
         ```python
         from ultralytics.models.sam import SAM2VideoPredictor
 
         # Create SAM2VideoPredictor
-        overrides = dict(conf=0.25, task="segment", mode="predict", imgsz=1024, model="sam2_b.pt")
+        overrides = dict(conf=0.25, task="segment", mode="predict", imgsz=1024, model="sam2.1_b.pt")
+        predictor = SAM2VideoPredictor(overrides=overrides, samurai=True)
+
+        # Run inference with single point
+        results = predictor(source="test.mp4", points=[920, 470], labels=1)
+
+        # Run inference with multiple points
+        results = predictor(source="test.mp4", points=[[920, 470], [909, 138]], labels=[1, 1])
+
+        # Run inference with multiple points prompt per object
+        results = predictor(source="test.mp4", points=[[[920, 470], [909, 138]]], labels=[[1, 1]])
+
+        # Run inference with negative points prompt
+        results = predictor(source="test.mp4", points=[[[920, 470], [909, 138]]], labels=[[1, 0]])
+        ```
+
+    === "SAM2"
+
+        ```python
+        from ultralytics.models.sam import SAM2VideoPredictor
+
+        # Create SAM2VideoPredictor
+        overrides = dict(conf=0.25, task="segment", mode="predict", imgsz=1024, model="sam2.1_b.pt")
         predictor = SAM2VideoPredictor(overrides=overrides)
 
         # Run inference with single point

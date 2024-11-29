@@ -218,8 +218,8 @@ class AutoBackend(nn.Module):
 
             output_names = [x.name for x in session.get_outputs()]
             metadata = session.get_modelmeta().custom_metadata_map
-            dynamic = isinstance(session.get_inputs()[0].shape[2], str)
-            if not (dynamic or imx):
+            dynamic = isinstance(session.get_outputs()[0].shape[0], str)
+            if not dynamic:
                 io = session.io_binding()
                 bindings = []
                 for output in session.get_outputs():
@@ -537,7 +537,7 @@ class AutoBackend(nn.Module):
 
         # ONNX Runtime
         elif self.onnx or self.imx:
-            if self.dynamic or self.imx:
+            if self.dynamic:
                 im = im.cpu().numpy()  # torch to numpy
                 y = self.session.run(self.output_names, {self.session.get_inputs()[0].name: im})
             else:

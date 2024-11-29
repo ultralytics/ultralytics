@@ -558,9 +558,8 @@ class SAM2Model(torch.nn.Module):
                 sam_output_token = sam_output_tokens[batch_inds, best_iou_inds]
             if self.samurai_mode:
                 scores = ious[batch_inds, best_iou_inds]
-                high_res_bbox = (
-                    batched_mask_to_box(high_res_masks[:, 0, :, :] > self.mask_threshold).cpu().numpy()
-                )  # B, 4
+                # B, 4
+                high_res_bbox = batched_mask_to_box(high_res_masks[:, 0, :, :] > self.mask_threshold).cpu().numpy()
                 det = np.concatenate((high_res_bbox, np.arange(B)[:, None]), axis=1)  # concatenate index
                 # NOTE: `scores[i].item()` as score, and `i` as cls.
                 det = [STrack(d, scores[i].item(), i) for i, d in enumerate(det)]

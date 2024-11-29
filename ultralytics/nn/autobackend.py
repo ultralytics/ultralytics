@@ -218,7 +218,7 @@ class AutoBackend(nn.Module):
 
             output_names = [x.name for x in session.get_outputs()]
             metadata = session.get_modelmeta().custom_metadata_map
-            dynamic = isinstance(session.get_outputs()[0].shape[2], str)
+            dynamic = isinstance(session.get_inputs()[0].shape[2], str)
             if not dynamic:
                 io = session.io_binding()
                 bindings = []

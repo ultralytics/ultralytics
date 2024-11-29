@@ -537,7 +537,7 @@ class AutoBackend(nn.Module):
 
         # ONNX Runtime
         elif self.onnx or self.imx:
-            if self.dynamic:
+            if self.dynamic or self.imx:
                 im = im.cpu().numpy()  # torch to numpy
                 y = self.session.run(self.output_names, {self.session.get_inputs()[0].name: im})
             else:

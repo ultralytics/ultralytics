@@ -469,13 +469,13 @@ class SAM2Model(torch.nn.Module):
             >>> mask_inputs = torch.rand(1, 1, 512, 512)
             >>> results = model._forward_sam_heads(backbone_features, point_inputs, mask_inputs)
             >>> (
-            ...     low_res_multimasks,
-            ...     high_res_multimasks,
             ...     ious,
             ...     low_res_masks,
             ...     high_res_masks,
             ...     obj_ptr,
             ...     object_score_logits,
+            ...     ious,
+            ...     kf_ious,
             ... ) = results
         """
         B = backbone_features.size(0)

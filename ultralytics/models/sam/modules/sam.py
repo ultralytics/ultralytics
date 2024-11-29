@@ -342,7 +342,6 @@ class SAM2Model(torch.nn.Module):
         self.kf = KalmanFilterXYAH()
         self.kf_mean = None
         self.kf_covariance = None
-        self.stable_frames = 0
         self.frame_idx = 0
         self.tracked_stracks = []
 
@@ -589,7 +588,7 @@ class SAM2Model(torch.nn.Module):
                             high_res_bbox = high_res_boxes[best_iou_ind]
                             d.update(
                                 STrack(np.concatenate([high_res_bbox, np.array([i])]), ious[i][best_iou_ind], i),
-                                self.stable_frames,
+                                self.frame_idx,
                             )
                         else:
                             d.activate(self.kf, self.frame_idx)  # reset

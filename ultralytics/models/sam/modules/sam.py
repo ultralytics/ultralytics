@@ -335,8 +335,6 @@ class SAM2Model(torch.nn.Module):
 
         # Init Kalman Filter
         self.kf = KalmanFilterXYAH()
-        self.kf_mean = None
-        self.kf_covariance = None
         self.frame_idx = 0
         self.tracked_stracks = []
 

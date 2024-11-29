@@ -625,6 +625,7 @@ def test_yolov10():
 
 
 def test_image_channel_order():
+    """Test YOLO while optionally specifying image channel order manually."""
     source = ASSETS / "bus.jpg"
 
     model = YOLO("yolov8n.pt")

@@ -75,7 +75,7 @@ class BaseSolution:
         self.names = self.model.names
 
         # Tracker additional arguments for advance configuration
-        self.track_args = {k: self.CFG[k] for k in ["verbose", "iou", "conf", "device", "max_det", "half"]}
+        self.track_add_args = {k: self.CFG[k] for k in ["verbose", "iou", "conf", "device", "max_det", "half"]}
 
         if IS_CLI and self.CFG["source"] is None:
             d_s = "solutions_ci_demo.mp4" if "-pose" not in self.CFG["model"] else "solution_ci_pose_demo.mp4"
@@ -101,7 +101,7 @@ class BaseSolution:
             >>> frame = cv2.imread("path/to/image.jpg")
             >>> solution.extract_tracks(frame)
         """
-        self.tracks = self.model.track(source=im0, persist=True, classes=self.CFG["classes"], **self.track_args)
+        self.tracks = self.model.track(source=im0, persist=True, classes=self.CFG["classes"], **self.track_add_args)
 
         # Extract tracks for OBB or object detection
         self.track_data = self.tracks[0].obb or self.tracks[0].boxes

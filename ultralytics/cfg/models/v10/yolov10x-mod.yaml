@@ -1,46 +1,53 @@
-# yolov10_cbam.yaml
-
-# Ultralytics YOLO 🚀, AGPL-3.0 license
-# YOLOv10 object detection model with CBAM and custom modules
+# YOLOv10 CBAM-enhanced model with selective CBAM placement
 
 # Parameters
-nc: 4 # number of classes
-scales: # model compound scaling constants
+nc: 4  # number of classes
+scales:  # model compound scaling constants
   x: [1.00, 1.25, 512]
 
 backbone:
   # [from, repeats, module, args]
-  - [-1, 1, Conv, [64, 3, 2]] # 0-P1/2
-  - [-1, 1, Conv, [128, 3, 2]] # 1-P2/4
-  - [-1, 3, C2f, [128, True]]
-  - [-1, 1, Conv, [256, 3, 2]] # 3-P3/8
-  - [-1, 6, C2f, [256, True]]
-  - [-1, 1, CBAM, [256]]
-  - [-1, 1, SCDown, [512, 3, 2]] # 5-P4/16
-  - [-1, 6, C2fCIB, [512, True]]
-  - [-1, 1, SCDown, [1024, 3, 2]] # 7-P5/32
-  - [-1, 3, C2fCIB, [1024, True]]
-  - [-1, 1, SPPF, [1024, 5]] # 9
-  - [-1, 1, PSA, [1024]] # 10
-  - [-1, 1, CBAM, [1024]]
+  - [-1, 1, Conv, [64, 3, 2]]               # 0-P1/2: Initial downsampling
+  - [-1, 1, Conv, [128, 3, 2]]              # 1-P2/4: Downsample
+  - [-1, 3, C2f, [128, True]]               # 2: Feature extraction block
+  - [-1, 1, Conv, [256, 3, 2]]              # 3-P3/8: Downsample
+  - [-1, 6, C2f, [256, True]]               # 4: C2f for feature extraction
+  # Optional CBAM at shallow layer for small object refinement
+  - [-1, 1, CBAM, [256]]                    # 5: Apply CBAM (optional for experimentation)
+  - [-1, 1, Conv, [256, 3, 1]]              # 6: Transition - Conv layer
+  - [-1, 1, BatchNorm, [256]]               # 7: Transition - BatchNorm
+  - [-1, 1, SCDown, [512, 3, 2]]            # 8-P4/16: Scaled downsampling
+  - [-1, 6, C2fCIB, [512, True]]            # 9: Advanced feature extraction
+  - [-1, 1, CBAM, [512]]                    # 10: CBAM for intermediate features
+  - [-1, 1, Conv, [512, 3, 1]]              # 11: Transition - Conv layer
+  - [-1, 1, BatchNorm, [512]]               # 12: Transition - BatchNorm
+  - [-1, 1, SCDown, [1024, 3, 2]]           # 13-P5/32: Scaled downsampling
+  - [-1, 3, C2fCIB, [1024, True]]           # 14: Deeper feature extraction
+  - [-1, 1, CBAM, [1024]]                   # 15: CBAM for abstract features
+  - [-1, 1, Conv, [1024, 3, 1]]             # 16: Transition - Conv layer
+  - [-1, 1, BatchNorm, [1024]]              # 17: Transition - BatchNorm
+  - [-1, 1, SPPF, [1024, 5]]                # 18: Spatial Pyramid Pooling
+  - [-1, 1, PSA, [1024]]                    # 19: Proportional Scaling Attention
 
 head:
-  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
-  - [[-1, 6], 1, Concat, [1]] # cat backbone P4
-  - [-1, 3, C2fCIB, [512, True]] # 13
-  - [-1, 1, CBAM, [512]]
+  # [from, repeats, module, args]
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]  # 20: Upsample for P4
+  - [[-1, 9], 1, Concat, [1]]                  # 21: Concatenate with backbone P4
+  - [-1, 3, C2fCIB, [512, True]]               # 22: Feature refinement for P4
+  - [-1, 1, CBAM, [512]]                       # 23: CBAM after feature refinement
+  - [-1, 1, Conv, [512, 3, 1]]                 # 24: Transition - Conv layer
+  - [-1, 1, BatchNorm, [512]]                  # 25: Transition - BatchNorm
 
-  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
-  - [[-1, 4], 1, Concat, [1]] # cat backbone P3
-  - [-1, 3, C2f, [256]] # 16 (P3/8-small)
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]] # 26: Upsample for P3
+  - [[-1, 4], 1, Concat, [1]]                  # 27: Concatenate with backbone P3
+  - [-1, 3, C2f, [256]]                        # 28: Feature refinement for P3 (small)
 
-  - [-1, 1, Conv, [256, 3, 2]]
-  - [[-1, 13], 1, Concat, [1]] # cat head P4
-  - [-1, 3, C2fCIB, [512, True]] # 19 (P4/16-medium)
+  - [-1, 1, Conv, [256, 3, 2]]                 # 29: Downsample back to P4
+  - [[-1, 22], 1, Concat, [1]]                 # 30: Concatenate with refined P4
+  - [-1, 3, C2fCIB, [512, True]]               # 31: Feature refinement for P4 (medium)
 
-  - [-1, 1, SCDown, [512, 3, 2]]
-  - [[-1, 10], 1, Concat, [1]] # cat head P5
-  - [-1, 3, C2fCIB, [1024, True]] # 22 (P5/32-large)
+  - [-1, 1, SCDown, [512, 3, 2]]               # 32: Downsample for P5
+  - [[-1, 19], 1, Concat, [1]]                 # 33: Concatenate with backbone P5
+  - [-1, 3, C2fCIB, [1024, True]]              # 34: Feature refinement for P5 (large)
 
-  - [[16, 19, 22], 1, v10Detect, [nc]] # Detect(P3, P4, P5)
-
+  - [[28, 31, 34], 1, v10Detect, [nc]]         # 35: Detection layers for P3, P4, P5

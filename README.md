@@ -80,7 +80,7 @@ YOLO may be used directly in the Command Line Interface (CLI) with a `yolo` comm
 yolo predict model=yolo11n.pt source='https://ultralytics.com/images/bus.jpg'
 ```
 
-`yolo` can be used for a variety of tasks and modes and accepts additional arguments, i.e. `imgsz=640`. See the YOLO [CLI Docs](https://docs.ultralytics.com/usage/cli/) for examples.
+`yolo` can be used for a variety of tasks and modes and accepts additional arguments, e.g. `imgsz=640`. See the YOLO [CLI Docs](https://docs.ultralytics.com/usage/cli/) for examples.
 
 ### Python
 

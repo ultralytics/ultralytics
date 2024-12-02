@@ -71,7 +71,7 @@ class AIGym(BaseSolution):
             >>> processed_image = gym.monitor(image)
         """
         # Extract tracks
-        tracks = self.model.track(source=im0, persist=True, classes=self.CFG["classes"])[0]
+        tracks = self.model.track(source=im0, persist=True, classes=self.CFG["classes"], **self.track_add_args)[0]
 
         if tracks.boxes.id is not None:
             # Extract and check keypoints

@@ -271,6 +271,17 @@ Auto-annotation is a powerful feature of SAM 2, enabling users to generate segme
 
 ### How to Auto-Annotate with SAM 2
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/M7xWw4Iodhg"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> Auto Annotation with Meta's Segment Anything 2 Model using Ultralytics | Data Labeling
+</p>
+
 To auto-annotate your dataset using SAM 2, follow this example:
 
 !!! example "Auto-Annotation Example"

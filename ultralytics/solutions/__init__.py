@@ -10,6 +10,7 @@ from .queue_management import QueueManager
 from .region_counter import RegionCounter
 from .speed_estimation import SpeedEstimator
 from .streamlit_inference import inference
+from .trackzone import TrackZone
 
 __all__ = (
     "AIGym",
@@ -23,4 +24,5 @@ __all__ = (
     "Analytics",
     "inference",
     "RegionCounter",
+    "TrackZone",
 )

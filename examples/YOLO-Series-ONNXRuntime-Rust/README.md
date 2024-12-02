@@ -62,7 +62,7 @@ cargo run -r -- --task detect --ver v8 --nc 6 --model xxx.onnx  # YOLOv8
 # Classify
 cargo run -r -- --task classify --ver v5 --scale s --width 224 --height 224 --nc 1000  # YOLOv5
 cargo run -r -- --task classify --ver v8 --scale n --width 224 --height 224 --nc 1000  # YOLOv8
-cargo run -r -- --task classify --ver v11 --scale n --width 224 --height 224 --nc 1000  # YOLOv11
+cargo run -r -- --task classify --ver v11 --scale n --width 224 --height 224 --nc 1000  # YOLO11
 
 # Detect
 cargo run -r -- --task detect --ver v5 --scale n  # YOLOv5
@@ -71,12 +71,12 @@ cargo run -r -- --task detect --ver v7 --scale t  # YOLOv7
 cargo run -r -- --task detect --ver v8 --scale n  # YOLOv8
 cargo run -r -- --task detect --ver v9 --scale t  # YOLOv9
 cargo run -r -- --task detect --ver v10 --scale n  # YOLOv10
-cargo run -r -- --task detect --ver v11 --scale n  # YOLOv11
+cargo run -r -- --task detect --ver v11 --scale n  # YOLO11
 cargo run -r -- --task detect --ver rtdetr --scale l  # RTDETR
 
 # Pose
 cargo run -r -- --task pose --ver v8 --scale n   # YOLOv8-Pose
-cargo run -r -- --task pose --ver v11 --scale n  # YOLOv11-Pose
+cargo run -r -- --task pose --ver v11 --scale n  # YOLO11-Pose
 
 # Segment
 cargo run -r -- --task segment --ver v5 --scale n  # YOLOv5-Segment
@@ -86,7 +86,7 @@ cargo run -r -- --task segment --ver v8 --model yolo/FastSAM-s-dyn-f16.onnx  # F
 
 # OBB
 cargo run -r -- --ver v8 --task obb --scale n --width 1024 --height 1024 --source images/dota.png  # YOLOv8-Obb
-cargo run -r -- --ver v11 --task obb --scale n --width 1024 --height 1024 --source images/dota.png  # YOLOv11-Obb
+cargo run -r -- --ver v11 --task obb --scale n --width 1024 --height 1024 --source images/dota.png  # YOLO11-Obb
 ```
 
 **`cargo run -- --help` for more options**

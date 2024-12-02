@@ -146,5 +146,5 @@ class DetectionTrainer(BaseTrainer):
         """Get batch size by calculating memory occupation of model."""
         train_dataset = self.build_dataset(self.trainset, mode="train", batch=16)
         # 4 for mosaic augmentation
-        max_num_obj = max(len(l["cls"]) for l in train_dataset.labels) * 4
+        max_num_obj = max(len(label["cls"]) for label in train_dataset.labels) * 4
         return super().auto_batch(max_num_obj)

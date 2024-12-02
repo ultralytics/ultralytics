@@ -162,7 +162,7 @@ cd examples/imx500
 Step 3: Run YOLOv8 object detection, using the labels.txt file that has been generated during the IMX500 export.
 
 ```bash
-python imx500_object_detection_demo.py --model <path to network.rpk> --fps 25 --bbox-normalization --ignore-dash-labels --bbox-order xy –labels <path to labels.txt>
+python imx500_object_detection_demo.py --model <path to network.rpk> --fps 25 --bbox-normalization --ignore-dash-labels --bbox-order xy --labels <path to labels.txt>
 ```
 
 Then you will be able to see live inference output as follows

@@ -52,7 +52,7 @@ Now that we've covered what Albumentations is and what it can do, let's look at 
 
 ### Installation
 
-To use Albumentations with YOLOv11, start by making sure you have the necessary packages installed. If Albumentations isn't installed, the augmentations won't be applied during training. Once set up, you'll be ready to create an augmented dataset for training, with Albumentations integrated to enhance your model automatically.
+To use Albumentations with YOLO11, start by making sure you have the necessary packages installed. If Albumentations isn't installed, the augmentations won't be applied during training. Once set up, you'll be ready to create an augmented dataset for training, with Albumentations integrated to enhance your model automatically.
 
 !!! tip "Installation"
 
@@ -67,7 +67,7 @@ For detailed instructions and best practices related to the installation process
 
 ### Usage
 
-After installing the necessary packages, you're ready to start using Albumentations with YOLO11. When you train YOLOv11, a set of augmentations is automatically applied through its integration with Albumentations, making it easy to enhance your model's performance.
+After installing the necessary packages, you're ready to start using Albumentations with YOLO11. When you train YOLO11, a set of augmentations is automatically applied through its integration with Albumentations, making it easy to enhance your model's performance.
 
 !!! example "Usage"
 

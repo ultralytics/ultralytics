@@ -312,7 +312,6 @@ nav:
           - datasets/track/index.md
   - Solutions 🚀 NEW:
       - solutions/index.md
-      - Track Objects in Zone 🚀 NEW: guides/trackzone.md
       - Analytics: guides/analytics.md
       - Object Counting: guides/object-counting.md
       - Object Cropping: guides/object-cropping.md
@@ -328,6 +327,7 @@ nav:
       - Queue Management: guides/queue-management.md
       - Parking Management: guides/parking-management.md
       - Live Inference: guides/streamlit-live-inference.md
+      - Track Objects in Zone 🚀 NEW: guides/trackzone.md
   - Guides:
       - guides/index.md
       - YOLO Common Issues: guides/yolo-common-issues.md

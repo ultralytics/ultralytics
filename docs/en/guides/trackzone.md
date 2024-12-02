@@ -8,7 +8,7 @@ keywords: TrackZone, object tracking, YOLO11, Ultralytics, real-time object dete
 
 ## What is TrackZone?
 
-TrackZone specializes in monitoring objects within designated areas of a frame instead of the whole frame. Built on [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics/), it integrates object detection and tracking specifically within those zones for videos and live camera feeds. YOLO11's advanced algorithms and [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) technologies make it a perfect choice for real-time use cases, offering precise and efficient object tracking in applications like crowd monitoring and surveillance.
+TrackZone specializes in monitoring objects within designated areas of a frame instead of the whole frame. Built on [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics/), it integrates object detection and tracking specifically within zones for videos and live camera feeds. YOLO11's advanced algorithms and [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) technologies make it a perfect choice for real-time use cases, offering precise and efficient object tracking in applications like crowd monitoring and surveillance.
 
 ## Advantages of Object Tracking in Zones (TrackZone)
 
@@ -33,10 +33,10 @@ TrackZone specializes in monitoring objects within designated areas of a frame i
         yolo solutions trackzone show=True
 
         # Pass a source video
-        yolo solutions trackzone source="path/to/video/file.mp4"
+        yolo solutions trackzone show=True source="path/to/video/file.mp4"
 
         # Pass region coordinates
-        yolo solutions trackzone region=[(150, 150), (1130, 150), (1130, 570), (150, 570)]
+        yolo solutions trackzone show=True region=[(150, 150), (1130, 150), (1130, 570), (150, 570)]
         ```
 
     === "Python"
@@ -81,14 +81,14 @@ TrackZone specializes in monitoring objects within designated areas of a frame i
 
 ### Argument `TrackZone`
 
-Here's a table with the `ObjectCounter` arguments:
+Here's a table with the `TrackZone` arguments:
 
-| Name         | Type   | Default                    | Description                                                            |
-| ------------ | ------ | -------------------------- |------------------------------------------------------------------------|
-| `model`      | `str`  | `None`                     | Path to Ultralytics YOLO Model File                                    |
-| `region`     | `list` | `[(20, 400), (1260, 400)]` | List of points defining the object tracking region.                    |
-| `line_width` | `int`  | `2`                        | Line thickness for bounding boxes.                                     |
-| `show`       | `bool` | `False`                    | Flag to control whether to display the video stream.                   |
+| Name         | Type   | Default                                              | Description                                          |
+|--------------|--------|------------------------------------------------------|------------------------------------------------------|
+| `model`      | `str`  | `None`                                               | Path to Ultralytics YOLO Model File                  |
+| `region`     | `list` | `[(150, 150), (1130, 150), (1130, 570), (150, 570)]` | List of points defining the object tracking region.  |
+| `line_width` | `int`  | `2`                                                  | Line thickness for bounding boxes.                   |
+| `show`       | `bool` | `False`                                              | Flag to control whether to display the video stream. |
 
 ### Arguments `model.track`
 

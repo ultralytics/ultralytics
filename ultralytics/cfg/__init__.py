@@ -41,6 +41,7 @@ SOLUTION_MAP = {
     "speed": ("SpeedEstimator", "estimate_speed"),
     "workout": ("AIGym", "monitor"),
     "analytics": ("Analytics", "process_data"),
+    "trackzone": ("TrackZone", "trackzone"),
     "help": None,
 }
 

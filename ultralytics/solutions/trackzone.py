@@ -30,7 +30,7 @@ class TrackZone(BaseSolution):
     def __init__(self, **kwargs):
         """Initializes the TrackZone class for tracking objects within a defined region in video streams."""
         super().__init__(**kwargs)
-        default_region = [(200, 100), (850, 100), (850, 580), (200, 580)]
+        default_region = [(150, 150), (1130, 150), (1130, 570), (150, 570)]
         self.region = cv2.convexHull(np.array(self.region or default_region, dtype=np.int32))
 
     def trackzone(self, im0):

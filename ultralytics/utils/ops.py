@@ -75,9 +75,8 @@ def segment2box(segment, width=640, height=640):
         (np.ndarray): the minimum and maximum x and y values of the segment.
     """
     x, y = segment.T  # segment xy
-    inside = (x >= 0) & (y >= 0) & (x <= width) & (y <= height)
-    x = x[inside]
-    y = y[inside]
+    x = x.clip(0, width)
+    y = y.clip(0, height)
     return (
         np.array([x.min(), y.min(), x.max(), y.max()], dtype=segment.dtype)
         if any(x)

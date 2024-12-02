@@ -78,7 +78,7 @@ SOLUTIONS_HELP_MSG = f"""
         yolo SOLUTIONS SOLUTION ARGS
 
         Where SOLUTIONS (required) is a keyword
-              SOLUTION (optional) is one of {list(SOLUTION_MAP.keys())}
+              SOLUTION (optional) is one of {list(SOLUTION_MAP.keys())[:-1]}
               ARGS (optional) are any number of custom 'arg=value' pairs like 'show_in=True' that override defaults.
                 See all ARGS at https://docs.ultralytics.com/usage/cfg or with 'yolo cfg'
 
@@ -96,6 +96,9 @@ SOLUTIONS_HELP_MSG = f"""
 
     5. Generate analytical graphs
         yolo solutions analytics analytics_type="pie"
+    
+    6. Track Objects Within Specific Zones
+        yolo solutions trackzone source="path/to/video/file.mp4" region=[(150, 150), (1130, 150), (1130, 570), (150, 570)] 
     """
 CLI_HELP_MSG = f"""
     Arguments received: {str(['yolo'] + ARGV[1:])}. Ultralytics 'yolo' commands use the following syntax:

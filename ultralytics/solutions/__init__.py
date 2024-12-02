@@ -24,5 +24,5 @@ __all__ = (
     "Analytics",
     "inference",
     "RegionCounter",
-    "TrackZone"
+    "TrackZone",
 )

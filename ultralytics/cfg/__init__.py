@@ -75,13 +75,11 @@ ARGV = sys.argv or ["", ""]  # sometimes sys.argv = []
 SOLUTIONS_HELP_MSG = f"""
     Arguments received: {str(['yolo'] + ARGV[1:])}. Ultralytics 'yolo solutions' usage overview:
 
-        yolo SOLUTIONS SOLUTION ARGS
+        yolo solutions SOLUTION ARGS
 
-        Where SOLUTIONS (required) is a keyword
-              SOLUTION (optional) is one of {list(SOLUTION_MAP.keys())[:-1]}
-              ARGS (optional) are any number of custom 'arg=value' pairs like 'show_in=True' that override defaults.
-                SOLUTIONS arguments are available at https://docs.ultralytics.com/usage/cfg 
-                SOLUTIONS also overrides most of the predict args available at: https://docs.ultralytics.com/usage/cfg or with 'yolo cfg'
+        Where SOLUTION (optional) is one of {list(SOLUTION_MAP.keys())}
+              ARGS (optional) are any number of custom 'arg=value' pairs like 'show_in=True' that override defaults 
+                  at https://docs.ultralytics.com/usage/cfg
                 
     1. Call object counting solution
         yolo solutions count source="path/to/video/file.mp4" region=[(20, 400), (1080, 400), (1080, 360), (20, 360)]

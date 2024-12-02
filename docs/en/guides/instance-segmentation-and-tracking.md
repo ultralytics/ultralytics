@@ -82,7 +82,6 @@ There are two types of instance segmentation tracking available in the Ultralyti
     === "Instance Segmentation with Object Tracking"
 
         ```python
-
         import cv2
 
         from ultralytics import YOLO
@@ -202,7 +201,6 @@ To implement object tracking, use the `model.track` method and ensure that each 
     === "Python"
 
         ```python
-
         import cv2
 
         from ultralytics import YOLO

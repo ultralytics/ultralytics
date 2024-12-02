@@ -190,8 +190,9 @@ class YOLOv8:
 
         # Store the shape of the input for later use
         input_shape = model_inputs[0].shape
-        self.input_width = input_shape[2]
-        self.input_height = input_shape[3]
+        assert len(input_shape) == 4  # [B, C, H, W]
+        self.input_height = input_shape[2]
+        self.input_width = input_shape[3]
 
         # Preprocess the image data
         img_data = self.preprocess()

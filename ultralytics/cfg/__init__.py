@@ -80,8 +80,9 @@ SOLUTIONS_HELP_MSG = f"""
         Where SOLUTIONS (required) is a keyword
               SOLUTION (optional) is one of {list(SOLUTION_MAP.keys())[:-1]}
               ARGS (optional) are any number of custom 'arg=value' pairs like 'show_in=True' that override defaults.
-                See all ARGS at https://docs.ultralytics.com/usage/cfg or with 'yolo cfg'
-
+                SOLUTIONS arguments are available at https://docs.ultralytics.com/usage/cfg 
+                SOLUTIONS also overrides most of the predict args available at: https://docs.ultralytics.com/usage/cfg or with 'yolo cfg'
+                
     1. Call object counting solution
         yolo solutions count source="path/to/video/file.mp4" region=[(20, 400), (1080, 400), (1080, 360), (20, 360)]
 

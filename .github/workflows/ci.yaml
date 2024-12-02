@@ -102,21 +102,19 @@ jobs:
         python-version: ["3.11"]
         model: [yolo11n]
     steps:
+      - uses: astral-sh/setup-uv@v3
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-          cache: "pip" # caching pip dependencies
       - name: Install requirements
         shell: bash # for Windows compatibility
         run: |
-          # Warnings: uv causes numpy errors during benchmarking
-          python -m pip install --upgrade pip wheel
-          pip install -e ".[export]" "coverage[toml]" --extra-index-url https://download.pytorch.org/whl/cpu
+          uv pip install --system -e ".[export]" "coverage[toml]" --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-first-match
       - name: Check environment
         run: |
           yolo checks
-          pip list
+          uv pip list
       - name: Benchmark DetectionModel
         shell: bash
         run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}.pt' imgsz=160 verbose=0.309
@@ -214,7 +212,8 @@ jobs:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v4
       - name: Install requirements
-        run: uv pip install --system . pytest-cov
+        shell: bash # for Windows compatibility
+        run: uv pip install --system -e . pytest-cov
       - name: Check environment
         run: |
           yolo checks

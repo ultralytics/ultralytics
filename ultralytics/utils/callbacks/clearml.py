@@ -96,6 +96,26 @@ def on_train_epoch_end(trainer):
         for k, v in trainer.lr.items():
             task.get_logger().report_scalar("lr", k, v, iteration=trainer.epoch)
 
+def on_model_save(trainer):
+    """Log output models during the training process by updating the task with the latest model checkpoint and, at specified intervals, with epoch-specific model checkpoints."""
+    if task := Task.current_task():
+        # Log last model
+        task.update_output_model(
+            model_path=str(trainer.last),
+            model_name="last",
+            auto_delete_file=False,
+            iteration=trainer.epoch,
+        )
+        # Log epoch model
+        if trainer.save_period > 0 and trainer.epoch % trainer.save_period == 0:
+            epoch_model_name = f"epoch{trainer.epoch}"
+            task.update_output_model(
+                model_path=str(trainer.last.with_stem(epoch_model_name)),
+                model_name=epoch_model_name,
+                auto_delete_file=False,
+                iteration=trainer.epoch,
+            )
+
 
 def on_fit_epoch_end(trainer):
     """Reports model information to logger at the end of an epoch."""
@@ -144,6 +164,7 @@ callbacks = (
     {
         "on_pretrain_routine_start": on_pretrain_routine_start,
         "on_train_epoch_end": on_train_epoch_end,
+        "on_model_save": on_model_save,
         "on_fit_epoch_end": on_fit_epoch_end,
         "on_val_end": on_val_end,
         "on_train_end": on_train_end,

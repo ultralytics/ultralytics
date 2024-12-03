@@ -217,7 +217,7 @@ class AutoBackend(nn.Module):
                 task = "detect"
 
             output_names = [x.name for x in session.get_outputs()]
-            # metadata = session.get_modelmeta().custom_metadata_map
+            metadata = session.get_modelmeta().custom_metadata_map
             dynamic = isinstance(session.get_outputs()[0].shape[0], str)
             if not dynamic:
                 io = session.io_binding()
@@ -540,8 +540,6 @@ class AutoBackend(nn.Module):
             if self.dynamic:
                 im = im.cpu().numpy()  # torch to numpy
                 y = self.session.run(self.output_names, {self.session.get_inputs()[0].name: im})
-                for x in y:
-                    print(x.shape)
             else:
                 if not self.cuda:
                     im = im.cpu()

@@ -15,7 +15,7 @@ from .conv import Conv, DWConv
 from .transformer import MLP, DeformableTransformerDecoder, DeformableTransformerDecoderLayer
 from .utils import bias_init_with_prob, linear_init
 
-__all__ = "Detect", "Segment", "Pose", "Classify", "OBB", "RTDETRDecoder", "v10Detect", "v11Detect"
+__all__ = "Detect", "Segment", "Pose", "Classify", "OBB", "RTDETRDecoder", "v10Detect"
 
 
 class Detect(nn.Module):
@@ -618,21 +618,3 @@ class v10Detect(Detect):
             for x in ch
         )
         self.one2one_cv3 = copy.deepcopy(self.cv3)
-
-
-class v11Detect(Detect):
-    """YOLO v11Detect head for enhanced detection models with depth-wise and point-wise convolutions."""
-
-    def __init__(self, nc=80, ch=()):
-        """Initializes the YOLOv11 detection layer with specified number of classes and channels."""
-        super().__init__(nc, ch)
-        c3 = max(ch[0], min(self.nc, 100))  # channels
-        # Define cv3 with a new architecture incorporating depth-wise and point-wise convolutions
-        self.cv3 = nn.ModuleList(
-            nn.Sequential(
-                nn.Sequential(DWConv(x, x, 3), Conv(x, c3, 1)),
-                nn.Sequential(DWConv(c3, c3, 3), Conv(c3, c3, 1)),
-                nn.Conv2d(c3, self.nc, 1),
-            )
-            for x in ch
-        )

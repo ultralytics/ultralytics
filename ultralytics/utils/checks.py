@@ -687,6 +687,7 @@ def check_amp(model):
                 f"{prefix}checks failed ❌. AMP training on {gpu} GPU may cause "
                 f"NaN losses or zero-mAP results, so AMP will be disabled during training."
             )
+            return False
 
     def amp_allclose(m, im):
         """All close FP32 vs AMP results."""

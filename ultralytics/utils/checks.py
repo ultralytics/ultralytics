@@ -673,12 +673,12 @@ def check_amp(model):
         return False  # AMP only used on CUDA devices
     else:
         import re
+
         gpu = torch.cuda.get_device_name(device)
 
         # GPUs that have issues with AMP
         pattern = re.compile(
-            r"(nvidia|geforce|quadro|tesla).*?(1660|1650|1630|t400|t550|t600|t1000|t1200|t2000|k40m)",
-            re.IGNORECASE
+            r"(nvidia|geforce|quadro|tesla).*?(1660|1650|1630|t400|t550|t600|t1000|t1200|t2000|k40m)", re.IGNORECASE
         )
 
         prefix = colorstr("AMP: ")

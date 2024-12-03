@@ -13,7 +13,7 @@ try:
 except (ImportError, AssertionError, AttributeError):
     from ultralytics.utils.checks import check_requirements
 
-    check_requirements("lap>=0.5.2")  # https://github.com/gatagat/lap
+    check_requirements("lap>=0.5.12")  # https://github.com/gatagat/lap
     import lap
 
 

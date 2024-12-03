@@ -96,8 +96,11 @@ def on_train_epoch_end(trainer):
         for k, v in trainer.lr.items():
             task.get_logger().report_scalar("lr", k, v, iteration=trainer.epoch)
 
+
 def on_model_save(trainer):
-    """Log output models during the training process by updating the task with the latest model checkpoint and, at specified intervals, with epoch-specific model checkpoints."""
+    """Log output models during the training process by updating the task with the latest model checkpoint and, at
+    specified intervals, with epoch-specific model checkpoints.
+    """
     if task := Task.current_task():
         # Log last model
         task.update_output_model(

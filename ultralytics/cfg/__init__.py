@@ -125,7 +125,7 @@ CLI_HELP_MSG = f"""
         yolo streamlit-predict
 
     6. Ultralytics solutions usage
-        yolo solutions count or in {list(SOLUTION_MAP.keys())} source="path/to/video/file.mp4"
+        yolo solutions count or in {list(SOLUTION_MAP.keys())[1:-1]} source="path/to/video/file.mp4"
 
     7. Run special commands:
         yolo help

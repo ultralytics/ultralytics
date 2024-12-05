@@ -44,7 +44,7 @@ jobs:
           import os
           from actions.utils import check_pypi_version
           local_version, online_version, publish = check_pypi_version()
-          os.system(f'echo "increment={publish}" >> $GITHUB_OUTPUT')
+          os.system(f'echo "increment=True" >> $GITHUB_OUTPUT')
           os.system(f'echo "current_tag=v{local_version}" >> $GITHUB_OUTPUT')
           os.system(f'echo "previous_tag=v{online_version}" >> $GITHUB_OUTPUT')
           if publish:

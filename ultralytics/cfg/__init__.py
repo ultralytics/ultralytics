@@ -694,6 +694,7 @@ def handle_yolo_solutions(args: List[str]) -> None:
     from ultralytics.utils.files import increment_path  # for output directory path update
 
     save = overrides.pop("save", None)
+    vw = None  # Initialize VideoWriter outside the loop
     if save:
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
         if s_n == "analytics":  # analytical graphs follow fixed shape for output i.e w=1920, h=1080
@@ -709,7 +710,7 @@ def handle_yolo_solutions(args: List[str]) -> None:
             if not success:
                 break
             frame = process(frame, f_n := f_n + 1) if s_n == "analytics" else process(frame)
-            if save:
+            if vw is not None:  # Write frame to video file if VideoWriter is initialized
                 vw.write(frame)
             if cv2.waitKey(1) & 0xFF == ord("q"):
                 break

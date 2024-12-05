@@ -31,10 +31,9 @@ class QueueManager(BaseSolution):
         >>> queue_manager = QueueManager(region=[100, 100, 200, 200, 300, 300])
         >>> while cap.isOpened():
         >>>     success, im0 = cap.read()
-        >>>     if success:
-        >>>         out = queue.process_queue(im0)
-        >>>     else:
+        >>>     if not success:
         >>>         break
+        >>>     out = queue.process_queue(im0)
     """
 
     def __init__(self, **kwargs):

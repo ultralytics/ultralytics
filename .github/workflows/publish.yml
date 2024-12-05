@@ -52,7 +52,9 @@ jobs:
         id: check_pypi
       - name: Build package
         if: (github.event_name == 'push' || github.event.inputs.pypi == 'true') && steps.check_pypi.outputs.increment == 'True'
-        run: python -m build
+        run: |
+          python -m build
+          gsutil cp dist/*.whl gs://ultralytics/
       - name: Publish to PyPI
         continue-on-error: true
         if: (github.event_name == 'push' || github.event.inputs.pypi == 'true') && steps.check_pypi.outputs.increment == 'True'

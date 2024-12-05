@@ -672,8 +672,6 @@ def check_amp(model):
     if device.type in {"cpu", "mps"}:
         return False  # AMP only used on CUDA devices
     else:
-        import re
-
         gpu = torch.cuda.get_device_name(device)
 
         # GPUs that have issues with AMP

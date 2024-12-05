@@ -669,17 +669,16 @@ def check_amp(model):
     from ultralytics.utils.torch_utils import autocast
 
     device = next(model.parameters()).device  # get model device
+    prefix = colorstr("AMP: ")
     if device.type in {"cpu", "mps"}:
         return False  # AMP only used on CUDA devices
     else:
-        gpu = torch.cuda.get_device_name(device)
-
         # GPUs that have issues with AMP
         pattern = re.compile(
             r"(nvidia|geforce|quadro|tesla).*?(1660|1650|1630|t400|t550|t600|t1000|t1200|t2000|k40m)", re.IGNORECASE
         )
 
-        prefix = colorstr("AMP: ")
+        gpu = torch.cuda.get_device_name(device)
         if bool(pattern.search(gpu)):
             LOGGER.warning(
                 f"{prefix}checks failed ❌. AMP training on {gpu} GPU may cause "

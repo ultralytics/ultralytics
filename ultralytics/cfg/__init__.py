@@ -77,7 +77,7 @@ SOLUTIONS_HELP_MSG = f"""
 
         yolo solutions SOLUTION ARGS
 
-        Where SOLUTION (optional) is one of {list(SOLUTION_MAP.keys())}
+        Where SOLUTION (optional) is one of {list(SOLUTION_MAP.keys())[:-1]}
               ARGS (optional) are any number of custom 'arg=value' pairs like 'show_in=True' that override defaults 
                   at https://docs.ultralytics.com/usage/cfg
                 

@@ -58,7 +58,7 @@ jobs:
         continue-on-error: true
         run: |
           python docs/build_reference.py
-          git pull origin "GITHUB_REF"          
+          git pull origin "$GITHUB_REF"          
           git add .
           git reset HEAD -- .github/workflows/  # workflow changes are not permitted with default token
           if ! git diff --staged --quiet; then
@@ -77,7 +77,7 @@ jobs:
         continue-on-error: true
         if: always()
         run: |
-          git pull origin "GITHUB_REF"
+          git pull origin "$GITHUB_REF"
           git add --update  # only add updated files
           git reset HEAD -- .github/workflows/  # workflow changes are not permitted with default token
           if ! git diff --staged --quiet; then

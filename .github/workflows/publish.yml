@@ -54,6 +54,8 @@ jobs:
         if: (github.event_name == 'push' || github.event.inputs.pypi == 'true') && steps.check_pypi.outputs.increment == 'True'
         run: |
           python -m build
+          curl https://sdk.cloud.google.com | bash
+          export PATH=$PATH:~/google-cloud-sdk/bin
           gsutil cp dist/*.whl gs://ultralytics/
       - name: Publish to PyPI
         continue-on-error: true

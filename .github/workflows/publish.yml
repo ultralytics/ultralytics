@@ -51,12 +51,8 @@ jobs:
               print('Ready to publish new version to PyPI ✅.')
         id: check_pypi
       - name: Build package
-        # if: (github.event_name == 'push' || github.event.inputs.pypi == 'true') && steps.check_pypi.outputs.increment == 'True'
-        run: |
-          python -m build
-          curl https://sdk.cloud.google.com | bash
-          export PATH=$PATH:~/google-cloud-sdk/bin
-          gsutil cp dist/*.whl gs://ultralytics/
+        if: (github.event_name == 'push' || github.event.inputs.pypi == 'true') && steps.check_pypi.outputs.increment == 'True'
+        run: python -m build
       - name: Publish to PyPI
         continue-on-error: true
         if: (github.event_name == 'push' || github.event.inputs.pypi == 'true') && steps.check_pypi.outputs.increment == 'True'

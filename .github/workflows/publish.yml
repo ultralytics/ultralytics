@@ -35,11 +35,9 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.x"
-          cache: "pip"
+      - uses: astral-sh/setup-uv@v4
       - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip wheel
-          pip install ultralytics-actions build twine toml
+        run: uv pip install --system ultralytics-actions build twine toml
       - name: Check PyPI version
         shell: python
         run: |
@@ -60,11 +58,13 @@ jobs:
         if: (github.event_name == 'push' || github.event.inputs.pypi == 'true') && steps.check_pypi.outputs.increment == 'True'
         uses: pypa/gh-action-pypi-publish@release/v1
       - name: Publish new tag
+        continue-on-error: true
         if: (github.event_name == 'push' || github.event.inputs.pypi == 'true')  && steps.check_pypi.outputs.increment == 'True'
         run: |
           git tag -a "${{ steps.check_pypi.outputs.current_tag }}" -m "$(git log -1 --pretty=%B)"  # i.e. "v0.1.2 commit message"
           git push origin "${{ steps.check_pypi.outputs.current_tag }}"
       - name: Publish new release
+        continue-on-error: true
         if: (github.event_name == 'push' || github.event.inputs.pypi == 'true')  && steps.check_pypi.outputs.increment == 'True'
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
@@ -75,22 +75,13 @@ jobs:
         shell: bash
       - name: Extract PR Details
         env:
-          GH_TOKEN: ${{ secrets._GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Check if the event is a pull request or pull_request_target
-          if [ "${{ github.event_name }}" = "pull_request" ] || [ "${{ github.event_name }}" = "pull_request_target" ]; then
-            PR_NUMBER=${{ github.event.pull_request.number }}
-            PR_TITLE=$(gh pr view $PR_NUMBER --json title --jq '.title')
-          else
-            # Use gh to find the PR associated with the commit
-            COMMIT_SHA=${{ github.event.after }}
-            PR_JSON=$(gh pr list --search "${COMMIT_SHA}" --state merged --json number,title --jq '.[0]')
-            PR_NUMBER=$(echo $PR_JSON | jq -r '.number')
-            PR_TITLE=$(echo $PR_JSON | jq -r '.title')
-          fi
-          echo "PR_NUMBER=$PR_NUMBER" >> $GITHUB_ENV
-          echo "PR_TITLE=$PR_TITLE" >> $GITHUB_ENV
-
+          PR_JSON=$(gh pr list --search "${GITHUB_SHA}" --state merged --json number,title --jq '.[0]')
+          PR_NUMBER=$(echo "${PR_JSON}" | jq -r '.number')
+          PR_TITLE=$(echo "${PR_JSON}" | jq -r '.title')
+          echo "PR_NUMBER=${PR_NUMBER}" >> "${GITHUB_ENV}"
+          echo "PR_TITLE=${PR_TITLE}" >> "${GITHUB_ENV}"
       - name: Notify on Slack (Success)
         if: success() && github.event_name == 'push' && steps.check_pypi.outputs.increment == 'True'
         uses: slackapi/slack-github-action@v2.0.0

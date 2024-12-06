@@ -918,7 +918,7 @@ def entrypoint(debug=""):
             matches = difflib.get_close_matches(task, TASKS, n=1, cutoff=0.6)  # 60% similarity required to match task
             if not matches:
                 raise ValueError(f"Invalid 'task={task}'. Valid tasks are {TASKS}.\n{CLI_HELP_MSG}")
-            LOGGER.warning(f"WARNING ⚠️ Invalid 'task={task}. Updating to closest match task='{matches[0]}'")
+            LOGGER.warning(f"WARNING ⚠️ Invalid 'task={task}'. Updating to closest match task='{matches[0]}'")
         if "model" not in overrides:
             overrides["model"] = TASK2MODEL[task]
 

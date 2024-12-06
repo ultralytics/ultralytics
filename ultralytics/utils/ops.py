@@ -400,7 +400,7 @@ def xyxy2xywh(x):
         y (np.ndarray | torch.Tensor): The bounding box coordinates in (x, y, width, height) format.
     """
     assert x.shape[-1] == 4, f"input shape last dimension expected 4 but input shape is {x.shape}"
-    y = torch.empty_like(x) if isinstance(x, torch.Tensor) else np.empty_like(x)  # faster than clone/copy
+    y = empty_like(x)  # faster than clone/copy
     y[..., 0] = (x[..., 0] + x[..., 2]) / 2  # x center
     y[..., 1] = (x[..., 1] + x[..., 3]) / 2  # y center
     y[..., 2] = x[..., 2] - x[..., 0]  # width
@@ -420,7 +420,7 @@ def xywh2xyxy(x):
         y (np.ndarray | torch.Tensor): The bounding box coordinates in (x1, y1, x2, y2) format.
     """
     assert x.shape[-1] == 4, f"input shape last dimension expected 4 but input shape is {x.shape}"
-    y = torch.empty_like(x) if isinstance(x, torch.Tensor) else np.empty_like(x)  # faster than clone/copy
+    y = empty_like(x)  # faster than clone/copy
     xy = x[..., :2]  # centers
     wh = x[..., 2:] / 2  # half width-height
     y[..., :2] = xy - wh  # top left xy
@@ -443,7 +443,7 @@ def xywhn2xyxy(x, w=640, h=640, padw=0, padh=0):
             x1,y1 is the top-left corner, x2,y2 is the bottom-right corner of the bounding box.
     """
     assert x.shape[-1] == 4, f"input shape last dimension expected 4 but input shape is {x.shape}"
-    y = torch.empty_like(x) if isinstance(x, torch.Tensor) else np.empty_like(x)  # faster than clone/copy
+    y = empty_like(x)  # faster than clone/copy
     y[..., 0] = w * (x[..., 0] - x[..., 2] / 2) + padw  # top left x
     y[..., 1] = h * (x[..., 1] - x[..., 3] / 2) + padh  # top left y
     y[..., 2] = w * (x[..., 0] + x[..., 2] / 2) + padw  # bottom right x
@@ -469,7 +469,7 @@ def xyxy2xywhn(x, w=640, h=640, clip=False, eps=0.0):
     if clip:
         x = clip_boxes(x, (h - eps, w - eps))
     assert x.shape[-1] == 4, f"input shape last dimension expected 4 but input shape is {x.shape}"
-    y = torch.empty_like(x) if isinstance(x, torch.Tensor) else np.empty_like(x, dtype=float)  # faster than clone/copy
+    y = empty_like(x)  # faster than clone/copy
     y[..., 0] = ((x[..., 0] + x[..., 2]) / 2) / w  # x center
     y[..., 1] = ((x[..., 1] + x[..., 3]) / 2) / h  # y center
     y[..., 2] = (x[..., 2] - x[..., 0]) / w  # width
@@ -838,3 +838,10 @@ def clean_str(s):
         (str): a string with special characters replaced by an underscore _
     """
     return re.sub(pattern="[|@#!¡·$€%&()=?¿^*;:,¨´><+]", repl="_", string=s)
+
+
+def empty_like(x):
+    """Creates empty torch.Tensor or np.ndarray with same shape as input and float32 dtype."""
+    return (
+        torch.empty_like(x, dtype=torch.float32) if isinstance(x, torch.Tensor) else np.empty_like(x, dtype=np.float32)
+    )

@@ -23,7 +23,7 @@ on:
     inputs:
       publish_docs:
         description: "Publish live to https://docs.ultralytics.com"
-        default: "true"
+        default: true
         type: boolean
 
 jobs:

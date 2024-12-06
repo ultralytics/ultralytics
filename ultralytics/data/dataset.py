@@ -277,6 +277,65 @@ class YOLOMultiModalDataset(YOLODataset):
             transforms.insert(-1, RandomLoadText(max_samples=min(self.data["nc"], 80), padding=True))
         return transforms
 
+from lidar import read_combo
+import math
+class FusionDataset(YOLODataset):
+    def __init__(self, *args, data=None, task="fusion", **kwargs):
+        super().__init__(*args, data=data, task=task, **kwargs)
+
+    def load_image(self, i, rect_mode=True):
+        """Loads 1 image from dataset index 'i', returns (im, resized hw)."""
+        im, df, f, fn = self.ims[i], self.dfs[i], self.im_files[i], self.npy_files[i]
+        if im is None:  # not cached in RAM
+            if fn.exists():  # load npy
+                try:
+                    im = np.load(fn)
+                    df = np.load((fn + 'f'))
+                except Exception as e:
+                    LOGGER.warning(f"{self.prefix}WARNING ⚠️ Removing corrupt *.npy image file {fn} due to: {e}")
+                    Path(fn).unlink(missing_ok=True)
+                    im, df = read_combo(fn) # BGRDIH + PT
+            else:  # read image
+                im, df = read_combo(fn) # BGRDIH + PT
+            if im is None:
+                raise FileNotFoundError(f"Image Not Found {f}")
+
+            h0, w0 = im.shape[:2]  # orig hw
+            if rect_mode:  # resize long side to imgsz while maintaining aspect ratio
+                r = self.imgsz / max(h0, w0)  # ratio
+                if r != 1:  # if sizes are not equal
+                    w, h = (min(math.ceil(w0 * r), self.imgsz), min(math.ceil(h0 * r), self.imgsz))
+                    im = cv2.resize(im, (w, h), interpolation=cv2.INTER_LINEAR)
+                    df[0] = df[0] * (h / h0)
+                    df[1] = df[1] * (w / w0)
+            elif not (h0 == w0 == self.imgsz):  # resize by stretching image to square imgsz
+                im = cv2.resize(im, (self.imgsz, self.imgsz), interpolation=cv2.INTER_LINEAR)
+                df[0] = df[0] * (h / self.imgsz)
+                df[1] = df[1] * (w / self.imgsz)
+ 
+            # Add to buffer if training with augmentations
+            if self.augment:
+                raise AssertionError
+                self.ims[i], self.im_hw0[i], self.im_hw[i] = im, (h0, w0), im.shape[:2]  # im, hw_original, hw_resized
+                self.buffer.append(i)
+                if 1 < len(self.buffer) >= self.max_buffer_length:  # prevent empty buffer
+                    j = self.buffer.pop(0)
+                    if self.cache != "ram":
+                        self.ims[j], self.im_hw0[j], self.im_hw[j] = None, None, None
+
+            return im, (h0, w0), im.shape[:2], df
+
+        return self.ims[i], self.im_hw0[i], self.im_hw[i]
+    
+    def cache_images_to_disk(self, i):
+        """Saves an image as an *.npy file for faster loading."""
+        fn = self.npy_files[i]
+        if not fn.exists():
+            im, df = read_combo(self.im_files[i])
+            np.save(fn.as_posix(), im, allow_pickle=False)
+            np.save((fn+'f').as_posix(), df, allow_pickle=False) #.npyf
+
+
 
 class GroundingDataset(YOLODataset):
     """Handles object detection tasks by loading annotations from a specified JSON file, supporting YOLO format."""

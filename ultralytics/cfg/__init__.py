@@ -915,7 +915,10 @@ def entrypoint(debug=""):
     if task:
         if task not in TASKS:
             import difflib
-            task_matches = difflib.get_close_matches(task.lower(), TASKS, n=1, cutoff=0.6)  # 60% similarity required to match task
+
+            task_matches = difflib.get_close_matches(
+                task.lower(), TASKS, n=1, cutoff=0.6
+            )  # 60% similarity required to match task
             if not task_matches:
                 raise ValueError(f"Invalid 'task={task}'. Valid tasks are {TASKS}.\n{CLI_HELP_MSG}")
             LOGGER.warning(f"WARNING ⚠️ Invalid 'task={task}'. Updating to closest match task='{task_matches[0]}'")

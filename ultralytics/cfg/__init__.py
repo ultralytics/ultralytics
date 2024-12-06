@@ -919,6 +919,7 @@ def entrypoint(debug=""):
             if not matches:
                 raise ValueError(f"Invalid 'task={task}'. Valid tasks are {TASKS}.\n{CLI_HELP_MSG}")
             LOGGER.warning(f"WARNING ⚠️ Invalid 'task={task}'. Updating to closest match task='{matches[0]}'")
+            task = matches[0]
         if "model" not in overrides:
             overrides["model"] = TASK2MODEL[task]
 

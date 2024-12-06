@@ -136,6 +136,7 @@ class Model(nn.Module):
         # Check if Triton Server model
         elif self.is_triton_model(model):
             self.model_name = self.model = model
+            self.overrides["task"] = task or "detect"  # set `task=detect` if not explicitly set
             return
 
         # Load or create new YOLO model

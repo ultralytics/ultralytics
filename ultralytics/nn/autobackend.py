@@ -462,6 +462,7 @@ class AutoBackend(nn.Module):
             from ultralytics.utils.triton import TritonRemoteModel
 
             model = TritonRemoteModel(w)
+            metadata = model.metadata
 
         # Any other format (unsupported)
         else:

@@ -39,7 +39,7 @@ Here's our curated list of Ultralytics solutions that can be used to create awes
     `yolo SOLUTIONS SOLUTION_NAME ARGS`
 
     - **SOLUTIONS** is a required keyword.
-    - **SOLUTION_NAME** (optional) is one of: `['count', 'heatmap', 'queue', 'speed', 'workout', 'analytics']`.
+    - **SOLUTION_NAME** (optional) is one of: `['count', 'heatmap', 'queue', 'speed', 'workout', 'analytics', 'trackzone']`.
     - **ARGS** (optional) are custom `arg=value` pairs, such as `show_in=True`, to override default settings.
 
     === "CLI"

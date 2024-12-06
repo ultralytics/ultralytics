@@ -30,6 +30,8 @@ jobs:
   Docs:
     if: github.repository == 'ultralytics/ultralytics'
     runs-on: ubuntu-latest
+    env:
+      GITHUB_REF: ${{ github.head_ref || github.ref }}
     steps:
       - name: Git config
         run: |
@@ -40,7 +42,7 @@ jobs:
         with:
           repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
           token: ${{ secrets._GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
-          ref: ${{ github.head_ref || github.ref }}
+          ref: ${{ env.GITHUB_REF }}
           fetch-depth: 0
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -56,7 +58,7 @@ jobs:
         continue-on-error: true
         run: |
           python docs/build_reference.py
-          git pull origin ${{ github.head_ref || github.ref }}
+          git pull origin "$GITHUB_REF"          
           git add .
           git reset HEAD -- .github/workflows/  # workflow changes are not permitted with default token
           if ! git diff --staged --quiet; then
@@ -75,7 +77,7 @@ jobs:
         continue-on-error: true
         if: always()
         run: |
-          git pull origin ${{ github.head_ref || github.ref }}
+          git pull origin "$GITHUB_REF"
           git add --update  # only add updated files
           git reset HEAD -- .github/workflows/  # workflow changes are not permitted with default token
           if ! git diff --staged --quiet; then

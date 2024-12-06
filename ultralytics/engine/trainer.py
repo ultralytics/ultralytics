@@ -157,13 +157,14 @@ class BaseTrainer:
         if (RANK == -1 and _callbacks is not None) or cb_path.exists():
             try:
                 import dill
+
                 mode = "rb" if RANK >= 0 and cb_path.exists() else "wb"
                 with cb_path.open(mode) as f:
                     if mode == "rb":
-                        self.callbacks = dill.load(f) 
+                        self.callbacks = dill.load(f)
                     else:
                         dill.dump(_callbacks, f)
-            except ImportError as e:
+            except ImportError:
                 pass
 
         if RANK in {-1, 0}:

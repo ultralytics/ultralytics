@@ -1,9 +1,11 @@
 import cv2
 import time
 from collections import defaultdict
+from typing import Any, Dict, List, Optional, Tuple, Union
+
 from ultralytics.solutions.solutions import BaseSolution
 from ultralytics.utils.plotting import Annotator, colors
-from shapely.geometry import LineString, Polygon
+from shapely.geometry import LineString, Polygon, Point
 
 
 class DwellTimeAnalyzer(BaseSolution):
@@ -11,39 +13,49 @@ class DwellTimeAnalyzer(BaseSolution):
     A solution class that extends BaseSolution to measure Dwell Time and Zone Transitions.
 
     Features:
-    - Dwell Time Measurement: How long each tracked object remains in specific zones.
-    - Zone Sequence Tracking: Tracks the sequence of zones visited by each object.
-    - Class Filtering: Optionally restrict detection to certain classes.
+        - Dwell Time Measurement: Tracks how long each detected object remains within specified zones.
+        - Zone Sequence Tracking: Monitors the sequence of zones visited by each object.
+        - Class Filtering: Optionally restricts detection to certain object classes.
 
     Optional Advanced Analytics:
-    - Funnel Analysis: If enable_funnel=True.
-      - If funnel_stages provided and has N stages, it checks how many objects pass through all stages in order.
-      - If funnel_stages not provided, it uses all defined zones in order as funnel stages.
-    - Average Dwell Times per Zone: If enable_avg_dwell=True.
+        - Funnel Analysis: If `enable_funnel=True`.
+            - If `funnel_stages` are provided and have N stages, it checks how many objects pass through all stages in order.
+            - If `funnel_stages` are not provided, it uses all defined zones in order as funnel stages.
+        - Average Dwell Times per Zone: If `enable_avg_dwell=True`.
 
-    Configuration keys of interest:
-    - fps: If provided, dwell times are in seconds instead of frames.
-    - classes: List of class indices to track if filtering is desired.
-    - zones: Dict of zone_name -> list of (x, y) polygon points. If not provided, user selects interactively.
-    - enable_funnel: Boolean. If True, compute funnel conversion metrics.
-    - funnel_stages: Tuple or list of zone names to form a funnel, e.g., ("Entrance", "Checkout").
-    - enable_avg_dwell: Boolean. If True, compute and display average dwell times per zone.
-    - detect_mode: String. "all_frames" to detect in all frames, "enter_zones" to detect only when entering zones.
+    Configuration Keys:
+        - fps (Optional[float]): Frames per second. If provided, dwell times are in seconds instead of frames.
+        - classes (Optional[List[int]]): List of class indices to track if filtering is desired.
+        - zones (Dict[str, List[Tuple[int, int]]]): Mapping of zone names to their polygon points. If not provided, zones are selected interactively.
+        - enable_funnel (bool): If True, compute funnel conversion metrics.
+        - funnel_stages (Optional[Union[List[str], Tuple[str, ...]]]): Sequence of zone names forming the funnel, e.g., ("Entrance", "Checkout").
+        - enable_avg_dwell (bool): If True, compute and display average dwell times per zone.
+        - detect_mode (str): Detection mode, either "all_frames" to detect in all frames or "enter_zones" to detect only when entering zones.
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any):
+        """
+        Initializes the DwellTimeAnalyzer with the provided configuration.
+
+        Args:
+            **kwargs: Arbitrary keyword arguments for configuration.
+
+        Raises:
+            ValueError: If `detect_mode` is not one of "all_frames" or "enter_zones".
+            IOError: If zone selection is required but the video source cannot be opened or read.
+        """
         super().__init__(**kwargs)
 
-        self.fps = self.CFG.get("fps", None)
-        self.analytics_text_color = self.CFG.get("analytics_text_color", (0, 0, 0))
-        self.zones = self.CFG.get("zones", {})
-        self.classes = self.CFG.get("classes", None)  # If provided, only track these classes
+        self.fps: Optional[float] = self.CFG.get("fps", None)
+        self.analytics_text_color: Tuple[int, int, int] = self.CFG.get("analytics_text_color", (0, 0, 0))
+        self.zones: Dict[str, List[Tuple[int, int]]] = self.CFG.get("zones", {})
+        self.classes: Optional[List[int]] = self.CFG.get("classes", None)  # If provided, only track these classes
 
         # Optional features
-        self.enable_funnel = self.CFG.get("enable_funnel", False)
-        self.funnel_stages = self.CFG.get("funnel_stages", None)  # Could be None initially
-        self.enable_avg_dwell = self.CFG.get("enable_avg_dwell", False)
-        self.detect_mode = self.CFG.get("detect_mode", "all_frames")  # "all_frames" or "enter_zones"
+        self.enable_funnel: bool = self.CFG.get("enable_funnel", False)
+        self.funnel_stages: Optional[Union[List[str], Tuple[str, ...]]] = self.CFG.get("funnel_stages", None)
+        self.enable_avg_dwell: bool = self.CFG.get("enable_avg_dwell", False)
+        self.detect_mode: str = self.CFG.get("detect_mode", "all_frames")  # "all_frames" or "enter_zones"
 
         # Validate detect_mode
         if self.detect_mode not in ["all_frames", "enter_zones"]:
@@ -53,7 +65,7 @@ class DwellTimeAnalyzer(BaseSolution):
         if not self.zones or len(self.zones) == 0:
             self.zones = self.select_zones()
 
-        self.zone_polygons = {}
+        self.zone_polygons: Dict[str, Union[Polygon, LineString]] = {}
         for zone_name, coords in self.zones.items():
             if len(coords) >= 3:
                 self.zone_polygons[zone_name] = Polygon(coords)
@@ -72,12 +84,22 @@ class DwellTimeAnalyzer(BaseSolution):
                     self.funnel_stages = None
 
         # Tracking variables
-        self.object_current_zone = {}         # track_id -> zone_name
-        self.object_zone_entry_time = {}      # (track_id, zone_name) -> entry_time
-        self.object_zone_sequence = defaultdict(list)  # track_id -> [(zone_name, entry_time, exit_time)]
-        self.frame_number = 0
+        self.object_current_zone: Dict[int, str] = {}  # track_id -> zone_name
+        self.object_zone_entry_time: Dict[Tuple[int, str], float] = {}  # (track_id, zone_name) -> entry_time
+        self.object_zone_sequence: defaultdict = defaultdict(list)  # track_id -> [(zone_name, entry_time, exit_time)]
+        self.frame_number: int = 0
 
-    def select_zones(self):
+    def select_zones(self) -> Dict[str, List[Tuple[int, int]]]:
+        """
+        Interactively selects zones on the first frame of the source video.
+
+        Returns:
+            Dict[str, List[Tuple[int, int]]]: A dictionary mapping zone names to their polygon points.
+
+        Raises:
+            ValueError: If no video source is provided in the configuration.
+            IOError: If the video source cannot be opened or the first frame cannot be read.
+        """
         if not self.CFG.get("source"):
             raise ValueError("No source video provided. Cannot interactively select zones.")
 
@@ -92,12 +114,12 @@ class DwellTimeAnalyzer(BaseSolution):
 
         num_zones = int(input("How many zones do you want to define? "))
 
-        zones = {}
-        zone_points = []
+        zones: Dict[str, List[Tuple[int, int]]] = {}
+        zone_points: List[Tuple[int, int]] = []
         current_zone_index = 1
         zone_name = lambda i: f"Zone_{i}"
 
-        def mouse_callback(event, x, y, flags, param):
+        def mouse_callback(event: int, x: int, y: int, flags: int, param: Any) -> None:
             if event == cv2.EVENT_LBUTTONDOWN:
                 zone_points.append((x, y))
 
@@ -118,8 +140,16 @@ class DwellTimeAnalyzer(BaseSolution):
                     cv2.line(disp_frame, zone_points[i], zone_points[i + 1], (0, 255, 0), 2)
 
             text = f"Define {zone_name(current_zone_index)}: Press 'c' to confirm polygon, 'q' to quit."
-            cv2.putText(disp_frame, text, (10, 30), cv2.FONT_HERSHEY_SIMPLEX,
-                        0.8, (255, 255, 255), 2, cv2.LINE_AA)
+            cv2.putText(
+                disp_frame,
+                text,
+                (10, 30),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.8,
+                (255, 255, 255),
+                2,
+                cv2.LINE_AA,
+            )
 
             cv2.imshow("Select Zones", disp_frame)
             key = cv2.waitKey(1) & 0xFF
@@ -143,17 +173,40 @@ class DwellTimeAnalyzer(BaseSolution):
         cv2.destroyAllWindows()
         return zones
 
-    def get_current_time(self):
+    def get_current_time(self) -> float:
+        """
+        Calculates the current time based on the frame number and FPS.
+
+        Returns:
+            float: Current time in seconds if FPS is provided, otherwise in frames.
+        """
         return self.frame_number / self.fps if (self.fps and self.fps > 0) else self.frame_number
 
-    def identify_zone(self, centroid):
-        point = self.Point(centroid)
+    def identify_zone(self, centroid: Tuple[float, float]) -> Optional[str]:
+        """
+        Identifies which zone a given centroid point belongs to.
+
+        Args:
+            centroid (Tuple[float, float]): The (x, y) coordinates of the centroid.
+
+        Returns:
+            Optional[str]: The name of the zone containing the centroid, or None if not in any zone.
+        """
+        point = Point(centroid)
         for zone_name, polygon in self.zone_polygons.items():
             if polygon.contains(point):
                 return zone_name
         return None
 
-    def update_dwell_times(self, track_id, old_zone, new_zone):
+    def update_dwell_times(self, track_id: int, old_zone: Optional[str], new_zone: Optional[str]) -> None:
+        """
+        Updates dwell times and zone sequences when an object transitions between zones.
+
+        Args:
+            track_id (int): The unique identifier of the tracked object.
+            old_zone (Optional[str]): The previous zone name.
+            new_zone (Optional[str]): The new zone name.
+        """
         current_time = self.get_current_time()
         if old_zone and (track_id, old_zone) in self.object_zone_entry_time:
             entry_time = self.object_zone_entry_time.pop((track_id, old_zone))
@@ -165,29 +218,31 @@ class DwellTimeAnalyzer(BaseSolution):
             if track_id in self.object_current_zone:
                 del self.object_current_zone[track_id]
 
-    def compute_advanced_analytics(self):
+    def compute_advanced_analytics(
+        self,
+    ) -> Tuple[Optional[float], int, int, Dict[str, float]]:
         """
-        Compute funnel conversion for multiple funnel stages and average dwell times if enabled.
+        Computes funnel conversion rates and average dwell times per zone.
 
-        For funnel:
-        - funnel_stages: [Z1, Z2, ..., Zn]
-        - Count how many visited Z1 at all, and how many visited Z1 -> Z2 -> ... -> Zn in order.
-
-        For dwell times:
-        - Compute average dwell time per zone if enabled.
+        Returns:
+            Tuple[Optional[float], int, int, Dict[str, float]]:
+                - Funnel conversion rate as a percentage.
+                - Number of objects that visited the first funnel stage.
+                - Number of objects that completed all funnel stages.
+                - Dictionary mapping zone names to their average dwell times.
         """
-        funnel_conversion = None
-        visited_first = 0
-        visited_all_stages = 0
-        avg_dwell_times = {}
+        funnel_conversion: Optional[float] = None
+        visited_first: int = 0
+        visited_all_stages: int = 0
+        avg_dwell_times: Dict[str, float] = {}
 
         if self.enable_funnel and self.funnel_stages and len(self.funnel_stages) >= 2:
             funnel_stages = self.funnel_stages
         else:
             funnel_stages = None
 
-        zone_dwell_times = defaultdict(float)
-        zone_visit_counts = defaultdict(int)
+        zone_dwell_times: defaultdict = defaultdict(float)
+        zone_visit_counts: defaultdict = defaultdict(int)
 
         for track_id, seq in self.object_zone_sequence.items():
             zones_visited = [z[0] for z in seq]
@@ -229,9 +284,15 @@ class DwellTimeAnalyzer(BaseSolution):
 
         return funnel_conversion, visited_first, visited_all_stages, avg_dwell_times
 
-    def display_analytics(self, im0):
+    def display_analytics(self, im0: Any) -> None:
+        """
+        Displays analytics information on the provided image frame.
+
+        Args:
+            im0 (Any): The image frame on which to display analytics.
+        """
         annotator = Annotator(im0, line_width=self.line_width)
-        zone_counts = defaultdict(int)
+        zone_counts: defaultdict = defaultdict(int)
         for track_id, seq in self.object_zone_sequence.items():
             for (z, _, _) in seq:
                 zone_counts[z] += 1
@@ -313,7 +374,14 @@ class DwellTimeAnalyzer(BaseSolution):
 
         im0[:] = annotator.result()
 
-    def draw_zones(self, im0, current_zone_counts):
+    def draw_zones(self, im0: Any, current_zone_counts: Dict[str, int]) -> None:
+        """
+        Draws the defined zones on the image frame along with their labels and current counts.
+
+        Args:
+            im0 (Any): The image frame on which to draw the zones.
+            current_zone_counts (Dict[str, int]): Current counts of objects in each zone.
+        """
         annotator = Annotator(im0, line_width=self.line_width)
         for zone_name, polygon in self.zone_polygons.items():
             if polygon.geom_type == "Polygon":
@@ -339,18 +407,27 @@ class DwellTimeAnalyzer(BaseSolution):
                 )  # Red label
         im0[:] = annotator.result()
 
-    def count(self, im0):
+    def count(self, im0: Any) -> Any:
+        """
+        Processes each frame to track objects, update dwell times, and display analytics.
+
+        Args:
+            im0 (Any): The current image frame to process.
+
+        Returns:
+            Any: The annotated image frame.
+        """
         self.frame_number += 1
         # Pass classes to model.track if classes are specified
-        self.tracks = self.model.track(source=im0, persist=True, classes=self.CFG["classes"], **self.track_add_args)
+        self.tracks = self.model.track(source=im0, persist=True, classes=self.CFG.get("classes"), **self.track_add_args)
 
         # Extract tracks for OBB or object detection
-        self.track_data = self.tracks[0].obb or self.tracks[0].boxes
+        track_data = self.tracks[0].obb or self.tracks[0].boxes
 
-        if self.track_data and self.track_data.id is not None:
-            self.boxes = self.track_data.xyxy.cpu()
-            self.clss = self.track_data.cls.cpu().tolist()
-            self.track_ids = self.track_data.id.int().cpu().tolist()
+        if track_data and track_data.id is not None:
+            self.boxes = track_data.xyxy.cpu()
+            self.clss = track_data.cls.cpu().tolist()
+            self.track_ids = track_data.id.int().cpu().tolist()
         else:
             self.boxes, self.clss, self.track_ids = [], [], []
 
@@ -358,7 +435,7 @@ class DwellTimeAnalyzer(BaseSolution):
         annotator = Annotator(im0, line_width=self.line_width)
 
         # Process each object first to know which zone they are in
-        current_zone_counts = defaultdict(int)
+        current_zone_counts: Dict[str, int] = defaultdict(int)
         for box, track_id, cls in zip(self.boxes, self.track_ids, self.clss):
             current_centroid = ((box[0] + box[2]) / 2, (box[1] + box[3]) / 2)
             new_zone = self.identify_zone(current_centroid)

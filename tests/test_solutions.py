@@ -13,12 +13,11 @@ WORKOUTS_SOLUTION_DEMO = "https://github.com/ultralytics/assets/releases/downloa
 @pytest.mark.slow
 def test_major_solutions():
     """
-    Test the object counting, heatmap generation, speed estimation, queue management,
-    various analytics solutions, and DwellTimeAnalyzer.
+    Test the object counting, heatmap generation, speed estimation, queue management, various analytics solutions, and
+    DwellTimeAnalyzer.
 
-    This test downloads demo videos, initializes different solution instances including
-    the DwellTimeAnalyzer, processes each frame of the videos, and ensures that each
-    solution operates without errors.
+    This test downloads demo videos, initializes different solution instances including the DwellTimeAnalyzer, processes
+    each frame of the videos, and ensures that each solution operates without errors.
     """
     # Download the major solutions demo video
     safe_download(url=MAJOR_SOLUTIONS_DEMO)
@@ -48,13 +47,13 @@ def test_major_solutions():
         "classes": [0, 1, 2],  # Example class indices to track
         "zones": {
             "Entrance": [(100, 200), (200, 200), (200, 300), (100, 300)],
-            "Checkout": [(800, 200), (900, 200), (900, 300), (800, 300)]
+            "Checkout": [(800, 200), (900, 200), (900, 300), (800, 300)],
         },
         "enable_funnel": True,
         "funnel_stages": ("Entrance", "Checkout"),
         "enable_avg_dwell": True,
         "detect_mode": "all_frames",
-        "source": "solutions_ci_demo.mp4"
+        "source": "solutions_ci_demo.mp4",
     }
 
     # Initialize DwellTimeAnalyzer
@@ -68,7 +67,7 @@ def test_major_solutions():
         if not success:
             break
         original_im0 = im0.copy()
-        
+
         # Process each solution
         _ = counter.count(original_im0.copy())
         _ = heatmap.generate_heatmap(original_im0.copy())
@@ -78,7 +77,7 @@ def test_major_solutions():
         _ = pie_analytics.process_data(original_im0.copy(), frame_count)
         _ = bar_analytics.process_data(original_im0.copy(), frame_count)
         _ = area_analytics.process_data(original_im0.copy(), frame_count)
-        
+
         frame_count += 1
 
     cap.release()
@@ -93,7 +92,7 @@ def test_major_solutions():
             break
 
         # Process the frame with DwellTimeAnalyzer
-        annotated_frame = dwell_time_analyzer.count(im0.copy())
+        dwell_time_analyzer.count(im0.copy())
 
         # (Optional) Here you can add assertions or checks on `annotated_frame`
         # For example, verify that certain analytics are present
@@ -109,8 +108,8 @@ def test_instance_segmentation():
     """
     Test the instance segmentation solution.
 
-    This test initializes an instance segmentation model, processes each frame of a demo video,
-    applies segmentation masks, and ensures that the segmentation operates without errors.
+    This test initializes an instance segmentation model, processes each frame of a demo video, applies segmentation
+    masks, and ensures that the segmentation operates without errors.
     """
     from ultralytics.utils.plotting import Annotator, colors
 
@@ -129,14 +128,14 @@ def test_instance_segmentation():
             break
         results = model.predict(im0)
         annotator = Annotator(im0, line_width=2)
-        
+
         if results[0].masks is not None:
             clss = results[0].boxes.cls.cpu().tolist()
             masks = results[0].masks.xy
             for mask, cls in zip(masks, clss):
                 color = colors(int(cls), True)
                 annotator.seg_bbox(mask=mask, mask_color=color, label=names[int(cls)])
-        
+
         im0[:] = annotator.result()
 
     cap.release()

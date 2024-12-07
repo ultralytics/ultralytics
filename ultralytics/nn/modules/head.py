@@ -298,7 +298,7 @@ class Classify(nn.Module):
         x = self.linear(self.drop(self.pool(self.conv(x)).flatten(1)))
         if self.training:
             return x
-        y = x.softmax(1)   # get final output
+        y = x.softmax(1)  # get final output
         return y if self.export else (y, x)
 
 

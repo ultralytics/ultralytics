@@ -283,6 +283,7 @@ class Classify(nn.Module):
     """YOLO classification head, i.e. x(b,c1,20,20) to x(b,c2)."""
 
     export = False  # export mode
+
     def __init__(self, c1, c2, k=1, s=1, p=None, g=1):
         """Initializes YOLO classification head to transform input tensor from (b,c1,20,20) to (b,c2) shape."""
         super().__init__()

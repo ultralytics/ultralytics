@@ -516,7 +516,7 @@ class AutoBackend(nn.Module):
         Returns:
             (tuple): Tuple containing the raw output tensor, and processed output for visualization (if visualize=True)
         """
-        b, ch, h, w = im.shape  # batch, channel, height, width
+        _, _, h, w = im.shape  # batch, channel, height, width
         if self.fp16 and im.dtype != torch.float16:
             im = im.half()  # to FP16
         if self.nhwc:
@@ -750,7 +750,7 @@ class AutoBackend(nn.Module):
         from ultralytics.engine.exporter import export_formats
 
         sf = export_formats()["Suffix"]  # export suffixes
-        if not is_url(p) and not isinstance(p, str):
+        if not (is_url(p) or isinstance(p, str)):
             check_suffix(p, sf)  # checks
         name = Path(p).name
         types = [s in name for s in sf]
@@ -764,4 +764,4 @@ class AutoBackend(nn.Module):
             url = urlsplit(p)
             triton = bool(url.netloc) and bool(url.path) and url.scheme in {"http", "grpc"}
 
-        return types + [triton]
+        return types.append(triton)

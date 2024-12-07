@@ -11,6 +11,7 @@ from .region_counter import RegionCounter
 from .speed_estimation import SpeedEstimator
 from .streamlit_inference import inference
 from .trackzone import TrackZone
+from .dwell_time_analyzer import DwellTimeAnalyzer
 
 __all__ = (
     "AIGym",
@@ -25,4 +26,5 @@ __all__ = (
     "inference",
     "RegionCounter",
     "TrackZone",
+    "DwellTimeAnalyzer",
 )

@@ -37,7 +37,7 @@ jobs:
           python-version: "3.x"
       - uses: astral-sh/setup-uv@v4
       - name: Install dependencies
-        run: uv pip install --system ultralytics-actions build twine toml
+        run: uv pip install --system --no-cache ultralytics-actions build twine toml
       - name: Check PyPI version
         shell: python
         run: |

@@ -117,6 +117,7 @@ class DwellTimeAnalyzer(BaseSolution):
         zones: Dict[str, List[Tuple[int, int]]] = {}
         zone_points: List[Tuple[int, int]] = []
         current_zone_index = 1
+
         def zone_name(i):
             return f"Zone_{i}"
 

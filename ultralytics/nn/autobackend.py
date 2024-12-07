@@ -96,7 +96,7 @@ class AutoBackend(nn.Module):
         Initialize the AutoBackend for inference.
 
         Args:
-            weights (str): Path to the model weights file. Defaults to 'yolov8n.pt'.
+            weights (str | torch.nn.Module): Path to the model weights file or a module instance. Defaults to 'yolo11n.pt'.
             device (torch.device): Device to run the model on. Defaults to CPU.
             dnn (bool): Use OpenCV DNN module for ONNX inference. Defaults to False.
             data (str | Path | optional): Path to the additional data.yaml file containing class names. Optional.
@@ -462,6 +462,7 @@ class AutoBackend(nn.Module):
             from ultralytics.utils.triton import TritonRemoteModel
 
             model = TritonRemoteModel(w)
+            metadata = model.metadata
 
         # Any other format (unsupported)
         else:

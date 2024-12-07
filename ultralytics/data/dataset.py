@@ -277,8 +277,12 @@ class YOLOMultiModalDataset(YOLODataset):
             transforms.insert(-1, RandomLoadText(max_samples=min(self.data["nc"], 80), padding=True))
         return transforms
 
-from lidar import read_combo
+
 import math
+
+from lidar import read_combo
+
+
 class FusionDataset(YOLODataset):
     def __init__(self, *args, data=None, task="fusion", **kwargs):
         super().__init__(*args, data=data, task=task, **kwargs)
@@ -290,13 +294,13 @@ class FusionDataset(YOLODataset):
             if fn.exists():  # load npy
                 try:
                     im = np.load(fn)
-                    df = np.load((fn + 'f'))
+                    df = np.load(fn + "f")
                 except Exception as e:
                     LOGGER.warning(f"{self.prefix}WARNING ⚠️ Removing corrupt *.npy image file {fn} due to: {e}")
                     Path(fn).unlink(missing_ok=True)
-                    im, df = read_combo(fn) # BGRDIH + PT
+                    im, df = read_combo(fn)  # BGRDIH + PT
             else:  # read image
-                im, df = read_combo(fn) # BGRDIH + PT
+                im, df = read_combo(fn)  # BGRDIH + PT
             if im is None:
                 raise FileNotFoundError(f"Image Not Found {f}")
 
@@ -312,7 +316,7 @@ class FusionDataset(YOLODataset):
                 im = cv2.resize(im, (self.imgsz, self.imgsz), interpolation=cv2.INTER_LINEAR)
                 df[0] = df[0] * (h / self.imgsz)
                 df[1] = df[1] * (w / self.imgsz)
- 
+
             # Add to buffer if training with augmentations
             if self.augment:
                 raise AssertionError
@@ -326,15 +330,14 @@ class FusionDataset(YOLODataset):
             return im, (h0, w0), im.shape[:2], df
 
         return self.ims[i], self.im_hw0[i], self.im_hw[i]
-    
+
     def cache_images_to_disk(self, i):
         """Saves an image as an *.npy file for faster loading."""
         fn = self.npy_files[i]
         if not fn.exists():
             im, df = read_combo(self.im_files[i])
             np.save(fn.as_posix(), im, allow_pickle=False)
-            np.save((fn+'f').as_posix(), df, allow_pickle=False) #.npyf
-
+            np.save((fn + "f").as_posix(), df, allow_pickle=False)  # .npyf
 
 
 class GroundingDataset(YOLODataset):

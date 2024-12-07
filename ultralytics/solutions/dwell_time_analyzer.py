@@ -1,11 +1,11 @@
-import cv2
-import time
 from collections import defaultdict
 from typing import Any, Dict, List, Optional, Tuple, Union
 
+import cv2
+from shapely.geometry import LineString, Point, Polygon
+
 from ultralytics.solutions.solutions import BaseSolution
 from ultralytics.utils.plotting import Annotator, colors
-from shapely.geometry import LineString, Polygon, Point
 
 
 class DwellTimeAnalyzer(BaseSolution):
@@ -105,19 +105,20 @@ class DwellTimeAnalyzer(BaseSolution):
 
         cap = cv2.VideoCapture(self.CFG["source"])
         if not cap.isOpened():
-            raise IOError("Unable to open the video source for zone selection.")
+            raise OSError("Unable to open the video source for zone selection.")
 
         ret, frame = cap.read()
         cap.release()
         if not ret:
-            raise IOError("Could not read the first frame from the source.")
+            raise OSError("Could not read the first frame from the source.")
 
         num_zones = int(input("How many zones do you want to define? "))
 
         zones: Dict[str, List[Tuple[int, int]]] = {}
         zone_points: List[Tuple[int, int]] = []
         current_zone_index = 1
-        zone_name = lambda i: f"Zone_{i}"
+        def zone_name(i):
+            return f"Zone_{i}"
 
         def mouse_callback(event: int, x: int, y: int, flags: int, param: Any) -> None:
             if event == cv2.EVENT_LBUTTONDOWN:
@@ -154,7 +155,7 @@ class DwellTimeAnalyzer(BaseSolution):
             cv2.imshow("Select Zones", disp_frame)
             key = cv2.waitKey(1) & 0xFF
 
-            if key == ord('c'):
+            if key == ord("c"):
                 if len(zone_points) >= 3:
                     zones[zone_name(current_zone_index)] = zone_points.copy()
                     zone_points.clear()
@@ -166,7 +167,7 @@ class DwellTimeAnalyzer(BaseSolution):
                 else:
                     print("A zone must have at least 3 points. Select more points.")
 
-            elif key == ord('q'):
+            elif key == ord("q"):
                 print("Quitting zone selection early.")
                 break
 
@@ -267,7 +268,7 @@ class DwellTimeAnalyzer(BaseSolution):
 
             # Average dwell time if enabled
             if self.enable_avg_dwell:
-                for (z_name, e_time, x_time) in seq:
+                for z_name, e_time, x_time in seq:
                     dwell = x_time - e_time
                     zone_dwell_times[z_name] += dwell
                     zone_visit_counts[z_name] += 1
@@ -294,7 +295,7 @@ class DwellTimeAnalyzer(BaseSolution):
         annotator = Annotator(im0, line_width=self.line_width)
         zone_counts: defaultdict = defaultdict(int)
         for track_id, seq in self.object_zone_sequence.items():
-            for (z, _, _) in seq:
+            for z, _, _ in seq:
                 zone_counts[z] += 1
 
         offset = 30
@@ -363,7 +364,7 @@ class DwellTimeAnalyzer(BaseSolution):
             )
             offset += 30
             for z_name, avg_dt in avg_dwell_times.items():
-                unit = 's' if self.fps else 'frames'
+                unit = "s" if self.fps else "frames"
                 annotator.text(
                     (10, offset),
                     f"  {z_name}: {avg_dt:.2f}{unit}",
@@ -393,7 +394,7 @@ class DwellTimeAnalyzer(BaseSolution):
             annotator.draw_region(
                 reg_pts=coords,
                 color=(255, 0, 0),  # BGR for Blue
-                thickness=self.line_width
+                thickness=self.line_width,
             )
             # Red color for the zone label
             count_in_zone = current_zone_counts.get(zone_name, 0)
@@ -449,7 +450,7 @@ class DwellTimeAnalyzer(BaseSolution):
                 entry_time = self.object_zone_entry_time.get((track_id, new_zone))
                 if entry_time is not None:
                     dwell_time = current_time - entry_time
-                    unit = 's' if self.fps else 'frames'
+                    unit = "s" if self.fps else "frames"
                     label += f" | Dw: {dwell_time:.2f}{unit}"
                 # Count the object in its current zone
                 current_zone_counts[new_zone] += 1

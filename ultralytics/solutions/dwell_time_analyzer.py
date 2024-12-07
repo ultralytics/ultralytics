@@ -96,6 +96,7 @@ class DwellTimeAnalyzer(BaseSolution):
         zones = {}
         zone_points = []
         current_zone_index = 1
+
         def zone_name(i):
             return f"Zone_{i}"
 

@@ -18,8 +18,19 @@ import onnx.parser
 class ScaleNMSBoundingBoxesAndKeyPoints(Step):
     """
     Scale bounding box and mask coordinates back to the original image size.
+
+    This step takes the output of the NMS step and the original, resized, and letter-boxed images,
+    and then adjusts the bounding box and mask coordinates from the processed image dimensions
+    back to the original image dimensions.
     """
     def __init__(self, layout: Optional[str] = "HWC", name: Optional[str] = None):
+        """
+        Initialize the ScaleNMSBoundingBoxesAndKeyPoints step.
+
+        Args:
+            layout (str, optional): The layout of the image. Can be "HWC" or "CHW".
+            name (str, optional): An optional name for the step.
+        """
         super().__init__(["nms_step_output", "original_image", "resized_image", "letter_boxed_image"],
                          ["nms_output_with_scaled_boxes_and_masks"], name)
         self.layout_ = layout
@@ -115,6 +126,21 @@ def export_model_to_onnx(yolo_version: str, onnx_model_name: str, model_input_he
     shutil.move(exported_filename, onnx_model_name)
 
 def yolo_detection_in_memory(model: onnx.ModelProto, onnx_opset: int = 16, num_classes: int = 80) -> onnx.ModelProto:
+    """
+    Integrate pre- and post-processing steps into the YOLOv8 ONNX model in-memory.
+
+    This function takes an ONNX model and adds Resize, LetterBox, and other steps
+    directly into the model graph. It also sets up post-processing steps, including NMS,
+    to produce an end-to-end ONNX model that can handle raw inputs and produce final outputs.
+
+    Args:
+        model (onnx.ModelProto): The initial ONNX model of YOLOv8.
+        onnx_opset (int): The ONNX opset version to use.
+        num_classes (int): The number of classes for the model.
+
+    Returns:
+        onnx.ModelProto: The updated ONNX model with integrated pre/post-processing.
+    """
     model_with_shape_info = onnx.shape_inference.infer_shapes(model)
     model_input_shape = model_with_shape_info.graph.input[0].type.tensor_type.shape
     h_in = model_input_shape.dim[-2].dim_value
@@ -154,6 +180,19 @@ def yolo_detection_in_memory(model: onnx.ModelProto, onnx_opset: int = 16, num_c
     return new_model
 
 def add_resize_node_to_mask_protos_in_memory(model: onnx.ModelProto, model_size: int) -> onnx.ModelProto:
+    """
+    Add a Resize node to the ONNX model to adjust mask prototypes to the desired model size.
+
+    This function inserts a Resize node into the model graph to ensure mask prototypes
+    are correctly shaped for the given input dimensions.
+
+    Args:
+        model (onnx.ModelProto): The ONNX model to update.
+        model_size (int): The desired size of the model's input (both width and height).
+
+    Returns:
+        onnx.ModelProto: The updated ONNX model with the Resize node integrated.
+    """
     graph = model.graph
     target_size = helper.make_tensor('target_size', TensorProto.INT64, [4], [1, 32, model_size, model_size])
     graph.initializer.append(target_size)
@@ -181,6 +220,20 @@ def add_resize_node_to_mask_protos_in_memory(model: onnx.ModelProto, model_size:
     return model
 
 def finalize_mask_processing_in_memory(model: onnx.ModelProto, model_size: int) -> onnx.ModelProto:
+    """
+    Finalize mask processing steps in the ONNX model.
+
+    This function adds nodes for slicing, reshaping, thresholding, and reducing mask data
+    to produce final segmentation masks. It ensures masks are properly scaled, thresholded,
+    and integrated into the model's output.
+
+    Args:
+        model (onnx.ModelProto): The ONNX model to finalize.
+        model_size (int): The model input size, used for reshaping masks.
+
+    Returns:
+        onnx.ModelProto: The updated ONNX model with final mask processing steps integrated.
+    """
     graph = model.graph
 
     reshape_mask_shape = numpy_helper.from_array(np.array([32, model_size*model_size], dtype=np.int64), name="reshape_mask_shape")

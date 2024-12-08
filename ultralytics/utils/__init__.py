@@ -27,6 +27,7 @@ import yaml
 from tqdm import tqdm as tqdm_original
 
 from ultralytics import __version__
+from ultralytics.utils.patches import imread, imshow, imwrite, torch_load, torch_save
 
 # PyTorch Multi-GPU DDP Constants
 RANK = int(os.getenv("RANK", -1))
@@ -1304,9 +1305,6 @@ ENVIRONMENT = (
 )
 TESTS_RUNNING = is_pytest_running() or is_github_action_running()
 set_sentry()
-
-# Apply monkey patches
-from ultralytics.utils.patches import imread, imshow, imwrite, torch_load, torch_save
 
 torch.load = torch_load
 torch.save = torch_save

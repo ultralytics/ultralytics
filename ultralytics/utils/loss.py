@@ -604,6 +604,7 @@ class v8ClassificationLoss:
 
     def __call__(self, preds, batch):
         """Compute the classification loss between predictions and true labels."""
+        preds = preds[1] if isinstance(preds, (list, tuple)) else preds
         loss = F.cross_entropy(preds, batch["cls"], reduction="mean")
         loss_items = loss.detach()
         return loss, loss_items

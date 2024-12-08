@@ -298,41 +298,66 @@ class DetectionValidator(BaseValidator):
     def eval_json(self, stats):
         """Evaluates YOLO output in JSON format and returns performance statistics."""
         if self.args.save_json and (self.is_coco or self.is_lvis) and len(self.jdict):
+            if check_requirements("faster-coco-eval>=1.6.3", install=False):
+                pkg = "faster-coco-eval"
+            else:
+                if self.is_lvis:
+                    check_requirements("lvis>=0.5.3")
+                    pkg = "lvis"
+                elif self.is_coco:
+                    check_requirements("pycocotools>=2.0.6")
+                    pkg = "pycocotools"
+
             pred_json = self.save_dir / "predictions.json"  # predictions
             anno_json = (
                 self.data["path"]
                 / "annotations"
                 / ("instances_val2017.json" if self.is_coco else f"lvis_v1_{self.args.split}.json")
             )  # annotations
-            pkg = "pycocotools" if self.is_coco else "lvis"
+
             LOGGER.info(f"\nEvaluating {pkg} mAP using {pred_json} and {anno_json}...")
             try:  # https://github.com/cocodataset/cocoapi/blob/master/PythonAPI/pycocoEvalDemo.ipynb
                 for x in pred_json, anno_json:
                     assert x.is_file(), f"{x} file not found"
-                check_requirements("pycocotools>=2.0.6" if self.is_coco else "lvis>=0.5.3")
-                if self.is_coco:
-                    from pycocotools.coco import COCO  # noqa
-                    from pycocotools.cocoeval import COCOeval  # noqa
+                if pkg == "faster-coco-eval":
+                    from faster_coco_eval import COCO, COCOeval_faster
 
+                    extra_kwargs = dict(print_function=print, lvis_style=self.is_lvis)
                     anno = COCO(str(anno_json))  # init annotations api
                     pred = anno.loadRes(str(pred_json))  # init predictions api (must pass string, not Path)
-                    val = COCOeval(anno, pred, "bbox")
+                    val = COCOeval_faster(anno, pred, "bbox", **extra_kwargs)
                 else:
-                    from lvis import LVIS, LVISEval
+                    if self.is_coco:
+                        from pycocotools.coco import COCO  # noqa
+                        from pycocotools.cocoeval import COCOeval  # noqa
 
-                    anno = LVIS(str(anno_json))  # init annotations api
-                    pred = anno._load_json(str(pred_json))  # init predictions api (must pass string, not Path)
-                    val = LVISEval(anno, pred, "bbox")
+                        anno = COCO(str(anno_json))  # init annotations api
+                        pred = anno.loadRes(str(pred_json))  # init predictions api (must pass string, not Path)
+                        val = COCOeval(anno, pred, "bbox")
+                    else:
+                        from lvis import LVIS, LVISEval
+
+                        anno = LVIS(str(anno_json))  # init annotations api
+                        pred = anno._load_json(str(pred_json))  # init predictions api (must pass string, not Path)
+                        val = LVISEval(anno, pred, "bbox")
                 val.params.imgIds = [int(Path(x).stem) for x in self.dataloader.dataset.im_files]  # images to eval
                 val.evaluate()
                 val.accumulate()
                 val.summarize()
-                if self.is_lvis:
+                if self.is_lvis and pkg == "lvis":
                     val.print_results()  # explicitly call print_results
+
                 # update mAP50-95 and mAP50
-                stats[self.metrics.keys[-1]], stats[self.metrics.keys[-2]] = (
-                    val.stats[:2] if self.is_coco else [val.results["AP50"], val.results["AP"]]
-                )
+                if pkg == "faster-coco-eval":
+                    # mAP50-95 -> AP_all
+                    stats[self.metrics.keys[-1]], stats[self.metrics.keys[-2]] = (
+                        val.stats_as_dict["AP_all"],
+                        val.stats_as_dict["AP_50"],
+                    )
+                else:
+                    stats[self.metrics.keys[-1]], stats[self.metrics.keys[-2]] = (
+                        val.stats[:2] if self.is_coco else [val.results["AP50"], val.results["AP"]]
+                    )
             except Exception as e:
                 LOGGER.warning(f"{pkg} unable to run: {e}")
         return stats

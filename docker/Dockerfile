@@ -42,7 +42,7 @@ ADD https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11n.pt .
 # Install pip packages
 RUN python3 -m pip install --upgrade pip wheel
 # Note -cu12 must be used with tensorrt)
-RUN pip install -e ".[export]" tensorrt-cu12 "albumentations>=1.4.6" comet pycocotools
+RUN pip install -e ".[export]" tensorrt-cu12 "albumentations>=1.4.6" comet
 
 # Run exports to AutoInstall packages
 # Edge TPU export fails the first time so is run twice here

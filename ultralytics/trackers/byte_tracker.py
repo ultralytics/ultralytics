@@ -136,6 +136,7 @@ class STrack(BaseTrack):
         """Reactivates a previously lost track using new detection data and updates its state and attributes."""
         self.update(new_track, frame_id, new_id)
         self.tracklet_len = 0
+        self.is_activated = True
 
     def update(self, new_track, frame_id, new_id=False):
         """

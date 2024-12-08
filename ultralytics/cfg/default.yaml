@@ -94,6 +94,7 @@ weight_decay: 0.0005 # (float) optimizer weight decay 5e-4
 warmup_epochs: 3.0 # (float) warmup epochs (fractions ok)
 warmup_momentum: 0.8 # (float) warmup initial momentum
 warmup_bias_lr: 0.1 # (float) warmup initial bias lr
+seg: 7.5 # (float) segment loss gain
 box: 7.5 # (float) box loss gain
 cls: 0.5 # (float) cls loss gain (scale with pixels)
 dfl: 1.5 # (float) dfl loss gain

@@ -346,7 +346,7 @@ class v8SegmentationLoss(v8DetectionLoss):
             loss[1] += (proto * 0).sum() + (pred_masks * 0).sum()  # inf sums may lead to nan loss
 
         loss[0] *= self.hyp.box  # box gain
-        loss[1] *= self.hyp.box  # seg gain
+        loss[1] *= self.hyp.seg  # seg gain
         loss[2] *= self.hyp.cls  # cls gain
         loss[3] *= self.hyp.dfl  # dfl gain
 

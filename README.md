@@ -140,6 +140,18 @@ See [Detection Docs](https://docs.ultralytics.com/tasks/detect/) for usage examp
 - **mAP<sup>val</sup>** values are for single-model single-scale on [COCO val2017](https://cocodataset.org/) dataset. <br>Reproduce by `yolo val detect data=coco.yaml device=0`
 - **Speed** averaged over COCO val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance. <br>Reproduce by `yolo val detect data=coco.yaml batch=1 device=0|cpu`
 
+**Robustness results**
+
+| Model                                                                                | Geometric<br><sup>(vulnerability) | Color<br><sup>(vulnerability) | Noise<br><sup>(vulnerability) |
+| ------------------------------------------------------------------------------------ | --------------------------------- | ----------------------------- | ----------------------------- |
+| [YOLOv8n](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt) | 0.1402                            | 0.0274                        | 0.4645                        |
+| [YOLOv8s](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s.pt) | 0.1414                            | 0.0263                        | 0.3528                        |
+| [YOLOv8m](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m.pt) | 0.1499                            | 0.0244                        | 0.3210                        |
+| [YOLOv8l](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l.pt) | 0.1526                            | 0.0213                        | 0.3279                        |
+| [YOLOv8x](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x.pt) | 0.1576                            | 0.0279                        | 0.3351                        |
+
+- **vulnerability** values are for single-model single-scale on the first 1000 images from [COCO val2017](http://cocodataset.org) dataset. The value represents how vulnerable the model is to different input perturbations and is bound in \[-1,1\] (lower is better). <br>Reproduce by `python examples/robustness_testing.py`
+
 </details>
 
 <details><summary>Segmentation (COCO)</summary>

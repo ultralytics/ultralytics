@@ -32,6 +32,7 @@ from ultralytics.utils import (
 )
 from ultralytics.utils.checks import check_file, check_font, is_ascii
 from ultralytics.utils.downloads import download, safe_download, unzip_file
+from ultralytics.utils.errors import DatasetError
 from ultralytics.utils.ops import segments2boxes
 
 HELP_URL = "See https://docs.ultralytics.com/datasets for dataset formatting guidance."
@@ -282,15 +283,17 @@ def check_det_dataset(dataset, autodownload=True):
     for k in "train", "val":
         if k not in data:
             if k != "val" or "validation" not in data:
-                raise SyntaxError(
+                raise DatasetError(
                     emojis(f"{dataset} '{k}:' key missing ❌.\n'train' and 'val' are required in all data YAMLs.")
                 )
             LOGGER.info("WARNING ⚠️ renaming data YAML 'validation' key to 'val' to match YOLO format.")
             data["val"] = data.pop("validation")  # replace 'validation' key with 'val' key
     if "names" not in data and "nc" not in data:
-        raise SyntaxError(emojis(f"{dataset} key missing ❌.\n either 'names' or 'nc' are required in all data YAMLs."))
+        raise DatasetError(
+            emojis(f"{dataset} key missing ❌.\n either 'names' or 'nc' are required in all data YAMLs.")
+        )
     if "names" in data and "nc" in data and len(data["names"]) != data["nc"]:
-        raise SyntaxError(emojis(f"{dataset} 'names' length {len(data['names'])} and 'nc: {data['nc']}' must match."))
+        raise DatasetError(emojis(f"{dataset} 'names' length {len(data['names'])} and 'nc: {data['nc']}' must match."))
     if "names" not in data:
         data["names"] = [f"class_{i}" for i in range(data["nc"])]
     else:
@@ -326,7 +329,7 @@ def check_det_dataset(dataset, autodownload=True):
                 LOGGER.warning(m)
             else:
                 m += f"\nNote dataset download directory is '{DATASETS_DIR}'. You can update this in '{SETTINGS_FILE}'"
-                raise FileNotFoundError(m)
+                raise DatasetError(m)
             t = time.time()
             r = None  # success
             if s.startswith("http") and s.endswith(".zip"):  # URL
@@ -411,7 +414,7 @@ def check_cls_dataset(dataset, split=""):
             nd = len({file.parent for file in files})  # number of directories
             if nf == 0:
                 if k == "train":
-                    raise FileNotFoundError(emojis(f"{dataset} '{k}:' no training images found ❌ "))
+                    raise DatasetError(emojis(f"{dataset} '{k}:' no training images found ❌ "))
                 else:
                     LOGGER.warning(f"{prefix} found {nf} images in {nd} classes: WARNING ⚠️ no images found")
             elif nd != nc:

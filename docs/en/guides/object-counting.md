@@ -235,4 +235,26 @@ Yes, Ultralytics YOLO11 is perfectly suited for advanced applications like crowd
 - **Crowd Analysis:** Monitor and manage large gatherings, ensuring safety and optimizing crowd flow.
 - **Traffic Management:** Track and count vehicles, analyze traffic patterns, and manage congestion in real-time.
 
+### How does Ultralytics YOLO11 handle overlapping objects during counting?
+
+Ultralytics YOLO11 uses advanced non-maximum suppression (NMS) algorithms to handle overlapping objects. When multiple detections overlap significantly, YOLO11 keeps only the detection with the highest confidence score, ensuring accurate counting even in crowded environments.
+
+### What types of regions can I define for object counting?
+
+You can define various region types for counting in YOLO11:
+
+- Lines: For counting objects crossing a specific line.
+- Rectangles: For counting objects within a rectangular area.
+- Polygons: For complex or irregularly shaped areas requiring multipoint definitions.
+
+### How do I count objects in real-time from a camera feed?
+
+You can use a live camera feed by passing the camera ID (0 for the default webcam) to the video source:
+
+```python
+cap = cv2.VideoCapture(0)  # Use the default camera
+```
+
+This allows real-time counting directly from camera streams.
+
 For more information and implementation details, refer to the guide on [Real World Applications](#real-world-applications) of object counting with YOLO11.

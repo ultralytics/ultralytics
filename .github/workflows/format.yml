@@ -20,7 +20,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }} # or ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
           repository: namas191297/ultralytics
           ref: ${{ github.head_ref }}
           fetch-depth: 0
@@ -28,10 +28,10 @@ jobs:
       - name: Run Ultralytics Formatting
         uses: ultralytics/actions@main
         with:
-          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }} # or ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
           labels: true # autolabel issues and PRs
           python: true # format Python code and docstrings
           prettier: true # format YAML, JSON, Markdown and CSS
           spelling: true # check spelling
           links: false # check broken links
-          summary: false # Disable GPT summary unless you have OPENAI_API_KEY
+          summary: false # Disable GPT summary to avoid OpenAI API key requirement

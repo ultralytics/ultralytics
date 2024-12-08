@@ -53,6 +53,7 @@ jobs:
           git tag -a "$CURRENT_TAG" -m "$(git log -1 --pretty=%B)"
           git push origin "$CURRENT_TAG"
           ultralytics-actions-summarize-release
+          uv cache prune --ci
 
   build:
     needs: check
@@ -78,11 +79,11 @@ jobs:
     needs: [check, build]
     if: needs.check.outputs.increment == 'True'
     runs-on: ubuntu-latest
-    environment:
+    environment: # for GitHub Deployments tab
       name: Release - PyPI
       url: https://pypi.org/p/ultralytics
     permissions:
-      id-token: write
+      id-token: write # for PyPI trusted publishing
     steps:
       - uses: actions/download-artifact@v4
         with:

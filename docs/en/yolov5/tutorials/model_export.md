@@ -31,7 +31,7 @@ YOLOv5 inference is officially supported in 11 formats:
 | [PyTorch](https://pytorch.org/)                                            | -                     | `yolov5s.pt`              |
 | [TorchScript](https://pytorch.org/docs/stable/jit.html)                    | `torchscript`         | `yolov5s.torchscript`     |
 | [ONNX](https://onnx.ai/)                                                   | `onnx`                | `yolov5s.onnx`            |
-| [OpenVINO](https://docs.openvino.ai/latest/index.html)                     | `openvino`            | `yolov5s_openvino_model/` |
+| [OpenVINO](https://docs.openvino.ai/2024/index.html)                       | `openvino`            | `yolov5s_openvino_model/` |
 | [TensorRT](https://developer.nvidia.com/tensorrt)                          | `engine`              | `yolov5s.engine`          |
 | [CoreML](https://github.com/apple/coremltools)                             | `coreml`              | `yolov5s.mlmodel`         |
 | [TensorFlow SavedModel](https://www.tensorflow.org/guide/saved_model)      | `saved_model`         | `yolov5s_saved_model/`    |

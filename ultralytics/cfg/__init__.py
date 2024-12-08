@@ -77,7 +77,7 @@ SOLUTIONS_HELP_MSG = f"""
 
         yolo solutions SOLUTION ARGS
 
-        Where SOLUTION (optional) is one of {list(SOLUTION_MAP.keys())}
+        Where SOLUTION (optional) is one of {list(SOLUTION_MAP.keys())[:-1]}
               ARGS (optional) are any number of custom 'arg=value' pairs like 'show_in=True' that override defaults 
                   at https://docs.ultralytics.com/usage/cfg
                 
@@ -96,7 +96,7 @@ SOLUTIONS_HELP_MSG = f"""
     5. Generate analytical graphs
         yolo solutions analytics analytics_type="pie"
     
-    6. Track Objects Within Specific Zones
+    6. Track objects within specific zones
         yolo solutions trackzone source="path/to/video/file.mp4" region=[(150, 150), (1130, 150), (1130, 570), (150, 570)] 
     """
 CLI_HELP_MSG = f"""
@@ -125,7 +125,7 @@ CLI_HELP_MSG = f"""
         yolo streamlit-predict
 
     6. Ultralytics solutions usage
-        yolo solutions count or in {list(SOLUTION_MAP.keys())} source="path/to/video/file.mp4"
+        yolo solutions count or in {list(SOLUTION_MAP.keys())[1:-1]} source="path/to/video/file.mp4"
 
     7. Run special commands:
         yolo help

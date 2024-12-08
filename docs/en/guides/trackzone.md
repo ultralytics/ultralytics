@@ -165,7 +165,7 @@ TrackZone supports any model compatible with Ultralytics framework, including [U
 
 ### Can I adjust the line width and appearance of bounding boxes?
 
-Yes, you can customize the line width of bounding boxes using the line_width argument. This flexibility allows you to adjust the visuals for better clarity and presentation based on your application's needs.
+Yes, you can customize the line width of bounding boxes using the `line_width` argument. This flexibility allows you to adjust the visuals for better clarity and presentation based on your application's needs.
 
 ### How do I filter specific object classes using TrackZone?
 

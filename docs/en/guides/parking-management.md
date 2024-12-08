@@ -144,3 +144,17 @@ Ultralytics YOLO11 is utilized in various real-world applications for parking lo
 - **Parking Space Detection**: Accurately identifying available and occupied spaces.
 - **Surveillance**: Enhancing security through real-time monitoring.
 - **Traffic Flow Management**: Reducing idle times and congestion with efficient traffic handling. Images showcasing these applications can be found in [real-world applications](#real-world-applications).
+
+### How scalable is the parking management solution with YOLO11?
+
+The solution is highly scalable, supporting small lots to large multi-level parking structures. By adjusting compute resources and camera coverage, you can expand the system to monitor numerous parking spaces simultaneously.
+
+### Does the system support alerts for parking violations?
+
+We currently don't support this feature yet. However, you can implement parking violation alerts using third-party tools or custom integrations. With tools like object detection APIs and real-time notification systems, you can configure alerts for:  
+
+- **Unauthorized Parking**: Detect vehicles parked in reserved spots.  
+- **Double-Parking**: Identify vehicles blocking other parked cars.  
+- **Overstayed Vehicles**: Monitor parking durations and notify when time limits are exceeded.  
+
+These features can be customized by connecting YOLO11’s detection output to external alerting services like SMS, email notifications, or mobile apps.

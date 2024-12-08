@@ -78,3 +78,19 @@ Yes, Ultralytics YOLO11 can be effectively used for monitoring workouts by track
 ### How does Ultralytics YOLO help in creating heatmaps for [data visualization](https://www.ultralytics.com/glossary/data-visualization)?
 
 Ultralytics YOLO11 can generate heatmaps to visualize data intensity across a given area, highlighting regions of high activity or interest. This feature is particularly useful in understanding patterns and trends in various computer vision tasks. Learn more about creating and using [Heatmaps](../guides/heatmaps.md) with YOLO11 for comprehensive data analysis and visualization.
+
+### How can I track objects in specific zones using Ultralytics YOLO?
+
+With Ultralytics YOLO11, you can track objects precisely within designated zones in a video frame. This feature is ideal for applications like security surveillance, traffic monitoring, and restricted area enforcement. Explore the setup process in our [Track Objects in Zone](../guides/trackzone.md) guide.
+
+### How can YOLO11 optimize parking management systems?
+
+YOLO11 simplifies parking management by detecting open parking spots and tracking vehicle movements. Learn how to build a smart parking system with step-by-step instructions in our [Parking Management](../guides/parking-management.md) guide.
+
+### How does YOLO11 estimate object speed in real time?
+
+YOLO11 calculates the speed of moving objects by analyzing video frame sequences, making it valuable for traffic monitoring, sports analytics, and motion analysis. Discover the complete implementation process in our [Speed Estimation](../guides/speed-estimation.md) guide.
+
+### Is it possible to perform instance segmentation and object tracking simultaneously with YOLO11?
+
+Absolutely! YOLO11 supports both instance segmentation and object tracking at the same time. This allows precise detection of object boundaries while continuously monitoring their movements. Learn how to enable this feature in our [Instance Segmentation and Tracking](../guides/instance-segmentation-and-tracking.md)

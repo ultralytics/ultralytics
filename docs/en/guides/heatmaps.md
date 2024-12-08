@@ -212,7 +212,7 @@ Ultralytics YOLO11 offers seamless integration of advanced object detection and 
 
 You can customize heatmaps by adjusting several parameters such as `colormap`, `line_width`, and specific `region` points. Use `cv2.COLORMAP_*` to change the heatmap’s color scheme. Additionally, you can enable or disable display features like `show_in` and `show_out` for entering/exiting object counts. Refer to the [Arguments `Heatmap()`](#arguments-heatmap) section for more customization options.
 
-### How does persistent tracking improve heatmap generation? 
+### How does persistent tracking improve heatmap generation?
 
 Persistent tracking enables objects to be tracked across multiple frames, producing smoother heatmaps. This is particularly useful when tracking fast-moving objects or generating long-term activity maps.
 

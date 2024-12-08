@@ -151,10 +151,10 @@ The solution is highly scalable, supporting small lots to large multi-level park
 
 ### Does the system support alerts for parking violations?
 
-We currently don't support this feature yet. However, you can implement parking violation alerts using third-party tools or custom integrations. With tools like object detection APIs and real-time notification systems, you can configure alerts for:  
+We currently don't support this feature yet. However, you can implement parking violation alerts using third-party tools or custom integrations. With tools like object detection APIs and real-time notification systems, you can configure alerts for:
 
-- **Unauthorized Parking**: Detect vehicles parked in reserved spots.  
-- **Double-Parking**: Identify vehicles blocking other parked cars.  
-- **Overstayed Vehicles**: Monitor parking durations and notify when time limits are exceeded.  
+- **Unauthorized Parking**: Detect vehicles parked in reserved spots.
+- **Double-Parking**: Identify vehicles blocking other parked cars.
+- **Overstayed Vehicles**: Monitor parking durations and notify when time limits are exceeded.
 
 These features can be customized by connecting YOLO11’s detection output to external alerting services like SMS, email notifications, or mobile apps.

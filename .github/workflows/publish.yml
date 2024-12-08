@@ -43,7 +43,7 @@ jobs:
       - name: Tag and Release
         if: steps.check_pypi.outputs.increment == 'True'
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
           CURRENT_TAG: ${{ steps.check_pypi.outputs.current_tag }}
           PREVIOUS_TAG: ${{ steps.check_pypi.outputs.previous_tag }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
@@ -99,7 +99,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Extract PR Details
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN}}
         run: |
           PR_JSON=$(gh pr list --search "${GITHUB_SHA}" --state merged --json number,title --jq '.[0]')
           PR_NUMBER=$(echo "${PR_JSON}" | jq -r '.number')

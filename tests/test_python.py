@@ -31,7 +31,7 @@ from ultralytics.utils import (
     is_github_action_running,
 )
 from ultralytics.utils.downloads import download
-from ultralytics.utils.torch_utils import TORCH_1_9
+from ultralytics.utils.torch_utils import TORCH_1_9, prune_model, zero_count
 
 IS_TMP_WRITEABLE = is_dir_writeable(TMP)  # WARNING: must be run once tests start as TMP does not exist on tests/init
 
@@ -622,3 +622,28 @@ def test_yolov10():
     model.val(data="coco8.yaml", imgsz=32)
     model.predict(imgsz=32, save_txt=True, save_crop=True, augment=True)
     model(SOURCE)
+
+
+def test_substr_in_set() -> None:
+    """Tests if `substr_in_set` function correctly determines if a substring is present in a set of strings."""
+    assert checks.substr_in_set("test", {"test", "test-2", "test(3)"})
+    assert not checks.substr_in_set("banana", {"test", "test-2", "test(3)"})
+
+
+def test_zero_count() -> None:
+    """Tests if `zero_count` correctly counts the number of zero elements in a PyTorch model/module."""
+    model = torch.nn.Linear(10, 10)
+    count = zero_count(model)
+    calc_count = model.weight.numel() - model.weight.count_nonzero()
+    assert count == calc_count, f"Expected zero count to be {calc_count}, but got {count}"
+    model.requires_grad_(False)
+    model.weight[model.weight < 0] = 0
+    assert zero_count(model) != 0, "Expected zero count to be non-zero, but found all non-zero values."
+
+
+def test_prune_model() -> None:
+    """Tests if `prune_model` correctly prunes a PyTorch model/module."""
+    model = YOLO()
+    z0 = zero_count(model)
+    prune_model(model, 0.001)
+    assert z0 < zero_count(model), "Expected increased sparsity after pruning."

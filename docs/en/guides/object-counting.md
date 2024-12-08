@@ -243,16 +243,17 @@ Ultralytics YOLO11 uses advanced non-maximum suppression (NMS) algorithms to han
 
 You can define various region types for counting in YOLO11:
 
-- Lines: For counting objects crossing a specific line.
-- Rectangles: For counting objects within a rectangular area.
-- Polygons: For complex or irregularly shaped areas requiring multipoint definitions.
+- **Lines**: For counting objects crossing a specific line.
+- **Rectangles**: For counting objects passing through a rectangular area.
+- **Polygons**: For complex or irregularly shaped areas requiring multipoint definitions.
 
 ### How do I count objects in real-time from a camera feed?
 
-You can use a live camera feed by passing the camera ID (0 for the default webcam) to the video source:
+You can use a live camera feed by passing the camera ID (0 for the default webcam and 1 for external camera connected) to the video source:
 
 ```python
 cap = cv2.VideoCapture(0)  # Use the default camera
+cap1 = cv2.VideoCapture(1)  # Use the external camera
 ```
 
 This allows real-time counting directly from camera streams.

@@ -205,6 +205,8 @@ cv2.destroyAllWindows()
 video_writer.release()
 ```
 
+This setup writes the monitored video to an output file. For more details, refer to the [Workouts Monitoring with Save Output](#workouts-monitoring-using-ultralytics-yolo11) section.
+
 ### Can I run workout monitoring on a webcam instead of a video file?
 
 Yes, you can use a webcam for real-time workout monitoring. Replace the video source with your webcam feed as shown below:
@@ -214,7 +216,7 @@ import cv2
 
 from ultralytics import solutions
 
-cap = cv2.VideoCapture(0)  # Use 0 for the default webcam
+cap = cv2.VideoCapture(0)  # Use 0 for the default webcam and 1 for external camera
 assert cap.isOpened(), "Webcam not detected"
 
 gym = solutions.AIGym(
@@ -228,12 +230,9 @@ while cap.isOpened():
     if not success:
         break
     im0 = gym.monitor(im0)
-
 cv2.destroyAllWindows()
 ```
 
 ### Is there a mobile version of Ultralytics YOLO11 for workout monitoring?
 
 Currently, Ultralytics YOLO11 is optimized for desktop environments. However, integration with mobile platforms is possible using TensorFlow Lite or ONNX conversion, enabling edge-device deployment for workout monitoring.
-
-This setup writes the monitored video to an output file. For more details, refer to the [Workouts Monitoring with Save Output](#workouts-monitoring-using-ultralytics-yolo11) section.

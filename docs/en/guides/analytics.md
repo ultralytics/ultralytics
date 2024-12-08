@@ -322,9 +322,9 @@ Ultralytics YOLO11 stands out from other object detection solutions like OpenCV 
 4. **Diverse Applications**: Supports various tasks including multi-object tracking, custom model training, and exporting to different formats like ONNX, TensorRT, and CoreML.
 5. **Comprehensive Documentation**: Extensive [documentation](https://docs.ultralytics.com/) and [blog resources](https://www.ultralytics.com/blog) to guide users through every step.
 
-### What is the difference between analytics_type="line" and analytics_type="area" in Ultralytics YOLO11?
+### What is the difference between line and area analytics in Ultralytics YOLO11?
 
-- **analytics_type="line"**: This option generates a line graph, suitable for tracking trends over time or monitoring changes across different frames. It’s ideal for visualizing continuous data such as counts or average object sizes over frames.
-- **analytics_type="area"**: Similar to a line graph, but the area under the line is filled with color, making it easier to interpret the magnitude of changes. Use this type when you want to emphasize cumulative data or highlight significant variations.
+- **Line**: This option generates a line graph, suitable for tracking trends over time or monitoring changes across different frames. It’s ideal for visualizing continuous data such as counts over frames.
+- **Area**: Similar to a line graph, but the area under the line is filled with color, making it easier to interpret the magnitude of changes. Use this type when you want to emphasize cumulative data or highlight significant variations.
 
 For more detailed comparisons and use cases, explore our [Ultralytics Blog](https://www.ultralytics.com/blog/ai-use-cases-transforming-your-future).

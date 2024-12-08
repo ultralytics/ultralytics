@@ -89,7 +89,7 @@ YOLO11 simplifies parking management by detecting open parking spots and trackin
 
 ### How does YOLO11 estimate object speed in real time?  
 
-YOLO11 calculates the speed of moving objects by analyzing video frame sequences, making it invaluable for traffic monitoring, sports analytics, and motion analysis. Discover the complete implementation process in our [Speed Estimation](../guides/speed-estimation.md) guide.
+YOLO11 calculates the speed of moving objects by analyzing video frame sequences, making it valuable for traffic monitoring, sports analytics, and motion analysis. Discover the complete implementation process in our [Speed Estimation](../guides/speed-estimation.md) guide.
 
 ### Is it possible to perform instance segmentation and object tracking simultaneously with YOLO11?  
 

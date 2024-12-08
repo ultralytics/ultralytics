@@ -200,13 +200,16 @@ The Ultralytics command line interface (CLI) allows for simple single-line comma
 
         Run special commands to see version, view settings, run checks and more:
         ```bash
-        yolo help
-        yolo checks
-        yolo version
-        yolo settings
-        yolo copy-cfg
         yolo cfg
+        yolo checks
+        yolo copy-cfg
+        yolo help
+        yolo info model=yolo11n.pt # (1)
+        yolo settings
+        yolo version
         ```
+
+        1. Learn more about [`yolo info`](./usage/cli.md#info) command.
 
 !!! warning
 

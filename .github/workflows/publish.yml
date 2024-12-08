@@ -82,6 +82,8 @@ jobs:
           PR_TITLE=$(echo "${PR_JSON}" | jq -r '.title')
           echo "PR_NUMBER=${PR_NUMBER}" >> "${GITHUB_ENV}"
           echo "PR_TITLE=${PR_TITLE}" >> "${GITHUB_ENV}"
+      - name: Prune uv Cache
+        run: uv cache prune --ci
       - name: Notify on Slack (Success)
         if: success() && github.event_name == 'push' && steps.check_pypi.outputs.increment == 'True'
         uses: slackapi/slack-github-action@v2.0.0

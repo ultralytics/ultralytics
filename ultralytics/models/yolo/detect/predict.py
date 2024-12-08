@@ -1,4 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
+import torch
 
 from ultralytics.engine.predictor import BasePredictor
 from ultralytics.engine.results import Results
@@ -22,14 +23,43 @@ class DetectionPredictor(BasePredictor):
 
     def postprocess(self, preds, img, orig_imgs):
         """Post-processes predictions and returns a list of Results objects."""
-        preds = ops.non_max_suppression(
-            preds,
-            self.args.conf,
-            self.args.iou,
-            agnostic=self.args.agnostic_nms,
-            max_det=self.args.max_det,
-            classes=self.args.classes,
-        )
+        if self.args.agnostic_nms_classes is not None:
+            if isinstance(preds, torch.Tensor):
+                preds_clone = torch.clone(preds).detach()
+            else:
+                preds_clone = [torch.clone(preds[0]).detach()]
+
+            agnostic_preds = ops.non_max_suppression(
+                preds_clone,
+                self.args.conf,
+                self.args.iou,
+                agnostic=True,
+                max_det=self.args.max_det,
+                classes=self.args.agnostic_nms_classes,
+            )
+
+            all_classes = set(self.args.classes if self.args.classes is not None else self.model.names.keys())
+            non_agnostic_classes = list(all_classes - set(self.args.agnostic_nms_classes))
+            non_agnostic_preds = ops.non_max_suppression(
+                preds,
+                self.args.conf,
+                self.args.iou,
+                agnostic=False,
+                max_det=self.args.max_det,
+                classes=non_agnostic_classes,
+            )
+
+            preds = [torch.cat((agnostic_preds[0], non_agnostic_preds[0]), 0)]
+
+        else:
+            preds = ops.non_max_suppression(
+                preds,
+                self.args.conf,
+                self.args.iou,
+                agnostic=self.args.agnostic_nms,
+                max_det=self.args.max_det,
+                classes=self.args.classes,
+            )
 
         if not isinstance(orig_imgs, list):  # input images are a torch.Tensor, not a list
             orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)

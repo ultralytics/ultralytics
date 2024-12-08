@@ -913,7 +913,8 @@ def plot_labels(boxes, cls, names=(), save_dir=Path(""), on_plot=None):
 
     # Plot dataset labels
     LOGGER.info(f"Plotting labels to {save_dir / 'labels.jpg'}... ")
-    nc = int(cls.max() + 1)  # number of classes
+    # nc = int(cls.max() + 1)  # number of classes
+    nc = cls.shape[-1]
     boxes = boxes[:1000000]  # limit to 1M boxes
     x = pandas.DataFrame(boxes, columns=["x", "y", "width", "height"])
 
@@ -924,7 +925,7 @@ def plot_labels(boxes, cls, names=(), save_dir=Path(""), on_plot=None):
 
     # Matplotlib labels
     ax = plt.subplots(2, 2, figsize=(8, 8), tight_layout=True)[1].ravel()
-    y = ax[0].hist(cls, bins=np.linspace(0, nc, nc + 1) - 0.5, rwidth=0.8)
+    y = ax[0].hist(np.nonzero(cls)[1], bins=np.linspace(0, nc, nc + 1) - 0.5, rwidth=0.8)
     for i in range(nc):
         y[2].patches[i].set_color([x / 255 for x in colors(i)])
     ax[0].set_ylabel("instances")
@@ -941,7 +942,7 @@ def plot_labels(boxes, cls, names=(), save_dir=Path(""), on_plot=None):
     boxes = ops.xywh2xyxy(boxes) * 1000
     img = Image.fromarray(np.ones((1000, 1000, 3), dtype=np.uint8) * 255)
     for cls, box in zip(cls[:500], boxes[:500]):
-        ImageDraw.Draw(img).rectangle(box, width=1, outline=colors(cls))  # plot
+        ImageDraw.Draw(img).rectangle(box, width=1, outline=colors(np.nonzero(cls)[0][0]))  # plot
     ax[1].imshow(img)
     ax[1].axis("off")
 
@@ -1108,6 +1109,8 @@ def plot_images(
                 boxes = ops.xywhr2xyxyxyxy(boxes) if is_obb else ops.xywh2xyxy(boxes)
                 for j, box in enumerate(boxes.astype(np.int64).tolist()):
                     c = classes[j]
+                    if len(c.shape) > 0:
+                        c = np.nonzero(c)[0][0]
                     color = colors(c)
                     c = names.get(c, c) if names else c
                     if labels or conf[j] > conf_thres:
@@ -1116,6 +1119,8 @@ def plot_images(
 
             elif len(classes):
                 for c in classes:
+                    if len(c.shape) > 0:
+                        c = np.nonzero(c)[0][0]
                     color = colors(c)
                     c = names.get(c, c) if names else c
                     annotator.text((x, y), f"{c}", txt_color=color, box_style=True)

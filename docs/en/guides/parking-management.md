@@ -157,4 +157,4 @@ We currently don't support this feature yet. However, you can implement parking 
 - **Double-Parking**: Identify vehicles blocking other parked cars.
 - **Overstayed Vehicles**: Monitor parking durations and notify when time limits are exceeded.
 
-These features can be customized by connecting YOLO11’s detection output to external alerting services like SMS, email notifications, or mobile apps.
+These features can be customized by connecting YOLO11's detection output to external alerting services like SMS, email notifications, or mobile apps.

@@ -324,7 +324,7 @@ Ultralytics YOLO11 stands out from other object detection solutions like OpenCV 
 
 ### What is the difference between line and area analytics in Ultralytics YOLO11?
 
-- **Line**: This option generates a line graph, suitable for tracking trends over time or monitoring changes across different frames. It’s ideal for visualizing continuous data such as counts over frames.
+- **Line**: This option generates a line graph, suitable for tracking trends over time or monitoring changes across different frames. It's ideal for visualizing continuous data such as counts over frames.
 - **Area**: Similar to a line graph, but the area under the line is filled with color, making it easier to interpret the magnitude of changes. Use this type when you want to emphasize cumulative data or highlight significant variations.
 
 For more detailed comparisons and use cases, explore our [Ultralytics Blog](https://www.ultralytics.com/blog/ai-use-cases-transforming-your-future).

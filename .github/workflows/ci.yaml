@@ -146,6 +146,8 @@ jobs:
           flags: Benchmarks
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      - name: Prune uv Cache
+        run: uv cache prune --ci
       - name: Benchmark Summary
         run: |
           cat benchmarks.log
@@ -203,6 +205,8 @@ jobs:
           flags: Tests
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      - name: Prune uv Cache
+        run: uv cache prune --ci
 
   GPU:
     if: github.repository == 'ultralytics/ultralytics' && (github.event_name != 'workflow_dispatch' || github.event.inputs.gpu == 'true')

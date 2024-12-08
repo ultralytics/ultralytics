@@ -99,6 +99,7 @@ class DetectionValidator(BaseValidator):
             multi_label=True,
             agnostic=self.args.single_cls or self.args.agnostic_nms,
             max_det=self.args.max_det,
+            soft_label=self.args.soft_label,
         )
 
     def _prepare_batch(self, si, batch):
@@ -276,6 +277,7 @@ class DetectionValidator(BaseValidator):
             path=None,
             names=self.names,
             boxes=predn[:, :6],
+            is_soft=self.args.soft_label,
         ).save_txt(file, save_conf=save_conf)
 
     def pred_to_json(self, predn, filename):

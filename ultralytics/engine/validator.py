@@ -99,6 +99,11 @@ class BaseValidator:
         if self.args.conf is None:
             self.args.conf = 0.001  # default conf=0.001
         self.args.imgsz = check_imgsz(self.args.imgsz, max_dim=1)
+        if self.args.classes and self.args.classes == "soft":
+            self.args.soft_label = True
+            self.args.classes = None
+        else:
+            self.args.soft_label = False
 
         self.plots = {}
         self.callbacks = _callbacks or callbacks.get_default_callbacks()

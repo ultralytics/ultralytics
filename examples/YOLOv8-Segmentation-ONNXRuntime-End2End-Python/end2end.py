@@ -9,30 +9,45 @@ from typing import List, Optional
 
 import onnxruntime_extensions
 from onnxruntime_extensions.tools.pre_post_processing import (
-    PrePostProcessor, utils, Identity, Resize, LetterBox, ChannelsLastToChannelsFirst,
-    ImageBytesToFloat, Unsqueeze, Squeeze, Transpose, Split, SelectBestBoundingBoxesByNMS,
-    Step, create_named_value
+    PrePostProcessor,
+    utils,
+    Identity,
+    Resize,
+    LetterBox,
+    ChannelsLastToChannelsFirst,
+    ImageBytesToFloat,
+    Unsqueeze,
+    Squeeze,
+    Transpose,
+    Split,
+    SelectBestBoundingBoxesByNMS,
+    Step,
+    create_named_value,
 )
 import onnx.parser
 
-class ScaleNMSBoundingBoxesAndKeyPoints(Step):
-    """
-    Scale bounding box and mask coordinates back to the original image size.
 
-    This step takes the output of the NMS step and the original, resized, and letter-boxed images,
-    and then adjusts the bounding box and mask coordinates from the processed image dimensions
-    back to the original image dimensions.
+class ScaleNMSBoundingBoxesAndKeyPoints(Step):
+    """Scale bounding box and mask coordinates back to the original image size.
+
+    This step takes the output of the NMS step and the original,
+    resized, and letter-boxed images, and then adjusts the bounding box
+    and mask coordinates from the processed image dimensions back to the
+    original image dimensions.
     """
+
     def __init__(self, layout: Optional[str] = "HWC", name: Optional[str] = None):
-        """
-        Initialize the ScaleNMSBoundingBoxesAndKeyPoints step.
+        """Initialize the ScaleNMSBoundingBoxesAndKeyPoints step.
 
         Args:
             layout (str, optional): The layout of the image. Can be "HWC" or "CHW".
             name (str, optional): An optional name for the step.
         """
-        super().__init__(["nms_step_output", "original_image", "resized_image", "letter_boxed_image"],
-                         ["nms_output_with_scaled_boxes_and_masks"], name)
+        super().__init__(
+            ["nms_step_output", "original_image", "resized_image", "letter_boxed_image"],
+            ["nms_output_with_scaled_boxes_and_masks"],
+            name,
+        )
         self.layout_ = layout
         if layout not in ["HWC", "CHW"]:
             raise ValueError("Invalid layout. Only HWC and CHW are supported")
@@ -42,7 +57,7 @@ class ScaleNMSBoundingBoxesAndKeyPoints(Step):
         for idx, input_name in enumerate(self.input_names):
             input_type_str, input_shape_str = self._get_input_type_and_shape_strs(graph, idx)
             graph_input_params.append(f"{input_type_str}[{input_shape_str}] {input_name}")
-        graph_input_params = ', '.join(graph_input_params)
+        graph_input_params = ", ".join(graph_input_params)
 
         if self.layout_ == "HWC":
             orig_image_h_w_c = "oh, ow, oc"
@@ -54,7 +69,7 @@ class ScaleNMSBoundingBoxesAndKeyPoints(Step):
             letterboxed_image_h_w_c = "lc, lh, lw"
 
         nms_output_type_str, nms_output_shape_str = self._get_input_type_and_shape_strs(graph, 0)
-        nms_output_shape = nms_output_shape_str.split(',')
+        nms_output_shape = nms_output_shape_str.split(",")
         data_size_per_result = int(nms_output_shape[-1])
         if not isinstance(data_size_per_result, int):
             raise ValueError("Shape of input must have a numeric value for the mask data size")
@@ -63,7 +78,7 @@ class ScaleNMSBoundingBoxesAndKeyPoints(Step):
         data_split_sizes = f"2, 2, 2, {data_size_per_result - 6}"
 
         def split_num_outputs(num_outputs: int):
-            split_input_shape_attr = ''
+            split_input_shape_attr = ""
             if onnx_opset >= 18:
                 split_input_shape_attr = f", num_outputs = {num_outputs}"
             return split_input_shape_attr
@@ -105,17 +120,20 @@ class ScaleNMSBoundingBoxesAndKeyPoints(Step):
         converter_graph = onnx.parser.parse_graph(graph_text)
         return converter_graph
 
+
 def export_model_to_onnx(yolo_version: str, onnx_model_name: str, model_input_height=640, model_input_width=640):
-    """
-    Exports a local or downloaded YOLOv8 segmentation model to ONNX.
-    If the corresponding <yolo_version>-seg.pt file exists locally, it uses that.
-    If not, and download is required, ultralytics will download it automatically.
+    """Exports a local or downloaded YOLOv8 segmentation model to ONNX.
+
+    If the corresponding <yolo_version>-seg.pt file exists locally, it
+    uses that. If not, and download is required, ultralytics will
+    download it automatically.
     """
     from pip._internal import main as pipmain
+
     try:
         import ultralytics
     except ImportError:
-        pipmain(['install', 'ultralytics'])
+        pipmain(["install", "ultralytics"])
         import ultralytics
 
     pt_model = Path(f"{yolo_version}-seg.pt")
@@ -125,9 +143,10 @@ def export_model_to_onnx(yolo_version: str, onnx_model_name: str, model_input_he
     # Move the exported ONNX to the user-specified name
     shutil.move(exported_filename, onnx_model_name)
 
+
 def yolo_detection_in_memory(model: onnx.ModelProto, onnx_opset: int = 16, num_classes: int = 80) -> onnx.ModelProto:
-    """
-    Integrate pre- and post-processing steps into the YOLOv8 ONNX model in-memory.
+    """Integrate pre- and post-processing steps into the YOLOv8 ONNX model in-
+    memory.
 
     This function takes an ONNX model and adds Resize, LetterBox, and other steps
     directly into the model graph. It also sets up post-processing steps, including NMS,
@@ -151,8 +170,8 @@ def yolo_detection_in_memory(model: onnx.ModelProto, onnx_opset: int = 16, num_c
     pipeline = PrePostProcessor(inputs, onnx_opset)
     pipeline.add_pre_processing(
         [
-            Identity(name='RGBInput'),
-            Resize((h_in, w_in), policy='not_larger'),
+            Identity(name="RGBInput"),
+            Resize((h_in, w_in), policy="not_larger"),
             LetterBox(target_shape=(h_in, w_in)),
             ChannelsLastToChannelsFirst(),
             ImageBytesToFloat(),
@@ -165,12 +184,14 @@ def yolo_detection_in_memory(model: onnx.ModelProto, onnx_opset: int = 16, num_c
         Transpose([1, 0]),
         Split(num_outputs=3, axis=-1, splits=[4, num_classes, 32]),
         SelectBestBoundingBoxesByNMS(has_mask_data=True, iou_threshold=0.5, score_threshold=0.67),
-        (ScaleNMSBoundingBoxesAndKeyPoints(name='ScaleBoundingBoxes'),
-         [
-            utils.IoMapEntry("RGBInput", producer_idx=0, consumer_idx=1),
-            utils.IoMapEntry("Resize", producer_idx=0, consumer_idx=2),
-            utils.IoMapEntry("LetterBox", producer_idx=0, consumer_idx=3),
-         ]),
+        (
+            ScaleNMSBoundingBoxesAndKeyPoints(name="ScaleBoundingBoxes"),
+            [
+                utils.IoMapEntry("RGBInput", producer_idx=0, consumer_idx=1),
+                utils.IoMapEntry("Resize", producer_idx=0, consumer_idx=2),
+                utils.IoMapEntry("LetterBox", producer_idx=0, consumer_idx=3),
+            ],
+        ),
     ]
 
     pipeline.add_post_processing(post_processing_steps)
@@ -179,9 +200,10 @@ def yolo_detection_in_memory(model: onnx.ModelProto, onnx_opset: int = 16, num_c
     new_model = onnx.shape_inference.infer_shapes(new_model, strict_mode=True)
     return new_model
 
+
 def add_resize_node_to_mask_protos_in_memory(model: onnx.ModelProto, model_size: int) -> onnx.ModelProto:
-    """
-    Add a Resize node to the ONNX model to adjust mask prototypes to the desired model size.
+    """Add a Resize node to the ONNX model to adjust mask prototypes to the
+    desired model size.
 
     This function inserts a Resize node into the model graph to ensure mask prototypes
     are correctly shaped for the given input dimensions.
@@ -194,18 +216,15 @@ def add_resize_node_to_mask_protos_in_memory(model: onnx.ModelProto, model_size:
         onnx.ModelProto: The updated ONNX model with the Resize node integrated.
     """
     graph = model.graph
-    target_size = helper.make_tensor('target_size', TensorProto.INT64, [4], [1, 32, model_size, model_size])
+    target_size = helper.make_tensor("target_size", TensorProto.INT64, [4], [1, 32, model_size, model_size])
     graph.initializer.append(target_size)
 
     resize_node = helper.make_node(
-        'Resize',
-        inputs=['output1', '', '', 'target_size'],
-        outputs=['mask_protos'],
-        mode='linear'
+        "Resize", inputs=["output1", "", "", "target_size"], outputs=["mask_protos"], mode="linear"
     )
     graph.node.append(resize_node)
 
-    new_output = helper.make_tensor_value_info('mask_protos', TensorProto.FLOAT, [1, 32, model_size, model_size])
+    new_output = helper.make_tensor_value_info("mask_protos", TensorProto.FLOAT, [1, 32, model_size, model_size])
     graph.output.append(new_output)
 
     output1_index = None
@@ -219,9 +238,9 @@ def add_resize_node_to_mask_protos_in_memory(model: onnx.ModelProto, model_size:
     model = onnx.shape_inference.infer_shapes(model, strict_mode=True)
     return model
 
+
 def finalize_mask_processing_in_memory(model: onnx.ModelProto, model_size: int) -> onnx.ModelProto:
-    """
-    Finalize mask processing steps in the ONNX model.
+    """Finalize mask processing steps in the ONNX model.
 
     This function adds nodes for slicing, reshaping, thresholding, and reducing mask data
     to produce final segmentation masks. It ensures masks are properly scaled, thresholded,
@@ -236,8 +255,12 @@ def finalize_mask_processing_in_memory(model: onnx.ModelProto, model_size: int) 
     """
     graph = model.graph
 
-    reshape_mask_shape = numpy_helper.from_array(np.array([32, model_size*model_size], dtype=np.int64), name="reshape_mask_shape")
-    final_reshape_shape = numpy_helper.from_array(np.array([-1, model_size, model_size], dtype=np.int64), name="final_reshape_shape")
+    reshape_mask_shape = numpy_helper.from_array(
+        np.array([32, model_size * model_size], dtype=np.int64), name="reshape_mask_shape"
+    )
+    final_reshape_shape = numpy_helper.from_array(
+        np.array([-1, model_size, model_size], dtype=np.int64), name="final_reshape_shape"
+    )
     start = numpy_helper.from_array(np.array([6], dtype=np.int64), name="slice_start")
     end = numpy_helper.from_array(np.array([38], dtype=np.int64), name="slice_end")
     axes = numpy_helper.from_array(np.array([1], dtype=np.int64), name="slice_axes")
@@ -246,99 +269,91 @@ def finalize_mask_processing_in_memory(model: onnx.ModelProto, model_size: int) 
     graph.initializer.extend([start, end, axes, steps, final_reshape_shape, reshape_mask_shape])
 
     threshold = helper.make_node(
-        'Constant',
+        "Constant",
         inputs=[],
-        outputs=['threshold_value'],
+        outputs=["threshold_value"],
         value=onnx.helper.make_tensor(
-            name='const_tensor',
+            name="const_tensor",
             data_type=onnx.TensorProto.FLOAT,
             dims=[1],
             vals=[0.5],
-        )
+        ),
     )
     graph.node.append(threshold)
 
     slice_node = helper.make_node(
-        'Slice',
-        inputs=['nms_output_with_scaled_boxes_and_masks', 'slice_start', 'slice_end', 'slice_axes', 'slice_steps'],
-        outputs=['sliced_nms_output'],
-        name='SliceNMSOutput'
+        "Slice",
+        inputs=["nms_output_with_scaled_boxes_and_masks", "slice_start", "slice_end", "slice_axes", "slice_steps"],
+        outputs=["sliced_nms_output"],
+        name="SliceNMSOutput",
     )
     graph.node.append(slice_node)
 
     reshape_mask_protos_node = helper.make_node(
-        'Reshape',
-        inputs=['mask_protos', 'reshape_mask_shape'],
-        outputs=['reshaped_mask_protos'],
-        name='ReshapeMaskProtos'
+        "Reshape",
+        inputs=["mask_protos", "reshape_mask_shape"],
+        outputs=["reshaped_mask_protos"],
+        name="ReshapeMaskProtos",
     )
     graph.node.append(reshape_mask_protos_node)
 
     matmul_node = helper.make_node(
-        'MatMul',
-        inputs=['sliced_nms_output', 'reshaped_mask_protos'],
-        outputs=['matmul_output'],
-        name='MatMulMasks'
+        "MatMul", inputs=["sliced_nms_output", "reshaped_mask_protos"], outputs=["matmul_output"], name="MatMulMasks"
     )
     graph.node.append(matmul_node)
 
     reshape_final_output_node = helper.make_node(
-        'Reshape',
-        inputs=['matmul_output', 'final_reshape_shape'],
-        outputs=['final_masks'],
-        name='ReshapeFinalOutput'
+        "Reshape", inputs=["matmul_output", "final_reshape_shape"], outputs=["final_masks"], name="ReshapeFinalOutput"
     )
     graph.node.append(reshape_final_output_node)
 
-    binary_masks = helper.make_node(
-        'Greater',
-        inputs=['final_masks', 'threshold_value'],
-        outputs=['binary_masks']
-    )
+    binary_masks = helper.make_node("Greater", inputs=["final_masks", "threshold_value"], outputs=["binary_masks"])
     graph.node.append(binary_masks)
 
     cast_node = helper.make_node(
-        'Cast',
-        inputs=['binary_masks'],
-        outputs=['cast_binary_masks'],
-        to=TensorProto.FLOAT,
-        name='CastToInt'
+        "Cast", inputs=["binary_masks"], outputs=["cast_binary_masks"], to=TensorProto.FLOAT, name="CastToInt"
     )
     graph.node.append(cast_node)
 
     reduced_mask = helper.make_node(
-        'ReduceMax',
-        inputs=['cast_binary_masks'],
-        outputs=['input_image_mask'],
-        axes=[0],
-        keepdims=1
+        "ReduceMax", inputs=["cast_binary_masks"], outputs=["input_image_mask"], axes=[0], keepdims=1
     )
     graph.node.append(reduced_mask)
 
-    final_masks_output = helper.make_tensor_value_info(
-        'final_masks', TensorProto.FLOAT, [None, model_size, model_size]
-    )
+    final_masks_output = helper.make_tensor_value_info("final_masks", TensorProto.FLOAT, [None, model_size, model_size])
     input_image_mask_output = helper.make_tensor_value_info(
-        'input_image_mask', TensorProto.FLOAT, [1, model_size, model_size]
+        "input_image_mask", TensorProto.FLOAT, [1, model_size, model_size]
     )
     graph.output.append(final_masks_output)
     graph.output.append(input_image_mask_output)
 
     for i, output in enumerate(graph.output):
-        if output.name == 'mask_protos':
+        if output.name == "mask_protos":
             del graph.output[i]
             break
 
     model = onnx.shape_inference.infer_shapes(model, strict_mode=True)
     return model
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description="Convert and finalize YOLOv8 ONNX model with integrated pre/post-processing.")
-    parser.add_argument('--model-size', type=int, default=640, help='Model input size (both width and height).')
-    parser.add_argument('--yolo-version', type=str, default="yolov8n", help='YOLOv8 segmentation model version (e.g. yolov8n, yolov8s).')
-    parser.add_argument('--model', type=str, help='Base YOLO ONNX model file. If not specified, uses <yolo-version>-seg.onnx')
-    parser.add_argument('--download-model', action='store_true', help='Download YOLO model if not present.')
-    parser.add_argument('--final-model', type=str, default='', help='Output final model name. If empty, it uses <version>-seg_end2end.onnx')
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description="Convert and finalize YOLOv8 ONNX model with integrated pre/post-processing."
+    )
+    parser.add_argument("--model-size", type=int, default=640, help="Model input size (both width and height).")
+    parser.add_argument(
+        "--yolo-version", type=str, default="yolov8n", help="YOLOv8 segmentation model version (e.g. yolov8n, yolov8s)."
+    )
+    parser.add_argument(
+        "--model", type=str, help="Base YOLO ONNX model file. If not specified, uses <yolo-version>-seg.onnx"
+    )
+    parser.add_argument("--download-model", action="store_true", help="Download YOLO model if not present.")
+    parser.add_argument(
+        "--final-model",
+        type=str,
+        default="",
+        help="Output final model name. If empty, it uses <version>-seg_end2end.onnx",
+    )
 
     args = parser.parse_args()
 
@@ -370,7 +385,9 @@ if __name__ == '__main__':
                 print(f"No {pt_model} or ONNX model found. Downloading and exporting now...")
                 export_model_to_onnx(yolo_version, str(base_model_path), model_size, model_size)
             else:
-                raise FileNotFoundError(f"{base_model_path} and {pt_model} do not exist. Please use --download-model or provide them.")
+                raise FileNotFoundError(
+                    f"{base_model_path} and {pt_model} do not exist. Please use --download-model or provide them."
+                )
     else:
         print(f"Found existing ONNX model: {base_model_path}, skipping model export.")
 

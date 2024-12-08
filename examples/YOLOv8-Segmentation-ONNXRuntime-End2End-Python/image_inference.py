@@ -6,91 +6,92 @@ import onnxruntime_extensions
 
 # Mapping from class ID to class name
 CLASS_NAMES = {
-    0: 'person',
-    1: 'bicycle',
-    2: 'car',
-    3: 'motorcycle',
-    4: 'airplane',
-    5: 'bus',
-    6: 'train',
-    7: 'truck',
-    8: 'boat',
-    9: 'traffic light',
-    10: 'fire hydrant',
-    11: 'stop sign',
-    12: 'parking meter',
-    13: 'bench',
-    14: 'bird',
-    15: 'cat',
-    16: 'dog',
-    17: 'horse',
-    18: 'sheep',
-    19: 'cow',
-    20: 'elephant',
-    21: 'bear',
-    22: 'zebra',
-    23: 'giraffe',
-    24: 'backpack',
-    25: 'umbrella',
-    26: 'handbag',
-    27: 'tie',
-    28: 'suitcase',
-    29: 'frisbee',
-    30: 'skis',
-    31: 'snowboard',
-    32: 'sports ball',
-    33: 'kite',
-    34: 'baseball bat',
-    35: 'baseball glove',
-    36: 'skateboard',
-    37: 'surfboard',
-    38: 'tennis racket',
-    39: 'bottle',
-    40: 'wine glass',
-    41: 'cup',
-    42: 'fork',
-    43: 'knife',
-    44: 'spoon',
-    45: 'bowl',
-    46: 'banana',
-    47: 'apple',
-    48: 'sandwich',
-    49: 'orange',
-    50: 'broccoli',
-    51: 'carrot',
-    52: 'hot dog',
-    53: 'pizza',
-    54: 'donut',
-    55: 'cake',
-    56: 'chair',
-    57: 'couch',
-    58: 'potted plant',
-    59: 'bed',
-    60: 'dining table',
-    61: 'toilet',
-    62: 'tv',
-    63: 'laptop',
-    64: 'mouse',
-    65: 'remote',
-    66: 'keyboard',
-    67: 'cell phone',
-    68: 'microwave',
-    69: 'oven',
-    70: 'toaster',
-    71: 'sink',
-    72: 'refrigerator',
-    73: 'book',
-    74: 'clock',
-    75: 'vase',
-    76: 'scissors',
-    77: 'teddy bear',
-    78: 'hair drier',
-    79: 'toothbrush'
+    0: "person",
+    1: "bicycle",
+    2: "car",
+    3: "motorcycle",
+    4: "airplane",
+    5: "bus",
+    6: "train",
+    7: "truck",
+    8: "boat",
+    9: "traffic light",
+    10: "fire hydrant",
+    11: "stop sign",
+    12: "parking meter",
+    13: "bench",
+    14: "bird",
+    15: "cat",
+    16: "dog",
+    17: "horse",
+    18: "sheep",
+    19: "cow",
+    20: "elephant",
+    21: "bear",
+    22: "zebra",
+    23: "giraffe",
+    24: "backpack",
+    25: "umbrella",
+    26: "handbag",
+    27: "tie",
+    28: "suitcase",
+    29: "frisbee",
+    30: "skis",
+    31: "snowboard",
+    32: "sports ball",
+    33: "kite",
+    34: "baseball bat",
+    35: "baseball glove",
+    36: "skateboard",
+    37: "surfboard",
+    38: "tennis racket",
+    39: "bottle",
+    40: "wine glass",
+    41: "cup",
+    42: "fork",
+    43: "knife",
+    44: "spoon",
+    45: "bowl",
+    46: "banana",
+    47: "apple",
+    48: "sandwich",
+    49: "orange",
+    50: "broccoli",
+    51: "carrot",
+    52: "hot dog",
+    53: "pizza",
+    54: "donut",
+    55: "cake",
+    56: "chair",
+    57: "couch",
+    58: "potted plant",
+    59: "bed",
+    60: "dining table",
+    61: "toilet",
+    62: "tv",
+    63: "laptop",
+    64: "mouse",
+    65: "remote",
+    66: "keyboard",
+    67: "cell phone",
+    68: "microwave",
+    69: "oven",
+    70: "toaster",
+    71: "sink",
+    72: "refrigerator",
+    73: "book",
+    74: "clock",
+    75: "vase",
+    76: "scissors",
+    77: "teddy bear",
+    78: "hair drier",
+    79: "toothbrush",
 }
 
+
 def apply_masks_and_draw(nms_output, individual_masks, image):
-    """
-    Draws bounding boxes and applies masks to the image based on model outputs.
+    """Draws bounding boxes and applies masks to the image based on model
+    outputs.
 
     Args:
         nms_output (np.ndarray): Array containing bounding box and class information.
@@ -106,7 +107,7 @@ def apply_masks_and_draw(nms_output, individual_masks, image):
         # Extract bounding box coordinates and class information
         xc, yc, w, h = map(int, detection[:4])  # Center x, Center y, Width, Height
         cls = int(detection[5])  # Class ID
-        conf = detection[4]      # Confidence score
+        conf = detection[4]  # Confidence score
 
         # Calculate top-left and bottom-right coordinates
         xmin = max(0, xc - w // 2)
@@ -133,30 +134,29 @@ def apply_masks_and_draw(nms_output, individual_masks, image):
         cv2.rectangle(image, (xmin, ymin), (xmax, ymax), color=(255, 0, 0), thickness=2)
 
         # Prepare label with class name and confidence score
-        class_name = CLASS_NAMES.get(cls, f'Class {cls}')  # Fallback to 'Class {cls}' if not found
-        label = f'{class_name} - {conf:.2f}'
+        class_name = CLASS_NAMES.get(cls, f"Class {cls}")  # Fallback to 'Class {cls}' if not found
+        label = f"{class_name} - {conf:.2f}"
 
         # Put label above the bounding box
-        cv2.putText(image, label, (xmin, ymin - 10),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2)
+        cv2.putText(image, label, (xmin, ymin - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2)
 
     return image
 
+
 def main():
-    """
-    Main function to perform image inference using the final YOLOv8 ONNX model.
-    """
+    """Main function to perform image inference using the final YOLOv8 ONNX
+    model."""
     # Parse command-line arguments
     parser = argparse.ArgumentParser(description="Run image inference on the final YOLOv8 ONNX model.")
-    parser.add_argument('--final-model', type=str, required=True, help='Path to the final ONNX model file.')
-    parser.add_argument('--input-image', type=str, default='car.jpg', help='Path to the input image.')
-    parser.add_argument('--output-image', type=str, default='output.jpg', help='Path to save the output image.')
-    parser.add_argument('--input-width', type=int, default=640, help="Input width for the model")
-    parser.add_argument('--input-height', type=int, default=640, help="Input height for the model")
+    parser.add_argument("--final-model", type=str, required=True, help="Path to the final ONNX model file.")
+    parser.add_argument("--input-image", type=str, default="car.jpg", help="Path to the input image.")
+    parser.add_argument("--output-image", type=str, default="output.jpg", help="Path to save the output image.")
+    parser.add_argument("--input-width", type=int, default=640, help="Input width for the model")
+    parser.add_argument("--input-height", type=int, default=640, help="Input height for the model")
     args = parser.parse_args()
 
     # Initialize ONNX Runtime session with necessary providers and options
-    providers = ['CPUExecutionProvider']  # Change to 'CUDAExecutionProvider' if GPU is available
+    providers = ["CPUExecutionProvider"]  # Change to 'CUDAExecutionProvider' if GPU is available
     session_options = ort.SessionOptions()
     session_options.register_custom_ops_library(onnxruntime_extensions.get_library_path())
     session = ort.InferenceSession(args.final_model, providers=providers, sess_options=session_options)
@@ -181,7 +181,7 @@ def main():
 
     # Run inference
     try:
-        outputs = session.run(['nms_output_with_scaled_boxes_and_masks', 'final_masks', 'input_image_mask'], inp)
+        outputs = session.run(["nms_output_with_scaled_boxes_and_masks", "final_masks", "input_image_mask"], inp)
     except Exception as e:
         print(f"Error during inference: {e}")
         return
@@ -202,5 +202,6 @@ def main():
     cv2.imwrite(args.output_image, annotated_image)
     print(f"Output saved to {args.output_image}")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

@@ -48,6 +48,16 @@ from ultralytics import YOLO
 # Load a model
 model = YOLO("yolo11n.pt")  # load an official model
 
+# Retreive metadata during export
+metadata = []
+
+
+def export_cb(exporter):
+    metadata.append(exporter.metadata)
+
+
+model.add_callback("on_export_end", export_cb)
+
 # Export the model
 onnx_file = model.export(format="onnx", dynamic=True)
 ```
@@ -107,7 +117,13 @@ The Triton Model Repository is a storage location where Triton can access and lo
         }
       }
     }
-    """
+    parameters {
+      key: "metadata"
+      value: {
+        string_value: "%s"
+      }
+    }
+    """ % metadata[0]
 
     with open(triton_model_path / "config.pbtxt", "w") as f:
         f.write(data)

@@ -78,3 +78,19 @@ Yes, Ultralytics YOLO11 can be effectively used for monitoring workouts by track
 ### How does Ultralytics YOLO help in creating heatmaps for [data visualization](https://www.ultralytics.com/glossary/data-visualization)?
 
 Ultralytics YOLO11 can generate heatmaps to visualize data intensity across a given area, highlighting regions of high activity or interest. This feature is particularly useful in understanding patterns and trends in various computer vision tasks. Learn more about creating and using [Heatmaps](../guides/heatmaps.md) with YOLO11 for comprehensive data analysis and visualization.
+
+### How can I track objects in specific zones using Ultralytics YOLO?  
+
+Ultralytics YOLO11 enables precise object tracking within specific zones of a video frame, useful for applications like security monitoring, traffic management, and restricted area control. Learn more in our [Track Objects in Zone](../guides/trackzone.md) guide.
+
+### What is the best way to use YOLO11 for parking management?  
+
+YOLO11 can help streamline parking management by detecting available parking spaces, monitoring vehicle movement, and preventing unauthorized parking. Follow our [Parking Management](../guides/parking-management.md) guide to implement a smart parking solution.
+
+### How does YOLO11 handle real-time speed estimation?  
+
+With YOLO11, you can estimate the speed of moving objects by analyzing consecutive frames from video streams. This capability is critical for traffic surveillance and sports analytics. Refer to our [Speed Estimation](../guides/speed-estimation.md) guide for detailed steps.
+
+### Can I perform instance segmentation and object tracking simultaneously?  
+
+Yes, YOLO11 supports instance segmentation and object tracking simultaneously, enabling precise object boundary detection and real-time monitoring. Learn how to set up this functionality in our [Instance Segmentation and Tracking](../guides/instance-segmentation-and-tracking.md) guide.

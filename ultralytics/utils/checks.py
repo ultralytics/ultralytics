@@ -393,17 +393,19 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
         except (AssertionError, metadata.PackageNotFoundError):
             pkgs.append(r)
 
-    use_uv = subprocess.run(["command", "-v", "uv"], capture_output=True, shell=True).returncode == 0
-
     @Retry(times=2, delay=1)
     def attempt_install(packages, commands):
         """Attempt package installation with uv if available, falling back to pip."""
-        pip_cmd = "uv pip install --system" if use_uv else "pip install"
-        return subprocess.check_output(f"{pip_cmd} --no-cache-dir {packages} {commands}", shell=True).decode()
+        if use_uv:
+            cmd = f"uv pip install --system --no-cache-dir {packages} {commands} --index-strategy unsafe-best-match"
+        else:
+            cmd = f"pip install --no-cache-dir {packages} {commands}"
+        return subprocess.check_output(cmd, shell=True).decode()
 
     s = " ".join(f'"{x}"' for x in pkgs)  # console string
     if s:
         if install and AUTOINSTALL:  # check environment variable
+            use_uv = subprocess.run(["command", "-v", "uv"], capture_output=True, shell=True).returncode == 0
             n = len(pkgs)  # number of packages updates
             LOGGER.info(f"{prefix} Ultralytics requirement{'s' * (n > 1)} {pkgs} not found, attempting AutoUpdate...")
             try:

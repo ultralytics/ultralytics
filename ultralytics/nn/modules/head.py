@@ -62,8 +62,8 @@ class Detect(nn.Module):
             self.one2one_cv3 = copy.deepcopy(self.cv3)
         self.cv4 = nn.ModuleList(
             nn.Sequential(
-                Conv(4 * self.reg_max, 16, 1),
-                nn.Conv2d(16, 1, 1),
+                Conv(4 * self.reg_max, self.reg_max, 1),
+                nn.Conv2d(self.reg_max, 1, 1),
                 nn.Sigmoid(),
             )
             for _ in ch

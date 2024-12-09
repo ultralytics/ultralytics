@@ -274,6 +274,10 @@ The YOLO11n model in PyTorch format is converted to TensorRT to run inference wi
         yolo predict model=yolo11n.engine source='https://ultralytics.com/images/bus.jpg'
         ```
 
+!!! note
+
+    Visit the [Export page](../modes/export.md#arguments) to access additional arguments when exporting models to different model formats
+
 ### Use NVIDIA Deep Learning Accelerator (DLA)
 
 [NVIDIA Deep Learning Accelerator (DLA)](https://developer.nvidia.com/deep-learning-accelerator) is a specialized hardware component built into NVIDIA Jetson devices that optimizes deep learning inference for energy efficiency and performance. By offloading tasks from the GPU (freeing it up for more intensive processes), DLA enables models to run with lower power consumption while maintaining high throughput, ideal for embedded systems and real-time AI applications.
@@ -317,7 +321,7 @@ The following Jetson devices are equipped with DLA hardware:
 
 !!! note
 
-    Visit the [Export page](../modes/export.md#arguments) to access additional arguments when exporting models to different model formats
+    When using DLA exports, some layers may not be supported to run on DLA and will fall back to the GPU for execution. This fallback can introduce additional latency and impact the overall inference performance. Therefore, DLA is not primarily designed to reduce inference latency compared to TensorRT running entirely on the GPU. Instead, its primary purpose is to increase throughput and improve energy efficiency.
 
 ## NVIDIA Jetson Orin YOLO11 Benchmarks
 

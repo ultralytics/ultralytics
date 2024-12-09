@@ -33,7 +33,7 @@ ADD https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11n.pt .
 
 # Install pip packages
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
-RUN pip install --system -e ".[export]" --extra-index-url https://download.pytorch.org/whl/cpu
+RUN uv pip install --system -e ".[export]" --extra-index-url https://download.pytorch.org/whl/cpu
 
 # Run exports to AutoInstall packages
 RUN yolo export model=tmp/yolo11n.pt format=edgetpu imgsz=32

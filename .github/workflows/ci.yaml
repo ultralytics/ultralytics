@@ -102,7 +102,7 @@ jobs:
         python-version: ["3.11"]
         model: [yolo11n]
     steps:
-      - uses: astral-sh/setup-uv@v3
+      - uses: astral-sh/setup-uv@v4
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:

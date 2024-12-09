@@ -160,7 +160,7 @@ class OBBValidator(DetectionValidator):
             for d in data:
                 image_id = d["image_id"]
                 score = d["score"]
-                classname = self.names[d["category_id"]].replace(" ", "-")
+                classname = self.names[d["category_id"] - 1].replace(" ", "-")
                 p = d["poly"]
 
                 with open(f'{pred_txt / f"Task1_{classname}"}.txt', "a") as f:
@@ -175,7 +175,7 @@ class OBBValidator(DetectionValidator):
                 image_id = d["image_id"].split("__")[0]
                 pattern = re.compile(r"\d+___\d+")
                 x, y = (int(c) for c in re.findall(pattern, d["image_id"])[0].split("___"))
-                bbox, score, cls = d["rbox"], d["score"], d["category_id"]
+                bbox, score, cls = d["rbox"], d["score"], d["category_id"] - 1
                 bbox[0] += x
                 bbox[1] += y
                 bbox.extend([score, cls])

@@ -40,7 +40,7 @@ RUN sed -i '/^\[http "https:\/\/github\.com\/"\]/,+1d' .git/config
 ADD https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11n.pt .
 
 # Install pip packages
-RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+RUN pip install uv
 # Note -cu12 must be used with tensorrt)
 RUN uv pip install --system -e ".[export]" tensorrt-cu12 "albumentations>=1.4.6" comet pycocotools
 

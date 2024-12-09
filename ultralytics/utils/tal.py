@@ -46,7 +46,7 @@ class TaskAlignedAssigner(nn.Module):
             pd_scores (Tensor): shape(bs, num_total_anchors, num_classes)
             pd_bboxes (Tensor): shape(bs, num_total_anchors, 4)
             anc_points (Tensor): shape(num_total_anchors, 2)
-            gt_labels (Tensor): shape(bs, n_max_boxes, 1)
+            gt_labels (Tensor): shape(bs, n_max_boxes, nc)
             gt_bboxes (Tensor): shape(bs, n_max_boxes, 4)
             mask_gt (Tensor): shape(bs, n_max_boxes, 1)
 
@@ -88,7 +88,7 @@ class TaskAlignedAssigner(nn.Module):
             pd_scores (Tensor): shape(bs, num_total_anchors, num_classes)
             pd_bboxes (Tensor): shape(bs, num_total_anchors, 4)
             anc_points (Tensor): shape(num_total_anchors, 2)
-            gt_labels (Tensor): shape(bs, n_max_boxes, 1)
+            gt_labels (Tensor): shape(bs, n_max_boxes, nc)
             gt_bboxes (Tensor): shape(bs, n_max_boxes, 4)
             mask_gt (Tensor): shape(bs, n_max_boxes, 1)
 
@@ -138,11 +138,13 @@ class TaskAlignedAssigner(nn.Module):
 
         ind = torch.zeros([2, self.bs, self.n_max_boxes], dtype=torch.long)  # 2, b, max_num_obj
         ind[0] = torch.arange(end=self.bs).view(-1, 1).expand(-1, self.n_max_boxes)  # b, max_num_obj
-        ind[1] = gt_labels.squeeze(-1)  # b, max_num_obj
-        # Get the scores of each grid for each gt cls
-        bbox_scores[mask_gt] = pd_scores[ind[0], :, ind[1]][mask_gt]  # b, max_num_obj, h*w
 
-        # (b, max_num_obj, 1, 4), (b, 1, h*w, 4)
+        for b in range(self.bs):
+            for n in range(self.n_max_boxes):
+                active_labels = gt_labels[b, n] > 0
+                if active_labels.any():
+                    bbox_scores[b, n] = pd_scores[b, :, active_labels].amax(dim=-1)
+
         pd_boxes = pd_bboxes.unsqueeze(1).expand(-1, self.n_max_boxes, -1, -1)[mask_gt]
         gt_boxes = gt_bboxes.unsqueeze(2).expand(-1, -1, na, -1)[mask_gt]
         overlaps[mask_gt] = self.iou_calculation(gt_boxes, pd_boxes)
@@ -216,24 +218,20 @@ class TaskAlignedAssigner(nn.Module):
         # Assigned target labels, (b, 1)
         batch_ind = torch.arange(end=self.bs, dtype=torch.int64, device=gt_labels.device)[..., None]
         target_gt_idx = target_gt_idx + batch_ind * self.n_max_boxes  # (b, h*w)
-        target_labels = gt_labels.long().flatten()[target_gt_idx]  # (b, h*w)
+
+        # 'Flatten' gt_labels and select multilabel target labels
+        target_labels = gt_labels.view(-1, gt_labels.shape[-1])[target_gt_idx]  # (b, h*w, nc)
 
         # Assigned target boxes, (b, max_num_obj, 4) -> (b, h*w, 4)
         target_bboxes = gt_bboxes.view(-1, gt_bboxes.shape[-1])[target_gt_idx]
 
         # Assigned target scores
-        target_labels.clamp_(0)
+        # Create a mask where multiple classes could potentially have positive scores
+        target_scores = target_labels.clone()  # Tables already in the shape of (b, h*w, nc)
 
-        # 10x faster than F.one_hot()
-        target_scores = torch.zeros(
-            (target_labels.shape[0], target_labels.shape[1], self.num_classes),
-            dtype=torch.int64,
-            device=target_labels.device,
-        )  # (b, h*w, 80)
-        target_scores.scatter_(2, target_labels.unsqueeze(-1), 1)
-
-        fg_scores_mask = fg_mask[:, :, None].repeat(1, 1, self.num_classes)  # (b, h*w, 80)
-        target_scores = torch.where(fg_scores_mask > 0, target_scores, 0)
+        # Apply fg_mask to nullify irrelevant scores outside the fg regions
+        fg_scores_mask = fg_mask[:, :, None].expand_as(target_scores)  # (b, h*w, nc)
+        target_scores = torch.where(fg_scores_mask > 0, target_scores, torch.zeros_like(target_scores))
 
         return target_labels, target_bboxes, target_scores
 

@@ -40,6 +40,7 @@ overlap_mask: True # (bool) merge object masks into a single image mask during t
 mask_ratio: 4 # (int) mask downsample ratio (segment train only)
 # Classification
 dropout: 0.0 # (float) use dropout regularization (classify train only)
+multilabel: False # (bool) use multi-label
 
 # Val/Test settings ----------------------------------------------------------------------------------------------------
 val: True # (bool) validate/test during training

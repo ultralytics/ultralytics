@@ -327,7 +327,7 @@ class ConfusionMatrix:
                                       Each row should contain (x1, y1, x2, y2, conf, class)
                                       or with an additional element `angle` when it's obb.
             gt_bboxes (Array[M, 4]| Array[N, 5]): Ground truth bounding boxes with xyxy/xyxyr format.
-            gt_cls (Array[M]): The class labels.
+            gt_cls (Array[M, nc]): The class labels.
         """
         if gt_cls.shape[0] == 0:  # Check if labels is empty
             if detections is not None:
@@ -339,7 +339,9 @@ class ConfusionMatrix:
         if detections is None:
             gt_classes = gt_cls.int()
             for gc in gt_classes:
-                self.matrix[self.nc, gc] += 1  # background FN
+                # For multilabel task
+                for g in np.nonzero(gc)[0]:
+                    self.matrix[self.nc, g] += 1  # background FN
             return
 
         detections = detections[detections[:, 4] > self.conf]
@@ -366,12 +368,12 @@ class ConfusionMatrix:
         n = matches.shape[0] > 0
         m0, m1, _ = matches.transpose().astype(int)
         for i, gc in enumerate(gt_classes):
-            j = m0 == i
-            if n and sum(j) == 1:
-                self.matrix[detection_classes[m1[j]], gc] += 1  # correct
-            else:
-                self.matrix[self.nc, gc] += 1  # true background
-
+            for g in np.nonzero(gc)[0]:
+                j = m0 == i
+                if n and sum(j) == 1:
+                    self.matrix[detection_classes[m1[j]], g] += 1  # correct
+                else:
+                    self.matrix[self.nc, g] += 1  # true background
         if n:
             for i, dc in enumerate(detection_classes):
                 if not any(m1 == i):
@@ -562,12 +564,17 @@ def ap_per_class(
         x (np.ndarray): X-axis values for the curves. Shape: (1000,).
         prec_values (np.ndarray): Precision values at mAP@0.5 for each class. Shape: (nc, 1000).
     """
+    # print("tp", tp.shape)  # (361870, 10)
+    # print("conf", conf.shape)  # (361870,)
+    # print("pred_cls", pred_cls.shape)  # (361870,)
+    # print("target_cls", target_cls.shape)  # (9242, 23)
+
     # Sort by objectness
     i = np.argsort(-conf)
     tp, conf, pred_cls = tp[i], conf[i], pred_cls[i]
 
     # Find unique classes
-    unique_classes, nt = np.unique(target_cls, return_counts=True)
+    unique_classes, nt = np.unique(target_cls.nonzero()[1], return_counts=True)
     nc = unique_classes.shape[0]  # number of classes, number of detections
 
     # Create Precision-Recall curve and compute AP for each class

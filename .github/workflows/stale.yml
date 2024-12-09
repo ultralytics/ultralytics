@@ -43,6 +43,9 @@ jobs:
 
             Thank you for your contributions to YOLO 🚀 and Vision AI ⭐
 
+          ignore-pr-updates: true
+          remove-pr-stale-when-updated: false
+          include-only-assigned: true
           days-before-issue-stale: 30
           days-before-issue-close: 10
           days-before-pr-stale: 90

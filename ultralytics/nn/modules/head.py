@@ -60,14 +60,15 @@ class Detect(nn.Module):
         if self.end2end:
             self.one2one_cv2 = copy.deepcopy(self.cv2)
             self.one2one_cv3 = copy.deepcopy(self.cv3)
-        self.cv4 = nn.ModuleList(
-            nn.Sequential(
-                Conv(4 * self.reg_max, self.reg_max, 1),
-                nn.Conv2d(self.reg_max, 1, 1),
-                nn.Sigmoid(),
-            )
-            for _ in ch
-        )
+        self.scales = [nn.Parameter(torch.tensor(1.0, dtype=torch.float32)) for _ in range(self.nl)]
+        # self.cv4 = nn.ModuleList(
+        #     nn.Sequential(
+        #         Conv(4 * self.reg_max, self.reg_max, 1),
+        #         nn.Conv2d(self.reg_max, 1, 1),
+        #         nn.Sigmoid(),
+        #     )
+        #     for _ in ch
+        # )
 
     def forward(self, x):
         """Concatenates and returns predicted bounding boxes and class probabilities."""
@@ -75,11 +76,11 @@ class Detect(nn.Module):
             return self.forward_end2end(x)
 
         # for i in range(self.nl):
-        #     x[i] = torch.cat((self.cv2[i](x[i]), self.cv3[i](x[i])), 1)
+            # x[i] = torch.cat((self.cv2[i](x[i]), self.cv3[i](x[i])), 1)
         for i in range(self.nl):
-            box = self.cv2[i](x[i])
+            box = self.scales[i] * self.cv2[i](x[i])
             cls = self.cv3[i](x[i])
-            conf = self.cv4[i](box)
+            # conf = self.cv4[i](box)
             # N, C, H, W = box.size()
             # prob = box.view(N, 4, self.reg_max, H, W).softmax(dim=2)
             # prob_topk = prob.topk(4, dim=2)[0]
@@ -92,7 +93,7 @@ class Detect(nn.Module):
             # prob_mean = prob.mean(dim=2)
             # conf = self.cv4[i](torch.cat([prob_max, prob_mean], dim=1))
             # # conf = self.cv4[i](prob_max)
-            x[i] = torch.cat((box, cls * conf), 1)
+            x[i] = torch.cat((box, cls), 1)
         if self.training:  # Training path
             return x
         y = self._inference(x)

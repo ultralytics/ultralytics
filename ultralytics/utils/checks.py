@@ -1,6 +1,7 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import glob
+import importlib
 import inspect
 import math
 import os
@@ -393,10 +394,13 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
         except (AssertionError, metadata.PackageNotFoundError):
             pkgs.append(r)
 
+    has_uv = importlib.util.find_spec("uv") is not None
+
     @Retry(times=2, delay=1)
     def attempt_install(packages, commands):
-        """Attempt pip install command with retries on failure."""
-        return subprocess.check_output(f"pip install --no-cache-dir {packages} {commands}", shell=True).decode()
+        """Attempt package installation with uv if available, falling back to pip."""
+        pip_cmd = "uv pip install --system" if has_uv else "pip install"
+        return subprocess.check_output(f"{pip_cmd} --no-cache-dir {packages} {commands}", shell=True).decode()
 
     s = " ".join(f'"{x}"' for x in pkgs)  # console string
     if s:

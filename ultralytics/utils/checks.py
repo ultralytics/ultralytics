@@ -393,7 +393,7 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
         except (AssertionError, metadata.PackageNotFoundError):
             pkgs.append(r)
 
-    use_uv = subprocess.run(['command', '-v', 'uv'], capture_output=True, shell=True).returncode == 0
+    use_uv = subprocess.run(["command", "-v", "uv"], capture_output=True, shell=True).returncode == 0
 
     @Retry(times=2, delay=1)
     def attempt_install(packages, commands):

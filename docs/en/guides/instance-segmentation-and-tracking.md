@@ -242,3 +242,7 @@ Find more in the [Instance Segmentation and Tracking section](#samples).
 ### Are there any datasets provided by Ultralytics suitable for training YOLO11 models for instance segmentation and tracking?
 
 Yes, Ultralytics offers several datasets suitable for training YOLO11 models, including segmentation and tracking datasets. Dataset examples, structures, and instructions for use can be found in the [Ultralytics Datasets documentation](https://docs.ultralytics.com/datasets/).
+
+### Can I track multiple objects with different classes in YOLO11?
+
+Yes, YOLO11 supports multi-class tracking. Each detected object gets a unique class label and tracking ID, enabling differentiation and continuous monitoring of multiple objects simultaneously.

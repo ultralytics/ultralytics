@@ -40,9 +40,9 @@ RUN sed -i '/opencv-python/d' pyproject.toml
 ADD https://nvidia.box.com/shared/static/mvdcltm9ewdy2d5nurkiqorofz1s53ww.whl onnxruntime_gpu-1.15.1-cp38-cp38-linux_aarch64.whl
 
 # Install pip packages manually for TensorRT compatibility https://github.com/NVIDIA/TensorRT/issues/2567
-RUN python3 -m pip install --upgrade pip wheel
-RUN pip install onnxruntime_gpu-1.15.1-cp38-cp38-linux_aarch64.whl
-RUN pip install -e ".[export]"
+RUN python3 -m pip install --upgrade pip uv
+RUN uv pip install --system onnxruntime_gpu-1.15.1-cp38-cp38-linux_aarch64.whl
+RUN uv pip install --system -e ".[export]"
 
 # Remove extra build files
 RUN rm -rf *.whl /root/.config/Ultralytics/persistent_cache.json

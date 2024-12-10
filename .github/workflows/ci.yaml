@@ -247,9 +247,9 @@ jobs:
           python3.11 -m venv env
           source env/bin/activate
           echo PATH=$PATH >> $GITHUB_ENV
+      - uses: astral-sh/setup-uv@v4
       - name: Install requirements
         run: |
-          pip install uv
           uv pip install -e ".[export]" pytest mlflow pycocotools --index-strategy unsafe-first-match
       - name: Check environment
         run: |

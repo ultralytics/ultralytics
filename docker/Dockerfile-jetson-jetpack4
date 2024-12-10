@@ -43,13 +43,14 @@ ADD https://nvidia.box.com/shared/static/gjqofg7rkg97z3gc8jeyup6t8n9j8xjw.whl on
 ADD https://forums.developer.nvidia.com/uploads/short-url/hASzFOm9YsJx6VVFrDW1g44CMmv.whl tensorrt-8.2.0.6-cp38-none-linux_aarch64.whl
 
 # Install pip packages
-RUN python3 -m pip install --upgrade pip wheel
-RUN pip install \
+RUN python3 -m pip install --upgrade pip
+RUN python3 -m pip install uv
+RUN uv pip install --system \
     onnxruntime_gpu-1.8.0-cp38-cp38-linux_aarch64.whl \
     tensorrt-8.2.0.6-cp38-none-linux_aarch64.whl \
     https://github.com/ultralytics/assets/releases/download/v0.0.0/torch-1.11.0a0+gitbc2c6ed-cp38-cp38-linux_aarch64.whl \
     https://github.com/ultralytics/assets/releases/download/v0.0.0/torchvision-0.12.0a0+9b5a3fe-cp38-cp38-linux_aarch64.whl
-RUN pip install -e ".[export]"
+RUN uv pip install --system -e ".[export]"
 
 # Remove extra build files
 RUN rm -rf *.whl /root/.config/Ultralytics/persistent_cache.json

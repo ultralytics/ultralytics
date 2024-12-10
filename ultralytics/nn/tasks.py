@@ -300,6 +300,7 @@ class BaseModel(nn.Module):
 class DetectionModel(BaseModel):
     """YOLOv8 detection model."""
 
+    @torch.no_grad()
     def __init__(self, cfg="yolov8n.yaml", ch=3, nc=None, verbose=True):  # model, input channels, number of classes
         """Initialize the YOLOv8 detection model with the given config and parameters."""
         super().__init__()
@@ -322,7 +323,9 @@ class DetectionModel(BaseModel):
         self.end2end = getattr(self.model[-1], "end2end", False)
 
         # Build strides
+        self.model.eval() # Avoid changing batch statistics until training begins
         m = self.model[-1]  # Detect()
+        m.training = True # Setting it to True directly avoids putting BatchNorm layers into training mode
         if isinstance(m, Detect):  # includes all Detect subclasses like Segment, Pose, OBB, WorldDetect
             s = 256  # 2x min stride
             m.inplace = self.inplace

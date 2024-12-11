@@ -34,8 +34,8 @@ RUN sed -i '/^\[http "https:\/\/github\.com\/"\]/,+1d' .git/config
 ADD https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11n.pt .
 
 # Install pip packages
-RUN python3 -m pip install --upgrade pip wheel
-RUN pip install -e ".[export]"
+RUN pip install uv
+RUN uv pip install --system -e ".[export]" --break-system-packages
 
 # Creates a symbolic link to make 'python' point to 'python3'
 RUN ln -sf /usr/bin/python3 /usr/bin/python

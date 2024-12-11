@@ -129,9 +129,7 @@ def validate_args(format, passed_args):
         passed_args (Namespace): The arguments used during export.
 
     Raises:
-        AssertionError: If an argument that's not supported by the export
-        format is used, or if format doesn't have the supported arguments
-        listed.
+        AssertionError: If an argument that's not supported by the export format is used, or if format doesn't have the supported arguments listed.
     """
     # Only check valid usage of these args
     export_args = ["half", "int8", "dynamic", "keras", "nms", "batch"]

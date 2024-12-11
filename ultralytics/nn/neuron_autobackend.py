@@ -176,7 +176,6 @@ class NeuronAutoBackend(nn.Module):
                 metadata = json.loads(extra_files["config.txt"], object_hook=lambda x: dict(x.items()))
         # NeuronX
         elif neuronx:
-
             LOGGER.info(f"Loading {w} for NeuronX inference...")
             extra_files = {"config.txt": ""}  # model metadata
             model = torch.jit.load(w, _extra_files=extra_files, map_location=device)
@@ -185,7 +184,6 @@ class NeuronAutoBackend(nn.Module):
                 metadata = json.loads(extra_files["config.txt"], object_hook=lambda x: dict(x.items()))
         ## Neuron
         elif neuron:
-
             LOGGER.info(f"Loading {w} for Neuron inference...")
             extra_files = {"config.txt": ""}  # model metadata
             model = torch.jit.load(w, _extra_files=extra_files, map_location=device)

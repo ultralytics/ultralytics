@@ -32,7 +32,6 @@ def linear_assignment(cost_matrix: np.ndarray, thresh: float, use_lap: bool = Tr
             - unmatched indices from 'a'
             - unmatched indices from 'b'
     """
-
     if cost_matrix.size == 0:
         return np.empty((0, 2), dtype=int), tuple(range(cost_matrix.shape[0])), tuple(range(cost_matrix.shape[1]))
 
@@ -69,7 +68,6 @@ def iou_distance(atracks: list, btracks: list) -> np.ndarray:
     Returns:
         (np.ndarray): Cost matrix computed based on IoU.
     """
-
     if atracks and isinstance(atracks[0], np.ndarray) or btracks and isinstance(btracks[0], np.ndarray):
         atlbrs = atracks
         btlbrs = btracks
@@ -105,7 +103,6 @@ def embedding_distance(tracks: list, detections: list, metric: str = "cosine") -
     Returns:
         (np.ndarray): Cost matrix computed based on embeddings.
     """
-
     cost_matrix = np.zeros((len(tracks), len(detections)), dtype=np.float32)
     if cost_matrix.size == 0:
         return cost_matrix
@@ -128,7 +125,6 @@ def fuse_score(cost_matrix: np.ndarray, detections: list) -> np.ndarray:
     Returns:
         (np.ndarray): Fused similarity matrix.
     """
-
     if cost_matrix.size == 0:
         return cost_matrix
     iou_sim = 1 - cost_matrix

@@ -201,7 +201,7 @@ class ParkingManagement:
         Args:
             json_file (str): file that have all parking slot points
         """
-        with open(json_file, "r") as json_file:
+        with open(json_file) as json_file:
             return json.load(json_file)
 
     def process_data(self, json_data, im0, boxes, clss):

@@ -1,4 +1,3 @@
-from .model import YOLO
 from ultralytics.engine.neuron_model import NeuronModel
 from ultralytics.models import yolo
 

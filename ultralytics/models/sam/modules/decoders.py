@@ -154,7 +154,7 @@ class MaskDecoder(nn.Module):
 class MLP(nn.Module):
     """
     MLP (Multi-Layer Perceptron) model lightly adapted from
-    https://github.com/facebookresearch/MaskFormer/blob/main/mask_former/modeling/transformer/transformer_predictor.py
+    https://github.com/facebookresearch/MaskFormer/blob/main/mask_former/modeling/transformer/transformer_predictor.py.
     """
 
     def __init__(

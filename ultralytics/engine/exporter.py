@@ -158,7 +158,7 @@ def validate_args(format, passed_args):
     for arg in export_args:
         not_default = getattr(passed_args, arg, None) != getattr(DEFAULT_CFG, arg, None)
         if not_default:
-            assert arg in valid_args, f"ERROR ❌️ argument '{arg}' is not supported for format '{format}'"
+            assert arg in valid_args, f"ERROR ❌️ argument '{arg}' is not supported for format='{format}'"
 
 
 def gd_outputs(gd):

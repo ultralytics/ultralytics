@@ -219,6 +219,8 @@ class YOLODataset(BaseDataset):
         segment_resamples = 100 if self.use_obb else 1000
         if len(segments) > 0:
             # list[np.array(1000, 2)] * num_samples
+            max_len = max([len(s) for s in segments])
+            segment_resamples = (max_len + 1) if segment_resamples < max_len else segment_resamples
             # (N, 1000, 2)
             segments = np.stack(resample_segments(segments, n=segment_resamples), axis=0)
         else:

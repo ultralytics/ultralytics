@@ -169,7 +169,6 @@ class NeuronAutoBackend(nn.Module):
         # TorchScript
         elif jit:
             LOGGER.info(f"Loading {w} for TorchScript inference...")
-
             extra_files = {"config.txt": ""}  # model metadata
             model = torch.jit.load(w, _extra_files=extra_files, map_location=device)
             model.half() if fp16 else model.float()
@@ -177,8 +176,8 @@ class NeuronAutoBackend(nn.Module):
                 metadata = json.loads(extra_files["config.txt"], object_hook=lambda x: dict(x.items()))
         # NeuronX
         elif neuronx:
-            LOGGER.info(f"Loading {w} for NeuronX inference...")
-
+            import torch_neuronx
+            LOGGER.info(f"Loading {w} for NeuronX inference... version {torch_neuronx.__version__}")
             extra_files = {"config.txt": ""}  # model metadata
             model = torch.jit.load(w, _extra_files=extra_files, map_location=device)
             model.half() if fp16 else model.float()
@@ -186,7 +185,8 @@ class NeuronAutoBackend(nn.Module):
                 metadata = json.loads(extra_files["config.txt"], object_hook=lambda x: dict(x.items()))
         ## Neuron
         elif neuron:
-            LOGGER.info(f"Loading {w} for Neuron inference...")
+            import torch_neuron
+            LOGGER.info(f"Loading {w} for Neuron inference... version {torch_neuron.__version__}")
             extra_files = {"config.txt": ""}  # model metadata
             model = torch.jit.load(w, _extra_files=extra_files, map_location=device)
             model.half() if fp16 else model.float()

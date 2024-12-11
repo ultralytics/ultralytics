@@ -1294,7 +1294,7 @@ def KLD_distance(obb1, obb2):
     """
     Calculate KL divergence of arbitrary Gaussian-type distribution between oriented bounding boxes.
 
-    Implements the algorithm from https://arxiv.org/pdf/2106.06072v1.pdf.
+    Implements the algorithm from https://ieeexplore.ieee.org/document/10218324.
 
     Args:
         obb1 (torch.Tensor): Ground truth OBBs, shape (N, 5), format xywhr.

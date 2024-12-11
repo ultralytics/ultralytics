@@ -158,3 +158,32 @@ trackzone = solutions.TrackZone(
     region=region_points,  # Pass region points
 )
 ```
+
+### What models are supported by TrackZone?
+
+TrackZone supports any model compatible with Ultralytics framework, including [Ultralytics YOLOv8](../models/yolov8.md), [YOLOv9](../models/yolov9.md), [YOLOv10](../models/yolov10.md), and [Ultralytics YOLO11](../models/yolo11.md) variants. You can load custom-trained models as well by specifying the model path in the model argument.
+
+### Can I adjust the line width and appearance of bounding boxes?
+
+Yes, you can customize the line width of bounding boxes using the `line_width` argument. This flexibility allows you to adjust the visuals for better clarity and presentation based on your application's needs.
+
+### How do I filter specific object classes using TrackZone?
+
+You can filter objects by specifying the classes argument in the TrackZone initialization. For example, setting `classes=[0, 2]` will track only persons and cars if using a COCO-pretrained model.
+
+```python
+trackzone = solutions.TrackZone(
+    show=True,
+    region=region_points,
+    model="yolo11n.pt",
+    classes=[0, 2],  # Track only persons and cars
+)
+```
+
+### Is real-time streaming supported by TrackZone?
+
+Yes, TrackZone supports real-time object tracking from live video feeds, including IP cameras, webcams, and RTSP streams. Replace the source path with the video stream URL or camera ID when initializing the video source.
+
+```python
+cap = cv2.VideoCapture(0)  # Use a webcam
+```

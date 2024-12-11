@@ -409,9 +409,7 @@ class Instances:
         seg_len = [len(s) for b in instances_list for s in b.segments]
         if len(set(seg_len)) != 1:
             max_len = max(seg_len)
-            cat_segments = np.concatenate(
-                [resample_segments(b.segments.tolist(), max_len) for b in instances_list], axis=axis
-            )
+            cat_segments = np.concatenate([resample_segments(b.segments, max_len) for b in instances_list], axis=axis)
         else:
             cat_segments = np.concatenate([b.segments for b in instances_list], axis=axis)
         cat_keypoints = np.concatenate([b.keypoints for b in instances_list], axis=axis) if use_keypoint else None

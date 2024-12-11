@@ -226,6 +226,7 @@ CFG_BOOL_KEYS = {  # boolean-only arguments
     "nms",
     "profile",
     "multi_scale",
+    "rgb_input",
 }
 
 

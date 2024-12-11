@@ -35,6 +35,10 @@ keywords: Ultralytics, utility operations, non-max suppression, bounding box tra
 
 <br><br><hr><br>
 
+## ::: ultralytics.utils.ops.soft_nms
+
+<br><br><hr><br>
+
 ## ::: ultralytics.utils.ops.clip_boxes
 
 <br><br><hr><br>

@@ -623,6 +623,8 @@ def resample_segments(segments, n=1000):
     Returns:
         segments (list): the resampled segments.
     """
+    max_len = max([len(s) for s in segments])
+    n = (max_len + 1) if n < max_len else n
     for i, s in enumerate(segments):
         s = np.concatenate((s, s[0:1, :]), axis=0)
         x = np.linspace(0, len(s) - 1, n - len(s) if len(s) < n else n)

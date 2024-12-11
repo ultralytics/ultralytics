@@ -153,13 +153,13 @@ def validate_args(format, passed_args):
     valid_args = supported_args.get(format.lower(), None)
     assert valid_args is not None, f"ERROR ❌️ valid arguments for '{format}' not listed."
     custom = {
-            "imgsz": self.model.args["imgsz"],
-            "batch": 1,
-            "data": None,
-            "device": None,
-            "verbose": False,
-            "mode": "export",
-        }  # exporter defaults
+        "imgsz": self.model.args["imgsz"],
+        "batch": 1,
+        "data": None,
+        "device": None,
+        "verbose": False,
+        "mode": "export",
+    }  # exporter defaults
     default_args = get_cfg(DEFAULT_CFG, custom)
     for arg in export_args:
         not_default = getattr(passed_args, arg, None) != getattr(default_args, arg, None)

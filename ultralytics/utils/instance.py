@@ -7,7 +7,7 @@ from typing import List
 
 import numpy as np
 
-from .ops import ltwh2xywh, ltwh2xyxy, resample_segments, xywh2ltwh, xywh2xyxy, xyxy2ltwh, xyxy2xywh
+from .ops import ltwh2xywh, ltwh2xyxy, xywh2ltwh, xywh2xyxy, xyxy2ltwh, xyxy2xywh, resample_segments
 
 
 def _ntuple(n):
@@ -407,7 +407,7 @@ class Instances:
 
         cat_boxes = np.concatenate([ins.bboxes for ins in instances_list], axis=axis)
         seg_len = [len(s) for b in instances_list for s in b.segments]
-        if len(set(seg_len)) != 1:
+        if len(set(seg_len)) > 1:
             max_len = max(seg_len)
             cat_segments = np.concatenate([resample_segments(b.segments, max_len) for b in instances_list], axis=axis)
         else:

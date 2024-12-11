@@ -415,7 +415,6 @@ nav:
       - TF.js: integrations/tfjs.md
       - TFLite: integrations/tflite.md
       - TFLite Edge TPU: integrations/edge-tpu.md
-      - Sony IMX500: integrations/sony-imx500.md
       - TensorBoard: integrations/tensorboard.md
       - TensorRT: integrations/tensorrt.md
       - TorchScript: integrations/torchscript.md

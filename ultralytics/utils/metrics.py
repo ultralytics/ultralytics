@@ -1345,4 +1345,4 @@ def KLD_distance(obb1, obb2):
                 d * 4 * (sin_ * cos3 / w_p4 - cos_ * sin3 / h_p4) + \
                 e * (cos4 / w_p4 + sin4 / h_p4)
 
-    return kld_dist
+    return kld_dist.squeeze()

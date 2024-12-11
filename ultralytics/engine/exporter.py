@@ -120,6 +120,44 @@ def export_formats():
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU"], zip(*x)))
 
 
+def validate_args(format, passed_args):
+    """Validates arguments based on format.
+
+    Args:
+        format (str): The export format.
+        passed_args (Namespace): The arguments used during export.
+    Raises:
+        AssertionError: If an argument that's not supported by the export
+        format is used, or if format doesn't have the supported arguments
+        listed.
+    """
+    # Only check valid usage of these args
+    export_args = ["half", "int8", "dynamic", "keras", "nms", "batch"]
+    supported_args = {
+        "torchscript": ["optimize", "batch"],
+        "onnx": ["half", "dynamic", "simplify", "opset", "batch"],
+        "openvino": ["half", "int8", "batch"],
+        "engine": ["half", "dynamic", "simplify", "int8", "batch"],
+        "coreml": ["half", "int8", "nms", "batch"],
+        "saved_model": ["keras", "int8", "batch"],
+        "pb": ["batch"],
+        "tflite": ["half", "int8", "batch"],
+        "edgetpu": ["imgsz"],
+        "tfjs": ["half", "int8", "batch"],
+        "paddle": ["batch"],
+        "mnn": ["batch", "int8", "half"],
+        "ncnn": ["half", "batch"],
+        "imx": ["int8"]
+    }
+    
+    valid_args = supported_args.get(format.lower(), None)
+    assert valid_args is not None, f"ERROR ❌️ valid arguments for '{format}' not listed."
+    
+    for arg in export_args:
+        not_default = getattr(passed_args, arg, None) != getattr(DEFAULT_CFG, arg, None)
+        if not_default:
+            assert arg in valid_args, f"ERROR ❌️ argument '{arg}' is not supported for format '{format}'"
+
 def gd_outputs(gd):
     """TensorFlow GraphDef model output node names."""
     name_list, input_list = [], []
@@ -224,7 +262,8 @@ class Exporter:
             assert dla in {"0", "1"}, f"Expected self.args.device='dla:0' or 'dla:1, but got {self.args.device}."
         self.device = select_device("cpu" if self.args.device is None else self.args.device)
 
-        # Checks
+        # Argument compatibility checks
+        validate_args(fmt, self.args)
         if imx and not self.args.int8:
             LOGGER.warning("WARNING ⚠️ IMX only supports int8 export, setting int8=True.")
             self.args.int8 = True

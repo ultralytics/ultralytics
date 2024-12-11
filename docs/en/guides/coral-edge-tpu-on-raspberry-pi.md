@@ -27,7 +27,7 @@ The Coral Edge TPU is a compact device that adds an Edge TPU coprocessor to your
 
 ## Boost Raspberry Pi Model Performance with Coral Edge TPU
 
-Many people want to run their models on an embedded or mobile device such as a Raspberry Pi, since they are very power efficient and can be used in many different applications. However, the inference performance on these devices is usually poor even when using formats like [onnx](../integrations/onnx.md) or [openvino](../integrations/openvino.md). The Coral Edge TPU is a great solution to this problem, since it can be used with a Raspberry Pi and accelerate inference performance greatly.
+Many people want to run their models on an embedded or mobile device such as a Raspberry Pi, since they are very power efficient and can be used in many different applications. However, the inference performance on these devices is usually poor even when using formats like [ONNX](../integrations/onnx.md) or [OpenVINO](../integrations/openvino.md). The Coral Edge TPU is a great solution to this problem, since it can be used with a Raspberry Pi and accelerate inference performance greatly.
 
 ## Edge TPU on Raspberry Pi with TensorFlow Lite (New)⭐
 
@@ -85,7 +85,7 @@ After installing the runtime, you need to plug in your Coral Edge TPU into a USB
 
 To use the Edge TPU, you need to convert your model into a compatible format. It is recommended that you run export on Google Colab, x86_64 Linux machine, using the official [Ultralytics Docker container](docker-quickstart.md), or using [Ultralytics HUB](../hub/quickstart.md), since the Edge TPU compiler is not available on ARM. See the [Export Mode](../modes/export.md) for the available arguments.
 
-!!! note "Exporting the model"
+!!! example "Exporting the model"
 
     === "Python"
 
@@ -105,13 +105,27 @@ To use the Edge TPU, you need to convert your model into a compatible format. It
         yolo export model=path/to/model.pt format=edgetpu  # Export an official model or custom model
         ```
 
-The exported model will be saved in the `<model_name>_saved_model/` folder with the name `<model_name>_full_integer_quant_edgetpu.tflite`.
+The exported model will be saved in the `<model_name>_saved_model/` folder with the name `<model_name>_full_integer_quant_edgetpu.tflite`. It is important that your model ends with the suffix `_edgetpu.tflite`, otherwise ultralytics doesn't know that you're using a Edge TPU model.
 
 ## Running the model
 
-After exporting your model, you can run inference with it using the following code:
+Before you can actually run the model, you will need to install the correct libraries.
 
-!!! note "Running the model"
+If `tensorflow` is installed, uninstall tensorflow with the following command:
+
+```bash
+pip uninstall tensorflow tensorflow-aarch64
+```
+
+Then install/update `tflite-runtime`:
+
+```bash
+pip install -U tflite-runtime
+```
+
+Now you can run inference using the following code:
+
+!!! example "Running the model"
 
     === "Python"
 
@@ -119,7 +133,7 @@ After exporting your model, you can run inference with it using the following co
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("path/to/edgetpu_model.tflite")  # Load an official model or custom model
+        model = YOLO("path/to/<model_name>_full_integer_quant_edgetpu.tflite")  # Load an official model or custom model
 
         # Run Prediction
         model.predict("path/to/source.png")
@@ -128,27 +142,30 @@ After exporting your model, you can run inference with it using the following co
     === "CLI"
 
         ```bash
-        yolo predict model=path/to/edgetpu_model.tflite source=path/to/source.png  # Load an official model or custom model
+        yolo predict model=path/to/<model_name>_full_integer_quant_edgetpu.tflite source=path/to/source.png  # Load an official model or custom model
         ```
 
 Find comprehensive information on the [Predict](../modes/predict.md) page for full prediction mode details.
 
-???+ warning "Important"
+!!! note "Inference with multiple Edge TPUs"
 
-    You should run the model using `tflite-runtime` and not `tensorflow`.
-    If `tensorflow` is installed, uninstall tensorflow with the following command:
+    If you have multiple Edge TPUs you can use the following code to select a specific TPU.
 
-    ```bash
-    pip uninstall tensorflow tensorflow-aarch64
-    ```
+    === "Python"
 
-    Then install/update `tflite-runtime`:
+        ```python
+        from ultralytics import YOLO
 
-    ```
-    pip install -U tflite-runtime
-    ```
+        # Load a model
+        model = YOLO("path/to/<model_name>_full_integer_quant_edgetpu.tflite")  # Load an official model or custom model
 
-    If you want a `tflite-runtime` wheel for `tensorflow` 2.15.0 download it from [here](https://github.com/feranick/TFlite-builds/releases) and install it using `pip` or your package manager of choice.
+        # Run Prediction
+        model.predict("path/to/source.png")  # Inference defaults to the first TPU
+
+        model.predict("path/to/source.png", device="tpu:0")  # Select the first TPU
+
+        model.predict("path/to/source.png", device="tpu:1")  # Select the second TPU
+        ```
 
 ## FAQ
 

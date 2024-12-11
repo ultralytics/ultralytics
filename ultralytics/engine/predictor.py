@@ -26,6 +26,7 @@ Usage - formats:
                               yolov8n.tflite             # TensorFlow Lite
                               yolov8n_edgetpu.tflite     # TensorFlow Edge TPU
                               yolov8n_paddle_model       # PaddlePaddle
+                              yolov8n.mnn                # MNN
                               yolov8n_ncnn_model         # NCNN
 """
 
@@ -152,7 +153,11 @@ class BasePredictor:
             (list): A list of transformed images.
         """
         same_shapes = len({x.shape for x in im}) == 1
-        letterbox = LetterBox(self.imgsz, auto=same_shapes and self.model.pt, stride=self.model.stride)
+        letterbox = LetterBox(
+            self.imgsz,
+            auto=same_shapes and (self.model.pt or getattr(self.model, "dynamic", False)),
+            stride=self.model.stride,
+        )
         return [letterbox(image=x) for x in im]
 
     def postprocess(self, preds, img, orig_imgs):
@@ -381,7 +386,7 @@ class BasePredictor:
 
         # Save images
         else:
-            cv2.imwrite(save_path, im)
+            cv2.imwrite(str(Path(save_path).with_suffix(".jpg")), im)  # save to JPG for best support
 
     def show(self, p=""):
         """Display an image in a window using the OpenCV imshow function."""

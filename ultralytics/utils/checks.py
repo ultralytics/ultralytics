@@ -23,7 +23,6 @@ from ultralytics.utils import (
     AUTOINSTALL,
     IS_COLAB,
     IS_GIT_DIR,
-    IS_JUPYTER,
     IS_KAGGLE,
     IS_PIP_PACKAGE,
     LINUX,
@@ -238,12 +237,14 @@ def check_version(
     c = parse_version(current)  # '1.2.3' -> (1, 2, 3)
     for r in required.strip(",").split(","):
         op, version = re.match(r"([^0-9]*)([\d.]+)", r).groups()  # split '>=22.04' -> ('>=', '22.04')
+        if not op:
+            op = ">="  # assume >= if no op passed
         v = parse_version(version)  # '1.2.3' -> (1, 2, 3)
         if op == "==" and c != v:
             result = False
         elif op == "!=" and c == v:
             result = False
-        elif op in {">=", ""} and not (c >= v):  # if no constraint passed assume '>=required'
+        elif op == ">=" and not (c >= v):
             result = False
         elif op == "<=" and not (c <= v):
             result = False
@@ -275,7 +276,7 @@ def check_latest_pypi_version(package_name="ultralytics"):
         response = requests.get(f"https://pypi.org/pypi/{package_name}/json", timeout=3)
         if response.status_code == 200:
             return response.json()["info"]["version"]
-    except:  # noqa E722
+    except Exception:
         return None
 
 
@@ -297,7 +298,7 @@ def check_pip_update_available():
                     f"Update with 'pip install -U ultralytics'"
                 )
                 return True
-        except:  # noqa E722
+        except Exception:
             pass
     return False
 
@@ -333,18 +334,19 @@ def check_font(font="Arial.ttf"):
         return file
 
 
-def check_python(minimum: str = "3.8.0", hard: bool = True) -> bool:
+def check_python(minimum: str = "3.8.0", hard: bool = True, verbose: bool = False) -> bool:
     """
     Check current python version against the required minimum version.
 
     Args:
         minimum (str): Required minimum version of python.
         hard (bool, optional): If True, raise an AssertionError if the requirement is not met.
+        verbose (bool, optional): If True, print warning message if requirement is not met.
 
     Returns:
         (bool): Whether the installed Python version meets the minimum constraints.
     """
-    return check_version(PYTHON_VERSION, minimum, name="Python", hard=hard)
+    return check_version(PYTHON_VERSION, minimum, name="Python", hard=hard, verbose=verbose)
 
 
 @TryExcept()
@@ -374,8 +376,6 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
         ```
     """
     prefix = colorstr("red", "bold", "requirements:")
-    check_python()  # check python version
-    check_torchvision()  # check torch-torchvision compatibility
     if isinstance(requirements, Path):  # requirements.txt file
         file = requirements.resolve()
         assert file.exists(), f"{prefix} {file} not found, check failed."
@@ -457,7 +457,7 @@ def check_torchvision():
             )
 
 
-def check_suffix(file="yolov8n.pt", suffix=".pt", msg=""):
+def check_suffix(file="yolo11n.pt", suffix=".pt", msg=""):
     """Check file(s) for acceptable suffix."""
     if file and suffix:
         if isinstance(suffix, str):
@@ -568,11 +568,8 @@ def check_yolo(verbose=True, device=""):
 
     from ultralytics.utils.torch_utils import select_device
 
-    if IS_JUPYTER:
-        if check_requirements("wandb", install=False):
-            os.system("pip uninstall -y wandb")  # uninstall wandb: unwanted account creation prompt with infinite hang
-        if IS_COLAB:
-            shutil.rmtree("sample_data", ignore_errors=True)  # remove colab /sample_data directory
+    if IS_COLAB:
+        shutil.rmtree("sample_data", ignore_errors=True)  # remove colab /sample_data directory
 
     if verbose:
         # System info
@@ -687,7 +684,7 @@ def check_amp(model):
 
     im = ASSETS / "bus.jpg"  # image to check
     prefix = colorstr("AMP: ")
-    LOGGER.info(f"{prefix}running Automatic Mixed Precision (AMP) checks with YOLO11n...")
+    LOGGER.info(f"{prefix}running Automatic Mixed Precision (AMP) checks...")
     warning_msg = "Setting 'amp=True'. If you experience zero-mAP or NaN losses you can disable AMP with amp=False."
     try:
         from ultralytics import YOLO
@@ -695,11 +692,13 @@ def check_amp(model):
         assert amp_allclose(YOLO("yolo11n.pt"), im)
         LOGGER.info(f"{prefix}checks passed ✅")
     except ConnectionError:
-        LOGGER.warning(f"{prefix}checks skipped ⚠️, offline and unable to download YOLO11n. {warning_msg}")
+        LOGGER.warning(
+            f"{prefix}checks skipped ⚠️. " f"Offline and unable to download YOLO11n for AMP checks. {warning_msg}"
+        )
     except (AttributeError, ModuleNotFoundError):
         LOGGER.warning(
             f"{prefix}checks skipped ⚠️. "
-            f"Unable to load YOLO11n due to possible Ultralytics package modifications. {warning_msg}"
+            f"Unable to load YOLO11n for AMP checks due to possible Ultralytics package modifications. {warning_msg}"
         )
     except AssertionError:
         LOGGER.warning(
@@ -714,7 +713,7 @@ def git_describe(path=ROOT):  # path must be a directory
     """Return human-readable git description, i.e. v5.0-5-g3e25f1e https://git-scm.com/docs/git-describe."""
     try:
         return subprocess.check_output(f"git -C {path} describe --tags --long --always", shell=True).decode()[:-1]
-    except:  # noqa E722
+    except Exception:
         return ""
 
 
@@ -770,6 +769,8 @@ def cuda_is_available() -> bool:
     return cuda_device_count() > 0
 
 
-# Define constants
+# Run checks and define constants
+check_python("3.8", hard=False, verbose=True)  # check python version
+check_torchvision()  # check torch-torchvision compatibility
 IS_PYTHON_MINIMUM_3_10 = check_python("3.10", hard=False)
 IS_PYTHON_3_12 = PYTHON_VERSION.startswith("3.12")

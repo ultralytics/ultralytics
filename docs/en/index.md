@@ -19,16 +19,17 @@ keywords: Ultralytics, YOLO, YOLO11, object detection, image segmentation, deep 
 <a href="https://docs.ultralytics.com/ar">العربية</a>
 <br>
 <br>
-<a href="https://github.com/ultralytics/ultralytics/actions/workflows/ci.yaml"><img src="https://github.com/ultralytics/ultralytics/actions/workflows/ci.yaml/badge.svg" alt="Ultralytics CI"></a>
-<a href="https://zenodo.org/badge/latestdoi/264818686"><img src="https://zenodo.org/badge/264818686.svg" alt="YOLO Citation"></a>
-<a href="https://hub.docker.com/r/ultralytics/ultralytics"><img src="https://img.shields.io/docker/pulls/ultralytics/ultralytics?logo=docker" alt="Docker Pulls"></a>
-<a href="https://discord.com/invite/ultralytics"><img alt="Discord" src="https://img.shields.io/discord/1089800235347353640?logo=discord&logoColor=white&label=Discord&color=blue"></a>
-<a href="https://community.ultralytics.com/"><img alt="Ultralytics Forums" src="https://img.shields.io/discourse/users?server=https%3A%2F%2Fcommunity.ultralytics.com&logo=discourse&label=Forums&color=blue"></a>
-<a href="https://reddit.com/r/ultralytics"><img alt="Ultralytics Reddit" src="https://img.shields.io/reddit/subreddit-subscribers/ultralytics?style=flat&logo=reddit&logoColor=white&label=Reddit&color=blue"></a>
-<br>
-<a href="https://console.paperspace.com/github/ultralytics/ultralytics"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run on Gradient"></a>
-<a href="https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a>
-<a href="https://www.kaggle.com/ultralytics/yolov8"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
+    <a href="https://github.com/ultralytics/ultralytics/actions/workflows/ci.yaml"><img src="https://github.com/ultralytics/ultralytics/actions/workflows/ci.yaml/badge.svg" alt="Ultralytics CI"></a>
+    <a href="https://pepy.tech/projects/ultralytics"><img src="https://static.pepy.tech/badge/ultralytics" alt="Ultralytics Downloads"></a>
+    <a href="https://zenodo.org/badge/latestdoi/264818686"><img src="https://zenodo.org/badge/264818686.svg" alt="Ultralytics YOLO Citation"></a>
+    <a href="https://discord.com/invite/ultralytics"><img alt="Ultralytics Discord" src="https://img.shields.io/discord/1089800235347353640?logo=discord&logoColor=white&label=Discord&color=blue"></a>
+    <a href="https://community.ultralytics.com/"><img alt="Ultralytics Forums" src="https://img.shields.io/discourse/users?server=https%3A%2F%2Fcommunity.ultralytics.com&logo=discourse&label=Forums&color=blue"></a>
+    <a href="https://reddit.com/r/ultralytics"><img alt="Ultralytics Reddit" src="https://img.shields.io/reddit/subreddit-subscribers/ultralytics?style=flat&logo=reddit&logoColor=white&label=Reddit&color=blue"></a>
+    <br>
+    <a href="https://console.paperspace.com/github/ultralytics/ultralytics"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run Ultralytics on Gradient"></a>
+    <a href="https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open Ultralytics In Colab"></a>
+    <a href="https://www.kaggle.com/models/ultralytics/yolo11"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open Ultralytics In Kaggle"></a>
+    <a href="https://mybinder.org/v2/gh/ultralytics/ultralytics/HEAD?labpath=examples%2Ftutorial.ipynb"><img src="https://mybinder.org/badge_logo.svg" alt="Open Ultralytics In Binder"></a>
 </div>
 
 Introducing [Ultralytics](https://www.ultralytics.com/) [YOLO11](https://github.com/ultralytics/ultralytics), the latest version of the acclaimed real-time object detection and image segmentation model. YOLO11 is built on cutting-edge advancements in [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) and [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv), offering unparalleled performance in terms of speed and [accuracy](https://www.ultralytics.com/glossary/accuracy). Its streamlined design makes it suitable for various applications and easily adaptable to different hardware platforms, from edge devices to cloud APIs.
@@ -54,11 +55,69 @@ Explore the Ultralytics Docs, a comprehensive resource designed to help you unde
 
 ## Where to Start
 
-- **Install** `ultralytics` with pip and get up and running in minutes &nbsp; [:material-clock-fast: Get Started](quickstart.md){ .md-button }
-- **Predict** new images and videos with YOLO &nbsp; [:octicons-image-16: Predict on Images](modes/predict.md){ .md-button }
-- **Train** a new YOLO model on your own custom dataset &nbsp; [:fontawesome-solid-brain: Train a Model](modes/train.md){ .md-button }
-- **Tasks** YOLO tasks like segment, classify, pose and track &nbsp; [:material-magnify-expand: Explore Tasks](tasks/index.md){ .md-button }
-- **[YOLO11](models/yolo11.md) 🚀 NEW**: Ultralytics' latest SOTA models &nbsp; [:material-magnify-expand: Explore new YOLO11 models](models/yolo11.md){ .md-button }
+<div class="grid cards" markdown>
+
+- :material-clock-fast:{ .lg .middle } &nbsp; **Getting Started**
+
+    ***
+
+    Install `ultralytics` with pip and get up and running in minutes to train a YOLO model
+
+    ***
+
+    [:octicons-arrow-right-24: Quickstart](quickstart.md)
+
+- :material-image:{ .lg .middle } &nbsp; **Predict**
+
+    ***
+
+    Predict on new images, videos and streams with YOLO <br /> &nbsp;
+
+    ***
+
+    [:octicons-arrow-right-24: Learn more](modes/predict.md)
+
+- :fontawesome-solid-brain:{ .lg .middle } &nbsp; **Train a Model**
+
+    ***
+
+    Train a new YOLO model on your own custom dataset from scratch or load and train on a pretrained model
+
+    ***
+
+    [:octicons-arrow-right-24: Learn more](modes/train.md)
+
+- :material-magnify-expand:{ .lg .middle } &nbsp; **Explore Tasks**
+
+    ***
+
+    Discover YOLO tasks like detect, segment, classify, pose, OBB and track <br /> &nbsp;
+
+    ***
+
+    [:octicons-arrow-right-24: Explore Tasks](tasks/index.md)
+
+- :rocket:{ .lg .middle } &nbsp; **Explore YOLO11 NEW**
+
+    ***
+
+    Discover Ultralytics' latest state-of-the-art YOLO11 models and their capabilities <br /> &nbsp;
+
+    ***
+
+    [:octicons-arrow-right-24: YOLO11 Models 🚀 NEW](models/yolo11.md)
+
+- :material-scale-balance:{ .lg .middle } &nbsp; **Open Source, AGPL-3.0**
+
+    ***
+
+    Ultralytics offers two licensing options for YOLO: AGPL-3.0 License and Enterprise License. Ultralytics is available on [GitHub](https://github.com/ultralytics/ultralytics)
+
+    ***
+
+    [:octicons-arrow-right-24: License](https://www.ultralytics.com/license)
+
+</div>
 
 <p align="center">
   <br>
@@ -105,7 +164,7 @@ Ultralytics YOLO is the latest advancement in the acclaimed YOLO (You Only Look 
 
 Getting started with YOLO is quick and straightforward. You can install the Ultralytics package using [pip](https://pypi.org/project/ultralytics/) and get up and running in minutes. Here's a basic installation command:
 
-!!! example
+!!! example "Installation using pip"
 
     === "CLI"
 
@@ -121,11 +180,11 @@ Training a custom YOLO model on your dataset involves a few detailed steps:
 
 1. Prepare your annotated dataset.
 2. Configure the training parameters in a YAML file.
-3. Use the `yolo train` command to start training.
+3. Use the `yolo TASK train` command to start training. (Each `TASK` has its own argument)
 
-Here's example code:
+Here's example code for the Object Detection Task:
 
-!!! example
+!!! example "Train Example for Object Detection Task"
 
     === "Python"
 
@@ -143,7 +202,7 @@ Here's example code:
 
         ```bash
         # Train a YOLO model from the command line
-        yolo train data=path/to/dataset.yaml epochs=100 imgsz=640
+        yolo detect train data=path/to/dataset.yaml epochs=100 imgsz=640
         ```
 
 For a detailed walkthrough, check out our [Train a Model](modes/train.md) guide, which includes examples and tips for optimizing your training process.
@@ -161,7 +220,7 @@ For more details, visit our [Licensing](https://www.ultralytics.com/license) pag
 
 Ultralytics YOLO supports efficient and customizable multi-object tracking. To utilize tracking capabilities, you can use the `yolo track` command as shown below:
 
-!!! example
+!!! example "Example for Object Tracking on a Video"
 
     === "Python"
 

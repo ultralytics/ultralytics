@@ -116,7 +116,7 @@ def test_predict_sam():
     from ultralytics.models.sam import Predictor as SAMPredictor
 
     # Load a model
-    model = SAM(WEIGHTS_DIR / "sam_b.pt")
+    model = SAM(WEIGHTS_DIR / "sam2.1_b.pt")
 
     # Display model information (optional)
     model.info()
@@ -127,8 +127,20 @@ def test_predict_sam():
     # Run inference with bboxes prompt
     model(SOURCE, bboxes=[439, 437, 524, 709], device=0)
 
-    # Run inference with points prompt
+    # Run inference with no labels
+    model(ASSETS / "zidane.jpg", points=[900, 370], device=0)
+
+    # Run inference with 1D points and 1D labels
     model(ASSETS / "zidane.jpg", points=[900, 370], labels=[1], device=0)
+
+    # Run inference with 2D points and 1D labels
+    model(ASSETS / "zidane.jpg", points=[[900, 370]], labels=[1], device=0)
+
+    # Run inference with multiple 2D points and 1D labels
+    model(ASSETS / "zidane.jpg", points=[[400, 370], [900, 370]], labels=[1, 1], device=0)
+
+    # Run inference with 3D points and 2D labels (multiple points per object)
+    model(ASSETS / "zidane.jpg", points=[[[900, 370], [1000, 100]]], labels=[[1, 1]], device=0)
 
     # Create SAMPredictor
     overrides = dict(conf=0.25, task="segment", mode="predict", imgsz=1024, model=WEIGHTS_DIR / "mobile_sam.pt")

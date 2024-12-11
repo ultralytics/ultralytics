@@ -10,7 +10,7 @@ keywords: YOLO11, state-of-the-art object detection, YOLO series, Ultralytics, c
 
 YOLO11 is the latest iteration in the [Ultralytics](https://www.ultralytics.com/) YOLO series of real-time object detectors, redefining what's possible with cutting-edge [accuracy](https://www.ultralytics.com/glossary/accuracy), speed, and efficiency. Building upon the impressive advancements of previous YOLO versions, YOLO11 introduces significant improvements in architecture and training methods, making it a versatile choice for a wide range of [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) tasks.
 
-![Ultralytics YOLO11 Comparison Plots](https://github.com/user-attachments/assets/a311a4ed-bbf2-43b5-8012-5f183a28a845)
+![Ultralytics YOLO11 Comparison Plots](https://raw.githubusercontent.com/ultralytics/assets/refs/heads/main/yolo/performance-comparison.png)
 
 <p align="center">
   <br>
@@ -127,6 +127,10 @@ Note that the example below is for YOLO11 [Detect](../tasks/detect.md) models fo
         ```
 
 ## Citations and Acknowledgements
+
+!!! tip "Ultralytics YOLO11 Publication"
+
+    Ultralytics has not published a formal research paper for YOLO11 due to the rapidly evolving nature of the models. We focus on advancing the technology and making it easier to use, rather than producing static documentation. For the most up-to-date information on YOLO architecture, features, and usage, please refer to our [GitHub repository](https://github.com/ultralytics/ultralytics) and [documentation](https://docs.ultralytics.com/).
 
 If you use YOLO11 or any other software from this repository in your work, please cite it using the following format:
 

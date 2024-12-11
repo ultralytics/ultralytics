@@ -199,11 +199,12 @@ def convert_plaintext_links_to_html(content):
         for text_node in paragraph.find_all(string=True, recursive=False):
             if text_node.parent.name not in {"a", "code"}:  # Ignore links and code blocks
                 new_text = re.sub(
-                    r'(https?://[^\s()<>]+(?:\.[^\s()<>]+)+)(?<![.,:;\'"])',
+                    r"(https?://[^\s()<>]*[^\s()<>.,:;!?\'\"])",
                     r'<a href="\1">\1</a>',
                     str(text_node),
                 )
-                if "<a" in new_text:
+                if "<a href=" in new_text:
+                    # Parse the new text with BeautifulSoup to handle HTML properly
                     new_soup = BeautifulSoup(new_text, "html.parser")
                     text_node.replace_with(new_soup)
                     modified = True
@@ -237,8 +238,46 @@ def remove_macros():
     print(f"Removed {len(macros_indices)} URLs containing '/macros/' from {sitemap}")
 
 
+def minify_files(html=True, css=True, js=True):
+    """Minifies HTML, CSS, and JS files and prints total reduction stats."""
+    minify, compress, jsmin = None, None, None
+    try:
+        if html:
+            from minify_html import minify
+        if css:
+            from csscompressor import compress
+        if js:
+            import jsmin
+    except ImportError as e:
+        print(f"Missing required package: {str(e)}")
+        return
+
+    stats = {}
+    for ext, minifier in {
+        "html": (lambda x: minify(x, keep_closing_tags=True, minify_css=True, minify_js=True)) if html else None,
+        "css": compress if css else None,
+        "js": jsmin.jsmin if js else None,
+    }.items():
+        if not minifier:
+            continue
+
+        stats[ext] = {"original": 0, "minified": 0}
+        directory = ""  # "stylesheets" if ext == css else "javascript" if ext == "js" else ""
+        for f in tqdm((SITE / directory).rglob(f"*.{ext}"), desc=f"Minifying {ext.upper()}"):
+            content = f.read_text(encoding="utf-8")
+            minified = minifier(content)
+            stats[ext]["original"] += len(content)
+            stats[ext]["minified"] += len(minified)
+            f.write_text(minified, encoding="utf-8")
+
+    for ext, data in stats.items():
+        if data["original"]:
+            r = data["original"] - data["minified"]  # reduction
+            print(f"Total {ext.upper()} reduction: {(r / data['original']) * 100:.2f}% ({r / 1024:.2f} KB saved)")
+
+
 def main():
-    """Builds docs, updates titles and edit links, and prints local server command."""
+    """Builds docs, updates titles and edit links, minifies HTML, and prints local server command."""
     prepare_docs_markdown()
 
     # Build the main documentation
@@ -249,6 +288,9 @@ def main():
 
     # Update docs HTML pages
     update_docs_html()
+
+    # Minify files
+    minify_files(html=False, css=False, js=False)
 
     # Show command to serve built website
     print('Docs built correctly ✅\nServe site at http://localhost:8000 with "python -m http.server --directory site"')

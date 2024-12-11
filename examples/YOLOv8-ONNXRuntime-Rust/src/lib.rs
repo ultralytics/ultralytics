@@ -117,3 +117,44 @@ pub fn check_font(font: &str) -> rusttype::Font<'static> {
     let buffer = std::fs::read(font_path).unwrap();
     rusttype::Font::try_from_vec(buffer).unwrap()
 }
+
+use ab_glyph::FontArc;
+pub fn load_font() -> FontArc {
+    use std::path::Path;
+    let font_path = Path::new("./font/Arial.ttf");
+    match font_path.try_exists() {
+        Ok(true) => {
+            let buffer = std::fs::read(font_path).unwrap();
+            FontArc::try_from_vec(buffer).unwrap()
+        }
+        Ok(false) => {
+            std::fs::create_dir_all("./font").unwrap();
+            println!("Downloading font...");
+            let source_url = "https://ultralytics.com/assets/Arial.ttf";
+            let resp = ureq::get(source_url)
+                .timeout(std::time::Duration::from_secs(500))
+                .call()
+                .unwrap_or_else(|err| panic!("> Failed to download font: {source_url}: {err:?}"));
+
+            // read to buffer
+            let mut buffer = vec![];
+            let total_size = resp
+                .header("Content-Length")
+                .and_then(|s| s.parse::<u64>().ok())
+                .unwrap();
+            let _reader = resp
+                .into_reader()
+                .take(total_size)
+                .read_to_end(&mut buffer)
+                .unwrap();
+            // save
+            let mut fd = std::fs::File::create(font_path).unwrap();
+            fd.write_all(&buffer).unwrap();
+            println!("Font saved at: {:?}", font_path.display());
+            FontArc::try_from_vec(buffer).unwrap()
+        }
+        Err(e) => {
+            panic!("Failed to load font {}", e);
+        }
+    }
+}

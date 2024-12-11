@@ -60,7 +60,7 @@ def is_url(url, check=False):
             with request.urlopen(url) as response:
                 return response.getcode() == 200  # check if exists online
         return True
-    except:  # noqa E722
+    except Exception:
         return False
 
 
@@ -425,7 +425,7 @@ def attempt_download_asset(file, repo="ultralytics/assets", release="v8.3.0", **
 
     Example:
         ```python
-        file_path = attempt_download_asset("yolov8n.pt", repo="ultralytics/assets", release="latest")
+        file_path = attempt_download_asset("yolo11n.pt", repo="ultralytics/assets", release="latest")
         ```
     """
     from ultralytics.utils import SETTINGS  # scoped for circular import

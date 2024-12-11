@@ -136,13 +136,13 @@ INT8 quantization is an excellent way to compress the model and speed up inferen
         from ultralytics import YOLO
 
         model = YOLO("yolo11n.pt")  # Load a model
-        model.export(format="onnx", int8=True)
+        model.export(format="engine", int8=True)
         ```
 
     === "CLI"
 
         ```bash
-        yolo export model=yolo11n.pt format=onnx int8=True   # export model with INT8 quantization
+        yolo export model=yolo11n.pt format=engine int8=True   # export TensorRT model with INT8 quantization
         ```
 
 INT8 quantization can be applied to various formats, such as TensorRT and CoreML. More details can be found in the [Export section](../modes/export.md).

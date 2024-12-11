@@ -33,7 +33,7 @@ jobs:
           import os
           import time
 
-          g = Github("${{ secrets.PERSONAL_ACCESS_TOKEN }}")
+          g = Github("${{ secrets._GITHUB_TOKEN }}")
           repo = g.get_repo("${{ github.repository }}")
 
           # Fetch the default branch name

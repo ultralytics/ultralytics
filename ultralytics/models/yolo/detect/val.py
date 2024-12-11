@@ -22,7 +22,7 @@ class DetectionValidator(BaseValidator):
         ```python
         from ultralytics.models.yolo.detect import DetectionValidator
 
-        args = dict(model="yolov8n.pt", data="coco8.yaml")
+        args = dict(model="yolo11n.pt", data="coco8.yaml")
         validator = DetectionValidator(args=args)
         validator()
         ```
@@ -155,8 +155,8 @@ class DetectionValidator(BaseValidator):
             # Evaluate
             if nl:
                 stat["tp"] = self._process_batch(predn, bbox, cls)
-                if self.args.plots:
-                    self.confusion_matrix.process_batch(predn, bbox, cls)
+            if self.args.plots:
+                self.confusion_matrix.process_batch(predn, bbox, cls)
             for k in self.stats.keys():
                 self.stats[k].append(stat[k])
 

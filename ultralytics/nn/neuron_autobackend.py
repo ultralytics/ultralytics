@@ -177,6 +177,7 @@ class NeuronAutoBackend(nn.Module):
         # NeuronX
         elif neuronx:
             import torch_neuronx
+
             LOGGER.info(f"Loading {w} for NeuronX inference... version {torch_neuronx.__version__}")
             extra_files = {"config.txt": ""}  # model metadata
             model = torch.jit.load(w, _extra_files=extra_files, map_location=device)
@@ -186,6 +187,7 @@ class NeuronAutoBackend(nn.Module):
         ## Neuron
         elif neuron:
             import torch_neuron
+
             LOGGER.info(f"Loading {w} for Neuron inference... version {torch_neuron.__version__}")
             extra_files = {"config.txt": ""}  # model metadata
             model = torch.jit.load(w, _extra_files=extra_files, map_location=device)

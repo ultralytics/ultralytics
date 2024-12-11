@@ -350,15 +350,8 @@ class NeuronExporter(Exporter):
         """YOLOv8 NeuronX model export."""
         LOGGER.info(f"\n{prefix} starting export with torch {torch_neuronx.__version__}...")
         f = self.file.with_suffix(".neuronx")
-
         ts = torch_neuronx.trace(self.model, self.im, strict=False)
         extra_files = {"config.txt": json.dumps(self.metadata)}  # torch._C.ExtraFilesMap()
-        if self.args.optimize:  # https://pytorch.org/tutorials/recipes/mobile_interpreter.html
-            LOGGER.info(f"{prefix} optimizing for mobile...")
-            from torch.utils.mobile_optimizer import optimize_for_mobile
-
-            optimize_for_mobile(ts)._save_for_lite_interpreter(str(f), _extra_files=extra_files)
-        extra_files = {"config.txt": json.dumps(self.metadata)}
         ts.save(str(f), _extra_files=extra_files)
         return f, None
 

@@ -121,11 +121,13 @@ def export_formats():
 
 
 def validate_args(format, passed_args):
-    """Validates arguments based on format.
+    """
+    Validates arguments based on format.
 
     Args:
         format (str): The export format.
         passed_args (Namespace): The arguments used during export.
+
     Raises:
         AssertionError: If an argument that's not supported by the export
         format is used, or if format doesn't have the supported arguments
@@ -147,16 +149,17 @@ def validate_args(format, passed_args):
         "paddle": ["batch"],
         "mnn": ["batch", "int8", "half"],
         "ncnn": ["half", "batch"],
-        "imx": ["int8"]
+        "imx": ["int8"],
     }
-    
+
     valid_args = supported_args.get(format.lower(), None)
     assert valid_args is not None, f"ERROR ❌️ valid arguments for '{format}' not listed."
-    
+
     for arg in export_args:
         not_default = getattr(passed_args, arg, None) != getattr(DEFAULT_CFG, arg, None)
         if not_default:
             assert arg in valid_args, f"ERROR ❌️ argument '{arg}' is not supported for format '{format}'"
+
 
 def gd_outputs(gd):
     """TensorFlow GraphDef model output node names."""

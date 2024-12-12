@@ -25,4 +25,4 @@ set(PROJECT_SOURCES
 )
 
 add_executable(Yolov8CPPInference ${PROJECT_SOURCES})
-target_link_libraries(Yolov8CPPInference ${OpenCV_LIBS})
+target_link_libraries(Yolov8CPPInference ${OpenCV_LIBS} onnxruntime)

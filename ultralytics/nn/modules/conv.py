@@ -50,7 +50,7 @@ class Conv(nn.Module):
         return self.act(self.bn(self.conv(x)))
 
     def forward_fuse(self, x):
-        """Perform transposed convolution of 2D data."""
+        """Apply convolution and activation without batch normalization."""
         return self.act(self.conv(x))
 
 
@@ -158,9 +158,7 @@ class GhostConv(nn.Module):
     """Ghost Convolution https://github.com/huawei-noah/ghostnet."""
 
     def __init__(self, c1, c2, k=1, s=1, g=1, act=True):
-        """Initializes the GhostConv object with input channels, output channels, kernel size, stride, groups and
-        activation.
-        """
+        """Initializes Ghost Convolution module with primary and cheap operations for efficient feature learning."""
         super().__init__()
         c_ = c2 // 2  # hidden channels
         self.cv1 = Conv(c1, c_, k, s, None, g, act=act)
@@ -211,7 +209,8 @@ class RepConv(nn.Module):
         kernelid, biasid = self._fuse_bn_tensor(self.bn)
         return kernel3x3 + self._pad_1x1_to_3x3_tensor(kernel1x1) + kernelid, bias3x3 + bias1x1 + biasid
 
-    def _pad_1x1_to_3x3_tensor(self, kernel1x1):
+    @staticmethod
+    def _pad_1x1_to_3x3_tensor(kernel1x1):
         """Pads a 1x1 tensor to a 3x3 tensor."""
         if kernel1x1 is None:
             return 0

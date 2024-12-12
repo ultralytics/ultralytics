@@ -4,26 +4,26 @@ description: Master hyperparameter tuning for Ultralytics YOLO to optimize model
 keywords: Ultralytics YOLO, hyperparameter tuning, machine learning, model optimization, genetic algorithms, learning rate, batch size, epochs
 ---
 
-# Ultralytics YOLO Hyperparameter Tuning Guide
+# Ultralytics YOLO [Hyperparameter Tuning](https://www.ultralytics.com/glossary/hyperparameter-tuning) Guide
 
 ## Introduction
 
-Hyperparameter tuning is not just a one-time set-up but an iterative process aimed at optimizing the machine learning model's performance metrics, such as accuracy, precision, and recall. In the context of Ultralytics YOLO, these hyperparameters could range from learning rate to architectural details, such as the number of layers or types of activation functions used.
+Hyperparameter tuning is not just a one-time set-up but an iterative process aimed at optimizing the [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) model's performance metrics, such as accuracy, precision, and recall. In the context of Ultralytics YOLO, these hyperparameters could range from learning rate to architectural details, such as the number of layers or types of activation functions used.
 
 ### What are Hyperparameters?
 
 Hyperparameters are high-level, structural settings for the algorithm. They are set prior to the training phase and remain constant during it. Here are some commonly tuned hyperparameters in Ultralytics YOLO:
 
-- **Learning Rate** `lr0`: Determines the step size at each iteration while moving towards a minimum in the loss function.
-- **Batch Size** `batch`: Number of images processed simultaneously in a forward pass.
-- **Number of Epochs** `epochs`: An epoch is one complete forward and backward pass of all the training examples.
+- **Learning Rate** `lr0`: Determines the step size at each iteration while moving towards a minimum in the [loss function](https://www.ultralytics.com/glossary/loss-function).
+- **[Batch Size](https://www.ultralytics.com/glossary/batch-size)** `batch`: Number of images processed simultaneously in a forward pass.
+- **Number of [Epochs](https://www.ultralytics.com/glossary/epoch)** `epochs`: An epoch is one complete forward and backward pass of all the training examples.
 - **Architecture Specifics**: Such as channel counts, number of layers, types of activation functions, etc.
 
 <p align="center">
-  <img width="640" src="https://user-images.githubusercontent.com/26833433/263858934-4f109a2f-82d9-4d08-8bd6-6fd1ff520bcd.png" alt="Hyperparameter Tuning Visual">
+  <img width="640" src="https://github.com/ultralytics/docs/releases/download/0/hyperparameter-tuning-visual.avif" alt="Hyperparameter Tuning Visual">
 </p>
 
-For a full list of augmentation hyperparameters used in YOLOv8 please refer to the [configurations page](../usage/cfg.md#augmentation-settings).
+For a full list of augmentation hyperparameters used in YOLO11 please refer to the [configurations page](../usage/cfg.md#augmentation-settings).
 
 ### Genetic Evolution and Mutation
 
@@ -67,9 +67,9 @@ The process is repeated until either the set number of iterations is reached or 
 
 ## Usage Example
 
-Here's how to use the `model.tune()` method to utilize the `Tuner` class for hyperparameter tuning of YOLOv8n on COCO8 for 30 epochs with an AdamW optimizer and skipping plotting, checkpointing and validation other than on final epoch for faster Tuning.
+Here's how to use the `model.tune()` method to utilize the `Tuner` class for hyperparameter tuning of YOLO11n on COCO8 for 30 epochs with an AdamW optimizer and skipping plotting, checkpointing and validation other than on final epoch for faster Tuning.
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -77,7 +77,7 @@ Here's how to use the `model.tune()` method to utilize the `Tuner` class for hyp
         from ultralytics import YOLO
 
         # Initialize the YOLO model
-        model = YOLO("yolov8n.pt")
+        model = YOLO("yolo11n.pt")
 
         # Tune hyperparameters on COCO8 for 30 epochs
         model.tune(data="coco8.yaml", epochs=30, iterations=300, optimizer="AdamW", plots=False, save=False, val=False)
@@ -157,12 +157,12 @@ This is a plot displaying fitness (typically a performance metric like AP50) aga
 - **Usage**: Performance visualization
 
 <p align="center">
-  <img width="640" src="https://user-images.githubusercontent.com/26833433/266847423-9d0aea13-d5c4-4771-b06e-0b817a498260.png" alt="Hyperparameter Tuning Fitness vs Iteration">
+  <img width="640" src="https://github.com/ultralytics/docs/releases/download/0/best-fitness.avif" alt="Hyperparameter Tuning Fitness vs Iteration">
 </p>
 
 #### tune_results.csv
 
-A CSV file containing detailed results of each iteration during the tuning. Each row in the file represents one iteration, and it includes metrics like fitness score, precision, recall, as well as the hyperparameters used.
+A CSV file containing detailed results of each iteration during the tuning. Each row in the file represents one iteration, and it includes metrics like fitness score, [precision](https://www.ultralytics.com/glossary/precision), [recall](https://www.ultralytics.com/glossary/recall), as well as the hyperparameters used.
 
 - **Format**: CSV
 - **Usage**: Per-iteration results tracking.
@@ -182,12 +182,12 @@ This file contains scatter plots generated from `tune_results.csv`, helping you 
 - **Usage**: Exploratory data analysis
 
 <p align="center">
-  <img width="1000" src="https://user-images.githubusercontent.com/26833433/266847488-ec382f3d-79bc-4087-a0e0-42fb8b62cad2.png" alt="Hyperparameter Tuning Scatter Plots">
+  <img width="1000" src="https://github.com/ultralytics/docs/releases/download/0/tune-scatter-plots.avif" alt="Hyperparameter Tuning Scatter Plots">
 </p>
 
 #### weights/
 
-This directory contains the saved PyTorch models for the last and the best iterations during the hyperparameter tuning process.
+This directory contains the saved [PyTorch](https://www.ultralytics.com/glossary/pytorch) models for the last and the best iterations during the hyperparameter tuning process.
 
 - **`last.pt`**: The last.pt are the weights from the last epoch of training.
 - **`best.pt`**: The best.pt weights for the iteration that achieved the best fitness score.
@@ -202,6 +202,60 @@ The hyperparameter tuning process in Ultralytics YOLO is simplified yet powerful
 
 1. [Hyperparameter Optimization in Wikipedia](https://en.wikipedia.org/wiki/Hyperparameter_optimization)
 2. [YOLOv5 Hyperparameter Evolution Guide](../yolov5/tutorials/hyperparameter_evolution.md)
-3. [Efficient Hyperparameter Tuning with Ray Tune and YOLOv8](../integrations/ray-tune.md)
+3. [Efficient Hyperparameter Tuning with Ray Tune and YOLO11](../integrations/ray-tune.md)
 
-For deeper insights, you can explore the `Tuner` class source code and accompanying documentation. Should you have any questions, feature requests, or need further assistance, feel free to reach out to us on [GitHub](https://github.com/ultralytics/ultralytics/issues/new/choose) or [Discord](https://ultralytics.com/discord).
+For deeper insights, you can explore the `Tuner` class source code and accompanying documentation. Should you have any questions, feature requests, or need further assistance, feel free to reach out to us on [GitHub](https://github.com/ultralytics/ultralytics/issues/new/choose) or [Discord](https://discord.com/invite/ultralytics).
+
+## FAQ
+
+### How do I optimize the [learning rate](https://www.ultralytics.com/glossary/learning-rate) for Ultralytics YOLO during hyperparameter tuning?
+
+To optimize the learning rate for Ultralytics YOLO, start by setting an initial learning rate using the `lr0` parameter. Common values range from `0.001` to `0.01`. During the hyperparameter tuning process, this value will be mutated to find the optimal setting. You can utilize the `model.tune()` method to automate this process. For example:
+
+!!! example
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Initialize the YOLO model
+        model = YOLO("yolo11n.pt")
+
+        # Tune hyperparameters on COCO8 for 30 epochs
+        model.tune(data="coco8.yaml", epochs=30, iterations=300, optimizer="AdamW", plots=False, save=False, val=False)
+        ```
+
+For more details, check the [Ultralytics YOLO configuration page](../usage/cfg.md#augmentation-settings).
+
+### What are the benefits of using genetic algorithms for hyperparameter tuning in YOLO11?
+
+Genetic algorithms in Ultralytics YOLO11 provide a robust method for exploring the hyperparameter space, leading to highly optimized model performance. Key benefits include:
+
+- **Efficient Search**: Genetic algorithms like mutation can quickly explore a large set of hyperparameters.
+- **Avoiding Local Minima**: By introducing randomness, they help in avoiding local minima, ensuring better global optimization.
+- **Performance Metrics**: They adapt based on performance metrics such as AP50 and F1-score.
+
+To see how genetic algorithms can optimize hyperparameters, check out the [hyperparameter evolution guide](../yolov5/tutorials/hyperparameter_evolution.md).
+
+### How long does the hyperparameter tuning process take for Ultralytics YOLO?
+
+The time required for hyperparameter tuning with Ultralytics YOLO largely depends on several factors such as the size of the dataset, the complexity of the model architecture, the number of iterations, and the computational resources available. For instance, tuning YOLO11n on a dataset like COCO8 for 30 epochs might take several hours to days, depending on the hardware.
+
+To effectively manage tuning time, define a clear tuning budget beforehand ([internal section link](#preparing-for-hyperparameter-tuning)). This helps in balancing resource allocation and optimization goals.
+
+### What metrics should I use to evaluate model performance during hyperparameter tuning in YOLO?
+
+When evaluating model performance during hyperparameter tuning in YOLO, you can use several key metrics:
+
+- **AP50**: The average precision at IoU threshold of 0.50.
+- **F1-Score**: The harmonic mean of precision and recall.
+- **Precision and Recall**: Individual metrics indicating the model's [accuracy](https://www.ultralytics.com/glossary/accuracy) in identifying true positives versus false positives and false negatives.
+
+These metrics help you understand different aspects of your model's performance. Refer to the [Ultralytics YOLO performance metrics](../guides/yolo-performance-metrics.md) guide for a comprehensive overview.
+
+### Can I use Ultralytics HUB for hyperparameter tuning of YOLO models?
+
+Yes, you can use Ultralytics HUB for hyperparameter tuning of YOLO models. The HUB offers a no-code platform to easily upload datasets, train models, and perform hyperparameter tuning efficiently. It provides real-time tracking and visualization of tuning progress and results.
+
+Explore more about using Ultralytics HUB for hyperparameter tuning in the [Ultralytics HUB Cloud Training](../hub/cloud-training.md) documentation.

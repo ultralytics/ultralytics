@@ -1,5 +1,6 @@
 #![allow(clippy::type_complexity)]
 
+use ab_glyph::FontArc;
 use anyhow::Result;
 use image::{DynamicImage, GenericImageView, ImageBuffer};
 use ndarray::{s, Array, Axis, IxDyn};
@@ -7,7 +8,7 @@ use rand::{thread_rng, Rng};
 use std::path::PathBuf;
 
 use crate::{
-    check_font, gen_time_string, non_max_suppression, Args, Batch, Bbox, Embedding, OrtBackend,
+    gen_time_string, load_font, non_max_suppression, Args, Batch, Bbox, Embedding, OrtBackend,
     OrtConfig, OrtEP, Point2, YOLOResult, YOLOTask, SKELETON,
 };
 
@@ -36,9 +37,9 @@ impl YOLOv8 {
         let ep = if config.trt {
             OrtEP::Trt(config.device_id)
         } else if config.cuda {
-            OrtEP::Cuda(config.device_id)
+            OrtEP::CUDA(config.device_id)
         } else {
-            OrtEP::Cpu
+            OrtEP::CPU
         };
 
         // batch
@@ -330,12 +331,19 @@ impl YOLOv8 {
 
                         // coefs * proto -> mask
                         let coefs = Array::from_shape_vec((1, nm), coefs)?; // (n, nm)
-                        let proto = proto.to_owned().into_shape((nm, nh * nw))?; // (nm, nh*nw)
-                        let mask = coefs.dot(&proto).into_shape((nh, nw, 1))?; // (nh, nw, n)
+
+                        let proto = proto.to_owned();
+                        let proto = proto.to_shape((nm, nh * nw))?; // (nm, nh*nw)
+                        let mask = coefs.dot(&proto); // (nh, nw, n)
+                        let mask = mask.to_shape((nh, nw, 1))?;
 
                         // build image from ndarray
                         let mask_im: ImageBuffer<image::Luma<_>, Vec<f32>> =
-                            match ImageBuffer::from_raw(nw as u32, nh as u32, mask.into_raw_vec()) {
+                            match ImageBuffer::from_raw(
+                                nw as u32,
+                                nh as u32,
+                                mask.to_owned().into_raw_vec_and_offset().0,
+                            ) {
                                 Some(image) => image,
                                 None => panic!("can not create image from ndarray"),
                             };
@@ -410,7 +418,7 @@ impl YOLOv8 {
         skeletons: Option<&[(usize, usize)]>,
     ) {
         // check font then load
-        let font = check_font("Arial.ttf");
+        let font: FontArc = load_font();
         for (_idb, (img0, y)) in xs0.iter().zip(ys.iter()).enumerate() {
             let mut img = img0.to_rgb8();
 
@@ -422,12 +430,13 @@ impl YOLOv8 {
                     let legend_size = img.width().max(img.height()) / scale;
                     let x = img.width() / 20;
                     let y = img.height() / 20 + i as u32 * legend_size;
+
                     imageproc::drawing::draw_text_mut(
                         &mut img,
                         image::Rgb([0, 255, 0]),
                         x as i32,
                         y as i32,
-                        rusttype::Scale::uniform(legend_size as f32 - 1.),
+                        legend_size as f32,
                         &font,
                         &legend,
                     );
@@ -454,7 +463,7 @@ impl YOLOv8 {
                         image::Rgb(self.color_palette[bbox.id()].into()),
                         bbox.xmin() as i32,
                         (bbox.ymin() - legend_size as f32) as i32,
-                        rusttype::Scale::uniform(legend_size as f32 - 1.),
+                        legend_size as f32,
                         &font,
                         &legend,
                     );
@@ -551,7 +560,7 @@ impl YOLOv8 {
                 None => String::from(""),
             },
             self.engine.ep(),
-            if let OrtEP::Cpu = self.engine.ep() {
+            if let OrtEP::CPU = self.engine.ep() {
                 ""
             } else {
                 "(May still fall back to CPU)"

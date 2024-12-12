@@ -5,15 +5,15 @@ keywords: Ultralytics, YOLO, World Model, training, deep learning, computer visi
 
 # Reference for `ultralytics/models/yolo/world/train.py`
 
-!!! Note
+!!! note
 
     This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/yolo/world/train.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/yolo/world/train.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/models/yolo/world/train.py) 🛠️. Thank you 🙏!
 
-<br><br>
+<br>
 
 ## ::: ultralytics.models.yolo.world.train.WorldTrainer
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.models.yolo.world.train.on_pretrain_routine_end
 

@@ -1,6 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-import contextlib
 import re
 import shutil
 import subprocess
@@ -17,12 +16,13 @@ from ultralytics.utils import LOGGER, TQDM, checks, clean_url, emojis, is_online
 # Define Ultralytics GitHub assets maintained at https://github.com/ultralytics/assets
 GITHUB_ASSETS_REPO = "ultralytics/assets"
 GITHUB_ASSETS_NAMES = (
-    [f"yolov8{k}{suffix}.pt" for k in "nsmlx" for suffix in ("", "-cls", "-seg", "-pose", "-obb")]
+    [f"yolov8{k}{suffix}.pt" for k in "nsmlx" for suffix in ("", "-cls", "-seg", "-pose", "-obb", "-oiv7")]
+    + [f"yolo11{k}{suffix}.pt" for k in "nsmlx" for suffix in ("", "-cls", "-seg", "-pose", "-obb")]
     + [f"yolov5{k}{resolution}u.pt" for k in "nsmlx" for resolution in ("", "6")]
     + [f"yolov3{k}u.pt" for k in ("", "-spp", "-tiny")]
     + [f"yolov8{k}-world.pt" for k in "smlx"]
     + [f"yolov8{k}-worldv2.pt" for k in "smlx"]
-    + [f"yolov9{k}.pt" for k in "ce"]
+    + [f"yolov9{k}.pt" for k in "tsmce"]
     + [f"yolov10{k}.pt" for k in "nsmblx"]
     + [f"yolo_nas_{k}.pt" for k in "sml"]
     + [f"sam_{k}.pt" for k in "bl"]
@@ -41,7 +41,7 @@ def is_url(url, check=False):
     Args:
         url (str): The string to be validated as a URL.
         check (bool, optional): If True, performs an additional check to see if the URL exists online.
-            Defaults to True.
+            Defaults to False.
 
     Returns:
         (bool): Returns True for a valid URL. If 'check' is True, also returns True if the URL exists online.
@@ -52,7 +52,7 @@ def is_url(url, check=False):
         valid = is_url("https://www.example.com")
         ```
     """
-    with contextlib.suppress(Exception):
+    try:
         url = str(url)
         result = parse.urlparse(url)
         assert all([result.scheme, result.netloc])  # check if is url
@@ -60,7 +60,8 @@ def is_url(url, check=False):
             with request.urlopen(url) as response:
                 return response.getcode() == 200  # check if exists online
         return True
-    return False
+    except Exception:
+        return False
 
 
 def delete_dsstore(path, files_to_delete=(".DS_Store", "__MACOSX")):
@@ -75,7 +76,7 @@ def delete_dsstore(path, files_to_delete=(".DS_Store", "__MACOSX")):
         ```python
         from ultralytics.utils.downloads import delete_dsstore
 
-        delete_dsstore('path/to/dir')
+        delete_dsstore("path/to/dir")
         ```
 
     Note:
@@ -107,7 +108,7 @@ def zip_directory(directory, compress=True, exclude=(".DS_Store", "__MACOSX"), p
         ```python
         from ultralytics.utils.downloads import zip_directory
 
-        file = zip_directory('path/to/dir')
+        file = zip_directory("path/to/dir")
         ```
     """
     from zipfile import ZIP_DEFLATED, ZIP_STORED, ZipFile
@@ -153,7 +154,7 @@ def unzip_file(file, path=None, exclude=(".DS_Store", "__MACOSX"), exist_ok=Fals
         ```python
         from ultralytics.utils.downloads import unzip_file
 
-        dir = unzip_file('path/to/file.zip')
+        dir = unzip_file("path/to/file.zip")
         ```
     """
     from zipfile import BadZipFile, ZipFile, is_zipfile
@@ -194,14 +195,14 @@ def unzip_file(file, path=None, exclude=(".DS_Store", "__MACOSX"), exist_ok=Fals
     return path  # return unzip dir
 
 
-def check_disk_space(url="https://ultralytics.com/assets/coco128.zip", path=Path.cwd(), sf=1.5, hard=True):
+def check_disk_space(url="https://ultralytics.com/assets/coco8.zip", path=Path.cwd(), sf=1.5, hard=True):
     """
     Check if there is sufficient disk space to download and store a file.
 
     Args:
-        url (str, optional): The URL to the file. Defaults to 'https://ultralytics.com/assets/coco128.zip'.
+        url (str, optional): The URL to the file. Defaults to 'https://ultralytics.com/assets/coco8.zip'.
         path (str | Path, optional): The path or drive to check the available free space on.
-        sf (float, optional): Safety factor, the multiplier for the required free space. Defaults to 2.0.
+        sf (float, optional): Safety factor, the multiplier for the required free space. Defaults to 1.5.
         hard (bool, optional): Whether to throw an error or not on insufficient disk space. Defaults to True.
 
     Returns:
@@ -320,7 +321,11 @@ def safe_download(
     if "://" not in str(url) and Path(url).is_file():  # URL exists ('://' check required in Windows Python<3.10)
         f = Path(url)  # filename
     elif not f.is_file():  # URL and file do not exist
-        desc = f"Downloading {url if gdrive else clean_url(url)} to '{f}'"
+        uri = (url if gdrive else clean_url(url)).replace(  # cleaned and aliased url
+            "https://github.com/ultralytics/assets/releases/download/v0.0.0/",
+            "https://ultralytics.com/assets/",  # assets alias
+        )
+        desc = f"Downloading {uri} to '{f}'"
         LOGGER.info(f"{desc}...")
         f.parent.mkdir(parents=True, exist_ok=True)  # make directory if missing
         check_disk_space(url, path=f.parent)
@@ -354,10 +359,10 @@ def safe_download(
                     f.unlink()  # remove partial downloads
             except Exception as e:
                 if i == 0 and not is_online():
-                    raise ConnectionError(emojis(f"❌  Download failure for {url}. Environment is not online.")) from e
+                    raise ConnectionError(emojis(f"❌  Download failure for {uri}. Environment is not online.")) from e
                 elif i >= retry:
-                    raise ConnectionError(emojis(f"❌  Download failure for {url}. Retry limit reached.")) from e
-                LOGGER.warning(f"⚠️ Download failure, retrying {i + 1}/{retry} {url}...")
+                    raise ConnectionError(emojis(f"❌  Download failure for {uri}. Retry limit reached.")) from e
+                LOGGER.warning(f"⚠️ Download failure, retrying {i + 1}/{retry} {uri}...")
 
     if unzip and f.exists() and f.suffix in {"", ".zip", ".tar", ".gz"}:
         from zipfile import is_zipfile
@@ -388,7 +393,7 @@ def get_github_assets(repo="ultralytics/assets", version="latest", retry=False):
 
     Example:
         ```python
-        tag, assets = get_github_assets(repo='ultralytics/assets', version='latest')
+        tag, assets = get_github_assets(repo="ultralytics/assets", version="latest")
         ```
     """
     if version != "latest":
@@ -404,7 +409,7 @@ def get_github_assets(repo="ultralytics/assets", version="latest", retry=False):
     return data["tag_name"], [x["name"] for x in data["assets"]]  # tag, assets i.e. ['yolov8n.pt', 'yolov8s.pt', ...]
 
 
-def attempt_download_asset(file, repo="ultralytics/assets", release="v8.2.0", **kwargs):
+def attempt_download_asset(file, repo="ultralytics/assets", release="v8.3.0", **kwargs):
     """
     Attempt to download a file from GitHub release assets if it is not found locally. The function checks for the file
     locally first, then tries to download it from the specified GitHub repository release.
@@ -412,7 +417,7 @@ def attempt_download_asset(file, repo="ultralytics/assets", release="v8.2.0", **
     Args:
         file (str | Path): The filename or file path to be downloaded.
         repo (str, optional): The GitHub repository in the format 'owner/repo'. Defaults to 'ultralytics/assets'.
-        release (str, optional): The specific release version to be downloaded. Defaults to 'v8.2.0'.
+        release (str, optional): The specific release version to be downloaded. Defaults to 'v8.3.0'.
         **kwargs (any): Additional keyword arguments for the download process.
 
     Returns:
@@ -420,7 +425,7 @@ def attempt_download_asset(file, repo="ultralytics/assets", release="v8.2.0", **
 
     Example:
         ```python
-        file_path = attempt_download_asset('yolov8n.pt', repo='ultralytics/assets', release='latest')
+        file_path = attempt_download_asset("yolo11n.pt", repo="ultralytics/assets", release="latest")
         ```
     """
     from ultralytics.utils import SETTINGS  # scoped for circular import
@@ -475,7 +480,7 @@ def download(url, dir=Path.cwd(), unzip=True, delete=False, curl=False, threads=
 
     Example:
         ```python
-        download('https://ultralytics.com/assets/example.zip', dir='path/to/dir', unzip=True)
+        download("https://ultralytics.com/assets/example.zip", dir="path/to/dir", unzip=True)
         ```
     """
     dir = Path(dir)

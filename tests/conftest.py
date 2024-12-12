@@ -74,7 +74,7 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
 
     # Remove files
     models = [path for x in ["*.onnx", "*.torchscript"] for path in WEIGHTS_DIR.rglob(x)]
-    for file in ["bus.jpg", "yolov8n.onnx", "yolov8n.torchscript"] + models:
+    for file in ["bus.jpg", "yolo11n.onnx", "yolo11n.torchscript"] + models:
         Path(file).unlink(missing_ok=True)
 
     # Remove directories

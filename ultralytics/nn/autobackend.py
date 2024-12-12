@@ -1,7 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import ast
-import contextlib
 import json
 import platform
 import zipfile
@@ -45,8 +44,10 @@ def check_class_names(names):
 def default_class_names(data=None):
     """Applies default class names to an input YAML file or returns numerical class names."""
     if data:
-        with contextlib.suppress(Exception):
+        try:
             return yaml_load(check_yaml(data))["names"]
+        except Exception:
+            pass
     return {i: f"class{i}" for i in range(999)}  # return default if above errors
 
 
@@ -58,21 +59,22 @@ class AutoBackend(nn.Module):
     range of formats, each with specific naming conventions as outlined below:
 
         Supported Formats and Naming Conventions:
-            | Format                | File Suffix      |
-            |-----------------------|------------------|
-            | PyTorch               | *.pt             |
-            | TorchScript           | *.torchscript    |
-            | ONNX Runtime          | *.onnx           |
-            | ONNX OpenCV DNN       | *.onnx (dnn=True)|
-            | OpenVINO              | *openvino_model/ |
-            | CoreML                | *.mlpackage      |
-            | TensorRT              | *.engine         |
-            | TensorFlow SavedModel | *_saved_model    |
-            | TensorFlow GraphDef   | *.pb             |
-            | TensorFlow Lite       | *.tflite         |
-            | TensorFlow Edge TPU   | *_edgetpu.tflite |
-            | PaddlePaddle          | *_paddle_model   |
-            | NCNN                  | *_ncnn_model     |
+            | Format                | File Suffix       |
+            |-----------------------|-------------------|
+            | PyTorch               | *.pt              |
+            | TorchScript           | *.torchscript     |
+            | ONNX Runtime          | *.onnx            |
+            | ONNX OpenCV DNN       | *.onnx (dnn=True) |
+            | OpenVINO              | *openvino_model/  |
+            | CoreML                | *.mlpackage       |
+            | TensorRT              | *.engine          |
+            | TensorFlow SavedModel | *_saved_model/    |
+            | TensorFlow GraphDef   | *.pb              |
+            | TensorFlow Lite       | *.tflite          |
+            | TensorFlow Edge TPU   | *_edgetpu.tflite  |
+            | PaddlePaddle          | *_paddle_model/   |
+            | MNN                   | *.mnn             |
+            | NCNN                  | *_ncnn_model/     |
 
     This class offers dynamic backend switching capabilities based on the input model format, making it easier to deploy
     models across various platforms.
@@ -81,7 +83,7 @@ class AutoBackend(nn.Module):
     @torch.no_grad()
     def __init__(
         self,
-        weights="yolov8n.pt",
+        weights="yolo11n.pt",
         device=torch.device("cpu"),
         dnn=False,
         data=None,
@@ -94,7 +96,7 @@ class AutoBackend(nn.Module):
         Initialize the AutoBackend for inference.
 
         Args:
-            weights (str): Path to the model weights file. Defaults to 'yolov8n.pt'.
+            weights (str | torch.nn.Module): Path to the model weights file or a module instance. Defaults to 'yolo11n.pt'.
             device (torch.device): Device to run the model on. Defaults to CPU.
             dnn (bool): Use OpenCV DNN module for ONNX inference. Defaults to False.
             data (str | Path | optional): Path to the additional data.yaml file containing class names. Optional.
@@ -119,13 +121,15 @@ class AutoBackend(nn.Module):
             edgetpu,
             tfjs,
             paddle,
+            mnn,
             ncnn,
+            imx,
             triton,
         ) = self._model_type(w)
         fp16 &= pt or jit or onnx or xml or engine or nn_module or triton  # FP16
         nhwc = coreml or saved_model or pb or tflite or edgetpu  # BHWC formats (vs torch BCWH)
         stride = 32  # default stride
-        model, metadata = None, None
+        model, metadata, task = None, None, None
 
         # Set device
         cuda = torch.cuda.is_available() and device.type != "cpu"  # use CUDA
@@ -179,8 +183,8 @@ class AutoBackend(nn.Module):
             check_requirements("opencv-python>=4.5.4")
             net = cv2.dnn.readNetFromONNX(w)
 
-        # ONNX Runtime
-        elif onnx:
+        # ONNX Runtime and IMX
+        elif onnx or imx:
             LOGGER.info(f"Loading {w} for ONNX Runtime inference...")
             check_requirements(("onnx", "onnxruntime-gpu" if cuda else "onnxruntime"))
             if IS_RASPBERRYPI or IS_JETSON:
@@ -188,10 +192,47 @@ class AutoBackend(nn.Module):
                 check_requirements("numpy==1.23.5")
             import onnxruntime
 
-            providers = ["CUDAExecutionProvider", "CPUExecutionProvider"] if cuda else ["CPUExecutionProvider"]
-            session = onnxruntime.InferenceSession(w, providers=providers)
+            providers = onnxruntime.get_available_providers()
+            if not cuda and "CUDAExecutionProvider" in providers:
+                providers.remove("CUDAExecutionProvider")
+            elif cuda and "CUDAExecutionProvider" not in providers:
+                LOGGER.warning("WARNING ⚠️ Failed to start ONNX Runtime session with CUDA. Falling back to CPU...")
+                device = torch.device("cpu")
+                cuda = False
+            LOGGER.info(f"Preferring ONNX Runtime {providers[0]}")
+            if onnx:
+                session = onnxruntime.InferenceSession(w, providers=providers)
+            else:
+                check_requirements(
+                    ["model-compression-toolkit==2.1.1", "sony-custom-layers[torch]==0.2.0", "onnxruntime-extensions"]
+                )
+                w = next(Path(w).glob("*.onnx"))
+                LOGGER.info(f"Loading {w} for ONNX IMX inference...")
+                import mct_quantizers as mctq
+                from sony_custom_layers.pytorch.object_detection import nms_ort  # noqa
+
+                session = onnxruntime.InferenceSession(
+                    w, mctq.get_ort_session_options(), providers=["CPUExecutionProvider"]
+                )
+                task = "detect"
+
             output_names = [x.name for x in session.get_outputs()]
             metadata = session.get_modelmeta().custom_metadata_map
+            dynamic = isinstance(session.get_outputs()[0].shape[0], str)
+            if not dynamic:
+                io = session.io_binding()
+                bindings = []
+                for output in session.get_outputs():
+                    y_tensor = torch.empty(output.shape, dtype=torch.float16 if fp16 else torch.float32).to(device)
+                    io.bind_output(
+                        name=output.name,
+                        device_type=device.type,
+                        device_id=device.index if cuda else 0,
+                        element_type=np.float16 if fp16 else np.float32,
+                        shape=tuple(y_tensor.shape),
+                        buffer_ptr=y_tensor.data_ptr(),
+                    )
+                    bindings.append(y_tensor)
 
         # OpenVINO
         elif xml:
@@ -225,9 +266,10 @@ class AutoBackend(nn.Module):
                 import tensorrt as trt  # noqa https://developer.nvidia.com/nvidia-tensorrt-download
             except ImportError:
                 if LINUX:
-                    check_requirements("tensorrt", cmds="-U")
+                    check_requirements("tensorrt>7.0.0,!=10.1.0")
                 import tensorrt as trt  # noqa
-            check_version(trt.__version__, "7.0.0", hard=True)  # require tensorrt>=7.0.0
+            check_version(trt.__version__, ">=7.0.0", hard=True)
+            check_version(trt.__version__, "!=10.1.0", msg="https://github.com/ultralytics/ultralytics/pull/14239")
             if device.type == "cpu":
                 device = torch.device("cuda:0")
             Binding = namedtuple("Binding", ("name", "dtype", "shape", "data", "ptr"))
@@ -263,8 +305,8 @@ class AutoBackend(nn.Module):
                         if -1 in tuple(model.get_tensor_shape(name)):
                             dynamic = True
                             context.set_input_shape(name, tuple(model.get_tensor_profile_shape(name, 0)[1]))
-                            if dtype == np.float16:
-                                fp16 = True
+                        if dtype == np.float16:
+                            fp16 = True
                     else:
                         output_names.append(name)
                     shape = tuple(context.get_tensor_shape(name))
@@ -320,8 +362,10 @@ class AutoBackend(nn.Module):
             with open(w, "rb") as f:
                 gd.ParseFromString(f.read())
             frozen_func = wrap_frozen_graph(gd, inputs="x:0", outputs=gd_outputs(gd))
-            with contextlib.suppress(StopIteration):  # find metadata in SavedModel alongside GraphDef
+            try:  # find metadata in SavedModel alongside GraphDef
                 metadata = next(Path(w).resolve().parent.rglob(f"{Path(w).stem}_saved_model*/metadata.yaml"))
+            except StopIteration:
+                pass
 
         # TFLite or TFLite Edge TPU
         elif tflite or edgetpu:  # https://www.tensorflow.org/lite/guide/python#install_tensorflow_lite_for_python
@@ -332,11 +376,16 @@ class AutoBackend(nn.Module):
 
                 Interpreter, load_delegate = tf.lite.Interpreter, tf.lite.experimental.load_delegate
             if edgetpu:  # TF Edge TPU https://coral.ai/software/#edgetpu-runtime
-                LOGGER.info(f"Loading {w} for TensorFlow Lite Edge TPU inference...")
+                device = device[3:] if str(device).startswith("tpu") else ":0"
+                LOGGER.info(f"Loading {w} on device {device[1:]} for TensorFlow Lite Edge TPU inference...")
                 delegate = {"Linux": "libedgetpu.so.1", "Darwin": "libedgetpu.1.dylib", "Windows": "edgetpu.dll"}[
                     platform.system()
                 ]
-                interpreter = Interpreter(model_path=w, experimental_delegates=[load_delegate(delegate)])
+                interpreter = Interpreter(
+                    model_path=w,
+                    experimental_delegates=[load_delegate(delegate, options={"device": device})],
+                )
+                device = "cpu"  # Required, otherwise PyTorch will try to use the wrong device
             else:  # TFLite
                 LOGGER.info(f"Loading {w} for TensorFlow Lite inference...")
                 interpreter = Interpreter(model_path=w)  # load TFLite model
@@ -344,10 +393,12 @@ class AutoBackend(nn.Module):
             input_details = interpreter.get_input_details()  # inputs
             output_details = interpreter.get_output_details()  # outputs
             # Load metadata
-            with contextlib.suppress(zipfile.BadZipFile):
+            try:
                 with zipfile.ZipFile(w, "r") as model:
                     meta_file = model.namelist()[0]
                     metadata = ast.literal_eval(model.read(meta_file).decode("utf-8"))
+            except zipfile.BadZipFile:
+                pass
 
         # TF.js
         elif tfjs:
@@ -370,6 +421,26 @@ class AutoBackend(nn.Module):
             output_names = predictor.get_output_names()
             metadata = w.parents[1] / "metadata.yaml"
 
+        # MNN
+        elif mnn:
+            LOGGER.info(f"Loading {w} for MNN inference...")
+            check_requirements("MNN")  # requires MNN
+            import os
+
+            import MNN
+
+            config = {}
+            config["precision"] = "low"
+            config["backend"] = "CPU"
+            config["numThread"] = (os.cpu_count() + 1) // 2
+            rt = MNN.nn.create_runtime_manager((config,))
+            net = MNN.nn.load_module_from_file(w, [], [], runtime_manager=rt, rearrange=True)
+
+            def torch_to_mnn(x):
+                return MNN.expr.const(x.data_ptr(), x.shape)
+
+            metadata = json.loads(net.get_info()["bizCode"])
+
         # NCNN
         elif ncnn:
             LOGGER.info(f"Loading {w} for NCNN inference...")
@@ -391,14 +462,15 @@ class AutoBackend(nn.Module):
             from ultralytics.utils.triton import TritonRemoteModel
 
             model = TritonRemoteModel(w)
+            metadata = model.metadata
 
         # Any other format (unsupported)
         else:
             from ultralytics.engine.exporter import export_formats
 
             raise TypeError(
-                f"model='{w}' is not a supported model format. "
-                f"See https://docs.ultralytics.com/modes/predict for help.\n\n{export_formats()}"
+                f"model='{w}' is not a supported model format. Ultralytics supports: {export_formats()['Format']}\n"
+                f"See https://docs.ultralytics.com/modes/predict for help."
             )
 
         # Load external metadata YAML
@@ -465,9 +537,26 @@ class AutoBackend(nn.Module):
             y = self.net.forward()
 
         # ONNX Runtime
-        elif self.onnx:
-            im = im.cpu().numpy()  # torch to numpy
-            y = self.session.run(self.output_names, {self.session.get_inputs()[0].name: im})
+        elif self.onnx or self.imx:
+            if self.dynamic:
+                im = im.cpu().numpy()  # torch to numpy
+                y = self.session.run(self.output_names, {self.session.get_inputs()[0].name: im})
+            else:
+                if not self.cuda:
+                    im = im.cpu()
+                self.io.bind_input(
+                    name="images",
+                    device_type=im.device.type,
+                    device_id=im.device.index if im.device.type == "cuda" else 0,
+                    element_type=np.float16 if self.fp16 else np.float32,
+                    shape=tuple(im.shape),
+                    buffer_ptr=im.data_ptr(),
+                )
+                self.session.run_with_iobinding(self.io)
+                y = self.bindings
+            if self.imx:
+                # boxes, conf, cls
+                y = np.concatenate([y[0], y[1][:, :, None], y[2][:, :, None]], axis=-1)
 
         # OpenVINO
         elif self.xml:
@@ -495,7 +584,7 @@ class AutoBackend(nn.Module):
 
         # TensorRT
         elif self.engine:
-            if self.dynamic or im.shape != self.bindings["images"].shape:
+            if self.dynamic and im.shape != self.bindings["images"].shape:
                 if self.is_trt10:
                     self.context.set_input_shape("images", im.shape)
                     self.bindings["images"] = self.bindings["images"]._replace(shape=im.shape)
@@ -543,6 +632,12 @@ class AutoBackend(nn.Module):
             self.predictor.run()
             y = [self.predictor.get_output_handle(x).copy_to_cpu() for x in self.output_names]
 
+        # MNN
+        elif self.mnn:
+            input_var = self.torch_to_mnn(im)
+            output_var = self.net.onForward([input_var])
+            y = [x.read() for x in output_var]
+
         # NCNN
         elif self.ncnn:
             mat_in = self.pyncnn.Mat(im[0].cpu().numpy())
@@ -565,10 +660,6 @@ class AutoBackend(nn.Module):
                     y = [y]
             elif self.pb:  # GraphDef
                 y = self.frozen_func(x=self.tf.constant(im))
-                if (self.task == "segment" or len(y) == 2) and len(self.names) == 999:  # segments and names not defined
-                    ip, ib = (0, 1) if len(y[0].shape) == 4 else (1, 0)  # index of protos, boxes
-                    nc = y[ib].shape[1] - y[ip].shape[3] - 4  # y = (1, 160, 160, 32), (1, 116, 8400)
-                    self.names = {i: f"class{i}" for i in range(nc)}
             else:  # Lite or Edge TPU
                 details = self.input_details[0]
                 is_int = details["dtype"] in {np.int8, np.int16}  # is TFLite quantized int8 or int16 model
@@ -586,19 +677,32 @@ class AutoBackend(nn.Module):
                     if x.ndim == 3:  # if task is not classification, excluding masks (ndim=4) as well
                         # Denormalize xywh by image size. See https://github.com/ultralytics/ultralytics/pull/1695
                         # xywh are normalized in TFLite/EdgeTPU to mitigate quantization error of integer models
-                        x[:, [0, 2]] *= w
-                        x[:, [1, 3]] *= h
+                        if x.shape[-1] == 6:  # end-to-end model
+                            x[:, :, [0, 2]] *= w
+                            x[:, :, [1, 3]] *= h
+                        else:
+                            x[:, [0, 2]] *= w
+                            x[:, [1, 3]] *= h
+                            if self.task == "pose":
+                                x[:, 5::3] *= w
+                                x[:, 6::3] *= h
                     y.append(x)
             # TF segment fixes: export is reversed vs ONNX export and protos are transposed
             if len(y) == 2:  # segment with (det, proto) output order reversed
                 if len(y[1].shape) != 4:
                     y = list(reversed(y))  # should be y = (1, 116, 8400), (1, 160, 160, 32)
-                y[1] = np.transpose(y[1], (0, 3, 1, 2))  # should be y = (1, 116, 8400), (1, 32, 160, 160)
+                if y[1].shape[-1] == 6:  # end-to-end model
+                    y = [y[1]]
+                else:
+                    y[1] = np.transpose(y[1], (0, 3, 1, 2))  # should be y = (1, 116, 8400), (1, 32, 160, 160)
             y = [x if isinstance(x, np.ndarray) else x.numpy() for x in y]
 
         # for x in y:
         #     print(type(x), len(x)) if isinstance(x, (list, tuple)) else print(type(x), x.shape)  # debug shapes
         if isinstance(y, (list, tuple)):
+            if len(self.names) == 999 and (self.task == "segment" or len(y) == 2):  # segments and names not defined
+                nc = y[0].shape[1] - y[1].shape[1] - 4  # y = (1, 32, 160, 160), (1, 116, 8400)
+                self.names = {i: f"class{i}" for i in range(nc)}
             return self.from_numpy(y[0]) if len(y) == 1 else [self.from_numpy(x) for x in y]
         else:
             return self.from_numpy(y)
@@ -633,8 +737,8 @@ class AutoBackend(nn.Module):
     @staticmethod
     def _model_type(p="path/to/model.pt"):
         """
-        This function takes a path to a model file and returns the model type. Possibles types are pt, jit, onnx, xml,
-        engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, ncnn or paddle.
+        Takes a path to a model file and returns the model type. Possibles types are pt, jit, onnx, xml, engine, coreml,
+        saved_model, pb, tflite, edgetpu, tfjs, ncnn or paddle.
 
         Args:
             p: path to the model file. Defaults to path/to/model.pt
@@ -645,7 +749,7 @@ class AutoBackend(nn.Module):
         """
         from ultralytics.engine.exporter import export_formats
 
-        sf = list(export_formats().Suffix)  # export suffixes
+        sf = export_formats()["Suffix"]  # export suffixes
         if not is_url(p) and not isinstance(p, str):
             check_suffix(p, sf)  # checks
         name = Path(p).name

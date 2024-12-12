@@ -18,6 +18,8 @@ from ultralytics.utils.torch_utils import select_device
 
 
 class TorchVisionVideoClassifier:
+    """Classifies videos using pretrained TorchVision models; see https://pytorch.org/vision/stable/."""
+
     from torchvision.models.video import (
         MViT_V1_B_Weights,
         MViT_V2_S_Weights,
@@ -133,6 +135,8 @@ class TorchVisionVideoClassifier:
 
 
 class HuggingFaceVideoClassifier:
+    """Zero-shot video classifier using Hugging Face models for various devices."""
+
     def __init__(
         self,
         labels: List[str],
@@ -171,13 +175,13 @@ class HuggingFaceVideoClassifier:
         """
         if input_size is None:
             input_size = [224, 224]
-        from torchvision.transforms import v2
+        from torchvision import transforms
 
-        transform = v2.Compose(
+        transform = transforms.Compose(
             [
-                v2.ToDtype(torch.float32, scale=True),
-                v2.Resize(input_size, antialias=True),
-                v2.Normalize(
+                transforms.Lambda(lambda x: x.float() / 255.0),
+                transforms.Resize(input_size),
+                transforms.Normalize(
                     mean=self.processor.image_processor.image_mean, std=self.processor.image_processor.image_std
                 ),
             ]
@@ -259,7 +263,7 @@ def crop_and_pad(frame, box, margin_percent):
 
 
 def run(
-    weights: str = "yolov8n.pt",
+    weights: str = "yolo11n.pt",
     device: str = "",
     source: str = "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
     output_path: Optional[str] = None,
@@ -275,7 +279,7 @@ def run(
     Run action recognition on a video source using YOLO for object detection and a video classifier.
 
     Args:
-        weights (str): Path to the YOLO model weights. Defaults to "yolov8n.pt".
+        weights (str): Path to the YOLO model weights. Defaults to "yolo11n.pt".
         device (str): Device to run the model on. Use 'cuda' for NVIDIA GPU, 'mps' for Apple Silicon, or 'cpu'. Defaults to auto-detection.
         source (str): Path to mp4 video file or YouTube URL. Defaults to a sample YouTube video.
         output_path (Optional[str], optional): Path to save the output video. Defaults to None.
@@ -417,7 +421,7 @@ def run(
 def parse_opt():
     """Parse command line arguments."""
     parser = argparse.ArgumentParser()
-    parser.add_argument("--weights", type=str, default="yolov8n.pt", help="ultralytics detector model path")
+    parser.add_argument("--weights", type=str, default="yolo11n.pt", help="ultralytics detector model path")
     parser.add_argument("--device", default="", help='cuda device, i.e. 0 or 0,1,2,3 or cpu/mps, "" for auto-detection')
     parser.add_argument(
         "--source",

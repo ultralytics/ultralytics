@@ -5,75 +5,83 @@ keywords: Ultralytics, YOLO, nn tasks, DetectionModel, PoseModel, RTDETRDetectio
 
 # Reference for `ultralytics/nn/tasks.py`
 
-!!! Note
+!!! note
 
     This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/tasks.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/tasks.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/nn/tasks.py) 🛠️. Thank you 🙏!
 
-<br><br>
+<br>
 
 ## ::: ultralytics.nn.tasks.BaseModel
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.nn.tasks.DetectionModel
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.nn.tasks.OBBModel
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.nn.tasks.SegmentationModel
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.nn.tasks.PoseModel
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.nn.tasks.ClassificationModel
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.nn.tasks.RTDETRDetectionModel
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.nn.tasks.WorldModel
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.nn.tasks.Ensemble
 
-<br><br>
+<br><br><hr><br>
+
+## ::: ultralytics.nn.tasks.SafeClass
+
+<br><br><hr><br>
+
+## ::: ultralytics.nn.tasks.SafeUnpickler
+
+<br><br><hr><br>
 
 ## ::: ultralytics.nn.tasks.temporary_modules
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.nn.tasks.torch_safe_load
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.nn.tasks.attempt_load_weights
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.nn.tasks.attempt_load_one_weight
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.nn.tasks.parse_model
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.nn.tasks.yaml_model_load
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.nn.tasks.guess_model_scale
 
-<br><br>
+<br><br><hr><br>
 
 ## ::: ultralytics.nn.tasks.guess_model_task
 

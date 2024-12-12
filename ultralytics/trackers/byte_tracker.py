@@ -129,6 +129,9 @@ class STrack(BaseTrack):
         if frame_id == 1:
             self.track_id = self.next_id()
             self.is_activated = True
+        else:
+            self.track_id = self.next_tentative_id()
+
         self.frame_id = frame_id
         self.start_frame = frame_id
 
@@ -366,7 +369,7 @@ class BYTETracker:
         matches, u_unconfirmed, u_detection = matching.linear_assignment(dists, thresh=0.7)
         for itracked, idet in matches:
             track = unconfirmed[itracked]
-            track.update(detections[idet], self.frame_id, new_id=(track.tracklet_len + 1 >= self.args.min_hits))
+            track.update(detections[idet], self.frame_id, new_id=(track.tracklet_len + 2 >= self.args.min_hits))
             activated_stracks.append(track)
         for it in u_unconfirmed:
             track = unconfirmed[it]

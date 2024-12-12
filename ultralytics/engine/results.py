@@ -16,7 +16,6 @@ from ultralytics.data.augment import LetterBox
 from ultralytics.utils import LOGGER, SimpleClass, ops
 from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.plotting import Annotator, colors, save_one_box
-from ultralytics.utils.torch_utils import smart_inference_mode
 
 
 class BaseTensor(SimpleClass):
@@ -1284,7 +1283,7 @@ class Keypoints(BaseTensor):
         >>> keypoints_cpu = keypoints.cpu()  # Move keypoints to CPU
     """
 
-    @smart_inference_mode()  # avoid keypoints < conf in-place error
+    # @smart_inference_mode()  # avoid keypoints < conf in-place error
     def __init__(self, keypoints, orig_shape) -> None:
         """
         Initializes the Keypoints object with detection keypoints and original image dimensions.
@@ -1303,6 +1302,9 @@ class Keypoints(BaseTensor):
             >>> orig_shape = (720, 1280)  # Original image height, width
             >>> keypoints = Keypoints(kpts, orig_shape)
         """
+        print("Keypoints" + "=" * 50)
+        print(f"inference mode: {torch.is_inference_mode_enabled()}")
+        print("Keypoints" + "=" * 50)
         if keypoints.ndim == 2:
             keypoints = keypoints[None, :]
         if keypoints.shape[2] == 3:  # x, y, conf

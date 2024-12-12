@@ -80,7 +80,8 @@ class AutoBackend(nn.Module):
     models across various platforms.
     """
 
-    @torch.no_grad()
+    # @torch.no_grad()
+    # @smart_inference_mode()
     def __init__(
         self,
         weights="yolo11n.pt",
@@ -503,6 +504,7 @@ class AutoBackend(nn.Module):
 
         self.__dict__.update(locals())  # assign all variables to self
 
+    # @smart_inference_mode()
     def forward(self, im, augment=False, visualize=False, embed=None):
         """
         Runs inference on the YOLOv8 MultiBackend model.

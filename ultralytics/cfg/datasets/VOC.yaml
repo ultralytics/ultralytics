@@ -76,7 +76,7 @@ download: |
 
   # Download
   dir = Path(yaml['path'])  # dataset root dir
-  url = 'https://github.com/ultralytics/yolov5/releases/download/v1.0/'
+  url = 'https://github.com/ultralytics/assets/releases/download/v0.0.0/'
   urls = [f'{url}VOCtrainval_06-Nov-2007.zip',  # 446MB, 5012 images
           f'{url}VOCtest_06-Nov-2007.zip',  # 438MB, 4953 images
           f'{url}VOCtrainval_11-May-2012.zip']  # 1.95GB, 17126 images

@@ -8,13 +8,13 @@ keywords: Ultralytics, YOLO, K-Fold Cross Validation, object detection, sklearn,
 
 ## Introduction
 
-This comprehensive guide illustrates the implementation of K-Fold Cross Validation for object detection datasets within the Ultralytics ecosystem. We'll leverage the YOLO detection format and key Python libraries such as sklearn, pandas, and PyYaml to guide you through the necessary setup, the process of generating feature vectors, and the execution of a K-Fold dataset split.
+This comprehensive guide illustrates the implementation of K-Fold Cross Validation for [object detection](https://www.ultralytics.com/glossary/object-detection) datasets within the Ultralytics ecosystem. We'll leverage the YOLO detection format and key Python libraries such as sklearn, pandas, and PyYaml to guide you through the necessary setup, the process of generating feature vectors, and the execution of a K-Fold dataset split.
 
 <p align="center">
-  <img width="800" src="https://user-images.githubusercontent.com/26833433/258589390-8d815058-ece8-48b9-a94e-0e1ab53ea0f6.png" alt="K-Fold Cross Validation Overview">
+  <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/k-fold-cross-validation-overview.avif" alt="K-Fold Cross Validation Overview">
 </p>
 
-Whether your project involves the Fruit Detection dataset or a custom data source, this tutorial aims to help you comprehend and apply K-Fold Cross Validation to bolster the reliability and robustness of your machine learning models. While we're applying `k=5` folds for this tutorial, keep in mind that the optimal number of folds can vary depending on your dataset and the specifics of your project.
+Whether your project involves the Fruit Detection dataset or a custom data source, this tutorial aims to help you comprehend and apply K-Fold Cross Validation to bolster the reliability and robustness of your [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) models. While we're applying `k=5` folds for this tutorial, keep in mind that the optimal number of folds can vary depending on your dataset and the specifics of your project.
 
 Without further ado, let's dive in!
 
@@ -82,7 +82,7 @@ Without further ado, let's dive in!
     ```python
     import pandas as pd
 
-    indx = [l.stem for l in labels]  # uses base filename as ID (no extension)
+    indx = [label.stem for label in labels]  # uses base filename as ID (no extension)
     labels_df = pd.DataFrame([], columns=cls_idx, index=indx)
     ```
 
@@ -97,9 +97,9 @@ Without further ado, let's dive in!
         with open(label, "r") as lf:
             lines = lf.readlines()
 
-        for l in lines:
+        for line in lines:
             # classes for YOLO label uses integer at first position of each line
-            lbl_counter[int(l.split(" ")[0])] += 1
+            lbl_counter[int(line.split(" ")[0])] += 1
 
         labels_df.loc[label.stem] = lbl_counter
 
@@ -263,6 +263,7 @@ fold_lbl_distrb.to_csv(save_path / "kfold_label_distribution.csv")
 
     for k in range(ksplit):
         dataset_yaml = ds_yamls[k]
+        model = YOLO(weights_path, task="detect")
         model.train(data=dataset_yaml, epochs=epochs, batch=batch, project=project)  # include any train arguments
         results[k] = model.metrics  # save output metrics for further analysis
     ```
@@ -280,3 +281,33 @@ Finally, we implemented the actual model training using each split in a loop, sa
 This technique of K-Fold cross-validation is a robust way of making the most out of your available data, and it helps to ensure that your model performance is reliable and consistent across different data subsets. This results in a more generalizable and reliable model that is less likely to overfit to specific data patterns.
 
 Remember that although we used YOLO in this guide, these steps are mostly transferable to other machine learning models. Understanding these steps allows you to apply cross-validation effectively in your own machine learning projects. Happy coding!
+
+## FAQ
+
+### What is K-Fold Cross Validation and why is it useful in object detection?
+
+K-Fold Cross Validation is a technique where the dataset is divided into 'k' subsets (folds) to evaluate model performance more reliably. Each fold serves as both training and [validation data](https://www.ultralytics.com/glossary/validation-data). In the context of object detection, using K-Fold Cross Validation helps to ensure your Ultralytics YOLO model's performance is robust and generalizable across different data splits, enhancing its reliability. For detailed instructions on setting up K-Fold Cross Validation with Ultralytics YOLO, refer to [K-Fold Cross Validation with Ultralytics](#introduction).
+
+### How do I implement K-Fold Cross Validation using Ultralytics YOLO?
+
+To implement K-Fold Cross Validation with Ultralytics YOLO, you need to follow these steps:
+
+1. Verify annotations are in the [YOLO detection format](../datasets/detect/index.md).
+2. Use Python libraries like `sklearn`, `pandas`, and `pyyaml`.
+3. Create feature vectors from your dataset.
+4. Split your dataset using `KFold` from `sklearn.model_selection`.
+5. Train the YOLO model on each split.
+
+For a comprehensive guide, see the [K-Fold Dataset Split](#k-fold-dataset-split) section in our documentation.
+
+### Why should I use Ultralytics YOLO for object detection?
+
+Ultralytics YOLO offers state-of-the-art, real-time object detection with high [accuracy](https://www.ultralytics.com/glossary/accuracy) and efficiency. It's versatile, supporting multiple [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) tasks such as detection, segmentation, and classification. Additionally, it integrates seamlessly with tools like Ultralytics HUB for no-code model training and deployment. For more details, explore the benefits and features on our [Ultralytics YOLO page](https://www.ultralytics.com/yolo).
+
+### How can I ensure my annotations are in the correct format for Ultralytics YOLO?
+
+Your annotations should follow the YOLO detection format. Each annotation file must list the object class, alongside its [bounding box](https://www.ultralytics.com/glossary/bounding-box) coordinates in the image. The YOLO format ensures streamlined and standardized data processing for training object detection models. For more information on proper annotation formatting, visit the [YOLO detection format guide](../datasets/detect/index.md).
+
+### Can I use K-Fold Cross Validation with custom datasets other than Fruit Detection?
+
+Yes, you can use K-Fold Cross Validation with any custom dataset as long as the annotations are in the YOLO detection format. Replace the dataset paths and class labels with those specific to your custom dataset. This flexibility ensures that any object detection project can benefit from robust model evaluation using K-Fold Cross Validation. For a practical example, review our [Generating Feature Vectors](#generating-feature-vectors-for-object-detection-dataset) section.

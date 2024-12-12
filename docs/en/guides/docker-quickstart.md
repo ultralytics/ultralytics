@@ -7,10 +7,10 @@ keywords: Ultralytics, Docker, Quickstart Guide, CPU support, GPU support, NVIDI
 # Docker Quickstart Guide for Ultralytics
 
 <p align="center">
-  <img width="800" src="https://user-images.githubusercontent.com/26833433/270173601-fc7011bd-e67c-452f-a31a-aa047dcd2771.png" alt="Ultralytics Docker Package Visual">
+  <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/ultralytics-docker-package-visual.avif" alt="Ultralytics Docker Package Visual">
 </p>
 
-This guide serves as a comprehensive introduction to setting up a Docker environment for your Ultralytics projects. [Docker](https://docker.com/) is a platform for developing, shipping, and running applications in containers. It is particularly beneficial for ensuring that the software will always run the same, regardless of where it's deployed. For more details, visit the Ultralytics Docker repository on [Docker Hub](https://hub.docker.com/r/ultralytics/ultralytics).
+This guide serves as a comprehensive introduction to setting up a Docker environment for your Ultralytics projects. [Docker](https://www.docker.com/) is a platform for developing, shipping, and running applications in containers. It is particularly beneficial for ensuring that the software will always run the same, regardless of where it's deployed. For more details, visit the Ultralytics Docker repository on [Docker Hub](https://hub.docker.com/r/ultralytics/ultralytics).
 
 [![Docker Image Version](https://img.shields.io/docker/v/ultralytics/ultralytics?sort=semver&logo=docker)](https://hub.docker.com/r/ultralytics/ultralytics)
 [![Docker Pulls](https://img.shields.io/docker/pulls/ultralytics/ultralytics)](https://hub.docker.com/r/ultralytics/ultralytics)
@@ -27,7 +27,7 @@ This guide serves as a comprehensive introduction to setting up a Docker environ
 
 ## Prerequisites
 
-- Make sure Docker is installed on your system. If not, you can download and install it from [Docker's website](https://www.docker.com/products/docker-desktop).
+- Make sure Docker is installed on your system. If not, you can download and install it from [Docker's website](https://www.docker.com/products/docker-desktop/).
 - Ensure that your system has an NVIDIA GPU and NVIDIA drivers are installed.
 
 ---
@@ -197,10 +197,10 @@ Setup and configuration of an X11 or Wayland display server is outside the scope
 
 ### Using Docker with a GUI
 
-Now you can display graphical applications inside your Docker container. For example, you can run the following [CLI command](../usage/cli.md) to visualize the [predictions](../modes/predict.md) from a [YOLOv8 model](../models/yolov8.md):
+Now you can display graphical applications inside your Docker container. For example, you can run the following [CLI command](../usage/cli.md) to visualize the [predictions](../modes/predict.md) from a [YOLO11 model](../models/yolo11.md):
 
 ```bash
-yolo predict model=yolov8n.pt show=True
+yolo predict model=yolo11n.pt show=True
 ```
 
 ??? info "Testing"
@@ -224,3 +224,60 @@ yolo predict model=yolov8n.pt show=True
 ---
 
 Congratulations! You're now set up to use Ultralytics with Docker and ready to take advantage of its powerful capabilities. For alternate installation methods, feel free to explore the [Ultralytics quickstart documentation](../quickstart.md).
+
+## FAQ
+
+### How do I set up Ultralytics with Docker?
+
+To set up Ultralytics with Docker, first ensure that Docker is installed on your system. If you have an NVIDIA GPU, install the NVIDIA Docker runtime to enable GPU support. Then, pull the latest Ultralytics Docker image from Docker Hub using the following command:
+
+```bash
+sudo docker pull ultralytics/ultralytics:latest
+```
+
+For detailed steps, refer to our [Docker Quickstart Guide](../quickstart.md).
+
+### What are the benefits of using Ultralytics Docker images for [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) projects?
+
+Using Ultralytics Docker images ensures a consistent environment across different machines, replicating the same software and dependencies. This is particularly useful for collaborating across teams, running models on various hardware, and maintaining reproducibility. For GPU-based training, Ultralytics provides optimized Docker images such as `Dockerfile` for general GPU usage and `Dockerfile-jetson` for NVIDIA Jetson devices. Explore [Ultralytics Docker Hub](https://hub.docker.com/r/ultralytics/ultralytics) for more details.
+
+### How can I run Ultralytics YOLO in a Docker container with GPU support?
+
+First, ensure that the NVIDIA Docker runtime is installed and configured. Then, use the following command to run Ultralytics YOLO with GPU support:
+
+```bash
+sudo docker run -it --ipc=host --gpus all ultralytics/ultralytics:latest
+```
+
+This command sets up a Docker container with GPU access. For additional details, see the [Docker Quickstart Guide](../quickstart.md).
+
+### How do I visualize YOLO prediction results in a Docker container with a display server?
+
+To visualize YOLO prediction results with a GUI in a Docker container, you need to allow Docker to access your display server. For systems running X11, the command is:
+
+```bash
+xhost +local:docker && docker run -e DISPLAY=$DISPLAY \
+-v /tmp/.X11-unix:/tmp/.X11-unix \
+-v ~/.Xauthority:/root/.Xauthority \
+-it --ipc=host ultralytics/ultralytics:latest
+```
+
+For systems running Wayland, use:
+
+```bash
+xhost +local:docker && docker run -e DISPLAY=$DISPLAY \
+-v $XDG_RUNTIME_DIR/$WAYLAND_DISPLAY:/tmp/$WAYLAND_DISPLAY \
+--net=host -it --ipc=host ultralytics/ultralytics:latest
+```
+
+More information can be found in the [Run graphical user interface (GUI) applications in a Docker Container](#run-graphical-user-interface-gui-applications-in-a-docker-container) section.
+
+### Can I mount local directories into the Ultralytics Docker container?
+
+Yes, you can mount local directories into the Ultralytics Docker container using the `-v` flag:
+
+```bash
+sudo docker run -it --ipc=host --gpus all -v /path/on/host:/path/in/container ultralytics/ultralytics:latest
+```
+
+Replace `/path/on/host` with the directory on your local machine and `/path/in/container` with the desired path inside the container. This setup allows you to work with your local files within the container. For more information, refer to the relevant section on [mounting local directories](../usage/python.md).

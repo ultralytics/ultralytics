@@ -49,6 +49,9 @@ elseif (APPLE)
     # set(ONNXRUNTIME_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/onnxruntime-osx-x64-${ONNXRUNTIME_VERSION}")
     # Apple Universal binary
     # set(ONNXRUNTIME_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/onnxruntime-osx-universal2-${ONNXRUNTIME_VERSION}")
+else ()
+    message(SEND_ERROR "Variable ONNXRUNTIME_ROOT is not set properly. Please check if your cmake project \
+    is not compiled with `-D WIN32=TRUE`, `-D LINUX=TRUE`, or `-D APPLE=TRUE`!")
 endif ()
 
 include_directories(${PROJECT_NAME} ${ONNXRUNTIME_ROOT}/include)

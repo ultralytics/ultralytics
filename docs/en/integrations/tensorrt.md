@@ -6,21 +6,21 @@ keywords: YOLOv8, TensorRT, NVIDIA, GPU, deep learning, model optimization, high
 
 # TensorRT Export for YOLOv8 Models
 
-Deploying computer vision models in high-performance environments can require a format that maximizes speed and efficiency. This is especially true when you are deploying your model on NVIDIA GPUs.
+Deploying [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models in high-performance environments can require a format that maximizes speed and efficiency. This is especially true when you are deploying your model on NVIDIA GPUs.
 
-By using the TensorRT export format, you can enhance your [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics) models for swift and efficient inference on NVIDIA hardware. This guide will give you easy-to-follow steps for the conversion process and help you make the most of NVIDIA's advanced technology in your deep learning projects.
+By using the TensorRT export format, you can enhance your [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics) models for swift and efficient inference on NVIDIA hardware. This guide will give you easy-to-follow steps for the conversion process and help you make the most of NVIDIA's advanced technology in your [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) projects.
 
 ## TensorRT
 
 <p align="center">
-  <img width="100%" src="https://github.com/ultralytics/yolov5/releases/download/v1.0/tensorrt-overview.jpg" alt="TensorRT Overview">
+  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/tensorrt-overview.avif" alt="TensorRT Overview">
 </p>
 
-[TensorRT](https://developer.nvidia.com/tensorrt), developed by NVIDIA, is an advanced software development kit (SDK) designed for high-speed deep learning inference. It's well-suited for real-time applications like object detection.
+[TensorRT](https://developer.nvidia.com/tensorrt), developed by NVIDIA, is an advanced software development kit (SDK) designed for high-speed deep learning inference. It's well-suited for real-time applications like [object detection](https://www.ultralytics.com/glossary/object-detection).
 
 This toolkit optimizes deep learning models for NVIDIA GPUs and results in faster and more efficient operations. TensorRT models undergo TensorRT optimization, which includes techniques like layer fusion, precision calibration (INT8 and FP16), dynamic tensor memory management, and kernel auto-tuning. Converting deep learning models into the TensorRT format allows developers to realize the potential of NVIDIA GPUs fully.
 
-TensorRT is known for its compatibility with various model formats, including TensorFlow, PyTorch, and ONNX, providing developers with a flexible solution for integrating and optimizing models from different frameworks. This versatility enables efficient model deployment across diverse hardware and software environments.
+TensorRT is known for its compatibility with various model formats, including TensorFlow, [PyTorch](https://www.ultralytics.com/glossary/pytorch), and ONNX, providing developers with a flexible solution for integrating and optimizing models from different frameworks. This versatility enables efficient [model deployment](https://www.ultralytics.com/glossary/model-deployment) across diverse hardware and software environments.
 
 ## Key Features of TensorRT Models
 
@@ -28,10 +28,10 @@ TensorRT models offer a range of key features that contribute to their efficienc
 
 - **Precision Calibration**: TensorRT supports precision calibration, allowing models to be fine-tuned for specific accuracy requirements. This includes support for reduced precision formats like INT8 and FP16, which can further boost inference speed while maintaining acceptable accuracy levels.
 
-- **Layer Fusion**: The TensorRT optimization process includes layer fusion, where multiple layers of a neural network are combined into a single operation. This reduces computational overhead and improves inference speed by minimizing memory access and computation.
+- **Layer Fusion**: The TensorRT optimization process includes layer fusion, where multiple layers of a [neural network](https://www.ultralytics.com/glossary/neural-network-nn) are combined into a single operation. This reduces computational overhead and improves inference speed by minimizing memory access and computation.
 
 <p align="center">
-  <img width="100%" src="https://developer-blogs.nvidia.com/wp-content/uploads/2017/12/pasted-image-0-3.png" alt="TensorRT Layer Fusion">
+  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/tensorrt-layer-fusion.avif" alt="TensorRT Layer Fusion">
 </p>
 
 - **Dynamic Tensor Memory Management**: TensorRT efficiently manages tensor memory usage during inference, reducing memory overhead and optimizing memory allocation. This results in more efficient GPU memory utilization.
@@ -44,10 +44,10 @@ Before we look at the code for exporting YOLOv8 models to the TensorRT format, l
 
 TensorRT offers several deployment options, and each option balances ease of integration, performance optimization, and flexibility differently:
 
-- **Deploying within TensorFlow**: This method integrates TensorRT into TensorFlow, allowing optimized models to run in a familiar TensorFlow environment. It's useful for models with a mix of supported and unsupported layers, as TF-TRT can handle these efficiently.
+- **Deploying within [TensorFlow](https://www.ultralytics.com/glossary/tensorflow)**: This method integrates TensorRT into TensorFlow, allowing optimized models to run in a familiar TensorFlow environment. It's useful for models with a mix of supported and unsupported layers, as TF-TRT can handle these efficiently.
 
 <p align="center">
-  <img width="100%" src="https://docs.nvidia.com/deeplearning/tensorrt/quick-start-guide/graphics/tf-trt-workflow.png" alt="TensorRT Overview">
+  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/tf-trt-workflow.avif" alt="TensorRT Overview">
 </p>
 
 - **Standalone TensorRT Runtime API**: Offers granular control, ideal for performance-critical applications. It's more complex but allows for custom implementation of unsupported operators.
@@ -62,7 +62,7 @@ You can improve execution efficiency and optimize performance by converting YOLO
 
 To install the required package, run:
 
-!!! Tip "Installation"
+!!! tip "Installation"
 
     === "CLI"
 
@@ -77,7 +77,7 @@ For detailed instructions and best practices related to the installation process
 
 Before diving into the usage instructions, be sure to check out the range of [YOLOv8 models offered by Ultralytics](../models/index.md). This will help you choose the most appropriate model for your project requirements.
 
-!!! Example "Usage"
+!!! example "Usage"
 
     === "Python"
 
@@ -111,7 +111,7 @@ For more details about the export process, visit the [Ultralytics documentation 
 
 ### Exporting TensorRT with INT8 Quantization
 
-Exporting Ultralytics YOLO models using TensorRT with INT8 precision executes post-training quantization (PTQ). TensorRT uses calibration for PTQ, which measures the distribution of activations within each activation tensor as the YOLO model processes inference on representative input data, and then uses that distribution to estimate scale values for each tensor. Each activation tensor that is a candidate for quantization has an associated scale that is deduced by a calibration process.
+Exporting Ultralytics YOLO models using TensorRT with INT8 [precision](https://www.ultralytics.com/glossary/precision) executes post-training quantization (PTQ). TensorRT uses calibration for PTQ, which measures the distribution of activations within each activation tensor as the YOLO model processes inference on representative input data, and then uses that distribution to estimate scale values for each tensor. Each activation tensor that is a candidate for quantization has an associated scale that is deduced by a calibration process.
 
 When processing implicitly quantized networks TensorRT uses INT8 opportunistically to optimize layer execution time. If a layer runs faster in INT8 and has assigned quantization scales on its data inputs and outputs, then a kernel with INT8 precision is assigned to that layer, otherwise TensorRT selects a precision of either FP32 or FP16 for the kernel based on whichever results in faster execution time for that layer.
 
@@ -125,13 +125,13 @@ The arguments provided when using [export](../modes/export.md) for an Ultralytic
 
 - `workspace` : Controls the size (in GiB) of the device memory allocation while converting the model weights.
 
-    - Adjust the `workspace` value according to your calibration needs and resource availability. While a larger `workspace` may increase calibration time, it allows TensorRT to explore a wider range of optimization tactics, potentially enhancing model performance and accuracy. Conversely, a smaller `workspace` can reduce calibration time but may limit the optimization strategies, affecting the quality of the quantized model.
+    - Adjust the `workspace` value according to your calibration needs and resource availability. While a larger `workspace` may increase calibration time, it allows TensorRT to explore a wider range of optimization tactics, potentially enhancing model performance and [accuracy](https://www.ultralytics.com/glossary/accuracy). Conversely, a smaller `workspace` can reduce calibration time but may limit the optimization strategies, affecting the quality of the quantized model.
 
-    - Default is `workspace=4` (GiB), this value may need to be increased if calibration crashes (exits without warning).
+    - Default is `workspace=None`, which will allow for TensorRT to automatically allocate memory, when configuring manually, this value may need to be increased if calibration crashes (exits without warning).
 
-    - TensorRT will report `UNSUPPORTED_STATE` during export if the value for `workspace` is larger than the memory available to the device, which means the value for `workspace` should be lowered.
+    - TensorRT will report `UNSUPPORTED_STATE` during export if the value for `workspace` is larger than the memory available to the device, which means the value for `workspace` should be lowered or set to `None`.
 
-    - If `workspace` is set to max value and calibration fails/crashes, consider reducing the values for `imgsz` and `batch` to reduce memory requirements.
+    - If `workspace` is set to max value and calibration fails/crashes, consider using `None` for auto-allocation or by reducing the values for `imgsz` and `batch` to reduce memory requirements.
 
     - <u><b>Remember</b> calibration for INT8 is specific to each device</u>, borrowing a "high-end" GPU for calibration, might result in poor performance when inference is run on another device.
 
@@ -139,7 +139,7 @@ The arguments provided when using [export](../modes/export.md) for an Ultralytic
 
 !!! note
 
-    During calibration, twice the `batch` size provided will be used. Using small batches can lead to inaccurate scaling during calibration. This is because the process adjusts based on the data it sees. Small batches might not capture the full range of values, leading to issues with the final calibration, so the `batch` size is doubled automatically. If no batch size is specified `batch=1`, calibration will be run at `batch=1 * 2` to reduce calibration scaling errors.
+    During calibration, twice the `batch` size provided will be used. Using small batches can lead to inaccurate scaling during calibration. This is because the process adjusts based on the data it sees. Small batches might not capture the full range of values, leading to issues with the final calibration, so the `batch` size is doubled automatically. If no [batch size](https://www.ultralytics.com/glossary/batch-size) is specified `batch=1`, calibration will be run at `batch=1 * 2` to reduce calibration scaling errors.
 
 Experimentation by NVIDIA led them to recommend using at least 500 calibration images that are representative of the data for your model, with INT8 quantization calibration. This is a guideline and not a _hard_ requirement, and <u>**you will need to experiment with what is required to perform well for your dataset**.</u> Since the calibration data is required for INT8 calibration with TensorRT, make certain to use the `data` argument when `int8=True` for TensorRT and use `data="my_dataset.yaml"`, which will use the images from [validation](../modes/val.md) to calibrate with. When no value is passed for `data` with export to TensorRT with INT8 quantization, the default will be to use one of the ["small" example datasets based on the model task](../datasets/index.md) instead of throwing an error.
 
@@ -380,7 +380,7 @@ Expand sections below for information on how these models were exported and test
 
     See [export mode](../modes/export.md) for details regarding export configuration arguments.
 
-    ```py
+    ```python
     from ultralytics import YOLO
 
     model = YOLO("yolov8n.pt")
@@ -401,7 +401,7 @@ Expand sections below for information on how these models were exported and test
 
     See [predict mode](../modes/predict.md) for additional information.
 
-    ```py
+    ```python
     import cv2
 
     from ultralytics import YOLO
@@ -421,7 +421,7 @@ Expand sections below for information on how these models were exported and test
 
     See [`val` mode](../modes/val.md) to learn more about validation configuration arguments.
 
-    ```py
+    ```python
     from ultralytics import YOLO
 
     model = YOLO("yolov8n.engine")
@@ -453,3 +453,94 @@ In this guide, we focused on converting Ultralytics YOLOv8 models to NVIDIA's Te
 For more information on usage details, take a look at the [TensorRT official documentation](https://docs.nvidia.com/deeplearning/tensorrt/).
 
 If you're curious about additional Ultralytics YOLOv8 integrations, our [integration guide page](../integrations/index.md) provides an extensive selection of informative resources and insights.
+
+## FAQ
+
+### How do I convert YOLOv8 models to TensorRT format?
+
+To convert your Ultralytics YOLOv8 models to TensorRT format for optimized NVIDIA GPU inference, follow these steps:
+
+1. **Install the required package**:
+
+    ```bash
+    pip install ultralytics
+    ```
+
+2. **Export your YOLOv8 model**:
+
+    ```python
+    from ultralytics import YOLO
+
+    model = YOLO("yolov8n.pt")
+    model.export(format="engine")  # creates 'yolov8n.engine'
+
+    # Run inference
+    model = YOLO("yolov8n.engine")
+    results = model("https://ultralytics.com/images/bus.jpg")
+    ```
+
+For more details, visit the [YOLOv8 Installation guide](../quickstart.md) and the [export documentation](../modes/export.md).
+
+### What are the benefits of using TensorRT for YOLOv8 models?
+
+Using TensorRT to optimize YOLOv8 models offers several benefits:
+
+- **Faster Inference Speed**: TensorRT optimizes the model layers and uses precision calibration (INT8 and FP16) to speed up inference without significantly sacrificing accuracy.
+- **Memory Efficiency**: TensorRT manages tensor memory dynamically, reducing overhead and improving GPU memory utilization.
+- **Layer Fusion**: Combines multiple layers into single operations, reducing computational complexity.
+- **Kernel Auto-Tuning**: Automatically selects optimized GPU kernels for each model layer, ensuring maximum performance.
+
+For more information, explore the detailed features of TensorRT [here](https://developer.nvidia.com/tensorrt) and read our [TensorRT overview section](#tensorrt).
+
+### Can I use INT8 quantization with TensorRT for YOLOv8 models?
+
+Yes, you can export YOLOv8 models using TensorRT with INT8 quantization. This process involves post-training quantization (PTQ) and calibration:
+
+1. **Export with INT8**:
+
+    ```python
+    from ultralytics import YOLO
+
+    model = YOLO("yolov8n.pt")
+    model.export(format="engine", batch=8, workspace=4, int8=True, data="coco.yaml")
+    ```
+
+2. **Run inference**:
+
+    ```python
+    from ultralytics import YOLO
+
+    model = YOLO("yolov8n.engine", task="detect")
+    result = model.predict("https://ultralytics.com/images/bus.jpg")
+    ```
+
+For more details, refer to the [exporting TensorRT with INT8 quantization section](#exporting-tensorrt-with-int8-quantization).
+
+### How do I deploy YOLOv8 TensorRT models on an NVIDIA Triton Inference Server?
+
+Deploying YOLOv8 TensorRT models on an NVIDIA Triton Inference Server can be done using the following resources:
+
+- **[Deploy Ultralytics YOLOv8 with Triton Server](../guides/triton-inference-server.md)**: Step-by-step guidance on setting up and using Triton Inference Server.
+- **[NVIDIA Triton Inference Server Documentation](https://developer.nvidia.com/blog/deploying-deep-learning-nvidia-tensorrt/)**: Official NVIDIA documentation for detailed deployment options and configurations.
+
+These guides will help you integrate YOLOv8 models efficiently in various deployment environments.
+
+### What are the performance improvements observed with YOLOv8 models exported to TensorRT?
+
+Performance improvements with TensorRT can vary based on the hardware used. Here are some typical benchmarks:
+
+- **NVIDIA A100**:
+
+    - **FP32** Inference: ~0.52 ms / image
+    - **FP16** Inference: ~0.34 ms / image
+    - **INT8** Inference: ~0.28 ms / image
+    - Slight reduction in mAP with INT8 precision, but significant improvement in speed.
+
+- **Consumer GPUs (e.g., RTX 3080)**:
+    - **FP32** Inference: ~1.06 ms / image
+    - **FP16** Inference: ~0.62 ms / image
+    - **INT8** Inference: ~0.52 ms / image
+
+Detailed performance benchmarks for different hardware configurations can be found in the [performance section](#ultralytics-yolo-tensorrt-export-performance).
+
+For more comprehensive insights into TensorRT performance, refer to the [Ultralytics documentation](../modes/export.md) and our performance analysis reports.

@@ -4,7 +4,7 @@ description: Learn to freeze YOLOv5 layers for efficient transfer learning, redu
 keywords: YOLOv5, transfer learning, freeze layers, machine learning, deep learning, model training, PyTorch, Ultralytics
 ---
 
-📚 This guide explains how to **freeze** YOLOv5 🚀 layers when **transfer learning**. Transfer learning is a useful way to quickly retrain a model on new data without having to retrain the entire network. Instead, part of the initial weights are frozen in place, and the rest of the weights are used to compute loss and are updated by the optimizer. This requires less resources than normal training and allows for faster training times, though it may also result in reductions to final trained accuracy.
+📚 This guide explains how to **freeze** YOLOv5 🚀 layers when **[transfer learning](https://www.ultralytics.com/glossary/transfer-learning)**. Transfer learning is a useful way to quickly retrain a model on new data without having to retrain the entire network. Instead, part of the initial weights are frozen in place, and the rest of the weights are used to compute loss and are updated by the optimizer. This requires less resources than normal training and allows for faster training times, though it may also result in reductions to final trained accuracy.
 
 ## Before You Start
 
@@ -121,27 +121,27 @@ train.py --batch 48 --weights yolov5m.pt --data voc.yaml --epochs 50 --cache --i
 
 ### Accuracy Comparison
 
-The results show that freezing speeds up training, but reduces final accuracy slightly.
+The results show that freezing speeds up training, but reduces final [accuracy](https://www.ultralytics.com/glossary/accuracy) slightly.
 
-![Freezing training mAP50 results](https://user-images.githubusercontent.com/26833433/98394454-11579f80-205b-11eb-8e57-d8318e1cc2f8.png)
+![Freezing training mAP50 results](https://github.com/ultralytics/docs/releases/download/0/freezing-training-map50-results.avif)
 
-![Freezing training mAP50-95 results](https://user-images.githubusercontent.com/26833433/98394459-13216300-205b-11eb-871b-49e20691a423.png)
+![Freezing training mAP50-95 results](https://github.com/ultralytics/docs/releases/download/0/freezing-training-map50-95-results.avif)
 
-<img width="922" alt="Table results" src="https://user-images.githubusercontent.com/26833433/98394485-22081580-205b-11eb-9e37-1f9869fe91d8.png">
+<img width="922" alt="Table results" src="https://github.com/ultralytics/docs/releases/download/0/table-results.avif">
 
 ### GPU Utilization Comparison
 
 Interestingly, the more modules are frozen the less GPU memory is required to train, and the lower GPU utilization. This indicates that larger models, or models trained at larger --image-size may benefit from freezing in order to train faster.
 
-![Training GPU memory allocated percent](https://user-images.githubusercontent.com/26833433/98394920-c2f6d080-205b-11eb-9611-fd68522b4e0e.png)
+![Training GPU memory allocated percent](https://github.com/ultralytics/docs/releases/download/0/training-gpu-memory-allocated-percent.avif)
 
-![Training GPU memory utilization percent](https://user-images.githubusercontent.com/26833433/98394918-bf634980-205b-11eb-948d-311036ef9325.png)
+![Training GPU memory utilization percent](https://github.com/ultralytics/docs/releases/download/0/training-gpu-memory-utilization-percent.avif)
 
 ## Supported Environments
 
-Ultralytics provides a range of ready-to-use environments, each pre-installed with essential dependencies such as [CUDA](https://developer.nvidia.com/cuda), [CUDNN](https://developer.nvidia.com/cudnn), [Python](https://www.python.org/), and [PyTorch](https://pytorch.org/), to kickstart your projects.
+Ultralytics provides a range of ready-to-use environments, each pre-installed with essential dependencies such as [CUDA](https://developer.nvidia.com/cuda-zone), [CUDNN](https://developer.nvidia.com/cudnn), [Python](https://www.python.org/), and [PyTorch](https://pytorch.org/), to kickstart your projects.
 
-- **Free GPU Notebooks**: <a href="https://bit.ly/yolov5-paperspace-notebook"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run on Gradient"></a> <a href="https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> <a href="https://www.kaggle.com/ultralytics/yolov5"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
+- **Free GPU Notebooks**: <a href="https://bit.ly/yolov5-paperspace-notebook"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run on Gradient"></a> <a href="https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> <a href="https://www.kaggle.com/models/ultralytics/yolov5"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
 - **Google Cloud**: [GCP Quickstart Guide](../environments/google_cloud_quickstart_tutorial.md)
 - **Amazon**: [AWS Quickstart Guide](../environments/aws_quickstart_tutorial.md)
 - **Azure**: [AzureML Quickstart Guide](../environments/azureml_quickstart_tutorial.md)

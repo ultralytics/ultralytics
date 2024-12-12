@@ -62,7 +62,7 @@ class RTDETRValidator(DetectionValidator):
         ```python
         from ultralytics.models.rtdetr import RTDETRValidator
 
-        args = dict(model='rtdetr-l.pt', data='coco8.yaml')
+        args = dict(model="rtdetr-l.pt", data="coco8.yaml")
         validator = RTDETRValidator(args=args)
         validator()
         ```

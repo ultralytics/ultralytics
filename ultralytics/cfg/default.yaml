@@ -1,7 +1,7 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 # Default training settings and hyperparameters for medium-augmentation COCO training
 
-task: detect # (str) YOLO task, i.e. detect, segment, classify, pose
+task: detect # (str) YOLO task, i.e. detect, segment, classify, pose, obb
 mode: train # (str) YOLO mode, i.e. train, val, predict, export, track, benchmark
 
 # Train settings -------------------------------------------------------------------------------------------------------
@@ -36,7 +36,7 @@ profile: False # (bool) profile ONNX and TensorRT speeds during training for log
 freeze: None # (int | list, optional) freeze first n layers, or freeze list of layer indices during training
 multi_scale: False # (bool) Whether to use multiscale during training
 # Segmentation
-overlap_mask: True # (bool) masks should overlap during training (segment train only)
+overlap_mask: True # (bool) merge object masks into a single image mask during training (segment train only)
 mask_ratio: 4 # (int) mask downsample ratio (segment train only)
 # Classification
 dropout: 0.0 # (float) use dropout regularization (classify train only)
@@ -81,9 +81,9 @@ keras: False # (bool) use Kera=s
 optimize: False # (bool) TorchScript: optimize for mobile
 int8: False # (bool) CoreML/TF INT8 quantization
 dynamic: False # (bool) ONNX/TF/TensorRT: dynamic axes
-simplify: False # (bool) ONNX: simplify model using `onnxslim`
+simplify: True # (bool) ONNX: simplify model using `onnxslim`
 opset: # (int, optional) ONNX: opset version
-workspace: 4 # (int) TensorRT: workspace size (GB)
+workspace: None # (float, optional) TensorRT: workspace size (GiB), `None` will let TensorRT auto-allocate memory
 nms: False # (bool) CoreML: add NMS
 
 # Hyperparameters ------------------------------------------------------------------------------------------------------
@@ -99,7 +99,6 @@ cls: 0.5 # (float) cls loss gain (scale with pixels)
 dfl: 1.5 # (float) dfl loss gain
 pose: 12.0 # (float) pose loss gain
 kobj: 1.0 # (float) keypoint obj loss gain
-label_smoothing: 0.0 # (float) label smoothing (fraction)
 nbs: 64 # (int) nominal batch size
 hsv_h: 0.015 # (float) image HSV-Hue augmentation (fraction)
 hsv_s: 0.7 # (float) image HSV-Saturation augmentation (fraction)
@@ -115,6 +114,7 @@ bgr: 0.0 # (float) image channel BGR (probability)
 mosaic: 1.0 # (float) image mosaic (probability)
 mixup: 0.0 # (float) image mixup (probability)
 copy_paste: 0.0 # (float) segment copy-paste (probability)
+copy_paste_mode: "flip" # (str) the method to do copy_paste augmentation (flip, mixup)
 auto_augment: randaugment # (str) auto augmentation policy for classification (randaugment, autoaugment, augmix)
 erasing: 0.4 # (float) probability of random erasing during classification training (0-0.9), 0 means no erasing, must be less than 1.0.
 crop_fraction: 1.0 # (float) image crop fraction for classification (0.1-1), 1.0 means no crop, must be greater than 0.

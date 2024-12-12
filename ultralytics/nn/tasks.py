@@ -1,6 +1,9 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import contextlib
+import pickle
+import re
+import types
 from copy import deepcopy
 from pathlib import Path
 
@@ -11,6 +14,7 @@ from ultralytics.nn.modules import (
     AIFI,
     C1,
     C2,
+    C2PSA,
     C3,
     C3TR,
     ELAN1,
@@ -26,7 +30,9 @@ from ultralytics.nn.modules import (
     C2f,
     C2fAttn,
     C2fCIB,
+    C2fPSA,
     C3Ghost,
+    C3k2,
     C3x,
     CBFuse,
     CBLinear,
@@ -66,13 +72,13 @@ from ultralytics.utils.loss import (
     v8PoseLoss,
     v8SegmentationLoss,
 )
+from ultralytics.utils.ops import make_divisible
 from ultralytics.utils.plotting import feature_visualization
 from ultralytics.utils.torch_utils import (
     fuse_conv_and_bn,
     fuse_deconv_and_bn,
     initialize_weights,
     intersect_dicts,
-    make_divisible,
     model_info,
     scale_img,
     time_sync,
@@ -89,13 +95,17 @@ class BaseModel(nn.Module):
 
     def forward(self, x, *args, **kwargs):
         """
-        Forward pass of the model on a single scale. Wrapper for `_forward_once` method.
+        Perform forward pass of the model for either training or inference.
+
+        If x is a dict, calculates and returns the loss for training. Otherwise, returns predictions for inference.
 
         Args:
-            x (torch.Tensor | dict): The input image tensor or a dict including image tensor and gt labels.
+            x (torch.Tensor | dict): Input tensor for inference, or dict with image tensor and labels for training.
+            *args (Any): Variable length argument list.
+            **kwargs (Any): Arbitrary keyword arguments.
 
         Returns:
-            (torch.Tensor): The output of the network.
+            (torch.Tensor): Loss if x is a dict (training), or network predictions (inference).
         """
         if isinstance(x, dict):  # for cases of training and validating while training.
             return self.loss(x, *args, **kwargs)
@@ -276,7 +286,7 @@ class BaseModel(nn.Module):
             batch (dict): Batch to compute loss on
             preds (torch.Tensor | List[torch.Tensor]): Predictions.
         """
-        if not hasattr(self, "criterion"):
+        if getattr(self, "criterion", None) is None:
             self.criterion = self.init_criterion()
 
         preds = self.forward(batch["img"]) if preds is None else preds
@@ -337,11 +347,8 @@ class DetectionModel(BaseModel):
 
     def _predict_augment(self, x):
         """Perform augmentations on input image x and return augmented inference and train outputs."""
-        if getattr(self, "end2end", False):
-            LOGGER.warning(
-                "WARNING ⚠️ End2End model does not support 'augment=True' prediction. "
-                "Reverting to single-scale prediction."
-            )
+        if getattr(self, "end2end", False) or self.__class__.__name__ != "DetectionModel":
+            LOGGER.warning("WARNING ⚠️ Model does not support 'augment=True', reverting to single-scale prediction.")
             return self._predict_once(x)
         img_size = x.shape[-2:]  # height, width
         s = [1, 0.83, 0.67]  # scales
@@ -379,7 +386,7 @@ class DetectionModel(BaseModel):
 
     def init_criterion(self):
         """Initialize the loss criterion for the DetectionModel."""
-        return E2EDetectLoss(self) if self.end2end else v8DetectionLoss(self)
+        return E2EDetectLoss(self) if getattr(self, "end2end", False) else v8DetectionLoss(self)
 
 
 class OBBModel(DetectionModel):
@@ -713,7 +720,7 @@ def temporary_modules(modules=None, attributes=None):
 
     Example:
         ```python
-        with temporary_modules({'old.module': 'new.module'}, {'old.module.attribute': 'new.module.attribute'}):
+        with temporary_modules({"old.module": "new.module"}, {"old.module.attribute": "new.module.attribute"}):
             import old.module  # this will now import new.module
             from old.module import attribute  # this will now import new.module.attribute
         ```
@@ -749,17 +756,58 @@ def temporary_modules(modules=None, attributes=None):
                 del sys.modules[old]
 
 
-def torch_safe_load(weight):
+class SafeClass:
+    """A placeholder class to replace unknown classes during unpickling."""
+
+    def __init__(self, *args, **kwargs):
+        """Initialize SafeClass instance, ignoring all arguments."""
+        pass
+
+    def __call__(self, *args, **kwargs):
+        """Run SafeClass instance, ignoring all arguments."""
+        pass
+
+
+class SafeUnpickler(pickle.Unpickler):
+    """Custom Unpickler that replaces unknown classes with SafeClass."""
+
+    def find_class(self, module, name):
+        """Attempt to find a class, returning SafeClass if not among safe modules."""
+        safe_modules = (
+            "torch",
+            "collections",
+            "collections.abc",
+            "builtins",
+            "math",
+            "numpy",
+            # Add other modules considered safe
+        )
+        if module in safe_modules:
+            return super().find_class(module, name)
+        else:
+            return SafeClass
+
+
+def torch_safe_load(weight, safe_only=False):
     """
-    This function attempts to load a PyTorch model with the torch.load() function. If a ModuleNotFoundError is raised,
-    it catches the error, logs a warning message, and attempts to install the missing module via the
-    check_requirements() function. After installation, the function again attempts to load the model using torch.load().
+    Attempts to load a PyTorch model with the torch.load() function. If a ModuleNotFoundError is raised, it catches the
+    error, logs a warning message, and attempts to install the missing module via the check_requirements() function.
+    After installation, the function again attempts to load the model using torch.load().
 
     Args:
         weight (str): The file path of the PyTorch model.
+        safe_only (bool): If True, replace unknown classes with SafeClass during loading.
+
+    Example:
+    ```python
+    from ultralytics.nn.tasks import torch_safe_load
+
+    ckpt, file = torch_safe_load("path/to/best.pt", safe_only=True)
+    ```
 
     Returns:
-        (dict): The loaded PyTorch model.
+        ckpt (dict): The loaded model checkpoint.
+        file (str): The loaded filename
     """
     from ultralytics.utils.downloads import attempt_download_asset
 
@@ -775,9 +823,18 @@ def torch_safe_load(weight):
             attributes={
                 "ultralytics.nn.modules.block.Silence": "torch.nn.Identity",  # YOLOv9e
                 "ultralytics.nn.tasks.YOLOv10DetectionModel": "ultralytics.nn.tasks.DetectionModel",  # YOLOv10
+                "ultralytics.utils.loss.v10DetectLoss": "ultralytics.utils.loss.E2EDetectLoss",  # YOLOv10
             },
         ):
-            ckpt = torch.load(file, map_location="cpu")
+            if safe_only:
+                # Load via custom pickle module
+                safe_pickle = types.ModuleType("safe_pickle")
+                safe_pickle.Unpickler = SafeUnpickler
+                safe_pickle.load = lambda file_obj: SafeUnpickler(file_obj).load()
+                with open(file, "rb") as f:
+                    ckpt = torch.load(f, pickle_module=safe_pickle)
+            else:
+                ckpt = torch.load(file, map_location="cpu")
 
     except ModuleNotFoundError as e:  # e.name is missing module name
         if e.name == "models":
@@ -807,7 +864,7 @@ def torch_safe_load(weight):
         )
         ckpt = {"model": ckpt.model}
 
-    return ckpt, file  # load
+    return ckpt, file
 
 
 def attempt_load_weights(weights, device=None, inplace=True, fuse=False):
@@ -879,6 +936,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
     import ast
 
     # Args
+    legacy = True  # backward compatibility for v3/v5/v8/v9 models
     max_channels = float("inf")
     nc, act, scales = (d.get(x) for x in ("nc", "activation", "scales"))
     depth, width, kpt_shape = (d.get(x, 1.0) for x in ("depth_multiple", "width_multiple", "kpt_shape"))
@@ -904,7 +962,6 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             if isinstance(a, str):
                 with contextlib.suppress(ValueError):
                     args[j] = locals()[a] if a in locals() else ast.literal_eval(a)
-
         n = n_ = max(round(n * depth), 1) if n > 1 else n  # depth gain
         if m in {
             Classify,
@@ -915,12 +972,15 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             GhostBottleneck,
             SPP,
             SPPF,
+            C2fPSA,
+            C2PSA,
             DWConv,
             Focus,
             BottleneckCSP,
             C1,
             C2,
             C2f,
+            C3k2,
             RepNCSPELAN4,
             ELAN1,
             ADown,
@@ -948,9 +1008,28 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
                 )  # num heads
 
             args = [c1, c2, *args[1:]]
-            if m in {BottleneckCSP, C1, C2, C2f, C2fAttn, C3, C3TR, C3Ghost, C3x, RepC3, C2fCIB}:
+            if m in {
+                BottleneckCSP,
+                C1,
+                C2,
+                C2f,
+                C3k2,
+                C2fAttn,
+                C3,
+                C3TR,
+                C3Ghost,
+                C3x,
+                RepC3,
+                C2fPSA,
+                C2fCIB,
+                C2PSA,
+            }:
                 args.insert(2, n)  # number of repeats
                 n = 1
+            if m is C3k2:  # for M/L/X sizes
+                legacy = False
+                if scale in "mlx":
+                    args[3] = True
         elif m is AIFI:
             args = [ch[f], *args]
         elif m in {HGStem, HGBlock}:
@@ -969,6 +1048,8 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             args.append([ch[x] for x in f])
             if m is Segment:
                 args[2] = make_divisible(min(args[2], max_channels) * width, 8)
+            if m in {Detect, Segment, Pose, OBB}:
+                m.legacy = legacy
         elif m is RTDETRDecoder:  # special case, channels arg must be passed in index 1
             args.insert(1, [ch[x] for x in f])
         elif m is CBLinear:
@@ -982,10 +1063,10 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
 
         m_ = nn.Sequential(*(m(*args) for _ in range(n))) if n > 1 else m(*args)  # module
         t = str(m)[8:-2].replace("__main__.", "")  # module type
-        m.np = sum(x.numel() for x in m_.parameters())  # number params
+        m_.np = sum(x.numel() for x in m_.parameters())  # number params
         m_.i, m_.f, m_.type = i, f, t  # attach index, 'from' index, type
         if verbose:
-            LOGGER.info(f"{i:>3}{str(f):>20}{n_:>3}{m.np:10.0f}  {t:<45}{str(args):<30}")  # print
+            LOGGER.info(f"{i:>3}{str(f):>20}{n_:>3}{m_.np:10.0f}  {t:<45}{str(args):<30}")  # print
         save.extend(x % i for x in ([f] if isinstance(f, int) else f) if x != -1)  # append to savelist
         layers.append(m_)
         if i == 0:
@@ -996,8 +1077,6 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
 
 def yaml_model_load(path):
     """Load a YOLOv8 model from a YAML file."""
-    import re
-
     path = Path(path)
     if path.stem in (f"yolov{d}{x}6" for x in "nsmlx" for d in (5, 8)):
         new_stem = re.sub(r"(\d+)([nslmx])6(.+)?$", r"\1\2-p6\3", path.stem)
@@ -1024,11 +1103,10 @@ def guess_model_scale(model_path):
     Returns:
         (str): The size character of the model's scale, which can be n, s, m, l, or x.
     """
-    with contextlib.suppress(AttributeError):
-        import re
-
-        return re.search(r"yolov\d+([nslmx])", Path(model_path).stem).group(1)  # n, s, m, l, or x
-    return ""
+    try:
+        return re.search(r"yolo[v]?\d+([nslmx])", Path(model_path).stem).group(1)  # noqa, returns n, s, m, l, or x
+    except AttributeError:
+        return ""
 
 
 def guess_model_task(model):
@@ -1063,7 +1141,6 @@ def guess_model_task(model):
     if isinstance(model, dict):
         with contextlib.suppress(Exception):
             return cfg2task(model)
-
     # Guess from PyTorch model
     if isinstance(model, nn.Module):  # PyTorch model
         for x in "model.args", "model.model.args", "model.model.model.args":
@@ -1072,7 +1149,6 @@ def guess_model_task(model):
         for x in "model.yaml", "model.model.yaml", "model.model.model.yaml":
             with contextlib.suppress(Exception):
                 return cfg2task(eval(x))
-
         for m in model.modules():
             if isinstance(m, Segment):
                 return "segment"

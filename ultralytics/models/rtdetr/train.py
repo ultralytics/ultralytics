@@ -25,7 +25,7 @@ class RTDETRTrainer(DetectionTrainer):
         ```python
         from ultralytics.models.rtdetr.train import RTDETRTrainer
 
-        args = dict(model='rtdetr-l.yaml', data='coco8.yaml', imgsz=640, epochs=3)
+        args = dict(model="rtdetr-l.yaml", data="coco8.yaml", imgsz=640, epochs=3)
         trainer = RTDETRTrainer(overrides=args)
         trainer.train()
         ```
@@ -68,8 +68,11 @@ class RTDETRTrainer(DetectionTrainer):
             hyp=self.args,
             rect=False,
             cache=self.args.cache or None,
+            single_cls=self.args.single_cls or False,
             prefix=colorstr(f"{mode}: "),
+            classes=self.args.classes,
             data=self.data,
+            fraction=self.args.fraction if mode == "train" else 1.0,
         )
 
     def get_validator(self):

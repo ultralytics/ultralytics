@@ -1,0 +1,30 @@
+# Ultralytics YOLO 🚀, AGPL-3.0 license
+# YOLO11-cls image classification model. For Usage examples see https://docs.ultralytics.com/tasks/classify
+
+# Parameters
+nc: 80 # number of classes
+scales: # model compound scaling constants, i.e. 'model=yolo11n-cls.yaml' will call yolo11-cls.yaml with scale 'n'
+  # [depth, width, max_channels]
+  n: [0.50, 0.25, 1024] # summary: 151 layers, 1633584 parameters, 1633584 gradients, 3.3 GFLOPs
+  s: [0.50, 0.50, 1024] # summary: 151 layers, 5545488 parameters, 5545488 gradients, 12.2 GFLOPs
+  m: [0.50, 1.00, 512] # summary: 187 layers, 10455696 parameters, 10455696 gradients, 39.7 GFLOPs
+  l: [1.00, 1.00, 512] # summary: 309 layers, 12937104 parameters, 12937104 gradients, 49.9 GFLOPs
+  x: [1.00, 1.50, 512] # summary: 309 layers, 28458544 parameters, 28458544 gradients, 111.1 GFLOPs
+
+# YOLO11n backbone
+backbone:
+  # [from, repeats, module, args]
+  - [-1, 1, Conv, [64, 3, 2]] # 0-P1/2
+  - [-1, 1, Conv, [128, 3, 2]] # 1-P2/4
+  - [-1, 2, C3k2, [256, False, 0.25]]
+  - [-1, 1, Conv, [256, 3, 2]] # 3-P3/8
+  - [-1, 2, C3k2, [512, False, 0.25]]
+  - [-1, 1, Conv, [512, 3, 2]] # 5-P4/16
+  - [-1, 2, C3k2, [512, True]]
+  - [-1, 1, Conv, [1024, 3, 2]] # 7-P5/32
+  - [-1, 2, C3k2, [1024, True]]
+  - [-1, 2, C2PSA, [1024]] # 9
+
+# YOLO11n head
+head:
+  - [-1, 1, Classify, [nc]] # Classify

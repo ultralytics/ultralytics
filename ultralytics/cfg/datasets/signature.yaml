@@ -17,4 +17,4 @@ names:
   0: signature
 
 # Download script/URL (optional)
-download: https://ultralytics.com/assets/signature.zip
+download: https://github.com/ultralytics/assets/releases/download/v0.0.0/signature.zip

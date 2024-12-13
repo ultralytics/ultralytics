@@ -115,7 +115,7 @@ class Model(nn.Module):
         self.predictor = None  # reuse predictor
         self.model = None  # model object
         self.trainer = None  # trainer object
-        self.ckpt = None  # if loaded from *.pt
+        self.ckpt = {}  # if loaded from *.pt
         self.cfg = None  # if loaded from *.yaml
         self.ckpt_path = None
         self.overrides = {}  # overrides for trainer object
@@ -411,7 +411,6 @@ class Model(nn.Module):
             "license": "AGPL-3.0 License (https://ultralytics.com/license)",
             "docs": "https://docs.ultralytics.com",
         }
-        self.ckpt = self.ckpt or {}
         torch.save({**self.ckpt, **updates}, filename)
 
     def info(self, detailed: bool = False, verbose: bool = True):

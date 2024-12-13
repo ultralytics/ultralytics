@@ -2,7 +2,6 @@ from collections import defaultdict
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import cv2
-from shapely.geometry import LineString, Point, Polygon
 
 from ultralytics.solutions.solutions import BaseSolution
 from ultralytics.utils.plotting import Annotator, colors
@@ -52,10 +51,10 @@ class DwellTimeAnalyzer(BaseSolution):
         self.classes: Optional[List[int]] = self.CFG.get("classes", None)  # If provided, only track these classes
 
         # Optional features
-        self.enable_funnel: bool = self.CFG.get("enable_funnel", False)
-        self.funnel_stages: Optional[Union[List[str], Tuple[str, ...]]] = self.CFG.get("funnel_stages", None)
-        self.enable_avg_dwell: bool = self.CFG.get("enable_avg_dwell", False)
-        self.detect_mode: str = self.CFG.get("detect_mode", "all_frames")  # "all_frames" or "enter_zones"
+        self.enable_funnel: bool = self.CFG["enable_funnel"]
+        self.funnel_stages: Optional[Union[List[str], Tuple[str, ...]]] = self.CFG["funnel_stages"]
+        self.enable_avg_dwell: bool = self.CFG["enable_avg_dwell"]
+        self.detect_mode: str = self.CFG["detect_mode"]  # "all_frames" or "enter_zones"
 
         # Validate detect_mode
         if self.detect_mode not in ["all_frames", "enter_zones"]:
@@ -65,12 +64,12 @@ class DwellTimeAnalyzer(BaseSolution):
         if not self.zones or len(self.zones) == 0:
             self.zones = self.select_zones()
 
-        self.zone_polygons: Dict[str, Union[Polygon, LineString]] = {}
+        self.zone_polygons: Dict[str, Union[self.Polygon, self.LineString]] = {}
         for zone_name, coords in self.zones.items():
             if len(coords) >= 3:
-                self.zone_polygons[zone_name] = Polygon(coords)
+                self.zone_polygons[zone_name] = self.Polygon(coords)
             else:
-                self.zone_polygons[zone_name] = LineString(coords)
+                self.zone_polygons[zone_name] = self.LineString(coords)
 
         # Dynamically determine funnel stages if not provided and funnel is enabled
         if self.enable_funnel:
@@ -194,7 +193,7 @@ class DwellTimeAnalyzer(BaseSolution):
         Returns:
             Optional[str]: The name of the zone containing the centroid, or None if not in any zone.
         """
-        point = Point(centroid)
+        point = self.Point(centroid)
         for zone_name, polygon in self.zone_polygons.items():
             if polygon.contains(point):
                 return zone_name

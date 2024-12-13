@@ -17,3 +17,9 @@ kpts: [6, 8, 10] # Keypoints for workouts monitoring, i.e. If you want to consid
 # Analytics settings
 analytics_type: "line" # Analytics type i.e "line", "pie", "bar" or "area" charts. By default, "line" analytics will be used for processing.
 json_file: # parking system regions file path.
+
+# Dwell Time Analysis
+enable_funnel: False # Enable funnel analysis by default is False. You can make it enable by passing True
+funnel_stages: None # Optional: Define funnel stages explicitly if regions are define during execution the stages name will be ("Zone_1", "Zone_2", "Zone_3"),
+enable_avg_dwell: False # Enable average dwell time computation for each zone it will display their average dwell time
+detect_mode: "all_frames" # if choose "all_frames" the bounding boxes will be display in the whole frame else "enter_zones"

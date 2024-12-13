@@ -18,7 +18,7 @@ Hyperparameter tuning is not just a one-time set-up but an iterative process aim
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Tune Hyperparameters for Better Model Performance | Ultralytics YOLO11 Hyperparameters 🚀
+  <strong>Watch:</strong> How to Tune Hyperparameters for Better Model Performance 🚀
 </p>
 
 ### What are Hyperparameters?

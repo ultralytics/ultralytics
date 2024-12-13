@@ -101,26 +101,26 @@ from ultralytics.utils.torch_utils import TORCH_1_13, get_latest_opset, select_d
 def export_formats():
     """Ultralytics YOLO export formats."""
     x = [
-        ["PyTorch", "-", ".pt", True, True],
-        ["TorchScript", "torchscript", ".torchscript", True, True],
-        ["ONNX", "onnx", ".onnx", True, True],
-        ["OpenVINO", "openvino", "_openvino_model", True, False],
-        ["TensorRT", "engine", ".engine", False, True],
-        ["CoreML", "coreml", ".mlpackage", True, False],
-        ["TensorFlow SavedModel", "saved_model", "_saved_model", True, True],
-        ["TensorFlow GraphDef", "pb", ".pb", True, True],
-        ["TensorFlow Lite", "tflite", ".tflite", True, False],
-        ["TensorFlow Edge TPU", "edgetpu", "_edgetpu.tflite", True, False],
-        ["TensorFlow.js", "tfjs", "_web_model", True, False],
-        ["PaddlePaddle", "paddle", "_paddle_model", True, True],
-        ["MNN", "mnn", ".mnn", True, True],
-        ["NCNN", "ncnn", "_ncnn_model", True, True],
-        ["IMX", "imx", "_imx_model", True, True],
+        ["PyTorch", "-", ".pt", True, True, []],
+        ["TorchScript", "torchscript", ".torchscript", True, True, ["optimize", "batch"]],
+        ["ONNX", "onnx", ".onnx", True, True, ["half", "dynamic", "simplify", "opset", "batch"]],
+        ["OpenVINO", "openvino", "_openvino_model", True, False, ["half", "int8", "batch"]],
+        ["TensorRT", "engine", ".engine", False, True, ["half", "dynamic", "simplify", "int8", "batch"]],
+        ["CoreML", "coreml", ".mlpackage", True, False, ["half", "int8", "nms", "batch"]],
+        ["TensorFlow SavedModel", "saved_model", "_saved_model", True, True, ["keras", "int8", "batch"]],
+        ["TensorFlow GraphDef", "pb", ".pb", True, True, ["batch"]],
+        ["TensorFlow Lite", "tflite", ".tflite", True, False, ["half", "int8", "batch"]],
+        ["TensorFlow Edge TPU", "edgetpu", "_edgetpu.tflite", True, False, []],
+        ["TensorFlow.js", "tfjs", "_web_model", True, False, ["half", "int8", "batch"]],
+        ["PaddlePaddle", "paddle", "_paddle_model", True, True, ["batch"]],
+        ["MNN", "mnn", ".mnn", True, True, ["batch", "int8", "half"]],
+        ["NCNN", "ncnn", "_ncnn_model", True, True, ["half", "batch"]],
+        ["IMX", "imx", "_imx_model", True, True, ["int8"]],
     ]
-    return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU"], zip(*x)))
+    return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments"], zip(*x)))
 
 
-def validate_args(format, passed_args):
+def validate_args(format, passed_args, valid_args):
     """
     Validates arguments based on format.
 
@@ -133,24 +133,7 @@ def validate_args(format, passed_args):
     """
     # Only check valid usage of these args
     export_args = ["half", "int8", "dynamic", "keras", "nms", "batch"]
-    supported_args = {
-        "torchscript": ["optimize", "batch"],
-        "onnx": ["half", "dynamic", "simplify", "opset", "batch"],
-        "openvino": ["half", "int8", "batch"],
-        "engine": ["half", "dynamic", "simplify", "int8", "batch"],
-        "coreml": ["half", "int8", "nms", "batch"],
-        "saved_model": ["keras", "int8", "batch"],
-        "pb": ["batch"],
-        "tflite": ["half", "int8", "batch"],
-        "edgetpu": ["imgsz"],
-        "tfjs": ["half", "int8", "batch"],
-        "paddle": ["batch"],
-        "mnn": ["batch", "int8", "half"],
-        "ncnn": ["half", "batch"],
-        "imx": ["int8"],
-    }
 
-    valid_args = supported_args.get(format.lower(), None)
     assert valid_args is not None, f"ERROR ❌️ valid arguments for '{format}' not listed."
     custom = {"batch": 1, "data": None, "device": None}  # exporter defaults
     default_args = get_cfg(DEFAULT_CFG, custom)
@@ -222,7 +205,8 @@ class Exporter:
             fmt = "engine"
         if fmt in {"mlmodel", "mlpackage", "mlprogram", "apple", "ios", "coreml"}:  # 'coreml' aliases
             fmt = "coreml"
-        fmts = tuple(export_formats()["Argument"][1:])  # available export formats
+        fmts_dict = export_formats()
+        fmts = tuple(fmts_dict["Argument"][1:])  # available export formats
         if fmt not in fmts:
             import difflib
 
@@ -265,7 +249,7 @@ class Exporter:
         self.device = select_device("cpu" if self.args.device is None else self.args.device)
 
         # Argument compatibility checks
-        validate_args(fmt, self.args)
+        validate_args(fmt, self.args, fmts_dict["Arguments"][flags.index(True)])
         if imx and not self.args.int8:
             LOGGER.warning("WARNING ⚠️ IMX only supports int8 export, setting int8=True.")
             self.args.int8 = True

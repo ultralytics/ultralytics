@@ -53,6 +53,7 @@ class ClassificationPredictor(BasePredictor):
         if not isinstance(orig_imgs, list):  # input images are a torch.Tensor, not a list
             orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)
 
+        preds = preds[0] if isinstance(preds, (list, tuple)) else preds
         return [
             Results(orig_img, path=img_path, names=self.model.names, probs=pred)
             for pred, orig_img, img_path in zip(preds, orig_imgs, self.batch[0])

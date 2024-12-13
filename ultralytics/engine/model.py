@@ -2,7 +2,7 @@
 
 import inspect
 from pathlib import Path
-from typing import List, Union
+from typing import Dict, List, Union
 
 import numpy as np
 import torch
@@ -136,6 +136,7 @@ class Model(nn.Module):
         # Check if Triton Server model
         elif self.is_triton_model(model):
             self.model_name = self.model = model
+            self.overrides["task"] = task or "detect"  # set `task=detect` if not explicitly set
             return
 
         # Load or create new YOLO model
@@ -143,6 +144,9 @@ class Model(nn.Module):
             self._new(model, task=task, verbose=verbose)
         else:
             self._load(model, task=task)
+
+        # Delete super().training for accessing self.model.training
+        del self.training
 
     def __call__(
         self,
@@ -881,7 +885,7 @@ class Model(nn.Module):
         return self
 
     @property
-    def names(self) -> list:
+    def names(self) -> Dict[int, str]:
         """
         Retrieves the class names associated with the loaded model.
 
@@ -1126,3 +1130,46 @@ class Model(nn.Module):
             description of the expected behavior and structure.
         """
         raise NotImplementedError("Please provide task map for your model!")
+
+    def eval(self):
+        """
+        Sets the model to evaluation mode.
+
+        This method changes the model's mode to evaluation, which affects layers like dropout and batch normalization
+        that behave differently during training and evaluation.
+
+        Returns:
+            (Model): The model instance with evaluation mode set.
+
+        Examples:
+            >> model = YOLO("yolo11n.pt")
+            >> model.eval()
+        """
+        self.model.eval()
+        return self
+
+    def __getattr__(self, name):
+        """
+        Enables accessing model attributes directly through the Model class.
+
+        This method provides a way to access attributes of the underlying model directly through the Model class
+        instance. It first checks if the requested attribute is 'model', in which case it returns the model from
+        the module dictionary. Otherwise, it delegates the attribute lookup to the underlying model.
+
+        Args:
+            name (str): The name of the attribute to retrieve.
+
+        Returns:
+            (Any): The requested attribute value.
+
+        Raises:
+            AttributeError: If the requested attribute does not exist in the model.
+
+        Examples:
+            >>> model = YOLO("yolo11n.pt")
+            >>> print(model.stride)
+            >>> print(model.task)
+        """
+        if name == "model":
+            return self._modules["model"]
+        return getattr(self.model, name)

@@ -194,6 +194,34 @@ SAM 2 can be utilized across a broad spectrum of tasks, including real-time vide
         yolo predict model=sam2.1_b.pt source=path/to/video.mp4
         ```
 
+#### Segment Video and Track objects
+
+!!! example "Segment Video"
+
+    Segment the entire video content with specific prompts and track objects.
+
+    === "Python"
+
+        ```python
+        from ultralytics.models.sam import SAM2VideoPredictor
+
+        # Create SAM2VideoPredictor
+        overrides = dict(conf=0.25, task="segment", mode="predict", imgsz=1024, model="sam2_b.pt")
+        predictor = SAM2VideoPredictor(overrides=overrides)
+
+        # Run inference with single point
+        results = predictor(source="test.mp4", points=[920, 470], labels=1)
+
+        # Run inference with multiple points
+        results = predictor(source="test.mp4", points=[[920, 470], [909, 138]], labels=[1, 1])
+
+        # Run inference with multiple points prompt per object
+        results = predictor(source="test.mp4", points=[[[920, 470], [909, 138]]], labels=[[1, 1]])
+
+        # Run inference with negative points prompt
+        results = predictor(source="test.mp4", points=[[[920, 470], [909, 138]]], labels=[[1, 0]])
+        ```
+
 - This example demonstrates how SAM 2 can be used to segment the entire content of an image or video if no prompts (bboxes/points/masks) are provided.
 
 ## SAM 2 comparison vs YOLOv8
@@ -243,6 +271,17 @@ Auto-annotation is a powerful feature of SAM 2, enabling users to generate segme
 
 ### How to Auto-Annotate with SAM 2
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/M7xWw4Iodhg"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> Auto Annotation with Meta's Segment Anything 2 Model using Ultralytics | Data Labeling
+</p>
+
 To auto-annotate your dataset using SAM 2, follow this example:
 
 !!! example "Auto-Annotation Example"
@@ -250,15 +289,20 @@ To auto-annotate your dataset using SAM 2, follow this example:
     ```python
     from ultralytics.data.annotator import auto_annotate
 
-    auto_annotate(data="path/to/images", det_model="yolov8x.pt", sam_model="sam2_b.pt")
+    auto_annotate(data="path/to/images", det_model="yolo11x.pt", sam_model="sam2_b.pt")
     ```
 
 | Argument     | Type                    | Description                                                                                             | Default        |
 | ------------ | ----------------------- | ------------------------------------------------------------------------------------------------------- | -------------- |
 | `data`       | `str`                   | Path to a folder containing images to be annotated.                                                     |                |
-| `det_model`  | `str`, optional         | Pre-trained YOLO detection model. Defaults to 'yolov8x.pt'.                                             | `'yolov8x.pt'` |
+| `det_model`  | `str`, optional         | Pre-trained YOLO detection model. Defaults to 'yolo11x.pt'.                                             | `'yolo11x.pt'` |
 | `sam_model`  | `str`, optional         | Pre-trained SAM 2 segmentation model. Defaults to 'sam2_b.pt'.                                          | `'sam2_b.pt'`  |
 | `device`     | `str`, optional         | Device to run the models on. Defaults to an empty string (CPU or GPU, if available).                    |                |
+| `conf`       | `float`, optional       | Confidence threshold for detection model; default is 0.25.                                              | `0.25`         |
+| `iou`        | `float`, optional       | IoU threshold for filtering overlapping boxes in detection results; default is 0.45.                    | `0.45`         |
+| `imgsz`      | `int`, optional         | Input image resize dimension; default is 640.                                                           | `640`          |
+| `max_det`    | `int`, optional         | Limits detections per image to control outputs in dense scenes.                                         | `300`          |
+| `classes`    | `list`, optional        | Filters predictions to specified class IDs, returning only relevant detections.                         | `None`         |
 | `output_dir` | `str`, `None`, optional | Directory to save the annotated results. Defaults to a 'labels' folder in the same directory as 'data'. | `None`         |
 
 This function facilitates the rapid creation of high-quality segmentation datasets, ideal for researchers and developers aiming to accelerate their projects.

@@ -52,13 +52,13 @@ We hope that the resources here will help you get the most out of HUB. Please br
 [Ultralytics HUB](https://www.ultralytics.com/hub) is designed to be user-friendly and intuitive, allowing users to quickly upload their datasets and train new YOLO models. It also offers a range of pre-trained models to choose from, making it extremely easy for users to get started. Once a model is trained, it can be effortlessly previewed in the [Ultralytics HUB App](app/index.md) before being deployed for real-time classification, [object detection](https://www.ultralytics.com/glossary/object-detection), and [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation) tasks.
 
 <p align="center">
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/lveF9iCMIzc?si=_Q4WB5kMB5qNe7q6"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/qE-dfbB5Sis"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Train Your Custom YOLO Models In A Few Clicks with Ultralytics HUB
+  <strong>Watch:</strong> How to train Ultralytics YOLO11 on Custom Dataset using Ultralytics HUB | HUB Datasets 🚀
 </p>
 
 We hope that the resources here will help you get the most out of HUB. Please browse the HUB <a href="https://docs.ultralytics.com/hub/">Docs</a> for details, raise an issue on <a href="https://github.com/ultralytics/hub/issues/new/choose">GitHub</a> for support, and join our <a href="https://discord.com/invite/ultralytics">Discord</a> community for questions and discussions!

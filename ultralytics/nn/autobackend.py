@@ -59,21 +59,22 @@ class AutoBackend(nn.Module):
     range of formats, each with specific naming conventions as outlined below:
 
         Supported Formats and Naming Conventions:
-            | Format                | File Suffix      |
-            |-----------------------|------------------|
-            | PyTorch               | *.pt             |
-            | TorchScript           | *.torchscript    |
-            | ONNX Runtime          | *.onnx           |
-            | ONNX OpenCV DNN       | *.onnx (dnn=True)|
-            | OpenVINO              | *openvino_model/ |
-            | CoreML                | *.mlpackage      |
-            | TensorRT              | *.engine         |
-            | TensorFlow SavedModel | *_saved_model    |
-            | TensorFlow GraphDef   | *.pb             |
-            | TensorFlow Lite       | *.tflite         |
-            | TensorFlow Edge TPU   | *_edgetpu.tflite |
-            | PaddlePaddle          | *_paddle_model   |
-            | NCNN                  | *_ncnn_model     |
+            | Format                | File Suffix       |
+            |-----------------------|-------------------|
+            | PyTorch               | *.pt              |
+            | TorchScript           | *.torchscript     |
+            | ONNX Runtime          | *.onnx            |
+            | ONNX OpenCV DNN       | *.onnx (dnn=True) |
+            | OpenVINO              | *openvino_model/  |
+            | CoreML                | *.mlpackage       |
+            | TensorRT              | *.engine          |
+            | TensorFlow SavedModel | *_saved_model/    |
+            | TensorFlow GraphDef   | *.pb              |
+            | TensorFlow Lite       | *.tflite          |
+            | TensorFlow Edge TPU   | *_edgetpu.tflite  |
+            | PaddlePaddle          | *_paddle_model/   |
+            | MNN                   | *.mnn             |
+            | NCNN                  | *_ncnn_model/     |
 
     This class offers dynamic backend switching capabilities based on the input model format, making it easier to deploy
     models across various platforms.
@@ -95,7 +96,7 @@ class AutoBackend(nn.Module):
         Initialize the AutoBackend for inference.
 
         Args:
-            weights (str): Path to the model weights file. Defaults to 'yolov8n.pt'.
+            weights (str | torch.nn.Module): Path to the model weights file or a module instance. Defaults to 'yolo11n.pt'.
             device (torch.device): Device to run the model on. Defaults to CPU.
             dnn (bool): Use OpenCV DNN module for ONNX inference. Defaults to False.
             data (str | Path | optional): Path to the additional data.yaml file containing class names. Optional.
@@ -120,7 +121,9 @@ class AutoBackend(nn.Module):
             edgetpu,
             tfjs,
             paddle,
+            mnn,
             ncnn,
+            imx,
             triton,
         ) = self._model_type(w)
         fp16 &= pt or jit or onnx or xml or engine or nn_module or triton  # FP16
@@ -180,8 +183,8 @@ class AutoBackend(nn.Module):
             check_requirements("opencv-python>=4.5.4")
             net = cv2.dnn.readNetFromONNX(w)
 
-        # ONNX Runtime
-        elif onnx:
+        # ONNX Runtime and IMX
+        elif onnx or imx:
             LOGGER.info(f"Loading {w} for ONNX Runtime inference...")
             check_requirements(("onnx", "onnxruntime-gpu" if cuda else "onnxruntime"))
             if IS_RASPBERRYPI or IS_JETSON:
@@ -197,7 +200,22 @@ class AutoBackend(nn.Module):
                 device = torch.device("cpu")
                 cuda = False
             LOGGER.info(f"Preferring ONNX Runtime {providers[0]}")
-            session = onnxruntime.InferenceSession(w, providers=providers)
+            if onnx:
+                session = onnxruntime.InferenceSession(w, providers=providers)
+            else:
+                check_requirements(
+                    ["model-compression-toolkit==2.1.1", "sony-custom-layers[torch]==0.2.0", "onnxruntime-extensions"]
+                )
+                w = next(Path(w).glob("*.onnx"))
+                LOGGER.info(f"Loading {w} for ONNX IMX inference...")
+                import mct_quantizers as mctq
+                from sony_custom_layers.pytorch.object_detection import nms_ort  # noqa
+
+                session = onnxruntime.InferenceSession(
+                    w, mctq.get_ort_session_options(), providers=["CPUExecutionProvider"]
+                )
+                task = "detect"
+
             output_names = [x.name for x in session.get_outputs()]
             metadata = session.get_modelmeta().custom_metadata_map
             dynamic = isinstance(session.get_outputs()[0].shape[0], str)
@@ -403,6 +421,26 @@ class AutoBackend(nn.Module):
             output_names = predictor.get_output_names()
             metadata = w.parents[1] / "metadata.yaml"
 
+        # MNN
+        elif mnn:
+            LOGGER.info(f"Loading {w} for MNN inference...")
+            check_requirements("MNN")  # requires MNN
+            import os
+
+            import MNN
+
+            config = {}
+            config["precision"] = "low"
+            config["backend"] = "CPU"
+            config["numThread"] = (os.cpu_count() + 1) // 2
+            rt = MNN.nn.create_runtime_manager((config,))
+            net = MNN.nn.load_module_from_file(w, [], [], runtime_manager=rt, rearrange=True)
+
+            def torch_to_mnn(x):
+                return MNN.expr.const(x.data_ptr(), x.shape)
+
+            metadata = json.loads(net.get_info()["bizCode"])
+
         # NCNN
         elif ncnn:
             LOGGER.info(f"Loading {w} for NCNN inference...")
@@ -424,6 +462,7 @@ class AutoBackend(nn.Module):
             from ultralytics.utils.triton import TritonRemoteModel
 
             model = TritonRemoteModel(w)
+            metadata = model.metadata
 
         # Any other format (unsupported)
         else:
@@ -498,7 +537,7 @@ class AutoBackend(nn.Module):
             y = self.net.forward()
 
         # ONNX Runtime
-        elif self.onnx:
+        elif self.onnx or self.imx:
             if self.dynamic:
                 im = im.cpu().numpy()  # torch to numpy
                 y = self.session.run(self.output_names, {self.session.get_inputs()[0].name: im})
@@ -515,6 +554,9 @@ class AutoBackend(nn.Module):
                 )
                 self.session.run_with_iobinding(self.io)
                 y = self.bindings
+            if self.imx:
+                # boxes, conf, cls
+                y = np.concatenate([y[0], y[1][:, :, None], y[2][:, :, None]], axis=-1)
 
         # OpenVINO
         elif self.xml:
@@ -590,6 +632,12 @@ class AutoBackend(nn.Module):
             self.predictor.run()
             y = [self.predictor.get_output_handle(x).copy_to_cpu() for x in self.output_names]
 
+        # MNN
+        elif self.mnn:
+            input_var = self.torch_to_mnn(im)
+            output_var = self.net.onForward([input_var])
+            y = [x.read() for x in output_var]
+
         # NCNN
         elif self.ncnn:
             mat_in = self.pyncnn.Mat(im[0].cpu().numpy())
@@ -635,6 +683,9 @@ class AutoBackend(nn.Module):
                         else:
                             x[:, [0, 2]] *= w
                             x[:, [1, 3]] *= h
+                            if self.task == "pose":
+                                x[:, 5::3] *= w
+                                x[:, 6::3] *= h
                     y.append(x)
             # TF segment fixes: export is reversed vs ONNX export and protos are transposed
             if len(y) == 2:  # segment with (det, proto) output order reversed
@@ -650,8 +701,7 @@ class AutoBackend(nn.Module):
         #     print(type(x), len(x)) if isinstance(x, (list, tuple)) else print(type(x), x.shape)  # debug shapes
         if isinstance(y, (list, tuple)):
             if len(self.names) == 999 and (self.task == "segment" or len(y) == 2):  # segments and names not defined
-                ip, ib = (0, 1) if len(y[0].shape) == 4 else (1, 0)  # index of protos, boxes
-                nc = y[ib].shape[1] - y[ip].shape[3] - 4  # y = (1, 160, 160, 32), (1, 116, 8400)
+                nc = y[0].shape[1] - y[1].shape[1] - 4  # y = (1, 32, 160, 160), (1, 116, 8400)
                 self.names = {i: f"class{i}" for i in range(nc)}
             return self.from_numpy(y[0]) if len(y) == 1 else [self.from_numpy(x) for x in y]
         else:

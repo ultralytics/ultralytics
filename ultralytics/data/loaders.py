@@ -354,7 +354,7 @@ class LoadImagesAndVideos:
         self.nf = ni + nv  # number of files
         self.ni = ni  # number of images
         self.video_flag = [False] * ni + [True] * nv
-        self.mode = "image"
+        self.mode = "video" if ni == 0 else "image"  # default to video if no images
         self.vid_stride = vid_stride  # video frame-rate stride
         self.bs = batch
         if any(videos):

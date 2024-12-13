@@ -23,13 +23,15 @@ on:
     inputs:
       publish_docs:
         description: "Publish live to https://docs.ultralytics.com"
-        default: "true"
+        default: true
         type: boolean
 
 jobs:
   Docs:
     if: github.repository == 'ultralytics/ultralytics'
-    runs-on: macos-14
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_REF: ${{ github.head_ref || github.ref }}
     steps:
       - name: Git config
         run: |
@@ -39,16 +41,16 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
-          token: ${{ secrets.GITHUB_TOKEN }}
-          ref: ${{ github.head_ref || github.ref }}
+          token: ${{ secrets._GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
+          ref: ${{ env.GITHUB_REF }}
           fetch-depth: 0
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.x"
-          cache: "pip" # caching pip dependencies
+      - uses: astral-sh/setup-uv@v4
       - name: Install Dependencies
-        run: pip install ruff black tqdm minify-html mkdocs-material "mkdocstrings[python]" mkdocs-jupyter mkdocs-redirects mkdocs-ultralytics-plugin mkdocs-macros-plugin
+        run: uv pip install --system ruff black tqdm mkdocs-material "mkdocstrings[python]" mkdocs-jupyter mkdocs-redirects mkdocs-ultralytics-plugin mkdocs-macros-plugin
       - name: Ruff fixes
         continue-on-error: true
         run: ruff check --fix --unsafe-fixes --select D --ignore=D100,D104,D203,D205,D212,D213,D401,D406,D407,D413 .
@@ -56,7 +58,7 @@ jobs:
         continue-on-error: true
         run: |
           python docs/build_reference.py
-          git pull origin ${{ github.head_ref || github.ref }}
+          git pull origin "$GITHUB_REF"          
           git add .
           git reset HEAD -- .github/workflows/  # workflow changes are not permitted with default token
           if ! git diff --staged --quiet; then
@@ -75,7 +77,7 @@ jobs:
         continue-on-error: true
         if: always()
         run: |
-          git pull origin ${{ github.head_ref || github.ref }}
+          git pull origin "$GITHUB_REF"
           git add --update  # only add updated files
           git reset HEAD -- .github/workflows/  # workflow changes are not permitted with default token
           if ! git diff --staged --quiet; then
@@ -97,6 +99,7 @@ jobs:
           if git diff --staged --quiet; then
             echo "No changes to commit"
           else
+            git pull origin gh-pages
             LATEST_HASH=$(git rev-parse --short=7 HEAD)
             git commit -m "Update Docs for 'ultralytics ${{ steps.check_pypi.outputs.version }} - $LATEST_HASH'"
             git push https://${{ secrets._GITHUB_TOKEN }}@github.com/ultralytics/docs.git gh-pages

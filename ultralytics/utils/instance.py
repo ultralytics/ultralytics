@@ -176,7 +176,7 @@ class Bboxes:
             length as the number of bounding boxes.
         """
         if isinstance(index, int):
-            return Bboxes(self.bboxes[index].view(1, -1))
+            return Bboxes(self.bboxes[index].reshape(1, -1))
         b = self.bboxes[index]
         assert b.ndim == 2, f"Indexing on Bboxes with {index} failed to return a matrix!"
         return Bboxes(b)

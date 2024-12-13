@@ -40,7 +40,20 @@ keywords: Ultralytics YOLO11, speed estimation, object tracking, computer vision
 
 !!! example "Speed Estimation using YOLO11 Example"
 
-    === "Speed Estimation"
+    === "CLI"
+
+        ```bash
+        # Run a speed example
+        yolo solutions speed show=True
+
+        # Pass a source video
+        yolo solutions speed source="path/to/video/file.mp4"
+
+        # Pass region coordinates
+        yolo solutions speed region=[(20, 400), (1080, 400), (1080, 360), (20, 360)]
+        ```
+
+    === "Python"
 
         ```python
         import cv2
@@ -48,16 +61,24 @@ keywords: Ultralytics YOLO11, speed estimation, object tracking, computer vision
         from ultralytics import solutions
 
         cap = cv2.VideoCapture("Path/to/video/file.mp4")
-
         assert cap.isOpened(), "Error reading video file"
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 
+        # Video writer
         video_writer = cv2.VideoWriter("speed_management.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
-        speed_region = [(20, 400), (1080, 404), (1080, 360), (20, 360)]
+        # Define speed region points
+        speed_region = [(20, 400), (1080, 400), (1080, 360), (20, 360)]
 
-        speed = solutions.SpeedEstimator(model="yolo11n.pt", region=speed_region, show=True)
+        speed = solutions.SpeedEstimator(
+            show=True,  # Display the output
+            model="yolo11n-pose.pt",  # Path to the YOLO11 model file.
+            region=speed_region,  # Pass region points
+            # classes=[0, 2],  # If you want to estimate speed of specific classes.
+            # line_width=2,  # Adjust the line width for bounding boxes and text display
+        )
 
+        # Process video
         while cap.isOpened():
             success, im0 = cap.read()
 

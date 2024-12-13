@@ -22,7 +22,7 @@ theme:
   language: en
   custom_dir: docs/overrides/
   logo: https://raw.githubusercontent.com/ultralytics/assets/main/logo/Ultralytics_Logotype_Reverse.svg
-  favicon: assets/favicon.ico
+  favicon: https://raw.githubusercontent.com/ultralytics/assets/refs/heads/main/logo/favicon-yolo.png
   icon:
     repo: fontawesome/brands/github
   # font:  # disabled for faster page load times
@@ -69,8 +69,9 @@ theme:
     - content.tabs.link # all code tabs change simultaneously
 
 # Customization
-copyright: <a href="https://ultralytics.com" target="_blank">© 2024 Ultralytics Inc.</a> All rights reserved.
+copyright: <a href="https://www.ultralytics.com/" target="_blank">© 2024 Ultralytics Inc.</a> All rights reserved.
 extra: # version:
+  homepage: https://www.ultralytics.com/
   #   provider: mike  #  version drop-down menu
   robots: robots.txt
   analytics:
@@ -90,7 +91,7 @@ extra: # version:
     - icon: fontawesome/brands/python
       link: https://pypi.org/project/ultralytics/
     - icon: fontawesome/brands/discord
-      link: https://ultralytics.com/discord
+      link: https://discord.com/invite/ultralytics
     - icon: fontawesome/brands/reddit
       link: https://reddit.com/r/ultralytics
 
@@ -291,6 +292,7 @@ nav:
           - COCO8-pose: datasets/pose/coco8-pose.md
           - Tiger-pose: datasets/pose/tiger-pose.md
           - Hand-keypoints: datasets/pose/hand-keypoints.md
+          - Dog-pose: datasets/pose/dog-pose.md
       - Classification:
           - datasets/classify/index.md
           - Caltech 101: datasets/classify/caltech101.md
@@ -325,7 +327,8 @@ nav:
       - Distance Calculation: guides/distance-calculation.md
       - Queue Management: guides/queue-management.md
       - Parking Management: guides/parking-management.md
-      - Live Inference 🚀 NEW: guides/streamlit-live-inference.md
+      - Live Inference: guides/streamlit-live-inference.md
+      - Track Objects in Zone 🚀 NEW: guides/trackzone.md
   - Guides:
       - guides/index.md
       - YOLO Common Issues: guides/yolo-common-issues.md
@@ -398,11 +401,12 @@ nav:
       - JupyterLab: integrations/jupyterlab.md
       - Kaggle: integrations/kaggle.md
       - MLflow: integrations/mlflow.md
-      - NCNN: integrations/ncnn.md
       - Neural Magic: integrations/neural-magic.md
       - ONNX: integrations/onnx.md
       - OpenVINO: integrations/openvino.md
       - PaddlePaddle: integrations/paddlepaddle.md
+      - MNN: integrations/mnn.md
+      - NCNN: integrations/ncnn.md
       - Paperspace Gradient: integrations/paperspace.md
       - Ray Tune: integrations/ray-tune.md
       - Roboflow: integrations/roboflow.md
@@ -416,6 +420,8 @@ nav:
       - TorchScript: integrations/torchscript.md
       - VS Code: integrations/vscode.md
       - Weights & Biases: integrations/weights-biases.md
+      - Albumentations: integrations/albumentations.md
+      - SONY IMX500: integrations/sony-imx500.md
   - HUB:
       - hub/index.md
       - Web:
@@ -557,7 +563,6 @@ nav:
               - utils: reference/nn/modules/utils.md
           - tasks: reference/nn/tasks.md
       - solutions:
-          - solutions: reference/solutions/solutions.md
           - ai_gym: reference/solutions/ai_gym.md
           - analytics: reference/solutions/analytics.md
           - distance_calculation: reference/solutions/distance_calculation.md
@@ -565,8 +570,11 @@ nav:
           - object_counter: reference/solutions/object_counter.md
           - parking_management: reference/solutions/parking_management.md
           - queue_management: reference/solutions/queue_management.md
+          - solutions: reference/solutions/solutions.md
           - speed_estimation: reference/solutions/speed_estimation.md
           - streamlit_inference: reference/solutions/streamlit_inference.md
+          - region_counter: reference/solutions/region_counter.md
+          - trackzone: reference/solutions/trackzone.md
       - trackers:
           - basetrack: reference/trackers/basetrack.md
           - bot_sort: reference/trackers/bot_sort.md
@@ -622,8 +630,8 @@ nav:
 # Plugins including 301 redirects navigation ---------------------------------------------------------------------------
 plugins:
   - macros
-  - search:
-      lang: en
+  # - search:
+  #     lang: en
   - mkdocstrings:
       enabled: true
       default_handler: python

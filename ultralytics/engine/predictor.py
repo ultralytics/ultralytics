@@ -26,6 +26,7 @@ Usage - formats:
                               yolov8n.tflite             # TensorFlow Lite
                               yolov8n_edgetpu.tflite     # TensorFlow Edge TPU
                               yolov8n_paddle_model       # PaddlePaddle
+                              yolov8n.mnn                # MNN
                               yolov8n_ncnn_model         # NCNN
 """
 
@@ -152,7 +153,11 @@ class BasePredictor:
             (list): A list of transformed images.
         """
         same_shapes = len({x.shape for x in im}) == 1
-        letterbox = LetterBox(self.imgsz, auto=same_shapes and self.model.pt, stride=self.model.stride)
+        letterbox = LetterBox(
+            self.imgsz,
+            auto=same_shapes and (self.model.pt or (getattr(self.model, "dynamic", False) and not self.model.imx)),
+            stride=self.model.stride,
+        )
         return [letterbox(image=x) for x in im]
 
     def postprocess(self, preds, img, orig_imgs):

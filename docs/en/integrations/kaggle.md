@@ -127,7 +127,8 @@ Kaggle offers unique features that make it an excellent choice:
 - **Free Access to TPUs**: Speed up training with powerful TPUs without extra costs.
 - **Comprehensive History**: Track changes over time with a detailed history of notebook commits.
 - **Resource Availability**: Significant resources are provided for each notebook session, including 12 hours of execution time for CPU and GPU sessions.
-    For a comparison with Google Colab, refer to our [Google Colab guide](./google-colab.md).
+
+For a comparison with Google Colab, refer to our [Google Colab guide](./google-colab.md).
 
 ### How can I revert to a previous version of my Kaggle notebook?
 

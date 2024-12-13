@@ -23,7 +23,6 @@ from ultralytics.utils import (
     AUTOINSTALL,
     IS_COLAB,
     IS_GIT_DIR,
-    IS_JUPYTER,
     IS_KAGGLE,
     IS_PIP_PACKAGE,
     LINUX,
@@ -435,6 +434,7 @@ def check_torchvision():
     """
     # Compatibility table
     compatibility_table = {
+        "2.5": ["0.20"],
         "2.4": ["0.19"],
         "2.3": ["0.18"],
         "2.2": ["0.17"],
@@ -569,11 +569,8 @@ def check_yolo(verbose=True, device=""):
 
     from ultralytics.utils.torch_utils import select_device
 
-    if IS_JUPYTER:
-        if check_requirements("wandb", install=False):
-            os.system("pip uninstall -y wandb")  # uninstall wandb: unwanted account creation prompt with infinite hang
-        if IS_COLAB:
-            shutil.rmtree("sample_data", ignore_errors=True)  # remove colab /sample_data directory
+    if IS_COLAB:
+        shutil.rmtree("sample_data", ignore_errors=True)  # remove colab /sample_data directory
 
     if verbose:
         # System info
@@ -673,8 +670,22 @@ def check_amp(model):
     from ultralytics.utils.torch_utils import autocast
 
     device = next(model.parameters()).device  # get model device
+    prefix = colorstr("AMP: ")
     if device.type in {"cpu", "mps"}:
         return False  # AMP only used on CUDA devices
+    else:
+        # GPUs that have issues with AMP
+        pattern = re.compile(
+            r"(nvidia|geforce|quadro|tesla).*?(1660|1650|1630|t400|t550|t600|t1000|t1200|t2000|k40m)", re.IGNORECASE
+        )
+
+        gpu = torch.cuda.get_device_name(device)
+        if bool(pattern.search(gpu)):
+            LOGGER.warning(
+                f"{prefix}checks failed ❌. AMP training on {gpu} GPU may cause "
+                f"NaN losses or zero-mAP results, so AMP will be disabled during training."
+            )
+            return False
 
     def amp_allclose(m, im):
         """All close FP32 vs AMP results."""
@@ -687,7 +698,6 @@ def check_amp(model):
         return a.shape == b.shape and torch.allclose(a, b.float(), atol=0.5)  # close to 0.5 absolute tolerance
 
     im = ASSETS / "bus.jpg"  # image to check
-    prefix = colorstr("AMP: ")
     LOGGER.info(f"{prefix}running Automatic Mixed Precision (AMP) checks...")
     warning_msg = "Setting 'amp=True'. If you experience zero-mAP or NaN losses you can disable AMP with amp=False."
     try:

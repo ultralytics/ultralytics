@@ -411,7 +411,7 @@ class Model(nn.Module):
             "license": "AGPL-3.0 License (https://ultralytics.com/license)",
             "docs": "https://docs.ultralytics.com",
         }
-        self.ckpt = {} or self.ckpt
+        self.ckpt = self.ckpt or {}
         torch.save({**self.ckpt, **updates}, filename)
 
     def info(self, detailed: bool = False, verbose: bool = True):

@@ -1717,10 +1717,10 @@ class CopyPaste(BaseMixTransform):
         for j in indexes[: round(self.p * n)]:
             cls = np.concatenate((cls, labels2.get("cls", cls)[[j]]), axis=0)
             instances = Instances.concatenate((instances, instances2[[j]]), axis=0)
-            cv2.drawContours(im_new, instances2.segments[[j]].astype(np.int32), -1, (1, 1, 1), cv2.FILLED)
+            cv2.drawContours(im_new, instances.segments[[j]].astype(np.int32), -1, (1, 1, 1), cv2.FILLED)
 
         result = labels2.get("img", cv2.flip(im, 1))  # augment segments
-        i = im_new.astype(bool)
+        i = (im_new if len(labels2) else cv2.flip(im_new, 1)).astype(bool)
         im[i] = result[i]
 
         labels1["img"] = im

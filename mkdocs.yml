@@ -763,3 +763,6 @@ plugins:
         reference/data/explorer/explorer.md: datasets/explorer/index.md
         reference/data/explorer/gui/dash.md: datasets/explorer/index.md
         reference/data/explorer/utils.md: datasets/explorer/index.md
+        quickstart_tutorial.md: yolov5/quickstart_tutorial.md
+        environments/aws_quickstart_tutorial.md: yolov5/environments/aws_quickstart_tutorial.md
+        tutorials/train_custom_data.md: yolov5/tutorials/train_custom_data.md

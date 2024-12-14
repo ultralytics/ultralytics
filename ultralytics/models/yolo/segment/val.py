@@ -73,7 +73,7 @@ class SegmentationValidator(DetectionValidator):
     def postprocess(self, preds, img_shape):
         """Post-processes YOLO predictions and returns output detections with proto."""
         if self.separate_outputs:  # Quant friendly export with separated outputs
-            pred_order, mask, proto = separate_outputs_decode(preds, self.args.task)
+            pred_order, mask, proto = separate_outputs_decode(preds, self.args.task, 32, img_shape)
             preds_decoded = decode_bbox(pred_order, img_shape, self.device)
             preds_decoded = torch.cat([preds_decoded, mask.permute(0, 2, 1)], 1)
             p = ops.non_max_suppression(

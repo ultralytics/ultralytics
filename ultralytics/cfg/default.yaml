@@ -90,6 +90,8 @@ separate_outputs: False # export model with 6 outputs - no concatenation
 export_hw_optimized: False # optimize c2f block for faster inference on some hardware
 uint8_io_dtype: False # uint8 for input and output dtypes when doing full int8 quantization (False: int8)
 max_ncalib_imgs: 100 # maximum number of calibration images for TF int8 quantization
+separate_pose: False # export model with 9 outputs - no concatenation; valid only when separate_outputs = True
+separate_masks: False # export model with 10 outputs - no concatenation; valid only when separate_outputs = True
 
 # Hyperparameters ------------------------------------------------------------------------------------------------------
 lr0: 0.01 # (float) initial learning rate (i.e. SGD=1E-2, Adam=1E-3)

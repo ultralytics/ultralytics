@@ -5,22 +5,45 @@ import torch
 from ultralytics.nn.modules.block import DFL
 from ultralytics.utils.tal import dist2bbox, make_anchors
 
-def separate_outputs_decode(preds, task):
-    mcv = float("-inf")
-    lci = -1
+def separate_outputs_decode(preds, task, task_id_shape, img_shape=()):
+    pidx = -1
+    task_inds = []
+    separate_pose = task == "pose" and len(preds) > 7
+    separate_masks = task == "segment" and len(preds) > 8
     for idx, s in enumerate(preds):
-        dim_1 = s.shape[1]
-        if dim_1 > mcv:
-            mcv = dim_1
-            lci = idx
+        if (task == "pose" or task == "segment") and s.shape[2] == task_id_shape:
+            task_inds.append(idx)
         if len(s.shape) == 4 and task == "segment":
             proto = s
             pidx = idx
     
+    task_inds_pos = [
+        i
+        for i, _ in sorted(
+            enumerate([preds[ti] for ti in task_inds]),
+            key=lambda x: -x[1].shape[1],
+        )
+    ]
+    
+    if task == "segment" and pidx < 0:      # proto tensor has shape (1, 25600, 32) and was selected for task_inds
+        pidx = task_inds[task_inds_pos.pop(0)]
+        proto = preds[pidx].permute(0, 2, 1)
+        proto_shape = proto.shape
+        area = proto_shape[2]
+        mh = int(math.sqrt(area * img_shape[-2] / img_shape[-1]))
+        mw = int(area / mh)
+        proto = proto.contiguous().view(proto_shape[0], proto_shape[1], mh, mw)
+    
+    task_tensor = (
+        torch.cat([preds[task_inds[ti]] for ti in task_inds_pos], 1)
+        if separate_pose or separate_masks
+        else preds[task_inds[task_inds_pos[0]]]
+    )
+    
     if task == "pose":
-        return [item for index, item in enumerate(preds) if index not in [lci]], preds[lci]
+        return [item for index, item in enumerate(preds) if index not in task_inds], task_tensor
     elif task == "segment":
-        return [item for index, item in enumerate(preds) if index not in [pidx, lci]], preds[lci], proto.permute(0, 3, 1, 2)
+        return [item for index, item in enumerate(preds) if index not in task_inds + [pidx]], task_tensor, proto
     
 def decode_bbox(preds, img_shape, device):
     num_classes = next((o.shape[2] for o in preds if o.shape[2] != 64), -1)

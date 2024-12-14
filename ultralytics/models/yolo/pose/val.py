@@ -66,7 +66,7 @@ class PoseValidator(DetectionValidator):
     def postprocess(self, preds, img_shape):
         """Apply non-maximum suppression and return detections with high confidence scores."""
         if self.separate_outputs:  # Quant friendly export with separated outputs
-            pred_order, nkpt = separate_outputs_decode(preds, self.args.task)
+            pred_order, nkpt = separate_outputs_decode(preds, self.args.task, self.kpt_shape[0] * self.kpt_shape[1])
             pred_decoded = decode_bbox(pred_order, img_shape, self.device)
             kpt_shape = (nkpt.shape[-1] // 3, 3)
             kpts_decoded = decode_kpts(pred_order,

@@ -176,6 +176,8 @@ class Detect(nn.Module):
 
 class Segment(Detect):
     """YOLOv8 Segment head for segmentation models."""
+    
+    separate_masks = False
 
     def __init__(self, nc=80, nm=32, npr=256, ch=()):
         """Initialize the YOLO model attributes such as the number of masks, prototypes, and the convolution layers."""
@@ -193,16 +195,19 @@ class Segment(Detect):
         bs = p.shape[0]  # batch size
 
         if self.separate_outputs and self.export:
-            mc = torch.cat(
-                [torch.permute(self.cv4[i](x[i]), (0, 2, 3, 1)).reshape(bs, -1, self.nm) for i in range(self.nl)],
-                1)  # mask coefficients
+            if self.separate_masks:
+                mc = [torch.permute(self.cv4[i](x[i]), (0, 2, 3, 1)).reshape(bs, -1, self.nm) for i in range(self.nl)] # mask coefficients
+            else:
+                mc = torch.cat(
+                    [torch.permute(self.cv4[i](x[i]), (0, 2, 3, 1)).reshape(bs, -1, self.nm) for i in range(self.nl)],
+                    1)  # mask coefficients
         else:
             mc = torch.cat([self.cv4[i](x[i]).view(bs, self.nm, -1) for i in range(self.nl)], 2)  # mask coefficients
         x = Detect.forward(self, x)
         if self.training:
             return x, mc, p
         if self.separate_outputs and self.export:
-            return x, mc, p.permute(0, 2, 3, 1)
+            return x, mc, p
         return (torch.cat([x, mc], 1), p) if self.export else (torch.cat([x[0], mc], 1), (x[1], mc, p))
 
 
@@ -239,6 +244,8 @@ class OBB(Detect):
 class Pose(Detect):
     """YOLOv8 Pose head for keypoints models."""
 
+    separate_pose = False
+
     def __init__(self, nc=80, kpt_shape=(17, 3), ch=()):
         """Initialize YOLO network with default parameters and Convolutional Layers."""
         super().__init__(nc, ch)
@@ -252,7 +259,10 @@ class Pose(Detect):
         """Perform forward pass through YOLO model and return predictions."""
         bs = x[0].shape[0]  # batch size
         if self.export and self.separate_outputs:
-            kpt = torch.cat([torch.permute(self.cv4[i](x[i]), (0, 2, 3, 1)).reshape(bs, -1, self.nk) for i in range(self.nl)], 1)
+            if self.separate_pose:
+                kpt = [torch.permute(self.cv4[i](x[i]), (0, 2, 3, 1)).reshape(bs, -1, self.nk) for i in range(self.nl)]
+            else:
+                kpt = torch.cat([torch.permute(self.cv4[i](x[i]), (0, 2, 3, 1)).reshape(bs, -1, self.nk) for i in range(self.nl)], 1)
         else:
             kpts = [self.cv4[i](x[i]) for i in range(self.nl)]
             shape = kpts[0].shape

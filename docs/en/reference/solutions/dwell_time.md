@@ -11,6 +11,6 @@ keywords: Ultralytics, Presence Time, Python, Real-time Video, Object Tracking, 
 
 <br>
 
-## ::: ultralytics.solutions.DwellTimeAnalyzer
+## ::: ultralytics.solutions.dwell_time_analyzer.DwellTimeAnalyzer
 
 <br><br>

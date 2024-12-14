@@ -82,4 +82,4 @@ Ultralytics YOLO11 can generate heatmaps to visualize data intensity across a gi
 
 ### How does Ultralytics YOLO help in countin object presence time in specific zone?
 
-Ultralytics YOLO helps in counting object presence time in a specific zone by combining its advanced object detection capabilities with tracking algorithms to monitor and calculate how long an object stays within a predefined Region of Interest (ROI).
+Ultralytics YOLO helps in counting object presence time in a specific zone by combining its advanced object detection capabilities with tracking algorithms to monitor and calculate how long an object stays within a predefined Region of Interest (ROI). Learn how to set up a [Dwell Time Analyzer](../guides/dwell-time-analysis.md) with YOLO11.

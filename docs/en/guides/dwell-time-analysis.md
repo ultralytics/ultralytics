@@ -39,7 +39,7 @@ In today’s data-driven world, understanding how users interact with systems is
 Choosing the Dwell Time Analyzer equips organizations with a precise and reliable means of uncovering actionable insights, empowering them to optimize performance and deliver exceptional user experiences.  
                                                
 
-!!! example "Heatmaps using Ultralytics YOLO11 Example"
+!!! example "DwellTimeAnalyzer using Ultralytics YOLO11 Example"
 
 
     === "Python"
@@ -101,7 +101,7 @@ Choosing the Dwell Time Analyzer equips organizations with a precise and reliabl
         cv2.destroyAllWindows()
         ```
 
-### Arguments `Heatmap()`
+### Arguments `DwellTimeAnalyzer()`
 
 | Name         | Type   | Default            | Description                                                       |
 | ------------ | ------ | ------------------ | ----------------------------------------------------------------- |
@@ -126,7 +126,7 @@ Choosing the Dwell Time Analyzer equips organizations with a precise and reliabl
 
 Ultralytics YOLO11, the latest advancement in the YOLO (You Only Look Once) series, is a state-of-the-art deep learning model tailored for real-time object detection and behavior analysis. It powers the Dwell Time Analyzer by leveraging its cutting-edge capabilities in detecting and tracking objects or users in dynamic environments.
 
-### Can I use Ultralytics YOLO11 to perform object tracking and generate a heatmap simultaneously?
+### Can I use Ultralytics YOLO11 to perform object tracking and counting time for objects simultaneously?
 
 Yes, Ultralytics YOLO11 can certainly be used to perform object tracking and calculate dwell time. `DwellTimeAnalyzer` solution integrated with object tracking models. To do so, you need to initialize the dwelltimeanalyzer object and use YOLO11's tracking capabilities. Here's a simple example:
 
@@ -198,4 +198,4 @@ cv2.destroyAllWindows()
 
 ### Why should businesses choose Ultralytics YOLO11 for Dwell Time Analyzer in data analysis?
 
-Ultralytics YOLO11 offers seamless integration of advanced object detection and real-time heatmap generation, making it an ideal choice for businesses looking to count time more effectively. The key advantages include accurate, actionable insights into user or object interactions, efficient pattern detection, and enhanced spatial analysis for better decision-making. Additionally, YOLO11's cutting-edge features such as persistent tracking, customizable colormaps, and support for various export formats make it superior to other tools like [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) and OpenCV for comprehensive data analysis. Learn more about business applications at [Ultralytics Plans](https://www.ultralytics.com/plans).
+Ultralytics YOLO11 offers seamless integration of advanced object detection and real-time object presence time counting, making it an ideal choice for businesses looking to count time more effectively. The key advantages include accurate, actionable insights into user or object interactions, efficient pattern detection, and enhanced spatial analysis for better decision-making. Additionally, YOLO11's cutting-edge features such as persistent tracking, customizable colormaps, and support for various export formats make it superior to other tools like [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) and OpenCV for comprehensive data analysis. Learn more about business applications at [Ultralytics Plans](https://www.ultralytics.com/plans).

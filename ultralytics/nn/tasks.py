@@ -62,6 +62,7 @@ from ultralytics.nn.modules import (
     WorldDetect,
     v10Detect,
 )
+from ultralytics.nn.modules.ffca import FEM, SCAM, C3_Faster, FFM_Concat2, FFM_Concat3
 from ultralytics.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, colorstr, emojis, yaml_load
 from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml
 from ultralytics.utils.loss import (
@@ -997,6 +998,8 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             PSA,
             SCDown,
             C2fCIB,
+            C3_Faster,
+            FEM,
         }:
             c1, c2 = ch[f], args[0]
             if c2 != nc:  # if c2 not equal to number of classes (i.e. for Classify() output)
@@ -1042,6 +1045,17 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             c2 = args[1] if args[3] else args[1] * 4
         elif m is nn.BatchNorm2d:
             args = [ch[f]]
+        # --------------- ffca start ------------------
+        elif m in {SCAM}:
+            c2 = ch[f]
+            args = [c2]
+        elif m is FFM_Concat2:
+            c2 = sum(ch[x] for x in f)
+            args = [args[0], c2 // 2, c2 // 2]
+        elif m is FFM_Concat3:
+            c2 = sum(ch[x] for x in f)
+            args = [args[0], c2 // 4, c2 // 2, c2 // 4]
+        # --------------- ffca end ------------------
         elif m is Concat:
             c2 = sum(ch[x] for x in f)
         elif m in {Detect, WorldDetect, Segment, Pose, OBB, ImagePoolingAttn, v10Detect}:

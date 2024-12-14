@@ -754,7 +754,7 @@ class Results(SimpleClass):
                 BGR=True,
             )
 
-    def summary(self, normalize=False, decimals=5):
+    def summary(self, use_wh=False, normalize=False, decimals=5):
         """
         Converts inference results to a summarized dictionary with optional normalization for box coordinates.
 
@@ -764,6 +764,7 @@ class Results(SimpleClass):
         optionally mask segments and keypoints.
 
         Args:
+            use_wh (bool): Whether to use [x, y, width, height] format for boxes. If OBBs, rotation is also included.
             normalize (bool): Whether to normalize bounding box coordinates by image dimensions. Defaults to False.
             decimals (int): Number of decimal places to round the output values to. Defaults to 5.
 
@@ -795,11 +796,17 @@ class Results(SimpleClass):
         h, w = self.orig_shape if normalize else (1, 1)
         for i, row in enumerate(data):  # xyxy, track_id if tracking, conf, class_id
             class_id, conf = int(row.cls), round(row.conf.item(), decimals)
-            box = (row.xyxyxyxy if is_obb else row.xyxy).squeeze().reshape(-1, 2).tolist()
+            if use_wh:
+                box = (row.xywhr if is_obb else row.xywh).squeeze().reshape(-1, 2).tolist()
+            else:
+                box = (row.xyxyxyxy if is_obb else row.xyxy).squeeze().reshape(-1, 2).tolist()
             xy = {}
             for j, b in enumerate(box):
                 xy[f"x{j + 1}"] = round(b[0] / w, decimals)
                 xy[f"y{j + 1}"] = round(b[1] / h, decimals)
+            if len(xy) <= 5 and use_wh:
+                xy["width"] = xy.pop("x2")
+                xy["height"] = xy.pop("y2")
             result = {"name": self.names[class_id], "class": class_id, "confidence": conf, "box": xy}
             if data.is_track:
                 result["track_id"] = int(row.id.item())  # track ID

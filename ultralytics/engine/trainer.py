@@ -552,7 +552,7 @@ class BaseTrainer:
             if self.args.task == "classify":
                 data = check_cls_dataset(self.args.data)
             elif self.args.task == "regress":
-                self.data = check_regress_dataset(self.args.data)
+                data = check_regress_dataset(self.args.data)
             elif self.args.data.split(".")[-1] in {"yaml", "yml"} or self.args.task in {
                 "detect",
                 "segment",

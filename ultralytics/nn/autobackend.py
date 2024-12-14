@@ -591,8 +591,9 @@ class AutoBackend(nn.Module):
                             x[:, [0, 2]] *= w
                             x[:, [1, 3]] *= h
                             if self.task == "pose" or x.shape[1] > 5:
-                                x[:, 5::3] *= w
-                                x[:, 6::3] *= h
+                                kpt_offset = x.shape[1] - self.kpt_shape[0] * self.kpt_shape[1]
+                                x[:, kpt_offset::3] *= w
+                                x[:, kpt_offset+1::3] *= h
                     y.append(x)
             # TF segment fixes: export is reversed vs ONNX export and protos are transposed
             if len(y) == 2:  # segment with (det, proto) output order reversed

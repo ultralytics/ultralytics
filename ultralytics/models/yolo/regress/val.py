@@ -73,7 +73,7 @@ class RegressionValidator(BaseValidator):
 
     def build_dataset(self, img_path):
         """Creates and returns a RegressionDataset instance using given image path and preprocessing parameters."""
-        return RegressionDataset(args=self.args, img_path=img_path, augment=False, prefix=self.args.split)
+        return RegressionDataset(root=img_path, args=self.args, img_path=img_path, augment=False, prefix=self.args.split)
 
     def get_dataloader(self, dataset_path, batch_size):
         """Builds and returns a data loader for classification tasks with given parameters."""

@@ -917,7 +917,7 @@ def entrypoint(debug=""):
             import difflib
 
             task_matches = difflib.get_close_matches(
-                task.lower(), TASKS, n=1, cutoff=0.8
+                task.lower(), TASKS, n=1, cutoff=0.9
             )  # 80% similarity required to match task
             if not task_matches:
                 raise ValueError(f"Invalid 'task={task}'. Valid tasks are {TASKS}.\n{CLI_HELP_MSG}")

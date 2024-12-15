@@ -400,8 +400,9 @@ def emojis(string=""):
 
 
 def closest_match(value, comparision_list, n=1, cutoff=0.6):
-    """Get the closest match for export format"""
+    """Get the closest match for export format."""
     from difflib import get_close_matches
+
     return get_close_matches(value, comparision_list, n=n, cutoff=cutoff)  # 60% similarity required to match
 
 

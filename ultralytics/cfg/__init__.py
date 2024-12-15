@@ -31,6 +31,7 @@ from ultralytics.utils import (
     vscode_msg,
     yaml_load,
     yaml_print,
+    closest_match
 )
 
 # Define valid solutions
@@ -474,11 +475,9 @@ def check_dict_alignment(base: Dict, custom: Dict, e=None):
     base_keys, custom_keys = (set(x.keys()) for x in (base, custom))
     mismatched = [k for k in custom_keys if k not in base_keys]
     if mismatched:
-        from difflib import get_close_matches
-
         string = ""
         for x in mismatched:
-            matches = get_close_matches(x, base_keys)  # key list
+            matches = closest_match(x, base_keys)  # key list
             matches = [f"{k}={base[k]}" if base.get(k) is not None else k for k in matches]
             match_str = f"Similar arguments are i.e. {matches}." if matches else ""
             string += f"'{colorstr('red', 'bold', x)}' is not a valid YOLO argument. {match_str}\n"

@@ -90,6 +90,7 @@ from ultralytics.utils import (
     colorstr,
     get_default_args,
     yaml_save,
+    closest_match
 )
 from ultralytics.utils.checks import check_imgsz, check_is_path_safe, check_requirements, check_version
 from ultralytics.utils.downloads import attempt_download_asset, get_github_assets, safe_download
@@ -184,10 +185,7 @@ class Exporter:
             fmt = "coreml"
         fmts = tuple(export_formats()["Argument"][1:])  # available export formats
         if fmt not in fmts:
-            import difflib
-
-            # Get the closest match if format is invalid
-            matches = difflib.get_close_matches(fmt, fmts, n=1, cutoff=0.6)  # 60% similarity required to match
+            matches = closest_match(fmt, fmts, n=1, cutoff=0.6)
             if not matches:
                 raise ValueError(f"Invalid export format='{fmt}'. Valid formats are {fmts}")
             LOGGER.warning(f"WARNING ⚠️ Invalid export format='{fmt}', updating to format='{matches[0]}'")

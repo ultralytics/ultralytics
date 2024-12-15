@@ -15,6 +15,7 @@ repo_name: ultralytics/ultralytics
 remote_name: https://github.com/ultralytics/docs
 docs_dir: "docs/en/" # where to find the markdown files
 site_dir: "site/" # where to publish to
+use_directory_urls: true  # don't display 'index.html' in slugs
 
 # Theme customization
 theme:
@@ -71,7 +72,6 @@ theme:
 # Customization
 copyright: <a href="https://www.ultralytics.com/" target="_blank">© 2024 Ultralytics Inc.</a> All rights reserved.
 extra: # version:
-  use_directory_urls: false
   homepage: https://www.ultralytics.com/
   #   provider: mike  #  version drop-down menu
   robots: robots.txt

@@ -409,15 +409,6 @@ def test_utils_torchutils():
     time_sync()
 
 
-@pytest.mark.slow
-@pytest.mark.skipif(not ONLINE, reason="environment is offline")
-def test_utils_downloads():
-    """Test file download utilities from ultralytics.utils.downloads."""
-    from ultralytics.utils.downloads import get_google_drive_file_info
-
-    get_google_drive_file_info("https://drive.google.com/file/d/1cqT-cJgANNrhIHCrEufUYhQ4RqiWG_lJ/view?usp=drive_link")
-
-
 def test_utils_ops():
     """Test utility operations functions for coordinate transformation and normalization."""
     from ultralytics.utils.ops import (

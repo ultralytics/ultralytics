@@ -80,7 +80,7 @@ SOLUTIONS_HELP_MSG = f"""
         Where SOLUTION (optional) is one of {list(SOLUTION_MAP.keys())[:-1]}
               ARGS (optional) are any number of custom 'arg=value' pairs like 'show_in=True' that override defaults 
                   at https://docs.ultralytics.com/usage/cfg
-                
+
     1. Call object counting solution
         yolo solutions count source="path/to/video/file.mp4" region=[(20, 400), (1080, 400), (1080, 360), (20, 360)]
 
@@ -95,7 +95,7 @@ SOLUTIONS_HELP_MSG = f"""
 
     5. Generate analytical graphs
         yolo solutions analytics analytics_type="pie"
-    
+
     6. Track objects within specific zones
         yolo solutions trackzone source="path/to/video/file.mp4" region=[(150, 150), (1130, 150), (1130, 570), (150, 570)] 
     """
@@ -914,15 +914,7 @@ def entrypoint(debug=""):
     task = overrides.pop("task", None)
     if task:
         if task not in TASKS:
-            import difflib
-
-            task_matches = difflib.get_close_matches(
-                task.lower(), TASKS, n=1, cutoff=0.9
-            )  # 80% similarity required to match task
-            if not task_matches:
-                raise ValueError(f"Invalid 'task={task}'. Valid tasks are {TASKS}.\n{CLI_HELP_MSG}")
-            LOGGER.warning(f"WARNING ⚠️ Invalid 'task={task}'. Updating to closest match task='{task_matches[0]}'")
-            task = task_matches[0]
+            raise ValueError(f"Invalid 'task={task}'. Valid tasks are {TASKS}.\n{CLI_HELP_MSG}")
         if "model" not in overrides:
             overrides["model"] = TASK2MODEL[task]
 

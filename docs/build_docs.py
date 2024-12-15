@@ -23,6 +23,7 @@ Usage:
 Note:
     - This script is built to be run in an environment where Python and MkDocs are installed and properly configured.
 """
+
 import json
 import os
 import re
@@ -39,7 +40,7 @@ SITE = DOCS.parent / "site"
 
 
 def create_vercel_config():
-    """Create vercel.json in the site directory with trailing slash configuration."""
+    """Create vercel.json in the site directory with customized configuration settings."""
     config = {"trailingSlash": True}
     with open(SITE / "vercel.json", "w") as f:
         json.dump(config, f, indent=2)

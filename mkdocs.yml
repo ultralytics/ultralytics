@@ -71,6 +71,7 @@ theme:
 # Customization
 copyright: <a href="https://www.ultralytics.com/" target="_blank">© 2024 Ultralytics Inc.</a> All rights reserved.
 extra: # version:
+  use_directory_urls: false
   homepage: https://www.ultralytics.com/
   #   provider: mike  #  version drop-down menu
   robots: robots.txt

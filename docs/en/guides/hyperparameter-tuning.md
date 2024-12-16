@@ -118,7 +118,16 @@ Here's how to define a search space and use the `model.tune()` method to utilize
         }
 
         # Tune hyperparameters on COCO8 for 30 epochs
-        model.tune(data="coco8.yaml", epochs=30, iterations=300, optimizer="AdamW", space=search_space, plots=False, save=False, val=False)
+        model.tune(
+            data="coco8.yaml",
+            epochs=30,
+            iterations=300,
+            optimizer="AdamW",
+            space=search_space,
+            plots=False,
+            save=False,
+            val=False,
+        )
         ```
 
 ## Results

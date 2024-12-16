@@ -19,12 +19,13 @@ def test_major_solutions():
     region_points = [(20, 400), (1080, 400), (1080, 360), (20, 360)]
     counter = solutions.ObjectCounter(region=region_points, model="yolo11n.pt", show=False)  # Test object counter
     heatmap = solutions.Heatmap(colormap=cv2.COLORMAP_PARULA, model="yolo11n.pt", show=False)  # Test heatmaps
-    speed = solutions.SpeedEstimator(region=region_points, model="yolo11n.pt", show=False)  # Test speed estimator
-    queue = solutions.QueueManager(region=region_points, model="yolo11n.pt", show=False)  # Test queue manager
-    line_analytics = solutions.Analytics(analytics_type="line", model="yolo11n.pt", show=False)  # Line analytics
-    pie_analytics = solutions.Analytics(analytics_type="pie", model="yolo11n.pt", show=False)  # Pie analytics
-    bar_analytics = solutions.Analytics(analytics_type="bar", model="yolo11n.pt", show=False)  # Bar analytics
-    area_analytics = solutions.Analytics(analytics_type="area", model="yolo11n.pt", show=False)  # Area analytics
+    speed = solutions.SpeedEstimator(region=region_points, model="yolo11n.pt", show=False)  # Test queue manager
+    queue = solutions.QueueManager(region=region_points, model="yolo11n.pt", show=False)  # Test speed estimation
+    line_analytics = solutions.Analytics(analytics_type="line", model="yolo11n.pt", show=False)  # line analytics
+    pie_analytics = solutions.Analytics(analytics_type="pie", model="yolo11n.pt", show=False)  # line analytics
+    bar_analytics = solutions.Analytics(analytics_type="bar", model="yolo11n.pt", show=False)  # line analytics
+    area_analytics = solutions.Analytics(analytics_type="area", model="yolo11n.pt", show=False)  # line analytics
+    frame_count = 0  # Required for analytics
     while cap.isOpened():
         success, im0 = cap.read()
         if not success:

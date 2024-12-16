@@ -5,7 +5,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from ultralytics.utils.torch_utils import fuse_conv_and_bn
+from ultralytics.utils.torch_utils import fuse_conv_and_bn, smart_inference_mode
 
 from .conv import Conv, DWConv, GhostConv, LightConv, RepConv, autopad
 from .transformer import TransformerBlock
@@ -582,13 +582,23 @@ class MaxSigmoidAttnBlock(nn.Module):
         """
         super().__init__()
         self.nh = nh
-        self.hc = c2 // nh
+        self.hc = ec // nh
         self.ec = Conv(c1, ec, k=1, act=False) if c1 != ec else None
         self.gl = nn.Linear(gc, ec)
         self.bias = nn.Parameter(torch.zeros(nh))
         self.proj_conv = Conv(c1, c2, k=3, s=1, act=False)
         self.scale = nn.Parameter(torch.ones(1, nh, 1, 1)) if scale else 1.0
+        self.guide = None
 
+    @smart_inference_mode()
+    def fuse(self, txt_feats):
+        assert(not self.training)
+        guide = self.gl(txt_feats.to(self.gl.weight.dtype))
+        guide = guide.view(1, -1, self.nh, self.hc)
+        del self.guide
+        self.register_buffer('guide', guide)
+        del self.gl
+    
     def forward(self, x, guide):
         """
         Forward pass of MaxSigmoidAttnBlock.
@@ -602,8 +612,12 @@ class MaxSigmoidAttnBlock(nn.Module):
         """
         bs, _, h, w = x.shape
 
-        guide = self.gl(guide)
-        guide = guide.view(bs, -1, self.nh, self.hc)
+        if self.guide is None:
+            guide = self.gl(guide)
+            guide = guide.view(bs, -1, self.nh, self.hc)
+        else:
+            guide = self.guide
+            
         embed = self.ec(x) if self.ec is not None else x
         embed = embed.view(bs, self.nh, self.hc, h, w)
 
@@ -771,7 +785,7 @@ class ContrastiveHead(nn.Module):
 
 class BNContrastiveHead(nn.Module):
     """
-    Batch Norm Contrastive Head for YOLO-World using batch norm instead of l2-normalization.
+    Batch Norm Contrastive Head using batch norm instead of l2-normalization.
 
     Args:
         embed_dims (int): Embed dimensions of text and image features.
@@ -791,6 +805,15 @@ class BNContrastiveHead(nn.Module):
         # use -1.0 is more stable
         self.logit_scale = nn.Parameter(-1.0 * torch.ones([]))
 
+    def fuse(self):
+        del self.norm
+        del self.bias
+        del self.logit_scale
+        self.forward = self.forward_fuse
+    
+    def forward_fuse(self, x, w):
+        return x
+    
     def forward(self, x, w):
         """
         Forward function of contrastive learning with batch normalization.
@@ -803,7 +826,8 @@ class BNContrastiveHead(nn.Module):
             (torch.Tensor): Similarity scores.
         """
         x = self.norm(x)
-        w = F.normalize(w, dim=-1, p=2)
+        # w = F.normalize(w, dim=-1, p=2)
+        
         x = torch.einsum("bchw,bkc->bkhw", x, w)
         return x * self.logit_scale.exp() + self.bias
 

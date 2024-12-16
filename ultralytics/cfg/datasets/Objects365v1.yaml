@@ -1,0 +1,370 @@
+path: ../datasets/Objects365v1
+train: images/train
+val: null
+test: null
+names:
+  0: person
+  1: sneakers
+  2: chair
+  3: hat
+  4: lamp
+  5: bottle
+  6: cabinet/shelf
+  7: cup
+  8: car
+  9: glasses
+  10: picture/frame
+  11: desk
+  12: handbag
+  13: street lights
+  14: book
+  15: plate
+  16: helmet
+  17: leather shoes
+  18: pillow
+  19: glove
+  20: potted plant
+  21: bracelet
+  22: flower
+  23: tv
+  24: storage box
+  25: vase
+  26: bench
+  27: wine glass
+  28: boots
+  29: bowl
+  30: dining table
+  31: umbrella
+  32: boat
+  33: flag
+  34: speaker
+  35: trash bin/can
+  36: stool
+  37: backpack
+  38: couch
+  39: belt
+  40: carpet
+  41: basket
+  42: towel/napkin
+  43: slippers
+  44: barrel/bucket
+  45: coffee table
+  46: suv
+  47: toy
+  48: tie
+  49: bed
+  50: traffic light
+  51: pen/pencil
+  52: microphone
+  53: sandals
+  54: canned
+  55: necklace
+  56: mirror
+  57: faucet
+  58: bicycle
+  59: bread
+  60: high heels
+  61: ring
+  62: van
+  63: watch
+  64: sink
+  65: horse
+  66: fish
+  67: apple
+  68: camera
+  69: candle
+  70: teddy bear
+  71: cake
+  72: motorcycle
+  73: wild bird
+  74: laptop
+  75: knife
+  76: traffic sign
+  77: cell phone
+  78: paddle
+  79: truck
+  80: cow
+  81: power outlet
+  82: clock
+  83: drum
+  84: fork
+  85: bus
+  86: hanger
+  87: nightstand
+  88: pot/pan
+  89: sheep
+  90: guitar
+  91: traffic cone
+  92: tea pot
+  93: keyboard
+  94: tripod
+  95: hockey
+  96: fan
+  97: dog
+  98: spoon
+  99: blackboard/whiteboard
+  100: balloon
+  101: air conditioner
+  102: cymbal
+  103: mouse
+  104: telephone
+  105: pickup truck
+  106: orange
+  107: banana
+  108: airplane
+  109: luggage
+  110: skis
+  111: soccer
+  112: trolley
+  113: oven
+  114: remote
+  115: baseball glove
+  116: paper towel
+  117: refrigerator
+  118: train
+  119: tomato
+  120: machinery vehicle
+  121: tent
+  122: shampoo/shower gel
+  123: head phone
+  124: lantern
+  125: donut
+  126: cleaning products
+  127: sailboat
+  128: tangerine
+  129: pizza
+  130: kite
+  131: computer box
+  132: elephant
+  133: toiletries
+  134: gas stove
+  135: broccoli
+  136: toilet
+  137: stroller
+  138: shovel
+  139: baseball bat
+  140: microwave
+  141: skateboard
+  142: surfboard
+  143: surveillance camera
+  144: gun
+  145: life saver
+  146: cat
+  147: lemon
+  148: liquid soap
+  149: zebra
+  150: duck
+  151: sports car
+  152: giraffe
+  153: pumpkin
+  154: piano
+  155: stop sign
+  156: radiator
+  157: converter
+  158: tissue
+  159: carrot
+  160: washing machine
+  161: vent
+  162: cookies
+  163: cutting/chopping board
+  164: tennis racket
+  165: candy
+  166: skating and skiing shoes
+  167: scissors
+  168: folder
+  169: baseball
+  170: strawberry
+  171: bow tie
+  172: pigeon
+  173: pepper
+  174: coffee machine
+  175: bathtub
+  176: snowboard
+  177: suitcase
+  178: grapes
+  179: ladder
+  180: pear
+  181: american football
+  182: basketball
+  183: potato
+  184: paint brush
+  185: printer
+  186: billiards
+  187: fire hydrant
+  188: goose
+  189: projector
+  190: sausage
+  191: fire extinguisher
+  192: extension cord
+  193: facial mask
+  194: tennis ball
+  195: chopsticks
+  196: electronic stove and gas stove
+  197: pie
+  198: frisbee
+  199: kettle
+  200: hamburger
+  201: golf club
+  202: cucumber
+  203: clutch
+  204: blender
+  205: tong
+  206: slide
+  207: hot dog
+  208: toothbrush
+  209: facial cleanser
+  210: mango
+  211: deer
+  212: egg
+  213: violin
+  214: marker
+  215: ship
+  216: chicken
+  217: onion
+  218: ice cream
+  219: tape
+  220: wheelchair
+  221: plum
+  222: bar soap
+  223: scale
+  224: watermelon
+  225: cabbage
+  226: router/modem
+  227: golf ball
+  228: pine apple
+  229: crane
+  230: fire truck
+  231: peach
+  232: cello
+  233: notepaper
+  234: tricycle
+  235: toaster
+  236: helicopter
+  237: green beans
+  238: brush
+  239: carriage
+  240: cigar
+  241: earphone
+  242: penguin
+  243: hurdle
+  244: swing
+  245: radio
+  246: cd
+  247: parking meter
+  248: swan
+  249: garlic
+  250: french fries
+  251: horn
+  252: avocado
+  253: saxophone
+  254: trumpet
+  255: sandwich
+  256: cue
+  257: kiwi fruit
+  258: bear
+  259: fishing rod
+  260: cherry
+  261: tablet
+  262: green vegetables
+  263: nuts
+  264: corn
+  265: key
+  266: screwdriver
+  267: globe
+  268: broom
+  269: pliers
+  270: volleyball
+  271: hammer
+  272: eggplant
+  273: trophy
+  274: dates
+  275: board eraser
+  276: rice
+  277: tape measure/ruler
+  278: dumbbell
+  279: hamimelon
+  280: stapler
+  281: camel
+  282: lettuce
+  283: goldfish
+  284: meat balls
+  285: medal
+  286: toothpaste
+  287: antelope
+  288: shrimp
+  289: rickshaw
+  290: trombone
+  291: pomegranate
+  292: coconut
+  293: jellyfish
+  294: mushroom
+  295: calculator
+  296: treadmill
+  297: butterfly
+  298: egg tart
+  299: cheese
+  300: pig
+  301: pomelo
+  302: race car
+  303: rice cooker
+  304: tuba
+  305: crosswalk sign
+  306: papaya
+  307: hair drier
+  308: green onion
+  309: chips
+  310: dolphin
+  311: sushi
+  312: urinal
+  313: donkey
+  314: electric drill
+  315: spring rolls
+  316: tortoise/turtle
+  317: parrot
+  318: flute
+  319: measuring cup
+  320: shark
+  321: steak
+  322: poker card
+  323: binoculars
+  324: llama
+  325: radish
+  326: noodles
+  327: yak
+  328: mop
+  329: crab
+  330: microscope
+  331: barbell
+  332: bread/bun
+  333: baozi
+  334: lion
+  335: red cabbage
+  336: polar bear
+  337: lighter
+  338: seal
+  339: mangosteen
+  340: comb
+  341: eraser
+  342: pitaya
+  343: scallop
+  344: pencil case
+  345: saw
+  346: table tennis paddle
+  347: okra
+  348: starfish
+  349: eagle
+  350: monkey
+  351: durian
+  352: game board
+  353: rabbit
+  354: french horn
+  355: ambulance
+  356: asparagus
+  357: hoverboard
+  358: pasta
+  359: target
+  360: hotair balloon
+  361: chainsaw
+  362: lobster
+  363: iron
+  364: flashlight

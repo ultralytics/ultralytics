@@ -38,7 +38,7 @@ import numpy as np
 import torch.cuda
 import yaml
 
-from ultralytics import YOLO, YOLOWorld
+from ultralytics import YOLO, YOLOWorld, YOLOE
 from ultralytics.cfg import TASK2DATA, TASK2METRIC
 from ultralytics.engine.exporter import export_formats
 from ultralytics.utils import ARM64, ASSETS, LINUX, LOGGER, MACOS, TQDM, WEIGHTS_DIR

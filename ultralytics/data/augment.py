@@ -9,13 +9,14 @@ import cv2
 import numpy as np
 import torch
 from PIL import Image
+from torch.nn import functional as F
 
 from ultralytics.data.utils import polygons2masks, polygons2masks_overlap
 from ultralytics.utils import LOGGER, colorstr
 from ultralytics.utils.checks import check_version
 from ultralytics.utils.instance import Instances
 from ultralytics.utils.metrics import bbox_ioa
-from ultralytics.utils.ops import segment2box, xyxyxyxy2xywhr
+from ultralytics.utils.ops import segment2box, xyxyxyxy2xywhr, xywh2xyxy
 from ultralytics.utils.torch_utils import TORCHVISION_0_10, TORCHVISION_0_11, TORCHVISION_0_13
 
 DEFAULT_MEAN = (0.0, 0.0, 0.0)
@@ -2140,6 +2141,49 @@ class Format:
         return masks, instances, cls
 
 
+
+class LoadVisualPrompt:
+    def __init__(self, nc, augment):
+        self.nc = nc
+        self.min_interval = 5
+        self.augment = augment
+        self.scale_factor = 1/8
+    
+    def make_mask(self, boxes, h, w):
+        x1, y1, x2, y2 = torch.chunk(boxes[:, :, None], 4, 1)  # x1 shape(n,1,1)
+        r = torch.arange(w)[None, None, :]  # rows shape(1,1,w)
+        c = torch.arange(h)[None, :, None]  # cols shape(1,h,1)
+
+        return ((r >= x1) * (r < x2) * (c >= y1) * (c < y2))
+    
+    def __call__(self, labels):
+        imgsz = labels["img"].shape[1:]
+        masksz = (int(imgsz[0] * self.scale_factor), int(imgsz[1] * self.scale_factor))
+        if "bboxes" in labels:
+            bboxes = labels["bboxes"]
+            bboxes = xywh2xyxy(bboxes) * torch.tensor(masksz)[[1, 0, 1, 0]]  # target boxes
+            masks = self.make_mask(bboxes, *masksz).float()
+        elif "masks" in labels:
+            assert(not self.augment)
+            masks = F.interpolate(torch.from_numpy(labels["masks"]).unsqueeze(1), 
+                                  masksz, mode="nearest").squeeze(1).float()
+        else:
+            raise ValueError("LoadVisualPrompt must have bboxes or masks in the label")
+
+        cls = labels["cls"].squeeze(-1).to(torch.int)
+        cls_unique, inverse_indices = torch.unique(cls, sorted=True, return_inverse=True)
+        if len(cls_unique) != 0 and self.augment:
+            assert(len(cls_unique) == cls_unique[-1] + 1)
+        elif not self.augment:
+            # assert(len(cls_unique) == 1)
+            pass
+        visuals = torch.zeros(len(cls_unique), *masksz)
+        for idx, mask in zip(inverse_indices, masks):
+            visuals[idx] = torch.logical_or(visuals[idx], mask)
+        # visuals[0] = masks[random.choice(range(len(masks)))]
+        labels["visuals"] = visuals
+        return labels
+
 class RandomLoadText:
     """
     Randomly samples positive and negative texts and updates class indices accordingly.
@@ -2168,6 +2212,7 @@ class RandomLoadText:
 
     def __init__(
         self,
+        text_model: str,
         prompt_format: str = "{}",
         neg_samples: Tuple[int, int] = (80, 80),
         max_samples: int = 80,
@@ -2212,6 +2257,15 @@ class RandomLoadText:
         self.max_samples = max_samples
         self.padding = padding
         self.padding_value = padding_value
+        
+        import json
+        with open('tools/global_grounding_neg_cat.json', 'r') as f:
+            self.global_grounding_neg_cats = np.array(json.load(f))
+        
+        self.global_grounding_neg_embeddings = torch.load(f'tools/{text_model}/global_grounding_neg_embeddings.pt')
+        
+        self.train_label_embeddings = torch.load(f'tools/{text_model}/train_label_embeddings.pt')
+        
 
     def __call__(self, labels: dict) -> dict:
         """
@@ -2246,7 +2300,8 @@ class RandomLoadText:
         neg_labels = random.sample(neg_labels, k=neg_samples)
 
         sampled_labels = pos_labels + neg_labels
-        random.shuffle(sampled_labels)
+        # Randomness
+        # random.shuffle(sampled_labels)
 
         label2ids = {label: i for i, label in enumerate(sampled_labels)}
         valid_idx = np.zeros(len(labels["instances"]), dtype=bool)
@@ -2266,14 +2321,31 @@ class RandomLoadText:
             assert len(prompts) > 0
             prompt = self.prompt_format.format(prompts[random.randrange(len(prompts))])
             texts.append(prompt)
-
+        
+        txt_feats = []
+        for text in texts:
+            txt_feats.append(self.train_label_embeddings[text])
+        if len(txt_feats) != 0:
+            txt_feats = torch.stack(txt_feats, dim=0)
+        else:
+            txt_feats = None
+        
         if self.padding:
             valid_labels = len(pos_labels) + len(neg_labels)
             num_padding = self.max_samples - valid_labels
             if num_padding > 0:
-                texts += [self.padding_value] * num_padding
+                global_neg_cat_len = self.global_grounding_neg_embeddings.shape[0]
+                pad_net_cat_indexs = np.random.choice(np.arange(0, global_neg_cat_len), size=num_padding, replace=False)
+                
+                pad_net_cat_embeddings = self.global_grounding_neg_embeddings[pad_net_cat_indexs]
+                
+                if txt_feats is not None:
+                    txt_feats = torch.cat((txt_feats, pad_net_cat_embeddings), dim=0)
+                else:
+                    txt_feats = pad_net_cat_embeddings
 
-        labels["texts"] = texts
+        assert(txt_feats.shape[0] == self.max_samples)
+        labels["texts"] = txt_feats
         return labels
 
 

@@ -1,0 +1,4 @@
+overlap_mask: true
+scale: 0.6
+mixup: 0.15
+copy_paste: 0.3

@@ -1,0 +1,4 @@
+# from yolo11s.pt
+# scale: 0.9
+# mixup: 0.05
+# copy_paste: 0.15

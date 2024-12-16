@@ -412,7 +412,7 @@ class Model(torch.nn.Module):
             "license": "AGPL-3.0 License (https://ultralytics.com/license)",
             "docs": "https://docs.ultralytics.com",
         }
-        torch.save({**self.ckpt, **updates}, filename)
+        torch.save({**(self.ckpt or {}), **updates}, filename)
 
     def info(self, detailed: bool = False, verbose: bool = True):
         """
@@ -537,6 +537,7 @@ class Model(torch.nn.Module):
         custom = {"conf": 0.25, "batch": 1, "save": is_cli, "mode": "predict"}  # method defaults
         args = {**self.overrides, **custom, **kwargs}  # highest priority args on the right
         prompts = args.pop("prompts", None)  # for SAM-type models
+        return_vpe = args.pop("return_vpe", None)
 
         if not self.predictor:
             self.predictor = (predictor or self._smart_load("predictor"))(overrides=args, _callbacks=self.callbacks)
@@ -547,6 +548,10 @@ class Model(torch.nn.Module):
                 self.predictor.save_dir = get_save_dir(self.predictor.args)
         if prompts and hasattr(self.predictor, "set_prompts"):  # for SAM-type models
             self.predictor.set_prompts(prompts)
+        
+        if return_vpe and hasattr(self.predictor, "set_return_vpe"):
+            self.predictor.set_return_vpe(return_vpe)
+        
         return self.predictor.predict_cli(source=source) if is_cli else self.predictor(source=source, stream=stream)
 
     def track(
@@ -1047,7 +1052,7 @@ class Model(torch.nn.Module):
             >>> print(reset_args)
             {'imgsz': 640, 'data': 'coco.yaml', 'task': 'detect'}
         """
-        include = {"imgsz", "data", "task", "single_cls"}  # only remember these arguments when loading a PyTorch model
+        include = {"imgsz", "data", "task", "single_cls", "text_model"}  # only remember these arguments when loading a PyTorch model
         return {k: v for k, v in args.items() if k in include}
 
     # def __getattr__(self, attr):

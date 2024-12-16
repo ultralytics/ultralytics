@@ -25,6 +25,7 @@ from .augment import (
     classify_augmentations,
     classify_transforms,
     v8_transforms,
+    LoadVisualPrompt
 )
 from .base import BaseDataset
 from .utils import (
@@ -68,7 +69,7 @@ class YOLODataset(BaseDataset):
         >>> dataset.get_labels()
     """
 
-    def __init__(self, *args, data=None, task="detect", **kwargs):
+    def __init__(self, *args, data=None, task="detect", load_vp=False, **kwargs):
         """
         Initialize the YOLODataset.
 
@@ -82,6 +83,7 @@ class YOLODataset(BaseDataset):
         self.use_keypoints = task == "pose"
         self.use_obb = task == "obb"
         self.data = data
+        self.load_vp = load_vp
         assert not (self.use_segments and self.use_keypoints), "Can not use both segments and keypoints."
         super().__init__(*args, **kwargs)
 
@@ -230,6 +232,13 @@ class YOLODataset(BaseDataset):
                 bgr=hyp.bgr if self.augment else 0.0,  # only affect training.
             )
         )
+        if self.load_vp:
+            if not self.augment:
+                assert(self.batch_size == 1)
+                nc = len(self.data["names"])
+            else:
+                nc = 80
+            transforms.append(LoadVisualPrompt(nc=nc, augment=self.augment))
         return transforms
 
     def close_mosaic(self, hyp):
@@ -295,6 +304,10 @@ class YOLODataset(BaseDataset):
             value = values[i]
             if k == "img":
                 value = torch.stack(value, 0)
+            if k == "texts":
+                value = torch.stack(value, 0)
+            if k == "visuals":
+                value = torch.nn.utils.rnn.pad_sequence(value, batch_first=True)
             if k in {"masks", "keypoints", "bboxes", "cls", "segments", "obb"}:
                 value = torch.cat(value, 0)
             new_batch[k] = value
@@ -346,7 +359,9 @@ class YOLOMultiModalDataset(YOLODataset):
         """
         labels = super().update_labels_info(label)
         # NOTE: some categories are concatenated with its synonyms by `/`.
-        labels["texts"] = [v.split("/") for _, v in self.data["names"].items()]
+        if not self.single_cls:
+            labels["texts"] = [v.split("/") for _, v in self.data["names"].items()]
+        
         return labels
 
     def build_transforms(self, hyp=None):
@@ -360,9 +375,10 @@ class YOLOMultiModalDataset(YOLODataset):
             (Compose): Composed transforms including text augmentation if applicable.
         """
         transforms = super().build_transforms(hyp)
-        if self.augment:
+        if self.augment and not self.single_cls:
             # NOTE: hard-coded the args for now.
-            transforms.insert(-1, RandomLoadText(max_samples=min(self.data["nc"], 80), padding=True))
+            index = -2 if self.load_vp else -1
+            transforms.insert(index, RandomLoadText(text_model=hyp.text_model, max_samples=min(self.data["nc"], 80), padding=True))
         return transforms
 
 
@@ -386,7 +402,7 @@ class GroundingDataset(YOLODataset):
         >>> len(dataset)  # Number of valid images with annotations
     """
 
-    def __init__(self, *args, task="detect", json_file, **kwargs):
+    def __init__(self, *args, task="detect", json_file="", grounding_cache=False, **kwargs):
         """
         Initialize a GroundingDataset for object detection.
 
@@ -396,8 +412,9 @@ class GroundingDataset(YOLODataset):
             *args (Any): Additional positional arguments for the parent class.
             **kwargs (Any): Additional keyword arguments for the parent class.
         """
-        assert task == "detect", "`GroundingDataset` only support `detect` task for now!"
+        assert task == "detect" or task == "segment", "`GroundingDataset` only support `detect` and `segment` task for now!"
         self.json_file = json_file
+        self.grounding_cache = grounding_cache
         super().__init__(*args, task=task, data={}, **kwargs)
 
     def get_img_files(self, img_path):
@@ -412,6 +429,22 @@ class GroundingDataset(YOLODataset):
         """
         return []
 
+    def verify_labels(self, labels):
+        instance_count = 0
+        for label in labels:
+            instance_count += label["bboxes"].shape[0]
+        
+        if "final_mixed_train_no_coco_segm" in self.json_file:
+            assert(instance_count == 3662344)
+        elif "final_mixed_train_no_coco" in self.json_file:
+            assert(instance_count == 3681235)
+        elif "final_flickr_separateGT_train_segm" in self.json_file:
+            assert(instance_count == 638214)
+        elif "final_flickr_separateGT_train" in self.json_file:
+            assert(instance_count == 640704)
+        else:
+            assert(False)
+    
     def get_labels(self):
         """
         Loads annotations from a JSON file, filters, and normalizes bounding boxes for each image.
@@ -419,57 +452,66 @@ class GroundingDataset(YOLODataset):
         Returns:
             (List[dict]): List of label dictionaries, each containing information about an image and its annotations.
         """
-        labels = []
-        LOGGER.info("Loading annotation file...")
-        with open(self.json_file) as f:
-            annotations = json.load(f)
-        images = {f"{x['id']:d}": x for x in annotations["images"]}
-        img_to_anns = defaultdict(list)
-        for ann in annotations["annotations"]:
-            img_to_anns[ann["image_id"]].append(ann)
-        for img_id, anns in TQDM(img_to_anns.items(), desc=f"Reading annotations {self.json_file}"):
-            img = images[f"{img_id:d}"]
-            h, w, f = img["height"], img["width"], img["file_name"]
-            im_file = Path(self.img_path) / f
-            if not im_file.exists():
-                continue
-            self.im_files.append(str(im_file))
-            bboxes = []
-            cat2id = {}
-            texts = []
-            for ann in anns:
-                if ann["iscrowd"]:
+        if self.grounding_cache:
+            """Loads annotations from a JSON file, filters, and normalizes bounding boxes for each image."""
+            cache_path = Path(self.json_file).with_suffix('.cache')
+            labels = np.load(str(cache_path), allow_pickle=True)
+            self.verify_labels(labels)
+            self.im_files = [str(label["im_file"]) for label in labels]
+            if LOCAL_RANK in {-1, 0}:
+                LOGGER.info(f"Load {self.json_file} from cache file {cache_path}")
+        else:
+            labels = []
+            LOGGER.info("Loading annotation file...")
+            with open(self.json_file) as f:
+                annotations = json.load(f)
+            images = {f"{x['id']:d}": x for x in annotations["images"]}
+            img_to_anns = defaultdict(list)
+            for ann in annotations["annotations"]:
+                img_to_anns[ann["image_id"]].append(ann)
+            for img_id, anns in TQDM(img_to_anns.items(), desc=f"Reading annotations {self.json_file}"):
+                img = images[f"{img_id:d}"]
+                h, w, f = img["height"], img["width"], img["file_name"]
+                im_file = Path(self.img_path) / f
+                if not im_file.exists():
                     continue
-                box = np.array(ann["bbox"], dtype=np.float32)
-                box[:2] += box[2:] / 2
-                box[[0, 2]] /= float(w)
-                box[[1, 3]] /= float(h)
-                if box[2] <= 0 or box[3] <= 0:
-                    continue
+                self.im_files.append(str(im_file))
+                bboxes = []
+                cat2id = {}
+                texts = []
+                for ann in anns:
+                    if ann["iscrowd"]:
+                        continue
+                    box = np.array(ann["bbox"], dtype=np.float32)
+                    box[:2] += box[2:] / 2
+                    box[[0, 2]] /= float(w)
+                    box[[1, 3]] /= float(h)
+                    if box[2] <= 0 or box[3] <= 0:
+                        continue
 
-                caption = img["caption"]
-                cat_name = " ".join([caption[t[0] : t[1]] for t in ann["tokens_positive"]])
-                if cat_name not in cat2id:
-                    cat2id[cat_name] = len(cat2id)
-                    texts.append([cat_name])
-                cls = cat2id[cat_name]  # class
-                box = [cls] + box.tolist()
-                if box not in bboxes:
-                    bboxes.append(box)
-            lb = np.array(bboxes, dtype=np.float32) if len(bboxes) else np.zeros((0, 5), dtype=np.float32)
-            labels.append(
-                {
-                    "im_file": im_file,
-                    "shape": (h, w),
-                    "cls": lb[:, 0:1],  # n, 1
-                    "bboxes": lb[:, 1:],  # n, 4
-                    "normalized": True,
-                    "bbox_format": "xywh",
-                    "texts": texts,
-                }
-            )
+                    caption = img["caption"]
+                    cat_name = " ".join([caption[t[0] : t[1]] for t in ann["tokens_positive"]])
+                    if cat_name not in cat2id:
+                        cat2id[cat_name] = len(cat2id)
+                        texts.append([cat_name])
+                    cls = cat2id[cat_name]  # class
+                    box = [cls] + box.tolist()
+                    if box not in bboxes:
+                        bboxes.append(box)
+                lb = np.array(bboxes, dtype=np.float32) if len(bboxes) else np.zeros((0, 5), dtype=np.float32)
+                labels.append(
+                    {
+                        "im_file": im_file,
+                        "shape": (h, w),
+                        "cls": lb[:, 0:1],  # n, 1
+                        "bboxes": lb[:, 1:],  # n, 4
+                        "normalized": True,
+                        "bbox_format": "xywh",
+                        "texts": texts,
+                    }
+                )
         return labels
-
+    
     def build_transforms(self, hyp=None):
         """
         Configures augmentations for training with optional text loading.
@@ -481,9 +523,10 @@ class GroundingDataset(YOLODataset):
             (Compose): Composed transforms including text augmentation if applicable.
         """
         transforms = super().build_transforms(hyp)
-        if self.augment:
+        if self.augment and not self.single_cls:
             # NOTE: hard-coded the args for now.
-            transforms.insert(-1, RandomLoadText(max_samples=80, padding=True))
+            index = -2 if self.load_vp else -1
+            transforms.insert(index, RandomLoadText(text_model=hyp.text_model, max_samples=80, padding=True))
         return transforms
 
 

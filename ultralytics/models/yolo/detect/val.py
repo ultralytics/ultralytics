@@ -103,6 +103,8 @@ class DetectionValidator(BaseValidator):
             model (torch.nn.Module): Model to validate.
         """
         val = self.data.get(self.args.split, "")  # validation path
+        val = val[0] if isinstance(val, list) else val
+        
         self.is_coco = (
             isinstance(val, str)
             and "coco" in val
@@ -317,7 +319,7 @@ class DetectionValidator(BaseValidator):
         Returns:
             (Dataset): YOLO dataset.
         """
-        return build_yolo_dataset(self.args, img_path, batch, self.data, mode=mode, stride=self.stride)
+        return build_yolo_dataset(self.args, img_path, batch, self.data, mode=mode, stride=self.stride, load_vp=False)
 
     def get_dataloader(self, dataset_path, batch_size):
         """
@@ -423,10 +425,15 @@ class DetectionValidator(BaseValidator):
         """
         if self.args.save_json and (self.is_coco or self.is_lvis) and len(self.jdict):
             pred_json = self.save_dir / "predictions.json"  # predictions
+            
+            val = self.data[self.args.split]
+            val = val[0] if isinstance(val, list) else val
+            is_lvis_minival = 'minival' in val
+
             anno_json = (
                 self.data["path"]
                 / "annotations"
-                / ("instances_val2017.json" if self.is_coco else f"lvis_v1_{self.args.split}.json")
+                / ("instances_val2017.json" if self.is_coco else f"lvis_v1_{'minival' if is_lvis_minival else 'val'}{'_sc' if self.args.single_cls else ''}.json")
             )  # annotations
             pkg = "pycocotools" if self.is_coco else "lvis"
             LOGGER.info(f"\nEvaluating {pkg} mAP using {pred_json} and {anno_json}...")
@@ -455,8 +462,13 @@ class DetectionValidator(BaseValidator):
                     val.print_results()  # explicitly call print_results
                 # update mAP50-95 and mAP50
                 stats[self.metrics.keys[-1]], stats[self.metrics.keys[-2]] = (
-                    val.stats[:2] if self.is_coco else [val.results["AP50"], val.results["AP"]]
+                    val.stats[:2] if self.is_coco else [val.results["AP"], val.results["AP50"]]
                 )
+                if self.is_lvis:
+                    stats['metrics/APr(B)'] = val.results["APr"]
+                    stats['metrics/APc(B)'] = val.results["APc"]
+                    stats['metrics/APf(B)'] = val.results["APf"]
+                    stats['fitness'] = val.results["AP"]
             except Exception as e:
                 LOGGER.warning(f"{pkg} unable to run: {e}")
         return stats

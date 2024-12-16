@@ -38,7 +38,7 @@ profile: False # (bool) profile ONNX and TensorRT speeds during training for log
 freeze: None # (int | list, optional) freeze first n layers, or freeze list of layer indices during training
 multi_scale: False # (bool) Whether to use multiscale during training
 # Segmentation
-overlap_mask: True # (bool) merge object masks into a single image mask during training (segment train only)
+overlap_mask: False # (bool) merge object masks into a single image mask during training (segment train only)
 mask_ratio: 4 # (int) mask downsample ratio (segment train only)
 # Classification
 dropout: 0.0 # (float) use dropout regularization (classify train only)
@@ -126,3 +126,9 @@ cfg: # (str, optional) for overriding defaults.yaml
 
 # Tracker settings ------------------------------------------------------------------------------------------------------
 tracker: botsort.yaml # (str) tracker type, choices=[botsort.yaml, bytetrack.yaml]
+
+val_interval: 20
+text_model: mobileclip:blt
+load_vp: False
+train_pe_path: None
+grounding_cache: True

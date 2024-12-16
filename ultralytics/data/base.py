@@ -197,6 +197,8 @@ class BaseDataset(Dataset):
                     self.labels[i]["keypoints"] = keypoints[j]
             if self.single_cls:
                 self.labels[i]["cls"][:, 0] = 0
+                if "texts" in self.labels[i]:
+                    del self.labels[i]["texts"]
 
     def load_image(self, i, rect_mode=True):
         """

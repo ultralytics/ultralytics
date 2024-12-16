@@ -73,12 +73,8 @@ Choosing the Dwell Time Analyzer equips organizations with a precise and reliabl
             model="yolo11n.pt",        # YOLO model path
             source="path/to/video/file.mp4",       # Video source path
             fps=fps,                 # Frames per second for converting dwell time to seconds
-            # zones=zones,           # Defined zones (optional; if not provided, zones are selected interactively)
+            # zones=zones,           # Defined zones (optional) if not provided, zones are selected interactively)
             # classes=[],            # List of class indices to track (optional)
-            enable_funnel=True,      # Enable funnel analysis
-            funnel_stages=("Zone_1", "Zone_3"),  # Optional: Define funnel stages explicitly if regions are define during execution the stages name will be ("Zone_1", "Zone_2", "Zone_3")
-            enable_avg_dwell=True,   # Enable average dwell time computation
-            detect_mode="all_frames"  # Choose "all_frames" or "enter_zones"
         )
 
 

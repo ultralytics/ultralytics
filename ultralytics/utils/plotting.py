@@ -786,7 +786,7 @@ class Annotator:
             stage_text, (int(center_kpt[0]), int(center_kpt[1]) + angle_height + count_height + 40), color, txt_color
         )
 
-    def seg_bbox(self, mask, mask_color=(255, 0, 255), label=None, txt_color=(255, 255, 255)):
+    def seg_bbox(self, mask, mask_color=(255, 0, 255), label=None, txt_color=None):
         """
         Function for drawing segmented object in bounding box shape.
 
@@ -796,6 +796,8 @@ class Annotator:
             label (str, optional): Text label for the object. If None, no label is drawn.
             txt_color (tuple): RGB color for the label text.
         """
+        if txt_color is None:
+            txt_color = self.get_txt_color(mask_color)
         if mask.size == 0:  # no masks to plot
             return
 

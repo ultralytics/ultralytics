@@ -555,6 +555,12 @@ class Model(nn.Module):
                 self.predictor.save_dir = get_save_dir(self.predictor.args)
         if prompts and hasattr(self.predictor, "set_prompts"):  # for SAM-type models
             self.predictor.set_prompts(prompts)
+        if "iou" in kwargs:
+            if getattr(self.model.model[-1], "end2end", False):
+                LOGGER.warning("WARNING ⚠️ 'iou' is not supported for end2end models.")
+            elif isinstance(self.model.model[-1], RTDETRDecoder):
+                LOGGER.warning("WARNING ⚠️ 'iou' is not supported for RTDETR models.")
+
         return self.predictor.predict_cli(source=source) if is_cli else self.predictor(source=source, stream=stream)
 
     def track(

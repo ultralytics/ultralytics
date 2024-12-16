@@ -293,7 +293,7 @@ class Model(nn.Module):
         else:
             weights = checks.check_file(weights)  # runs in all cases, not redundant with above call
             self.model, self.ckpt = weights, None
-            self.task = task or self.model.task or guess_model_task(weights)
+            self.task = task or guess_model_task(weights)
             self.ckpt_path = weights
         self.overrides["model"] = weights
         self.overrides["task"] = self.task

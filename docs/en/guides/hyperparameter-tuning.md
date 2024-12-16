@@ -78,7 +78,7 @@ The process is repeated until either the set number of iterations is reached or 
 
 ## Usage Example
 
-Here's how to use the `model.tune()` method to utilize the `Tuner` class for hyperparameter tuning of YOLO11n on COCO8 for 30 epochs with an AdamW optimizer and skipping plotting, checkpointing and validation other than on final epoch for faster Tuning.
+Here's how to define a search space and use the `model.tune()` method to utilize the `Tuner` class for hyperparameter tuning of YOLO11n on COCO8 for 30 epochs with an AdamW optimizer and skipping plotting, checkpointing and validation other than on final epoch for faster Tuning.
 
 !!! example
 

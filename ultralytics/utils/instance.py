@@ -406,10 +406,18 @@ class Instances:
         normalized = instances_list[0].normalized
 
         cat_boxes = np.concatenate([ins.bboxes for ins in instances_list], axis=axis)
-        seg_len = [len(s) for b in instances_list for s in b.segments]
-        if len(set(seg_len)) > 1:
+        seg_len = [b.segments.shape[1] for b in instances_list]
+        if len(set(seg_len)) > 1:  # resample segments if there's different length
             max_len = max(seg_len)
-            cat_segments = np.concatenate([resample_segments(b.segments, max_len) for b in instances_list], axis=axis)
+            cat_segments = np.concatenate(
+                [
+                    resample_segments(list(b.segments), max_len)
+                    if len(b.segments)
+                    else np.zeros((0, max_len, 2), dtype=np.float32)  # re-generating empty segments
+                    for b in instances_list
+                ],
+                axis=axis,
+            )
         else:
             cat_segments = np.concatenate([b.segments for b in instances_list], axis=axis)
         cat_keypoints = np.concatenate([b.keypoints for b in instances_list], axis=axis) if use_keypoint else None

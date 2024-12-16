@@ -623,16 +623,17 @@ def resample_segments(segments, n=1000):
     Returns:
         segments (list): the resampled segments.
     """
-    resampled_segments = []
-    for s in segments:
+    for i, s in enumerate(segments):
+        if len(s) == n:
+            continue
         s = np.concatenate((s, s[0:1, :]), axis=0)
         x = np.linspace(0, len(s) - 1, n - len(s) if len(s) < n else n)
         xp = np.arange(len(s))
         x = np.insert(x, np.searchsorted(x, xp), xp) if len(s) < n else x
-        resampled_segments.append(
+        segments[i] = (
             np.concatenate([np.interp(x, xp, s[:, i]) for i in range(2)], dtype=np.float32).reshape(2, -1).T
         )  # segment xy
-    return resampled_segments
+    return segments
 
 
 def crop_mask(masks, boxes):

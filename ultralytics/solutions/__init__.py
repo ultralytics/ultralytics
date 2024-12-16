@@ -3,7 +3,6 @@
 from .ai_gym import AIGym
 from .analytics import Analytics
 from .distance_calculation import DistanceCalculation
-from .dwell_time_analyzer import DwellTimeAnalyzer
 from .heatmap import Heatmap
 from .object_counter import ObjectCounter
 from .parking_management import ParkingManagement, ParkingPtsSelection
@@ -12,6 +11,7 @@ from .region_counter import RegionCounter
 from .speed_estimation import SpeedEstimator
 from .streamlit_inference import inference
 from .trackzone import TrackZone
+from .dwell_time_analyzer import DwellTimeAnalyzer
 
 __all__ = (
     "AIGym",

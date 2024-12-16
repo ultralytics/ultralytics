@@ -41,6 +41,18 @@ def test_major_solutions():
         _ = area_analytics.process_data(original_im0.copy(), frame_count)
     cap.release()
 
+    # Test workouts monitoring
+    safe_download(url=WORKOUTS_SOLUTION_DEMO)
+    cap1 = cv2.VideoCapture("solution_ci_pose_demo.mp4")
+    assert cap1.isOpened(), "Error reading video file"
+    gym = solutions.AIGym(line_width=2, kpts=[5, 11, 13], show=False)
+    while cap1.isOpened():
+        success, im0 = cap1.read()
+        if not success:
+            break
+        _ = gym.monitor(im0)
+    cap1.release()
+
 
 @pytest.mark.slow
 def test_instance_segmentation():
@@ -49,9 +61,8 @@ def test_instance_segmentation():
 
     model = YOLO("yolo11n-seg.pt")
     names = model.names
-    safe_download(url=MAJOR_SOLUTIONS_DEMO)
     cap = cv2.VideoCapture("solutions_ci_demo.mp4")
-    assert cap.isOpened(), "Error reading solutions_ci_demo.mp4 video file"
+    assert cap.isOpened(), "Error reading video file"
     while cap.isOpened():
         success, im0 = cap.read()
         if not success:
@@ -64,7 +75,6 @@ def test_instance_segmentation():
             for mask, cls in zip(masks, clss):
                 color = colors(int(cls), True)
                 annotator.seg_bbox(mask=mask, mask_color=color, label=names[int(cls)])
-        im0[:] = annotator.result()
     cap.release()
     cv2.destroyAllWindows()
 

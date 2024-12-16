@@ -5,7 +5,7 @@ import subprocess
 import sys
 from pathlib import Path
 from types import SimpleNamespace
-from typing import Dict, List, Union
+from typing import Dict, List, Tuple, Union
 
 import cv2
 
@@ -134,6 +134,7 @@ CLI_HELP_MSG = f"""
         yolo settings
         yolo copy-cfg
         yolo cfg
+        yolo info
         yolo solutions help
 
     Docs: https://docs.ultralytics.com
@@ -617,6 +618,71 @@ def handle_yolo_settings(args: List[str]) -> None:
         LOGGER.warning(f"WARNING ⚠️ settings error: '{e}'. Please see {url} for help.")
 
 
+def handle_yolo_info(args: List[str]) -> None:
+    """Handles YOLO info command-line interface (CLI) commands."""
+    from ultralytics import NAS, RTDETR, SAM, YOLO, FastSAM
+
+    delim = "-" * 80
+    model_list = {
+        "yolo": YOLO,
+        "rtdetr": RTDETR,
+        "fastsam": FastSAM,
+        "mobile_sam": SAM,
+        "sam_": SAM,
+        "sam2_": SAM,
+        "yolo_nas": NAS,
+    }
+    skip = {"model", "ema", "optimizer", "train_results"}
+
+    def _obj_or_dict(x: Union[object, Dict]) -> str:
+        """Returns a string representation of an object or creates a string from key-value pairs from a dictionary."""
+        return "".join([f"\n\t{str(k)}: {v}" for k, v in x.items()]) if isinstance(x, dict) else f"{x}"
+
+    try:
+        if args:
+            f, d = args.pop(0) if "=" not in args[0] else "", {}
+            d["verbose"] = False  # default to False
+            for e in args:
+                if "=" in e:
+                    k, v = parse_key_value_pair(e)
+                    d[k] = v
+                elif e == "verbose":
+                    d["verbose"] = True
+            check_dict_alignment(DEFAULT_CFG_DICT, d)
+            f = Path(f or d.get("model", "yolo11n.pt"))
+
+            model = model_list[next((t for t in model_list.keys() if t in f.stem.lower()), "yolo")](f)
+            names = getattr(model, "names", {})  # create predictor to get meta info.
+            meta: dict = model.ckpt or getattr(model.predictor.model, "metadata", {})
+
+            LOGGER.info(
+                f'{colorstr("blue", "bold", "Ultralytics Model Info:")}'
+                f"\n{delim}"
+                f"\nModel File: {model.ckpt_path or f}"
+            )
+            # Display model metadata
+            f"{[LOGGER.info(f'{str(k).capitalize()}: {_obj_or_dict(v)}') for k,v in meta.items() if k.lower() not in skip]}"
+            # Display class-names & total count
+            if "names" not in meta:
+                LOGGER.info(f"Names: total=({len(names)})")
+                _ = [LOGGER.info(f"\t{k}: {v}") for k, v in names.items()]
+            LOGGER.info(f"{delim}")
+            # Display detailed model info
+            if f.suffix.lower() == ".pt":
+                model.info(detailed=d["verbose"])
+        else:
+            checks.collect_system_info()
+
+    except SyntaxError as e:
+        LOGGER.warning(f"WARNING ⚠️ info error: '{e}'.")
+    except FileNotFoundError:
+        LOGGER.error(
+            f"{colorstr('red', 'bold', 'ERROR:')} Model '{colorstr('yellow', f)}' not found⚠️, missing path '{f}'."
+        )
+    except Exception as e:
+        LOGGER.error(f"WARNING ⚠️ info error: {e}")
+
+
 def handle_yolo_solutions(args: List[str]) -> None:
     """
     Processes YOLO solutions arguments and runs the specified computer vision solutions pipeline.
@@ -854,6 +920,7 @@ def entrypoint(debug=""):
         "logout": lambda: handle_yolo_hub(args),
         "copy-cfg": copy_default_cfg,
         "streamlit-predict": lambda: handle_streamlit_inference(),
+        "info": lambda: handle_yolo_info(args[1:]),
         "solutions": lambda: handle_yolo_solutions(args[1:]),
     }
     full_args_dict = {**DEFAULT_CFG_DICT, **{k: None for k in TASKS}, **{k: None for k in MODES}, **special}

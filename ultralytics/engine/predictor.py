@@ -316,7 +316,7 @@ class BasePredictor:
             verbose=verbose,
         )
 
-        self.task = self.overrides["task"] = self.model.task or self.task # update task
+        self.task = self.overrides["task"] = self.model.task or self.task  # update task
         self.device = self.model.device  # update device
         self.args.half = self.model.fp16  # update half
         self.model.eval()

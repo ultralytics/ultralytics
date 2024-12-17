@@ -77,7 +77,8 @@ def autobatch(model, imgsz=640, fraction=0.60, batch_size=DEFAULT_CFG.batch, max
         results = profile(img, model, n=1, device=device, max_num_obj=max_num_obj)
 
         # Fit a solution
-        fit_x, fit_y = zip(*[[x, y[2]] for x, y in zip(batch_sizes, results) if y])  # memory [2]
+        xy = [[x, y[2]] for x, y in zip(batch_sizes, results) if y]  # memory [2]
+        fit_x, fit_y = zip(*xy)
         p = np.polyfit(np.log(fit_x), np.log(fit_y), deg=1)  # first-degree polynomial fit in log space
         b = int(round(np.exp((np.log(f * fraction) - p[1]) / p[0])))  # y intercept (optimal batch size)
         if None in results:  # some sizes failed

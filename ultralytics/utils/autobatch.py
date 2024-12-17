@@ -78,7 +78,7 @@ def autobatch(model, imgsz=640, fraction=0.60, batch_size=DEFAULT_CFG.batch, max
 
         # Fit a solution
         y = np.array([[x[2], b] for x, b in zip(results, batch_sizes) if x])  # memory [2]
-        # make sure the mermory occupation is consistent with batch sizes.
+        # make sure the memory occupation is consistent with batch sizes.
         idx = (np.diff(np.array(y), axis=0) > 0).all(1)
         mem = [y[0][0]] + y[1:, 0][idx].tolist()
 

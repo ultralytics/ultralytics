@@ -82,8 +82,8 @@ def autobatch(model, imgsz=640, fraction=0.60, batch_size=DEFAULT_CFG.batch, max
         idx = (np.diff(np.array(y), axis=0) > 0).all(1)
         mem = [y[0][0]] + y[1:, 0][idx].tolist()
 
-        p = np.polyfit(batch_sizes[: len(mem)], mem, deg=1)  # first degree polynomial fit
-        b = int((f * fraction - p[1]) / p[0])  # y intercept (optimal batch size)
+        p = np.polyfit(np.log(mem), np.log(batch_sizes[: len(mem)]), deg=1)  # first degree polynomial fit
+        b = int(np.exp(p[1]) * (f * fraction) ** p[0])
         if None in results:  # some sizes failed
             i = results.index(None)  # first fail index
             if b >= batch_sizes[i]:  # y intercept above failure point

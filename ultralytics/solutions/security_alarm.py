@@ -1,6 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-from ultralytics.solutions.solutions import BaseSolution, LOGGER
+from ultralytics.solutions.solutions import LOGGER, BaseSolution
 from ultralytics.utils.plotting import Annotator, colors
 
 
@@ -13,6 +13,7 @@ class SecurityAlarm(BaseSolution):
     def authenticate(self, from_email, password, to_email):
         # Authenticate server for email
         import smtplib
+
         self.server = smtplib.SMTP("smtp.gmail.com: 587")
         self.server.starttls()
         self.server.login(from_email, password)
@@ -21,12 +22,13 @@ class SecurityAlarm(BaseSolution):
 
     def send_email(self, im0, records=5):
         """Sends an email notification with an image attachment indicating the number of objects detected."""
+        from email.mime.image import MIMEImage
         from email.mime.multipart import MIMEMultipart
         from email.mime.text import MIMEText
-        from email.mime.image import MIMEImage
+
         import cv2
 
-        img_bytes = cv2.imencode('.jpg', im0)[1].tobytes()   # Encode the image as JPEG
+        img_bytes = cv2.imencode(".jpg", im0)[1].tobytes()  # Encode the image as JPEG
 
         # Create the email
         message = MIMEMultipart()
@@ -35,8 +37,7 @@ class SecurityAlarm(BaseSolution):
         message["Subject"] = "Security Alert"
 
         # Add the text message body
-        message_body = (f"Ultralytics ALERT!!! "
-                        f"{records} objects have been detected!!")
+        message_body = f"Ultralytics ALERT!!! " f"{records} objects have been detected!!"
         message.attach(MIMEText(message_body, "plain"))
 
         # Attach the image

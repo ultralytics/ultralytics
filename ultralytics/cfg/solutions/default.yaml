@@ -19,4 +19,4 @@ analytics_type: "line" # Analytics type i.e "line", "pie", "bar" or "area" chart
 json_file: # parking system regions file path.
 
 # Security alarm system
-records: 5   # Total detections count to send an email about security
+records: 5 # Total detections count to send an email about security

@@ -105,7 +105,7 @@ Object counting with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
         cv2.destroyAllWindows()
         ```
 
-### Arguments `ObjectCounter`
+### Argument `ObjectCounter`
 
 Here's a table with the `ObjectCounter` arguments:
 

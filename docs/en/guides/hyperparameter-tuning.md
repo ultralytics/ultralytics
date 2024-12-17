@@ -80,8 +80,8 @@ The process is repeated until either the set number of iterations is reached or 
 
 The following table lists the default search space parameters for hyperparameter tuning in YOLO11. Each parameter has a specific value range defined by a tuple `(min, max)`.
 
-| Parameter         | Value Range                | Description                                                                 |
-| ----------------- | -------------------------- | --------------------------------------------------------------------------- |
+| Parameter         | Value Range    | Description                                                                 |
+| ----------------- | -------------- | --------------------------------------------------------------------------- |
 | `lr0`             | `(1e-5, 1e-1)` | Initial [learning rate](https://www.ultralytics.com/glossary/learning-rate) |
 | `lrf`             | `(0.01, 1.0)`  | Final learning rate factor                                                  |
 | `momentum`        | `(0.6, 0.98)`  | Momentum                                                                    |

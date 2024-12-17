@@ -76,9 +76,37 @@ It's crucial to log both the performance metrics and the corresponding hyperpara
 
 The process is repeated until either the set number of iterations is reached or the performance metric is satisfactory.
 
-## Usage Example
+## Default Search Space Description
 
-Here's how to use the `model.tune()` method to utilize the `Tuner` class for hyperparameter tuning of YOLO11n on COCO8 for 30 epochs with an AdamW optimizer and skipping plotting, checkpointing and validation other than on final epoch for faster Tuning.
+The following table lists the default search space parameters for hyperparameter tuning in YOLO11. Each parameter has a specific value range defined by a tuple `(min, max)`.
+
+| Parameter         | Type    | Value Range    | Description                                                                                                      |
+| ----------------- | ------- | -------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `lr0`             | `float` | `(1e-5, 1e-1)` | Initial learning rate at the start of training. Lower values provide more stable training but slower convergence |
+| `lrf`             | `float` | `(0.01, 1.0)`  | Final learning rate factor as a fraction of lr0. Controls how much the learning rate decreases during training   |
+| `momentum`        | `float` | `(0.6, 0.98)`  | SGD momentum factor. Higher values help maintain consistent gradient direction and can speed up convergence      |
+| `weight_decay`    | `float` | `(0.0, 0.001)` | L2 regularization factor to prevent overfitting. Larger values enforce stronger regularization                   |
+| `warmup_epochs`   | `float` | `(0.0, 5.0)`   | Number of epochs for linear learning rate warmup. Helps prevent early training instability                       |
+| `warmup_momentum` | `float` | `(0.0, 0.95)`  | Initial momentum during warmup phase. Gradually increases to the final momentum value                            |
+| `box`             | `float` | `(0.02, 0.2)`  | Bounding box loss weight in the total loss function. Balances box regression vs classification                   |
+| `cls`             | `float` | `(0.2, 4.0)`   | Classification loss weight in the total loss function. Higher values emphasize correct class prediction          |
+| `hsv_h`           | `float` | `(0.0, 0.1)`   | Random hue augmentation range in HSV color space. Helps model generalize across color variations                 |
+| `hsv_s`           | `float` | `(0.0, 0.9)`   | Random saturation augmentation range in HSV space. Simulates different lighting conditions                       |
+| `hsv_v`           | `float` | `(0.0, 0.9)`   | Random value (brightness) augmentation range. Helps model handle different exposure levels                       |
+| `degrees`         | `float` | `(0.0, 45.0)`  | Maximum rotation augmentation in degrees. Helps model become invariant to object orientation                     |
+| `translate`       | `float` | `(0.0, 0.9)`   | Maximum translation augmentation as fraction of image size. Improves robustness to object position               |
+| `scale`           | `float` | `(0.0, 0.9)`   | Random scaling augmentation range. Helps model detect objects at different sizes                                 |
+| `shear`           | `float` | `(0.0, 10.0)`  | Maximum shear augmentation in degrees. Adds perspective-like distortions to training images                      |
+| `perspective`     | `float` | `(0.0, 0.001)` | Random perspective augmentation range. Simulates different viewing angles                                        |
+| `flipud`          | `float` | `(0.0, 1.0)`   | Probability of vertical image flip during training. Useful for overhead/aerial imagery                           |
+| `fliplr`          | `float` | `(0.0, 1.0)`   | Probability of horizontal image flip. Helps model become invariant to object direction                           |
+| `mosaic`          | `float` | `(0.0, 1.0)`   | Probability of using mosaic augmentation, which combines 4 images. Especially useful for small object detection  |
+| `mixup`           | `float` | `(0.0, 1.0)`   | Probability of using mixup augmentation, which blends two images. Can improve model robustness                   |
+| `copy_paste`      | `float` | `(0.0, 1.0)`   | Probability of using copy-paste augmentation. Helps improve instance segmentation performance                    |
+
+## Custom Search Space Example
+
+Here's how to define a search space and use the `model.tune()` method to utilize the `Tuner` class for hyperparameter tuning of YOLO11n on COCO8 for 30 epochs with an AdamW optimizer and skipping plotting, checkpointing and validation other than on final epoch for faster Tuning.
 
 !!! example
 
@@ -90,8 +118,23 @@ Here's how to use the `model.tune()` method to utilize the `Tuner` class for hyp
         # Initialize the YOLO model
         model = YOLO("yolo11n.pt")
 
+        # Define search space
+        search_space = {
+            "lr0": (1e-5, 1e-1),
+            "degrees": (0.0, 45.0),
+        }
+
         # Tune hyperparameters on COCO8 for 30 epochs
-        model.tune(data="coco8.yaml", epochs=30, iterations=300, optimizer="AdamW", plots=False, save=False, val=False)
+        model.tune(
+            data="coco8.yaml",
+            epochs=30,
+            iterations=300,
+            optimizer="AdamW",
+            space=search_space,
+            plots=False,
+            save=False,
+            val=False,
+        )
         ```
 
 ## Results

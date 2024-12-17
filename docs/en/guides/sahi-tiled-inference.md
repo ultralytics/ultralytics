@@ -99,7 +99,7 @@ You can instantiate a YOLO11 model for object detection like this:
 from sahi import AutoDetectionModel
 
 detection_model = AutoDetectionModel.from_pretrained(
-    model_type="yolo11",
+    model_type="ultralytics",
     model_path=model_path,
     confidence_threshold=0.3,
     device="cpu",  # or 'cuda:0'
@@ -169,7 +169,7 @@ For batch prediction on a directory of images:
 from sahi.predict import predict
 
 predict(
-    model_type="yolo11",
+    model_type="ultralytics",
     model_path="path/to/yolo11n.pt",
     model_device="cpu",  # or 'cuda:0'
     model_confidence_threshold=0.4,
@@ -280,7 +280,7 @@ Example for batch prediction:
 from sahi.predict import predict
 
 predict(
-    model_type="yolo11",
+    model_type="ultralytics",
     model_path="path/to/yolo11n.pt",
     model_device="cpu",  # or 'cuda:0'
     model_confidence_threshold=0.4,

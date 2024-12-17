@@ -24,7 +24,7 @@ class SAHIInference:
         yolo11_model_path = f"models/{weights}"
         download_yolo11n_model(yolo11_model_path)
         self.detection_model = AutoDetectionModel.from_pretrained(
-            model_type="yolo11", model_path=yolo11_model_path, confidence_threshold=0.3, device="cpu"
+            model_type="ultralytics", model_path=yolo11_model_path, confidence_threshold=0.3, device="cpu"
         )
 
     def inference(

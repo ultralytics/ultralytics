@@ -78,6 +78,10 @@ def autobatch(model, imgsz=640, fraction=0.60, batch_size=DEFAULT_CFG.batch, max
 
         # Fit a solution
         y = [x[2] for x in results if x]  # memory [2]
+        # make sure the mermory occupation is consistent with batch sizes.
+        idx = np.logical_and(np.diff(batch_sizes) > 0, np.diff(y) > 0)
+        y = [y[0]] + [m for i, m in enumerate(y[1:]) if idx[i]]
+
         p = np.polyfit(batch_sizes[: len(y)], y, deg=1)  # first degree polynomial fit
         b = int((f * fraction - p[1]) / p[0])  # y intercept (optimal batch size)
         if None in results:  # some sizes failed

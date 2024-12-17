@@ -1,11 +1,10 @@
 # Regions Counting Using YOLOv8 (Inference on Video)
 
-
 > 🔔 **Notice:**
 
 > **Region Counter** is now part of **[Ultralytics Solutions](https://docs.ultralytics.com/solutions/)**, offering improved features and regular updates. Enjoy improved features and regular updates!
 
-🔗 **[Explore Object Counting in Regions Here](https://docs.ultralytics.com/guides/region-counting/)**  
+🔗 **[Explore Object Counting in Regions Here](https://docs.ultralytics.com/guides/region-counting/)**
 
 > The GitHub example will remain available but **will no longer be actively maintained**. For the latest updates and improvements, please use the official [link](https://docs.ultralytics.com/guides/region-counting/). Thank you!
 

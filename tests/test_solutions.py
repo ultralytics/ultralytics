@@ -19,28 +19,12 @@ def test_major_solutions():
     region_points = [(20, 400), (1080, 400), (1080, 360), (20, 360)]
     counter = solutions.ObjectCounter(region=region_points, model="yolo11n.pt", show=False)  # Test object counter
     heatmap = solutions.Heatmap(colormap=cv2.COLORMAP_PARULA, model="yolo11n.pt", show=False)  # Test heatmaps
-    speed = solutions.SpeedEstimator(region=region_points, model="yolo11n.pt", show=False)  # Test speed estimator
-    queue = solutions.QueueManager(region=region_points, model="yolo11n.pt", show=False)  # Test queue manager
-    line_analytics = solutions.Analytics(analytics_type="line", model="yolo11n.pt", show=False)  # Line analytics
-    pie_analytics = solutions.Analytics(analytics_type="pie", model="yolo11n.pt", show=False)  # Pie analytics
-    bar_analytics = solutions.Analytics(analytics_type="bar", model="yolo11n.pt", show=False)  # Bar analytics
-    area_analytics = solutions.Analytics(analytics_type="area", model="yolo11n.pt", show=False)  # Area analytics
-    dwell_cap = cv2.VideoCapture("solutions_ci_demo.mp4")
-    assert dwell_cap.isOpened(), "Error reading video file"
-    dwell_config = {
-        "fps": 30.0,
-        "classes": [0, 1, 2],  # Example class indices to track
-        "zones": {
-            "Entrance": [(100, 200), (200, 200), (200, 300), (100, 300)],
-            "Checkout": [(800, 200), (900, 200), (900, 300), (800, 300)],
-        },
-        "enable_funnel": True,
-        "funnel_stages": ("Entrance", "Checkout"),
-        "enable_avg_dwell": True,
-        "detect_mode": "all_frames",
-        "source": "solutions_ci_demo.mp4",
-    }
-    dwell_time_analyzer = solutions.DwellTimeAnalyzer(**dwell_config)
+    speed = solutions.SpeedEstimator(region=region_points, model="yolo11n.pt", show=False)  # Test queue manager
+    queue = solutions.QueueManager(region=region_points, model="yolo11n.pt", show=False)  # Test speed estimation
+    line_analytics = solutions.Analytics(analytics_type="line", model="yolo11n.pt", show=False)  # line analytics
+    pie_analytics = solutions.Analytics(analytics_type="pie", model="yolo11n.pt", show=False)  # line analytics
+    bar_analytics = solutions.Analytics(analytics_type="bar", model="yolo11n.pt", show=False)  # line analytics
+    area_analytics = solutions.Analytics(analytics_type="area", model="yolo11n.pt", show=False)  # line analytics
     frame_count = 0  # Required for analytics
     while cap.isOpened():
         success, im0 = cap.read()
@@ -56,13 +40,18 @@ def test_major_solutions():
         _ = bar_analytics.process_data(original_im0.copy(), frame_count)
         _ = area_analytics.process_data(original_im0.copy(), frame_count)
     cap.release()
-    while dwell_cap.isOpened():
-        success, im0 = dwell_cap.read()
+
+    # Test workouts monitoring
+    safe_download(url=WORKOUTS_SOLUTION_DEMO)
+    cap1 = cv2.VideoCapture("solution_ci_pose_demo.mp4")
+    assert cap1.isOpened(), "Error reading video file"
+    gym = solutions.AIGym(line_width=2, kpts=[5, 11, 13], show=False)
+    while cap1.isOpened():
+        success, im0 = cap1.read()
         if not success:
             break
-        dwell_time_analyzer.count(im0.copy())
-        frame_count += 1
-    dwell_cap.release()
+        _ = gym.monitor(im0)
+    cap1.release()
 
 
 @pytest.mark.slow
@@ -72,9 +61,8 @@ def test_instance_segmentation():
 
     model = YOLO("yolo11n-seg.pt")
     names = model.names
-    safe_download(url=MAJOR_SOLUTIONS_DEMO)
     cap = cv2.VideoCapture("solutions_ci_demo.mp4")
-    assert cap.isOpened(), "Error reading solutions_ci_demo.mp4 video file"
+    assert cap.isOpened(), "Error reading video file"
     while cap.isOpened():
         success, im0 = cap.read()
         if not success:
@@ -87,7 +75,6 @@ def test_instance_segmentation():
             for mask, cls in zip(masks, clss):
                 color = colors(int(cls), True)
                 annotator.seg_bbox(mask=mask, mask_color=color, label=names[int(cls)])
-        im0[:] = annotator.result()
     cap.release()
     cv2.destroyAllWindows()
 

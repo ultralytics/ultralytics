@@ -21,7 +21,6 @@ class SecurityAlarm(BaseSolution):
 
     def send_email(self, im0, records=5):
         """Sends an email notification with an image attachment indicating the number of objects detected."""
-
         from email.mime.multipart import MIMEMultipart
         from email.mime.text import MIMEText
         from email.mime.image import MIMEImage

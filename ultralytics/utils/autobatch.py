@@ -82,7 +82,7 @@ def autobatch(model, imgsz=640, fraction=0.60, batch_size=DEFAULT_CFG.batch, max
             for i, (x, y) in enumerate(zip(batch_sizes, results))
             if y  # valid result
             and 0 < y[2] < t  # between 0 and GPU limit
-            and (i == 0 or not results[i-1] or y[2] > results[i - 1][2])  # first item or increasing memory
+            and (i == 0 or not results[i - 1] or y[2] > results[i - 1][2])  # first item or increasing memory
         ]
         fit_x, fit_y = zip(*xy) if xy else ([], [])
         p = np.polyfit(np.log(fit_x), np.log(fit_y), deg=1)  # first-degree polynomial fit in log space

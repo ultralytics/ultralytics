@@ -5,7 +5,7 @@
 
 > **Region Counter** is now part of **[Ultralytics Solutions](https://docs.ultralytics.com/solutions/)**, offering improved features and regular updates. Enjoy improved features and regular updates!
 
-🔗 **[Explore Object Counting in Regions Here](https://docs.ultralytics.com/guides/region-counting/)**  
+🔗 **[Explore Object Counting in Regions Here](https://docs.ultralytics.com/guides/region-counting/)**
 
 > 🔔 **Notice:**
 

@@ -741,9 +741,10 @@ class Metric(SimpleClass):
             maps[c] = self.ap[i]
         return maps
 
-    def fitness(self):
+    def fitness(self, fitness_weights=None):
         """Model fitness as a weighted combination of metrics."""
-        w = [0.0, 0.0, 0.1, 0.9]  # weights for [P, R, mAP@0.5, mAP@0.5:0.95]
+        default_weights = [0.0, 0.0, 0.1, 0.9]  # default weights for [P, R, mAP@0.5, mAP@0.5:0.95]
+        w = fitness_weights if fitness_weights else default_weights 
         return (np.array(self.mean_results()) * w).sum()
 
     def update(self, results):
@@ -807,6 +808,7 @@ class DetMetrics(SimpleClass):
         plot (bool): A flag that indicates whether to plot the precision-recall curves for each class.
         on_plot (func): An optional callback to pass plots path and data when they are rendered.
         names (dict of str): A dict of strings that represents the names of the classes.
+        fitness_weights (list of floats): A list of weights for computing the fitness score.
         box (Metric): An instance of the Metric class for storing the results of the detection metrics.
         speed (dict): A dictionary for storing the execution time of different parts of the detection process.
 
@@ -823,12 +825,13 @@ class DetMetrics(SimpleClass):
         curves_results: TODO
     """
 
-    def __init__(self, save_dir=Path("."), plot=False, on_plot=None, names={}) -> None:
+    def __init__(self, save_dir=Path("."), plot=False, on_plot=None, names={}, fitness_weights=None) -> None:
         """Initialize a DetMetrics instance with a save directory, plot flag, callback function, and class names."""
         self.save_dir = save_dir
         self.plot = plot
         self.on_plot = on_plot
         self.names = names
+        self.fitness_weights = fitness_weights
         self.box = Metric()
         self.speed = {"preprocess": 0.0, "inference": 0.0, "loss": 0.0, "postprocess": 0.0}
         self.task = "detect"
@@ -869,7 +872,7 @@ class DetMetrics(SimpleClass):
     @property
     def fitness(self):
         """Returns the fitness of box object."""
-        return self.box.fitness()
+        return self.box.fitness(self.fitness_weights)
 
     @property
     def ap_class_index(self):

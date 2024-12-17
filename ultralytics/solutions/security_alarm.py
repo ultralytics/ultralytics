@@ -9,8 +9,8 @@ class SecurityAlarm(BaseSolution):
     A class to manage security alarm functionalities for real-time monitoring.
 
     This class extends the BaseSolution class and provides features to monitor
-    objects in a frame, send email notifications when specific thresholds are exceeded
-    for total detections, and annotate the output frame for visualization.
+    objects in a frame, send email notifications when specific thresholds are
+    exceeded for total detections, and annotate the output frame for visualization.
 
     Attributes:
        email_sent (bool): Flag to track if an email has already been sent for the current event.

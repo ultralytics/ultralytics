@@ -76,7 +76,35 @@ It's crucial to log both the performance metrics and the corresponding hyperpara
 
 The process is repeated until either the set number of iterations is reached or the performance metric is satisfactory.
 
-## Usage Example
+## Default Search Space Description
+
+The following table lists the default search space parameters for hyperparameter tuning in YOLO11. Each parameter has a specific value range defined by a tuple `(min, max)`.
+
+| Parameter         | Value Range                | Description                                                                 |
+| ----------------- | -------------------------- | --------------------------------------------------------------------------- |
+| `lr0`             | `(1e-5, 1e-1)` | Initial [learning rate](https://www.ultralytics.com/glossary/learning-rate) |
+| `lrf`             | `(0.01, 1.0)`  | Final learning rate factor                                                  |
+| `momentum`        | `(0.6, 0.98)`  | Momentum                                                                    |
+| `weight_decay`    | `(0.0, 0.001)` | Weight decay                                                                |
+| `warmup_epochs`   | `(0.0, 5.0)`   | Warmup epochs                                                               |
+| `warmup_momentum` | `(0.0, 0.95)`  | Warmup momentum                                                             |
+| `box`             | `(0.02, 0.2)`  | Box loss weight                                                             |
+| `cls`             | `(0.2, 4.0)`   | Class loss weight                                                           |
+| `hsv_h`           | `(0.0, 0.1)`   | Hue augmentation range                                                      |
+| `hsv_s`           | `(0.0, 0.9)`   | Saturation augmentation range                                               |
+| `hsv_v`           | `(0.0, 0.9)`   | Value (brightness) augmentation range                                       |
+| `degrees`         | `(0.0, 45.0)`  | Rotation augmentation range (degrees)                                       |
+| `translate`       | `(0.0, 0.9)`   | Translation augmentation range                                              |
+| `scale`           | `(0.0, 0.9)`   | Scaling augmentation range                                                  |
+| `shear`           | `(0.0, 10.0)`  | Shear augmentation range (degrees)                                          |
+| `perspective`     | `(0.0, 0.001)` | Perspective augmentation range                                              |
+| `flipud`          | `(0.0, 1.0)`   | Vertical flip augmentation probability                                      |
+| `fliplr`          | `(0.0, 1.0)`   | Horizontal flip augmentation probability                                    |
+| `mosaic`          | `(0.0, 1.0)`   | Mosaic augmentation probability                                             |
+| `mixup`           | `(0.0, 1.0)`   | Mixup augmentation probability                                              |
+| `copy_paste`      | `(0.0, 1.0)`   | Copy-paste augmentation probability                                         |
+
+## Custom Search Space Example
 
 Here's how to define a search space and use the `model.tune()` method to utilize the `Tuner` class for hyperparameter tuning of YOLO11n on COCO8 for 30 epochs with an AdamW optimizer and skipping plotting, checkpointing and validation other than on final epoch for faster Tuning.
 
@@ -91,30 +119,9 @@ Here's how to define a search space and use the `model.tune()` method to utilize
         model = YOLO("yolo11n.pt")
 
         # Define search space
-        search_space = {  # key: (min, max, gain(optional)),
-            "lr0": (1e-5, 1e-1),  # initial learning rate (i.e. SGD=1E-2, Adam=1E-3)
-            "lrf": (0.0001, 0.1),  # final OneCycleLR learning rate (lr0 * lrf)
-            "momentum": (0.7, 0.98, 0.3),  # SGD momentum/Adam beta1
-            "weight_decay": (0.0, 0.001),  # optimizer weight decay 5e-4
-            "warmup_epochs": (0.0, 5.0),  # warmup epochs (fractions ok)
-            "warmup_momentum": (0.0, 0.95),  # warmup initial momentum
-            "box": (1.0, 20.0),  # box loss gain
-            "cls": (0.2, 4.0),  # cls loss gain (scale with pixels)
-            "dfl": (0.4, 6.0),  # dfl loss gain
-            "hsv_h": (0.0, 0.1),  # image HSV-Hue augmentation (fraction)
-            "hsv_s": (0.0, 0.9),  # image HSV-Saturation augmentation (fraction)
-            "hsv_v": (0.0, 0.9),  # image HSV-Value augmentation (fraction)
-            "degrees": (0.0, 45.0),  # image rotation (+/- deg)
-            "translate": (0.0, 0.9),  # image translation (+/- fraction)
-            "scale": (0.0, 0.95),  # image scale (+/- gain)
-            "shear": (0.0, 10.0),  # image shear (+/- deg)
-            "perspective": (0.0, 0.001),  # image perspective (+/- fraction), range 0-0.001
-            "flipud": (0.0, 1.0),  # image flip up-down (probability)
-            "fliplr": (0.0, 1.0),  # image flip left-right (probability)
-            "bgr": (0.0, 1.0),  # image channel bgr (probability)
-            "mosaic": (0.0, 1.0),  # image mixup (probability)
-            "mixup": (0.0, 1.0),  # image mixup (probability)
-            "copy_paste": (0.0, 1.0),  # segment copy-paste (probability)
+        search_space = {
+            "lr0": (1e-5, 1e-1),
+            "degrees": (0.0, 45.0),
         }
 
         # Tune hyperparameters on COCO8 for 30 epochs

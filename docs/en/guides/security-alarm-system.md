@@ -36,6 +36,7 @@ The Security Alarm System Project utilizing Ultralytics YOLO11 integrates advanc
 !!! example "Security Alarm System using YOLO11 Example"
 
     === "Python"
+
     ```python
     import cv2
 

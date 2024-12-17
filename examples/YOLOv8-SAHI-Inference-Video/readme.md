@@ -18,7 +18,7 @@ Clone the repository, install dependencies and `cd` to this local directory for 
 git clone https://github.com/ultralytics/ultralytics
 
 # Install dependencies
-pip install sahi ultralytics
+pip install -U sahi ultralytics
 
 # cd to local directory
 cd ultralytics/examples/YOLOv8-SAHI-Inference-Video

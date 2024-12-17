@@ -77,12 +77,13 @@ def autobatch(model, imgsz=640, fraction=0.60, batch_size=DEFAULT_CFG.batch, max
         results = profile(img, model, n=1, device=device, max_num_obj=max_num_obj)
 
         # Fit a solution
-        y = [x[2] for x in results if x]  # memory [2]
+        y = [[x[2], b] for x, b in zip(results, batch_sizes) if x]  # memory [2]
         # make sure the mermory occupation is consistent with batch sizes.
-        idx = np.logical_and(np.diff(batch_sizes) > 0, np.diff(y) > 0)
-        y = [y[0]] + [m for i, m in enumerate(y[1:]) if idx[i]]
+        y = np.array(y)
+        idx = (np.diff(np.array(y), axis=0) > 0).all(1)
+        mem = [y[0][0]] + y[1:, 0][idx].tolist()
 
-        p = np.polyfit(batch_sizes[: len(y)], y, deg=1)  # first degree polynomial fit
+        p = np.polyfit(batch_sizes[: len(mem)], mem, deg=1)  # first degree polynomial fit
         b = int((f * fraction - p[1]) / p[0])  # y intercept (optimal batch size)
         if None in results:  # some sizes failed
             i = results.index(None)  # first fail index

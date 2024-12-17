@@ -1906,14 +1906,18 @@ class Albumentations:
                 bboxes = labels["instances"].bboxes
                 # TODO: add supports of segments and keypoints
                 new = self.transform(image=im, bboxes=bboxes, class_labels=cls)  # transformed
-                if len(new["class_labels"]) > 0:  # skip update if no bbox in new im
-                    labels["img"] = new["image"]
-                    labels["cls"] = np.array(new["class_labels"])
-                    bboxes = np.array(new["bboxes"], dtype=np.float32)
-                labels["instances"].update(bboxes=bboxes)
+                labels["img"] = new["image"]
+                labels["cls"] = np.array(new["class_labels"])
+                bboxes = np.array(new["bboxes"], dtype=np.float32)
+                labels["instances"].update(bboxes=bboxes if bboxes.size != 0 else np.empty((0, 4)))
         else:
             labels["img"] = self.transform(image=labels["img"])["image"]  # transformed
 
+        if labels["resized_shape"] != labels["img"].shape[:2]:
+            letter_box = LetterBox(new_shape=labels["resized_shape"])
+            result = letter_box(labels=labels)
+            labels["img"] = result["img"]
+            labels["instances"] = result["instances"]
         return labels
 
 

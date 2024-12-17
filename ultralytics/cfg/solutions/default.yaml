@@ -17,3 +17,6 @@ kpts: [6, 8, 10] # Keypoints for workouts monitoring, i.e. If you want to consid
 # Analytics settings
 analytics_type: "line" # Analytics type i.e "line", "pie", "bar" or "area" charts. By default, "line" analytics will be used for processing.
 json_file: # parking system regions file path.
+
+# Security alarm system
+records: 5 # Total detections count to send an email about security

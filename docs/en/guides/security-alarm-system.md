@@ -27,20 +27,18 @@ The Security Alarm System Project utilizing Ultralytics YOLO11 integrates advanc
 
 ### Code
 
-#### Set up the parameters of the message
-
 ???+ note
 
     App Password Generation is necessary
 
 - Navigate to [App Password Generator](https://myaccount.google.com/apppasswords), designate an app name such as "security project," and obtain a 16-digit password. Copy this password and paste it into the designated `password` field in the code below.
 
-!!! example "Object Counting using YOLO11 Example"
+!!! example "Security Alarm System using YOLO11 Example"
 
     === "Python"
-    
     ```python
     import cv2
+
     from ultralytics import solutions
     
     cap = cv2.VideoCapture(r"G:\Research and Development\visuals\Horse Riding.mp4")
@@ -59,11 +57,9 @@ The Security Alarm System Project utilizing Ultralytics YOLO11 integrates advanc
         show=True,  # Display the output
         model="yolo11n.pt",  # i.e. YOLO11s.pt
         records=1,  # Total detections count to send an email about security
-        line_width=5,  # Adjust the line width for bounding boxes and text display
     )
-    
-    # Authenticate the email server
-    security.authenticate(from_email, password, to_email)
+
+    security.authenticate(from_email, password, to_email)  # Authenticate the email server
     
     # Process video
     while cap.isOpened():
@@ -85,6 +81,21 @@ That's it! When you execute the code, you'll receive a single notification on yo
 #### Email Received Sample
 
 <img width="256" src="https://github.com/ultralytics/docs/releases/download/0/email-received-sample.avif" alt="Email Received Sample">
+
+### Arguments `SecurityAlarm`
+
+Here's a table with the `SecurityAlarm` arguments:
+
+| Name         | Type   | Default | Description                                             |
+|--------------|--------|---------|---------------------------------------------------------|
+| `model`      | `str`  | `None`  | Path to Ultralytics YOLO Model File                     |
+| `line_width` | `int`  | `2`     | Line thickness for bounding boxes.                      |
+| `show`       | `bool` | `False` | Flag to control whether to display the video stream.    |
+| `records`    | `int`  | `5`     | Total detections count to send an email about security. |
+
+### Arguments `model.track`
+
+{% include "macros/track-args.md" %}
 
 ## FAQ
 

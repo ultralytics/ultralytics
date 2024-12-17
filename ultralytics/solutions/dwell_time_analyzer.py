@@ -419,16 +419,12 @@ class DwellTimeAnalyzer(BaseSolution):
             Any: The annotated image frame.
         """
         self.frame_number += 1
-        # Pass classes to model.track if classes are specified
-        self.tracks = self.model.track(source=im0, persist=True, classes=self.CFG.get("classes"), **self.track_add_args)
+        self.extract_tracks(im0)
 
-        # Extract tracks for OBB or object detection
-        track_data = self.tracks[0].obb or self.tracks[0].boxes
-
-        if track_data and track_data.id is not None:
-            self.boxes = track_data.xyxy.cpu()
-            self.clss = track_data.cls.cpu().tolist()
-            self.track_ids = track_data.id.int().cpu().tolist()
+        if self.track_data and self.track_data.id is not None:
+            self.boxes = self.track_data.xyxy.cpu()
+            self.clss = self.track_data.cls.cpu().tolist()
+            self.track_ids = self.track_data.id.int().cpu().tolist()
         else:
             self.boxes, self.clss, self.track_ids = [], [], []
 

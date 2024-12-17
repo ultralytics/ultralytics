@@ -92,7 +92,7 @@ def autobatch(model, imgsz=640, fraction=0.60, batch_size=DEFAULT_CFG.batch, max
             b = batch_size
             LOGGER.info(f"{prefix}WARNING ⚠️ CUDA anomaly detected, using default batch-size {batch_size}.")
 
-        fraction = (np.polyval(p, b) + r + a) / t  # actual fraction predicted
+        fraction = (np.polyval(p, np.log(b)) + r + a) / t  # actual fraction predicted
         LOGGER.info(f"{prefix}Using batch-size {b} for {d} {t * fraction:.2f}G/{t:.2f}G ({fraction * 100:.0f}%) ✅")
         return b
     except Exception as e:

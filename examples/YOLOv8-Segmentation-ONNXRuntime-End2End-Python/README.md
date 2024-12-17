@@ -71,8 +71,8 @@ This repository provides a Python demo for performing segmentation with YOLOv8 u
      ```
    - **Video File:**
      `bash
-    python webcam_inference.py --final-model yolov8n-seg_end2end.onnx --video path/to/video.mp4
-    `
+python webcam_inference.py --final-model yolov8n-seg_end2end.onnx --video path/to/video.mp4
+`
      By default, it uses the webcam. Press `q` to quit.
 
 ## Example Output

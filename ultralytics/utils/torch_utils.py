@@ -617,6 +617,23 @@ def convert_optimizer_state_dict_to_fp16(state_dict):
     return state_dict
 
 
+import contextlib
+
+
+@contextlib.contextmanager
+def cuda_memory_usage_with_empty_cache(device=None):
+    torch.cuda.empty_cache()
+    # start_reserved = torch.cuda.memory_reserved(device)
+
+    try:
+        memory_info = {}
+        yield memory_info
+    finally:
+        end_reserved = torch.cuda.memory_reserved(device)
+        # reserved_diff = end_reserved - start_reserved
+        memory_info["reserved"] = end_reserved
+
+
 def profile(input, ops, n=10, device=None, max_num_obj=0):
     """
     Ultralytics speed, memory and FLOPs profiler.
@@ -653,27 +670,32 @@ def profile(input, ops, n=10, device=None, max_num_obj=0):
                 flops = 0
 
             try:
+                mem = 0
                 for _ in range(n):
-                    t[0] = time_sync()
-                    y = m(x)
-                    t[1] = time_sync()
-                    try:
-                        (sum(yi.sum() for yi in y) if isinstance(y, list) else y).sum().backward()
-                        t[2] = time_sync()
-                    except Exception:  # no backward method
-                        # print(e)  # for debug
-                        t[2] = float("nan")
+                    with cuda_memory_usage_with_empty_cache() as memory_info:
+                        t[0] = time_sync()
+                        y = m(x)
+                        t[1] = time_sync()
+                        try:
+                            (sum(yi.sum() for yi in y) if isinstance(y, list) else y).sum().backward()
+                            t[2] = time_sync()
+                        except Exception:  # no backward method
+                            # print(e)  # for debug
+                            t[2] = float("nan")
+                    mem += memory_info["reserved"] / 1e9 if torch.cuda.is_available() else 0  # (GB)
                     tf += (t[1] - t[0]) * 1000 / n  # ms per op forward
                     tb += (t[2] - t[1]) * 1000 / n  # ms per op backward
                     if max_num_obj:  # simulate training with predictions per image grid (for AutoBatch)
-                        torch.randn(
-                            x.shape[0],
-                            max_num_obj,
-                            int(sum((x.shape[-1] / s) * (x.shape[-2] / s) for s in m.stride.tolist())),
-                            device=device,
-                            dtype=torch.float32,
-                        )
-                mem = torch.cuda.memory_reserved() / 1e9 if torch.cuda.is_available() else 0  # (GB)
+                        with cuda_memory_usage_with_empty_cache() as memory_info:
+                            torch.cuda.empty_cache()
+                            torch.randn(
+                                x.shape[0],
+                                max_num_obj,
+                                int(sum((x.shape[-1] / s) * (x.shape[-2] / s) for s in m.stride.tolist())),
+                                device=device,
+                                dtype=torch.float32,
+                            )
+                        mem += memory_info["reserved"] / 1e9 if torch.cuda.is_available() else 0  # (GB)
                 s_in, s_out = (tuple(x.shape) if isinstance(x, torch.Tensor) else "list" for x in (x, y))  # shapes
                 p = sum(x.numel() for x in m.parameters()) if isinstance(m, nn.Module) else 0  # parameters
                 LOGGER.info(f"{p:12}{flops:12.4g}{mem:>14.3f}{tf:14.4g}{tb:14.4g}{str(s_in):>24s}{str(s_out):>24s}")

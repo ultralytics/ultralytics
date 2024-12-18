@@ -617,21 +617,19 @@ def convert_optimizer_state_dict_to_fp16(state_dict):
     return state_dict
 
 
-import contextlib
-
-
-@contextlib.contextmanager
-def cuda_memory_usage_with_empty_cache(device=None):
-    torch.cuda.empty_cache()
-    # start_reserved = torch.cuda.memory_reserved(device)
+@contextmanager
+def cuda_memory_usage(device=None):
+    is_cuda = torch.cuda.is_available()
+    if is_cuda:
+        torch.cuda.empty_cache()
 
     try:
         memory_info = {}
+        memory_info["reserved"] = 0
         yield memory_info
     finally:
-        end_reserved = torch.cuda.memory_reserved(device)
-        # reserved_diff = end_reserved - start_reserved
-        memory_info["reserved"] = end_reserved
+        if is_cuda:
+            memory_info["reserved"] = torch.cuda.memory_reserved(device)
 
 
 def profile(input, ops, n=10, device=None, max_num_obj=0):
@@ -672,7 +670,7 @@ def profile(input, ops, n=10, device=None, max_num_obj=0):
             try:
                 mem = 0
                 for _ in range(n):
-                    with cuda_memory_usage_with_empty_cache() as memory_info:
+                    with cuda_memory_usage() as memory_info:
                         t[0] = time_sync()
                         y = m(x)
                         t[1] = time_sync()
@@ -686,7 +684,7 @@ def profile(input, ops, n=10, device=None, max_num_obj=0):
                     tf += (t[1] - t[0]) * 1000 / n  # ms per op forward
                     tb += (t[2] - t[1]) * 1000 / n  # ms per op backward
                     if max_num_obj:  # simulate training with predictions per image grid (for AutoBatch)
-                        with cuda_memory_usage_with_empty_cache() as memory_info:
+                        with cuda_memory_usage() as memory_info:
                             torch.cuda.empty_cache()
                             torch.randn(
                                 x.shape[0],

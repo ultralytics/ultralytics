@@ -27,4 +27,5 @@ __all__ = (
     "RegionCounter",
     "TrackZone",
     "DwellTimeAnalyzer",
+    "SecurityAlarm",
 )

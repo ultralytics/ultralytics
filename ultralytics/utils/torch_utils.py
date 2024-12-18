@@ -633,14 +633,14 @@ def cuda_memory_usage(device=None):
         (dict): A dictionary with a key 'memory' initialized to 0, which will be updated with the reserved memory.
     """
     is_cuda = torch.cuda.is_available()
-    if (is_cuda):
+    if is_cuda:
         torch.cuda.empty_cache()
 
     try:
         cuda_info = dict(memory=0)
         yield cuda_info
     finally:
-        if (is_cuda):
+        if is_cuda:
             cuda_info["memory"] = torch.cuda.memory_reserved(device)
 
 

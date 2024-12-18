@@ -624,12 +624,11 @@ def cuda_memory_usage(device=None):
         torch.cuda.empty_cache()
 
     try:
-        memory_info = {}
-        memory_info["reserved"] = 0
-        yield memory_info
+        cuda_info = dict(memory=0)
+        yield cuda_info
     finally:
         if is_cuda:
-            memory_info["reserved"] = torch.cuda.memory_reserved(device)
+            cuda_info["memory"] = torch.cuda.memory_reserved(device)
 
 
 def profile(input, ops, n=10, device=None, max_num_obj=0):
@@ -670,7 +669,7 @@ def profile(input, ops, n=10, device=None, max_num_obj=0):
             try:
                 mem = 0
                 for _ in range(n):
-                    with cuda_memory_usage(device) as memory_info:
+                    with cuda_memory_usage(device) as cuda_info:
                         t[0] = time_sync()
                         y = m(x)
                         t[1] = time_sync()
@@ -680,11 +679,11 @@ def profile(input, ops, n=10, device=None, max_num_obj=0):
                         except Exception:  # no backward method
                             # print(e)  # for debug
                             t[2] = float("nan")
-                    mem += memory_info["reserved"] / 1e9 if torch.cuda.is_available() else 0  # (GB)
+                    mem += cuda_info["memory"] / 1e9 if torch.cuda.is_available() else 0  # (GB)
                     tf += (t[1] - t[0]) * 1000 / n  # ms per op forward
                     tb += (t[2] - t[1]) * 1000 / n  # ms per op backward
                     if max_num_obj:  # simulate training with predictions per image grid (for AutoBatch)
-                        with cuda_memory_usage(device) as memory_info:
+                        with cuda_memory_usage(device) as cuda_info:
                             torch.randn(
                                 x.shape[0],
                                 max_num_obj,
@@ -692,7 +691,7 @@ def profile(input, ops, n=10, device=None, max_num_obj=0):
                                 device=device,
                                 dtype=torch.float32,
                             )
-                        mem += memory_info["reserved"] / 1e9 if torch.cuda.is_available() else 0  # (GB)
+                        mem += cuda_info["memory"] / 1e9 if torch.cuda.is_available() else 0  # (GB)
                 s_in, s_out = (tuple(x.shape) if isinstance(x, torch.Tensor) else "list" for x in (x, y))  # shapes
                 p = sum(x.numel() for x in m.parameters()) if isinstance(m, nn.Module) else 0  # parameters
                 LOGGER.info(f"{p:12}{flops:12.4g}{mem:>14.3f}{tf:14.4g}{tb:14.4g}{str(s_in):>24s}{str(s_out):>24s}")

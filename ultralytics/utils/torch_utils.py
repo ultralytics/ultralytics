@@ -679,7 +679,7 @@ def profile(input, ops, n=10, device=None, max_num_obj=0):
                         except Exception:  # no backward method
                             # print(e)  # for debug
                             t[2] = float("nan")
-                    mem += cuda_info["memory"] / 1e9 if torch.cuda.is_available() else 0  # (GB)
+                    mem += cuda_info["memory"] / 1e9  # (GB)
                     tf += (t[1] - t[0]) * 1000 / n  # ms per op forward
                     tb += (t[2] - t[1]) * 1000 / n  # ms per op backward
                     if max_num_obj:  # simulate training with predictions per image grid (for AutoBatch)
@@ -691,7 +691,7 @@ def profile(input, ops, n=10, device=None, max_num_obj=0):
                                 device=device,
                                 dtype=torch.float32,
                             )
-                        mem += cuda_info["memory"] / 1e9 if torch.cuda.is_available() else 0  # (GB)
+                        mem += cuda_info["memory"] / 1e9  # (GB)
                 s_in, s_out = (tuple(x.shape) if isinstance(x, torch.Tensor) else "list" for x in (x, y))  # shapes
                 p = sum(x.numel() for x in m.parameters()) if isinstance(m, nn.Module) else 0  # parameters
                 LOGGER.info(f"{p:12}{flops:12.4g}{mem:>14.3f}{tf:14.4g}{tb:14.4g}{str(s_in):>24s}{str(s_out):>24s}")

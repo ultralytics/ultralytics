@@ -321,19 +321,20 @@ class DetectionModel(BaseModel):
         self.inplace = self.yaml.get("inplace", True)
         self.end2end = getattr(self.model[-1], "end2end", False)
 
-        # Build strides
+        # Build strides from ImageNet mean forward pass
         m = self.model[-1]  # Detect()
         if isinstance(m, Detect):  # includes all Detect subclasses like Segment, Pose, OBB, WorldDetect
             s = 256  # 2x min stride
             m.inplace = self.inplace
 
+            @torch.no_grad()
             def _forward(x):
                 """Performs a forward pass through the model, handling different Detect subclass types accordingly."""
                 if self.end2end:
                     return self.forward(x)["one2many"]
                 return self.forward(x)[0] if isinstance(m, (Segment, Pose, OBB)) else self.forward(x)
 
-            m.stride = torch.tensor([s / x.shape[-2] for x in _forward(torch.zeros(1, ch, s, s))])  # forward
+            m.stride = torch.tensor([s / x.shape[-2] for x in _forward(torch.full((1, ch, s, s), 0.447))])
             self.stride = m.stride
             m.bias_init()  # only run once
         else:

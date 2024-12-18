@@ -743,8 +743,7 @@ class Metric(SimpleClass):
 
     def fitness(self, fitness_weights=None):
         """Model fitness as a weighted combination of metrics."""
-        default_weights = [0.0, 0.0, 0.1, 0.9]  # default weights for [P, R, mAP@0.5, mAP@0.5:0.95]
-        w = fitness_weights if fitness_weights else default_weights 
+        w = fitness_weights if fitness_weights else [0.0, 0.0, 0.1, 0.9] 
         return (np.array(self.mean_results()) * w).sum()
 
     def update(self, results):
@@ -808,7 +807,7 @@ class DetMetrics(SimpleClass):
         plot (bool): A flag that indicates whether to plot the precision-recall curves for each class.
         on_plot (func): An optional callback to pass plots path and data when they are rendered.
         names (dict of str): A dict of strings that represents the names of the classes.
-        fitness_weights (list of floats): A list of weights for computing the fitness score.
+        fitness_weights (list of floats): A list of scaling factors for computing the fitness score; [P, R, mAP@0.5, mAP@0.5:0.95].
         box (Metric): An instance of the Metric class for storing the results of the detection metrics.
         speed (dict): A dictionary for storing the execution time of different parts of the detection process.
 

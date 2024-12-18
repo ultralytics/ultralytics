@@ -75,6 +75,10 @@ def segment2box(segment, width=640, height=640):
         (np.ndarray): the minimum and maximum x and y values of the segment.
     """
     x, y = segment.T  # segment xy
+    # any 3 out of 4 points are outside the image, clip coordinates first, https://github.com/ultralytics/ultralytics/pull/18294
+    if np.array([x.min() < 0, y.min() < 0, x.max() > width, y.max() > height]).sum() >= 3:
+        x = x.clip(0, width)
+        y = y.clip(0, height)
     inside = (x >= 0) & (y >= 0) & (x <= width) & (y <= height)
     x = x[inside]
     y = y[inside]

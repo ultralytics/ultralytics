@@ -619,15 +619,28 @@ def convert_optimizer_state_dict_to_fp16(state_dict):
 
 @contextmanager
 def cuda_memory_usage(device=None):
+    """
+    Monitor and manage CUDA memory usage.
+
+    This function checks if CUDA is available and, if so, empties the CUDA cache to free up unused memory.
+    It then yields a dictionary containing memory usage information, which can be updated by the caller.
+    Finally, it updates the dictionary with the amount of memory reserved by CUDA on the specified device.
+
+    Args:
+        device (torch.device, optional): The CUDA device to query memory usage for. Defaults to None.
+
+    Yields:
+        (dict): A dictionary with a key 'memory' initialized to 0, which will be updated with the reserved memory.
+    """
     is_cuda = torch.cuda.is_available()
-    if is_cuda:
+    if (is_cuda):
         torch.cuda.empty_cache()
 
     try:
         cuda_info = dict(memory=0)
         yield cuda_info
     finally:
-        if is_cuda:
+        if (is_cuda):
             cuda_info["memory"] = torch.cuda.memory_reserved(device)
 
 

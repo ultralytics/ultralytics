@@ -113,6 +113,7 @@ def on_pretrain_routine_start(trainer):
         wb.init(
             project=str(trainer.args.project).replace("/", "-") if trainer.args.project else "Ultralytics",
             name=str(trainer.args.name).replace("/", "-"),
+            group=str(trainer.args.group).replace("/", "-") if trainer.args.group else None,
             config=vars(trainer.args),
         )
 

@@ -53,7 +53,7 @@ Here's our curated list of Ultralytics solutions that can be used to create awes
 
 !!! tip "Predict args"
 
-    Solutions also accept the same arguments as `predict`, including parameters like `conf`, `line_width`, `tracker`, `model`, `show`, and `classes`.
+    Solutions also support some of the arguments from `predict`, including parameters such as `conf`, `line_width`, `tracker`, `model`, `show`, and `classes`.
 
 {% include "macros/solutions-args.md" %}
 

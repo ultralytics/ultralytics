@@ -23,3 +23,6 @@ enable_funnel: False # Enable funnel analysis by default is False. You can make 
 funnel_stages: None # Optional: Define funnel stages explicitly if regions are define during execution the stages name will be ("Zone_1", "Zone_2", "Zone_3"),
 enable_avg_dwell: False # Enable average dwell time computation for each zone it will display their average dwell time
 detect_mode: "all_frames" # if choose "all_frames" the bounding boxes will be display in the whole frame else "enter_zones"
+
+# Security alarm system
+records: 5 # Total detections count to send an email about security

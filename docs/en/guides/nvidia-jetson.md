@@ -631,7 +631,7 @@ Deploying Ultralytics YOLO11 on NVIDIA Jetson devices is a straightforward proce
 
 ### What performance benchmarks can I expect from YOLO11 models on NVIDIA Jetson devices?
 
-YOLO11 models have been benchmarked on various NVIDIA Jetson devices showing significant performance improvements. For example, the TensorRT format delivers the best inference performance. The table in the [Detailed Comparison Table](#detailed-comparison-table) section provides a comprehensive view of performance metrics like mAP50-95 and inference time across different model formats.
+YOLO11 models have been benchmarked on various NVIDIA Jetson devices showing significant performance improvements. For example, the TensorRT format delivers the best inference performance. The table in the [Detailed Comparison Tables](#detailed-comparison-tables) section provides a comprehensive view of performance metrics like mAP50-95 and inference time across different model formats.
 
 ### Why should I use TensorRT for deploying YOLO11 on NVIDIA Jetson?
 

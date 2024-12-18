@@ -670,7 +670,7 @@ def profile(input, ops, n=10, device=None, max_num_obj=0):
             try:
                 mem = 0
                 for _ in range(n):
-                    with cuda_memory_usage() as memory_info:
+                    with cuda_memory_usage(device) as memory_info:
                         t[0] = time_sync()
                         y = m(x)
                         t[1] = time_sync()
@@ -684,8 +684,7 @@ def profile(input, ops, n=10, device=None, max_num_obj=0):
                     tf += (t[1] - t[0]) * 1000 / n  # ms per op forward
                     tb += (t[2] - t[1]) * 1000 / n  # ms per op backward
                     if max_num_obj:  # simulate training with predictions per image grid (for AutoBatch)
-                        with cuda_memory_usage() as memory_info:
-                            torch.cuda.empty_cache()
+                        with cuda_memory_usage(device) as memory_info:
                             torch.randn(
                                 x.shape[0],
                                 max_num_obj,

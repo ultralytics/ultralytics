@@ -51,7 +51,11 @@ Streamlit makes it simple to build and deploy interactive web applications. Comb
         ```python
         from ultralytics import solutions
 
-        solutions.inference()
+        inf = solutions.Inference(
+            model="yolo11n.pt",  # You can use any model that Ultralytics support, i.e. YOLO11, YOLOv10
+        )
+        
+        inf.inference()
 
         ### Make sure to run the file using command `streamlit run <file-name.py>`
         ```

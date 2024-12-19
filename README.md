@@ -18,8 +18,10 @@
     <a href="https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open Ultralytics In Colab"></a>
     <a href="https://www.kaggle.com/models/ultralytics/yolo11"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open Ultralytics In Kaggle"></a>
     <a href="https://mybinder.org/v2/gh/ultralytics/ultralytics/HEAD?labpath=examples%2Ftutorial.ipynb"><img src="https://mybinder.org/badge_logo.svg" alt="Open Ultralytics In Binder"></a>
-    <a href="https://deepnote.com/workspace/ultralytics-84ee3d24-3357-43a0-a653-a1243ccef683/project/ultralytics-d416e62d-0f06-4437-9da4-8a6195d54bbb/notebook/tutorialipynb-510f2bb38d8a4609a0017af08e7be730"><img src="https://deepnote.com/buttons/launch-in-deepnote.svg" alt="Open Ultralytics In Deepnote"></a>
+    <a href="https://deepnote.com/workspace/ultralytics-84ee3d24-3357-43a0-a653-a1243ccef683/project/ultralytics-d416e62d-0f06-4437-9da4-8a6195d54bbb/notebook/tutorialipynb-510f2bb38d8a4609a0017af08e7be730">    
+      <img src="https://deepnote.com/buttons/launch-in-deepnote.svg" width="108" height="20" alt="Open Ultralytics In Deepnote">
 </div>
+
 <br>
 
 [Ultralytics](https://www.ultralytics.com/) [YOLO11](https://github.com/ultralytics/ultralytics) is a cutting-edge, state-of-the-art (SOTA) model that builds upon the success of previous YOLO versions and introduces new features and improvements to further boost performance and flexibility. YOLO11 is designed to be fast, accurate, and easy to use, making it an excellent choice for a wide range of object detection and tracking, instance segmentation, image classification and pose estimation tasks.

@@ -50,10 +50,10 @@ class Inference:
         import streamlit as st
         self.st = st
 
-        self.temp_dict = {"model": None}    # Temporary dict to store the model path
+        self.temp_dict = {"model": None}  # Temporary dict to store the model path
         self.temp_dict.update(kwargs)
 
-        self.model_path = None      # Store model file name with path
+        self.model_path = None  # Store model file name with path
         if self.temp_dict["model"] is not None:
             self.model_path = self.temp_dict["model"]
 
@@ -80,15 +80,15 @@ class Inference:
 
     def sidebar(self):
         """Configures the Streamlit sidebar for model and inference settings."""
-        with self.st.sidebar:        # Add Ultralytics LOGO
+        with self.st.sidebar:  # Add Ultralytics LOGO
             logo = "https://raw.githubusercontent.com/ultralytics/assets/main/logo/Ultralytics_Logotype_Original.svg"
             self.st.image(logo, width=250)
 
         self.st.sidebar.title("User Configuration")  # Add elements to vertical setting menu
-        self.source = self.st.sidebar.selectbox("Video", ("webcam", "video"),)  # Add source selection dropdown
-        self.enable_trk = self.st.sidebar.radio("Enable Tracking", ("Yes", "No"))   # Enable object tracking
+        self.source = self.st.sidebar.selectbox("Video", ("webcam", "video"), )  # Add source selection dropdown
+        self.enable_trk = self.st.sidebar.radio("Enable Tracking", ("Yes", "No"))  # Enable object tracking
         self.conf = float(self.st.sidebar.slider("Confidence Threshold", 0.0, 1.0, 0.25, 0.01))  # Slider for confidence
-        self.iou = float(self.st.sidebar.slider("IoU Threshold", 0.0, 1.0, 0.45, 0.01))     # Slider for NMS threshold
+        self.iou = float(self.st.sidebar.slider("IoU Threshold", 0.0, 1.0, 0.45, 0.01))  # Slider for NMS threshold
 
         col1, col2 = self.st.columns(2)
         self.org_frame = col1.empty()
@@ -112,7 +112,7 @@ class Inference:
         """Configures the model and loads selected classes for inference."""
         # Add dropdown menu for model selection
         available_models = [x.replace("yolo", "YOLO") for x in GITHUB_ASSETS_STEMS if x.startswith("yolo11")]
-        if self.model_path:     # If user provided the custom model, insert model without suffix as *.pt is added later
+        if self.model_path:  # If user provided the custom model, insert model without suffix as *.pt is added later
             available_models.insert(0, self.model_path.split(".pt")[0])
         selected_model = self.st.sidebar.selectbox("Model", available_models)
 
@@ -130,10 +130,10 @@ class Inference:
 
     def inference(self):
         """Performs real-time object detection inference."""
-        self.web_ui()       # Initialize the web interface
-        self.sidebar()      # Create the sidebar
-        self.source_upload()    # Upload the video source
-        self.configure()    # Configure the app
+        self.web_ui()  # Initialize the web interface
+        self.sidebar()  # Create the sidebar
+        self.source_upload()  # Upload the video source
+        self.configure()  # Configure the app
 
         if self.st.sidebar.button("Start"):
             stop_button = self.st.button("Stop")  # Button to stop the inference
@@ -156,15 +156,27 @@ class Inference:
                     results = self.model(frame, conf=self.conf, iou=self.iou, classes=self.selected_ind)
                 annotated_frame = results[0].plot()  # Add annotations on frame
 
-                fps = 1 / (time.time() - prev_time)     # Calculate model FPS
+                fps = 1 / (time.time() - prev_time)  # Calculate model FPS
 
                 if stop_button:
                     cap.release()  # Release the capture
                     self.st.stop()  # Stop streamlit app
 
-                self.fps_display.metric("FPS", f"{fps:.2f}")    # Display FPS in sidebar
-                self.org_frame.image(frame, channels="BGR")     # Display original frame
-                self.ann_frame.image(annotated_frame, channels="BGR")   # Display processed frame
+                self.fps_display.metric("FPS", f"{fps:.2f}")  # Display FPS in sidebar
+                self.org_frame.image(frame, channels="BGR")  # Display original frame
+                self.ann_frame.image(annotated_frame, channels="BGR")  # Display processed frame
 
-            cap.release()   # Release the capture
-        cv2.destroyAllWindows()     # Destroy window
+            cap.release()  # Release the capture
+        cv2.destroyAllWindows()  # Destroy window
+
+
+if __name__ == "__main__":
+    import sys  # Import the sys module for accessing command-line arguments
+    model = None  # Initialize the model variable as None
+
+    # Check if a model name is provided as a command-line argument
+    if len(sys.argv) > 1:
+        model = sys.argv[1]  # Assign the first argument as the model name
+
+    # Create an instance of the Inference class and run inference
+    Inference(model=model).inference()

@@ -639,6 +639,7 @@ def handle_yolo_solutions(args: List[str]) -> None:
 
         Run inference with custom configuration, requires Streamlit version 1.29.0 or higher.
         >>> handle_yolo_solutions(["inference", "model=yolo11n.pt"])
+
     Notes:
         - Default configurations are merged from DEFAULT_SOL_DICT and DEFAULT_CFG_DICT
         - Arguments can be provided in the format 'key=value' or as boolean flags

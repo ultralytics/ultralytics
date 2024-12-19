@@ -104,7 +104,7 @@ class DetectionValidator(BaseValidator):
     def _prepare_batch(self, si, batch):
         """Prepares a batch of images and annotations for validation."""
         idx = batch["batch_idx"] == si
-        cls = batch["cls"][idx].squeeze(-1)
+        cls = batch["cls"][idx]
         bbox = batch["bboxes"][idx]
         ori_shape = batch["ori_shape"][si]
         imgsz = batch["img"].shape[2:]
@@ -136,7 +136,7 @@ class DetectionValidator(BaseValidator):
             cls, bbox = pbatch.pop("cls"), pbatch.pop("bbox")
             nl = len(cls)
             stat["target_cls"] = cls
-            stat["target_img"] = cls.unique()
+            stat["target_img"] = cls.nonzero()[:, 1].unique()
             if npr == 0:
                 if nl:
                     for k in self.stats.keys():
@@ -179,7 +179,7 @@ class DetectionValidator(BaseValidator):
     def get_stats(self):
         """Returns metrics statistics and results dictionary."""
         stats = {k: torch.cat(v, 0).cpu().numpy() for k, v in self.stats.items()}  # to numpy
-        self.nt_per_class = np.bincount(stats["target_cls"].astype(int), minlength=self.nc)
+        self.nt_per_class = np.bincount(stats["target_cls"].nonzero()[1], minlength=self.nc)
         self.nt_per_image = np.bincount(stats["target_img"].astype(int), minlength=self.nc)
         stats.pop("target_img", None)
         if len(stats) and stats["tp"].any():
@@ -215,7 +215,7 @@ class DetectionValidator(BaseValidator):
                 (x1, y1, x2, y2, conf, class).
             gt_bboxes (torch.Tensor): Tensor of shape (M, 4) representing ground-truth bounding box coordinates. Each
                 bounding box is of the format: (x1, y1, x2, y2).
-            gt_cls (torch.Tensor): Tensor of shape (M,) representing target class indices.
+            gt_cls (torch.Tensor): Tensor of shape (M, nc) representing target class indices.
 
         Returns:
             (torch.Tensor): Correct prediction matrix of shape (N, 10) for 10 IoU levels.
@@ -248,7 +248,7 @@ class DetectionValidator(BaseValidator):
         plot_images(
             batch["img"],
             batch["batch_idx"],
-            batch["cls"].squeeze(-1),
+            batch["cls"],
             batch["bboxes"],
             paths=batch["im_file"],
             fname=self.save_dir / f"val_batch{ni}_labels.jpg",

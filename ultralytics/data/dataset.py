@@ -248,6 +248,93 @@ class YOLODataset(BaseDataset):
         return new_batch
 
 
+class YOLOMultilabelDataset(YOLODataset):
+    """Dataset class for multilabel object detection."""
+
+    def cache_labels(self, path=Path("./labels.cache")):
+        """
+        Cache dataset labels, check images and read shapes.
+
+        Args:
+            path (Path): Path where to save the cache file. Default is Path('./labels.cache').
+
+        Returns:
+            (dict): labels.
+        """
+        x = {"labels": []}
+        nm, nf, ne, nc, msgs = 0, 0, 0, 0, []  # number missing, found, empty, corrupt, messages
+        desc = f"{self.prefix}Scanning {path.parent / path.stem}..."
+        total = len(self.im_files)
+        nkpt, ndim = self.data.get("kpt_shape", (0, 0))
+        if self.use_keypoints and (nkpt <= 0 or ndim not in {2, 3}):
+            raise ValueError(
+                "'kpt_shape' in data.yaml missing or incorrect. Should be a list with [number of "
+                "keypoints, number of dims (2 for x,y or 3 for x,y,visible)], i.e. 'kpt_shape: [17, 3]'"
+            )
+        with ThreadPool(NUM_THREADS) as pool:
+            results = pool.imap(
+                func=verify_image_label,
+                iterable=zip(
+                    self.im_files,
+                    self.label_files,
+                    repeat(self.prefix),
+                    repeat(self.use_keypoints),
+                    repeat(len(self.data["names"])),
+                    repeat(nkpt),
+                    repeat(ndim),
+                ),
+            )
+            pbar = TQDM(results, desc=desc, total=total)
+            for im_file, lb, shape, segments, keypoint, nm_f, nf_f, ne_f, nc_f, msg in pbar:
+                nm += nm_f
+                nf += nf_f
+                ne += ne_f
+                nc += nc_f
+                if im_file:
+                    unique_bboxes, indices = np.unique(lb[:, 1:], axis=0, return_inverse=True)
+                    assert unique_bboxes.shape == (
+                        unique_bboxes.shape[0],
+                        4,
+                    ), f"unique_bboxes.shape {unique_bboxes.shape}"
+
+                    def one_hot_encode(labels, num_classes):
+                        one_hot = np.zeros(num_classes)
+                        one_hot[labels] = 1.0
+                        return one_hot
+
+                    num_classes = len(self.data["names"])
+                    labels = np.zeros((len(unique_bboxes), num_classes))
+                    for i in range(len(unique_bboxes)):
+                        labels[i] = one_hot_encode(lb[indices == i, 0].astype(np.int32), num_classes)
+
+                    x["labels"].append(
+                        {
+                            "im_file": im_file,
+                            "shape": shape,
+                            "cls": labels,  # n, num_classes
+                            "bboxes": unique_bboxes,  # n, 4
+                            "segments": segments,
+                            "keypoints": keypoint,
+                            "normalized": True,
+                            "bbox_format": "xywh",
+                        }
+                    )
+                if msg:
+                    msgs.append(msg)
+                pbar.desc = f"{desc} {nf} images, {nm + ne} backgrounds, {nc} corrupt"
+            pbar.close()
+
+        if msgs:
+            LOGGER.info("\n".join(msgs))
+        if nf == 0:
+            LOGGER.warning(f"{self.prefix}WARNING ⚠️ No labels found in {path}. {HELP_URL}")
+        x["hash"] = get_hash(self.label_files + self.im_files)
+        x["results"] = nf, nm, ne, nc, len(self.im_files)
+        x["msgs"] = msgs  # warnings
+        save_dataset_cache_file(self.prefix, path, x, DATASET_CACHE_VERSION)
+        return x
+
+
 class YOLOMultiModalDataset(YOLODataset):
     """
     Dataset class for loading object detection and/or segmentation labels in YOLO format.

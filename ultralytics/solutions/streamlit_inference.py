@@ -175,8 +175,9 @@ if __name__ == "__main__":
     model = None  # Initialize the model variable as None
 
     # Check if a model name is provided as a command-line argument
-    if len(sys.argv) > 1:
-        model = sys.argv[1]  # Assign the first argument as the model name
+    args = len(sys.argv)
+    if args > 1:
+        model = args  # Assign the first argument as the model name
 
     # Create an instance of the Inference class and run inference
     Inference(model=model).inference()

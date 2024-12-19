@@ -687,16 +687,25 @@ def handle_yolo_solutions(args: List[str]) -> None:
     if s_n == "inference":
         checks.check_requirements("streamlit>=1.29.0")
         LOGGER.info("💡 Loading Ultralytics live inference app...")
-        subprocess.run([    # Run subprocess with Streamlit custom argument
-            "streamlit", "run", str(ROOT / "solutions/streamlit_inference.py"), "--server.headless", "true",
-            overrides['model']])
+        subprocess.run(
+            [  # Run subprocess with Streamlit custom argument
+                "streamlit",
+                "run",
+                str(ROOT / "solutions/streamlit_inference.py"),
+                "--server.headless",
+                "true",
+                overrides["model"],
+            ]
+        )
     else:
         cls, method = SOLUTION_MAP[s_n]  # solution class name, method name and default source
 
         from ultralytics import solutions  # import ultralytics solutions
 
         solution = getattr(solutions, cls)(IS_CLI=True, **overrides)  # get solution class i.e ObjectCounter
-        process = getattr(solution, method)  # get specific function of class for processing i.e, count from ObjectCounter
+        process = getattr(
+            solution, method
+        )  # get specific function of class for processing i.e, count from ObjectCounter
 
         cap = cv2.VideoCapture(solution.CFG["source"])  # read the video file
 

@@ -5,8 +5,8 @@ import time
 
 import cv2
 
+from ultralytics.solutions.solutions import LOGGER, YOLO, check_requirements
 from ultralytics.utils.downloads import GITHUB_ASSETS_STEMS
-from ultralytics.solutions.solutions import check_requirements, YOLO, LOGGER
 
 
 class Inference:
@@ -35,7 +35,7 @@ class Inference:
         inference: Performs real-time object detection inference.
 
     Examples:
-        >>> inf = solutions.Inference(model="path/to/model/file.pt") # Model is not necessary argument.
+        >>> inf = solutions.Inference(model="path/to/model/file.pt")  # Model is not necessary argument.
         >>> inf.inference()
     """
 
@@ -48,6 +48,7 @@ class Inference:
         """
         check_requirements("streamlit>=1.29.0")  # scope imports for faster ultralytics package load speeds
         import streamlit as st
+
         self.st = st
 
         self.temp_dict = {"model": None}  # Temporary dict to store the model path
@@ -85,7 +86,10 @@ class Inference:
             self.st.image(logo, width=250)
 
         self.st.sidebar.title("User Configuration")  # Add elements to vertical setting menu
-        self.source = self.st.sidebar.selectbox("Video", ("webcam", "video"), )  # Add source selection dropdown
+        self.source = self.st.sidebar.selectbox(
+            "Video",
+            ("webcam", "video"),
+        )  # Add source selection dropdown
         self.enable_trk = self.st.sidebar.radio("Enable Tracking", ("Yes", "No"))  # Enable object tracking
         self.conf = float(self.st.sidebar.slider("Confidence Threshold", 0.0, 1.0, 0.25, 0.01))  # Slider for confidence
         self.iou = float(self.st.sidebar.slider("IoU Threshold", 0.0, 1.0, 0.45, 0.01))  # Slider for NMS threshold
@@ -150,8 +154,9 @@ class Inference:
 
                 # Store model predictions
                 if self.enable_trk == "Yes":
-                    results = self.model.track(frame, conf=self.conf, iou=self.iou, classes=self.selected_ind,
-                                               persist=True)
+                    results = self.model.track(
+                        frame, conf=self.conf, iou=self.iou, classes=self.selected_ind, persist=True
+                    )
                 else:
                     results = self.model(frame, conf=self.conf, iou=self.iou, classes=self.selected_ind)
                 annotated_frame = results[0].plot()  # Add annotations on frame
@@ -172,6 +177,7 @@ class Inference:
 
 if __name__ == "__main__":
     import sys  # Import the sys module for accessing command-line arguments
+
     model = None  # Initialize the model variable as None
 
     # Check if a model name is provided as a command-line argument

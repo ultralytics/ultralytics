@@ -44,7 +44,7 @@ class Inference:
         Initializes the Inference class, checking Streamlit requirements and setting up the model path.
 
         Args:
-            **kwargs: Additional keyword arguments for model configuration.
+            **kwargs (Dict): Additional keyword arguments for model configuration.
         """
         check_requirements("streamlit>=1.29.0")  # scope imports for faster ultralytics package load speeds
         import streamlit as st

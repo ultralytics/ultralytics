@@ -6,31 +6,45 @@ import time
 import cv2
 import torch
 
-from ultralytics.utils.checks import check_requirements
+from ultralytics.solutions.solutions import BaseSolution, check_requirements
 from ultralytics.utils.downloads import GITHUB_ASSETS_STEMS
 
 
-def inference(model=None):
-    """Performs real-time object detection on video input using YOLO in a Streamlit web application."""
-    check_requirements("streamlit>=1.29.0")  # scope imports for faster ultralytics package load speeds
-    import streamlit as st
+class LiveInference(BaseSolution):
+    def __init__(self, **kwargs):
+        """Initializes the ObjectCounter class for real-time object counting in video streams."""
+        super().__init__(**kwargs)
+        check_requirements("streamlit>=1.29.0")  # scope imports for faster ultralytics package load speeds
+        import streamlit as st
 
-    from ultralytics import YOLO
+    def web_ui(self):
+        self.menu_style_cfg = """<style>MainMenu {visibility: hidden;}</style>"""  # Hide main menu style
 
-    # Hide main menu style
-    menu_style_cfg = """<style>MainMenu {visibility: hidden;}</style>"""
+        # Main title of streamlit application
+        self.main_title_cfg = """  
+        <div>
+            <h1 style="color:#FF64DA; text-align:center; font-size:40px; font-family: 'Archivo', sans-serif; 
+                        margin-top:-50px;margin-bottom:20px;">
+                Ultralytics YOLO Streamlit Application
+            </h1>
+        </div>
+        """
 
-    # Main title of streamlit application
-    main_title_cfg = """<div><h1 style="color:#FF64DA; text-align:center; font-size:40px; 
-                             font-family: 'Archivo', sans-serif; margin-top:-50px;margin-bottom:20px;">
-                    Ultralytics YOLO Streamlit Application
-                    </h1></div>"""
+        # Subtitle of streamlit application
+        self.sub_title_cfg = """
+        <div>
+            <h4 style="color:#042AFF; text-align:center; font-family: 'Archivo', sans-serif; margin-top:-15px; 
+                        margin-bottom:50px;">
+                Experience real-time object detection on your webcam with the power of Ultralytics YOLO! 🚀
+            </h4>
+        </div>
+        """
 
-    # Subtitle of streamlit application
-    sub_title_cfg = """<div><h4 style="color:#042AFF; text-align:center; 
-                    font-family: 'Archivo', sans-serif; margin-top:-15px; margin-bottom:50px;">
-                    Experience real-time object detection on your webcam with the power of Ultralytics YOLO! 🚀</h4>
-                    </div>"""
+
+    def inference(model=None):
+        """Performs real-time object detection on video input using YOLO in a Streamlit web application."""
+        from ultralytics import YOLO
+
 
     # Set html page configuration
     st.set_page_config(page_title="Ultralytics Streamlit App", layout="wide", initial_sidebar_state="auto")

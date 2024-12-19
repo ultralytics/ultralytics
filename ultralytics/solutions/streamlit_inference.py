@@ -10,7 +10,42 @@ from ultralytics.solutions.solutions import check_requirements, YOLO, LOGGER
 
 
 class Inference:
+    """
+    A class to perform object detection, image classification, image segmentation and pose estimation inference using
+    Streamlit and Ultralytics YOLO models. It provides the functionalities such as loading models, configuring settings,
+    uploading video files, and performing real-time inference.
+
+    Attributes:
+        st (module): Streamlit module for UI creation.
+        temp_dict (dict): Temporary dictionary to store the model path.
+        model_path (str): Path to the loaded model.
+        model (YOLO): The YOLO model instance.
+        source (str): Selected video source.
+        enable_trk (str): Enable tracking option.
+        conf (float): Confidence threshold.
+        iou (float): IoU threshold for non-max suppression.
+        vid_file_name (str): Name of the uploaded video file.
+        selected_ind (list): List of selected class indices.
+
+    Methods:
+        web_ui: Sets up the Streamlit web interface with custom HTML elements.
+        sidebar: Configures the Streamlit sidebar for model and inference settings.
+        source_upload: Handles video file uploads through the Streamlit interface.
+        configure: Configures the model and loads selected classes for inference.
+        inference: Performs real-time object detection inference.
+
+    Examples:
+        >>> inf = solutions.Inference(model="path/to/model/file.pt") # Model is not necessary argument.
+        >>> inf.inference()
+    """
+
     def __init__(self, **kwargs):
+        """
+        Initializes the Inference class, checking Streamlit requirements and setting up the model path.
+
+        Args:
+            **kwargs: Additional keyword arguments for model configuration.
+        """
         check_requirements("streamlit>=1.29.0")  # scope imports for faster ultralytics package load speeds
         import streamlit as st
         self.st = st
@@ -25,6 +60,7 @@ class Inference:
         LOGGER.info(f"Ultralytics Solutions: ✅ {self.temp_dict}")
 
     def web_ui(self):
+        """Sets up the Streamlit web interface with custom HTML elements."""
         menu_style_cfg = """<style>MainMenu {visibility: hidden;}</style>"""  # Hide main menu style
 
         # Main title of streamlit application
@@ -43,6 +79,7 @@ class Inference:
         self.st.markdown(sub_title_cfg, unsafe_allow_html=True)
 
     def sidebar(self):
+        """Configures the Streamlit sidebar for model and inference settings."""
         with self.st.sidebar:        # Add Ultralytics LOGO
             logo = "https://raw.githubusercontent.com/ultralytics/assets/main/logo/Ultralytics_Logotype_Original.svg"
             self.st.image(logo, width=250)
@@ -59,6 +96,7 @@ class Inference:
         self.fps_display = self.st.sidebar.empty()  # Placeholder for FPS display
 
     def source_upload(self):
+        """Handles video file uploads through the Streamlit interface."""
         self.vid_file_name = ""
         if self.source == "video":
             vid_file = self.st.sidebar.file_uploader("Upload Video File", type=["mp4", "mov", "avi", "mkv"])
@@ -71,6 +109,7 @@ class Inference:
             self.vid_file_name = 0
 
     def configure(self):
+        """Configures the model and loads selected classes for inference."""
         # Add dropdown menu for model selection
         available_models = [x.replace("yolo", "YOLO") for x in GITHUB_ASSETS_STEMS if x.startswith("yolo11")]
         if self.model_path:     # If user provided the custom model, insert model without suffix as *.pt is added later
@@ -90,6 +129,7 @@ class Inference:
             self.selected_ind = list(self.selected_ind)
 
     def inference(self):
+        """Performs real-time object detection inference."""
         self.web_ui()       # Initialize the web interface
         self.sidebar()      # Create the sidebar
         self.source_upload()    # Upload the video source

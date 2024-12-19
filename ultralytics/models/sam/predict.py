@@ -1105,7 +1105,7 @@ class SAM2VideoPredictor(SAM2Predictor):
             for obj_temp_output_dict in temp_output_dict_per_obj.values():
                 temp_frame_inds.update(obj_temp_output_dict[storage_key].keys())
             consolidated_frame_inds[storage_key].update(temp_frame_inds)
-            # consolidate the temprary output across all objects on this frame
+            # consolidate the temporary output across all objects on this frame
             for frame_idx in temp_frame_inds:
                 consolidated_out = self._consolidate_temp_output_across_obj(
                     frame_idx, is_cond=is_cond, run_mem_encoder=True

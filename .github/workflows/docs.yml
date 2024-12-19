@@ -23,13 +23,15 @@ on:
     inputs:
       publish_docs:
         description: "Publish live to https://docs.ultralytics.com"
-        default: "true"
+        default: true
         type: boolean
 
 jobs:
   Docs:
     if: github.repository == 'ultralytics/ultralytics'
     runs-on: ubuntu-latest
+    env:
+      GITHUB_REF: ${{ github.head_ref || github.ref }}
     steps:
       - name: Git config
         run: |
@@ -40,7 +42,7 @@ jobs:
         with:
           repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
           token: ${{ secrets._GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
-          ref: ${{ github.head_ref || github.ref }}
+          ref: ${{ env.GITHUB_REF }}
           fetch-depth: 0
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -56,7 +58,7 @@ jobs:
         continue-on-error: true
         run: |
           python docs/build_reference.py
-          git pull origin ${{ github.head_ref || github.ref }}
+          git pull origin "$GITHUB_REF"          
           git add .
           git reset HEAD -- .github/workflows/  # workflow changes are not permitted with default token
           if ! git diff --staged --quiet; then
@@ -75,7 +77,7 @@ jobs:
         continue-on-error: true
         if: always()
         run: |
-          git pull origin ${{ github.head_ref || github.ref }}
+          git pull origin "$GITHUB_REF"
           git add --update  # only add updated files
           git reset HEAD -- .github/workflows/  # workflow changes are not permitted with default token
           if ! git diff --staged --quiet; then
@@ -97,6 +99,7 @@ jobs:
           if git diff --staged --quiet; then
             echo "No changes to commit"
           else
+            git pull origin gh-pages
             LATEST_HASH=$(git rev-parse --short=7 HEAD)
             git commit -m "Update Docs for 'ultralytics ${{ steps.check_pypi.outputs.version }} - $LATEST_HASH'"
             git push https://${{ secrets._GITHUB_TOKEN }}@github.com/ultralytics/docs.git gh-pages

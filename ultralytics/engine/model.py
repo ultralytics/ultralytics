@@ -461,7 +461,7 @@ class Model(nn.Module):
         """
         self._check_is_pytorch_model()
         self.model.fuse()
-        
+
     def metadata(self) -> Dict:
         """
         Returns the metadata of the model.
@@ -480,12 +480,15 @@ class Model(nn.Module):
         """
         self._check_is_pytorch_model()
         import pprint
+
         metadata = {
             "model": self.model_name,
             "task": self.task,
             "version": self.ckpt.get("version", None),
             "license": self.ckpt.get("license", None),
-            "epochs": len(self.ckpt.get("train_results", None)["epoch"]) if self.ckpt.get("train_results", None) else None,
+            "epochs": len(self.ckpt.get("train_results", None)["epoch"])
+            if self.ckpt.get("train_results", None)
+            else None,
             "train_metrics": self.ckpt.get("train_metrics", None),
             "train_args": self.ckpt.get("train_args", None),
         }

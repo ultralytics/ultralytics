@@ -90,7 +90,7 @@ def benchmark(
 
     y = []
     t0 = time.time()
-    for i, (name, format, suffix, cpu, gpu) in enumerate(zip(*export_formats().values())):
+    for i, (name, format, suffix, cpu, gpu, _) in enumerate(zip(*export_formats().values())):
         emoji, filename = "❌", None  # export defaults
         try:
             # Checks

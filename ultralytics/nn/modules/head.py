@@ -176,8 +176,6 @@ class Detect(nn.Module):
 
 class Segment(Detect):
     """YOLOv8 Segment head for segmentation models."""
-    
-    separate_masks = False
 
     def __init__(self, nc=80, nm=32, npr=256, ch=()):
         """Initialize the YOLO model attributes such as the number of masks, prototypes, and the convolution layers."""
@@ -195,12 +193,7 @@ class Segment(Detect):
         bs = p.shape[0]  # batch size
 
         if self.separate_outputs and self.export:
-            if self.separate_masks:
-                mc = [torch.permute(self.cv4[i](x[i]), (0, 2, 3, 1)).reshape(bs, -1, self.nm) for i in range(self.nl)] # mask coefficients
-            else:
-                mc = torch.cat(
-                    [torch.permute(self.cv4[i](x[i]), (0, 2, 3, 1)).reshape(bs, -1, self.nm) for i in range(self.nl)],
-                    1)  # mask coefficients
+            mc = [torch.permute(self.cv4[i](x[i]), (0, 2, 3, 1)).reshape(bs, -1, self.nm) for i in range(self.nl)] # mask coefficients
         else:
             mc = torch.cat([self.cv4[i](x[i]).view(bs, self.nm, -1) for i in range(self.nl)], 2)  # mask coefficients
         x = Detect.forward(self, x)

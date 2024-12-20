@@ -260,8 +260,6 @@ class Exporter:
                 m.separate_outputs = self.args.separate_outputs
                 if isinstance(m, Pose):
                     m.separate_pose = self.args.separate_pose
-                if isinstance(m, Segment):
-                    m.separate_masks = self.args.separate_masks
             elif isinstance(m, C2f):
                 if self.args.export_hw_optimized:
                     # EdgeTPU does not support FlexSplitV while split provides cleaner ONNX graph

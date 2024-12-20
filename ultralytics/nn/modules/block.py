@@ -6,6 +6,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from ultralytics.utils.torch_utils import fuse_conv_and_bn
+from ultralytics.utils.ops import make_divisible
 
 from .conv import Conv, DWConv, GhostConv, LightConv, RepConv, autopad
 from .transformer import TransformerBlock
@@ -1107,3 +1108,39 @@ class SCDown(nn.Module):
     def forward(self, x):
         """Applies convolution and downsampling to the input tensor in the SCDown module."""
         return self.cv2(self.cv1(x))
+
+
+class UniversalInvertedBottleneck(nn.Module):
+    """
+    Universal Inverted Bottleneck Block.
+
+    Attributes:
+        cv1 (Conv): First convolution layer or identity.
+        cv2 (Conv): Second convolution layer.
+        cv3 (Conv): Third convolution layer or identity.
+        cv4 (Conv): Fourth convolution layer.
+
+    Methods:
+        forward: Apply forward pass through the Universal Inverted Bottleneck Block.
+
+    Examples:
+        >>> import torch
+        >>> from block import UniversalInvertedBottleneck
+        >>> model = UniversalInvertedBottleneck(c1=32, c2=64, k1=3, k2=3, downsample=True, s=2, e=4)
+        >>> x = torch.randn(1, 32, 224, 224)
+        >>> y = model(x)
+        >>> print(y.shape)
+    """
+
+    def __init__(self, c1, c2, k1=0, k2=3, downsample=True, s=1, e=2):
+        super().__init__()
+        s = s if downsample else 1
+        self.cv1 = Conv(c1, c1, k=k1, s=s, act=False) if k1 else nn.Identity()
+        c_ = int(make_divisible(c1 * e, 8))
+        self.cv2 = Conv(c1, c_, k=1)
+        self.cv3 = Conv(c_, c_, k=k2, s=s, g=c_) if k2 else nn.Identity()
+        self.cv4 = Conv(c_, c2, k=1, s=1, act=False)
+
+    def forward(self, x):
+        """Apply forward pass through the Universal Inverted Bottleneck Block."""
+        return self.cv4(self.cv3(self.cv2(self.cv1(x))))

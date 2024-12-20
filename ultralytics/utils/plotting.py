@@ -333,53 +333,66 @@ class Annotator:
             lineType=cv2.LINE_AA,
         )
 
-    def box_label(self, box, label="", color=(128, 128, 128), txt_color=(255, 255, 255), rotated=False):
+    def box_label(
+        self, box, label="", color=(128, 128, 128), txt_color=(255, 255, 255), rotated=False, label_pos_xy=None
+    ):
         """
-        Draws a bounding box to image with label.
+        Draws a bounding box to the image with a label.
 
         Args:
             box (tuple): The bounding box coordinates (x1, y1, x2, y2).
             label (str): The text label to be displayed.
             color (tuple, optional): The background color of the rectangle (B, G, R).
             txt_color (tuple, optional): The color of the text (R, G, B).
-            rotated (bool, optional): Variable used to check if task is OBB
+            rotated (bool, optional): Variable used to check if task is OBB.
+            label_pos_xy (tuple, optional): Specific coordinates for the label placement. If None, defaults to top-left.
         """
         txt_color = self.get_txt_color(color, txt_color)
         if isinstance(box, torch.Tensor):
             box = box.tolist()
+
         if self.pil or not is_ascii(label):
             if rotated:
                 p1 = box[0]
                 self.draw.polygon([tuple(b) for b in box], width=self.lw, outline=color)  # PIL requires tuple box
             else:
-                p1 = (box[0], box[1])
-                self.draw.rectangle(box, width=self.lw, outline=color)  # box
+                # Use the custom label position (label_pos_xy) if provided, otherwise default to box[0], box[1]
+                p1 = label_pos_xy if label_pos_xy else (box[0], box[1])
+                self.draw.rectangle(box, width=self.lw, outline=color)  # Draw the bounding box
+
             if label:
                 w, h = self.font.getsize(label)  # text width, height
                 outside = p1[1] >= h  # label fits outside box
-                if p1[0] > self.im.size[0] - w:  # size is (w, h), check if label extend beyond right side of image
+                if p1[0] > self.im.size[0] - w:  # check if label extends beyond right side of the image
                     p1 = self.im.size[0] - w, p1[1]
+
+                # Draw label background and text
                 self.draw.rectangle(
                     (p1[0], p1[1] - h if outside else p1[1], p1[0] + w + 1, p1[1] + 1 if outside else p1[1] + h + 1),
                     fill=color,
                 )
-                # self.draw.text((box[0], box[1]), label, fill=txt_color, font=self.font, anchor='ls')  # for PIL>8.0
                 self.draw.text((p1[0], p1[1] - h if outside else p1[1]), label, fill=txt_color, font=self.font)
-        else:  # cv2
+
+        else:  # For OpenCV
             if rotated:
                 p1 = [int(b) for b in box[0]]
                 cv2.polylines(self.im, [np.asarray(box, dtype=int)], True, color, self.lw)  # cv2 requires nparray box
             else:
                 p1, p2 = (int(box[0]), int(box[1])), (int(box[2]), int(box[3]))
-                cv2.rectangle(self.im, p1, p2, color, thickness=self.lw, lineType=cv2.LINE_AA)
+                cv2.rectangle(self.im, p1, p2, color, thickness=self.lw, lineType=cv2.LINE_AA)  # Draw bounding box
+
             if label:
+                # Use custom label position (label_pos_xy) if provided, otherwise default to top-left
+                if label_pos_xy:
+                    p1 = (int(label_pos_xy[0]), int(label_pos_xy[1]))
                 w, h = cv2.getTextSize(label, 0, fontScale=self.sf, thickness=self.tf)[0]  # text width, height
-                h += 3  # add pixels to pad text
+                h += 3  # Add pixels to pad text
                 outside = p1[1] >= h  # label fits outside box
-                if p1[0] > self.im.shape[1] - w:  # shape is (h, w), check if label extend beyond right side of image
+                if p1[0] > self.im.shape[1] - w:  # check if label extends beyond right side of the image
                     p1 = self.im.shape[1] - w, p1[1]
+
                 p2 = p1[0] + w, p1[1] - h if outside else p1[1] + h
-                cv2.rectangle(self.im, p1, p2, color, -1, cv2.LINE_AA)  # filled
+                cv2.rectangle(self.im, p1, p2, color, -1, cv2.LINE_AA)  # Draw filled rectangle for label background
                 cv2.putText(
                     self.im,
                     label,

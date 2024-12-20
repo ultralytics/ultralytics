@@ -5,10 +5,10 @@ import json
 import cv2
 import numpy as np
 
+from ultralytics.solutions.solutions import BaseSolution
 from ultralytics.utils import LOGGER
 from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.plotting import Annotator
-from ultralytics.solutions.solutions import BaseSolution
 
 
 class ParkingPtsSelection:

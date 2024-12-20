@@ -13,9 +13,6 @@ def separate_outputs_decode(preds, task, task_id_shape, img_shape=()):
     for idx, s in enumerate(preds):
         if (task == "pose" or task == "segment") and s.shape[2] == task_id_shape:
             task_inds.append(idx)
-        if len(s.shape) == 4 and task == "segment":
-            proto = s
-            pidx = idx
     
     task_inds_pos = [
         i
@@ -25,7 +22,7 @@ def separate_outputs_decode(preds, task, task_id_shape, img_shape=()):
         )
     ]
     
-    if task == "segment" and pidx < 0:      # proto tensor has shape (1, 25600, 32) and was selected for task_inds
+    if task == "segment":
         pidx = task_inds[task_inds_pos.pop(0)]
         proto = preds[pidx].permute(0, 2, 1)
         proto_shape = proto.shape

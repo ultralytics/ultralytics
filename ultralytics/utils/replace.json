@@ -112,16 +112,10 @@
       "values": [0,2,3,1]
     },
     {
-      "op_name": "/model.22/proto/cv3/act/Clip",
-      "param_target": "outputs",
-      "param_name": "801",
-      "post_process_transpose_perm": [0,3,1,2]
-    },
-    {
-      "op_name": "/model.22/proto/cv3/act/Mul",
-      "param_target": "outputs",
-      "param_name": "745",
-      "post_process_transpose_perm": [0,3,1,2]
+      "op_name": "/model.22/Transpose_9",
+      "param_target": "attributes",
+      "param_name": "perm",
+      "values": [0,2,3,1]
     }
   ]
 }

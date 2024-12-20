@@ -207,7 +207,9 @@ class Segment(Detect):
         if self.training:
             return x, mc, p
         if self.separate_outputs and self.export:
-            return x, mc, p
+            p = p.permute(0, 2, 3, 1)
+            proto_shape = p.shape
+            return x, mc, p.reshape(proto_shape[0], proto_shape[1] * proto_shape[2], proto_shape[3])
         return (torch.cat([x, mc], 1), p) if self.export else (torch.cat([x[0], mc], 1), (x[1], mc, p))
 
 

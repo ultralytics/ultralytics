@@ -1144,3 +1144,36 @@ class UniversalInvertedBottleneck(nn.Module):
     def forward(self, x):
         """Apply forward pass through the Universal Inverted Bottleneck Block."""
         return self.cv4(self.cv3(self.cv2(self.cv1(x))))
+
+
+class InvertedResidual(nn.Module):
+    """
+    Inverted Residual Block.
+
+    Attributes:
+        cv1 (nn.Module): First convolution layer or identity.
+        cv2 (nn.Module): Second convolution layer.
+        shortcut (bool): Whether to use shortcut connection.
+
+    Methods:
+        forward: Apply forward pass through the Inverted Residual Block.
+
+    Examples:
+        >>> import torch
+        >>> from block import InvertedResidual
+        >>> model = InvertedResidual(c1=32, c2=64, s=1, e=2)
+        >>> x = torch.randn(1, 32, 224, 224)
+        >>> y = model(x)
+        >>> print(y.shape)
+    """
+
+    def __init__(self, c1, c2, s=1, e=2) -> None:
+        super().__init__()
+        c_ = int(c1 * e)
+        self.cv1 = Conv(c1, c_, k=3, s=s) if e != 1 else nn.Identity()
+        self.cv2 = Conv(c_, c2, k=1, act=False)
+        self.shortcut = s == 1 and c1 == c2
+
+    def forward(self, x):
+        """Apply forward pass through the Inverted Residual Block."""
+        return x + self.cv2(self.cv1(x)) if self.shortcut else self.cv2(self.cv1(x))

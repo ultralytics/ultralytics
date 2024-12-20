@@ -1,7 +1,7 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-from ultralytics.utils import LOGGER
 from ultralytics.solutions.solutions import BaseSolution
+from ultralytics.utils import LOGGER
 from ultralytics.utils.plotting import Annotator, colors
 
 

@@ -404,7 +404,8 @@ class CBAM(nn.Module):
         # Add residual connection if applicable
         if self.add:
             x += x_residual  # Element-wise addition
-        return self.activation(x)
+        # return self.activation(x)
+        return x
 
 class Concat(nn.Module):
     """Concatenate a list of tensors along dimension."""

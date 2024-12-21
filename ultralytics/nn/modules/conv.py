@@ -301,7 +301,7 @@ class ChannelAttention(nn.Module):
         max_out = self.shared_MLP(self.max_pool(x))
         # Sum the outputs
         out = avg_out + max_out
-        # Apply Softmax over channels
+        # Apply Sigmoid over channels
         out = self.activate(out)
         # Scale the input features
         out = x * out
@@ -375,13 +375,14 @@ class CBAM(nn.Module):
         self.cv2 = nn.Sequential(
             Conv(c_, c2, k=k, s=1, g=g),    # Conv layer
             nn.BatchNorm2d(c2),             # BatchNorm after Conv
-            nn.ReLU(inplace=True)           # Optional ReLU activation
         )
         # Determine whether to add residual connection
         self.add = shortcut and c1 == c2
         # Initialize channel and spatial attention modules
         self.channel_attention = ChannelAttention(c2, ratio)
         self.spatial_attention = SpatialAttention(k)
+        self.activation = nn.LeakyReLU(inplace=True)       # Optional ReLU activation
+
 
     def forward(self, x):
         """
@@ -403,7 +404,7 @@ class CBAM(nn.Module):
         # Add residual connection if applicable
         if self.add:
             x += x_residual  # Element-wise addition
-        return x
+        return self.activation(x)
 
 class Concat(nn.Module):
     """Concatenate a list of tensors along dimension."""

@@ -1240,7 +1240,7 @@ class SettingsManager(JSONDict):
 
     def update(self, *args, **kwargs):
         """Updates settings, validating keys and types."""
-        [kwargs.update(arg) for arg in args if isinstance(arg, dict)]
+        for arg in args: kwargs.update(arg) if isinstance(arg, dict) else None
         for k, v in kwargs.items():
             if k not in self.defaults:
                 raise KeyError(f"No Ultralytics setting '{k}'. {self.help_msg}")

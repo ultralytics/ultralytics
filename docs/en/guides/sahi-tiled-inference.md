@@ -72,11 +72,11 @@ Here's how to import the necessary modules and download a YOLO11 model and some 
 
 ```python
 from sahi.utils.file import download_from_url
-from sahi.utils.yolov8 import download_yolov8s_model
+from sahi.utils.ultralytics import download_yolo11n_model
 
 # Download YOLO11 model
-model_path = "models/yolo11s.pt"
-download_yolov8s_model(model_path)
+model_path = "models/yolo11n.pt"
+download_yolo11n_model(model_path)
 
 # Download test images
 download_from_url(
@@ -99,8 +99,8 @@ You can instantiate a YOLO11 model for object detection like this:
 from sahi import AutoDetectionModel
 
 detection_model = AutoDetectionModel.from_pretrained(
-    model_type="yolov8",
-    model_path=yolov8_model_path,
+    model_type="ultralytics",
+    model_path=model_path,
     confidence_threshold=0.3,
     device="cpu",  # or 'cuda:0'
 )
@@ -169,7 +169,7 @@ For batch prediction on a directory of images:
 from sahi.predict import predict
 
 predict(
-    model_type="yolov8",
+    model_type="ultralytics",
     model_path="path/to/yolo11n.pt",
     model_device="cpu",  # or 'cuda:0'
     model_confidence_threshold=0.4,
@@ -218,11 +218,11 @@ Then, download a YOLO11 model and test images:
 
 ```python
 from sahi.utils.file import download_from_url
-from sahi.utils.yolov8 import download_yolov8s_model
+from sahi.utils.ultralytics import download_yolo11n_model
 
 # Download YOLO11 model
-model_path = "models/yolo11s.pt"
-download_yolov8s_model(model_path)
+model_path = "models/yolo11n.pt"
+download_yolo11n_model(model_path)
 
 # Download test images
 download_from_url(
@@ -280,7 +280,7 @@ Example for batch prediction:
 from sahi.predict import predict
 
 predict(
-    model_type="yolov8",
+    model_type="ultralytics",
     model_path="path/to/yolo11n.pt",
     model_device="cpu",  # or 'cuda:0'
     model_confidence_threshold=0.4,

@@ -17,9 +17,6 @@ kpts: [6, 8, 10] # (list[int]) keypoints for workouts monitoring, i.e. for pushu
 # Analytics settings ---------------------------------------------------------------------------------------------------
 analytics_type: "line" # (str) analytics type i.e "line", "pie", "bar" or "area" charts.
 json_file: # (str) parking system regions file path.
-# Analytics settings
-analytics_type: "line" # Analytics type i.e "line", "pie", "bar" or "area" charts. By default, "line" analytics will be used for processing.
-json_file: # parking system regions file path.
 
 # Dwell Time Analysis
 enable_funnel: False # Enable funnel analysis by default is False. You can make it enable by passing True

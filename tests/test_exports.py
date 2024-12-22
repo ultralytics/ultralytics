@@ -134,19 +134,18 @@ def test_export_coreml_matrix(task, dynamic, int8, half, batch):
 @pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_10, reason="TFLite export requires Python>=3.10")
 @pytest.mark.skipif(not LINUX, reason="Test disabled as TF suffers from install conflicts on Windows and macOS")
 @pytest.mark.parametrize(
-    "task, dynamic, int8, half, batch",
+    "task, int8, half, batch",
     [  # generate all combinations but exclude those where both int8 and half are True
-        (task, dynamic, int8, half, batch)
-        for task, dynamic, int8, half, batch in product(TASKS, [False], [True, False], [True, False], [1])
+        (task, int8, half, batch)
+        for task, int8, half, batch in product(TASKS, [True, False], [True, False], [1])
         if not (int8 and half)  # exclude cases where both int8 and half are True
     ],
 )
-def test_export_tflite_matrix(task, dynamic, int8, half, batch):
+def test_export_tflite_matrix(task, int8, half, batch):
     """Test YOLO exports to TFLite format considering various export configurations."""
     file = YOLO(TASK2MODEL[task]).export(
         format="tflite",
         imgsz=32,
-        dynamic=dynamic,
         int8=int8,
         half=half,
         batch=batch,

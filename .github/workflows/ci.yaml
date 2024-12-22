@@ -165,7 +165,7 @@ jobs:
         torch: [latest]
         include:
           - os: ubuntu-latest
-            python-version: "3.8" # torch 1.8.0 requires python >=3.6, <=3.8
+            python-version: "3.9" # torch 1.8.0 requires python >=3.6, <=3.9
             torch: "1.8.0" # min torch version CI https://pypi.org/project/torchvision/
     steps:
       - uses: actions/checkout@v4

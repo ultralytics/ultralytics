@@ -59,7 +59,7 @@ keywords: object counting, regions, YOLOv8, computer vision, Ultralytics, effici
         # Video writer
         video_writer = cv2.VideoWriter("region_counting.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
-        # Init Object Counter
+        # Init RegionCounter
         region = solutions.RegionCounter(
             show=True,
             region=region_points,

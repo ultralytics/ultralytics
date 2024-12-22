@@ -88,18 +88,15 @@ def test_export_onnx_matrix(task, dynamic, half, batch, simplify):
 
 
 @pytest.mark.slow
-@pytest.mark.parametrize("task, dynamic, int8, half, batch", product(TASKS, [False], [False], [False], [1, 2]))
-def test_export_torchscript_matrix(task, dynamic, int8, half, batch):
+@pytest.mark.parametrize("task, batch", product(TASKS, [1, 2]))
+def test_export_torchscript_matrix(task, batch):
     """Tests YOLO model exports to TorchScript format under varied configurations."""
     file = YOLO(TASK2MODEL[task]).export(
         format="torchscript",
         imgsz=32,
-        dynamic=dynamic,
-        int8=int8,
-        half=half,
         batch=batch,
     )
-    YOLO(file)([SOURCE] * 3, imgsz=64 if dynamic else 32)  # exported model inference at batch=3
+    YOLO(file)([SOURCE] * 3, imgsz=32)  # exported model inference at batch=3
     Path(file).unlink()  # cleanup
 
 

@@ -250,7 +250,7 @@ class Exporter:
         self.device = select_device("cpu" if self.args.device is None else self.args.device)
 
         # Argument compatibility checks
-        validate_args(fmt, self.args, fmts_dict["Arguments"][flags.index(True)])
+        validate_args(fmt, self.args, fmts_dict["Arguments"][flags.index(True) + 1])
         if imx and not self.args.int8:
             LOGGER.warning("WARNING ⚠️ IMX only supports int8 export, setting int8=True.")
             self.args.int8 = True

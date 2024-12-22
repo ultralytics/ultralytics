@@ -399,6 +399,13 @@ def emojis(string=""):
     return string.encode().decode("ascii", "ignore") if WINDOWS else string
 
 
+def closest_match(value, comparision_list, n=1, cutoff=0.6):
+    """Get the closest match for export format."""
+    from difflib import get_close_matches
+
+    return get_close_matches(value, comparision_list, n=n, cutoff=cutoff)  # 60% similarity required to match
+
+
 class ThreadingLocked:
     """
     A decorator class for ensuring thread-safe execution of a function or method. This class can be used as a decorator

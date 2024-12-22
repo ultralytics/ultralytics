@@ -87,6 +87,7 @@ from ultralytics.utils import (
     WINDOWS,
     __version__,
     callbacks,
+    closest_match,
     colorstr,
     get_default_args,
     yaml_save,
@@ -209,10 +210,7 @@ class Exporter:
         fmts_dict = export_formats()
         fmts = tuple(fmts_dict["Argument"][1:])  # available export formats
         if fmt not in fmts:
-            import difflib
-
-            # Get the closest match if format is invalid
-            matches = difflib.get_close_matches(fmt, fmts, n=1, cutoff=0.6)  # 60% similarity required to match
+            matches = closest_match(fmt, fmts, n=1, cutoff=0.6)
             if not matches:
                 raise ValueError(f"Invalid export format='{fmt}'. Valid formats are {fmts}")
             LOGGER.warning(f"WARNING ⚠️ Invalid export format='{fmt}', updating to format='{matches[0]}'")

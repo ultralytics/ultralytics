@@ -149,7 +149,8 @@ YOLO-NAS introduces several key features that make it a superior choice for obje
 - **Quantization-Friendly Basic Block:** Enhanced architecture that improves model performance with minimal [precision](https://www.ultralytics.com/glossary/precision) drop post quantization.
 - **Sophisticated Training and Quantization:** Employs advanced training schemes and post-training quantization techniques.
 - **AutoNAC Optimization and Pre-training:** Utilizes AutoNAC optimization and is pre-trained on prominent datasets like COCO, Objects365, and Roboflow 100.
-    These features contribute to its high accuracy, efficient performance, and suitability for deployment in production environments. Learn more in the [Key Features](#key-features) section.
+
+These features contribute to its high accuracy, efficient performance, and suitability for deployment in production environments. Learn more in the [Key Features](#key-features) section.
 
 ### Which tasks and modes are supported by YOLO-NAS models?
 

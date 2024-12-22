@@ -577,7 +577,7 @@ def merge_multi_segment(segments):
     return s
 
 
-def yolo_bbox2segment(im_dir, save_dir=None, sam_model="sam_b.pt"):
+def yolo_bbox2segment(im_dir, save_dir=None, sam_model="sam_b.pt", device=None):
     """
     Converts existing object detection dataset (bounding boxes) to segmentation dataset or oriented bounding box (OBB)
     in YOLO format. Generates segmentation data using SAM auto-annotator as needed.
@@ -587,6 +587,7 @@ def yolo_bbox2segment(im_dir, save_dir=None, sam_model="sam_b.pt"):
         save_dir (str | Path): Path to save the generated labels, labels will be saved
             into `labels-segment` in the same directory level of `im_dir` if save_dir is None. Default: None.
         sam_model (str): Segmentation model to use for intermediate segmentation data; optional.
+        device (int | str): The specific device to run SAM models. Default: None.
 
     Notes:
         The input directory structure assumed for dataset:
@@ -621,7 +622,7 @@ def yolo_bbox2segment(im_dir, save_dir=None, sam_model="sam_b.pt"):
         boxes[:, [0, 2]] *= w
         boxes[:, [1, 3]] *= h
         im = cv2.imread(label["im_file"])
-        sam_results = sam_model(im, bboxes=xywh2xyxy(boxes), verbose=False, save=False)
+        sam_results = sam_model(im, bboxes=xywh2xyxy(boxes), verbose=False, save=False, device=device)
         label["segments"] = sam_results[0].masks.xyn
 
     save_dir = Path(save_dir) if save_dir else Path(im_dir).parent / "labels-segment"
@@ -632,11 +633,12 @@ def yolo_bbox2segment(im_dir, save_dir=None, sam_model="sam_b.pt"):
         txt_file = save_dir / lb_name
         cls = label["cls"]
         for i, s in enumerate(label["segments"]):
+            if len(s) == 0:
+                continue
             line = (int(cls[i]), *s.reshape(-1))
             texts.append(("%g " * len(line)).rstrip() % line)
-        if texts:
-            with open(txt_file, "a") as f:
-                f.writelines(text + "\n" for text in texts)
+        with open(txt_file, "a") as f:
+            f.writelines(text + "\n" for text in texts)
     LOGGER.info(f"Generated segment labels saved in {save_dir}")
 
 

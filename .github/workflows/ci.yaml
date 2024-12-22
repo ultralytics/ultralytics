@@ -39,7 +39,8 @@ on:
 
 jobs:
   HUB:
-    if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.hub == 'true'))
+    # if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.hub == 'true'))
+    if: github.repository == 'ultralytics/ultralytics' && 'workflow_dispatch' && github.event.inputs.hub == 'true'
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -51,16 +52,15 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-          cache: "pip" # caching pip dependencies
+      - uses: astral-sh/setup-uv@v4
       - name: Install requirements
         shell: bash # for Windows compatibility
         run: |
-          python -m pip install --upgrade pip wheel
-          pip install . --extra-index-url https://download.pytorch.org/whl/cpu
+          uv pip install --system . --extra-index-url https://download.pytorch.org/whl/cpu
       - name: Check environment
         run: |
           yolo checks
-          pip list
+          uv pip list
       - name: Test HUB training
         shell: python
         env:
@@ -102,20 +102,19 @@ jobs:
         python-version: ["3.11"]
         model: [yolo11n]
     steps:
+      - uses: astral-sh/setup-uv@v4
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-          cache: "pip" # caching pip dependencies
       - name: Install requirements
         shell: bash # for Windows compatibility
         run: |
-          python -m pip install --upgrade pip wheel
-          pip install -e ".[export]" "coverage[toml]" --extra-index-url https://download.pytorch.org/whl/cpu
+          uv pip install --system -e ".[export]" "coverage[toml]" --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-first-match
       - name: Check environment
         run: |
           yolo checks
-          pip list
+          uv pip list
       - name: Benchmark DetectionModel
         shell: bash
         run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}.pt' imgsz=160 verbose=0.309
@@ -142,11 +141,13 @@ jobs:
           coverage xml -o coverage-benchmarks.xml
       - name: Upload Coverage Reports to CodeCov
         if: github.repository == 'ultralytics/ultralytics'
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
           flags: Benchmarks
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      - name: Prune uv Cache
+        run: uv cache prune --ci
       - name: Benchmark Summary
         run: |
           cat benchmarks.log
@@ -171,25 +172,24 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-          cache: "pip" # caching pip dependencies
+      - uses: astral-sh/setup-uv@v4
       - name: Install requirements
         shell: bash # for Windows compatibility
         run: |
           # CoreML must be installed before export due to protobuf error from AutoInstall
-          python -m pip install --upgrade pip wheel
           slow=""
           torch=""
           if [ "${{ matrix.torch }}" == "1.8.0" ]; then
               torch="torch==1.8.0 torchvision==0.9.0"
           fi
           if [[ "${{ github.event_name }}" =~ ^(schedule|workflow_dispatch)$ ]]; then
-              slow="pycocotools mlflow ray[tune]"
+              slow="pycocotools mlflow"
           fi
-          pip install -e ".[export]" $torch $slow pytest-cov --extra-index-url https://download.pytorch.org/whl/cpu
+          uv pip install --system -e ".[export]" $torch $slow pytest-cov --extra-index-url https://download.pytorch.org/whl/cpu
       - name: Check environment
         run: |
           yolo checks
-          pip list
+          uv pip list
       - name: Pytest tests
         shell: bash # for Windows compatibility
         run: |
@@ -200,11 +200,13 @@ jobs:
           pytest $slow --cov=ultralytics/ --cov-report xml tests/
       - name: Upload Coverage Reports to CodeCov
         if: github.repository == 'ultralytics/ultralytics' # && matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
           flags: Tests
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      - name: Prune uv Cache
+        run: uv cache prune --ci
 
   GPU:
     if: github.repository == 'ultralytics/ultralytics' && (github.event_name != 'workflow_dispatch' || github.event.inputs.gpu == 'true')
@@ -212,12 +214,14 @@ jobs:
     runs-on: gpu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v4
       - name: Install requirements
-        run: pip install . pytest-cov
+        shell: bash # for Windows compatibility
+        run: uv pip install --system -e . pytest-cov
       - name: Check environment
         run: |
           yolo checks
-          pip list
+          uv pip list
       - name: Pytest tests
         run: |
           slow=""
@@ -226,7 +230,7 @@ jobs:
           fi
           pytest $slow --cov=ultralytics/ --cov-report xml tests/test_cuda.py
       - name: Upload Coverage Reports to CodeCov
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
           flags: GPU
         env:
@@ -246,7 +250,7 @@ jobs:
       - name: Install requirements
         run: |
           python -m pip install --upgrade pip wheel
-          pip install -e ".[export]" pytest mlflow pycocotools "ray[tune]"
+          pip install -e ".[export]" pytest mlflow pycocotools
       - name: Check environment
         run: |
           yolo checks
@@ -293,13 +297,8 @@ jobs:
           channels: conda-forge,defaults
           channel-priority: true
           activate-environment: anaconda-client-env
-      - name: Cleanup toolcache
-        run: |
-          echo "Free space before deletion:"
-          df -h /
-          rm -rf /opt/hostedtoolcache
-          echo "Free space after deletion:"
-          df -h /
+      - name: Cleanup disk space
+        uses: ultralytics/actions/cleanup-disk@main
       - name: Install Linux packages
         run: |
           # Fix cv2 ImportError: 'libEGL.so.1: cannot open shared object file: No such file or directory'
@@ -324,6 +323,7 @@ jobs:
           yolo train model=yolo11n.pt data=coco8.yaml epochs=1 imgsz=32
           yolo val model=yolo11n.pt data=coco8.yaml imgsz=32
           yolo export model=yolo11n.pt format=torchscript imgsz=160
+          yolo solutions
       - name: Test Python
         # Note this step must use the updated default bash environment, not a python environment
         run: |
@@ -346,14 +346,14 @@ jobs:
 
   Summary:
     runs-on: ubuntu-latest
-    needs: [HUB, Benchmarks, Tests, GPU, RaspberryPi, Conda] # Add job names that you want to check for failure
-    if: always() # This ensures the job runs even if previous jobs fail
+    needs: [HUB, Benchmarks, Tests, GPU, RaspberryPi, Conda]
+    if: always()
     steps:
       - name: Check for failure and notify
-        if: (needs.HUB.result == 'failure' || needs.Benchmarks.result == 'failure' || needs.Tests.result == 'failure' || needs.GPU.result == 'failure' || needs.RaspberryPi.result == 'failure' || needs.Conda.result == 'failure' ) && github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event_name == 'push')
-        uses: slackapi/slack-github-action@v1.27.0
+        if: (needs.HUB.result == 'failure' || needs.Benchmarks.result == 'failure' || needs.Tests.result == 'failure' || needs.GPU.result == 'failure' || needs.RaspberryPi.result == 'failure' || needs.Conda.result == 'failure' ) && github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event_name == 'push') && github.run_attempt == '1'
+        uses: slackapi/slack-github-action@v2.0.0
         with:
+          webhook-type: incoming-webhook
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL_YOLO }}
           payload: |
-            {"text": "<!channel> GitHub Actions error for ${{ github.workflow }} ❌\n\n\n*Repository:* https://github.com/${{ github.repository }}\n*Action:* https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\n*Author:* ${{ github.actor }}\n*Event:* ${{ github.event_name }}\n"}
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_YOLO }}
+            text: "<!channel> GitHub Actions error for ${{ github.workflow }} ❌\n\n\n*Repository:* https://github.com/${{ github.repository }}\n*Action:* https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\n*Author:* ${{ github.actor }}\n*Event:* ${{ github.event_name }}\n"

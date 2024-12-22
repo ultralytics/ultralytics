@@ -52,9 +52,9 @@ body:
   - type: textarea
     attributes:
       label: Environment
-      description: Many issues are often related to dependency versions and hardware. Please provide the output of `yolo checks` or `ultralytics.checks()` command to help us diagnose the problem.
+      description: Many issues are often related to dependency versions and hardware. Please provide the output of `yolo checks` (CLI) or `ultralytics.utils.checks.collect_system_info()` (Python) command to help us diagnose the problem.
       placeholder: |
-        Paste output of `yolo checks` or `ultralytics.checks()` command, i.e.:
+        Paste output of `yolo checks` (CLI) or `ultralytics.utils.checks.collect_system_info()` (Python) command, i.e.:
         ```
         Ultralytics 8.3.2 🚀 Python-3.11.2 torch-2.4.1 CPU (Apple M3)
         Setup complete ✅ (8 CPUs, 16.0 GB RAM, 266.5/460.4 GB disk)

@@ -1,6 +1,7 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 from ultralytics.utils import LOGGER, RANK, SETTINGS, TESTS_RUNNING, ops
+from ultralytics.utils.metrics import ClassifyMetrics, DetMetrics, OBBMetrics, PoseMetrics, SegmentMetrics
 
 try:
     assert not TESTS_RUNNING  # do not log pytest
@@ -16,8 +17,11 @@ try:
     COMET_SUPPORTED_TASKS = ["detect"]
 
     # Names of plots created by Ultralytics that are logged to Comet
-    EVALUATION_PLOT_NAMES = "F1_curve", "P_curve", "R_curve", "PR_curve", "confusion_matrix"
+    CONFUSION_MATRIX_PLOT_NAMES = "confusion_matrix", "confusion_matrix_normalized"
+    EVALUATION_PLOT_NAMES = "F1_curve", "P_curve", "R_curve", "PR_curve"
     LABEL_PLOT_NAMES = "labels", "labels_correlogram"
+    SEGMENT_METRICS_PLOT_PREFIX = "Box", "Mask"
+    POSE_METRICS_PLOT_PREFIX = "Box", "Pose"
 
     _comet_image_prediction_count = 0
 
@@ -86,7 +90,7 @@ def _create_experiment(args):
                 "max_image_predictions": _get_max_image_predictions_to_log(),
             }
         )
-        experiment.log_other("Created from", "yolov8")
+        experiment.log_other("Created from", "ultralytics")
 
     except Exception as e:
         LOGGER.warning(f"WARNING ⚠️ Comet installed but not initialized correctly, not logging this run. {e}")
@@ -274,11 +278,31 @@ def _log_image_predictions(experiment, validator, curr_step):
 
 def _log_plots(experiment, trainer):
     """Logs evaluation plots and label plots for the experiment."""
-    plot_filenames = [trainer.save_dir / f"{plots}.png" for plots in EVALUATION_PLOT_NAMES]
-    _log_images(experiment, plot_filenames, None)
+    plot_filenames = None
+    if isinstance(trainer.validator.metrics, SegmentMetrics) and trainer.validator.metrics.task == "segment":
+        plot_filenames = [
+            trainer.save_dir / f"{prefix}{plots}.png"
+            for plots in EVALUATION_PLOT_NAMES
+            for prefix in SEGMENT_METRICS_PLOT_PREFIX
+        ]
+    elif isinstance(trainer.validator.metrics, PoseMetrics):
+        plot_filenames = [
+            trainer.save_dir / f"{prefix}{plots}.png"
+            for plots in EVALUATION_PLOT_NAMES
+            for prefix in POSE_METRICS_PLOT_PREFIX
+        ]
+    elif isinstance(trainer.validator.metrics, (DetMetrics, OBBMetrics)):
+        plot_filenames = [trainer.save_dir / f"{plots}.png" for plots in EVALUATION_PLOT_NAMES]
 
-    label_plot_filenames = [trainer.save_dir / f"{labels}.jpg" for labels in LABEL_PLOT_NAMES]
-    _log_images(experiment, label_plot_filenames, None)
+    if plot_filenames is not None:
+        _log_images(experiment, plot_filenames, None)
+
+    confusion_matrix_filenames = [trainer.save_dir / f"{plots}.png" for plots in CONFUSION_MATRIX_PLOT_NAMES]
+    _log_images(experiment, confusion_matrix_filenames, None)
+
+    if not isinstance(trainer.validator.metrics, ClassifyMetrics):
+        label_plot_filenames = [trainer.save_dir / f"{labels}.jpg" for labels in LABEL_PLOT_NAMES]
+        _log_images(experiment, label_plot_filenames, None)
 
 
 def _log_model(experiment, trainer):
@@ -306,9 +330,6 @@ def on_train_epoch_end(trainer):
     curr_step = metadata["curr_step"]
 
     experiment.log_metrics(trainer.label_loss_items(trainer.tloss, prefix="train"), step=curr_step, epoch=curr_epoch)
-
-    if curr_epoch == 1:
-        _log_images(experiment, trainer.save_dir.glob("train_batch*.jpg"), curr_step)
 
 
 def on_fit_epoch_end(trainer):
@@ -356,6 +377,8 @@ def on_train_end(trainer):
 
     _log_confusion_matrix(experiment, trainer, curr_step, curr_epoch)
     _log_image_predictions(experiment, trainer.validator, curr_step)
+    _log_images(experiment, trainer.save_dir.glob("train_batch*.jpg"), curr_step)
+    _log_images(experiment, trainer.save_dir.glob("val_batch*.jpg"), curr_step)
     experiment.end()
 
     global _comet_image_prediction_count

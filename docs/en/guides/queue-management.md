@@ -35,45 +35,20 @@ Queue management using [Ultralytics YOLO11](https://github.com/ultralytics/ultra
 
 !!! example "Queue Management using YOLO11 Example"
 
-    === "Queue Manager"
+    === "CLI"
 
-        ```python
-        import cv2
+        ```bash
+        # Run a queue example
+        yolo solutions queue show=True
 
-        from ultralytics import solutions
+        # Pass a source video
+        yolo solutions queue source="path/to/video/file.mp4"
 
-        cap = cv2.VideoCapture("Path/to/video/file.mp4")
-
-        assert cap.isOpened(), "Error reading video file"
-        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-
-        video_writer = cv2.VideoWriter("queue_management.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
-
-        queue_region = [(20, 400), (1080, 404), (1080, 360), (20, 360)]
-
-        queue = solutions.QueueManager(
-            model="yolo11n.pt",
-            region=queue_region,
-        )
-
-        while cap.isOpened():
-            success, im0 = cap.read()
-
-            if success:
-                out = queue.process_queue(im0)
-                video_writer.write(im0)
-                if cv2.waitKey(1) & 0xFF == ord("q"):
-                    break
-                continue
-
-            print("Video frame is empty or video processing has been successfully completed.")
-            break
-
-        cap.release()
-        cv2.destroyAllWindows()
+        # Pass queue coordinates
+        yolo solutions queue region=[(20, 400), (1080, 400), (1080, 360), (20, 360)]
         ```
 
-    === "Queue Manager Specific Classes"
+    === "Python"
 
         ```python
         import cv2
@@ -85,15 +60,23 @@ Queue management using [Ultralytics YOLO11](https://github.com/ultralytics/ultra
         assert cap.isOpened(), "Error reading video file"
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 
+        # Video writer
         video_writer = cv2.VideoWriter("queue_management.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
-        queue_region = [(20, 400), (1080, 404), (1080, 360), (20, 360)]
+        # Define queue region points
+        queue_region = [(20, 400), (1080, 400), (1080, 360), (20, 360)]  # Define queue region points
+        # queue_region = [(20, 400), (1080, 400), (1080, 360), (20, 360), (20, 400)]  # Define queue polygon points
 
+        # Init Queue Manager
         queue = solutions.QueueManager(
-            model="yolo11n.pt",
-            classes=3,
+            show=True,  # Display the output
+            model="yolo11n.pt",  # Path to the YOLO11 model file
+            region=queue_region,  # Pass queue region points
+            # classes=[0, 2],  # If you want to count specific classes i.e person and car with COCO pretrained model.
+            # line_width=2,  # Adjust the line width for bounding boxes and text display
         )
 
+        # Process video
         while cap.isOpened():
             success, im0 = cap.read()
 
@@ -143,7 +126,7 @@ import cv2
 from ultralytics import solutions
 
 cap = cv2.VideoCapture("path/to/video.mp4")
-queue_region = [(20, 400), (1080, 404), (1080, 360), (20, 360)]
+queue_region = [(20, 400), (1080, 400), (1080, 360), (20, 360)]
 
 queue = solutions.QueueManager(
     model="yolo11n.pt",

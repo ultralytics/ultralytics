@@ -18,14 +18,10 @@ Computer vision is a subfield of [artificial intelligence](https://www.ultralyti
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Do [Computer Vision](https://www.ultralytics.com/glossary/computer-vision-cv) Projects | A Step-by-Step Guide
+  <strong>Watch:</strong> How to Do <a href="https://www.ultralytics.com/glossary/computer-vision-cv">Computer Vision</a> Projects | A Step-by-Step Guide
 </p>
 
 Computer vision techniques like [object detection](../tasks/detect.md), [image classification](../tasks/classify.md), and [instance segmentation](../tasks/segment.md) can be applied across various industries, from [autonomous driving](https://www.ultralytics.com/solutions/ai-in-self-driving) to [medical imaging](https://www.ultralytics.com/solutions/ai-in-healthcare) to gain valuable insights.
-
-<p align="center">
-  <img width="100%" src="https://media.licdn.com/dms/image/D4D12AQGf61lmNOm3xA/article-cover_image-shrink_720_1280/0/1656513646049?e=1722470400&v=beta&t=23Rqohhxfie38U5syPeL2XepV2QZe6_HSSC-4rAAvt4" alt="Overview of computer vision techniques">
-</p>
 
 Working on your own computer vision projects is a great way to understand and learn more about computer vision. However, a computer vision project can consist of many steps, and it might seem confusing at first. By the end of this guide, you'll be familiar with the steps involved in a computer vision project. We'll walk through everything from the beginning to the end of a project, explaining why each part is important. Let's get started and make your computer vision project a success!
 

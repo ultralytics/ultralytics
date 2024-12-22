@@ -4,7 +4,7 @@ description: Explore YOLOv5u, an advanced object detection model with optimized 
 keywords: YOLOv5, YOLOv5u, object detection, Ultralytics, anchor-free, pre-trained models, accuracy, speed, real-time detection
 ---
 
-# YOLOv5
+# Ultralytics YOLOv5
 
 ## Overview
 
@@ -91,6 +91,10 @@ This example provides simple YOLOv5 training and inference examples. For full do
         ```
 
 ## Citations and Acknowledgements
+
+!!! tip "Ultralytics YOLOv5 Publication"
+
+    Ultralytics has not published a formal research paper for YOLOv5 due to the rapidly evolving nature of the models. We focus on advancing the technology and making it easier to use, rather than producing static documentation. For the most up-to-date information on YOLO architecture, features, and usage, please refer to our [GitHub repository](https://github.com/ultralytics/ultralytics) and [documentation](https://docs.ultralytics.com/).
 
 If you use YOLOv5 or YOLOv5u in your research, please cite the Ultralytics YOLOv5 repository as follows:
 

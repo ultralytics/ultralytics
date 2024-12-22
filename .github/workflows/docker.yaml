@@ -84,11 +84,8 @@ jobs:
     outputs:
       new_release: ${{ steps.check_tag.outputs.new_release }}
     steps:
-      - name: Cleanup disk
-        # Free up to 30GB of disk space per https://github.com/ultralytics/ultralytics/pull/15848
-        uses: jlumbroso/free-disk-space@v1.3.1
-        with:
-          tool-cache: true
+      - name: Cleanup disk space
+        uses: ultralytics/actions/cleanup-disk@main
 
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -137,12 +134,12 @@ jobs:
 
       - name: Build Image
         if: github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true'
-        uses: nick-invision/retry@v3
+        uses: ultralytics/actions/retry@main
         with:
           timeout_minutes: 120
-          retry_wait_seconds: 60
-          max_attempts: 3 # retry twice
-          command: |
+          retry_delay_seconds: 60
+          retries: 2
+          run: |
             docker build \
             --platform ${{ matrix.platforms }} \
             -f docker/${{ matrix.dockerfile }} \
@@ -173,6 +170,15 @@ jobs:
             docker build -f docker/Dockerfile-runner -t $t .
             docker push $t
           fi
+          if [[ "${{ matrix.tags }}" == "latest-python" ]]; then
+            t=ultralytics/ultralytics:latest-jupyter
+            v=ultralytics/ultralytics:${{ steps.get_version.outputs.version }}-jupyter
+            docker build -f docker/Dockerfile-jupyter -t $t -t $v .
+            docker push $t
+            if [[ "${{ steps.check_tag.outputs.new_release }}" == "true" ]]; then
+              docker push $v
+            fi
+          fi
 
   trigger-actions:
     runs-on: ubuntu-latest
@@ -195,10 +201,10 @@ jobs:
     if: always()
     steps:
       - name: Check for failure and notify
-        if: needs.docker.result == 'failure' && github.repository == 'ultralytics/ultralytics' && github.event_name == 'push'
-        uses: slackapi/slack-github-action@v1.27.0
+        if: needs.docker.result == 'failure' && github.repository == 'ultralytics/ultralytics' && github.event_name == 'push' && github.run_attempt == '1'
+        uses: slackapi/slack-github-action@v2.0.0
         with:
+          webhook-type: incoming-webhook
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL_YOLO }}
           payload: |
-            {"text": "<!channel> GitHub Actions error for ${{ github.workflow }} ❌\n\n\n*Repository:* https://github.com/${{ github.repository }}\n*Action:* https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\n*Author:* ${{ github.actor }}\n*Event:* ${{ github.event_name }}\n"}
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_YOLO }}
+            text: "<!channel> GitHub Actions error for ${{ github.workflow }} ❌\n\n\n*Repository:* https://github.com/${{ github.repository }}\n*Action:* https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\n*Author:* ${{ github.actor }}\n*Event:* ${{ github.event_name }}\n"

@@ -27,12 +27,8 @@ class Heatmap(ObjectCounter):
     Examples:
         >>> from ultralytics.solutions import Heatmap
         >>> heatmap = Heatmap(model="yolov8n.pt", colormap=cv2.COLORMAP_JET)
-        >>> results = heatmap("path/to/video.mp4")
-        >>> for result in results:
-        ...     print(result.speed)  # Print inference speed
-        ...     cv2.imshow("Heatmap", result.plot())
-        ...     if cv2.waitKey(1) & 0xFF == ord("q"):
-        ...         break
+        >>> frame = cv2.imread("frame.jpg")
+        >>> processed_frame = heatmap.generate_heatmap(frame)
     """
 
     def __init__(self, **kwargs):
@@ -104,12 +100,12 @@ class Heatmap(ObjectCounter):
                 self.annotator.draw_region(reg_pts=self.region, color=(104, 0, 123), thickness=self.line_width * 2)
                 self.store_tracking_history(track_id, box)  # Store track history
                 self.store_classwise_counts(cls)  # store classwise counts in dict
-
+                current_centroid = ((box[0] + box[2]) / 2, (box[1] + box[3]) / 2)
                 # Store tracking previous position and perform object counting
                 prev_position = None
                 if len(self.track_history[track_id]) > 1:
                     prev_position = self.track_history[track_id][-2]
-                self.count_objects(self.track_line, box, track_id, prev_position, cls)  # Perform object counting
+                self.count_objects(current_centroid, track_id, prev_position, cls)  # Perform object counting
 
         if self.region is not None:
             self.display_counts(im0)  # Display the counts on the frame

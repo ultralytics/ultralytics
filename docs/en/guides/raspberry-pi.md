@@ -2,6 +2,7 @@
 comments: true
 description: Learn how to deploy Ultralytics YOLO11 on Raspberry Pi with our comprehensive guide. Get performance benchmarks, setup instructions, and best practices.
 keywords: Ultralytics, YOLO11, Raspberry Pi, setup, guide, benchmarks, computer vision, object detection, NCNN, Docker, camera modules
+benchmark_version: 8.3.39
 ---
 
 # Quick Start Guide: Raspberry Pi with Ultralytics YOLO11
@@ -142,9 +143,10 @@ YOLO11 benchmarks were run by the Ultralytics team on nine different model forma
 
 We have only included benchmarks for YOLO11n and YOLO11s models because other models sizes are too big to run on the Raspberry Pis and does not offer decent performance.
 
-<div style="text-align: center;">
-    <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/rpi-yolo11-benchmarks.avif" alt="YOLO11 benchmarks on RPi 5">
-</div>
+<figure style="text-align: center;">
+    <img width="800" src="https://github.com/ultralytics/assets/releases/download/v0.0.0/rpi-yolo11-benchmarks.avif" alt="YOLO11 benchmarks on RPi 5">
+    <figcaption style="font-style: italic; color: gray;">Benchmarked with Ultralytics {{ benchmark_version }}</figcaption>
+</figure>
 
 ### Detailed Comparison Table
 
@@ -156,29 +158,33 @@ The below table represents the benchmark results for two different models (YOLO1
 
         | Format        | Status | Size on disk (MB) | mAP50-95(B) | Inference time (ms/im) |
         |---------------|--------|-------------------|-------------|------------------------|
-        | PyTorch       | ✅      | 5.4               | 0.61        | 524.828                |
-        | TorchScript   | ✅      | 10.5              | 0.6082      | 666.874                |
-        | ONNX          | ✅      | 10.2              | 0.6082      | 181.818                |
-        | OpenVINO      | ✅      | 10.4              | 0.6082      | 530.224                |
-        | TF SavedModel | ✅      | 25.8              | 0.6082      | 405.964                |
-        | TF GraphDef   | ✅      | 10.3              | 0.6082      | 473.558                |
-        | TF Lite       | ✅      | 10.3              | 0.6082      | 324.158                |
-        | PaddlePaddle  | ✅      | 20.4              | 0.6082      | 644.312                |
-        | NCNN          | ✅      | 10.2              | 0.6106      | 93.938                 |
+        | PyTorch       | ✅      | 5.4               | 0.6100      | 405.238                |
+        | TorchScript   | ✅      | 10.5              | 0.6082      | 526.628                |
+        | ONNX          | ✅      | 10.2              | 0.6082      | 168.082                |
+        | OpenVINO      | ✅      | 10.4              | 0.6082      | 81.192                 |
+        | TF SavedModel | ✅      | 25.8              | 0.6082      | 377.968                |
+        | TF GraphDef   | ✅      | 10.3              | 0.6082      | 487.244                |
+        | TF Lite       | ✅      | 10.3              | 0.6082      | 317.398                |
+        | PaddlePaddle  | ✅      | 20.4              | 0.6082      | 561.892                |
+        | MNN           | ✅      | 10.1              | 0.6106      | 112.554                |
+        | NCNN          | ✅      | 10.2              | 0.6106      | 88.026                 |
 
     === "YOLO11s"
 
         | Format        | Status | Size on disk (MB) | mAP50-95(B) | Inference time (ms/im) |
         |---------------|--------|-------------------|-------------|------------------------|
-        | PyTorch       | ✅      | 18.4              | 0.7526      | 1226.426               |
-        | TorchScript   | ✅      | 36.5              | 0.7416      | 1507.95                |
-        | ONNX          | ✅      | 36.3              | 0.7416      | 415.24                 |
-        | OpenVINO      | ✅      | 36.4              | 0.7416      | 1167.102               |
-        | TF SavedModel | ✅      | 91.1              | 0.7416      | 776.14                 |
-        | TF GraphDef   | ✅      | 36.4              | 0.7416      | 1014.396               |
-        | TF Lite       | ✅      | 36.4              | 0.7416      | 845.934                |
-        | PaddlePaddle  | ✅      | 72.5              | 0.7416      | 1567.824               |
-        | NCNN          | ✅      | 36.2              | 0.7419      | 197.358                |
+        | PyTorch       | ✅      | 18.4              | 0.7526      | 1011.60                |
+        | TorchScript   | ✅      | 36.5              | 0.7416      | 1268.502               |
+        | ONNX          | ✅      | 36.3              | 0.7416      | 324.17                 |
+        | OpenVINO      | ✅      | 36.4              | 0.7416      | 179.324                |
+        | TF SavedModel | ✅      | 91.1              | 0.7416      | 714.382                |
+        | TF GraphDef   | ✅      | 36.4              | 0.7416      | 1019.83                |
+        | TF Lite       | ✅      | 36.4              | 0.7416      | 849.86                 |
+        | PaddlePaddle  | ✅      | 72.5              | 0.7416      | 1276.34                |
+        | MNN           | ✅      | 36.2              | 0.7409      | 273.032                |
+        | NCNN          | ✅      | 36.2              | 0.7419      | 194.858                |
+
+    Benchmarked with Ultralytics {{ benchmark_version }}
 
 ## Reproduce Our Results
 

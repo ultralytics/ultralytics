@@ -1193,6 +1193,7 @@ class SettingsManager(JSONDict):
             "neptune": True,  # Neptune integration
             "raytune": True,  # Ray Tune integration
             "tensorboard": True,  # TensorBoard logging
+            "tensorboard_logdir" : "",  # Custom TensorBoard log directory
             "wandb": True,  # Weights & Biases logging
             "vscode_msg": True,  # VSCode messaging
         }

@@ -321,25 +321,26 @@ Ultralytics allows users to easily modify their settings. Changes can be perform
 
 The table below provides an overview of the settings available for adjustment within Ultralytics. Each setting is outlined along with an example value, the data type, and a brief description.
 
-| Name               | Example Value         | Data Type | Description                                                                                                       |
-| ------------------ | --------------------- | --------- | ----------------------------------------------------------------------------------------------------------------- |
-| `settings_version` | `'0.0.4'`             | `str`     | Ultralytics _settings_ version (different from Ultralytics [pip] version)                                         |
-| `datasets_dir`     | `'/path/to/datasets'` | `str`     | The directory where the datasets are stored                                                                       |
-| `weights_dir`      | `'/path/to/weights'`  | `str`     | The directory where the model weights are stored                                                                  |
-| `runs_dir`         | `'/path/to/runs'`     | `str`     | The directory where the experiment runs are stored                                                                |
-| `uuid`             | `'a1b2c3d4'`          | `str`     | The unique identifier for the current settings                                                                    |
-| `sync`             | `True`                | `bool`    | Whether to sync analytics and crashes to HUB                                                                      |
-| `api_key`          | `''`                  | `str`     | Ultralytics HUB [API Key]                                                                                         |
-| `clearml`          | `True`                | `bool`    | Whether to use [ClearML] logging                                                                                  |
-| `comet`            | `True`                | `bool`    | Whether to use [Comet ML] for experiment tracking and visualization                                               |
-| `dvc`              | `True`                | `bool`    | Whether to use [DVC for experiment tracking] and version control                                                  |
-| `hub`              | `True`                | `bool`    | Whether to use [Ultralytics HUB] integration                                                                      |
-| `mlflow`           | `True`                | `bool`    | Whether to use [MLFlow] for experiment tracking                                                                   |
-| `neptune`          | `True`                | `bool`    | Whether to use [Neptune] for experiment tracking                                                                  |
-| `raytune`          | `True`                | `bool`    | Whether to use [Ray Tune] for [hyperparameter tuning](https://www.ultralytics.com/glossary/hyperparameter-tuning) |
-| `tensorboard`      | `True`                | `bool`    | Whether to use [TensorBoard] for visualization                                                                    |
-| `wandb`            | `True`                | `bool`    | Whether to use [Weights & Biases] logging                                                                         |
-| `vscode_msg`       | `True`                | `bool`    | When VS Code terminal detected, enables prompt to download [Ultralytics-Snippets] extension.                      |
+| Name                 | Example Value         | Data Type | Description                                                                                                       |
+| -------------------- | --------------------- | --------- | ----------------------------------------------------------------------------------------------------------------- |
+| `settings_version`   | `'0.0.4'`             | `str`     | Ultralytics _settings_ version (different from Ultralytics [pip] version)                                         |
+| `datasets_dir`       | `'/path/to/datasets'` | `str`     | The directory where the datasets are stored                                                                       |
+| `weights_dir`        | `'/path/to/weights'`  | `str`     | The directory where the model weights are stored                                                                  |
+| `runs_dir`           | `'/path/to/runs'`     | `str`     | The directory where the experiment runs are stored                                                                |
+| `uuid`               | `'a1b2c3d4'`          | `str`     | The unique identifier for the current settings                                                                    |
+| `sync`               | `True`                | `bool`    | Whether to sync analytics and crashes to HUB                                                                      |
+| `api_key`            | `''`                  | `str`     | Ultralytics HUB [API Key]                                                                                         |
+| `clearml`            | `True`                | `bool`    | Whether to use [ClearML] logging                                                                                  |
+| `comet`              | `True`                | `bool`    | Whether to use [Comet ML] for experiment tracking and visualization                                               |
+| `dvc`                | `True`                | `bool`    | Whether to use [DVC for experiment tracking] and version control                                                  |
+| `hub`                | `True`                | `bool`    | Whether to use [Ultralytics HUB] integration                                                                      |
+| `mlflow`             | `True`                | `bool`    | Whether to use [MLFlow] for experiment tracking                                                                   |
+| `neptune`            | `True`                | `bool`    | Whether to use [Neptune] for experiment tracking                                                                  |
+| `raytune`            | `True`                | `bool`    | Whether to use [Ray Tune] for [hyperparameter tuning](https://www.ultralytics.com/glossary/hyperparameter-tuning) |
+| `tensorboard`        | `True`                | `bool`    | Whether to use [TensorBoard] for visualization                                                                    |
+| `tensorboard_logdir` | `''`                  | `str`     | Custom [TensorBoard] log directory                                                                                |
+| `wandb`              | `True`                | `bool`    | Whether to use [Weights & Biases] logging                                                                         |
+| `vscode_msg`         | `True`                | `bool`    | When VS Code terminal detected, enables prompt to download [Ultralytics-Snippets] extension.                      |
 
 As you navigate through your projects or experiments, be sure to revisit these settings to ensure that they are optimally configured for your needs.
 

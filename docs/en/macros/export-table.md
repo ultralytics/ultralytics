@@ -1,5 +1,5 @@
 | Format                                            | `format` Argument | Model                                           | Metadata | Arguments                                                            |
-| ------------------------------------------------- | ----------------- | ----------------------------------------------- | -------- |----------------------------------------------------------------------|
+| ------------------------------------------------- | ----------------- | ----------------------------------------------- | -------- | -------------------------------------------------------------------- |
 | [PyTorch](https://pytorch.org/)                   | -                 | `{{ model_name or "yolo11n" }}.pt`              | ✅       | -                                                                    |
 | [TorchScript](../integrations/torchscript.md)     | `torchscript`     | `{{ model_name or "yolo11n" }}.torchscript`     | ✅       | `imgsz`, `optimize`, `batch`                                         |
 | [ONNX](../integrations/onnx.md)                   | `onnx`            | `{{ model_name or "yolo11n" }}.onnx`            | ✅       | `imgsz`, `half`, `dynamic`, `simplify`, `opset`, `batch`             |

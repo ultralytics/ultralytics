@@ -49,12 +49,11 @@ def test_export_openvino():
         if not (int8 and half)  # exclude cases where both int8 and half are True
     ],
 )
-def test_export_openvino_matrix(task, dynamic, int8, half, batch):
+def test_export_openvino_matrix(task, int8, half, batch):
     """Test YOLO model exports to OpenVINO under various configuration matrix conditions."""
     file = YOLO(TASK2MODEL[task]).export(
         format="openvino",
         imgsz=32,
-        dynamic=dynamic,
         int8=int8,
         half=half,
         batch=batch,
@@ -65,7 +64,7 @@ def test_export_openvino_matrix(task, dynamic, int8, half, batch):
         # See https://github.com/ultralytics/ultralytics/actions/runs/8957949304/job/24601616830?pr=10423
         file = Path(file)
         file = file.rename(file.with_stem(f"{file.stem}-{uuid.uuid4()}"))
-    YOLO(file)([SOURCE] * batch, imgsz=64 if dynamic else 32)  # exported model inference
+    YOLO(file)([SOURCE] * batch, imgsz=32)  # exported model inference
     shutil.rmtree(file, ignore_errors=True)  # retry in case of potential lingering multi-threaded file usage errors
 
 

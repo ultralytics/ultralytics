@@ -79,6 +79,7 @@ class SegmentationValidator(DetectionValidator):
             agnostic=self.args.single_cls or self.args.agnostic_nms,
             max_det=self.args.max_det,
             nc=self.nc,
+            soft_label=self.args.soft_label,
         )
         proto = preds[1][-1] if len(preds[1]) == 3 else preds[1]  # second output is len 3 if pt, but only 1 if exported
         return p, proto

@@ -129,10 +129,6 @@ Using Ultralytics YOLO11 for object counting in regions offers several advantage
 
 Explore deeper benefits in the [Advantages](#advantages-of-object-counting-in-regions) section.
 
-### Can the defined regions be adjusted during video playback?
-
-Yes, with Ultralytics YOLO11, regions can be interactively moved during video playback. Simply click and drag with the left mouse button to reposition the region. This feature enhances flexibility for dynamic environments. Learn more in the tip section for [movable regions](https://github.com/ultralytics/ultralytics/blob/33cdaa5782efb2bc2b5ede945771ba647882830d/examples/YOLOv8-Region-Counter/yolov8_region_counter.py#L39).
-
 ### What are some real-world applications of object counting in regions?
 
 Object counting with Ultralytics YOLO11 can be applied to numerous real-world scenarios:

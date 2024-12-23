@@ -48,7 +48,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.x"
-      - uses: astral-sh/setup-uv@v4
+      - uses: astral-sh/setup-uv@v5
       - name: Install Dependencies
         run: uv pip install --system ruff black tqdm mkdocs-material "mkdocstrings[python]" mkdocs-jupyter mkdocs-redirects mkdocs-ultralytics-plugin mkdocs-macros-plugin
       - name: Ruff fixes

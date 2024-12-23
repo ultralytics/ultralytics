@@ -35,6 +35,7 @@ fraction: 1.0 # (float) dataset fraction to train on (default is 1.0, all images
 profile: False # (bool) profile ONNX and TensorRT speeds during training for loggers
 freeze: None # (int | list, optional) freeze first n layers, or freeze list of layer indices during training
 multi_scale: False # (bool) Whether to use multiscale during training
+rgb_input: False # (bool) Whether the input passed to the model is already in RGB format
 # Segmentation
 overlap_mask: True # (bool) merge object masks into a single image mask during training (segment train only)
 mask_ratio: 4 # (int) mask downsample ratio (segment train only)

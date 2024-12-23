@@ -127,6 +127,10 @@ keywords: Ultralytics, torch utils, model optimization, device selection, infere
 
 <br><br><hr><br>
 
+## ::: ultralytics.utils.torch_utils.cuda_memory_usage
+
+<br><br><hr><br>
+
 ## ::: ultralytics.utils.torch_utils.profile
 
 <br><br>

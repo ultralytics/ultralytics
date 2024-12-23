@@ -3,7 +3,7 @@
 | [PyTorch](https://pytorch.org/)                   | -                 | `{{ model_name or "yolo11n" }}.pt`              | ✅       | -                                                                    |
 | [TorchScript](../integrations/torchscript.md)     | `torchscript`     | `{{ model_name or "yolo11n" }}.torchscript`     | ✅       | `imgsz`, `optimize`, `batch`                                         |
 | [ONNX](../integrations/onnx.md)                   | `onnx`            | `{{ model_name or "yolo11n" }}.onnx`            | ✅       | `imgsz`, `half`, `dynamic`, `simplify`, `opset`, `batch`             |
-| [OpenVINO](../integrations/openvino.md)           | `openvino`        | `{{ model_name or "yolo11n" }}_openvino_model/` | ✅       | `imgsz`, `half`, `int8`, `batch`                                     |
+| [OpenVINO](../integrations/openvino.md)           | `openvino`        | `{{ model_name or "yolo11n" }}_openvino_model/` | ✅       | `imgsz`, `half`, `dynamic`, `int8`, `batch`                          |
 | [TensorRT](../integrations/tensorrt.md)           | `engine`          | `{{ model_name or "yolo11n" }}.engine`          | ✅       | `imgsz`, `half`, `dynamic`, `simplify`, `workspace`, `int8`, `batch` |
 | [CoreML](../integrations/coreml.md)               | `coreml`          | `{{ model_name or "yolo11n" }}.mlpackage`       | ✅       | `imgsz`, `half`, `int8`, `nms`, `batch`                              |
 | [TF SavedModel](../integrations/tf-savedmodel.md) | `saved_model`     | `{{ model_name or "yolo11n" }}_saved_model/`    | ✅       | `imgsz`, `keras`, `int8`, `batch`                                    |

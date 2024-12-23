@@ -46,8 +46,10 @@ class SegmentationValidator(DetectionValidator):
         """Initialize metrics and select mask processing function based on save_json flag."""
         super().init_metrics(model)
         self.plot_masks = []
+
         if self.args.save_json:
             check_requirements("pycocotools>=2.0.6")
+
         # more accurate vs faster
         self.process = ops.process_mask_native if self.args.save_json or self.args.save_txt else ops.process_mask
         self.stats = dict(tp_m=[], tp=[], conf=[], pred_cls=[], target_cls=[], target_img=[])
@@ -262,7 +264,10 @@ class SegmentationValidator(DetectionValidator):
         Examples:
              >>> result = {"image_id": 42, "category_id": 18, "bbox": [258.15, 41.29, 348.26, 243.78], "score": 0.236}
         """
-        from pycocotools.mask import encode  # noqa
+        if check_requirements("faster-coco-eval>=1.6.3", install=False):
+            from faster_coco_eval.core.mask import encode
+        elif check_requirements("pycocotools>=2.0.6"):
+            from pycocotools.mask import encode
 
         def single_encode(x):
             """Encode predicted masks as RLE and append results to jdict."""
@@ -291,19 +296,34 @@ class SegmentationValidator(DetectionValidator):
     def eval_json(self, stats):
         """Return COCO-style object detection evaluation metrics."""
         if self.args.save_json and self.is_coco and len(self.jdict):
+            if check_requirements("faster-coco-eval>=1.6.3", install=False):
+                pkg = "faster-coco-eval"
+            elif check_requirements("pycocotools>=2.0.6"):
+                pkg = "pycocotools"
+
             anno_json = self.data["path"] / "annotations/instances_val2017.json"  # annotations
             pred_json = self.save_dir / "predictions.json"  # predictions
-            LOGGER.info(f"\nEvaluating pycocotools mAP using {pred_json} and {anno_json}...")
             try:  # https://github.com/cocodataset/cocoapi/blob/master/PythonAPI/pycocoEvalDemo.ipynb
-                check_requirements("pycocotools>=2.0.6")
-                from pycocotools.coco import COCO  # noqa
-                from pycocotools.cocoeval import COCOeval  # noqa
+                LOGGER.info(f"\nEvaluating {pkg} mAP using {pred_json} and {anno_json}...")
+
+                if pkg == "faster-coco-eval":
+                    from faster_coco_eval import COCO
+                    from faster_coco_eval import COCOeval_faster as COCOeval
+
+                    extra_kwargs = dict(print_function=print)
+                else:
+                    from pycocotools.coco import COCO  # noqa
+                    from pycocotools.cocoeval import COCOeval  # noqa
+
+                    extra_kwargs = dict()
 
                 for x in anno_json, pred_json:
                     assert x.is_file(), f"{x} file not found"
                 anno = COCO(str(anno_json))  # init annotations api
                 pred = anno.loadRes(str(pred_json))  # init predictions api (must pass string, not Path)
-                for i, eval in enumerate([COCOeval(anno, pred, "bbox"), COCOeval(anno, pred, "segm")]):
+                for i, eval in enumerate(
+                    [COCOeval(anno, pred, "bbox", **extra_kwargs), COCOeval(anno, pred, "segm", **extra_kwargs)]
+                ):
                     if self.is_coco:
                         eval.params.imgIds = [int(Path(x).stem) for x in self.dataloader.dataset.im_files]  # im to eval
                     eval.evaluate()
@@ -314,5 +334,5 @@ class SegmentationValidator(DetectionValidator):
                         :2
                     ]  # update mAP50-95 and mAP50
             except Exception as e:
-                LOGGER.warning(f"pycocotools unable to run: {e}")
+                LOGGER.warning(f"{pkg} unable to run: {e}")
         return stats

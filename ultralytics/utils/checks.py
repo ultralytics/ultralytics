@@ -398,7 +398,7 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
         """Attempt package installation with uv if available, falling back to pip."""
         if use_uv:
             # cmd = f"uv pip install --system --no-cache-dir {packages} {commands} --index-strategy=unsafe-best-match --prerelease=allow"
-            cmd = f"uv pip install --system --no-cache-dir {packages} {commands} --prerelease=allow"
+            cmd = f"uv pip install --system --no-cache-dir {packages} {commands} --index-strategy=unsafe-first-match --prerelease=allow"
         else:
             cmd = f"pip install --no-cache-dir {packages} {commands}"
         return subprocess.check_output(cmd, shell=True).decode()

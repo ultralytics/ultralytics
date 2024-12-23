@@ -197,7 +197,7 @@ jobs:
           if [[ "${{ github.event_name }}" =~ ^(schedule|workflow_dispatch)$ ]]; then
               slow="--slow"
           fi
-          pytest $slow --cov=ultralytics/ --cov-report xml tests/
+          uv run --python-preference system --refresh pytest $slow --cov=ultralytics/ --cov-report xml tests/
       - name: Upload Coverage Reports to CodeCov
         if: github.repository == 'ultralytics/ultralytics' # && matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
         uses: codecov/codecov-action@v5
@@ -228,13 +228,15 @@ jobs:
           if [[ "${{ github.event_name }}" =~ ^(schedule|workflow_dispatch)$ ]]; then
             slow="--slow"
           fi
-          pytest $slow --cov=ultralytics/ --cov-report xml tests/test_cuda.py
+          uv run --python-preference system --refresh pytest $slow --cov=ultralytics/ --cov-report xml tests/test_cuda.py
       - name: Upload Coverage Reports to CodeCov
         uses: codecov/codecov-action@v5
         with:
           flags: GPU
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      - name: Prune uv Cache
+        run: uv cache prune --ci
 
   RaspberryPi:
     if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event.inputs.raspberrypi == 'true')

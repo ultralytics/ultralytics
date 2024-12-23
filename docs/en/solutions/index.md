@@ -49,6 +49,14 @@ Here's our curated list of Ultralytics solutions that can be used to create awes
         yolo solutions source="path/to/video/file.mp4"  # specify video file path
         ```
 
+## Arguments
+
+!!! tip "Predict args"
+
+    Solutions also support some of the arguments from `predict`, including parameters such as `conf`, `line_width`, `tracker`, `model`, `show`, and `classes`.
+
+{% include "macros/solutions-args.md" %}
+
 ## Contribute to Our Solutions
 
 We welcome contributions from the community! If you've mastered a particular aspect of Ultralytics YOLO that's not yet covered in our solutions, we encourage you to share your expertise. Writing a guide is a great way to give back to the community and help us make our documentation more comprehensive and user-friendly.

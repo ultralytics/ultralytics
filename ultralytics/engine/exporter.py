@@ -640,7 +640,7 @@ class Exporter:
 
     @try_export
     def export_ncnn(self, prefix=colorstr("NCNN:")):
-        """YOLO NCNN export using PNNX https://github.com/pnnx/pnnx."""
+        """YOLOv8 NCNN export using PNNX https://github.com/pnnx/pnnx."""
         check_requirements("ncnn")
         import ncnn  # noqa
 

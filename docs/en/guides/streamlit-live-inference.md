@@ -45,7 +45,7 @@ Streamlit makes it simple to build and deploy interactive web applications. Comb
         ```bash
         yolo solutions inference
 
-        yolo solutions inference model="path/to/model/file.pt"
+        yolo solutions inference model="path/to/model.pt"
         ```
 
     === "Python"

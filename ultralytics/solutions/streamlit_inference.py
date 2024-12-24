@@ -2,6 +2,7 @@
 
 import io
 import time
+from typing import Any
 
 import cv2
 
@@ -37,16 +38,16 @@ class Inference:
         inference: Performs real-time object detection inference.
 
     Examples:
-        >>> inf = solutions.Inference(model="path/to/model/file.pt")  # Model is not necessary argument.
+        >>> inf = solutions.Inference(model="path/to/model.pt")  # Model is not necessary argument.
         >>> inf.inference()
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any):
         """
         Initializes the Inference class, checking Streamlit requirements and setting up the model path.
 
         Args:
-            **kwargs (Dict): Additional keyword arguments for model configuration.
+            **kwargs (Any): Additional keyword arguments for model configuration.
         """
         check_requirements("streamlit>=1.29.0")  # scope imports for faster ultralytics package load speeds
         import streamlit as st

@@ -158,14 +158,17 @@ Using **callbacks during validation** in Ultralytics YOLO can enhance model eval
 For instance, you might want to plot all the validation batches, instead of just the first 3. Here's how you can do that:
 
 ```python
-from ultralytics import YOLO
 import inspect
 
+from ultralytics import YOLO
+
+
 def plot_samples(validator):
-     frame = inspect.currentframe().f_back.f_back
-     v = frame.f_locals
-     validator.plot_val_samples(v["batch"], v["batch_i"])
-     validator.plot_predictions(v["batch"], v["preds"], v["batch_i"])
+    frame = inspect.currentframe().f_back.f_back
+    v = frame.f_locals
+    validator.plot_val_samples(v["batch"], v["batch_i"])
+    validator.plot_predictions(v["batch"], v["preds"], v["batch_i"])
+
 
 model = YOLO("yolo11n.pt")
 model.add_callback("on_val_batch_end", plot_samples)
@@ -186,6 +189,8 @@ from ultralytics import YOLO
 model = YOLO("yolo11n.pt")
 
 class_id = 2
+
+
 def save_on_object(predictor):
     r = predictor.results[0]
     if class_id in r.boxes.cls:
@@ -193,10 +198,16 @@ def save_on_object(predictor):
     else:
         predictor.args.save = False
 
-model.add_callback("on_predict_postprocess_end", save_on_object)
-results = model("ped.mp4", stream=True, save=True,)
 
-for results in results: pass
+model.add_callback("on_predict_postprocess_end", save_on_object)
+results = model(
+    "ped.mp4",
+    stream=True,
+    save=True,
+)
+
+for results in results:
+    pass
 ```
 
 For more comprehensive usage, refer to the [Prediction Guide](../modes/predict.md) which includes detailed instructions and additional customization options.

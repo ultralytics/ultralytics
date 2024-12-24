@@ -130,6 +130,22 @@ You can download the model [here](https://github.com/ChaoningZhang/MobileSAM/blo
 
 We have implemented `MobileSAM` and `SAM` using the same API. For more usage information, please see the [SAM page](sam.md).
 
+### Create Segmentation Datasets with a Detection Model
+
+To auto-annotate your dataset with the Ultralytics framework, use the `auto_annotate` function as shown below:
+
+!!! example
+
+    === "Python"
+
+        ```python
+        from ultralytics.data.annotator import auto_annotate
+
+        auto_annotate(data="path/to/images", det_model="yolo11x.pt", sam_model="mobile_sam.pt")
+        ```
+
+{% include "macros/sam-auto-annotate.md" %}
+
 ## Citations and Acknowledgements
 
 If you find MobileSAM useful in your research or development work, please consider citing our paper:

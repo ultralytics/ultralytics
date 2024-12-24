@@ -38,7 +38,7 @@ class Inference:
         inference: Performs real-time object detection inference.
 
     Examples:
-        >>> inf = solutions.Inference(model="path/to/model/file.pt")  # Model is not necessary argument.
+        >>> inf = solutions.Inference(model="path/to/model.pt")  # Model is not necessary argument.
         >>> inf.inference()
     """
 

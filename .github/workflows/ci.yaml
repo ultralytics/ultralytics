@@ -237,7 +237,7 @@ jobs:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   RaspberryPi:
-    if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event.inputs.raspberrypi == 'true')
+    # if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event.inputs.raspberrypi == 'true')
     timeout-minutes: 120
     runs-on: raspberry-pi
     steps:
@@ -247,14 +247,14 @@ jobs:
           python3.11 -m venv env
           source env/bin/activate
           echo PATH=$PATH >> $GITHUB_ENV
+      - uses: astral-sh/setup-uv@v4
       - name: Install requirements
         run: |
-          python -m pip install --upgrade pip wheel
-          pip install -e ".[export]" pytest mlflow pycocotools
+          uv pip install -e ".[export]" pytest mlflow pycocotools --index-strategy unsafe-first-match
       - name: Check environment
         run: |
           yolo checks
-          pip list
+          uv pip list
       - name: Pytest tests
         run: pytest --slow tests/
       - name: Benchmark ClassificationModel

@@ -201,9 +201,9 @@ def save_on_object(predictor):
 
 model.add_callback("on_predict_postprocess_end", save_on_object)
 results = model(
-    "ped.mp4",
+    "pedestrians.mp4",
     stream=True,
-    save=True,
+    save=True
 )
 
 for results in results:

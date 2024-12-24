@@ -750,17 +750,17 @@ class C2f2(nn.Module):
 class C3k2(C2f2):
     """Faster Implementation of CSP Bottleneck with 2 convolutions."""
 
-    def __init__(self, c1, c2, n=1, c3k=False, e=0.5, g=1, shortcut=True):
+    def __init__(self, c1, c2, n=1, c3k=False, e=0.5, g=1, shortcut=True, chattn=False):
         """Initializes the C3k2 module, a faster CSP Bottleneck with 2 convolutions and optional C3k blocks."""
         super().__init__(c1, c2, n, shortcut, g, e)
         self.m = nn.ModuleList(
             C3k(self.c, self.c, 2, shortcut, g) if c3k else Bottleneck(self.c, self.c, shortcut, g) for _ in range(n)
         )
-        # self.chattn = ChannelAttention(c1) if chattn else None
+        self.chattn = ChannelAttention(c1) if chattn else None
 
     def forward(self, x):
-        # if self.chattn is not None:
-        #     x = self.chattn(x)
+        if self.chattn is not None:
+            x = self.chattn(x)
         return super().forward(x)
 
 

@@ -8,13 +8,14 @@ import torch
 from ultralytics.utils import ASSETS, yaml_load
 from ultralytics.utils.checks import check_requirements, check_yaml
 
+
 class RTDETR:
     """RTDETR object detection model class for handling inference and visualization."""
-    
+
     def __init__(self, model_path, img_path, conf_thres=0.5, iou_thres=0.5):
         """
         Initializes the RTDETR object with the specified parameters.
-        
+
         Args:
             model_path: Path to the ONNX model file.
             img_path: Path to the input image.
@@ -71,11 +72,17 @@ class RTDETR:
 
         # Draw a filled rectangle as the background for the label text
         cv2.rectangle(
-            self.img, (int(label_x), int(label_y - label_height)), (int(label_x + label_width), int(label_y + label_height)), color, cv2.FILLED
+            self.img,
+            (int(label_x), int(label_y - label_height)),
+            (int(label_x + label_width), int(label_y + label_height)),
+            color,
+            cv2.FILLED,
         )
 
         # Draw the label text on the image
-        cv2.putText(self.img, label, (int(label_x), int(label_y)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
+        cv2.putText(
+            self.img, label, (int(label_x), int(label_y)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA
+        )
 
     def preprocess(self):
         """
@@ -110,8 +117,7 @@ class RTDETR:
 
     def bbox_cxcywh_to_xyxy(self, boxes):
         """
-        Converts bounding boxes from (center x, center y, width, height) format
-        to (x_min, y_min, x_max, y_max) format.
+        Converts bounding boxes from (center x, center y, width, height) format to (x_min, y_min, x_max, y_max) format.
 
         Args:
             boxes (numpy.ndarray): An array of shape (N, 4) where each row represents
@@ -176,7 +182,7 @@ class RTDETR:
     def main(self):
         """
         Executes the detection on the input image using the ONNX model.
-        
+
         Returns:
             np.array: Output image with annotations.
         """
@@ -188,6 +194,7 @@ class RTDETR:
 
         # Process and return the model output
         return self.postprocess(model_output)
+
 
 if __name__ == "__main__":
     # Set up argument parser for command-line arguments

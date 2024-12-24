@@ -10,7 +10,7 @@ from .queue_management import QueueManager
 from .region_counter import RegionCounter
 from .security_alarm import SecurityAlarm
 from .speed_estimation import SpeedEstimator
-from .streamlit_inference import inference
+from .streamlit_inference import Inference
 from .trackzone import TrackZone
 from .dwell_time_analyzer import DwellTimeAnalyzer
 
@@ -24,7 +24,7 @@ __all__ = (
     "QueueManager",
     "SpeedEstimator",
     "Analytics",
-    "inference",
+    "Inference",
     "RegionCounter",
     "TrackZone",
     "SecurityAlarm",

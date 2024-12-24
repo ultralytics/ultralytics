@@ -462,6 +462,39 @@ class Model(nn.Module):
         self._check_is_pytorch_model()
         self.model.fuse()
 
+    def metadata(self) -> Dict:
+        """
+        Returns the metadata of the model.
+
+        This method returns the metadata of the model, including information about the model's task, configuration,
+        and other relevant details. The metadata is returned as a dictionary, which can be printed or used for
+        further analysis.
+
+        Returns:
+            (Dict): A dictionary containing the model's metadata.
+
+        Examples:
+            >>> model = YOLO("yolo11n.pt")
+            >>> metadata = model.metadata()
+            >>> print(metadata)
+        """
+        self._check_is_pytorch_model()
+        import pprint
+
+        metadata = {
+            "model": self.model_name,
+            "task": self.task,
+            "version": self.ckpt.get("version", None),
+            "license": self.ckpt.get("license", None),
+            "epochs": len(self.ckpt.get("train_results", None)["epoch"])
+            if self.ckpt.get("train_results", None)
+            else None,
+            "train_metrics": self.ckpt.get("train_metrics", None),
+            "train_args": self.ckpt.get("train_args", None),
+        }
+        pprint.pprint(metadata)
+        return metadata
+
     def embed(
         self,
         source: Union[str, Path, int, list, tuple, np.ndarray, torch.Tensor] = None,

@@ -2,7 +2,7 @@
 
 import inspect
 from pathlib import Path
-from typing import Dict, List, Union, Any
+from typing import Any, Dict, List, Union
 
 import numpy as np
 import torch

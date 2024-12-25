@@ -134,6 +134,7 @@ Here's an example of how to freeze BatchNorm statistics when freezing layers wit
 ```python
 from ultralytics import YOLO
 
+
 # Add a callback to put the frozen layers in eval mode to prevent BN values from changing
 def put_in_eval_mode(trainer):
     n_layers = trainer.args.freeze
@@ -141,9 +142,10 @@ def put_in_eval_mode(trainer):
         return
 
     for i, (name, module) in enumerate(trainer.model.named_modules()):
-        if name.endswith("bn") and int(name.split('.')[1]) < n_layers:
+        if name.endswith("bn") and int(name.split(".")[1]) < n_layers:
             module.eval()
             module.track_running_stats = False
+
 
 model = YOLO("yolo11n.pt")
 model.add_callback("on_train_epoch_start", put_in_eval_mode)

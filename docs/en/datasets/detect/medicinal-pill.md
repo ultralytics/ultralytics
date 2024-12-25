@@ -91,6 +91,24 @@ The medicinal pill dataset features labeled images showcasing the diversity of p
 
 The dataset is available under the [AGPL-3.0 License](https://github.com/ultralytics/ultralytics/blob/main/LICENSE).
 
+If you use the Medicinal-pill dataset in your research or development work, please cite it using the mentioned details:
+
+!!! quote ""
+
+    === "BibTeX"
+
+        ```bibtex
+        @dataset{Jocher_Ultralytics_Datasets_2024,
+            author = {Jocher, Glenn and Rizwan, Muhammad},
+            license = {AGPL-3.0},
+            month = {Dec},
+            title = {Ultralytics Datasets: Medicinal-pill Detection Dataset},
+            url = {https://docs.ultralytics.com/datasets/detect/medicinal-pill/},
+            version = {1.0.0},
+            year = {2024}
+            }
+        ```
+
 ## FAQ
 
 ### What is the structure of the medicinal pill dataset?

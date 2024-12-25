@@ -685,7 +685,6 @@ def handle_yolo_solutions(args: List[str]) -> None:
         return
 
     if s_n == "inference":
-        print(overrides.pop("model", "yolov8n.pt"))
         checks.check_requirements("streamlit>=1.29.0")
         LOGGER.info("💡 Loading Ultralytics live inference app...")
         subprocess.run(
@@ -695,7 +694,7 @@ def handle_yolo_solutions(args: List[str]) -> None:
                 str(ROOT / "solutions/streamlit_inference.py"),
                 "--server.headless",
                 "true",
-                overrides.pop("model", "yolov8n.pt"),
+                overrides.pop("model", "yolo11n.pt"),
             ]
         )
     else:

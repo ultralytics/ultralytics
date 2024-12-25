@@ -804,7 +804,7 @@ class Mosaic(BaseMixTransform):
         Examples:
             >>> labels = {"img": np.zeros((100, 100, 3)), "instances": Instances(...)}
             >>> padw, padh = 50, 50
-            >>> updated_labels = Mosaic._update_labels(padw, padh)
+            >>> updated_labels = Mosaic._update_labels(labels, padw, padh)
         """
         nh, nw = labels["img"].shape[:2]
         labels["instances"].convert_bbox(format="xyxy")

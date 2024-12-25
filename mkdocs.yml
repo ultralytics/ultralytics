@@ -280,6 +280,7 @@ nav:
           - Brain-tumor: datasets/detect/brain-tumor.md
           - African-wildlife: datasets/detect/african-wildlife.md
           - Signature: datasets/detect/signature.md
+          - Medicinal-pill: datasets/detect/medicinal-pill.md
       - Segmentation:
           - datasets/segment/index.md
           - COCO: datasets/segment/coco.md

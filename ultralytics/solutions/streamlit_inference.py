@@ -150,7 +150,7 @@ class Inference:
             while cap.isOpened():
                 success, frame = cap.read()
                 if not success:
-                    st.warning("Failed to read frame from webcam. Please make sure the webcam is connected properly.")
+                    self.st.warning("Failed to read frame from webcam. Please verify the webcam is connected properly.")
                     break
 
                 prev_time = time.time()  # Store initial time for FPS calculation
@@ -181,12 +181,8 @@ class Inference:
 if __name__ == "__main__":
     import sys  # Import the sys module for accessing command-line arguments
 
-    model = None  # Initialize the model variable as None
-
     # Check if a model name is provided as a command-line argument
     args = len(sys.argv)
-    if args > 1:
-        model = args  # Assign the first argument as the model name
-
+    model = args if args > 1 else None
     # Create an instance of the Inference class and run inference
     Inference(model=model).inference()

@@ -694,7 +694,7 @@ def handle_yolo_solutions(args: List[str]) -> None:
                 str(ROOT / "solutions/streamlit_inference.py"),
                 "--server.headless",
                 "true",
-                overrides["model"],
+                overrides.pop("model", "yolo11n.pt"),
             ]
         )
     else:

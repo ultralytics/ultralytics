@@ -28,7 +28,7 @@ class SAHIInference:
         )
 
     def inference(
-        self, weights="yolo11n.pt", source="test.mp4", view_img=False, save_img=False, exist_ok=False, track=False
+        self, weights="yolo11n.pt", source="test.mp4", view_img=False, save_img=False, exist_ok=False,
     ):
         """
         Run object detection on a video using YOLO11 and SAHI.
@@ -39,7 +39,6 @@ class SAHIInference:
             view_img (bool): Show results.
             save_img (bool): Save results.
             exist_ok (bool): Overwrite existing files.
-            track (bool): Enable object tracking with SAHI
         """
         # Video setup
         cap = cv2.VideoCapture(source)

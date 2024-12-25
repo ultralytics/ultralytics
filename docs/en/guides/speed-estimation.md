@@ -86,10 +86,10 @@ keywords: Ultralytics YOLO11, speed estimation, object tracking, computer vision
                 break
             out = speed.estimate_speed(im0)
             video_writer.write(im0)
-        
+
         cap.release()
         video_writer.release()
-        cv2.destroyAllWindows()        
+        cv2.destroyAllWindows()
         ```
 
 ???+ warning "Speed is Estimate"

@@ -1,6 +1,7 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import io
+import time
 from typing import Any
 
 import cv2
@@ -51,19 +52,11 @@ class Inference:
         check_requirements("streamlit>=1.29.0")  # scope imports for faster ultralytics package load speeds
         import streamlit as st
 
-        self.st = st    # Store streamlit class object as class variable
-        self.source = None  # Initialize source for storing video/webcam details
-        self.enable_trk = False  # Initialize boolean flag to enable tracking
-        self.conf = 0.25    # Store confidence threshold
-        self.iou = 0.45     # Store iou (non-maximum suppression) threshold
-        self.org_frame = None   # Variable to store original frame for display
-        self.ann_frame = None   # Variable to store annotated frame for display
-        self.vid_file_name = None   # Variable for video file name
-        self.selected_ind = []      # List for selection of class for detection or tracking
-        self.model = None   # Variable to store model data
+        self.st = st
 
         self.temp_dict = {"model": None}  # Temporary dict to store the model path
         self.temp_dict.update(kwargs)
+
         self.model_path = None  # Store model file name with path
         if self.temp_dict["model"] is not None:
             self.model_path = self.temp_dict["model"]
@@ -101,12 +94,13 @@ class Inference:
             ("webcam", "video"),
         )  # Add source selection dropdown
         self.enable_trk = self.st.sidebar.radio("Enable Tracking", ("Yes", "No"))  # Enable object tracking
-        self.conf = float(self.st.sidebar.slider("Confidence Threshold", 0.0, 1.0, self.conf, 0.01))  # Slider for confidence
-        self.iou = float(self.st.sidebar.slider("IoU Threshold", 0.0, 1.0, self.iou, 0.01))  # Slider for NMS threshold
+        self.conf = float(self.st.sidebar.slider("Confidence Threshold", 0.0, 1.0, 0.25, 0.01))  # Slider for confidence
+        self.iou = float(self.st.sidebar.slider("IoU Threshold", 0.0, 1.0, 0.45, 0.01))  # Slider for NMS threshold
 
         col1, col2 = self.st.columns(2)
         self.org_frame = col1.empty()
         self.ann_frame = col2.empty()
+        self.fps_display = self.st.sidebar.empty()  # Placeholder for FPS display
 
     def source_upload(self):
         """Handles video file uploads through the Streamlit interface."""
@@ -159,6 +153,8 @@ class Inference:
                     self.st.warning("Failed to read frame from webcam. Please verify the webcam is connected properly.")
                     break
 
+                prev_time = time.time()  # Store initial time for FPS calculation
+
                 # Store model predictions
                 if self.enable_trk == "Yes":
                     results = self.model.track(
@@ -168,10 +164,13 @@ class Inference:
                     results = self.model(frame, conf=self.conf, iou=self.iou, classes=self.selected_ind)
                 annotated_frame = results[0].plot()  # Add annotations on frame
 
+                fps = 1 / (time.time() - prev_time)  # Calculate model FPS
+
                 if stop_button:
                     cap.release()  # Release the capture
                     self.st.stop()  # Stop streamlit app
 
+                self.fps_display.metric("FPS", f"{fps:.2f}")  # Display FPS in sidebar
                 self.org_frame.image(frame, channels="BGR")  # Display original frame
                 self.ann_frame.image(annotated_frame, channels="BGR")  # Display processed frame
 
@@ -182,12 +181,8 @@ class Inference:
 if __name__ == "__main__":
     import sys  # Import the sys module for accessing command-line arguments
 
-    model = None  # Initialize the model variable as None
-
     # Check if a model name is provided as a command-line argument
     args = len(sys.argv)
-    if args > 1:
-        model = sys.argv[1]  # Assign the first argument as the model name
-
+    model = args if args > 1 else None
     # Create an instance of the Inference class and run inference
     Inference(model=model).inference()

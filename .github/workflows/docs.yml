@@ -43,7 +43,6 @@ jobs:
           repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
           token: ${{ secrets._GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
           ref: ${{ env.GITHUB_REF }}
-          fetch-depth: 0
       - name: Set up Python
         uses: actions/setup-python@v5
         with:

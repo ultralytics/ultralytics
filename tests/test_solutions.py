@@ -64,7 +64,7 @@ def test_instance_segmentation():
 
     model = YOLO(WEIGHTS_DIR / "yolo11n-seg.pt")
     names = model.names
-    cap = cv2.VideoCapture("solutions_ci_demo.mp4")
+    cap = cv2.VideoCapture(TMP / DEMO_VIDEO)
     assert cap.isOpened(), "Error reading video file"
     while cap.isOpened():
         success, im0 = cap.read()

@@ -186,7 +186,6 @@ if __name__ == "__main__":
 
     # Check if a model name is provided as a command-line argument
     args = len(sys.argv)
-
     model = args if args > 1 else None
 
     # Create an instance of the Inference class and run inference

@@ -136,8 +136,10 @@ def run(
 
     # Video setup
     videocapture = cv2.VideoCapture(source)
-    frame_width, frame_height = int(videocapture.get(3)), int(videocapture.get(4))
-    fps, fourcc = int(videocapture.get(5)), cv2.VideoWriter_fourcc(*"MJPG")
+    frame_width = int(videocapture.get(3))
+    frame_height = int(videocapture.get(4))
+    fps = int(videocapture.get(5))
+    fourcc = cv2.VideoWriter_fourcc(*"mp4v")
 
     # Output setup
     save_dir = increment_path(Path("ultralytics_rc_output") / "exp", exist_ok)

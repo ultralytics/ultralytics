@@ -1170,6 +1170,4 @@ class Model(nn.Module):
             >>> print(model.stride)
             >>> print(model.task)
         """
-        if name == "model":
-            return self._modules["model"]
-        return getattr(self.model, name)
+        return self._modules["model"] if name == "model" else getattr(self.model, name)

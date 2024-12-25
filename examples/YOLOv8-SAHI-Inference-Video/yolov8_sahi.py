@@ -24,11 +24,16 @@ class SAHIInference:
         yolo11_model_path = f"models/{weights}"
         download_yolo11n_model(yolo11_model_path)
         self.detection_model = AutoDetectionModel.from_pretrained(
-            model_type="ultralytics", model_path=yolo11_model_path, confidence_threshold=0.3, device="cpu"
+            model_type="ultralytics", model_path=yolo11_model_path, device="cpu"
         )
 
     def inference(
-        self, weights="yolo11n.pt", source="test.mp4", view_img=False, save_img=False, exist_ok=False, track=False
+        self,
+        weights="yolo11n.pt",
+        source="test.mp4",
+        view_img=False,
+        save_img=False,
+        exist_ok=False,
     ):
         """
         Run object detection on a video using YOLO11 and SAHI.
@@ -39,7 +44,6 @@ class SAHIInference:
             view_img (bool): Show results.
             save_img (bool): Save results.
             exist_ok (bool): Overwrite existing files.
-            track (bool): Enable object tracking with SAHI
         """
         # Video setup
         cap = cv2.VideoCapture(source)
@@ -50,8 +54,8 @@ class SAHIInference:
         save_dir = increment_path(Path("ultralytics_results_with_sahi") / "exp", exist_ok)
         save_dir.mkdir(parents=True, exist_ok=True)
         video_writer = cv2.VideoWriter(
-            str(save_dir / f"{Path(source).stem}.mp4"),
-            cv2.VideoWriter_fourcc(*"mp4v"),
+            str(save_dir / f"{Path(source).stem}.avi"),
+            cv2.VideoWriter_fourcc(*"MJPG"),
             int(cap.get(5)),
             (frame_width, frame_height),
         )
@@ -68,8 +72,6 @@ class SAHIInference:
                 self.detection_model,
                 slice_height=512,
                 slice_width=512,
-                overlap_height_ratio=0.2,
-                overlap_width_ratio=0.2,
             )
             detection_data = [
                 (det.category.name, det.category.id, (det.bbox.minx, det.bbox.miny, det.bbox.maxx, det.bbox.maxy))

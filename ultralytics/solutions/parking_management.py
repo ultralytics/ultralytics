@@ -148,8 +148,12 @@ class ParkingPtsSelection:
         """Saves the selected parking zone points to a JSON file with scaled coordinates."""
         scale_w, scale_h = self.imgw / self.canvas.winfo_width(), self.imgh / self.canvas.winfo_height()
         data = [{"points": [(int(x * scale_w), int(y * scale_h)) for x, y in box]} for box in self.rg_data]
+
+        from io import StringIO     # Function level import, as it's only required to store coordinates, not every frame
+        write_buffer = StringIO()
+        json.dump(data, write_buffer, indent=4)
         with open("bounding_boxes.json", "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=4)
+            f.write(write_buffer.getvalue())
         self.messagebox.showinfo("Success", "Bounding boxes saved to bounding_boxes.json")
 
 

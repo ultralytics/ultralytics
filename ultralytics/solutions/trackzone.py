@@ -61,7 +61,7 @@ class TrackZone(BaseSolution):
             pts = [np.array(self.region, dtype=np.int32)]
 
         mask = np.zeros_like(im0[:, :, 0], dtype=np.uint8)  # Create a mask
-        cv2.fillPoly(mask, pts, 255)    # Fill the mask with the polygon
+        cv2.fillPoly(mask, pts, 255)  # Fill the mask with the polygon
 
         # Create a mask for the region and extract tracks from the masked image
         masked_frame = cv2.bitwise_and(im0, im0, mask=mask)

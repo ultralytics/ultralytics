@@ -19,9 +19,9 @@ The medicinal pill dataset is divided into two subsets:
 
 Using computer vision for medicinal pill detection enables automation in the pharmaceutical industry, supporting tasks like:
 
-- **Identification**: Detecting and categorizing pills for quality assurance and packaging.
-- **Counterfeit Prevention**: Ensuring the authenticity of medicinal products.
-- **Automation**: Streamlining processes in pharmaceutical manufacturing and supply chains.
+- **Pharmaceutical Sorting**: Automating the sorting of pills into specific categories based on physical characteristics like size, shape, or color.
+- **Pill Counting**: Accurately counting pills for packaging and dispensing in pharmacies.
+- **Regulatory Compliance**: Ensuring pills are properly labeled and packaged to meet pharmaceutical industry standards.
 
 ## Dataset YAML
 

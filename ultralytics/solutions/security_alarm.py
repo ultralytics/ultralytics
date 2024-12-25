@@ -135,10 +135,9 @@ class SecurityAlarm(BaseSolution):
             self.annotator.box_label(box, label=self.names[cls], color=colors(cls, True))
 
         total_det = len(self.clss)
-        if total_det > self.records:  # Only send email If not sent before
-            if not self.email_sent:
-                self.send_email(im0, total_det)
-                self.email_sent = True
+        if total_det > self.records and not self.email_sent:  # Only send email If not sent before
+            self.send_email(im0, total_det)
+            self.email_sent = True
 
         self.display_output(im0)  # display output with base class function
 

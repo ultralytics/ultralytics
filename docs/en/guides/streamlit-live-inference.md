@@ -43,7 +43,9 @@ Streamlit makes it simple to build and deploy interactive web applications. Comb
     === "CLI"
 
         ```bash
-        yolo streamlit-predict
+        yolo solutions inference
+
+        yolo solutions inference model="path/to/model.pt"
         ```
 
     === "Python"
@@ -51,7 +53,11 @@ Streamlit makes it simple to build and deploy interactive web applications. Comb
         ```python
         from ultralytics import solutions
 
-        solutions.inference()
+        inf = solutions.Inference(
+            model="yolo11n.pt",  # You can use any model that Ultralytics support, i.e. YOLO11, or custom trained model
+        )
+
+        inf.inference()
 
         ### Make sure to run the file using command `streamlit run <file-name.py>`
         ```
@@ -67,8 +73,11 @@ You can optionally supply a specific model in Python:
         ```python
         from ultralytics import solutions
 
-        # Pass a model as an argument
-        solutions.inference(model="path/to/model.pt")
+        inf = solutions.Inference(
+            model="yolo11n.pt",  # You can use any model that Ultralytics support, i.e. YOLO11, YOLOv10
+        )
+
+        inf.inference()
 
         ### Make sure to run the file using command `streamlit run <file-name.py>`
         ```
@@ -111,7 +120,11 @@ Then, you can create a basic Streamlit application to run live inference:
         ```python
         from ultralytics import solutions
 
-        solutions.inference()
+        inf = solutions.Inference(
+            model="yolo11n.pt",  # You can use any model that Ultralytics support, i.e. YOLO11, YOLOv10
+        )
+
+        inf.inference()
 
         ### Make sure to run the file using command `streamlit run <file-name.py>`
         ```
@@ -119,7 +132,7 @@ Then, you can create a basic Streamlit application to run live inference:
     === "CLI"
 
         ```bash
-        yolo streamlit-predict
+        yolo solutions inference
         ```
 
 For more details on the practical setup, refer to the [Streamlit Application Code section](#streamlit-application-code) of the documentation.

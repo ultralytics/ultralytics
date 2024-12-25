@@ -150,7 +150,7 @@ class Inference:
             while cap.isOpened():
                 success, frame = cap.read()
                 if not success:
-                    st.warning("Failed to read frame from webcam. Please make sure the webcam is connected properly.")
+                    self.st.warning("Failed to read frame from webcam. Please verify the webcam is connected properly.")
                     break
 
                 prev_time = time.time()  # Store initial time for FPS calculation

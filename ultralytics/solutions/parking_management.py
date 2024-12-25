@@ -55,6 +55,17 @@ class ParkingPtsSelection:
         from tkinter import filedialog, messagebox
 
         self.tk, self.filedialog, self.messagebox = tk, filedialog, messagebox
+        self.master = None  # Reference to the main application window or parent widget
+        self.canvas = None  # Canvas widget for displaying images or graphics
+        self.image = None  # Variable to store the loaded image
+        self.canvas_image = None  # Reference to the image displayed on the canvas
+        self.canvas_max_width = None  # Maximum allowed width for the canvas
+        self.canvas_max_height = None  # Maximum allowed height for the canvas
+        self.rg_data = None  # Data related to region or annotation management
+        self.current_box = None  # Stores the currently selected or active bounding box
+        self.imgh = None  # Height of the current image
+        self.imgw = None  # Width of the current image
+
         self.setup_ui()
         self.initialize_properties()
         self.master.mainloop()

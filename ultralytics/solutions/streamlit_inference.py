@@ -51,16 +51,16 @@ class Inference:
         check_requirements("streamlit>=1.29.0")  # scope imports for faster ultralytics package load speeds
         import streamlit as st
 
-        self.st = st  # Store streamlit class object as class variable
-        self.source = None  # Initialize source for storing video/webcam details
-        self.enable_trk = False  # Initialize boolean flag to enable tracking
-        self.conf = 0.25  # Store confidence threshold
-        self.iou = 0.45  # Store iou (non-maximum suppression) threshold
-        self.org_frame = None  # Variable to store original frame for display
-        self.ann_frame = None  # Variable to store annotated frame for display
-        self.vid_file_name = None  # Variable for video file name
-        self.selected_ind = []  # List for selection of class for detection or tracking
-        self.model = None  # Variable to store model data
+        self.st = st  # Reference to the Streamlit class instance
+        self.source = None  # Placeholder for video or webcam source details
+        self.enable_trk = False  # Flag to toggle object tracking
+        self.conf = 0.25  # Confidence threshold for detection
+        self.iou = 0.45  # Intersection-over-Union (IoU) threshold for non-maximum suppression
+        self.org_frame = None  # Container for the original frame to be displayed
+        self.ann_frame = None  # Container for the annotated frame to be displayed
+        self.vid_file_name = None  # Holds the name of the video file
+        self.selected_ind = []  # List of selected classes for detection or tracking
+        self.model = None  # Container for the loaded model instance
 
         self.temp_dict = {"model": None}  # Temporary dict to store the model path
         self.temp_dict.update(kwargs)

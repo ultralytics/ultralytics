@@ -241,9 +241,9 @@ def parse_opt():
     return parser.parse_args()
 
 
-def main(opt):
+def main(options):
     """Main function."""
-    run(**vars(opt))
+    run(**vars(options))
 
 
 if __name__ == "__main__":

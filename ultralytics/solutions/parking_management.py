@@ -34,7 +34,6 @@ class ParkingPtsSelection:
         canvas_max_height (int): Maximum height of the canvas.
 
     Methods:
-        setup_ui: Sets up the Tkinter UI components.
         initialize_properties: Initializes the necessary properties.
         upload_image: Uploads an image, resizes it to fit the canvas, and displays it.
         on_canvas_click: Handles mouse clicks to add points for bounding boxes.
@@ -55,8 +54,13 @@ class ParkingPtsSelection:
         from tkinter import filedialog, messagebox
 
         self.tk, self.filedialog, self.messagebox = tk, filedialog, messagebox
-        self.master = None  # Reference to the main application window or parent widget
-        self.canvas = None  # Canvas widget for displaying images or graphics
+        self.master = self.tk.Tk()  # Reference to the main application window or parent widget
+        self.master.title("Ultralytics Parking Zones Points Selector")
+        self.master.resizable(False, False)
+
+        self.canvas = self.tk.Canvas(self.master, bg="white")  # Canvas widget for displaying images or graphics
+        self.canvas.pack(side=self.tk.BOTTOM)
+
         self.image = None  # Variable to store the loaded image
         self.canvas_image = None  # Reference to the image displayed on the canvas
         self.canvas_max_width = None  # Maximum allowed width for the canvas
@@ -65,20 +69,6 @@ class ParkingPtsSelection:
         self.current_box = None  # Stores the currently selected or active bounding box
         self.imgh = None  # Height of the current image
         self.imgw = None  # Width of the current image
-
-        self.setup_ui()
-        self.initialize_properties()
-        self.master.mainloop()
-
-    def setup_ui(self):
-        """Sets up the Tkinter UI components for the parking zone points selection interface."""
-        self.master = self.tk.Tk()
-        self.master.title("Ultralytics Parking Zones Points Selector")
-        self.master.resizable(False, False)
-
-        # Canvas for image display
-        self.canvas = self.tk.Canvas(self.master, bg="white")
-        self.canvas.pack(side=self.tk.BOTTOM)
 
         # Button frame with buttons
         button_frame = self.tk.Frame(self.master)
@@ -90,6 +80,9 @@ class ParkingPtsSelection:
             ("Save", self.save_to_json),
         ]:
             self.tk.Button(button_frame, text=text, command=cmd).pack(side=self.tk.LEFT)
+
+        self.initialize_properties()
+        self.master.mainloop()
 
     def initialize_properties(self):
         """Initialize properties for image, canvas, bounding boxes, and dimensions."""
@@ -116,7 +109,7 @@ class ParkingPtsSelection:
         )
 
         self.canvas.config(width=canvas_width, height=canvas_height)
-        self.canvas_image = ImageTk.PhotoImage(self.image.resize((canvas_width, canvas_height), Image.LANCZOS))
+        self.canvas_image = ImageTk.PhotoImage(self.image.resize((canvas_width, canvas_height)))
         self.canvas.create_image(0, 0, anchor=self.tk.NW, image=self.canvas_image)
         self.canvas.bind("<Button-1>", self.on_canvas_click)
 
@@ -155,7 +148,7 @@ class ParkingPtsSelection:
         """Saves the selected parking zone points to a JSON file with scaled coordinates."""
         scale_w, scale_h = self.imgw / self.canvas.winfo_width(), self.imgh / self.canvas.winfo_height()
         data = [{"points": [(int(x * scale_w), int(y * scale_h)) for x, y in box]} for box in self.rg_data]
-        with open("bounding_boxes.json", "w") as f:
+        with open("bounding_boxes.json", "w", encoding="utf-8") as f:
             json.dump(data, f, indent=4)
         self.messagebox.showinfo("Success", "Bounding boxes saved to bounding_boxes.json")
 

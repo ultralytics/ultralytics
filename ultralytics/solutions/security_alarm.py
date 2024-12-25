@@ -94,7 +94,7 @@ class SecurityAlarm(BaseSolution):
 
         # Add the text message body
         message_body = f"Ultralytics ALERT!!! " f"{records} objects have been detected!!"
-        message.attach(MIMEText(message_body, "plain"))
+        message.attach(MIMEText(message_body))
 
         # Attach the image
         image_attachment = MIMEImage(img_bytes, name="ultralytics.jpg")

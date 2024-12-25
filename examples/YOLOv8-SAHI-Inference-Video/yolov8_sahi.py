@@ -24,7 +24,7 @@ class SAHIInference:
         yolo11_model_path = f"models/{weights}"
         download_yolo11n_model(yolo11_model_path)
         self.detection_model = AutoDetectionModel.from_pretrained(
-            model_type="ultralytics", model_path=yolo11_model_path, confidence_threshold=0.3, device="cpu"
+            model_type="ultralytics", model_path=yolo11_model_path, device="cpu"
         )
 
     def inference(
@@ -72,8 +72,6 @@ class SAHIInference:
                 self.detection_model,
                 slice_height=512,
                 slice_width=512,
-                overlap_height_ratio=0.2,
-                overlap_width_ratio=0.2,
             )
             detection_data = [
                 (det.category.name, det.category.id, (det.bbox.minx, det.bbox.miny, det.bbox.maxx, det.bbox.maxy))

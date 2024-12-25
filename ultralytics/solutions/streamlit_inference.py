@@ -84,7 +84,7 @@ class Inference:
         of Ultralytics YOLO! 🚀</h4></div>"""
 
         # Set html page configuration and append custom HTML
-        self.st.set_page_config(page_title="Ultralytics Streamlit App", layout="wide", initial_sidebar_state="auto")
+        self.st.set_page_config(page_title="Ultralytics Streamlit App", layout="wide")
         self.st.markdown(menu_style_cfg, unsafe_allow_html=True)
         self.st.markdown(main_title_cfg, unsafe_allow_html=True)
         self.st.markdown(sub_title_cfg, unsafe_allow_html=True)

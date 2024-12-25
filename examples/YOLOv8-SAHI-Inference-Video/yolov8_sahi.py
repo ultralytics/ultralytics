@@ -49,8 +49,8 @@ class SAHIInference:
         save_dir = increment_path(Path("ultralytics_results_with_sahi") / "exp", exist_ok)
         save_dir.mkdir(parents=True, exist_ok=True)
         video_writer = cv2.VideoWriter(
-            str(save_dir / f"{Path(source).stem}.mp4"),
-            cv2.VideoWriter_fourcc(*"mp4v"),
+            str(save_dir / f"{Path(source).stem}.avi"),
+            cv2.VideoWriter_fourcc(*"MJPG"),
             int(cap.get(5)),
             (frame_width, frame_height),
         )

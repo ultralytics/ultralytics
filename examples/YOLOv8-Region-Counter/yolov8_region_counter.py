@@ -132,17 +132,17 @@ def run(
     model.to("cuda") if device == "0" else model.to("cpu")
 
     # Extract classes names
-    names = model.model.names
+    names = model.names
 
     # Video setup
     videocapture = cv2.VideoCapture(source)
     frame_width, frame_height = int(videocapture.get(3)), int(videocapture.get(4))
-    fps, fourcc = int(videocapture.get(5)), cv2.VideoWriter_fourcc(*"mp4v")
+    fps, fourcc = int(videocapture.get(5)), cv2.VideoWriter_fourcc(*"MJPG")
 
     # Output setup
     save_dir = increment_path(Path("ultralytics_rc_output") / "exp", exist_ok)
     save_dir.mkdir(parents=True, exist_ok=True)
-    video_writer = cv2.VideoWriter(str(save_dir / f"{Path(source).stem}.mp4"), fourcc, fps, (frame_width, frame_height))
+    video_writer = cv2.VideoWriter(str(save_dir / f"{Path(source).stem}.avi"), fourcc, fps, (frame_width, frame_height))
 
     # Iterate over video frames
     while videocapture.isOpened():

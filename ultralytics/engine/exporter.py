@@ -102,19 +102,19 @@ def export_formats():
     """Ultralytics YOLO export formats."""
     x = [
         ["PyTorch", "-", ".pt", True, True, []],
-        ["TorchScript", "torchscript", ".torchscript", True, True, ["optimize", "batch"]],
-        ["ONNX", "onnx", ".onnx", True, True, ["half", "dynamic", "simplify", "opset", "batch"]],
-        ["OpenVINO", "openvino", "_openvino_model", True, False, ["half", "int8", "batch"]],
-        ["TensorRT", "engine", ".engine", False, True, ["half", "dynamic", "simplify", "int8", "batch"]],
-        ["CoreML", "coreml", ".mlpackage", True, False, ["half", "int8", "nms", "batch"]],
-        ["TensorFlow SavedModel", "saved_model", "_saved_model", True, True, ["keras", "int8", "batch"]],
+        ["TorchScript", "torchscript", ".torchscript", True, True, ["batch", "optimize"]],
+        ["ONNX", "onnx", ".onnx", True, True, ["batch", "dynamic", "half", "opset", "simplify"]],
+        ["OpenVINO", "openvino", "_openvino_model", True, False, ["batch", "dynamic", "half", "int8"]],
+        ["TensorRT", "engine", ".engine", False, True, ["batch", "dynamic", "half", "int8", "simplify"]],
+        ["CoreML", "coreml", ".mlpackage", True, False, ["batch", "half", "int8", "nms"]],
+        ["TensorFlow SavedModel", "saved_model", "_saved_model", True, True, ["batch", "int8", "keras"]],
         ["TensorFlow GraphDef", "pb", ".pb", True, True, ["batch"]],
-        ["TensorFlow Lite", "tflite", ".tflite", True, False, ["half", "int8", "batch"]],
+        ["TensorFlow Lite", "tflite", ".tflite", True, False, ["batch", "half", "int8"]],
         ["TensorFlow Edge TPU", "edgetpu", "_edgetpu.tflite", True, False, []],
-        ["TensorFlow.js", "tfjs", "_web_model", True, False, ["half", "int8", "batch"]],
+        ["TensorFlow.js", "tfjs", "_web_model", True, False, ["batch", "half", "int8"]],
         ["PaddlePaddle", "paddle", "_paddle_model", True, True, ["batch"]],
-        ["MNN", "mnn", ".mnn", True, True, ["batch", "int8", "half"]],
-        ["NCNN", "ncnn", "_ncnn_model", True, True, ["half", "batch"]],
+        ["MNN", "mnn", ".mnn", True, True, ["batch", "half", "int8"]],
+        ["NCNN", "ncnn", "_ncnn_model", True, True, ["batch", "half"]],
         ["IMX", "imx", "_imx_model", True, True, ["int8"]],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments"], zip(*x)))
@@ -813,7 +813,7 @@ class Exporter:
         workspace = int(self.args.workspace * (1 << 30)) if self.args.workspace is not None else 0
         if is_trt10 and workspace > 0:
             config.set_memory_pool_limit(trt.MemoryPoolType.WORKSPACE, workspace)
-        elif workspace > 0 and not is_trt10:  # TensorRT versions 7, 8
+        elif workspace > 0:  # TensorRT versions 7, 8
             config.max_workspace_size = workspace
         flag = 1 << int(trt.NetworkDefinitionCreationFlag.EXPLICIT_BATCH)
         network = builder.create_network(flag)

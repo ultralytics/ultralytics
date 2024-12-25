@@ -53,6 +53,16 @@ class Inference:
         import streamlit as st
 
         self.st = st
+        self.source = None
+        self.enable_trk = None
+        self.conf = None
+        self.iou = None
+        self.org_frame = None
+        self.ann_frame = None
+        self.fps_display = None
+        self.vid_file_name = None
+        self.selected_ind = []
+        self.model = None
 
         self.temp_dict = {"model": None}  # Temporary dict to store the model path
         self.temp_dict.update(kwargs)

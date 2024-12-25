@@ -34,6 +34,9 @@ class SecurityAlarm(BaseSolution):
         super().__init__(**kwargs)
         self.email_sent = False
         self.records = self.CFG["records"]
+        self.server = None
+        self.to_email = ""
+        self.from_email = ""
 
     def authenticate(self, from_email, password, to_email):
         """

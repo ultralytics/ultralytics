@@ -56,7 +56,7 @@ class BaseSolution:
         self.Polygon = Polygon
         self.Point = Point
         self.prep = prep
-        self.annotator = None   # Initialize annotator
+        self.annotator = None  # Initialize annotator
         self.tracks = None
         self.track_data = None
         self.boxes = []

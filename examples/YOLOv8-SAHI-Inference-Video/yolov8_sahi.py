@@ -28,7 +28,12 @@ class SAHIInference:
         )
 
     def inference(
-        self, weights="yolo11n.pt", source="test.mp4", view_img=False, save_img=False, exist_ok=False,
+        self,
+        weights="yolo11n.pt",
+        source="test.mp4",
+        view_img=False,
+        save_img=False,
+        exist_ok=False,
     ):
         """
         Run object detection on a video using YOLO11 and SAHI.

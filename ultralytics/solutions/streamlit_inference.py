@@ -51,16 +51,16 @@ class Inference:
         check_requirements("streamlit>=1.29.0")  # scope imports for faster ultralytics package load speeds
         import streamlit as st
 
-        self.st = st    # Store streamlit class object as class variable
+        self.st = st  # Store streamlit class object as class variable
         self.source = None  # Initialize source for storing video/webcam details
         self.enable_trk = False  # Initialize boolean flag to enable tracking
-        self.conf = 0.25    # Store confidence threshold
-        self.iou = 0.45     # Store iou (non-maximum suppression) threshold
-        self.org_frame = None   # Variable to store original frame for display
-        self.ann_frame = None   # Variable to store annotated frame for display
-        self.vid_file_name = None   # Variable for video file name
-        self.selected_ind = []      # List for selection of class for detection or tracking
-        self.model = None   # Variable to store model data
+        self.conf = 0.25  # Store confidence threshold
+        self.iou = 0.45  # Store iou (non-maximum suppression) threshold
+        self.org_frame = None  # Variable to store original frame for display
+        self.ann_frame = None  # Variable to store annotated frame for display
+        self.vid_file_name = None  # Variable for video file name
+        self.selected_ind = []  # List for selection of class for detection or tracking
+        self.model = None  # Variable to store model data
 
         self.temp_dict = {"model": None}  # Temporary dict to store the model path
         self.temp_dict.update(kwargs)
@@ -101,7 +101,9 @@ class Inference:
             ("webcam", "video"),
         )  # Add source selection dropdown
         self.enable_trk = self.st.sidebar.radio("Enable Tracking", ("Yes", "No"))  # Enable object tracking
-        self.conf = float(self.st.sidebar.slider("Confidence Threshold", 0.0, 1.0, self.conf, 0.01))  # Slider for confidence
+        self.conf = float(
+            self.st.sidebar.slider("Confidence Threshold", 0.0, 1.0, self.conf, 0.01)
+        )  # Slider for confidence
         self.iou = float(self.st.sidebar.slider("IoU Threshold", 0.0, 1.0, self.iou, 0.01))  # Slider for NMS threshold
 
         col1, col2 = self.st.columns(2)

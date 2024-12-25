@@ -81,19 +81,15 @@ keywords: Ultralytics YOLO11, speed estimation, object tracking, computer vision
         # Process video
         while cap.isOpened():
             success, im0 = cap.read()
-
-            if success:
-                out = speed.estimate_speed(im0)
-                video_writer.write(im0)
-                if cv2.waitKey(1) & 0xFF == ord("q"):
-                    break
-                continue
-
-            print("Video frame is empty or video processing has been successfully completed.")
-            break
-
+            if not success:
+                print("Video frame is empty or video processing has been successfully completed.")
+                break
+            out = speed.estimate_speed(im0)
+            video_writer.write(im0)
+        
         cap.release()
-        cv2.destroyAllWindows()
+        video_writer.release()
+        cv2.destroyAllWindows()        
         ```
 
 ???+ warning "Speed is Estimate"

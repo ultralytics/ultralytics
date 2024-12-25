@@ -84,7 +84,7 @@ Queue management using [Ultralytics YOLO11](https://github.com/ultralytics/ultra
                 break
             out = queue.process_queue(im0)
             video_writer.write(im0)
-        
+
         cap.release()
         video_writer.release()
         cv2.destroyAllWindows()

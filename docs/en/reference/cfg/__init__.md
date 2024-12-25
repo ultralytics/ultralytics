@@ -31,6 +31,22 @@ keywords: Ultralytics, YOLO, configuration, cfg2dict, get_cfg, check_cfg, save_d
 
 <br><br><hr><br>
 
+## ::: ultralytics.cfg.check_dict_alignment
+
+<br><br><hr><br>
+
+## ::: ultralytics.cfg.merge_equals_args
+
+<br><br><hr><br>
+
+## ::: ultralytics.cfg.handle_yolo_hub
+
+<br><br><hr><br>
+
+## ::: ultralytics.cfg.handle_yolo_settings
+
+<br><br><hr><br>
+
 ## ::: ultralytics.cfg.handle_yolo_solutions
 
 <br><br><hr><br>
@@ -44,3 +60,9 @@ keywords: Ultralytics, YOLO, configuration, cfg2dict, get_cfg, check_cfg, save_d
 <br><br><hr><br>
 
 ## ::: ultralytics.cfg.entrypoint
+
+<br><br><hr><br>
+
+## ::: ultralytics.cfg.copy_default_cfg
+
+<br><br>

@@ -77,18 +77,26 @@ def autobatch(model, imgsz=640, fraction=0.60, batch_size=DEFAULT_CFG.batch, max
         results = profile(img, model, n=1, device=device, max_num_obj=max_num_obj)
 
         # Fit a solution
-        y = [x[2] for x in results if x]  # memory [2]
-        p = np.polyfit(batch_sizes[: len(y)], y, deg=1)  # first degree polynomial fit
-        b = int((f * fraction - p[1]) / p[0])  # y intercept (optimal batch size)
+        xy = [
+            [x, y[2]]
+            for i, (x, y) in enumerate(zip(batch_sizes, results))
+            if y  # valid result
+            and isinstance(y[2], (int, float))  # is numeric
+            and 0 < y[2] < t  # between 0 and GPU limit
+            and (i == 0 or not results[i - 1] or y[2] > results[i - 1][2])  # first item or increasing memory
+        ]
+        fit_x, fit_y = zip(*xy) if xy else ([], [])
+        p = np.polyfit(np.log(fit_x), np.log(fit_y), deg=1)  # first-degree polynomial fit in log space
+        b = int(round(np.exp((np.log(f * fraction) - p[1]) / p[0])))  # y intercept (optimal batch size)
         if None in results:  # some sizes failed
             i = results.index(None)  # first fail index
             if b >= batch_sizes[i]:  # y intercept above failure point
                 b = batch_sizes[max(i - 1, 0)]  # select prior safe point
         if b < 1 or b > 1024:  # b outside of safe range
+            LOGGER.info(f"{prefix}WARNING ⚠️ batch={b} outside safe range, using default batch-size {batch_size}.")
             b = batch_size
-            LOGGER.info(f"{prefix}WARNING ⚠️ CUDA anomaly detected, using default batch-size {batch_size}.")
 
-        fraction = (np.polyval(p, b) + r + a) / t  # actual fraction predicted
+        fraction = (np.exp(np.polyval(p, np.log(b))) + r + a) / t  # predicted fraction
         LOGGER.info(f"{prefix}Using batch-size {b} for {d} {t * fraction:.2f}G/{t:.2f}G ({fraction * 100:.0f}%) ✅")
         return b
     except Exception as e:

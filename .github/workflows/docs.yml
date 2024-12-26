@@ -43,12 +43,11 @@ jobs:
           repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
           token: ${{ secrets._GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
           ref: ${{ env.GITHUB_REF }}
-          fetch-depth: 0
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.x"
-      - uses: astral-sh/setup-uv@v4
+      - uses: astral-sh/setup-uv@v5
       - name: Install Dependencies
         run: uv pip install --system ruff black tqdm mkdocs-material "mkdocstrings[python]" mkdocs-jupyter mkdocs-redirects mkdocs-ultralytics-plugin mkdocs-macros-plugin
       - name: Ruff fixes
@@ -89,9 +88,8 @@ jobs:
       - name: Publish Docs to https://docs.ultralytics.com
         if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.publish_docs == 'true')
         run: |
-          git clone https://github.com/ultralytics/docs.git docs-repo
+          git clone --depth 1 --branch gh-pages https://github.com/ultralytics/docs.git docs-repo
           cd docs-repo
-          git checkout gh-pages || git checkout -b gh-pages
           rm -rf *
           cp -R ../site/* .
           echo "${{ secrets.INDEXNOW_KEY_DOCS }}" > "${{ secrets.INDEXNOW_KEY_DOCS }}.txt"

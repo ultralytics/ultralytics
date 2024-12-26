@@ -79,18 +79,14 @@ Queue management using [Ultralytics YOLO11](https://github.com/ultralytics/ultra
         # Process video
         while cap.isOpened():
             success, im0 = cap.read()
-
-            if success:
-                out = queue.process_queue(im0)
-                video_writer.write(im0)
-                if cv2.waitKey(1) & 0xFF == ord("q"):
-                    break
-                continue
-
-            print("Video frame is empty or video processing has been successfully completed.")
-            break
+            if not success:
+                print("Video frame is empty or video processing has been successfully completed.")
+                break
+            out = queue.process_queue(im0)
+            video_writer.write(im0)
 
         cap.release()
+        video_writer.release()
         cv2.destroyAllWindows()
         ```
 

@@ -42,6 +42,7 @@ SOLUTION_MAP = {
     "workout": ("AIGym", "monitor"),
     "analytics": ("Analytics", "process_data"),
     "trackzone": ("TrackZone", "trackzone"),
+    "inference": ("Inference", "inference"),
     "help": None,
 }
 
@@ -85,7 +86,7 @@ SOLUTIONS_HELP_MSG = f"""
         yolo solutions count source="path/to/video/file.mp4" region=[(20, 400), (1080, 400), (1080, 360), (20, 360)]
 
     2. Call heatmaps solution
-        yolo solutions heatmap colormap=cv2.COLORMAP_PARAULA model=yolo11n.pt
+        yolo solutions heatmap colormap=cv2.COLORMAP_PARULA model=yolo11n.pt
 
     3. Call queue management solution
         yolo solutions queue region=[(20, 400), (1080, 400), (1080, 360), (20, 360)] model=yolo11n.pt
@@ -97,7 +98,10 @@ SOLUTIONS_HELP_MSG = f"""
         yolo solutions analytics analytics_type="pie"
     
     6. Track objects within specific zones
-        yolo solutions trackzone source="path/to/video/file.mp4" region=[(150, 150), (1130, 150), (1130, 570), (150, 570)] 
+        yolo solutions trackzone source="path/to/video/file.mp4" region=[(150, 150), (1130, 150), (1130, 570), (150, 570)]
+        
+    7. Streamlit real-time webcam inference GUI
+        yolo streamlit-predict
     """
 CLI_HELP_MSG = f"""
     Arguments received: {str(['yolo'] + ARGV[1:])}. Ultralytics 'yolo' commands use the following syntax:
@@ -121,13 +125,10 @@ CLI_HELP_MSG = f"""
     4. Export a YOLO11n classification model to ONNX format at image size 224 by 128 (no TASK required)
         yolo export model=yolo11n-cls.pt format=onnx imgsz=224,128
 
-    5. Streamlit real-time webcam inference GUI
-        yolo streamlit-predict
-
-    6. Ultralytics solutions usage
+    5. Ultralytics solutions usage
         yolo solutions count or in {list(SOLUTION_MAP.keys())[1:-1]} source="path/to/video/file.mp4"
 
-    7. Run special commands:
+    6. Run special commands:
         yolo help
         yolo checks
         yolo version
@@ -636,6 +637,9 @@ def handle_yolo_solutions(args: List[str]) -> None:
         Run analytics with custom configuration:
         >>> handle_yolo_solutions(["analytics", "conf=0.25", "source=path/to/video/file.mp4"])
 
+        Run inference with custom configuration, requires Streamlit version 1.29.0 or higher.
+        >>> handle_yolo_solutions(["inference", "model=yolo11n.pt"])
+
     Notes:
         - Default configurations are merged from DEFAULT_SOL_DICT and DEFAULT_CFG_DICT
         - Arguments can be provided in the format 'key=value' or as boolean flags
@@ -645,7 +649,9 @@ def handle_yolo_solutions(args: List[str]) -> None:
         - For 'analytics' solution, frame numbers are tracked for generating analytical graphs
         - Video processing can be interrupted by pressing 'q'
         - Processes video frames sequentially and saves output in .avi format
-        - If no source is specified, downloads and uses a default sample video
+        - If no source is specified, downloads and uses a default sample video\
+        - The inference solution will be launched using the 'streamlit run' command.
+        - The Streamlit app file is located in the Ultralytics package directory.
     """
     full_args_dict = {**DEFAULT_SOL_DICT, **DEFAULT_CFG_DICT}  # arguments dictionary
     overrides = {}
@@ -678,60 +684,56 @@ def handle_yolo_solutions(args: List[str]) -> None:
     if args and args[0] == "help":  # Add check for return if user call `yolo solutions help`
         return
 
-    cls, method = SOLUTION_MAP[s_n]  # solution class name, method name and default source
+    if s_n == "inference":
+        checks.check_requirements("streamlit>=1.29.0")
+        LOGGER.info("💡 Loading Ultralytics live inference app...")
+        subprocess.run(
+            [  # Run subprocess with Streamlit custom argument
+                "streamlit",
+                "run",
+                str(ROOT / "solutions/streamlit_inference.py"),
+                "--server.headless",
+                "true",
+                overrides.pop("model", "yolo11n.pt"),
+            ]
+        )
+    else:
+        cls, method = SOLUTION_MAP[s_n]  # solution class name, method name and default source
 
-    from ultralytics import solutions  # import ultralytics solutions
+        from ultralytics import solutions  # import ultralytics solutions
 
-    solution = getattr(solutions, cls)(IS_CLI=True, **overrides)  # get solution class i.e ObjectCounter
-    process = getattr(solution, method)  # get specific function of class for processing i.e, count from ObjectCounter
+        solution = getattr(solutions, cls)(IS_CLI=True, **overrides)  # get solution class i.e ObjectCounter
+        process = getattr(
+            solution, method
+        )  # get specific function of class for processing i.e, count from ObjectCounter
 
-    cap = cv2.VideoCapture(solution.CFG["source"])  # read the video file
+        cap = cv2.VideoCapture(solution.CFG["source"])  # read the video file
 
-    # extract width, height and fps of the video file, create save directory and initialize video writer
-    import os  # for directory creation
-    from pathlib import Path
+        # extract width, height and fps of the video file, create save directory and initialize video writer
+        import os  # for directory creation
+        from pathlib import Path
 
-    from ultralytics.utils.files import increment_path  # for output directory path update
+        from ultralytics.utils.files import increment_path  # for output directory path update
 
-    w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-    if s_n == "analytics":  # analytical graphs follow fixed shape for output i.e w=1920, h=1080
-        w, h = 1920, 1080
-    save_dir = increment_path(Path("runs") / "solutions" / "exp", exist_ok=False)
-    save_dir.mkdir(parents=True, exist_ok=True)  # create the output directory
-    vw = cv2.VideoWriter(os.path.join(save_dir, "solution.avi"), cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
+        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
+        if s_n == "analytics":  # analytical graphs follow fixed shape for output i.e w=1920, h=1080
+            w, h = 1920, 1080
+        save_dir = increment_path(Path("runs") / "solutions" / "exp", exist_ok=False)
+        save_dir.mkdir(parents=True, exist_ok=True)  # create the output directory
+        vw = cv2.VideoWriter(os.path.join(save_dir, "solution.avi"), cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
-    try:  # Process video frames
-        f_n = 0  # frame number, required for analytical graphs
-        while cap.isOpened():
-            success, frame = cap.read()
-            if not success:
-                break
-            frame = process(frame, f_n := f_n + 1) if s_n == "analytics" else process(frame)
-            vw.write(frame)
-            if cv2.waitKey(1) & 0xFF == ord("q"):
-                break
-    finally:
-        cap.release()
-
-
-def handle_streamlit_inference():
-    """
-    Open the Ultralytics Live Inference Streamlit app for real-time object detection.
-
-    This function initializes and runs a Streamlit application designed for performing live object detection using
-    Ultralytics models. It checks for the required Streamlit package and launches the app.
-
-    Examples:
-        >>> handle_streamlit_inference()
-
-    Notes:
-        - Requires Streamlit version 1.29.0 or higher.
-        - The app is launched using the 'streamlit run' command.
-        - The Streamlit app file is located in the Ultralytics package directory.
-    """
-    checks.check_requirements("streamlit>=1.29.0")
-    LOGGER.info("💡 Loading Ultralytics Live Inference app...")
-    subprocess.run(["streamlit", "run", ROOT / "solutions/streamlit_inference.py", "--server.headless", "true"])
+        try:  # Process video frames
+            f_n = 0  # frame number, required for analytical graphs
+            while cap.isOpened():
+                success, frame = cap.read()
+                if not success:
+                    break
+                frame = process(frame, f_n := f_n + 1) if s_n == "analytics" else process(frame)
+                vw.write(frame)
+                if cv2.waitKey(1) & 0xFF == ord("q"):
+                    break
+        finally:
+            cap.release()
 
 
 def parse_key_value_pair(pair: str = "key=value"):
@@ -853,7 +855,6 @@ def entrypoint(debug=""):
         "login": lambda: handle_yolo_hub(args),
         "logout": lambda: handle_yolo_hub(args),
         "copy-cfg": copy_default_cfg,
-        "streamlit-predict": lambda: handle_streamlit_inference(),
         "solutions": lambda: handle_yolo_solutions(args[1:]),
     }
     full_args_dict = {**DEFAULT_CFG_DICT, **{k: None for k in TASKS}, **{k: None for k in MODES}, **special}

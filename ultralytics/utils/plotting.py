@@ -545,7 +545,8 @@ class Annotator:
         """Save the annotated image to 'filename'."""
         cv2.imwrite(filename, np.asarray(self.im))
 
-    def get_bbox_dimension(self, bbox=None):
+    @staticmethod
+    def get_bbox_dimension(bbox=None):
         """
         Calculate the area of a bounding box.
 

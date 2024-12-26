@@ -259,7 +259,7 @@ Like any other VS Code extension, you can uninstall it by navigating to the Exte
 [working with inference results]: ../modes/predict.md#working-with-results
 [inference arguments]: ../modes/predict.md#inference-arguments
 [Simple Utilities page]: ../usage/simple-utilities.md
-[Ultralytics Settings]: ../quickstart.md/#ultralytics-settings
+[Ultralytics Settings]: ../quickstart.md#ultralytics-settings
 [quickstart]: ../quickstart.md
 [Discord]: https://ultralytics.com/discord
 [Discourse]: https://community.ultralytics.com

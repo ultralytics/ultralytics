@@ -72,7 +72,7 @@ keywords: Ultralytics YOLO11, speed estimation, object tracking, computer vision
 
         speed = solutions.SpeedEstimator(
             show=True,  # Display the output
-            model="yolo11n-pose.pt",  # Path to the YOLO11 model file.
+            model="yolo11n.pt",  # Path to the YOLO11 model file.
             region=speed_region,  # Pass region points
             # classes=[0, 2],  # If you want to estimate speed of specific classes.
             # line_width=2,  # Adjust the line width for bounding boxes and text display

@@ -434,6 +434,7 @@ def check_torchvision():
     """
     # Compatibility table
     compatibility_table = {
+        "2.5": ["0.20"],
         "2.4": ["0.19"],
         "2.3": ["0.18"],
         "2.2": ["0.17"],

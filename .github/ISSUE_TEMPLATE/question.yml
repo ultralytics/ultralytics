@@ -14,7 +14,7 @@ body:
     attributes:
       label: Search before asking
       description: >
-        Try using "Ask AI" in the Ultralytics [Docs](https://docs.ultralytics.com) page to ask and search for answers to your question. It will intelligently search the [docs](https://docs.ultralytics.com), [issues](https://github.com/ultralytics/ultralytics/issues) and [discussions](https://github.com/ultralytics/ultralytics/discussions) for your query.
+        Please search the Ultralytics [Docs](https://docs.ultralytics.com), [issues](https://github.com/ultralytics/ultralytics/issues) and [discussions](https://github.com/ultralytics/ultralytics/discussions) to see if a similar question already exists.
       options:
         - label: >
             I have searched the Ultralytics YOLO [issues](https://github.com/ultralytics/ultralytics/issues) and [discussions](https://github.com/ultralytics/ultralytics/discussions) and found no similar questions.

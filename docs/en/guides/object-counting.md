@@ -80,7 +80,7 @@ Object counting with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
         # Video writer
         video_writer = cv2.VideoWriter("object_counting_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
-        # Init Object Counter
+        # Init ObjectCounter
         counter = solutions.ObjectCounter(
             show=True,  # Display the output
             region=region_points,  # Pass region points

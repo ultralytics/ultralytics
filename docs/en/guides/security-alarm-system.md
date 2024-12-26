@@ -27,155 +27,75 @@ The Security Alarm System Project utilizing Ultralytics YOLO11 integrates advanc
 
 ### Code
 
-#### Set up the parameters of the message
-
 ???+ note
 
     App Password Generation is necessary
 
-- Navigate to [App Password Generator](https://myaccount.google.com/apppasswords), designate an app name such as "security project," and obtain a 16-digit password. Copy this password and paste it into the designated password field as instructed.
+- Navigate to [App Password Generator](https://myaccount.google.com/apppasswords), designate an app name such as "security project," and obtain a 16-digit password. Copy this password and paste it into the designated `password` field in the code below.
 
-```python
-password = ""
-from_email = ""  # must match the email used to generate the password
-to_email = ""  # receiver email
-```
+!!! example "Security Alarm System using YOLO11 Example"
 
-#### Server creation and authentication
+    === "Python"
 
-```python
-import smtplib
+    ```python
+    import cv2
 
-server = smtplib.SMTP("smtp.gmail.com: 587")
-server.starttls()
-server.login(from_email, password)
-```
+    from ultralytics import solutions
 
-#### Email Send Function
+    cap = cv2.VideoCapture("Path/to/video/file.mp4")
+    assert cap.isOpened(), "Error reading video file"
 
-```python
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
+    # Video writer
+    w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
+    video_writer = cv2.VideoWriter("security_alarm_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
+    from_email = "abc@gmail.com"  # The sender email address
+    password = "---- ---- ---- ----"  # 16-digits password generated via: https://myaccount.google.com/apppasswords
+    to_email = "xyz@gmail.com"  # The receiver email address
 
-def send_email(to_email, from_email, object_detected=1):
-    """Sends an email notification indicating the number of objects detected; defaults to 1 object."""
-    message = MIMEMultipart()
-    message["From"] = from_email
-    message["To"] = to_email
-    message["Subject"] = "Security Alert"
-    # Add in the message body
-    message_body = f"ALERT - {object_detected} objects has been detected!!"
+    # Init SecurityAlarm
+    security = solutions.SecurityAlarm(
+        show=True,  # Display the output
+        model="yolo11n.pt",  # i.e. YOLO11s.pt
+        records=1,  # Total detections count to send an email about security
+    )
 
-    message.attach(MIMEText(message_body, "plain"))
-    server.sendmail(from_email, to_email, message.as_string())
-```
+    security.authenticate(from_email, password, to_email)  # Authenticate the email server
 
-#### Object Detection and Alert Sender
+    # Process video
+    while cap.isOpened():
+        success, im0 = cap.read()
+        if not success:
+            print("Video frame is empty or video processing has been successfully completed.")
+            break
+        im0 = security.monitor(im0)
+        video_writer.write(im0)
 
-```python
-from time import time
-
-import cv2
-import torch
-
-from ultralytics import YOLO
-from ultralytics.utils.plotting import Annotator, colors
-
-
-class ObjectDetection:
-    def __init__(self, capture_index):
-        """Initializes an ObjectDetection instance with a given camera index."""
-        self.capture_index = capture_index
-        self.email_sent = False
-
-        # model information
-        self.model = YOLO("yolo11n.pt")
-
-        # visual information
-        self.annotator = None
-        self.start_time = 0
-        self.end_time = 0
-
-        # device information
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
-
-    def predict(self, im0):
-        """Run prediction using a YOLO model for the input image `im0`."""
-        results = self.model(im0)
-        return results
-
-    def display_fps(self, im0):
-        """Displays the FPS on an image `im0` by calculating and overlaying as white text on a black rectangle."""
-        self.end_time = time()
-        fps = 1 / round(self.end_time - self.start_time, 2)
-        text = f"FPS: {int(fps)}"
-        text_size = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, 1.0, 2)[0]
-        gap = 10
-        cv2.rectangle(
-            im0,
-            (20 - gap, 70 - text_size[1] - gap),
-            (20 + text_size[0] + gap, 70 + gap),
-            (255, 255, 255),
-            -1,
-        )
-        cv2.putText(im0, text, (20, 70), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 0), 2)
-
-    def plot_bboxes(self, results, im0):
-        """Plots bounding boxes on an image given detection results; returns annotated image and class IDs."""
-        class_ids = []
-        self.annotator = Annotator(im0, 3, results[0].names)
-        boxes = results[0].boxes.xyxy.cpu()
-        clss = results[0].boxes.cls.cpu().tolist()
-        names = results[0].names
-        for box, cls in zip(boxes, clss):
-            class_ids.append(cls)
-            self.annotator.box_label(box, label=names[int(cls)], color=colors(int(cls), True))
-        return im0, class_ids
-
-    def __call__(self):
-        """Run object detection on video frames from a camera stream, plotting and showing the results."""
-        cap = cv2.VideoCapture(self.capture_index)
-        assert cap.isOpened()
-        cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
-        frame_count = 0
-        while True:
-            self.start_time = time()
-            ret, im0 = cap.read()
-            assert ret
-            results = self.predict(im0)
-            im0, class_ids = self.plot_bboxes(results, im0)
-
-            if len(class_ids) > 0:  # Only send email If not sent before
-                if not self.email_sent:
-                    send_email(to_email, from_email, len(class_ids))
-                    self.email_sent = True
-            else:
-                self.email_sent = False
-
-            self.display_fps(im0)
-            cv2.imshow("YOLO11 Detection", im0)
-            frame_count += 1
-            if cv2.waitKey(5) & 0xFF == 27:
-                break
-        cap.release()
-        cv2.destroyAllWindows()
-        server.quit()
-```
-
-#### Call the Object Detection class and Run the Inference
-
-```python
-detector = ObjectDetection(capture_index=0)
-detector()
-```
+    cap.release()
+    video_writer.release()
+    cv2.destroyAllWindows()
+    ```
 
 That's it! When you execute the code, you'll receive a single notification on your email if any object is detected. The notification is sent immediately, not repeatedly. However, feel free to customize the code to suit your project requirements.
 
 #### Email Received Sample
 
 <img width="256" src="https://github.com/ultralytics/docs/releases/download/0/email-received-sample.avif" alt="Email Received Sample">
+
+### Arguments `SecurityAlarm`
+
+Here's a table with the `SecurityAlarm` arguments:
+
+| Name         | Type   | Default | Description                                             |
+| ------------ | ------ | ------- | ------------------------------------------------------- |
+| `model`      | `str`  | `None`  | Path to Ultralytics YOLO Model File                     |
+| `line_width` | `int`  | `2`     | Line thickness for bounding boxes.                      |
+| `show`       | `bool` | `False` | Flag to control whether to display the video stream.    |
+| `records`    | `int`  | `5`     | Total detections count to send an email about security. |
+
+### Arguments `model.track`
+
+{% include "macros/track-args.md" %}
 
 ## FAQ
 

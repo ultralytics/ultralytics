@@ -201,7 +201,7 @@ To reproduce the above Ultralytics benchmarks on all [export formats](../modes/e
         model = YOLO("yolo11n.pt")
 
         # Benchmark YOLO11n speed and accuracy on the COCO8 dataset for all all export formats
-        results = model.benchmarks(data="coco8.yaml", imgsz=640)
+        results = model.benchmark(data="coco8.yaml", imgsz=640)
         ```
 
     === "CLI"

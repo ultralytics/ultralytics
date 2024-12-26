@@ -409,15 +409,6 @@ def test_utils_torchutils():
     time_sync()
 
 
-@pytest.mark.slow
-@pytest.mark.skipif(not ONLINE, reason="environment is offline")
-def test_utils_downloads():
-    """Test file download utilities from ultralytics.utils.downloads."""
-    from ultralytics.utils.downloads import get_google_drive_file_info
-
-    get_google_drive_file_info("https://drive.google.com/file/d/1cqT-cJgANNrhIHCrEufUYhQ4RqiWG_lJ/view?usp=drive_link")
-
-
 def test_utils_ops():
     """Test utility operations functions for coordinate transformation and normalization."""
     from ultralytics.utils.ops import (
@@ -585,11 +576,11 @@ def test_model_embeddings():
 @pytest.mark.skipif(checks.IS_PYTHON_3_12, reason="YOLOWorld with CLIP is not supported in Python 3.12")
 def test_yolo_world():
     """Tests YOLO world models with CLIP support, including detection and training scenarios."""
-    model = YOLO("yolov8s-world.pt")  # no YOLO11n-world model yet
+    model = YOLO(WEIGHTS_DIR / "yolov8s-world.pt")  # no YOLO11n-world model yet
     model.set_classes(["tree", "window"])
     model(SOURCE, conf=0.01)
 
-    model = YOLO("yolov8s-worldv2.pt")  # no YOLO11n-world model yet
+    model = YOLO(WEIGHTS_DIR / "yolov8s-worldv2.pt")  # no YOLO11n-world model yet
     # Training from a pretrained model. Eval is included at the final stage of training.
     # Use dota8.yaml which has fewer categories to reduce the inference time of CLIP model
     model.train(

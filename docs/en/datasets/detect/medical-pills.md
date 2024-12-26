@@ -91,7 +91,7 @@ The medical-pills dataset features labeled images showcasing the diversity of pi
 
 The dataset is available under the [AGPL-3.0 License](https://github.com/ultralytics/ultralytics/blob/main/LICENSE).
 
-If you use the Medicinal-pill dataset in your research or development work, please cite it using the mentioned details:
+If you use the Medical-pills dataset in your research or development work, please cite it using the mentioned details:
 
 !!! quote ""
 
@@ -106,7 +106,7 @@ If you use the Medicinal-pill dataset in your research or development work, plea
             url = {https://docs.ultralytics.com/datasets/detect/medical-pills/},
             version = {1.0.0},
             year = {2024}
-            }
+        }
         ```
 
 ## FAQ

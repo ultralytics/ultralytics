@@ -129,20 +129,26 @@ for result, frame in model.predict():
 
 To customize your Ultralytics training routine using callbacks, you can inject your logic at specific stages of the training process. Ultralytics YOLO provides a variety of training callbacks such as `on_train_start`, `on_train_end`, and `on_train_batch_end`. These allow you to add custom metrics, processing, or logging.
 
-Here's an example of how to log additional metrics at the end of each training epoch:
+Here's an example of how to freeze BatchNorm statistics when freezing layers with callbacks:
 
 ```python
 from ultralytics import YOLO
 
 
-def on_train_epoch_end(trainer):
-    """Custom logic for additional metrics logging at the end of each training epoch."""
-    additional_metric = compute_additional_metric(trainer)
-    trainer.log({"additional_metric": additional_metric})
+# Add a callback to put the frozen layers in eval mode to prevent BN values from changing
+def put_in_eval_mode(trainer):
+    n_layers = trainer.args.freeze
+    if not isinstance(n_layers, int):
+        return
+
+    for i, (name, module) in enumerate(trainer.model.named_modules()):
+        if name.endswith("bn") and int(name.split(".")[1]) < n_layers:
+            module.eval()
+            module.track_running_stats = False
 
 
 model = YOLO("yolo11n.pt")
-model.add_callback("on_train_epoch_end", on_train_epoch_end)
+model.add_callback("on_train_epoch_start", put_in_eval_mode)
 model.train(data="coco.yaml", epochs=10)
 ```
 
@@ -152,20 +158,23 @@ Refer to the [Training Guide](../modes/train.md) for more details on how to effe
 
 Using **callbacks during validation** in Ultralytics YOLO can enhance model evaluation by allowing custom processing, logging, or metrics calculation. Callbacks such as `on_val_start`, `on_val_batch_end`, and `on_val_end` provide entry points to inject custom logic, ensuring detailed and comprehensive validation processes.
 
-For instance, you might want to log additional validation metrics or save intermediate results for further analysis. Here's an example of how to log custom metrics at the end of validation:
+For instance, you might want to plot all the validation batches, instead of just the first 3. Here's how you can do that:
 
 ```python
+import inspect
+
 from ultralytics import YOLO
 
 
-def on_val_end(validator):
-    """Log custom metrics at end of validation."""
-    custom_metric = compute_custom_metric(validator)
-    validator.log({"custom_metric": custom_metric})
+def plot_samples(validator):
+    frame = inspect.currentframe().f_back.f_back
+    v = frame.f_locals
+    validator.plot_val_samples(v["batch"], v["batch_i"])
+    validator.plot_predictions(v["batch"], v["preds"], v["batch_i"])
 
 
 model = YOLO("yolo11n.pt")
-model.add_callback("on_val_end", on_val_end)
+model.add_callback("on_val_batch_end", plot_samples)
 model.val(data="coco.yaml")
 ```
 
@@ -175,21 +184,29 @@ Check out the [Validation Guide](../modes/val.md) for further insights on incorp
 
 To attach a custom callback for the **prediction mode** in Ultralytics YOLO, you define a callback function and register it with the prediction process. Common prediction callbacks include `on_predict_start`, `on_predict_batch_end`, and `on_predict_end`. These allow for modification of prediction outputs and integration of additional functionalities like data logging or result transformation.
 
-Here is an example where a custom callback is used to log predictions:
+Here is an example where a custom callback is used to save predictions based on whether an object of a particular class is present:
 
 ```python
 from ultralytics import YOLO
 
-
-def on_predict_end(predictor):
-    """Log predictions at the end of prediction."""
-    for result in predictor.results:
-        log_prediction(result)
-
-
 model = YOLO("yolo11n.pt")
-model.add_callback("on_predict_end", on_predict_end)
-results = model.predict(source="image.jpg")
+
+class_id = 2
+
+
+def save_on_object(predictor):
+    r = predictor.results[0]
+    if class_id in r.boxes.cls:
+        predictor.args.save = True
+    else:
+        predictor.args.save = False
+
+
+model.add_callback("on_predict_postprocess_end", save_on_object)
+results = model("pedestrians.mp4", stream=True, save=True)
+
+for results in results:
+    pass
 ```
 
 For more comprehensive usage, refer to the [Prediction Guide](../modes/predict.md) which includes detailed instructions and additional customization options.

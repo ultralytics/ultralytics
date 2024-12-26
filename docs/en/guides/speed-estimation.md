@@ -72,7 +72,7 @@ keywords: Ultralytics YOLO11, speed estimation, object tracking, computer vision
 
         speed = solutions.SpeedEstimator(
             show=True,  # Display the output
-            model="yolo11n-pose.pt",  # Path to the YOLO11 model file.
+            model="yolo11n.pt",  # Path to the YOLO11 model file.
             region=speed_region,  # Pass region points
             # classes=[0, 2],  # If you want to estimate speed of specific classes.
             # line_width=2,  # Adjust the line width for bounding boxes and text display
@@ -81,18 +81,14 @@ keywords: Ultralytics YOLO11, speed estimation, object tracking, computer vision
         # Process video
         while cap.isOpened():
             success, im0 = cap.read()
-
-            if success:
-                out = speed.estimate_speed(im0)
-                video_writer.write(im0)
-                if cv2.waitKey(1) & 0xFF == ord("q"):
-                    break
-                continue
-
-            print("Video frame is empty or video processing has been successfully completed.")
-            break
+            if not success:
+                print("Video frame is empty or video processing has been successfully completed.")
+                break
+            out = speed.estimate_speed(im0)
+            video_writer.write(im0)
 
         cap.release()
+        video_writer.release()
         cv2.destroyAllWindows()
         ```
 

@@ -352,7 +352,7 @@ To reproduce the Ultralytics benchmarks above on all export [formats](../modes/e
         model = YOLO("yolov8n.pt")
 
         # Benchmark YOLOv8n speed and accuracy on the COCO8 dataset for all export formats
-        results = model.benchmarks(data="coco8.yaml")
+        results = model.benchmark(data="coco8.yaml")
         ```
 
     === "CLI"
@@ -466,7 +466,7 @@ Yes, you can benchmark YOLOv8 models in various formats including PyTorch, Torch
         model = YOLO("yolov8n.pt")
 
         # Benchmark YOLOv8n speed and [accuracy](https://www.ultralytics.com/glossary/accuracy) on the COCO8 dataset for all export formats
-        results = model.benchmarks(data="coco8.yaml")
+        results = model.benchmark(data="coco8.yaml")
         ```
 
     === "CLI"

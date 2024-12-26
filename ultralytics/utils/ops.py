@@ -75,8 +75,13 @@ def segment2box(segment, width=640, height=640):
         (np.ndarray): the minimum and maximum x and y values of the segment.
     """
     x, y = segment.T  # segment xy
-    x = x.clip(0, width)
-    y = y.clip(0, height)
+    # any 3 out of 4 sides are outside the image, clip coordinates first, https://github.com/ultralytics/ultralytics/pull/18294
+    if np.array([x.min() < 0, y.min() < 0, x.max() > width, y.max() > height]).sum() >= 3:
+        x = x.clip(0, width)
+        y = y.clip(0, height)
+    inside = (x >= 0) & (y >= 0) & (x <= width) & (y <= height)
+    x = x[inside]
+    y = y[inside]
     return (
         np.array([x.min(), y.min(), x.max(), y.max()], dtype=segment.dtype)
         if any(x)
@@ -400,7 +405,7 @@ def xyxy2xywh(x):
         y (np.ndarray | torch.Tensor): The bounding box coordinates in (x, y, width, height) format.
     """
     assert x.shape[-1] == 4, f"input shape last dimension expected 4 but input shape is {x.shape}"
-    y = torch.empty_like(x) if isinstance(x, torch.Tensor) else np.empty_like(x)  # faster than clone/copy
+    y = empty_like(x)  # faster than clone/copy
     y[..., 0] = (x[..., 0] + x[..., 2]) / 2  # x center
     y[..., 1] = (x[..., 1] + x[..., 3]) / 2  # y center
     y[..., 2] = x[..., 2] - x[..., 0]  # width
@@ -420,7 +425,7 @@ def xywh2xyxy(x):
         y (np.ndarray | torch.Tensor): The bounding box coordinates in (x1, y1, x2, y2) format.
     """
     assert x.shape[-1] == 4, f"input shape last dimension expected 4 but input shape is {x.shape}"
-    y = torch.empty_like(x) if isinstance(x, torch.Tensor) else np.empty_like(x)  # faster than clone/copy
+    y = empty_like(x)  # faster than clone/copy
     xy = x[..., :2]  # centers
     wh = x[..., 2:] / 2  # half width-height
     y[..., :2] = xy - wh  # top left xy
@@ -443,7 +448,7 @@ def xywhn2xyxy(x, w=640, h=640, padw=0, padh=0):
             x1,y1 is the top-left corner, x2,y2 is the bottom-right corner of the bounding box.
     """
     assert x.shape[-1] == 4, f"input shape last dimension expected 4 but input shape is {x.shape}"
-    y = torch.empty_like(x) if isinstance(x, torch.Tensor) else np.empty_like(x)  # faster than clone/copy
+    y = empty_like(x)  # faster than clone/copy
     y[..., 0] = w * (x[..., 0] - x[..., 2] / 2) + padw  # top left x
     y[..., 1] = h * (x[..., 1] - x[..., 3] / 2) + padh  # top left y
     y[..., 2] = w * (x[..., 0] + x[..., 2] / 2) + padw  # bottom right x
@@ -469,7 +474,7 @@ def xyxy2xywhn(x, w=640, h=640, clip=False, eps=0.0):
     if clip:
         x = clip_boxes(x, (h - eps, w - eps))
     assert x.shape[-1] == 4, f"input shape last dimension expected 4 but input shape is {x.shape}"
-    y = torch.empty_like(x) if isinstance(x, torch.Tensor) else np.empty_like(x)  # faster than clone/copy
+    y = empty_like(x)  # faster than clone/copy
     y[..., 0] = ((x[..., 0] + x[..., 2]) / 2) / w  # x center
     y[..., 1] = ((x[..., 1] + x[..., 3]) / 2) / h  # y center
     y[..., 2] = (x[..., 2] - x[..., 0]) / w  # width
@@ -624,9 +629,12 @@ def resample_segments(segments, n=1000):
         segments (list): the resampled segments.
     """
     for i, s in enumerate(segments):
+        if len(s) == n:
+            continue
         s = np.concatenate((s, s[0:1, :]), axis=0)
-        x = np.linspace(0, len(s) - 1, n)
+        x = np.linspace(0, len(s) - 1, n - len(s) if len(s) < n else n)
         xp = np.arange(len(s))
+        x = np.insert(x, np.searchsorted(x, xp), xp) if len(s) < n else x
         segments[i] = (
             np.concatenate([np.interp(x, xp, s[:, i]) for i in range(2)], dtype=np.float32).reshape(2, -1).T
         )  # segment xy
@@ -837,3 +845,10 @@ def clean_str(s):
         (str): a string with special characters replaced by an underscore _
     """
     return re.sub(pattern="[|@#!¡·$€%&()=?¿^*;:,¨´><+]", repl="_", string=s)
+
+
+def empty_like(x):
+    """Creates empty torch.Tensor or np.ndarray with same shape as input and float32 dtype."""
+    return (
+        torch.empty_like(x, dtype=torch.float32) if isinstance(x, torch.Tensor) else np.empty_like(x, dtype=np.float32)
+    )

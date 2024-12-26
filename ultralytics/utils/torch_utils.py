@@ -617,6 +617,32 @@ def convert_optimizer_state_dict_to_fp16(state_dict):
     return state_dict
 
 
+@contextmanager
+def cuda_memory_usage(device=None):
+    """
+    Monitor and manage CUDA memory usage.
+
+    This function checks if CUDA is available and, if so, empties the CUDA cache to free up unused memory.
+    It then yields a dictionary containing memory usage information, which can be updated by the caller.
+    Finally, it updates the dictionary with the amount of memory reserved by CUDA on the specified device.
+
+    Args:
+        device (torch.device, optional): The CUDA device to query memory usage for. Defaults to None.
+
+    Yields:
+        (dict): A dictionary with a key 'memory' initialized to 0, which will be updated with the reserved memory.
+    """
+    cuda_info = dict(memory=0)
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+        try:
+            yield cuda_info
+        finally:
+            cuda_info["memory"] = torch.cuda.memory_reserved(device)
+    else:
+        yield cuda_info
+
+
 def profile(input, ops, n=10, device=None, max_num_obj=0):
     """
     Ultralytics speed, memory and FLOPs profiler.
@@ -653,27 +679,31 @@ def profile(input, ops, n=10, device=None, max_num_obj=0):
                 flops = 0
 
             try:
+                mem = 0
                 for _ in range(n):
-                    t[0] = time_sync()
-                    y = m(x)
-                    t[1] = time_sync()
-                    try:
-                        (sum(yi.sum() for yi in y) if isinstance(y, list) else y).sum().backward()
-                        t[2] = time_sync()
-                    except Exception:  # no backward method
-                        # print(e)  # for debug
-                        t[2] = float("nan")
+                    with cuda_memory_usage(device) as cuda_info:
+                        t[0] = time_sync()
+                        y = m(x)
+                        t[1] = time_sync()
+                        try:
+                            (sum(yi.sum() for yi in y) if isinstance(y, list) else y).sum().backward()
+                            t[2] = time_sync()
+                        except Exception:  # no backward method
+                            # print(e)  # for debug
+                            t[2] = float("nan")
+                    mem += cuda_info["memory"] / 1e9  # (GB)
                     tf += (t[1] - t[0]) * 1000 / n  # ms per op forward
                     tb += (t[2] - t[1]) * 1000 / n  # ms per op backward
                     if max_num_obj:  # simulate training with predictions per image grid (for AutoBatch)
-                        torch.randn(
-                            x.shape[0],
-                            max_num_obj,
-                            int(sum((x.shape[-1] / s) * (x.shape[-2] / s) for s in m.stride.tolist())),
-                            device=device,
-                            dtype=torch.float32,
-                        )
-                mem = torch.cuda.memory_reserved() / 1e9 if torch.cuda.is_available() else 0  # (GB)
+                        with cuda_memory_usage(device) as cuda_info:
+                            torch.randn(
+                                x.shape[0],
+                                max_num_obj,
+                                int(sum((x.shape[-1] / s) * (x.shape[-2] / s) for s in m.stride.tolist())),
+                                device=device,
+                                dtype=torch.float32,
+                            )
+                        mem += cuda_info["memory"] / 1e9  # (GB)
                 s_in, s_out = (tuple(x.shape) if isinstance(x, torch.Tensor) else "list" for x in (x, y))  # shapes
                 p = sum(x.numel() for x in m.parameters()) if isinstance(m, nn.Module) else 0  # parameters
                 LOGGER.info(f"{p:12}{flops:12.4g}{mem:>14.3f}{tf:14.4g}{tb:14.4g}{str(s_in):>24s}{str(s_out):>24s}")

@@ -90,7 +90,7 @@ def benchmark(
 
     y = []
     t0 = time.time()
-    for i, (name, format, suffix, cpu, gpu) in enumerate(zip(*export_formats().values())):
+    for i, (name, format, suffix, cpu, gpu, _) in enumerate(zip(*export_formats().values())):
         emoji, filename = "❌", None  # export defaults
         try:
             # Checks
@@ -440,7 +440,8 @@ class ProfileModels:
         print(f"Profiling: {sorted(files)}")
         return [Path(file) for file in sorted(files)]
 
-    def get_onnx_model_info(self, onnx_file: str):
+    @staticmethod
+    def get_onnx_model_info(onnx_file: str):
         """Extracts metadata from an ONNX model file including parameters, GFLOPs, and input shape."""
         return 0.0, 0.0, 0.0, 0.0  # return (num_layers, num_params, num_gradients, num_flops)
 

@@ -102,11 +102,11 @@ jobs:
         python-version: ["3.11"]
         model: [yolo11n]
     steps:
-      - uses: astral-sh/setup-uv@v5
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+      - uses: astral-sh/setup-uv@v5
       - name: Install requirements
         shell: bash # for Windows compatibility
         run: |

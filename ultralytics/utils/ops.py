@@ -75,8 +75,13 @@ def segment2box(segment, width=640, height=640):
         (np.ndarray): the minimum and maximum x and y values of the segment.
     """
     x, y = segment.T  # segment xy
-    x = x.clip(0, width)
-    y = y.clip(0, height)
+    # any 3 out of 4 sides are outside the image, clip coordinates first, https://github.com/ultralytics/ultralytics/pull/18294
+    if np.array([x.min() < 0, y.min() < 0, x.max() > width, y.max() > height]).sum() >= 3:
+        x = x.clip(0, width)
+        y = y.clip(0, height)
+    inside = (x >= 0) & (y >= 0) & (x <= width) & (y <= height)
+    x = x[inside]
+    y = y[inside]
     return (
         np.array([x.min(), y.min(), x.max(), y.max()], dtype=segment.dtype)
         if any(x)
@@ -624,6 +629,8 @@ def resample_segments(segments, n=1000):
         segments (list): the resampled segments.
     """
     for i, s in enumerate(segments):
+        if len(s) == n:
+            continue
         s = np.concatenate((s, s[0:1, :]), axis=0)
         x = np.linspace(0, len(s) - 1, n - len(s) if len(s) < n else n)
         xp = np.arange(len(s))

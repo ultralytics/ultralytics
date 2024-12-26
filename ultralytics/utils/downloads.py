@@ -138,7 +138,7 @@ def unzip_file(file, path=None, exclude=(".DS_Store", "__MACOSX"), exist_ok=Fals
     If a path is not provided, the function will use the parent directory of the zipfile as the default path.
 
     Args:
-        file (str): The path to the zipfile to be extracted.
+        file (str | Path): The path to the zipfile to be extracted.
         path (str, optional): The path to extract the zipfile to. Defaults to None.
         exclude (tuple, optional): A tuple of filename strings to be excluded. Defaults to ('.DS_Store', '__MACOSX').
         exist_ok (bool, optional): Whether to overwrite existing contents if they exist. Defaults to False.

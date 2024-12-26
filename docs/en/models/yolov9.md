@@ -197,7 +197,7 @@ We would like to acknowledge the YOLOv9 authors for their significant contributi
         }
         ```
 
-The original YOLOv9 paper can be found on [arXiv](https://arxiv.org/pdf/2402.13616.pdf). The authors have made their work publicly available, and the codebase can be accessed on [GitHub](https://github.com/WongKinYiu/yolov9). We appreciate their efforts in advancing the field and making their work accessible to the broader community.
+The original YOLOv9 paper can be found on [arXiv](https://arxiv.org/pdf/2402.13616). The authors have made their work publicly available, and the codebase can be accessed on [GitHub](https://github.com/WongKinYiu/yolov9). We appreciate their efforts in advancing the field and making their work accessible to the broader community.
 
 ## FAQ
 

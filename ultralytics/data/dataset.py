@@ -68,7 +68,7 @@ class YOLODataset(BaseDataset):
         Cache dataset labels, check images and read shapes.
 
         Args:
-            path (Path): Path where to save the cache file. Default is Path('./labels.cache').
+            path (Path): Path where to save the cache file. Default is Path("./labels.cache").
 
         Returns:
             (dict): labels.
@@ -219,7 +219,7 @@ class YOLODataset(BaseDataset):
         segment_resamples = 100 if self.use_obb else 1000
         if len(segments) > 0:
             # make sure segments interpolate correctly if original length is greater than segment_resamples
-            max_len = max([len(s) for s in segments])
+            max_len = max(len(s) for s in segments)
             segment_resamples = (max_len + 1) if segment_resamples < max_len else segment_resamples
             # list[np.array(segment_resamples, 2)] * num_samples
             segments = np.stack(resample_segments(segments, n=segment_resamples), axis=0)

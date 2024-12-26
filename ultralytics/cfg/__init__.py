@@ -86,7 +86,7 @@ SOLUTIONS_HELP_MSG = f"""
         yolo solutions count source="path/to/video/file.mp4" region=[(20, 400), (1080, 400), (1080, 360), (20, 360)]
 
     2. Call heatmaps solution
-        yolo solutions heatmap colormap=cv2.COLORMAP_PARAULA model=yolo11n.pt
+        yolo solutions heatmap colormap=cv2.COLORMAP_PARULA model=yolo11n.pt
 
     3. Call queue management solution
         yolo solutions queue region=[(20, 400), (1080, 400), (1080, 360), (20, 360)] model=yolo11n.pt
@@ -694,7 +694,7 @@ def handle_yolo_solutions(args: List[str]) -> None:
                 str(ROOT / "solutions/streamlit_inference.py"),
                 "--server.headless",
                 "true",
-                overrides["model"],
+                overrides.pop("model", "yolo11n.pt"),
             ]
         )
     else:

@@ -1,7 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import io
-import time
 from typing import Any
 
 import cv2
@@ -52,11 +51,19 @@ class Inference:
         check_requirements("streamlit>=1.29.0")  # scope imports for faster ultralytics package load speeds
         import streamlit as st
 
-        self.st = st
+        self.st = st  # Reference to the Streamlit class instance
+        self.source = None  # Placeholder for video or webcam source details
+        self.enable_trk = False  # Flag to toggle object tracking
+        self.conf = 0.25  # Confidence threshold for detection
+        self.iou = 0.45  # Intersection-over-Union (IoU) threshold for non-maximum suppression
+        self.org_frame = None  # Container for the original frame to be displayed
+        self.ann_frame = None  # Container for the annotated frame to be displayed
+        self.vid_file_name = None  # Holds the name of the video file
+        self.selected_ind = []  # List of selected classes for detection or tracking
+        self.model = None  # Container for the loaded model instance
 
         self.temp_dict = {"model": None}  # Temporary dict to store the model path
         self.temp_dict.update(kwargs)
-
         self.model_path = None  # Store model file name with path
         if self.temp_dict["model"] is not None:
             self.model_path = self.temp_dict["model"]
@@ -77,7 +84,7 @@ class Inference:
         of Ultralytics YOLO! 🚀</h4></div>"""
 
         # Set html page configuration and append custom HTML
-        self.st.set_page_config(page_title="Ultralytics Streamlit App", layout="wide", initial_sidebar_state="auto")
+        self.st.set_page_config(page_title="Ultralytics Streamlit App", layout="wide")
         self.st.markdown(menu_style_cfg, unsafe_allow_html=True)
         self.st.markdown(main_title_cfg, unsafe_allow_html=True)
         self.st.markdown(sub_title_cfg, unsafe_allow_html=True)
@@ -94,13 +101,14 @@ class Inference:
             ("webcam", "video"),
         )  # Add source selection dropdown
         self.enable_trk = self.st.sidebar.radio("Enable Tracking", ("Yes", "No"))  # Enable object tracking
-        self.conf = float(self.st.sidebar.slider("Confidence Threshold", 0.0, 1.0, 0.25, 0.01))  # Slider for confidence
-        self.iou = float(self.st.sidebar.slider("IoU Threshold", 0.0, 1.0, 0.45, 0.01))  # Slider for NMS threshold
+        self.conf = float(
+            self.st.sidebar.slider("Confidence Threshold", 0.0, 1.0, self.conf, 0.01)
+        )  # Slider for confidence
+        self.iou = float(self.st.sidebar.slider("IoU Threshold", 0.0, 1.0, self.iou, 0.01))  # Slider for NMS threshold
 
         col1, col2 = self.st.columns(2)
         self.org_frame = col1.empty()
         self.ann_frame = col2.empty()
-        self.fps_display = self.st.sidebar.empty()  # Placeholder for FPS display
 
     def source_upload(self):
         """Handles video file uploads through the Streamlit interface."""
@@ -150,10 +158,8 @@ class Inference:
             while cap.isOpened():
                 success, frame = cap.read()
                 if not success:
-                    st.warning("Failed to read frame from webcam. Please make sure the webcam is connected properly.")
+                    self.st.warning("Failed to read frame from webcam. Please verify the webcam is connected properly.")
                     break
-
-                prev_time = time.time()  # Store initial time for FPS calculation
 
                 # Store model predictions
                 if self.enable_trk == "Yes":
@@ -164,13 +170,10 @@ class Inference:
                     results = self.model(frame, conf=self.conf, iou=self.iou, classes=self.selected_ind)
                 annotated_frame = results[0].plot()  # Add annotations on frame
 
-                fps = 1 / (time.time() - prev_time)  # Calculate model FPS
-
                 if stop_button:
                     cap.release()  # Release the capture
                     self.st.stop()  # Stop streamlit app
 
-                self.fps_display.metric("FPS", f"{fps:.2f}")  # Display FPS in sidebar
                 self.org_frame.image(frame, channels="BGR")  # Display original frame
                 self.ann_frame.image(annotated_frame, channels="BGR")  # Display processed frame
 
@@ -186,7 +189,7 @@ if __name__ == "__main__":
     # Check if a model name is provided as a command-line argument
     args = len(sys.argv)
     if args > 1:
-        model = args  # Assign the first argument as the model name
+        model = sys.argv[1]  # Assign the first argument as the model name
 
     # Create an instance of the Inference class and run inference
     Inference(model=model).inference()

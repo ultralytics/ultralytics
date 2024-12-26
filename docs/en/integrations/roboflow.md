@@ -161,7 +161,7 @@ You are now ready to train YOLO11 on a custom dataset. Follow this [written guid
 
 ## Upload Custom YOLO11 Model Weights for Testing and Deployment
 
-Roboflow offers an infinitely scalable API for deployed models and SDKs for use with NVIDIA Jetsons, Luxonis OAKs, Raspberry Pis, GPU-based devices, and more.
+Roboflow offers a scalable API for deployed models and SDKs for use with NVIDIA Jetson, Luxonis OAK, Raspberry Pi, GPU-based devices, and more.
 
 You can deploy YOLO11 models by uploading YOLO11 weights to Roboflow. You can do this in a few lines of Python code. Create a new Python file and add the following code:
 

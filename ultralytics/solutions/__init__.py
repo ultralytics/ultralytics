@@ -8,8 +8,9 @@ from .object_counter import ObjectCounter
 from .parking_management import ParkingManagement, ParkingPtsSelection
 from .queue_management import QueueManager
 from .region_counter import RegionCounter
+from .security_alarm import SecurityAlarm
 from .speed_estimation import SpeedEstimator
-from .streamlit_inference import inference
+from .streamlit_inference import Inference
 from .trackzone import TrackZone
 
 __all__ = (
@@ -22,7 +23,8 @@ __all__ = (
     "QueueManager",
     "SpeedEstimator",
     "Analytics",
-    "inference",
+    "Inference",
     "RegionCounter",
     "TrackZone",
+    "SecurityAlarm",
 )

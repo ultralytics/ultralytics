@@ -1377,7 +1377,7 @@ class SAM2VideoPredictor(SAM2Predictor):
             if "maskmem_pos_enc" not in model_constants:
                 assert isinstance(out_maskmem_pos_enc, list)
                 # only take the slice for one object, since it's same across objects
-                maskmem_pos_enc = [x[0:1].clone() for x in out_maskmem_pos_enc]
+                maskmem_pos_enc = [x[:1].clone() for x in out_maskmem_pos_enc]
                 model_constants["maskmem_pos_enc"] = maskmem_pos_enc
             else:
                 maskmem_pos_enc = model_constants["maskmem_pos_enc"]

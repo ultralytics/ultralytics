@@ -17,7 +17,6 @@ __all__ = (
     "SOURCE",
     "SOURCES_LIST",
     "TMP",
-    "IS_TMP_WRITEABLE",
     "CUDA_IS_AVAILABLE",
     "CUDA_DEVICE_COUNT",
 )

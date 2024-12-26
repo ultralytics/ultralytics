@@ -55,7 +55,7 @@ def test_major_solutions():
     cap = cv2.VideoCapture(str(TMP / POSE_VIDEO))
     assert cap.isOpened(), "Error reading video file"
     gym = solutions.AIGym(kpts=[5, 11, 13], show=False)
-    while cap1.isOpened():
+    while cap.isOpened():
         success, im0 = cap.read()
         if not success:
             break

@@ -813,7 +813,7 @@ class Exporter:
         workspace = int(self.args.workspace * (1 << 30)) if self.args.workspace is not None else 0
         if is_trt10 and workspace > 0:
             config.set_memory_pool_limit(trt.MemoryPoolType.WORKSPACE, workspace)
-        elif workspace > 0 and not is_trt10:  # TensorRT versions 7, 8
+        elif workspace > 0:  # TensorRT versions 7, 8
             config.max_workspace_size = workspace
         flag = 1 << int(trt.NetworkDefinitionCreationFlag.EXPLICIT_BATCH)
         network = builder.create_network(flag)

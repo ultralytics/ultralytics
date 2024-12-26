@@ -34,6 +34,9 @@ class SecurityAlarm(BaseSolution):
         super().__init__(**kwargs)
         self.email_sent = False
         self.records = self.CFG["records"]
+        self.server = None
+        self.to_email = ""
+        self.from_email = ""
 
     def authenticate(self, from_email, password, to_email):
         """
@@ -91,7 +94,7 @@ class SecurityAlarm(BaseSolution):
 
         # Add the text message body
         message_body = f"Ultralytics ALERT!!! " f"{records} objects have been detected!!"
-        message.attach(MIMEText(message_body, "plain"))
+        message.attach(MIMEText(message_body))
 
         # Attach the image
         image_attachment = MIMEImage(img_bytes, name="ultralytics.jpg")
@@ -132,10 +135,9 @@ class SecurityAlarm(BaseSolution):
             self.annotator.box_label(box, label=self.names[cls], color=colors(cls, True))
 
         total_det = len(self.clss)
-        if total_det > self.records:  # Only send email If not sent before
-            if not self.email_sent:
-                self.send_email(im0, total_det)
-                self.email_sent = True
+        if total_det > self.records and not self.email_sent:  # Only send email If not sent before
+            self.send_email(im0, total_det)
+            self.email_sent = True
 
         self.display_output(im0)  # display output with base class function
 

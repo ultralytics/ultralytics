@@ -111,7 +111,7 @@ Explore the Ultralytics Docs, a comprehensive resource designed to help you unde
 
     ***
 
-    Ultralytics offers two licensing options for YOLO: AGPL-3.0 License and Enterprise License. Ultralytics is available on [GitHub](https://github.com/ultralytics/ultralytics)
+    Ultralytics offers two YOLO licenses: AGPL-3.0 and Enterprise. Explore YOLO on [GitHub](https://github.com/ultralytics/ultralytics).
 
     ***
 

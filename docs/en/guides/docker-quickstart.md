@@ -28,7 +28,7 @@ This guide serves as a comprehensive introduction to setting up a Docker environ
 ## Prerequisites
 
 - Make sure Docker is installed on your system. If not, you can download and install it from [Docker's website](https://www.docker.com/products/docker-desktop/).
-- Ensure that your system has an NVIDIA GPU and NVIDIA drivers are installed.
+- (Optional) Ensure that your system has an NVIDIA GPU and NVIDIA drivers are installed.
 
 ---
 
@@ -67,6 +67,19 @@ docker info | grep -i runtime
 ```
 
 ---
+
+## Official Ultralytics Docker Images
+
+Ultralytics is a Docker Verified Publisher, providing a range of convenient, ready-to-use images directly available on Docker Hub. These images streamline your workflow, allowing you to test Ultralytics YOLO securely and efficiently without the hassle of installing dependencies. The official Ultralytics Docker images are optimized for various platforms and use-cases, including GPU, CPU, ARM64, and NVIDIA Jetson devices.
+
+
+
+
+<!-- 1. **[ultralytics/ultralytics](https://hub.docker.com/r/ultralytics/ultralytics):** The official Ultralytics Docker image, optimized for various platforms and use-cases. This image is ideal for training and inference with YOLO models. It includes all necessary dependencies and libraries pre-installed. To pull the latest image, run:
+
+    ```bash
+    sudo docker pull ultralytics/ultralytics:latest
+    ``` -->
 
 ## Installing Ultralytics Docker Images
 

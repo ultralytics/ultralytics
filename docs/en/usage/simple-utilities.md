@@ -63,7 +63,7 @@ label_map = {   # Define the label map with all annotated class labels.
 # Visualize
 visualize_image_annotations(
     "path/to/image.jpg",    # Input image path.
-    "path/to/annotations.txt",  # Annotation file path for image.
+    "path/to/annotations.txt",  # Annotation file path for the image.
     label_map)
 ```
 

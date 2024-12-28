@@ -1161,8 +1161,6 @@ class SAM2VideoPredictor(SAM2Predictor):
         assert predictor.dataset is not None
         assert predictor.dataset.mode == "video"
 
-        from collections import OrderedDict
-
         inference_state = {}
         inference_state["num_frames"] = predictor.dataset.frames
         # inputs on each frame

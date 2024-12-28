@@ -13,7 +13,7 @@ Welcome to the YOLOv8 OpenVINO Inference example in C++! This guide will help yo
 To ensure smooth execution, please make sure you have the following dependencies installed:
 
 | Dependency | Version  |
-|------------|----------|
+| ---------- | -------- |
 | OpenVINO   | >=2023.3 |
 | OpenCV     | >=4.5.0  |
 | C++        | >=14     |

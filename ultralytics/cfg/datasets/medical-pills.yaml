@@ -1,0 +1,21 @@
+# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Medical-pills dataset by Ultralytics
+# Documentation: https://docs.ultralytics.com/datasets/detect/medical-pills/
+# Example usage: yolo train data=medical-pills.yaml
+# parent
+# ├── ultralytics
+# └── datasets
+#     └── medical-pills  ← downloads here (8.19 MB)
+
+# Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
+path: ../datasets/medical-pills # dataset root dir
+train: train/images # train images (relative to 'path') 92 images
+val: valid/images # val images (relative to 'path') 23 images
+test: # test images (relative to 'path')
+
+# Classes
+names:
+  0: pill
+
+# Download script/URL (optional)
+download: https://github.com/ultralytics/assets/releases/download/v0.0.0/medical-pills.zip

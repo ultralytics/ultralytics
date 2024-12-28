@@ -245,7 +245,7 @@ class BaseValidator:
 
                 cost_matrix = iou * (iou >= threshold)
                 if cost_matrix.any():
-                    labels_idx, detections_idx = scipy.optimize.linear_sum_assignment(cost_matrix, maximize=True)
+                    labels_idx, detections_idx = scipy.optimize.linear_sum_assignment(cost_matrix)
                     valid = cost_matrix[labels_idx, detections_idx] > 0
                     if valid.any():
                         correct[detections_idx[valid], i] = True

@@ -1,6 +1,7 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 from ultralytics.solutions.solutions import BaseSolution
+from ultralytics.utils import LOGGER
 from ultralytics.utils.plotting import Annotator, colors
 
 
@@ -81,6 +82,9 @@ class RegionCounter(BaseSolution):
 
         # Draw regions and process counts for each defined area
         for idx, (region_name, reg_pts) in enumerate(regions.items(), start=1):
+            if not isinstance(reg_pts, list) or not all(isinstance(pt, tuple) for pt in reg_pts):
+                LOGGER.warning(f"Invalid region points for {region_name}: {reg_pts}")
+                continue  # Skip invalid entries
             color = colors(idx, True)
             self.annotator.draw_region(reg_pts=reg_pts, color=color, thickness=self.line_width * 2)
             self.add_region(region_name, reg_pts, color, self.annotator.get_txt_color())

@@ -28,7 +28,7 @@ to_4tuple = _ntuple(4)
 # `ltwh` means left top and width, height(COCO format)
 _formats = ["xyxy", "xywh", "ltwh"]
 
-__all__ = ("Bboxes",)  # tuple or list
+__all__ = ("Bboxes", "Instances")  # tuple or list
 
 
 class Bboxes:

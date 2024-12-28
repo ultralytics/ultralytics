@@ -208,10 +208,10 @@ Yes, AzureML allows you to use both the Ultralytics CLI and the Python interface
 - **Python Interface**: Useful for more complex tasks requiring custom coding and integration within notebooks.
 
     ```python
-    from ultralytics import YOLO
-
-    model = YOLO("yolo11n.pt")
-    model.train(data="coco8.yaml", epochs=3)
+  from ultralytics import YOLO
+  
+  model = YOLO("yolo11n.pt")
+  model.train(data="coco8.yaml", epochs=3)
     ```
 
 Refer to the quickstart guides for more detailed instructions [here](../quickstart.md#use-ultralytics-with-cli) and [here](../quickstart.md#use-ultralytics-with-python).

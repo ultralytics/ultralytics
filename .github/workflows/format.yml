@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Run Ultralytics Formatting
-        uses: ultralytics/actions@glenn-jocher-patch-1
+        uses: ultralytics/actions@class-convert
         with:
           token: ${{ secrets._GITHUB_TOKEN || secrets.GITHUB_TOKEN}}
           labels: true # autolabel issues and PRs

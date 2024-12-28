@@ -176,7 +176,6 @@ To view YOLO inference results in a VSCode terminal on macOS or Linux, follow th
 
     import cv2
     from sixel import SixelWriter
-   
     im_bytes = cv2.imencode(".png", plot)[1].tobytes()
     mem_file = io.BytesIO(im_bytes)
     SixelWriter().draw(mem_file)
@@ -212,7 +211,6 @@ If you encounter issues displaying images in the VSCode terminal using sixel:
 
     import cv2
     from sixel import SixelWriter
-   
     im_bytes = cv2.imencode(".png", plot)[1].tobytes()
     mem_file = io.BytesIO(im_bytes)
     SixelWriter().draw(mem_file)

@@ -81,13 +81,13 @@ The VSCode compatible protocols for viewing images using the integrated terminal
 5. Create a `SixelWriter` instance, and then use the `.draw()` method to draw the image in the terminal.
 
     ```python
-    rom sixel import SixelWriter
+    from sixel import SixelWriter
 
-     Create sixel writer object
-     = SixelWriter()
+    # Create sixel writer object
+    w = SixelWriter()
 
-     Draw the sixel image in the terminal
-    .draw(mem_file)
+    # Draw the sixel image in the terminal
+    w.draw(mem_file)
     ```
 
 ## Example Inference Results
@@ -179,7 +179,7 @@ To view YOLO inference results in a VSCode terminal on macOS or Linux, follow th
 
     im_bytes = cv2.imencode(".png", plot)[1].tobytes()
     mem_file = io.BytesIO(im_bytes)
-    ixelWriter().draw(mem_file)
+    SixelWriter().draw(mem_file)
     ```
 
 For further details, visit the [predict mode](../modes/predict.md) page.
@@ -215,7 +215,7 @@ If you encounter issues displaying images in the VSCode terminal using sixel:
 
     im_bytes = cv2.imencode(".png", plot)[1].tobytes()
     mem_file = io.BytesIO(im_bytes)
-    ixelWriter().draw(mem_file)
+    SixelWriter().draw(mem_file)
     ```
 
 If problems persist, consult the [VSCode repository](https://github.com/microsoft/vscode), and visit the [plot method parameters](../modes/predict.md#plot-method-parameters) section for additional guidance.

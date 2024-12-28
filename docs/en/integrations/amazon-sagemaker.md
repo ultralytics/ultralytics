@@ -230,6 +230,7 @@ Yes, you can customize the inference logic for YOLO11 on Amazon SageMaker:
     ```python
     import json
 
+
     def output_fn(prediction_output):
         """Formats model outputs as JSON string, extracting attributes like boxes, masks, keypoints."""
         infer = {}

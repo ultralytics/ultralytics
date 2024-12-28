@@ -32,7 +32,7 @@ Dataset annotation is a very resource intensive and time-consuming process. If y
 ```{ .py .annotate }
 from ultralytics.data.annotator import auto_annotate
 
-auto_annotate(  # (1)!
+auto_annotate(
     data="path/to/new/data",
     det_model="yolo11n.pt",
     sam_model="mobile_sam.pt",
@@ -50,7 +50,7 @@ This function does not return any value. For further details on how the function
 
 ![Segmentation Masks to YOLO Format](https://github.com/ultralytics/docs/releases/download/0/segmentation-masks-to-yolo-format.avif)
 
-Use to convert a dataset of segmentation mask images to the `YOLO` segmentation format.
+Use to convert a dataset of segmentation mask images to the [`YOLO`](../models/yolo11.md) segmentation format.
 This function takes the directory containing the binary format mask images and converts them into YOLO segmentation format.
 
 The converted masks will be saved in the specified output directory.
@@ -58,8 +58,12 @@ The converted masks will be saved in the specified output directory.
 ```python
 from ultralytics.data.converter import convert_segment_masks_to_yolo_seg
 
-# The classes here is the total classes in the dataset, for COCO dataset we have 80 classes
-convert_segment_masks_to_yolo_seg(masks_dir="path/to/masks_dir", output_dir="path/to/output_dir", classes=80)
+# The classes here is the total classes in the dataset.
+# for COCO dataset we have 80 classes.
+convert_segment_masks_to_yolo_seg(
+    masks_dir="path/to/masks_dir", 
+    output_dir="path/to/output_dir", 
+    classes=80)
 ```
 
 ### Convert COCO into YOLO Format

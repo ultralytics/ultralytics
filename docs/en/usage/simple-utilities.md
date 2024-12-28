@@ -54,17 +54,23 @@ This function visualizes YOLO annotations on an image before training, helping t
 ```{ .py .annotate }
 from ultralytics.data.utils import visualize_image_annotations
 
-
-label_map = {   # Define the label map with all annotated class labels.
+label_map = {  # Define the label map with all annotated class labels.
     0: "person",
     1: "car",
 }
 
 # Visualize
 visualize_image_annotations(
+<<<<<<< HEAD
     "path/to/image.jpg",    # Input image path.
     "path/to/annotations.txt",  # Annotation file path for the image.
     label_map)
+=======
+    "path/to/image.jpg",  # Input image path.
+    "path/to/annotations.txt",  # Annotation file path for image.
+    label_map,
+)
+>>>>>>> 3222999ac597d05e1109938d2b62246b159c7ac4
 ```
 
 ### Convert Segmentation Masks into YOLO Format

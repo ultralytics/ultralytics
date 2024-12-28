@@ -13,7 +13,7 @@ Welcome to the YOLOv8 OpenVINO Inference example in C++! This guide will help yo
 To ensure smooth execution, please make sure you have the following dependencies installed:
 
 | Dependency | Version  |
-| ---------- | -------- |
+|------------|----------|
 | OpenVINO   | >=2023.3 |
 | OpenCV     | >=4.5.0  |
 | C++        | >=14     |
@@ -50,7 +50,7 @@ Once built, you can run inference on an image using the following command:
 
 To use your YOLOv8 model with OpenVINO, you need to export it first. Use the command below to export the model:
 
-```commandline
+```bash
 yolo export model=yolov8s.pt imgsz=640 format=openvino
 ```
 

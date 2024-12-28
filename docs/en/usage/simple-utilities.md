@@ -47,6 +47,26 @@ auto_annotate(  # (1)!
 
 - Use in combination with the [function `segments2boxes`](#convert-segments-to-bounding-boxes) to generate object detection bounding boxes as well
 
+### Visualize Dataset Annotations
+
+This function visualizes YOLO annotations on an image before training, helping to identify and correct any wrong annotations that could lead to incorrect detection results. It draws bounding boxes, labels objects with class names, and adjusts text color based on the background's luminance for better readability.
+
+```{ .py .annotate }
+from ultralytics.data.utils import visualize_image_annotations
+
+
+label_map = {   # Define the label map with all annotated class labels.
+    0: "person",
+    1: "car",
+}
+
+# Visualize
+visualize_image_annotations(
+    "path/to/image.jpg",    # Input image path.
+    "path/to/annotations.txt",  # Annotation file path for image.
+    label_map)
+```
+
 ### Convert Segmentation Masks into YOLO Format
 
 ![Segmentation Masks to YOLO Format](https://github.com/ultralytics/docs/releases/download/0/segmentation-masks-to-yolo-format.avif)

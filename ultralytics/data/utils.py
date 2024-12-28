@@ -167,6 +167,36 @@ def verify_image_label(args):
         return [None, None, None, None, None, nm, nf, ne, nc, msg]
 
 
+def visualize_image_annotations(image_path, txt_path, label_map):
+    import matplotlib.pyplot as plt
+    from ultralytics.utils.plotting import colors
+
+    img = np.array(Image.open(image_path))
+    img_height, img_width = img.shape[:2]
+
+    annotations = []
+    with open(txt_path, 'r') as file:
+        for line in file:
+            class_id, x_center, y_center, width, height = map(float, line.split())
+            x = (x_center - width / 2) * img_width
+            y = (y_center - height / 2) * img_height
+            w = width * img_width
+            h = height * img_height
+            annotations.append((x, y, w, h, int(class_id)))
+
+
+    fig, ax = plt.subplots(1)   # Plot the image and annotations
+    ax.imshow(img)
+
+    for x, y, w, h, label in annotations:
+        color = colors.palette(label)     # Get color based on class ID
+        rect = plt.Rectangle((x, y), w, h, linewidth=2, edgecolor=color, facecolor='none')  # Create a rectangle
+        ax.add_patch(rect)
+        ax.text(x, y - 5, label_map[label], color='white', backgroundcolor=color)   # Add text in rectangle area
+
+    plt.show()
+
+
 def polygon2mask(imgsz, polygons, color=1, downsample_ratio=1):
     """
     Convert a list of polygons to a binary mask of the specified image size.

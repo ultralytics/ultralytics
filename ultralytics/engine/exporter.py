@@ -82,7 +82,6 @@ from ultralytics.utils import (
     LINUX,
     LOGGER,
     MACOS,
-    PYTHON_VERSION,
     ROOT,
     WINDOWS,
     __version__,

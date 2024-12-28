@@ -853,8 +853,8 @@ class SAM2VideoPredictor(SAM2Predictor):
 
         Examples:
             >>> predictor = SAM2VideoPredictor(cfg=DEFAULT_CFG)
-            >>> predictor = SAM2VideoPredictor(overrides={"imgsz": 640})
-            >>> predictor = SAM2VideoPredictor(_callbacks={"on_predict_start": custom_callback})
+            >>> predictor_with_imgsz = SAM2VideoPredictor(overrides={"imgsz": 640})
+            >>> predictor_with_callback = SAM2VideoPredictor(_callbacks={"on_predict_start": custom_callback})
         """
         super().__init__(cfg, overrides, _callbacks)
         self.inference_state = {}

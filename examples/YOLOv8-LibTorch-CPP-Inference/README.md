@@ -5,7 +5,7 @@ This example demonstrates how to perform inference using YOLOv8 models in C++ wi
 ## Dependencies
 
 | Dependency   | Version  |
-| ------------ | -------- |
+|--------------|----------|
 | OpenCV       | >=4.0.0  |
 | C++ Standard | >=17     |
 | Cmake        | >=3.18   |
@@ -30,6 +30,6 @@ make
 
 To export YOLOv8 models:
 
-```commandline
+```bash
 yolo export model=yolov8s.pt imgsz=640 format=torchscript
 ```

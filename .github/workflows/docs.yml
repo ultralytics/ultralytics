@@ -36,11 +36,11 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          # Fetch depth 0 required for publishing to capture full author history
+          # Fetch depth 0 required to capture full docs author history
           repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
           token: ${{ secrets._GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
           ref: ${{ env.GITHUB_REF }}
-          fetch-depth: ${{ github.event_name == 'push' && 0 || 1 }}
+          fetch-depth: 0
       - name: Set up Python
         uses: actions/setup-python@v5
         with:

@@ -41,10 +41,9 @@ auto_annotate(  # (1)!
 )
 ```
 
-1. Nothing returns from this function
+This function does not return any value. For further details on how the function operates:
 
 - [See the reference section for `annotator.auto_annotate`](../reference/data/annotator.md#ultralytics.data.annotator.auto_annotate) for more insight on how the function operates.
-
 - Use in combination with the [function `segments2boxes`](#convert-segments-to-bounding-boxes) to generate object detection bounding boxes as well
 
 ### Convert Segmentation Masks into YOLO Format

@@ -175,18 +175,18 @@ To integrate Weights & Biases with Ultralytics YOLO11:
 2. Log in to your Weights & Biases account:
 
     ```python
-   import wandb
-   
-   wandb.login(key="<API_KEY>")
+    mport wandb
+
+    andb.login(key="<API_KEY>")
     ```
 
 3. Train your YOLO11 model with W&B logging enabled:
 
     ```python
-   from ultralytics import YOLO
-   
-   model = YOLO("yolo11n.pt")
-   model.train(data="coco8.yaml", epochs=5, project="ultralytics", name="yolo11n")
+    rom ultralytics import YOLO
+
+    odel = YOLO("yolo11n.pt")
+    odel.train(data="coco8.yaml", epochs=5, project="ultralytics", name="yolo11n")
     ```
 
 This will automatically log metrics, hyperparameters, and model artifacts to your W&B project.

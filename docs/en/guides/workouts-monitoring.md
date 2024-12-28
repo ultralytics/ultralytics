@@ -16,7 +16,7 @@ Monitoring workouts through pose estimation with [Ultralytics YOLO11](https://gi
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Workouts Monitoring using Ultralytics YOLO11 | Pushups, Pullups, Ab Workouts
+  <strong>Watch:</strong> Workouts Monitoring using Ultralytics YOLO11 | Push-ups, Pull-ups, Ab Workouts
 </p>
 
 ## Advantages of Workouts Monitoring?
@@ -111,7 +111,7 @@ Monitoring workouts through pose estimation with [Ultralytics YOLO11](https://gi
 
 ### How do I monitor my workouts using Ultralytics YOLO11?
 
-To monitor your workouts using Ultralytics YOLO11, you can utilize the pose estimation capabilities to track and analyze key body landmarks and joints in real-time. This allows you to receive instant feedback on your exercise form, count repetitions, and measure performance metrics. You can start by using the provided example code for pushups, pullups, or ab workouts as shown:
+To monitor your workouts using Ultralytics YOLO11, you can utilize the pose estimation capabilities to track and analyze key body landmarks and joints in real-time. This allows you to receive instant feedback on your exercise form, count repetitions, and measure performance metrics. You can start by using the provided example code for push-ups, pull-ups, or ab workouts as shown:
 
 ```python
 import cv2
@@ -154,11 +154,11 @@ You can watch a [YouTube video demonstration](https://www.youtube.com/watch?v=LG
 
 ### How accurate is Ultralytics YOLO11 in detecting and tracking exercises?
 
-Ultralytics YOLO11 is highly accurate in detecting and tracking exercises due to its state-of-the-art pose estimation capabilities. It can accurately track key body landmarks and joints, providing real-time feedback on exercise form and performance metrics. The model's pretrained weights and robust architecture ensure high [precision](https://www.ultralytics.com/glossary/precision) and reliability. For real-world examples, check out the [real-world applications](#real-world-applications) section in the documentation, which showcases pushups and pullups counting.
+Ultralytics YOLO11 is highly accurate in detecting and tracking exercises due to its state-of-the-art pose estimation capabilities. It can accurately track key body landmarks and joints, providing real-time feedback on exercise form and performance metrics. The model's pretrained weights and robust architecture ensure high [precision](https://www.ultralytics.com/glossary/precision) and reliability. For real-world examples, check out the [real-world applications](#real-world-applications) section in the documentation, which showcases push-ups and pull-ups counting.
 
 ### Can I use Ultralytics YOLO11 for custom workout routines?
 
-Yes, Ultralytics YOLO11 can be adapted for custom workout routines. The `AIGym` class supports different pose types such as "pushup", "pullup", and "abworkout." You can specify keypoints and angles to detect specific exercises. Here is an example setup:
+Yes, Ultralytics YOLO11 can be adapted for custom workout routines. The `AIGym` class supports different pose types such as `pushup`, `pullup`, and `abworkout`. You can specify keypoints and angles to detect specific exercises. Here is an example setup:
 
 ```python
 from ultralytics import solutions

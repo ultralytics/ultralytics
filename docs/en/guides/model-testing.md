@@ -81,7 +81,7 @@ Underfitting occurs when your model can't capture the underlying patterns in the
 #### Signs of Underfitting
 
 - **Low Training Accuracy:** If your model can't achieve high accuracy on the training set, it might be underfitting.
-- **Visual Misclassification:** Consistent failure to recognize obvious features or objects suggests underfitting.
+- **Visual Mis-classification:** Consistent failure to recognize obvious features or objects suggests underfitting.
 
 ### Balancing Overfitting and Underfitting
 

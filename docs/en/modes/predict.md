@@ -151,7 +151,6 @@ Below are code examples for using each source type:
         # Load a pretrained YOLO11n model
         model = YOLO("yolo11n.pt")
 
-
         # Define current screenshot as source
         source = "screen"
 

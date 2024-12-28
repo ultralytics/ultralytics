@@ -194,11 +194,13 @@ def visualize_image_annotations(image_path, txt_path, label_map):
         >>> visualize_image_annotations("path/to/image.jpg", "path/to/annotations.txt", label_map)
     """
     import matplotlib.pyplot as plt
+
     from ultralytics.utils.plotting import colors
+
     img = np.array(Image.open(image_path))
     img_height, img_width = img.shape[:2]
     annotations = []
-    with open(txt_path, 'r') as file:
+    with open(txt_path) as file:
         for line in file:
             class_id, x_center, y_center, width, height = map(float, line.split())
             x = (x_center - width / 2) * img_width
@@ -206,10 +208,10 @@ def visualize_image_annotations(image_path, txt_path, label_map):
             w = width * img_width
             h = height * img_height
             annotations.append((x, y, w, h, int(class_id)))
-    fig, ax = plt.subplots(1)   # Plot the image and annotations
+    fig, ax = plt.subplots(1)  # Plot the image and annotations
     for x, y, w, h, label in annotations:
         color = tuple(c / 255 for c in colors(label, True))  # Get and normalize the RGB color
-        rect = plt.Rectangle((x, y), w, h, linewidth=2, edgecolor=color, facecolor='none')  # Create a rectangle
+        rect = plt.Rectangle((x, y), w, h, linewidth=2, edgecolor=color, facecolor="none")  # Create a rectangle
         ax.add_patch(rect)
         luminance = 0.2126 * color[0] + 0.7152 * color[1] + 0.0722 * color[2]  # Formula for luminance
         ax.text(x, y - 5, label_map[label], color="white" if luminance < 0.5 else "black", backgroundcolor=color)

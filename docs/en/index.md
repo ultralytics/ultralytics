@@ -55,7 +55,7 @@ Explore the Ultralytics Docs, a comprehensive resource designed to help you unde
 
 ## Where to Start
 
-<div class="grid cards" markdown>
+<div class="grid cards">
 
 - :material-clock-fast:{ .lg .middle } &nbsp; **Getting Started**
 

@@ -162,23 +162,23 @@ To view YOLO inference results in a VSCode terminal on macOS or Linux, follow th
 3. Load your YOLO model and run inference:
 
     ```python
-    rom ultralytics import YOLO
+    from ultralytics import YOLO
 
-    odel = YOLO("yolo11n.pt")
-    esults = model.predict(source="path_to_image")
-    lot = results[0].plot()
+    model = YOLO("yolo11n.pt")
+    results = model.predict(source="path_to_image")
+    plot = results[0].plot()
     ```
 
 4. Convert the inference result image to bytes and display it in the terminal:
 
     ```python
-    mport io
+    import io
 
-    mport cv2
-    rom sixel import SixelWriter
+    import cv2
+    from sixel import SixelWriter
 
-    m_bytes = cv2.imencode(".png", plot)[1].tobytes()
-    em_file = io.BytesIO(im_bytes)
+    im_bytes = cv2.imencode(".png", plot)[1].tobytes()
+    mem_file = io.BytesIO(im_bytes)
     ixelWriter().draw(mem_file)
     ```
 
@@ -208,13 +208,13 @@ If you encounter issues displaying images in the VSCode terminal using sixel:
 3. Check your image data conversion and plotting code for errors. For example:
 
     ```python
-    mport io
+    import io
 
-    mport cv2
-    rom sixel import SixelWriter
+    import cv2
+    from sixel import SixelWriter
 
-    m_bytes = cv2.imencode(".png", plot)[1].tobytes()
-    em_file = io.BytesIO(im_bytes)
+    im_bytes = cv2.imencode(".png", plot)[1].tobytes()
+    mem_file = io.BytesIO(im_bytes)
     ixelWriter().draw(mem_file)
     ```
 

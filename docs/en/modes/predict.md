@@ -26,7 +26,7 @@ In the world of [machine learning](https://www.ultralytics.com/glossary/machine-
 ## Real-world Applications
 
 |                   Manufacturing                   |                        Sports                        |                   Safety                    |
-| :-----------------------------------------------: | :--------------------------------------------------: | :-----------------------------------------: |
+| :-----------------------------------------: | :--------------------------------------------------: | :-----------------------------------------: |
 | ![Vehicle Spare Parts Detection][car spare parts] | ![Football Player Detection][football player detect] | ![People Fall Detection][human fall detect] |
 |           Vehicle Spare Parts Detection           |              Football Player Detection               |            People Fall Detection            |
 
@@ -150,6 +150,8 @@ Below are code examples for using each source type:
 
         # Load a pretrained YOLO11n model
         model = YOLO("yolo11n.pt")
+
+
 
         # Define current screenshot as source
         source = "screen"

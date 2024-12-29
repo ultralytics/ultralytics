@@ -49,7 +49,7 @@ Before you start to follow this guide:
 
 Here we are using [marcoslucianops/DeepStream-Yolo](https://github.com/marcoslucianops/DeepStream-Yolo) GitHub repository which includes NVIDIA DeepStream SDK support for YOLO models. We appreciate the efforts of marcoslucianops for his contributions!
 
-1. Install Ultralytics with necessary dependencies
+1.  Install Ultralytics with necessary dependencies
 
     ```bash
     cd ~
@@ -66,7 +66,7 @@ Here we are using [marcoslucianops/DeepStream-Yolo](https://github.com/marcosluc
     git clone https://github.com/marcoslucianops/DeepStream-Yolo
     ```
 
-3. Copy the `export_yoloV8.py` file from `DeepStream-Yolo/utils` directory to the `ultralytics` folder
+3.  Copy the `export_yoloV8.py` file from `DeepStream-Yolo/utils` directory to the `ultralytics` folder
 
     ```bash
     cp ~/DeepStream-Yolo/utils/export_yoloV8.py ~/ultralytics
@@ -180,7 +180,8 @@ Here we are using [marcoslucianops/DeepStream-Yolo](https://github.com/marcosluc
     ...
     ```
 
-10.  Edit the `deepstream_app_config` file
+10. Edit the `deepstream_app_config` file
+
 
     ```bash
     ...
@@ -189,7 +190,8 @@ Here we are using [marcoslucianops/DeepStream-Yolo](https://github.com/marcosluc
     config-file=config_infer_primary_yoloV8.txt
     ```
 
-11.  You can also change the video source in `deepstream_app_config` file. Here a default video file is loaded
+11. You can also change the video source in `deepstream_app_config` file. Here a default video file is loaded
+
 
     ```bash
     ...
@@ -338,11 +340,11 @@ deepstream-app -c deepstream_app_config.txt
 
 The following table summarizes how YOLO11s models perform at different TensorRT precision levels with an input size of 640x640 on NVIDIA Jetson Orin NX 16GB.
 
-| Model Name | Precision | Inference Time (ms/im) | FPS |
-| ---------- | --------- | ---------------------- | --- |
-| YOLO11s    | FP32      | 14.6                   | 68.5|
-|            | FP16      | 7.94                   | 126 |
-|            | INT8      | 5.95                   | 168 |
+| Model Name | Precision | Inference Time (ms/im) | FPS  |
+| ---------- | --------- | ---------------------- | ---- |
+| YOLO11s    | FP32      | 14.6                   | 68.5 |
+|            | FP16      | 7.94                   | 126  |
+|            | INT8      | 5.95                   | 168  |
 
 ### Acknowledgements
 

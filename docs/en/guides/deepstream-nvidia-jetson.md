@@ -182,7 +182,6 @@ Here we are using [marcoslucianops/DeepStream-Yolo](https://github.com/marcosluc
 
 10. Edit the `deepstream_app_config` file
 
-
     ```bash
     ...
     [primary-gie]
@@ -191,7 +190,6 @@ Here we are using [marcoslucianops/DeepStream-Yolo](https://github.com/marcosluc
     ```
 
 11. You can also change the video source in `deepstream_app_config` file. Here a default video file is loaded
-
 
     ```bash
     ...

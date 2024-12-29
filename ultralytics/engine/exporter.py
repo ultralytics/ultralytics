@@ -285,6 +285,7 @@ class Exporter:
                 "(torchscript, onnx, openvino, engine, coreml) formats. "
                 "See https://docs.ultralytics.com/models/yolo-world for details."
             )
+            model.clip_model = None  # openvino error
         if self.args.int8 and not self.args.data:
             self.args.data = DEFAULT_CFG.data or TASK2DATA[getattr(model, "task", "detect")]  # assign default data
             LOGGER.warning(

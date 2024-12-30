@@ -1283,7 +1283,7 @@ class RandomPerspective:
             eps (float): Small epsilon value to prevent division by zero.
 
         Returns:
-            (numpy.ndarray): Boolean array of shape (n,) indicating which boxes are candidates.
+            (numpy.ndarray): Boolean array of shape (n) indicating which boxes are candidates.
                 True values correspond to boxes that meet all criteria.
 
         Examples:
@@ -2022,7 +2022,7 @@ class Format:
         Returns:
             (Dict): A dictionary with formatted data, including:
                 - 'img': Formatted image tensor.
-                - 'cls': Class labels tensor.
+                - 'cls': Class label's tensor.
                 - 'bboxes': Bounding boxes tensor in the specified format.
                 - 'masks': Instance masks tensor (if return_mask is True).
                 - 'keypoints': Keypoints tensor (if return_keypoint is True).

@@ -90,6 +90,7 @@ dev = [
     "mkdocs>=1.6.0",
     "mkdocs-material>=9.5.9",
     "mkdocstrings[python]",
+    "mistune<3.1.0",
     "mkdocs-jupyter", # notebooks
     "mkdocs-redirects", # 301 redirects
     "mkdocs-ultralytics-plugin>=0.1.8", # for meta descriptions and images, dates and authors

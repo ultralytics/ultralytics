@@ -1136,7 +1136,7 @@ class Exporter:
         assert LINUX, "export only supported on Linux. See https://developer.aitrios.sony-semicon.com/en/raspberrypi-ai-camera/documentation/imx500-converter"
         if getattr(self.model, "end2end", False):
             raise ValueError("IMX export is not supported for end2end models.")
-        if "yolov8n" not in self.pretty_name.lower():
+        if "C2f" not in self.model.__str__():
             raise ValueError("IMX export is only supported for YOLOv8n detection models")
         check_requirements(("model-compression-toolkit==2.1.1", "sony-custom-layers==0.2.0", "tensorflow==2.12.0"))
         check_requirements("imx500-converter[pt]==3.14.3")  # Separate requirements for imx500-converter

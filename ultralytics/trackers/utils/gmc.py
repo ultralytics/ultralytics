@@ -108,7 +108,7 @@ class GMC:
             (480, 640, 3)
         """
         if self.method in {"orb", "sift"}:
-            return self.applyFeatures(raw_frame, detections)
+            return self.applyfeatures(raw_frame, detections)
         elif self.method == "ecc":
             return self.applyecc(raw_frame)
         elif self.method == "sparseOptFlow":
@@ -161,7 +161,7 @@ class GMC:
 
         return H
 
-    def applyFeatures(self, raw_frame: np.array, detections: list = None) -> np.array:
+    def applyfeatures(self, raw_frame: np.array, detections: list = None) -> np.array:
         """
         Apply feature-based methods like ORB or SIFT to a raw frame.
 
@@ -175,7 +175,7 @@ class GMC:
         Examples:
             >>> gmc = GMC(method="orb")
             >>> raw_frame = np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8)
-            >>> processed_frame = gmc.applyFeatures(raw_frame)
+            >>> processed_frame = gmc.applyfeatures(raw_frame)
             >>> print(processed_frame.shape)
             (2, 3)
         """

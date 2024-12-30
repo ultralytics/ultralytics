@@ -68,7 +68,7 @@ class YOLODataset(BaseDataset):
         Cache dataset labels, check images and read shapes.
 
         Args:
-            path (Path): Path where to save the cache file. Default is Path('./labels.cache').
+            path (Path): Path where to save the cache file. Default is Path("./labels.cache").
 
         Returns:
             (dict): labels.
@@ -218,8 +218,10 @@ class YOLODataset(BaseDataset):
         # NOTE: do NOT resample oriented boxes
         segment_resamples = 100 if self.use_obb else 1000
         if len(segments) > 0:
-            # list[np.array(1000, 2)] * num_samples
-            # (N, 1000, 2)
+            # make sure segments interpolate correctly if original length is greater than segment_resamples
+            max_len = max(len(s) for s in segments)
+            segment_resamples = (max_len + 1) if segment_resamples < max_len else segment_resamples
+            # list[np.array(segment_resamples, 2)] * num_samples
             segments = np.stack(resample_segments(segments, n=segment_resamples), axis=0)
         else:
             segments = np.zeros((0, segment_resamples, 2), dtype=np.float32)
@@ -321,7 +323,8 @@ class GroundingDataset(YOLODataset):
                 if box[2] <= 0 or box[3] <= 0:
                     continue
 
-                cat_name = " ".join([img["caption"][t[0] : t[1]] for t in ann["tokens_positive"]])
+                caption = img["caption"]
+                cat_name = " ".join([caption[t[0] : t[1]] for t in ann["tokens_positive"]])
                 if cat_name not in cat2id:
                     cat2id[cat_name] = len(cat2id)
                     texts.append([cat_name])

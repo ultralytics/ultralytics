@@ -494,7 +494,7 @@ class Annotator:
     def text(self, xy: list[int], text: str, txt_color=(255, 255, 255), anchor="top", box_style=False):
         """Adds text to an image using PIL or cv2, scaling the text size based on its length."""
         # Scale factor based on text length (adjust multiplier as needed)
-        max_length = 25  # Threshold for max scaling
+        max_length = 20  # Threshold for max scaling
         scale_factor = max(1, len(text) / max_length)
 
         if anchor == "bottom":  # Adjust y-coordinate for text bottom alignment

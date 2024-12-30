@@ -505,14 +505,16 @@ class Annotator:
         if self.pil:
             scaled_font = self.font.font_variant(size=max(10, int(self.font.size / scale_factor)))
             if box_style:
-                w, h = scaled_font.getsize(text)
+                bbox = scaled_font.getbbox(text)  # Get bounding box of text
+                w, h = bbox[2], bbox[3]  # Width and height from the bounding box
                 self.draw.rectangle((xy[0], xy[1], xy[0] + w + 1, xy[1] + h + 1), fill=txt_color)
                 txt_color = (255, 255, 255)  # Set foreground text color to white
 
             if "\n" in text:
                 lines = text.split("\n")
-                _, h = scaled_font.getsize(text)
                 for line in lines:
+                    bbox = scaled_font.getbbox(line)
+                    _, h = bbox[2], bbox[3]
                     self.draw.text(xy, line, fill=txt_color, font=scaled_font)
                     xy[1] += h
             else:

@@ -80,19 +80,133 @@ YOLOv7 introduces several key features:
 
 ## Usage Examples
 
-As of the time of writing, Ultralytics does not currently support YOLOv7 models. Therefore, any users interested in using YOLOv7 will need to refer directly to the YOLOv7 GitHub repository for installation and usage instructions.
+As of the time of writing, Ultralytics only supports ONNX inference with YOLOv7. To use YOLOv7 ONNX model with Ultralytics:
 
-Here is a brief overview of the typical steps you might take to use YOLOv7:
+1. Export the desired YOLOv7 model by using the exporter in the [YOLOv7 repo](https://github.com/WongKinYiu/yolov7):
+```bash
+python export.py --weights yolov7-tiny.pt --grid --end2end --simplify --topk-all 100 --iou-thres 0.65 --conf-thres 0.35 --img-size 640 640 --max-wh 640
+```
 
-1. Visit the YOLOv7 GitHub repository: [https://github.com/WongKinYiu/yolov7](https://github.com/WongKinYiu/yolov7).
+2. Modify the ONNX model to be compatible with Ultralytics using the following script:
+```python
+import onnx
+from onnx import helper, numpy_helper, TensorProto
+import numpy as np
 
-2. Follow the instructions provided in the README file for installation. This typically involves cloning the repository, installing necessary dependencies, and setting up any necessary environment variables.
+# Load the ONNX model
+model_path = "yolov7-tiny.onnx"  # Replace with your model path
+model = onnx.load(model_path)
+graph = model.graph
 
-3. Once installation is complete, you can train and use the model as per the usage instructions provided in the repository. This usually involves preparing your dataset, configuring the model parameters, training the model, and then using the trained model to perform object detection.
+# Fix input shape to batch size 1
+input_shape = graph.input[0].type.tensor_type.shape
+input_shape.dim[0].dim_value = 1
 
-Please note that the specific steps may vary depending on your specific use case and the current state of the YOLOv7 repository. Therefore, it is strongly recommended to refer directly to the instructions provided in the YOLOv7 GitHub repository.
+# Define the output of the original model
+original_output_name = graph.output[0].name
 
-We regret any inconvenience this may cause and will strive to update this document with usage examples for Ultralytics once support for YOLOv7 is implemented.
+# Create slicing nodes
+sliced_output_name = f"{original_output_name}_sliced"
+
+# Define initializers for slicing (remove the first value)
+start = numpy_helper.from_array(np.array([1], dtype=np.int64), name="slice_start")
+end = numpy_helper.from_array(np.array([7], dtype=np.int64), name="slice_end")
+axes = numpy_helper.from_array(np.array([1], dtype=np.int64), name="slice_axes")
+steps = numpy_helper.from_array(np.array([1], dtype=np.int64), name="slice_steps")
+
+graph.initializer.extend([start, end, axes, steps])
+
+slice_node = helper.make_node(
+    "Slice",
+    inputs=[original_output_name, "slice_start", "slice_end", "slice_axes", "slice_steps"],
+    outputs=[sliced_output_name],
+    name="SliceNode"
+)
+
+# Add the slice node to the graph
+graph.node.append(slice_node)
+
+# Define segment slicing
+seg1_start = numpy_helper.from_array(np.array([0], dtype=np.int64), name="seg1_start")
+seg1_end = numpy_helper.from_array(np.array([4], dtype=np.int64), name="seg1_end")
+seg2_start = numpy_helper.from_array(np.array([4], dtype=np.int64), name="seg2_start")
+seg2_end = numpy_helper.from_array(np.array([5], dtype=np.int64), name="seg2_end")
+seg3_start = numpy_helper.from_array(np.array([5], dtype=np.int64), name="seg3_start")
+seg3_end = numpy_helper.from_array(np.array([6], dtype=np.int64), name="seg3_end")
+
+graph.initializer.extend([seg1_start, seg1_end, seg2_start, seg2_end, seg3_start, seg3_end])
+
+# Create intermediate tensors for segments
+segment_1_name = f"{sliced_output_name}_segment1"
+segment_2_name = f"{sliced_output_name}_segment2"
+segment_3_name = f"{sliced_output_name}_segment3"
+
+# Add segment slicing nodes
+graph.node.extend([
+    helper.make_node("Slice", [sliced_output_name, "seg1_start", "seg1_end", "slice_axes", "slice_steps"], 
+                    [segment_1_name], name="SliceSegment1"),
+    helper.make_node("Slice", [sliced_output_name, "seg2_start", "seg2_end", "slice_axes", "slice_steps"], 
+                    [segment_2_name], name="SliceSegment2"),
+    helper.make_node("Slice", [sliced_output_name, "seg3_start", "seg3_end", "slice_axes", "slice_steps"], 
+                    [segment_3_name], name="SliceSegment3"),
+])
+
+# Concatenate the segments
+concat_output_name = f"{sliced_output_name}_concat"
+concat_node = helper.make_node(
+    "Concat",
+    inputs=[segment_1_name, segment_3_name, segment_2_name],
+    outputs=[concat_output_name],
+    axis=1,
+    name="ConcatSwapped"
+)
+
+# Add the concat node to the graph
+graph.node.append(concat_node)
+
+# Add reshape to include batch dimension
+# Create shape tensor for reshape
+reshape_shape = numpy_helper.from_array(np.array([1, -1, 6], dtype=np.int64), name="reshape_shape")
+graph.initializer.append(reshape_shape)
+
+final_output_name = f"{concat_output_name}_batched"
+reshape_node = helper.make_node(
+    "Reshape",
+    inputs=[concat_output_name, "reshape_shape"],
+    outputs=[final_output_name],
+    name="AddBatchDimension"
+)
+
+# Add the reshape node to the graph
+graph.node.append(reshape_node)
+
+# Update the graph's output
+new_output_type = onnx.helper.make_tensor_type_proto(
+    elem_type=graph.output[0].type.tensor_type.elem_type,
+    shape=[1, 'Concatoutput_dim_0', 6]  # Fixed batch size of 1 and 6 features
+)
+
+new_output = onnx.helper.make_value_info(
+    name=final_output_name,
+    type_proto=new_output_type
+)
+
+# Replace the old output with the new one
+graph.output.pop()
+graph.output.extend([new_output])
+
+# Save the modified model
+onnx.save(model, "yolov7-ultralytics.onnx")
+```
+
+3. You can then load the modified ONNX model and run inference with it in Ultralytics normally:
+```python
+from ultralytics import YOLO, ASSETS
+
+model = YOLO("yolov7-ultralytics.onnx", task="detect")
+
+results = model(ASSETS / "bus.jpg")
+```
 
 ## Citations and Acknowledgements
 
@@ -125,7 +239,7 @@ YOLOv7 introduces several innovations, including model re-parameterization and d
 
 ### Can I use YOLOv7 with Ultralytics tools and platforms?
 
-As of now, Ultralytics does not directly support YOLOv7 in its tools and platforms. Users interested in using YOLOv7 need to follow the installation and usage instructions provided in the [YOLOv7 GitHub repository](https://github.com/WongKinYiu/yolov7). For other state-of-the-art models, you can explore and train using Ultralytics tools like [Ultralytics HUB](../hub/quickstart.md).
+As of now, Ultralytics only supports YOLOv7 ONNX inference. To run the ONNX model of YOLOv7 with Ultralytics, check the [Usage Examples](#usage-examples) section.
 
 ### How do I install and run YOLOv7 for a custom object detection project?
 

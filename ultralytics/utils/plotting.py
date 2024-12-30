@@ -496,7 +496,7 @@ class Annotator:
         # Scale factor based on text length (adjust multiplier as needed)
         max_length = 25  # Threshold for max scaling
         scale_factor = max(1, len(text) / max_length)
-        
+
         if anchor == "bottom":  # Adjust y-coordinate for text bottom alignment
             w, h = self.font.getsize(text)
             xy[1] += 1 - h
@@ -530,7 +530,6 @@ class Annotator:
                 txt_color = (255, 255, 255)  # Set foreground text color to white
 
             cv2.putText(self.im, text, xy, 0, scaled_font_scale, txt_color, thickness=self.tf, lineType=cv2.LINE_AA)
-
 
     def fromarray(self, im):
         """Update self.im from a numpy array."""

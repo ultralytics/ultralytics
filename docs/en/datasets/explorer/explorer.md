@@ -213,7 +213,7 @@ One of the preliminary steps in analysing embeddings is by plotting them in 2D s
 ![Scatterplot Example](https://github.com/ultralytics/docs/releases/download/0/scatterplot-sql-queries.avif)
 
 ```python
-pip install scikit-learn --q
+pip install scikit-learn
 
 %matplotlib inline
 import matplotlib.pyplot as plt

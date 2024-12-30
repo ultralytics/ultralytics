@@ -41,7 +41,7 @@ Export an Ultralytics YOLOv8 model to IMX500 format and run inference with the e
 
 !!! note
 
-    Here we perform inference just to make sure the model works as expected. However, for deployment and inference on the Raspberry Pi AI Camera, please jump to [Using IMX500 Export in Deployment](#using-imx500-export-in-deployment) section.
+    IMX export is currently only supported for the YOLOv8n model. Here we perform inference just to make sure the model works as expected. However, for deployment and inference on the Raspberry Pi AI Camera, please jump to [Using IMX500 Export in Deployment](#using-imx500-export-in-deployment) section.
 
 !!! example
 

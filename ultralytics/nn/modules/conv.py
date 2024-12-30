@@ -286,7 +286,7 @@ class ChannelAttention(nn.Module):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Applies forward pass using activation on convolutions of the input, optionally using batch normalization."""
-        return x * self.act(self.fc(self.pool(x)))
+        return x + x * self.act(self.fc(self.pool(x)))
 
 
 class SpatialAttention(nn.Module):

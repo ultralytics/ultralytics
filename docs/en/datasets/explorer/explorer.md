@@ -27,7 +27,6 @@ Simply `pip install ultralytics` and run `yolo explorer` in your terminal to run
 
 </div>
 
-
 ## Ultralytics Explorer support deprecated ⚠️
 
 From **`ultralytics>=8.3.10`**, Explorer support is deprecated. Access similar functionality via [Ultralytics HUB](https://hub.ultralytics.com/), our no-code platform for streamlined data workflows.
@@ -44,7 +43,7 @@ ultralytics.checks()
 ```
 
 ```python
-from ultralytics import Explorer
+
 ```
 
 ## Similarity Search
@@ -96,6 +95,7 @@ You can prompt the Explorer object with the kind of data points you want to see,
 df = exp.ask_ai("show me images containing more than 10 objects with at least 2 persons")
 df.head(5)
 ```
+
 for plotting these results you can use `plot_query_result` util Example:
 
 ```python
@@ -200,7 +200,6 @@ One of the preliminary steps in analysing embeddings is by plotting them in 2D s
 
 ![Scatterplot Example](https://github.com/ultralytics/docs/releases/download/0/scatterplot-sql-queries.avif)
 
-
 ```python
 pip install scikit-learn --q
 
@@ -252,7 +251,6 @@ exp.plot_similarity_index(max_dist=0.2, top_k=0.01)
 Now let's look at the output of the operation
 
 ```python
-import numpy as np
 
 sim_idx = exp.similarity_index(max_dist=0.2, top_k=0.01, force=False)
 
@@ -271,7 +269,6 @@ sim_idx["im_file"][sim_count > 30]
 You should see something like this
 
 ![similarity-index-image](https://github.com/ultralytics/docs/releases/download/0/similarity-index-image.avif)
-
 
 ```python
 exp.plot_similar(idx=[7146, 14035])  # Using avg embeddings of 2 images

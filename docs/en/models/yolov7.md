@@ -83,15 +83,17 @@ YOLOv7 introduces several key features:
 As of the time of writing, Ultralytics only supports ONNX inference with YOLOv7. To use YOLOv7 ONNX model with Ultralytics:
 
 1. Export the desired YOLOv7 model by using the exporter in the [YOLOv7 repo](https://github.com/WongKinYiu/yolov7):
+
 ```bash
 python export.py --weights yolov7-tiny.pt --grid --end2end --simplify --topk-all 100 --iou-thres 0.65 --conf-thres 0.35 --img-size 640 640 --max-wh 640
 ```
 
 2. Modify the ONNX model to be compatible with Ultralytics using the following script:
+
 ```python
-import onnx
-from onnx import helper, numpy_helper, TensorProto
 import numpy as np
+import onnx
+from onnx import helper, numpy_helper
 
 # Load the ONNX model
 model_path = "yolov7-tiny.onnx"  # Replace with your model path
@@ -120,7 +122,7 @@ slice_node = helper.make_node(
     "Slice",
     inputs=[original_output_name, "slice_start", "slice_end", "slice_axes", "slice_steps"],
     outputs=[sliced_output_name],
-    name="SliceNode"
+    name="SliceNode",
 )
 
 # Add the slice node to the graph
@@ -142,14 +144,28 @@ segment_2_name = f"{sliced_output_name}_segment2"
 segment_3_name = f"{sliced_output_name}_segment3"
 
 # Add segment slicing nodes
-graph.node.extend([
-    helper.make_node("Slice", [sliced_output_name, "seg1_start", "seg1_end", "slice_axes", "slice_steps"], 
-                    [segment_1_name], name="SliceSegment1"),
-    helper.make_node("Slice", [sliced_output_name, "seg2_start", "seg2_end", "slice_axes", "slice_steps"], 
-                    [segment_2_name], name="SliceSegment2"),
-    helper.make_node("Slice", [sliced_output_name, "seg3_start", "seg3_end", "slice_axes", "slice_steps"], 
-                    [segment_3_name], name="SliceSegment3"),
-])
+graph.node.extend(
+    [
+        helper.make_node(
+            "Slice",
+            [sliced_output_name, "seg1_start", "seg1_end", "slice_axes", "slice_steps"],
+            [segment_1_name],
+            name="SliceSegment1",
+        ),
+        helper.make_node(
+            "Slice",
+            [sliced_output_name, "seg2_start", "seg2_end", "slice_axes", "slice_steps"],
+            [segment_2_name],
+            name="SliceSegment2",
+        ),
+        helper.make_node(
+            "Slice",
+            [sliced_output_name, "seg3_start", "seg3_end", "slice_axes", "slice_steps"],
+            [segment_3_name],
+            name="SliceSegment3",
+        ),
+    ]
+)
 
 # Concatenate the segments
 concat_output_name = f"{sliced_output_name}_concat"
@@ -158,7 +174,7 @@ concat_node = helper.make_node(
     inputs=[segment_1_name, segment_3_name, segment_2_name],
     outputs=[concat_output_name],
     axis=1,
-    name="ConcatSwapped"
+    name="ConcatSwapped",
 )
 
 # Add the concat node to the graph
@@ -171,10 +187,7 @@ graph.initializer.append(reshape_shape)
 
 final_output_name = f"{concat_output_name}_batched"
 reshape_node = helper.make_node(
-    "Reshape",
-    inputs=[concat_output_name, "reshape_shape"],
-    outputs=[final_output_name],
-    name="AddBatchDimension"
+    "Reshape", inputs=[concat_output_name, "reshape_shape"], outputs=[final_output_name], name="AddBatchDimension"
 )
 
 # Add the reshape node to the graph
@@ -183,13 +196,10 @@ graph.node.append(reshape_node)
 # Update the graph's output
 new_output_type = onnx.helper.make_tensor_type_proto(
     elem_type=graph.output[0].type.tensor_type.elem_type,
-    shape=[1, 'Concatoutput_dim_0', 6]  # Fixed batch size of 1 and 6 features
+    shape=[1, "Concatoutput_dim_0", 6],  # Fixed batch size of 1 and 6 features
 )
 
-new_output = onnx.helper.make_value_info(
-    name=final_output_name,
-    type_proto=new_output_type
-)
+new_output = onnx.helper.make_value_info(name=final_output_name, type_proto=new_output_type)
 
 # Replace the old output with the new one
 graph.output.pop()
@@ -200,8 +210,9 @@ onnx.save(model, "yolov7-ultralytics.onnx")
 ```
 
 3. You can then load the modified ONNX model and run inference with it in Ultralytics normally:
+
 ```python
-from ultralytics import YOLO, ASSETS
+from ultralytics import ASSETS, YOLO
 
 model = YOLO("yolov7-ultralytics.onnx", task="detect")
 

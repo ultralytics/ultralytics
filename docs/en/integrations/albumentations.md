@@ -87,7 +87,7 @@ Next, let's take look a closer look at the specific augmentations that are appli
 
 ### Blur
 
-The Blur transformation in Albumentations applies a simple blur effect to the image by averaging pixel values within a small square area, or kernel. This is done using OpenCV's `cv2.blur` function, which helps reduce noise in the image, though it also slightly reduces image details.
+The Blur transformation in Albumentations applies a simple blur effect to the image by averaging pixel values within a small square area, or kernel. This is done using OpenCV `cv2.blur` function, which helps reduce noise in the image, though it also slightly reduces image details.
 
 Here are the parameters and values used in this integration:
 

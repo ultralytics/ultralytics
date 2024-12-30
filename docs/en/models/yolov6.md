@@ -40,7 +40,7 @@ This example provides simple YOLOv6 training and inference examples. For full do
 
     === "Python"
 
-        [PyTorch](https://www.ultralytics.com/glossary/pytorch) pretrained `*.pt` models as well as configuration `*.yaml` files can be passed to the `YOLO()` class to create a model instance in python:
+        YOLOv6 `*.yaml` files can be passed to the `YOLO()` class to build the corresponding model in Python:
 
         ```python
         from ultralytics import YOLO
@@ -76,11 +76,11 @@ The YOLOv6 series offers a range of models, each optimized for high-performance 
 
 | Model Type | Pre-trained Weights | Tasks Supported                        | Inference | Validation | Training | Export |
 | ---------- | ------------------- | -------------------------------------- | --------- | ---------- | -------- | ------ |
-| YOLOv6-N   | `yolov6-n.pt`       | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
-| YOLOv6-S   | `yolov6-s.pt`       | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
-| YOLOv6-M   | `yolov6-m.pt`       | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
-| YOLOv6-L   | `yolov6-l.pt`       | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
-| YOLOv6-L6  | `yolov6-l6.pt`      | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOv6-N   | ❌       | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOv6-S   | ❌       | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOv6-M   | ❌       | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOv6-L   | ❌       | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOv6-L6  | ❌      | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
 
 This table provides a detailed overview of the YOLOv6 model variants, highlighting their capabilities in [object detection](https://www.ultralytics.com/glossary/object-detection) tasks and their compatibility with various operational modes such as [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md). This comprehensive support ensures that users can fully leverage the capabilities of YOLOv6 models in a broad range of object detection scenarios.
 

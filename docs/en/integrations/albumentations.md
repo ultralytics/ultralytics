@@ -117,7 +117,7 @@ The ToGray transformation in Albumentations converts an image to grayscale, redu
 
 Here are the parameters and values used in this integration:
 
-- **num_output_channels**: Sets the number of channels in the output image. If this value is more than 1, the single grayscale channel will be replicated to create a multi-channel grayscale image. By default, it's set to 3, giving a grayscale image with three identical channels.
+- **num_output_channels**: Sets the number of channels in the output image. If this value is more than 1, the single grayscale channel will be replicated to create a multichannel grayscale image. By default, it's set to 3, giving a grayscale image with three identical channels.
 
 - **method**: Defines the grayscale conversion method. The default method, "weighted_average", applies a formula (0.299R + 0.587G + 0.114B) that closely aligns with human perception, providing a natural-looking grayscale effect. Other options, like "from_lab", "desaturation", "average", "max", and "pca", offer alternative ways to create grayscale images based on various needs for speed, brightness emphasis, or detail preservation.
 

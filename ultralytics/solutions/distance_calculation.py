@@ -45,6 +45,8 @@ class DistanceCalculation(BaseSolution):
         self.left_mouse_count = 0
         self.selected_boxes = {}
 
+        self.centroids = []  # Initialize empty list to store centroids
+
     def mouse_event_for_distance(self, event, x, y, flags, param):
         """
         Handles mouse events to select regions in a real-time video stream for distance calculation.

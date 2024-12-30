@@ -1137,7 +1137,7 @@ class Exporter:
         if getattr(self.model, "end2end", False):
             raise ValueError("IMX export is not supported for end2end models.")
         if "C2f" not in self.model.__str__():
-            raise ValueError("IMX export is only supported for YOLOv8 detection models")
+            raise ValueError("IMX export is only supported for YOLOv8n detection models")
         check_requirements(("model-compression-toolkit==2.1.1", "sony-custom-layers==0.2.0", "tensorflow==2.12.0"))
         check_requirements("imx500-converter[pt]==3.14.3")  # Separate requirements for imx500-converter
 

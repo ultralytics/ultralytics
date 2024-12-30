@@ -1161,36 +1161,27 @@ class SAM2VideoPredictor(SAM2Predictor):
         assert predictor.dataset is not None
         assert predictor.dataset.mode == "video"
 
-        inference_state = {}
-        inference_state["num_frames"] = predictor.dataset.frames
-        # inputs on each frame
-        inference_state["point_inputs_per_obj"] = {}
-        inference_state["mask_inputs_per_obj"] = {}
-        # values that don't change across frames (so we only need to hold one copy of them)
-        inference_state["constants"] = {}
-        # mapping between client-side object id and model-side object index
-        inference_state["obj_id_to_idx"] = OrderedDict()
-        inference_state["obj_idx_to_id"] = OrderedDict()
-        inference_state["obj_ids"] = []
-        # A storage to hold the model's tracking results and states on each frame
-        inference_state["output_dict"] = {
-            "cond_frame_outputs": {},  # dict containing {frame_idx: <out>}
-            "non_cond_frame_outputs": {},  # dict containing {frame_idx: <out>}
+        inference_state = {
+            "num_frames": predictor.dataset.frames,
+            "point_inputs_per_obj": {},
+            "mask_inputs_per_obj": {},
+            "constants": {},
+            "obj_id_to_idx": OrderedDict(),
+            "obj_idx_to_id": OrderedDict(),
+            "obj_ids": [],
+            "output_dict": {
+                "cond_frame_outputs": {},  # dict containing {frame_idx: <out>}
+                "non_cond_frame_outputs": {},  # dict containing {frame_idx: <out>}
+            },
+            "output_dict_per_obj": {},
+            "temp_output_dict_per_obj": {},
+            "consolidated_frame_inds": {
+                "cond_frame_outputs": set(),  # set containing frame indices
+                "non_cond_frame_outputs": set(),  # set containing frame indices
+            },
+            "tracking_has_started": False,
+            "frames_already_tracked": [],
         }
-        # Slice (view) of each object tracking results, sharing the same memory with "output_dict"
-        inference_state["output_dict_per_obj"] = {}
-        # A temporary storage to hold new outputs when user interact with a frame
-        # to add clicks or mask (it's merged into "output_dict" before propagation starts)
-        inference_state["temp_output_dict_per_obj"] = {}
-        # Frames that already holds consolidated outputs from click or mask inputs
-        # (we directly use their consolidated outputs during tracking)
-        inference_state["consolidated_frame_inds"] = {
-            "cond_frame_outputs": set(),  # set containing frame indices
-            "non_cond_frame_outputs": set(),  # set containing frame indices
-        }
-        # metadata for each tracking frame (e.g. which direction it's tracked)
-        inference_state["tracking_has_started"] = False
-        inference_state["frames_already_tracked"] = []
         predictor.inference_state = inference_state
 
     def get_im_features(self, im, batch=1):

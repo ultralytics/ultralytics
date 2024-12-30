@@ -642,7 +642,7 @@ class Mosaic(BaseMixTransform):
                 c = s - w, s + h0 - h, s, s + h0
 
             padw, padh = c[:2]
-            x1, y1, x2, y2 = (max(x, 0) for x in c)  # allocate coords
+            x1, y1, x2, y2 = (max(x, 0) for x in c)  # allocate coordinates
 
             img3[y1:y2, x1:x2] = img[y1 - padh :, x1 - padw :]  # img3[ymin:ymax, xmin:xmax]
             # hp, wp = h, w  # height, width previous for next iteration
@@ -771,7 +771,7 @@ class Mosaic(BaseMixTransform):
                 c = s - w, s + h0 - hp - h, s, s + h0 - hp
 
             padw, padh = c[:2]
-            x1, y1, x2, y2 = (max(x, 0) for x in c)  # allocate coords
+            x1, y1, x2, y2 = (max(x, 0) for x in c)  # allocate coordinates
 
             # Image
             img9[y1:y2, x1:x2] = img[y1 - padh :, x1 - padw :]  # img9[ymin:ymax, xmin:xmax]
@@ -1320,7 +1320,7 @@ class RandomHSV:
         >>> augmenter = RandomHSV(hgain=0.5, sgain=0.5, vgain=0.5)
         >>> image = np.random.randint(0, 255, (100, 100, 3), dtype=np.uint8)
         >>> labels = {"img": image}
-        >>> augmented_labels = augmenter(labels)
+        >>> augmenter(labels)
         >>> augmented_image = augmented_labels["img"]
     """
 
@@ -1337,7 +1337,7 @@ class RandomHSV:
 
         Examples:
             >>> hsv_aug = RandomHSV(hgain=0.5, sgain=0.5, vgain=0.5)
-            >>> augmented_image = hsv_aug(image)
+            >>> hsv_aug(image)
         """
         self.hgain = hgain
         self.sgain = sgain
@@ -1419,7 +1419,7 @@ class RandomFlip:
 
         Examples:
             >>> flip = RandomFlip(p=0.5, direction="horizontal")
-            >>> flip = RandomFlip(p=0.7, direction="vertical", flip_idx=[1, 0, 3, 2, 5, 4])
+            >>> flip_with_idx = RandomFlip(p=0.7, direction="vertical", flip_idx=[1, 0, 3, 2, 5, 4])
         """
         assert direction in {"horizontal", "vertical"}, f"Support direction `horizontal` or `vertical`, got {direction}"
         assert 0 <= p <= 1.0, f"The probability should be in range [0, 1], but got {p}."

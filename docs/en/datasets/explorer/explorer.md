@@ -43,7 +43,6 @@ Try `yolo explorer` powered by Explorer API
 
 Simply `pip install ultralytics` and run `yolo explorer` in your terminal to run custom queries and semantic search on your datasets right inside your browser!
 
-
 ## Ultralytics Explorer support deprecated ⚠️
 
 From **`ultralytics>=8.3.10`**, Explorer support is deprecated. Access similar functionality via [Ultralytics HUB](https://hub.ultralytics.com/), our no-code platform for streamlined data workflows.

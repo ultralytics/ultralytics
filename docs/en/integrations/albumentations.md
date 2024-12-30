@@ -135,7 +135,7 @@ Here are the parameters and values used in this integration:
 
 - **clip_limit**: Controls the contrast enhancement range. Set to a default range of (1, 4), it determines the maximum contrast allowed in each tile. Higher values are used for more contrast but may also introduce noise.
 
-- **tile_grid_size**: Defines the size of the grid of tiles, typically as (rows, columns). The default value is (8, 8), meaning the image is divided into an 8x8 grid. Smaller tile sizes provide more localized adjustments, while larger ones create effects closer to global equalization.
+- **tile_grid_size**: Defines the size of the grid of tiles, typically as (rows, columns). The default value is (8, 8), meaning the image is divided into a 8x8 grid. Smaller tile sizes provide more localized adjustments, while larger ones create effects closer to global equalization.
 
 - **p**: The probability of applying CLAHE. Here, p=0.01 introduces the enhancement effect only 1% of the time, ensuring that contrast adjustments are applied sparingly for occasional variation in training images.
 

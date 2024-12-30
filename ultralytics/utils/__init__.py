@@ -614,7 +614,8 @@ def is_jetson() -> bool:
     """
     if any(keyword in PROC_DEVICE_MODEL.lower() for keyword in ("nvidia", "jetson")):
         return True
-    return os.getenv("jetson", "false").lower() == "true" # support for Docker environments
+    return os.getenv("jetson", "false").lower() == "true"  # support for Docker environments
+
 
 def is_online() -> bool:
     """

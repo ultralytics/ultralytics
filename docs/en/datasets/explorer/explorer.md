@@ -251,7 +251,6 @@ exp.plot_similarity_index(max_dist=0.2, top_k=0.01)
 Now let's look at the output of the operation
 
 ```python
-
 sim_idx = exp.similarity_index(max_dist=0.2, top_k=0.01, force=False)
 
 sim_idx

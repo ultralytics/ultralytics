@@ -10,7 +10,6 @@ keywords: Ultralytics, YOLO11, Dwell Time, Avrage Dwell Time, Funnel Stages, Cou
 
 Understanding user engagement and behavioral patterns with [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics/) is critical for optimizing systems, workflows, or user interfaces. One of the key metrics for evaluating these patterns is dwell time, which refers to the duration a objects spends in a specific place, such as a racks, counter, or queue. etc
 
-
 ### Why Choose Dwell Time Analyzer for Data Analysis?
 
 In today’s data-driven world, understanding how users interact with systems is essential for making informed decisions. The **Dwell Time Analyzer** stands out as a powerful tool for analyzing engagement and user behavior, offering several compelling advantages:
@@ -36,16 +35,15 @@ In today’s data-driven world, understanding how users interact with systems is
 7. **Seamless Integration**:  
    The Dwell Time Analyzer integrates easily with existing analytics platforms, making it a hassle-free addition to your data analysis toolkit.
 
-Choosing the Dwell Time Analyzer equips organizations with a precise and reliable means of uncovering actionable insights, empowering them to optimize performance and deliver exceptional user experiences.  
-                                               
+Choosing the Dwell Time Analyzer equips organizations with a precise and reliable means of uncovering actionable insights, empowering them to optimize performance and deliver exceptional user experiences.
 
 !!! example "DwellTimeAnalyzer using Ultralytics YOLO11 Example"
-
 
     === "Python"
 
         ```python
         import cv2
+
         from ultralytics.solutions import DwellTimeAnalyzer
 
         # Open the input video
@@ -58,8 +56,7 @@ Choosing the Dwell Time Analyzer equips organizations with a precise and reliabl
         fps = int(cap.get(cv2.CAP_PROP_FPS))
 
         # Prepare the output video writer
-        video_writer = cv2.VideoWriter("dwell_time.mp4", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h)
-        )
+        video_writer = cv2.VideoWriter("dwell_time.mp4", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
         # Define zones for dwell time analysis
         zones = {
@@ -69,10 +66,10 @@ Choosing the Dwell Time Analyzer equips organizations with a precise and reliabl
 
 
         analyzer = DwellTimeAnalyzer(
-            show=True,               # If True, will attempt to display frames (requires UI support)
-            model="yolo11n.pt",        # YOLO model path
-            source="path/to/video/file.mp4",       # Video source path
-            fps=fps,                 # Frames per second for converting dwell time to seconds
+            show=True,  # If True, will attempt to display frames (requires UI support)
+            model="yolo11n.pt",  # YOLO model path
+            source="path/to/video/file.mp4",  # Video source path
+            fps=fps,  # Frames per second for converting dwell time to seconds
             # zones=zones,           # Defined zones (optional) if not provided, zones are selected interactively)
             # classes=[],            # List of class indices to track (optional)
         )
@@ -99,18 +96,18 @@ Choosing the Dwell Time Analyzer equips organizations with a precise and reliabl
 
 ### Arguments `DwellTimeAnalyzer()`
 
-| Name         | Type   | Default            | Description                                                       |
-| ------------ | ------ | ------------------ | ----------------------------------------------------------------- |
-| `model`            | `str`  | `None`       | Path to Ultralytics YOLO Model File                               |
-| `Source`           | `file` | `None`       | Path to source file.                                              |
-| `show`             | `bool` | `True`       | Whether to display the image with the dwell time analysis.        |
-| `fps`              | `int`  | `None`       | FPS for counting dwell time.                                      |
-| `zones`            | `list` | `{}`         | Regions of interst.                                               |
-| `classes`          | `list` | `None`       | Specific classes filter.                                          |
-| `enable_funnel`    | `bool` | `False`      | Enable funnel analysis.                                           |
-| `funnel_stages`    | `tuple`| `None`       | Define funnel stages explicitly if regions are define.            |
-| `enable_avg_dwell` | `bool` | `False`      | Average dwell time computation.                                   |
-| `detect_mode`      | `str`  | `all_frames` | Choose "all_frames" or "enter_zones.                              |
+| Name               | Type    | Default      | Description                                                |
+| ------------------ | ------- | ------------ | ---------------------------------------------------------- |
+| `model`            | `str`   | `None`       | Path to Ultralytics YOLO Model File                        |
+| `Source`           | `file`  | `None`       | Path to source file.                                       |
+| `show`             | `bool`  | `True`       | Whether to display the image with the dwell time analysis. |
+| `fps`              | `int`   | `None`       | FPS for counting dwell time.                               |
+| `zones`            | `list`  | `{}`         | Regions of interst.                                        |
+| `classes`          | `list`  | `None`       | Specific classes filter.                                   |
+| `enable_funnel`    | `bool`  | `False`      | Enable funnel analysis.                                    |
+| `funnel_stages`    | `tuple` | `None`       | Define funnel stages explicitly if regions are define.     |
+| `enable_avg_dwell` | `bool`  | `False`      | Average dwell time computation.                            |
+| `detect_mode`      | `str`   | `all_frames` | Choose "all_frames" or "enter_zones.                       |
 
 ### Arguments `model.track`
 
@@ -131,7 +128,6 @@ import cv2
 
 from ultralytics import solutions
 
-
 cap = cv2.VideoCapture("path/to/video/file.mp4")
 
 # Get video properties
@@ -139,7 +135,7 @@ w = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
 h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 fps = int(cap.get(cv2.CAP_PROP_FPS))
 
-analyzer = solutions.DwellTimeAnalyzer(show=True, model="yolo11n.pt", fps=fps, classes=[1,2])
+analyzer = solutions.DwellTimeAnalyzer(show=True, model="yolo11n.pt", fps=fps, classes=[1, 2])
 
 while cap.isOpened():
     success, im0 = cap.read()
@@ -168,7 +164,6 @@ You can count dwell time for specific object classes by specifying the desired c
 import cv2
 
 from ultralytics import solutions
-
 
 cap = cv2.VideoCapture("path/to/video/file.mp4")
 

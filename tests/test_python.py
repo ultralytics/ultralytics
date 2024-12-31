@@ -160,6 +160,32 @@ def test_predict_grey_and_4ch():
         f.unlink()  # cleanup
 
 
+def test_nms():
+    """Test YOLO model with standard NMS, agnostic NMS, and hybrid-agnostic NMS."""
+    model = YOLO("yolov8n.pt")
+    classes = [
+        29,  # frisbee
+        34,  # baseball bat
+        38,  # tennis racket
+        65,  # remote
+    ]
+    conf = 0.01
+
+    nms_results = model(ASSETS / "zidane.jpg", classes=classes, conf=conf)
+    expected_nms_cls = [38, 34, 38, 34, 38, 65, 65, 38, 29]
+    assert np.array_equal(expected_nms_cls, nms_results[0].boxes.cls.to("cpu").numpy())
+
+    agnostic_nms_results = model(ASSETS / "zidane.jpg", classes=classes, conf=conf, agnostic_nms=True)
+    expected_agnostic_nms_cls = [38, 38, 34, 38, 65, 65, 38]
+    assert np.array_equal(expected_agnostic_nms_cls, agnostic_nms_results[0].boxes.cls.to("cpu").numpy())
+
+    hybrid_agnostic_nms_results = model(
+        ASSETS / "zidane.jpg", classes=classes, conf=conf, agnostic_nms_classes=[34, 38]
+    )
+    expected_hybrid_agnostic_nms_cls = [38, 38, 34, 38, 38, 65, 65, 29]
+    assert np.array_equal(expected_hybrid_agnostic_nms_cls, hybrid_agnostic_nms_results[0].boxes.cls.to("cpu").numpy())
+
+
 @pytest.mark.slow
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 @pytest.mark.skipif(is_github_action_running(), reason="No auth https://github.com/JuanBindez/pytubefix/issues/166")

@@ -50,7 +50,7 @@ Once built, you can run inference on an image using the following command:
 
 To use your YOLOv8 model with OpenVINO, you need to export it first. Use the command below to export the model:
 
-```commandline
+```bash
 yolo export model=yolov8s.pt imgsz=640 format=openvino
 ```
 

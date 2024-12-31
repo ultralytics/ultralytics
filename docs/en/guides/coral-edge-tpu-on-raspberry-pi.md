@@ -209,7 +209,7 @@ Yes, you can export your Ultralytics YOLO11 model to be compatible with the Cora
 
 For more information, refer to the [Export Mode](../modes/export.md) documentation.
 
-### What should I do if TensorFlow is already installed on my Raspberry Pi but I want to use tflite-runtime instead?
+### What should I do if TensorFlow is already installed on my Raspberry Pi, but I want to use tflite-runtime instead?
 
 If you have TensorFlow installed on your Raspberry Pi and need to switch to `tflite-runtime`, you'll need to uninstall TensorFlow first using:
 

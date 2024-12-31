@@ -1269,7 +1269,7 @@ def plt_color_scatter(v, f, bins=20, cmap="viridis", alpha=0.8, edgecolors="none
 
 def plot_tune_results(csv_file="tune_results.csv"):
     """
-    Plot the evolution results stored in an 'tune_results.csv' file. The function generates a scatter plot for each key
+    Plot the evolution results stored in a 'tune_results.csv' file. The function generates a scatter plot for each key
     in the CSV, color-coded based on fitness scores. The best-performing configurations are highlighted on the plots.
 
     Args:

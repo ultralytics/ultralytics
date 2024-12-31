@@ -99,7 +99,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-14]
-        python-version: ["3.11"]
+        python-version: ["3.12"]
         model: [yolo11n]
     steps:
       - uses: actions/checkout@v4
@@ -161,7 +161,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-14, windows-latest]
-        python-version: ["3.11"]
+        python-version: ["3.12"]
         torch: [latest]
         include:
           - os: ubuntu-latest

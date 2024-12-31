@@ -155,26 +155,28 @@ segment_2_name = f"{sliced_output_name}_segment2"
 segment_3_name = f"{sliced_output_name}_segment3"
 
 # Add segment slicing nodes
-graph.node.extend([
-    helper.make_node(
-        "Slice",
-        inputs=[sliced_output_name, "seg1_start", "seg1_end", "slice_axes", "slice_steps"],
-        outputs=[segment_1_name],
-        name="SliceSegment1",
-    ),
-    helper.make_node(
-        "Slice",
-        inputs=[sliced_output_name, "seg2_start", "seg2_end", "slice_axes", "slice_steps"],
-        outputs=[segment_2_name],
-        name="SliceSegment2",
-    ),
-    helper.make_node(
-        "Slice",
-        inputs=[sliced_output_name, "seg3_start", "seg3_end", "slice_axes", "slice_steps"],
-        outputs=[segment_3_name],
-        name="SliceSegment3",
-    ),
-])
+graph.node.extend(
+    [
+        helper.make_node(
+            "Slice",
+            inputs=[sliced_output_name, "seg1_start", "seg1_end", "slice_axes", "slice_steps"],
+            outputs=[segment_1_name],
+            name="SliceSegment1",
+        ),
+        helper.make_node(
+            "Slice",
+            inputs=[sliced_output_name, "seg2_start", "seg2_end", "slice_axes", "slice_steps"],
+            outputs=[segment_2_name],
+            name="SliceSegment2",
+        ),
+        helper.make_node(
+            "Slice",
+            inputs=[sliced_output_name, "seg3_start", "seg3_end", "slice_axes", "slice_steps"],
+            outputs=[segment_3_name],
+            name="SliceSegment3",
+        ),
+    ]
+)
 
 # Concatenate the segments
 concat_output_name = f"{sliced_output_name}_concat"
@@ -284,8 +286,7 @@ graph.node.append(pad_node)
 
 # Update the graph's final output to [1, 100, 6]
 new_output_type = onnx.helper.make_tensor_type_proto(
-    elem_type=graph.output[0].type.tensor_type.elem_type,
-    shape=[1, 100, 6]
+    elem_type=graph.output[0].type.tensor_type.elem_type, shape=[1, 100, 6]
 )
 new_output = onnx.helper.make_value_info(name=pad_output_name, type_proto=new_output_type)
 
@@ -323,10 +324,13 @@ pip install tensorrt
 # Based off of https://github.com/NVIDIA/TensorRT/blob/release/10.7/samples/python/introductory_parser_samples/onnx_resnet50.py
 
 import tensorrt as trt
+
 TRT_LOGGER = trt.Logger(trt.Logger.WARNING)
+
 
 def GiB(val):
     return val * 1 << 30
+
 
 def build_engine_onnx(model_file):
     builder = trt.Builder(TRT_LOGGER)
@@ -343,8 +347,9 @@ def build_engine_onnx(model_file):
             return None
     config.set_flag(trt.BuilderFlag.FP16)
     engine_bytes = builder.build_serialized_network(network, config)
-    with open(model_file.replace("onnx", "engine"),"wb") as f:
-      f.write(engine_bytes)
+    with open(model_file.replace("onnx", "engine"), "wb") as f:
+        f.write(engine_bytes)
+
 
 build_engine_onnx("yolov7-ultralytics.onnx")  # path to the modified ONNX file
 ```

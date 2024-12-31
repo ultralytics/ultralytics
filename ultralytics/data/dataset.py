@@ -323,7 +323,8 @@ class GroundingDataset(YOLODataset):
                 if box[2] <= 0 or box[3] <= 0:
                     continue
 
-                cat_name = " ".join([img["caption"][t[0] : t[1]] for t in ann["tokens_positive"]])
+                caption = img["caption"]
+                cat_name = " ".join([caption[t[0] : t[1]] for t in ann["tokens_positive"]])
                 if cat_name not in cat2id:
                     cat2id[cat_name] = len(cat2id)
                     texts.append([cat_name])

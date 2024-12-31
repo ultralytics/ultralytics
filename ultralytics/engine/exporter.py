@@ -603,10 +603,7 @@ class Exporter:
     @try_export
     def export_paddle(self, prefix=colorstr("PaddlePaddle:")):
         """YOLO Paddle export."""
-        cuda = torch.cuda.is_available()
-        requirements = ["x2paddle"]
-        requirements += ["paddlepaddle-gpu"] if cuda else ["paddlepaddle"]
-        check_requirements(requirements)
+        check_requirements(("paddlepaddle-gpu" if torch.cuda.is_available() else "paddlepaddle", "x2paddle"))
         import x2paddle  # noqa
         from x2paddle.convert import pytorch2paddle  # noqa
 

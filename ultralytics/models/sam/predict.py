@@ -91,9 +91,9 @@ class Predictor(BasePredictor):
             _callbacks (Dict | None): Dictionary of callback functions to customize behavior.
 
         Examples:
-            >>> predictor = Predictor(cfg=DEFAULT_CFG)
-            >>> predictor = Predictor(overrides={"imgsz": 640})
-            >>> predictor = Predictor(_callbacks={"on_predict_start": custom_callback})
+            >>> predictor_example = Predictor(cfg=DEFAULT_CFG)
+            >>> predictor_example_with_imgsz = Predictor(overrides={"imgsz": 640})
+            >>> predictor_example_with_callback = Predictor(_callbacks={"on_predict_start": custom_callback})
         """
         if overrides is None:
             overrides = {}
@@ -215,7 +215,7 @@ class Predictor(BasePredictor):
             im (torch.Tensor): Preprocessed input image tensor with shape (N, C, H, W).
             bboxes (np.ndarray | List | None): Bounding boxes in XYXY format with shape (N, 4).
             points (np.ndarray | List | None): Points indicating object locations with shape (N, 2) or (N, num_points, 2), in pixels.
-            labels (np.ndarray | List | None): Point prompt labels with shape (N,) or (N, num_points). 1 for foreground, 0 for background.
+            labels (np.ndarray | List | None): Point prompt labels with shape (N) or (N, num_points). 1 for foreground, 0 for background.
             masks (np.ndarray | None): Low-res masks from previous predictions with shape (N, H, W). For SAM, H=W=256.
             multimask_output (bool): Flag to return multiple masks for ambiguous prompts.
 
@@ -260,7 +260,7 @@ class Predictor(BasePredictor):
             dst_shape (tuple): The target shape (height, width) for the prompts.
             bboxes (np.ndarray | List | None): Bounding boxes in XYXY format with shape (N, 4).
             points (np.ndarray | List | None): Points indicating object locations with shape (N, 2) or (N, num_points, 2), in pixels.
-            labels (np.ndarray | List | None): Point prompt labels with shape (N,) or (N, num_points). 1 for foreground, 0 for background.
+            labels (np.ndarray | List | None): Point prompt labels with shape (N) or (N, num_points). 1 for foreground, 0 for background.
             masks (List | np.ndarray, Optional): Masks for the objects, where each mask is a 2D array.
 
         Raises:
@@ -853,8 +853,8 @@ class SAM2VideoPredictor(SAM2Predictor):
 
         Examples:
             >>> predictor = SAM2VideoPredictor(cfg=DEFAULT_CFG)
-            >>> predictor = SAM2VideoPredictor(overrides={"imgsz": 640})
-            >>> predictor = SAM2VideoPredictor(_callbacks={"on_predict_start": custom_callback})
+            >>> predictor_example_with_imgsz = SAM2VideoPredictor(overrides={"imgsz": 640})
+            >>> predictor_example_with_callback = SAM2VideoPredictor(_callbacks={"on_predict_start": custom_callback})
         """
         super().__init__(cfg, overrides, _callbacks)
         self.inference_state = {}

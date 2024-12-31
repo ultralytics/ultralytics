@@ -23,7 +23,7 @@ Regular model monitoring helps developers track the [model's performance](./mode
 Here are some best practices to keep in mind while monitoring your computer vision model in production:
 
 - **Track Performance Regularly**: Continuously monitor the model's performance to detect changes over time.
-- **Double Check the Data Quality**: Check for missing values or anomalies in the data.
+- **Double-Check the Data Quality**: Check for missing values or anomalies in the data.
 - **Use Diverse Data Sources**: Monitor data from various sources to get a comprehensive view of the model's performance.
 - **Combine Monitoring Techniques**: Use a mix of drift detection algorithms and rule-based approaches to identify a wide range of issues.
 - **Monitor Inputs and Outputs**: Keep an eye on both the data the model processes and the results it produces to make sure everything is functioning correctly.

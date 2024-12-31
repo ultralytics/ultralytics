@@ -86,7 +86,7 @@ You can use the also plot the similar samples directly using the `plot_similar` 
 
 ```python
 exp.plot_similar(idx=6500, limit=20)
-exp.plot_similar(idx=[100,101], limit=10) # Can also pass list of idxs or imgs
+exp.plot_similar(idx=[100, 101], limit=10)  # Can also pass list of idxs or imgs
 
 exp.plot_similar(img="https://ultralytics.com/images/bus.jpg", limit=10, labels=False)  # Can also pass external images
 ```

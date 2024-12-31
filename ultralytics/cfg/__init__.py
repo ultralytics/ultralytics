@@ -303,7 +303,7 @@ def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace] = DEFAULT_CFG_DICT, ove
         if k in cfg and isinstance(cfg[k], (int, float)):
             cfg[k] = str(cfg[k])
     if cfg.get("name") == "model":  # assign model to 'name' arg
-        cfg["name"] = cfg.get("model", "").split(".")[0]
+        cfg["name"] = str(cfg.get("model", "")).split(".")[0]
         LOGGER.warning(f"WARNING ⚠️ 'name=model' automatically updated to 'name={cfg['name']}'.")
 
     # Type and Value checks

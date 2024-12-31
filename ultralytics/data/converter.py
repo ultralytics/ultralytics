@@ -266,7 +266,7 @@ def convert_coco(
             # since LVIS val set contains images from COCO 2017 train in addition to the COCO 2017 val split.
             (fn / "train2017").mkdir(parents=True, exist_ok=True)
             (fn / "val2017").mkdir(parents=True, exist_ok=True)
-        with open(json_file) as f:
+        with open(json_file, encoding="utf-8") as f:
             data = json.load(f)
 
         # Create image dict

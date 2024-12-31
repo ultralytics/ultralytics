@@ -30,6 +30,6 @@ make
 
 To export YOLOv8 models:
 
-```commandline
+```bash
 yolo export model=yolov8s.pt imgsz=640 format=torchscript
 ```

@@ -95,7 +95,7 @@ from ultralytics.utils import (
 from ultralytics.utils.checks import check_imgsz, check_is_path_safe, check_requirements, check_version
 from ultralytics.utils.downloads import attempt_download_asset, get_github_assets, safe_download
 from ultralytics.utils.files import file_size, spaces_in_path
-from ultralytics.utils.ops import Profile, xywh2xyxy, batch_probiou
+from ultralytics.utils.ops import Profile, batch_probiou, xywh2xyxy
 from ultralytics.utils.torch_utils import TORCH_1_13, get_latest_opset, select_device
 
 
@@ -274,7 +274,7 @@ class Exporter:
         if self.args.int8 and tflite:
             assert not getattr(model, "end2end", False), "TFLite INT8 export not supported for end2end models."
         if self.args.nms and getattr(self.model, "end2end", False):
-            LOGGER.warning(f"WARNING ⚠️ 'nms=True' is not available for end2end models. Forcing 'nms=False'.")
+            LOGGER.warning("WARNING ⚠️ 'nms=True' is not available for end2end models. Forcing 'nms=False'.")
             self.args.nms = False
         if edgetpu:
             if not LINUX:
@@ -501,7 +501,7 @@ class Exporter:
                 dynamic["output1"] = {0: "batch", 2: "mask_height", 3: "mask_width"}  # shape(1,32,160,160)
             elif isinstance(self.model, DetectionModel):
                 dynamic["output0"] = {0: "batch", 2: "anchors"}  # shape(1, 84, 8400)
-            if self.args.nms:  # only batch size is dynamic with NMS 
+            if self.args.nms:  # only batch size is dynamic with NMS
                 dynamic["output0"].pop(2)
         torch.onnx.export(
             self.model.cpu() if dynamic else self.model,  # dynamic=True only compatible with cpu
@@ -1467,9 +1467,8 @@ class IOSDetectModel(torch.nn.Module):
 
 
 class NMSModel(torch.nn.Module):
-    """Model wrapper with embedded NMS for Detect, Segment, Pose and OBB.
+    """Model wrapper with embedded NMS for Detect, Segment, Pose and OBB."""
 
-    """
     def __init__(self, model, args):
         """
         Initialize the NMSModel.
@@ -1489,7 +1488,7 @@ class NMSModel(torch.nn.Module):
         keep = (scores > self.args.conf).squeeze()
         mask = torch.zeros(boxes.shape[0], dtype=torch.bool)
         ious = batch_probiou(boxes[keep], boxes[keep]).triu_(diagonal=1)
-        mask[keep] = (1 - (ious > iou).sum(0) > 0)  # same as ious.max(dim=0) but can handle empty values
+        mask[keep] = 1 - (ious > iou).sum(0) > 0  # same as ious.max(dim=0) but can handle empty values
         scores[~mask] = 0
         _, keep = torch.topk(scores, self.args.max_det)  # fixed output size to prevent ONNX reshape error
         return keep
@@ -1513,5 +1512,7 @@ class NMSModel(torch.nn.Module):
                 box[:, :end] += cls.unsqueeze(1)  # class-specific NMS
             nms_fn = self.nms_rotated if self.obb else torchvision.ops.nms
             keep = nms_fn(torch.cat([box, extra], dim=-1) if self.obb else box, score, self.args.iou)
-            out[i, :keep.shape[0]] = torch.cat([box[keep], score[keep].unsqueeze(1), cls[keep].unsqueeze(1), extra[keep]], dim=-1)
+            out[i, : keep.shape[0]] = torch.cat(
+                [box[keep], score[keep].unsqueeze(1), cls[keep].unsqueeze(1), extra[keep]], dim=-1
+            )
         return (out, preds[1]) if self.args.task == "segment" else out

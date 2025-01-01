@@ -1486,7 +1486,7 @@ class NMSModel(torch.nn.Module):
 
     def nms_rotated(self, boxes, scores, iou):
         keep = (scores > self.args.conf).squeeze()
-        mask = torch.zeros(boxes.shape[0], dtype=torch.bool)
+        mask = torch.zeros(boxes.shape[0], dtype=torch.bool, device=boxes.device)
         ious = batch_probiou(boxes[keep], boxes[keep]).triu_(diagonal=1)
         mask[keep] = 1 - (ious > iou).sum(0) > 0  # same as ious.max(dim=0) > iou but can handle empty values
         scores[~mask] = 0

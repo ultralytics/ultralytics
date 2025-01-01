@@ -8,9 +8,11 @@ function updateOption(key, value) {
   options[key] = value;
 
   // Use a single selector to handle active state efficiently
-  document.querySelectorAll(`[data-key="${key}"]`).forEach((btn) =>
-    btn.classList.toggle("active", btn.dataset.value === value)
-  );
+  document
+    .querySelectorAll(`[data-key="${key}"]`)
+    .forEach((btn) =>
+      btn.classList.toggle("active", btn.dataset.value === value),
+    );
 
   updateCommand();
 }
@@ -22,9 +24,11 @@ function updateCommand() {
     package === "Pip"
       ? "pip3 install ultralytics"
       : "conda install -c conda-forge ultralytics";
-  const versionSuffix = build !== "latest" ? (package === "Pip" ? `==${build}` : `=${build}`) : "";
+  const versionSuffix =
+    build !== "latest" ? (package === "Pip" ? `==${build}` : `=${build}`) : "";
 
-  document.getElementById("command").innerText = `${baseCommand}${versionSuffix}`;
+  document.getElementById("command").innerText =
+    `${baseCommand}${versionSuffix}`;
 }
 
 // Initialize default selections on DOMContentLoaded

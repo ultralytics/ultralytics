@@ -20,7 +20,6 @@
 /* CSS for buttons i.e latest, 8.3.55, Pip, Conda */
 .option-btn {
   background-color: #f4f4f4;
-  padding: 5px 5px;
   cursor: pointer;
 }
 .option-btn:hover {

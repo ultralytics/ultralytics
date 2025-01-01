@@ -1,20 +1,19 @@
 const options = { build: "latest", package: "Pip" };
 
-function updateOption(key, value) {
+const updateOption = (key, value) => {
   options[key] = value;
   document.querySelectorAll(`[data-key="${key}"]`).forEach((btn) =>
     btn.classList.toggle("active", btn.dataset.value === value)
   );
   updateCommand();
-}
+};
 
-function updateCommand() {
+const updateCommand = () => {
   const { build, package } = options;
-  const version = build !== "latest" ? (package === "Pip" ? `==${build}` : `=${build}`) : "";
   document.getElementById("command").innerText =
-    `${package === "Pip" ? "pip3 install ultralytics" : "conda install -c conda-forge ultralytics"}${version}`;
-}
+    `${package === "Pip" ? "pip3 install ultralytics" : "conda install -c conda-forge ultralytics"}${build !== "latest" ? (package === "Pip" ? `==${build}` : `=${build}`) : ""}`;
+};
 
-document.addEventListener("DOMContentLoaded", () => {
-  ["build", "package"].forEach((key) => updateOption(key, options[key]));
-});
+document.addEventListener("DOMContentLoaded", () =>
+  Object.keys(options).forEach((key) => updateOption(key, options[key]))
+);

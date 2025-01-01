@@ -77,7 +77,7 @@ Explore the Ultralytics Docs, a comprehensive resource designed to help you unde
     <label>Run this Command:</label>
     <code id="command">pip3 install ultralytics</code>
   </div>
-</div>
+</div> 
 
 <link rel="stylesheet" href="../stylesheets/installer.css">
 <script src="../javascript/installer.js"></script>

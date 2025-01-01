@@ -18,7 +18,7 @@ Ultralytics Solutions provide cutting-edge applications of YOLO models, offering
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Run Ultralytics Solutions from the Command Line (CLI) | Ultralytics YOLO11 | Object Counting 🚀
+  <strong>Watch:</strong> How to Run Ultralytics Solutions from the Command Line (CLI) | Ultralytics YOLO11 🚀
 </p>
 
 ## Solutions

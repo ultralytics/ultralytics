@@ -53,6 +53,7 @@ Explore the Ultralytics Docs, a comprehensive resource designed to help you unde
   <a href="https://discord.com/invite/ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-discord.png" width="3%" alt="Ultralytics Discord"></a>
 </div>
 
+<br>
 <div class="install-menu">
   <div class="menu-options">
     <div class="option-row">
@@ -77,8 +78,8 @@ Explore the Ultralytics Docs, a comprehensive resource designed to help you unde
   </div>
 </div>
 
-<link rel="stylesheet" href="../overrides/stylesheets/installer.css">
-<script src="../overrides/javascript/installer.js"></script>
+<link rel="stylesheet" href="../stylesheets/installer.css">
+<script src="../javascript/installer.js"></script>
 
 ## Where to Start
 

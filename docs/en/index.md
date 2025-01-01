@@ -54,6 +54,7 @@ Explore the Ultralytics Docs, a comprehensive resource designed to help you unde
 </div>
 
 ## Install Ultralytics
+
 <div class="install-menu">
   <div class="menu-options">
     <div class="option-row">

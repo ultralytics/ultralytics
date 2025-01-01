@@ -25,7 +25,7 @@ keywords: Ultralytics, YOLO, YOLO11, object detection, image segmentation, deep 
     <a href="https://discord.com/invite/ultralytics"><img alt="Ultralytics Discord" src="https://img.shields.io/discord/1089800235347353640?logo=discord&logoColor=white&label=Discord&color=blue"></a>
     <a href="https://community.ultralytics.com/"><img alt="Ultralytics Forums" src="https://img.shields.io/discourse/users?server=https%3A%2F%2Fcommunity.ultralytics.com&logo=discourse&label=Forums&color=blue"></a>
     <a href="https://reddit.com/r/ultralytics"><img alt="Ultralytics Reddit" src="https://img.shields.io/reddit/subreddit-subscribers/ultralytics?style=flat&logo=reddit&logoColor=white&label=Reddit&color=blue"></a>
-    <br>
+    <br> 
     <a href="https://console.paperspace.com/github/ultralytics/ultralytics"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run Ultralytics on Gradient"></a>
     <a href="https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open Ultralytics In Colab"></a>
     <a href="https://www.kaggle.com/models/ultralytics/yolo11"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open Ultralytics In Kaggle"></a>
@@ -57,7 +57,7 @@ Explore the Ultralytics Docs, a comprehensive resource designed to help you unde
 
 <div class="install-menu">
   <div class="menu-options">
-    <div class="option-row"> 
+    <div class="option-row">
       <label>Ultralytics Build:</label>
       <div class="buttons-container">
         <button class="option-btn" data-key="build" data-value="latest" onclick="updateOption('build', 'latest')">latest</button>
@@ -77,7 +77,7 @@ Explore the Ultralytics Docs, a comprehensive resource designed to help you unde
     <label>Run this Command:</label>
     <code id="command">pip3 install ultralytics</code>
   </div>
-</div> 
+</div>
 
 <link rel="stylesheet" href="../stylesheets/installer.css">
 <script src="../javascript/installer.js"></script>

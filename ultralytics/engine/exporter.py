@@ -273,7 +273,7 @@ class Exporter:
             assert self.device.type == "cpu", "optimize=True not compatible with cuda devices, i.e. use device='cpu'"
         if self.args.int8 and tflite:
             assert not getattr(model, "end2end", False), "TFLite INT8 export not supported for end2end models."
-        if self.args.nms and getattr(self.model, "end2end", False):
+        if self.args.nms and getattr(model, "end2end", False):
             LOGGER.warning("WARNING ⚠️ 'nms=True' is not available for end2end models. Forcing 'nms=False'.")
             self.args.nms = False
         if edgetpu:

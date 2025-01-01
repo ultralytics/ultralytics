@@ -53,7 +53,7 @@ Explore the Ultralytics Docs, a comprehensive resource designed to help you unde
   <a href="https://discord.com/invite/ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-discord.png" width="3%" alt="Ultralytics Discord"></a>
 </div>
 
-<br>
+## Install Ultralytics
 <div class="install-menu">
   <div class="menu-options">
     <div class="option-row">

@@ -1,11 +1,5 @@
-.install-menu {
-    font-family: Arial, sans-serif;
-    margin: 10px;
-}
-
 .option-row {   /* Ensures all label options are aligned */
     display: flex;
-    align-items: center;
     margin-bottom: 15px;
 }
 .option-row label {min-width: 200px; }
@@ -22,13 +16,11 @@
     background-color: #f4f4f4;
     padding: 5px 5px;
     cursor: pointer;
-    text-align: center;
 }
-.option-btn:hover {background-color: #FF64DA; color:#FFFFFF}
-.option-btn.active {background-color: #FF64DA; color:#FFFFFF}
+.option-btn:hover {background-color: #2196F3; color:#FFFFFF}
+.option-btn.active {background-color: #2196F3; color:#FFFFFF}
 
 #command {
-    display: block;
     padding: 5px;
     background: #f4f4f4;
     word-wrap: break-word;

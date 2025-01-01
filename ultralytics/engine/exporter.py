@@ -1488,7 +1488,7 @@ class NMSModel(torch.nn.Module):
         keep = (scores > self.args.conf).squeeze()
         mask = torch.zeros(boxes.shape[0], dtype=torch.bool)
         ious = batch_probiou(boxes[keep], boxes[keep]).triu_(diagonal=1)
-        mask[keep] = 1 - (ious > iou).sum(0) > 0  # same as ious.max(dim=0) but can handle empty values
+        mask[keep] = 1 - (ious > iou).sum(0) > 0  # same as ious.max(dim=0) > iou but can handle empty values
         scores[~mask] = 0
         _, keep = torch.topk(scores, self.args.max_det)  # fixed output size to prevent ONNX reshape error
         return keep

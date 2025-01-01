@@ -1507,8 +1507,8 @@ class NMSModel(torch.nn.Module):
             box, cls, score, extra = boxes[i, keep], classes[i, keep], scores[i, keep], extras[i, keep]
             if not self.obb:
                 box = xywh2xyxy(box)
-            end = 2 if self.obb else 4
             if not self.args.agnostic_nms:
+                end = 2 if self.obb else 4
                 box[:, :end] += cls.unsqueeze(1)  # class-specific NMS
             nms_fn = self.nms_rotated if self.obb else torchvision.ops.nms
             keep = nms_fn(torch.cat([box, extra], dim=-1) if self.obb else box, score, self.args.iou)

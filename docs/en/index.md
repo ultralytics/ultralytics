@@ -57,7 +57,7 @@ Explore the Ultralytics Docs, a comprehensive resource designed to help you unde
 
 <div class="install-menu">
   <div class="menu-options">
-    <div class="option-row">
+    <div class="option-row"> 
       <label>Ultralytics Build:</label>
       <div class="buttons-container">
         <button class="option-btn" data-key="build" data-value="latest" onclick="updateOption('build', 'latest')">latest</button>
@@ -77,7 +77,7 @@ Explore the Ultralytics Docs, a comprehensive resource designed to help you unde
     <label>Run this Command:</label>
     <code id="command">pip3 install ultralytics</code>
   </div>
-</div>
+</div> 
 
 <link rel="stylesheet" href="../stylesheets/installer.css">
 <script src="../javascript/installer.js"></script>

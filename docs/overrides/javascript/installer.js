@@ -4,45 +4,31 @@ const options = {
 };
 
 function updateOption(key, value) {
-  // Update the selection and apply the active class
+  // Update the selected option
   options[key] = value;
 
-  // Remove active class from all buttons in the current group
-  const buttons = document.querySelectorAll(`[data-key="${key}"]`);
-  buttons.forEach((btn) => btn.classList.remove("active"));
-
-  // Add active class to the selected button
-  const selectedButton = document.querySelector(
-    `[data-key="${key}"][data-value="${value}"]`,
+  // Use a single selector to handle active state efficiently
+  document.querySelectorAll(`[data-key="${key}"]`).forEach((btn) =>
+    btn.classList.toggle("active", btn.dataset.value === value)
   );
-  if (selectedButton) {
-    selectedButton.classList.add("active");
-  }
+
   updateCommand();
 }
 
 function updateCommand() {
   // Generate and update the command dynamically
   const { build, package } = options;
-  let command = "";
+  const baseCommand =
+    package === "Pip"
+      ? "pip3 install ultralytics"
+      : "conda install -c conda-forge ultralytics";
+  const versionSuffix = build !== "latest" ? (package === "Pip" ? `==${build}` : `=${build}`) : "";
 
-  if (package === "Pip") {
-    command = `pip3 install ultralytics`;
-    if (build !== "latest") {
-      command += `==${build}`;
-    }
-  } else if (package === "Conda") {
-    command = `conda install -c conda-forge ultralytics`;
-    if (build !== "latest") {
-      command += `=${build}`;
-    }
-  }
-
-  document.getElementById("command").innerText = command; // Update the displayed command
+  document.getElementById("command").innerText = `${baseCommand}${versionSuffix}`;
 }
 
+// Initialize default selections on DOMContentLoaded
 document.addEventListener("DOMContentLoaded", () => {
-  // Initialize default selections
   updateOption("build", "latest");
   updateOption("package", "Pip");
 });

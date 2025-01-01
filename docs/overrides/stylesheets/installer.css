@@ -1,5 +1,4 @@
 .option-row {
-  /* Ensures all label options are aligned */
   display: flex;
   margin-bottom: 15px;
 }
@@ -9,7 +8,6 @@
 
 .buttons-container {
   display: grid;
-  /* Responsive grid for buttons */
   grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
   gap: 5px; /* Spacing between buttons */
   flex-grow: 1; /* Allows buttons to fill remaining space */

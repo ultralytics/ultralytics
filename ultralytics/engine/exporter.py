@@ -106,7 +106,7 @@ def export_formats():
         ["TorchScript", "torchscript", ".torchscript", True, True, ["batch", "optimize"]],
         ["ONNX", "onnx", ".onnx", True, True, ["batch", "dynamic", "half", "opset", "simplify", "nms"]],
         ["OpenVINO", "openvino", "_openvino_model", True, False, ["batch", "dynamic", "half", "int8"]],
-        ["TensorRT", "engine", ".engine", False, True, ["batch", "dynamic", "half", "int8", "simplify"]],
+        ["TensorRT", "engine", ".engine", False, True, ["batch", "dynamic", "half", "int8", "simplify", "nms"]],
         ["CoreML", "coreml", ".mlpackage", True, False, ["batch", "half", "int8", "nms"]],
         ["TensorFlow SavedModel", "saved_model", "_saved_model", True, True, ["batch", "int8", "keras"]],
         ["TensorFlow GraphDef", "pb", ".pb", True, True, ["batch"]],

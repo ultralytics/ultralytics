@@ -67,6 +67,7 @@ from pathlib import Path
 
 import numpy as np
 import torch
+import torchvision
 
 from ultralytics.cfg import TASK2DATA, get_cfg
 from ultralytics.data import build_dataloader
@@ -94,7 +95,7 @@ from ultralytics.utils import (
 from ultralytics.utils.checks import check_imgsz, check_is_path_safe, check_requirements, check_version
 from ultralytics.utils.downloads import attempt_download_asset, get_github_assets, safe_download
 from ultralytics.utils.files import file_size, spaces_in_path
-from ultralytics.utils.ops import Profile
+from ultralytics.utils.ops import Profile, xywh2xyxy, batch_probiou
 from ultralytics.utils.torch_utils import TORCH_1_13, get_latest_opset, select_device
 
 
@@ -103,7 +104,7 @@ def export_formats():
     x = [
         ["PyTorch", "-", ".pt", True, True, []],
         ["TorchScript", "torchscript", ".torchscript", True, True, ["batch", "optimize"]],
-        ["ONNX", "onnx", ".onnx", True, True, ["batch", "dynamic", "half", "opset", "simplify"]],
+        ["ONNX", "onnx", ".onnx", True, True, ["batch", "dynamic", "half", "opset", "simplify", "nms"]],
         ["OpenVINO", "openvino", "_openvino_model", True, False, ["batch", "dynamic", "half", "int8"]],
         ["TensorRT", "engine", ".engine", False, True, ["batch", "dynamic", "half", "int8", "simplify"]],
         ["CoreML", "coreml", ".mlpackage", True, False, ["batch", "half", "int8", "nms"]],
@@ -272,6 +273,9 @@ class Exporter:
             assert self.device.type == "cpu", "optimize=True not compatible with cuda devices, i.e. use device='cpu'"
         if self.args.int8 and tflite:
             assert not getattr(model, "end2end", False), "TFLite INT8 export not supported for end2end models."
+        if self.args.nms and getattr(self.model, "end2end", False):
+            LOGGER.warning(f"WARNING ⚠️ 'nms=True' is not available for end2end models. Forcing 'nms=False'.")
+            self.args.nms = False
         if edgetpu:
             if not LINUX:
                 raise SystemError("Edge TPU export only supported on Linux. See https://coral.ai/docs/edgetpu/compiler")
@@ -483,9 +487,13 @@ class Exporter:
         opset_version = self.args.opset or get_latest_opset()
         LOGGER.info(f"\n{prefix} starting export with onnx {onnx.__version__} opset {opset_version}...")
         f = str(self.file.with_suffix(".onnx"))
-
         output_names = ["output0", "output1"] if isinstance(self.model, SegmentationModel) else ["output0"]
         dynamic = self.args.dynamic
+        if self.args.nms:
+            self.model = NMSModel(self.model, self.args)
+            if self.args.task == "obb":
+                # OBB error https://github.com/pytorch/pytorch/issues/110859#issuecomment-1757841865
+                torch.onnx.register_custom_op_symbolic("aten::lift_fresh", lambda g, x: x, opset_version)
         if dynamic:
             dynamic = {"images": {0: "batch", 2: "height", 3: "width"}}  # shape(1,3,640,640)
             if isinstance(self.model, SegmentationModel):
@@ -493,7 +501,8 @@ class Exporter:
                 dynamic["output1"] = {0: "batch", 2: "mask_height", 3: "mask_width"}  # shape(1,32,160,160)
             elif isinstance(self.model, DetectionModel):
                 dynamic["output0"] = {0: "batch", 2: "anchors"}  # shape(1, 84, 8400)
-
+            if self.args.nms:  # only batch size is dynamic with NMS 
+                dynamic["output0"].pop(2)
         torch.onnx.export(
             self.model.cpu() if dynamic else self.model,  # dynamic=True only compatible with cpu
             self.im.cpu() if dynamic else self.im,
@@ -720,9 +729,6 @@ class Exporter:
         f = self.file.with_suffix(".mlmodel" if mlmodel else ".mlpackage")
         if f.is_dir():
             shutil.rmtree(f)
-        if self.args.nms and getattr(self.model, "end2end", False):
-            LOGGER.warning(f"{prefix} WARNING ⚠️ 'nms=True' is not available for end2end models. Forcing 'nms=False'.")
-            self.args.nms = False
 
         bias = [0.0, 0.0, 0.0]
         scale = 1 / 255
@@ -1458,3 +1464,54 @@ class IOSDetectModel(torch.nn.Module):
         """Normalize predictions of object detection model with input size-dependent factors."""
         xywh, cls = self.model(x)[0].transpose(0, 1).split((4, self.nc), 1)
         return cls, xywh * self.normalize  # confidence (3780, 80), coordinates (3780, 4)
+
+
+class NMSModel(torch.nn.Module):
+    """Model wrapper with embedded NMS for Detect, Segment, Pose and OBB.
+
+    """
+    def __init__(self, model, args):
+        """
+        Initialize the NMSModel.
+
+        Args:
+            model (torch.nn.module): The model to wrap with NMS postprocessing.
+            args (Namespace): The export arguments.
+        """
+        super().__init__()
+        self.model = model
+        self.args = args
+        self.args.conf = self.args.conf or 0.25
+        self.nc = len(self.model.names)
+        self.obb = self.args.task == "obb"
+
+    def nms_rotated(self, boxes, scores, iou):
+        keep = (scores > self.args.conf).squeeze()
+        mask = torch.zeros(boxes.shape[0], dtype=torch.bool)
+        ious = batch_probiou(boxes[keep], boxes[keep]).triu_(diagonal=1)
+        mask[keep] = (1 - (ious > iou).sum(0) > 0)  # same as ious.max(dim=0) but can handle empty values
+        scores[~mask] = 0
+        _, keep = torch.topk(scores, self.args.max_det)  # fixed output size to prevent ONNX reshape error
+        return keep
+
+    def forward(self, x):
+        preds = self.model(x)
+        pred = preds[0] if isinstance(preds, tuple) else preds
+        pred = pred.permute(0, 2, 1)
+        extra_shape = pred.shape[-1] - (4 + self.nc)  # extras from Segment, OBB, Pose
+        boxes, scores, extras = pred.split([4, self.nc, extra_shape], dim=2)
+        scores, classes = scores.max(dim=-1)
+        # Fixed output size: max_det
+        out = torch.zeros(boxes.shape[0], self.args.max_det, boxes.shape[-1] + 2 + extras.shape[-1])
+        for i in range(boxes.shape[0]):
+            keep = (scores[i] > (0 if self.obb else self.args.conf)).squeeze()
+            box, cls, score, extra = boxes[i, keep], classes[i, keep], scores[i, keep], extras[i, keep]
+            if not self.obb:
+                box = xywh2xyxy(box)
+            end = 2 if self.obb else 4
+            if not self.args.agnostic_nms:
+                box[:, :end] += cls.unsqueeze(1)  # class-specific NMS
+            nms_fn = self.nms_rotated if self.obb else torchvision.ops.nms
+            keep = nms_fn(torch.cat([box, extra], dim=-1) if self.obb else box, score, self.args.iou)
+            out[i, :keep.shape[0]] = torch.cat([box[keep], score[keep].unsqueeze(1), cls[keep].unsqueeze(1), extra[keep]], dim=-1)
+        return (out, preds[1]) if self.args.task == "segment" else out

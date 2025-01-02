@@ -32,7 +32,7 @@ class DetectionPredictor(BasePredictor):
             nc=len(self.model.names),
             rotated=self.args.task == "obb",
             end2end=self.args.nms,
-            **kwargs
+            **kwargs,
         )
 
     def postprocess(self, preds, img, orig_imgs):

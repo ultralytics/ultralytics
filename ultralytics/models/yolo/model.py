@@ -4,14 +4,15 @@ from pathlib import Path
 
 from ultralytics.engine.model import Model
 from ultralytics.models import yolo
+from ultralytics.models.yolo.meta import ModelMeta
 from ultralytics.nn.tasks import ClassificationModel, DetectionModel, OBBModel, PoseModel, SegmentationModel, WorldModel
 from ultralytics.utils import ROOT, yaml_load
 
 
-class YOLO(Model):
+class YOLO(ModelMeta):
     """YOLO (You Only Look Once) object detection model."""
 
-    def __init__(self, model="yolo11n.pt", task=None, verbose=False):
+    def __init__(self, model="yolo11n.pt", task=None, verbose=False) -> None:
         """Initialize YOLO model, switching to YOLOWorld if model filename contains '-world'."""
         path = Path(model)
         if "-world" in path.stem and path.suffix in {".pt", ".yaml", ".yml"}:  # if YOLOWorld PyTorch model
@@ -91,7 +92,7 @@ class YOLOWorld(Model):
             }
         }
 
-    def set_classes(self, classes):
+    def set_classes(self, classes) -> None:
         """
         Set classes.
 

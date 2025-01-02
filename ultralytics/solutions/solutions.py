@@ -222,6 +222,7 @@ class SolutionAnnotator(Annotator):
         ... )
     """
 
+    # Overrides the `__init__` method from Annotator class
     def __init__(self, im, line_width=None, font_size=None, font="Arial.ttf", pil=False, example="abc"):
         """
         Initializes the `SolutionAnnotator` class with an image for annotation.

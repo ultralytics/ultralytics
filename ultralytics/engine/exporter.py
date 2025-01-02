@@ -1502,12 +1502,11 @@ class NMSModel(torch.nn.Module):
         Returns:
             keep (torch.tensor): Boolean mask of top-k (max_det) boxes to keep.
         """
-        keep = scores > self.args.conf
         mask = torch.zeros(boxes.shape[0], dtype=torch.bool, device=boxes.device)
-        ious = batch_probiou(boxes[keep], boxes[keep]).triu_(diagonal=1)
-        mask[keep] = 1 - (ious > iou).sum(0) > 0  # same as ious.max(dim=0) > iou but can handle empty values
+        ious = batch_probiou(boxes, boxes).triu_(diagonal=1)
+        mask = 1 - (ious > iou).sum(0) > 0  # same as ious.max(dim=0) > iou but can handle empty values
         scores[~mask] = 0
-        _, keep = torch.topk(scores, self.args.max_det)  # fixed output size to prevent ONNX reshape error
+        keep = torch.topk(scores, mask.sum()).indices  # fixed output size to prevent ONNX reshape error
         return keep
 
     def forward(self, x):
@@ -1522,14 +1521,14 @@ class NMSModel(torch.nn.Module):
         """
         preds = self.model(x)
         pred = preds[0] if isinstance(preds, tuple) else preds
-        pred = pred.permute(0, 2, 1)
+        pred = pred.transpose(1, 2)
         extra_shape = pred.shape[-1] - (4 + self.nc)  # extras from Segment, OBB, Pose
         boxes, scores, extras = pred.split([4, self.nc, extra_shape], dim=2)
         scores, classes = scores.max(dim=-1)
         # (N, max_det, 4 coords + 1 class score + 1 class label + extra_shape).
         out = torch.zeros(boxes.shape[0], self.args.max_det, boxes.shape[-1] + 2 + extras.shape[-1])
         for i in range(boxes.shape[0]):
-            keep = scores[i] > (0 if self.obb else self.args.conf)
+            keep = scores[i] > self.args.conf
             box, cls, score, extra = boxes[i, keep], classes[i, keep], scores[i, keep], extras[i, keep]
             if not self.obb:
                 box = xywh2xyxy(box)

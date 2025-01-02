@@ -3,6 +3,7 @@
 from collections import defaultdict
 
 import cv2
+from typing_extensions import override
 
 from ultralytics import YOLO
 from ultralytics.utils import ASSETS_URL, DEFAULT_CFG_DICT, DEFAULT_SOL_DICT, LOGGER
@@ -189,8 +190,11 @@ class SolutionAnnotator(Annotator):
 
     Attributes:
         im (np.ndarray): The image being annotated.
-        sf (float): Scaling factor for font size.
-        tf (int): Thickness factor for font and lines.
+        line_width (int): Thickness of lines used in annotations.
+        font_size (int): Size of the font used for text annotations.
+        font (str): Path to the font file used for text rendering.
+        pil (bool): Whether to use PIL for text rendering.
+        example (str): An example attribute for demonstration purposes.
 
     Methods:
         draw_region: Draws a region using specified points, colors, and thickness.
@@ -216,14 +220,20 @@ class SolutionAnnotator(Annotator):
         >>> annotator.display_analytics(image, text={"Available Spots": 5}, txt_color=(0, 0, 0), bg_color=(255, 255, 255), margin=10)
     """
 
-    def __init__(self, im):
+    @override
+    def __init__(self, im, line_width=None, font_size=None, font="Arial.ttf", pil=False, example="abc"):
         """
         Initializes the `SolutionAnnotator` class with an image for annotation.
 
         Args:
             im (np.ndarray): The image to be annotated.
+            line_width (int, optional): Line thickness for drawing on the image. Defaults to None.
+            font_size (int, optional): Font size for text annotations. Defaults to None.
+            font (str, optional): Path to the font file. Defaults to "Arial.ttf".
+            pil (bool, optional): Indicates whether to use PIL for rendering text. Defaults to False.
+            example (str, optional): An example parameter for demonstration purposes. Defaults to "abc".
         """
-        super().__init__(im)
+        super().__init__(im, line_width, font_size, font, pil, example)
 
     def draw_region(self, reg_pts=None, color=(0, 255, 0), thickness=5):
         """

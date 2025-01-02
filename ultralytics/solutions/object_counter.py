@@ -1,7 +1,7 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-from ultralytics.solutions.solutions import BaseSolution
-from ultralytics.utils.plotting import Annotator, colors
+from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator
+from ultralytics.utils.plotting import colors
 
 
 class ObjectCounter(BaseSolution):
@@ -172,7 +172,7 @@ class ObjectCounter(BaseSolution):
             self.initialize_region()
             self.region_initialized = True
 
-        self.annotator = Annotator(im0, line_width=self.line_width)  # Initialize annotator
+        self.annotator = SolutionAnnotator(im0, line_width=self.line_width)  # Initialize annotator
         self.extract_tracks(im0)  # Extract tracks
 
         self.annotator.draw_region(

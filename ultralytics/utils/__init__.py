@@ -524,13 +524,9 @@ def read_device_model() -> str:
     is_raspberrypi().
 
     Returns:
-        (str): Model file contents if read successfully or empty string otherwise.
+        (str): Kernel release information.
     """
-    try:
-        with open("/proc/device-tree/model") as f:
-            return f.read()
-    except Exception:
-        return ""
+    return platform.release().lower()
 
 
 def is_ubuntu() -> bool:
@@ -602,7 +598,7 @@ def is_raspberrypi() -> bool:
     Returns:
         (bool): True if running on a Raspberry Pi, False otherwise.
     """
-    return "Raspberry Pi" in PROC_DEVICE_MODEL
+    return "raspberrypi" in read_device_model()
 
 
 def is_jetson() -> bool:
@@ -612,10 +608,7 @@ def is_jetson() -> bool:
     Returns:
         (bool): True if running on an NVIDIA Jetson device, False otherwise.
     """
-    if any(keyword in PROC_DEVICE_MODEL.lower() for keyword in ("nvidia", "jetson")):
-        return True
-    return os.getenv("jetson", "false").lower() == "true"  # support for Docker environments
-
+    return "tegra" in read_device_model()
 
 def is_online() -> bool:
     """

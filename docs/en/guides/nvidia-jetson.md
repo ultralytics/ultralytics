@@ -88,21 +88,21 @@ The fastest way to get started with Ultralytics YOLO11 on NVIDIA Jetson is to ru
 
     ```bash
     t=ultralytics/ultralytics:latest-jetson-jetpack4
-    sudo docker pull $t && sudo docker run -it --ipc=host --runtime=nvidia -e jetson=true $t
+    sudo docker pull $t && sudo docker run -it --ipc=host --runtime=nvidia $t
     ```
 
 === "JetPack 5"
 
     ```bash
     t=ultralytics/ultralytics:latest-jetson-jetpack5
-    sudo docker pull $t && sudo docker run -it --ipc=host --runtime=nvidia -e jetson=true $t
+    sudo docker pull $t && sudo docker run -it --ipc=host --runtime=nvidia $t
     ```
 
 === "JetPack 6"
 
     ```bash
     t=ultralytics/ultralytics:latest-jetson-jetpack6
-    sudo docker pull $t && sudo docker run -it --ipc=host --runtime=nvidia -e jetson=true $t
+    sudo docker pull $t && sudo docker run -it --ipc=host --runtime=nvidia $t
     ```
 
 After this is done, skip to [Use TensorRT on NVIDIA Jetson section](#use-tensorrt-on-nvidia-jetson).

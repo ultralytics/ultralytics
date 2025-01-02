@@ -183,7 +183,7 @@ jobs:
               torch="torch==1.8.0 torchvision==0.9.0"
           fi
           if [[ "${{ github.event_name }}" =~ ^(schedule|workflow_dispatch)$ ]]; then
-              slow="pycocotools mlflow"
+              slow="faster-coco-eval mlflow"
           fi
           uv pip install --system -e ".[export]" $torch $slow pytest-cov --extra-index-url https://download.pytorch.org/whl/cpu
       - name: Check environment
@@ -250,7 +250,7 @@ jobs:
       - name: Install requirements
         run: |
           python -m pip install --upgrade pip wheel
-          pip install -e ".[export]" pytest mlflow pycocotools
+          pip install -e ".[export]" pytest mlflow faster-coco-eval
       - name: Check environment
         run: |
           yolo checks

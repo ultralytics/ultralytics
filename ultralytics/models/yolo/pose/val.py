@@ -255,19 +255,35 @@ class PoseValidator(DetectionValidator):
     def eval_json(self, stats):
         """Evaluates object detection model using COCO JSON format."""
         if self.args.save_json and self.is_coco and len(self.jdict):
+            if check_requirements("faster-coco-eval>=1.6.3", install=False):
+                pkg = "faster-coco-eval"
+            elif check_requirements("pycocotools>=2.0.6"):
+                pkg = "pycocotools"
+
             anno_json = self.data["path"] / "annotations/person_keypoints_val2017.json"  # annotations
             pred_json = self.save_dir / "predictions.json"  # predictions
-            LOGGER.info(f"\nEvaluating pycocotools mAP using {pred_json} and {anno_json}...")
+
             try:  # https://github.com/cocodataset/cocoapi/blob/master/PythonAPI/pycocoEvalDemo.ipynb
-                check_requirements("pycocotools>=2.0.6")
-                from pycocotools.coco import COCO  # noqa
-                from pycocotools.cocoeval import COCOeval  # noqa
+                LOGGER.info(f"\nEvaluating {pkg} mAP using {pred_json} and {anno_json}...")
+
+                if pkg == "faster-coco-eval":
+                    from faster_coco_eval import COCO
+                    from faster_coco_eval import COCOeval_faster as COCOeval
+
+                    extra_kwargs = dict(print_function=print)
+                else:
+                    from pycocotools.coco import COCO  # noqa
+                    from pycocotools.cocoeval import COCOeval  # noqa
+
+                    extra_kwargs = dict()
 
                 for x in anno_json, pred_json:
                     assert x.is_file(), f"{x} file not found"
                 anno = COCO(str(anno_json))  # init annotations api
                 pred = anno.loadRes(str(pred_json))  # init predictions api (must pass string, not Path)
-                for i, eval in enumerate([COCOeval(anno, pred, "bbox"), COCOeval(anno, pred, "keypoints")]):
+                for i, eval in enumerate(
+                    [COCOeval(anno, pred, "bbox", **extra_kwargs), COCOeval(anno, pred, "keypoints", **extra_kwargs)]
+                ):
                     if self.is_coco:
                         eval.params.imgIds = [int(Path(x).stem) for x in self.dataloader.dataset.im_files]  # im to eval
                     eval.evaluate()
@@ -278,5 +294,5 @@ class PoseValidator(DetectionValidator):
                         :2
                     ]  # update mAP50-95 and mAP50
             except Exception as e:
-                LOGGER.warning(f"pycocotools unable to run: {e}")
+                LOGGER.warning(f"{pkg} unable to run: {e}")
         return stats

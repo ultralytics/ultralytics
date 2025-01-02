@@ -610,6 +610,7 @@ def is_jetson() -> bool:
     """
     return "tegra" in read_device_model()
 
+
 def is_online() -> bool:
     """
     Check internet connectivity by attempting to connect to a known online host.

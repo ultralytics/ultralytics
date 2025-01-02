@@ -477,7 +477,7 @@ class AutoBackend(nn.Module):
             for k, v in metadata.items():
                 if k in {"stride", "batch"}:
                     metadata[k] = int(v)
-                elif k in {"imgsz", "names", "kpt_shape"} and isinstance(v, str):
+                elif k in {"imgsz", "names", "kpt_shape", "args"} and isinstance(v, str):
                     metadata[k] = eval(v)
             stride = metadata["stride"]
             task = metadata["task"]
@@ -485,6 +485,7 @@ class AutoBackend(nn.Module):
             imgsz = metadata["imgsz"]
             names = metadata["names"]
             kpt_shape = metadata.get("kpt_shape")
+            nms = metadata.get("args", {}).get("nms", False)
         elif not (pt or triton or nn_module):
             LOGGER.warning(f"WARNING ⚠️ Metadata not found for 'model={weights}'")
 

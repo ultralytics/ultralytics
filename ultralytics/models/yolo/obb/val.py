@@ -36,20 +36,6 @@ class OBBValidator(DetectionValidator):
         val = self.data.get(self.args.split, "")  # validation path
         self.is_dota = isinstance(val, str) and "DOTA" in val  # is COCO
 
-    def postprocess(self, preds):
-        """Apply Non-maximum suppression to prediction outputs."""
-        return ops.non_max_suppression(
-            preds,
-            self.args.conf,
-            self.args.iou,
-            labels=self.lb,
-            nc=self.nc,
-            multi_label=True,
-            agnostic=self.args.single_cls or self.args.agnostic_nms,
-            max_det=self.args.max_det,
-            rotated=True,
-        )
-
     def _process_batch(self, detections, gt_bboxes, gt_cls):
         """
         Perform computation of the correct prediction matrix for a batch of detections and ground truth bounding boxes.

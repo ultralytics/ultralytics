@@ -95,7 +95,7 @@ from ultralytics.utils import (
 from ultralytics.utils.checks import check_imgsz, check_is_path_safe, check_requirements, check_version
 from ultralytics.utils.downloads import attempt_download_asset, get_github_assets, safe_download
 from ultralytics.utils.files import file_size, spaces_in_path
-from ultralytics.utils.ops import Profile, xywh2xyxy
+from ultralytics.utils.ops import Profile, batch_probiou, xywh2xyxy
 from ultralytics.utils.torch_utils import TORCH_1_13, get_latest_opset, select_device
 
 
@@ -499,8 +499,11 @@ class Exporter:
             if self.args.nms:  # only batch size is dynamic with NMS
                 dynamic["output0"].pop(2)
         if self.args.nms:
-            assert self.args.task != "obb", "NMS export not supported with OBB."
             self.model = NMSModel(self.model, self.args)
+            if self.args.task == "obb":
+                # OBB error https://github.com/pytorch/pytorch/issues/110859#issuecomment-1757841865
+                torch.onnx.register_custom_op_symbolic("aten::lift_fresh", lambda g, x: x, opset_version)
+                self.im = torch.load("img.pt")[:1]
         torch.onnx.export(
             self.model.cpu() if dynamic else self.model,  # dynamic=True only compatible with cpu
             self.im.cpu() if dynamic else self.im,
@@ -1465,7 +1468,7 @@ class IOSDetectModel(torch.nn.Module):
 
 
 class NMSModel(torch.nn.Module):
-    """Model wrapper with embedded NMS for Detect, Segment and Pose."""
+    """Model wrapper with embedded NMS for Detect, Segment, Pose and OBB."""
 
     def __init__(self, model, args):
         """
@@ -1480,10 +1483,31 @@ class NMSModel(torch.nn.Module):
         self.args = args
         self.args.conf = self.args.conf or 0.25
         self.nc = len(self.model.names)
+        self.obb = self.args.task == "obb"
+
+    def nms_rotated(self, boxes, scores, iou):
+        """
+        ONNX friendly-version of Rotated NMS.
+
+        Args:
+            boxes (torch.tensor): Boxes from a single prediction (N, 5) in (x, y, w, h, angle) format.
+            scores (torch.tensor): Predictions scores (N, 1).
+            iou (torch.float): The IoU threshold to be applied.
+
+        Returns:
+            keep (torch.tensor): Boolean mask of top-k (max_det) boxes to keep.
+        """
+        keep = scores > self.args.conf
+        mask = torch.zeros(boxes.shape[0], dtype=torch.bool, device=boxes.device)
+        ious = batch_probiou(boxes[keep], boxes[keep]).triu_(diagonal=1)
+        mask[keep] = 1 - (ious > iou).sum(0) > 0  # same as ious.max(dim=0) > iou but can handle empty values
+        scores[~mask] = 0
+        _, keep = torch.topk(scores, self.args.max_det)  # fixed output size to prevent ONNX reshape error
+        return keep
 
     def forward(self, x):
         """
-        Performs inference with NMS post-processing. Supports Detect, Segment and Pose.
+        Performs inference with NMS post-processing. Supports Detect, Segment, OBB and Pose.
 
         Args:
             x (torch.tensor): The preprocessed tensor with shape (N, 3, 640, 640).
@@ -1500,12 +1524,15 @@ class NMSModel(torch.nn.Module):
         # (N, max_det, 4 coords + 1 class score + 1 class label + extra_shape).
         out = torch.zeros(boxes.shape[0], self.args.max_det, boxes.shape[-1] + 2 + extras.shape[-1])
         for i in range(boxes.shape[0]):
-            keep = scores[i] >= self.args.conf
+            keep = scores[i] > (0 if self.obb else self.args.conf)
             box, cls, score, extra = boxes[i, keep], classes[i, keep], scores[i, keep], extras[i, keep]
-            box = xywh2xyxy(box)
+            if not self.obb:
+                box = xywh2xyxy(box)
             if not self.args.agnostic_nms:
-                box[:, :4] += cls.unsqueeze(1)  # class-specific NMS
-            keep = torchvision.ops.nms(box, score, self.args.iou)
+                end = 2 if self.obb else 4
+                box[:, :end] += cls.unsqueeze(1)  # class-specific NMS
+            nms_fn = self.nms_rotated if self.obb else torchvision.ops.nms
+            keep = nms_fn(torch.cat([box, extra], dim=-1) if self.obb else box, score, self.args.iou)
             out[i, : keep.shape[0]] = torch.cat(
                 [box[keep], score[keep].unsqueeze(1), cls[keep].unsqueeze(1), extra[keep]], dim=-1
             )

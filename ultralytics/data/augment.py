@@ -379,7 +379,7 @@ class Mosaic(BaseMixTransform):
             return {}
         cls = []
         instances = []
-        imgsz = self.imgsz * 2  # mosaic imgsz
+        imgsz = self.imgsz * 2  # mosaic imgsz #WARNING hardcoded *2
         for labels in mosaic_labels:
             cls.append(labels["cls"])
             instances.append(labels["instances"])
@@ -727,61 +727,31 @@ class RandomHSV:
 
     def __call__(self, labels):
         """Applies random HSV augmentation to an image within predefined limits."""
-        return labels
         img = labels["img"]
         if self.hgain or self.sgain or self.vgain:
-            # Determine the data type range
-            dtype = img.dtype
-            if dtype == np.uint8:
-                max_value = 255.0
-            elif dtype == np.uint16:
-                max_value = 65535.0
-            else:
-                LOGGER.warning(f"RandomHSV: Unsupported image dtype {dtype}, skipping HSV augmentation.")
-                return labels
+            # Ensure img is in uint16 format
+            if img.dtype != np.uint16:
+                img = img.astype(np.uint16)
 
-            # Check if image has 3 channels (color image)
-            if img.ndim == 3 and img.shape[2] == 3:
-                # Convert image to float32 and normalize
-                img = img.astype(np.float32) / max_value
+            # Check if the image is single-channel or multi-channel
+            if len(img.shape) == 2:  # Single-channel image
+                # Apply gain adjustments directly to the single channel
+                r = np.random.uniform(-1, 1, 1) * self.vgain + 1  # Only adjust value (brightness)
+                img = np.clip(img * r, 0, 65535).astype(img.dtype)
+            else:  # Multi-channel image (e.g., BGR)
+                r = np.random.uniform(-1, 1, 3) * [self.hgain, self.sgain, self.vgain] + 1  # Random gains
+                hue, sat, val = cv2.split(cv2.cvtColor(img, cv2.COLOR_BGR2HSV_FULL))
+                dtype = img.dtype  # uint16
 
-                # Convert to HSV color space
-                img_hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+                # Adjust ranges for uint16
+                x = np.arange(0, 65536, dtype=r.dtype)
+                lut_hue = ((x * r[0]) % 65536).astype(dtype)
+                lut_sat = np.clip(x * r[1], 0, 65535).astype(dtype)
+                lut_val = np.clip(x * r[2], 0, 65535).astype(dtype)
 
-                # Generate random gains for H, S, and V channels
-                r = np.random.uniform(-1, 1, 3) * [self.hgain, self.sgain, self.vgain] + 1  # random gains
-                h, s, v = cv2.split(img_hsv)
+                im_hsv = cv2.merge((cv2.LUT(hue, lut_hue), cv2.LUT(sat, lut_sat), cv2.LUT(val, lut_val)))
+                cv2.cvtColor(im_hsv, cv2.COLOR_HSV2BGR_FULL, dst=img)  # Use HSV_FULL for uint16
 
-                # Apply random gains and clip values to valid range
-                h = ((h * r[0]) % 1.0).clip(0, 1)
-                s = (s * r[1]).clip(0, 1)
-                v = (v * r[2]).clip(0, 1)
-
-                # Merge channels back and convert to BGR color space
-                img_hsv = cv2.merge((h, s, v))
-                img = cv2.cvtColor(img_hsv, cv2.COLOR_HSV2BGR)
-
-                # Denormalize and convert back to original data type
-                img = (img * max_value).astype(dtype)
-                labels["img"] = img
-            elif img.ndim == 2 or (img.ndim == 3 and img.shape[2] == 1):
-                # Grayscale image: adjust brightness only if vgain is set
-                if self.vgain:
-                    img = img.astype(np.float32) / max_value
-
-                    # Generate random gain for brightness
-                    r = np.random.uniform(-1, 1) * self.vgain + 1  # random gain for brightness
-
-                    # Apply gain and clip values
-                    img = (img * r).clip(0, 1)
-
-                    # Denormalize and convert back to original data type
-                    img = (img * max_value).astype(dtype)
-                    labels["img"] = img
-                else:
-                    LOGGER.info("RandomHSV: Grayscale image, but vgain is 0. Skipping brightness adjustment.")
-            else:
-                LOGGER.warning(f"RandomHSV: Unsupported image shape {img.shape}, skipping HSV augmentation.")
         return labels
 
 

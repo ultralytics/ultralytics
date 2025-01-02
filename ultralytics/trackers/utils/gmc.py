@@ -112,7 +112,7 @@ class GMC:
         elif self.method == "ecc":
             return self.apply_ecc(raw_frame)
         elif self.method == "sparseOptFlow":
-            return self.applysparseoptflow(raw_frame)
+            return self.apply_sparseoptflow(raw_frame)
         else:
             return np.eye(2, 3)
 
@@ -304,7 +304,7 @@ class GMC:
 
         return H
 
-    def applysparseoptflow(self, raw_frame: np.array) -> np.array:
+    def apply_sparseoptflow(self, raw_frame: np.array) -> np.array:
         """
         Apply Sparse Optical Flow method to a raw frame.
 
@@ -316,7 +316,7 @@ class GMC:
 
         Examples:
             >>> gmc = GMC()
-            >>> result = gmc.applysparseoptflow(np.array([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]]))
+            >>> result = gmc.apply_sparseoptflow(np.array([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]]))
             >>> print(result)
             [[1. 0. 0.]
              [0. 1. 0.]]

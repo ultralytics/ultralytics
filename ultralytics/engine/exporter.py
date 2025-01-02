@@ -1485,6 +1485,17 @@ class NMSModel(torch.nn.Module):
         self.obb = self.args.task == "obb"
 
     def nms_rotated(self, boxes, scores, iou):
+        """
+        ONNX friendly-version of Rotated NMS.
+
+        Args:
+            boxes (torch.tensor): Boxes from a single prediction (N, 5) in (x, y, w, h, angle) format.
+            scores (torch.tensor): Predictions scores (N, 1).
+            iou (torch.float): The IoU threshold to be applied.
+
+        Returns:
+            keep (torch.tensor): Boolean mask of top-k (max_det) boxes to keep.
+        """
         keep = scores > self.args.conf
         mask = torch.zeros(boxes.shape[0], dtype=torch.bool, device=boxes.device)
         ious = batch_probiou(boxes[keep], boxes[keep]).triu_(diagonal=1)
@@ -1494,13 +1505,22 @@ class NMSModel(torch.nn.Module):
         return keep
 
     def forward(self, x):
+        """
+        Performs inference with NMS post-processing. Supports Detect, Segment, OBB and Pose.
+
+        Args:
+            x (torch.tensor): The preprocessed tensor with shape (N, 3, 640, 640).
+
+        Returns:
+            out (torch.tensor): The post-processed results with shape (N, max_det, 4 + 2 + extra_shape).
+        """
         preds = self.model(x)
         pred = preds[0] if isinstance(preds, tuple) else preds
         pred = pred.permute(0, 2, 1)
         extra_shape = pred.shape[-1] - (4 + self.nc)  # extras from Segment, OBB, Pose
         boxes, scores, extras = pred.split([4, self.nc, extra_shape], dim=2)
         scores, classes = scores.max(dim=-1)
-        # Fixed output size: max_det
+        # (N, max_det, 4 coords + 1 class score + 1 class label + extra_shape).
         out = torch.zeros(boxes.shape[0], self.args.max_det, boxes.shape[-1] + 2 + extras.shape[-1])
         for i in range(boxes.shape[0]):
             keep = scores[i] > (0 if self.obb else self.args.conf)

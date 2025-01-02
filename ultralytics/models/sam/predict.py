@@ -1163,9 +1163,9 @@ class SAM2VideoPredictor(SAM2Predictor):
 
         inference_state = {
             "num_frames": predictor.dataset.frames,
-            "point_inputs_per_obj": {},     # inputs points on each frame
-            "mask_inputs_per_obj": {},      # inputs mask on each frame
-            "constants": {},    # values that don't change across frames (so we only need to hold one copy of them)
+            "point_inputs_per_obj": {},  # inputs points on each frame
+            "mask_inputs_per_obj": {},  # inputs mask on each frame
+            "constants": {},  # values that don't change across frames (so we only need to hold one copy of them)
             # mapping between client-side object id and model-side object index
             "obj_id_to_idx": OrderedDict(),
             "obj_idx_to_id": OrderedDict(),

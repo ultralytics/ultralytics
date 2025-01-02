@@ -185,7 +185,7 @@ class SolutionAnnotator(Annotator):
     A specialized annotator class for visualizing and analyzing computer vision tasks.
 
     This class extends the base Annotator class, providing additional methods for drawing regions, centroids, tracking
-    trails, and visual annotations for Ultralytics Solutions like object tracking, workout monitoring,
+    trails, and visual annotations for Ultralytics Solutions: https://docs.ultralytics.com/solutions/.
     and parking management.
 
     Attributes:
@@ -222,7 +222,7 @@ class SolutionAnnotator(Annotator):
         ... )
     """
 
-    @override
+    @overrides
     def __init__(self, im, line_width=None, font_size=None, font="Arial.ttf", pil=False, example="abc"):
         """
         Initializes the `SolutionAnnotator` class with an image for annotation.

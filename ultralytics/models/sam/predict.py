@@ -1096,7 +1096,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         # to `propagate_in_video_preflight`).
         consolidated_frame_inds = self.inference_state["consolidated_frame_inds"]
         for is_cond in {False, True}:
-            # Separately consolidate conditioning and non-conditioning temp outptus
+            # Separately consolidate conditioning and non-conditioning temp outputs
             storage_key = "cond_frame_outputs" if is_cond else "non_cond_frame_outputs"
             # Find all the frames that contain temporary outputs for any objects
             # (these should be the frames that have just received clicks for mask inputs
@@ -1163,22 +1163,30 @@ class SAM2VideoPredictor(SAM2Predictor):
 
         inference_state = {
             "num_frames": predictor.dataset.frames,
-            "point_inputs_per_obj": {},
-            "mask_inputs_per_obj": {},
-            "constants": {},
+            "point_inputs_per_obj": {},     # inputs points on each frame
+            "mask_inputs_per_obj": {},      # inputs mask on each frame
+            "constants": {},    # values that don't change across frames (so we only need to hold one copy of them)
+            # mapping between client-side object id and model-side object index
             "obj_id_to_idx": OrderedDict(),
             "obj_idx_to_id": OrderedDict(),
             "obj_ids": [],
+            # A storage to hold the model's tracking results and states on each frame
             "output_dict": {
                 "cond_frame_outputs": {},  # dict containing {frame_idx: <out>}
                 "non_cond_frame_outputs": {},  # dict containing {frame_idx: <out>}
             },
+            # Slice (view) of each object tracking results, sharing the same memory with "output_dict"
             "output_dict_per_obj": {},
+            # A temporary storage to hold new outputs when user interact with a frame
+            # to add clicks or mask (it's merged into "output_dict" before propagation starts)
             "temp_output_dict_per_obj": {},
+            # Frames that already holds consolidated outputs from click or mask inputs
+            # (we directly use their consolidated outputs during tracking)
             "consolidated_frame_inds": {
                 "cond_frame_outputs": set(),  # set containing frame indices
                 "non_cond_frame_outputs": set(),  # set containing frame indices
             },
+            # metadata for each tracking frame (e.g. which direction it's tracked)
             "tracking_has_started": False,
             "frames_already_tracked": [],
         }

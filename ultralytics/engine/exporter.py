@@ -503,7 +503,12 @@ class Exporter:
             if self.args.task == "obb":
                 # OBB error https://github.com/pytorch/pytorch/issues/110859#issuecomment-1757841865
                 torch.onnx.register_custom_op_symbolic("aten::lift_fresh", lambda g, x: x, opset_version)
-                self.im = torch.load("img.pt")[:1]
+                if self.args.simplify:
+                    LOGGER.warning(
+                        f"{prefix} WARNING ⚠️ 'simplify=True' is not compatible with 'task=obb' and 'nms=True'. Disabling..."
+                    )
+                    self.args.simplify = False
+
         torch.onnx.export(
             self.model.cpu() if dynamic else self.model,  # dynamic=True only compatible with cpu
             self.im.cpu() if dynamic else self.im,

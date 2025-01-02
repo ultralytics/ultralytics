@@ -598,7 +598,7 @@ def is_raspberrypi() -> bool:
     Returns:
         (bool): True if running on a Raspberry Pi, False otherwise.
     """
-    return "raspberrypi" in read_device_model()
+    return "rpi" in read_device_model()
 
 
 def is_jetson() -> bool:

@@ -108,7 +108,7 @@ class DistanceCalculation(BaseSolution):
         if len(self.selected_boxes) == 2:
             if set(self.selected_boxes) - set(self.track_ids):
                 self.selected_boxes.clear()  # Clear selected boxes if any track_id is missing
-                self.left_mouse_count = 0   # Reset new points selector based on mouseevent
+                self.left_mouse_count = 0  # Reset new points selector based on mouseevent
             else:
                 # Store user selected boxes in centroids list
                 self.centroids.extend(
@@ -116,7 +116,8 @@ class DistanceCalculation(BaseSolution):
                 )
                 # Calculate pixels distance
                 pixels_distance = math.sqrt(
-                    (self.centroids[0][0] - self.centroids[1][0]) ** 2 + (self.centroids[0][1] - self.centroids[1][1]) ** 2
+                    (self.centroids[0][0] - self.centroids[1][0]) ** 2
+                    + (self.centroids[0][1] - self.centroids[1][1]) ** 2
                 )
                 self.annotator.plot_distance_and_line(pixels_distance, self.centroids)
 

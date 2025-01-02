@@ -254,7 +254,7 @@ result.export_visuals(export_dir="demo_data/")
 Image("demo_data/prediction_visual.png")
 ```
 
-This command will save the visualized predictions to the specified directory and you can then load the image to view it in your notebook or application. For a detailed guide, check out the [Standard Inference section](#visualize-results).
+This command will save the visualized predictions to the specified directory, and you can then load the image to view it in your notebook or application. For a detailed guide, check out the [Standard Inference section](#visualize-results).
 
 ### What features does SAHI offer for improving YOLO11 object detection?
 

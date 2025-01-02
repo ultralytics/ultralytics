@@ -26,9 +26,9 @@ class GMC:
     Methods:
         __init__: Initializes a GMC object with the specified method and downscale factor.
         apply: Applies the chosen method to a raw frame and optionally uses provided detections.
-        applyecc: Applies the ECC algorithm to a raw frame.
-        applyfeatures: Applies feature-based methods like ORB or SIFT to a raw frame.
-        applysparseoptflow: Applies the Sparse Optical Flow method to a raw frame.
+        apply_ecc: Applies the ECC algorithm to a raw frame.
+        apply_features: Applies feature-based methods like ORB or SIFT to a raw frame.
+        apply_sparseoptflow: Applies the Sparse Optical Flow method to a raw frame.
         reset_params: Resets the internal parameters of the GMC object.
 
     Examples:
@@ -110,13 +110,13 @@ class GMC:
         if self.method in {"orb", "sift"}:
             return self.applyfeatures(raw_frame, detections)
         elif self.method == "ecc":
-            return self.applyecc(raw_frame)
+            return self.apply_ecc(raw_frame)
         elif self.method == "sparseOptFlow":
             return self.applysparseoptflow(raw_frame)
         else:
             return np.eye(2, 3)
 
-    def applyecc(self, raw_frame: np.array) -> np.array:
+    def apply_ecc(self, raw_frame: np.array) -> np.array:
         """
         Apply the ECC (Enhanced Correlation Coefficient) algorithm to a raw frame for motion compensation.
 
@@ -128,7 +128,7 @@ class GMC:
 
         Examples:
             >>> gmc = GMC(method="ecc")
-            >>> processed_frame = gmc.applyecc(np.array([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]]))
+            >>> processed_frame = gmc.apply_ecc(np.array([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]]))
             >>> print(processed_frame)
             [[1. 0. 0.]
              [0. 1. 0.]]

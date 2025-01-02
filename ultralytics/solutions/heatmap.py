@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 
 from ultralytics.solutions.object_counter import ObjectCounter
-from ultralytics.utils.plotting import Annotator
+from ultralytics.solutions.solutions import SolutionAnnotator
 
 
 class Heatmap(ObjectCounter):
@@ -89,7 +89,7 @@ class Heatmap(ObjectCounter):
             self.heatmap = np.zeros_like(im0, dtype=np.float32) * 0.99
         self.initialized = True  # Initialize heatmap only once
 
-        self.annotator = Annotator(im0, line_width=self.line_width)  # Initialize annotator
+        self.annotator = SolutionAnnotator(im0, line_width=self.line_width)  # Initialize annotator
         self.extract_tracks(im0)  # Extract tracks
 
         # Iterate over bounding boxes, track ids and classes index

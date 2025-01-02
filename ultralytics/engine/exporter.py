@@ -489,11 +489,6 @@ class Exporter:
         f = str(self.file.with_suffix(".onnx"))
         output_names = ["output0", "output1"] if isinstance(self.model, SegmentationModel) else ["output0"]
         dynamic = self.args.dynamic
-        if self.args.nms:
-            self.model = NMSModel(self.model, self.args)
-            if self.args.task == "obb":
-                # OBB error https://github.com/pytorch/pytorch/issues/110859#issuecomment-1757841865
-                torch.onnx.register_custom_op_symbolic("aten::lift_fresh", lambda g, x: x, opset_version)
         if dynamic:
             dynamic = {"images": {0: "batch", 2: "height", 3: "width"}}  # shape(1,3,640,640)
             if isinstance(self.model, SegmentationModel):
@@ -503,6 +498,12 @@ class Exporter:
                 dynamic["output0"] = {0: "batch", 2: "anchors"}  # shape(1, 84, 8400)
             if self.args.nms:  # only batch size is dynamic with NMS
                 dynamic["output0"].pop(2)
+        if self.args.nms:
+            self.model = NMSModel(self.model, self.args)
+            if self.args.task == "obb":
+                # OBB error https://github.com/pytorch/pytorch/issues/110859#issuecomment-1757841865
+                torch.onnx.register_custom_op_symbolic("aten::lift_fresh", lambda g, x: x, opset_version)
+                self.im = torch.load("img.pt")[:1]
         torch.onnx.export(
             self.model.cpu() if dynamic else self.model,  # dynamic=True only compatible with cpu
             self.im.cpu() if dynamic else self.im,

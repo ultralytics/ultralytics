@@ -217,7 +217,9 @@ class SolutionAnnotator(Annotator):
         >>> annotator = SolutionAnnotator(image)
         >>> annotator.draw_region([(0, 0), (100, 100)], color=(0, 255, 0), thickness=5)
         >>> annotator.draw_centroid_and_tracks(track=[[10, 20], [30, 40]], color=(255, 0, 255))
-        >>> annotator.display_analytics(image, text={"Available Spots": 5}, txt_color=(0, 0, 0), bg_color=(255, 255, 255), margin=10)
+        >>> annotator.display_analytics(
+        ...     image, text={"Available Spots": 5}, txt_color=(0, 0, 0), bg_color=(255, 255, 255), margin=10
+        ... )
     """
 
     @override

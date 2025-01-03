@@ -1528,7 +1528,7 @@ class NMSModel(torch.nn.Module):
         boxes, scores, extras = pred.split([4, self.nc, extra_shape], dim=2)
         scores, classes = scores.max(dim=-1)
         # (N, max_det, 4 coords + 1 class score + 1 class label + extra_shape).
-        out = torch.zeros(boxes.shape[0], self.args.max_det, boxes.shape[-1] + 2 + extras.shape[-1])
+        out = torch.zeros(boxes.shape[0], self.args.max_det, boxes.shape[-1] + 2 + extras.shape[-1], device=boxes.device)
         for i in range(boxes.shape[0]):
             keep = scores[i] > self.args.conf
             box, cls, score, extra = boxes[i, keep], classes[i, keep], scores[i, keep], extras[i, keep]

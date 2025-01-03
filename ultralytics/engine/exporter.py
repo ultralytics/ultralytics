@@ -1508,7 +1508,7 @@ class NMSModel(torch.nn.Module):
         ious = batch_probiou(boxes, boxes).triu_(diagonal=1)
         mask = 1 - (ious > iou).sum(0) > 0  # same as ious.max(dim=0) > iou but can handle empty values
         scores[~mask] = 0
-        keep = torch.topk(scores, mask.sum()).indices  # fixed output size to prevent ONNX reshape error
+        keep = torch.topk(scores, mask.sum()).indices
         return keep
 
     def forward(self, x):
@@ -1516,7 +1516,7 @@ class NMSModel(torch.nn.Module):
         Performs inference with NMS post-processing. Supports Detect, Segment, OBB and Pose.
 
         Args:
-            x (torch.tensor): The preprocessed tensor with shape (N, 3, 640, 640).
+            x (torch.tensor): The preprocessed tensor with shape (N, 3, H, W).
 
         Returns:
             out (torch.tensor): The post-processed results with shape (N, max_det, 4 + 2 + extra_shape).
@@ -1539,7 +1539,7 @@ class NMSModel(torch.nn.Module):
             nmsbox = box.clone()
             if not self.args.agnostic_nms:  # class-specific NMS
                 end = 2 if self.obb else 4
-                # Have to do it this way instead of inplace to avoid reshape issue
+                # inplace causes reshape issue
                 offbox = nmsbox[:, :end] + cls.unsqueeze(1).expand(-1, end) * 7680
                 nmsbox = torch.cat((offbox, nmsbox[:, end:]), dim=-1)
             nms_fn = self.nms_rotated if self.obb else torchvision.ops.nms

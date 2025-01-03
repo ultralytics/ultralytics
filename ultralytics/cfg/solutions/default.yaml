@@ -18,5 +18,11 @@ kpts: [6, 8, 10] # (list[int]) keypoints for workouts monitoring, i.e. for push-
 analytics_type: "line" # (str) analytics type i.e "line", "pie", "bar" or "area" charts.
 json_file: # (str) parking system regions file path.
 
+# Dwell Time Analysis
+enable_funnel: False # Enable funnel analysis by default is False. You can make it enable by passing True
+funnel_stages: None # Optional: Define funnel stages explicitly if regions are define during execution the stages name will be ("Zone_1", "Zone_2", "Zone_3"),
+enable_avg_dwell: False # Enable average dwell time computation for each zone it will display their average dwell time
+detect_mode: "all_frames" # if choose "all_frames" the bounding boxes will be display in the whole frame else "enter_zones"
+
 # Security alarm system settings ---------------------------------------------------------------------------------------
 records: 5 # (int) Total detections count to send an email about security

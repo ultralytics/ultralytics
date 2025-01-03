@@ -654,8 +654,12 @@ class SolutionAnnotator(Annotator):
 
 
 class SolutionResults:
-    def __init__(self, in_count=None, out_count=None, classwise_count=None, queue_count=None,):
+    def __init__(self, in_count=None, out_count=None, classwise_count=None, queue_count=None,
+                 workout_count=None, workout_angle=None, workout_stage=None):
         self.in_count = in_count
         self.out_count = out_count
         self.classwise_count = classwise_count
         self.queue_count = queue_count
+        self.workout_count = workout_count
+        self.workout_angle = workout_angle
+        self.workout_stage = workout_stage

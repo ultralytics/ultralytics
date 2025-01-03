@@ -1,6 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator
+from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
 
 
 class AIGym(BaseSolution):
@@ -107,4 +107,4 @@ class AIGym(BaseSolution):
                 )
 
         self.display_output(im0)  # Display output image, if environment support display
-        return im0  # return an image for writing or further usage
+        return SolutionResults(workout_count=self.count, workout_stage=self.stage, workout_angle=self.angle)

@@ -38,17 +38,7 @@ class OBBValidator(DetectionValidator):
 
     def postprocess(self, preds):
         """Apply Non-maximum suppression to prediction outputs."""
-        return ops.non_max_suppression(
-            preds,
-            self.args.conf,
-            self.args.iou,
-            labels=self.lb,
-            nc=self.nc,
-            multi_label=True,
-            agnostic=self.args.single_cls or self.args.agnostic_nms,
-            max_det=self.args.max_det,
-            rotated=True,
-        )
+        return super().postprocess(preds, rotated=True)
 
     def _process_batch(self, detections, gt_bboxes, gt_cls):
         """

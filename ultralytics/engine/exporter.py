@@ -67,6 +67,7 @@ from pathlib import Path
 
 import numpy as np
 import torch
+import torchvision
 
 from ultralytics.cfg import TASK2DATA, get_cfg
 from ultralytics.data import build_dataloader
@@ -94,7 +95,7 @@ from ultralytics.utils import (
 from ultralytics.utils.checks import check_imgsz, check_is_path_safe, check_requirements, check_version
 from ultralytics.utils.downloads import attempt_download_asset, get_github_assets, safe_download
 from ultralytics.utils.files import file_size, spaces_in_path
-from ultralytics.utils.ops import Profile
+from ultralytics.utils.ops import Profile, batch_probiou, xywh2xyxy
 from ultralytics.utils.torch_utils import TORCH_1_13, get_latest_opset, select_device
 
 
@@ -103,9 +104,9 @@ def export_formats():
     x = [
         ["PyTorch", "-", ".pt", True, True, []],
         ["TorchScript", "torchscript", ".torchscript", True, True, ["batch", "optimize"]],
-        ["ONNX", "onnx", ".onnx", True, True, ["batch", "dynamic", "half", "opset", "simplify"]],
+        ["ONNX", "onnx", ".onnx", True, True, ["batch", "dynamic", "half", "opset", "simplify", "nms"]],
         ["OpenVINO", "openvino", "_openvino_model", True, False, ["batch", "dynamic", "half", "int8"]],
-        ["TensorRT", "engine", ".engine", False, True, ["batch", "dynamic", "half", "int8", "simplify"]],
+        ["TensorRT", "engine", ".engine", False, True, ["batch", "dynamic", "half", "int8", "simplify", "nms"]],
         ["CoreML", "coreml", ".mlpackage", True, False, ["batch", "half", "int8", "nms"]],
         ["TensorFlow SavedModel", "saved_model", "_saved_model", True, True, ["batch", "int8", "keras"]],
         ["TensorFlow GraphDef", "pb", ".pb", True, True, ["batch"]],
@@ -273,6 +274,9 @@ class Exporter:
             assert self.device.type == "cpu", "optimize=True not compatible with cuda devices, i.e. use device='cpu'"
         if self.args.int8 and tflite:
             assert not getattr(model, "end2end", False), "TFLite INT8 export not supported for end2end models."
+        if self.args.nms and getattr(model, "end2end", False):
+            LOGGER.warning("WARNING ⚠️ 'nms=True' is not available for end2end models. Forcing 'nms=False'.")
+            self.args.nms = False
         if edgetpu:
             if not LINUX:
                 raise SystemError("Edge TPU export only supported on Linux. See https://coral.ai/docs/edgetpu/compiler")
@@ -485,7 +489,6 @@ class Exporter:
         opset_version = self.args.opset or get_latest_opset()
         LOGGER.info(f"\n{prefix} starting export with onnx {onnx.__version__} opset {opset_version}...")
         f = str(self.file.with_suffix(".onnx"))
-
         output_names = ["output0", "output1"] if isinstance(self.model, SegmentationModel) else ["output0"]
         dynamic = self.args.dynamic
         if dynamic:
@@ -495,6 +498,18 @@ class Exporter:
                 dynamic["output1"] = {0: "batch", 2: "mask_height", 3: "mask_width"}  # shape(1,32,160,160)
             elif isinstance(self.model, DetectionModel):
                 dynamic["output0"] = {0: "batch", 2: "anchors"}  # shape(1, 84, 8400)
+            if self.args.nms:  # only batch size is dynamic with NMS
+                dynamic["output0"].pop(2)
+        if self.args.nms:
+            self.model = NMSModel(self.model, self.args)
+            if self.args.task == "obb":
+                # OBB error https://github.com/pytorch/pytorch/issues/110859#issuecomment-1757841865
+                torch.onnx.register_custom_op_symbolic("aten::lift_fresh", lambda g, x: x, opset_version)
+                if self.args.simplify:
+                    LOGGER.warning(
+                        f"{prefix} WARNING ⚠️ 'simplify=True' is not compatible with 'task=obb' and 'nms=True'. Disabling..."
+                    )
+                    self.args.simplify = False
 
         torch.onnx.export(
             self.model.cpu() if dynamic else self.model,  # dynamic=True only compatible with cpu
@@ -722,9 +737,6 @@ class Exporter:
         f = self.file.with_suffix(".mlmodel" if mlmodel else ".mlpackage")
         if f.is_dir():
             shutil.rmtree(f)
-        if self.args.nms and getattr(self.model, "end2end", False):
-            LOGGER.warning(f"{prefix} WARNING ⚠️ 'nms=True' is not available for end2end models. Forcing 'nms=False'.")
-            self.args.nms = False
 
         bias = [0.0, 0.0, 0.0]
         scale = 1 / 255
@@ -1460,3 +1472,84 @@ class IOSDetectModel(torch.nn.Module):
         """Normalize predictions of object detection model with input size-dependent factors."""
         xywh, cls = self.model(x)[0].transpose(0, 1).split((4, self.nc), 1)
         return cls, xywh * self.normalize  # confidence (3780, 80), coordinates (3780, 4)
+
+
+class NMSModel(torch.nn.Module):
+    """Model wrapper with embedded NMS for Detect, Segment, Pose and OBB."""
+
+    def __init__(self, model, args):
+        """
+        Initialize the NMSModel.
+
+        Args:
+            model (torch.nn.module): The model to wrap with NMS postprocessing.
+            args (Namespace): The export arguments.
+        """
+        super().__init__()
+        self.model = model
+        self.args = args
+        self.args.conf = self.args.conf or 0.25
+        self.nc = len(self.model.names)
+        self.obb = self.args.task == "obb"
+
+    def nms_rotated(self, boxes, scores, iou):
+        """
+        ONNX friendly-version of Rotated NMS.
+
+        Args:
+            boxes (torch.tensor): Boxes from a single prediction (N, 5) in (x, y, w, h, angle) format.
+            scores (torch.tensor): Predictions scores (N, 1).
+            iou (torch.float): The IoU threshold to be applied.
+
+        Returns:
+            keep (torch.tensor): Boolean mask of top-k (max_det) boxes to keep.
+        """
+        mask = torch.zeros(boxes.shape[0], dtype=torch.bool, device=boxes.device)
+        ious = batch_probiou(boxes, boxes).triu_(diagonal=1)
+        mask = 1 - (ious > iou).sum(0) > 0  # same as ious.max(dim=0) > iou but can handle empty values
+        scores[~mask] = 0
+        keep = torch.topk(scores, mask.sum()).indices
+        return keep
+
+    def forward(self, x):
+        """
+        Performs inference with NMS post-processing. Supports Detect, Segment, OBB and Pose.
+
+        Args:
+            x (torch.tensor): The preprocessed tensor with shape (N, 3, H, W).
+
+        Returns:
+            out (torch.tensor): The post-processed results with shape (N, max_det, 4 + 2 + extra_shape).
+        """
+        preds = self.model(x)
+        pred = preds[0] if isinstance(preds, tuple) else preds
+        pred = pred.transpose(1, 2)
+        extra_shape = pred.shape[-1] - (4 + self.nc)  # extras from Segment, OBB, Pose
+        boxes, scores, extras = pred.split([4, self.nc, extra_shape], dim=2)
+        scores, classes = scores.max(dim=-1)
+        # (N, max_det, 4 coords + 1 class score + 1 class label + extra_shape).
+        out = torch.zeros(
+            boxes.shape[0], self.args.max_det, boxes.shape[-1] + 2 + extras.shape[-1], device=boxes.device
+        )
+        for i, (box, cls, score, extra) in enumerate(zip(boxes, classes, scores, extras)):
+            keep = score > self.args.conf
+            box, score, cls, extra = box[keep], score[keep], cls[keep], extra[keep]
+            if not self.obb:
+                box = xywh2xyxy(box)
+            nmsbox = box.clone()
+            if not self.args.agnostic_nms:  # class-specific NMS
+                end = 2 if self.obb else 4
+                # inplace causes reshape issue
+                offbox = nmsbox[:, :end] + cls.unsqueeze(1).expand(-1, end) * 7680
+                nmsbox = torch.cat((offbox, nmsbox[:, end:]), dim=-1)
+            nms_fn = self.nms_rotated if self.obb else torchvision.ops.nms
+            keep = nms_fn(
+                torch.cat([nmsbox, extra], dim=-1) if self.obb else nmsbox,
+                score,
+                self.args.iou,
+            )[: self.args.max_det]
+            dets = torch.cat([box[keep], score[keep].unsqueeze(1), cls[keep].unsqueeze(1), extra[keep]], dim=-1)
+            # Zero-pad to max_det size to avoid reshape error
+            padding = torch.zeros((self.args.max_det - dets.shape[0], dets.shape[1]), device=dets.device)
+            out[i] = torch.cat([dets, padding], dim=0)
+        return (out, preds[1]) if self.args.task == "segment" else out

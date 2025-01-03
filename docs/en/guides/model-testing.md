@@ -10,6 +10,17 @@ keywords: Overfitting and Underfitting in Machine Learning, Model Testing, Data 
 
 After [training](./model-training-tips.md) and [evaluating](./model-evaluation-insights.md) your model, it's time to test it. Model testing involves assessing how well it performs in real-world scenarios. Testing considers factors like accuracy, reliability, fairness, and how easy it is to understand the model's decisions. The goal is to make sure the model performs as intended, delivers the expected results, and fits into the [overall objective of your application](./defining-project-goals.md) or project.
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/SyyCUvxw9BM"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to Test Machine Learning Models | Avoid Data Leakage in Computer Vision 🚀
+</p>
+
 Model testing is quite similar to model evaluation, but they are two distinct [steps in a computer vision project](./steps-of-a-cv-project.md). Model evaluation involves metrics and plots to assess the model's accuracy. On the other hand, model testing checks if the model's learned behavior is the same as expectations. In this guide, we'll explore strategies for testing your [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models.
 
 ## Model Testing Vs. Model Evaluation
@@ -81,7 +92,7 @@ Underfitting occurs when your model can't capture the underlying patterns in the
 #### Signs of Underfitting
 
 - **Low Training Accuracy:** If your model can't achieve high accuracy on the training set, it might be underfitting.
-- **Visual Misclassification:** Consistent failure to recognize obvious features or objects suggests underfitting.
+- **Visual Mis-classification:** Consistent failure to recognize obvious features or objects suggests underfitting.
 
 ### Balancing Overfitting and Underfitting
 

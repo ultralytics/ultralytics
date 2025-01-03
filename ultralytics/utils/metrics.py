@@ -270,7 +270,7 @@ def batch_probiou(obb1, obb2, eps=1e-7):
     return 1 - hd
 
 
-def smooth_BCE(eps=0.1):
+def smooth_bce(eps=0.1):
     """
     Computes smoothed positive and negative Binary Cross-Entropy targets.
 
@@ -372,10 +372,9 @@ class ConfusionMatrix:
             else:
                 self.matrix[self.nc, gc] += 1  # true background
 
-        if n:
-            for i, dc in enumerate(detection_classes):
-                if not any(m1 == i):
-                    self.matrix[dc, self.nc] += 1  # predicted background
+        for i, dc in enumerate(detection_classes):
+            if not any(m1 == i):
+                self.matrix[dc, self.nc] += 1  # predicted background
 
     def matrix(self):
         """Returns the confusion matrix."""

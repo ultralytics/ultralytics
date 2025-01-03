@@ -591,7 +591,7 @@ def strip_optimizer(f: Union[str, Path] = "best.pt", s: str = "", updates: dict 
     args = {**DEFAULT_CFG_DICT, **x.get("train_args", {})}  # combine args
     for k in "optimizer", "best_fitness", "ema", "updates":  # keys
         x[k] = None
-    x["epoch"] = -1
+    x["epoch"] += 1
     x["train_args"] = {k: v for k, v in args.items() if k in DEFAULT_CFG_KEYS}  # strip non-default keys
     # x['model'].args = x['train_args']
 

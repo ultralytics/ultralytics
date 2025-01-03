@@ -18,7 +18,7 @@ One of the most important steps when working on a [computer vision project](./st
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Model Training Tips | How to Handle Large Datasets | Batch Size, GPU Utilization and [Mixed Precision](https://www.ultralytics.com/glossary/mixed-precision)
+  <strong>Watch:</strong> Model Training Tips | How to Handle Large Datasets | Batch Size, GPU Utilization and <a href="https://www.ultralytics.com/glossary/mixed-precision">Mixed Precision</a>
 </p>
 
 So, what is [model training](../modes/train.md)? Model training is the process of teaching your model to recognize visual patterns and make predictions based on your data. It directly impacts the performance and accuracy of your application. In this guide, we'll cover best practices, optimization techniques, and troubleshooting tips to help you train your computer vision models effectively.
@@ -58,7 +58,7 @@ When it comes to YOLO11, you can easily implement subset training by using the `
 
 Multiscale training is a technique that improves your model's ability to generalize by training it on images of varying sizes. Your model can learn to detect objects at different scales and distances and become more robust.
 
-For example, when you train YOLO11, you can enable multiscale training by setting the `scale` parameter. This parameter adjusts the size of training images by a specified factor, simulating objects at different distances. For example, setting `scale=0.5` will reduce the image size by half, while `scale=2.0` will double it. Configuring this parameter allows your model to experience a variety of image scales and improve its detection capabilities across different object sizes and scenarios.
+For example, when you train YOLO11, you can enable multiscale training by setting the `scale` parameter. This parameter adjusts the size of training images by a specified factor, simulating objects at different distances. For example, setting `scale=0.5` randomly zooms training images by a factor between 0.5 and 1.5 during training. Configuring this parameter allows your model to experience a variety of image scales and improve its detection capabilities across different object sizes and scenarios.
 
 ### Caching
 

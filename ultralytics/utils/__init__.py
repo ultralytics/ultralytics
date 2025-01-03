@@ -12,12 +12,12 @@ import subprocess
 import sys
 import threading
 import time
-import urllib
 import uuid
 from pathlib import Path
 from threading import Lock
 from types import SimpleNamespace
 from typing import Union
+from urllib.parse import unquote
 
 import cv2
 import matplotlib.pyplot as plt
@@ -37,7 +37,9 @@ ARGV = sys.argv or ["", ""]  # sometimes sys.argv = []
 FILE = Path(__file__).resolve()
 ROOT = FILE.parents[1]  # YOLO
 ASSETS = ROOT / "assets"  # default images
+ASSETS_URL = "https://github.com/ultralytics/assets/releases/download/v0.0.0"  # assets GitHub URL
 DEFAULT_CFG_PATH = ROOT / "cfg/default.yaml"
+DEFAULT_SOL_CFG_PATH = ROOT / "cfg/solutions/default.yaml"  # Ultralytics solutions yaml path
 NUM_THREADS = min(8, max(1, os.cpu_count() - 1))  # number of YOLO multiprocessing threads
 AUTOINSTALL = str(os.getenv("YOLO_AUTOINSTALL", True)).lower() == "true"  # global auto-install mode
 VERBOSE = str(os.getenv("YOLO_VERBOSE", True)).lower() == "true"  # global verbose mode
@@ -508,6 +510,7 @@ def yaml_print(yaml_file: Union[str, Path, dict]) -> None:
 
 # Default configuration
 DEFAULT_CFG_DICT = yaml_load(DEFAULT_CFG_PATH)
+DEFAULT_SOL_DICT = yaml_load(DEFAULT_SOL_CFG_PATH)  # Ultralytics solutions configuration
 for k, v in DEFAULT_CFG_DICT.items():
     if isinstance(v, str) and v.lower() == "none":
         DEFAULT_CFG_DICT[k] = None
@@ -521,13 +524,9 @@ def read_device_model() -> str:
     is_raspberrypi().
 
     Returns:
-        (str): Model file contents if read successfully or empty string otherwise.
+        (str): Kernel release information.
     """
-    try:
-        with open("/proc/device-tree/model") as f:
-            return f.read()
-    except Exception:
-        return ""
+    return platform.release().lower()
 
 
 def is_ubuntu() -> bool:
@@ -566,12 +565,16 @@ def is_kaggle():
 
 def is_jupyter():
     """
-    Check if the current script is running inside a Jupyter Notebook. Verified on Colab, Jupyterlab, Kaggle, Paperspace.
+    Check if the current script is running inside a Jupyter Notebook.
 
     Returns:
         (bool): True if running inside a Jupyter Notebook, False otherwise.
+
+    Note:
+        - Only works on Colab and Kaggle, other environments like Jupyterlab and Paperspace are not reliably detectable.
+        - "get_ipython" in globals() method suffers false positives when IPython package installed manually.
     """
-    return "get_ipython" in locals()
+    return IS_COLAB or IS_KAGGLE
 
 
 def is_docker() -> bool:
@@ -595,18 +598,17 @@ def is_raspberrypi() -> bool:
     Returns:
         (bool): True if running on a Raspberry Pi, False otherwise.
     """
-    return "Raspberry Pi" in PROC_DEVICE_MODEL
+    return "rpi" in DEVICE_MODEL
 
 
 def is_jetson() -> bool:
     """
-    Determines if the Python environment is running on a Jetson Nano or Jetson Orin device by checking the device model
-    information.
+    Determines if the Python environment is running on an NVIDIA Jetson device by checking the device model information.
 
     Returns:
-        (bool): True if running on a Jetson Nano or Jetson Orin, False otherwise.
+        (bool): True if running on an NVIDIA Jetson device, False otherwise.
     """
-    return "NVIDIA" in PROC_DEVICE_MODEL  # i.e. "NVIDIA Jetson Nano" or "NVIDIA Orin NX"
+    return "tegra" in DEVICE_MODEL
 
 
 def is_online() -> bool:
@@ -796,13 +798,13 @@ def get_user_config_dir(sub_dir="Ultralytics"):
 
 
 # Define constants (required below)
-PROC_DEVICE_MODEL = read_device_model()  # is_jetson() and is_raspberrypi() depend on this constant
+DEVICE_MODEL = read_device_model()  # is_jetson() and is_raspberrypi() depend on this constant
 ONLINE = is_online()
 IS_COLAB = is_colab()
+IS_KAGGLE = is_kaggle()
 IS_DOCKER = is_docker()
 IS_JETSON = is_jetson()
 IS_JUPYTER = is_jupyter()
-IS_KAGGLE = is_kaggle()
 IS_PIP_PACKAGE = is_pip_package()
 IS_RASPBERRYPI = is_raspberrypi()
 GIT_DIR = get_git_dir()
@@ -1124,7 +1126,8 @@ class JSONDict(dict):
 
     def __str__(self):
         """Return a pretty-printed JSON string representation of the dictionary."""
-        return f'JSONDict("{self.file_path}"):\n{json.dumps(dict(self), indent=2, ensure_ascii=False, default=self._json_default)}'
+        contents = json.dumps(dict(self), indent=2, ensure_ascii=False, default=self._json_default)
+        return f'JSONDict("{self.file_path}"):\n{contents}'
 
     def update(self, *args, **kwargs):
         """Update the dictionary and persist changes."""
@@ -1193,7 +1196,7 @@ class SettingsManager(JSONDict):
             "neptune": True,  # Neptune integration
             "raytune": True,  # Ray Tune integration
             "tensorboard": True,  # TensorBoard logging
-            "wandb": True,  # Weights & Biases logging
+            "wandb": False,  # Weights & Biases logging
             "vscode_msg": True,  # VSCode messaging
         }
 
@@ -1232,14 +1235,23 @@ class SettingsManager(JSONDict):
                 f"Please change one to avoid possible issues during training. {self.help_msg}"
             )
 
+    def __setitem__(self, key, value):
+        """Updates one key: value pair."""
+        self.update({key: value})
+
     def update(self, *args, **kwargs):
         """Updates settings, validating keys and types."""
+        for arg in args:
+            if isinstance(arg, dict):
+                kwargs.update(arg)
         for k, v in kwargs.items():
             if k not in self.defaults:
                 raise KeyError(f"No Ultralytics setting '{k}'. {self.help_msg}")
             t = type(self.defaults[k])
             if not isinstance(v, t):
-                raise TypeError(f"Ultralytics setting '{k}' must be of type '{t}', not '{type(v)}'. {self.help_msg}")
+                raise TypeError(
+                    f"Ultralytics setting '{k}' must be '{t.__name__}' type, not '{type(v).__name__}'. {self.help_msg}"
+                )
         super().update(*args, **kwargs)
 
     def reset(self):
@@ -1248,15 +1260,18 @@ class SettingsManager(JSONDict):
         self.update(self.defaults)
 
 
-def deprecation_warn(arg, new_arg):
+def deprecation_warn(arg, new_arg=None):
     """Issue a deprecation warning when a deprecated argument is used, suggesting an updated argument."""
-    LOGGER.warning(f"WARNING ⚠️ '{arg}' is deprecated and will be removed in in the future. Use '{new_arg}' instead.")
+    msg = f"WARNING ⚠️ '{arg}' is deprecated and will be removed in in the future."
+    if new_arg is not None:
+        msg += f" Use '{new_arg}' instead."
+    LOGGER.warning(msg)
 
 
 def clean_url(url):
     """Strip auth from URL, i.e. https://url.com/file.txt?auth -> https://url.com/file.txt."""
     url = Path(url).as_posix().replace(":/", "://")  # Pathlib turns :// -> :/, as_posix() for Windows
-    return urllib.parse.unquote(url).split("?")[0]  # '%2F' to '/', split https://url.com/file.txt?auth
+    return unquote(url).split("?")[0]  # '%2F' to '/', split https://url.com/file.txt?auth
 
 
 def url2file(url):

@@ -20,7 +20,7 @@ With more than [10 million users](https://www.kaggle.com/discussions/general/332
 
 Training YOLO11 models on Kaggle is simple and efficient, thanks to the platform's access to powerful GPUs.
 
-To get started, access the [Kaggle YOLO11 Notebook](https://www.kaggle.com/code/ultralytics/yolov8). Kaggle's environment comes with pre-installed libraries like [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) and [PyTorch](https://www.ultralytics.com/glossary/pytorch), making the setup process hassle-free.
+To get started, access the [Kaggle YOLO11 Notebook](https://www.kaggle.com/code/glennjocherultralytics/yolo11). Kaggle's environment comes with pre-installed libraries like [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) and [PyTorch](https://www.ultralytics.com/glossary/pytorch), making the setup process hassle-free.
 
 ![What is the kaggle integration with respect to YOLO11?](https://github.com/ultralytics/docs/releases/download/0/kaggle-integration-yolov8.avif)
 
@@ -28,7 +28,7 @@ Once you sign in to your Kaggle account, you can click on the option to copy and
 
 ![Using kaggle for machine learning model training with a GPU](https://github.com/ultralytics/docs/releases/download/0/using-kaggle-for-machine-learning-model-training-with-a-gpu.avif)
 
-On the [official YOLO11 Kaggle notebook page](https://www.kaggle.com/code/ultralytics/yolov8), if you click on the three dots in the upper right-hand corner, you'll notice more options will pop up.
+On the [official YOLO11 Kaggle notebook page](https://www.kaggle.com/code/glennjocherultralytics/yolo11), if you click on the three dots in the upper right-hand corner, you'll notice more options will pop up.
 
 ![Overview of Options From the Official YOLO11 Kaggle Notebook Page](https://github.com/ultralytics/docs/releases/download/0/overview-options-yolov8-kaggle-notebook.avif)
 
@@ -62,7 +62,7 @@ Next, let's understand the features Kaggle offers that make it an excellent plat
 - **Datasets**: Kaggle hosts a massive collection of datasets on various topics. You can easily search and use these datasets in your projects, which is particularly handy for training and testing your YOLO11 models.
 - **Competitions**: Known for its exciting competitions, Kaggle allows data scientists and machine learning enthusiasts to solve real-world problems. Competing helps you improve your skills, learn new techniques, and gain recognition in the community.
 - **Free Access to TPUs**: Kaggle provides free access to powerful TPUs, which are essential for training complex machine learning models. This means you can speed up processing and boost the performance of your YOLO11 projects without incurring extra costs.
-- **Integration with Github**: Kaggle allows you to easily connect your GitHub repository to upload notebooks and save your work. This integration makes it convenient to manage and access your files.
+- **Integration with GitHub**: Kaggle allows you to easily connect your GitHub repository to upload notebooks and save your work. This integration makes it convenient to manage and access your files.
 - **Community and Discussions**: Kaggle boasts a strong community of data scientists and machine learning practitioners. The discussion forums and shared notebooks are fantastic resources for learning and troubleshooting. You can easily find help, share your knowledge, and collaborate with others.
 
 ## Why Should You Use Kaggle for Your YOLO11 Projects?
@@ -81,7 +81,7 @@ If you want to learn more about Kaggle, here are some helpful resources to guide
 
 - [**Kaggle Learn**](https://www.kaggle.com/learn): Discover a variety of free, interactive tutorials on Kaggle Learn. These courses cover essential data science topics and provide hands-on experience to help you master new skills.
 - [**Getting Started with Kaggle**](https://www.kaggle.com/code/alexisbcook/getting-started-with-kaggle): This comprehensive guide walks you through the basics of using Kaggle, from joining competitions to creating your first notebook. It's a great starting point for newcomers.
-- [**Kaggle Medium Page**](https://medium.com/@kaggleteam): Explore tutorials, updates, and community contributions on Kaggle's Medium page. It's an excellent source for staying up-to-date with the latest trends and gaining deeper insights into data science.
+- [**Kaggle Medium Page**](https://medium.com/@kaggleteam): Explore tutorials, updates, and community contributions to Kaggle's Medium page. It's an excellent source for staying up-to-date with the latest trends and gaining deeper insights into data science.
 
 ## Summary
 
@@ -95,7 +95,7 @@ Interested in more YOLO11 integrations? Check out the[ Ultralytics integration g
 
 ### How do I train a YOLO11 model on Kaggle?
 
-Training a YOLO11 model on Kaggle is straightforward. First, access the [Kaggle YOLO11 Notebook](https://www.kaggle.com/ultralytics/yolov8). Sign in to your Kaggle account, copy and edit the notebook, and select a GPU under the accelerator settings. Run the notebook cells to start training. For more detailed steps, refer to our [YOLO11 Model Training guide](../modes/train.md).
+Training a YOLO11 model on Kaggle is straightforward. First, access the [Kaggle YOLO11 Notebook](https://www.kaggle.com/code/glennjocherultralytics/yolo11). Sign in to your Kaggle account, copy and edit the notebook, and select a GPU under the accelerator settings. Run the notebook cells to start training. For more detailed steps, refer to our [YOLO11 Model Training guide](../modes/train.md).
 
 ### What are the benefits of using Kaggle for YOLO11 model training?
 
@@ -127,7 +127,8 @@ Kaggle offers unique features that make it an excellent choice:
 - **Free Access to TPUs**: Speed up training with powerful TPUs without extra costs.
 - **Comprehensive History**: Track changes over time with a detailed history of notebook commits.
 - **Resource Availability**: Significant resources are provided for each notebook session, including 12 hours of execution time for CPU and GPU sessions.
-    For a comparison with Google Colab, refer to our [Google Colab guide](./google-colab.md).
+
+For a comparison with Google Colab, refer to our [Google Colab guide](./google-colab.md).
 
 ### How can I revert to a previous version of my Kaggle notebook?
 

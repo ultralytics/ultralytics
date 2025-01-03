@@ -48,6 +48,16 @@ from ultralytics import YOLO
 # Load a model
 model = YOLO("yolo11n.pt")  # load an official model
 
+# Retreive metadata during export
+metadata = []
+
+
+def export_cb(exporter):
+    metadata.append(exporter.metadata)
+
+
+model.add_callback("on_export_end", export_cb)
+
 # Export the model
 onnx_file = model.export(format="onnx", dynamic=True)
 ```
@@ -80,6 +90,43 @@ The Triton Model Repository is a storage location where Triton can access and lo
 
     # Create config file
     (triton_model_path / "config.pbtxt").touch()
+
+    # (Optional) Enable TensorRT for GPU inference
+    # First run will be slow due to TensorRT engine conversion
+    data = """
+    optimization {
+      execution_accelerators {
+        gpu_execution_accelerator {
+          name: "tensorrt"
+          parameters {
+            key: "precision_mode"
+            value: "FP16"
+          }
+          parameters {
+            key: "max_workspace_size_bytes"
+            value: "3221225472"
+          }
+          parameters {
+            key: "trt_engine_cache_enable"
+            value: "1"
+          }
+          parameters {
+            key: "trt_engine_cache_path"
+            value: "/models/yolo/1"
+          }
+        }
+      }
+    }
+    parameters {
+      key: "metadata"
+      value: {
+        string_value: "%s"
+      }
+    }
+    """ % metadata[0]
+
+    with open(triton_model_path / "config.pbtxt", "w") as f:
+        f.write(data)
     ```
 
 ## Running Triton Inference Server
@@ -94,7 +141,7 @@ import time
 from tritonclient.http import InferenceServerClient
 
 # Define image https://catalog.ngc.nvidia.com/orgs/nvidia/containers/tritonserver
-tag = "nvcr.io/nvidia/tritonserver:23.09-py3"  # 6.4 GB
+tag = "nvcr.io/nvidia/tritonserver:24.09-py3"  # 8.57 GB
 
 # Pull the image
 subprocess.call(f"docker pull {tag}", shell=True)
@@ -102,7 +149,7 @@ subprocess.call(f"docker pull {tag}", shell=True)
 # Run the Triton server and capture the container ID
 container_id = (
     subprocess.check_output(
-        f"docker run -d --rm -v {triton_repo_path}:/models -p 8000:8000 {tag} tritonserver --model-repository=/models",
+        f"docker run -d --rm --gpus 0 -v {triton_repo_path}:/models -p 8000:8000 {tag} tritonserver --model-repository=/models",
         shell=True,
     )
     .decode("utf-8")
@@ -187,13 +234,13 @@ Setting up [Ultralytics YOLO11](https://docs.ultralytics.com/models/yolov8/) wit
     from tritonclient.http import InferenceServerClient
 
     # Define image https://catalog.ngc.nvidia.com/orgs/nvidia/containers/tritonserver
-    tag = "nvcr.io/nvidia/tritonserver:23.09-py3"
+    tag = "nvcr.io/nvidia/tritonserver:24.09-py3"
 
     subprocess.call(f"docker pull {tag}", shell=True)
 
     container_id = (
         subprocess.check_output(
-            f"docker run -d --rm -v {triton_repo_path}/models -p 8000:8000 {tag} tritonserver --model-repository=/models",
+            f"docker run -d --rm --gpus 0 -v {triton_repo_path}/models -p 8000:8000 {tag} tritonserver --model-repository=/models",
             shell=True,
         )
         .decode("utf-8")

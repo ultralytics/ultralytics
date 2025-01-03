@@ -13,7 +13,7 @@ try:
 except (ImportError, AssertionError, AttributeError):
     from ultralytics.utils.checks import check_requirements
 
-    check_requirements("lapx>=0.5.2")  # update to lap package from https://github.com/rathaROG/lapx
+    check_requirements("lap>=0.5.12")  # https://github.com/gatagat/lap
     import lap
 
 
@@ -27,10 +27,9 @@ def linear_assignment(cost_matrix: np.ndarray, thresh: float, use_lap: bool = Tr
         use_lap (bool): Use lap.lapjv for the assignment. If False, scipy.optimize.linear_sum_assignment is used.
 
     Returns:
-        (tuple): A tuple containing:
-            - matched_indices (np.ndarray): Array of matched indices of shape (K, 2), where K is the number of matches.
-            - unmatched_a (np.ndarray): Array of unmatched indices from the first set, with shape (L,).
-            - unmatched_b (np.ndarray): Array of unmatched indices from the second set, with shape (M,).
+        matched_indices (np.ndarray): Array of matched indices of shape (K, 2), where K is the number of matches.
+        unmatched_a (np.ndarray): Array of unmatched indices from the first set, with shape (L,).
+        unmatched_b (np.ndarray): Array of unmatched indices from the second set, with shape (M,).
 
     Examples:
         >>> cost_matrix = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])

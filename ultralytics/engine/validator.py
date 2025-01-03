@@ -17,6 +17,7 @@ Usage - formats:
                           yolov8n.tflite             # TensorFlow Lite
                           yolov8n_edgetpu.tflite     # TensorFlow Edge TPU
                           yolov8n_paddle_model       # PaddlePaddle
+                          yolov8n.mnn                # MNN
                           yolov8n_ncnn_model         # NCNN
 """
 
@@ -119,7 +120,7 @@ class BaseValidator:
             self.args.plots &= trainer.stopper.possible_stop or (trainer.epoch == trainer.epochs - 1)
             model.eval()
         else:
-            if str(self.args.model).endswith(".yaml"):
+            if str(self.args.model).endswith(".yaml") and model is None:
                 LOGGER.warning("WARNING ⚠️ validating an untrained model YAML will result in 0 mAP.")
             callbacks.add_integration_callbacks(self)
             model = AutoBackend(
@@ -244,7 +245,7 @@ class BaseValidator:
 
                 cost_matrix = iou * (iou >= threshold)
                 if cost_matrix.any():
-                    labels_idx, detections_idx = scipy.optimize.linear_sum_assignment(cost_matrix, maximize=True)
+                    labels_idx, detections_idx = scipy.optimize.linear_sum_assignment(cost_matrix)
                     valid = cost_matrix[labels_idx, detections_idx] > 0
                     if valid.any():
                         correct[detections_idx[valid], i] = True

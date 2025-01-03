@@ -21,6 +21,7 @@ TensorFlow Lite         | `tflite`                  | yolov8n.tflite
 TensorFlow Edge TPU     | `edgetpu`                 | yolov8n_edgetpu.tflite
 TensorFlow.js           | `tfjs`                    | yolov8n_web_model/
 PaddlePaddle            | `paddle`                  | yolov8n_paddle_model/
+MNN                     | `mnn`                     | yolov8n.mnn
 NCNN                    | `ncnn`                    | yolov8n_ncnn_model/
 """
 
@@ -89,7 +90,7 @@ def benchmark(
 
     y = []
     t0 = time.time()
-    for i, (name, format, suffix, cpu, gpu) in enumerate(zip(*export_formats().values())):
+    for i, (name, format, suffix, cpu, gpu, _) in enumerate(zip(*export_formats().values())):
         emoji, filename = "❌", None  # export defaults
         try:
             # Checks
@@ -107,12 +108,19 @@ def benchmark(
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 TensorFlow exports not supported by onnx2tf yet"
             if i in {9, 10}:  # TF EdgeTPU and TF.js
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 TensorFlow exports not supported by onnx2tf yet"
-            if i in {11}:  # Paddle
+            if i == 11:  # Paddle
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 Paddle exports not supported yet"
                 assert not is_end2end, "End-to-end models not supported by PaddlePaddle yet"
                 assert LINUX or MACOS, "Windows Paddle exports not supported yet"
-            if i in {12}:  # NCNN
+            if i == 12:  # MNN
+                assert not isinstance(model, YOLOWorld), "YOLOWorldv2 MNN exports not supported yet"
+            if i == 13:  # NCNN
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 NCNN exports not supported yet"
+            if i == 14:  # IMX
+                assert not is_end2end
+                assert not isinstance(model, YOLOWorld), "YOLOWorldv2 IMX exports not supported"
+                assert model.task == "detect", "IMX only supported for detection task"
+                assert "C2f" in model.__str__(), "IMX only supported for YOLOv8"
             if "cpu" in device.type:
                 assert cpu, "inference not supported on CPU"
             if "cuda" in device.type:
@@ -132,7 +140,7 @@ def benchmark(
             assert model.task != "pose" or i != 7, "GraphDef Pose inference is not supported"
             assert i not in {9, 10}, "inference not supported"  # Edge TPU and TF.js are unsupported
             assert i != 5 or platform.system() == "Darwin", "inference only supported on macOS>=10.13"  # CoreML
-            if i in {12}:
+            if i in {13}:
                 assert not is_end2end, "End-to-end torch.topk operation is not supported for NCNN prediction yet"
             exported_model.predict(ASSETS / "bus.jpg", imgsz=imgsz, device=device, half=half)
 
@@ -432,7 +440,8 @@ class ProfileModels:
         print(f"Profiling: {sorted(files)}")
         return [Path(file) for file in sorted(files)]
 
-    def get_onnx_model_info(self, onnx_file: str):
+    @staticmethod
+    def get_onnx_model_info(onnx_file: str):
         """Extracts metadata from an ONNX model file including parameters, GFLOPs, and input shape."""
         return 0.0, 0.0, 0.0, 0.0  # return (num_layers, num_params, num_gradients, num_flops)
 

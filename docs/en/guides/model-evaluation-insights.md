@@ -10,6 +10,17 @@ keywords: Model Evaluation, Machine Learning Model Evaluation, Fine Tuning Machi
 
 Once you've [trained](./model-training-tips.md) your computer vision model, evaluating and refining it to perform optimally is essential. Just training your model isn't enough. You need to make sure that your model is accurate, efficient, and fulfills the [objective](./defining-project-goals.md) of your computer vision project. By evaluating and fine-tuning your model, you can identify weaknesses, improve its accuracy, and boost overall performance.
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/-aYO-6VaDrw"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> Insights into Model Evaluation and Fine-Tuning | Tips for Improving Mean Average Precision
+</p>
+
 In this guide, we'll share insights on model evaluation and fine-tuning that'll make this [step of a computer vision project](./steps-of-a-cv-project.md) more approachable. We'll discuss how to understand evaluation metrics and implement fine-tuning techniques, giving you the knowledge to elevate your model's capabilities.
 
 ## Evaluating Model Performance Using Metrics
@@ -20,7 +31,7 @@ Evaluating how well a model performs helps us understand how effectively it work
 
 The confidence score represents the model's certainty that a detected object belongs to a particular class. It ranges from 0 to 1, with higher scores indicating greater confidence. The confidence score helps filter predictions; only detections with confidence scores above a specified threshold are considered valid.
 
-_Quick Tip:_ When running inferences, if you aren't seeing any predictions and you've checked everything else, try lowering the confidence score. Sometimes, the threshold is too high, causing the model to ignore valid predictions. Lowering the score allows the model to consider more possibilities. This might not meet your project goals, but it's a good way to see what the model can do and decide how to fine-tune it.
+_Quick Tip:_ When running inferences, if you aren't seeing any predictions, and you've checked everything else, try lowering the confidence score. Sometimes, the threshold is too high, causing the model to ignore valid predictions. Lowering the score allows the model to consider more possibilities. This might not meet your project goals, but it's a good way to see what the model can do and decide how to fine-tune it.
 
 ### Intersection over Union
 

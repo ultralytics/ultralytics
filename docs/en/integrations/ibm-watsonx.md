@@ -12,7 +12,7 @@ You can train [Ultralytics YOLO11 models](https://github.com/ultralytics/ultraly
 
 ## What is IBM Watsonx?
 
-[Watsonx](https://www.ibm.com/watsonx) is IBM's cloud-based platform designed for commercial [generative AI](https://www.ultralytics.com/glossary/generative-ai) and scientific data. IBM Watsonx's three components - watsonx.ai, watsonx.data, and watsonx.governance - come together to create an end-to-end, trustworthy AI platform that can accelerate AI projects aimed at solving business problems. It provides powerful tools for building, training, and [deploying machine learning models](../guides/model-deployment-options.md) and makes it easy to connect with various data sources.
+[Watsonx](https://www.ibm.com/watsonx) is IBM's cloud-based platform designed for commercial [generative AI](https://www.ultralytics.com/glossary/generative-ai) and scientific data. IBM Watsonx's three components - `watsonx.ai`, `watsonx.data`, and `watsonx.governance` - come together to create an end-to-end, trustworthy AI platform that can accelerate AI projects aimed at solving business problems. It provides powerful tools for building, training, and [deploying machine learning models](../guides/model-deployment-options.md) and makes it easy to connect with various data sources.
 
 <p align="center">
   <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/overview-of-ibm-watsonx.avif" alt="Overview of IBM Watsonx">
@@ -22,7 +22,7 @@ Its user-friendly interface and collaborative capabilities streamline the develo
 
 ## Key Features of IBM Watsonx
 
-IBM Watsonx is made of three main components: watsonx.ai, watsonx.data, and watsonx.governance. Each component offers features that cater to different aspects of AI and data management. Let's take a closer look at them.
+IBM Watsonx is made of three main components: `watsonx.ai`, `watsonx.data`, and `watsonx.governance`. Each component offers features that cater to different aspects of AI and data management. Let's take a closer look at them.
 
 ### [Watsonx.ai](https://www.ibm.com/products/watsonx-ai)
 

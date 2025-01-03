@@ -26,7 +26,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "ultralytics"
 dynamic = ["version"]
-description = "Ultralytics YOLO for SOTA object detection, multi-object tracking, instance segmentation, pose estimation and image classification."
+description = "Ultralytics YOLO 🚀 for SOTA object detection, multi-object tracking, instance segmentation, pose estimation and image classification."
 readme = "README.md"
 requires-python = ">=3.8"
 license = { "text" = "AGPL-3.0" }
@@ -61,7 +61,8 @@ classifiers = [
 
 # Required dependencies ------------------------------------------------------------------------------------------------
 dependencies = [
-    "numpy>=1.23.0", # temporary patch for compat errors https://github.com/ultralytics/yolov5/actions/runs/9538130424/job/26286956354
+    "numpy>=1.23.0",
+    "numpy<2.0.0; sys_platform == 'darwin'", # macOS OpenVINO errors https://github.com/ultralytics/ultralytics/pull/17221
     "matplotlib>=3.3.0",
     "opencv-python>=4.6.0",
     "pillow>=7.1.2",
@@ -89,7 +90,6 @@ dev = [
     "mkdocs>=1.6.0",
     "mkdocs-material>=9.5.9",
     "mkdocstrings[python]",
-    "mkdocs-jupyter", # notebooks
     "mkdocs-redirects", # 301 redirects
     "mkdocs-ultralytics-plugin>=0.1.8", # for meta descriptions and images, dates and authors
     "mkdocs-macros-plugin>=1.0.5"  # duplicating content (i.e. export tables) in multiple places

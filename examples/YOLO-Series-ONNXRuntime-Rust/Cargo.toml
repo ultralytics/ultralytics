@@ -1,0 +1,12 @@
+[package]
+name = "YOLO-ONNXRuntime-Rust"
+version = "0.1.0"
+edition = "2021"
+authors = ["Jamjamjon <xxyydzml@outlook.com>"]
+
+[dependencies]
+anyhow = "1.0.92"
+clap = "4.5.20"
+tracing = "0.1.40"
+tracing-subscriber = "0.3.18"
+usls = { version = "0.0.19", features = ["auto"] }

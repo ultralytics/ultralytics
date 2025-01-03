@@ -32,6 +32,10 @@ on:
         description: "Run Raspberry Pi"
         default: false
         type: boolean
+      armrunner:
+        description: "Run ARM Runner"
+        default: false
+        type: boolean
       conda:
         description: "Run Conda"
         default: false
@@ -277,6 +281,24 @@ jobs:
       # - name: Reboot # run a reboot command in the background to free resources for next run and not crash main thread
       #   run: sudo bash -c "sleep 10; reboot" &
 
+  ArmRunner:
+    # if: github.repository == 'ultralytics/ultralytics' && github.event_name == 'workflow_dispatch' && github.event.inputs.armrunner == 'true'
+    timeout-minutes: 120
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pguyot/arm-runner-action@v2
+        with:
+          commands: |
+            apt install python3-pip -y
+            # Install requirements
+            python -m pip install --upgrade pip wheel
+            pip install -e ".[export]" pytest mlflow pycocotools
+
+            # Check environment
+            yolo checks
+            pip list
+
   Conda:
     if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event.inputs.conda == 'true')
     continue-on-error: true
@@ -346,7 +368,7 @@ jobs:
 
   Summary:
     runs-on: ubuntu-latest
-    needs: [HUB, Benchmarks, Tests, GPU, RaspberryPi, Conda]
+    needs: [HUB, Benchmarks, Tests, GPU, RaspberryPi, Conda, ArmRunner]
     if: always()
     steps:
       - name: Check for failure and notify

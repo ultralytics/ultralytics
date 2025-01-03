@@ -8,7 +8,7 @@ import os
 if not os.environ.get("OMP_NUM_THREADS"):
     os.environ["OMP_NUM_THREADS"] = "1"  # default for reduced CPU utilization during training
 
-from ultralytics.models import NAS, RTDETR, SAM, YOLO, FastSAM, YOLOWorld
+from ultralytics.models import NAS, RTDETR, SAM, YOLO, FastSAM, NeuronYOLO, YOLOWorld
 from ultralytics.utils import ASSETS, SETTINGS
 from ultralytics.utils.checks import check_yolo as checks
 from ultralytics.utils.downloads import download
@@ -26,4 +26,6 @@ __all__ = (
     "checks",
     "download",
     "settings",
+    "Explorer",
+    "NeuronYOLO",
 )

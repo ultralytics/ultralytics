@@ -282,7 +282,7 @@ jobs:
       #   run: sudo bash -c "sleep 10; reboot" &
 
   ArmRunner:
-    if: github.repository == 'ultralytics/ultralytics' && github.event.inputs.armrunner == 'true'
+    if: github.repository == 'ultralytics/ultralytics' && 'workflow_dispatch' && github.event.inputs.armrunner == 'true'
     timeout-minutes: 120
     runs-on: ubuntu-latest
     steps:

@@ -1,7 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-from ultralytics.solutions.solutions import BaseSolution
-from ultralytics.utils.plotting import Annotator
+from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator
 
 
 class AIGym(BaseSolution):
@@ -82,7 +81,7 @@ class AIGym(BaseSolution):
                 self.stage += ["-"] * new_human
 
             # Initialize annotator
-            self.annotator = Annotator(im0, line_width=self.line_width)
+            self.annotator = SolutionAnnotator(im0, line_width=self.line_width)
 
             # Enumerate over keypoints
             for ind, k in enumerate(reversed(tracks.keypoints.data)):

@@ -13,4 +13,8 @@ keywords: Ultralytics, Solutions, Object counting, Speed Estimation, Heatmaps, Q
 
 ## ::: ultralytics.solutions.solutions.BaseSolution
 
+<br><br><hr><br>
+
+## ::: ultralytics.solutions.solutions.SolutionAnnotator
+
 <br><br>

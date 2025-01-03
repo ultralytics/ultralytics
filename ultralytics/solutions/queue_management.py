@@ -1,6 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator
+from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
 from ultralytics.utils.plotting import colors
 
 
@@ -109,4 +109,4 @@ class QueueManager(BaseSolution):
         )
         self.display_output(im0)  # display output with base class function
 
-        return im0  # return output image for more usage
+        return SolutionResults(queue_count=self.counts)  # return output image for more usage

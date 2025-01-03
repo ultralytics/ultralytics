@@ -28,11 +28,13 @@ This guide serves as a comprehensive introduction to setting up a Docker environ
 ## Prerequisites
 
 - Make sure Docker is installed on your system. If not, you can download and install it from [Docker's website](https://www.docker.com/products/docker-desktop/).
-- (Optional) Ensure that your system has an NVIDIA GPU and NVIDIA drivers are installed.
+- (Optional) If you have an NVIDIA GPU, you need to install the NVIDIA Docker Runtime to use Docker with your GPU (instructions below).
 
 ---
 
 ## Setting up Docker with NVIDIA Support
+
+This section covers the steps to set up Docker with NVIDIA support, enabling GPU acceleration for your Docker containers. If you don't have an NVIDIA GPU, you can skip this section.
 
 First, verify that the NVIDIA drivers are properly installed by running:
 
@@ -70,7 +72,22 @@ docker info | grep -i runtime
 
 ## Official Ultralytics Docker Images
 
+| tags                                              | dockerfile                    | GPU support  | architecture  |
+| -------                                           | ----------                    | ------------ | ------------  |
+| ultralytics/ultralytics:latest                    | docker/Dockerfile             |   ✅         | linux/amd64   |
+| ultralytics/ultralytics:latest-jupyter            | docker/Dockerfile-jupyter     |   ✅         | linux/amd64   |
+| ultralytics/ultralytics:latest-cpu                | docker/Dockerfile-cpu         |   ❌         | linux/amd64    |
+| ultralytics/ultralytics:latest-arm64              | docker/Dockerfile-arm64       |   ❌         | linux/arm64   |
+| ultralytics/ultralytics:latest-jetson-jetpack4    | docker/Dockerfile-cpu         |   ❌         | linux/arm64    |
+| ultralytics/ultralytics:latest-jetson-jetpack5    | docker/Dockerfile-cpu         |   ❌         | linux/arm64   |
+| ultralytics/ultralytics:latest-jetson-jetpack6    | docker/Dockerfile-cpu         |   ❌         | linux/arm64   |
+| ultralytics/ultralytics:latest-python             | docker/Dockerfile-python      |   ❌         | linux/amd64   |
+| ultralytics/ultralytics:latest-conda              | docker/Dockerfile-conda       |   ❌         | linux/amd64   |
+
+
 Ultralytics is a Docker Verified Publisher, providing a range of convenient, ready-to-use images directly available on Docker Hub. These images streamline your workflow, allowing you to test Ultralytics YOLO securely and efficiently without the hassle of installing dependencies. The official Ultralytics Docker images are optimized for various platforms and use-cases, including GPU, CPU, ARM64, and NVIDIA Jetson devices.
+
+
 
 
 

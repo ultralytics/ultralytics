@@ -26,6 +26,7 @@ from ultralytics.utils import (
     IterableSimpleNamespace,
     __version__,
     checks,
+    closest_match,
     colorstr,
     deprecation_warn,
     vscode_msg,
@@ -81,7 +82,7 @@ SOLUTIONS_HELP_MSG = f"""
         Where SOLUTION (optional) is one of {list(SOLUTION_MAP.keys())[:-1]}
               ARGS (optional) are any number of custom 'arg=value' pairs like 'show_in=True' that override defaults 
                   at https://docs.ultralytics.com/usage/cfg
-                
+
     1. Call object counting solution
         yolo solutions count source="path/to/video/file.mp4" region=[(20, 400), (1080, 400), (1080, 360), (20, 360)]
 
@@ -96,7 +97,7 @@ SOLUTIONS_HELP_MSG = f"""
 
     5. Generate analytical graphs
         yolo solutions analytics analytics_type="pie"
-    
+
     6. Track objects within specific zones
         yolo solutions trackzone source="path/to/video/file.mp4" region=[(150, 150), (1130, 150), (1130, 570), (150, 570)]
         
@@ -475,11 +476,9 @@ def check_dict_alignment(base: Dict, custom: Dict, e=None):
     base_keys, custom_keys = (set(x.keys()) for x in (base, custom))
     mismatched = [k for k in custom_keys if k not in base_keys]
     if mismatched:
-        from difflib import get_close_matches
-
         string = ""
         for x in mismatched:
-            matches = get_close_matches(x, base_keys)  # key list
+            matches = closest_match(x, base_keys)  # key list
             matches = [f"{k}={base[k]}" if base.get(k) is not None else k for k in matches]
             match_str = f"Similar arguments are i.e. {matches}." if matches else ""
             string += f"'{colorstr('red', 'bold', x)}' is not a valid YOLO argument. {match_str}\n"

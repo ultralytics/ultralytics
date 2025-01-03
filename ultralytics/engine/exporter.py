@@ -1540,17 +1540,13 @@ class NMSModel(torch.nn.Module):
                 nmsbox[:, :end] += cls.unsqueeze(1) * 7680
             nms_fn = self.nms_rotated if self.obb else torchvision.ops.nms
             keep = nms_fn(
-                torch.cat([nmsbox, extra], dim=-1)
-                if self.obb
-                else nmsbox,
+                torch.cat([nmsbox, extra], dim=-1) if self.obb else nmsbox,
                 score,
                 self.args.iou,
             )[: self.args.max_det]
-            dets = torch.cat(
-                [box[keep], score[keep].unsqueeze(1), cls[keep].unsqueeze(1), extra[keep]], dim=-1
-            )
+            dets = torch.cat([box[keep], score[keep].unsqueeze(1), cls[keep].unsqueeze(1), extra[keep]], dim=-1)
             # Use index_copy_ to place detections at start of output
             # Avoids reshape error with ONNX when there are no detections
             idx = torch.arange(min(keep.numel(), self.args.max_det), device=out.device)
-            out[i].index_copy_(0, idx, dets[:self.args.max_det])
+            out[i].index_copy_(0, idx, dets[: self.args.max_det])
         return (out, preds[1]) if self.args.task == "segment" else out

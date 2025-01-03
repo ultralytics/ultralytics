@@ -30,8 +30,7 @@ class DetectionPredictor(BasePredictor):
             self.args.agnostic_nms,
             max_det=self.args.max_det,
             nc=len(self.model.names),
-            rotated=self.args.task == "obb",
-            end2end=self.args.nms,
+            end2end=self.model.end2end,
             **kwargs
         )
 

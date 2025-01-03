@@ -485,7 +485,7 @@ class AutoBackend(nn.Module):
             imgsz = metadata["imgsz"]
             names = metadata["names"]
             kpt_shape = metadata.get("kpt_shape")
-            nms = metadata.get("args", {}).get("nms", False)
+            end2end = metadata.get("args", {}).get("nms", False)
         elif not (pt or triton or nn_module):
             LOGGER.warning(f"WARNING ⚠️ Metadata not found for 'model={weights}'")
 

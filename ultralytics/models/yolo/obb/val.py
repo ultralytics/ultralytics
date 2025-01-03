@@ -65,6 +65,10 @@ class OBBValidator(DetectionValidator):
         iou = batch_probiou(gt_bboxes, torch.cat([detections[:, :4], detections[:, -1:]], dim=-1))
         return self.match_predictions(detections[:, 5], gt_cls, iou)
 
+    def postprocess(self, preds):
+        """Apply Non-maximum suppression to prediction outputs."""
+        return super().postprocess(preds, rotated=True)
+
     def _prepare_batch(self, si, batch):
         """Prepares and returns a batch for OBB validation."""
         idx = batch["batch_idx"] == si

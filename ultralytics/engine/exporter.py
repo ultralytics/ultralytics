@@ -1536,10 +1536,16 @@ class NMSModel(torch.nn.Module):
                 box = xywh2xyxy(box)
             max_wh = 0
             if not self.args.agnostic_nms:
-                end = 2 if self.obb else 4 # class-specific NMS
+                end = 2 if self.obb else 4  # class-specific NMS
                 max_wh = 7680
             nms_fn = self.nms_rotated if self.obb else torchvision.ops.nms
-            keep = nms_fn(torch.cat([box[:, :end] + cls.unsqueeze(1) * max_wh, extra], dim=-1) if self.obb else box[:, :end] + cls.unsqueeze(1) * max_wh, score, self.args.iou)[:self.args.max_det]
+            keep = nms_fn(
+                torch.cat([box[:, :end] + cls.unsqueeze(1) * max_wh, extra], dim=-1)
+                if self.obb
+                else box[:, :end] + cls.unsqueeze(1) * max_wh,
+                score,
+                self.args.iou,
+            )[: self.args.max_det]
             out[i, : keep.shape[0]] = torch.cat(
                 [box[keep], score[keep].unsqueeze(1), cls[keep].unsqueeze(1), extra[keep]], dim=-1
             )

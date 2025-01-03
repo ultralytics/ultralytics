@@ -31,7 +31,7 @@ class DetectionPredictor(BasePredictor):
             max_det=self.args.max_det,
             nc=len(self.model.names),
             end2end=self.model.end2end,
-            **kwargs
+            **kwargs,
         )
 
     def postprocess(self, preds, img, orig_imgs):

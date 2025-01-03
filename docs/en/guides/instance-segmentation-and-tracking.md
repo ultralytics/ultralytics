@@ -42,7 +42,8 @@ There are two types of instance segmentation tracking available in the Ultralyti
         import cv2
 
         from ultralytics import YOLO
-        from ultralytics.utils.plotting import Annotator, colors
+        from ultralytics.solutions.solutions import SolutionAnnotator
+        from ultralytics.utils.plotting import colors
 
         model = YOLO("yolo11n-seg.pt")  # segmentation model
         names = model.model.names
@@ -58,7 +59,7 @@ There are two types of instance segmentation tracking available in the Ultralyti
                 break
 
             results = model.predict(im0)
-            annotator = Annotator(im0, line_width=2)
+            annotator = SolutionAnnotator(im0, line_width=2)
 
             if results[0].masks is not None:
                 clss = results[0].boxes.cls.cpu().tolist()
@@ -83,9 +84,10 @@ There are two types of instance segmentation tracking available in the Ultralyti
 
         ```python
         import cv2
-
+    
         from ultralytics import YOLO
-        from ultralytics.utils.plotting import Annotator, colors
+        from ultralytics.solutions.solutions import SolutionAnnotator
+        from ultralytics.utils.plotting import colors
 
         model = YOLO("yolo11n-seg.pt")  # segmentation model
         cap = cv2.VideoCapture("path/to/video/file.mp4")
@@ -99,7 +101,7 @@ There are two types of instance segmentation tracking available in the Ultralyti
                 print("Video frame is empty or video processing has been successfully completed.")
                 break
 
-            annotator = Annotator(im0, line_width=2)
+            annotator = SolutionAnnotator(im0, line_width=2)
 
             results = model.track(im0, persist=True)
 
@@ -150,7 +152,8 @@ To perform instance segmentation using Ultralytics YOLO11, initialize the YOLO m
         import cv2
 
         from ultralytics import YOLO
-        from ultralytics.utils.plotting import Annotator, colors
+        from ultralytics.solutions.solutions import SolutionAnnotator
+        from ultralytics.utils.plotting import colors
 
         model = YOLO("yolo11n-seg.pt")  # segmentation model
         cap = cv2.VideoCapture("path/to/video/file.mp4")
@@ -164,7 +167,7 @@ To perform instance segmentation using Ultralytics YOLO11, initialize the YOLO m
                 break
 
             results = model.predict(im0)
-            annotator = Annotator(im0, line_width=2)
+            annotator = SolutionAnnotator(im0, line_width=2)
 
             if results[0].masks is not None:
                 clss = results[0].boxes.cls.cpu().tolist()
@@ -204,7 +207,8 @@ To implement object tracking, use the `model.track` method and ensure that each 
         import cv2
 
         from ultralytics import YOLO
-        from ultralytics.utils.plotting import Annotator, colors
+        from ultralytics.solutions.solutions import SolutionAnnotator
+        from ultralytics.utils.plotting import colors
 
         model = YOLO("yolo11n-seg.pt")  # segmentation model
         cap = cv2.VideoCapture("path/to/video/file.mp4")
@@ -217,7 +221,7 @@ To implement object tracking, use the `model.track` method and ensure that each 
             if not ret:
                 break
 
-            annotator = Annotator(im0, line_width=2)
+            annotator = SolutionAnnotator(im0, line_width=2)
             results = model.track(im0, persist=True)
 
             if results[0].boxes.id is not None and results[0].masks is not None:

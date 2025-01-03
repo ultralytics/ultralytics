@@ -287,7 +287,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: pguyot/arm-runner-action@v2
+      - name: Activate Virtual Environment
+        run: |
+          python3.11 -m venv env
+          source env/bin/activate
+          echo PATH=$PATH >> $GITHUB_ENV
 
   Conda:
     if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event.inputs.conda == 'true')

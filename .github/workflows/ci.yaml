@@ -282,15 +282,26 @@ jobs:
       #   run: sudo bash -c "sleep 10; reboot" &
 
   ArmRunner:
-  if: github.repository == 'ultralytics/ultralytics' && github.event_name == 'workflow_dispatch' && github.event.inputs.armrunner == 'true'
-  timeout-minutes: 120
-  runs-on: ubuntu-latest
-  steps:
-    - uses: actions/checkout@v4
-    - uses: pguyot/arm-runner-action@v2
-      with:
-        commands: |
-        
+    if: github.repository == 'ultralytics/ultralytics' && github.event_name == 'workflow_dispatch' && github.event.inputs.armrunner == 'true'
+    timeout-minutes: 120
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pguyot/arm-runner-action@v2
+        with:
+          commands: |
+            # Activate Virtual Environment
+            python3.11 -m venv env
+            source env/bin/activate
+            echo PATH="$(pwd)/env/bin:$PATH" >> $GITHUB_ENV
+
+            # Install requirements
+            python -m pip install --upgrade pip wheel
+            pip install -e ".[export]" pytest mlflow pycocotools
+
+            # Check environment
+            yolo checks
+            pip list
 
   Conda:
     if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event.inputs.conda == 'true')

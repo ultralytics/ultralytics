@@ -1,6 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator
+from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
 from ultralytics.utils.plotting import colors
 
 
@@ -200,4 +200,5 @@ class ObjectCounter(BaseSolution):
         self.display_counts(im0)  # Display the counts on the frame
         self.display_output(im0)  # display output with base class function
 
-        return im0  # return output image for more usage
+        # return output image for more usage
+        return SolutionResults(in_count=self.in_count, out_count=self.out_count, classwise_count=self.classwise_counts)

@@ -8,6 +8,7 @@ from ultralytics import YOLO
 from ultralytics.utils import ASSETS_URL, DEFAULT_CFG_DICT, DEFAULT_SOL_DICT, LOGGER
 from ultralytics.utils.checks import check_imshow, check_requirements
 from ultralytics.utils.plotting import Annotator
+from ultralytics.engine.results import Results
 
 
 class BaseSolution:
@@ -409,7 +410,7 @@ class SolutionAnnotator(Annotator):
         return text_height
 
     def plot_angle_and_count_and_stage(
-        self, angle_text, count_text, stage_text, center_kpt, color=(104, 31, 17), txt_color=(255, 255, 255)
+            self, angle_text, count_text, stage_text, center_kpt, color=(104, 31, 17), txt_color=(255, 255, 255)
     ):
         """
         Plot the pose angle, count value, and step stage.
@@ -437,7 +438,7 @@ class SolutionAnnotator(Annotator):
         )
 
     def plot_distance_and_line(
-        self, pixels_distance, centroids, line_color=(104, 31, 17), centroid_color=(255, 0, 255)
+            self, pixels_distance, centroids, line_color=(104, 31, 17), centroid_color=(255, 0, 255)
     ):
         """
         Plot the distance and line on frame.
@@ -650,3 +651,10 @@ class SolutionAnnotator(Annotator):
             self.tf,
             lineType=cv2.LINE_AA,
         )
+
+
+class SolutionResults:
+    def __init__(self, in_count=None, out_count=None, classwise_count=None, ):
+        self.in_count = in_count
+        self.out_count = out_count
+        self.classwise_count = classwise_count

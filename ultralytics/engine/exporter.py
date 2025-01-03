@@ -1531,15 +1531,17 @@ class NMSModel(torch.nn.Module):
         out = torch.zeros(
             boxes.shape[0], self.args.max_det, boxes.shape[-1] + 2 + extras.shape[-1], device=boxes.device
         )
-        for i in range(boxes.shape[0]):
-            keep = scores[i] > self.args.conf
-            box, cls, score, extra = boxes[i, keep], classes[i, keep], scores[i, keep], extras[i, keep]
+        for i, (box, cls, score, extra) in enumerate(zip(boxes, classes, scores, extras)):
+            keep = score > self.args.conf
+            box, score, cls, extra = box[keep], score[keep], cls[keep], extra[keep]
             if not self.obb:
                 box = xywh2xyxy(box)
             nmsbox = box.clone()
-            if not self.args.agnostic_nms:
-                end = 2 if self.obb else 4  # class-specific NMS
-                nmsbox[:, :end] += cls.unsqueeze(1) * 7680
+            if not self.args.agnostic_nms: # class-specific NMS
+                end = 2 if self.obb else 4
+                # Have to do it this way instead of inplace to avoid reshape issue
+                offbox = nmsbox[:, :end] + cls.unsqueeze(1).expand(-1, end) * 7680
+                nmsbox = torch.cat((offbox, nmsbox[:, end:]), dim=-1)
             nms_fn = self.nms_rotated if self.obb else torchvision.ops.nms
             keep = nms_fn(
                 torch.cat([nmsbox, extra], dim=-1) if self.obb else nmsbox,
@@ -1547,8 +1549,7 @@ class NMSModel(torch.nn.Module):
                 self.args.iou,
             )[: self.args.max_det]
             dets = torch.cat([box[keep], score[keep].unsqueeze(1), cls[keep].unsqueeze(1), extra[keep]], dim=-1)
-            # Use index_copy_ to place detections at start of output
-            # Avoids reshape error with ONNX when there are no detections
-            idx = torch.arange(min(keep.numel(), self.args.max_det), device=out.device)
-            out[i].index_copy_(0, idx, dets[: self.args.max_det])
+            # Zero-pad to max_det size to avoid reshape error
+            padding = torch.zeros((self.args.max_det - dets.shape[0], dets.shape[1]), device=dets.device)
+            out[i] = torch.cat([dets, padding], dim=0)
         return (out, preds[1]) if self.args.task == "segment" else out

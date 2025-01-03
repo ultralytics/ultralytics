@@ -242,6 +242,8 @@ jobs:
     runs-on: raspberry-pi
     steps:
       - uses: actions/checkout@v4
+      - name: Set Stack Size Limit
+        run: ulimit -s 16384
       - name: Activate Virtual Environment
         run: |
           python3.11 -m venv env

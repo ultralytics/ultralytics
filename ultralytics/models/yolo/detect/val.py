@@ -100,7 +100,7 @@ class DetectionValidator(BaseValidator):
             multi_label=True,
             agnostic=self.args.single_cls or self.args.agnostic_nms,
             max_det=self.args.max_det,
-            end2end=self.model.end2end
+            end2end=getattr(self.model, "end2end", False),
             **kwargs,
         )
 

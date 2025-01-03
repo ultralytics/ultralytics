@@ -464,7 +464,7 @@ class ProfileModels:
 
         # Model and input
         model = YOLO(engine_file)
-        input_data = np.random.rand(self.imgsz, self.imgsz, 3).astype(np.float32)  # must be FP32
+        input_data = np.zeros((self.imgsz, self.imgsz, 3), dtype=np.uint8)  # use uint8 for Classify
 
         # Warmup runs
         elapsed = 0.0

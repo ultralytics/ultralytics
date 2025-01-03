@@ -679,7 +679,7 @@ class SolutionResults:
         ...     queue_count=4,
         ...     workout_count=15,
         ...     workout_angle=90.0,
-        ...     workout_stage="down"
+        ...     workout_stage="down",
         ... )
         >>> print(results.in_count)  # Output: 5
     """

@@ -250,7 +250,8 @@ class Exporter:
         self.device = select_device("cpu" if self.args.device is None else self.args.device)
 
         # Argument compatibility checks
-        validate_args(fmt, self.args, fmts_dict["Arguments"][flags.index(True) + 1])
+        fmt_keys = fmts_dict["Arguments"][flags.index(True) + 1]
+        validate_args(fmt, self.args, fmt_keys)
         if imx and not self.args.int8:
             LOGGER.warning("WARNING ⚠️ IMX only supports int8 export, setting int8=True.")
             self.args.int8 = True
@@ -369,6 +370,7 @@ class Exporter:
             "batch": self.args.batch,
             "imgsz": self.imgsz,
             "names": model.names,
+            "args": {k: v for k, v in self.args if k in fmt_keys},
         }  # model metadata
         if model.task == "pose":
             self.metadata["kpt_shape"] = model.model[-1].kpt_shape

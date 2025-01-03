@@ -384,7 +384,8 @@ Ultralytics includes an Annotator class that can be used to annotate any kind of
     import cv2
 
     from ultralytics import YOLO
-    from ultralytics.utils.plotting import Annotator, colors
+    from ultralytics.solutions.solutions import SolutionAnnotator
+    from ultralytics.utils.plotting import colors
 
     # User defined video path and model file
     cap = cv2.VideoCapture("Path/to/video/file.mp4")
@@ -419,7 +420,7 @@ Ultralytics includes an Annotator class that can be used to annotate any kind of
             break
         f = f + 1  # Increment frame count.
         count = 0  # Re-initialize count variable on every frame for precise counts.
-        annotator = Annotator(im0)
+        annotator = SolutionAnnotator(im0)
         results = model.track(im0, persist=True)  # Track objects using track method.
         if f == 1:
             cv2.namedWindow(window_name)
@@ -558,7 +559,8 @@ image_with_obb = ann.result()
 import cv2
 
 from ultralytics import YOLO
-from ultralytics.utils.plotting import Annotator
+from ultralytics.solutions.solutions import SolutionAnnotator
+from ultralytics.utils.plotting import colors
 
 model = YOLO("yolo11s.pt")
 names = model.names
@@ -572,13 +574,13 @@ while True:
     if not ret:
         break
 
-    annotator = Annotator(im0)
+    annotator = SolutionAnnotator(im0)
     results = model.predict(im0)
     boxes = results[0].boxes.xyxy.cpu()
     clss = results[0].boxes.cls.cpu().tolist()
 
     for box, cls in zip(boxes, clss):
-        annotator.circle_label(box, label=names[int(cls)])
+        annotator.circle_label(box, label=names[int(cls)], color=colors(cls, True))
 
     writer.write(im0)
     cv2.imshow("Ultralytics circle annotation", im0)
@@ -597,7 +599,8 @@ cv2.destroyAllWindows()
 import cv2
 
 from ultralytics import YOLO
-from ultralytics.utils.plotting import Annotator
+from ultralytics.solutions.solutions import SolutionAnnotator
+from ultralytics.utils.plotting import colors
 
 model = YOLO("yolo11s.pt")
 names = model.names
@@ -611,13 +614,13 @@ while True:
     if not ret:
         break
 
-    annotator = Annotator(im0)
+    annotator = SolutionAnnotator(im0)
     results = model.predict(im0)
     boxes = results[0].boxes.xyxy.cpu()
     clss = results[0].boxes.cls.cpu().tolist()
 
     for box, cls in zip(boxes, clss):
-        annotator.text_label(box, label=names[int(cls)])
+        annotator.text_label(box, label=names[int(cls)], color=colors(cls, True))
 
     writer.write(im0)
     cv2.imshow("Ultralytics text annotation", im0)

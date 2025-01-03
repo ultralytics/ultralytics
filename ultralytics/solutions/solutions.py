@@ -50,10 +50,20 @@ class BaseSolution:
         """
         check_requirements("shapely>=2.0.0")
         from shapely.geometry import LineString, Point, Polygon
+        from shapely.prepared import prep
 
         self.LineString = LineString
         self.Polygon = Polygon
         self.Point = Point
+        self.prep = prep
+        self.annotator = None  # Initialize annotator
+        self.tracks = None
+        self.track_data = None
+        self.boxes = []
+        self.clss = []
+        self.track_ids = []
+        self.track_line = None
+        self.r_s = None
 
         # Load config and update with args
         DEFAULT_SOL_DICT.update(kwargs)
@@ -72,14 +82,17 @@ class BaseSolution:
         self.model = YOLO(self.CFG["model"])
         self.names = self.model.names
 
-        if IS_CLI:  # for CLI, download the source and init video writer
-            if self.CFG["source"] is None:
-                d_s = "solutions_ci_demo.mp4" if "-pose" not in self.CFG["model"] else "solution_ci_pose_demo.mp4"
-                LOGGER.warning(f"⚠️ WARNING: source not provided. using default source {ASSETS_URL}/{d_s}")
-                from ultralytics.utils.downloads import safe_download
+        self.track_add_args = {  # Tracker additional arguments for advance configuration
+            k: self.CFG[k] for k in ["verbose", "iou", "conf", "device", "max_det", "half", "tracker"]
+        }
 
-                safe_download(f"{ASSETS_URL}/{d_s}")  # download source from ultralytics assets
-                self.CFG["source"] = d_s  # set default source
+        if IS_CLI and self.CFG["source"] is None:
+            d_s = "solutions_ci_demo.mp4" if "-pose" not in self.CFG["model"] else "solution_ci_pose_demo.mp4"
+            LOGGER.warning(f"⚠️ WARNING: source not provided. using default source {ASSETS_URL}/{d_s}")
+            from ultralytics.utils.downloads import safe_download
+
+            safe_download(f"{ASSETS_URL}/{d_s}")  # download source from ultralytics assets
+            self.CFG["source"] = d_s  # set default source
 
         # Initialize environment and region setup
         self.env_check = check_imshow(warn=True)
@@ -97,7 +110,7 @@ class BaseSolution:
             >>> frame = cv2.imread("path/to/image.jpg")
             >>> solution.extract_tracks(frame)
         """
-        self.tracks = self.model.track(source=im0, persist=True, classes=self.CFG["classes"])
+        self.tracks = self.model.track(source=im0, persist=True, classes=self.CFG["classes"], **self.track_add_args)
 
         # Extract tracks for OBB or object detection
         self.track_data = self.tracks[0].obb or self.tracks[0].boxes
@@ -134,7 +147,7 @@ class BaseSolution:
     def initialize_region(self):
         """Initialize the counting region and line segment based on configuration settings."""
         if self.region is None:
-            self.region = [(20, 400), (1080, 404), (1080, 360), (20, 360)]
+            self.region = [(20, 400), (1080, 400), (1080, 360), (20, 360)]
         self.r_s = (
             self.Polygon(self.region) if len(self.region) >= 3 else self.LineString(self.region)
         )  # region or line

@@ -127,6 +127,15 @@ This section outlines the datasets that are compatible with Ultralytics YOLO for
 - **Usage**: Great for human hand pose estimation.
 - [Read more about Hand Keypoints](hand-keypoints.md)
 
+### Dog-Pose
+
+- **Description**: The Dog Pose dataset contains approximately 6,000 images, providing a diverse and extensive resource for training and validation of dog pose estimation models.
+- **Label Format**: Follows the Ultralytics YOLO format, with annotations for multiple keypoints specific to dog anatomy.
+- **Number of Classes**: 1 (Dog).
+- **Keypoints**: Includes 24 keypoints tailored to dog poses, such as limbs, joints, and head positions.
+- **Usage**: Ideal for training models to estimate dog poses in various scenarios, from research to real-world applications.
+- [Read more about Dog-Pose](dog-pose.md)
+
 ### Adding your own dataset
 
 If you have your own dataset and would like to use it for training pose estimation models with Ultralytics YOLO format, ensure that it follows the format specified above under "Ultralytics YOLO format". Convert your annotations to the required format and specify the paths, number of classes, and class names in the YAML configuration file.

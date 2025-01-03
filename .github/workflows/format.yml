@@ -9,18 +9,18 @@ on:
     types: [opened, edited]
   discussion:
     types: [created]
-  pull_request_target:
+  pull_request:
     branches: [main]
     types: [opened, closed, synchronize, review_requested]
 
 jobs:
   format:
-    runs-on: macos-14
+    runs-on: ubuntu-latest
     steps:
       - name: Run Ultralytics Formatting
         uses: ultralytics/actions@main
         with:
-          token: ${{ secrets._GITHUB_TOKEN }} # note GITHUB_TOKEN automatically generated
+          token: ${{ secrets._GITHUB_TOKEN || secrets.GITHUB_TOKEN}}
           labels: true # autolabel issues and PRs
           python: true # format Python code and docstrings
           prettier: true # format YAML, JSON, Markdown and CSS
@@ -35,7 +35,7 @@ jobs:
 
             If this is a custom training ❓ Question, please provide as much information as possible, including dataset image examples and training logs, and verify you are following our [Tips for Best Training Results](https://docs.ultralytics.com/guides/model-training-tips/).
 
-            Join the Ultralytics community where it suits you best. For real-time chat, head to [Discord](https://ultralytics.com/discord) 🎧. Prefer in-depth discussions? Check out [Discourse](https://community.ultralytics.com). Or dive into threads on our [Subreddit](https://reddit.com/r/ultralytics) to share knowledge with the community.
+            Join the Ultralytics community where it suits you best. For real-time chat, head to [Discord](https://discord.com/invite/ultralytics) 🎧. Prefer in-depth discussions? Check out [Discourse](https://community.ultralytics.com). Or dive into threads on our [Subreddit](https://reddit.com/r/Ultralytics) to share knowledge with the community.
 
             ## Upgrade
 

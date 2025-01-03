@@ -17,7 +17,7 @@ RUN mkdir /data/weights && /usr/local/bin/yolo settings weights_dir="/data/weigh
 RUN mkdir /data/runs && /usr/local/bin/yolo settings runs_dir="/data/runs"
 
 # Start JupyterLab with tutorial notebook
-ENTRYPOINT ["/usr/local/bin/jupyter", "lab", "--allow-root", "/ultralytics/examples/tutorial.ipynb"]
+ENTRYPOINT ["/usr/local/bin/jupyter", "lab", "--allow-root", "--ip=*", "/ultralytics/examples/tutorial.ipynb"]
 
 # Usage Examples -------------------------------------------------------------------------------------------------------
 

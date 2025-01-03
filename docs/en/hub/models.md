@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Explore Ultralytics HUB for easy training, analysis, preview, deployment and sharing of custom vision AI models using YOLOv8. Start training today!.
-keywords: Ultralytics HUB, YOLOv8, custom AI models, model training, model deployment, model analysis, vision AI
+description: Explore Ultralytics HUB for easy training, analysis, preview, deployment and sharing of custom vision AI models using YOLO11. Start training today!.
+keywords: Ultralytics HUB, YOLO11, custom AI models, model training, model deployment, model analysis, vision AI
 ---
 
 # Ultralytics HUB Models
@@ -66,7 +66,7 @@ In this step, you have to choose the project in which you want to create your mo
 
 !!! info
 
-    You can read more about the available [YOLOv8](https://docs.ultralytics.com/models/yolov8/) (and [YOLOv5](https://docs.ultralytics.com/models/yolov5/)) architectures in our documentation.
+    You can read more about the available [YOLO models](https://docs.ultralytics.com/models/) and architectures in our documentation.
 
 By default, your model will use a pre-trained model (trained on the [COCO](https://docs.ultralytics.com/datasets/detect/coco/) dataset) to reduce training time. You can change this behavior and tweak your model's configuration by opening the **Advanced Model Configuration** accordion.
 
@@ -220,6 +220,16 @@ Furthermore, you can preview your model in real-time directly on your [iOS](http
 ## Deploy Model
 
 After you [train a model](#train-model), you can export it to 13 different formats, including ONNX, OpenVINO, CoreML, [TensorFlow](https://www.ultralytics.com/glossary/tensorflow), Paddle and many others.
+
+<p align="center">
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/K69DUpSBNdA"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to Export the Ultralytics YOLO11 to ONNX, OpenVINO and Other Formats using Ultralytics HUB 🚀
+</p>
 
 ![Ultralytics HUB screenshot of the Deploy tab inside the Model page with an arrow pointing to the Export card and all formats exported](https://github.com/ultralytics/docs/releases/download/0/ultralytics-hub-deploy-export-formats.avif)
 

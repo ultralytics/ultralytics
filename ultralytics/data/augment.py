@@ -441,7 +441,8 @@ class BaseMixTransform:
         """
         raise NotImplementedError
 
-    def _update_label_text(self, labels):
+    @staticmethod
+    def _update_label_text(labels):
         """
         Updates label text and class IDs for mixed labels in image augmentation.
 
@@ -641,7 +642,7 @@ class Mosaic(BaseMixTransform):
                 c = s - w, s + h0 - h, s, s + h0
 
             padw, padh = c[:2]
-            x1, y1, x2, y2 = (max(x, 0) for x in c)  # allocate coords
+            x1, y1, x2, y2 = (max(x, 0) for x in c)  # allocate coordinates
 
             img3[y1:y2, x1:x2] = img[y1 - padh :, x1 - padw :]  # img3[ymin:ymax, xmin:xmax]
             # hp, wp = h, w  # height, width previous for next iteration
@@ -770,7 +771,7 @@ class Mosaic(BaseMixTransform):
                 c = s - w, s + h0 - hp - h, s, s + h0 - hp
 
             padw, padh = c[:2]
-            x1, y1, x2, y2 = (max(x, 0) for x in c)  # allocate coords
+            x1, y1, x2, y2 = (max(x, 0) for x in c)  # allocate coordinates
 
             # Image
             img9[y1:y2, x1:x2] = img[y1 - padh :, x1 - padw :]  # img9[ymin:ymax, xmin:xmax]
@@ -1259,7 +1260,8 @@ class RandomPerspective:
         labels["resized_shape"] = img.shape[:2]
         return labels
 
-    def box_candidates(self, box1, box2, wh_thr=2, ar_thr=100, area_thr=0.1, eps=1e-16):
+    @staticmethod
+    def box_candidates(box1, box2, wh_thr=2, ar_thr=100, area_thr=0.1, eps=1e-16):
         """
         Compute candidate boxes for further processing based on size and aspect ratio criteria.
 
@@ -1281,7 +1283,7 @@ class RandomPerspective:
             eps (float): Small epsilon value to prevent division by zero.
 
         Returns:
-            (numpy.ndarray): Boolean array of shape (n,) indicating which boxes are candidates.
+            (numpy.ndarray): Boolean array of shape (n) indicating which boxes are candidates.
                 True values correspond to boxes that meet all criteria.
 
         Examples:
@@ -1318,7 +1320,7 @@ class RandomHSV:
         >>> augmenter = RandomHSV(hgain=0.5, sgain=0.5, vgain=0.5)
         >>> image = np.random.randint(0, 255, (100, 100, 3), dtype=np.uint8)
         >>> labels = {"img": image}
-        >>> augmented_labels = augmenter(labels)
+        >>> augmenter(labels)
         >>> augmented_image = augmented_labels["img"]
     """
 
@@ -1335,7 +1337,7 @@ class RandomHSV:
 
         Examples:
             >>> hsv_aug = RandomHSV(hgain=0.5, sgain=0.5, vgain=0.5)
-            >>> augmented_image = hsv_aug(image)
+            >>> hsv_aug(image)
         """
         self.hgain = hgain
         self.sgain = sgain
@@ -1417,7 +1419,7 @@ class RandomFlip:
 
         Examples:
             >>> flip = RandomFlip(p=0.5, direction="horizontal")
-            >>> flip = RandomFlip(p=0.7, direction="vertical", flip_idx=[1, 0, 3, 2, 5, 4])
+            >>> flip_with_idx = RandomFlip(p=0.7, direction="vertical", flip_idx=[1, 0, 3, 2, 5, 4])
         """
         assert direction in {"horizontal", "vertical"}, f"Support direction `horizontal` or `vertical`, got {direction}"
         assert 0 <= p <= 1.0, f"The probability should be in range [0, 1], but got {p}."
@@ -1591,14 +1593,15 @@ class LetterBox:
             labels["ratio_pad"] = (labels["ratio_pad"], (left, top))  # for evaluation
 
         if len(labels):
-            labels = self._update_labels(labels, ratio, dw, dh)
+            labels = self._update_labels(labels, ratio, left, top)
             labels["img"] = img
             labels["resized_shape"] = new_shape
             return labels
         else:
             return img
 
-    def _update_labels(self, labels, ratio, padw, padh):
+    @staticmethod
+    def _update_labels(labels, ratio, padw, padh):
         """
         Updates labels after applying letterboxing to an image.
 
@@ -2019,7 +2022,7 @@ class Format:
         Returns:
             (Dict): A dictionary with formatted data, including:
                 - 'img': Formatted image tensor.
-                - 'cls': Class labels tensor.
+                - 'cls': Class label's tensor.
                 - 'bboxes': Bounding boxes tensor in the specified format.
                 - 'masks': Instance masks tensor (if return_mask is True).
                 - 'keypoints': Keypoints tensor (if return_keypoint is True).
@@ -2111,10 +2114,9 @@ class Format:
             h (int): Height of the image.
 
         Returns:
-            (tuple): Tuple containing:
-                masks (numpy.ndarray): Bitmap masks with shape (N, H, W) or (1, H, W) if mask_overlap is True.
-                instances (Instances): Updated instances object with sorted segments if mask_overlap is True.
-                cls (numpy.ndarray): Updated class labels, sorted if mask_overlap is True.
+            masks (numpy.ndarray): Bitmap masks with shape (N, H, W) or (1, H, W) if mask_overlap is True.
+            instances (Instances): Updated instances object with sorted segments if mask_overlap is True.
+            cls (numpy.ndarray): Updated class labels, sorted if mask_overlap is True.
 
         Notes:
             - If self.mask_overlap is True, masks are overlapped and sorted by area.
@@ -2280,7 +2282,7 @@ def v8_transforms(dataset, imgsz, hyp, stretch=False):
     Args:
         dataset (Dataset): The dataset object containing image data and annotations.
         imgsz (int): The target image size for resizing.
-        hyp (Dict): A dictionary of hyperparameters controlling various aspects of the transformations.
+        hyp (Namespace): A dictionary of hyperparameters controlling various aspects of the transformations.
         stretch (bool): If True, applies stretching to the image. If False, uses LetterBox resizing.
 
     Returns:
@@ -2288,8 +2290,9 @@ def v8_transforms(dataset, imgsz, hyp, stretch=False):
 
     Examples:
         >>> from ultralytics.data.dataset import YOLODataset
+        >>> from ultralytics.utils import IterableSimpleNamespace
         >>> dataset = YOLODataset(img_path="path/to/images", imgsz=640)
-        >>> hyp = {"mosaic": 1.0, "copy_paste": 0.5, "degrees": 10.0, "translate": 0.2, "scale": 0.9}
+        >>> hyp = IterableSimpleNamespace(mosaic=1.0, copy_paste=0.5, degrees=10.0, translate=0.2, scale=0.9)
         >>> transforms = v8_transforms(dataset, imgsz=640, hyp=hyp)
         >>> augmented_data = transforms(dataset[0])
     """

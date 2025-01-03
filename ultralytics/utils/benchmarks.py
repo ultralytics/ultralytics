@@ -90,7 +90,7 @@ def benchmark(
 
     y = []
     t0 = time.time()
-    for i, (name, format, suffix, cpu, gpu) in enumerate(zip(*export_formats().values())):
+    for i, (name, format, suffix, cpu, gpu, _) in enumerate(zip(*export_formats().values())):
         emoji, filename = "❌", None  # export defaults
         try:
             # Checks
@@ -114,10 +114,13 @@ def benchmark(
                 assert LINUX or MACOS, "Windows Paddle exports not supported yet"
             if i == 12:  # MNN
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 MNN exports not supported yet"
-                assert not IS_RASPBERRYPI, "MNN export not supported on Raspberry Pi"
-                assert not IS_JETSON, "MNN export not supported on NVIDIA Jetson"
             if i == 13:  # NCNN
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 NCNN exports not supported yet"
+            if i == 14:  # IMX
+                assert not is_end2end
+                assert not isinstance(model, YOLOWorld), "YOLOWorldv2 IMX exports not supported"
+                assert model.task == "detect", "IMX only supported for detection task"
+                assert "C2f" in model.__str__(), "IMX only supported for YOLOv8"
             if "cpu" in device.type:
                 assert cpu, "inference not supported on CPU"
             if "cuda" in device.type:
@@ -437,7 +440,8 @@ class ProfileModels:
         print(f"Profiling: {sorted(files)}")
         return [Path(file) for file in sorted(files)]
 
-    def get_onnx_model_info(self, onnx_file: str):
+    @staticmethod
+    def get_onnx_model_info(onnx_file: str):
         """Extracts metadata from an ONNX model file including parameters, GFLOPs, and input shape."""
         return 0.0, 0.0, 0.0, 0.0  # return (num_layers, num_params, num_gradients, num_flops)
 

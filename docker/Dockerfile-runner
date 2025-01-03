@@ -23,7 +23,7 @@ RUN FILENAME=actions-runner-linux-x64-2.320.0.tar.gz && \
     rm $FILENAME
 
 # Install runner dependencies
-RUN pip install pytest-cov
+RUN uv pip install --system pytest-cov
 RUN ./bin/installdependencies.sh && \
     apt-get -y install libicu-dev
 
@@ -34,7 +34,6 @@ ENTRYPOINT sh -c './config.sh --url https://github.com/ultralytics/ultralytics \
                               --labels gpu-latest \
                               --replace && \
                   ./run.sh'
-
 
 # Usage Examples -------------------------------------------------------------------------------------------------------
 

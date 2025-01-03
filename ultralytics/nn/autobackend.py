@@ -96,7 +96,7 @@ class AutoBackend(nn.Module):
         Initialize the AutoBackend for inference.
 
         Args:
-            weights (str): Path to the model weights file. Defaults to 'yolov8n.pt'.
+            weights (str | torch.nn.Module): Path to the model weights file or a module instance. Defaults to 'yolo11n.pt'.
             device (torch.device): Device to run the model on. Defaults to CPU.
             dnn (bool): Use OpenCV DNN module for ONNX inference. Defaults to False.
             data (str | Path | optional): Path to the additional data.yaml file containing class names. Optional.
@@ -123,6 +123,7 @@ class AutoBackend(nn.Module):
             paddle,
             mnn,
             ncnn,
+            imx,
             triton,
         ) = self._model_type(w)
         fp16 &= pt or jit or onnx or xml or engine or nn_module or triton  # FP16
@@ -132,7 +133,7 @@ class AutoBackend(nn.Module):
 
         # Set device
         cuda = torch.cuda.is_available() and device.type != "cpu"  # use CUDA
-        if cuda and not any([nn_module, pt, jit, engine, onnx]):  # GPU dataloader formats
+        if cuda and not any([nn_module, pt, jit, engine, onnx, paddle]):  # GPU dataloader formats
             device = torch.device("cpu")
             cuda = False
 
@@ -182,8 +183,8 @@ class AutoBackend(nn.Module):
             check_requirements("opencv-python>=4.5.4")
             net = cv2.dnn.readNetFromONNX(w)
 
-        # ONNX Runtime
-        elif onnx:
+        # ONNX Runtime and IMX
+        elif onnx or imx:
             LOGGER.info(f"Loading {w} for ONNX Runtime inference...")
             check_requirements(("onnx", "onnxruntime-gpu" if cuda else "onnxruntime"))
             if IS_RASPBERRYPI or IS_JETSON:
@@ -191,15 +192,30 @@ class AutoBackend(nn.Module):
                 check_requirements("numpy==1.23.5")
             import onnxruntime
 
-            providers = onnxruntime.get_available_providers()
-            if not cuda and "CUDAExecutionProvider" in providers:
-                providers.remove("CUDAExecutionProvider")
-            elif cuda and "CUDAExecutionProvider" not in providers:
-                LOGGER.warning("WARNING ⚠️ Failed to start ONNX Runtime session with CUDA. Falling back to CPU...")
+            providers = ["CPUExecutionProvider"]
+            if cuda and "CUDAExecutionProvider" in onnxruntime.get_available_providers():
+                providers.insert(0, "CUDAExecutionProvider")
+            elif cuda:  # Only log warning if CUDA was requested but unavailable
+                LOGGER.warning("WARNING ⚠️ Failed to start ONNX Runtime with CUDA. Using CPU...")
                 device = torch.device("cpu")
                 cuda = False
-            LOGGER.info(f"Preferring ONNX Runtime {providers[0]}")
-            session = onnxruntime.InferenceSession(w, providers=providers)
+            LOGGER.info(f"Using ONNX Runtime {providers[0]}")
+            if onnx:
+                session = onnxruntime.InferenceSession(w, providers=providers)
+            else:
+                check_requirements(
+                    ["model-compression-toolkit==2.1.1", "sony-custom-layers[torch]==0.2.0", "onnxruntime-extensions"]
+                )
+                w = next(Path(w).glob("*.onnx"))
+                LOGGER.info(f"Loading {w} for ONNX IMX inference...")
+                import mct_quantizers as mctq
+                from sony_custom_layers.pytorch.object_detection import nms_ort  # noqa
+
+                session = onnxruntime.InferenceSession(
+                    w, mctq.get_ort_session_options(), providers=["CPUExecutionProvider"]
+                )
+                task = "detect"
+
             output_names = [x.name for x in session.get_outputs()]
             metadata = session.get_modelmeta().custom_metadata_map
             dynamic = isinstance(session.get_outputs()[0].shape[0], str)
@@ -413,10 +429,7 @@ class AutoBackend(nn.Module):
 
             import MNN
 
-            config = {}
-            config["precision"] = "low"
-            config["backend"] = "CPU"
-            config["numThread"] = (os.cpu_count() + 1) // 2
+            config = {"precision": "low", "backend": "CPU", "numThread": (os.cpu_count() + 1) // 2}
             rt = MNN.nn.create_runtime_manager((config,))
             net = MNN.nn.load_module_from_file(w, [], [], runtime_manager=rt, rearrange=True)
 
@@ -446,6 +459,7 @@ class AutoBackend(nn.Module):
             from ultralytics.utils.triton import TritonRemoteModel
 
             model = TritonRemoteModel(w)
+            metadata = model.metadata
 
         # Any other format (unsupported)
         else:
@@ -520,7 +534,7 @@ class AutoBackend(nn.Module):
             y = self.net.forward()
 
         # ONNX Runtime
-        elif self.onnx:
+        elif self.onnx or self.imx:
             if self.dynamic:
                 im = im.cpu().numpy()  # torch to numpy
                 y = self.session.run(self.output_names, {self.session.get_inputs()[0].name: im})
@@ -537,6 +551,9 @@ class AutoBackend(nn.Module):
                 )
                 self.session.run_with_iobinding(self.io)
                 y = self.bindings
+            if self.imx:
+                # boxes, conf, cls
+                y = np.concatenate([y[0], y[1][:, :, None], y[2][:, :, None]], axis=-1)
 
         # OpenVINO
         elif self.xml:
@@ -681,8 +698,7 @@ class AutoBackend(nn.Module):
         #     print(type(x), len(x)) if isinstance(x, (list, tuple)) else print(type(x), x.shape)  # debug shapes
         if isinstance(y, (list, tuple)):
             if len(self.names) == 999 and (self.task == "segment" or len(y) == 2):  # segments and names not defined
-                ip, ib = (0, 1) if len(y[0].shape) == 4 else (1, 0)  # index of protos, boxes
-                nc = y[ib].shape[1] - y[ip].shape[3] - 4  # y = (1, 160, 160, 32), (1, 116, 8400)
+                nc = y[0].shape[1] - y[1].shape[1] - 4  # y = (1, 32, 160, 160), (1, 116, 8400)
                 self.names = {i: f"class{i}" for i in range(nc)}
             return self.from_numpy(y[0]) if len(y) == 1 else [self.from_numpy(x) for x in y]
         else:

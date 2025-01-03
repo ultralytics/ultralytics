@@ -18,6 +18,7 @@ TensorFlow.js           | `tfjs`                    | yolo11n_web_model/
 PaddlePaddle            | `paddle`                  | yolo11n_paddle_model/
 MNN                     | `mnn`                     | yolo11n.mnn
 NCNN                    | `ncnn`                    | yolo11n_ncnn_model/
+IMX                     | `imx`                     | yolo11n_imx_model/
 
 Requirements:
     $ pip install "ultralytics[export]"
@@ -44,6 +45,7 @@ Inference:
                          yolo11n_paddle_model       # PaddlePaddle
                          yolo11n.mnn                # MNN
                          yolo11n_ncnn_model         # NCNN
+                         yolo11n_imx_model          # IMX
 
 TensorFlow.js:
     $ cd .. && git clone https://github.com/zldrobit/tfjs-yolov5-example.git && cd tfjs-yolov5-example
@@ -71,13 +73,12 @@ from ultralytics.data import build_dataloader
 from ultralytics.data.dataset import YOLODataset
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.nn.autobackend import check_class_names, default_class_names
-from ultralytics.nn.modules import C2f, Detect, RTDETRDecoder
+from ultralytics.nn.modules import C2f, Classify, Detect, RTDETRDecoder
 from ultralytics.nn.tasks import DetectionModel, SegmentationModel, WorldModel
 from ultralytics.utils import (
     ARM64,
     DEFAULT_CFG,
     IS_JETSON,
-    IS_RASPBERRYPI,
     LINUX,
     LOGGER,
     MACOS,
@@ -94,28 +95,53 @@ from ultralytics.utils.checks import check_imgsz, check_is_path_safe, check_requ
 from ultralytics.utils.downloads import attempt_download_asset, get_github_assets, safe_download
 from ultralytics.utils.files import file_size, spaces_in_path
 from ultralytics.utils.ops import Profile
-from ultralytics.utils.torch_utils import TORCH_1_13, get_latest_opset, select_device, smart_inference_mode
+from ultralytics.utils.torch_utils import TORCH_1_13, get_latest_opset, select_device
 
 
 def export_formats():
     """Ultralytics YOLO export formats."""
     x = [
-        ["PyTorch", "-", ".pt", True, True],
-        ["TorchScript", "torchscript", ".torchscript", True, True],
-        ["ONNX", "onnx", ".onnx", True, True],
-        ["OpenVINO", "openvino", "_openvino_model", True, False],
-        ["TensorRT", "engine", ".engine", False, True],
-        ["CoreML", "coreml", ".mlpackage", True, False],
-        ["TensorFlow SavedModel", "saved_model", "_saved_model", True, True],
-        ["TensorFlow GraphDef", "pb", ".pb", True, True],
-        ["TensorFlow Lite", "tflite", ".tflite", True, False],
-        ["TensorFlow Edge TPU", "edgetpu", "_edgetpu.tflite", True, False],
-        ["TensorFlow.js", "tfjs", "_web_model", True, False],
-        ["PaddlePaddle", "paddle", "_paddle_model", True, True],
-        ["MNN", "mnn", ".mnn", True, True],
-        ["NCNN", "ncnn", "_ncnn_model", True, True],
+        ["PyTorch", "-", ".pt", True, True, []],
+        ["TorchScript", "torchscript", ".torchscript", True, True, ["batch", "optimize"]],
+        ["ONNX", "onnx", ".onnx", True, True, ["batch", "dynamic", "half", "opset", "simplify"]],
+        ["OpenVINO", "openvino", "_openvino_model", True, False, ["batch", "dynamic", "half", "int8"]],
+        ["TensorRT", "engine", ".engine", False, True, ["batch", "dynamic", "half", "int8", "simplify"]],
+        ["CoreML", "coreml", ".mlpackage", True, False, ["batch", "half", "int8", "nms"]],
+        ["TensorFlow SavedModel", "saved_model", "_saved_model", True, True, ["batch", "int8", "keras"]],
+        ["TensorFlow GraphDef", "pb", ".pb", True, True, ["batch"]],
+        ["TensorFlow Lite", "tflite", ".tflite", True, False, ["batch", "half", "int8"]],
+        ["TensorFlow Edge TPU", "edgetpu", "_edgetpu.tflite", True, False, []],
+        ["TensorFlow.js", "tfjs", "_web_model", True, False, ["batch", "half", "int8"]],
+        ["PaddlePaddle", "paddle", "_paddle_model", True, True, ["batch"]],
+        ["MNN", "mnn", ".mnn", True, True, ["batch", "half", "int8"]],
+        ["NCNN", "ncnn", "_ncnn_model", True, True, ["batch", "half"]],
+        ["IMX", "imx", "_imx_model", True, True, ["int8"]],
     ]
-    return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU"], zip(*x)))
+    return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments"], zip(*x)))
+
+
+def validate_args(format, passed_args, valid_args):
+    """
+    Validates arguments based on format.
+
+    Args:
+        format (str): The export format.
+        passed_args (Namespace): The arguments used during export.
+        valid_args (dict): List of valid arguments for the format.
+
+    Raises:
+        AssertionError: If an argument that's not supported by the export format is used, or if format doesn't have the supported arguments listed.
+    """
+    # Only check valid usage of these args
+    export_args = ["half", "int8", "dynamic", "keras", "nms", "batch"]
+
+    assert valid_args is not None, f"ERROR ❌️ valid arguments for '{format}' not listed."
+    custom = {"batch": 1, "data": None, "device": None}  # exporter defaults
+    default_args = get_cfg(DEFAULT_CFG, custom)
+    for arg in export_args:
+        not_default = getattr(passed_args, arg, None) != getattr(default_args, arg, None)
+        if not_default:
+            assert arg in valid_args, f"ERROR ❌️ argument '{arg}' is not supported for format='{format}'"
 
 
 def gd_outputs(gd):
@@ -171,7 +197,6 @@ class Exporter:
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
         callbacks.add_integration_callbacks(self)
 
-    @smart_inference_mode()
     def __call__(self, model=None) -> str:
         """Returns list of exported files/dirs after running callbacks."""
         self.run_callbacks("on_export_start")
@@ -181,7 +206,8 @@ class Exporter:
             fmt = "engine"
         if fmt in {"mlmodel", "mlpackage", "mlprogram", "apple", "ios", "coreml"}:  # 'coreml' aliases
             fmt = "coreml"
-        fmts = tuple(export_formats()["Argument"][1:])  # available export formats
+        fmts_dict = export_formats()
+        fmts = tuple(fmts_dict["Argument"][1:])  # available export formats
         if fmt not in fmts:
             import difflib
 
@@ -194,9 +220,22 @@ class Exporter:
         flags = [x == fmt for x in fmts]
         if sum(flags) != 1:
             raise ValueError(f"Invalid export format='{fmt}'. Valid formats are {fmts}")
-        jit, onnx, xml, engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, paddle, mnn, ncnn = (
-            flags  # export booleans
-        )
+        (
+            jit,
+            onnx,
+            xml,
+            engine,
+            coreml,
+            saved_model,
+            pb,
+            tflite,
+            edgetpu,
+            tfjs,
+            paddle,
+            mnn,
+            ncnn,
+            imx,
+        ) = flags  # export booleans
         is_tf_format = any((saved_model, pb, tflite, edgetpu, tfjs))
 
         # Device
@@ -206,10 +245,16 @@ class Exporter:
             self.args.device = "0"
         if fmt == "engine" and "dla" in str(self.args.device):  # convert int/list to str first
             dla = self.args.device.split(":")[-1]
+            self.args.device = "0"  # update device to "0"
             assert dla in {"0", "1"}, f"Expected self.args.device='dla:0' or 'dla:1, but got {self.args.device}."
         self.device = select_device("cpu" if self.args.device is None else self.args.device)
 
-        # Checks
+        # Argument compatibility checks
+        fmt_keys = fmts_dict["Arguments"][flags.index(True) + 1]
+        validate_args(fmt, self.args, fmt_keys)
+        if imx and not self.args.int8:
+            LOGGER.warning("WARNING ⚠️ IMX only supports int8 export, setting int8=True.")
+            self.args.int8 = True
         if not hasattr(model, "names"):
             model.names = default_class_names()
         model.names = check_class_names(model.names)
@@ -241,14 +286,14 @@ class Exporter:
                 "(torchscript, onnx, openvino, engine, coreml) formats. "
                 "See https://docs.ultralytics.com/models/yolo-world for details."
             )
+            model.clip_model = None  # openvino int8 export error: https://github.com/ultralytics/ultralytics/pull/18445
         if self.args.int8 and not self.args.data:
             self.args.data = DEFAULT_CFG.data or TASK2DATA[getattr(model, "task", "detect")]  # assign default data
             LOGGER.warning(
                 "WARNING ⚠️ INT8 export requires a missing 'data' arg for calibration. "
                 f"Using default 'data={self.args.data}'."
             )
-        if mnn and (IS_RASPBERRYPI or IS_JETSON):
-            raise SystemError("MNN export not supported on Raspberry Pi and NVIDIA Jetson")
+
         # Input
         im = torch.zeros(self.args.batch, 3, *self.imgsz).to(self.device)
         file = Path(
@@ -264,7 +309,14 @@ class Exporter:
         model.eval()
         model.float()
         model = model.fuse()
+
+        if imx:
+            from ultralytics.utils.torch_utils import FXModel
+
+            model = FXModel(model)
         for m in model.modules():
+            if isinstance(m, Classify):
+                m.export = True
             if isinstance(m, (Detect, RTDETRDecoder)):  # includes all Detect subclasses like Segment, Pose, OBB
                 m.dynamic = self.args.dynamic
                 m.export = True
@@ -273,6 +325,15 @@ class Exporter:
             elif isinstance(m, C2f) and not is_tf_format:
                 # EdgeTPU does not support FlexSplitV while split provides cleaner ONNX graph
                 m.forward = m.forward_split
+            if isinstance(m, Detect) and imx:
+                from ultralytics.utils.tal import make_anchors
+
+                m.anchors, m.strides = (
+                    x.transpose(0, 1)
+                    for x in make_anchors(
+                        torch.cat([s / m.stride.unsqueeze(-1) for s in self.imgsz], dim=1), m.stride, 0.5
+                    )
+                )
 
         y = None
         for _ in range(2):
@@ -309,6 +370,7 @@ class Exporter:
             "batch": self.args.batch,
             "imgsz": self.imgsz,
             "names": model.names,
+            "args": {k: v for k, v in self.args if k in fmt_keys},
         }  # model metadata
         if model.task == "pose":
             self.metadata["kpt_shape"] = model.model[-1].kpt_shape
@@ -347,6 +409,8 @@ class Exporter:
             f[11], _ = self.export_mnn()
         if ncnn:  # NCNN
             f[12], _ = self.export_ncnn()
+        if imx:
+            f[13], _ = self.export_imx()
 
         # Finish
         f = [str(x) for x in f if x]  # filter out '' and None
@@ -469,8 +533,7 @@ class Exporter:
     @try_export
     def export_openvino(self, prefix=colorstr("OpenVINO:")):
         """YOLO OpenVINO export."""
-        # WARNING: numpy>=2.0.0 issue with OpenVINO on macOS https://github.com/ultralytics/ultralytics/pull/17221
-        check_requirements(f'openvino{"<=2024.0.0" if ARM64 else ">=2024.0.0"}')  # fix OpenVINO issue on ARM64
+        check_requirements("openvino>=2024.5.0")
         import openvino as ov
 
         LOGGER.info(f"\n{prefix} starting export with openvino {ov.__version__}...")
@@ -498,7 +561,7 @@ class Exporter:
         if self.args.int8:
             fq = str(self.file).replace(self.file.suffix, f"_int8_openvino_model{os.sep}")
             fq_ov = str(Path(fq) / self.file.with_suffix(".xml").name)
-            check_requirements("nncf>=2.8.0")
+            check_requirements("nncf>=2.14.0")
             import nncf
 
             def transform_fn(data_item) -> np.ndarray:
@@ -542,7 +605,7 @@ class Exporter:
     @try_export
     def export_paddle(self, prefix=colorstr("PaddlePaddle:")):
         """YOLO Paddle export."""
-        check_requirements(("paddlepaddle", "x2paddle"))
+        check_requirements(("paddlepaddle-gpu" if torch.cuda.is_available() else "paddlepaddle", "x2paddle"))
         import x2paddle  # noqa
         from x2paddle.convert import pytorch2paddle  # noqa
 
@@ -568,8 +631,7 @@ class Exporter:
         f = str(self.file.with_suffix(".mnn"))  # MNN model file
         args = ["", "-f", "ONNX", "--modelFile", f_onnx, "--MNNModel", f, "--bizCode", json.dumps(self.metadata)]
         if self.args.int8:
-            args.append("--weightQuantBits")
-            args.append("8")
+            args.extend(("--weightQuantBits", "8"))
         if self.args.half:
             args.append("--fp16")
         mnnconvert.convert(args)
@@ -751,10 +813,10 @@ class Exporter:
         # Engine builder
         builder = trt.Builder(logger)
         config = builder.create_builder_config()
-        workspace = int(self.args.workspace * (1 << 30))
-        if is_trt10:
+        workspace = int(self.args.workspace * (1 << 30)) if self.args.workspace is not None else 0
+        if is_trt10 and workspace > 0:
             config.set_memory_pool_limit(trt.MemoryPoolType.WORKSPACE, workspace)
-        else:  # TensorRT versions 7, 8
+        elif workspace > 0:  # TensorRT versions 7, 8
             config.max_workspace_size = workspace
         flag = 1 << int(trt.NetworkDefinitionCreationFlag.EXPLICIT_BATCH)
         network = builder.create_network(flag)
@@ -793,7 +855,7 @@ class Exporter:
                 LOGGER.warning(f"{prefix} WARNING ⚠️ 'dynamic=True' model requires max batch size, i.e. 'batch=16'")
             profile = builder.create_optimization_profile()
             min_shape = (1, shape[1], 32, 32)  # minimum input shape
-            max_shape = (*shape[:2], *(int(max(1, self.args.workspace) * d) for d in shape[2:]))  # max input shape
+            max_shape = (*shape[:2], *(int(max(1, workspace) * d) for d in shape[2:]))  # max input shape
             for inp in inputs:
                 profile.set_shape(inp.name, min=min_shape, opt=shape, max=max_shape)
             config.add_optimization_profile(profile)
@@ -890,7 +952,7 @@ class Exporter:
                 "sng4onnx>=1.0.1",  # required by 'onnx2tf' package
                 "onnx_graphsurgeon>=0.3.26",  # required by 'onnx2tf' package
                 "onnx>=1.12.0",
-                "onnx2tf>1.17.5,<=1.22.3",
+                "onnx2tf>1.17.5,<=1.26.3",
                 "onnxslim>=0.1.31",
                 "tflite_support<=0.4.3" if IS_JETSON else "tflite_support",  # fix ImportError 'GLIBCXX_3.4.29'
                 "flatbuffers>=23.5.26,<100",  # update old 'flatbuffers' included inside tensorflow package
@@ -1067,6 +1129,137 @@ class Exporter:
 
         # Add metadata
         yaml_save(Path(f) / "metadata.yaml", self.metadata)  # add metadata.yaml
+        return f, None
+
+    @try_export
+    def export_imx(self, prefix=colorstr("IMX:")):
+        """YOLO IMX export."""
+        gptq = False
+        assert LINUX, "export only supported on Linux. See https://developer.aitrios.sony-semicon.com/en/raspberrypi-ai-camera/documentation/imx500-converter"
+        if getattr(self.model, "end2end", False):
+            raise ValueError("IMX export is not supported for end2end models.")
+        if "C2f" not in self.model.__str__():
+            raise ValueError("IMX export is only supported for YOLOv8n detection models")
+        check_requirements(("model-compression-toolkit==2.1.1", "sony-custom-layers==0.2.0", "tensorflow==2.12.0"))
+        check_requirements("imx500-converter[pt]==3.14.3")  # Separate requirements for imx500-converter
+
+        import model_compression_toolkit as mct
+        import onnx
+        from sony_custom_layers.pytorch.object_detection.nms import multiclass_nms
+
+        try:
+            out = subprocess.run(
+                ["java", "--version"], check=True, capture_output=True
+            )  # Java 17 is required for imx500-converter
+            if "openjdk 17" not in str(out.stdout):
+                raise FileNotFoundError
+        except FileNotFoundError:
+            subprocess.run(["sudo", "apt", "install", "-y", "openjdk-17-jdk", "openjdk-17-jre"], check=True)
+
+        def representative_dataset_gen(dataloader=self.get_int8_calibration_dataloader(prefix)):
+            for batch in dataloader:
+                img = batch["img"]
+                img = img / 255.0
+                yield [img]
+
+        tpc = mct.get_target_platform_capabilities(
+            fw_name="pytorch", target_platform_name="imx500", target_platform_version="v1"
+        )
+
+        config = mct.core.CoreConfig(
+            mixed_precision_config=mct.core.MixedPrecisionQuantizationConfig(num_of_images=10),
+            quantization_config=mct.core.QuantizationConfig(concat_threshold_update=True),
+        )
+
+        resource_utilization = mct.core.ResourceUtilization(weights_memory=3146176 * 0.76)
+
+        quant_model = (
+            mct.gptq.pytorch_gradient_post_training_quantization(  # Perform Gradient-Based Post Training Quantization
+                model=self.model,
+                representative_data_gen=representative_dataset_gen,
+                target_resource_utilization=resource_utilization,
+                gptq_config=mct.gptq.get_pytorch_gptq_config(n_epochs=1000, use_hessian_based_weights=False),
+                core_config=config,
+                target_platform_capabilities=tpc,
+            )[0]
+            if gptq
+            else mct.ptq.pytorch_post_training_quantization(  # Perform post training quantization
+                in_module=self.model,
+                representative_data_gen=representative_dataset_gen,
+                target_resource_utilization=resource_utilization,
+                core_config=config,
+                target_platform_capabilities=tpc,
+            )[0]
+        )
+
+        class NMSWrapper(torch.nn.Module):
+            def __init__(
+                self,
+                model: torch.nn.Module,
+                score_threshold: float = 0.001,
+                iou_threshold: float = 0.7,
+                max_detections: int = 300,
+            ):
+                """
+                Wrapping PyTorch Module with multiclass_nms layer from sony_custom_layers.
+
+                Args:
+                    model (nn.Module): Model instance.
+                    score_threshold (float): Score threshold for non-maximum suppression.
+                    iou_threshold (float): Intersection over union threshold for non-maximum suppression.
+                    max_detections (float): The number of detections to return.
+                """
+                super().__init__()
+                self.model = model
+                self.score_threshold = score_threshold
+                self.iou_threshold = iou_threshold
+                self.max_detections = max_detections
+
+            def forward(self, images):
+                # model inference
+                outputs = self.model(images)
+
+                boxes = outputs[0]
+                scores = outputs[1]
+                nms = multiclass_nms(
+                    boxes=boxes,
+                    scores=scores,
+                    score_threshold=self.score_threshold,
+                    iou_threshold=self.iou_threshold,
+                    max_detections=self.max_detections,
+                )
+                return nms
+
+        quant_model = NMSWrapper(
+            model=quant_model,
+            score_threshold=self.args.conf or 0.001,
+            iou_threshold=self.args.iou,
+            max_detections=self.args.max_det,
+        ).to(self.device)
+
+        f = Path(str(self.file).replace(self.file.suffix, "_imx_model"))
+        f.mkdir(exist_ok=True)
+        onnx_model = f / Path(str(self.file).replace(self.file.suffix, "_imx.onnx"))  # js dir
+        mct.exporter.pytorch_export_model(
+            model=quant_model, save_model_path=onnx_model, repr_dataset=representative_dataset_gen
+        )
+
+        model_onnx = onnx.load(onnx_model)  # load onnx model
+        for k, v in self.metadata.items():
+            meta = model_onnx.metadata_props.add()
+            meta.key, meta.value = k, str(v)
+
+        onnx.save(model_onnx, onnx_model)
+
+        subprocess.run(
+            ["imxconv-pt", "-i", str(onnx_model), "-o", str(f), "--no-input-persistency", "--overwrite-output"],
+            check=True,
+        )
+
+        # Needed for imx models.
+        with open(f / "labels.txt", "w") as file:
+            file.writelines([f"{name}\n" for _, name in self.model.names.items()])
+
         return f, None
 
     def _add_tflite_metadata(self, file):

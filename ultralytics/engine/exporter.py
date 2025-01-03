@@ -1538,7 +1538,7 @@ class NMSModel(torch.nn.Module):
                 end = 2 if self.obb else 4
                 box[:, :end] += cls.unsqueeze(1)  # class-specific NMS
             nms_fn = self.nms_rotated if self.obb else torchvision.ops.nms
-            keep = nms_fn(torch.cat([box, extra], dim=-1) if self.obb else box, score, self.args.iou)
+            keep = nms_fn(torch.cat([box, extra], dim=-1) if self.obb else box, score, self.args.iou)[:self.args.max_det]
             out[i, : keep.shape[0]] = torch.cat(
                 [box[keep], score[keep].unsqueeze(1), cls[keep].unsqueeze(1), extra[keep]], dim=-1
             )

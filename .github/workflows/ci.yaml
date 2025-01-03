@@ -290,15 +290,10 @@ jobs:
       - uses: pguyot/arm-runner-action@v2
         with:
           commands: |
-            # Activate Virtual Environment
-            python3.11 -m venv env
-            source env/bin/activate
-            echo PATH="$(pwd)/env/bin:$PATH" >> $GITHUB_ENV
-  
             # Install requirements
             python -m pip install --upgrade pip wheel
             pip install -e ".[export]" pytest mlflow pycocotools
-  
+
             # Check environment
             yolo checks
             pip list

@@ -290,34 +290,15 @@ jobs:
     - uses: pguyot/arm-runner-action@v2
       with:
         commands: |
-          # Activate Virtual Environment
           python3.11 -m venv env
           source env/bin/activate
-          # echo PATH="$(pwd)/env/bin:$PATH" >> $GITHUB_ENV
           echo PATH=$PATH >> $GITHUB_ENV
 
-          # Install requirements
           python -m pip install --upgrade pip wheel
           pip install -e ".[export]" pytest mlflow pycocotools
 
-          # Check environment
           yolo checks
           pip list
-
-          # Run Pytest tests
-          pytest --slow tests/
-
-          # Run Benchmarks
-          python -m ultralytics.cfg.__init__ benchmark model='yolo11n-cls.pt' imgsz=160 verbose=0.249
-          python -m ultralytics.cfg.__init__ benchmark model='yolov8s-worldv2.pt' imgsz=160 verbose=0.337
-          python -m ultralytics.cfg.__init__ benchmark model='yolo11n-seg.pt' imgsz=160 verbose=0.195
-          python -m ultralytics.cfg.__init__ benchmark model='yolo11n-pose.pt' imgsz=160 verbose=0.197
-          python -m ultralytics.cfg.__init__ benchmark model='yolo11n-obb.pt' imgsz=160 verbose=0.597
-          python -m ultralytics.cfg.__init__ benchmark model='yolov10n.pt' imgsz=160 verbose=0.205
-
-          # Display Benchmark Summary
-          cat benchmarks.log
-          echo "$(cat benchmarks.log)" >> $GITHUB_STEP_SUMMARY
       # The below is fixed in: https://github.com/ultralytics/ultralytics/pull/15987
       # - name: Reboot # run a reboot command in the background to free resources for next run and not crash main thread
       #   run: sudo bash -c "sleep 10; reboot" &

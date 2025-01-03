@@ -628,7 +628,7 @@ TensorRT is highly recommended for deploying YOLO11 models on NVIDIA Jetson due 
 
 ### How can I install PyTorch and Torchvision on NVIDIA Jetson?
 
-To install PyTorch and Torchvision on NVIDIA Jetson, first uninstall any existing versions that may have been installed via pip. Then, manually install the compatible PyTorch and Torchvision versions for the Jetson's ARM64 architecture. Detailed instructions for this process are provided in the [Install PyTorch and Torchvision](#install-pytorch-and-torchvision) section.
+To install PyTorch and Torchvision on NVIDIA Jetson, first uninstall any existing versions that may have been installed via pip. Then, manually install the compatible PyTorch and Torchvision versions for the Jetson's ARM64 architecture. Detailed instructions for this process are provided in the [Installation of PyTorch and Torchvision](#install-pytorch-and-torchvision) section.
 
 ### What are the best practices for maximizing performance on NVIDIA Jetson when using YOLO11?
 

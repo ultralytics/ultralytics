@@ -36,6 +36,10 @@ class OBBValidator(DetectionValidator):
         val = self.data.get(self.args.split, "")  # validation path
         self.is_dota = isinstance(val, str) and "DOTA" in val  # is COCO
 
+    def postprocess(self, preds):
+        """Apply Non-maximum suppression to prediction outputs."""
+        return super().postprocess(preds, rotated=True)
+
     def _process_batch(self, detections, gt_bboxes, gt_cls):
         """
         Perform computation of the correct prediction matrix for a batch of detections and ground truth bounding boxes.
@@ -64,10 +68,6 @@ class OBBValidator(DetectionValidator):
         """
         iou = batch_probiou(gt_bboxes, torch.cat([detections[:, :4], detections[:, -1:]], dim=-1))
         return self.match_predictions(detections[:, 5], gt_cls, iou)
-
-    def postprocess(self, preds):
-        """Apply Non-maximum suppression to prediction outputs."""
-        return super().postprocess(preds, rotated=True)
 
     def _prepare_batch(self, si, batch):
         """Prepares and returns a batch for OBB validation."""

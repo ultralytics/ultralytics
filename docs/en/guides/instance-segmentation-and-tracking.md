@@ -84,7 +84,7 @@ There are two types of instance segmentation tracking available in the Ultralyti
 
         ```python
         import cv2
-    
+
         from ultralytics import YOLO
         from ultralytics.solutions.solutions import SolutionAnnotator
         from ultralytics.utils.plotting import colors

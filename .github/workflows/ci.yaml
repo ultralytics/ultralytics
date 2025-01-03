@@ -282,41 +282,40 @@ jobs:
       #   run: sudo bash -c "sleep 10; reboot" &
 
   ArmRunner:
-    # if: github.repository == 'ultralytics/ultralytics' && 'workflow_dispatch' && github.event.inputs.armrunner == 'true'
-    timeout-minutes: 120
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pguyot/arm-runner-action@v2
-      - name: Activate Virtual Environment
-        run: |
+  if: github.repository == 'ultralytics/ultralytics' && github.event_name == 'workflow_dispatch' && github.event.inputs.armrunner == 'true'
+  timeout-minutes: 120
+  runs-on: ubuntu-latest
+  steps:
+    - uses: actions/checkout@v4
+    - uses: pguyot/arm-runner-action@v2
+      with:
+        commands: |
+          # Activate Virtual Environment
           python3.11 -m venv env
           source env/bin/activate
+          # echo PATH="$(pwd)/env/bin:$PATH" >> $GITHUB_ENV
           echo PATH=$PATH >> $GITHUB_ENV
-      - name: Install requirements
-        run: |
+
+          # Install requirements
           python -m pip install --upgrade pip wheel
           pip install -e ".[export]" pytest mlflow pycocotools
-      - name: Check environment
-        run: |
+
+          # Check environment
           yolo checks
           pip list
-      - name: Pytest tests
-        run: pytest --slow tests/
-      - name: Benchmark ClassificationModel
-        run: python -m ultralytics.cfg.__init__ benchmark model='yolo11n-cls.pt' imgsz=160 verbose=0.249
-      - name: Benchmark YOLOWorld DetectionModel
-        run: python -m ultralytics.cfg.__init__ benchmark model='yolov8s-worldv2.pt' imgsz=160 verbose=0.337
-      - name: Benchmark SegmentationModel
-        run: python -m ultralytics.cfg.__init__ benchmark model='yolo11n-seg.pt' imgsz=160 verbose=0.195
-      - name: Benchmark PoseModel
-        run: python -m ultralytics.cfg.__init__ benchmark model='yolo11n-pose.pt' imgsz=160 verbose=0.197
-      - name: Benchmark OBBModel
-        run: python -m ultralytics.cfg.__init__ benchmark model='yolo11n-obb.pt' imgsz=160 verbose=0.597
-      - name: Benchmark YOLOv10Model
-        run: python -m ultralytics.cfg.__init__ benchmark model='yolov10n.pt' imgsz=160 verbose=0.205
-      - name: Benchmark Summary
-        run: |
+
+          # Run Pytest tests
+          pytest --slow tests/
+
+          # Run Benchmarks
+          python -m ultralytics.cfg.__init__ benchmark model='yolo11n-cls.pt' imgsz=160 verbose=0.249
+          python -m ultralytics.cfg.__init__ benchmark model='yolov8s-worldv2.pt' imgsz=160 verbose=0.337
+          python -m ultralytics.cfg.__init__ benchmark model='yolo11n-seg.pt' imgsz=160 verbose=0.195
+          python -m ultralytics.cfg.__init__ benchmark model='yolo11n-pose.pt' imgsz=160 verbose=0.197
+          python -m ultralytics.cfg.__init__ benchmark model='yolo11n-obb.pt' imgsz=160 verbose=0.597
+          python -m ultralytics.cfg.__init__ benchmark model='yolov10n.pt' imgsz=160 verbose=0.205
+
+          # Display Benchmark Summary
           cat benchmarks.log
           echo "$(cat benchmarks.log)" >> $GITHUB_STEP_SUMMARY
       # The below is fixed in: https://github.com/ultralytics/ultralytics/pull/15987

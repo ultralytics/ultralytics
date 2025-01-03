@@ -1537,7 +1537,7 @@ class NMSModel(torch.nn.Module):
             if not self.obb:
                 box = xywh2xyxy(box)
             nmsbox = box.clone()
-            if not self.args.agnostic_nms: # class-specific NMS
+            if not self.args.agnostic_nms:  # class-specific NMS
                 end = 2 if self.obb else 4
                 # Have to do it this way instead of inplace to avoid reshape issue
                 offbox = nmsbox[:, :end] + cls.unsqueeze(1).expand(-1, end) * 7680

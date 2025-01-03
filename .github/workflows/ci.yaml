@@ -290,6 +290,7 @@ jobs:
       - uses: pguyot/arm-runner-action@v2
         with:
           commands: |
+            apt install python3-pip -y
             # Install requirements
             python -m pip install --upgrade pip wheel
             pip install -e ".[export]" pytest mlflow pycocotools

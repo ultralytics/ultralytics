@@ -219,16 +219,18 @@ class AutoBackend(nn.Module):
             output_names = [x.name for x in session.get_outputs()]
             metadata = session.get_modelmeta().custom_metadata_map
             dynamic = isinstance(session.get_outputs()[0].shape[0], str)
+            fp16 = True if "float16" in session.get_inputs()[0].type else False
             if not dynamic:
                 io = session.io_binding()
                 bindings = []
                 for output in session.get_outputs():
-                    y_tensor = torch.empty(output.shape, dtype=torch.float16 if fp16 else torch.float32).to(device)
+                    out_fp16 = "float16" in output.type
+                    y_tensor = torch.empty(output.shape, dtype=torch.float16 if out_fp16 else torch.float32).to(device)
                     io.bind_output(
                         name=output.name,
                         device_type=device.type,
                         device_id=device.index if cuda else 0,
-                        element_type=np.float16 if fp16 else np.float32,
+                        element_type=np.float16 if out_fp16 else np.float32,
                         shape=tuple(y_tensor.shape),
                         buffer_ptr=y_tensor.data_ptr(),
                     )

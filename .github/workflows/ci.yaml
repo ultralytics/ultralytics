@@ -290,18 +290,7 @@ jobs:
     - uses: pguyot/arm-runner-action@v2
       with:
         commands: |
-          python3.11 -m venv env
-          source env/bin/activate
-          echo PATH=$PATH >> $GITHUB_ENV
-
-          python -m pip install --upgrade pip wheel
-          pip install -e ".[export]" pytest mlflow pycocotools
-
-          yolo checks
-          pip list
-      # The below is fixed in: https://github.com/ultralytics/ultralytics/pull/15987
-      # - name: Reboot # run a reboot command in the background to free resources for next run and not crash main thread
-      #   run: sudo bash -c "sleep 10; reboot" &
+        
 
   Conda:
     if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event.inputs.conda == 'true')

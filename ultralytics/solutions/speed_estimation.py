@@ -4,8 +4,8 @@ from time import time
 
 import numpy as np
 
-from ultralytics.solutions.solutions import BaseSolution
-from ultralytics.utils.plotting import Annotator, colors
+from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator
+from ultralytics.utils.plotting import colors
 
 
 class SpeedEstimator(BaseSolution):
@@ -65,7 +65,7 @@ class SpeedEstimator(BaseSolution):
             >>> image = np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8)
             >>> processed_image = estimator.estimate_speed(image)
         """
-        self.annotator = Annotator(im0, line_width=self.line_width)  # Initialize annotator
+        self.annotator = SolutionAnnotator(im0, line_width=self.line_width)  # Initialize annotator
         self.extract_tracks(im0)  # Extract tracks
 
         self.annotator.draw_region(

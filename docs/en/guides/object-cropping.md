@@ -44,7 +44,8 @@ Object cropping with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
         import cv2
 
         from ultralytics import YOLO
-        from ultralytics.utils.plotting import Annotator, colors
+        from ultralytics.solutions.solutions import SolutionAnnotator
+        from ultralytics.utils.plotting import colors
 
         model = YOLO("yolo11n.pt")
         names = model.names
@@ -70,7 +71,7 @@ Object cropping with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
             results = model.predict(im0, show=False)
             boxes = results[0].boxes.xyxy.cpu().tolist()
             clss = results[0].boxes.cls.cpu().tolist()
-            annotator = Annotator(im0, line_width=2, example=names)
+            annotator = SolutionAnnotator(im0)
 
             if boxes is not None:
                 for box, cls in zip(boxes, clss):

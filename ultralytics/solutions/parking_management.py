@@ -5,10 +5,9 @@ import json
 import cv2
 import numpy as np
 
-from ultralytics.solutions.solutions import BaseSolution
+from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator
 from ultralytics.utils import LOGGER
 from ultralytics.utils.checks import check_requirements
-from ultralytics.utils.plotting import Annotator
 
 
 class ParkingPtsSelection:
@@ -219,7 +218,7 @@ class ParkingManagement(BaseSolution):
         """
         self.extract_tracks(im0)  # extract tracks from im0
         es, fs = len(self.json), 0  # empty slots, filled slots
-        annotator = Annotator(im0, self.line_width)  # init annotator
+        annotator = SolutionAnnotator(im0, self.line_width)  # init annotator
 
         for region in self.json:
             # Convert points to a NumPy array with the correct dtype and reshape properly

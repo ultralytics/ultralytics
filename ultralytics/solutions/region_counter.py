@@ -1,8 +1,8 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-from ultralytics.solutions.solutions import BaseSolution
+from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator
 from ultralytics.utils import LOGGER
-from ultralytics.utils.plotting import Annotator, colors
+from ultralytics.utils.plotting import colors
 
 
 class RegionCounter(BaseSolution):
@@ -70,7 +70,7 @@ class RegionCounter(BaseSolution):
         Returns:
            im0 (numpy.ndarray): Processed image frame with annotated counting information.
         """
-        self.annotator = Annotator(im0, line_width=self.line_width)
+        self.annotator = SolutionAnnotator(im0, line_width=self.line_width)
         self.extract_tracks(im0)
 
         # Region initialization and conversion

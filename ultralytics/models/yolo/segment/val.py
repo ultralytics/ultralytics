@@ -140,7 +140,7 @@ class SegmentationValidator(DetectionValidator):
                 )
             if self.args.plots:
                 self.confusion_matrix.process_batch(predn, bbox, cls)
-                    self.output_bad_cases(predn, labelsn, batch, si)
+                self.output_bad_cases(predn, labelsn, batch, si)
 
             for k in self.stats.keys():
                 self.stats[k].append(stat[k])

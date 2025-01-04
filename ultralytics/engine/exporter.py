@@ -1536,11 +1536,13 @@ class NMSModel(torch.nn.Module):
             box, score, cls, extra = box[keep], score[keep], cls[keep], extra[keep]
             if not self.obb:
                 box = xywh2xyxy(box)
-            nmsbox = box.clone()
+            # large box values due to class offset causes issue with quantization
+            nmsbox = box.clone() / max(x.shape[2:])
             if not self.args.agnostic_nms:  # class-specific NMS
                 end = 2 if self.obb else 4
                 # inplace causes reshape issue
-                offbox = nmsbox[:, :end] + cls.unsqueeze(1).expand(-1, end) * 7680
+                # large max_wh causes issues when quantizing
+                offbox = nmsbox[:, :end] + cls.view(-1, 1).expand(-1, end)
                 nmsbox = torch.cat((offbox, nmsbox[:, end:]), dim=-1)
             nms_fn = self.nms_rotated if self.obb else torchvision.ops.nms
             keep = nms_fn(
@@ -1548,7 +1550,7 @@ class NMSModel(torch.nn.Module):
                 score,
                 self.args.iou,
             )[: self.args.max_det]
-            dets = torch.cat([box[keep], score[keep].unsqueeze(1), cls[keep].unsqueeze(1), extra[keep]], dim=-1)
+            dets = torch.cat([box[keep], score[keep].view(-1, 1), cls[keep].view(-1, 1), extra[keep]], dim=-1)
             # Zero-pad to max_det size to avoid reshape error
             padding = torch.zeros((self.args.max_det - dets.shape[0], dets.shape[1]), device=dets.device)
             out[i] = torch.cat([dets, padding], dim=0)

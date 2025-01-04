@@ -1540,7 +1540,7 @@ class NMSModel(torch.nn.Module):
             score = score * mask
             # ensure we always have at least max_det boxes remaining to avoid empty assignment
             keep = torch.topk(
-                score.clone(),
+                score,
                 torch.max(torch.stack((mask.sum(), torch.tensor(self.args.max_det, device=score.device)))),
             ).indices
             box, score, cls, extra = box[keep], score[keep], cls[keep], extra[keep]

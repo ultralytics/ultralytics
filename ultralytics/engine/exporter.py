@@ -108,11 +108,11 @@ def export_formats():
         ["OpenVINO", "openvino", "_openvino_model", True, False, ["batch", "dynamic", "half", "int8"]],
         ["TensorRT", "engine", ".engine", False, True, ["batch", "dynamic", "half", "int8", "simplify", "nms"]],
         ["CoreML", "coreml", ".mlpackage", True, False, ["batch", "half", "int8", "nms"]],
-        ["TensorFlow SavedModel", "saved_model", "_saved_model", True, True, ["batch", "int8", "keras"]],
+        ["TensorFlow SavedModel", "saved_model", "_saved_model", True, True, ["batch", "int8", "keras", "nms"]],
         ["TensorFlow GraphDef", "pb", ".pb", True, True, ["batch"]],
-        ["TensorFlow Lite", "tflite", ".tflite", True, False, ["batch", "half", "int8"]],
+        ["TensorFlow Lite", "tflite", ".tflite", True, False, ["batch", "half", "int8", "nms"]],
         ["TensorFlow Edge TPU", "edgetpu", "_edgetpu.tflite", True, False, []],
-        ["TensorFlow.js", "tfjs", "_web_model", True, False, ["batch", "half", "int8"]],
+        ["TensorFlow.js", "tfjs", "_web_model", True, False, ["batch", "half", "int8", "nms"]],
         ["PaddlePaddle", "paddle", "_paddle_model", True, True, ["batch"]],
         ["MNN", "mnn", ".mnn", True, True, ["batch", "half", "int8"]],
         ["NCNN", "ncnn", "_ncnn_model", True, True, ["batch", "half"]],
@@ -274,9 +274,11 @@ class Exporter:
             assert self.device.type == "cpu", "optimize=True not compatible with cuda devices, i.e. use device='cpu'"
         if self.args.int8 and tflite:
             assert not getattr(model, "end2end", False), "TFLite INT8 export not supported for end2end models."
-        if self.args.nms and getattr(model, "end2end", False):
-            LOGGER.warning("WARNING ⚠️ 'nms=True' is not available for end2end models. Forcing 'nms=False'.")
-            self.args.nms = False
+        if self.args.nms:
+            assert not (is_tf_format and model.task == "obb"), "'nms=True' not compatible with 'task=obb' and 'format={self.args.format}'"
+            if getattr(model, "end2end", False):
+                LOGGER.warning("WARNING ⚠️ 'nms=True' is not available for end2end models. Forcing 'nms=False'.")
+                self.args.nms = False
         if edgetpu:
             if not LINUX:
                 raise SystemError("Edge TPU export only supported on Linux. See https://coral.ai/docs/edgetpu/compiler")
@@ -1494,6 +1496,7 @@ class NMSModel(torch.nn.Module):
         self.args.conf = self.args.conf or 0.25
         self.nc = len(self.model.names)
         self.obb = self.args.task == "obb"
+        self.task = self.args.task
 
     def nms_rotated(self, boxes, scores, iou):
         """
@@ -1507,12 +1510,8 @@ class NMSModel(torch.nn.Module):
         Returns:
             keep (torch.tensor): Boolean mask of top-k (max_det) boxes to keep.
         """
-        mask = torch.zeros(boxes.shape[0], dtype=torch.bool, device=boxes.device)
         ious = batch_probiou(boxes, boxes).triu_(diagonal=1)
-        mask = 1 - (ious > iou).sum(0) > 0  # same as ious.max(dim=0) > iou but can handle empty values
-        scores[~mask] = 0
-        keep = torch.topk(scores, mask.sum()).indices
-        return keep
+        return 1 - (ious > iou).sum(0) > 0  # same as ious.max(dim=0) > iou but can handle empty values
 
     def forward(self, x):
         """
@@ -1535,26 +1534,40 @@ class NMSModel(torch.nn.Module):
             boxes.shape[0], self.args.max_det, boxes.shape[-1] + 2 + extras.shape[-1], device=boxes.device
         )
         for i, (box, cls, score, extra) in enumerate(zip(boxes, classes, scores, extras)):
-            keep = score > self.args.conf
+            mask = (score > self.args.conf).int()
+            score = score * mask
+            # ensure we always have at least max_det boxes remaining to avoid empty assignment
+            keep = torch.topk(score.clone(), torch.max(torch.stack((mask.sum(), torch.tensor(self.args.max_det, device=score.device))))).indices
             box, score, cls, extra = box[keep], score[keep], cls[keep], extra[keep]
             if not self.obb:
                 box = ops.box_convert(box, "cxcywh", "xyxy")
+                # TFlite bug returns less boxes
+                padding = torch.zeros((keep.shape[0] - box.shape[0], box.shape[1]), device=box.device)
+                box = torch.cat([box, padding], dim=0)
             # large box values due to class offset causes issue with quantization
             nmsbox = box / torch.max(torch.tensor([x.shape[2], x.shape[3]], device=box.device, dtype=box.dtype))
             if not self.args.agnostic_nms:  # class-specific NMS
                 end = 2 if self.obb else 4
-                # inplace causes reshape issue
+                # fully explicit expansion otherwise reshape error
                 # large max_wh causes issues when quantizing
-                offbox = nmsbox[:, :end] + cls.view(-1, 1).expand(-1, end)
+                cls_offset = cls.reshape(-1, 1).expand(nmsbox.shape[0], end) 
+                offbox = nmsbox[:, :end] + cls_offset
                 nmsbox = torch.cat((offbox, nmsbox[:, end:]), dim=-1)
-            nms_fn = self.nms_rotated if self.obb else ops.nms
-            keep = nms_fn(
-                torch.cat([nmsbox, extra], dim=-1) if self.obb else nmsbox,
+            if self.obb:
+                mask = self.nms_rotated(
+                torch.cat([nmsbox, extra], dim=-1),
                 score,
                 self.args.iou,
-            )[: self.args.max_det]
-            dets = torch.cat([box[keep], score[keep].view(-1, 1), cls[keep].view(-1, 1), extra[keep]], dim=-1)
-            # Zero-pad to max_det size to avoid reshape error
-            padding = torch.zeros((self.args.max_det - dets.shape[0], dets.shape[1]), device=dets.device)
-            out[i] = torch.cat([dets, padding], dim=0)
+                ).int()
+            else:
+                mask = torch.zeros(box.shape[0], device=box.device, dtype=torch.int)
+                keep = ops.nms(
+                    nmsbox,
+                    score,
+                    self.args.iou,
+                )[: self.args.max_det]
+                mask[keep] = 1
+            score = score * mask
+            keep = torch.topk(score, self.args.max_det).indices
+            out[i] = torch.cat([box[keep], score[keep].view(-1, 1), cls[keep].view(-1, 1), extra[keep]], dim=-1)
         return (out, preds[1]) if self.args.task == "segment" else out

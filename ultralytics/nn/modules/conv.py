@@ -308,7 +308,7 @@ class SpatialAttention(nn.Module):
         padding = (kernel_size - 1) // 2  # Calculate padding to keep output size same
 
         self.conv = nn.Conv2d(2, 1, kernel_size=kernel_size, padding=padding, bias=False)
-        self.activate = nn.Sigmoid()  
+        self.act = nn.Sigmoid()  
 
     def forward(self, x):
         """
@@ -363,7 +363,7 @@ class CBAM(nn.Module):
         x_residual = x 
         x = self.spatial_attention(x)
         x = self.channel_attention(x)
-        
+
         if self.add:
             x += x_residual
         return x

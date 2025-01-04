@@ -1557,7 +1557,11 @@ class NMSModel(torch.nn.Module):
                     padding = torch.zeros((mask.shape[0] - box.shape[0], box.shape[1]), device=box.device)
                     box = torch.cat([box, padding], dim=0)
             # large box values due to class offset causes issue with quantization
-            nmsbox = box / torch.max(torch.tensor([x.shape[2], x.shape[3]], device=box.device, dtype=box.dtype))
+            nmsbox = (
+                (8 if self.obb else 1)
+                * box
+                / (torch.max(torch.tensor([x.shape[2], x.shape[3]], device=box.device, dtype=box.dtype)))
+            )
             if not self.args.agnostic_nms:  # class-specific NMS
                 end = 2 if self.obb else 4
                 # fully explicit expansion otherwise reshape error

@@ -1567,7 +1567,7 @@ class NMSModel(torch.nn.Module):
                 # fully explicit expansion otherwise reshape error
                 # large max_wh causes issues when quantizing
                 cls_offset = cls.reshape(-1, 1).expand(nmsbox.shape[0], end)
-                offbox = nmsbox[:, :end] + cls_offset
+                offbox = nmsbox[:, :end] + cls_offset * 8 if self.obb else 1
                 nmsbox = torch.cat((offbox, nmsbox[:, end:]), dim=-1)
             nms_fn = self.nms_rotated if self.obb else ops.nms
             keep = nms_fn(

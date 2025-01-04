@@ -1,14 +1,14 @@
 ---
 comments: true
-description: Learn to convert YOLOv8 models to TensorRT for high-speed NVIDIA GPU inference. Boost efficiency and deploy optimized models with our step-by-step guide.
-keywords: YOLOv8, TensorRT, NVIDIA, GPU, deep learning, model optimization, high-speed inference, model export
+description: Learn to convert YOLO11 models to TensorRT for high-speed NVIDIA GPU inference. Boost efficiency and deploy optimized models with our step-by-step guide.
+keywords: YOLOv8, YOLO11, TensorRT, NVIDIA, GPU, deep learning, model optimization, high-speed inference, model export
 ---
 
-# TensorRT Export for YOLOv8 Models
+# TensorRT Export for YOLO11 Models
 
 Deploying [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models in high-performance environments can require a format that maximizes speed and efficiency. This is especially true when you are deploying your model on NVIDIA GPUs.
 
-By using the TensorRT export format, you can enhance your [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics) models for swift and efficient inference on NVIDIA hardware. This guide will give you easy-to-follow steps for the conversion process and help you make the most of NVIDIA's advanced technology in your [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) projects.
+By using the TensorRT export format, you can enhance your [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics) models for swift and efficient inference on NVIDIA hardware. This guide will give you easy-to-follow steps for the conversion process and help you make the most of NVIDIA's advanced technology in your [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) projects.
 
 ## TensorRT
 
@@ -36,11 +36,11 @@ TensorRT models offer a range of key features that contribute to their efficienc
 
 - **Dynamic Tensor Memory Management**: TensorRT efficiently manages tensor memory usage during inference, reducing memory overhead and optimizing memory allocation. This results in more efficient GPU memory utilization.
 
-- **Automatic Kernel Tuning**: TensorRT applies automatic kernel tuning to select the most optimized GPU kernel for each layer of the model. This adaptive approach ensures that the model takes full advantage of the GPU's computational power.
+- **Automatic Kernel Tuning**: TensorRT applies automatic kernel tuning to select the most optimized GPU kernel for each layer of the model. This adaptive approach ensures that the model takes full advantage of the GPUs computational power.
 
 ## Deployment Options in TensorRT
 
-Before we look at the code for exporting YOLOv8 models to the TensorRT format, let's understand where TensorRT models are normally used.
+Before we look at the code for exporting YOLO11 models to the TensorRT format, let's understand where TensorRT models are normally used.
 
 TensorRT offers several deployment options, and each option balances ease of integration, performance optimization, and flexibility differently:
 
@@ -54,9 +54,9 @@ TensorRT offers several deployment options, and each option balances ease of int
 
 - **NVIDIA Triton Inference Server**: An option that supports models from various frameworks. Particularly suited for cloud or edge inference, it provides features like concurrent model execution and model analysis.
 
-## Exporting YOLOv8 Models to TensorRT
+## Exporting YOLO11 Models to TensorRT
 
-You can improve execution efficiency and optimize performance by converting YOLOv8 models to TensorRT format.
+You can improve execution efficiency and optimize performance by converting YOLO11 models to TensorRT format.
 
 ### Installation
 
@@ -67,15 +67,15 @@ To install the required package, run:
     === "CLI"
 
         ```bash
-        # Install the required package for YOLOv8
+        # Install the required package for YOLO11
         pip install ultralytics
         ```
 
-For detailed instructions and best practices related to the installation process, check our [YOLOv8 Installation guide](../quickstart.md). While installing the required packages for YOLOv8, if you encounter any difficulties, consult our [Common Issues guide](../guides/yolo-common-issues.md) for solutions and tips.
+For detailed instructions and best practices related to the installation process, check our [YOLO11 Installation guide](../quickstart.md). While installing the required packages for YOLO11, if you encounter any difficulties, consult our [Common Issues guide](../guides/yolo-common-issues.md) for solutions and tips.
 
 ### Usage
 
-Before diving into the usage instructions, be sure to check out the range of [YOLOv8 models offered by Ultralytics](../models/index.md). This will help you choose the most appropriate model for your project requirements.
+Before diving into the usage instructions, be sure to check out the range of [YOLO11 models offered by Ultralytics](../models/index.md). This will help you choose the most appropriate model for your project requirements.
 
 !!! example "Usage"
 
@@ -84,14 +84,14 @@ Before diving into the usage instructions, be sure to check out the range of [YO
         ```python
         from ultralytics import YOLO
 
-        # Load the YOLOv8 model
-        model = YOLO("yolov8n.pt")
+        # Load the YOLO11 model
+        model = YOLO("yolo11n.pt")
 
         # Export the model to TensorRT format
-        model.export(format="engine")  # creates 'yolov8n.engine'
+        model.export(format="engine")  # creates 'yolo11n.engine'
 
         # Load the exported TensorRT model
-        tensorrt_model = YOLO("yolov8n.engine")
+        tensorrt_model = YOLO("yolo11n.engine")
 
         # Run inference
         results = tensorrt_model("https://ultralytics.com/images/bus.jpg")
@@ -100,11 +100,11 @@ Before diving into the usage instructions, be sure to check out the range of [YO
     === "CLI"
 
         ```bash
-        # Export a YOLOv8n PyTorch model to TensorRT format
-        yolo export model=yolov8n.pt format=engine  # creates 'yolov8n.engine''
+        # Export a YOLO11n PyTorch model to TensorRT format
+        yolo export model=yolo11n.pt format=engine  # creates 'yolo11n.engine''
 
         # Run inference with the exported model
-        yolo predict model=yolov8n.engine source='https://ultralytics.com/images/bus.jpg'
+        yolo predict model=yolo11n.engine source='https://ultralytics.com/images/bus.jpg'
         ```
 
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
@@ -176,8 +176,8 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
     === "CLI"
 
         ```bash
-        # Export a YOLOv8n PyTorch model to TensorRT format with INT8 quantization
-        yolo export model=yolov8n.pt format=engine batch=8 workspace=4 int8=True data=coco.yaml  # creates 'yolov8n.engine''
+        # Export a YOLO11n PyTorch model to TensorRT format with INT8 quantization
+        yolo export model=yolo11n.pt format=engine batch=8 workspace=4 int8=True data=coco.yaml  # creates 'yolov8n.engine''
 
         # Run inference with the exported TensorRT quantized model
         yolo predict model=yolov8n.engine source='https://ultralytics.com/images/bus.jpg'
@@ -434,9 +434,9 @@ Expand sections below for information on how these models were exported and test
     )
     ```
 
-## Deploying Exported YOLOv8 TensorRT Models
+## Deploying Exported YOLO11 TensorRT Models
 
-Having successfully exported your Ultralytics YOLOv8 models to TensorRT format, you're now ready to deploy them. For in-depth instructions on deploying your TensorRT models in various settings, take a look at the following resources:
+Having successfully exported your Ultralytics YOLO11 models to TensorRT format, you're now ready to deploy them. For in-depth instructions on deploying your TensorRT models in various settings, take a look at the following resources:
 
 - **[Deploy Ultralytics with a Triton Server](../guides/triton-inference-server.md)**: Our guide on how to use NVIDIA's Triton Inference (formerly TensorRT Inference) Server specifically for use with Ultralytics YOLO models.
 
@@ -448,17 +448,17 @@ Having successfully exported your Ultralytics YOLOv8 models to TensorRT format, 
 
 ## Summary
 
-In this guide, we focused on converting Ultralytics YOLOv8 models to NVIDIA's TensorRT model format. This conversion step is crucial for improving the efficiency and speed of YOLOv8 models, making them more effective and suitable for diverse deployment environments.
+In this guide, we focused on converting Ultralytics YOLO11 models to NVIDIA's TensorRT model format. This conversion step is crucial for improving the efficiency and speed of YOLO11 models, making them more effective and suitable for diverse deployment environments.
 
 For more information on usage details, take a look at the [TensorRT official documentation](https://docs.nvidia.com/deeplearning/tensorrt/).
 
-If you're curious about additional Ultralytics YOLOv8 integrations, our [integration guide page](../integrations/index.md) provides an extensive selection of informative resources and insights.
+If you're curious about additional Ultralytics YOLO11 integrations, our [integration guide page](../integrations/index.md) provides an extensive selection of informative resources and insights.
 
 ## FAQ
 
-### How do I convert YOLOv8 models to TensorRT format?
+### How do I convert YOLO11 models to TensorRT format?
 
-To convert your Ultralytics YOLOv8 models to TensorRT format for optimized NVIDIA GPU inference, follow these steps:
+To convert your Ultralytics YOLO11 models to TensorRT format for optimized NVIDIA GPU inference, follow these steps:
 
 1. **Install the required package**:
 
@@ -466,24 +466,24 @@ To convert your Ultralytics YOLOv8 models to TensorRT format for optimized NVIDI
     pip install ultralytics
     ```
 
-2. **Export your YOLOv8 model**:
+2. **Export your YOLO11 model**:
 
     ```python
     from ultralytics import YOLO
 
-    model = YOLO("yolov8n.pt")
+    model = YOLO("yolo11n.pt")
     model.export(format="engine")  # creates 'yolov8n.engine'
 
     # Run inference
-    model = YOLO("yolov8n.engine")
+    model = YOLO("yolo11n.engine")
     results = model("https://ultralytics.com/images/bus.jpg")
     ```
 
-For more details, visit the [YOLOv8 Installation guide](../quickstart.md) and the [export documentation](../modes/export.md).
+For more details, visit the [YOLO11 Installation guide](../quickstart.md) and the [export documentation](../modes/export.md).
 
-### What are the benefits of using TensorRT for YOLOv8 models?
+### What are the benefits of using TensorRT for YOLO11 models?
 
-Using TensorRT to optimize YOLOv8 models offers several benefits:
+Using TensorRT to optimize YOLO11 models offers several benefits:
 
 - **Faster Inference Speed**: TensorRT optimizes the model layers and uses precision calibration (INT8 and FP16) to speed up inference without significantly sacrificing accuracy.
 - **Memory Efficiency**: TensorRT manages tensor memory dynamically, reducing overhead and improving GPU memory utilization.
@@ -492,9 +492,9 @@ Using TensorRT to optimize YOLOv8 models offers several benefits:
 
 For more information, explore the detailed features of TensorRT [here](https://developer.nvidia.com/tensorrt) and read our [TensorRT overview section](#tensorrt).
 
-### Can I use INT8 quantization with TensorRT for YOLOv8 models?
+### Can I use INT8 quantization with TensorRT for YOLO11 models?
 
-Yes, you can export YOLOv8 models using TensorRT with INT8 quantization. This process involves post-training quantization (PTQ) and calibration:
+Yes, you can export YOLO11 models using TensorRT with INT8 quantization. This process involves post-training quantization (PTQ) and calibration:
 
 1. **Export with INT8**:
 
@@ -516,9 +516,9 @@ Yes, you can export YOLOv8 models using TensorRT with INT8 quantization. This pr
 
 For more details, refer to the [exporting TensorRT with INT8 quantization section](#exporting-tensorrt-with-int8-quantization).
 
-### How do I deploy YOLOv8 TensorRT models on an NVIDIA Triton Inference Server?
+### How do I deploy YOLO11 TensorRT models on an NVIDIA Triton Inference Server?
 
-Deploying YOLOv8 TensorRT models on an NVIDIA Triton Inference Server can be done using the following resources:
+Deploying YOLO11 TensorRT models on an NVIDIA Triton Inference Server can be done using the following resources:
 
 - **[Deploy Ultralytics YOLOv8 with Triton Server](../guides/triton-inference-server.md)**: Step-by-step guidance on setting up and using Triton Inference Server.
 - **[NVIDIA Triton Inference Server Documentation](https://developer.nvidia.com/blog/deploying-deep-learning-nvidia-tensorrt/)**: Official NVIDIA documentation for detailed deployment options and configurations.

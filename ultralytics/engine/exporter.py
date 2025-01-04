@@ -361,7 +361,7 @@ class Exporter:
             if isinstance(y, torch.Tensor)
             else tuple(tuple(x.shape if isinstance(x, torch.Tensor) else []) for x in y)
         )
-        if self.args.nms:
+        if self.args.nms and not coreml:
             extra_shape = self.output_shape[1] - (self.model.nc + 4)
             self.output_shape = (self.output_shape[0], self.args.max_det, 4 + 2 + extra_shape)
         self.pretty_name = Path(self.model.yaml.get("yaml_file", self.file)).stem.replace("yolo", "YOLO")

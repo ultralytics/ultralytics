@@ -334,11 +334,22 @@ class SpatialAttention(nn.Module):
 class CBAM(nn.Module):
     """Convolutional Block Attention Module with integrated Conv and BatchNorm."""
 
-    def __init__(self, c1, kernel_size=7):
-        """Initialize CBAM with given input channel (c1) and kernel size."""
+    def __init__(self, c1, c2, k=3, shortcut=True,):
+        """
+        Initializes the CBAM module with integrated Conv and BatchNorm.
+        Args:
+            c1 (int): Number of input channels.
+            c2 (int): Number of output channels.
+            k (int): Kernel size for convolutional layers (default is 3).
+            shortcut (bool): Whether to include a residual connection.
+            g (int): Number of groups for grouped convolution.
+            e (float): Expansion factor for hidden channels.
+            ratio (int): Reduction ratio for the channel attention module.
+        """
         super().__init__()
+        self.add = shortcut and c1==c2
         self.channel_attention = ChannelAttention(c1)
-        self.spatial_attention = SpatialAttention(kernel_size)
+        self.spatial_attention = SpatialAttention(k)
 
 
     def forward(self, x):
@@ -349,9 +360,12 @@ class CBAM(nn.Module):
         Returns:
             out (torch.Tensor): Output tensor after applying CBAM.
         """
-
+        x_residual = x 
         x = self.spatial_attention(x)
         x = self.channel_attention(x)
+        
+        if self.add:
+            x += x_residual
         return x
 
 class Concat(nn.Module):

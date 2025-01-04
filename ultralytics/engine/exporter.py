@@ -67,7 +67,7 @@ from pathlib import Path
 
 import numpy as np
 import torch
-import torchvision
+from torchvision import ops
 
 from ultralytics.cfg import TASK2DATA, get_cfg
 from ultralytics.data import build_dataloader
@@ -95,7 +95,7 @@ from ultralytics.utils import (
 from ultralytics.utils.checks import check_imgsz, check_is_path_safe, check_requirements, check_version
 from ultralytics.utils.downloads import attempt_download_asset, get_github_assets, safe_download
 from ultralytics.utils.files import file_size, spaces_in_path
-from ultralytics.utils.ops import Profile, batch_probiou, xywh2xyxy
+from ultralytics.utils.ops import Profile, batch_probiou
 from ultralytics.utils.torch_utils import TORCH_1_13, get_latest_opset, select_device
 
 
@@ -1535,7 +1535,7 @@ class NMSModel(torch.nn.Module):
             keep = score > self.args.conf
             box, score, cls, extra = box[keep], score[keep], cls[keep], extra[keep]
             if not self.obb:
-                box = xywh2xyxy(box)
+                box = ops.box_convert(box, "cxcywh", "xyxy")
             # large box values due to class offset causes issue with quantization
             nmsbox = box / torch.max(torch.tensor([x.shape[2], x.shape[3]], device=box.device, dtype=box.dtype))
             if not self.args.agnostic_nms:  # class-specific NMS
@@ -1544,7 +1544,7 @@ class NMSModel(torch.nn.Module):
                 # large max_wh causes issues when quantizing
                 offbox = nmsbox[:, :end] + cls.view(-1, 1).expand(-1, end)
                 nmsbox = torch.cat((offbox, nmsbox[:, end:]), dim=-1)
-            nms_fn = self.nms_rotated if self.obb else torchvision.ops.nms
+            nms_fn = self.nms_rotated if self.obb else ops.nms
             keep = nms_fn(
                 torch.cat([nmsbox, extra], dim=-1) if self.obb else nmsbox,
                 score,

@@ -1537,7 +1537,7 @@ class NMSModel(torch.nn.Module):
             if not self.obb:
                 box = xywh2xyxy(box)
             # large box values due to class offset causes issue with quantization
-            nmsbox = box.clone() / max(x.shape[2:])
+            nmsbox = box / max(x.shape[2:])
             if not self.args.agnostic_nms:  # class-specific NMS
                 end = 2 if self.obb else 4
                 # inplace causes reshape issue

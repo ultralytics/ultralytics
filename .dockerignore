@@ -27,6 +27,7 @@ ENV/
 .DS_Store
 
 # Project specific
+*.log
 benchmarks.log
 runs/
 

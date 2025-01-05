@@ -275,9 +275,6 @@ class Exporter:
         if self.args.int8 and tflite:
             assert not getattr(model, "end2end", False), "TFLite INT8 export not supported for end2end models."
         if self.args.nms:
-            assert not (
-                is_tf_format and model.task == "obb"
-            ), "'nms=True' not compatible with 'task=obb' and 'format={self.args.format}'"
             if getattr(model, "end2end", False):
                 LOGGER.warning("WARNING ⚠️ 'nms=True' is not available for end2end models. Forcing 'nms=False'.")
                 self.args.nms = False
@@ -1507,10 +1504,18 @@ class NMSModel(torch.nn.Module):
             iou (torch.float): The IoU threshold to be applied.
 
         Returns:
-            keep (torch.tensor): Boolean mask of top-k (max_det) boxes to keep.
+            keep (torch.tensor): Indices of top-k (max_det) boxes to keep.
         """
         mask = torch.zeros(boxes.shape[0], dtype=torch.bool, device=boxes.device)
-        ious = batch_probiou(boxes, boxes).triu_(diagonal=1)
+        ious = batch_probiou(boxes, boxes)
+        if self.is_tf:
+            n = boxes.shape[0]
+            row_idx = torch.arange(n, device=boxes.device).view(-1, 1).expand(-1, n)
+            col_idx = torch.arange(n, device=boxes.device).view(1, -1).expand(n, -1)
+            upper_mask = row_idx < col_idx
+            ious = ious * upper_mask
+        else:
+            ious = ious.triu_(diagonal=1)
         mask = 1 - (ious > iou).sum(0) > 0  # same as ious.max(dim=0) > iou but can handle empty values
         scores[~mask] = 0
         keep = torch.topk(scores, mask.sum()).indices
@@ -1544,14 +1549,10 @@ class NMSModel(torch.nn.Module):
         for i, (box, cls, score, extra) in enumerate(zip(boxes, classes, scores, extras)):
             mask = score > self.args.conf
             if self.is_tf:
-                # ensure we always have at least max_det boxes remaining to avoid GatherND error
+                # TFLite GatherND error if mask is empty
+                # Reshape error when if it doesn't know the no. of valid boxes after masking
                 score *= mask
-                mask = torch.topk(
-                    score,
-                    torch.max(
-                        torch.stack((mask.sum(), torch.tensor(self.args.max_det, device=mask.device, dtype=torch.int)))
-                    ),
-                ).indices
+                mask = score.argsort(descending=True)[: self.args.max_det * 5]
             box, score, cls, extra = box[mask], score[mask], cls[mask], extra[mask]
             if not self.obb:
                 box = ops.box_convert(box, "cxcywh", "xyxy")
@@ -1561,18 +1562,21 @@ class NMSModel(torch.nn.Module):
                         (mask.shape[0] - box.shape[0], box.shape[1]), device=box.device, dtype=box.dtype
                     )
                     box = torch.cat([box, padding], dim=0)
+            nmsbox = box.clone()
+            multiplier = 8 if self.obb else 1
+            factor = torch.max(torch.tensor([x.shape[2], x.shape[3]], device=box.device, dtype=box.dtype))
             # large box values due to class offset causes issue with quantization
-            nmsbox = (
-                (8 if self.obb else 1)
-                * box
-                / (torch.max(torch.tensor([x.shape[2], x.shape[3]], device=box.device, dtype=box.dtype)))
-            )
+            if not self.is_tf:  # TF is already normalized
+                nmsbox = multiplier * nmsbox / factor
+            else:
+                multiplier = factor if self.obb else 1
+                nmsbox *= multiplier
             if not self.args.agnostic_nms:  # class-specific NMS
                 end = 2 if self.obb else 4
                 # fully explicit expansion otherwise reshape error
                 # large max_wh causes issues when quantizing
-                cls_offset = cls.reshape(-1, 1).expand(nmsbox.shape[0], end)
-                offbox = nmsbox[:, :end] + cls_offset * (8 if self.obb else 1)
+                cls_offset = cls.clone().reshape(-1, 1).expand(nmsbox.shape[0], end)
+                offbox = nmsbox[:, :end] + cls_offset * multiplier
                 nmsbox = torch.cat((offbox, nmsbox[:, end:]), dim=-1)
             nms_fn = self.nms_rotated if self.obb else ops.nms
             keep = nms_fn(

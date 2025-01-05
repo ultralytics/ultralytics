@@ -512,11 +512,7 @@ class Exporter:
             if self.args.task == "obb":
                 # OBB error https://github.com/pytorch/pytorch/issues/110859#issuecomment-1757841865
                 torch.onnx.register_custom_op_symbolic("aten::lift_fresh", lambda g, x: x, opset_version)
-                if self.args.simplify:
-                    LOGGER.warning(
-                        f"{prefix} WARNING ⚠️ 'simplify=True' is not compatible with 'task=obb' and 'nms=True'. Disabling..."
-                    )
-                    self.args.simplify = False
+                check_requirements("onnxslim>=0.1.46")  # Older versions has bug with OBB
 
         torch.onnx.export(
             self.model.cpu() if dynamic else self.model,  # dynamic=True only compatible with cpu
@@ -1538,8 +1534,13 @@ class NMSModel(torch.nn.Module):
         scores, classes = scores.max(dim=-1)
         # (N, max_det, 4 coords + 1 class score + 1 class label + extra_shape).
         out = torch.zeros(
-            boxes.shape[0], self.args.max_det, boxes.shape[-1] + 2 + extras.shape[-1], device=boxes.device
+            boxes.shape[0],
+            self.args.max_det,
+            boxes.shape[-1] + 2 + extras.shape[-1],
+            device=boxes.device,
+            dtype=boxes.dtype,
         )
+        # box, cls, score, extra = boxes[0], classes[0], scores[0], extras[0]
         for i, (box, cls, score, extra) in enumerate(zip(boxes, classes, scores, extras)):
             mask = score > self.args.conf
             if self.is_tf:
@@ -1547,21 +1548,23 @@ class NMSModel(torch.nn.Module):
                 score *= mask
                 mask = torch.topk(
                     score,
-                    torch.max(torch.stack((mask.sum(), torch.tensor(self.args.max_det, device=score.device)))),
+                    torch.max(
+                        torch.stack((mask.sum(), torch.tensor(self.args.max_det, device=mask.device, dtype=torch.int)))
+                    ),
                 ).indices
             box, score, cls, extra = box[mask], score[mask], cls[mask], extra[mask]
             if not self.obb:
                 box = ops.box_convert(box, "cxcywh", "xyxy")
                 if self.is_tf:
                     # TFlite bug returns less boxes
-                    padding = torch.zeros((mask.shape[0] - box.shape[0], box.shape[1]), device=box.device)
+                    padding = torch.zeros(
+                        (mask.shape[0] - box.shape[0], box.shape[1]), device=box.device, dtype=box.dtype
+                    )
                     box = torch.cat([box, padding], dim=0)
             # large box values due to class offset causes issue with quantization
             nmsbox = (
-                (8 if self.obb else 1)
-                * box
-                / (torch.max(torch.tensor([x.shape[2], x.shape[3]], device=box.device, dtype=box.dtype)))
-            )
+                (8 if self.obb else 1) * box / (torch.max(torch.tensor([x.shape[2], x.shape[3]], device=box.device, dtype=box.dtype))
+            ))
             if not self.args.agnostic_nms:  # class-specific NMS
                 end = 2 if self.obb else 4
                 # fully explicit expansion otherwise reshape error
@@ -1577,6 +1580,8 @@ class NMSModel(torch.nn.Module):
             )[: self.args.max_det]
             dets = torch.cat([box[keep], score[keep].view(-1, 1), cls[keep].view(-1, 1), extra[keep]], dim=-1)
             # Zero-pad to max_det size to avoid reshape error
-            padding = torch.zeros((self.args.max_det - dets.shape[0], dets.shape[1]), device=dets.device)
+            padding = torch.zeros(
+                (self.args.max_det - dets.shape[0], dets.shape[1]), device=dets.device, dtype=dets.dtype
+            )
             out[i] = torch.cat([dets, padding], dim=0)
         return (out, preds[1]) if self.args.task == "segment" else out

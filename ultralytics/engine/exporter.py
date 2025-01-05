@@ -1545,12 +1545,11 @@ class NMSModel(torch.nn.Module):
             device=boxes.device,
             dtype=boxes.dtype,
         )
-        # box, cls, score, extra = boxes[0], classes[0], scores[0], extras[0]
         for i, (box, cls, score, extra) in enumerate(zip(boxes, classes, scores, extras)):
             mask = score > self.args.conf
             if self.is_tf:
                 # TFLite GatherND error if mask is empty
-                # Reshape error when if it doesn't know the no. of valid boxes after masking
+                # Explicit length otherwise reshape error
                 score *= mask
                 mask = score.argsort(descending=True)[: self.args.max_det * 5]
             box, score, cls, extra = box[mask], score[mask], cls[mask], extra[mask]

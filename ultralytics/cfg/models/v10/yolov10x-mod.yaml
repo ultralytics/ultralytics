@@ -1,7 +1,7 @@
 # YOLOv10 CBAM-enhanced model with integrated CBAM transitions
 
 # Parameters
-nc: 4 # number of classes
+nc: 80 # number of classes
 scales: # model compound scaling constants
   x: [1.00, 1.25, 512]
 

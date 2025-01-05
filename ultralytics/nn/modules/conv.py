@@ -277,95 +277,152 @@ class RepConv(nn.Module):
 
 
 class ChannelAttention(nn.Module):
-    """Channel-attention module https://github.com/open-mmlab/mmdetection/tree/v3.0.0rc1/configs/rtmdet."""
-
+    """
+    ChannelAttention focuses on recalibrating the channel-wise features by using a simple
+    global pooling (either avg, max, or both). Below is a minimal version using only avg pool.
+    """
     def __init__(self, channels: int) -> None:
-        """Initializes the class and sets the basic configurations and instance variables required."""
+        """
+        Args:
+            channels (int): Number of input channels (and output channels).
+        """
         super().__init__()
-        self.pool = nn.AdaptiveAvgPool2d(1)
-        self.fc = nn.Conv2d(channels, channels, 1, 1, 0, bias=True)
-        self.act = nn.Sigmoid()
+        self.pool = nn.AdaptiveAvgPool2d(1)  # Squeeze spatial dims -> shape [B, C, 1, 1]
+        self.fc = nn.Conv2d(channels, channels, kernel_size=1, bias=True)
+        self.act1 = nn.ReLU()     # Optional: Activation before sigmoid
+        self.act2 = nn.Sigmoid()  # Sigmoid to get attention weights
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """Applies forward pass using activation on convolutions of the input, optionally using batch normalization."""
-        # Apply average pooling -> (B, C, 1, 1)
-        avg_out = self.pool(x)
-        # Pass through 1x1 conv
-        out = self.fc(avg_out)
-        # Apply sigmoid
-        attention_map = self.act(out)
-        # Scale input by attention map (broadcast across spatial dims)
-        return x * attention_map
-    
-    
-class SpatialAttention(nn.Module):
-    """Spatial-attention module with BatchNorm and Softmax."""
-
-    def __init__(self, kernel_size=7):
-        super().__init__()
-        assert kernel_size in {3, 7}, f"Kernel size must be 3 or 7, but got {kernel_size}"
-
-        padding = (kernel_size - 1) // 2  # Calculate padding to keep output size same
-
-        self.conv = nn.Conv2d(2, 1, kernel_size=kernel_size, padding=padding, bias=False)
-        self.act = nn.Sigmoid()  
-
-    def forward(self, x):
         """
-        Forward pass for the SpatialAttention module.
+        Forward pass:
+        1) Perform spatial squeeze (global avg pool).
+        2) Pass pooled features through Conv -> ReLU -> Sigmoid.
+        3) Multiply input x by these channel-wise attention weights.
+
         Args:
-            x (torch.Tensor): Input tensor with shape (batch, channels, height, width).
+            x (torch.Tensor): shape [batch, channels, height, width].
         Returns:
-            out (torch.Tensor): Output tensor after applying spatial attention.
+            (torch.Tensor): shape [batch, channels, height, width].
         """
-        # 1. Mean across channels
-        avg_out = torch.mean(x, dim=1, keepdim=True)  # shape: (B, 1, H, W)
-        # 2. Max across channels
-        max_out, _ = torch.max(x, dim=1, keepdim=True)  # shape: (B, 1, H, W)
-        # 3. Concat along channel dim => shape: (B, 2, H, W)
-        x_cat = torch.cat([avg_out, max_out], dim=1)
-        # 4. Single conv
-        x_conv = self.conv(x_cat)
-        # 5. Sigmoid
-        attention_map = self.act(x_conv)
-        # 6. Element-wise multiply
-        return x * attention_map
+        # Squeeze (pool) -> shape is [B, C, 1, 1]
+        pooled = self.pool(x)
+        # Pass through Conv -> ReLU -> Sigmoid to get channel attention
+        attn = self.act1(self.fc(pooled))
+        attn = self.act2(attn)
+        # Multiply original input x by the attention weights
+        return x * attn
+
+
+class SpatialAttention(nn.Module):
+    """
+    SpatialAttention refines the spatial information of each channel by weighting each (h, w) location.
+    A common approach is to apply a Conv on the concatenated avg-pool and max-pool across channels.
+    """
+    def __init__(self, kernel_size=7):
+        """
+        Args:
+            kernel_size (int): Kernel size for the spatial attention conv (must be 3 or 7).
+        """
+        super().__init__()
+        assert kernel_size in {3, 7}, "kernel size must be 3 or 7"
+        padding = 3 if kernel_size == 7 else 1
+        
+        # Convolution that processes the concatenated [avg, max] across channels
+        self.cv1 = nn.Conv2d(2, 1, kernel_size, padding=padding, bias=False)
+        self.act = nn.Sigmoid()  # Sigmoid to compute final spatial attention map
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Forward pass:
+        1) Compute mean and max across the channel dimension.
+        2) Concatenate them along the channel dimension.
+        3) Pass the concatenation through a Conv -> Sigmoid to get spatial attention map.
+        4) Multiply the input x by the spatial attention map.
+
+        Args:
+            x (torch.Tensor): shape [batch, channels, height, width].
+        Returns:
+            (torch.Tensor): shape [batch, channels, height, width].
+        """
+        # mean over channels -> shape [B, 1, H, W]
+        avg = torch.mean(x, dim=1, keepdim=True)
+        # max over channels -> shape [B, 1, H, W]
+        mx = torch.max(x,  dim=1, keepdim=True)[0]  # .max() returns (values, indices)
+        
+        # Concatenate mean and max -> shape [B, 2, H, W]
+        concat = torch.cat([avg, mx], dim=1)
+        
+        # Pass through conv -> sigmoid
+        attn = self.act(self.cv1(concat))
+        
+        # Multiply with original input x
+        return x * attn
 
 class CBAM(nn.Module):
-    """Convolutional Block Attention Module with integrated Conv and BatchNorm."""
-
-    def __init__(self, c1, c2, k=3, shortcut=True,):
+    """
+    Convolutional Block Attention Module (CBAM):
+    1) Channel Attention (CA)
+    2) Spatial Attention (SA)
+    Optionally, a residual connection can be added if input and output have the same shape.
+    """
+    def __init__(
+        self,
+        c1: int,
+        c2: int = None,
+        kernel_size: int = 7,
+        shortcut: bool = True
+    ):
         """
-        Initializes the CBAM module with integrated Conv and BatchNorm.
         Args:
             c1 (int): Number of input channels.
-            c2 (int): Number of output channels.
-            k (int): Kernel size for convolutional layers (default is 3).
-            shortcut (bool): Whether to include a residual connection.
-            g (int): Number of groups for grouped convolution.
-            e (float): Expansion factor for hidden channels.
-            ratio (int): Reduction ratio for the channel attention module.
+            c2 (int): Number of output channels (defaults to c1 if None).
+            kernel_size (int): Kernel size for the SpatialAttention (3 or 7).
+            shortcut (bool): Whether to add a residual connection when c1 == c2.
         """
         super().__init__()
-        self.add = shortcut and c1==c2
-        self.channel_attention = ChannelAttention(c1)
-        self.spatial_attention = SpatialAttention(k)
+        # If c2 is not specified, use c1
+        if c2 is None:
+            c2 = c1
+        
+        # Determine if we can add skip connection
+        self.add = shortcut and (c1 == c2)
+        
+        # Optional projection if input/output channel dims differ
+        # If c1 != c2, use a 1x1 Conv to project to c2
+        self.conv_project = nn.Conv2d(c1, c2, kernel_size=1, bias=False) if (c1 != c2) else nn.Identity()
+        
+        # Initialize channel and spatial attention modules
+        self.channel_attention = ChannelAttention(c2)
+        self.spatial_attention = SpatialAttention(kernel_size)
 
-
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
-        Forward pass for the CBAM module.
+        Forward pass:
+        1) (Optional) project channels from c1 -> c2 if needed.
+        2) Apply channel attention.
+        3) Apply spatial attention.
+        4) If `self.add` is True, add the residual connection (x_residual) to the output.
+        
         Args:
-            x (torch.Tensor): Input tensor with shape (batch, channels, height, width).
+            x (torch.Tensor): shape [batch, c1, height, width].
         Returns:
-            out (torch.Tensor): Output tensor after applying CBAM.
+            (torch.Tensor): shape [batch, c2, height, width].
         """
-        x_residual = x 
-        x = self.spatial_attention(x)
+        # If c1 != c2, project to c2
+        x = self.conv_project(x)
+        # Save a copy for a potential residual connection
+        x_residual = x
+        
+        # (1) Channel Attention
         x = self.channel_attention(x)
-
+        
+        # (2) Spatial Attention
+        x = self.spatial_attention(x)
+        
+        # (3) Residual connection if c1 == c2 and shortcut=True
         if self.add:
             x += x_residual
+        
         return x
 
 class Concat(nn.Module):

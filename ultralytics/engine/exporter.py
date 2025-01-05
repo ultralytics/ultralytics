@@ -1562,7 +1562,7 @@ class NMSModel(torch.nn.Module):
             multiplier = 8 if self.obb else 1
             factor = torch.max(torch.tensor([x.shape[2], x.shape[3]], device=box.device, dtype=box.dtype))
             # large box values due to class offset causes issue with quantization
-            if self.is_tf:  # TF is already normalized
+            if self.args.format == "tflite":  # TFLite is already normalized
                 nmsbox *= multiplier
             else:
                 nmsbox = multiplier * nmsbox / factor

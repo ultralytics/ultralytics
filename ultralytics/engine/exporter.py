@@ -1566,11 +1566,10 @@ class NMSModel(torch.nn.Module):
             multiplier = 8 if self.obb else 1
             factor = torch.max(torch.tensor([x.shape[2], x.shape[3]], device=box.device, dtype=box.dtype))
             # large box values due to class offset causes issue with quantization
-            if not self.is_tf:  # TF is already normalized
-                nmsbox = multiplier * nmsbox / factor
-            else:
-                multiplier = factor if self.obb else 1
+            if self.is_tf:  # TF is already normalized
                 nmsbox *= multiplier
+            else:
+                nmsbox = multiplier * nmsbox / factor
             if not self.args.agnostic_nms:  # class-specific NMS
                 end = 2 if self.obb else 4
                 # fully explicit expansion otherwise reshape error

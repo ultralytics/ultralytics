@@ -93,8 +93,8 @@ def display_media_in_colab(source=None):
 
     if source is None:
         # download source from ultralytics assets
-        safe_download(f"{ASSETS_URL}/solutions_ci_demo.mp4")
-        source = '/content/solutions_ci_demo.mp4'
+        safe_download(f"{ASSETS_URL}/solutions_ci_demo.mp4", dir="assets")
+        source = '/content/assets/solutions_ci_demo.mp4'
 
     # Handle image files
     if source.lower().endswith(('.png', '.jpg', '.jpeg', '.bmp', '.gif')):

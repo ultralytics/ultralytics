@@ -38,7 +38,7 @@ WORKDIR /ultralytics
 # Copy contents and configure git
 COPY . .
 # Moving cleanup into relevant layers
-RUN sed -i '/^\[http "https:\/\/github\.com\/"\]/,+1d' .git/config && \
+RUN sed -i '/^\[http "https:\/\/github\.com\/"]/,\+1d' .git/config && \
     rm -rf tmp /root/.config/Ultralytics/persistent_cache.json
 ADD https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11n.pt .
 

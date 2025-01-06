@@ -92,6 +92,13 @@ jobs:
         with:
           fetch-depth: 0 # copy full .git directory to access full git history in Docker images
 
+      - name: Validate .dockerignore
+        run: |
+          if [ ! -f .dockerignore ]; then
+            echo "Error: .dockerignore file not found in root directory"
+            exit 1
+          fi
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
@@ -140,12 +147,15 @@ jobs:
           retry_delay_seconds: 60
           retries: 2
           run: |
-            docker build \
-            --platform ${{ matrix.platforms }} \
-            -f docker/${{ matrix.dockerfile }} \
-            -t ultralytics/ultralytics:${{ matrix.tags }} \
-            -t ultralytics/ultralytics:${{ steps.get_version.outputs.version_tag }} \
-            .
+            docker buildx create --use #buildx is Docker's enhanced build feature that provides better multi-platform support and improved caching
+            docker buildx build \
+              --platform ${{ matrix.platforms }} \
+              -f docker/${{ matrix.dockerfile }} \
+              -t ultralytics/ultralytics:${{ matrix.tags }} \
+              -t ultralytics/ultralytics:${{ steps.get_version.outputs.version_tag }} \
+              --build-arg BUILDKIT_INLINE_CACHE=1 \
+              --progress=plain \
+              .
 
       - name: Run Tests
         if: (github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true') && matrix.platforms == 'linux/amd64' && matrix.dockerfile != 'Dockerfile-conda' # arm64 images not supported on GitHub CI runners

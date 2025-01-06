@@ -44,6 +44,7 @@ To install the required packages, run:
         ```bash
         # Install the required packages for Ultralytics YOLO and Weights & Biases
         pip install -U ultralytics wandb
+
         # Enable W&B logging for Ultralytics
         yolo settings wandb=True
         ```

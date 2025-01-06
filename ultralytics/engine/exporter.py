@@ -1554,10 +1554,7 @@ class NMSModel(torch.nn.Module):
                 box = ops.box_convert(box, "cxcywh", "xyxy")
                 if self.is_tf:
                     # TFlite bug returns less boxes
-                    padding = torch.zeros(
-                        (mask.shape[0] - box.shape[0], box.shape[1]), device=box.device, dtype=box.dtype
-                    )
-                    box = torch.cat([box, padding], dim=0)
+                    box = torch.nn.functional.pad(box, (0, 0, 0, mask.shape[0] - box.shape[0]))
             nmsbox = box.clone()
             multiplier = 8 if self.obb else 1
             factor = torch.tensor([x.shape[2], x.shape[3]], device=box.device, dtype=box.dtype).max()
@@ -1581,8 +1578,6 @@ class NMSModel(torch.nn.Module):
             )[: self.args.max_det]
             dets = torch.cat([box[keep], score[keep].view(-1, 1), cls[keep].view(-1, 1), extra[keep]], dim=-1)
             # Zero-pad to max_det size to avoid reshape error
-            padding = torch.zeros(
-                (self.args.max_det - dets.shape[0], dets.shape[1]), device=dets.device, dtype=dets.dtype
-            )
-            out[i] = torch.cat([dets, padding], dim=0)
+            pad = (0, 0, 0, self.args.max_det - dets.shape[0])
+            out[i] = torch.nn.functional.pad(dets, pad)
         return (out, preds[1]) if self.args.task == "segment" else out

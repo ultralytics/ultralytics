@@ -72,7 +72,7 @@ def exif_size(img: Image.Image):
 
 
 def display_media_in_colab(source=None):
-    from IPython.display import HTML, Image, display
+    from IPython.display import HTML, display
     from base64 import b64encode
 
     LOGGER.warning("⚠️ Display initialization in progress. This may take a few seconds...")

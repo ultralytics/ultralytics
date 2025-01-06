@@ -76,10 +76,11 @@ def display_media_in_colab(source=None):
     Ultralytics assets and displayed.
 
     Args:
-        source (str, optional): Path to the local image or video file, or a URL to the media file. Supported file
-        formats include:
-            - Image: .png, .jpg, .jpeg, .bmp, .gif
-            - Video: .mp4, .avi, .mov, .mkv, .webm
+        source (str, optional): Path to the local image or video file, or a URL to the media file.
+
+    Supported file formats:
+        - Image: .png, .jpg, .jpeg, .bmp, .gif
+        - Video: .mp4, .avi, .mov, .mkv, .webm
 
     Example:
         >>> display_media_in_colab("/path/to/image_or_video.mp4")

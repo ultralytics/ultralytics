@@ -1515,7 +1515,7 @@ class NMSModel(torch.nn.Module):
             ious = ious.triu_(diagonal=1)
         mask = 1 - (ious > iou).sum(0) > 0  # same as ious.max(dim=0) > iou but can handle empty values
         scores[~mask] = 0
-        keep = torch.topk(scores, mask.sum()).indices
+        keep = scores.topk(mask.sum()).indices
         return keep
 
     def forward(self, x):
@@ -1548,7 +1548,7 @@ class NMSModel(torch.nn.Module):
                 # TFLite GatherND error if mask is empty
                 # Explicit length otherwise reshape error
                 score *= mask
-                mask = torch.topk(score, self.args.max_det * 5).indices
+                mask = score.topk(self.args.max_det * 5).indices
             box, score, cls, extra = box[mask], score[mask], cls[mask], extra[mask]
             if not self.obb:
                 box = ops.box_convert(box, "cxcywh", "xyxy")
@@ -1560,7 +1560,7 @@ class NMSModel(torch.nn.Module):
                     box = torch.cat([box, padding], dim=0)
             nmsbox = box.clone()
             multiplier = 8 if self.obb else 1
-            factor = torch.max(torch.tensor([x.shape[2], x.shape[3]], device=box.device, dtype=box.dtype))
+            factor = torch.tensor([x.shape[2], x.shape[3]], device=box.device, dtype=box.dtype).max()
             # large box values due to class offset causes issue with quantization
             if self.args.format == "tflite":  # TFLite is already normalized
                 nmsbox *= multiplier

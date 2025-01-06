@@ -72,13 +72,14 @@ def exif_size(img: Image.Image):
 
 
 def display_media_in_colab(source=None):
+    LOGGER.warning("⚠️ Display initialization in progress. This may take a few seconds...")
+
     from IPython.display import HTML, display
     from base64 import b64encode
 
-    LOGGER.warning("⚠️ Display initialization in progress. This may take a few seconds...")
     if source is None:
-        safe_download(f"{ASSETS_URL}/{solutions_ci_demo.mp4}")  # download source from ultralytics assets
-        source = '/content/solutions_ci_demo.mp4'
+        safe_download(f"https://ultralytics.com/images/bus.jpg")  # download source from ultralytics assets
+        source = '/content/bus.jpg'
 
     # Handle image files
     if source.lower().endswith(('.png', '.jpg', '.jpeg', '.bmp', '.gif')):

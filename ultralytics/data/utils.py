@@ -83,7 +83,7 @@ def display_media_in_colab(source=None):
             - Video: .mp4, .avi, .mov, .mkv, .webm
 
     Example:
-        >>> display_media_in_colab('/path/to/image_or_video.mp4')
+        >>> display_media_in_colab("/path/to/image_or_video.mp4")
         >>> display_media_in_colab()
     """
     LOGGER.warning("⚠️ Display initialization in progress. This may take a few seconds...")
@@ -93,8 +93,8 @@ def display_media_in_colab(source=None):
 
     if source is None:
         # download source from ultralytics assets
-        safe_download(f"{ASSETS_URL}/solutions_ci_demo.mp4", dir="assets")
-        source = '/content/assets/solutions_ci_demo.mp4'
+        safe_download("https://github.com/ultralytics/yolov5/releases/download/v1.0/bus.jpg")
+        source = '/content/bus.jpg'
 
     # Handle image files
     if source.lower().endswith(('.png', '.jpg', '.jpeg', '.bmp', '.gif')):

@@ -1505,7 +1505,7 @@ class NMSModel(torch.nn.Module):
             keep (torch.tensor): Indices of top-k (max_det) boxes to keep.
         """
         ious = batch_probiou(boxes, boxes)
-        if self.is_tf or self.args.opset < 14:  # Trilu not supported
+        if self.is_tf or (self.args.opset or 14) < 14:  # Trilu not supported
             n = boxes.shape[0]
             row_idx = torch.arange(n, device=boxes.device).view(-1, 1).expand(-1, n)
             col_idx = torch.arange(n, device=boxes.device).view(1, -1).expand(n, -1)

@@ -66,6 +66,17 @@ visualize_image_annotations(
 )
 ```
 
+### Display Image or Video in [Google Colab](https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb)
+
+```{ .py .annotate }
+# pip install ultralytics
+
+from ultralytics.data.utils import display_media_in_colab
+
+display_media_in_colab("/path/to/image_or_video.mp4")
+display_media_in_colab()  # by default `bus.jpg` will be used.
+```
+
 ### Convert Segmentation Masks into YOLO Format
 
 ![Segmentation Masks to YOLO Format](https://github.com/ultralytics/docs/releases/download/0/segmentation-masks-to-yolo-format.avif)

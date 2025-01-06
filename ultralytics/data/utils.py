@@ -78,7 +78,8 @@ def display_media_in_colab(source=None):
     from base64 import b64encode
 
     if source is None:
-        safe_download(f"https://github.com/ultralytics/ultralytics/blob/main/ultralytics/assets/bus.jpg")  # download source from ultralytics assets
+        # download source from ultralytics assets
+        safe_download(f"https://github.com/ultralytics/yolov5/releases/download/v1.0/bus.jpg")
         source = '/content/bus.jpg'
 
     # Handle image files
@@ -94,7 +95,7 @@ def display_media_in_colab(source=None):
         <source src="data:video/mp4;base64,{video_base64}" type="video/mp4"></video>'''
         display(HTML(video_tag))
     else:
-        print("Unsupported file format. Please provide a valid image or video file.")
+        LOGGER.error("❌ Unsupported file format. Please provide a valid image or video file.")
 
 
 def verify_image(args):

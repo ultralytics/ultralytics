@@ -72,6 +72,20 @@ def exif_size(img: Image.Image):
 
 
 def display_media_in_colab(source=None):
+    """
+    Displays an image or video file in Google Colab. If no source is provided, a default video is downloaded
+    from Ultralytics assets and displayed.
+
+    Args:
+        source (str, optional): Path to the local image or video file, or a URL to the media file. Supported file
+        formats include:
+            - Image: .png, .jpg, .jpeg, .bmp, .gif
+            - Video: .mp4, .avi, .mov, .mkv, .webm
+
+    Example:
+        >>> display_media_in_colab('/path/to/image_or_video.mp4')
+        >>> display_media_in_colab()
+    """
     LOGGER.warning("⚠️ Display initialization in progress. This may take a few seconds...")
 
     from IPython.display import HTML, display
@@ -79,8 +93,8 @@ def display_media_in_colab(source=None):
 
     if source is None:
         # download source from ultralytics assets
-        safe_download(f"https://github.com/ultralytics/yolov5/releases/download/v1.0/bus.jpg")
-        source = '/content/bus.jpg'
+        safe_download(f"{ASSETS_URL}/solutions_ci_demo.mp4")
+        source = '/content/solutions_ci_demo.mp4'
 
     # Handle image files
     if source.lower().endswith(('.png', '.jpg', '.jpeg', '.bmp', '.gif')):

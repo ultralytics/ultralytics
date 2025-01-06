@@ -29,7 +29,6 @@ from ultralytics.utils import (
     is_dir_writeable,
     yaml_load,
     yaml_save,
-    ASSETS_URL,
 )
 from ultralytics.utils.checks import check_file, check_font, is_ascii
 from ultralytics.utils.downloads import download, safe_download, unzip_file
@@ -73,8 +72,8 @@ def exif_size(img: Image.Image):
 
 def display_media_in_colab(source=None):
     """
-    Displays an image or video file in Google Colab. If no source is provided, a default video is downloaded
-    from Ultralytics assets and displayed.
+    Displays an image or video file in Google Colab. If no source is provided, a default video is downloaded from
+    Ultralytics assets and displayed.
 
     Args:
         source (str, optional): Path to the local image or video file, or a URL to the media file. Supported file
@@ -88,25 +87,26 @@ def display_media_in_colab(source=None):
     """
     LOGGER.warning("⚠️ Display initialization in progress. This may take a few seconds...")
 
-    from IPython.display import HTML, display
     from base64 import b64encode
+
+    from IPython.display import HTML, display
 
     if source is None:
         # download source from ultralytics assets
         safe_download("https://github.com/ultralytics/yolov5/releases/download/v1.0/bus.jpg")
-        source = '/content/bus.jpg'
+        source = "/content/bus.jpg"
 
     # Handle image files
-    if source.lower().endswith(('.png', '.jpg', '.jpeg', '.bmp', '.gif')):
+    if source.lower().endswith((".png", ".jpg", ".jpeg", ".bmp", ".gif")):
         img = Image.open(source)
         display(img)
 
     # Handle video files
-    elif source.lower().endswith(('.mp4', '.avi', '.mov', '.mkv', '.webm')):
+    elif source.lower().endswith((".mp4", ".avi", ".mov", ".mkv", ".webm")):
         with open(source, "rb") as video_file:
             video_base64 = b64encode(video_file.read()).decode()
-        video_tag = f'''<video width="640" height="480" controls>
-        <source src="data:video/mp4;base64,{video_base64}" type="video/mp4"></video>'''
+        video_tag = f"""<video width="640" height="480" controls>
+        <source src="data:video/mp4;base64,{video_base64}" type="video/mp4"></video>"""
         display(HTML(video_tag))
     else:
         LOGGER.error("❌ Unsupported file format. Please provide a valid image or video file.")

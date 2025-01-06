@@ -72,7 +72,7 @@ def exif_size(img: Image.Image):
 
 def display_media_in_colab(source=None):
     """
-    Displays an image or video file in Google Colab. If no source is provided, a default video is downloaded from
+    Displays an image or video file in Google Colab. If no source is provided, a default image is downloaded from
     Ultralytics assets and displayed.
 
     Args:

@@ -110,7 +110,7 @@ Before diving into the usage instructions for YOLO11 model training with Weights
 
 !!! tip "Enable or Disable Weights & Biases"
 
-    If you want to enable or disable Weights & Biases logging in Ultralytics, you can use the `yolo settings` command. By default, Weights & Biases logging is disabled
+    If you want to enable or disable Weights & Biases logging in Ultralytics, you can use the `yolo settings` command. By default, Weights & Biases logging is disabled.
 
     === "CLI"
 

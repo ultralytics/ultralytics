@@ -55,7 +55,7 @@ RUN pip install uv && \
     ( yolo export model=tmp/yolo11n.pt format=edgetpu imgsz=32 || \
       yolo export model=tmp/yolo11n.pt format=edgetpu imgsz=32 ) && \
     yolo export model=tmp/yolo11n.pt format=ncnn imgsz=32 && \
-    rm -rf tmp /root/.config/Ultralytics/persistent_cache.json .git
+    rm -rf tmp /root/.config/Ultralytics/persistent_cache.json 
 
 # Usage Examples -------------------------------------------------------------------------------------------------------
 

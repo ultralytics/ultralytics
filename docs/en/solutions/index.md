@@ -10,6 +10,17 @@ Ultralytics Solutions provide cutting-edge applications of YOLO models, offering
 
 ![Ultralytics Solutions Thumbnail](https://github.com/ultralytics/docs/releases/download/0/ultralytics-solutions-thumbnail.avif)
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/bjkt5OE_ANA"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to Run Ultralytics Solutions from the Command Line (CLI) | Ultralytics YOLO11 🚀
+</p>
+
 ## Solutions
 
 Here's our curated list of Ultralytics solutions that can be used to create awesome [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) projects.
@@ -27,8 +38,9 @@ Here's our curated list of Ultralytics solutions that can be used to create awes
 - [Distance Calculation](../guides/distance-calculation.md) 🚀: Calculate distances between objects using [bounding box](https://www.ultralytics.com/glossary/bounding-box) centroids in YOLO11, essential for spatial analysis.
 - [Queue Management](../guides/queue-management.md) 🚀: Implement efficient queue management systems to minimize wait times and improve productivity using YOLO11.
 - [Parking Management](../guides/parking-management.md) 🚀: Organize and direct vehicle flow in parking areas with YOLO11, optimizing space utilization and user experience.
-- [Analytics](../guides/analytics.md) 📊 NEW: Conduct comprehensive data analysis to discover patterns and make informed decisions, leveraging YOLO11 for descriptive, predictive, and prescriptive analytics.
+- [Analytics](../guides/analytics.md) 📊: Conduct comprehensive data analysis to discover patterns and make informed decisions, leveraging YOLO11 for descriptive, predictive, and prescriptive analytics.
 - [Live Inference with Streamlit](../guides/streamlit-live-inference.md) 🚀: Leverage the power of YOLO11 for real-time [object detection](https://www.ultralytics.com/glossary/object-detection) directly through your web browser with a user-friendly Streamlit interface.
+- [Track Objects in Zone](../guides/trackzone.md) 🎯 NEW: Learn how to track objects within specific zones of video frames using YOLO11 for precise and efficient monitoring.
 
 ## Solutions Usage
 
@@ -37,7 +49,7 @@ Here's our curated list of Ultralytics solutions that can be used to create awes
     `yolo SOLUTIONS SOLUTION_NAME ARGS`
 
     - **SOLUTIONS** is a required keyword.
-    - **SOLUTION_NAME** (optional) is one of: `['count', 'heatmap', 'queue', 'speed', 'workout', 'analytics']`.
+    - **SOLUTION_NAME** (optional) is one of: `['count', 'heatmap', 'queue', 'speed', 'workout', 'analytics', 'trackzone']`.
     - **ARGS** (optional) are custom `arg=value` pairs, such as `show_in=True`, to override default settings.
 
     === "CLI"
@@ -47,6 +59,14 @@ Here's our curated list of Ultralytics solutions that can be used to create awes
 
         yolo solutions source="path/to/video/file.mp4"  # specify video file path
         ```
+
+## Arguments
+
+!!! tip "Predict args"
+
+    Solutions also support some of the arguments from `predict`, including parameters such as `conf`, `line_width`, `tracker`, `model`, `show`, and `classes`.
+
+{% include "macros/solutions-args.md" %}
 
 ## Contribute to Our Solutions
 

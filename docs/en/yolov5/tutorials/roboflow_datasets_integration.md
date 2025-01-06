@@ -29,7 +29,7 @@ After uploading data to Roboflow, you can label your data and review previous la
 
 ## Versioning
 
-You can make versions of your dataset with different preprocessing and offline augmentation options. YOLOv5 does online augmentations natively, so be intentional when layering Roboflow's offline augmentations on top.
+You can make versions of your dataset with different preprocessing and offline augmentation options. YOLOv5 does online augmentations natively, so be intentional when layering Roboflow offline augmentations on top.
 
 ![Roboflow Preprocessing](https://github.com/ultralytics/docs/releases/download/0/roboflow-preprocessing.avif)
 

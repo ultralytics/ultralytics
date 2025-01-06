@@ -41,7 +41,7 @@ Export an Ultralytics YOLOv8 model to IMX500 format and run inference with the e
 
 !!! note
 
-    Here we perform inference just to make sure the model works as expected. However, for deployment and inference on the Raspberry Pi AI Camera, please jump to [Using IMX500 Export in Deployment](#using-imx500-export-in-deployment) section.
+    IMX export is currently only supported for the YOLOv8n model. Here we perform inference just to make sure the model works as expected. However, for deployment and inference on the Raspberry Pi AI Camera, please jump to [Using IMX500 Export in Deployment](#using-imx500-export-in-deployment) section.
 
 !!! example
 
@@ -162,7 +162,7 @@ cd examples/imx500
 Step 3: Run YOLOv8 object detection, using the labels.txt file that has been generated during the IMX500 export.
 
 ```bash
-python imx500_object_detection_demo.py --model <path to network.rpk> --fps 25 --bbox-normalization --ignore-dash-labels --bbox-order xy –labels <path to labels.txt>
+python imx500_object_detection_demo.py --model <path to network.rpk> --fps 25 --bbox-normalization --ignore-dash-labels --bbox-order xy --labels <path to labels.txt>
 ```
 
 Then you will be able to see live inference output as follows

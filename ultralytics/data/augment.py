@@ -149,8 +149,37 @@ class BaseMixTransform:
         """Gets a list of shuffled indexes for mosaic augmentation."""
         raise NotImplementedError
 
-    def _update_label_text(self, labels):
-        """Updates label text and class IDs for mixed labels in image augmentation."""
+    @staticmethod
+    def _update_label_text(labels):
+        """
+        Updates label text and class IDs for mixed labels in image augmentation.
+
+        This method processes the 'texts' and 'cls' fields of the input labels dictionary and any mixed labels,
+        creating a unified set of text labels and updating class IDs accordingly.
+
+        Args:
+            labels (Dict): A dictionary containing label information, including 'texts' and 'cls' fields,
+                and optionally a 'mix_labels' field with additional label dictionaries.
+
+        Returns:
+            (Dict): The updated labels dictionary with unified text labels and updated class IDs.
+
+        Examples:
+            >>> labels = {
+            ...     "texts": [["cat"], ["dog"]],
+            ...     "cls": torch.tensor([[0], [1]]),
+            ...     "mix_labels": [{"texts": [["bird"], ["fish"]], "cls": torch.tensor([[0], [1]])}],
+            ... }
+            >>> updated_labels = self._update_label_text(labels)
+            >>> print(updated_labels["texts"])
+            [['cat'], ['dog'], ['bird'], ['fish']]
+            >>> print(updated_labels["cls"])
+            tensor([[0],
+                    [1]])
+            >>> print(updated_labels["mix_labels"][0]["cls"])
+            tensor([[2],
+                    [3]])
+        """
         if "texts" not in labels:
             return labels
 
@@ -220,7 +249,7 @@ class Mosaic(BaseMixTransform):
                 c = s - w, s + h0 - h, s, s + h0
 
             padw, padh = c[:2]
-            x1, y1, x2, y2 = (max(x, 0) for x in c)  # allocate coords
+            x1, y1, x2, y2 = (max(x, 0) for x in c)  # allocate coordinates
 
             img3[y1:y2, x1:x2] = img[y1 - padh :, x1 - padw :]  # Place image in mosaic
             # Update labels
@@ -307,7 +336,8 @@ class Mosaic(BaseMixTransform):
                 c = s - w, s + h0 - hp - h, s, s + h0 - hp
 
             padw, padh = c[:2]
-            x1, y1, x2, y2 = (max(x, 0) for x in c)
+
+            x1, y1, x2, y2 = (max(x, 0) for x in c)  # allocate coordinates
 
             # Place image in mosaic
             img9[y1:y2, x1:x2] = img[y1 - padh :, x1 - padw :]
@@ -672,7 +702,8 @@ class RandomPerspective:
         labels["resized_shape"] = img.shape[:2]
         return labels
 
-    def box_candidates(self, box1, box2, wh_thr=2, ar_thr=100, area_thr=0.1, eps=1e-16):
+    @staticmethod
+    def box_candidates(box1, box2, wh_thr=2, ar_thr=100, area_thr=0.1, eps=1e-16):
         """
         Compute candidate boxes for further processing based on size and aspect ratio criteria.
 
@@ -694,7 +725,7 @@ class RandomPerspective:
             eps (float): Small epsilon value to prevent division by zero.
 
         Returns:
-            (numpy.ndarray): Boolean array of shape (n,) indicating which boxes are candidates.
+            (numpy.ndarray): Boolean array of shape (n) indicating which boxes are candidates.
                 True values correspond to boxes that meet all criteria.
 
         Examples:
@@ -715,12 +746,41 @@ class RandomHSV:
     """
     Randomly adjusts the Hue, Saturation, and Value (HSV) channels of an image.
 
-    This class applies random HSV augmentation to images within predefined limits set by hgain, sgain, and vgain. For
-    single-channel images, only the Value (brightness) is adjusted.
+    This class applies random HSV augmentation to images within predefined limits set by hgain, sgain, and vgain.
+
+    Attributes:
+        hgain (float): Maximum variation for hue. Range is typically [0, 1].
+        sgain (float): Maximum variation for saturation. Range is typically [0, 1].
+        vgain (float): Maximum variation for value. Range is typically [0, 1].
+
+    Methods:
+        __call__: Applies random HSV augmentation to an image.
+
+    Examples:
+        >>> import numpy as np
+        >>> from ultralytics.data.augment import RandomHSV
+        >>> augmenter = RandomHSV(hgain=0.5, sgain=0.5, vgain=0.5)
+        >>> image = np.random.randint(0, 255, (100, 100, 3), dtype=np.uint8)
+        >>> labels = {"img": image}
+        >>> augmenter(labels)
+        >>> augmented_image = augmented_labels["img"]
     """
 
     def __init__(self, hgain=0.5, sgain=0.5, vgain=0.5) -> None:
-        """Initializes the RandomHSV object for random HSV augmentation."""
+        """
+        Initializes the RandomHSV object for random HSV (Hue, Saturation, Value) augmentation.
+
+        This class applies random adjustments to the HSV channels of an image within specified limits.
+
+        Args:
+            hgain (float): Maximum variation for hue. Should be in the range [0, 1].
+            sgain (float): Maximum variation for saturation. Should be in the range [0, 1].
+            vgain (float): Maximum variation for value. Should be in the range [0, 1].
+
+        Examples:
+            >>> hsv_aug = RandomHSV(hgain=0.5, sgain=0.5, vgain=0.5)
+            >>> hsv_aug(image)
+        """
         self.hgain = hgain
         self.sgain = sgain
         self.vgain = vgain
@@ -764,7 +824,24 @@ class RandomFlip:
     """
 
     def __init__(self, p=0.5, direction="horizontal", flip_idx=None) -> None:
-        """Initializes the RandomFlip class with probability and direction."""
+        """
+        Initializes the RandomFlip class with probability and direction.
+
+        This class applies a random horizontal or vertical flip to an image with a given probability.
+        It also updates any instances (bounding boxes, keypoints, etc.) accordingly.
+
+        Args:
+            p (float): The probability of applying the flip. Must be between 0 and 1.
+            direction (str): The direction to apply the flip. Must be 'horizontal' or 'vertical'.
+            flip_idx (List[int] | None): Index mapping for flipping keypoints, if any.
+
+        Raises:
+            AssertionError: If direction is not 'horizontal' or 'vertical', or if p is not between 0 and 1.
+
+        Examples:
+            >>> flip = RandomFlip(p=0.5, direction="horizontal")
+            >>> flip_with_idx = RandomFlip(p=0.7, direction="vertical", flip_idx=[1, 0, 3, 2, 5, 4])
+        """
         assert direction in {"horizontal", "vertical"}, f"Support direction `horizontal` or `vertical`, got {direction}"
         assert 0 <= p <= 1.0, f"The probability should be in range [0, 1], but got {p}."
 
@@ -855,15 +932,37 @@ class LetterBox:
             img = np.expand_dims(img, -1)
 
         if len(labels):
-            labels = self._update_labels(labels, ratio, dw, dh)
+            labels = self._update_labels(labels, ratio, left, top)
             labels["img"] = img
             labels["resized_shape"] = new_shape
             return labels
         else:
             return img
 
-    def _update_labels(self, labels, ratio, padw, padh):
-        """Updates labels after applying letterboxing to an image."""
+    @staticmethod
+    def _update_labels(labels, ratio, padw, padh):
+        """
+        Updates labels after applying letterboxing to an image.
+
+        This method modifies the bounding box coordinates of instances in the labels
+        to account for resizing and padding applied during letterboxing.
+
+        Args:
+            labels (Dict): A dictionary containing image labels and instances.
+            ratio (Tuple[float, float]): Scaling ratios (width, height) applied to the image.
+            padw (float): Padding width added to the image.
+            padh (float): Padding height added to the image.
+
+        Returns:
+            (Dict): Updated labels dictionary with modified instance coordinates.
+
+        Examples:
+            >>> letterbox = LetterBox(new_shape=(640, 640))
+            >>> labels = {"instances": Instances(...)}
+            >>> ratio = (0.5, 0.5)
+            >>> padw, padh = 10, 20
+            >>> updated_labels = letterbox._update_labels(labels, ratio, padw, padh)
+        """
         labels["instances"].convert_bbox(format="xyxy")
         labels["instances"].denormalize(*labels["img"].shape[:2][::-1])
         labels["instances"].scale(*ratio)
@@ -1116,7 +1215,34 @@ class Format:
         self.image_channels = image_channels
 
     def __call__(self, labels):
-        """Formats image annotations for object detection, instance segmentation, and pose estimation tasks."""
+        """
+        Formats image annotations for object detection, instance segmentation, and pose estimation tasks.
+
+        This method standardizes the image and instance annotations to be used by the `collate_fn` in PyTorch
+        DataLoader. It processes the input labels dictionary, converting annotations to the specified format and
+        applying normalization if required.
+
+        Args:
+            labels (Dict): A dictionary containing image and annotation data with the following keys:
+                - 'img': The input image as a numpy array.
+                - 'cls': Class labels for instances.
+                - 'instances': An Instances object containing bounding boxes, segments, and keypoints.
+
+        Returns:
+            (Dict): A dictionary with formatted data, including:
+                - 'img': Formatted image tensor.
+                - 'cls': Class label's tensor.
+                - 'bboxes': Bounding boxes tensor in the specified format.
+                - 'masks': Instance masks tensor (if return_mask is True).
+                - 'keypoints': Keypoints tensor (if return_keypoint is True).
+                - 'batch_idx': Batch index tensor (if batch_idx is True).
+
+        Examples:
+            >>> formatter = Format(bbox_format="xywh", normalize=True, return_mask=True)
+            >>> labels = {"img": np.random.rand(640, 640, 3), "cls": np.array([0, 1]), "instances": Instances(...)}
+            >>> formatted_labels = formatter(labels)
+            >>> print(formatted_labels.keys())
+        """
         img = labels.pop("img")
         h, w = img.shape[:2]
         cls = labels.pop("cls")
@@ -1212,7 +1338,18 @@ class Format:
         return img
 
     def _format_segments(self, instances, cls, w, h):
-        """Converts polygon segments to bitmap masks."""
+        """Converts polygon segments to bitmap masks.
+
+        Returns:
+            masks (numpy.ndarray): Bitmap masks with shape (N, H, W) or (1, H, W) if mask_overlap is True.
+            instances (Instances): Updated instances object with sorted segments if mask_overlap is True.
+            cls (numpy.ndarray): Updated class labels, sorted if mask_overlap is True.
+
+        Notes:
+            - If self.mask_overlap is True, masks are overlapped and sorted by area.
+            - If self.mask_overlap is False, each mask is represented separately.
+            - Masks are downsampled according to self.mask_ratio.
+        """
         segments = instances.segments
         if self.mask_overlap:
             masks, sorted_idx = polygons2masks_overlap((h, w), segments, downsample_ratio=self.mask_ratio)

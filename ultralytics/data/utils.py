@@ -29,6 +29,7 @@ from ultralytics.utils import (
     is_dir_writeable,
     yaml_load,
     yaml_save,
+    ASSETS_URL,
 )
 from ultralytics.utils.checks import check_file, check_font, is_ascii
 from ultralytics.utils.downloads import download, safe_download, unzip_file
@@ -68,6 +69,27 @@ def exif_size(img: Image.Image):
         except Exception:
             pass
     return s
+
+
+def display_media_in_colab(source=None):
+    if source is None:
+        safe_download(f"{ASSETS_URL}/{solutions_ci_demo.mp4}")  # download source from ultralytics assets
+        source = '/content/solutions_ci_demo.mp4'
+
+    # Handle image files
+    if source.lower().endswith(('.png', '.jpg', '.jpeg', '.bmp', '.gif')):
+        img = PILImage.open(file_path)
+        display(img)
+
+    # Handle video files
+    elif source.lower().endswith(('.mp4', '.avi', '.mov', '.mkv', '.webm')):
+        with open(source, "rb") as video_file:
+            video_base64 = b64encode(video_file.read()).decode()
+        video_tag = f'''<video width="640" height="480" controls>
+        <source src="data:video/mp4;base64,{video_base64}" type="video/mp4"></video>'''
+        display(HTML(video_tag))
+    else:
+        print("Unsupported file format. Please provide a valid image or video file.")
 
 
 def verify_image(args):

@@ -503,6 +503,7 @@ class Exporter:
                 dynamic["output0"].pop(2)
         if self.args.nms:
             self.model = NMSModel(self.model, self.args)
+            self.args.opset = opset_version
             if self.args.task == "obb":
                 # OBB error https://github.com/pytorch/pytorch/issues/110859#issuecomment-1757841865
                 torch.onnx.register_custom_op_symbolic("aten::lift_fresh", lambda g, x: x, opset_version)
@@ -1503,9 +1504,8 @@ class NMSModel(torch.nn.Module):
         Returns:
             keep (torch.tensor): Indices of top-k (max_det) boxes to keep.
         """
-        mask = torch.zeros(boxes.shape[0], dtype=torch.bool, device=boxes.device)
         ious = batch_probiou(boxes, boxes)
-        if self.is_tf:
+        if self.is_tf or self.args.opset < 14:  # Trilu not supported
             n = boxes.shape[0]
             row_idx = torch.arange(n, device=boxes.device).view(-1, 1).expand(-1, n)
             col_idx = torch.arange(n, device=boxes.device).view(1, -1).expand(n, -1)
@@ -1548,7 +1548,7 @@ class NMSModel(torch.nn.Module):
                 # TFLite GatherND error if mask is empty
                 # Explicit length otherwise reshape error
                 score *= mask
-                mask = score.argsort(descending=True)[: self.args.max_det * 5]
+                mask = torch.topk(score, self.args.max_det * 5).indices
             box, score, cls, extra = box[mask], score[mask], cls[mask], extra[mask]
             if not self.obb:
                 box = ops.box_convert(box, "cxcywh", "xyxy")

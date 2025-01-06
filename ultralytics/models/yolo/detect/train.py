@@ -150,4 +150,3 @@ class DetectionTrainer(BaseTrainer):
         # 4 for mosaic augmentation
         max_num_obj = max(len(l["cls"]) for l in train_dataset.labels) * 4
         return super().auto_batch(ch, max_num_obj)
-

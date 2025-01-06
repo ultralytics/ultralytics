@@ -1338,7 +1338,8 @@ class Format:
         return img
 
     def _format_segments(self, instances, cls, w, h):
-        """Converts polygon segments to bitmap masks.
+        """
+        Converts polygon segments to bitmap masks.
 
         Returns:
             masks (numpy.ndarray): Bitmap masks with shape (N, H, W) or (1, H, W) if mask_overlap is True.

@@ -78,7 +78,7 @@ def display_media_in_colab(source=None):
     from base64 import b64encode
 
     if source is None:
-        safe_download(f"https://ultralytics.com/images/bus.jpg")  # download source from ultralytics assets
+        safe_download(f"https://github.com/ultralytics/ultralytics/blob/main/ultralytics/assets/bus.jpg")  # download source from ultralytics assets
         source = '/content/bus.jpg'
 
     # Handle image files

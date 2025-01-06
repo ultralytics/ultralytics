@@ -2,22 +2,6 @@
 # Builds ultralytics/ultralytics:latest image on DockerHub https://hub.docker.com/r/ultralytics/ultralytics
 # Image is CUDA-optimized for YOLO11 single/multi-GPU training and inference
 
-# .dockerignore file content , tells Docker which files and directories to exclude when building an image:
-.git
-.gitignore
-.github
-*.md
-*.log
-tmp/
-__pycache__/
-*.pyc
-.env
-.pytest_cache/
-.coverage
-dist/
-build/
-*.egg-info/
-
 # Start FROM PyTorch image https://hub.docker.com/r/pytorch/pytorch or nvcr.io/nvidia/pytorch:23.03-py3
 FROM pytorch/pytorch:2.5.0-cuda12.4-cudnn9-runtime
 

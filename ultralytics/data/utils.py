@@ -82,7 +82,7 @@ def display_media_in_colab(source=None):
         - Image: .png, .jpg, .jpeg, .bmp, .gif
         - Video: .mp4, .avi, .mov, .mkv, .webm
 
-    Example:
+    Examples:
         >>> display_media_in_colab("/path/to/image_or_video.mp4")
         >>> display_media_in_colab()
     """

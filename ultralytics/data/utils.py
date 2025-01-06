@@ -82,7 +82,7 @@ def display_media_in_colab(source=None):
 
     # Handle image files
     if source.lower().endswith(('.png', '.jpg', '.jpeg', '.bmp', '.gif')):
-        img = Image.open(file_path)
+        img = Image.open(source)
         display(img)
 
     # Handle video files

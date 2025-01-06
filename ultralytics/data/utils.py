@@ -82,9 +82,13 @@ def display_media_in_colab(source=None):
         - Image: .png, .jpg, .jpeg, .bmp, .gif
         - Video: .mp4, .avi, .mov, .mkv, .webm
 
-    Examples:
-        >>> display_media_in_colab("/path/to/image_or_video.mp4")
-        >>> display_media_in_colab()
+    Example:
+        ```python
+        from ultralytics.data.utils import display_media_in_colab
+
+        display_media_in_colab("/path/to/image_or_video.mp4")
+        display_media_in_colab()
+        ```
     """
     LOGGER.warning("⚠️ Display initialization in progress. This may take a few seconds...")
 
@@ -229,9 +233,13 @@ def visualize_image_annotations(image_path, txt_path, label_map):
                         - height (float): The height of the bounding box (relative to image height).
         label_map (dict): A dictionary that maps class IDs (integers) to class labels (strings).
 
-    Examples:
-        >>> label_map = {0: "cat", 1: "dog", 2: "bird"}  # It should include all annotated classes details
-        >>> visualize_image_annotations("path/to/image.jpg", "path/to/annotations.txt", label_map)
+    Example:
+        ```python
+        from ultralytics.data.utils import visualize_image_annotations
+
+        label_map = {0: "cat", 1: "dog", 2: "bird"}  # It should include all annotated classes details
+        visualize_image_annotations("path/to/image.jpg", "path/to/annotations.txt", label_map)
+        ```
     """
     import matplotlib.pyplot as plt
 

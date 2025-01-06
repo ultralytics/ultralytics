@@ -72,13 +72,16 @@ def exif_size(img: Image.Image):
 
 
 def display_media_in_colab(source=None):
+    from IPython.display import HTML, Image, display
+    from base64 import b64encode
+
     if source is None:
         safe_download(f"{ASSETS_URL}/{solutions_ci_demo.mp4}")  # download source from ultralytics assets
         source = '/content/solutions_ci_demo.mp4'
 
     # Handle image files
     if source.lower().endswith(('.png', '.jpg', '.jpeg', '.bmp', '.gif')):
-        img = PILImage.open(file_path)
+        img = Image.open(file_path)
         display(img)
 
     # Handle video files

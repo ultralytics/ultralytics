@@ -43,7 +43,7 @@ from ultralytics.cfg import get_cfg, get_save_dir
 from ultralytics.data import load_inference_source
 from ultralytics.data.augment import LetterBox, classify_transforms
 from ultralytics.nn.autobackend import AutoBackend
-from ultralytics.utils import DEFAULT_CFG, LOGGER, MACOS, WINDOWS, callbacks, colorstr, ops
+from ultralytics.utils import DEFAULT_CFG, LOGGER, MACOS, WINDOWS, callbacks, colorstr, ops, IS_COLAB, IS_KAGGLE
 from ultralytics.utils.checks import check_imgsz, check_imshow
 from ultralytics.utils.files import increment_path
 from ultralytics.utils.torch_utils import select_device, smart_inference_mode
@@ -358,9 +358,8 @@ class BasePredictor:
         if self.args.save:
             self.save_predicted_images(str(self.save_dir / p.name), frame)
 
-        im = self.plotted_img
-
         if IS_COLAB or IS_KAGGLE:
+            im = self.plotted_img
             from IPython.display import clear_output, display
             from PIL import Image
             im = Image.fromarray(im[..., ::-1])
@@ -399,6 +398,7 @@ class BasePredictor:
 
     def show(self, p=""):
         """Display an image in a window using the OpenCV imshow function."""
+        im = self.plotted_img
         if platform.system() == "Linux" and p not in self.windows:
             self.windows.append(p)
             cv2.namedWindow(p, cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)  # allow window resize (Linux)

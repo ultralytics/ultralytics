@@ -532,9 +532,10 @@ class Annotator:
 
     def show(self, title=None):
         """Show the annotated image or video."""
-        from base64 import b64encode
-        from IPython.display import HTML, display
         import os
+        from base64 import b64encode
+
+        from IPython.display import HTML, display
 
         if IS_COLAB or IS_KAGGLE:  # Only for Colab or Kaggle environments
             try:

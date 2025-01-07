@@ -6,12 +6,6 @@ keywords: workouts monitoring, Ultralytics YOLO11, pose estimation, fitness trac
 
 # Workouts Monitoring using Ultralytics YOLO11
 
-<div style="text-align: center;">
-    <a href="https://colab.research.google.com/github/ultralytics/notebooks/blob/main/notebooks/how-to-monitor-workouts-using-ultralytics-yolo.ipynb">
-        <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open Workouts Monitoring In Colab">
-    </a>
-</div>
-
 Monitoring workouts through pose estimation with [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics/) enhances exercise assessment by accurately tracking key body landmarks and joints in real-time. This technology provides instant feedback on exercise form, tracks workout routines, and measures performance metrics, optimizing training sessions for users and trainers alike.
 
 <p align="center">
@@ -39,6 +33,10 @@ Monitoring workouts through pose estimation with [Ultralytics YOLO11](https://gi
 | :------------------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------: |
 | ![PushUps Counting](https://github.com/ultralytics/docs/releases/download/0/pushups-counting.avif) | ![PullUps Counting](https://github.com/ultralytics/docs/releases/download/0/pullups-counting.avif) |
 |                                          PushUps Counting                                          |                                          PullUps Counting                                          |
+
+<div>
+    <a href="https://colab.research.google.com/github/ultralytics/notebooks/blob/main/notebooks/how-to-monitor-workouts-using-ultralytics-yolo.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open Workouts Monitoring In Colab"></a>
+</div>
 
 !!! example "Workouts Monitoring Example"
 

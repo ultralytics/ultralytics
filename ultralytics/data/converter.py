@@ -377,7 +377,7 @@ def convert_segment_masks_to_yolo_seg(masks_dir, output_dir, classes):
     """
     pixel_to_class_mapping = {i + 1: i for i in range(classes)}
     for mask_path in Path(masks_dir).iterdir():
-        if mask_path.suffix == ".png":
+        if mask_path.suffix in {".png", ".jpg"}:
             mask = cv2.imread(str(mask_path), cv2.IMREAD_GRAYSCALE)  # Read the mask image in grayscale
             img_height, img_width = mask.shape  # Get image dimensions
             LOGGER.info(f"Processing {mask_path} imgsz = {img_height} x {img_width}")

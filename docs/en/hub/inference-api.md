@@ -6,9 +6,9 @@ keywords: Ultralytics, HUB, Inference API, Python, cURL, REST API, YOLO, image p
 
 # Ultralytics HUB Inference API
 
-After you [train a model](./models.md#train-model), you can use the [Shared Inference API](#shared-inference-api) for free. If you are a [Pro](./pro.md) user, you can access the [Dedicated Inference API](#dedicated-inference-api). The [Ultralytics HUB](https://ultralytics.com/hub) Inference API allows you to run inference through our REST API without the need to install and set up the Ultralytics YOLO environment locally.
+After you [train a model](./models.md#train-model), you can use the [Shared Inference API](#shared-inference-api) for free. If you are a [Pro](./pro.md) user, you can access the [Dedicated Inference API](#dedicated-inference-api). The [Ultralytics HUB](https://www.ultralytics.com/hub) Inference API allows you to run inference through our REST API without the need to install and set up the Ultralytics YOLO environment locally.
 
-![Ultralytics HUB screenshot of the Deploy tab inside the Model page with an arrow pointing to the Dedicated Inference API card and one to the Shared Inference API card](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/inference-api/hub_inference_api_1.jpg)
+![Ultralytics HUB screenshot of the Deploy tab inside the Model page with an arrow pointing to the Dedicated Inference API card and one to the Shared Inference API card](https://github.com/ultralytics/docs/releases/download/0/hub-inference-api-card.avif)
 
 <p align="center">
   <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/OpWpBI35A5Y"
@@ -22,9 +22,9 @@ After you [train a model](./models.md#train-model), you can use the [Shared Infe
 
 ## Dedicated Inference API
 
-In response to high demand and widespread interest, we are thrilled to unveil the [Ultralytics HUB](https://ultralytics.com/hub) Dedicated Inference API, offering single-click deployment in a dedicated environment for our [Pro](./pro.md) users!
+In response to high demand and widespread interest, we are thrilled to unveil the [Ultralytics HUB](https://www.ultralytics.com/hub) Dedicated Inference API, offering single-click deployment in a dedicated environment for our [Pro](./pro.md) users!
 
-!!! note "Note"
+!!! note
 
     We are excited to offer this feature FREE during our public beta as part of the [Pro Plan](./pro.md), with paid tiers possible in the future.
 
@@ -33,21 +33,21 @@ In response to high demand and widespread interest, we are thrilled to unveil th
 - **High Speed:** Sub-100ms latency is possible for YOLOv8n inference at 640 resolution from nearby regions based on Ultralytics testing.
 - **Enhanced Security:** Provides robust security features to protect your data and ensure compliance with industry standards. [Learn more about Google Cloud security](https://cloud.google.com/security).
 
-To use the [Ultralytics HUB](https://ultralytics.com/hub) Dedicated Inference API, click on the **Start Endpoint** button. Next, use the unique endpoint URL as described in the guides below.
+To use the [Ultralytics HUB](https://www.ultralytics.com/hub) Dedicated Inference API, click on the **Start Endpoint** button. Next, use the unique endpoint URL as described in the guides below.
 
-![Ultralytics HUB screenshot of the Deploy tab inside the Model page with an arrow pointing to the Start Endpoint button in Dedicated Inference API card](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/inference-api/hub_dedicated_inference_api_1.jpg)
+![Ultralytics HUB screenshot of the Deploy tab inside the Model page with an arrow pointing to the Start Endpoint button in Dedicated Inference API card](https://github.com/ultralytics/docs/releases/download/0/ultralytics-hub-dedicated-inference-api.avif)
 
-!!! tip "Tip"
+!!! tip
 
-    Choose the region with the lowest latency for the best performance as described in the [documentation](https://docs.ultralytics.com/reference/hub/google/__init__).
+    Choose the region with the lowest latency for the best performance as described in the [documentation](https://docs.ultralytics.com/reference/hub/google/__init__/).
 
 To shut down the dedicated endpoint, click on the **Stop Endpoint** button.
 
-![Ultralytics HUB screenshot of the Deploy tab inside the Model page with an arrow pointing to the Stop Endpoint button in Dedicated Inference API card](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/inference-api/hub_dedicated_inference_api_2.jpg)
+![Ultralytics HUB screenshot of the Deploy tab inside the Model page with an arrow pointing to the Stop Endpoint button in Dedicated Inference API card](https://github.com/ultralytics/docs/releases/download/0/deploy-tab-model-page-stop-endpoint.avif)
 
 ## Shared Inference API
 
-To use the [Ultralytics HUB](https://ultralytics.com/hub) Shared Inference API, follow the guides below.
+To use the [Ultralytics HUB](https://www.ultralytics.com/hub) Shared Inference API, follow the guides below.
 
 Free users have the following usage limits:
 
@@ -61,19 +61,19 @@ Free users have the following usage limits:
 
 ## Python
 
-To access the [Ultralytics HUB](https://ultralytics.com/hub) Inference API using Python, use the following code:
+To access the [Ultralytics HUB](https://www.ultralytics.com/hub) Inference API using Python, use the following code:
 
 ```python
 import requests
 
-# API URL, use actual MODEL_ID
-url = "https://api.ultralytics.com/v1/predict/MODEL_ID"
+# API URL
+url = "https://predict.ultralytics.com"
 
 # Headers, use actual API_KEY
 headers = {"x-api-key": "API_KEY"}
 
-# Inference arguments (optional)
-data = {"imgsz": 640, "conf": 0.25, "iou": 0.45}
+# Inference arguments (use actual MODEL_ID)
+data = {"model": "https://hub.ultralytics.com/models/MODEL_ID", "imgsz": 640, "conf": 0.25, "iou": 0.45}
 
 # Load image and send request
 with open("path/to/image.jpg", "rb") as image_file:
@@ -83,7 +83,7 @@ with open("path/to/image.jpg", "rb") as image_file:
 print(response.json())
 ```
 
-!!! note "Note"
+!!! note
 
     Replace `MODEL_ID` with the desired model ID, `API_KEY` with your actual API key, and `path/to/image.jpg` with the path to the image you want to run inference on.
 
@@ -91,18 +91,19 @@ print(response.json())
 
 ## cURL
 
-To access the [Ultralytics HUB](https://ultralytics.com/hub) Inference API using cURL, use the following code:
+To access the [Ultralytics HUB](https://www.ultralytics.com/hub) Inference API using cURL, use the following code:
 
 ```bash
-curl -X POST "https://api.ultralytics.com/v1/predict/MODEL_ID" \
-	-H "x-api-key: API_KEY" \
+curl -X POST "https://predict.ultralytics.com" \
+  -H "x-api-key: API_KEY" \
+  -F "model=https://hub.ultralytics.com/models/MODEL_ID" \
 	-F "file=@/path/to/image.jpg" \
 	-F "imgsz=640" \
 	-F "conf=0.25" \
 	-F "iou=0.45"
 ```
 
-!!! note "Note"
+!!! note
 
     Replace `MODEL_ID` with the desired model ID, `API_KEY` with your actual API key, and `path/to/image.jpg` with the path to the image you want to run inference on.
 
@@ -112,20 +113,20 @@ curl -X POST "https://api.ultralytics.com/v1/predict/MODEL_ID" \
 
 See the table below for a full list of available inference arguments.
 
-| Argument | Default | Type    | Description                                                          |
-| -------- | ------- | ------- | -------------------------------------------------------------------- |
-| `file`   |         | `file`  | Image or video file to be used for inference.                        |
-| `imgsz`  | `640`   | `int`   | Size of the input image, valid range is `32` - `1280` pixels.        |
-| `conf`   | `0.25`  | `float` | Confidence threshold for predictions, valid range `0.01` - `1.0`.    |
-| `iou`    | `0.45`  | `float` | Intersection over Union (IoU) threshold, valid range `0.0` - `0.95`. |
+| Argument | Default | Type    | Description                                                                                                                              |
+| -------- | ------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `file`   |         | `file`  | Image or video file to be used for inference.                                                                                            |
+| `imgsz`  | `640`   | `int`   | Size of the input image, valid range is `32` - `1280` pixels.                                                                            |
+| `conf`   | `0.25`  | `float` | Confidence threshold for predictions, valid range `0.01` - `1.0`.                                                                        |
+| `iou`    | `0.45`  | `float` | [Intersection over Union](https://www.ultralytics.com/glossary/intersection-over-union-iou) (IoU) threshold, valid range `0.0` - `0.95`. |
 
 ## Response
 
-The [Ultralytics HUB](https://ultralytics.com/hub) Inference API returns a JSON response.
+The [Ultralytics HUB](https://www.ultralytics.com/hub) Inference API returns a JSON response.
 
 ### Classification
 
-!!! Example "Classification Model"
+!!! example "Classification Model"
 
     === "`ultralytics`"
 
@@ -139,14 +140,15 @@ The [Ultralytics HUB](https://ultralytics.com/hub) Inference API returns a JSON 
         results = model("image.jpg")
 
         # Print image.jpg results in JSON format
-        print(results[0].tojson())
+        print(results[0].to_json())
         ```
 
     === "cURL"
 
         ```bash
-        curl -X POST "https://api.ultralytics.com/v1/predict/MODEL_ID" \
+        curl -X POST "https://predict.ultralytics.com" \
             -H "x-api-key: API_KEY" \
+            -F "model=https://hub.ultralytics.com/models/MODEL_ID" \
             -F "file=@/path/to/image.jpg" \
             -F "imgsz=640" \
             -F "conf=0.25" \
@@ -158,14 +160,14 @@ The [Ultralytics HUB](https://ultralytics.com/hub) Inference API returns a JSON 
         ```python
         import requests
 
-        # API URL, use actual MODEL_ID
-        url = "https://api.ultralytics.com/v1/predict/MODEL_ID"
+        # API URL
+        url = "https://predict.ultralytics.com"
 
         # Headers, use actual API_KEY
         headers = {"x-api-key": "API_KEY"}
 
-        # Inference arguments (optional)
-        data = {"imgsz": 640, "conf": 0.25, "iou": 0.45}
+        # Inference arguments (use actual MODEL_ID)
+        data = {"model": "https://hub.ultralytics.com/models/MODEL_ID", "imgsz": 640, "conf": 0.25, "iou": 0.45}
 
         # Load image and send request
         with open("path/to/image.jpg", "rb") as image_file:
@@ -205,7 +207,7 @@ The [Ultralytics HUB](https://ultralytics.com/hub) Inference API returns a JSON 
 
 ### Detection
 
-!!! Example "Detection Model"
+!!! example "Detection Model"
 
     === "`ultralytics`"
 
@@ -219,14 +221,15 @@ The [Ultralytics HUB](https://ultralytics.com/hub) Inference API returns a JSON 
         results = model("image.jpg")
 
         # Print image.jpg results in JSON format
-        print(results[0].tojson())
+        print(results[0].to_json())
         ```
 
     === "cURL"
 
         ```bash
-        curl -X POST "https://api.ultralytics.com/v1/predict/MODEL_ID" \
+        curl -X POST "https://predict.ultralytics.com" \
             -H "x-api-key: API_KEY" \
+            -F "model=https://hub.ultralytics.com/models/MODEL_ID" \
             -F "file=@/path/to/image.jpg" \
             -F "imgsz=640" \
             -F "conf=0.25" \
@@ -238,14 +241,14 @@ The [Ultralytics HUB](https://ultralytics.com/hub) Inference API returns a JSON 
         ```python
         import requests
 
-        # API URL, use actual MODEL_ID
-        url = "https://api.ultralytics.com/v1/predict/MODEL_ID"
+        # API URL
+        url = "https://predict.ultralytics.com"
 
         # Headers, use actual API_KEY
         headers = {"x-api-key": "API_KEY"}
 
-        # Inference arguments (optional)
-        data = {"imgsz": 640, "conf": 0.25, "iou": 0.45}
+        # Inference arguments (use actual MODEL_ID)
+        data = {"model": "https://hub.ultralytics.com/models/MODEL_ID", "imgsz": 640, "conf": 0.25, "iou": 0.45}
 
         # Load image and send request
         with open("path/to/image.jpg", "rb") as image_file:
@@ -291,7 +294,7 @@ The [Ultralytics HUB](https://ultralytics.com/hub) Inference API returns a JSON 
 
 ### OBB
 
-!!! Example "OBB Model"
+!!! example "OBB Model"
 
     === "`ultralytics`"
 
@@ -311,8 +314,9 @@ The [Ultralytics HUB](https://ultralytics.com/hub) Inference API returns a JSON 
     === "cURL"
 
         ```bash
-        curl -X POST "https://api.ultralytics.com/v1/predict/MODEL_ID" \
+        curl -X POST "https://predict.ultralytics.com" \
             -H "x-api-key: API_KEY" \
+            -F "model=https://hub.ultralytics.com/models/MODEL_ID" \
             -F "file=@/path/to/image.jpg" \
             -F "imgsz=640" \
             -F "conf=0.25" \
@@ -324,14 +328,14 @@ The [Ultralytics HUB](https://ultralytics.com/hub) Inference API returns a JSON 
         ```python
         import requests
 
-        # API URL, use actual MODEL_ID
-        url = "https://api.ultralytics.com/v1/predict/MODEL_ID"
+        # API URL
+        url = "https://predict.ultralytics.com"
 
         # Headers, use actual API_KEY
         headers = {"x-api-key": "API_KEY"}
 
-        # Inference arguments (optional)
-        data = {"imgsz": 640, "conf": 0.25, "iou": 0.45}
+        # Inference arguments (use actual MODEL_ID)
+        data = {"model": "https://hub.ultralytics.com/models/MODEL_ID", "imgsz": 640, "conf": 0.25, "iou": 0.45}
 
         # Load image and send request
         with open("path/to/image.jpg", "rb") as image_file:
@@ -381,7 +385,7 @@ The [Ultralytics HUB](https://ultralytics.com/hub) Inference API returns a JSON 
 
 ### Segmentation
 
-!!! Example "Segmentation Model"
+!!! example "Segmentation Model"
 
     === "`ultralytics`"
 
@@ -401,8 +405,9 @@ The [Ultralytics HUB](https://ultralytics.com/hub) Inference API returns a JSON 
     === "cURL"
 
         ```bash
-        curl -X POST "https://api.ultralytics.com/v1/predict/MODEL_ID" \
+        curl -X POST "https://predict.ultralytics.com" \
             -H "x-api-key: API_KEY" \
+            -F "model=https://hub.ultralytics.com/models/MODEL_ID" \
             -F "file=@/path/to/image.jpg" \
             -F "imgsz=640" \
             -F "conf=0.25" \
@@ -414,14 +419,14 @@ The [Ultralytics HUB](https://ultralytics.com/hub) Inference API returns a JSON 
         ```python
         import requests
 
-        # API URL, use actual MODEL_ID
-        url = "https://api.ultralytics.com/v1/predict/MODEL_ID"
+        # API URL
+        url = "https://predict.ultralytics.com"
 
         # Headers, use actual API_KEY
         headers = {"x-api-key": "API_KEY"}
 
-        # Inference arguments (optional)
-        data = {"imgsz": 640, "conf": 0.25, "iou": 0.45}
+        # Inference arguments (use actual MODEL_ID)
+        data = {"model": "https://hub.ultralytics.com/models/MODEL_ID", "imgsz": 640, "conf": 0.25, "iou": 0.45}
 
         # Load image and send request
         with open("path/to/image.jpg", "rb") as image_file:
@@ -481,7 +486,7 @@ The [Ultralytics HUB](https://ultralytics.com/hub) Inference API returns a JSON 
 
 ### Pose
 
-!!! Example "Pose Model"
+!!! example "Pose Model"
 
     === "`ultralytics`"
 
@@ -501,8 +506,9 @@ The [Ultralytics HUB](https://ultralytics.com/hub) Inference API returns a JSON 
     === "cURL"
 
         ```bash
-        curl -X POST "https://api.ultralytics.com/v1/predict/MODEL_ID" \
+        curl -X POST "https://predict.ultralytics.com" \
             -H "x-api-key: API_KEY" \
+            -F "model=https://hub.ultralytics.com/models/MODEL_ID" \
             -F "file=@/path/to/image.jpg" \
             -F "imgsz=640" \
             -F "conf=0.25" \
@@ -514,14 +520,14 @@ The [Ultralytics HUB](https://ultralytics.com/hub) Inference API returns a JSON 
         ```python
         import requests
 
-        # API URL, use actual MODEL_ID
-        url = "https://api.ultralytics.com/v1/predict/MODEL_ID"
+        # API URL
+        url = "https://predict.ultralytics.com"
 
         # Headers, use actual API_KEY
         headers = {"x-api-key": "API_KEY"}
 
-        # Inference arguments (optional)
-        data = {"imgsz": 640, "conf": 0.25, "iou": 0.45}
+        # Inference arguments (use actual MODEL_ID)
+        data = {"model": "https://hub.ultralytics.com/models/MODEL_ID", "imgsz": 640, "conf": 0.25, "iou": 0.45}
 
         # Load image and send request
         with open("path/to/image.jpg", "rb") as image_file:

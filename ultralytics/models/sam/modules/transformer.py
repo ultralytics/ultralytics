@@ -61,7 +61,6 @@ class TwoWayTransformer(nn.Module):
         Attributes:
             depth (int): Number of layers in the transformer.
             embedding_dim (int): Channel dimension for input embeddings.
-            embedding_dim (int): Channel dimension for input embeddings.
             num_heads (int): Number of heads for multihead attention.
             mlp_dim (int): Internal channel dimension for the MLP block.
             layers (nn.ModuleList): List of TwoWayAttentionBlock layers.

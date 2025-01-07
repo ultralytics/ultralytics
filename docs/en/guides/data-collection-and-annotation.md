@@ -35,7 +35,7 @@ You can use public datasets or gather your own custom data. Public datasets like
 
 Custom data collection, on the other hand, allows you to customize your dataset to your specific needs. You might capture images and videos with cameras or drones, scrape the web for images, or use existing internal data from your organization. Custom data gives you more control over its quality and relevance. Combining both public and custom data sources helps create a diverse and comprehensive dataset.
 
-### Avoiding Bias in Data Collection
+### Avoiding [Bias in](https://www.ultralytics.com/glossary/bias-in-ai) Data Collection
 
 Bias occurs when certain groups or scenarios are underrepresented or overrepresented in your dataset. It leads to a model that performs well on some data but poorly on others. It's crucial to avoid bias so that your computer vision model can perform well in a variety of scenarios.
 
@@ -44,36 +44,36 @@ Here is how you can avoid bias while collecting data:
 - **Diverse Sources**: Collect data from many sources to capture different perspectives and scenarios.
 - **Balanced Representation**: Include balanced representation from all relevant groups. For example, consider different ages, genders, and ethnicities.
 - **Continuous Monitoring**: Regularly review and update your dataset to identify and address any emerging biases.
-- **Bias Mitigation Techniques**: Use methods like oversampling underrepresented classes, data augmentation, and fairness-aware algorithms.
+- **Bias Mitigation Techniques**: Use methods like oversampling underrepresented classes, [data augmentation](https://www.ultralytics.com/glossary/data-augmentation), and fairness-aware algorithms.
 
 Following these practices helps create a more robust and fair model that can generalize well in real-world applications.
 
 ## What is Data Annotation?
 
-Data annotation is the process of labeling data to make it usable for training machine learning models. In computer vision, this means labeling images or videos with the information that a model needs to learn from. Without properly annotated data, models cannot accurately learn the relationships between inputs and outputs.
+Data annotation is the process of labeling data to make it usable for training [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) models. In computer vision, this means labeling images or videos with the information that a model needs to learn from. Without properly annotated data, models cannot accurately learn the relationships between inputs and outputs.
 
 ### Types of Data Annotation
 
 Depending on the specific requirements of a [computer vision task](../tasks/index.md), there are different types of data annotation. Here are some examples:
 
 - **Bounding Boxes**: Rectangular boxes drawn around objects in an image, used primarily for object detection tasks. These boxes are defined by their top-left and bottom-right coordinates.
-- **Polygons**: Detailed outlines for objects, allowing for more precise annotation than bounding boxes. Polygons are used in tasks like instance segmentation, where the shape of the object is important.
+- **Polygons**: Detailed outlines for objects, allowing for more precise annotation than bounding boxes. Polygons are used in tasks like [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation), where the shape of the object is important.
 - **Masks**: Binary masks where each pixel is either part of an object or the background. Masks are used in semantic segmentation tasks to provide pixel-level detail.
 - **Keypoints**: Specific points marked within an image to identify locations of interest. Keypoints are used in tasks like pose estimation and facial landmark detection.
 
 <p align="center">
-  <img width="100%" src="https://labelyourdata.com/img/article-illustrations/types_of_da_light.jpg" alt="Types of Data Annotation">
+  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/types-of-data-annotation.avif" alt="Types of Data Annotation">
 </p>
 
 ### Common Annotation Formats
 
 After selecting a type of annotation, it's important to choose the appropriate format for storing and sharing annotations.
 
-Commonly used formats include [COCO](../datasets/detect/coco.md), which supports various annotation types like object detection, keypoint detection, stuff segmentation, panoptic segmentation, and image captioning, stored in JSON. [Pascal VOC](../datasets/detect/voc.md) uses XML files and is popular for object detection tasks. YOLO, on the other hand, creates a .txt file for each image, containing annotations like object class, coordinates, height, and width, making it suitable for object detection.
+Commonly used formats include [COCO](../datasets/detect/coco.md), which supports various annotation types like [object detection](https://www.ultralytics.com/glossary/object-detection), keypoint detection, stuff segmentation, [panoptic segmentation](https://www.ultralytics.com/glossary/panoptic-segmentation), and image captioning, stored in JSON. [Pascal VOC](../datasets/detect/voc.md) uses XML files and is popular for object detection tasks. YOLO, on the other hand, creates a .txt file for each image, containing annotations like object class, coordinates, height, and width, making it suitable for object detection.
 
 ### Techniques of Annotation
 
-Now, assuming you've chosen a type of annotation and format, it's time to establish clear and objective labeling rules. These rules are like a roadmap for consistency and accuracy throughout the annotation process. Key aspects of these rules include:
+Now, assuming you've chosen a type of annotation and format, it's time to establish clear and objective labeling rules. These rules are like a roadmap for consistency and [accuracy](https://www.ultralytics.com/glossary/accuracy) throughout the annotation process. Key aspects of these rules include:
 
 - **Clarity and Detail**: Make sure your instructions are clear. Use examples and illustrations to understand what's expected.
 - **Consistency**: Keep your annotations uniform. Set standard criteria for annotating different types of data, so all annotations follow the same rules.
@@ -88,24 +88,24 @@ Let's say you are ready to annotate now. There are several open-source tools ava
 
 - **[Label Studio](https://github.com/HumanSignal/label-studio)**: A flexible tool that supports a wide range of annotation tasks and includes features for managing projects and quality control.
 - **[CVAT](https://github.com/cvat-ai/cvat)**: A powerful tool that supports various annotation formats and customizable workflows, making it suitable for complex projects.
-- **[Labelme](https://github.com/labelmeai/labelme)**: A simple and easy-to-use tool that allows for quick annotation of images with polygons, making it ideal for straightforward tasks.
+- **[Labelme](https://github.com/wkentaro/labelme)**: A simple and easy-to-use tool that allows for quick annotation of images with polygons, making it ideal for straightforward tasks.
 
 <p align="center">
-  <img width="100%" src="https://github.com/labelmeai/labelme/raw/main/examples/instance_segmentation/.readme/annotation.jpg" alt="LabelMe Overview">
+  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/labelme-instance-segmentation-annotation.avif" alt="LabelMe Overview">
 </p>
 
 These open-source tools are budget-friendly and provide a range of features to meet different annotation needs.
 
 ### Some More Things to Consider Before Annotating Data
 
-Before you dive into annotating your data, there are a few more things to keep in mind. You should be aware of accuracy, precision, outliers, and quality control to avoid labeling your data in a counterproductive manner.
+Before you dive into annotating your data, there are a few more things to keep in mind. You should be aware of accuracy, [precision](https://www.ultralytics.com/glossary/precision), outliers, and quality control to avoid labeling your data in a counterproductive manner.
 
 #### Understanding Accuracy and Precision
 
-It's important to understand the difference between accuracy and precision and how it relates to annotation. Accuracy refers to how close the annotated data is to the true values. It helps us measure how closely the labels reflect real-world scenarios. Precision indicates the consistency of annotations. It checks if you are giving the same label to the same object or feature throughout the dataset. High accuracy and precision lead to better-trained models by reducing noise and improving the model's ability to generalize from the training data.
+It's important to understand the difference between accuracy and precision and how it relates to annotation. Accuracy refers to how close the annotated data is to the true values. It helps us measure how closely the labels reflect real-world scenarios. Precision indicates the consistency of annotations. It checks if you are giving the same label to the same object or feature throughout the dataset. High accuracy and precision lead to better-trained models by reducing noise and improving the model's ability to generalize from the [training data](https://www.ultralytics.com/glossary/training-data).
 
 <p align="center">
-  <img width="100%" src="https://keylabs.ai/blog/content/images/size/w1600/2023/12/new26-3.jpg" alt="Example of Precision">
+  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/example-of-precision.avif" alt="Example of Precision">
 </p>
 
 #### Identifying Outliers
@@ -114,9 +114,9 @@ Outliers are data points that deviate quite a bit from other observations in the
 
 You can use various methods to detect and correct outliers:
 
-- **Statistical Techniques**: To detect outliers in numerical features like pixel values, bounding box coordinates, or object sizes, you can use methods such as box plots, histograms, or z-scores.
+- **Statistical Techniques**: To detect outliers in numerical features like pixel values, [bounding box](https://www.ultralytics.com/glossary/bounding-box) coordinates, or object sizes, you can use methods such as box plots, histograms, or z-scores.
 - **Visual Techniques**: To spot anomalies in categorical features like object classes, colors, or shapes, use visual methods like plotting images, labels, or heat maps.
-- **Algorithmic Methods**: Use tools like clustering (e.g., K-means clustering, DBSCAN) and anomaly detection algorithms to identify outliers based on data distribution patterns.
+- **Algorithmic Methods**: Use tools like clustering (e.g., K-means clustering, DBSCAN) and [anomaly detection](https://www.ultralytics.com/glossary/anomaly-detection) algorithms to identify outliers based on data distribution patterns.
 
 #### Quality Control of Annotated Data
 
@@ -132,16 +132,16 @@ While reviewing, if you find errors, correct them and update the guidelines to a
 
 ## Share Your Thoughts with the Community
 
-Bouncing your ideas and queries off other computer vision enthusiasts can help accelerate your projects. Here are some great ways to learn, troubleshoot, and network:
+Bouncing your ideas and queries off other [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) enthusiasts can help accelerate your projects. Here are some great ways to learn, troubleshoot, and network:
 
 ### Where to Find Help and Support
 
-- **GitHub Issues:** Visit the YOLOv8 GitHub repository and use the [Issues tab](https://github.com/ultralytics/ultralytics/issues) to raise questions, report bugs, and suggest features. The community and maintainers are there to help with any issues you face.
-- **Ultralytics Discord Server:** Join the [Ultralytics Discord server](https://ultralytics.com/discord/) to connect with other users and developers, get support, share knowledge, and brainstorm ideas.
+- **GitHub Issues:** Visit the YOLO11 GitHub repository and use the [Issues tab](https://github.com/ultralytics/ultralytics/issues) to raise questions, report bugs, and suggest features. The community and maintainers are there to help with any issues you face.
+- **Ultralytics Discord Server:** Join the [Ultralytics Discord server](https://discord.com/invite/ultralytics) to connect with other users and developers, get support, share knowledge, and brainstorm ideas.
 
 ### Official Documentation
 
-- **Ultralytics YOLOv8 Documentation:** Refer to the [official YOLOv8 documentation](./index.md) for thorough guides and valuable insights on numerous computer vision tasks and projects.
+- **Ultralytics YOLO11 Documentation:** Refer to the [official YOLO11 documentation](./index.md) for thorough guides and valuable insights on numerous computer vision tasks and projects.
 
 ## Conclusion
 
@@ -159,7 +159,7 @@ Ensuring high consistency and accuracy in data annotation involves establishing 
 
 ### How many images do I need for training Ultralytics YOLO models?
 
-For effective transfer learning and object detection with Ultralytics YOLO models, start with a minimum of a few hundred annotated objects per class. If training for just one class, begin with at least 100 annotated images and train for approximately 100 epochs. More complex tasks might require thousands of images per class to achieve high reliability and performance. Quality annotations are crucial, so ensure your data collection and annotation processes are rigorous and aligned with your project's specific goals. Explore detailed training strategies in the [YOLOv8 training guide](../modes/train.md).
+For effective [transfer learning](https://www.ultralytics.com/glossary/transfer-learning) and object detection with Ultralytics YOLO models, start with a minimum of a few hundred annotated objects per class. If training for just one class, begin with at least 100 annotated images and train for approximately 100 [epochs](https://www.ultralytics.com/glossary/epoch). More complex tasks might require thousands of images per class to achieve high reliability and performance. Quality annotations are crucial, so ensure your data collection and annotation processes are rigorous and aligned with your project's specific goals. Explore detailed training strategies in the [YOLO11 training guide](../modes/train.md).
 
 ### What are some popular tools for data annotation?
 
@@ -167,7 +167,7 @@ Several popular open-source tools can streamline the data annotation process:
 
 - **[Label Studio](https://github.com/HumanSignal/label-studio)**: A flexible tool supporting various annotation tasks, project management, and quality control features.
 - **[CVAT](https://www.cvat.ai/)**: Offers multiple annotation formats and customizable workflows, making it suitable for complex projects.
-- **[Labelme](https://github.com/labelmeai/labelme)**: Ideal for quick and straightforward image annotation with polygons.
+- **[Labelme](https://github.com/wkentaro/labelme)**: Ideal for quick and straightforward image annotation with polygons.
 
 These tools can help enhance the efficiency and accuracy of your annotation workflows. For extensive feature lists and guides, refer to our [data annotation tools documentation](../datasets/index.md).
 
@@ -177,7 +177,7 @@ Different types of data annotation cater to various computer vision tasks:
 
 - **Bounding Boxes**: Used primarily for object detection, these are rectangular boxes around objects in an image.
 - **Polygons**: Provide more precise object outlines suitable for instance segmentation tasks.
-- **Masks**: Offer pixel-level detail, used in semantic segmentation to differentiate objects from the background.
+- **Masks**: Offer pixel-level detail, used in [semantic segmentation](https://www.ultralytics.com/glossary/semantic-segmentation) to differentiate objects from the background.
 - **Keypoints**: Identify specific points of interest within an image, useful for tasks like pose estimation and facial landmark detection.
 
 Selecting the appropriate annotation type depends on your project's requirements. Learn more about how to implement these annotations and their formats in our [data annotation guide](#what-is-data-annotation).

@@ -51,7 +51,7 @@ div.highlight {
 
 /* Banner (same as the one on the Ultralytics website) -------------------------------------------------------------- */
 .md-banner {
-  background-image: url(https://assets-global.website-files.com/646dd1f1a3703e451ba81ecc/6627a0cab2de939ad35939ed_banner_82.webp);
+  background-image: url(https://assets-global.website-files.com/646dd1f1a3703e451ba81ecc/66e9a211bf6831d112fd6ce3_banner_yv24.avif);
   background-size: cover;
   background-position: center;
 }
@@ -61,44 +61,102 @@ div.highlight {
   margin-bottom: 0 !important;
 }
 
-.banner-wrapper {
+.banner-wrapper,
+.banner-wrapper > .banner-content-wrapper,
+.banner-wrapper > .banner-content-wrapper > .banner-info-wrapper {
   display: flex;
-  justify-content: center;
   align-items: center;
-
-  height: 64px;
-
-  overflow: hidden;
 }
 
-.banner-content {
-  max-height: 64px;
+.banner-wrapper,
+.banner-wrapper > .banner-content-wrapper {
+  flex-direction: column;
 }
 
-.banner-content.desktop {
-  display: none;
+.banner-wrapper {
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px;
 }
 
-.banner-arrow {
-  display: none;
-  max-height: 80px;
-  margin-left: -16px;
-  transition: transform ease-in-out 0.5s;
+.banner-wrapper > .banner-content-wrapper,
+.banner-wrapper > .banner-content-wrapper > .banner-info-wrapper {
+  justify-content: center;
 }
 
-.banner-wrapper:hover > .banner-arrow {
-  transform: translateX(8px);
+.banner-wrapper > .banner-content-wrapper {
+  gap: 8px;
+}
+
+.banner-wrapper > .banner-content-wrapper > .banner-info-wrapper {
+  gap: 4px;
+}
+
+.banner-wrapper > .banner-content-wrapper > p,
+.banner-wrapper > .banner-content-wrapper > .banner-info-wrapper > p {
+  margin: 0;
+}
+
+.banner-wrapper > .banner-content-wrapper > p {
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.banner-wrapper > .banner-content-wrapper > .banner-info-wrapper > p,
+.banner-wrapper > .banner-button-wrapper > .banner-button-wrapper > button {
+  font-size: 14px;
+}
+
+.banner-wrapper > .banner-content-wrapper > .banner-info-wrapper > p {
+  color: #f3f3f3;
+}
+
+.banner-wrapper > .banner-button-wrapper,
+.banner-wrapper > .banner-button-wrapper > .banner-button-wrapper,
+.banner-wrapper > .banner-button-wrapper > .banner-button-wrapper > button {
+  border-radius: 100px;
+}
+
+.banner-wrapper > .banner-button-wrapper,
+.banner-wrapper > .banner-button-wrapper > .banner-button-wrapper {
+  padding: 2px;
+  background-color: rgba(222, 255, 56, 0.2);
+}
+
+.banner-wrapper > .banner-button-wrapper > .banner-button-wrapper.large {
+  padding: 4px;
+}
+
+.banner-wrapper > .banner-button-wrapper > .banner-button-wrapper > button {
+  cursor: pointer;
+  min-width: 132px;
+  padding: 10px;
+  font-weight: 500;
+  color: #111f68;
+  background-color: rgb(222, 255, 56);
+}
+
+.banner-wrapper
+  > .banner-button-wrapper
+  > .banner-button-wrapper
+  > button:hover {
+  background-color: rgba(222, 255, 56, 0.85);
 }
 
 @media screen and (min-width: 768px) {
-  .banner-content.mobile {
-    display: none;
+  .banner-wrapper,
+  .banner-wrapper > .banner-content-wrapper {
+    flex-direction: row;
   }
-  .banner-content.desktop {
-    display: revert;
+
+  .banner-wrapper {
+    gap: 32px;
+    padding: 12px;
   }
-  .banner-arrow {
-    display: revert;
+
+  .banner-wrapper > .banner-content-wrapper {
+    gap: 24px;
+    margin: 0 auto;
   }
 }
 /* Banner (same as the one on the Ultralytics website) -------------------------------------------------------------- */
@@ -152,6 +210,13 @@ div.highlight {
   height: 50px;
   border-radius: 50%;
   margin-right: 3px;
+  background-color: #f0f0f0; /* Placeholder color */
+  opacity: 0; /* Start fully transparent */
+  transition: opacity 0.3s ease-in-out;
+}
+
+.author-link .hover-item[src] {
+  opacity: 1; /* Fade in when src is set (image loaded) */
 }
 
 .hover-item:hover {
@@ -199,3 +264,16 @@ div.highlight {
   }
 }
 /* MkDocs Ultralytics Plugin ---------------------------------------------------------------------------------------- */
+
+/* Inkeep ----------------------------------------------------------------------------------------------------------- */
+.ikp-floating-button {
+  color: #111f68;
+}
+#inkeepSearchBar {
+  transition: all 0.2s ease-in-out;
+}
+#inkeepSearchBar:hover {
+  transform: scale(1.1);
+  filter: brightness(1.2);
+}
+/* Inkeep ----------------------------------------------------------------------------------------------------------- */

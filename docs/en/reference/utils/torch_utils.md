@@ -5,7 +5,7 @@ keywords: Ultralytics, torch utils, model optimization, device selection, infere
 
 # Reference for `ultralytics/utils/torch_utils.py`
 
-!!! Note
+!!! note
 
     This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/torch_utils.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/torch_utils.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/utils/torch_utils.py) 🛠️. Thank you 🙏!
 
@@ -16,6 +16,10 @@ keywords: Ultralytics, torch utils, model optimization, device selection, infere
 <br><br><hr><br>
 
 ## ::: ultralytics.utils.torch_utils.EarlyStopping
+
+<br><br><hr><br>
+
+## ::: ultralytics.utils.torch_utils.FXModel
 
 <br><br><hr><br>
 
@@ -32,6 +36,10 @@ keywords: Ultralytics, torch utils, model optimization, device selection, infere
 <br><br><hr><br>
 
 ## ::: ultralytics.utils.torch_utils.get_cpu_info
+
+<br><br><hr><br>
+
+## ::: ultralytics.utils.torch_utils.get_gpu_info
 
 <br><br><hr><br>
 
@@ -116,6 +124,10 @@ keywords: Ultralytics, torch utils, model optimization, device selection, infere
 <br><br><hr><br>
 
 ## ::: ultralytics.utils.torch_utils.convert_optimizer_state_dict_to_fp16
+
+<br><br><hr><br>
+
+## ::: ultralytics.utils.torch_utils.cuda_memory_usage
 
 <br><br><hr><br>
 

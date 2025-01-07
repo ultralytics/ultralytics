@@ -20,11 +20,11 @@ We encourage you to review these resources for a seamless and productive experie
 
 ## FAQ
 
-### What is Ultralytics YOLO and how does it benefit my machine learning projects?
+### What is Ultralytics YOLO and how does it benefit my [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) projects?
 
-Ultralytics YOLO (You Only Look Once) is a state-of-the-art, real-time object detection model. Its latest version, YOLOv8, enhances speed, accuracy, and versatility, making it ideal for a wide range of applications, from real-time video analytics to advanced machine learning research. YOLO's efficiency in detecting objects in images and videos has made it the go-to solution for businesses and researchers looking to integrate robust computer vision capabilities into their projects.
+Ultralytics YOLO (You Only Look Once) is a state-of-the-art, real-time [object detection](https://www.ultralytics.com/glossary/object-detection) model. Its latest version, YOLO11, enhances speed, [accuracy](https://www.ultralytics.com/glossary/accuracy), and versatility, making it ideal for a wide range of applications, from real-time video analytics to advanced machine learning research. YOLO's efficiency in detecting objects in images and videos has made it the go-to solution for businesses and researchers looking to integrate robust [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) capabilities into their projects.
 
-For more details on YOLOv8, visit the [YOLOv8 documentation](../tasks/detect.md).
+For more details on YOLO11, visit the [YOLO11 documentation](../tasks/detect.md).
 
 ### How do I contribute to Ultralytics YOLO repositories?
 
@@ -32,7 +32,7 @@ Contributing to Ultralytics YOLO repositories is straightforward. Start by revie
 
 ### Why should I use Ultralytics HUB for my machine learning projects?
 
-Ultralytics HUB offers a seamless, no-code solution for managing your machine learning projects. It enables you to generate, train, and deploy AI models like YOLOv8 effortlessly. Unique features include cloud training, real-time tracking, and intuitive dataset management. Ultralytics HUB simplifies the entire workflow, from data processing to model deployment, making it an indispensable tool for both beginners and advanced users.
+Ultralytics HUB offers a seamless, no-code solution for managing your machine learning projects. It enables you to generate, train, and deploy AI models like YOLO11 effortlessly. Unique features include cloud training, real-time tracking, and intuitive dataset management. Ultralytics HUB simplifies the entire workflow, from data processing to [model deployment](https://www.ultralytics.com/glossary/model-deployment), making it an indispensable tool for both beginners and advanced users.
 
 To get started, visit [Ultralytics HUB Quickstart](../hub/quickstart.md).
 
@@ -42,7 +42,7 @@ Continuous Integration (CI) in Ultralytics involves automated processes that ens
 
 Learn more in the [Continuous Integration (CI) Guide](../help/CI.md).
 
-### How is data privacy handled by Ultralytics?
+### How is [data privacy](https://www.ultralytics.com/glossary/data-privacy) handled by Ultralytics?
 
 Ultralytics takes data privacy seriously. Our [Privacy Policy](../help/privacy.md) outlines how we collect and use anonymized data to improve the YOLO package while prioritizing user privacy and control. We adhere to strict data protection regulations to ensure your information is secure at all times.
 

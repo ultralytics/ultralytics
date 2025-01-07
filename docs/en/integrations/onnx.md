@@ -1,26 +1,26 @@
 ---
 comments: true
-description: Learn how to export YOLOv8 models to ONNX format for flexible deployment across various platforms with enhanced performance.
-keywords: YOLOv8, ONNX, model export, Ultralytics, ONNX Runtime, machine learning, model deployment, computer vision, deep learning
+description: Learn how to export YOLO11 models to ONNX format for flexible deployment across various platforms with enhanced performance.
+keywords: YOLO11, ONNX, model export, Ultralytics, ONNX Runtime, machine learning, model deployment, computer vision, deep learning
 ---
 
-# ONNX Export for YOLOv8 Models
+# ONNX Export for YOLO11 Models
 
-Often, when deploying computer vision models, you'll need a model format that's both flexible and compatible with multiple platforms.
+Often, when deploying [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models, you'll need a model format that's both flexible and compatible with multiple platforms.
 
-Exporting [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics) models to ONNX format streamlines deployment and ensures optimal performance across various environments. This guide will show you how to easily convert your YOLOv8 models to ONNX and enhance their scalability and effectiveness in real-world applications.
+Exporting [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics) models to ONNX format streamlines deployment and ensures optimal performance across various environments. This guide will show you how to easily convert your YOLO11 models to ONNX and enhance their scalability and effectiveness in real-world applications.
 
 ## ONNX and ONNX Runtime
 
-[ONNX](https://onnx.ai/), which stands for Open Neural Network Exchange, is a community project that Facebook and Microsoft initially developed. The ongoing development of ONNX is a collaborative effort supported by various organizations like IBM, Amazon (through AWS), and Google. The project aims to create an open file format designed to represent machine learning models in a way that allows them to be used across different AI frameworks and hardware.
+[ONNX](https://onnx.ai/), which stands for Open [Neural Network](https://www.ultralytics.com/glossary/neural-network-nn) Exchange, is a community project that Facebook and Microsoft initially developed. The ongoing development of ONNX is a collaborative effort supported by various organizations like IBM, Amazon (through AWS), and Google. The project aims to create an open file format designed to represent [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) models in a way that allows them to be used across different AI frameworks and hardware.
 
-ONNX models can be used to transition between different frameworks seamlessly. For instance, a deep learning model trained in PyTorch can be exported to ONNX format and then easily imported into TensorFlow.
+ONNX models can be used to transition between different frameworks seamlessly. For instance, a [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) model trained in PyTorch can be exported to ONNX format and then easily imported into TensorFlow.
 
 <p align="center">
   <img width="100%" src="https://www.aurigait.com/wp-content/uploads/2023/01/1_unnamed.png" alt="ONNX">
 </p>
 
-Alternatively, ONNX models can be used with ONNX Runtime. [ONNX Runtime](https://onnxruntime.ai/) is a versatile cross-platform accelerator for machine learning models that is compatible with frameworks like PyTorch, TensorFlow, TFLite, scikit-learn, etc.
+Alternatively, ONNX models can be used with ONNX Runtime. [ONNX Runtime](https://onnxruntime.ai/) is a versatile cross-platform accelerator for machine learning models that is compatible with frameworks like PyTorch, [TensorFlow](https://www.ultralytics.com/glossary/tensorflow), TFLite, scikit-learn, etc.
 
 ONNX Runtime optimizes the execution of ONNX models by leveraging hardware-specific capabilities. This optimization allows the models to run efficiently and with high performance on various hardware platforms, including CPUs, GPUs, and specialized accelerators.
 
@@ -28,7 +28,7 @@ ONNX Runtime optimizes the execution of ONNX models by leveraging hardware-speci
   <img width="100%" src="https://www.aurigait.com/wp-content/uploads/2023/01/unnamed-1.png" alt="ONNX with ONNX Runtime">
 </p>
 
-Whether used independently or in tandem with ONNX Runtime, ONNX provides a flexible solution for machine learning model deployment and compatibility.
+Whether used independently or in tandem with ONNX Runtime, ONNX provides a flexible solution for machine learning [model deployment](https://www.ultralytics.com/glossary/model-deployment) and compatibility.
 
 ## Key Features of ONNX Models
 
@@ -44,7 +44,7 @@ The ability of ONNX to handle various formats can be attributed to the following
 
 ## Common Usage of ONNX
 
-Before we jump into how to export YOLOv8 models to the ONNX format, let's take a look at where ONNX models are usually used.
+Before we jump into how to export YOLO11 models to the ONNX format, let's take a look at where ONNX models are usually used.
 
 ### CPU Deployment
 
@@ -60,44 +60,44 @@ While ONNX models are commonly used on CPUs, they can also be deployed on the fo
 
 - **Web Browsers**: ONNX can run directly in web browsers, powering interactive and dynamic web-based AI applications.
 
-## Exporting YOLOv8 Models to ONNX
+## Exporting YOLO11 Models to ONNX
 
-You can expand model compatibility and deployment flexibility by converting YOLOv8 models to ONNX format.
+You can expand model compatibility and deployment flexibility by converting YOLO11 models to ONNX format.
 
 ### Installation
 
 To install the required package, run:
 
-!!! Tip "Installation"
+!!! tip "Installation"
 
     === "CLI"
 
         ```bash
-        # Install the required package for YOLOv8
+        # Install the required package for YOLO11
         pip install ultralytics
         ```
 
-For detailed instructions and best practices related to the installation process, check our [YOLOv8 Installation guide](../quickstart.md). While installing the required packages for YOLOv8, if you encounter any difficulties, consult our [Common Issues guide](../guides/yolo-common-issues.md) for solutions and tips.
+For detailed instructions and best practices related to the installation process, check our [YOLO11 Installation guide](../quickstart.md). While installing the required packages for YOLO11, if you encounter any difficulties, consult our [Common Issues guide](../guides/yolo-common-issues.md) for solutions and tips.
 
 ### Usage
 
-Before diving into the usage instructions, be sure to check out the range of [YOLOv8 models offered by Ultralytics](../models/index.md). This will help you choose the most appropriate model for your project requirements.
+Before diving into the usage instructions, be sure to check out the range of [YOLO11 models offered by Ultralytics](../models/index.md). This will help you choose the most appropriate model for your project requirements.
 
-!!! Example "Usage"
+!!! example "Usage"
 
     === "Python"
 
         ```python
         from ultralytics import YOLO
 
-        # Load the YOLOv8 model
-        model = YOLO("yolov8n.pt")
+        # Load the YOLO11 model
+        model = YOLO("yolo11n.pt")
 
         # Export the model to ONNX format
-        model.export(format="onnx")  # creates 'yolov8n.onnx'
+        model.export(format="onnx")  # creates 'yolo11n.onnx'
 
         # Load the exported ONNX model
-        onnx_model = YOLO("yolov8n.onnx")
+        onnx_model = YOLO("yolo11n.onnx")
 
         # Run inference
         results = onnx_model("https://ultralytics.com/images/bus.jpg")
@@ -106,18 +106,18 @@ Before diving into the usage instructions, be sure to check out the range of [YO
     === "CLI"
 
         ```bash
-        # Export a YOLOv8n PyTorch model to ONNX format
-        yolo export model=yolov8n.pt format=onnx  # creates 'yolov8n.onnx'
+        # Export a YOLO11n PyTorch model to ONNX format
+        yolo export model=yolo11n.pt format=onnx  # creates 'yolo11n.onnx'
 
         # Run inference with the exported model
-        yolo predict model=yolov8n.onnx source='https://ultralytics.com/images/bus.jpg'
+        yolo predict model=yolo11n.onnx source='https://ultralytics.com/images/bus.jpg'
         ```
 
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
 
-## Deploying Exported YOLOv8 ONNX Models
+## Deploying Exported YOLO11 ONNX Models
 
-Once you've successfully exported your Ultralytics YOLOv8 models to ONNX format, the next step is deploying these models in various environments. For detailed instructions on deploying your ONNX models, take a look at the following resources:
+Once you've successfully exported your Ultralytics YOLO11 models to ONNX format, the next step is deploying these models in various environments. For detailed instructions on deploying your ONNX models, take a look at the following resources:
 
 - **[ONNX Runtime Python API Documentation](https://onnxruntime.ai/docs/api/python/api_summary.html)**: This guide provides essential information for loading and running ONNX models using ONNX Runtime.
 
@@ -127,33 +127,33 @@ Once you've successfully exported your Ultralytics YOLOv8 models to ONNX format,
 
 ## Summary
 
-In this guide, you've learned how to export Ultralytics YOLOv8 models to ONNX format to increase their interoperability and performance across various platforms. You were also introduced to the ONNX Runtime and ONNX deployment options.
+In this guide, you've learned how to export Ultralytics YOLO11 models to ONNX format to increase their interoperability and performance across various platforms. You were also introduced to the ONNX Runtime and ONNX deployment options.
 
 For further details on usage, visit the [ONNX official documentation](https://onnx.ai/onnx/intro/).
 
-Also, if you'd like to know more about other Ultralytics YOLOv8 integrations, visit our [integration guide page](../integrations/index.md). You'll find plenty of useful resources and insights there.
+Also, if you'd like to know more about other Ultralytics YOLO11 integrations, visit our [integration guide page](../integrations/index.md). You'll find plenty of useful resources and insights there.
 
 ## FAQ
 
-### How do I export YOLOv8 models to ONNX format using Ultralytics?
+### How do I export YOLO11 models to ONNX format using Ultralytics?
 
-To export your YOLOv8 models to ONNX format using Ultralytics, follow these steps:
+To export your YOLO11 models to ONNX format using Ultralytics, follow these steps:
 
-!!! Example "Usage"
+!!! example "Usage"
 
     === "Python"
 
         ```python
         from ultralytics import YOLO
 
-        # Load the YOLOv8 model
-        model = YOLO("yolov8n.pt")
+        # Load the YOLO11 model
+        model = YOLO("yolo11n.pt")
 
         # Export the model to ONNX format
-        model.export(format="onnx")  # creates 'yolov8n.onnx'
+        model.export(format="onnx")  # creates 'yolo11n.onnx'
 
         # Load the exported ONNX model
-        onnx_model = YOLO("yolov8n.onnx")
+        onnx_model = YOLO("yolo11n.onnx")
 
         # Run inference
         results = onnx_model("https://ultralytics.com/images/bus.jpg")
@@ -162,28 +162,28 @@ To export your YOLOv8 models to ONNX format using Ultralytics, follow these step
     === "CLI"
 
         ```bash
-        # Export a YOLOv8n PyTorch model to ONNX format
-        yolo export model=yolov8n.pt format=onnx  # creates 'yolov8n.onnx'
+        # Export a YOLO11n PyTorch model to ONNX format
+        yolo export model=yolo11n.pt format=onnx  # creates 'yolo11n.onnx'
 
         # Run inference with the exported model
-        yolo predict model=yolov8n.onnx source='https://ultralytics.com/images/bus.jpg'
+        yolo predict model=yolo11n.onnx source='https://ultralytics.com/images/bus.jpg'
         ```
 
 For more details, visit the [export documentation](../modes/export.md).
 
-### What are the advantages of using ONNX Runtime for deploying YOLOv8 models?
+### What are the advantages of using ONNX Runtime for deploying YOLO11 models?
 
-Using ONNX Runtime for deploying YOLOv8 models offers several advantages:
+Using ONNX Runtime for deploying YOLO11 models offers several advantages:
 
 - **Cross-platform compatibility**: ONNX Runtime supports various platforms, such as Windows, macOS, and Linux, ensuring your models run smoothly across different environments.
 - **Hardware acceleration**: ONNX Runtime can leverage hardware-specific optimizations for CPUs, GPUs, and dedicated accelerators, providing high-performance inference.
-- **Framework interoperability**: Models trained in popular frameworks like PyTorch or TensorFlow can be easily converted to ONNX format and run using ONNX Runtime.
+- **Framework interoperability**: Models trained in popular frameworks like [PyTorch](https://www.ultralytics.com/glossary/pytorch) or TensorFlow can be easily converted to ONNX format and run using ONNX Runtime.
 
 Learn more by checking the [ONNX Runtime documentation](https://onnxruntime.ai/docs/api/python/api_summary.html).
 
-### What deployment options are available for YOLOv8 models exported to ONNX?
+### What deployment options are available for YOLO11 models exported to ONNX?
 
-YOLOv8 models exported to ONNX can be deployed on various platforms including:
+YOLO11 models exported to ONNX can be deployed on various platforms including:
 
 - **CPUs**: Utilizing ONNX Runtime for optimized CPU inference.
 - **GPUs**: Leveraging NVIDIA CUDA for high-performance GPU acceleration.
@@ -192,19 +192,19 @@ YOLOv8 models exported to ONNX can be deployed on various platforms including:
 
 For more information, explore our guide on [model deployment options](../guides/model-deployment-options.md).
 
-### Why should I use ONNX format for Ultralytics YOLOv8 models?
+### Why should I use ONNX format for Ultralytics YOLO11 models?
 
-Using ONNX format for Ultralytics YOLOv8 models provides numerous benefits:
+Using ONNX format for Ultralytics YOLO11 models provides numerous benefits:
 
 - **Interoperability**: ONNX allows models to be transferred between different machine learning frameworks seamlessly.
 - **Performance Optimization**: ONNX Runtime can enhance model performance by utilizing hardware-specific optimizations.
 - **Flexibility**: ONNX supports various deployment environments, enabling you to use the same model on different platforms without modification.
 
-Refer to the comprehensive guide on [exporting YOLOv8 models to ONNX](https://www.ultralytics.com/blog/export-and-optimize-a-yolov8-model-for-inference-on-openvino).
+Refer to the comprehensive guide on [exporting YOLO11 models to ONNX](https://www.ultralytics.com/blog/export-and-optimize-a-yolov8-model-for-inference-on-openvino).
 
-### How can I troubleshoot issues when exporting YOLOv8 models to ONNX?
+### How can I troubleshoot issues when exporting YOLO11 models to ONNX?
 
-When exporting YOLOv8 models to ONNX, you might encounter common issues such as mismatched dependencies or unsupported operations. To troubleshoot these problems:
+When exporting YOLO11 models to ONNX, you might encounter common issues such as mismatched dependencies or unsupported operations. To troubleshoot these problems:
 
 1. Verify that you have the correct version of required dependencies installed.
 2. Check the official [ONNX documentation](https://onnx.ai/onnx/intro/) for supported operators and features.

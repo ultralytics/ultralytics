@@ -15,6 +15,7 @@ repo_name: ultralytics/ultralytics
 remote_name: https://github.com/ultralytics/docs
 docs_dir: "docs/en/" # where to find the markdown files
 site_dir: "site/" # where to publish to
+use_directory_urls: true # don't display 'index.html' in slugs
 
 # Theme customization
 theme:
@@ -22,7 +23,7 @@ theme:
   language: en
   custom_dir: docs/overrides/
   logo: https://raw.githubusercontent.com/ultralytics/assets/main/logo/Ultralytics_Logotype_Reverse.svg
-  favicon: assets/favicon.ico
+  favicon: https://raw.githubusercontent.com/ultralytics/assets/refs/heads/main/logo/favicon-yolo.png
   icon:
     repo: fontawesome/brands/github
   # font:  # disabled for faster page load times
@@ -69,8 +70,9 @@ theme:
     - content.tabs.link # all code tabs change simultaneously
 
 # Customization
-copyright: <a href="https://ultralytics.com" target="_blank">© 2024 Ultralytics Inc.</a> All rights reserved.
+copyright: <a href="https://www.ultralytics.com/" target="_blank">© 2024 Ultralytics Inc.</a> All rights reserved.
 extra: # version:
+  homepage: https://www.ultralytics.com/
   #   provider: mike  #  version drop-down menu
   robots: robots.txt
   analytics:
@@ -90,12 +92,16 @@ extra: # version:
     - icon: fontawesome/brands/python
       link: https://pypi.org/project/ultralytics/
     - icon: fontawesome/brands/discord
-      link: https://ultralytics.com/discord
+      link: https://discord.com/invite/ultralytics
+    - icon: fontawesome/brands/reddit
+      link: https://reddit.com/r/ultralytics
 
 extra_css:
   - stylesheets/style.css
+
 extra_javascript:
   - javascript/extra.js
+  - javascript/giscus.js
 
 markdown_extensions:
   - admonition
@@ -160,9 +166,7 @@ nav:
           - solutions/index.md
       - Guides:
           - guides/index.md
-      - Explorer:
-          - datasets/explorer/index.md
-      - NEW 🚀 Live Inference: guides/streamlit-live-inference.md # for promotion of new pages
+      - YOLO11 🚀 NEW: models/yolo11.md # for promotion of new pages
       - Languages:
           - 🇬🇧&nbsp English: https://ultralytics.com/docs/
           - 🇨🇳&nbsp 简体中文: https://docs.ultralytics.com/zh/
@@ -209,8 +213,6 @@ nav:
           - solutions/index.md
       - Guides:
           - guides/index.md
-      - Explorer:
-          - datasets/explorer/index.md
   - Modes:
       - modes/index.md
       - Train: modes/train.md
@@ -219,6 +221,13 @@ nav:
       - Export: modes/export.md
       - Track: modes/track.md
       - Benchmark: modes/benchmark.md
+      - Tasks:
+          - tasks/index.md
+          - Detect: tasks/detect.md
+          - Segment: tasks/segment.md
+          - Classify: tasks/classify.md
+          - Pose: tasks/pose.md
+          - OBB: tasks/obb.md
   - Tasks:
       - tasks/index.md
       - Detect: tasks/detect.md
@@ -226,6 +235,14 @@ nav:
       - Classify: tasks/classify.md
       - Pose: tasks/pose.md
       - OBB: tasks/obb.md
+      - Modes:
+          - modes/index.md
+          - Train: modes/train.md
+          - Val: modes/val.md
+          - Predict: modes/predict.md
+          - Export: modes/export.md
+          - Track: modes/track.md
+          - Benchmark: modes/benchmark.md
   - Models:
       - models/index.md
       - YOLOv3: models/yolov3.md
@@ -236,6 +253,7 @@ nav:
       - YOLOv8: models/yolov8.md
       - YOLOv9: models/yolov9.md
       - YOLOv10: models/yolov10.md
+      - YOLO11 🚀 NEW: models/yolo11.md
       - SAM (Segment Anything Model): models/sam.md
       - SAM 2 (Segment Anything Model 2): models/sam-2.md
       - MobileSAM (Mobile Segment Anything Model): models/mobile-sam.md
@@ -245,11 +263,6 @@ nav:
       - YOLO-World (Real-Time Open-Vocabulary Object Detection): models/yolo-world.md
   - Datasets:
       - datasets/index.md
-      - Explorer:
-          - datasets/explorer/index.md
-          - Explorer API: datasets/explorer/api.md
-          - Explorer Dashboard: datasets/explorer/dashboard.md
-          - VOC Exploration Example: datasets/explorer/explorer.ipynb
       - Detection:
           - datasets/detect/index.md
           - Argoverse: datasets/detect/argoverse.md
@@ -263,10 +276,11 @@ nav:
           - VisDrone: datasets/detect/visdrone.md
           - VOC: datasets/detect/voc.md
           - xView: datasets/detect/xview.md
-          - Roboflow 100: datasets/detect/roboflow-100.md
+          - RF100: datasets/detect/roboflow-100.md
           - Brain-tumor: datasets/detect/brain-tumor.md
           - African-wildlife: datasets/detect/african-wildlife.md
           - Signature: datasets/detect/signature.md
+          - Medical-pills: datasets/detect/medical-pills.md
       - Segmentation:
           - datasets/segment/index.md
           - COCO: datasets/segment/coco.md
@@ -279,6 +293,8 @@ nav:
           - COCO: datasets/pose/coco.md
           - COCO8-pose: datasets/pose/coco8-pose.md
           - Tiger-pose: datasets/pose/tiger-pose.md
+          - Hand-keypoints: datasets/pose/hand-keypoints.md
+          - Dog-pose: datasets/pose/dog-pose.md
       - Classification:
           - datasets/classify/index.md
           - Caltech 101: datasets/classify/caltech101.md
@@ -297,9 +313,8 @@ nav:
           - DOTA8: datasets/obb/dota8.md
       - Multi-Object Tracking:
           - datasets/track/index.md
-  - NEW 🚀 Solutions:
+  - Solutions 🚀 NEW:
       - solutions/index.md
-      - Analytics: guides/analytics.md
       - Object Counting: guides/object-counting.md
       - Object Cropping: guides/object-cropping.md
       - Object Blurring: guides/object-blurring.md
@@ -313,7 +328,9 @@ nav:
       - Distance Calculation: guides/distance-calculation.md
       - Queue Management: guides/queue-management.md
       - Parking Management: guides/parking-management.md
-      - NEW 🚀 Live Inference: guides/streamlit-live-inference.md
+      - Analytics: guides/analytics.md
+      - Live Inference: guides/streamlit-live-inference.md
+      - Track Objects in Zone 🚀 NEW: guides/trackzone.md
   - Guides:
       - guides/index.md
       - YOLO Common Issues: guides/yolo-common-issues.md
@@ -348,7 +365,7 @@ nav:
           - datasets/explorer/index.md
           - Explorer API: datasets/explorer/api.md
           - Explorer Dashboard Demo: datasets/explorer/dashboard.md
-          - VOC Exploration Example: datasets/explorer/explorer.ipynb
+          - VOC Exploration Example: datasets/explorer/explorer.md
       - YOLOv5:
           - yolov5/index.md
           - Quickstart: yolov5/quickstart_tutorial.md
@@ -375,34 +392,38 @@ nav:
               - Clearml Logging: yolov5/tutorials/clearml_logging_integration.md
   - Integrations:
       - integrations/index.md
-      - TorchScript: integrations/torchscript.md
+      - Amazon SageMaker: integrations/amazon-sagemaker.md
+      - ClearML: integrations/clearml.md
+      - Comet ML: integrations/comet.md
+      - CoreML: integrations/coreml.md
+      - DVC: integrations/dvc.md
+      - Google Colab: integrations/google-colab.md
+      - Gradio: integrations/gradio.md
+      - IBM Watsonx: integrations/ibm-watsonx.md
+      - JupyterLab: integrations/jupyterlab.md
+      - Kaggle: integrations/kaggle.md
+      - MLflow: integrations/mlflow.md
+      - Neural Magic: integrations/neural-magic.md
       - ONNX: integrations/onnx.md
       - OpenVINO: integrations/openvino.md
-      - TensorRT: integrations/tensorrt.md
-      - CoreML: integrations/coreml.md
-      - TF SavedModel: integrations/tf-savedmodel.md
-      - TF GraphDef: integrations/tf-graphdef.md
-      - TFLite: integrations/tflite.md
-      - TFLite Edge TPU: integrations/edge-tpu.md
-      - TF.js: integrations/tfjs.md
       - PaddlePaddle: integrations/paddlepaddle.md
+      - MNN: integrations/mnn.md
       - NCNN: integrations/ncnn.md
-      - Comet ML: integrations/comet.md
+      - Paperspace Gradient: integrations/paperspace.md
       - Ray Tune: integrations/ray-tune.md
       - Roboflow: integrations/roboflow.md
-      - MLflow: integrations/mlflow.md
-      - ClearML: integrations/clearml.md
-      - DVC: integrations/dvc.md
-      - Weights & Biases: integrations/weights-biases.md
-      - Neural Magic: integrations/neural-magic.md
-      - Gradio: integrations/gradio.md
+      - TF GraphDef: integrations/tf-graphdef.md
+      - TF SavedModel: integrations/tf-savedmodel.md
+      - TF.js: integrations/tfjs.md
+      - TFLite: integrations/tflite.md
+      - TFLite Edge TPU: integrations/edge-tpu.md
       - TensorBoard: integrations/tensorboard.md
-      - Amazon SageMaker: integrations/amazon-sagemaker.md
-      - Paperspace Gradient: integrations/paperspace.md
-      - Google Colab: integrations/google-colab.md
-      - Kaggle: integrations/kaggle.md
-      - JupyterLab: integrations/jupyterlab.md
-      - IBM Watsonx: integrations/ibm-watsonx.md
+      - TensorRT: integrations/tensorrt.md
+      - TorchScript: integrations/torchscript.md
+      - VS Code: integrations/vscode.md
+      - Weights & Biases: integrations/weights-biases.md
+      - Albumentations: integrations/albumentations.md
+      - SONY IMX500: integrations/sony-imx500.md
   - HUB:
       - hub/index.md
       - Web:
@@ -458,11 +479,6 @@ nav:
           - build: reference/data/build.md
           - converter: reference/data/converter.md
           - dataset: reference/data/dataset.md
-          - explorer:
-              - explorer: reference/data/explorer/explorer.md
-              - gui:
-                  - dash: reference/data/explorer/gui/dash.md
-              - utils: reference/data/explorer/utils.md
           - loaders: reference/data/loaders.md
           - split_dota: reference/data/split_dota.md
           - utils: reference/data/utils.md
@@ -556,8 +572,12 @@ nav:
           - object_counter: reference/solutions/object_counter.md
           - parking_management: reference/solutions/parking_management.md
           - queue_management: reference/solutions/queue_management.md
+          - region_counter: reference/solutions/region_counter.md
+          - security_alarm: reference/solutions/security_alarm.md
+          - solutions: reference/solutions/solutions.md
           - speed_estimation: reference/solutions/speed_estimation.md
           - streamlit_inference: reference/solutions/streamlit_inference.md
+          - trackzone: reference/solutions/trackzone.md
       - trackers:
           - basetrack: reference/trackers/basetrack.md
           - bot_sort: reference/trackers/bot_sort.md
@@ -613,8 +633,8 @@ nav:
 # Plugins including 301 redirects navigation ---------------------------------------------------------------------------
 plugins:
   - macros
-  - search:
-      lang: en
+  # - search:
+  #     lang: en
   - mkdocstrings:
       enabled: true
       default_handler: python
@@ -641,7 +661,6 @@ plugins:
       add_share_buttons: True
       add_css: False
       default_image: https://raw.githubusercontent.com/ultralytics/assets/main/yolov8/banner-yolov8.png
-  - mkdocs-jupyter
   - redirects:
       redirect_maps:
         hi/index.md: index.md
@@ -743,3 +762,6 @@ plugins:
         yolov5/environments/yolov5_amazon_web_services_quickstart_tutorial.md: yolov5/environments/aws_quickstart_tutorial.md
         yolov5/environments/yolov5_google_cloud_platform_quickstart_tutorial.md: yolov5/environments/google_cloud_quickstart_tutorial.md
         yolov5/environments/yolov5_docker_image_quickstart_tutorial.md: yolov5/environments/docker_image_quickstart_tutorial.md
+        reference/data/explorer/explorer.md: datasets/explorer/index.md
+        reference/data/explorer/gui/dash.md: datasets/explorer/index.md
+        reference/data/explorer/utils.md: datasets/explorer/index.md

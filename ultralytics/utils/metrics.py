@@ -178,7 +178,7 @@ def _get_covariance_matrix(boxes):
         boxes (torch.Tensor): A tensor of shape (N, 5) representing rotated bounding boxes, with xywhr format.
 
     Returns:
-        (torch.Tensor): Covariance metrixs corresponding to original rotated bounding boxes.
+        (torch.Tensor): Covariance matrices corresponding to original rotated bounding boxes.
     """
     # Gaussian bounding boxes, ignore the center points (the first two columns) because they are not needed here.
     gbbs = torch.cat((boxes[:, 2:4].pow(2) / 12, boxes[:, 4:]), dim=-1)
@@ -270,7 +270,7 @@ def batch_probiou(obb1, obb2, eps=1e-7):
     return 1 - hd
 
 
-def smooth_BCE(eps=0.1):
+def smooth_bce(eps=0.1):
     """
     Computes smoothed positive and negative Binary Cross-Entropy targets.
 
@@ -372,10 +372,9 @@ class ConfusionMatrix:
             else:
                 self.matrix[self.nc, gc] += 1  # true background
 
-        if n:
-            for i, dc in enumerate(detection_classes):
-                if not any(m1 == i):
-                    self.matrix[dc, self.nc] += 1  # predicted background
+        for i, dc in enumerate(detection_classes):
+            if not any(m1 == i):
+                self.matrix[dc, self.nc] += 1  # predicted background
 
     def matrix(self):
         """Returns the confusion matrix."""
@@ -460,7 +459,7 @@ def plot_pr_curve(px, py, ap, save_dir=Path("pr_curve.png"), names={}, on_plot=N
     else:
         ax.plot(px, py, linewidth=1, color="grey")  # plot(recall, precision)
 
-    ax.plot(px, py.mean(1), linewidth=3, color="blue", label="all classes %.3f mAP@0.5" % ap[:, 0].mean())
+    ax.plot(px, py.mean(1), linewidth=3, color="blue", label=f"all classes {ap[:, 0].mean():.3f} mAP@0.5")
     ax.set_xlabel("Recall")
     ax.set_ylabel("Precision")
     ax.set_xlim(0, 1)
@@ -549,19 +548,18 @@ def ap_per_class(
         prefix (str, optional): A prefix string for saving the plot files. Defaults to an empty string.
 
     Returns:
-        (tuple): A tuple of six arrays and one array of unique classes, where:
-            tp (np.ndarray): True positive counts at threshold given by max F1 metric for each class.Shape: (nc,).
-            fp (np.ndarray): False positive counts at threshold given by max F1 metric for each class. Shape: (nc,).
-            p (np.ndarray): Precision values at threshold given by max F1 metric for each class. Shape: (nc,).
-            r (np.ndarray): Recall values at threshold given by max F1 metric for each class. Shape: (nc,).
-            f1 (np.ndarray): F1-score values at threshold given by max F1 metric for each class. Shape: (nc,).
-            ap (np.ndarray): Average precision for each class at different IoU thresholds. Shape: (nc, 10).
-            unique_classes (np.ndarray): An array of unique classes that have data. Shape: (nc,).
-            p_curve (np.ndarray): Precision curves for each class. Shape: (nc, 1000).
-            r_curve (np.ndarray): Recall curves for each class. Shape: (nc, 1000).
-            f1_curve (np.ndarray): F1-score curves for each class. Shape: (nc, 1000).
-            x (np.ndarray): X-axis values for the curves. Shape: (1000,).
-            prec_values: Precision values at mAP@0.5 for each class. Shape: (nc, 1000).
+        tp (np.ndarray): True positive counts at threshold given by max F1 metric for each class.Shape: (nc,).
+        fp (np.ndarray): False positive counts at threshold given by max F1 metric for each class. Shape: (nc,).
+        p (np.ndarray): Precision values at threshold given by max F1 metric for each class. Shape: (nc,).
+        r (np.ndarray): Recall values at threshold given by max F1 metric for each class. Shape: (nc,).
+        f1 (np.ndarray): F1-score values at threshold given by max F1 metric for each class. Shape: (nc,).
+        ap (np.ndarray): Average precision for each class at different IoU thresholds. Shape: (nc, 10).
+        unique_classes (np.ndarray): An array of unique classes that have data. Shape: (nc,).
+        p_curve (np.ndarray): Precision curves for each class. Shape: (nc, 1000).
+        r_curve (np.ndarray): Recall curves for each class. Shape: (nc, 1000).
+        f1_curve (np.ndarray): F1-score curves for each class. Shape: (nc, 1000).
+        x (np.ndarray): X-axis values for the curves. Shape: (1000,).
+        prec_values (np.ndarray): Precision values at mAP@0.5 for each class. Shape: (nc, 1000).
     """
     # Sort by objectness
     i = np.argsort(-conf)
@@ -598,7 +596,7 @@ def ap_per_class(
         # AP from recall-precision curve
         for j in range(tp.shape[1]):
             ap[ci, j], mpre, mrec = compute_ap(recall[:, j], precision[:, j])
-            if plot and j == 0:
+            if j == 0:
                 prec_values.append(np.interp(x, mrec, mpre))  # precision at mAP@0.5
 
     prec_values = np.array(prec_values)  # (nc, 1000)

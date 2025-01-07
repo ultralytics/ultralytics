@@ -13,9 +13,6 @@ from tqdm import tqdm
 from ultralytics.data.utils import exif_size, img2label_paths
 from ultralytics.utils.checks import check_requirements
 
-check_requirements("shapely")
-from shapely.geometry import Polygon
-
 
 def bbox_iof(polygon1, bbox2, eps=1e-6):
     """
@@ -33,6 +30,9 @@ def bbox_iof(polygon1, bbox2, eps=1e-6):
         Polygon format: [x1, y1, x2, y2, x3, y3, x4, y4].
         Bounding box format: [x_min, y_min, x_max, y_max].
     """
+    check_requirements("shapely")
+    from shapely.geometry import Polygon
+
     polygon1 = polygon1.reshape(-1, 4, 2)
     lt_point = np.min(polygon1, axis=-2)  # left-top
     rb_point = np.max(polygon1, axis=-2)  # right-bottom
@@ -67,7 +67,7 @@ def load_yolo_dota(data_root, split="train"):
 
     Args:
         data_root (str): Data root.
-        split (str): The split data set, could be train or val.
+        split (str): The split data set, could be `train` or `val`.
 
     Notes:
         The directory structure assumed for the DOTA dataset:
@@ -193,7 +193,7 @@ def crop_and_save(anno, windows, window_objs, im_dir, lb_dir, allow_background_i
 
             with open(Path(lb_dir) / f"{new_name}.txt", "w") as f:
                 for lb in label:
-                    formatted_coords = ["{:.6g}".format(coord) for coord in lb[1:]]
+                    formatted_coords = [f"{coord:.6g}" for coord in lb[1:]]
                     f.write(f"{int(lb[0])} {' '.join(formatted_coords)}\n")
 
 

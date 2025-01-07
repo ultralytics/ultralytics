@@ -1,6 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-import contextlib
 import glob
 import inspect
 import math
@@ -24,16 +23,17 @@ from ultralytics.utils import (
     AUTOINSTALL,
     IS_COLAB,
     IS_GIT_DIR,
-    IS_JUPYTER,
     IS_KAGGLE,
     IS_PIP_PACKAGE,
     LINUX,
     LOGGER,
+    MACOS,
     ONLINE,
     PYTHON_VERSION,
     ROOT,
     TORCHVISION_VERSION,
     USER_CONFIG_DIR,
+    WINDOWS,
     Retry,
     SimpleNamespace,
     ThreadingLocked,
@@ -224,18 +224,27 @@ def check_version(
     if not required:  # if required is '' or None
         return True
 
+    if "sys_platform" in required and (  # i.e. required='<2.4.0,>=1.8.0; sys_platform == "win32"'
+        (WINDOWS and "win32" not in required)
+        or (LINUX and "linux" not in required)
+        or (MACOS and "macos" not in required and "darwin" not in required)
+    ):
+        return True
+
     op = ""
     version = ""
     result = True
     c = parse_version(current)  # '1.2.3' -> (1, 2, 3)
     for r in required.strip(",").split(","):
         op, version = re.match(r"([^0-9]*)([\d.]+)", r).groups()  # split '>=22.04' -> ('>=', '22.04')
+        if not op:
+            op = ">="  # assume >= if no op passed
         v = parse_version(version)  # '1.2.3' -> (1, 2, 3)
         if op == "==" and c != v:
             result = False
         elif op == "!=" and c == v:
             result = False
-        elif op in {">=", ""} and not (c >= v):  # if no constraint passed assume '>=required'
+        elif op == ">=" and not (c >= v):
             result = False
         elif op == "<=" and not (c <= v):
             result = False
@@ -262,11 +271,13 @@ def check_latest_pypi_version(package_name="ultralytics"):
     Returns:
         (str): The latest version of the package.
     """
-    with contextlib.suppress(Exception):
+    try:
         requests.packages.urllib3.disable_warnings()  # Disable the InsecureRequestWarning
         response = requests.get(f"https://pypi.org/pypi/{package_name}/json", timeout=3)
         if response.status_code == 200:
             return response.json()["info"]["version"]
+    except Exception:
+        return None
 
 
 def check_pip_update_available():
@@ -277,7 +288,7 @@ def check_pip_update_available():
         (bool): True if an update is available, False otherwise.
     """
     if ONLINE and IS_PIP_PACKAGE:
-        with contextlib.suppress(Exception):
+        try:
             from ultralytics import __version__
 
             latest = check_latest_pypi_version()
@@ -287,6 +298,8 @@ def check_pip_update_available():
                     f"Update with 'pip install -U ultralytics'"
                 )
                 return True
+        except Exception:
+            pass
     return False
 
 
@@ -321,18 +334,19 @@ def check_font(font="Arial.ttf"):
         return file
 
 
-def check_python(minimum: str = "3.8.0", hard: bool = True) -> bool:
+def check_python(minimum: str = "3.8.0", hard: bool = True, verbose: bool = False) -> bool:
     """
     Check current python version against the required minimum version.
 
     Args:
         minimum (str): Required minimum version of python.
         hard (bool, optional): If True, raise an AssertionError if the requirement is not met.
+        verbose (bool, optional): If True, print warning message if requirement is not met.
 
     Returns:
         (bool): Whether the installed Python version meets the minimum constraints.
     """
-    return check_version(PYTHON_VERSION, minimum, name="Python", hard=hard)
+    return check_version(PYTHON_VERSION, minimum, name="Python", hard=hard, verbose=verbose)
 
 
 @TryExcept()
@@ -362,8 +376,6 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
         ```
     """
     prefix = colorstr("red", "bold", "requirements:")
-    check_python()  # check python version
-    check_torchvision()  # check torch-torchvision compatibility
     if isinstance(requirements, Path):  # requirements.txt file
         file = requirements.resolve()
         assert file.exists(), f"{prefix} {file} not found, check failed."
@@ -422,6 +434,8 @@ def check_torchvision():
     """
     # Compatibility table
     compatibility_table = {
+        "2.5": ["0.20"],
+        "2.4": ["0.19"],
         "2.3": ["0.18"],
         "2.2": ["0.17"],
         "2.1": ["0.16"],
@@ -444,7 +458,7 @@ def check_torchvision():
             )
 
 
-def check_suffix(file="yolov8n.pt", suffix=".pt", msg=""):
+def check_suffix(file="yolo11n.pt", suffix=".pt", msg=""):
     """Check file(s) for acceptable suffix."""
     if file and suffix:
         if isinstance(suffix, str):
@@ -555,11 +569,8 @@ def check_yolo(verbose=True, device=""):
 
     from ultralytics.utils.torch_utils import select_device
 
-    if IS_JUPYTER:
-        if check_requirements("wandb", install=False):
-            os.system("pip uninstall -y wandb")  # uninstall wandb: unwanted account creation prompt with infinite hang
-        if IS_COLAB:
-            shutil.rmtree("sample_data", ignore_errors=True)  # remove colab /sample_data directory
+    if IS_COLAB:
+        shutil.rmtree("sample_data", ignore_errors=True)  # remove colab /sample_data directory
 
     if verbose:
         # System info
@@ -567,10 +578,12 @@ def check_yolo(verbose=True, device=""):
         ram = psutil.virtual_memory().total
         total, used, free = shutil.disk_usage("/")
         s = f"({os.cpu_count()} CPUs, {ram / gib:.1f} GB RAM, {(total - free) / gib:.1f}/{total / gib:.1f} GB disk)"
-        with contextlib.suppress(Exception):  # clear display if ipython is installed
+        try:
             from IPython import display
 
-            display.clear_output()
+            display.clear_output()  # clear display if notebook
+        except ImportError:
+            pass
     else:
         s = ""
 
@@ -583,90 +596,123 @@ def collect_system_info():
     import psutil
 
     from ultralytics.utils import ENVIRONMENT  # scope to avoid circular import
-    from ultralytics.utils.torch_utils import get_cpu_info
+    from ultralytics.utils.torch_utils import get_cpu_info, get_gpu_info
 
-    ram_info = psutil.virtual_memory().total / (1024**3)  # Convert bytes to GB
+    gib = 1 << 30  # bytes per GiB
+    cuda = torch and torch.cuda.is_available()
     check_yolo()
-    LOGGER.info(
-        f"\n{'OS':<20}{platform.platform()}\n"
-        f"{'Environment':<20}{ENVIRONMENT}\n"
-        f"{'Python':<20}{PYTHON_VERSION}\n"
-        f"{'Install':<20}{'git' if IS_GIT_DIR else 'pip' if IS_PIP_PACKAGE else 'other'}\n"
-        f"{'RAM':<20}{ram_info:.2f} GB\n"
-        f"{'CPU':<20}{get_cpu_info()}\n"
-        f"{'CUDA':<20}{torch.version.cuda if torch and torch.cuda.is_available() else None}\n"
-    )
+    total, used, free = shutil.disk_usage("/")
 
+    info_dict = {
+        "OS": platform.platform(),
+        "Environment": ENVIRONMENT,
+        "Python": PYTHON_VERSION,
+        "Install": "git" if IS_GIT_DIR else "pip" if IS_PIP_PACKAGE else "other",
+        "RAM": f"{psutil.virtual_memory().total / gib:.2f} GB",
+        "Disk": f"{(total - free) / gib:.1f}/{total / gib:.1f} GB",
+        "CPU": get_cpu_info(),
+        "CPU count": os.cpu_count(),
+        "GPU": get_gpu_info(index=0) if cuda else None,
+        "GPU count": torch.cuda.device_count() if cuda else None,
+        "CUDA": torch.version.cuda if cuda else None,
+    }
+    LOGGER.info("\n" + "\n".join(f"{k:<20}{v}" for k, v in info_dict.items()) + "\n")
+
+    package_info = {}
     for r in parse_requirements(package="ultralytics"):
         try:
             current = metadata.version(r.name)
-            is_met = "✅ " if check_version(current, str(r.specifier), hard=True) else "❌ "
+            is_met = "✅ " if check_version(current, str(r.specifier), name=r.name, hard=True) else "❌ "
         except metadata.PackageNotFoundError:
             current = "(not installed)"
             is_met = "❌ "
-        LOGGER.info(f"{r.name:<20}{is_met}{current}{r.specifier}")
+        package_info[r.name] = f"{is_met}{current}{r.specifier}"
+        LOGGER.info(f"{r.name:<20}{package_info[r.name]}")
+
+    info_dict["Package Info"] = package_info
 
     if is_github_action_running():
-        LOGGER.info(
-            f"\nRUNNER_OS: {os.getenv('RUNNER_OS')}\n"
-            f"GITHUB_EVENT_NAME: {os.getenv('GITHUB_EVENT_NAME')}\n"
-            f"GITHUB_WORKFLOW: {os.getenv('GITHUB_WORKFLOW')}\n"
-            f"GITHUB_ACTOR: {os.getenv('GITHUB_ACTOR')}\n"
-            f"GITHUB_REPOSITORY: {os.getenv('GITHUB_REPOSITORY')}\n"
-            f"GITHUB_REPOSITORY_OWNER: {os.getenv('GITHUB_REPOSITORY_OWNER')}\n"
-        )
+        github_info = {
+            "RUNNER_OS": os.getenv("RUNNER_OS"),
+            "GITHUB_EVENT_NAME": os.getenv("GITHUB_EVENT_NAME"),
+            "GITHUB_WORKFLOW": os.getenv("GITHUB_WORKFLOW"),
+            "GITHUB_ACTOR": os.getenv("GITHUB_ACTOR"),
+            "GITHUB_REPOSITORY": os.getenv("GITHUB_REPOSITORY"),
+            "GITHUB_REPOSITORY_OWNER": os.getenv("GITHUB_REPOSITORY_OWNER"),
+        }
+        LOGGER.info("\n" + "\n".join(f"{k}: {v}" for k, v in github_info.items()))
+        info_dict["GitHub Info"] = github_info
+
+    return info_dict
 
 
 def check_amp(model):
     """
-    Checks the PyTorch Automatic Mixed Precision (AMP) functionality of a YOLOv8 model. If the checks fail, it means
+    Checks the PyTorch Automatic Mixed Precision (AMP) functionality of a YOLO11 model. If the checks fail, it means
     there are anomalies with AMP on the system that may cause NaN losses or zero-mAP results, so AMP will be disabled
     during training.
 
     Args:
-        model (nn.Module): A YOLOv8 model instance.
+        model (nn.Module): A YOLO11 model instance.
 
     Example:
         ```python
         from ultralytics import YOLO
         from ultralytics.utils.checks import check_amp
 
-        model = YOLO("yolov8n.pt").model.cuda()
+        model = YOLO("yolo11n.pt").model.cuda()
         check_amp(model)
         ```
 
     Returns:
-        (bool): Returns True if the AMP functionality works correctly with YOLOv8 model, else False.
+        (bool): Returns True if the AMP functionality works correctly with YOLO11 model, else False.
     """
     from ultralytics.utils.torch_utils import autocast
 
     device = next(model.parameters()).device  # get model device
+    prefix = colorstr("AMP: ")
     if device.type in {"cpu", "mps"}:
         return False  # AMP only used on CUDA devices
+    else:
+        # GPUs that have issues with AMP
+        pattern = re.compile(
+            r"(nvidia|geforce|quadro|tesla).*?(1660|1650|1630|t400|t550|t600|t1000|t1200|t2000|k40m)", re.IGNORECASE
+        )
+
+        gpu = torch.cuda.get_device_name(device)
+        if bool(pattern.search(gpu)):
+            LOGGER.warning(
+                f"{prefix}checks failed ❌. AMP training on {gpu} GPU may cause "
+                f"NaN losses or zero-mAP results, so AMP will be disabled during training."
+            )
+            return False
 
     def amp_allclose(m, im):
         """All close FP32 vs AMP results."""
-        a = m(im, device=device, verbose=False)[0].boxes.data  # FP32 inference
+        batch = [im] * 8
+        imgsz = max(256, int(model.stride.max() * 4))  # max stride P5-32 and P6-64
+        a = m(batch, imgsz=imgsz, device=device, verbose=False)[0].boxes.data  # FP32 inference
         with autocast(enabled=True):
-            b = m(im, device=device, verbose=False)[0].boxes.data  # AMP inference
+            b = m(batch, imgsz=imgsz, device=device, verbose=False)[0].boxes.data  # AMP inference
         del m
         return a.shape == b.shape and torch.allclose(a, b.float(), atol=0.5)  # close to 0.5 absolute tolerance
 
     im = ASSETS / "bus.jpg"  # image to check
-    prefix = colorstr("AMP: ")
-    LOGGER.info(f"{prefix}running Automatic Mixed Precision (AMP) checks with YOLOv8n...")
+    LOGGER.info(f"{prefix}running Automatic Mixed Precision (AMP) checks...")
     warning_msg = "Setting 'amp=True'. If you experience zero-mAP or NaN losses you can disable AMP with amp=False."
     try:
         from ultralytics import YOLO
 
-        assert amp_allclose(YOLO("yolov8n.pt"), im)
+        assert amp_allclose(YOLO("yolo11n.pt"), im)
         LOGGER.info(f"{prefix}checks passed ✅")
     except ConnectionError:
-        LOGGER.warning(f"{prefix}checks skipped ⚠️, offline and unable to download YOLOv8n. {warning_msg}")
+        LOGGER.warning(
+            f"{prefix}checks skipped ⚠️. " f"Offline and unable to download YOLO11n for AMP checks. {warning_msg}"
+        )
     except (AttributeError, ModuleNotFoundError):
         LOGGER.warning(
             f"{prefix}checks skipped ⚠️. "
-            f"Unable to load YOLOv8n due to possible Ultralytics package modifications. {warning_msg}"
+            f"Unable to load YOLO11n for AMP checks due to possible Ultralytics package modifications. {warning_msg}"
         )
     except AssertionError:
         LOGGER.warning(
@@ -679,9 +725,10 @@ def check_amp(model):
 
 def git_describe(path=ROOT):  # path must be a directory
     """Return human-readable git description, i.e. v5.0-5-g3e25f1e https://git-scm.com/docs/git-describe."""
-    with contextlib.suppress(Exception):
+    try:
         return subprocess.check_output(f"git -C {path} describe --tags --long --always", shell=True).decode()[:-1]
-    return ""
+    except Exception:
+        return ""
 
 
 def print_args(args: Optional[dict] = None, show_file=True, show_func=False):
@@ -736,6 +783,8 @@ def cuda_is_available() -> bool:
     return cuda_device_count() > 0
 
 
-# Define constants
+# Run checks and define constants
+check_python("3.8", hard=False, verbose=True)  # check python version
+check_torchvision()  # check torch-torchvision compatibility
 IS_PYTHON_MINIMUM_3_10 = check_python("3.10", hard=False)
 IS_PYTHON_3_12 = PYTHON_VERSION.startswith("3.12")

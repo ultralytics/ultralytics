@@ -5,7 +5,7 @@ keywords: Ultralytics, SAM, SAM 2, API Reference, models, window partition, data
 
 # Reference for `ultralytics/models/sam/modules/utils.py`
 
-!!! Note
+!!! note
 
     This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/sam/modules/utils.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/sam/modules/utils.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/models/sam/modules/utils.py) 🛠️. Thank you 🙏!
 

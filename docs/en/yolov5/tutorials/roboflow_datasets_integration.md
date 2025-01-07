@@ -8,30 +8,30 @@ keywords: Roboflow, YOLOv5, data management, dataset labeling, dataset versionin
 
 You can now use Roboflow to organize, label, prepare, version, and host your datasets for training YOLOv5 🚀 models. Roboflow is free to use with YOLOv5 if you make your workspace public.
 
-!!! Question "Licensing"
+!!! question "Licensing"
 
     Ultralytics offers two licensing options:
 
-    - The [AGPL-3.0 License](https://github.com/ultralytics/ultralytics/blob/main/LICENSE), an [OSI-approved](https://opensource.org/licenses/) open-source license ideal for students and enthusiasts.
-    - The [Enterprise License](https://ultralytics.com/license) for businesses seeking to incorporate our AI models into their products and services.
+    - The [AGPL-3.0 License](https://github.com/ultralytics/ultralytics/blob/main/LICENSE), an [OSI-approved](https://opensource.org/license) open-source license ideal for students and enthusiasts.
+    - The [Enterprise License](https://www.ultralytics.com/license) for businesses seeking to incorporate our AI models into their products and services.
 
-    For more details see [Ultralytics Licensing](https://ultralytics.com/license).
+    For more details see [Ultralytics Licensing](https://www.ultralytics.com/license).
 
 ## Upload
 
-You can upload your data to Roboflow via [web UI](https://docs.roboflow.com/adding-data), [REST API](https://docs.roboflow.com/adding-data/upload-api), or [Python](https://docs.roboflow.com/python).
+You can upload your data to Roboflow via [web UI](https://docs.roboflow.com/adding-data?ref=ultralytics), [REST API](https://docs.roboflow.com/adding-data/upload-api?ref=ultralytics), or [Python](https://docs.roboflow.com/python?ref=ultralytics).
 
 ## Labeling
 
 After uploading data to Roboflow, you can label your data and review previous labels.
 
-[![Roboflow Annotate](https://roboflow-darknet.s3.us-east-2.amazonaws.com/roboflow-annotate.gif)](https://roboflow.com/annotate)
+[![Roboflow Annotate](https://github.com/ultralytics/docs/releases/download/0/roboflow-annotate-1.avif)](https://roboflow.com/annotate)
 
 ## Versioning
 
-You can make versions of your dataset with different preprocessing and offline augmentation options. YOLOv5 does online augmentations natively, so be intentional when layering Roboflow's offline augmentations on top.
+You can make versions of your dataset with different preprocessing and offline augmentation options. YOLOv5 does online augmentations natively, so be intentional when layering Roboflow offline augmentations on top.
 
-![Roboflow Preprocessing](https://roboflow-darknet.s3.us-east-2.amazonaws.com/robolfow-preprocessing.png)
+![Roboflow Preprocessing](https://github.com/ultralytics/docs/releases/download/0/roboflow-preprocessing.avif)
 
 ## Exporting Data
 
@@ -52,15 +52,15 @@ We have released a custom training tutorial demonstrating all of the above capab
 
 ## Active Learning
 
-The real world is messy and your model will invariably encounter situations your dataset didn't anticipate. Using [active learning](https://blog.roboflow.com/what-is-active-learning/) is an important strategy to iteratively improve your dataset and model. With the Roboflow and YOLOv5 integration, you can quickly make improvements on your model deployments by using a battle tested machine learning pipeline.
+The real world is messy and your model will invariably encounter situations your dataset didn't anticipate. Using [active learning](https://blog.roboflow.com/what-is-active-learning/?ref=ultralytics) is an important strategy to iteratively improve your dataset and model. With the Roboflow and YOLOv5 integration, you can quickly make improvements on your [model deployments](https://www.ultralytics.com/glossary/model-deployment) by using a battle tested [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) pipeline.
 
-<p align=""><a href="https://roboflow.com/?ref=ultralytics"><img width="1000" src="https://uploads-ssl.webflow.com/5f6bc60e665f54545a1e52a5/615627e5824c9c6195abfda9_computer-vision-cycle.png" alt="Roboflow active learning"></a></p>
+<p align=""><a href="https://roboflow.com/?ref=ultralytics"><img width="1000" src="https://github.com/ultralytics/docs/releases/download/0/roboflow-active-learning.avif" alt="Roboflow active learning"></a></p>
 
 ## Supported Environments
 
-Ultralytics provides a range of ready-to-use environments, each pre-installed with essential dependencies such as [CUDA](https://developer.nvidia.com/cuda), [CUDNN](https://developer.nvidia.com/cudnn), [Python](https://www.python.org/), and [PyTorch](https://pytorch.org/), to kickstart your projects.
+Ultralytics provides a range of ready-to-use environments, each pre-installed with essential dependencies such as [CUDA](https://developer.nvidia.com/cuda-zone), [CUDNN](https://developer.nvidia.com/cudnn), [Python](https://www.python.org/), and [PyTorch](https://pytorch.org/), to kickstart your projects.
 
-- **Free GPU Notebooks**: <a href="https://bit.ly/yolov5-paperspace-notebook"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run on Gradient"></a> <a href="https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> <a href="https://www.kaggle.com/ultralytics/yolov5"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
+- **Free GPU Notebooks**: <a href="https://bit.ly/yolov5-paperspace-notebook"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run on Gradient"></a> <a href="https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> <a href="https://www.kaggle.com/models/ultralytics/yolov5"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
 - **Google Cloud**: [GCP Quickstart Guide](../environments/google_cloud_quickstart_tutorial.md)
 - **Amazon**: [AWS Quickstart Guide](../environments/aws_quickstart_tutorial.md)
 - **Azure**: [AzureML Quickstart Guide](../environments/azureml_quickstart_tutorial.md)
@@ -96,10 +96,10 @@ dataset = project.version("YOUR VERSION").download("yolov5")
 
 This code will download your dataset in a format compatible with YOLOv5, allowing you to quickly begin training your model. For more details, refer to the [Exporting Data](#exporting-data) section.
 
-### What is active learning and how does it work with YOLOv5 and Roboflow?
+### What is [active learning](https://www.ultralytics.com/glossary/active-learning) and how does it work with YOLOv5 and Roboflow?
 
 Active learning is a machine learning strategy that iteratively improves a model by intelligently selecting the most informative data points to label. With the Roboflow and YOLOv5 integration, you can implement active learning to continuously enhance your model's performance. This involves deploying a model, capturing new data, using the model to make predictions, and then manually verifying or correcting those predictions to further train the model. For more insights into active learning see the [Active Learning](#active-learning) section above.
 
 ### How can I use Ultralytics environments for training YOLOv5 models on different platforms?
 
-Ultralytics provides ready-to-use environments with pre-installed dependencies like CUDA, CUDNN, Python, and PyTorch, making it easier to kickstart your training projects. These environments are available on various platforms such as Google Cloud, AWS, Azure, and Docker. You can also access free GPU notebooks via [Paperspace](https://bit.ly/yolov5-paperspace-notebook), [Google Colab](https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb), and [Kaggle](https://www.kaggle.com/ultralytics/yolov5). For specific setup instructions, visit the [Supported Environments](#supported-environments) section of the documentation.
+Ultralytics provides ready-to-use environments with pre-installed dependencies like CUDA, CUDNN, Python, and [PyTorch](https://www.ultralytics.com/glossary/pytorch), making it easier to kickstart your training projects. These environments are available on various platforms such as Google Cloud, AWS, Azure, and Docker. You can also access free GPU notebooks via [Paperspace](https://bit.ly/yolov5-paperspace-notebook), [Google Colab](https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb), and [Kaggle](https://www.kaggle.com/models/ultralytics/yolov5). For specific setup instructions, visit the [Supported Environments](#supported-environments) section of the documentation.

@@ -14,6 +14,7 @@ import torch
 
 from ultralytics.data.augment import LetterBox
 from ultralytics.utils import LOGGER, SimpleClass, ops
+from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.plotting import Annotator, colors, save_one_box
 from ultralytics.utils.torch_utils import smart_inference_mode
 
@@ -522,20 +523,35 @@ class Results(SimpleClass):
                     .contiguous()
                     / 255
                 )
-            idx = pred_boxes.cls if pred_boxes and color_mode == "class" else reversed(range(len(pred_masks)))
+            idx = (
+                pred_boxes.id
+                if pred_boxes.id is not None and color_mode == "instance"
+                else pred_boxes.cls
+                if pred_boxes and color_mode == "class"
+                else reversed(range(len(pred_masks)))
+            )
             annotator.masks(pred_masks.data, colors=[colors(x, True) for x in idx], im_gpu=im_gpu)
 
         # Plot Detect results
         if pred_boxes is not None and show_boxes:
             for i, d in enumerate(reversed(pred_boxes)):
-                c, conf, id = int(d.cls), float(d.conf) if conf else None, None if d.id is None else int(d.id.item())
+                c, d_conf, id = int(d.cls), float(d.conf) if conf else None, None if d.id is None else int(d.id.item())
                 name = ("" if id is None else f"id:{id} ") + names[c]
-                label = (f"{name} {conf:.2f}" if conf else name) if labels else None
+                label = (f"{name} {d_conf:.2f}" if conf else name) if labels else None
                 box = d.xyxyxyxy.reshape(-1, 4, 2).squeeze() if is_obb else d.xyxy.squeeze()
                 annotator.box_label(
                     box,
                     label,
-                    color=colors(i if color_mode == "instance" else c, True),
+                    color=colors(
+                        c
+                        if color_mode == "class"
+                        else id
+                        if id is not None
+                        else i
+                        if color_mode == "instance"
+                        else None,
+                        True,
+                    ),
                     rotated=is_obb,
                 )
 
@@ -660,7 +676,7 @@ class Results(SimpleClass):
 
         Examples:
             >>> from ultralytics import YOLO
-            >>> model = YOLO("yolov8n.pt")
+            >>> model = YOLO("yolo11n.pt")
             >>> results = model("path/to/image.jpg")
             >>> for result in results:
             ...     result.save_txt("output.txt")
@@ -734,7 +750,7 @@ class Results(SimpleClass):
             save_one_box(
                 d.xyxy,
                 self.orig_img.copy(),
-                file=Path(save_dir) / self.names[int(d.cls)] / f"{Path(file_name)}.jpg",
+                file=Path(save_dir) / self.names[int(d.cls)] / Path(file_name).with_suffix(".jpg"),
                 BGR=True,
             )
 
@@ -803,7 +819,90 @@ class Results(SimpleClass):
 
         return results
 
+    def to_df(self, normalize=False, decimals=5):
+        """
+        Converts detection results to a Pandas Dataframe.
+
+        This method converts the detection results into Pandas Dataframe format. It includes information
+        about detected objects such as bounding boxes, class names, confidence scores, and optionally
+        segmentation masks and keypoints.
+
+        Args:
+            normalize (bool): Whether to normalize the bounding box coordinates by the image dimensions.
+                If True, coordinates will be returned as float values between 0 and 1. Defaults to False.
+            decimals (int): Number of decimal places to round the output values to. Defaults to 5.
+
+        Returns:
+            (DataFrame): A Pandas Dataframe containing all the information in results in an organized way.
+
+        Examples:
+            >>> results = model("path/to/image.jpg")
+            >>> df_result = results[0].to_df()
+            >>> print(df_result)
+        """
+        import pandas as pd
+
+        return pd.DataFrame(self.summary(normalize=normalize, decimals=decimals))
+
+    def to_csv(self, normalize=False, decimals=5, *args, **kwargs):
+        """
+        Converts detection results to a CSV format.
+
+        This method serializes the detection results into a CSV format. It includes information
+        about detected objects such as bounding boxes, class names, confidence scores, and optionally
+        segmentation masks and keypoints.
+
+        Args:
+            normalize (bool): Whether to normalize the bounding box coordinates by the image dimensions.
+                If True, coordinates will be returned as float values between 0 and 1. Defaults to False.
+            decimals (int): Number of decimal places to round the output values to. Defaults to 5.
+            *args (Any): Variable length argument list to be passed to pandas.DataFrame.to_csv().
+            **kwargs (Any): Arbitrary keyword arguments to be passed to pandas.DataFrame.to_csv().
+
+
+        Returns:
+            (str): CSV containing all the information in results in an organized way.
+
+        Examples:
+            >>> results = model("path/to/image.jpg")
+            >>> csv_result = results[0].to_csv()
+            >>> print(csv_result)
+        """
+        return self.to_df(normalize=normalize, decimals=decimals).to_csv(*args, **kwargs)
+
+    def to_xml(self, normalize=False, decimals=5, *args, **kwargs):
+        """
+        Converts detection results to XML format.
+
+        This method serializes the detection results into an XML format. It includes information
+        about detected objects such as bounding boxes, class names, confidence scores, and optionally
+        segmentation masks and keypoints.
+
+        Args:
+            normalize (bool): Whether to normalize the bounding box coordinates by the image dimensions.
+                If True, coordinates will be returned as float values between 0 and 1. Defaults to False.
+            decimals (int): Number of decimal places to round the output values to. Defaults to 5.
+            *args (Any): Variable length argument list to be passed to pandas.DataFrame.to_xml().
+            **kwargs (Any): Arbitrary keyword arguments to be passed to pandas.DataFrame.to_xml().
+
+        Returns:
+            (str): An XML string containing all the information in results in an organized way.
+
+        Examples:
+            >>> results = model("path/to/image.jpg")
+            >>> xml_result = results[0].to_xml()
+            >>> print(xml_result)
+        """
+        check_requirements("lxml")
+        df = self.to_df(normalize=normalize, decimals=decimals)
+        return '<?xml version="1.0" encoding="utf-8"?>\n<root></root>' if df.empty else df.to_xml(*args, **kwargs)
+
     def tojson(self, normalize=False, decimals=5):
+        """Deprecated version of to_json()."""
+        LOGGER.warning("WARNING ⚠️ 'result.tojson()' is deprecated, replace with 'result.to_json()'.")
+        return self.to_json(normalize, decimals)
+
+    def to_json(self, normalize=False, decimals=5):
         """
         Converts detection results to JSON format.
 
@@ -821,7 +920,7 @@ class Results(SimpleClass):
 
         Examples:
             >>> results = model("path/to/image.jpg")
-            >>> json_result = results[0].tojson()
+            >>> json_result = results[0].to_json()
             >>> print(json_result)
 
         Notes:

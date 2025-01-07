@@ -7,7 +7,7 @@ keywords: YOLO, inference results, VSCode terminal, sixel, display images, Linux
 # Viewing Inference Results in a Terminal
 
 <p align="center">
-  <img width="800" src="https://raw.githubusercontent.com/saitoha/libsixel/data/data/sixel.gif" alt="Sixel example of image in Terminal">
+  <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/sixel-example-terminal.avif" alt="Sixel example of image in Terminal">
 </p>
 
 Image from the [libsixel](https://saitoha.github.io/libsixel/) website.
@@ -32,7 +32,7 @@ The VSCode compatible protocols for viewing images using the integrated terminal
     ```
 
     <p align="center">
-      <img width="800" src="https://github.com/ultralytics/ultralytics/assets/62214284/d158ab1c-893c-4397-a5de-2f9f74f81175" alt="VSCode enable terminal images setting">
+      <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/vscode-enable-terminal-images-setting.avif" alt="VSCode enable terminal images setting">
     </p>
 
 2. Install the `python-sixel` library in your virtual environment. This is a [fork](https://github.com/lubosz/python-sixel?tab=readme-ov-file) of the `PySixel` library, which is no longer maintained.
@@ -47,7 +47,7 @@ The VSCode compatible protocols for viewing images using the integrated terminal
     from ultralytics import YOLO
 
     # Load a model
-    model = YOLO("yolov8n.pt")
+    model = YOLO("yolo11n.pt")
 
     # Run inference on an image
     results = model.predict(source="ultralytics/assets/bus.jpg")
@@ -58,7 +58,7 @@ The VSCode compatible protocols for viewing images using the integrated terminal
 
     1. See [plot method parameters](../modes/predict.md#plot-method-parameters) to see possible arguments to use.
 
-4. Now, use OpenCV to convert the `numpy.ndarray` to `bytes` data. Then use `io.BytesIO` to make a "file-like" object.
+4. Now, use [OpenCV](https://www.ultralytics.com/glossary/opencv) to convert the `numpy.ndarray` to `bytes` data. Then use `io.BytesIO` to make a "file-like" object.
 
     ```{ .py .annotate }
     import io
@@ -93,7 +93,7 @@ The VSCode compatible protocols for viewing images using the integrated terminal
 ## Example Inference Results
 
 <p align="center">
-  <img width="800" src="https://github.com/ultralytics/ultralytics/assets/62214284/6743ab64-300d-4429-bdce-e246455f7b68" alt="View Image in Terminal">
+  <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/view-image-in-terminal.avif" alt="View Image in Terminal">
 </p>
 
 !!! danger
@@ -111,7 +111,7 @@ from sixel import SixelWriter
 from ultralytics import YOLO
 
 # Load a model
-model = YOLO("yolov8n.pt")
+model = YOLO("yolo11n.pt")
 
 # Run inference on an image
 results = model.predict(source="ultralytics/assets/bus.jpg")
@@ -164,7 +164,7 @@ To view YOLO inference results in a VSCode terminal on macOS or Linux, follow th
     ```python
     from ultralytics import YOLO
 
-    model = YOLO("yolov8n.pt")
+    model = YOLO("yolo11n.pt")
     results = model.predict(source="path_to_image")
     plot = results[0].plot()
     ```

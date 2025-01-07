@@ -1,26 +1,37 @@
 ---
 comments: true
-description: Learn how to export YOLOv8 models to PaddlePaddle format for enhanced performance, flexibility, and deployment across various platforms and devices.
-keywords: YOLOv8, PaddlePaddle, export models, computer vision, deep learning, model deployment, performance optimization
+description: Learn how to export YOLO11 models to PaddlePaddle format for enhanced performance, flexibility, and deployment across various platforms and devices.
+keywords: YOLO11, PaddlePaddle, export models, computer vision, deep learning, model deployment, performance optimization
 ---
 
-# How to Export to PaddlePaddle Format from YOLOv8 Models
+# How to Export to PaddlePaddle Format from YOLO11 Models
 
-Bridging the gap between developing and deploying computer vision models in real-world scenarios with varying conditions can be difficult. PaddlePaddle makes this process easier with its focus on flexibility, performance, and its capability for parallel processing in distributed environments. This means you can use your YOLOv8 computer vision models on a wide variety of devices and platforms, from smartphones to cloud-based servers.
+Bridging the gap between developing and deploying [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models in real-world scenarios with varying conditions can be difficult. PaddlePaddle makes this process easier with its focus on flexibility, performance, and its capability for parallel processing in distributed environments. This means you can use your YOLO11 computer vision models on a wide variety of devices and platforms, from smartphones to cloud-based servers.
 
-The ability to export to PaddlePaddle model format allows you to optimize your [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics) models for use within the PaddlePaddle framework. PaddlePaddle is known for facilitating industrial deployments and is a good choice for deploying computer vision applications in real-world settings across various domains.
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/c5eFrt2KuzY"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to Export Ultralytics YOLO11 Models to PaddlePaddle Format | Key Features of PaddlePaddle Format
+</p>
+
+The ability to export to PaddlePaddle model format allows you to optimize your [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics) models for use within the PaddlePaddle framework. PaddlePaddle is known for facilitating industrial deployments and is a good choice for deploying computer vision applications in real-world settings across various domains.
 
 ## Why should you export to PaddlePaddle?
 
 <p align="center">
-  <img width="75%" src="https://github.com/PaddlePaddle/Paddle/blob/develop/doc/imgs/logo.png?raw=true" alt="PaddlePaddle Logo">
+  <img width="75%" src="https://github.com/PaddlePaddle/Paddle/blob/develop/doc/imgs/logo.png" alt="PaddlePaddle Logo">
 </p>
 
-Developed by Baidu, [PaddlePaddle](https://www.paddlepaddle.org.cn/en) (**PA**rallel **D**istributed **D**eep **LE**arning) is China's first open-source deep learning platform. Unlike some frameworks built mainly for research, PaddlePaddle prioritizes ease of use and smooth integration across industries.
+Developed by Baidu, [PaddlePaddle](https://www.paddlepaddle.org.cn/en) (**PA**rallel **D**istributed **D**eep **LE**arning) is China's first open-source [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) platform. Unlike some frameworks built mainly for research, PaddlePaddle prioritizes ease of use and smooth integration across industries.
 
-It offers tools and resources similar to popular frameworks like TensorFlow and PyTorch, making it accessible for developers of all experience levels. From farming and factories to service businesses, PaddlePaddle's large developer community of over 4.77 million is helping create and deploy AI applications.
+It offers tools and resources similar to popular frameworks like [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) and [PyTorch](https://www.ultralytics.com/glossary/pytorch), making it accessible for developers of all experience levels. From farming and factories to service businesses, PaddlePaddle's large developer community of over 4.77 million is helping create and deploy AI applications.
 
-By exporting your Ultralytics YOLOv8 models to PaddlePaddle format, you can tap into PaddlePaddle's strengths in performance optimization. PaddlePaddle prioritizes efficient model execution and reduced memory usage. As a result, your YOLOv8 models can potentially achieve even better performance, delivering top-notch results in practical scenarios.
+By exporting your Ultralytics YOLO11 models to PaddlePaddle format, you can tap into PaddlePaddle's strengths in performance optimization. PaddlePaddle prioritizes efficient model execution and reduced memory usage. As a result, your YOLO11 models can potentially achieve even better performance, delivering top-notch results in practical scenarios.
 
 ## Key Features of PaddlePaddle Models
 
@@ -34,7 +45,7 @@ PaddlePaddle models offer a range of key features that contribute to their flexi
 
 ## Deployment Options in PaddlePaddle
 
-Before diving into the code for exporting YOLOv8 models to PaddlePaddle, let's take a look at the different deployment scenarios in which PaddlePaddle models excel.
+Before diving into the code for exporting YOLO11 models to PaddlePaddle, let's take a look at the different deployment scenarios in which PaddlePaddle models excel.
 
 PaddlePaddle provides a range of options, each offering a distinct balance of ease of use, flexibility, and performance:
 
@@ -46,44 +57,44 @@ PaddlePaddle provides a range of options, each offering a distinct balance of ea
 
 - **Paddle.js**: Paddle.js enables you to deploy PaddlePaddle models directly within web browsers. Paddle.js can either load a pre-trained model or transform a model from [paddle-hub](https://github.com/PaddlePaddle/PaddleHub) with model transforming tools provided by Paddle.js. It can run in browsers that support WebGL/WebGPU/WebAssembly.
 
-## Export to PaddlePaddle: Converting Your YOLOv8 Model
+## Export to PaddlePaddle: Converting Your YOLO11 Model
 
-Converting YOLOv8 models to the PaddlePaddle format can improve execution flexibility and optimize performance for various deployment scenarios.
+Converting YOLO11 models to the PaddlePaddle format can improve execution flexibility and optimize performance for various deployment scenarios.
 
 ### Installation
 
 To install the required package, run:
 
-!!! Tip "Installation"
+!!! tip "Installation"
 
     === "CLI"
 
         ```bash
-        # Install the required package for YOLOv8
+        # Install the required package for YOLO11
         pip install ultralytics
         ```
 
-For detailed instructions and best practices related to the installation process, check our [Ultralytics Installation guide](../quickstart.md). While installing the required packages for YOLOv8, if you encounter any difficulties, consult our [Common Issues guide](../guides/yolo-common-issues.md) for solutions and tips.
+For detailed instructions and best practices related to the installation process, check our [Ultralytics Installation guide](../quickstart.md). While installing the required packages for YOLO11, if you encounter any difficulties, consult our [Common Issues guide](../guides/yolo-common-issues.md) for solutions and tips.
 
 ### Usage
 
-Before diving into the usage instructions, it's important to note that while all [Ultralytics YOLOv8 models](../models/index.md) are available for exporting, you can ensure that the model you select supports export functionality [here](../modes/export.md).
+Before diving into the usage instructions, it's important to note that while all [Ultralytics YOLO11 models](../models/index.md) are available for exporting, you can ensure that the model you select supports export functionality [here](../modes/export.md).
 
-!!! Example "Usage"
+!!! example "Usage"
 
     === "Python"
 
         ```python
         from ultralytics import YOLO
 
-        # Load the YOLOv8 model
-        model = YOLO("yolov8n.pt")
+        # Load the YOLO11 model
+        model = YOLO("yolo11n.pt")
 
         # Export the model to PaddlePaddle format
-        model.export(format="paddle")  # creates '/yolov8n_paddle_model'
+        model.export(format="paddle")  # creates '/yolo11n_paddle_model'
 
         # Load the exported PaddlePaddle model
-        paddle_model = YOLO("./yolov8n_paddle_model")
+        paddle_model = YOLO("./yolo11n_paddle_model")
 
         # Run inference
         results = paddle_model("https://ultralytics.com/images/bus.jpg")
@@ -92,18 +103,18 @@ Before diving into the usage instructions, it's important to note that while all
     === "CLI"
 
         ```bash
-        # Export a YOLOv8n PyTorch model to PaddlePaddle format
-        yolo export model=yolov8n.pt format=paddle  # creates '/yolov8n_paddle_model'
+        # Export a YOLO11n PyTorch model to PaddlePaddle format
+        yolo export model=yolo11n.pt format=paddle  # creates '/yolo11n_paddle_model'
 
         # Run inference with the exported model
-        yolo predict model='./yolov8n_paddle_model' source='https://ultralytics.com/images/bus.jpg'
+        yolo predict model='./yolo11n_paddle_model' source='https://ultralytics.com/images/bus.jpg'
         ```
 
 For more details about supported export options, visit the [Ultralytics documentation page on deployment options](../guides/model-deployment-options.md).
 
-## Deploying Exported YOLOv8 PaddlePaddle Models
+## Deploying Exported YOLO11 PaddlePaddle Models
 
-After successfully exporting your Ultralytics YOLOv8 models to PaddlePaddle format, you can now deploy them. The primary and recommended first step for running a PaddlePaddle model is to use the YOLO("./model_paddle_model") method, as outlined in the previous usage code snippet.
+After successfully exporting your Ultralytics YOLO11 models to PaddlePaddle format, you can now deploy them. The primary and recommended first step for running a PaddlePaddle model is to use the YOLO("yolo11n_paddle_model/") method, as outlined in the previous usage code snippet.
 
 However, for in-depth instructions on deploying your PaddlePaddle models in various other settings, take a look at the following resources:
 
@@ -115,33 +126,33 @@ However, for in-depth instructions on deploying your PaddlePaddle models in vari
 
 ## Summary
 
-In this guide, we explored the process of exporting Ultralytics YOLOv8 models to the PaddlePaddle format. By following these steps, you can leverage PaddlePaddle's strengths in diverse deployment scenarios, optimizing your models for different hardware and software environments.
+In this guide, we explored the process of exporting Ultralytics YOLO11 models to the PaddlePaddle format. By following these steps, you can leverage PaddlePaddle's strengths in diverse deployment scenarios, optimizing your models for different hardware and software environments.
 
 For further details on usage, visit the [PaddlePaddle official documentation](https://www.paddlepaddle.org.cn/documentation/docs/en/guides/index_en.html)
 
-Want to explore more ways to integrate your Ultralytics YOLOv8 models? Our [integration guide page](index.md) explores various options, equipping you with valuable resources and insights.
+Want to explore more ways to integrate your Ultralytics YOLO11 models? Our [integration guide page](index.md) explores various options, equipping you with valuable resources and insights.
 
 ## FAQ
 
-### How do I export Ultralytics YOLOv8 models to PaddlePaddle format?
+### How do I export Ultralytics YOLO11 models to PaddlePaddle format?
 
-Exporting Ultralytics YOLOv8 models to PaddlePaddle format is straightforward. You can use the `export` method of the YOLO class to perform this exportation. Here is an example using Python:
+Exporting Ultralytics YOLO11 models to PaddlePaddle format is straightforward. You can use the `export` method of the YOLO class to perform this exportation. Here is an example using Python:
 
-!!! Example "Usage"
+!!! example "Usage"
 
     === "Python"
 
         ```python
         from ultralytics import YOLO
 
-        # Load the YOLOv8 model
-        model = YOLO("yolov8n.pt")
+        # Load the YOLO11 model
+        model = YOLO("yolo11n.pt")
 
         # Export the model to PaddlePaddle format
-        model.export(format="paddle")  # creates '/yolov8n_paddle_model'
+        model.export(format="paddle")  # creates '/yolo11n_paddle_model'
 
         # Load the exported PaddlePaddle model
-        paddle_model = YOLO("./yolov8n_paddle_model")
+        paddle_model = YOLO("./yolo11n_paddle_model")
 
         # Run inference
         results = paddle_model("https://ultralytics.com/images/bus.jpg")
@@ -150,35 +161,35 @@ Exporting Ultralytics YOLOv8 models to PaddlePaddle format is straightforward. Y
     === "CLI"
 
         ```bash
-        # Export a YOLOv8n PyTorch model to PaddlePaddle format
-        yolo export model=yolov8n.pt format=paddle  # creates '/yolov8n_paddle_model'
+        # Export a YOLO11n PyTorch model to PaddlePaddle format
+        yolo export model=yolo11n.pt format=paddle  # creates '/yolo11n_paddle_model'
 
         # Run inference with the exported model
-        yolo predict model='./yolov8n_paddle_model' source='https://ultralytics.com/images/bus.jpg'
+        yolo predict model='./yolo11n_paddle_model' source='https://ultralytics.com/images/bus.jpg'
         ```
 
 For more detailed setup and troubleshooting, check the [Ultralytics Installation Guide](../quickstart.md) and [Common Issues Guide](../guides/yolo-common-issues.md).
 
-### What are the advantages of using PaddlePaddle for model deployment?
+### What are the advantages of using PaddlePaddle for [model deployment](https://www.ultralytics.com/glossary/model-deployment)?
 
 PaddlePaddle offers several key advantages for model deployment:
 
 - **Performance Optimization**: PaddlePaddle excels in efficient model execution and reduced memory usage.
 - **Dynamic-to-Static Graph Compilation**: It supports dynamic-to-static compilation, allowing for runtime optimizations.
 - **Operator Fusion**: By merging compatible operations, it reduces computational overhead.
-- **Quantization Techniques**: Supports both post-training and quantization-aware training, enabling lower-precision data representations for improved performance.
+- **Quantization Techniques**: Supports both post-training and quantization-aware training, enabling lower-[precision](https://www.ultralytics.com/glossary/precision) data representations for improved performance.
 
-You can achieve enhanced results by exporting your Ultralytics YOLOv8 models to PaddlePaddle, ensuring flexibility and high performance across various applications and hardware platforms. Learn more about PaddlePaddle's features [here](https://www.paddlepaddle.org.cn/en).
+You can achieve enhanced results by exporting your Ultralytics YOLO11 models to PaddlePaddle, ensuring flexibility and high performance across various applications and hardware platforms. Learn more about PaddlePaddle's features [here](https://www.paddlepaddle.org.cn/en).
 
-### Why should I choose PaddlePaddle for deploying my YOLOv8 models?
+### Why should I choose PaddlePaddle for deploying my YOLO11 models?
 
-PaddlePaddle, developed by Baidu, is optimized for industrial and commercial AI deployments. Its large developer community and robust framework provide extensive tools similar to TensorFlow and PyTorch. By exporting your YOLOv8 models to PaddlePaddle, you leverage:
+PaddlePaddle, developed by Baidu, is optimized for industrial and commercial AI deployments. Its large developer community and robust framework provide extensive tools similar to TensorFlow and PyTorch. By exporting your YOLO11 models to PaddlePaddle, you leverage:
 
 - **Enhanced Performance**: Optimal execution speed and reduced memory footprint.
 - **Flexibility**: Wide compatibility with various devices from smartphones to cloud servers.
 - **Scalability**: Efficient parallel processing capabilities for distributed environments.
 
-These features make PaddlePaddle a compelling choice for deploying YOLOv8 models in production settings.
+These features make PaddlePaddle a compelling choice for deploying YOLO11 models in production settings.
 
 ### How does PaddlePaddle improve model performance over other frameworks?
 
@@ -186,11 +197,11 @@ PaddlePaddle employs several advanced techniques to optimize model performance:
 
 - **Dynamic-to-Static Graph**: Converts models into a static computational graph for runtime optimizations.
 - **Operator Fusion**: Combines compatible operations to minimize memory transfer and increase inference speed.
-- **Quantization**: Reduces model size and increases efficiency using lower-precision data while maintaining accuracy.
+- **Quantization**: Reduces model size and increases efficiency using lower-precision data while maintaining [accuracy](https://www.ultralytics.com/glossary/accuracy).
 
-These techniques prioritize efficient model execution, making PaddlePaddle an excellent option for deploying high-performance YOLOv8 models. For more on optimization, see the [PaddlePaddle official documentation](https://www.paddlepaddle.org.cn/documentation/docs/en/guides/index_en.html).
+These techniques prioritize efficient model execution, making PaddlePaddle an excellent option for deploying high-performance YOLO11 models. For more on optimization, see the [PaddlePaddle official documentation](https://www.paddlepaddle.org.cn/documentation/docs/en/guides/index_en.html).
 
-### What deployment options does PaddlePaddle offer for YOLOv8 models?
+### What deployment options does PaddlePaddle offer for YOLO11 models?
 
 PaddlePaddle provides flexible deployment options:
 

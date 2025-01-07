@@ -1,12 +1,12 @@
 ---
 comments: true
 description: Explore our African Wildlife Dataset featuring images of buffalo, elephant, rhino, and zebra for training computer vision models. Ideal for research and conservation.
-keywords: African Wildlife Dataset, South African animals, object detection, computer vision, YOLOv8, wildlife research, conservation, dataset
+keywords: African Wildlife Dataset, South African animals, object detection, computer vision, YOLO11, wildlife research, conservation, dataset
 ---
 
 # African Wildlife Dataset
 
-This dataset showcases four common animal classes typically found in South African nature reserves. It includes images of African wildlife such as buffalo, elephant, rhino, and zebra, providing valuable insights into their characteristics. Essential for training computer vision algorithms, this dataset aids in identifying animals in various habitats, from zoos to forests, and supports wildlife research.
+This dataset showcases four common animal classes typically found in South African nature reserves. It includes images of African wildlife such as buffalo, elephant, rhino, and zebra, providing valuable insights into their characteristics. Essential for training [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) algorithms, this dataset aids in identifying animals in various habitats, from zoos to forests, and supports wildlife research.
 
 <p align="center">
   <br>
@@ -16,7 +16,7 @@ This dataset showcases four common animal classes typically found in South Afric
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> African Wildlife Animals Detection using Ultralytics YOLOv8
+  <strong>Watch:</strong> African Wildlife Animals Detection using Ultralytics YOLO11
 </p>
 
 ## Dataset Structure
@@ -29,13 +29,13 @@ The African wildlife objects detection dataset is split into three subsets:
 
 ## Applications
 
-This dataset can be applied in various computer vision tasks such as object detection, object tracking, and research. Specifically, it can be used to train and evaluate models for identifying African wildlife objects in images, which can have applications in wildlife conservation, ecological research, and monitoring efforts in natural reserves and protected areas. Additionally, it can serve as a valuable resource for educational purposes, enabling students and researchers to study and understand the characteristics and behaviors of different animal species.
+This dataset can be applied in various computer vision tasks such as [object detection](https://www.ultralytics.com/glossary/object-detection), object tracking, and research. Specifically, it can be used to train and evaluate models for identifying African wildlife objects in images, which can have applications in wildlife conservation, ecological research, and monitoring efforts in natural reserves and protected areas. Additionally, it can serve as a valuable resource for educational purposes, enabling students and researchers to study and understand the characteristics and behaviors of different animal species.
 
 ## Dataset YAML
 
 A YAML (Yet Another Markup Language) file defines the dataset configuration, including paths, classes, and other pertinent details. For the African wildlife dataset, the `african-wildlife.yaml` file is located at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/african-wildlife.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/african-wildlife.yaml).
 
-!!! Example "ultralytics/cfg/datasets/african-wildlife.yaml"
+!!! example "ultralytics/cfg/datasets/african-wildlife.yaml"
 
     ```yaml
     --8<-- "ultralytics/cfg/datasets/african-wildlife.yaml"
@@ -43,9 +43,9 @@ A YAML (Yet Another Markup Language) file defines the dataset configuration, inc
 
 ## Usage
 
-To train a YOLOv8n model on the African wildlife dataset for 100 epochs with an image size of 640, use the provided code samples. For a comprehensive list of available parameters, refer to the model's [Training](../../modes/train.md) page.
+To train a YOLO11n model on the African wildlife dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, use the provided code samples. For a comprehensive list of available parameters, refer to the model's [Training](../../modes/train.md) page.
 
-!!! Example "Train Example"
+!!! example "Train Example"
 
     === "Python"
 
@@ -53,7 +53,7 @@ To train a YOLOv8n model on the African wildlife dataset for 100 epochs with an 
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="african-wildlife.yaml", epochs=100, imgsz=640)
@@ -63,10 +63,10 @@ To train a YOLOv8n model on the African wildlife dataset for 100 epochs with an 
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=african-wildlife.yaml model=yolov8n.pt epochs=100 imgsz=640
+        yolo detect train data=african-wildlife.yaml model=yolo11n.pt epochs=100 imgsz=640
         ```
 
-!!! Example "Inference Example"
+!!! example "Inference Example"
 
     === "Python"
 
@@ -91,7 +91,7 @@ To train a YOLOv8n model on the African wildlife dataset for 100 epochs with an 
 
 The African wildlife dataset comprises a wide variety of images showcasing diverse animal species and their natural habitats. Below are examples of images from the dataset, each accompanied by its corresponding annotations.
 
-![African wildlife dataset sample image](https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/919f8190-ccf3-4a96-a5f1-55d9eebc77ec)
+![African wildlife dataset sample image](https://github.com/ultralytics/docs/releases/download/0/african-wildlife-dataset-sample.avif)
 
 - **Mosaiced Image**: Here, we present a training batch consisting of mosaiced dataset images. Mosaicing, a training technique, combines multiple images into one, enriching batch diversity. This method helps enhance the model's ability to generalize across different object sizes, aspect ratios, and contexts.
 
@@ -107,36 +107,36 @@ The dataset has been released available under the [AGPL-3.0 License](https://git
 
 The African Wildlife Dataset includes images of four common animal species found in South African nature reserves: buffalo, elephant, rhino, and zebra. It is a valuable resource for training computer vision algorithms in object detection and animal identification. The dataset supports various tasks like object tracking, research, and conservation efforts. For more information on its structure and applications, refer to the [Dataset Structure](#dataset-structure) section and [Applications](#applications) of the dataset.
 
-### How do I train a YOLOv8 model using the African Wildlife Dataset?
+### How do I train a YOLO11 model using the African Wildlife Dataset?
 
-You can train a YOLOv8 model on the African Wildlife Dataset by using the `african-wildlife.yaml` configuration file. Below is an example of how to train the YOLOv8n model for 100 epochs with an image size of 640:
+You can train a YOLO11 model on the African Wildlife Dataset by using the `african-wildlife.yaml` configuration file. Below is an example of how to train the YOLO11n model for 100 epochs with an image size of 640:
 
-!!! Example
+!!! example
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="african-wildlife.yaml", epochs=100, imgsz=640)
         ```
 
     === "CLI"
-    
+
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=african-wildlife.yaml model=yolov8n.pt epochs=100 imgsz=640
+        yolo detect train data=african-wildlife.yaml model=yolo11n.pt epochs=100 imgsz=640
         ```
 
 For additional training parameters and options, refer to the [Training](../../modes/train.md) documentation.
 
 ### Where can I find the YAML configuration file for the African Wildlife Dataset?
 
-The YAML configuration file for the African Wildlife Dataset, named `african-wildlife.yaml`, can be found at [this GitHub link](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/african-wildlife.yaml). This file defines the dataset configuration, including paths, classes, and other details crucial for training machine learning models. See the [Dataset YAML](#dataset-yaml) section for more details.
+The YAML configuration file for the African Wildlife Dataset, named `african-wildlife.yaml`, can be found at [this GitHub link](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/african-wildlife.yaml). This file defines the dataset configuration, including paths, classes, and other details crucial for training [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) models. See the [Dataset YAML](#dataset-yaml) section for more details.
 
 ### Can I see sample images and annotations from the African Wildlife Dataset?
 

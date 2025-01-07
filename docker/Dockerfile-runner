@@ -1,6 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 # Builds GitHub actions CI runner image for deployment to DockerHub https://hub.docker.com/r/ultralytics/ultralytics
-# Image is CUDA-optimized for YOLOv8 single/multi-GPU training and inference tests
+# Image is CUDA-optimized for YOLO11 single/multi-GPU training and inference tests
 
 # Start FROM Ultralytics GPU image
 FROM ultralytics/ultralytics:latest
@@ -17,13 +17,13 @@ ENV PYTHONUNBUFFERED=1 \
 WORKDIR /actions-runner
 
 # Download and unpack the latest runner from https://github.com/actions/runner
-RUN FILENAME=actions-runner-linux-x64-2.317.0.tar.gz && \
-    curl -o $FILENAME -L https://github.com/actions/runner/releases/download/v2.317.0/$FILENAME && \
+RUN FILENAME=actions-runner-linux-x64-2.320.0.tar.gz && \
+    curl -o $FILENAME -L https://github.com/actions/runner/releases/download/v2.320.0/$FILENAME && \
     tar xzf $FILENAME && \
     rm $FILENAME
 
 # Install runner dependencies
-RUN pip install pytest-cov
+RUN uv pip install --system pytest-cov
 RUN ./bin/installdependencies.sh && \
     apt-get -y install libicu-dev
 
@@ -34,7 +34,6 @@ ENTRYPOINT sh -c './config.sh --url https://github.com/ultralytics/ultralytics \
                               --labels gpu-latest \
                               --replace && \
                   ./run.sh'
-
 
 # Usage Examples -------------------------------------------------------------------------------------------------------
 

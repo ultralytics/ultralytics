@@ -12,7 +12,7 @@ Example:
     ```python
     from ultralytics import YOLO
 
-    model = YOLO("yolov8n.pt")
+    model = YOLO("yolo11n.pt")
     model.tune(data="coco8.yaml", epochs=10, iterations=300, optimizer="AdamW", plots=False, save=False, val=False)
     ```
 """
@@ -54,7 +54,7 @@ class Tuner:
         ```python
         from ultralytics import YOLO
 
-        model = YOLO("yolov8n.pt")
+        model = YOLO("yolo11n.pt")
         model.tune(data="coco8.yaml", epochs=10, iterations=300, optimizer="AdamW", plots=False, save=False, val=False)
         ```
 
@@ -62,7 +62,7 @@ class Tuner:
         ```python
         from ultralytics import YOLO
 
-        model = YOLO("yolov8n.pt")
+        model = YOLO("yolo11n.pt")
         model.tune(space={key1: val1, key2: val2})  # custom search space dictionary
         ```
     """
@@ -191,7 +191,7 @@ class Tuner:
             try:
                 # Train YOLO model with mutated hyperparameters (run in subprocess to avoid dataloader hang)
                 cmd = ["yolo", "train", *(f"{k}={v}" for k, v in train_args.items())]
-                return_code = subprocess.run(cmd, check=True).returncode
+                return_code = subprocess.run(" ".join(cmd), check=True, shell=True).returncode
                 ckpt_file = weights_dir / ("best.pt" if (weights_dir / "best.pt").exists() else "last.pt")
                 metrics = torch.load(ckpt_file)["train_metrics"]
                 assert return_code == 0, "training failed"

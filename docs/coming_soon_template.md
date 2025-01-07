@@ -5,7 +5,7 @@ keywords: Ultralytics, coming soon, under construction, new features, AI updates
 
 # Under Construction 🏗️🌟
 
-Welcome to the [Ultralytics](https://ultralytics.com) "Under Construction" page! Here, we're hard at work developing the next generation of AI and ML innovations. This page serves as a teaser for the exciting updates and new features we're eager to share with you!
+Welcome to the [Ultralytics](https://www.ultralytics.com/) "Under Construction" page! Here, we're hard at work developing the next generation of AI and ML innovations. This page serves as a teaser for the exciting updates and new features we're eager to share with you!
 
 ## Exciting New Features on the Way 🎉
 
@@ -17,17 +17,17 @@ Welcome to the [Ultralytics](https://ultralytics.com) "Under Construction" page!
 
 This placeholder page is your first stop for upcoming developments. Keep an eye out for:
 
-- **Newsletter:** Subscribe [here](https://ultralytics.com/#newsletter) for the latest news.
+- **Newsletter:** Subscribe [here](https://www.ultralytics.com/#newsletter) for the latest news.
 - **Social Media:** Follow us [here](https://www.linkedin.com/company/ultralytics) for updates and teasers.
-- **Blog:** Visit our [blog](https://ultralytics.com/blog) for detailed insights.
+- **Blog:** Visit our [blog](https://www.ultralytics.com/blog) for detailed insights.
 
 ## We Value Your Input 🗣️
 
-Your feedback shapes our future releases. Share your thoughts and suggestions [here](https://ultralytics.com/survey).
+Your feedback shapes our future releases. Share your thoughts and suggestions [here](https://www.ultralytics.com/survey).
 
 ## Thank You, Community! 🌍
 
-Your [contributions](https://docs.ultralytics.com/help/contributing) inspire our continuous [innovation](https://github.com/ultralytics/ultralytics). Stay tuned for the big reveal of what's next in AI and ML at Ultralytics!
+Your [contributions](https://docs.ultralytics.com/help/contributing/) inspire our continuous [innovation](https://github.com/ultralytics/ultralytics). Stay tuned for the big reveal of what's next in AI and ML at Ultralytics!
 
 ---
 

@@ -5,7 +5,7 @@ keywords: Ultralytics, utility operations, non-max suppression, bounding box tra
 
 # Reference for `ultralytics/utils/ops.py`
 
-!!! Note
+!!! note
 
     This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/ops.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/ops.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/utils/ops.py) 🛠️. Thank you 🙏!
 
@@ -128,5 +128,9 @@ keywords: Ultralytics, utility operations, non-max suppression, bounding box tra
 <br><br><hr><br>
 
 ## ::: ultralytics.utils.ops.clean_str
+
+<br><br><hr><br>
+
+## ::: ultralytics.utils.ops.empty_like
 
 <br><br>

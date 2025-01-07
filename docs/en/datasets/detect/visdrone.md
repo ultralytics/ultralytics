@@ -6,7 +6,7 @@ keywords: VisDrone, drone dataset, computer vision, object detection, object tra
 
 # VisDrone Dataset
 
-The [VisDrone Dataset](https://github.com/VisDrone/VisDrone-Dataset) is a large-scale benchmark created by the AISKYEYE team at the Lab of Machine Learning and Data Mining, Tianjin University, China. It contains carefully annotated ground truth data for various computer vision tasks related to drone-based image and video analysis.
+The [VisDrone Dataset](https://github.com/VisDrone/VisDrone-Dataset) is a large-scale benchmark created by the AISKYEYE team at the Lab of [Machine Learning](https://www.ultralytics.com/glossary/machine-learning-ml) and Data Mining, Tianjin University, China. It contains carefully annotated ground truth data for various computer vision tasks related to drone-based image and video analysis.
 
 <p align="center">
   <br>
@@ -33,13 +33,13 @@ The VisDrone dataset is organized into five main subsets, each focusing on a spe
 
 ## Applications
 
-The VisDrone dataset is widely used for training and evaluating deep learning models in drone-based computer vision tasks such as object detection, object tracking, and crowd counting. The dataset's diverse set of sensor data, object annotations, and attributes make it a valuable resource for researchers and practitioners in the field of drone-based computer vision.
+The VisDrone dataset is widely used for training and evaluating deep learning models in drone-based [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) tasks such as object detection, object tracking, and crowd counting. The dataset's diverse set of sensor data, object annotations, and attributes make it a valuable resource for researchers and practitioners in the field of drone-based computer vision.
 
 ## Dataset YAML
 
 A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. In the case of the Visdrone dataset, the `VisDrone.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/VisDrone.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/VisDrone.yaml).
 
-!!! Example "ultralytics/cfg/datasets/VisDrone.yaml"
+!!! example "ultralytics/cfg/datasets/VisDrone.yaml"
 
     ```yaml
     --8<-- "ultralytics/cfg/datasets/VisDrone.yaml"
@@ -47,9 +47,9 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 ## Usage
 
-To train a YOLOv8n model on the VisDrone dataset for 100 epochs with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To train a YOLO11n model on the VisDrone dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
-!!! Example "Train Example"
+!!! example "Train Example"
 
     === "Python"
 
@@ -57,7 +57,7 @@ To train a YOLOv8n model on the VisDrone dataset for 100 epochs with an image si
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="VisDrone.yaml", epochs=100, imgsz=640)
@@ -67,16 +67,16 @@ To train a YOLOv8n model on the VisDrone dataset for 100 epochs with an image si
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=VisDrone.yaml model=yolov8n.pt epochs=100 imgsz=640
+        yolo detect train data=VisDrone.yaml model=yolo11n.pt epochs=100 imgsz=640
         ```
 
 ## Sample Data and Annotations
 
 The VisDrone dataset contains a diverse set of images and videos captured by drone-mounted cameras. Here are some examples of data from the dataset, along with their corresponding annotations:
 
-![Dataset sample image](https://user-images.githubusercontent.com/26833433/238217600-df0b7334-4c9e-4c77-81a5-c70cd33429cc.jpg)
+![Dataset sample image](https://github.com/ultralytics/docs/releases/download/0/visdrone-object-detection-sample.avif)
 
-- **Task 1**: Object detection in images - This image demonstrates an example of object detection in images, where objects are annotated with bounding boxes. The dataset provides a wide variety of images taken from different locations, environments, and densities to facilitate the development of models for this task.
+- **Task 1**: [Object detection](https://www.ultralytics.com/glossary/object-detection) in images - This image demonstrates an example of object detection in images, where objects are annotated with bounding boxes. The dataset provides a wide variety of images taken from different locations, environments, and densities to facilitate the development of models for this task.
 
 The example showcases the variety and complexity of the data in the VisDrone dataset and highlights the importance of high-quality sensor data for drone-based computer vision tasks.
 
@@ -84,7 +84,7 @@ The example showcases the variety and complexity of the data in the VisDrone dat
 
 If you use the VisDrone dataset in your research or development work, please cite the following paper:
 
-!!! Quote ""
+!!! quote ""
 
     === "BibTeX"
 
@@ -100,41 +100,42 @@ If you use the VisDrone dataset in your research or development work, please cit
           doi={10.1109/TPAMI.2021.3119563}}
         ```
 
-We would like to acknowledge the AISKYEYE team at the Lab of Machine Learning and Data Mining, Tianjin University, China, for creating and maintaining the VisDrone dataset as a valuable resource for the drone-based computer vision research community. For more information about the VisDrone dataset and its creators, visit the [VisDrone Dataset GitHub repository](https://github.com/VisDrone/VisDrone-Dataset).
+We would like to acknowledge the AISKYEYE team at the Lab of Machine Learning and [Data Mining](https://www.ultralytics.com/glossary/data-mining), Tianjin University, China, for creating and maintaining the VisDrone dataset as a valuable resource for the drone-based computer vision research community. For more information about the VisDrone dataset and its creators, visit the [VisDrone Dataset GitHub repository](https://github.com/VisDrone/VisDrone-Dataset).
 
 ## FAQ
 
 ### What is the VisDrone Dataset and what are its key features?
 
 The [VisDrone Dataset](https://github.com/VisDrone/VisDrone-Dataset) is a large-scale benchmark created by the AISKYEYE team at Tianjin University, China. It is designed for various computer vision tasks related to drone-based image and video analysis. Key features include:
+
 - **Composition**: 288 video clips with 261,908 frames and 10,209 static images.
 - **Annotations**: Over 2.6 million bounding boxes for objects like pedestrians, cars, bicycles, and tricycles.
 - **Diversity**: Collected across 14 cities, in urban and rural settings, under different weather and lighting conditions.
 - **Tasks**: Split into five main tasks—object detection in images and videos, single-object and multi-object tracking, and crowd counting.
 
-### How can I use the VisDrone Dataset to train a YOLOv8 model with Ultralytics?
+### How can I use the VisDrone Dataset to train a YOLO11 model with Ultralytics?
 
-To train a YOLOv8 model on the VisDrone dataset for 100 epochs with an image size of 640, you can follow these steps:
+To train a YOLO11 model on the VisDrone dataset for 100 epochs with an image size of 640, you can follow these steps:
 
-!!! Example "Train Example"
+!!! example "Train Example"
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
 
         # Load a pretrained model
-        model = YOLO("yolov8n.pt")
+        model = YOLO("yolo11n.pt")
 
         # Train the model
         results = model.train(data="VisDrone.yaml", epochs=100, imgsz=640)
         ```
 
     === "CLI"
-    
+
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=VisDrone.yaml model=yolov8n.pt epochs=100 imgsz=640
+        yolo detect train data=VisDrone.yaml model=yolo11n.pt epochs=100 imgsz=640
         ```
 
 For additional configuration options, please refer to the model [Training](../../modes/train.md) page.
@@ -142,13 +143,14 @@ For additional configuration options, please refer to the model [Training](../..
 ### What are the main subsets of the VisDrone dataset and their applications?
 
 The VisDrone dataset is divided into five main subsets, each tailored for a specific computer vision task:
+
 1. **Task 1**: Object detection in images.
 2. **Task 2**: Object detection in videos.
 3. **Task 3**: Single-object tracking.
 4. **Task 4**: Multi-object tracking.
 5. **Task 5**: Crowd counting.
 
-These subsets are widely used for training and evaluating deep learning models in drone-based applications such as surveillance, traffic monitoring, and public safety.
+These subsets are widely used for training and evaluating [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models in drone-based applications such as surveillance, traffic monitoring, and public safety.
 
 ### Where can I find the configuration file for the VisDrone dataset in Ultralytics?
 
@@ -159,7 +161,7 @@ The configuration file for the VisDrone dataset, `VisDrone.yaml`, can be found i
 
 If you use the VisDrone dataset in your research or development work, please cite the following paper:
 
-!!! Quote ""
+!!! quote ""
 
     === "BibTeX"
 

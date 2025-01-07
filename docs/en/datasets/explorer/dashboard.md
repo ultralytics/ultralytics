@@ -6,10 +6,14 @@ keywords: Ultralytics Explorer GUI, semantic search, vector similarity, SQL quer
 
 # Explorer GUI
 
+!!! warning "Community Note ⚠️"
+
+    As of **`ultralytics>=8.3.10`**, Ultralytics explorer support has been deprecated. But don't worry! You can now access similar and even enhanced functionality through [Ultralytics HUB](https://hub.ultralytics.com/), our intuitive no-code platform designed to streamline your workflow. With Ultralytics HUB, you can continue exploring, visualizing, and managing your data effortlessly, all without writing a single line of code. Make sure to check it out and take advantage of its powerful features!🚀
+
 Explorer GUI is like a playground build using [Ultralytics Explorer API](api.md). It allows you to run semantic/vector similarity search, SQL queries and even search using natural language using our ask AI feature powered by LLMs.
 
 <p>
-    <img width="1709" alt="Explorer Dashboard Screenshot 1" src="https://github.com/ultralytics/ultralytics/assets/15766192/feb1fe05-58c5-4173-a9ff-e611e3bba3d0">
+    <img width="1709" alt="Explorer Dashboard Screenshot 1" src="https://github.com/ultralytics/docs/releases/download/0/explorer-dashboard-screenshot-1.avif">
 </p>
 
 <p align="center">
@@ -29,31 +33,34 @@ Explorer GUI is like a playground build using [Ultralytics Explorer API](api.md)
 pip install ultralytics[explorer]
 ```
 
-!!! note "Note"
+!!! note
 
     Ask AI feature works using OpenAI, so you'll be prompted to set the api key for OpenAI when you first run the GUI.
     You can set it like this - `yolo settings openai_api_key="..."`
 
 ## Vector Semantic Similarity Search
 
-Semantic search is a technique for finding similar images to a given image. It is based on the idea that similar images will have similar embeddings. In the UI, you can select one of more images and search for the images similar to them. This can be useful when you want to find images similar to a given image or a set of images that don't perform as expected.
+Semantic search is a technique for finding similar images to a given image. It is based on the idea that similar images will have similar [embeddings](https://www.ultralytics.com/glossary/embeddings). In the UI, you can select one of more images and search for the images similar to them. This can be useful when you want to find images similar to a given image or a set of images that don't perform as expected.
 
 For example:
 In this VOC Exploration dashboard, user selects a couple airplane images like this:
+
 <p>
-<img width="1710" alt="Explorer Dashboard Screenshot 2" src="https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/3becdc1d-45dc-43b7-88ff-84ff0b443894">
+<img width="1710" alt="Explorer Dashboard Screenshot 2" src="https://github.com/ultralytics/docs/releases/download/0/explorer-dashboard-screenshot-2.avif">
 </p>
 
 On performing similarity search, you should see a similar result:
+
 <p>
-<img width="1710" alt="Explorer Dashboard Screenshot 3" src="https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/aeea2e16-bc2b-41bb-9aef-4a33bfa1a800">
+<img width="1710" alt="Explorer Dashboard Screenshot 3" src="https://github.com/ultralytics/docs/releases/download/0/explorer-dashboard-screenshot-3.avif">
 </p>
 
 ## Ask AI
 
 This allows you to write how you want to filter your dataset using natural language. You don't have to be proficient in writing SQL queries. Our AI powered query generator will automatically do that under the hood. For example - you can say - "show me 100 images with exactly one person and 2 dogs. There can be other objects too" and it'll internally generate the query and show you those results. Here's an example output when asked to "Show 10 images with exactly 5 persons" and you'll see a result like this:
+
 <p>
-<img width="1709" alt="Explorer Dashboard Screenshot 4" src="https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/55a67181-3b25-4d2f-b786-2a6a08a0cb6b">
+<img width="1709" alt="Explorer Dashboard Screenshot 4" src="https://github.com/ultralytics/docs/releases/download/0/explorer-dashboard-screenshot-4.avif">
 </p>
 
 Note: This works using LLMs under the hood so the results are probabilistic and might get things wrong sometimes
@@ -67,7 +74,7 @@ WHERE labels LIKE '%person%' AND labels LIKE '%dog%'
 ```
 
 <p>
-<img width="1707" alt="Explorer Dashboard Screenshot 5" src="https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/14fbb237-0b2d-4b7c-8f62-2fca4e6cc26f">
+<img width="1707" alt="Explorer Dashboard Screenshot 5" src="https://github.com/ultralytics/docs/releases/download/0/explorer-dashboard-screenshot-5.avif">
 </p>
 
 This is a Demo build using the Explorer API. You can use the API to build your own exploratory notebooks or scripts to get insights into your datasets. Learn more about the Explorer API [here](api.md).
@@ -76,7 +83,7 @@ This is a Demo build using the Explorer API. You can use the API to build your o
 
 ### What is Ultralytics Explorer GUI and how do I install it?
 
-Ultralytics Explorer GUI is a powerful interface that unlocks advanced data exploration capabilities using the [Ultralytics Explorer API](api.md). It allows you to run semantic/vector similarity search, SQL queries, and natural language queries using the Ask AI feature powered by Large Language Models (LLMs). 
+Ultralytics Explorer GUI is a powerful interface that unlocks advanced data exploration capabilities using the [Ultralytics Explorer API](api.md). It allows you to run semantic/vector similarity search, SQL queries, and natural language queries using the Ask AI feature powered by [Large Language Models](https://www.ultralytics.com/glossary/large-language-model-llm) (LLMs).
 
 To install the Explorer GUI, you can use pip:
 
@@ -88,7 +95,7 @@ Note: To use the Ask AI feature, you'll need to set the OpenAI API key: `yolo se
 
 ### How does the semantic search feature in Ultralytics Explorer GUI work?
 
-The semantic search feature in Ultralytics Explorer GUI allows you to find images similar to a given image based on their embeddings. This technique is useful for identifying and exploring images that share visual similarities. To use this feature, select one or more images in the UI and execute a search for similar images. The result will display images that closely resemble the selected ones, facilitating efficient dataset exploration and anomaly detection.
+The semantic search feature in Ultralytics Explorer GUI allows you to find images similar to a given image based on their embeddings. This technique is useful for identifying and exploring images that share visual similarities. To use this feature, select one or more images in the UI and execute a search for similar images. The result will display images that closely resemble the selected ones, facilitating efficient dataset exploration and [anomaly detection](https://www.ultralytics.com/glossary/anomaly-detection).
 
 Learn more about semantic search and other features by visiting the [Feature Overview](#vector-semantic-similarity-search) section.
 
@@ -106,13 +113,14 @@ Ultralytics Explorer GUI allows you to run SQL queries directly on your dataset 
 WHERE labels LIKE '%person%' AND labels LIKE '%dog%'
 ```
 
-You can also provide only the WHERE clause, making the querying process more flexible. 
+You can also provide only the WHERE clause, making the querying process more flexible.
 
 For more details, refer to the [SQL Queries Section](#run-sql-queries-on-your-cv-datasets).
 
 ### What are the benefits of using Ultralytics Explorer GUI for data exploration?
 
 Ultralytics Explorer GUI enhances data exploration with features like semantic search, SQL querying, and natural language interactions through the Ask AI feature. These capabilities allow users to:
+
 - Efficiently find visually similar images.
 - Filter datasets using complex SQL queries.
 - Utilize AI to perform natural language searches, eliminating the need for advanced SQL expertise.

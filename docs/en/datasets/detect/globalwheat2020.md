@@ -24,13 +24,13 @@ The Global Wheat Head Dataset is organized into two main subsets:
 
 ## Applications
 
-The Global Wheat Head Dataset is widely used for training and evaluating deep learning models in wheat head detection tasks. The dataset's diverse set of images, capturing a wide range of appearances, environments, and conditions, make it a valuable resource for researchers and practitioners in the field of plant phenotyping and crop management.
+The Global Wheat Head Dataset is widely used for training and evaluating [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models in wheat head detection tasks. The dataset's diverse set of images, capturing a wide range of appearances, environments, and conditions, make it a valuable resource for researchers and practitioners in the field of plant phenotyping and crop management.
 
 ## Dataset YAML
 
 A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. For the case of the Global Wheat Head Dataset, the `GlobalWheat2020.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/GlobalWheat2020.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/GlobalWheat2020.yaml).
 
-!!! Example "ultralytics/cfg/datasets/GlobalWheat2020.yaml"
+!!! example "ultralytics/cfg/datasets/GlobalWheat2020.yaml"
 
     ```yaml
     --8<-- "ultralytics/cfg/datasets/GlobalWheat2020.yaml"
@@ -38,9 +38,9 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 ## Usage
 
-To train a YOLOv8n model on the Global Wheat Head Dataset for 100 epochs with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To train a YOLO11n model on the Global Wheat Head Dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
-!!! Example "Train Example"
+!!! example "Train Example"
 
     === "Python"
 
@@ -48,7 +48,7 @@ To train a YOLOv8n model on the Global Wheat Head Dataset for 100 epochs with an
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="GlobalWheat2020.yaml", epochs=100, imgsz=640)
@@ -58,14 +58,14 @@ To train a YOLOv8n model on the Global Wheat Head Dataset for 100 epochs with an
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=GlobalWheat2020.yaml model=yolov8n.pt epochs=100 imgsz=640
+        yolo detect train data=GlobalWheat2020.yaml model=yolo11n.pt epochs=100 imgsz=640
         ```
 
 ## Sample Data and Annotations
 
 The Global Wheat Head Dataset contains a diverse set of outdoor field images, capturing the natural variability in wheat head appearances, environments, and conditions. Here are some examples of data from the dataset, along with their corresponding annotations:
 
-![Dataset sample image](https://i.ytimg.com/vi/yqvMuw-uedU/maxresdefault.jpg)
+![Dataset sample image](https://github.com/ultralytics/docs/releases/download/0/wheat-head-detection-sample.avif)
 
 - **Wheat Head Detection**: This image demonstrates an example of wheat head detection, where wheat heads are annotated with bounding boxes. The dataset provides a variety of images to facilitate the development of models for this task.
 
@@ -75,7 +75,7 @@ The example showcases the variety and complexity of the data in the Global Wheat
 
 If you use the Global Wheat Head Dataset in your research or development work, please cite the following paper:
 
-!!! Quote ""
+!!! quote ""
 
     === "BibTeX"
 
@@ -96,19 +96,19 @@ We would like to acknowledge the researchers and institutions that contributed t
 
 The Global Wheat Head Dataset is primarily used for developing and training deep learning models aimed at wheat head detection. This is crucial for applications in wheat phenotyping and crop management, allowing for more accurate estimations of wheat head density, size, and overall crop yield potential. Accurate detection methods help in assessing crop health and maturity, essential for efficient crop management.
 
-### How do I train a YOLOv8n model on the Global Wheat Head Dataset?
+### How do I train a YOLO11n model on the Global Wheat Head Dataset?
 
-To train a YOLOv8n model on the Global Wheat Head Dataset, you can use the following code snippets. Make sure you have the `GlobalWheat2020.yaml` configuration file specifying dataset paths and classes:
+To train a YOLO11n model on the Global Wheat Head Dataset, you can use the following code snippets. Make sure you have the `GlobalWheat2020.yaml` configuration file specifying dataset paths and classes:
 
-!!! Example "Train Example"
+!!! example "Train Example"
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
 
         # Load a pre-trained model (recommended for training)
-        model = YOLO("yolov8n.pt")
+        model = YOLO("yolo11n.pt")
 
         # Train the model
         results = model.train(data="GlobalWheat2020.yaml", epochs=100, imgsz=640)
@@ -118,7 +118,7 @@ To train a YOLOv8n model on the Global Wheat Head Dataset, you can use the follo
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=GlobalWheat2020.yaml model=yolov8n.pt epochs=100 imgsz=640
+        yolo detect train data=GlobalWheat2020.yaml model=yolo11n.pt epochs=100 imgsz=640
         ```
 
 For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
@@ -130,7 +130,7 @@ Key features of the Global Wheat Head Dataset include:
 - Over 3,000 training images from Europe (France, UK, Switzerland) and North America (Canada).
 - Approximately 1,000 test images from Australia, Japan, and China.
 - High variability in wheat head appearances due to different growing environments.
-- Detailed annotations with wheat head bounding boxes to aid object detection models.
+- Detailed annotations with wheat head bounding boxes to aid [object detection](https://www.ultralytics.com/glossary/object-detection) models.
 
 These features facilitate the development of robust models capable of generalization across multiple regions.
 

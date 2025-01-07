@@ -5,7 +5,7 @@ keywords: Ultralytics, dataset utils, data handling, image verification, Python,
 
 # Reference for `ultralytics/data/utils.py`
 
-!!! Note
+!!! note
 
     This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/utils.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/utils.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/data/utils.py) 🛠️. Thank you 🙏!
 
@@ -32,6 +32,10 @@ keywords: Ultralytics, dataset utils, data handling, image verification, Python,
 <br><br><hr><br>
 
 ## ::: ultralytics.data.utils.verify_image_label
+
+<br><br><hr><br>
+
+## ::: ultralytics.data.utils.visualize_image_annotations
 
 <br><br><hr><br>
 

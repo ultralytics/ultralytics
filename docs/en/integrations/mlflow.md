@@ -6,11 +6,11 @@ keywords: MLflow, Ultralytics YOLO, machine learning, experiment tracking, metri
 
 # MLflow Integration for Ultralytics YOLO
 
-<img width="1024" src="https://user-images.githubusercontent.com/26833433/274929143-05e37e72-c355-44be-a842-b358592340b7.png" alt="MLflow ecosystem">
+<img width="1024" src="https://github.com/ultralytics/docs/releases/download/0/mlflow-integration-ultralytics-yolo.avif" alt="MLflow ecosystem">
 
 ## Introduction
 
-Experiment logging is a crucial aspect of machine learning workflows that enables tracking of various metrics, parameters, and artifacts. It helps to enhance model reproducibility, debug issues, and improve model performance. [Ultralytics](https://ultralytics.com) YOLO, known for its real-time object detection capabilities, now offers integration with [MLflow](https://mlflow.org/), an open-source platform for complete machine learning lifecycle management.
+Experiment logging is a crucial aspect of [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) workflows that enables tracking of various metrics, parameters, and artifacts. It helps to enhance model reproducibility, debug issues, and improve model performance. [Ultralytics](https://www.ultralytics.com/) YOLO, known for its real-time [object detection](https://www.ultralytics.com/glossary/object-detection) capabilities, now offers integration with [MLflow](https://mlflow.org/), an open-source platform for complete machine learning lifecycle management.
 
 This documentation page is a comprehensive guide to setting up and utilizing the MLflow logging capabilities for your Ultralytics YOLO project.
 
@@ -34,7 +34,7 @@ pip install mlflow
 
 Make sure that MLflow logging is enabled in Ultralytics settings. Usually, this is controlled by the settings `mflow` key. See the [settings](../quickstart.md#ultralytics-settings) page for more info.
 
-!!! Example "Update Ultralytics MLflow Settings"
+!!! example "Update Ultralytics MLflow Settings"
 
     === "Python"
 
@@ -102,9 +102,9 @@ The logging is taken care of by the `on_pretrain_routine_end`, `on_fit_epoch_end
 
 1. **Logging Custom Metrics**: You can add custom metrics to be logged by modifying the `trainer.metrics` dictionary before `on_fit_epoch_end` is called.
 
-2. **View Experiment**: To view your logs, navigate to your MLflow server (usually http://127.0.0.1:5000) and select your experiment and run. <img width="1024" src="https://user-images.githubusercontent.com/26833433/274933329-3127aa8c-4491-48ea-81df-ed09a5837f2a.png" alt="YOLO MLflow Experiment">
+2. **View Experiment**: To view your logs, navigate to your MLflow server (usually http://127.0.0.1:5000) and select your experiment and run. <img width="1024" src="https://github.com/ultralytics/docs/releases/download/0/yolo-mlflow-experiment.avif" alt="YOLO MLflow Experiment">
 
-3. **View Run**: Runs are individual models inside an experiment. Click on a Run and see the Run details, including uploaded artifacts and model weights. <img width="1024" src="https://user-images.githubusercontent.com/26833433/274933337-ac61371c-2867-4099-a733-147a2583b3de.png" alt="YOLO MLflow Run">
+3. **View Run**: Runs are individual models inside an experiment. Click on a Run and see the Run details, including uploaded artifacts and model weights. <img width="1024" src="https://github.com/ultralytics/docs/releases/download/0/yolo-mlflow-run.avif" alt="YOLO MLflow Run">
 
 ## Disabling MLflow
 
@@ -130,7 +130,7 @@ pip install mlflow
 
 Next, enable MLflow logging in Ultralytics settings. This can be controlled using the `mlflow` key. For more information, see the [settings guide](../quickstart.md#ultralytics-settings).
 
-!!! Example "Update Ultralytics MLflow Settings"
+!!! example "Update Ultralytics MLflow Settings"
 
     === "Python"
 
@@ -164,7 +164,7 @@ mlflow server --backend-store-uri runs/mlflow
 
 Ultralytics YOLO with MLflow supports logging various metrics, parameters, and artifacts throughout the training process:
 
-- **Metrics Logging**: Tracks metrics at the end of each epoch and upon training completion.
+- **Metrics Logging**: Tracks metrics at the end of each [epoch](https://www.ultralytics.com/glossary/epoch) and upon training completion.
 - **Parameter Logging**: Logs all parameters used in the training process.
 - **Artifacts Logging**: Saves model artifacts like weights and configuration files after training.
 

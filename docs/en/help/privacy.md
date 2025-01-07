@@ -7,7 +7,7 @@ keywords: Ultralytics, data collection, YOLO, Python package, Google Analytics, 
 
 ## Overview
 
-[Ultralytics](https://ultralytics.com) is dedicated to the continuous enhancement of the user experience and the capabilities of our Python package, including the advanced YOLO models we develop. Our approach involves the gathering of anonymized usage statistics and crash reports, helping us identify opportunities for improvement and ensuring the reliability of our software. This transparency document outlines what data we collect, its purpose, and the choice you have regarding this data collection.
+[Ultralytics](https://www.ultralytics.com/) is dedicated to the continuous enhancement of the user experience and the capabilities of our Python package, including the advanced YOLO models we develop. Our approach involves the gathering of anonymized usage statistics and crash reports, helping us identify opportunities for improvement and ensuring the reliability of our software. This transparency document outlines what data we collect, its purpose, and the choice you have regarding this data collection.
 
 ## Anonymized Google Analytics
 
@@ -19,7 +19,7 @@ keywords: Ultralytics, data collection, YOLO, Python package, Google Analytics, 
 - **System Information**: We collect general non-identifiable information about your computing environment to ensure our package performs well across various systems.
 - **Performance Data**: Understanding the performance of our models during training, validation, and inference helps us in identifying optimization opportunities.
 
-For more information about Google Analytics and data privacy, visit [Google Analytics Privacy](https://support.google.com/analytics/answer/6004245).
+For more information about Google Analytics and [data privacy](https://www.ultralytics.com/glossary/data-privacy), visit [Google Analytics Privacy](https://support.google.com/analytics/answer/6004245).
 
 ### How We Use This Data
 
@@ -37,9 +37,9 @@ We take several measures to ensure the privacy and security of the data you entr
 
 ## Sentry Crash Reporting
 
-[Sentry](https://sentry.io/) is a developer-centric error tracking software that aids in identifying, diagnosing, and resolving issues in real-time, ensuring the robustness and reliability of applications. Within our package, it plays a crucial role by providing insights through crash reporting, significantly contributing to the stability and ongoing refinement of our software.
+[Sentry](https://sentry.io/welcome/) is a developer-centric error tracking software that aids in identifying, diagnosing, and resolving issues in real-time, ensuring the robustness and reliability of applications. Within our package, it plays a crucial role by providing insights through crash reporting, significantly contributing to the stability and ongoing refinement of our software.
 
-!!! Note
+!!! note
 
     Crash reporting via Sentry is activated only if the `sentry-sdk` Python package is pre-installed on your system. This package isn't included in the `ultralytics` prerequisites and won't be installed automatically by Ultralytics.
 
@@ -74,7 +74,7 @@ To opt out of sending analytics and crash reports, you can simply set `sync=Fals
 
 To gain insight into the current configuration of your settings, you can view them directly:
 
-!!! Example "View settings"
+!!! example "View settings"
 
     === "Python"
 
@@ -100,7 +100,7 @@ To gain insight into the current configuration of your settings, you can view th
 
 Ultralytics allows users to easily modify their settings. Changes can be performed in the following ways:
 
-!!! Example "Update settings"
+!!! example "Update settings"
 
     === "Python"
 
@@ -138,7 +138,7 @@ Ultralytics takes user privacy seriously. We design our data collection practice
 
 ## Questions or Concerns
 
-If you have any questions or concerns about our data collection practices, please reach out to us via our [contact form](https://ultralytics.com/contact) or via [support@ultralytics.com](mailto:support@ultralytics.com). We are dedicated to ensuring our users feel informed and confident in their privacy when using our package.
+If you have any questions or concerns about our data collection practices, please reach out to us via our [contact form](https://www.ultralytics.com/contact) or via [support@ultralytics.com](mailto:support@ultralytics.com). We are dedicated to ensuring our users feel informed and confident in their privacy when using our package.
 
 ## FAQ
 
@@ -153,13 +153,14 @@ Ultralytics collects three primary types of data using Google Analytics:
 - **Usage Metrics**: These include how often and in what ways the YOLO Python package is used, preferred features, and typical command-line arguments.
 - **System Information**: General non-identifiable information about the computing environments where the package is run.
 - **Performance Data**: Metrics related to the performance of models during training, validation, and inference.
-    This data helps us enhance user experience and optimize software performance. Learn more in the [Anonymized Google Analytics](#anonymized-google-analytics) section.
+
+This data helps us enhance user experience and optimize software performance. Learn more in the [Anonymized Google Analytics](#anonymized-google-analytics) section.
 
 ### How can I disable data collection in the Ultralytics YOLO package?
 
 To opt out of data collection, you can simply set `sync=False` in your YOLO settings. This action stops the transmission of any analytics or crash reports. You can disable data collection using Python or CLI methods:
 
-!!! Example "Update settings"
+!!! example "Update settings"
 
     === "Python"
 
@@ -193,7 +194,7 @@ If the `sentry-sdk` package is pre-installed, Sentry collects detailed crash log
 
 Yes, you can easily view your current settings to understand the configuration of your data collection preferences. Use the following methods to inspect these settings:
 
-!!! Example "View settings"
+!!! example "View settings"
 
     === "Python"
 

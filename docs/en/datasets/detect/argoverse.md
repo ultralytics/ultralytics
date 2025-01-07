@@ -8,7 +8,7 @@ keywords: Argoverse dataset, autonomous driving, 3D tracking, motion forecasting
 
 The [Argoverse](https://www.argoverse.org/) dataset is a collection of data designed to support research in autonomous driving tasks, such as 3D tracking, motion forecasting, and stereo depth estimation. Developed by Argo AI, the dataset provides a wide range of high-quality sensor data, including high-resolution images, LiDAR point clouds, and map data.
 
-!!! Note
+!!! note
 
     The Argoverse dataset `*.zip` file required for training was removed from Amazon S3 after the shutdown of Argo AI by Ford, but we have made it available for manual download on [Google Drive](https://drive.google.com/file/d/1st9qW3BeIwQsnR0t8mRpvbsSWIo16ACi/view?usp=drive_link).
 
@@ -29,13 +29,13 @@ The Argoverse dataset is organized into three main subsets:
 
 ## Applications
 
-The Argoverse dataset is widely used for training and evaluating deep learning models in autonomous driving tasks such as 3D object tracking, motion forecasting, and stereo depth estimation. The dataset's diverse set of sensor data, object annotations, and map information make it a valuable resource for researchers and practitioners in the field of autonomous driving.
+The Argoverse dataset is widely used for training and evaluating [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models in autonomous driving tasks such as 3D object tracking, motion forecasting, and stereo depth estimation. The dataset's diverse set of sensor data, object annotations, and map information make it a valuable resource for researchers and practitioners in the field of autonomous driving.
 
 ## Dataset YAML
 
 A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. For the case of the Argoverse dataset, the `Argoverse.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/Argoverse.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/Argoverse.yaml).
 
-!!! Example "ultralytics/cfg/datasets/Argoverse.yaml"
+!!! example "ultralytics/cfg/datasets/Argoverse.yaml"
 
     ```yaml
     --8<-- "ultralytics/cfg/datasets/Argoverse.yaml"
@@ -43,9 +43,9 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 ## Usage
 
-To train a YOLOv8n model on the Argoverse dataset for 100 epochs with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To train a YOLO11n model on the Argoverse dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
-!!! Example "Train Example"
+!!! example "Train Example"
 
     === "Python"
 
@@ -53,7 +53,7 @@ To train a YOLOv8n model on the Argoverse dataset for 100 epochs with an image s
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="Argoverse.yaml", epochs=100, imgsz=640)
@@ -63,14 +63,14 @@ To train a YOLOv8n model on the Argoverse dataset for 100 epochs with an image s
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=Argoverse.yaml model=yolov8n.pt epochs=100 imgsz=640
+        yolo detect train data=Argoverse.yaml model=yolo11n.pt epochs=100 imgsz=640
         ```
 
 ## Sample Data and Annotations
 
 The Argoverse dataset contains a diverse set of sensor data, including camera images, LiDAR point clouds, and HD map information, providing rich context for autonomous driving tasks. Here are some examples of data from the dataset, along with their corresponding annotations:
 
-![Dataset sample image](https://www.argoverse.org/assets/images/reference_images/av2_ground_height.png)
+![Dataset sample image](https://github.com/ultralytics/docs/releases/download/0/argoverse-3d-tracking-sample.avif)
 
 - **Argoverse 3D Tracking**: This image demonstrates an example of 3D object tracking, where objects are annotated with 3D bounding boxes. The dataset provides LiDAR point clouds and camera images to facilitate the development of models for this task.
 
@@ -80,7 +80,7 @@ The example showcases the variety and complexity of the data in the Argoverse da
 
 If you use the Argoverse dataset in your research or development work, please cite the following paper:
 
-!!! Quote ""
+!!! quote ""
 
     === "BibTeX"
 
@@ -104,28 +104,28 @@ The [Argoverse](https://www.argoverse.org/) dataset, developed by Argo AI, suppo
 
 ### How can I train an Ultralytics YOLO model using the Argoverse dataset?
 
-To train a YOLOv8 model with the Argoverse dataset, use the provided YAML configuration file and the following code:
+To train a YOLO11 model with the Argoverse dataset, use the provided YAML configuration file and the following code:
 
-!!! Example "Train Example"
+!!! example "Train Example"
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="Argoverse.yaml", epochs=100, imgsz=640)
         ```
-    
+
 
     === "CLI"
-    
+
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=Argoverse.yaml model=yolov8n.pt epochs=100 imgsz=640
+        yolo detect train data=Argoverse.yaml model=yolo11n.pt epochs=100 imgsz=640
         ```
 
 For a detailed explanation of the arguments, refer to the model [Training](../../modes/train.md) page.

@@ -55,23 +55,22 @@ def request_with_credentials(url: str) -> any:
 
     display.display(
         display.Javascript(
-            """
-            window._hub_tmp = new Promise((resolve, reject) => {
+            f"""
+            window._hub_tmp = new Promise((resolve, reject) => {{
                 const timeout = setTimeout(() => reject("Failed authenticating existing browser session"), 5000)
-                fetch("%s", {
+                fetch("{url}", {{
                     method: 'POST',
                     credentials: 'include'
-                })
+                }})
                     .then((response) => resolve(response.json()))
-                    .then((json) => {
+                    .then((json) => {{
                     clearTimeout(timeout);
-                    }).catch((err) => {
+                    }}).catch((err) => {{
                     clearTimeout(timeout);
                     reject(err);
-                });
-            });
+                }});
+            }});
             """
-            % url
         )
     )
     return output.eval_js("_hub_tmp")
@@ -171,7 +170,7 @@ def smart_request(method, url, retry=3, timeout=30, thread=True, code=-1, verbos
 class Events:
     """
     A class for collecting anonymous event analytics. Event analytics are enabled when sync=True in settings and
-    disabled when sync=False. Run 'yolo settings' to see and update settings YAML file.
+    disabled when sync=False. Run 'yolo settings' to see and update settings.
 
     Attributes:
         url (str): The URL to send anonymous events.

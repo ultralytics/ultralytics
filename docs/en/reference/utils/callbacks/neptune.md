@@ -5,7 +5,7 @@ keywords: Ultralytics, NeptuneAI, YOLO, experiment logging, machine learning, AI
 
 # Reference for `ultralytics/utils/callbacks/neptune.py`
 
-!!! Note
+!!! note
 
     This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/neptune.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/neptune.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/utils/callbacks/neptune.py) 🛠️. Thank you 🙏!
 

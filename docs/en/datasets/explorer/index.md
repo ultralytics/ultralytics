@@ -6,8 +6,12 @@ keywords: Ultralytics Explorer, CV datasets, semantic search, SQL queries, vecto
 
 # Ultralytics Explorer
 
+!!! warning "Community Note ⚠️"
+
+    As of **`ultralytics>=8.3.10`**, Ultralytics explorer support has been deprecated. But don't worry! You can now access similar and even enhanced functionality through [Ultralytics HUB](https://hub.ultralytics.com/), our intuitive no-code platform designed to streamline your workflow. With Ultralytics HUB, you can continue exploring, visualizing, and managing your data effortlessly, all without writing a single line of code. Make sure to check it out and take advantage of its powerful features!🚀
+
 <p>
-    <img width="1709" alt="Ultralytics Explorer Screenshot 1" src="https://github.com/ultralytics/ultralytics/assets/15766192/feb1fe05-58c5-4173-a9ff-e611e3bba3d0">
+    <img width="1709" alt="Ultralytics Explorer Screenshot 1" src="https://github.com/ultralytics/docs/releases/download/0/explorer-dashboard-screenshot-1.avif">
 </p>
 
 <a href="https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/docs/en/datasets/explorer/explorer.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a>
@@ -44,26 +48,26 @@ Learn more about the Explorer API [here](api.md).
 
 ## GUI Explorer Usage
 
-The GUI demo runs in your browser allowing you to create embeddings for your dataset and search for similar images, run SQL queries and perform semantic search. It can be run using the following command:
+The GUI demo runs in your browser allowing you to create [embeddings](https://www.ultralytics.com/glossary/embeddings) for your dataset and search for similar images, run SQL queries and perform semantic search. It can be run using the following command:
 
 ```bash
 yolo explorer
 ```
 
-!!! note "Note"
+!!! note
 
     Ask AI feature works using OpenAI, so you'll be prompted to set the api key for OpenAI when you first run the GUI.
     You can set it like this - `yolo settings openai_api_key="..."`
 
 <p>
-    <img width="1709" alt="Ultralytics Explorer OpenAI Integration" src="https://github.com/AyushExel/assets/assets/15766192/1b5f3708-be3e-44c5-9ea3-adcd522dfc75">
+    <img width="1709" alt="Ultralytics Explorer OpenAI Integration" src="https://github.com/ultralytics/docs/releases/download/0/ultralytics-explorer-openai-integration.avif">
 </p>
 
 ## FAQ
 
 ### What is Ultralytics Explorer and how can it help with CV datasets?
 
-Ultralytics Explorer is a powerful tool designed for exploring computer vision (CV) datasets through semantic search, SQL queries, vector similarity search, and even natural language. This versatile tool provides both a GUI and a Python API, allowing users to seamlessly interact with their datasets. By leveraging technologies like LanceDB, Ultralytics Explorer ensures efficient, scalable access to large datasets without excessive memory usage. Whether you're performing detailed dataset analysis or exploring data patterns, Ultralytics Explorer streamlines the entire process.
+Ultralytics Explorer is a powerful tool designed for exploring [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) (CV) datasets through semantic search, SQL queries, vector similarity search, and even natural language. This versatile tool provides both a GUI and a Python API, allowing users to seamlessly interact with their datasets. By leveraging technologies like LanceDB, Ultralytics Explorer ensures efficient, scalable access to large datasets without excessive memory usage. Whether you're performing detailed dataset analysis or exploring data patterns, Ultralytics Explorer streamlines the entire process.
 
 Learn more about the [Explorer API](api.md).
 

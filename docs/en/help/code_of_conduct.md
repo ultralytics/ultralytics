@@ -78,7 +78,7 @@ Community leaders will follow these Community Impact Guidelines in determining t
 
 This Code of Conduct is adapted from the [Contributor Covenant][homepage], version 2.0, available at https://www.contributor-covenant.org/version/2/0/code_of_conduct.html.
 
-Community Impact Guidelines were inspired by [Mozilla's code of conduct enforcement ladder](https://github.com/mozilla/diversity).
+Community Impact Guidelines were inspired by [Mozilla's code of conduct enforcement ladder](https://github.com/mozilla/inclusion).
 
 For answers to common questions about this code of conduct, see the FAQ at https://www.contributor-covenant.org/faq. Translations are available at https://www.contributor-covenant.org/translations.
 
@@ -104,6 +104,6 @@ Contributing to Ultralytics means engaging positively and respectfully with othe
 
 ### Where can I find additional information about the Ultralytics Code of Conduct?
 
-For more comprehensive details about the Ultralytics Code of Conduct, including reporting guidelines and enforcement policies, you can visit the [Contributor Covenant homepage](https://www.contributor-covenant.org/version/2/0/code_of_conduct.html) or check the [FAQ section of Contributor Covenant](https://www.contributor-covenant.org/faq). Learn more about Ultralytics' goals and initiatives on [our brand page](https://www.ultralytics.com/brand) and [about page](https://www.ultralytics.com/about).
+For more comprehensive details about the Ultralytics Code of Conduct, including reporting guidelines and enforcement policies, you can visit the [Contributor Covenant homepage](https://www.contributor-covenant.org/version/2/0/code_of_conduct/) or check the [FAQ section of Contributor Covenant](https://www.contributor-covenant.org/faq/). Learn more about Ultralytics' goals and initiatives on [our brand page](https://www.ultralytics.com/brand) and [about page](https://www.ultralytics.com/about).
 
 Should you have more questions or need further assistance, check our [Help Center](../help/FAQ.md) and [Contributing Guide](../help/contributing.md) for more information.

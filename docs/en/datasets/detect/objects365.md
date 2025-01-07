@@ -1,7 +1,7 @@
 ---
 comments: true
 description: Explore the Objects365 Dataset with 2M images and 30M bounding boxes across 365 categories. Enhance your object detection models with diverse, high-quality data.
-keywords: Objects365 dataset, object detection, machine learning, deep learning, computer vision, annotated images, bounding boxes, YOLOv8, high-resolution images, dataset configuration
+keywords: Objects365 dataset, object detection, machine learning, deep learning, computer vision, annotated images, bounding boxes, YOLO11, high-resolution images, dataset configuration
 ---
 
 # Objects365 Dataset
@@ -24,13 +24,13 @@ The Objects365 dataset is organized into a single set of images with correspondi
 
 ## Applications
 
-The Objects365 dataset is widely used for training and evaluating deep learning models in object detection tasks. The dataset's diverse set of object categories and high-quality annotations make it a valuable resource for researchers and practitioners in the field of computer vision.
+The Objects365 dataset is widely used for training and evaluating deep learning models in object detection tasks. The dataset's diverse set of object categories and high-quality annotations make it a valuable resource for researchers and practitioners in the field of [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv).
 
 ## Dataset YAML
 
 A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. For the case of the Objects365 Dataset, the `Objects365.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/Objects365.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/Objects365.yaml).
 
-!!! Example "ultralytics/cfg/datasets/Objects365.yaml"
+!!! example "ultralytics/cfg/datasets/Objects365.yaml"
 
     ```yaml
     --8<-- "ultralytics/cfg/datasets/Objects365.yaml"
@@ -38,9 +38,9 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 ## Usage
 
-To train a YOLOv8n model on the Objects365 dataset for 100 epochs with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To train a YOLO11n model on the Objects365 dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
-!!! Example "Train Example"
+!!! example "Train Example"
 
     === "Python"
 
@@ -48,7 +48,7 @@ To train a YOLOv8n model on the Objects365 dataset for 100 epochs with an image 
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="Objects365.yaml", epochs=100, imgsz=640)
@@ -58,14 +58,14 @@ To train a YOLOv8n model on the Objects365 dataset for 100 epochs with an image 
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=Objects365.yaml model=yolov8n.pt epochs=100 imgsz=640
+        yolo detect train data=Objects365.yaml model=yolo11n.pt epochs=100 imgsz=640
         ```
 
 ## Sample Data and Annotations
 
-The Objects365 dataset contains a diverse set of high-resolution images with objects from 365 categories, providing rich context for object detection tasks. Here are some examples of the images in the dataset:
+The Objects365 dataset contains a diverse set of high-resolution images with objects from 365 categories, providing rich context for [object detection](https://www.ultralytics.com/glossary/object-detection) tasks. Here are some examples of the images in the dataset:
 
-![Dataset sample image](https://user-images.githubusercontent.com/26833433/238215467-caf757dd-0b87-4b0d-bb19-d94a547f7fbf.jpg)
+![Dataset sample image](https://github.com/ultralytics/docs/releases/download/0/objects365-sample-image.avif)
 
 - **Objects365**: This image demonstrates an example of object detection, where objects are annotated with bounding boxes. The dataset provides a wide range of images to facilitate the development of models for this task.
 
@@ -75,7 +75,7 @@ The example showcases the variety and complexity of the data in the Objects365 d
 
 If you use the Objects365 dataset in your research or development work, please cite the following paper:
 
-!!! Quote ""
+!!! quote ""
 
     === "BibTeX"
 
@@ -95,13 +95,13 @@ We would like to acknowledge the team of researchers who created and maintain th
 
 ### What is the Objects365 dataset used for?
 
-The [Objects365 dataset](https://www.objects365.org/) is designed for object detection tasks in machine learning and computer vision. It provides a large-scale, high-quality dataset with 2 million annotated images and 30 million bounding boxes across 365 categories. Leveraging such a diverse dataset helps improve the performance and generalization of object detection models, making it invaluable for research and development in the field.
+The [Objects365 dataset](https://www.objects365.org/) is designed for object detection tasks in [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) and computer vision. It provides a large-scale, high-quality dataset with 2 million annotated images and 30 million bounding boxes across 365 categories. Leveraging such a diverse dataset helps improve the performance and generalization of object detection models, making it invaluable for research and development in the field.
 
-### How can I train a YOLOv8 model on the Objects365 dataset?
+### How can I train a YOLO11 model on the Objects365 dataset?
 
-To train a YOLOv8n model using the Objects365 dataset for 100 epochs with an image size of 640, follow these instructions:
+To train a YOLO11n model using the Objects365 dataset for 100 epochs with an image size of 640, follow these instructions:
 
-!!! Example "Train Example"
+!!! example "Train Example"
 
     === "Python"
 
@@ -109,7 +109,7 @@ To train a YOLOv8n model using the Objects365 dataset for 100 epochs with an ima
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="Objects365.yaml", epochs=100, imgsz=640)
@@ -119,7 +119,7 @@ To train a YOLOv8n model using the Objects365 dataset for 100 epochs with an ima
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=Objects365.yaml model=yolov8n.pt epochs=100 imgsz=640
+        yolo detect train data=Objects365.yaml model=yolo11n.pt epochs=100 imgsz=640
         ```
 
 Refer to the [Training](../../modes/train.md) page for a comprehensive list of available arguments.
@@ -127,6 +127,7 @@ Refer to the [Training](../../modes/train.md) page for a comprehensive list of a
 ### Why should I use the Objects365 dataset for my object detection projects?
 
 The Objects365 dataset offers several advantages for object detection tasks:
+
 1. **Diversity**: It includes 2 million images with objects in diverse scenarios, covering 365 categories.
 2. **High-quality Annotations**: Over 30 million bounding boxes provide comprehensive ground truth data.
 3. **Performance**: Models pre-trained on Objects365 significantly outperform those trained on datasets like ImageNet, leading to better generalization.
@@ -137,4 +138,4 @@ The YAML configuration file for the Objects365 dataset is available at [Objects3
 
 ### How does the dataset structure of Objects365 enhance object detection modeling?
 
-The [Objects365 dataset](https://www.objects365.org/) is organized with 2 million high-resolution images and comprehensive annotations of over 30 million bounding boxes. This structure ensures a robust dataset for training deep learning models in object detection, offering a wide variety of objects and scenarios. Such diversity and volume help in developing models that are more accurate and capable of generalizing well to real-world applications. For more details on the dataset structure, refer to the [Dataset YAML](#dataset-yaml) section.
+The [Objects365 dataset](https://www.objects365.org/) is organized with 2 million high-resolution images and comprehensive annotations of over 30 million bounding boxes. This structure ensures a robust dataset for training [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models in object detection, offering a wide variety of objects and scenarios. Such diversity and volume help in developing models that are more accurate and capable of generalizing well to real-world applications. For more details on the dataset structure, refer to the [Dataset YAML](#dataset-yaml) section.

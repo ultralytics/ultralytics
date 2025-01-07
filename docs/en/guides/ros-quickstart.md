@@ -7,7 +7,7 @@ keywords: Ultralytics, YOLO, object detection, deep learning, machine learning, 
 # ROS (Robot Operating System) quickstart guide
 
 <p align="center"> <iframe src="https://player.vimeo.com/video/639236696?h=740f412ce5" width="640" height="360" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe></p>
-<p align="center"><a href="https://vimeo.com/639236696">ROS Introduction (captioned)</a> from <a href="https://vimeo.com/osrfoundation">Open Robotics</a> on <a href="https://vimeo.com">Vimeo</a>.</p>
+<p align="center"><a href="https://vimeo.com/639236696">ROS Introduction (captioned)</a> from <a href="https://vimeo.com/osrfoundation">Open Robotics</a> on <a href="https://vimeo.com/">Vimeo</a>.</p>
 
 ## What is ROS?
 
@@ -48,7 +48,7 @@ In ROS, communication between nodes is facilitated through [messages](https://wi
 This guide has been tested using [this ROS environment](https://github.com/ambitious-octopus/rosbot_ros/tree/noetic), which is a fork of the [ROSbot ROS repository](https://github.com/husarion/rosbot_ros). This environment includes the Ultralytics YOLO package, a Docker container for easy setup, comprehensive ROS packages, and Gazebo worlds for rapid testing. It is designed to work with the [Husarion ROSbot 2 PRO](https://husarion.com/manuals/rosbot/). The code examples provided will work in any ROS Noetic/Melodic environment, including both simulation and real-world.
 
 <p align="center">
-  <img width="50%" src="https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/242b431d-6ea2-4dad-81d6-e31be69141af" alt="Husarion ROSbot 2 PRO">
+  <img width="50%" src="https://github.com/ultralytics/docs/releases/download/0/husarion-rosbot-2-pro.avif" alt="Husarion ROSbot 2 PRO">
 </p>
 
 ### Dependencies Installation
@@ -69,10 +69,10 @@ Apart from the ROS environment, you will need to install the following dependenc
 
 ## Use Ultralytics with ROS `sensor_msgs/Image`
 
-The `sensor_msgs/Image` [message type](https://docs.ros.org/en/api/sensor_msgs/html/msg/Image.html) is commonly used in ROS for representing image data. It contains fields for encoding, height, width, and pixel data, making it suitable for transmitting images captured by cameras or other sensors. Image messages are widely used in robotic applications for tasks such as visual perception, object detection, and navigation.
+The `sensor_msgs/Image` [message type](https://docs.ros.org/en/api/sensor_msgs/html/msg/Image.html) is commonly used in ROS for representing image data. It contains fields for encoding, height, width, and pixel data, making it suitable for transmitting images captured by cameras or other sensors. Image messages are widely used in robotic applications for tasks such as visual perception, [object detection](https://www.ultralytics.com/glossary/object-detection), and navigation.
 
 <p align="center">
-  <img width="100%" src="https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/652cb3e8-ecb0-45cf-9ce1-a514dc06c605" alt="Detection and Segmentation in ROS Gazebo">
+  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/detection-segmentation-ros-gazebo.avif" alt="Detection and Segmentation in ROS Gazebo">
 </p>
 
 ### Image Step-by-Step Usage
@@ -88,8 +88,8 @@ import rospy
 
 from ultralytics import YOLO
 
-detection_model = YOLO("yolov8m.pt")
-segmentation_model = YOLO("yolov8m-seg.pt")
+detection_model = YOLO("yolo11m.pt")
+segmentation_model = YOLO("yolo11m-seg.pt")
 rospy.init_node("ultralytics")
 time.sleep(1)
 ```
@@ -129,7 +129,7 @@ while True:
     rospy.spin()
 ```
 
-??? Example "Complete code"
+??? example "Complete code"
 
     ```python
     import time
@@ -140,8 +140,8 @@ while True:
 
     from ultralytics import YOLO
 
-    detection_model = YOLO("yolov8m.pt")
-    segmentation_model = YOLO("yolov8m-seg.pt")
+    detection_model = YOLO("yolo11m.pt")
+    segmentation_model = YOLO("yolo11m-seg.pt")
     rospy.init_node("ultralytics")
     time.sleep(1)
 
@@ -200,7 +200,7 @@ from std_msgs.msg import String
 
 from ultralytics import YOLO
 
-detection_model = YOLO("yolov8m.pt")
+detection_model = YOLO("yolo11m.pt")
 rospy.init_node("ultralytics")
 time.sleep(1)
 classes_pub = rospy.Publisher("/ultralytics/detection/classes", String, queue_size=5)
@@ -260,7 +260,7 @@ from ultralytics import YOLO
 rospy.init_node("ultralytics")
 time.sleep(1)
 
-segmentation_model = YOLO("yolov8m-seg.pt")
+segmentation_model = YOLO("yolo11m-seg.pt")
 
 classes_pub = rospy.Publisher("/ultralytics/detection/distance", String, queue_size=5)
 ```
@@ -297,7 +297,7 @@ while True:
     rospy.spin()
 ```
 
-??? Example "Complete code"
+??? example "Complete code"
 
     ```python
     import time
@@ -313,7 +313,7 @@ while True:
     rospy.init_node("ultralytics")
     time.sleep(1)
 
-    segmentation_model = YOLO("yolov8m-seg.pt")
+    segmentation_model = YOLO("yolo11m-seg.pt")
 
     classes_pub = rospy.Publisher("/ultralytics/detection/distance", String, queue_size=5)
 
@@ -345,7 +345,7 @@ while True:
 ## Use Ultralytics with ROS `sensor_msgs/PointCloud2`
 
 <p align="center">
-  <img width="100%" src="https://github.com/RizwanMunawar/RizwanMunawar/assets/62513924/ef2e1ed9-a840-499a-b324-574bd26c3bc7" alt="Detection and Segmentation in ROS Gazebo">
+  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/detection-segmentation-ros-gazebo-1.avif" alt="Detection and Segmentation in ROS Gazebo">
 </p>
 
 The `sensor_msgs/PointCloud2` [message type](https://docs.ros.org/en/api/sensor_msgs/html/msg/PointCloud2.html) is a data structure used in ROS to represent 3D point cloud data. This message type is integral to robotic applications, enabling tasks such as 3D mapping, object recognition, and localization.
@@ -360,7 +360,7 @@ A point cloud is a collection of data points defined within a three-dimensional 
 
     Point Clouds can be obtained using various sensors:
 
-    1. **LIDAR (Light Detection and Ranging)**: Uses laser pulses to measure distances to objects and create high-precision 3D maps.
+    1. **LIDAR (Light Detection and Ranging)**: Uses laser pulses to measure distances to objects and create high-[precision](https://www.ultralytics.com/glossary/precision) 3D maps.
     2. **Depth Cameras**: Capture depth information for each pixel, allowing for 3D reconstruction of the scene.
     3. **Stereo Cameras**: Utilize two or more cameras to obtain depth information through triangulation.
     4. **Structured Light Scanners**: Project a known pattern onto a surface and measure the deformation to calculate depth.
@@ -384,7 +384,7 @@ from ultralytics import YOLO
 
 rospy.init_node("ultralytics")
 time.sleep(1)
-segmentation_model = YOLO("yolov8m-seg.pt")
+segmentation_model = YOLO("yolo11m-seg.pt")
 ```
 
 Create a function `pointcloud2_to_array`, which transforms a `sensor_msgs/PointCloud2` message into two numpy arrays. The `sensor_msgs/PointCloud2` messages contain `n` points based on the `width` and `height` of the acquired image. For instance, a `480 x 640` image will have `307,200` points. Each point includes three spatial coordinates (`xyz`) and the corresponding color in `RGB` format. These can be considered as two separate channels of information.
@@ -448,7 +448,7 @@ for index, class_id in enumerate(classes):
     o3d.visualization.draw_geometries([pcd])
 ```
 
-??? Example "Complete code"
+??? example "Complete code"
 
     ```python
     import sys
@@ -463,7 +463,7 @@ for index, class_id in enumerate(classes):
 
     rospy.init_node("ultralytics")
     time.sleep(1)
-    segmentation_model = YOLO("yolov8m-seg.pt")
+    segmentation_model = YOLO("yolo11m-seg.pt")
 
 
     def pointcloud2_to_array(pointcloud2: PointCloud2) -> tuple:
@@ -510,7 +510,7 @@ for index, class_id in enumerate(classes):
     ```
 
 <p align="center">
-  <img width="100%" src="https://github.com/ultralytics/ultralytics/assets/3855193/3caafc4a-0edd-4e5f-8dd1-37e30be70123" alt="Point Cloud Segmentation with Ultralytics ">
+  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/point-cloud-segmentation-ultralytics.avif" alt="Point Cloud Segmentation with Ultralytics ">
 </p>
 
 ## FAQ
@@ -536,7 +536,7 @@ from sensor_msgs.msg import Image
 
 from ultralytics import YOLO
 
-detection_model = YOLO("yolov8m.pt")
+detection_model = YOLO("yolo11m.pt")
 rospy.init_node("ultralytics")
 det_image_pub = rospy.Publisher("/ultralytics/detection/image", Image, queue_size=5)
 
@@ -589,7 +589,7 @@ from sensor_msgs.msg import PointCloud2
 from ultralytics import YOLO
 
 rospy.init_node("ultralytics")
-segmentation_model = YOLO("yolov8m-seg.pt")
+segmentation_model = YOLO("yolo11m-seg.pt")
 
 
 def pointcloud2_to_array(pointcloud2):

@@ -6,23 +6,17 @@ keywords: ImageNet, deep learning, visual recognition, computer vision, pretrain
 
 # ImageNet Dataset
 
-[ImageNet](https://www.image-net.org/) is a large-scale database of annotated images designed for use in visual object recognition research. It contains over 14 million images, with each image annotated using WordNet synsets, making it one of the most extensive resources available for training deep learning models in computer vision tasks.
+[ImageNet](https://www.image-net.org/) is a large-scale database of annotated images designed for use in visual object recognition research. It contains over 14 million images, with each image annotated using WordNet synsets, making it one of the most extensive resources available for training [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models in [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) tasks.
 
 ## ImageNet Pretrained Models
 
-| Model                                                                                        | size<br><sup>(pixels) | acc<br><sup>top1 | acc<br><sup>top5 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) at 640 |
-|----------------------------------------------------------------------------------------------|-----------------------|------------------|------------------|--------------------------------|-------------------------------------|--------------------|--------------------------|
-| [YOLOv8n-cls](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n-cls.pt) | 224                   | 69.0             | 88.3             | 12.9                           | 0.31                                | 2.7                | 4.3                      |
-| [YOLOv8s-cls](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8s-cls.pt) | 224                   | 73.8             | 91.7             | 23.4                           | 0.35                                | 6.4                | 13.5                     |
-| [YOLOv8m-cls](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8m-cls.pt) | 224                   | 76.8             | 93.5             | 85.4                           | 0.62                                | 17.0               | 42.7                     |
-| [YOLOv8l-cls](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8l-cls.pt) | 224                   | 76.8             | 93.5             | 163.0                          | 0.87                                | 37.5               | 99.7                     |
-| [YOLOv8x-cls](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8x-cls.pt) | 224                   | 79.0             | 94.6             | 232.0                          | 1.01                                | 57.4               | 154.8                    |
+{% include "macros/yolo-cls-perf.md" %}
 
 ## Key Features
 
 - ImageNet contains over 14 million high-resolution images spanning thousands of object categories.
 - The dataset is organized according to the WordNet hierarchy, with each synset representing a category.
-- ImageNet is widely used for training and benchmarking in the field of computer vision, particularly for image classification and object detection tasks.
+- ImageNet is widely used for training and benchmarking in the field of computer vision, particularly for [image classification](https://www.ultralytics.com/glossary/image-classification) and [object detection](https://www.ultralytics.com/glossary/object-detection) tasks.
 - The annual ImageNet Large Scale Visual Recognition Challenge (ILSVRC) has been instrumental in advancing computer vision research.
 
 ## Dataset Structure
@@ -39,9 +33,9 @@ The ImageNet dataset is widely used for training and evaluating deep learning mo
 
 ## Usage
 
-To train a deep learning model on the ImageNet dataset for 100 epochs with an image size of 224x224, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To train a deep learning model on the ImageNet dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 224x224, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
-!!! Example "Train Example"
+!!! example "Train Example"
 
     === "Python"
 
@@ -49,7 +43,7 @@ To train a deep learning model on the ImageNet dataset for 100 epochs with an im
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n-cls.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n-cls.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="imagenet", epochs=100, imgsz=224)
@@ -59,14 +53,14 @@ To train a deep learning model on the ImageNet dataset for 100 epochs with an im
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo classify train data=imagenet model=yolov8n-cls.pt epochs=100 imgsz=224
+        yolo classify train data=imagenet model=yolo11n-cls.pt epochs=100 imgsz=224
         ```
 
 ## Sample Images and Annotations
 
 The ImageNet dataset contains high-resolution images spanning thousands of object categories, providing a diverse and extensive dataset for training and evaluating computer vision models. Here are some examples of images from the dataset:
 
-![Dataset sample images](https://user-images.githubusercontent.com/26833433/239280348-3d8f30c7-6f05-4dda-9cfe-d62ad9faecc9.png)
+![Dataset sample images](https://github.com/ultralytics/docs/releases/download/0/imagenet-sample-images.avif)
 
 The example showcases the variety and complexity of the images in the ImageNet dataset, highlighting the importance of a diverse dataset for training robust computer vision models.
 
@@ -74,7 +68,7 @@ The example showcases the variety and complexity of the images in the ImageNet d
 
 If you use the ImageNet dataset in your research or development work, please cite the following paper:
 
-!!! Quote ""
+!!! quote ""
 
     === "BibTeX"
 
@@ -90,7 +84,7 @@ If you use the ImageNet dataset in your research or development work, please cit
         }
         ```
 
-We would like to acknowledge the ImageNet team, led by Olga Russakovsky, Jia Deng, and Li Fei-Fei, for creating and maintaining the ImageNet dataset as a valuable resource for the machine learning and computer vision research community. For more information about the ImageNet dataset and its creators, visit the [ImageNet website](https://www.image-net.org/).
+We would like to acknowledge the ImageNet team, led by Olga Russakovsky, Jia Deng, and Li Fei-Fei, for creating and maintaining the ImageNet dataset as a valuable resource for the [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) and computer vision research community. For more information about the ImageNet dataset and its creators, visit the [ImageNet website](https://www.image-net.org/).
 
 ## FAQ
 
@@ -102,32 +96,32 @@ The [ImageNet dataset](https://www.image-net.org/) is a large-scale database con
 
 To use a pretrained Ultralytics YOLO model for image classification on the ImageNet dataset, follow these steps:
 
-!!! Example "Train Example"
+!!! example "Train Example"
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n-cls.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n-cls.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="imagenet", epochs=100, imgsz=224)
         ```
 
     === "CLI"
-    
+
         ```bash
         # Start training from a pretrained *.pt model
-        yolo classify train data=imagenet model=yolov8n-cls.pt epochs=100 imgsz=224
+        yolo classify train data=imagenet model=yolo11n-cls.pt epochs=100 imgsz=224
         ```
 
 For more in-depth training instruction, refer to our [Training page](../../modes/train.md).
 
-### Why should I use the Ultralytics YOLOv8 pretrained models for my ImageNet dataset projects?
+### Why should I use the Ultralytics YOLO11 pretrained models for my ImageNet dataset projects?
 
-Ultralytics YOLOv8 pretrained models offer state-of-the-art performance in terms of speed and accuracy for various computer vision tasks. For example, the YOLOv8n-cls model, with a top-1 accuracy of 69.0% and a top-5 accuracy of 88.3%, is optimized for real-time applications. Pretrained models reduce the computational resources required for training from scratch and accelerate development cycles. Learn more about the performance metrics of YOLOv8 models in the [ImageNet Pretrained Models section](#imagenet-pretrained-models).
+Ultralytics YOLO11 pretrained models offer state-of-the-art performance in terms of speed and [accuracy](https://www.ultralytics.com/glossary/accuracy) for various computer vision tasks. For example, the YOLO11n-cls model, with a top-1 accuracy of 69.0% and a top-5 accuracy of 88.3%, is optimized for real-time applications. Pretrained models reduce the computational resources required for training from scratch and accelerate development cycles. Learn more about the performance metrics of YOLO11 models in the [ImageNet Pretrained Models section](#imagenet-pretrained-models).
 
 ### How is the ImageNet dataset structured, and why is it important?
 
@@ -135,4 +129,4 @@ The ImageNet dataset is organized using the WordNet hierarchy, where each node i
 
 ### What role does the ImageNet Large Scale Visual Recognition Challenge (ILSVRC) play in computer vision?
 
-The annual [ImageNet Large Scale Visual Recognition Challenge (ILSVRC)](https://image-net.org/challenges/LSVRC/) has been pivotal in driving advancements in computer vision by providing a competitive platform for evaluating algorithms on a large-scale, standardized dataset. It offers standardized evaluation metrics, fostering innovation and development in areas such as image classification, object detection, and image segmentation. The challenge has continuously pushed the boundaries of what is possible with deep learning and computer vision technologies.
+The annual [ImageNet Large Scale Visual Recognition Challenge (ILSVRC)](https://image-net.org/challenges/LSVRC/) has been pivotal in driving advancements in computer vision by providing a competitive platform for evaluating algorithms on a large-scale, standardized dataset. It offers standardized evaluation metrics, fostering innovation and development in areas such as image classification, object detection, and [image segmentation](https://www.ultralytics.com/glossary/image-segmentation). The challenge has continuously pushed the boundaries of what is possible with deep learning and computer vision technologies.

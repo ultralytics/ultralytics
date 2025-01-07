@@ -13,7 +13,7 @@ Running YOLO models in a multi-threaded environment requires careful considerati
 Python threads are a form of parallelism that allow your program to run multiple operations at once. However, Python's Global Interpreter Lock (GIL) means that only one thread can execute Python bytecode at a time.
 
 <p align="center">
-  <img width="800" src="https://user-images.githubusercontent.com/26833433/281418476-7f478570-fd77-4a40-bf3d-74b4db4d668c.png" alt="Single vs Multi-Thread Examples">
+  <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/single-vs-multi-thread-examples.avif" alt="Single vs Multi-Thread Examples">
 </p>
 
 While this sounds like a limitation, threads can still provide concurrency, especially for I/O-bound operations or when using operations that release the GIL, like those performed by YOLO's underlying C libraries.
@@ -33,7 +33,7 @@ from threading import Thread
 from ultralytics import YOLO
 
 # Instantiate the model outside the thread
-shared_model = YOLO("yolov8n.pt")
+shared_model = YOLO("yolo11n.pt")
 
 
 def predict(image_path):
@@ -60,8 +60,8 @@ from threading import Thread
 from ultralytics import YOLO
 
 # Instantiate multiple models outside the thread
-shared_model_1 = YOLO("yolov8n_1.pt")
-shared_model_2 = YOLO("yolov8n_2.pt")
+shared_model_1 = YOLO("yolo11n_1.pt")
+shared_model_2 = YOLO("yolo11n_2.pt")
 
 
 def predict(model, image_path):
@@ -94,7 +94,7 @@ from ultralytics import YOLO
 
 def thread_safe_predict(image_path):
     """Predict on an image using a new YOLO model instance in a thread-safe manner; takes image path as input."""
-    local_model = YOLO("yolov8n.pt")
+    local_model = YOLO("yolo11n.pt")
     results = local_model.predict(image_path)
     # Process results
 
@@ -128,7 +128,7 @@ from ultralytics import YOLO
 
 def thread_safe_predict(image_path):
     """Predict on an image in a thread-safe manner."""
-    local_model = YOLO("yolov8n.pt")
+    local_model = YOLO("yolo11n.pt")
     results = local_model.predict(image_path)
     # Process results
 
@@ -157,7 +157,7 @@ from ultralytics import YOLO
 
 def thread_safe_predict(image_path):
     """Runs inference in a thread-safe manner with a new YOLO model instance."""
-    model = YOLO("yolov8n.pt")
+    model = YOLO("yolo11n.pt")
     results = model.predict(image_path)
     # Process results
 

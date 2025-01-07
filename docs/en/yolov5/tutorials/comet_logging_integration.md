@@ -12,7 +12,7 @@ This guide will cover how to use YOLOv5 with [Comet](https://bit.ly/yolov5-readm
 
 ## About Comet
 
-Comet builds tools that help data scientists, engineers, and team leaders accelerate and optimize machine learning and deep learning models.
+Comet builds tools that help data scientists, engineers, and team leaders accelerate and optimize [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) and [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models.
 
 Track and visualize model metrics in real time, save your hyperparameters, datasets, and model checkpoints, and visualize your model predictions with [Comet Custom Panels](https://www.comet.com/docs/v2/guides/comet-dashboard/code-panels/about-panels/?utm_source=yolov5&utm_medium=partner&utm_campaign=partner_yolov5_2022&utm_content=github)! Comet makes sure you never lose track of your work and makes it easy to share results and collaborate across teams of all sizes!
 
@@ -56,7 +56,7 @@ python train.py --img 640 --batch 16 --epochs 5 --data coco128.yaml --weights yo
 
 That's it! Comet will automatically log your hyperparameters, command line arguments, training and validation metrics. You can visualize and analyze your runs in the Comet UI
 
-<img width="1920" alt="yolo-ui" src="https://user-images.githubusercontent.com/26833433/202851203-164e94e1-2238-46dd-91f8-de020e9d6b41.png">
+<img width="1920" alt="yolo-ui" src="https://github.com/ultralytics/docs/releases/download/0/yolo-ui.avif">
 
 ## Try out an Example!
 
@@ -72,7 +72,7 @@ By default, Comet will log the following items
 
 ## Metrics
 
-- Box Loss, Object Loss, Classification Loss for the training and validation data
+- Box Loss, Object Loss, Classification Loss for the training and [validation data](https://www.ultralytics.com/glossary/validation-data)
 - mAP_0.5, mAP_0.5:0.95 metrics for the validation data.
 - Precision and Recall for the validation data
 
@@ -83,7 +83,7 @@ By default, Comet will log the following items
 
 ## Visualizations
 
-- Confusion Matrix of the model predictions on the validation data
+- [Confusion Matrix](https://www.ultralytics.com/glossary/confusion-matrix) of the model predictions on the validation data
 - Plots for the PR and F1 curves across all classes
 - Correlogram of the Class Labels
 
@@ -120,9 +120,9 @@ python train.py \
 
 By default, model predictions (images, ground truth labels and bounding boxes) will be logged to Comet.
 
-You can control the frequency of logged predictions and the associated images by passing the `bbox_interval` command line argument. Predictions can be visualized using Comet's Object Detection Custom Panel. This frequency corresponds to every Nth batch of data per epoch. In the example below, we are logging every 2nd batch of data for each epoch.
+You can control the frequency of logged predictions and the associated images by passing the `bbox_interval` command line argument. Predictions can be visualized using Comet's [Object Detection](https://www.ultralytics.com/glossary/object-detection) Custom Panel. This frequency corresponds to every Nth batch of data per [epoch](https://www.ultralytics.com/glossary/epoch). In the example below, we are logging every 2nd batch of data for each epoch.
 
-**Note:** The YOLOv5 validation dataloader will default to a batch size of 32, so you will have to set the logging frequency accordingly.
+**Note:** The YOLOv5 validation dataloader will default to a [batch size](https://www.ultralytics.com/glossary/batch-size) of 32, so you will have to set the logging frequency accordingly.
 
 Here is an [example project using the Panel](https://www.comet.com/examples/comet-example-yolov5?shareable=YcwMiJaZSXfcEXpGOHDD12vA1&utm_source=yolov5&utm_medium=partner&utm_campaign=partner_yolov5_2022&utm_content=github)
 
@@ -138,7 +138,7 @@ python train.py \
 
 ### Controlling the number of Prediction Images logged to Comet
 
-When logging predictions from YOLOv5, Comet will log the images associated with each set of predictions. By default a maximum of 100 validation images are logged. You can increase or decrease this number using the `COMET_MAX_IMAGE_UPLOADS` environment variable.
+When logging predictions from YOLOv5, Comet will log the images associated with each set of predictions. By default, a maximum of 100 validation images are logged. You can increase or decrease this number using the `COMET_MAX_IMAGE_UPLOADS` environment variable.
 
 ```shell
 env COMET_MAX_IMAGE_UPLOADS=200 python train.py \
@@ -152,7 +152,7 @@ env COMET_MAX_IMAGE_UPLOADS=200 python train.py \
 
 ### Logging Class Level Metrics
 
-Use the `COMET_LOG_PER_CLASS_METRICS` environment variable to log mAP, precision, recall, f1 for each class.
+Use the `COMET_LOG_PER_CLASS_METRICS` environment variable to log mAP, [precision](https://www.ultralytics.com/glossary/precision), [recall](https://www.ultralytics.com/glossary/recall), f1 for each class.
 
 ```shell
 env COMET_LOG_PER_CLASS_METRICS=true python train.py \
@@ -179,11 +179,11 @@ python train.py \
 --upload_dataset
 ```
 
-You can find the uploaded dataset in the Artifacts tab in your Comet Workspace <img width="1073" alt="artifact-1" src="https://user-images.githubusercontent.com/7529846/186929193-162718bf-ec7b-4eb9-8c3b-86b3763ef8ea.png">
+You can find the uploaded dataset in the Artifacts tab in your Comet Workspace <img width="1073" alt="artifact-1" src="https://github.com/ultralytics/docs/releases/download/0/artifact-1.avif">
 
-You can preview the data directly in the Comet UI. <img width="1082" alt="artifact-2" src="https://user-images.githubusercontent.com/7529846/186929215-432c36a9-c109-4eb0-944b-84c2786590d6.png">
+You can preview the data directly in the Comet UI. <img width="1082" alt="artifact-2" src="https://github.com/ultralytics/docs/releases/download/0/artifact-2.avif">
 
-Artifacts are versioned and also support adding metadata about the dataset. Comet will automatically log the metadata from your dataset `yaml` file <img width="963" alt="artifact-3" src="https://user-images.githubusercontent.com/7529846/186929256-9d44d6eb-1a19-42de-889a-bcbca3018f2e.png">
+Artifacts are versioned and also support adding metadata about the dataset. Comet will automatically log the metadata from your dataset `yaml` file <img width="963" alt="artifact-3" src="https://github.com/ultralytics/docs/releases/download/0/artifact-metadata-logging.avif">
 
 ### Using a saved Artifact
 
@@ -205,7 +205,7 @@ python train.py \
 --weights yolov5s.pt
 ```
 
-Artifacts also allow you to track the lineage of data as it flows through your Experimentation workflow. Here you can see a graph that shows you all the experiments that have used your uploaded dataset. <img width="1391" alt="artifact-4" src="https://user-images.githubusercontent.com/7529846/186929264-4c4014fa-fe51-4f3c-a5c5-f6d24649b1b4.png">
+Artifacts also allow you to track the lineage of data as it flows through your Experimentation workflow. Here you can see a graph that shows you all the experiments that have used your uploaded dataset. <img width="1391" alt="artifact-4" src="https://github.com/ultralytics/docs/releases/download/0/artifact-lineage-graph.avif">
 
 ## Resuming a Training Run
 
@@ -253,4 +253,4 @@ comet optimizer -j <set number of workers> utils/loggers/comet/hpo.py \
 
 Comet provides a number of ways to visualize the results of your sweep. Take a look at a [project with a completed sweep here](https://www.comet.com/examples/comet-example-yolov5/view/PrlArHGuuhDTKC1UuBmTtOSXD/panels?utm_source=yolov5&utm_medium=partner&utm_campaign=partner_yolov5_2022&utm_content=github)
 
-<img width="1626" alt="hyperparameter-yolo" src="https://user-images.githubusercontent.com/7529846/186914869-7dc1de14-583f-4323-967b-c9a66a29e495.png">
+<img width="1626" alt="hyperparameter-yolo" src="https://github.com/ultralytics/docs/releases/download/0/hyperparameter-yolo.avif">

@@ -1125,7 +1125,7 @@ class TorchVision(nn.Module):
         model (str): Name of the torchvision model to load.
         weights (str, optional): Pre-trained weights to load. Default is "DEFAULT".
         unwrap (bool, optional): If True, unwraps the model to a sequential containing all but the last `truncate` layers. Default is True.
-        truncate (int, optional): Number of layers to keep if positive or to truncate from the end if negative if `unwrap` is True. Default is 0.
+        truncate (int, optional): Number of layers to truncate from the end if `unwrap` is True. Default is 0.
         split (bool, optional): Returns output from intermediate child modules as list. Default is False.
     """
 
@@ -1139,7 +1139,7 @@ class TorchVision(nn.Module):
         else:
             self.m = torchvision.models.__dict__[model](pretrained=bool(weights))
         if unwrap:
-            self.m = nn.Sequential(*list(self.m.children())[:truncate])
+            self.m = nn.Sequential(*list(self.m.children())[:-truncate])
             self.split = split
         else:
             self.split = False

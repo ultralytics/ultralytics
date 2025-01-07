@@ -532,9 +532,12 @@ class Annotator:
 
     def show(self, title=None):
         """Show the annotated image."""
+        from IPython.display import display, clear_output
         im = Image.fromarray(np.asarray(self.im)[..., ::-1])  # Convert numpy array to PIL Image with RGB to BGR
         if IS_COLAB or IS_KAGGLE:  # can not use IS_JUPYTER as will run for all ipython environments
             try:
+                clear_output(wait=True)  # Clear previous frame
+                display(display_frame)  # Display current frame
                 display(im)  # noqa - display() function only available in ipython environments
             except ImportError as e:
                 LOGGER.warning(f"Unable to display image in Jupyter notebooks: {e}")

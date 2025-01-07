@@ -362,6 +362,7 @@ class BasePredictor:
             im = self.plotted_img
             from IPython.display import clear_output, display
             from PIL import Image
+
             colab_im = Image.fromarray(cv2.cvtColor(im, cv2.COLOR_BGR2RGB))
             clear_output(wait=True)  # Clear previous frame
             display(colab_im)  # noqa - display() function only available in ipython environments

@@ -1134,7 +1134,10 @@ class TorchVision(nn.Module):
         import torchvision
 
         super().__init__()
-        self.m = torchvision.models.get_model(model, weights=weights)
+        if hasattr(torchvision.models, "get_model"):
+            self.m = torchvision.models.get_model(model, weights=weights)
+        else:
+            self.m = torchvision.models.__dict__[model](pretrained=bool(weights))
         if unwrap:
             self.m = nn.Sequential(*list(self.m.children())[:truncate])
             self.split = split

@@ -358,6 +358,15 @@ class BasePredictor:
         if self.args.save:
             self.save_predicted_images(str(self.save_dir / p.name), frame)
 
+        im = self.plotted_img
+
+        if IS_COLAB or IS_KAGGLE:
+            from IPython.display import clear_output, display
+            from PIL import Image
+            im = Image.fromarray(im[..., ::-1])
+            clear_output(wait=True)  # Clear previous frame
+            display(im)  # noqa - display() function only available in ipython environments
+
         return string
 
     def save_predicted_images(self, save_path="", frame=0):
@@ -390,7 +399,6 @@ class BasePredictor:
 
     def show(self, p=""):
         """Display an image in a window using the OpenCV imshow function."""
-        im = self.plotted_img
         if platform.system() == "Linux" and p not in self.windows:
             self.windows.append(p)
             cv2.namedWindow(p, cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)  # allow window resize (Linux)

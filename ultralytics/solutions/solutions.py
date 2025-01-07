@@ -663,6 +663,7 @@ class SolutionResults:
         __init__: Initializes the attributes with default or provided values.
         summary: Returns the summary of Ultralytics Solutions: https://docs.ultralytics.com/solutions/
     """
+
     def __init__(
         self,
         in_count=0,

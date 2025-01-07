@@ -355,7 +355,7 @@ class BasePredictor:
             result.save_crop(save_dir=self.save_dir / "crops", file_name=self.txt_path.stem)
         if self.args.show:
             if IS_COLAB or IS_KAGGLE:
-                self.results.show()
+                self.results[0].show()
             else:
                 self.show(str(p))
         if self.args.save:

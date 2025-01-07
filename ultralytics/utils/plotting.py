@@ -531,15 +531,49 @@ class Annotator:
         return np.asarray(self.im)
 
     def show(self, title=None):
-        """Show the annotated image."""
-        im = Image.fromarray(np.asarray(self.im)[..., ::-1])  # Convert numpy array to PIL Image with RGB to BGR
-        if IS_COLAB or IS_KAGGLE:  # can not use IS_JUPYTER as will run for all ipython environments
+        """Show the annotated image or video."""
+        from base64 import b64encode
+        from IPython.display import HTML, display
+        import os
+
+        if IS_COLAB or IS_KAGGLE:  # Only for Colab or Kaggle environments
             try:
-                display(im)  # noqa - display() function only available in ipython environments
+                # Check if it's an image file
+                if isinstance(self.im, np.ndarray):  # For image arrays
+                    im = Image.fromarray(np.asarray(self.im)[..., ::-1])  # Convert numpy array to PIL Image
+                    display(im)  # Display image in Colab or Kaggle
+                elif isinstance(self.im, str) and os.path.isfile(self.im):
+                    # Handle video files
+                    if self.im.lower().endswith((".mp4", ".avi", ".mov", ".mkv", ".webm")):
+                        with open(self.im, "rb") as video_file:
+                            video_base64 = b64encode(video_file.read()).decode()
+                        video_tag = f"""<video width="640" height="480" controls>
+                        <source src="data:video/mp4;base64,{video_base64}" type="video/mp4"></video>"""
+                        display(HTML(video_tag))  # Display video in Colab or Kaggle
+                    # Handle image files
+                    elif self.im.lower().endswith((".png", ".jpg", ".jpeg", ".bmp", ".gif")):
+                        img = Image.open(self.im)
+                        display(img)
+                    else:
+                        LOGGER.error("❌ Unsupported file format. Please provide a valid image or video file.")
+                else:
+                    LOGGER.error("❌ No valid image or video file found for display.")
             except ImportError as e:
-                LOGGER.warning(f"Unable to display image in Jupyter notebooks: {e}")
-        else:
-            im.show(title=title)
+                LOGGER.warning(f"Unable to display media in Jupyter notebooks: {e}")
+        else:  # Fallback for local environments
+            if isinstance(self.im, np.ndarray):  # Handle image arrays
+                im = Image.fromarray(np.asarray(self.im)[..., ::-1])  # Convert numpy array to PIL Image
+                im.show(title=title)
+            elif isinstance(self.im, str) and os.path.isfile(self.im):  # Handle video files locally
+                if self.im.lower().endswith((".mp4", ".avi", ".mov", ".mkv", ".webm")):
+                    os.system(f'xdg-open "{self.im}"')  # Adjust for your OS; replace with the appropriate command
+                elif self.im.lower().endswith((".png", ".jpg", ".jpeg", ".bmp", ".gif")):
+                    img = Image.open(self.im)
+                    img.show(title=title)
+                else:
+                    LOGGER.error("❌ Unsupported file format. Please provide a valid image or video file.")
+            else:
+                LOGGER.error("❌ No valid media found for display.")
 
     def save(self, filename="image.jpg"):
         """Save the annotated image to 'filename'."""

@@ -50,6 +50,7 @@ from ultralytics.nn.modules import (
     HGBlock,
     HGStem,
     ImagePoolingAttn,
+    Index,
     Pose,
     RepC3,
     RepConv,
@@ -60,7 +61,6 @@ from ultralytics.nn.modules import (
     SCDown,
     Segment,
     TorchVision,
-    Index,
     WorldDetect,
     v10Detect,
 )

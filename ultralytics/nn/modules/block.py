@@ -1132,6 +1132,7 @@ class TorchVision(nn.Module):
     def __init__(self, c1, c2, model, weights="DEFAULT", unwrap=True, truncate=0, split=False):
         """Load the model and weights from torchvision."""
         import torchvision
+
         super().__init__()
         self.m = torchvision.models.get_model(model, weights=weights)
         if unwrap:

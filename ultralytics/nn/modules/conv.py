@@ -342,5 +342,9 @@ class Index(nn.Module):
         self.index = index
 
     def forward(self, x):
-        """Forward pass. Expects a list of tensors as input."""
+        """
+        Forward pass.
+
+        Expects a list of tensors as input.
+        """
         return x[self.index]

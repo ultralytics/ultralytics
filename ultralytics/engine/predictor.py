@@ -394,6 +394,7 @@ class BasePredictor:
         if IS_COLAB or IS_KAGGLE:
             from IPython.display import clear_output, display
             from PIL import Image
+
             im = Image.fromarray(im[..., ::-1])
             clear_output(wait=True)  # Clear previous frame
             display(im)  # noqa - display() function only available in ipython environments

@@ -14,7 +14,7 @@ scales: # model compound scaling constants, i.e. 'model=yolo11n-cls.yaml' will c
 # YOLO11n backbone
 backbone:
   # [from, repeats, module, args]
-  - [-1, 1, TorchVision, [768, "swin_t", "DEFAULT", True, -2]] # truncate two layers from the end
+  - [-1, 1, TorchVision, [512, "resnet18", "DEFAULT", True, -2]]  # truncate two layers from the end
 
 # YOLO11n head
 head:

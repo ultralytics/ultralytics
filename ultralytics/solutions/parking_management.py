@@ -243,6 +243,8 @@ class ParkingManagement(BaseSolution):
         annotator.display_analytics(im0, self.pr_info, (104, 31, 17), (255, 255, 255), 10)
 
         self.display_output(im0)  # display output with base class function
-        return SolutionResults(filled_slots=self.pr_info["Occupancy"],
-                               available_slots=self.pr_info["Available"],
-                               total_tracks=len(self.track_ids)).summary()
+        return SolutionResults(
+            filled_slots=self.pr_info["Occupancy"],
+            available_slots=self.pr_info["Available"],
+            total_tracks=len(self.track_ids),
+        ).summary()

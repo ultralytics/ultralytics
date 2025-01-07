@@ -1,6 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator
+from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
 from ultralytics.utils import LOGGER
 from ultralytics.utils.plotting import colors
 
@@ -113,4 +113,4 @@ class RegionCounter(BaseSolution):
             region["counts"] = 0  # Reset count for next frame
 
         self.display_output(im0)
-        return im0
+        return SolutionResults(total_tracks=len(self.track_ids)).summary()

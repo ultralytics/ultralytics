@@ -4,7 +4,7 @@ from time import time
 
 import numpy as np
 
-from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator
+from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
 from ultralytics.utils.plotting import colors
 
 
@@ -107,4 +107,5 @@ class SpeedEstimator(BaseSolution):
 
         self.display_output(im0)  # display output with base class function
 
+        SolutionResults(total_tracks=len(self.track_ids), )
         return im0  # return output image for more usage

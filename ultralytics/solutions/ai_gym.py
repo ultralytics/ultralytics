@@ -107,4 +107,5 @@ class AIGym(BaseSolution):
                 )
 
         self.display_output(im0)  # Display output image, if environment support display
-        return SolutionResults(workout_count=self.count, workout_stage=self.stage, workout_angle=self.angle)
+        return SolutionResults(workout_count=self.count, workout_stage=self.stage,
+                               workout_angle=self.angle, total_tracks=len(track_ids)).summary()

@@ -201,4 +201,6 @@ class ObjectCounter(BaseSolution):
         self.display_output(im0)  # display output with base class function
 
         # return output image for more usage
-        return SolutionResults(in_count=self.in_count, out_count=self.out_count, classwise_count=self.classwise_counts)
+        return SolutionResults(in_count=self.in_count, out_count=self.out_count,
+                               classwise_count=self.classwise_counts,
+                               total_tracks=len(self.track_ids)).summary()

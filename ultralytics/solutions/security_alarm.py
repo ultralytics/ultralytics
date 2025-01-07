@@ -1,6 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator
+from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
 from ultralytics.utils import LOGGER
 from ultralytics.utils.plotting import colors
 
@@ -141,4 +141,4 @@ class SecurityAlarm(BaseSolution):
 
         self.display_output(im0)  # display output with base class function
 
-        return im0  # return output image for more usage
+        return SolutionResults(total_tracks=len(self.track_ids), email_sent=self.email_sent).summary()

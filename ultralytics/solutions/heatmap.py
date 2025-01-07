@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 
 from ultralytics.solutions.object_counter import ObjectCounter
-from ultralytics.solutions.solutions import SolutionAnnotator
+from ultralytics.solutions.solutions import SolutionAnnotator, SolutionResults
 
 
 class Heatmap(ObjectCounter):
@@ -124,4 +124,6 @@ class Heatmap(ObjectCounter):
             )
 
         self.display_output(im0)  # display output with base class function
-        return im0  # return output image for more usage
+        return SolutionResults(in_count=self.in_count, out_count=self.out_count,
+                               classwise_count=self.classwise_counts,
+                               total_tracks=len(self.track_ids)).summary()

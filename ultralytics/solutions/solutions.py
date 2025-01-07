@@ -681,19 +681,25 @@ class SolutionResults:
         ...     workout_angle=90.0,
         ...     workout_stage="down",
         ... )
-        >>> print(results.in_count)  # Output: 5
+        >>> print(results.summary())
     """
 
-    def __init__(
-        self,
-        in_count=None,
-        out_count=None,
-        classwise_count=None,
-        queue_count=None,
-        workout_count=None,
-        workout_angle=None,
-        workout_stage=None,
-    ):
+    def __init__(self,
+                 in_count=0,
+                 out_count=0,
+                 classwise_count=None,
+                 queue_count=0,
+                 workout_count=0,
+                 workout_angle=0,
+                 workout_stage=None,
+                 pixels_distance=0,
+                 available_slots=0,
+                 filled_slots=0,
+                 email_sent=False,
+                 total_tracks=0,
+                 region_counts=0,
+                 speed_dict=None,
+                 ):
         self.in_count = in_count
         self.out_count = out_count
         self.classwise_count = classwise_count
@@ -701,3 +707,27 @@ class SolutionResults:
         self.workout_count = workout_count
         self.workout_angle = workout_angle
         self.workout_stage = workout_stage
+        self.pixels_distance = pixels_distance
+        self.filled_slots = filled_slots
+        self.available_slots = available_slots
+        self.email_sent = email_sent
+        self.total_tracks = total_tracks
+        self.region_counts = region_counts
+        self.speed_dict = speed_dict
+
+    def summary(self,):
+        return {"in_count": self.in_count,
+                "out_count": self.out_count,
+                "classwise_count": self.classwise_count,
+                "queue_count": self.queue_count,
+                "workout_count": self.workout_count,
+                "workout_angle": self.workout_angle,
+                "workout_stage": self.workout_stage,
+                "pixels_distance": self.pixels_distance,
+                "available_slots": self.available_slots,
+                "filled_slots": self.filled_slots,
+                "total_tracks": self.total_tracks,
+                "email_sent": self.email_sent,
+                "region_counts": self.region_counts,
+                "speed_dict": self.speed_dict,
+                }

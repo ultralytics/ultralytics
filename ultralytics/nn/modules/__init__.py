@@ -69,6 +69,7 @@ from .conv import (
     DWConvTranspose2d,
     Focus,
     GhostConv,
+    Index,
     LightConv,
     RepConv,
     SpatialAttention,
@@ -158,4 +159,5 @@ __all__ = (
     "Attention",
     "PSA",
     "TorchVision",
+    "Index",
 )

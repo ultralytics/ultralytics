@@ -28,75 +28,170 @@ This guide serves as a comprehensive introduction to setting up a Docker environ
 ## Prerequisites
 
 - Make sure Docker is installed on your system. If not, you can download and install it from [Docker's website](https://www.docker.com/products/docker-desktop/).
-- (Optional) If you have an NVIDIA GPU, you need to install the NVIDIA Docker Runtime to use Docker with your GPU (instructions below).
+- (Optional) If you have an NVIDIA GPU, you need to install the NVIDIA Container Toolkit to use Docker with your GPU (instructions below).
 
 ---
 
-## Setting up Docker with NVIDIA Support
+## Setting up Docker with NVIDIA Container Toolkit
 
-This section covers the steps to set up Docker with NVIDIA support, enabling GPU acceleration for your Docker containers. If you don't have an NVIDIA GPU, you can skip this section.
+!!! tip "Skip if you don't have an NVIDIA GPU"
 
-First, verify that the NVIDIA drivers are properly installed by running:
+    If your system does not have an NVIDIA GPU, you can skip this section.
+
+This guide will walk you through the process of configuring Docker to leverage NVIDIA GPUs using the NVIDIA Container Toolkit. This setup is essential for running GPU-accelerated applications inside Docker containers.
+
+Before proceeding, ensure that your system meets the following prerequisites:
+
+1. **NVIDIA GPU**: Make sure you have a compatible NVIDIA GPU installed on your system.
+2. **NVIDIA Drivers**: Install the appropriate NVIDIA drivers for your GPU. You can verify the installation by executing the following command:
+
+    ```sh
+    nvidia-smi
+    ```
+   This command should display details about your NVIDIA GPU, such as its model, driver version, and current usage statistics. If it doesn't, check your driver installation.
+
+### Installing NVIDIA Container Toolkit
+
+The NVIDIA Container Toolkit provides Docker container support for NVIDIA GPUs, enabling GPU-accelerated applications to run seamlessly inside containers. Below are the steps to install and configure the toolkit.
+
+#### Step 1: Set up the NVIDIA Container Toolkit repository
+
+First, you'll need to add the NVIDIA Container Toolkit repository to your package manager's sources. This ensures you have access to the latest toolkit packages directly from NVIDIA. Execute the following command:
 
 ```bash
-nvidia-smi
+curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg \
+  && curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list | \
+    sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \
+    sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
 ```
 
-### Installing NVIDIA Docker Runtime
+This command does the following:
+- Downloads the GPG key for the repository and stores it securely.
+- Adds the NVIDIA Container Toolkit repository to your system's package sources list.
 
-Now, let's install the NVIDIA Docker runtime to enable GPU support in Docker containers:
+#### Step 2: Update the package list and install the NVIDIA Container Toolkit
+
+Next, update your package list to include the newly added repository and install the NVIDIA Container Toolkit:
 
 ```bash
-# Add NVIDIA package repositories
-curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | sudo apt-key add -
-distribution=$(lsb_release -cs)
-curl -s -L https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list | sudo tee /etc/apt/sources.list.d/nvidia-docker.list
+sudo apt-get update && sudo apt-get install -y nvidia-container-toolkit
+```
 
-# Install NVIDIA Docker runtime
-sudo apt-get update
-sudo apt-get install -y nvidia-docker2
+This command performs the following actions:
+- `sudo apt-get update`: Refreshes your package manager's list of available packages, including those from the NVIDIA repository.
+- `sudo apt-get install -y nvidia-container-toolkit`: Installs the NVIDIA Container Toolkit on your system.
 
-# Restart Docker service to apply changes
+#### Step 3: Restart the Docker daemon
+
+For the changes to take effect, you need to restart the Docker daemon. This ensures that Docker recognizes and utilizes the NVIDIA runtime:
+
+```bash
 sudo systemctl restart docker
 ```
 
-### Verify NVIDIA Runtime with Docker
+Restarting Docker allows it to reload its configuration and apply any updates related to the NVIDIA runtime.
 
-Run `docker info | grep -i runtime` to ensure that `nvidia` appears in the list of runtimes:
+#### Step 4: Verify the NVIDIA runtime is installed
+
+Finally, verify that the NVIDIA runtime is installed and functioning correctly by running a test Docker container that uses the GPU:
 
 ```bash
-docker info | grep -i runtime
+docker run --rm --gpus all ubuntu nvidia-smi
 ```
+
+This command starts a temporary Ubuntu container and runs the `nvidia-smi` command within it. If everything is set up correctly, you should see output similar to the following, indicating that the container can access the NVIDIA GPU:
+
+```console
++-----------------------------------------------------------------------------------------+
+| NVIDIA-SMI 555.58.02              Driver Version: 555.58.02      CUDA Version: 12.5     |
+|-----------------------------------------+------------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
+|                                         |                        |               MIG M. |
+|=========================================+========================+======================|
+|   0  NVIDIA GeForce RTX 3060        Off |   00000000:01:00.0  On |                  N/A |
+|  0%   40C    P5             19W /  170W |     785MiB /  12288MiB |     17%      Default |
+|                                         |                        |                  N/A |
++-----------------------------------------+------------------------+----------------------+
++-----------------------------------------------------------------------------------------+
+| Processes:                                                                              |
+|  GPU   GI   CI        PID   Type   Process name                              GPU Memory |
+|        ID   ID                                                               Usage      |
+|=========================================================================================|
++-----------------------------------------------------------------------------------------+
+```
+
+This output confirms that Docker can successfully use the GPU, enabling you to run GPU-accelerated applications in your containers. If you encounter any issues, double-check the installation steps and ensure that your NVIDIA drivers are correctly installed.
 
 ---
 
 ## Official Ultralytics Docker Images
 
-| tags                                              | dockerfile                    | GPU support  | architecture  |
-| -------                                           | ----------                    | ------------ | ------------  |
-| ultralytics/ultralytics:latest                    | docker/Dockerfile             |   ✅         | linux/amd64   |
-| ultralytics/ultralytics:latest-jupyter            | docker/Dockerfile-jupyter     |   ✅         | linux/amd64   |
-| ultralytics/ultralytics:latest-cpu                | docker/Dockerfile-cpu         |   ❌         | linux/amd64    |
-| ultralytics/ultralytics:latest-arm64              | docker/Dockerfile-arm64       |   ❌         | linux/arm64   |
-| ultralytics/ultralytics:latest-jetson-jetpack4    | docker/Dockerfile-cpu         |   ❌         | linux/arm64    |
-| ultralytics/ultralytics:latest-jetson-jetpack5    | docker/Dockerfile-cpu         |   ❌         | linux/arm64   |
-| ultralytics/ultralytics:latest-jetson-jetpack6    | docker/Dockerfile-cpu         |   ❌         | linux/arm64   |
-| ultralytics/ultralytics:latest-python             | docker/Dockerfile-python      |   ❌         | linux/amd64   |
-| ultralytics/ultralytics:latest-conda              | docker/Dockerfile-conda       |   ❌         | linux/amd64   |
-
-
 Ultralytics is a Docker Verified Publisher, providing a range of convenient, ready-to-use images directly available on Docker Hub. These images streamline your workflow, allowing you to test Ultralytics YOLO securely and efficiently without the hassle of installing dependencies. The official Ultralytics Docker images are optimized for various platforms and use-cases, including GPU, CPU, ARM64, and NVIDIA Jetson devices.
 
+Below is a list of the available images:
+
+| tags                                              | Dockerfile                    | GPU support  | Architecture  |
+| -------                                           | ----------                    | ------------ | ------------  |
+| ultralytics/ultralytics:latest                    | docker/Dockerfile             |   ✅         | amd64         |
+| ultralytics/ultralytics:latest-jupyter            | docker/Dockerfile-jupyter     |   ✅         | amd64         |
+| ultralytics/ultralytics:latest-cpu                | docker/Dockerfile-cpu         |   ❌         | amd64         |
+| ultralytics/ultralytics:latest-arm64              | docker/Dockerfile-arm64       |   ❌         | arm64         |
+| ultralytics/ultralytics:latest-jetson-jetpack4    | docker/Dockerfile-cpu         |   ❌         | arm64         |
+| ultralytics/ultralytics:latest-jetson-jetpack5    | docker/Dockerfile-cpu         |   ❌         | arm64         |
+| ultralytics/ultralytics:latest-jetson-jetpack6    | docker/Dockerfile-cpu         |   ❌         | arm64         |
+| ultralytics/ultralytics:latest-python             | docker/Dockerfile-python      |   ❌         | amd64         |
+| ultralytics/ultralytics:latest-conda              | docker/Dockerfile-conda       |   ✅         | amd64         |
+
+The naming convention for the images is `ultralytics/ultralytics:<version>-<tag>`, where `<version>` is the image version and `<tag>` is the image tag. latest is the default tag, which pulls the latest image version. For example, ultralytics/ultralytics:latest-jupyter refers to the latest Jupyter image. You can also specify a specific version or tag to pull a particular image version from Docker Hub, example, the image version 8.3.58 with the tag jupyter would be ultralytics/ultralytics:8.3.58-jupyter. Images are pushed to docker hub automatically with the latest tag when a new release is made, and the latest tag is updated to the latest release.
+
+In order to pull and run the ultralytics/ultralytics:latest image, run the following command:
+
+!!! note ""
+
+    === "CPU"
+
+        ```bash
+        docker run -it --ipc=host --gpus all ultralytics/ultralytics:latest bash
+        ```
+
+    === "NVIDIA GPU"
+
+        ```bash
+        docker run -it --ipc=host ultralytics/ultralytics:latest bash
+        ```
+
+This command starts a Docker container with the Ultralytics image, enabling you to run YOLO models with GPU support. The `--ipc=host` flag allows the container to share the host's IPC namespace, essential for sharing memory between processes. The `--gpus all` flag grants the container access to all available GPUs on the host. Finally, the `bash` command starts an interactive shell within the container, allowing you to execute commands and interact with the Ultralytics environment.
 
 
+=== "`:latest`"
 
+    This is the default image for training and inference with YOLO models. It includes all necessary dependencies and libraries pre-installed. This image is optimized for GPU usage and supports NVIDIA GPUs. The image is suitable for training and inference with YOLO models on GPU-accelerated hardware.
 
+=== "`:latest-arm64`"
 
-<!-- 1. **[ultralytics/ultralytics](https://hub.docker.com/r/ultralytics/ultralytics):** The official Ultralytics Docker image, optimized for various platforms and use-cases. This image is ideal for training and inference with YOLO models. It includes all necessary dependencies and libraries pre-installed. To pull the latest image, run:
+    For ARM64 architecture, suitable for devices like [Raspberry Pi](raspberry-pi.md). This image is optimized for ARM64 devices and provides a lightweight environment for running YOLO models on ARM64 hardware.
 
-    ```bash
-    sudo docker pull ultralytics/ultralytics:latest
-    ``` -->
+=== "`:latest-cpu`"
+
+    CPU-only version for inference and non-GPU environments. This image is optimized for CPU usage and provides a lightweight environment for running YOLO models on CPU-only hardware.
+
+=== "`:latest-jetson-jetpack*`"
+
+    Optimized for NVIDIA Jetson devices. These images are designed for NVIDIA Jetson devices and provide a lightweight environment for running YOLO models on Jetson hardware.
+
+=== "`:latest-python`"
+
+    Minimal Python environment for lightweight applications. This image is optimized for lightweight applications and provides a minimal Python environment for running YOLO models.
+
+=== "`:latest-conda`"
+
+    Includes [Miniconda3](https://docs.conda.io/projects/miniconda/en/latest/) and Ultralytics package installed via Conda. This image is useful for managing Python environments and dependencies using Conda.
+
+=== "`:latest-jupyter`"
+
+    Jupyter notebook environment for interactive development. Very useful for experimenting with YOLO models. This image is optimized for interactive development and provides a Jupyter notebook environment for running YOLO models interactively.
+
 
 ## Installing Ultralytics Docker Images
 

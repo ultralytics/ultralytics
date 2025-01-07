@@ -3,8 +3,8 @@
 import cv2
 import numpy as np
 
-from ultralytics.solutions.solutions import BaseSolution
-from ultralytics.utils.plotting import Annotator, colors
+from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
+from ultralytics.utils.plotting import colors
 
 
 class TrackZone(BaseSolution):
@@ -52,7 +52,7 @@ class TrackZone(BaseSolution):
             >>> frame = cv2.imread("path/to/image.jpg")
             >>> tracker.trackzone(frame)
         """
-        self.annotator = Annotator(im0, line_width=self.line_width)  # Initialize annotator
+        self.annotator = SolutionAnnotator(im0, line_width=self.line_width)  # Initialize annotator
         # Create a mask for the region and extract tracks from the masked image
         masked_frame = cv2.bitwise_and(im0, im0, mask=cv2.fillPoly(np.zeros_like(im0[:, :, 0]), [self.region], 255))
         self.extract_tracks(masked_frame)
@@ -65,4 +65,4 @@ class TrackZone(BaseSolution):
 
         self.display_output(im0)  # display output with base class function
 
-        return im0  # return output image for more usage
+        return SolutionResults(total_tracks=len(self.tracks))

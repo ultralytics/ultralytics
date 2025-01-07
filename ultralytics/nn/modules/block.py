@@ -1146,6 +1146,7 @@ class TorchVision(nn.Module):
             self.split = split
         else:
             self.split = False
+            self.m.head = self.m.heads = nn.Identity()
 
     def forward(self, x):
         """Forward pass through the model."""

@@ -393,6 +393,7 @@ class BasePredictor:
         im = self.plotted_img
         if IS_COLAB or IS_KAGGLE:
             from IPython.display import clear_output, display
+
             im = Image.fromarray(self.im[..., ::-1])
             clear_output(wait=True)  # Clear previous frame
             display(im)  # noqa - display() function only available in ipython environments

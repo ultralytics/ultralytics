@@ -550,6 +550,7 @@ def check_imshow(warn=False):
     """Check if environment supports image displays."""
     try:
         if LINUX:
+            assert not IS_COLAB and not IS_KAGGLE
             assert "DISPLAY" in os.environ, "The DISPLAY environment variable isn't set."
         cv2.imshow("test", np.zeros((8, 8, 3), dtype=np.uint8))  # show a small 8-pixel image
         cv2.waitKey(1)
@@ -557,7 +558,9 @@ def check_imshow(warn=False):
         cv2.waitKey(1)
         return True
     except Exception as e:
-        if warn:
+        if warn and IS_COLAB:
+            return True
+        else:
             LOGGER.warning(f"WARNING ⚠️ Environment does not support cv2.imshow() or PIL Image.show()\n{e}")
         return False
 

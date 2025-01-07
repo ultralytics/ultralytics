@@ -49,6 +49,7 @@ __all__ = (
     "Attention",
     "PSA",
     "SCDown",
+    "TorchVision",
 )
 
 
@@ -1107,3 +1108,34 @@ class SCDown(nn.Module):
     def forward(self, x):
         """Applies convolution and downsampling to the input tensor in the SCDown module."""
         return self.cv2(self.cv1(x))
+
+
+class TorchVision(nn.Module):
+    """
+    TorchVision module to allow loading any torchvision model.
+
+    This class provides a way to load a model from the torchvision library, optionally load pre-trained weights, and customize the model by truncating or unwrapping layers.
+
+    Attributes:
+        m (nn.Module): The loaded torchvision model, possibly truncated and unwrapped.
+
+    Args:
+        c1 (int): Input channels.
+        c2 (): Output channels.
+        model (str): Name of the torchvision model to load.
+        weights (str, optional): Pre-trained weights to load. Default is "DEFAULT".
+        unwrap (bool, optional): If True, unwraps the model to a sequential containing all but the last `truncate` layers. Default is True.
+        truncate (int, optional): Number of layers to keep if positive or to truncate from the end if negative if `unwrap` is True. Default is 0.
+        """
+
+    def __init__(self, c1, c2, model, weights="DEFAULT", unwrap=True, truncate=0):
+        """Load the model and weights from torchvision."""
+        import torchvision
+        super().__init__()
+        self.m = torchvision.models.get_model(model, weights=weights)
+        if unwrap:
+            self.m = nn.Sequential(*list(self.m.children())[:truncate])
+
+    def forward(self, x):
+        "Forward pass through the model."
+        return self.m(x)

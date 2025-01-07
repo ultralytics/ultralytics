@@ -13,7 +13,7 @@ Welcome to the Ultralytics documentation on how to use YOLO11 with [SAHI](https:
 </p>
 
 <div>
-    <a href="https://github.com/ultralytics/notebooks/blob/main/notebooks/how-to-use-ultralytics-yolo-with-sahi.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open Workouts Monitoring In Colab"></a>
+    <a href="https://github.com/ultralytics/notebooks/blob/main/notebooks/how-to-use-ultralytics-yolo-with-sahi.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open SAHI for Sliced Inference In Colab"></a>
 </div>
 
 ## Introduction to SAHI

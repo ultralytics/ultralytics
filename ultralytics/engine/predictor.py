@@ -394,8 +394,10 @@ class BasePredictor:
         if IS_COLAB or IS_KAGGLE:
             try:
                 import os
-                from PIL import Image
+
                 import matplotlib.pyplot as plt
+                from PIL import Image
+
                 # Convert NumPy array (BGR) to PIL Image (RGB)
                 im = Image.fromarray(im[..., ::-1])
 
@@ -406,7 +408,7 @@ class BasePredictor:
                 # Display the saved image inline using Matplotlib
                 img = plt.imread(save_path)
                 plt.imshow(img)
-                plt.axis('off')  # Hide axes for better visualization
+                plt.axis("off")  # Hide axes for better visualization
                 plt.show()
 
                 # Optionally remove the file if cleanup is desired

@@ -395,7 +395,7 @@ class BasePredictor:
             from google.colab.patches import cv2_imshow
 
             try:
-                cv2_imshow(im[..., ::-1])
+                cv2_imshow(np.asarray(im[..., ::-1]))
             except Exception as e:
                 print(f"Error displaying image: {e}")
         else:

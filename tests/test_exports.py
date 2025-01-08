@@ -122,7 +122,7 @@ def test_export_coreml_matrix(task, dynamic, int8, half, batch):
 @pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_10, reason="TFLite export requires Python>=3.10")
 @pytest.mark.skipif(not LINUX, reason="Test disabled as TF suffers from install conflicts on Windows and macOS")
 @pytest.mark.parametrize(
-    "task, dynamic, int8, half, batch",
+    "task, dynamic, int8, half, batch, nms",
     [  # generate all combinations but exclude those where both int8 and half are True
         (task, dynamic, int8, half, batch, nms)
         for task, dynamic, int8, half, batch, nms in product(

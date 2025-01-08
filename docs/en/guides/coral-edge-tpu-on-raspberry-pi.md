@@ -50,7 +50,7 @@ First, we need to install the Edge TPU runtime. There are many different version
 The high frequency version runs the Edge TPU at a higher clock speed, which improves performance. However, it might result in the Edge TPU thermal throttling, so it is recommended to have some sort of cooling mechanism in place.
 
 | Raspberry Pi OS | High frequency mode | Version to download                        |
-|-----------------|:-------------------:|--------------------------------------------|
+| --------------- | :-----------------: | ------------------------------------------ |
 | Bullseye 32bit  |         No          | `libedgetpu1-std_ ... .bullseye_armhf.deb` |
 | Bullseye 64bit  |         No          | `libedgetpu1-std_ ... .bullseye_arm64.deb` |
 | Bullseye 32bit  |         Yes         | `libedgetpu1-max_ ... .bullseye_armhf.deb` |

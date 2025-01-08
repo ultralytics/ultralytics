@@ -392,10 +392,10 @@ class BasePredictor:
         """Display an image in a window using the OpenCV imshow function."""
         im = self.plotted_img
         if IS_COLAB or IS_KAGGLE:
+            cv2.imwrite("temp.png", im)
             from google.colab.patches import cv2_imshow
-
             try:
-                cv2_imshow(np.asarray(im[..., ::-1]))
+                cv2_imshow("temp.png")
             except Exception as e:
                 print(f"Error displaying image: {e}")
         else:

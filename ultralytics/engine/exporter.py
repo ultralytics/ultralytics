@@ -1433,9 +1433,9 @@ class Exporter:
         model = ct.models.MLModel(pipeline.spec, weights_dir=weights_dir)
         model.input_description["image"] = "Input image"
         model.input_description["iouThreshold"] = f"(optional) IoU threshold override (default: {nms.iouThreshold})"
-        model.input_description[
-            "confidenceThreshold"
-        ] = f"(optional) Confidence threshold override (default: {nms.confidenceThreshold})"
+        model.input_description["confidenceThreshold"] = (
+            f"(optional) Confidence threshold override (default: {nms.confidenceThreshold})"
+        )
         model.output_description["confidence"] = 'Boxes × Class confidence (see user-defined metadata "classes")'
         model.output_description["coordinates"] = "Boxes × [x, y, width, height] (relative to image size)"
         LOGGER.info(f"{prefix} pipeline success")
@@ -1500,8 +1500,9 @@ class NMSModel(torch.nn.Module):
         Returns:
             out (torch.tensor): The post-processed results with shape (N, max_det, 4 + 2 + extra_shape).
         """
-        from torchvision.ops import nms
         from functools import partial
+
+        from torchvision.ops import nms
 
         preds = self.model(x)
         pred = preds[0] if isinstance(preds, tuple) else preds
@@ -1536,7 +1537,11 @@ class NMSModel(torch.nn.Module):
             if self.args.format == "tflite":  # TFLite is already normalized
                 nmsbox *= multiplier
             else:
-                nmsbox = multiplier * nmsbox / torch.tensor([x.shape[2], x.shape[3]], device=box.device, dtype=box.dtype).max()
+                nmsbox = (
+                    multiplier
+                    * nmsbox
+                    / torch.tensor([x.shape[2], x.shape[3]], device=box.device, dtype=box.dtype).max()
+                )
             if not self.args.agnostic_nms:  # class-specific NMS
                 end = 2 if self.obb else 4
                 # fully explicit expansion otherwise reshape error

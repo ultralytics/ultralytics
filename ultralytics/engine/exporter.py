@@ -95,7 +95,7 @@ from ultralytics.utils import (
 from ultralytics.utils.checks import check_imgsz, check_is_path_safe, check_requirements, check_version
 from ultralytics.utils.downloads import attempt_download_asset, get_github_assets, safe_download
 from ultralytics.utils.files import file_size, spaces_in_path
-from ultralytics.utils.ops import Profile, batch_probiou
+from ultralytics.utils.ops import Profile, batch_probiou, nms_rotated
 from ultralytics.utils.torch_utils import TORCH_1_13, get_latest_opset, select_device
 
 
@@ -1434,9 +1434,9 @@ class Exporter:
         model = ct.models.MLModel(pipeline.spec, weights_dir=weights_dir)
         model.input_description["image"] = "Input image"
         model.input_description["iouThreshold"] = f"(optional) IoU threshold override (default: {nms.iouThreshold})"
-        model.input_description["confidenceThreshold"] = (
-            f"(optional) Confidence threshold override (default: {nms.confidenceThreshold})"
-        )
+        model.input_description[
+            "confidenceThreshold"
+        ] = f"(optional) Confidence threshold override (default: {nms.confidenceThreshold})"
         model.output_description["confidence"] = 'Boxes × Class confidence (see user-defined metadata "classes")'
         model.output_description["coordinates"] = "Boxes × [x, y, width, height] (relative to image size)"
         LOGGER.info(f"{prefix} pipeline success")
@@ -1504,19 +1504,7 @@ class NMSModel(torch.nn.Module):
         Returns:
             keep (torch.tensor): Indices of top-k (max_det) boxes to keep.
         """
-        ious = batch_probiou(boxes, boxes)
-        if self.is_tf or (self.args.opset or 14) < 14:  # Trilu not supported
-            n = boxes.shape[0]
-            row_idx = torch.arange(n, device=boxes.device).view(-1, 1).expand(-1, n)
-            col_idx = torch.arange(n, device=boxes.device).view(1, -1).expand(n, -1)
-            upper_mask = row_idx < col_idx
-            ious = ious * upper_mask
-        else:
-            ious = ious.triu_(diagonal=1)
-        mask = 1 - (ious > iou).sum(0) > 0  # same as ious.max(dim=0) > iou but can handle empty values
-        scores[~mask] = 0
-        keep = scores.topk(mask.sum()).indices
-        return keep
+        return nms_rotated(boxes, scores, iou, use_triu=not (self.is_tf or (self.args.opset or 14) < 14))
 
     def forward(self, x):
         """

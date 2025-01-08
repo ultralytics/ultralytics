@@ -394,9 +394,11 @@ class BasePredictor:
         if IS_COLAB or IS_KAGGLE:
             try:
                 # Convert NumPy array (BGR) to PIL Image (RGB)
-                from PIL import Image
-                from IPython.display import display, Image as ColabImage
                 import tempfile
+
+                from IPython.display import Image as ColabImage
+                from IPython.display import display
+                from PIL import Image
 
                 # Save the image to a temporary file
                 im = Image.fromarray(im[..., ::-1])  # Convert BGR to RGB

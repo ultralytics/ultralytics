@@ -42,7 +42,7 @@ from ultralytics.utils import (
     downloads,
     emojis,
     is_github_action_running,
-    url2file,
+    url2file, IS_KAGGLE,
 )
 
 
@@ -171,12 +171,12 @@ def check_imgsz(imgsz, stride=32, min_dim=1, max_dim=2, floor=0):
 
 
 def check_version(
-    current: str = "0.0.0",
-    required: str = "0.0.0",
-    name: str = "version",
-    hard: bool = False,
-    verbose: bool = False,
-    msg: str = "",
+        current: str = "0.0.0",
+        required: str = "0.0.0",
+        name: str = "version",
+        hard: bool = False,
+        verbose: bool = False,
+        msg: str = "",
 ) -> bool:
     """
     Check current version against the required version or range.
@@ -224,9 +224,9 @@ def check_version(
         return True
 
     if "sys_platform" in required and (  # i.e. required='<2.4.0,>=1.8.0; sys_platform == "win32"'
-        (WINDOWS and "win32" not in required)
-        or (LINUX and "linux" not in required)
-        or (MACOS and "macos" not in required and "darwin" not in required)
+            (WINDOWS and "win32" not in required)
+            or (LINUX and "linux" not in required)
+            or (MACOS and "macos" not in required and "darwin" not in required)
     ):
         return True
 
@@ -501,9 +501,9 @@ def check_file(file, suffix="", download=True, download_dir=".", hard=True):
     file = str(file).strip()  # convert to string and strip spaces
     file = check_yolov5u_filename(file)  # yolov5n -> yolov5nu
     if (
-        not file
-        or ("://" not in file and Path(file).exists())  # '://' check required in Windows Python<3.10
-        or file.lower().startswith("grpc://")
+            not file
+            or ("://" not in file and Path(file).exists())  # '://' check required in Windows Python<3.10
+            or file.lower().startswith("grpc://")
     ):  # file exists or gRPC Triton images
         return file
     elif download and file.lower().startswith(("https://", "http://", "rtsp://", "rtmp://", "tcp://")):  # download
@@ -548,16 +548,18 @@ def check_is_path_safe(basedir, path):
 def check_imshow(warn=False):
     """Check if environment supports image displays."""
     try:
-        if LINUX:
-            assert not IS_COLAB and not IS_KAGGLE
-            assert "DISPLAY" in os.environ, "The DISPLAY environment variable isn't set."
-        cv2.imshow("test", np.zeros((8, 8, 3), dtype=np.uint8))  # show a small 8-pixel image
-        cv2.waitKey(1)
-        cv2.destroyAllWindows()
-        cv2.waitKey(1)
-        return True
+        if IS_COLAB or IS_KAGGLE:
+            return True
+        else:
+            if LINUX:
+                assert "DISPLAY" in os.environ, "The DISPLAY environment variable isn't set."
+            cv2.imshow("test", np.zeros((8, 8, 3), dtype=np.uint8))  # show a small 8-pixel image
+            cv2.waitKey(1)
+            cv2.destroyAllWindows()
+            cv2.waitKey(1)
+            return True
     except Exception as e:
-        if warn and IS_COLAB:
+        if warn:
             return True
         else:
             LOGGER.warning(f"WARNING ⚠️ Environment does not support cv2.imshow() or PIL Image.show()\n{e}")

@@ -392,8 +392,9 @@ class BasePredictor:
         """Display an image in a window using the OpenCV imshow function."""
         im = self.plotted_img
         if IS_COLAB or IS_KAGGLE:
-            from PIL import Image
             from IPython.display import display
+            from PIL import Image
+
             im = Image.fromarray(im[..., ::-1])
             try:
                 display(im)

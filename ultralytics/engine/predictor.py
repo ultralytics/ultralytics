@@ -394,6 +394,7 @@ class BasePredictor:
         if IS_COLAB or IS_KAGGLE:
             cv2.imwrite("temp.png", im)
             from google.colab.patches import cv2_imshow
+
             try:
                 cv2_imshow("temp.png")
             except Exception as e:

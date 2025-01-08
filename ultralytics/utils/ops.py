@@ -143,7 +143,7 @@ def make_divisible(x, divisor):
     return math.ceil(x / divisor) * divisor
 
 
-def nms_rotated(boxes, scores, threshold=0.45):
+def nms_rotated(boxes, scores, threshold=0.45, use_triu=True):
     """
     NMS for oriented bounding boxes using probiou and fast-nms.
 
@@ -151,6 +151,8 @@ def nms_rotated(boxes, scores, threshold=0.45):
         boxes (torch.Tensor): Rotated bounding boxes, shape (N, 5), format xywhr.
         scores (torch.Tensor): Confidence scores, shape (N,).
         threshold (float, optional): IoU threshold. Defaults to 0.45.
+        use_triu (bool, optional): Whether to use `torch.triu` operator. It'd be useful for disable it
+            when exporting obb models to some formats that do not support `torch.triu`.
 
     Returns:
         (torch.Tensor): Indices of boxes to keep after NMS.
@@ -159,8 +161,15 @@ def nms_rotated(boxes, scores, threshold=0.45):
         return np.empty((0,), dtype=np.int8)
     sorted_idx = torch.argsort(scores, descending=True)
     boxes = boxes[sorted_idx]
-    ious = batch_probiou(boxes, boxes).triu_(diagonal=1)
-    pick = torch.nonzero(ious.max(dim=0)[0] < threshold).squeeze_(-1)
+    ious = batch_probiou(boxes, boxes)
+    if use_triu:
+        ious = ious.triu_(diagonal=1)
+    else:
+        n = boxes.shape[0]
+        row_idx = torch.arange(n, device=boxes.device).view(-1, 1).expand(-1, n)
+        col_idx = torch.arange(n, device=boxes.device).view(1, -1).expand(n, -1)
+        upper_mask = row_idx < col_idx
+        ious = ious * upper_mask
     return sorted_idx[pick]
 
 

@@ -36,20 +36,19 @@ This guide serves as a comprehensive introduction to setting up a Docker environ
 
 Ultralytics, a Docker Verified Publisher, offers a collection of ready-to-use Docker images available on Docker Hub. These images are designed to simplify your workflow by allowing you to test Ultralytics YOLO securely and efficiently, eliminating the need to manually install dependencies. The official Ultralytics Docker images are optimized for various platforms and use-cases, including configurations for GPU, CPU, ARM64, and NVIDIA Jetson devices.
 
-
 Below is a detailed list of the available Docker images provided by Ultralytics, including their specific use-cases and compatibility:
 
-| Tags                                             | Dockerfile                         | GPU | Architecture | Description                                                     |
-| ------------------------------------------------ | ---------------------------------- | --- | ------------ | --------------------------------------------------------------- |
-| `ultralytics/ultralytics:latest`                 | `docker/Dockerfile`                | ✅  | amd64 | Default image for training and inference with YOLO models.      |
-| `ultralytics/ultralytics:latest-jupyter`         | `docker/Dockerfile-jupyter`        | ✅  | amd64 | Jupyter notebook environment for interactive development.       |
-| `ultralytics/ultralytics:latest-cpu`             | `docker/Dockerfile-cpu`            | ❌  | amd64 | CPU-only version for inference and non-GPU environments.        |
-| `ultralytics/ultralytics:latest-arm64`           | `docker/Dockerfile-arm64`          | ❌  | arm64 | For ARM64 architecture, suitable for devices like Raspberry Pi. |
-| `ultralytics/ultralytics:latest-jetson-jetpack4` | `docker/Dockerfile-jetson-jetpack4`| ❌  | arm64 | Optimized for NVIDIA Jetson devices.                            |
-| `ultralytics/ultralytics:latest-jetson-jetpack5` | `docker/Dockerfile-jetson-jetpack5`| ❌  | arm64 | Optimized for NVIDIA Jetson devices.                            |
-| `ultralytics/ultralytics:latest-jetson-jetpack6` | `docker/Dockerfile-jetson-jetpack6`| ❌  | arm64 | Optimized for NVIDIA Jetson devices.                            |
-| `ultralytics/ultralytics:latest-python`          | `docker/Dockerfile-python`         | ❌  | amd64 | Minimal Python environment for lightweight applications.        |
-| `ultralytics/ultralytics:latest-conda`           | `docker/Dockerfile-conda`          | ✅  | amd64 | Includes Miniconda3 and Ultralytics package installed via Conda.|
+| Tags                                             | Dockerfile                          | GPU | Architecture | Description                                                      |
+| ------------------------------------------------ | ----------------------------------- | --- | ------------ | ---------------------------------------------------------------- |
+| `ultralytics/ultralytics:latest`                 | `docker/Dockerfile`                 | ✅  | amd64        | Default image for training and inference with YOLO models.       |
+| `ultralytics/ultralytics:latest-jupyter`         | `docker/Dockerfile-jupyter`         | ✅  | amd64        | Jupyter notebook environment for interactive development.        |
+| `ultralytics/ultralytics:latest-cpu`             | `docker/Dockerfile-cpu`             | ❌  | amd64        | CPU-only version for inference and non-GPU environments.         |
+| `ultralytics/ultralytics:latest-arm64`           | `docker/Dockerfile-arm64`           | ❌  | arm64        | For ARM64 architecture, suitable for devices like Raspberry Pi.  |
+| `ultralytics/ultralytics:latest-jetson-jetpack4` | `docker/Dockerfile-jetson-jetpack4` | ❌  | arm64        | Optimized for NVIDIA Jetson devices.                             |
+| `ultralytics/ultralytics:latest-jetson-jetpack5` | `docker/Dockerfile-jetson-jetpack5` | ❌  | arm64        | Optimized for NVIDIA Jetson devices.                             |
+| `ultralytics/ultralytics:latest-jetson-jetpack6` | `docker/Dockerfile-jetson-jetpack6` | ❌  | arm64        | Optimized for NVIDIA Jetson devices.                             |
+| `ultralytics/ultralytics:latest-python`          | `docker/Dockerfile-python`          | ❌  | amd64        | Minimal Python environment for lightweight applications.         |
+| `ultralytics/ultralytics:latest-conda`           | `docker/Dockerfile-conda`           | ✅  | amd64        | Includes Miniconda3 and Ultralytics package installed via Conda. |
 
 ???+ note "Image Naming Convention"
 
@@ -89,8 +88,8 @@ In order to pull and run the `ultralytics/ultralytics:latest` image, run the fol
 
 === "`:latest`"
 
-    This is the default image for training and inference with YOLO models. It includes all necessary dependencies and libraries pre-installed including dependencies for exports and development. This image is optimized for GPU usage and supports NVIDIA GPUs. The image is suitable for training YOLO models on GPU-accelerated hardware. 
-    
+    This is the default image for training and inference with YOLO models. It includes all necessary dependencies and libraries pre-installed including dependencies for exports and development. This image is optimized for GPU usage and supports NVIDIA GPUs. The image is suitable for training YOLO models on GPU-accelerated hardware.
+
     This image is the most comprehensive and feature-rich of all the available images and consequently has the largest size. It is recommended for users who require the full range of Ultralytics features and capabilities. Below a list of the most common commands to use the image.
 
     !!! note "Usage"
@@ -104,7 +103,7 @@ In order to pull and run the `ultralytics/ultralytics:latest` image, run the fol
             ```bash
             docker run -it --ipc=host --gpus all ultralytics/ultralytics:latest bash
             ```
-        
+
         === "Run with GPUs and local directory mounted"
             ```bash
             docker run -it --ipc=host --gpus all -v $PWD:/workspace ultralytics/ultralytics:latest bash
@@ -119,7 +118,7 @@ In order to pull and run the `ultralytics/ultralytics:latest` image, run the fol
             ```bash
             docker build -t ultralytics/ultralytics:latest -f docker/Dockerfile .
             ```
-        
+
         === "Push"
             ```bash
             docker push ultralytics/ultralytics:latest
@@ -140,17 +139,18 @@ In order to pull and run the `ultralytics/ultralytics:latest` image, run the fol
             ```bash
             docker pull ultralytics/ultralytics:latest-arm64
             ```
-        
+
         === "Build"
             ```bash
             docker build -t ultralytics/ultralytics:latest-arm64 -f docker/Dockerfile-arm64 .
             ```
-        
+
         === "Push"
             ```bash
             docker push ultralytics/ultralytics:latest-arm64
             ```
-        
+
+
 === "`:latest-cpu`"
 
     CPU-only version for inference and non-GPU environments. This image is optimized for CPU usage and provides a lightweight environment for running YOLO models on CPU-only hardware. It is suitable for inference and non-GPU environments.
@@ -166,12 +166,12 @@ In order to pull and run the `ultralytics/ultralytics:latest` image, run the fol
             ```bash
             docker pull ultralytics/ultralytics:latest-cpu
             ```
-        
+
         === "Build"
             ```bash
             docker build -t ultralytics/ultralytics:latest-cpu -f docker/Dockerfile-cpu .
             ```
-        
+
         === "Push"
             ```bash
             docker push ultralytics/ultralytics:latest-cpu
@@ -192,12 +192,12 @@ In order to pull and run the `ultralytics/ultralytics:latest` image, run the fol
             ```bash
             docker pull ultralytics/ultralytics:latest-jetson-jetpack4
             ```
-        
+
         === "Build"
             ```bash
             docker build -t ultralytics/ultralytics:latest-jetson-jetpack4 -f docker/Dockerfile-jetson-jetpack4 .
             ```
-        
+
         === "Push"
             ```bash
             docker push ultralytics/ultralytics:latest-jetson-jetpack4
@@ -218,12 +218,12 @@ In order to pull and run the `ultralytics/ultralytics:latest` image, run the fol
             ```bash
             docker pull ultralytics/ultralytics:latest-python
             ```
-        
+
         === "Build"
             ```bash
             docker build -t ultralytics/ultralytics:latest-python -f docker/Dockerfile-python .
             ```
-        
+
         === "Push"
             ```bash
             docker push ultralytics/ultralytics:latest-python
@@ -244,12 +244,12 @@ In order to pull and run the `ultralytics/ultralytics:latest` image, run the fol
             ```bash
             docker pull ultralytics/ultralytics:latest-conda
             ```
-        
+
         === "Build"
             ```bash
             docker build -t ultralytics/ultralytics:latest-conda -f docker/Dockerfile-conda .
             ```
-        
+
         === "Push"
             ```bash
             docker push ultralytics/ultralytics:latest-conda
@@ -257,7 +257,7 @@ In order to pull and run the `ultralytics/ultralytics:latest` image, run the fol
 
 === "`:latest-jupyter`"
 
-    This Docker image is tailored for interactive development and experimentation with Ultralytics YOLO models. It provides an efficient and user-friendly Jupyter notebook environment, designed to enhance the process of developing, testing, and refining YOLO models. When you run this image, you can access the Jupyter notebook interface in your web browser to experiment with YOLO models. 
+    This Docker image is tailored for interactive development and experimentation with Ultralytics YOLO models. It provides an efficient and user-friendly Jupyter notebook environment, designed to enhance the process of developing, testing, and refining YOLO models. When you run this image, you can access the Jupyter notebook interface in your web browser to experiment with YOLO models.
 
     A common use case for this image is when you have a remote server and want to run YOLO models interactively in a Jupyter notebook environment on your local machine. You can connect to the remote server and start the docker container. Then you can safely access the Jupyter notebook interface in your web browser from your local machine.
 
@@ -272,16 +272,16 @@ In order to pull and run the `ultralytics/ultralytics:latest` image, run the fol
             ```bash
             docker pull ultralytics/ultralytics:latest-jupyter
             ```
-        
+
         === "Build"
             ```bash
             docker build -t ultralytics/ultralytics:latest-jupyter -f docker/Dockerfile-jupyter .
             ```
-        
+
         === "Push"
             ```bash
             docker push ultralytics/ultralytics:latest-jupyter
-            ``` 
+            ```
 
 ---
 
@@ -301,7 +301,8 @@ Before proceeding, ensure that your system meets the following prerequisites:
     ```sh
     nvidia-smi
     ```
-   This command should display details about your NVIDIA GPU, such as its model, driver version, and current usage statistics. If it doesn't, check your driver installation.
+
+    This command should display details about your NVIDIA GPU, such as its model, driver version, and current usage statistics. If it doesn't, check your driver installation.
 
 ### Installing NVIDIA Container Toolkit
 
@@ -319,6 +320,7 @@ curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --dear
 ```
 
 This command does the following:
+
 - Downloads the GPG key for the repository and stores it securely.
 - Adds the NVIDIA Container Toolkit repository to your system's package sources list.
 
@@ -331,6 +333,7 @@ sudo apt-get update && sudo apt-get install -y nvidia-container-toolkit
 ```
 
 This command performs the following actions:
+
 - `sudo apt-get update`: Refreshes your package manager's list of available packages, including those from the NVIDIA repository.
 - `sudo apt-get install -y nvidia-container-toolkit`: Installs the NVIDIA Container Toolkit on your system.
 

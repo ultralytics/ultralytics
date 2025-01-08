@@ -393,12 +393,19 @@ class BasePredictor:
         im = self.plotted_img
         if IS_COLAB or IS_KAGGLE:
             try:
+                # Convert NumPy array (BGR) to PIL Image (RGB)
                 from PIL import Image
-                import matplotlib.pyplot as plt
-                im = Image.fromarray(im[..., ::-1])
-                plt.imshow(im)
-                plt.axis('off')  # Hide axes for better visualization
-                plt.show()
+                from IPython.display import display, Image as ColabImage
+                import tempfile
+
+                # Save the image to a temporary file
+                im = Image.fromarray(im[..., ::-1])  # Convert BGR to RGB
+                with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmpfile:
+                    temp_path = tmpfile.name
+                    im.save(temp_path)
+
+                # Use Colab's native display capabilities
+                display(ColabImage(filename=temp_path))
             except Exception as e:
                 print(f"Error displaying image inline: {e}")
         else:

@@ -394,7 +394,7 @@ class BasePredictor:
         if IS_COLAB or IS_KAGGLE:
             from google.colab.patches import cv2_imshow
             try:
-                cv2_imshow(im)
+                cv2_imshow(im[..., ::-1])
             except Exception as e:
                 print(f"Error displaying image: {e}")
         else:

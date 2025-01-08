@@ -391,14 +391,13 @@ class BasePredictor:
     def show(self, p=""):
         """Display an image in a window using the OpenCV imshow function."""
         im = self.plotted_img
-        if im is None:
-            print("Error: No image to display. `self.plotted_img` is empty.")
-            return
         if IS_COLAB or IS_KAGGLE:
             from PIL import Image
-            from IPython.display import display
             im = Image.fromarray(im[..., ::-1])
-            display(im)
+            try:
+                display(im)  # noqa - display() function only available in ipython environments
+            except ImportError as e:
+                LOGGER.warning(f"Unable to display image in Jupyter notebooks: {e}")
         else:
             if platform.system() == "Linux" and p not in self.windows:
                 self.windows.append(p)

@@ -394,6 +394,7 @@ class BasePredictor:
         im = self.plotted_img
         if IS_COLAB or IS_KAGGLE:
             from PIL import Image
+
             im = Image.fromarray(im[..., ::-1])
             try:
                 display(im)  # noqa - display() function only available in ipython environments

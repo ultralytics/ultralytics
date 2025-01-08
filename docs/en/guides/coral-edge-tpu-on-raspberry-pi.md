@@ -47,9 +47,10 @@ This guide assumes that you already have a working Raspberry Pi OS install and h
 ### Installing the Edge TPU runtime
 
 First, we need to install the Edge TPU runtime. There are many different versions available, so you need to choose the right version for your operating system.
+The high frequency version runs the Edge TPU at a higher clock speed, which improves performance. However, it might result in the Edge TPU thermal throttling, so it is recommended to have some sort of cooling mechanism in place.
 
 | Raspberry Pi OS | High frequency mode | Version to download                        |
-| --------------- | :-----------------: | ------------------------------------------ |
+|-----------------|:-------------------:|--------------------------------------------|
 | Bullseye 32bit  |         No          | `libedgetpu1-std_ ... .bullseye_armhf.deb` |
 | Bullseye 64bit  |         No          | `libedgetpu1-std_ ... .bullseye_arm64.deb` |
 | Bullseye 32bit  |         Yes         | `libedgetpu1-max_ ... .bullseye_armhf.deb` |
@@ -166,6 +167,39 @@ Find comprehensive information on the [Predict](../modes/predict.md) page for fu
 
         model.predict("path/to/source.png", device="tpu:1")  # Select the second TPU
         ```
+
+## Benchmarks
+
+!!! tip "Benchmarks"
+
+    Tested with Raspberry Pi Os Bookworm 64-Bit and a USB Coral Edge TPU.
+
+    !!! note
+        Shown is the inference time, pre-/postprocessing is not included.
+
+    === "Raspberry Pi 4B 2GB"
+
+        | Image Size | Model   | Standard Inference Time (ms) | High Frequency Inference Time (ms) |
+        |------------|---------|------------------------------|------------------------------------|
+        | 320        | yolov8n | 32.2                         | 26.7                               |
+        | 320        | yolov8s | 47.1                         | 39.8                               |
+        | 512        | yolov8n | 73.5                         | 60.7                               |
+        | 512        | yolov8s | 149.6                        | 125.3                              |
+
+    === "Raspberry Pi 5 8GB"
+
+        | Image Size | Model   | Standard Inference Time (ms) | High Frequency Inference Time (ms) |
+        |------------|---------|------------------------------|------------------------------------|
+        | 320        | yolov8n | 22.2                         | 16.7                               |
+        | 320        | yolov8s | 40.1                         | 32.2                               |
+        | 512        | yolov8n | 53.5                         | 41.6                               |
+        | 512        | yolov8s | 132.0                        | 103.3                              |
+
+    On average:
+
+    - The Raspberry Pi 5 is 22% faster with the standard mode than the Raspberry Pi 4B.
+    - The Raspberry Pi 5 is 30.2% faster with the high frequency mode than the Raspberry Pi 4B.
+    - The high frequency mode is 28.4% faster than the standard mode.
 
 ## FAQ
 

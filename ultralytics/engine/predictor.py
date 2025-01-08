@@ -393,6 +393,7 @@ class BasePredictor:
         im = self.plotted_img
         if IS_COLAB or IS_KAGGLE:
             try:
+                import os
                 from PIL import Image
                 import matplotlib.pyplot as plt
                 # Convert NumPy array (BGR) to PIL Image (RGB)

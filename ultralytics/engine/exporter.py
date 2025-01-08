@@ -67,7 +67,6 @@ from pathlib import Path
 
 import numpy as np
 import torch
-from torchvision import ops
 
 from ultralytics.cfg import TASK2DATA, get_cfg
 from ultralytics.data import build_dataloader
@@ -95,7 +94,7 @@ from ultralytics.utils import (
 from ultralytics.utils.checks import check_imgsz, check_is_path_safe, check_requirements, check_version
 from ultralytics.utils.downloads import attempt_download_asset, get_github_assets, safe_download
 from ultralytics.utils.files import file_size, spaces_in_path
-from ultralytics.utils.ops import Profile, batch_probiou, nms_rotated
+from ultralytics.utils.ops import Profile, nms_rotated, xywh2xyxy
 from ultralytics.utils.torch_utils import TORCH_1_13, get_latest_opset, select_device
 
 
@@ -1492,20 +1491,6 @@ class NMSModel(torch.nn.Module):
         self.task = self.args.task
         self.is_tf = self.args.format in {"saved_model", "tflite", "tfjs"}
 
-    def nms_rotated(self, boxes, scores, iou):
-        """
-        ONNX friendly-version of Rotated NMS.
-
-        Args:
-            boxes (torch.tensor): Boxes from a single prediction (N, 5) in (x, y, w, h, angle) format.
-            scores (torch.tensor): Predictions scores (N, 1).
-            iou (torch.float): The IoU threshold to be applied.
-
-        Returns:
-            keep (torch.tensor): Indices of top-k (max_det) boxes to keep.
-        """
-        return nms_rotated(boxes, scores, iou, use_triu=not (self.is_tf or (self.args.opset or 14) < 14))
-
     def forward(self, x):
         """
         Performs inference with NMS post-processing. Supports Detect, Segment, OBB and Pose.
@@ -1516,6 +1501,9 @@ class NMSModel(torch.nn.Module):
         Returns:
             out (torch.tensor): The post-processed results with shape (N, max_det, 4 + 2 + extra_shape).
         """
+        from torchvision.ops import nms
+        from functools import partial
+
         preds = self.model(x)
         pred = preds[0] if isinstance(preds, tuple) else preds
         pred = pred.transpose(1, 2)
@@ -1539,7 +1527,7 @@ class NMSModel(torch.nn.Module):
                 mask = score.topk(self.args.max_det * 5).indices
             box, score, cls, extra = box[mask], score[mask], cls[mask], extra[mask]
             if not self.obb:
-                box = ops.box_convert(box, "cxcywh", "xyxy")
+                box = xywh2xyxy(box)
                 if self.is_tf:
                     # TFlite bug returns less boxes
                     box = torch.nn.functional.pad(box, (0, 0, 0, mask.shape[0] - box.shape[0]))
@@ -1558,7 +1546,9 @@ class NMSModel(torch.nn.Module):
                 cls_offset = cls.reshape(-1, 1).expand(nmsbox.shape[0], end)
                 offbox = nmsbox[:, :end] + cls_offset * multiplier
                 nmsbox = torch.cat((offbox, nmsbox[:, end:]), dim=-1)
-            nms_fn = self.nms_rotated if self.obb else ops.nms
+            nms_fn = (
+                partial(nms_rotated, use_triu=not (self.is_tf or (self.args.opset or 14) < 14)) if self.obb else nms
+            )
             keep = nms_fn(
                 torch.cat([nmsbox, extra], dim=-1) if self.obb else nmsbox,
                 score,

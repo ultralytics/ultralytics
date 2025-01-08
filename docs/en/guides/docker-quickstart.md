@@ -150,7 +150,6 @@ In order to pull and run the `ultralytics/ultralytics:latest` image, run the fol
             docker push ultralytics/ultralytics:latest-arm64
             ```
 
-
 === "`:latest-cpu`"
 
     CPU-only version for inference and non-GPU environments. This image is optimized for CPU usage and provides a lightweight environment for running YOLO models on CPU-only hardware. It is suitable for inference and non-GPU environments.

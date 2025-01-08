@@ -393,7 +393,7 @@ class BasePredictor:
         im = self.plotted_img
         if IS_COLAB or IS_KAGGLE:
             from PIL import Image
-
+            from IPython.display import display
             im = Image.fromarray(im[..., ::-1])  # Convert numpy array to PIL Image with RGB to BGR
             display(im)  # noqa - display() function only available in ipython environments
         else:

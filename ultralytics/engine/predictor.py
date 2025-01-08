@@ -395,7 +395,8 @@ class BasePredictor:
             cv2.imwrite("temp.png", im)
             from google.colab.patches import cv2_imshow
             try:
-                cv2_imshow("temp.png")
+                temp_img = cv2.imread("temp.png")
+                cv2_imshow(temp_img)
             except Exception as e:
                 print(f"Error displaying image: {e}")
         else:

@@ -394,12 +394,10 @@ class BasePredictor:
         im = self.plotted_img
         if IS_COLAB or IS_KAGGLE:
             from PIL import Image
-
+            from IPython.core.display_functions import display
             im = Image.fromarray(im[..., ::-1])
             try:
-                display(im)  # noqa - display() function only available in ipython environments
-                # display(im)
-
+                display(im)
             except ImportError as e:
                 LOGGER.warning(f"Unable to display image in Jupyter notebooks: {e}")
         else:

@@ -393,6 +393,7 @@ class BasePredictor:
         im = self.plotted_img
         if IS_COLAB or IS_KAGGLE:
             from google.colab.patches import cv2_imshow
+
             try:
                 cv2_imshow(im[..., ::-1])
             except Exception as e:

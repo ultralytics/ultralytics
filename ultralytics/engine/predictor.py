@@ -394,6 +394,7 @@ class BasePredictor:
         if IS_COLAB or IS_KAGGLE:
             cv2.imwrite("temp.png", im)
             from ultralytics.data.utils import display_media_in_colab
+
             try:
                 display_media_in_colab("temp.png")
             except Exception as e:

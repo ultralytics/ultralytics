@@ -38,7 +38,6 @@ from pathlib import Path
 import cv2
 import numpy as np
 import torch
-from IPython.core.display_functions import display
 
 from ultralytics.cfg import get_cfg, get_save_dir
 from ultralytics.data import load_inference_source
@@ -394,7 +393,6 @@ class BasePredictor:
         im = self.plotted_img
         if IS_COLAB or IS_KAGGLE:
             from PIL import Image
-            from IPython.core.display_functions import display
             im = Image.fromarray(im[..., ::-1])
             try:
                 display(im)

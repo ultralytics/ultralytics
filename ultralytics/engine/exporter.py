@@ -1488,7 +1488,6 @@ class NMSModel(torch.nn.Module):
         self.args.conf = self.args.conf or 0.25
         self.nc = len(self.model.names)
         self.obb = self.args.task == "obb"
-        self.task = self.args.task
         self.is_tf = self.args.format in {"saved_model", "tflite", "tfjs"}
 
     def forward(self, x):
@@ -1506,7 +1505,7 @@ class NMSModel(torch.nn.Module):
 
         preds = self.model(x)
         pred = preds[0] if isinstance(preds, tuple) else preds
-        pred = pred.transpose(1, 2)
+        pred = pred.transpose(-1, -2)  # shape(1,84,6300) to shape(1,6300,84)
         extra_shape = pred.shape[-1] - (4 + self.nc)  # extras from Segment, OBB, Pose
         boxes, scores, extras = pred.split([4, self.nc, extra_shape], dim=2)
         scores, classes = scores.max(dim=-1)
@@ -1514,7 +1513,7 @@ class NMSModel(torch.nn.Module):
         out = torch.zeros(
             boxes.shape[0],
             self.args.max_det,
-            boxes.shape[-1] + 2 + extras.shape[-1],
+            boxes.shape[-1] + 2 + extra_shape,
             device=boxes.device,
             dtype=boxes.dtype,
         )
@@ -1533,12 +1532,11 @@ class NMSModel(torch.nn.Module):
                     box = torch.nn.functional.pad(box, (0, 0, 0, mask.shape[0] - box.shape[0]))
             nmsbox = box.clone()
             multiplier = 8 if self.obb else 1
-            factor = torch.tensor([x.shape[2], x.shape[3]], device=box.device, dtype=box.dtype).max()
             # large box values due to class offset causes issue with quantization
             if self.args.format == "tflite":  # TFLite is already normalized
                 nmsbox *= multiplier
             else:
-                nmsbox = multiplier * nmsbox / factor
+                nmsbox = multiplier * nmsbox / torch.tensor([x.shape[2], x.shape[3]], device=box.device, dtype=box.dtype).max()
             if not self.args.agnostic_nms:  # class-specific NMS
                 end = 2 if self.obb else 4
                 # fully explicit expansion otherwise reshape error

@@ -393,11 +393,9 @@ class BasePredictor:
         im = self.plotted_img
         if IS_COLAB or IS_KAGGLE:
             cv2.imwrite("temp.png", im)
-            from google.colab.patches import cv2_imshow
-
+            from ultralytics.data.utils import display_media_in_colab
             try:
-                temp_img = cv2.imread("temp.png")
-                cv2_imshow(temp_img)
+                display_media_in_colab("temp.png")
             except Exception as e:
                 print(f"Error displaying image: {e}")
         else:

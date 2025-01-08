@@ -394,18 +394,20 @@ class BasePredictor:
         if IS_COLAB or IS_KAGGLE:
             import os
             import tempfile
+
+            from IPython.display import HTML, display
             from PIL import Image
-            from IPython.display import display, HTML
+
             im = Image.fromarray(im[..., ::-1])
 
             with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmpfile:  # Save image to a temporary file
                 temp_path = tmpfile.name
                 im.save(temp_path)  # Save PIL image to the temp file
-            try:    # Render the image inline using an HTML <img> tag
+            try:  # Render the image inline using an HTML <img> tag
                 display(HTML(f'<img src="{temp_path}" alt="Image" style="max-width:100%;">'))
             except Exception as e:
                 print(f"Error displaying image inline: {e}")
-            finally:    # Cleanup the temporary file if needed
+            finally:  # Cleanup the temporary file if needed
                 os.remove(temp_path)
         else:
             if platform.system() == "Linux" and p not in self.windows:

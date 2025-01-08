@@ -95,31 +95,37 @@ In order to pull and run the `ultralytics/ultralytics:latest` image, run the fol
     !!! note "Usage"
 
         === "Run"
+
             ```bash
             docker run -it --ipc=host ultralytics/ultralytics:latest bash
             ```
 
         === "Run with GPUs"
+
             ```bash
             docker run -it --ipc=host --gpus all ultralytics/ultralytics:latest bash
             ```
 
         === "Run with GPUs and local directory mounted"
+
             ```bash
             docker run -it --ipc=host --gpus all -v $PWD:/workspace ultralytics/ultralytics:latest bash
             ```
 
         === "Pull"
+
             ```bash
             docker pull ultralytics/ultralytics:latest
             ```
 
         === "Build"
+
             ```bash
             docker build -t ultralytics/ultralytics:latest -f docker/Dockerfile .
             ```
 
         === "Push"
+
             ```bash
             docker push ultralytics/ultralytics:latest
             ```
@@ -131,21 +137,25 @@ In order to pull and run the `ultralytics/ultralytics:latest` image, run the fol
     !!! note "Usage"
 
         === "Run"
+
             ```bash
             docker run -it --ipc=host ultralytics/ultralytics:latest-arm64 bash
             ```
 
         === "Pull"
+
             ```bash
             docker pull ultralytics/ultralytics:latest-arm64
             ```
 
         === "Build"
+
             ```bash
             docker build -t ultralytics/ultralytics:latest-arm64 -f docker/Dockerfile-arm64 .
             ```
 
         === "Push"
+
             ```bash
             docker push ultralytics/ultralytics:latest-arm64
             ```
@@ -157,21 +167,25 @@ In order to pull and run the `ultralytics/ultralytics:latest` image, run the fol
     !!! note "Usage"
 
         === "Run"
+
             ```bash
             docker run -it --ipc=host ultralytics/ultralytics:latest-cpu bash
             ```
 
         === "Pull"
+
             ```bash
             docker pull ultralytics/ultralytics:latest-cpu
             ```
 
         === "Build"
+
             ```bash
             docker build -t ultralytics/ultralytics:latest-cpu -f docker/Dockerfile-cpu .
             ```
 
         === "Push"
+
             ```bash
             docker push ultralytics/ultralytics:latest-cpu
             ```
@@ -183,21 +197,25 @@ In order to pull and run the `ultralytics/ultralytics:latest` image, run the fol
     !!! note "Usage"
 
         === "Run"
+
             ```bash
             docker run -it --ipc=host ultralytics/ultralytics:latest-jetson-jetpack4 bash
             ```
 
         === "Pull"
+
             ```bash
             docker pull ultralytics/ultralytics:latest-jetson-jetpack4
             ```
 
         === "Build"
+
             ```bash
             docker build -t ultralytics/ultralytics:latest-jetson-jetpack4 -f docker/Dockerfile-jetson-jetpack4 .
             ```
 
         === "Push"
+
             ```bash
             docker push ultralytics/ultralytics:latest-jetson-jetpack4
             ```
@@ -209,21 +227,25 @@ In order to pull and run the `ultralytics/ultralytics:latest` image, run the fol
     !!! note "Usage"
 
         === "Run"
+
             ```bash
             docker run -it --ipc=host ultralytics/ultralytics:latest-python bash
             ```
 
         === "Pull"
+
             ```bash
             docker pull ultralytics/ultralytics:latest-python
             ```
 
         === "Build"
+
             ```bash
             docker build -t ultralytics/ultralytics:latest-python -f docker/Dockerfile-python .
             ```
 
         === "Push"
+
             ```bash
             docker push ultralytics/ultralytics:latest-python
             ```
@@ -235,21 +257,25 @@ In order to pull and run the `ultralytics/ultralytics:latest` image, run the fol
     !!! note "Usage"
 
         === "Run"
+
             ```bash
             docker run -it --ipc=host ultralytics/ultralytics:latest-conda bash
             ```
 
         === "Pull"
+
             ```bash
             docker pull ultralytics/ultralytics:latest-conda
             ```
 
         === "Build"
+
             ```bash
             docker build -t ultralytics/ultralytics:latest-conda -f docker/Dockerfile-conda .
             ```
 
         === "Push"
+
             ```bash
             docker push ultralytics/ultralytics:latest-conda
             ```
@@ -263,21 +289,25 @@ In order to pull and run the `ultralytics/ultralytics:latest` image, run the fol
     !!! note "Usage"
 
         === "Run"
+
             ```bash
             docker run -it --ipc=host ultralytics/ultralytics:latest-jupyter bash
             ```
 
         === "Pull"
+
             ```bash
             docker pull ultralytics/ultralytics:latest-jupyter
             ```
 
         === "Build"
+
             ```bash
             docker build -t ultralytics/ultralytics:latest-jupyter -f docker/Dockerfile-jupyter .
             ```
 
         === "Push"
+
             ```bash
             docker push ultralytics/ultralytics:latest-jupyter
             ```

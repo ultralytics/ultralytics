@@ -38,6 +38,7 @@ from pathlib import Path
 import cv2
 import numpy as np
 import torch
+from IPython.core.display_functions import display
 
 from ultralytics.cfg import get_cfg, get_save_dir
 from ultralytics.data import load_inference_source
@@ -396,6 +397,8 @@ class BasePredictor:
             im = Image.fromarray(im[..., ::-1])
             try:
                 display(im)  # noqa - display() function only available in ipython environments
+                # display(im)
+
             except ImportError as e:
                 LOGGER.warning(f"Unable to display image in Jupyter notebooks: {e}")
         else:

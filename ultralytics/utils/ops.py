@@ -157,8 +157,6 @@ def nms_rotated(boxes, scores, threshold=0.45, use_triu=True):
     Returns:
         (torch.Tensor): Indices of boxes to keep after NMS.
     """
-    if len(boxes) == 0:
-        return np.empty((0,), dtype=np.int8)
     sorted_idx = torch.argsort(scores, descending=True)
     boxes = boxes[sorted_idx]
     ious = batch_probiou(boxes, boxes)
@@ -170,6 +168,9 @@ def nms_rotated(boxes, scores, threshold=0.45, use_triu=True):
         col_idx = torch.arange(n, device=boxes.device).view(1, -1).expand(n, -1)
         upper_mask = row_idx < col_idx
         ious = ious * upper_mask
+    # pick = torch.nonzero(ious.max(dim=0)[0] < threshold).squeeze_(-1)
+    # NOTE: handle the case when len(boxes) hence exportable by eliminating if-else condition
+    pick = torch.nonzero((ious >= threshold).sum(0) <= 0).squeeze_(-1)
     return sorted_idx[pick]
 
 

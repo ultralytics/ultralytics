@@ -402,7 +402,7 @@ class BasePredictor:
                 im = Image.fromarray(im[..., ::-1])
 
                 # Save the image to a specific location
-                save_path = "/content/temp_output_image.png"
+                save_path = "temp_output_image.png"
                 im.save(save_path)
 
                 # Display the saved image inline using Matplotlib

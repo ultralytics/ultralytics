@@ -393,11 +393,12 @@ class BasePredictor:
         im = self.plotted_img
         if IS_COLAB or IS_KAGGLE:
             try:
-                from PIL import Image
                 import matplotlib.pyplot as plt
+                from PIL import Image
+
                 im = Image.fromarray(im[..., ::-1])
                 plt.imshow(im)
-                plt.axis('off')  # Hide axes for better visualization
+                plt.axis("off")  # Hide axes for better visualization
                 plt.show()
             except Exception as e:
                 print(f"Error displaying image inline: {e}")

@@ -916,8 +916,8 @@ def entrypoint(debug=""):
     if task:
         if task not in TASKS:
             if task=="track":
-                LOGGER.warning(f"WARNING ⚠️ 'track' is 'mode'. Updating to 'task=detect' and 'mode=track'.")
-                task, mode = "detect", "track"
+                LOGGER.warning(f"WARNING ⚠️ 'task' is 'mode'. Updating to 'mode=track'.")
+                mode = "track"
             else:
                 raise ValueError(f"Invalid 'task={task}'. Valid tasks are {TASKS}.\n{CLI_HELP_MSG}")
         if "model" not in overrides:

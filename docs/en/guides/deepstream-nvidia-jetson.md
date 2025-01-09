@@ -336,15 +336,57 @@ deepstream-app -c deepstream_app_config.txt
 
 ## Benchmark Results
 
-The following table summarizes how YOLO11s models perform at different TensorRT precision levels with an input size of 640x640 on NVIDIA Jetson Orin NX 16GB.
+The following benchmarks summarizes how YOLO11 models perform at different TensorRT precision levels with an input size of 640x640 on NVIDIA Jetson Orin NX 16GB.
 
-| Model Name | Precision | Inference Time (ms/im) | FPS  |
-| ---------- | --------- | ---------------------- | ---- |
-| YOLO11s    | FP32      | 14.6                   | 68.5 |
-|            | FP16      | 7.94                   | 126  |
-|            | INT8      | 5.95                   | 168  |
+### Comparison Chart
 
-### Acknowledgements
+<div align=center><img width=1000 src="https://github.com/ultralytics/assets/releases/download/v0.0.0/jetson-deepstream-benchmarks.avif" alt="Jetson DeepStream Benchmarks Chart"></div>
+
+### Detailed Comparison Table
+
+!!! performance
+
+    === "YOLO11n"
+
+        | Format          | Status | Inference time (ms/im) |
+        |-----------------|--------|------------------------|
+        | TensorRT (FP32) | ✅      | 8.64                   |
+        | TensorRT (FP16) | ✅      | 5.27                   |
+        | TensorRT (INT8) | ✅      | 4.54                   |
+
+    === "YOLO11s"
+
+        | Format          | Status | Inference time (ms/im) |
+        |-----------------|--------|------------------------|
+        | TensorRT (FP32) | ✅      | 14.53                   |
+        | TensorRT (FP16) | ✅      | 7.91                   |
+        | TensorRT (INT8) | ✅      | 6.05                   |
+
+    === "YOLO11m"
+
+        | Format          | Status | Inference time (ms/im) |
+        |-----------------|--------|------------------------|
+        | TensorRT (FP32) | ✅      | 32.05                   |
+        | TensorRT (FP16) | ✅      | 15.55                   |
+        | TensorRT (INT8) | ✅      | 10.43                   |
+
+    === "YOLO11l"
+
+        | Format          | Status | Inference time (ms/im) |
+        |-----------------|--------|------------------------|
+        | TensorRT (FP32) | ✅      | 39.68                   |
+        | TensorRT (FP16) | ✅      | 19.88                   |
+        | TensorRT (INT8) | ✅      | 13.64                   |
+
+    === "YOLO11x"
+
+        | Format          | Status | Inference time (ms/im) |
+        |-----------------|--------|------------------------|
+        | TensorRT (FP32) | ✅      | 80.65                   |
+        | TensorRT (FP16) | ✅      | 39.06                   |
+        | TensorRT (INT8) | ✅      | 22.83                   |
+
+## Acknowledgements
 
 This guide was initially created by our friends at Seeed Studio, Lakshantha and Elaine.
 

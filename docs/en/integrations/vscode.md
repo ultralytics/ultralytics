@@ -125,7 +125,7 @@ These are the current snippet categories available to the Ultralytics-snippets e
 
 ### Learning with Examples
 
-The `ultra.examples` snippets are to useful for anyone looking to learn how to get started with the basics of working with Ultralytics YOLO. Example snippets are intended to run once inserted (some have dropdown options as well). An example of this is shown at the animation at the [top] of this page, where after the snippet is inserted, all code is selected and run interactively using <kbd>Shift ⇑</kbd>+<kbd>Enter ↵</kbd>.
+The `ultra.examples` snippets are very useful for anyone looking to learn how to get started with the basics of working with Ultralytics YOLO. Example snippets are intended to run once inserted (some have dropdown options as well). An example of this is shown at the animation at the [top] of this page, where after the snippet is inserted, all code is selected and run interactively using <kbd>Shift ⇑</kbd>+<kbd>Enter ↵</kbd>.
 
 !!! example
 
@@ -168,7 +168,7 @@ However, since Ultralytics supports numerous [tasks], when [working with inferen
 
 ### Keywords Arguments
 
-There are over 💯 keyword arguments for all of the various Ultralytics [tasks] and [modes]! That's a lot to remember and it can be easy to forget if the argument is `save_frame` or `save_frames` (it's definitely `save_frames` by the way). This is where the `ultra.kwargs` snippets can help out!
+There are over 💯 keyword arguments for all the various Ultralytics [tasks] and [modes]! That's a lot to remember, and it can be easy to forget if the argument is `save_frame` or `save_frames` (it's definitely `save_frames` by the way). This is where the `ultra.kwargs` snippets can help out!
 
 !!! example
 
@@ -229,7 +229,7 @@ If you use VS Code and have started to see a message prompting you to install th
 
 1. Install Ultralytics-snippets and the message will no longer be shown 😆!
 
-2. You can using `yolo settings vscode_msg False` to disable the message from showing without having to install the extension. You can learn more about the [Ultralytics Settings] on the [quickstart] page if you're unfamiliar.
+2. You can be using `yolo settings vscode_msg False` to disable the message from showing without having to install the extension. You can learn more about the [Ultralytics Settings] on the [quickstart] page if you're unfamiliar.
 
 ### I have an idea for a new Ultralytics code snippet, how can I get one added?
 

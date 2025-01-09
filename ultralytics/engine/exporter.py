@@ -1139,9 +1139,7 @@ class Exporter:
     def export_imx(self, prefix=colorstr("IMX:")):
         """YOLO IMX export."""
         gptq = False
-        assert LINUX, (
-            "export only supported on Linux. See https://developer.aitrios.sony-semicon.com/en/raspberrypi-ai-camera/documentation/imx500-converter"
-        )
+        assert LINUX, "export only supported on Linux. See https://developer.aitrios.sony-semicon.com/en/raspberrypi-ai-camera/documentation/imx500-converter"
         if getattr(self.model, "end2end", False):
             raise ValueError("IMX export is not supported for end2end models.")
         if "C2f" not in self.model.__str__():

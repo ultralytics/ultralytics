@@ -43,9 +43,9 @@ Try `yolo explorer` powered by Explorer API
 
 Simply `pip install ultralytics` and run `yolo explorer` in your terminal to run custom queries and semantic search on your datasets right inside your browser!
 
-## Ultralytics Explorer support deprecated ⚠️
+!!! warning "Community Note ⚠️"
 
-As of **`ultralytics>=8.3.10`**, Ultralytics explorer support has been deprecated. But don't worry! You can now access similar and even enhanced functionality through [Ultralytics HUB](https://hub.ultralytics.com/), our intuitive no-code platform designed to streamline your workflow. With Ultralytics HUB, you can continue exploring, visualizing, and managing your data effortlessly, all without writing a single line of code. Make sure to check it out and take advantage of its powerful features!🚀
+    As of **`ultralytics>=8.3.10`**, Ultralytics explorer support has been deprecated. But don't worry! You can now access similar and even enhanced functionality through [Ultralytics HUB](https://hub.ultralytics.com/), our intuitive no-code platform designed to streamline your workflow. With Ultralytics HUB, you can continue exploring, visualizing, and managing your data effortlessly, all without writing a single line of code. Make sure to check it out and take advantage of its powerful features!🚀
 
 ## Setup
 
@@ -53,9 +53,7 @@ Pip install `ultralytics` and [dependencies](https://github.com/ultralytics/ultr
 
 ```bash
 %pip install ultralytics[explorer] openai
-import ultralytics
-
-ultralytics.checks()
+yolo checks
 ```
 
 ## Similarity Search
@@ -88,11 +86,9 @@ You can use the also plot the similar samples directly using the `plot_similar` 
 
 ```python
 exp.plot_similar(idx=6500, limit=20)
-# exp.plot_similar(idx=[100,101], limit=10) # Can also pass list of idxs or imgs
+exp.plot_similar(idx=[100, 101], limit=10)  # Can also pass list of idxs or imgs
 
-exp.plot_similar(
-    img="https://ultralytics.com/images/bus.jpg", limit=10, labels=False
-)  # Can also pass any external images
+exp.plot_similar(img="https://ultralytics.com/images/bus.jpg", limit=10, labels=False)  # Can also pass external images
 ```
 
 ![Similarity search image 2](https://github.com/ultralytics/docs/releases/download/0/similarity-search-image-2.avif)
@@ -149,7 +145,7 @@ exp.plot_sql_query("WHERE labels LIKE '%person, person%' AND labels LIKE '%dog%'
 
 ```python
 table = exp.sql_query("WHERE labels LIKE '%person, person%' AND labels LIKE '%dog%' LIMIT 10")
-table
+print(table)
 ```
 
 Just like similarity search, you also get a util to directly plot the sql queries using `exp.plot_sql_query`
@@ -166,7 +162,7 @@ Explorer works on [LanceDB](https://lancedb.github.io/lancedb/) tables internall
 
 ```python
 table = exp.table
-table.schema
+print(table.schema)
 ```
 
 ### Run raw queries¶
@@ -213,12 +209,8 @@ One of the preliminary steps in analysing embeddings is by plotting them in 2D s
 ![Scatterplot Example](https://github.com/ultralytics/docs/releases/download/0/scatterplot-sql-queries.avif)
 
 ```python
-pip install scikit-learn
-
-%matplotlib inline
 import matplotlib.pyplot as plt
-import numpy as np
-from sklearn.decomposition import PCA
+from sklearn.decomposition import PCA  # pip install scikit-learn
 
 # Reduce dimensions using PCA to 3 components for visualization in 3D
 pca = PCA(n_components=3)

@@ -20,7 +20,7 @@ jobs:
       - name: Run Ultralytics Formatting
         uses: ultralytics/actions@main
         with:
-          token: ${{ secrets._GITHUB_TOKEN || secrets.GITHUB_TOKEN}}
+          token: ${{ secrets._GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
           labels: true # autolabel issues and PRs
           python: true # format Python code and docstrings
           prettier: true # format YAML, JSON, Markdown and CSS

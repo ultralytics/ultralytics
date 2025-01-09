@@ -291,7 +291,7 @@ class ChannelAttention(nn.Module):
         self.pool = nn.AdaptiveAvgPool2d(1)  # Squeeze spatial dims -> shape [B, C, 1, 1]
         self.fc = nn.Conv2d(channels, channels, kernel_size=1, bias=True)
         self.act1 = nn.ReLU()     # Optional: Activation before sigmoid
-        self.act2 = nn.Sigmoid()  # Sigmoid to get attention weights
+        self.act = nn.Sigmoid()  # Sigmoid to get attention weights
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
@@ -309,7 +309,7 @@ class ChannelAttention(nn.Module):
         pooled = self.pool(x)
         # Pass through Conv -> ReLU -> Sigmoid to get channel attention
         attn = self.act1(self.fc(pooled))
-        attn = self.act2(attn)
+        attn = self.act(attn)
         # Multiply original input x by the attention weights
         return x * attn
 

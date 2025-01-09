@@ -80,7 +80,7 @@ Region counting is a computational method utilized to ascertain the quantity of 
 
 **2. Is Friendly Region Plotting Supported by the Region Counter?**
 
-The Region Counter offers the capability to create regions in various formats, such as polygons and rectangles. You have the flexibility to modify region attributes, including coordinates, colors, and other details, as demonstrated in the following code:
+The Region Counting offers the capability to create regions in various formats, such as polygons and rectangles. You have the flexibility to modify region attributes, including coordinates, colors, and other details, as demonstrated in the following code:
 
 ```python
 from shapely.geometry import Polygon

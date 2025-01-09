@@ -81,10 +81,8 @@ def bbox_iou(box1, box2, xywh=True, GIoU=False, DIoU=False, CIoU=False, eps=1e-7
     or (x1, y1, x2, y2) if `xywh=False`.
 
     Args:
-        box1 (torch.Tensor):
-            A tensor representing one or more bounding boxes, with the last dimension being 4.
-        box2 (torch.Tensor):
-            A tensor representing one or more bounding boxes, with the last dimension being 4.
+        box1 (torch.Tensor): A tensor representing one or more bounding boxes, with the last dimension being 4.
+        box2 (torch.Tensor): A tensor representing one or more bounding boxes, with the last dimension being 4.
         xywh (bool, optional): If True, input boxes are in (x, y, w, h) format. If False, input boxes are in
                                (x1, y1, x2, y2) format. Defaults to True.
         GIoU (bool, optional): If True, calculate Generalized IoU. Defaults to False.

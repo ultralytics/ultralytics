@@ -914,7 +914,7 @@ def entrypoint(debug=""):
     # Task
     task = overrides.pop("task", None)
     if task:
-        if task not in TASKS or "track":
+        if task not in TASKS:
             if task=="track":
                 LOGGER.warning(f"WARNING ⚠️ 'task' is mode. Updating task=detect and mode=track.")
                 overrides["task", "mode"] = "detect", "track"

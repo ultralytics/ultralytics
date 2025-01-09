@@ -367,7 +367,7 @@ class BasePredictor:
         # Save videos and streams
         if self.dataset.mode in {"stream", "video"}:
             fps = self.dataset.fps if self.dataset.mode == "video" else 30
-            frames_path = f'{save_path.split(".", 1)[0]}_frames/'
+            frames_path = f"{save_path.split('.', 1)[0]}_frames/"
             if save_path not in self.vid_writer:  # new video
                 if self.args.save_frames:
                     Path(frames_path).mkdir(parents=True, exist_ok=True)

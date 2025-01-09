@@ -242,9 +242,7 @@ def convert_coco(
         from ultralytics.data.converter import convert_coco
 
         convert_coco("../datasets/coco/annotations/", use_segments=True, use_keypoints=False, cls91to80=False)
-        convert_coco(
-            "../datasets/lvis/annotations/", use_segments=True, use_keypoints=False, cls91to80=False, lvis=True
-        )
+        convert_coco("../datasets/lvis/annotations/", use_segments=True, use_keypoints=False, cls91to80=False, lvis=True)
         ```
 
     Output:

@@ -452,7 +452,11 @@ class Exporter:
             batch_size=batch,
         )
         n = len(dataset)
-        if n < 300:
+        if n < self.args.batch:
+            raise ValueError(
+                f"The calibration dataset ({n} images) must have at least as many images as the batch size ('batch={self.args.batch}')."
+            )
+        elif n < 300:
             LOGGER.warning(f"{prefix} WARNING ⚠️ >300 images recommended for INT8 calibration, found {n} images.")
         return build_dataloader(dataset, batch=batch, workers=0)  # required for batch loading
 

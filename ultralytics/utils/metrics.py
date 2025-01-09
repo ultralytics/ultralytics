@@ -73,11 +73,16 @@ def box_iou(box1, box2, eps=1e-7):
 
 def bbox_iou(box1, box2, xywh=True, GIoU=False, DIoU=False, CIoU=False, eps=1e-7):
     """
-    Calculate Intersection over Union (IoU) of box1(1, 4) to box2(n, 4).
+    Calculates the Intersection over Union (IoU) between bounding boxes.
+
+    This function supports various shapes for `box1` and `box2` as long as the last dimension is 4.
+    For instance, you may pass tensors shaped like (4,), (N, 4), (B, N, 4), or (B, N, 1, 4).
+    Internally, the code will split the last dimension into (x, y, w, h) if `xywh=True`,
+    or (x1, y1, x2, y2) if `xywh=False`.
 
     Args:
-        box1 (torch.Tensor): A tensor representing a single bounding box with shape (1, 4).
-        box2 (torch.Tensor): A tensor representing n bounding boxes with shape (n, 4).
+        box1 (torch.Tensor): A tensor representing one or more bounding boxes, with the last dimension being 4.
+        box2 (torch.Tensor): A tensor representing one or more bounding boxes, with the last dimension being 4.
         xywh (bool, optional): If True, input boxes are in (x, y, w, h) format. If False, input boxes are in
                                (x1, y1, x2, y2) format. Defaults to True.
         GIoU (bool, optional): If True, calculate Generalized IoU. Defaults to False.
@@ -270,7 +275,7 @@ def batch_probiou(obb1, obb2, eps=1e-7):
     return 1 - hd
 
 
-def smooth_BCE(eps=0.1):
+def smooth_bce(eps=0.1):
     """
     Computes smoothed positive and negative Binary Cross-Entropy targets.
 
@@ -427,7 +432,7 @@ class ConfusionMatrix:
         ax.set_xlabel("True")
         ax.set_ylabel("Predicted")
         ax.set_title(title)
-        plot_fname = Path(save_dir) / f'{title.lower().replace(" ", "_")}.png'
+        plot_fname = Path(save_dir) / f"{title.lower().replace(' ', '_')}.png"
         fig.savefig(plot_fname, dpi=250)
         plt.close(fig)
         if on_plot:

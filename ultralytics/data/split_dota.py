@@ -67,7 +67,7 @@ def load_yolo_dota(data_root, split="train"):
 
     Args:
         data_root (str): Data root.
-        split (str): The split data set, could be train or val.
+        split (str): The split data set, could be `train` or `val`.
 
     Notes:
         The directory structure assumed for the DOTA dataset:

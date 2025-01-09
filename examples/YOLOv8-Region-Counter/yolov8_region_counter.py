@@ -185,7 +185,7 @@ def run(
             region_color = region["region_color"]
             region_text_color = region["text_color"]
 
-            polygon_coords = np.array(region["polygon"].exterior.coords, dtype=np.int32)
+            polygon_coordinates = np.array(region["polygon"].exterior.coords, dtype=np.int32)
             centroid_x, centroid_y = int(region["polygon"].centroid.x), int(region["polygon"].centroid.y)
 
             text_size, _ = cv2.getTextSize(
@@ -203,7 +203,7 @@ def run(
             cv2.putText(
                 frame, region_label, (text_x, text_y), cv2.FONT_HERSHEY_SIMPLEX, 0.7, region_text_color, line_thickness
             )
-            cv2.polylines(frame, [polygon_coords], isClosed=True, color=region_color, thickness=region_thickness)
+            cv2.polylines(frame, [polygon_coordinates], isClosed=True, color=region_color, thickness=region_thickness)
 
         if view_img:
             if vid_frame_count == 1:

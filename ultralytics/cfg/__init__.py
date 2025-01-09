@@ -915,7 +915,7 @@ def entrypoint(debug=""):
     task = overrides.pop("task", None)
     if task:
         if task not in TASKS:
-            if task=="track":
+            if task=="track":   # Set `task=detect` and `mode=track`, if user call task=track to avoid command break.
                 LOGGER.warning(f"WARNING ⚠️ 'track' is 'mode'. Updating to 'task=detect' and 'mode=track'.")
                 task, mode = "detect", "track"
                 LOGGER.warning(f"WARNING ⚠️ to train the model, make sure to use the supported task from the {TASKS}.")

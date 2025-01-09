@@ -158,27 +158,37 @@ jobs:
 
       - name: Push Docker Image with Ultralytics version tag
         if: (github.event_name == 'push' || (github.event.inputs[matrix.dockerfile] == 'true' && github.event.inputs.push == 'true')) && steps.check_tag.outputs.new_release == 'true' && matrix.dockerfile != 'Dockerfile-conda'
-        run: |
-          docker push ultralytics/ultralytics:${{ steps.get_version.outputs.version_tag }}
+        uses: ultralytics/actions/retry@main
+        with:
+          timeout_minutes: 15
+          retry_delay_seconds: 300
+          retries: 2
+          run: |
+            docker push ultralytics/ultralytics:${{ steps.get_version.outputs.version_tag }}
 
       - name: Push Docker Image with latest tag
         if: github.event_name == 'push' || (github.event.inputs[matrix.dockerfile] == 'true' && github.event.inputs.push == 'true')
-        run: |
-          docker push ultralytics/ultralytics:${{ matrix.tags }}
-          if [[ "${{ matrix.tags }}" == "latest" ]]; then
-            t=ultralytics/ultralytics:latest-runner
-            docker build -f docker/Dockerfile-runner -t $t .
-            docker push $t
-          fi
-          if [[ "${{ matrix.tags }}" == "latest-python" ]]; then
-            t=ultralytics/ultralytics:latest-jupyter
-            v=ultralytics/ultralytics:${{ steps.get_version.outputs.version }}-jupyter
-            docker build -f docker/Dockerfile-jupyter -t $t -t $v .
-            docker push $t
-            if [[ "${{ steps.check_tag.outputs.new_release }}" == "true" ]]; then
-              docker push $v
+        uses: ultralytics/actions/retry@main
+        with:
+          timeout_minutes: 15
+          retry_delay_seconds: 300
+          retries: 2
+          run: |
+            docker push ultralytics/ultralytics:${{ matrix.tags }}
+            if [[ "${{ matrix.tags }}" == "latest" ]]; then
+              t=ultralytics/ultralytics:latest-runner
+              docker build -f docker/Dockerfile-runner -t $t .
+              docker push $t
             fi
-          fi
+            if [[ "${{ matrix.tags }}" == "latest-python" ]]; then
+              t=ultralytics/ultralytics:latest-jupyter
+              v=ultralytics/ultralytics:${{ steps.get_version.outputs.version }}-jupyter
+              docker build -f docker/Dockerfile-jupyter -t $t -t $v .
+              docker push $t
+              if [[ "${{ steps.check_tag.outputs.new_release }}" == "true" ]]; then
+                docker push $v
+              fi
+            fi
 
   trigger-actions:
     runs-on: ubuntu-latest

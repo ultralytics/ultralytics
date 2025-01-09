@@ -250,7 +250,8 @@ class Exporter:
         self.device = select_device("cpu" if self.args.device is None else self.args.device)
 
         # Argument compatibility checks
-        validate_args(fmt, self.args, fmts_dict["Arguments"][flags.index(True) + 1])
+        fmt_keys = fmts_dict["Arguments"][flags.index(True) + 1]
+        validate_args(fmt, self.args, fmt_keys)
         if imx and not self.args.int8:
             LOGGER.warning("WARNING ⚠️ IMX only supports int8 export, setting int8=True.")
             self.args.int8 = True
@@ -369,6 +370,7 @@ class Exporter:
             "batch": self.args.batch,
             "imgsz": self.imgsz,
             "names": model.names,
+            "args": {k: v for k, v in self.args if k in fmt_keys},
         }  # model metadata
         if model.task == "pose":
             self.metadata["kpt_shape"] = model.model[-1].kpt_shape
@@ -450,7 +452,11 @@ class Exporter:
             batch_size=batch,
         )
         n = len(dataset)
-        if n < 300:
+        if n < self.args.batch:
+            raise ValueError(
+                f"The calibration dataset ({n} images) must have at least as many images as the batch size ('batch={self.args.batch}')."
+            )
+        elif n < 300:
             LOGGER.warning(f"{prefix} WARNING ⚠️ >300 images recommended for INT8 calibration, found {n} images.")
         return build_dataloader(dataset, batch=batch, workers=0)  # required for batch loading
 

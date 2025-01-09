@@ -181,19 +181,19 @@ Find comprehensive information on the [Predict](../modes/predict.md) page for fu
 
         | Image Size | Model   | Standard Inference Time (ms) | High Frequency Inference Time (ms) |
         |------------|---------|------------------------------|------------------------------------|
-        | 320        | yolov8n | 32.2                         | 26.7                               |
-        | 320        | yolov8s | 47.1                         | 39.8                               |
-        | 512        | yolov8n | 73.5                         | 60.7                               |
-        | 512        | yolov8s | 149.6                        | 125.3                              |
+        | 320        | YOLOv8n | 32.2                         | 26.7                               |
+        | 320        | YOLOv8s | 47.1                         | 39.8                               |
+        | 512        | YOLOv8n | 73.5                         | 60.7                               |
+        | 512        | YOLOv8s | 149.6                        | 125.3                              |
 
     === "Raspberry Pi 5 8GB"
 
         | Image Size | Model   | Standard Inference Time (ms) | High Frequency Inference Time (ms) |
         |------------|---------|------------------------------|------------------------------------|
-        | 320        | yolov8n | 22.2                         | 16.7                               |
-        | 320        | yolov8s | 40.1                         | 32.2                               |
-        | 512        | yolov8n | 53.5                         | 41.6                               |
-        | 512        | yolov8s | 132.0                        | 103.3                              |
+        | 320        | YOLOv8n | 22.2                         | 16.7                               |
+        | 320        | YOLOv8s | 40.1                         | 32.2                               |
+        | 512        | YOLOv8n | 53.5                         | 41.6                               |
+        | 512        | YOLOv8s | 132.0                        | 103.3                              |
 
     On average:
 

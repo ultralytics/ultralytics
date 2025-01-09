@@ -914,8 +914,12 @@ def entrypoint(debug=""):
     # Task
     task = overrides.pop("task", None)
     if task:
-        if task not in TASKS:
-            raise ValueError(f"Invalid 'task={task}'. Valid tasks are {TASKS}.\n{CLI_HELP_MSG}")
+        if task not in TASKS or "track":
+            if task=="track":
+                LOGGER.warning(f"WARNING ⚠️ 'task' is mode. Updating task=detect and mode=track.")
+                overrides["task", "mode"] = "detect", "track"
+            else:
+                raise ValueError(f"Invalid 'task={task}'. Valid tasks are {TASKS}.\n{CLI_HELP_MSG}")
         if "model" not in overrides:
             overrides["model"] = TASK2MODEL[task]
 

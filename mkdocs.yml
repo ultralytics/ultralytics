@@ -315,7 +315,6 @@ nav:
           - datasets/track/index.md
   - Solutions 🚀 NEW:
       - solutions/index.md
-      - Analytics: guides/analytics.md
       - Object Counting: guides/object-counting.md
       - Object Cropping: guides/object-cropping.md
       - Object Blurring: guides/object-blurring.md
@@ -329,6 +328,7 @@ nav:
       - Distance Calculation: guides/distance-calculation.md
       - Queue Management: guides/queue-management.md
       - Parking Management: guides/parking-management.md
+      - Analytics: guides/analytics.md
       - Live Inference: guides/streamlit-live-inference.md
       - Track Objects in Zone 🚀 NEW: guides/trackzone.md
   - Guides:

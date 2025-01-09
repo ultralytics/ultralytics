@@ -36,7 +36,6 @@ A heatmap generated with [Ultralytics YOLO11](https://github.com/ultralytics/ult
 | ![Ultralytics YOLO11 Transportation Heatmap](https://github.com/ultralytics/docs/releases/download/0/ultralytics-yolov8-transportation-heatmap.avif) | ![Ultralytics YOLO11 Retail Heatmap](https://github.com/ultralytics/docs/releases/download/0/ultralytics-yolov8-retail-heatmap.avif) |
 |                                                      Ultralytics YOLO11 Transportation Heatmap                                                       |                                                  Ultralytics YOLO11 Retail Heatmap                                                   |
 
-
 !!! example "Heatmaps using Ultralytics YOLO11 Example"
 
     === "CLI"

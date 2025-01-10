@@ -101,7 +101,7 @@ For more details about supported export options, visit the [Ultralytics document
 
 ## Deploying Exported YOLO11 TF SavedModel Models
 
-Now that you have exported your YOLO11 model to the TF SavedModel format, the next step is to deploy it. The primary and recommended first step for running a TF GraphDef model is to use the YOLO("./yolo11n_saved_model") method, as previously shown in the usage code snippet.
+Now that you have exported your YOLO11 model to the TF SavedModel format, the next step is to deploy it. The primary and recommended first step for running a TF GraphDef model is to use the YOLO("yolo11n_saved_model/") method, as previously shown in the usage code snippet.
 
 However, for in-depth instructions on deploying your TF SavedModel models, take a look at the following resources:
 

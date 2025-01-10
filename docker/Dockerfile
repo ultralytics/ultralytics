@@ -41,10 +41,8 @@ ADD https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11n.pt .
 
 # Install pip packages
 RUN pip install uv
-# Note -cu12 must be used with tensorrt)
 
 RUN pip install -e ".[export]" tensorrt-cu12 "albumentations>=1.4.6" comet
-
 # Run exports to AutoInstall packages
 # Edge TPU export fails the first time so is run twice here
 RUN yolo export model=tmp/yolo11n.pt format=edgetpu imgsz=32 || yolo export model=tmp/yolo11n.pt format=edgetpu imgsz=32

@@ -1,6 +1,7 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import os
+
 import cv2
 
 from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults

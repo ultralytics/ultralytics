@@ -82,6 +82,7 @@ class BaseSolution:
             self.CFG["model"] = "yolo11n.pt"
         self.model = YOLO(self.CFG["model"])
         self.names = self.model.names
+        self.classes = self.CFG["classes"]
 
         self.track_add_args = {  # Tracker additional arguments for advance configuration
             k: self.CFG[k] for k in ["verbose", "iou", "conf", "device", "max_det", "half", "tracker"]
@@ -111,7 +112,7 @@ class BaseSolution:
             >>> frame = cv2.imread("path/to/image.jpg")
             >>> solution.extract_tracks(frame)
         """
-        self.tracks = self.model.track(source=im0, persist=True, classes=self.CFG["classes"], **self.track_add_args)
+        self.tracks = self.model.track(source=im0, persist=True, classes=self.classes, **self.track_add_args)
 
         # Extract tracks for OBB or object detection
         self.track_data = self.tracks[0].obb or self.tracks[0].boxes
@@ -680,6 +681,7 @@ class SolutionResults:
         total_tracks=0,
         region_counts=0,
         speed_dict=None,
+        total_crop_objects=0,
     ):
         """
         Initializes a SolutionResults object with default or user-specified values for its attributes.
@@ -702,6 +704,7 @@ class SolutionResults:
             total_tracks (int, optional): The total number of tracked objects. Default is 0.
             region_counts (int, optional): The count of objects within a specific region. Default is 0.
             speed_dict (Dict[str, float], optional): A dictionary containing speed information for tracked objects. Default is None.
+            total_crop_objects (int, optional): Total number of cropped objects using ObjectCropper class.
 
         Examples:
             >>> results = SolutionResults(
@@ -719,6 +722,7 @@ class SolutionResults:
             ...     total_tracks=50,
             ...     region_counts=20,
             ...     speed_dict={"object_1": 3.5, "object_2": 2.8},
+            ...     total_crop_objects=5,
             ... )
         """
         self.in_count = in_count
@@ -735,6 +739,7 @@ class SolutionResults:
         self.total_tracks = total_tracks
         self.region_counts = region_counts
         self.speed_dict = speed_dict
+        self.total_crop_objects = total_crop_objects
 
     def summary(self):
         """
@@ -762,5 +767,6 @@ class SolutionResults:
                 "email_sent": self.email_sent,
                 "region_counts": self.region_counts,
                 "speed_dict": self.speed_dict,
+                "total_crop_objects": self.total_crop_objects
             }
         return self._cached_summary

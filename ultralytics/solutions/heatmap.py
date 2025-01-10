@@ -124,6 +124,8 @@ class Heatmap(ObjectCounter):
             )
 
         self.display_output(im0)  # display output with base class function
+
+        # return output dictionary with summary for more usage
         return SolutionResults(
             in_count=self.in_count,
             out_count=self.out_count,

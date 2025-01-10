@@ -65,4 +65,5 @@ class TrackZone(BaseSolution):
 
         self.display_output(im0)  # display output with base class function
 
+        # return output dictionary with summary for more usage
         return SolutionResults(total_tracks=len(self.tracks))

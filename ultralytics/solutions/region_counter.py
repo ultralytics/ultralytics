@@ -113,4 +113,6 @@ class RegionCounter(BaseSolution):
             region["counts"] = 0  # Reset count for next frame
 
         self.display_output(im0)
+
+        # return output dictionary with summary for more usage
         return SolutionResults(total_tracks=len(self.track_ids)).summary()

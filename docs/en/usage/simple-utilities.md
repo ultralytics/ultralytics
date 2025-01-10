@@ -32,7 +32,7 @@ Dataset annotation is a very resource intensive and time-consuming process. If y
 ```{ .py .annotate }
 from ultralytics.data.annotator import auto_annotate
 
-auto_annotate(  # (1)!
+auto_annotate(
     data="path/to/new/data",
     det_model="yolo11n.pt",
     sam_model="mobile_sam.pt",
@@ -41,17 +41,36 @@ auto_annotate(  # (1)!
 )
 ```
 
-1. Nothing returns from this function
+This function does not return any value. For further details on how the function operates:
 
 - [See the reference section for `annotator.auto_annotate`](../reference/data/annotator.md#ultralytics.data.annotator.auto_annotate) for more insight on how the function operates.
-
 - Use in combination with the [function `segments2boxes`](#convert-segments-to-bounding-boxes) to generate object detection bounding boxes as well
+
+### Visualize Dataset Annotations
+
+This function visualizes YOLO annotations on an image before training, helping to identify and correct any wrong annotations that could lead to incorrect detection results. It draws bounding boxes, labels objects with class names, and adjusts text color based on the background's luminance for better readability.
+
+```{ .py .annotate }
+from ultralytics.data.utils import visualize_image_annotations
+
+label_map = {  # Define the label map with all annotated class labels.
+    0: "person",
+    1: "car",
+}
+
+# Visualize
+visualize_image_annotations(
+    "path/to/image.jpg",  # Input image path.
+    "path/to/annotations.txt",  # Annotation file path for the image.
+    label_map,
+)
+```
 
 ### Convert Segmentation Masks into YOLO Format
 
 ![Segmentation Masks to YOLO Format](https://github.com/ultralytics/docs/releases/download/0/segmentation-masks-to-yolo-format.avif)
 
-Use to convert a dataset of segmentation mask images to the `YOLO` segmentation format.
+Use to convert a dataset of segmentation mask images to the [`YOLO`](../models/yolo11.md) segmentation format.
 This function takes the directory containing the binary format mask images and converts them into YOLO segmentation format.
 
 The converted masks will be saved in the specified output directory.
@@ -59,7 +78,8 @@ The converted masks will be saved in the specified output directory.
 ```python
 from ultralytics.data.converter import convert_segment_masks_to_yolo_seg
 
-# The classes here is the total classes in the dataset, for COCO dataset we have 80 classes
+# The classes here is the total classes in the dataset.
+# for COCO dataset we have 80 classes.
 convert_segment_masks_to_yolo_seg(masks_dir="path/to/masks_dir", output_dir="path/to/output_dir", classes=80)
 ```
 

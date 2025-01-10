@@ -299,7 +299,7 @@ class GroundingDataset(YOLODataset):
         LOGGER.info("Loading annotation file...")
         with open(self.json_file) as f:
             annotations = json.load(f)
-        images = {f'{x["id"]:d}': x for x in annotations["images"]}
+        images = {f"{x['id']:d}": x for x in annotations["images"]}
         img_to_anns = defaultdict(list)
         for ann in annotations["annotations"]:
             img_to_anns[ann["image_id"]].append(ann)

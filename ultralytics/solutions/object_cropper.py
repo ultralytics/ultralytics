@@ -2,7 +2,7 @@
 
 import os
 
-from ultralytics.solutions.solutions import BaseSolution, SolutionResults, SolutionAnnotator
+from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
 from ultralytics.utils.plotting import colors
 
 
@@ -28,7 +28,8 @@ class ObjectCropper(BaseSolution):
 
     def __init__(self, **kwargs):
         """
-        Initializes the ObjectCropper class for cropping objects from detected bounding boxes in video streams or images.
+        Initializes the ObjectCropper class for cropping objects from detected bounding boxes in video streams or
+        images.
 
         Attributes:
             crop_directory (str): Path to the directory for saving cropped object images.
@@ -66,12 +67,12 @@ class ObjectCropper(BaseSolution):
 
         results = self.model.predict(im0, classes=self.classes, conf=self.conf, iou=self.iou, device="cpu")[0]
         boxes = results.boxes.xyxy.cpu().tolist()  # Detected bounding boxes list
-        clss = results.boxes.cls.cpu().tolist()     # Detected classes list
+        clss = results.boxes.cls.cpu().tolist()  # Detected classes list
 
         for box, cls in zip(boxes, clss):
-            annotator.box_label(box, label=self.names[cls], color=colors(cls, True))     # Bounding box plot
+            annotator.box_label(box, label=self.names[cls], color=colors(cls, True))  # Bounding box plot
             self.crop_idx += 1
-            crop_object = im0[int(box[1]): int(box[3]), int(box[0]): int(box[2])]  # Crop the detected object
+            crop_object = im0[int(box[1]) : int(box[3]), int(box[0]) : int(box[2])]  # Crop the detected object
             cv2.imwrite(
                 os.path.join(self.crop_directory, f"crop-{self.crop_idx}.jpg"), crop_object
             )  # Save cropped image

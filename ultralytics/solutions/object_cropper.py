@@ -44,7 +44,7 @@ class ObjectCropper(BaseSolution):
 
         self.crop_idx = 0  # Initialize counter for total cropped objects
         self.iou = self.CFG["iou"]
-        self.conf = self.CFG["conf"]
+        self.conf = self.CFG["conf"] if self.CFG["conf"] is not None else 0.25
 
     def crop(self, im0):
         """

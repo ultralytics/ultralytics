@@ -1,5 +1,7 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
+import os
+
 from ultralytics.solutions.solutions import BaseSolution, SolutionResults, SolutionAnnotator
 from ultralytics.utils.plotting import colors
 
@@ -62,12 +64,12 @@ class ObjectCropper(BaseSolution):
         """
         annotator = SolutionAnnotator(im0)
 
-        results = self.model.predict(im0, classes=self.classes, conf=self.conf, iou=self.iou)[0]
+        results = self.model.predict(im0, classes=self.classes, conf=self.conf, iou=self.iou, device="cpu")[0]
         boxes = results.boxes.xyxy.cpu().tolist()  # Detected bounding boxes list
         clss = results.boxes.cls.cpu().tolist()     # Detected classes list
 
         for box, cls in zip(boxes, clss):
-            annotator.box_label(box, label=self.names[cls], color=color(cls, True))     # Bounding box plot
+            annotator.box_label(box, label=self.names[cls], color=colors(cls, True))     # Bounding box plot
             self.crop_idx += 1
             crop_object = im0[int(box[1]): int(box[3]), int(box[0]): int(box[2])]  # Crop the detected object
             cv2.imwrite(

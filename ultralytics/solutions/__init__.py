@@ -12,6 +12,7 @@ from .security_alarm import SecurityAlarm
 from .speed_estimation import SpeedEstimator
 from .streamlit_inference import Inference
 from .trackzone import TrackZone
+from .object_cropper import ObjectCropper
 
 __all__ = (
     "AIGym",

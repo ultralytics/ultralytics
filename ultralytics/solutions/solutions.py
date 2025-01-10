@@ -767,6 +767,6 @@ class SolutionResults:
                 "email_sent": self.email_sent,
                 "region_counts": self.region_counts,
                 "speed_dict": self.speed_dict,
-                "total_crop_objects": self.total_crop_objects
+                "total_crop_objects": self.total_crop_objects,
             }
         return self._cached_summary

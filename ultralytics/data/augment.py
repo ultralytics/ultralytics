@@ -271,9 +271,9 @@ class Compose:
         """
         assert isinstance(index, (int, list)), f"The indices should be either list or int type but got {type(index)}"
         if isinstance(index, list):
-            assert isinstance(value, list), (
-                f"The indices should be the same type as values, but got {type(index)} and {type(value)}"
-            )
+            assert isinstance(
+                value, list
+            ), f"The indices should be the same type as values, but got {type(index)} and {type(value)}"
         if isinstance(index, int):
             index, value = [index], [value]
         for i, v in zip(index, value):

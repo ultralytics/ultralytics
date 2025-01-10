@@ -413,9 +413,7 @@ class AutoBackend(nn.Module):
             rknn_model = RKNNLite()
             rknn_model.load_rknn(w)
             ret = rknn_model.init_runtime()
-            if ret != 0:
-                ...  # TODO add logging
-            metadata = w.parent / "metadata.yaml"
+            metadata = Path(w).parent / "metadata.yaml"
 
         # Any other format (unsupported)
         else:

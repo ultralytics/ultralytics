@@ -407,7 +407,7 @@ class AutoBackend(nn.Module):
         # RKNN
         elif rknn:
             LOGGER.info(f"Loading {w} for RKNN inference...")
-            # check_requirements()  # TODO add logic for RKNN wheel install from system info
+            check_requirements("rknn-toolkit-lite2")
             from rknnlite.api import RKNNLite
 
             rknn_model = RKNNLite()

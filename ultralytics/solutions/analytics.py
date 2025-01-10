@@ -8,7 +8,7 @@ import numpy as np
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from matplotlib.figure import Figure
 
-from ultralytics.solutions.solutions import BaseSolution  # Import a parent class
+from ultralytics.solutions.solutions import BaseSolution, SolutionResults  # Import a parent class
 
 
 class Analytics(BaseSolution):
@@ -107,7 +107,7 @@ class Analytics(BaseSolution):
         if self.type == "line":
             for _ in self.boxes:
                 self.total_counts += 1
-            im0 = self.update_graph(frame_number=frame_number)
+            _ = self.update_graph(frame_number=frame_number)
             self.total_counts = 0
         elif self.type in {"pie", "bar", "area"}:
             self.clswise_count = {}
@@ -116,10 +116,12 @@ class Analytics(BaseSolution):
                     self.clswise_count[self.names[int(cls)]] += 1
                 else:
                     self.clswise_count[self.names[int(cls)]] = 1
-            im0 = self.update_graph(frame_number=frame_number, count_dict=self.clswise_count, plot=self.type)
+            _ = self.update_graph(frame_number=frame_number, count_dict=self.clswise_count, plot=self.type)
         else:
             raise ModuleNotFoundError(f"{self.type} chart is not supported ❌")
-        return im0
+
+        # return output dictionary with summary for more usage
+        return SolutionResults(total_tracks=len(self.track_ids), classwise_count=self.clswise_count).summary()
 
     def update_graph(self, frame_number, count_dict=None, plot="line"):
         """

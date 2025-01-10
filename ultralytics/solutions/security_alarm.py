@@ -1,8 +1,8 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-from ultralytics.solutions.solutions import BaseSolution
+from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
 from ultralytics.utils import LOGGER
-from ultralytics.utils.plotting import Annotator, colors
+from ultralytics.utils.plotting import colors
 
 
 class SecurityAlarm(BaseSolution):
@@ -126,7 +126,7 @@ class SecurityAlarm(BaseSolution):
             >>> frame = cv2.imread("path/to/image.jpg")
             >>> processed_frame = alarm.monitor(frame)
         """
-        self.annotator = Annotator(im0, line_width=self.line_width)  # Initialize annotator
+        self.annotator = SolutionAnnotator(im0, line_width=self.line_width)  # Initialize annotator
         self.extract_tracks(im0)  # Extract tracks
 
         # Iterate over bounding boxes, track ids and classes index
@@ -141,4 +141,5 @@ class SecurityAlarm(BaseSolution):
 
         self.display_output(im0)  # display output with base class function
 
-        return im0  # return output image for more usage
+        # return output dictionary with summary for more usage
+        return SolutionResults(total_tracks=len(self.track_ids), email_sent=self.email_sent).summary()

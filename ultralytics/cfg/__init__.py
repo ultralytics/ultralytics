@@ -473,8 +473,7 @@ def check_dict_alignment(base: Dict, custom: Dict, e=None):
     """
     custom = _handle_deprecation(custom)
     base_keys, custom_keys = (set(x.keys()) for x in (base, custom))
-    mismatched = [k for k in custom_keys if k not in base_keys]
-    if mismatched:
+    if mismatched := [k for k in custom_keys if k not in base_keys]:
         from difflib import get_close_matches
 
         string = ""

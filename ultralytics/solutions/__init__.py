@@ -28,5 +28,5 @@ __all__ = (
     "RegionCounter",
     "TrackZone",
     "SecurityAlarm",
-    "ObjectCropper"
+    "ObjectCropper",
 )

@@ -40,18 +40,18 @@ Object cropping with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
 
         ```python
         import cv2
-        
+
         from ultralytics import solutions
-        
+
         cap = cv2.VideoCapture("path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
-        
+
         # Init ObjectCropper
         cropper = solutions.ObjectCropper(
             model="yolo11n.pt",  # model="yolo11s.pt" for object cropping using YOLO11 model.
             classes=[0, 2],  # If you want to crop specific classes i.e. person and car with COCO pretrained model.
-            )
-        
+        )
+
         # Process video
         while cap.isOpened():
             success, im0 = cap.read()
@@ -59,10 +59,9 @@ Object cropping with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
                 print("Video frame is empty or video processing has been successfully completed.")
                 break
             im0 = cropper.crop(im0)
-        
+
         cap.release()
         cv2.destroyAllWindows()
-
         ```
 
 ### Arguments `model.predict`

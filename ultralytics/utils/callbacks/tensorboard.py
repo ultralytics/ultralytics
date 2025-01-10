@@ -77,7 +77,7 @@ def on_pretrain_routine_start(trainer):
                 log_dir = str(SETTINGS["tensorboard_logdir"])
             else:
                 log_dir = str(trainer.save_dir)
-            
+
             WRITER = SummaryWriter(log_dir)
             LOGGER.info(f"{PREFIX}Start with 'tensorboard --logdir {log_dir}', view at http://localhost:6006/")
         except Exception as e:

@@ -3,7 +3,7 @@
 # Image is CPU-optimized for ONNX, OpenVINO and PyTorch YOLO11 deployments
 
 # Use official Python base image for reproducibility (3.11.10 for export and 3.12.6 for inference)
-FROM python:3.11.10-slim-bookworm
+FROM python:3.12.8-slim-bookworm
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1 \

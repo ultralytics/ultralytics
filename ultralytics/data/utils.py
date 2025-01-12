@@ -60,8 +60,7 @@ def exif_size(img: Image.Image):
     s = img.size  # (width, height)
     if img.format == "JPEG":  # only support JPEG images
         try:
-            exif = img.getexif()
-            if exif:
+            if exif := img.getexif():
                 rotation = exif.get(274, None)  # the EXIF key for the orientation tag is 274
                 if rotation in {6, 8}:  # rotation 270 or 90
                     s = s[1], s[0]
@@ -125,8 +124,7 @@ def verify_image_label(args):
                     segments = [np.array(x[1:], dtype=np.float32).reshape(-1, 2) for x in lb]  # (cls, xy1...)
                     lb = np.concatenate((classes.reshape(-1, 1), segments2boxes(segments)), 1)  # (cls, xywh)
                 lb = np.array(lb, dtype=np.float32)
-            nl = len(lb)
-            if nl:
+            if nl := len(lb):
                 if keypoint:
                     assert lb.shape[1] == (5 + nkpt * ndim), f"labels require {(5 + nkpt * ndim)} columns each"
                     points = lb[:, 5:].reshape(-1, ndim)[:, :2]
@@ -165,6 +163,55 @@ def verify_image_label(args):
         nc = 1
         msg = f"{prefix}WARNING ⚠️ {im_file}: ignoring corrupt image/label: {e}"
         return [None, None, None, None, None, nm, nf, ne, nc, msg]
+
+
+def visualize_image_annotations(image_path, txt_path, label_map):
+    """
+    Visualizes YOLO annotations (bounding boxes and class labels) on an image.
+
+    This function reads an image and its corresponding annotation file in YOLO format, then
+    draws bounding boxes around detected objects and labels them with their respective class names.
+    The bounding box colors are assigned based on the class ID, and the text color is dynamically
+    adjusted for readability, depending on the background color's luminance.
+
+    Args:
+        image_path (str): The path to the image file to annotate, and it can be in formats supported by PIL (e.g., .jpg, .png).
+        txt_path (str): The path to the annotation file in YOLO format, that should contain one line per object with:
+                        - class_id (int): The class index.
+                        - x_center (float): The X center of the bounding box (relative to image width).
+                        - y_center (float): The Y center of the bounding box (relative to image height).
+                        - width (float): The width of the bounding box (relative to image width).
+                        - height (float): The height of the bounding box (relative to image height).
+        label_map (dict): A dictionary that maps class IDs (integers) to class labels (strings).
+
+    Example:
+        >>> label_map = {0: "cat", 1: "dog", 2: "bird"}  # It should include all annotated classes details
+        >>> visualize_image_annotations("path/to/image.jpg", "path/to/annotations.txt", label_map)
+    """
+    import matplotlib.pyplot as plt
+
+    from ultralytics.utils.plotting import colors
+
+    img = np.array(Image.open(image_path))
+    img_height, img_width = img.shape[:2]
+    annotations = []
+    with open(txt_path) as file:
+        for line in file:
+            class_id, x_center, y_center, width, height = map(float, line.split())
+            x = (x_center - width / 2) * img_width
+            y = (y_center - height / 2) * img_height
+            w = width * img_width
+            h = height * img_height
+            annotations.append((x, y, w, h, int(class_id)))
+    fig, ax = plt.subplots(1)  # Plot the image and annotations
+    for x, y, w, h, label in annotations:
+        color = tuple(c / 255 for c in colors(label, True))  # Get and normalize the RGB color
+        rect = plt.Rectangle((x, y), w, h, linewidth=2, edgecolor=color, facecolor="none")  # Create a rectangle
+        ax.add_patch(rect)
+        luminance = 0.2126 * color[0] + 0.7152 * color[1] + 0.0722 * color[2]  # Formula for luminance
+        ax.text(x, y - 5, label_map[label], color="white" if luminance < 0.5 else "black", backgroundcolor=color)
+    ax.imshow(img)
+    plt.show()
 
 
 def polygon2mask(imgsz, polygons, color=1, downsample_ratio=1):
@@ -402,7 +449,7 @@ def check_cls_dataset(dataset, split=""):
 
     # Print to console
     for k, v in {"train": train_set, "val": val_set, "test": test_set}.items():
-        prefix = f'{colorstr(f"{k}:")} {v}...'
+        prefix = f"{colorstr(f'{k}:')} {v}..."
         if v is None:
             LOGGER.info(prefix)
         else:
@@ -470,7 +517,7 @@ class HUBDatasetStats:
             except Exception as e:
                 raise Exception("error/HUB/dataset_stats/init") from e
 
-        self.hub_dir = Path(f'{data["path"]}-hub')
+        self.hub_dir = Path(f"{data['path']}-hub")
         self.im_dir = self.hub_dir / "images"
         self.stats = {"nc": len(data["names"]), "names": list(data["names"].values())}  # statistics dictionary
         self.data = data
@@ -482,7 +529,7 @@ class HUBDatasetStats:
             return False, None, path
         unzip_dir = unzip_file(path, path=path.parent)
         assert unzip_dir.is_dir(), (
-            f"Error unzipping {path}, {unzip_dir} not found. " f"path/to/abc.zip MUST unzip to path/to/abc/"
+            f"Error unzipping {path}, {unzip_dir} not found. path/to/abc.zip MUST unzip to path/to/abc/"
         )
         return True, str(unzip_dir), find_dataset_yaml(unzip_dir)  # zipped, data_dir, yaml_path
 

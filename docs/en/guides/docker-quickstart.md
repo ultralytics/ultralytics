@@ -38,17 +38,17 @@ Ultralytics, a Docker Verified Publisher, offers a collection of ready-to-use Do
 
 Below is a detailed list of the available Docker images provided by Ultralytics, including their specific use-cases and compatibility:
 
-| Tags                                             | Dockerfile                          | GPU | Architecture | Description                                                      |
-| ------------------------------------------------ | ----------------------------------- | --- | ------------ | ---------------------------------------------------------------- |
+| Tags                                             | Dockerfile                          | GPU | Architecture                                               | Description                                                      |
+| ------------------------------------------------ | ----------------------------------- | --- | ---------------------------------------------------------- | ---------------------------------------------------------------- |
 | `ultralytics/ultralytics:latest`                 | `docker/Dockerfile`                 | ✅  | ![Static Badge](https://img.shields.io/badge/amd64-8A2BE2) | Default image for training and inference with YOLO models.       |
 | `ultralytics/ultralytics:latest-jupyter`         | `docker/Dockerfile-jupyter`         | ✅  | ![Static Badge](https://img.shields.io/badge/amd64-8A2BE2) | Jupyter notebook environment for interactive development.        |
-| `ultralytics/ultralytics:latest-cpu`             | `docker/Dockerfile-cpu`             | ❌  | ![Static Badge](https://img.shields.io/badge/amd64-8A2BE2)| CPU-only version for inference and non-GPU environments.         |
-| `ultralytics/ultralytics:latest-arm64`           | `docker/Dockerfile-arm64`           | ❌  | ![Static Badge](https://img.shields.io/badge/arm64-2a40a3)  | For ARM64 architecture, suitable for devices like Raspberry Pi.  |
-| `ultralytics/ultralytics:latest-jetson-jetpack4` | `docker/Dockerfile-jetson-jetpack4` | ❌  | ![Static Badge](https://img.shields.io/badge/arm64-2a40a3)| Optimized for NVIDIA Jetson devices.                             |
+| `ultralytics/ultralytics:latest-cpu`             | `docker/Dockerfile-cpu`             | ❌  | ![Static Badge](https://img.shields.io/badge/amd64-8A2BE2) | CPU-only version for inference and non-GPU environments.         |
+| `ultralytics/ultralytics:latest-arm64`           | `docker/Dockerfile-arm64`           | ❌  | ![Static Badge](https://img.shields.io/badge/arm64-2a40a3) | For ARM64 architecture, suitable for devices like Raspberry Pi.  |
+| `ultralytics/ultralytics:latest-jetson-jetpack4` | `docker/Dockerfile-jetson-jetpack4` | ❌  | ![Static Badge](https://img.shields.io/badge/arm64-2a40a3) | Optimized for NVIDIA Jetson devices.                             |
 | `ultralytics/ultralytics:latest-jetson-jetpack5` | `docker/Dockerfile-jetson-jetpack5` | ❌  | ![Static Badge](https://img.shields.io/badge/arm64-2a40a3) | Optimized for NVIDIA Jetson devices.                             |
-| `ultralytics/ultralytics:latest-jetson-jetpack6` | `docker/Dockerfile-jetson-jetpack6` | ❌  | ![Static Badge](https://img.shields.io/badge/arm64-2a40a3)| Optimized for NVIDIA Jetson devices.                             |
-| `ultralytics/ultralytics:latest-python`          | `docker/Dockerfile-python`          | ❌  | ![Static Badge](https://img.shields.io/badge/amd64-8A2BE2)| Minimal Python environment for lightweight applications.         |
-| `ultralytics/ultralytics:latest-conda`           | `docker/Dockerfile-conda`           | ✅  | ![Static Badge](https://img.shields.io/badge/amd64-8A2BE2)| Includes Miniconda3 and Ultralytics package installed via Conda. |
+| `ultralytics/ultralytics:latest-jetson-jetpack6` | `docker/Dockerfile-jetson-jetpack6` | ❌  | ![Static Badge](https://img.shields.io/badge/arm64-2a40a3) | Optimized for NVIDIA Jetson devices.                             |
+| `ultralytics/ultralytics:latest-python`          | `docker/Dockerfile-python`          | ❌  | ![Static Badge](https://img.shields.io/badge/amd64-8A2BE2) | Minimal Python environment for lightweight applications.         |
+| `ultralytics/ultralytics:latest-conda`           | `docker/Dockerfile-conda`           | ✅  | ![Static Badge](https://img.shields.io/badge/amd64-8A2BE2) | Includes Miniconda3 and Ultralytics package installed via Conda. |
 
 ???+ note "Image Naming Convention"
 
@@ -85,7 +85,7 @@ In order to pull and run the `ultralytics/ultralytics:latest` image, run the fol
         ```bash
         docker run -it --ipc=host ultralytics/ultralytics:latest bash
         ```
-    
+
         This command starts a Docker container with the Ultralytics base image, enabling you to run YOLO models. The `--ipc=host` flag allows the container to share the host's IPC namespace, essential for sharing memory between processes. Finally, the `bash` command starts an interactive shell within the container, allowing you to execute commands and interact with the Ultralytics environment.
 
 ---

@@ -528,9 +528,9 @@ class HUBDatasetStats:
         if not str(path).endswith(".zip"):  # path is data.yaml
             return False, None, path
         unzip_dir = unzip_file(path, path=path.parent)
-        assert unzip_dir.is_dir(), (
-            f"Error unzipping {path}, {unzip_dir} not found. path/to/abc.zip MUST unzip to path/to/abc/"
-        )
+        assert (
+            unzip_dir.is_dir()
+        ), f"Error unzipping {path}, {unzip_dir} not found. path/to/abc.zip MUST unzip to path/to/abc/"
         return True, str(unzip_dir), find_dataset_yaml(unzip_dir)  # zipped, data_dir, yaml_path
 
     def _hub_ops(self, f):

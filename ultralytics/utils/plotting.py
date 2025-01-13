@@ -491,7 +491,7 @@ class Annotator:
         """Add rectangle to image (PIL-only)."""
         self.draw.rectangle(xy, fill, outline, width)
 
-    def text(self, xy: list[int], text: str, txt_color=(255, 255, 255), anchor="top", box_style=False):
+    def text(self, xy: List[int], text: str, txt_color=(255, 255, 255), anchor="top", box_style=False):
         """Adds text to an image using PIL or cv2, scaling the text size based on its length."""
         # Scale factor based on text length (adjust multiplier as needed)
         max_length = 20  # Threshold for max scaling

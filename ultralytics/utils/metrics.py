@@ -747,7 +747,7 @@ class Metric(SimpleClass):
 
     def fitness(self, fitness_weights=None):
         """Model fitness as a weighted combination of metrics."""
-        w = fitness_weights if fitness_weights else [0.0, 0.0, 0.1, 0.9] 
+        w = fitness_weights if fitness_weights else [0.0, 0.0, 0.1, 0.9]
         return (np.array(self.mean_results()) * w).sum()
 
     def update(self, results):

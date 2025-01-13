@@ -54,7 +54,7 @@ def select_closest_cond_frames(frame_idx, cond_frame_outputs, max_cond_frame_num
             (t for t in cond_frame_outputs if t not in selected_outputs),
             key=lambda x: abs(x - frame_idx),
         )[:num_remain]
-        selected_outputs |= ((t, cond_frame_outputs[t]) for t in inds_remain)
+        selected_outputs.update((t, cond_frame_outputs[t]) for t in inds_remain)
         unselected_outputs = {t: v for t, v in cond_frame_outputs.items() if t not in selected_outputs}
 
     return selected_outputs, unselected_outputs

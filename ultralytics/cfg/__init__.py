@@ -913,7 +913,12 @@ def entrypoint(debug=""):
     # Task
     task = overrides.pop("task", None)
     if task:
-        if task not in TASKS:
+        if task == "classify" and mode == "track":
+            raise ValueError(
+                f"❌ Classification doesn't support 'mode=track'. Valid modes for classification are"
+                f" {MODES - {'track'}}.\n{CLI_HELP_MSG}"
+            )
+        elif task not in TASKS:
             raise ValueError(f"Invalid 'task={task}'. Valid tasks are {TASKS}.\n{CLI_HELP_MSG}")
         if "model" not in overrides:
             overrides["model"] = TASK2MODEL[task]

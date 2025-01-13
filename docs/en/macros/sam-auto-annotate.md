@@ -1,5 +1,5 @@
 | Argument     | Type        | Default        | Description                                                                                    |
-| ------------ | ----------- | -------------- |------------------------------------------------------------------------------------------------|
+| ------------ | ----------- | -------------- | ---------------------------------------------------------------------------------------------- |
 | `data`       | `str`       | required       | Path to directory containing target images/videos for annotation or segmentation.              |
 | `det_model`  | `str`       | `"yolo11x.pt"` | YOLO detection model path for initial object detection.                                        |
 | `sam_model`  | `str`       | `"sam2_b.pt"`  | SAM2 model path for segmentation (supports t/s/b/l variants and SAM2.1) and mobile_sam models. |

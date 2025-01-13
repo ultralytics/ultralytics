@@ -315,7 +315,6 @@ nav:
           - datasets/track/index.md
   - Solutions 🚀 NEW:
       - solutions/index.md
-      - Analytics: guides/analytics.md
       - Object Counting: guides/object-counting.md
       - Object Cropping: guides/object-cropping.md
       - Object Blurring: guides/object-blurring.md
@@ -329,6 +328,7 @@ nav:
       - Distance Calculation: guides/distance-calculation.md
       - Queue Management: guides/queue-management.md
       - Parking Management: guides/parking-management.md
+      - Analytics: guides/analytics.md
       - Live Inference: guides/streamlit-live-inference.md
       - Track Objects in Zone 🚀 NEW: guides/trackzone.md
   - Guides:
@@ -365,7 +365,7 @@ nav:
           - datasets/explorer/index.md
           - Explorer API: datasets/explorer/api.md
           - Explorer Dashboard Demo: datasets/explorer/dashboard.md
-          - VOC Exploration Example: datasets/explorer/explorer.ipynb
+          - VOC Exploration Example: datasets/explorer/explorer.md
       - YOLOv5:
           - yolov5/index.md
           - Quickstart: yolov5/quickstart_tutorial.md
@@ -661,7 +661,6 @@ plugins:
       add_share_buttons: True
       add_css: False
       default_image: https://raw.githubusercontent.com/ultralytics/assets/main/yolov8/banner-yolov8.png
-  - mkdocs-jupyter
   - redirects:
       redirect_maps:
         hi/index.md: index.md

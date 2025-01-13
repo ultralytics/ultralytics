@@ -6,6 +6,8 @@ keywords: YOLO11, SAHI, Sliced Inference, Object Detection, Ultralytics, High-re
 
 # Ultralytics Docs: Using YOLO11 with SAHI for Sliced Inference
 
+<a href="https://colab.research.google.com/github/ultralytics/notebooks/blob/main/notebooks/how-to-use-ultralytics-yolo-with-sahi.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open SAHI for Sliced Inference In Colab"></a>
+
 Welcome to the Ultralytics documentation on how to use YOLO11 with [SAHI](https://github.com/obss/sahi) (Slicing Aided Hyper Inference). This comprehensive guide aims to furnish you with all the essential knowledge you'll need to implement SAHI alongside YOLO11. We'll deep-dive into what SAHI is, why sliced inference is critical for large-scale applications, and how to integrate these functionalities with YOLO11 for enhanced [object detection](https://www.ultralytics.com/glossary/object-detection) performance.
 
 <p align="center">
@@ -117,7 +119,7 @@ from sahi.predict import get_prediction
 result = get_prediction("demo_data/small-vehicles1.jpeg", detection_model)
 
 # With a numpy image
-result = get_prediction(read_image("demo_data/small-vehicles1.jpeg"), detection_model)
+result_with_np_image = get_prediction(read_image("demo_data/small-vehicles1.jpeg"), detection_model)
 ```
 
 ### Visualize Results
@@ -254,7 +256,7 @@ result.export_visuals(export_dir="demo_data/")
 Image("demo_data/prediction_visual.png")
 ```
 
-This command will save the visualized predictions to the specified directory and you can then load the image to view it in your notebook or application. For a detailed guide, check out the [Standard Inference section](#visualize-results).
+This command will save the visualized predictions to the specified directory, and you can then load the image to view it in your notebook or application. For a detailed guide, check out the [Standard Inference section](#visualize-results).
 
 ### What features does SAHI offer for improving YOLO11 object detection?
 

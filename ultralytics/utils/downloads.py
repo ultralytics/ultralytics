@@ -269,8 +269,7 @@ def get_google_drive_file_info(link):
         for k, v in response.cookies.items():
             if k.startswith("download_warning"):
                 drive_url += f"&confirm={v}"  # v is token
-        cd = response.headers.get("content-disposition")
-        if cd:
+        if cd := response.headers.get("content-disposition"):
             filename = re.findall('filename="(.+)"', cd)[0]
     return drive_url, filename
 

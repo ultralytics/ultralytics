@@ -73,8 +73,8 @@ class Predictor(BasePredictor):
         >>> predictor = Predictor()
         >>> predictor.setup_model(model_path="sam_model.pt")
         >>> predictor.set_image("image.jpg")
-        >>> masks, scores, boxes = predictor.generate()
-        >>> results = predictor.postprocess((masks, scores, boxes), im, orig_img)
+        >>> bboxes = [[100, 100, 200, 200]]
+        >>> results = predictor(bboxes=bboxes)
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
@@ -91,9 +91,9 @@ class Predictor(BasePredictor):
             _callbacks (Dict | None): Dictionary of callback functions to customize behavior.
 
         Examples:
-            >>> predictor = Predictor(cfg=DEFAULT_CFG)
-            >>> predictor = Predictor(overrides={"imgsz": 640})
-            >>> predictor = Predictor(_callbacks={"on_predict_start": custom_callback})
+            >>> predictor_example = Predictor(cfg=DEFAULT_CFG)
+            >>> predictor_example_with_imgsz = Predictor(overrides={"imgsz": 640})
+            >>> predictor_example_with_callback = Predictor(_callbacks={"on_predict_start": custom_callback})
         """
         if overrides is None:
             overrides = {}
@@ -191,7 +191,7 @@ class Predictor(BasePredictor):
             >>> predictor = Predictor()
             >>> predictor.setup_model(model_path="sam_model.pt")
             >>> predictor.set_image("image.jpg")
-            >>> masks, scores, logits = predictor.inference(im, bboxes=[[0, 0, 100, 100]])
+            >>> results = predictor(bboxes=[[0, 0, 100, 100]])
         """
         # Override prompts if any stored in self.prompts
         bboxes = self.prompts.pop("bboxes", bboxes)
@@ -215,7 +215,7 @@ class Predictor(BasePredictor):
             im (torch.Tensor): Preprocessed input image tensor with shape (N, C, H, W).
             bboxes (np.ndarray | List | None): Bounding boxes in XYXY format with shape (N, 4).
             points (np.ndarray | List | None): Points indicating object locations with shape (N, 2) or (N, num_points, 2), in pixels.
-            labels (np.ndarray | List | None): Point prompt labels with shape (N,) or (N, num_points). 1 for foreground, 0 for background.
+            labels (np.ndarray | List | None): Point prompt labels with shape (N) or (N, num_points). 1 for foreground, 0 for background.
             masks (np.ndarray | None): Low-res masks from previous predictions with shape (N, H, W). For SAM, H=W=256.
             multimask_output (bool): Flag to return multiple masks for ambiguous prompts.
 
@@ -260,7 +260,7 @@ class Predictor(BasePredictor):
             dst_shape (tuple): The target shape (height, width) for the prompts.
             bboxes (np.ndarray | List | None): Bounding boxes in XYXY format with shape (N, 4).
             points (np.ndarray | List | None): Points indicating object locations with shape (N, 2) or (N, num_points, 2), in pixels.
-            labels (np.ndarray | List | None): Point prompt labels with shape (N,) or (N, num_points). 1 for foreground, 0 for background.
+            labels (np.ndarray | List | None): Point prompt labels with shape (N) or (N, num_points). 1 for foreground, 0 for background.
             masks (List | np.ndarray, Optional): Masks for the objects, where each mask is a 2D array.
 
         Raises:
@@ -279,9 +279,9 @@ class Predictor(BasePredictor):
             if labels is None:
                 labels = np.ones(points.shape[:-1])
             labels = torch.as_tensor(labels, dtype=torch.int32, device=self.device)
-            assert (
-                points.shape[-2] == labels.shape[-1]
-            ), f"Number of points {points.shape[-2]} should match number of labels {labels.shape[-1]}."
+            assert points.shape[-2] == labels.shape[-1], (
+                f"Number of points {points.shape[-2]} should match number of labels {labels.shape[-1]}."
+            )
             points *= r
             if points.ndim == 2:
                 # (N, 2) --> (N, 1, 2), (N, ) --> (N, 1)
@@ -552,9 +552,9 @@ class Predictor(BasePredictor):
 
     def get_im_features(self, im):
         """Extracts image features using the SAM model's image encoder for subsequent mask prediction."""
-        assert (
-            isinstance(self.imgsz, (tuple, list)) and self.imgsz[0] == self.imgsz[1]
-        ), f"SAM models only support square image size, but got {self.imgsz}."
+        assert isinstance(self.imgsz, (tuple, list)) and self.imgsz[0] == self.imgsz[1], (
+            f"SAM models only support square image size, but got {self.imgsz}."
+        )
         self.model.set_imgsz(self.imgsz)
         return self.model.image_encoder(im)
 
@@ -646,8 +646,8 @@ class SAM2Predictor(Predictor):
         >>> predictor = SAM2Predictor(cfg)
         >>> predictor.set_image("path/to/image.jpg")
         >>> bboxes = [[100, 100, 200, 200]]
-        >>> masks, scores, _ = predictor.prompt_inference(predictor.im, bboxes=bboxes)
-        >>> print(f"Predicted {len(masks)} masks with average score {scores.mean():.2f}")
+        >>> result = predictor(bboxes=bboxes)[0]
+        >>> print(f"Predicted {len(result.masks)} masks with average score {result.boxes.conf.mean():.2f}")
     """
 
     _bb_feat_sizes = [
@@ -694,8 +694,8 @@ class SAM2Predictor(Predictor):
             >>> predictor = SAM2Predictor(cfg)
             >>> image = torch.rand(1, 3, 640, 640)
             >>> bboxes = [[100, 100, 200, 200]]
-            >>> masks, scores, logits = predictor.prompt_inference(image, bboxes=bboxes)
-            >>> print(f"Generated {masks.shape[0]} masks with average score {scores.mean():.2f}")
+            >>> result = predictor(image, bboxes=bboxes)[0]
+            >>> print(f"Generated {result.masks.shape[0]} masks with average score {result.boxes.conf.mean():.2f}")
 
         Notes:
             - The method supports batched inference for multiple objects when points or bboxes are provided.
@@ -795,9 +795,9 @@ class SAM2Predictor(Predictor):
 
     def get_im_features(self, im):
         """Extracts image features from the SAM image encoder for subsequent processing."""
-        assert (
-            isinstance(self.imgsz, (tuple, list)) and self.imgsz[0] == self.imgsz[1]
-        ), f"SAM 2 models only support square image size, but got {self.imgsz}."
+        assert isinstance(self.imgsz, (tuple, list)) and self.imgsz[0] == self.imgsz[1], (
+            f"SAM 2 models only support square image size, but got {self.imgsz}."
+        )
         self.model.set_imgsz(self.imgsz)
         self._bb_feat_sizes = [[x // (4 * i) for x in self.imgsz] for i in [1, 2, 4]]
 
@@ -853,8 +853,8 @@ class SAM2VideoPredictor(SAM2Predictor):
 
         Examples:
             >>> predictor = SAM2VideoPredictor(cfg=DEFAULT_CFG)
-            >>> predictor = SAM2VideoPredictor(overrides={"imgsz": 640})
-            >>> predictor = SAM2VideoPredictor(_callbacks={"on_predict_start": custom_callback})
+            >>> predictor_example_with_imgsz = SAM2VideoPredictor(overrides={"imgsz": 640})
+            >>> predictor_example_with_callback = SAM2VideoPredictor(_callbacks={"on_predict_start": custom_callback})
         """
         super().__init__(cfg, overrides, _callbacks)
         self.inference_state = {}
@@ -1096,7 +1096,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         # to `propagate_in_video_preflight`).
         consolidated_frame_inds = self.inference_state["consolidated_frame_inds"]
         for is_cond in {False, True}:
-            # Separately consolidate conditioning and non-conditioning temp outptus
+            # Separately consolidate conditioning and non-conditioning temp outputs
             storage_key = "cond_frame_outputs" if is_cond else "non_cond_frame_outputs"
             # Find all the frames that contain temporary outputs for any objects
             # (these should be the frames that have just received clicks for mask inputs
@@ -1161,36 +1161,35 @@ class SAM2VideoPredictor(SAM2Predictor):
         assert predictor.dataset is not None
         assert predictor.dataset.mode == "video"
 
-        inference_state = {}
-        inference_state["num_frames"] = predictor.dataset.frames
-        # inputs on each frame
-        inference_state["point_inputs_per_obj"] = {}
-        inference_state["mask_inputs_per_obj"] = {}
-        # values that don't change across frames (so we only need to hold one copy of them)
-        inference_state["constants"] = {}
-        # mapping between client-side object id and model-side object index
-        inference_state["obj_id_to_idx"] = OrderedDict()
-        inference_state["obj_idx_to_id"] = OrderedDict()
-        inference_state["obj_ids"] = []
-        # A storage to hold the model's tracking results and states on each frame
-        inference_state["output_dict"] = {
-            "cond_frame_outputs": {},  # dict containing {frame_idx: <out>}
-            "non_cond_frame_outputs": {},  # dict containing {frame_idx: <out>}
+        inference_state = {
+            "num_frames": predictor.dataset.frames,
+            "point_inputs_per_obj": {},  # inputs points on each frame
+            "mask_inputs_per_obj": {},  # inputs mask on each frame
+            "constants": {},  # values that don't change across frames (so we only need to hold one copy of them)
+            # mapping between client-side object id and model-side object index
+            "obj_id_to_idx": OrderedDict(),
+            "obj_idx_to_id": OrderedDict(),
+            "obj_ids": [],
+            # A storage to hold the model's tracking results and states on each frame
+            "output_dict": {
+                "cond_frame_outputs": {},  # dict containing {frame_idx: <out>}
+                "non_cond_frame_outputs": {},  # dict containing {frame_idx: <out>}
+            },
+            # Slice (view) of each object tracking results, sharing the same memory with "output_dict"
+            "output_dict_per_obj": {},
+            # A temporary storage to hold new outputs when user interact with a frame
+            # to add clicks or mask (it's merged into "output_dict" before propagation starts)
+            "temp_output_dict_per_obj": {},
+            # Frames that already holds consolidated outputs from click or mask inputs
+            # (we directly use their consolidated outputs during tracking)
+            "consolidated_frame_inds": {
+                "cond_frame_outputs": set(),  # set containing frame indices
+                "non_cond_frame_outputs": set(),  # set containing frame indices
+            },
+            # metadata for each tracking frame (e.g. which direction it's tracked)
+            "tracking_has_started": False,
+            "frames_already_tracked": [],
         }
-        # Slice (view) of each object tracking results, sharing the same memory with "output_dict"
-        inference_state["output_dict_per_obj"] = {}
-        # A temporary storage to hold new outputs when user interact with a frame
-        # to add clicks or mask (it's merged into "output_dict" before propagation starts)
-        inference_state["temp_output_dict_per_obj"] = {}
-        # Frames that already holds consolidated outputs from click or mask inputs
-        # (we directly use their consolidated outputs during tracking)
-        inference_state["consolidated_frame_inds"] = {
-            "cond_frame_outputs": set(),  # set containing frame indices
-            "non_cond_frame_outputs": set(),  # set containing frame indices
-        }
-        # metadata for each tracking frame (e.g. which direction it's tracked)
-        inference_state["tracking_has_started"] = False
-        inference_state["frames_already_tracked"] = []
         predictor.inference_state = inference_state
 
     def get_im_features(self, im, batch=1):

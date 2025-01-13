@@ -62,8 +62,7 @@ class Inference:
         self.selected_ind = []  # List of selected classes for detection or tracking
         self.model = None  # Container for the loaded model instance
 
-        self.temp_dict = {"model": None}  # Temporary dict to store the model path
-        self.temp_dict.update(kwargs)
+        self.temp_dict = {"model": None, **kwargs}
         self.model_path = None  # Store model file name with path
         if self.temp_dict["model"] is not None:
             self.model_path = self.temp_dict["model"]
@@ -184,12 +183,8 @@ class Inference:
 if __name__ == "__main__":
     import sys  # Import the sys module for accessing command-line arguments
 
-    model = None  # Initialize the model variable as None
-
     # Check if a model name is provided as a command-line argument
     args = len(sys.argv)
-    if args > 1:
-        model = sys.argv[1]  # Assign the first argument as the model name
-
+    model = sys.argv[1] if args > 1 else None  # assign first argument as the model name
     # Create an instance of the Inference class and run inference
     Inference(model=model).inference()

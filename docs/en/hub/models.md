@@ -221,6 +221,16 @@ Furthermore, you can preview your model in real-time directly on your [iOS](http
 
 After you [train a model](#train-model), you can export it to 13 different formats, including ONNX, OpenVINO, CoreML, [TensorFlow](https://www.ultralytics.com/glossary/tensorflow), Paddle and many others.
 
+<p align="center">
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/K69DUpSBNdA"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to Export the Ultralytics YOLO11 to ONNX, OpenVINO and Other Formats using Ultralytics HUB 🚀
+</p>
+
 ![Ultralytics HUB screenshot of the Deploy tab inside the Model page with an arrow pointing to the Export card and all formats exported](https://github.com/ultralytics/docs/releases/download/0/ultralytics-hub-deploy-export-formats.avif)
 
 ??? tip

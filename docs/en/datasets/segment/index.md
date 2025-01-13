@@ -142,7 +142,7 @@ To auto-annotate your dataset using the Ultralytics framework, you can use the `
 
 {% include "macros/sam-auto-annotate.md" %}
 
-The `auto_annotate` function takes the path to your images, along with optional arguments for specifying the pre-trained detection and [SAM](../../models/sam.md)/[MobileSAM](../../models/mobile-sam.md) segmentation models, the device to run the models on, and the output directory for saving the annotated results.
+The `auto_annotate` function takes the path to your images, along with optional arguments for specifying the pre-trained detection models i.e [YOLO11](../../models/yolo11.md), [YOLOv8](../../models/yolov8.md) or other models  and [SAM](../../models/sam.md), [SAM2](../../models/sam-2.md) or [MobileSAM](../../models/mobile-sam.md) segmentation models, the device to run the models on, and the output directory for saving the annotated results.
 
 By leveraging the power of pre-trained models, auto-annotation can significantly reduce the time and effort required for creating high-quality segmentation datasets. This feature is particularly useful for researchers and developers working with large image collections, as it allows them to focus on model development and evaluation rather than manual annotation.
 

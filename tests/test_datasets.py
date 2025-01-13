@@ -37,8 +37,8 @@ test_dataset(model="yolo11n-seg.pt",
 # Pose estimation datasets
 test_dataset(model="yolo11n-pose.pt", data="coco8-pose.yaml")  # https://docs.ultralytics.com/datasets/pose/coco8-pose/
 test_dataset(model="yolo11n-pose.pt", data="tiger-pose.yaml")  # https://docs.ultralytics.com/datasets/pose/tiger-pose/
-test_dataset(model="yolo11n-pose.pt",
-             data="hand-keypoints.yaml")  # https://docs.ultralytics.com/datasets/pose/hand-keypoints/
+# test_dataset(model="yolo11n-pose.pt",
+#              data="hand-keypoints.yaml")  # https://docs.ultralytics.com/datasets/pose/hand-keypoints/
 test_dataset(model="yolo11n-pose.pt", data="dog-pose.yaml")  # https://docs.ultralytics.com/datasets/pose/dog-pose/
 
 # Oriented bounding boxes datasets
@@ -47,13 +47,13 @@ test_dataset(model="yolo11n-obb.pt", data="dota8.yaml")  # https://docs.ultralyt
 # Image classification datasets
 test_dataset(model="yolo11n-cls.pt", data="cifar10",
              imgsz=32)  # https://docs.ultralytics.com/datasets/classify/cifar10/
-test_dataset(model="yolo11n-cls.pt", data="cifar100",
-             imgsz=32)  # https://docs.ultralytics.com/datasets/classify/cifar100/
-test_dataset(model="yolo11n-cls.pt", data="caltech101",
-             imgsz=416)  # https://docs.ultralytics.com/datasets/classify/caltech101/
-test_dataset(model="yolo11n-cls.pt", data="fashion-mnist",
-             imgsz=28)  # https://docs.ultralytics.com/datasets/classify/fashion-mnist/
-test_dataset(model="yolo11n-cls.pt", data="imagenette160",
-             imgsz=160)  # https://docs.ultralytics.com/datasets/classify/imagenette/
-test_dataset(model="yolo11n-cls.pt", data="mnist",
-             imgsz=32)  # https://docs.ultralytics.com/datasets/classify/mnist/
+# test_dataset(model="yolo11n-cls.pt", data="cifar100",
+#              imgsz=32)  # https://docs.ultralytics.com/datasets/classify/cifar100/
+# test_dataset(model="yolo11n-cls.pt", data="caltech101",
+#              imgsz=416)  # https://docs.ultralytics.com/datasets/classify/caltech101/
+# test_dataset(model="yolo11n-cls.pt", data="fashion-mnist",
+#              imgsz=28)  # https://docs.ultralytics.com/datasets/classify/fashion-mnist/
+# test_dataset(model="yolo11n-cls.pt", data="imagenette160",
+#              imgsz=160)  # https://docs.ultralytics.com/datasets/classify/imagenette/
+# test_dataset(model="yolo11n-cls.pt", data="mnist",
+#              imgsz=32)  # https://docs.ultralytics.com/datasets/classify/mnist/

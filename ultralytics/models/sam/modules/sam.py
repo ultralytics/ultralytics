@@ -425,7 +425,7 @@ class SAM2Model(torch.nn.Module):
                 low_res_masks: Tensor of shape (B, 1, H*4, W*4) with the best low-resolution mask.
                 high_res_masks: Tensor of shape (B, 1, H*16, W*16) with the best high-resolution mask.
                 obj_ptr: Tensor of shape (B, C) with object pointer vector for the output mask.
-                object_score_logits: Tensor of shape (B,) with object score logits.
+                object_score_logits: Tensor of shape (B) with object score logits.
 
             Where M is 3 if multimask_output=True, and 1 if multimask_output=False.
 
@@ -643,7 +643,7 @@ class SAM2Model(torch.nn.Module):
         if not is_init_cond_frame:
             # Retrieve the memories encoded with the maskmem backbone
             to_cat_memory, to_cat_memory_pos_embed = [], []
-            # Add conditioning frames's output first (all cond frames have t_pos=0 for
+            # Add conditioning frame's output first (all cond frames have t_pos=0 for
             # when getting temporal positional embedding below)
             assert len(output_dict["cond_frame_outputs"]) > 0
             # Select a maximum number of temporally closest cond frames for cross attention

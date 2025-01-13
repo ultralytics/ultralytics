@@ -73,8 +73,8 @@ class Predictor(BasePredictor):
         >>> predictor = Predictor()
         >>> predictor.setup_model(model_path="sam_model.pt")
         >>> predictor.set_image("image.jpg")
-        >>> masks, scores, boxes = predictor.generate()
-        >>> results = predictor.postprocess((masks, scores, boxes), im, orig_img)
+        >>> bboxes = [[100, 100, 200, 200]]
+        >>> results = predictor(bboxes=bboxes)
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
@@ -191,7 +191,7 @@ class Predictor(BasePredictor):
             >>> predictor = Predictor()
             >>> predictor.setup_model(model_path="sam_model.pt")
             >>> predictor.set_image("image.jpg")
-            >>> masks, scores, logits = predictor.inference(im, bboxes=[[0, 0, 100, 100]])
+            >>> results = predictor(bboxes=[[0, 0, 100, 100]])
         """
         # Override prompts if any stored in self.prompts
         bboxes = self.prompts.pop("bboxes", bboxes)
@@ -279,9 +279,9 @@ class Predictor(BasePredictor):
             if labels is None:
                 labels = np.ones(points.shape[:-1])
             labels = torch.as_tensor(labels, dtype=torch.int32, device=self.device)
-            assert (
-                points.shape[-2] == labels.shape[-1]
-            ), f"Number of points {points.shape[-2]} should match number of labels {labels.shape[-1]}."
+            assert points.shape[-2] == labels.shape[-1], (
+                f"Number of points {points.shape[-2]} should match number of labels {labels.shape[-1]}."
+            )
             points *= r
             if points.ndim == 2:
                 # (N, 2) --> (N, 1, 2), (N, ) --> (N, 1)
@@ -552,9 +552,9 @@ class Predictor(BasePredictor):
 
     def get_im_features(self, im):
         """Extracts image features using the SAM model's image encoder for subsequent mask prediction."""
-        assert (
-            isinstance(self.imgsz, (tuple, list)) and self.imgsz[0] == self.imgsz[1]
-        ), f"SAM models only support square image size, but got {self.imgsz}."
+        assert isinstance(self.imgsz, (tuple, list)) and self.imgsz[0] == self.imgsz[1], (
+            f"SAM models only support square image size, but got {self.imgsz}."
+        )
         self.model.set_imgsz(self.imgsz)
         return self.model.image_encoder(im)
 
@@ -646,8 +646,8 @@ class SAM2Predictor(Predictor):
         >>> predictor = SAM2Predictor(cfg)
         >>> predictor.set_image("path/to/image.jpg")
         >>> bboxes = [[100, 100, 200, 200]]
-        >>> masks, scores, _ = predictor.prompt_inference(predictor.im, bboxes=bboxes)
-        >>> print(f"Predicted {len(masks)} masks with average score {scores.mean():.2f}")
+        >>> result = predictor(bboxes=bboxes)[0]
+        >>> print(f"Predicted {len(result.masks)} masks with average score {result.boxes.conf.mean():.2f}")
     """
 
     _bb_feat_sizes = [
@@ -694,8 +694,8 @@ class SAM2Predictor(Predictor):
             >>> predictor = SAM2Predictor(cfg)
             >>> image = torch.rand(1, 3, 640, 640)
             >>> bboxes = [[100, 100, 200, 200]]
-            >>> masks, scores, logits = predictor.prompt_inference(image, bboxes=bboxes)
-            >>> print(f"Generated {masks.shape[0]} masks with average score {scores.mean():.2f}")
+            >>> result = predictor(image, bboxes=bboxes)[0]
+            >>> print(f"Generated {result.masks.shape[0]} masks with average score {result.boxes.conf.mean():.2f}")
 
         Notes:
             - The method supports batched inference for multiple objects when points or bboxes are provided.
@@ -795,9 +795,9 @@ class SAM2Predictor(Predictor):
 
     def get_im_features(self, im):
         """Extracts image features from the SAM image encoder for subsequent processing."""
-        assert (
-            isinstance(self.imgsz, (tuple, list)) and self.imgsz[0] == self.imgsz[1]
-        ), f"SAM 2 models only support square image size, but got {self.imgsz}."
+        assert isinstance(self.imgsz, (tuple, list)) and self.imgsz[0] == self.imgsz[1], (
+            f"SAM 2 models only support square image size, but got {self.imgsz}."
+        )
         self.model.set_imgsz(self.imgsz)
         self._bb_feat_sizes = [[x // (4 * i) for x in self.imgsz] for i in [1, 2, 4]]
 

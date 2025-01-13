@@ -60,8 +60,7 @@ def exif_size(img: Image.Image):
     s = img.size  # (width, height)
     if img.format == "JPEG":  # only support JPEG images
         try:
-            exif = img.getexif()
-            if exif:
+            if exif := img.getexif():
                 rotation = exif.get(274, None)  # the EXIF key for the orientation tag is 274
                 if rotation in {6, 8}:  # rotation 270 or 90
                     s = s[1], s[0]
@@ -125,8 +124,7 @@ def verify_image_label(args):
                     segments = [np.array(x[1:], dtype=np.float32).reshape(-1, 2) for x in lb]  # (cls, xy1...)
                     lb = np.concatenate((classes.reshape(-1, 1), segments2boxes(segments)), 1)  # (cls, xywh)
                 lb = np.array(lb, dtype=np.float32)
-            nl = len(lb)
-            if nl:
+            if nl := len(lb):
                 if keypoint:
                     assert lb.shape[1] == (5 + nkpt * ndim), f"labels require {(5 + nkpt * ndim)} columns each"
                     points = lb[:, 5:].reshape(-1, ndim)[:, :2]
@@ -451,7 +449,7 @@ def check_cls_dataset(dataset, split=""):
 
     # Print to console
     for k, v in {"train": train_set, "val": val_set, "test": test_set}.items():
-        prefix = f'{colorstr(f"{k}:")} {v}...'
+        prefix = f"{colorstr(f'{k}:')} {v}..."
         if v is None:
             LOGGER.info(prefix)
         else:
@@ -519,7 +517,7 @@ class HUBDatasetStats:
             except Exception as e:
                 raise Exception("error/HUB/dataset_stats/init") from e
 
-        self.hub_dir = Path(f'{data["path"]}-hub')
+        self.hub_dir = Path(f"{data['path']}-hub")
         self.im_dir = self.hub_dir / "images"
         self.stats = {"nc": len(data["names"]), "names": list(data["names"].values())}  # statistics dictionary
         self.data = data
@@ -531,7 +529,7 @@ class HUBDatasetStats:
             return False, None, path
         unzip_dir = unzip_file(path, path=path.parent)
         assert unzip_dir.is_dir(), (
-            f"Error unzipping {path}, {unzip_dir} not found. " f"path/to/abc.zip MUST unzip to path/to/abc/"
+            f"Error unzipping {path}, {unzip_dir} not found. path/to/abc.zip MUST unzip to path/to/abc/"
         )
         return True, str(unzip_dir), find_dataset_yaml(unzip_dir)  # zipped, data_dir, yaml_path
 

@@ -617,10 +617,9 @@ class AutoBackend(nn.Module):
                 # box = xywh2xyxy(y['coordinates'] * [[w, h, w, h]])  # xyxy pixels
                 # conf, cls = y['confidence'].max(1), y['confidence'].argmax(1).astype(np.float32)
                 # y = np.concatenate((box, conf.reshape(-1, 1), cls.reshape(-1, 1)), 1)
-            elif len(y) == 1:  # classification model
-                y = list(y.values())
-            elif len(y) == 2:  # segmentation model
-                y = list(reversed(y.values()))  # reversed for segmentation models (pred, proto)
+            y = list(y.values())
+            if len(y) == 2 and len(y[1].shape) != 4:  # segmentation model
+                y = list(reversed(y))  # reversed for segmentation models (pred, proto)
 
         # PaddlePaddle
         elif self.paddle:

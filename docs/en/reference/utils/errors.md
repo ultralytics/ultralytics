@@ -13,4 +13,8 @@ keywords: Ultralytics, YOLO, error handling, HUBModelError, model fetching, cust
 
 ## ::: ultralytics.utils.errors.HUBModelError
 
+<br><br><hr><br>
+
+## ::: ultralytics.utils.errors.DatasetError
+
 <br><br>

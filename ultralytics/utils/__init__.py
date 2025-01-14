@@ -454,6 +454,16 @@ def yaml_save(file="data.yaml", data=None, header=""):
         # Create parent directories if they don't exist
         file.parent.mkdir(parents=True, exist_ok=True)
 
+    # Check for Albumentations objects and serialize
+    try:
+        import albumentations as A
+
+        for k, v in data.items():
+            if isinstance(v, A.BaseCompose):
+                data[k] = A.to_dict(v)
+    except ImportError:
+        pass
+
     # Convert Path objects to strings
     valid_types = int, float, str, bool, list, tuple, dict, type(None)
     for k, v in data.items():

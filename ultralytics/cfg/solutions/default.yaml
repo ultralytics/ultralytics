@@ -4,7 +4,7 @@
 # Object counting settings  --------------------------------------------------------------------------------------------
 region: # list[tuple[int, int]] object counting, queue or speed estimation region points.
 show_in: True # (bool) flag to display objects moving *into* the defined region
-show_out: True # (bool) flag to display objects moving *out* of the defined region
+show_out: True # (bool) flag to display objects moving *out of* the defined region
 
 # Heatmaps settings ----------------------------------------------------------------------------------------------------
 colormap: #  (int | str) colormap for heatmap, Only OPENCV supported colormaps can be used.
@@ -21,7 +21,6 @@ json_file: # (str) parking system regions file path.
 # Dwell Time Analysis
 enable_funnel: False
 funnel_stages: None
-# (Removed 'detect_mode' and 'enable_avg_dwell')
 
 # Security alarm system settings ---------------------------------------------------------------------------------------
 records: 5 # (int) Total detections count to send an email about security

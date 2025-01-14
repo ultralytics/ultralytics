@@ -1185,7 +1185,9 @@ class Timm(nn.Module):
         import timm
 
         super().__init__()
-        self.m = timm.create_model(model, in_chans=c1, out_chans=c2, pretrained=pretrained, features_only=split, img_size=imgsz)
+        self.m = timm.create_model(
+            model, in_chans=c1, out_chans=c2, pretrained=pretrained, features_only=split, img_size=imgsz
+        )
 
     def forward(self, x):
         """Forward pass through the model."""

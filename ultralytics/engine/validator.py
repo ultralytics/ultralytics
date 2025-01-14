@@ -101,6 +101,7 @@ class BaseValidator:
         self.args.imgsz = check_imgsz(self.args.imgsz, max_dim=1)
 
         self.plots = {}
+        self.plot_idx = [0, 1, 2]
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
 
     @smart_inference_mode()
@@ -189,7 +190,7 @@ class BaseValidator:
                 preds = self.postprocess(preds)
 
             self.update_metrics(preds, batch)
-            if self.args.plots and batch_i < 3:
+            if self.args.plots and batch_i in self.plot_idx:
                 self.plot_val_samples(batch, batch_i)
                 self.plot_predictions(batch, preds, batch_i)
 

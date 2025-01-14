@@ -70,7 +70,7 @@ jobs:
             --accept 401,403,429,500,502,999 \
             --exclude-all-private \
             --exclude 'https?://(www\.)?(linkedin\.com|twitter\.com|instagram\.com|kaggle\.com|fonts\.gstatic\.com|url\.com)' \
-            --exclude-path '**/ci.yaml' \
+            --exclude-path '**/ci.yml' \
             --exclude-path docs/zh \
             --exclude-path docs/es \
             --exclude-path docs/ru \

@@ -1,8 +1,6 @@
 from collections import defaultdict
 from typing import Any, Dict, List, Optional, Tuple, Union
 
-import cv2
-
 from ultralytics.solutions.solutions import BaseSolution
 from ultralytics.utils.plotting import Annotator, colors
 

@@ -1170,13 +1170,14 @@ class Timm(nn.Module):
 
     Args:
         c1 (int): Input channels.
-        c2 (): Output channels.
+        c2 (int): Output channels.
         model (str): Name of the timm model to load.
         pretrained (bool): Whether to load pretrained weights.
         split (bool, optional): Returns output from intermediate child modules as list. Default is False.
+        imgsz (int, optional): Defines input image size. Some transformer based backbones can only accept fixed input sizes.
     """
 
-    def __init__(self, c1, c2, model, pretrained=True, split=True):
+    def __init__(self, c1, c2, model, pretrained=True, split=True, imgsz=None):
         """Load the model and weights from timm."""
         from ultralytics.utils.checks import check_requirements
 
@@ -1184,7 +1185,7 @@ class Timm(nn.Module):
         import timm
 
         super().__init__()
-        self.m = timm.create_model(model, in_chans=c1, pretrained=pretrained, features_only=split)
+        self.m = timm.create_model(model, in_chans=c1, out_chans=c2, pretrained=pretrained, features_only=split, img_size=imgsz)
 
     def forward(self, x):
         """Forward pass through the model."""

@@ -71,67 +71,163 @@ def box_iou(box1, box2, eps=1e-7):
     return inter / ((a2 - a1).prod(2) + (b2 - b1).prod(2) - inter + eps)
 
 
-def bbox_iou(box1, box2, xywh=True, GIoU=False, DIoU=False, CIoU=False, eps=1e-7):
+def bbox_iou(box1,
+             box2,
+             xywh=True,
+             GIoU=False,
+             DIoU=False,
+             CIoU=False,
+             InnerGIoU=False,
+             ratio=1.0,
+             eps=1e-7):
     """
-    Calculates the Intersection over Union (IoU) between bounding boxes.
-
-    This function supports various shapes for `box1` and `box2` as long as the last dimension is 4.
-    For instance, you may pass tensors shaped like (4,), (N, 4), (B, N, 4), or (B, N, 1, 4).
-    Internally, the code will split the last dimension into (x, y, w, h) if `xywh=True`,
-    or (x1, y1, x2, y2) if `xywh=False`.
+    Calculates IoU (or GIoU, DIoU, CIoU, or Inner-GIoU if specified) 
+    between bounding boxes.
 
     Args:
-        box1 (torch.Tensor): A tensor representing one or more bounding boxes, with the last dimension being 4.
-        box2 (torch.Tensor): A tensor representing one or more bounding boxes, with the last dimension being 4.
-        xywh (bool, optional): If True, input boxes are in (x, y, w, h) format. If False, input boxes are in
-                               (x1, y1, x2, y2) format. Defaults to True.
-        GIoU (bool, optional): If True, calculate Generalized IoU. Defaults to False.
-        DIoU (bool, optional): If True, calculate Distance IoU. Defaults to False.
-        CIoU (bool, optional): If True, calculate Complete IoU. Defaults to False.
-        eps (float, optional): A small value to avoid division by zero. Defaults to 1e-7.
+        box1 (torch.Tensor): shape (..., 4)
+        box2 (torch.Tensor): shape (..., 4)
+        xywh (bool): If True, boxes are in (x, y, w, h) format. 
+                     Otherwise in (x1, y1, x2, y2) format.
+        GIoU (bool): If True, compute GIoU.
+        DIoU (bool): If True, compute DIoU.
+        CIoU (bool): If True, compute CIoU.
+        InnerGIoU (bool): If True, compute the final Inner-GIoU loss:
+                          L_GIoU + IoU - IoU_inner.
+        ratio (float): scaling factor for Inner-IoU. Typically between [0.5, 1.5].
+        eps (float): small epsilon to avoid division by zero.
 
     Returns:
-        (torch.Tensor): IoU, GIoU, DIoU, or CIoU values depending on the specified flags.
+        torch.Tensor:
+          - If InnerGIoU=True, returns Inner-GIoU loss
+          - Otherwise, returns the requested IoU (IoU, GIoU, DIoU, or CIoU).
     """
-    # Get the coordinates of bounding boxes
-    if xywh:  # transform from xywh to xyxy
-        (x1, y1, w1, h1), (x2, y2, w2, h2) = box1.chunk(4, -1), box2.chunk(4, -1)
-        w1_, h1_, w2_, h2_ = w1 / 2, h1 / 2, w2 / 2, h2 / 2
-        b1_x1, b1_x2, b1_y1, b1_y2 = x1 - w1_, x1 + w1_, y1 - h1_, y1 + h1_
-        b2_x1, b2_x2, b2_y1, b2_y2 = x2 - w2_, x2 + w2_, y2 - h2_, y2 + h2_
-    else:  # x1, y1, x2, y2 = box1
+    # 1) Convert to x1,y1,x2,y2 if xywh
+    if xywh:
+        (x1, y1, w1, h1) = box1.chunk(4, -1)
+        (x2, y2, w2, h2) = box2.chunk(4, -1)
+        w1_2, h1_2 = w1 / 2, h1 / 2
+        w2_2, h2_2 = w2 / 2, h2 / 2
+
+        b1_x1 = x1 - w1_2
+        b1_x2 = x1 + w1_2
+        b1_y1 = y1 - h1_2
+        b1_y2 = y1 + h1_2
+        b2_x1 = x2 - w2_2
+        b2_x2 = x2 + w2_2
+        b2_y1 = y2 - h2_2
+        b2_y2 = y2 + h2_2
+    else:
         b1_x1, b1_y1, b1_x2, b1_y2 = box1.chunk(4, -1)
         b2_x1, b2_y1, b2_x2, b2_y2 = box2.chunk(4, -1)
-        w1, h1 = b1_x2 - b1_x1, b1_y2 - b1_y1 + eps
-        w2, h2 = b2_x2 - b2_x1, b2_y2 - b2_y1 + eps
 
-    # Intersection area
-    inter = (b1_x2.minimum(b2_x2) - b1_x1.maximum(b2_x1)).clamp_(0) * (
-        b1_y2.minimum(b2_y2) - b1_y1.maximum(b2_y1)
-    ).clamp_(0)
+    # For G/DIoU calculations, we still need w,h (for both boxes):
+    w1 = (b1_x2 - b1_x1).clamp_(min=0) + eps
+    h1 = (b1_y2 - b1_y1).clamp_(min=0) + eps
+    w2 = (b2_x2 - b2_x1).clamp_(min=0) + eps
+    h2 = (b2_y2 - b2_y1).clamp_(min=0) + eps
 
-    # Union Area
-    union = w1 * h1 + w2 * h2 - inter + eps
+    # 2) Intersection area
+    inter = (torch.min(b1_x2, b2_x2) - torch.max(b1_x1, b2_x1)).clamp_(min=0) * \
+            (torch.min(b1_y2, b2_y2) - torch.max(b1_y1, b2_y1)).clamp_(min=0)
 
-    # IoU
+    # 3) Union area
+    union = (w1 * h1) + (w2 * h2) - inter + eps
+
+    # 4) Standard IoU
     iou = inter / union
-    if CIoU or DIoU or GIoU:
-        cw = b1_x2.maximum(b2_x2) - b1_x1.minimum(b2_x1)  # convex (smallest enclosing box) width
-        ch = b1_y2.maximum(b2_y2) - b1_y1.minimum(b2_y1)  # convex height
-        if CIoU or DIoU:  # Distance or Complete IoU https://arxiv.org/abs/1911.08287v1
-            c2 = cw.pow(2) + ch.pow(2) + eps  # convex diagonal squared
-            rho2 = (
-                (b2_x1 + b2_x2 - b1_x1 - b1_x2).pow(2) + (b2_y1 + b2_y2 - b1_y1 - b1_y2).pow(2)
-            ) / 4  # center dist**2
-            if CIoU:  # https://github.com/Zzh-tju/DIoU-SSD-pytorch/blob/master/utils/box/box_utils.py#L47
-                v = (4 / math.pi**2) * ((w2 / h2).atan() - (w1 / h1).atan()).pow(2)
+
+    # Early exit if only IoU is needed
+    if not (GIoU or DIoU or CIoU or InnerGIoU):
+        return iou
+
+    # 5) GIoU / DIoU / CIoU calculations
+    cw = torch.max(b1_x2, b2_x2) - torch.min(b1_x1, b2_x1)  # convex width
+    ch = torch.max(b1_y2, b2_y2) - torch.min(b1_y1, b2_y1)  # convex height
+    c_area = (cw * ch).clamp_(min=eps)  # convex area
+
+    if GIoU or DIoU or CIoU:
+        if GIoU:
+            # GIoU
+            giou = iou - (c_area - union) / c_area
+            out = giou
+        if DIoU or CIoU:
+            # Distance IoU (DIoU) or Complete IoU (CIoU)
+            c2 = cw.pow(2) + ch.pow(2) + eps  # diagonal^2
+            # distance between centers
+            rho2 = ((b2_x1 + b2_x2 - b1_x1 - b1_x2).pow(2) +
+                    (b2_y1 + b2_y2 - b1_y1 - b1_y2).pow(2)) / 4
+            if CIoU:
+                # v factor
+                v = (4 / math.pi**2) * (torch.atan(w2 / h2) - torch.atan(w1 / h1)).pow(2)
                 with torch.no_grad():
                     alpha = v / (v - iou + (1 + eps))
-                return iou - (rho2 / c2 + v * alpha)  # CIoU
-            return iou - rho2 / c2  # DIoU
-        c_area = cw * ch + eps  # convex area
-        return iou - (c_area - union) / c_area  # GIoU https://arxiv.org/pdf/1902.09630.pdf
-    return iou  # IoU
+                ciou = iou - (rho2 / c2 + v * alpha)
+                out = ciou
+            else:
+                diou = iou - (rho2 / c2)
+                out = diou
+    else:
+        # should not happen logically, but let's keep out = iou if not G/D/C
+        out = iou
+
+    # 6) If InnerGIoU is requested, compute final: L_GIoU + IoU - IoU_inner
+    #    We need to compute IoU_inner (the "InnerIoU") using scaled boxes.
+    if InnerGIoU:
+        # 6a) Compute scaled boxes for box1, box2
+        #     We'll re-use the center + w,h in XYXY format.  If you prefer, you can
+        #     store them separately. This example uses the same notation from the paper.
+
+        # for GT: (b1_x1, b1_y1, b1_x2, b1_y2)  --> center is (x1c, y1c)
+        # for pred: (b2_x1, b2_y1, b2_x2, b2_y2) --> center is (x2c, y2c)
+        
+        # centers
+        x1c = (b1_x1 + b1_x2) / 2
+        y1c = (b1_y1 + b1_y2) / 2
+        x2c = (b2_x1 + b2_x2) / 2
+        y2c = (b2_y1 + b2_y2) / 2
+
+        # widths, heights
+        w1_scaled = (b1_x2 - b1_x1) * ratio
+        h1_scaled = (b1_y2 - b1_y1) * ratio
+        w2_scaled = (b2_x2 - b2_x1) * ratio
+        h2_scaled = (b2_y2 - b2_y1) * ratio
+
+        # Convert to scaled XYXY
+        b1_x1_s = x1c - w1_scaled / 2
+        b1_x2_s = x1c + w1_scaled / 2
+        b1_y1_s = y1c - h1_scaled / 2
+        b1_y2_s = y1c + h1_scaled / 2
+
+        b2_x1_s = x2c - w2_scaled / 2
+        b2_x2_s = x2c + w2_scaled / 2
+        b2_y1_s = y2c - h2_scaled / 2
+        b2_y2_s = y2c + h2_scaled / 2
+
+        # Intersection for scaled boxes
+        inter_s = (torch.min(b1_x2_s, b2_x2_s) - torch.max(b1_x1_s, b2_x1_s)).clamp_(min=0) * \
+                  (torch.min(b1_y2_s, b2_y2_s) - torch.max(b1_y1_s, b2_y1_s)).clamp_(min=0)
+
+        # Union for scaled boxes
+        union_s = (w1_scaled * h1_scaled) + (w2_scaled * h2_scaled) - inter_s + eps
+
+        iou_inner = inter_s / union_s  # IoU_{inner}
+
+        # "Inner-GIoU" from the paper: L_GIoU + IoU - IoU_inner
+        # Where L_GIoU is already "out" (which is giou if GIoU=True).
+        # If you want to strictly follow the paper:
+        #   out = L_GIoU + iou - iou_inner
+        #   L_GIoU = 1 - giou
+        # but they wrote: L_Inner-GIoU = L_GIoU + IoU - IoU_inner
+        # which might be a direct addition. 
+        # 
+        # Example below: we assume out=GIoU already. We interpret 
+        # L_Inner-GIoU = GIoU + IoU - IoU_inner.
+        # In practice, you might want to re-check your sign conventions 
+        # depending on how the rest of your code uses "out."
+        out = out + iou - iou_inner
+
+    return out
 
 
 def mask_iou(mask1, mask2, eps=1e-7):

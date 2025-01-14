@@ -22,6 +22,8 @@ Usage - formats:
 """
 
 import json
+import os
+import shutil
 import time
 from pathlib import Path
 
@@ -106,6 +108,13 @@ class BaseValidator:
     @smart_inference_mode()
     def __call__(self, trainer=None, model=None):
         """Executes validation process, running inference on dataloader and computing performance metrics."""
+        # Clear the false negative and false positive folder to avoid conflict of final val and prev val
+        if os.path.exists(str(self.save_dir / "false_negative_underkill")):
+            shutil.rmtree(str(self.save_dir / "false_negative_underkill"))
+        if os.path.exists(str(self.save_dir / "false_positive_overkill")):
+            shutil.rmtree(str(self.save_dir / "false_positive_overkill"))
+        os.makedirs(str(self.save_dir / "false_negative_underkill"), exist_ok=True)
+        os.makedirs(str(self.save_dir / "false_positive_overkill"), exist_ok=True)
         self.training = trainer is not None
         augment = self.args.augment and (not self.training)
         if self.training:
@@ -312,6 +321,10 @@ class BaseValidator:
 
     def get_desc(self):
         """Get description of the YOLO model."""
+        pass
+
+    def output_bad_cases(self, detections, labels, batch, si):
+        """Out the images with overkill and underkill."""
         pass
 
     @property

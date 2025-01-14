@@ -191,7 +191,7 @@ class Tuner:
             try:
                 # Train YOLO model with mutated hyperparameters (run in subprocess to avoid dataloader hang)
                 cmd = ["yolo", "train", *(f"{k}={v}" for k, v in train_args.items())]
-                return_code = subprocess.run(cmd, check=True).returncode
+                return_code = subprocess.run(" ".join(cmd), check=True, shell=True).returncode
                 ckpt_file = weights_dir / ("best.pt" if (weights_dir / "best.pt").exists() else "last.pt")
                 metrics = torch.load(ckpt_file)["train_metrics"]
                 assert return_code == 0, "training failed"
@@ -224,12 +224,12 @@ class Tuner:
 
             # Save and print tune results
             header = (
-                f'{self.prefix}{i + 1}/{iterations} iterations complete ✅ ({time.time() - t0:.2f}s)\n'
-                f'{self.prefix}Results saved to {colorstr("bold", self.tune_dir)}\n'
-                f'{self.prefix}Best fitness={fitness[best_idx]} observed at iteration {best_idx + 1}\n'
-                f'{self.prefix}Best fitness metrics are {best_metrics}\n'
-                f'{self.prefix}Best fitness model is {best_save_dir}\n'
-                f'{self.prefix}Best fitness hyperparameters are printed below.\n'
+                f"{self.prefix}{i + 1}/{iterations} iterations complete ✅ ({time.time() - t0:.2f}s)\n"
+                f"{self.prefix}Results saved to {colorstr('bold', self.tune_dir)}\n"
+                f"{self.prefix}Best fitness={fitness[best_idx]} observed at iteration {best_idx + 1}\n"
+                f"{self.prefix}Best fitness metrics are {best_metrics}\n"
+                f"{self.prefix}Best fitness model is {best_save_dir}\n"
+                f"{self.prefix}Best fitness hyperparameters are printed below.\n"
             )
             LOGGER.info("\n" + header)
             data = {k: float(x[best_idx, i + 1]) for i, k in enumerate(self.space.keys())}

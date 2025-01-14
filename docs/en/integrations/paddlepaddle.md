@@ -114,7 +114,7 @@ For more details about supported export options, visit the [Ultralytics document
 
 ## Deploying Exported YOLO11 PaddlePaddle Models
 
-After successfully exporting your Ultralytics YOLO11 models to PaddlePaddle format, you can now deploy them. The primary and recommended first step for running a PaddlePaddle model is to use the YOLO("./model_paddle_model") method, as outlined in the previous usage code snippet.
+After successfully exporting your Ultralytics YOLO11 models to PaddlePaddle format, you can now deploy them. The primary and recommended first step for running a PaddlePaddle model is to use the YOLO("yolo11n_paddle_model/") method, as outlined in the previous usage code snippet.
 
 However, for in-depth instructions on deploying your PaddlePaddle models in various other settings, take a look at the following resources:
 

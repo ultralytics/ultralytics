@@ -170,7 +170,7 @@ class Analytics(BaseSolution):
                 for key in count_dict.keys():
                     y_data_dict[key] = np.append(y_data_dict[key], float(count_dict[key]))
                     if len(y_data_dict[key]) < max_length:
-                        y_data_dict[key] = np.pad(y_data_dict[key], (0, max_length - len(y_data_dict[key])), "constant")
+                        y_data_dict[key] = np.pad(y_data_dict[key], (0, max_length - len(y_data_dict[key])))
                 if len(x_data) > self.max_points:
                     x_data = x_data[1:]
                     for key in count_dict.keys():

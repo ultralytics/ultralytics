@@ -56,8 +56,8 @@ from .block import (
     RepVGGDW,
     ResNetLayer,
     SCDown,
-    TorchVision,
     Timm,
+    TorchVision,
 )
 from .conv import (
     CBAM,

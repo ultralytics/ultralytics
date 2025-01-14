@@ -1179,6 +1179,7 @@ class Timm(nn.Module):
     def __init__(self, c1, c2, model, pretrained=True, split=True):
         """Load the model and weights from timm."""
         from ultralytics.utils.checks import check_requirements
+
         check_requirements("timm")
         import timm
 

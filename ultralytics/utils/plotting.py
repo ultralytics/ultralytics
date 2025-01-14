@@ -491,35 +491,47 @@ class Annotator:
         """Add rectangle to image (PIL-only)."""
         self.draw.rectangle(xy, fill, outline, width)
 
-    def text(self, xy, text, txt_color=(255, 255, 255), anchor="top", box_style=False):
-        """Adds text to an image using PIL or cv2."""
-        if anchor == "bottom":  # start y from font bottom
-            w, h = self.font.getsize(text)  # text width, height
+    def text(self, xy: List[int], text: str, txt_color=(255, 255, 255), anchor="top", box_style=False):
+        """Adds text to an image using PIL or cv2, scaling the text size based on its length."""
+        # Scale factor based on text length (adjust multiplier as needed)
+        max_length = 20  # Threshold for max scaling
+        scale_factor = max(1, len(text) / max_length)
+
+        if anchor == "bottom":  # Adjust y-coordinate for text bottom alignment
+            w, h = self.font.getsize(text)
             xy[1] += 1 - h
+
+        # Adjust font size for PIL
         if self.pil:
+            scaled_font = self.font.font_variant(size=max(10, int(self.font.size / scale_factor)))
             if box_style:
-                w, h = self.font.getsize(text)
+                bbox = scaled_font.getbbox(text)  # Get bounding box of text
+                w, h = bbox[2], bbox[3]  # Width and height from the bounding box
                 self.draw.rectangle((xy[0], xy[1], xy[0] + w + 1, xy[1] + h + 1), fill=txt_color)
-                # Using `txt_color` for background and draw fg with white color
-                txt_color = (255, 255, 255)
+                txt_color = (255, 255, 255)  # Set foreground text color to white
+
             if "\n" in text:
                 lines = text.split("\n")
-                _, h = self.font.getsize(text)
                 for line in lines:
-                    self.draw.text(xy, line, fill=txt_color, font=self.font)
+                    bbox = scaled_font.getbbox(line)
+                    _, h = bbox[2], bbox[3]
+                    self.draw.text(xy, line, fill=txt_color, font=scaled_font)
                     xy[1] += h
             else:
-                self.draw.text(xy, text, fill=txt_color, font=self.font)
+                self.draw.text(xy, text, fill=txt_color, font=scaled_font)
+
+        # Adjust font scale for OpenCV
         else:
+            scaled_font_scale = max(0.5, self.sf / scale_factor)
             if box_style:
-                w, h = cv2.getTextSize(text, 0, fontScale=self.sf, thickness=self.tf)[0]  # text width, height
-                h += 3  # add pixels to pad text
-                outside = xy[1] >= h  # label fits outside box
+                w, h = cv2.getTextSize(text, 0, fontScale=scaled_font_scale, thickness=self.tf)[0]
+                h += 3  # Add pixels to pad text
+                outside = xy[1] >= h  # Check if label fits outside the box
                 p2 = xy[0] + w, xy[1] - h if outside else xy[1] + h
-                cv2.rectangle(self.im, xy, p2, txt_color, -1, cv2.LINE_AA)  # filled
-                # Using `txt_color` for background and draw fg with white color
-                txt_color = (255, 255, 255)
-            cv2.putText(self.im, text, xy, 0, self.sf, txt_color, thickness=self.tf, lineType=cv2.LINE_AA)
+                cv2.rectangle(self.im, xy, p2, txt_color, -1, cv2.LINE_AA)
+                txt_color = (255, 255, 255)  # Set foreground text color to white
+
+            cv2.putText(self.im, text, xy, 0, scaled_font_scale, txt_color, thickness=self.tf, lineType=cv2.LINE_AA)
 
     def fromarray(self, im):
         """Update self.im from a numpy array."""

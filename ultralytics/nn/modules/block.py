@@ -50,6 +50,7 @@ __all__ = (
     "PSA",
     "SCDown",
     "TorchVision",
+    "Timm",
 )
 
 
@@ -1156,3 +1157,34 @@ class TorchVision(nn.Module):
         else:
             y = self.m(x)
         return y
+
+
+class Timm(nn.Module):
+    """
+    Timm module to allow loading any timm model.
+
+    This class provides a way to load a model from the timm library, optionally load pre-trained weights.
+
+    Attributes:
+        m (nn.Module): The loaded timm model.
+
+    Args:
+        c1 (int): Input channels.
+        c2 (): Output channels.
+        model (str): Name of the timm model to load.
+        pretrained (bool): Whether to load pretrained weights.
+        split (bool, optional): Returns output from intermediate child modules as list. Default is False.
+    """
+
+    def __init__(self, c1, c2, model, pretrained=True, split=True):
+        """Load the model and weights from timm."""
+        from ultralytics.utils.checks import check_requirements
+        check_requirements("timm")
+        import timm
+
+        super().__init__()
+        self.m = timm.create_model(model, in_chans=c1, pretrained=pretrained, features_only=split)
+
+    def forward(self, x):
+        """Forward pass through the model."""
+        return self.m(x)

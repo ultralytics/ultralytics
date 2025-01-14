@@ -27,6 +27,10 @@ keywords: Ultralytics, dataset utils, data handling, image verification, Python,
 
 <br><br><hr><br>
 
+## ::: ultralytics.data.utils.display_media_in_colab
+
+<br><br><hr><br>
+
 ## ::: ultralytics.data.utils.verify_image
 
 <br><br><hr><br>

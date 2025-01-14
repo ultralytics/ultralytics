@@ -76,7 +76,6 @@ dependencies = [
     "psutil", # system utilization
     "py-cpuinfo", # display CPU info
     "pandas>=1.1.4",
-    "seaborn>=0.11.0", # plotting
     "ultralytics-thop>=2.0.0", # FLOPs computation https://github.com/ultralytics/thop
 ]
 
@@ -121,6 +120,7 @@ extra = [
     "ipython", # interactive notebook
     "albumentations>=1.4.6", # training augmentations
     "pycocotools>=2.0.7", # COCO mAP
+    "seaborn>=0.11.0", # plotting
 ]
 
 [project.urls]

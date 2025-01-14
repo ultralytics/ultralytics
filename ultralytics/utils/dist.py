@@ -6,6 +6,8 @@ import socket
 import sys
 import tempfile
 
+import psutil
+
 from . import USER_CONFIG_DIR
 from .torch_utils import TORCH_1_9
 
@@ -70,3 +72,10 @@ def ddp_cleanup(trainer, file):
     """Delete temp file if created."""
     if f"{id(trainer)}.py" in file:  # if temp_file suffix in file
         os.remove(file)
+    current_process = psutil.Process()
+    children = current_process.children(recursive=True)
+    for child in children:
+        try:
+            child.kill()
+        except psutil.NoSuchProcess:
+            pass

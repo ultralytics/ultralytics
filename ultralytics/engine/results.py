@@ -462,6 +462,7 @@ class Results(SimpleClass):
         save=False,
         filename=None,
         color_mode="class",
+        label_pos=None,  # New parameter
     ):
         """
         Plots detection results on an input RGB image.
@@ -484,15 +485,11 @@ class Results(SimpleClass):
             save (bool): Whether to save the annotated image.
             filename (str | None): Filename to save image if save is True.
             color_mode (bool): Specify the color mode, e.g., 'instance' or 'class'. Default to 'class'.
+            label_pos (tuple | None): Tuple specifying the class ID and position index for the label (class_id, pos_index).
+                pos_index: 0 = top-left, 1 = top-right, 2 = bottom-left, 3 = bottom-right.
 
         Returns:
             (np.ndarray): Annotated image as a numpy array.
-
-        Examples:
-            >>> results = model("image.jpg")
-            >>> for result in results:
-            ...     im = result.plot()
-            ...     im.show()
         """
         assert color_mode in {"instance", "class"}, f"Expected color_mode='instance' or 'class', not {color_mode}."
         if img is None and isinstance(self.orig_img, torch.Tensor):
@@ -539,6 +536,22 @@ class Results(SimpleClass):
                 name = ("" if id is None else f"id:{id} ") + names[c]
                 label = (f"{name} {d_conf:.2f}" if conf else name) if labels else None
                 box = d.xyxyxyxy.reshape(-1, 4, 2).squeeze() if is_obb else d.xyxy.squeeze()
+
+                # Determine label position based on label_pos tuple
+                if label_pos and c == label_pos[0]:
+                    pos_index = label_pos[1]
+                    x_min, y_min, x_max, y_max = box[0], box[1], box[2], box[3]
+                    if pos_index == 0:  # Top left
+                        label_pos_xy = (x_min, y_min)
+                    elif pos_index == 1:  # Top right
+                        label_pos_xy = (x_max, y_min)
+                    elif pos_index == 2:  # Bottom left
+                        label_pos_xy = (x_min, y_max)
+                    elif pos_index == 3:  # Bottom right
+                        label_pos_xy = (x_max, y_max)
+                else:
+                    label_pos_xy = (box[0], box[1])  # Default top-left
+
                 annotator.box_label(
                     box,
                     label,
@@ -553,6 +566,7 @@ class Results(SimpleClass):
                         True,
                     ),
                     rotated=is_obb,
+                    label_pos_xy=label_pos_xy,  # Pass the calculated position
                 )
 
         # Plot Classify results

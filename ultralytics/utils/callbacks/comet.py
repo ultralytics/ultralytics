@@ -331,6 +331,9 @@ def on_train_epoch_end(trainer):
 
     experiment.log_metrics(trainer.label_loss_items(trainer.tloss, prefix="train"), step=curr_step, epoch=curr_epoch)
 
+    if curr_epoch == 1 and not trainer.args.privacy_mode:
+        _log_images(experiment, trainer.save_dir.glob("train_batch*.jpg"), curr_step)
+
 
 def on_fit_epoch_end(trainer):
     """Logs model assets at the end of each epoch."""
@@ -352,8 +355,8 @@ def on_fit_epoch_end(trainer):
 
     if not save_assets:
         return
-
-    _log_model(experiment, trainer)
+    if not trainer.args.privacy_mode:
+        _log_model(experiment, trainer)
     if _should_log_confusion_matrix():
         _log_confusion_matrix(experiment, trainer, curr_step, curr_epoch)
     if _should_log_image_predictions():
@@ -371,7 +374,8 @@ def on_train_end(trainer):
     curr_step = metadata["curr_step"]
     plots = trainer.args.plots
 
-    _log_model(experiment, trainer)
+    if not trainer.args.privacy_mode:
+        _log_model(experiment, trainer)
     if plots:
         _log_plots(experiment, trainer)
 

@@ -15,7 +15,6 @@ from torch.utils.data import ConcatDataset
 from ultralytics.utils import LOCAL_RANK, NUM_THREADS, TQDM, colorstr
 from ultralytics.utils.ops import resample_segments
 from ultralytics.utils.torch_utils import TORCHVISION_0_18
-
 from .augment import (
     Compose,
     Format,
@@ -105,13 +104,13 @@ class YOLODataset(BaseDataset):
                 if im_file:
                     x["labels"].append(
                         {
-                            "im_file": im_file,
-                            "shape": shape,
-                            "cls": lb[:, 0:1],  # n, 1
-                            "bboxes": lb[:, 1:],  # n, 4
-                            "segments": segments,
-                            "keypoints": keypoint,
-                            "normalized": True,
+                            "im_file"    : im_file,
+                            "shape"      : shape,
+                            "cls"        : lb[:, 0:1],  # n, 1
+                            "bboxes"     : lb[:, 1:],  # n, 4
+                            "segments"   : segments,
+                            "keypoints"  : keypoint,
+                            "normalized" : True,
                             "bbox_format": "xywh",
                         }
                     )
@@ -176,7 +175,7 @@ class YOLODataset(BaseDataset):
         if self.augment:
             hyp.mosaic = hyp.mosaic if self.augment and not self.rect else 0.0
             hyp.mixup = hyp.mixup if self.augment and not self.rect else 0.0
-            transforms = v8_transforms(self, self.imgsz, hyp)
+            transforms = v8_transforms(self, self.imgsz, hyp, albumentations_task=(self.use_segments, self.use_keypoints, self.use_obb))
         else:
             transforms = Compose([LetterBox(new_shape=(self.imgsz, self.imgsz), scaleup=False)])
         transforms.append(
@@ -324,7 +323,7 @@ class GroundingDataset(YOLODataset):
                     continue
 
                 caption = img["caption"]
-                cat_name = " ".join([caption[t[0] : t[1]] for t in ann["tokens_positive"]])
+                cat_name = " ".join([caption[t[0]: t[1]] for t in ann["tokens_positive"]])
                 if cat_name not in cat2id:
                     cat2id[cat_name] = len(cat2id)
                     texts.append([cat_name])
@@ -335,13 +334,13 @@ class GroundingDataset(YOLODataset):
             lb = np.array(bboxes, dtype=np.float32) if len(bboxes) else np.zeros((0, 5), dtype=np.float32)
             labels.append(
                 {
-                    "im_file": im_file,
-                    "shape": (h, w),
-                    "cls": lb[:, 0:1],  # n, 1
-                    "bboxes": lb[:, 1:],  # n, 4
-                    "normalized": True,
+                    "im_file"    : im_file,
+                    "shape"      : (h, w),
+                    "cls"        : lb[:, 0:1],  # n, 1
+                    "bboxes"     : lb[:, 1:],  # n, 4
+                    "normalized" : True,
                     "bbox_format": "xywh",
-                    "texts": texts,
+                    "texts"      : texts,
                 }
             )
         return labels

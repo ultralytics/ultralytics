@@ -413,7 +413,7 @@ class Exporter:
         if imx:
             f[13], _ = self.export_imx()
         if rknn:
-            f[12], _ = self.export_rknn()
+            f[14], _ = self.export_rknn()
 
         # Finish
         f = [str(x) for x in f if x]  # filter out '' and None

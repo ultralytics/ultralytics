@@ -1,6 +1,8 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-# YOLOv3-tiny object detection model with P4-P5 outputs. For details see https://docs.ultralytics.com/models/yolov3
+# Ultralytics YOLOv3-tiiny object detection model with P4-P5 outputs
+# For model documentation see https://docs.ultralytics.com/models/yolov3
+# For task documentation see https://docs.ultralytics.com/tasks/detect
 
 # Parameters
 nc: 80 # number of classes

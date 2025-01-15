@@ -85,6 +85,7 @@ from ultralytics.utils import (
     PYTHON_VERSION,
     ROOT,
     WINDOWS,
+    IS_COLAB,
     __version__,
     callbacks,
     colorstr,
@@ -261,10 +262,16 @@ class Exporter:
             assert not ncnn, "optimize=True not compatible with format='ncnn', i.e. use optimize=False"
             assert self.device.type == "cpu", "optimize=True not compatible with cuda devices, i.e. use device='cpu'"
         if rknn:
-            self.args.name = "rk3588" if not self.args.name else self.args.name.lower()  # default is Rock 5B processor
-            assert self.args.name in RKNN_CHIPS, (
-                f"Invalid processor name '{self.args.name}' for Rockchip RKNN export. Valid names are {RKNN_CHIPS}."
-            )
+            if not self.args.name:
+                LOGGER.warning(
+                    "WARNING ⚠️ Rockchip RKNN export requires a missing 'name' arg for processor type. Using default 'name=rk3588'."
+                )
+                self.args.name = "rk3588"
+            else:
+                self.args.name = self.args.name.lower()
+            assert (
+                self.args.name in RKNN_CHIPS
+            ), f"Invalid processor name '{self.args.name}' for Rockchip RKNN export. Valid names are {RKNN_CHIPS}."
         if self.args.int8 and tflite:
             assert not getattr(model, "end2end", False), "TFLite INT8 export not supported for end2end models."
         if edgetpu:
@@ -1137,7 +1144,12 @@ class Exporter:
         LOGGER.info(f"\n{prefix} starting export with torch {torch.__version__}...")
 
         check_requirements("rknn-toolkit2")
-        from rknn.api import RKNN  # type: ignore
+        if IS_COLAB:
+            # Prevent 'exit' from closing the notebook https://github.com/airockchip/rknn-toolkit2/issues/259
+            import builtins
+            builtins.exit = lambda: None
+            
+        from rknn.api import RKNN # type: ignore
 
         f, _ = self.export_onnx()
 

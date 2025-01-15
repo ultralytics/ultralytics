@@ -1,8 +1,8 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 # Ultralytics YOLOv8 object detection model with P3-P6 outputs
-# For model documentation see https://docs.ultralytics.com/models/yolov8
-# For task documentation see https://docs.ultralytics.com/tasks/detect
+# Model docs: https://docs.ultralytics.com/models/yolov8
+# Task docs: https://docs.ultralytics.com/tasks/detect
 # Employs Ghost convolutions and modules proposed in Huawei's GhostNet in https://arxiv.org/abs/1911.11907v2
 
 # Parameters

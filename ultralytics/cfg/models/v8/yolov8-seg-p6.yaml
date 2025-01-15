@@ -1,8 +1,8 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 # Ultralytics YOLOv8-seg instance segmentation model with P3-P6 outputs
-# For model documentation see https://docs.ultralytics.com/models/yolov8
-# For task documentation see https://docs.ultralytics.com/tasks/segment
+# Model docs: https://docs.ultralytics.com/models/yolov8
+# Task docs: https://docs.ultralytics.com/tasks/segment
 
 # Parameters
 nc: 80 # number of classes

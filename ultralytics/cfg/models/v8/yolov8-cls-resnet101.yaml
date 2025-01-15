@@ -1,6 +1,8 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-# YOLOv8-cls image classification model. For Usage examples see https://docs.ultralytics.com/tasks/classify
+# Ultralytics YOLOv8-cls image classification model
+# For model documentation see https://docs.ultralytics.com/models/yolov8
+# For task documentation see https://docs.ultralytics.com/tasks/classify
 
 # Parameters
 nc: 1000 # number of classes

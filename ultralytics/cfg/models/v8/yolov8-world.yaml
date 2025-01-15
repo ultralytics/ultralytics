@@ -1,6 +1,8 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-# YOLOv8-World object detection model with P3-P5 outputs. For details see https://docs.ultralytics.com/tasks/detect
+# Ultralytics YOLOv8-World hybrid object detection model with P3-P5 outputs
+# For model documentation see https://docs.ultralytics.com/models/yolo-world
+# For task documentation see https://docs.ultralytics.com/tasks/detect
 
 # Parameters
 nc: 80 # number of classes

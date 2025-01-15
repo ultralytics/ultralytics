@@ -1,6 +1,8 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-# YOLOv8-pose keypoints/pose estimation model. For Usage examples see https://docs.ultralytics.com/tasks/pose
+# Ultralytics YOLOv8-pose keypoints/pose estimation model with P3-P5 outputs
+# For model documentation see https://docs.ultralytics.com/models/yolov8
+# For task documentation see https://docs.ultralytics.com/tasks/pose
 
 # Parameters
 nc: 1 # number of classes

@@ -2,7 +2,7 @@
 
 # Ultralytics YOLO11-pose keypoints/pose estimation model with P3-P5 outputs
 # For model documentation see https://docs.ultralytics.com/models/yolo11
-# For task classification see https://docs.ultralytics.com/tasks/pose
+# For task documentation see https://docs.ultralytics.com/tasks/pose
 
 # Parameters
 nc: 80 # number of classes

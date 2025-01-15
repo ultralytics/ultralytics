@@ -2,7 +2,7 @@
 
 # Ultralytics YOLO11-cls image classification model
 # For model documentation see https://docs.ultralytics.com/models/yolo11
-# For task classification see https://docs.ultralytics.com/tasks/classify
+# For task documentation see https://docs.ultralytics.com/tasks/classify
 
 # Parameters
 nc: 10 # number of classes

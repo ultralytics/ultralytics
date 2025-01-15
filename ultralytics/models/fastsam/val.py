@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 from ultralytics.models.yolo.segment import SegmentationValidator
 from ultralytics.utils.metrics import SegmentMetrics

@@ -1,6 +1,8 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-# YOLO11-seg instance segmentation model. For Usage examples see https://docs.ultralytics.com/tasks/segment
+# Ultralytics YOLO11-seg instance segmentation model with P3-P5 outputs
+# For model documentation see https://docs.ultralytics.com/models/yolo11
+# For task classification see https://docs.ultralytics.com/tasks/segment
 
 # Parameters
 nc: 80 # number of classes

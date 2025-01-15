@@ -1,6 +1,8 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-# YOLO11 Oriented Bounding Boxes (OBB) model with P3-P5 outputs. For Usage examples see https://docs.ultralytics.com/tasks/obb
+# Ultralytics YOLO11-obb Oriented Bounding Boxes (OBB) model with P3-P5 outputs
+# For model documentation see https://docs.ultralytics.com/models/yolo11
+# For task classification see https://docs.ultralytics.com/tasks/obb
 
 # Parameters
 nc: 80 # number of classes

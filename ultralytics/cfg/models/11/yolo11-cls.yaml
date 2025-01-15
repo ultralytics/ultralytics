@@ -1,6 +1,8 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-# YOLO11-cls image classification model. For Usage examples see https://docs.ultralytics.com/tasks/classify
+# Ultralytics YOLO11-cls image classification model
+# For model documentation see https://docs.ultralytics.com/models/yolo11
+# For task classification see https://docs.ultralytics.com/tasks/classify
 
 # Parameters
 nc: 80 # number of classes

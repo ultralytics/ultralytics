@@ -221,24 +221,10 @@ class Exporter:
         flags = [x == fmt for x in fmts]
         if sum(flags) != 1:
             raise ValueError(f"Invalid export format='{fmt}'. Valid formats are {fmts}")
-        (
-            jit,
-            onnx,
-            xml,
-            engine,
-            coreml,
-            saved_model,
-            pb,
-            tflite,
-            edgetpu,
-            tfjs,
-            paddle,
-            mnn,
-            ncnn,
-            imx,
-            rknn
-        ) = flags  # export booleans
-        
+        (jit, onnx, xml, engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, paddle, mnn, ncnn, imx, rknn) = (
+            flags  # export booleans
+        )
+
         is_tf_format = any((saved_model, pb, tflite, edgetpu, tfjs))
 
         # Device
@@ -276,11 +262,11 @@ class Exporter:
             assert self.device.type == "cpu", "optimize=True not compatible with cuda devices, i.e. use device='cpu'"
         if rknn:
             self.args.name = "rk3588" if not self.args.name else self.args.name.lower()  # default is Rock 5B processor
-            assert (
-                self.args.name in RKNN_CHIPS
-            ), f"Invalid processor name '{self.args.name}' for Rockchip RKNN export. Valid names are {RKNN_CHIPS}."
+            assert self.args.name in RKNN_CHIPS, (
+                f"Invalid processor name '{self.args.name}' for Rockchip RKNN export. Valid names are {RKNN_CHIPS}."
+            )
         if self.args.int8 and tflite:
-            assert not getattr(model, "end2end", False), "TFLite INT8 export not supported for end2end models."            
+            assert not getattr(model, "end2end", False), "TFLite INT8 export not supported for end2end models."
         if edgetpu:
             if not LINUX:
                 raise SystemError("Edge TPU export only supported on Linux. See https://coral.ai/docs/edgetpu/compiler")
@@ -1170,6 +1156,7 @@ class Exporter:
         yaml_save(export_path / "metadata.yaml", self.metadata)  # add metadata.yaml
 
         LOGGER.info(f"\n{prefix} model exported as {f}.\n")
+
     def export_imx(self, prefix=colorstr("IMX:")):
         """YOLO IMX export."""
         gptq = False

@@ -9,7 +9,6 @@ import cv2
 import numpy as np
 import torch
 from PIL import Image
-from shapely.geometry.polygon import Polygon
 
 from ultralytics.data.utils import polygons2masks, polygons2masks_overlap
 from ultralytics.utils import LOGGER, colorstr
@@ -1856,11 +1855,11 @@ class Albumentations:
             self.contains_spatial = self.contains_transform(T, spatial_transforms)
             self.use_segments, self.use_keypoints, self.use_obb = albumentations_task
             if (self.use_segments or self.use_obb) and not self.use_keypoints:  # segments or obb
-                params_dict = {}
+                params_dict = dict(bbox_params=A.BboxParams(format="yolo", label_fields=["bbox_classes", "b_ids"]))
             elif not (self.use_segments or self.use_obb) and self.use_keypoints:  # keypoints
                 params_dict = dict(
-                    bbox_params=A.BboxParams(format="yolo", label_fields=["bbox_classes"]),
-                    keypoint_params=A.KeypointParams(format="xy", label_fields=["keypoints_classes"], remove_invisible=False)
+                    bbox_params=A.BboxParams(format="yolo", label_fields=["bbox_classes", "b_ids"]),
+                    keypoint_params=A.KeypointParams(format="xy", label_fields=["keypoints_classes", "k_ids"], remove_invisible=False)
                 )
             elif (self.use_segments or self.use_obb) and self.use_keypoints:  # (segments or obb) and keypoints
                 params_dict = dict(
@@ -1914,21 +1913,46 @@ class Albumentations:
             bbox_classes = labels["cls"]
             if len(bbox_classes):
                 im = labels["img"]
-                bboxes, bbox_classes = self.ultralytics_bboxes_to_albumentations_augment(labels)
+                bboxes, bbox_classes, b_ids = self.ultralytics_bboxes_to_albumentations_augment(labels)
                 segments, keypoints = None, None
                 #################################### TODO: add supports of keypoints ####################################
                 if (self.use_segments or self.use_obb) and not self.use_keypoints:  # segments (contain obb), object detection
                     masks = self.ultralytics_segments_to_albumentations_augment(labels)
-                    new = self.transform(image=im, masks=masks)
+                    new = self.transform(
+                        image=im,
+                        masks=masks,
+                        bboxes=bboxes,
+                        bbox_classes=bbox_classes,
+                        b_ids=b_ids
+                    )
                 elif not (self.use_segments or self.use_obb) and self.use_keypoints:  # keypoints, object detection
-                    keypoints, keypoints_classes = self.ultralytics_keypoints_to_albumentations_augment(labels)
-                    new = self.transform(image=im, bboxes=bboxes, bbox_classes=bbox_classes, keypoints=keypoints, keypoints_classes=keypoints_classes)
+                    keypoints, keypoints_classes, k_ids = self.ultralytics_keypoints_to_albumentations_augment(labels)
+                    new = self.transform(
+                        image=im,
+                        bboxes=bboxes,
+                        bbox_classes=bbox_classes,
+                        b_ids=b_ids,
+                        keypoints=keypoints,
+                        keypoints_classes=keypoints_classes,
+                        k_ids=k_ids
+                    )
                 elif (self.use_segments or self.use_obb) and self.use_keypoints:  # segments, keypoints, object detection
                     masks = self.ultralytics_segments_to_albumentations_augment(labels)
+                    keypoints, keypoints_classes, k_ids = self.ultralytics_keypoints_to_albumentations_augment(labels)
+                    new = self.transform(
+                        image=im,
+                        masks=masks,
+                        bboxes=bboxes,
+                        bbox_classes=bbox_classes,
+                        b_ids=b_ids,
+                        keypoints=keypoints,
+                        keypoints_classes=keypoints_classes,
+                        k_ids=k_ids
+                    )
                 else:  # object detection
                     new = self.transform(image=im, bboxes=bboxes, bbox_classes=bbox_classes)
                 if not hasattr(new, "bbox_classes") or len(new["bbox_classes"]) > 0:  # skip update if no bbox in new im:
-                    image, segments, keypoints, bboxes, bbox_classes = self.albumentations_augment_to_ultralytics(new, old=labels, ignore_id=-1)
+                    image, segments, keypoints, bboxes, bbox_classes = self.albumentations_augment_to_ultralytics(new, old=labels)
                     labels["img"] = image
                     labels["cls"] = bbox_classes
                 #########################################################################################################
@@ -1948,12 +1972,13 @@ class Albumentations:
         # 确保是归一化的yolo格式
         ultralytics_labels["instances"].normalize(width, height)
         bboxes = ultralytics_labels["instances"].bboxes
-        return bboxes, bbox_classes
+        # box ids, 为了一致性需要(与mask, keypoints做映射)
+        b_ids = np.repeat(np.arange(bbox_classes.shape[0]), 1)
+        return bboxes, bbox_classes, b_ids
 
     @staticmethod
     def ultralytics_segments_to_albumentations_augment(
         ultralytics_labels: dict,
-        ignore_id: int = -1,
         return_list: bool = False
     ):
         height, width = ultralytics_labels["img"].shape[:2]
@@ -1964,10 +1989,10 @@ class Albumentations:
         instances.denormalize(width, height)
         segments = instances.segments.astype(np.int32)
         # 创建空白掩码图像 (height, width)
-        masks = [np.full((height, width), ignore_id, dtype=np.int16) for _ in range(segments.shape[0])]
+        masks = [np.zeros((height, width), dtype=np.uint8) for _ in range(segments.shape[0])]
         for segment, mask, cls in zip(segments, masks, segments_classes):
             # 绘制多边形，将多边形区域填充为类ID值 (或其他值，以区分不同实例)
-            cv2.fillPoly(mask, [segment], int(cls))
+            cv2.fillPoly(mask, [segment], [1])
 
         return masks if return_list else np.stack(masks, axis=0)
 
@@ -1975,15 +2000,9 @@ class Albumentations:
     def ultralytics_keypoints_to_albumentations_augment(
         ultralytics_labels: dict,
     ):
-        """
-        Args:
-            ultralytics_labels:
-
-        Returns:
-
-        """
+        """"""
         height, width = ultralytics_labels["img"].shape[:2]
-        # 必须进行深拷贝, 修改源数据会导致mask不一致
+        # 必须进行深拷贝, 修改源数据会破坏一致性
         instances = deepcopy(ultralytics_labels["instances"])
         # 反归一化
         instances.denormalize(width, height)
@@ -1992,232 +2011,156 @@ class Albumentations:
         # note: keypoints normalize in [0, 1], but albumentations keypoints normalize in [0, 1)
         keypoints[:, :, 0] = np.clip(keypoints[:, :, 0], 0, width - 1e-2)
         keypoints[:, :, 1] = np.clip(keypoints[:, :, 1], 0, height - 1e-2)
+        # keypoints ids, 为了一致性需要(与box, mask做映射)
+        k_ids = np.repeat(np.arange(keypoints.shape[0]), keypoints.shape[1])
 
-        return keypoints.reshape(-1, 2), keypoints_classes.reshape(-1).astype(np.int32)
-
-    @staticmethod
-    def coco_segment_to_instance_mask(
-        coco_segments: np.ndarray,
-        image_shape: Tuple[int, int],
-        bbox_classes: np.ndarray,
-        ignore_id: int = -1,
-        normalize: bool = True,
-        return_list: bool = False,
-    ):
-        """
-        将分割标注转换为实例掩码, label["instances"].segments to instance mask
-
-        :param coco_segments: array([[x1, y1, x2, y2, ...], ...])
-        :param image_shape: 图像的形状 (height, width)
-        :param bbox_classes: 类别标签, eg: [0, 1, ...]
-        :param ignore_id: 忽略的类别id
-        :param normalize: 是否是归一化坐标
-        :param return_list: 是否返回列表, eg: True -> [mask1, mask2, ...], False -> np.stack([mask1, mask2, ...], axis=0)
-        :return: 实例掩码图像
-        """
-        height, width = image_shape
-        # 反归一化
-        if normalize:
-            coco_segments[:, :, 0] = coco_segments[:, :, 0] * width
-            coco_segments[:, :, 1] = coco_segments[:, :, 1] * height
-        coco_segments = coco_segments.astype(np.int32)
-
-        # 创建空白掩码图像 (height, width)
-        masks = [np.full((height, width), ignore_id, dtype=np.int16) for _ in range(coco_segments.shape[0])]
-        for segment, mask, cls in zip(coco_segments, masks, bbox_classes):
-            # 绘制多边形，将多边形区域填充为类ID值 (或其他值，以区分不同实例)
-            cv2.fillPoly(mask, [segment], int(cls))
-
-        return masks if return_list else np.stack(masks, axis=0)
+        return keypoints.reshape(-1, 2), keypoints_classes.reshape(-1).astype(np.int32), k_ids
 
     def albumentations_augment_to_ultralytics(
         self,
         aug_dict: dict,
-        old: dict,
-        ignore_id: int = -1,
+        old: dict
     ):
         """
         将 albumentations 增强后的数据转换为 ultralytics 所需要的格式
 
         :param aug_dict: 增强后的参数字典
         :param old: 原始数据字典
-        :param ignore_id: 忽略的类别 id
         :return:
         """
         # 获取增强后的图像
         image = aug_dict["image"]
         height, width = image.shape[:2]
 
-        if "masks" in aug_dict:  # 实例分割任务
-            # 获取增强后的掩码
-            masks = aug_dict["masks"]
+        if "masks" in aug_dict and "keypoints" not in aug_dict:  # 实例分割任务
+            # b_ids记录了albumentations增强后的 => 暂时有效的box框的id, 用该id来过滤掉无效的mask
+            # Note: b_ids并不代表所有的box框都有效, 因为box是mask的最小外接矩形, 即mask完全在box内
+            # 如RandomCrop后, 可能将mask完全裁剪掉, 而box还存在一部分
+            b_ids = aug_dict["b_ids"]
+            # 获取存在对应box的增强后掩码
+            masks = aug_dict["masks"][b_ids]
+            bboxes = aug_dict["bboxes"]
+            bbox_classes = aug_dict["bbox_classes"]
 
             final_segments = []
             final_bboxes = []
-            final_bbox_classes = []
+            final_bboxes_cls = []
 
             # 遍历掩码
-            for mask in masks:
+            for mask, box, box_cls in zip(masks, bboxes, bbox_classes):
                 # 过滤矩形框的全零区域(无目标区域)
-                if np.all(mask == ignore_id):
+                if np.all(mask == 0):
                     continue
-                # 获取当前mask的类别
-                class_label = np.unique(mask)[-1]
-
                 # 提取轮廓
-                mask[mask == class_label] = 1  # 将目标区域设置为1
-                mask[mask == ignore_id] = 0  # 将非目标区域设置为0
                 contours, _ = cv2.findContours(mask.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+                # 获取每个轮廓分配的轮廓点(eg, 抛物线型的轮廓可能被切成一个或两个轮廓. 所以一个mask可能被裁剪成多个轮廓),
+                point_counts = self.get_points(old["instances"].segments.shape[1], len(contours))
+                # 对轮廓进行插值并拼接成一个数组, 满足同批次的总点数相同
+                segments = np.concatenate([resample_segments([contour.reshape(-1, 2)], point_count)[0] for contour, point_count in zip(contours, point_counts)], axis=0)
+                # 归一化
+                segments = segments / np.asarray([height, width])
+                # 添加到结果中
+                final_segments.append(segments)
+                final_bboxes.append(box)
+                final_bboxes_cls.append(box_cls)
 
-                # 遍历轮廓(eg, 抛物线型的轮廓可能被切成一个或两个轮廓. 所以一个mask可能被裁剪成多个轮廓)
-                for contour in contours:
-                    # 对轮廓进行插值, 满足同批次的目标点数量
-                    points = resample_segments([contour.reshape(-1, 2)], old["instances"].segments.shape[1])[0]
-                    # 获取边界框
-                    x, y, w, h = cv2.boundingRect(points)
-                    # xywh -> yolo
-                    yolo_box = self.xywh_to_yolo([x, y, w, h], width, height)
-                    # 归一化
-                    points = points / np.asarray([height, width])
+            # 没有目标区域
+            if len(final_segments) == 0:
+                return image, np.empty((0, old["instances"].segments.shape[1], 2), dtype=np.float32), None, np.empty((0, 4), dtype=np.float32), np.empty((0, 1), dtype=np.float32)
+            # 返回增强后的数据
+            return image, np.stack(final_segments, axis=0, dtype=np.float32), None, np.stack(final_bboxes, axis=0, dtype=np.float32), np.array(final_bboxes_cls, dtype=np.float32).reshape((-1, 1))
 
-                    # 添加到结果中
-                    final_segments.append(points)
-                    final_bboxes.append(yolo_box)
-                    final_bbox_classes.append(class_label)
-
-            # 返回结果
-            if len(final_segments) == 0:  # 没有目标区域
-                return image, np.empty((0, 1000, 2), dtype=np.float32), None, np.empty((0, 4), dtype=np.float32), np.empty((0, 1), dtype=np.float32)
-            else:
-                return image, np.stack(final_segments, axis=0, dtype=np.float32), None, np.stack(final_bboxes, axis=0, dtype=np.float32), np.array(final_bbox_classes, dtype=np.float32).reshape(
-                    (-1, 1)
-                )
-
-        elif "keypoints" in aug_dict:  # 关键点检测任务
-            # 获取增强后的 bbox_classes 和 boxes
-            bbox_classes = np.array(aug_dict["bbox_classes"]).reshape((-1, 1))
+        elif "masks" not in aug_dict and "keypoints" in aug_dict:  # 关键点检测任务
+            # 获取增强后的 boxes, bbox_classes 和 b_ids
             bboxes = aug_dict["bboxes"]
-            # 获取增强后的 keypoints
-            keypoints_classes = np.asarray(aug_dict["keypoints_classes"]).reshape(-1, old["instances"].keypoints.shape[1], 1)
-            keypoints = aug_dict["keypoints"].reshape(-1, old["instances"].keypoints.shape[1], 2) / np.asarray([height, width])
-            # 过滤掉 keypoints 中超出范围的点(数据增强后, 一些点可能会在裁剪范围外)
-            mask = np.logical_or(keypoints[:, :, :2] < 0, keypoints[:, :, :2] > 1)
-            keypoints[mask.any(axis=2)] = 0.0
-            # 过滤掉 keypoints 关键点全部为0的(数据增强后, 可能将一组关键点全部裁剪掉, 应该整体丢弃)
-            mask = np.any(keypoints != 0, axis=(1, 2))
-            keypoints = keypoints[mask]
-            keypoints = keypoints / np.asarray([height, width])
-            keypoints_classes = keypoints_classes[mask]
-            # # 计算关键点的最小外接矩形
-            # bboxes_copy = bboxes.copy()
-            # bboxes_copy[:, 0::2] = bboxes_copy[:, 0::2] * width
-            # bboxes_copy[:, 1::2] = bboxes_copy[:, 1::2] * height
-            # keypoints_copy = keypoints.copy()
-            # keypoints_copy[:, :, 0] = np.clip(keypoints_copy[:, :, 0], 0, width, dtype=np.float32)
-            # keypoints_copy[:, :, 1] = np.clip(keypoints_copy[:, :, 1], 0, height, dtype=np.float32)
-            # bboxes_filtered, bbox_classes_filtered = [], []
-            # for keypoint in keypoints_copy:
-            #     xk, yk, wk, hk = cv2.boundingRect(keypoint)
-            #     k_polygon = Polygon([(xk, yk), (xk + wk, yk), (xk + wk, yk + hk), (xk, yk + hk)])
-            #     for i in range(len(bboxes_copy)):
-            #         xb, yb, wb, hb = bboxes_copy[i]
-            #         b_polygon = Polygon([(xb, yb), (xb + wb, yb), (xb + wb, yb + hb), (xb, yb + hb)])
-            #         # 如果关键点完全在边界框内, 则认为该边框与其目标关联
-            #         if k_polygon.within(b_polygon):
-            #             bboxes_filtered.append(bboxes[i])
-            #             bbox_classes_filtered.append(bbox_classes[i])
-            #             # 删除该边框
-            #             bboxes_copy = np.delete(bboxes_copy, i)
-            #             bboxes = np.delete(bboxes, i)
-            #             bbox_classes = np.delete(bbox_classes, i)
-            #             break
-            #
-            #     keypoints[:, :, 0] = keypoints[:, :, 0] * width
-            #     keypoints[:, :, 1] = keypoints[:, :, 1] * height
-            # keypoints = aug_dict["keypoints"].reshape(-1, old["instances"].keypoints.shape[1], 2) / np.asarray([height, width])
-            keypoints = np.concatenate([keypoints, keypoints_classes], axis=-1, dtype=np.float32)
-            # cv2.boundingRect(keypoints[0])
-            # mask = np.logical_or(keypoints[:, :, :2] < 0, keypoints[:, :, :2] > 1)
-            # keypoints[mask.any(axis=2)] = 0.0
-            return image, None, keypoints, bboxes, bbox_classes
+            bbox_classes = np.array(aug_dict["bbox_classes"])
+            b_ids = aug_dict["b_ids"]
+            # 获取增强后的 keypoints, keypoints_classes 和 k_ids
+            keypoints = aug_dict["keypoints"]
+            keypoints_classes = np.asarray(aug_dict["keypoints_classes"])
+            k_ids = aug_dict["k_ids"]
+            # 使用 b_ids 来过滤掉无效的 keypoints
+            # Note: b_ids并不代表所有的box框都有效, 因为keypoints完全在box内
+            # 如RandomCrop后, 可能将keypoints完全裁剪掉, 而box还存在一部分, 与mask情况一致, 因选择最小区域做一致性处理
+            id_mask = [k in b_ids for k in k_ids]
+            keypoints = keypoints[id_mask].reshape(-1, old["instances"].keypoints.shape[1], 2) / np.asarray([height, width])
+            keypoints_classes = keypoints_classes[id_mask].reshape(-1, old["instances"].keypoints.shape[1], 1)
+            # 遍历 keypoints
+            final_keypoints = []
+            final_bboxes = []
+            final_bboxes_cls = []
+            for keypoint, keypoint_cls, box, box_cls in zip(keypoints, keypoints_classes, bboxes, bbox_classes):
+                # 将 keypoints 中超出范围的点(数据增强后, 一些点可能会在裁剪范围外)置为0
+                keypoint[np.logical_or(keypoint[:, :2] < 0, keypoint[:, :2] > 1).any(axis=1)] = 0.0
+                # 过滤关键点
+                if np.all(keypoint == 0):
+                    continue
+                # 添加到结果中
+                final_keypoints.append(np.concatenate([keypoint, keypoint_cls], axis=-1))
+                final_bboxes.append(box)
+                final_bboxes_cls.append(box_cls)
+            # 没有目标区域
+            if len(final_keypoints) == 0:
+                return image, None, np.empty((0, old["instances"].keypoints.shape[1], 3), dtype=np.float32), np.empty((0, 4), dtype=np.float32), np.empty((0, 1), dtype=np.float32)
+            # 返回增强后的数据
+            return image, None, np.stack(final_keypoints, axis=0, dtype=np.float32), np.stack(final_bboxes, axis=0, dtype=np.float32), np.array(final_bboxes_cls, dtype=np.float32).reshape((-1, 1))
+        elif "masks" in aug_dict and "keypoints" in aug_dict:
+            # 获取增强后的 boxes, bbox_classes 和 b_ids
+            bboxes = aug_dict["bboxes"]
+            bbox_classes = np.array(aug_dict["bbox_classes"])
+            b_ids = aug_dict["b_ids"]
+            # 获取增强后的 keypoints, keypoints_classes 和 k_ids
+            keypoints = aug_dict["keypoints"]
+            keypoints_classes = np.asarray(aug_dict["keypoints_classes"])
+            k_ids = aug_dict["k_ids"]
+            # albumentations会自动过滤无效的box, 而不会过滤没有标注信息的mask, 所以用box来约束mask和keypoint来实现实例级的对应
+            # 根据b_id过滤无效的 masks
+            masks = aug_dict["masks"][b_ids]
+            # 根据b_id过滤无效的 keypoints
+            id_mask = [k in b_ids for k in k_ids]
+            keypoints = keypoints[id_mask].reshape(-1, old["instances"].keypoints.shape[1], 2) / np.asarray([height, width])
+            keypoints_classes = keypoints_classes[id_mask].reshape(-1, old["instances"].keypoints.shape[1], 1)
+            # 现在bbox, masks 和 keypoints 实例级对应的
+            final_segments = []
+            final_bboxes = []
+            final_bboxes_cls = []
+            final_keypoints = []
+            for mask, box, box_cls, keypoint, keypoint_cls in zip(masks, bboxes, bbox_classes, keypoints, keypoints_classes):
+                # 过滤矩形框的全零区域(无目标区域)
+                if np.all(mask == 0):
+                    continue
+                # 将 keypoints 中超出范围的点(数据增强后, 一些点可能会在裁剪范围外)置为0
+                keypoint[np.logical_or(keypoint[:, :2] < 0, keypoint[:, :2] > 1).any(axis=1)] = 0.0
+                # 过滤关键点
+                if np.all(keypoint == 0):
+                    continue
+                # 处理mask, 提取轮廓
+                contours, _ = cv2.findContours(mask.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+                # 获取每个轮廓分配的轮廓点(eg, 抛物线型的轮廓可能被切成一个或两个轮廓. 所以一个mask可能被裁剪成多个轮廓),
+                point_counts = self.get_points(old["instances"].segments.shape[1], len(contours))
+                # 对轮廓进行插值并拼接成一个数组, 满足同批次的总点数相同
+                segments = np.concatenate([resample_segments([contour.reshape(-1, 2)], point_count)[0] for contour, point_count in zip(contours, point_counts)], axis=0)
+                # 归一化
+                segments = segments / np.asarray([height, width])
+                # 加入结果集
+                final_segments.append(segments)
+                final_bboxes.append(box)
+                final_bboxes_cls.append(box_cls)
+                final_keypoints.append(np.concatenate([keypoint, keypoint_cls], axis=-1))
+            # 没有目标区域
+            if len(final_segments) == 0:
+                return image, np.empty((0, old["instances"].segments.shape[1], 2), dtype=np.float32), np.empty((0, old["instances"].keypoints.shape[1], 3), dtype=np.float32), np.empty(
+                    (0, 4), dtype=np.float32
+                ), np.empty((0, 1), dtype=np.float32)
+            # 返回增强后的数据
+            return image, np.stack(final_segments, axis=0, dtype=np.float32), np.stack(final_keypoints, axis=0, dtype=np.float32), np.stack(final_bboxes, axis=0, dtype=np.float32), np.array(
+                final_bboxes_cls, dtype=np.float32
+            ).reshape((-1, 1))
         else:  # 目标检测任务
             # 获取增强后的 bbox_classes 和 boxes
             bbox_classes = np.array(aug_dict["bbox_classes"]).reshape((-1, 1))
             bboxes = aug_dict["bboxes"]
             return image, None, None, bboxes, bbox_classes
-
-    # def albumentations_augment_to_ultralytics2(
-    #     self,
-    #     aug_dict: dict,
-    #     old: dict,
-    #     ignore_id: int = -1,
-    #     normalize: bool = True,
-    # ):
-    #     """
-    #     将 albumentations 增强后的数据转换为 ultralytics 所需要的格式
-    #
-    #     :param aug_dict: 增强后的参数字典
-    #     :param old: 原始数据字典
-    #     :param ignore_id: 忽略的类别 id
-    #     :param normalize: 是否进行归一化
-    #     :return:
-    #     """
-    #     # 获取增强后的图像
-    #     image = aug_dict["image"]
-    #
-    #     if "masks" in aug_dict:  # 实例分割任务
-    #         # 获取增强后的掩码
-    #         masks = aug_dict["masks"]
-    #         height, width = image.shape[:2]
-    #
-    #         final_segments = []
-    #         final_bboxes = []
-    #         final_bbox_classes = []
-    #
-    #         # 遍历掩码
-    #         for mask in masks:
-    #             # 过滤矩形框的全零区域(无目标区域)
-    #             if np.all(mask == ignore_id):
-    #                 continue
-    #             # 获取当前mask的类别
-    #             class_label = np.unique(mask)[-1]
-    #
-    #             # 提取轮廓
-    #             mask[mask == class_label] = 1  # 将目标区域设置为1
-    #             mask[mask == ignore_id] = 0  # 将非目标区域设置为0
-    #             contours, _ = cv2.findContours(mask.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    #
-    #             # 遍历轮廓(eg, 抛物线型的轮廓可能被切成一个或两个轮廓. 所以一个mask可能被裁剪成多个轮廓)
-    #             for contour in contours:
-    #                 # 对轮廓进行插值, 满足同批次的目标点数量
-    #                 points = resample_segments([contour.reshape(-1, 2)], old["instances"].segments.shape[1])[0]
-    #                 # 获取边界框
-    #                 x, y, w, h = cv2.boundingRect(points)
-    #                 # xywh -> yolo
-    #                 yolo_box = self.xywh_to_yolo([x, y, w, h], width, height)
-    #                 # 归一化
-    #                 if normalize:
-    #                     points = points / np.asarray([height, width])
-    #
-    #                 # 添加到结果中
-    #                 final_segments.append(points)
-    #                 final_bboxes.append(yolo_box)
-    #                 final_bbox_classes.append(class_label)
-    #
-    #         # 返回结果
-    #         if len(final_segments) == 0:  # 没有目标区域
-    #             return image, np.empty((0, 1000, 2)), None, np.empty((0, 4)), np.empty((0, 1))
-    #         else:
-    #             return image, np.stack(final_segments, axis=0), None, np.stack(final_bboxes, axis=0, dtype=np.float32), np.array(final_bbox_classes).reshape((-1, 1))
-    #
-    #     elif "keypoints" in aug_dict:  # 关键点检测任务
-    #         keypoints = aug_dict["keypoints"]
-    #         return image, None, keypoints, np.empty((0, 4)), np.empty((0, 1))
-    #     else:  # 目标检测任务
-    #         # 获取增强后的 bbox_classes 和 boxes
-    #         bbox_classes = np.array(aug_dict["bbox_classes"]).reshape((-1, 1))
-    #         bboxes = aug_dict["bboxes"]
-    #         return image, None, None, bboxes, bbox_classes
 
     def contains_transform(self, pipeline, target_transforms):
         """
@@ -2264,6 +2207,12 @@ class Albumentations:
         height = h / img_height
 
         return x_center, y_center, width, height
+
+    @staticmethod
+    def get_points(n: int, k: int) -> list[int]:
+        avg = n // k
+        remainder = n % k
+        return [avg + 1] * remainder + [avg] * (k - remainder)
 
 
 class Format:

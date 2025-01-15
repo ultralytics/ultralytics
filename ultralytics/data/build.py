@@ -47,6 +47,13 @@ class InfiniteDataLoader(dataloader.DataLoader):
         for _ in range(len(self)):
             yield next(self.iterator)
 
+    def __del__(self):
+        """Ensure that workers are terminated."""
+        for w in self.iterator._workers:  # force terminate
+            if w.is_alive():
+                w.terminate()
+        self.iterator._shutdown_workers()  # cleanup
+
     def reset(self):
         """
         Reset iterator.

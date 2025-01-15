@@ -246,6 +246,7 @@ class DETRLoss(nn.Module):
         return {
             **self._get_loss_class(pred_scores, targets, gt_scores, len(gt_bboxes), postfix),
             **self._get_loss_bbox(pred_bboxes, gt_bboxes, postfix),
+            # **(self._get_loss_mask(masks, gt_mask, match_indices, postfix) if masks is not None and gt_mask is not None else {})
         }
 
     def forward(self, pred_bboxes, pred_scores, batch, postfix="", **kwargs):

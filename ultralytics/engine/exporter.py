@@ -1169,6 +1169,7 @@ class Exporter:
         yaml_save(export_path / "metadata.yaml", self.metadata)  # add metadata.yaml
 
         LOGGER.info(f"\n{prefix} model exported as {f}.\n")
+        return f, None
 
     def export_imx(self, prefix=colorstr("IMX:")):
         """YOLO IMX export."""

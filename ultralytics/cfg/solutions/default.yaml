@@ -1,6 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-# Configuration for Ultralytics Solutions: https://docs.ultralytics.com/solutions/
+# Global configuration YAML with settings and arguments for Ultralytics Solutions
+# For documentation see https://docs.ultralytics.com/solutions/
 
 # Object counting settings  --------------------------------------------------------------------------------------------
 region: # list[tuple[int, int]] object counting, queue or speed estimation region points.

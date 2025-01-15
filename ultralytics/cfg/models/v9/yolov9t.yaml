@@ -1,6 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-# YOLOv9t object detection model with P3-P5 outputs
+# YOLOv9t object detection model with P3/8 - P5/32 outputs
 # Model docs: https://docs.ultralytics.com/models/yolov9
 # Task docs: https://docs.ultralytics.com/tasks/detect
 # 917 layers, 2128720 parameters, 8.5 GFLOPs

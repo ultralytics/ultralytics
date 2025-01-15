@@ -19,7 +19,6 @@ class AIGym(BaseSolution):
         up_angle (float): Angle threshold for considering the 'up' position of an exercise.
         down_angle (float): Angle threshold for considering the 'down' position of an exercise.
         kpts (List[int]): Indices of keypoints used for angle calculation.
-        lw (int): Line width for drawing annotations.
         annotator (Annotator): Object for drawing annotations on the image.
 
     Methods:
@@ -51,7 +50,6 @@ class AIGym(BaseSolution):
         self.up_angle = float(self.CFG["up_angle"])  # Pose up predefined angle to consider up pose
         self.down_angle = float(self.CFG["down_angle"])  # Pose down predefined angle to consider down pose
         self.kpts = self.CFG["kpts"]  # User selected kpts of workouts storage for further usage
-        self.lw = self.CFG["line_width"]  # Store line_width for usage
 
     def monitor(self, im0):
         """
@@ -73,7 +71,7 @@ class AIGym(BaseSolution):
             >>> processed_image = gym.monitor(image)
         """
         # Extract tracks
-        tracks = self.model.track(source=im0, persist=True, classes=self.CFG["classes"])[0]
+        tracks = self.model.track(source=im0, persist=True, classes=self.CFG["classes"], **self.track_add_args)[0]
 
         if tracks.boxes.id is not None:
             # Extract and check keypoints
@@ -84,14 +82,14 @@ class AIGym(BaseSolution):
                 self.stage += ["-"] * new_human
 
             # Initialize annotator
-            self.annotator = Annotator(im0, line_width=self.lw)
+            self.annotator = Annotator(im0, line_width=self.line_width)
 
             # Enumerate over keypoints
             for ind, k in enumerate(reversed(tracks.keypoints.data)):
                 # Get keypoints and estimate the angle
                 kpts = [k[int(self.kpts[i])].cpu() for i in range(3)]
                 self.angle[ind] = self.annotator.estimate_pose_angle(*kpts)
-                im0 = self.annotator.draw_specific_points(k, self.kpts, radius=self.lw * 3)
+                im0 = self.annotator.draw_specific_points(k, self.kpts, radius=self.line_width * 3)
 
                 # Determine stage and count logic based on angle thresholds
                 if self.angle[ind] < self.down_angle:

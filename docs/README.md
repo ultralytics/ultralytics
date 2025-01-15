@@ -15,10 +15,10 @@
 ## 🛠️ Installation
 
 [![PyPI - Version](https://img.shields.io/pypi/v/ultralytics?logo=pypi&logoColor=white)](https://pypi.org/project/ultralytics/)
-[![Downloads](https://static.pepy.tech/badge/ultralytics)](https://pepy.tech/project/ultralytics)
+[![Downloads](https://static.pepy.tech/badge/ultralytics)](https://www.pepy.tech/projects/ultralytics)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/ultralytics?logo=python&logoColor=gold)](https://pypi.org/project/ultralytics/)
 
-To install the ultralytics package in developer mode, ensure you have Git and Python 3 installed on your system. Then, follow these steps:
+To install the Ultralytics package in developer mode, ensure you have Git and Python 3 installed on your system. Then, follow these steps:
 
 1. Clone the ultralytics repository to your local machine using Git:
 
@@ -38,7 +38,7 @@ To install the ultralytics package in developer mode, ensure you have Git and Py
     pip install -e '.[dev]'
     ```
 
-- This command installs the ultralytics package along with all development dependencies, allowing you to modify the package code and have the changes immediately reflected in your Python environment.
+- This command installs the Ultralytics package along with all development dependencies, allowing you to modify the package code and have the changes immediately reflected in your Python environment.
 
 ## 🚀 Building and Serving Locally
 

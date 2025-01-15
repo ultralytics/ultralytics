@@ -55,6 +55,7 @@ Measuring the gap between two objects is known as distance calculation within a 
         # Init distance-calculation obj
         distance = solutions.DistanceCalculation(model="yolo11n.pt", show=True)
 
+        # Process video
         while cap.isOpened():
             success, im0 = cap.read()
             if not success:

@@ -140,7 +140,7 @@ class Tuner:
             # Mutate
             r = np.random  # method
             r.seed(int(time.time()))
-            g = np.array([v[2] if len(v) == 3 else 1.0 for k, v in self.space.items()])  # gains 0-1
+            g = np.array([v[2] if len(v) == 3 else 1.0 for v in self.space.values()])  # gains 0-1
             ng = len(self.space)
             v = np.ones(ng)
             while all(v == 1):  # mutate until a change occurs (prevent duplicates)

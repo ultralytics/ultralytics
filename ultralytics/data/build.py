@@ -52,7 +52,7 @@ class InfiniteDataLoader(dataloader.DataLoader):
         for w in self.iterator._workers:  # force terminate
             if w.is_alive():
                 w.terminate()
-        self.iterator._shutdown_workers() # cleanup
+        self.iterator._shutdown_workers()  # cleanup
 
     def reset(self):
         """

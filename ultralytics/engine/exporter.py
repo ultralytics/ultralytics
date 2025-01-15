@@ -78,6 +78,7 @@ from ultralytics.nn.tasks import DetectionModel, SegmentationModel, WorldModel
 from ultralytics.utils import (
     ARM64,
     DEFAULT_CFG,
+    IS_COLAB,
     IS_JETSON,
     LINUX,
     LOGGER,
@@ -85,7 +86,6 @@ from ultralytics.utils import (
     PYTHON_VERSION,
     ROOT,
     WINDOWS,
-    IS_COLAB,
     __version__,
     callbacks,
     colorstr,
@@ -269,9 +269,9 @@ class Exporter:
                 self.args.name = "rk3588"
             else:
                 self.args.name = self.args.name.lower()
-            assert (
-                self.args.name in RKNN_CHIPS
-            ), f"Invalid processor name '{self.args.name}' for Rockchip RKNN export. Valid names are {RKNN_CHIPS}."
+            assert self.args.name in RKNN_CHIPS, (
+                f"Invalid processor name '{self.args.name}' for Rockchip RKNN export. Valid names are {RKNN_CHIPS}."
+            )
         if self.args.int8 and tflite:
             assert not getattr(model, "end2end", False), "TFLite INT8 export not supported for end2end models."
         if edgetpu:
@@ -1147,9 +1147,10 @@ class Exporter:
         if IS_COLAB:
             # Prevent 'exit' from closing the notebook https://github.com/airockchip/rknn-toolkit2/issues/259
             import builtins
+
             builtins.exit = lambda: None
-            
-        from rknn.api import RKNN # type: ignore
+
+        from rknn.api import RKNN  # type: ignore
 
         f, _ = self.export_onnx()
 

@@ -5,12 +5,11 @@
 # @Author : Sun Hao
 # @Email  : 2865467769@qq.com
 # @Date   : 2025/1/10 17:29
-# @Desc   : 
+# @Desc   :
 # ===============================================================================
 from ultralytics import YOLO
 
 if __name__ == "__main__":
-
     model = YOLO("yolo11n.pt")
     results = model.train(data="coco8.yaml", epochs=50, imgsz=640, workers=0)
 

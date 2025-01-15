@@ -1,5 +1,4 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
-
 """
 Ultralytics Results, Boxes and Masks classes for handling inference results.
 

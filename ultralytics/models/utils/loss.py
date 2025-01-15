@@ -244,9 +244,7 @@ class DETRLoss(nn.Module):
             gt_scores[idx] = bbox_iou(pred_bboxes.detach(), gt_bboxes, xywh=True).squeeze(-1)
 
         return {
-            **self._get_loss_class(
-                pred_scores, targets, gt_scores, len(gt_bboxes), postfix
-            ),
+            **self._get_loss_class(pred_scores, targets, gt_scores, len(gt_bboxes), postfix),
             **self._get_loss_bbox(pred_bboxes, gt_bboxes, postfix),
         }
 

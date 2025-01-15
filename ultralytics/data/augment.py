@@ -3,7 +3,7 @@
 import math
 import random
 from copy import deepcopy
-from typing import Tuple, Union
+from typing import Sequence, Tuple, Union
 
 import cv2
 import numpy as np
@@ -15,7 +15,7 @@ from ultralytics.utils import LOGGER, colorstr
 from ultralytics.utils.checks import check_version
 from ultralytics.utils.instance import Instances
 from ultralytics.utils.metrics import bbox_ioa
-from ultralytics.utils.ops import segment2box, xyxyxyxy2xywhr
+from ultralytics.utils.ops import resample_segments, segment2box, xyxyxyxy2xywhr
 from ultralytics.utils.torch_utils import TORCHVISION_0_10, TORCHVISION_0_11, TORCHVISION_0_13
 
 DEFAULT_MEAN = (0.0, 0.0, 0.0)
@@ -1758,7 +1758,7 @@ class Albumentations:
         - Spatial transforms are handled differently and require special processing for bounding boxes.
     """
 
-    def __init__(self, p=1.0):
+    def __init__(self, p=1.0, imgsz=640, albumentations_task=(False, False, False)):
         """
         Initialize the Albumentations transform object for YOLO bbox formatted parameters.
 
@@ -1768,6 +1768,9 @@ class Albumentations:
 
         Args:
             p (float): Probability of applying the augmentations. Must be between 0 and 1.
+            imgsz (int): Size of the image.
+            albumentations_task (Tuple[bool, bool, bool]): (segments, keypoints, obb), indicating whether to apply segmentation, keypoints and obb.
+
 
         Attributes:
             p (float): Probability of applying the augmentations.
@@ -1844,22 +1847,31 @@ class Albumentations:
 
             # Transforms
             T = [
-                A.Blur(p=0.01),
-                A.MedianBlur(p=0.01),
-                A.ToGray(p=0.01),
-                A.CLAHE(p=0.01),
-                A.RandomBrightnessContrast(p=0.0),
-                A.RandomGamma(p=0.0),
-                A.ImageCompression(quality_lower=75, p=0.0),
+                A.RandomResizedCrop(size=(imgsz, imgsz), scale=(0.1, 1.0), ratio=(3 / 4, 4 / 3), p=1.0),
             ]
 
             # Compose transforms
-            self.contains_spatial = any(transform.__class__.__name__ in spatial_transforms for transform in T)
-            self.transform = (
-                A.Compose(T, bbox_params=A.BboxParams(format="yolo", label_fields=["class_labels"]))
-                if self.contains_spatial
-                else A.Compose(T)
-            )
+            self.contains_spatial = self.contains_transform(T, spatial_transforms)
+            self.use_segments, self.use_keypoints, self.use_obb = albumentations_task
+            if (self.use_segments or self.use_obb) and not self.use_keypoints:  # segments or obb
+                params_dict = dict(bbox_params=A.BboxParams(format="yolo", label_fields=["bbox_classes", "b_ids"]))
+            elif not (self.use_segments or self.use_obb) and self.use_keypoints:  # keypoints
+                params_dict = dict(
+                    bbox_params=A.BboxParams(format="yolo", label_fields=["bbox_classes", "b_ids"]),
+                    keypoint_params=A.KeypointParams(
+                        format="xy", label_fields=["keypoints_classes", "k_ids"], remove_invisible=False
+                    ),
+                )
+            elif (self.use_segments or self.use_obb) and self.use_keypoints:  # (segments or obb) and keypoints
+                params_dict = dict(
+                    bbox_params=A.BboxParams(format="yolo", label_fields=["bbox_classes"]),
+                    keypoint_params=A.KeypointParams(
+                        format="xy", label_fields=["keypoints_classes"], remove_invisible=False
+                    ),
+                )
+            else:  # object detection
+                params_dict = dict(bbox_params=A.BboxParams(format="yolo", label_fields=["bbox_classes"]))
+            self.transform = A.Compose(T, **params_dict) if self.contains_spatial else A.Compose(T)
             LOGGER.info(prefix + ", ".join(f"{x}".replace("always_apply=False, ", "") for x in T if x.p))
         except ImportError:  # package not installed, skip
             pass
@@ -1901,23 +1913,385 @@ class Albumentations:
             return labels
 
         if self.contains_spatial:
-            cls = labels["cls"]
-            if len(cls):
+            bbox_classes = labels["cls"]
+            if len(bbox_classes):
                 im = labels["img"]
-                labels["instances"].convert_bbox("xywh")
-                labels["instances"].normalize(*im.shape[:2][::-1])
-                bboxes = labels["instances"].bboxes
-                # TODO: add supports of segments and keypoints
-                new = self.transform(image=im, bboxes=bboxes, class_labels=cls)  # transformed
-                if len(new["class_labels"]) > 0:  # skip update if no bbox in new im
-                    labels["img"] = new["image"]
-                    labels["cls"] = np.array(new["class_labels"])
-                    bboxes = np.array(new["bboxes"], dtype=np.float32)
-                labels["instances"].update(bboxes=bboxes)
+                bboxes, bbox_classes, b_ids = self.ultralytics_bboxes_to_albumentations_augment(labels)
+                segments, keypoints = None, None
+                # segments (contain obb), object detection
+                if (self.use_segments or self.use_obb) and not self.use_keypoints:
+                    masks = self.ultralytics_segments_to_albumentations_augment(labels)
+                    new = self.transform(image=im, masks=masks, bboxes=bboxes, bbox_classes=bbox_classes, b_ids=b_ids)
+                # keypoints, object detection
+                elif not (self.use_segments or self.use_obb) and self.use_keypoints:
+                    k_points, k_classes, k_ids = self.ultralytics_keypoints_to_albumentations_augment(labels)
+                    # Note: Variables cannot be used here: keypoints, keypoint_classes, k_ids = self.ultralytics_keypoints_to_albumentations_augment(labels), because it overwrites the previous one
+                    new = self.transform(
+                        image=im,
+                        bboxes=bboxes,
+                        bbox_classes=bbox_classes,
+                        b_ids=b_ids,
+                        keypoints=k_points,
+                        keypoints_classes=k_classes,
+                        k_ids=k_ids,
+                    )
+                # segments, keypoints, object detection
+                elif (self.use_segments or self.use_obb) and self.use_keypoints:
+                    masks = self.ultralytics_segments_to_albumentations_augment(labels)
+                    k_points, k_classes, k_ids = self.ultralytics_keypoints_to_albumentations_augment(labels)
+                    new = self.transform(
+                        image=im,
+                        masks=masks,
+                        bboxes=bboxes,
+                        bbox_classes=bbox_classes,
+                        b_ids=b_ids,
+                        keypoints=k_points,
+                        keypoints_classes=k_classes,
+                        k_ids=k_ids,
+                    )
+                # object detection
+                else:
+                    new = self.transform(image=im, bboxes=bboxes, bbox_classes=bbox_classes)
+
+                # skip update if no bbox in new im
+                if len(new["bbox_classes"]) > 0:
+                    image, segments, keypoints, bboxes, bbox_classes = self.albumentations_augment_to_ultralytics(
+                        new, old=labels
+                    )
+                    labels["img"] = image
+                    labels["cls"] = bbox_classes
+
+                labels["instances"].update(bboxes=bboxes, segments=segments, keypoints=keypoints)
         else:
             labels["img"] = self.transform(image=labels["img"])["image"]  # transformed
-
+        labels["instances"].normalize(*labels["img"].shape[:2][::-1])
         return labels
+
+    @staticmethod
+    def ultralytics_bboxes_to_albumentations_augment(ultralytics_labels: dict):
+        """
+        Convert Ultralytics bboxes, and generate b_ids for instance level constraints.
+
+        Args:
+            ultralytics_labels (dict): Ultralytics labels dictionary containing image and bounding box information
+
+        Returns: bboxes, bbox_classes, b_ids
+        """
+        height, width = ultralytics_labels["img"].shape[:2]
+        bbox_classes = ultralytics_labels["cls"]
+        ultralytics_labels["instances"].convert_bbox("xywh")
+        # normalize
+        ultralytics_labels["instances"].normalize(width, height)
+        bboxes = ultralytics_labels["instances"].bboxes
+        b_ids = np.repeat(np.arange(bbox_classes.shape[0]), 1)
+        return bboxes, bbox_classes, b_ids
+
+    @staticmethod
+    def ultralytics_segments_to_albumentations_augment(ultralytics_labels: dict, return_list: bool = False):
+        """
+        Convert Ultralytics segments to albumentations format.
+
+        Args:
+            ultralytics_labels (dict): Ultralytics labels dictionary containing image and segment information
+            return_list: Specifies whether to return the data in the form of a list
+
+        Returns: masks (np.ndarray or list[np.ndarray])
+        """
+        height, width = ultralytics_labels["img"].shape[:2]
+        segments_classes = ultralytics_labels["cls"]
+        # A deep copy must be made, and modifying the source data will result in inconsistent masks
+        instances = deepcopy(ultralytics_labels["instances"])
+        # denormalize
+        instances.denormalize(width, height)
+        segments = instances.segments.astype(np.int32)
+        # Create a blank mask image
+        masks = [np.zeros((height, width), dtype=np.uint8) for _ in range(segments.shape[0])]
+        for segment, mask, cls in zip(segments, masks, segments_classes):
+            # Fill polygon areas
+            cv2.fillPoly(mask, [segment], [1])
+
+        return masks if return_list else np.stack(masks, axis=0)
+
+    @staticmethod
+    def ultralytics_keypoints_to_albumentations_augment(
+        ultralytics_labels: dict,
+    ):
+        """
+        Convert Ultralytics keypoints to albumentations format, and generate b_ids for instance level constraints.
+
+        Args:
+            ultralytics_labels: Ultralytics labels dictionary containing image and keypoint information
+
+        Returns: keypoints, keypoints_classes, k_ids
+        """
+        height, width = ultralytics_labels["img"].shape[:2]
+        # Deep copies are necessary, and modifying the source data will break consistency
+        instances = deepcopy(ultralytics_labels["instances"])
+        # denormalize
+        instances.denormalize(width, height)
+        keypoints_classes = instances.keypoints[:, :, 2]
+        keypoints = instances.keypoints[:, :, :2]
+        # Note: keypoints normalize in [0, 1], but albumentations keypoints normalize in [0, 1)
+        keypoints[:, :, 0] = np.clip(keypoints[:, :, 0], 0, width - 1e-2)
+        keypoints[:, :, 1] = np.clip(keypoints[:, :, 1], 0, height - 1e-2)
+        k_ids = np.repeat(np.arange(keypoints.shape[0]), keypoints.shape[1])
+
+        return keypoints.reshape(-1, 2), keypoints_classes.reshape(-1).astype(np.int32), k_ids
+
+    def albumentations_augment_to_ultralytics(self, new: dict, old: dict):
+        """
+        Convert the enhanced data of Albumentations to the format required by Ultralytics
+        b_ids records the temporarily valid box IDs after albumentations augmentation, and these IDs are used to filter out invalid masks.
+        Note: b_ids does not guarantee that all boxes are valid, because the box is the smallest enclosing rectangle of the mask, meaning the mask is entirely within the box.
+              For example, after a RandomCrop, the mask might be completely cropped out while part of the box still remains.
+
+        Note: b_ids does not guarantee that all boxes are valid, because keypoints are entirely within the box.
+              For example, after a RandomCrop, the keypoints might be completely cropped out while part of the box remains, similar to
+              the mask situation, so the smallest region is chosen for consistent processing.
+
+        Args:
+            new: Albumentations enhanced reference dictionaries
+            old: Reference dictionary before Albumentations enhancement
+
+        Returns: image, segments, keypoints, bboxes, bbox_classes after instance-level constraints
+
+        """
+        image = new["image"]
+        height, width = image.shape[:2]
+
+        # masks + boxes
+        if "masks" in new and "keypoints" not in new:
+            b_ids = new["b_ids"]
+            # Get the enhanced post mask with the corresponding box
+            masks = new["masks"][b_ids]
+            bboxes = new["bboxes"]
+            bbox_classes = new["bbox_classes"]
+
+            # Travers the mask
+            final_segments, final_bboxes, final_bboxes_cls = [], [], []
+            for mask, box, box_cls in zip(masks, bboxes, bbox_classes):
+                # Filter for untargeted areas
+                if np.all(mask == 0):
+                    continue
+                # Extract the outline
+                contours, _ = cv2.findContours(mask.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+                # Get the outline points assigned to each profile (eg, the parabolic profile may be cut into one or two profiles. So one mask may be cropped into multiple outlines)
+                point_counts = self.get_points(old["instances"].segments.shape[1], len(contours))
+                # Interpolate the outlines and splice them into an array to meet the same total number of points in the same batch
+                segments = np.concatenate(
+                    [
+                        resample_segments([contour.reshape(-1, 2)], point_count)[0]
+                        for contour, point_count in zip(contours, point_counts)
+                    ],
+                    axis=0,
+                )
+                # normalize
+                segments = segments / np.asarray([height, width])
+                # Add to the results
+                final_segments.append(segments)
+                final_bboxes.append(box)
+                final_bboxes_cls.append(box_cls)
+
+            if len(final_segments) == 0:
+                return (
+                    image,
+                    np.empty((0, old["instances"].segments.shape[1], 2), dtype=np.float32),
+                    None,
+                    np.empty((0, 4), dtype=np.float32),
+                    np.empty((0, 1), dtype=np.float32),
+                )
+            return (
+                image,
+                np.stack(final_segments, axis=0, dtype=np.float32),
+                None,
+                np.stack(final_bboxes, axis=0, dtype=np.float32),
+                np.array(final_bboxes_cls, dtype=np.float32).reshape((-1, 1)),
+            )
+
+        # keypoints + boxes
+        elif "masks" not in new and "keypoints" in new:
+            # Get enhanced boxes, bbox_classes and b_ids
+            bboxes = new["bboxes"]
+            bbox_classes = np.array(new["bbox_classes"])
+            b_ids = new["b_ids"]
+            # Get enhanced keypoints, keypoints_classes and k_ids
+            keypoints = new["keypoints"]
+            keypoints_classes = np.asarray(new["keypoints_classes"])
+            k_ids = new["k_ids"]
+            # Use b_ids to filter out invalid keypoints.
+            id_mask = [k in b_ids for k in k_ids]
+            keypoints = keypoints[id_mask].reshape(-1, old["instances"].keypoints.shape[1], 2) / np.asarray(
+                [height, width]
+            )
+            keypoints_classes = keypoints_classes[id_mask].reshape(-1, old["instances"].keypoints.shape[1], 1)
+            # Travers the keypoints
+            final_keypoints, final_bboxes, final_bboxes_cls = [], [], []
+            for keypoint, keypoint_cls, box, box_cls in zip(keypoints, keypoints_classes, bboxes, bbox_classes):
+                # Set the out-of-range points in the keypoints (some points may be outside the crop range after data enhancement) to 0
+                keypoint[np.logical_or(keypoint[:, :2] < 0, keypoint[:, :2] > 1).any(axis=1)] = 0.0
+                # Filter keys
+                if np.all(keypoint == 0):
+                    continue
+
+                final_keypoints.append(np.concatenate([keypoint * np.asarray([height, width]), keypoint_cls], axis=-1))
+                final_bboxes.append(box)
+                final_bboxes_cls.append(box_cls)
+
+            if len(final_keypoints) == 0:
+                return (
+                    image,
+                    None,
+                    np.empty((0, old["instances"].keypoints.shape[1], 3), dtype=np.float32),
+                    np.empty((0, 4), dtype=np.float32),
+                    np.empty((0, 1), dtype=np.float32),
+                )
+            return (
+                image,
+                None,
+                np.stack(final_keypoints, axis=0, dtype=np.float32),
+                np.stack(final_bboxes, axis=0, dtype=np.float32),
+                np.array(final_bboxes_cls, dtype=np.float32).reshape((-1, 1)),
+            )
+
+        # masks + keypoints + bboxes
+        elif "masks" in new and "keypoints" in new:
+            # Get enhanced boxes, bbox_classes and b_ids
+            bboxes = new["bboxes"]
+            bbox_classes = np.array(new["bbox_classes"])
+            b_ids = new["b_ids"]
+            # Get enhanced keypoints, keypoints_classes and k_ids
+            keypoints = new["keypoints"]
+            keypoints_classes = np.asarray(new["keypoints_classes"])
+            k_ids = new["k_ids"]
+            """Albumentations will automatically filter invalid boxes, but not masks without annotation information, so
+            use boxes to constrain masks and keypoints to achieve instance-level correspondence.
+            """
+            # Filter invalid masks based on b_id
+            masks = new["masks"][b_ids]
+            # Filter invalid keypoints based on b_id
+            id_mask = [k in b_ids for k in k_ids]
+            keypoints = keypoints[id_mask].reshape(-1, old["instances"].keypoints.shape[1], 2) / np.asarray(
+                [height, width]
+            )
+            keypoints_classes = keypoints_classes[id_mask].reshape(-1, old["instances"].keypoints.shape[1], 1)
+
+            # Now bbox, masks and keypoints are corresponding at the instance level
+            final_segments, final_bboxes, final_bboxes_cls, final_keypoints = [], [], [], []
+            for mask, box, box_cls, keypoint, keypoint_cls in zip(
+                masks, bboxes, bbox_classes, keypoints, keypoints_classes
+            ):
+                # No target area
+                if np.all(mask == 0):
+                    continue
+
+                # Set the out-of-range points in the keypoints (some points may be outside the crop range after data enhancement) to 0
+                keypoint[np.logical_or(keypoint[:, :2] < 0, keypoint[:, :2] > 1).any(axis=1)] = 0.0
+                # Filter keys
+                if np.all(keypoint == 0):
+                    continue
+
+                # Process the mask and extract the outline
+                contours, _ = cv2.findContours(mask.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+                # Get the outline points assigned to each profile (e.g., a parabolic profile may be cut into one or two profiles. so a mask may be cropped into multiple outlines)
+                point_counts = self.get_points(old["instances"].segments.shape[1], len(contours))
+                # Interpolate the outlines and splice them into an array to meet the same total number of points in the same batch
+                segments = np.concatenate(
+                    [
+                        resample_segments([contour.reshape(-1, 2)], point_count)[0]
+                        for contour, point_count in zip(contours, point_counts)
+                    ],
+                    axis=0,
+                )
+                # normalize the points to [0,1]
+                segments = segments / np.asarray([height, width])
+
+                final_segments.append(segments)
+                final_bboxes.append(box)
+                final_bboxes_cls.append(box_cls)
+                final_keypoints.append(np.concatenate([keypoint * np.asarray([height, width]), keypoint_cls], axis=-1))
+
+            if len(final_keypoints) == 0:
+                return (
+                    image,
+                    np.empty((0, old["instances"].segments.shape[1], 2), dtype=np.float32),
+                    np.empty((0, old["instances"].keypoints.shape[1], 3), dtype=np.float32),
+                    np.empty((0, 4), dtype=np.float32),
+                    np.empty((0, 1), dtype=np.float32),
+                )
+            return (
+                image,
+                np.stack(final_segments, axis=0, dtype=np.float32),
+                np.stack(final_keypoints, axis=0, dtype=np.float32),
+                np.stack(final_bboxes, axis=0, dtype=np.float32),
+                np.array(final_bboxes_cls, dtype=np.float32).reshape((-1, 1)),
+            )
+
+        # bboxes
+        else:
+            bbox_classes = np.array(new["bbox_classes"]).reshape((-1, 1))
+            bboxes = new["bboxes"]
+            return image, None, None, bboxes, bbox_classes
+
+    def contains_transform(self, pipeline, target_transforms):
+        """
+        Recursively checks whether the specified transform type is included in the enhancement pipeline.
+
+        Args:
+            pipeline: Data augmentation pipelines (List or Albumentations base class)
+            target_transforms: A list of transform class names to check
+
+        Returns: Boolean, whether or not it contains the specified transform type
+        """
+        if isinstance(pipeline, list):
+            for transform in pipeline:
+                if self.contains_transform(transform, target_transforms):
+                    return True
+        elif hasattr(pipeline, "transforms"):
+            # If it's an object like Compose or Sequential, check its transforms property recursively
+            if self.contains_transform(pipeline.transforms, target_transforms):
+                return True
+        else:
+            # Check if the current transform is in the target transform list
+            if pipeline.__class__.__name__ in target_transforms:
+                return True
+
+        return False
+
+    @staticmethod
+    def xywh_to_yolo(bbox: Union[list, tuple, Sequence], img_width: int, img_height: int) -> tuple:
+        """
+        Convert xywh to YOLO format, top-left + width-height => center + width-height.
+
+        Args:
+            bbox: A list or tuple with four floating-point numbers [x, y, w, h]
+            img_width: image width
+            img_height: image height
+
+        Returns: (x_center, y_center, w, h)
+        """
+        assert len(bbox) == 4, f"bbox must be 4, but got {len(bbox)}"
+        x, y, w, h = map(float, bbox)
+        x_center = (x + w / 2) / img_width
+        y_center = (y + h / 2) / img_height
+        width = w / img_width
+        height = h / img_height
+
+        return x_center, y_center, width, height
+
+    @staticmethod
+    def get_points(n: int, k: int) -> list[int]:
+        """
+        Get the number of points for each polygon.
+
+        Args:
+            n: all points
+            k: polygon number
+
+        Returns: [n1, n2, ..., nk]
+        """
+        avg = n // k
+        remainder = n % k
+        return [avg + 1] * remainder + [avg] * (k - remainder)
 
 
 class Format:
@@ -2272,7 +2646,7 @@ class RandomLoadText:
         return labels
 
 
-def v8_transforms(dataset, imgsz, hyp, stretch=False):
+def v8_transforms(dataset, imgsz, hyp, stretch=False, albumentations_task=(False, False, False)):
     """
     Applies a series of image transformations for training.
 
@@ -2284,6 +2658,7 @@ def v8_transforms(dataset, imgsz, hyp, stretch=False):
         imgsz (int): The target image size for resizing.
         hyp (Namespace): A dictionary of hyperparameters controlling various aspects of the transformations.
         stretch (bool): If True, applies stretching to the image. If False, uses LetterBox resizing.
+        albumentations_task (Tuple[bool, bool, bool]): (segments, keypoints, obb), indicating whether to apply segmentation, keypoints and obb.
 
     Returns:
         (Compose): A composition of image transformations to be applied to the dataset.
@@ -2331,7 +2706,7 @@ def v8_transforms(dataset, imgsz, hyp, stretch=False):
         [
             pre_transform,
             MixUp(dataset, pre_transform=pre_transform, p=hyp.mixup),
-            Albumentations(p=1.0),
+            Albumentations(p=1.0, imgsz=imgsz, albumentations_task=albumentations_task),
             RandomHSV(hgain=hyp.hsv_h, sgain=hyp.hsv_s, vgain=hyp.hsv_v),
             RandomFlip(direction="vertical", p=hyp.flipud),
             RandomFlip(direction="horizontal", p=hyp.fliplr, flip_idx=flip_idx),

@@ -1,7 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import numpy as np
-
 from autoimport import lazy
 
 with lazy():

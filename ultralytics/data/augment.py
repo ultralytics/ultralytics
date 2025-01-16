@@ -1847,7 +1847,7 @@ class Albumentations:
                 A.Blur(p=0.01),
                 A.MedianBlur(p=0.01),
                 A.ToGray(p=0.01),
-                A.CLAHE(clip_limit=(4,4), p=0.01),
+                A.CLAHE(p=0.01),
                 A.RandomBrightnessContrast(p=0.0),
                 A.RandomGamma(p=0.0),
                 A.ImageCompression(quality_lower=75, p=0.0),
@@ -1860,7 +1860,10 @@ class Albumentations:
                 if self.contains_spatial
                 else A.Compose(T)
             )
-            LOGGER.info(prefix + ", ".join(f"{x}".replace("always_apply=False, ", "") for x in T if x.p))
+            if hasattr(self.transform, "set_random_seed"):
+                # for deterministic transforms in albumentations>=1.4.21
+                self.transform.set_random_seed(torch.random.initial_seed())
+                LOGGER.info(prefix + ", ".join(f"{x}".replace("always_apply=False, ", "") for x in T if x.p))
         except ImportError:  # package not installed, skip
             pass
         except Exception as e:

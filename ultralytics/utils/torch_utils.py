@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Union
 
 import numpy as np
+import thop
 import torch
 import torch.distributed as dist
 import torch.nn as nn
@@ -29,10 +30,6 @@ from ultralytics.utils import (
     colorstr,
 )
 from ultralytics.utils.checks import check_version
-
-
-import thop
-
 
 # Version checks (all default to version>=min_version)
 TORCH_1_9 = check_version(torch.__version__, "1.9.0")

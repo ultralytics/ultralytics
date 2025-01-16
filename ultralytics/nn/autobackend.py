@@ -468,6 +468,7 @@ class AutoBackend(nn.Module):
             LOGGER.info(f"Loading {w} for RKNN inference...")
             check_requirements("rknn-toolkit-lite2")
             from rknnlite.api import RKNNLite
+
             w = Path(w)
             if not w.is_file():  # if not *.rknn
                 w = next(w.rglob("*.rknn"))

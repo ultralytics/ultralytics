@@ -1147,6 +1147,7 @@ class Exporter:
         if IS_COLAB:
             # Prevent 'exit' from closing the notebook https://github.com/airockchip/rknn-toolkit2/issues/259
             import builtins
+
             builtins.exit = lambda: None
 
         from rknn.api import RKNN  # type: ignore

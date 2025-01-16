@@ -95,6 +95,8 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 - [TorchScript](torchscript.md): Developed as part of the [PyTorch](https://pytorch.org/) framework, TorchScript enables efficient execution and deployment of machine learning models in various production environments without the need for Python dependencies.
 
+- [RKNN](rknn.md): Developed by [Rockchip](https://www.rock-chips.com/), RKNN (Rockchip Neural Network) is a specialized neural network inference framework optimized for Rockchip's hardware platforms, particularly their NPUs. It facilitates efficient deployment of AI models on edge devices, enabling high-performance inference in real-time applications.
+
 ### Export Formats
 
 We also support a variety of model export formats for deployment in different environments. Here are the available formats:

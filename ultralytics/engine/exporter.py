@@ -78,11 +78,13 @@ from ultralytics.nn.tasks import DetectionModel, SegmentationModel, WorldModel
 from ultralytics.utils import (
     ARM64,
     DEFAULT_CFG,
+    IS_COLAB,
     IS_JETSON,
     LINUX,
     LOGGER,
     MACOS,
     PYTHON_VERSION,
+    RKNN_CHIPS,
     ROOT,
     WINDOWS,
     __version__,
@@ -116,6 +118,7 @@ def export_formats():
         ["MNN", "mnn", ".mnn", True, True, ["batch", "half", "int8"]],
         ["NCNN", "ncnn", "_ncnn_model", True, True, ["batch", "half"]],
         ["IMX", "imx", "_imx_model", True, True, ["int8"]],
+        ["RKNN", "rknn", "_rknn_model", False, False, ["name"]],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments"], zip(*x)))
 
@@ -220,22 +223,10 @@ class Exporter:
         flags = [x == fmt for x in fmts]
         if sum(flags) != 1:
             raise ValueError(f"Invalid export format='{fmt}'. Valid formats are {fmts}")
-        (
-            jit,
-            onnx,
-            xml,
-            engine,
-            coreml,
-            saved_model,
-            pb,
-            tflite,
-            edgetpu,
-            tfjs,
-            paddle,
-            mnn,
-            ncnn,
-            imx,
-        ) = flags  # export booleans
+        (jit, onnx, xml, engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, paddle, mnn, ncnn, imx, rknn) = (
+            flags  # export booleans
+        )
+
         is_tf_format = any((saved_model, pb, tflite, edgetpu, tfjs))
 
         # Device
@@ -271,6 +262,17 @@ class Exporter:
         if self.args.optimize:
             assert not ncnn, "optimize=True not compatible with format='ncnn', i.e. use optimize=False"
             assert self.device.type == "cpu", "optimize=True not compatible with cuda devices, i.e. use device='cpu'"
+        if rknn:
+            if not self.args.name:
+                LOGGER.warning(
+                    "WARNING ⚠️ Rockchip RKNN export requires a missing 'name' arg for processor type. Using default 'name=rk3588'."
+                )
+                self.args.name = "rk3588"
+            else:
+                self.args.name = self.args.name.lower()
+            assert self.args.name in RKNN_CHIPS, (
+                f"Invalid processor name '{self.args.name}' for Rockchip RKNN export. Valid names are {RKNN_CHIPS}."
+            )
         if self.args.int8 and tflite:
             assert not getattr(model, "end2end", False), "TFLite INT8 export not supported for end2end models."
         if edgetpu:
@@ -411,6 +413,8 @@ class Exporter:
             f[12], _ = self.export_ncnn()
         if imx:
             f[13], _ = self.export_imx()
+        if rknn:
+            f[14], _ = self.export_rknn()
 
         # Finish
         f = [str(x) for x in f if x]  # filter out '' and None
@@ -1136,6 +1140,37 @@ class Exporter:
         return f, None
 
     @try_export
+    def export_rknn(self, prefix=colorstr("RKNN:")):
+        """YOLOv8 RKNN model export."""
+        LOGGER.info(f"\n{prefix} starting export with torch {torch.__version__}...")
+
+        check_requirements("rknn-toolkit2")
+        if IS_COLAB:
+            # Prevent 'exit' from closing the notebook https://github.com/airockchip/rknn-toolkit2/issues/259
+            import builtins
+
+            builtins.exit = lambda: None
+
+        from rknn.api import RKNN  # type: ignore
+
+        f, _ = self.export_onnx()
+
+        # Adapted from https://github.com/airockchip/rknn_model_zoo/tree/main/examples/yolov8/python
+        platform = self.args.name
+
+        export_path = Path(f"{Path(f).stem}_rknn_model")
+        export_path.mkdir(exist_ok=True)
+
+        rknn = RKNN(verbose=False)
+        rknn.config(mean_values=[[0, 0, 0]], std_values=[[255, 255, 255]], target_platform=platform)
+        _ = rknn.load_onnx(model=f)
+        _ = rknn.build(do_quantization=False)  # requires quantization: {'rv1103', 'rv1106','rv1103b'} # TODO
+        f = f.replace(".onnx", f"-{platform}.rknn")
+        _ = rknn.export_rknn(f"{export_path / f}")
+        yaml_save(export_path / "metadata.yaml", self.metadata)  # add metadata.yaml
+        LOGGER.info(f"\n{prefix} model exported as {f}.\n")
+        return export_path, None
+
     def export_imx(self, prefix=colorstr("IMX:")):
         """YOLO IMX export."""
         gptq = False

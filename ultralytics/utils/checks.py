@@ -19,6 +19,7 @@ import requests
 import torch
 
 from ultralytics.utils import (
+    ARM64,
     ASSETS,
     AUTOINSTALL,
     IS_COLAB,
@@ -30,6 +31,7 @@ from ultralytics.utils import (
     MACOS,
     ONLINE,
     PYTHON_VERSION,
+    RKNN_CHIPS,
     ROOT,
     TORCHVISION_VERSION,
     USER_CONFIG_DIR,
@@ -782,8 +784,24 @@ def cuda_is_available() -> bool:
     return cuda_device_count() > 0
 
 
+def is_rockchip():
+    """Check if the current environment is running on a Rockchip SoC."""
+    if LINUX and ARM64:
+        try:
+            with open("/proc/device-tree/compatible") as f:
+                dev_str = f.read()
+                *_, soc = dev_str.split(",").replace("\x00", "")
+                if soc in RKNN_CHIPS:
+                    return True
+        except OSError:
+            return False
+    else:
+        return False
+
+
 # Run checks and define constants
 check_python("3.8", hard=False, verbose=True)  # check python version
 check_torchvision()  # check torch-torchvision compatibility
+# Define constants
 IS_PYTHON_MINIMUM_3_10 = check_python("3.10", hard=False)
 IS_PYTHON_3_12 = PYTHON_VERSION.startswith("3.12")

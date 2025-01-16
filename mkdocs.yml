@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 # Configuration file for building the Ultralytics YOLO documentation site using MkDocs.
 # Provides settings to control site metadata, customize the appearance using the
@@ -70,7 +70,7 @@ theme:
     - content.tabs.link # all code tabs change simultaneously
 
 # Customization
-copyright: <a href="https://www.ultralytics.com/" target="_blank">© 2024 Ultralytics Inc.</a> All rights reserved.
+copyright: <a href="https://www.ultralytics.com/" target="_blank">© 2025 Ultralytics Inc.</a> All rights reserved.
 extra: # version:
   homepage: https://www.ultralytics.com/
   #   provider: mike  #  version drop-down menu

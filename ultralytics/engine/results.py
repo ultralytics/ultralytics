@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """
 Ultralytics Results, Boxes and Masks classes for handling inference results.
 
@@ -652,12 +652,11 @@ class Results(SimpleClass):
         """
         log_string = ""
         probs = self.probs
-        boxes = self.boxes
         if len(self) == 0:
             return log_string if probs is not None else f"{log_string}(no detections), "
         if probs is not None:
             log_string += f"{', '.join(f'{self.names[j]} {probs.data[j]:.2f}' for j in probs.top5)}, "
-        if boxes:
+        if boxes := self.boxes:
             for c in boxes.cls.unique():
                 n = (boxes.cls == c).sum()  # detections per class
                 log_string += f"{n} {self.names[int(c)]}{'s' * (n > 1)}, "

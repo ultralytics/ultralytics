@@ -1141,7 +1141,7 @@ class Exporter:
 
     @try_export
     def export_rknn(self, prefix=colorstr("RKNN:")):
-        """YOLOv8 RKNN model export."""
+        """YOLO RKNN model export."""
         LOGGER.info(f"\n{prefix} starting export with rknn--toolkit2 ...")
 
         check_requirements("rknn-toolkit2")

@@ -1142,7 +1142,7 @@ class Exporter:
     @try_export
     def export_rknn(self, prefix=colorstr("RKNN:")):
         """YOLO RKNN model export."""
-        LOGGER.info(f"\n{prefix} starting export with rknn--toolkit2 ...")
+        LOGGER.info(f"\n{prefix} starting export with rknn-toolkit2...")
 
         check_requirements("rknn-toolkit2")
         if IS_COLAB:

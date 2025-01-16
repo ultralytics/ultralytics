@@ -16,6 +16,13 @@ from ultralytics.utils import IS_COLAB, IS_KAGGLE, LOGGER, TryExcept, ops, plt_s
 from ultralytics.utils.checks import check_font, check_version, is_ascii
 from ultralytics.utils.files import increment_path
 
+from autoimport import lazy
+
+with lazy():
+    import pandas as pd
+    import seaborn
+    from scipy.ndimage import gaussian_filter1d
+
 
 class Colors:
     """
@@ -905,8 +912,6 @@ class Annotator:
 @plt_settings()
 def plot_labels(boxes, cls, names=(), save_dir=Path(""), on_plot=None):
     """Plot training labels including class histograms and box statistics."""
-    import pandas  # scope for faster 'import ultralytics'
-    import seaborn  # scope for faster 'import ultralytics'
 
     # Filter matplotlib>=3.7.2 warning and Seaborn use_inf and is_categorical FutureWarnings
     warnings.filterwarnings("ignore", category=UserWarning, message="The figure layout has changed to tight")
@@ -916,7 +921,7 @@ def plot_labels(boxes, cls, names=(), save_dir=Path(""), on_plot=None):
     LOGGER.info(f"Plotting labels to {save_dir / 'labels.jpg'}... ")
     nc = int(cls.max() + 1)  # number of classes
     boxes = boxes[:1000000]  # limit to 1M boxes
-    x = pandas.DataFrame(boxes, columns=["x", "y", "width", "height"])
+    x = pd.DataFrame(boxes, columns=["x", "y", "width", "height"])
 
     # Seaborn correlogram
     seaborn.pairplot(x, corner=True, diag_kind="auto", kind="hist", diag_kws=dict(bins=50), plot_kws=dict(pmax=0.9))
@@ -1194,9 +1199,6 @@ def plot_results(file="path/to/results.csv", dir="", segment=False, pose=False, 
         plot_results("path/to/results.csv", segment=True)
         ```
     """
-    import pandas as pd  # scope for faster 'import ultralytics'
-    from scipy.ndimage import gaussian_filter1d
-
     save_dir = Path(file).parent if file else Path(dir)
     if classify:
         fig, ax = plt.subplots(2, 2, figsize=(6, 6), tight_layout=True)
@@ -1278,8 +1280,6 @@ def plot_tune_results(csv_file="tune_results.csv"):
     Examples:
         >>> plot_tune_results("path/to/tune_results.csv")
     """
-    import pandas as pd  # scope for faster 'import ultralytics'
-    from scipy.ndimage import gaussian_filter1d
 
     def _save_one_file(file):
         """Save one matplotlib plot to 'file'."""

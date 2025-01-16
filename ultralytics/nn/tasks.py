@@ -962,8 +962,8 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
         m = (
             getattr(torch.nn, m[3:])
             if "nn." in m
-            else getattr(__import__("torchvision").ops, m[4:])
-            if "ops." in m
+            else getattr(__import__("torchvision").ops, m[16:])
+            if "torchvision.ops." in m
             else globals()[m]
         )  # get module
         for j, a in enumerate(args):

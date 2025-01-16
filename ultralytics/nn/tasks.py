@@ -86,10 +86,9 @@ from ultralytics.utils.torch_utils import (
     time_sync,
 )
 
-try:
-    import thop
-except ImportError:
-    thop = None
+
+import thop
+
 
 
 class BaseModel(nn.Module):

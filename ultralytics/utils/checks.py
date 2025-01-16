@@ -31,6 +31,7 @@ from ultralytics.utils import (
     MACOS,
     ONLINE,
     PYTHON_VERSION,
+    RKNN_CHIPS,
     ROOT,
     TORCHVISION_VERSION,
     USER_CONFIG_DIR,
@@ -45,7 +46,6 @@ from ultralytics.utils import (
     emojis,
     is_github_action_running,
     url2file,
-    RKNN_CHIPS,
 )
 
 
@@ -785,9 +785,7 @@ def cuda_is_available() -> bool:
 
 
 def is_rockchip():
-    """
-    Check if the current environment is running on a Rockchip SoC.
-    """
+    """Check if the current environment is running on a Rockchip SoC."""
     if LINUX and ARM64:
         try:
             with open("/proc/device-tree/compatible") as f:

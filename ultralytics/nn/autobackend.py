@@ -466,10 +466,11 @@ class AutoBackend(nn.Module):
         # RKNN
         elif rknn:
             if not is_rockchip():
-                raise EnvironmentError("RKNN inference is only supported on Rockchip devices.")
+                raise OSError("RKNN inference is only supported on Rockchip devices.")
             LOGGER.info(f"Loading {w} for RKNN inference...")
             check_requirements("rknn-toolkit-lite2")
             from rknnlite.api import RKNNLite
+
             w = Path(w)
             if not w.is_file():  # if not *.rknn
                 w = next(w.rglob("*.rknn"))

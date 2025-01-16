@@ -790,8 +790,8 @@ def is_rockchip():
         try:
             with open("/proc/device-tree/compatible") as f:
                 dev_str = f.read()
-                *_, soc = dev_str.split(",").replace("\x00", "")
-                if soc in RKNN_CHIPS:
+                *_, soc = dev_str.split(",")
+                if soc.replace("\x00", "") in RKNN_CHIPS:
                     return True
         except OSError:
             return False

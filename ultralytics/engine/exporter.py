@@ -1142,7 +1142,7 @@ class Exporter:
     @try_export
     def export_rknn(self, prefix=colorstr("RKNN:")):
         """YOLOv8 RKNN model export."""
-        LOGGER.info(f"\n{prefix} starting export with torch {torch.__version__}...")
+        LOGGER.info(f"\n{prefix} starting export with rknn--toolkit2 ...")
 
         check_requirements("rknn-toolkit2")
         if IS_COLAB:
@@ -1155,7 +1155,6 @@ class Exporter:
 
         f, _ = self.export_onnx()
 
-        # Adapted from https://github.com/airockchip/rknn_model_zoo/tree/main/examples/yolov8/python
         platform = self.args.name
 
         export_path = Path(f"{Path(f).stem}_rknn_model")
@@ -1167,8 +1166,7 @@ class Exporter:
         _ = rknn.build(do_quantization=False)  # requires quantization: {'rv1103', 'rv1106','rv1103b'} # TODO
         f = f.replace(".onnx", f"-{platform}.rknn")
         _ = rknn.export_rknn(f"{export_path / f}")
-        yaml_save(export_path / "metadata.yaml", self.metadata)  # add metadata.yaml
-        LOGGER.info(f"\n{prefix} model exported as {f}.\n")
+        yaml_save(export_path / "metadata.yaml", self.metadata)
         return export_path, None
 
     def export_imx(self, prefix=colorstr("IMX:")):

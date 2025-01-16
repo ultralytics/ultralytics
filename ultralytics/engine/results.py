@@ -839,7 +839,7 @@ class Results(SimpleClass):
             >>> df_result = results[0].to_df()
             >>> print(df_result)
         """
-        import pandas as pd
+        import pandas as pd  # scope for faster 'import ultralytics'
 
         return pd.DataFrame(self.summary(normalize=normalize, decimals=decimals))
 

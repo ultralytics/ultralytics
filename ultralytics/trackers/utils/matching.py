@@ -1,10 +1,9 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import numpy as np
+from autoimport import lazy
 
 from ultralytics.utils.metrics import batch_probiou, bbox_ioa
-
-from autoimport import lazy
 
 with lazy():
     import scipy

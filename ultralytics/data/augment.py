@@ -1862,7 +1862,7 @@ class Albumentations:
             )
             if hasattr(self.transform, "set_random_seed"):
                 # for deterministic transforms in albumentations>=1.4.21
-                self.transform.set_random_seed(torch.random.initial_seed())
+                self.transform.set_random_seed(torch.initial_seed())
             LOGGER.info(prefix + ", ".join(f"{x}".replace("always_apply=False, ", "") for x in T if x.p))
         except ImportError:  # package not installed, skip
             pass

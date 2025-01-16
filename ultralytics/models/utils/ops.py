@@ -11,6 +11,7 @@ from ultralytics.utils.ops import xywh2xyxy, xyxy2xywh
 with lazy():
     import scipy
 
+
 class HungarianMatcher(nn.Module):
     """
     A module implementing the HungarianMatcher, which is a differentiable module to solve the assignment problem in an

@@ -117,7 +117,7 @@ def export_formats():
         ["MNN", "mnn", ".mnn", True, True, ["batch", "half", "int8"]],
         ["NCNN", "ncnn", "_ncnn_model", True, True, ["batch", "half"]],
         ["IMX", "imx", "_imx_model", True, True, ["int8"]],
-        ["RKNN", "rknn", ".rknn", False, False, ["name"]],
+        ["RKNN", "rknn", "_rknn_model", False, False, ["name"]],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments"], zip(*x)))
 
@@ -1147,7 +1147,6 @@ class Exporter:
         if IS_COLAB:
             # Prevent 'exit' from closing the notebook https://github.com/airockchip/rknn-toolkit2/issues/259
             import builtins
-
             builtins.exit = lambda: None
 
         from rknn.api import RKNN  # type: ignore
@@ -1167,9 +1166,8 @@ class Exporter:
         f = f.replace(".onnx", f"-{platform}.rknn")
         _ = rknn.export_rknn(f"{export_path / f}")
         yaml_save(export_path / "metadata.yaml", self.metadata)  # add metadata.yaml
-
         LOGGER.info(f"\n{prefix} model exported as {f}.\n")
-        return f, None
+        return export_path, None
 
     def export_imx(self, prefix=colorstr("IMX:")):
         """YOLO IMX export."""

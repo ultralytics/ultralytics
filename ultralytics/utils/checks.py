@@ -45,6 +45,7 @@ from ultralytics.utils import (
     emojis,
     is_github_action_running,
     url2file,
+    RKNN_CHIPS,
 )
 
 
@@ -783,32 +784,21 @@ def cuda_is_available() -> bool:
     return cuda_device_count() > 0
 
 
-def check_soc(family: str = "rknn", node: str = "/proc/device-tree/compatible"):
+def is_rockchip():
     """
-    Check SOC type from device tree compatible node. Reference `devicetree-specification` https://github.com/devicetree-org/devicetree-specification/releases/tag/v0.4 section 2.3.1.
-
-    Args:
-        family (str): Device family to check, default is "rknn".
-        node (str): Device tree compatible node, default is "/proc/device-tree/compatible".
+    Check if the current environment is running on a Rockchip SoC.
     """
-    # NOTE should research more on device tree compatible node and update logic accordingly
-    rknn_supported = {"rk3588": "RK3588", "rk3562": "RK3562", "rk3566": "RK3566_RK3568", "rk3568": "RK3566_RK3568"}
-    rpi_supported = {"raspberrypi,4-model-b": "Raspberry Pi 4 Model B", "bcm2837": "BCM2837"}
-
     if LINUX and ARM64:
         try:
-            with open(node) as f:
+            with open("/proc/device-tree/compatible") as f:
                 dev_str = f.read()
-                *_, soc = dev_str.split(",")
+                *_, soc = dev_str.split(",").replace("\x00", "")
+                if soc in RKNN_CHIPS:
+                    return True
         except OSError:
-            LOGGER.warning(f"Read device node {node} failed.")
-
-    if family == "rknn":
-        return rknn_supported.get(soc.strip(), None)
-    elif family == "rpi":
-        return rpi_supported.get(soc.strip(), None)
+            return False
     else:
-        return None
+        return False
 
 
 # Run checks and define constants

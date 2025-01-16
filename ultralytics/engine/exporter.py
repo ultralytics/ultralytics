@@ -68,7 +68,7 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from ultralytics.cfg import RKNN_CHIPS, TASK2DATA, get_cfg
+from ultralytics.cfg import TASK2DATA, get_cfg
 from ultralytics.data import build_dataloader
 from ultralytics.data.dataset import YOLODataset
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
@@ -86,6 +86,7 @@ from ultralytics.utils import (
     PYTHON_VERSION,
     ROOT,
     WINDOWS,
+    RKNN_CHIPS,
     __version__,
     callbacks,
     colorstr,

@@ -14,7 +14,7 @@ import torch.nn as nn
 from PIL import Image
 
 from ultralytics.utils import ARM64, IS_JETSON, IS_RASPBERRYPI, LINUX, LOGGER, ROOT, yaml_load
-from ultralytics.utils.checks import check_requirements, check_suffix, check_version, check_yaml
+from ultralytics.utils.checks import check_requirements, check_suffix, check_version, check_yaml, is_rockchip
 from ultralytics.utils.downloads import attempt_download_asset, is_url
 
 
@@ -465,10 +465,11 @@ class AutoBackend(nn.Module):
 
         # RKNN
         elif rknn:
+            if not is_rockchip():
+                raise EnvironmentError("RKNN inference is only supported on Rockchip devices.")
             LOGGER.info(f"Loading {w} for RKNN inference...")
             check_requirements("rknn-toolkit-lite2")
             from rknnlite.api import RKNNLite
-
             w = Path(w)
             if not w.is_file():  # if not *.rknn
                 w = next(w.rglob("*.rknn"))

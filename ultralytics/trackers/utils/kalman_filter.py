@@ -4,7 +4,7 @@ import numpy as np
 from autoimport import lazy
 
 with lazy():
-    import scipy.linalg
+    import scipy
 
 
 class KalmanFilterXYAH:

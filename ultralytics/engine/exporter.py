@@ -1160,7 +1160,11 @@ class Exporter:
             if "openjdk 17" not in str(out.stdout):
                 raise FileNotFoundError
         except FileNotFoundError:
-            subprocess.run(["sudo", "apt", "install", "-y", "openjdk-17-jdk", "openjdk-17-jre"], check=True)
+            sudo = subprocess.run("sudo --version >/dev/null", shell=True).returncode == 0
+            c = ["apt", "install", "-y", "openjdk-17-jdk", "openjdk-17-jre"]
+            if sudo:
+                c.insert(0, "sudo")
+            subprocess.run(c, check=True)
 
         def representative_dataset_gen(dataloader=self.get_int8_calibration_dataloader(prefix)):
             for batch in dataloader:

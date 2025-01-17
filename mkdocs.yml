@@ -699,6 +699,7 @@ plugins:
         tasks/keypoints.md: tasks/pose.md
         tasks/tracking.md: modes/track.md
         SECURITY.md: help/security.md
+        help/minimum_reproducible_example.md: help/minimum-reproducible-example.md
         tutorials/architecture-summary.md: yolov5/tutorials/architecture_description.md
         tutorials/clearml-logging.md: yolov5/tutorials/clearml_logging_integration.md
         tutorials/comet-logging.md: yolov5/tutorials/comet_logging_integration.md

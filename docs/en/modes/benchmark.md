@@ -113,7 +113,7 @@ Run YOLO11n benchmarks on all supported export formats including ONNX, TensorRT 
 Arguments such as `model`, `data`, `imgsz`, `half`, `device`, `verbose` and `format` provide users with the flexibility to fine-tune the benchmarks to their specific needs and compare the performance of different export formats with ease.
 
 | Key       | Default Value | Description                                                                                                                                                                                             |
-|-----------|---------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| --------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `model`   | `None`        | Specifies the path to the model file. Accepts both `.pt` and `.yaml` formats, e.g., `"yolo11n.pt"` for pre-trained models or configuration files.                                                       |
 | `data`    | `None`        | Path to a YAML file defining the dataset for benchmarking, typically including paths and settings for [validation data](https://www.ultralytics.com/glossary/validation-data). Example: `"coco8.yaml"`. |
 | `imgsz`   | `640`         | The input image size for the model. Can be a single integer for square images or a tuple `(width, height)` for non-square, e.g., `(640, 480)`.                                                          |

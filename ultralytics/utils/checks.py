@@ -798,6 +798,20 @@ def is_rockchip():
     else:
         return False
 
+      
+def is_sudo_available() -> bool:
+    """
+    Check if the sudo command is available in the environment.
+
+    Returns:
+        (bool): True if the sudo command is available, False otherwise.
+    """
+    if WINDOWS:
+        return False
+    cmd = "sudo --version"
+    return subprocess.run(cmd, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode == 0
+
+
 
 # Run checks and define constants
 check_python("3.8", hard=False, verbose=True)  # check python version

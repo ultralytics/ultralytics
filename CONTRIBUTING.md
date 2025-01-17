@@ -25,7 +25,7 @@ Welcome! We're thrilled that you're considering contributing to our [Ultralytics
 
 ## Code of Conduct
 
-To ensure a welcoming and inclusive environment for everyone, all contributors must adhere to our [Code of Conduct](https://docs.ultralytics.com/help/code_of_conduct/). Respect, kindness, and professionalism are at the heart of our community.
+To ensure a welcoming and inclusive environment for everyone, all contributors must adhere to our [Code of Conduct](https://docs.ultralytics.com/help/code-of-conduct/). Respect, kindness, and professionalism are at the heart of our community.
 
 ## Contributing via Pull Requests
 

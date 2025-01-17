@@ -7,6 +7,7 @@ import types
 from copy import deepcopy
 from pathlib import Path
 
+import thop
 import torch
 import torch.nn as nn
 
@@ -85,11 +86,6 @@ from ultralytics.utils.torch_utils import (
     scale_img,
     time_sync,
 )
-
-try:
-    import thop
-except ImportError:
-    thop = None
 
 
 class BaseModel(nn.Module):

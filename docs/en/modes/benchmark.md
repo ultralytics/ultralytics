@@ -94,12 +94,18 @@ Run YOLO11n benchmarks on all supported export formats including ONNX, TensorRT 
 
         # Benchmark on GPU
         benchmark(model="yolo11n.pt", data="coco8.yaml", imgsz=640, half=False, device=0)
+
+        # Benchmark specific export format
+        benchmark(model="yolo11n.pt", data="coco8.yaml", imgsz=640, format="onnx")
         ```
 
     === "CLI"
 
         ```bash
         yolo benchmark model=yolo11n.pt data='coco8.yaml' imgsz=640 half=False device=0
+        
+        # Benchmark specific export format
+        yolo benchmark model=yolo11n.pt data='coco8.yaml' imgsz=640 format=onnx
         ```
 
 ## Arguments

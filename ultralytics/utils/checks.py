@@ -791,10 +791,7 @@ def is_sudo_available() -> bool:
     """
     if WINDOWS:
         return False
-    try:
-        return subprocess.run("sudo --version >/dev/null", shell=True).returncode == 0
-    except FileNotFoundError:
-        return False
+    subprocess.run("sudo --version", shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode == 0
 
 
 # Run checks and define constants

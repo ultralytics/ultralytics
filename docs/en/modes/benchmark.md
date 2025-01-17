@@ -125,7 +125,7 @@ Arguments such as `model`, `data`, `imgsz`, `half`, `device`, `verbose` and `for
 
 ## Export Formats
 
-Benchmarks will automatically run on all supported export formats listed below. Alternatively, you can run benchmarks for a specific format by using the `format` argument, which accepts any of the formats mentioned below.
+Benchmarks will attempt to run automatically on all possible export formats listed below. Alternatively, you can run benchmarks for a specific format by using the `format` argument, which accepts any of the formats mentioned below.
 
 {% include "macros/export-table.md" %}
 

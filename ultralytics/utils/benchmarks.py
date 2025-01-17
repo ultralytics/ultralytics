@@ -56,7 +56,7 @@ def benchmark(
     device="cpu",
     verbose=False,
     eps=1e-3,
-    format=""
+    format="",
 ):
     """
     Benchmark a YOLO model across different formats for speed and accuracy.
@@ -98,18 +98,22 @@ def benchmark(
         found = False  # Flag to check if the format is found
         for format_info in formats_list:
             if format_info[1].lower() == format.lower():
-                export_formats_data = dict(zip(
-                    ["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments"],
-                    (item if isinstance(item, (list, tuple)) else (item,) for item in format_info)
-                ))
+                export_formats_data = dict(
+                    zip(
+                        ["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments"],
+                        (item if isinstance(item, (list, tuple)) else (item,) for item in format_info),
+                    )
+                )
                 LOGGER.info(f"✅ Benchmarking {format.lower()} format only.")
                 found = True  # Format found, set flag to True
                 break
 
         if not found:  # If the format was not found in the loop
-            LOGGER.warning(f"⚠️ Format '{format}' not supported. Supported formats are available at"
-                           f"https://docs.ultralytics.com/modes/export/#export-formats")
-            LOGGER.info(f"✅ Benchmarking all exports.")
+            LOGGER.warning(
+                f"⚠️ Format '{format}' not supported. Supported formats are available at"
+                f"https://docs.ultralytics.com/modes/export/#export-formats"
+            )
+            LOGGER.info("✅ Benchmarking all exports.")
 
     y = []
     t0 = time.time()

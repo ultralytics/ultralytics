@@ -794,7 +794,6 @@ def is_sudo_available() -> bool:
     return subprocess.run(["sudo", "-v"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode == 0
 
 
-
 # Run checks and define constants
 check_python("3.8", hard=False, verbose=True)  # check python version
 check_torchvision()  # check torch-torchvision compatibility

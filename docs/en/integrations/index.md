@@ -94,7 +94,7 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 - [TorchScript](torchscript.md): Developed as part of the [PyTorch](https://pytorch.org/) framework, TorchScript enables efficient execution and deployment of machine learning models in various production environments without the need for Python dependencies.
 
 - [SONY IMX500](sony-imx500.md): Optimize and deploy [Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8/) models on Raspberry Pi AI Cameras with the IMX500 sensor for fast, low-power performance.
-  
+
 ### Export Formats
 
 We also support a variety of model export formats for deployment in different environments. Here are the available formats:

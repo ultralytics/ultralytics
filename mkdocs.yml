@@ -624,8 +624,8 @@ nav:
       - Contributing Guide: help/contributing.md
       - Continuous Integration (CI) Guide: help/CI.md
       - Contributor License Agreement (CLA): help/CLA.md
-      - Minimum Reproducible Example (MRE) Guide: help/minimum_reproducible_example.md
-      - Code of Conduct: help/code_of_conduct.md
+      - Minimum Reproducible Example (MRE) Guide: help/minimum-reproducible-example.md
+      - Code of Conduct: help/code-of-conduct.md
       - Environmental, Health and Safety (EHS) Policy: help/environmental-health-safety.md
       - Security Policy: help/security.md
       - Privacy Policy: help/privacy.md

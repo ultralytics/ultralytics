@@ -56,6 +56,7 @@ def benchmark(
     device="cpu",
     verbose=False,
     eps=1e-3,
+    format=""
 ):
     """
     Benchmark a YOLO model across different formats for speed and accuracy.
@@ -69,6 +70,7 @@ def benchmark(
         device (str): Device to run the benchmark on, either 'cpu' or 'cuda'.
         verbose (bool | float): If True or a float, assert benchmarks pass with given metric.
         eps (float): Epsilon value for divide by zero prevention.
+        format (str): Export format for benchmarking.
 
     Returns:
         (pandas.DataFrame): A pandas DataFrame with benchmark results for each format, including file size, metric,
@@ -88,9 +90,30 @@ def benchmark(
         model = YOLO(model)
     is_end2end = getattr(model.model.model[-1], "end2end", False)
 
+    # Benchmark specific export format
+    formats_list = list(zip(*export_formats().values()))
+    export_formats_data = export_formats()
+
+    if format:
+        found = False  # Flag to check if the format is found
+        for format_info in formats_list:
+            if format_info[1].lower() == format.lower():
+                export_formats_data = dict(zip(
+                    ["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments"],
+                    (item if isinstance(item, (list, tuple)) else (item,) for item in format_info)
+                ))
+                LOGGER.info(f"✅ Benchmarking {format.lower()} format only.")
+                found = True  # Format found, set flag to True
+                break
+
+        if not found:  # If the format was not found in the loop
+            LOGGER.warning(f"⚠️ Format '{format}' not supported. Supported formats are available at"
+                           f"https://docs.ultralytics.com/modes/export/#export-formats")
+            LOGGER.info(f"✅ Benchmarking all exports.")
+
     y = []
     t0 = time.time()
-    for i, (name, format, suffix, cpu, gpu, _) in enumerate(zip(*export_formats().values())):
+    for i, (name, format, suffix, cpu, gpu, _) in enumerate(zip(*export_formats_data.values())):
         emoji, filename = "❌", None  # export defaults
         try:
             # Checks

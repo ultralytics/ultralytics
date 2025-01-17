@@ -75,7 +75,7 @@ class AutoBackend(nn.Module):
             | PaddlePaddle          | *_paddle_model/   |
             | MNN                   | *.mnn             |
             | NCNN                  | *_ncnn_model/     |
-            | RKNN                  | *.rknn            |
+            | RKNN                  | *.rknn_model/            |
 
     This class offers dynamic backend switching capabilities based on the input model format, making it easier to deploy
     models across various platforms.
@@ -473,7 +473,7 @@ class AutoBackend(nn.Module):
 
             w = Path(w)
             if not w.is_file():  # if not *.rknn
-                w = next(w.rglob("*.rknn"))
+                w = next(w.rglob("*.rknn")) # get *.rknn file from *_rknn_model dir
             rknn_model = RKNNLite()
             rknn_model.load_rknn(w)
             ret = rknn_model.init_runtime()
@@ -669,7 +669,7 @@ class AutoBackend(nn.Module):
         elif self.rknn:
             im = (im.cpu().numpy() * 255).astype("uint8")
             im = im if isinstance(im, (list, tuple)) else [im]
-            y = self.rknn_model.inference(inputs=im)  # TODO change rknn_model to model
+            y = self.rknn_model.inference(inputs=im)
 
         # TensorFlow (SavedModel, GraphDef, Lite, Edge TPU)
         else:

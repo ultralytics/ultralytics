@@ -791,7 +791,7 @@ def is_sudo_available() -> bool:
     """
     if WINDOWS:
         return False
-    return subprocess.run(["sudo", "--version"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode == 0
+    subprocess.run("sudo --version", shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode == 0
 
 
 # Run checks and define constants

@@ -49,10 +49,11 @@ class InfiniteDataLoader(dataloader.DataLoader):
 
     def __del__(self):
         """Ensure that workers are terminated."""
-        for w in self.iterator._workers:  # force terminate
-            if w.is_alive():
-                w.terminate()
-        self.iterator._shutdown_workers()  # cleanup
+        if hasattr(self.iterator, "_workers"):
+            for w in self.iterator._workers:  # force terminate
+                if w.is_alive():
+                    w.terminate()
+            self.iterator._shutdown_workers()  # cleanup
 
     def reset(self):
         """

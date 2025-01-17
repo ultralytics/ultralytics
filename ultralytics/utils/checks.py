@@ -782,6 +782,18 @@ def cuda_is_available() -> bool:
     return cuda_device_count() > 0
 
 
+def is_sudo_available() -> bool:
+    """
+    Check if the sudo command is available in the environment.
+
+    Returns:
+        bool: True if the sudo command is available, False otherwise.
+    """
+    if WINDOWS:
+        return False
+    return subprocess.run(["sudo", "--version"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode == 0
+
+
 # Run checks and define constants
 check_python("3.8", hard=False, verbose=True)  # check python version
 check_torchvision()  # check torch-torchvision compatibility

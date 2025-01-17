@@ -103,7 +103,7 @@ Run YOLO11n benchmarks on all supported export formats including ONNX, TensorRT 
 
         ```bash
         yolo benchmark model=yolo11n.pt data='coco8.yaml' imgsz=640 half=False device=0
-        
+
         # Benchmark specific export format
         yolo benchmark model=yolo11n.pt data='coco8.yaml' imgsz=640 format=onnx
         ```

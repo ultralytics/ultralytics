@@ -473,7 +473,7 @@ class AutoBackend(nn.Module):
 
             w = Path(w)
             if not w.is_file():  # if not *.rknn
-                w = next(w.rglob("*.rknn")) # get *.rknn file from *_rknn_model dir
+                w = next(w.rglob("*.rknn"))  # get *.rknn file from *_rknn_model dir
             rknn_model = RKNNLite()
             rknn_model.load_rknn(w)
             ret = rknn_model.init_runtime()

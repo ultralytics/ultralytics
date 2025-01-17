@@ -110,10 +110,10 @@ Run YOLO11n benchmarks on all supported export formats including ONNX, TensorRT 
 
 ## Arguments
 
-Arguments such as `model`, `data`, `imgsz`, `half`, `device`, and `verbose` provide users with the flexibility to fine-tune the benchmarks to their specific needs and compare the performance of different export formats with ease.
+Arguments such as `model`, `data`, `imgsz`, `half`, `device`, `verbose` and `format` provide users with the flexibility to fine-tune the benchmarks to their specific needs and compare the performance of different export formats with ease.
 
 | Key       | Default Value | Description                                                                                                                                                                                             |
-| --------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+|-----------|---------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `model`   | `None`        | Specifies the path to the model file. Accepts both `.pt` and `.yaml` formats, e.g., `"yolo11n.pt"` for pre-trained models or configuration files.                                                       |
 | `data`    | `None`        | Path to a YAML file defining the dataset for benchmarking, typically including paths and settings for [validation data](https://www.ultralytics.com/glossary/validation-data). Example: `"coco8.yaml"`. |
 | `imgsz`   | `640`         | The input image size for the model. Can be a single integer for square images or a tuple `(width, height)` for non-square, e.g., `(640, 480)`.                                                          |
@@ -121,10 +121,11 @@ Arguments such as `model`, `data`, `imgsz`, `half`, `device`, and `verbose` prov
 | `int8`    | `False`       | Activates INT8 quantization for further optimized performance on supported devices, especially useful for edge devices. Set `int8=True` to use.                                                         |
 | `device`  | `None`        | Defines the computation device(s) for benchmarking, such as `"cpu"` or `"cuda:0"`.                                                                                                                      |
 | `verbose` | `False`       | Controls the level of detail in logging output. A boolean value; set `verbose=True` for detailed logs or a float for thresholding errors.                                                               |
+| `format`  | `''`          | Benchmark the model on a single export format. i.e `format=onnx`                                                                                                                                        |
 
 ## Export Formats
 
-Benchmarks will attempt to run automatically on all possible export formats below.
+Benchmarks will automatically run on all supported export formats listed below. Alternatively, you can run benchmarks for a specific format by using the `format` argument, which accepts any of the formats mentioned below.
 
 {% include "macros/export-table.md" %}
 

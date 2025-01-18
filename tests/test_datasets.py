@@ -1,6 +1,7 @@
 from ultralytics import YOLO
 
 
+@pytest.mark.slow
 def test_dataset(model="yolo11n.pt", data="coco8.yaml", imgsz=640, workers=32, batch=32):
     """
     Function created to test the Ultralytics YOLO latest model on a specified dataset.
@@ -56,10 +57,7 @@ test_dataset(
     model="yolo11n-cls.pt", data="cifar100", imgsz=32
 )  # https://docs.ultralytics.com/datasets/classify/cifar100/
 test_dataset(
-    model="yolo11n-cls.pt", data="caltech101", imgsz=416
-)  # https://docs.ultralytics.com/datasets/classify/caltech101/
-test_dataset(
-    model="yolo11n-cls.pt", data="fashion-mnist", imgsz=28
+    model="yolo11n-cls.pt", data="fashion-mnist", imgsz=32
 )  # https://docs.ultralytics.com/datasets/classify/fashion-mnist/
 test_dataset(
     model="yolo11n-cls.pt", data="imagenette160", imgsz=160

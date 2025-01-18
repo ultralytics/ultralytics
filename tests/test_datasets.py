@@ -21,19 +21,23 @@ def test_dataset(model="yolo11n.pt", data="coco8.yaml", imgsz=640):
 # Object detection datasets
 test_dataset(model="yolo11n.pt", data="coco8.yaml")  # https://docs.ultralytics.com/datasets/detect/coco8/
 test_dataset(model="yolo11n.pt", data="brain-tumor.yaml")  # https://docs.ultralytics.com/datasets/detect/brain-tumor/
-test_dataset(model="yolo11n.pt",
-             data="african-wildlife.yaml")  # https://docs.ultralytics.com/datasets/detect/african-wildlife/
+test_dataset(
+    model="yolo11n.pt", data="african-wildlife.yaml"
+)  # https://docs.ultralytics.com/datasets/detect/african-wildlife/
 test_dataset(model="yolo11n.pt", data="signature.yaml")  # https://docs.ultralytics.com/datasets/detect/signature/
-test_dataset(model="yolo11n.pt",
-             data="medical-pills.yaml")  # https://docs.ultralytics.com/datasets/detect/medical-pills/
+test_dataset(
+    model="yolo11n.pt", data="medical-pills.yaml"
+)  # https://docs.ultralytics.com/datasets/detect/medical-pills/
 
 # Image segmentation datasets
 test_dataset(model="yolo11n-seg.pt", data="coco8-seg.yaml")  # https://docs.ultralytics.com/datasets/segment/coco8-seg/
 test_dataset(model="yolo11n-seg.pt", data="crack-seg.yaml")  # https://docs.ultralytics.com/datasets/segment/crack-seg/
-test_dataset(model="yolo11n-seg.pt",
-             data="carparts-seg.yaml")  # https://docs.ultralytics.com/datasets/segment/carparts-seg/
-test_dataset(model="yolo11n-seg.pt",
-             data="package-seg.yaml")  # https://docs.ultralytics.com/datasets/segment/package-seg/
+test_dataset(
+    model="yolo11n-seg.pt", data="carparts-seg.yaml"
+)  # https://docs.ultralytics.com/datasets/segment/carparts-seg/
+test_dataset(
+    model="yolo11n-seg.pt", data="package-seg.yaml"
+)  # https://docs.ultralytics.com/datasets/segment/package-seg/
 
 # Pose estimation datasets
 test_dataset(model="yolo11n-pose.pt", data="coco8-pose.yaml")  # https://docs.ultralytics.com/datasets/pose/coco8-pose/
@@ -46,8 +50,9 @@ test_dataset(model="yolo11n-pose.pt", data="dog-pose.yaml")  # https://docs.ultr
 test_dataset(model="yolo11n-obb.pt", data="dota8.yaml")  # https://docs.ultralytics.com/datasets/obb/dota8/
 
 # Image classification datasets
-test_dataset(model="yolo11n-cls.pt", data="cifar10",
-             imgsz=32)  # https://docs.ultralytics.com/datasets/classify/cifar10/
+test_dataset(
+    model="yolo11n-cls.pt", data="cifar10", imgsz=32
+)  # https://docs.ultralytics.com/datasets/classify/cifar10/
 # test_dataset(model="yolo11n-cls.pt", data="cifar100",
 #              imgsz=32)  # https://docs.ultralytics.com/datasets/classify/cifar100/
 # test_dataset(model="yolo11n-cls.pt", data="caltech101",

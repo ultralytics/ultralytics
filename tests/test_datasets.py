@@ -4,6 +4,7 @@ from ultralytics import YOLO
 def test_dataset(model="yolo11n.pt", data="coco8.yaml", imgsz=640):
     """
     This function is designed to test the Ultralytics YOLO latest model on a specified dataset.
+
     Args:
         model (str): The path to the YOLO model file. Default is "yolo11n.pt".
         data (str): The path to the dataset configuration file (e.g., .yaml). Default is "coco8.yaml".

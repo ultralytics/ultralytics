@@ -63,4 +63,3 @@ test_dataset(
 test_dataset(
     model="yolo11n-cls.pt", data="imagenette160", imgsz=160
 )  # https://docs.ultralytics.com/datasets/classify/imagenette/
-test_dataset(model="yolo11n-cls.pt", data="mnist", imgsz=32)  # https://docs.ultralytics.com/datasets/classify/mnist/

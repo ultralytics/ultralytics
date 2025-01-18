@@ -52,13 +52,16 @@ test_dataset(model="yolo11n-obb.pt", data="dota8.yaml")  # https://docs.ultralyt
 test_dataset(
     model="yolo11n-cls.pt", data="cifar10", imgsz=32
 )  # https://docs.ultralytics.com/datasets/classify/cifar10/
-test_dataset(model="yolo11n-cls.pt", data="cifar100",
-             imgsz=32)  # https://docs.ultralytics.com/datasets/classify/cifar100/
-test_dataset(model="yolo11n-cls.pt", data="caltech101",
-             imgsz=416)  # https://docs.ultralytics.com/datasets/classify/caltech101/
-test_dataset(model="yolo11n-cls.pt", data="fashion-mnist",
-             imgsz=28)  # https://docs.ultralytics.com/datasets/classify/fashion-mnist/
-test_dataset(model="yolo11n-cls.pt", data="imagenette160",
-             imgsz=160)  # https://docs.ultralytics.com/datasets/classify/imagenette/
-test_dataset(model="yolo11n-cls.pt", data="mnist",
-             imgsz=32)  # https://docs.ultralytics.com/datasets/classify/mnist/
+test_dataset(
+    model="yolo11n-cls.pt", data="cifar100", imgsz=32
+)  # https://docs.ultralytics.com/datasets/classify/cifar100/
+test_dataset(
+    model="yolo11n-cls.pt", data="caltech101", imgsz=416
+)  # https://docs.ultralytics.com/datasets/classify/caltech101/
+test_dataset(
+    model="yolo11n-cls.pt", data="fashion-mnist", imgsz=28
+)  # https://docs.ultralytics.com/datasets/classify/fashion-mnist/
+test_dataset(
+    model="yolo11n-cls.pt", data="imagenette160", imgsz=160
+)  # https://docs.ultralytics.com/datasets/classify/imagenette/
+test_dataset(model="yolo11n-cls.pt", data="mnist", imgsz=32)  # https://docs.ultralytics.com/datasets/classify/mnist/

@@ -28,8 +28,9 @@ test_dataset(data="medical-pills.yaml")  # https://docs.ultralytics.com/datasets
 # Image segmentation datasets
 test_dataset(model="yolo11n-seg.pt", data="coco8-seg.yaml")  # https://docs.ultralytics.com/datasets/segment/coco8-seg/
 test_dataset(model="yolo11n-seg.pt", data="crack-seg.yaml")  # https://docs.ultralytics.com/datasets/segment/crack-seg/
-test_dataset(model="yolo11n-seg.pt",
-             data="carparts-seg.yaml")  # https://docs.ultralytics.com/datasets/segment/carparts-seg/
+test_dataset(
+    model="yolo11n-seg.pt", data="carparts-seg.yaml"
+)  # https://docs.ultralytics.com/datasets/segment/carparts-seg/
 test_dataset(
     model="yolo11n-seg.pt", data="package-seg.yaml"
 )  # https://docs.ultralytics.com/datasets/segment/package-seg/

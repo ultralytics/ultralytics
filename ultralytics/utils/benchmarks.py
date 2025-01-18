@@ -99,7 +99,7 @@ def benchmark(
             elif i == 9:  # Edge TPU
                 assert LINUX and not ARM64, "Edge TPU export only supported on non-aarch64 Linux"
             elif i in {5, 10}:  # CoreML and TF.js
-                assert MACOS or (LINUX and ARM64), "CoreML and TF.js export only supported on macOS and X86 Linux"
+                assert MACOS or (LINUX and not ARM64), "CoreML and TF.js export only supported on macOS and X86 Linux"
                 assert not IS_RASPBERRYPI, "CoreML and TF.js export not supported on Raspberry Pi"
                 assert not IS_JETSON, "CoreML and TF.js export not supported on NVIDIA Jetson"
             if i in {5}:  # CoreML

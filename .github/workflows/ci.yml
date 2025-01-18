@@ -247,6 +247,10 @@ jobs:
       #     python3.11 -m venv env
       #     source env/bin/activate
       #     echo PATH=$PATH >> $GITHUB_ENV
+      - name: Check OS
+        run: cat /etc/os-release
+      - name: Check uname
+        run: uname -a
       - name: Install requirements
         run: |
           python -m pip install --upgrade pip wheel

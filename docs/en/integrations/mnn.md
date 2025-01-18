@@ -100,6 +100,7 @@ A function that relies solely on MNN for YOLO11 inference and preprocessing is i
             image = cv2.resize(
                 image, (640, 640), 0.0, 0.0, cv2.INTER_LINEAR, -1, [0.0, 0.0, 0.0], [1.0 / 255.0, 1.0 / 255.0, 1.0 / 255.0]
             )
+            image = image[..., ::-1]  # BGR to RGB
             input_var = np.expand_dims(image, 0)
             input_var = MNN.expr.convert(input_var, MNN.expr.NC4HW4)
             output_var = net.forward(input_var)
@@ -210,6 +211,7 @@ A function that relies solely on MNN for YOLO11 inference and preprocessing is i
             auto pads = _Const(static_cast<void*>(padvals.data()), {3, 2}, NCHW, halide_type_of<int>());
             auto image = _Pad(original_image, pads, CONSTANT);
             image = resize(image, Size(640, 640), 0, 0, INTER_LINEAR, -1, {0., 0., 0.}, {1./255., 1./255., 1./255.});
+            image = cvtColor(image, COLOR_BGR2RGB);
             auto input = _Unsqueeze(image, {0});
             input = _Convert(input, NC4HW4);
             auto outputs = net->onForward({input});

@@ -10,7 +10,6 @@ def test_dataset(model="yolo11n.pt", data="coco8.yaml", imgsz=640):
         data (str): The path to the dataset configuration file (e.g., .yaml). Default is "coco8.yaml".
         imgsz (int): The size of the input image used for model processing.
     """
-
     model_object = YOLO(model)  # load a model
     _ = model_object.train(data=data, epochs=3, imgsz=imgsz)  # train the model
 

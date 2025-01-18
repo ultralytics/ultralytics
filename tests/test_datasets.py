@@ -3,35 +3,34 @@ from ultralytics import YOLO
 
 def test_dataset(model="yolo11n.pt", data="coco8.yaml", imgsz=640):
     """
-    This function is designed to test the Ultralytics YOLO latest model on a specified dataset.
+    Function created to test the Ultralytics YOLO latest model on a specified dataset.
 
     Args:
         model (str): The path to the YOLO model file. Default is "yolo11n.pt".
         data (str): The path to the dataset configuration file (e.g., .yaml). Default is "coco8.yaml".
         imgsz (int): The size of the input image used for model processing.
+
+    Functionality
+        Loads the specified YOLO model using the YOLO class.
+        Trains the model on the given dataset for 3 epochs with an image size of 640 or any other pixels.
     """
 
-    model_object = YOLO(model)  # load a model
-    _ = model_object.train(data=data, epochs=3, imgsz=imgsz)  # train the model
+    model = YOLO(model)  # load a model
+    _ = model.train(data=data, epochs=3, imgsz=imgsz)  # train the model
 
 
 # Object detection datasets
-test_dataset(model="yolo11n.pt", data="coco8.yaml")  # https://docs.ultralytics.com/datasets/detect/coco8/
-test_dataset(model="yolo11n.pt", data="brain-tumor.yaml")  # https://docs.ultralytics.com/datasets/detect/brain-tumor/
-test_dataset(
-    model="yolo11n.pt", data="african-wildlife.yaml"
-)  # https://docs.ultralytics.com/datasets/detect/african-wildlife/
-test_dataset(model="yolo11n.pt", data="signature.yaml")  # https://docs.ultralytics.com/datasets/detect/signature/
-test_dataset(
-    model="yolo11n.pt", data="medical-pills.yaml"
-)  # https://docs.ultralytics.com/datasets/detect/medical-pills/
+test_dataset(data="coco8.yaml")  # https://docs.ultralytics.com/datasets/detect/coco8/
+test_dataset(data="brain-tumor.yaml")  # https://docs.ultralytics.com/datasets/detect/brain-tumor/
+test_dataset(data="african-wildlife.yaml")  # https://docs.ultralytics.com/datasets/detect/african-wildlife/
+test_dataset(data="signature.yaml")  # https://docs.ultralytics.com/datasets/detect/signature/
+test_dataset(data="medical-pills.yaml")  # https://docs.ultralytics.com/datasets/detect/medical-pills/
 
 # Image segmentation datasets
 test_dataset(model="yolo11n-seg.pt", data="coco8-seg.yaml")  # https://docs.ultralytics.com/datasets/segment/coco8-seg/
 test_dataset(model="yolo11n-seg.pt", data="crack-seg.yaml")  # https://docs.ultralytics.com/datasets/segment/crack-seg/
-test_dataset(
-    model="yolo11n-seg.pt", data="carparts-seg.yaml"
-)  # https://docs.ultralytics.com/datasets/segment/carparts-seg/
+test_dataset(model="yolo11n-seg.pt",
+             data="carparts-seg.yaml")  # https://docs.ultralytics.com/datasets/segment/carparts-seg/
 test_dataset(
     model="yolo11n-seg.pt", data="package-seg.yaml"
 )  # https://docs.ultralytics.com/datasets/segment/package-seg/

@@ -1,5 +1,6 @@
-from ultralytics import YOLO
 import pytest
+
+from ultralytics import YOLO
 
 
 @pytest.mark.slow

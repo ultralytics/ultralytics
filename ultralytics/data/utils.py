@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import hashlib
 import json
@@ -567,7 +567,7 @@ class HUBDatasetStats:
 
             # Get dataset statistics
             if self.task == "classify":
-                from torchvision.datasets import ImageFolder
+                from torchvision.datasets import ImageFolder  # scope for faster 'import ultralytics'
 
                 dataset = ImageFolder(self.data[split])
 

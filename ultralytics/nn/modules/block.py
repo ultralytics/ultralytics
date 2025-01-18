@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """Block modules."""
 
 import torch
@@ -1131,7 +1131,7 @@ class TorchVision(nn.Module):
 
     def __init__(self, c1, c2, model, weights="DEFAULT", unwrap=True, truncate=2, split=False):
         """Load the model and weights from torchvision."""
-        import torchvision
+        import torchvision  # scope for faster 'import ultralytics'
 
         super().__init__()
         if hasattr(torchvision.models, "get_model"):

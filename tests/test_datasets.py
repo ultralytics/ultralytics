@@ -40,8 +40,9 @@ test_dataset(
 # Pose estimation datasets
 test_dataset(model="yolo11n-pose.pt", data="coco8-pose.yaml")  # https://docs.ultralytics.com/datasets/pose/coco8-pose/
 test_dataset(model="yolo11n-pose.pt", data="tiger-pose.yaml")  # https://docs.ultralytics.com/datasets/pose/tiger-pose/
-test_dataset(model="yolo11n-pose.pt",
-             data="hand-keypoints.yaml")  # https://docs.ultralytics.com/datasets/pose/hand-keypoints/
+test_dataset(
+    model="yolo11n-pose.pt", data="hand-keypoints.yaml"
+)  # https://docs.ultralytics.com/datasets/pose/hand-keypoints/
 test_dataset(model="yolo11n-pose.pt", data="dog-pose.yaml")  # https://docs.ultralytics.com/datasets/pose/dog-pose/
 
 # Oriented bounding boxes datasets

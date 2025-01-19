@@ -134,7 +134,9 @@ def run_ray_tune(
     tuner_callbacks = [WandbLoggerCallback(project="YOLOv8-tune")] if wandb else []
 
     # Create the Ray Tune hyperparameter search tuner
-    tune_dir = get_save_dir(get_cfg(DEFAULT_CFG, train_args), name=train_args.pop("name", "tune")).resolve()  # must be absolute dir
+    tune_dir = get_save_dir(
+        get_cfg(DEFAULT_CFG, train_args), name=train_args.pop("name", "tune")
+    ).resolve()  # must be absolute dir
     tune_dir.mkdir(parents=True, exist_ok=True)
     tuner = tune.Tuner(
         trainable_with_resources,

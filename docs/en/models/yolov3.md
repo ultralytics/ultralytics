@@ -4,15 +4,13 @@ description: Discover YOLOv3 and its variants YOLOv3-Ultralytics and YOLOv3u. Le
 keywords: YOLOv3, YOLOv3-Ultralytics, YOLOv3u, object detection, Ultralytics, computer vision, AI models, deep learning
 ---
 
-# YOLOv3, YOLOv3-Ultralytics, and YOLOv3u
+# YOLOv3, and YOLOv3u
 
 ## Overview
 
 This document presents an overview of three closely related object detection models, namely [YOLOv3](https://pjreddie.com/darknet/yolo/), [YOLOv3-Ultralytics](https://github.com/ultralytics/yolov3), and [YOLOv3u](https://github.com/ultralytics/ultralytics).
 
 1. **YOLOv3:** This is the third version of the You Only Look Once (YOLO) object detection algorithm. Originally developed by Joseph Redmon, YOLOv3 improved on its predecessors by introducing features such as multiscale predictions and three different sizes of detection kernels.
-
-2. **YOLOv3-Ultralytics:** This is Ultralytics' implementation of the YOLOv3 model. It reproduces the original YOLOv3 architecture and offers additional functionalities, such as support for more pre-trained models and easier customization options.
 
 3. **YOLOv3u:** This is an updated version of YOLOv3-Ultralytics that incorporates the anchor-free, objectness-free split head used in YOLOv8 models. YOLOv3u maintains the same backbone and neck architecture as YOLOv3 but with the updated detection head from YOLOv8.
 

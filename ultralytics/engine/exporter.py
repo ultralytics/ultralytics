@@ -91,7 +91,13 @@ from ultralytics.utils import (
     get_default_args,
     yaml_save,
 )
-from ultralytics.utils.checks import check_imgsz, check_is_path_safe, check_requirements, check_version
+from ultralytics.utils.checks import (
+    check_imgsz,
+    check_is_path_safe,
+    check_requirements,
+    check_version,
+    is_sudo_available,
+)
 from ultralytics.utils.downloads import attempt_download_asset, get_github_assets, safe_download
 from ultralytics.utils.files import file_size, spaces_in_path
 from ultralytics.utils.ops import Profile
@@ -1071,7 +1077,6 @@ class Exporter:
         assert LINUX, f"export only supported on Linux. See {help_url}"
         if subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True).returncode != 0:
             LOGGER.info(f"\n{prefix} export requires Edge TPU compiler. Attempting install from {help_url}")
-            sudo = subprocess.run("sudo --version >/dev/null", shell=True).returncode == 0  # sudo installed on system
             for c in (
                 "curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -",
                 'echo "deb https://packages.cloud.google.com/apt coral-edgetpu-stable main" | '
@@ -1079,7 +1084,7 @@ class Exporter:
                 "sudo apt-get update",
                 "sudo apt-get install edgetpu-compiler",
             ):
-                subprocess.run(c if sudo else c.replace("sudo ", ""), shell=True, check=True)
+                subprocess.run(c if is_sudo_available() else c.replace("sudo ", ""), shell=True, check=True)
         ver = subprocess.run(cmd, shell=True, capture_output=True, check=True).stdout.decode().split()[-1]
 
         LOGGER.info(f"\n{prefix} starting export with Edge TPU compiler {ver}...")
@@ -1160,7 +1165,10 @@ class Exporter:
             if "openjdk 17" not in str(out.stdout):
                 raise FileNotFoundError
         except FileNotFoundError:
-            subprocess.run(["sudo", "apt", "install", "-y", "openjdk-17-jdk", "openjdk-17-jre"], check=True)
+            c = ["apt", "install", "-y", "openjdk-17-jdk", "openjdk-17-jre"]
+            if is_sudo_available():
+                c.insert(0, "sudo")
+            subprocess.run(c, check=True)
 
         def representative_dataset_gen(dataloader=self.get_int8_calibration_dataloader(prefix)):
             for batch in dataloader:

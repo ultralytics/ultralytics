@@ -7,7 +7,7 @@ keywords: Ultralytics HUB, YOLO models, train YOLO, YOLOv5, YOLOv8, object detec
 # Ultralytics HUB
 
 <div align="center">
-<a href="https://www.ultralytics.com/hub" target="_blank"><img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/ultralytics-hub.avif"></a>
+<a href="https://www.ultralytics.com/hub" target="_blank"><img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/ultralytics-hub.avif" alt="Ultralytics HUB banner"></a>
 <a href="https://docs.ultralytics.com/zh/hub/">中文</a> |
 <a href="https://docs.ultralytics.com/ko/hub/">한국어</a> |
 <a href="https://docs.ultralytics.com/ja/hub/">日本語</a> |

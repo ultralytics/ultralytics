@@ -22,15 +22,13 @@ This document presents an overview of three closely related object detection mod
 
 - **YOLOv3:** Introduced the use of three different scales for detection, leveraging three different sizes of detection kernels: 13x13, 26x26, and 52x52. This significantly improved detection accuracy for objects of different sizes. Additionally, YOLOv3 added features such as multi-label predictions for each [bounding box](https://www.ultralytics.com/glossary/bounding-box) and a better feature extractor network.
 
-- **YOLOv3-Ultralytics:** Ultralytics' implementation of YOLOv3 provides the same performance as the original model but comes with added support for more pre-trained models, additional training methods, and easier customization options. This makes it more versatile and user-friendly for practical applications.
-
 - **YOLOv3u:** This updated model incorporates the anchor-free, objectness-free split head from YOLOv8. By eliminating the need for pre-defined anchor boxes and objectness scores, this detection head design can improve the model's ability to detect objects of varying sizes and shapes. This makes YOLOv3u more robust and accurate for object detection tasks.
 
 ## Supported Tasks and Modes
 
-YOLOv3 is designed specifically for object detection tasks. These models are renowned for their effectiveness in various real-world scenarios, balancing accuracy and speed. Each variant offers unique features and optimizations, making them suitable for a range of applications.
+YOLOv3 is designed specifically for object detection tasks. Ultralytics supports three variants of YOLOv3: `yolov3u`, `yolov3-tinyu` and `yolov3-sppu`. The `u` in the name signifies that these utilize the anchor-free head of YOLOv8, unlike their original architecture which is anchor-based. These models are renowned for their effectiveness in various real-world scenarios, balancing accuracy and speed. Each variant offers unique features and optimizations, making them suitable for a range of applications.
 
-Ultralytics supports three variants of YOLOv3: `yolov3u`, `yolov3-tinyu` and `yolov3-sppu`. The `u` in the name signifies that these utilize the anchor-free head of YOLOv8, unlike their original architecture which is anchor-based. All three models support a comprehensive set of modes, ensuring versatility in various stages of [model deployment](https://www.ultralytics.com/glossary/model-deployment) and development. These modes include [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md), providing users with a complete toolkit for effective object detection.
+All three models support a comprehensive set of modes, ensuring versatility in various stages of [model deployment](https://www.ultralytics.com/glossary/model-deployment) and development. These modes include [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md), providing users with a complete toolkit for effective object detection.
 
 | Model Type     | Pre-Trained Weights | Tasks Supported                        | Inference                              | Validation | Training | Export |
 | -------------- | ------------------- | -------------------------------------- | -------------------------------------- | ---------- | -------- | ------ | --- |

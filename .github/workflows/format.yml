@@ -1,4 +1,5 @@
-# Ultralytics 🚀 - AGPL-3.0 License https://ultralytics.com/license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 # Ultralytics Actions https://github.com/ultralytics/actions
 # This workflow automatically formats code and documentation in PRs to official Ultralytics standards
 
@@ -20,7 +21,7 @@ jobs:
       - name: Run Ultralytics Formatting
         uses: ultralytics/actions@main
         with:
-          token: ${{ secrets._GITHUB_TOKEN || secrets.GITHUB_TOKEN}}
+          token: ${{ secrets._GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
           labels: true # autolabel issues and PRs
           python: true # format Python code and docstrings
           prettier: true # format YAML, JSON, Markdown and CSS
@@ -31,7 +32,7 @@ jobs:
           first_issue_response: |
             👋 Hello @${{ github.actor }}, thank you for your interest in Ultralytics 🚀! We recommend a visit to the [Docs](https://docs.ultralytics.com) for new users where you can find many [Python](https://docs.ultralytics.com/usage/python/) and [CLI](https://docs.ultralytics.com/usage/cli/) usage examples and where many of the most common questions may already be answered.
 
-            If this is a 🐛 Bug Report, please provide a [minimum reproducible example](https://docs.ultralytics.com/help/minimum_reproducible_example/) to help us debug it.
+            If this is a 🐛 Bug Report, please provide a [minimum reproducible example](https://docs.ultralytics.com/help/minimum-reproducible-example/) to help us debug it.
 
             If this is a custom training ❓ Question, please provide as much information as possible, including dataset image examples and training logs, and verify you are following our [Tips for Best Training Results](https://docs.ultralytics.com/guides/model-training-tips/).
 
@@ -56,6 +57,6 @@ jobs:
 
             ## Status
 
-            <a href="https://github.com/ultralytics/ultralytics/actions/workflows/ci.yaml?query=event%3Aschedule"><img src="https://github.com/ultralytics/ultralytics/actions/workflows/ci.yaml/badge.svg" alt="Ultralytics CI"></a>
+            <a href="https://github.com/ultralytics/ultralytics/actions/workflows/ci.yml?query=event%3Aschedule"><img src="https://github.com/ultralytics/ultralytics/actions/workflows/ci.yml/badge.svg" alt="Ultralytics CI"></a>
 
-            If this badge is green, all [Ultralytics CI](https://github.com/ultralytics/ultralytics/actions/workflows/ci.yaml?query=event%3Aschedule) tests are currently passing. CI tests verify correct operation of all YOLO [Modes](https://docs.ultralytics.com/modes/) and [Tasks](https://docs.ultralytics.com/tasks/) on macOS, Windows, and Ubuntu every 24 hours and on every commit.
+            If this badge is green, all [Ultralytics CI](https://github.com/ultralytics/ultralytics/actions/workflows/ci.yml?query=event%3Aschedule) tests are currently passing. CI tests verify correct operation of all YOLO [Modes](https://docs.ultralytics.com/modes/) and [Tasks](https://docs.ultralytics.com/tasks/) on macOS, Windows, and Ubuntu every 24 hours and on every commit.

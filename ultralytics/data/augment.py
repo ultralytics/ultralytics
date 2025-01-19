@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import math
 import random
@@ -271,9 +271,9 @@ class Compose:
         """
         assert isinstance(index, (int, list)), f"The indices should be either list or int type but got {type(index)}"
         if isinstance(index, list):
-            assert isinstance(
-                value, list
-            ), f"The indices should be the same type as values, but got {type(index)} and {type(value)}"
+            assert isinstance(value, list), (
+                f"The indices should be the same type as values, but got {type(index)} and {type(value)}"
+            )
         if isinstance(index, int):
             index, value = [index], [value]
         for i, v in zip(index, value):
@@ -1860,6 +1860,9 @@ class Albumentations:
                 if self.contains_spatial
                 else A.Compose(T)
             )
+            if hasattr(self.transform, "set_random_seed"):
+                # Required for deterministic transforms in albumentations>=1.4.21
+                self.transform.set_random_seed(torch.initial_seed())
             LOGGER.info(prefix + ", ".join(f"{x}".replace("always_apply=False, ", "") for x in T if x.p))
         except ImportError:  # package not installed, skip
             pass

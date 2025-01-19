@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 name: 🐛 Bug Report
 # title: " "
@@ -43,7 +43,7 @@ body:
   - type: textarea
     attributes:
       label: Bug
-      description: Please provide as much information as possible. Copy and paste console output and error messages. Use [Markdown](https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax) to format text, code and logs. If necessary, include screenshots for visual elements only. Providing detailed information will help us resolve the issue more efficiently.
+      description: Please provide as much information as possible. Copy and paste console output and error messages including the _full_ traceback. Use [Markdown](https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax) to format text, code and logs. If necessary, include screenshots for visual elements only. Providing detailed information will help us resolve the issue more efficiently.
       placeholder: |
         💡 ProTip! Include as much information as possible (logs, tracebacks, screenshots, etc.) to receive the most helpful response.
     validations:
@@ -52,7 +52,7 @@ body:
   - type: textarea
     attributes:
       label: Environment
-      description: Many issues are often related to dependency versions and hardware. Please provide the output of `yolo checks` (CLI) or `ultralytics.utils.checks.collect_system_info()` (Python) command to help us diagnose the problem.
+      description: Try the latest version (`pip install -U ultralytics`) before reporting a bug. If it's still present, please provide the output of `yolo checks` (CLI) or `ultralytics.utils.checks.collect_system_info()` (Python) command to help us diagnose the problem.
       placeholder: |
         Paste output of `yolo checks` (CLI) or `ultralytics.utils.checks.collect_system_info()` (Python) command, i.e.:
         ```
@@ -74,7 +74,7 @@ body:
     attributes:
       label: Minimal Reproducible Example
       description: >
-        When asking a question, people will be better able to provide help if you provide code that they can easily understand and use to **reproduce** the problem. This is referred to by community members as creating a [minimal reproducible example](https://docs.ultralytics.com/help/minimum_reproducible_example/).
+        When asking a question, people will be better able to provide help if you provide code that they can easily understand and use to **reproduce** the problem. This is referred to by community members as creating a [minimal reproducible example](https://docs.ultralytics.com/help/minimum-reproducible-example/).
       placeholder: |
         ```
         # Code to reproduce your issue here

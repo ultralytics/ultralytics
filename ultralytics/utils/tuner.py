@@ -1,6 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-from ultralytics.cfg import TASK2DATA, TASK2METRIC, get_save_dir
+from ultralytics.cfg import TASK2DATA, TASK2METRIC, get_save_dir, get_cfg
 from ultralytics.utils import DEFAULT_CFG, DEFAULT_CFG_DICT, LOGGER, NUM_THREADS, checks
 
 
@@ -134,7 +134,8 @@ def run_ray_tune(
     tuner_callbacks = [WandbLoggerCallback(project="YOLOv8-tune")] if wandb else []
 
     # Create the Ray Tune hyperparameter search tuner
-    tune_dir = get_save_dir(DEFAULT_CFG, name=train_args.pop("name", "tune")).resolve()  # must be absolute dir
+    args = get_cfg(DEFAULT_CFG, train_args)
+    tune_dir = get_save_dir(args, name=train_args.pop("name", "tune")).resolve()  # must be absolute dir
     tune_dir.mkdir(parents=True, exist_ok=True)
     tuner = tune.Tuner(
         trainable_with_resources,

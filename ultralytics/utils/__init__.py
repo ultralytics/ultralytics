@@ -577,6 +577,16 @@ def is_jupyter():
     return IS_COLAB or IS_KAGGLE
 
 
+def is_runpod():
+    """
+    Check if the current script is running inside a RunPod container.
+
+    Returns:
+        (bool): True if running in RunPod, False otherwise.
+    """
+    return "RUNPOD_POD_ID" in os.environ
+
+
 def is_docker() -> bool:
     """
     Determine if the script is running inside a Docker container.

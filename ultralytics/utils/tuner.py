@@ -1,6 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-from ultralytics.cfg import TASK2DATA, TASK2METRIC, get_save_dir, get_cfg
+from ultralytics.cfg import TASK2DATA, TASK2METRIC, get_cfg, get_save_dir
 from ultralytics.utils import DEFAULT_CFG, DEFAULT_CFG_DICT, LOGGER, NUM_THREADS, checks
 
 

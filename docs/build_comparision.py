@@ -81,6 +81,7 @@ data = {
 def main():
     """
     Generates model comparison markdown files for documenting the performance of various models.
+
     The comparisons include metrics such as mAP (mean Average Precision) and inference speed for different variants of
     the models.
     """

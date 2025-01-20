@@ -842,14 +842,14 @@ def torch_safe_load(weight, safe_only=False):
                     f"with https://github.com/ultralytics/yolov5.\nThis model is NOT forwards compatible with "
                     f"YOLOv8 at https://github.com/ultralytics/ultralytics."
                     f"\nRecommend fixes are to train a new model using the latest 'ultralytics' package or to "
-                    f"run a command with an official Ultralytics model, i.e. 'yolo predict model=yolov8n.pt'"
+                    f"run a command with an official Ultralytics model, i.e. 'yolo predict model=yolo11n.pt'"
                 )
             ) from e
         LOGGER.warning(
             f"WARNING ⚠️ {weight} appears to require '{e.name}', which is not in Ultralytics requirements."
             f"\nAutoInstall will run now for '{e.name}' but this feature will be removed in the future."
             f"\nRecommend fixes are to train a new model using the latest 'ultralytics' package or to "
-            f"run a command with an official Ultralytics model, i.e. 'yolo predict model=yolov8n.pt'"
+            f"run a command with an official Ultralytics model, i.e. 'yolo predict model=yolo11n.pt'"
         )
         check_requirements(e.name)  # install missing module
         ckpt = torch.load(file, map_location="cpu")

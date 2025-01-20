@@ -489,10 +489,10 @@ def check_yolov5u_filename(file: str, verbose: bool = True):
     return file
 
 
-def check_model_file_from_stem(model="yolov8n"):
+def check_model_file_from_stem(model="yolo11n"):
     """Return a model filename from a valid model stem."""
     if model and not Path(model).suffix and Path(model).stem in downloads.GITHUB_ASSETS_STEMS:
-        return Path(model).with_suffix(".pt")  # add suffix, i.e. yolov8n -> yolov8n.pt
+        return Path(model).with_suffix(".pt")  # add suffix, i.e. yolo11n -> yolo11n.pt
     else:
         return model
 

@@ -24,11 +24,11 @@ data = {
         "x": {"speed": 12.2, "mAP": 54.4},
     },
     "YOLOv9": {
-        "n": {"speed": 2.3, "mAP": 37.8},       # it's official t variant for YOLOv9
+        "n": {"speed": 2.3, "mAP": 37.8},  # it's official t variant for YOLOv9
         "s": {"speed": 3.54, "mAP": 46.5},
         "m": {"speed": 6.43, "mAP": 51.5},
-        "l": {"speed": 7.16, "mAP": 52.8},      # it's official c variant for YOLOv9
-        "x": {"speed": 16.77, "mAP": 55.1},     # it's official e variant for YOLOv9
+        "l": {"speed": 7.16, "mAP": 52.8},  # it's official c variant for YOLOv9
+        "x": {"speed": 16.77, "mAP": 55.1},  # it's official e variant for YOLOv9
     },
     "YOLOv8": {
         "n": {"speed": 1.47, "mAP": 37.3},
@@ -58,7 +58,7 @@ data = {
         "x": {"speed": 14.3, "mAP": 54.7},
     },
     "DAMO-YOLO": {
-        "n": {"speed": 2.32, "mAP": 42.0},     # it's official t variant for DAMO-YOLO
+        "n": {"speed": 2.32, "mAP": 42.0},  # it's official t variant for DAMO-YOLO
         "s": {"speed": 3.45, "mAP": 46.0},
         "m": {"speed": 5.09, "mAP": 49.2},
         "l": {"speed": 7.18, "mAP": 50.8},
@@ -79,11 +79,11 @@ data = {
 
 
 def main():
-    DOCS_DIR = os.path.join(os.getcwd(), "docs/en/comparisons")     # Model's comparision directory of the docs
-    os.makedirs(DOCS_DIR, exist_ok=True)    # Ensure the directory exists
+    DOCS_DIR = os.path.join(os.getcwd(), "docs/en/comparisons")  # Model's comparison directory of the docs
+    os.makedirs(DOCS_DIR, exist_ok=True)  # Ensure the directory exists
 
-    model_pairs = list(permutations(data.keys(), 2))    # Generate all combinations of models
-    variant_order = ['n', 's', 'm', 'b', 'l', 'x']      # Define variant order preference
+    model_pairs = list(permutations(data.keys(), 2))  # Generate all combinations of models
+    variant_order = ["n", "s", "m", "b", "l", "x"]  # Define variant order preference
 
     # Create model comparison pages
     for model1, model2 in model_pairs:
@@ -93,8 +93,12 @@ def main():
             # Metadata Section
             f.write("---\n")
             f.write("comments: true\n")
-            f.write(f"description: Dive into the key differences between {model1} and {model2}. Discover which model excels in accuracy, speed, and use cases such as real-time detection, edge deployment, or large-scale training.\n")
-            f.write(f"keywords: {model1}, {model2}, Ultralytics, model comparison, object detection, real-time AI, edge AI, model evaluation, computer vision\n")
+            f.write(
+                f"description: Dive into the key differences between {model1} and {model2}. Discover which model excels in accuracy, speed, and use cases such as real-time detection, edge deployment, or large-scale training.\n"
+            )
+            f.write(
+                f"keywords: {model1}, {model2}, Ultralytics, model comparison, object detection, real-time AI, edge AI, model evaluation, computer vision\n"
+            )
             f.write("---\n\n")
 
             f.write(f"# {model1} vs {model2}\n\n")  # Page Title
@@ -104,11 +108,11 @@ def main():
             f.write(f"| Variant | mAP (%) - {model1} | mAP (%) - {model2} |\n")
             f.write("|---------|--------------------|--------------------|\n")
 
-            variants = set(data[model1].keys()).union(set(data[model2].keys()))     # Add rows for mAP comparison
+            variants = set(data[model1].keys()).union(set(data[model2].keys()))  # Add rows for mAP comparison
 
             for variant in sorted(variants, key=lambda v: variant_order.index(v)):
-                m1_map = data[model1][variant]['mAP'] if variant in data[model1] else "N/A"
-                m2_map = data[model2][variant]['mAP'] if variant in data[model2] else "N/A"
+                m1_map = data[model1][variant]["mAP"] if variant in data[model1] else "N/A"
+                m2_map = data[model2][variant]["mAP"] if variant in data[model2] else "N/A"
                 f.write(f"| {variant} | {m1_map} | {m2_map} |\n")
 
             # Speed Comparison Table
@@ -116,9 +120,9 @@ def main():
             f.write(f"| Variant | Speed (ms) - {model1} | Speed (ms) - {model2} |\n")
             f.write("|---------|-----------------------|-----------------------|\n")
 
-            for variant in sorted(variants, key=lambda v: variant_order.index(v)):      # Add rows for speed comparison
-                m1_speed = data[model1][variant]['speed'] if variant in data[model1] else "N/A"
-                m2_speed = data[model2][variant]['speed'] if variant in data[model2] else "N/A"
+            for variant in sorted(variants, key=lambda v: variant_order.index(v)):  # Add rows for speed comparison
+                m1_speed = data[model1][variant]["speed"] if variant in data[model1] else "N/A"
+                m2_speed = data[model2][variant]["speed"] if variant in data[model2] else "N/A"
                 f.write(f"| {variant} | {m1_speed} | {m2_speed} |\n")
 
 

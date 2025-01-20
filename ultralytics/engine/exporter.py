@@ -271,7 +271,7 @@ class Exporter:
         if rknn:
             if not self.args.name:
                 LOGGER.warning(
-                    "WARNING ⚠️ Rockchip RKNN export requires a missing 'name' arg for processor type. Using default 'name=rk3588'."
+                    "WARNING ⚠️ Rockchip RKNN export requires a missing 'name' arg for processor type. Using default name='rk3588'."
                 )
                 self.args.name = "rk3588"
             else:

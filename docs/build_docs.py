@@ -49,7 +49,7 @@ def create_vercel_config():
 def prepare_model_comparision_pages():
     """Generate the model comparison docs pages."""
     print("DOCS PATH: ", DOCS)
-    print(f'{DOCS}/build_comparision.py')
+    print(f"{DOCS}/build_comparision.py")
     os.system(f'python "{DOCS}/build_comparision.py"')
 
 

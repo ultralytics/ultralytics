@@ -76,7 +76,7 @@ data = {
 }
 
 # Directory for the docs
-DOCS_DIR = "en/comparisons"
+DOCS_DIR = "/en/comparisons"
 
 # Generate all combinations of models
 model_pairs = list(combinations(data.keys(), 2))

@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import contextlib
 import pickle
@@ -7,6 +7,7 @@ import types
 from copy import deepcopy
 from pathlib import Path
 
+import thop
 import torch
 import torch.nn as nn
 
@@ -85,11 +86,6 @@ from ultralytics.utils.torch_utils import (
     scale_img,
     time_sync,
 )
-
-try:
-    import thop
-except ImportError:
-    thop = None
 
 
 class BaseModel(nn.Module):
@@ -959,7 +955,13 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
     ch = [ch]
     layers, save, c2 = [], [], ch[-1]  # layers, savelist, ch out
     for i, (f, n, m, args) in enumerate(d["backbone"] + d["head"]):  # from, number, module, args
-        m = getattr(torch.nn, m[3:]) if "nn." in m else globals()[m]  # get module
+        m = (
+            getattr(torch.nn, m[3:])
+            if "nn." in m
+            else getattr(__import__("torchvision").ops, m[16:])
+            if "torchvision.ops." in m
+            else globals()[m]
+        )  # get module
         for j, a in enumerate(args):
             if isinstance(a, str):
                 with contextlib.suppress(ValueError):

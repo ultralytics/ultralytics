@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """
 Automates the building and post-processing of MkDocs documentation, particularly for projects with multilingual content.
 It streamlines the workflow for generating localized versions of the documentation and updating HTML links to ensure

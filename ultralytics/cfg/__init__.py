@@ -472,7 +472,7 @@ def check_dict_alignment(base: Dict, custom: Dict, e=None):
         - Prints detailed error messages for each mismatched key to help users correct their configurations.
     """
     custom = _handle_deprecation(custom)
-    base_keys, custom_keys = (set(x.keys()) for x in (base, custom))
+    base_keys, custom_keys = (frozenset(x.keys()) for x in (base, custom))
     if mismatched := [k for k in custom_keys if k not in base_keys]:
         from difflib import get_close_matches
 

@@ -1227,7 +1227,7 @@ class SettingsManager(JSONDict):
 
     def _validate_settings(self):
         """Validate the current settings and reset if necessary."""
-        correct_keys = set(self.keys()) == set(self.defaults.keys())
+        correct_keys = frozenset(self.keys()) == frozenset(self.defaults.keys())
         correct_types = all(isinstance(self.get(k), type(v)) for k, v in self.defaults.items())
         correct_version = self.get("settings_version", "") == self.version
 

@@ -802,7 +802,7 @@ class Exporter:
         assert self.im.device.type != "cpu", "export running on CPU but must be on GPU, i.e. use 'device=0'"
         f_onnx, _ = self.export_onnx()  # run before TRT import https://github.com/ultralytics/ultralytics/issues/7016
 
-        if IS_JETSON and PYTHON_VERSION == "3.8.0":
+        if IS_JETSON and PYTHON_VERSION <= "3.8.0":
             # fix error: `np.bool` was a deprecated alias for the builtin `bool` for JetPack 4 with Python 3.8.0
             check_requirements("numpy==1.23.5")
 

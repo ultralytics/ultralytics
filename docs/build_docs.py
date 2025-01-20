@@ -36,7 +36,6 @@ from tqdm import tqdm
 
 os.environ["JUPYTER_PLATFORM_DIRS"] = "1"  # fix DeprecationWarning: Jupyter is migrating to use standard platformdirs
 DOCS = Path(__file__).parent.resolve()
-print(DOCS)
 SITE = DOCS.parent / "site"
 
 
@@ -49,8 +48,9 @@ def create_vercel_config():
 
 def prepare_model_comparision_pages():
     """Generate the model comparison docs pages."""
-    print("Docs directory Path: ", Docs)
-    os.system(f"python {DOCS}/build_comparision.py")
+    print("DOCS PATH: ", DOCS)
+    print(f'{DOCS}/build_comparision.py')
+    os.system(f'python "{DOCS}/build_comparision.py"')
 
 
 def prepare_docs_markdown(clone_repos=True):
@@ -296,7 +296,6 @@ def main():
     prepare_model_comparision_pages()
     prepare_docs_markdown()
 
-    print("Docs directory Path: ", Docs)
     # Build the main documentation
     print(f"Building docs from {DOCS}")
     subprocess.run(f"mkdocs build -f {DOCS.parent}/mkdocs.yml --strict", check=True, shell=True)

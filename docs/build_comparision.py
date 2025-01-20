@@ -76,7 +76,8 @@ data = {
 }
 
 # Directory for the docs
-DOCS_DIR = "en/comparisons"
+DOCS_DIR = os.path.join(os.getcwd(), "docs/en/comparisons")
+print("Model Comparisons directory :", DOCS_DIR)
 
 # Ensure the directory exists
 os.makedirs(DOCS_DIR, exist_ok=True)

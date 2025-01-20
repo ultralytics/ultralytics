@@ -84,7 +84,6 @@ def main():
     The comparisons include metrics such as mAP (mean Average Precision) and inference speed for different variants
     of the models.
     """
-
     DOCS_DIR = os.path.join(os.getcwd(), "docs/en/comparisons")  # Model's comparison directory of the docs
     os.makedirs(DOCS_DIR, exist_ok=True)  # Ensure the directory exists
 

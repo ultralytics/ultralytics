@@ -47,7 +47,7 @@ def create_vercel_config():
 
 
 def prepare_comparision_pages():
-    """Build model's comparision pages."""
+    """Build model's comparison pages."""
     os.system(f"python {DOCS}/build_comparision.py")  # will be updated every docs build
 
 

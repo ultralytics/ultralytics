@@ -2,7 +2,6 @@
 """Effortlessly generate model comparison pages with this script."""
 
 import os
-import yaml
 from itertools import combinations
 
 # Model's details i.e Ultralytics YOLO11, YOLOv10, YOLOv9

@@ -285,8 +285,7 @@ class Exporter:
                     "WARNING ⚠️ Rockchip RKNN export requires a missing 'name' arg for processor type. Using default name='rk3588'."
                 )
                 self.args.name = "rk3588"
-            else:
-                self.args.name = self.args.name.lower()
+            self.args.name = self.args.name.lower()
             assert self.args.name in RKNN_CHIPS, (
                 f"Invalid processor name '{self.args.name}' for Rockchip RKNN export. Valid names are {RKNN_CHIPS}."
             )

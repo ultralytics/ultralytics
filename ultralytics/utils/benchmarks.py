@@ -4,26 +4,26 @@ Benchmark a YOLO model formats for speed and accuracy.
 
 Usage:
     from ultralytics.utils.benchmarks import ProfileModels, benchmark
-    ProfileModels(['yolov8n.yaml', 'yolov8s.yaml']).profile()
-    benchmark(model='yolov8n.pt', imgsz=160)
+    ProfileModels(['yolo11n.yaml', 'yolov8s.yaml']).profile()
+    benchmark(model='yolo11n.pt', imgsz=160)
 
 Format                  | `format=argument`         | Model
 ---                     | ---                       | ---
-PyTorch                 | -                         | yolov8n.pt
-TorchScript             | `torchscript`             | yolov8n.torchscript
-ONNX                    | `onnx`                    | yolov8n.onnx
-OpenVINO                | `openvino`                | yolov8n_openvino_model/
-TensorRT                | `engine`                  | yolov8n.engine
-CoreML                  | `coreml`                  | yolov8n.mlpackage
-TensorFlow SavedModel   | `saved_model`             | yolov8n_saved_model/
-TensorFlow GraphDef     | `pb`                      | yolov8n.pb
-TensorFlow Lite         | `tflite`                  | yolov8n.tflite
-TensorFlow Edge TPU     | `edgetpu`                 | yolov8n_edgetpu.tflite
-TensorFlow.js           | `tfjs`                    | yolov8n_web_model/
-PaddlePaddle            | `paddle`                  | yolov8n_paddle_model/
-MNN                     | `mnn`                     | yolov8n.mnn
-NCNN                    | `ncnn`                    | yolov8n_ncnn_model/
-RKNN                    | `rknn`                    | yolov8n_rknn_model/
+PyTorch                 | -                         | yolo11n.pt
+TorchScript             | `torchscript`             | yolo11n.torchscript
+ONNX                    | `onnx`                    | yolo11n.onnx
+OpenVINO                | `openvino`                | yolo11n_openvino_model/
+TensorRT                | `engine`                  | yolo11n.engine
+CoreML                  | `coreml`                  | yolo11n.mlpackage
+TensorFlow SavedModel   | `saved_model`             | yolo11n_saved_model/
+TensorFlow GraphDef     | `pb`                      | yolo11n.pb
+TensorFlow Lite         | `tflite`                  | yolo11n.tflite
+TensorFlow Edge TPU     | `edgetpu`                 | yolo11n_edgetpu.tflite
+TensorFlow.js           | `tfjs`                    | yolo11n_web_model/
+PaddlePaddle            | `paddle`                  | yolo11n_paddle_model/
+MNN                     | `mnn`                     | yolo11n.mnn
+NCNN                    | `ncnn`                    | yolo11n_ncnn_model/
+RKNN                    | `rknn`                    | yolo11n_rknn_model/
 """
 
 import glob
@@ -340,7 +340,7 @@ class ProfileModels:
     Examples:
         Profile models and print results
         >>> from ultralytics.utils.benchmarks import ProfileModels
-        >>> profiler = ProfileModels(["yolov8n.yaml", "yolov8s.yaml"], imgsz=640)
+        >>> profiler = ProfileModels(["yolo11n.yaml", "yolov8s.yaml"], imgsz=640)
         >>> profiler.profile()
     """
 
@@ -374,7 +374,7 @@ class ProfileModels:
         Examples:
             Initialize and profile models
             >>> from ultralytics.utils.benchmarks import ProfileModels
-            >>> profiler = ProfileModels(["yolov8n.yaml", "yolov8s.yaml"], imgsz=640)
+            >>> profiler = ProfileModels(["yolo11n.yaml", "yolov8s.yaml"], imgsz=640)
             >>> profiler.profile()
         """
         self.paths = paths

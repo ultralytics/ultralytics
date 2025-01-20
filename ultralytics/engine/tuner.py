@@ -101,7 +101,8 @@ class Tuner:
             "copy_paste": (0.0, 1.0),  # segment copy-paste (probability)
         }
         self.args = get_cfg(overrides=args)
-        self.tune_dir = get_save_dir(self.args, name="tune")
+        self.tune_dir = get_save_dir(self.args, name=self.args.name or "tune")
+        self.args.name = None  # reset to not affect training directory
         self.tune_csv = self.tune_dir / "tune_results.csv"
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
         self.prefix = colorstr("Tuner: ")

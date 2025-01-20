@@ -2,7 +2,6 @@
 """Effortlessly generate model comparison pages with this script."""
 
 import os
-import yaml
 from itertools import permutations
 
 MKDOCS_FILE = "mkdocs.yml"

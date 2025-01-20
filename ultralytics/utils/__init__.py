@@ -61,7 +61,7 @@ RKNN_CHIPS = {
     "rv1103b",
     "rv1106b",
     "rk2118",
-}  # RKNN chips for export
+}  # Rockchip RKNN chips available for export and inference
 IS_VSCODE = os.environ.get("TERM_PROGRAM", False) == "vscode"
 HELP_MSG = """
     Examples for running Ultralytics:

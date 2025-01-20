@@ -48,8 +48,6 @@ def create_vercel_config():
 
 def prepare_model_comparision_pages():
     """Generate the model comparison docs pages."""
-    print("DOCS PATH: ", DOCS)
-    print(f"{DOCS}/build_comparision.py")
     os.system(f'python "{DOCS}/build_comparision.py"')
 
 
@@ -293,7 +291,7 @@ def minify_files(html=True, css=True, js=True):
 
 def main():
     """Builds docs, updates titles and edit links, minifies HTML, and prints local server command."""
-    prepare_model_comparision_pages()
+    prepare_model_comparision_pages()   # automatically model comparision pages.
     prepare_docs_markdown()
 
     # Build the main documentation

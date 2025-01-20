@@ -46,6 +46,11 @@ def create_vercel_config():
         json.dump(config, f, indent=2)
 
 
+def prepare_comparision_pages():
+    """Build model's comparision pages"""
+    os.system(f"python {DOCS}/build_comparision.py")  # will be updated every docs build
+
+
 def prepare_docs_markdown(clone_repos=True):
     """Build docs using mkdocs."""
     if SITE.exists():
@@ -286,6 +291,9 @@ def minify_files(html=True, css=True, js=True):
 
 def main():
     """Builds docs, updates titles and edit links, minifies HTML, and prints local server command."""
+
+    prepare_comparision_pages()
+
     prepare_docs_markdown()
 
     # Build the main documentation

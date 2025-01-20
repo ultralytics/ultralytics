@@ -58,13 +58,12 @@ class AutoBackend(nn.Module):
     The AutoBackend class is designed to provide an abstraction layer for various inference engines. It supports a wide
     range of formats, each with specific naming conventions as outlined below:
 
-    | Format                | File Suffix       | |-----------------------|-------------------| | PyTorch | *.pt
-    | | TorchScript           | *.torchscript     | | ONNX Runtime          | *.onnx            | | ONNX OpenCV DNN
-    | *.onnx (dnn=True) | | OpenVINO              | *openvino_model/  | | CoreML                | *.mlpackage       | |
-    TensorRT              | *.engine          | | TensorFlow SavedModel | *_saved_model/    | | TensorFlow GraphDef   |
-    *.pb              | | TensorFlow Lite       | *.tflite          | | TensorFlow Edge TPU   | *_edgetpu.tflite  | |
-    PaddlePaddle          | *_paddle_model/   | | MNN                   | *.mnn             | | NCNN                  |
-    *_ncnn_model/     |
+    | Format                | File Suffix       | |-----------------------|-------------------| | PyTorch | *.pt | |
+    TorchScript           | *.torchscript     | | ONNX Runtime          | *.onnx            | | ONNX OpenCV DNN | *.onnx
+    (dnn=True) | | OpenVINO              | *openvino_model/  | | CoreML                | *.mlpackage       | | TensorRT
+    | *.engine          | | TensorFlow SavedModel | *_saved_model/    | | TensorFlow GraphDef   | *.pb              | |
+    TensorFlow Lite       | *.tflite          | | TensorFlow Edge TPU   | *_edgetpu.tflite  | | PaddlePaddle          |
+    *_paddle_model/   | | MNN                   | *.mnn             | | NCNN                  | *_ncnn_model/     |
 
     This class offers dynamic backend switching capabilities based on the input model format, making it easier to deploy
     models across various platforms.

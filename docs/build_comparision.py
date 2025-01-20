@@ -2,7 +2,10 @@
 """Effortlessly generate model comparison pages with this script."""
 
 import os
-from itertools import combinations
+import yaml
+from itertools import permutations
+
+MKDOCS_FILE = "mkdocs.yml"
 
 # Model's details i.e Ultralytics YOLO11, YOLOv10, YOLOv9
 data = {
@@ -83,13 +86,12 @@ print("Model Comparisons directory :", DOCS_DIR)
 os.makedirs(DOCS_DIR, exist_ok=True)
 
 # Generate all combinations of models
-model_pairs = list(combinations(data.keys(), 2))
+model_pairs = list(permutations(data.keys(), 2))
 
 # Create documentation pages
 for model1, model2 in model_pairs:
     filename = f"{model1.lower()}-vs-{model2.lower()}.md"
     filepath = os.path.join(DOCS_DIR, filename)
-
     with open(filepath, "w") as f:
         f.write(f"# {model1} vs {model2}\n\n")
 

@@ -6,7 +6,7 @@ from itertools import permutations
 
 MKDOCS_FILE = "mkdocs.yml"
 
-# Model's details i.e Ultralytics YOLO11, YOLOv10, YOLOv9
+# Model's details i.e. Ultralytics YOLO11, YOLOv10, YOLOv9, Ultralytics YOLOv8 and so on.
 data = {
     "YOLO11": {
         "n": {"speed": 1.55, "mAP": 39.5},
@@ -24,11 +24,11 @@ data = {
         "x": {"speed": 12.2, "mAP": 54.4},
     },
     "YOLOv9": {
-        "t": {"speed": 2.3, "mAP": 37.8},
+        "n": {"speed": 2.3, "mAP": 37.8},       # it's official t variant for YOLOv9
         "s": {"speed": 3.54, "mAP": 46.5},
         "m": {"speed": 6.43, "mAP": 51.5},
-        "c": {"speed": 7.16, "mAP": 52.8},
-        "e": {"speed": 16.77, "mAP": 55.1},
+        "l": {"speed": 7.16, "mAP": 52.8},      # it's official c variant for YOLOv9
+        "x": {"speed": 16.77, "mAP": 55.1},     # it's official e variant for YOLOv9
     },
     "YOLOv8": {
         "n": {"speed": 1.47, "mAP": 37.3},
@@ -51,14 +51,14 @@ data = {
         "x": {"speed": 11.89, "mAP": 50.7},
     },
     "PP-YOLOE+": {
-        "t": {"speed": 2.84, "mAP": 39.9},
+        "n": {"speed": 2.84, "mAP": 39.9},  # it's official t variant for PP-YOLOE+
         "s": {"speed": 2.62, "mAP": 43.7},
         "m": {"speed": 5.56, "mAP": 49.8},
         "l": {"speed": 8.36, "mAP": 52.9},
         "x": {"speed": 14.3, "mAP": 54.7},
     },
     "DAMO-YOLO": {
-        "t": {"speed": 2.32, "mAP": 42.0},
+        "n": {"speed": 2.32, "mAP": 42.0},     # it's official t variant for DAMO-YOLO
         "s": {"speed": 3.45, "mAP": 46.0},
         "m": {"speed": 5.09, "mAP": 49.2},
         "l": {"speed": 7.18, "mAP": 50.8},
@@ -79,7 +79,6 @@ data = {
 
 # Directory for the docs
 DOCS_DIR = os.path.join(os.getcwd(), "docs/en/comparisons")
-print("Model Comparisons directory :", DOCS_DIR)
 
 # Ensure the directory exists
 os.makedirs(DOCS_DIR, exist_ok=True)
@@ -87,25 +86,44 @@ os.makedirs(DOCS_DIR, exist_ok=True)
 # Generate all combinations of models
 model_pairs = list(permutations(data.keys(), 2))
 
-# Create documentation pages
+# Define variant order preference
+variant_order = ['n', 's', 'm', 'b', 'l', 'x']
+
+# Create model comparison pages
 for model1, model2 in model_pairs:
     filename = f"{model1.lower()}-vs-{model2.lower()}.md"
     filepath = os.path.join(DOCS_DIR, filename)
     with open(filepath, "w") as f:
+        # Metadata Section
+        f.write("---\n")
+        f.write("comments: true\n")
+        f.write(f"description: Dive into the key differences between {model1} and {model2}. Discover which model excels in accuracy, speed, and use cases such as real-time detection, edge deployment, or large-scale training.\n")
+        f.write(f"keywords: {model1}, {model2}, Ultralytics, model comparison, object detection, real-time AI, edge AI, model evaluation, computer vision\n")
+        f.write("---\n\n")
+
+        # Page Title
         f.write(f"# {model1} vs {model2}\n\n")
 
-        # Accuracy Table
-        f.write("## Accuracy (mAP) Comparison\n\n")
-        f.write("| Model | Variant | mAP (%) |\n")
-        f.write("|-------|---------|---------|\n")
-        for model, details in [(model1, data[model1]), (model2, data[model2])]:
-            for variant, stats in details.items():
-                f.write(f"| {model} | {variant} | {stats['mAP']} |\n")
+        # mAP Comparison Table
+        f.write("## mAP Comparison\n\n")
+        f.write(f"| Variant | mAP (%) - {model1} | mAP (%) - {model2} |\n")
+        f.write("|---------|--------------------|--------------------|\n")
 
-        # Speed Table
+        # Add rows for mAP comparison
+        variants = set(data[model1].keys()).union(set(data[model2].keys()))
+
+        for variant in sorted(variants, key=lambda v: variant_order.index(v)):
+            m1_map = data[model1][variant]['mAP'] if variant in data[model1] else "N/A"
+            m2_map = data[model2][variant]['mAP'] if variant in data[model2] else "N/A"
+            f.write(f"| {variant} | {m1_map} | {m2_map} |\n")
+
+        # Speed Comparison Table
         f.write("\n## Speed Comparison\n\n")
-        f.write("| Model | Variant | Speed (ms) |\n")
-        f.write("|-------|---------|------------|\n")
-        for model, details in [(model1, data[model1]), (model2, data[model2])]:
-            for variant, stats in details.items():
-                f.write(f"| {model} | {variant} | {stats['speed']} |\n")
+        f.write(f"| Variant | Speed (ms) - {model1} | Speed (ms) - {model2} |\n")
+        f.write("|---------|-----------------------|-----------------------|\n")
+
+        # Add rows for speed comparison
+        for variant in sorted(variants, key=lambda v: variant_order.index(v)):
+            m1_speed = data[model1][variant]['speed'] if variant in data[model1] else "N/A"
+            m2_speed = data[model2][variant]['speed'] if variant in data[model2] else "N/A"
+            f.write(f"| {variant} | {m1_speed} | {m2_speed} |\n")

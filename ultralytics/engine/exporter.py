@@ -84,7 +84,6 @@ from ultralytics.utils import (
     LOGGER,
     MACOS,
     PYTHON_VERSION,
-    RKNN_CHIPS,
     ROOT,
     WINDOWS,
     __version__,
@@ -269,6 +268,18 @@ class Exporter:
             assert not ncnn, "optimize=True not compatible with format='ncnn', i.e. use optimize=False"
             assert self.device.type == "cpu", "optimize=True not compatible with cuda devices, i.e. use device='cpu'"
         if rknn:
+            RKNN_CHIPS = {
+                "rk3588",
+                "rk3576",
+                "rk3566",
+                "rk3568",
+                "rk3562",
+                "rv1103",
+                "rv1106",
+                "rv1103b",
+                "rv1106b",
+                "rk2118",
+            }  # Rockchip processors available for export
             if not self.args.name:
                 LOGGER.warning(
                     "WARNING ⚠️ Rockchip RKNN export requires a missing 'name' arg for processor type. Using default name='rk3588'."

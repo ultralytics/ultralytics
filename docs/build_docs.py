@@ -47,7 +47,7 @@ def create_vercel_config():
 
 
 def prepare_comparision_pages():
-    """Build model's comparision pages"""
+    """Build model's comparision pages."""
     os.system(f"python {DOCS}/build_comparision.py")  # will be updated every docs build
 
 
@@ -291,7 +291,6 @@ def minify_files(html=True, css=True, js=True):
 
 def main():
     """Builds docs, updates titles and edit links, minifies HTML, and prints local server command."""
-
     prepare_comparision_pages()
 
     prepare_docs_markdown()

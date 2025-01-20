@@ -34,7 +34,7 @@ from ultralytics.utils import (
 )
 
 # Define valid solutions
-SOLUTION_MAP = {
+SOLUTION_MAP = frozenset({
     "count": ("ObjectCounter", "count"),
     "heatmap": ("Heatmap", "generate_heatmap"),
     "queue": ("QueueManager", "process_queue"),
@@ -44,33 +44,33 @@ SOLUTION_MAP = {
     "trackzone": ("TrackZone", "trackzone"),
     "inference": ("Inference", "inference"),
     "help": None,
-}
+})
 
 # Define valid tasks and modes
-MODES = {"train", "val", "predict", "export", "track", "benchmark"}
-TASKS = {"detect", "segment", "classify", "pose", "obb"}
-TASK2DATA = {
+MODES = frozenset({"train", "val", "predict", "export", "track", "benchmark"})
+TASKS = frozenset({"detect", "segment", "classify", "pose", "obb"})
+TASK2DATA = frozenset({
     "detect": "coco8.yaml",
     "segment": "coco8-seg.yaml",
     "classify": "imagenet10",
     "pose": "coco8-pose.yaml",
     "obb": "dota8.yaml",
-}
-TASK2MODEL = {
+})
+TASK2MODEL = frozenset({
     "detect": "yolo11n.pt",
     "segment": "yolo11n-seg.pt",
     "classify": "yolo11n-cls.pt",
     "pose": "yolo11n-pose.pt",
     "obb": "yolo11n-obb.pt",
-}
-TASK2METRIC = {
+})
+TASK2METRIC = frozenset({
     "detect": "metrics/mAP50-95(B)",
     "segment": "metrics/mAP50-95(M)",
     "classify": "metrics/accuracy_top1",
     "pose": "metrics/mAP50-95(P)",
     "obb": "metrics/mAP50-95(B)",
-}
-MODELS = {TASK2MODEL[task] for task in TASKS}
+})
+MODELS = frozenset({TASK2MODEL[task] for task in TASKS})
 
 ARGV = sys.argv or ["", ""]  # sometimes sys.argv = []
 SOLUTIONS_HELP_MSG = f"""
@@ -144,7 +144,7 @@ CLI_HELP_MSG = f"""
     """
 
 # Define keys for arg type checks
-CFG_FLOAT_KEYS = {  # integer or float arguments, i.e. x=2 and x=2.0
+CFG_FLOAT_KEYS = frozenset({  # integer or float arguments, i.e. x=2 and x=2.0
     "warmup_epochs",
     "box",
     "cls",
@@ -154,8 +154,8 @@ CFG_FLOAT_KEYS = {  # integer or float arguments, i.e. x=2 and x=2.0
     "time",
     "workspace",
     "batch",
-}
-CFG_FRACTION_KEYS = {  # fractional float arguments with 0.0<=values<=1.0
+})
+CFG_FRACTION_KEYS = frozenset({  # fractional float arguments with 0.0<=values<=1.0
     "dropout",
     "lr0",
     "lrf",
@@ -178,8 +178,8 @@ CFG_FRACTION_KEYS = {  # fractional float arguments with 0.0<=values<=1.0
     "conf",
     "iou",
     "fraction",
-}
-CFG_INT_KEYS = {  # integer-only arguments
+})
+CFG_INT_KEYS = frozenset({  # integer-only arguments
     "epochs",
     "patience",
     "workers",
@@ -191,8 +191,8 @@ CFG_INT_KEYS = {  # integer-only arguments
     "line_width",
     "nbs",
     "save_period",
-}
-CFG_BOOL_KEYS = {  # boolean-only arguments
+})
+CFG_BOOL_KEYS = frozenset({  # boolean-only arguments
     "save",
     "exist_ok",
     "verbose",
@@ -227,7 +227,7 @@ CFG_BOOL_KEYS = {  # boolean-only arguments
     "nms",
     "profile",
     "multi_scale",
-}
+})
 
 
 def cfg2dict(cfg):

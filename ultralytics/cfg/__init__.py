@@ -35,41 +35,41 @@ from ultralytics.utils import (
 
 # Define valid solutions
 SOLUTION_MAP = {
-        "count": ("ObjectCounter", "count"),
-        "heatmap": ("Heatmap", "generate_heatmap"),
-        "queue": ("QueueManager", "process_queue"),
-        "speed": ("SpeedEstimator", "estimate_speed"),
-        "workout": ("AIGym", "monitor"),
-        "analytics": ("Analytics", "process_data"),
-        "trackzone": ("TrackZone", "trackzone"),
-        "inference": ("Inference", "inference"),
-        "help": None,
-    }
+    "count": ("ObjectCounter", "count"),
+    "heatmap": ("Heatmap", "generate_heatmap"),
+    "queue": ("QueueManager", "process_queue"),
+    "speed": ("SpeedEstimator", "estimate_speed"),
+    "workout": ("AIGym", "monitor"),
+    "analytics": ("Analytics", "process_data"),
+    "trackzone": ("TrackZone", "trackzone"),
+    "inference": ("Inference", "inference"),
+    "help": None,
+}
 
 # Define valid tasks and modes
 MODES = frozenset({"train", "val", "predict", "export", "track", "benchmark"})
 TASKS = frozenset({"detect", "segment", "classify", "pose", "obb"})
 TASK2DATA = {
-        "detect": "coco8.yaml",
-        "segment": "coco8-seg.yaml",
-        "classify": "imagenet10",
-        "pose": "coco8-pose.yaml",
-        "obb": "dota8.yaml",
-    }
-TASK2MODEL ={
-        "detect": "yolo11n.pt",
-        "segment": "yolo11n-seg.pt",
-        "classify": "yolo11n-cls.pt",
-        "pose": "yolo11n-pose.pt",
-        "obb": "yolo11n-obb.pt",
-    }
+    "detect": "coco8.yaml",
+    "segment": "coco8-seg.yaml",
+    "classify": "imagenet10",
+    "pose": "coco8-pose.yaml",
+    "obb": "dota8.yaml",
+}
+TASK2MODEL = {
+    "detect": "yolo11n.pt",
+    "segment": "yolo11n-seg.pt",
+    "classify": "yolo11n-cls.pt",
+    "pose": "yolo11n-pose.pt",
+    "obb": "yolo11n-obb.pt",
+}
 TASK2METRIC = {
-        "detect": "metrics/mAP50-95(B)",
-        "segment": "metrics/mAP50-95(M)",
-        "classify": "metrics/accuracy_top1",
-        "pose": "metrics/mAP50-95(P)",
-        "obb": "metrics/mAP50-95(B)",
-    }
+    "detect": "metrics/mAP50-95(B)",
+    "segment": "metrics/mAP50-95(M)",
+    "classify": "metrics/accuracy_top1",
+    "pose": "metrics/mAP50-95(P)",
+    "obb": "metrics/mAP50-95(B)",
+}
 MODELS = frozenset({TASK2MODEL[task] for task in TASKS})
 
 ARGV = sys.argv or ["", ""]  # sometimes sys.argv = []

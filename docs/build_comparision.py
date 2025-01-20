@@ -78,6 +78,9 @@ data = {
 # Directory for the docs
 DOCS_DIR = "/en/comparisons"
 
+# Ensure the directory exists
+os.makedirs(DOCS_DIR, exist_ok=True)
+
 # Generate all combinations of models
 model_pairs = list(combinations(data.keys(), 2))
 

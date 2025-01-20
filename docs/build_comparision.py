@@ -77,53 +77,50 @@ data = {
     },
 }
 
-# Directory for the docs
-DOCS_DIR = os.path.join(os.getcwd(), "docs/en/comparisons")
 
-# Ensure the directory exists
-os.makedirs(DOCS_DIR, exist_ok=True)
+def main():
+    DOCS_DIR = os.path.join(os.getcwd(), "docs/en/comparisons")     # Model's comparision directory of the docs
+    os.makedirs(DOCS_DIR, exist_ok=True)    # Ensure the directory exists
 
-# Generate all combinations of models
-model_pairs = list(permutations(data.keys(), 2))
+    model_pairs = list(permutations(data.keys(), 2))    # Generate all combinations of models
+    variant_order = ['n', 's', 'm', 'b', 'l', 'x']      # Define variant order preference
 
-# Define variant order preference
-variant_order = ['n', 's', 'm', 'b', 'l', 'x']
+    # Create model comparison pages
+    for model1, model2 in model_pairs:
+        filename = f"{model1.lower()}-vs-{model2.lower()}.md"
+        filepath = os.path.join(DOCS_DIR, filename)
+        with open(filepath, "w") as f:
+            # Metadata Section
+            f.write("---\n")
+            f.write("comments: true\n")
+            f.write(f"description: Dive into the key differences between {model1} and {model2}. Discover which model excels in accuracy, speed, and use cases such as real-time detection, edge deployment, or large-scale training.\n")
+            f.write(f"keywords: {model1}, {model2}, Ultralytics, model comparison, object detection, real-time AI, edge AI, model evaluation, computer vision\n")
+            f.write("---\n\n")
 
-# Create model comparison pages
-for model1, model2 in model_pairs:
-    filename = f"{model1.lower()}-vs-{model2.lower()}.md"
-    filepath = os.path.join(DOCS_DIR, filename)
-    with open(filepath, "w") as f:
-        # Metadata Section
-        f.write("---\n")
-        f.write("comments: true\n")
-        f.write(f"description: Dive into the key differences between {model1} and {model2}. Discover which model excels in accuracy, speed, and use cases such as real-time detection, edge deployment, or large-scale training.\n")
-        f.write(f"keywords: {model1}, {model2}, Ultralytics, model comparison, object detection, real-time AI, edge AI, model evaluation, computer vision\n")
-        f.write("---\n\n")
+            f.write(f"# {model1} vs {model2}\n\n")  # Page Title
 
-        # Page Title
-        f.write(f"# {model1} vs {model2}\n\n")
+            # mAP Comparison Table
+            f.write("## mAP Comparison\n\n")
+            f.write(f"| Variant | mAP (%) - {model1} | mAP (%) - {model2} |\n")
+            f.write("|---------|--------------------|--------------------|\n")
 
-        # mAP Comparison Table
-        f.write("## mAP Comparison\n\n")
-        f.write(f"| Variant | mAP (%) - {model1} | mAP (%) - {model2} |\n")
-        f.write("|---------|--------------------|--------------------|\n")
+            variants = set(data[model1].keys()).union(set(data[model2].keys()))     # Add rows for mAP comparison
 
-        # Add rows for mAP comparison
-        variants = set(data[model1].keys()).union(set(data[model2].keys()))
+            for variant in sorted(variants, key=lambda v: variant_order.index(v)):
+                m1_map = data[model1][variant]['mAP'] if variant in data[model1] else "N/A"
+                m2_map = data[model2][variant]['mAP'] if variant in data[model2] else "N/A"
+                f.write(f"| {variant} | {m1_map} | {m2_map} |\n")
 
-        for variant in sorted(variants, key=lambda v: variant_order.index(v)):
-            m1_map = data[model1][variant]['mAP'] if variant in data[model1] else "N/A"
-            m2_map = data[model2][variant]['mAP'] if variant in data[model2] else "N/A"
-            f.write(f"| {variant} | {m1_map} | {m2_map} |\n")
+            # Speed Comparison Table
+            f.write("\n## Speed Comparison\n\n")
+            f.write(f"| Variant | Speed (ms) - {model1} | Speed (ms) - {model2} |\n")
+            f.write("|---------|-----------------------|-----------------------|\n")
 
-        # Speed Comparison Table
-        f.write("\n## Speed Comparison\n\n")
-        f.write(f"| Variant | Speed (ms) - {model1} | Speed (ms) - {model2} |\n")
-        f.write("|---------|-----------------------|-----------------------|\n")
+            for variant in sorted(variants, key=lambda v: variant_order.index(v)):      # Add rows for speed comparison
+                m1_speed = data[model1][variant]['speed'] if variant in data[model1] else "N/A"
+                m2_speed = data[model2][variant]['speed'] if variant in data[model2] else "N/A"
+                f.write(f"| {variant} | {m1_speed} | {m2_speed} |\n")
 
-        # Add rows for speed comparison
-        for variant in sorted(variants, key=lambda v: variant_order.index(v)):
-            m1_speed = data[model1][variant]['speed'] if variant in data[model1] else "N/A"
-            m2_speed = data[model2][variant]['speed'] if variant in data[model2] else "N/A"
-            f.write(f"| {variant} | {m1_speed} | {m2_speed} |\n")
+
+if __name__ == "__main__":
+    main()

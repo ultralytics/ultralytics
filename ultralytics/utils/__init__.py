@@ -1313,9 +1313,7 @@ def vscode_msg(ext="ultralytics.ultralytics-snippets") -> str:
 
 
 def error_handler(func):
-    """
-    A decorator that catches exceptions and displays custom error messages if available.
-    """
+    """A decorator that catches exceptions and displays custom error messages if available."""
     from functools import wraps
 
     # Structure: {function_name: {exception_type: custom_message}}

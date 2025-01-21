@@ -84,7 +84,8 @@ class DistanceCalculation(BaseSolution):
             im0 (numpy.ndarray): The input image frame to process.
 
         Returns:
-            (numpy.ndarray): The processed image frame with annotations and distance calculations.
+            dict: Contains 'pixels_distance' (float, distance between selected objects in pixels) and
+                'total_tracks' (int, total number of tracked objects).
 
         Examples:
             >>> import numpy as np

@@ -5,6 +5,8 @@ from .analytics import Analytics
 from .distance_calculation import DistanceCalculation
 from .heatmap import Heatmap
 from .object_counter import ObjectCounter
+from .object_cropper import ObjectCropper
+from .object_blurrer import ObjectBlurrer
 from .parking_management import ParkingManagement, ParkingPtsSelection
 from .queue_management import QueueManager
 from .region_counter import RegionCounter
@@ -27,4 +29,6 @@ __all__ = (
     "RegionCounter",
     "TrackZone",
     "SecurityAlarm",
+    "ObjectCropper",
+    "ObjectBlurrer",
 )

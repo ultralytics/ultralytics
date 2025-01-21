@@ -239,7 +239,7 @@ Here we compare Meta's smallest SAM 2 model, SAM2-t, with Ultralytics smallest s
 
 This comparison shows the order-of-magnitude differences in the model sizes and speeds between models. Whereas SAM presents unique capabilities for automatic segmenting, it is not a direct competitor to YOLOv8 segment models, which are smaller, faster and more efficient.
 
-Tests run on a 2023 Apple M2 Macbook with 16GB of RAM using `torch==2.3.1` and `ultralytics==8.3.82`. To reproduce this test:
+Tests run on a 2023 Apple M2 Macbook with 16GB of RAM using `torch==2.3.1` and `ultralytics==8.2.82`. To reproduce this test:
 
 !!! example
 

@@ -1,5 +1,8 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
-# RT-DETR-ResNet50 object detection model with P3-P5 outputs.
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# Ultralytics RT-DETR-ResNet50 hybrid object detection model with P3/8 - P5/32 outputs
+# Model docs: https://docs.ultralytics.com/models/rtdetr
+# Task docs: https://docs.ultralytics.com/tasks/detect
 
 # Parameters
 nc: 80 # number of classes

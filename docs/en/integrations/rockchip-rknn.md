@@ -166,7 +166,7 @@ You can easily export your Ultralytics YOLO model to RKNN format using the `expo
 !!! Example
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
 
@@ -176,9 +176,9 @@ You can easily export your Ultralytics YOLO model to RKNN format using the `expo
         # Export to RKNN format for a specific Rockchip platform
         model.export(format="rknn", name="rk3588")
         ```
-    
+
     === "CLI"
-    
+
         ```bash
         yolo export model=yolo11n.pt format=rknn name=rk3588
         ```

@@ -35,7 +35,7 @@ class BaseSolution:
         display_output: Display the results of processing, including showing frames or saving results.
 
     Examples:
-        >>> solution = BaseSolution(model="yolov8n.pt", region=[(0, 0), (100, 0), (100, 100), (0, 100)])
+        >>> solution = BaseSolution(model="yolo11n.pt", region=[(0, 0), (100, 0), (100, 100), (0, 100)])
         >>> solution.initialize_region()
         >>> image = cv2.imread("image.jpg")
         >>> solution.extract_tracks(image)

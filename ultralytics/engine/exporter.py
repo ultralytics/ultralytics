@@ -277,7 +277,7 @@ class Exporter:
             if getattr(model, "end2end", False):
                 LOGGER.warning("WARNING ⚠️ 'nms=True' is not available for end2end models. Forcing 'nms=False'.")
                 self.args.nms = False
-            self.args.conf = self.args.conf or 0.25   # set conf default value
+            self.args.conf = self.args.conf or 0.25   # set conf default value for nms export
         if edgetpu:
             if not LINUX:
                 raise SystemError("Edge TPU export only supported on Linux. See https://coral.ai/docs/edgetpu/compiler")

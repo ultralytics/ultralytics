@@ -93,7 +93,7 @@ def benchmark(
 
     y = []
     t0 = time.time()
-    # key = None
+    key = "NaN"
     format_name = "-" if format == "pytorch" else (format.lower() if format else "")
     for i, (name, format, suffix, cpu, gpu, _) in enumerate(zip(*export_formats().values())):
         if format_name and format_name != format:

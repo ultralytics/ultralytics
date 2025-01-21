@@ -680,6 +680,9 @@ class AutoBackend(nn.Module):
                         if x.shape[-1] == 6 or self.end2end:  # end-to-end model
                             x[:, :, [0, 2]] *= w
                             x[:, :, [1, 3]] *= h
+                            if self.task == "pose":
+                                x[:, :, 6::3] *= w
+                                x[:, :, 7::3] *= h
                         else:
                             x[:, [0, 2]] *= w
                             x[:, [1, 3]] *= h

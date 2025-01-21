@@ -194,7 +194,7 @@ class Model(nn.Module):
             (bool): True if the model string is a valid Triton Server URL, False otherwise.
 
         Examples:
-            >>> Model.is_triton_model("http://localhost:8000/v2/models/yolov8n")
+            >>> Model.is_triton_model("http://localhost:8000/v2/models/yolo11n")
             True
             >>> Model.is_triton_model("yolo11n.pt")
             False
@@ -247,7 +247,7 @@ class Model(nn.Module):
 
         Examples:
             >>> model = Model()
-            >>> model._new("yolov8n.yaml", task="detect", verbose=True)
+            >>> model._new("yolo11n.yaml", task="detect", verbose=True)
         """
         cfg_dict = yaml_model_load(cfg)
         self.cfg = cfg
@@ -283,7 +283,7 @@ class Model(nn.Module):
         """
         if weights.lower().startswith(("https://", "http://", "rtsp://", "rtmp://", "tcp://")):
             weights = checks.check_file(weights, download_dir=SETTINGS["weights_dir"])  # download and return local file
-        weights = checks.check_model_file_from_stem(weights)  # add suffix, i.e. yolov8n -> yolov8n.pt
+        weights = checks.check_model_file_from_stem(weights)  # add suffix, i.e. yolo11n -> yolo11n.pt
 
         if Path(weights).suffix == ".pt":
             self.model, self.ckpt = attempt_load_one_weight(weights)
@@ -313,7 +313,7 @@ class Model(nn.Module):
         Examples:
             >>> model = Model("yolo11n.pt")
             >>> model._check_is_pytorch_model()  # No error raised
-            >>> model = Model("yolov8n.onnx")
+            >>> model = Model("yolo11n.onnx")
             >>> model._check_is_pytorch_model()  # Raises TypeError
         """
         pt_str = isinstance(self.model, (str, Path)) and Path(self.model).suffix == ".pt"
@@ -323,7 +323,7 @@ class Model(nn.Module):
                 f"model='{self.model}' should be a *.pt PyTorch model to run this method, but is a different format. "
                 f"PyTorch models can train, val, predict and export, i.e. 'model.train(data=...)', but exported "
                 f"formats like ONNX, TensorRT etc. only support 'predict' and 'val' modes, "
-                f"i.e. 'yolo predict model=yolov8n.onnx'.\nTo run CUDA or MPS inference please pass the device "
+                f"i.e. 'yolo predict model=yolo11n.onnx'.\nTo run CUDA or MPS inference please pass the device "
                 f"argument directly in your inference command, i.e. 'model.predict(source=..., device=0)'"
             )
 

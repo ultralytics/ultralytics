@@ -60,7 +60,7 @@ class AutoBackend(nn.Module):
 
         Supported Formats and Naming Conventions:
             | Format                | File Suffix       |
-            |-----------------------|-------------------|
+            | --------------------- | ----------------- |
             | PyTorch               | *.pt              |
             | TorchScript           | *.torchscript     |
             | ONNX Runtime          | *.onnx            |
@@ -75,6 +75,8 @@ class AutoBackend(nn.Module):
             | PaddlePaddle          | *_paddle_model/   |
             | MNN                   | *.mnn             |
             | NCNN                  | *_ncnn_model/     |
+            | IMX                   | *_imx_model/      |
+            | RKNN                  | *_rknn_model/     |
 
     This class offers dynamic backend switching capabilities based on the input model format, making it easier to deploy
     models across various platforms.

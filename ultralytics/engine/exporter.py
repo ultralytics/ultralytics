@@ -19,6 +19,7 @@ PaddlePaddle            | `paddle`                  | yolo11n_paddle_model/
 MNN                     | `mnn`                     | yolo11n.mnn
 NCNN                    | `ncnn`                    | yolo11n_ncnn_model/
 IMX                     | `imx`                     | yolo11n_imx_model/
+RKNN                    | `rknn`                    | yolo11n_rknn_model/
 
 Requirements:
     $ pip install "ultralytics[export]"

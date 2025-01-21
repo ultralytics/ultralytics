@@ -19,6 +19,8 @@ Usage - formats:
                           yolo11n_paddle_model       # PaddlePaddle
                           yolo11n.mnn                # MNN
                           yolo11n_ncnn_model         # NCNN
+                          yolo11n_imx_model          # Sony IMX
+                          yolo11n_rknn_model         # Rockchip RKNN
 """
 
 import json

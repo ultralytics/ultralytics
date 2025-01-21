@@ -40,24 +40,24 @@ There are two types of instance segmentation tracking available in the Ultralyti
 
         ```python
         import cv2
-        
+
         from ultralytics import solutions
-        
+
         cap = cv2.VideoCapture("Path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-        
+
         # Video writer
         video_writer = cv2.VideoWriter("instance-segmentation.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
-        
+
         # Init InstanceSegmentation
         isegment = solutions.InstanceSegmentation(
             show=True,  # Display the output
             model="yolo11n-seg.pt",  # model="yolo11n-seg.pt" for object segmentation using YOLO11.
-            line_width=4,        # Width of segmentation mask.
+            line_width=4,  # Width of segmentation mask.
             # classes=[0, 2],  # If you want to segment specific classes i.e, person and car with COCO pretrained model.
         )
-        
+
         # Process video
         while cap.isOpened():
             success, im0 = cap.read()
@@ -66,11 +66,10 @@ There are two types of instance segmentation tracking available in the Ultralyti
                 break
             results = isegment.segment(im0)
             video_writer.write(results["im0"])
-        
+
         cap.release()
         video_writer.release()
         cv2.destroyAllWindows()
-
         ```
 
 ### `seg_bbox` Arguments
@@ -100,22 +99,22 @@ To perform instance segmentation using Ultralytics YOLO11, initialize the YOLO m
         import cv2
 
         from ultralytics import solutions
-        
+
         cap = cv2.VideoCapture("Path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-        
+
         # Video writer
         video_writer = cv2.VideoWriter("instance-segmentation.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
-        
+
         # Init InstanceSegmentation
         isegment = solutions.InstanceSegmentation(
             show=True,  # Display the output
             model="yolo11n-seg.pt",  # model="yolo11n-seg.pt" for object segmentation using YOLO11.
-            line_width=4,        # Width of segmentation mask.
+            line_width=4,  # Width of segmentation mask.
             # classes=[0, 2],  # If you want to segment specific classes i.e, person and car with COCO pretrained model.
         )
-        
+
         # Process video
         while cap.isOpened():
             success, im0 = cap.read()
@@ -124,11 +123,10 @@ To perform instance segmentation using Ultralytics YOLO11, initialize the YOLO m
                 break
             results = isegment.segment(im0)
             video_writer.write(results["im0"])
-        
+
         cap.release()
         video_writer.release()
         cv2.destroyAllWindows()
-
         ```
 
 Learn more about instance segmentation in the [Ultralytics YOLO11 guide](#what-is-instance-segmentation).

@@ -1,8 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 
-import cv2
-
 from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
 from ultralytics.utils.plotting import colors
 

@@ -174,7 +174,7 @@ def nms_rotated(boxes, scores, threshold=0.45, use_triu=True):
         # Zeroing these scores ensures the additional indices would not affect the final results
         scores[~((ious >= threshold).sum(0) <= 0)] = 0
         # NOTE: return indices with fixed length to avoid TFLite reshape error
-        pick = torch.argsort(scores, descending=True)
+        pick = torch.topk(scores, scores.shape[0]).indices
     return sorted_idx[pick]
 
 

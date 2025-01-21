@@ -157,7 +157,6 @@ For further details on usage, visit the [RKNN official documentation](https://gi
 
 Also, if you'd like to know more about other Ultralytics YOLO11 integrations, visit our [integration guide page](../integrations/index.md). You'll find plenty of useful resources and insights there.
 
-
 ## FAQ
 
 ### How do I export my Ultralytics YOLO11 model to RKNN format?
@@ -167,19 +166,19 @@ You can easily [export your Ultralytics YOLO11 model to RKNN format](../modes/ex
 !!! Example
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
-        
+
         # Load your YOLO11 model
         model = YOLO("yolo11n.pt")
-        
+
         # Export the model to RKNN format for a specific Rockchip platform
         model.export(format="rknn", name="rk3588")  # creates '/yolo11n_rknn_model'
         ```
-    
+
     === "CLI"
-    
+
         ```bash
         # Export a YOLO11n PyTorch model to RKNN format for a specific Rockchip platform
         yolo export model=yolo11n.pt format=rknn name=rk3588  # creates '/yolo11n_rknn_model'
@@ -198,19 +197,19 @@ Once you have exported your Ultralytics YOLO11 model to RKNN format, you can dep
 !!! Example
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
-        
+
         # Load the exported RKNN model
         rknn_model = YOLO("./yolo11n_rknn_model")
-        
+
         # Run inference on an image
         results = rknn_model("https://ultralytics.com/images/bus.jpg")
         ```
-    
+
     === "CLI"
-    
+
         ```bash
         # Run inference with the exported RKNN model
         yolo predict model='./yolo11n_rknn_model' source='https://ultralytics.com/images/bus.jpg'

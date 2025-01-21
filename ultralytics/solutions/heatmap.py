@@ -78,7 +78,8 @@ class Heatmap(ObjectCounter):
             im0 (np.ndarray): Input image array for processing.
 
         Returns:
-            (np.ndarray): Processed image with heatmap overlay and object counts (if region is specified).
+            dict: Contains 'in_count' (int, count of objects entering the region), 'out_count' (int, count of objects exiting the region),
+                'classwise_count' (dict, per-class object count), and 'total_tracks' (int, total number of tracked objects).
 
         Examples:
             >>> heatmap = Heatmap()

@@ -1303,7 +1303,6 @@ def KLD_distance(obb1, obb2):
     Args:
         obb1 (torch.Tensor): Ground truth OBBs, shape (N, 5), format xywhr.
         obb2 (torch.Tensor): Predicted OBBs, shape (N, 5), format xywhr.
-        eps (float, optional): Small value to avoid division by zero. Defaults to 1e-7.
 
     Returns:
         (torch.Tensor): OBB similarities, shape (N,).

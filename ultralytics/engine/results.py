@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """
 Ultralytics Results, Boxes and Masks classes for handling inference results.
 
@@ -839,7 +839,7 @@ class Results(SimpleClass):
             >>> df_result = results[0].to_df()
             >>> print(df_result)
         """
-        import pandas as pd
+        import pandas as pd  # scope for faster 'import ultralytics'
 
         return pd.DataFrame(self.summary(normalize=normalize, decimals=decimals))
 
@@ -1718,7 +1718,7 @@ class OBB(BaseTensor):
         Examples:
             >>> import torch
             >>> from ultralytics import YOLO
-            >>> model = YOLO("yolov8n-obb.pt")
+            >>> model = YOLO("yolo11n-obb.pt")
             >>> results = model("path/to/image.jpg")
             >>> for result in results:
             ...     obb = result.obb

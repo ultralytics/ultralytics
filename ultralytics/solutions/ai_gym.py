@@ -62,11 +62,8 @@ class AIGym(BaseSolution):
             im0 (ndarray): Input image for processing.
 
         Returns:
-            SolutionResults: An object containing a summary of workout monitoring, including:
-                - workout_count (list[int]): The count of completed repetitions for each tracked individual.
-                - workout_stage (list[str]): The current stage ("up" or "down") for each tracked individual.
-                - workout_angle (list[float]): The angle measurements for each individual in the frame.
-                - total_tracks (int): The total number of individuals being tracked.
+            results (dict): Contains 'workout_count' (list of completed reps), 'workout_stage' (list of current stages),
+             'workout_angle' (list of angles), and 'total_tracks' (total number of tracked individuals).
 
         Examples:
             >>> gym = AIGym()

@@ -139,7 +139,7 @@ def benchmark(
                 assert gpu, "inference not supported on GPU"
 
             # Export
-            if format == "-":
+            if format == "-" or format == "pytorch":
                 filename = model.ckpt_path or model.cfg
                 exported_model = model  # PyTorch format
             else:

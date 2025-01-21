@@ -3,22 +3,24 @@
 Check a model's accuracy on a test or val split of a dataset.
 
 Usage:
-    $ yolo mode=val model=yolov8n.pt data=coco8.yaml imgsz=640
+    $ yolo mode=val model=yolo11n.pt data=coco8.yaml imgsz=640
 
 Usage - formats:
-    $ yolo mode=val model=yolov8n.pt                 # PyTorch
-                          yolov8n.torchscript        # TorchScript
-                          yolov8n.onnx               # ONNX Runtime or OpenCV DNN with dnn=True
-                          yolov8n_openvino_model     # OpenVINO
-                          yolov8n.engine             # TensorRT
-                          yolov8n.mlpackage          # CoreML (macOS-only)
-                          yolov8n_saved_model        # TensorFlow SavedModel
-                          yolov8n.pb                 # TensorFlow GraphDef
-                          yolov8n.tflite             # TensorFlow Lite
-                          yolov8n_edgetpu.tflite     # TensorFlow Edge TPU
-                          yolov8n_paddle_model       # PaddlePaddle
-                          yolov8n.mnn                # MNN
-                          yolov8n_ncnn_model         # NCNN
+    $ yolo mode=val model=yolo11n.pt                 # PyTorch
+                          yolo11n.torchscript        # TorchScript
+                          yolo11n.onnx               # ONNX Runtime or OpenCV DNN with dnn=True
+                          yolo11n_openvino_model     # OpenVINO
+                          yolo11n.engine             # TensorRT
+                          yolo11n.mlpackage          # CoreML (macOS-only)
+                          yolo11n_saved_model        # TensorFlow SavedModel
+                          yolo11n.pb                 # TensorFlow GraphDef
+                          yolo11n.tflite             # TensorFlow Lite
+                          yolo11n_edgetpu.tflite     # TensorFlow Edge TPU
+                          yolo11n_paddle_model       # PaddlePaddle
+                          yolo11n.mnn                # MNN
+                          yolo11n_ncnn_model         # NCNN
+                          yolo11n_imx_model          # Sony IMX
+                          yolo11n_rknn_model         # Rockchip RKNN
 """
 
 import json

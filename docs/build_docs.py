@@ -202,7 +202,7 @@ def convert_plaintext_links_to_html(content):
 
     link_pattern = re.compile(r"https?://[^\s()<>]*[^\s()<>.,:;!?\'\"]")
     modified = False
-    
+
     for text in main.find_all(string=lambda t: isinstance(t, str) and "http" in t):
         if text.parent.name not in {"a", "code"}:
             new_text = link_pattern.sub(lambda m: f'<a href="{m.group(0)}">{m.group(0)}</a>', str(text))

@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 from copy import copy
 
@@ -24,7 +24,7 @@ class ClassificationTrainer(BaseTrainer):
         ```python
         from ultralytics.models.yolo.classify import ClassificationTrainer
 
-        args = dict(model="yolov8n-cls.pt", data="imagenet10", epochs=3)
+        args = dict(model="yolo11n-cls.pt", data="imagenet10", epochs=3)
         trainer = ClassificationTrainer(overrides=args)
         trainer.train()
         ```

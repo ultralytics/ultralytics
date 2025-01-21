@@ -1,5 +1,5 @@
 | Format                                            | `format` Argument | Model                                           | Metadata | Arguments                                                            |
-| ------------------------------------------------- | ----------------- | ----------------------------------------------- | -------- | -------------------------------------------------------------------- |
+|---------------------------------------------------| ----------------- | ----------------------------------------------- | -------- | -------------------------------------------------------------------- |
 | [PyTorch](https://pytorch.org/)                   | -                 | `{{ model_name or "yolo11n" }}.pt`              | ✅       | -                                                                    |
 | [TorchScript](../integrations/torchscript.md)     | `torchscript`     | `{{ model_name or "yolo11n" }}.torchscript`     | ✅       | `imgsz`, `optimize`, `batch`                                         |
 | [ONNX](../integrations/onnx.md)                   | `onnx`            | `{{ model_name or "yolo11n" }}.onnx`            | ✅       | `imgsz`, `half`, `dynamic`, `simplify`, `opset`, `batch`             |
@@ -15,4 +15,4 @@
 | [MNN](../integrations/mnn.md)                     | `mnn`             | `{{ model_name or "yolo11n" }}.mnn`             | ✅       | `imgsz`, `batch`, `int8`, `half`                                     |
 | [NCNN](../integrations/ncnn.md)                   | `ncnn`            | `{{ model_name or "yolo11n" }}_ncnn_model/`     | ✅       | `imgsz`, `half`, `batch`                                             |
 | [IMX500](../integrations/sony-imx500.md)          | `imx`             | `{{ model_name or "yolov8n" }}_imx_model/`      | ✅       | `imgsz`, `int8`                                                      |
-| [RKNN](../integrations/rknn.md)                   | `rknn`            | `{{ model_name or "yolo11n" }}_rknn_model/`     | ✅       | `imgsz`, `batch`, `name`                                             |
+| [RKNN](../integrations/rockchip-rknn.md)          | `rknn`            | `{{ model_name or "yolo11n" }}_rknn_model/`     | ✅       | `imgsz`, `batch`, `name`                                             |

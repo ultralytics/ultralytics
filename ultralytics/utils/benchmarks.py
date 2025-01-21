@@ -96,6 +96,7 @@ def benchmark(
     key = None
     format_name = format.lower() if format else ""  # Initialize format_name with an empty string
     for i, (name, format, suffix, cpu, gpu, _) in enumerate(zip(*export_formats().values())):
+        print(format)
         if format_name and format_name != format:
             continue  # Skip mismatched formats
         emoji, filename = "❌", None  # export defaults

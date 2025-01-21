@@ -1349,6 +1349,7 @@ def error_handler(func):
             message = _get_message(func_name, exc_type, args, kwargs)
             if message:
                 LOGGER.error(f"{colorstr('bold', 'red', 'ERROR:')} {message}")
+            raise  # re-raise exception
 
     return wrapper
 

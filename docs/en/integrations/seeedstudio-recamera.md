@@ -6,13 +6,13 @@ keywords: YOLO11, ONNX, model export, Ultralytics, ONNX Runtime, machine learnin
 
 # Getting Started with Seeed Studio reCamera for Edge AI Applications using Ultralytics YOLO11
 
-The [reCamera](https://www.seeedstudio.com/recamera) was introduced in the AI community at [YOLO Vision 2024 (YV24)](https://www.youtube.com/watch?v=rfI5vOo3-_A), [Ultralytics](https://ultralytics.com/) annual hybrid event. It is mainly designed for edge AI applications, offering powerful processing capabilities and effortless deployment. 
+The [reCamera](https://www.seeedstudio.com/recamera) was introduced in the AI community at [YOLO Vision 2024 (YV24)](https://www.youtube.com/watch?v=rfI5vOo3-_A), [Ultralytics](https://ultralytics.com/) annual hybrid event. It is mainly designed for edge AI applications, offering powerful processing capabilities and effortless deployment.
 
 With support for diverse hardware configurations and open-source resources, it serves as an ideal platform for prototyping and deploying innovative [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) [solutions](https://docs.ultralytics.com/solutions/#solutions) at the edge.
 
 ![Seeed Studio reCamera](https://github.com/ultralytics/docs/releases/download/0/saeed-studio-recamera.avif)
 
-## Why Choose reCamera?                                                                
+## Why Choose reCamera?
 
 The reCamera series is purpose-built for edge AI applications, tailored to meet the needs of developers and innovators. Here’s why it stands out:
 
@@ -24,7 +24,7 @@ The reCamera series is purpose-built for edge AI applications, tailored to meet 
 
 - **Modular and Upgradable Design**: The reCamera is built with a modular structure, consisting of three main components: the core board, sensor board, and baseboard. This design allows developers to easily swap or upgrade components, ensuring flexibility and future-proofing for evolving projects.
 
-## Real-World Applications of reCamera  
+## Real-World Applications of reCamera
 
 The reCamera advanced computer vision capabilities and modular design make it suitable for a wide range of real-world scenarios, helping developers and businesses tackle unique challenges with ease.
 

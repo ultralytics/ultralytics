@@ -405,7 +405,7 @@ def get_github_assets(repo="ultralytics/assets", version="latest", retry=False):
         LOGGER.warning(f"⚠️ GitHub assets check failure for {url}: {r.status_code} {r.reason}")
         return "", []
     data = r.json()
-    return data["tag_name"], [x["name"] for x in data["assets"]]  # tag, assets i.e. ['yolov8n.pt', 'yolov8s.pt', ...]
+    return data["tag_name"], [x["name"] for x in data["assets"]]  # tag, assets i.e. ['yolo11n.pt', 'yolov8s.pt', ...]
 
 
 def attempt_download_asset(file, repo="ultralytics/assets", release="v8.3.0", **kwargs):

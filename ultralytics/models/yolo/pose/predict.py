@@ -14,7 +14,7 @@ class PosePredictor(DetectionPredictor):
         from ultralytics.utils import ASSETS
         from ultralytics.models.yolo.pose import PosePredictor
 
-        args = dict(model="yolov8n-pose.pt", source=ASSETS)
+        args = dict(model="yolo11n-pose.pt", source=ASSETS)
         predictor = PosePredictor(overrides=args)
         predictor.predict_cli()
         ```

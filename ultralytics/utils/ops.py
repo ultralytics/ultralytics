@@ -143,7 +143,7 @@ def make_divisible(x, divisor):
     return math.ceil(x / divisor) * divisor
 
 
-def nms_rotated(boxes, scores, threshold=0.45, use_triu=False):
+def nms_rotated(boxes, scores, threshold=0.45, use_triu=True):
     """
     NMS for oriented bounding boxes using probiou and fast-nms.
 

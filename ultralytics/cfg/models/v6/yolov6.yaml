@@ -1,5 +1,8 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
-# YOLOv6 object detection model with P3-P5 outputs. For Usage examples see https://docs.ultralytics.com/models/yolov6
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# Meituan YOLOv6 object detection model with P3/8 - P5/32 outputs
+# Model docs: https://docs.ultralytics.com/models/yolov6
+# Task docs: https://docs.ultralytics.com/tasks/detect
 
 # Parameters
 nc: 80 # number of classes

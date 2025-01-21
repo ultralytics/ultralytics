@@ -93,8 +93,8 @@ def benchmark(
 
     y = []
     t0 = time.time()
-    if format:
-        format_name = format.lower()
+
+    format_name = format.lower() if format else ""  # Initialize format_name with an empty string
     for i, (name, format, suffix, cpu, gpu, _) in enumerate(zip(*export_formats().values())):
         if format_name and format_name != format:
             continue  # Skip mismatched formats

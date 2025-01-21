@@ -7,37 +7,13 @@ from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, Sol
 from ultralytics.utils.plotting import colors
 
 
-class ObjectBlurrer(BaseSolution):
-    """
-    A class to manage the blurring of detected objects in a real-time video stream.
-
-    This class extends the BaseSolution class and provides functionality for blurring objects based on detected bounding boxes. The blurred areas are updated directly in the input image, allowing for privacy preservation or other effects.
-
-    Attributes:
-        blur_ratio (int): The intensity of the blur effect applied to detected objects.
-        iou (float): Intersection over Union threshold for object detection.
-        conf (float): Confidence threshold for object detection.
-
-    Methods:
-        blur: Applies a blurring effect to detected objects in the input image.
-
-    Examples:
-        >>> blurrer = ObjectBlurrer()
-        >>> frame = cv2.imread("frame.jpg")
-        >>> processed_frame = blurrer.blur(frame)
-        >>> print(f"Total blurred objects: {processed_frame['total_tracks']}")
-    """
-
+class InstanceSegmentation(BaseSolution):
     def __init__(self, **kwargs):
-        """
-        Initializes the ObjectBlurrer class for applying a blur effect to objects detected in video streams or images.
-
-        Attributes:
-            blur_ratio (int): Intensity of the blur effect, derived from the configuration.
-        """
         super().__init__(**kwargs)
 
         self.blur_ratio = int(self.CFG["blur_ratio"] * 100)  # Blur intensity multiplier
+        self.iou = self.CFG["iou"]  # IOU threshold from config
+        self.conf = self.CFG["conf"] if self.CFG["conf"] is not None else 0.25  # Confidence threshold
 
     def blur(self, im0):
         """

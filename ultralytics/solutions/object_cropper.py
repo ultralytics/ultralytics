@@ -83,5 +83,6 @@ class ObjectCropper(BaseSolution):
 
         # Return output dictionary with summary for usage
         return SolutionResults(
-            im0=im0, total_crop_objects=self.crop_idx,
+            im0=im0,
+            total_crop_objects=self.crop_idx,
         ).summary()

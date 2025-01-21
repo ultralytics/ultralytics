@@ -114,6 +114,9 @@ class AIGym(BaseSolution):
 
         # return output dictionary with summary for more usage
         return SolutionResults(
-            im0=im0, workout_count=self.count, workout_stage=self.stage,
-            workout_angle=self.angle, total_tracks=len(track_ids)
+            im0=im0,
+            workout_count=self.count,
+            workout_stage=self.stage,
+            workout_angle=self.angle,
+            total_tracks=len(track_ids),
         ).summary()

@@ -542,15 +542,11 @@ class Results(SimpleClass):
         if pred_boxes is not None and show_boxes:
             for i, d in enumerate(reversed(pred_boxes)):
                 c, d_conf, id = int(d.cls), float(d.conf) if conf else None, None if d.id is None else int(d.id.item())
-                track_id_text = (f"id:{id}" if id is not None and track_id else "")
-                cls_id_text = (str(c) if cls_id else "")
-                cls_name_text = (names[c] if cls_name else "")
-                conf = (f"{d_conf:.2f}" if conf else "")
-                label = (
-                    " ".join(filter(None, [track_id_text, cls_id_text, cls_name_text, conf]))
-                    if labels
-                    else None
-                )
+                track_id_text = f"id:{id}" if id is not None and track_id else ""
+                cls_id_text = str(c) if cls_id else ""
+                cls_name_text = names[c] if cls_name else ""
+                conf = f"{d_conf:.2f}" if conf else ""
+                label = " ".join(filter(None, [track_id_text, cls_id_text, cls_name_text, conf])) if labels else None
                 box = d.xyxyxyxy.reshape(-1, 4, 2).squeeze() if is_obb else d.xyxy.squeeze()
                 annotator.box_label(
                     box,

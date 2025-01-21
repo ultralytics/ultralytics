@@ -72,7 +72,10 @@ save_frames: False # (bool) save predicted individual video frames
 save_txt: False # (bool) save results as .txt file
 save_conf: False # (bool) save results with confidence scores
 save_crop: False # (bool) save cropped images with results
-show_labels: True # (bool) show prediction labels, i.e. 'person'
+show_labels: True # (bool) Master control to show/ hide the labels
+show_track_id: True # (bool) show prediction track id if tracking is available for that object, i.e. 'id:1'
+show_cls_id: True # (bool) show prediction class id i.e. '2'
+show_cls_name: True # (bool) show prediction class name i.e. 'person'. Useful when the class names are long
 show_conf: True # (bool) show prediction confidence, i.e. '0.99'
 show_boxes: True # (bool) show prediction boxes
 line_width: # (int, optional) line width of the bounding boxes. Scaled to image size if None.

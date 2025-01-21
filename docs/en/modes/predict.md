@@ -726,6 +726,10 @@ The `plot()` method supports various arguments to customize the output:
 
 | Argument     | Type            | Description                                                                | Default       |
 | ------------ | --------------- | -------------------------------------------------------------------------- | ------------- |
+| `labels`     | `bool`          | Include detection labels in annotations as track_id, cls_id, cls_name, conf separated by space in order unless disabled otherwise.                                       | `True`        |
+| `track_id`   | `bool`          | Include detection track id (if any).                                       | `True`        |
+| `cls_id`     | `bool`          | Include detection class id.                                                | `True`        |
+| `cls_name`   | `bool`          | Include detection class name.                                              | `True`        |
 | `conf`       | `bool`          | Include detection confidence scores.                                       | `True`        |
 | `line_width` | `float`         | Line width of bounding boxes. Scales with image size if `None`.            | `None`        |
 | `font_size`  | `float`         | Text font size. Scales with image size if `None`.                          | `None`        |
@@ -735,7 +739,6 @@ The `plot()` method supports various arguments to customize the output:
 | `im_gpu`     | `torch.Tensor`  | GPU-accelerated image for faster mask plotting. Shape: (1, 3, 640, 640).   | `None`        |
 | `kpt_radius` | `int`           | Radius for drawn keypoints.                                                | `5`           |
 | `kpt_line`   | `bool`          | Connect keypoints with lines.                                              | `True`        |
-| `labels`     | `bool`          | Include class labels in annotations.                                       | `True`        |
 | `boxes`      | `bool`          | Overlay bounding boxes on the image.                                       | `True`        |
 | `masks`      | `bool`          | Overlay masks on the image.                                                | `True`        |
 | `probs`      | `bool`          | Include classification probabilities.                                      | `True`        |

@@ -445,6 +445,9 @@ class Results(SimpleClass):
 
     def plot(
         self,
+        track_id=True,
+        cls_id=True,
+        cls_name=True,
         conf=True,
         line_width=None,
         font_size=None,
@@ -467,6 +470,9 @@ class Results(SimpleClass):
         Plots detection results on an input RGB image.
 
         Args:
+            track_id (bool): Whether to plot detection track id
+            cls_id(bool): Whether to plot detection class id i.e. 1
+            cls_name(bool): Whether to plot detection class name i.e. person
             conf (bool): Whether to plot detection confidence scores.
             line_width (float | None): Line width of bounding boxes. If None, scaled to image size.
             font_size (float | None): Font size for text. If None, scaled to image size.
@@ -536,8 +542,15 @@ class Results(SimpleClass):
         if pred_boxes is not None and show_boxes:
             for i, d in enumerate(reversed(pred_boxes)):
                 c, d_conf, id = int(d.cls), float(d.conf) if conf else None, None if d.id is None else int(d.id.item())
-                name = ("" if id is None else f"id:{id} ") + names[c]
-                label = (f"{name} {d_conf:.2f}" if conf else name) if labels else None
+                track_id_text = (f"id:{id}" if id is not None and track_id else "")
+                cls_id_text = (str(c) if cls_id else "")
+                cls_name_text = (names[c] if cls_name else "")
+                conf = (f"{d_conf:.2f}" if conf else "")
+                label = (
+                    " ".join(filter(None, [track_id_text, cls_id_text, cls_name_text, conf]))
+                    if labels
+                    else None
+                )
                 box = d.xyxyxyxy.reshape(-1, 4, 2).squeeze() if is_obb else d.xyxy.squeeze()
                 annotator.box_label(
                     box,

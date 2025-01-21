@@ -37,7 +37,7 @@ from tqdm import tqdm
 os.environ["JUPYTER_PLATFORM_DIRS"] = "1"  # fix DeprecationWarning: Jupyter is migrating to use standard platformdirs
 DOCS = Path(__file__).parent.resolve()
 SITE = DOCS.parent / "site"
-
+LINK_PATTERN = re.compile(r"(https?://[^\s()<>]*[^\s()<>.,:;!?\'\"])")
 
 def create_vercel_config():
     """Create vercel.json in the site directory with customized configuration settings."""
@@ -193,21 +193,24 @@ def update_docs_html():
 
 
 def convert_plaintext_links_to_html(content):
-    """Function to convert plaintext links to HTML hyperlinks in main content."""
+    """Convert plaintext links to HTML hyperlinks in the main content area only."""
     soup = BeautifulSoup(content, "html.parser")
-    main = soup.find("main") or soup.find("div", class_="md-content")
-    if not main:
-        return content
 
-    link_pattern = re.compile(r"https?://[^\s()<>]*[^\s()<>.,:;!?\'\"]")
+    # Find the main content area (adjust this selector based on your HTML structure)
+    main_content = soup.find("main") or soup.find("div", class_="md-content")
+    if not main_content:
+        return content  # Return original content if main content area not found
+
     modified = False
-
-    for text in main.find_all(string=lambda t: isinstance(t, str) and "http" in t):
-        if text.parent.name not in {"a", "code"}:
-            new_text = link_pattern.sub(lambda m: f'<a href="{m.group(0)}">{m.group(0)}</a>', str(text))
-            if "<a href=" in new_text:
-                text.replace_with(BeautifulSoup(new_text, "html.parser"))
-                modified = True
+    for paragraph in main_content.find_all(["p", "li"]):  # Focus on paragraphs and list items
+        for text_node in paragraph.find_all(string=True, recursive=False):
+            if text_node.parent.name not in {"a", "code"}:  # Ignore links and code blocks
+                new_text = LINK_PATTERN.sub(r'<a href="\1">\1</a>',str(text_node))
+                if "<a href=" in new_text:
+                    # Parse the new text with BeautifulSoup to handle HTML properly
+                    new_soup = BeautifulSoup(new_text, "html.parser")
+                    text_node.replace_with(new_soup)
+                    modified = True
 
     return str(soup) if modified else content
 

@@ -285,7 +285,7 @@ class Exporter:
             if getattr(model, "end2end", False):
                 LOGGER.warning("WARNING ⚠️ 'nms=True' is not available for end2end models. Forcing 'nms=False'.")
                 self.args.nms = False
-            self.args.conf = self.args.conf or 0.25   # set conf default value for nms export
+            self.args.conf = self.args.conf or 0.25  # set conf default value for nms export
         if edgetpu:
             if not LINUX:
                 raise SystemError("Edge TPU export only supported on Linux. See https://coral.ai/docs/edgetpu/compiler")
@@ -516,7 +516,7 @@ class Exporter:
             if self.args.nms:  # only batch size is dynamic with NMS
                 dynamic["output0"].pop(2)
         if self.args.nms and self.model.task == "obb":
-            self.args.opset = opset_version   # for NMSModel
+            self.args.opset = opset_version  # for NMSModel
             # OBB error https://github.com/pytorch/pytorch/issues/110859#issuecomment-1757841865
             torch.onnx.register_custom_op_symbolic("aten::lift_fresh", lambda g, x: x, opset_version)
             check_requirements("onnxslim>=0.1.46")  # Older versions has bug with OBB

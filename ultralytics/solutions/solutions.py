@@ -118,8 +118,9 @@ class BaseSolution:
         # Extract tracks for OBB or object detection
         self.track_data = self.tracks[0].obb or self.tracks[0].boxes
 
-        self.masks = self.tracks[0].masks.xy if hasattr(self.tracks[0], 'masks') and self.tracks[
-            0].masks is not None else None
+        self.masks = (
+            self.tracks[0].masks.xy if hasattr(self.tracks[0], "masks") and self.tracks[0].masks is not None else None
+        )
 
         if self.track_data and self.track_data.id is not None:
             self.boxes = self.track_data.xyxy.cpu()

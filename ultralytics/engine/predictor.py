@@ -32,11 +32,11 @@ Usage - formats:
                               yolo11n_rknn_model         # Rockchip RKNN
 """
 
+import os
 import platform
 import re
 import threading
 from pathlib import Path
-import os
 
 import cv2
 import numpy as np
@@ -130,7 +130,7 @@ class BasePredictor:
             im = np.ascontiguousarray(im)  # contiguous
             im = torch.from_numpy(im)
 
-        if 'apex_0' not in os.listdir('/dev'):
+        if "apex_0" not in os.listdir("/dev"):
             im = im.to(self.device)
         im = im.to(self.device)
         im = im.half() if self.model.fp16 else im.float()  # uint8 to fp16/32

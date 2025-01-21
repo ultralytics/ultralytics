@@ -424,6 +424,7 @@ nav:
       - Weights & Biases: integrations/weights-biases.md
       - Albumentations: integrations/albumentations.md
       - SONY IMX500: integrations/sony-imx500.md
+      - Rockchip RKNN: integrations/rockchip-rknn.md
   - HUB:
       - hub/index.md
       - Web:

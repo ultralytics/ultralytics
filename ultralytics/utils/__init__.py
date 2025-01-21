@@ -1315,12 +1315,6 @@ def vscode_msg(ext="ultralytics.ultralytics-snippets") -> str:
 def error_handler(func):
     """
     A decorator that catches exceptions and displays custom error messages if available.
-
-    Args:
-        func: The function to wrap
-
-    Returns:
-        Callable: The wrapped function
     """
     from functools import wraps
 

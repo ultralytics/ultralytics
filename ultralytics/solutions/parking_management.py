@@ -211,6 +211,10 @@ class ParkingManagement(BaseSolution):
         Args:
             im0 (np.ndarray): The input inference image.
 
+        Returns:
+            dict: Contains 'filled_slots' (int, number of occupied parking slots), 'available_slots' (int, number of available parking slots),
+                and 'total_tracks' (int, total number of tracked objects).
+
         Examples:
             >>> parking_manager = ParkingManagement(json_file="parking_regions.json")
             >>> image = cv2.imread("parking_lot.jpg")

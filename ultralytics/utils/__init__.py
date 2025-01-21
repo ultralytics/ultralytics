@@ -1337,7 +1337,7 @@ def error_handler(func):
         },
         "non_max_suppression": {
             NotImplementedError: "Post-processing failed. This is probably because a non-CUDA version of torchvision is installed. Try uninstalling torchvision and reinstalling it based on the guide at https://pytorch.org/get-started/locally/."
-        }
+        },
     }
 
     def _get_message(func_name, exc_type):

@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import math
 from itertools import product
@@ -76,7 +76,7 @@ def build_all_layer_point_grids(n_per_side: int, n_layers: int, scale_per_layer:
 def generate_crop_boxes(
     im_size: Tuple[int, ...], n_layers: int, overlap_ratio: float
 ) -> Tuple[List[List[int]], List[int]]:
-    """Generates crop boxes of varying sizes for multi-scale image processing, with layered overlapping regions."""
+    """Generates crop boxes of varying sizes for multiscale image processing, with layered overlapping regions."""
     crop_boxes, layer_idxs = [], []
     im_h, im_w = im_size
     short_side = min(im_h, im_w)

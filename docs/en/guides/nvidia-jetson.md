@@ -177,7 +177,7 @@ pip install https://github.com/ultralytics/assets/releases/download/v0.0.0/onnxr
 
     `pip install numpy==1.23.5`
 
-### Run on JetPack 5.x
+### Run on JetPack 5.1.2
 
 #### Install Ultralytics Package
 
@@ -213,22 +213,11 @@ The above ultralytics installation will install Torch and Torchvision. However, 
     pip uninstall torch torchvision
     ```
 
-2. Install PyTorch 2.1.0 according to JP5.1.3
+2. Install `torch 2.1.0` and `torchvision 0.16.2` according to JP5.1.2
 
     ```bash
-    sudo apt-get install -y libopenblas-base libopenmpi-dev
-    wget https://developer.download.nvidia.com/compute/redist/jp/v512/pytorch/torch-2.1.0a0+41361538.nv23.06-cp38-cp38-linux_aarch64.whl -O torch-2.1.0a0+41361538.nv23.06-cp38-cp38-linux_aarch64.whl
-    pip install torch-2.1.0a0+41361538.nv23.06-cp38-cp38-linux_aarch64.whl
-    ```
-
-3. Install Torchvision v0.16.2 according to PyTorch v2.1.0
-
-    ```bash
-    sudo apt install -y libjpeg-dev zlib1g-dev
-    git clone https://github.com/pytorch/vision torchvision
-    cd torchvision
-    git checkout v0.16.2
-    python3 setup.py install --user
+    pip install https://github.com/ultralytics/assets/releases/download/v0.0.0/torch-2.1.0a0+41361538.nv23.06-cp38-cp38-linux_aarch64.whl
+    pip install https://github.com/ultralytics/assets/releases/download/v0.0.0/torchvision-0.16.2+c6f3977-cp38-cp38-linux_aarch64.whl
     ```
 
 !!! note
@@ -639,7 +628,7 @@ TensorRT is highly recommended for deploying YOLO11 models on NVIDIA Jetson due 
 
 ### How can I install PyTorch and Torchvision on NVIDIA Jetson?
 
-To install PyTorch and Torchvision on NVIDIA Jetson, first uninstall any existing versions that may have been installed via pip. Then, manually install the compatible PyTorch and Torchvision versions for the Jetson's ARM64 architecture. Detailed instructions for this process are provided in the [Install PyTorch and Torchvision](#install-pytorch-and-torchvision) section.
+To install PyTorch and Torchvision on NVIDIA Jetson, first uninstall any existing versions that may have been installed via pip. Then, manually install the compatible PyTorch and Torchvision versions for the Jetson's ARM64 architecture. Detailed instructions for this process are provided in the [Installation of PyTorch and Torchvision](#install-pytorch-and-torchvision) section.
 
 ### What are the best practices for maximizing performance on NVIDIA Jetson when using YOLO11?
 

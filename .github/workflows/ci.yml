@@ -1,4 +1,5 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 # YOLO Continuous Integration (CI) GitHub Actions tests
 
 name: Ultralytics CI
@@ -39,8 +40,7 @@ on:
 
 jobs:
   HUB:
-    # if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.hub == 'true'))
-    if: github.repository == 'ultralytics/ultralytics' && 'workflow_dispatch' && github.event.inputs.hub == 'true'
+    if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.hub == 'true'))
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -98,7 +98,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-14]
+        os: [ubuntu-latest, macos-15, windows-latest]
         python-version: ["3.11"]
         model: [yolo11n]
     steps:
@@ -160,12 +160,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-14, windows-latest]
+        os: [ubuntu-latest, macos-15, windows-latest]
         python-version: ["3.11"]
         torch: [latest]
         include:
           - os: ubuntu-latest
-            python-version: "3.9" # torch 1.8.0 requires python >=3.6, <=3.9
+            python-version: "3.8" # torch 1.8.0 requires python >=3.6, <=3.9
             torch: "1.8.0" # min torch version CI https://pypi.org/project/torchvision/
     steps:
       - uses: actions/checkout@v4

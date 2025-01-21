@@ -1334,7 +1334,7 @@ def error_handler(func):
                 RuntimeError: "Initializing dataloader failed. If you're on Windows, try placing your code under a `if __name__== '__main__':` block."
             },
             "TaskAlignedAssigner.get_box_metrics": {
-                RuntimeError: "Loss calculation failed. This is probably due to having class labels that are out of range in your label files. Ensure all labels have class IDs within the range (0 - NUM_CLASSES) as defined in your 'data.yaml' file."
+                RuntimeError: "Loss calculation failed. This is probably due to having class labels that are out of range in your label files. Ensure all labels have class IDs within the range (0 to NUM_CLASSES - 1) as defined in your 'data.yaml' file."
             },
         }
         return ERRORS.get(func_name, {}).get(exc_type)

@@ -1,6 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-import os
 
 import cv2
 
@@ -23,8 +22,9 @@ class ObjectBlurrer(BaseSolution):
         # Iterate over bounding boxes, track ids and classes index
         for box, cls in zip(self.boxes, self.clss):
             # Crop the detected object
-            blur_obj = cv2.blur(im0[int(box[1]) : int(box[3]), int(box[0]) : int(box[2])],
-                                (self.blur_ratio, self.blur_ratio))
+            blur_obj = cv2.blur(
+                im0[int(box[1]) : int(box[3]), int(box[0]) : int(box[2])], (self.blur_ratio, self.blur_ratio)
+            )
             im0[int(box[1]) : int(box[3]), int(box[0]) : int(box[2])] = blur_obj
             annotator.box_label(box, label=self.names[cls], color=colors(cls, True))  # Bounding box plot
 

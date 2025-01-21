@@ -66,7 +66,7 @@ TrackZone specializes in monitoring objects within designated areas of a frame i
             # line_width=2,  # Adjust the line width for bounding boxes and text display
             # classes=[0, 2],  # If you want to count specific classes i.e. person and car with COCO pretrained model.
         )
-        
+
         # Process video
         while cap.isOpened():
             success, im0 = cap.read()

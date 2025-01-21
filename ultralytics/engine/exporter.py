@@ -277,6 +277,7 @@ class Exporter:
             if getattr(model, "end2end", False):
                 LOGGER.warning("WARNING ⚠️ 'nms=True' is not available for end2end models. Forcing 'nms=False'.")
                 self.args.nms = False
+            self.args.conf = self.args.conf or 0.25   # set conf default value
         if edgetpu:
             if not LINUX:
                 raise SystemError("Edge TPU export only supported on Linux. See https://coral.ai/docs/edgetpu/compiler")
@@ -504,16 +505,16 @@ class Exporter:
                 dynamic["output0"] = {0: "batch", 2: "anchors"}  # shape(1, 84, 8400)
             if self.args.nms:  # only batch size is dynamic with NMS
                 dynamic["output0"].pop(2)
-        if self.args.nms:
-            self.model = NMSModel(self.model, self.args)
+        if self.args.nms and self.model.task == "obb":
             self.args.opset = opset_version
-            if self.args.task == "obb":
-                # OBB error https://github.com/pytorch/pytorch/issues/110859#issuecomment-1757841865
-                torch.onnx.register_custom_op_symbolic("aten::lift_fresh", lambda g, x: x, opset_version)
-                check_requirements("onnxslim>=0.1.46")  # Older versions has bug with OBB
+            # OBB error https://github.com/pytorch/pytorch/issues/110859#issuecomment-1757841865
+            torch.onnx.register_custom_op_symbolic("aten::lift_fresh", lambda g, x: x, opset_version)
+            check_requirements("onnxslim>=0.1.46")  # Older versions has bug with OBB
 
         torch.onnx.export(
-            self.model.cpu() if dynamic else self.model,  # dynamic=True only compatible with cpu
+            NMSModel(self.model.cpu() if dynamic else self.model, self.args)
+            if self.args.nms
+            else self.model,  # dynamic=True only compatible with cpu
             self.im.cpu() if dynamic else self.im,
             f,
             verbose=False,
@@ -1491,9 +1492,7 @@ class NMSModel(torch.nn.Module):
         super().__init__()
         self.model = model
         self.args = args
-        self.args.conf = self.args.conf or 0.25
-        self.nc = len(self.model.names)
-        self.obb = self.args.task == "obb"
+        self.obb = model.task == "obb"
         self.is_tf = self.args.format in {"saved_model", "tflite", "tfjs"}
 
     def forward(self, x):
@@ -1513,8 +1512,8 @@ class NMSModel(torch.nn.Module):
         preds = self.model(x)
         pred = preds[0] if isinstance(preds, tuple) else preds
         pred = pred.transpose(-1, -2)  # shape(1,84,6300) to shape(1,6300,84)
-        extra_shape = pred.shape[-1] - (4 + self.nc)  # extras from Segment, OBB, Pose
-        boxes, scores, extras = pred.split([4, self.nc, extra_shape], dim=2)
+        extra_shape = pred.shape[-1] - (4 + self.model.nc)  # extras from Segment, OBB, Pose
+        boxes, scores, extras = pred.split([4, self.model.nc, extra_shape], dim=2)
         scores, classes = scores.max(dim=-1)
         # (N, max_det, 4 coords + 1 class score + 1 class label + extra_shape).
         out = torch.zeros(
@@ -1567,4 +1566,4 @@ class NMSModel(torch.nn.Module):
             # Zero-pad to max_det size to avoid reshape error
             pad = (0, 0, 0, self.args.max_det - dets.shape[0])
             out[i] = torch.nn.functional.pad(dets, pad)
-        return (out, preds[1]) if self.args.task == "segment" else out
+        return (out, preds[1]) if self.model.task == "segment" else out

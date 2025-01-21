@@ -225,21 +225,17 @@ class AutoBackend(nn.Module):
             if not dynamic:
                 io = session.io_binding()
                 bindings = []
-                try:
-                    for output in session.get_outputs():
-                        y_tensor = torch.empty(output.shape, dtype=torch.float16 if fp16 else torch.float32).to(device)
-                        io.bind_output(
-                            name=output.name,
-                            device_type=device.type,
-                            device_id=device.index if cuda else 0,
-                            element_type=np.float16 if fp16 else np.float32,
-                            shape=tuple(y_tensor.shape),
-                            buffer_ptr=y_tensor.data_ptr(),
-                        )
-                        bindings.append(y_tensor)
-                except Exception:
-                    io = None
-                    bindings = None
+                for output in session.get_outputs():
+                    y_tensor = torch.empty(output.shape, dtype=torch.float16 if fp16 else torch.float32).to(device)
+                    io.bind_output(
+                        name=output.name,
+                        device_type=device.type,
+                        device_id=device.index if cuda else 0,
+                        element_type=np.float16 if fp16 else np.float32,
+                        shape=tuple(y_tensor.shape),
+                        buffer_ptr=y_tensor.data_ptr(),
+                    )
+                    bindings.append(y_tensor)
 
         # OpenVINO
         elif xml:

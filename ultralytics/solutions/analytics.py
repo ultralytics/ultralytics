@@ -92,7 +92,8 @@ class Analytics(BaseSolution):
             frame_number (int): Video frame number for plotting the data.
 
         Returns:
-            (np.ndarray): Processed image with updated analytics chart.
+            results (dict): Contains 'total_tracks' (int, total number of tracked objects) and
+                'classwise_count' (dict, per-class object count).
 
         Raises:
             ModuleNotFoundError: If an unsupported chart type is specified.

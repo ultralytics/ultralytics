@@ -139,11 +139,11 @@ YOLO11 benchmarks below were run by the Ultralytics team on Radxa Rock 5B based 
 
 | Model   | Format | Status | Size (MB) | mAP50-95(B) | Inference time (ms/im) |
 | ------- | ------ | ------ | --------- | ----------- | ---------------------- |
-| YOLO11n | `rknn`   | ✅     | 7.4       | 0.61        | 99.5                   |
-| YOLO11s | `rknn`   | ✅     | 20.7      | 0.741       | 122.3                  |
-| YOLO11m | `rknn`   | ✅     | 41.9      | 0.764       | 298.0                  |
-| YOLO11l | `rknn`   | ✅     | 53.3      | 0.72        | 319.6                  |
-| YOLO11x | `rknn`   | ✅     | 114.6     | 0.828       | 632.1                  |
+| YOLO11n | `rknn` | ✅     | 7.4       | 0.61        | 99.5                   |
+| YOLO11s | `rknn` | ✅     | 20.7      | 0.741       | 122.3                  |
+| YOLO11m | `rknn` | ✅     | 41.9      | 0.764       | 298.0                  |
+| YOLO11l | `rknn` | ✅     | 53.3      | 0.72        | 319.6                  |
+| YOLO11x | `rknn` | ✅     | 114.6     | 0.828       | 632.1                  |
 
 !!! note
 

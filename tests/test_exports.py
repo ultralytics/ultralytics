@@ -11,11 +11,11 @@ from tests import MODEL, SOURCE
 from ultralytics import YOLO
 from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
 from ultralytics.utils import (
+    ARM64,
     IS_RASPBERRYPI,
     LINUX,
     MACOS,
     WINDOWS,
-    ARM64,
     checks,
 )
 from ultralytics.utils.torch_utils import TORCH_1_9, TORCH_1_13

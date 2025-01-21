@@ -95,6 +95,7 @@ def benchmark(
     t0 = time.time()
     format_name = "-" if format == "pytorch" else (format.lower() if format else "")
     for i, (name, format, suffix, cpu, gpu, _) in enumerate(zip(*export_formats().values())):
+        key = TASK2METRIC[model.task]  # task to metric, i.e. metrics/mAP50-95(B) for task=detect
         if format_name and format_name != format:
             continue  # Skip mismatched formats
         emoji, filename = "❌", None  # export defaults
@@ -157,7 +158,6 @@ def benchmark(
 
             # Validate
             data = data or TASK2DATA[model.task]  # task to dataset, i.e. coco8.yaml for task=detect
-            key = TASK2METRIC[model.task]  # task to metric, i.e. metrics/mAP50-95(B) for task=detect
             results = exported_model.val(
                 data=data, batch=1, imgsz=imgsz, plots=False, device=device, half=half, int8=int8, verbose=False
             )

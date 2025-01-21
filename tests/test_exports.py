@@ -15,6 +15,7 @@ from ultralytics.utils import (
     LINUX,
     MACOS,
     WINDOWS,
+    ARM64,
     checks,
 )
 from ultralytics.utils.torch_utils import TORCH_1_9, TORCH_1_13

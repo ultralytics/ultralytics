@@ -13,7 +13,7 @@ import numpy as np
 import torch
 
 from ultralytics.data.augment import LetterBox
-from ultralytics.utils import LOGGER, SimpleClass, error_handler, ops
+from ultralytics.utils import LOGGER, SimpleClass, handle_errors, ops
 from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.plotting import Annotator, colors, save_one_box
 from ultralytics.utils.torch_utils import smart_inference_mode
@@ -627,7 +627,7 @@ class Results(SimpleClass):
         self.plot(save=True, filename=filename, *args, **kwargs)
         return filename
 
-    @error_handler
+    @handle_errors
     def verbose(self):
         """
         Returns a log string for each task in the results, detailing detection and classification outcomes.

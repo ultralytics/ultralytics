@@ -1312,8 +1312,8 @@ def vscode_msg(ext="ultralytics.ultralytics-snippets") -> str:
     return "" if installed else f"{colorstr('VS Code:')} view Ultralytics VS Code Extension ⚡ at {url}"
 
 
-def error_handler(func):
-    """A decorator that catches exceptions and displays custom error messages if available."""
+def handle_errors(func):
+    """Catch exceptions and display instructions to resolve the error if available."""
     from functools import wraps
 
     # Structure: {function_name: {exception_type: custom_message}}

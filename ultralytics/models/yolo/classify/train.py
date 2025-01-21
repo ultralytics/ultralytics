@@ -140,7 +140,6 @@ class ClassificationTrainer(BaseTrainer):
                     self.validator.args.plots = self.args.plots
                     self.metrics = self.validator(model=f)
                     self.metrics.pop("fitness", None)
-                    self.run_callbacks("on_fit_epoch_end")
 
     def plot_training_samples(self, batch, ni):
         """Plots training samples with their annotations."""

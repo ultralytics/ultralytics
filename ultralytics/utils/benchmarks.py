@@ -95,11 +95,11 @@ def benchmark(
     t0 = time.time()
     format_name = "-" if format == "pytorch" else (format.lower() if format else "")
     for i, (name, format, suffix, cpu, gpu, _) in enumerate(zip(*export_formats().values())):
-        key = TASK2METRIC[model.task]  # task to metric, i.e. metrics/mAP50-95(B) for task=detect
-        if format_name and format_name != format:
-            continue  # Skip mismatched formats
         emoji, filename = "❌", None  # export defaults
         try:
+            if format_name and format_name != format:
+                continue  # Skip mismatched formats
+            key = TASK2METRIC[model.task]  # task to metric, i.e. metrics/mAP50-95(B) for task=detect
             # Checks
             if i == 7:  # TF GraphDef
                 assert model.task != "obb", "TensorFlow GraphDef not supported for OBB task"

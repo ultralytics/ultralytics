@@ -1340,9 +1340,6 @@ def error_handler(func):
         },
     }
 
-    def _get_message(func_name, exc_type):
-        return ERRORS.get(func_name, {}).get(exc_type)
-
     @wraps(func)
     def wrapper(*args, **kwargs):
         try:
@@ -1350,7 +1347,7 @@ def error_handler(func):
         except Exception as e:
             func_name = func.__qualname__
             exc_type = type(e)
-            message = _get_message(func_name, exc_type)
+            message = ERRORS.get(func_name, {}).get(exc_type)
             if message:
                 LOGGER.error(f"{colorstr('bold', 'red', 'ERROR:')} {message}")
                 LOGGER.info("")

@@ -143,7 +143,7 @@ def make_divisible(x, divisor):
     return math.ceil(x / divisor) * divisor
 
 
-def nms_rotated(boxes, scores, threshold=0.45, use_triu=True):
+def nms_rotated(boxes, scores, threshold=0.45, use_triu=False):
     """
     NMS for oriented bounding boxes using probiou and fast-nms.
 
@@ -162,15 +162,19 @@ def nms_rotated(boxes, scores, threshold=0.45, use_triu=True):
     ious = batch_probiou(boxes, boxes)
     if use_triu:
         ious = ious.triu_(diagonal=1)
+        # pick = torch.nonzero(ious.max(dim=0)[0] < threshold).squeeze_(-1)
+        # NOTE: handle the case when len(boxes) hence exportable by eliminating if-else condition
+        pick = torch.nonzero((ious >= threshold).sum(0) <= 0).squeeze_(-1)
     else:
         n = boxes.shape[0]
         row_idx = torch.arange(n, device=boxes.device).view(-1, 1).expand(-1, n)
         col_idx = torch.arange(n, device=boxes.device).view(1, -1).expand(n, -1)
         upper_mask = row_idx < col_idx
         ious = ious * upper_mask
-    # pick = torch.nonzero(ious.max(dim=0)[0] < threshold).squeeze_(-1)
-    # NOTE: handle the case when len(boxes) hence exportable by eliminating if-else condition
-    pick = torch.nonzero((ious >= threshold).sum(0) <= 0).squeeze_(-1)
+        # Zeroing these scores ensures the additional indices would not affect the final results
+        scores[~((ious >= threshold).sum(0) <= 0)] = 0
+        # NOTE: return indices with fixed length to avoid TFLite reshape error
+        pick = torch.argsort(scores, descending=True)
     return sorted_idx[pick]
 
 

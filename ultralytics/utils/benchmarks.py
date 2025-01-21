@@ -94,7 +94,11 @@ def benchmark(
     y = []
     t0 = time.time()
     key = None
-    format_name = format.lower() if format else ""  # Initialize format_name with an empty string
+
+    if format == "pytorch":     # Assign format value based on conditions
+        format_name = "-"
+    else:
+        format_name = format.lower() if format else ""
     for i, (name, format, suffix, cpu, gpu, _) in enumerate(zip(*export_formats().values())):
         print(format)
         if format_name and format_name != format:
@@ -140,7 +144,7 @@ def benchmark(
                 assert gpu, "inference not supported on GPU"
 
             # Export
-            if format == "-" or format == "pytorch":
+            if format == "-":
                 filename = model.ckpt_path or model.cfg
                 exported_model = model  # PyTorch format
             else:

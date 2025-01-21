@@ -1,5 +1,8 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
-# YOLOv9s object detection model. For Usage examples see https://docs.ultralytics.com/models/yolov9
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# YOLOv9s object detection model with P3/8 - P5/32 outputs
+# Model docs: https://docs.ultralytics.com/models/yolov9
+# Task docs: https://docs.ultralytics.com/tasks/detect
 # 917 layers, 7318368 parameters, 27.6 GFLOPs
 
 # Parameters

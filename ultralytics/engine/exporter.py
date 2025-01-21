@@ -506,7 +506,7 @@ class Exporter:
             if self.args.nms:  # only batch size is dynamic with NMS
                 dynamic["output0"].pop(2)
         if self.args.nms and self.model.task == "obb":
-            self.args.opset = opset_version
+            self.args.opset = opset_version   # for NMSModel
             # OBB error https://github.com/pytorch/pytorch/issues/110859#issuecomment-1757841865
             torch.onnx.register_custom_op_symbolic("aten::lift_fresh", lambda g, x: x, opset_version)
             check_requirements("onnxslim>=0.1.46")  # Older versions has bug with OBB
@@ -1493,7 +1493,7 @@ class NMSModel(torch.nn.Module):
         self.model = model
         self.args = args
         self.obb = model.task == "obb"
-        self.is_tf = self.args.format in {"saved_model", "tflite", "tfjs"}
+        self.is_tf = self.args.format in frozenset({"saved_model", "tflite", "tfjs"})
 
     def forward(self, x):
         """

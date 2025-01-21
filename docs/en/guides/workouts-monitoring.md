@@ -79,8 +79,8 @@ Monitoring workouts through pose estimation with [Ultralytics YOLO11](https://gi
             if not success:
                 print("Video frame is empty or video processing has been successfully completed.")
                 break
-            im0 = gym.monitor(im0)
-            video_writer.write(im0)
+            results = gym.monitor(im0)
+            video_writer.write(results["im0"])
 
         cv2.destroyAllWindows()
         video_writer.release()

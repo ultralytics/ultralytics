@@ -61,8 +61,8 @@ Measuring the gap between two objects is known as distance calculation within a 
             if not success:
                 print("Video frame is empty or video processing has been successfully completed.")
                 break
-            im0 = distance.calculate(im0)
-            video_writer.write(im0)
+            results = distance.calculate(im0)
+            video_writer.write(results["im0"])
 
         cap.release()
         video_writer.release()

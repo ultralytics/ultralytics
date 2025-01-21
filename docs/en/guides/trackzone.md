@@ -73,8 +73,8 @@ TrackZone specializes in monitoring objects within designated areas of a frame i
             if not success:
                 print("Video frame is empty or video processing has been successfully completed.")
                 break
-            im0 = trackzone.trackzone(im0)
-            video_writer.write(im0)
+            results = trackzone.trackzone(im0)
+            video_writer.write(results["im0"])
 
         cap.release()
         video_writer.release()

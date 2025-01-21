@@ -14,7 +14,7 @@ With support for diverse hardware configurations and open-source resources, it s
 
 ## Why Choose reCamera?
 
-The reCamera series is purpose-built for edge AI applications, tailored to meet the needs of developers and innovators. Here’s why it stands out:
+The reCamera series is purpose-built for edge AI applications, tailored to meet the needs of developers and innovators. Here's why it stands out:
 
 - **RISC-V Powered Performance**: At its core is the SG200X processor, built on the RISC-V architecture, delivering exceptional performance for edge AI tasks while maintaining energy efficiency. With the ability to execute 1 trillion operations per second (1 TOPS), it handles demanding tasks like real-time object detection easily.
 
@@ -34,7 +34,7 @@ The reCamera advanced computer vision capabilities and modular design make it su
 
 ![Personal protective equipment detection](https://github.com/ultralytics/docs/releases/download/0/personal-protective-equipment-detection.avif)
 
-**Fire Detection**: The reCamera’s real-time processing capabilities make it an excellent choice for fire detection in industrial and residential areas, providing early warnings to prevent potential disasters.
+**Fire Detection**: The reCamera's real-time processing capabilities make it an excellent choice for fire detection in industrial and residential areas, providing early warnings to prevent potential disasters.
 
 **Waste Detection**: It can also be utilized for waste detection applications, making it an excellent tool for environmental monitoring and waste management.
 
@@ -71,4 +71,4 @@ The initial step to use the YOLO11 model with the reCamera is to export the mode
 
 ### Inference with reCamera
 
-We're actively working on adding reCamera support directly into the Ultralytics package, and it will be available soon. In the meantime, check out our blog on [Integrating Ultralytics YOLO Models with Seeed Studio’s reCamera](https://www.ultralytics.com/blog/integrating-ultralytics-yolo-models-on-seeed-studios-recamera) for more insights.
+We're actively working on adding reCamera support directly into the Ultralytics package, and it will be available soon. In the meantime, check out our blog on [Integrating Ultralytics YOLO Models with Seeed Studio's reCamera](https://www.ultralytics.com/blog/integrating-ultralytics-yolo-models-on-seeed-studios-recamera) for more insights.

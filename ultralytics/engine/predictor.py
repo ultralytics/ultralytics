@@ -130,7 +130,7 @@ class BasePredictor:
             im = np.ascontiguousarray(im)  # contiguous
             im = torch.from_numpy(im)
 
-        if "apex_0" not in os.listdir("/dev"):
+        if "apex_0" not in os.listdir("/dev") or torch.cuda.is_available():
             im = im.to(self.device)
         im = im.to(self.device)
         im = im.half() if self.model.fp16 else im.float()  # uint8 to fp16/32

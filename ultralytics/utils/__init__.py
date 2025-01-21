@@ -1324,19 +1324,23 @@ def error_handler(func):
     """
     from functools import wraps
 
-    def _get_message(func_name, exc_type, args, kwargs):
-        # Structure: {function_name: {exception_type: custom_message}}
-        ERRORS = {
-            "Results.verbose": {
-                KeyError: "Logging results failed. This is probably due to using the wrong 'task' while loading the model. Make sure you pass the correct task while loading the model: 'model = YOLO(\"yolo11n.pt\", task=\"segment\")'."
-            },
-            "InfiniteDataLoader.__init__": {
-                RuntimeError: "Initializing dataloader failed. If you're on Windows, try placing your code under a `if __name__== '__main__':` block."
-            },
-            "TaskAlignedAssigner.get_box_metrics": {
-                RuntimeError: "Loss calculation failed. This is probably due to having class labels that are out of range in your label files. Ensure all labels have class IDs within the range (0 to NUM_CLASSES - 1) as defined in your 'data.yaml' file."
-            },
+    # Structure: {function_name: {exception_type: custom_message}}
+    ERRORS = {
+        "Results.verbose": {
+            KeyError: "Logging results failed. This is probably due to using the wrong 'task' while loading the model. Make sure you pass the correct task while loading the model: 'model = YOLO(\"yolo11n.pt\", task=\"segment\")'."
+        },
+        "InfiniteDataLoader.__init__": {
+            RuntimeError: "Initializing dataloader failed. If you're on Windows, try placing your code under a `if __name__== '__main__':` block."
+        },
+        "TaskAlignedAssigner.get_box_metrics": {
+            RuntimeError: "Loss calculation failed. This is probably due to having class labels that are out of range in your label files. Ensure all labels have class IDs within the range (0 to NUM_CLASSES - 1) as defined in your 'data.yaml' file."
+        },
+        "non_max_suppression": {
+            NotImplementedError: "Post-processing failed. This is probably because a non-CUDA version of torchvision is installed. Try uninstalling torchvision and reinstalling it based on the guide at https://pytorch.org/get-started/locally/."
         }
+    }
+
+    def _get_message(func_name, exc_type):
         return ERRORS.get(func_name, {}).get(exc_type)
 
     @wraps(func)
@@ -1346,9 +1350,10 @@ def error_handler(func):
         except Exception as e:
             func_name = func.__qualname__
             exc_type = type(e)
-            message = _get_message(func_name, exc_type, args, kwargs)
+            message = _get_message(func_name, exc_type)
             if message:
                 LOGGER.error(f"{colorstr('bold', 'red', 'ERROR:')} {message}")
+                LOGGER.info("")
             raise  # re-raise exception
 
     return wrapper

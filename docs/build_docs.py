@@ -39,6 +39,7 @@ DOCS = Path(__file__).parent.resolve()
 SITE = DOCS.parent / "site"
 LINK_PATTERN = re.compile(r"(https?://[^\s()<>]*[^\s()<>.,:;!?\'\"])")
 
+
 def create_vercel_config():
     """Create vercel.json in the site directory with customized configuration settings."""
     config = {"trailingSlash": True}
@@ -205,7 +206,7 @@ def convert_plaintext_links_to_html(content):
     for paragraph in main_content.find_all(["p", "li"]):  # Focus on paragraphs and list items
         for text_node in paragraph.find_all(string=True, recursive=False):
             if text_node.parent.name not in {"a", "code"}:  # Ignore links and code blocks
-                new_text = LINK_PATTERN.sub(r'<a href="\1">\1</a>',str(text_node))
+                new_text = LINK_PATTERN.sub(r'<a href="\1">\1</a>', str(text_node))
                 if "<a href=" in new_text:
                     # Parse the new text with BeautifulSoup to handle HTML properly
                     new_soup = BeautifulSoup(new_text, "html.parser")

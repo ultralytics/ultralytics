@@ -99,7 +99,9 @@ def benchmark(
             elif i == 9:  # Edge TPU
                 assert LINUX and not ARM64, "Edge TPU export only supported on non-aarch64 Linux"
             elif i in {5, 10}:  # CoreML and TF.js
-                assert MACOS or (LINUX and not ARM64), "CoreML and TF.js export only supported on macOS and non-aarch64 Linux"
+                assert MACOS or (LINUX and not ARM64), (
+                    "CoreML and TF.js export only supported on macOS and non-aarch64 Linux"
+                )
             if i in {5}:  # CoreML
                 assert not IS_PYTHON_3_12, "CoreML not supported on Python 3.12"
             if i in {6, 7, 8}:  # TF SavedModel, TF GraphDef, and TFLite

@@ -25,7 +25,7 @@ class AIGym(BaseSolution):
         monitor: Processes a frame to detect poses, calculate angles, and count repetitions.
 
     Examples:
-        >>> gym = AIGym(model="yolov8n-pose.pt")
+        >>> gym = AIGym(model="yolo11n-pose.pt")
         >>> image = cv2.imread("gym_scene.jpg")
         >>> processed_image = gym.monitor(image)
         >>> cv2.imshow("Processed Image", processed_image)

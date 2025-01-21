@@ -87,7 +87,7 @@ For detailed instructions and best practices related to the installation process
 
         ```bash
         # Export a YOLO11n PyTorch model to RKNN format
-        # Here name can be one of rk3588, rk3576, rk3566, rk3568, rk3562, rv1103, rv1106, rv1103b, rv1106b, rk2118
+        # 'name' can be one of rk3588, rk3576, rk3566, rk3568, rk3562, rv1103, rv1106, rv1103b, rv1106b, rk2118
         yolo export model=yolo11n.pt format=rknn name=rk3588  # creates '/yolo11n_rknn_model'
         ```
 
@@ -139,11 +139,11 @@ YOLO11 benchmarks below were run by the Ultralytics team on Radxa Rock 5B based 
 
 | Model   | Format | Status | Size (MB) | mAP50-95(B) | Inference time (ms/im) |
 | ------- | ------ | ------ | --------- | ----------- | ---------------------- |
-| YOLO11n | rknn   | ✅     | 7.4       | 0.61        | 99.5                   |
-| YOLO11s | rknn   | ✅     | 20.7      | 0.741       | 122.3                  |
-| YOLO11m | rknn   | ✅     | 41.9      | 0.764       | 298.0                  |
-| YOLO11l | rknn   | ✅     | 53.3      | 0.72        | 319.6                  |
-| YOLO11x | rknn   | ✅     | 114.6     | 0.828       | 632.1                  |
+| YOLO11n | `rknn`   | ✅     | 7.4       | 0.61        | 99.5                   |
+| YOLO11s | `rknn`   | ✅     | 20.7      | 0.741       | 122.3                  |
+| YOLO11m | `rknn`   | ✅     | 41.9      | 0.764       | 298.0                  |
+| YOLO11l | `rknn`   | ✅     | 53.3      | 0.72        | 319.6                  |
+| YOLO11x | `rknn`   | ✅     | 114.6     | 0.828       | 632.1                  |
 
 !!! note
 
@@ -156,3 +156,50 @@ In this guide, you've learned how to export Ultralytics YOLO11 models to RKNN fo
 For further details on usage, visit the [RKNN official documentation](https://github.com/airockchip/rknn-toolkit2).
 
 Also, if you'd like to know more about other Ultralytics YOLO11 integrations, visit our [integration guide page](../integrations/index.md). You'll find plenty of useful resources and insights there.
+
+## FAQ
+
+### How do I export my YOLO11 model to RKNN format for Rockchip devices?
+
+To export a YOLO11 model to RKNN format, use either Python or CLI commands. In Python:
+
+```python
+from ultralytics import YOLO
+
+# Load model
+model = YOLO("yolo11n.pt")
+
+# Export to RKNN format
+# 'name' can be rk3588, rk3576, rk3566, etc.
+model.export(format="rknn", name="rk3588")  # creates 'yolo11n_rknn_model'
+```
+
+The exported model is optimized for Rockchip's Neural Processing Unit (NPU), ensuring maximum performance on devices like the [Radxa Rock 5B](https://radxa.com/products/rock5/5b) and [Radxa Zero 3W](https://radxa.com/products/zeros/zero3w).
+
+### What are the performance benchmarks for YOLO11 models on Rockchip hardware?
+
+Based on benchmarks run on the Radxa Rock 5B (RK3588), YOLO11 models show impressive performance:
+
+- YOLO11n: 7.4MB size, 0.61 mAP50-95, 99.5ms inference time
+- YOLO11s: 20.7MB size, 0.741 mAP50-95, 122.3ms inference time
+- YOLO11m: 41.9MB size, 0.764 mAP50-95, 298.0ms inference time
+- YOLO11l: 53.3MB size, 0.72 mAP50-95, 319.6ms inference time
+- YOLO11x: 114.6MB size, 0.828 mAP50-95, 632.1ms inference time
+
+These benchmarks demonstrate the tradeoff between model size, accuracy, and speed, allowing users to choose the best model for their specific needs.
+
+### How do I run inference with an exported RKNN model?
+
+After exporting your model to RKNN format, you can run inference using Python or CLI:
+
+```python
+from ultralytics import YOLO
+
+# Load the exported RKNN model
+rknn_model = YOLO("./yolo11n_rknn_model")
+
+# Run inference
+results = rknn_model("https://ultralytics.com/images/bus.jpg")
+```
+
+The model leverages Rockchip's NPU for optimized performance and is compatible with various [Rockchip platforms](https://github.com/airockchip/rknn-toolkit2) including RK3576, RK3568, RK3562, RV1103, RV1106, and RK2118.

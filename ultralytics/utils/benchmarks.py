@@ -95,7 +95,7 @@ def benchmark(
     t0 = time.time()
     key = None
 
-    if format == "pytorch":     # Assign format value based on conditions
+    if format == "pytorch":  # Assign format value based on conditions
         format_name = "-"
     else:
         format_name = format.lower() if format else ""

@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import math
 
@@ -44,6 +44,8 @@ class DistanceCalculation(BaseSolution):
         # Mouse event information
         self.left_mouse_count = 0
         self.selected_boxes = {}
+
+        self.centroids = []  # Initialize empty list to store centroids
 
     def mouse_event_for_distance(self, event, x, y, flags, param):
         """

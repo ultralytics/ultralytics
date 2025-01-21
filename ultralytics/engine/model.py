@@ -1,8 +1,8 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import inspect
 from pathlib import Path
-from typing import Dict, List, Union
+from typing import Any, Dict, List, Union
 
 import numpy as np
 import torch
@@ -115,7 +115,7 @@ class Model(nn.Module):
         self.predictor = None  # reuse predictor
         self.model = None  # model object
         self.trainer = None  # trainer object
-        self.ckpt = None  # if loaded from *.pt
+        self.ckpt = {}  # if loaded from *.pt
         self.cfg = None  # if loaded from *.yaml
         self.ckpt_path = None
         self.overrides = {}  # overrides for trainer object
@@ -152,7 +152,7 @@ class Model(nn.Module):
         self,
         source: Union[str, Path, int, Image.Image, list, tuple, np.ndarray, torch.Tensor] = None,
         stream: bool = False,
-        **kwargs,
+        **kwargs: Any,
     ) -> list:
         """
         Alias for the predict method, enabling the model instance to be callable for predictions.
@@ -165,7 +165,7 @@ class Model(nn.Module):
                 the image(s) to make predictions on. Can be a file path, URL, PIL image, numpy array, PyTorch
                 tensor, or a list/tuple of these.
             stream (bool): If True, treat the input source as a continuous stream for predictions.
-            **kwargs (Any): Additional keyword arguments to configure the prediction process.
+            **kwargs: Additional keyword arguments to configure the prediction process.
 
         Returns:
             (List[ultralytics.engine.results.Results]): A list of prediction results, each encapsulated in a
@@ -194,7 +194,7 @@ class Model(nn.Module):
             (bool): True if the model string is a valid Triton Server URL, False otherwise.
 
         Examples:
-            >>> Model.is_triton_model("http://localhost:8000/v2/models/yolov8n")
+            >>> Model.is_triton_model("http://localhost:8000/v2/models/yolo11n")
             True
             >>> Model.is_triton_model("yolo11n.pt")
             False
@@ -247,7 +247,7 @@ class Model(nn.Module):
 
         Examples:
             >>> model = Model()
-            >>> model._new("yolov8n.yaml", task="detect", verbose=True)
+            >>> model._new("yolo11n.yaml", task="detect", verbose=True)
         """
         cfg_dict = yaml_model_load(cfg)
         self.cfg = cfg
@@ -283,7 +283,7 @@ class Model(nn.Module):
         """
         if weights.lower().startswith(("https://", "http://", "rtsp://", "rtmp://", "tcp://")):
             weights = checks.check_file(weights, download_dir=SETTINGS["weights_dir"])  # download and return local file
-        weights = checks.check_model_file_from_stem(weights)  # add suffix, i.e. yolov8n -> yolov8n.pt
+        weights = checks.check_model_file_from_stem(weights)  # add suffix, i.e. yolo11n -> yolo11n.pt
 
         if Path(weights).suffix == ".pt":
             self.model, self.ckpt = attempt_load_one_weight(weights)
@@ -313,7 +313,7 @@ class Model(nn.Module):
         Examples:
             >>> model = Model("yolo11n.pt")
             >>> model._check_is_pytorch_model()  # No error raised
-            >>> model = Model("yolov8n.onnx")
+            >>> model = Model("yolo11n.onnx")
             >>> model._check_is_pytorch_model()  # Raises TypeError
         """
         pt_str = isinstance(self.model, (str, Path)) and Path(self.model).suffix == ".pt"
@@ -323,7 +323,7 @@ class Model(nn.Module):
                 f"model='{self.model}' should be a *.pt PyTorch model to run this method, but is a different format. "
                 f"PyTorch models can train, val, predict and export, i.e. 'model.train(data=...)', but exported "
                 f"formats like ONNX, TensorRT etc. only support 'predict' and 'val' modes, "
-                f"i.e. 'yolo predict model=yolov8n.onnx'.\nTo run CUDA or MPS inference please pass the device "
+                f"i.e. 'yolo predict model=yolo11n.onnx'.\nTo run CUDA or MPS inference please pass the device "
                 f"argument directly in your inference command, i.e. 'model.predict(source=..., device=0)'"
             )
 
@@ -466,7 +466,7 @@ class Model(nn.Module):
         self,
         source: Union[str, Path, int, list, tuple, np.ndarray, torch.Tensor] = None,
         stream: bool = False,
-        **kwargs,
+        **kwargs: Any,
     ) -> list:
         """
         Generates image embeddings based on the provided source.
@@ -478,7 +478,7 @@ class Model(nn.Module):
             source (str | Path | int | List | Tuple | np.ndarray | torch.Tensor): The source of the image for
                 generating embeddings. Can be a file path, URL, PIL image, numpy array, etc.
             stream (bool): If True, predictions are streamed.
-            **kwargs (Any): Additional keyword arguments for configuring the embedding process.
+            **kwargs: Additional keyword arguments for configuring the embedding process.
 
         Returns:
             (List[torch.Tensor]): A list containing the image embeddings.
@@ -501,7 +501,7 @@ class Model(nn.Module):
         source: Union[str, Path, int, Image.Image, list, tuple, np.ndarray, torch.Tensor] = None,
         stream: bool = False,
         predictor=None,
-        **kwargs,
+        **kwargs: Any,
     ) -> List[Results]:
         """
         Performs predictions on the given image source using the YOLO model.
@@ -517,7 +517,7 @@ class Model(nn.Module):
             stream (bool): If True, treats the input source as a continuous stream for predictions.
             predictor (BasePredictor | None): An instance of a custom predictor class for making predictions.
                 If None, the method uses a default predictor.
-            **kwargs (Any): Additional keyword arguments for configuring the prediction process.
+            **kwargs: Additional keyword arguments for configuring the prediction process.
 
         Returns:
             (List[ultralytics.engine.results.Results]): A list of prediction results, each encapsulated in a
@@ -562,7 +562,7 @@ class Model(nn.Module):
         source: Union[str, Path, int, list, tuple, np.ndarray, torch.Tensor] = None,
         stream: bool = False,
         persist: bool = False,
-        **kwargs,
+        **kwargs: Any,
     ) -> List[Results]:
         """
         Conducts object tracking on the specified input source using the registered trackers.
@@ -576,7 +576,7 @@ class Model(nn.Module):
                 tracking. Can be a file path, URL, or video stream.
             stream (bool): If True, treats the input source as a continuous video stream. Defaults to False.
             persist (bool): If True, persists trackers between different calls to this method. Defaults to False.
-            **kwargs (Any): Additional keyword arguments for configuring the tracking process.
+            **kwargs: Additional keyword arguments for configuring the tracking process.
 
         Returns:
             (List[ultralytics.engine.results.Results]): A list of tracking results, each a Results object.
@@ -607,7 +607,7 @@ class Model(nn.Module):
     def val(
         self,
         validator=None,
-        **kwargs,
+        **kwargs: Any,
     ):
         """
         Validates the model using a specified dataset and validation configuration.
@@ -619,7 +619,7 @@ class Model(nn.Module):
         Args:
             validator (ultralytics.engine.validator.BaseValidator | None): An instance of a custom validator class for
                 validating the model.
-            **kwargs (Any): Arbitrary keyword arguments for customizing the validation process.
+            **kwargs: Arbitrary keyword arguments for customizing the validation process.
 
         Returns:
             (ultralytics.utils.metrics.DetMetrics): Validation metrics obtained from the validation process.
@@ -642,7 +642,7 @@ class Model(nn.Module):
 
     def benchmark(
         self,
-        **kwargs,
+        **kwargs: Any,
     ):
         """
         Benchmarks the model across various export formats to evaluate performance.
@@ -653,7 +653,7 @@ class Model(nn.Module):
         defaults, and any additional user-provided keyword arguments.
 
         Args:
-            **kwargs (Any): Arbitrary keyword arguments to customize the benchmarking process. These are combined with
+            **kwargs: Arbitrary keyword arguments to customize the benchmarking process. These are combined with
                 default configurations, model-specific arguments, and method defaults. Common options include:
                 - data (str): Path to the dataset for benchmarking.
                 - imgsz (int | List[int]): Image size for benchmarking.
@@ -691,7 +691,7 @@ class Model(nn.Module):
 
     def export(
         self,
-        **kwargs,
+        **kwargs: Any,
     ) -> str:
         """
         Exports the model to a different format suitable for deployment.
@@ -701,7 +701,7 @@ class Model(nn.Module):
         defaults, and any additional arguments provided.
 
         Args:
-            **kwargs (Dict): Arbitrary keyword arguments to customize the export process. These are combined with
+            **kwargs: Arbitrary keyword arguments to customize the export process. These are combined with
                 the model's overrides and method defaults. Common arguments include:
                 format (str): Export format (e.g., 'onnx', 'engine', 'coreml').
                 half (bool): Export model in half-precision.
@@ -740,7 +740,7 @@ class Model(nn.Module):
     def train(
         self,
         trainer=None,
-        **kwargs,
+        **kwargs: Any,
     ):
         """
         Trains the model using the specified dataset and training configuration.
@@ -755,7 +755,7 @@ class Model(nn.Module):
 
         Args:
             trainer (BaseTrainer | None): Custom trainer instance for model training. If None, uses default.
-            **kwargs (Any): Arbitrary keyword arguments for training configuration. Common options include:
+            **kwargs: Arbitrary keyword arguments for training configuration. Common options include:
                 data (str): Path to dataset configuration file.
                 epochs (int): Number of training epochs.
                 batch_size (int): Batch size for training.
@@ -807,7 +807,7 @@ class Model(nn.Module):
         # Update model and cfg after training
         if RANK in {-1, 0}:
             ckpt = self.trainer.best if self.trainer.best.exists() else self.trainer.last
-            self.model, _ = attempt_load_one_weight(ckpt)
+            self.model, self.ckpt = attempt_load_one_weight(ckpt)
             self.overrides = self.model.args
             self.metrics = getattr(self.trainer.validator, "metrics", None)  # TODO: no metrics returned by DDP
         return self.metrics
@@ -816,8 +816,8 @@ class Model(nn.Module):
         self,
         use_ray=False,
         iterations=10,
-        *args,
-        **kwargs,
+        *args: Any,
+        **kwargs: Any,
     ):
         """
         Conducts hyperparameter tuning for the model, with an option to use Ray Tune.
@@ -830,8 +830,8 @@ class Model(nn.Module):
         Args:
             use_ray (bool): If True, uses Ray Tune for hyperparameter tuning. Defaults to False.
             iterations (int): The number of tuning iterations to perform. Defaults to 10.
-            *args (List): Variable length argument list for additional arguments.
-            **kwargs (Dict): Arbitrary keyword arguments. These are combined with the model's overrides and defaults.
+            *args: Variable length argument list for additional arguments.
+            **kwargs: Arbitrary keyword arguments. These are combined with the model's overrides and defaults.
 
         Returns:
             (Dict): A dictionary containing the results of the hyperparameter search.
@@ -1170,6 +1170,4 @@ class Model(nn.Module):
             >>> print(model.stride)
             >>> print(model.task)
         """
-        if name == "model":
-            return self._modules["model"]
-        return getattr(self.model, name)
+        return self._modules["model"] if name == "model" else getattr(self.model, name)

@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import contextlib
 import importlib.metadata
@@ -12,12 +12,12 @@ import subprocess
 import sys
 import threading
 import time
-import urllib
 import uuid
 from pathlib import Path
 from threading import Lock
 from types import SimpleNamespace
 from typing import Union
+from urllib.parse import unquote
 
 import cv2
 import matplotlib.pyplot as plt
@@ -51,6 +51,20 @@ PYTHON_VERSION = platform.python_version()
 TORCH_VERSION = torch.__version__
 TORCHVISION_VERSION = importlib.metadata.version("torchvision")  # faster than importing torchvision
 IS_VSCODE = os.environ.get("TERM_PROGRAM", False) == "vscode"
+RKNN_CHIPS = frozenset(
+    {
+        "rk3588",
+        "rk3576",
+        "rk3566",
+        "rk3568",
+        "rk3562",
+        "rv1103",
+        "rv1106",
+        "rv1103b",
+        "rv1106b",
+        "rk2118",
+    }
+)  # Rockchip processors available for export
 HELP_MSG = """
     Examples for running Ultralytics:
 
@@ -524,13 +538,9 @@ def read_device_model() -> str:
     is_raspberrypi().
 
     Returns:
-        (str): Model file contents if read successfully or empty string otherwise.
+        (str): Kernel release information.
     """
-    try:
-        with open("/proc/device-tree/model") as f:
-            return f.read()
-    except Exception:
-        return ""
+    return platform.release().lower()
 
 
 def is_ubuntu() -> bool:
@@ -581,6 +591,16 @@ def is_jupyter():
     return IS_COLAB or IS_KAGGLE
 
 
+def is_runpod():
+    """
+    Check if the current script is running inside a RunPod container.
+
+    Returns:
+        (bool): True if running in RunPod, False otherwise.
+    """
+    return "RUNPOD_POD_ID" in os.environ
+
+
 def is_docker() -> bool:
     """
     Determine if the script is running inside a Docker container.
@@ -602,7 +622,7 @@ def is_raspberrypi() -> bool:
     Returns:
         (bool): True if running on a Raspberry Pi, False otherwise.
     """
-    return "Raspberry Pi" in PROC_DEVICE_MODEL
+    return "rpi" in DEVICE_MODEL
 
 
 def is_jetson() -> bool:
@@ -612,7 +632,7 @@ def is_jetson() -> bool:
     Returns:
         (bool): True if running on an NVIDIA Jetson device, False otherwise.
     """
-    return any(keyword in PROC_DEVICE_MODEL.lower() for keyword in ("nvidia", "jetson"))
+    return "tegra" in DEVICE_MODEL
 
 
 def is_online() -> bool:
@@ -802,7 +822,7 @@ def get_user_config_dir(sub_dir="Ultralytics"):
 
 
 # Define constants (required below)
-PROC_DEVICE_MODEL = read_device_model()  # is_jetson() and is_raspberrypi() depend on this constant
+DEVICE_MODEL = read_device_model()  # is_jetson() and is_raspberrypi() depend on this constant
 ONLINE = is_online()
 IS_COLAB = is_colab()
 IS_KAGGLE = is_kaggle()
@@ -1046,7 +1066,7 @@ def set_sentry():
         auto_enabling_integrations=False,
         traces_sample_rate=1.0,
         release=__version__,
-        environment="production",  # 'dev' or 'production'
+        environment="runpod" if is_runpod() else "production",
         before_send=before_send,
         ignore_errors=[KeyboardInterrupt, FileNotFoundError],
     )
@@ -1130,7 +1150,8 @@ class JSONDict(dict):
 
     def __str__(self):
         """Return a pretty-printed JSON string representation of the dictionary."""
-        return f'JSONDict("{self.file_path}"):\n{json.dumps(dict(self), indent=2, ensure_ascii=False, default=self._json_default)}'
+        contents = json.dumps(dict(self), indent=2, ensure_ascii=False, default=self._json_default)
+        return f'JSONDict("{self.file_path}"):\n{contents}'
 
     def update(self, *args, **kwargs):
         """Update the dictionary and persist changes."""
@@ -1220,7 +1241,7 @@ class SettingsManager(JSONDict):
 
     def _validate_settings(self):
         """Validate the current settings and reset if necessary."""
-        correct_keys = set(self.keys()) == set(self.defaults.keys())
+        correct_keys = frozenset(self.keys()) == frozenset(self.defaults.keys())
         correct_types = all(isinstance(self.get(k), type(v)) for k, v in self.defaults.items())
         correct_version = self.get("settings_version", "") == self.version
 
@@ -1238,14 +1259,23 @@ class SettingsManager(JSONDict):
                 f"Please change one to avoid possible issues during training. {self.help_msg}"
             )
 
+    def __setitem__(self, key, value):
+        """Updates one key: value pair."""
+        self.update({key: value})
+
     def update(self, *args, **kwargs):
         """Updates settings, validating keys and types."""
+        for arg in args:
+            if isinstance(arg, dict):
+                kwargs.update(arg)
         for k, v in kwargs.items():
             if k not in self.defaults:
                 raise KeyError(f"No Ultralytics setting '{k}'. {self.help_msg}")
             t = type(self.defaults[k])
             if not isinstance(v, t):
-                raise TypeError(f"Ultralytics setting '{k}' must be of type '{t}', not '{type(v)}'. {self.help_msg}")
+                raise TypeError(
+                    f"Ultralytics setting '{k}' must be '{t.__name__}' type, not '{type(v).__name__}'. {self.help_msg}"
+                )
         super().update(*args, **kwargs)
 
     def reset(self):
@@ -1265,7 +1295,7 @@ def deprecation_warn(arg, new_arg=None):
 def clean_url(url):
     """Strip auth from URL, i.e. https://url.com/file.txt?auth -> https://url.com/file.txt."""
     url = Path(url).as_posix().replace(":/", "://")  # Pathlib turns :// -> :/, as_posix() for Windows
-    return urllib.parse.unquote(url).split("?")[0]  # '%2F' to '/', split https://url.com/file.txt?auth
+    return unquote(url).split("?")[0]  # '%2F' to '/', split https://url.com/file.txt?auth
 
 
 def url2file(url):

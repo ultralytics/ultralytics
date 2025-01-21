@@ -1407,8 +1407,8 @@ class Exporter:
         nms.coordinatesOutputFeatureName = "coordinates"
         nms.iouThresholdInputFeatureName = "iouThreshold"
         nms.confidenceThresholdInputFeatureName = "confidenceThreshold"
-        nms.iouThreshold = 0.45
-        nms.confidenceThreshold = 0.25
+        nms.iouThreshold = self.args.iou
+        nms.confidenceThreshold = self.args.conf
         nms.pickTop.perClass = True
         nms.stringClassLabels.vector.extend(names.values())
         nms_model = ct.models.MLModel(nms_spec)

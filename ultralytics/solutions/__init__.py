@@ -7,6 +7,7 @@ from .heatmap import Heatmap
 from .object_blurrer import ObjectBlurrer
 from .object_counter import ObjectCounter
 from .object_cropper import ObjectCropper
+from .instance_segmentation import InstanceSegmentation
 from .parking_management import ParkingManagement, ParkingPtsSelection
 from .queue_management import QueueManager
 from .region_counter import RegionCounter
@@ -31,4 +32,5 @@ __all__ = (
     "SecurityAlarm",
     "ObjectCropper",
     "ObjectBlurrer",
+    "InstanceSegmentation",
 )

@@ -11,42 +11,14 @@ class InstanceSegmentation(BaseSolution):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        self.blur_ratio = int(self.CFG["blur_ratio"] * 100)  # Blur intensity multiplier
-        self.iou = self.CFG["iou"]  # IOU threshold from config
-        self.conf = self.CFG["conf"] if self.CFG["conf"] is not None else 0.25  # Confidence threshold
-
-    def blur(self, im0):
-        """
-        Applies a blurring effect to detected objects in the input image.
-
-        Args:
-            im0 (numpy.ndarray): The input image containing detected objects.
-
-        This method uses the bounding box coordinates from the model's predictions to apply a blurring effect to the regions corresponding to detected objects. The processed image is updated in place.
-
-        Returns:
-            results (dict): A summary dictionary containing the total number of blurred objects.
-
-        Examples:
-            >>> blurrer = ObjectBlurrer()
-            >>> frame = cv2.imread("image.jpg")
-            >>> summary = blurrer.blur(frame)
-            >>> print(summary)
-        """
+    def segment(self, im0):
         annotator = SolutionAnnotator(im0, self.line_width)
 
         self.extract_tracks(im0)  # Extract tracks
 
         # Iterate over bounding boxes and classes
-        for box, cls in zip(self.boxes, self.clss):
-            # Crop and blur the detected object
-            blur_obj = cv2.blur(
-                im0[int(box[1]) : int(box[3]), int(box[0]) : int(box[2])],
-                (self.blur_ratio, self.blur_ratio),
-            )
-            # Update the blurred area in the original image
-            im0[int(box[1]) : int(box[3]), int(box[0]) : int(box[2])] = blur_obj
-            annotator.box_label(box, label=self.names[cls], color=colors(cls, True))  # Annotate bounding box
+        for cls, t_id, mask in zip(self.clss, self.track_ids, self.masks):
+            annotator.seg_bbox(mask=mask, mask_color=colors(t_id, True), label=self.names[cls])  # Draw segmentation box
 
         self.display_output(im0)  # Display the output using the base class function
 

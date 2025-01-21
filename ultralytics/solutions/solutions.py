@@ -3,6 +3,7 @@
 from collections import defaultdict
 
 import cv2
+import numpy as np
 
 from ultralytics import YOLO
 from ultralytics.utils import ASSETS_URL, DEFAULT_CFG_DICT, DEFAULT_SOL_DICT, LOGGER
@@ -116,6 +117,9 @@ class BaseSolution:
 
         # Extract tracks for OBB or object detection
         self.track_data = self.tracks[0].obb or self.tracks[0].boxes
+
+        self.masks = self.tracks[0].masks.xy if hasattr(self.tracks[0], 'masks') and self.tracks[
+            0].masks is not None else None
 
         if self.track_data and self.track_data.id is not None:
             self.boxes = self.track_data.xyxy.cpu()
@@ -507,6 +511,7 @@ class SolutionAnnotator(Annotator):
             label (str, optional): Text label for the object. If None, no label is drawn.
             txt_color (tuple): RGB color for the label text.
         """
+        txt_color = self.get_txt_color(mask_color)
         if mask.size == 0:  # no masks to plot
             return
 

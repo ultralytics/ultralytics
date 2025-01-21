@@ -51,6 +51,20 @@ PYTHON_VERSION = platform.python_version()
 TORCH_VERSION = torch.__version__
 TORCHVISION_VERSION = importlib.metadata.version("torchvision")  # faster than importing torchvision
 IS_VSCODE = os.environ.get("TERM_PROGRAM", False) == "vscode"
+RKNN_CHIPS = frozenset(
+    {
+        "rk3588",
+        "rk3576",
+        "rk3566",
+        "rk3568",
+        "rk3562",
+        "rv1103",
+        "rv1106",
+        "rv1103b",
+        "rv1106b",
+        "rk2118",
+    }
+)  # Rockchip processors available for export
 HELP_MSG = """
     Examples for running Ultralytics:
 

@@ -4,7 +4,7 @@ description: Learn how to export YOLO11 models to RKNN format for efficient depl
 keywords: YOLO11, RKNN, model export, Ultralytics, Rockchip, machine learning, model deployment, computer vision, deep learning
 ---
 
-# RKNN Export for Ultralytics YOLO11 Models
+# Rockchip RKNN Export for Ultralytics YOLO11 Models
 
 When deploying computer vision models on embedded devices, especially those powered by Rockchip processors, having a compatible model format is essential. Exporting [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics) models to RKNN format ensures optimized performance and compatibility with Rockchip's hardware. This guide will walk you through converting your YOLO11 models to RKNN format, enabling efficient deployment on Rockchip platforms.
 
@@ -13,7 +13,7 @@ When deploying computer vision models on embedded devices, especially those powe
     This guide has been tested with [Radxa Rock 5B](https://radxa.com/products/rock5/5b) which is based on Rockchip RK3588 and [Radxa Zero 3W](https://radxa.com/products/zeros/zero3w) which is based on Rockchip RK3566. It is expected to work across other Rockchip-based devices which supports [rknn-toolkit2](https://github.com/airockchip/rknn-toolkit2) such as RK3576, RK3568, RK3562, RV1103, RV1106, RV1103B, RV1106B and RK2118.
 
 <p align="center">
-  <img width="100%" src="https://www.rock-chips.com/Images/web/solution/AI/chip_s.png" alt="RKNN">
+  <img width="100%" src="https://github.com/ultralytics/assets/releases/download/v0.0.0/rockchip-rknn.avif" alt="RKNN">
 </p>
 
 ## What is Rockchip?

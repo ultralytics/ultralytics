@@ -94,13 +94,8 @@ def benchmark(
     y = []
     t0 = time.time()
     key = None
-
-    if format == "pytorch":     # Assign format value based on conditions
-        format_name = "-"
-    else:
-        format_name = format.lower() if format else ""
+    format_name = "-" if format == "pytorch" else (format.lower() if format else "")
     for i, (name, format, suffix, cpu, gpu, _) in enumerate(zip(*export_formats().values())):
-        print(format)
         if format_name and format_name != format:
             continue  # Skip mismatched formats
         emoji, filename = "❌", None  # export defaults

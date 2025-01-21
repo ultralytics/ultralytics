@@ -749,7 +749,7 @@ class SolutionResults:
         results stored in the instance. It is particularly useful for reporting, serialization, or debugging purposes.
 
         Returns:
-            dict: A dictionary containing key-value pairs representing the current state of all attributes in the object.
+            _cached_summary (dict): A dictionary containing key-value pairs representing the current state of all attributes in the object.
         """
         if not hasattr(self, "_cached_summary"):
             self._cached_summary = {

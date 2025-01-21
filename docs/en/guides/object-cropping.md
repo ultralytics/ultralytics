@@ -59,7 +59,7 @@ Object cropping with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
             if not success:
                 print("Video frame is empty or video processing has been successfully completed.")
                 break
-            im0 = cropper.crop(im0)
+            results = cropper.crop(im0)
 
         cap.release()
         cv2.destroyAllWindows()

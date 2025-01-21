@@ -119,7 +119,7 @@ class SecurityAlarm(BaseSolution):
         surpasses the specified threshold and an alert has not already been sent.
 
         Returns:
-            results (dict): Contains 'total_tracks' (int, total number of tracked objects) and 'email_sent' (bool, whether an email alert was triggered).
+            results (dict): Contains processed image `im0`, 'total_tracks' (int, total number of tracked objects) and 'email_sent' (bool, whether an email alert was triggered).
 
         Examples:
             >>> alarm = SecurityAlarm()
@@ -142,4 +142,4 @@ class SecurityAlarm(BaseSolution):
         self.display_output(im0)  # display output with base class function
 
         # return output dictionary with summary for more usage
-        return SolutionResults(total_tracks=len(self.track_ids), email_sent=self.email_sent).summary()
+        return SolutionResults(im0=im0, total_tracks=len(self.track_ids), email_sent=self.email_sent).summary()

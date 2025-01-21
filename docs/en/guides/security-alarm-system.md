@@ -68,8 +68,8 @@ The Security Alarm System Project utilizing Ultralytics YOLO11 integrates advanc
         if not success:
             print("Video frame is empty or video processing has been successfully completed.")
             break
-        im0 = security.monitor(im0)
-        video_writer.write(im0)
+        results = security.monitor(im0)
+        video_writer.write(results["im0"])
 
     cap.release()
     video_writer.release()

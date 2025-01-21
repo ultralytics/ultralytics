@@ -161,7 +161,8 @@ class ObjectCounter(BaseSolution):
             im0 (numpy.ndarray): The input image or frame to be processed.
 
         Returns:
-            results (dict): Contains 'in_count' (int, count of objects entering the region), 'out_count' (int, count of objects exiting the region),
+            results (dict): Contains processed image `im0`,
+                'in_count' (int, count of objects entering the region), 'out_count' (int, count of objects exiting the region),
                 'classwise_count' (dict, per-class object count), and 'total_tracks' (int, total number of tracked objects).
 
         Examples:
@@ -203,6 +204,7 @@ class ObjectCounter(BaseSolution):
 
         # return output dictionary with summary for more usage
         return SolutionResults(
+            im0=im0,
             in_count=self.in_count,
             out_count=self.out_count,
             classwise_count=self.classwise_counts,

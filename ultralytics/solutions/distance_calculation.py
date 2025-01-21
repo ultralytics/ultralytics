@@ -84,8 +84,8 @@ class DistanceCalculation(BaseSolution):
             im0 (numpy.ndarray): The input image frame to process.
 
         Returns:
-            results (dict): Contains 'pixels_distance' (float, distance between selected objects in pixels) and
-                'total_tracks' (int, total number of tracked objects).
+            results (dict): Contains processed image `im0`, 'total_tracks' (int, total number of tracked objects).
+                'pixels_distance' (float, distance between selected objects in pixels) and
 
         Examples:
             >>> import numpy as np
@@ -124,4 +124,4 @@ class DistanceCalculation(BaseSolution):
         cv2.setMouseCallback("Ultralytics Solutions", self.mouse_event_for_distance)
 
         # return output dictionary with summary for more usage
-        return SolutionResults(pixels_distance=pixels_distance, total_tracks=len(self.track_ids)).summary()
+        return SolutionResults(im0=im0, pixels_distance=pixels_distance, total_tracks=len(self.track_ids)).summary()

@@ -57,7 +57,7 @@ class ObjectCropper(BaseSolution):
         This method uses the bounding box coordinates from the model's predictions to extract regions corresponding to detected objects. The cropped objects are saved as individual images in the `crop_directory`.
 
         Returns:
-            results (dict): A summary dictionary containing the total number of cropped objects.
+            results (dict): A summary dictionary containing the total number of cropped objects and processed image `im0`.
 
         Examples:
             >>> cropper = ObjectCropper()
@@ -83,5 +83,5 @@ class ObjectCropper(BaseSolution):
 
         # Return output dictionary with summary for usage
         return SolutionResults(
-            total_crop_objects=self.crop_idx,
+            im0=im0, total_crop_objects=self.crop_idx,
         ).summary()

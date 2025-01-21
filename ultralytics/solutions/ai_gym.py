@@ -62,7 +62,8 @@ class AIGym(BaseSolution):
             im0 (ndarray): Input image for processing.
 
         Returns:
-            results (dict): Contains 'workout_count' (list of completed reps),
+            results (dict): Contains processed image `im0`,
+                'workout_count' (list of completed reps),
                 'workout_stage' (list of current stages),
                 'workout_angle' (list of angles), and
                 'total_tracks' (total number of tracked individuals).
@@ -113,5 +114,6 @@ class AIGym(BaseSolution):
 
         # return output dictionary with summary for more usage
         return SolutionResults(
-            workout_count=self.count, workout_stage=self.stage, workout_angle=self.angle, total_tracks=len(track_ids)
+            im0=im0, workout_count=self.count, workout_stage=self.stage,
+            workout_angle=self.angle, total_tracks=len(track_ids)
         ).summary()

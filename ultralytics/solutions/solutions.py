@@ -667,6 +667,7 @@ class SolutionResults:
 
     def __init__(
         self,
+        im0=None,
         in_count=0,
         out_count=0,
         classwise_count=None,
@@ -690,6 +691,7 @@ class SolutionResults:
         It allows flexible initialization with optional arguments, enabling customization for specific use cases.
 
         Args:
+            im0 (ndarray): Preprocessed image with counts, blurred or other effect from solutions.
             in_count (int, optional): The total number of "in" counts in a video stream. Default is 0.
             out_count (int, optional): The total number of "out" counts in a video stream. Default is 0.
             classwise_count (Dict[str, int], optional): A dictionary containing counts of objects categorized by class. Default is None.
@@ -708,6 +710,7 @@ class SolutionResults:
 
         Examples:
             >>> results = SolutionResults(
+            ...     im0=np.zeros((256, 256, 3), dtype=np.uint8),
             ...     in_count=5,
             ...     out_count=3,
             ...     classwise_count={"person": 10, "car": 2},
@@ -725,6 +728,7 @@ class SolutionResults:
             ...     total_crop_objects=5,
             ... )
         """
+        self.im0 = im0
         self.in_count = in_count
         self.out_count = out_count
         self.classwise_count = classwise_count
@@ -753,6 +757,7 @@ class SolutionResults:
         """
         if not hasattr(self, "_cached_summary"):
             self._cached_summary = {
+                "im0": self.im0,
                 "in_count": self.in_count,
                 "out_count": self.out_count,
                 "classwise_count": self.classwise_count,

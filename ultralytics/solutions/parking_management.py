@@ -212,8 +212,8 @@ class ParkingManagement(BaseSolution):
             im0 (np.ndarray): The input inference image.
 
         Returns:
-            results (dict): Contains 'filled_slots' (int, number of occupied parking slots), 'available_slots' (int, number of available parking slots),
-                and 'total_tracks' (int, total number of tracked objects).
+            results (dict): Contains processed image `im0`, 'filled_slots' (int, number of occupied parking slots),
+                'available_slots' (int, number of available parking slots), and 'total_tracks' (int, total number of tracked objects).
 
         Examples:
             >>> parking_manager = ParkingManagement(json_file="parking_regions.json")
@@ -250,6 +250,7 @@ class ParkingManagement(BaseSolution):
 
         # return output dictionary with summary for more usage
         return SolutionResults(
+            im0=im0,
             filled_slots=self.pr_info["Occupancy"],
             available_slots=self.pr_info["Available"],
             total_tracks=len(self.track_ids),

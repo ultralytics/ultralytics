@@ -92,7 +92,7 @@ class Analytics(BaseSolution):
             frame_number (int): Video frame number for plotting the data.
 
         Returns:
-            results (dict): Contains 'total_tracks' (int, total number of tracked objects) and
+            results (dict): Contains processed image `im0`, 'total_tracks' (int, total number of tracked objects) and
                 'classwise_count' (dict, per-class object count).
 
         Raises:
@@ -122,7 +122,7 @@ class Analytics(BaseSolution):
             raise ModuleNotFoundError(f"{self.type} chart is not supported ❌")
 
         # return output dictionary with summary for more usage
-        return SolutionResults(total_tracks=len(self.track_ids), classwise_count=self.clswise_count).summary()
+        return SolutionResults(im0=im0, total_tracks=len(self.track_ids), classwise_count=self.clswise_count).summary()
 
     def update_graph(self, frame_number, count_dict=None, plot="line"):
         """

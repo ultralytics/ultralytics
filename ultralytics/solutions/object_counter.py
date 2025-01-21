@@ -203,8 +203,10 @@ class ObjectCounter(BaseSolution):
         self.display_output(im0)  # display output with base class function
 
         if self.verbose:
-            self.LOGGER.info(f"In count: {self.in_count}, out count: {self.out_count}, "
-                             f"classwise count: {self.classwise_count}, total tracks: {len(self.track_ids)}")
+            self.LOGGER.info(
+                f"In count: {self.in_count}, out count: {self.out_count}, "
+                f"classwise count: {self.classwise_count}, total tracks: {len(self.track_ids)}"
+            )
 
         # return output dictionary with summary for more usage
         return SolutionResults(

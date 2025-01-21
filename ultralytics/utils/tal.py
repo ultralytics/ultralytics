@@ -128,7 +128,7 @@ class TaskAlignedAssigner(nn.Module):
         mask_pos = mask_topk * mask_in_gts * mask_gt
 
         return mask_pos, align_metric, overlaps
-    
+
     @error_handler
     def get_box_metrics(self, pd_scores, pd_bboxes, gt_labels, gt_bboxes, mask_gt):
         """Compute alignment metric given predicted and ground truth bounding boxes."""

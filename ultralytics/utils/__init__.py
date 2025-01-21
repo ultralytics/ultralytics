@@ -1315,14 +1315,15 @@ def vscode_msg(ext="ultralytics.ultralytics-snippets") -> str:
 def error_handler(func):
     """
     A decorator that catches exceptions and displays custom error messages if available.
-    
+
     Args:
         func: The function to wrap
-        
+
     Returns:
         Callable: The wrapped function
     """
     from functools import wraps
+
     def _get_message(func_name, exc_type, args, kwargs):
         # Structure: {function_name: {exception_type: custom_message}}
         ERRORS = {
@@ -1334,7 +1335,7 @@ def error_handler(func):
             },
             "TaskAlignedAssigner.get_box_metrics": {
                 RuntimeError: "Loss calculation failed. This is probably due to having class labels that are out of range in your label files. Ensure all labels have class IDs within the range (0 - NUM_CLASSES) as defined in your 'data.yaml' file."
-            }
+            },
         }
         return ERRORS.get(func_name, {}).get(exc_type)
 
@@ -1348,7 +1349,9 @@ def error_handler(func):
             message = _get_message(func_name, exc_type, args, kwargs)
             if message:
                 LOGGER.error(f"{colorstr('bold', 'red', 'ERROR:')} {message}")
+
     return wrapper
+
 
 # Run below code on utils init ------------------------------------------------------------------------------------
 

@@ -68,7 +68,7 @@ class RegionCounter(BaseSolution):
             im0 (numpy.ndarray): Input image frame where objects and regions are annotated.
 
         Returns:
-           im0 (numpy.ndarray): Processed image frame with annotated counting information.
+            results (dict): Contains 'total_tracks' (int, total number of tracked objects).
         """
         self.annotator = SolutionAnnotator(im0, line_width=self.line_width)
         self.extract_tracks(im0)

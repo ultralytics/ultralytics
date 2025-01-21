@@ -58,7 +58,7 @@ class SpeedEstimator(BaseSolution):
             im0 (np.ndarray): Input image for processing. Shape is typically (H, W, C) for RGB images.
 
         Returns:
-            (np.ndarray): Processed image with speed estimations and annotations.
+            results (dict): Contains 'total_tracks' (int, total number of tracked objects).
 
         Examples:
             >>> estimator = SpeedEstimator()

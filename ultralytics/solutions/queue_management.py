@@ -52,20 +52,7 @@ class QueueManager(BaseSolution):
             im0 (numpy.ndarray): Input image for processing, typically a frame from a video stream.
 
         Returns:
-            (numpy.ndarray): Processed image with annotations, bounding boxes, and queue counts.
-
-        This method performs the following steps:
-        1. Resets the queue count for the current frame.
-        2. Initializes an Annotator object for drawing on the image.
-        3. Extracts tracks from the image.
-        4. Draws the counting region on the image.
-        5. For each detected object:
-           - Draws bounding boxes and labels.
-           - Stores tracking history.
-           - Draws centroids and tracks.
-           - Checks if the object is inside the counting region and updates the count.
-        6. Displays the queue count on the image.
-        7. Displays the processed output.
+             results (dict): Contains 'queue_count' (int, number of objects in the queue) and 'total_tracks' (int, total number of tracked objects).
 
         Examples:
             >>> queue_manager = QueueManager()

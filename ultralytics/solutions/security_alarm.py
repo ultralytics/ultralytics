@@ -119,7 +119,7 @@ class SecurityAlarm(BaseSolution):
         surpasses the specified threshold and an alert has not already been sent.
 
         Returns:
-            (numpy.ndarray): The processed frame with annotations.
+            results (dict): Contains 'total_tracks' (int, total number of tracked objects) and 'email_sent' (bool, whether an email alert was triggered).
 
         Examples:
             >>> alarm = SecurityAlarm()

@@ -141,5 +141,8 @@ class SecurityAlarm(BaseSolution):
 
         self.display_output(im0)  # display output with base class function
 
+        if self.verbose:
+            self.LOGGER.info(f"Total tracks: {len(self.track_ids)}, Email sent status: {self.email_sent}")
+
         # return output dictionary with summary for more usage
         return SolutionResults(im0=im0, total_tracks=len(self.track_ids), email_sent=self.email_sent).summary()

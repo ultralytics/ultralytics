@@ -22,5 +22,7 @@ class InstanceSegmentation(BaseSolution):
 
         self.display_output(im0)  # Display the output using the base class function
 
+        if self.verbose:
+            self.LOGGER.info(f"Total tracks: {len(self.track_ids)}")
         # Return a summary dictionary for usage
         return SolutionResults(im0=im0, total_tracks=len(self.track_ids)).summary()

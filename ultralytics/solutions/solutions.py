@@ -67,11 +67,13 @@ class BaseSolution:
         self.track_line = None
         self.r_s = None
 
+        self.LOGGER = LOGGER  # Store logger object to be used in multiple solution classes
+
         # Load config and update with args
         DEFAULT_SOL_DICT.update(kwargs)
         DEFAULT_CFG_DICT.update(kwargs)
         self.CFG = {**DEFAULT_SOL_DICT, **DEFAULT_CFG_DICT}
-        LOGGER.info(f"Ultralytics Solutions: ✅ {DEFAULT_SOL_DICT}")
+        self.LOGGER.info(f"Ultralytics Solutions: ✅ {DEFAULT_SOL_DICT}")
 
         self.region = self.CFG["region"]  # Store region data for other classes usage
         self.line_width = (
@@ -84,6 +86,7 @@ class BaseSolution:
         self.model = YOLO(self.CFG["model"])
         self.names = self.model.names
         self.classes = self.CFG["classes"]
+        self.verbose = self.CFG["verbose"]
 
         self.track_add_args = {  # Tracker additional arguments for advance configuration
             k: self.CFG[k] for k in ["verbose", "iou", "conf", "device", "max_det", "half", "tracker"]
@@ -91,7 +94,7 @@ class BaseSolution:
 
         if IS_CLI and self.CFG["source"] is None:
             d_s = "solutions_ci_demo.mp4" if "-pose" not in self.CFG["model"] else "solution_ci_pose_demo.mp4"
-            LOGGER.warning(f"⚠️ WARNING: source not provided. using default source {ASSETS_URL}/{d_s}")
+            self.LOGGER.warning(f"⚠️ WARNING: source not provided. using default source {ASSETS_URL}/{d_s}")
             from ultralytics.utils.downloads import safe_download
 
             safe_download(f"{ASSETS_URL}/{d_s}")  # download source from ultralytics assets
@@ -126,7 +129,7 @@ class BaseSolution:
             self.clss = self.track_data.cls.cpu().tolist()
             self.track_ids = self.track_data.id.int().cpu().tolist()
         else:
-            LOGGER.warning("WARNING ⚠️ no tracks found!")
+            self.LOGGER.warning("WARNING ⚠️ no tracks found!")
             self.boxes, self.clss, self.track_ids = [], [], []
 
     def store_tracking_history(self, track_id, box):

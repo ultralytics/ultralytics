@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn how to export YOLO11 models to ONNX format for flexible deployment across various platforms with enhanced performance.
-keywords: YOLO11, ONNX, model export, Ultralytics, ONNX Runtime, machine learning, model deployment, computer vision, deep learning
+description: Discover how to get started with Seeed Studio reCamera for edge AI applications using Ultralytics YOLO11. Learn about its powerful features, real-world applications, and how to export YOLO11 models to ONNX format for seamless integration.
+keywords: Seeed Studio reCamera, YOLO11, ONNX export, edge AI, computer vision, real-time detection, personal protective equipment detection, fire detection, waste detection, fall detection, modular AI devices, Ultralytics
 ---
 
 # Getting Started with Seeed Studio reCamera for Edge AI Applications using Ultralytics YOLO11

@@ -954,7 +954,8 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
         LOGGER.info(f"\n{'':>3}{'from':>20}{'n':>3}{'params':>10}  {'module':<45}{'arguments':<30}")
     ch = [ch]
     layers, save, c2 = [], [], ch[-1]  # layers, savelist, ch out
-    supported_modules = frozenset({
+    supported_modules = frozenset(
+        {
             Classify,
             Conv,
             ConvTranspose,
@@ -989,7 +990,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             SCDown,
             C2fCIB,
         }
-                )
+    )
     for i, (f, n, m, args) in enumerate(d["backbone"] + d["head"]):  # from, number, module, args
         m = (
             getattr(torch.nn, m[3:])
@@ -1012,22 +1013,24 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
                 args[2] = int(max(round(min(args[2], max_channels // 2 // 32)) * width, 1) if args[2] > 1 else args[2])
 
             args = [c1, c2, *args[1:]]
-            if m in frozenset({
-                BottleneckCSP,
-                C1,
-                C2,
-                C2f,
-                C3k2,
-                C2fAttn,
-                C3,
-                C3TR,
-                C3Ghost,
-                C3x,
-                RepC3,
-                C2fPSA,
-                C2fCIB,
-                C2PSA,
-            }):
+            if m in frozenset(
+                {
+                    BottleneckCSP,
+                    C1,
+                    C2,
+                    C2f,
+                    C3k2,
+                    C2fAttn,
+                    C3,
+                    C3TR,
+                    C3Ghost,
+                    C3x,
+                    RepC3,
+                    C2fPSA,
+                    C2fCIB,
+                    C2PSA,
+                }
+            ):
                 args.insert(2, n)  # number of repeats
                 n = 1
             if m is C3k2:  # for M/L/X sizes

@@ -6,6 +6,7 @@ import platform
 import zipfile
 from collections import OrderedDict, namedtuple
 from pathlib import Path
+import os
 
 import cv2
 import numpy as np
@@ -743,6 +744,8 @@ class AutoBackend(nn.Module):
         Returns:
             (torch.Tensor): The converted tensor
         """
+        if 'apex_0' in os.listdir('/dev'):
+            return torch.tensor(x) if isinstance(x, np.ndarray) else x
         return torch.tensor(x).to(self.device) if isinstance(x, np.ndarray) else x
 
     def warmup(self, imgsz=(1, 3, 640, 640)):

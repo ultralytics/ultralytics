@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
@@ -22,7 +22,7 @@ class SegmentationValidator(DetectionValidator):
         ```python
         from ultralytics.models.yolo.segment import SegmentationValidator
 
-        args = dict(model="yolov8n-seg.pt", data="coco8-seg.yaml")
+        args = dict(model="yolo11n-seg.pt", data="coco8-seg.yaml")
         validator = SegmentationValidator(args=args)
         validator()
         ```

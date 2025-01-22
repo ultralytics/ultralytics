@@ -1,10 +1,13 @@
 ---
 ```
 ---
+
 comments: true
 description: Explore the comprehensive comparison between PP-YOLOE+ and YOLOv10, two leading-edge models in object detection and real-time AI. Discover their performance metrics, efficiency in computer vision tasks, and suitability for edge AI applications. Uncover which model aligns best with your specific project needs.
 keywords: PP-YOLOE+, YOLOv10, Ultralytics, object detection, real-time AI, edge AI, computer vision, model comparison, AI performance, accuracy.
+
 ---
+
 ```
 ---
 
@@ -48,3 +51,4 @@ The "Speed Comparison" section highlights the performance differences between PP
 | b | N/A | 6.54 |
 | l | 8.36 | 8.33 |
 | x | 14.3 | 12.2 |
+```

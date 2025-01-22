@@ -50,7 +50,6 @@ To install the required packages, run:
     === "CLI"
 
         ```bash
-        # Install the required package for YOLO11
         pip install ultralytics
         ```
 

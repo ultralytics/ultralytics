@@ -1576,23 +1576,19 @@ class NMSModel(torch.nn.Module):
                 box = xywh2xyxy(box)
                 if self.is_tf:
                     # TFlite bug returns less boxes
-                    box = torch.nn.functional.pad(box, (0, 0, 0, mask.shape[0] - box.shape[0]))
+                    box = torch.nn.functional.pad(box, (0, 0, 0, len(mask) - len(box)))
             nmsbox = box.clone()
             multiplier = 8 if self.obb else 1
             # large box values due to class offset causes issue with quantization
             if self.args.format == "tflite":  # TFLite is already normalized
                 nmsbox *= multiplier
             else:
-                nmsbox = (
-                    multiplier
-                    * nmsbox
-                    / torch.tensor([x.shape[2], x.shape[3]], device=box.device, dtype=box.dtype).max()
-                )
+                nmsbox = multiplier * nmsbox / torch.tensor(x.shape[2:], device=box.device, dtype=box.dtype).max()
             if not self.args.agnostic_nms:  # class-specific NMS
                 end = 2 if self.obb else 4
                 # fully explicit expansion otherwise reshape error
                 # large max_wh causes issues when quantizing
-                cls_offset = cls.reshape(-1, 1).expand(nmsbox.shape[0], end)
+                cls_offset = cls.reshape(-1, 1).expand(len(nmsbox), end)
                 offbox = nmsbox[:, :end] + cls_offset * multiplier
                 nmsbox = torch.cat((offbox, nmsbox[:, end:]), dim=-1)
             nms_fn = (
@@ -1605,6 +1601,6 @@ class NMSModel(torch.nn.Module):
             )[: self.args.max_det]
             dets = torch.cat([box[keep], score[keep].view(-1, 1), cls[keep].view(-1, 1), extra[keep]], dim=-1)
             # Zero-pad to max_det size to avoid reshape error
-            pad = (0, 0, 0, self.args.max_det - dets.shape[0])
+            pad = (0, 0, 0, self.args.max_det - len(dets))
             out[i] = torch.nn.functional.pad(dets, pad)
         return (out, preds[1]) if self.model.task == "segment" else out

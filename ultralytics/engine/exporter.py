@@ -1568,8 +1568,8 @@ class NMSModel(torch.nn.Module):
             mask = score > self.args.conf
             if self.is_tf:
                 # TFLite GatherND error if mask is empty
-                # Explicit length otherwise reshape error
                 score *= mask
+                # Explicit length otherwise reshape error, hardcoded to `self.args.max_det * 5`
                 mask = score.topk(self.args.max_det * 5).indices
             box, score, cls, extra = box[mask], score[mask], cls[mask], extra[mask]
             if not self.obb:

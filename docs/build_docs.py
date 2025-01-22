@@ -47,11 +47,6 @@ def create_vercel_config():
         json.dump(config, f, indent=2)
 
 
-def prepare_model_comparision_pages():
-    """Generate the model comparison docs pages."""
-    os.system(f'python "{DOCS}/build_comparision.py"')
-
-
 def prepare_docs_markdown(clone_repos=True):
     """Build docs using mkdocs."""
     if SITE.exists():

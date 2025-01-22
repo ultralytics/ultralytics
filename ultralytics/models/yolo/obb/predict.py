@@ -38,7 +38,7 @@ class OBBPredictor(DetectionPredictor):
             img_path (str): The path to the original image.
 
         Returns:
-            Results: The result object containing the original image, image path, class names, and oriented bounding boxes.
+            (Results): The result object containing the original image, image path, class names, and oriented bounding boxes.
         """
         rboxes = ops.regularize_rboxes(torch.cat([pred[:, :4], pred[:, -1:]], dim=-1))
         rboxes[:, :4] = ops.scale_boxes(img.shape[2:], rboxes[:, :4], orig_img.shape, xywh=True)

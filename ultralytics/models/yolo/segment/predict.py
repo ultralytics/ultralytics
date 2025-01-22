@@ -42,7 +42,7 @@ class SegmentationPredictor(DetectionPredictor):
             protos (List[torch.Tensor]): List of prototype masks.
 
         Returns:
-            list: List of result objects containing the original images, image paths, class names, bounding boxes, and masks.
+            (list): List of result objects containing the original images, image paths, class names, bounding boxes, and masks.
         """
         return [
             self.construct_result(pred, img, orig_img, img_path, proto)
@@ -61,7 +61,7 @@ class SegmentationPredictor(DetectionPredictor):
             proto (torch.Tensor): The prototype masks.
 
         Returns:
-            Results: The result object containing the original image, image path, class names, bounding boxes, and masks.
+            (Results): The result object containing the original image, image path, class names, bounding boxes, and masks.
         """
         if not len(pred):  # save empty boxes
             masks = None

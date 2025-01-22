@@ -93,7 +93,7 @@ def benchmark(
 
     y = []
     t0 = time.time()
-    
+
     format_name = "-" if format == "pytorch" else (format.lower() if format else "")
     if format_name:
         formats = frozenset(export_formats()["Argument"])

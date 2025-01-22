@@ -1578,7 +1578,9 @@ class NMSModel(torch.nn.Module):
                     # TFlite bug returns less boxes
                     box = torch.nn.functional.pad(box, (0, 0, 0, mask.shape[0] - box.shape[0]))
             nmsbox = box.clone()
-            multiplier = 8 if self.obb else 1   # `8` is the minimum value experimented for obb to get correct NMS results
+            multiplier = (
+                8 if self.obb else 1
+            )  # `8` is the minimum value experimented for obb to get correct NMS results
             # Normalize boxes for NMS since large values for class offset causes issue with int8 quantization
             if self.args.format == "tflite":  # TFLite is already normalized
                 nmsbox *= multiplier

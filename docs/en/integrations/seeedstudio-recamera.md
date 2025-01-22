@@ -90,7 +90,7 @@ After obtaining an ONNX model, refer to [Convert and Quantize AI Models](https:/
 
 ## Benchmarks
 
-Benchmarks will be coming soon!
+Coming soon.
 
 ## Real-World Applications of reCamera
 

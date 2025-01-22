@@ -1174,6 +1174,7 @@ class Exporter:
         yaml_save(export_path / "metadata.yaml", self.metadata)
         return export_path, None
 
+    @try_export
     def export_imx(self, prefix=colorstr("IMX:")):
         """YOLO IMX export."""
         gptq = False
@@ -1190,6 +1191,8 @@ class Exporter:
         import model_compression_toolkit as mct
         import onnx
         from sony_custom_layers.pytorch.object_detection.nms import multiclass_nms
+
+        LOGGER.info(f"\n{prefix} starting export with model_compression_toolkit {mct.__version__}...")
 
         try:
             out = subprocess.run(

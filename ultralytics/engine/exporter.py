@@ -1174,6 +1174,7 @@ class Exporter:
         yaml_save(export_path / "metadata.yaml", self.metadata)
         return export_path, None
 
+    @try_export
     def export_imx(self, prefix=colorstr("IMX:")):
         """YOLO IMX export."""
         gptq = False

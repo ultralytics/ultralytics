@@ -687,7 +687,7 @@ class Model(nn.Module):
             half=args["half"],
             int8=args["int8"],
             device=args["device"],
-            verbose=kwargs.get("verbose"),
+            verbose=kwargs.get("verbose", False),
             format=kwargs.get("format", ""),
         )
 

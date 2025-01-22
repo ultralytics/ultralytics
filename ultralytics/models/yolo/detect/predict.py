@@ -40,7 +40,8 @@ class DetectionPredictor(BasePredictor):
         return self.construct_results(preds, img, orig_imgs, **kwargs)
 
     def construct_results(self, preds, img, orig_imgs):
-        """Constructs a list of result objects from the predictions.
+        """
+        Constructs a list of result objects from the predictions.
 
         Args:
             preds (List[torch.Tensor]): List of predicted bounding boxes and scores.
@@ -56,7 +57,8 @@ class DetectionPredictor(BasePredictor):
         ]
 
     def construct_result(self, pred, img, orig_img, img_path):
-        """Constructs the result object from the prediction.
+        """
+        Constructs the result object from the prediction.
 
         Args:
             pred (torch.Tensor): The predicted bounding boxes and scores.

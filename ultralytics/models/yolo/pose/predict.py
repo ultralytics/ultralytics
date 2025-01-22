@@ -1,6 +1,5 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-from ultralytics.engine.results import Results
 from ultralytics.models.yolo.detect.predict import DetectionPredictor
 from ultralytics.utils import DEFAULT_CFG, LOGGER, ops
 
@@ -31,7 +30,8 @@ class PosePredictor(DetectionPredictor):
             )
 
     def construct_result(self, pred, img, orig_img, img_path):
-        """Constructs the result object from the prediction.
+        """
+        Constructs the result object from the prediction.
 
         Args:
             pred (torch.Tensor): The predicted bounding boxes, scores, and keypoints.

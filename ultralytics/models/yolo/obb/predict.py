@@ -28,7 +28,8 @@ class OBBPredictor(DetectionPredictor):
         self.args.task = "obb"
 
     def construct_result(self, pred, img, orig_img, img_path):
-        """Constructs the result object from the prediction.
+        """
+        Constructs the result object from the prediction.
 
         Args:
             pred (torch.Tensor): The predicted bounding boxes, scores, and rotation angles.

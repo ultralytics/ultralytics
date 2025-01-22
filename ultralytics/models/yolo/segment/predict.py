@@ -32,7 +32,8 @@ class SegmentationPredictor(DetectionPredictor):
         return super().postprocess(preds[0], img, orig_imgs, protos=protos)
 
     def construct_results(self, preds, img, orig_imgs, protos):
-        """Constructs a list of result objects from the predictions.
+        """
+        Constructs a list of result objects from the predictions.
 
         Args:
             preds (List[torch.Tensor]): List of predicted bounding boxes, scores, and masks.
@@ -49,7 +50,8 @@ class SegmentationPredictor(DetectionPredictor):
         ]
 
     def construct_result(self, pred, img, orig_img, img_path, proto):
-        """Constructs the result object from the prediction.
+        """
+        Constructs the result object from the prediction.
 
         Args:
             pred (np.ndarray): The predicted bounding boxes, scores, and masks.

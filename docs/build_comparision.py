@@ -98,19 +98,13 @@ def main():
         with open(filepath, "w") as f:
             # Metadata Section
             f.write("---\n")
-            f.write("comments: true\n")
-            f.write(
-                f"description: Dive into the key differences between {model1} and {model2}. Discover which model excels in accuracy, speed, and use cases such as real-time detection, edge deployment, or large-scale training.\n"
-            )
-            f.write(
-                f"keywords: {model1}, {model2}, Ultralytics, model comparison, object detection, real-time AI, edge AI, model evaluation, computer vision\n"
-            )
-            f.write("---\n\n")
+            f.write("---\n")
 
-            f.write(f"# {model1} vs {model2}\n\n")  # Page Title
+            f.write(f"# {model1} VS {model2}\n\n")  # Page Title
 
             # mAP Comparison Table
             f.write("## mAP Comparison\n\n")
+
             f.write(f"| Variant | mAP (%) - {model1} | mAP (%) - {model2} |\n")
             f.write("|---------|--------------------|--------------------|\n")
 

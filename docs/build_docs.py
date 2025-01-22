@@ -287,7 +287,6 @@ def minify_files(html=True, css=True, js=True):
 
 def main():
     """Builds docs, updates titles and edit links, minifies HTML, and prints local server command."""
-    prepare_model_comparision_pages()  # automatically create model comparison pages.
     prepare_docs_markdown()
 
     # Build the main documentation

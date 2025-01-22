@@ -33,8 +33,7 @@ Please follow [reCamera Quick Start Guide](https://wiki.seeedstudio.com/recamera
 Here we will first convert `PyTorch` model to `ONNX` and then convert it to `MLIR` model format. Finally `MLIR` will be converted to `cvimodel` in order to inference on-device
 
 <p align="center">
-  <img width="80%" src="https://github.com/ultralytics/assets/releases/download/v0.0.0/recamera-toolchain-workflow.avif" alt="reCamera Toolchain
-">
+  <img width="80%" src="https://github.com/ultralytics/assets/releases/download/v0.0.0/recamera-toolchain-workflow.avif" alt="reCamera Toolchain">
 </p>
 
 ### Export to ONNX

@@ -93,13 +93,16 @@ def benchmark(
 
     y = []
     t0 = time.time()
+    
     format_name = "-" if format == "pytorch" else (format.lower() if format else "")
+    if format_name:
+        formats = frozenset(export_formats()["Argument"])
+        assert format in formats, f"Expected format to be one of {formats}, but got '{format_name}'."
     for i, (name, format, suffix, cpu, gpu, _) in enumerate(zip(*export_formats().values())):
         emoji, filename = "❌", None  # export defaults
         try:
             if format_name and format_name != format:
                 continue  # Skip mismatched formats
-            key = TASK2METRIC[model.task]  # task to metric, i.e. metrics/mAP50-95(B) for task=detect
             # Checks
             if i == 7:  # TF GraphDef
                 assert model.task != "obb", "TensorFlow GraphDef not supported for OBB task"
@@ -161,6 +164,7 @@ def benchmark(
             results = exported_model.val(
                 data=data, batch=1, imgsz=imgsz, plots=False, device=device, half=half, int8=int8, verbose=False
             )
+            key = TASK2METRIC[model.task]  # task to metric, i.e. metrics/mAP50-95(B) for task=detect
             metric, speed = results.results_dict[key], results.speed["inference"]
             fps = round(1000 / (speed + eps), 2)  # frames per second
             y.append([name, "✅", round(file_size(filename), 1), round(metric, 4), round(speed, 2), fps])

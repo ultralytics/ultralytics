@@ -24,8 +24,8 @@ import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
-import yaml
 import tqdm
+import yaml
 
 from ultralytics import __version__
 

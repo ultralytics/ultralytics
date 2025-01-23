@@ -25,7 +25,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 import yaml
-from tqdm import TqdmExperimentalWarning, rich, tqdm
+import tqdm
 
 from ultralytics import __version__
 
@@ -44,6 +44,7 @@ DEFAULT_SOL_CFG_PATH = ROOT / "cfg/solutions/default.yaml"  # Ultralytics soluti
 NUM_THREADS = min(8, max(1, os.cpu_count() - 1))  # number of YOLO multiprocessing threads
 AUTOINSTALL = str(os.getenv("YOLO_AUTOINSTALL", True)).lower() == "true"  # global auto-install mode
 VERBOSE = str(os.getenv("YOLO_VERBOSE", True)).lower() == "true"  # global verbose mode
+TQDM_DISABLE = str(os.getenv("YOLO_TQDM_DISABLE", True)).lower() == "true"
 TQDM_BAR_FORMAT = "{l_bar}{bar:10}{r_bar}" if VERBOSE else None  # tqdm bar format
 LOGGING_NAME = "ultralytics"
 MACOS, LINUX, WINDOWS = (platform.system() == x for x in ["Darwin", "Linux", "Windows"])  # environment booleans
@@ -134,7 +135,7 @@ os.environ["TORCH_CPP_LOG_LEVEL"] = "ERROR"  # suppress "NNPACK.cpp could not in
 os.environ["KINETO_LOG_LEVEL"] = "5"  # suppress verbose PyTorch profiler output when computing FLOPs
 
 
-class TQDM(rich.tqdm if os.getenv("YOLO_TQDM_VERBOSE", False) else tqdm):
+class TQDM(tqdm.tqdm):
     """
     A custom TQDM progress bar class that extends the original tqdm functionality.
 
@@ -177,8 +178,8 @@ class TQDM(rich.tqdm if os.getenv("YOLO_TQDM_VERBOSE", False) else tqdm):
             ...     # Your code here
             ...     pass
         """
-        warnings.filterwarnings("ignore", category=TqdmExperimentalWarning)  # suppress tqdm.rich warning
-        kwargs["disable"] = not VERBOSE or kwargs.get("disable", False)  # logical 'and' with default value if passed
+        warnings.filterwarnings("ignore", category=tqdm.TqdmExperimentalWarning)  # suppress tqdm.rich warning
+        kwargs["disable"] = not VERBOSE or kwargs.get("disable", False) or TQDM_DISABLE
         kwargs.setdefault("bar_format", TQDM_BAR_FORMAT)  # override default value if passed
         super().__init__(*args, **kwargs)
 

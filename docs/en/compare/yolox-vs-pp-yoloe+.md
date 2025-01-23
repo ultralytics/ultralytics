@@ -26,7 +26,6 @@ The mAP (mean Average Precision) metric evaluates the object detection performan
     	| l | 49.7 | 52.9 |
     	| x | 51.1 | 54.7 |
 
-
 ## Speed Comparison
 
 This section highlights the speed performance of YOLOX and PP-YOLOE+ models across different sizes. Speed metrics in milliseconds provide a detailed comparison of their inference efficiency, showcasing their suitability for real-time applications. For more details on YOLOX, visit [YOLOX GitHub](https://github.com/Megvii-BaseDetection/YOLOX), and for PP-YOLOE+, explore [PaddleDetection's PPYOLOE](https://github.com/PaddlePaddle/PaddleDetection).

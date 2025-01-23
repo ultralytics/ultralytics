@@ -26,7 +26,6 @@ Mean Average Precision (mAP) is a key metric for evaluating the accuracy of obje
     	| l | 53.4 | 53.2 |
     	| x | 54.3 | 54.7 |
 
-
 ## Speed Comparison
 
 This section compares the speed performance of RTDETRv2 and Ultralytics YOLO11 across various model sizes. The latency metrics, measured in milliseconds, highlight the efficiency of these models under different hardware and deployment scenarios. Learn more about [benchmarking models](https://docs.ultralytics.com/modes/benchmark/) for detailed insights.

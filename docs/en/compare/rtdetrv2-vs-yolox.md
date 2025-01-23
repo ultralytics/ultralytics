@@ -25,7 +25,6 @@ This section highlights the mAP performance of RTDETRv2 and YOLOX models, showca
     	| l | 53.4 | 49.7 |
     	| x | 54.3 | 51.1 |
 
-
 ## Speed Comparison
 
 This section compares the speed performance of RTDETRv2 and YOLOX models across various sizes, highlighting their inference time in milliseconds. Faster models like YOLOX are often preferred for real-time applications, while RTDETRv2 emphasizes speed-accuracy balance. Explore more about [YOLOX](https://github.com/Megvii-BaseDetection/YOLOX) and [object detection](https://www.ultralytics.com/glossary/object-detection) use cases.

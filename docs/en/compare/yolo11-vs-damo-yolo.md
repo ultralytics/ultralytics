@@ -32,7 +32,6 @@ This section compares the mAP values of Ultralytics YOLO11 and DAMO-YOLO across 
     	| l | 53.2 | 50.8 |
     	| x | 54.7 | N/A |
 
-
 ## Speed Comparison
 
 This section highlights the speed performance of Ultralytics YOLO11 versus DAMO-YOLO, measured in milliseconds across different model sizes. Faster inference times, such as those achieved by YOLO11 on [TensorRT](https://docs.ultralytics.com/integrations/tensorrt/), make it ideal for real-time applications, as demonstrated on datasets like [COCO](https://docs.ultralytics.com/datasets/detect/coco/).

@@ -26,7 +26,6 @@ mAP (Mean Average Precision) is a critical metric for evaluating the accuracy of
     	| l | 53.2 | 52.9 |
     	| x | 54.7 | 54.7 |
 
-
 ## Speed Comparison
 
 This section highlights the speed performance of Ultralytics YOLO11 and PP-YOLOE+ across different model sizes, measured in milliseconds. The comparison underscores the efficiency of YOLO11 for real-time applications, offering faster processing times while maintaining accuracy. Learn more about [YOLO11 capabilities](https://docs.ultralytics.com/models/yolo11/) and [PP-YOLOE+](https://github.com/PaddlePaddle/PaddleDetection).

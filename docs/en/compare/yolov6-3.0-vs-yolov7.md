@@ -26,7 +26,6 @@ This section highlights the mAP values of YOLOv6-3.0 and YOLOv7 across their res
     	| l | 52.8 | 51.4 |
     	| x | N/A | 53.1 |
 
-
 ## Speed Comparison
 
 This section highlights the speed performance of YOLOv6-3.0 and YOLOv7 across different model sizes, measured in milliseconds. The comparison underscores how advancements in architecture design and optimization impact latency, particularly for real-time applications. For more details on YOLOv7's efficiency, visit the [YOLOv7 documentation](https://docs.ultralytics.com/models/yolov7/).

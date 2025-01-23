@@ -33,7 +33,6 @@ This section highlights the accuracy of YOLOv10 and Ultralytics YOLO11 across va
     	| l | 53.3 | 53.2 |
     	| x | 54.4 | 54.7 |
 
-
 ## Speed Comparison
 
 This section highlights the speed performance of YOLOv10 and Ultralytics YOLO11 across various model sizes. Measured in milliseconds, these metrics showcase the efficiency of each model, emphasizing YOLO11's advancements in processing speed for real-time applications. Learn more about model benchmarks [here](https://docs.ultralytics.com/reference/utils/benchmarks/) and explore detailed insights on [Ultralytics YOLO11's capabilities](https://www.ultralytics.com/blog/all-you-need-to-know-about-ultralytics-yolo11-and-its-applications).

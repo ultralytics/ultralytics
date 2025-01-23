@@ -27,7 +27,6 @@ Mean Average Precision (mAP) is a critical metric that evaluates the accuracy of
     	| l | 53.4 | 53.3 |
     	| x | 54.3 | 54.4 |
 
-
 ## Speed Comparison
 
 This section examines the speed performance of RTDETRv2 and YOLOv10 across various model sizes, highlighting their inference latency in milliseconds. These metrics, measured on state-of-the-art hardware like GPUs, provide critical insights into deployment efficiency. Learn more about [benchmarking metrics](https://docs.ultralytics.com/modes/benchmark/) and [model profiling](https://docs.ultralytics.com/reference/utils/benchmarks/).

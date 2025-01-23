@@ -27,7 +27,6 @@ This section highlights the differences in mAP (mean Average Precision) values b
     	| l | 52.8 | 53.3 |
     	| x | N/A | 54.4 |
 
-
 ## Speed Comparison
 
 This section highlights the speed performance of YOLOv6-3.0 and YOLOv10 models across different sizes. Measured in milliseconds, these metrics showcase how Ultralytics YOLOv10 achieves superior efficiency with lower latency, providing faster inference times compared to YOLOv6-3.0. Learn more about YOLOv10's advancements [here](https://docs.ultralytics.com/models/yolov10/).

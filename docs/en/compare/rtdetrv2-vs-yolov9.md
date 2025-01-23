@@ -32,7 +32,6 @@ This section compares the accuracy of RTDETRv2 and YOLOv9 across various model v
     	| l | 53.4 | 52.8 |
     	| x | 54.3 | 55.1 |
 
-
 ## Speed Comparison
 
 This section highlights the speed metrics, measured in milliseconds, for RTDETRv2 and YOLOv9 across various model sizes. These comparisons showcase how both models perform in real-time scenarios, reflecting their efficiency on tasks such as [object detection](https://www.ultralytics.com/glossary/object-detection) and other computer vision applications. Explore more about YOLOv9's performance [here](https://docs.ultralytics.com/models/yolov9/).

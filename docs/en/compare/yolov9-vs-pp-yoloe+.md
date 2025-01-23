@@ -32,7 +32,6 @@ This section evaluates the performance of YOLOv9 and PP-YOLOE+ by comparing thei
     	| l | 52.8 | 52.9 |
     	| x | 55.1 | 54.7 |
 
-
 ## Speed Comparison
 
 This section highlights the speed performance of YOLOv9 and PP-YOLOE+ models across different sizes. Speed metrics, measured in milliseconds, showcase the efficiency of these models in real-time object detection tasks. For more details on YOLOv9's advancements, visit the [YOLOv9 documentation](https://docs.ultralytics.com/models/yolov9/).

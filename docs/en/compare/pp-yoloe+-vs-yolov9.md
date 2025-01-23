@@ -26,7 +26,6 @@ This section highlights the accuracy of PP-YOLOE+ and YOLOv9 across various mode
     	| l | 52.9 | 52.8 |
     	| x | 54.7 | 55.1 |
 
-
 ## Speed Comparison
 
 This section highlights the speed performance of PP-YOLOE+ and YOLOv9 models, measured in milliseconds across different sizes. These metrics provide valuable insights into their efficiency for real-time applications, with YOLOv9 showcasing advancements in computational optimization ([learn more](https://docs.ultralytics.com/models/yolov9/)).

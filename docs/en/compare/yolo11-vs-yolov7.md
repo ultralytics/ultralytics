@@ -26,7 +26,6 @@ This section compares the mean Average Precision (mAP) values of Ultralytics YOL
     	| l | 53.2 | 51.4 |
     	| x | 54.7 | 53.1 |
 
-
 ## Speed Comparison
 
 This section highlights the speed differences between Ultralytics YOLO11 and YOLOv7 across various model sizes, measured in milliseconds. The comparison reflects how both models excel in real-time performance, with YOLO11 offering faster inference speeds optimized for edge and cloud deployments. For more details, explore [Ultralytics YOLO11](https://docs.ultralytics.com/models/yolo11/) and [YOLOv7](https://docs.ultralytics.com/models/yolov7/).

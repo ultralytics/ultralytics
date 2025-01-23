@@ -26,7 +26,6 @@ Mean Average Precision (mAP) values are a vital metric for evaluating the detect
     	| l | 49.7 | 52.8 |
     	| x | 51.1 | N/A |
 
-
 ## Speed Comparison
 
 This section highlights the speed metrics of YOLOX and YOLOv6-3.0 models across various sizes, measured in milliseconds. These comparisons reflect the efficiency of each model in real-world scenarios, showcasing their performance under different configurations. For more details about YOLOv6-3.0, visit the [Ultralytics YOLOv6 documentation](https://docs.ultralytics.com/models/yolov6/).

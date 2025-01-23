@@ -32,7 +32,6 @@ This section highlights the mAP values achieved by Ultralytics YOLO11 and YOLOv8
     	| l | 53.2 | 52.9 |
     	| x | 54.7 | 53.9 |
 
-
 ## Speed Comparison
 
 This section highlights the speed metrics of Ultralytics YOLO11 and YOLOv8 across various model sizes, showcasing performance improvements in milliseconds per inference. With YOLO11 offering faster processing times, it is ideal for real-time applications, as shown in benchmarks like [TensorRT FP16](https://docs.ultralytics.com/integrations/tensorrt/) on NVIDIA GPUs. Explore the detailed performance of [Ultralytics YOLO models](https://docs.ultralytics.com/models/).

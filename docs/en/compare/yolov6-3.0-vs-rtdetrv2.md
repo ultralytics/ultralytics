@@ -26,7 +26,6 @@ This section highlights the mAP (Mean Average Precision) values of YOLOv6-3.0 an
     	| l | 52.8 | 53.4 |
     	| x | N/A | 54.3 |
 
-
 ## Speed Comparison
 
 This section highlights the performance differences between YOLOv6-3.0 and RTDETRv2, focusing on speed metrics measured in milliseconds. These metrics, evaluated across various input sizes, provide insights into the real-time capabilities of each model. For more, explore the [Ultralytics Benchmarks](https://docs.ultralytics.com/reference/utils/benchmarks/) and [RT-DETR details](https://docs.ultralytics.com/models/yolov10/).

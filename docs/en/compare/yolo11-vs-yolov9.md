@@ -26,7 +26,6 @@ This section highlights the mAP performance of Ultralytics YOLO11 and YOLOv9 acr
     	| l | 53.2 | 52.8 |
     	| x | 54.7 | 55.1 |
 
-
 ## Speed Comparison
 
 This section highlights the speed performance of Ultralytics YOLO11 versus YOLOv9 across various model sizes, showcasing inference time in milliseconds. These metrics underscore the efficiency improvements of YOLO11, making it ideal for real-time applications. Learn more about [Ultralytics YOLO11](https://docs.ultralytics.com/models/yolo11/) and its advancements.

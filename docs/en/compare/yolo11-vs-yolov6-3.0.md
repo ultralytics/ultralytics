@@ -26,7 +26,6 @@ The mAP values highlight the accuracy of Ultralytics YOLO11 and YOLOv6-3.0 acros
     	| l | 53.2 | 52.8 |
     	| x | 54.7 | N/A |
 
-
 ## Speed Comparison
 
 This section highlights the speed metrics of Ultralytics YOLO11 versus YOLOv6-3.0 across different model sizes. With latency measured in milliseconds, the comparison showcases how YOLO11 consistently delivers faster inference times, making it ideal for real-time applications. For further insights, explore [Ultralytics YOLO11](https://www.ultralytics.com/blog/ultralytics-yolo11-has-arrived-redefine-whats-possible-in-ai) advancements and [YOLOv6 benchmarks](https://docs.ultralytics.com/reference/utils/benchmarks/).

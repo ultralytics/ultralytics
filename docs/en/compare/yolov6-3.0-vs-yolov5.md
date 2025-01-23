@@ -26,7 +26,6 @@ This section highlights the mAP values of YOLOv6-3.0 and Ultralytics YOLOv5, sho
     	| l | 52.8 | 49.0 |
     	| x | N/A | 50.7 |
 
-
 ## Speed Comparison
 
 This section highlights the speed performance of YOLOv6-3.0 and Ultralytics YOLOv5 across multiple sizes. Speed metrics, measured in milliseconds, provide insight into the inference efficiency of these models, enabling a direct comparison of their real-time application capabilities. For more details on model profiling, visit the [Ultralytics Benchmarks page](https://docs.ultralytics.com/reference/utils/benchmarks/).

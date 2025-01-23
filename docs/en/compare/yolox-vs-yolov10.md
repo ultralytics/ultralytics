@@ -33,7 +33,6 @@ This section highlights the mAP values of YOLOX and YOLOv10 across their variant
     	| l | 49.7 | 53.3 |
     	| x | 51.1 | 54.4 |
 
-
 ## Speed Comparison
 
 This section highlights the speed performance of YOLOX and YOLOv10 across various model sizes, measured in milliseconds. The comparison emphasizes how advancements in YOLOv10 deliver improved latency and efficiency, particularly in real-time applications. For further insights, explore [YOLOv10 architecture details](https://docs.ultralytics.com/models/yolov10/) or learn more about [benchmarking methods](https://docs.ultralytics.com/reference/utils/benchmarks/).

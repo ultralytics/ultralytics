@@ -26,7 +26,6 @@ The mAP values illustrate the accuracy of DAMO-YOLO and PP-YOLOE+ models across 
     	| l | 50.8 | 52.9 |
     	| x | N/A | 54.7 |
 
-
 ## Speed Comparison
 
 This section highlights the speed performance of DAMO-YOLO and PP-YOLOE+ across various model sizes, measured in milliseconds. These metrics provide a clear understanding of how each model balances speed and efficiency under real-world conditions. Explore more about [YOLO models](https://docs.ultralytics.com/models/yolov7/) and their benchmarks.

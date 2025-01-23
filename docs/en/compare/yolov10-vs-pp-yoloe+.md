@@ -27,7 +27,6 @@ The mAP values illustrate the accuracy of YOLOv10 and PP-YOLOE+ across different
     	| l | 53.3 | 52.9 |
     	| x | 54.4 | 54.7 |
 
-
 ## Speed Comparison
 
 This section analyzes the speed metrics of YOLOv10 and PP-YOLOE+ across various model sizes. Measured in milliseconds, these metrics highlight the efficiency of each model, offering insights into their real-world deployment performance. For more details, explore the [Ultralytics YOLOv10 documentation](https://docs.ultralytics.com/models/yolov10/) or learn about [benchmarking techniques](https://docs.ultralytics.com/reference/utils/benchmarks/).

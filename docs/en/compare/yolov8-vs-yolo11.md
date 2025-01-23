@@ -26,7 +26,6 @@ This section highlights the differences in mean Average Precision (mAP) between 
     	| l | 52.9 | 53.2 |
     	| x | 53.9 | 54.7 |
 
-
 ## Speed Comparison
 
 The speed comparison highlights the performance of Ultralytics YOLOv8 and YOLO11 across various model sizes, with inference times measured in milliseconds. Ultralytics YOLO11 demonstrates faster processing speeds, optimized for real-time applications, making it a superior choice for latency-sensitive tasks. Explore more about [YOLO11's advancements](https://www.ultralytics.com/blog/all-you-need-to-know-about-ultralytics-yolo11-and-its-applications) and [YOLOv8's capabilities](https://docs.ultralytics.com/models/yolov8/).

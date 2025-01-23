@@ -26,7 +26,6 @@ This section evaluates the accuracy of PP-YOLOE+ versus RTDETRv2 across their va
     	| l | 52.9 | 53.4 |
     	| x | 54.7 | 54.3 |
 
-
 ## Speed Comparison
 
 This section highlights the speed metrics of PP-YOLOE+ and RTDETRv2 models, measured in milliseconds. These metrics reflect their performance efficiency across various model sizes, providing insights into their suitability for real-time applications. For more information, explore [Ultralytics YOLO Docs](https://docs.ultralytics.com/models/yolov10/) and [benchmarking details](https://docs.ultralytics.com/modes/benchmark/).

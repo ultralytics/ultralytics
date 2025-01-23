@@ -26,7 +26,6 @@ This section evaluates the mAP values of YOLOX and Ultralytics YOLO11, highlight
     	| l | 49.7 | 53.2 |
     	| x | 51.1 | 54.7 |
 
-
 ## Speed Comparison
 
 This section highlights the speed performance of YOLOX and Ultralytics YOLO11 across various model sizes. With metrics measured in milliseconds, it emphasizes the efficiency gains achieved by YOLO11, making it ideal for real-time applications. Learn more about [Ultralytics YOLO11](https://docs.ultralytics.com/models/yolo11/) and its speed benchmarking results.

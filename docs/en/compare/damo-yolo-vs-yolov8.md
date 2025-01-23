@@ -26,7 +26,6 @@ This section evaluates the mAP values of DAMO-YOLO and Ultralytics YOLOv8, showc
     	| l | 50.8 | 52.9 |
     	| x | N/A | 53.9 |
 
-
 ## Speed Comparison
 
 <<<<<<< HEAD

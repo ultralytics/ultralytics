@@ -26,7 +26,6 @@ Mean Average Precision (mAP) evaluates the performance of object detection model
     	| l | 52.8 | 52.9 |
     	| x | 55.1 | 53.9 |
 
-
 ## Speed Comparison
 
 Compare the inference speeds of YOLOv9 and Ultralytics YOLOv8 across various model sizes, measured in milliseconds. These speed metrics highlight the efficiency and suitability of each model for real-time [object detection tasks](https://docs.ultralytics.com/tasks/detect/). For further insights into YOLOv8's performance, visit the [YOLOv8 documentation](https://docs.ultralytics.com/models/yolov8/).

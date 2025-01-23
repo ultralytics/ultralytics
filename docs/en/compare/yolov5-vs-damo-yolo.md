@@ -26,7 +26,6 @@ The mAP values provide a comprehensive measure of model accuracy by evaluating p
     	| l | 49.0 | 50.8 |
     	| x | 50.7 | N/A |
 
-
 ## Speed Comparison
 
 The speed comparison highlights the inference times in milliseconds for Ultralytics YOLOv5 and DAMO-YOLO across model sizes. These metrics showcase how efficiently each model processes data, emphasizing performance differences critical for real-time applications. Learn more about [YOLOv5 architecture](https://docs.ultralytics.com/yolov5/tutorials/architecture_description/) and [benchmarking tools](https://docs.ultralytics.com/reference/utils/benchmarks/) used for these evaluations.

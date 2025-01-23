@@ -27,7 +27,6 @@ This section compares the mAP (Mean Average Precision) values of YOLOv10 and YOL
     	| l | 53.3 | 49.7 |
     	| x | 54.4 | 51.1 |
 
-
 ## Speed Comparison
 
 This section highlights the speed metrics of YOLOv10 and YOLOX across various model sizes, measured in milliseconds. These benchmarks demonstrate the real-time performance capabilities of each model, providing insights into their efficiency for different deployment scenarios. Learn more about [Ultralytics YOLO models](https://docs.ultralytics.com/models/) and explore their [benchmarking results](https://docs.ultralytics.com/modes/benchmark/).

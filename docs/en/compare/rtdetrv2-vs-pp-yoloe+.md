@@ -26,7 +26,6 @@ This section highlights the mAP values of RTDETRv2 and PP-YOLOE+ models, showcas
     	| l | 53.4 | 52.9 |
     	| x | 54.3 | 54.7 |
 
-
 ## Speed Comparison
 
 This section highlights the performance differences between RTDETRv2 and PP-YOLOE+ in terms of speed metrics (measured in milliseconds) across various model sizes. These comparisons provide insights into the efficiency of each model, aiding in selecting the best option for real-time applications. Explore more details on [PP-YOLOE+ models here](https://github.com/PaddlePaddle/PaddleDetection).

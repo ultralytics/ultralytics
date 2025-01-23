@@ -27,7 +27,6 @@ This section evaluates the mAP, a critical metric reflecting the accuracy of obj
     	| l | 52.9 | 53.3 |
     	| x | 54.7 | 54.4 |
 
-
 ## Speed Comparison
 
 This section highlights the speed metrics in milliseconds for PP-YOLOE+ and YOLOv10 models across various sizes, showcasing their performance efficiency. These comparisons, measured with consistent hardware setups like TensorRT on T4 GPUs, provide valuable insights for real-time applications. Learn more about [YOLOv10](https://docs.ultralytics.com/models/yolov10/) and [PP-YOLOE+](https://github.com/PaddlePaddle/PaddleDetection).

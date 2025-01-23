@@ -27,7 +27,6 @@ This section compares the mAP values of YOLOv10 and RTDETRv2, showcasing their a
     	| l | 53.3 | 53.4 |
     	| x | 54.4 | 54.3 |
 
-
 ## Speed Comparison
 
 This section highlights the speed performance of YOLOv10 and RTDETRv2 across various sizes, measured in milliseconds. Leveraging TensorRT FP16 inference, YOLOv10 demonstrates lower latency and better efficiency, making it a compelling choice for real-time applications. For detailed benchmarks, explore [Ultralytics YOLOv10 documentation](https://docs.ultralytics.com/models/yolov10/).

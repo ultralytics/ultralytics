@@ -26,7 +26,6 @@ This section highlights the mAP performance of Ultralytics YOLO11 compared to Ul
     	| l | 53.2 | 49.0 |
     	| x | 54.7 | 50.7 |
 
-
 ## Speed Comparison
 
 Ultralytics YOLO11 demonstrates faster inference times compared to YOLOv5 across various model sizes, reflecting its optimized architecture for real-time applications. For example, [YOLO11n](https://docs.ultralytics.com/models/yolo11/) achieves a speed of 1.5 ms on TensorRT10 with a T4 GPU, outperforming YOLOv5-N's 4.5 ms. Explore more on [YOLO11 performance](https://www.ultralytics.com/blog/ultralytics-yolo11-has-arrived-redefine-whats-possible-in-ai).

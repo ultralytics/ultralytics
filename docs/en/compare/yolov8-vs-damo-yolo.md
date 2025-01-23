@@ -26,7 +26,6 @@ This section highlights the mAP values of Ultralytics YOLOv8 and DAMO-YOLO acros
     	| l | 52.9 | 50.8 |
     	| x | 53.9 | N/A |
 
-
 ## Speed Comparison
 
 This section highlights the speed performance of Ultralytics YOLOv8 and DAMO-YOLO across various model sizes, measured in milliseconds per image. These metrics underscore the efficiency of each model, offering insights into their real-world applicability for tasks requiring rapid inference. Explore more about [Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8/) and its advancements in speed optimization.

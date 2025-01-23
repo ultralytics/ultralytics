@@ -26,7 +26,6 @@ This section highlights the mAP values of YOLOX and Ultralytics YOLOv8, showcasi
     	| l | 49.7 | 52.9 |
     	| x | 51.1 | 53.9 |
 
-
 ## Speed Comparison
 
 This section highlights the performance of YOLOX and Ultralytics YOLOv8 across various model sizes, emphasizing speed metrics measured in milliseconds. These comparisons provide critical insights into the real-time capabilities of each model, suitable for applications requiring fast and efficient object detection. For more details on YOLOv8's speed and accuracy, visit the [Ultralytics YOLOv8 documentation](https://docs.ultralytics.com/models/yolov10/).

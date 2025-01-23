@@ -33,7 +33,6 @@ The mAP values showcase the accuracy of Ultralytics YOLO11 and YOLOv10 across va
     	| l | 53.2 | 53.3 |
     	| x | 54.7 | 54.4 |
 
-
 ## Speed Comparison
 
 Compare the performance of Ultralytics YOLO11 and YOLOv10 through detailed speed metrics measured in milliseconds. These results, benchmarked across various model sizes, highlight the efficiency improvements of YOLO11 for real-time applications. Learn more about [Ultralytics YOLO11](https://docs.ultralytics.com/models/yolo11/) and [YOLOv10](https://docs.ultralytics.com/models/yolov10/) in our comprehensive documentation.

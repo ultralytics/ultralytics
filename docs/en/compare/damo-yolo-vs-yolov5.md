@@ -26,7 +26,6 @@ This section evaluates the Mean Average Precision (mAP) scores of DAMO-YOLO vers
     	| l | 50.8 | 49.0 |
     	| x | N/A | 50.7 |
 
-
 ## Speed Comparison
 
 This section highlights the speed performance of DAMO-YOLO and Ultralytics YOLOv5 across various model sizes, measured in milliseconds. It offers insights into how these models balance inference speed and efficiency, aiding in selecting the best option for deployment. Learn more about [model benchmarking](https://docs.ultralytics.com/modes/benchmark/) to optimize performance.

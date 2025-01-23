@@ -26,7 +26,6 @@ This section evaluates the mAP values of Ultralytics YOLOv8 and YOLOv5, providin
     	| l | 52.9 | 49.0 |
     	| x | 53.9 | 50.7 |
 
-
 ## Speed Comparison
 
 Compare the performance of Ultralytics YOLOv8 and YOLOv5 across various model sizes, focusing on speed metrics in milliseconds. These measurements highlight the advancements in real-time object detection capabilities, as seen in Ultralytics' [YOLO documentation](https://docs.ultralytics.com/models/yolov8/).

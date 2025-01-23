@@ -26,7 +26,6 @@ This section highlights the mAP performance of YOLOX and YOLOv9 across their res
     	| l | 49.7 | 52.8 |
     	| x | 51.1 | 55.1 |
 
-
 ## Speed Comparison
 
 This section highlights the speed metrics of YOLOX and YOLOv9 models, measured in milliseconds across different sizes. These metrics provide valuable insights into the real-time performance and efficiency of both models, helping to identify the best fit for various applications. For more on YOLOv9, visit the [Ultralytics YOLOv9 documentation](https://docs.ultralytics.com/models/yolov9/).

@@ -26,7 +26,6 @@ This section highlights the mAP values of YOLOv7 versus Ultralytics YOLO11, show
     	| l | 51.4 | 53.2 |
     	| x | 53.1 | 54.7 |
 
-
 ## Speed Comparison
 
 This section highlights the speed performance of YOLOv7 and Ultralytics YOLO11 across various model sizes, showcasing latency metrics in milliseconds. With Ultralytics YOLO11 optimized for faster inference, it excels in real-time applications like [object detection](https://docs.ultralytics.com/tasks/detect/) and [edge deployments](https://docs.ultralytics.com/guides/model-deployment-options/).

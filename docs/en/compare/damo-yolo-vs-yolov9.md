@@ -26,7 +26,6 @@ This section compares the mAP values of DAMO-YOLO and YOLOv9 across their respec
     	| l | 50.8 | 52.8 |
     	| x | N/A | 55.1 |
 
-
 ## Speed Comparison
 
 This section highlights the speed metrics, measured in milliseconds, of DAMO-YOLO and YOLOv9 models across various sizes, showcasing their efficiency in real-time applications. These comparisons underline the performance trade-offs between the models, helping users make informed choices for their specific use cases. For more insights into YOLOv9's advancements, explore the [Ultralytics YOLOv9 documentation](https://docs.ultralytics.com/models/yolov9/).

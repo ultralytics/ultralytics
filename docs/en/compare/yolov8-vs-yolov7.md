@@ -26,7 +26,6 @@ This section highlights the mAP values to compare the accuracy of Ultralytics YO
     	| l | 52.9 | 51.4 |
     	| x | 53.9 | 53.1 |
 
-
 ## Speed Comparison
 
 <<<<<<< HEAD

@@ -26,7 +26,6 @@ This section evaluates the performance of YOLOv9 and Ultralytics YOLOv5 models u
     	| l | 52.8 | 49.0 |
     	| x | 55.1 | 50.7 |
 
-
 ## Speed Comparison
 
 This section highlights the speed performance of YOLOv9 and Ultralytics YOLOv5 across various model sizes, measured in milliseconds. By comparing inference times, it provides insights into their efficiency for real-time applications, leveraging advancements in [TensorRT optimization](https://docs.ultralytics.com/reference/utils/benchmarks/) and lightweight design.

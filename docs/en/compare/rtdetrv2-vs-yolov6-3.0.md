@@ -26,7 +26,6 @@ This section evaluates the accuracy of RTDETRv2 and YOLOv6-3.0 models by compari
     	| l | 53.4 | 52.8 |
     	| x | 54.3 | N/A |
 
-
 ## Speed Comparison
 
 This section highlights the speed performance of RTDETRv2 and YOLOv6-3.0 across various model sizes. Measured in milliseconds, these metrics provide critical insights into the inference efficiency of both models, particularly on hardware-optimized platforms like TensorRT. Learn more about benchmarking techniques [here](https://docs.ultralytics.com/reference/utils/benchmarks/).

@@ -26,7 +26,6 @@ This section highlights the mAP values of Ultralytics YOLO11 versus YOLOX, offer
     	| l | 53.2 | 49.7 |
     	| x | 54.7 | 51.1 |
 
-
 ## Speed Comparison
 
 This section highlights the speed performance of Ultralytics YOLO11 versus YOLOX models across various sizes, measured in milliseconds. With optimizations for real-time applications, YOLO11 demonstrates lower latency and faster inference speeds, ideal for tasks requiring efficiency and precision. Learn more about [YOLO11 advancements](https://www.ultralytics.com/blog/ultralytics-yolo11-has-arrived-redefine-whats-possible-in-ai) and [YOLOX models](https://docs.ultralytics.com/models/).

@@ -26,7 +26,6 @@ This section compares the mAP values of YOLOv6-3.0 and Ultralytics YOLOv8, showc
     	| l | 52.8 | 52.9 |
     	| x | N/A | 53.9 |
 
-
 ## Speed Comparison
 
 This section highlights the speed performance of YOLOv6-3.0 and Ultralytics YOLOv8 across various model sizes. Speed metrics in milliseconds provide a clear benchmark, showcasing each model's efficiency in real-time applications. Learn more about [YOLOv8's capabilities](https://docs.ultralytics.com/models/yolov10/) and its performance edge in [object detection](https://docs.ultralytics.com/tasks/detect/).

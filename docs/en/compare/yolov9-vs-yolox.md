@@ -26,7 +26,6 @@ This section compares the mAP values of YOLOv9 and YOLOX, showcasing their accur
     	| l | 52.8 | 49.7 |
     	| x | 55.1 | 51.1 |
 
-
 ## Speed Comparison
 
 This section highlights the speed metrics of YOLOv9 versus YOLOX across various model sizes, measured in milliseconds. These comparisons demonstrate the efficiency of each model in real-time applications, enabling users to make informed decisions about performance trade-offs. Learn more about YOLOX [here](https://github.com/Megvii-BaseDetection/YOLOX) and YOLOv9 advancements [here](https://docs.ultralytics.com/models/yolov10/).

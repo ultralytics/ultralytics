@@ -26,7 +26,6 @@ This section compares the mAP (Mean Average Precision) values of Ultralytics YOL
     	| l | 52.9 | 53.4 |
     	| x | 53.9 | 54.3 |
 
-
 ## Speed Comparison
 
 This section highlights the speed metrics of Ultralytics YOLOv8 and RTDETRv2 across different model sizes, measured in milliseconds. These comparisons demonstrate the efficiency of each model in terms of latency, providing valuable insights into real-world performance. For more details on YOLOv8 performance, visit the [Ultralytics YOLOv8 documentation](https://docs.ultralytics.com/models/yolov8/).

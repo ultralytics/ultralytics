@@ -26,7 +26,6 @@ Compare the mean Average Precision (mAP) values of DAMO-YOLO and YOLOv7 to evalu
     	| l | 50.8 | 51.4 |
     	| x | N/A | 53.1 |
 
-
 ## Speed Comparison
 
 This section evaluates the speed metrics of DAMO-YOLO and YOLOv7 models across various sizes, highlighting their performance in milliseconds per image. Speed comparisons like these are crucial for assessing real-time applicability in tasks such as object detection and tracking. For more details on YOLOv7's benchmark results, visit [Ultralytics YOLOv7 Documentation](https://docs.ultralytics.com/models/yolov7/).

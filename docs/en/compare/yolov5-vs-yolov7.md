@@ -25,7 +25,6 @@ This section compares the mAP values of Ultralytics YOLOv5 and YOLOv7, showcasin
     	| l | 49.0 | 51.4 |
     	| x | 50.7 | 53.1 |
 
-
 ## Speed Comparison
 
 The speed comparison highlights the performance of Ultralytics YOLOv5 and YOLOv7 in terms of inference time, measured in milliseconds across various model sizes. This metric is crucial for applications requiring real-time object detection, showcasing the models' efficiency on different hardware configurations. For details on YOLOv7 innovations, refer to the [YOLOv7 GitHub repository](https://github.com/WongKinYiu/yolov7) or explore the [Ultralytics YOLOv5 documentation](https://docs.ultralytics.com/models/yolov5/).

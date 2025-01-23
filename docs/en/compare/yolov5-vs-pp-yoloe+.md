@@ -26,7 +26,6 @@ This section highlights the mAP values of Ultralytics YOLOv5 versus PP-YOLOE+, d
     	| l | 49.0 | 52.9 |
     	| x | 50.7 | 54.7 |
 
-
 ## Speed Comparison
 
 This section highlights the speed metrics of Ultralytics YOLOv5 and PP-YOLOE+ models, measured in milliseconds, across various sizes. These comparisons provide insights into performance efficiency, helping users evaluate real-time applications. Learn more about [Ultralytics YOLOv5](https://docs.ultralytics.com/models/yolov5/) and [PP-YOLOE+](https://github.com/PaddlePaddle/PaddleDetection).

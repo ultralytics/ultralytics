@@ -26,7 +26,6 @@ This section highlights the mAP (mean Average Precision) values for YOLOv9 and U
     	| l | 52.8 | 53.2 |
     	| x | 55.1 | 54.7 |
 
-
 ## Speed Comparison
 
 This section highlights the speed performance of YOLOv9 and Ultralytics YOLO11 models across various sizes, measured in milliseconds. YOLO11 demonstrates faster inference times, making it ideal for real-time applications, as shown in benchmarks like [COCO](https://docs.ultralytics.com/datasets/detect/coco/). Explore the [YOLO11 documentation](https://docs.ultralytics.com/models/yolo11/) for more details on its optimized efficiency.

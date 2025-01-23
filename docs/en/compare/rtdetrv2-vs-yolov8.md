@@ -26,7 +26,6 @@ This section compares the mAP values of RTDETRv2 and Ultralytics YOLOv8 across v
     	| l | 53.4 | 52.9 |
     	| x | 54.3 | 53.9 |
 
-
 ## Speed Comparison
 
 This section highlights the speed performance of RT-DETRv2 and Ultralytics YOLOv8 models across various sizes, measured in milliseconds. These metrics provide insights into their efficiency in real-time applications, making them ideal for tasks demanding fast inference speeds. Learn more about [Ultralytics YOLO models](https://github.com/ultralytics/ultralytics) and their advancements in object detection.

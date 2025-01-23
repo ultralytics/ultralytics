@@ -25,7 +25,6 @@ This section highlights the mAP values of YOLOX and RTDETRv2, showcasing their a
     	| l | 49.7 | 53.4 |
     	| x | 51.1 | 54.3 |
 
-
 ## Speed Comparison
 
 Explore how YOLOX and RTDETRv2 compare in terms of speed, measured in milliseconds, across various model sizes. These metrics highlight the efficiency of each model for tasks requiring rapid inference, making them crucial for real-time applications. Learn more about [YOLOX models](https://github.com/Megvii-BaseDetection/YOLOX) and [RTDETRv2](https://docs.ultralytics.com/modes/benchmark/).

@@ -26,7 +26,6 @@ This section examines the mAP values of PP-YOLOE+ and YOLOv7, essential metrics 
     	| l | 52.9 | 51.4 |
     	| x | 54.7 | 53.1 |
 
-
 ## Speed Comparison
 
 This section highlights the speed differences between PP-YOLOE+ and YOLOv7 across various model sizes, measured in milliseconds. These metrics demonstrate the efficiency of each model in real-time object detection scenarios. For more details on YOLOv7 performance, refer to the [YOLOv7 documentation](https://docs.ultralytics.com/models/yolov7/).

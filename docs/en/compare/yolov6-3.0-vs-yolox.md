@@ -26,7 +26,6 @@ This section highlights the mAP values for YOLOv6-3.0 and YOLOX across their var
     	| l | 52.8 | 49.7 |
     	| x | N/A | 51.1 |
 
-
 ## Speed Comparison
 
 This section highlights the speed differences between YOLOv6-3.0 and YOLOX models, measured in milliseconds across various sizes. These metrics provide critical insights into the efficiency and responsiveness of the models under real-world conditions. For more details, explore the [YOLOv6 documentation](https://docs.ultralytics.com/models/yolov6/) or the [YOLOX project](https://github.com/Megvii-BaseDetection/YOLOX).

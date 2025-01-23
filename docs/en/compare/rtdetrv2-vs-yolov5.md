@@ -25,7 +25,6 @@ This section highlights the mAP values of RTDETRv2 and Ultralytics YOLOv5 models
     	| l | 53.4 | 49.0 |
     	| x | 54.3 | 50.7 |
 
-
 ## Speed Comparison
 
 This section evaluates the speed metrics of RTDETRv2 and Ultralytics YOLOv5 models across various sizes, measured in milliseconds. These speed benchmarks, such as those available in [Ultralytics YOLO Docs](https://docs.ultralytics.com/models/yolov5/), highlight the efficiency of each model for real-time applications, offering insights into their performance on modern hardware.

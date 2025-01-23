@@ -27,7 +27,6 @@ This section highlights the mAP values to benchmark the accuracy of YOLOv10 and 
     	| l | 53.3 | 50.8 |
     	| x | 54.4 | N/A |
 
-
 ## Speed Comparison
 
 This section evaluates the speed performance of YOLOv10 and DAMO-YOLO models across various sizes, emphasizing their inference times measured in milliseconds. These metrics highlight the efficiency of each model, enabling users to identify the right balance between speed and accuracy for their applications. For more details on YOLOv10's efficiency, visit the [YOLOv10 documentation](https://docs.ultralytics.com/models/yolov10/).

@@ -26,7 +26,6 @@ This section compares the mAP values of PP-YOLOE+ and YOLOX, highlighting their 
     	| l | 52.9 | 49.7 |
     	| x | 54.7 | 51.1 |
 
-
 ## Speed Comparison
 
 This section highlights the speed performance of PP-YOLOE+ and YOLOX models across various sizes, measured in milliseconds. These metrics provide valuable insights into their real-time capabilities and efficiency, aiding in applications where speed is critical. For more details on YOLOX, visit [YOLOX GitHub repository](https://github.com/Megvii-BaseDetection/YOLOX), or explore PP-YOLOE+ on [PaddleDetection](https://github.com/PaddlePaddle/PaddleDetection).

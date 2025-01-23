@@ -26,7 +26,6 @@ This section highlights the mAP (Mean Average Precision) performance of YOLOX an
     	| l | 49.7 | 50.8 |
     	| x | 51.1 | N/A |
 
-
 ## Speed Comparison
 
 This section highlights the speed performance of YOLOX and DAMO-YOLO models across various sizes, measured in milliseconds. Speed metrics provide critical insights into their efficiency and suitability for real-time applications. For more on YOLO variants, visit the [Ultralytics YOLO Docs](https://docs.ultralytics.com/models/yolov7/).

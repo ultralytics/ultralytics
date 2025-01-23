@@ -26,7 +26,6 @@ This section highlights the mAP values of YOLOv9 and YOLOv6-3.0, showcasing thei
     	| l | 52.8 | 52.8 |
     	| x | 55.1 | N/A |
 
-
 ## Speed Comparison
 
 This section highlights the speed differences between YOLOv9 and YOLOv6-3.0 models across various sizes, measured in milliseconds. These metrics, tested on advanced frameworks like TensorRT, underscore the efficiency of each model in real-time object detection scenarios. For more on YOLO versions, visit the [Ultralytics YOLOv9 documentation](https://docs.ultralytics.com/models/yolov9/).

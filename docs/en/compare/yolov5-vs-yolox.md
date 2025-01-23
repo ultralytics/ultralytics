@@ -25,7 +25,6 @@ Mean Average Precision (mAP) evaluates the accuracy of object detection models b
     	| l | 49.0 | 49.7 |
     	| x | 50.7 | 51.1 |
 
-
 ## Speed Comparison
 
 This section highlights the speed metrics of Ultralytics YOLOv5 and YOLOX models, measured in milliseconds, to showcase their performance across various sizes. These metrics provide valuable insights for selecting the optimal model for real-time applications. Learn more about [YOLOv5](https://docs.ultralytics.com/models/yolov5/) and [YOLOX](https://github.com/Megvii-BaseDetection/YOLOX).

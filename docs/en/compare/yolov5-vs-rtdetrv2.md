@@ -25,7 +25,6 @@ This section highlights the mAP values of Ultralytics YOLOv5 and RT-DETRv2 model
     	| l | 49.0 | 53.4 |
     	| x | 50.7 | 54.3 |
 
-
 ## Speed Comparison
 
 This section highlights the latency differences between Ultralytics YOLOv5 and RTDETRv2, showcasing their performance across various model sizes. Speed metrics in milliseconds, measured under consistent conditions, reveal the efficiency of these models in real-world scenarios. Learn more about [YOLOv5 performance](https://github.com/ultralytics/yolov5) for detailed insights.

@@ -26,7 +26,6 @@ This section compares the mAP values of YOLOv7 and YOLOv9, showcasing their accu
     	| l | 51.4 | 52.8 |
     	| x | 53.1 | 55.1 |
 
-
 ## Speed Comparison
 
 This section highlights the speed performance of YOLOv7 and YOLOv9 across various model sizes. Measured in milliseconds, these metrics showcase the efficiency of each model, offering insights into their suitability for real-time applications. Explore more about YOLOv9's advancements in [performance and efficiency](https://docs.ultralytics.com/models/yolov9/).

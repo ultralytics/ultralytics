@@ -26,7 +26,6 @@ This section highlights the mAP values for DAMO-YOLO and YOLOX, showcasing their
     	| l | 50.8 | 49.7 |
     	| x | N/A | 51.1 |
 
-
 ## Speed Comparison
 
 This section highlights the speed performance of DAMO-YOLO and YOLOX models by comparing their inference times in milliseconds across different sizes. These metrics are crucial for understanding their efficiency in real-world deployment scenarios. Learn more about YOLOX's performance on [Ultralytics YOLO Docs](https://docs.ultralytics.com/models/yolov7/).

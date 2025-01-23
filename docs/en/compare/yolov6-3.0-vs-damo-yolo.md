@@ -31,7 +31,6 @@ This section highlights the mAP (mean average precision) values for YOLOv6-3.0 a
     	| m | 50.0 | 49.2 |
     	| l | 52.8 | 50.8 |
 
-
 ## Speed Comparison
 
 This section evaluates the speed performance of YOLOv6-3.0 and DAMO-YOLO across various model sizes, with latency measured in milliseconds. Speed metrics provide a clear benchmark for real-time applications, highlighting the efficiency differences between these models. For more details, visit the [Ultralytics Benchmarks](https://docs.ultralytics.com/reference/utils/benchmarks/).

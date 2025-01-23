@@ -27,7 +27,6 @@ This section compares DAMO-YOLO and YOLOv10 models based on their mAP values, a 
     	| l | 50.8 | 53.3 |
     	| x | N/A | 54.4 |
 
-
 ## Speed Comparison
 
 The Speed Comparison highlights the performance differences between DAMO-YOLO and YOLOv10 across various model sizes, measured in milliseconds per inference. These metrics demonstrate each model's efficiency and suitability for real-time applications, such as edge device deployment and cloud-based AI systems. Learn more about [Ultralytics YOLOv10's performance](https://docs.ultralytics.com/models/yolov10/) and its innovations in the YOLO series.

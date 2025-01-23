@@ -26,7 +26,6 @@ This section highlights the performance differences between YOLOv9 and RTDETRv2 
     	| l | 52.8 | 53.4 |
     	| x | 55.1 | 54.3 |
 
-
 ## Speed Comparison
 
 This section highlights the speed performance of YOLOv9 and RTDETRv2 across various sizes, assessed in milliseconds. These metrics, tested with formats like TensorRT, provide valuable insights into their real-world efficiency on tasks such as object detection. Learn more about [benchmarking models](https://docs.ultralytics.com/modes/benchmark/) for detailed comparisons.

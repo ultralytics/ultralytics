@@ -25,7 +25,6 @@ The mAP (Mean Average Precision) metric evaluates the accuracy of object detecti
     	| m | 49.2 | 50.0 |
     	| l | 50.8 | 52.8 |
 
-
 ## Speed Comparison
 
 This section highlights the speed metrics of DAMO-YOLO and YOLOv6-3.0 models, measured in milliseconds, to reflect their performance across various sizes. Analyzing these metrics provides insights into the efficiency and suitability of each model for real-time applications. For more details on YOLOv6-3.0, visit the [official benchmarks page](https://docs.ultralytics.com/reference/utils/benchmarks/).

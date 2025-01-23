@@ -28,7 +28,6 @@ This section compares the mAP values of YOLOv7 and PP-YOLOE+ across various mode
     	| l | 51.4 | 52.9 |
     	| x | 53.1 | 54.7 |
 
-
 ## Speed Comparison
 
 This section highlights the speed metrics of YOLOv7 and PP-YOLOE+ models, emphasizing their performance across various sizes in milliseconds. YOLOv7's optimized architecture showcases significant speed advantages, while PP-YOLOE+ provides competitive results in specific scenarios. For further details, visit [YOLOv7 documentation](https://docs.ultralytics.com/models/yolov7/) or explore [PP-YOLOE](https://github.com/PaddlePaddle/PaddleDetection).

@@ -26,7 +26,6 @@ The mAP (Mean Average Precision) metric provides a comprehensive measure of mode
     	| l | 49.0 | 52.8 |
     	| x | 50.7 | N/A |
 
-
 ## Speed Comparison
 
 This section highlights the speed performance of Ultralytics YOLOv5 compared to YOLOv6-3.0 across various model sizes. Speed metrics in milliseconds provide a clear measure of efficiency, offering insights into latency reductions and processing capabilities. Discover more about [Ultralytics YOLOv5](https://docs.ultralytics.com/models/yolov5/) and [YOLOv6](https://docs.ultralytics.com/models/yolov6/) for detailed specifications.

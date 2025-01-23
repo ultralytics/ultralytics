@@ -25,7 +25,6 @@ This section examines the mAP values of YOLOv7 and RTDETRv2, showcasing their ac
     	| l | 51.4 | 53.4 |
     	| x | 53.1 | 54.3 |
 
-
 ## Speed Comparison
 
 This section analyzes the speed performance of YOLOv7 and RT-DETRv2 models across various sizes, with latency metrics presented in milliseconds. These metrics highlight efficiency differences, crucial for selecting the optimal model for real-time applications. For more details, refer to the [YOLOv7 documentation](https://docs.ultralytics.com/models/yolov7/) or explore [benchmark profiling](https://docs.ultralytics.com/reference/utils/benchmarks/).

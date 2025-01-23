@@ -26,7 +26,6 @@ Mean Average Precision (mAP) is a critical metric used to evaluate the accuracy 
     	| l | 49.0 | 52.9 |
     	| x | 50.7 | 53.9 |
 
-
 ## Speed Comparison
 
 This section highlights the speed performance of Ultralytics YOLOv5 and YOLOv8 models across various sizes, measured in milliseconds. YOLOv8 demonstrates significant advancements in efficiency while maintaining its state-of-the-art detection capabilities, as detailed in the [YOLOv8 documentation](https://docs.ultralytics.com/models/yolov8/).

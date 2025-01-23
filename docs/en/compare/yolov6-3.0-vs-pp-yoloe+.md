@@ -26,7 +26,6 @@ This section evaluates the mAP (Mean Average Precision) of YOLOv6-3.0 and PP-YOL
     	| l | 52.8 | 52.9 |
     	| x | N/A | 54.7 |
 
-
 ## Speed Comparison
 
 This section highlights the speed metrics of YOLOv6-3.0 and PP-YOLOE+ models across various sizes, reflecting their inference performance in milliseconds. These comparisons provide insights into the efficiency of each model, crucial for applications requiring real-time processing. For more details, explore the [YOLOv6 documentation](https://docs.ultralytics.com/models/yolov6/) or [PP-YOLOE+ details](https://github.com/PaddlePaddle/PaddleDetection).

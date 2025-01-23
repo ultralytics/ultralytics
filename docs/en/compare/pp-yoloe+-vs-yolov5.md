@@ -26,7 +26,6 @@ The mAP (mean Average Precision) metric is pivotal in evaluating object detectio
     	| l | 52.9 | 49.0 |
     	| x | 54.7 | 50.7 |
 
-
 ## Speed Comparison
 
 This section highlights the speed metrics of PP-YOLOE+ and Ultralytics YOLOv5 models across different sizes, measured in milliseconds. These comparisons reflect their real-world inference performance, enabling users to evaluate efficiency for various deployment scenarios. For additional details, explore the [Ultralytics YOLOv5 documentation](https://docs.ultralytics.com/models/yolov5/) or the [PP-YOLOE+ GitHub repository](https://github.com/PaddlePaddle/PaddleDetection).

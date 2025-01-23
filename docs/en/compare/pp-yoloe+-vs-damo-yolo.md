@@ -26,7 +26,6 @@ This section evaluates the mean average precision (mAP) of PP-YOLOE+ and DAMO-YO
     	| l | 52.9 | 50.8 |
     	| x | 54.7 | N/A |
 
-
 ## Speed Comparison
 
 This section highlights the speed performance of PP-YOLOE+ and DAMO-YOLO across various model sizes. Speed metrics in milliseconds provide a clear representation of the inference efficiency, enabling users to evaluate their suitability for latency-sensitive applications. For more details on YOLO models, explore [Ultralytics benchmarks](https://docs.ultralytics.com/reference/utils/benchmarks/) or [PP-YOLOE documentation](https://github.com/PaddlePaddle/PaddleDetection).

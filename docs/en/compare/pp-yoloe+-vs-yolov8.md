@@ -26,7 +26,6 @@ This section compares the mAP (Mean Average Precision) performance of PP-YOLOE+ 
     	| l | 52.9 | 52.9 |
     	| x | 54.7 | 53.9 |
 
-
 ## Speed Comparison
 
 This section evaluates the speed performance of PP-YOLOE+ and Ultralytics YOLOv8 across various model sizes, measured in milliseconds. These metrics highlight the efficiency of the models, particularly in real-time applications requiring rapid inference speeds. For more details on Ultralytics YOLO models, visit the [Ultralytics documentation](https://docs.ultralytics.com).

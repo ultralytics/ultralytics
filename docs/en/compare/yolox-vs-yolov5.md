@@ -25,7 +25,6 @@ Mean Average Precision (mAP) values are a key metric for evaluating the accuracy
     	| l | 49.7 | 49.0 |
     	| x | 51.1 | 50.7 |
 
-
 ## Speed Comparison
 
 This section highlights the performance differences between YOLOX and Ultralytics YOLOv5 across various model sizes, measured in milliseconds. By analyzing these speed metrics, users can identify the most efficient model for their specific deployment needs. Learn more about Ultralytics YOLOv5 [here](https://docs.ultralytics.com/models/yolov5/) and explore YOLOX details [here](https://github.com/Megvii-BaseDetection/YOLOX).

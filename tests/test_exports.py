@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import shutil
 import uuid
@@ -11,6 +11,7 @@ from tests import MODEL, SOURCE
 from ultralytics import YOLO
 from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
 from ultralytics.utils import (
+    ARM64,
     IS_RASPBERRYPI,
     LINUX,
     MACOS,
@@ -157,7 +158,7 @@ def test_export_tflite_matrix(task, dynamic, int8, half, batch):
 
 @pytest.mark.skipif(not TORCH_1_9, reason="CoreML>=7.2 not supported with PyTorch<=1.8")
 @pytest.mark.skipif(WINDOWS, reason="CoreML not supported on Windows")  # RuntimeError: BlobWriter not loaded
-@pytest.mark.skipif(IS_RASPBERRYPI, reason="CoreML not supported on Raspberry Pi")
+@pytest.mark.skipif(LINUX and ARM64, reason="CoreML not supported on aarch64 Linux")
 @pytest.mark.skipif(checks.IS_PYTHON_3_12, reason="CoreML not supported in Python 3.12")
 def test_export_coreml():
     """Test YOLO exports to CoreML format, optimized for macOS only."""
@@ -210,7 +211,7 @@ def test_export_ncnn():
 @pytest.mark.skipif(True, reason="Test disabled as keras and tensorflow version conflicts with tflite export.")
 @pytest.mark.skipif(not LINUX or MACOS, reason="Skipping test on Windows and Macos")
 def test_export_imx():
-    """Test YOLOv8n exports to IMX format."""
+    """Test YOLO exports to IMX format."""
     model = YOLO("yolov8n.pt")
     file = model.export(format="imx", imgsz=32)
     YOLO(file)(SOURCE, imgsz=32)

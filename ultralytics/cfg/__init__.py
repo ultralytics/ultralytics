@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import shutil
 import subprocess
@@ -42,12 +42,13 @@ SOLUTION_MAP = {
     "workout": ("AIGym", "monitor"),
     "analytics": ("Analytics", "process_data"),
     "trackzone": ("TrackZone", "trackzone"),
+    "inference": ("Inference", "inference"),
     "help": None,
 }
 
 # Define valid tasks and modes
-MODES = {"train", "val", "predict", "export", "track", "benchmark"}
-TASKS = {"detect", "segment", "classify", "pose", "obb"}
+MODES = frozenset({"train", "val", "predict", "export", "track", "benchmark"})
+TASKS = frozenset({"detect", "segment", "classify", "pose", "obb"})
 TASK2DATA = {
     "detect": "coco8.yaml",
     "segment": "coco8-seg.yaml",
@@ -69,11 +70,11 @@ TASK2METRIC = {
     "pose": "metrics/mAP50-95(P)",
     "obb": "metrics/mAP50-95(B)",
 }
-MODELS = {TASK2MODEL[task] for task in TASKS}
+MODELS = frozenset({TASK2MODEL[task] for task in TASKS})
 
 ARGV = sys.argv or ["", ""]  # sometimes sys.argv = []
 SOLUTIONS_HELP_MSG = f"""
-    Arguments received: {str(['yolo'] + ARGV[1:])}. Ultralytics 'yolo solutions' usage overview:
+    Arguments received: {str(["yolo"] + ARGV[1:])}. Ultralytics 'yolo solutions' usage overview:
 
         yolo solutions SOLUTION ARGS
 
@@ -85,7 +86,7 @@ SOLUTIONS_HELP_MSG = f"""
         yolo solutions count source="path/to/video/file.mp4" region=[(20, 400), (1080, 400), (1080, 360), (20, 360)]
 
     2. Call heatmaps solution
-        yolo solutions heatmap colormap=cv2.COLORMAP_PARAULA model=yolo11n.pt
+        yolo solutions heatmap colormap=cv2.COLORMAP_PARULA model=yolo11n.pt
 
     3. Call queue management solution
         yolo solutions queue region=[(20, 400), (1080, 400), (1080, 360), (20, 360)] model=yolo11n.pt
@@ -97,10 +98,13 @@ SOLUTIONS_HELP_MSG = f"""
         yolo solutions analytics analytics_type="pie"
     
     6. Track objects within specific zones
-        yolo solutions trackzone source="path/to/video/file.mp4" region=[(150, 150), (1130, 150), (1130, 570), (150, 570)] 
+        yolo solutions trackzone source="path/to/video/file.mp4" region=[(150, 150), (1130, 150), (1130, 570), (150, 570)]
+        
+    7. Streamlit real-time webcam inference GUI
+        yolo streamlit-predict
     """
 CLI_HELP_MSG = f"""
-    Arguments received: {str(['yolo'] + ARGV[1:])}. Ultralytics 'yolo' commands use the following syntax:
+    Arguments received: {str(["yolo"] + ARGV[1:])}. Ultralytics 'yolo' commands use the following syntax:
 
         yolo TASK MODE ARGS
 
@@ -121,13 +125,10 @@ CLI_HELP_MSG = f"""
     4. Export a YOLO11n classification model to ONNX format at image size 224 by 128 (no TASK required)
         yolo export model=yolo11n-cls.pt format=onnx imgsz=224,128
 
-    5. Streamlit real-time webcam inference GUI
-        yolo streamlit-predict
-
-    6. Ultralytics solutions usage
+    5. Ultralytics solutions usage
         yolo solutions count or in {list(SOLUTION_MAP.keys())[1:-1]} source="path/to/video/file.mp4"
 
-    7. Run special commands:
+    6. Run special commands:
         yolo help
         yolo checks
         yolo version
@@ -143,90 +144,98 @@ CLI_HELP_MSG = f"""
     """
 
 # Define keys for arg type checks
-CFG_FLOAT_KEYS = {  # integer or float arguments, i.e. x=2 and x=2.0
-    "warmup_epochs",
-    "box",
-    "cls",
-    "dfl",
-    "degrees",
-    "shear",
-    "time",
-    "workspace",
-    "batch",
-}
-CFG_FRACTION_KEYS = {  # fractional float arguments with 0.0<=values<=1.0
-    "dropout",
-    "lr0",
-    "lrf",
-    "momentum",
-    "weight_decay",
-    "warmup_momentum",
-    "warmup_bias_lr",
-    "hsv_h",
-    "hsv_s",
-    "hsv_v",
-    "translate",
-    "scale",
-    "perspective",
-    "flipud",
-    "fliplr",
-    "bgr",
-    "mosaic",
-    "mixup",
-    "copy_paste",
-    "conf",
-    "iou",
-    "fraction",
-}
-CFG_INT_KEYS = {  # integer-only arguments
-    "epochs",
-    "patience",
-    "workers",
-    "seed",
-    "close_mosaic",
-    "mask_ratio",
-    "max_det",
-    "vid_stride",
-    "line_width",
-    "nbs",
-    "save_period",
-}
-CFG_BOOL_KEYS = {  # boolean-only arguments
-    "save",
-    "exist_ok",
-    "verbose",
-    "deterministic",
-    "single_cls",
-    "rect",
-    "cos_lr",
-    "overlap_mask",
-    "val",
-    "save_json",
-    "save_hybrid",
-    "half",
-    "dnn",
-    "plots",
-    "show",
-    "save_txt",
-    "save_conf",
-    "save_crop",
-    "save_frames",
-    "show_labels",
-    "show_conf",
-    "visualize",
-    "augment",
-    "agnostic_nms",
-    "retina_masks",
-    "show_boxes",
-    "keras",
-    "optimize",
-    "int8",
-    "dynamic",
-    "simplify",
-    "nms",
-    "profile",
-    "multi_scale",
-}
+CFG_FLOAT_KEYS = frozenset(
+    {  # integer or float arguments, i.e. x=2 and x=2.0
+        "warmup_epochs",
+        "box",
+        "cls",
+        "dfl",
+        "degrees",
+        "shear",
+        "time",
+        "workspace",
+        "batch",
+    }
+)
+CFG_FRACTION_KEYS = frozenset(
+    {  # fractional float arguments with 0.0<=values<=1.0
+        "dropout",
+        "lr0",
+        "lrf",
+        "momentum",
+        "weight_decay",
+        "warmup_momentum",
+        "warmup_bias_lr",
+        "hsv_h",
+        "hsv_s",
+        "hsv_v",
+        "translate",
+        "scale",
+        "perspective",
+        "flipud",
+        "fliplr",
+        "bgr",
+        "mosaic",
+        "mixup",
+        "copy_paste",
+        "conf",
+        "iou",
+        "fraction",
+    }
+)
+CFG_INT_KEYS = frozenset(
+    {  # integer-only arguments
+        "epochs",
+        "patience",
+        "workers",
+        "seed",
+        "close_mosaic",
+        "mask_ratio",
+        "max_det",
+        "vid_stride",
+        "line_width",
+        "nbs",
+        "save_period",
+    }
+)
+CFG_BOOL_KEYS = frozenset(
+    {  # boolean-only arguments
+        "save",
+        "exist_ok",
+        "verbose",
+        "deterministic",
+        "single_cls",
+        "rect",
+        "cos_lr",
+        "overlap_mask",
+        "val",
+        "save_json",
+        "save_hybrid",
+        "half",
+        "dnn",
+        "plots",
+        "show",
+        "save_txt",
+        "save_conf",
+        "save_crop",
+        "save_frames",
+        "show_labels",
+        "show_conf",
+        "visualize",
+        "augment",
+        "agnostic_nms",
+        "retina_masks",
+        "show_boxes",
+        "keras",
+        "optimize",
+        "int8",
+        "dynamic",
+        "simplify",
+        "nms",
+        "profile",
+        "multi_scale",
+    }
+)
 
 
 def cfg2dict(cfg):
@@ -279,7 +288,7 @@ def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace] = DEFAULT_CFG_DICT, ove
     Examples:
         >>> from ultralytics.cfg import get_cfg
         >>> config = get_cfg()  # Load default configuration
-        >>> config = get_cfg("path/to/config.yaml", overrides={"epochs": 50, "batch_size": 16})
+        >>> config_with_overrides = get_cfg("path/to/config.yaml", overrides={"epochs": 50, "batch_size": 16})
 
     Notes:
         - If both `cfg` and `overrides` are provided, the values in `overrides` will take precedence.
@@ -302,7 +311,7 @@ def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace] = DEFAULT_CFG_DICT, ove
         if k in cfg and isinstance(cfg[k], (int, float)):
             cfg[k] = str(cfg[k])
     if cfg.get("name") == "model":  # assign model to 'name' arg
-        cfg["name"] = cfg.get("model", "").split(".")[0]
+        cfg["name"] = str(cfg.get("model", "")).split(".")[0]
         LOGGER.warning(f"WARNING ⚠️ 'name=model' automatically updated to 'name={cfg['name']}'.")
 
     # Type and Value checks
@@ -358,11 +367,11 @@ def check_cfg(cfg, hard=True):
                         )
                     cfg[k] = v = float(v)
                 if not (0.0 <= v <= 1.0):
-                    raise ValueError(f"'{k}={v}' is an invalid value. " f"Valid '{k}' values are between 0.0 and 1.0.")
+                    raise ValueError(f"'{k}={v}' is an invalid value. Valid '{k}' values are between 0.0 and 1.0.")
             elif k in CFG_INT_KEYS and not isinstance(v, int):
                 if hard:
                     raise TypeError(
-                        f"'{k}={v}' is of invalid type {type(v).__name__}. " f"'{k}' must be an int (i.e. '{k}=8')"
+                        f"'{k}={v}' is of invalid type {type(v).__name__}. '{k}' must be an int (i.e. '{k}=8')"
                     )
                 cfg[k] = int(v)
             elif k in CFG_BOOL_KEYS and not isinstance(v, bool):
@@ -471,9 +480,8 @@ def check_dict_alignment(base: Dict, custom: Dict, e=None):
         - Prints detailed error messages for each mismatched key to help users correct their configurations.
     """
     custom = _handle_deprecation(custom)
-    base_keys, custom_keys = (set(x.keys()) for x in (base, custom))
-    mismatched = [k for k in custom_keys if k not in base_keys]
-    if mismatched:
+    base_keys, custom_keys = (frozenset(x.keys()) for x in (base, custom))
+    if mismatched := [k for k in custom_keys if k not in base_keys]:
         from difflib import get_close_matches
 
         string = ""
@@ -636,6 +644,9 @@ def handle_yolo_solutions(args: List[str]) -> None:
         Run analytics with custom configuration:
         >>> handle_yolo_solutions(["analytics", "conf=0.25", "source=path/to/video/file.mp4"])
 
+        Run inference with custom configuration, requires Streamlit version 1.29.0 or higher.
+        >>> handle_yolo_solutions(["inference", "model=yolo11n.pt"])
+
     Notes:
         - Default configurations are merged from DEFAULT_SOL_DICT and DEFAULT_CFG_DICT
         - Arguments can be provided in the format 'key=value' or as boolean flags
@@ -645,7 +656,9 @@ def handle_yolo_solutions(args: List[str]) -> None:
         - For 'analytics' solution, frame numbers are tracked for generating analytical graphs
         - Video processing can be interrupted by pressing 'q'
         - Processes video frames sequentially and saves output in .avi format
-        - If no source is specified, downloads and uses a default sample video
+        - If no source is specified, downloads and uses a default sample video\
+        - The inference solution will be launched using the 'streamlit run' command.
+        - The Streamlit app file is located in the Ultralytics package directory.
     """
     full_args_dict = {**DEFAULT_SOL_DICT, **DEFAULT_CFG_DICT}  # arguments dictionary
     overrides = {}
@@ -678,60 +691,56 @@ def handle_yolo_solutions(args: List[str]) -> None:
     if args and args[0] == "help":  # Add check for return if user call `yolo solutions help`
         return
 
-    cls, method = SOLUTION_MAP[s_n]  # solution class name, method name and default source
+    if s_n == "inference":
+        checks.check_requirements("streamlit>=1.29.0")
+        LOGGER.info("💡 Loading Ultralytics live inference app...")
+        subprocess.run(
+            [  # Run subprocess with Streamlit custom argument
+                "streamlit",
+                "run",
+                str(ROOT / "solutions/streamlit_inference.py"),
+                "--server.headless",
+                "true",
+                overrides.pop("model", "yolo11n.pt"),
+            ]
+        )
+    else:
+        cls, method = SOLUTION_MAP[s_n]  # solution class name, method name and default source
 
-    from ultralytics import solutions  # import ultralytics solutions
+        from ultralytics import solutions  # import ultralytics solutions
 
-    solution = getattr(solutions, cls)(IS_CLI=True, **overrides)  # get solution class i.e ObjectCounter
-    process = getattr(solution, method)  # get specific function of class for processing i.e, count from ObjectCounter
+        solution = getattr(solutions, cls)(IS_CLI=True, **overrides)  # get solution class i.e ObjectCounter
+        process = getattr(
+            solution, method
+        )  # get specific function of class for processing i.e, count from ObjectCounter
 
-    cap = cv2.VideoCapture(solution.CFG["source"])  # read the video file
+        cap = cv2.VideoCapture(solution.CFG["source"])  # read the video file
 
-    # extract width, height and fps of the video file, create save directory and initialize video writer
-    import os  # for directory creation
-    from pathlib import Path
+        # extract width, height and fps of the video file, create save directory and initialize video writer
+        import os  # for directory creation
+        from pathlib import Path
 
-    from ultralytics.utils.files import increment_path  # for output directory path update
+        from ultralytics.utils.files import increment_path  # for output directory path update
 
-    w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-    if s_n == "analytics":  # analytical graphs follow fixed shape for output i.e w=1920, h=1080
-        w, h = 1920, 1080
-    save_dir = increment_path(Path("runs") / "solutions" / "exp", exist_ok=False)
-    save_dir.mkdir(parents=True, exist_ok=True)  # create the output directory
-    vw = cv2.VideoWriter(os.path.join(save_dir, "solution.avi"), cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
+        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
+        if s_n == "analytics":  # analytical graphs follow fixed shape for output i.e w=1920, h=1080
+            w, h = 1920, 1080
+        save_dir = increment_path(Path("runs") / "solutions" / "exp", exist_ok=False)
+        save_dir.mkdir(parents=True, exist_ok=True)  # create the output directory
+        vw = cv2.VideoWriter(os.path.join(save_dir, "solution.avi"), cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
-    try:  # Process video frames
-        f_n = 0  # frame number, required for analytical graphs
-        while cap.isOpened():
-            success, frame = cap.read()
-            if not success:
-                break
-            frame = process(frame, f_n := f_n + 1) if s_n == "analytics" else process(frame)
-            vw.write(frame)
-            if cv2.waitKey(1) & 0xFF == ord("q"):
-                break
-    finally:
-        cap.release()
-
-
-def handle_streamlit_inference():
-    """
-    Open the Ultralytics Live Inference Streamlit app for real-time object detection.
-
-    This function initializes and runs a Streamlit application designed for performing live object detection using
-    Ultralytics models. It checks for the required Streamlit package and launches the app.
-
-    Examples:
-        >>> handle_streamlit_inference()
-
-    Notes:
-        - Requires Streamlit version 1.29.0 or higher.
-        - The app is launched using the 'streamlit run' command.
-        - The Streamlit app file is located in the Ultralytics package directory.
-    """
-    checks.check_requirements("streamlit>=1.29.0")
-    LOGGER.info("💡 Loading Ultralytics Live Inference app...")
-    subprocess.run(["streamlit", "run", ROOT / "solutions/streamlit_inference.py", "--server.headless", "true"])
+        try:  # Process video frames
+            f_n = 0  # frame number, required for analytical graphs
+            while cap.isOpened():
+                success, frame = cap.read()
+                if not success:
+                    break
+                frame = process(frame, f_n := f_n + 1) if s_n == "analytics" else process(frame)
+                vw.write(frame)
+                if cv2.waitKey(1) & 0xFF == ord("q"):
+                    break
+        finally:
+            cap.release()
 
 
 def parse_key_value_pair(pair: str = "key=value"):
@@ -853,7 +862,6 @@ def entrypoint(debug=""):
         "login": lambda: handle_yolo_hub(args),
         "logout": lambda: handle_yolo_hub(args),
         "copy-cfg": copy_default_cfg,
-        "streamlit-predict": lambda: handle_streamlit_inference(),
         "solutions": lambda: handle_yolo_solutions(args[1:]),
     }
     full_args_dict = {**DEFAULT_CFG_DICT, **{k: None for k in TASKS}, **{k: None for k in MODES}, **special}
@@ -914,7 +922,13 @@ def entrypoint(debug=""):
     task = overrides.pop("task", None)
     if task:
         if task not in TASKS:
-            raise ValueError(f"Invalid 'task={task}'. Valid tasks are {TASKS}.\n{CLI_HELP_MSG}")
+            if task == "track":
+                LOGGER.warning(
+                    "WARNING ⚠️ invalid 'task=track', setting 'task=detect' and 'mode=track'. Valid tasks are {TASKS}.\n{CLI_HELP_MSG}."
+                )
+                task, mode = "detect", "track"
+            else:
+                raise ValueError(f"Invalid 'task={task}'. Valid tasks are {TASKS}.\n{CLI_HELP_MSG}")
         if "model" not in overrides:
             overrides["model"] = TASK2MODEL[task]
 

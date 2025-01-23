@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import argparse
 from typing import Tuple, Union
@@ -215,7 +215,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     detector = YOLOv8TFLite(args.model, args.conf, args.iou, args.metadata)
-    result = detector.detect(str(ASSETS / "bus.jpg"))[..., ::-1]
+    result = detector.detect(str(ASSETS / "bus.jpg"))
 
     cv2.imshow("Output", result)
     cv2.waitKey(0)

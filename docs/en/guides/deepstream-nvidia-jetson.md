@@ -23,7 +23,8 @@ This comprehensive guide provides a detailed walkthrough for deploying Ultralyti
 
 !!! note
 
-    This guide has been tested with both [Seeed Studio reComputer J4012](https://www.seeedstudio.com/reComputer-J4012-p-5586.html) which is based on NVIDIA Jetson Orin NX 16GB running JetPack release of [JP5.1.3](https://developer.nvidia.com/embedded/jetpack-sdk-513) and [Seeed Studio reComputer J1020 v2](https://www.seeedstudio.com/reComputer-J1020-v2-p-5498.html) which is based on NVIDIA Jetson Nano 4GB running JetPack release of [JP4.6.4](https://developer.nvidia.com/jetpack-sdk-464). It is expected to work across all the NVIDIA Jetson hardware lineup including latest and legacy.
+    This guide has been tested with [NVIDIA Jetson Orin Nano Super Developer Kit](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/jetson-orin/nano-super-developer-kit) running the latest stable JetPack release of [JP6.1](https://developer.nvidia.com/embedded/jetpack-sdk-61),
+    [Seeed Studio reComputer J4012](https://www.seeedstudio.com/reComputer-J4012-p-5586.html) which is based on NVIDIA Jetson Orin NX 16GB running JetPack release of [JP5.1.3](https://developer.nvidia.com/embedded/jetpack-sdk-513) and [Seeed Studio reComputer J1020 v2](https://www.seeedstudio.com/reComputer-J1020-v2-p-5498.html) which is based on NVIDIA Jetson Nano 4GB running JetPack release of [JP4.6.4](https://developer.nvidia.com/jetpack-sdk-464). It is expected to work across all the NVIDIA Jetson hardware lineup including latest and legacy.
 
 ## What is NVIDIA DeepStream?
 
@@ -38,6 +39,7 @@ Before you start to follow this guide:
 
     - For JetPack 4.6.4, install [DeepStream 6.0.1](https://docs.nvidia.com/metropolis/deepstream/6.0.1/dev-guide/text/DS_Quickstart.html)
     - For JetPack 5.1.3, install [DeepStream 6.3](https://docs.nvidia.com/metropolis/deepstream/6.3/dev-guide/text/DS_Quickstart.html)
+    - For JetPack 6.1, install [DeepStream 7.1](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_Installation.html)
 
 !!! tip
 
@@ -47,34 +49,48 @@ Before you start to follow this guide:
 
 Here we are using [marcoslucianops/DeepStream-Yolo](https://github.com/marcoslucianops/DeepStream-Yolo) GitHub repository which includes NVIDIA DeepStream SDK support for YOLO models. We appreciate the efforts of marcoslucianops for his contributions!
 
-1.  Install dependencies
+1.  Install Ultralytics with necessary dependencies
 
     ```bash
-    pip install cmake
-    pip install onnxsim
+    cd ~
+    pip install -U pip
+    git clone https://github.com/ultralytics/ultralytics
+    cd ultralytics
+    pip install -e ".[export]" onnxslim
     ```
 
-2.  Clone the following repository
+2.  Clone the DeepStream-Yolo repository
 
     ```bash
+    cd ~
     git clone https://github.com/marcoslucianops/DeepStream-Yolo
-    cd DeepStream-Yolo
     ```
 
-3.  Download Ultralytics YOLO11 detection model (.pt) of your choice from [YOLO11 releases](https://github.com/ultralytics/assets/releases). Here we use [yolov8s.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8s.pt).
+3.  Copy the `export_yoloV8.py` file from `DeepStream-Yolo/utils` directory to the `ultralytics` folder
 
     ```bash
-    wget https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8s.pt
+    cp ~/DeepStream-Yolo/utils/export_yoloV8.py ~/ultralytics
+    cd ultralytics
+    ```
+
+    !!! note
+
+        `export_yoloV8.py` works for both YOLOv8 and YOLO11 models.
+
+4.  Download Ultralytics YOLO11 detection model (.pt) of your choice from [YOLO11 releases](https://github.com/ultralytics/assets/releases). Here we use [yolo11s.pt](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11s.pt).
+
+    ```bash
+    wget https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11s.pt
     ```
 
     !!! note
 
         You can also use a [custom trained YOLO11 model](https://docs.ultralytics.com/modes/train/).
 
-4.  Convert model to ONNX
+5.  Convert model to ONNX
 
     ```bash
-    python3 utils/export_yoloV8.py -w yolov8s.pt
+    python3 export_yoloV8.py -w yolo11s.pt
     ```
 
     !!! note "Pass the below arguments to the above command"
@@ -120,7 +136,14 @@ Here we are using [marcoslucianops/DeepStream-Yolo](https://github.com/marcosluc
         --batch 4
         ```
 
-5.  Set the CUDA version according to the JetPack version installed
+6.  Copy the generated `.onnx` model file and `labels.txt` file to the `DeepStream-Yolo` folder
+
+    ```bash
+    cp yolo11s.pt.onnx labels.txt ~/DeepStream-Yolo
+    cd ~/DeepStream-Yolo
+    ```
+
+7.  Set the CUDA version according to the JetPack version installed
 
     For JetPack 4.6.4:
 
@@ -134,24 +157,30 @@ Here we are using [marcoslucianops/DeepStream-Yolo](https://github.com/marcosluc
     export CUDA_VER=11.4
     ```
 
-6.  Compile the library
+    For Jetpack 6.1:
+
+    ```bash
+    export CUDA_VER=12.6
+    ```
+
+8.  Compile the library
 
     ```bash
     make -C nvdsinfer_custom_impl_Yolo clean && make -C nvdsinfer_custom_impl_Yolo
     ```
 
-7.  Edit the `config_infer_primary_yoloV8.txt` file according to your model (for YOLOv8s with 80 classes)
+9.  Edit the `config_infer_primary_yoloV8.txt` file according to your model (for YOLO11s with 80 classes)
 
     ```bash
     [property]
     ...
-    onnx-file=yolov8s.onnx
+    onnx-file=yolo11s.pt.onnx
     ...
     num-detected-classes=80
     ...
     ```
 
-8.  Edit the `deepstream_app_config` file
+10. Edit the `deepstream_app_config` file
 
     ```bash
     ...
@@ -160,7 +189,7 @@ Here we are using [marcoslucianops/DeepStream-Yolo](https://github.com/marcosluc
     config-file=config_infer_primary_yoloV8.txt
     ```
 
-9.  You can also change the video source in `deepstream_app_config` file. Here a default video file is loaded
+11. You can also change the video source in `deepstream_app_config` file. Here a default video file is loaded
 
     ```bash
     ...
@@ -183,11 +212,15 @@ deepstream-app -c deepstream_app_config.txt
 
 !!! tip
 
-    If you want to convert the model to FP16 [precision](https://www.ultralytics.com/glossary/precision), simply set `model-engine-file=model_b1_gpu0_fp16.engine` and `network-mode=2` inside `config_infer_primary_yoloV8.txt`
+    If you want to convert the model to FP16 precision, simply set `model-engine-file=model_b1_gpu0_fp16.engine` and `network-mode=2` inside `config_infer_primary_yoloV8.txt`
 
 ## INT8 Calibration
 
 If you want to use INT8 precision for inference, you need to follow the steps below
+
+!!! note
+
+    Currently INT8 does not work with TensorRT 10.x. This section of the guide has been tested with TensorRT 8.x which is expected to work.
 
 1.  Set `OPENCV` environment variable
 
@@ -303,15 +336,57 @@ deepstream-app -c deepstream_app_config.txt
 
 ## Benchmark Results
 
-The following table summarizes how YOLOv8s models perform at different TensorRT precision levels with an input size of 640x640 on NVIDIA Jetson Orin NX 16GB.
+The following benchmarks summarizes how YOLO11 models perform at different TensorRT precision levels with an input size of 640x640 on NVIDIA Jetson Orin NX 16GB.
 
-| Model Name | Precision | Inference Time (ms/im) | FPS |
-| ---------- | --------- | ---------------------- | --- |
-| YOLOv8s    | FP32      | 15.63                  | 64  |
-|            | FP16      | 7.94                   | 126 |
-|            | INT8      | 5.53                   | 181 |
+### Comparison Chart
 
-### Acknowledgements
+<div align=center><img width=1000 src="https://github.com/ultralytics/assets/releases/download/v0.0.0/jetson-deepstream-benchmarks.avif" alt="Jetson DeepStream Benchmarks Chart"></div>
+
+### Detailed Comparison Table
+
+!!! performance
+
+    === "YOLO11n"
+
+        | Format          | Status | Inference time (ms/im) |
+        |-----------------|--------|------------------------|
+        | TensorRT (FP32) | ✅      | 8.64                   |
+        | TensorRT (FP16) | ✅      | 5.27                   |
+        | TensorRT (INT8) | ✅      | 4.54                   |
+
+    === "YOLO11s"
+
+        | Format          | Status | Inference time (ms/im) |
+        |-----------------|--------|------------------------|
+        | TensorRT (FP32) | ✅      | 14.53                   |
+        | TensorRT (FP16) | ✅      | 7.91                   |
+        | TensorRT (INT8) | ✅      | 6.05                   |
+
+    === "YOLO11m"
+
+        | Format          | Status | Inference time (ms/im) |
+        |-----------------|--------|------------------------|
+        | TensorRT (FP32) | ✅      | 32.05                   |
+        | TensorRT (FP16) | ✅      | 15.55                   |
+        | TensorRT (INT8) | ✅      | 10.43                   |
+
+    === "YOLO11l"
+
+        | Format          | Status | Inference time (ms/im) |
+        |-----------------|--------|------------------------|
+        | TensorRT (FP32) | ✅      | 39.68                   |
+        | TensorRT (FP16) | ✅      | 19.88                   |
+        | TensorRT (INT8) | ✅      | 13.64                   |
+
+    === "YOLO11x"
+
+        | Format          | Status | Inference time (ms/im) |
+        |-----------------|--------|------------------------|
+        | TensorRT (FP32) | ✅      | 80.65                   |
+        | TensorRT (FP16) | ✅      | 39.06                   |
+        | TensorRT (INT8) | ✅      | 22.83                   |
+
+## Acknowledgements
 
 This guide was initially created by our friends at Seeed Studio, Lakshantha and Elaine.
 
@@ -336,17 +411,17 @@ To convert a YOLO11 model to ONNX format for deployment with DeepStream, use the
 Here's an example command:
 
 ```bash
-python3 utils/export_yoloV8.py -w yolov8s.pt --opset 12 --simplify
+python3 utils/export_yoloV8.py -w yolo11s.pt --opset 12 --simplify
 ```
 
 For more details on model conversion, check out our [model export section](../modes/export.md).
 
 ### What are the performance benchmarks for YOLO on NVIDIA Jetson Orin NX?
 
-The performance of YOLO11 models on NVIDIA Jetson Orin NX 16GB varies based on TensorRT precision levels. For example, YOLOv8s models achieve:
+The performance of YOLO11 models on NVIDIA Jetson Orin NX 16GB varies based on TensorRT precision levels. For example, YOLO11s models achieve:
 
-- **FP32 Precision**: 15.63 ms/im, 64 FPS
+- **FP32 Precision**: 14.6 ms/im, 68.5 FPS
 - **FP16 Precision**: 7.94 ms/im, 126 FPS
-- **INT8 Precision**: 5.53 ms/im, 181 FPS
+- **INT8 Precision**: 5.95 ms/im, 168 FPS
 
 These benchmarks underscore the efficiency and capability of using TensorRT-optimized YOLO11 models on NVIDIA Jetson hardware. For further details, see our [Benchmark Results](#benchmark-results) section.

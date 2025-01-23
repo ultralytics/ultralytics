@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 from collections import defaultdict
 
@@ -35,7 +35,7 @@ class BaseSolution:
         display_output: Display the results of processing, including showing frames or saving results.
 
     Examples:
-        >>> solution = BaseSolution(model="yolov8n.pt", region=[(0, 0), (100, 0), (100, 100), (0, 100)])
+        >>> solution = BaseSolution(model="yolo11n.pt", region=[(0, 0), (100, 0), (100, 100), (0, 100)])
         >>> solution.initialize_region()
         >>> image = cv2.imread("image.jpg")
         >>> solution.extract_tracks(image)
@@ -56,6 +56,14 @@ class BaseSolution:
         self.Polygon = Polygon
         self.Point = Point
         self.prep = prep
+        self.annotator = None  # Initialize annotator
+        self.tracks = None
+        self.track_data = None
+        self.boxes = []
+        self.clss = []
+        self.track_ids = []
+        self.track_line = None
+        self.r_s = None
 
         # Load config and update with args
         DEFAULT_SOL_DICT.update(kwargs)

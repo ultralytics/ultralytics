@@ -335,7 +335,7 @@ We extend our gratitude to the [Tencent AILab Computer Vision Center](https://ww
         }
         ```
 
-For further reading, the original YOLO-World paper is available on [arXiv](https://arxiv.org/pdf/2401.17270v2.pdf). The project's source code and additional resources can be accessed via their [GitHub repository](https://github.com/AILab-CVC/YOLO-World). We appreciate their commitment to advancing the field and sharing their valuable insights with the community.
+For further reading, the original YOLO-World paper is available on [arXiv](https://arxiv.org/pdf/2401.17270v2). The project's source code and additional resources can be accessed via their [GitHub repository](https://github.com/AILab-CVC/YOLO-World). We appreciate their commitment to advancing the field and sharing their valuable insights with the community.
 
 ## FAQ
 

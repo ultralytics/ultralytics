@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """
 Automates the building and post-processing of MkDocs documentation, particularly for projects with multilingual content.
 It streamlines the workflow for generating localized versions of the documentation and updating HTML links to ensure
@@ -24,6 +24,7 @@ Note:
     - This script is built to be run in an environment where Python and MkDocs are installed and properly configured.
 """
 
+import json
 import os
 import re
 import shutil
@@ -36,6 +37,14 @@ from tqdm import tqdm
 os.environ["JUPYTER_PLATFORM_DIRS"] = "1"  # fix DeprecationWarning: Jupyter is migrating to use standard platformdirs
 DOCS = Path(__file__).parent.resolve()
 SITE = DOCS.parent / "site"
+LINK_PATTERN = re.compile(r"(https?://[^\s()<>]*[^\s()<>.,:;!?\'\"])")
+
+
+def create_vercel_config():
+    """Create vercel.json in the site directory with customized configuration settings."""
+    config = {"trailingSlash": True}
+    with open(SITE / "vercel.json", "w") as f:
+        json.dump(config, f, indent=2)
 
 
 def prepare_docs_markdown(clone_repos=True):
@@ -64,7 +73,6 @@ def prepare_docs_markdown(clone_repos=True):
 
 def update_page_title(file_path: Path, new_title: str):
     """Update the title of an HTML file."""
-    # Read the content of the file
     with open(file_path, encoding="utf-8") as file:
         content = file.read()
 
@@ -198,11 +206,7 @@ def convert_plaintext_links_to_html(content):
     for paragraph in main_content.find_all(["p", "li"]):  # Focus on paragraphs and list items
         for text_node in paragraph.find_all(string=True, recursive=False):
             if text_node.parent.name not in {"a", "code"}:  # Ignore links and code blocks
-                new_text = re.sub(
-                    r"(https?://[^\s()<>]*[^\s()<>.,:;!?\'\"])",
-                    r'<a href="\1">\1</a>',
-                    str(text_node),
-                )
+                new_text = LINK_PATTERN.sub(r'<a href="\1">\1</a>', str(text_node))
                 if "<a href=" in new_text:
                     # Parse the new text with BeautifulSoup to handle HTML properly
                     new_soup = BeautifulSoup(new_text, "html.parser")
@@ -284,6 +288,7 @@ def main():
     print(f"Building docs from {DOCS}")
     subprocess.run(f"mkdocs build -f {DOCS.parent}/mkdocs.yml --strict", check=True, shell=True)
     remove_macros()
+    create_vercel_config()
     print(f"Site built at {SITE}")
 
     # Update docs HTML pages

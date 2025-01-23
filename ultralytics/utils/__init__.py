@@ -23,8 +23,8 @@ import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
-from tqdm import rich, tqdm
 import yaml
+from tqdm import rich, tqdm
 
 from ultralytics import __version__
 

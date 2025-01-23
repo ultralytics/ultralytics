@@ -10,41 +10,38 @@ Ultralytics YOLOv8 and YOLOv7 represent two pivotal advancements in the YOLO fam
 
 YOLOv7 brought remarkable improvements in efficiency and accuracy, setting a new standard upon its release. Building on this foundation, [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics) integrates state-of-the-art innovations, such as anchor-free detection and optimized architectures, ensuring superior performance for diverse applications.
 
-
 ## mAP Comparison
 
 The mAP (Mean Average Precision) metric provides a comprehensive evaluation of model accuracy across different object detection tasks. This section highlights the performance of Ultralytics YOLOv8 compared to YOLOv7, showcasing advancements in precision and recall. Learn more about [mAP](https://www.ultralytics.com/glossary/mean-average-precision-map) for detailed insights.
 
-
 !!! tip "Accuracy"
 
-	=== "Detection (COCO)"
+    === "Detection (COCO)"
 
-		| Variant | mAP<sup>val<br>50<br>YOLOv8 | mAP<sup>val<br>50<br>YOLOv7 |
-		|---------------------|-------------------------------------------------------|-------------------------------------------------------|
-		| n | 37.3 | N/A |
-		| s | 44.9 | N/A |
-		| m | 50.2 | N/A |
-		| l | 52.9 | 51.4 |
-		| x | 53.9 | 53.1 |
-		
+    	| Variant | mAP<sup>val<br>50<br>YOLOv8 | mAP<sup>val<br>50<br>YOLOv7 |
+    	|---------------------|-------------------------------------------------------|-------------------------------------------------------|
+    	| n | 37.3 | N/A |
+    	| s | 44.9 | N/A |
+    	| m | 50.2 | N/A |
+    	| l | 52.9 | 51.4 |
+    	| x | 53.9 | 53.1 |
+
 
 ## Speed Comparison
 
 This section highlights the speed performance of Ultralytics YOLOv8 and YOLOv7 across various model sizes, measured in milliseconds per image. These metrics showcase how efficiently each model performs in real-time applications, providing insights into their suitability for tasks requiring high-speed object detection. Learn more about [YOLOv8’s advancements](https://docs.ultralytics.com/models/yolov8/) and [YOLOv7’s performance](https://docs.ultralytics.com/models/yolov7/).
 
-
 !!! tip "Speed"
 
-	=== "Detection (COCO)"
+    === "Detection (COCO)"
 
-		| Variant | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv8 | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv7 |
-		|---------------------|-------------------------------------------------------|-------------------------------------------------------|
-		| n | 1.47 | N/A |
-		| s | 2.66 | N/A |
-		| m | 5.86 | N/A |
-		| l | 9.06 | 6.84 |
-		| x | 14.37 | 11.57 |
+    	| Variant | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv8 | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv7 |
+    	|---------------------|-------------------------------------------------------|-------------------------------------------------------|
+    	| n | 1.47 | N/A |
+    	| s | 2.66 | N/A |
+    	| m | 5.86 | N/A |
+    	| l | 9.06 | 6.84 |
+    	| x | 14.37 | 11.57 |
 
 ## Segment With Ultralytics YOLO11
 
@@ -60,10 +57,10 @@ For a detailed step-by-step guide on image segmentation, including practical exa
 from ultralytics import YOLO
 
 # Load the YOLO11 model
-model = YOLO('yolo11-seg.pt')
+model = YOLO("yolo11-seg.pt")
 
 # Perform segmentation on an image
-results = model.predict(source='car_parts.jpg', task='segment')
+results = model.predict(source="car_parts.jpg", task="segment")
 
 # Visualize the segmentation results
 results.show()

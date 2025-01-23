@@ -10,39 +10,36 @@ The comparison between YOLOv7 and RTDETRv2 highlights a critical evaluation of t
 
 RTDETRv2, on the other hand, leverages Vision Transformer-based design to deliver high accuracy with adaptable inference speed. By combining innovative encoding techniques and IoU-aware query selection, RTDETRv2 sets a new standard for transformer-based detectors. Explore more about [YOLOv7](https://docs.ultralytics.com/models/yolov7/) and [RTDETR](https://docs.ultralytics.com/reference/models/rtdetr/model/) for deeper insights into their capabilities.
 
-
 ## mAP Comparison
 
 This section evaluates the accuracy of YOLOv7 and RTDETRv2 models through their mAP (Mean Average Precision) scores, a critical metric for object detection performance. By comparing mAP values across different variants, we can better understand how these models balance precision and recall. Learn more about [mAP](https://www.ultralytics.com/glossary/mean-average-precision-map) in object detection.
 
-
 !!! tip "Accuracy"
 
-	=== "Detection (COCO)"
+    === "Detection (COCO)"
 
-		| Variant | mAP<sup>val<br>50<br>YOLOv7 | mAP<sup>val<br>50<br>RTDETRv2 |
-		|---------------------|-------------------------------------------------------|-------------------------------------------------------|
-		| s | N/A | 48.1 |
-		| m | N/A | 51.9 |
-		| l | 51.4 | 53.4 |
-		| x | 53.1 | 54.3 |
-		
+    	| Variant | mAP<sup>val<br>50<br>YOLOv7 | mAP<sup>val<br>50<br>RTDETRv2 |
+    	|---------------------|-------------------------------------------------------|-------------------------------------------------------|
+    	| s | N/A | 48.1 |
+    	| m | N/A | 51.9 |
+    	| l | 51.4 | 53.4 |
+    	| x | 53.1 | 54.3 |
+
 
 ## Speed Comparison
 
 This section highlights the performance differences between YOLOv7 and RT-DETRv2 models, focusing on speed metrics measured in milliseconds. These results demonstrate how each model scales across various input sizes and their efficiency in real-time applications. For more details, refer to the [YOLOv7 documentation](https://docs.ultralytics.com/models/yolov7/) or explore further on [RT-DETR benchmarks](https://arxiv.org/pdf/2207.02696).
 
-
 !!! tip "Speed"
 
-	=== "Detection (COCO)"
+    === "Detection (COCO)"
 
-		| Variant | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv7 | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>RTDETRv2 |
-		|---------------------|-------------------------------------------------------|-------------------------------------------------------|
-		| s | N/A | 5.03 |
-		| m | N/A | 7.51 |
-		| l | 6.84 | 9.76 |
-		| x | 11.57 | 15.03 |
+    	| Variant | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv7 | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>RTDETRv2 |
+    	|---------------------|-------------------------------------------------------|-------------------------------------------------------|
+    	| s | N/A | 5.03 |
+    	| m | N/A | 7.51 |
+    	| l | 6.84 | 9.76 |
+    	| x | 11.57 | 15.03 |
 
 ## Benchmarking With Ultralytics YOLO11
 
@@ -56,10 +53,10 @@ With compatibility for multiple hardware and software environments, Ultralytics 
 from ultralytics import YOLO
 
 # Load the YOLO11 model
-model = YOLO('yolo11.pt')
+model = YOLO("yolo11.pt")
 
 # Perform benchmarking
-results = model.benchmark(device='cuda')  # Specify 'cuda' for GPU or 'cpu' for CPU
+results = model.benchmark(device="cuda")  # Specify 'cuda' for GPU or 'cpu' for CPU
 print(results)
 ```
 

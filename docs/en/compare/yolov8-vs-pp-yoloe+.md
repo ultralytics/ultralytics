@@ -10,41 +10,38 @@ In the ever-evolving landscape of AI-driven object detection, comparing models l
 
 Ultralytics YOLOv8, with its optimized accuracy-speed tradeoff and enhanced extensibility, has redefined benchmarks in computer vision. On the other hand, PP-YOLOE+ brings its own innovations, focusing on efficiency and precision. This comparison unpacks their strengths to help you choose the best model for your needs. Learn more about [Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8/) or explore [PP-YOLOE+](https://github.com/PaddlePaddle/PaddleDetection) for further details.
 
-
 ## mAP Comparison
 
 This section highlights the mAP values of Ultralytics YOLOv8 and PP-YOLOE+, providing a clear metric to compare their accuracy across different model variants. Mean Average Precision (mAP) serves as a comprehensive evaluation standard, balancing precision and recall, offering insights into each model's object detection performance. Learn more about [mAP](https://www.ultralytics.com/glossary/mean-average-precision-map) and its significance in model evaluation.
 
-
 !!! tip "Accuracy"
 
-	=== "Detection (COCO)"
+    === "Detection (COCO)"
 
-		| Variant | mAP<sup>val<br>50<br>YOLOv8 | mAP<sup>val<br>50<br>PP-YOLOE+ |
-		|---------------------|-------------------------------------------------------|-------------------------------------------------------|
-		| n | 37.3 | 39.9 |
-		| s | 44.9 | 43.7 |
-		| m | 50.2 | 49.8 |
-		| l | 52.9 | 52.9 |
-		| x | 53.9 | 54.7 |
-		
+    	| Variant | mAP<sup>val<br>50<br>YOLOv8 | mAP<sup>val<br>50<br>PP-YOLOE+ |
+    	|---------------------|-------------------------------------------------------|-------------------------------------------------------|
+    	| n | 37.3 | 39.9 |
+    	| s | 44.9 | 43.7 |
+    	| m | 50.2 | 49.8 |
+    	| l | 52.9 | 52.9 |
+    	| x | 53.9 | 54.7 |
+
 
 ## Speed Comparison
 
 This section highlights the speed performance of Ultralytics YOLOv8 and PP-YOLOE+ across various model sizes, measured in milliseconds. The comparison emphasizes YOLOv8's real-time efficiency, making it a standout choice for applications like [object detection](https://docs.ultralytics.com/tasks/detect/) and [real-time tracking](https://docs.ultralytics.com/modes/track/).
 
-
 !!! tip "Speed"
 
-	=== "Detection (COCO)"
+    === "Detection (COCO)"
 
-		| Variant | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv8 | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>PP-YOLOE+ |
-		|---------------------|-------------------------------------------------------|-------------------------------------------------------|
-		| n | 1.47 | 2.84 |
-		| s | 2.66 | 2.62 |
-		| m | 5.86 | 5.56 |
-		| l | 9.06 | 8.36 |
-		| x | 14.37 | 14.3 |
+    	| Variant | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv8 | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>PP-YOLOE+ |
+    	|---------------------|-------------------------------------------------------|-------------------------------------------------------|
+    	| n | 1.47 | 2.84 |
+    	| s | 2.66 | 2.62 |
+    	| m | 5.86 | 5.56 |
+    	| l | 9.06 | 8.36 |
+    	| x | 14.37 | 14.3 |
 
 ## Predict With Ultralytics YOLO11
 

@@ -10,41 +10,38 @@ The comparison between RTDETRv2 and DAMO-YOLO highlights the advancements in rea
 
 RTDETRv2 stands out with its Vision Transformer-based architecture, delivering high accuracy with adaptable inference speeds, as detailed in its [reference documentation](https://docs.ultralytics.com/reference/models/rtdetr/model/). Meanwhile, DAMO-YOLO leverages innovative model designs to balance computational efficiency and precision, making it ideal for high-performance tasks.
 
-
 ## mAP Comparison
 
 This section highlights the mAP values of RTDETRv2 and DAMO-YOLO, showcasing their accuracy across various model variants. Mean Average Precision (mAP) is a critical metric for evaluating object detection performance, balancing precision and recall. Learn more about [mAP](https://www.ultralytics.com/glossary/mean-average-precision-map) and its importance in model benchmarking.
 
-
 !!! tip "Accuracy"
 
-	=== "Detection (COCO)"
+    === "Detection (COCO)"
 
-		| Variant | mAP<sup>val<br>50<br>RTDETRv2 | mAP<sup>val<br>50<br>DAMO-YOLO |
-		|---------------------|-------------------------------------------------------|-------------------------------------------------------|
-		| n | N/A | 42.0 |
-		| s | 48.1 | 46.0 |
-		| m | 51.9 | 49.2 |
-		| l | 53.4 | 50.8 |
-		| x | 54.3 | N/A |
-		
+    	| Variant | mAP<sup>val<br>50<br>RTDETRv2 | mAP<sup>val<br>50<br>DAMO-YOLO |
+    	|---------------------|-------------------------------------------------------|-------------------------------------------------------|
+    	| n | N/A | 42.0 |
+    	| s | 48.1 | 46.0 |
+    	| m | 51.9 | 49.2 |
+    	| l | 53.4 | 50.8 |
+    	| x | 54.3 | N/A |
+
 
 ## Speed Comparison
 
 This section highlights the speed performance of RTDETRv2 and DAMO-YOLO models, measured in milliseconds across different sizes. By comparing their latency metrics, you can evaluate their suitability for time-critical applications and hardware configurations. For more on benchmarking, explore [Ultralytics benchmarking tools](https://docs.ultralytics.com/reference/utils/benchmarks/).
 
-
 !!! tip "Speed"
 
-	=== "Detection (COCO)"
+    === "Detection (COCO)"
 
-		| Variant | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>RTDETRv2 | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>DAMO-YOLO |
-		|---------------------|-------------------------------------------------------|-------------------------------------------------------|
-		| n | N/A | 2.32 |
-		| s | 5.03 | 3.45 |
-		| m | 7.51 | 5.09 |
-		| l | 9.76 | 7.18 |
-		| x | 15.03 | N/A |
+    	| Variant | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>RTDETRv2 | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>DAMO-YOLO |
+    	|---------------------|-------------------------------------------------------|-------------------------------------------------------|
+    	| n | N/A | 2.32 |
+    	| s | 5.03 | 3.45 |
+    	| m | 7.51 | 5.09 |
+    	| l | 9.76 | 7.18 |
+    	| x | 15.03 | N/A |
 
 ## Training With Ultralytics YOLO11
 
@@ -58,10 +55,10 @@ To get started, explore the [Training Mode Documentation](https://docs.ultralyti
 from ultralytics import YOLO
 
 # Load a pre-trained YOLO11 model
-model = YOLO('yolov11.pt')
+model = YOLO("yolov11.pt")
 
 # Train the model on a custom dataset
-model.train(data='path/to/dataset.yaml', epochs=50, imgsz=640, batch=16)
+model.train(data="path/to/dataset.yaml", epochs=50, imgsz=640, batch=16)
 
 # Evaluate model performance
 metrics = model.val()

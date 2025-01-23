@@ -10,43 +10,40 @@ When it comes to real-time object detection, YOLOv10 and YOLOv7 represent signif
 
 YOLOv10, with its NMS-free training and holistic model design, offers exceptional efficiency and accuracy across various scales. On the other hand, YOLOv7 is celebrated for its balanced trade-offs between performance and computational cost, making it a reliable choice for resource-constrained environments. Dive into this detailed analysis to understand how these models excel in different scenarios.
 
-
 ## mAP Comparison
 
 This section highlights the mAP values of YOLOv10 and YOLOv7, showcasing their accuracy across different model variants. Mean Average Precision (mAP) serves as a critical metric, offering a comprehensive evaluation of object detection performance by balancing precision and recall. Learn more about [mAP](https://www.ultralytics.com/glossary/mean-average-precision-map) and its role in assessing model accuracy.
 
-
 !!! tip "Accuracy"
 
-	=== "Detection (COCO)"
+    === "Detection (COCO)"
 
-		| Variant | mAP<sup>val<br>50<br>YOLOv10 | mAP<sup>val<br>50<br>YOLOv7 |
-		|---------------------|-------------------------------------------------------|-------------------------------------------------------|
-		| n | 39.5 | N/A |
-		| s | 46.7 | N/A |
-		| m | 51.3 | N/A |
-		| b | 52.7 | N/A |
-		| l | 53.3 | 51.4 |
-		| x | 54.4 | 53.1 |
-		
+    	| Variant | mAP<sup>val<br>50<br>YOLOv10 | mAP<sup>val<br>50<br>YOLOv7 |
+    	|---------------------|-------------------------------------------------------|-------------------------------------------------------|
+    	| n | 39.5 | N/A |
+    	| s | 46.7 | N/A |
+    	| m | 51.3 | N/A |
+    	| b | 52.7 | N/A |
+    	| l | 53.3 | 51.4 |
+    	| x | 54.4 | 53.1 |
+
 
 ## Speed Comparison
 
 This section highlights the speed metrics of YOLOv10 and YOLOv7, emphasizing their performance across various model sizes in milliseconds. By comparing latency and inference times, it provides insights into their suitability for real-time applications. For more details on YOLOv10's architecture and advancements, visit [Ultralytics YOLOv10 documentation](https://docs.ultralytics.com/models/yolov10/).
 
-
 !!! tip "Speed"
 
-	=== "Detection (COCO)"
+    === "Detection (COCO)"
 
-		| Variant | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv10 | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv7 |
-		|---------------------|-------------------------------------------------------|-------------------------------------------------------|
-		| n | 1.56 | N/A |
-		| s | 2.66 | N/A |
-		| m | 5.48 | N/A |
-		| b | 6.54 | N/A |
-		| l | 8.33 | 6.84 |
-		| x | 12.2 | 11.57 |
+    	| Variant | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv10 | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv7 |
+    	|---------------------|-------------------------------------------------------|-------------------------------------------------------|
+    	| n | 1.56 | N/A |
+    	| s | 2.66 | N/A |
+    	| m | 5.48 | N/A |
+    	| b | 6.54 | N/A |
+    	| l | 8.33 | 6.84 |
+    	| x | 12.2 | 11.57 |
 
 ## Train with Ultralytics YOLO11
 
@@ -60,10 +57,10 @@ To get started with training, explore the [Ultralytics YOLO documentation](https
 from ultralytics import YOLO
 
 # Load a YOLO11 model
-model = YOLO('yolo11.yaml')  # or 'yolo11n.pt' for a pretrained model
+model = YOLO("yolo11.yaml")  # or 'yolo11n.pt' for a pretrained model
 
 # Train the model on a custom dataset
-model.train(data='coco8.yaml', epochs=50, imgsz=640, batch=16)
+model.train(data="coco8.yaml", epochs=50, imgsz=640, batch=16)
 
 # Monitor training metrics
 model.val()

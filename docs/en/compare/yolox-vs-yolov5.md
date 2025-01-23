@@ -10,39 +10,36 @@ The comparison between YOLOX and Ultralytics YOLOv5 highlights the evolution of 
 
 YOLOX is known for its anchor-free design and simplified training process, delivering remarkable efficiency. In contrast, Ultralytics YOLOv5 has set benchmarks in ease of use and versatile deployment, making it a favorite among developers globally. Explore the differences to better understand their strengths and applications.
 
-
 ## mAP Comparison
 
 This section highlights the mAP values of YOLOX and Ultralytics YOLOv5 models, representing their accuracy in detecting objects across different variants. Mean Average Precision (mAP) serves as a key metric for evaluating a model's precision and recall performance. Learn more about [mAP](https://www.ultralytics.com/glossary/mean-average-precision-map) and its importance in object detection.
 
-
 !!! tip "Accuracy"
 
-	=== "Detection (COCO)"
+    === "Detection (COCO)"
 
-		| Variant | mAP<sup>val<br>50<br>YOLOX | mAP<sup>val<br>50<br>YOLOv5 |
-		|---------------------|-------------------------------------------------------|-------------------------------------------------------|
-		| s | 40.5 | 37.4 |
-		| m | 46.9 | 45.4 |
-		| l | 49.7 | 49.0 |
-		| x | 51.1 | 50.7 |
-		
+    	| Variant | mAP<sup>val<br>50<br>YOLOX | mAP<sup>val<br>50<br>YOLOv5 |
+    	|---------------------|-------------------------------------------------------|-------------------------------------------------------|
+    	| s | 40.5 | 37.4 |
+    	| m | 46.9 | 45.4 |
+    	| l | 49.7 | 49.0 |
+    	| x | 51.1 | 50.7 |
+
 
 ## Speed Comparison
 
 This section highlights the performance of YOLOX and Ultralytics YOLOv5 models in terms of inference speed, measured in milliseconds, across various model sizes. These metrics provide critical insights into the efficiency of each model for real-world applications. For more details on YOLOv5, visit the [Ultralytics YOLOv5 Documentation](https://docs.ultralytics.com/models/yolov5/).
 
-
 !!! tip "Speed"
 
-	=== "Detection (COCO)"
+    === "Detection (COCO)"
 
-		| Variant | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOX | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv5 |
-		|---------------------|-------------------------------------------------------|-------------------------------------------------------|
-		| s | 2.56 | 1.92 |
-		| m | 5.43 | 4.03 |
-		| l | 9.04 | 6.61 |
-		| x | 16.1 | 11.89 |
+    	| Variant | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOX | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv5 |
+    	|---------------------|-------------------------------------------------------|-------------------------------------------------------|
+    	| s | 2.56 | 1.92 |
+    	| m | 5.43 | 4.03 |
+    	| l | 9.04 | 6.61 |
+    	| x | 16.1 | 11.89 |
 
 ## Predict Functionality in Ultralytics YOLO11
 
@@ -56,10 +53,10 @@ To get started with predictions, you can load the model, input your image or vid
 from ultralytics import YOLO
 
 # Load a pre-trained YOLO11 model
-model = YOLO('yolo11.pt')
+model = YOLO("yolo11.pt")
 
 # Perform prediction on an image
-results = model.predict(source='image.jpg', save=True)
+results = model.predict(source="image.jpg", save=True)
 
 # Display results
 results.show()

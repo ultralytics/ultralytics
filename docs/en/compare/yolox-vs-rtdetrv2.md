@@ -10,39 +10,36 @@ Navigating the rapidly evolving landscape of object detection models, the compar
 
 YOLOX stands out with its balance of speed and accuracy, making it a favorite for real-time applications. On the other hand, RTDETRv2 leverages advanced Vision Transformer-based architecture for higher accuracy in complex tasks, as detailed in the [RT-DETR model documentation](https://docs.ultralytics.com/reference/models/rtdetr/model/). Together, they present a compelling case for comparison in modern computer vision.
 
-
 ## mAP Comparison
 
 This section compares the mAP values of YOLOX and RTDETRv2, highlighting their performance in accurately detecting and classifying objects across different variants. Mean Average Precision ([mAP](https://www.ultralytics.com/glossary/mean-average-precision-map)) is a key metric that evaluates model accuracy by balancing precision and recall, making it essential for understanding detection effectiveness. For more on mAP and its importance, refer to [Ultralytics Glossary](https://www.ultralytics.com/glossary/mean-average-precision-map).
 
-
 !!! tip "Accuracy"
 
-	=== "Detection (COCO)"
+    === "Detection (COCO)"
 
-		| Variant | mAP<sup>val<br>50<br>YOLOX | mAP<sup>val<br>50<br>RTDETRv2 |
-		|---------------------|-------------------------------------------------------|-------------------------------------------------------|
-		| s | 40.5 | 48.1 |
-		| m | 46.9 | 51.9 |
-		| l | 49.7 | 53.4 |
-		| x | 51.1 | 54.3 |
-		
+    	| Variant | mAP<sup>val<br>50<br>YOLOX | mAP<sup>val<br>50<br>RTDETRv2 |
+    	|---------------------|-------------------------------------------------------|-------------------------------------------------------|
+    	| s | 40.5 | 48.1 |
+    	| m | 46.9 | 51.9 |
+    	| l | 49.7 | 53.4 |
+    	| x | 51.1 | 54.3 |
+
 
 ## Speed Comparison
 
 The speed comparison between YOLOX and RTDETRv2 highlights their performance efficiency across various input sizes. Metrics in milliseconds demonstrate YOLOX's faster processing capabilities compared to RTDETRv2, especially in real-time applications. For additional insights, explore [benchmarking methods](https://docs.ultralytics.com/modes/benchmark/) to understand speed variations further.
 
-
 !!! tip "Speed"
 
-	=== "Detection (COCO)"
+    === "Detection (COCO)"
 
-		| Variant | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOX | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>RTDETRv2 |
-		|---------------------|-------------------------------------------------------|-------------------------------------------------------|
-		| s | 2.56 | 5.03 |
-		| m | 5.43 | 7.51 |
-		| l | 9.04 | 9.76 |
-		| x | 16.1 | 15.03 |
+    	| Variant | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOX | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>RTDETRv2 |
+    	|---------------------|-------------------------------------------------------|-------------------------------------------------------|
+    	| s | 2.56 | 5.03 |
+    	| m | 5.43 | 7.51 |
+    	| l | 9.04 | 9.76 |
+    	| x | 16.1 | 15.03 |
 
 ## Using YOLO11 for Object Blurring
 
@@ -58,11 +55,11 @@ For further insights into YOLO11’s solutions like object blurring, visit the [
 from ultralytics import YOLO
 
 # Load YOLO11 model
-model = YOLO('yolo11.pt')
+model = YOLO("yolo11.pt")
 
 # Perform object detection and apply blurring
-results = model.predict(source='video.mp4', save=True, blur=True)
+results = model.predict(source="video.mp4", save=True, blur=True)
 
 # Save the output video with blurred objects
-results.save('output_blurred.mp4')
+results.save("output_blurred.mp4")
 ```

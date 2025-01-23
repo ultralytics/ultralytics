@@ -10,41 +10,38 @@ The comparison between YOLOv7 and Ultralytics YOLOv8 highlights the strides in c
 
 YOLOv7 is renowned for its balance of speed and accuracy, making it a strong contender for real-time tasks. Meanwhile, Ultralytics YOLOv8 introduces state-of-the-art innovations, including an anchor-free architecture and seamless integration with all YOLO versions, positioning it as a versatile choice for cutting-edge AI solutions. Learn more about [Ultralytics YOLOv8](https://www.ultralytics.com/blog/introducing-ultralytics-yolov8) and its capabilities.
 
-
 ## mAP Comparison
 
 This section highlights the Mean Average Precision (mAP) of YOLOv7 and Ultralytics YOLOv8 across their variants, showcasing their accuracy in detecting objects consistently across classes and thresholds. Learn more about [mAP](https://www.ultralytics.com/glossary/mean-average-precision-map) and its role in evaluating object detection models.
 
-
 !!! tip "Accuracy"
 
-	=== "Detection (COCO)"
+    === "Detection (COCO)"
 
-		| Variant | mAP<sup>val<br>50<br>YOLOv7 | mAP<sup>val<br>50<br>YOLOv8 |
-		|---------------------|-------------------------------------------------------|-------------------------------------------------------|
-		| n | N/A | 37.3 |
-		| s | N/A | 44.9 |
-		| m | N/A | 50.2 |
-		| l | 51.4 | 52.9 |
-		| x | 53.1 | 53.9 |
-		
+    	| Variant | mAP<sup>val<br>50<br>YOLOv7 | mAP<sup>val<br>50<br>YOLOv8 |
+    	|---------------------|-------------------------------------------------------|-------------------------------------------------------|
+    	| n | N/A | 37.3 |
+    	| s | N/A | 44.9 |
+    	| m | N/A | 50.2 |
+    	| l | 51.4 | 52.9 |
+    	| x | 53.1 | 53.9 |
+
 
 ## Speed Comparison
 
 This section highlights the speed performance of YOLOv7 and Ultralytics YOLOv8 models across various sizes, measured in milliseconds per inference. These metrics provide a clear understanding of how each model handles real-time tasks. Learn more about [YOLOv7](https://docs.ultralytics.com/models/yolov7/) and [Ultralytics YOLOv8](https://www.ultralytics.com/blog/object-detection-with-a-pre-trained-ultralytics-yolov8-model) for detailed insights.
 
-
 !!! tip "Speed"
 
-	=== "Detection (COCO)"
+    === "Detection (COCO)"
 
-		| Variant | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv7 | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv8 |
-		|---------------------|-------------------------------------------------------|-------------------------------------------------------|
-		| n | N/A | 1.47 |
-		| s | N/A | 2.66 |
-		| m | N/A | 5.86 |
-		| l | 6.84 | 9.06 |
-		| x | 11.57 | 14.37 |
+    	| Variant | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv7 | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv8 |
+    	|---------------------|-------------------------------------------------------|-------------------------------------------------------|
+    	| n | N/A | 1.47 |
+    	| s | N/A | 2.66 |
+    	| m | N/A | 5.86 |
+    	| l | 6.84 | 9.06 |
+    	| x | 11.57 | 14.37 |
 
 ## Benchmark Functionalities in Ultralytics YOLO11
 
@@ -58,9 +55,9 @@ For more details, explore the [Ultralytics YOLO11 documentation](https://docs.ul
 from ultralytics import YOLO
 
 # Load the YOLO11 model
-model = YOLO('yolo11.pt')
+model = YOLO("yolo11.pt")
 
 # Benchmark the model
-results = model.benchmark(data='coco8.yaml')
+results = model.benchmark(data="coco8.yaml")
 print(results)
 ```

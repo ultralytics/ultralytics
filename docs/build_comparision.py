@@ -114,18 +114,20 @@ def main():
 
             temp, temp2 = None, None
             if model1 in {"YOLO11", "YOLOv8", "YOLOv5"}:
-                temp=f"Ultralytics {model1}"
+                temp = f"Ultralytics {model1}"
             if model2 in {"YOLO11", "YOLOv8", "YOLOv5"}:
-                temp2=f"Ultralytics {model2}"
+                temp2 = f"Ultralytics {model2}"
 
             f.write(f"# {model1 if temp is None else temp} VS {model2 if temp2 is None else temp2}\n\n")  # Page Title
 
             # mAP Comparison Table
-            f.write('## mAP Comparison\n\n')
+            f.write("## mAP Comparison\n\n")
             f.write('!!! tip "Accuracy"')
             f.write('\n\n\t=== "Detection (COCO)"\n\n\t\t')
             f.write(f"| Variant | mAP<sup>val<br>50<br>{model1} | mAP<sup>val<br>50<br>{model2} |\n\t\t")
-            f.write("|---------------------|-------------------------------------------------------|-------------------------------------------------------|\n\t\t")
+            f.write(
+                "|---------------------|-------------------------------------------------------|-------------------------------------------------------|\n\t\t"
+            )
 
             variants = set(data[model1].keys()).union(set(data[model2].keys()))  # Add rows for mAP comparison
 
@@ -138,8 +140,12 @@ def main():
             f.write("\n## Speed Comparison\n\n")
             f.write('!!! tip "Speed"')
             f.write('\n\n\t=== "Detection (COCO)"\n\n\t\t')
-            f.write(f"| Variant | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>{model1} | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>{model2} |\n\t\t")
-            f.write("|---------------------|-------------------------------------------------------|-------------------------------------------------------|\n\t\t")
+            f.write(
+                f"| Variant | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>{model1} | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>{model2} |\n\t\t"
+            )
+            f.write(
+                "|---------------------|-------------------------------------------------------|-------------------------------------------------------|\n\t\t"
+            )
 
             for variant in sorted(variants, key=lambda v: variant_order.index(v)):  # Add rows for speed comparison
                 m1_speed = data[model1][variant]["speed"] if variant in data[model1] else "N/A"

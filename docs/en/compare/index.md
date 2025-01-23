@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Detailed comparision of YOLO models, including performance, speed, mAP, and deployment benchmarks for object detection tasks.
+description: Detailed comparison of YOLO models, including performance, speed, mAP, and deployment benchmarks for object detection tasks.
 keywords: YOLO, YOLO11, YOLOv10, YOLOv8, YOLOv9, DAMO YOLO, RT-DETRv2, YOLOX, PP-YOLOE+, model comparison, object detection, computer vision
 ---
 

@@ -10,39 +10,36 @@ Comparing RTDETRv2 and YOLOv7 is essential to understanding advancements in real
 
 YOLOv7, a popular model in the YOLO family, is known for its high-speed performance and robust detection capabilities. On the other hand, RTDETRv2 introduces innovative methodologies to optimize real-time detection, making it a strong contender for edge and resource-constrained environments. For more on YOLO models, visit the [Ultralytics YOLOv8 documentation](https://docs.ultralytics.com/models/yolov8/).
 
-
 ## mAP Comparison
 
 This section highlights the mAP values of RT-DETRv2 and YOLOv7 models, which serve as a critical metric for evaluating their accuracy across different variants. By analyzing their performance, you can better understand their trade-offs in precision and recall. Learn more about [mean average precision (mAP)](https://www.ultralytics.com/glossary/mean-average-precision-map).
 
-
 !!! tip "Accuracy"
 
-	=== "Detection (COCO)"
+    === "Detection (COCO)"
 
-		| Variant | mAP<sup>val<br>50<br>RTDETRv2 | mAP<sup>val<br>50<br>YOLOv7 |
-		|---------------------|-------------------------------------------------------|-------------------------------------------------------|
-		| s | 48.1 | N/A |
-		| m | 51.9 | N/A |
-		| l | 53.4 | 51.4 |
-		| x | 54.3 | 53.1 |
-		
+    	| Variant | mAP<sup>val<br>50<br>RTDETRv2 | mAP<sup>val<br>50<br>YOLOv7 |
+    	|---------------------|-------------------------------------------------------|-------------------------------------------------------|
+    	| s | 48.1 | N/A |
+    	| m | 51.9 | N/A |
+    	| l | 53.4 | 51.4 |
+    	| x | 54.3 | 53.1 |
+
 
 ## Speed Comparison
 
 This section compares the speed performance of RTDETRv2 and YOLOv7 across various model sizes, highlighting inference times in milliseconds. These metrics demonstrate how each model balances speed and efficiency, with detailed benchmarks available in the [Ultralytics YOLO documentation](https://docs.ultralytics.com/models/yolov7/).
 
-
 !!! tip "Speed"
 
-	=== "Detection (COCO)"
+    === "Detection (COCO)"
 
-		| Variant | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>RTDETRv2 | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv7 |
-		|---------------------|-------------------------------------------------------|-------------------------------------------------------|
-		| s | 5.03 | N/A |
-		| m | 7.51 | N/A |
-		| l | 9.76 | 6.84 |
-		| x | 15.03 | 11.57 |
+    	| Variant | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>RTDETRv2 | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv7 |
+    	|---------------------|-------------------------------------------------------|-------------------------------------------------------|
+    	| s | 5.03 | N/A |
+    	| m | 7.51 | N/A |
+    	| l | 9.76 | 6.84 |
+    	| x | 15.03 | 11.57 |
 
 ## Benchmark Functionality in Ultralytics YOLO11
 
@@ -58,10 +55,10 @@ Learn more about YOLO11's benchmarking capabilities in the [Ultralytics Document
 from ultralytics import YOLO
 
 # Load the pre-trained YOLO11 model
-model = YOLO('yolo11.pt')
+model = YOLO("yolo11.pt")
 
 # Run benchmarking on a dataset
-results = model.benchmark(data='coco.yaml', imgsz=640, batch=32)
+results = model.benchmark(data="coco.yaml", imgsz=640, batch=32)
 print(results)
 ```
 

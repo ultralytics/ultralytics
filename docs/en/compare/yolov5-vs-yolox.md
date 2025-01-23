@@ -10,39 +10,36 @@ The comparison of Ultralytics YOLOv5 and YOLOX highlights two leading object det
 
 Ultralytics YOLOv5 is celebrated for its simplicity, performance, and user-focused design, supported by extensive documentation and community engagement. On the other hand, YOLOX introduces innovative anchor-free mechanisms and modular designs that enhance detection efficiency. Dive into this comparison to explore the unique strengths and applications of each framework. Learn more about [Ultralytics YOLOv5](https://github.com/ultralytics/yolov5) and [YOLOX](https://github.com/Megvii-BaseDetection/YOLOX).
 
-
 ## mAP Comparison
 
 This section evaluates the mAP values of Ultralytics YOLOv5 and YOLOX models, highlighting their accuracy across various configurations. Mean Average Precision (mAP) is a key metric that reflects the models' ability to detect and classify objects effectively across different thresholds. Learn more about [mAP and its significance](https://www.ultralytics.com/glossary/mean-average-precision-map) in object detection.
 
-
 !!! tip "Accuracy"
 
-	=== "Detection (COCO)"
+    === "Detection (COCO)"
 
-		| Variant | mAP<sup>val<br>50<br>YOLOv5 | mAP<sup>val<br>50<br>YOLOX |
-		|---------------------|-------------------------------------------------------|-------------------------------------------------------|
-		| s | 37.4 | 40.5 |
-		| m | 45.4 | 46.9 |
-		| l | 49.0 | 49.7 |
-		| x | 50.7 | 51.1 |
-		
+    	| Variant | mAP<sup>val<br>50<br>YOLOv5 | mAP<sup>val<br>50<br>YOLOX |
+    	|---------------------|-------------------------------------------------------|-------------------------------------------------------|
+    	| s | 37.4 | 40.5 |
+    	| m | 45.4 | 46.9 |
+    	| l | 49.0 | 49.7 |
+    	| x | 50.7 | 51.1 |
+
 
 ## Speed Comparison
 
 This section highlights the speed performance differences between Ultralytics YOLOv5 and YOLOX models across various sizes. Speed metrics in milliseconds provide insights into inference efficiency, helping you evaluate how these models perform in real-world scenarios. For more details, explore the [YOLOv5 documentation](https://docs.ultralytics.com/models/yolov5/) and [YOLOX resources](https://github.com/Megvii-BaseDetection/YOLOX).
 
-
 !!! tip "Speed"
 
-	=== "Detection (COCO)"
+    === "Detection (COCO)"
 
-		| Variant | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv5 | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOX |
-		|---------------------|-------------------------------------------------------|-------------------------------------------------------|
-		| s | 1.92 | 2.56 |
-		| m | 4.03 | 5.43 |
-		| l | 6.61 | 9.04 |
-		| x | 11.89 | 16.1 |
+    	| Variant | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv5 | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOX |
+    	|---------------------|-------------------------------------------------------|-------------------------------------------------------|
+    	| s | 1.92 | 2.56 |
+    	| m | 4.03 | 5.43 |
+    	| l | 6.61 | 9.04 |
+    	| x | 11.89 | 16.1 |
 
 ## Export Functionality in Ultralytics YOLO11
 
@@ -58,10 +55,10 @@ For more details on export options, refer to the [Ultralytics documentation](htt
 from ultralytics import YOLO
 
 # Load the YOLO model
-model = YOLO('yolov11.pt')
+model = YOLO("yolov11.pt")
 
 # Export the model to ONNX format
-model.export(format='onnx', dynamic=True)
+model.export(format="onnx", dynamic=True)
 ```
 
 This code snippet demonstrates how to export a YOLO11 model to ONNX format, making it ready for deployment in supported environments.

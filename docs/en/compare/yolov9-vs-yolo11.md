@@ -10,41 +10,38 @@ As computer vision technology evolves, comparing models like YOLOv9 and Ultralyt
 
 YOLOv9 laid the foundation with its reliable performance and robust architecture, while Ultralytics YOLO11 takes innovation further with enhanced feature extraction and optimized training techniques. Whether you're exploring cutting-edge [augmentation pipelines](https://www.ultralytics.com/ru/blog/what-are-diffusion-models-a-quick-and-comprehensive-guide#data-preprocessing) or seeking superior [deployment options](https://docs.ultralytics.com/guides/model-deployment-options/), this comparison provides a comprehensive perspective on the advancements shaping modern AI solutions.
 
-
 ## mAP Comparison
 
 The mAP (mean Average Precision) values highlight the accuracy of YOLOv9 and Ultralytics YOLO11 across their respective variants, showcasing advancements in object detection performance. While YOLOv9 set new standards with its efficiency, Ultralytics YOLO11 further improves on these benchmarks, achieving higher mAP scores with fewer parameters and faster processing. Learn more about [mAP and its significance](https://www.ultralytics.com/glossary/mean-average-precision-map) in evaluating object detection models.
 
-
 !!! tip "Accuracy"
 
-	=== "Detection (COCO)"
+    === "Detection (COCO)"
 
-		| Variant | mAP<sup>val<br>50<br>YOLOv9 | mAP<sup>val<br>50<br>YOLO11 |
-		|---------------------|-------------------------------------------------------|-------------------------------------------------------|
-		| n | 37.8 | 39.5 |
-		| s | 46.5 | 47.0 |
-		| m | 51.5 | 51.4 |
-		| l | 52.8 | 53.2 |
-		| x | 55.1 | 54.7 |
-		
+    	| Variant | mAP<sup>val<br>50<br>YOLOv9 | mAP<sup>val<br>50<br>YOLO11 |
+    	|---------------------|-------------------------------------------------------|-------------------------------------------------------|
+    	| n | 37.8 | 39.5 |
+    	| s | 46.5 | 47.0 |
+    	| m | 51.5 | 51.4 |
+    	| l | 52.8 | 53.2 |
+    	| x | 55.1 | 54.7 |
+
 
 ## Speed Comparison
 
 This section highlights the speed performance of YOLOv9 and Ultralytics YOLO11 across various model sizes, measured in milliseconds. With optimized designs, Ultralytics YOLO11 demonstrates faster inference times, offering significant efficiency improvements for real-time applications. For more details, explore the [Ultralytics YOLO11 documentation](https://docs.ultralytics.com/models/yolo11/).
 
-
 !!! tip "Speed"
 
-	=== "Detection (COCO)"
+    === "Detection (COCO)"
 
-		| Variant | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv9 | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLO11 |
-		|---------------------|-------------------------------------------------------|-------------------------------------------------------|
-		| n | 2.3 | 1.55 |
-		| s | 3.54 | 2.63 |
-		| m | 6.43 | 5.27 |
-		| l | 7.16 | 6.84 |
-		| x | 16.77 | 12.49 |
+    	| Variant | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv9 | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLO11 |
+    	|---------------------|-------------------------------------------------------|-------------------------------------------------------|
+    	| n | 2.3 | 1.55 |
+    	| s | 3.54 | 2.63 |
+    	| m | 6.43 | 5.27 |
+    	| l | 7.16 | 6.84 |
+    	| x | 16.77 | 12.49 |
 
 ## Benchmarking With Ultralytics YOLO11
 
@@ -60,10 +57,10 @@ To learn more about performance metrics such as mAP, IoU, and F1 score, visit th
 from ultralytics import YOLO
 
 # Load a pretrained YOLO11 model
-model = YOLO('yolo11.pt')
+model = YOLO("yolo11.pt")
 
 # Benchmark the model on a dataset
-results = model.benchmark(data='coco8.yaml', imgsz=640, batch=32)
+results = model.benchmark(data="coco8.yaml", imgsz=640, batch=32)
 
 # Print benchmark results
 print(results)

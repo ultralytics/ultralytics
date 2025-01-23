@@ -1,6 +1,6 @@
 ---
-comments: true  
-description: Explore the ultimate comparison between YOLOv6-3.0 and DAMO-YOLO, two cutting-edge object detection models. Discover their performance in real-time AI, edge AI applications, and computer vision tasks, highlighting speed, accuracy, and efficiency for your next project.  
+comments: true
+description: Explore the ultimate comparison between YOLOv6-3.0 and DAMO-YOLO, two cutting-edge object detection models. Discover their performance in real-time AI, edge AI applications, and computer vision tasks, highlighting speed, accuracy, and efficiency for your next project.
 keywords: YOLOv6-3.0, DAMO-YOLO, Ultralytics, object detection, real-time AI, edge AI, computer vision, AI models comparison
 ---
 
@@ -10,39 +10,36 @@ The comparison between YOLOv6-3.0 and DAMO-YOLO offers a deep dive into two of t
 
 YOLOv6-3.0 builds upon the YOLO family’s legacy, delivering enhanced segmentation capabilities and optimized performance for diverse scenarios. On the other hand, DAMO-YOLO introduces innovative approaches to object detection through its unique architecture, emphasizing precision and scalability. Explore how these models redefine possibilities in AI by leveraging state-of-the-art advancements. Learn more about [object detection](https://www.ultralytics.com/glossary/object-detection) and related technologies to stay ahead in the field.
 
-
 ## mAP Comparison
 
 This section compares the mAP values of YOLOv6-3.0 and DAMO-YOLO models, highlighting their accuracy in detecting and classifying objects across various configurations. mAP serves as a critical metric in evaluating overall object detection performance. Learn more about [Mean Average Precision](https://www.ultralytics.com/glossary/mean-average-precision-map) and its applications in model evaluation.
 
-
 !!! tip "Accuracy"
 
-	=== "Detection (COCO)"
+    === "Detection (COCO)"
 
-		| Variant | mAP<sup>val<br>50<br>YOLOv6-3.0 | mAP<sup>val<br>50<br>DAMO-YOLO |
-		|---------------------|-------------------------------------------------------|-------------------------------------------------------|
-		| n | 37.5 | 42.0 |
-		| s | 45.0 | 46.0 |
-		| m | 50.0 | 49.2 |
-		| l | 52.8 | 50.8 |
-		
+    	| Variant | mAP<sup>val<br>50<br>YOLOv6-3.0 | mAP<sup>val<br>50<br>DAMO-YOLO |
+    	|---------------------|-------------------------------------------------------|-------------------------------------------------------|
+    	| n | 37.5 | 42.0 |
+    	| s | 45.0 | 46.0 |
+    	| m | 50.0 | 49.2 |
+    	| l | 52.8 | 50.8 |
+
 
 ## Speed Comparison
 
 This section highlights the speed performance of YOLOv6-3.0 and DAMO-YOLO across various model sizes, measured in milliseconds. These metrics demonstrate the efficiency of each model, offering insights into their real-world applicability for tasks requiring rapid inference. For detailed benchmarks on YOLO models, refer to the [Ultralytics Benchmark Documentation](https://docs.ultralytics.com/reference/utils/benchmarks/).
 
-
 !!! tip "Speed"
 
-	=== "Detection (COCO)"
+    === "Detection (COCO)"
 
-		| Variant | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv6-3.0 | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>DAMO-YOLO |
-		|---------------------|-------------------------------------------------------|-------------------------------------------------------|
-		| n | 1.17 | 2.32 |
-		| s | 2.66 | 3.45 |
-		| m | 5.28 | 5.09 |
-		| l | 8.95 | 7.18 |
+    	| Variant | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv6-3.0 | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>DAMO-YOLO |
+    	|---------------------|-------------------------------------------------------|-------------------------------------------------------|
+    	| n | 1.17 | 2.32 |
+    	| s | 2.66 | 3.45 |
+    	| m | 5.28 | 5.09 |
+    	| l | 8.95 | 7.18 |
 
 ## Using the Predict Functionality in Ultralytics YOLO11
 
@@ -58,10 +55,10 @@ For more details on how to use YOLO11 for predictions, refer to the [Ultralytics
 from ultralytics import YOLO
 
 # Load a pre-trained YOLO11 model
-model = YOLO('yolo11.pt')
+model = YOLO("yolo11.pt")
 
 # Perform predictions on an image
-results = model.predict(source='image.jpg', save=True)
+results = model.predict(source="image.jpg", save=True)
 
 # Display results
 results.show()

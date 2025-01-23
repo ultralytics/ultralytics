@@ -10,41 +10,38 @@ The comparison between YOLOv9 and RTDETRv2 highlights the evolution of object de
 
 YOLOv9, a continuation of the YOLO series, excels in achieving a balance between precision and lightweight design, making it ideal for diverse tasks. In contrast, RTDETRv2 leverages Vision Transformer-based architecture, offering high accuracy and adaptable inference speeds, as detailed in its [documentation](https://docs.ultralytics.com/reference/models/rtdetr/model/).
 
-
 ## mAP Comparison
 
 This section highlights the performance differences between YOLOv9 and RTDETRv2 by comparing their mAP values, a critical metric for evaluating object detection accuracy. Mean Average Precision (mAP) reflects how effectively each model identifies and localizes objects across various datasets and thresholds, ensuring a fair assessment of their precision and recall capabilities. Learn more about [mAP metrics](https://www.ultralytics.com/glossary/mean-average-precision-map) and their role in evaluating model performance.
 
-
 !!! tip "Accuracy"
 
-	=== "Detection (COCO)"
+    === "Detection (COCO)"
 
-		| Variant | mAP<sup>val<br>50<br>YOLOv9 | mAP<sup>val<br>50<br>RTDETRv2 |
-		|---------------------|-------------------------------------------------------|-------------------------------------------------------|
-		| n | 37.8 | N/A |
-		| s | 46.5 | 48.1 |
-		| m | 51.5 | 51.9 |
-		| l | 52.8 | 53.4 |
-		| x | 55.1 | 54.3 |
-		
+    	| Variant | mAP<sup>val<br>50<br>YOLOv9 | mAP<sup>val<br>50<br>RTDETRv2 |
+    	|---------------------|-------------------------------------------------------|-------------------------------------------------------|
+    	| n | 37.8 | N/A |
+    	| s | 46.5 | 48.1 |
+    	| m | 51.5 | 51.9 |
+    	| l | 52.8 | 53.4 |
+    	| x | 55.1 | 54.3 |
+
 
 ## Speed Comparison
 
 This section highlights the speed performance of YOLOv9 and RTDETRv2 across various sizes, assessed in milliseconds. These metrics, tested with formats like TensorRT, provide valuable insights into their real-world efficiency on tasks such as object detection. Learn more about [benchmarking models](https://docs.ultralytics.com/modes/benchmark/) for detailed comparisons.
 
-
 !!! tip "Speed"
 
-	=== "Detection (COCO)"
+    === "Detection (COCO)"
 
-		| Variant | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv9 | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>RTDETRv2 |
-		|---------------------|-------------------------------------------------------|-------------------------------------------------------|
-		| n | 2.3 | N/A |
-		| s | 3.54 | 5.03 |
-		| m | 6.43 | 7.51 |
-		| l | 7.16 | 9.76 |
-		| x | 16.77 | 15.03 |
+    	| Variant | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv9 | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>RTDETRv2 |
+    	|---------------------|-------------------------------------------------------|-------------------------------------------------------|
+    	| n | 2.3 | N/A |
+    	| s | 3.54 | 5.03 |
+    	| m | 6.43 | 7.51 |
+    	| l | 7.16 | 9.76 |
+    	| x | 16.77 | 15.03 |
 
 ## Fine-Tuning With African Wildlife Dataset
 

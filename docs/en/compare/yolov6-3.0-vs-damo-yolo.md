@@ -10,43 +10,42 @@ Comparing YOLOv6-3.0 and DAMO-YOLO provides insights into two powerful object de
 
 YOLOv6-3.0 emphasizes efficiency with its optimized architecture, making it a strong candidate for tasks requiring real-time object detection. Meanwhile, DAMO-YOLO stands out with its innovative design and robust performance in challenging scenarios, pushing the boundaries of what is achievable in the field. For more details on YOLO advancements, explore [Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8/).
 
-<<<<<<< HEAD
-=======
+# <<<<<<< HEAD
+
 YOLOv6-3.0 builds upon the YOLO family's legacy, delivering enhanced segmentation capabilities and optimized performance for diverse scenarios. On the other hand, DAMO-YOLO introduces innovative approaches to object detection through its unique architecture, emphasizing precision and scalability. Explore how these models redefine possibilities in AI by leveraging state-of-the-art advancements. Learn more about [object detection](https://www.ultralytics.com/glossary/object-detection) and related technologies to stay ahead in the field.
->>>>>>> 95d73b193a43ffc9b65d81b5b93f6d2acf3cb195
+
+> > > > > > > 95d73b193a43ffc9b65d81b5b93f6d2acf3cb195
 
 ## mAP Comparison
 
 This section highlights the mAP (mean average precision) values for YOLOv6-3.0 and DAMO-YOLO models, illustrating their detection accuracy across various configurations. mAP serves as a critical metric in object detection, evaluating model performance by balancing precision and recall. Learn more about [mAP metrics here](https://www.ultralytics.com/glossary/mean-average-precision-map).
 
-
 !!! tip "Accuracy"
 
-	=== "Detection (COCO)"
+    === "Detection (COCO)"
 
-		| Variant | mAP<sup>val<br>50<br>YOLOv6-3.0 | mAP<sup>val<br>50<br>DAMO-YOLO |
-		|---------------------|-------------------------------------------------------|-------------------------------------------------------|
-		| n | 37.5 | 42.0 |
-		| s | 45.0 | 46.0 |
-		| m | 50.0 | 49.2 |
-		| l | 52.8 | 50.8 |
-		
+    	| Variant | mAP<sup>val<br>50<br>YOLOv6-3.0 | mAP<sup>val<br>50<br>DAMO-YOLO |
+    	|---------------------|-------------------------------------------------------|-------------------------------------------------------|
+    	| n | 37.5 | 42.0 |
+    	| s | 45.0 | 46.0 |
+    	| m | 50.0 | 49.2 |
+    	| l | 52.8 | 50.8 |
+
 
 ## Speed Comparison
 
 This section evaluates the speed performance of YOLOv6-3.0 and DAMO-YOLO across various model sizes, with latency measured in milliseconds. Speed metrics provide a clear benchmark for real-time applications, highlighting the efficiency differences between these models. For more details, visit the [Ultralytics Benchmarks](https://docs.ultralytics.com/reference/utils/benchmarks/).
 
-
 !!! tip "Speed"
 
-	=== "Detection (COCO)"
+    === "Detection (COCO)"
 
-		| Variant | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv6-3.0 | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>DAMO-YOLO |
-		|---------------------|-------------------------------------------------------|-------------------------------------------------------|
-		| n | 1.17 | 2.32 |
-		| s | 2.66 | 3.45 |
-		| m | 5.28 | 5.09 |
-		| l | 8.95 | 7.18 |
+    	| Variant | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv6-3.0 | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>DAMO-YOLO |
+    	|---------------------|-------------------------------------------------------|-------------------------------------------------------|
+    	| n | 1.17 | 2.32 |
+    	| s | 2.66 | 3.45 |
+    	| m | 5.28 | 5.09 |
+    	| l | 8.95 | 7.18 |
 
 ## YOLO Common Issues
 

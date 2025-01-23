@@ -10,43 +10,40 @@ RTDETRv2 and YOLOv10 represent two significant advancements in real-time object 
 
 YOLOv10, powered by [Ultralytics](https://www.ultralytics.com/), introduces NMS-free training and a holistic model design that optimizes both accuracy and efficiency. On the other hand, RTDETRv2 builds upon its predecessor with enhanced transformer-based architecture, delivering robust performance in dynamic scenarios. Explore their features and benchmarks to discover the ideal fit for your projects. Learn more about [YOLOv10's architecture and features](https://docs.ultralytics.com/models/yolov10/).
 
-
 ## mAP Comparison
 
 Mean Average Precision (mAP) is a critical metric that evaluates the accuracy of object detection models like RT-DETRv2 and YOLOv10 across various variants. By balancing precision and recall, mAP highlights each model's ability to correctly identify and locate objects, providing a robust basis for performance comparison. Learn more about [mAP metrics](https://www.ultralytics.com/glossary/mean-average-precision-map).
 
-
 !!! tip "Accuracy"
 
-	=== "Detection (COCO)"
+    === "Detection (COCO)"
 
-		| Variant | mAP<sup>val<br>50<br>RTDETRv2 | mAP<sup>val<br>50<br>YOLOv10 |
-		|---------------------|-------------------------------------------------------|-------------------------------------------------------|
-		| n | N/A | 39.5 |
-		| s | 48.1 | 46.7 |
-		| m | 51.9 | 51.3 |
-		| b | N/A | 52.7 |
-		| l | 53.4 | 53.3 |
-		| x | 54.3 | 54.4 |
-		
+    	| Variant | mAP<sup>val<br>50<br>RTDETRv2 | mAP<sup>val<br>50<br>YOLOv10 |
+    	|---------------------|-------------------------------------------------------|-------------------------------------------------------|
+    	| n | N/A | 39.5 |
+    	| s | 48.1 | 46.7 |
+    	| m | 51.9 | 51.3 |
+    	| b | N/A | 52.7 |
+    	| l | 53.4 | 53.3 |
+    	| x | 54.3 | 54.4 |
+
 
 ## Speed Comparison
 
 This section examines the speed performance of RTDETRv2 and YOLOv10 across various model sizes, highlighting their inference latency in milliseconds. These metrics, measured on state-of-the-art hardware like GPUs, provide critical insights into deployment efficiency. Learn more about [benchmarking metrics](https://docs.ultralytics.com/modes/benchmark/) and [model profiling](https://docs.ultralytics.com/reference/utils/benchmarks/).
 
-
 !!! tip "Speed"
 
-	=== "Detection (COCO)"
+    === "Detection (COCO)"
 
-		| Variant | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>RTDETRv2 | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv10 |
-		|---------------------|-------------------------------------------------------|-------------------------------------------------------|
-		| n | N/A | 1.56 |
-		| s | 5.03 | 2.66 |
-		| m | 7.51 | 5.48 |
-		| b | N/A | 6.54 |
-		| l | 9.76 | 8.33 |
-		| x | 15.03 | 12.2 |
+    	| Variant | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>RTDETRv2 | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv10 |
+    	|---------------------|-------------------------------------------------------|-------------------------------------------------------|
+    	| n | N/A | 1.56 |
+    	| s | 5.03 | 2.66 |
+    	| m | 7.51 | 5.48 |
+    	| b | N/A | 6.54 |
+    	| l | 9.76 | 8.33 |
+    	| x | 15.03 | 12.2 |
 
 ## YOLO11 Functionalities: Segment
 

@@ -10,41 +10,38 @@ YOLOX and YOLOv9 represent significant advancements in the field of object detec
 
 While YOLOX is celebrated for its efficiency and robust adaptability across platforms, YOLOv9 introduces enhanced architectural designs and improved accuracy-speed tradeoffs. Understanding these key differences will help developers make informed decisions for real-time AI deployment. Learn more about YOLO models in the [Ultralytics documentation](https://docs.ultralytics.com/models/yolov8/).
 
-
 ## mAP Comparison
 
 This section highlights the mAP performance of YOLOX and YOLOv9 across their respective variants, showcasing their accuracy in detecting and classifying objects. mAP values, such as mAP@.5 and mAP@.5:.95, provide a comprehensive measure of how effectively these models perform on datasets like [COCO](https://docs.ultralytics.com/datasets/detect/coco/). For more on mAP metrics, explore the [Ultralytics Glossary](https://www.ultralytics.com/glossary/mean-average-precision-map).
 
-
 !!! tip "Accuracy"
 
-	=== "Detection (COCO)"
+    === "Detection (COCO)"
 
-		| Variant | mAP<sup>val<br>50<br>YOLOX | mAP<sup>val<br>50<br>YOLOv9 |
-		|---------------------|-------------------------------------------------------|-------------------------------------------------------|
-		| n | N/A | 37.8 |
-		| s | 40.5 | 46.5 |
-		| m | 46.9 | 51.5 |
-		| l | 49.7 | 52.8 |
-		| x | 51.1 | 55.1 |
-		
+    	| Variant | mAP<sup>val<br>50<br>YOLOX | mAP<sup>val<br>50<br>YOLOv9 |
+    	|---------------------|-------------------------------------------------------|-------------------------------------------------------|
+    	| n | N/A | 37.8 |
+    	| s | 40.5 | 46.5 |
+    	| m | 46.9 | 51.5 |
+    	| l | 49.7 | 52.8 |
+    	| x | 51.1 | 55.1 |
+
 
 ## Speed Comparison
 
 This section highlights the speed metrics of YOLOX and YOLOv9 models, measured in milliseconds across different sizes. These metrics provide valuable insights into the real-time performance and efficiency of both models, helping to identify the best fit for various applications. For more on YOLOv9, visit the [Ultralytics YOLOv9 documentation](https://docs.ultralytics.com/models/yolov9/).
 
-
 !!! tip "Speed"
 
-	=== "Detection (COCO)"
+    === "Detection (COCO)"
 
-		| Variant | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOX | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv9 |
-		|---------------------|-------------------------------------------------------|-------------------------------------------------------|
-		| n | N/A | 2.3 |
-		| s | 2.56 | 3.54 |
-		| m | 5.43 | 6.43 |
-		| l | 9.04 | 7.16 |
-		| x | 16.1 | 16.77 |
+    	| Variant | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOX | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv9 |
+    	|---------------------|-------------------------------------------------------|-------------------------------------------------------|
+    	| n | N/A | 2.3 |
+    	| s | 2.56 | 3.54 |
+    	| m | 5.43 | 6.43 |
+    	| l | 9.04 | 7.16 |
+    	| x | 16.1 | 16.77 |
 
 ## Exploring the Predict Functionality in Ultralytics YOLO11
 
@@ -56,10 +53,10 @@ To get started with predicting using YOLO11, you can use the Ultralytics Python 
 from ultralytics import YOLO
 
 # Load a pre-trained YOLO11 model
-model = YOLO('yolo11.pt')
+model = YOLO("yolo11.pt")
 
 # Run predictions on an image
-results = model.predict(source='image.jpg', save=True)
+results = model.predict(source="image.jpg", save=True)
 
 # Display results
 results.show()

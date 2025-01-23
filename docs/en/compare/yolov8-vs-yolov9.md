@@ -10,41 +10,38 @@ The evolution of YOLO models has brought groundbreaking advancements in computer
 
 Ultralytics YOLOv8 delivers exceptional speed and accuracy, making it a go-to choice for real-time object detection tasks. Meanwhile, YOLOv9 enhances these strengths further with improved architectural designs and feature extraction techniques, setting new benchmarks in efficiency and precision. Learn more about [Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8/) and explore the [latest innovations in YOLOv9](https://www.youtube.com/watch?v=ZF7EAodHn1U&t=1s).
 
-
 ## mAP Comparison
 
 This section highlights the mAP values of Ultralytics YOLOv8 and YOLOv9 to compare their accuracy across different model variants. Mean Average Precision (mAP) serves as a key metric for evaluating the object detection performance of these models, reflecting their ability to balance precision and recall effectively. Learn more about [mAP metrics](https://www.ultralytics.com/glossary/mean-average-precision-map) and their significance in model evaluation.
 
-
 !!! tip "Accuracy"
 
-	=== "Detection (COCO)"
+    === "Detection (COCO)"
 
-		| Variant | mAP<sup>val<br>50<br>YOLOv8 | mAP<sup>val<br>50<br>YOLOv9 |
-		|---------------------|-------------------------------------------------------|-------------------------------------------------------|
-		| n | 37.3 | 37.8 |
-		| s | 44.9 | 46.5 |
-		| m | 50.2 | 51.5 |
-		| l | 52.9 | 52.8 |
-		| x | 53.9 | 55.1 |
-		
+    	| Variant | mAP<sup>val<br>50<br>YOLOv8 | mAP<sup>val<br>50<br>YOLOv9 |
+    	|---------------------|-------------------------------------------------------|-------------------------------------------------------|
+    	| n | 37.3 | 37.8 |
+    	| s | 44.9 | 46.5 |
+    	| m | 50.2 | 51.5 |
+    	| l | 52.9 | 52.8 |
+    	| x | 53.9 | 55.1 |
+
 
 ## Speed Comparison
 
 This section highlights the speed differences between Ultralytics YOLOv8 and YOLOv9 models across various sizes, measured in milliseconds. These metrics demonstrate the efficiency improvements in real-time object detection, emphasizing YOLOv9's advancements in balancing speed and computational demands. For more on YOLOv9's performance, visit the [YOLOv9 documentation](https://docs.ultralytics.com/models/yolov9/).
 
-
 !!! tip "Speed"
 
-	=== "Detection (COCO)"
+    === "Detection (COCO)"
 
-		| Variant | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv8 | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv9 |
-		|---------------------|-------------------------------------------------------|-------------------------------------------------------|
-		| n | 1.47 | 2.3 |
-		| s | 2.66 | 3.54 |
-		| m | 5.86 | 6.43 |
-		| l | 9.06 | 7.16 |
-		| x | 14.37 | 16.77 |
+    	| Variant | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv8 | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv9 |
+    	|---------------------|-------------------------------------------------------|-------------------------------------------------------|
+    	| n | 1.47 | 2.3 |
+    	| s | 2.66 | 3.54 |
+    	| m | 5.86 | 6.43 |
+    	| l | 9.06 | 7.16 |
+    	| x | 14.37 | 16.77 |
 
 ## YOLO Common Issues
 

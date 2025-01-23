@@ -6,28 +6,26 @@ keywords: DAMO-YOLO, Ultralytics YOLOv8, object detection, real-time AI, edge AI
 
 # DAMO-YOLO VS Ultralytics YOLOv8
 
-The comparison of DAMO-YOLO and Ultralytics YOLOv8 brings into focus two cutting-edge models in the realm of real-time object detection. Both models are designed to deliver exceptional performance, balancing speed and accuracy across a variety of computer vision tasks.  
+The comparison of DAMO-YOLO and Ultralytics YOLOv8 brings into focus two cutting-edge models in the realm of real-time object detection. Both models are designed to deliver exceptional performance, balancing speed and accuracy across a variety of computer vision tasks.
 
 While DAMO-YOLO emphasizes efficiency through innovative architecture optimizations, Ultralytics YOLOv8 stands out with its user-friendly design, pre-trained model versatility, and seamless integration. This evaluation will explore their unique strengths, helping you determine the best fit for your specific application needs. Learn more about [Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8/) and its advancements.
-
 
 ## mAP Comparison
 
 This section evaluates the mAP values of DAMO-YOLO and Ultralytics YOLOv8, showcasing their object detection accuracy across different variants. The mAP metric, crucial for assessing model performance, balances precision and recall to provide a comprehensive measure of effectiveness. Learn more about [Mean Average Precision](https://www.ultralytics.com/glossary/mean-average-precision-map).
 
-
 !!! tip "Accuracy"
 
-	=== "Detection (COCO)"
+    === "Detection (COCO)"
 
-		| Variant | mAP<sup>val<br>50<br>DAMO-YOLO | mAP<sup>val<br>50<br>YOLOv8 |
-		|---------------------|-------------------------------------------------------|-------------------------------------------------------|
-		| n | 42.0 | 37.3 |
-		| s | 46.0 | 44.9 |
-		| m | 49.2 | 50.2 |
-		| l | 50.8 | 52.9 |
-		| x | N/A | 53.9 |
-		
+    	| Variant | mAP<sup>val<br>50<br>DAMO-YOLO | mAP<sup>val<br>50<br>YOLOv8 |
+    	|---------------------|-------------------------------------------------------|-------------------------------------------------------|
+    	| n | 42.0 | 37.3 |
+    	| s | 46.0 | 44.9 |
+    	| m | 49.2 | 50.2 |
+    	| l | 50.8 | 52.9 |
+    	| x | N/A | 53.9 |
+
 
 ## Speed Comparison
 
@@ -36,19 +34,20 @@ This section highlights the speed performance of DAMO-YOLO and Ultralytics YOLOv
 
 =======
 This section highlights the speed performance of DAMO-YOLO and Ultralytics YOLOv8 models, measured in milliseconds per image across various model sizes. These metrics showcase the efficiency and responsiveness of each model, emphasizing their suitability for real-time applications. For details on YOLOv8's performance, refer to the [Ultralytics YOLOv8 documentation](https://docs.ultralytics.com/models/yolov8/).
->>>>>>> 95d73b193a43ffc9b65d81b5b93f6d2acf3cb195
+
+> > > > > > > 95d73b193a43ffc9b65d81b5b93f6d2acf3cb195
 
 !!! tip "Speed"
 
-	=== "Detection (COCO)"
+    === "Detection (COCO)"
 
-		| Variant | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>DAMO-YOLO | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv8 |
-		|---------------------|-------------------------------------------------------|-------------------------------------------------------|
-		| n | 2.32 | 1.47 |
-		| s | 3.45 | 2.66 |
-		| m | 5.09 | 5.86 |
-		| l | 7.18 | 9.06 |
-		| x | N/A | 14.37 |
+    	| Variant | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>DAMO-YOLO | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv8 |
+    	|---------------------|-------------------------------------------------------|-------------------------------------------------------|
+    	| n | 2.32 | 1.47 |
+    	| s | 3.45 | 2.66 |
+    	| m | 5.09 | 5.86 |
+    	| l | 7.18 | 9.06 |
+    	| x | N/A | 14.37 |
 
 ## YOLO Thread-Safe Inference
 

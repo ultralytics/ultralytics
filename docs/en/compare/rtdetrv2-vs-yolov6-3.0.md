@@ -10,41 +10,38 @@ The comparison between RTDETRv2 and YOLOv6-3.0 explores two leading-edge object 
 
 RTDETRv2 builds on Vision Transformer principles to deliver real-time performance with high accuracy, while YOLOv6-3.0 focuses on optimizing speed and parameter efficiency. This analysis highlights their performance across benchmarks like COCO, enabling informed decisions for diverse applications. For more details on RTDETR, visit the [RT-DETR model documentation](https://docs.ultralytics.com/reference/models/rtdetr/model/), and to learn about YOLOv6-3.0, explore the [YOLOv6 overview](https://docs.ultralytics.com/models/yolov6/).
 
-
 ## mAP Comparison
 
 This section evaluates the accuracy of RTDETRv2 and YOLOv6-3.0 models by comparing their mAP values, a critical metric for assessing object detection performance. Learn more about [mAP](https://www.ultralytics.com/glossary/mean-average-precision-map) to understand how it reflects the models' precision and recall across various classes and thresholds.
 
-
 !!! tip "Accuracy"
 
-	=== "Detection (COCO)"
+    === "Detection (COCO)"
 
-		| Variant | mAP<sup>val<br>50<br>RTDETRv2 | mAP<sup>val<br>50<br>YOLOv6-3.0 |
-		|---------------------|-------------------------------------------------------|-------------------------------------------------------|
-		| n | N/A | 37.5 |
-		| s | 48.1 | 45.0 |
-		| m | 51.9 | 50.0 |
-		| l | 53.4 | 52.8 |
-		| x | 54.3 | N/A |
-		
+    	| Variant | mAP<sup>val<br>50<br>RTDETRv2 | mAP<sup>val<br>50<br>YOLOv6-3.0 |
+    	|---------------------|-------------------------------------------------------|-------------------------------------------------------|
+    	| n | N/A | 37.5 |
+    	| s | 48.1 | 45.0 |
+    	| m | 51.9 | 50.0 |
+    	| l | 53.4 | 52.8 |
+    	| x | 54.3 | N/A |
+
 
 ## Speed Comparison
 
 This section highlights the speed performance of RTDETRv2 and YOLOv6-3.0 across various model sizes. Measured in milliseconds, these metrics provide critical insights into the inference efficiency of both models, particularly on hardware-optimized platforms like TensorRT. Learn more about benchmarking techniques [here](https://docs.ultralytics.com/reference/utils/benchmarks/).
 
-
 !!! tip "Speed"
 
-	=== "Detection (COCO)"
+    === "Detection (COCO)"
 
-		| Variant | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>RTDETRv2 | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv6-3.0 |
-		|---------------------|-------------------------------------------------------|-------------------------------------------------------|
-		| n | N/A | 1.17 |
-		| s | 5.03 | 2.66 |
-		| m | 7.51 | 5.28 |
-		| l | 9.76 | 8.95 |
-		| x | 15.03 | N/A |
+    	| Variant | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>RTDETRv2 | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv6-3.0 |
+    	|---------------------|-------------------------------------------------------|-------------------------------------------------------|
+    	| n | N/A | 1.17 |
+    	| s | 5.03 | 2.66 |
+    	| m | 7.51 | 5.28 |
+    	| l | 9.76 | 8.95 |
+    	| x | 15.03 | N/A |
 
 ## SAHI Tiled Inference
 

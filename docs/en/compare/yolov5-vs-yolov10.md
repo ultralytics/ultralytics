@@ -1,6 +1,6 @@
 ---
-comments: true  
-description: Discover the key differences between Ultralytics YOLOv5 and YOLOv10 in this comprehensive comparison. Explore advancements in object detection, real-time AI performance, and edge AI capabilities, as we highlight their unique strengths and applications in modern computer vision tasks.  
+comments: true
+description: Discover the key differences between Ultralytics YOLOv5 and YOLOv10 in this comprehensive comparison. Explore advancements in object detection, real-time AI performance, and edge AI capabilities, as we highlight their unique strengths and applications in modern computer vision tasks.
 keywords: YOLOv5, YOLOv10, Ultralytics, object detection, real-time AI, edge AI, computer vision, model comparison
 ---
 
@@ -10,43 +10,40 @@ The evolution of YOLO models has consistently pushed the boundaries of real-time
 
 Ultralytics YOLOv5 is celebrated for its simplicity and widespread adoption, while YOLOv10 delivers cutting-edge architecture optimized for accuracy and latency. With this analysis, we aim to showcase how these models cater to diverse use cases, from resource-constrained environments to large-scale applications. For further insights, explore [YOLOv10 documentation](https://docs.ultralytics.com/models/yolov10/) and the [Ultralytics YOLOv5 overview](https://docs.ultralytics.com/models/yolov8/).
 
-
 ## mAP Comparison
 
 This section highlights the mAP values of Ultralytics YOLOv5 and YOLOv10, showcasing their accuracy across different model variants. Mean Average Precision (mAP) evaluates detection performance, balancing precision and recall, and provides a clear metric to compare the advancements of YOLOv10 over its predecessor. Learn more about [mAP](https://www.ultralytics.com/glossary/mean-average-precision-map) and its significance in model evaluation.
 
-
 !!! tip "Accuracy"
 
-	=== "Detection (COCO)"
+    === "Detection (COCO)"
 
-		| Variant | mAP<sup>val<br>50<br>YOLOv5 | mAP<sup>val<br>50<br>YOLOv10 |
-		|---------------------|-------------------------------------------------------|-------------------------------------------------------|
-		| n | N/A | 39.5 |
-		| s | 37.4 | 46.7 |
-		| m | 45.4 | 51.3 |
-		| b | N/A | 52.7 |
-		| l | 49.0 | 53.3 |
-		| x | 50.7 | 54.4 |
-		
+    	| Variant | mAP<sup>val<br>50<br>YOLOv5 | mAP<sup>val<br>50<br>YOLOv10 |
+    	|---------------------|-------------------------------------------------------|-------------------------------------------------------|
+    	| n | N/A | 39.5 |
+    	| s | 37.4 | 46.7 |
+    	| m | 45.4 | 51.3 |
+    	| b | N/A | 52.7 |
+    	| l | 49.0 | 53.3 |
+    	| x | 50.7 | 54.4 |
+
 
 ## Speed Comparison
 
 This section highlights the speed metrics in milliseconds for Ultralytics YOLOv5 and YOLOv10 across various model sizes. By comparing inference times, it showcases the advancements in performance and efficiency offered by YOLOv10. For more details, explore the official [YOLOv5 documentation](https://docs.ultralytics.com/models/yolov5/) and [YOLOv10 overview](https://docs.ultralytics.com/models/yolov10/).
 
-
 !!! tip "Speed"
 
-	=== "Detection (COCO)"
+    === "Detection (COCO)"
 
-		| Variant | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv5 | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv10 |
-		|---------------------|-------------------------------------------------------|-------------------------------------------------------|
-		| n | N/A | 1.56 |
-		| s | 1.92 | 2.66 |
-		| m | 4.03 | 5.48 |
-		| b | N/A | 6.54 |
-		| l | 6.61 | 8.33 |
-		| x | 11.89 | 12.2 |
+    	| Variant | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv5 | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv10 |
+    	|---------------------|-------------------------------------------------------|-------------------------------------------------------|
+    	| n | N/A | 1.56 |
+    	| s | 1.92 | 2.66 |
+    	| m | 4.03 | 5.48 |
+    	| b | N/A | 6.54 |
+    	| l | 6.61 | 8.33 |
+    	| x | 11.89 | 12.2 |
 
 ## Object Cropping with Ultralytics YOLO11
 

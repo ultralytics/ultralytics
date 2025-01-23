@@ -15,43 +15,40 @@ The comparison between YOLOv10 and YOLOv6-3.0 highlights the evolution of object
 
 YOLOv10 introduces innovations like NMS-free training and a holistic efficiency-accuracy optimization strategy, setting new benchmarks in performance. On the other hand, YOLOv6-3.0 emphasizes streamlined architectures and lightweight design, excelling in resource-constrained environments. Explore how these models redefine the boundaries of [object detection](https://www.ultralytics.com/glossary/object-detection) and real-time deployment.
 
-
 ## mAP Comparison
 
 This section highlights the mAP values of YOLOv10 and YOLOv6-3.0, showcasing their accuracy across various model variants. Mean Average Precision (mAP) is a critical metric for evaluating object detection models, offering insights into their performance across different IoU thresholds. Learn more about [mAP](https://www.ultralytics.com/glossary/mean-average-precision-map) and its role in model evaluation.
 
-
 !!! tip "Accuracy"
 
-	=== "Detection (COCO)"
+    === "Detection (COCO)"
 
-		| Variant | mAP<sup>val<br>50<br>YOLOv10 | mAP<sup>val<br>50<br>YOLOv6-3.0 |
-		|---------------------|-------------------------------------------------------|-------------------------------------------------------|
-		| n | 39.5 | 37.5 |
-		| s | 46.7 | 45.0 |
-		| m | 51.3 | 50.0 |
-		| b | 52.7 | N/A |
-		| l | 53.3 | 52.8 |
-		| x | 54.4 | N/A |
-		
+    	| Variant | mAP<sup>val<br>50<br>YOLOv10 | mAP<sup>val<br>50<br>YOLOv6-3.0 |
+    	|---------------------|-------------------------------------------------------|-------------------------------------------------------|
+    	| n | 39.5 | 37.5 |
+    	| s | 46.7 | 45.0 |
+    	| m | 51.3 | 50.0 |
+    	| b | 52.7 | N/A |
+    	| l | 53.3 | 52.8 |
+    	| x | 54.4 | N/A |
+
 
 ## Speed Comparison
 
 This section highlights the performance differences between YOLOv10 and YOLOv6-3.0 across various model sizes, measured in milliseconds. From the latency metrics, it is evident that YOLOv10 offers superior efficiency, particularly with faster inference times, as showcased in models like YOLOv10-N and YOLOv10-S. Learn more about YOLOv10's architecture [here](https://docs.ultralytics.com/models/yolov10/).
 
-
 !!! tip "Speed"
 
-	=== "Detection (COCO)"
+    === "Detection (COCO)"
 
-		| Variant | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv10 | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv6-3.0 |
-		|---------------------|-------------------------------------------------------|-------------------------------------------------------|
-		| n | 1.56 | 1.17 |
-		| s | 2.66 | 2.66 |
-		| m | 5.48 | 5.28 |
-		| b | 6.54 | N/A |
-		| l | 8.33 | 8.95 |
-		| x | 12.2 | N/A |
+    	| Variant | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv10 | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv6-3.0 |
+    	|---------------------|-------------------------------------------------------|-------------------------------------------------------|
+    	| n | 1.56 | 1.17 |
+    	| s | 2.66 | 2.66 |
+    	| m | 5.48 | 5.28 |
+    	| b | 6.54 | N/A |
+    	| l | 8.33 | 8.95 |
+    	| x | 12.2 | N/A |
 
 ## YOLO Thread-Safe Inference
 

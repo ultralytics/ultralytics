@@ -10,41 +10,38 @@ In the evolving landscape of AI-driven object detection, comparing DAMO-YOLO wit
 
 DAMO-YOLO is celebrated for its lightweight design and competitive efficiency, while Ultralytics YOLO11 redefines versatility with enhanced accuracy, speed, and deployment flexibility. With advancements like optimized feature extraction and support for real-time applications, YOLO11 continues to push the boundaries of computer vision [technologies](https://www.ultralytics.com/blog/ultralytics-yolo11-has-arrived-redefine-whats-possible-in-ai).
 
-
 ## mAP Comparison
 
 This section highlights the mAP performance of DAMO-YOLO and Ultralytics YOLO11 across their respective model variants. Mean Average Precision (mAP) serves as a critical metric to evaluate each model's accuracy in detecting and localizing objects, balancing precision and recall effectively. Learn more about [mAP](https://www.ultralytics.com/glossary/mean-average-precision-map) and its importance in model evaluation.
 
-
 !!! tip "Accuracy"
 
-	=== "Detection (COCO)"
+    === "Detection (COCO)"
 
-		| Variant | mAP<sup>val<br>50<br>DAMO-YOLO | mAP<sup>val<br>50<br>YOLO11 |
-		|---------------------|-------------------------------------------------------|-------------------------------------------------------|
-		| n | 42.0 | 39.5 |
-		| s | 46.0 | 47.0 |
-		| m | 49.2 | 51.4 |
-		| l | 50.8 | 53.2 |
-		| x | N/A | 54.7 |
-		
+    	| Variant | mAP<sup>val<br>50<br>DAMO-YOLO | mAP<sup>val<br>50<br>YOLO11 |
+    	|---------------------|-------------------------------------------------------|-------------------------------------------------------|
+    	| n | 42.0 | 39.5 |
+    	| s | 46.0 | 47.0 |
+    	| m | 49.2 | 51.4 |
+    	| l | 50.8 | 53.2 |
+    	| x | N/A | 54.7 |
+
 
 ## Speed Comparison
 
 This section highlights the speed performance of DAMO-YOLO and Ultralytics YOLO11 across various model sizes. Speed metrics in milliseconds, measured using TensorRT on GPUs, provide insights into the real-time capabilities and efficiency of these models. Explore more about [Ultralytics YOLO11](https://www.ultralytics.com/blog/ultralytics-yolo11-has-arrived-redefine-whats-possible-in-ai) for cutting-edge advancements in object detection.
 
-
 !!! tip "Speed"
 
-	=== "Detection (COCO)"
+    === "Detection (COCO)"
 
-		| Variant | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>DAMO-YOLO | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLO11 |
-		|---------------------|-------------------------------------------------------|-------------------------------------------------------|
-		| n | 2.32 | 1.55 |
-		| s | 3.45 | 2.63 |
-		| m | 5.09 | 5.27 |
-		| l | 7.18 | 6.84 |
-		| x | N/A | 12.49 |
+    	| Variant | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>DAMO-YOLO | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLO11 |
+    	|---------------------|-------------------------------------------------------|-------------------------------------------------------|
+    	| n | 2.32 | 1.55 |
+    	| s | 3.45 | 2.63 |
+    	| m | 5.09 | 5.27 |
+    	| l | 7.18 | 6.84 |
+    	| x | N/A | 12.49 |
 
 ## YOLO11 Functionalities: Benchmark
 

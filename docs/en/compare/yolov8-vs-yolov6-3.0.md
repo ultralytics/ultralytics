@@ -10,41 +10,38 @@ The comparison between Ultralytics YOLOv8 and YOLOv6-3.0 highlights the advancem
 
 Ultralytics YOLOv8 represents cutting-edge performance with its anchor-free architecture and optimized accuracy-speed tradeoff, making it ideal for real-time tasks. On the other hand, YOLOv6-3.0 focuses on delivering robust detection capabilities with a competitive balance between efficiency and precision, demonstrating its value in challenging scenarios. Learn more about [Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8/) and its features.
 
-
 ## mAP Comparison
 
 This section compares the mAP values of Ultralytics YOLOv8 and YOLOv6-3.0, showcasing their accuracy across different model variants. Mean Average Precision (mAP) evaluates the ability of these models to detect and classify objects, providing a comprehensive measure of performance. Learn more about [mAP as a metric](https://www.ultralytics.com/glossary/mean-average-precision-map) for object detection.
 
-
 !!! tip "Accuracy"
 
-	=== "Detection (COCO)"
+    === "Detection (COCO)"
 
-		| Variant | mAP<sup>val<br>50<br>YOLOv8 | mAP<sup>val<br>50<br>YOLOv6-3.0 |
-		|---------------------|-------------------------------------------------------|-------------------------------------------------------|
-		| n | 37.3 | 37.5 |
-		| s | 44.9 | 45.0 |
-		| m | 50.2 | 50.0 |
-		| l | 52.9 | 52.8 |
-		| x | 53.9 | N/A |
-		
+    	| Variant | mAP<sup>val<br>50<br>YOLOv8 | mAP<sup>val<br>50<br>YOLOv6-3.0 |
+    	|---------------------|-------------------------------------------------------|-------------------------------------------------------|
+    	| n | 37.3 | 37.5 |
+    	| s | 44.9 | 45.0 |
+    	| m | 50.2 | 50.0 |
+    	| l | 52.9 | 52.8 |
+    	| x | 53.9 | N/A |
+
 
 ## Speed Comparison
 
 This section highlights the performance differences between Ultralytics YOLOv8 and YOLOv6-3.0 across various model sizes, showcasing speed metrics in milliseconds. These comparisons, tested on different configurations, emphasize the efficiency and real-time capabilities of each model. For more details, explore the [Ultralytics YOLOv8 documentation](https://docs.ultralytics.com/models/yolov8/) and [YOLOv6 resources](https://docs.ultralytics.com/models/yolov10/).
 
-
 !!! tip "Speed"
 
-	=== "Detection (COCO)"
+    === "Detection (COCO)"
 
-		| Variant | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv8 | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv6-3.0 |
-		|---------------------|-------------------------------------------------------|-------------------------------------------------------|
-		| n | 1.47 | 1.17 |
-		| s | 2.66 | 2.66 |
-		| m | 5.86 | 5.28 |
-		| l | 9.06 | 8.95 |
-		| x | 14.37 | N/A |
+    	| Variant | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv8 | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv6-3.0 |
+    	|---------------------|-------------------------------------------------------|-------------------------------------------------------|
+    	| n | 1.47 | 1.17 |
+    	| s | 2.66 | 2.66 |
+    	| m | 5.86 | 5.28 |
+    	| l | 9.06 | 8.95 |
+    	| x | 14.37 | N/A |
 
 ## Using YOLO11 for Object Blurring
 

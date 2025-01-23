@@ -10,39 +10,36 @@ In the rapidly evolving world of computer vision, comparing models like YOLOv7 a
 
 YOLOv7 is renowned for its streamlined architecture and high-speed processing capabilities, making it a popular choice for real-time applications. Meanwhile, Ultralytics YOLOv5 excels in its ease of use, well-documented workflows, and robust integration options, as highlighted in the [Ultralytics blog](https://www.ultralytics.com/blog/introducing-ultralytics-yolo11-enterprise-models). This comparison will delve into the unique strengths of each model to guide your vision-based project needs.
 
-
 ## mAP Comparison
 
 This section highlights the mAP values of YOLOv7 and Ultralytics YOLOv5, showcasing their detection accuracy across various model variants. mAP, a critical metric in object detection, evaluates model performance by balancing precision and recall. Learn more about [mAP](https://www.ultralytics.com/glossary/mean-average-precision-map) and its calculation process.
 
-
 !!! tip "Accuracy"
 
-	=== "Detection (COCO)"
+    === "Detection (COCO)"
 
-		| Variant | mAP<sup>val<br>50<br>YOLOv7 | mAP<sup>val<br>50<br>YOLOv5 |
-		|---------------------|-------------------------------------------------------|-------------------------------------------------------|
-		| s | N/A | 37.4 |
-		| m | N/A | 45.4 |
-		| l | 51.4 | 49.0 |
-		| x | 53.1 | 50.7 |
-		
+    	| Variant | mAP<sup>val<br>50<br>YOLOv7 | mAP<sup>val<br>50<br>YOLOv5 |
+    	|---------------------|-------------------------------------------------------|-------------------------------------------------------|
+    	| s | N/A | 37.4 |
+    	| m | N/A | 45.4 |
+    	| l | 51.4 | 49.0 |
+    	| x | 53.1 | 50.7 |
+
 
 ## Speed Comparison
 
 This section highlights the speed performance of YOLOv7 and Ultralytics YOLOv5 across various model sizes. Measured in milliseconds, these metrics underscore YOLOv7's efficiency gains, such as its faster inference speeds compared to YOLOv5-X, as referenced in the [YOLOv7 documentation](https://docs.ultralytics.com/models/yolov7/).
 
-
 !!! tip "Speed"
 
-	=== "Detection (COCO)"
+    === "Detection (COCO)"
 
-		| Variant | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv7 | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv5 |
-		|---------------------|-------------------------------------------------------|-------------------------------------------------------|
-		| s | N/A | 1.92 |
-		| m | N/A | 4.03 |
-		| l | 6.84 | 6.61 |
-		| x | 11.57 | 11.89 |
+    	| Variant | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv7 | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv5 |
+    	|---------------------|-------------------------------------------------------|-------------------------------------------------------|
+    	| s | N/A | 1.92 |
+    	| m | N/A | 4.03 |
+    	| l | 6.84 | 6.61 |
+    	| x | 11.57 | 11.89 |
 
 ## Leveraging YOLO11 for Object Counting
 

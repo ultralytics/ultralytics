@@ -10,41 +10,38 @@ The comparison between YOLOv7 and YOLOv9 highlights the evolution of object dete
 
 YOLOv7 is celebrated for its balance between performance and resource efficiency, making it ideal for edge applications. In contrast, YOLOv9 builds on these foundations with enhanced feature extraction and optimized training pipelines, delivering superior accuracy for more demanding tasks. Learn more about [YOLOv7](https://docs.ultralytics.com/models/yolov8/) and explore [YOLOv9's capabilities](https://www.ultralytics.com/blog/introducing-ultralytics-yolov8).
 
-
 ## mAP Comparison
 
 This section compares the mAP values of YOLOv7 and YOLOv9, showcasing their accuracy across different variants. Mean Average Precision (mAP) reflects the models' ability to balance precision and recall, a key metric for evaluating object detection performance. Learn more about [mAP and its significance](https://www.ultralytics.com/glossary/mean-average-precision-map).
 
-
 !!! tip "Accuracy"
 
-	=== "Detection (COCO)"
+    === "Detection (COCO)"
 
-		| Variant | mAP<sup>val<br>50<br>YOLOv7 | mAP<sup>val<br>50<br>YOLOv9 |
-		|---------------------|-------------------------------------------------------|-------------------------------------------------------|
-		| n | N/A | 37.8 |
-		| s | N/A | 46.5 |
-		| m | N/A | 51.5 |
-		| l | 51.4 | 52.8 |
-		| x | 53.1 | 55.1 |
-		
+    	| Variant | mAP<sup>val<br>50<br>YOLOv7 | mAP<sup>val<br>50<br>YOLOv9 |
+    	|---------------------|-------------------------------------------------------|-------------------------------------------------------|
+    	| n | N/A | 37.8 |
+    	| s | N/A | 46.5 |
+    	| m | N/A | 51.5 |
+    	| l | 51.4 | 52.8 |
+    	| x | 53.1 | 55.1 |
+
 
 ## Speed Comparison
 
 This section highlights the speed performance of YOLOv7 and YOLOv9 across various model sizes. Measured in milliseconds, these metrics showcase the efficiency of each model, offering insights into their suitability for real-time applications. Explore more about YOLOv9's advancements in [performance and efficiency](https://docs.ultralytics.com/models/yolov9/).
 
-
 !!! tip "Speed"
 
-	=== "Detection (COCO)"
+    === "Detection (COCO)"
 
-		| Variant | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv7 | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv9 |
-		|---------------------|-------------------------------------------------------|-------------------------------------------------------|
-		| n | N/A | 2.3 |
-		| s | N/A | 3.54 |
-		| m | N/A | 6.43 |
-		| l | 6.84 | 7.16 |
-		| x | 11.57 | 16.77 |
+    	| Variant | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv7 | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv9 |
+    	|---------------------|-------------------------------------------------------|-------------------------------------------------------|
+    	| n | N/A | 2.3 |
+    	| s | N/A | 3.54 |
+    	| m | N/A | 6.43 |
+    	| l | 6.84 | 7.16 |
+    	| x | 11.57 | 16.77 |
 
 ## Hyperparameter Tuning for YOLO11
 
@@ -58,10 +55,10 @@ Here’s a Python snippet to help you get started:
 from ultralytics import YOLO
 
 # Load a YOLO11 model
-model = YOLO('yolo11.yaml')
+model = YOLO("yolo11.yaml")
 
 # Train with hyperparameter tuning
-results = model.train(data='coco8.yaml', epochs=50, hyp='hyp.scratch-low.yaml', evolve=10)
+results = model.train(data="coco8.yaml", epochs=50, hyp="hyp.scratch-low.yaml", evolve=10)
 
 # View the best hyperparameters
 print(results)

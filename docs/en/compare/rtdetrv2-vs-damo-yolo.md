@@ -10,41 +10,38 @@ The comparison between RTDETRv2 and DAMO-YOLO highlights two advanced object det
 
 RTDETRv2 leverages Vision Transformer-based architecture for real-time performance with high accuracy, making it ideal for dynamic environments. On the other hand, DAMO-YOLO focuses on efficiency and scalability, offering robust solutions for large-scale deployments. Explore this detailed comparison to understand how these models drive innovation in computer vision. Learn more about RTDETR in [Ultralytics Docs](https://docs.ultralytics.com/reference/models/rtdetr/model/) and explore YOLO advancements in the [Ultralytics Blog](https://www.ultralytics.com/blog/ultralytics-yolo11-has-arrived-redefine-whats-possible-in-ai).
 
-
 ## mAP Comparison
 
 This section compares the mAP values of RTDETRv2 and DAMO-YOLO, showcasing their accuracy across different variants. The mAP metric, a crucial evaluation tool in object detection, highlights the precision and recall balance for these state-of-the-art models. Learn more about [mean average precision](https://www.ultralytics.com/glossary/mean-average-precision-map).
 
-
 !!! tip "Accuracy"
 
-	=== "Detection (COCO)"
+    === "Detection (COCO)"
 
-		| Variant | mAP<sup>val<br>50<br>RTDETRv2 | mAP<sup>val<br>50<br>DAMO-YOLO |
-		|---------------------|-------------------------------------------------------|-------------------------------------------------------|
-		| n | N/A | 42.0 |
-		| s | 48.1 | 46.0 |
-		| m | 51.9 | 49.2 |
-		| l | 53.4 | 50.8 |
-		| x | 54.3 | N/A |
-		
+    	| Variant | mAP<sup>val<br>50<br>RTDETRv2 | mAP<sup>val<br>50<br>DAMO-YOLO |
+    	|---------------------|-------------------------------------------------------|-------------------------------------------------------|
+    	| n | N/A | 42.0 |
+    	| s | 48.1 | 46.0 |
+    	| m | 51.9 | 49.2 |
+    	| l | 53.4 | 50.8 |
+    	| x | 54.3 | N/A |
+
 
 ## Speed Comparison
 
 This section compares the speed performance of RTDETRv2 and DAMO-YOLO models across various sizes, highlighting their latency in milliseconds. These metrics provide insights into real-time efficiency for different deployment scenarios. Learn more about [benchmarking models](https://docs.ultralytics.com/modes/benchmark/) or explore [Ultralytics YOLO Docs](https://docs.ultralytics.com/models/yolov10/) for additional comparisons.
 
-
 !!! tip "Speed"
 
-	=== "Detection (COCO)"
+    === "Detection (COCO)"
 
-		| Variant | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>RTDETRv2 | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>DAMO-YOLO |
-		|---------------------|-------------------------------------------------------|-------------------------------------------------------|
-		| n | N/A | 2.32 |
-		| s | 5.03 | 3.45 |
-		| m | 7.51 | 5.09 |
-		| l | 9.76 | 7.18 |
-		| x | 15.03 | N/A |
+    	| Variant | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>RTDETRv2 | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>DAMO-YOLO |
+    	|---------------------|-------------------------------------------------------|-------------------------------------------------------|
+    	| n | N/A | 2.32 |
+    	| s | 5.03 | 3.45 |
+    	| m | 7.51 | 5.09 |
+    	| l | 9.76 | 7.18 |
+    	| x | 15.03 | N/A |
 
 ## Object Counting with Ultralytics YOLO11
 

@@ -10,41 +10,38 @@ Choosing the right model for your computer vision tasks requires understanding t
 
 YOLOX is celebrated for its efficiency and adaptability across diverse tasks, while PP-YOLOE+ delivers impressive accuracy with advanced optimizations. By evaluating their performance, architecture, and use cases, this guide offers valuable insights for maximizing your AI workflows. Learn more about [YOLOX](https://github.com/Megvii-BaseDetection/YOLOX) and [PP-YOLOE+](https://github.com/PaddlePaddle/PaddleDetection) to explore their potential.
 
-
 ## mAP Comparison
 
 The mAP (mean Average Precision) metric evaluates the object detection performance of models like YOLOX and PP-YOLOE+ by measuring their accuracy across different classes and thresholds. Higher mAP values indicate better precision and recall balance, crucial for tasks such as autonomous driving and healthcare. Learn more about [mAP and its significance](https://www.ultralytics.com/glossary/mean-average-precision-map) in assessing model performance.
 
-
 !!! tip "Accuracy"
 
-	=== "Detection (COCO)"
+    === "Detection (COCO)"
 
-		| Variant | mAP<sup>val<br>50<br>YOLOX | mAP<sup>val<br>50<br>PP-YOLOE+ |
-		|---------------------|-------------------------------------------------------|-------------------------------------------------------|
-		| n | N/A | 39.9 |
-		| s | 40.5 | 43.7 |
-		| m | 46.9 | 49.8 |
-		| l | 49.7 | 52.9 |
-		| x | 51.1 | 54.7 |
-		
+    	| Variant | mAP<sup>val<br>50<br>YOLOX | mAP<sup>val<br>50<br>PP-YOLOE+ |
+    	|---------------------|-------------------------------------------------------|-------------------------------------------------------|
+    	| n | N/A | 39.9 |
+    	| s | 40.5 | 43.7 |
+    	| m | 46.9 | 49.8 |
+    	| l | 49.7 | 52.9 |
+    	| x | 51.1 | 54.7 |
+
 
 ## Speed Comparison
 
 This section highlights the speed performance of YOLOX and PP-YOLOE+ models across different sizes. Speed metrics in milliseconds provide a detailed comparison of their inference efficiency, showcasing their suitability for real-time applications. For more details on YOLOX, visit [YOLOX GitHub](https://github.com/Megvii-BaseDetection/YOLOX), and for PP-YOLOE+, explore [PaddleDetection's PPYOLOE](https://github.com/PaddlePaddle/PaddleDetection).
 
-
 !!! tip "Speed"
 
-	=== "Detection (COCO)"
+    === "Detection (COCO)"
 
-		| Variant | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOX | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>PP-YOLOE+ |
-		|---------------------|-------------------------------------------------------|-------------------------------------------------------|
-		| n | N/A | 2.84 |
-		| s | 2.56 | 2.62 |
-		| m | 5.43 | 5.56 |
-		| l | 9.04 | 8.36 |
-		| x | 16.1 | 14.3 |
+    	| Variant | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOX | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>PP-YOLOE+ |
+    	|---------------------|-------------------------------------------------------|-------------------------------------------------------|
+    	| n | N/A | 2.84 |
+    	| s | 2.56 | 2.62 |
+    	| m | 5.43 | 5.56 |
+    	| l | 9.04 | 8.36 |
+    	| x | 16.1 | 14.3 |
 
 ## QuickStart Guide: Docker Quickstart
 

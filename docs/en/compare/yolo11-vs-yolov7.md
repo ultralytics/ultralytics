@@ -10,41 +10,38 @@ The comparison between Ultralytics YOLO11 and YOLOv7 highlights the evolution of
 
 Ultralytics YOLO11, the latest iteration in the YOLO series, introduces significant improvements in accuracy, speed, and resource efficiency, making it a versatile tool for various applications. On the other hand, YOLOv7 is renowned for its cutting-edge innovations in speed and compactness, maintaining its relevance in tasks requiring high-performance object detection with minimal computational costs. Learn more about [Ultralytics YOLO11](https://docs.ultralytics.com/models/yolo11/) and the advancements it brings.
 
-
 ## mAP Comparison
 
 This section compares the mean Average Precision (mAP) values of Ultralytics YOLO11 and YOLOv7, highlighting their accuracy across different model variants. mAP serves as a critical evaluation metric, combining precision and recall to measure the models' effectiveness in object detection tasks. Learn more about [mAP](https://www.ultralytics.com/glossary/mean-average-precision-map) and its importance in evaluating performance.
 
-
 !!! tip "Accuracy"
 
-	=== "Detection (COCO)"
+    === "Detection (COCO)"
 
-		| Variant | mAP<sup>val<br>50<br>YOLO11 | mAP<sup>val<br>50<br>YOLOv7 |
-		|---------------------|-------------------------------------------------------|-------------------------------------------------------|
-		| n | 39.5 | N/A |
-		| s | 47.0 | N/A |
-		| m | 51.4 | N/A |
-		| l | 53.2 | 51.4 |
-		| x | 54.7 | 53.1 |
-		
+    	| Variant | mAP<sup>val<br>50<br>YOLO11 | mAP<sup>val<br>50<br>YOLOv7 |
+    	|---------------------|-------------------------------------------------------|-------------------------------------------------------|
+    	| n | 39.5 | N/A |
+    	| s | 47.0 | N/A |
+    	| m | 51.4 | N/A |
+    	| l | 53.2 | 51.4 |
+    	| x | 54.7 | 53.1 |
+
 
 ## Speed Comparison
 
 This section highlights the speed differences between Ultralytics YOLO11 and YOLOv7 across various model sizes, measured in milliseconds. The comparison reflects how both models excel in real-time performance, with YOLO11 offering faster inference speeds optimized for edge and cloud deployments. For more details, explore [Ultralytics YOLO11](https://docs.ultralytics.com/models/yolo11/) and [YOLOv7](https://docs.ultralytics.com/models/yolov7/).
 
-
 !!! tip "Speed"
 
-	=== "Detection (COCO)"
+    === "Detection (COCO)"
 
-		| Variant | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLO11 | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv7 |
-		|---------------------|-------------------------------------------------------|-------------------------------------------------------|
-		| n | 1.55 | N/A |
-		| s | 2.63 | N/A |
-		| m | 5.27 | N/A |
-		| l | 6.84 | 6.84 |
-		| x | 12.49 | 11.57 |
+    	| Variant | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLO11 | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv7 |
+    	|---------------------|-------------------------------------------------------|-------------------------------------------------------|
+    	| n | 1.55 | N/A |
+    	| s | 2.63 | N/A |
+    	| m | 5.27 | N/A |
+    	| l | 6.84 | 6.84 |
+    	| x | 12.49 | 11.57 |
 
 ## Hyperparameter Tuning
 

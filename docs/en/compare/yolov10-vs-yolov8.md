@@ -10,43 +10,40 @@ YOLOv10 and Ultralytics YOLOv8 represent significant milestones in the evolution
 
 Ultralytics YOLOv8 stands out for its state-of-the-art accuracy-speed tradeoff and compatibility with all YOLO variants. Meanwhile, YOLOv10 introduces advanced efficiency-driven designs and improved accuracy, setting a new benchmark in lightweight, high-performance models. Explore the details to determine which model best suits your needs.
 
-
 ## mAP Comparison
 
 This section compares the mAP values of YOLOv10 and Ultralytics YOLOv8 across their variants, showcasing their accuracy in object detection tasks. mAP, a critical evaluation metric, reflects the balance between precision and recall, offering insights into each model's performance on benchmarks like the [COCO dataset](https://docs.ultralytics.com/datasets/detect/coco/).
 
-
 !!! tip "Accuracy"
 
-	=== "Detection (COCO)"
+    === "Detection (COCO)"
 
-		| Variant | mAP<sup>val<br>50<br>YOLOv10 | mAP<sup>val<br>50<br>YOLOv8 |
-		|---------------------|-------------------------------------------------------|-------------------------------------------------------|
-		| n | 39.5 | 37.3 |
-		| s | 46.7 | 44.9 |
-		| m | 51.3 | 50.2 |
-		| b | 52.7 | N/A |
-		| l | 53.3 | 52.9 |
-		| x | 54.4 | 53.9 |
-		
+    	| Variant | mAP<sup>val<br>50<br>YOLOv10 | mAP<sup>val<br>50<br>YOLOv8 |
+    	|---------------------|-------------------------------------------------------|-------------------------------------------------------|
+    	| n | 39.5 | 37.3 |
+    	| s | 46.7 | 44.9 |
+    	| m | 51.3 | 50.2 |
+    	| b | 52.7 | N/A |
+    	| l | 53.3 | 52.9 |
+    	| x | 54.4 | 53.9 |
+
 
 ## Speed Comparison
 
 This section highlights the speed performance of YOLOv10 and Ultralytics YOLOv8 across different model sizes, measured in milliseconds. These metrics demonstrate the efficiency of each model in real-time applications, reflecting advancements in both latency and computational optimization. For more on YOLOv10 enhancements, visit the [YOLOv10 documentation](https://docs.ultralytics.com/models/yolov10/).
 
-
 !!! tip "Speed"
 
-	=== "Detection (COCO)"
+    === "Detection (COCO)"
 
-		| Variant | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv10 | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv8 |
-		|---------------------|-------------------------------------------------------|-------------------------------------------------------|
-		| n | 1.56 | 1.47 |
-		| s | 2.66 | 2.66 |
-		| m | 5.48 | 5.86 |
-		| b | 6.54 | N/A |
-		| l | 8.33 | 9.06 |
-		| x | 12.2 | 14.37 |
+    	| Variant | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv10 | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv8 |
+    	|---------------------|-------------------------------------------------------|-------------------------------------------------------|
+    	| n | 1.56 | 1.47 |
+    	| s | 2.66 | 2.66 |
+    	| m | 5.48 | 5.86 |
+    	| b | 6.54 | N/A |
+    	| l | 8.33 | 9.06 |
+    	| x | 12.2 | 14.37 |
 
 ## YOLO Performance Metrics
 

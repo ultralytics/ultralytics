@@ -10,7 +10,6 @@ As object detection models continue to evolve, comparing YOLOX and YOLOv10 revea
 
 YOLOX stands out with its anchor-free design and flexibility across diverse tasks, while YOLOv10 introduces significant architectural innovations like NMS-free training and enhanced feature extraction. This comparison highlights their strengths to help developers choose the right model for their AI projects. Learn more about [YOLOv10's architecture](https://docs.ultralytics.com/models/yolov10/) or [explore YOLOX](https://github.com/Megvii-BaseDetection/YOLOX) further.
 
-
 ## mAP Comparison
 
 <<<<<<< HEAD
@@ -18,39 +17,39 @@ This section highlights the mAP (mean Average Precision) values of YOLOX and YOL
 
 =======
 This section highlights the mAP values of YOLOX and YOLOv10 across their variants, showcasing their accuracy in object detection tasks. mAP, or mean Average Precision, is a comprehensive metric that evaluates a model's precision and recall, making it essential for comparing models like YOLOX and [YOLOv10](https://docs.ultralytics.com/models/yolov10/) on benchmarks like the [COCO dataset](https://docs.ultralytics.com/datasets/detect/coco/).
->>>>>>> 95d73b193a43ffc9b65d81b5b93f6d2acf3cb195
+
+> > > > > > > 95d73b193a43ffc9b65d81b5b93f6d2acf3cb195
 
 !!! tip "Accuracy"
 
-	=== "Detection (COCO)"
+    === "Detection (COCO)"
 
-		| Variant | mAP<sup>val<br>50<br>YOLOX | mAP<sup>val<br>50<br>YOLOv10 |
-		|---------------------|-------------------------------------------------------|-------------------------------------------------------|
-		| n | N/A | 39.5 |
-		| s | 40.5 | 46.7 |
-		| m | 46.9 | 51.3 |
-		| b | N/A | 52.7 |
-		| l | 49.7 | 53.3 |
-		| x | 51.1 | 54.4 |
-		
+    	| Variant | mAP<sup>val<br>50<br>YOLOX | mAP<sup>val<br>50<br>YOLOv10 |
+    	|---------------------|-------------------------------------------------------|-------------------------------------------------------|
+    	| n | N/A | 39.5 |
+    	| s | 40.5 | 46.7 |
+    	| m | 46.9 | 51.3 |
+    	| b | N/A | 52.7 |
+    	| l | 49.7 | 53.3 |
+    	| x | 51.1 | 54.4 |
+
 
 ## Speed Comparison
 
 This section highlights the speed performance of YOLOX and YOLOv10 across various model sizes, measured in milliseconds. The comparison emphasizes how advancements in YOLOv10 deliver improved latency and efficiency, particularly in real-time applications. For further insights, explore [YOLOv10 architecture details](https://docs.ultralytics.com/models/yolov10/) or learn more about [benchmarking methods](https://docs.ultralytics.com/reference/utils/benchmarks/).
 
-
 !!! tip "Speed"
 
-	=== "Detection (COCO)"
+    === "Detection (COCO)"
 
-		| Variant | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOX | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv10 |
-		|---------------------|-------------------------------------------------------|-------------------------------------------------------|
-		| n | N/A | 1.56 |
-		| s | 2.56 | 2.66 |
-		| m | 5.43 | 5.48 |
-		| b | N/A | 6.54 |
-		| l | 9.04 | 8.33 |
-		| x | 16.1 | 12.2 |
+    	| Variant | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOX | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv10 |
+    	|---------------------|-------------------------------------------------------|-------------------------------------------------------|
+    	| n | N/A | 1.56 |
+    	| s | 2.56 | 2.66 |
+    	| m | 5.43 | 5.48 |
+    	| b | N/A | 6.54 |
+    	| l | 9.04 | 8.33 |
+    	| x | 16.1 | 12.2 |
 
 ## Fine-Tuning With African Wildlife Dataset
 

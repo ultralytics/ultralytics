@@ -10,43 +10,40 @@ The comparison between YOLOv10 and YOLOv7 showcases the evolution of real-time o
 
 YOLOv10 introduces state-of-the-art features like NMS-free training and improved efficiency-accuracy tradeoffs, setting a new benchmark in detection capabilities. On the other hand, YOLOv7 emphasizes speed and computational efficiency, retaining its relevance for resource-constrained environments and real-time tasks. Learn more about [YOLOv10](https://docs.ultralytics.com/models/yolov10/) and [YOLOv7](https://github.com/WongKinYiu/yolov7) for detailed insights on their architectures.
 
-
 ## mAP Comparison
 
 This section highlights the mAP values of YOLOv10 and YOLOv7, showcasing their accuracy across different variants in detecting and localizing objects. Mean Average Precision (mAP) serves as a key metric for evaluating model performance, balancing precision and recall effectively. Learn more about [mAP here](https://www.ultralytics.com/glossary/mean-average-precision-map).
 
-
 !!! tip "Accuracy"
 
-	=== "Detection (COCO)"
+    === "Detection (COCO)"
 
-		| Variant | mAP<sup>val<br>50<br>YOLOv10 | mAP<sup>val<br>50<br>YOLOv7 |
-		|---------------------|-------------------------------------------------------|-------------------------------------------------------|
-		| n | 39.5 | N/A |
-		| s | 46.7 | N/A |
-		| m | 51.3 | N/A |
-		| b | 52.7 | N/A |
-		| l | 53.3 | 51.4 |
-		| x | 54.4 | 53.1 |
-		
+    	| Variant | mAP<sup>val<br>50<br>YOLOv10 | mAP<sup>val<br>50<br>YOLOv7 |
+    	|---------------------|-------------------------------------------------------|-------------------------------------------------------|
+    	| n | 39.5 | N/A |
+    	| s | 46.7 | N/A |
+    	| m | 51.3 | N/A |
+    	| b | 52.7 | N/A |
+    	| l | 53.3 | 51.4 |
+    	| x | 54.4 | 53.1 |
+
 
 ## Speed Comparison
 
 This section highlights the speed metrics of YOLOv10 and YOLOv7 across various model sizes, showcasing their performance in milliseconds. YOLOv10's advancements, such as NMS-free training, deliver faster inference times compared to YOLOv7, making it ideal for real-time applications. Learn more about [YOLOv10's architecture](https://docs.ultralytics.com/models/yolov10/) and [YOLOv7's performance](https://arxiv.org/pdf/2207.02696).
 
-
 !!! tip "Speed"
 
-	=== "Detection (COCO)"
+    === "Detection (COCO)"
 
-		| Variant | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv10 | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv7 |
-		|---------------------|-------------------------------------------------------|-------------------------------------------------------|
-		| n | 1.56 | N/A |
-		| s | 2.66 | N/A |
-		| m | 5.48 | N/A |
-		| b | 6.54 | N/A |
-		| l | 8.33 | 6.84 |
-		| x | 12.2 | 11.57 |
+    	| Variant | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv10 | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv7 |
+    	|---------------------|-------------------------------------------------------|-------------------------------------------------------|
+    	| n | 1.56 | N/A |
+    	| s | 2.66 | N/A |
+    	| m | 5.48 | N/A |
+    	| b | 6.54 | N/A |
+    	| l | 8.33 | 6.84 |
+    	| x | 12.2 | 11.57 |
 
 ## YOLO11 Functionalities: Object Tracking
 

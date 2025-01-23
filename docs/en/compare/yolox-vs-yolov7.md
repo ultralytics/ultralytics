@@ -10,39 +10,36 @@ The comparison between YOLOX and YOLOv7 is pivotal for understanding modern adva
 
 YOLOX stands out for its decoupled head and dynamic label assignment, optimizing training efficiency and precision. In contrast, YOLOv7 emphasizes speed and accuracy, delivering exceptional performance across various benchmarks. Explore their features to determine the best fit for your needs.
 
-
 ## mAP Comparison
 
 This section compares the mAP values of YOLOX and YOLOv7, key metrics representing model accuracy across various object detection tasks. By evaluating precision and recall, mAP offers a comprehensive understanding of these models' capabilities. Learn more about [Mean Average Precision](https://www.ultralytics.com/glossary/mean-average-precision-map) and its impact on model performance.
 
-
 !!! tip "Accuracy"
 
-	=== "Detection (COCO)"
+    === "Detection (COCO)"
 
-		| Variant | mAP<sup>val<br>50<br>YOLOX | mAP<sup>val<br>50<br>YOLOv7 |
-		|---------------------|-------------------------------------------------------|-------------------------------------------------------|
-		| s | 40.5 | N/A |
-		| m | 46.9 | N/A |
-		| l | 49.7 | 51.4 |
-		| x | 51.1 | 53.1 |
-		
+    	| Variant | mAP<sup>val<br>50<br>YOLOX | mAP<sup>val<br>50<br>YOLOv7 |
+    	|---------------------|-------------------------------------------------------|-------------------------------------------------------|
+    	| s | 40.5 | N/A |
+    	| m | 46.9 | N/A |
+    	| l | 49.7 | 51.4 |
+    	| x | 51.1 | 53.1 |
+
 
 ## Speed Comparison
 
 This section highlights the speed performance of YOLOX and YOLOv7 across various sizes, measured in milliseconds. YOLOv7 demonstrates superior inference speeds, leveraging optimized parameter usage and computation, as detailed in the [YOLOv7 documentation](https://docs.ultralytics.com/models/yolov7/). For YOLOX performance metrics, see its efficiency breakdown on [GitHub](https://github.com/Megvii-BaseDetection/YOLOX).
 
-
 !!! tip "Speed"
 
-	=== "Detection (COCO)"
+    === "Detection (COCO)"
 
-		| Variant | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOX | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv7 |
-		|---------------------|-------------------------------------------------------|-------------------------------------------------------|
-		| s | 2.56 | N/A |
-		| m | 5.43 | N/A |
-		| l | 9.04 | 6.84 |
-		| x | 16.1 | 11.57 |
+    	| Variant | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOX | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv7 |
+    	|---------------------|-------------------------------------------------------|-------------------------------------------------------|
+    	| s | 2.56 | N/A |
+    	| m | 5.43 | N/A |
+    	| l | 9.04 | 6.84 |
+    	| x | 16.1 | 11.57 |
 
 ## YOLO Performance Metrics
 

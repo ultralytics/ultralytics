@@ -10,47 +10,46 @@ The evolution from YOLOv10 to Ultralytics YOLO11 represents a significant leap i
 
 While YOLOv10 laid a strong foundation with its robust architecture, Ultralytics YOLO11 introduces cutting-edge improvements, such as enhanced feature extraction and optimized training pipelines. These advancements make YOLO11 a versatile and efficient solution for a wide range of [computer vision tasks](https://docs.ultralytics.com/tasks/), from object detection to pose estimation. Explore their differences as we delve into these two groundbreaking models.
 
-<<<<<<< HEAD
-=======
+# <<<<<<< HEAD
+
 While YOLOv10 set a high standard with its robust performance, Ultralytics YOLO11 pushes the boundaries further by introducing enhanced feature extraction techniques and optimized training pipelines. With faster inference times and higher mean Average Precision (mAP), YOLO11 is designed to deliver exceptional results even in resource-constrained environments, making it a game-changer for computer vision tasks. Learn more about [YOLO11's advancements](https://www.ultralytics.com/blog/ultralytics-yolo11-has-arrived-redefine-whats-possible-in-ai).
->>>>>>> 95d73b193a43ffc9b65d81b5b93f6d2acf3cb195
+
+> > > > > > > 95d73b193a43ffc9b65d81b5b93f6d2acf3cb195
 
 ## mAP Comparison
 
 This section highlights the accuracy of YOLOv10 and Ultralytics YOLO11 across various model variants using their mAP (Mean Average Precision) values. As a key performance metric, mAP reflects the balance between precision and recall, offering insights into the models' ability to detect and classify objects effectively. Learn more about [mAP](https://www.ultralytics.com/glossary/mean-average-precision-map).
 
-
 !!! tip "Accuracy"
 
-	=== "Detection (COCO)"
+    === "Detection (COCO)"
 
-		| Variant | mAP<sup>val<br>50<br>YOLOv10 | mAP<sup>val<br>50<br>YOLO11 |
-		|---------------------|-------------------------------------------------------|-------------------------------------------------------|
-		| n | 39.5 | 39.5 |
-		| s | 46.7 | 47.0 |
-		| m | 51.3 | 51.4 |
-		| b | 52.7 | N/A |
-		| l | 53.3 | 53.2 |
-		| x | 54.4 | 54.7 |
-		
+    	| Variant | mAP<sup>val<br>50<br>YOLOv10 | mAP<sup>val<br>50<br>YOLO11 |
+    	|---------------------|-------------------------------------------------------|-------------------------------------------------------|
+    	| n | 39.5 | 39.5 |
+    	| s | 46.7 | 47.0 |
+    	| m | 51.3 | 51.4 |
+    	| b | 52.7 | N/A |
+    	| l | 53.3 | 53.2 |
+    	| x | 54.4 | 54.7 |
+
 
 ## Speed Comparison
 
 This section highlights the speed performance of YOLOv10 and Ultralytics YOLO11 across various model sizes. Measured in milliseconds, these metrics showcase the efficiency of each model, emphasizing YOLO11's advancements in processing speed for real-time applications. Learn more about model benchmarks [here](https://docs.ultralytics.com/reference/utils/benchmarks/) and explore detailed insights on [Ultralytics YOLO11's capabilities](https://www.ultralytics.com/blog/all-you-need-to-know-about-ultralytics-yolo11-and-its-applications).
 
-
 !!! tip "Speed"
 
-	=== "Detection (COCO)"
+    === "Detection (COCO)"
 
-		| Variant | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv10 | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLO11 |
-		|---------------------|-------------------------------------------------------|-------------------------------------------------------|
-		| n | 1.56 | 1.55 |
-		| s | 2.66 | 2.63 |
-		| m | 5.48 | 5.27 |
-		| b | 6.54 | N/A |
-		| l | 8.33 | 6.84 |
-		| x | 12.2 | 12.49 |
+    	| Variant | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv10 | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLO11 |
+    	|---------------------|-------------------------------------------------------|-------------------------------------------------------|
+    	| n | 1.56 | 1.55 |
+    	| s | 2.66 | 2.63 |
+    	| m | 5.48 | 5.27 |
+    	| b | 6.54 | N/A |
+    	| l | 8.33 | 6.84 |
+    	| x | 12.2 | 12.49 |
 
 ## Learn More About YOLO Common Issues
 

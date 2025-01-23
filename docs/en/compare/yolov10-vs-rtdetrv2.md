@@ -10,43 +10,40 @@ YOLOv10 and RTDETRv2 represent two cutting-edge advancements in object detection
 
 YOLOv10, developed with innovative methodologies like NMS-free training and efficiency-driven design, offers exceptional performance across various use cases. Meanwhile, RTDETRv2, powered by Vision Transformer-based architecture, excels in hybrid encoding and adaptable inference speed, making it a formidable competitor. Learn more about [YOLOv10](https://docs.ultralytics.com/models/yolov10/) and [RTDETRv2](https://docs.ultralytics.com/reference/models/rtdetr/model/) to explore their capabilities further.
 
-
 ## mAP Comparison
 
 This section compares the mAP values of YOLOv10 and RTDETRv2, showcasing their accuracy across different variants. Mean Average Precision (mAP) is a critical metric in object detection, combining precision and recall to assess a model's overall performance. Learn more about [mAP here](https://www.ultralytics.com/glossary/mean-average-precision-map).
 
-
 !!! tip "Accuracy"
 
-	=== "Detection (COCO)"
+    === "Detection (COCO)"
 
-		| Variant | mAP<sup>val<br>50<br>YOLOv10 | mAP<sup>val<br>50<br>RTDETRv2 |
-		|---------------------|-------------------------------------------------------|-------------------------------------------------------|
-		| n | 39.5 | N/A |
-		| s | 46.7 | 48.1 |
-		| m | 51.3 | 51.9 |
-		| b | 52.7 | N/A |
-		| l | 53.3 | 53.4 |
-		| x | 54.4 | 54.3 |
-		
+    	| Variant | mAP<sup>val<br>50<br>YOLOv10 | mAP<sup>val<br>50<br>RTDETRv2 |
+    	|---------------------|-------------------------------------------------------|-------------------------------------------------------|
+    	| n | 39.5 | N/A |
+    	| s | 46.7 | 48.1 |
+    	| m | 51.3 | 51.9 |
+    	| b | 52.7 | N/A |
+    	| l | 53.3 | 53.4 |
+    	| x | 54.4 | 54.3 |
+
 
 ## Speed Comparison
 
 This section highlights the speed performance of YOLOv10 and RTDETRv2 across various sizes, measured in milliseconds. Leveraging TensorRT FP16 inference, YOLOv10 demonstrates lower latency and better efficiency, making it a compelling choice for real-time applications. For detailed benchmarks, explore [Ultralytics YOLOv10 documentation](https://docs.ultralytics.com/models/yolov10/).
 
-
 !!! tip "Speed"
 
-	=== "Detection (COCO)"
+    === "Detection (COCO)"
 
-		| Variant | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv10 | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>RTDETRv2 |
-		|---------------------|-------------------------------------------------------|-------------------------------------------------------|
-		| n | 1.56 | N/A |
-		| s | 2.66 | 5.03 |
-		| m | 5.48 | 7.51 |
-		| b | 6.54 | N/A |
-		| l | 8.33 | 9.76 |
-		| x | 12.2 | 15.03 |
+    	| Variant | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>YOLOv10 | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>RTDETRv2 |
+    	|---------------------|-------------------------------------------------------|-------------------------------------------------------|
+    	| n | 1.56 | N/A |
+    	| s | 2.66 | 5.03 |
+    	| m | 5.48 | 7.51 |
+    	| b | 6.54 | N/A |
+    	| l | 8.33 | 9.76 |
+    	| x | 12.2 | 15.03 |
 
 ## YOLO Thread-Safe Inference
 

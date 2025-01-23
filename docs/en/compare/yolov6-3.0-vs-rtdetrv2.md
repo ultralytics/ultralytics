@@ -26,7 +26,6 @@ This section compares the mAP (Mean Average Precision) values of YOLOv6-3.0 and 
     	| l | 52.8 | 53.4 |
     	| x | N/A | 54.3 |
 
-
 ## Speed Comparison
 
 This section highlights the speed performance of YOLOv6-3.0 and RTDETRv2 across various sizes, measured in milliseconds. These metrics provide an essential benchmark for evaluating real-time capabilities and efficiency in diverse deployment scenarios. Learn more about how speed impacts performance on [Ultralytics YOLO Docs](https://docs.ultralytics.com/reference/utils/benchmarks/).

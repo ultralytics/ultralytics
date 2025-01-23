@@ -26,7 +26,6 @@ This section highlights the mAP values of DAMO-YOLO and RTDETRv2, showcasing the
     	| l | 50.8 | 53.4 |
     	| x | N/A | 54.3 |
 
-
 ## Speed Comparison
 
 This section highlights the speed performance of DAMO-YOLO and RTDETRv2 models, measured in milliseconds across various sizes. These metrics provide critical insights into the efficiency and deployment suitability of each model on different hardware setups. Learn more about [benchmarking models](https://docs.ultralytics.com/modes/benchmark/) for optimal performance.

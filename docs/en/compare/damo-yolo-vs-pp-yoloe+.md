@@ -26,7 +26,6 @@ The mAP (Mean Average Precision) metric evaluates the accuracy of object detecti
     	| l | 50.8 | 52.9 |
     	| x | N/A | 54.7 |
 
-
 ## Speed Comparison
 
 This section highlights the speed performance of DAMO-YOLO and PP-YOLOE+ models across various sizes, measured in milliseconds. These metrics provide valuable insights into the efficiency of each model, enabling informed decisions for real-time applications. Explore more about [PP-YOLOE+](https://github.com/PaddlePaddle/PaddleDetection) and other models' benchmarks for detailed comparisons.

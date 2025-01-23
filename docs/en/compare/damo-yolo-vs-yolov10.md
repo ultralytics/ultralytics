@@ -27,7 +27,6 @@ This section compares DAMO-YOLO and YOLOv10 models using their mean Average Prec
     	| l | 50.8 | 53.3 |
     	| x | N/A | 54.4 |
 
-
 ## Speed Comparison
 
 This section highlights the speed performance of DAMO-YOLO and YOLOv10 across various model sizes, measured in milliseconds. The comparison underscores how these models balance speed and efficiency, making them suitable for real-time applications. For more on YOLOv10's advancements, visit the [Ultralytics YOLOv10 documentation](https://docs.ultralytics.com/models/yolov10/).

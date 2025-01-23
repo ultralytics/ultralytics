@@ -25,7 +25,6 @@ mAP values measure the accuracy of object detection models by evaluating their p
     	| l | 53.4 | 49.7 |
     	| x | 54.3 | 51.1 |
 
-
 ## Speed Comparison
 
 This section highlights the speed performance of RTDETRv2 and YOLOX models across various sizes. Measured in milliseconds, these metrics provide critical insights into inference efficiency, helping users evaluate their suitability for real-time applications. For more details on YOLOX, visit [YOLOX Documentation](https://github.com/Megvii-BaseDetection/YOLOX), or explore [RTDETRv2 benchmarks](https://docs.ultralytics.com/modes/benchmark/).

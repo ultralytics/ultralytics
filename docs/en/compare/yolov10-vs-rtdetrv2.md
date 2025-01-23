@@ -27,7 +27,6 @@ This section highlights the performance differences in mAP (mean Average Precisi
     	| l | 53.3 | 53.4 |
     	| x | 54.4 | 54.3 |
 
-
 ## Speed Comparison
 
 This section highlights the speed metrics of YOLOv10 and RTDETRv2, showcasing their inference times in milliseconds across various model sizes. The comparison emphasizes YOLOv10's efficiency, particularly when deployed with TensorRT, as detailed in the [YOLOv10 documentation](https://docs.ultralytics.com/models/yolov10/). For more insights into benchmarking models, visit [Ultralytics Benchmarking](https://docs.ultralytics.com/modes/benchmark/).

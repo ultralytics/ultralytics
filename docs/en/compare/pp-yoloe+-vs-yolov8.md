@@ -26,7 +26,6 @@ This section compares the mAP values of PP-YOLOE+ and Ultralytics YOLOv8, highli
     	| l | 52.9 | 52.9 |
     	| x | 54.7 | 53.9 |
 
-
 ## Speed Comparison
 
 This section evaluates the speed performance of PP-YOLOE+ and Ultralytics YOLOv8 models across various sizes, measured in milliseconds. These metrics highlight the efficiency of each model in delivering real-time object detection results, providing insights into their suitability for time-sensitive applications. For more details on YOLOv8's advancements, refer to the [Ultralytics YOLOv8 documentation](https://docs.ultralytics.com/models/yolov8/).

@@ -26,7 +26,6 @@ This section highlights the mAP values for YOLOv7 and Ultralytics YOLO11, showca
     	| l | 51.4 | 53.2 |
     	| x | 53.1 | 54.7 |
 
-
 ## Speed Comparison
 
 This section highlights the speed performance of YOLOv7 and Ultralytics YOLO11 across different model sizes. Speed metrics, measured in milliseconds, demonstrate how YOLO11 achieves faster inference times, making it ideal for real-time applications. Learn more about [YOLOv7](https://docs.ultralytics.com/models/yolov7/) and [Ultralytics YOLO11](https://www.ultralytics.com/blog/ultralytics-yolo11-has-arrived-redefine-whats-possible-in-ai).
@@ -55,10 +54,10 @@ To learn more about YOLO11’s benchmarking capabilities and how to optimize you
 from ultralytics import YOLO
 
 # Load the YOLO11 model
-model = YOLO('yolo11n.pt')
+model = YOLO("yolo11n.pt")
 
 # Run benchmarking on a dataset
-results = model.benchmark(data='coco.yaml', imgsz=640, batch=16)
+results = model.benchmark(data="coco.yaml", imgsz=640, batch=16)
 
 # Print benchmarking results
 print(results)

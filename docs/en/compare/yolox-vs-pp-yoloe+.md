@@ -26,7 +26,6 @@ mAP (Mean Average Precision) serves as a critical evaluation metric for object d
     	| l | 49.7 | 52.9 |
     	| x | 51.1 | 54.7 |
 
-
 ## Speed Comparison
 
 This section highlights the speed performance of YOLOX and PP-YOLOE+ models across different sizes, measured in milliseconds. These metrics provide valuable insights into how efficiently each model operates, supporting optimal deployment in real-time applications. For more details, explore YOLOX [here](https://github.com/Megvii-BaseDetection/YOLOX) and PP-YOLOE+ [here](https://github.com/PaddlePaddle/PaddleDetection).

@@ -26,7 +26,6 @@ This section evaluates the performance of YOLOv9 and YOLOX models based on their
     	| l | 52.8 | 49.7 |
     	| x | 55.1 | 51.1 |
 
-
 ## Speed Comparison
 
 This section highlights the speed differences between YOLOv9 and YOLOX across various model sizes. Measured in milliseconds, these metrics demonstrate the efficiency of each model in delivering real-time performance, with insights into their suitability for different deployment scenarios. Explore more about [Ultralytics YOLO models](https://docs.ultralytics.com/models/yolov10/) for speed optimization.

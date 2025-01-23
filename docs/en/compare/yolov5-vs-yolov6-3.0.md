@@ -26,7 +26,6 @@ This section evaluates the performance of Ultralytics YOLOv5 and YOLOv6-3.0 by c
     	| l | 49.0 | 52.8 |
     	| x | 50.7 | N/A |
 
-
 ## Speed Comparison
 
 This section highlights the performance differences between Ultralytics YOLOv5 and YOLOv6-3.0 by comparing their speed metrics in milliseconds across various model sizes. These measurements provide insights into the efficiency of each model for real-time applications like [object detection](https://www.ultralytics.com/glossary/object-detection) and video analytics.

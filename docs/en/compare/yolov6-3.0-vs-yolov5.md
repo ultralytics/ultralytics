@@ -26,7 +26,6 @@ This section highlights the mAP values of YOLOv6-3.0 and Ultralytics YOLOv5, sho
     	| l | 52.8 | 49.0 |
     	| x | N/A | 50.7 |
 
-
 ## Speed Comparison
 
 This section highlights the speed performance of YOLOv6-3.0 and Ultralytics YOLOv5 across various model sizes, measured in milliseconds. These comparisons demonstrate how latency impacts real-time applications, showcasing the efficiency of each model variant. For more details on YOLOv5's architecture, refer to the [YOLOv5 Architecture Summary](https://docs.ultralytics.com/yolov5/tutorials/architecture_description/).
@@ -55,16 +54,16 @@ To learn more about car parts segmentation and how to leverage YOLO11 for this p
 from ultralytics import YOLO
 
 # Load a pre-trained YOLO11 model
-model = YOLO('yolo11.pt')
+model = YOLO("yolo11.pt")
 
 # Fine-tune the model with a car parts segmentation dataset
-model.train(data='carparts.yaml', epochs=50, imgsz=640)
+model.train(data="carparts.yaml", epochs=50, imgsz=640)
 
 # Validate the model
 metrics = model.val()
 
 # Perform predictions
-results = model.predict(source='test_images/', save=True)
+results = model.predict(source="test_images/", save=True)
 ```
 
 This example demonstrates how to fine-tune YOLO11 using a car parts segmentation dataset and evaluate its performance for specific applications.

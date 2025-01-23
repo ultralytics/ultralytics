@@ -26,7 +26,6 @@ This section compares the mAP values of Ultralytics YOLO11 and PP-YOLOE+ across 
     	| l | 53.2 | 52.9 |
     	| x | 54.7 | 54.7 |
 
-
 ## Speed Comparison
 
 This section highlights the performance differences between Ultralytics YOLO11 and PP-YOLOE+ in terms of speed metrics measured in milliseconds. These comparisons across multiple model sizes showcase the efficiency of YOLO11's design, making it well-suited for time-sensitive applications such as real-time object detection. Learn more about [Ultralytics YOLO11's capabilities](https://docs.ultralytics.com/models/yolo11/) and [PP-YOLOE+](https://github.com/PaddlePaddle/PaddleDetection).

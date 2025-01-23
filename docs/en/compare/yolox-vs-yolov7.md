@@ -25,7 +25,6 @@ This section highlights the mAP values of YOLOX and YOLOv7, showcasing their acc
     	| l | 49.7 | 51.4 |
     	| x | 51.1 | 53.1 |
 
-
 ## Speed Comparison
 
 This section highlights the speed performance of YOLOX and YOLOv7 across various model sizes. Measured in milliseconds, these metrics provide insights into inference speed, showcasing YOLOv7's efficiency advantages over YOLOX in real-time applications. For more details, refer to the [YOLOv7 documentation](https://docs.ultralytics.com/models/yolov7/) and [YOLOX GitHub repository](https://github.com/Megvii-BaseDetection/YOLOX).

@@ -26,7 +26,6 @@ This section compares the mAP values of DAMO-YOLO and Ultralytics YOLOv5 models 
     	| l | 50.8 | 49.0 |
     	| x | N/A | 50.7 |
 
-
 ## Speed Comparison
 
 This section highlights the speed metrics of DAMO-YOLO and Ultralytics YOLOv5 across various model sizes, showcasing their performance in milliseconds. Detailed insights into inference times help evaluate their efficiency on diverse hardware configurations. For more on YOLOv5, visit the [Ultralytics YOLOv5 documentation](https://docs.ultralytics.com/models/yolov5/).

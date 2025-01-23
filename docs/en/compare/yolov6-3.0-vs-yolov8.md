@@ -26,7 +26,6 @@ This section highlights the Mean Average Precision (mAP) values of YOLOv6-3.0 an
     	| l | 52.8 | 52.9 |
     	| x | N/A | 53.9 |
 
-
 ## Speed Comparison
 
 This section highlights the speed performance of YOLOv6-3.0 and Ultralytics YOLOv8 across various model sizes. Measured in milliseconds, these metrics provide a clear comparison of inference efficiency, showcasing how both models handle real-time applications. For in-depth details, explore the [Ultralytics YOLOv8 documentation](https://docs.ultralytics.com/models/yolov8/).

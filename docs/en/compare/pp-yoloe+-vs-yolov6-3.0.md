@@ -26,7 +26,6 @@ This section compares the mAP values of PP-YOLOE+ and YOLOv6-3.0, showcasing the
     	| l | 52.9 | 52.8 |
     	| x | 54.7 | N/A |
 
-
 ## Speed Comparison
 
 This section highlights the speed metrics in milliseconds for models such as PP-YOLOE+ and YOLOv6-3.0 across various sizes. By comparing their latency, we observe critical differences in performance, offering insights into their efficiency for real-time applications. Explore more about [PP-YOLOE+](https://github.com/PaddlePaddle/PaddleDetection) and [YOLOv6](https://github.com/meituan/YOLOv6) for detailed specifications.

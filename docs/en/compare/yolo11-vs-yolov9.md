@@ -26,7 +26,6 @@ This section highlights the mAP values, a key metric for evaluating the accuracy
     	| l | 53.2 | 52.8 |
     	| x | 54.7 | 55.1 |
 
-
 ## Speed Comparison
 
 This section highlights the speed metrics of Ultralytics YOLO11 and YOLOv9 across various model sizes, measured in milliseconds. Faster inference times in YOLO11 make it an ideal choice for applications requiring real-time performance, as detailed in [Ultralytics YOLO11 documentation](https://docs.ultralytics.com/models/yolo11/).

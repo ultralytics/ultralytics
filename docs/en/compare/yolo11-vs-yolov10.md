@@ -27,7 +27,6 @@ This section highlights the mAP values, a critical metric for evaluating model a
     	| l | 53.2 | 53.3 |
     	| x | 54.7 | 54.4 |
 
-
 ## Speed Comparison
 
 Explore how the speed metrics in milliseconds highlight the performance differences between Ultralytics YOLO11 and YOLOv10 across various model sizes. With faster processing speeds, YOLO11 demonstrates enhanced real-time capabilities ideal for applications requiring low-latency and high efficiency, as detailed in [Ultralytics YOLO Docs](https://docs.ultralytics.com/models/yolo11/).

@@ -26,7 +26,6 @@ This section highlights the mAP differences between YOLOv6-3.0 and YOLOv7, showc
     	| l | 52.8 | 51.4 |
     	| x | N/A | 53.1 |
 
-
 ## Speed Comparison
 
 This section highlights the speed performance of YOLOv6-3.0 and YOLOv7 across various model sizes, measured in milliseconds. These metrics reflect the efficiency of inference, crucial for applications requiring real-time object detection. For further details on YOLOv7's innovations, visit the [YOLOv7 documentation](https://docs.ultralytics.com/models/yolov7/).

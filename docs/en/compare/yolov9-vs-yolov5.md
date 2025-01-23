@@ -26,7 +26,6 @@ This section highlights the mAP values of YOLOv9 and Ultralytics YOLOv5, showcas
     	| l | 52.8 | 49.0 |
     	| x | 55.1 | 50.7 |
 
-
 ## Speed Comparison
 
 This section compares the speed performance of YOLOv9 and Ultralytics YOLOv5 across various model sizes, highlighting inference times in milliseconds. These metrics illustrate the efficiency and real-time capabilities of each model, crucial for applications like [autonomous driving](https://www.ultralytics.com/blog/ultralytics-yolov8-for-speed-estimation-in-computer-vision-projects) and [smart retail](https://www.ultralytics.com/blog/ai-for-smarter-retail-inventory-management).
@@ -57,10 +56,10 @@ For more details on segmentation with YOLO11, check out this [image segmentation
 from ultralytics import YOLO
 
 # Load a pre-trained YOLO11 model
-model = YOLO('yolo11-seg.pt')
+model = YOLO("yolo11-seg.pt")
 
 # Perform segmentation on an image
-results = model('car_parts.jpg', task='segment')
+results = model("car_parts.jpg", task="segment")
 
 # Display results
 results.show()

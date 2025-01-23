@@ -26,7 +26,6 @@ This section highlights the mAP values of RTDETRv2 and PP-YOLOE+, providing a pr
     	| l | 53.4 | 52.9 |
     	| x | 54.3 | 54.7 |
 
-
 ## Speed Comparison
 
 This section compares the speed performance of RTDETRv2 and PP-YOLOE+ across various model sizes. Speed metrics in milliseconds highlight their efficiency, providing insights into real-world application performance. Learn more about speed benchmarks in the [Ultralytics Benchmarks Documentation](https://docs.ultralytics.com/reference/utils/benchmarks/).

@@ -26,7 +26,6 @@ This section evaluates the mAP scores of PP-YOLOE+ and Ultralytics YOLO11, offer
     	| l | 52.9 | 53.2 |
     	| x | 54.7 | 54.7 |
 
-
 ## Speed Comparison
 
 This section highlights the speed metrics of PP-YOLOE+ and Ultralytics YOLO11 across various model sizes, measured in milliseconds (ms). These comparisons provide insights into the real-time performance capabilities of both models, emphasizing their efficiency for diverse applications. For more details on YOLO11's advancements, see the [Ultralytics YOLO11 documentation](https://docs.ultralytics.com/models/yolo11/).

@@ -27,7 +27,6 @@ Mean Average Precision (mAP) is a key metric for evaluating model accuracy acros
     	| l | 53.4 | 53.3 |
     	| x | 54.3 | 54.4 |
 
-
 ## Speed Comparison
 
 This section highlights the speed metrics in milliseconds of RTDETRv2 and YOLOv10 across various model sizes. Leveraging benchmarks like [TensorRT profiling](https://docs.ultralytics.com/reference/utils/benchmarks/), it offers a clear perspective on their performance efficiency for different deployment scenarios.

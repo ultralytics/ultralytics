@@ -26,7 +26,6 @@ This section evaluates the mAP values of RTDETRv2 and YOLOv6-3.0 models, showcas
     	| l | 53.4 | 52.8 |
     	| x | 54.3 | N/A |
 
-
 ## Speed Comparison
 
 This section examines the speed performance of RTDETRv2 and YOLOv6-3.0 across various model sizes. Speed metrics, measured in milliseconds, highlight the efficiency of these models on modern hardware, enabling informed decisions for real-world applications. Learn more about [benchmarking metrics](https://docs.ultralytics.com/modes/benchmark/) and [model performance](https://docs.ultralytics.com/models/yolov7/).

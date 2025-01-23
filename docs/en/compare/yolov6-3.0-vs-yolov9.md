@@ -26,7 +26,6 @@ This section compares mAP values for YOLOv6-3.0 and YOLOv9 models, highlighting 
     	| l | 52.8 | 52.8 |
     	| x | N/A | 55.1 |
 
-
 ## Speed Comparison
 
 This section highlights the performance differences between YOLOv6-3.0 and YOLOv9, showcasing speed metrics measured in milliseconds across various model sizes. These comparisons illustrate how efficiently each model processes data, providing valuable insights for real-time applications. Learn more about [Ultralytics benchmarks](https://docs.ultralytics.com/reference/utils/benchmarks/) for additional context.

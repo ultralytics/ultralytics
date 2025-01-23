@@ -27,7 +27,6 @@ This section compares the mAP (mean Average Precision) values of YOLOv10 and PP-
     	| l | 53.3 | 52.9 |
     	| x | 54.4 | 54.7 |
 
-
 ## Speed Comparison
 
 This section highlights the speed performance of YOLOv10 and PP-YOLOE+ models across various sizes, measured in milliseconds. These speed metrics, tested under identical conditions, provide critical insights into their real-world efficiency, especially for applications requiring low-latency object detection. For more details, explore the [YOLOv10 documentation](https://docs.ultralytics.com/models/yolov10/) and the [PP-YOLOE+ repository](https://github.com/PaddlePaddle/PaddleDetection).

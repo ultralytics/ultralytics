@@ -28,7 +28,6 @@ This section evaluates the mAP values of DAMO-YOLO and YOLOX models, highlightin
     	| l | 50.8 | 49.7 |
     	| x | N/A | 51.1 |
 
-
 ## Speed Comparison
 
 This section highlights the speed performance of DAMO-YOLO and YOLOX, comparing inference times in milliseconds across various model sizes. These metrics provide valuable insights into the efficiency of both models, aiding in selecting the best fit for real-time applications. Learn more about [YOLOX](https://github.com/Megvii-BaseDetection/YOLOX) and its capabilities.

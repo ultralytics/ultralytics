@@ -26,7 +26,6 @@ This section examines the mAP values of YOLOv7 and DAMO-YOLO, offering a direct 
     	| l | 51.4 | 50.8 |
     	| x | 53.1 | N/A |
 
-
 ## Speed Comparison
 
 This section highlights the speed performance of YOLOv7 and DAMO-YOLO models across different sizes, measured in milliseconds per image. These metrics provide a clear understanding of the inference efficiency of each model, helping users assess their suitability for real-time applications. For further insights, explore the [YOLOv7 documentation](https://docs.ultralytics.com/models/yolov7/) or learn about [benchmarking tools](https://docs.ultralytics.com/reference/utils/benchmarks/).
@@ -55,10 +54,10 @@ For a deeper dive into training YOLO models, check out the [YOLO Training Guide]
 from ultralytics import YOLO
 
 # Load a YOLO model
-model = YOLO('yolov11.pt')
+model = YOLO("yolov11.pt")
 
 # Train the model on a custom dataset
-model.train(data='custom_dataset.yaml', epochs=50, batch=16, imgsz=640)
+model.train(data="custom_dataset.yaml", epochs=50, batch=16, imgsz=640)
 ```
 
 This snippet demonstrates setting up YOLO11 for training, making it easy to get started with your custom computer vision project.

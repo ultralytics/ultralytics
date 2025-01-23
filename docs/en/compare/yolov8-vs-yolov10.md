@@ -27,7 +27,6 @@ Mean Average Precision (mAP) is a critical metric for evaluating model accuracy 
     	| l | 52.9 | 53.3 |
     	| x | 53.9 | 54.4 |
 
-
 ## Speed Comparison
 
 This section highlights the performance differences between Ultralytics YOLOv8 and YOLOv10 by comparing their latency metrics across various model sizes. Measured in milliseconds, these figures demonstrate the efficiency improvements achieved with YOLOv10, offering faster inference speeds for tasks like [object detection](https://docs.ultralytics.com/tasks/detect/) and real-time applications. Explore more about YOLOv10's advancements [here](https://docs.ultralytics.com/models/yolov10/).

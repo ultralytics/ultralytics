@@ -27,7 +27,6 @@ mAP (mean Average Precision) serves as a critical metric to evaluate model accur
     	| l | 53.3 | 50.8 |
     	| x | 54.4 | N/A |
 
-
 ## Speed Comparison
 
 This section evaluates the speed performance of YOLOv10 and DAMO-YOLO across various model sizes. Speed metrics in milliseconds highlight the efficiency of these models for real-time applications, enabling users to assess latency differences effectively. For more details on YOLOv10's advancements, visit the [Ultralytics YOLOv10 documentation](https://docs.ultralytics.com/models/yolov10/).

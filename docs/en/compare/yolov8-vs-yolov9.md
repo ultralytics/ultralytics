@@ -26,7 +26,6 @@ This section highlights the mAP values of Ultralytics YOLOv8 and YOLOv9 across t
     	| l | 52.9 | 52.8 |
     	| x | 53.9 | 55.1 |
 
-
 ## Speed Comparison
 
 This section highlights the speed performance of Ultralytics YOLOv8 and YOLOv9 across various model sizes, measured in milliseconds. These metrics provide a clear understanding of how each model balances computational efficiency and real-time application needs. For more details, visit the [YOLOv8 documentation](https://docs.ultralytics.com/models/yolov8/) and [YOLOv9 documentation](https://docs.ultralytics.com/models/yolov9/).

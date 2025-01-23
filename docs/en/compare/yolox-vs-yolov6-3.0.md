@@ -26,7 +26,6 @@ This section evaluates the mAP (Mean Average Precision) values of YOLOX and YOLO
     	| l | 49.7 | 52.8 |
     	| x | 51.1 | N/A |
 
-
 ## Speed Comparison
 
 This section highlights the speed performance of YOLOX and YOLOv6-3.0 models across various sizes, measured in milliseconds. By evaluating latency metrics, users can better understand the trade-offs between model size and inference speed, making it easier to select the most efficient model for their use case. Explore more about [YOLOv6-3.0](https://docs.ultralytics.com/models/yolov6/) and [YOLOX](https://github.com/Megvii-BaseDetection/YOLOX).

@@ -28,7 +28,6 @@ This section compares the mean Average Precision (mAP) of Ultralytics YOLO11 and
     	| l | 53.2 | 52.9 |
     	| x | 54.7 | 53.9 |
 
-
 ## Speed Comparison
 
 This section highlights the performance differences between Ultralytics YOLO11 and YOLOv8, focusing on speed metrics in milliseconds. Faster inference times in YOLO11 demonstrate its optimization for real-time applications, ensuring efficiency across various model sizes. Learn more about [YOLOv8](https://docs.ultralytics.com/models/yolov8/) and [YOLO11](https://www.ultralytics.com/blog/ultralytics-yolo11-has-arrived-redefine-whats-possible-in-ai).
@@ -57,10 +56,10 @@ For a comprehensive guide on training, visit [Ultralytics YOLO11 Training Docume
 from ultralytics import YOLO
 
 # Load a pretrained YOLO11 model
-model = YOLO('yolo11.pt')
+model = YOLO("yolo11.pt")
 
 # Train on a custom dataset
-model.train(data='coco8.yaml', epochs=50, batch=16, imgsz=640)
+model.train(data="coco8.yaml", epochs=50, batch=16, imgsz=640)
 ```
 
 This code snippet demonstrates how to initiate training for your dataset using the COCO8 configuration file. Ensure your dataset is correctly formatted for YOLO to achieve the best results.

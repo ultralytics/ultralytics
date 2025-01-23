@@ -25,7 +25,6 @@ This section highlights the mAP values of RT-DETRv2 and YOLOv7 models, which ser
     	| l | 53.4 | 51.4 |
     	| x | 54.3 | 53.1 |
 
-
 ## Speed Comparison
 
 This section compares the speed performance of RTDETRv2 and YOLOv7 across various model sizes, highlighting inference times in milliseconds. These metrics demonstrate how each model balances speed and efficiency, with detailed benchmarks available in the [Ultralytics YOLO documentation](https://docs.ultralytics.com/models/yolov7/).

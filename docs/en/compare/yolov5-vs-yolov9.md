@@ -26,7 +26,6 @@ This section compares the mAP (mean average precision) values of Ultralytics YOL
     	| l | 49.0 | 52.8 |
     	| x | 50.7 | 55.1 |
 
-
 ## Speed Comparison
 
 The speed metrics of Ultralytics YOLOv5 and YOLOv9 highlight their efficiency across various model sizes, with performance measured in milliseconds. YOLOv9 demonstrates advancements in latency reduction and computational efficiency, offering faster inference times compared to YOLOv5, especially in real-time applications. Explore more about [Ultralytics YOLOv5](https://docs.ultralytics.com/models/yolov5/) and [YOLOv9](https://docs.ultralytics.com/models/yolov9/) to understand their detailed performance metrics.

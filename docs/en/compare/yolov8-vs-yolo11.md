@@ -28,7 +28,6 @@ This section compares the mAP values of Ultralytics YOLOv8 and Ultralytics YOLO1
     	| l | 52.9 | 53.2 |
     	| x | 53.9 | 54.7 |
 
-
 ## Speed Comparison
 
 This section highlights the performance of Ultralytics YOLOv8 and YOLO11 models by analyzing speed metrics in milliseconds across various model sizes. Faster inference times, as showcased by YOLO11, make it ideal for real-time applications like [object detection](https://docs.ultralytics.com/tasks/detect/) and [edge deployment](https://docs.ultralytics.com/guides/model-deployment-options/), reflecting its efficiency and precision advancements.

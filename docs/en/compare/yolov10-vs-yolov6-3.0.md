@@ -27,7 +27,6 @@ This section highlights the mAP values of YOLOv10 and YOLOv6-3.0 variants, illus
     	| l | 53.3 | 52.8 |
     	| x | 54.4 | N/A |
 
-
 ## Speed Comparison
 
 This section highlights the speed performance of YOLOv10 and YOLOv6-3.0 across different model sizes, measured in milliseconds. The comparison emphasizes YOLOv10's efficiency, with reduced latency and faster inference times, showcasing its superiority for real-time applications. For more details, explore the [Ultralytics YOLOv10 documentation](https://docs.ultralytics.com/models/yolov10/).

@@ -26,7 +26,6 @@ The mAP comparison between YOLOv9 and RT-DETRv2 highlights the accuracy of these
     	| l | 52.8 | 53.4 |
     	| x | 55.1 | 54.3 |
 
-
 ## Speed Comparison
 
 This section highlights the speed performance of YOLOv9 and RTDETRv2 models, measured in milliseconds, across various sizes. These metrics provide a comprehensive understanding of their efficiency, crucial for applications requiring real-time processing. Explore more about [RTDETRv2](https://docs.ultralytics.com/models/yolov7/) and [YOLOv9](https://docs.ultralytics.com/models/yolov10/) for further insights.
@@ -57,16 +56,16 @@ For more details on fine-tuning and dataset support, visit the [Ultralytics guid
 from ultralytics import YOLO
 
 # Load a pre-trained YOLO11 model
-model = YOLO('yolo11.pt')
+model = YOLO("yolo11.pt")
 
 # Fine-tune on the COCO8 dataset
-model.train(data='coco8.yaml', epochs=50, imgsz=640)
+model.train(data="coco8.yaml", epochs=50, imgsz=640)
 
 # Validate the model
 metrics = model.val()
 
 # Export the model for deployment
-model.export(format='onnx')
+model.export(format="onnx")
 ```
 
 This code snippet demonstrates how to fine-tune YOLO11 on the COCO8 dataset using Ultralytics' streamlined training pipeline.

@@ -26,7 +26,6 @@ This section compares the mean Average Precision (mAP) of Ultralytics YOLO11 and
     	| l | 53.2 | 52.8 |
     	| x | 54.7 | N/A |
 
-
 ## Speed Comparison
 
 This section compares the speed metrics of Ultralytics YOLO11 and YOLOv6-3.0 across various model sizes, measured in milliseconds. With lower latency values, especially on [TensorRT](https://docs.ultralytics.com/integrations/tensorrt/) benchmarks, Ultralytics YOLO11 demonstrates superior real-time performance, making it ideal for applications where speed is critical.

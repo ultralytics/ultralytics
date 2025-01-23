@@ -26,7 +26,6 @@ This section highlights the mAP differences between YOLOv6-3.0 and Ultralytics Y
     	| l | 52.8 | 53.2 |
     	| x | N/A | 54.7 |
 
-
 ## Speed Comparison
 
 Compare the inference speeds of YOLOv6-3.0 and Ultralytics YOLO11 across various model sizes, measured in milliseconds. These speed metrics highlight the real-time performance advantages of Ultralytics YOLO11, making it ideal for applications requiring rapid detection and processing. Explore more about [model profiling](https://docs.ultralytics.com/reference/utils/benchmarks/) and [Ultralytics YOLO11](https://www.ultralytics.com/blog/ultralytics-yolo11-has-arrived-redefine-whats-possible-in-ai).

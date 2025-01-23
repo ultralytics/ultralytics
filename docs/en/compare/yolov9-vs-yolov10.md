@@ -27,7 +27,6 @@ This section highlights the mAP (mean Average Precision) performance of YOLOv9 a
     	| l | 52.8 | 53.3 |
     	| x | 55.1 | 54.4 |
 
-
 ## Speed Comparison
 
 This section highlights the speed performance of YOLOv9 and YOLOv10 across various model sizes, measured in milliseconds. YOLOv10 demonstrates significant latency improvements, leveraging its optimized architecture for faster inference times without compromising accuracy. Learn more about YOLOv10's advancements in its [documentation](https://docs.ultralytics.com/models/yolov10/).

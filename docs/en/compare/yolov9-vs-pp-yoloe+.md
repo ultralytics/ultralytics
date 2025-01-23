@@ -26,7 +26,6 @@ This section evaluates the performance of YOLOv9 and PP-YOLOE+ models by compari
     	| l | 52.8 | 52.9 |
     	| x | 55.1 | 54.7 |
 
-
 ## Speed Comparison
 
 This section highlights the speed performance of YOLOv9 and PP-YOLOE+ across various model sizes, measured in milliseconds per inference. These metrics provide a clear understanding of how each model balances efficiency and computational requirements for real-time applications. For more details, explore the [Ultralytics YOLOv9 documentation](https://docs.ultralytics.com/models/yolov9/) or [PP-YOLOE+ performance benchmarks](https://github.com/PaddlePaddle/PaddleDetection).

@@ -26,7 +26,6 @@ This section highlights the mAP differences between Ultralytics YOLOv8 and YOLOv
     	| l | 52.9 | 52.8 |
     	| x | 53.9 | N/A |
 
-
 ## Speed Comparison
 
 This section highlights the speed differences between Ultralytics YOLOv8 and YOLOv6-3.0 models across various sizes, measured in milliseconds. These metrics showcase the efficiency of each model in processing images, offering insights into their suitability for real-time applications. Learn more about [Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8/) and its advancements.

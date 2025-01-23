@@ -25,7 +25,6 @@ This section highlights the mAP (Mean Average Precision) values of Ultralytics Y
     	| l | 49.0 | 53.4 |
     	| x | 50.7 | 54.3 |
 
-
 ## Speed Comparison
 
 This section highlights the speed performance of Ultralytics YOLOv5 and RTDETRv2 models across different sizes. Speed metrics, measured in milliseconds, demonstrate the efficiency of each model, providing insights for real-time applications. Explore [Ultralytics YOLOv5](https://github.com/ultralytics/yolov5) and other benchmarks for detailed comparisons.

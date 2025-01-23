@@ -26,7 +26,6 @@ This section highlights the mAP values of Ultralytics YOLOv8 and YOLOX across th
     	| l | 52.9 | 49.7 |
     	| x | 53.9 | 51.1 |
 
-
 ## Speed Comparison
 
 This section highlights the speed metrics of Ultralytics YOLOv8 and YOLOX models, measured in milliseconds across different model sizes. Faster inference times achieved by YOLOv8 emphasize its efficiency for real-time applications compared to YOLOX. Learn more about [Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8/) and its benchmarks.

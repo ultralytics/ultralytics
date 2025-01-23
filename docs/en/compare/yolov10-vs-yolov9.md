@@ -27,7 +27,6 @@ This section highlights the mAP values of YOLOv10 and YOLOv9 across different mo
     	| l | 53.3 | 52.8 |
     	| x | 54.4 | 55.1 |
 
-
 ## Speed Comparison
 
 This section highlights the speed performance of YOLOv10 versus YOLOv9 across multiple model sizes, measured in milliseconds. By analyzing inference times, such as those optimized for TensorRT, it showcases the efficiency gains achieved with [YOLOv10](https://docs.ultralytics.com/models/yolov10/). These improvements are critical for real-time applications requiring low-latency processing.

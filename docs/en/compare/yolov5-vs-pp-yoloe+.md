@@ -26,7 +26,6 @@ This section highlights the mAP values of Ultralytics YOLOv5 and PP-YOLOE+, prov
     	| l | 49.0 | 52.9 |
     	| x | 50.7 | 54.7 |
 
-
 ## Speed Comparison
 
 This section highlights the performance of Ultralytics YOLOv5 and PP-YOLOE+ in terms of inference speed across various model sizes. Speed metrics, measured in milliseconds, showcase how these models balance efficiency and accuracy, providing insights into their deployment suitability. Learn more about [YOLOv5 architecture](https://docs.ultralytics.com/yolov5/tutorials/architecture_description/) and [PP-YOLOE+ details](https://github.com/PaddlePaddle/PaddleDetection).
@@ -55,10 +54,10 @@ To explore more about YOLO11's tracking capabilities, visit the [Ultralytics YOL
 from ultralytics import YOLO
 
 # Load YOLO11 model
-model = YOLO('yolo11n.pt')
+model = YOLO("yolo11n.pt")
 
 # Run object tracking on a video file
-results = model.track(source='video.mp4', save=True, show=True)
+results = model.track(source="video.mp4", save=True, show=True)
 
 # Display results
 for frame in results:

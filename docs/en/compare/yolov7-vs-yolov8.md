@@ -26,7 +26,6 @@ This section highlights the Mean Average Precision (mAP) of YOLOv7 and Ultralyti
     	| l | 51.4 | 52.9 |
     	| x | 53.1 | 53.9 |
 
-
 ## Speed Comparison
 
 This section highlights the speed performance of YOLOv7 and Ultralytics YOLOv8 models across various sizes, measured in milliseconds per inference. These metrics provide a clear understanding of how each model handles real-time tasks. Learn more about [YOLOv7](https://docs.ultralytics.com/models/yolov7/) and [Ultralytics YOLOv8](https://www.ultralytics.com/blog/object-detection-with-a-pre-trained-ultralytics-yolov8-model) for detailed insights.

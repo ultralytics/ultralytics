@@ -27,7 +27,6 @@ This section highlights the mAP performance of YOLOv10 compared to Ultralytics Y
     	| l | 53.3 | 53.2 |
     	| x | 54.4 | 54.7 |
 
-
 ## Speed Comparison
 
 This section highlights the speed performance of YOLOv10 and Ultralytics YOLO11 across various model sizes. Speed metrics in milliseconds, measured using TensorRT FP16 on NVIDIA GPUs, showcase how each model balances efficiency and accuracy for real-time applications. Learn more about [Ultralytics YOLO11's advancements](https://www.ultralytics.com/blog/ultralytics-yolo11-has-arrived-redefine-whats-possible-in-ai) and [YOLOv10 benchmarks](https://docs.ultralytics.com/models/yolov10/).

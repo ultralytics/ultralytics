@@ -27,7 +27,6 @@ This section compares the mean Average Precision (mAP) values of YOLOv10 and YOL
     	| l | 53.3 | 49.7 |
     	| x | 54.4 | 51.1 |
 
-
 ## Speed Comparison
 
 This section highlights the speed performance of YOLOv10 and YOLOX models across various sizes, measured in milliseconds. By comparing inference times, discover how YOLOv10's optimized architecture provides faster processing than YOLOX, especially on modern GPUs like the T4. Learn more about YOLOv10's efficiency [here](https://docs.ultralytics.com/models/yolov10/) and explore YOLOX's benchmarks [here](https://github.com/Megvii-BaseDetection/YOLOX).

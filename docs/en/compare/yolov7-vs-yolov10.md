@@ -27,7 +27,6 @@ This section compares the mAP values of YOLOv7 and YOLOv10 variants, showcasing 
     	| l | 51.4 | 53.3 |
     	| x | 53.1 | 54.4 |
 
-
 ## Speed Comparison
 
 This section highlights the speed performance of YOLOv7 and YOLOv10 across various model sizes, measured in milliseconds. By comparing latency metrics, you can see how these models balance efficiency and accuracy, making them suitable for different real-time applications. Explore more about [Ultralytics YOLOv10](https://docs.ultralytics.com/models/yolov10/) and [YOLOv7](https://docs.ultralytics.com/models/yolov7/) for in-depth specifications.

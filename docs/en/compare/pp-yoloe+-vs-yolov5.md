@@ -26,7 +26,6 @@ This section highlights the mAP values of PP-YOLOE+ and Ultralytics YOLOv5, show
     	| l | 52.9 | 49.0 |
     	| x | 54.7 | 50.7 |
 
-
 ## Speed Comparison
 
 This section highlights the speed performance of PP-YOLOE+ and Ultralytics YOLOv5 models across various sizes. Speed metrics, measured in milliseconds, demonstrate how efficiently each model processes data, offering valuable insights for real-time applications. For more details on YOLOv5's architecture, visit the [Ultralytics YOLOv5 documentation](https://docs.ultralytics.com/yolov5/tutorials/architecture_description/).
@@ -55,10 +54,10 @@ For a comprehensive guide, explore [YOLO11 Training Documentation](https://docs.
 from ultralytics import YOLO
 
 # Load a pre-trained YOLO11 model
-model = YOLO('yolo11.pt')
+model = YOLO("yolo11.pt")
 
 # Train the model on a custom dataset
-model.train(data='config.yaml', epochs=50, batch=16, imgsz=640)
+model.train(data="config.yaml", epochs=50, batch=16, imgsz=640)
 
 # Evaluate model performance
 metrics = model.val()

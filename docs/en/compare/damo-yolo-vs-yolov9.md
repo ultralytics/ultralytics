@@ -26,7 +26,6 @@ This section compares the models DAMO-YOLO and YOLOv9 based on their mean averag
     	| l | 50.8 | 52.8 |
     	| x | N/A | 55.1 |
 
-
 ## Speed Comparison
 
 This section highlights the speed performance of DAMO-YOLO versus YOLOv9 across various model sizes, measured in milliseconds. These metrics provide a clear perspective on how efficiently each model processes data, offering valuable insights for real-time applications. Learn more about [YOLOv9's efficiency](https://docs.ultralytics.com/models/yolov9/) and its impact on [AI deployment](https://docs.ultralytics.com/guides/model-deployment-options/).

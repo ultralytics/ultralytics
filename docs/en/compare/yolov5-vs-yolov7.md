@@ -25,7 +25,6 @@ This section highlights the mAP values for Ultralytics YOLOv5 and YOLOv7, illust
     	| l | 49.0 | 51.4 |
     	| x | 50.7 | 53.1 |
 
-
 ## Speed Comparison
 
 This section highlights the speed performance of Ultralytics YOLOv5 and YOLOv7 models across various sizes, with speed metrics in milliseconds showcasing their inference efficiency. For more details on YOLOv5's architecture, visit the [YOLOv5 documentation](https://docs.ultralytics.com/models/yolov5/), and explore YOLOv7's advancements in the [YOLOv7 paper](https://arxiv.org/pdf/2207.02696).
@@ -55,13 +54,13 @@ To learn more about YOLO11’s solutions, visit the [Ultralytics YOLO Guides](ht
 from ultralytics import YOLO
 
 # Load YOLO11 model
-model = YOLO('yolo11-model.pt')
+model = YOLO("yolo11-model.pt")
 
 # Perform object detection and apply blur
-results = model.predict(source='input_video.mp4', save=True, conf=0.5)
+results = model.predict(source="input_video.mp4", save=True, conf=0.5)
 
 # Save output with blurred objects
-results.save_blurred('output_video.mp4')
+results.save_blurred("output_video.mp4")
 ```
 
 Explore how YOLO11 can streamline privacy tasks with its easy-to-use interface and powerful features.

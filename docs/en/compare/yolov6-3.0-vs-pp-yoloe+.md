@@ -26,7 +26,6 @@ This section compares the mAP values of YOLOv6-3.0 and PP-YOLOE+, highlighting t
     	| l | 52.8 | 52.9 |
     	| x | N/A | 54.7 |
 
-
 ## Speed Comparison
 
 This section highlights the speed performance of YOLOv6-3.0 and PP-YOLOE+ across different model sizes, measured in milliseconds. These metrics provide insights into inference efficiency, helping users choose models optimized for real-time applications. For more details, visit the [Ultralytics YOLOv6 documentation](https://docs.ultralytics.com/models/yolov6/).

@@ -26,7 +26,6 @@ This section evaluates the mAP values of RTDETRv2 and Ultralytics YOLO11, showca
     	| l | 53.4 | 53.2 |
     	| x | 54.3 | 54.7 |
 
-
 ## Speed Comparison
 
 This section highlights the speed performance of RTDETRv2 and Ultralytics YOLO11 models across various sizes. Measured in milliseconds, these metrics provide a clear benchmark of inference efficiency on different hardware configurations, aiding optimal model selection. For more details on speed metrics, see [Ultralytics Benchmark Documentation](https://docs.ultralytics.com/reference/utils/benchmarks/).

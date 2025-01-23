@@ -25,7 +25,6 @@ This section compares the mAP values of YOLOv6-3.0 and DAMO-YOLO models, highlig
     	| m | 50.0 | 49.2 |
     	| l | 52.8 | 50.8 |
 
-
 ## Speed Comparison
 
 This section highlights the speed performance of YOLOv6-3.0 and DAMO-YOLO across various model sizes, measured in milliseconds. These metrics demonstrate the efficiency of each model, offering insights into their real-world applicability for tasks requiring rapid inference. For detailed benchmarks on YOLO models, refer to the [Ultralytics Benchmark Documentation](https://docs.ultralytics.com/reference/utils/benchmarks/).

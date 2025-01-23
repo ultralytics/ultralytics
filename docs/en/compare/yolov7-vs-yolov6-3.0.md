@@ -26,7 +26,6 @@ This section compares the Mean Average Precision (mAP) values of YOLOv7 and YOLO
     	| l | 51.4 | 52.8 |
     	| x | 53.1 | N/A |
 
-
 ## Speed Comparison
 
 This section highlights the speed performance of YOLOv7 and YOLOv6-3.0 models across various sizes, measured in milliseconds. These metrics provide a clear understanding of their efficiency on tasks, showcasing real-time capabilities for different use cases. For more details on YOLOv7's innovations, visit the [YOLOv7 documentation](https://docs.ultralytics.com/models/yolov7/).

@@ -25,7 +25,6 @@ This section evaluates the mAP values of Ultralytics YOLOv5 and YOLOX models, hi
     	| l | 49.0 | 49.7 |
     	| x | 50.7 | 51.1 |
 
-
 ## Speed Comparison
 
 This section highlights the speed performance differences between Ultralytics YOLOv5 and YOLOX models across various sizes. Speed metrics in milliseconds provide insights into inference efficiency, helping you evaluate how these models perform in real-world scenarios. For more details, explore the [YOLOv5 documentation](https://docs.ultralytics.com/models/yolov5/) and [YOLOX resources](https://github.com/Megvii-BaseDetection/YOLOX).

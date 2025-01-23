@@ -25,7 +25,6 @@ This section compares the mAP values of YOLOX and RTDETRv2, highlighting their p
     	| l | 49.7 | 53.4 |
     	| x | 51.1 | 54.3 |
 
-
 ## Speed Comparison
 
 The speed comparison between YOLOX and RTDETRv2 highlights their performance efficiency across various input sizes. Metrics in milliseconds demonstrate YOLOX's faster processing capabilities compared to RTDETRv2, especially in real-time applications. For additional insights, explore [benchmarking methods](https://docs.ultralytics.com/modes/benchmark/) to understand speed variations further.

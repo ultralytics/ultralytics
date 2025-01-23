@@ -25,7 +25,6 @@ This section highlights the mAP values of YOLOv7 and Ultralytics YOLOv5 across t
     	| l | 51.4 | 49.0 |
     	| x | 53.1 | 50.7 |
 
-
 ## Speed Comparison
 
 This section highlights the speed performance differences between YOLOv7 and Ultralytics YOLOv5 across various model sizes. Measured in milliseconds, these metrics underscore the efficiency of each model, with YOLOv7 demonstrating superior inference speed in many cases. For more details, explore the [YOLOv7 paper](https://arxiv.org/pdf/2207.02696) or the [Ultralytics YOLOv5 architecture](https://docs.ultralytics.com/yolov5/tutorials/architecture_description/).

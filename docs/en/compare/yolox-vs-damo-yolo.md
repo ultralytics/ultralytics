@@ -26,7 +26,6 @@ This section highlights the mAP values of YOLOX and DAMO-YOLO, showcasing their 
     	| l | 49.7 | 50.8 |
     	| x | 51.1 | N/A |
 
-
 ## Speed Comparison
 
 This section highlights the speed performance of YOLOX and DAMO-YOLO models across various sizes, measured in milliseconds. The comparison provides insights into their efficiency, especially for applications requiring real-time object detection. For further details, explore [Ultralytics YOLO documentation](https://docs.ultralytics.com/models/yolov7/) and [DAMO-YOLO resources](https://github.com/tinyvision/damo-yolo).
@@ -55,10 +54,10 @@ For a thorough guide on training YOLO models, refer to the [YOLO Training Guide]
 from ultralytics import YOLO
 
 # Load a YOLO11 model
-model = YOLO('yolo11n.pt')
+model = YOLO("yolo11n.pt")
 
 # Train the model on a custom dataset
-model.train(data='path/to/dataset.yaml', epochs=50, imgsz=640, batch=16)
+model.train(data="path/to/dataset.yaml", epochs=50, imgsz=640, batch=16)
 ```
 
 This code initializes a YOLO11 model, sets up a dataset, and begins the training process with configurable parameters like epochs and image size.

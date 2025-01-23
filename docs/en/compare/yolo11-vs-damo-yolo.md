@@ -26,7 +26,6 @@ This section highlights the mAP performance of Ultralytics YOLO11 versus DAMO-YO
     	| l | 53.2 | 50.8 |
     	| x | 54.7 | N/A |
 
-
 ## Speed Comparison
 
 Explore the performance of Ultralytics YOLO11 versus DAMO-YOLO, with speed metrics in milliseconds highlighting their efficiency across model sizes. These benchmarks emphasize real-time capability, ideal for applications requiring rapid response times. Learn more about [Ultralytics YOLO11's capabilities](https://www.ultralytics.com/blog/ultralytics-yolo11-has-arrived-redefine-whats-possible-in-ai).

@@ -28,7 +28,6 @@ This section highlights the mAP values of YOLOv7 and PP-YOLOE+ across various mo
     	| l | 51.4 | 52.9 |
     	| x | 53.1 | 54.7 |
 
-
 ## Speed Comparison
 
 This section highlights the speed performance of YOLOv7 against PP-YOLOE+ across various model sizes. The comparison focuses on inference speeds measured in milliseconds, offering insights into their efficiency for real-time applications. For more details on YOLOv7's capabilities, explore the [YOLOv7 documentation](https://docs.ultralytics.com/models/yolov7/).

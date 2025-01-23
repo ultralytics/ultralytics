@@ -26,7 +26,6 @@ This section evaluates the mAP (Mean Average Precision) performance of PP-YOLOE+
     	| l | 52.9 | 49.7 |
     	| x | 54.7 | 51.1 |
 
-
 ## Speed Comparison
 
 The speed comparison highlights the performance differences between PP-YOLOE+ and YOLOX models, measured in milliseconds across various sizes. These metrics provide insights into their efficiency, with PP-YOLOE+ demonstrating faster inference speeds in certain configurations. Explore more about [PP-YOLOE+ here](https://github.com/PaddlePaddle/PaddleDetection) and [YOLOX details here](https://github.com/Megvii-BaseDetection/YOLOX).

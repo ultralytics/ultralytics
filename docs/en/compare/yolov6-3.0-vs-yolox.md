@@ -26,7 +26,6 @@ This section highlights the mAP (Mean Average Precision) values for YOLOv6-3.0 a
     	| l | 52.8 | 49.7 |
     	| x | N/A | 51.1 |
 
-
 ## Speed Comparison
 
 This section evaluates the speed metrics of YOLOv6-3.0 and YOLOX models, highlighting their performance across various sizes in milliseconds. These comparisons provide insights into inference efficiency, helping users select the best model for their specific use cases. For more details on YOLOX, visit its [official repository](https://github.com/Megvii-BaseDetection/YOLOX).

@@ -26,7 +26,6 @@ This section evaluates the performance of PP-YOLOE+ and DAMO-YOLO by comparing t
     	| l | 52.9 | 50.8 |
     	| x | 54.7 | N/A |
 
-
 ## Speed Comparison
 
 This section evaluates the speed performance of PP-YOLOE+ and DAMO-YOLO models across various sizes, measured in milliseconds. The speed metrics highlight their efficiency and computational optimization, offering insights into real-world application readiness. For more details, see the [Ultralytics documentation](https://docs.ultralytics.com/models/yolov10/).

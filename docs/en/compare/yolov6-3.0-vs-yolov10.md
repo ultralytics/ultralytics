@@ -27,7 +27,6 @@ This section highlights the mAP values of YOLOv6-3.0 and YOLOv10 across various 
     	| l | 52.8 | 53.3 |
     	| x | N/A | 54.4 |
 
-
 ## Speed Comparison
 
 This section highlights the speed performance of YOLOv6-3.0 and YOLOv10 across multiple model sizes. Measured in milliseconds, these metrics provide a clear comparison of inference efficiency, showcasing YOLOv10's advancements in latency optimization. Learn more about YOLOv10's [holistic design](https://docs.ultralytics.com/models/yolov10/) and speed benchmarks.
@@ -57,10 +56,10 @@ For a step-by-step guide on using the predict function, explore the [Ultralytics
 from ultralytics import YOLO
 
 # Load model
-model = YOLO('yolov11.pt')
+model = YOLO("yolov11.pt")
 
 # Perform prediction on an image
-results = model.predict(source='image.jpg', show=True)
+results = model.predict(source="image.jpg", show=True)
 
 # Display results
 results.show()

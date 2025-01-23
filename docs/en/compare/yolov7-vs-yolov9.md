@@ -26,7 +26,6 @@ This section highlights the differences in mAP (Mean Average Precision) values b
     	| l | 51.4 | 52.8 |
     	| x | 53.1 | 55.1 |
 
-
 ## Speed Comparison
 
 This section highlights the speed performance of YOLOv7 and YOLOv9 across various model sizes, measured in milliseconds. These metrics, benchmarked on diverse configurations, showcase the efficiency of YOLOv9 in delivering faster inference times compared to YOLOv7 while maintaining competitive accuracy. For further details, explore the [YOLOv9 performance](https://docs.ultralytics.com/models/yolov9/) and [YOLOv7 benchmarks](https://docs.ultralytics.com/models/yolov7/).

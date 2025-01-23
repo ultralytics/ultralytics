@@ -28,7 +28,6 @@ This section compares the mAP (Mean Average Precision) values of Ultralytics YOL
     	| l | 49.0 | 53.2 |
     	| x | 50.7 | 54.7 |
 
-
 ## Speed Comparison
 
 This section highlights the speed metrics in milliseconds for Ultralytics YOLOv5 and Ultralytics YOLO11, showcasing their real-time performance across different model sizes. Ultralytics YOLO11 demonstrates faster processing times, particularly with smaller models like YOLO11n, ideal for efficient deployment on edge devices. [Learn more about YOLO11 models](https://docs.ultralytics.com/models/yolo11/).
@@ -57,10 +56,10 @@ To start benchmarking, use the `benchmark` mode in the Ultralytics YOLO11 Python
 from ultralytics import YOLO
 
 # Load a pre-trained YOLO11 model
-model = YOLO('yolov11.pt')
+model = YOLO("yolov11.pt")
 
 # Benchmark model performance
-results = model.benchmark(data='coco8.yaml', device='0')
+results = model.benchmark(data="coco8.yaml", device="0")
 
 # Print benchmarking results
 print(results)

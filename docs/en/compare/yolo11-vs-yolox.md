@@ -26,7 +26,6 @@ This section evaluates the mAP performance of Ultralytics YOLO11 versus YOLOX, s
     	| l | 53.2 | 49.7 |
     	| x | 54.7 | 51.1 |
 
-
 ## Speed Comparison
 
 This section highlights the speed performance of Ultralytics YOLO11 versus YOLOX, measured in milliseconds across various model sizes. Leveraging advancements like TensorRT integration, Ultralytics YOLO11 exhibits faster inference times, making it ideal for real-time applications on platforms such as [edge devices](https://docs.ultralytics.com/guides/model-deployment-options/) or [NVIDIA GPUs](https://docs.ultralytics.com/guides/triton-inference-server/).

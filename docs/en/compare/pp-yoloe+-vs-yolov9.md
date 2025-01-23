@@ -26,7 +26,6 @@ The mAP comparison highlights the accuracy of PP-YOLOE+ and YOLOv9 across variou
     	| l | 52.9 | 52.8 |
     	| x | 54.7 | 55.1 |
 
-
 ## Speed Comparison
 
 This section highlights the speed performance of PP-YOLOE+ and YOLOv9 across various model sizes, measured in milliseconds. These metrics emphasize the efficiency and real-time capabilities of each model, offering insights into their deployment potential for diverse applications. Learn more about [YOLOv9 performance](https://docs.ultralytics.com/models/yolov9/) and [PP-YOLOE+ details](https://github.com/PaddlePaddle/PaddleDetection).

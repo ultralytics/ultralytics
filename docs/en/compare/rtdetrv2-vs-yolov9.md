@@ -26,7 +26,6 @@ This section compares the mAP values of RTDETRv2 and YOLOv9, showcasing their ac
     	| l | 53.4 | 52.8 |
     	| x | 54.3 | 55.1 |
 
-
 ## Speed Comparison
 
 This section highlights the speed performance of RTDETRv2 and YOLOv9 models across different sizes, measured in milliseconds. Comparing latency metrics, such as inference time, demonstrates their efficiency on real-world tasks, offering insights into trade-offs between speed and accuracy. For more details, explore [YOLOv9](https://docs.ultralytics.com/models/yolov9/) or [benchmarking tools](https://docs.ultralytics.com/reference/utils/benchmarks/).

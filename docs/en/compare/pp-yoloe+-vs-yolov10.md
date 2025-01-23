@@ -27,7 +27,6 @@ This section evaluates the mAP (mean Average Precision) of PP-YOLOE+ and YOLOv10
     	| l | 52.9 | 53.3 |
     	| x | 54.7 | 54.4 |
 
-
 ## Speed Comparison
 
 This section highlights the speed metrics in milliseconds for PP-YOLOE+ and YOLOv10 models, offering a detailed comparison across various sizes. These values, measured on modern hardware, underscore the efficiency of each model for real-time applications. For more details on YOLOv10's performance, refer to the [Ultralytics YOLOv10 documentation](https://docs.ultralytics.com/models/yolov10/).

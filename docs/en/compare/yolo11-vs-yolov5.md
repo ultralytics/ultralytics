@@ -28,7 +28,6 @@ This section compares the mAP values of Ultralytics YOLO11 and Ultralytics YOLOv
     	| l | 53.2 | 49.0 |
     	| x | 54.7 | 50.7 |
 
-
 ## Speed Comparison
 
 This section highlights the speed efficiency of Ultralytics YOLO11 compared to YOLOv5, showcasing inference times in milliseconds across various model sizes. Leveraging advanced optimizations, Ultralytics YOLO11 demonstrates faster processing, making it ideal for real-time applications. Learn more about [YOLO11 models](https://docs.ultralytics.com/models/yolo11/) and [YOLOv5 performance](https://docs.ultralytics.com/models/yolov5/).

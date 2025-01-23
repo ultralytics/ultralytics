@@ -25,7 +25,6 @@ This section highlights the mAP values of YOLOX and Ultralytics YOLOv5 models, r
     	| l | 49.7 | 49.0 |
     	| x | 51.1 | 50.7 |
 
-
 ## Speed Comparison
 
 This section highlights the performance of YOLOX and Ultralytics YOLOv5 models in terms of inference speed, measured in milliseconds, across various model sizes. These metrics provide critical insights into the efficiency of each model for real-world applications. For more details on YOLOv5, visit the [Ultralytics YOLOv5 Documentation](https://docs.ultralytics.com/models/yolov5/).

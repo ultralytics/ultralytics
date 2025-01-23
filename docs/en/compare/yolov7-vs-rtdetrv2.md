@@ -25,7 +25,6 @@ This section evaluates the accuracy of YOLOv7 and RTDETRv2 models through their 
     	| l | 51.4 | 53.4 |
     	| x | 53.1 | 54.3 |
 
-
 ## Speed Comparison
 
 This section highlights the performance differences between YOLOv7 and RT-DETRv2 models, focusing on speed metrics measured in milliseconds. These results demonstrate how each model scales across various input sizes and their efficiency in real-time applications. For more details, refer to the [YOLOv7 documentation](https://docs.ultralytics.com/models/yolov7/) or explore further on [RT-DETR benchmarks](https://arxiv.org/pdf/2207.02696).

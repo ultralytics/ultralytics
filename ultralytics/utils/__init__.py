@@ -183,9 +183,6 @@ class TQDM(rich.tqdm if TQDM_RICH else tqdm.tqdm):
         warnings.filterwarnings("ignore", category=tqdm.TqdmExperimentalWarning)  # suppress tqdm.rich warning
         kwargs["disable"] = not VERBOSE or kwargs.get("disable", False)
         kwargs.setdefault("bar_format", TQDM_BAR_FORMAT)  # override default value if passed
-        kwargs["miniters"] = 1e9
-        kwargs["mininterval"] = 1e9
-        kwargs["leave"] = False
         super().__init__(*args, **kwargs)
 
 

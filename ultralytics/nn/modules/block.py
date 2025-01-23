@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """Block modules."""
 
 import torch
@@ -1120,8 +1120,6 @@ class TorchVision(nn.Module):
         m (nn.Module): The loaded torchvision model, possibly truncated and unwrapped.
 
     Args:
-        c1 (int): Input channels.
-        c2 (): Output channels.
         model (str): Name of the torchvision model to load.
         weights (str, optional): Pre-trained weights to load. Default is "DEFAULT".
         unwrap (bool, optional): If True, unwraps the model to a sequential containing all but the last `truncate` layers. Default is True.
@@ -1129,9 +1127,9 @@ class TorchVision(nn.Module):
         split (bool, optional): Returns output from intermediate child modules as list. Default is False.
     """
 
-    def __init__(self, c1, c2, model, weights="DEFAULT", unwrap=True, truncate=2, split=False):
+    def __init__(self, model, weights="DEFAULT", unwrap=True, truncate=2, split=False):
         """Load the model and weights from torchvision."""
-        import torchvision
+        import torchvision  # scope for faster 'import ultralytics'
 
         super().__init__()
         if hasattr(torchvision.models, "get_model"):
@@ -1139,10 +1137,10 @@ class TorchVision(nn.Module):
         else:
             self.m = torchvision.models.__dict__[model](pretrained=bool(weights))
         if unwrap:
-            layers = list(self.m.children())[:-truncate]
+            layers = list(self.m.children())
             if isinstance(layers[0], nn.Sequential):  # Second-level for some models like EfficientNet, Swin
                 layers = [*list(layers[0].children()), *layers[1:]]
-            self.m = nn.Sequential(*layers)
+            self.m = nn.Sequential(*(layers[:-truncate] if truncate else layers))
             self.split = split
         else:
             self.split = False

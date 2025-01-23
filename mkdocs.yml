@@ -261,6 +261,118 @@ nav:
       - YOLO-NAS (Neural Architecture Search): models/yolo-nas.md
       - RT-DETR (Realtime Detection Transformer): models/rtdetr.md
       - YOLO-World (Real-Time Open-Vocabulary Object Detection): models/yolo-world.md
+  - Comparisons:
+      - compare/index.md
+      - YOLO11 vs YOLOv10: compare/yolo11-vs-yolov10.md
+      - YOLO11 vs YOLOv9: compare/yolo11-vs-yolov9.md
+      - YOLO11 vs YOLOv8: compare/yolo11-vs-yolov8.md
+      - YOLO11 vs YOLOv7: compare/yolo11-vs-yolov7.md
+      - YOLO11 vs YOLOv6-3.0: compare/yolo11-vs-yolov6-3.0.md
+      - YOLO11 vs YOLOv5: compare/yolo11-vs-yolov5.md
+      - YOLO11 vs PP-YOLOE+: compare/yolo11-vs-pp-yoloe+.md
+      - YOLO11 vs DAMO YOLO: compare/yolo11-vs-damo-yolo.md
+      - YOLO11 vs YOLOX: compare/yolo11-vs-yolox.md
+      - YOLO11 vs RT-DETRv2: compare/yolo11-vs-rtdetrv2.md
+      - YOLOv10 vs YOLO11: compare/yolov10-vs-yolo11.md
+      - YOLOv10 vs YOLOv9: compare/yolov10-vs-yolov9.md
+      - YOLOv10 vs YOLOv8: compare/yolov10-vs-yolov8.md
+      - YOLOv10 vs YOLOv7: compare/yolov10-vs-yolov7.md
+      - YOLOv10 vs YOLOv6-3.0: compare/yolov10-vs-yolov6-3.0.md
+      - YOLOv10 vs YOLOv5: compare/yolov10-vs-yolov5.md
+      - YOLOv10 vs PP-YOLOE+: compare/yolov10-vs-pp-yoloe+.md
+      - YOLOv10 vs DAMO YOLO: compare/yolov10-vs-damo-yolo.md
+      - YOLOv10 vs YOLOX: compare/yolov10-vs-yolox.md
+      - YOLOv10 vs RT-DETRv2: compare/yolov10-vs-rtdetrv2.md
+      - YOLOv9 vs YOLO11: compare/yolov9-vs-yolo11.md
+      - YOLOv9 vs YOLOv10: compare/yolov9-vs-yolov10.md
+      - YOLOv9 vs YOLOv8: compare/yolov9-vs-yolov8.md
+      - YOLOv9 vs YOLOv7: compare/yolov9-vs-yolov7.md
+      - YOLOv9 vs YOLOv6-3.0: compare/yolov9-vs-yolov6-3.0.md
+      - YOLOv9 vs YOLOv5: compare/yolov9-vs-yolov5.md
+      - YOLOv9 vs PP-YOLOE+: compare/yolov9-vs-pp-yoloe+.md
+      - YOLOv9 vs DAMO YOLO: compare/yolov9-vs-damo-yolo.md
+      - YOLOv9 vs YOLOX: compare/yolov9-vs-yolox.md
+      - YOLOv9 vs RT-DETRv2: compare/yolov9-vs-rtdetrv2.md
+      - YOLOv8 vs YOLO11: compare/yolov8-vs-yolo11.md
+      - YOLOv8 vs YOLOv10: compare/yolov8-vs-yolov10.md
+      - YOLOv8 vs YOLOv9: compare/yolov8-vs-yolov9.md
+      - YOLOv8 vs YOLOv7: compare/yolov8-vs-yolov7.md
+      - YOLOv8 vs YOLOv6-3.0: compare/yolov8-vs-yolov6-3.0.md
+      - YOLOv8 vs YOLOv5: compare/yolov8-vs-yolov5.md
+      - YOLOv8 vs PP-YOLOE+: compare/yolov8-vs-pp-yoloe+.md
+      - YOLOv8 vs DAMO YOLO: compare/yolov8-vs-damo-yolo.md
+      - YOLOv8 vs YOLOX: compare/yolov8-vs-yolox.md
+      - YOLOv8 vs RT-DETRv2: compare/yolov8-vs-rtdetrv2.md
+      - YOLOv7 vs YOLO11: compare/yolov7-vs-yolo11.md
+      - YOLOv7 vs YOLOv10: compare/yolov7-vs-yolov10.md
+      - YOLOv7 vs YOLOv9: compare/yolov7-vs-yolov9.md
+      - YOLOv7 vs YOLOv8: compare/yolov7-vs-yolov8.md
+      - YOLOv7 vs YOLOv6-3.0: compare/yolov7-vs-yolov6-3.0.md
+      - YOLOv7 vs YOLOv5: compare/yolov7-vs-yolov5.md
+      - YOLOv7 vs PP-YOLOE+: compare/yolov7-vs-pp-yoloe+.md
+      - YOLOv7 vs DAMO YOLO: compare/yolov7-vs-damo-yolo.md
+      - YOLOv7 vs YOLOX: compare/yolov7-vs-yolox.md
+      - YOLOv7 vs RT-DETRv2: compare/yolov7-vs-rtdetrv2.md
+      - YOLOv6-3.0 vs YOLO11: compare/yolov6-3.0-vs-yolo11.md
+      - YOLOv6-3.0 vs YOLOv10: compare/yolov6-3.0-vs-yolov10.md
+      - YOLOv6-3.0 vs YOLOv9: compare/yolov6-3.0-vs-yolov9.md
+      - YOLOv6-3.0 vs YOLOv8: compare/yolov6-3.0-vs-yolov8.md
+      - YOLOv6-3.0 vs YOLOv7: compare/yolov6-3.0-vs-yolov7.md
+      - YOLOv6-3.0 vs YOLOv5: compare/yolov6-3.0-vs-yolov5.md
+      - YOLOv6-3.0 vs PP-YOLOE+: compare/yolov6-3.0-vs-pp-yoloe+.md
+      - YOLOv6-3.0 vs DAMO YOLO: compare/yolov6-3.0-vs-damo-yolo.md
+      - YOLOv6-3.0 vs YOLOX: compare/yolov6-3.0-vs-yolox.md
+      - YOLOv6-3.0 vs RT-DETRv2: compare/yolov6-3.0-vs-rtdetrv2.md
+      - YOLOv5 vs YOLO11: compare/yolov5-vs-yolo11.md
+      - YOLOv5 vs YOLOv10: compare/yolov5-vs-yolov10.md
+      - YOLOv5 vs YOLOv9: compare/yolov5-vs-yolov9.md
+      - YOLOv5 vs YOLOv8: compare/yolov5-vs-yolov8.md
+      - YOLOv5 vs YOLOv7: compare/yolov5-vs-yolov7.md
+      - YOLOv5 vs YOLOv6-3.0: compare/yolov5-vs-yolov6-3.0.md
+      - YOLOv5 vs PP-YOLOE+: compare/yolov5-vs-pp-yoloe+.md
+      - YOLOv5 vs DAMO YOLO: compare/yolov5-vs-damo-yolo.md
+      - YOLOv5 vs YOLOX: compare/yolov5-vs-yolox.md
+      - YOLOv5 vs RT-DETRv2: compare/yolov5-vs-rtdetrv2.md
+      - PP-YOLOE+ vs YOLO11: compare/pp-yoloe+-vs-yolo11.md
+      - PP-YOLOE+ vs YOLOv10: compare/pp-yoloe+-vs-yolov10.md
+      - PP-YOLOE+ vs YOLOv9: compare/pp-yoloe+-vs-yolov9.md
+      - PP-YOLOE+ vs YOLOv8: compare/pp-yoloe+-vs-yolov8.md
+      - PP-YOLOE+ vs YOLOv7: compare/pp-yoloe+-vs-yolov7.md
+      - PP-YOLOE+ vs YOLOv6-3.0: compare/pp-yoloe+-vs-yolov6-3.0.md
+      - PP-YOLOE+ vs YOLOv5: compare/pp-yoloe+-vs-yolov5.md
+      - PP-YOLOE+ vs DAMO YOLO: compare/pp-yoloe+-vs-damo-yolo.md
+      - PP-YOLOE+ vs YOLOX: compare/pp-yoloe+-vs-yolox.md
+      - PP-YOLOE+ vs RT-DETRv2: compare/pp-yoloe+-vs-rtdetrv2.md
+      - DAMO YOLO vs YOLO11: compare/damo-yolo-vs-yolo11.md
+      - DAMO YOLO vs YOLOv10: compare/damo-yolo-vs-yolov10.md
+      - DAMO YOLO vs YOLOv9: compare/damo-yolo-vs-yolov9.md
+      - DAMO YOLO vs YOLOv8: compare/damo-yolo-vs-yolov8.md
+      - DAMO YOLO vs YOLOv7: compare/damo-yolo-vs-yolov7.md
+      - DAMO YOLO vs YOLOv6-3.0: compare/damo-yolo-vs-yolov6-3.0.md
+      - DAMO YOLO vs YOLOv5: compare/damo-yolo-vs-yolov5.md
+      - DAMO YOLO vs PP-YOLOE+: compare/damo-yolo-vs-pp-yoloe+.md
+      - DAMO YOLO vs YOLOX: compare/damo-yolo-vs-yolox.md
+      - DAMO YOLO vs RT-DETRv2: compare/damo-yolo-vs-rtdetrv2.md
+      - YOLOX vs YOLO11: compare/yolox-vs-yolo11.md
+      - YOLOX vs YOLOv10: compare/yolox-vs-yolov10.md
+      - YOLOX vs YOLOv9: compare/yolox-vs-yolov9.md
+      - YOLOX vs YOLOv8: compare/yolox-vs-yolov8.md
+      - YOLOX vs YOLOv7: compare/yolox-vs-yolov7.md
+      - YOLOX vs YOLOv6-3.0: compare/yolox-vs-yolov6-3.0.md
+      - YOLOX vs YOLOv5: compare/yolox-vs-yolov5.md
+      - YOLOX vs PP-YOLOE+: compare/yolox-vs-pp-yoloe+.md
+      - YOLOX vs DAMO YOLO: compare/yolox-vs-damo-yolo.md
+      - YOLOX vs RT-DETRv2: compare/yolox-vs-rtdetrv2.md
+      - RT-DETRv2 vs YOLO11: compare/rtdetrv2-vs-yolo11.md
+      - RT-DETRv2 vs YOLOv10: compare/rtdetrv2-vs-yolov10.md
+      - RT-DETRv2 vs YOLOv9: compare/rtdetrv2-vs-yolov9.md
+      - RT-DETRv2 vs YOLOv8: compare/rtdetrv2-vs-yolov8.md
+      - RT-DETRv2 vs YOLOv7: compare/rtdetrv2-vs-yolov7.md
+      - RT-DETRv2 vs YOLOv6-3.0: compare/rtdetrv2-vs-yolov6-3.0.md
+      - RT-DETRv2 vs YOLOv5: compare/rtdetrv2-vs-yolov5.md
+      - RT-DETRv2 vs PP-YOLOE+: compare/rtdetrv2-vs-pp-yoloe+.md
+      - RT-DETRv2 vs DAMO YOLO: compare/rtdetrv2-vs-damo-yolo.md
+      - RT-DETRv2 vs YOLOX: compare/rtdetrv2-vs-yolox.md
   - Datasets:
       - datasets/index.md
       - Detection:
@@ -425,7 +537,6 @@ nav:
       - Albumentations: integrations/albumentations.md
       - SONY IMX500: integrations/sony-imx500.md
       - Rockchip RKNN: integrations/rockchip-rknn.md
-      - Seeed Studio reCamera: integrations/seeedstudio-recamera.md
   - HUB:
       - hub/index.md
       - Web:

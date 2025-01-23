@@ -133,7 +133,7 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # suppress verbose TF compiler warning
 os.environ["TORCH_CPP_LOG_LEVEL"] = "ERROR"  # suppress "NNPACK.cpp could not initialize NNPACK" warnings
 os.environ["KINETO_LOG_LEVEL"] = "5"  # suppress verbose PyTorch profiler output when computing FLOPs
 
-if TQDM_RICH := str(os.getenv("YOLO_TQDM_RICH", True)).lower() == "true":
+if TQDM_RICH := str(os.getenv("YOLO_TQDM_RICH", False)).lower() == "true":
     from tqdm import rich
 
 

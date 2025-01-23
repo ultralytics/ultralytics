@@ -64,4 +64,4 @@ metrics = model.val()
 print(metrics)
 ```
 
-Train on datasets like COCO8 or custom annotations to meet your project’s specific requirements. Learn more about dataset preparation [here](https://docs.ultralytics.com/datasets/).
+Train on datasets like COCO8 or custom annotations to meet your project's specific requirements. Learn more about dataset preparation [here](https://docs.ultralytics.com/datasets/).

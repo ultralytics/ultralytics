@@ -46,7 +46,7 @@ This section highlights the speed metrics in milliseconds for PP-YOLOE+ and YOLO
 
 ## Fine-Tuning on Car Parts Segmentation Dataset
 
-Ultralytics YOLO11 provides exceptional flexibility for fine-tuning models on specific datasets like the **Car Parts Segmentation Dataset**. This capability enables users to adapt YOLO11 to highly specialized use cases, such as identifying and categorizing individual car components. Leveraging datasets like [Roboflow’s Car Parts Segmentation dataset](https://docs.ultralytics.com/datasets/segment/carparts-seg/) ensures that the model delivers precise segmentation results tailored to automotive applications.
+Ultralytics YOLO11 provides exceptional flexibility for fine-tuning models on specific datasets like the **Car Parts Segmentation Dataset**. This capability enables users to adapt YOLO11 to highly specialized use cases, such as identifying and categorizing individual car components. Leveraging datasets like [Roboflow's Car Parts Segmentation dataset](https://docs.ultralytics.com/datasets/segment/carparts-seg/) ensures that the model delivers precise segmentation results tailored to automotive applications.
 
 By fine-tuning YOLO11, users can improve accuracy and relevance for tasks such as automotive manufacturing, repair, and e-commerce cataloging. The process involves using pre-trained YOLO11 weights and customizing them with labeled car parts data, ensuring high-quality segmentation tailored to specific project goals.
 

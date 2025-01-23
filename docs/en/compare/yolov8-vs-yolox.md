@@ -46,7 +46,7 @@ This section highlights the speed metrics of Ultralytics YOLOv8 and YOLOX models
 
 Ultralytics YOLO11 excels in **image segmentation**, enabling precise identification and delineation of objects within images. This functionality is ideal for applications such as car parts segmentation, package analysis, and more. For example, [car parts segmentation](https://docs.ultralytics.com/datasets/segment/carparts-seg/) simplifies automotive manufacturing processes by identifying individual components efficiently.
 
-YOLO11’s segmentation capabilities are built on a robust framework, allowing for seamless integration of custom datasets like COCO and others. With support for both pre-trained and fine-tuned models, it offers unparalleled flexibility for tasks requiring detailed object outlines.
+YOLO11's segmentation capabilities are built on a robust framework, allowing for seamless integration of custom datasets like COCO and others. With support for both pre-trained and fine-tuned models, it offers unparalleled flexibility for tasks requiring detailed object outlines.
 
 To start with segmentation using YOLO11, you can leverage its custom training mode on datasets tailored to your specific needs. Visit the [Image Segmentation Guide](https://www.ultralytics.com/blog/image-segmentation-with-ultralytics-yolo11-on-google-colab) for a detailed walkthrough.
 
@@ -65,4 +65,4 @@ results = model.segment(source="path/to/image.jpg", save=True)
 results.show()
 ```
 
-Explore more about YOLO11’s segmentation capabilities to redefine your project outcomes!
+Explore more about YOLO11's segmentation capabilities to redefine your project outcomes!

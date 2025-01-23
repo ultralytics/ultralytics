@@ -46,7 +46,7 @@ This section highlights the speed performance of DAMO-YOLO and YOLOX, comparing 
 
 ## Using YOLO11 for Object Counting
 
-Ultralytics YOLO11 provides advanced solutions like object counting, enabling accurate detection and quantification of objects in real-time. This capability is particularly useful across various industries, such as retail for inventory management or transportation for vehicle counting. By leveraging YOLO11’s cutting-edge algorithms, users can efficiently count objects in diverse environments, even under challenging conditions like occlusion or varying lighting.
+Ultralytics YOLO11 provides advanced solutions like object counting, enabling accurate detection and quantification of objects in real-time. This capability is particularly useful across various industries, such as retail for inventory management or transportation for vehicle counting. By leveraging YOLO11's cutting-edge algorithms, users can efficiently count objects in diverse environments, even under challenging conditions like occlusion or varying lighting.
 
 To learn more about object counting and its applications, check out [Object Counting Guide](https://docs.ultralytics.com/guides/object-counting/).
 

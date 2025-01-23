@@ -44,7 +44,7 @@ This section compares the speed performance of RTDETRv2 and PP-YOLOE+ across var
 
 ## Benchmark Functionalities in YOLO11
 
-Ultralytics YOLO11 introduces robust benchmarking functionalities, allowing users to evaluate model performance across various metrics such as speed, accuracy, and efficiency. Benchmarking is essential for determining the best model configurations for specific use cases and optimizing overall performance. YOLO11’s benchmarking tools are designed to provide actionable insights that help developers fine-tune their models for real-world applications.
+Ultralytics YOLO11 introduces robust benchmarking functionalities, allowing users to evaluate model performance across various metrics such as speed, accuracy, and efficiency. Benchmarking is essential for determining the best model configurations for specific use cases and optimizing overall performance. YOLO11's benchmarking tools are designed to provide actionable insights that help developers fine-tune their models for real-world applications.
 
 To get started with benchmarking in YOLO11, check out the [Ultralytics YOLO Guides](https://docs.ultralytics.com/guides/) for practical tutorials and best practices. These guides cover detailed steps on analyzing performance metrics like mAP and inference speed, ensuring you make data-driven decisions for your computer vision projects.
 

@@ -50,7 +50,7 @@ Benchmarking is a critical functionality offered by Ultralytics YOLO11, enabling
 
 The benchmarking process in YOLO11 is streamlined, providing insights into how the model handles tasks like object detection, segmentation, and classification. For a detailed guide on YOLO performance metrics like mAP and F1 score, visit [YOLO Performance Metrics](https://docs.ultralytics.com/guides/).
 
-Here’s an example of how you can benchmark a YOLO11 model using Python:
+Here's an example of how you can benchmark a YOLO11 model using Python:
 
 ```python
 from ultralytics import YOLO

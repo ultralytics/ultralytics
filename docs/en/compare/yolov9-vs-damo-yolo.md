@@ -46,7 +46,7 @@ This section evaluates the speed performance of YOLOv9 and DAMO-YOLO across vari
 
 Ultralytics YOLO11 provides an advanced **benchmark** functionality, allowing users to evaluate model performance across various tasks efficiently. This feature helps analyze metrics like speed, accuracy, and memory usage, ensuring models meet the requirements for real-world applications. By benchmarking, developers can fine-tune their models for optimal performance on specific hardware or datasets.
 
-To explore more about YOLO11’s benchmarking capabilities, visit the [Ultralytics Documentation](https://docs.ultralytics.com/guides/).
+To explore more about YOLO11's benchmarking capabilities, visit the [Ultralytics Documentation](https://docs.ultralytics.com/guides/).
 
 ### Python Code Example for Benchmarking
 

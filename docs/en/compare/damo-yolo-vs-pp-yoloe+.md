@@ -44,7 +44,7 @@ This section highlights the speed performance of DAMO-YOLO and PP-YOLOE+ models 
 
 ## Train with Ultralytics YOLO11
 
-Training models with Ultralytics YOLO11 is designed to be straightforward and highly efficient, allowing users to fine-tune pre-trained models or train from scratch. Leveraging datasets like COCO8 or custom datasets, YOLO11 ensures optimal performance across diverse applications. With built-in tools for monitoring metrics such as accuracy and loss, you can track the progress of your training process in real-time. YOLO11’s robust training pipeline is powered by PyTorch, making it adaptable for various deep learning workflows.
+Training models with Ultralytics YOLO11 is designed to be straightforward and highly efficient, allowing users to fine-tune pre-trained models or train from scratch. Leveraging datasets like COCO8 or custom datasets, YOLO11 ensures optimal performance across diverse applications. With built-in tools for monitoring metrics such as accuracy and loss, you can track the progress of your training process in real-time. YOLO11's robust training pipeline is powered by PyTorch, making it adaptable for various deep learning workflows.
 
 For a complete guide on training, you can explore the [Ultralytics YOLO Documentation](https://docs.ultralytics.com/guides/).
 

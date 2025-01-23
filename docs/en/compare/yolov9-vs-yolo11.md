@@ -46,7 +46,7 @@ This section highlights the speed performance of YOLOv9 and Ultralytics YOLO11 a
 
 Ultralytics YOLO11 provides robust benchmarking tools to evaluate model performance across various scenarios. Benchmarking allows users to measure metrics such as speed, accuracy, and efficiency, making it easier to optimize models for specific use cases. For example, you can assess performance on datasets like COCO8 or African wildlife to understand how well YOLO11 generalizes across different tasks.
 
-This functionality ensures that you can compare YOLO11 against other models or fine-tuned versions to make data-driven decisions. YOLO11’s benchmarking tools integrate seamlessly with popular frameworks like TensorFlow Lite and ONNX, providing flexibility in deployment and testing.
+This functionality ensures that you can compare YOLO11 against other models or fine-tuned versions to make data-driven decisions. YOLO11's benchmarking tools integrate seamlessly with popular frameworks like TensorFlow Lite and ONNX, providing flexibility in deployment and testing.
 
 To learn more about performance metrics such as mAP, IoU, and F1 score, visit the [YOLO Performance Metrics Guide](https://docs.ultralytics.com/guides/).
 

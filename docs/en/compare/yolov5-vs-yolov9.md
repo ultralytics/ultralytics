@@ -44,7 +44,7 @@ The speed metrics of Ultralytics YOLOv5 and YOLOv9 highlight their efficiency ac
 
 ## Training With Ultralytics YOLO11
 
-Ultralytics YOLO11 simplifies the training process, allowing users to fine-tune models for various tasks using custom datasets. With its robust framework, YOLO11 supports diverse datasets like COCO8, African wildlife, and signature detection, enabling high adaptability for unique use cases. The model’s efficient architecture ensures faster convergence and improved accuracy during training.
+Ultralytics YOLO11 simplifies the training process, allowing users to fine-tune models for various tasks using custom datasets. With its robust framework, YOLO11 supports diverse datasets like COCO8, African wildlife, and signature detection, enabling high adaptability for unique use cases. The model's efficient architecture ensures faster convergence and improved accuracy during training.
 
 For more details on training YOLO11, refer to the [custom training guide](https://docs.ultralytics.com/modes/train/), which provides step-by-step instructions and best practices.
 

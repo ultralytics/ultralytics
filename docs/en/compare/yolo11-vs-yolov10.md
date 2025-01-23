@@ -8,7 +8,7 @@ keywords: Ultralytics, YOLO11, YOLOv10, object detection, real-time AI, edge AI,
 
 The Ultralytics YOLO11 vs YOLOv10 comparison showcases the evolution of cutting-edge computer vision models. Both models are built to deliver exceptional performance, but YOLO11 introduces advancements that redefine efficiency and accuracy in real-time applications.
 
-While YOLOv10 set benchmarks for speed and versatility, Ultralytics YOLO11 raises the bar with improved feature extraction and optimized training methods. This comparison highlights their unique strengths to help you choose the right model for your [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) tasks. Learn more about YOLO11’s capabilities [here](https://docs.ultralytics.com/models/yolo11/).
+While YOLOv10 set benchmarks for speed and versatility, Ultralytics YOLO11 raises the bar with improved feature extraction and optimized training methods. This comparison highlights their unique strengths to help you choose the right model for your [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) tasks. Learn more about YOLO11's capabilities [here](https://docs.ultralytics.com/models/yolo11/).
 
 ## mAP Comparison
 

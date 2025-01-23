@@ -46,7 +46,7 @@ This section highlights the speed metrics of PP-YOLOE+ and Ultralytics YOLO11 ac
 
 Ultralytics YOLO11 excels at predictive tasks, enabling users to perform real-time inference with exceptional speed and accuracy. The predict functionality is crucial for deploying models in applications such as object detection, segmentation, or classification. It supports both images and videos, ensuring versatility across multiple use cases. With pre-trained models or fine-tuned datasets, YOLO11 simplifies the process of generating reliable predictions.
 
-To learn more about how to utilize YOLO11’s prediction capabilities, explore the [Comprehensive Tutorials to Ultralytics YOLO](https://docs.ultralytics.com/guides/).
+To learn more about how to utilize YOLO11's prediction capabilities, explore the [Comprehensive Tutorials to Ultralytics YOLO](https://docs.ultralytics.com/guides/).
 
 ### Example Code: Using Predict in Ultralytics YOLO11
 

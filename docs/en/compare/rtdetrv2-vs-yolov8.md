@@ -46,6 +46,6 @@ This section highlights the speed performance of RT-DETRv2 and Ultralytics YOLOv
 
 Ultralytics YOLO11 offers advanced capabilities for object counting, making it a powerful tool for industries like retail, traffic management, and event analytics. With its real-time detection and counting features, YOLO11 can accurately manage scenarios such as monitoring crowd density, counting vehicles in intersections, or analyzing stock levels in warehouses. This functionality is highly valuable for optimizing operations and improving decision-making processes.
 
-Explore the [object counting guide](https://docs.ultralytics.com/guides/object-counting/) to understand how YOLO11 can be implemented in various real-world use cases. The guide provides detailed steps on configuring the model for object counting tasks and demonstrates its integration into workflows. With YOLO11’s flexibility and precision, businesses can extract actionable insights from their visual data effortlessly.
+Explore the [object counting guide](https://docs.ultralytics.com/guides/object-counting/) to understand how YOLO11 can be implemented in various real-world use cases. The guide provides detailed steps on configuring the model for object counting tasks and demonstrates its integration into workflows. With YOLO11's flexibility and precision, businesses can extract actionable insights from their visual data effortlessly.
 
-For more on YOLO11’s applications, visit the [Ultralytics documentation](https://docs.ultralytics.com/).
+For more on YOLO11's applications, visit the [Ultralytics documentation](https://docs.ultralytics.com/).

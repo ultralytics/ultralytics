@@ -46,6 +46,6 @@ This section highlights the speed performance of PP-YOLOE+ and YOLOv7 models acr
 
 Ultralytics YOLO11 offers advanced solutions like **Object Counting**, a critical feature for applications such as inventory management, retail analytics, and crowd monitoring. By accurately detecting and counting objects in real-time, this functionality empowers businesses to derive actionable insights and optimize operations efficiently.
 
-Object Counting is particularly beneficial when integrated with YOLO11’s high-speed inference capabilities, ensuring reliable performance even in dynamic environments. Whether you’re tracking foot traffic in retail stores or counting packages in warehouses, YOLO11 delivers precision and scalability. Explore more about **object counting** in the [Ultralytics YOLO Guides](https://docs.ultralytics.com/guides/object-counting/).
+Object Counting is particularly beneficial when integrated with YOLO11's high-speed inference capabilities, ensuring reliable performance even in dynamic environments. Whether you're tracking foot traffic in retail stores or counting packages in warehouses, YOLO11 delivers precision and scalability. Explore more about **object counting** in the [Ultralytics YOLO Guides](https://docs.ultralytics.com/guides/object-counting/).
 
 With support for custom datasets and real-world applications, YOLO11 ensures flexibility and adaptability to meet diverse use cases, making it a powerful tool for object counting tasks.

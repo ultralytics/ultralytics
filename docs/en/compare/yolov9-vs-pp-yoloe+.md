@@ -8,7 +8,7 @@ keywords: YOLOv9, PP-YOLOE+, Ultralytics, object detection, real-time AI, edge A
 
 Choosing the right object detection model is critical for achieving optimal performance in real-world applications. This comparison between YOLOv9 and PP-YOLOE+ provides a detailed analysis of their strengths, helping developers make informed decisions based on accuracy, speed, and efficiency.
 
-YOLOv9 stands out with its advanced architectural optimizations like Programmable Gradient Information, enabling greater efficiency and accuracy on datasets like [COCO](https://docs.ultralytics.com/datasets/detect/coco/). Meanwhile, PP-YOLOE+ offers robust performance with a focus on lightweight deployment, making it a strong contender for edge AI applications. For a deeper dive into YOLOv9’s innovations, check out its [documentation](https://docs.ultralytics.com/models/yolov9/).
+YOLOv9 stands out with its advanced architectural optimizations like Programmable Gradient Information, enabling greater efficiency and accuracy on datasets like [COCO](https://docs.ultralytics.com/datasets/detect/coco/). Meanwhile, PP-YOLOE+ offers robust performance with a focus on lightweight deployment, making it a strong contender for edge AI applications. For a deeper dive into YOLOv9's innovations, check out its [documentation](https://docs.ultralytics.com/models/yolov9/).
 
 ## mAP Comparison
 

@@ -46,7 +46,7 @@ This section highlights the speed performance of YOLOv10 and YOLOX models across
 
 ## Benchmark Model Performance With YOLO11
 
-Ultralytics YOLO11 provides a robust functionality for **benchmarking**, enabling users to evaluate the performance of their models across various metrics and datasets. This feature is crucial for understanding the efficiency and accuracy of your YOLO11 implementations in real-world scenarios. By leveraging YOLO11’s benchmarking tools, you can assess metrics like latency, throughput, and mean Average Precision (mAP) to identify areas for optimization.
+Ultralytics YOLO11 provides a robust functionality for **benchmarking**, enabling users to evaluate the performance of their models across various metrics and datasets. This feature is crucial for understanding the efficiency and accuracy of your YOLO11 implementations in real-world scenarios. By leveraging YOLO11's benchmarking tools, you can assess metrics like latency, throughput, and mean Average Precision (mAP) to identify areas for optimization.
 
 For more insights into performance metrics and evaluation, refer to the [YOLO Performance Metrics guide](https://docs.ultralytics.com/guides/). This guide also includes practical examples to improve model accuracy and speed, ensuring your YOLO11 deployment is finely tuned for your needs.
 

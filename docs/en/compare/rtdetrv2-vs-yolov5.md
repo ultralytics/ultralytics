@@ -44,7 +44,7 @@ This section highlights the speed performance of RTDETRv2 and Ultralytics YOLOv5
 
 Ultralytics YOLO11 excels in segmentation tasks, allowing users to identify and classify individual objects within an image by segmenting them into meaningful regions. This functionality is highly beneficial for industries such as automotive, healthcare, and retail, where precise object identification is crucial. For example, YOLO11 can segment car parts for streamlined manufacturing or e-commerce cataloging.
 
-YOLO11’s segmentation capabilities are further enhanced through custom training. By fine-tuning on datasets such as the [Car Parts Segmentation dataset](https://docs.ultralytics.com/datasets/segment/carparts-seg/), users can achieve tailored results with increased accuracy. The model supports pre-trained weights for general tasks and fine-tuning for specific use cases, making it adaptable and versatile.
+YOLO11's segmentation capabilities are further enhanced through custom training. By fine-tuning on datasets such as the [Car Parts Segmentation dataset](https://docs.ultralytics.com/datasets/segment/carparts-seg/), users can achieve tailored results with increased accuracy. The model supports pre-trained weights for general tasks and fine-tuning for specific use cases, making it adaptable and versatile.
 
 To learn more about segmentation with YOLO11, explore the [Image Segmentation guide on Google Colab](https://www.ultralytics.com/blog/image-segmentation-with-ultralytics-yolo11-on-google-colab).
 

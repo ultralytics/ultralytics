@@ -46,6 +46,6 @@ The speed comparison between YOLOv9 and YOLOv7 highlights their performance acro
 
 Ultralytics YOLO11 provides advanced capabilities for object-centric tasks, including object blurring. Object blurring is a vital solution for privacy protection in surveillance systems, anonymizing sensitive areas in images or videos. This feature is particularly useful in applications such as retail analytics, public monitoring, and secure environments where privacy compliance is crucial.
 
-By leveraging YOLO11’s powerful segmentation and detection capabilities, users can identify objects and selectively blur them with precision. This ensures sensitive information, such as faces or license plates, is obscured without compromising the overall image quality.
+By leveraging YOLO11's powerful segmentation and detection capabilities, users can identify objects and selectively blur them with precision. This ensures sensitive information, such as faces or license plates, is obscured without compromising the overall image quality.
 
-To explore more about YOLO11’s functionalities, visit the [Ultralytics documentation](https://docs.ultralytics.com/guides/). For a step-by-step guide on how to implement object blurring with YOLO models, see our blog on [YOLO integrations and real-world applications](https://www.ultralytics.com/blog/how-to-use-ultralytics-yolo11-for-object-detection).
+To explore more about YOLO11's functionalities, visit the [Ultralytics documentation](https://docs.ultralytics.com/guides/). For a step-by-step guide on how to implement object blurring with YOLO models, see our blog on [YOLO integrations and real-world applications](https://www.ultralytics.com/blog/how-to-use-ultralytics-yolo11-for-object-detection).

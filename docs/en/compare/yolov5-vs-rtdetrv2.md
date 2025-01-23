@@ -44,7 +44,7 @@ This section highlights the speed performance of Ultralytics YOLOv5 and RTDETRv2
 
 Ultralytics YOLO11 offers incredible flexibility for custom applications, including fine-tuning on specialized datasets like the **Car Parts Segmentation Dataset**. This capability is especially beneficial for industries like automotive manufacturing, repair, and e-commerce, where identifying and categorizing vehicle components can optimize workflows.
 
-The Car Parts Segmentation dataset allows YOLO11 to be trained for detailed segmentation tasks. By leveraging custom training, you can improve the model’s accuracy for recognizing specific car parts, enhancing its performance in real-world applications. Learn more about using YOLO11 for segmentation tasks on [Google Colab](https://www.ultralytics.com/blog/image-segmentation-with-ultralytics-yolo11-on-google-colab).
+The Car Parts Segmentation dataset allows YOLO11 to be trained for detailed segmentation tasks. By leveraging custom training, you can improve the model's accuracy for recognizing specific car parts, enhancing its performance in real-world applications. Learn more about using YOLO11 for segmentation tasks on [Google Colab](https://www.ultralytics.com/blog/image-segmentation-with-ultralytics-yolo11-on-google-colab).
 
 ### Python Code Example for Custom Training with YOLO11:
 

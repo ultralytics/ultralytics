@@ -12,7 +12,7 @@ YOLOX emphasizes robust performance and flexibility, making it suitable for real
 
 ## mAP Comparison
 
-This section highlights the mAP values of YOLOX and YOLOv10 across their variants, showcasing their accuracy in object detection tasks. mAP, or mean Average Precision, is a comprehensive metric that evaluates a model’s precision and recall, making it essential for comparing models like YOLOX and [YOLOv10](https://docs.ultralytics.com/models/yolov10/) on benchmarks like the [COCO dataset](https://docs.ultralytics.com/datasets/detect/coco/).
+This section highlights the mAP values of YOLOX and YOLOv10 across their variants, showcasing their accuracy in object detection tasks. mAP, or mean Average Precision, is a comprehensive metric that evaluates a model's precision and recall, making it essential for comparing models like YOLOX and [YOLOv10](https://docs.ultralytics.com/models/yolov10/) on benchmarks like the [COCO dataset](https://docs.ultralytics.com/datasets/detect/coco/).
 
 !!! tip "Accuracy"
 

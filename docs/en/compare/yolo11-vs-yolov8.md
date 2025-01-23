@@ -10,7 +10,7 @@ keywords: Ultralytics, YOLO11, YOLOv8, object detection, real-time AI, edge AI, 
 
 Ultralytics YOLO11 and YOLOv8 represent significant milestones in the evolution of real-time object detection, each bringing unique advances to the field. This comparison highlights their strengths, enabling users to make informed decisions based on their specific requirements and application needs.
 
-While YOLOv8 introduced groundbreaking features like an anchor-free architecture and optimized accuracy-speed tradeoffs, YOLO11 builds upon this foundation with enhanced feature extraction and greater efficiency. Both models excel in diverse tasks, from object detection to pose estimation, ensuring versatility for a wide range of use cases. [Learn more about YOLOv8](https://docs.ultralytics.com/models/yolov8/) or [explore YOLO11’s capabilities](https://docs.ultralytics.com/models/yolo11/).
+While YOLOv8 introduced groundbreaking features like an anchor-free architecture and optimized accuracy-speed tradeoffs, YOLO11 builds upon this foundation with enhanced feature extraction and greater efficiency. Both models excel in diverse tasks, from object detection to pose estimation, ensuring versatility for a wide range of use cases. [Learn more about YOLOv8](https://docs.ultralytics.com/models/yolov8/) or [explore YOLO11's capabilities](https://docs.ultralytics.com/models/yolo11/).
 
 ## mAP Comparison
 

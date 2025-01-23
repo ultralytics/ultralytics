@@ -8,7 +8,7 @@ keywords: RTDETRv2, YOLOv9, Ultralytics, object detection, real-time AI, edge AI
 
 The comparison between RTDETRv2 and YOLOv9 highlights two significant advancements in object detection technology, each excelling in unique ways. Both models set new benchmarks in speed, accuracy, and efficiency, making them ideal for a variety of real-world applications, including real-time and resource-constrained environments.
 
-RTDETRv2 introduces refined architectural enhancements for improved inference speeds and robust performance, while YOLOv9 builds on [Ultralytics](https://www.ultralytics.com/)’ legacy with cutting-edge accuracy and efficient design. This comparison sheds light on their respective strengths, equipping researchers and developers with the knowledge to choose the best model for their specific needs. For more details on YOLOv9's evolution, refer to its [documentation](https://docs.ultralytics.com/models/).
+RTDETRv2 introduces refined architectural enhancements for improved inference speeds and robust performance, while YOLOv9 builds on [Ultralytics](https://www.ultralytics.com/)' legacy with cutting-edge accuracy and efficient design. This comparison sheds light on their respective strengths, equipping researchers and developers with the knowledge to choose the best model for their specific needs. For more details on YOLOv9's evolution, refer to its [documentation](https://docs.ultralytics.com/models/).
 
 ## mAP Comparison
 

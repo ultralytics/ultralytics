@@ -48,7 +48,7 @@ Ultralytics YOLO11 offers unparalleled flexibility for training models on a vari
 
 To get started with training your YOLO11 model, follow our [custom training guide](https://docs.ultralytics.com/modes/train/) for step-by-step instructions. The process includes loading your dataset, configuring hyperparameters, and monitoring performance metrics like loss and mAP during training.
 
-Here’s a Python snippet to begin training with YOLO11:
+Here's a Python snippet to begin training with YOLO11:
 
 ```python
 from ultralytics import YOLO

@@ -42,7 +42,7 @@ This section highlights the performance of YOLOX and Ultralytics YOLOv5 models i
 
 ## Predict Functionality in Ultralytics YOLO11
 
-The Predict functionality in Ultralytics YOLO11 enables users to perform real-time inference across a wide range of computer vision tasks. Whether you’re working on object detection, segmentation, or classification, this feature ensures efficient and precise predictions. YOLO11 offers seamless integration with pre-trained models and custom datasets, making it versatile for diverse applications like retail analytics, wildlife monitoring, and industrial inspection.
+The Predict functionality in Ultralytics YOLO11 enables users to perform real-time inference across a wide range of computer vision tasks. Whether you're working on object detection, segmentation, or classification, this feature ensures efficient and precise predictions. YOLO11 offers seamless integration with pre-trained models and custom datasets, making it versatile for diverse applications like retail analytics, wildlife monitoring, and industrial inspection.
 
 To get started with predictions, you can load the model, input your image or video, and retrieve results with bounding boxes, masks, or class labels. For more details, explore the [Ultralytics YOLO11 documentation](https://docs.ultralytics.com/models/yolo11/).
 

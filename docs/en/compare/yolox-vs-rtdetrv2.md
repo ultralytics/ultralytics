@@ -44,9 +44,9 @@ The speed comparison between YOLOX and RTDETRv2 highlights their performance eff
 
 Ultralytics YOLO11 introduces advanced object blurring capabilities, enabling users to anonymize sensitive data in images or videos by selectively blurring specific objects. This feature is highly valuable for privacy-focused applications, such as protecting identities in surveillance footage or obscuring license plates in public datasets.
 
-By leveraging YOLO11’s real-time detection and segmentation functionalities, users can easily identify and blur objects dynamically. The process is efficient and integrates seamlessly into workflows, making it ideal for industries like security, media, and compliance.
+By leveraging YOLO11's real-time detection and segmentation functionalities, users can easily identify and blur objects dynamically. The process is efficient and integrates seamlessly into workflows, making it ideal for industries like security, media, and compliance.
 
-For further insights into YOLO11’s solutions like object blurring, visit the [Ultralytics YOLO documentation](https://docs.ultralytics.com/guides/).
+For further insights into YOLO11's solutions like object blurring, visit the [Ultralytics YOLO documentation](https://docs.ultralytics.com/guides/).
 
 ### Python Code Snippet for Object Blurring
 

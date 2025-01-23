@@ -44,7 +44,7 @@ This section highlights a detailed speed analysis of YOLOv9 and Ultralytics YOLO
 
 ## Object Counting with Ultralytics YOLO11
 
-Ultralytics YOLO11 empowers users to solve advanced computer vision challenges, including **object counting**. This functionality is particularly valuable in scenarios like retail analytics, traffic monitoring, and inventory management, where accurate counting is critical. By leveraging YOLO11’s real-time detection capabilities, users can achieve precise object counts even in dynamic environments.
+Ultralytics YOLO11 empowers users to solve advanced computer vision challenges, including **object counting**. This functionality is particularly valuable in scenarios like retail analytics, traffic monitoring, and inventory management, where accurate counting is critical. By leveraging YOLO11's real-time detection capabilities, users can achieve precise object counts even in dynamic environments.
 
 With its robust performance, YOLO11 integrates seamlessly into workflows, offering support for both pre-trained and custom-trained models. By fine-tuning on specific datasets, such as COCO8 or domain-specific datasets, users can enhance the accuracy of object counting tasks. For more insights on implementing object counting, visit the [Ultralytics Documentation on Object Counting](https://docs.ultralytics.com/guides/object-counting/).
 

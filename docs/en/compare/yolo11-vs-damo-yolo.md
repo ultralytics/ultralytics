@@ -8,7 +8,7 @@ keywords: Ultralytics YOLO11, DAMO-YOLO, object detection, real-time AI, edge AI
 
 Ultralytics YOLO11 and DAMO-YOLO represent cutting-edge advancements in computer vision, each offering unique capabilities tailored for real-time applications. This comparison delves into their performance, efficiency, and adaptability, helping you choose the best model for your AI projects.
 
-Ultralytics YOLO11 is celebrated for its enhanced accuracy, speed, and flexibility, making it ideal for diverse tasks like object detection and pose estimation. On the other hand, DAMO-YOLO brings its own innovations, excelling in resource efficiency and deployment versatility. Explore their strengths to find the perfect match for your needs. Learn more about YOLO11’s key features in [Ultralytics' documentation](https://docs.ultralytics.com/models/yolo11/) and the evolution of YOLO models [here](https://www.ultralytics.com/blog/the-evolution-of-object-detection-and-ultralytics-yolo-models).
+Ultralytics YOLO11 is celebrated for its enhanced accuracy, speed, and flexibility, making it ideal for diverse tasks like object detection and pose estimation. On the other hand, DAMO-YOLO brings its own innovations, excelling in resource efficiency and deployment versatility. Explore their strengths to find the perfect match for your needs. Learn more about YOLO11's key features in [Ultralytics' documentation](https://docs.ultralytics.com/models/yolo11/) and the evolution of YOLO models [here](https://www.ultralytics.com/blog/the-evolution-of-object-detection-and-ultralytics-yolo-models).
 
 ## mAP Comparison
 

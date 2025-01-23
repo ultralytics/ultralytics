@@ -28,7 +28,7 @@ The mAP (Mean Average Precision) metric provides a comprehensive evaluation of m
 
 ## Speed Comparison
 
-This section highlights the speed performance of Ultralytics YOLOv8 and YOLOv7 across various model sizes, measured in milliseconds per image. These metrics showcase how efficiently each model performs in real-time applications, providing insights into their suitability for tasks requiring high-speed object detection. Learn more about [YOLOv8’s advancements](https://docs.ultralytics.com/models/yolov8/) and [YOLOv7’s performance](https://docs.ultralytics.com/models/yolov7/).
+This section highlights the speed performance of Ultralytics YOLOv8 and YOLOv7 across various model sizes, measured in milliseconds per image. These metrics showcase how efficiently each model performs in real-time applications, providing insights into their suitability for tasks requiring high-speed object detection. Learn more about [YOLOv8's advancements](https://docs.ultralytics.com/models/yolov8/) and [YOLOv7's performance](https://docs.ultralytics.com/models/yolov7/).
 
 !!! tip "Speed"
 

@@ -44,7 +44,7 @@ This section compares the speed performance of YOLOv9 and Ultralytics YOLOv5 acr
 
 ## Segmentation With Ultralytics YOLO11
 
-Ultralytics YOLO11 excels at segmentation tasks, enabling users to identify and isolate specific objects within an image. This functionality is particularly useful in applications like car parts segmentation, where precise object boundaries are necessary for tasks such as automotive repairs, manufacturing, or e-commerce cataloging. YOLO11’s segmentation capabilities are powered by its robust architecture, ensuring high accuracy and efficiency.
+Ultralytics YOLO11 excels at segmentation tasks, enabling users to identify and isolate specific objects within an image. This functionality is particularly useful in applications like car parts segmentation, where precise object boundaries are necessary for tasks such as automotive repairs, manufacturing, or e-commerce cataloging. YOLO11's segmentation capabilities are powered by its robust architecture, ensuring high accuracy and efficiency.
 
 Custom training on datasets like [Car Parts Segmentation](https://docs.ultralytics.com/datasets/segment/carparts-seg/) allows YOLO11 to adapt to specialized requirements, making it suitable for industries with unique use cases. The model supports pre-trained weights and fine-tuning, streamlining the training process for both general and specific segmentation tasks.
 

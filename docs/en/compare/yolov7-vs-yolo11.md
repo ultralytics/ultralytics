@@ -46,7 +46,7 @@ This section highlights the speed performance of YOLOv7 and Ultralytics YOLO11 a
 
 Ultralytics YOLO11 offers robust benchmarking tools to evaluate model performance effectively across various tasks. Benchmarking helps users assess the accuracy, speed, and efficiency of their YOLO11 models in real-world scenarios. This feature is particularly useful for comparing results across datasets or hardware setups. For instance, you can measure performance on datasets like COCO8 or custom datasets to ensure your model meets project requirements.
 
-To learn more about YOLO11’s benchmarking capabilities and how to optimize your workflow, explore the detailed [Ultralytics Documentation](https://docs.ultralytics.com/guides/yolo-performance-metrics/).
+To learn more about YOLO11's benchmarking capabilities and how to optimize your workflow, explore the detailed [Ultralytics Documentation](https://docs.ultralytics.com/guides/yolo-performance-metrics/).
 
 ### Example: Benchmarking With YOLO11
 

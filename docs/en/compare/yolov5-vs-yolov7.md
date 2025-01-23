@@ -46,7 +46,7 @@ Ultralytics YOLO11 provides advanced solutions for privacy-focused tasks like ob
 
 By leveraging YOLO11's segmentation and detection capabilities, users can isolate specific objects and apply blurring as needed. This ensures compliance with privacy regulations like GDPR while maintaining the context of images and videos.
 
-To learn more about YOLO11’s solutions, visit the [Ultralytics YOLO Guides](https://docs.ultralytics.com/guides/) for comprehensive tutorials or explore its practical applications in privacy management.
+To learn more about YOLO11's solutions, visit the [Ultralytics YOLO Guides](https://docs.ultralytics.com/guides/) for comprehensive tutorials or explore its practical applications in privacy management.
 
 ### Example Python Code
 

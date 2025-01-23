@@ -46,7 +46,7 @@ This section highlights the performance differences between Ultralytics YOLOv8 a
 
 Ultralytics YOLO11 seamlessly integrates with [OpenVINO](https://www.ultralytics.com/glossary/model-deployment) to optimize performance for real-time object detection tasks. OpenVINO, developed by Intel, allows YOLO11 models to leverage hardware acceleration, significantly improving inference speed and efficiency on Intel processors and other compatible devices. This integration is ideal for deploying YOLO11 in edge computing scenarios, such as smart city infrastructure or retail environments.
 
-OpenVINO’s latency and throughput optimization modes ensure that YOLO11 delivers precise and fast predictions, even in resource-constrained environments. By combining YOLO11’s advanced capabilities with OpenVINO’s deployment features, developers can achieve high-performance object detection with minimal latency.
+OpenVINO's latency and throughput optimization modes ensure that YOLO11 delivers precise and fast predictions, even in resource-constrained environments. By combining YOLO11's advanced capabilities with OpenVINO's deployment features, developers can achieve high-performance object detection with minimal latency.
 
 For more details on integrating YOLO11 with OpenVINO, explore the [OpenVINO Latency vs Throughput Modes Guide](https://docs.ultralytics.com/guides/).
 

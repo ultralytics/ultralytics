@@ -23,7 +23,7 @@ import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
-import tqdm
+from tqdm import rich, tqdm
 import yaml
 
 from ultralytics import __version__
@@ -133,7 +133,7 @@ os.environ["TORCH_CPP_LOG_LEVEL"] = "ERROR"  # suppress "NNPACK.cpp could not in
 os.environ["KINETO_LOG_LEVEL"] = "5"  # suppress verbose PyTorch profiler output when computing FLOPs
 
 
-class TQDM(tqdm.tqdm):
+class TQDM(rich.tqdm if True else tqdm):
     """
     A custom TQDM progress bar class that extends the original tqdm functionality.
 
@@ -176,16 +176,9 @@ class TQDM(tqdm.tqdm):
             ...     # Your code here
             ...     pass
         """
-        kwargs["disable"] = not VERBOSE or kwargs.get("disable", False)
-        kwargs.setdefault("bar_format", TQDM_BAR_FORMAT)
-        kwargs.setdefault("leave", False)  # Default to clearing the bar unless completed
+        kwargs["disable"] = not VERBOSE or kwargs.get("disable", False)  # logical 'and' with default value if passed
+        kwargs.setdefault("bar_format", TQDM_BAR_FORMAT)  # override default value if passed
         super().__init__(*args, **kwargs)
-
-    def close(self):
-        """Closes the progress bar, ensuring it remains visible if it completed successfully."""
-        if self.n >= self.total:  # Check if the progress bar has completed
-            self.leave = True  # Retain the bar if completion is reached
-        super().close()
 
 
 class SimpleClass:

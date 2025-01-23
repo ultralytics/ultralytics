@@ -71,7 +71,7 @@ def benchmark(
         device (str): Device to run the benchmark on, either 'cpu' or 'cuda'.
         verbose (bool | float): If True or a float, assert benchmarks pass with given metric.
         eps (float): Epsilon value for divide by zero prevention.
-        format (str): Export format for benchmarking.
+        format (str): Export format for benchmarking. If not supplied all formats are benchmarked.
 
     Returns:
         (pandas.DataFrame): A pandas DataFrame with benchmark results for each format, including file size, metric,

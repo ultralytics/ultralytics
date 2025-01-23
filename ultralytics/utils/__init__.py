@@ -176,9 +176,16 @@ class TQDM(tqdm.tqdm):
             ...     # Your code here
             ...     pass
         """
-        kwargs["disable"] = not VERBOSE or kwargs.get("disable", False)  # logical 'and' with default value if passed
-        kwargs.setdefault("bar_format", TQDM_BAR_FORMAT)  # override default value if passed
+        kwargs["disable"] = not VERBOSE or kwargs.get("disable", False)
+        kwargs.setdefault("bar_format", TQDM_BAR_FORMAT)
+        kwargs.setdefault("leave", False)  # Default to clearing the bar unless completed
         super().__init__(*args, **kwargs)
+
+    def close(self):
+        """Closes the progress bar, ensuring it remains visible if it completed successfully."""
+        if self.n >= self.total:  # Check if the progress bar has completed
+            self.leave = True  # Retain the bar if completion is reached
+        super().close()
 
 
 class SimpleClass:

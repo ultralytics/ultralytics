@@ -50,6 +50,10 @@ This section highlights the speed differences between PP-YOLOE+ and YOLOv7 acros
 
 Ensuring thread safety is crucial when performing inference in multi-threaded environments to avoid race conditions and inconsistent predictions. Ultralytics YOLO11 offers robust support for thread-safe inference, making it ideal for real-time applications like robotics and autonomous systems. By adhering to best practices for thread safety, you can efficiently utilize hardware resources and maintain prediction accuracy.  
 
+<<<<<<< HEAD
 For detailed guidance, check out the [YOLO Thread-Safe Inference Guide](https://docs.ultralytics.com/guides/yolo-thread-safe-inference/). This guide covers essential principles, including how to manage shared resources and implement proper locking mechanisms during inference. Additionally, it provides practical examples to ensure consistency in high-demand scenarios.  
+=======
+Object Counting is particularly beneficial when integrated with YOLO11's high-speed inference capabilities, ensuring reliable performance even in dynamic environments. Whether you're tracking foot traffic in retail stores or counting packages in warehouses, YOLO11 delivers precision and scalability. Explore more about **object counting** in the [Ultralytics YOLO Guides](https://docs.ultralytics.com/guides/object-counting/).
+>>>>>>> 95d73b193a43ffc9b65d81b5b93f6d2acf3cb195
 
 Integrating thread-safe inference with Ultralytics YOLO11 enables developers to build scalable and reliable solutions across various domains, from security systems to industrial automation. Learn more about optimizing your models for these environments by exploring Ultralytics' [comprehensive guides](https://docs.ultralytics.com/guides/).

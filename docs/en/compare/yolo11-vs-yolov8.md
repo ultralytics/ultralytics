@@ -10,6 +10,10 @@ The comparison between Ultralytics YOLO11 and YOLOv8 highlights the evolution of
 
 Ultralytics YOLOv8 introduced a robust architecture with an anchor-free design, optimized for real-time tasks. In contrast, YOLO11 builds on these strengths, offering enhanced feature extraction and reduced computational costs, making it an ideal choice for demanding scenarios. Learn more about [Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8/) and [YOLO11](https://docs.ultralytics.com/models/yolo11/) to explore their unique capabilities.
 
+<<<<<<< HEAD
+=======
+While YOLOv8 introduced groundbreaking features like an anchor-free architecture and optimized accuracy-speed tradeoffs, YOLO11 builds upon this foundation with enhanced feature extraction and greater efficiency. Both models excel in diverse tasks, from object detection to pose estimation, ensuring versatility for a wide range of use cases. [Learn more about YOLOv8](https://docs.ultralytics.com/models/yolov8/) or [explore YOLO11's capabilities](https://docs.ultralytics.com/models/yolo11/).
+>>>>>>> 95d73b193a43ffc9b65d81b5b93f6d2acf3cb195
 
 ## mAP Comparison
 

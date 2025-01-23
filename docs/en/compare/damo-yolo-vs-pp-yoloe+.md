@@ -48,7 +48,11 @@ This section highlights the speed performance of DAMO-YOLO and PP-YOLOE+ across 
 
 ## YOLO11 Functionalities: Pose Estimation
 
+<<<<<<< HEAD
 Pose estimation is one of the advanced functionalities supported by Ultralytics YOLO11. This feature enables the detection and tracking of key points on objects or individuals, making it an ideal choice for applications such as sports analysis, fitness monitoring, and medical assessments. YOLO11's pose estimation functionality provides precise and real-time predictions, ensuring seamless integration into demanding workflows.
+=======
+Training models with Ultralytics YOLO11 is designed to be straightforward and highly efficient, allowing users to fine-tune pre-trained models or train from scratch. Leveraging datasets like COCO8 or custom datasets, YOLO11 ensures optimal performance across diverse applications. With built-in tools for monitoring metrics such as accuracy and loss, you can track the progress of your training process in real-time. YOLO11's robust training pipeline is powered by PyTorch, making it adaptable for various deep learning workflows.
+>>>>>>> 95d73b193a43ffc9b65d81b5b93f6d2acf3cb195
 
 Using YOLO11's pose estimation, developers can fine-tune models for custom datasets, such as tiger pose or hand keypoints, to achieve higher accuracy in specialized use cases. This flexibility makes YOLO11 a powerful tool for diverse industries. For a detailed overview of pose estimation techniques and real-world applications, explore the [YOLO11 documentation](https://docs.ultralytics.com/models/yolo11/).
 

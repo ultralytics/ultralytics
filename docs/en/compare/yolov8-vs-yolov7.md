@@ -31,8 +31,12 @@ This section highlights the mAP values to compare the accuracy of Ultralytics YO
 
 ## Speed Comparison
 
+<<<<<<< HEAD
 This section highlights the speed metrics of Ultralytics YOLOv8 and YOLOv7 across various model sizes, measured in milliseconds. The comparison underscores YOLOv8's advancements in inference efficiency, making it ideal for real-time applications. For further details, explore the [YOLOv8 documentation](https://docs.ultralytics.com/models/yolov8/) and [YOLOv7 performance analysis](https://docs.ultralytics.com/models/yolov7/).
 
+=======
+This section highlights the speed performance of Ultralytics YOLOv8 and YOLOv7 across various model sizes, measured in milliseconds per image. These metrics showcase how efficiently each model performs in real-time applications, providing insights into their suitability for tasks requiring high-speed object detection. Learn more about [YOLOv8's advancements](https://docs.ultralytics.com/models/yolov8/) and [YOLOv7's performance](https://docs.ultralytics.com/models/yolov7/).
+>>>>>>> 95d73b193a43ffc9b65d81b5b93f6d2acf3cb195
 
 !!! tip "Speed"
 

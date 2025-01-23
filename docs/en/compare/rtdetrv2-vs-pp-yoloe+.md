@@ -48,7 +48,11 @@ This section highlights the performance differences between RTDETRv2 and PP-YOLO
 
 ## YOLO Performance Metrics
 
+<<<<<<< HEAD
 Understanding performance metrics is crucial to evaluating and fine-tuning your Ultralytics YOLO11 models effectively. Metrics such as mAP (mean Average Precision), IoU (Intersection over Union), and F1 score are key indicators of a model's accuracy and reliability in tasks like object detection and segmentation. By analyzing these metrics, you can identify areas for improvement and optimize your model's performance.
+=======
+Ultralytics YOLO11 introduces robust benchmarking functionalities, allowing users to evaluate model performance across various metrics such as speed, accuracy, and efficiency. Benchmarking is essential for determining the best model configurations for specific use cases and optimizing overall performance. YOLO11's benchmarking tools are designed to provide actionable insights that help developers fine-tune their models for real-world applications.
+>>>>>>> 95d73b193a43ffc9b65d81b5b93f6d2acf3cb195
 
 For a detailed explanation of these evaluation metrics and practical tips to enhance your model, refer to the [YOLO Performance Metrics Guide](https://docs.ultralytics.com/guides/yolo-performance-metrics/). This guide also includes examples and insights into how these metrics align with real-world applications.
 

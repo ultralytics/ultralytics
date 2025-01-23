@@ -50,6 +50,12 @@ This section highlights the speed performance of RT-DETRv2 and Ultralytics YOLOv
 
 Ultralytics YOLO11 is a groundbreaking model designed to simplify and enhance computer vision tasks. Whether you're new to YOLO models or transitioning from a previous version, this QuickStart guide will help you get up and running in no time. YOLO11 supports functionalities like training, predicting, tracking, and exporting with seamless integration across multiple platforms.
 
+<<<<<<< HEAD
 To begin, install the Ultralytics Python package via `pip install ultralytics`. Once installed, you can easily load pre-trained models or fine-tune YOLO11 on custom datasets. For step-by-step guidance, refer to the [Ultralytics QuickStart Guide](https://docs.ultralytics.com/quickstart/) that covers installation, setup, and usage in detail. 
 
 For users preferring a no-code approach, the [Ultralytics HUB](https://www.ultralytics.com/hub) provides an intuitive platform to manage models with just a few clicks. Explore these resources to unlock the full potential of YOLO11!
+=======
+Explore the [object counting guide](https://docs.ultralytics.com/guides/object-counting/) to understand how YOLO11 can be implemented in various real-world use cases. The guide provides detailed steps on configuring the model for object counting tasks and demonstrates its integration into workflows. With YOLO11's flexibility and precision, businesses can extract actionable insights from their visual data effortlessly.
+
+For more on YOLO11's applications, visit the [Ultralytics documentation](https://docs.ultralytics.com/).
+>>>>>>> 95d73b193a43ffc9b65d81b5b93f6d2acf3cb195

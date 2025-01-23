@@ -48,6 +48,27 @@ Explore how YOLOX and RTDETRv2 compare in terms of speed, measured in millisecon
 
 SAHI (Sliced Aided Hyper Inference) Tiled Inference is a powerful feature of Ultralytics YOLO11 designed to improve object detection in high-resolution images. This functionality is particularly useful for scenarios like satellite imagery, medical imaging, and wildlife monitoring, where large images need to be processed without losing detail.
 
+<<<<<<< HEAD
 By breaking down large images into smaller tiles, SAHI Tiled Inference allows YOLO11 to maintain high detection accuracy and performance. It ensures that even small objects in high-resolution images are not missed during detection. This feature is fully compatible with YOLO11's segmentation and detection capabilities, offering flexibility across various industries and applications.
 
 Learn more about [SAHI Tiled Inference](https://docs.ultralytics.com/guides/sahi-tiled-inference/) and how to integrate it into your projects for enhanced image analysis. For additional resources, explore the [Ultralytics Guides](https://docs.ultralytics.com/guides/) to maximize the potential of YOLO11 in your workflows.
+=======
+By leveraging YOLO11's real-time detection and segmentation functionalities, users can easily identify and blur objects dynamically. The process is efficient and integrates seamlessly into workflows, making it ideal for industries like security, media, and compliance.
+
+For further insights into YOLO11's solutions like object blurring, visit the [Ultralytics YOLO documentation](https://docs.ultralytics.com/guides/).
+
+### Python Code Snippet for Object Blurring
+
+```python
+from ultralytics import YOLO
+
+# Load YOLO11 model
+model = YOLO("yolo11.pt")
+
+# Perform object detection and apply blurring
+results = model.predict(source="video.mp4", save=True, blur=True)
+
+# Save the output video with blurred objects
+results.save("output_blurred.mp4")
+```
+>>>>>>> 95d73b193a43ffc9b65d81b5b93f6d2acf3cb195

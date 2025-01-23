@@ -46,7 +46,11 @@ This section highlights the performance differences between YOLOX and Ultralytic
 
 ## Tips for Model Training
 
+<<<<<<< HEAD
 Training a robust and accurate model requires careful planning and execution. When working with Ultralytics YOLO11, several strategies can help you optimize the training process for better results. Adjusting batch sizes to match your hardware capabilities can significantly improve training efficiency. Leveraging mixed precision training can also speed up computations while conserving memory.
+=======
+The Predict functionality in Ultralytics YOLO11 enables users to perform real-time inference across a wide range of computer vision tasks. Whether you're working on object detection, segmentation, or classification, this feature ensures efficient and precise predictions. YOLO11 offers seamless integration with pre-trained models and custom datasets, making it versatile for diverse applications like retail analytics, wildlife monitoring, and industrial inspection.
+>>>>>>> 95d73b193a43ffc9b65d81b5b93f6d2acf3cb195
 
 Using pre-trained weights, especially on datasets like COCO8, can provide a strong starting point and reduce training time. Additionally, incorporating data augmentation techniques such as flipping, rotation, and scaling helps improve model generalization. For hyperparameter tuning, you can explore automated optimization tools like the Tuner class for YOLO11.
 

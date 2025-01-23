@@ -50,6 +50,10 @@ This section highlights the speed performance of YOLOv7 and Ultralytics YOLO11 a
 
 Ultralytics YOLO11 introduces advanced tracking capabilities, enabling seamless real-time object movement analysis. This functionality is pivotal for applications such as surveillance, logistics, and sports analytics. By integrating YOLO11's tracking features, users can monitor objects across frames, calculate trajectories, and generate actionable insights.
 
+<<<<<<< HEAD
 The tracking feature is designed for efficiency, leveraging optimized algorithms to maintain high accuracy even in dynamic environments. For a deeper dive into YOLO11's capabilities, check out our [object detection guide](https://www.ultralytics.com/blog/how-to-use-ultralytics-yolo11-for-object-detection). Additionally, the model supports integrations with platforms like TensorFlow Lite and OpenVINO, further expanding its usability in diverse scenarios.
+=======
+To learn more about YOLO11's benchmarking capabilities and how to optimize your workflow, explore the detailed [Ultralytics Documentation](https://docs.ultralytics.com/guides/yolo-performance-metrics/).
+>>>>>>> 95d73b193a43ffc9b65d81b5b93f6d2acf3cb195
 
 Explore more about YOLO11's tracking and related functionalities in our [documentation](https://docs.ultralytics.com/). For hands-on guidance, visit the [Ultralytics HUB](https://www.ultralytics.com/hub) to experiment with tracking in a no-code environment.

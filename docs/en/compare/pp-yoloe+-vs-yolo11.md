@@ -50,4 +50,25 @@ This section highlights the speed metrics of PP-YOLOE+ and Ultralytics YOLO11 ac
 
 Ultralytics YOLO11 delivers powerful capabilities for object detection, segmentation, and more, but evaluating its performance effectively is key to optimizing your models. Metrics such as mAP (mean Average Precision), IoU (Intersection over Union), and F1 score are essential for understanding the model's accuracy and efficiency. These metrics help you assess how well your model is identifying and localizing objects in your dataset.
 
+<<<<<<< HEAD
 To dive deeper into these metrics and learn how to interpret them, refer to the [YOLO Performance Metrics Guide](https://docs.ultralytics.com/guides/yolo-performance-metrics/). This guide also provides practical examples on how to improve your model's detection accuracy and speed, ensuring you achieve the best results for your specific application. Whether you're working on real-time object detection or large-scale dataset analysis, understanding these metrics is crucial for success.
+=======
+To learn more about how to utilize YOLO11's prediction capabilities, explore the [Comprehensive Tutorials to Ultralytics YOLO](https://docs.ultralytics.com/guides/).
+
+### Example Code: Using Predict in Ultralytics YOLO11
+
+```python
+from ultralytics import YOLO
+
+# Load a pre-trained YOLO11 model
+model = YOLO("yolo11.pt")
+
+# Perform predictions on an image
+results = model.predict(source="image.jpg", save=True)
+
+# Display results
+results.show()
+```
+
+This snippet demonstrates how to quickly generate predictions and visualize the output, showcasing YOLO11's efficiency and ease of use.
+>>>>>>> 95d73b193a43ffc9b65d81b5b93f6d2acf3cb195

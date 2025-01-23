@@ -50,7 +50,11 @@ This section highlights the speed metrics in milliseconds for PP-YOLOE+ and YOLO
 
 ## YOLO11 Functionalities: Predict
 
+<<<<<<< HEAD
 The Predict functionality in Ultralytics YOLO11 enables users to perform inference on images, videos, and streams with remarkable accuracy and speed. This feature is designed for real-time applications, providing instant insights across various domains like object detection, image classification, and segmentation. With YOLO11's Predict mode, users can leverage pre-trained models or fine-tune their own for specific tasks.
+=======
+Ultralytics YOLO11 provides exceptional flexibility for fine-tuning models on specific datasets like the **Car Parts Segmentation Dataset**. This capability enables users to adapt YOLO11 to highly specialized use cases, such as identifying and categorizing individual car components. Leveraging datasets like [Roboflow's Car Parts Segmentation dataset](https://docs.ultralytics.com/datasets/segment/carparts-seg/) ensures that the model delivers precise segmentation results tailored to automotive applications.
+>>>>>>> 95d73b193a43ffc9b65d81b5b93f6d2acf3cb195
 
 To get started with Predictions using YOLO11, you can use the Ultralytics Python package. Here's an example:
 

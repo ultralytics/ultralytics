@@ -31,8 +31,12 @@ This section evaluates the mAP values of DAMO-YOLO and Ultralytics YOLOv8, showc
 
 ## Speed Comparison
 
+<<<<<<< HEAD
 This section highlights the speed performance of DAMO-YOLO and Ultralytics YOLOv8 models across different sizes, measured in milliseconds per inference. These metrics underline the efficiency of each model, providing critical insights into their suitability for real-time applications. For more details on YOLOv8's speed and accuracy, visit the [Ultralytics YOLOv8 documentation](https://docs.ultralytics.com/models/yolov8/).
 
+=======
+This section highlights the speed performance of DAMO-YOLO and Ultralytics YOLOv8 models, measured in milliseconds per image across various model sizes. These metrics showcase the efficiency and responsiveness of each model, emphasizing their suitability for real-time applications. For details on YOLOv8's performance, refer to the [Ultralytics YOLOv8 documentation](https://docs.ultralytics.com/models/yolov8/).
+>>>>>>> 95d73b193a43ffc9b65d81b5b93f6d2acf3cb195
 
 !!! tip "Speed"
 

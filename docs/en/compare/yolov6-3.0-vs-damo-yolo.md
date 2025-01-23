@@ -10,6 +10,10 @@ Comparing YOLOv6-3.0 and DAMO-YOLO provides insights into two powerful object de
 
 YOLOv6-3.0 emphasizes efficiency with its optimized architecture, making it a strong candidate for tasks requiring real-time object detection. Meanwhile, DAMO-YOLO stands out with its innovative design and robust performance in challenging scenarios, pushing the boundaries of what is achievable in the field. For more details on YOLO advancements, explore [Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8/).
 
+<<<<<<< HEAD
+=======
+YOLOv6-3.0 builds upon the YOLO family's legacy, delivering enhanced segmentation capabilities and optimized performance for diverse scenarios. On the other hand, DAMO-YOLO introduces innovative approaches to object detection through its unique architecture, emphasizing precision and scalability. Explore how these models redefine possibilities in AI by leveraging state-of-the-art advancements. Learn more about [object detection](https://www.ultralytics.com/glossary/object-detection) and related technologies to stay ahead in the field.
+>>>>>>> 95d73b193a43ffc9b65d81b5b93f6d2acf3cb195
 
 ## mAP Comparison
 

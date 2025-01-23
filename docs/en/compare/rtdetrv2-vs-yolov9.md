@@ -10,6 +10,10 @@ RTDETRv2 and YOLOv9 represent significant advancements in the field of computer 
 
 While RTDETRv2 emphasizes efficiency and real-time processing, YOLOv9 builds on the legacy of the YOLO family with enhanced accuracy and optimized training pipelines. Both models offer cutting-edge solutions suitable for diverse applications, from autonomous systems to industrial use cases. Learn more about [YOLOv9](https://docs.ultralytics.com/models/yolov8/) and [RTDETRv2](https://www.ultralytics.com/blog/ultralytics-yolo11-has-arrived-redefine-whats-possible-in-ai).
 
+<<<<<<< HEAD
+=======
+RTDETRv2 introduces refined architectural enhancements for improved inference speeds and robust performance, while YOLOv9 builds on [Ultralytics](https://www.ultralytics.com/)' legacy with cutting-edge accuracy and efficient design. This comparison sheds light on their respective strengths, equipping researchers and developers with the knowledge to choose the best model for their specific needs. For more details on YOLOv9's evolution, refer to its [documentation](https://docs.ultralytics.com/models/).
+>>>>>>> 95d73b193a43ffc9b65d81b5b93f6d2acf3cb195
 
 ## mAP Comparison
 

@@ -50,4 +50,25 @@ Model evaluation and fine-tuning are critical steps in enhancing the performance
 
 To dive deeper into strategies for improving your YOLO11 models, check out the [YOLO Performance Metrics Guide](https://docs.ultralytics.com/guides/yolo-performance-metrics/). This guide provides practical tips and examples for achieving higher accuracy and efficiency. Additionally, explore [Hyperparameter Tuning](https://docs.ultralytics.com/guides/hyperparameter-tuning/) to learn how to adjust parameters like batch size and learning rate for maximum effectiveness.  
 
+<<<<<<< HEAD
 Fine-tuning your YOLO11 model ensures it is well-suited for specific tasks, enabling better real-world applications.
+=======
+To learn more about YOLO11's solutions, visit the [Ultralytics YOLO Guides](https://docs.ultralytics.com/guides/) for comprehensive tutorials or explore its practical applications in privacy management.
+
+### Example Python Code
+
+```python
+from ultralytics import YOLO
+
+# Load YOLO11 model
+model = YOLO("yolo11-model.pt")
+
+# Perform object detection and apply blur
+results = model.predict(source="input_video.mp4", save=True, conf=0.5)
+
+# Save output with blurred objects
+results.save_blurred("output_video.mp4")
+```
+
+Explore how YOLO11 can streamline privacy tasks with its easy-to-use interface and powerful features.
+>>>>>>> 95d73b193a43ffc9b65d81b5b93f6d2acf3cb195

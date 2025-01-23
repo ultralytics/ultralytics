@@ -48,6 +48,10 @@ This section evaluates the speed metrics of RTDETRv2 and Ultralytics YOLOv5 mode
 
 Thread-safe inference is critical for ensuring consistent and reliable output when deploying models in multi-threaded environments. Ultralytics YOLO11 simplifies this process by offering robust guidelines and best practices that prevent race conditions and inconsistencies during concurrent predictions. This functionality is particularly valuable in real-time applications like surveillance or autonomous systems.
 
+<<<<<<< HEAD
 By following the [YOLO Thread-Safe Inference Guide](https://docs.ultralytics.com/guides/yolo-thread-safe-inference/), users can learn how to configure their systems for optimal thread safety. The guide includes practical examples and detailed steps to help developers leverage YOLO11’s capabilities without compromising performance or accuracy. For advanced use cases, integrating thread-safe workflows with deployment frameworks like ONNX or OpenVINO can further enhance scalability and consistency in production environments.
+=======
+YOLO11's segmentation capabilities are further enhanced through custom training. By fine-tuning on datasets such as the [Car Parts Segmentation dataset](https://docs.ultralytics.com/datasets/segment/carparts-seg/), users can achieve tailored results with increased accuracy. The model supports pre-trained weights for general tasks and fine-tuning for specific use cases, making it adaptable and versatile.
+>>>>>>> 95d73b193a43ffc9b65d81b5b93f6d2acf3cb195
 
 To explore more about optimizing YOLO11 for production, visit the [Ultralytics Guides](https://docs.ultralytics.com/guides/).

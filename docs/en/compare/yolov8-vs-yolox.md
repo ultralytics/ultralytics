@@ -50,8 +50,31 @@ This section highlights the speed performance of Ultralytics YOLOv8 and YOLOX mo
 
 Ultralytics YOLO11 allows seamless fine-tuning on various datasets, including the African Wildlife dataset, which is ideal for conservation and research projects. This dataset includes diverse images of wildlife in their natural habitats, enabling the development of robust models for tasks like species identification, population monitoring, and anti-poaching efforts.
 
+<<<<<<< HEAD
 To fine-tune Ultralytics YOLO11 on the African Wildlife dataset, users can leverage the pre-trained weights and customize the training process to their specific needs. The Ultralytics Python package simplifies this process, ensuring efficient data preparation, annotation, and training.
+=======
+YOLO11's segmentation capabilities are built on a robust framework, allowing for seamless integration of custom datasets like COCO and others. With support for both pre-trained and fine-tuned models, it offers unparalleled flexibility for tasks requiring detailed object outlines.
+>>>>>>> 95d73b193a43ffc9b65d81b5b93f6d2acf3cb195
 
 For a step-by-step guide on fine-tuning YOLO models, explore the [Custom Training Guide](https://www.ultralytics.com/blog/custom-training-ultralytics-yolo11-with-computer-vision-datasets). This guide covers everything from dataset preparation to hyperparameter optimization, helping you achieve high accuracy for your wildlife detection tasks.
 
+<<<<<<< HEAD
 Learn more about dataset options and integrations on the [Ultralytics Datasets Page](https://docs.ultralytics.com/datasets/). Start building impactful solutions for wildlife conservation today!
+=======
+### Python Code Example: YOLO11 Segmentation
+
+```python
+from ultralytics import YOLO
+
+# Load a pre-trained YOLO11 model
+model = YOLO("yolov11-seg.pt")
+
+# Perform segmentation on an image
+results = model.segment(source="path/to/image.jpg", save=True)
+
+# Save results to an output folder
+results.show()
+```
+
+Explore more about YOLO11's segmentation capabilities to redefine your project outcomes!
+>>>>>>> 95d73b193a43ffc9b65d81b5b93f6d2acf3cb195

@@ -10,6 +10,10 @@ The comparison between Ultralytics YOLO11 and YOLOv10 underscores the rapid adva
 
 While YOLOv10 set a high standard with its optimized architecture and performance, Ultralytics YOLO11 introduces enhanced feature extraction and faster processing capabilities. With higher [mean Average Precision (mAP)](https://www.ultralytics.com/blog/measuring-ai-performance-to-weigh-the-impact-of-your-innovations) and fewer parameters, YOLO11 is particularly suited for applications requiring precision and computational efficiency, such as [autonomous driving](https://www.ultralytics.com/blog/ultralytics-yolov8-for-speed-estimation-in-computer-vision-projects) and [smart retail](https://www.ultralytics.com/blog/ai-for-smarter-retail-inventory-management).
 
+<<<<<<< HEAD
+=======
+While YOLOv10 set benchmarks for speed and versatility, Ultralytics YOLO11 raises the bar with improved feature extraction and optimized training methods. This comparison highlights their unique strengths to help you choose the right model for your [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) tasks. Learn more about YOLO11's capabilities [here](https://docs.ultralytics.com/models/yolo11/).
+>>>>>>> 95d73b193a43ffc9b65d81b5b93f6d2acf3cb195
 
 ## mAP Comparison
 

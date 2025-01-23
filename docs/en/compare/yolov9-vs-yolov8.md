@@ -48,7 +48,11 @@ Compare the inference speeds of YOLOv9 and Ultralytics YOLOv8 across various mod
 
 ## Export Functionality in Ultralytics YOLO11
 
+<<<<<<< HEAD
 Ultralytics YOLO11 offers a robust export functionality, enabling seamless integration with various inference engines and formats, such as ONNX, OpenVINO, TensorFlow Lite, and more. This feature ensures that trained models can be efficiently deployed across diverse hardware platforms, including edge devices and cloud environments.
+=======
+Ultralytics YOLO11 empowers users to solve advanced computer vision challenges, including **object counting**. This functionality is particularly valuable in scenarios like retail analytics, traffic monitoring, and inventory management, where accurate counting is critical. By leveraging YOLO11's real-time detection capabilities, users can achieve precise object counts even in dynamic environments.
+>>>>>>> 95d73b193a43ffc9b65d81b5b93f6d2acf3cb195
 
 Exporting a YOLO11 model is straightforward. Using the Ultralytics Python package, you can export models with a single command. The export functionality supports optimization techniques that enhance performance and reduce latency, making it ideal for real-time applications. 
 

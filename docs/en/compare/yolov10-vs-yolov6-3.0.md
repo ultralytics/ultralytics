@@ -1,7 +1,12 @@
 ---
 comments: true
+<<<<<<< HEAD
 description: Explore the detailed comparison between YOLOv10 and YOLOv6-3.0, two leading-edge models in real-time AI and object detection. Discover how these models perform in terms of speed, accuracy, and efficiency, and learn which is better suited for your computer vision and edge AI applications.
 keywords: YOLOv10, YOLOv6-3.0, Ultralytics, object detection, real-time AI, edge AI, computer vision, model comparison
+=======
+description: Compare YOLOv10 and YOLOv6-3.0 to explore advancements in object detection, real-time AI, and edge AI. Discover how these models perform in terms of accuracy, speed, and efficiency for computer vision applications. Dive into their innovative features, such as YOLOv10's NMS-free training and YOLOv6's Anchor-Aided Training strategy, to determine the best fit for your needs.
+keywords: YOLOv10, YOLOv6-3.0, Ultralytics, object detection, real-time AI, edge AI, computer vision, model comparison, NMS-free training, Anchor-Aided Training
+>>>>>>> 95d73b193a43ffc9b65d81b5b93f6d2acf3cb195
 ---
 
 # YOLOv10 VS YOLOv6-3.0

@@ -48,7 +48,11 @@ This section highlights the speed performance of YOLOv9 and Ultralytics YOLOv5 a
 
 ## Mastering YOLO Performance Metrics
 
+<<<<<<< HEAD
 Understanding and optimizing performance metrics is crucial when working with Ultralytics YOLO11 models. Metrics such as mAP (mean Average Precision), IoU (Intersection over Union), and F1 Score evaluate the effectiveness of your model in tasks like object detection, classification, and segmentation. These metrics provide insights into how well your model is performing and help identify areas for improvement.
+=======
+Ultralytics YOLO11 excels at segmentation tasks, enabling users to identify and isolate specific objects within an image. This functionality is particularly useful in applications like car parts segmentation, where precise object boundaries are necessary for tasks such as automotive repairs, manufacturing, or e-commerce cataloging. YOLO11's segmentation capabilities are powered by its robust architecture, ensuring high accuracy and efficiency.
+>>>>>>> 95d73b193a43ffc9b65d81b5b93f6d2acf3cb195
 
 For instance, mAP is commonly used to assess detection accuracy, while IoU evaluates the overlap between predicted and actual bounding boxes. F1 Score combines precision and recall, offering a balanced performance measure. By analyzing these metrics, you can fine-tune your model's hyperparameters and enhance its accuracy and speed.
 

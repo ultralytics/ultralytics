@@ -48,6 +48,10 @@ This section highlights the latency differences between Ultralytics YOLOv5 and R
 
 When working with Ultralytics YOLO11, users often encounter common challenges, particularly during training and deployment phases. The **YOLO Common Issues** guide is an invaluable resource for troubleshooting these challenges. It provides practical solutions to frequent problems such as installation errors, mismatched configurations, and performance bottlenecks.
 
+<<<<<<< HEAD
 This guide also offers insights on debugging model training, resolving data-related errors, and optimizing system resources for smoother execution. Whether you're new to YOLO11 or an experienced user, this guide ensures you can address issues efficiently and keep your workflow uninterrupted.
+=======
+The Car Parts Segmentation dataset allows YOLO11 to be trained for detailed segmentation tasks. By leveraging custom training, you can improve the model's accuracy for recognizing specific car parts, enhancing its performance in real-world applications. Learn more about using YOLO11 for segmentation tasks on [Google Colab](https://www.ultralytics.com/blog/image-segmentation-with-ultralytics-yolo11-on-google-colab).
+>>>>>>> 95d73b193a43ffc9b65d81b5b93f6d2acf3cb195
 
 Explore the [YOLO Common Issues guide](https://docs.ultralytics.com/guides/yolo-common-issues/) for more details on overcoming these obstacles and enhancing your YOLO11 experience. For additional general tips, check out the [Ultralytics Tutorials](https://docs.ultralytics.com/guides/) for expert advice on model training and deployment.

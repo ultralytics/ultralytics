@@ -10,6 +10,10 @@ The comparison between YOLOv9 and PP-YOLOE+ brings to light two leading-edge obj
 
 YOLOv9, known for its innovative Programmable Gradient Information (PGI) and efficiency-focused architecture, delivers exceptional accuracy with reduced computational demands. On the other hand, PP-YOLOE+ emphasizes high-speed processing and adaptability, making it a strong contender for edge AI and other resource-constrained environments. To explore YOLOv9's features, visit [Ultralytics YOLOv9 Documentation](https://docs.ultralytics.com/models/yolov9/).
 
+<<<<<<< HEAD
+=======
+YOLOv9 stands out with its advanced architectural optimizations like Programmable Gradient Information, enabling greater efficiency and accuracy on datasets like [COCO](https://docs.ultralytics.com/datasets/detect/coco/). Meanwhile, PP-YOLOE+ offers robust performance with a focus on lightweight deployment, making it a strong contender for edge AI applications. For a deeper dive into YOLOv9's innovations, check out its [documentation](https://docs.ultralytics.com/models/yolov9/).
+>>>>>>> 95d73b193a43ffc9b65d81b5b93f6d2acf3cb195
 
 ## mAP Comparison
 

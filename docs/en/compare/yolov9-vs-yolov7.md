@@ -50,8 +50,14 @@ This section highlights the speed performance of YOLOv9 and YOLOv7 across variou
 
 Thread-safe inference with Ultralytics YOLO11 ensures reliable and consistent predictions when running multiple inference operations simultaneously. This feature is particularly valuable for applications requiring high concurrency, such as video analytics or large-scale real-time monitoring systems.
 
+<<<<<<< HEAD
 By implementing best practices for thread safety, YOLO11 minimizes race conditions and ensures optimal performance across threads. For example, users can configure separate instances of the model for each thread, preventing data collisions and maintaining efficiency. 
 
 To dive deeper into the importance of thread safety and learn how to implement it effectively, refer to the [YOLO Thread-Safe Inference guide](https://docs.ultralytics.com/guides/yolo-thread-safe-inference/). This guide provides step-by-step instructions and practical examples to help you achieve thread-safe inference setups.
 
 For more information on YOLO11’s capabilities, visit the [Ultralytics documentation](https://docs.ultralytics.com/).
+=======
+By leveraging YOLO11's powerful segmentation and detection capabilities, users can identify objects and selectively blur them with precision. This ensures sensitive information, such as faces or license plates, is obscured without compromising the overall image quality.
+
+To explore more about YOLO11's functionalities, visit the [Ultralytics documentation](https://docs.ultralytics.com/guides/). For a step-by-step guide on how to implement object blurring with YOLO models, see our blog on [YOLO integrations and real-world applications](https://www.ultralytics.com/blog/how-to-use-ultralytics-yolo11-for-object-detection).
+>>>>>>> 95d73b193a43ffc9b65d81b5b93f6d2acf3cb195

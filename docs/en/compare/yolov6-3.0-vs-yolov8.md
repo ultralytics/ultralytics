@@ -52,4 +52,20 @@ Thread-safe inference ensures consistent and reliable predictions when running U
 
 For a detailed guide on implementing thread-safe inference with YOLO11, see the [YOLO Thread-Safe Inference guide](https://docs.ultralytics.com/guides/yolo-thread-safe-inference/). This comprehensive resource covers essential techniques and tips to ensure your multi-threaded applications run smoothly.
 
+<<<<<<< HEAD
 For additional insights into handling inference efficiently, you may also explore [Ultralytics' documentation](https://docs.ultralytics.com/) and learn about other advanced features like exporting models to formats like ONNX or TensorRT. These integrations can complement your multi-threaded deployments, enhancing both flexibility and speed.
+=======
+Here's a Python snippet to begin training with YOLO11:
+
+```python
+from ultralytics import YOLO
+
+# Load a pre-trained YOLO11 model
+model = YOLO("yolo11.pt")
+
+# Train the model on a custom dataset
+model.train(data="path/to/dataset.yaml", epochs=50, imgsz=640)
+```
+
+Explore more about dataset preparation and training techniques in our [Ultralytics YOLO Training Documentation](https://docs.ultralytics.com/modes/train/).
+>>>>>>> 95d73b193a43ffc9b65d81b5b93f6d2acf3cb195

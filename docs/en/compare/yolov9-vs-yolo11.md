@@ -50,7 +50,11 @@ This section highlights the speed performance of YOLOv9 and Ultralytics YOLO11 m
 
 Thread-safe inference is a critical feature when deploying Ultralytics YOLO11 models in environments requiring high concurrency or multi-threaded applications. Ensuring thread safety prevents race conditions, inconsistent predictions, or potential system crashes during real-time inference tasks.
 
+<<<<<<< HEAD
 The YOLO Thread-Safe Inference guide provides a detailed walkthrough on configuring your inference pipeline, enabling YOLO11 to perform seamlessly in multi-threaded systems. By following best practices, such as isolating sessions and managing shared resources, you can optimize performance while maintaining reliability. 
+=======
+This functionality ensures that you can compare YOLO11 against other models or fine-tuned versions to make data-driven decisions. YOLO11's benchmarking tools integrate seamlessly with popular frameworks like TensorFlow Lite and ONNX, providing flexibility in deployment and testing.
+>>>>>>> 95d73b193a43ffc9b65d81b5b93f6d2acf3cb195
 
 This guide is especially useful for applications like autonomous systems, robotics, and large-scale surveillance. Learn more about thread-safe inference and best practices by visiting the [Ultralytics YOLO Thread-Safe Inference Guide](https://docs.ultralytics.com/guides/yolo-thread-safe-inference/). For additional insights on deployment strategies, explore the [Model Deployment Options](https://docs.ultralytics.com/guides/model-deployment-options/) guide. 
 

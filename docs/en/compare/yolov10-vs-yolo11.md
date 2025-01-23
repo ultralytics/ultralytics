@@ -10,6 +10,10 @@ The evolution from YOLOv10 to Ultralytics YOLO11 represents a significant leap i
 
 While YOLOv10 laid a strong foundation with its robust architecture, Ultralytics YOLO11 introduces cutting-edge improvements, such as enhanced feature extraction and optimized training pipelines. These advancements make YOLO11 a versatile and efficient solution for a wide range of [computer vision tasks](https://docs.ultralytics.com/tasks/), from object detection to pose estimation. Explore their differences as we delve into these two groundbreaking models.
 
+<<<<<<< HEAD
+=======
+While YOLOv10 set a high standard with its robust performance, Ultralytics YOLO11 pushes the boundaries further by introducing enhanced feature extraction techniques and optimized training pipelines. With faster inference times and higher mean Average Precision (mAP), YOLO11 is designed to deliver exceptional results even in resource-constrained environments, making it a game-changer for computer vision tasks. Learn more about [YOLO11's advancements](https://www.ultralytics.com/blog/ultralytics-yolo11-has-arrived-redefine-whats-possible-in-ai).
+>>>>>>> 95d73b193a43ffc9b65d81b5b93f6d2acf3cb195
 
 ## mAP Comparison
 

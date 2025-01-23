@@ -52,4 +52,23 @@ When working with Ultralytics YOLO11, even seasoned users might encounter challe
 
 For instance, if you face performance bottlenecks during training or deployment, the guide provides optimization tips and troubleshooting steps. Additionally, it helps users understand error messages and offers actionable insights.
 
+<<<<<<< HEAD
 Explore the [YOLO Common Issues Guide](https://docs.ultralytics.com/guides/yolo-common-issues/) for more details and ensure a smoother experience when using YOLO11. For further insights into performance optimization, you can also check the [YOLO Performance Metrics Guide](https://docs.ultralytics.com/guides/yolo-performance-metrics/) to understand and improve model evaluation.
+=======
+Here's an example of how you can benchmark a YOLO11 model using Python:
+
+```python
+from ultralytics import YOLO
+
+# Load a YOLO11 model
+model = YOLO("yolo11.pt")
+
+# Benchmark the model
+results = model.benchmark(data="coco.yaml", imgsz=640, batch=16)
+
+# Display results
+print(results)
+```
+
+This ensures you get actionable insights to fine-tune your model effectively.
+>>>>>>> 95d73b193a43ffc9b65d81b5b93f6d2acf3cb195

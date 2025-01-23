@@ -50,6 +50,10 @@ This section highlights the speed metrics of YOLOv9 and DAMO-YOLO models across 
 
 Hyperparameter tuning is a crucial step in maximizing the performance of Ultralytics YOLO11 models. It involves adjusting parameters like learning rate, batch size, and momentum to enhance model accuracy and efficiency. YOLO11 simplifies this process by offering built-in tools such as the Tuner class, which uses advanced algorithms like genetic evolution to optimize hyperparameters effectively.
 
+<<<<<<< HEAD
 For those looking to dive deeper, the [Hyperparameter Tuning Guide](https://docs.ultralytics.com/guides/hyperparameter-tuning/) provides step-by-step instructions and best practices. This guide also highlights how to analyze the impact of each hyperparameter on your model's performance, helping you make data-driven decisions.
+=======
+To explore more about YOLO11's benchmarking capabilities, visit the [Ultralytics Documentation](https://docs.ultralytics.com/guides/).
+>>>>>>> 95d73b193a43ffc9b65d81b5b93f6d2acf3cb195
 
 By leveraging hyperparameter tuning, you can fine-tune YOLO11 for diverse datasets, including COCO8, African wildlife, and more, ensuring superior results in object detection, segmentation, or classification tasks. Explore the guide and unlock the full potential of YOLO11 for your project!

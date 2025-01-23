@@ -48,7 +48,11 @@ This section highlights the speed performance of Ultralytics YOLOv5 and YOLOv9 a
 
 ## Understanding YOLO11's Predict Functionality
 
+<<<<<<< HEAD
 The predict functionality in Ultralytics YOLO11 allows users to efficiently perform inference on images, videos, or streams. Leveraging its state-of-the-art architecture, YOLO11 ensures exceptional accuracy and speed for real-time object detection tasks. This feature is highly versatile, supporting tasks like object detection, segmentation, pose estimation, and object tracking.
+=======
+Ultralytics YOLO11 simplifies the training process, allowing users to fine-tune models for various tasks using custom datasets. With its robust framework, YOLO11 supports diverse datasets like COCO8, African wildlife, and signature detection, enabling high adaptability for unique use cases. The model's efficient architecture ensures faster convergence and improved accuracy during training.
+>>>>>>> 95d73b193a43ffc9b65d81b5b93f6d2acf3cb195
 
 To get started with the predict functionality, you can utilize the Ultralytics Python package. Here's an example:
 

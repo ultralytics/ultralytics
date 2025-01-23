@@ -482,7 +482,7 @@ class AutoBackend(nn.Module):
                 w = next(w.rglob("*.rknn"))  # get *.rknn file from *_rknn_model dir
             rknn_model = RKNNLite()
             rknn_model.load_rknn(w)
-            ret = rknn_model.init_runtime()
+            rknn_model.init_runtime()
             metadata = Path(w).parent / "metadata.yaml"
 
         # Any other format (unsupported)

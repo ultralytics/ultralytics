@@ -105,7 +105,8 @@ def main():
             # mAP Comparison Table
             f.write("## mAP Comparison\n\n")
             f.write(
-                f"| **Variant** | <center><span style='width: 400px;'>**mAP<sup>val<br>50**<br>**{model1}**</span></center> | <center><span style='width: 400px;'>**mAP<sup>val<br>50**<br>**{model2}**</span></center> |\n")
+                f"| **Variant** | <center><span style='width: 400px;'>**mAP<sup>val<br>50**<br>**{model1}**</span></center> | <center><span style='width: 400px;'>**mAP<sup>val<br>50**<br>**{model2}**</span></center> |\n"
+            )
             f.write("|----|----------------------------------|------------------------------------|\n")
 
             variants = set(data[model1].keys()).union(set(data[model2].keys()))  # Add rows for mAP comparison
@@ -118,7 +119,8 @@ def main():
             # Speed Comparison Table
             f.write("\n## Speed Comparison\n\n")
             f.write(
-                f"| **Variant** | <center><span style='width: 200px;'>**Speed**<br><sup>T4 TensorRT10<br>(ms)</sup><br>**{model1}**</span></center> | <center><span style='width: 200px;'>**Speed**<br><sup>T4 TensorRT10<br>(ms)</sup><br>**{model2}**</span></center> |\n")
+                f"| **Variant** | <center><span style='width: 200px;'>**Speed**<br><sup>T4 TensorRT10<br>(ms)</sup><br>**{model1}**</span></center> | <center><span style='width: 200px;'>**Speed**<br><sup>T4 TensorRT10<br>(ms)</sup><br>**{model2}**</span></center> |\n"
+            )
             f.write("|---------|-----------------------|-----------------------|\n")
 
             for variant in sorted(variants, key=lambda v: variant_order.index(v)):  # Add rows for speed comparison

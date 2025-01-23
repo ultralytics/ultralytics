@@ -134,7 +134,7 @@ os.environ["TORCH_CPP_LOG_LEVEL"] = "ERROR"  # suppress "NNPACK.cpp could not in
 os.environ["KINETO_LOG_LEVEL"] = "5"  # suppress verbose PyTorch profiler output when computing FLOPs
 
 
-class TQDM(rich.tqdm if True else tqdm):
+class TQDM(rich.tqdm if os.getenv("YOLO_TQDM_VERBOSE", False) else tqdm):
     """
     A custom TQDM progress bar class that extends the original tqdm functionality.
 

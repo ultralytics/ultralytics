@@ -32,7 +32,7 @@ def on_predict_start(predictor: object, persist: bool = False) -> None:
         >>> on_predict_start(predictor, persist=True)
     """
     if predictor.args.task == "classify":
-        raise ValueError(f"❌ Classification doesn't support 'mode=track'")
+        raise ValueError("❌ Classification doesn't support 'mode=track'")
 
     if hasattr(predictor, "trackers") and persist:
         return

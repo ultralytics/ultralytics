@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """Convolution modules."""
 
 import math
@@ -336,7 +336,7 @@ class Concat(nn.Module):
 class Index(nn.Module):
     """Returns a particular index of the input."""
 
-    def __init__(self, c1, c2, index=0):
+    def __init__(self, index=0):
         """Returns a particular index of the input."""
         super().__init__()
         self.index = index

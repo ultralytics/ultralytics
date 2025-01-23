@@ -1,0 +1,23 @@
+---
+---
+# YOLOv6-3.0 VS YOLOv8
+
+## mAP Comparison
+
+| **Variant** | <center><span style='width: 400px;'>**mAP<sup>val<br>50**<br>**YOLOv6-3.0**</span></center> | <center><span style='width: 400px;'>**mAP<sup>val<br>50**<br>**YOLOv8**</span></center> |
+|----|----------------------------------|------------------------------------|
+| n | 37.5 | 37.3 |
+| s | 45.0 | 44.9 |
+| m | 50.0 | 50.2 |
+| l | 52.8 | 52.9 |
+| x | N/A | 53.9 |
+
+## Speed Comparison
+
+| **Variant** | <center><span style='width: 200px;'>**Speed**<br><sup>T4 TensorRT10<br>(ms)</sup><br>**YOLOv6-3.0**</span></center> | <center><span style='width: 200px;'>**Speed**<br><sup>T4 TensorRT10<br>(ms)</sup><br>**YOLOv8**</span></center> |
+|---------|-----------------------|-----------------------|
+| n | 1.17 | 1.47 |
+| s | 2.66 | 2.66 |
+| m | 5.28 | 5.86 |
+| l | 8.95 | 9.06 |
+| x | N/A | 14.37 |

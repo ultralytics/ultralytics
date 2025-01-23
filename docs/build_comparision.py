@@ -85,7 +85,7 @@ def main():
     The comparisons include metrics such as mAP (mean Average Precision) and inference speed for different variants of
     the models.
     """
-    DOCS_DIR = os.path.join(os.getcwd(), "docs/en/comparisons")  # Model's comparison directory of the docs
+    DOCS_DIR = os.path.join(os.getcwd(), "docs/en/compare")  # Model's comparison directory of the docs
     os.makedirs(DOCS_DIR, exist_ok=True)  # Ensure the directory exists
 
     model_pairs = list(permutations(data.keys(), 2))  # Generate all combinations of models
@@ -104,9 +104,9 @@ def main():
 
             # mAP Comparison Table
             f.write("## mAP Comparison\n\n")
-
-            f.write(f"| Variant | mAP (%) - {model1} | mAP (%) - {model2} |\n")
-            f.write("|---------|--------------------|--------------------|\n")
+            f.write(
+                f"| **Variant** | <center><span style='width: 400px;'>**mAP<sup>val<br>50**<br>**{model1}**</span></center> | <center><span style='width: 400px;'>**mAP<sup>val<br>50**<br>**{model2}**</span></center> |\n")
+            f.write("|----|----------------------------------|------------------------------------|\n")
 
             variants = set(data[model1].keys()).union(set(data[model2].keys()))  # Add rows for mAP comparison
 
@@ -117,7 +117,8 @@ def main():
 
             # Speed Comparison Table
             f.write("\n## Speed Comparison\n\n")
-            f.write(f"| Variant | Speed (ms) - {model1} | Speed (ms) - {model2} |\n")
+            f.write(
+                f"| **Variant** | <center><span style='width: 200px;'>**Speed**<br><sup>T4 TensorRT10<br>(ms)</sup><br>**{model1}**</span></center> | <center><span style='width: 200px;'>**Speed**<br><sup>T4 TensorRT10<br>(ms)</sup><br>**{model2}**</span></center> |\n")
             f.write("|---------|-----------------------|-----------------------|\n")
 
             for variant in sorted(variants, key=lambda v: variant_order.index(v)):  # Add rows for speed comparison

@@ -1,0 +1,23 @@
+---
+---
+# RTDETRv2 VS YOLOv8
+
+## mAP Comparison
+
+| **Variant** | <center><span style='width: 400px;'>**mAP<sup>val<br>50**<br>**RTDETRv2**</span></center> | <center><span style='width: 400px;'>**mAP<sup>val<br>50**<br>**YOLOv8**</span></center> |
+|----|----------------------------------|------------------------------------|
+| n | N/A | 37.3 |
+| s | 48.1 | 44.9 |
+| m | 51.9 | 50.2 |
+| l | 53.4 | 52.9 |
+| x | 54.3 | 53.9 |
+
+## Speed Comparison
+
+| **Variant** | <center><span style='width: 200px;'>**Speed**<br><sup>T4 TensorRT10<br>(ms)</sup><br>**RTDETRv2**</span></center> | <center><span style='width: 200px;'>**Speed**<br><sup>T4 TensorRT10<br>(ms)</sup><br>**YOLOv8**</span></center> |
+|---------|-----------------------|-----------------------|
+| n | N/A | 1.47 |
+| s | 5.03 | 2.66 |
+| m | 7.51 | 5.86 |
+| l | 9.76 | 9.06 |
+| x | 15.03 | 14.37 |

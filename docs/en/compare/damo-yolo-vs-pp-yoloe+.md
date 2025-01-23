@@ -1,0 +1,23 @@
+---
+---
+# DAMO-YOLO VS PP-YOLOE+
+
+## mAP Comparison
+
+| **Variant** | <center><span style='width: 400px;'>**mAP<sup>val<br>50**<br>**DAMO-YOLO**</span></center> | <center><span style='width: 400px;'>**mAP<sup>val<br>50**<br>**PP-YOLOE+**</span></center> |
+|----|----------------------------------|------------------------------------|
+| n | 42.0 | 39.9 |
+| s | 46.0 | 43.7 |
+| m | 49.2 | 49.8 |
+| l | 50.8 | 52.9 |
+| x | N/A | 54.7 |
+
+## Speed Comparison
+
+| **Variant** | <center><span style='width: 200px;'>**Speed**<br><sup>T4 TensorRT10<br>(ms)</sup><br>**DAMO-YOLO**</span></center> | <center><span style='width: 200px;'>**Speed**<br><sup>T4 TensorRT10<br>(ms)</sup><br>**PP-YOLOE+**</span></center> |
+|---------|-----------------------|-----------------------|
+| n | 2.32 | 2.84 |
+| s | 3.45 | 2.62 |
+| m | 5.09 | 5.56 |
+| l | 7.18 | 8.36 |
+| x | N/A | 14.3 |

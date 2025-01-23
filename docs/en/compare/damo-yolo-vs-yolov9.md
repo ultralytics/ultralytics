@@ -1,0 +1,23 @@
+---
+---
+# DAMO-YOLO VS YOLOv9
+
+## mAP Comparison
+
+| **Variant** | <center><span style='width: 400px;'>**mAP<sup>val<br>50**<br>**DAMO-YOLO**</span></center> | <center><span style='width: 400px;'>**mAP<sup>val<br>50**<br>**YOLOv9**</span></center> |
+|----|----------------------------------|------------------------------------|
+| n | 42.0 | 37.8 |
+| s | 46.0 | 46.5 |
+| m | 49.2 | 51.5 |
+| l | 50.8 | 52.8 |
+| x | N/A | 55.1 |
+
+## Speed Comparison
+
+| **Variant** | <center><span style='width: 200px;'>**Speed**<br><sup>T4 TensorRT10<br>(ms)</sup><br>**DAMO-YOLO**</span></center> | <center><span style='width: 200px;'>**Speed**<br><sup>T4 TensorRT10<br>(ms)</sup><br>**YOLOv9**</span></center> |
+|---------|-----------------------|-----------------------|
+| n | 2.32 | 2.3 |
+| s | 3.45 | 3.54 |
+| m | 5.09 | 6.43 |
+| l | 7.18 | 7.16 |
+| x | N/A | 16.77 |

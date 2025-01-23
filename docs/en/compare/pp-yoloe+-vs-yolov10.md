@@ -1,0 +1,25 @@
+---
+---
+# PP-YOLOE+ VS YOLOv10
+
+## mAP Comparison
+
+| **Variant** | <center><span style='width: 400px;'>**mAP<sup>val<br>50**<br>**PP-YOLOE+**</span></center> | <center><span style='width: 400px;'>**mAP<sup>val<br>50**<br>**YOLOv10**</span></center> |
+|----|----------------------------------|------------------------------------|
+| n | 39.9 | 39.5 |
+| s | 43.7 | 46.7 |
+| m | 49.8 | 51.3 |
+| b | N/A | 52.7 |
+| l | 52.9 | 53.3 |
+| x | 54.7 | 54.4 |
+
+## Speed Comparison
+
+| **Variant** | <center><span style='width: 200px;'>**Speed**<br><sup>T4 TensorRT10<br>(ms)</sup><br>**PP-YOLOE+**</span></center> | <center><span style='width: 200px;'>**Speed**<br><sup>T4 TensorRT10<br>(ms)</sup><br>**YOLOv10**</span></center> |
+|---------|-----------------------|-----------------------|
+| n | 2.84 | 1.56 |
+| s | 2.62 | 2.66 |
+| m | 5.56 | 5.48 |
+| b | N/A | 6.54 |
+| l | 8.36 | 8.33 |
+| x | 14.3 | 12.2 |

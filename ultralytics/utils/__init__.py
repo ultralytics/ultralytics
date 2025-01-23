@@ -13,6 +13,7 @@ import sys
 import threading
 import time
 import uuid
+import warnings
 from pathlib import Path
 from threading import Lock
 from types import SimpleNamespace
@@ -24,7 +25,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 import yaml
-from tqdm import rich, tqdm
+from tqdm import rich, tqdm, TqdmExperimentalWarning
 
 from ultralytics import __version__
 
@@ -176,6 +177,9 @@ class TQDM(rich.tqdm if True else tqdm):
             ...     # Your code here
             ...     pass
         """
+        warnings.filterwarnings(
+            "ignore", category=TqdmExperimentalWarning
+        )  # suppress CoreML np.bool deprecation warning
         kwargs["disable"] = not VERBOSE or kwargs.get("disable", False)  # logical 'and' with default value if passed
         kwargs.setdefault("bar_format", TQDM_BAR_FORMAT)  # override default value if passed
         super().__init__(*args, **kwargs)

@@ -212,7 +212,7 @@ Run the following script to delete the current contents of config.yaml and repla
     === "Python"
 
         ```python
-        # Contents of new confg.yaml file
+        # Contents of new config.yaml file
         def update_yaml_file(file_path):
             data = {
                 "path": "work_dir/trash_ICRA19/dataset",

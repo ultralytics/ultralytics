@@ -12,7 +12,7 @@ DAMO-YOLO is known for its efficiency and lightweight design, making it highly s
 
 ## mAP Comparison
 
-The mAP (Mean Average Precision) metric serves as a critical indicator of the accuracy of object detection models like DAMO-YOLO and YOLOX. By evaluating precision and recall across multiple classes and thresholds, mAP provides a comprehensive measure of each model’s performance. Learn more about [mAP evaluation](https://www.ultralytics.com/glossary/mean-average-precision-map) and its significance in object detection tasks.
+The mAP (Mean Average Precision) metric serves as a critical indicator of the accuracy of object detection models like DAMO-YOLO and YOLOX. By evaluating precision and recall across multiple classes and thresholds, mAP provides a comprehensive measure of each model's performance. Learn more about [mAP evaluation](https://www.ultralytics.com/glossary/mean-average-precision-map) and its significance in object detection tasks.
 
 | Variant | mAP (%) - DAMO-YOLO | mAP (%) - YOLOX |
 | ------- | ------------------- | --------------- |

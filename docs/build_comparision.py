@@ -77,6 +77,18 @@ data = {
     },
 }
 
+# Define model mappings
+model_mappings = {
+    "YOLOV5": "Ultralytics YOLOv5",
+    "YOLOV6-3.0": "YOLOv6-3.0",
+    "YOLOV7": "YOLOv7",
+    "YOLOV8": "Ultralytics YOLOv8",
+    "YOLOV9": "YOLOv9",
+    "YOLOV10": "YOLOv10",
+    "YOLO11": "Ultralytics YOLO11",
+    "RTDETRV2": "RTDETRv2",
+}
+
 
 def main():
     """
@@ -100,33 +112,39 @@ def main():
             f.write("---\n")
             f.write("---\n")
 
-            f.write(f"# {model1} VS {model2}\n\n")  # Page Title
+            temp, temp2 = None, None
+            if model1 in {"YOLO11", "YOLOv8", "YOLOv5"}:
+                temp=f"Ultralytics {model1}"
+            if model2 in {"YOLO11", "YOLOv8", "YOLOv5"}:
+                temp2=f"Ultralytics {model2}"
+
+            f.write(f"# {model1 if temp is None else temp} VS {model2 if temp2 is None else temp2}\n\n")  # Page Title
 
             # mAP Comparison Table
-            f.write("## mAP Comparison\n\n")
-            f.write(
-                f"| **Variant** | <center><span style='width: 400px;'>**mAP<sup>val<br>50**<br>**{model1}**</span></center> | <center><span style='width: 400px;'>**mAP<sup>val<br>50**<br>**{model2}**</span></center> |\n"
-            )
-            f.write("|----|----------------------------------|------------------------------------|\n")
+            f.write('## mAP Comparison\n\n')
+            f.write('!!! tip "Accuracy"')
+            f.write('\n\n\t=== "Detection (COCO)"\n\n\t\t')
+            f.write(f"| Variant | mAP<sup>val<br>50<br>{model1} | mAP<sup>val<br>50<br>{model2} |\n\t\t")
+            f.write("|---------------------|-------------------------------------------------------|-------------------------------------------------------|\n\t\t")
 
             variants = set(data[model1].keys()).union(set(data[model2].keys()))  # Add rows for mAP comparison
 
             for variant in sorted(variants, key=lambda v: variant_order.index(v)):
                 m1_map = data[model1][variant]["mAP"] if variant in data[model1] else "N/A"
                 m2_map = data[model2][variant]["mAP"] if variant in data[model2] else "N/A"
-                f.write(f"| {variant} | {m1_map} | {m2_map} |\n")
+                f.write(f"| {variant} | {m1_map} | {m2_map} |\n\t\t")
 
             # Speed Comparison Table
             f.write("\n## Speed Comparison\n\n")
-            f.write(
-                f"| **Variant** | <center><span style='width: 200px;'>**Speed**<br><sup>T4 TensorRT10<br>(ms)</sup><br>**{model1}**</span></center> | <center><span style='width: 200px;'>**Speed**<br><sup>T4 TensorRT10<br>(ms)</sup><br>**{model2}**</span></center> |\n"
-            )
-            f.write("|---------|-----------------------|-----------------------|\n")
+            f.write('!!! tip "Speed"')
+            f.write('\n\n\t=== "Detection (COCO)"\n\n\t\t')
+            f.write(f"| Variant | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>{model1} | Speed<br><sup>T4 TensorRT10<br>(ms)</sup><br>{model2} |\n\t\t")
+            f.write("|---------------------|-------------------------------------------------------|-------------------------------------------------------|\n\t\t")
 
             for variant in sorted(variants, key=lambda v: variant_order.index(v)):  # Add rows for speed comparison
                 m1_speed = data[model1][variant]["speed"] if variant in data[model1] else "N/A"
                 m2_speed = data[model2][variant]["speed"] if variant in data[model2] else "N/A"
-                f.write(f"| {variant} | {m1_speed} | {m2_speed} |\n")
+                f.write(f"| {variant} | {m1_speed} | {m2_speed} |\n\t\t")
 
 
 if __name__ == "__main__":

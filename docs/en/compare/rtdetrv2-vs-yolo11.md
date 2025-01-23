@@ -48,4 +48,4 @@ Ultralytics YOLO11 offers robust benchmarking functionality, enabling users to e
 
 For beginners and experts alike, leveraging YOLO11's benchmarking capabilities is straightforward. Users can utilize the [Ultralytics Python package](https://pypi.org/project/ultralytics/) to test model accuracy or compare performance across datasets like COCO8 or custom datasets. This feature is particularly beneficial for fine-tuning models to meet specific project requirements.
 
-To learn more about performance metrics and their applications, refer to the detailed [YOLO Performance Metrics Guide](https://docs.ultralytics.com/guides/yolo-performance-metrics/). This guide provides practical examples to help you maximize YOLO11’s benchmarking capabilities.
+To learn more about performance metrics and their applications, refer to the detailed [YOLO Performance Metrics Guide](https://docs.ultralytics.com/guides/yolo-performance-metrics/). This guide provides practical examples to help you maximize YOLO11's benchmarking capabilities.

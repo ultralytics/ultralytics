@@ -51,7 +51,7 @@ By implementing best practices for thread safety, YOLO11 minimizes race conditio
 
 To dive deeper into the importance of thread safety and learn how to implement it effectively, refer to the [YOLO Thread-Safe Inference guide](https://docs.ultralytics.com/guides/yolo-thread-safe-inference/). This guide provides step-by-step instructions and practical examples to help you achieve thread-safe inference setups.
 
-# For more information on YOLO11’s capabilities, visit the [Ultralytics documentation](https://docs.ultralytics.com/).
+# For more information on YOLO11's capabilities, visit the [Ultralytics documentation](https://docs.ultralytics.com/).
 
 By leveraging YOLO11's powerful segmentation and detection capabilities, users can identify objects and selectively blur them with precision. This ensures sensitive information, such as faces or license plates, is obscured without compromising the overall image quality.
 

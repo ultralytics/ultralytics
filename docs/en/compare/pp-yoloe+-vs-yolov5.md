@@ -49,7 +49,7 @@ Ensuring thread-safe inference is crucial for maintaining consistency and reliab
 For comprehensive guidance on performing thread-safe inference with YOLO models, explore the [YOLO Thread-Safe Inference Guide](https://docs.ultralytics.com/guides/yolo-thread-safe-inference/). This guide covers best practices, including synchronizing data access, managing GPU/CPU resource allocation, and leveraging Python threading libraries.
 
 <<<<<<< HEAD
-Additionally, integrating YOLO11 with platforms like [Ultralytics HUB](https://www.ultralytics.com/hub) simplifies deployment while maintaining high performance in thread-safe environments. Whether you’re working on real-time object detection or large-scale deployments, adopting these practices will enhance your system’s stability and accuracy.
+Additionally, integrating YOLO11 with platforms like [Ultralytics HUB](https://www.ultralytics.com/hub) simplifies deployment while maintaining high performance in thread-safe environments. Whether you're working on real-time object detection or large-scale deployments, adopting these practices will enhance your system's stability and accuracy.
 =======
 
 ### Python Example

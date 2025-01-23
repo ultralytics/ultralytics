@@ -48,7 +48,7 @@ Hyperparameter tuning is a critical step in optimizing the performance of Ultral
 
 For YOLO11, tools like the Tuner class and genetic evolution algorithms make this process intuitive and effective. These methods automate the search for optimal hyperparameters, saving time and effort while ensuring robust results. For detailed guidance on hyperparameter tuning, refer to the [Ultralytics Hyperparameter Tuning Guide](https://docs.ultralytics.com/guides/hyperparameter-tuning/).
 
-Here’s a Python snippet to help you get started:
+Here's a Python snippet to help you get started:
 
 ```python
 from ultralytics import YOLO

@@ -46,7 +46,7 @@ The Speed Comparison highlights the performance differences between DAMO-YOLO an
 
 ## YOLO11 Functionalities: Predict
 
-The Predict functionality in Ultralytics YOLO11 empowers users to make accurate inferences on new images, videos, or datasets with minimal effort. Designed with simplicity and efficiency, YOLO11’s prediction capabilities support a wide range of applications, including object detection, segmentation, pose estimation, and classification. Whether you're working on real-time video feeds or static imagery, YOLO11 ensures high-speed and reliable outputs.
+The Predict functionality in Ultralytics YOLO11 empowers users to make accurate inferences on new images, videos, or datasets with minimal effort. Designed with simplicity and efficiency, YOLO11's prediction capabilities support a wide range of applications, including object detection, segmentation, pose estimation, and classification. Whether you're working on real-time video feeds or static imagery, YOLO11 ensures high-speed and reliable outputs.
 
 With its seamless integration in the Ultralytics Python package, users can quickly implement predictions using a few lines of code. For more details and best practices, explore the [YOLO11 Predict Guide](https://docs.ultralytics.com/modes/predict/).
 

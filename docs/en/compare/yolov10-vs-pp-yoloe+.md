@@ -8,7 +8,7 @@ keywords: YOLOv10, PP-YOLOE+, Ultralytics, object detection, real-time AI, edge 
 
 In the rapidly evolving field of computer vision, comparing state-of-the-art models like YOLOv10 and PP-YOLOE+ provides critical insights for researchers and developers. Both models bring unique innovations to real-time object detection, balancing accuracy, speed, and computational efficiency.
 
-YOLOv10 stands out with its NMS-free training and holistic design, optimizing accuracy and latency for diverse tasks. Meanwhile, PP-YOLOE+ leverages PaddlePaddle’s ecosystem to deliver exceptional performance, especially in scenarios requiring high precision. Learn more about YOLOv10's [architecture](https://docs.ultralytics.com/models/yolov10/) and the [key advancements](https://www.ultralytics.com/blog/ultralytics-yolo11-has-arrived-redefine-whats-possible-in-ai) driving modern models.
+YOLOv10 stands out with its NMS-free training and holistic design, optimizing accuracy and latency for diverse tasks. Meanwhile, PP-YOLOE+ leverages PaddlePaddle's ecosystem to deliver exceptional performance, especially in scenarios requiring high precision. Learn more about YOLOv10's [architecture](https://docs.ultralytics.com/models/yolov10/) and the [key advancements](https://www.ultralytics.com/blog/ultralytics-yolo11-has-arrived-redefine-whats-possible-in-ai) driving modern models.
 
 ## mAP Comparison
 

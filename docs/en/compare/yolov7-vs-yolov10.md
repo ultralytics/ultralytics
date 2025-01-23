@@ -52,4 +52,4 @@ Ultralytics YOLO11's segmentation functionality enables precise identification o
 
 For a deep dive into segmentation use cases and implementation, you can explore the [Ultralytics YOLO Guides](https://docs.ultralytics.com/guides/). Additionally, YOLO11 supports integration with tools like SAHI for tiled inference, which enhances segmentation for high-resolution images. Learn more about this in the [SAHI Tiled Inference Guide](https://docs.ultralytics.com/guides/sahi-tiled-inference/).
 
-Whether you're working on tasks like package segmentation or crack detection, YOLO11’s segmentation tools offer unparalleled precision, making it a key feature for modern AI-driven solutions.
+Whether you're working on tasks like package segmentation or crack detection, YOLO11's segmentation tools offer unparalleled precision, making it a key feature for modern AI-driven solutions.

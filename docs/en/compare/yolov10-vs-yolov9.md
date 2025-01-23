@@ -29,7 +29,7 @@ This section highlights the mean Average Precision (mAP) values of YOLOv10 and Y
 
 ## Speed Comparison
 
-This section highlights the speed metrics of YOLOv10 and YOLOv9 across various model sizes, measured in milliseconds. It demonstrates how advancements in YOLOv10 optimize performance for lower latency, making it a superior choice for real-time applications. Explore more about YOLOv10’s improvements in the [official documentation](https://docs.ultralytics.com/models/yolov10/).
+This section highlights the speed metrics of YOLOv10 and YOLOv9 across various model sizes, measured in milliseconds. It demonstrates how advancements in YOLOv10 optimize performance for lower latency, making it a superior choice for real-time applications. Explore more about YOLOv10's improvements in the [official documentation](https://docs.ultralytics.com/models/yolov10/).
 
 !!! tip "Speed"
 

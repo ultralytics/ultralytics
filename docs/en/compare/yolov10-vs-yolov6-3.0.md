@@ -55,4 +55,4 @@ Thread-safe inference is a critical aspect of deploying machine learning models,
 
 To learn more about how to implement thread-safe inference with YOLO11, check out the [YOLO Thread-Safe Inference guide](https://docs.ultralytics.com/guides/yolo-thread-safe-inference/). This guide provides best practices and practical steps to make your deployments more efficient and secure.
 
-Leverage YOLO11's thread-safe features to optimize your workflows and enhance the consistency of your model's outputs in multi-threaded environments. For more information on YOLO11’s deployment capabilities, visit the [Model Deployment Options page](https://docs.ultralytics.com/guides/model-deployment-options/).
+Leverage YOLO11's thread-safe features to optimize your workflows and enhance the consistency of your model's outputs in multi-threaded environments. For more information on YOLO11's deployment capabilities, visit the [Model Deployment Options page](https://docs.ultralytics.com/guides/model-deployment-options/).

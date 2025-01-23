@@ -48,6 +48,6 @@ This section highlights the speed metrics in milliseconds for Ultralytics YOLOv5
 
 Object cropping is a powerful feature of Ultralytics YOLO11 that allows users to isolate and extract objects from images or video frames. This functionality is especially useful in applications such as retail analytics, automated quality control, and surveillance, where cropped images of detected objects can be further analyzed or stored for record-keeping.
 
-Using YOLO11’s object cropping feature, users can easily automate the process of detecting and saving object-specific regions, reducing manual effort and increasing efficiency. To leverage this feature, you can integrate it with the [Ultralytics Python package](https://pypi.org/project/ultralytics/) or use the intuitive [Ultralytics HUB](https://www.ultralytics.com/hub) platform for a no-code approach.
+Using YOLO11's object cropping feature, users can easily automate the process of detecting and saving object-specific regions, reducing manual effort and increasing efficiency. To leverage this feature, you can integrate it with the [Ultralytics Python package](https://pypi.org/project/ultralytics/) or use the intuitive [Ultralytics HUB](https://www.ultralytics.com/hub) platform for a no-code approach.
 
 Learn more about object cropping and other solutions by exploring our [comprehensive guides](https://docs.ultralytics.com/guides/). Whether for real-time or batch processing, YOLO11 simplifies tasks with its cutting-edge capabilities.

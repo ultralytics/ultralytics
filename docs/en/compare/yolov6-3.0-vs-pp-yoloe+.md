@@ -44,7 +44,7 @@ This section highlights the speed metrics of YOLOv6-3.0 and PP-YOLOE+ models acr
 
 ## Hyperparameter Tuning for Ultralytics YOLO11
 
-Hyperparameter tuning is a crucial step to maximize the performance of Ultralytics YOLO11 models. By adjusting parameters like learning rate, batch size, and momentum, you can significantly influence the model’s accuracy and speed. Ultralytics YOLO11 offers advanced hyperparameter optimization techniques, including the use of the Tuner class and genetic evolution algorithms.
+Hyperparameter tuning is a crucial step to maximize the performance of Ultralytics YOLO11 models. By adjusting parameters like learning rate, batch size, and momentum, you can significantly influence the model's accuracy and speed. Ultralytics YOLO11 offers advanced hyperparameter optimization techniques, including the use of the Tuner class and genetic evolution algorithms.
 
 These tools simplify the process, enabling both beginners and experts to identify optimal configurations efficiently. For a detailed walkthrough on using these techniques, check out the [Hyperparameter Tuning Guide](https://docs.ultralytics.com/guides/hyperparameter-tuning/).
 

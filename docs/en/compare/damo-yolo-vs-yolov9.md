@@ -6,9 +6,9 @@ keywords: DAMO-YOLO, YOLOv9, Ultralytics, object detection, real-time AI, edge A
 
 # DAMO-YOLO VS YOLOv9
 
-Comparing DAMO-YOLO and YOLOv9 showcases the breakthroughs in object detection technology, offering insights into their performance, efficiency, and use cases. Both models represent significant advancements, pushing the boundaries of what’s achievable in real-time computer vision tasks.
+Comparing DAMO-YOLO and YOLOv9 showcases the breakthroughs in object detection technology, offering insights into their performance, efficiency, and use cases. Both models represent significant advancements, pushing the boundaries of what's achievable in real-time computer vision tasks.
 
-DAMO-YOLO excels in delivering speed and energy efficiency, making it ideal for edge AI applications, while YOLOv9 builds on the YOLO legacy with enhanced accuracy and optimized architectures. This evaluation highlights their unique strengths to help users choose the best model for their specific needs. Explore more about YOLOv9’s features [here](https://docs.ultralytics.com/models/yolov8/).
+DAMO-YOLO excels in delivering speed and energy efficiency, making it ideal for edge AI applications, while YOLOv9 builds on the YOLO legacy with enhanced accuracy and optimized architectures. This evaluation highlights their unique strengths to help users choose the best model for their specific needs. Explore more about YOLOv9's features [here](https://docs.ultralytics.com/models/yolov8/).
 
 ## mAP Comparison
 

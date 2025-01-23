@@ -65,4 +65,4 @@ results = model.track(source="video.mp4", save=True, show=True)
 print(results)
 ```
 
-With YOLO11’s advanced tracking capabilities, you can achieve precise results tailored to your real-world applications. Learn more about YOLO11's functionalities in the [Ultralytics guides](https://docs.ultralytics.com/guides/).
+With YOLO11's advanced tracking capabilities, you can achieve precise results tailored to your real-world applications. Learn more about YOLO11's functionalities in the [Ultralytics guides](https://docs.ultralytics.com/guides/).

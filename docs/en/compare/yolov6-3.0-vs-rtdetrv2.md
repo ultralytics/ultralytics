@@ -46,6 +46,6 @@ This section highlights the performance differences between YOLOv6-3.0 and RTDET
 
 Object counting is a powerful solution offered by Ultralytics YOLO11, enabling precise identification and enumeration of objects in various applications. From monitoring pedestrian traffic to managing inventory in warehouses, YOLO11's object counting capabilities provide accurate real-time insights. This feature is particularly beneficial for industries such as retail, manufacturing, and urban planning, where understanding object density and distribution is critical.
 
-Leveraging YOLO11’s advanced detection algorithms, users can integrate object counting into their workflows seamlessly. With support for edge devices and real-time processing, YOLO11 ensures that object counting tasks are both efficient and scalable.
+Leveraging YOLO11's advanced detection algorithms, users can integrate object counting into their workflows seamlessly. With support for edge devices and real-time processing, YOLO11 ensures that object counting tasks are both efficient and scalable.
 
 For more details on how to implement object counting and other functionalities, explore the [Ultralytics YOLO11 documentation](https://docs.ultralytics.com/guides/) or check out the [Ultralytics HUB](https://www.ultralytics.com/hub) for an intuitive no-code solution.

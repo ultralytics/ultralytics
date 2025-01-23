@@ -46,6 +46,6 @@ This section highlights the speed performance of YOLOX and PP-YOLOE+ models acro
 
 Getting started with Ultralytics YOLO11 has never been easier, thanks to the Docker Quickstart guide. Docker provides an isolated environment that ensures consistency in both development and deployment, making it an excellent choice for working with deep learning models like YOLO11. With Docker, you can quickly set up the necessary environment, manage GPU support, and run YOLO11 models seamlessly.
 
-To set up Docker for Ultralytics YOLO11, follow the step-by-step [Docker Quickstart guide](https://docs.ultralytics.com/guides/docker-quickstart/). This guide covers everything from installing Docker, pulling the YOLO11 Docker image, and setting up GPU acceleration to running inference and training tasks. It’s an ideal solution for developers looking to streamline their workflows.
+To set up Docker for Ultralytics YOLO11, follow the step-by-step [Docker Quickstart guide](https://docs.ultralytics.com/guides/docker-quickstart/). This guide covers everything from installing Docker, pulling the YOLO11 Docker image, and setting up GPU acceleration to running inference and training tasks. It's an ideal solution for developers looking to streamline their workflows.
 
-For more guidance, explore the [Comprehensive Tutorials to Ultralytics YOLO](https://docs.ultralytics.com/guides/) to enhance your understanding of YOLO11’s capabilities and deployment options.
+For more guidance, explore the [Comprehensive Tutorials to Ultralytics YOLO](https://docs.ultralytics.com/guides/) to enhance your understanding of YOLO11's capabilities and deployment options.

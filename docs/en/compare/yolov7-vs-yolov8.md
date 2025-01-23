@@ -48,4 +48,4 @@ Thread-safe inference is a critical capability for ensuring consistent and relia
 
 Ultralytics provides detailed [guidelines for implementing thread-safe inference](https://docs.ultralytics.com/guides/yolo-thread-safe-inference/), helping users prevent race conditions and maintain optimal performance. By adhering to these best practices, you can ensure your YOLO11 deployments are robust and scalable.
 
-Explore more about thread-safety and other advanced features of YOLO11 in [Ultralytics’ documentation](https://docs.ultralytics.com/guides/). For a quick overview of YOLO11's seamless integration capabilities, check out the [Ultralytics GitHub repository](https://github.com/ultralytics/ultralytics).
+Explore more about thread-safety and other advanced features of YOLO11 in [Ultralytics' documentation](https://docs.ultralytics.com/guides/). For a quick overview of YOLO11's seamless integration capabilities, check out the [Ultralytics GitHub repository](https://github.com/ultralytics/ultralytics).

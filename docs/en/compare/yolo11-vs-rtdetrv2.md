@@ -48,4 +48,4 @@ Performance metrics are crucial when evaluating and improving the accuracy and e
 
 To explore these metrics in detail, refer to the [YOLO Performance Metrics guide](https://docs.ultralytics.com/guides/yolo-performance-metrics/). This guide provides practical examples, insightful tips, and strategies to optimize your model's performance. Whether you're working on object detection, segmentation, or classification, these metrics help you assess the effectiveness of your model in real-world scenarios.
 
-For additional learning, check out the [Comprehensive Tutorials to Ultralytics YOLO](https://docs.ultralytics.com/guides/) to gain deeper insights into model evaluation and improvement. These resources ensure you’re well-equipped to achieve the accuracy and speed required for your computer vision tasks.
+For additional learning, check out the [Comprehensive Tutorials to Ultralytics YOLO](https://docs.ultralytics.com/guides/) to gain deeper insights into model evaluation and improvement. These resources ensure you're well-equipped to achieve the accuracy and speed required for your computer vision tasks.

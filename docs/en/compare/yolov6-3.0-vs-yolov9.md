@@ -46,6 +46,6 @@ This section highlights the performance of YOLOv6-3.0 and YOLOv9 models by analy
 
 Model evaluation and fine-tuning are critical stages in achieving optimal performance for your computer vision projects. With Ultralytics YOLO11, these processes are streamlined, allowing developers to iteratively refine their models for better accuracy and efficiency. Fine-tuning helps adapt pre-trained models, like those trained on COCO8, to specific datasets such as African wildlife or signature detection.
 
-To enhance your model’s performance, focus on analyzing metrics like mAP, IoU, and F1 score. These metrics provide insights into the strengths and weaknesses of your model, guiding adjustments in hyperparameters or architecture. For more detailed guidance, refer to the [YOLO Performance Metrics Guide](https://docs.ultralytics.com/guides/yolo-performance-metrics/).
+To enhance your model's performance, focus on analyzing metrics like mAP, IoU, and F1 score. These metrics provide insights into the strengths and weaknesses of your model, guiding adjustments in hyperparameters or architecture. For more detailed guidance, refer to the [YOLO Performance Metrics Guide](https://docs.ultralytics.com/guides/yolo-performance-metrics/).
 
 Explore additional tips and best practices for fine-tuning in the [Ultralytics Tutorials Section](https://docs.ultralytics.com/guides/), and elevate your computer vision projects to the next level.

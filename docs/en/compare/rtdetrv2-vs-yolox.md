@@ -44,6 +44,6 @@ This section compares the speed performance of RTDETRv2 and YOLOX models across 
 
 Understanding performance metrics is crucial for evaluating and improving your Ultralytics YOLO11 models. Metrics like Mean Average Precision (mAP), Intersection over Union (IoU), and F1 Score provide insights into model accuracy, precision, and recall. These metrics are essential for determining how well your model performs on tasks like object detection, segmentation, and classification.
 
-To dive deeper into optimizing these metrics, check out the [YOLO Performance Metrics Guide](https://docs.ultralytics.com/guides/yolo-performance-metrics/). This guide provides practical examples, tips, and advanced techniques to refine your model’s accuracy and speed. Whether you're working with datasets like COCO8 or custom ones, tracking these metrics helps ensure your model aligns with project goals.
+To dive deeper into optimizing these metrics, check out the [YOLO Performance Metrics Guide](https://docs.ultralytics.com/guides/yolo-performance-metrics/). This guide provides practical examples, tips, and advanced techniques to refine your model's accuracy and speed. Whether you're working with datasets like COCO8 or custom ones, tracking these metrics helps ensure your model aligns with project goals.
 
 For additional resources on accuracy improvement, refer to the [Ultralytics Tutorials](https://docs.ultralytics.com/guides/) for actionable insights.

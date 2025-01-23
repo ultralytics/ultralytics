@@ -102,7 +102,8 @@ def benchmark(
         emoji, filename = "❌", None  # export defaults
         try:
             if format_name and format_name != format:
-                continue  # Skip mismatched formats
+                continue
+
             # Checks
             if i == 7:  # TF GraphDef
                 assert model.task != "obb", "TensorFlow GraphDef not supported for OBB task"

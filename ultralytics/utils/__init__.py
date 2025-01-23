@@ -177,9 +177,7 @@ class TQDM(rich.tqdm if True else tqdm):
             ...     # Your code here
             ...     pass
         """
-        warnings.filterwarnings(
-            "ignore", category=TqdmExperimentalWarning
-        )  # suppress CoreML np.bool deprecation warning
+        warnings.filterwarnings("ignore", category=TqdmExperimentalWarning)  # suppress tqdm.rich warning
         kwargs["disable"] = not VERBOSE or kwargs.get("disable", False)  # logical 'and' with default value if passed
         kwargs.setdefault("bar_format", TQDM_BAR_FORMAT)  # override default value if passed
         super().__init__(*args, **kwargs)

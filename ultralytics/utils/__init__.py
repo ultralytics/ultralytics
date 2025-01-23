@@ -23,8 +23,8 @@ import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
+import tqdm
 import yaml
-from tqdm import tqdm as tqdm_original
 
 from ultralytics import __version__
 
@@ -133,7 +133,7 @@ os.environ["TORCH_CPP_LOG_LEVEL"] = "ERROR"  # suppress "NNPACK.cpp could not in
 os.environ["KINETO_LOG_LEVEL"] = "5"  # suppress verbose PyTorch profiler output when computing FLOPs
 
 
-class TQDM(tqdm_original):
+class TQDM(tqdm.tqdm):
     """
     A custom TQDM progress bar class that extends the original tqdm functionality.
 

@@ -1,10 +1,13 @@
 ---
 ```markdown
 ---
+
 comments: true
 description: Explore a detailed comparison between DAMO-YOLO and RTDETRv2, two state-of-the-art models for real-time object detection. Understand their performance, architecture, and suitability for edge AI and computer vision applications, powered by Ultralytics innovations.
 keywords: DAMO-YOLO, RTDETRv2, Ultralytics, object detection, real-time AI, edge AI, computer vision, Vision Transformers, model comparison
+
 ---
+
 ```
 ---
 
@@ -46,3 +49,4 @@ The speed comparison between DAMO-YOLO and RTDETRv2 highlights their performance
 | m | 5.09 | 7.51 |
 | l | 7.18 | 9.76 |
 | x | N/A | 15.03 |
+```

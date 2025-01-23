@@ -238,10 +238,11 @@ CFG_BOOL_KEYS = frozenset(
 )
 
 CFG_BOOL_OR_LIST_KEYS = frozenset(
-    {   # boolean or list arguments
+    {  # boolean or list arguments
         "show_labels",
     }
 )
+
 
 def cfg2dict(cfg):
     """

@@ -25,7 +25,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 import yaml
-from tqdm import rich, tqdm, TqdmExperimentalWarning
+from tqdm import TqdmExperimentalWarning, rich, tqdm
 
 from ultralytics import __version__
 

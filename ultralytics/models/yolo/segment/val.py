@@ -247,7 +247,41 @@ class SegmentationValidator(DetectionValidator):
 
     def plot_matches(self, batch, preds):
         """Plot grid of GT, TP, FP, FN for each image."""
-        super().plot_matches(batch, preds[0])
+        for i, (img, pred, pred_mask) in enumerate(zip(batch["img"], preds[0], preds[1])):
+            if not self.confusion_matrix.match_dict:
+                continue
+            matches = self.confusion_matrix.match_dict.pop(0)
+            # Create batch of 4 (GT, TP, FP, FN)
+            idx = batch["batch_idx"] == i
+            gt_box = torch.cat(
+                [ops.xywh2xyxy(batch["bboxes"][idx]), torch.ones_like(batch["cls"][idx]), batch["cls"][idx]], dim=-1
+            ).view(-1, 6)
+            gt_mask = batch["masks"]
+            if gt_mask.shape[0] != gt_box.shape[0]:  # overlap_masks = True
+                idxs = torch.arange(gt_box.shape[0], device=img.device) + 1
+                gt_mask = (gt_mask == idxs[:, None, None])
+            box_batch = [gt_box]
+            mask_batch = [gt_mask]
+            for k in ["TP", "FP", "FN"]:  # order is important. DO NOT change to set.
+                if k == "FN":
+                    boxes = gt_box[matches[k]]
+                    masks = gt_mask[matches[k]]
+                else:
+                    boxes = pred[matches[k]] if matches[k] else torch.empty(size=(0, 6), device=img.device)
+                    masks = self.process(pred_mask, boxes[:, 6:].view(-1, pred_mask.shape[0]), boxes[:, :4].view(-1, 4), shape=img.shape[1:])
+                box_batch.append(boxes)
+                mask_batch.append(masks)
+            plot_images(
+                img.repeat(4, 1, 1, 1),
+                *output_to_target(box_batch, max_det=self.args.max_det),
+                torch.cat(mask_batch, 0),
+                paths=["Ground Truth", "True Positives", "False Positives", "False Negatives"],
+                fname=self.save_dir / "visualizations" / Path(batch["im_file"][i]).name,
+                names=self.names,
+                on_plot=self.on_plot,
+                max_subplots=4,
+                conf_thres=0.01,
+            )
 
     def save_one_txt(self, predn, pred_masks, save_conf, shape, file):
         """Save YOLO detections to a txt file in normalized coordinates in a specific format."""

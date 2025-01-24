@@ -279,12 +279,13 @@ class DetectionValidator(BaseValidator):
             if not self.confusion_matrix.match_dict:
                 continue
             matches = self.confusion_matrix.match_dict.pop(0)
-            # Create pseudo-batch of 4 (GT, TP, FP, FN)
+            # Create batch of 4 (GT, TP, FP, FN)
             idx = batch["batch_idx"] == i
             gt_box = torch.cat(
                 [ops.xywh2xyxy(batch["bboxes"][idx]), torch.ones_like(batch["cls"][idx]), batch["cls"][idx]], dim=-1
             ).view(-1, 6)
-            box_batch = [gt_box]
+            box_batch = [gt_box]  # add the first elemnet in batch, i.e. GT
+            # add TP, FP, FN as the 2nd, 3rd, 4th elements of batch
             for k in ["TP", "FP", "FN"]:  # order is important. DO NOT change to set.
                 if k == "FN":
                     boxes = gt_box[matches[k]]

@@ -232,7 +232,7 @@ class PoseValidator(DetectionValidator):
             if not self.confusion_matrix.match_dict:
                 continue
             matches = self.confusion_matrix.match_dict.pop(0)
-            # Create pseudo-batch of 4 (GT, TP, FP, FN)
+            # Create batch of 4 (GT, TP, FP, FN)
             idx = batch["batch_idx"] == i
             gt_box = torch.cat(
                 [ops.xywh2xyxy(batch["bboxes"][idx]), torch.ones_like(batch["cls"][idx]), batch["cls"][idx]], dim=-1

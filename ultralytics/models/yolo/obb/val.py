@@ -117,7 +117,7 @@ class OBBValidator(DetectionValidator):
             if not self.confusion_matrix.match_dict:
                 continue
             matches = self.confusion_matrix.match_dict.pop(0)
-            # Create pseudo-batch of 4 (GT, TP, FP, FN)
+            # Create batch of 4 (GT, TP, FP, FN)
             idx = batch["batch_idx"] == i
             gt_box = torch.cat(
                 [

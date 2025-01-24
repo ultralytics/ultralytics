@@ -185,7 +185,7 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
 
 ???+ warning "Calibration Cache"
 
-    TensorRT will generate a calibration `.cache` which can be re-used to speed up export of future model weights using the same data, but this may result in poor calibration when the data is vastly different or if the `batch` value is changed drastically. In these circumstances, the existing `.cache` should be renamed and moved to a different directory or deleted entirely.
+    TensorRT will generate a calibration `.cache` which can be reused to speed up export of future model weights using the same data, but this may result in poor calibration when the data is vastly different or if the `batch` value is changed drastically. In these circumstances, the existing `.cache` should be renamed and moved to a different directory or deleted entirely.
 
 #### Advantages of using YOLO with TensorRT INT8
 

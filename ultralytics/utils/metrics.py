@@ -356,6 +356,7 @@ class ConfusionMatrix:
             for i, gc in enumerate(gt_classes):
                 self.matrix[self.nc, gc] += 1  # FN
                 self._append_match_idx("FN", i)
+            return
 
         detections = detections[detections[:, 4] > self.conf]
         gt_classes = gt_cls.int()
@@ -380,7 +381,7 @@ class ConfusionMatrix:
 
         n = matches.shape[0] > 0
         m0, m1, _ = matches.transpose().astype(int)
-        for i, (gc, gb) in enumerate(zip(gt_classes, gt_bboxes)):
+        for i, gc in enumerate(gt_classes):
             j = m0 == i
             if n and sum(j) == 1:
                 dc = detection_classes[m1[j]].squeeze()
@@ -390,7 +391,7 @@ class ConfusionMatrix:
                 self.matrix[self.nc, gc] += 1  # FN
                 self._append_match_idx("FN", i)
 
-        for i, (dc, db) in enumerate(zip(detection_classes, detections)):
+        for i, dc in enumerate(detection_classes):
             if not any(m1 == i):
                 self.matrix[dc, self.nc] += 1  # FP
                 self._append_match_idx("FP", i)

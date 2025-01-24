@@ -132,6 +132,7 @@ class AutoBackend(nn.Module):
         fp16 &= pt or jit or onnx or xml or engine or nn_module or triton  # FP16
         nhwc = coreml or saved_model or pb or tflite or edgetpu or rknn  # BHWC formats (vs torch BCWH)
         stride = 32  # default stride
+        end2end = False  # default end2end
         model, metadata, task = None, None, None
 
         # Set device
@@ -222,16 +223,18 @@ class AutoBackend(nn.Module):
             output_names = [x.name for x in session.get_outputs()]
             metadata = session.get_modelmeta().custom_metadata_map
             dynamic = isinstance(session.get_outputs()[0].shape[0], str)
+            fp16 = True if "float16" in session.get_inputs()[0].type else False
             if not dynamic:
                 io = session.io_binding()
                 bindings = []
                 for output in session.get_outputs():
-                    y_tensor = torch.empty(output.shape, dtype=torch.float16 if fp16 else torch.float32).to(device)
+                    out_fp16 = "float16" in output.type
+                    y_tensor = torch.empty(output.shape, dtype=torch.float16 if out_fp16 else torch.float32).to(device)
                     io.bind_output(
                         name=output.name,
                         device_type=device.type,
                         device_id=device.index if cuda else 0,
-                        element_type=np.float16 if fp16 else np.float32,
+                        element_type=np.float16 if out_fp16 else np.float32,
                         shape=tuple(y_tensor.shape),
                         buffer_ptr=y_tensor.data_ptr(),
                     )
@@ -501,7 +504,7 @@ class AutoBackend(nn.Module):
             for k, v in metadata.items():
                 if k in {"stride", "batch"}:
                     metadata[k] = int(v)
-                elif k in {"imgsz", "names", "kpt_shape"} and isinstance(v, str):
+                elif k in {"imgsz", "names", "kpt_shape", "args"} and isinstance(v, str):
                     metadata[k] = eval(v)
             stride = metadata["stride"]
             task = metadata["task"]
@@ -509,6 +512,7 @@ class AutoBackend(nn.Module):
             imgsz = metadata["imgsz"]
             names = metadata["names"]
             kpt_shape = metadata.get("kpt_shape")
+            end2end = metadata.get("args", {}).get("nms", False)
         elif not (pt or triton or nn_module):
             LOGGER.warning(f"WARNING ⚠️ Metadata not found for 'model={weights}'")
 
@@ -703,9 +707,12 @@ class AutoBackend(nn.Module):
                     if x.ndim == 3:  # if task is not classification, excluding masks (ndim=4) as well
                         # Denormalize xywh by image size. See https://github.com/ultralytics/ultralytics/pull/1695
                         # xywh are normalized in TFLite/EdgeTPU to mitigate quantization error of integer models
-                        if x.shape[-1] == 6:  # end-to-end model
+                        if x.shape[-1] == 6 or self.end2end:  # end-to-end model
                             x[:, :, [0, 2]] *= w
                             x[:, :, [1, 3]] *= h
+                            if self.task == "pose":
+                                x[:, :, 6::3] *= w
+                                x[:, :, 7::3] *= h
                         else:
                             x[:, [0, 2]] *= w
                             x[:, [1, 3]] *= h

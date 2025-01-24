@@ -78,6 +78,7 @@ class DetectionValidator(BaseValidator):
         self.args.save_json |= self.args.val and (self.is_coco or self.is_lvis) and not self.training  # run final val
         self.names = model.names
         self.nc = len(model.names)
+        self.end2end = getattr(model, "end2end", False)
         self.metrics.names = self.names
         self.metrics.plot = self.args.plots
         self.confusion_matrix = ConfusionMatrix(nc=self.nc, conf=self.args.conf)
@@ -96,9 +97,12 @@ class DetectionValidator(BaseValidator):
             self.args.conf,
             self.args.iou,
             labels=self.lb,
+            nc=self.nc,
             multi_label=True,
             agnostic=self.args.single_cls or self.args.agnostic_nms,
             max_det=self.args.max_det,
+            end2end=self.end2end,
+            rotated=self.args.task == "obb",
         )
 
     def _prepare_batch(self, si, batch):

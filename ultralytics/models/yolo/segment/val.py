@@ -245,9 +245,9 @@ class SegmentationValidator(DetectionValidator):
         )  # pred
         self.plot_masks.clear()
 
-    def plot_matches(self, batch, preds, ni):
+    def plot_matches(self, batch, preds):
         """Plot grid of GT, TP, FP, FN for each image."""
-        super().plot_matches(batch, preds[0], ni)
+        super().plot_matches(batch, preds[0])
 
     def save_one_txt(self, predn, pred_masks, save_conf, shape, file):
         """Save YOLO detections to a txt file in normalized coordinates in a specific format."""

@@ -119,13 +119,15 @@ class OBBValidator(DetectionValidator):
             matches = self.confusion_matrix.match_dict.pop(0)
             # Create pseudo-batch of 4 (GT, TP, FP, FN)
             idx = batch["batch_idx"] == i
-            gt_box = torch.cat([batch["bboxes"][idx], torch.ones_like(batch["cls"][idx]), batch["cls"][idx]], dim=-1).view(-1, 7)
+            gt_box = torch.cat(
+                [batch["bboxes"][idx], torch.ones_like(batch["cls"][idx]), batch["cls"][idx]], dim=-1
+            ).view(-1, 7)
             box_batch = [gt_box]
             for k in ["TP", "FP", "FN"]:
                 if k == "FN":
                     boxes = gt_box[matches[k]]
                 else:
-                    boxes = pred[matches[k]] if matches[k] else torch.empty(size=(0,7), device=img.device)
+                    boxes = pred[matches[k]] if matches[k] else torch.empty(size=(0, 7), device=img.device)
                 box_batch.append(boxes)
             plot_images(
                 img.repeat(4, 1, 1, 1),

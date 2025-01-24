@@ -312,7 +312,7 @@ class ConfusionMatrix:
         self.conf = 0.25 if conf in {None, 0.001} else conf  # apply 0.25 if default val conf is passed
         self.iou_thres = iou_thres
         self.match_dict = [] if save_matches else None
-    
+
     def _append_match_idx(self, key, idx):
         """Append the index to TP, FP or FN list for the last batch."""
         if self.match_dict is not None:
@@ -394,6 +394,7 @@ class ConfusionMatrix:
             if not any(m1 == i):
                 self.matrix[dc, self.nc] += 1  # FP
                 self._append_match_idx("FP", i)
+
     def matrix(self):
         """Returns the confusion matrix."""
         return self.matrix

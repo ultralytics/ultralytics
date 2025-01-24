@@ -228,13 +228,15 @@ class PoseValidator(DetectionValidator):
     def plot_matches(self, batch, preds):
         """Plot grid of GT, TP, FP, FN for each image."""
         pred_kpts = [p[:, 6:].view(-1, *self.kpt_shape) for p in preds]
-        for i, (img, pred, pred_kpt) in enumerate(zip(batch["img"],preds, pred_kpts)):
+        for i, (img, pred, pred_kpt) in enumerate(zip(batch["img"], preds, pred_kpts)):
             if not self.confusion_matrix.match_dict:
                 continue
             matches = self.confusion_matrix.match_dict.pop(0)
             # Create pseudo-batch of 4 (GT, TP, FP, FN)
             idx = batch["batch_idx"] == i
-            gt_box = torch.cat([ops.xywh2xyxy(batch["bboxes"][idx]), torch.ones_like(batch["cls"][idx]), batch["cls"][idx]], dim=-1).view(-1, 6)
+            gt_box = torch.cat(
+                [ops.xywh2xyxy(batch["bboxes"][idx]), torch.ones_like(batch["cls"][idx]), batch["cls"][idx]], dim=-1
+            ).view(-1, 6)
             gt_kpt = batch["keypoints"][idx]
             box_batch = [gt_box]
             kpt_batch = [gt_kpt]
@@ -243,8 +245,12 @@ class PoseValidator(DetectionValidator):
                     boxes = gt_box[matches[k]]
                     kpts = gt_kpt[matches[k]]
                 else:
-                    boxes = pred[matches[k]] if matches[k] else torch.empty(size=(0,6), device=img.device)
-                    kpts = pred_kpt[matches[k]] if matches[k] else torch.empty(size=(0, *self.kpt_shape), device=img.device)
+                    boxes = pred[matches[k]] if matches[k] else torch.empty(size=(0, 6), device=img.device)
+                    kpts = (
+                        pred_kpt[matches[k]]
+                        if matches[k]
+                        else torch.empty(size=(0, *self.kpt_shape), device=img.device)
+                    )
                 box_batch.append(boxes)
                 kpt_batch.append(kpts)
             plot_images(

@@ -259,7 +259,7 @@ class SegmentationValidator(DetectionValidator):
         gt_mask = batch["masks"][ni]
         if gt_mask.shape[0] != gt_box.shape[0]:  # overlap_masks = True
             idxs = torch.arange(gt_box.shape[0], device=img.device) + 1
-            gt_mask = (gt_mask == idxs[:, None, None])
+            gt_mask = gt_mask == idxs[:, None, None]
         box_batch = [gt_box]
         mask_batch = [gt_mask]
         for k in ["TP", "FP", "FN"]:  # order is important. DO NOT change to set.
@@ -268,7 +268,9 @@ class SegmentationValidator(DetectionValidator):
                 masks = gt_mask[matches[k]]
             else:
                 boxes = pred[matches[k]] if matches[k] else torch.empty(size=(0, 6), device=img.device)
-                masks = self.process(pred_mask, boxes[:, 6:].view(-1, pred_mask.shape[0]), boxes[:, :4].view(-1, 4), shape=img.shape[1:])
+                masks = self.process(
+                    pred_mask, boxes[:, 6:].view(-1, pred_mask.shape[0]), boxes[:, :4].view(-1, 4), shape=img.shape[1:]
+                )
             box_batch.append(boxes)
             mask_batch.append(masks)
         plot_images(

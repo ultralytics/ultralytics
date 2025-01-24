@@ -246,11 +246,7 @@ class PoseValidator(DetectionValidator):
                 kpts = gt_kpt[matches[k]]
             else:
                 boxes = pred[matches[k]] if matches[k] else torch.empty(size=(0, 6), device=img.device)
-                kpts = (
-                    pred_kpt[matches[k]]
-                    if matches[k]
-                    else torch.empty(size=(0, *self.kpt_shape), device=img.device)
-                )
+                kpts = pred_kpt[matches[k]] if matches[k] else torch.empty(size=(0, *self.kpt_shape), device=img.device)
             box_batch.append(boxes)
             kpt_batch.append(kpts)
         plot_images(

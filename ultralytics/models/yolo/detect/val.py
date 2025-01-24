@@ -284,7 +284,7 @@ class DetectionValidator(BaseValidator):
         gt_box = torch.cat(
             [ops.xywh2xyxy(batch["bboxes"][idx]), torch.ones_like(batch["cls"][idx]), batch["cls"][idx]], dim=-1
         ).view(-1, 6)
-        box_batch = [gt_box]  # add the first elemnet in batch, i.e. GT
+        box_batch = [gt_box]  # add the first element in batch, i.e. GT
         # add TP, FP, FN as the 2nd, 3rd, 4th elements of batch
         for k in ["TP", "FP", "FN"]:  # order is important. DO NOT change to set.
             if k == "FN":

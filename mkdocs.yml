@@ -425,6 +425,7 @@ nav:
       - Albumentations: integrations/albumentations.md
       - SONY IMX500: integrations/sony-imx500.md
       - Rockchip RKNN: integrations/rockchip-rknn.md
+      - Seeed Studio reCamera: integrations/seeedstudio-recamera.md
   - HUB:
       - hub/index.md
       - Web:

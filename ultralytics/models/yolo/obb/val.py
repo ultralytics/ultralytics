@@ -113,9 +113,9 @@ class OBBValidator(DetectionValidator):
 
     def plot_matches(self, batch, preds, ni):
         """Plot grid of GT, TP, FP, FN for each image."""
-        img, pred = batch["img"][ni], preds[ni]
         if not self.confusion_matrix.match_dict:
             return
+        img, pred = batch["img"][ni], preds[ni]
         matches = self.confusion_matrix.match_dict.pop(0)
         # Create batch of 4 (GT, TP, FP, FN)
         idx = batch["batch_idx"] == ni

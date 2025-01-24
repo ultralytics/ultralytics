@@ -247,9 +247,9 @@ class SegmentationValidator(DetectionValidator):
 
     def plot_matches(self, batch, preds, ni):
         """Plot grid of GT, TP, FP, FN for each image."""
-        img, pred, pred_mask = batch["img"][ni], preds[0][ni], preds[1][ni]
         if not self.confusion_matrix.match_dict:
             return
+        img, pred, pred_mask = batch["img"][ni], preds[0][ni], preds[1][ni]
         matches = self.confusion_matrix.match_dict.pop(0)
         # Create batch of 4 (GT, TP, FP, FN)
         idx = batch["batch_idx"] == ni

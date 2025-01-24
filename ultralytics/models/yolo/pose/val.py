@@ -227,10 +227,10 @@ class PoseValidator(DetectionValidator):
 
     def plot_matches(self, batch, preds, ni):
         """Plot grid of GT, TP, FP, FN for each image."""
-        pred_kpts = [p[:, 6:].view(-1, *self.kpt_shape) for p in preds]
-        img, pred, pred_kpt = batch["img"][ni], preds[ni], pred_kpts[ni]
         if not self.confusion_matrix.match_dict:
             return
+        pred_kpts = [p[:, 6:].view(-1, *self.kpt_shape) for p in preds]
+        img, pred, pred_kpt = batch["img"][ni], preds[ni], pred_kpts[ni]
         matches = self.confusion_matrix.match_dict.pop(0)
         # Create batch of 4 (GT, TP, FP, FN)
         idx = batch["batch_idx"] == ni

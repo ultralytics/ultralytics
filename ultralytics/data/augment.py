@@ -1850,7 +1850,7 @@ class Albumentations:
                 A.CLAHE(p=0.01),
                 A.RandomBrightnessContrast(p=0.0),
                 A.RandomGamma(p=0.0),
-                A.ImageCompression(quality_lower=75, p=0.0),
+                A.ImageCompression(quality_range=(75, 100), p=0.0),
             ]
 
             # Compose transforms

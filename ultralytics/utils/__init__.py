@@ -13,6 +13,7 @@ import sys
 import threading
 import time
 import uuid
+import warnings
 from pathlib import Path
 from threading import Lock
 from types import SimpleNamespace
@@ -132,8 +133,11 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # suppress verbose TF compiler warning
 os.environ["TORCH_CPP_LOG_LEVEL"] = "ERROR"  # suppress "NNPACK.cpp could not initialize NNPACK" warnings
 os.environ["KINETO_LOG_LEVEL"] = "5"  # suppress verbose PyTorch profiler output when computing FLOPs
 
+if TQDM_RICH := str(os.getenv("YOLO_TQDM_RICH", False)).lower() == "true":
+    from tqdm import rich
 
-class TQDM(tqdm.tqdm):
+
+class TQDM(rich.tqdm if TQDM_RICH else tqdm.tqdm):
     """
     A custom TQDM progress bar class that extends the original tqdm functionality.
 
@@ -176,7 +180,8 @@ class TQDM(tqdm.tqdm):
             ...     # Your code here
             ...     pass
         """
-        kwargs["disable"] = not VERBOSE or kwargs.get("disable", False)  # logical 'and' with default value if passed
+        warnings.filterwarnings("ignore", category=tqdm.TqdmExperimentalWarning)  # suppress tqdm.rich warning
+        kwargs["disable"] = not VERBOSE or kwargs.get("disable", False)
         kwargs.setdefault("bar_format", TQDM_BAR_FORMAT)  # override default value if passed
         super().__init__(*args, **kwargs)
 

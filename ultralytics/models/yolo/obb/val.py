@@ -120,7 +120,13 @@ class OBBValidator(DetectionValidator):
             # Create pseudo-batch of 4 (GT, TP, FP, FN)
             idx = batch["batch_idx"] == i
             gt_box = torch.cat(
-                [batch["bboxes"][idx][:, :-1], batch["cls"][idx], torch.ones_like(batch["cls"][idx]), batch["bboxes"][idx][:, -1:]], dim=-1
+                [
+                    batch["bboxes"][idx][:, :-1],
+                    batch["cls"][idx],
+                    torch.ones_like(batch["cls"][idx]),
+                    batch["bboxes"][idx][:, -1:],
+                ],
+                dim=-1,
             ).view(-1, 7)
             box_batch = [gt_box]
             for k in ["TP", "FP", "FN"]:  # order is important. DO NOT change to set.

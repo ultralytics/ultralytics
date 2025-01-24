@@ -136,7 +136,7 @@ def verify_image_label(args):
 
                 # All labels
                 max_cls = lb[:, 0].max()  # max label count
-                assert max_cls <= num_cls, (
+                assert max_cls < num_cls, (
                     f"Label class {int(max_cls)} exceeds dataset class count {num_cls}. "
                     f"Possible class labels are 0-{num_cls - 1}"
                 )

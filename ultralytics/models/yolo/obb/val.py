@@ -111,40 +111,40 @@ class OBBValidator(DetectionValidator):
             on_plot=self.on_plot,
         )  # pred
 
-    def plot_matches(self, batch, preds):
+    def plot_matches(self, batch, preds, ni):
         """Plot grid of GT, TP, FP, FN for each image."""
-        for i, (img, pred) in enumerate(zip(batch["img"], preds)):
-            if not self.confusion_matrix.match_dict:
-                continue
-            matches = self.confusion_matrix.match_dict.pop(0)
-            # Create batch of 4 (GT, TP, FP, FN)
-            idx = batch["batch_idx"] == i
-            gt_box = torch.cat(
-                [
-                    batch["bboxes"][idx][:, :-1],
-                    torch.ones_like(batch["cls"][idx]),
-                    batch["cls"][idx],
-                    batch["bboxes"][idx][:, -1:],
-                ],
-                dim=-1,
-            ).view(-1, 7)
-            box_batch = [gt_box]
-            for k in ["TP", "FP", "FN"]:  # order is important. DO NOT change to set.
-                if k == "FN":
-                    boxes = gt_box[matches[k]]
-                else:
-                    boxes = pred[matches[k]] if matches[k] else torch.empty(size=(0, 7), device=img.device)
-                box_batch.append(boxes)
-            plot_images(
-                img.repeat(4, 1, 1, 1),
-                *output_to_rotated_target(box_batch, max_det=self.args.max_det),
-                paths=["Ground Truth", "True Positives", "False Positives", "False Negatives"],
-                fname=self.save_dir / "visualizations" / Path(batch["im_file"][i]).name,
-                names=self.names,
-                on_plot=self.on_plot,
-                max_subplots=4,
-                conf_thres=0.01,
-            )
+        img, pred = batch["img"][ni], preds[ni]
+        if not self.confusion_matrix.match_dict:
+            return
+        matches = self.confusion_matrix.match_dict.pop(0)
+        # Create batch of 4 (GT, TP, FP, FN)
+        idx = batch["batch_idx"] == ni
+        gt_box = torch.cat(
+            [
+                batch["bboxes"][idx][:, :-1],
+                torch.ones_like(batch["cls"][idx]),
+                batch["cls"][idx],
+                batch["bboxes"][idx][:, -1:],
+            ],
+            dim=-1,
+        ).view(-1, 7)
+        box_batch = [gt_box]
+        for k in ["TP", "FP", "FN"]:  # order is important. DO NOT change to set.
+            if k == "FN":
+                boxes = gt_box[matches[k]]
+            else:
+                boxes = pred[matches[k]] if matches[k] else torch.empty(size=(0, 7), device=img.device)
+            box_batch.append(boxes)
+        plot_images(
+            img.repeat(4, 1, 1, 1),
+            *output_to_rotated_target(box_batch, max_det=self.args.max_det),
+            paths=["Ground Truth", "True Positives", "False Positives", "False Negatives"],
+            fname=self.save_dir / "visualizations" / Path(batch["im_file"][ni]).name,
+            names=self.names,
+            on_plot=self.on_plot,
+            max_subplots=4,
+            conf_thres=0.01,
+        )
 
     def pred_to_json(self, predn, filename):
         """Serialize YOLO predictions to COCO json format."""

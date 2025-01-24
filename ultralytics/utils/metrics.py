@@ -385,8 +385,12 @@ class ConfusionMatrix:
             j = m0 == i
             if n and sum(j) == 1:
                 dc = detection_classes[m1[j]].squeeze()
-                self.matrix[dc, gc] += 1  # TP if class is correct else FP
-                self._append_match_idx("TP" if dc == gc else "FP", m1[j].item())
+                self.matrix[dc, gc] += 1  # TP if class is correct else both an FP and an FN
+                if dc == gc:
+                    self._append_match_idx("TP", m1[j].item())
+                else:
+                    self._append_match_idx("FP", m1[j].item())
+                    self._append_match_idx("FN", i)
             else:
                 self.matrix[self.nc, gc] += 1  # FN
                 self._append_match_idx("FN", i)

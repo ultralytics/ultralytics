@@ -49,15 +49,9 @@ To shut down the dedicated endpoint, click on the **Stop Endpoint** button.
 
 To use the [Ultralytics HUB](https://www.ultralytics.com/hub) Shared Inference API, follow the guides below.
 
-Free users have the following usage limits:
+The [Ultralytics HUB](https://www.ultralytics.com/hub) Shared Inference API has the following usage limits:
 
 - 100 calls / hour
-- 1000 calls / month
-
-[Pro](./pro.md) users have the following usage limits:
-
-- 1000 calls / hour
-- 10000 calls / month
 
 ## Python
 

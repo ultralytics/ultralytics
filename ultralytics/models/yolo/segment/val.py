@@ -146,6 +146,8 @@ class SegmentationValidator(DetectionValidator):
                 self.plot_masks.append(pred_masks[:15].cpu())  # filter top 15 to plot
 
             # Save
+            if self.args.plots and self.args.visualize:
+                self.plot_matches(batch, preds)
             if self.args.save_json:
                 self.pred_to_json(
                     predn,

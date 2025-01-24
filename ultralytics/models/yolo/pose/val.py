@@ -145,6 +145,8 @@ class PoseValidator(DetectionValidator):
                 self.stats[k].append(stat[k])
 
             # Save
+            if self.args.plots and self.args.visualize:
+                self.plot_matches(batch, preds)
             if self.args.save_json:
                 self.pred_to_json(predn, batch["im_file"][si])
             if self.args.save_txt:
@@ -250,7 +252,7 @@ class PoseValidator(DetectionValidator):
                 *output_to_target(box_batch, max_det=self.args.max_det),
                 kpts=torch.cat(kpt_batch, 0),
                 paths=["Ground Truth", "True Positives", "False Positives", "False Negatives"],
-                fname=self.save_dir / "matches" / Path(batch["im_file"][i]).name,
+                fname=self.save_dir / "visualizations" / Path(batch["im_file"][i]).name,
                 names=self.names,
                 on_plot=self.on_plot,
                 max_subplots=4,

@@ -80,9 +80,9 @@ class DetectionValidator(BaseValidator):
         self.nc = len(model.names)
         self.metrics.names = self.names
         self.metrics.plot = self.args.plots
-        if self.args.visualize:
+        if self.args.plots and self.args.visualize:
             (self.save_dir / "visualizations").mkdir(exist_ok=True)
-        self.confusion_matrix = ConfusionMatrix(nc=self.nc, conf=self.args.conf, save_matches=self.args.visualize)
+        self.confusion_matrix = ConfusionMatrix(nc=self.nc, conf=self.args.conf, save_matches=self.args.plots and self.args.visualize)
         self.seen = 0
         self.jdict = []
         self.stats = dict(tp=[], conf=[], pred_cls=[], target_cls=[], target_img=[])

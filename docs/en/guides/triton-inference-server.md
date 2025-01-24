@@ -48,7 +48,7 @@ from ultralytics import YOLO
 # Load a model
 model = YOLO("yolo11n.pt")  # load an official model
 
-# Retreive metadata during export
+# Retrieve metadata during export
 metadata = []
 
 

@@ -336,7 +336,7 @@ class Concat(nn.Module):
 class Index(nn.Module):
     """Returns a particular index of the input."""
 
-    def __init__(self, c1, c2, index=0):
+    def __init__(self, index=0):
         """Returns a particular index of the input."""
         super().__init__()
         self.index = index

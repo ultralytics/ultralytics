@@ -122,8 +122,8 @@ class OBBValidator(DetectionValidator):
             gt_box = torch.cat(
                 [
                     batch["bboxes"][idx][:, :-1],
-                    batch["cls"][idx],
                     torch.ones_like(batch["cls"][idx]),
+                    batch["cls"][idx],
                     batch["bboxes"][idx][:, -1:],
                 ],
                 dim=-1,

@@ -285,7 +285,7 @@ class DetectionValidator(BaseValidator):
                 [ops.xywh2xyxy(batch["bboxes"][idx]), torch.ones_like(batch["cls"][idx]), batch["cls"][idx]], dim=-1
             ).view(-1, 6)
             box_batch = [gt_box]
-            for k in ["TP", "FP", "FN"]:
+            for k in ["TP", "FP", "FN"]:  # order is important. DO NOT change to set.
                 if k == "FN":
                     boxes = gt_box[matches[k]]
                 else:

@@ -240,7 +240,7 @@ class PoseValidator(DetectionValidator):
             gt_kpt = batch["keypoints"][idx]
             box_batch = [gt_box]
             kpt_batch = [gt_kpt]
-            for k in ["TP", "FP", "FN"]:
+            for k in ["TP", "FP", "FN"]:  # order is important. DO NOT change to set.
                 if k == "FN":
                     boxes = gt_box[matches[k]]
                     kpts = gt_kpt[matches[k]]

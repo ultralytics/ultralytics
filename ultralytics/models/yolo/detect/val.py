@@ -80,7 +80,9 @@ class DetectionValidator(BaseValidator):
         self.nc = len(model.names)
         self.metrics.names = self.names
         self.metrics.plot = self.args.plots
-        self.confusion_matrix = ConfusionMatrix(nc=self.nc, conf=self.args.conf)
+        if self.args.visualize:
+            (self.save_dir / "visualizations").mkdir(exist_ok=True)
+        self.confusion_matrix = ConfusionMatrix(nc=self.nc, conf=self.args.conf, save_matches=self.args.visualize)
         self.seen = 0
         self.jdict = []
         self.stats = dict(tp=[], conf=[], pred_cls=[], target_cls=[], target_img=[])
@@ -161,6 +163,8 @@ class DetectionValidator(BaseValidator):
                 self.stats[k].append(stat[k])
 
             # Save
+            if self.args.plots and self.args.visualize:
+                self.plot_matches(batch, preds)
             if self.args.save_json:
                 self.pred_to_json(predn, batch["im_file"][si])
             if self.args.save_txt:
@@ -266,6 +270,33 @@ class DetectionValidator(BaseValidator):
             names=self.names,
             on_plot=self.on_plot,
         )  # pred
+
+    def plot_matches(self, batch, preds):
+        """Plot grid of GT, TP, FP, FN for each image."""
+        for i, (img, pred) in enumerate(zip(batch["img"], preds)):
+            if not self.confusion_matrix.match_dict:
+                continue
+            matches = self.confusion_matrix.match_dict.pop(0)
+            # Create pseudo-batch of 4 (GT, TP, FP, FN)
+            idx = batch["batch_idx"] == i
+            gt_box = torch.cat([ops.xywh2xyxy(batch["bboxes"][idx]), torch.ones_like(batch["cls"][idx]), batch["cls"][idx]], dim=-1).view(-1, 6)
+            box_batch = [gt_box]
+            for k in ["TP", "FP", "FN"]:
+                if k == "FN":
+                    boxes = gt_box[matches[k]]
+                else:
+                    boxes = pred[matches[k]] if matches[k] else torch.empty(size=(0,6), device=img.device)
+                box_batch.append(boxes)
+            plot_images(
+                img.repeat(4, 1, 1, 1),
+                *output_to_target(box_batch, max_det=self.args.max_det),
+                paths=["Ground Truth", "True Positives", "False Positives", "False Negatives"],
+                fname=self.save_dir / "visualizations" / Path(batch["im_file"][i]).name,
+                names=self.names,
+                on_plot=self.on_plot,
+                max_subplots=4,
+                conf_thres=0.01,
+            )
 
     def save_one_txt(self, predn, save_conf, shape, file):
         """Save YOLO detections to a txt file in normalized coordinates in a specific format."""

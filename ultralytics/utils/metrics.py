@@ -301,15 +301,22 @@ class ConfusionMatrix:
         nc (int): The number of classes.
         conf (float): The confidence threshold for detections.
         iou_thres (float): The Intersection over Union threshold.
+        match_dict (dict): Contains the indices of ground truths and predictions categorized into TP, FP and FN.
     """
 
-    def __init__(self, nc, conf=0.25, iou_thres=0.45, task="detect"):
+    def __init__(self, nc, conf=0.25, iou_thres=0.45, task="detect", save_matches=False):
         """Initialize attributes for the YOLO model."""
         self.task = task
-        self.matrix = np.zeros((nc + 1, nc + 1)) if self.task == "detect" else np.zeros((nc, nc))
+        self.matrix = np.zeros((nc + 1, nc + 1), dtype=int) if self.task == "detect" else np.zeros((nc, nc), dtype=int)
         self.nc = nc  # number of classes
         self.conf = 0.25 if conf in {None, 0.001} else conf  # apply 0.25 if default val conf is passed
         self.iou_thres = iou_thres
+        self.match_dict = [] if save_matches else None
+    
+    def _append_match_idx(self, key, idx):
+        """Append the index to TP, FP or FN list for the last batch."""
+        if self.match_dict is not None:
+            self.match_dict[-1][key].append(idx)
 
     def process_cls_preds(self, preds, targets):
         """
@@ -334,18 +341,21 @@ class ConfusionMatrix:
             gt_bboxes (Array[M, 4]| Array[N, 5]): Ground truth bounding boxes with xyxy/xyxyr format.
             gt_cls (Array[M]): The class labels.
         """
+        if self.match_dict is not None:  # only if visualization is enabled
+            self.match_dict.append({"TP": [], "FP": [], "FN": []})
         if gt_cls.shape[0] == 0:  # Check if labels is empty
             if detections is not None:
                 detections = detections[detections[:, 4] > self.conf]
                 detection_classes = detections[:, 5].int()
-                for dc in detection_classes:
-                    self.matrix[dc, self.nc] += 1  # false positives
+                for i, dc in enumerate(detection_classes):
+                    self.matrix[dc, self.nc] += 1  # FP
+                    self._append_match_idx("FP", i)
             return
         if detections is None:
             gt_classes = gt_cls.int()
-            for gc in gt_classes:
-                self.matrix[self.nc, gc] += 1  # background FN
-            return
+            for i, gc in enumerate(gt_classes):
+                self.matrix[self.nc, gc] += 1  # FN
+                self._append_match_idx("FN", i)
 
         detections = detections[detections[:, 4] > self.conf]
         gt_classes = gt_cls.int()
@@ -370,17 +380,20 @@ class ConfusionMatrix:
 
         n = matches.shape[0] > 0
         m0, m1, _ = matches.transpose().astype(int)
-        for i, gc in enumerate(gt_classes):
+        for i, (gc, gb) in enumerate(zip(gt_classes, gt_bboxes)):
             j = m0 == i
             if n and sum(j) == 1:
-                self.matrix[detection_classes[m1[j]], gc] += 1  # correct
+                dc = detection_classes[m1[j]].squeeze()
+                self.matrix[dc, gc] += 1  # TP if class is correct else FP
+                self._append_match_idx("TP" if dc == gc else "FP", m1[j].item())
             else:
-                self.matrix[self.nc, gc] += 1  # true background
+                self.matrix[self.nc, gc] += 1  # FN
+                self._append_match_idx("FN", i)
 
-        for i, dc in enumerate(detection_classes):
+        for i, (dc, db) in enumerate(zip(detection_classes, detections)):
             if not any(m1 == i):
-                self.matrix[dc, self.nc] += 1  # predicted background
-
+                self.matrix[dc, self.nc] += 1  # FP
+                self._append_match_idx("FP", i)
     def matrix(self):
         """Returns the confusion matrix."""
         return self.matrix

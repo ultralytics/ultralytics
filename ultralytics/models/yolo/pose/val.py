@@ -223,6 +223,40 @@ class PoseValidator(DetectionValidator):
             on_plot=self.on_plot,
         )  # pred
 
+    def plot_matches(self, batch, preds):
+        """Plot grid of GT, TP, FP, FN for each image."""
+        pred_kpts = [p[:, 6:].view(-1, *self.kpt_shape) for p in preds]
+        for i, (img, pred, pred_kpt) in enumerate(zip(batch["img"],preds, pred_kpts)):
+            if not self.confusion_matrix.match_dict:
+                continue
+            matches = self.confusion_matrix.match_dict.pop(0)
+            # Create pseudo-batch of 4 (GT, TP, FP, FN)
+            idx = batch["batch_idx"] == i
+            gt_box = torch.cat([ops.xywh2xyxy(batch["bboxes"][idx]), torch.ones_like(batch["cls"][idx]), batch["cls"][idx]], dim=-1).view(-1, 6)
+            gt_kpt = batch["keypoints"][idx]
+            box_batch = [gt_box]
+            kpt_batch = [gt_kpt]
+            for k in ["TP", "FP", "FN"]:
+                if k == "FN":
+                    boxes = gt_box[matches[k]]
+                    kpts = gt_kpt[matches[k]]
+                else:
+                    boxes = pred[matches[k]] if matches[k] else torch.empty(size=(0,6), device=img.device)
+                    kpts = pred_kpt[matches[k]] if matches[k] else torch.empty(size=(0, *self.kpt_shape), device=img.device)
+                box_batch.append(boxes)
+                kpt_batch.append(kpts)
+            plot_images(
+                img.repeat(4, 1, 1, 1),
+                *output_to_target(box_batch, max_det=self.args.max_det),
+                kpts=torch.cat(kpt_batch, 0),
+                paths=["Ground Truth", "True Positives", "False Positives", "False Negatives"],
+                fname=self.save_dir / "matches" / Path(batch["im_file"][i]).name,
+                names=self.names,
+                on_plot=self.on_plot,
+                max_subplots=4,
+                conf_thres=0.01,
+            )
+
     def save_one_txt(self, predn, pred_kpts, save_conf, shape, file):
         """Save YOLO detections to a txt file in normalized coordinates in a specific format."""
         from ultralytics.engine.results import Results

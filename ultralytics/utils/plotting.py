@@ -1334,7 +1334,7 @@ def output_to_target(output, max_det=300):
 
 
 def output_to_rotated_target(output, max_det=300):
-    """Convert model output to target format [batch_id, class_id, x, y, w, h, conf] for plotting."""
+    """Convert model output to target format [batch_id, class_id, x, y, w, h, angle, conf] for plotting."""
     targets = []
     for i, o in enumerate(output):
         box, conf, cls, angle = o[:max_det].cpu().split((4, 1, 1, 1), 1)

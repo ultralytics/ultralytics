@@ -78,7 +78,7 @@ const data = {
     // d6: { speed: 89.29, mAP: 51.7 },
     // d7: { speed: 128.07, mAP: 53.7 },
     // d8: { speed: 157.57, mAP: 55.1 }
-  }
+  },
 };
 
 let modelComparisonChart = null; // chart variable will hold the reference to the current chart instance.

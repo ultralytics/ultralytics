@@ -140,7 +140,7 @@ def benchmark(
                 filename = model.export(imgsz=imgsz, format=format, half=half, int8=int8, device=device, verbose=False)
                 exported_model = YOLO(filename, task=model.task)
                 assert suffix in str(filename), "export failed"
-            emoji = "❎"  # export succeeded, to differentiate from failed val
+            emoji = "❎"  # indicates export succeeded
 
             # Predict
             assert model.task != "pose" or i != 7, "GraphDef Pose inference is not supported"

@@ -243,19 +243,24 @@ def remove_macros():
 
 
 def remove_comments_and_empty_lines(content, file_type):
-    """Removes comments and empty lines from a string of code."""
+    """Removes comments and empty lines from a string of code, preserving newlines after comments."""
+
     if file_type == "html":
-        # Remove HTML comments
-        content = re.sub(r"<!--(.*?)-->", "", content, flags=re.DOTALL)
+        # Remove HTML comments, preserving newline after comment
+        content = re.sub(r"<!--(.*?)-->\n?", r"\n", content, flags=re.DOTALL)
     elif file_type == "css":
-        # Remove CSS comments
-        content = re.sub(r"/\*.*?\*/", "", content, flags=re.DOTALL)
+        # Remove CSS comments, preserving newline after comment
+        content = re.sub(r"/\*.*?\*/\n?", r"\n", content, flags=re.DOTALL)
     elif file_type == "js":
-        # Remove JS single-line and multi-line comments
-        content = re.sub(r"//.*?\n|/\*.*?\*/", "", content, flags=re.DOTALL)
+        # Remove JS single-line comments, preserving newline
+        content = re.sub(r"//(.*?)\n", r"\n", content, flags=re.DOTALL)
+        # Remove JS multi-line comments, preserving newline after comment
+        content = re.sub(r"/\*.*?\*/\n?", r"\n", content, flags=re.DOTALL)
 
     # Remove empty lines
-    return re.sub(r"^\s*$", "", content, flags=re.MULTILINE)
+    content = re.sub(r"^\s*$", "", content, flags=re.MULTILINE)
+
+    return content
 
 
 def minify_files(html=True, css=True, js=True):

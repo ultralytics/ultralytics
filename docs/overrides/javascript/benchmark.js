@@ -208,13 +208,23 @@ function updateChart(initialDatasets = []) {
   );
 }
 
-document$.subscribe(function () {
+// Add below the data object
+function initChart(enabledModels = Object.keys(data)) {
+  updateChart(enabledModels);
+}
+
+// Update the document$.subscribe block
+document$.subscribe(function() {
   function initializeApp() {
-    if (typeof Chart !== "undefined") {
-      updateChart();
+    if (typeof Chart !== 'undefined') {
+      // Get enabled models from page config or use default
+      const pageConfig = document.getElementById('modelComparisonChart')
+                                .getAttribute('data-enabled-models');
+      const enabledModels = pageConfig ? JSON.parse(pageConfig) : Object.keys(data);
+      initChart(enabledModels);
     } else {
-      setTimeout(initializeApp, 100); // Retry every 100ms
+      setTimeout(initializeApp, 100);
     }
   }
-  initializeApp(); // Initial chart rendering
+  initializeApp();
 });

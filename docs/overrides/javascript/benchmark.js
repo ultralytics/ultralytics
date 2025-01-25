@@ -121,27 +121,30 @@ function updateChart(initialDatasets = []) {
     initialDatasets.length > 0 ? initialDatasets : Object.keys(data);
 
   // Create the datasets for the selected algorithms.
-  const datasets = selectedAlgorithms.map((algorithm, i) => {
+  const datasets = Object.keys(data).map((algorithm, i) => {
     const baseColor =
       colorMap[algorithm] || `hsl(${Math.random() * 360}, 70%, 50%)`;
-    const lineColor = i === 0 ? baseColor : lightenHexColor(baseColor, 0.6); // Lighten non-primary lines.
+    const lineColor =
+      Object.keys(data).indexOf(algorithm) === 0
+        ? baseColor
+        : lightenHexColor(baseColor, 0.6); // Lighten non-primary lines
 
     return {
-      label: algorithm, // Label for the data points in the legend.
+      label: algorithm,
       data: Object.entries(data[algorithm]).map(([version, point]) => ({
-        x: point.speed, // Speed data points on the x-axis.
-        y: point.mAP, // mAP data points on the y-axis.
-        version: version.toUpperCase(), // Store the version as additional data.
+        x: point.speed,
+        y: point.mAP,
+        version: version.toUpperCase(),
       })),
-      fill: false, // Don't fill the chart.
+      fill: false,
       borderColor: lineColor, // Use the lightened color for the line.
-      tension: 0.2, // Smooth the line.
-      pointRadius: i === 0 ? 7 : 4, // Highlight primary dataset points.
-      pointHoverRadius: i === 0 ? 9 : 6, // Highlight hover for primary dataset.
-      pointBackgroundColor: lineColor, // Fill points with the line color.
+      tension: 0.2,
+      pointRadius: Object.keys(data).indexOf(algorithm) === 0 ? 7 : 4,
+      pointHoverRadius: Object.keys(data).indexOf(algorithm) === 0 ? 9 : 6,
+      pointBackgroundColor: lineColor,
       pointBorderColor: "#ffffff", // Add a border around points for contrast.
       borderWidth: i === 0 ? 3 : 1.5, // Slightly increase line size for the primary dataset.
-      hidden: !selectedAlgorithms.includes(algorithm),
+      hidden: !initialDatasets.includes(algorithm),
     };
   });
 
@@ -208,23 +211,21 @@ function updateChart(initialDatasets = []) {
   );
 }
 
-// Add below the data object
-function initChart(enabledModels = Object.keys(data)) {
-  updateChart(enabledModels);
+function initChart(activeModels) {
+  updateChart(activeModels);
 }
 
-// Update the document$.subscribe block
 document$.subscribe(function() {
-  function initializeApp() {
-    if (typeof Chart !== 'undefined') {
-      // Get enabled models from page config or use default
-      const pageConfig = document.getElementById('modelComparisonChart')
-                                .getAttribute('data-enabled-models');
-      const enabledModels = pageConfig ? JSON.parse(pageConfig) : Object.keys(data);
-      initChart(enabledModels);
+  (function initializeApp() {
+    if (typeof Chart !== "undefined") {
+      // Get active models from page config or use default
+      const pageConfig = document
+        .getElementById("modelComparisonChart")
+        .getAttribute("active-models");
+      const activeModels = pageConfig ? JSON.parse(pageConfig) : [];
+      initChart(activeModels);
     } else {
-      setTimeout(initializeApp, 100);
+      setTimeout(initializeApp, 50); // Reduced timeout for faster retry
     }
-  }
-  initializeApp();
+  })();
 });

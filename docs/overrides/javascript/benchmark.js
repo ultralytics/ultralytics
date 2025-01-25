@@ -116,18 +116,14 @@ function updateChart(initialDatasets = []) {
     EfficientDet: "#000000",
   };
 
-  // Get the selected algorithms from the initialDatasets or all if empty.
-  const selectedAlgorithms =
-    initialDatasets.length > 0 ? initialDatasets : Object.keys(data);
-
-  // Create the datasets for the selected algorithms.
-  const datasets = selectedAlgorithms.map((algorithm, i) => {
+  // Always include all models in the dataset creation
+  const datasets = Object.keys(data).map((algorithm, i) => {
     const baseColor =
       colorMap[algorithm] || `hsl(${Math.random() * 360}, 70%, 50%)`;
     const lineColor =
       Object.keys(data).indexOf(algorithm) === 0
         ? baseColor
-        : lightenHexColor(baseColor, 0.6); // Lighten non-primary lines
+        : lightenHexColor(baseColor, 0.6);
 
     return {
       label: algorithm,
@@ -137,14 +133,15 @@ function updateChart(initialDatasets = []) {
         version: version.toUpperCase(),
       })),
       fill: false,
-      borderColor: lineColor, // Use the lightened color for the line.
+      borderColor: lineColor,
       tension: 0.2,
       pointRadius: Object.keys(data).indexOf(algorithm) === 0 ? 7 : 4,
       pointHoverRadius: Object.keys(data).indexOf(algorithm) === 0 ? 9 : 6,
       pointBackgroundColor: lineColor,
-      pointBorderColor: "#ffffff", // Add a border around points for contrast.
-      borderWidth: i === 0 ? 3 : 1.5, // Slightly increase line size for the primary dataset.
-      hidden: false,
+      pointBorderColor: "#ffffff",
+      borderWidth: i === 0 ? 3 : 1.5,
+      hidden:
+        initialDatasets.length > 0 && !initialDatasets.includes(algorithm),
     };
   });
 
@@ -152,7 +149,7 @@ function updateChart(initialDatasets = []) {
   modelComparisonChart = new Chart(
     document.getElementById("modelComparisonChart").getContext("2d"),
     {
-      type: "line", // Set the chart type to line.
+      type: "line",
       data: { datasets },
       options: {
         //aspectRatio: 2.5,  // higher is wider

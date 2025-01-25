@@ -9,7 +9,7 @@ from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.utils import LOGGER, ops
 from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.metrics import OKS_SIGMA, PoseMetrics, box_iou, kpt_iou
-from ultralytics.utils.plotting import output_to_target, plot_images
+from ultralytics.utils.plotting import output_to_target, plot_images, plot_matches
 
 
 class PoseValidator(DetectionValidator):
@@ -111,7 +111,9 @@ class PoseValidator(DetectionValidator):
                     for k in self.stats.keys():
                         self.stats[k].append(stat[k])
                     if self.args.plots:
-                        self.confusion_matrix.process_batch(detections=None, gt_bboxes=bbox, gt_cls=cls)
+                        self.confusion_matrix.process_batch(
+                            detections=None, gt_bboxes=bbox, gt_cls=cls, im_name=Path(batch["im_file"][si]).name
+                        )
                 continue
 
             # Predictions
@@ -126,12 +128,14 @@ class PoseValidator(DetectionValidator):
                 stat["tp"] = self._process_batch(predn, bbox, cls)
                 stat["tp_p"] = self._process_batch(predn, bbox, cls, pred_kpts, pbatch["kpts"])
             if self.args.plots:
-                self.confusion_matrix.process_batch(predn, bbox, cls)
+                self.confusion_matrix.process_batch(predn, bbox, cls, im_name=Path(batch["im_file"][si]).name)
 
             for k in self.stats.keys():
                 self.stats[k].append(stat[k])
 
             # Save
+            if self.args.plots and self.args.visualize:
+                plot_matches(self, batch, preds, si)
             if self.args.save_json:
                 self.pred_to_json(predn, batch["im_file"][si])
             if self.args.save_txt:

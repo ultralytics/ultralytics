@@ -11,7 +11,7 @@ from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.utils import LOGGER, NUM_THREADS, ops
 from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.metrics import SegmentMetrics, box_iou, mask_iou
-from ultralytics.utils.plotting import output_to_target, plot_images
+from ultralytics.utils.plotting import output_to_target, plot_images, plot_matches
 
 
 class SegmentationValidator(DetectionValidator):
@@ -108,7 +108,9 @@ class SegmentationValidator(DetectionValidator):
                     for k in self.stats.keys():
                         self.stats[k].append(stat[k])
                     if self.args.plots:
-                        self.confusion_matrix.process_batch(detections=None, gt_bboxes=bbox, gt_cls=cls)
+                        self.confusion_matrix.process_batch(
+                            detections=None, gt_bboxes=bbox, gt_cls=cls, im_name=Path(batch["im_file"][si]).name
+                        )
                 continue
 
             # Masks
@@ -127,7 +129,7 @@ class SegmentationValidator(DetectionValidator):
                     predn, bbox, cls, pred_masks, gt_masks, self.args.overlap_mask, masks=True
                 )
             if self.args.plots:
-                self.confusion_matrix.process_batch(predn, bbox, cls)
+                self.confusion_matrix.process_batch(predn, bbox, cls, im_name=Path(batch["im_file"][si]).name)
 
             for k in self.stats.keys():
                 self.stats[k].append(stat[k])
@@ -137,6 +139,8 @@ class SegmentationValidator(DetectionValidator):
                 self.plot_masks.append(pred_masks[:15].cpu())  # filter top 15 to plot
 
             # Save
+            if self.args.plots and self.args.visualize:
+                plot_matches(self, batch, preds, si)
             if self.args.save_json:
                 self.pred_to_json(
                     predn,

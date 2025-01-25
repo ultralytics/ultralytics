@@ -260,7 +260,7 @@ def remove_comments_and_empty_lines(content, file_type):
         pass
 
     # Remove empty lines
-    # content = re.sub(r"^\s*\n", "", content, flags=re.MULTILINE)
+    content = re.sub(r"^\s*\n", "", content, flags=re.MULTILINE)
 
     return content
 

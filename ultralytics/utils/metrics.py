@@ -301,7 +301,7 @@ class ConfusionMatrix:
         nc (int): The number of classes.
         conf (float): The confidence threshold for detections.
         iou_thres (float): The Intersection over Union threshold.
-        match_dict (dict, optional): Contains the indices of ground truths and predictions categorized into TP, FP and FN.
+        matches (dict): Contains the indices of ground truths and predictions categorized into TP, FP and FN.
     """
 
     def __init__(self, nc, conf=0.25, iou_thres=0.45, task="detect", save_matches=False):

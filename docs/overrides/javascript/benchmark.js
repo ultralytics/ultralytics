@@ -140,7 +140,8 @@ function updateChart(initialDatasets = []) {
       pointBackgroundColor: lineColor,
       pointBorderColor: "#ffffff",
       borderWidth: i === 0 ? 3 : 1.5,
-      hidden: initialDatasets.length > 0 && !initialDatasets.includes(algorithm),
+      hidden:
+        initialDatasets.length > 0 && !initialDatasets.includes(algorithm),
     };
   });
 

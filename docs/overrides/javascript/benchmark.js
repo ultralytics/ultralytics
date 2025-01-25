@@ -142,7 +142,7 @@ function updateChart(initialDatasets = []) {
         legend: {
           display: true,
           position: "right",
-          align: "center",
+          align: "start",  // start, end, center
           labels: { color: "#808080" },
           onClick: (e, legendItem, legend) => {
             const index = legendItem.datasetIndex;

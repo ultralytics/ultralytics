@@ -201,6 +201,10 @@ def test_val():
     """Test the validation mode of the YOLO model."""
     YOLO(MODEL).val(data="coco8.yaml", imgsz=32, save_hybrid=True)
 
+@pytest.mark.parametrize("task", [task for task in TASKS if task != "classify"])
+def test_val_visualize(task):
+    """Test the validation mode of the YOLO model."""
+    YOLO(TASK2MODEL[task]).val(data=TASK2DATA[task], imgsz=32, visualize=True, exist_ok=True)
 
 def test_train_scratch():
     """Test training the YOLO model from scratch using the provided configuration."""

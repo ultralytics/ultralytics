@@ -4,15 +4,7 @@ description: Learn how to evaluate your YOLO11 model's performance in real-world
 keywords: model benchmarking, YOLO11, Ultralytics, performance evaluation, export formats, ONNX, TensorRT, OpenVINO, CoreML, TensorFlow, optimization, mAP50-95, inference time
 ---
 
-<script>
-  const script = document.createElement('script');
-  script.src = "https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js";
-  document.head.appendChild(script);
 
-  const anotherScript = document.createElement('script');
-  anotherScript.src = "../../javascript/benchmark.js";
-  document.head.appendChild(anotherScript);
-</script>
 
 # Model Benchmarking with Ultralytics YOLO
 
@@ -24,7 +16,9 @@ keywords: model benchmarking, YOLO11, Ultralytics, performance evaluation, expor
 
     You may need to refresh the page to view the graphs correctly due to potential cookie issues.
 
-<canvas id="modelComparisonChart" width="1024" height="430"></canvas>
+<script async src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<script defer src="../../javascript/benchmark.js"></script>
+<canvas id="modelComparisonChart" width="1024" height="400"></canvas>
 
 ## Introduction
 

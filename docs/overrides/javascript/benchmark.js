@@ -215,7 +215,7 @@ function initChart(activeModels) {
   updateChart(activeModels);
 }
 
-document$.subscribe(function() {
+document$.subscribe(function () {
   (function initializeApp() {
     if (typeof Chart !== "undefined") {
       // Get active models from page config or use default

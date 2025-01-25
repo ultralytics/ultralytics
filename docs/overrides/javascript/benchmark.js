@@ -219,6 +219,7 @@ document$.subscribe(function () {
   (function initializeApp() {
     if (typeof Chart !== "undefined") {
       // Get active models from page config or use default
+      // e.g. <canvas id="modelComparisonChart" width="1024" height="400" active-models='["YOLOv5", "YOLOv8"]'></canvas>
       const pageConfig = document
         .getElementById("modelComparisonChart")
         .getAttribute("active-models");

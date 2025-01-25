@@ -75,7 +75,7 @@ from ultralytics.data.dataset import YOLODataset
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.nn.autobackend import check_class_names, default_class_names
 from ultralytics.nn.modules import C2f, Classify, Detect, RTDETRDecoder
-from ultralytics.nn.tasks import DetectionModel, SegmentationModel, WorldModel, ClassificationModel
+from ultralytics.nn.tasks import ClassificationModel, DetectionModel, SegmentationModel, WorldModel
 from ultralytics.utils import (
     ARM64,
     DEFAULT_CFG,
@@ -522,7 +522,7 @@ class Exporter:
             # OBB error https://github.com/pytorch/pytorch/issues/110859#issuecomment-1757841865
             try:
                 torch.onnx.register_custom_op_symbolic("aten::lift_fresh", lambda g, x: x, opset_version)
-            except RuntimeError: # it will fail if it's already registered
+            except RuntimeError:  # it will fail if it's already registered
                 pass
             check_requirements("onnxslim>=0.1.46")  # Older versions has bug with OBB
 

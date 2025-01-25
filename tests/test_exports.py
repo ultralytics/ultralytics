@@ -56,7 +56,14 @@ def test_export_openvino_matrix(task, dynamic, int8, half, batch, nms):
     """Test YOLO model exports to OpenVINO under various configuration matrix conditions."""
     imgsz = 224 if nms and int8 and task == "obb" else 32  # OBB has error with lower imgsz
     file = YOLO(TASK2MODEL[task]).export(
-        format="openvino", imgsz=imgsz, dynamic=dynamic, int8=int8, half=half, batch=batch, data=TASK2DATA[task], nms=nms
+        format="openvino",
+        imgsz=imgsz,
+        dynamic=dynamic,
+        int8=int8,
+        half=half,
+        batch=batch,
+        data=TASK2DATA[task],
+        nms=nms,
     )
     if WINDOWS:
         # Use unique filenames due to Windows file permissions bug possibly due to latent threaded use
@@ -75,7 +82,7 @@ def test_export_openvino_matrix(task, dynamic, int8, half, batch, nms):
         for task, dynamic, int8, half, batch, simplify, nms in product(
             TASKS, [True, False], [False], [False], [1, 2], [True, False], [True, False]
         )
-        if not ((int8 and half) or (task == "classify" and nms)) 
+        if not ((int8 and half) or (task == "classify" and nms))
     ],
 )
 def test_export_onnx_matrix(task, dynamic, int8, half, batch, simplify, nms):

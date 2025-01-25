@@ -226,7 +226,7 @@ document$.subscribe(function () {
       const activeModels = pageConfig ? JSON.parse(pageConfig) : [];
       initChart(activeModels);
     } else {
-      setTimeout(initializeApp, 50); // Reduced timeout for faster retry
+      setTimeout(initializeApp, 50); // Retry every 50 ms
     }
   })();
 });

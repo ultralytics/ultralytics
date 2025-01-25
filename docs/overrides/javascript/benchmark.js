@@ -142,11 +142,8 @@ function updateChart(initialDatasets = []) {
       plugins: {
         legend: {
           display: true,
-          position: "top",
-          labels: {
-            color: "#808080",
-
-          },
+          position: "right",
+          labels: { color: "#808080" },
           onClick: (e, legendItem, legend) => {
             const index = legendItem.datasetIndex;
             const ci = legend.chart;

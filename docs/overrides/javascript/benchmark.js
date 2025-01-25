@@ -37,6 +37,7 @@ const data = {
     l: { speed: 8.95, mAP: 52.8 },
   },
   YOLOv5: {
+    n: { speed: 1.12, mAP: 28.0 },
     s: { speed: 1.92, mAP: 37.4 },
     m: { speed: 4.03, mAP: 45.4 },
     l: { speed: 6.61, mAP: 49.0 },
@@ -66,6 +67,17 @@ const data = {
     m: { speed: 7.51, mAP: 51.9 },
     l: { speed: 9.76, mAP: 53.4 },
     x: { speed: 15.03, mAP: 54.3 },
+  },
+  EfficientDet: {
+    d0: { speed: 3.92, mAP: 33.8 },
+    d1: { speed: 7.31, mAP: 39.6 },
+    d2: { speed: 10.92, mAP: 43.0 },
+    d3: { speed: 19.59, mAP: 45.8 },
+    // d4: { speed: 33.55, mAP: 49.4 },
+    // d5: { speed: 67.86, mAP: 50.7 },
+    // d6: { speed: 89.29, mAP: 51.7 },
+    // d7: { speed: 128.07, mAP: 53.7 },
+    // d8: { speed: 157.57, mAP: 55.1 }
   },
 };
 
@@ -101,6 +113,7 @@ function updateChart(initialDatasets = []) {
     "DAMO-YOLO": "#bcbd22",
     YOLOX: "#17becf",
     RTDETRv2: "#eccd22",
+    EfficientDet: "#000000",
   };
 
   // Get the selected algorithms from the initialDatasets or all if empty.
@@ -179,11 +192,15 @@ function updateChart(initialDatasets = []) {
             },
             grid: { color: "#e0e0e0" },
             ticks: { color: "#808080" },
+            min: 0,
+            max: 18,
           },
           y: {
             title: { display: true, text: "COCO mAP 50-95", color: "#808080" },
             grid: { color: "#e0e0e0" },
             ticks: { color: "#808080" },
+            min: 36,
+            max: 56,
           },
         },
       },

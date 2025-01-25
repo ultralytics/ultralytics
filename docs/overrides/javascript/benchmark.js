@@ -83,7 +83,7 @@ function lightenHexColor(color, amount = 0.5) {
 }
 
 // Function to update the benchmarks chart.
-function updateChart() {
+function updateChart(initialDatasets = []) {
   if (chart) {
     chart.destroy();
   } // If a chart instance already exists, destroy it.
@@ -103,10 +103,11 @@ function updateChart() {
     RTDETRv2: "#eccd22",
   };
 
-  // Get the selected algorithms from the checkboxes.
-  const selectedAlgorithms = [
-    ...document.querySelectorAll('input[name="algorithm"]:checked'),
-  ].map((e) => e.value);
+  // Get the selected algorithms from the initialDatasets or all if empty.
+  const selectedAlgorithms =
+    initialDatasets.length > 0
+      ? initialDatasets
+      : Object.keys(data);
 
   // Create the datasets for the selected algorithms.
   const datasets = selectedAlgorithms.map((algorithm, i) => {
@@ -129,12 +130,9 @@ function updateChart() {
       pointBackgroundColor: lineColor, // Fill points with the line color.
       pointBorderColor: "#ffffff", // Add a border around points for contrast.
       borderWidth: i === 0 ? 3 : 1.5, // Slightly increase line size for the primary dataset.
+      hidden: !selectedAlgorithms.includes(algorithm)
     };
   });
-
-  if (datasets.length === 0) {
-    return;
-  } // If there are no selected algorithms, return without creating a new chart.
 
   // Create a new chart instance.
   chart = new Chart(document.getElementById("chart").getContext("2d"), {
@@ -145,7 +143,17 @@ function updateChart() {
         legend: {
           display: true,
           position: "top",
-          labels: { color: "#808080" },
+          labels: {
+            color: "#808080",
+
+          },
+          onClick: (e, legendItem, legend) => {
+            const index = legendItem.datasetIndex;
+            const ci = legend.chart;
+            const meta = ci.getDatasetMeta(index);
+            meta.hidden = meta.hidden === null ? !ci.data.datasets[index].hidden : null;
+            ci.update();
+          },
         }, // Configure the legend.
         tooltip: {
           callbacks: {
@@ -185,11 +193,6 @@ function updateChart() {
 document$.subscribe(function () {
   function initializeApp() {
     if (typeof Chart !== "undefined") {
-      document
-        .querySelectorAll('input[name="algorithm"]')
-        .forEach((checkbox) =>
-          checkbox.addEventListener("change", updateChart),
-        );
       updateChart();
     } else {
       setTimeout(initializeApp, 100); // Retry every 100ms

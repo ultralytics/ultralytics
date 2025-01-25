@@ -244,7 +244,6 @@ def remove_macros():
 
 def remove_comments_and_empty_lines(content, file_type):
     """Removes comments and empty lines from a string of code."""
-
     if file_type == "html":
         # Remove HTML comments
         content = re.sub(r"<!--(.*?)-->", "", content, flags=re.DOTALL)

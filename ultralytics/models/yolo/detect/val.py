@@ -285,8 +285,8 @@ class DetectionValidator(BaseValidator):
             [ops.xywh2xyxy(batch["bboxes"][idx]), torch.ones_like(batch["cls"][idx]), batch["cls"][idx]], dim=-1
         ).view(-1, 6)
         box_batch = [gt_box]  # add the first element in batch, i.e. GT
-        # add TP, FP, FN as the 2nd, 3rd, 4th elements of batch
-        for k in ["TP", "FP", "FN"]:  # order is important. DO NOT change to set.
+        # add FP, TP, FN as the 2nd, 3rd, 4th elements of batch
+        for k in ["FP", "TP", "FN"]:  # order is important. DO NOT change to set.
             if k == "FN":
                 boxes = gt_box[matches[k]]
             else:
@@ -295,7 +295,7 @@ class DetectionValidator(BaseValidator):
         plot_images(
             img.repeat(4, 1, 1, 1),
             *output_to_target(box_batch, max_det=self.args.max_det),
-            paths=["Ground Truth", "True Positives", "False Positives", "False Negatives"],
+            paths=["Ground Truth", "False Positives", "True Positives",, "False Negatives"],
             fname=self.save_dir / "visualizations" / Path(batch["im_file"][ni]).name,
             names=self.names,
             on_plot=self.on_plot,

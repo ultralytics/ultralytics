@@ -262,7 +262,7 @@ class SegmentationValidator(DetectionValidator):
             gt_mask = gt_mask == idxs[:, None, None]
         box_batch = [gt_box]
         mask_batch = [gt_mask]
-        for k in ["TP", "FP", "FN"]:  # order is important. DO NOT change to set.
+        for k in ["FP", "TP", "FN"]:  # order is important. DO NOT change to set.
             if k == "FN":
                 boxes = gt_box[matches[k]]
                 masks = gt_mask[matches[k]]
@@ -277,7 +277,7 @@ class SegmentationValidator(DetectionValidator):
             img.repeat(4, 1, 1, 1),
             *output_to_target(box_batch, max_det=self.args.max_det),
             torch.cat(mask_batch, 0),
-            paths=["Ground Truth", "True Positives", "False Positives", "False Negatives"],
+            paths=["Ground Truth", "False Positives", "True Positives", "False Negatives"],
             fname=self.save_dir / "visualizations" / Path(batch["im_file"][ni]).name,
             names=self.names,
             on_plot=self.on_plot,

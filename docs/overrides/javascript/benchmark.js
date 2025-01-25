@@ -105,9 +105,7 @@ function updateChart(initialDatasets = []) {
 
   // Get the selected algorithms from the initialDatasets or all if empty.
   const selectedAlgorithms =
-    initialDatasets.length > 0
-      ? initialDatasets
-      : Object.keys(data);
+    initialDatasets.length > 0 ? initialDatasets : Object.keys(data);
 
   // Create the datasets for the selected algorithms.
   const datasets = selectedAlgorithms.map((algorithm, i) => {
@@ -130,7 +128,7 @@ function updateChart(initialDatasets = []) {
       pointBackgroundColor: lineColor, // Fill points with the line color.
       pointBorderColor: "#ffffff", // Add a border around points for contrast.
       borderWidth: i === 0 ? 3 : 1.5, // Slightly increase line size for the primary dataset.
-      hidden: !selectedAlgorithms.includes(algorithm)
+      hidden: !selectedAlgorithms.includes(algorithm),
     };
   });
 
@@ -148,7 +146,8 @@ function updateChart(initialDatasets = []) {
             const index = legendItem.datasetIndex;
             const ci = legend.chart;
             const meta = ci.getDatasetMeta(index);
-            meta.hidden = meta.hidden === null ? !ci.data.datasets[index].hidden : null;
+            meta.hidden =
+              meta.hidden === null ? !ci.data.datasets[index].hidden : null;
             ci.update();
           },
         }, // Configure the legend.

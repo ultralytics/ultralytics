@@ -37,6 +37,7 @@ const data = {
     l: { speed: 8.95, mAP: 52.8 },
   },
   YOLOv5: {
+    n: { speed: 1.12, mAP: 28.0 },
     s: { speed: 1.92, mAP: 37.4 },
     m: { speed: 4.03, mAP: 45.4 },
     l: { speed: 6.61, mAP: 49.0 },
@@ -67,6 +68,17 @@ const data = {
     l: { speed: 9.76, mAP: 53.4 },
     x: { speed: 15.03, mAP: 54.3 },
   },
+  EfficientDet: {
+    d0: { speed: 3.92, mAP: 33.8 },
+    d1: { speed: 7.31, mAP: 39.6 },
+    d2: { speed: 10.92, mAP: 43.0 },
+    d3: { speed: 19.59, mAP: 45.8 },
+    // d4: { speed: 33.55, mAP: 49.4 },
+    // d5: { speed: 67.86, mAP: 50.7 },
+    // d6: { speed: 89.29, mAP: 51.7 },
+    // d7: { speed: 128.07, mAP: 53.7 },
+    // d8: { speed: 157.57, mAP: 55.1 }
+  }
 };
 
 let modelComparisonChart = null; // chart variable will hold the reference to the current chart instance.

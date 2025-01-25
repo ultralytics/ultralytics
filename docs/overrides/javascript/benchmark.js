@@ -133,59 +133,62 @@ function updateChart(initialDatasets = []) {
   });
 
   // Create a new chart instance.
-  modelComparisonChart = new Chart(document.getElementById("modelComparisonChart").getContext("2d"), {
-    type: "line", // Set the chart type to line.
-    data: { datasets },
-    options: {
-      //aspectRatio: 2.5,  // higher is wider
-      plugins: {
-        legend: {
-          display: true,
-          position: "right",
-          align: "center",
-          labels: { color: "#808080" },
-          onClick: (e, legendItem, legend) => {
-            const index = legendItem.datasetIndex;
-            const ci = legend.chart;
-            const meta = ci.getDatasetMeta(index);
-            meta.hidden =
-              meta.hidden === null ? !ci.data.datasets[index].hidden : null;
-            ci.update();
-          },
-        }, // Configure the legend.
-        tooltip: {
-          callbacks: {
-            label: (tooltipItem) => {
-              const { dataset, dataIndex } = tooltipItem;
-              const point = dataset.data[dataIndex];
-              return `${dataset.label}${point.version.toLowerCase()}: Speed = ${point.x}, mAP = ${point.y}`; // Custom tooltip label.
-            },
-          },
-          mode: "nearest",
-          intersect: false,
-        }, // Configure the tooltip.
-      },
-      interaction: { mode: "nearest", axis: "x", intersect: false }, // Configure the interaction mode.
-      scales: {
-        x: {
-          type: "linear",
-          position: "bottom",
-          title: {
+  modelComparisonChart = new Chart(
+    document.getElementById("modelComparisonChart").getContext("2d"),
+    {
+      type: "line", // Set the chart type to line.
+      data: { datasets },
+      options: {
+        //aspectRatio: 2.5,  // higher is wider
+        plugins: {
+          legend: {
             display: true,
-            text: "Latency T4 TensorRT10 FP16 (ms/img)",
-            color: "#808080",
-          },
-          grid: { color: "#e0e0e0" },
-          ticks: { color: "#808080" },
+            position: "right",
+            align: "center",
+            labels: { color: "#808080" },
+            onClick: (e, legendItem, legend) => {
+              const index = legendItem.datasetIndex;
+              const ci = legend.chart;
+              const meta = ci.getDatasetMeta(index);
+              meta.hidden =
+                meta.hidden === null ? !ci.data.datasets[index].hidden : null;
+              ci.update();
+            },
+          }, // Configure the legend.
+          tooltip: {
+            callbacks: {
+              label: (tooltipItem) => {
+                const { dataset, dataIndex } = tooltipItem;
+                const point = dataset.data[dataIndex];
+                return `${dataset.label}${point.version.toLowerCase()}: Speed = ${point.x}, mAP = ${point.y}`; // Custom tooltip label.
+              },
+            },
+            mode: "nearest",
+            intersect: false,
+          }, // Configure the tooltip.
         },
-        y: {
-          title: { display: true, text: "COCO mAP 50-95", color: "#808080" },
-          grid: { color: "#e0e0e0" },
-          ticks: { color: "#808080" },
+        interaction: { mode: "nearest", axis: "x", intersect: false }, // Configure the interaction mode.
+        scales: {
+          x: {
+            type: "linear",
+            position: "bottom",
+            title: {
+              display: true,
+              text: "Latency T4 TensorRT10 FP16 (ms/img)",
+              color: "#808080",
+            },
+            grid: { color: "#e0e0e0" },
+            ticks: { color: "#808080" },
+          },
+          y: {
+            title: { display: true, text: "COCO mAP 50-95", color: "#808080" },
+            grid: { color: "#e0e0e0" },
+            ticks: { color: "#808080" },
+          },
         },
       },
     },
-  });
+  );
 }
 
 document$.subscribe(function () {

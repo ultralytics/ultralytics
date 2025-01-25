@@ -9,7 +9,7 @@ from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.utils import LOGGER, ops
 from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.metrics import OKS_SIGMA, PoseMetrics, box_iou, kpt_iou
-from ultralytics.utils.plotting import output_to_target, plot_images
+from ultralytics.utils.plotting import output_to_target, plot_images, plot_matches
 
 
 class PoseValidator(DetectionValidator):
@@ -148,7 +148,7 @@ class PoseValidator(DetectionValidator):
 
             # Save
             if self.args.plots and self.args.visualize:
-                self.plot_matches(batch, preds, si)
+                plot_matches(self, batch, preds, si)
             if self.args.save_json:
                 self.pred_to_json(predn, batch["im_file"][si])
             if self.args.save_txt:
@@ -226,42 +226,6 @@ class PoseValidator(DetectionValidator):
             names=self.names,
             on_plot=self.on_plot,
         )  # pred
-
-    def plot_matches(self, batch, preds, ni):
-        """Plot grid of GT, TP, FP, FN for each image."""
-        if not self.confusion_matrix.matches:
-            return
-        pred_kpts = [p[:, 6:].view(-1, *self.kpt_shape) for p in preds]
-        img, pred, pred_kpt = batch["img"][ni], preds[ni], pred_kpts[ni]
-        matches = self.confusion_matrix.matches[Path(batch["im_file"][ni]).name]
-        # Create batch of 4 (GT, TP, FP, FN)
-        idx = batch["batch_idx"] == ni
-        gt_box = torch.cat(
-            [ops.xywh2xyxy(batch["bboxes"][idx]), torch.ones_like(batch["cls"][idx]), batch["cls"][idx]], dim=-1
-        ).view(-1, 6)
-        gt_kpt = batch["keypoints"][idx]
-        box_batch = [gt_box]
-        kpt_batch = [gt_kpt]
-        for k in ["FP", "TP", "FN"]:  # order is important. DO NOT change to set.
-            if k == "FN":
-                boxes = gt_box[matches[k]]
-                kpts = gt_kpt[matches[k]]
-            else:
-                boxes = pred[matches[k]] if matches[k] else torch.empty(size=(0, 6), device=img.device)
-                kpts = pred_kpt[matches[k]] if matches[k] else torch.empty(size=(0, *self.kpt_shape), device=img.device)
-            box_batch.append(boxes)
-            kpt_batch.append(kpts)
-        plot_images(
-            img.repeat(4, 1, 1, 1),
-            *output_to_target(box_batch, max_det=self.args.max_det),
-            kpts=torch.cat(kpt_batch, 0),
-            paths=["Ground Truth", "False Positives", "True Positives", "False Negatives"],
-            fname=self.save_dir / "visualizations" / Path(batch["im_file"][ni]).name,
-            names=self.names,
-            on_plot=self.on_plot,
-            max_subplots=4,
-            conf_thres=0.001,
-        )
 
     def save_one_txt(self, predn, pred_kpts, save_conf, shape, file):
         """Save YOLO detections to a txt file in normalized coordinates in a specific format."""

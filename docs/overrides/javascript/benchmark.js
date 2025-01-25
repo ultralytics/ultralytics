@@ -69,7 +69,7 @@ const data = {
   },
 };
 
-let chart = null; // chart variable will hold the reference to the current chart instance.
+let modelComparisonChart = null; // chart variable will hold the reference to the current chart instance.
 
 // Function to lighten a hex color by a specified amount.
 function lightenHexColor(color, amount = 0.5) {
@@ -83,9 +83,9 @@ function lightenHexColor(color, amount = 0.5) {
 }
 
 // Function to update the benchmarks chart.
-function updateChart() {
-  if (chart) {
-    chart.destroy();
+function updateChart(initialDatasets = []) {
+  if (modelComparisonChart) {
+    modelComparisonChart.destroy();
   } // If a chart instance already exists, destroy it.
 
   // Define a specific color map for models.
@@ -103,10 +103,9 @@ function updateChart() {
     RTDETRv2: "#eccd22",
   };
 
-  // Get the selected algorithms from the checkboxes.
-  const selectedAlgorithms = [
-    ...document.querySelectorAll('input[name="algorithm"]:checked'),
-  ].map((e) => e.value);
+  // Get the selected algorithms from the initialDatasets or all if empty.
+  const selectedAlgorithms =
+    initialDatasets.length > 0 ? initialDatasets : Object.keys(data);
 
   // Create the datasets for the selected algorithms.
   const datasets = selectedAlgorithms.map((algorithm, i) => {
@@ -123,73 +122,78 @@ function updateChart() {
       })),
       fill: false, // Don't fill the chart.
       borderColor: lineColor, // Use the lightened color for the line.
-      tension: 0.3, // Smooth the line.
+      tension: 0.2, // Smooth the line.
       pointRadius: i === 0 ? 7 : 4, // Highlight primary dataset points.
       pointHoverRadius: i === 0 ? 9 : 6, // Highlight hover for primary dataset.
       pointBackgroundColor: lineColor, // Fill points with the line color.
       pointBorderColor: "#ffffff", // Add a border around points for contrast.
       borderWidth: i === 0 ? 3 : 1.5, // Slightly increase line size for the primary dataset.
+      hidden: !selectedAlgorithms.includes(algorithm),
     };
   });
 
-  if (datasets.length === 0) {
-    return;
-  } // If there are no selected algorithms, return without creating a new chart.
-
   // Create a new chart instance.
-  chart = new Chart(document.getElementById("chart").getContext("2d"), {
-    type: "line", // Set the chart type to line.
-    data: { datasets },
-    options: {
-      plugins: {
-        legend: {
-          display: true,
-          position: "top",
-          labels: { color: "#808080" },
-        }, // Configure the legend.
-        tooltip: {
-          callbacks: {
-            label: (tooltipItem) => {
-              const { dataset, dataIndex } = tooltipItem;
-              const point = dataset.data[dataIndex];
-              return `${dataset.label}${point.version.toLowerCase()}: Speed = ${point.x}, mAP = ${point.y}`; // Custom tooltip label.
-            },
-          },
-          mode: "nearest",
-          intersect: false,
-        }, // Configure the tooltip.
-      },
-      interaction: { mode: "nearest", axis: "x", intersect: false }, // Configure the interaction mode.
-      scales: {
-        x: {
-          type: "linear",
-          position: "bottom",
-          title: {
+  modelComparisonChart = new Chart(
+    document.getElementById("modelComparisonChart").getContext("2d"),
+    {
+      type: "line", // Set the chart type to line.
+      data: { datasets },
+      options: {
+        //aspectRatio: 2.5,  // higher is wider
+        plugins: {
+          legend: {
             display: true,
-            text: "Latency T4 TensorRT10 FP16 (ms/img)",
-            color: "#808080",
-          }, // X-axis title.
-          grid: { color: "#e0e0e0" }, // Grid line color.
-          ticks: { color: "#808080" }, // Tick label color.
+            position: "right",
+            align: "start", // start, end, center
+            labels: { color: "#808080" },
+            onClick: (e, legendItem, legend) => {
+              const index = legendItem.datasetIndex;
+              const ci = legend.chart;
+              const meta = ci.getDatasetMeta(index);
+              meta.hidden =
+                meta.hidden === null ? !ci.data.datasets[index].hidden : null;
+              ci.update();
+            },
+          }, // Configure the legend.
+          tooltip: {
+            callbacks: {
+              label: (tooltipItem) => {
+                const { dataset, dataIndex } = tooltipItem;
+                const point = dataset.data[dataIndex];
+                return `${dataset.label}${point.version.toLowerCase()}: Speed = ${point.x}, mAP = ${point.y}`; // Custom tooltip label.
+              },
+            },
+            mode: "nearest",
+            intersect: false,
+          }, // Configure the tooltip.
         },
-        y: {
-          title: { display: true, text: "mAP", color: "#808080" }, // Y-axis title.
-          grid: { color: "#e0e0e0" }, // Grid line color.
-          ticks: { color: "#808080" }, // Tick label color.
+        interaction: { mode: "nearest", axis: "x", intersect: false }, // Configure the interaction mode.
+        scales: {
+          x: {
+            type: "linear",
+            position: "bottom",
+            title: {
+              display: true,
+              text: "Latency T4 TensorRT10 FP16 (ms/img)",
+              color: "#808080",
+            },
+            grid: { color: "#e0e0e0" },
+            ticks: { color: "#808080" },
+          },
+          y: {
+            title: { display: true, text: "COCO mAP 50-95", color: "#808080" },
+            grid: { color: "#e0e0e0" },
+            ticks: { color: "#808080" },
+          },
         },
       },
     },
-  });
+  );
 }
 
 document$.subscribe(function () {
   function initializeApp() {
     if (typeof Chart !== "undefined") {
-      document
-        .querySelectorAll('input[name="algorithm"]')
-        .forEach((checkbox) =>
-          checkbox.addEventListener("change", updateChart),
-        );
       updateChart();
     } else {
       setTimeout(initializeApp, 100); // Retry every 100ms

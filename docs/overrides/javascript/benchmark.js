@@ -118,8 +118,12 @@ function updateChart(initialDatasets = []) {
 
   // Always include all models in the dataset creation
   const datasets = Object.keys(data).map((algorithm, i) => {
-    const baseColor = colorMap[algorithm] || `hsl(${Math.random() * 360}, 70%, 50%)`;
-    const lineColor = Object.keys(data).indexOf(algorithm) === 0 ? baseColor : lightenHexColor(baseColor, 0.6);
+    const baseColor =
+      colorMap[algorithm] || `hsl(${Math.random() * 360}, 70%, 50%)`;
+    const lineColor =
+      Object.keys(data).indexOf(algorithm) === 0
+        ? baseColor
+        : lightenHexColor(baseColor, 0.6);
 
     return {
       label: algorithm,
@@ -137,7 +141,8 @@ function updateChart(initialDatasets = []) {
       pointBorderColor: "#ffffff",
       borderWidth: i === 0 ? 3 : 1.5,
       // Set hidden based on whether the model is in initialDatasets
-      hidden: initialDatasets.length > 0 && !initialDatasets.includes(algorithm),
+      hidden:
+        initialDatasets.length > 0 && !initialDatasets.includes(algorithm),
     };
   });
 

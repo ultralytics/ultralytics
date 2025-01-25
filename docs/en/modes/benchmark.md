@@ -25,7 +25,9 @@ keywords: model benchmarking, YOLO11, Ultralytics, performance evaluation, expor
     You may need to refresh the page to view the graphs correctly due to potential cookie issues.
 
 <div style="display: flex; align-items: flex-start;">
-  <div style="flex-grow: 1;"><canvas id="chart"></canvas></div>
+  <div style="flex-grow: 1; position: relative;">
+    <canvas id="chart" height="110"></canvas>
+  </div>
 </div>
 
 ## Introduction

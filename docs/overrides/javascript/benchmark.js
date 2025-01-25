@@ -139,10 +139,12 @@ function updateChart(initialDatasets = []) {
     type: "line", // Set the chart type to line.
     data: { datasets },
     options: {
+      //aspectRatio: 2.5,  // higher is wider
       plugins: {
         legend: {
           display: true,
           position: "right",
+          // align: "center",
           labels: { color: "#808080" },
           onClick: (e, legendItem, legend) => {
             const index = legendItem.datasetIndex;

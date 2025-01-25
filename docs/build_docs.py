@@ -242,6 +242,29 @@ def remove_macros():
     print(f"Removed {len(macros_indices)} URLs containing '/macros/' from {sitemap}")
 
 
+def remove_comments_and_empty_lines(content, file_type):
+    """Removes comments and empty lines from a string of code, preserving newlines and URLs."""
+    if file_type == "html":
+        # Remove HTML comments, preserving newline after comment
+        # content = re.sub(r"<!--(.*?)-->\n?", r"\n", content, flags=re.DOTALL)
+        pass
+    elif file_type == "css":
+        # Remove CSS comments, preserving newline after comment
+        # content = re.sub(r"/\*.*?\*/\n?", r"\n", content, flags=re.DOTALL)
+        pass
+    elif file_type == "js":
+        # Remove JS single-line comments, preserving newline and URLs
+        # content = re.sub(r"(?<!:)//(.*?)\n", r"\n", content, flags=re.DOTALL)
+        # Remove JS multi-line comments, preserving newline after comment
+        # content = re.sub(r"/\*.*?\*/\n?", r"\n", content, flags=re.DOTALL)
+        pass
+
+    # Remove empty lines
+    content = re.sub(r"^\s*\n", "", content, flags=re.MULTILINE)
+
+    return content
+
+
 def minify_files(html=True, css=True, js=True):
     """Minifies HTML, CSS, and JS files and prints total reduction stats."""
     minify, compress, jsmin = None, None, None
@@ -262,14 +285,11 @@ def minify_files(html=True, css=True, js=True):
         "css": compress if css else None,
         "js": jsmin.jsmin if js else None,
     }.items():
-        if not minifier:
-            continue
-
         stats[ext] = {"original": 0, "minified": 0}
         directory = ""  # "stylesheets" if ext == css else "javascript" if ext == "js" else ""
         for f in tqdm((SITE / directory).rglob(f"*.{ext}"), desc=f"Minifying {ext.upper()}"):
             content = f.read_text(encoding="utf-8")
-            minified = minifier(content)
+            minified = minifier(content) if minifier else remove_comments_and_empty_lines(content, ext)
             stats[ext]["original"] += len(content)
             stats[ext]["minified"] += len(minified)
             f.write_text(minified, encoding="utf-8")

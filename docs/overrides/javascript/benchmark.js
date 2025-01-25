@@ -142,6 +142,7 @@ function updateChart(initialDatasets = []) {
         legend: {
           display: true,
           position: "right",
+          align: "center",
           labels: { color: "#808080" },
           onClick: (e, legendItem, legend) => {
             const index = legendItem.datasetIndex;
@@ -169,18 +170,14 @@ function updateChart(initialDatasets = []) {
         x: {
           type: "linear",
           position: "bottom",
-          title: {
-            display: true,
-            text: "Latency T4 TensorRT10 FP16 (ms/img)",
-            color: "#808080",
-          }, // X-axis title.
-          grid: { color: "#e0e0e0" }, // Grid line color.
-          ticks: { color: "#808080" }, // Tick label color.
+          title: {display: true, text: "Latency T4 TensorRT10 FP16 (ms/img)", color: "#808080"},
+          grid: { color: "#e0e0e0" },
+          ticks: { color: "#808080" },
         },
         y: {
-          title: { display: true, text: "mAP", color: "#808080" }, // Y-axis title.
-          grid: { color: "#e0e0e0" }, // Grid line color.
-          ticks: { color: "#808080" }, // Tick label color.
+          title: { display: true, text: "mAP", color: "#808080" },
+          grid: { color: "#e0e0e0" },
+          ticks: { color: "#808080" },
         },
       },
     },

@@ -113,6 +113,7 @@ function updateChart(initialDatasets = []) {
     "DAMO-YOLO": "#bcbd22",
     YOLOX: "#17becf",
     RTDETRv2: "#eccd22",
+    EfficientDet: "#000000",
   };
 
   // Get the selected algorithms from the initialDatasets or all if empty.

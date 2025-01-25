@@ -122,7 +122,7 @@ function updateChart(initialDatasets = []) {
       })),
       fill: false, // Don't fill the chart.
       borderColor: lineColor, // Use the lightened color for the line.
-      tension: 0.3, // Smooth the line.
+      tension: 0.2, // Smooth the line.
       pointRadius: i === 0 ? 7 : 4, // Highlight primary dataset points.
       pointHoverRadius: i === 0 ? 9 : 6, // Highlight hover for primary dataset.
       pointBackgroundColor: lineColor, // Fill points with the line color.
@@ -179,7 +179,7 @@ function updateChart(initialDatasets = []) {
           ticks: { color: "#808080" },
         },
         y: {
-          title: { display: true, text: "mAP", color: "#808080" },
+          title: { display: true, text: "COCO mAP 50-95", color: "#808080" },
           grid: { color: "#e0e0e0" },
           ticks: { color: "#808080" },
         },

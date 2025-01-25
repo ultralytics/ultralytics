@@ -1382,14 +1382,16 @@ def plot_matches(validator, batch, preds, ni):
 
     # add FP, TP, FN as the 2nd, 3rd, 4th elements of batch
     for k in ["FP", "TP", "FN"]:  # order is important; don't change to set
-        if k == "FN": # FN is derived from GT
+        if k == "FN":  # FN is derived from GT
             boxes = gt_box[matches[k]]
             if extra_batch is not None:
                 extra = extra_batch[0][matches[k]]
         else:
             boxes = pred[matches[k]] if matches[k] else torch.empty(size=(0, box_dims), device=device)
             if task == "pose":
-                extra = pred_kpt[matches[k]] if matches[k] else torch.empty(size=(0, *validator.kpt_shape), device=device)
+                extra = (
+                    pred_kpt[matches[k]] if matches[k] else torch.empty(size=(0, *validator.kpt_shape), device=device)
+                )
             elif task == "segment":
                 extra = (
                     validator.process(
@@ -1397,7 +1399,7 @@ def plot_matches(validator, batch, preds, ni):
                         boxes[:, 6:].view(-1, pred_mask.shape[0]),
                         boxes[:, :4].view(-1, 4),
                         shape=img.shape[1:],
-                    ) # process mask
+                    )  # process mask
                 )
         box_batch.append(boxes)
         if extra_batch is not None:

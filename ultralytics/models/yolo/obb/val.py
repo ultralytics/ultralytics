@@ -139,7 +139,7 @@ class OBBValidator(DetectionValidator):
             img.repeat(4, 1, 1, 1),
             *output_to_rotated_target(box_batch, max_det=self.args.max_det),
             paths=["Ground Truth", "False Positives", "True Positives", "False Negatives"],
-            fname=self.save_dir / "visualizations" / Path(batch['im_file'][ni]).name,
+            fname=self.save_dir / "visualizations" / Path(batch["im_file"][ni]).name,
             names=self.names,
             on_plot=self.on_plot,
             max_subplots=4,

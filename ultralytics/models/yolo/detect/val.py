@@ -146,7 +146,9 @@ class DetectionValidator(BaseValidator):
                     for k in self.stats.keys():
                         self.stats[k].append(stat[k])
                     if self.args.plots:
-                        self.confusion_matrix.process_batch(detections=None, gt_bboxes=bbox, gt_cls=cls, im_name=Path(batch['im_file'][si]).name)
+                        self.confusion_matrix.process_batch(
+                            detections=None, gt_bboxes=bbox, gt_cls=cls, im_name=Path(batch["im_file"][si]).name
+                        )
                 continue
 
             # Predictions
@@ -160,7 +162,7 @@ class DetectionValidator(BaseValidator):
             if nl:
                 stat["tp"] = self._process_batch(predn, bbox, cls)
             if self.args.plots:
-                self.confusion_matrix.process_batch(predn, bbox, cls, im_name=Path(batch['im_file'][si]).name)
+                self.confusion_matrix.process_batch(predn, bbox, cls, im_name=Path(batch["im_file"][si]).name)
             for k in self.stats.keys():
                 self.stats[k].append(stat[k])
 
@@ -296,7 +298,7 @@ class DetectionValidator(BaseValidator):
             img.repeat(4, 1, 1, 1),
             *output_to_target(box_batch, max_det=self.args.max_det),
             paths=["Ground Truth", "False Positives", "True Positives", "False Negatives"],
-            fname=self.save_dir / "visualizations" / Path(batch['im_file'][ni]).name,
+            fname=self.save_dir / "visualizations" / Path(batch["im_file"][ni]).name,
             names=self.names,
             on_plot=self.on_plot,
             max_subplots=4,

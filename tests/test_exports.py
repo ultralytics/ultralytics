@@ -54,10 +54,9 @@ def test_export_openvino():
 )
 def test_export_openvino_matrix(task, dynamic, int8, half, batch, nms):
     """Test YOLO model exports to OpenVINO under various configuration matrix conditions."""
-    imgsz = 224 if nms and int8 and task == "obb" else 32  # OBB has error with lower imgsz
     file = YOLO(TASK2MODEL[task]).export(
         format="openvino",
-        imgsz=imgsz,
+        imgsz=32,
         dynamic=dynamic,
         int8=int8,
         half=half,
@@ -70,7 +69,7 @@ def test_export_openvino_matrix(task, dynamic, int8, half, batch, nms):
         # See https://github.com/ultralytics/ultralytics/actions/runs/8957949304/job/24601616830?pr=10423
         file = Path(file)
         file = file.rename(file.with_stem(f"{file.stem}-{uuid.uuid4()}"))
-    YOLO(file)([SOURCE] * batch, imgsz=64 if dynamic else imgsz)  # exported model inference
+    YOLO(file)([SOURCE] * batch, imgsz=64 if dynamic else 32)  # exported model inference
     shutil.rmtree(file, ignore_errors=True)  # retry in case of potential lingering multi-threaded file usage errors
 
 
@@ -153,11 +152,10 @@ def test_export_coreml_matrix(task, dynamic, int8, half, batch):
 )
 def test_export_tflite_matrix(task, dynamic, int8, half, batch, nms):
     """Test YOLO exports to TFLite format considering various export configurations."""
-    imgsz = 128 if nms and task != "obb" else 32  # error with lower imgsz
     file = YOLO(TASK2MODEL[task]).export(
-        format="tflite", imgsz=imgsz, dynamic=dynamic, int8=int8, half=half, batch=batch, nms=nms
+        format="tflite", imgsz=32, dynamic=dynamic, int8=int8, half=half, batch=batch, nms=nms
     )
-    YOLO(file)([SOURCE] * batch, imgsz=imgsz)  # exported model inference at batch=3
+    YOLO(file)([SOURCE] * batch, imgsz=32)  # exported model inference at batch=3
     Path(file).unlink()  # cleanup
 
 

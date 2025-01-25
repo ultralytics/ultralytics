@@ -15,7 +15,7 @@ from PIL import Image
 
 from tests import CFG, MODEL, SOURCE, SOURCES_LIST, TMP
 from ultralytics import RTDETR, YOLO
-from ultralytics.cfg import MODELS, TASK2DATA, TASKS
+from ultralytics.cfg import MODELS, TASK2DATA, TASK2MODEL, TASKS
 from ultralytics.data.build import load_inference_source
 from ultralytics.utils import (
     ASSETS,
@@ -205,7 +205,7 @@ def test_val():
 @pytest.mark.parametrize("task", [task for task in TASKS if task != "classify"])
 def test_val_visualize(task):
     """Test the validation mode of the YOLO model."""
-    YOLO(TASK2MODEL[task]).val(data=TASK2DATA[task], imgsz=32, visualize=True, exist_ok=True)
+    YOLO(TASK2MODEL[task]).val(data=TASK2DATA[task], imgsz=32, visualize=True)
 
 
 def test_train_scratch():

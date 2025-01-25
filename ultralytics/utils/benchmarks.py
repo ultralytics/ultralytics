@@ -140,7 +140,7 @@ def benchmark(
                 filename = model.export(imgsz=imgsz, format=format, half=half, int8=int8, device=device, verbose=False)
                 exported_model = YOLO(filename, task=model.task)
                 assert suffix in str(filename), "export failed"
-            emoji = "✅"  # indicates export succeeded
+            emoji = "❎"  # export succeeded, to differentiate from failed val
 
             # Predict
             assert model.task != "pose" or i != 7, "GraphDef Pose inference is not supported"
@@ -158,7 +158,7 @@ def benchmark(
             )
             metric, speed = results.results_dict[key], results.speed["inference"]
             fps = round(1000 / (speed + eps), 2)  # frames per second
-            y.append([name, emoji, round(file_size(filename), 1), round(metric, 4), round(speed, 2), fps])
+            y.append([name, "✅", round(file_size(filename), 1), round(metric, 4), round(speed, 2), fps])
         except Exception as e:
             if verbose:
                 assert type(e) is AssertionError, f"Benchmark failure for {name}: {e}"

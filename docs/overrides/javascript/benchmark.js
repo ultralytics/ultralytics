@@ -78,7 +78,7 @@ const data = {
     // d6: { speed: 89.29, mAP: 51.7 },
     // d7: { speed: 128.07, mAP: 53.7 },
     // d8: { speed: 157.57, mAP: 55.1 }
-  },
+  }
 };
 
 let modelComparisonChart = null; // chart variable will hold the reference to the current chart instance.
@@ -191,11 +191,15 @@ function updateChart(initialDatasets = []) {
             },
             grid: { color: "#e0e0e0" },
             ticks: { color: "#808080" },
+            min: 0,
+            max: 18,
           },
           y: {
             title: { display: true, text: "COCO mAP 50-95", color: "#808080" },
             grid: { color: "#e0e0e0" },
             ticks: { color: "#808080" },
+            min: 36,
+            max: 56,
           },
         },
       },

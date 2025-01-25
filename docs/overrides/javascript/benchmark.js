@@ -170,7 +170,11 @@ function updateChart(initialDatasets = []) {
         x: {
           type: "linear",
           position: "bottom",
-          title: {display: true, text: "Latency T4 TensorRT10 FP16 (ms/img)", color: "#808080"},
+          title: {
+            display: true,
+            text: "Latency T4 TensorRT10 FP16 (ms/img)",
+            color: "#808080",
+          },
           grid: { color: "#e0e0e0" },
           ticks: { color: "#808080" },
         },

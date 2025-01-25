@@ -247,18 +247,20 @@ def remove_comments_and_empty_lines(content, file_type):
 
     if file_type == "html":
         # Remove HTML comments, preserving newline after comment
-        content = re.sub(r"<!--(.*?)-->\n?", r"\n", content, flags=re.DOTALL)
+        # content = re.sub(r"<!--(.*?)-->\n?", r"\n", content, flags=re.DOTALL)
+        pass
     elif file_type == "css":
         # Remove CSS comments, preserving newline after comment
         content = re.sub(r"/\*.*?\*/\n?", r"\n", content, flags=re.DOTALL)
     elif file_type == "js":
         # Remove JS single-line comments, preserving newline and URLs
-        content = re.sub(r"(?<!:)//(.*?)\n", r"\n", content, flags=re.DOTALL)
+        # content = re.sub(r"(?<!:)//(.*?)\n", r"\n", content, flags=re.DOTALL)
         # Remove JS multi-line comments, preserving newline after comment
-        content = re.sub(r"/\*.*?\*/\n?", r"\n", content, flags=re.DOTALL)
+        # content = re.sub(r"/\*.*?\*/\n?", r"\n", content, flags=re.DOTALL)
+        pass
 
     # Remove empty lines
-    content = re.sub(r"^\s*\n", "", content, flags=re.MULTILINE)
+    # content = re.sub(r"^\s*\n", "", content, flags=re.MULTILINE)
 
     return content
 

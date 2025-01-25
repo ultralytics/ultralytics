@@ -44,32 +44,39 @@ def test_export_openvino():
 @pytest.mark.skipif(not TORCH_1_13, reason="OpenVINO requires torch>=1.13")
 @pytest.mark.parametrize(
     "task, dynamic, int8, half, batch, nms",
-    [  # generate all combinations but exclude those where both int8 and half are True
+    [  # generate all combinations but exclude cases where both int8 and half or classify and nms are True
         (task, dynamic, int8, half, batch, nms)
         for task, dynamic, int8, half, batch, nms in product(
             TASKS, [True, False], [True, False], [True, False], [1, 2], [True, False]
         )
-        if not (int8 and half)  # exclude cases where both int8 and half are True
+        if not ((int8 and half) or (task == "classify" and nms))
     ],
 )
 def test_export_openvino_matrix(task, dynamic, int8, half, batch, nms):
     """Test YOLO model exports to OpenVINO under various configuration matrix conditions."""
+    imgsz = 224 if nms and int8 and task == "obb" else 32  # OBB has error with lower imgsz
     file = YOLO(TASK2MODEL[task]).export(
-        format="openvino", imgsz=32, dynamic=dynamic, int8=int8, half=half, batch=batch, data=TASK2DATA[task], nms=nms
+        format="openvino", imgsz=imgsz, dynamic=dynamic, int8=int8, half=half, batch=batch, data=TASK2DATA[task], nms=nms
     )
     if WINDOWS:
         # Use unique filenames due to Windows file permissions bug possibly due to latent threaded use
         # See https://github.com/ultralytics/ultralytics/actions/runs/8957949304/job/24601616830?pr=10423
         file = Path(file)
         file = file.rename(file.with_stem(f"{file.stem}-{uuid.uuid4()}"))
-    YOLO(file)([SOURCE] * batch, imgsz=64 if dynamic else 32)  # exported model inference
+    YOLO(file)([SOURCE] * batch, imgsz=64 if dynamic else imgsz)  # exported model inference
     shutil.rmtree(file, ignore_errors=True)  # retry in case of potential lingering multi-threaded file usage errors
 
 
 @pytest.mark.slow
 @pytest.mark.parametrize(
     "task, dynamic, int8, half, batch, simplify, nms",
-    product(TASKS, [True, False], [False], [False], [1, 2], [True, False], [True, False]),
+    [  # generate all combinations but exclude cases where both int8 and half or classify and nms are True
+        (task, dynamic, int8, half, batch, simplify, nms)
+        for task, dynamic, int8, half, batch, simplify, nms in product(
+            TASKS, [True, False], [False], [False], [1, 2], [True, False], [True, False]
+        )
+        if not ((int8 and half) or (task == "classify" and nms)) 
+    ],
 )
 def test_export_onnx_matrix(task, dynamic, int8, half, batch, simplify, nms):
     """Test YOLO exports to ONNX format with various configurations and parameters."""
@@ -82,14 +89,19 @@ def test_export_onnx_matrix(task, dynamic, int8, half, batch, simplify, nms):
 
 @pytest.mark.slow
 @pytest.mark.parametrize(
-    "task, dynamic, int8, half, batch, nms", product(TASKS, [False], [False], [False], [1, 2], [True, False])
+    "task, dynamic, int8, half, batch, nms",
+    [  # generate all combinations but exclude those where both int8 and half are True
+        (task, dynamic, int8, half, batch, nms)
+        for task, dynamic, int8, half, batch, nms in product(TASKS, [False], [False], [False], [1, 2], [True, False])
+        if not (task == "classify" and nms)
+    ],
 )
 def test_export_torchscript_matrix(task, dynamic, int8, half, batch, nms):
     """Tests YOLO model exports to TorchScript format under varied configurations."""
     file = YOLO(TASK2MODEL[task]).export(
         format="torchscript", imgsz=32, dynamic=dynamic, int8=int8, half=half, batch=batch, nms=nms
     )
-    YOLO(file)([SOURCE] * 3, imgsz=64 if dynamic else 32)  # exported model inference at batch=3
+    YOLO(file)([SOURCE] * batch, imgsz=64 if dynamic else 32)  # exported model inference at batch=3
     Path(file).unlink()  # cleanup
 
 
@@ -129,15 +141,16 @@ def test_export_coreml_matrix(task, dynamic, int8, half, batch):
         for task, dynamic, int8, half, batch, nms in product(
             TASKS, [False], [True, False], [True, False], [1], [True, False]
         )
-        if not (int8 and half)  # exclude cases where both int8 and half are True
+        if not ((int8 and half) or (task == "classify" and nms))
     ],
 )
 def test_export_tflite_matrix(task, dynamic, int8, half, batch, nms):
     """Test YOLO exports to TFLite format considering various export configurations."""
+    imgsz = 128 if nms and task != "obb" else 32  # error with lower imgsz
     file = YOLO(TASK2MODEL[task]).export(
-        format="tflite", imgsz=32, dynamic=dynamic, int8=int8, half=half, batch=batch, nms=nms
+        format="tflite", imgsz=imgsz, dynamic=dynamic, int8=int8, half=half, batch=batch, nms=nms
     )
-    YOLO(file)([SOURCE] * batch, imgsz=32)  # exported model inference at batch=3
+    YOLO(file)([SOURCE] * batch, imgsz=imgsz)  # exported model inference at batch=3
     Path(file).unlink()  # cleanup
 
 

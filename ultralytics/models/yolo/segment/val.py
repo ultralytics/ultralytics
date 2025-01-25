@@ -117,7 +117,7 @@ class SegmentationValidator(DetectionValidator):
                     for k in self.stats.keys():
                         self.stats[k].append(stat[k])
                     if self.args.plots:
-                        self.confusion_matrix.process_batch(detections=None, gt_bboxes=bbox, gt_cls=cls)
+                        self.confusion_matrix.process_batch(detections=None, gt_bboxes=bbox, gt_cls=cls, im_name=Path(batch['im_file'][si]).name)
                 continue
 
             # Masks
@@ -136,7 +136,7 @@ class SegmentationValidator(DetectionValidator):
                     predn, bbox, cls, pred_masks, gt_masks, self.args.overlap_mask, masks=True
                 )
             if self.args.plots:
-                self.confusion_matrix.process_batch(predn, bbox, cls)
+                self.confusion_matrix.process_batch(predn, bbox, cls, im_name=Path(batch['im_file'][si]).name)
 
             for k in self.stats.keys():
                 self.stats[k].append(stat[k])
@@ -247,10 +247,10 @@ class SegmentationValidator(DetectionValidator):
 
     def plot_matches(self, batch, preds, ni):
         """Plot grid of GT, TP, FP, FN for each image."""
-        if not self.confusion_matrix.match_dict:
+        if not self.confusion_matrix.matches:
             return
         img, pred, pred_mask = batch["img"][ni], preds[0][ni], preds[1][ni]
-        matches = self.confusion_matrix.match_dict.pop(0)
+        matches = self.confusion_matrix.matches[Path(batch["im_file"][ni]).name]
         # Create batch of 4 (GT, TP, FP, FN)
         idx = batch["batch_idx"] == ni
         gt_box = torch.cat(
@@ -278,11 +278,11 @@ class SegmentationValidator(DetectionValidator):
             *output_to_target(box_batch, max_det=self.args.max_det),
             torch.cat(mask_batch, 0),
             paths=["Ground Truth", "False Positives", "True Positives", "False Negatives"],
-            fname=self.save_dir / "visualizations" / Path(batch["im_file"][ni]).name,
+            fname=self.save_dir / "visualizations" / Path(batch['im_file'][ni]).name,
             names=self.names,
             on_plot=self.on_plot,
             max_subplots=4,
-            conf_thres=0.01,
+            conf_thres=0.001,
         )
 
     def save_one_txt(self, predn, pred_masks, save_conf, shape, file):

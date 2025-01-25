@@ -69,7 +69,7 @@ const data = {
   },
 };
 
-let chart = null; // chart variable will hold the reference to the current chart instance.
+let modelComparisonChart = null; // chart variable will hold the reference to the current chart instance.
 
 // Function to lighten a hex color by a specified amount.
 function lightenHexColor(color, amount = 0.5) {
@@ -84,8 +84,8 @@ function lightenHexColor(color, amount = 0.5) {
 
 // Function to update the benchmarks chart.
 function updateChart(initialDatasets = []) {
-  if (chart) {
-    chart.destroy();
+  if (modelComparisonChart) {
+    modelComparisonChart.destroy();
   } // If a chart instance already exists, destroy it.
 
   // Define a specific color map for models.
@@ -133,7 +133,7 @@ function updateChart(initialDatasets = []) {
   });
 
   // Create a new chart instance.
-  chart = new Chart(document.getElementById("chart").getContext("2d"), {
+  modelComparisonChart = new Chart(document.getElementById("modelComparisonChart").getContext("2d"), {
     type: "line", // Set the chart type to line.
     data: { datasets },
     options: {

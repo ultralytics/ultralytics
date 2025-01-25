@@ -356,7 +356,7 @@ class ConfusionMatrix:
             gt_classes = gt_cls.int()
             for i, gc in enumerate(gt_classes):
                 self.matrix[self.nc, gc] += 1  # FN
-                self._append_match_idx("FN", i)
+                self._append_match_idx(im_name, "FN", i)
             return
 
         detections = detections[detections[:, 4] > self.conf]

@@ -1160,7 +1160,7 @@ from torchvision import models
 #----------------------------------------------------------------------
 # mobilenet_v2
 #----------------------------------------------------------------------
-class mobilenet_v2_block1(nn.Module):
+class MobileNetV2Block1(nn.Module):
     def __init__(self, *args):
         super().__init__()
         model = models.mobilenet_v2(pretrained=True)
@@ -1170,7 +1170,7 @@ class mobilenet_v2_block1(nn.Module):
     def forward(self, x):
         return self.model(x)
     
-class mobilenet_v2_block2(nn.Module):
+class MobileNetV2Block2(nn.Module):
     def __init__(self, *args):
         super().__init__()
         model = models.mobilenet_v2(pretrained=True)
@@ -1180,7 +1180,7 @@ class mobilenet_v2_block2(nn.Module):
     def forward(self, x):
         return self.model(x)
     
-class mobilenet_v2_block3(nn.Module):
+class MobileNetV2Block3(nn.Module):
     def __init__(self, *args):
         super().__init__()
         model = models.mobilenet_v2(pretrained=True)
@@ -1194,7 +1194,7 @@ class mobilenet_v2_block3(nn.Module):
 #----------------------------------------------------------------------
 # mobilenet_v3_small
 #----------------------------------------------------------------------
-class mobileNetV3s_block1(nn.Module):
+class MobileNetV3SmallBlock1(nn.Module):
     # out channel 24
     def __init__(self, *args):
         super().__init__()
@@ -1206,7 +1206,7 @@ class mobileNetV3s_block1(nn.Module):
     def forward(self, x):
         return self.model(x)
 
-class mobileNetV3s_block2(nn.Module):
+class MobileNetV3SmallBlock2(nn.Module):
     # out 48 channel
     def __init__(self, *args):
         super().__init__()
@@ -1218,7 +1218,7 @@ class mobileNetV3s_block2(nn.Module):
     def forward(self, x):
         return self.model(x)
 
-class mobileNetV3s_block3(nn.Module):
+class MobileNetV3SmallBlock3(nn.Module):
     # out 576 channel
     def __init__(self, *args):
         super().__init__()
@@ -1233,7 +1233,7 @@ class mobileNetV3s_block3(nn.Module):
 #----------------------------------------------------------------------
 # efficientnet_b0
 #----------------------------------------------------------------------
-class efficientnet_b0_block1(nn.Module):
+class EfficientNetB0Block1(nn.Module):
     def __init__(self, *args):
         super().__init__()
         model = models.efficientnet_b0(pretrained=True)
@@ -1243,7 +1243,7 @@ class efficientnet_b0_block1(nn.Module):
     def forward(self, x):
         return self.model(x)
     
-class efficientnet_b0_block2(nn.Module):
+class EfficientNetB0Block2(nn.Module):
     def __init__(self, *args):
         super().__init__()
         model = models.efficientnet_b0(pretrained=True)
@@ -1253,7 +1253,7 @@ class efficientnet_b0_block2(nn.Module):
     def forward(self, x):
         return self.model(x)
     
-class efficientnet_b0_block3(nn.Module):
+class EfficientNetB0Block3(nn.Module):
     def __init__(self, *args):
         super().__init__()
         model = models.efficientnet_b0(pretrained=True)
@@ -1267,7 +1267,7 @@ class efficientnet_b0_block3(nn.Module):
 #----------------------------------------------------------------------
 # efficientnet_b1
 #----------------------------------------------------------------------
-class efficientnet_b1_block1(nn.Module):
+class EfficientNetB1Block1(nn.Module):
     def __init__(self, *args):
         super().__init__()
         model = models.efficientnet_b1(pretrained=True)
@@ -1277,7 +1277,7 @@ class efficientnet_b1_block1(nn.Module):
     def forward(self, x):
         return self.model(x)
     
-class efficientnet_b1_block2(nn.Module):
+class EfficientNetB1Block2(nn.Module):
     def __init__(self, *args):
         super().__init__()
         model = models.efficientnet_b1(pretrained=True)
@@ -1287,7 +1287,7 @@ class efficientnet_b1_block2(nn.Module):
     def forward(self, x):
         return self.model(x)
     
-class efficientnet_b1_block3(nn.Module):
+class EfficientNetB1Block3(nn.Module):
     def __init__(self, *args):
         super().__init__()
         model = models.efficientnet_b1(pretrained=True)
@@ -1300,7 +1300,7 @@ class efficientnet_b1_block3(nn.Module):
 #----------------------------------------------------------------------
 # efficientnet_v2_s
 #----------------------------------------------------------------------
-class efficientnet_v2_s_block1(nn.Module):
+class EfficientNetV2SmallBlock1(nn.Module):
     def __init__(self, *args):
         super().__init__()
         model = models.efficientnet_v2_s(pretrained=True)
@@ -1309,7 +1309,7 @@ class efficientnet_v2_s_block1(nn.Module):
         self.model = nn.Sequential(*modules)
     def forward(self, x):
         return self.model(x)
-class efficientnet_v2_s_block2(nn.Module):
+class EfficientNetV2SmallBlock2(nn.Module):
     def __init__(self, *args):
         super().__init__()
         model = models.efficientnet_v2_s(pretrained=True)
@@ -1319,7 +1319,7 @@ class efficientnet_v2_s_block2(nn.Module):
     def forward(self, x):
         return self.model(x)
     
-class efficientnet_v2_s_block3(nn.Module):
+class EfficientNetV2SmallBlock3(nn.Module):
     def __init__(self, *args):
         super().__init__()
         model = models.efficientnet_v2_s(pretrained=True)
@@ -1333,7 +1333,7 @@ class efficientnet_v2_s_block3(nn.Module):
 #----------------------------------------------------------------------
 # resnet18
 #----------------------------------------------------------------------
-class resnet18_block1(nn.Module):
+class ResNet18Block1(nn.Module):
     def __init__(self, *args):
         super().__init__()
         model = models.resnet18(pretrained=True)
@@ -1343,7 +1343,7 @@ class resnet18_block1(nn.Module):
     def forward(self, x):
         return self.model(x)
     
-class resnet18_block2(nn.Module):
+class ResNet18Block2(nn.Module):
     def __init__(self, *args):
         super().__init__()
         model = models.resnet18(pretrained=True)
@@ -1353,7 +1353,7 @@ class resnet18_block2(nn.Module):
     def forward(self, x):
         return self.model(x)
     
-class resnet18_block3(nn.Module):
+class ResNet18Block3(nn.Module):
     def __init__(self, *args):
         super().__init__()
         model = models.resnet18(pretrained=True)
@@ -1367,7 +1367,7 @@ class resnet18_block3(nn.Module):
 #----------------------------------------------------------------------
 # resnet34
 #----------------------------------------------------------------------
-class resnet34_block1(nn.Module):
+class ResNet34Block1(nn.Module):
     def __init__(self, *args):
         super().__init__()
         model = models.resnet34(pretrained=True)
@@ -1377,7 +1377,7 @@ class resnet34_block1(nn.Module):
     def forward(self, x):
         return self.model(x)
     
-class resnet34_block2(nn.Module):
+class ResNet34Block2(nn.Module):
     def __init__(self, *args):
         super().__init__()
         model = models.resnet34(pretrained=True)
@@ -1387,7 +1387,7 @@ class resnet34_block2(nn.Module):
     def forward(self, x):
         return self.model(x)
     
-class resnet34_block3(nn.Module):
+class ResNet34Block3(nn.Module):
     def __init__(self, *args):
         super().__init__()
         model = models.resnet34(pretrained=True)
@@ -1401,7 +1401,7 @@ class resnet34_block3(nn.Module):
 #----------------------------------------------------------------------
 # resnet50
 #----------------------------------------------------------------------
-class resnet50_block1(nn.Module):
+class ResNet50Block1(nn.Module):
     def __init__(self, *args):
         super().__init__()
         model = models.resnet50(pretrained=True)
@@ -1411,7 +1411,7 @@ class resnet50_block1(nn.Module):
     def forward(self, x):
         return self.model(x)
     
-class resnet50_block2(nn.Module):
+class ResNet50Block2(nn.Module):
     def __init__(self, *args):
         super().__init__()
         model = models.resnet50(pretrained=True)
@@ -1421,7 +1421,7 @@ class resnet50_block2(nn.Module):
     def forward(self, x):
         return self.model(x)
     
-class resnet50_block3(nn.Module):
+class ResNet50Block3(nn.Module):
     def __init__(self, *args):
         super().__init__()
         model = models.resnet50(pretrained=True)
@@ -1435,7 +1435,7 @@ class resnet50_block3(nn.Module):
 #----------------------------------------------------------------------
 # wide_resnet50_2
 #----------------------------------------------------------------------
-class wide_resnet50_2_block1(nn.Module):
+class WideRseNet50Block1(nn.Module):
     def __init__(self, *args):
         super().__init__()
         model = models.wide_resnet50_2(pretrained=True)
@@ -1445,7 +1445,7 @@ class wide_resnet50_2_block1(nn.Module):
     def forward(self, x):
         return self.model(x)
     
-class wide_resnet50_2_block2(nn.Module):
+class WideRseNet50Block2(nn.Module):
     def __init__(self, *args):
         super().__init__()
         model = models.wide_resnet50_2(pretrained=True)
@@ -1455,7 +1455,7 @@ class wide_resnet50_2_block2(nn.Module):
     def forward(self, x):
         return self.model(x)
     
-class wide_resnet50_2_block3(nn.Module):
+class WideRseNet50Block3(nn.Module):
     def __init__(self, *args):
         super().__init__()
         model = models.wide_resnet50_2(pretrained=True)
@@ -1469,7 +1469,7 @@ class wide_resnet50_2_block3(nn.Module):
 #----------------------------------------------------------------------
 # vgg11_bn
 #----------------------------------------------------------------------
-class vgg11_bn_block1(nn.Module):
+class Vgg11BnBlock1(nn.Module):
     def __init__(self, *args):
         super().__init__()
         model = models.vgg11_bn(pretrained=True)
@@ -1479,7 +1479,7 @@ class vgg11_bn_block1(nn.Module):
     def forward(self, x):
         return self.model(x)
     
-class vgg11_bn_block2(nn.Module):
+class Vgg11BnBlock2(nn.Module):
     def __init__(self, *args):
         super().__init__()
         model = models.vgg11_bn(pretrained=True)
@@ -1489,7 +1489,7 @@ class vgg11_bn_block2(nn.Module):
     def forward(self, x):
         return self.model(x)
     
-class vgg11_bn_block3(nn.Module):
+class Vgg11BnBlock3(nn.Module):
     def __init__(self, *args):
         super().__init__()
         model = models.vgg11_bn(pretrained=True)
@@ -1503,7 +1503,7 @@ class vgg11_bn_block3(nn.Module):
 #----------------------------------------------------------------------
 # convnext_tiny
 #----------------------------------------------------------------------
-class convnext_tiny_block1(nn.Module):
+class ConvNextTinyBlock1(nn.Module):
     def __init__(self, *args):
         super().__init__()
         model = models.convnext_tiny(pretrained=True)
@@ -1513,7 +1513,7 @@ class convnext_tiny_block1(nn.Module):
     def forward(self, x):
         return self.model(x)
     
-class convnext_tiny_block2(nn.Module):
+class ConvNextTinyBlock2(nn.Module):
     def __init__(self, *args):
         super().__init__()
         model = models.convnext_tiny(pretrained=True)
@@ -1523,7 +1523,7 @@ class convnext_tiny_block2(nn.Module):
     def forward(self, x):
         return self.model(x)
     
-class convnext_tiny_block3(nn.Module):
+class ConvNextTinyBlock3(nn.Module):
     def __init__(self, *args):
         super().__init__()
         model = models.convnext_tiny(pretrained=True)

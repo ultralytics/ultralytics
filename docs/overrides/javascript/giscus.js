@@ -42,7 +42,10 @@ function loadGiscus() {
         // Instruct Giscus to change theme
         var frame = document.querySelector(".giscus-frame");
         if (frame) {
-          frame.contentWindow.postMessage({ giscus: { setConfig: { theme } } }, "https://giscus.app");
+          frame.contentWindow.postMessage(
+            { giscus: { setConfig: { theme } } },
+            "https://giscus.app",
+          );
         }
       }
     });

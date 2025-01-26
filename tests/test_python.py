@@ -204,7 +204,7 @@ def test_val():
 
 @pytest.mark.parametrize("task", [task for task in TASKS if task != "classify"])
 def test_val_visualize(task):
-    """Test the validation mode of the YOLO model."""
+    """Test the visualization during validation."""
     YOLO(TASK2MODEL[task]).val(data=TASK2DATA[task], imgsz=32, visualize=True)
 
 

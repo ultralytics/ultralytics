@@ -1154,3 +1154,381 @@ class TorchVision(nn.Module):
         else:
             y = self.m(x)
         return y
+
+
+from torchvision import models
+#----------------------------------------------------------------------
+# mobilenet_v2
+#----------------------------------------------------------------------
+class mobilenet_v2_block1(nn.Module):
+    def __init__(self, *args):
+        super().__init__()
+        model = models.mobilenet_v2(pretrained=True)
+        modules = list(model.children())
+        modules = modules[0][:7]
+        self.model = nn.Sequential(*modules)
+    def forward(self, x):
+        return self.model(x)
+    
+class mobilenet_v2_block2(nn.Module):
+    def __init__(self, *args):
+        super().__init__()
+        model = models.mobilenet_v2(pretrained=True)
+        modules = list(model.children())
+        modules = modules[0][7:14]
+        self.model = nn.Sequential(*modules)
+    def forward(self, x):
+        return self.model(x)
+    
+class mobilenet_v2_block3(nn.Module):
+    def __init__(self, *args):
+        super().__init__()
+        model = models.mobilenet_v2(pretrained=True)
+        modules = list(model.children())
+        modules = modules[0][14:19]
+        self.model = nn.Sequential(*modules)
+    def forward(self, x):
+        return self.model(x)
+
+
+#----------------------------------------------------------------------
+# mobilenet_v3_small
+#----------------------------------------------------------------------
+class mobileNetV3s_block1(nn.Module):
+    # out channel 24
+    def __init__(self, *args):
+        super().__init__()
+        model = models.mobilenet_v3_small(pretrained=True)
+        modules = list(model.children())
+        modules = modules[0][:4]
+        self.model = nn.Sequential(*modules)
+
+    def forward(self, x):
+        return self.model(x)
+
+class mobileNetV3s_block2(nn.Module):
+    # out 48 channel
+    def __init__(self, *args):
+        super().__init__()
+        model = models.mobilenet_v3_small(pretrained=True)
+        modules = list(model.children())
+        modules = modules[0][4:9]
+        self.model = nn.Sequential(*modules)
+
+    def forward(self, x):
+        return self.model(x)
+
+class mobileNetV3s_block3(nn.Module):
+    # out 576 channel
+    def __init__(self, *args):
+        super().__init__()
+        model = models.mobilenet_v3_small(pretrained=True)
+        modules = list(model.children())
+        modules = modules[0][9:]
+        self.model = nn.Sequential(*modules)
+    def forward(self, x):
+        return self.model(x)
+
+
+#----------------------------------------------------------------------
+# efficientnet_b0
+#----------------------------------------------------------------------
+class efficientnet_b0_block1(nn.Module):
+    def __init__(self, *args):
+        super().__init__()
+        model = models.efficientnet_b0(pretrained=True)
+        modules = list(model.children())
+        modules = modules[0][:4]
+        self.model = nn.Sequential(*modules)
+    def forward(self, x):
+        return self.model(x)
+    
+class efficientnet_b0_block2(nn.Module):
+    def __init__(self, *args):
+        super().__init__()
+        model = models.efficientnet_b0(pretrained=True)
+        modules = list(model.children())
+        modules = modules[0][4:6]
+        self.model = nn.Sequential(*modules)
+    def forward(self, x):
+        return self.model(x)
+    
+class efficientnet_b0_block3(nn.Module):
+    def __init__(self, *args):
+        super().__init__()
+        model = models.efficientnet_b0(pretrained=True)
+        modules = list(model.children())
+        modules = modules[0][6:]
+        self.model = nn.Sequential(*modules)
+    def forward(self, x):
+        return self.model(x)
+
+
+#----------------------------------------------------------------------
+# efficientnet_b1
+#----------------------------------------------------------------------
+class efficientnet_b1_block1(nn.Module):
+    def __init__(self, *args):
+        super().__init__()
+        model = models.efficientnet_b1(pretrained=True)
+        modules = list(model.children())
+        modules = modules[0][:4]
+        self.model = nn.Sequential(*modules)
+    def forward(self, x):
+        return self.model(x)
+    
+class efficientnet_b1_block2(nn.Module):
+    def __init__(self, *args):
+        super().__init__()
+        model = models.efficientnet_b1(pretrained=True)
+        modules = list(model.children())
+        modules = modules[0][4:6]
+        self.model = nn.Sequential(*modules)
+    def forward(self, x):
+        return self.model(x)
+    
+class efficientnet_b1_block3(nn.Module):
+    def __init__(self, *args):
+        super().__init__()
+        model = models.efficientnet_b1(pretrained=True)
+        modules = list(model.children())
+        modules = modules[0][6:]
+        self.model = nn.Sequential(*modules)
+    def forward(self, x):
+        return self.model(x)
+
+#----------------------------------------------------------------------
+# efficientnet_v2_s
+#----------------------------------------------------------------------
+class efficientnet_v2_s_block1(nn.Module):
+    def __init__(self, *args):
+        super().__init__()
+        model = models.efficientnet_v2_s(pretrained=True)
+        modules = list(model.children())
+        modules = modules[0][:4]
+        self.model = nn.Sequential(*modules)
+    def forward(self, x):
+        return self.model(x)
+class efficientnet_v2_s_block2(nn.Module):
+    def __init__(self, *args):
+        super().__init__()
+        model = models.efficientnet_v2_s(pretrained=True)
+        modules = list(model.children())
+        modules = modules[0][4:6]
+        self.model = nn.Sequential(*modules)
+    def forward(self, x):
+        return self.model(x)
+    
+class efficientnet_v2_s_block3(nn.Module):
+    def __init__(self, *args):
+        super().__init__()
+        model = models.efficientnet_v2_s(pretrained=True)
+        modules = list(model.children())
+        modules = modules[0][6:]
+        self.model = nn.Sequential(*modules)
+    def forward(self, x):
+        return self.model(x)
+
+
+#----------------------------------------------------------------------
+# resnet18
+#----------------------------------------------------------------------
+class resnet18_block1(nn.Module):
+    def __init__(self, *args):
+        super().__init__()
+        model = models.resnet18(pretrained=True)
+        modules = list(model.children())
+        modules = modules[:6]
+        self.model = nn.Sequential(*modules)
+    def forward(self, x):
+        return self.model(x)
+    
+class resnet18_block2(nn.Module):
+    def __init__(self, *args):
+        super().__init__()
+        model = models.resnet18(pretrained=True)
+        modules = list(model.children())
+        modules = modules[6:7]
+        self.model = nn.Sequential(*modules)
+    def forward(self, x):
+        return self.model(x)
+    
+class resnet18_block3(nn.Module):
+    def __init__(self, *args):
+        super().__init__()
+        model = models.resnet18(pretrained=True)
+        modules = list(model.children())
+        modules = modules[7:8]
+        self.model = nn.Sequential(*modules)
+    def forward(self, x):
+        return self.model(x)
+
+
+#----------------------------------------------------------------------
+# resnet34
+#----------------------------------------------------------------------
+class resnet34_block1(nn.Module):
+    def __init__(self, *args):
+        super().__init__()
+        model = models.resnet34(pretrained=True)
+        modules = list(model.children())
+        modules = modules[:6]
+        self.model = nn.Sequential(*modules)
+    def forward(self, x):
+        return self.model(x)
+    
+class resnet34_block2(nn.Module):
+    def __init__(self, *args):
+        super().__init__()
+        model = models.resnet34(pretrained=True)
+        modules = list(model.children())
+        modules = modules[6]
+        self.model = nn.Sequential(*modules)
+    def forward(self, x):
+        return self.model(x)
+    
+class resnet34_block3(nn.Module):
+    def __init__(self, *args):
+        super().__init__()
+        model = models.resnet34(pretrained=True)
+        modules = list(model.children())
+        modules = modules[7]
+        self.model = nn.Sequential(*modules)
+    def forward(self, x):
+        return self.model(x)
+
+
+#----------------------------------------------------------------------
+# resnet50
+#----------------------------------------------------------------------
+class resnet50_block1(nn.Module):
+    def __init__(self, *args):
+        super().__init__()
+        model = models.resnet50(pretrained=True)
+        modules = list(model.children())
+        modules = modules[:6]
+        self.model = nn.Sequential(*modules)
+    def forward(self, x):
+        return self.model(x)
+    
+class resnet50_block2(nn.Module):
+    def __init__(self, *args):
+        super().__init__()
+        model = models.resnet50(pretrained=True)
+        modules = list(model.children())
+        modules = modules[6]
+        self.model = nn.Sequential(*modules)
+    def forward(self, x):
+        return self.model(x)
+    
+class resnet50_block3(nn.Module):
+    def __init__(self, *args):
+        super().__init__()
+        model = models.resnet50(pretrained=True)
+        modules = list(model.children())
+        modules = modules[7]
+        self.model = nn.Sequential(*modules)
+    def forward(self, x):
+        return self.model(x)    
+
+
+#----------------------------------------------------------------------
+# wide_resnet50_2
+#----------------------------------------------------------------------
+class wide_resnet50_2_block1(nn.Module):
+    def __init__(self, *args):
+        super().__init__()
+        model = models.wide_resnet50_2(pretrained=True)
+        modules = list(model.children())
+        modules = modules[:6]
+        self.model = nn.Sequential(*modules)
+    def forward(self, x):
+        return self.model(x)
+    
+class wide_resnet50_2_block2(nn.Module):
+    def __init__(self, *args):
+        super().__init__()
+        model = models.wide_resnet50_2(pretrained=True)
+        modules = list(model.children())
+        modules = modules[6]
+        self.model = nn.Sequential(*modules)
+    def forward(self, x):
+        return self.model(x)
+    
+class wide_resnet50_2_block3(nn.Module):
+    def __init__(self, *args):
+        super().__init__()
+        model = models.wide_resnet50_2(pretrained=True)
+        modules = list(model.children())
+        modules = modules[7]
+        self.model = nn.Sequential(*modules)
+    def forward(self, x):
+        return self.model(x)
+
+
+#----------------------------------------------------------------------
+# vgg11_bn
+#----------------------------------------------------------------------
+class vgg11_bn_block1(nn.Module):
+    def __init__(self, *args):
+        super().__init__()
+        model = models.vgg11_bn(pretrained=True)
+        modules = list(model.children())
+        modules = modules[0][:14]
+        self.model = nn.Sequential(*modules)
+    def forward(self, x):
+        return self.model(x)
+    
+class vgg11_bn_block2(nn.Module):
+    def __init__(self, *args):
+        super().__init__()
+        model = models.vgg11_bn(pretrained=True)
+        modules = list(model.children())
+        modules = modules[0][14:21]
+        self.model = nn.Sequential(*modules)
+    def forward(self, x):
+        return self.model(x)
+    
+class vgg11_bn_block3(nn.Module):
+    def __init__(self, *args):
+        super().__init__()
+        model = models.vgg11_bn(pretrained=True)
+        modules = list(model.children())
+        modules = modules[0][21:28]
+        self.model = nn.Sequential(*modules)
+    def forward(self, x):
+        return self.model(x)
+
+
+#----------------------------------------------------------------------
+# convnext_tiny
+#----------------------------------------------------------------------
+class convnext_tiny_block1(nn.Module):
+    def __init__(self, *args):
+        super().__init__()
+        model = models.convnext_tiny(pretrained=True)
+        modules = list(model.children())
+        modules = modules[0][:4]
+        self.model = nn.Sequential(*modules)
+    def forward(self, x):
+        return self.model(x)
+    
+class convnext_tiny_block2(nn.Module):
+    def __init__(self, *args):
+        super().__init__()
+        model = models.convnext_tiny(pretrained=True)
+        modules = list(model.children())
+        modules = modules[0][4:6]
+        self.model = nn.Sequential(*modules)
+    def forward(self, x):
+        return self.model(x)
+    
+class convnext_tiny_block3(nn.Module):
+    def __init__(self, *args):
+        super().__init__()
+        model = models.convnext_tiny(pretrained=True)
+        modules = list(model.children())
+        modules = modules[0][6:8]
+        self.model = nn.Sequential(*modules)
+    def forward(self, x):
+        return self.model(x)

@@ -118,8 +118,12 @@ function updateChart(initialDatasets = []) {
 
   // Always include all models in the dataset creation
   const datasets = Object.keys(data).map((algorithm, i) => {
-    const baseColor = colorMap[algorithm] || `hsl(${Math.random() * 360}, 70%, 50%)`;
-    const lineColor = Object.keys(data).indexOf(algorithm) === 0 ? baseColor : lightenHexColor(baseColor, 0.6);
+    const baseColor =
+      colorMap[algorithm] || `hsl(${Math.random() * 360}, 70%, 50%)`;
+    const lineColor =
+      Object.keys(data).indexOf(algorithm) === 0
+        ? baseColor
+        : lightenHexColor(baseColor, 0.6);
 
     return {
       label: algorithm,
@@ -136,67 +140,72 @@ function updateChart(initialDatasets = []) {
       pointBackgroundColor: lineColor,
       pointBorderColor: "#ffffff",
       borderWidth: i === 0 ? 3 : 1.5,
-      hidden: initialDatasets.length > 0 && !initialDatasets.includes(algorithm),
+      hidden:
+        initialDatasets.length > 0 && !initialDatasets.includes(algorithm),
     };
   });
 
   // Create a new chart instance.
-  modelComparisonChart = new Chart(document.getElementById("modelComparisonChart").getContext("2d"), {
-    type: "line",
-    data: { datasets },
-    options: {
-      //aspectRatio: 2.5,  // higher is wider
-      plugins: {
-        legend: {
-          display: true,
-          position: "right",
-          align: "start", // start, end, center
-          labels: { color: "#808080" },
-          onClick: (e, legendItem, legend) => {
-            const index = legendItem.datasetIndex;
-            const ci = legend.chart;
-            const meta = ci.getDatasetMeta(index);
-            meta.hidden = meta.hidden === null ? !ci.data.datasets[index].hidden : null;
-            ci.update();
-          },
-        }, // Configure the legend.
-        tooltip: {
-          callbacks: {
-            label: (tooltipItem) => {
-              const { dataset, dataIndex } = tooltipItem;
-              const point = dataset.data[dataIndex];
-              return `${dataset.label}${point.version.toLowerCase()}: Speed = ${point.x}, mAP = ${point.y}`; // Custom tooltip label.
-            },
-          },
-          mode: "nearest",
-          intersect: false,
-        }, // Configure the tooltip.
-      },
-      interaction: { mode: "nearest", axis: "x", intersect: false }, // Configure the interaction mode.
-      scales: {
-        x: {
-          type: "linear",
-          position: "bottom",
-          title: {
+  modelComparisonChart = new Chart(
+    document.getElementById("modelComparisonChart").getContext("2d"),
+    {
+      type: "line",
+      data: { datasets },
+      options: {
+        //aspectRatio: 2.5,  // higher is wider
+        plugins: {
+          legend: {
             display: true,
-            text: "Latency T4 TensorRT10 FP16 (ms/img)",
-            color: "#808080",
-          },
-          grid: { color: "#e0e0e0" },
-          ticks: { color: "#808080" },
-          min: 0,
-          max: 18,
+            position: "right",
+            align: "start", // start, end, center
+            labels: { color: "#808080" },
+            onClick: (e, legendItem, legend) => {
+              const index = legendItem.datasetIndex;
+              const ci = legend.chart;
+              const meta = ci.getDatasetMeta(index);
+              meta.hidden =
+                meta.hidden === null ? !ci.data.datasets[index].hidden : null;
+              ci.update();
+            },
+          }, // Configure the legend.
+          tooltip: {
+            callbacks: {
+              label: (tooltipItem) => {
+                const { dataset, dataIndex } = tooltipItem;
+                const point = dataset.data[dataIndex];
+                return `${dataset.label}${point.version.toLowerCase()}: Speed = ${point.x}, mAP = ${point.y}`; // Custom tooltip label.
+              },
+            },
+            mode: "nearest",
+            intersect: false,
+          }, // Configure the tooltip.
         },
-        y: {
-          title: { display: true, text: "COCO mAP 50-95", color: "#808080" },
-          grid: { color: "#e0e0e0" },
-          ticks: { color: "#808080" },
-          min: 36,
-          max: 56,
+        interaction: { mode: "nearest", axis: "x", intersect: false }, // Configure the interaction mode.
+        scales: {
+          x: {
+            type: "linear",
+            position: "bottom",
+            title: {
+              display: true,
+              text: "Latency T4 TensorRT10 FP16 (ms/img)",
+              color: "#808080",
+            },
+            grid: { color: "#e0e0e0" },
+            ticks: { color: "#808080" },
+            min: 0,
+            max: 18,
+          },
+          y: {
+            title: { display: true, text: "COCO mAP 50-95", color: "#808080" },
+            grid: { color: "#e0e0e0" },
+            ticks: { color: "#808080" },
+            min: 36,
+            max: 56,
+          },
         },
       },
     },
-  });
+  );
 }
 
 function initChart(activeModels) {
@@ -208,7 +217,9 @@ document$.subscribe(function () {
     if (typeof Chart !== "undefined") {
       // Get active models from page config or use default
       // e.g. <canvas id="modelComparisonChart" width="1024" height="400" active-models='["YOLOv5", "YOLOv8"]'></canvas>
-      const pageConfig = document.getElementById("modelComparisonChart").getAttribute("active-models");
+      const pageConfig = document
+        .getElementById("modelComparisonChart")
+        .getAttribute("active-models");
       const activeModels = pageConfig ? JSON.parse(pageConfig) : [];
       initChart(activeModels);
     } else {

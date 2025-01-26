@@ -1,3 +1,5 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 data = {
     "YOLO11": {
         "n": {"size": 640, "map": 39.5, "cpu": 56.1, "t4": 1.5, "params": 2.6, "flops": 6.5},

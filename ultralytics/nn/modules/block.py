@@ -1189,48 +1189,53 @@ class TorchVision(nn.Module):
         return y
 
 
-#----------------------------------------------------------------------
+# ----------------------------------------------------------------------
 # mobilenet_v2
-#----------------------------------------------------------------------
+# ----------------------------------------------------------------------
 class MobileNetV2Block1(nn.Module):
     def __init__(self, *args):
         super().__init__()
-        model = TorchVision('mobilenet_v2')        
+        model = TorchVision("mobilenet_v2")
         modules = list(model.children())
         modules = modules[0][:7]
         self.model = nn.Sequential(*modules)
+
     def forward(self, x):
         return self.model(x)
-    
+
+
 class MobileNetV2Block2(nn.Module):
     def __init__(self, *args):
         super().__init__()
-        model = TorchVision('mobilenet_v2')
+        model = TorchVision("mobilenet_v2")
         modules = list(model.children())
         modules = modules[0][7:14]
         self.model = nn.Sequential(*modules)
+
     def forward(self, x):
         return self.model(x)
-    
+
+
 class MobileNetV2Block3(nn.Module):
     def __init__(self, *args):
         super().__init__()
-        model = TorchVision('mobilenet_v2')
+        model = TorchVision("mobilenet_v2")
         modules = list(model.children())
         modules = modules[0][14:19]
         self.model = nn.Sequential(*modules)
+
     def forward(self, x):
         return self.model(x)
 
 
-#----------------------------------------------------------------------
+# ----------------------------------------------------------------------
 # mobilenet_v3_small
-#----------------------------------------------------------------------
+# ----------------------------------------------------------------------
 class MobileNetV3SmallBlock1(nn.Module):
     # out channel 24
     def __init__(self, *args):
         super().__init__()
-        model = TorchVision('mobilenet_v3_small')
+        model = TorchVision("mobilenet_v3_small")
         modules = list(model.children())
         modules = modules[0][:4]
         self.model = nn.Sequential(*modules)
@@ -1238,11 +1243,12 @@ class MobileNetV3SmallBlock1(nn.Module):
     def forward(self, x):
         return self.model(x)
 
+
 class MobileNetV3SmallBlock2(nn.Module):
     # out 48 channel
     def __init__(self, *args):
         super().__init__()
-        model = TorchVision('mobilenet_v3_small')
+        model = TorchVision("mobilenet_v3_small")
         modules = list(model.children())
         modules = modules[0][4:9]
         self.model = nn.Sequential(*modules)
@@ -1250,317 +1256,366 @@ class MobileNetV3SmallBlock2(nn.Module):
     def forward(self, x):
         return self.model(x)
 
+
 class MobileNetV3SmallBlock3(nn.Module):
     # out 576 channel
     def __init__(self, *args):
         super().__init__()
-        model = TorchVision('mobilenet_v3_small')
+        model = TorchVision("mobilenet_v3_small")
         modules = list(model.children())
         modules = modules[0][9:]
         self.model = nn.Sequential(*modules)
+
     def forward(self, x):
         return self.model(x)
 
 
-#----------------------------------------------------------------------
+# ----------------------------------------------------------------------
 # efficientnet_b0
-#----------------------------------------------------------------------
+# ----------------------------------------------------------------------
 class EfficientNetB0Block1(nn.Module):
     def __init__(self, *args):
         super().__init__()
-        model = TorchVision('efficientnet_b0')
+        model = TorchVision("efficientnet_b0")
         modules = list(model.children())
         modules = modules[0][:4]
         self.model = nn.Sequential(*modules)
+
     def forward(self, x):
         return self.model(x)
-    
+
+
 class EfficientNetB0Block2(nn.Module):
     def __init__(self, *args):
         super().__init__()
-        model = TorchVision('efficientnet_b0')
+        model = TorchVision("efficientnet_b0")
         modules = list(model.children())
         modules = modules[0][4:6]
         self.model = nn.Sequential(*modules)
+
     def forward(self, x):
         return self.model(x)
-    
+
+
 class EfficientNetB0Block3(nn.Module):
     def __init__(self, *args):
         super().__init__()
-        model = TorchVision('efficientnet_b0')
+        model = TorchVision("efficientnet_b0")
         modules = list(model.children())
         modules = modules[0][6:]
         self.model = nn.Sequential(*modules)
+
     def forward(self, x):
         return self.model(x)
 
 
-#----------------------------------------------------------------------
+# ----------------------------------------------------------------------
 # efficientnet_b1
-#----------------------------------------------------------------------
+# ----------------------------------------------------------------------
 class EfficientNetB1Block1(nn.Module):
     def __init__(self, *args):
         super().__init__()
-        model = TorchVision('efficientnet_b1')
+        model = TorchVision("efficientnet_b1")
         modules = list(model.children())
         modules = modules[0][:4]
         self.model = nn.Sequential(*modules)
+
     def forward(self, x):
         return self.model(x)
-    
+
+
 class EfficientNetB1Block2(nn.Module):
     def __init__(self, *args):
         super().__init__()
-        model = TorchVision('efficientnet_b1')
+        model = TorchVision("efficientnet_b1")
         modules = list(model.children())
         modules = modules[0][4:6]
         self.model = nn.Sequential(*modules)
+
     def forward(self, x):
         return self.model(x)
-    
+
+
 class EfficientNetB1Block3(nn.Module):
     def __init__(self, *args):
         super().__init__()
-        model = TorchVision('efficientnet_b1')
+        model = TorchVision("efficientnet_b1")
         modules = list(model.children())
         modules = modules[0][6:]
         self.model = nn.Sequential(*modules)
+
     def forward(self, x):
         return self.model(x)
 
-#----------------------------------------------------------------------
+
+# ----------------------------------------------------------------------
 # efficientnet_v2_s
-#----------------------------------------------------------------------
+# ----------------------------------------------------------------------
 class EfficientNetV2SmallBlock1(nn.Module):
     def __init__(self, *args):
         super().__init__()
-        model = TorchVision('efficientnet_v2_s')
+        model = TorchVision("efficientnet_v2_s")
         modules = list(model.children())
         modules = modules[0][:4]
         self.model = nn.Sequential(*modules)
+
     def forward(self, x):
         return self.model(x)
+
+
 class EfficientNetV2SmallBlock2(nn.Module):
     def __init__(self, *args):
         super().__init__()
-        model = TorchVision('efficientnet_v2_s')
+        model = TorchVision("efficientnet_v2_s")
         modules = list(model.children())
         modules = modules[0][4:6]
         self.model = nn.Sequential(*modules)
+
     def forward(self, x):
         return self.model(x)
-    
+
+
 class EfficientNetV2SmallBlock3(nn.Module):
     def __init__(self, *args):
         super().__init__()
-        model = TorchVision('efficientnet_v2_s')
+        model = TorchVision("efficientnet_v2_s")
         modules = list(model.children())
         modules = modules[0][6:]
         self.model = nn.Sequential(*modules)
+
     def forward(self, x):
         return self.model(x)
 
 
-#----------------------------------------------------------------------
+# ----------------------------------------------------------------------
 # resnet18
-#----------------------------------------------------------------------
+# ----------------------------------------------------------------------
 class ResNet18Block1(nn.Module):
     def __init__(self, *args):
         super().__init__()
-        model = TorchVision('resnet18')
+        model = TorchVision("resnet18")
         modules = list(model.children())
         modules = modules[:6]
         self.model = nn.Sequential(*modules)
+
     def forward(self, x):
         return self.model(x)
-    
+
+
 class ResNet18Block2(nn.Module):
     def __init__(self, *args):
         super().__init__()
-        mmodel = TorchVision('resnet18')
+        TorchVision("resnet18")
         modules = list(model.children())
         modules = modules[6:7]
         self.model = nn.Sequential(*modules)
+
     def forward(self, x):
         return self.model(x)
-    
+
+
 class ResNet18Block3(nn.Module):
     def __init__(self, *args):
         super().__init__()
-        model = TorchVision('resnet18')
+        model = TorchVision("resnet18")
         modules = list(model.children())
         modules = modules[7:8]
         self.model = nn.Sequential(*modules)
+
     def forward(self, x):
         return self.model(x)
 
 
-#----------------------------------------------------------------------
+# ----------------------------------------------------------------------
 # resnet34
-#----------------------------------------------------------------------
+# ----------------------------------------------------------------------
 class ResNet34Block1(nn.Module):
     def __init__(self, *args):
         super().__init__()
-        model = TorchVision('resnet34')
+        model = TorchVision("resnet34")
         modules = list(model.children())
         modules = modules[:6]
         self.model = nn.Sequential(*modules)
+
     def forward(self, x):
         return self.model(x)
-    
+
+
 class ResNet34Block2(nn.Module):
     def __init__(self, *args):
         super().__init__()
-        model = TorchVision('resnet34')
+        model = TorchVision("resnet34")
         modules = list(model.children())
         modules = modules[6]
         self.model = nn.Sequential(*modules)
+
     def forward(self, x):
         return self.model(x)
-    
+
+
 class ResNet34Block3(nn.Module):
     def __init__(self, *args):
         super().__init__()
-        model = TorchVision('resnet34')
+        model = TorchVision("resnet34")
         modules = list(model.children())
         modules = modules[7]
         self.model = nn.Sequential(*modules)
+
     def forward(self, x):
         return self.model(x)
 
 
-#----------------------------------------------------------------------
+# ----------------------------------------------------------------------
 # resnet50
-#----------------------------------------------------------------------
+# ----------------------------------------------------------------------
 class ResNet50Block1(nn.Module):
     def __init__(self, *args):
         super().__init__()
-        model = TorchVision('resnet50')
+        model = TorchVision("resnet50")
         modules = list(model.children())
         modules = modules[:6]
         self.model = nn.Sequential(*modules)
+
     def forward(self, x):
         return self.model(x)
-    
+
+
 class ResNet50Block2(nn.Module):
     def __init__(self, *args):
         super().__init__()
-        model = TorchVision('resnet50')
+        model = TorchVision("resnet50")
         modules = list(model.children())
         modules = modules[6]
         self.model = nn.Sequential(*modules)
+
     def forward(self, x):
         return self.model(x)
-    
+
+
 class ResNet50Block3(nn.Module):
     def __init__(self, *args):
         super().__init__()
-        model = TorchVision('resnet50')
+        model = TorchVision("resnet50")
         modules = list(model.children())
         modules = modules[7]
         self.model = nn.Sequential(*modules)
+
     def forward(self, x):
-        return self.model(x)    
+        return self.model(x)
 
 
-#----------------------------------------------------------------------
+# ----------------------------------------------------------------------
 # wide_resnet50_2
-#----------------------------------------------------------------------
+# ----------------------------------------------------------------------
 class WideRseNet50Block1(nn.Module):
     def __init__(self, *args):
         super().__init__()
-        model = TorchVision('wide_resnet50_2')
+        model = TorchVision("wide_resnet50_2")
         modules = list(model.children())
         modules = modules[:6]
         self.model = nn.Sequential(*modules)
+
     def forward(self, x):
         return self.model(x)
-    
+
+
 class WideRseNet50Block2(nn.Module):
     def __init__(self, *args):
         super().__init__()
-        model = TorchVision('wide_resnet50_2')
+        model = TorchVision("wide_resnet50_2")
         modules = list(model.children())
         modules = modules[6]
         self.model = nn.Sequential(*modules)
+
     def forward(self, x):
         return self.model(x)
-    
+
+
 class WideRseNet50Block3(nn.Module):
     def __init__(self, *args):
         super().__init__()
-        model = TorchVision('wide_resnet50_2')
+        model = TorchVision("wide_resnet50_2")
         modules = list(model.children())
         modules = modules[7]
         self.model = nn.Sequential(*modules)
+
     def forward(self, x):
         return self.model(x)
 
 
-#----------------------------------------------------------------------
+# ----------------------------------------------------------------------
 # vgg11_bn
-#----------------------------------------------------------------------
+# ----------------------------------------------------------------------
 class Vgg11BnBlock1(nn.Module):
     def __init__(self, *args):
         super().__init__()
-        model = TorchVision('vgg11_bn')
+        model = TorchVision("vgg11_bn")
         modules = list(model.children())
         modules = modules[0][:14]
         self.model = nn.Sequential(*modules)
+
     def forward(self, x):
         return self.model(x)
-    
+
+
 class Vgg11BnBlock2(nn.Module):
     def __init__(self, *args):
         super().__init__()
-        model = TorchVision('vgg11_bn')
+        model = TorchVision("vgg11_bn")
         modules = list(model.children())
         modules = modules[0][14:21]
         self.model = nn.Sequential(*modules)
+
     def forward(self, x):
         return self.model(x)
-    
+
+
 class Vgg11BnBlock3(nn.Module):
     def __init__(self, *args):
         super().__init__()
-        model = TorchVision('vgg11_bn')
+        model = TorchVision("vgg11_bn")
         modules = list(model.children())
         modules = modules[0][21:28]
         self.model = nn.Sequential(*modules)
+
     def forward(self, x):
         return self.model(x)
 
 
-#----------------------------------------------------------------------
+# ----------------------------------------------------------------------
 # convnext_tiny
-#----------------------------------------------------------------------
+# ----------------------------------------------------------------------
 class ConvNextTinyBlock1(nn.Module):
     def __init__(self, *args):
         super().__init__()
-        model = TorchVision('convnext_tiny')
+        model = TorchVision("convnext_tiny")
         modules = list(model.children())
         modules = modules[0][:4]
         self.model = nn.Sequential(*modules)
+
     def forward(self, x):
         return self.model(x)
-    
+
+
 class ConvNextTinyBlock2(nn.Module):
     def __init__(self, *args):
         super().__init__()
-        model = TorchVision('convnext_tiny')
+        model = TorchVision("convnext_tiny")
         modules = list(model.children())
         modules = modules[0][4:6]
         self.model = nn.Sequential(*modules)
+
     def forward(self, x):
         return self.model(x)
-    
+
+
 class ConvNextTinyBlock3(nn.Module):
     def __init__(self, *args):
         super().__init__()
-        model = TorchVision('convnext_tiny')
+        model = TorchVision("convnext_tiny")
         modules = list(model.children())
         modules = modules[0][6:8]
         self.model = nn.Sequential(*modules)
+
     def forward(self, x):
         return self.model(x)

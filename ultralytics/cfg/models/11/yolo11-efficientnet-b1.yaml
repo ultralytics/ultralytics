@@ -4,15 +4,15 @@
 nc: 80 # number of classes
 scales: # there is no scaling for this model; the following scales are used only to bypass errors in model parsing
   # [depth, width, max_channels]
-  n: [1.00, 1.00, 1280] 
+  n: [1.00, 1.00, 1280]
 
 backbone:
-  # [from, number, module, args]            
-  - [-1, 1, EfficientNetB1Block1, [40]]     # 0
-  - [-1, 1, EfficientNetB1Block2, [112]]    # 1
-  - [-1, 1, EfficientNetB1Block3, [1280]]   # 2
-  - [-1, 1, SPPF, [1024, 5]]                # 3
-  - [-1, 2, C2PSA, [1024]]                  # 4
+  # [from, number, module, args]
+  - [-1, 1, EfficientNetB1Block1, [40]] # 0
+  - [-1, 1, EfficientNetB1Block2, [112]] # 1
+  - [-1, 1, EfficientNetB1Block3, [1280]] # 2
+  - [-1, 1, SPPF, [1024, 5]] # 3
+  - [-1, 2, C2PSA, [1024]] # 4
 
 head:
   - [-1, 1, nn.Upsample, [None, 2, "nearest"]]

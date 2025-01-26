@@ -134,7 +134,7 @@ def benchmark(
 
             # Export
             if format == "-":
-                filename = model.ckpt_path or model.cfg
+                filename = model.pt_path or model.ckpt_path or model.model_name
                 exported_model = model  # PyTorch format
             else:
                 filename = model.export(imgsz=imgsz, format=format, half=half, int8=int8, device=device, verbose=False)
@@ -169,7 +169,7 @@ def benchmark(
     check_yolo(device=device)  # print system info
     df = pd.DataFrame(y, columns=["Format", "Status❔", "Size (MB)", key, "Inference time (ms/im)", "FPS"])
 
-    name = Path(model.ckpt_path).name
+    name = model.model_name
     s = f"\nBenchmarks complete for {name} on {data} at imgsz={imgsz} ({time.time() - t0:.2f}s)\n{df}\n"
     LOGGER.info(s)
     with open("benchmarks.log", "a", errors="ignore", encoding="utf-8") as f:

@@ -1189,14 +1189,13 @@ class TorchVision(nn.Module):
         return y
 
 
-from torchvision import models
 #----------------------------------------------------------------------
 # mobilenet_v2
 #----------------------------------------------------------------------
 class MobileNetV2Block1(nn.Module):
     def __init__(self, *args):
         super().__init__()
-        model = models.mobilenet_v2(pretrained=True)
+        model = TorchVision('mobilenet_v2')        
         modules = list(model.children())
         modules = modules[0][:7]
         self.model = nn.Sequential(*modules)
@@ -1206,7 +1205,7 @@ class MobileNetV2Block1(nn.Module):
 class MobileNetV2Block2(nn.Module):
     def __init__(self, *args):
         super().__init__()
-        model = models.mobilenet_v2(pretrained=True)
+        model = TorchVision('mobilenet_v2')
         modules = list(model.children())
         modules = modules[0][7:14]
         self.model = nn.Sequential(*modules)
@@ -1216,7 +1215,7 @@ class MobileNetV2Block2(nn.Module):
 class MobileNetV2Block3(nn.Module):
     def __init__(self, *args):
         super().__init__()
-        model = models.mobilenet_v2(pretrained=True)
+        model = TorchVision('mobilenet_v2')
         modules = list(model.children())
         modules = modules[0][14:19]
         self.model = nn.Sequential(*modules)
@@ -1231,7 +1230,7 @@ class MobileNetV3SmallBlock1(nn.Module):
     # out channel 24
     def __init__(self, *args):
         super().__init__()
-        model = models.mobilenet_v3_small(pretrained=True)
+        model = TorchVision('mobilenet_v3_small')
         modules = list(model.children())
         modules = modules[0][:4]
         self.model = nn.Sequential(*modules)
@@ -1243,7 +1242,7 @@ class MobileNetV3SmallBlock2(nn.Module):
     # out 48 channel
     def __init__(self, *args):
         super().__init__()
-        model = models.mobilenet_v3_small(pretrained=True)
+        model = TorchVision('mobilenet_v3_small')
         modules = list(model.children())
         modules = modules[0][4:9]
         self.model = nn.Sequential(*modules)
@@ -1255,7 +1254,7 @@ class MobileNetV3SmallBlock3(nn.Module):
     # out 576 channel
     def __init__(self, *args):
         super().__init__()
-        model = models.mobilenet_v3_small(pretrained=True)
+        model = TorchVision('mobilenet_v3_small')
         modules = list(model.children())
         modules = modules[0][9:]
         self.model = nn.Sequential(*modules)
@@ -1269,7 +1268,7 @@ class MobileNetV3SmallBlock3(nn.Module):
 class EfficientNetB0Block1(nn.Module):
     def __init__(self, *args):
         super().__init__()
-        model = models.efficientnet_b0(pretrained=True)
+        model = TorchVision('efficientnet_b0')
         modules = list(model.children())
         modules = modules[0][:4]
         self.model = nn.Sequential(*modules)
@@ -1279,7 +1278,7 @@ class EfficientNetB0Block1(nn.Module):
 class EfficientNetB0Block2(nn.Module):
     def __init__(self, *args):
         super().__init__()
-        model = models.efficientnet_b0(pretrained=True)
+        model = TorchVision('efficientnet_b0')
         modules = list(model.children())
         modules = modules[0][4:6]
         self.model = nn.Sequential(*modules)
@@ -1289,7 +1288,7 @@ class EfficientNetB0Block2(nn.Module):
 class EfficientNetB0Block3(nn.Module):
     def __init__(self, *args):
         super().__init__()
-        model = models.efficientnet_b0(pretrained=True)
+        model = TorchVision('efficientnet_b0')
         modules = list(model.children())
         modules = modules[0][6:]
         self.model = nn.Sequential(*modules)
@@ -1303,7 +1302,7 @@ class EfficientNetB0Block3(nn.Module):
 class EfficientNetB1Block1(nn.Module):
     def __init__(self, *args):
         super().__init__()
-        model = models.efficientnet_b1(pretrained=True)
+        model = TorchVision('efficientnet_b1')
         modules = list(model.children())
         modules = modules[0][:4]
         self.model = nn.Sequential(*modules)
@@ -1313,7 +1312,7 @@ class EfficientNetB1Block1(nn.Module):
 class EfficientNetB1Block2(nn.Module):
     def __init__(self, *args):
         super().__init__()
-        model = models.efficientnet_b1(pretrained=True)
+        model = TorchVision('efficientnet_b1')
         modules = list(model.children())
         modules = modules[0][4:6]
         self.model = nn.Sequential(*modules)
@@ -1323,7 +1322,7 @@ class EfficientNetB1Block2(nn.Module):
 class EfficientNetB1Block3(nn.Module):
     def __init__(self, *args):
         super().__init__()
-        model = models.efficientnet_b1(pretrained=True)
+        model = TorchVision('efficientnet_b1')
         modules = list(model.children())
         modules = modules[0][6:]
         self.model = nn.Sequential(*modules)
@@ -1336,7 +1335,7 @@ class EfficientNetB1Block3(nn.Module):
 class EfficientNetV2SmallBlock1(nn.Module):
     def __init__(self, *args):
         super().__init__()
-        model = models.efficientnet_v2_s(pretrained=True)
+        model = TorchVision('efficientnet_v2_s')
         modules = list(model.children())
         modules = modules[0][:4]
         self.model = nn.Sequential(*modules)
@@ -1345,7 +1344,7 @@ class EfficientNetV2SmallBlock1(nn.Module):
 class EfficientNetV2SmallBlock2(nn.Module):
     def __init__(self, *args):
         super().__init__()
-        model = models.efficientnet_v2_s(pretrained=True)
+        model = TorchVision('efficientnet_v2_s')
         modules = list(model.children())
         modules = modules[0][4:6]
         self.model = nn.Sequential(*modules)
@@ -1355,7 +1354,7 @@ class EfficientNetV2SmallBlock2(nn.Module):
 class EfficientNetV2SmallBlock3(nn.Module):
     def __init__(self, *args):
         super().__init__()
-        model = models.efficientnet_v2_s(pretrained=True)
+        model = TorchVision('efficientnet_v2_s')
         modules = list(model.children())
         modules = modules[0][6:]
         self.model = nn.Sequential(*modules)
@@ -1369,7 +1368,7 @@ class EfficientNetV2SmallBlock3(nn.Module):
 class ResNet18Block1(nn.Module):
     def __init__(self, *args):
         super().__init__()
-        model = models.resnet18(pretrained=True)
+        model = TorchVision('resnet18')
         modules = list(model.children())
         modules = modules[:6]
         self.model = nn.Sequential(*modules)
@@ -1379,7 +1378,7 @@ class ResNet18Block1(nn.Module):
 class ResNet18Block2(nn.Module):
     def __init__(self, *args):
         super().__init__()
-        model = models.resnet18(pretrained=True)
+        mmodel = TorchVision('resnet18')
         modules = list(model.children())
         modules = modules[6:7]
         self.model = nn.Sequential(*modules)
@@ -1389,7 +1388,7 @@ class ResNet18Block2(nn.Module):
 class ResNet18Block3(nn.Module):
     def __init__(self, *args):
         super().__init__()
-        model = models.resnet18(pretrained=True)
+        model = TorchVision('resnet18')
         modules = list(model.children())
         modules = modules[7:8]
         self.model = nn.Sequential(*modules)
@@ -1403,7 +1402,7 @@ class ResNet18Block3(nn.Module):
 class ResNet34Block1(nn.Module):
     def __init__(self, *args):
         super().__init__()
-        model = models.resnet34(pretrained=True)
+        model = TorchVision('resnet34')
         modules = list(model.children())
         modules = modules[:6]
         self.model = nn.Sequential(*modules)
@@ -1413,7 +1412,7 @@ class ResNet34Block1(nn.Module):
 class ResNet34Block2(nn.Module):
     def __init__(self, *args):
         super().__init__()
-        model = models.resnet34(pretrained=True)
+        model = TorchVision('resnet34')
         modules = list(model.children())
         modules = modules[6]
         self.model = nn.Sequential(*modules)
@@ -1423,7 +1422,7 @@ class ResNet34Block2(nn.Module):
 class ResNet34Block3(nn.Module):
     def __init__(self, *args):
         super().__init__()
-        model = models.resnet34(pretrained=True)
+        model = TorchVision('resnet34')
         modules = list(model.children())
         modules = modules[7]
         self.model = nn.Sequential(*modules)
@@ -1437,7 +1436,7 @@ class ResNet34Block3(nn.Module):
 class ResNet50Block1(nn.Module):
     def __init__(self, *args):
         super().__init__()
-        model = models.resnet50(pretrained=True)
+        model = TorchVision('resnet50')
         modules = list(model.children())
         modules = modules[:6]
         self.model = nn.Sequential(*modules)
@@ -1447,7 +1446,7 @@ class ResNet50Block1(nn.Module):
 class ResNet50Block2(nn.Module):
     def __init__(self, *args):
         super().__init__()
-        model = models.resnet50(pretrained=True)
+        model = TorchVision('resnet50')
         modules = list(model.children())
         modules = modules[6]
         self.model = nn.Sequential(*modules)
@@ -1457,7 +1456,7 @@ class ResNet50Block2(nn.Module):
 class ResNet50Block3(nn.Module):
     def __init__(self, *args):
         super().__init__()
-        model = models.resnet50(pretrained=True)
+        model = TorchVision('resnet50')
         modules = list(model.children())
         modules = modules[7]
         self.model = nn.Sequential(*modules)
@@ -1471,7 +1470,7 @@ class ResNet50Block3(nn.Module):
 class WideRseNet50Block1(nn.Module):
     def __init__(self, *args):
         super().__init__()
-        model = models.wide_resnet50_2(pretrained=True)
+        model = TorchVision('wide_resnet50_2')
         modules = list(model.children())
         modules = modules[:6]
         self.model = nn.Sequential(*modules)
@@ -1481,7 +1480,7 @@ class WideRseNet50Block1(nn.Module):
 class WideRseNet50Block2(nn.Module):
     def __init__(self, *args):
         super().__init__()
-        model = models.wide_resnet50_2(pretrained=True)
+        model = TorchVision('wide_resnet50_2')
         modules = list(model.children())
         modules = modules[6]
         self.model = nn.Sequential(*modules)
@@ -1491,7 +1490,7 @@ class WideRseNet50Block2(nn.Module):
 class WideRseNet50Block3(nn.Module):
     def __init__(self, *args):
         super().__init__()
-        model = models.wide_resnet50_2(pretrained=True)
+        model = TorchVision('wide_resnet50_2')
         modules = list(model.children())
         modules = modules[7]
         self.model = nn.Sequential(*modules)
@@ -1505,7 +1504,7 @@ class WideRseNet50Block3(nn.Module):
 class Vgg11BnBlock1(nn.Module):
     def __init__(self, *args):
         super().__init__()
-        model = models.vgg11_bn(pretrained=True)
+        model = TorchVision('vgg11_bn')
         modules = list(model.children())
         modules = modules[0][:14]
         self.model = nn.Sequential(*modules)
@@ -1515,7 +1514,7 @@ class Vgg11BnBlock1(nn.Module):
 class Vgg11BnBlock2(nn.Module):
     def __init__(self, *args):
         super().__init__()
-        model = models.vgg11_bn(pretrained=True)
+        model = TorchVision('vgg11_bn')
         modules = list(model.children())
         modules = modules[0][14:21]
         self.model = nn.Sequential(*modules)
@@ -1525,7 +1524,7 @@ class Vgg11BnBlock2(nn.Module):
 class Vgg11BnBlock3(nn.Module):
     def __init__(self, *args):
         super().__init__()
-        model = models.vgg11_bn(pretrained=True)
+        model = TorchVision('vgg11_bn')
         modules = list(model.children())
         modules = modules[0][21:28]
         self.model = nn.Sequential(*modules)
@@ -1539,7 +1538,7 @@ class Vgg11BnBlock3(nn.Module):
 class ConvNextTinyBlock1(nn.Module):
     def __init__(self, *args):
         super().__init__()
-        model = models.convnext_tiny(pretrained=True)
+        model = TorchVision('convnext_tiny')
         modules = list(model.children())
         modules = modules[0][:4]
         self.model = nn.Sequential(*modules)
@@ -1549,7 +1548,7 @@ class ConvNextTinyBlock1(nn.Module):
 class ConvNextTinyBlock2(nn.Module):
     def __init__(self, *args):
         super().__init__()
-        model = models.convnext_tiny(pretrained=True)
+        model = TorchVision('convnext_tiny')
         modules = list(model.children())
         modules = modules[0][4:6]
         self.model = nn.Sequential(*modules)
@@ -1559,7 +1558,7 @@ class ConvNextTinyBlock2(nn.Module):
 class ConvNextTinyBlock3(nn.Module):
     def __init__(self, *args):
         super().__init__()
-        model = models.convnext_tiny(pretrained=True)
+        model = TorchVision('convnext_tiny')
         modules = list(model.children())
         modules = modules[0][6:8]
         self.model = nn.Sequential(*modules)

@@ -190,15 +190,22 @@ class AutoBackend(nn.Module):
         # ONNX Runtime and IMX
         elif onnx or imx:
             LOGGER.info(f"Loading {w} for ONNX Runtime inference...")
-            check_requirements(("onnx", "onnxruntime-gpu" if cuda else "onnxruntime"))
+
+            try:
+                import onnxruntime
+            except ImportError:
+                check_requirements(("onnx", "onnxruntime-gpu" if cuda else "onnxruntime"))
+                import onnxruntime
+
             if IS_RASPBERRYPI or IS_JETSON:
                 # Fix 'numpy.linalg._umath_linalg' has no attribute '_ilp64' for TF SavedModel on RPi and Jetson
                 check_requirements("numpy==1.23.5")
-            import onnxruntime
 
             providers = ["CPUExecutionProvider"]
             if cuda and "CUDAExecutionProvider" in onnxruntime.get_available_providers():
                 providers.insert(0, "CUDAExecutionProvider")
+            elif "DmlExecutionProvider" in onnxruntime.get_available_providers():
+                providers.insert(0, "DmlExecutionProvider")
             elif cuda:  # Only log warning if CUDA was requested but unavailable
                 LOGGER.warning("WARNING ⚠️ Failed to start ONNX Runtime with CUDA. Using CPU...")
                 device = torch.device("cpu")

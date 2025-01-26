@@ -1613,7 +1613,9 @@ class NMSModel(torch.nn.Module):
                 score,
                 self.args.iou,
             )[: self.args.max_det]
-            dets = torch.cat([box[keep], score[keep].view(-1, 1), cls[keep].view(-1, 1), extra[keep]], dim=-1)
+            dets = torch.cat(
+                [box[keep], score[keep].view(-1, 1), cls[keep].view(-1, 1).astype(out.dtype), extra[keep]], dim=-1
+            )
             # Zero-pad to max_det size to avoid reshape error
             pad = (0, 0, 0, self.args.max_det - dets.shape[0])
             out[i] = torch.nn.functional.pad(dets, pad)

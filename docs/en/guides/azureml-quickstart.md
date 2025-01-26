@@ -47,7 +47,7 @@ Start your compute and open a Terminal:
 ### Create virtualenv
 
 Create your conda virtualenv with your favorite python version and install pip in it:
-Python 3.13.1 is having some issues with some dependecies in AzureML.
+Python 3.13.1 is having some issues with some dependencies in AzureML.
 
 ```bash
 conda create --name yolo11env -y python=3.12
@@ -90,7 +90,7 @@ Open the compute Terminal.
   <img width="480" src="https://github.com/ultralytics/docs/releases/download/0/open-terminal.avif" alt="Open Terminal">
 </p>
 
-From your compute terminal, you need to create a new ipykernel (with a specific python version - because Python 3.13.1 is having some issues with some dependecies in AzureML) that will be used by your notebook to manage your dependencies:
+From your compute terminal, you need to create a new ipykernel (with a specific python version - because Python 3.13.1 is having some issues with some dependencies in AzureML) that will be used by your notebook to manage your dependencies:
 
 ```bash
 conda create --name yolo11env -y python=3.12

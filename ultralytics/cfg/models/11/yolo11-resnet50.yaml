@@ -4,7 +4,7 @@
 nc: 80 # number of classes
 scales: # there is no scaling for this model; the following scales are used only to bypass errors in model parsing
   # [depth, width, max_channels]
-  n: [1.00, 1.00, 1280]
+  n: [1.00, 1.00, 2048]
 
 backbone:
   # [from, number, module, args]

@@ -1440,7 +1440,7 @@ class ResNet18Block1(nn.Module):
         super().__init__()
         model = TorchVision("resnet18")
         modules = list(model.children())
-        modules = modules[:6]
+        modules = modules[0][:6]
         self.model = nn.Sequential(*modules)
 
     def forward(self, x):
@@ -1456,7 +1456,7 @@ class ResNet18Block2(nn.Module):
         super().__init__()
         TorchVision("resnet18")
         modules = list(model.children())
-        modules = modules[6:7]
+        modules = modules[0][6:7]
         self.model = nn.Sequential(*modules)
 
     def forward(self, x):
@@ -1472,7 +1472,7 @@ class ResNet18Block3(nn.Module):
         super().__init__()
         model = TorchVision("resnet18")
         modules = list(model.children())
-        modules = modules[7:8]
+        modules = modules[0][7:8]
         self.model = nn.Sequential(*modules)
 
     def forward(self, x):
@@ -1488,7 +1488,7 @@ class ResNet34Block1(nn.Module):
         super().__init__()
         model = TorchVision("resnet34")
         modules = list(model.children())
-        modules = modules[:6]
+        modules = modules[0][:6]
         self.model = nn.Sequential(*modules)
 
     def forward(self, x):
@@ -1504,7 +1504,7 @@ class ResNet34Block2(nn.Module):
         super().__init__()
         model = TorchVision("resnet34")
         modules = list(model.children())
-        modules = modules[6]
+        modules = modules[0][6]
         self.model = nn.Sequential(*modules)
 
     def forward(self, x):
@@ -1520,7 +1520,7 @@ class ResNet34Block3(nn.Module):
         super().__init__()
         model = TorchVision("resnet34")
         modules = list(model.children())
-        modules = modules[7]
+        modules = modules[0][7]
         self.model = nn.Sequential(*modules)
 
     def forward(self, x):
@@ -1536,7 +1536,7 @@ class ResNet50Block1(nn.Module):
         super().__init__()
         model = TorchVision("resnet50")
         modules = list(model.children())
-        modules = modules[:6]
+        modules = modules[0][:6]
         self.model = nn.Sequential(*modules)
 
     def forward(self, x):
@@ -1552,7 +1552,7 @@ class ResNet50Block2(nn.Module):
         super().__init__()
         model = TorchVision("resnet50")
         modules = list(model.children())
-        modules = modules[6]
+        modules = modules[0][6]
         self.model = nn.Sequential(*modules)
 
     def forward(self, x):
@@ -1568,7 +1568,7 @@ class ResNet50Block3(nn.Module):
         super().__init__()
         model = TorchVision("resnet50")
         modules = list(model.children())
-        modules = modules[7]
+        modules = modules[0][7]
         self.model = nn.Sequential(*modules)
 
     def forward(self, x):
@@ -1584,7 +1584,7 @@ class WideRseNet50Block1(nn.Module):
         super().__init__()
         model = TorchVision("wide_resnet50_2")
         modules = list(model.children())
-        modules = modules[:6]
+        modules = modules[0][:6]
         self.model = nn.Sequential(*modules)
 
     def forward(self, x):
@@ -1600,7 +1600,7 @@ class WideRseNet50Block2(nn.Module):
         super().__init__()
         model = TorchVision("wide_resnet50_2")
         modules = list(model.children())
-        modules = modules[6]
+        modules = modules[0][6]
         self.model = nn.Sequential(*modules)
 
     def forward(self, x):
@@ -1616,7 +1616,7 @@ class WideRseNet50Block3(nn.Module):
         super().__init__()
         model = TorchVision("wide_resnet50_2")
         modules = list(model.children())
-        modules = modules[7]
+        modules = modules[0][7]
         self.model = nn.Sequential(*modules)
 
     def forward(self, x):

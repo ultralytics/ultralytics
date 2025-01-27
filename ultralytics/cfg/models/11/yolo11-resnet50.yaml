@@ -8,9 +8,9 @@ scales: # there is no scaling for this model; the following scales are used only
 
 backbone:
   # [from, number, module, args]
-  - [-1, 1, EfficientNetB1Block1, [40]] # 0
-  - [-1, 1, EfficientNetB1Block2, [112]] # 1
-  - [-1, 1, EfficientNetB1Block3, [1280]] # 2
+  - [-1, 1, ResNet50Block1, [512]] # 0
+  - [-1, 1, ResNet50Block2, [1024]] # 1
+  - [-1, 1, ResNet50Block3, [2048]] # 2
   - [-1, 1, SPPF, [1024, 5]] # 3
   - [-1, 2, C2PSA, [1024]] # 4
 

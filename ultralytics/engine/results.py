@@ -962,7 +962,6 @@ class Results(SimpleClass):
 
         # Convert results to a list of dictionaries
         data = self.summary(normalize=normalize, decimals=decimals)
-
         if not data:
             LOGGER.warning("⚠️ No results to save to SQL. Results dict is empty")
             return
@@ -978,7 +977,7 @@ class Results(SimpleClass):
 
         # Insert data into the table
         for i, item in enumerate(data):
-            detect, obb = None, None  # necessary to reinit these variables inside for loop to avoid duplication
+            detect, obb = None, None    # necessary to reinit these variables inside for loop to avoid duplication
             class_name = item.get("name")
             box = item.get("box", {})
             # Serialize the box as JSON for 'detect' and 'obb' based on key presence

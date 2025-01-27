@@ -415,7 +415,7 @@ def set_logging(name="LOGGING_NAME", verbose=True):
     logger.setLevel(level)
     logger.addHandler(stream_handler)
     logger.propagate = False
-    logger_level.__get__(LOGGER, LOGGER.__class__) # add as method
+    logger_level.__get__(LOGGER, LOGGER.__class__)  # add as method
     return logger
 
 
@@ -1327,7 +1327,6 @@ def vscode_msg(ext="ultralytics.ultralytics-snippets") -> str:
     installed = any(path.glob(f"{ext}*")) and ext not in (obs_file.read_text("utf-8") if obs_file.exists() else "")
     url = "https://docs.ultralytics.com/integrations/vscode"
     return "" if installed else f"{colorstr('VS Code:')} view Ultralytics VS Code Extension ⚡ at {url}"
-
 
 
 # Run below code on utils init ------------------------------------------------------------------------------------

@@ -957,8 +957,8 @@ class Results(SimpleClass):
             >>> results[0].to_sql()
             >>> print("SQL data written successfully.")
         """
-        import sqlite3
         import json
+        import sqlite3
 
         # Convert results to a list of dictionaries
         data = self.summary(normalize=normalize, decimals=decimals)
@@ -971,13 +971,15 @@ class Results(SimpleClass):
         cursor = conn.cursor()
 
         # Create table if it doesn't exist
-        columns = ("id INTEGER PRIMARY KEY AUTOINCREMENT, class_name TEXT, confidence REAL, "
-                   "box TEXT, masks TEXT, kpts TEXT, obb TEXT")
+        columns = (
+            "id INTEGER PRIMARY KEY AUTOINCREMENT, class_name TEXT, confidence REAL, "
+            "box TEXT, masks TEXT, kpts TEXT, obb TEXT"
+        )
         cursor.execute(f"CREATE TABLE IF NOT EXISTS {table_name} ({columns})")
 
         # Insert data into the table
         for i, item in enumerate(data):
-            detect, obb = None, None    # necessary to reinit these variables inside for loop to avoid duplication
+            detect, obb = None, None  # necessary to reinit these variables inside for loop to avoid duplication
             class_name = item.get("name")
             box = item.get("box", {})
             # Serialize the box as JSON for 'detect' and 'obb' based on key presence
@@ -987,15 +989,15 @@ class Results(SimpleClass):
                 obb = json.dumps(box)
 
             cursor.execute(
-                f"INSERT INTO {table_name} "
-                f"(class_name, confidence, box, masks, kpts, obb) VALUES "
-                f"(?, ?, ?, ?, ?, ?)",
-                (class_name,
-                 item.get("confidence"),
-                 detect,
-                 json.dumps(item.get("segments", {}).get("x", [])),
-                 json.dumps(item.get("keypoints", {}).get("x", [])),
-                 obb)
+                f"INSERT INTO {table_name} (class_name, confidence, box, masks, kpts, obb) VALUES (?, ?, ?, ?, ?, ?)",
+                (
+                    class_name,
+                    item.get("confidence"),
+                    detect,
+                    json.dumps(item.get("segments", {}).get("x", [])),
+                    json.dumps(item.get("keypoints", {}).get("x", [])),
+                    obb,
+                ),
             )
 
         # Commit and close the connection

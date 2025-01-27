@@ -1327,7 +1327,8 @@ def logger_level(self, level):
     finally:
         self.setLevel(original_level)
 
-LOGGER.logger_level = logger_level.__get__(LOGGER, LOGGER.__class__) # add as method
+
+LOGGER.logger_level = logger_level.__get__(LOGGER, LOGGER.__class__)  # add as method
 
 
 # Run below code on utils init ------------------------------------------------------------------------------------

@@ -415,7 +415,7 @@ def set_logging(name="LOGGING_NAME", verbose=True):
     logger.setLevel(level)
     logger.addHandler(stream_handler)
     logger.propagate = False
-    logger_level.__get__(LOGGER, LOGGER.__class__)  # add as method
+    logger.logger_level = logger_level.__get__(logger, logger.__class__)  # add as method
     return logger
 
 

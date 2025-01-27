@@ -41,8 +41,8 @@ import yaml
 from ultralytics import YOLO, YOLOWorld
 from ultralytics.cfg import TASK2DATA, TASK2METRIC
 from ultralytics.engine.exporter import export_formats
-from ultralytics.utils import ARM64, ASSETS, LINUX, LOGGER, MACOS, TQDM, WEIGHTS_DIR
-from ultralytics.utils.checks import IS_PYTHON_3_12, check_requirements, check_yolo, is_rockchip
+from ultralytics.utils import ARM64, ASSETS, LINUX, LOGGER, MACOS, TQDM, WEIGHTS_DIR, logger_level
+from ultralytics.utils.checks import IS_PYTHON_3_12, check_requirements, check_yolo, is_rockchip, check_imgsz
 from ultralytics.utils.downloads import safe_download
 from ultralytics.utils.files import file_size
 from ultralytics.utils.torch_utils import get_cpu_info, select_device
@@ -80,6 +80,9 @@ def benchmark(
         >>> from ultralytics.utils.benchmarks import benchmark
         >>> benchmark(model="yolo11n.pt", imgsz=640)
     """
+    imgsz = check_imgsz(imgsz)
+    assert imgsz[0] == imgsz[1] if isinstance(imgsz, list) else None, "benchmark() only supports square imgsz."
+
     import pandas as pd  # scope for faster 'import ultralytics'
 
     pd.options.display.max_columns = 10
@@ -137,7 +140,10 @@ def benchmark(
                 filename = model.pt_path or model.ckpt_path or model.model_name
                 exported_model = model  # PyTorch format
             else:
-                filename = model.export(imgsz=imgsz, format=format, half=half, int8=int8, device=device, verbose=False)
+                with logger_level(LOGGER, "INFO" if verbose else "WARN"):
+                    filename = model.export(
+                        imgsz=imgsz, format=format, half=half, int8=int8, device=device, verbose=False
+                    )
                 exported_model = YOLO(filename, task=model.task)
                 assert suffix in str(filename), "export failed"
             emoji = "❎"  # indicates export succeeded
@@ -153,9 +159,10 @@ def benchmark(
             # Validate
             data = data or TASK2DATA[model.task]  # task to dataset, i.e. coco8.yaml for task=detect
             key = TASK2METRIC[model.task]  # task to metric, i.e. metrics/mAP50-95(B) for task=detect
-            results = exported_model.val(
-                data=data, batch=1, imgsz=imgsz, plots=False, device=device, half=half, int8=int8, verbose=False
-            )
+            with logger_level(LOGGER, "INFO" if verbose else "WARN"):
+                results = exported_model.val(
+                    data=data, batch=1, imgsz=imgsz, plots=False, device=device, half=half, int8=int8, verbose=False
+                )
             metric, speed = results.results_dict[key], results.speed["inference"]
             fps = round(1000 / (speed + eps), 2)  # frames per second
             y.append([name, "✅", round(file_size(filename), 1), round(metric, 4), round(speed, 2), fps])
@@ -170,8 +177,10 @@ def benchmark(
     df = pd.DataFrame(y, columns=["Format", "Status❔", "Size (MB)", key, "Inference time (ms/im)", "FPS"])
 
     name = model.model_name
-    s = f"\nBenchmarks complete for {name} on {data} at imgsz={imgsz} ({time.time() - t0:.2f}s)\n{df}\n"
+    s = f"\nBenchmarks complete for {name} on {data} at imgsz={imgsz} ({time.time() - t0:.2f}s)\n{df.fillna('-')}\n"
     LOGGER.info(s)
+    LOGGER.info("Status legends:")
+    LOGGER.info("✅ - Benchmark passed | ❎ - Export passed but validation failed | ❌️ - Export failed")
     with open("benchmarks.log", "a", errors="ignore", encoding="utf-8") as f:
         f.write(s)
 

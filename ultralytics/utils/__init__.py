@@ -1318,14 +1318,16 @@ def vscode_msg(ext="ultralytics.ultralytics-snippets") -> str:
 
 
 @contextlib.contextmanager
-def logger_level(logger, level):
+def logger_level(self, level):
     """Temporarily set the logger's level."""
-    original_level = logger.level
-    logger.setLevel(level)
+    original_level = self.level
+    self.setLevel(level)
     try:
         yield
     finally:
-        logger.setLevel(original_level)
+        self.setLevel(original_level)
+
+LOGGER.logger_level = logger_level.__get__(LOGGER, LOGGER.__class__) # add as method
 
 
 # Run below code on utils init ------------------------------------------------------------------------------------

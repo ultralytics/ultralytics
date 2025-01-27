@@ -394,6 +394,17 @@ def set_logging(name="LOGGING_NAME", verbose=True):
             print(f"Creating custom formatter for non UTF-8 environments due to {e}")
             formatter = CustomFormatter("%(message)s")
 
+    # Context manager to temporarily change verbosity
+    @contextlib.contextmanager
+    def logger_level(self, level):
+        """Temporarily set the logger's level."""
+        original_level = self.level
+        self.setLevel(level)
+        try:
+            yield
+        finally:
+            self.setLevel(original_level)
+
     # Create and configure the StreamHandler with the appropriate formatter and level
     stream_handler = logging.StreamHandler(sys.stdout)
     stream_handler.setFormatter(formatter)
@@ -404,6 +415,7 @@ def set_logging(name="LOGGING_NAME", verbose=True):
     logger.setLevel(level)
     logger.addHandler(stream_handler)
     logger.propagate = False
+    logger_level.__get__(LOGGER, LOGGER.__class__) # add as method
     return logger
 
 
@@ -1316,19 +1328,6 @@ def vscode_msg(ext="ultralytics.ultralytics-snippets") -> str:
     url = "https://docs.ultralytics.com/integrations/vscode"
     return "" if installed else f"{colorstr('VS Code:')} view Ultralytics VS Code Extension ⚡ at {url}"
 
-
-@contextlib.contextmanager
-def logger_level(self, level):
-    """Temporarily set the logger's level."""
-    original_level = self.level
-    self.setLevel(level)
-    try:
-        yield
-    finally:
-        self.setLevel(original_level)
-
-
-LOGGER.logger_level = logger_level.__get__(LOGGER, LOGGER.__class__)  # add as method
 
 
 # Run below code on utils init ------------------------------------------------------------------------------------

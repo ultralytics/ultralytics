@@ -5,10 +5,10 @@ nc: 80 # number of classes
 
 backbone:
   # [from, number, module, args]
-  - [-1, 1, EfficientNetB1Block1, [40]] # 0
-  - [-1, 1, EfficientNetB1Block2, [112]] # 1
-  - [-1, 1, EfficientNetB1Block3, [1280]] # 2
-  - [-1, 1, SPPF, [1024, 5]] # 3
+  - [-1, 1, ResNet50Block1, [512]]
+  - [-1, 1, ResNet50Block2, [1024]]
+  - [-1, 1, ResNet50Block3, [2048]]
+  - [-1, 1, SPPF, [1024, 5]]
 
 head:
   - [-1, 1, nn.Upsample, [None, 2, "nearest"]]

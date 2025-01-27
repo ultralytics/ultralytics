@@ -1317,6 +1317,17 @@ def vscode_msg(ext="ultralytics.ultralytics-snippets") -> str:
     return "" if installed else f"{colorstr('VS Code:')} view Ultralytics VS Code Extension ⚡ at {url}"
 
 
+@contextlib.contextmanager
+def logger_level(logger, level):
+    """Temporarily set the logger's level."""
+    original_level = logger.level
+    logger.setLevel(level)
+    try:
+        yield
+    finally:
+        logger.setLevel(original_level)
+
+
 # Run below code on utils init ------------------------------------------------------------------------------------
 
 # Check first-install steps

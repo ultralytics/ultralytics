@@ -973,18 +973,17 @@ class Results(SimpleClass):
 
         # Create table if it doesn't exist
         columns = ("id INTEGER PRIMARY KEY AUTOINCREMENT, class_name TEXT, confidence REAL, "
-                   "x_min REAL, y_min REAL, x_max REAL, y_max REAL, masks TEXT, kpts TEXT, obb TEXT")
+                   "box TEXT, masks TEXT, kpts TEXT, obb TEXT")
         cursor.execute(f"CREATE TABLE IF NOT EXISTS {table_name} ({columns})")
 
         # Insert data into the table
         for i, item in enumerate(data):
+            detect, obb = None, None  # necessary to reinit these variables inside for loop to avoid duplication
             class_name = item.get("name")
-
-            detect, obb = None, None    # necessary to reinit these variables inside for loop to avoid duplication
+            box = item.get("box", {})
             # Serialize the box as JSON for 'detect' and 'obb' based on key presence
             if all(key in box for key in ["x1", "y1", "x2", "y2"]) and not any(key in box for key in ["x3", "x4"]):
                 detect = json.dumps(box)
-
             if all(key in box for key in ["x1", "y1", "x2", "y2", "x3", "x4"]):
                 obb = json.dumps(box)
 

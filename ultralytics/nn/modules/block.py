@@ -1189,9 +1189,6 @@ class TorchVision(nn.Module):
         return y
 
 
-# ----------------------------------------------------------------------
-# mobilenet_v2
-# ----------------------------------------------------------------------
 class MobileNetV2Block1(nn.Module):
     """mobilenet_v2 block 1."""
 
@@ -1240,9 +1237,6 @@ class MobileNetV2Block3(nn.Module):
         return self.model(x)
 
 
-# ----------------------------------------------------------------------
-# mobilenet_v3_small
-# ----------------------------------------------------------------------
 class MobileNetV3SmallBlock1(nn.Module):
     """mobilenet_v3_small block 1."""
 
@@ -1294,9 +1288,6 @@ class MobileNetV3SmallBlock3(nn.Module):
         return self.model(x)
 
 
-# ----------------------------------------------------------------------
-# efficientnet_b0
-# ----------------------------------------------------------------------
 class EfficientNetB0Block1(nn.Module):
     """efficientnet_b0 block 1."""
 
@@ -1345,9 +1336,6 @@ class EfficientNetB0Block3(nn.Module):
         return self.model(x)
 
 
-# ----------------------------------------------------------------------
-# efficientnet_b1
-# ----------------------------------------------------------------------
 class EfficientNetB1Block1(nn.Module):
     """efficientnet_b1 block 1."""
 
@@ -1396,9 +1384,6 @@ class EfficientNetB1Block3(nn.Module):
         return self.model(x)
 
 
-# ----------------------------------------------------------------------
-# efficientnet_v2_s
-# ----------------------------------------------------------------------
 class EfficientNetV2SmallBlock1(nn.Module):
     """efficientnet_v2_s block 1."""
 
@@ -1447,9 +1432,6 @@ class EfficientNetV2SmallBlock3(nn.Module):
         return self.model(x)
 
 
-# ----------------------------------------------------------------------
-# resnet18
-# ----------------------------------------------------------------------
 class ResNet18Block1(nn.Module):
     """Resnet18 block 1."""
 
@@ -1498,9 +1480,6 @@ class ResNet18Block3(nn.Module):
         return self.model(x)
 
 
-# ----------------------------------------------------------------------
-# resnet34
-# ----------------------------------------------------------------------
 class ResNet34Block1(nn.Module):
     """Resnet34 block 1."""
 
@@ -1549,9 +1528,6 @@ class ResNet34Block3(nn.Module):
         return self.model(x)
 
 
-# ----------------------------------------------------------------------
-# resnet50
-# ----------------------------------------------------------------------
 class ResNet50Block1(nn.Module):
     """Resnet50 block 1."""
 
@@ -1600,9 +1576,6 @@ class ResNet50Block3(nn.Module):
         return self.model(x)
 
 
-# ----------------------------------------------------------------------
-# wide_resnet50_2
-# ----------------------------------------------------------------------
 class WideRseNet50Block1(nn.Module):
     """wide_resnet50_2 block 1."""
 
@@ -1651,9 +1624,6 @@ class WideRseNet50Block3(nn.Module):
         return self.model(x)
 
 
-# ----------------------------------------------------------------------
-# vgg11_bn
-# ----------------------------------------------------------------------
 class Vgg11BnBlock1(nn.Module):
     """vgg11_bn block 1."""
 
@@ -1702,9 +1672,6 @@ class Vgg11BnBlock3(nn.Module):
         return self.model(x)
 
 
-# ----------------------------------------------------------------------
-# convnext_tiny
-# ----------------------------------------------------------------------
 class ConvNextTinyBlock1(nn.Module):
     """convnext_tiny block 1."""
 

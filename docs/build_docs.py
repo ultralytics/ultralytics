@@ -324,8 +324,8 @@ def main():
     minify_files(html=False, css=False, js=False)
 
     # Cleanup
-    shutil.rmtree(DOCS.parent / "hub_sdk")
-    shutil.rmtree(DOCS / "repos")
+    shutil.rmtree(DOCS.parent / "hub_sdk", ignore_errors=True)
+    shutil.rmtree(DOCS / "repos", ignore_errors=True)
 
     # Show command to serve built website
     print('Docs built correctly ✅\nServe site at http://localhost:8000 with "python -m http.server --directory site"')

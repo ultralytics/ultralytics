@@ -130,6 +130,14 @@ It is crucial to thoughtfully configure these settings to ensure the exported mo
 
 [Export Guide](../modes/export.md){ .md-button }
 
+## Solutions Settings
+
+The configuration settings for Ultralytics Solutions offer a flexible way to customize the model for various tasks like object counting, heatmap creation, workout tracking, data analysis, zone tracking, queue management, and region-based counting. These options make it easy to adjust the setup for accurate and useful results tailored to specific needs.
+
+{% include "macros/solutions-args.md" %}
+
+[Solutions Guide](../solutions/index.md){ .md-button }
+
 ## Augmentation Settings
 
 Augmentation techniques are essential for improving the robustness and performance of YOLO models by introducing variability into the [training data](https://www.ultralytics.com/glossary/training-data), helping the model generalize better to unseen data. The following table outlines the purpose and effect of each augmentation argument:
@@ -186,7 +194,8 @@ Default inference settings include:
 - **IoU Threshold (`iou=0.7`)**: For Non-Maximum Suppression (NMS).
 - **Image Size (`imgsz=640`)**: Resizes input images prior to inference.
 - **Device (`device=None`)**: Selects CPU or GPU for inference.
-    For a comprehensive overview, visit the [Predict Settings](#predict-settings) section and the [Predict Guide](../modes/predict.md).
+
+For a comprehensive overview, visit the [Predict Settings](#predict-settings) section and the [Predict Guide](../modes/predict.md).
 
 ### Why should I use mixed precision training with YOLO models?
 

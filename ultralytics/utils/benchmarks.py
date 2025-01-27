@@ -1,28 +1,29 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """
 Benchmark a YOLO model formats for speed and accuracy.
 
 Usage:
     from ultralytics.utils.benchmarks import ProfileModels, benchmark
-    ProfileModels(['yolov8n.yaml', 'yolov8s.yaml']).profile()
-    benchmark(model='yolov8n.pt', imgsz=160)
+    ProfileModels(['yolo11n.yaml', 'yolov8s.yaml']).profile()
+    benchmark(model='yolo11n.pt', imgsz=160)
 
 Format                  | `format=argument`         | Model
 ---                     | ---                       | ---
-PyTorch                 | -                         | yolov8n.pt
-TorchScript             | `torchscript`             | yolov8n.torchscript
-ONNX                    | `onnx`                    | yolov8n.onnx
-OpenVINO                | `openvino`                | yolov8n_openvino_model/
-TensorRT                | `engine`                  | yolov8n.engine
-CoreML                  | `coreml`                  | yolov8n.mlpackage
-TensorFlow SavedModel   | `saved_model`             | yolov8n_saved_model/
-TensorFlow GraphDef     | `pb`                      | yolov8n.pb
-TensorFlow Lite         | `tflite`                  | yolov8n.tflite
-TensorFlow Edge TPU     | `edgetpu`                 | yolov8n_edgetpu.tflite
-TensorFlow.js           | `tfjs`                    | yolov8n_web_model/
-PaddlePaddle            | `paddle`                  | yolov8n_paddle_model/
-MNN                     | `mnn`                     | yolov8n.mnn
-NCNN                    | `ncnn`                    | yolov8n_ncnn_model/
+PyTorch                 | -                         | yolo11n.pt
+TorchScript             | `torchscript`             | yolo11n.torchscript
+ONNX                    | `onnx`                    | yolo11n.onnx
+OpenVINO                | `openvino`                | yolo11n_openvino_model/
+TensorRT                | `engine`                  | yolo11n.engine
+CoreML                  | `coreml`                  | yolo11n.mlpackage
+TensorFlow SavedModel   | `saved_model`             | yolo11n_saved_model/
+TensorFlow GraphDef     | `pb`                      | yolo11n.pb
+TensorFlow Lite         | `tflite`                  | yolo11n.tflite
+TensorFlow Edge TPU     | `edgetpu`                 | yolo11n_edgetpu.tflite
+TensorFlow.js           | `tfjs`                    | yolo11n_web_model/
+PaddlePaddle            | `paddle`                  | yolo11n_paddle_model/
+MNN                     | `mnn`                     | yolo11n.mnn
+NCNN                    | `ncnn`                    | yolo11n_ncnn_model/
+RKNN                    | `rknn`                    | yolo11n_rknn_model/
 """
 
 import glob
@@ -40,8 +41,8 @@ import yaml
 from ultralytics import YOLO, YOLOWorld
 from ultralytics.cfg import TASK2DATA, TASK2METRIC
 from ultralytics.engine.exporter import export_formats
-from ultralytics.utils import ARM64, ASSETS, IS_JETSON, IS_RASPBERRYPI, LINUX, LOGGER, MACOS, TQDM, WEIGHTS_DIR
-from ultralytics.utils.checks import IS_PYTHON_3_12, check_requirements, check_yolo
+from ultralytics.utils import ARM64, ASSETS, LINUX, LOGGER, MACOS, TQDM, WEIGHTS_DIR
+from ultralytics.utils.checks import IS_PYTHON_3_12, check_requirements, check_yolo, is_rockchip
 from ultralytics.utils.downloads import safe_download
 from ultralytics.utils.files import file_size
 from ultralytics.utils.torch_utils import get_cpu_info, select_device
@@ -90,7 +91,7 @@ def benchmark(
 
     y = []
     t0 = time.time()
-    for i, (name, format, suffix, cpu, gpu) in enumerate(zip(*export_formats().values())):
+    for i, (name, format, suffix, cpu, gpu, _) in enumerate(zip(*export_formats().values())):
         emoji, filename = "❌", None  # export defaults
         try:
             # Checks
@@ -99,21 +100,33 @@ def benchmark(
             elif i == 9:  # Edge TPU
                 assert LINUX and not ARM64, "Edge TPU export only supported on non-aarch64 Linux"
             elif i in {5, 10}:  # CoreML and TF.js
-                assert MACOS or LINUX, "CoreML and TF.js export only supported on macOS and Linux"
-                assert not IS_RASPBERRYPI, "CoreML and TF.js export not supported on Raspberry Pi"
-                assert not IS_JETSON, "CoreML and TF.js export not supported on NVIDIA Jetson"
+                assert MACOS or (LINUX and not ARM64), (
+                    "CoreML and TF.js export only supported on macOS and non-aarch64 Linux"
+                )
             if i in {5}:  # CoreML
                 assert not IS_PYTHON_3_12, "CoreML not supported on Python 3.12"
             if i in {6, 7, 8}:  # TF SavedModel, TF GraphDef, and TFLite
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 TensorFlow exports not supported by onnx2tf yet"
             if i in {9, 10}:  # TF EdgeTPU and TF.js
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 TensorFlow exports not supported by onnx2tf yet"
-            if i in {11}:  # Paddle
+            if i == 11:  # Paddle
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 Paddle exports not supported yet"
                 assert not is_end2end, "End-to-end models not supported by PaddlePaddle yet"
                 assert LINUX or MACOS, "Windows Paddle exports not supported yet"
-            if i in {12, 13}:  # MNN, NCNN
-                assert not isinstance(model, YOLOWorld), "YOLOWorldv2 MNN, NCNN exports not supported yet"
+            if i == 12:  # MNN
+                assert not isinstance(model, YOLOWorld), "YOLOWorldv2 MNN exports not supported yet"
+            if i == 13:  # NCNN
+                assert not isinstance(model, YOLOWorld), "YOLOWorldv2 NCNN exports not supported yet"
+            if i == 14:  # IMX
+                assert not is_end2end
+                assert not isinstance(model, YOLOWorld), "YOLOWorldv2 IMX exports not supported"
+                assert model.task == "detect", "IMX only supported for detection task"
+                assert "C2f" in model.__str__(), "IMX only supported for YOLOv8"
+            if i == 15:  # RKNN
+                assert not isinstance(model, YOLOWorld), "YOLOWorldv2 RKNN exports not supported yet"
+                assert not is_end2end, "End-to-end models not supported by RKNN yet"
+                assert LINUX, "RKNN only supported on Linux"
+                assert not is_rockchip(), "RKNN Inference only supported on Rockchip devices"
             if "cpu" in device.type:
                 assert cpu, "inference not supported on CPU"
             if "cuda" in device.type:
@@ -121,7 +134,7 @@ def benchmark(
 
             # Export
             if format == "-":
-                filename = model.ckpt_path or model.cfg
+                filename = model.pt_path or model.ckpt_path or model.model_name
                 exported_model = model  # PyTorch format
             else:
                 filename = model.export(imgsz=imgsz, format=format, half=half, int8=int8, device=device, verbose=False)
@@ -156,7 +169,7 @@ def benchmark(
     check_yolo(device=device)  # print system info
     df = pd.DataFrame(y, columns=["Format", "Status❔", "Size (MB)", key, "Inference time (ms/im)", "FPS"])
 
-    name = Path(model.ckpt_path).name
+    name = model.model_name
     s = f"\nBenchmarks complete for {name} on {data} at imgsz={imgsz} ({time.time() - t0:.2f}s)\n{df}\n"
     LOGGER.info(s)
     with open("benchmarks.log", "a", errors="ignore", encoding="utf-8") as f:
@@ -327,7 +340,7 @@ class ProfileModels:
     Examples:
         Profile models and print results
         >>> from ultralytics.utils.benchmarks import ProfileModels
-        >>> profiler = ProfileModels(["yolov8n.yaml", "yolov8s.yaml"], imgsz=640)
+        >>> profiler = ProfileModels(["yolo11n.yaml", "yolov8s.yaml"], imgsz=640)
         >>> profiler.profile()
     """
 
@@ -361,7 +374,7 @@ class ProfileModels:
         Examples:
             Initialize and profile models
             >>> from ultralytics.utils.benchmarks import ProfileModels
-            >>> profiler = ProfileModels(["yolov8n.yaml", "yolov8s.yaml"], imgsz=640)
+            >>> profiler = ProfileModels(["yolo11n.yaml", "yolov8s.yaml"], imgsz=640)
             >>> profiler.profile()
         """
         self.paths = paths
@@ -433,7 +446,8 @@ class ProfileModels:
         print(f"Profiling: {sorted(files)}")
         return [Path(file) for file in sorted(files)]
 
-    def get_onnx_model_info(self, onnx_file: str):
+    @staticmethod
+    def get_onnx_model_info(onnx_file: str):
         """Extracts metadata from an ONNX model file including parameters, GFLOPs, and input shape."""
         return 0.0, 0.0, 0.0, 0.0  # return (num_layers, num_params, num_gradients, num_flops)
 
@@ -456,7 +470,7 @@ class ProfileModels:
 
         # Model and input
         model = YOLO(engine_file)
-        input_data = np.random.rand(self.imgsz, self.imgsz, 3).astype(np.float32)  # must be FP32
+        input_data = np.zeros((self.imgsz, self.imgsz, 3), dtype=np.uint8)  # use uint8 for Classify
 
         # Warmup runs
         elapsed = 0.0

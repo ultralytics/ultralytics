@@ -1,0 +1,17 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# Ultralytics YOLO11-cls image classification model with ResNet18 backbone
+# Model docs: https://docs.ultralytics.com/models/yolo11
+# Task docs: https://docs.ultralytics.com/tasks/classify
+
+# Parameters
+nc: 10 # number of classes
+
+# ResNet18 backbone
+backbone:
+  # [from, repeats, module, args]
+  - [-1, 1, TorchVision, [512, resnet18, DEFAULT, True, 2]] # truncate two layers from the end
+
+# YOLO11n head
+head:
+  - [-1, 1, Classify, [nc]] # Classify

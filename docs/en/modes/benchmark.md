@@ -8,19 +8,30 @@ keywords: model benchmarking, YOLO11, Ultralytics, performance evaluation, expor
 
 <img width="1024" src="https://github.com/ultralytics/docs/releases/download/0/ultralytics-yolov8-ecosystem-integrations.avif" alt="Ultralytics YOLO ecosystem and integrations">
 
+## Benchmark Visualization
+
+!!! tip "Refresh Browser"
+
+    You may need to refresh the page to view the graphs correctly due to potential cookie issues.
+
+<script async src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<script defer src="../../javascript/benchmark.js"></script>
+
+<canvas id="modelComparisonChart" width="1024" height="400"></canvas>
+
 ## Introduction
 
 Once your model is trained and validated, the next logical step is to evaluate its performance in various real-world scenarios. Benchmark mode in Ultralytics YOLO11 serves this purpose by providing a robust framework for assessing the speed and [accuracy](https://www.ultralytics.com/glossary/accuracy) of your model across a range of export formats.
 
 <p align="center">
   <br>
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/j8uQc0qB91s?start=105"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/rEQlAaevEFc"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Ultralytics Modes Tutorial: Benchmark
+  <strong>Watch:</strong> Benchmark Ultralytics YOLO11 Models | How to Compare Model Performance on Different Hardware?
 </p>
 
 ## Why Is Benchmarking Crucial?
@@ -80,7 +91,7 @@ Arguments such as `model`, `data`, `imgsz`, `half`, `device`, and `verbose` prov
 | `imgsz`   | `640`         | The input image size for the model. Can be a single integer for square images or a tuple `(width, height)` for non-square, e.g., `(640, 480)`.                                                          |
 | `half`    | `False`       | Enables FP16 (half-precision) inference, reducing memory usage and possibly increasing speed on compatible hardware. Use `half=True` to enable.                                                         |
 | `int8`    | `False`       | Activates INT8 quantization for further optimized performance on supported devices, especially useful for edge devices. Set `int8=True` to use.                                                         |
-| `device`  | `None`        | Defines the computation device(s) for benchmarking, such as `"cpu"`, `"cuda:0"`, or a list of devices like `"cuda:0,1"` for multi-GPU setups.                                                           |
+| `device`  | `None`        | Defines the computation device(s) for benchmarking, such as `"cpu"` or `"cuda:0"`.                                                                                                                      |
 | `verbose` | `False`       | Controls the level of detail in logging output. A boolean value; set `verbose=True` for detailed logs or a float for thresholding errors.                                                               |
 
 ## Export Formats
@@ -123,7 +134,8 @@ Exporting YOLO11 models to different formats such as ONNX, TensorRT, and OpenVIN
 - **ONNX:** Provides up to 3x CPU speedup.
 - **TensorRT:** Offers up to 5x GPU speedup.
 - **OpenVINO:** Specifically optimized for Intel hardware.
-    These formats enhance both the speed and accuracy of your models, making them more efficient for various real-world applications. Visit the [Export](../modes/export.md) page for complete details.
+
+These formats enhance both the speed and accuracy of your models, making them more efficient for various real-world applications. Visit the [Export](../modes/export.md) page for complete details.
 
 ### Why is benchmarking crucial in evaluating YOLO11 models?
 
@@ -133,7 +145,8 @@ Benchmarking your YOLO11 models is essential for several reasons:
 - **Resource Allocation:** Gauge the performance across different hardware options.
 - **Optimization:** Determine which export format offers the best performance for specific use cases.
 - **Cost Efficiency:** Optimize hardware usage based on benchmark results.
-    Key metrics such as mAP50-95, Top-5 accuracy, and inference time help in making these evaluations. Refer to the [Key Metrics](#key-metrics-in-benchmark-mode) section for more information.
+
+Key metrics such as mAP50-95, Top-5 accuracy, and inference time help in making these evaluations. Refer to the [Key Metrics](#key-metrics-in-benchmark-mode) section for more information.
 
 ### Which export formats are supported by YOLO11, and what are their advantages?
 
@@ -143,7 +156,8 @@ YOLO11 supports a variety of export formats, each tailored for specific hardware
 - **TensorRT:** Ideal for GPU efficiency.
 - **OpenVINO:** Optimized for Intel hardware.
 - **CoreML & [TensorFlow](https://www.ultralytics.com/glossary/tensorflow):** Useful for iOS and general ML applications.
-    For a complete list of supported formats and their respective advantages, check out the [Supported Export Formats](#supported-export-formats) section.
+
+For a complete list of supported formats and their respective advantages, check out the [Supported Export Formats](#supported-export-formats) section.
 
 ### What arguments can I use to fine-tune my YOLO11 benchmarks?
 
@@ -156,4 +170,5 @@ When running benchmarks, several arguments can be customized to suit specific ne
 - **int8:** Activate INT8 quantization for edge devices.
 - **device:** Specify the computation device (e.g., "cpu", "cuda:0").
 - **verbose:** Control the level of logging detail.
-    For a full list of arguments, refer to the [Arguments](#arguments) section.
+
+For a full list of arguments, refer to the [Arguments](#arguments) section.

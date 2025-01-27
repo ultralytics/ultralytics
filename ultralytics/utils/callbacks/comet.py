@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 from ultralytics.utils import LOGGER, RANK, SETTINGS, TESTS_RUNNING, ops
 from ultralytics.utils.metrics import ClassifyMetrics, DetMetrics, OBBMetrics, PoseMetrics, SegmentMetrics
@@ -291,7 +291,7 @@ def _log_plots(experiment, trainer):
             for plots in EVALUATION_PLOT_NAMES
             for prefix in POSE_METRICS_PLOT_PREFIX
         ]
-    elif isinstance(trainer.validator.metrics, DetMetrics) or isinstance(trainer.validator.metrics, OBBMetrics):
+    elif isinstance(trainer.validator.metrics, (DetMetrics, OBBMetrics)):
         plot_filenames = [trainer.save_dir / f"{plots}.png" for plots in EVALUATION_PLOT_NAMES]
 
     if plot_filenames is not None:

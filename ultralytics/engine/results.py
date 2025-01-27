@@ -952,9 +952,6 @@ class Results(SimpleClass):
             decimals (int): Number of decimal places to round the bounding boxes values to. Defaults to 5.
             db_path (str): Path to the SQLite database file. Defaults to "results.db".
 
-        Returns:
-            None: Writes the detection results to the specified SQL table.
-
         Examples:
             >>> results = model("path/to/image.jpg")
             >>> results[0].to_sql()

@@ -49,21 +49,27 @@ def create_vercel_config():
 
 def prepare_docs_markdown(clone_repos=True):
     """Build docs using mkdocs."""
-    if SITE.exists():
-        print(f"Removing existing {SITE}")
-        shutil.rmtree(SITE)
+    print("Removing existing build artifacts")
+    shutil.rmtree(SITE, ignore_errors=True)
+    shutil.rmtree(DOCS / "repos", ignore_errors=True)
 
-    # Get hub-sdk repo
     if clone_repos:
+        # Get hub-sdk repo
         repo = "https://github.com/ultralytics/hub-sdk"
-        local_dir = DOCS.parent / Path(repo).name
-        if not local_dir.exists():
-            os.system(f"git clone {repo} {local_dir}")
-        os.system(f"git -C {local_dir} pull")  # update repo
+        local_dir = DOCS / "repos" / Path(repo).name
+        os.system(f"git clone {repo} {local_dir} --depth 1 --single-branch --branch main")
         shutil.rmtree(DOCS / "en/hub/sdk", ignore_errors=True)  # delete if exists
         shutil.copytree(local_dir / "docs", DOCS / "en/hub/sdk")  # for docs
         shutil.rmtree(DOCS.parent / "hub_sdk", ignore_errors=True)  # delete if exists
         shutil.copytree(local_dir / "hub_sdk", DOCS.parent / "hub_sdk")  # for mkdocstrings
+        print(f"Cloned/Updated {repo} in {local_dir}")
+
+        # Get docs repo
+        repo = "https://github.com/ultralytics/docs"
+        local_dir = DOCS / "repos" / Path(repo).name
+        os.system(f"git clone {repo} {local_dir} --depth 1 --single-branch --branch main")
+        shutil.rmtree(DOCS / "en/compare", ignore_errors=True)  # delete if exists
+        shutil.copytree(local_dir / "docs/en/compare", DOCS / "en/compare")  # for docs
         print(f"Cloned/Updated {repo} in {local_dir}")
 
     # Add frontmatter
@@ -316,6 +322,10 @@ def main():
 
     # Minify files
     minify_files(html=False, css=False, js=False)
+
+    # Cleanup
+    shutil.rmtree(DOCS.parent / "hub_sdk", ignore_errors=True)
+    shutil.rmtree(DOCS / "repos", ignore_errors=True)
 
     # Show command to serve built website
     print('Docs built correctly ✅\nServe site at http://localhost:8000 with "python -m http.server --directory site"')

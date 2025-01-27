@@ -49,10 +49,9 @@ def create_vercel_config():
 
 def prepare_docs_markdown(clone_repos=True):
     """Build docs using mkdocs."""
-    if SITE.exists():
-        print(f"Removing existing {SITE}")
-        shutil.rmtree(SITE)
-        shutil.rmtree(DOCS / "repos")
+    print("Removing existing build artifacts")
+    shutil.rmtree(SITE, ignore_errors=True)
+    shutil.rmtree(DOCS / "repos", ignore_errors=True)
 
     if clone_repos:
         # Get hub-sdk repo

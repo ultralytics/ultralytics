@@ -964,7 +964,7 @@ class Results(SimpleClass):
         data = self.summary(normalize=normalize, decimals=decimals)
 
         if not data:
-            LOGGER.warning("⚠️ No results to save to SQL. .")
+            LOGGER.warning("⚠️ No results to save to SQL. Results dict is empty")
             return
 
         # Connect to the SQLite database
@@ -979,22 +979,25 @@ class Results(SimpleClass):
         # Insert data into the table
         for i, item in enumerate(data):
             class_name = item.get("name")
-            detect = item.get("box", {"x1": 0, "y1": 0, "x2": 0, "y2": 0})
-            x_min, y_min, x_max, y_max = [round(detect[key], decimals) for key in ("x1", "y1", "x2", "y2")]
+
+            detect, obb = None, None    # necessary to reinit these variables inside for loop to avoid duplication
+            # Serialize the box as JSON for 'detect' and 'obb' based on key presence
+            if all(key in box for key in ["x1", "y1", "x2", "y2"]) and not any(key in box for key in ["x3", "x4"]):
+                detect = json.dumps(box)
+
+            if all(key in box for key in ["x1", "y1", "x2", "y2", "x3", "x4"]):
+                obb = json.dumps(box)
 
             cursor.execute(
                 f"INSERT INTO {table_name} "
-                f"(class_name, confidence, x_min, y_min, x_max, y_max, masks, kpts, obb) VALUES "
-                f"(?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                f"(class_name, confidence, box, masks, kpts, obb) VALUES "
+                f"(?, ?, ?, ?, ?, ?)",
                 (class_name,
                  item.get("confidence"),
-                 x_min,
-                 y_min,
-                 x_max,
-                 y_max,
+                 detect,
                  json.dumps(item.get("segments", {}).get("x", [])),
                  json.dumps(item.get("keypoints", {}).get("x", [])),
-                 json.dumps(item.get("box", {})))
+                 obb)
             )
 
         # Commit and close the connection

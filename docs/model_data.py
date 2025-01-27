@@ -48,11 +48,11 @@ data = {
         "x": {"size": 640, "map": 50.7, "cpu": 763.2, "t4": 11.89, "params": 97.2, "flops": 246.4},
     },
     "PP-YOLOE+": {
-        "t": {"size": 640, "map": 39.9, "cpu": "", "t4": 2.84, "params": "", "flops": ""},
-        "s": {"size": 640, "map": 43.7, "cpu": "", "t4": 2.62, "params": "", "flops": ""},
-        "m": {"size": 640, "map": 49.8, "cpu": "", "t4": 5.56, "params": "", "flops": ""},
-        "l": {"size": 640, "map": 52.9, "cpu": "", "t4": 8.36, "params": "", "flops": ""},
-        "x": {"size": 640, "map": 54.7, "cpu": "", "t4": 14.3, "params": "", "flops": ""},
+        "t": {"size": 640, "map": 39.9, "cpu": "", "t4": 2.84, "params": 4.85, "flops": 19.15},
+        "s": {"size": 640, "map": 43.7, "cpu": "", "t4": 2.62, "params": 7.93, "flops": 17.36},
+        "m": {"size": 640, "map": 49.8, "cpu": "", "t4": 5.56, "params": 23.43, "flops": 49.91},
+        "l": {"size": 640, "map": 52.9, "cpu": "", "t4": 8.36, "params": 52.20, "flops": 110.07},
+        "x": {"size": 640, "map": 54.7, "cpu": "", "t4": 14.3, "params": 98.42, "flops": 206.59},
     },
     "DAMO-YOLO": {
         "t": {"size": 640, "map": 42.0, "cpu": "", "t4": 2.32, "params": 8.5, "flops": 18.1},

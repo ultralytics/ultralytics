@@ -943,7 +943,7 @@ class Results(SimpleClass):
 
         This method serializes the detection results into a format compatible with SQL databases.
         It includes information about detected objects such as bounding boxes, class names, confidence scores,
-        and optionally segmentation masks keypoints or oriented bounding boxes.
+        and optionally segmentation masks, keypoints or oriented bounding boxes.
 
         Args:
             table_name (str): Name of the SQL table where the data will be inserted. Defaults to "detection_results".

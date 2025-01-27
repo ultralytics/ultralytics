@@ -65,6 +65,14 @@ def prepare_docs_markdown(clone_repos=True):
         shutil.copytree(local_dir / "hub_sdk", DOCS.parent / "hub_sdk")  # for mkdocstrings
         print(f"Cloned/Updated {repo} in {local_dir}")
 
+        # Get docs repo
+        repo = "https://github.com/ultralytics/docs"
+        local_dir = DOCS / "repos" / Path(repo).name
+        os.system(f"git clone {repo} {local_dir} --depth 1 --single-branch --branch main")
+        shutil.rmtree(DOCS / "en/compare", ignore_errors=True)  # delete if exists
+        shutil.copytree(local_dir / "docs/en/compare", DOCS / "en/compare")  # for docs
+        print(f"Cloned/Updated {repo} in {local_dir}")
+
     # Add frontmatter
     for file in tqdm((DOCS / "en").rglob("*.md"), desc="Adding frontmatter"):
         update_markdown_files(file)

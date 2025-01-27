@@ -81,7 +81,7 @@ def benchmark(
         >>> benchmark(model="yolo11n.pt", imgsz=640)
     """
     imgsz = check_imgsz(imgsz)
-    assert imgsz[0] == imgsz[1] if isinstance(imgsz, list) else None, "benchmark() only supports square imgsz."
+    assert (imgsz[0] == imgsz[1] if isinstance(imgsz, list) else True), "benchmark() only supports square imgsz."
 
     import pandas as pd  # scope for faster 'import ultralytics'
 

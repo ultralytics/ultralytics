@@ -181,7 +181,7 @@ class TQDM(rich.tqdm if TQDM_RICH else tqdm.tqdm):
             ...     pass
         """
         warnings.filterwarnings("ignore", category=tqdm.TqdmExperimentalWarning)  # suppress tqdm.rich warning
-        kwargs["disable"] = not VERBOSE or kwargs.get("disable", False) or LOGGER.level >= 30  # 30 is WARN
+        kwargs["disable"] = not VERBOSE or kwargs.get("disable", False)
         kwargs.setdefault("bar_format", TQDM_BAR_FORMAT)  # override default value if passed
         super().__init__(*args, **kwargs)
 
@@ -394,17 +394,6 @@ def set_logging(name="LOGGING_NAME", verbose=True):
             print(f"Creating custom formatter for non UTF-8 environments due to {e}")
             formatter = CustomFormatter("%(message)s")
 
-    # Context manager to temporarily change verbosity
-    @contextlib.contextmanager
-    def log_level(self, level):
-        """Temporarily set the logger's level."""
-        original_level = self.level
-        self.setLevel(level)
-        try:
-            yield
-        finally:
-            self.setLevel(original_level)
-
     # Create and configure the StreamHandler with the appropriate formatter and level
     stream_handler = logging.StreamHandler(sys.stdout)
     stream_handler.setFormatter(formatter)
@@ -415,7 +404,6 @@ def set_logging(name="LOGGING_NAME", verbose=True):
     logger.setLevel(level)
     logger.addHandler(stream_handler)
     logger.propagate = False
-    logger.log_level = log_level.__get__(logger, logger.__class__)  # add as method
     return logger
 
 

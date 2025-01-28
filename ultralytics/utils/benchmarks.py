@@ -140,10 +140,7 @@ def benchmark(
                 filename = model.pt_path or model.ckpt_path or model.model_name
                 exported_model = model  # PyTorch format
             else:
-                with LOGGER.log_level("INFO" if verbose else "WARN"):
-                    filename = model.export(
-                        imgsz=imgsz, format=format, half=half, int8=int8, device=device, verbose=False
-                    )
+                filename = model.export(imgsz=imgsz, format=format, half=half, int8=int8, device=device, verbose=False)
                 exported_model = YOLO(filename, task=model.task)
                 assert suffix in str(filename), "export failed"
             emoji = "❎"  # indicates export succeeded
@@ -159,10 +156,9 @@ def benchmark(
             # Validate
             data = data or TASK2DATA[model.task]  # task to dataset, i.e. coco8.yaml for task=detect
             key = TASK2METRIC[model.task]  # task to metric, i.e. metrics/mAP50-95(B) for task=detect
-            with LOGGER.log_level("INFO" if verbose else "WARN"):
-                results = exported_model.val(
-                    data=data, batch=1, imgsz=imgsz, plots=False, device=device, half=half, int8=int8, verbose=False
-                )
+            results = exported_model.val(
+                data=data, batch=1, imgsz=imgsz, plots=False, device=device, half=half, int8=int8, verbose=False
+            )
             metric, speed = results.results_dict[key], results.speed["inference"]
             fps = round(1000 / (speed + eps), 2)  # frames per second
             y.append([name, "✅", round(file_size(filename), 1), round(metric, 4), round(speed, 2), fps])

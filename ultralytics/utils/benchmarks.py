@@ -174,7 +174,7 @@ def benchmark(
 
     name = model.model_name
     dt = time.time() - t0
-    legend = "Benchmarks legend:    - ✅Success    - ❎Export passed but validation failed    - ❌️Export failed"
+    legend = "Benchmarks legend:  - ✅ Success  - ❎ Export passed but validation failed  - ❌️ Export failed"
     s = f"\nBenchmarks complete for {name} on {data} at imgsz={imgsz} ({dt:.2f}s)\n{legend}\n{df.fillna('-')}\n"
     LOGGER.info(s)
     with open("benchmarks.log", "a", errors="ignore", encoding="utf-8") as f:

@@ -173,10 +173,10 @@ def benchmark(
     df = pd.DataFrame(y, columns=["Format", "Status❔", "Size (MB)", key, "Inference time (ms/im)", "FPS"])
 
     name = model.model_name
-    s = f"\nBenchmarks complete for {name} on {data} at imgsz={imgsz} ({time.time() - t0:.2f}s)\n{df.fillna('-')}\n"
+    dt = time.time() - t0
+    legend = "Benchmarks legend:  - ✅ Success  - ❎ Export passed but validation failed  - ❌️ Export failed"
+    s = f"\nBenchmarks complete for {name} on {data} at imgsz={imgsz} ({dt:.2f}s)\n{legend}\n{df.fillna('-')}\n"
     LOGGER.info(s)
-    LOGGER.info("Status legends:")
-    LOGGER.info("✅ - Benchmark passed | ❎ - Export passed but validation failed | ❌️ - Export failed")
     with open("benchmarks.log", "a", errors="ignore", encoding="utf-8") as f:
         f.write(s)
 

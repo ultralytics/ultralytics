@@ -42,7 +42,7 @@ from ultralytics import YOLO, YOLOWorld
 from ultralytics.cfg import TASK2DATA, TASK2METRIC
 from ultralytics.engine.exporter import export_formats
 from ultralytics.utils import ARM64, ASSETS, LINUX, LOGGER, MACOS, TQDM, WEIGHTS_DIR
-from ultralytics.utils.checks import IS_PYTHON_3_12, check_requirements, check_yolo, is_rockchip
+from ultralytics.utils.checks import IS_PYTHON_3_12, check_imgsz, check_requirements, check_yolo, is_rockchip
 from ultralytics.utils.downloads import safe_download
 from ultralytics.utils.files import file_size
 from ultralytics.utils.torch_utils import get_cpu_info, select_device
@@ -80,6 +80,9 @@ def benchmark(
         >>> from ultralytics.utils.benchmarks import benchmark
         >>> benchmark(model="yolo11n.pt", imgsz=640)
     """
+    imgsz = check_imgsz(imgsz)
+    assert imgsz[0] == imgsz[1] if isinstance(imgsz, list) else True, "benchmark() only supports square imgsz."
+
     import pandas as pd  # scope for faster 'import ultralytics'
 
     pd.options.display.max_columns = 10
@@ -148,7 +151,7 @@ def benchmark(
             assert i != 5 or platform.system() == "Darwin", "inference only supported on macOS>=10.13"  # CoreML
             if i in {13}:
                 assert not is_end2end, "End-to-end torch.topk operation is not supported for NCNN prediction yet"
-            exported_model.predict(ASSETS / "bus.jpg", imgsz=imgsz, device=device, half=half)
+            exported_model.predict(ASSETS / "bus.jpg", imgsz=imgsz, device=device, half=half, verbose=False)
 
             # Validate
             data = data or TASK2DATA[model.task]  # task to dataset, i.e. coco8.yaml for task=detect
@@ -170,8 +173,10 @@ def benchmark(
     df = pd.DataFrame(y, columns=["Format", "Status❔", "Size (MB)", key, "Inference time (ms/im)", "FPS"])
 
     name = model.model_name
-    s = f"\nBenchmarks complete for {name} on {data} at imgsz={imgsz} ({time.time() - t0:.2f}s)\n{df}\n"
+    s = f"\nBenchmarks complete for {name} on {data} at imgsz={imgsz} ({time.time() - t0:.2f}s)\n{df.fillna('-')}\n"
     LOGGER.info(s)
+    LOGGER.info("Status legends:")
+    LOGGER.info("✅ - Benchmark passed | ❎ - Export passed but validation failed | ❌️ - Export failed")
     with open("benchmarks.log", "a", errors="ignore", encoding="utf-8") as f:
         f.write(s)
 

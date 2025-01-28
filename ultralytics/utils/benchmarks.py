@@ -140,7 +140,7 @@ def benchmark(
                 filename = model.pt_path or model.ckpt_path or model.model_name
                 exported_model = model  # PyTorch format
             else:
-                with LOGGER.logger_level("INFO" if verbose else "WARN"):
+                with LOGGER.log_level("INFO" if verbose else "WARN"):
                     filename = model.export(
                         imgsz=imgsz, format=format, half=half, int8=int8, device=device, verbose=False
                     )
@@ -159,7 +159,7 @@ def benchmark(
             # Validate
             data = data or TASK2DATA[model.task]  # task to dataset, i.e. coco8.yaml for task=detect
             key = TASK2METRIC[model.task]  # task to metric, i.e. metrics/mAP50-95(B) for task=detect
-            with LOGGER.logger_level("INFO" if verbose else "WARN"):
+            with LOGGER.log_level("INFO" if verbose else "WARN"):
                 results = exported_model.val(
                     data=data, batch=1, imgsz=imgsz, plots=False, device=device, half=half, int8=int8, verbose=False
                 )

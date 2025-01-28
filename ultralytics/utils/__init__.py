@@ -396,7 +396,7 @@ def set_logging(name="LOGGING_NAME", verbose=True):
 
     # Context manager to temporarily change verbosity
     @contextlib.contextmanager
-    def logger_level(self, level):
+    def log_level(self, level):
         """Temporarily set the logger's level."""
         original_level = self.level
         self.setLevel(level)
@@ -415,7 +415,7 @@ def set_logging(name="LOGGING_NAME", verbose=True):
     logger.setLevel(level)
     logger.addHandler(stream_handler)
     logger.propagate = False
-    logger.logger_level = logger_level.__get__(logger, logger.__class__)  # add as method
+    logger.log_level = log_level.__get__(logger, logger.__class__)  # add as method
     return logger
 
 

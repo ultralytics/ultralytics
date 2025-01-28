@@ -172,7 +172,7 @@ def update_docs_html():
     # Update edit button links
     for subdir, docs_url in (
         ("hub/sdk/", "https://github.com/ultralytics/hub-sdk/tree/main/docs/"),  # do not use leading slash
-        ("compare/", "https://github.com/ultralytics/docs/tree/main/docs/"),
+        ("compare/", "https://github.com/ultralytics/docs/tree/main/docs/en/"),
     ):
         update_subdir_edit_links(subdir=subdir, docs_url=docs_url)
 

@@ -151,7 +151,7 @@ jobs:
       - name: Benchmark Summary
         run: |
           cat benchmarks.log
-          echo "$(cat benchmarks.log)" >> $GITHUB_STEP_SUMMARY
+          echo "```\n$(cat benchmarks.log)\n```" >> $GITHUB_STEP_SUMMARY
 
   Tests:
     if: github.event_name != 'workflow_dispatch' || github.event.inputs.tests == 'true'

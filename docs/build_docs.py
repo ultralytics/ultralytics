@@ -169,11 +169,12 @@ def update_docs_html():
     # Update 404 titles
     update_page_title(SITE / "404.html", new_title="Ultralytics Docs - Not Found")
 
-    # Update edit links
-    update_subdir_edit_links(
-        subdir="hub/sdk/",  # do not use leading slash
-        docs_url="https://github.com/ultralytics/hub-sdk/tree/main/docs/",
-    )
+    # Update edit button links
+    for subdir, docs_url in (
+        ("hub/sdk/", "https://github.com/ultralytics/hub-sdk/tree/main/docs/"),  # do not use leading slash
+        ("compare/", "https://github.com/ultralytics/docs/tree/main/docs/en/compare/"),
+    ):
+        update_subdir_edit_links(subdir=subdir, docs_url=docs_url)
 
     # Convert plaintext links to HTML hyperlinks
     files_modified = 0

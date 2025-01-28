@@ -937,6 +937,75 @@ class Results(SimpleClass):
 
         return json.dumps(self.summary(normalize=normalize, decimals=decimals), indent=2)
 
+    def to_sql(self, table_name="results", normalize=False, decimals=5, db_path="results.db"):
+        """
+        Converts detection results to an SQL-compatible format.
+
+        This method serializes the detection results into a format compatible with SQL databases.
+        It includes information about detected objects such as bounding boxes, class names, confidence scores,
+        and optionally segmentation masks, keypoints or oriented bounding boxes.
+
+        Args:
+            table_name (str): Name of the SQL table where the data will be inserted. Defaults to "detection_results".
+            normalize (bool): Whether to normalize the bounding box coordinates by the image dimensions.
+                If True, coordinates will be returned as float values between 0 and 1. Defaults to False.
+            decimals (int): Number of decimal places to round the bounding boxes values to. Defaults to 5.
+            db_path (str): Path to the SQLite database file. Defaults to "results.db".
+
+        Examples:
+            >>> results = model("path/to/image.jpg")
+            >>> results[0].to_sql()
+            >>> print("SQL data written successfully.")
+        """
+        import json
+        import sqlite3
+
+        # Convert results to a list of dictionaries
+        data = self.summary(normalize=normalize, decimals=decimals)
+        if not data:
+            LOGGER.warning("⚠️ No results to save to SQL. Results dict is empty")
+            return
+
+        # Connect to the SQLite database
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+
+        # Create table if it doesn't exist
+        columns = (
+            "id INTEGER PRIMARY KEY AUTOINCREMENT, class_name TEXT, confidence REAL, "
+            "box TEXT, masks TEXT, kpts TEXT, obb TEXT"
+        )
+        cursor.execute(f"CREATE TABLE IF NOT EXISTS {table_name} ({columns})")
+
+        # Insert data into the table
+        for i, item in enumerate(data):
+            detect, obb = None, None  # necessary to reinit these variables inside for loop to avoid duplication
+            class_name = item.get("name")
+            box = item.get("box", {})
+            # Serialize the box as JSON for 'detect' and 'obb' based on key presence
+            if all(key in box for key in ["x1", "y1", "x2", "y2"]) and not any(key in box for key in ["x3", "x4"]):
+                detect = json.dumps(box)
+            if all(key in box for key in ["x1", "y1", "x2", "y2", "x3", "x4"]):
+                obb = json.dumps(box)
+
+            cursor.execute(
+                f"INSERT INTO {table_name} (class_name, confidence, box, masks, kpts, obb) VALUES (?, ?, ?, ?, ?, ?)",
+                (
+                    class_name,
+                    item.get("confidence"),
+                    detect,
+                    json.dumps(item.get("segments", {}).get("x", [])),
+                    json.dumps(item.get("keypoints", {}).get("x", [])),
+                    obb,
+                ),
+            )
+
+        # Commit and close the connection
+        conn.commit()
+        conn.close()
+
+        LOGGER.info(f"✅ Detection results successfully written to SQL table '{table_name}' in database '{db_path}'.")
+
 
 class Boxes(BaseTensor):
     """

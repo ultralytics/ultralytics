@@ -1707,7 +1707,6 @@ class CBFuse(nn.Module):
 
     Reference
     - CBNet Paper: https://arxiv.org/abs/1909.03625
-    - YOLOv9 Implementation: https://github.com/WongKinYiu/yolov9
 
     Args:
         idx (list[int]): Indices specifying which feature maps to select from

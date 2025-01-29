@@ -1752,7 +1752,7 @@ class CBFuse(nn.Module):
                 - `xs[-1]`: The last backbone's output feature map (single tensor), used for target resolution.
 
         Returns:
-            torch.Tensor: The fused feature map with the same spatial resolution as `xs[-1]`.
+            (torch.Tensor): The fused feature map with the same spatial resolution as `xs[-1]`.
         """
         target_size = xs[-1].shape[2:]
         res = [F.interpolate(x[self.idx[i]], size=target_size, mode="nearest") for i, x in enumerate(xs[:-1])]

@@ -69,6 +69,10 @@ Export a YOLOv8n model to OpenVINO format and run inference with the exported mo
 | `dynamic` | `False`      | allows dynamic input sizes                                                                  |
 | `data`    | `coco8.yaml` | Path to the dataset configuration file (default: `coco8.yaml`), essential for quantization. |
 
+!!! note
+
+    When using `data` argument for quantization, please check [Dataset Guide](https://docs.ultralytics.com/datasets/detect) to learn more about the dataset format.
+
 ## Benefits of OpenVINO
 
 1. **Performance**: OpenVINO delivers high-performance inference by utilizing the power of Intel CPUs, integrated and discrete GPUs, and FPGAs.

@@ -1731,7 +1731,7 @@ class CBFuse(nn.Module):
         torch.Size([2, 1024, 8, 8])
 
         >>> # 2-backbone fusion with resizing
-        >>> fuse = CBFuse(idx=[2])
+        >>> fuse = CBFuse(idx=[2])  # noqa: E501
         >>> xs = [
         ...     [torch.randn(2, 128, 64, 64), torch.randn(2, 256, 32, 32), torch.randn(2, 512, 16, 16)],
         ...     [torch.randn(2, 512, 8, 8)],  # Target size = 8x8

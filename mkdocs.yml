@@ -663,6 +663,7 @@ plugins:
       add_share_buttons: True
       add_css: False
       default_image: https://raw.githubusercontent.com/ultralytics/assets/main/yolov8/banner-yolov8.png
+      default_author: glenn.jocher@ultralytics.com
   - redirects:
       redirect_maps:
         hi/index.md: index.md

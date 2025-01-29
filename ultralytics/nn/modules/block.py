@@ -1702,16 +1702,16 @@ class CBFuse(nn.Module):
     """
     Composite Backbone Feature Fusion (CBFuse) module.
 
-    This module fuses feature maps from multiple composite backbones by selecting, resizing, 
-    and summing features. The final fused feature map maintains the resolution of the 
+    This module fuses feature maps from multiple composite backbones by selecting, resizing,
+    and summing features. The final fused feature map maintains the resolution of the
     last backbone's output.
 
     References:
-        - CBNet: Luo et al., *CBNet: A Novel Composite Backbone Network Architecture for Object Detection*, 
+        - CBNet: Luo et al., *CBNet: A Novel Composite Backbone Network Architecture for Object Detection*,
           ICCV 2019. https://arxiv.org/abs/1909.03625
 
     Args:
-        idx (list[int]): Indices specifying which feature maps to select from 
+        idx (list[int]): Indices specifying which feature maps to select from
                          each upstream backbone.
 
     Attributes:
@@ -1731,12 +1731,13 @@ class CBFuse(nn.Module):
     """
 
     def __init__(self, idx):
-        """Initializes CBFuse module with layer index for selective feature fusion.
+        """
+        Initializes CBFuse module with layer index for selective feature fusion.
 
         Args:
             idx (list[int]): Indices specifying which feature maps to select.
         """
-        super(CBFuse, self).__init__()
+        super().__init__()
         self.idx = idx
 
     def forward(self, xs):
@@ -1746,7 +1747,7 @@ class CBFuse(nn.Module):
         Selects and resizes feature maps from multiple backbones, then sums them to produce a fused output.
 
         Args:
-            xs (list[list[torch.Tensor]] | list[torch.Tensor]): 
+            xs (list[list[torch.Tensor]] | list[torch.Tensor]):
                 Feature maps from composite backbones.
                 - `xs[:-1]`: List of lists containing feature maps from earlier backbones.
                 - `xs[-1]`: The last backbone's output feature map (single tensor), used for target resolution.

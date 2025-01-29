@@ -1700,31 +1700,30 @@ class CBLinear(nn.Module):
 
 class CBFuse(nn.Module):
     """
-    Composite Backbone Feature Fusion (CBFuse) for CBNet architectures.
+    Composite Backbone Feature Fusion (CBFuse) module.
 
-    Fuses features from multiple composite backbones by selecting, resizing, and summing features.
-    Enables feature integration across backbones at different scales or depths.
+    This module fuses feature maps from multiple composite backbones by selecting, resizing, 
+    and summing features. The final fused feature map maintains the resolution of the 
+    last backbone's output.
 
-    Reference
-    - CBNet Paper: https://arxiv.org/abs/1909.03625
+    References:
+        - CBNet: Luo et al., *CBNet: A Novel Composite Backbone Network Architecture for Object Detection*, 
+          ICCV 2019. https://arxiv.org/abs/1909.03625
 
     Args:
-        idx (list[int]): Indices specifying which feature maps to select from
-                         upstream backbones. Length = number of upstream backbones.
+        idx (list[int]): Indices specifying which feature maps to select from 
+                         each upstream backbone.
 
     Attributes:
-        idx (list[int]): Feature selection indices for upstream backbones
+        idx (list[int]): Feature selection indices for upstream backbones.
 
     Example:
-        >>> # Fusing features from 3 backbones
+        >>> # Example with 3 backbones
         >>> fuse = CBFuse(idx=[1, 0])
-        >>> # Backbone1 outputs: [ (2, 256, 32, 32), (2, 512, 16, 16) ]
-        >>> # Backbone2 outputs: [ (2, 512, 16, 16), (2, 1024, 8, 8) ]
-        >>> # Backbone3 outputs: [ (2, 1024, 8, 8) ] (target size = 8x8)
         >>> xs = [
         ...     [torch.randn(2, 256, 32, 32), torch.randn(2, 512, 16, 16)],
         ...     [torch.randn(2, 512, 16, 16), torch.randn(2, 1024, 8, 8)],
-        ...     [torch.randn(2, 1024, 8, 8)],
+        ...     [torch.randn(2, 1024, 8, 8)],  # Last backbone output should also be a list
         ... ]
         >>> fused = fuse(xs)
         >>> print(fused.shape)
@@ -1732,25 +1731,32 @@ class CBFuse(nn.Module):
     """
 
     def __init__(self, idx):
-        """Initializes CBFuse module with layer index for selective feature fusion."""
-        super().__init__()
+        """Initializes CBFuse module with layer index for selective feature fusion.
+
+        Args:
+            idx (list[int]): Indices specifying which feature maps to select.
+        """
+        super(CBFuse, self).__init__()
         self.idx = idx
 
     def forward(self, xs):
         """
-        Fuses features from multiple backbones through selection and resizing.
+        Forward pass through CBFuse layer.
+
+        Selects and resizes feature maps from multiple backbones, then sums them to produce a fused output.
 
         Args:
-            xs (list[list[Tensor]]): Nested list of features from composite backbones.
-                - Outer list: One entry per backbone
-                - Inner list: Feature maps from a backbone (different layers/scales)
+            xs (list[list[torch.Tensor]] | list[torch.Tensor]): 
+                Feature maps from composite backbones.
+                - `xs[:-1]`: List of lists containing feature maps from earlier backbones.
+                - `xs[-1]`: The last backbone's output feature map (single tensor), used for target resolution.
 
         Returns:
-            (Tensor): Fused feature map with same resolution as last backbone's feature.
+            torch.Tensor: The fused feature map with the same spatial resolution as `xs[-1]`.
         """
-        target_size = xs[-1][0].shape[2:]  # Assume last backbone outputs single feature map
+        target_size = xs[-1].shape[2:]
         res = [F.interpolate(x[self.idx[i]], size=target_size, mode="nearest") for i, x in enumerate(xs[:-1])]
-        return torch.sum(torch.stack(res + [xs[-1][0]]), dim=0)
+        return torch.sum(torch.stack(res + xs[-1:]), dim=0)
 
 
 class C3f(nn.Module):

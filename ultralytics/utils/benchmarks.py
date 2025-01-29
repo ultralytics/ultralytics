@@ -97,14 +97,14 @@ def benchmark(
     y = []
     t0 = time.time()
 
-    format_name = format.lower()
-    if format_name:
+    format_arg = format.lower()
+    if format_arg:
         formats = frozenset(export_formats()["Argument"])
-        assert format in formats, f"Expected format to be one of {formats}, but got '{format_name}'."
+        assert format in formats, f"Expected format to be one of {formats}, but got '{format_arg}'."
     for i, (name, format, suffix, cpu, gpu, _) in enumerate(zip(*export_formats().values())):
         emoji, filename = "❌", None  # export defaults
         try:
-            if format_name and format_name != format:
+            if format_arg and format_arg != format:
                 continue
 
             # Checks

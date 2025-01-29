@@ -101,7 +101,7 @@ class DFL(nn.Module):
             x (torch.Tensor): Input tensor with shape (batch_size, 4 * c1, num_anchors)
 
         Returns:
-            torch.Tensor: Output tensor with shape (batch_size, 4, num_anchors)
+            (torch.Tensor): Output tensor with shape (batch_size, 4, num_anchors)
         """
         b, _, a = x.shape  # batch, channels, anchors
         return self.conv(x.view(b, 4, self.c1, a).transpose(2, 1).softmax(1)).view(b, 4, a)
@@ -153,7 +153,7 @@ class Proto(nn.Module):
             x (torch.Tensor): Input features with shape (batch_size, c1, H, W)
 
         Returns:
-            torch.Tensor: Output masks with shape (batch_size, c2, 2H, 2W)
+            (torch.Tensor): Output masks with shape (batch_size, c2, 2H, 2W)
         """
         return self.cv3(self.cv2(self.upsample(self.cv1(x))))
 
@@ -207,7 +207,7 @@ class HGStem(nn.Module):
             x (torch.Tensor): Input tensor of shape (batch, c1, H, W)
 
         Returns:
-            torch.Tensor: Output tensor with spatial dimensions reduced by 4x
+            (torch.Tensor): Output tensor with spatial dimensions reduced by 4x
         """
         x = self.stem1(x)
         x = F.pad(x, [0, 1, 0, 1])  # Add right+bottom padding
@@ -279,7 +279,7 @@ class HGBlock(nn.Module):
             x (torch.Tensor): Input tensor of shape (batch, c1, H, W)
 
         Returns:
-            torch.Tensor: Output tensor where:
+            (torch.Tensor): Output tensor where:
                 - If self.add=True: (batch, c2, H, W) = y + x
                 - Else: (batch, c2, H, W) = y
         """
@@ -333,7 +333,7 @@ class SPP(nn.Module):
             x (torch.Tensor): Input tensor of shape (batch, c1, H, W)
 
         Returns:
-            torch.Tensor: Output tensor with concatenated pooled features
+            (torch.Tensor): Output tensor with concatenated pooled features
         """
         x = self.cv1(x)
         return self.cv2(torch.cat([x] + [m(x) for m in self.m], 1))
@@ -383,7 +383,7 @@ class SPPF(nn.Module):
             x (torch.Tensor): Input tensor of shape (batch, c1, H, W)
 
         Returns:
-            torch.Tensor: Output tensor with concatenated pooled features (batch, c2, H, W)
+            (torch.Tensor): Output tensor with concatenated pooled features (batch, c2, H, W)
         """
         y = [self.cv1(x)]
         y.extend(self.m(y[-1]) for _ in range(3))  # 3 repeated pool operations
@@ -436,7 +436,7 @@ class C1(nn.Module):
             x (torch.Tensor): Input tensor of shape (B, c1, H, W)
 
         Returns:
-            torch.Tensor: Output tensor where output = main_computational_block(cv1(x)) + cv1(x)
+            (torch.Tensor): Output tensor where output = main_computational_block(cv1(x)) + cv1(x)
         """
         y = self.cv1(x)  # Initial transformation
         return self.m(y) + y  # CSP-style partial residual connection
@@ -499,7 +499,7 @@ class C2(nn.Module):
             x (torch.Tensor): Input tensor of shape (B, c1, H, W)
 
         Returns:
-            torch.Tensor: Output tensor with shape (B, c2, H, W)
+            (torch.Tensor): Output tensor with shape (B, c2, H, W)
         """
         a, b = self.cv1(x).chunk(2, 1)  # Split channels
         return self.cv2(torch.cat((self.m(a), b), 1))  # Process through main block and concat
@@ -566,7 +566,7 @@ class C2f(nn.Module):
             x (torch.Tensor): Input tensor of shape (B, c1, H, W)
 
         Returns:
-            torch.Tensor: Output tensor of shape (B, c2, H, W)
+            (torch.Tensor): Output tensor of shape (B, c2, H, W)
         """
         y = list(self.cv1(x).chunk(2, 1))  # Initial split [c, c]
         y.extend(m(y[-1]) for m in self.m)  # Extend with processed features
@@ -585,7 +585,7 @@ class C2f(nn.Module):
             x (torch.Tensor): Input tensor of shape (B, c1, H, W)
 
         Returns:
-            torch.Tensor: Output tensor of shape (B, c2, H, W)
+            (torch.Tensor): Output tensor of shape (B, c2, H, W)
         """
         y = self.cv1(x).split((self.c, self.c), 1)  # Precise channel split
         y = [y[0], y[1]]  # Initialize feature list
@@ -699,7 +699,7 @@ class RepC3(nn.Module):
             x (torch.Tensor): Input tensor of shape (B, c1, H, W)
 
         Returns:
-            torch.Tensor: Output tensor of shape (B, c2, H, W)
+            (torch.Tensor): Output tensor of shape (B, c2, H, W)
         """
         return self.cv3(self.m(self.cv1(x)) + self.cv2(x))
 
@@ -838,7 +838,7 @@ class GhostBottleneck(nn.Module):
             x (torch.Tensor): Input tensor of shape (B, c1, H, W)
 
         Returns:
-            torch.Tensor: Output tensor with combined features
+            (torch.Tensor): Output tensor with combined features
         """
         return self.conv(x) + self.shortcut(x)
 
@@ -897,7 +897,7 @@ class Bottleneck(nn.Module):
             x (torch.Tensor): Input tensor of shape (B, c1, H, W)
 
         Returns:
-            torch.Tensor: Output tensor with combined features
+            (torch.Tensor): Output tensor with combined features
         """
         return x + self.cv2(self.cv1(x)) if self.add else self.cv2(self.cv1(x))
 
@@ -955,7 +955,7 @@ class BottleneckCSP(nn.Module):
             x (torch.Tensor): Input tensor of shape (B, c1, H, W)
 
         Returns:
-            torch.Tensor: Output tensor with merged features
+            (torch.Tensor): Output tensor with merged features
         """
         y1 = self.cv3(self.m(self.cv1(x)))
         y2 = self.cv2(x)
@@ -1006,7 +1006,7 @@ class ResNetBlock(nn.Module):
             x (torch.Tensor): Input tensor of shape (B, c1, H, W)
 
         Returns:
-            torch.Tensor: Output tensor with residual connection
+            (torch.Tensor): Output tensor with residual connection
         """
         return F.relu(self.cv3(self.cv2(self.cv1(x))) + self.shortcut(x))
 
@@ -1067,7 +1067,7 @@ class ResNetLayer(nn.Module):
             x (torch.Tensor): Input tensor
 
         Returns:
-            torch.Tensor: Processed output tensor
+            (torch.Tensor): Processed output tensor
         """
         return self.layer(x)
 
@@ -1123,7 +1123,7 @@ class MaxSigmoidAttnBlock(nn.Module):
             guide (torch.Tensor): Guidance vector (B, gc)
 
         Returns:
-            torch.Tensor: Attention-weighted features (B, c2, H, W)
+            (torch.Tensor): Attention-weighted features (B, c2, H, W)
         """
         bs, _, h, w = x.shape
         # Process guide vector
@@ -1266,7 +1266,7 @@ class ImagePoolingAttn(nn.Module):
             text (Tensor): Text embeddings (B, seq_len, ct)
 
         Returns:
-            Tensor: Vision-enhanced text embeddings (B, seq_len, ct)
+            (Tensor): Vision-enhanced text embeddings (B, seq_len, ct)
         """
         bs = x[0].shape[0]
         # Process image features
@@ -1328,7 +1328,7 @@ class ContrastiveHead(nn.Module):
             w (torch.Tensor): Text embeddings (B, N, C)
 
         Returns:
-            torch.Tensor: Similarity scores (B, N, H, W)
+            (torch.Tensor): Similarity scores (B, N, H, W)
         """
         # Normalize features
         x = F.normalize(x, dim=1, p=2)
@@ -1689,7 +1689,7 @@ class CBLinear(nn.Module):
             x (Tensor): Features from upstream backbone (B, c1, H, W)
 
         Returns:
-            tuple[Tensor]: Split features for downstream backbones
+            (tuple[Tensor]): Split features for downstream backbones
         """
         fused = self.fusion_conv(x)
         return fused.split(self.c2s, dim=1)
@@ -1754,7 +1754,7 @@ class CBFuse(nn.Module):
                 - Inner list: Feature maps from a backbone (different layers/scales)
 
         Returns:
-            Tensor: Fused feature map with same resolution as last backbone's feature.
+            (Tensor): Fused feature map with same resolution as last backbone's feature.
         """
         target_size = xs[-1][0].shape[2:]  # Assume last backbone outputs single feature map
         res = [F.interpolate(x[self.idx[i]], size=target_size, mode="nearest") for i, x in enumerate(xs[:-1])]
@@ -1822,7 +1822,7 @@ class C3f(nn.Module):
             x (Tensor): Input features of shape (B, c1, H, W)
 
         Returns:
-            Tensor: Processed features of shape (B, c2, H, W)
+            (Tensor): Processed features of shape (B, c2, H, W)
         """
         y = [self.cv2(x), self.cv1(x)]  # Initial split projections
         y.extend(m(y[-1]) for m in self.m)  # Sequential processing through bottlenecks
@@ -1969,7 +1969,7 @@ class RepVGGDW(torch.nn.Module):
             x (Tensor): Input tensor of shape (B, ed, H, W)
 
         Returns:
-            Tensor: Activated sum of 7x7 and 3x3 branch outputs
+            (Tensor): Activated sum of 7x7 and 3x3 branch outputs
         """
         return self.act(self.conv(x) + self.conv1(x))
 
@@ -1981,7 +1981,7 @@ class RepVGGDW(torch.nn.Module):
             x (Tensor): Input tensor of shape (B, ed, H, W)
 
         Returns:
-            Tensor: Output using fused 7x7 convolution weights
+            (Tensor): Output using fused 7x7 convolution weights
         """
         return self.act(self.conv(x))
 
@@ -2079,7 +2079,7 @@ class CIB(nn.Module):
             x (Tensor): Input tensor (B, c1, H, W)
 
         Returns:
-            Tensor: Output tensor (B, c2, H, W) preserving spatial dimensions
+            (Tensor): Output tensor (B, c2, H, W) preserving spatial dimensions
         """
         return x + self.cv1(x) if self.add else self.cv1(x)
 
@@ -2192,7 +2192,7 @@ class Attention(nn.Module):
             x (Tensor): Input tensor of shape (B, dim, H, W)
 
         Returns:
-            Tensor: Output tensor of same shape (B, dim, H, W)
+            (Tensor): Output tensor of same shape (B, dim, H, W)
         """
         B, C, H, W = x.shape
         N = H * W
@@ -2276,7 +2276,7 @@ class PSABlock(nn.Module):
             x (Tensor): Input tensor of shape (B, c, H, W)
 
         Returns:
-            Tensor: Enhanced output of same shape (B, c, H, W)
+            (Tensor): Enhanced output of same shape (B, c, H, W)
         """
         x = x + self.attn(x) if self.add else self.attn(x)
         x = x + self.ffn(x) if self.add else self.ffn(x)
@@ -2395,7 +2395,7 @@ class C2PSA(nn.Module):
             x (torch.Tensor): Input tensor of shape (B, c1, H, W)
 
         Returns:
-            torch.Tensor: Output tensor of shape (B, c2, H, W) with enhanced features
+            (torch.Tensor): Output tensor of shape (B, c2, H, W) with enhanced features
 
         Example:
             >>> # Verify input-output shape consistency
@@ -2462,7 +2462,7 @@ class C2fPSA(C2f):
             x (torch.Tensor): Input tensor of shape (B, c1, H, W).
 
         Returns:
-            torch.Tensor: Output tensor of shape (B, c2, H, W) maintaining spatial dimensions.
+            (torch.Tensor): Output tensor of shape (B, c2, H, W) maintaining spatial dimensions.
         """
         return super().forward(x)
 
@@ -2521,7 +2521,7 @@ class SCDown(nn.Module):
             x (torch.Tensor): Input tensor of shape (B, c1, H, W).
 
         Returns:
-            torch.Tensor: Output tensor of shape (B, c2, H//s, W//s) when using stride s > 1.
+            (torch.Tensor): Output tensor of shape (B, c2, H//s, W//s) when using stride s > 1.
         """
         return self.cv2(self.cv1(x))
 

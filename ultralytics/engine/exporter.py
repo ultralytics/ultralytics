@@ -75,7 +75,7 @@ from ultralytics.data.dataset import YOLODataset
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.nn.autobackend import check_class_names, default_class_names
 from ultralytics.nn.modules import C2f, Classify, Detect, RTDETRDecoder
-from ultralytics.nn.tasks import DetectionModel, SegmentationModel, WorldModel
+from ultralytics.nn.tasks import ClassificationModel, DetectionModel, SegmentationModel, WorldModel
 from ultralytics.utils import (
     ARM64,
     DEFAULT_CFG,
@@ -282,6 +282,7 @@ class Exporter:
         if self.args.int8 and tflite:
             assert not getattr(model, "end2end", False), "TFLite INT8 export not supported for end2end models."
         if self.args.nms:
+            assert not isinstance(model, ClassificationModel), "'nms=True' is not valid for classification models."
             if getattr(model, "end2end", False):
                 LOGGER.warning("WARNING ⚠️ 'nms=True' is not available for end2end models. Forcing 'nms=False'.")
                 self.args.nms = False
@@ -507,6 +508,7 @@ class Exporter:
         output_names = ["output0", "output1"] if isinstance(self.model, SegmentationModel) else ["output0"]
         dynamic = self.args.dynamic
         if dynamic:
+            self.model.cpu()  # dynamic=True only compatible with cpu
             dynamic = {"images": {0: "batch", 2: "height", 3: "width"}}  # shape(1,3,640,640)
             if isinstance(self.model, SegmentationModel):
                 dynamic["output0"] = {0: "batch", 2: "anchors"}  # shape(1, 116, 8400)
@@ -518,13 +520,14 @@ class Exporter:
         if self.args.nms and self.model.task == "obb":
             self.args.opset = opset_version  # for NMSModel
             # OBB error https://github.com/pytorch/pytorch/issues/110859#issuecomment-1757841865
-            torch.onnx.register_custom_op_symbolic("aten::lift_fresh", lambda g, x: x, opset_version)
+            try:
+                torch.onnx.register_custom_op_symbolic("aten::lift_fresh", lambda g, x: x, opset_version)
+            except RuntimeError:  # it will fail if it's already registered
+                pass
             check_requirements("onnxslim>=0.1.46")  # Older versions has bug with OBB
 
         torch.onnx.export(
-            NMSModel(self.model.cpu() if dynamic else self.model, self.args)
-            if self.args.nms
-            else self.model,  # dynamic=True only compatible with cpu
+            NMSModel(self.model, self.args) if self.args.nms else self.model,
             self.im.cpu() if dynamic else self.im,
             f,
             verbose=False,
@@ -1556,6 +1559,7 @@ class NMSModel(torch.nn.Module):
         extra_shape = pred.shape[-1] - (4 + self.model.nc)  # extras from Segment, OBB, Pose
         boxes, scores, extras = pred.split([4, self.model.nc, extra_shape], dim=2)
         scores, classes = scores.max(dim=-1)
+        self.args.max_det = min(pred.shape[1], self.args.max_det)  # in case num_anchors < max_det
         # (N, max_det, 4 coords + 1 class score + 1 class label + extra_shape).
         out = torch.zeros(
             boxes.shape[0],
@@ -1570,7 +1574,7 @@ class NMSModel(torch.nn.Module):
                 # TFLite GatherND error if mask is empty
                 score *= mask
                 # Explicit length otherwise reshape error, hardcoded to `self.args.max_det * 5`
-                mask = score.topk(self.args.max_det * 5).indices
+                mask = score.topk(min(self.args.max_det * 5, score.shape[0])).indices
             box, score, cls, extra = box[mask], score[mask], cls[mask], extra[mask]
             if not self.obb:
                 box = xywh2xyxy(box)
@@ -1593,14 +1597,25 @@ class NMSModel(torch.nn.Module):
                 offbox = nmsbox[:, :end] + cls_offset * multiplier
                 nmsbox = torch.cat((offbox, nmsbox[:, end:]), dim=-1)
             nms_fn = (
-                partial(nms_rotated, use_triu=not (self.is_tf or (self.args.opset or 14) < 14)) if self.obb else nms
+                partial(
+                    nms_rotated,
+                    use_triu=not (
+                        self.is_tf
+                        or (self.args.opset or 14) < 14
+                        or (self.args.format == "openvino" and self.args.int8)  # OpenVINO int8 error with triu
+                    ),
+                )
+                if self.obb
+                else nms
             )
             keep = nms_fn(
                 torch.cat([nmsbox, extra], dim=-1) if self.obb else nmsbox,
                 score,
                 self.args.iou,
             )[: self.args.max_det]
-            dets = torch.cat([box[keep], score[keep].view(-1, 1), cls[keep].view(-1, 1), extra[keep]], dim=-1)
+            dets = torch.cat(
+                [box[keep], score[keep].view(-1, 1), cls[keep].view(-1, 1).to(out.dtype), extra[keep]], dim=-1
+            )
             # Zero-pad to max_det size to avoid reshape error
             pad = (0, 0, 0, self.args.max_det - dets.shape[0])
             out[i] = torch.nn.functional.pad(dets, pad)

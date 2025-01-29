@@ -749,7 +749,7 @@ class C3Ghost(C3):
     operations from GhostNet. Designed to reduce computational complexity while
     maintaining performance.
 
-    Reference 
+    Reference
     - https://arxiv.org/abs/1911.11907
 
     Args:
@@ -968,7 +968,7 @@ class ResNetBlock(nn.Module):
     """
     Standard ResNet Bottleneck Block with expansion.
 
-    Reference  
+    Reference
     - https://arxiv.org/abs/1512.03385
 
     Args:
@@ -1507,7 +1507,7 @@ class AConv(nn.Module):
     """
     AConv module from YOLOv9.
 
-    Reference  
+    Reference
     - https://github.com/WongKinYiu/yolov9
 
     Args:
@@ -1540,7 +1540,7 @@ class ADown(nn.Module):
     """
     ADown module from YOLOv9.
 
-    Reference  
+    Reference
     - https://github.com/WongKinYiu/yolov9
 
     Args:
@@ -1584,7 +1584,7 @@ class SPPELAN(nn.Module):
     Integrates Spatial Pyramid Pooling within an Efficient Layer Aggregation Network (ELAN) structure.
     Captures multi-scale features through parallel pooling paths while maintaining spatial resolution.
 
-    Reference  
+    Reference
     - https://github.com/WongKinYiu/yolov9
 
     Args:

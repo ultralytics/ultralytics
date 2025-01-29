@@ -178,7 +178,7 @@ jobs:
         # temporarily enable slow tests
         run: |
           # CoreML must be installed before export due to protobuf error from AutoInstall
-          slow="pycocotools mlflow"
+          slow=""
           torch=""
           if [ "${{ matrix.torch }}" == "1.8.0" ]; then
               torch="torch==1.8.0 torchvision==0.9.0"
@@ -195,7 +195,7 @@ jobs:
         shell: bash # for Windows compatibility
         # temporarily enable slow tests
         run: |
-          slow="--slow"
+          slow=""
           if [[ "${{ github.event_name }}" =~ ^(schedule|workflow_dispatch)$ ]]; then
               slow="--slow"
           fi 

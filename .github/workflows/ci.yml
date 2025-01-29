@@ -175,7 +175,6 @@ jobs:
       - uses: astral-sh/setup-uv@v5
       - name: Install requirements
         shell: bash # for Windows compatibility
-        # temporarily enable slow tests
         run: |
           # CoreML must be installed before export due to protobuf error from AutoInstall
           slow=""
@@ -193,7 +192,6 @@ jobs:
           uv pip list
       - name: Pytest tests
         shell: bash # for Windows compatibility
-        # temporarily enable slow tests
         run: |
           slow=""
           if [[ "${{ github.event_name }}" =~ ^(schedule|workflow_dispatch)$ ]]; then

@@ -57,6 +57,7 @@ def benchmark(
     device="cpu",
     verbose=False,
     eps=1e-3,
+    format="",
 ):
     """
     Benchmark a YOLO model across different formats for speed and accuracy.
@@ -70,6 +71,7 @@ def benchmark(
         device (str): Device to run the benchmark on, either 'cpu' or 'cuda'.
         verbose (bool | float): If True or a float, assert benchmarks pass with given metric.
         eps (float): Epsilon value for divide by zero prevention.
+        format (str): Export format for benchmarking. If not supplied all formats are benchmarked.
 
     Returns:
         (pandas.DataFrame): A pandas DataFrame with benchmark results for each format, including file size, metric,
@@ -94,9 +96,17 @@ def benchmark(
 
     y = []
     t0 = time.time()
+
+    format_arg = format.lower()
+    if format_arg:
+        formats = frozenset(export_formats()["Argument"])
+        assert format in formats, f"Expected format to be one of {formats}, but got '{format_arg}'."
     for i, (name, format, suffix, cpu, gpu, _) in enumerate(zip(*export_formats().values())):
         emoji, filename = "❌", None  # export defaults
         try:
+            if format_arg and format_arg != format:
+                continue
+
             # Checks
             if i == 7:  # TF GraphDef
                 assert model.task != "obb", "TensorFlow GraphDef not supported for OBB task"
@@ -155,10 +165,10 @@ def benchmark(
 
             # Validate
             data = data or TASK2DATA[model.task]  # task to dataset, i.e. coco8.yaml for task=detect
-            key = TASK2METRIC[model.task]  # task to metric, i.e. metrics/mAP50-95(B) for task=detect
             results = exported_model.val(
                 data=data, batch=1, imgsz=imgsz, plots=False, device=device, half=half, int8=int8, verbose=False
             )
+            key = TASK2METRIC[model.task]  # task to metric, i.e. metrics/mAP50-95(B) for task=detect
             metric, speed = results.results_dict[key], results.speed["inference"]
             fps = round(1000 / (speed + eps), 2)  # frames per second
             y.append([name, "✅", round(file_size(filename), 1), round(metric, 4), round(speed, 2), fps])

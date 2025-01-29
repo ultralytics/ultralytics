@@ -1292,9 +1292,6 @@ class ContrastiveHead(nn.Module):
     Computes similarity scores between image regions and text embeddings,
     used in vision-language pretraining architectures.
 
-    Args:
-        None
-
     Shape:
         - Input x: Image features (batch_size, feat_dim, H, W)
         - Input w: Text embeddings (batch_size, num_texts, feat_dim)

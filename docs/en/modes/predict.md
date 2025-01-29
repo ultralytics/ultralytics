@@ -508,7 +508,12 @@ All Ultralytics `predict()` calls will return a list of `Results` objects:
 | `verbose()`   | `str`           | Return log string for each task.                                                    |
 | `save_txt()`  | `None`          | Save predictions into a txt file.                                                   |
 | `save_crop()` | `None`          | Save cropped predictions to `save_dir/cls/file_name.jpg`.                           |
-| `tojson()`    | `str`           | Convert the object to JSON format.                                                  |
+| `summary()`   | `List[Dict]`    | A list of dictionaries, each containing summarized information for results          |
+| `to_df()`     | `DataFrame`     | Convert the results to Pandas Dataframe.                                            |
+| `to_csv()`    | `str`           | Convert the result to CSV (comma separated values) format.                          |
+| `to_xml()`    | `str`           | Convert the results to XML (Extensible Markup Language) format.                     |
+| `to_json()`   | `str`           | Convert the results to JSON format.                                                 |
+| `to_sql()`    | `None`          | Dump the results into the SQL database.                                             |
 
 For more details see the [`Results` class documentation](../reference/engine/results.md).
 

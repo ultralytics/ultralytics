@@ -148,9 +148,9 @@ The rows index the label files, each corresponding to an image in your dataset, 
     folds = [f"split_{n}" for n in range(1, ksplit + 1)]
     folds_df = pd.DataFrame(index=index, columns=folds)
 
-    for idx, (train, val) in enumerate(kfolds, start=1):
-        folds_df[f"split_{idx}"].loc[labels_df.iloc[train].index] = "train"
-        folds_df[f"split_{idx}"].loc[labels_df.iloc[val].index] = "val"
+    for i, (train, val) in enumerate(kfolds, start=1):
+        folds_df[f"split_{i}"].loc[labels_df.iloc[train].index] = "train"
+        folds_df[f"split_{i}"].loc[labels_df.iloc[val].index] = "val"
     ```
 
 3. Now we will calculate the distribution of class labels for each fold as a ratio of the classes present in `val` to those present in `train`.

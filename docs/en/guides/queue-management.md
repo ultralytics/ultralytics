@@ -57,20 +57,20 @@ Queue management using [Ultralytics YOLO11](https://github.com/ultralytics/ultra
 
         cap = cv2.VideoCapture("Path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
-        
+
         # Video writer
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
         video_writer = cv2.VideoWriter("queue_management.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
         # Define queue points
-        queue_region = [(20, 400), (1080, 400), (1080, 360), (20, 360)]                 # region points
+        queue_region = [(20, 400), (1080, 400), (1080, 360), (20, 360)]  # region points
         # queue_region = [(20, 400), (1080, 400), (1080, 360), (20, 360), (20, 400)]    # polygon points
 
         # Init QueueManager
         queue = solutions.QueueManager(
-            show=True,                  # display the output
-            model="yolo11n.pt",         # path to the YOLO11 model file
-            region=queue_region,        # pass queue region points
+            show=True,  # display the output
+            model="yolo11n.pt",  # path to the YOLO11 model file
+            region=queue_region,  # pass queue region points
         )
 
         # Process video
@@ -80,15 +80,21 @@ Queue management using [Ultralytics YOLO11](https://github.com/ultralytics/ultra
                 print("Video frame is empty or processing is complete.")
                 break
             results = queue.process_queue(im0)
-            
+
             # Access the output
+<<<<<<< HEAD
             # print(f"Queue counts: , {results['queue_count']}")
             
             video_writer.write(results["im0"])      # write the processed frame.
+=======
+            # print(f"Queue counts: ", results['queue_count']")
+
+            video_writer.write(results["im0"])  # write the processed frame.
+>>>>>>> 457e27dca9fdd164b5b0e3d6d891f1964404f928
 
         cap.release()
         video_writer.release()
-        cv2.destroyAllWindows()     # destroy all opened windows
+        cv2.destroyAllWindows()  # destroy all opened windows
         ```
 
 ### Arguments `QueueManager`
@@ -96,7 +102,7 @@ Queue management using [Ultralytics YOLO11](https://github.com/ultralytics/ultra
 Here's a table with the `QueueManager` arguments:
 
 | Name         | Type    | Default                    | Description                                                                                                                                                                  |
-|--------------|---------|----------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| ------------ | ------- | -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `model`      | `str`   | `None`                     | Path to Ultralytics YOLO Model File                                                                                                                                          |
 | `region`     | `list`  | `[(20, 400), (1260, 400)]` | List of points defining the queue region.                                                                                                                                    |
 | `line_width` | `int`   | `2`                        | Line thickness for bounding boxes.                                                                                                                                           |

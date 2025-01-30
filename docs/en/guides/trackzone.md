@@ -50,7 +50,7 @@ TrackZone specializes in monitoring objects within designated areas of a frame i
 
         cap = cv2.VideoCapture("path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
-        
+
         # Define region points
         region_points = [(150, 150), (1130, 150), (1130, 570), (150, 570)]
 
@@ -60,9 +60,9 @@ TrackZone specializes in monitoring objects within designated areas of a frame i
 
         # Init TrackZone (Object Tracking in Zones, not complete frame)
         trackzone = solutions.TrackZone(
-            show=True,                  # display the output
-            region=region_points,       # pass region points
-            model="yolo11n.pt",         # use any model that Ultralytics support, i.e. YOLOv9, YOLOv10
+            show=True,  # display the output
+            region=region_points,  # pass region points
+            model="yolo11n.pt",  # use any model that Ultralytics support, i.e. YOLOv9, YOLOv10
             # line_width=2,             # Adjust the line width for bounding boxes and text display
         )
 
@@ -72,17 +72,17 @@ TrackZone specializes in monitoring objects within designated areas of a frame i
             if not success:
                 print("Video frame is empty or processing is complete.")
                 break
-            
+
             results = trackzone.trackzone(im0)
-            
+
             # Access the output
             # print(f"Total tracks: , {results['total_tracks']}")
-            
-            video_writer.write(results["im0"])      # write the video file
+
+            video_writer.write(results["im0"])  # write the video file
 
         cap.release()
         video_writer.release()
-        cv2.destroyAllWindows()     # destroy all opened windows
+        cv2.destroyAllWindows()  # destroy all opened windows
         ```
 
 ### Argument `TrackZone`
@@ -90,7 +90,7 @@ TrackZone specializes in monitoring objects within designated areas of a frame i
 Here's a table with the `TrackZone` arguments:
 
 | Name         | Type    | Default                                              | Description                                                                                                                                                                  |
-|--------------|---------|------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| ------------ | ------- | ---------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `model`      | `str`   | `None`                                               | Path to Ultralytics YOLO Model File                                                                                                                                          |
 | `region`     | `list`  | `[(150, 150), (1130, 150), (1130, 570), (150, 570)]` | List of points defining the object tracking region.                                                                                                                          |
 | `line_width` | `int`   | `2`                                                  | Line thickness for bounding boxes.                                                                                                                                           |

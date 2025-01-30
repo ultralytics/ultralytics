@@ -77,33 +77,33 @@ Parking management with [Ultralytics YOLO11](https://github.com/ultralytics/ultr
         # Video capture
         cap = cv2.VideoCapture("Path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
-        
+
         # Video writer
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
         video_writer = cv2.VideoWriter("parking management.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
-        
+
         # Initialize ParkingManagement
         parking_manager = solutions.ParkingManagement(
-            model="yolo11n.pt",                 # path to model file
-            json_file="bounding_boxes.json",    # path to parking annotations file
+            model="yolo11n.pt",  # path to model file
+            json_file="bounding_boxes.json",  # path to parking annotations file
         )
 
         while cap.isOpened():
             ret, im0 = cap.read()
             if not ret:
                 break
-            
+
             results = parking_manager.process_data(im0)
-            
+
             # Access the output
             # print(f"Available slots: , {results['available_slots']}")
             # print(f"Filled slots: , {results['filled_slots']}")
 
-            video_writer.write(results["im0"])      # write the processed frame.
+            video_writer.write(results["im0"])  # write the processed frame.
 
         cap.release()
         video_writer.release()
-        cv2.destroyAllWindows()     # destroy all opened windows
+        cv2.destroyAllWindows()  # destroy all opened windows
         ```
 
 ### Arguments `ParkingManagement`
@@ -111,7 +111,7 @@ Parking management with [Ultralytics YOLO11](https://github.com/ultralytics/ultr
 Here's a table with the `ParkingManagement` arguments:
 
 | Name         | Type    | Default        | Description                                                                                                                                                                  |
-|--------------|---------|----------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| ------------ | ------- | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `model`      | `str`   | `None`         | Path to the YOLO11 model file.                                                                                                                                               |
 | `json_file`  | `str`   | `None`         | Path to the JSON file, that have all parking coordinates data.                                                                                                               |
 | `line_width` | `int`   | `2`            | Line thickness for bounding boxes.                                                                                                                                           |

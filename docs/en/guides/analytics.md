@@ -62,7 +62,7 @@ This guide provides a comprehensive overview of three fundamental types of [data
 
         cap = cv2.VideoCapture("Path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
-        
+
         # Video writer
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
         out = cv2.VideoWriter("analytics.avi", cv2.VideoWriter_fourcc(*"MJPG"), fps,
@@ -84,7 +84,7 @@ This guide provides a comprehensive overview of three fundamental types of [data
             if success:
                 frame_count += 1
                 results = analytics.process_data(im0, frame_count)  # update analytics graph every frame
-                
+
                 # Access the output
                 print(f"Total tracks: , {results['total_tracks']}")
 
@@ -102,7 +102,7 @@ This guide provides a comprehensive overview of three fundamental types of [data
 Here's a table with the `Analytics` arguments:
 
 | Name             | Type    | Default        | Description                                                                                                                                                                  |
-|------------------|---------|----------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| ---------------- | ------- | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `analytics_type` | `str`   | `line`         | Type of graph i.e "line", "bar", "area", "pie"                                                                                                                               |
 | `model`          | `str`   | `None`         | Path to Ultralytics YOLO Model File                                                                                                                                          |
 | `line_width`     | `int`   | `2`            | Line thickness for bounding boxes.                                                                                                                                           |

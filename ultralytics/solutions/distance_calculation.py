@@ -123,5 +123,11 @@ class DistanceCalculation(BaseSolution):
         self.display_output(im0)  # display output with base class function
         cv2.setMouseCallback("Ultralytics Solutions", self.mouse_event_for_distance)
 
+        total_tracks = len(self.track_ids)
+
+        if self.verbose:
+            # Log the pixel distance and total tracks, if verbose mode is enabled
+            self.LOGGER.info(f"Pixels distance: {pixels_distance}, total tracks: {total_tracks}")
+
         # return output dictionary with summary for more usage
-        return SolutionResults(im0=im0, pixels_distance=pixels_distance, total_tracks=len(self.track_ids)).summary()
+        return SolutionResults(im0=im0, pixels_distance=pixels_distance, total_tracks=total_tracks).summary()

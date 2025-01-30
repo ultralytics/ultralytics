@@ -38,37 +38,55 @@ Object blurring with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
 
         cap = cv2.VideoCapture("Path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
-        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-
+        
         # Video writer
         video_writer = cv2.VideoWriter("object_blurring_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
+        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 
         # Init ObjectBlurrer
         blurrer = solutions.ObjectBlurrer(
-            show=True,  # Display the output
-            model="yolo11n.pt",  # model="yolo11n-obb.pt" for object blurring using YOLO11 OBB model.
-            blur_ratio=0.5,  # Set blur percentage i.e 0.7 for 70% blurred detected objects
-            # line_width=2,        # Width of bounding box.
-            # classes=[0, 2],  # If you want to count specific classes i.e, person and car with COCO pretrained model.
+            show=True,              # display the output
+            model="yolo11n.pt",     # model for object blurring i.e yolo11m.pt
+            blur_ratio=0.5,         # set blur percentage i.e 0.7 for 70% blurred detected objects
+            # line_width=2,         # width of bounding box.
+            # classes=[0, 2],       # count specific classes i.e, person and car with COCO pretrained model.
         )
 
         # Process video
         while cap.isOpened():
             success, im0 = cap.read()
+            
             if not success:
-                print("Video frame is empty or video processing has been successfully completed.")
+                print("Video frame is empty or processing is complete.")
                 break
+
             results = blurrer.blur(im0)
-            video_writer.write(results["im0"])
+
+            # Access the output
+            # print(f"Total tracks: , results['total_tracks']")
+            
+            video_writer.write(results["im0"])  # write the processed frame.
 
         cap.release()
         video_writer.release()
-        cv2.destroyAllWindows()
+        cv2.destroyAllWindows()     # destroy all opened windows
         ```
 
-### Arguments `model.predict`
+### Argument `ObjectBlurrer`
 
-{% include "macros/predict-args.md" %}
+Here's a table with the `ObjectBlurrer` arguments:
+
+| Name         | Type    | Default                    | Description                                                                                                                                                                  |
+|--------------|---------|----------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `model`      | `str`   | `None`                     | Path to Ultralytics YOLO Model File                                                                                                                                          |
+| `line_width` | `int`   | `2`                        | Line thickness for bounding boxes.                                                                                                                                           |
+| `show`       | `bool`  | `False`                    | Flag to control whether to display the video stream.                                                                                                                         |
+| `conf`       | `float` | `0.3`                      | Sets the confidence threshold for detections; lower values allow more objects to be tracked but may include false positives.                                                 |
+| `iou`        | `float` | `0.5`                      | Sets the [Intersection over Union](https://www.ultralytics.com/glossary/intersection-over-union-iou) (IoU) threshold for filtering overlapping detections.                   |
+| `classes`    | `list`  | `None`                     | Filters results by class index. For example, `classes=[0, 2, 3]` only tracks the specified classes.                                                                          |
+| `max_det`    | `int`   | `300`                      | Maximum number of detections allowed per image. Limits the total number of objects the model can detect in a single inference, preventing excessive outputs in dense scenes. |
+| `verbose`    | `bool`  | `True`                     | Controls the display of solutions results, providing a visual output of tracked objects.                                                                                     |
+| `tracker`    | `str`   | `botsort.yaml`             | Specifies the tracking algorithm to use, e.g., `bytetrack.yaml` or `botsort.yaml`.                                                                                           |
 
 ## FAQ
 
@@ -94,18 +112,18 @@ video_writer = cv2.VideoWriter("object_blurring_output.avi", cv2.VideoWriter_fou
 
 # Init ObjectBlurrer
 blurrer = solutions.ObjectBlurrer(
-    show=True,  # Display the output
-    model="yolo11n.pt",  # model="yolo11n-obb.pt" for object blurring using YOLO11 OBB model.
-    blur_ratio=0.5,  # Set blur percentage i.e 0.7 for 70% blurred detected objects
-    # line_width=2,        # Width of bounding box.
-    # classes=[0, 2],  # If you want to count specific classes i.e, person and car with COCO pretrained model.
+    show=True,              # display the output
+    model="yolo11n.pt",     # model="yolo11n-obb.pt" for object blurring using YOLO11 OBB model.
+    blur_ratio=0.5,         # set blur percentage i.e 0.7 for 70% blurred detected objects
+    # line_width=2,         # Width of bounding box.
+    # classes=[0, 2],       # count specific classes i.e, person and car with COCO pretrained model.
 )
 
 # Process video
 while cap.isOpened():
     success, im0 = cap.read()
     if not success:
-        print("Video frame is empty or video processing has been successfully completed.")
+        print("Video frame is empty or processing is complete.")
         break
     results = blurrer.blur(im0)
     video_writer.write(results["im0"])

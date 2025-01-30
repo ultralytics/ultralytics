@@ -32,7 +32,7 @@ Object counting with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
 ## Real World Applications
 
 |                                                                        Logistics                                                                        |                                                                         Aquaculture                                                                          |
-| :-----------------------------------------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------------------------------------------------: |
+|:-------------------------------------------------------------------------------------------------------------------------------------------------------:|:------------------------------------------------------------------------------------------------------------------------------------------------------------:|
 | ![Conveyor Belt Packets Counting Using Ultralytics YOLO11](https://github.com/ultralytics/docs/releases/download/0/conveyor-belt-packets-counting.avif) | ![Fish Counting in Sea using Ultralytics YOLO11](https://github.com/ultralytics/docs/releases/download/0/fish-counting-in-sea-using-ultralytics-yolov8.avif) |
 |                                                 Conveyor Belt Packets Counting Using Ultralytics YOLO11                                                 |                                                        Fish Counting in Sea using Ultralytics YOLO11                                                         |
 
@@ -60,57 +60,66 @@ Object counting with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
 
         cap = cv2.VideoCapture("path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
-        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-
-        # Define region points
-        # region_points = [(20, 400), (1080, 400)]  # For line counting
-        region_points = [(20, 400), (1080, 400), (1080, 360), (20, 360)]  # For rectangle region counting
-        # region_points = [(20, 400), (1080, 400), (1080, 360), (20, 360), (20, 400)]  # For polygon region counting
+        
+        # region_points = [(20, 400), (1080, 400)]                                      # line counting
+        region_points = [(20, 400), (1080, 400), (1080, 360), (20, 360)]                # rectangle region
+        # region_points = [(20, 400), (1080, 400), (1080, 360), (20, 360), (20, 400)]   # polygon region
 
         # Video writer
+        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
         video_writer = cv2.VideoWriter("object_counting_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
         # Init ObjectCounter
         counter = solutions.ObjectCounter(
-            show=True,  # Display the output
-            region=region_points,  # Pass region points
-            model="yolo11n.pt",  # model="yolo11n-obb.pt" for object counting using YOLO11 OBB model.
-            # classes=[0, 2],  # If you want to count specific classes i.e person and car with COCO pretrained model.
-            # show_in=True,  # Display in counts
-            # show_out=True,  # Display out counts
-            # line_width=2,  # Adjust the line width for bounding boxes and text display
+            show=True,                  # display the output
+            region=region_points,       # pass region points
+            model="yolo11n.pt",         # model="yolo11n-obb.pt" for object counting with OBB model.
+            # classes=[0, 2],           # count specific classes i.e person and car with COCO pretrained model.
+            # show_in=True,             # display in counts
+            # show_out=True,            # display out counts
+            # tracker="botsort.yaml"    # Choose trackers i.e "bytetrack.yaml"
         )
 
         # Process video
         while cap.isOpened():
             success, im0 = cap.read()
+            
             if not success:
-                print("Video frame is empty or video processing has been successfully completed.")
+                print("Video frame is empty or processing is complete.")
                 break
+
             results = counter.count(im0)
-            video_writer.write(results["im0"])
+            
+            # Access the output
+            # print(f"In count: , {results['in_count']}")
+            # print(f"Out count: , results['out_count']")
+            # print(f"Class wise count: , results['classwise_count']")
+ 
+            video_writer.write(results["im0"])  # write the processed frame.
 
         cap.release()
         video_writer.release()
-        cv2.destroyAllWindows()
+        cv2.destroyAllWindows()     # destroy all opened windows
         ```
 
 ### Argument `ObjectCounter`
 
 Here's a table with the `ObjectCounter` arguments:
 
-| Name         | Type   | Default                    | Description                                                            |
-| ------------ | ------ | -------------------------- | ---------------------------------------------------------------------- |
-| `model`      | `str`  | `None`                     | Path to Ultralytics YOLO Model File                                    |
-| `region`     | `list` | `[(20, 400), (1260, 400)]` | List of points defining the counting region.                           |
-| `line_width` | `int`  | `2`                        | Line thickness for bounding boxes.                                     |
-| `show`       | `bool` | `False`                    | Flag to control whether to display the video stream.                   |
-| `show_in`    | `bool` | `True`                     | Flag to control whether to display the in counts on the video stream.  |
-| `show_out`   | `bool` | `True`                     | Flag to control whether to display the out counts on the video stream. |
-
-### Arguments `model.track`
-
-{% include "macros/track-args.md" %}
+| Name         | Type    | Default                    | Description                                                                                                                                                                  |
+|--------------|---------|----------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `model`      | `str`   | `None`                     | Path to Ultralytics YOLO Model File                                                                                                                                          |
+| `region`     | `list`  | `[(20, 400), (1260, 400)]` | List of points defining the counting region.                                                                                                                                 |
+| `line_width` | `int`   | `2`                        | Line thickness for bounding boxes.                                                                                                                                           |
+| `show`       | `bool`  | `False`                    | Flag to control whether to display the video stream.                                                                                                                         |
+| `show_in`    | `bool`  | `True`                     | Flag to control whether to display the in counts on the video stream.                                                                                                        |
+| `show_out`   | `bool`  | `True`                     | Flag to control whether to display the out counts on the video stream.                                                                                                       |
+| `tracker`    | `str`   | `botsort.yaml`             | Specifies the tracking algorithm to use, e.g., `bytetrack.yaml` or `botsort.yaml`.                                                                                           |
+| `conf`       | `float` | `0.3`                      | Sets the confidence threshold for detections; lower values allow more objects to be tracked but may include false positives.                                                 |
+| `iou`        | `float` | `0.5`                      | Sets the [Intersection over Union](https://www.ultralytics.com/glossary/intersection-over-union-iou) (IoU) threshold for filtering overlapping detections.                   |
+| `classes`    | `list`  | `None`                     | Filters results by class index. For example, `classes=[0, 2, 3]` only tracks the specified classes.                                                                          |
+| `max_det`    | `int`   | `300`                      | Maximum number of detections allowed per image. Limits the total number of objects the model can detect in a single inference, preventing excessive outputs in dense scenes. |
+| `verbose`    | `bool`  | `True`                     | Controls the display of solutions results, providing a visual output of tracked objects.                                                                                     |
 
 ## FAQ
 
@@ -144,10 +153,10 @@ def count_objects_in_region(video_path, output_video_path, model_path):
     while cap.isOpened():
         success, im0 = cap.read()
         if not success:
-            print("Video frame is empty or video processing has been successfully completed.")
+            print("Video frame is empty or processing is complete.")
             break
-        im0 = counter.count(im0)
-        video_writer.write(im0)
+        results = counter.count(im0)
+        video_writer.write(results["im0"])
 
     cap.release()
     video_writer.release()
@@ -192,10 +201,10 @@ def count_specific_classes(video_path, output_video_path, model_path, classes_to
     while cap.isOpened():
         success, im0 = cap.read()
         if not success:
-            print("Video frame is empty or video processing has been successfully completed.")
+            print("Video frame is empty or processing is complete.")
             break
-        im0 = counter.count(im0)
-        video_writer.write(im0)
+        results = counter.count(im0)
+        video_writer.write(results["im0"])
 
     cap.release()
     video_writer.release()

@@ -73,7 +73,7 @@ class AIGym(BaseSolution):
             >>> image = cv2.imread("workout.jpg")
             >>> processed_image = gym.monitor(image)
         """
-        # Extract tracks
+        # Extract tracks (it's separate, because pose estimation explicit use pose model for processing)
         tracks = self.model.track(source=im0, persist=True, classes=self.CFG["classes"], **self.track_add_args)[0]
 
         if tracks.boxes.id is not None:

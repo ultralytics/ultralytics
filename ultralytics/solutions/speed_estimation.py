@@ -84,11 +84,6 @@ class SpeedEstimator(BaseSolution):
             speed_label = f"{int(self.spd[track_id])} km/h" if track_id in self.spd else self.names[int(cls)]
             self.annotator.box_label(box, label=speed_label, color=colors(track_id, True))  # Draw bounding box
 
-            # Draw tracks of objects
-            self.annotator.draw_centroid_and_tracks(
-                self.track_line, color=colors(int(track_id), True), track_thickness=self.line_width
-            )
-
             # Calculate object speed and direction based on region intersection
             if self.LineString([self.trk_pp[track_id], self.track_line[-1]]).intersects(self.r_s):
                 direction = "known"

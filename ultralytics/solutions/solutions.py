@@ -206,7 +206,6 @@ class SolutionAnnotator(Annotator):
 
     Methods:
         draw_region: Draws a region using specified points, colors, and thickness.
-        draw_centroid_and_tracks: Draws the centroid of an object and its tracking trail.
         queue_counts_display: Displays queue counts in the specified region.
         display_analytics: Displays overall statistics for parking lot management.
         estimate_pose_angle: Calculates the angle between three points in an object pose.
@@ -224,7 +223,6 @@ class SolutionAnnotator(Annotator):
     Examples:
         >>> annotator = SolutionAnnotator(image)
         >>> annotator.draw_region([(0, 0), (100, 100)], color=(0, 255, 0), thickness=5)
-        >>> annotator.draw_centroid_and_tracks(track=[[10, 20], [30, 40]], color=(255, 0, 255))
         >>> annotator.display_analytics(
         ...     image, text={"Available Spots": 5}, txt_color=(0, 0, 0), bg_color=(255, 255, 255), margin=10
         ... )
@@ -259,19 +257,6 @@ class SolutionAnnotator(Annotator):
         # Draw small circles at the corner points
         for point in reg_pts:
             cv2.circle(self.im, (point[0], point[1]), thickness * 2, color, -1)  # -1 fills the circle
-
-    def draw_centroid_and_tracks(self, track, color=(255, 0, 255), track_thickness=2):
-        """
-        Draw centroid point and track trails.
-
-        Args:
-            track (list): object tracking points for trails display
-            color (tuple): tracks line color
-            track_thickness (int): track line thickness value
-        """
-        points = np.hstack(track).astype(np.int32).reshape((-1, 1, 2))
-        cv2.polylines(self.im, [points], isClosed=False, color=color, thickness=track_thickness)
-        cv2.circle(self.im, (int(track[-1][0]), int(track[-1][1])), track_thickness * 2, color, -1)
 
     def queue_counts_display(self, label, points=None, region_color=(255, 255, 255), txt_color=(0, 0, 0)):
         """

@@ -188,10 +188,6 @@ class ObjectCounter(BaseSolution):
             self.store_tracking_history(track_id, box)  # Store track history
             self.store_classwise_counts(cls)  # store classwise counts in dict
 
-            # Draw tracks of objects
-            self.annotator.draw_centroid_and_tracks(
-                self.track_line, color=colors(int(cls), True), track_thickness=self.line_width
-            )
             current_centroid = ((box[0] + box[2]) / 2, (box[1] + box[3]) / 2)
             # store previous position of track for object counting
             prev_position = None

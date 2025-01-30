@@ -74,11 +74,6 @@ class QueueManager(BaseSolution):
             self.annotator.box_label(box, label=self.names[cls], color=colors(track_id, True))
             self.store_tracking_history(track_id, box)  # Store track history
 
-            # Draw tracks of objects
-            self.annotator.draw_centroid_and_tracks(
-                self.track_line, color=colors(int(track_id), True), track_thickness=self.line_width
-            )
-
             # Cache frequently accessed attributes
             track_history = self.track_history.get(track_id, [])
 

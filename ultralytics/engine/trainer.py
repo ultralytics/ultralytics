@@ -487,7 +487,7 @@ class BaseTrainer:
     def _get_memory(self, util=False):
         """Get accelerator memory utilization in GB and fraction."""
         if self.device.type == "mps":
-            mem = torch.mps.driver_allocated_memory() 
+            mem = torch.mps.driver_allocated_memory()
             gb = mem / 1e9
             if util:
                 total = torch.mps.get_mem_info()[0]

@@ -764,26 +764,8 @@ class SolutionResults:
         Returns:
             _cached_summary (dict): A dictionary containing key-value pairs representing the current state of all attributes in the object.
         """
-        if not hasattr(self, "_cached_summary"):
-            self._cached_summary = {
-                "im0": self.im0,
-                "in_count": self.in_count,
-                "out_count": self.out_count,
-                "classwise_count": self.classwise_count,
-                "queue_count": self.queue_count,
-                "workout_count": self.workout_count,
-                "workout_angle": self.workout_angle,
-                "workout_stage": self.workout_stage,
-                "pixels_distance": self.pixels_distance,
-                "available_slots": self.available_slots,
-                "filled_slots": self.filled_slots,
-                "total_tracks": self.total_tracks,
-                "email_sent": self.email_sent,
-                "region_counts": self.region_counts,
-                "speed_dict": self.speed_dict,
-                "total_crop_objects": self.total_crop_objects,
-            }
-
+        # Get the dictionary of the attributes set for this instance
+        result_summary = {k: v for k, v in self.__dict__.items() if v is not None}
         if verbose:
             LOGGER.info(self._cached_summary)
 

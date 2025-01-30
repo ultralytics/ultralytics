@@ -163,8 +163,7 @@ class ObjectCounter(BaseSolution):
         Returns:
             results (dict): Contains processed image `im0`,
                 'in_count' (int, count of objects entering the region), 'out_count' (int, count of objects exiting the region),
-                'classwise_count' (dict, per-class object count), and 'total_tracks' (int, total number of tracked objects).
-
+                'classwise_count' (dict, per-class object count), and 'total_tracks' (int, total number of tracked objects),
         Examples:
             >>> counter = ObjectCounter()
             >>> frame = cv2.imread("path/to/image.jpg")
@@ -203,8 +202,7 @@ class ObjectCounter(BaseSolution):
         self.display_output(im0)  # display output with base class function
 
         total_tracks = len(self.track_ids)
-
-        if self.verbose:    # Log the total tracks, in-count, out-count and classwise count
+        if self.verbose:    # Log the total tracks, in-count, out-count, classwise count and total tracks
             self.LOGGER.info(
                 f"In count: {self.in_count}, out count: {self.out_count}, "
                 f"classwise count: {self.classwise_count}, total tracks: {total_tracks}"

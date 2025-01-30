@@ -122,8 +122,7 @@ class Analytics(BaseSolution):
             raise ModuleNotFoundError(f"{self.type} chart is not supported ❌")
 
         total_tracks = len(self.track_ids)
-        if self.verbose:
-            # Log the total number of tracks and classwise counts if verbose mode is enabled
+        if self.verbose:    # Log the total tracks and classwise counts if verbose mode is enabled
             self.LOGGER.info(f"Total tracks: {total_tracks}, classwise-count: {self.clswise_count}")
 
         # return output dictionary with summary for more usage

@@ -81,8 +81,12 @@ class ObjectCropper(BaseSolution):
 
         self.display_output(im0)  # display output with base class function
 
+        total_crops = self.crop_idx
+        if self.verbose:  # Log the total cropped objects count
+            self.LOGGER.info(f"Total cropped objects: {total_crops}")
+
         # Return output dictionary with summary for usage
         return SolutionResults(
             im0=im0,
-            total_crop_objects=self.crop_idx,
+            total_crop_objects=total_crops,
         ).summary()

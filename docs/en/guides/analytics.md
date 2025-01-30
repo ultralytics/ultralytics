@@ -86,8 +86,8 @@ This guide provides a comprehensive overview of three fundamental types of [data
             success, im0 = cap.read()
             if success:
                 frame_count += 1
-                im0 = analytics.process_data(im0, frame_count)  # update analytics graph every frame
-                out.write(im0)  # write the video file
+                results = analytics.process_data(im0, frame_count)  # update analytics graph every frame
+                out.write(results["im0"])  # write the video file
             else:
                 break
 

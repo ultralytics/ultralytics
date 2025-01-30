@@ -39,62 +39,52 @@ Object cropping with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
     === "Object Cropping"
 
         ```python
-        import os
-
         import cv2
 
-        from ultralytics import YOLO
-        from ultralytics.utils.plotting import Annotator, colors
+        from ultralytics import solutions
 
-        model = YOLO("yolo11n.pt")
-        names = model.names
-
-        cap = cv2.VideoCapture("path/to/video/file.mp4")
+        cap = cv2.VideoCapture("Path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
-        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 
-        crop_dir_name = "ultralytics_crop"
-        if not os.path.exists(crop_dir_name):
-            os.mkdir(crop_dir_name)
+        # Init ObjectCropper
+        cropper = solutions.ObjectCropper(
+            show=True,  # display the output
+            model="yolo11n.pt",  # model for object cropping i.e yolo11x.pt.
+            classes=[0, 2],  # crop specific classes i.e. person and car with COCO pretrained model.
+            # conf=0.5                  # adjust confidence threshold for the objects.
+        )
 
-        # Video writer
-        video_writer = cv2.VideoWriter("object_cropping_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
-
-        idx = 0
+        # Process video
         while cap.isOpened():
             success, im0 = cap.read()
+
             if not success:
-                print("Video frame is empty or video processing has been successfully completed.")
+                print("Video frame is empty or processing is complete.")
                 break
 
-            results = model.predict(im0, show=False)
-            boxes = results[0].boxes.xyxy.cpu().tolist()
-            clss = results[0].boxes.cls.cpu().tolist()
-            annotator = Annotator(im0, line_width=2, example=names)
+            results = cropper.crop(im0)
 
-            if boxes is not None:
-                for box, cls in zip(boxes, clss):
-                    idx += 1
-                    annotator.box_label(box, color=colors(int(cls), True), label=names[int(cls)])
-
-                    crop_obj = im0[int(box[1]) : int(box[3]), int(box[0]) : int(box[2])]
-
-                    cv2.imwrite(os.path.join(crop_dir_name, str(idx) + ".png"), crop_obj)
-
-            cv2.imshow("ultralytics", im0)
-            video_writer.write(im0)
-
-            if cv2.waitKey(1) & 0xFF == ord("q"):
-                break
+            # Access the output
+            # print(f"Total cropped objects: , results['total_crop_objects']")
 
         cap.release()
-        video_writer.release()
-        cv2.destroyAllWindows()
+        cv2.destroyAllWindows()  # destroy all opened windows
         ```
 
-### Arguments `model.predict`
+### Argument `ObjectCropper`
 
-{% include "macros/predict-args.md" %}
+Here's a table with the `ObjectCropper` arguments:
+
+| Name         | Type    | Default | Description                                                                                                                                                                  |
+| ------------ | ------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `model`      | `str`   | `None`  | Path to Ultralytics YOLO Model File                                                                                                                                          |
+| `line_width` | `int`   | `2`     | Line thickness for bounding boxes.                                                                                                                                           |
+| `show`       | `bool`  | `False` | Flag to control whether to display the video stream.                                                                                                                         |
+| `conf`       | `float` | `0.3`   | Sets the confidence threshold for detections; lower values allow more objects to be tracked but may include false positives.                                                 |
+| `iou`        | `float` | `0.5`   | Sets the [Intersection over Union](https://www.ultralytics.com/glossary/intersection-over-union-iou) (IoU) threshold for filtering overlapping detections.                   |
+| `classes`    | `list`  | `None`  | Filters results by class index. For example, `classes=[0, 2, 3]` only tracks the specified classes.                                                                          |
+| `max_det`    | `int`   | `300`   | Maximum number of detections allowed per image. Limits the total number of objects the model can detect in a single inference, preventing excessive outputs in dense scenes. |
+| `verbose`    | `bool`  | `True`  | Controls the display of solutions results, providing a visual output of tracked objects.                                                                                     |
 
 ## FAQ
 

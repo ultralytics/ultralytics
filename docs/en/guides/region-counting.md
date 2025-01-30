@@ -45,39 +45,46 @@ keywords: object counting, regions, YOLO11, computer vision, Ultralytics, effici
 
         cap = cv2.VideoCapture("Path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
-        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 
-        # Define region points
-        # region_points = [(20, 400), (1080, 400), (1080, 360), (20, 360)] # Pass region as list
+        # Pass region as list
+        # region_points = [(20, 400), (1080, 400), (1080, 360), (20, 360)]
 
-        # pass region as dictionary
+        # Pass region as dictionary
         region_points = {
             "region-01": [(50, 50), (250, 50), (250, 250), (50, 250)],
             "region-02": [(640, 640), (780, 640), (780, 720), (640, 720)],
         }
 
         # Video writer
-        video_writer = cv2.VideoWriter("region_counting.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
+         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
+         video_writer = cv2.VideoWriter("region_counting.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
         # Init RegionCounter
         region = solutions.RegionCounter(
-            show=True,
-            region=region_points,
-            model="yolo11n.pt",
+            show=True,                 # display the frame
+            region=region_points,      # pass region points
+            model="yolo11n.pt",        # model for counting in regions i.e yolo11s.pt
         )
 
         # Process video
         while cap.isOpened():
             success, im0 = cap.read()
+
             if not success:
-                print("Video frame is empty or video processing has been successfully completed.")
+                print("Video frame is empty or processing is complete.")
                 break
-            im0 = region.count(im0)
-            video_writer.write(im0)
+
+            results = region.count(im0)
+
+            # Access the output
+            # print(f"Region counts: , results['region_counts']")
+            # print(f"Total tracks: , results['total_tracks']")
+
+            video_writer.write(results["im0"])
 
         cap.release()
         video_writer.release()
-        cv2.destroyAllWindows()
+        cv2.destroyAllWindows()     # destroy all opened windows
         ```
 
 !!! tip "Ultralytics Example Code"
@@ -88,12 +95,18 @@ keywords: object counting, regions, YOLO11, computer vision, Ultralytics, effici
 
 Here's a table with the `RegionCounter` arguments:
 
-| Name         | Type   | Default                    | Description                                          |
-| ------------ | ------ | -------------------------- | ---------------------------------------------------- |
-| `model`      | `str`  | `None`                     | Path to Ultralytics YOLO Model File                  |
-| `region`     | `list` | `[(20, 400), (1260, 400)]` | List of points defining the counting region.         |
-| `line_width` | `int`  | `2`                        | Line thickness for bounding boxes.                   |
-| `show`       | `bool` | `False`                    | Flag to control whether to display the video stream. |
+| Name         | Type    | Default                    | Description                                                                                                                                                                  |
+| ------------ | ------- | -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `model`      | `str`   | `None`                     | Path to Ultralytics YOLO Model File                                                                                                                                          |
+| `region`     | `list`  | `[(20, 400), (1260, 400)]` | List of points defining the counting region.                                                                                                                                 |
+| `line_width` | `int`   | `2`                        | Line thickness for bounding boxes.                                                                                                                                           |
+| `show`       | `bool`  | `False`                    | Flag to control whether to display the video stream.                                                                                                                         |
+| `tracker`    | `str`   | `botsort.yaml`             | Specifies the tracking algorithm to use, e.g., `bytetrack.yaml` or `botsort.yaml`.                                                                                           |
+| `conf`       | `float` | `0.3`                      | Sets the confidence threshold for detections; lower values allow more objects to be tracked but may include false positives.                                                 |
+| `iou`        | `float` | `0.5`                      | Sets the [Intersection over Union](https://www.ultralytics.com/glossary/intersection-over-union-iou) (IoU) threshold for filtering overlapping detections.                   |
+| `classes`    | `list`  | `None`                     | Filters results by class index. For example, `classes=[0, 2, 3]` only tracks the specified classes.                                                                          |
+| `max_det`    | `int`   | `300`                      | Maximum number of detections allowed per image. Limits the total number of objects the model can detect in a single inference, preventing excessive outputs in dense scenes. |
+| `verbose`    | `bool`  | `True`                     | Controls the display of solutions results, providing a visual output of tracked objects.                                                                                     |
 
 ## FAQ
 

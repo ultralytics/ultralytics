@@ -30,11 +30,12 @@ def test_major_solutions():
     pie_analytics = solutions.Analytics(analytics_type="pie", model="yolo11n.pt", show=False)  # line analytics
     bar_analytics = solutions.Analytics(analytics_type="bar", model="yolo11n.pt", show=False)  # line analytics
     area_analytics = solutions.Analytics(analytics_type="area", model="yolo11n.pt", show=False)  # line analytics
-    trackzone = solutions.TrackZone(region=region_points, model="yolo11n.pt", show=False)  # Test trackzone
-    object_crop = solutions.ObjectCropper(model="yolo11n.pt", show=False)  # Test object cropping
+    trackzone = solutions.TrackZone(region=region_points, model="yolo11n.pt", show=False)  # trackzone
+    object_crop = solutions.ObjectCropper(model="yolo11n.pt", show=False)  # object cropping
     object_blur = solutions.ObjectBlurrer(blur_ratio=0.5, model="yolo11n.pt", show=False)  # Object blurring
-    solutions.InstanceSegmentation(model="yolo11n-seg.pt", show=False)
-    visioneye = solutions.VisionEye(model="yolo11n.pt", show=False)
+    isegment = solutions.InstanceSegmentation(model="yolo11n-seg.pt", show=False)   # Instance segmentation
+    visioneye = solutions.VisionEye(model="yolo11n.pt", show=False)     # Visioneye
+    region_counter = solutions.RegionCounter(region=region_points, model="yolo11n.pt", show=False)  # Region counter
     frame_count = 0  # Required for analytics
     while cap.isOpened():
         success, im0 = cap.read()
@@ -53,8 +54,10 @@ def test_major_solutions():
         _ = area_analytics.process_data(original_im0.copy(), frame_count)
         _ = trackzone.trackzone(original_im0.copy())
         _ = object_crop.crop(original_im0.copy())
+        _ = isegment.segment(original_im0.copy())
         _ = object_blur.blur(original_im0.copy())
         _ = visioneye.mapping(original_im0.copy())
+        _ = region_counter.count(original_im0.copy())
     cap.release()
 
     # Test workouts monitoring

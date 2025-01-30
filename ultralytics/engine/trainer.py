@@ -484,23 +484,23 @@ class BaseTrainer:
             max_num_obj=max_num_obj,
         )  # returns batch size
 
-    def _get_memory(self, utilization=False):
-        """Get accelerator memory utilization in GB and percentage."""
+    def _get_memory(self, util=False):
+        """Get accelerator memory utilization in GB and fraction."""
         if self.device.type == "mps":
-            used = torch.mps.driver_allocated_memory()
-            gb = used / 1e9
-            if utilization:
+            mem = torch.mps.driver_allocated_memory() 
+            gb = mem / 1e9
+            if util:
                 total = torch.mps.get_mem_info()[0]
-                percentage = (used / total) if total > 0 else 0
+                frac = (mem / total) if total > 0 else 0
         elif self.device.type == "cpu":
-            used = 0
+            mem = 0
         else:
-            used = torch.cuda.memory_reserved()
-            gb = used / 1e9
-            if utilization:
+            mem = torch.cuda.memory_reserved()
+            gb = mem / 1e9
+            if util:
                 total = torch.cuda.get_device_properties(self.device).total_memory
-                percentage = (used / total)
-        return (gb, percentage) if utilization else gb
+                frac = mem / total
+        return (gb, frac) if util else gb
 
     def _clear_memory(self):
         """Clear accelerator memory on different platforms."""

@@ -77,39 +77,51 @@ Parking management with [Ultralytics YOLO11](https://github.com/ultralytics/ultr
         # Video capture
         cap = cv2.VideoCapture("Path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
-        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-
+        
         # Video writer
+        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
         video_writer = cv2.VideoWriter("parking management.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
-
-        # Initialize parking management object
+        
+        # Initialize ParkingManagement
         parking_manager = solutions.ParkingManagement(
-            model="yolo11n.pt",  # path to model file
-            json_file="bounding_boxes.json",  # path to parking annotations file
+            model="yolo11n.pt",                 # path to model file
+            json_file="bounding_boxes.json",    # path to parking annotations file
         )
 
         while cap.isOpened():
             ret, im0 = cap.read()
             if not ret:
                 break
+            
             results = parking_manager.process_data(im0)
-            video_writer.write(results["im0"])
+            
+            # Access the output
+            # print(f"Available slots: ", results['available_slots']")
+            # print(f"Filled slots: ", results['filled_slots']")
+
+            video_writer.write(results["im0"])      # write the processed frame.
 
         cap.release()
         video_writer.release()
-        cv2.destroyAllWindows()
+        cv2.destroyAllWindows()     # destroy all opened windows
         ```
 
-### Optional Arguments `ParkingManagement`
+### Arguments `ParkingManagement`
 
-| Name        | Type  | Default | Description                                                    |
-| ----------- | ----- | ------- | -------------------------------------------------------------- |
-| `model`     | `str` | `None`  | Path to the YOLO11 model.                                      |
-| `json_file` | `str` | `None`  | Path to the JSON file, that have all parking coordinates data. |
+Here's a table with the `ParkingManagement` arguments:
 
-### Arguments `model.track`
-
-{% include "macros/track-args.md" %}
+| Name         | Type    | Default        | Description                                                                                                                                                                  |
+|--------------|---------|----------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `model`      | `str`   | `None`         | Path to the YOLO11 model file.                                                                                                                                               |
+| `json_file`  | `str`   | `None`         | Path to the JSON file, that have all parking coordinates data.                                                                                                               |
+| `line_width` | `int`   | `2`            | Line thickness for bounding boxes.                                                                                                                                           |
+| `show`       | `bool`  | `False`        | Flag to control whether to display the video stream.                                                                                                                         |
+| `tracker`    | `str`   | `botsort.yaml` | Specifies the tracking algorithm to use, e.g., `bytetrack.yaml` or `botsort.yaml`.                                                                                           |
+| `conf`       | `float` | `0.3`          | Sets the confidence threshold for detections; lower values allow more objects to be tracked but may include false positives.                                                 |
+| `iou`        | `float` | `0.5`          | Sets the [Intersection over Union](https://www.ultralytics.com/glossary/intersection-over-union-iou) (IoU) threshold for filtering overlapping detections.                   |
+| `classes`    | `list`  | `None`         | Filters results by class index. For example, `classes=[0, 2, 3]` only tracks the specified classes.                                                                          |
+| `max_det`    | `int`   | `300`          | Maximum number of detections allowed per image. Limits the total number of objects the model can detect in a single inference, preventing excessive outputs in dense scenes. |
+| `verbose`    | `bool`  | `True`         | Controls the display of solutions results, providing a visual output of tracked objects.                                                                                     |
 
 ## FAQ
 

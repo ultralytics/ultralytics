@@ -50,51 +50,57 @@ TrackZone specializes in monitoring objects within designated areas of a frame i
 
         cap = cv2.VideoCapture("path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
-        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-
+        
         # Define region points
         region_points = [(150, 150), (1130, 150), (1130, 570), (150, 570)]
 
         # Video writer
+        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
         video_writer = cv2.VideoWriter("object_counting_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
         # Init TrackZone (Object Tracking in Zones, not complete frame)
         trackzone = solutions.TrackZone(
-            show=True,  # Display the output
-            region=region_points,  # Pass region points
-            model="yolo11n.pt",  # You can use any model that Ultralytics support, i.e. YOLOv9, YOLOv10
-            # line_width=2,  # Adjust the line width for bounding boxes and text display
-            # classes=[0, 2],  # If you want to count specific classes i.e. person and car with COCO pretrained model.
+            show=True,                  # display the output
+            region=region_points,       # pass region points
+            model="yolo11n.pt",         # use any model that Ultralytics support, i.e. YOLOv9, YOLOv10
+            # line_width=2,             # Adjust the line width for bounding boxes and text display
         )
 
         # Process video
         while cap.isOpened():
             success, im0 = cap.read()
             if not success:
-                print("Video frame is empty or video processing has been successfully completed.")
+                print("Video frame is empty or processing is complete.")
                 break
+            
             results = trackzone.trackzone(im0)
-            video_writer.write(results["im0"])
+            
+            # Access the output
+            # print(f"Total tracks: , {results['total_tracks']}")
+            
+            video_writer.write(results["im0"])      # write the video file
 
         cap.release()
         video_writer.release()
-        cv2.destroyAllWindows()
+        cv2.destroyAllWindows()     # destroy all opened windows
         ```
 
 ### Argument `TrackZone`
 
 Here's a table with the `TrackZone` arguments:
 
-| Name         | Type   | Default                                              | Description                                          |
-| ------------ | ------ | ---------------------------------------------------- | ---------------------------------------------------- |
-| `model`      | `str`  | `None`                                               | Path to Ultralytics YOLO Model File                  |
-| `region`     | `list` | `[(150, 150), (1130, 150), (1130, 570), (150, 570)]` | List of points defining the object tracking region.  |
-| `line_width` | `int`  | `2`                                                  | Line thickness for bounding boxes.                   |
-| `show`       | `bool` | `False`                                              | Flag to control whether to display the video stream. |
-
-### Arguments `model.track`
-
-{% include "macros/track-args.md" %}
+| Name         | Type    | Default                                              | Description                                                                                                                                                                  |
+|--------------|---------|------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `model`      | `str`   | `None`                                               | Path to Ultralytics YOLO Model File                                                                                                                                          |
+| `region`     | `list`  | `[(150, 150), (1130, 150), (1130, 570), (150, 570)]` | List of points defining the object tracking region.                                                                                                                          |
+| `line_width` | `int`   | `2`                                                  | Line thickness for bounding boxes.                                                                                                                                           |
+| `show`       | `bool`  | `False`                                              | Flag to control whether to display the video stream.                                                                                                                         |
+| `tracker`    | `str`   | `botsort.yaml`                                       | Specifies the tracking algorithm to use, e.g., `bytetrack.yaml` or `botsort.yaml`.                                                                                           |
+| `conf`       | `float` | `0.3`                                                | Sets the confidence threshold for detections; lower values allow more objects to be tracked but may include false positives.                                                 |
+| `iou`        | `float` | `0.5`                                                | Sets the [Intersection over Union](https://www.ultralytics.com/glossary/intersection-over-union-iou) (IoU) threshold for filtering overlapping detections.                   |
+| `classes`    | `list`  | `None`                                               | Filters results by class index. For example, `classes=[0, 2, 3]` only tracks the specified classes.                                                                          |
+| `max_det`    | `int`   | `300`                                                | Maximum number of detections allowed per image. Limits the total number of objects the model can detect in a single inference, preventing excessive outputs in dense scenes. |
+| `verbose`    | `bool`  | `True`                                               | Controls the display of solutions results, providing a visual output of tracked objects.                                                                                     |
 
 ## FAQ
 
@@ -138,8 +144,8 @@ while cap.isOpened():
     if not success:
         print("Video frame is empty or video processing has been successfully completed.")
         break
-    im0 = trackzone.trackzone(im0)
-    video_writer.write(im0)
+    results = trackzone.trackzone(im0)
+    video_writer.write(results["im0"])
 
 cap.release()
 video_writer.release()

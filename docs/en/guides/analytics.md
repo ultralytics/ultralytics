@@ -62,22 +62,19 @@ This guide provides a comprehensive overview of three fundamental types of [data
 
         cap = cv2.VideoCapture("Path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
-        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-
+        
         # Video writer
-        out = cv2.VideoWriter(
-            "ultralytics_analytics.avi",
-            cv2.VideoWriter_fourcc(*"MJPG"),
-            fps,
+        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
+        out = cv2.VideoWriter("analytics.avi", cv2.VideoWriter_fourcc(*"MJPG"), fps,
             (1920, 1080),  # This is fixed
         )
 
-        # Init analytics
+        # Init Analytics
         analytics = solutions.Analytics(
-            show=True,  # Display the output
-            analytics_type="line",  # Pass the analytics type, could be "pie", "bar" or "area".
-            model="yolo11n.pt",  # Path to the YOLO11 model file
-            # classes=[0, 2],  # If you want to count specific classes i.e person and car with COCO pretrained model.
+            show=True,                  # display the output
+            analytics_type="line",      # pass the analytics type, could be "pie", "bar" or "area".
+            model="yolo11n.pt",         # path to the YOLO11 model file
+            # classes=[0, 2],           # display analytics for specific detection classes
         )
 
         # Process video
@@ -87,29 +84,35 @@ This guide provides a comprehensive overview of three fundamental types of [data
             if success:
                 frame_count += 1
                 results = analytics.process_data(im0, frame_count)  # update analytics graph every frame
-                out.write(results["im0"])  # write the video file
+                
+                # Access the output
+                # print(f"Total tracks: , {results['total_tracks']}")
+
+                 out.write(results["im0"])  # write the video file
             else:
                 break
 
         cap.release()
         out.release()
-        cv2.destroyAllWindows()
+        cv2.destroyAllWindows()     # destroy all opened windows
         ```
 
 ### Argument `Analytics`
 
 Here's a table with the `Analytics` arguments:
 
-| Name             | Type   | Default | Description                                          |
-| ---------------- | ------ | ------- | ---------------------------------------------------- |
-| `analytics_type` | `str`  | `line`  | Type of graph i.e "line", "bar", "area", "pie"       |
-| `model`          | `str`  | `None`  | Path to Ultralytics YOLO Model File                  |
-| `line_width`     | `int`  | `2`     | Line thickness for bounding boxes.                   |
-| `show`           | `bool` | `False` | Flag to control whether to display the video stream. |
-
-### Arguments `model.track`
-
-{% include "macros/track-args.md" %}
+| Name             | Type    | Default        | Description                                                                                                                                                                  |
+|------------------|---------|----------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `analytics_type` | `str`   | `line`         | Type of graph i.e "line", "bar", "area", "pie"                                                                                                                               |
+| `model`          | `str`   | `None`         | Path to Ultralytics YOLO Model File                                                                                                                                          |
+| `line_width`     | `int`   | `2`            | Line thickness for bounding boxes.                                                                                                                                           |
+| `show`           | `bool`  | `False`        | Flag to control whether to display the video stream.                                                                                                                         |
+| `tracker`        | `str`   | `botsort.yaml` | Specifies the tracking algorithm to use, e.g., `bytetrack.yaml` or `botsort.yaml`.                                                                                           |
+| `conf`           | `float` | `0.3`          | Sets the confidence threshold for detections; lower values allow more objects to be tracked but may include false positives.                                                 |
+| `iou`            | `float` | `0.5`          | Sets the [Intersection over Union](https://www.ultralytics.com/glossary/intersection-over-union-iou) (IoU) threshold for filtering overlapping detections.                   |
+| `classes`        | `list`  | `None`         | Filters results by class index. For example, `classes=[0, 2, 3]` only tracks the specified classes.                                                                          |
+| `max_det`        | `int`   | `300`          | Maximum number of detections allowed per image. Limits the total number of objects the model can detect in a single inference, preventing excessive outputs in dense scenes. |
+| `verbose`        | `bool`  | `True`         | Controls the display of solutions results, providing a visual output of tracked objects.                                                                                     |
 
 ## Conclusion
 
@@ -155,8 +158,8 @@ while cap.isOpened():
     success, im0 = cap.read()
     if success:
         frame_count += 1
-        im0 = analytics.process_data(im0, frame_count)  # update analytics graph every frame
-        out.write(im0)  # write the video file
+        results = analytics.process_data(im0, frame_count)  # update analytics graph every frame
+        out.write(results["im0"])  # write the video file
     else:
         break
 
@@ -205,8 +208,8 @@ while cap.isOpened():
     success, im0 = cap.read()
     if success:
         frame_count += 1
-        im0 = analytics.process_data(im0, frame_count)  # update analytics graph every frame
-        out.write(im0)  # write the video file
+        results = analytics.process_data(im0, frame_count)  # update analytics graph every frame
+        out.write(results["im0"])  # write the video file
     else:
         break
 
@@ -255,8 +258,8 @@ while cap.isOpened():
     success, im0 = cap.read()
     if success:
         frame_count += 1
-        im0 = analytics.process_data(im0, frame_count)  # update analytics graph every frame
-        out.write(im0)  # write the video file
+        results = analytics.process_data(im0, frame_count)  # update analytics graph every frame
+        out.write(results["im0"])  # write the video file
     else:
         break
 
@@ -300,8 +303,8 @@ while cap.isOpened():
     success, im0 = cap.read()
     if success:
         frame_count += 1
-        im0 = analytics.process_data(im0, frame_count)  # update analytics graph every frame
-        out.write(im0)  # write the video file
+        results = analytics.process_data(im0, frame_count)  # update analytics graph every frame
+        out.write(results["im0"])  # write the video file
     else:
         break
 

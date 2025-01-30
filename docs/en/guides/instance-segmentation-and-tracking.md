@@ -30,7 +30,7 @@ There are two types of instance segmentation tracking available in the Ultralyti
 ## Samples
 
 |                                                        Instance Segmentation                                                         |                                                                  Instance Segmentation + Object Tracking                                                                  |
-|:------------------------------------------------------------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
+| :----------------------------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
 | ![Ultralytics Instance Segmentation](https://github.com/ultralytics/docs/releases/download/0/ultralytics-instance-segmentation.avif) | ![Ultralytics Instance Segmentation with Object Tracking](https://github.com/ultralytics/docs/releases/download/0/ultralytics-instance-segmentation-object-tracking.avif) |
 |                                                 Ultralytics Instance Segmentation 😍                                                 |                                                         Ultralytics Instance Segmentation with Object Tracking 🔥                                                         |
 
@@ -45,36 +45,36 @@ There are two types of instance segmentation tracking available in the Ultralyti
 
         cap = cv2.VideoCapture("Path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
-        
+
         # Video writer
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
         video_writer = cv2.VideoWriter("instance-segmentation.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
         # Init InstanceSegmentation
         isegment = solutions.InstanceSegmentation(
-            show=True,                          # display the output
-            model="yolo11n-seg.pt",             # model="yolo11n-seg.pt" for object segmentation using YOLO11.
+            show=True,  # display the output
+            model="yolo11n-seg.pt",  # model="yolo11n-seg.pt" for object segmentation using YOLO11.
             # classes=[0, 2],                   # segment specific classes i.e, person and car with pretrained model.
         )
 
         # Process video
         while cap.isOpened():
             success, im0 = cap.read()
-            
+
             if not success:
                 print("Video frame is empty or video processing has been successfully completed.")
                 break
-            
+
             results = isegment.segment(im0)
-            
+
             # Access the output
             # print(f"Total tracks: , results['total_tracks']")
-            
-            video_writer.write(results["im0"])      # write the processed frame.
+
+            video_writer.write(results["im0"])  # write the processed frame.
 
         cap.release()
         video_writer.release()
-        cv2.destroyAllWindows()     # destroy all opened windows
+        cv2.destroyAllWindows()  # destroy all opened windows
         ```
 
 ### Argument `InstanceSegmentation`
@@ -82,7 +82,7 @@ There are two types of instance segmentation tracking available in the Ultralyti
 Here's a table with the `InstanceSegmentation` arguments:
 
 | Name         | Type    | Default                    | Description                                                                                                                                                                  |
-|--------------|---------|----------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| ------------ | ------- | -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `model`      | `str`   | `None`                     | Path to Ultralytics YOLO segmentation model file i.e `yolo11n-seg.pt`                                                                                                        |
 | `region`     | `list`  | `[(20, 400), (1260, 400)]` | List of points defining the counting region.                                                                                                                                 |
 | `line_width` | `int`   | `2`                        | Line thickness for bounding boxes.                                                                                                                                           |
@@ -115,11 +115,11 @@ To perform instance segmentation using Ultralytics YOLO11, initialize the YOLO m
 
         cap = cv2.VideoCapture("Path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
-        
+
         # Video writer
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
         video_writer = cv2.VideoWriter("instance-segmentation.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
-        
+
         # Init InstanceSegmentation
         isegment = solutions.InstanceSegmentation(
             show=True,  # Display the output

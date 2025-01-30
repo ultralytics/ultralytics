@@ -65,15 +65,18 @@ This guide provides a comprehensive overview of three fundamental types of [data
 
         # Video writer
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-        out = cv2.VideoWriter("analytics.avi", cv2.VideoWriter_fourcc(*"MJPG"), fps,
+        out = cv2.VideoWriter(
+            "analytics.avi",
+            cv2.VideoWriter_fourcc(*"MJPG"),
+            fps,
             (1920, 1080),  # This is fixed
         )
 
         # Init Analytics
         analytics = solutions.Analytics(
-            show=True,                  # display the output
-            analytics_type="line",      # pass the analytics type, could be "pie", "bar" or "area".
-            model="yolo11n.pt",         # path to the YOLO11 model file
+            show=True,  # display the output
+            analytics_type="line",  # pass the analytics type, could be "pie", "bar" or "area".
+            model="yolo11n.pt",  # path to the YOLO11 model file
             # classes=[0, 2],           # display analytics for specific detection classes
         )
 
@@ -94,7 +97,7 @@ This guide provides a comprehensive overview of three fundamental types of [data
 
         cap.release()
         out.release()
-        cv2.destroyAllWindows()     # destroy all opened windows
+        cv2.destroyAllWindows()  # destroy all opened windows
         ```
 
 ### Argument `Analytics`

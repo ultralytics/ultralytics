@@ -75,9 +75,9 @@ keywords: Ultralytics YOLO11, speed estimation, object tracking, computer vision
         speed_region = [(20, 400), (1080, 400), (1080, 360), (20, 360)]
 
         speed = solutions.SpeedEstimator(
-            show=True,                  # display the output
-            model="yolo11n.pt",         # path to the YOLO11 model file.
-            region=speed_region,        # pass region points
+            show=True,  # display the output
+            model="yolo11n.pt",  # path to the YOLO11 model file.
+            region=speed_region,  # pass region points
             # classes=[0, 2],           # estimate speed of specific classes.
             # line_width=2,             # Adjust the line width for bounding boxes
         )
@@ -95,11 +95,11 @@ keywords: Ultralytics YOLO11, speed estimation, object tracking, computer vision
             # Access the output
             # print(f"Total tracks: , {results['total_tracks']}")
 
-            video_writer.write(results["im0"])      # write the processed frame.
+            video_writer.write(results["im0"])  # write the processed frame.
 
         cap.release()
         video_writer.release()
-        cv2.destroyAllWindows()     # destroy all opened windows
+        cv2.destroyAllWindows()  # destroy all opened windows
         ```
 
 ### Arguments `SpeedEstimator`

@@ -29,7 +29,7 @@ Queue management using [Ultralytics YOLO11](https://github.com/ultralytics/ultra
 ## Real World Applications
 
 |                                                                                            Logistics                                                                                            |                                                                            Retail                                                                             |
-|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------------------------------------------------------------------------------------:|
+| :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------------------------------------------------------: |
 | ![Queue management at airport ticket counter using Ultralytics YOLO11](https://github.com/ultralytics/docs/releases/download/0/queue-management-airport-ticket-counter-ultralytics-yolov8.avif) | ![Queue monitoring in crowd using Ultralytics YOLO11](https://github.com/ultralytics/docs/releases/download/0/queue-monitoring-crowd-ultralytics-yolov8.avif) |
 |                                                               Queue management at airport ticket counter Using Ultralytics YOLO11                                                               |                                                         Queue monitoring in crowd Ultralytics YOLO11                                                          |
 
@@ -82,15 +82,15 @@ Queue management using [Ultralytics YOLO11](https://github.com/ultralytics/ultra
             results = queue.process_queue(im0)
 
             # Access the output
-<<<<<<< HEAD
+        HEAD
             # print(f"Queue counts: , {results['queue_count']}")
-            
+
             video_writer.write(results["im0"])      # write the processed frame.
-=======
+        =======
             # print(f"Queue counts: ", results['queue_count']")
 
             video_writer.write(results["im0"])  # write the processed frame.
->>>>>>> 457e27dca9fdd164b5b0e3d6d891f1964404f928
+        457e27dca9fdd164b5b0e3d6d891f1964404f928
 
         cap.release()
         video_writer.release()

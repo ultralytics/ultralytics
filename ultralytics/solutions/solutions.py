@@ -658,7 +658,7 @@ class SolutionResults:
         __init__: Initializes the attributes with default or provided values.
         summary: Returns the summary of Ultralytics Solutions: https://docs.ultralytics.com/solutions/
 
-    Attributes
+    Attributes:
         im0 (ndarray): Preprocessed image with counts, blurred or other effect from solutions.
         in_count (int, optional): The total number of "in" counts in a video stream. Default is 0.
         out_count (int, optional): The total number of "out" counts in a video stream. Default is 0.

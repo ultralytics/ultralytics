@@ -720,10 +720,22 @@ class SolutionResults:
             ... )
         """
         defaults = {
-            "im0": None, "in_count": 0, "out_count": 0, "classwise_count": None, "queue_count": 0,
-            "workout_count": 0, "workout_angle": 0, "workout_stage": None, "pixels_distance": 0,
-            "available_slots": 0, "filled_slots": 0, "email_sent": False, "total_tracks": 0,
-            "region_counts": 0, "speed_dict": None, "total_crop_objects": 0,
+            "im0": None,
+            "in_count": 0,
+            "out_count": 0,
+            "classwise_count": None,
+            "queue_count": 0,
+            "workout_count": 0,
+            "workout_angle": 0,
+            "workout_stage": None,
+            "pixels_distance": 0,
+            "available_slots": 0,
+            "filled_slots": 0,
+            "email_sent": False,
+            "total_tracks": 0,
+            "region_counts": 0,
+            "speed_dict": None,
+            "total_crop_objects": 0,
         }
         self.__dict__.update({**defaults, **kwargs})
 
@@ -739,8 +751,7 @@ class SolutionResults:
         """
         # Get the dictionary of the attributes, convert im0 large array to ndarray string for Logging
         self.result_summary = {
-            k: ("np.ndarray" if isinstance(v, np.ndarray) else v)
-            for k, v in self.__dict__.items() if k != "summary"
+            k: ("np.ndarray" if isinstance(v, np.ndarray) else v) for k, v in self.__dict__.items() if k != "summary"
         }
 
         if verbose:

@@ -52,7 +52,8 @@ class QueueManager(BaseSolution):
             im0 (numpy.ndarray): Input image for processing, typically a frame from a video stream.
 
         Returns:
-             results (dict): Contains processed image `im0`, 'queue_count' (int, number of objects in the queue) and
+             results (dict): Contains processed image `im0`,
+                'queue_count' (int, number of objects in the queue) and
                 'total_tracks' (int, total number of tracked objects).
 
         Examples:

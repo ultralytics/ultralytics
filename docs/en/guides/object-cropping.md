@@ -30,7 +30,7 @@ Object cropping with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
 ## Visuals
 
 |                                                                                Airport Luggage                                                                                 |
-|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
+| :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
 | ![Conveyor Belt at Airport Suitcases Cropping using Ultralytics YOLO11](https://github.com/ultralytics/docs/releases/download/0/suitcases-cropping-airport-conveyor-belt.avif) |
 |                                                      Suitcases Cropping at airport conveyor belt using Ultralytics YOLO11                                                      |
 
@@ -48,43 +48,43 @@ Object cropping with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
 
         # Init ObjectCropper
         cropper = solutions.ObjectCropper(
-            show=True,                  # display the output
-            model="yolo11n.pt",         # model for object cropping i.e yolo11x.pt.
-            classes=[0, 2],             # crop specific classes i.e. person and car with COCO pretrained model.
+            show=True,  # display the output
+            model="yolo11n.pt",  # model for object cropping i.e yolo11x.pt.
+            classes=[0, 2],  # crop specific classes i.e. person and car with COCO pretrained model.
             # conf=0.5                  # adjust confidence threshold for the objects.
         )
 
         # Process video
         while cap.isOpened():
             success, im0 = cap.read()
-            
+
             if not success:
                 print("Video frame is empty or processing is complete.")
                 break
 
             results = cropper.crop(im0)
-            
+
             # Access the output
             # print(f"Total cropped objects: , results['total_crop_objects']")
-            
+
         cap.release()
-        cv2.destroyAllWindows()     # destroy all opened windows
+        cv2.destroyAllWindows()  # destroy all opened windows
         ```
 
 ### Argument `ObjectCropper`
 
 Here's a table with the `ObjectCropper` arguments:
 
-| Name         | Type    | Default                    | Description                                                                                                                                                                  |
-|--------------|---------|----------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `model`      | `str`   | `None`                     | Path to Ultralytics YOLO Model File                                                                                                                                          |
-| `line_width` | `int`   | `2`                        | Line thickness for bounding boxes.                                                                                                                                           |
-| `show`       | `bool`  | `False`                    | Flag to control whether to display the video stream.                                                                                                                         |
-| `conf`       | `float` | `0.3`                      | Sets the confidence threshold for detections; lower values allow more objects to be tracked but may include false positives.                                                 |
-| `iou`        | `float` | `0.5`                      | Sets the [Intersection over Union](https://www.ultralytics.com/glossary/intersection-over-union-iou) (IoU) threshold for filtering overlapping detections.                   |
-| `classes`    | `list`  | `None`                     | Filters results by class index. For example, `classes=[0, 2, 3]` only tracks the specified classes.                                                                          |
-| `max_det`    | `int`   | `300`                      | Maximum number of detections allowed per image. Limits the total number of objects the model can detect in a single inference, preventing excessive outputs in dense scenes. |
-| `verbose`    | `bool`  | `True`                     | Controls the display of solutions results, providing a visual output of tracked objects.                                                                                     |
+| Name         | Type    | Default | Description                                                                                                                                                                  |
+| ------------ | ------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `model`      | `str`   | `None`  | Path to Ultralytics YOLO Model File                                                                                                                                          |
+| `line_width` | `int`   | `2`     | Line thickness for bounding boxes.                                                                                                                                           |
+| `show`       | `bool`  | `False` | Flag to control whether to display the video stream.                                                                                                                         |
+| `conf`       | `float` | `0.3`   | Sets the confidence threshold for detections; lower values allow more objects to be tracked but may include false positives.                                                 |
+| `iou`        | `float` | `0.5`   | Sets the [Intersection over Union](https://www.ultralytics.com/glossary/intersection-over-union-iou) (IoU) threshold for filtering overlapping detections.                   |
+| `classes`    | `list`  | `None`  | Filters results by class index. For example, `classes=[0, 2, 3]` only tracks the specified classes.                                                                          |
+| `max_det`    | `int`   | `300`   | Maximum number of detections allowed per image. Limits the total number of objects the model can detect in a single inference, preventing excessive outputs in dense scenes. |
+| `verbose`    | `bool`  | `True`  | Controls the display of solutions results, providing a visual output of tracked objects.                                                                                     |
 
 ## FAQ
 

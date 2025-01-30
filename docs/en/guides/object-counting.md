@@ -32,7 +32,7 @@ Object counting with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
 ## Real World Applications
 
 |                                                                        Logistics                                                                        |                                                                         Aquaculture                                                                          |
-|:-------------------------------------------------------------------------------------------------------------------------------------------------------:|:------------------------------------------------------------------------------------------------------------------------------------------------------------:|
+| :-----------------------------------------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------------------------------------------------: |
 | ![Conveyor Belt Packets Counting Using Ultralytics YOLO11](https://github.com/ultralytics/docs/releases/download/0/conveyor-belt-packets-counting.avif) | ![Fish Counting in Sea using Ultralytics YOLO11](https://github.com/ultralytics/docs/releases/download/0/fish-counting-in-sea-using-ultralytics-yolov8.avif) |
 |                                                 Conveyor Belt Packets Counting Using Ultralytics YOLO11                                                 |                                                        Fish Counting in Sea using Ultralytics YOLO11                                                         |
 
@@ -60,9 +60,9 @@ Object counting with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
 
         cap = cv2.VideoCapture("path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
-        
+
         # region_points = [(20, 400), (1080, 400)]                                      # line counting
-        region_points = [(20, 400), (1080, 400), (1080, 360), (20, 360)]                # rectangle region
+        region_points = [(20, 400), (1080, 400), (1080, 360), (20, 360)]  # rectangle region
         # region_points = [(20, 400), (1080, 400), (1080, 360), (20, 360), (20, 400)]   # polygon region
 
         # Video writer
@@ -71,9 +71,9 @@ Object counting with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
 
         # Init ObjectCounter
         counter = solutions.ObjectCounter(
-            show=True,                  # display the output
-            region=region_points,       # pass region points
-            model="yolo11n.pt",         # model="yolo11n-obb.pt" for object counting with OBB model.
+            show=True,  # display the output
+            region=region_points,  # pass region points
+            model="yolo11n.pt",  # model="yolo11n-obb.pt" for object counting with OBB model.
             # classes=[0, 2],           # count specific classes i.e person and car with COCO pretrained model.
             # show_in=True,             # display in counts
             # show_out=True,            # display out counts
@@ -83,23 +83,23 @@ Object counting with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
         # Process video
         while cap.isOpened():
             success, im0 = cap.read()
-            
+
             if not success:
                 print("Video frame is empty or processing is complete.")
                 break
 
             results = counter.count(im0)
-            
+
             # Access the output
             # print(f"In count: , {results['in_count']}")
             # print(f"Out count: , results['out_count']")
             # print(f"Class wise count: , results['classwise_count']")
- 
+
             video_writer.write(results["im0"])  # write the processed frame.
 
         cap.release()
         video_writer.release()
-        cv2.destroyAllWindows()     # destroy all opened windows
+        cv2.destroyAllWindows()  # destroy all opened windows
         ```
 
 ### Argument `ObjectCounter`
@@ -107,7 +107,7 @@ Object counting with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
 Here's a table with the `ObjectCounter` arguments:
 
 | Name         | Type    | Default                    | Description                                                                                                                                                                  |
-|--------------|---------|----------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| ------------ | ------- | -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `model`      | `str`   | `None`                     | Path to Ultralytics YOLO Model File                                                                                                                                          |
 | `region`     | `list`  | `[(20, 400), (1260, 400)]` | List of points defining the counting region.                                                                                                                                 |
 | `line_width` | `int`   | `2`                        | Line thickness for bounding boxes.                                                                                                                                           |

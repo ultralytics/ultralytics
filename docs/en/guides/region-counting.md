@@ -30,7 +30,7 @@ keywords: object counting, regions, YOLO11, computer vision, Ultralytics, effici
 ## Real World Applications
 
 |                                                                                      Retail                                                                                       |                                                                                 Market Streets                                                                                  |
-|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
+| :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
 | ![People Counting in Different Region using Ultralytics YOLO11](https://github.com/ultralytics/docs/releases/download/0/people-counting-different-region-ultralytics-yolov8.avif) | ![Crowd Counting in Different Region using Ultralytics YOLO11](https://github.com/ultralytics/docs/releases/download/0/crowd-counting-different-region-ultralytics-yolov8.avif) |
 |                                                           People Counting in Different Region using Ultralytics YOLO11                                                            |                                                           Crowd Counting in Different Region using Ultralytics YOLO11                                                           |
 
@@ -45,9 +45,9 @@ keywords: object counting, regions, YOLO11, computer vision, Ultralytics, effici
 
         cap = cv2.VideoCapture("Path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
-        
+
         # Pass region as list
-        # region_points = [(20, 400), (1080, 400), (1080, 360), (20, 360)] 
+        # region_points = [(20, 400), (1080, 400), (1080, 360), (20, 360)]
 
         # Pass region as dictionary
         region_points = {
@@ -69,17 +69,17 @@ keywords: object counting, regions, YOLO11, computer vision, Ultralytics, effici
         # Process video
         while cap.isOpened():
             success, im0 = cap.read()
-            
+
             if not success:
                 print("Video frame is empty or processing is complete.")
                 break
-   
+
             results = region.count(im0)
 
             # Access the output
             # print(f"Region counts: , results['region_counts']")
             # print(f"Total tracks: , results['total_tracks']")
-            
+
             video_writer.write(results["im0"])
 
         cap.release()
@@ -96,7 +96,7 @@ keywords: object counting, regions, YOLO11, computer vision, Ultralytics, effici
 Here's a table with the `RegionCounter` arguments:
 
 | Name         | Type    | Default                    | Description                                                                                                                                                                  |
-|--------------|---------|----------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| ------------ | ------- | -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `model`      | `str`   | `None`                     | Path to Ultralytics YOLO Model File                                                                                                                                          |
 | `region`     | `list`  | `[(20, 400), (1260, 400)]` | List of points defining the counting region.                                                                                                                                 |
 | `line_width` | `int`   | `2`                        | Line thickness for bounding boxes.                                                                                                                                           |

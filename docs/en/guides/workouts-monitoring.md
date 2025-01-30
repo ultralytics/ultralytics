@@ -32,7 +32,7 @@ Monitoring workouts through pose estimation with [Ultralytics YOLO11](https://gi
 ## Real World Applications
 
 |                                        Workouts Monitoring                                         |                                        Workouts Monitoring                                         |
-|:--------------------------------------------------------------------------------------------------:|:--------------------------------------------------------------------------------------------------:|
+| :------------------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------: |
 | ![PushUps Counting](https://github.com/ultralytics/docs/releases/download/0/pushups-counting.avif) | ![PullUps Counting](https://github.com/ultralytics/docs/releases/download/0/pullups-counting.avif) |
 |                                          PushUps Counting                                          |                                          PullUps Counting                                          |
 
@@ -60,29 +60,29 @@ Monitoring workouts through pose estimation with [Ultralytics YOLO11](https://gi
 
         cap = cv2.VideoCapture("path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
-        
+
         # Video writer
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
         video_writer = cv2.VideoWriter("workouts.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
         # Init AIGym
         gym = solutions.AIGym(
-            show=True,                  # display the frame
-            kpts=[6, 8, 10],            # keypoints for monitoring specific exercise, by default it's for pushup
-            model="yolo11n-pose.pt",    # path to the YOLO11 pose estimation model file
+            show=True,  # display the frame
+            kpts=[6, 8, 10],  # keypoints for monitoring specific exercise, by default it's for pushup
+            model="yolo11n-pose.pt",  # path to the YOLO11 pose estimation model file
             # line_width=2,             # adjust the line width for bounding boxes and text display
         )
 
         # Process video
         while cap.isOpened():
             success, im0 = cap.read()
-            
+
             if not success:
                 print("Video frame is empty or processing is complete.")
                 break
 
             results = gym.monitor(im0)
-            
+
             # Access the output
             # print("Workout count: ", results["workout_count"])
             # print("Workout angle: ", results["workout_angle"])
@@ -92,7 +92,7 @@ Monitoring workouts through pose estimation with [Ultralytics YOLO11](https://gi
 
         cap.release()
         video_writer.release()
-        cv2.destroyAllWindows()     # destroy all opened windows
+        cv2.destroyAllWindows()  # destroy all opened windows
         ```
 
 ### KeyPoints Map
@@ -104,7 +104,7 @@ Monitoring workouts through pose estimation with [Ultralytics YOLO11](https://gi
 Here's a table with the `AIGym` arguments:
 
 | Name         | Type    | Default        | Description                                                                                                                                                |
-|--------------|---------|----------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| ------------ | ------- | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `kpts`       | `list`  | `None`         | List of three keypoints index, for counting specific workout, followed by keypoint Map                                                                     |
 | `line_width` | `int`   | `2`            | Thickness of the lines drawn.                                                                                                                              |
 | `show`       | `bool`  | `False`        | Flag to display the image.                                                                                                                                 |

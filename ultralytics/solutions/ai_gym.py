@@ -112,6 +112,10 @@ class AIGym(BaseSolution):
 
         self.display_output(im0)  # Display output image, if environment support display
 
+        if self.verbose:
+            # Log the total number of workout counts, stage and angle data if verbose mode is enabled
+            self.LOGGER.info(f"Workouts -  count: {self.count}, stage: {self.stage}, angle {self.angle}")
+
         # return output dictionary with summary for more usage
         return SolutionResults(
             im0=im0,

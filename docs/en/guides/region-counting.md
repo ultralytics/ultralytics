@@ -72,8 +72,8 @@ keywords: object counting, regions, YOLO11, computer vision, Ultralytics, effici
             if not success:
                 print("Video frame is empty or video processing has been successfully completed.")
                 break
-            im0 = region.count(im0)
-            video_writer.write(im0)
+            results = region.count(im0)
+            video_writer.write(results["im0"])
 
         cap.release()
         video_writer.release()

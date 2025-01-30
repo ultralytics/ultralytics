@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 
 from ultralytics.solutions.object_counter import ObjectCounter
-from ultralytics.utils.plotting import Annotator
+from ultralytics.solutions.solutions import SolutionAnnotator, SolutionResults
 
 
 class Heatmap(ObjectCounter):
@@ -78,7 +78,10 @@ class Heatmap(ObjectCounter):
             im0 (np.ndarray): Input image array for processing.
 
         Returns:
-            (np.ndarray): Processed image with heatmap overlay and object counts (if region is specified).
+            results (dict): Contains processed image `im0`,
+                'in_count' (int, count of objects entering the region),
+                'out_count' (int, count of objects exiting the region),
+                'classwise_count' (dict, per-class object count), and 'total_tracks' (int, total number of tracked objects).
 
         Examples:
             >>> heatmap = Heatmap()
@@ -89,7 +92,7 @@ class Heatmap(ObjectCounter):
             self.heatmap = np.zeros_like(im0, dtype=np.float32) * 0.99
         self.initialized = True  # Initialize heatmap only once
 
-        self.annotator = Annotator(im0, line_width=self.line_width)  # Initialize annotator
+        self.annotator = SolutionAnnotator(im0, line_width=self.line_width)  # Initialize annotator
         self.extract_tracks(im0)  # Extract tracks
 
         # Iterate over bounding boxes, track ids and classes index
@@ -124,4 +127,11 @@ class Heatmap(ObjectCounter):
             )
 
         self.display_output(im0)  # display output with base class function
-        return im0  # return output image for more usage
+
+        # return output dictionary with summary for more usage
+        return SolutionResults(
+            in_count=self.in_count,
+            out_count=self.out_count,
+            classwise_count=self.classwise_counts,
+            total_tracks=len(self.track_ids),
+        ).summary(verbose=self.verbose)

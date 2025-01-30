@@ -87,8 +87,8 @@ Object counting with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
             if not success:
                 print("Video frame is empty or video processing has been successfully completed.")
                 break
-            im0 = counter.count(im0)
-            video_writer.write(im0)
+            results = counter.count(im0)
+            video_writer.write(results["im0"])
 
         cap.release()
         video_writer.release()

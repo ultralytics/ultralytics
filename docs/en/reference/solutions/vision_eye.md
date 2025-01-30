@@ -1,6 +1,6 @@
 ---
-description: TODO ADD DESCRIPTION
-keywords: TODO ADD KEYWORDS
+description: Discover the Ultralytics VisionEye solution for object tracking and analysis. Learn how to initialize parameters, map vision points, and track objects in real-time.
+keywords: Ultralytics, VisionEye, Object Tracking, Computer Vision, Real-time Analysis, Python, AI
 ---
 
 # Reference for `ultralytics/solutions/vision_eye.py`

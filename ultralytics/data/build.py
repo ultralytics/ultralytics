@@ -23,6 +23,7 @@ from ultralytics.data.loaders import (
 from ultralytics.data.utils import IMG_FORMATS, PIN_MEMORY, VID_FORMATS
 from ultralytics.utils import RANK, colorstr
 from ultralytics.utils.checks import check_file
+from ultralytics.utils.errors import handle_errors
 
 
 class InfiniteDataLoader(dataloader.DataLoader):
@@ -32,6 +33,7 @@ class InfiniteDataLoader(dataloader.DataLoader):
     Uses same syntax as vanilla DataLoader.
     """
 
+    @handle_errors
     def __init__(self, *args, **kwargs):
         """Dataloader that infinitely recycles workers, inherits from DataLoader."""
         super().__init__(*args, **kwargs)

@@ -17,6 +17,7 @@ from ultralytics.utils import LOGGER, SimpleClass, ops
 from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.plotting import Annotator, colors, save_one_box
 from ultralytics.utils.torch_utils import smart_inference_mode
+from ultralytics.utils.errors import handle_errors
 
 
 class BaseTensor(SimpleClass):
@@ -630,6 +631,7 @@ class Results(SimpleClass):
         self.plot(save=True, filename=filename, *args, **kwargs)
         return filename
 
+    @handle_errors
     def verbose(self):
         """
         Returns a log string for each task in the results, detailing detection and classification outcomes.

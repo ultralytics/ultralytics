@@ -7,6 +7,7 @@ from . import LOGGER
 from .checks import check_version
 from .metrics import bbox_iou, probiou
 from .ops import xywhr2xyxyxyxy
+from .errors import handle_errors
 
 TORCH_1_10 = check_version(torch.__version__, "1.10.0")
 
@@ -129,6 +130,7 @@ class TaskAlignedAssigner(nn.Module):
 
         return mask_pos, align_metric, overlaps
 
+    @handle_errors
     def get_box_metrics(self, pd_scores, pd_bboxes, gt_labels, gt_bboxes, mask_gt):
         """Compute alignment metric given predicted and ground truth bounding boxes."""
         na = pd_bboxes.shape[-2]

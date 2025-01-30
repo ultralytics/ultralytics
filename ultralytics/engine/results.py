@@ -13,7 +13,7 @@ import numpy as np
 import torch
 
 from ultralytics.data.augment import LetterBox
-from ultralytics.utils import LOGGER, SimpleClass, ops, handle_errors
+from ultralytics.utils import LOGGER, SimpleClass, handle_errors, ops
 from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.plotting import Annotator, colors, save_one_box
 from ultralytics.utils.torch_utils import smart_inference_mode

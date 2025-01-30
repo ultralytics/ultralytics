@@ -21,8 +21,9 @@ from ultralytics.data.loaders import (
     autocast_list,
 )
 from ultralytics.data.utils import IMG_FORMATS, PIN_MEMORY, VID_FORMATS
-from ultralytics.utils import RANK, colorstr, handle_errors
+from ultralytics.utils import RANK, colorstr
 from ultralytics.utils.checks import check_file
+from ultralytics.utils.errors import handle_errors
 
 
 class InfiniteDataLoader(dataloader.DataLoader):

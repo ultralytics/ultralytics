@@ -89,11 +89,16 @@ yolov8n_imx_model
 
 When exporting a model to IMX500 format, you can specify various arguments:
 
-| Key      | Value  | Description                                              |
-| -------- | ------ | -------------------------------------------------------- |
-| `format` | `imx`  | Format to export to (imx)                                |
-| `int8`   | `True` | Enable INT8 quantization for the model (default: `True`) |
-| `imgsz`  | `640`  | Image size for the model input (default: `640`)          |
+| Key      | Value        | Description                                                    |
+| -------- | ------------ | -------------------------------------------------------------- |
+| `format` | `imx`        | Format to export to (imx)                                      |
+| `int8`   | `True`       | Enable INT8 quantization for the model (default: `True`)       |
+| `imgsz`  | `640`        | Image size for the model input (default: `640`)                |
+| `data`   | `coco8.yaml` | Path to the dataset configuration file (default: `coco8.yaml`) |
+
+!!! note
+
+    When using `data` argument for quantization, please check [Dataset Guide](https://docs.ultralytics.com/datasets/detect) to learn more about the dataset format.
 
 ## Using IMX500 Export in Deployment
 

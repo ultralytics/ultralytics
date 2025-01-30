@@ -108,6 +108,4 @@ class SpeedEstimator(BaseSolution):
         self.display_output(im0)  # display output with base class function
 
         # return output dictionary with summary for more usage
-        return SolutionResults(im0=im0, total_tracks=len(self.track_ids)).summary(
-            verbose=self.verbose
-        )
+        return SolutionResults(im0=im0, total_tracks=len(self.track_ids)).summary(verbose=self.verbose)

@@ -4,8 +4,8 @@ import cv2
 import pytest
 
 from tests import TMP
-from ultralytics import YOLO, solutions
-from ultralytics.utils import ASSETS_URL, WEIGHTS_DIR
+from ultralytics import solutions
+from ultralytics.utils import ASSETS_URL
 from ultralytics.utils.downloads import safe_download
 
 DEMO_VIDEO = "solutions_ci_demo.mp4"
@@ -31,9 +31,9 @@ def test_major_solutions():
     bar_analytics = solutions.Analytics(analytics_type="bar", model="yolo11n.pt", show=False)  # line analytics
     area_analytics = solutions.Analytics(analytics_type="area", model="yolo11n.pt", show=False)  # line analytics
     trackzone = solutions.TrackZone(region=region_points, model="yolo11n.pt", show=False)  # Test trackzone
-    object_crop = solutions.ObjectCropper(model="yolo11n.pt", show=False)   # Test object cropping
-    object_blur = solutions.ObjectBlurrer(blur_ratio=0.5, model="yolo11n.pt", show=False)   # Object blurring
-    instance_segmentation = solutions.InstanceSegmentation(model="yolo11n-seg.pt", show=False)
+    object_crop = solutions.ObjectCropper(model="yolo11n.pt", show=False)  # Test object cropping
+    object_blur = solutions.ObjectBlurrer(blur_ratio=0.5, model="yolo11n.pt", show=False)  # Object blurring
+    solutions.InstanceSegmentation(model="yolo11n-seg.pt", show=False)
     visioneye = solutions.VisionEye(model="yolo11n.pt", show=False)
     frame_count = 0  # Required for analytics
     while cap.isOpened():

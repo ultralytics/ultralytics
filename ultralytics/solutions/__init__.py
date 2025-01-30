@@ -34,5 +34,5 @@ __all__ = (
     "ObjectCropper",
     "ObjectBlurrer",
     "InstanceSegmentation",
-    "VisionEye"
+    "VisionEye",
 )

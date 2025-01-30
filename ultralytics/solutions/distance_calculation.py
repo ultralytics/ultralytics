@@ -125,4 +125,5 @@ class DistanceCalculation(BaseSolution):
 
         # return output dictionary with summary for more usage
         return SolutionResults(im0=im0, pixels_distance=pixels_distance, total_tracks=len(self.track_ids)).summary(
-            verbose=self.verbose)
+            verbose=self.verbose
+        )

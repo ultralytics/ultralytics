@@ -143,4 +143,5 @@ class SecurityAlarm(BaseSolution):
 
         # return output dictionary with summary for more usage
         return SolutionResults(im0=im0, total_tracks=len(self.track_ids), email_sent=self.email_sent).summary(
-            verbose=self.verbose)
+            verbose=self.verbose
+        )

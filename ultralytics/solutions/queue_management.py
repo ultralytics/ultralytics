@@ -100,4 +100,5 @@ class QueueManager(BaseSolution):
 
         # return output dictionary with summary for more usage
         return SolutionResults(im0=im0, queue_count=self.counts, total_tracks=len(self.track_ids)).summary(
-            verbose=self.verbose)
+            verbose=self.verbose
+        )

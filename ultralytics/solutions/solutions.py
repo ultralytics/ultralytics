@@ -162,7 +162,6 @@ class BaseSolution:
             self.Polygon(self.region) if len(self.region) >= 3 else self.LineString(self.region)
         )  # region or line
 
-
     def display_output(self, im0):
         """
         Display the results of the processing, which could involve showing frames, printing counts, or saving results.

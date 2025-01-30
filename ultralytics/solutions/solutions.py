@@ -755,6 +755,6 @@ class SolutionResults:
         }
 
         if verbose:
-            LOGGER.info(self.result_summary)
+            LOGGER.info(f"Ultralytics Solutions: {self.result_summary}")
 
         return {k: v for k, v in self.__dict__.items() if k != "summary"}

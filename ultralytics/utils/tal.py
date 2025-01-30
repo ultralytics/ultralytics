@@ -5,9 +5,9 @@ import torch.nn as nn
 
 from . import LOGGER
 from .checks import check_version
+from .errors import handle_errors
 from .metrics import bbox_iou, probiou
 from .ops import xywhr2xyxyxyxy
-from .errors import handle_errors
 
 TORCH_1_10 = check_version(torch.__version__, "1.10.0")
 

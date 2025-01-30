@@ -248,17 +248,10 @@ class ParkingManagement(BaseSolution):
 
         self.display_output(im0)  # display output with base class function
 
-        total_tracks = len(self.track_ids)
-        if self.verbose:  # Log the total tracks, parking occupancy and available spaces count
-            self.LOGGER.info(
-                f"Parking - Occupancy: {self.pr_info['Occupancy']} , Available: {self.pr_info['Available']}, "
-                f"Total tracks: {total_tracks}"
-            )
-
         # return output dictionary with summary for more usage
         return SolutionResults(
             im0=im0,
             filled_slots=self.pr_info["Occupancy"],
             available_slots=self.pr_info["Available"],
-            total_tracks=total_tracks,
-        ).summary()
+            total_tracks=len(self.track_ids),
+        ).summary(verbose=self.verbose)

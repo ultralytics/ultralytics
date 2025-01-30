@@ -65,9 +65,5 @@ class TrackZone(BaseSolution):
 
         self.display_output(im0)  # display output with base class function
 
-        total_tracks = len(self.track_ids)
-        if self.verbose:  # Log the total tracked instances if verbose mode is enabled
-            self.LOGGER.info(f"Total tracks: {total_tracks}")
-
         # return output dictionary with summary for more usage
-        return SolutionResults(im0=im0, total_tracks=total_tracks)
+        return SolutionResults(im0=im0, total_tracks=en(self.track_ids)).summary(verbose=self.verbose)

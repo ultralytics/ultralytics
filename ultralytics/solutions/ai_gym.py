@@ -126,4 +126,4 @@ class AIGym(BaseSolution):
             workout_stage=self.stage,
             workout_angle=self.angle,
             total_tracks=total_tracks,
-        ).summary()
+        ).summary(verbose=self.verbose)

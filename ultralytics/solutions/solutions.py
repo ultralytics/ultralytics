@@ -162,6 +162,7 @@ class BaseSolution:
             self.Polygon(self.region) if len(self.region) >= 3 else self.LineString(self.region)
         )  # region or line
 
+
     def display_output(self, im0):
         """
         Display the results of the processing, which could involve showing frames, printing counts, or saving results.
@@ -754,7 +755,7 @@ class SolutionResults:
         self.speed_dict = speed_dict
         self.total_crop_objects = total_crop_objects
 
-    def summary(self):
+    def summary(self, verbose=False):
         """
         Generates a summary of the current state of the SolutionResults object.
 
@@ -783,4 +784,8 @@ class SolutionResults:
                 "speed_dict": self.speed_dict,
                 "total_crop_objects": self.total_crop_objects,
             }
+
+        if verbose:
+            LOGGER.info(self._cached_summary)
+
         return self._cached_summary

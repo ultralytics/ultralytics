@@ -15,6 +15,7 @@ from .security_alarm import SecurityAlarm
 from .speed_estimation import SpeedEstimator
 from .streamlit_inference import Inference
 from .trackzone import TrackZone
+from .vision_eye import VisionEye
 
 __all__ = (
     "AIGym",
@@ -33,4 +34,5 @@ __all__ = (
     "ObjectCropper",
     "ObjectBlurrer",
     "InstanceSegmentation",
+    "VisionEye"
 )

@@ -60,9 +60,5 @@ class InstanceSegmentation(BaseSolution):
 
         self.display_output(im0)  # Display the annotated output using the base class function
 
-        total_tracks = len(self.track_ids)
-        if self.verbose:  # Log the total tracked instances if verbose mode is enabled
-            self.LOGGER.info(f"Total tracks: {total_tracks}")
-
         # Return a summary dictionary with the total count of tracks
-        return SolutionResults(im0=im0, total_tracks=total_tracks).summary()
+        return SolutionResults(im0=im0, total_tracks=len(self.track_ids)).summary(verbose=self.verbose)

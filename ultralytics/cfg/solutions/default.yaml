@@ -25,3 +25,6 @@ records: 5 # (int) Total detections count to send an email about security
 
 # Object blurring ------------------------------------------------------------------------------------------------------
 blur_ratio: 0.5
+
+# VisionEye mapping ----------------------------------------------------------------------------------------------------
+vision_point: (20, 20)

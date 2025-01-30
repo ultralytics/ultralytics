@@ -98,9 +98,6 @@ class QueueManager(BaseSolution):
         )
         self.display_output(im0)  # display output with base class function
 
-        total_tracks = len(self.track_ids)
-        if self.verbose:  # Log the queue counts, and total tracks
-            self.LOGGER.info(f"Queue count: {self.counts}, total tracks: {total_tracks}")
-
         # return output dictionary with summary for more usage
-        return SolutionResults(im0=im0, queue_count=self.counts, total_tracks=total_tracks).summary()
+        return SolutionResults(im0=im0, queue_count=self.counts, total_tracks=len(self.track_ids)).summary(
+            verbose=self.verbose)

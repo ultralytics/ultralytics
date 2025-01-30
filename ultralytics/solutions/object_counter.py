@@ -202,18 +202,11 @@ class ObjectCounter(BaseSolution):
         self.display_counts(im0)  # Display the counts on the frame
         self.display_output(im0)  # display output with base class function
 
-        total_tracks = len(self.track_ids)
-        if self.verbose:  # Log the total tracks, in-count, out-count, classwise count and total tracks
-            self.LOGGER.info(
-                f"In count: {self.in_count}, out count: {self.out_count}, "
-                f"classwise count: {self.classwise_count}, total tracks: {total_tracks}"
-            )
-
         # return output dictionary with summary for more usage
         return SolutionResults(
             im0=im0,
             in_count=self.in_count,
             out_count=self.out_count,
             classwise_count=self.classwise_counts,
-            total_tracks=total_tracks,
-        ).summary()
+            total_tracks=len(self.track_ids),
+        ).summary(verbose=self.verbose)

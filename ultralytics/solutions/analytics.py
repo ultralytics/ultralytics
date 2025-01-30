@@ -121,12 +121,9 @@ class Analytics(BaseSolution):
         else:
             raise ModuleNotFoundError(f"{self.type} chart is not supported ❌")
 
-        total_tracks = len(self.track_ids)
-        if self.verbose:  # Log the total tracks and classwise counts if verbose mode is enabled
-            self.LOGGER.info(f"Total tracks: {total_tracks}, classwise-count: {self.clswise_count}")
-
         # return output dictionary with summary for more usage
-        return SolutionResults(im0=im0, total_tracks=total_tracks, classwise_count=self.clswise_count).summary()
+        return SolutionResults(im0=im0, total_tracks=len(self.track_ids), classwise_count=self.clswise_count).summary(
+            verbose=self.verbose)
 
     def update_graph(self, frame_number, count_dict=None, plot="line"):
         """

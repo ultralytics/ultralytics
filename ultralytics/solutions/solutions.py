@@ -765,7 +765,7 @@ class SolutionResults:
             _cached_summary (dict): A dictionary containing key-value pairs representing the current state of all attributes in the object.
         """
         # Get the dictionary of the attributes set for this instance
-        result_summary = {k: v for k, v in self.__dict__.items() if v is not None}
+        {k: v for k, v in self.__dict__.items() if v is not None}
         if verbose:
             LOGGER.info(self._cached_summary)
 

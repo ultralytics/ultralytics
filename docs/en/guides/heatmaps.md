@@ -32,7 +32,7 @@ A heatmap generated with [Ultralytics YOLO11](https://github.com/ultralytics/ult
 ## Real World Applications
 
 |                                                                    Transportation                                                                    |                                                                Retail                                                                |
-|:----------------------------------------------------------------------------------------------------------------------------------------------------:|:------------------------------------------------------------------------------------------------------------------------------------:|
+| :--------------------------------------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------------------------: |
 | ![Ultralytics YOLO11 Transportation Heatmap](https://github.com/ultralytics/docs/releases/download/0/ultralytics-yolov8-transportation-heatmap.avif) | ![Ultralytics YOLO11 Retail Heatmap](https://github.com/ultralytics/docs/releases/download/0/ultralytics-yolov8-retail-heatmap.avif) |
 |                                                      Ultralytics YOLO11 Transportation Heatmap                                                       |                                                  Ultralytics YOLO11 Retail Heatmap                                                   |
 
@@ -63,7 +63,7 @@ A heatmap generated with [Ultralytics YOLO11](https://github.com/ultralytics/ult
 
         cap = cv2.VideoCapture("Path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
-        
+
         # Video writer
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
         video_writer = cv2.VideoWriter("heatmap_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
@@ -75,9 +75,9 @@ A heatmap generated with [Ultralytics YOLO11](https://github.com/ultralytics/ult
 
         # Init heatmap
         heatmap = solutions.Heatmap(
-            show=True,                      # Display the output
-            model="yolo11n.pt",             # Path to the YOLO11 model file
-            colormap=cv2.COLORMAP_PARULA,   # Colormap of heatmap
+            show=True,  # Display the output
+            model="yolo11n.pt",  # Path to the YOLO11 model file
+            colormap=cv2.COLORMAP_PARULA,  # Colormap of heatmap
             # region=region_points,         # object counting with heatmaps, you can pass region_points
             # classes=[0, 2],               # generate heatmap for specific classes i.e person and car.
         )
@@ -85,23 +85,23 @@ A heatmap generated with [Ultralytics YOLO11](https://github.com/ultralytics/ult
         # Process video
         while cap.isOpened():
             success, im0 = cap.read()
-            
+
             if not success:
                 print("Video frame is empty or processing is complete.")
                 break
-            
+
             results = heatmap.generate_heatmap(im0)
-            
+
             # Access the output
             # print(f"Total tracks: , results['total_tracks']")
             # print(f"In count: , {results['in_count']}")
             # print(f"Out count: , results['out_count']")
 
-            video_writer.write(results["im0"])      # write the processed frame.
+            video_writer.write(results["im0"])  # write the processed frame.
 
         cap.release()
         video_writer.release()
-        cv2.destroyAllWindows()     # destroy all opened windows
+        cv2.destroyAllWindows()  # destroy all opened windows
         ```
 
 ### Arguments `Heatmap()`
@@ -109,7 +109,7 @@ A heatmap generated with [Ultralytics YOLO11](https://github.com/ultralytics/ult
 Here's a table with the `Heatmap` arguments:
 
 | Name         | Type    | Default            | Description                                                                                                                                                                  |
-|--------------|---------|--------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| ------------ | ------- | ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `model`      | `str`   | `None`             | Path to Ultralytics YOLO Model File                                                                                                                                          |
 | `colormap`   | `int`   | `cv2.COLORMAP_JET` | Colormap to use for the heatmap.                                                                                                                                             |
 | `show`       | `bool`  | `False`            | Whether to display the image with the heatmap overlay.                                                                                                                       |
@@ -127,7 +127,7 @@ Here's a table with the `Heatmap` arguments:
 ### Heatmap COLORMAPs
 
 | Colormap Name                   | Description                            |
-|---------------------------------|----------------------------------------|
+| ------------------------------- | -------------------------------------- |
 | `cv::COLORMAP_AUTUMN`           | Autumn color map                       |
 | `cv::COLORMAP_BONE`             | Bone color map                         |
 | `cv::COLORMAP_JET`              | Jet color map                          |

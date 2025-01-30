@@ -115,7 +115,7 @@ class RegionCounter(BaseSolution):
         self.display_output(im0)
 
         total_tracks = len(self.track_ids)
-        if self.verbose:    # Log the total tracks
+        if self.verbose:  # Log the total tracks
             self.LOGGER.info(f"Total tracks: {total_tracks}")
 
         # return output dictionary with summary for more usage

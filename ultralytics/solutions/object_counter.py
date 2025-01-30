@@ -203,7 +203,7 @@ class ObjectCounter(BaseSolution):
         self.display_output(im0)  # display output with base class function
 
         total_tracks = len(self.track_ids)
-        if self.verbose:    # Log the total tracks, in-count, out-count, classwise count and total tracks
+        if self.verbose:  # Log the total tracks, in-count, out-count, classwise count and total tracks
             self.LOGGER.info(
                 f"In count: {self.in_count}, out count: {self.out_count}, "
                 f"classwise count: {self.classwise_count}, total tracks: {total_tracks}"

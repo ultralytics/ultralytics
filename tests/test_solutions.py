@@ -33,8 +33,8 @@ def test_major_solutions():
     trackzone = solutions.TrackZone(region=region_points, model="yolo11n.pt", show=False)  # trackzone
     object_crop = solutions.ObjectCropper(model="yolo11n.pt", show=False)  # object cropping
     object_blur = solutions.ObjectBlurrer(blur_ratio=0.5, model="yolo11n.pt", show=False)  # Object blurring
-    isegment = solutions.InstanceSegmentation(model="yolo11n-seg.pt", show=False)   # Instance segmentation
-    visioneye = solutions.VisionEye(model="yolo11n.pt", show=False)     # Visioneye
+    isegment = solutions.InstanceSegmentation(model="yolo11n-seg.pt", show=False)  # Instance segmentation
+    visioneye = solutions.VisionEye(model="yolo11n.pt", show=False)  # Visioneye
     region_counter = solutions.RegionCounter(region=region_points, model="yolo11n.pt", show=False)  # Region counter
     frame_count = 0  # Required for analytics
     while cap.isOpened():

@@ -40,7 +40,7 @@ Measuring the gap between two objects is known as distance calculation within a 
 
 ???+ warning "Distance is Estimate"
 
-        Distance will be an estimate and may not be fully accurate, as it is calculated using 2-dimensional data, 
+        Distance will be an estimate and may not be fully accurate, as it is calculated using 2-dimensional data,
         which lacks information about the object's depth.
 
 !!! example "Distance Calculation using YOLO11 Example"
@@ -54,36 +54,36 @@ Measuring the gap between two objects is known as distance calculation within a 
 
         cap = cv2.VideoCapture("Path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
-        
+
         # Video writer
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
         video_writer = cv2.VideoWriter("distance_calculation.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
         # Init DistanceCalculation
         distance = solutions.DistanceCalculation(
-                model="yolo11n.pt",     # path to the YOLO11 model file.
-                show=True,              # display the output
+            model="yolo11n.pt",  # path to the YOLO11 model file.
+            show=True,  # display the output
         )
 
         # Process video
         while cap.isOpened():
             success, im0 = cap.read()
-            
+
             if not success:
                 print("Video frame is empty or processing is complete.")
                 break
-            
+
             results = distance.calculate(im0)
-            
+
             # Access the output
             # print("Pexels distance: ", results["pixels_distance"])
             # print("Total tracks: ", results["total_tracks"])
 
-            video_writer.write(results["im0"])      # write the processed frame.
+            video_writer.write(results["im0"])  # write the processed frame.
 
         cap.release()
         video_writer.release()
-        cv2.destroyAllWindows()     # destroy all opened windows
+        cv2.destroyAllWindows()  # destroy all opened windows
         ```
 
 ### Arguments `DistanceCalculation()`
@@ -91,7 +91,7 @@ Measuring the gap between two objects is known as distance calculation within a 
 Here's a table with the `DistanceCalculation` arguments:
 
 | `Name`       | `Type`  | `Default`      | Description                                                                                                                                                                  |
-|--------------|---------|----------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| ------------ | ------- | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `model`      | `str`   | `None`         | Path to Ultralytics YOLO Model File                                                                                                                                          |
 | `line_width` | `int`   | `2`            | Line thickness for bounding boxes.                                                                                                                                           |
 | `show`       | `bool`  | `False`        | Flag to control whether to display the video stream.                                                                                                                         |

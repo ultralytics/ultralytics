@@ -34,7 +34,7 @@ keywords: Ultralytics YOLO11, speed estimation, object tracking, computer vision
 ## Real World Applications
 
 |                                                                            Transportation                                                                            |                                                                              Transportation                                                                              |
-|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
+| :------------------------------------------------------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
 | ![Speed Estimation on Road using Ultralytics YOLO11](https://github.com/ultralytics/docs/releases/download/0/speed-estimation-on-road-using-ultralytics-yolov8.avif) | ![Speed Estimation on Bridge using Ultralytics YOLO11](https://github.com/ultralytics/docs/releases/download/0/speed-estimation-on-bridge-using-ultralytics-yolov8.avif) |
 |                                                          Speed Estimation on Road using Ultralytics YOLO11                                                           |                                                           Speed Estimation on Bridge using Ultralytics YOLO11                                                            |
 
@@ -66,7 +66,7 @@ keywords: Ultralytics YOLO11, speed estimation, object tracking, computer vision
 
         cap = cv2.VideoCapture("Path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
-        
+
         # Video writer
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
         video_writer = cv2.VideoWriter("speed_management.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
@@ -85,11 +85,11 @@ keywords: Ultralytics YOLO11, speed estimation, object tracking, computer vision
         # Process video
         while cap.isOpened():
             success, im0 = cap.read()
-            
+
             if not success:
                 print("Video frame is empty or processing is complete.")
                 break
-            
+
             results = speed.estimate_speed(im0)
 
             Access the output
@@ -107,7 +107,7 @@ keywords: Ultralytics YOLO11, speed estimation, object tracking, computer vision
 Here's a table with the `SpeedEstimator` arguments:
 
 | Name         | Type    | Default                    | Description                                                                                                                                                                  |
-|--------------|---------|----------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| ------------ | ------- | -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `model`      | `str`   | `None`                     | Path to Ultralytics YOLO Model File                                                                                                                                          |
 | `region`     | `list`  | `[(20, 400), (1260, 400)]` | List of points defining the counting region.                                                                                                                                 |
 | `line_width` | `int`   | `2`                        | Line thickness for bounding boxes.                                                                                                                                           |

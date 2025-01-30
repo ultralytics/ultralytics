@@ -39,56 +39,29 @@ Object cropping with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
     === "Object Cropping"
 
         ```python
-        import os
-
         import cv2
 
-        from ultralytics import YOLO
-        from ultralytics.utils.plotting import Annotator, colors
+        from ultralytics import solutions
 
-        model = YOLO("yolo11n.pt")
-        names = model.names
-
-        cap = cv2.VideoCapture("path/to/video/file.mp4")
+        cap = cv2.VideoCapture("Path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
-        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 
-        crop_dir_name = "ultralytics_crop"
-        if not os.path.exists(crop_dir_name):
-            os.mkdir(crop_dir_name)
+        # Init ObjectCounter
+        cropper = solutions.ObjectCropper(
+            show=True,  # Display the output
+            model="yolo11n.pt",  # model="yolo11s.pt" for object cropping using YOLO11 model.
+            classes=[0, 2],  # If you want to crop specific classes i.e. person and car with COCO pretrained model.
+        )
 
-        # Video writer
-        video_writer = cv2.VideoWriter("object_cropping_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
-
-        idx = 0
+        # Process video
         while cap.isOpened():
             success, im0 = cap.read()
             if not success:
                 print("Video frame is empty or video processing has been successfully completed.")
                 break
-
-            results = model.predict(im0, show=False)
-            boxes = results[0].boxes.xyxy.cpu().tolist()
-            clss = results[0].boxes.cls.cpu().tolist()
-            annotator = Annotator(im0, line_width=2, example=names)
-
-            if boxes is not None:
-                for box, cls in zip(boxes, clss):
-                    idx += 1
-                    annotator.box_label(box, color=colors(int(cls), True), label=names[int(cls)])
-
-                    crop_obj = im0[int(box[1]) : int(box[3]), int(box[0]) : int(box[2])]
-
-                    cv2.imwrite(os.path.join(crop_dir_name, str(idx) + ".png"), crop_obj)
-
-            cv2.imshow("ultralytics", im0)
-            video_writer.write(im0)
-
-            if cv2.waitKey(1) & 0xFF == ord("q"):
-                break
+            results = cropper.crop(im0)
 
         cap.release()
-        video_writer.release()
         cv2.destroyAllWindows()
         ```
 

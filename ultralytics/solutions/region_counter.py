@@ -111,12 +111,13 @@ class RegionCounter(BaseSolution):
                 color=region["region_color"],
                 txt_color=region["text_color"],
             )
-            region_counts[region["name"]] = region["counts"]    # Store counts in the dictionary
+            region_counts[region["name"]] = region["counts"]  # Store counts in the dictionary
 
         region["counts"] = 0  # Reset count for next frame
 
         self.display_output(im0)
 
         # return output dictionary with summary for more usage
-        return SolutionResults(im0=im0, total_tracks=len(self.track_ids),
-                               region_counts=region_counts).summary(verbose=self.verbose)
+        return SolutionResults(im0=im0, total_tracks=len(self.track_ids), region_counts=region_counts).summary(
+            verbose=self.verbose
+        )

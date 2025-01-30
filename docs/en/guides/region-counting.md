@@ -61,9 +61,9 @@ keywords: object counting, regions, YOLO11, computer vision, Ultralytics, effici
 
         # Init RegionCounter
         region = solutions.RegionCounter(
-            show=True,                 # display the frame
-            region=region_points,      # pass region points
-            model="yolo11n.pt",        # model for counting in regions i.e yolo11s.pt
+            show=True,  # display the frame
+            region=region_points,  # pass region points
+            model="yolo11n.pt",  # model for counting in regions i.e yolo11s.pt
         )
 
         # Process video
@@ -84,7 +84,7 @@ keywords: object counting, regions, YOLO11, computer vision, Ultralytics, effici
 
         cap.release()
         video_writer.release()
-        cv2.destroyAllWindows()     # destroy all opened windows
+        cv2.destroyAllWindows()  # destroy all opened windows
         ```
 
 !!! tip "Ultralytics Example Code"

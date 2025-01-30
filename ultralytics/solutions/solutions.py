@@ -719,7 +719,6 @@ class SolutionResults:
             ...     total_crop_objects=5,
             ... )
         """
-
         defaults = {
             "im0": None, "in_count": 0, "out_count": 0, "classwise_count": None, "queue_count": 0,
             "workout_count": 0, "workout_angle": 0, "workout_stage": None, "pixels_distance": 0,
@@ -738,7 +737,6 @@ class SolutionResults:
         Returns:
             summary (dict): A dictionary containing key-value pairs representing the current state of all attributes in the object.
         """
-
         # Get the dictionary of the attributes, convert im0 large array to ndarray string for Logging
         self.result_summary = {
             k: ("np.ndarray" if isinstance(v, np.ndarray) else v)

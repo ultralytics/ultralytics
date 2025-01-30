@@ -1,7 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-from ultralytics.solutions.solutions import BaseSolution
-from ultralytics.utils.plotting import Annotator, colors
+from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
+from ultralytics.utils.plotting import colors
 
 
 class ObjectCounter(BaseSolution):
@@ -161,7 +161,9 @@ class ObjectCounter(BaseSolution):
             im0 (numpy.ndarray): The input image or frame to be processed.
 
         Returns:
-            (numpy.ndarray): The processed image with annotations and count information.
+            results (dict): Contains processed image `im0`,
+                'in_count' (int, count of objects entering the region), 'out_count' (int, count of objects exiting the region),
+                'classwise_count' (dict, per-class object count), and 'total_tracks' (int, total number of tracked objects),
 
         Examples:
             >>> counter = ObjectCounter()
@@ -172,7 +174,7 @@ class ObjectCounter(BaseSolution):
             self.initialize_region()
             self.region_initialized = True
 
-        self.annotator = Annotator(im0, line_width=self.line_width)  # Initialize annotator
+        self.annotator = SolutionAnnotator(im0, line_width=self.line_width)  # Initialize annotator
         self.extract_tracks(im0)  # Extract tracks
 
         self.annotator.draw_region(
@@ -186,10 +188,6 @@ class ObjectCounter(BaseSolution):
             self.store_tracking_history(track_id, box)  # Store track history
             self.store_classwise_counts(cls)  # store classwise counts in dict
 
-            # Draw tracks of objects
-            self.annotator.draw_centroid_and_tracks(
-                self.track_line, color=colors(int(cls), True), track_thickness=self.line_width
-            )
             current_centroid = ((box[0] + box[2]) / 2, (box[1] + box[3]) / 2)
             # store previous position of track for object counting
             prev_position = None
@@ -200,4 +198,11 @@ class ObjectCounter(BaseSolution):
         self.display_counts(im0)  # Display the counts on the frame
         self.display_output(im0)  # display output with base class function
 
-        return im0  # return output image for more usage
+        # return output dictionary with summary for more usage
+        return SolutionResults(
+            im0=im0,
+            in_count=self.in_count,
+            out_count=self.out_count,
+            classwise_count=self.classwise_counts,
+            total_tracks=len(self.track_ids),
+        ).summary(verbose=self.verbose)

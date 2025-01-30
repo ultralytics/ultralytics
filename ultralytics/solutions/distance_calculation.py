@@ -4,8 +4,8 @@ import math
 
 import cv2
 
-from ultralytics.solutions.solutions import BaseSolution
-from ultralytics.utils.plotting import Annotator, colors
+from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
+from ultralytics.utils.plotting import colors
 
 
 class DistanceCalculation(BaseSolution):
@@ -84,7 +84,8 @@ class DistanceCalculation(BaseSolution):
             im0 (numpy.ndarray): The input image frame to process.
 
         Returns:
-            (numpy.ndarray): The processed image frame with annotations and distance calculations.
+            results (dict): Contains processed image `im0`, 'total_tracks' (int, total number of tracked objects).
+                'pixels_distance' (float, distance between selected objects in pixels) and
 
         Examples:
             >>> import numpy as np
@@ -93,9 +94,10 @@ class DistanceCalculation(BaseSolution):
             >>> frame = np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8)
             >>> processed_frame = dc.calculate(frame)
         """
-        self.annotator = Annotator(im0, line_width=self.line_width)  # Initialize annotator
+        self.annotator = SolutionAnnotator(im0, line_width=self.line_width)  # Initialize annotator
         self.extract_tracks(im0)  # Extract tracks
 
+        pixels_distance = 0
         # Iterate over bounding boxes, track ids and classes index
         for box, track_id, cls in zip(self.boxes, self.track_ids, self.clss):
             self.annotator.box_label(box, color=colors(int(cls), True), label=self.names[int(cls)])
@@ -121,4 +123,7 @@ class DistanceCalculation(BaseSolution):
         self.display_output(im0)  # display output with base class function
         cv2.setMouseCallback("Ultralytics Solutions", self.mouse_event_for_distance)
 
-        return im0  # return output image for more usage
+        # return output dictionary with summary for more usage
+        return SolutionResults(im0=im0, pixels_distance=pixels_distance, total_tracks=len(self.track_ids)).summary(
+            verbose=self.verbose
+        )

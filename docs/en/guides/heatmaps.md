@@ -91,8 +91,8 @@ A heatmap generated with [Ultralytics YOLO11](https://github.com/ultralytics/ult
             if not success:
                 print("Video frame is empty or video processing has been successfully completed.")
                 break
-            im0 = heatmap.generate_heatmap(im0)
-            video_writer.write(im0)
+            results = heatmap.generate_heatmap(im0)
+            video_writer.write(results["im0"])
 
         cap.release()
         video_writer.release()

@@ -48,7 +48,7 @@ keywords: VisionEye, YOLO11, Ultralytics, object mapping, object tracking, dista
             results = visioneye.mapping(im0)
         
             # Access the output
-            print(f"Total tracks: , results['total_tracks']")
+            print(f"Total tracks: , {results['total_tracks']}")
         
             video_writer.write(results["im0"])      # write the video file
         
@@ -113,7 +113,7 @@ while cap.isOpened():
     results = visioneye.mapping(im0)
 
     # Access the output
-    print(f"Total tracks: , results['total_tracks']")
+    print(f"Total tracks: , {results['total_tracks']}")
 
     video_writer.write(results["im0"])      # write the video file
 

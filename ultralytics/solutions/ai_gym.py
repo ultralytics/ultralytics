@@ -112,18 +112,11 @@ class AIGym(BaseSolution):
 
         self.display_output(im0)  # Display output image, if environment support display
 
-        total_tracks = len(track_ids)
-        if self.verbose:  # Log the total tracks, workout counts, stage value and angle data if verbose is enabled
-            self.LOGGER.info(
-                f"Workouts -  count: {self.count}, stage: {self.stage}, angle: {self.angle}, "
-                f"Total tracks: {total_tracks}"
-            )
-
         # return output dictionary with summary for more usage
         return SolutionResults(
             im0=im0,
             workout_count=self.count,
             workout_stage=self.stage,
             workout_angle=self.angle,
-            total_tracks=total_tracks,
+            total_tracks=len(self.track_ids),
         ).summary(verbose=self.verbose)

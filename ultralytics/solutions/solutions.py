@@ -672,7 +672,7 @@ class SolutionResults:
         filled_slots (int, optional): The number of filled slots in a monitored area. Default is 0.
         email_sent (bool, optional): A flag indicating whether an email notification was sent. Default is False.
         total_tracks (int, optional): The total number of tracked objects. Default is 0.
-        region_counts (int, optional): The count of objects within a specific region. Default is 0.
+        region_counts (Dict, optional): The count of objects within a specific region. Default is {}.
         speed_dict (Dict[str, float], optional): A dictionary containing speed information for tracked objects. Default is None.
         total_crop_objects (int, optional): Total number of cropped objects using ObjectCropper class.
     """
@@ -699,7 +699,7 @@ class SolutionResults:
             ...     filled_slots=10,
             ...     email_sent=True,
             ...     total_tracks=50,
-            ...     region_counts=20,
+            ...     region_counts={"R1": 20},
             ...     speed_dict={"object_1": 3.5, "object_2": 2.8},
             ...     total_crop_objects=5,
             ... )
@@ -718,7 +718,7 @@ class SolutionResults:
             "filled_slots": 0,
             "email_sent": False,
             "total_tracks": 0,
-            "region_counts": 0,
+            "region_counts": {},
             "speed_dict": None,
             "total_crop_objects": 0,
         }

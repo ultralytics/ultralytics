@@ -86,9 +86,9 @@ This guide provides a comprehensive overview of three fundamental types of [data
                 results = analytics.process_data(im0, frame_count)  # update analytics graph every frame
                 
                 # Access the output
-                # print(f"Total tracks: , {results['total_tracks']}")
+                print(f"Total tracks: , {results['total_tracks']}")
 
-                 out.write(results["im0"])  # write the video file
+                out.write(results["im0"])  # write the video file
             else:
                 break
 

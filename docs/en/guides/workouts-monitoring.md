@@ -84,9 +84,9 @@ Monitoring workouts through pose estimation with [Ultralytics YOLO11](https://gi
             results = gym.monitor(im0)
 
             # Access the output
-            # print("Workout count: ", results["workout_count"])
-            # print("Workout angle: ", results["workout_angle"])
-            # print("Workout stage: ", results["workout_stage"])
+            # print(f"Workout count: , {results['workout_count']}")
+            # print(f"Workout angle: , {results['workout_angle']}")
+            # print(f"Workout stage: , {results['workout_stage']}")
 
             video_writer.write(results["im0"])  # write the processed frame.
 
@@ -142,7 +142,7 @@ while cap.isOpened():
     if not success:
         print("Video frame is empty or processing is complete.")
         break
-    im0 = gym.monitor(im0)
+    results = gym.monitor(im0)
 
 cv2.destroyAllWindows()
 ```

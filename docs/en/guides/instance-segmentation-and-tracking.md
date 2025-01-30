@@ -68,7 +68,8 @@ There are two types of instance segmentation tracking available in the Ultralyti
             results = isegment.segment(im0)
 
             # Access the output
-            # print(f"Total tracks: , results['total_tracks']")
+            # Access the output
+            # print(f"Total tracks: , {results['total_tracks']}")
 
             video_writer.write(results["im0"])  # write the processed frame.
 

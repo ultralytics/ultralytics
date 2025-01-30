@@ -73,8 +73,8 @@ The Security Alarm System Project utilizing Ultralytics YOLO11 integrates advanc
             results = security.monitor(im0)
 
             # Access the output
-            # print("Total tracks: ", results["total_tracks"])
-            # print("Email sent status: ", results["email_sent"])
+            # print(f"Total tracks: , {results['total_tracks']}")
+            # print(f"Email sent status: , {results['email_sent']}")
 
             video_writer.write(results["im0"])  # write the processed frame.
 

@@ -76,8 +76,8 @@ Measuring the gap between two objects is known as distance calculation within a 
             results = distance.calculate(im0)
 
             # Access the output
-            # print("Pexels distance: ", results["pixels_distance"])
-            # print("Total tracks: ", results["total_tracks"])
+            # print(f"Pexels distance: , {results['pixels_distance']}")
+            # print(f"Total tracks: , {results['total_tracks']}")
 
             video_writer.write(results["im0"])  # write the processed frame.
 
@@ -101,10 +101,6 @@ Here's a table with the `DistanceCalculation` arguments:
 | `classes`    | `list`  | `None`         | Filters results by class index. For example, `classes=[0, 2, 3]` only tracks the specified classes.                                                                          |
 | `max_det`    | `int`   | `300`          | Maximum number of detections allowed per image. Limits the total number of objects the model can detect in a single inference, preventing excessive outputs in dense scenes. |
 | `verbose`    | `bool`  | `True`         | Controls the display of solutions results, providing a visual output of tracked objects.                                                                                     |
-
-### Arguments `model.track`
-
-{% include "macros/track-args.md" %}
 
 ## FAQ
 

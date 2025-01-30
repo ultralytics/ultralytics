@@ -96,8 +96,8 @@ Parking management with [Ultralytics YOLO11](https://github.com/ultralytics/ultr
             results = parking_manager.process_data(im0)
             
             # Access the output
-            # print(f"Available slots: ", results['available_slots']")
-            # print(f"Filled slots: ", results['filled_slots']")
+            # print(f"Available slots: , {results['available_slots']}")
+            # print(f"Filled slots: , {results['filled_slots']}")
 
             video_writer.write(results["im0"])      # write the processed frame.
 

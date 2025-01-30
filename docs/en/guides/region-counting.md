@@ -56,8 +56,8 @@ keywords: object counting, regions, YOLO11, computer vision, Ultralytics, effici
         }
 
         # Video writer
-         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-         video_writer = cv2.VideoWriter("region_counting.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
+        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
+        video_writer = cv2.VideoWriter("region_counting.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
         # Init RegionCounter
         region = solutions.RegionCounter(
@@ -77,8 +77,8 @@ keywords: object counting, regions, YOLO11, computer vision, Ultralytics, effici
             results = region.count(im0)
 
             # Access the output
-            # print(f"Region counts: , results['region_counts']")
-            # print(f"Total tracks: , results['total_tracks']")
+            # print(f"Region counts: , {results['region_counts']}")
+            # print(f"Total tracks: , {results['total_tracks']}")
 
             video_writer.write(results["im0"])
 

@@ -65,7 +65,7 @@ Object cropping with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
             results = cropper.crop(im0)
 
             # Access the output
-            # print(f"Total cropped objects: , results['total_crop_objects']")
+            # print(f"Total cropped objects: , {results['total_crop_objects']}")
 
         cap.release()
         cv2.destroyAllWindows()  # destroy all opened windows

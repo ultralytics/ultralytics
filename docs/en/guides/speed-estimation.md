@@ -92,8 +92,8 @@ keywords: Ultralytics YOLO11, speed estimation, object tracking, computer vision
 
             results = speed.estimate_speed(im0)
 
-            Access the output
-            # print("Total tracks: ", results["total_tracks"])
+            # Access the output
+            # print(f"Total tracks: , {results['total_tracks']}")
 
             video_writer.write(results["im0"])      # write the processed frame.
 

@@ -1,7 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-from ultralytics.solutions.solutions import BaseSolution
-from ultralytics.utils.plotting import Annotator, colors
+from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
+from ultralytics.utils.plotting import colors
 
 
 class QueueManager(BaseSolution):
@@ -52,20 +52,9 @@ class QueueManager(BaseSolution):
             im0 (numpy.ndarray): Input image for processing, typically a frame from a video stream.
 
         Returns:
-            (numpy.ndarray): Processed image with annotations, bounding boxes, and queue counts.
-
-        This method performs the following steps:
-        1. Resets the queue count for the current frame.
-        2. Initializes an Annotator object for drawing on the image.
-        3. Extracts tracks from the image.
-        4. Draws the counting region on the image.
-        5. For each detected object:
-           - Draws bounding boxes and labels.
-           - Stores tracking history.
-           - Draws centroids and tracks.
-           - Checks if the object is inside the counting region and updates the count.
-        6. Displays the queue count on the image.
-        7. Displays the processed output.
+             results (dict): Contains processed image `im0`,
+                'queue_count' (int, number of objects in the queue) and
+                'total_tracks' (int, total number of tracked objects).
 
         Examples:
             >>> queue_manager = QueueManager()
@@ -73,7 +62,7 @@ class QueueManager(BaseSolution):
             >>> processed_frame = queue_manager.process_queue(frame)
         """
         self.counts = 0  # Reset counts every frame
-        self.annotator = Annotator(im0, line_width=self.line_width)  # Initialize annotator
+        self.annotator = SolutionAnnotator(im0, line_width=self.line_width)  # Initialize annotator
         self.extract_tracks(im0)  # Extract tracks
 
         self.annotator.draw_region(
@@ -109,4 +98,7 @@ class QueueManager(BaseSolution):
         )
         self.display_output(im0)  # display output with base class function
 
-        return im0  # return output image for more usage
+        # return output dictionary with summary for more usage
+        return SolutionResults(im0=im0, queue_count=self.counts, total_tracks=len(self.track_ids)).summary(
+            verbose=self.verbose
+        )

@@ -567,6 +567,9 @@ nav:
               - utils: reference/nn/modules/utils.md
           - tasks: reference/nn/tasks.md
       - solutions:
+          - object_cropper: reference/solutions/object_cropper.md
+          - object_blurrer: reference/solutions/object_blurrer.md
+          - instance_segmentation: reference/solutions/instance_segmentation.md
           - ai_gym: reference/solutions/ai_gym.md
           - analytics: reference/solutions/analytics.md
           - distance_calculation: reference/solutions/distance_calculation.md

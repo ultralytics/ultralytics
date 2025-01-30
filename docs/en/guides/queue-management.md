@@ -82,8 +82,8 @@ Queue management using [Ultralytics YOLO11](https://github.com/ultralytics/ultra
             if not success:
                 print("Video frame is empty or video processing has been successfully completed.")
                 break
-            out = queue.process_queue(im0)
-            video_writer.write(im0)
+            results = queue.process_queue(im0)
+            video_writer.write(results["im0"])
 
         cap.release()
         video_writer.release()

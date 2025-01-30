@@ -92,8 +92,8 @@ Parking management with [Ultralytics YOLO11](https://github.com/ultralytics/ultr
             ret, im0 = cap.read()
             if not ret:
                 break
-            im0 = parking_manager.process_data(im0)
-            video_writer.write(im0)
+            results = parking_manager.process_data(im0)
+            video_writer.write(results["im0"])
 
         cap.release()
         video_writer.release()

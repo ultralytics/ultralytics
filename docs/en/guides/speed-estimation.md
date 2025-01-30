@@ -84,8 +84,8 @@ keywords: Ultralytics YOLO11, speed estimation, object tracking, computer vision
             if not success:
                 print("Video frame is empty or video processing has been successfully completed.")
                 break
-            out = speed.estimate_speed(im0)
-            video_writer.write(im0)
+            results = speed.estimate_speed(im0)
+            video_writer.write(results["im0"])
 
         cap.release()
         video_writer.release()

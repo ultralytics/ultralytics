@@ -674,25 +674,7 @@ class SolutionResults:
         summary: Returns the summary of Ultralytics Solutions: https://docs.ultralytics.com/solutions/
     """
 
-    def __init__(
-        self,
-        im0=None,
-        in_count=0,
-        out_count=0,
-        classwise_count=None,
-        queue_count=0,
-        workout_count=0,
-        workout_angle=0,
-        workout_stage=None,
-        pixels_distance=0,
-        available_slots=0,
-        filled_slots=0,
-        email_sent=False,
-        total_tracks=0,
-        region_counts=0,
-        speed_dict=None,
-        total_crop_objects=0,
-    ):
+    def __init__(self, **kwargs):
         """
         Initializes a SolutionResults object with default or user-specified values for its attributes.
 
@@ -737,22 +719,14 @@ class SolutionResults:
             ...     total_crop_objects=5,
             ... )
         """
-        self.im0 = im0
-        self.in_count = in_count
-        self.out_count = out_count
-        self.classwise_count = classwise_count
-        self.queue_count = queue_count
-        self.workout_count = workout_count
-        self.workout_angle = workout_angle
-        self.workout_stage = workout_stage
-        self.pixels_distance = pixels_distance
-        self.filled_slots = filled_slots
-        self.available_slots = available_slots
-        self.email_sent = email_sent
-        self.total_tracks = total_tracks
-        self.region_counts = region_counts
-        self.speed_dict = speed_dict
-        self.total_crop_objects = total_crop_objects
+
+        defaults = {
+            "im0": None, "in_count": 0, "out_count": 0, "classwise_count": None, "queue_count": 0,
+            "workout_count": 0, "workout_angle": 0, "workout_stage": None, "pixels_distance": 0,
+            "available_slots": 0, "filled_slots": 0, "email_sent": False, "total_tracks": 0,
+            "region_counts": 0, "speed_dict": None, "total_crop_objects": 0,
+        }
+        self.__dict__.update({**defaults, **kwargs})
 
     def summary(self, verbose=False):
         """
@@ -762,11 +736,16 @@ class SolutionResults:
         results stored in the instance. It is particularly useful for reporting, serialization, or debugging purposes.
 
         Returns:
-            _cached_summary (dict): A dictionary containing key-value pairs representing the current state of all attributes in the object.
+            summary (dict): A dictionary containing key-value pairs representing the current state of all attributes in the object.
         """
-        # Get the dictionary of the attributes set for this instance
-        result_summary = {k: v for k, v in self.__dict__.items() if v is not None}
-        if verbose:
-            LOGGER.info(self._cached_summary)
 
-        return self._cached_summary
+        # Get the dictionary of the attributes, convert im0 large array to ndarray string for Logging
+        self.result_summary = {
+            k: ("np.ndarray" if isinstance(v, np.ndarray) else v)
+            for k, v in self.__dict__.items() if k != "summary"
+        }
+
+        if verbose:
+            LOGGER.info(self.result_summary)
+
+        return {k: v for k, v in self.__dict__.items() if k != "summary"}

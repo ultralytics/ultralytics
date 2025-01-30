@@ -75,8 +75,6 @@ Object counting with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
             region=region_points,  # pass region points
             model="yolo11n.pt",  # model="yolo11n-obb.pt" for object counting with OBB model.
             # classes=[0, 2],           # count specific classes i.e person and car with COCO pretrained model.
-            # show_in=True,             # display in counts
-            # show_out=True,            # display out counts
             # tracker="botsort.yaml"    # Choose trackers i.e "bytetrack.yaml"
         )
 

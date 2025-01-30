@@ -173,7 +173,7 @@ function updateChart(initialDatasets = []) {
               label: (tooltipItem) => {
                 const { dataset, dataIndex } = tooltipItem;
                 const point = dataset.data[dataIndex];
-                return `${dataset.label}${point.version.toLowerCase()}: Speed = ${point.x}, mAP = ${point.y}`; // Custom tooltip label.
+                return `${dataset.label}${point.version.toLowerCase()}: Speed = ${point.x}ms/img, mAP50-95 = ${point.y}`; // Custom tooltip label.
               },
             },
             mode: "nearest",

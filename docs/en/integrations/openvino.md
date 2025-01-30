@@ -59,14 +59,19 @@ Export a YOLOv8n model to OpenVINO format and run inference with the exported mo
 
 ## Arguments
 
-| Key       | Value        | Description                                                                 |
-| --------- | ------------ | --------------------------------------------------------------------------- |
-| `format`  | `'openvino'` | format to export to                                                         |
-| `imgsz`   | `640`        | image size as scalar or (h, w) list, i.e. (640, 480)                        |
-| `half`    | `False`      | FP16 quantization                                                           |
-| `int8`    | `False`      | INT8 quantization                                                           |
-| `batch`   | `1`          | [batch size](https://www.ultralytics.com/glossary/batch-size) for inference |
-| `dynamic` | `False`      | allows dynamic input sizes                                                  |
+| Key       | Value        | Description                                                                                 |
+| --------- | ------------ | ------------------------------------------------------------------------------------------- |
+| `format`  | `'openvino'` | format to export to                                                                         |
+| `imgsz`   | `640`        | image size as scalar or (h, w) list, i.e. (640, 480)                                        |
+| `half`    | `False`      | FP16 quantization                                                                           |
+| `int8`    | `False`      | INT8 quantization                                                                           |
+| `batch`   | `1`          | [batch size](https://www.ultralytics.com/glossary/batch-size) for inference                 |
+| `dynamic` | `False`      | allows dynamic input sizes                                                                  |
+| `data`    | `coco8.yaml` | Path to the dataset configuration file (default: `coco8.yaml`), essential for quantization. |
+
+!!! note
+
+    When using `data` argument for quantization, please check [Dataset Guide](https://docs.ultralytics.com/datasets/detect) to learn more about the dataset format.
 
 ## Benefits of OpenVINO
 

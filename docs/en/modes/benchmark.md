@@ -72,17 +72,23 @@ Run YOLO11n benchmarks on all supported export formats including ONNX, TensorRT 
 
         # Benchmark on GPU
         benchmark(model="yolo11n.pt", data="coco8.yaml", imgsz=640, half=False, device=0)
+
+        # Benchmark specific export format
+        benchmark(model="yolo11n.pt", data="coco8.yaml", imgsz=640, format="onnx")
         ```
 
     === "CLI"
 
         ```bash
         yolo benchmark model=yolo11n.pt data='coco8.yaml' imgsz=640 half=False device=0
+
+        # Benchmark specific export format
+        yolo benchmark model=yolo11n.pt data='coco8.yaml' imgsz=640 format=onnx
         ```
 
 ## Arguments
 
-Arguments such as `model`, `data`, `imgsz`, `half`, `device`, and `verbose` provide users with the flexibility to fine-tune the benchmarks to their specific needs and compare the performance of different export formats with ease.
+Arguments such as `model`, `data`, `imgsz`, `half`, `device`, `verbose` and `format` provide users with the flexibility to fine-tune the benchmarks to their specific needs and compare the performance of different export formats with ease.
 
 | Key       | Default Value | Description                                                                                                                                                                                             |
 | --------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -93,10 +99,11 @@ Arguments such as `model`, `data`, `imgsz`, `half`, `device`, and `verbose` prov
 | `int8`    | `False`       | Activates INT8 quantization for further optimized performance on supported devices, especially useful for edge devices. Set `int8=True` to use.                                                         |
 | `device`  | `None`        | Defines the computation device(s) for benchmarking, such as `"cpu"` or `"cuda:0"`.                                                                                                                      |
 | `verbose` | `False`       | Controls the level of detail in logging output. A boolean value; set `verbose=True` for detailed logs or a float for thresholding errors.                                                               |
+| `format`  | `''`          | Benchmark the model on a single export format. i.e `format=onnx`                                                                                                                                        |
 
 ## Export Formats
 
-Benchmarks will attempt to run automatically on all possible export formats below.
+Benchmarks will attempt to run automatically on all possible export formats listed below. Alternatively, you can run benchmarks for a specific format by using the `format` argument, which accepts any of the formats mentioned below.
 
 {% include "macros/export-table.md" %}
 

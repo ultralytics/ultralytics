@@ -28,11 +28,11 @@ YOLOv3 is designed specifically for object detection tasks. Ultralytics supports
 
 All three models support a comprehensive set of modes, ensuring versatility in various stages of [model deployment](https://www.ultralytics.com/glossary/model-deployment) and development. These modes include [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md), providing users with a complete toolkit for effective object detection.
 
-| Model Type     | Pre-Trained Weights | Tasks Supported                        | Inference                              | Validation | Training | Export |
-| -------------- | ------------------- | -------------------------------------- | -------------------------------------- | ---------- | -------- | ------ | --- |
-| YOLOv3(u)      | `yolov3u.pt`        | [Object Detection](../tasks/detect.md) | ✅                                     | ✅         | ✅       | ✅     |
-| YOLOv3-Tiny(u) | `yolov3-tinyu.pt`   | [Object Detection](../tasks/detect.md) | ✅                                     | ✅         | ✅       | ✅     |
-| YOLOv3u-SPP(u) | `yolov3-sppu.pt`    |                                        | [Object Detection](../tasks/detect.md) | ✅         | ✅       | ✅     | ✅  |
+| Model Type     | Pre-Trained Weights | Tasks Supported                        | Inference | Validation | Training | Export |
+| -------------- | ------------------- | -------------------------------------- | --------- | ---------- | -------- | ------ |
+| YOLOv3(u)      | `yolov3u.pt`        | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOv3-Tiny(u) | `yolov3-tinyu.pt`   | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOv3u-SPP(u) | `yolov3-sppu.pt`    | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
 
 ## This table provides an at-a-glance view of the capabilities of each YOLOv3 variant, highlighting their versatility and suitability for various tasks and operational modes in object detection workflows.
 

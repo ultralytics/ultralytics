@@ -158,7 +158,7 @@ The above will generate a `network.rpk` file inside the specified output folder.
 Step 2: Clone `picamera2` repository, install it and navigate to the imx500 examples
 
 ```bash
-git clone -b next https://github.com/raspberrypi/picamera2
+git clone https://github.com/raspberrypi/picamera2
 cd picamera2
 pip install -e .  --break-system-packages
 cd examples/imx500
@@ -319,7 +319,7 @@ After exporting to IMX500 format:
 2. Clone and install picamera2:
 
     ```bash
-    git clone -b next https://github.com/raspberrypi/picamera2
+    git clone https://github.com/raspberrypi/picamera2
     cd picamera2 && pip install -e . --break-system-packages
     ```
 

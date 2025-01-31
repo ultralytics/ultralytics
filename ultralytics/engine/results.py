@@ -928,7 +928,7 @@ class Results(SimpleClass):
             >>> results = model("path/to/image.jpg")
             >>> for result in results:
             >>>     json_result = results[0].to_json()
-            >>>     print(json_result)
+            ...     print(json_result)
 
         Notes:
             - For classification tasks, the JSON will contain class probabilities instead of bounding boxes.

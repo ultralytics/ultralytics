@@ -776,8 +776,9 @@ class Results(SimpleClass):
 
         Examples:
             >>> results = model("image.jpg")
-            >>> summary = results[0].summary()
-            >>> print(summary)
+            >>> for result in results:
+            ...     summary = results[0].summary()
+            ...     print(summary)
         """
         # Create list of detection dictionaries
         results = []
@@ -839,8 +840,9 @@ class Results(SimpleClass):
 
         Examples:
             >>> results = model("path/to/image.jpg")
-            >>> df_result = results[0].to_df()
-            >>> print(df_result)
+            ... for result in results:
+            ...     df_result = results[0].to_df()
+            ...     print(df_result)
         """
         import pandas as pd  # scope for faster 'import ultralytics'
 
@@ -867,8 +869,9 @@ class Results(SimpleClass):
 
         Examples:
             >>> results = model("path/to/image.jpg")
-            >>> csv_result = results[0].to_csv()
-            >>> print(csv_result)
+            ... for result in results:
+            ...     csv_result = results[0].to_csv()
+            ...     print(csv_result)
         """
         return self.to_df(normalize=normalize, decimals=decimals).to_csv(*args, **kwargs)
 
@@ -892,8 +895,9 @@ class Results(SimpleClass):
 
         Examples:
             >>> results = model("path/to/image.jpg")
-            >>> xml_result = results[0].to_xml()
-            >>> print(xml_result)
+            ... for result in results:
+            ...     xml_result = results[0].to_xml()
+            ...     print(xml_result)
         """
         check_requirements("lxml")
         df = self.to_df(normalize=normalize, decimals=decimals)
@@ -922,8 +926,9 @@ class Results(SimpleClass):
 
         Examples:
             >>> results = model("path/to/image.jpg")
-            >>> json_result = results[0].to_json()
-            >>> print(json_result)
+            ... for result in results:
+            ...     json_result = results[0].to_json()
+            ...     print(json_result)
 
         Notes:
             - For classification tasks, the JSON will contain class probabilities instead of bounding boxes.
@@ -954,8 +959,8 @@ class Results(SimpleClass):
 
         Examples:
             >>> results = model("path/to/image.jpg")
-            >>> results[0].to_sql()
-            >>> print("SQL data written successfully.")
+            ... for result in results:
+            ...     results[0].to_sql()
         """
         import json
         import sqlite3

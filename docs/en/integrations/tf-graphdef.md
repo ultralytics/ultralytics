@@ -103,7 +103,15 @@ Before diving into the usage instructions, it's important to note that while all
         yolo predict model='yolo11n.pb' source='https://ultralytics.com/images/bus.jpg'
         ```
 
-For more details about supported export options, visit the [Ultralytics documentation page on deployment options](../guides/model-deployment-options.md).
+### Arguments
+
+When exporting a model to TF GraphDef format, you can [specify various arguments](../modes/export.md/#arguments):
+
+| Key      | Value | Description                                                                 |
+| -------- | ----- | --------------------------------------------------------------------------- |
+| `format` | `pb`  | format to export to                                                         |
+| `imgsz`  | `640` | image size as scalar or (h, w) list, i.e. (640, 480)                        |
+| `batch`  | `1`   | [batch size](https://www.ultralytics.com/glossary/batch-size) for inference |
 
 ## Deploying Exported YOLO11 TF GraphDef Models
 

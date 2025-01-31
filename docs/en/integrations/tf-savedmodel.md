@@ -99,6 +99,19 @@ Before diving into the usage instructions, it's important to note that while all
 
 For more details about supported export options, visit the [Ultralytics documentation page on deployment options](../guides/model-deployment-options.md).
 
+### Arguments
+
+When exporting a model to TF SavedModel format, you can [specify various arguments](../modes/export.md/#arguments):
+
+| Key      | Value         | Description                                                                                                                          |
+| -------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `format` | `saved_model` | format to export to                                                                                                                  |
+| `imgsz`  | `640`         | image size as scalar or (h, w) list, i.e. (640, 480)                                                                                 |
+| `keras`  | `False`       | enables export to Keras format                                                                                                       |
+| `int8`   | `False`       | INT8 quantization                                                                                                                    |
+| `nms`    | `False`       | adds Non-Maximum Suppression (NMS)                                                                                                   |
+| `batch`  | `1`           | [batch size](https://www.ultralytics.com/glossary/batch-size) for inference                                                          |
+
 ## Deploying Exported YOLO11 TF SavedModel Models
 
 Now that you have exported your YOLO11 model to the TF SavedModel format, the next step is to deploy it. The primary and recommended first step for running a TF GraphDef model is to use the YOLO("yolo11n_saved_model/") method, as previously shown in the usage code snippet.

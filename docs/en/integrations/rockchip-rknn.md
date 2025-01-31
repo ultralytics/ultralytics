@@ -91,7 +91,16 @@ For detailed instructions and best practices related to the installation process
         yolo export model=yolo11n.pt format=rknn name=rk3588  # creates '/yolo11n_rknn_model'
         ```
 
-For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
+### Arguments
+
+When exporting a model to RKNN format, you can [specify various arguments](../modes/export.md/#arguments):
+
+| Key      | Value    | Description                                                                                                     |
+| -------- | -------- | --------------------------------------------------------------------------------------------------------------- |
+| `format` | `rknn`   | format to export to                                                                                             |
+| `imgsz`  | `640`    | image size as scalar or (h, w) list, i.e. (640, 480)                                                            |
+| `batch`  | `1`      | [batch size](https://www.ultralytics.com/glossary/batch-size) for inference                                     |
+| `name`   | `rk3588` | specifies the Rockchip model (rk3588, rk3576, rk3566, rk3568, rk3562, rv1103, rv1106, rv1103b, rv1106b, rk2118) |
 
 ## Deploying Exported YOLO11 RKNN Models
 

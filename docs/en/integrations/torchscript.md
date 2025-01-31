@@ -105,7 +105,17 @@ Before diving into the usage instructions, it's important to note that while all
         yolo predict model=yolo11n.torchscript source='https://ultralytics.com/images/bus.jpg'
         ```
 
-For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
+### Arguments
+
+When exporting a model to TorchScript format, you can [specify various arguments](../modes/export.md/#arguments):
+
+| Key        | Value         | Description                                                                 |
+| ---------- | ------------- | --------------------------------------------------------------------------- |
+| `format`   | `torchscript` | format to export to                                                         |
+| `imgsz`    | `640`         | image size as scalar or (h, w) list, i.e. (640, 480)                        |
+| `optimize` | `False`       | applies optimization for mobile devices                                     |
+| `nms`      | `False`       | adds Non-Maximum Suppression (NMS)                                          |
+| `batch`    | `1`           | [batch size](https://www.ultralytics.com/glossary/batch-size) for inference |
 
 ## Deploying Exported YOLO11 TorchScript Models
 

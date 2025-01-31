@@ -95,7 +95,14 @@ Before diving into the usage instructions, it's important to note that while all
         yolo predict model=yolo11n_full_integer_quant_edgetpu.tflite source='https://ultralytics.com/images/bus.jpg'
         ```
 
-For more details about supported export options, visit the [Ultralytics documentation page on deployment options](../guides/model-deployment-options.md).
+### Arguments
+
+When exporting a model to TFLite Edge TPU format, you can [specify various arguments](../modes/export.md/#arguments):
+
+| Key      | Value     | Description                                          |
+| -------- | --------- | ---------------------------------------------------- |
+| `format` | `edgetpu` | format to export to                                  |
+| `imgsz`  | `640`     | image size as scalar or (h, w) list, i.e. (640, 480) |
 
 ## Deploying Exported YOLO11 TFLite Edge TPU Models
 

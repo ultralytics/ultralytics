@@ -87,18 +87,14 @@ yolov8n_imx_model
 
 ## Arguments
 
-When exporting a model to IMX500 format, you can specify various arguments:
+When exporting a model to IMX500 format, you can [specify various arguments](../modes/export.md/#arguments):
 
-| Key      | Value        | Description                                                    |
-| -------- | ------------ | -------------------------------------------------------------- |
-| `format` | `imx`        | Format to export to (imx)                                      |
-| `int8`   | `True`       | Enable INT8 quantization for the model (default: `True`)       |
-| `imgsz`  | `640`        | Image size for the model input (default: `640`)                |
-| `data`   | `coco8.yaml` | Path to the dataset configuration file (default: `coco8.yaml`) |
-
-!!! note
-
-    When using `data` argument for quantization, please check [Dataset Guide](https://docs.ultralytics.com/datasets/detect) to learn more about the dataset format.
+| Key      | Value        | Description                                                                                                                         |
+| -------- | ------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `format` | `imx`        | format to export to                                                                                                                 |
+| `imgsz`  | `640`        | image size as scalar or (h, w) list, i.e. (640, 480)                                                                                |
+| `int8`   | `True`       | INT8 quantization                                                                                                                   |
+| `data`   | `coco8.yaml` | path to the [dataset configuration](https://docs.ultralytics.com/datasets) file (default: `coco8.yaml`), essential for quantization |
 
 ## Using IMX500 Export in Deployment
 
@@ -205,10 +201,10 @@ Sony's MCT offers a range of features designed to optimize neural network models
 1. **Graph Optimizations**: Transforms models into more efficient versions by folding layers like batch normalization into preceding layers.
 2. **Quantization Parameter Search**: Minimizes quantization noise using metrics like Mean-Square-Error, No-Clipping, and Mean-Average-Error.
 3. **Advanced Quantization Algorithms**:
-    - **Shift Negative Correction**: Addresses performance issues from symmetric activation quantization.
-    - **Outliers Filtering**: Uses z-score to detect and remove outliers.
-    - **Clustering**: Utilizes non-uniform quantization grids for better distribution matching.
-    - **Mixed-Precision Search**: Assigns different quantization bit-widths per layer based on sensitivity.
+   - **Shift Negative Correction**: Addresses performance issues from symmetric activation quantization.
+   - **Outliers Filtering**: Uses z-score to detect and remove outliers.
+   - **Clustering**: Utilizes non-uniform quantization grids for better distribution matching.
+   - **Mixed-Precision Search**: Assigns different quantization bit-widths per layer based on sensitivity.
 4. **Visualization**: Use TensorBoard to observe model performance insights, quantization phases, and bit-width configurations.
 
 #### Quantization
@@ -216,16 +212,16 @@ Sony's MCT offers a range of features designed to optimize neural network models
 MCT supports several quantization methods to reduce model size and improve inference speed:
 
 1. **Post-Training Quantization (PTQ)**:
-    - Available via Keras and PyTorch APIs.
-    - Complexity: Low
-    - Computational Cost: Low (CPU minutes)
+   - Available via Keras and PyTorch APIs.
+   - Complexity: Low
+   - Computational Cost: Low (CPU minutes)
 2. **Gradient-based Post-Training Quantization (GPTQ)**:
-    - Available via Keras and PyTorch APIs.
-    - Complexity: Medium
-    - Computational Cost: Moderate (2-3 GPU hours)
+   - Available via Keras and PyTorch APIs.
+   - Complexity: Medium
+   - Computational Cost: Moderate (2-3 GPU hours)
 3. **Quantization-Aware Training (QAT)**:
-    - Complexity: High
-    - Computational Cost: High (12-36 GPU hours)
+   - Complexity: High
+   - Computational Cost: High (12-36 GPU hours)
 
 MCT also supports various quantization schemes for weights and activations:
 
@@ -312,19 +308,19 @@ After exporting to IMX500 format:
 
 1. Use the packager tool to create an RPK file:
 
-    ```bash
-    imx500-package -i <path to packerOut.zip> -o <output folder>
-    ```
+   ```bash
+   imx500-package -i <path to packerOut.zip> -o <output folder>
+   ```
 
 2. Clone and install picamera2:
 
-    ```bash
-    git clone -b next https://github.com/raspberrypi/picamera2
-    cd picamera2 && pip install -e . --break-system-packages
-    ```
+   ```bash
+   git clone -b next https://github.com/raspberrypi/picamera2
+   cd picamera2 && pip install -e . --break-system-packages
+   ```
 
 3. Run inference using the generated RPK file:
 
-    ```bash
-    python imx500_object_detection_demo.py --model <path to network.rpk> --fps 25 --bbox-normalization --labels <path to labels.txt>
-    ```
+   ```bash
+   python imx500_object_detection_demo.py --model <path to network.rpk> --fps 25 --bbox-normalization --labels <path to labels.txt>
+   ```

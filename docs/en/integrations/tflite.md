@@ -101,7 +101,19 @@ Before diving into the usage instructions, it's important to note that while all
           yolo predict model='yolo11n_float32.tflite' source='https://ultralytics.com/images/bus.jpg'
           ```
 
-For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
+### Arguments
+
+When exporting a model to TFLite format, you can [specify various arguments](../modes/export.md/#arguments):
+
+| Key      | Value        | Description                                                                                                                          |
+| -------- | ------------ | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `format` | `tflite`     | format to export to                                                                                                                  |
+| `imgsz`  | `640`        | image size as scalar or (h, w) list, i.e. (640, 480)                                                                                 |
+| `half`   | `False`      | FP16 quantization                                                                                                                    |
+| `int8`   | `False`      | INT8 quantization                                                                                                                    |
+| `nms`    | `False`      | adds Non-Maximum Suppression (NMS)                                                                                                   |
+| `batch`  | `1`          | [batch size](https://www.ultralytics.com/glossary/batch-size) for inference                                                          |
+| `data`   | `coco8.yaml` | path to the [dataset configuration](https://docs.ultralytics.com/datasets) file (default: `coco8.yaml`), essential for quantization. |
 
 ## Deploying Exported YOLO11 TFLite Models
 

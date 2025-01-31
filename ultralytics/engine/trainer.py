@@ -487,20 +487,19 @@ class BaseTrainer:
     def _get_memory(self, util=False):
         """Get accelerator memory utilization in GB and fraction."""
         if self.device.type == "mps":
-            mem = torch.mps.driver_allocated_memory()
-            gb = mem / 1e9
+            memory = torch.mps.driver_allocated_memory()
             if util:
                 total = torch.mps.get_mem_info()[0]
-                frac = (mem / total) if total > 0 else 0
+                frac = (memory / total) if total > 0 else 0
         elif self.device.type == "cpu":
-            gb = 0
+            memory = 0
         else:
-            mem = torch.cuda.memory_reserved()
-            gb = mem / 1e9
+            memory = torch.cuda.memory_reserved()
             if util:
                 total = torch.cuda.get_device_properties(self.device).total_memory
-                frac = mem / total
-        return (gb, frac) if util else gb
+                frac = memory / total
+        memory /= 1e9
+        return (memory, frac) if util else memory 
 
     def _clear_memory(self):
         """Clear accelerator memory on different platforms."""

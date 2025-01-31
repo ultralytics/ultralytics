@@ -499,7 +499,7 @@ class BaseTrainer:
                 total = torch.cuda.get_device_properties(self.device).total_memory
                 frac = memory / total
         memory /= 1e9
-        return (memory, frac) if util else memory 
+        return (memory, frac) if util else memory
 
     def _clear_memory(self):
         """Clear accelerator memory on different platforms."""

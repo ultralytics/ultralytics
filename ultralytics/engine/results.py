@@ -777,7 +777,7 @@ class Results(SimpleClass):
         Examples:
             >>> results = model("image.jpg")
             >>> for result in results:
-            >>>     summary = results[0].summary()
+            >>>     summary = result[0].summary()
             ...     print(summary)
         """
         # Create list of detection dictionaries
@@ -841,7 +841,7 @@ class Results(SimpleClass):
         Examples:
             >>> results = model("path/to/image.jpg")
             >>> for result in results:
-            >>>     df_result = results[0].to_df()
+            >>>     df_result = result[0].to_df()
             ...     print(df_result)
         """
         import pandas as pd  # scope for faster 'import ultralytics'
@@ -870,7 +870,7 @@ class Results(SimpleClass):
         Examples:
             >>> results = model("path/to/image.jpg")
             >>> for result in results:
-            >>>     csv_result = results[0].to_csv()
+            >>>     csv_result = result[0].to_csv()
             ...     print(csv_result)
         """
         return self.to_df(normalize=normalize, decimals=decimals).to_csv(*args, **kwargs)
@@ -896,7 +896,7 @@ class Results(SimpleClass):
         Examples:
             >>> results = model("path/to/image.jpg")
             >>> for result in results:
-            >>>     xml_result = results[0].to_xml()
+            >>>     xml_result = result[0].to_xml()
             ...     print(xml_result)
         """
         check_requirements("lxml")
@@ -927,7 +927,7 @@ class Results(SimpleClass):
         Examples:
             >>> results = model("path/to/image.jpg")
             >>> for result in results:
-            >>>     json_result = results[0].to_json()
+            >>>     json_result = result[0].to_json()
             ...     print(json_result)
 
         Notes:
@@ -960,7 +960,7 @@ class Results(SimpleClass):
         Examples:
             >>> results = model("path/to/image.jpg")
             >>> for result in results:
-            ...     results[0].to_sql()
+            ...     result[0].to_sql()
         """
         import json
         import sqlite3

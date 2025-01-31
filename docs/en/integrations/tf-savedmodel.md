@@ -103,14 +103,14 @@ For more details about supported export options, visit the [Ultralytics document
 
 When exporting a model to TF SavedModel format, you can [specify various arguments](../modes/export.md/#arguments):
 
-| Key      | Value         | Description                                                                                                                          |
-| -------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| `format` | `saved_model` | format to export to                                                                                                                  |
-| `imgsz`  | `640`         | image size as scalar or (h, w) list, i.e. (640, 480)                                                                                 |
-| `keras`  | `False`       | enables export to Keras format                                                                                                       |
-| `int8`   | `False`       | INT8 quantization                                                                                                                    |
-| `nms`    | `False`       | adds Non-Maximum Suppression (NMS)                                                                                                   |
-| `batch`  | `1`           | [batch size](https://www.ultralytics.com/glossary/batch-size) for inference                                                          |
+| Key      | Value         | Description                                                                 |
+| -------- | ------------- | --------------------------------------------------------------------------- |
+| `format` | `saved_model` | format to export to                                                         |
+| `imgsz`  | `640`         | image size as scalar or (h, w) list, i.e. (640, 480)                        |
+| `keras`  | `False`       | enables export to Keras format                                              |
+| `int8`   | `False`       | INT8 quantization                                                           |
+| `nms`    | `False`       | adds Non-Maximum Suppression (NMS)                                          |
+| `batch`  | `1`           | [batch size](https://www.ultralytics.com/glossary/batch-size) for inference |
 
 ## Deploying Exported YOLO11 TF SavedModel Models
 

@@ -99,14 +99,14 @@ Before diving into the usage instructions, it's important to note that while all
 
 When exporting a model to TensorFlow.js format, you can [specify various arguments](../modes/export.md/#arguments):
 
-| Key      | Value        | Description                                                                                                                          |
-| -------- | ------------ | ------------------------------------------------------------------------------------------------------------------------------------ |
-| `format` | `tfjs`       | format to export to                                                                                                                  |
-| `imgsz`  | `640`        | image size as scalar or (h, w) list, i.e. (640, 480)                                                                                 |
-| `half`   | `False`      | FP16 quantization                                                                                                                    |
-| `int8`   | `False`      | INT8 quantization                                                                                                                    |
-| `nms`    | `False`      | adds Non-Maximum Suppression (NMS)                                                                                                   |
-| `batch`  | `1`          | [batch size](https://www.ultralytics.com/glossary/batch-size) for inference                                                          |
+| Key      | Value   | Description                                                                 |
+| -------- | ------- | --------------------------------------------------------------------------- |
+| `format` | `tfjs`  | format to export to                                                         |
+| `imgsz`  | `640`   | image size as scalar or (h, w) list, i.e. (640, 480)                        |
+| `half`   | `False` | FP16 quantization                                                           |
+| `int8`   | `False` | INT8 quantization                                                           |
+| `nms`    | `False` | adds Non-Maximum Suppression (NMS)                                          |
+| `batch`  | `1`     | [batch size](https://www.ultralytics.com/glossary/batch-size) for inference |
 
 ## Deploying Exported YOLO11 TensorFlow.js Models
 

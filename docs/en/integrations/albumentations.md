@@ -184,8 +184,9 @@ To pass a custom Albumentations pipeline to YOLO11, define your augmentation pip
 ```python
 # Install required packages
 # !pip install albumentations ultralytics
-from ultralytics import YOLO
 import Albumentations as A
+
+from ultralytics import YOLO
 
 # Define custom Albumentations pipeline
 pipeline = A.Compose(

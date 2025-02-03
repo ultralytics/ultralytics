@@ -504,7 +504,6 @@ class Annotator:
                 txt_color = (255, 255, 255)
             if "\n" in text:
                 lines = text.split("\n")
-
                 for idx, line in enumerate(lines):
                     color = colors(idx, True)
                     w, h = self.font.getsize(line)

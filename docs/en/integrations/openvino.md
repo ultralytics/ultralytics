@@ -57,7 +57,7 @@ Export a YOLOv8n model to OpenVINO format and run inference with the exported mo
         yolo predict model=yolov8n_openvino_model source='https://ultralytics.com/images/bus.jpg'
         ```
 
-### Export Arguments
+## Export Arguments
 
 | Argument  | Type             | Default      | Description                                                                                                                                                                                   |
 | --------- | ---------------- | ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

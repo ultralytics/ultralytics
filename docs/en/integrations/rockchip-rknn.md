@@ -135,9 +135,9 @@ To install the required packages, run:
 
 !!! note
 
-    If you encounter a log message indicating that the RKNN runtime version does not match the RKNN Toolkit version and the inference fails, please replace `/usr/lib/librknnrt.so` with official [librknnrt.so file](https://github.com/airockchip/rknn-toolkit2/blob/master/rknpu2/runtime/Linux/librknn_api/aarch64/librknnrt.so)
+    If you encounter a log message indicating that the RKNN runtime version does not match the RKNN Toolkit version and the inference fails, please replace `/usr/lib/librknnrt.so` with official [librknnrt.so file](https://github.com/airockchip/rknn-toolkit2/blob/master/rknpu2/runtime/Linux/librknn_api/aarch64/librknnrt.so).
 
-    ![](https://github.com/ultralytics/assets/releases/download/v0.0.0/rknn-npu-log.avif)
+    ![RKNN export screenshot](https://github.com/ultralytics/assets/releases/download/v0.0.0/rknn-npu-log.avif)
 
 ## Benchmarks
 

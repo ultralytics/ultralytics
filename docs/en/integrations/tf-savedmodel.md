@@ -97,20 +97,18 @@ Before diving into the usage instructions, it's important to note that while all
         yolo predict model='./yolo11n_saved_model' source='https://ultralytics.com/images/bus.jpg'
         ```
 
-For more details about supported export options, visit the [Ultralytics documentation page on deployment options](../guides/model-deployment-options.md).
+### Export Arguments
 
-### Arguments
+| Argument | Type             | Default       | Description                                                                                                                                                                                   |
+| -------- | ---------------- | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `format` | `str`            | `saved_model` | Target format for the exported model, defining compatibility with various deployment environments.                                                                                            |
+| `imgsz`  | `int` or `tuple` | `640`         | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                                                             |
+| `keras`  | `bool`           | `False`       | Enables export to Keras format, providing compatibility with TensorFlow serving and APIs.                                                                                                     |
+| `int8`   | `bool`           | `False`       | Activates INT8 quantization, further compressing the model and speeding up inference with minimal [accuracy](https://www.ultralytics.com/glossary/accuracy) loss, primarily for edge devices. |
+| `nms`    | `bool`           | `False`       | Adds Non-Maximum Suppression (NMS), essential for accurate and efficient detection post-processing.                                                                                           |
+| `batch`  | `int`            | `1`           | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                                       |
 
-When exporting a model to TF SavedModel format, you can [specify various arguments](../modes/export.md/#arguments):
-
-| Key      | Value         | Description                                                                 |
-| -------- | ------------- | --------------------------------------------------------------------------- |
-| `format` | `saved_model` | format to export to                                                         |
-| `imgsz`  | `640`         | image size as scalar or (h, w) list, i.e. (640, 480)                        |
-| `keras`  | `False`       | enables export to Keras format                                              |
-| `int8`   | `False`       | INT8 quantization                                                           |
-| `nms`    | `False`       | adds Non-Maximum Suppression (NMS)                                          |
-| `batch`  | `1`           | [batch size](https://www.ultralytics.com/glossary/batch-size) for inference |
+For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
 
 ## Deploying Exported YOLO11 TF SavedModel Models
 

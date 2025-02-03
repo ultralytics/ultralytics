@@ -105,17 +105,17 @@ Before diving into the usage instructions, it's important to note that while all
         yolo predict model=yolo11n.torchscript source='https://ultralytics.com/images/bus.jpg'
         ```
 
-### Arguments
+### Export Arguments
 
-When exporting a model to TorchScript format, you can [specify various arguments](../modes/export.md/#arguments):
+| Argument   | Type             | Default       | Description                                                                                                                             |
+| ---------- | ---------------- | ------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `format`   | `str`            | `torchscript` | Target format for the exported model, defining compatibility with various deployment environments.                                      |
+| `imgsz`    | `int` or `tuple` | `640`         | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.       |
+| `optimize` | `bool`           | `False`       | Applies optimization for mobile devices, potentially reducing model size and improving performance.                                     |
+| `nms`      | `bool`           | `False`       | Adds Non-Maximum Suppression (NMS), essential for accurate and efficient detection post-processing.                                     |
+| `batch`    | `int`            | `1`           | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode. |
 
-| Key        | Value         | Description                                                                 |
-| ---------- | ------------- | --------------------------------------------------------------------------- |
-| `format`   | `torchscript` | format to export to                                                         |
-| `imgsz`    | `640`         | image size as scalar or (h, w) list, i.e. (640, 480)                        |
-| `optimize` | `False`       | applies optimization for mobile devices                                     |
-| `nms`      | `False`       | adds Non-Maximum Suppression (NMS)                                          |
-| `batch`    | `1`           | [batch size](https://www.ultralytics.com/glossary/batch-size) for inference |
+For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
 
 ## Deploying Exported YOLO11 TorchScript Models
 

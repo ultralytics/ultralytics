@@ -85,16 +85,16 @@ yolov8n_imx_model
 └── yolov8n_imx500_model.pbtxt
 ```
 
-## Arguments
+### Export Arguments
 
-When exporting a model to IMX500 format, you can [specify various arguments](../modes/export.md/#arguments):
+| Argument | Type             | Default      | Description                                                                                                                                                                                   |
+| -------- | ---------------- | ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `format` | `str`            | `imx`        | Target format for the exported model, defining compatibility with various deployment environments.                                                                                            |
+| `imgsz`  | `int` or `tuple` | `640`        | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                                                             |
+| `int8`   | `bool`           | `True`       | Activates INT8 quantization, further compressing the model and speeding up inference with minimal [accuracy](https://www.ultralytics.com/glossary/accuracy) loss, primarily for edge devices. |
+| `data`   | `str`            | `coco8.yaml` | Path to the [dataset](https://docs.ultralytics.com/datasets) configuration file (default: `coco8.yaml`), essential for quantization.                                                          |
 
-| Key      | Value        | Description                                                                                                                         |
-| -------- | ------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
-| `format` | `imx`        | format to export to                                                                                                                 |
-| `imgsz`  | `640`        | image size as scalar or (h, w) list, i.e. (640, 480)                                                                                |
-| `int8`   | `True`       | INT8 quantization                                                                                                                   |
-| `data`   | `coco8.yaml` | path to the [dataset configuration](https://docs.ultralytics.com/datasets) file (default: `coco8.yaml`), essential for quantization |
+For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
 
 ## Using IMX500 Export in Deployment
 
@@ -201,10 +201,10 @@ Sony's MCT offers a range of features designed to optimize neural network models
 1. **Graph Optimizations**: Transforms models into more efficient versions by folding layers like batch normalization into preceding layers.
 2. **Quantization Parameter Search**: Minimizes quantization noise using metrics like Mean-Square-Error, No-Clipping, and Mean-Average-Error.
 3. **Advanced Quantization Algorithms**:
-    - **Shift Negative Correction**: Addresses performance issues from symmetric activation quantization.
-    - **Outliers Filtering**: Uses z-score to detect and remove outliers.
-    - **Clustering**: Utilizes non-uniform quantization grids for better distribution matching.
-    - **Mixed-Precision Search**: Assigns different quantization bit-widths per layer based on sensitivity.
+   - **Shift Negative Correction**: Addresses performance issues from symmetric activation quantization.
+   - **Outliers Filtering**: Uses z-score to detect and remove outliers.
+   - **Clustering**: Utilizes non-uniform quantization grids for better distribution matching.
+   - **Mixed-Precision Search**: Assigns different quantization bit-widths per layer based on sensitivity.
 4. **Visualization**: Use TensorBoard to observe model performance insights, quantization phases, and bit-width configurations.
 
 #### Quantization
@@ -212,16 +212,16 @@ Sony's MCT offers a range of features designed to optimize neural network models
 MCT supports several quantization methods to reduce model size and improve inference speed:
 
 1. **Post-Training Quantization (PTQ)**:
-    - Available via Keras and PyTorch APIs.
-    - Complexity: Low
-    - Computational Cost: Low (CPU minutes)
+   - Available via Keras and PyTorch APIs.
+   - Complexity: Low
+   - Computational Cost: Low (CPU minutes)
 2. **Gradient-based Post-Training Quantization (GPTQ)**:
-    - Available via Keras and PyTorch APIs.
-    - Complexity: Medium
-    - Computational Cost: Moderate (2-3 GPU hours)
+   - Available via Keras and PyTorch APIs.
+   - Complexity: Medium
+   - Computational Cost: Moderate (2-3 GPU hours)
 3. **Quantization-Aware Training (QAT)**:
-    - Complexity: High
-    - Computational Cost: High (12-36 GPU hours)
+   - Complexity: High
+   - Computational Cost: High (12-36 GPU hours)
 
 MCT also supports various quantization schemes for weights and activations:
 
@@ -308,19 +308,19 @@ After exporting to IMX500 format:
 
 1. Use the packager tool to create an RPK file:
 
-    ```bash
-    imx500-package -i <path to packerOut.zip> -o <output folder>
-    ```
+   ```bash
+   imx500-package -i <path to packerOut.zip> -o <output folder>
+   ```
 
 2. Clone and install picamera2:
 
-    ```bash
-    git clone https://github.com/raspberrypi/picamera2
-    cd picamera2 && pip install -e . --break-system-packages
-    ```
+   ```bash
+   git clone https://github.com/raspberrypi/picamera2
+   cd picamera2 && pip install -e . --break-system-packages
+   ```
 
 3. Run inference using the generated RPK file:
 
-    ```bash
-    python imx500_object_detection_demo.py --model <path to network.rpk> --fps 25 --bbox-normalization --labels <path to labels.txt>
-    ```
+   ```bash
+   python imx500_object_detection_demo.py --model <path to network.rpk> --fps 25 --bbox-normalization --labels <path to labels.txt>
+   ```

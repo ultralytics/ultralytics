@@ -113,20 +113,20 @@ Before diving into the usage instructions, be sure to check out the range of [YO
         yolo predict model=yolo11n.onnx source='https://ultralytics.com/images/bus.jpg'
         ```
 
-### Arguments
+### Export Arguments
 
-When exporting a model to ONNX format, you can [specify various arguments](../modes/export.md/#arguments):
+| Argument   | Type             | Default | Description                                                                                                                                 |
+| ---------- | ---------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `format`   | `str`            | `onnx`  | Target format for the exported model, defining compatibility with various deployment environments.                                          |
+| `imgsz`    | `int` or `tuple` | `640`   | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.           |
+| `half`     | `bool`           | `False` | Enables FP16 (half-precision) quantization, reducing model size and potentially speeding up inference on supported hardware.                |
+| `dynamic`  | `bool`           | `False` | Allows dynamic input sizes, enhancing flexibility in handling varying image dimensions.                                                     |
+| `simplify` | `bool`           | `True`  | Simplifies the model graph with `onnxslim`, potentially improving performance and compatibility.                                            |
+| `opset`    | `int`            | `None`  | Specifies the ONNX opset version for compatibility with different ONNX parsers and runtimes. If not set, uses the latest supported version. |
+| `nms`      | `bool`           | `False` | Adds Non-Maximum Suppression (NMS), essential for accurate and efficient detection post-processing.                                         |
+| `batch`    | `int`            | `1`     | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.     |
 
-| Key        | Value   | Description                                                                                 |
-| ---------- | ------- | ------------------------------------------------------------------------------------------- |
-| `format`   | `onnx`  | format to export to                                                                         |
-| `imgsz`    | `640`   | image size as scalar or (h, w) list, i.e. (640, 480)                                        |
-| `half`     | `False` | FP16 quantization                                                                           |
-| `dynamic`  | `False` | allows dynamic input sizes                                                                  |
-| `simplify` | `True`  | simplifies the model graph with `onnxslim`                                                  |
-| `opset`    | `None`  | specifies the ONNX opset version for compatibility with different ONNX parsers and runtimes |
-| `nms`      | `False` | adds Non-Maximum Suppression (NMS)                                                          |
-| `batch`    | `1`     | [batch size](https://www.ultralytics.com/glossary/batch-size) for inference                 |
+For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
 
 ## Deploying Exported YOLO11 ONNX Models
 

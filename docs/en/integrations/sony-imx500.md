@@ -201,10 +201,10 @@ Sony's MCT offers a range of features designed to optimize neural network models
 1. **Graph Optimizations**: Transforms models into more efficient versions by folding layers like batch normalization into preceding layers.
 2. **Quantization Parameter Search**: Minimizes quantization noise using metrics like Mean-Square-Error, No-Clipping, and Mean-Average-Error.
 3. **Advanced Quantization Algorithms**:
-   - **Shift Negative Correction**: Addresses performance issues from symmetric activation quantization.
-   - **Outliers Filtering**: Uses z-score to detect and remove outliers.
-   - **Clustering**: Utilizes non-uniform quantization grids for better distribution matching.
-   - **Mixed-Precision Search**: Assigns different quantization bit-widths per layer based on sensitivity.
+    - **Shift Negative Correction**: Addresses performance issues from symmetric activation quantization.
+    - **Outliers Filtering**: Uses z-score to detect and remove outliers.
+    - **Clustering**: Utilizes non-uniform quantization grids for better distribution matching.
+    - **Mixed-Precision Search**: Assigns different quantization bit-widths per layer based on sensitivity.
 4. **Visualization**: Use TensorBoard to observe model performance insights, quantization phases, and bit-width configurations.
 
 #### Quantization
@@ -212,16 +212,16 @@ Sony's MCT offers a range of features designed to optimize neural network models
 MCT supports several quantization methods to reduce model size and improve inference speed:
 
 1. **Post-Training Quantization (PTQ)**:
-   - Available via Keras and PyTorch APIs.
-   - Complexity: Low
-   - Computational Cost: Low (CPU minutes)
+    - Available via Keras and PyTorch APIs.
+    - Complexity: Low
+    - Computational Cost: Low (CPU minutes)
 2. **Gradient-based Post-Training Quantization (GPTQ)**:
-   - Available via Keras and PyTorch APIs.
-   - Complexity: Medium
-   - Computational Cost: Moderate (2-3 GPU hours)
+    - Available via Keras and PyTorch APIs.
+    - Complexity: Medium
+    - Computational Cost: Moderate (2-3 GPU hours)
 3. **Quantization-Aware Training (QAT)**:
-   - Complexity: High
-   - Computational Cost: High (12-36 GPU hours)
+    - Complexity: High
+    - Computational Cost: High (12-36 GPU hours)
 
 MCT also supports various quantization schemes for weights and activations:
 
@@ -308,19 +308,19 @@ After exporting to IMX500 format:
 
 1. Use the packager tool to create an RPK file:
 
-   ```bash
-   imx500-package -i <path to packerOut.zip> -o <output folder>
-   ```
+    ```bash
+    imx500-package -i <path to packerOut.zip> -o <output folder>
+    ```
 
 2. Clone and install picamera2:
 
-   ```bash
-   git clone https://github.com/raspberrypi/picamera2
-   cd picamera2 && pip install -e . --break-system-packages
-   ```
+    ```bash
+    git clone https://github.com/raspberrypi/picamera2
+    cd picamera2 && pip install -e . --break-system-packages
+    ```
 
 3. Run inference using the generated RPK file:
 
-   ```bash
-   python imx500_object_detection_demo.py --model <path to network.rpk> --fps 25 --bbox-normalization --labels <path to labels.txt>
-   ```
+    ```bash
+    python imx500_object_detection_demo.py --model <path to network.rpk> --fps 25 --bbox-normalization --labels <path to labels.txt>
+    ```

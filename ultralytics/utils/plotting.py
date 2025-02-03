@@ -504,9 +504,12 @@ class Annotator:
                 txt_color = (255, 255, 255)
             if "\n" in text:
                 lines = text.split("\n")
-                _, h = self.font.getsize(text)
-                for line in lines:
-                    self.draw.text(xy, line, fill=txt_color, font=self.font)
+
+                for idx, line in enumerate(lines):
+                    color = colors(idx, True)
+                    w, h = self.font.getsize(line)
+                    self.draw.rectangle((xy[0], xy[1], xy[0] + w + 1, xy[1] + h + 1), fill=color)
+                    self.draw.text(xy, line, fill=self.get_txt_color(color), font=self.font)
                     xy[1] += h
             else:
                 self.draw.text(xy, text, fill=txt_color, font=self.font)

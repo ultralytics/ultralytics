@@ -133,6 +133,12 @@ To install the required packages, run:
         yolo predict model='./yolo11n_rknn_model' source='https://ultralytics.com/images/bus.jpg'
         ```
 
+!!! note
+
+    If you encounter a log message indicating that the RKNN runtime version does not match the RKNN Toolkit version and the inference fails, please replace `/usr/lib/librknnrt.so` with official [librknnrt.so file](https://github.com/airockchip/rknn-toolkit2/blob/master/rknpu2/runtime/Linux/librknn_api/aarch64/librknnrt.so).
+
+    ![RKNN export screenshot](https://github.com/ultralytics/assets/releases/download/v0.0.0/rknn-npu-log.avif)
+
 ## Benchmarks
 
 YOLO11 benchmarks below were run by the Ultralytics team on Radxa Rock 5B based on Rockchip RK3588 with `rknn` model format measuring speed and accuracy.

@@ -494,8 +494,8 @@ class Results(SimpleClass):
         Examples:
             >>> results = model("image.jpg")
             >>> for result in results:
-            ...     im = result.plot()
-            ...     im.show()
+            >>>     im = result.plot()
+            >>>     im.show()
         """
         assert color_mode in {"instance", "class"}, f"Expected color_mode='instance' or 'class', not {color_mode}."
         if img is None and isinstance(self.orig_img, torch.Tensor):
@@ -600,7 +600,7 @@ class Results(SimpleClass):
             >>> results = model("path/to/image.jpg")
             >>> results[0].show()  # Display the first result
             >>> for result in results:
-            ...     result.show()  # Display all results
+            >>>     result.show()  # Display all results
         """
         self.plot(show=True, *args, **kwargs)
 
@@ -620,10 +620,10 @@ class Results(SimpleClass):
         Examples:
             >>> results = model("path/to/image.jpg")
             >>> for result in results:
-            ...     result.save("annotated_image.jpg")
+            >>>     result.save("annotated_image.jpg")
             >>> # Or with custom plot arguments
             >>> for result in results:
-            ...     result.save("annotated_image.jpg", conf=False, line_width=2)
+            >>>     result.save("annotated_image.jpg", conf=False, line_width=2)
         """
         if not filename:
             filename = f"results_{Path(self.path).name}"
@@ -644,7 +644,7 @@ class Results(SimpleClass):
         Examples:
             >>> results = model("path/to/image.jpg")
             >>> for result in results:
-            ...     print(result.verbose())
+            >>>     print(result.verbose())
             2 persons, 1 car, 3 traffic lights,
             dog 0.92, cat 0.78, horse 0.64,
 
@@ -681,7 +681,7 @@ class Results(SimpleClass):
             >>> model = YOLO("yolo11n.pt")
             >>> results = model("path/to/image.jpg")
             >>> for result in results:
-            ...     result.save_txt("output.txt")
+            >>>     result.save_txt("output.txt")
 
         Notes:
             - The file will contain one line per detection or classification with the following structure:
@@ -740,7 +740,7 @@ class Results(SimpleClass):
         Examples:
             >>> results = model("path/to/image.jpg")
             >>> for result in results:
-            ...     result.save_crop(save_dir="path/to/crops", file_name="detection")
+            >>>     result.save_crop(save_dir="path/to/crops", file_name="detection")
         """
         if self.probs is not None:
             LOGGER.warning("WARNING ⚠️ Classify task do not support `save_crop`.")
@@ -776,8 +776,9 @@ class Results(SimpleClass):
 
         Examples:
             >>> results = model("image.jpg")
-            >>> summary = results[0].summary()
-            >>> print(summary)
+            >>> for result in results:
+            >>>     summary = result.summary()
+            >>>     print(summary)
         """
         # Create list of detection dictionaries
         results = []
@@ -839,8 +840,9 @@ class Results(SimpleClass):
 
         Examples:
             >>> results = model("path/to/image.jpg")
-            >>> df_result = results[0].to_df()
-            >>> print(df_result)
+            >>> for result in results:
+            >>>     df_result = result.to_df()
+            >>>     print(df_result)
         """
         import pandas as pd  # scope for faster 'import ultralytics'
 
@@ -867,8 +869,9 @@ class Results(SimpleClass):
 
         Examples:
             >>> results = model("path/to/image.jpg")
-            >>> csv_result = results[0].to_csv()
-            >>> print(csv_result)
+            >>> for result in results:
+            >>>     csv_result = result.to_csv()
+            >>>     print(csv_result)
         """
         return self.to_df(normalize=normalize, decimals=decimals).to_csv(*args, **kwargs)
 
@@ -892,8 +895,9 @@ class Results(SimpleClass):
 
         Examples:
             >>> results = model("path/to/image.jpg")
-            >>> xml_result = results[0].to_xml()
-            >>> print(xml_result)
+            >>> for result in results:
+            >>>     xml_result = result.to_xml()
+            >>>     print(xml_result)
         """
         check_requirements("lxml")
         df = self.to_df(normalize=normalize, decimals=decimals)
@@ -922,8 +926,9 @@ class Results(SimpleClass):
 
         Examples:
             >>> results = model("path/to/image.jpg")
-            >>> json_result = results[0].to_json()
-            >>> print(json_result)
+            >>> for result in results:
+            >>>     json_result = result.to_json()
+            >>>     print(json_result)
 
         Notes:
             - For classification tasks, the JSON will contain class probabilities instead of bounding boxes.
@@ -954,8 +959,8 @@ class Results(SimpleClass):
 
         Examples:
             >>> results = model("path/to/image.jpg")
-            >>> results[0].to_sql()
-            >>> print("SQL data written successfully.")
+            >>> for result in results:
+            >>>     result.to_sql()
         """
         import json
         import sqlite3

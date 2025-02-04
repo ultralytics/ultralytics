@@ -9,7 +9,7 @@ from pathlib import Path
 
 import thop
 import torch
-import torch.nn as nn
+from torch import nn
 
 from ultralytics.nn.modules import (
     AIFI,

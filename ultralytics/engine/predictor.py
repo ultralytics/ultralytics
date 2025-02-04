@@ -88,7 +88,7 @@ class BasePredictor:
             cfg (str, optional): Path to a configuration file. Defaults to DEFAULT_CFG.
             overrides (dict, optional): Configuration overrides. Defaults to None.
         """
-        self.ir_results = None # for IR results
+        self.ir_results = None  # for IR results
         self.args = get_cfg(cfg, overrides)
         self.save_dir = get_save_dir(self.args)
         if self.args.conf is None:
@@ -239,8 +239,10 @@ class BasePredictor:
 
             # Warmup model
             if not self.done_warmup:
-                #self.model.warmup(imgsz=(1 if self.model.pt or self.model.triton else self.dataset.bs, 3, *self.imgsz))
-                self.model.warmup(imgsz=(1 if self.model.pt or self.model.triton else self.dataset.bs, self.args.ch, *self.imgsz))
+                # self.model.warmup(imgsz=(1 if self.model.pt or self.model.triton else self.dataset.bs, 3, *self.imgsz))
+                self.model.warmup(
+                    imgsz=(1 if self.model.pt or self.model.triton else self.dataset.bs, self.args.ch, *self.imgsz)
+                )
                 self.done_warmup = True
 
             self.seen, self.windows, self.batch = 0, [], None
@@ -267,8 +269,8 @@ class BasePredictor:
 
                 # Postprocess
                 with profilers[2]:
-                    #self.results = self.postprocess(preds, im, im0s)
-                    if self.args.ch >= 4: # RGB or RGB+IR
+                    # self.results = self.postprocess(preds, im, im0s)
+                    if self.args.ch >= 4:  # RGB or RGB+IR
                         self.results, self.ir_results = self.postprocess(preds, im, im0s)
                     else:
                         self.results = self.postprocess(preds, im, im0s)
@@ -278,12 +280,12 @@ class BasePredictor:
                 n = len(im0s)
                 for i in range(n):
                     self.seen += 1
-                    #self.results[i].speed = {
+                    # self.results[i].speed = {
                     #    "preprocess": profilers[0].dt * 1e3 / n,
                     #    "inference": profilers[1].dt * 1e3 / n,
                     #    "postprocess": profilers[2].dt * 1e3 / n,
-                    #}
-                    if self.args.ch >= 4: # RGB or RGB+IR
+                    # }
+                    if self.args.ch >= 4:  # RGB or RGB+IR
                         self.results[i].speed = {
                             "preprocess": profilers[0].dt * 1e3 / n,
                             "inference": profilers[1].dt * 1e3 / n,
@@ -301,12 +303,16 @@ class BasePredictor:
                             "postprocess": profilers[2].dt * 1e3 / n,
                         }
                     if self.args.verbose or self.args.save or self.args.save_txt or self.args.show:
-                        #s[i] += self.write_results(i, Path(paths[i]), im, s)
-                        s[i] += self.write_results(i, Path(paths[i][:-4] + '_rgb' + paths[i][-4:]), im[:, :3], s, self.results)
+                        # s[i] += self.write_results(i, Path(paths[i]), im, s)
+                        s[i] += self.write_results(
+                            i, Path(paths[i][:-4] + "_rgb" + paths[i][-4:]), im[:, :3], s, self.results
+                        )
 
-                    if self.ir_results is not None: # for IR results
+                    if self.ir_results is not None:  # for IR results
                         if self.args.verbose or self.args.save or self.args.save_txt or self.args.show:
-                            s[i] += self.write_results(i, Path(paths[i][:-4] + '_ir' + paths[i][-4:]), im[:, 3:], s, self.ir_results)
+                            s[i] += self.write_results(
+                                i, Path(paths[i][:-4] + "_ir" + paths[i][-4:]), im[:, 3:], s, self.ir_results
+                            )
 
                 # Print batch results
                 if self.args.verbose:
@@ -350,7 +356,7 @@ class BasePredictor:
         self.args.half = self.model.fp16  # update half
         self.model.eval()
 
-    #def write_results(self, i, p, im, s):
+    # def write_results(self, i, p, im, s):
     def write_results(self, i, p, im, s, results):
         """Write inference results to a file or directory."""
         string = ""  # print string
@@ -365,7 +371,7 @@ class BasePredictor:
 
         self.txt_path = self.save_dir / "labels" / (p.stem + ("" if self.dataset.mode == "image" else f"_{frame}"))
         string += "{:g}x{:g} ".format(*im.shape[2:])
-        #result = self.results[i]
+        # result = self.results[i]
         result = results[i]
         result.save_dir = self.save_dir.__str__()  # used in other locations
         string += f"{result.verbose()}{result.speed['inference']:.1f}ms"

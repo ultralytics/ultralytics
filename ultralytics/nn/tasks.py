@@ -51,7 +51,6 @@ from ultralytics.nn.modules import (
     HGBlock,
     HGStem,
     ImagePoolingAttn,
-    IN,
     Index,
     Multiin,
     Pose,

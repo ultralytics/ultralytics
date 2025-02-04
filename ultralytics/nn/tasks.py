@@ -467,7 +467,9 @@ class ClassificationModel(BaseModel):
             elif torch.nn.Conv2d in types:
                 i = len(types) - 1 - types[::-1].index(torch.nn.Conv2d)  # last torch.nn.Conv2d index
                 if m[i].out_channels != nc:
-                    m[i] = torch.nn.Conv2d(m[i].in_channels, nc, m[i].kernel_size, m[i].stride, bias=m[i].bias is not None)
+                    m[i] = torch.nn.Conv2d(
+                        m[i].in_channels, nc, m[i].kernel_size, m[i].stride, bias=m[i].bias is not None
+                    )
 
     def init_criterion(self):
         """Initialize the loss criterion for the ClassificationModel."""

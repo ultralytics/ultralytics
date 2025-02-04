@@ -11,6 +11,7 @@ from PIL import Image
 from ultralytics.cfg import TASK2DATA, get_cfg, get_save_dir
 from ultralytics.engine.results import Results
 from ultralytics.hub import HUB_WEB_ROOT, HUBTrainingSession
+from ultralytics.nn.modules import RTDETRDecoder
 from ultralytics.nn.tasks import attempt_load_one_weight, guess_model_task, nn, yaml_model_load
 from ultralytics.utils import (
     ARGV,
@@ -555,6 +556,12 @@ class Model(nn.Module):
                 self.predictor.save_dir = get_save_dir(self.predictor.args)
         if prompts and hasattr(self.predictor, "set_prompts"):  # for SAM-type models
             self.predictor.set_prompts(prompts)
+        if "iou" in kwargs:
+            if getattr(self.model.model[-1], "end2end", False):
+                LOGGER.warning("WARNING ⚠️ 'iou' is not supported for end2end models.")
+            elif isinstance(self.model.model[-1], RTDETRDecoder):
+                LOGGER.warning("WARNING ⚠️ 'iou' is not supported for RTDETR models.")
+
         return self.predictor.predict_cli(source=source) if is_cli else self.predictor(source=source, stream=stream)
 
     def track(

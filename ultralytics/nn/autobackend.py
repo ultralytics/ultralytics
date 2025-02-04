@@ -780,7 +780,7 @@ class AutoBackend(nn.Module):
         saved_model, pb, tflite, edgetpu, tfjs, ncnn or paddle.
 
         Args:
-            p: path to the model file. Defaults to path/to/model.pt
+            p (str): path to the model file. Defaults to path/to/model.pt
 
         Examples:
             >>> model = AutoBackend(weights="path/to/model.onnx")

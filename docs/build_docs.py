@@ -294,7 +294,7 @@ def minify_files(html=True, css=True, js=True):
     }.items():
         stats[ext] = {"original": 0, "minified": 0}
         directory = ""  # "stylesheets" if ext == css else "javascript" if ext == "js" else ""
-        for f in tqdm((SITE / directory).rglob(f"*.{ext}"), desc=f"Minifying {ext.upper()}"):
+        for f in tqdm((SITE / directory).rglob(f"*.{ext}"), desc=f"Minifying {ext.upper()}", mininterval=1.0):
             content = f.read_text(encoding="utf-8")
             minified = minifier(content) if minifier else remove_comments_and_empty_lines(content, ext)
             stats[ext]["original"] += len(content)

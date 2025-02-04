@@ -144,8 +144,7 @@ not_in_nav: |
   /macros
 
 nav:
-  - Home:
-      - Home: index.md
+  - Home: index.md
       - Quickstart: quickstart.md
       - Modes:
           - modes/index.md

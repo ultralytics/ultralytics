@@ -113,7 +113,7 @@ def update_subdir_edit_links(subdir="", docs_url=""):
     if str(subdir[0]) == "/":
         subdir = str(subdir[0])[1:]
     html_files = (SITE / subdir).rglob("*.html")
-    for html_file in tqdm(html_files, desc="Processing subdir files"):
+    for html_file in tqdm(html_files, desc="Processing subdir files", miniters=100):
         with html_file.open("r", encoding="utf-8") as file:
             soup = BeautifulSoup(file, "html.parser")
 

@@ -1367,7 +1367,7 @@ class RandomHSV:
         img = labels["img"]
         if self.hgain or self.sgain or self.vgain:
             r = np.random.uniform(-1, 1, 3) * [self.hgain, self.sgain, self.vgain] + 1  # random gains
-            hue, sat, val = cv2.split(cv2.cvtColor(img, cv2.COLOR_BGR2HSV))
+            #hue, sat, val = cv2.split(cv2.cvtColor(img, cv2.COLOR_BGR2HSV))
             dtype = img.dtype  # uint8
 
             x = np.arange(0, 256, dtype=r.dtype)
@@ -1375,8 +1375,21 @@ class RandomHSV:
             lut_sat = np.clip(x * r[1], 0, 255).astype(dtype)
             lut_val = np.clip(x * r[2], 0, 255).astype(dtype)
 
-            im_hsv = cv2.merge((cv2.LUT(hue, lut_hue), cv2.LUT(sat, lut_sat), cv2.LUT(val, lut_val)))
-            cv2.cvtColor(im_hsv, cv2.COLOR_HSV2BGR, dst=img)  # no return needed
+            #im_hsv = cv2.merge((cv2.LUT(hue, lut_hue), cv2.LUT(sat, lut_sat), cv2.LUT(val, lut_val)))
+            #cv2.cvtColor(im_hsv, cv2.COLOR_HSV2BGR, dst=img)  # no return needed
+
+            if img.shape[-1] > 5: # judgment of RGB or RGB+IR
+                hue, sat, val = cv2.split(cv2.cvtColor(img[..., -3:], cv2.COLOR_BGR2HSV))
+                hue_, sat_, val_ = cv2.split(cv2.cvtColor(img[..., :-3], cv2.COLOR_BGR2HSV))
+                im_hsv = cv2.merge((cv2.LUT(hue, lut_hue), cv2.LUT(sat, lut_sat), cv2.LUT(val, lut_val)))
+                im_hsv_ = cv2.merge((cv2.LUT(hue_, lut_hue), cv2.LUT(sat_, lut_sat), cv2.LUT(val_, lut_val)))
+                img[..., -3:] = cv2.cvtColor(im_hsv, cv2.COLOR_HSV2BGR)
+                img[..., :-3] = cv2.cvtColor(im_hsv_, cv2.COLOR_HSV2BGR)
+                labels['img'] = img
+            else:
+                hue, sat, val = cv2.split(cv2.cvtColor(img, cv2.COLOR_BGR2HSV))
+                im_hsv = cv2.merge((cv2.LUT(hue, lut_hue), cv2.LUT(sat, lut_sat), cv2.LUT(val, lut_val)))
+                cv2.cvtColor(im_hsv, cv2.COLOR_HSV2BGR, dst=img)
         return labels
 
 
@@ -1586,9 +1599,21 @@ class LetterBox:
             img = cv2.resize(img, new_unpad, interpolation=cv2.INTER_LINEAR)
         top, bottom = int(round(dh - 0.1)) if self.center else 0, int(round(dh + 0.1))
         left, right = int(round(dw - 0.1)) if self.center else 0, int(round(dw + 0.1))
-        img = cv2.copyMakeBorder(
-            img, top, bottom, left, right, cv2.BORDER_CONSTANT, value=(114, 114, 114)
-        )  # add border
+        #img = cv2.copyMakeBorder(
+        #    img, top, bottom, left, right, cv2.BORDER_CONSTANT, value=(114, 114, 114)
+        #)  # add border
+
+        if img.shape[2] >= 4: # judgment of RGB or RGB+IR
+            img1 = img[..., :3]
+            img2 = img[..., 3:]
+            img1 = cv2.copyMakeBorder(img1, top, bottom, left, right, cv2.BORDER_CONSTANT, value=(114, 114, 114))
+            img2 = cv2.copyMakeBorder(img2, top, bottom, left, right, cv2.BORDER_CONSTANT, value=(114, 114, 114))
+            img = np.concatenate((img1, img2), axis=-1)
+        else:
+            img = cv2.copyMakeBorder(
+                img, top, bottom, left, right, cv2.BORDER_CONSTANT, value=(114, 114, 114)
+            )  # add border
+
         if labels.get("ratio_pad"):
             labels["ratio_pad"] = (labels["ratio_pad"], (left, top))  # for evaluation
 

@@ -78,6 +78,7 @@ class BaseDataset(Dataset):
         self.batch_size = batch_size
         self.stride = stride
         self.pad = pad
+        self.hyp = hyp # hyperparameters
         if self.rect:
             assert self.batch_size is not None
             self.set_rectangle()
@@ -151,6 +152,7 @@ class BaseDataset(Dataset):
     def load_image(self, i, rect_mode=True):
         """Loads 1 image from dataset index 'i', returns (im, resized hw)."""
         im, f, fn = self.ims[i], self.im_files[i], self.npy_files[i]
+        ir = f.replace("images", 'image')  # for IR images
         if im is None:  # not cached in RAM
             if fn.exists():  # load npy
                 try:
@@ -161,6 +163,8 @@ class BaseDataset(Dataset):
                     im = cv2.imread(f)  # BGR
             else:  # read image
                 im = cv2.imread(f)  # BGR
+                if self.hyp.ch > 3:  # if RGB+IR
+                    im = cv2.merge((cv2.imread(ir), im))
             if im is None:
                 raise FileNotFoundError(f"Image Not Found {f}")
 

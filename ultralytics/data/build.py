@@ -106,7 +106,8 @@ def build_yolo_dataset(cfg, img_path, batch, data, mode="train", rect=False, str
         cache=cfg.cache or None,
         single_cls=cfg.single_cls or False,
         stride=int(stride),
-        pad=0.0 if mode == "train" else 0.5,
+        #pad=0.0 if mode == "train" else 0.5,
+        pad=0.0 if mode == "train" else 0.0, # NO pad pad
         prefix=colorstr(f"{mode}: "),
         task=cfg.task,
         classes=cfg.classes,

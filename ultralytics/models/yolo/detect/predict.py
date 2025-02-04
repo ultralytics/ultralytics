@@ -1,5 +1,5 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
-
+import numpy as np
 from ultralytics.engine.predictor import BasePredictor
 from ultralytics.engine.results import Results
 from ultralytics.utils import ops
@@ -39,35 +39,59 @@ class DetectionPredictor(BasePredictor):
 
         return self.construct_results(preds, img, orig_imgs, **kwargs)
 
+    # def construct_results(self, preds, img, orig_imgs):
+    #     """
+    #     Constructs a list of result objects from the predictions.
+
+    #     Args:
+    #         preds (List[torch.Tensor]): List of predicted bounding boxes and scores.
+    #         img (torch.Tensor): The image after preprocessing.
+    #         orig_imgs (List[np.ndarray]): List of original images before preprocessing.
+
+    #     Returns:
+    #         (list): List of result objects containing the original images, image paths, class names, and bounding boxes.
+    #     """
+    #     return [
+    #         self.construct_result(pred, img, orig_img, img_path)
+    #         for pred, orig_img, img_path in zip(preds, orig_imgs, self.batch[0])
+    #     ]
+
+    # def construct_result(self, pred, img, orig_img, img_path):
+    #     """
+    #     Constructs the result object from the prediction.
+
+    #     Args:
+    #         pred (torch.Tensor): The predicted bounding boxes and scores.
+    #         img (torch.Tensor): The image after preprocessing.
+    #         orig_img (np.ndarray): The original image before preprocessing.
+    #         img_path (str): The path to the original image.
+
+    #     Returns:
+    #         (Results): The result object containing the original image, image path, class names, and bounding boxes.
+    #     """
+    #     pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], orig_img.shape)
+    #     return Results(orig_img, path=img_path, names=self.model.names, boxes=pred[:, :6])
+
     def construct_results(self, preds, img, orig_imgs):
-        """
-        Constructs a list of result objects from the predictions.
+        results = []
+        ir_results = []
+        for pred, orig_img, img_path in zip(preds, orig_imgs, self.batch[0]):
+            vis_orig_img = orig_img[..., 3:]
+            vis_result = self.construct_result(pred, img, vis_orig_img, img_path)
+            results.append(vis_result)
 
-        Args:
-            preds (List[torch.Tensor]): List of predicted bounding boxes and scores.
-            img (torch.Tensor): The image after preprocessing.
-            orig_imgs (List[np.ndarray]): List of original images before preprocessing.
-
-        Returns:
-            (list): List of result objects containing the original images, image paths, class names, and bounding boxes.
-        """
-        return [
-            self.construct_result(pred, img, orig_img, img_path)
-            for pred, orig_img, img_path in zip(preds, orig_imgs, self.batch[0])
-        ]
+            ir_orig_img = orig_img[..., :3]
+            ir_path = img_path.replace("images", "image", 1) 
+            ir_result = self.construct_result(pred, img, ir_orig_img, ir_path)
+            ir_results.append(ir_result)
+        return results, ir_results
 
     def construct_result(self, pred, img, orig_img, img_path):
-        """
-        Constructs the result object from the prediction.
-
-        Args:
-            pred (torch.Tensor): The predicted bounding boxes and scores.
-            img (torch.Tensor): The image after preprocessing.
-            orig_img (np.ndarray): The original image before preprocessing.
-            img_path (str): The path to the original image.
-
-        Returns:
-            (Results): The result object containing the original image, image path, class names, and bounding boxes.
-        """
+        pred = pred.clone()
         pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], orig_img.shape)
-        return Results(orig_img, path=img_path, names=self.model.names, boxes=pred[:, :6])
+        return Results(
+            orig_img,
+            path=img_path,
+            names=self.model.names,
+            boxes=pred[:, :6]
+        )

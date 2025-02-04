@@ -46,6 +46,7 @@ from ultralytics.utils import (
     emojis,
     is_github_action_running,
     url2file,
+    DEFAULT_CFG,
 )
 
 
@@ -669,7 +670,7 @@ def check_amp(model):
         (bool): Returns True if the AMP functionality works correctly with YOLO11 model, else False.
     """
     from ultralytics.utils.torch_utils import autocast
-
+    hyp = DEFAULT_CFG  # hyperparameters
     device = next(model.parameters()).device  # get model device
     prefix = colorstr("AMP: ")
     if device.type in {"cpu", "mps"}:
@@ -703,8 +704,8 @@ def check_amp(model):
     warning_msg = "Setting 'amp=True'. If you experience zero-mAP or NaN losses you can disable AMP with amp=False."
     try:
         from ultralytics import YOLO
-
-        assert amp_allclose(YOLO("yolo11n.pt"), im)
+        if hyp.ch==3: # Use the yolo11n.pt file for checking when inputting RGB data only.
+            assert amp_allclose(YOLO("yolo11n.pt"), im)
         LOGGER.info(f"{prefix}checks passed ✅")
     except ConnectionError:
         LOGGER.warning(

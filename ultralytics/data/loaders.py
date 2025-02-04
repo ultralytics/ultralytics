@@ -16,7 +16,7 @@ import torch
 from PIL import Image
 
 from ultralytics.data.utils import FORMATS_HELP_MSG, IMG_FORMATS, VID_FORMATS
-from ultralytics.utils import IS_COLAB, IS_KAGGLE, LOGGER, ops
+from ultralytics.utils import IS_COLAB, IS_KAGGLE, LOGGER, ops, DEFAULT_CFG
 from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.patches import imread
 
@@ -322,6 +322,7 @@ class LoadImagesAndVideos:
 
     def __init__(self, path, batch=1, vid_stride=1):
         """Initialize dataloader for images and videos, supporting various input formats."""
+        self.hyp = DEFAULT_CFG # hyperparameters
         parent = None
         if isinstance(path, str) and Path(path).suffix == ".txt":  # *.txt file with img/vid/dir on each line
             parent = Path(path).parent
@@ -380,6 +381,10 @@ class LoadImagesAndVideos:
                     raise StopIteration
 
             path = self.files[self.count]
+
+            ir_path = path.split('images') # for IR images
+            ir_path = str(ir_path[0] + 'image' + ir_path[1])
+
             if self.video_flag[self.count]:
                 self.mode = "video"
                 if not self.cap or not self.cap.isOpened():
@@ -421,7 +426,9 @@ class LoadImagesAndVideos:
                     with Image.open(path) as img:
                         im0 = cv2.cvtColor(np.asarray(img), cv2.COLOR_RGB2BGR)  # convert image to BGR nparray
                 else:
-                    im0 = imread(path)  # BGR
+                    #im0 = imread(path)  # BGR
+                    # RGB or RGB+IR
+                    im0 = cv2.imread(path) if self.hyp.ch < 4 else cv2.merge((cv2.imread(ir_path), cv2.imread(path)))  # BGR
                 if im0 is None:
                     LOGGER.warning(f"WARNING ⚠️ Image Read Error {path}")
                 else:

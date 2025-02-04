@@ -55,100 +55,69 @@ Explore the Ultralytics Docs, a comprehensive resource designed to help you unde
 
 ## Where to Start
 
-[//]: # (<div class="grid cards" markdown>)
-
-[//]: # ()
-[//]: # (- :material-clock-fast:{ .lg .middle } &nbsp; **Getting Started**)
-
-[//]: # ()
-[//]: # (    ***)
-
-[//]: # ()
-[//]: # (    Install `ultralytics` with pip and get up and running in minutes to train a YOLO model)
-
-[//]: # ()
-[//]: # (    ***)
-
-[//]: # ()
-[//]: # (    [:octicons-arrow-right-24: Quickstart]&#40;quickstart.md&#41;)
-
-[//]: # ()
-[//]: # (- :material-image:{ .lg .middle } &nbsp; **Predict**)
-
-[//]: # ()
-[//]: # (    ***)
-
-[//]: # ()
-[//]: # (    Predict on new images, videos and streams with YOLO <br /> &nbsp;)
-
-[//]: # ()
-[//]: # (    ***)
-
-[//]: # ()
-[//]: # (    [:octicons-arrow-right-24: Learn more]&#40;modes/predict.md&#41;)
-
-[//]: # ()
-[//]: # (- :fontawesome-solid-brain:{ .lg .middle } &nbsp; **Train a Model**)
-
-[//]: # ()
-[//]: # (    ***)
-
-[//]: # ()
-[//]: # (    Train a new YOLO model on your own custom dataset from scratch or load and train on a pretrained model)
-
-[//]: # ()
-[//]: # (    ***)
-
-[//]: # ()
-[//]: # (    [:octicons-arrow-right-24: Learn more]&#40;modes/train.md&#41;)
-
-[//]: # ()
-[//]: # (- :material-magnify-expand:{ .lg .middle } &nbsp; **Explore computer vision tasks**)
-
-[//]: # ()
-[//]: # (    ***)
-
-[//]: # ()
-[//]: # (    Discover YOLO tasks like detect, segment, classify, pose, OBB and track <br /> &nbsp;)
-
-[//]: # ()
-[//]: # (    ***)
-
-[//]: # ()
-[//]: # (    [:octicons-arrow-right-24: Explore Tasks]&#40;tasks/index.md&#41;)
-
-[//]: # ()
-[//]: # (- :rocket:{ .lg .middle } &nbsp; **Explore YOLO11 NEW**)
-
-[//]: # ()
-[//]: # (    ***)
-
-[//]: # ()
-[//]: # (    Discover Ultralytics' latest state-of-the-art YOLO11 models and their capabilities <br /> &nbsp;)
-
-[//]: # ()
-[//]: # (    ***)
-
-[//]: # ()
-[//]: # (    [:octicons-arrow-right-24: YOLO11 Models 🚀 NEW]&#40;models/yolo11.md&#41;)
-
-[//]: # ()
-[//]: # (- :material-scale-balance:{ .lg .middle } &nbsp; **Open Source, AGPL-3.0**)
-
-[//]: # ()
-[//]: # (    ***)
-
-[//]: # ()
-[//]: # (    Ultralytics offers two YOLO licenses: AGPL-3.0 and Enterprise. Explore YOLO on [GitHub]&#40;https://github.com/ultralytics/ultralytics&#41;.)
-
-[//]: # ()
-[//]: # (    ***)
-
-[//]: # ()
-[//]: # (    [:octicons-arrow-right-24: YOLO License]&#40;https://www.ultralytics.com/license&#41;)
-
-[//]: # ()
-[//]: # (</div>)
+[//]: # '<div class="grid cards" markdown>'
+[//]: #
+[//]: # "- :material-clock-fast:{ .lg .middle }   **Getting Started**"
+[//]: #
+[//]: # "    ***"
+[//]: #
+[//]: # "    Install `ultralytics` with pip and get up and running in minutes to train a YOLO model"
+[//]: #
+[//]: # "    ***"
+[//]: #
+[//]: # "    [:octicons-arrow-right-24: Quickstart](quickstart.md)"
+[//]: #
+[//]: # "- :material-image:{ .lg .middle }   **Predict**"
+[//]: #
+[//]: # "    ***"
+[//]: #
+[//]: # "    Predict on new images, videos and streams with YOLO <br />  "
+[//]: #
+[//]: # "    ***"
+[//]: #
+[//]: # "    [:octicons-arrow-right-24: Learn more](modes/predict.md)"
+[//]: #
+[//]: # "- :fontawesome-solid-brain:{ .lg .middle }   **Train a Model**"
+[//]: #
+[//]: # "    ***"
+[//]: #
+[//]: # "    Train a new YOLO model on your own custom dataset from scratch or load and train on a pretrained model"
+[//]: #
+[//]: # "    ***"
+[//]: #
+[//]: # "    [:octicons-arrow-right-24: Learn more](modes/train.md)"
+[//]: #
+[//]: # "- :material-magnify-expand:{ .lg .middle }   **Explore computer vision tasks**"
+[//]: #
+[//]: # "    ***"
+[//]: #
+[//]: # "    Discover YOLO tasks like detect, segment, classify, pose, OBB and track <br />  "
+[//]: #
+[//]: # "    ***"
+[//]: #
+[//]: # "    [:octicons-arrow-right-24: Explore Tasks](tasks/index.md)"
+[//]: #
+[//]: # "- :rocket:{ .lg .middle }   **Explore YOLO11 NEW**"
+[//]: #
+[//]: # "    ***"
+[//]: #
+[//]: # "    Discover Ultralytics' latest state-of-the-art YOLO11 models and their capabilities <br />  "
+[//]: #
+[//]: # "    ***"
+[//]: #
+[//]: # "    [:octicons-arrow-right-24: YOLO11 Models 🚀 NEW](models/yolo11.md)"
+[//]: #
+[//]: # "- :material-scale-balance:{ .lg .middle }   **Open Source, AGPL-3.0**"
+[//]: #
+[//]: # "    ***"
+[//]: #
+[//]: # "    Ultralytics offers two YOLO licenses: AGPL-3.0 and Enterprise. Explore YOLO on [GitHub](https://github.com/ultralytics/ultralytics)."
+[//]: #
+[//]: # "    ***"
+[//]: #
+[//]: # "    [:octicons-arrow-right-24: YOLO License](https://www.ultralytics.com/license)"
+[//]: #
+[//]: # "</div>"
 
 <p align="center">
   <br>

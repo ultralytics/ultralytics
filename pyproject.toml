@@ -87,7 +87,6 @@ dev = [
     "pytest-cov",
     "coverage[toml]",
     "mkdocs>=1.6.0",
-    "beautifulsoup4<=4.12.3",  # For docs https://github.com/ultralytics/ultralytics/pull/19067
     "mkdocs-material>=9.5.9",
     "mkdocstrings[python]",
     "mkdocs-redirects", # 301 redirects

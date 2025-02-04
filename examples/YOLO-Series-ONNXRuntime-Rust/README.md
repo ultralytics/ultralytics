@@ -1,4 +1,4 @@
-# YOLO-Series ONNXRuntime Rust Demo for Core YOLO Tasks ##
+# YOLO-Series ONNXRuntime Rust Demo for Core YOLO Tasks
 
 This repository provides a Rust demo for key YOLO-Series tasks such as `Classification`, `Segmentation`, `Detection`, `Pose Detection`, and `OBB` using ONNXRuntime. It supports various YOLO models (v5 - 11) across multiple vision tasks.
 

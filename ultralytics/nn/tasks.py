@@ -51,6 +51,7 @@ from ultralytics.nn.modules import (
     HGBlock,
     HGStem,
     ImagePoolingAttn,
+    IN,
     Index,
     Multiin,
     Pose,
@@ -1039,6 +1040,8 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
                 legacy = False
                 if scale in "mlx":
                     args[3] = True
+        elif m is IN:
+            ch[f] = ch[f]
         elif m is Multiin:
             c1 = ch[f]
             c2 = ch[f] // 2

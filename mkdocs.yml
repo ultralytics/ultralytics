@@ -139,6 +139,10 @@ validation:
     unrecognized_links: warn
 
 # Primary navigation ---------------------------------------------------------------------------------------------------
+not_in_nav: |
+  /compare
+  /macros
+
 nav:
   - Home:
       - Home: index.md

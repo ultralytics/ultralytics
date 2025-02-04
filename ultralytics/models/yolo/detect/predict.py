@@ -1,5 +1,4 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
-import numpy as np
 from ultralytics.engine.predictor import BasePredictor
 from ultralytics.engine.results import Results
 from ultralytics.utils import ops
@@ -81,7 +80,7 @@ class DetectionPredictor(BasePredictor):
             results.append(vis_result)
 
             ir_orig_img = orig_img[..., :3]
-            ir_path = img_path.replace("images", "image", 1) 
+            ir_path = img_path.replace("images", "image", 1)
             ir_result = self.construct_result(pred, img, ir_orig_img, ir_path)
             ir_results.append(ir_result)
         return results, ir_results
@@ -89,9 +88,4 @@ class DetectionPredictor(BasePredictor):
     def construct_result(self, pred, img, orig_img, img_path):
         pred = pred.clone()
         pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], orig_img.shape)
-        return Results(
-            orig_img,
-            path=img_path,
-            names=self.model.names,
-            boxes=pred[:, :6]
-        )
+        return Results(orig_img, path=img_path, names=self.model.names, boxes=pred[:, :6])

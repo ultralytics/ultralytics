@@ -26,6 +26,7 @@ from .block import (
     CIB,
     DFL,
     ELAN1,
+    IN,
     PSA,
     SPP,
     SPPELAN,
@@ -50,6 +51,7 @@ from .block import (
     HGBlock,
     HGStem,
     ImagePoolingAttn,
+    Multiin,
     Proto,
     RepC3,
     RepNCSPELAN4,
@@ -57,8 +59,6 @@ from .block import (
     ResNetLayer,
     SCDown,
     TorchVision,
-    IN,
-    Multiin,
 )
 from .conv import (
     CBAM,

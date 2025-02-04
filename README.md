@@ -1,4 +1,4 @@
-# RGB-IR-Ultralytics 
+# RGB-IR-Ultralytics
 
 ## YOLO with Dual-modal Input
 

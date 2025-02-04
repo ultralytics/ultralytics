@@ -123,25 +123,26 @@ class DetectionTrainer(BaseTrainer):
     def plot_training_samples(self, batch, ni):
         """Plots training samples with their annotations."""
         plot_images(
-            #images=batch["img"],
-            images=batch["img"][:, :3], # RGB
+            # images=batch["img"],
+            images=batch["img"][:, :3],  # RGB
             batch_idx=batch["batch_idx"],
             cls=batch["cls"].squeeze(-1),
             bboxes=batch["bboxes"],
             paths=batch["im_file"],
-            #fname=self.save_dir / f"train_batch{ni}.jpg",
+            # fname=self.save_dir / f"train_batch{ni}.jpg",
             fname=self.save_dir / f"train_batch_rgb_{ni}.jpg",
             on_plot=self.on_plot,
         )
 
-        if batch['img'].size(1) > 3: # IR
-            plot_images(images=batch['img'][:, 3:],
-                batch_idx=batch['batch_idx'],
-                cls=batch['cls'].squeeze(-1),
-                bboxes=batch['bboxes'],
-                paths=batch['im_file'],
-                fname=self.save_dir / f'train_batch_ir_{ni}.jpg',
-                on_plot=self.on_plot
+        if batch["img"].size(1) > 3:  # IR
+            plot_images(
+                images=batch["img"][:, 3:],
+                batch_idx=batch["batch_idx"],
+                cls=batch["cls"].squeeze(-1),
+                bboxes=batch["bboxes"],
+                paths=batch["im_file"],
+                fname=self.save_dir / f"train_batch_ir_{ni}.jpg",
+                on_plot=self.on_plot,
             )
 
     def plot_metrics(self):

@@ -15,9 +15,9 @@ scales: # model compound scaling constants, i.e. 'model=yolo11n.yaml' will call 
 # YOLO11n backbone
 backbone:
   # [from, repeats, module, args]
-  - [-1, 1, IN, []] # 0
-  - [-1, 1, Multiin, [1]] # 1
-  - [-2, 1, Multiin, [2]] # 2
+  - [-1, 1, IN, []]  # 0
+  - [-1, 1, Multiin, [1]]  # 1
+  - [-2, 1, Multiin, [2]]  # 2
 
   # double stream backbone
   # Visible branch
@@ -25,8 +25,8 @@ backbone:
   - [-1, 1, Conv, [64, 3, 2]] # 4-P2/4
   - [-1, 2, C3k2, [128, False, 0.25]]
   # Infrared branch
-  - [2, 1, Conv, [32, 3, 2]] # 6-P1/2
-  - [-1, 1, Conv, [64, 3, 2]] # 7-P2/4
+  - [2, 1, Conv, [32, 3, 2 ]] # 6-P1/2
+  - [-1, 1, Conv, [64, 3, 2 ]] # 7-P2/4
   - [-1, 2, C3k2, [128, False, 0.25]]
 
   - [-4, 1, Conv, [128, 3, 2]] # 9-P3/8
@@ -49,9 +49,9 @@ backbone:
   - [-1, 1, SPPF, [512, 5]] # 23
   - [-1, 2, C2PSA, [512]] # 24
 
-  - [[11, 13], 1, Concat, [1]] # 25
-  - [[15, 17], 1, Concat, [1]] # 26
-  - [[21, 24], 1, Concat, [1]] # 27
+  - [[11, 13], 1, Concat, [1]]  # 25
+  - [[15, 17], 1, Concat, [1]]  # 26
+  - [[21, 24], 1, Concat, [1]]  # 27
 
 # YOLO11n head
 head:

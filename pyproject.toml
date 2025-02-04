@@ -87,7 +87,7 @@ dev = [
     "pytest-cov",
     "coverage[toml]",
     "mkdocs>=1.6.0",
-    "mkdocs-material>=9.5.9<9.6.2",
+    "mkdocs-material>=9.5.9,<9.6.2", # list index out of range with 9.6.2 version
     "mkdocstrings[python]",
     "mkdocs-redirects", # 301 redirects
     "mkdocs-ultralytics-plugin>=0.1.16", # for meta descriptions and images, dates and authors

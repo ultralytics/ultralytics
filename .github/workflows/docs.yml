@@ -48,7 +48,7 @@ jobs:
           python-version: "3.x"
       - uses: astral-sh/setup-uv@v5
       - name: Install Dependencies
-        run: uv pip install --system ruff black tqdm "mkdocs-material<=9.5.50" "mkdocstrings[python]<0.27.0" mkdocs-redirects "mkdocs-ultralytics-plugin<=0.1.15" mkdocs-macros-plugin
+        run: uv pip install --system ruff black tqdm "mkdocs-material<=9.5.50" "mkdocstrings[python]<=0.27.0" mkdocs-redirects "mkdocs-ultralytics-plugin<=0.1.15" mkdocs-macros-plugin
       - name: Ruff fixes
         continue-on-error: true
         run: ruff check --fix --unsafe-fixes --select D --ignore=D100,D104,D203,D205,D212,D213,D401,D406,D407,D413 .

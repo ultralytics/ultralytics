@@ -290,7 +290,7 @@ The YOLO11n model in PyTorch format is converted to TensorRT to run inference wi
 The following Jetson devices are equipped with DLA hardware:
 
 | Jetson Device            | DLA Cores | DLA Max Frequency |
-|--------------------------|-----------|-------------------|
+| ------------------------ | --------- | ----------------- |
 | Jetson AGX Orin Series   | 2         | 1.6 GHz           |
 | Jetson Orin NX 16GB      | 2         | 614 MHz           |
 | Jetson Orin NX 8GB       | 1         | 614 MHz           |

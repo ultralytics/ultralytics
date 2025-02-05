@@ -23,7 +23,8 @@ class HUBModelError(Exception):
 def handle_errors(func):
     """Catch exceptions and display instructions to resolve the error if available."""
     from functools import wraps
-    from ultralytics.utils import LOGGER, colorstr, emojis
+
+    from ultralytics.utils import LOGGER, colorstr
 
     # Structure: {function_name: {exception_type: custom_message}}
     ERRORS = {

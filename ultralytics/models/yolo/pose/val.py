@@ -158,7 +158,7 @@ class PoseValidator(DetectionValidator):
             gt_kpts (torch.Tensor | None): Optional tensor with shape (N, 51) representing ground truth keypoints.
 
         Returns:
-            torch.Tensor: A tensor with shape (N, 10) representing the correct prediction matrix for 10 IoU levels,
+            (torch.Tensor): A tensor with shape (N, 10) representing the correct prediction matrix for 10 IoU levels,
                 where N is the number of detections.
 
         Example:

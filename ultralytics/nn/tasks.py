@@ -484,12 +484,6 @@ class RTDETRDetectionModel(DetectionModel):
     the training and inference processes. RTDETR is an object detection and tracking model that extends from the
     DetectionModel base class.
 
-    Attributes:
-        cfg (str): The configuration file path or preset string. Default is 'rtdetr-l.yaml'.
-        ch (int): Number of input channels. Default is 3 (RGB).
-        nc (int, optional): Number of classes for object detection. Default is None.
-        verbose (bool): Specifies if summary statistics are shown during initialization. Default is True.
-
     Methods:
         init_criterion: Initializes the criterion used for loss calculation.
         loss: Computes and returns the loss during training.

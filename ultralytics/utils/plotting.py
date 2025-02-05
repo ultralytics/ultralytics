@@ -682,7 +682,7 @@ class Annotator:
         return text_height
 
     def plot_angle_and_count_and_stage(
-            self, angle_text, count_text, stage_text, center_kpt, color=(104, 31, 17), txt_color=(255, 255, 255)
+        self, angle_text, count_text, stage_text, center_kpt, color=(104, 31, 17), txt_color=(255, 255, 255)
     ):
         """
         Plot the pose angle, count value, and step stage.
@@ -771,7 +771,7 @@ class Annotator:
             )
 
     def plot_distance_and_line(
-            self, pixels_distance, centroids, line_color=(104, 31, 17), centroid_color=(255, 0, 255)
+        self, pixels_distance, centroids, line_color=(104, 31, 17), centroid_color=(255, 0, 255)
     ):
         """
         Plot the distance and line on frame.
@@ -820,6 +820,7 @@ class Annotator:
         cv2.circle(self.im, center_point, self.tf * 2, pin_color, -1)
         cv2.circle(self.im, center_bbox, self.tf * 2, color, -1)
         cv2.line(self.im, center_point, center_bbox, color, self.tf)
+
 
 @TryExcept()  # known issue https://github.com/ultralytics/yolov5/issues/5395
 @plt_settings()

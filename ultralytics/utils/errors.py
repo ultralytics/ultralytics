@@ -1,8 +1,5 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-from ultralytics.utils import LOGGER, colorstr, emojis
-
-
 class HUBModelError(Exception):
     """
     Custom exception class for handling errors related to model fetching in Ultralytics YOLO.

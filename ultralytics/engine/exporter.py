@@ -75,7 +75,7 @@ from ultralytics.data.dataset import YOLODataset
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.data.utils import check_regress_dataset
 from ultralytics.nn.autobackend import check_class_names, default_class_names
-from ultralytics.nn.modules import C2f, Detect, Pose, Segment, RTDETRDecoder
+from ultralytics.nn.modules import C2f, Classify, Detect, Pose, RTDETRDecoder
 from ultralytics.nn.modules import Regress6
 from ultralytics.nn.tasks import ClassificationModel, DetectionModel, SegmentationModel, WorldModel
 from ultralytics.utils import (
@@ -1067,7 +1067,7 @@ class Exporter:
             custom_input_op_name_np_data_path=np_data,
             input_output_quant_dtype=io_quant_dtype,
             disable_group_convolution=True,  # for end-to-end model compatibility
-            enable_batchmatmul_unfold=True,  # for end-to-end model compatibility,
+            enable_batchmatmul_unfold=True,  # for end-to-end model compatibility
             param_replacement_file="ultralytics/utils/replace.json"
         )
         yaml_save(f / "metadata.yaml", self.metadata)  # add metadata.yaml

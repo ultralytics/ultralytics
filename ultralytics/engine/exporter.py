@@ -1544,10 +1544,10 @@ class NMSModel(torch.nn.Module):
         Performs inference with NMS post-processing. Supports Detect, Segment, OBB and Pose.
 
         Args:
-            x (torch.tensor): The preprocessed tensor with shape (N, 3, H, W).
+            x (torch.Tensor): The preprocessed tensor with shape (N, 3, H, W).
 
         Returns:
-            out (torch.tensor): The post-processed results with shape (N, max_det, 4 + 2 + extra_shape).
+            out (torch.Tensor): The post-processed results with shape (N, max_det, 4 + 2 + extra_shape).
         """
         from functools import partial
 

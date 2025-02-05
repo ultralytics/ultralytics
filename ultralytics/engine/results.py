@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """
 Ultralytics Results, Boxes and Masks classes for handling inference results.
 
@@ -307,7 +307,7 @@ class Results(SimpleClass):
             if v is not None:
                 return len(v)
 
-    def update(self, boxes=None, masks=None, probs=None, obb=None, regress=None):
+    def update(self, boxes=None, masks=None, probs=None, obb=None, keypoints=None, regress=None):
         """
         Updates the Results object with new detection data.
 
@@ -320,6 +320,7 @@ class Results(SimpleClass):
             masks (torch.Tensor | None): A tensor of shape (N, H, W) containing segmentation masks.
             probs (torch.Tensor | None): A tensor of shape (num_classes,) containing class probabilities.
             obb (torch.Tensor | None): A tensor of shape (N, 5) containing oriented bounding box coordinates.
+            keypoints (torch.Tensor | None): A tensor of shape (N, 17, 3) containing keypoints.
 
         Examples:
             >>> results = model("image.jpg")
@@ -336,6 +337,8 @@ class Results(SimpleClass):
             self.obb = OBB(obb, self.orig_shape)
         if regress is not None:
             self.regress = regress
+        if keypoints is not None:
+            self.keypoints = Keypoints(keypoints, self.orig_shape)
 
     def _apply(self, fn, *args, **kwargs):
         """
@@ -496,8 +499,8 @@ class Results(SimpleClass):
         Examples:
             >>> results = model("image.jpg")
             >>> for result in results:
-            ...     im = result.plot()
-            ...     im.show()
+            >>>     im = result.plot()
+            >>>     im.show()
         """
         assert color_mode in {"instance", "class"}, f"Expected color_mode='instance' or 'class', not {color_mode}."
         if img is None and isinstance(self.orig_img, torch.Tensor):
@@ -541,9 +544,9 @@ class Results(SimpleClass):
         # Plot Detect results
         if pred_boxes is not None and show_boxes:
             for i, d in enumerate(reversed(pred_boxes)):
-                c, conf, id = int(d.cls), float(d.conf) if conf else None, None if d.id is None else int(d.id.item())
+                c, d_conf, id = int(d.cls), float(d.conf) if conf else None, None if d.id is None else int(d.id.item())
                 name = ("" if id is None else f"id:{id} ") + names[c]
-                label = (f"{name} {conf:.2f}" if conf else name) if labels else None
+                label = (f"{name} {d_conf:.2f}" if conf else name) if labels else None
                 box = d.xyxyxyxy.reshape(-1, 4, 2).squeeze() if is_obb else d.xyxy.squeeze()
                 annotator.box_label(
                     box,
@@ -609,7 +612,7 @@ class Results(SimpleClass):
             >>> results = model("path/to/image.jpg")
             >>> results[0].show()  # Display the first result
             >>> for result in results:
-            ...     result.show()  # Display all results
+            >>>     result.show()  # Display all results
         """
         self.plot(show=True, *args, **kwargs)
 
@@ -629,10 +632,10 @@ class Results(SimpleClass):
         Examples:
             >>> results = model("path/to/image.jpg")
             >>> for result in results:
-            ...     result.save("annotated_image.jpg")
+            >>>     result.save("annotated_image.jpg")
             >>> # Or with custom plot arguments
             >>> for result in results:
-            ...     result.save("annotated_image.jpg", conf=False, line_width=2)
+            >>>     result.save("annotated_image.jpg", conf=False, line_width=2)
         """
         if not filename:
             filename = f"results_{Path(self.path).name}"
@@ -653,7 +656,7 @@ class Results(SimpleClass):
         Examples:
             >>> results = model("path/to/image.jpg")
             >>> for result in results:
-            ...     print(result.verbose())
+            >>>     print(result.verbose())
             2 persons, 1 car, 3 traffic lights,
             dog 0.92, cat 0.78, horse 0.64,
 
@@ -664,15 +667,13 @@ class Results(SimpleClass):
         """
         log_string = ""
         probs = self.probs
-        boxes = self.boxes
-        regress = self.regress
         if len(self) == 0:
             return log_string if probs is not None else f"{log_string}(no detections), "
         if probs is not None:
             log_string += f"{', '.join(f'{self.names[j]} {probs.data[j]:.2f}' for j in probs.top5)}, "
-        if regress is not None:
+        if regress := self.regress:
             log_string += f"{', '.join(f'{self.names[j]} {regress.data[j]:.2f}' for j in regress.value)}, "
-        if boxes:
+        if boxes := self.boxes:
             for c in boxes.cls.unique():
                 n = (boxes.cls == c).sum()  # detections per class
                 log_string += f"{n} {self.names[int(c)]}{'s' * (n > 1)}, "
@@ -691,10 +692,10 @@ class Results(SimpleClass):
 
         Examples:
             >>> from ultralytics import YOLO
-            >>> model = YOLO("yolov8n.pt")
+            >>> model = YOLO("yolo11n.pt")
             >>> results = model("path/to/image.jpg")
             >>> for result in results:
-            ...     result.save_txt("output.txt")
+            >>>     result.save_txt("output.txt")
 
         Notes:
             - The file will contain one line per detection or classification with the following structure:
@@ -757,7 +758,7 @@ class Results(SimpleClass):
         Examples:
             >>> results = model("path/to/image.jpg")
             >>> for result in results:
-            ...     result.save_crop(save_dir="path/to/crops", file_name="detection")
+            >>>     result.save_crop(save_dir="path/to/crops", file_name="detection")
         """
         if self.probs is not None:
             LOGGER.warning("WARNING ⚠️ Classify task do not support `save_crop`.")
@@ -772,7 +773,7 @@ class Results(SimpleClass):
             save_one_box(
                 d.xyxy,
                 self.orig_img.copy(),
-                file=Path(save_dir) / self.names[int(d.cls)] / f"{Path(file_name)}.jpg",
+                file=Path(save_dir) / self.names[int(d.cls)] / Path(file_name).with_suffix(".jpg"),
                 BGR=True,
             )
 
@@ -796,8 +797,9 @@ class Results(SimpleClass):
 
         Examples:
             >>> results = model("image.jpg")
-            >>> summary = results[0].summary()
-            >>> print(summary)
+            >>> for result in results:
+            >>>     summary = result.summary()
+            >>>     print(summary)
         """
         # Create list of detection dictionaries
         results = []
@@ -859,10 +861,11 @@ class Results(SimpleClass):
 
         Examples:
             >>> results = model("path/to/image.jpg")
-            >>> df_result = results[0].to_df()
-            >>> print(df_result)
+            >>> for result in results:
+            >>>     df_result = result.to_df()
+            >>>     print(df_result)
         """
-        import pandas as pd
+        import pandas as pd  # scope for faster 'import ultralytics'
 
         return pd.DataFrame(self.summary(normalize=normalize, decimals=decimals))
 
@@ -887,8 +890,9 @@ class Results(SimpleClass):
 
         Examples:
             >>> results = model("path/to/image.jpg")
-            >>> csv_result = results[0].to_csv()
-            >>> print(csv_result)
+            >>> for result in results:
+            >>>     csv_result = result.to_csv()
+            >>>     print(csv_result)
         """
         return self.to_df(normalize=normalize, decimals=decimals).to_csv(*args, **kwargs)
 
@@ -912,8 +916,9 @@ class Results(SimpleClass):
 
         Examples:
             >>> results = model("path/to/image.jpg")
-            >>> xml_result = results[0].to_xml()
-            >>> print(xml_result)
+            >>> for result in results:
+            >>>     xml_result = result.to_xml()
+            >>>     print(xml_result)
         """
         check_requirements("lxml")
         df = self.to_df(normalize=normalize, decimals=decimals)
@@ -942,8 +947,9 @@ class Results(SimpleClass):
 
         Examples:
             >>> results = model("path/to/image.jpg")
-            >>> json_result = results[0].to_json()
-            >>> print(json_result)
+            >>> for result in results:
+            >>>     json_result = result.to_json()
+            >>>     print(json_result)
 
         Notes:
             - For classification tasks, the JSON will contain class probabilities instead of bounding boxes.
@@ -956,6 +962,75 @@ class Results(SimpleClass):
         import json
 
         return json.dumps(self.summary(normalize=normalize, decimals=decimals), indent=2)
+
+    def to_sql(self, table_name="results", normalize=False, decimals=5, db_path="results.db"):
+        """
+        Converts detection results to an SQL-compatible format.
+
+        This method serializes the detection results into a format compatible with SQL databases.
+        It includes information about detected objects such as bounding boxes, class names, confidence scores,
+        and optionally segmentation masks, keypoints or oriented bounding boxes.
+
+        Args:
+            table_name (str): Name of the SQL table where the data will be inserted. Defaults to "detection_results".
+            normalize (bool): Whether to normalize the bounding box coordinates by the image dimensions.
+                If True, coordinates will be returned as float values between 0 and 1. Defaults to False.
+            decimals (int): Number of decimal places to round the bounding boxes values to. Defaults to 5.
+            db_path (str): Path to the SQLite database file. Defaults to "results.db".
+
+        Examples:
+            >>> results = model("path/to/image.jpg")
+            >>> for result in results:
+            >>>     result.to_sql()
+        """
+        import json
+        import sqlite3
+
+        # Convert results to a list of dictionaries
+        data = self.summary(normalize=normalize, decimals=decimals)
+        if not data:
+            LOGGER.warning("⚠️ No results to save to SQL. Results dict is empty")
+            return
+
+        # Connect to the SQLite database
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+
+        # Create table if it doesn't exist
+        columns = (
+            "id INTEGER PRIMARY KEY AUTOINCREMENT, class_name TEXT, confidence REAL, "
+            "box TEXT, masks TEXT, kpts TEXT, obb TEXT"
+        )
+        cursor.execute(f"CREATE TABLE IF NOT EXISTS {table_name} ({columns})")
+
+        # Insert data into the table
+        for i, item in enumerate(data):
+            detect, obb = None, None  # necessary to reinit these variables inside for loop to avoid duplication
+            class_name = item.get("name")
+            box = item.get("box", {})
+            # Serialize the box as JSON for 'detect' and 'obb' based on key presence
+            if all(key in box for key in ["x1", "y1", "x2", "y2"]) and not any(key in box for key in ["x3", "x4"]):
+                detect = json.dumps(box)
+            if all(key in box for key in ["x1", "y1", "x2", "y2", "x3", "x4"]):
+                obb = json.dumps(box)
+
+            cursor.execute(
+                f"INSERT INTO {table_name} (class_name, confidence, box, masks, kpts, obb) VALUES (?, ?, ?, ?, ?, ?)",
+                (
+                    class_name,
+                    item.get("confidence"),
+                    detect,
+                    json.dumps(item.get("segments", {}).get("x", [])),
+                    json.dumps(item.get("keypoints", {}).get("x", [])),
+                    obb,
+                ),
+            )
+
+        # Commit and close the connection
+        conn.commit()
+        conn.close()
+
+        LOGGER.info(f"✅ Detection results successfully written to SQL table '{table_name}' in database '{db_path}'.")
 
 
 class Boxes(BaseTensor):
@@ -1741,7 +1816,7 @@ class OBB(BaseTensor):
         Examples:
             >>> import torch
             >>> from ultralytics import YOLO
-            >>> model = YOLO("yolov8n-obb.pt")
+            >>> model = YOLO("yolo11n-obb.pt")
             >>> results = model("path/to/image.jpg")
             >>> for result in results:
             ...     obb = result.obb

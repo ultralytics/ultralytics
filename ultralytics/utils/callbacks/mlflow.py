@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """
 MLflow Logging for Ultralytics YOLO.
 
@@ -69,7 +69,7 @@ def on_pretrain_routine_end(trainer):
     mlflow.set_tracking_uri(uri)
 
     # Set experiment and run names
-    experiment_name = os.environ.get("MLFLOW_EXPERIMENT_NAME") or trainer.args.project or "/Shared/YOLOv8"
+    experiment_name = os.environ.get("MLFLOW_EXPERIMENT_NAME") or trainer.args.project or "/Shared/Ultralytics"
     run_name = os.environ.get("MLFLOW_RUN") or trainer.args.name
     mlflow.set_experiment(experiment_name)
 
@@ -82,7 +82,7 @@ def on_pretrain_routine_end(trainer):
         LOGGER.info(f"{PREFIX}disable with 'yolo settings mlflow=False'")
         mlflow.log_params(dict(trainer.args))
     except Exception as e:
-        LOGGER.warning(f"{PREFIX}WARNING ⚠️ Failed to initialize: {e}\n" f"{PREFIX}WARNING ⚠️ Not tracking this run")
+        LOGGER.warning(f"{PREFIX}WARNING ⚠️ Failed to initialize: {e}\n{PREFIX}WARNING ⚠️ Not tracking this run")
 
 
 def on_train_epoch_end(trainer):

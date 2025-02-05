@@ -1,0 +1,24 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# Global configuration YAML with settings and arguments for Ultralytics Solutions
+# For documentation see https://docs.ultralytics.com/solutions/
+
+# Object counting settings  --------------------------------------------------------------------------------------------
+region: # list[tuple[int, int]] object counting, queue or speed estimation region points.
+show_in: True # (bool) flag to display objects moving *into* the defined region
+show_out: True # (bool) flag to display objects moving *out of* the defined region
+
+# Heatmaps settings ----------------------------------------------------------------------------------------------------
+colormap: #  (int | str) colormap for heatmap, Only OPENCV supported colormaps can be used.
+
+# Workouts monitoring settings -----------------------------------------------------------------------------------------
+up_angle: 145.0 # (float) Workouts up_angle for counts, 145.0 is default value.
+down_angle: 90 # (float) Workouts down_angle for counts, 90 is default value. Y
+kpts: [6, 8, 10] # (list[int]) keypoints for workouts monitoring, i.e. for push-ups kpts have values of [6, 8, 10].
+
+# Analytics settings ---------------------------------------------------------------------------------------------------
+analytics_type: "line" # (str) analytics type i.e "line", "pie", "bar" or "area" charts.
+json_file: # (str) parking system regions file path.
+
+# Security alarm system settings ---------------------------------------------------------------------------------------
+records: 5 # (int) Total detections count to send an email about security

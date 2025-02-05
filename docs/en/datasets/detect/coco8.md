@@ -1,7 +1,7 @@
 ---
 comments: true
 description: Explore the Ultralytics COCO8 dataset, a versatile and manageable set of 8 images perfect for testing object detection models and training pipelines.
-keywords: COCO8, Ultralytics, dataset, object detection, YOLOv8, training, validation, machine learning, computer vision
+keywords: COCO8, Ultralytics, dataset, object detection, YOLO11, training, validation, machine learning, computer vision
 ---
 
 # COCO8 Dataset
@@ -21,7 +21,7 @@ keywords: COCO8, Ultralytics, dataset, object detection, YOLOv8, training, valid
   <strong>Watch:</strong> Ultralytics COCO Dataset Overview
 </p>
 
-This dataset is intended for use with Ultralytics [HUB](https://hub.ultralytics.com/) and [YOLOv8](https://github.com/ultralytics/ultralytics).
+This dataset is intended for use with Ultralytics [HUB](https://hub.ultralytics.com/) and [YOLO11](https://github.com/ultralytics/ultralytics).
 
 ## Dataset YAML
 
@@ -35,7 +35,7 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 ## Usage
 
-To train a YOLOv8n model on the COCO8 dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To train a YOLO11n model on the COCO8 dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
 !!! example "Train Example"
 
@@ -45,7 +45,7 @@ To train a YOLOv8n model on the COCO8 dataset for 100 [epochs](https://www.ultra
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
@@ -55,7 +55,7 @@ To train a YOLOv8n model on the COCO8 dataset for 100 [epochs](https://www.ultra
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=coco8.yaml model=yolov8n.pt epochs=100 imgsz=640
+        yolo detect train data=coco8.yaml model=yolo11n.pt epochs=100 imgsz=640
         ```
 
 ## Sample Images and Annotations
@@ -95,9 +95,9 @@ We would like to acknowledge the COCO Consortium for creating and maintaining th
 
 The Ultralytics COCO8 dataset is a compact yet versatile object detection dataset consisting of the first 8 images from the COCO train 2017 set, with 4 images for training and 4 for validation. It is designed for testing and debugging object detection models and experimentation with new detection approaches. Despite its small size, COCO8 offers enough diversity to act as a sanity check for your training pipelines before deploying larger datasets. For more details, view the [COCO8 dataset](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco8.yaml).
 
-### How do I train a YOLOv8 model using the COCO8 dataset?
+### How do I train a YOLO11 model using the COCO8 dataset?
 
-To train a YOLOv8 model using the COCO8 dataset, you can employ either Python or CLI commands. Here's how you can start:
+To train a YOLO11 model using the COCO8 dataset, you can employ either Python or CLI commands. Here's how you can start:
 
 !!! example "Train Example"
 
@@ -107,7 +107,7 @@ To train a YOLOv8 model using the COCO8 dataset, you can employ either Python or
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
@@ -117,19 +117,19 @@ To train a YOLOv8 model using the COCO8 dataset, you can employ either Python or
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=coco8.yaml model=yolov8n.pt epochs=100 imgsz=640
+        yolo detect train data=coco8.yaml model=yolo11n.pt epochs=100 imgsz=640
         ```
 
 For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
 ### Why should I use Ultralytics HUB for managing my COCO8 training?
 
-Ultralytics HUB is an all-in-one web tool designed to simplify the training and deployment of YOLO models, including the Ultralytics YOLOv8 models on the COCO8 dataset. It offers cloud training, real-time tracking, and seamless dataset management. HUB allows you to start training with a single click and avoids the complexities of manual setups. Discover more about [Ultralytics HUB](https://hub.ultralytics.com/) and its benefits.
+Ultralytics HUB is an all-in-one web tool designed to simplify the training and deployment of YOLO models, including the Ultralytics YOLO11 models on the COCO8 dataset. It offers cloud training, real-time tracking, and seamless dataset management. HUB allows you to start training with a single click and avoids the complexities of manual setups. Discover more about [Ultralytics HUB](https://hub.ultralytics.com/) and its benefits.
 
 ### What are the benefits of using mosaic augmentation in training with the COCO8 dataset?
 
 Mosaic augmentation, demonstrated in the COCO8 dataset, combines multiple images into a single image during training. This technique increases the variety of objects and scenes in each training batch, improving the model's ability to generalize across different object sizes, aspect ratios, and contexts. This results in a more robust object detection model. For more details, refer to the [training guide](#usage).
 
-### How can I validate my YOLOv8 model trained on the COCO8 dataset?
+### How can I validate my YOLO11 model trained on the COCO8 dataset?
 
-Validation of your YOLOv8 model trained on the COCO8 dataset can be performed using the model's validation commands. You can invoke the validation mode via CLI or Python script to evaluate the model's performance using precise metrics. For detailed instructions, visit the [Validation](../../modes/val.md) page.
+Validation of your YOLO11 model trained on the COCO8 dataset can be performed using the model's validation commands. You can invoke the validation mode via CLI or Python script to evaluate the model's performance using precise metrics. For detailed instructions, visit the [Validation](../../modes/val.md) page.

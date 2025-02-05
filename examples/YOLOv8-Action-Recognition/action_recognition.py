@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import argparse
 import time
@@ -263,7 +263,7 @@ def crop_and_pad(frame, box, margin_percent):
 
 
 def run(
-    weights: str = "yolov8n.pt",
+    weights: str = "yolo11n.pt",
     device: str = "",
     source: str = "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
     output_path: Optional[str] = None,
@@ -279,7 +279,7 @@ def run(
     Run action recognition on a video source using YOLO for object detection and a video classifier.
 
     Args:
-        weights (str): Path to the YOLO model weights. Defaults to "yolov8n.pt".
+        weights (str): Path to the YOLO model weights. Defaults to "yolo11n.pt".
         device (str): Device to run the model on. Use 'cuda' for NVIDIA GPU, 'mps' for Apple Silicon, or 'cpu'. Defaults to auto-detection.
         source (str): Path to mp4 video file or YouTube URL. Defaults to a sample YouTube video.
         output_path (Optional[str], optional): Path to save the output video. Defaults to None.
@@ -421,7 +421,7 @@ def run(
 def parse_opt():
     """Parse command line arguments."""
     parser = argparse.ArgumentParser()
-    parser.add_argument("--weights", type=str, default="yolov8n.pt", help="ultralytics detector model path")
+    parser.add_argument("--weights", type=str, default="yolo11n.pt", help="ultralytics detector model path")
     parser.add_argument("--device", default="", help='cuda device, i.e. 0 or 0,1,2,3 or cpu/mps, "" for auto-detection')
     parser.add_argument(
         "--source",

@@ -16,7 +16,7 @@ The [CIFAR-10](https://www.cs.toronto.edu/~kriz/cifar.html) (Canadian Institute 
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Train an [Image Classification](https://www.ultralytics.com/glossary/image-classification) Model with CIFAR-10 Dataset using Ultralytics YOLOv8
+  <strong>Watch:</strong> How to Train an <a href="https://www.ultralytics.com/glossary/image-classification">Image Classification</a> Model with CIFAR-10 Dataset using Ultralytics YOLO11
 </p>
 
 ## Key Features
@@ -50,7 +50,7 @@ To train a YOLO model on the CIFAR-10 dataset for 100 epochs with an image size 
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n-cls.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n-cls.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="cifar10", epochs=100, imgsz=32)
@@ -60,7 +60,7 @@ To train a YOLO model on the CIFAR-10 dataset for 100 epochs with an image size 
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo classify train data=cifar10 model=yolov8n-cls.pt epochs=100 imgsz=32
+        yolo classify train data=cifar10 model=yolo11n-cls.pt epochs=100 imgsz=32
         ```
 
 ## Sample Images and Annotations
@@ -104,7 +104,7 @@ To train a YOLO model on the CIFAR-10 dataset using Ultralytics, you can follow 
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n-cls.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n-cls.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="cifar10", epochs=100, imgsz=32)
@@ -114,7 +114,7 @@ To train a YOLO model on the CIFAR-10 dataset using Ultralytics, you can follow 
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo classify train data=cifar10 model=yolov8n-cls.pt epochs=100 imgsz=32
+        yolo classify train data=cifar10 model=yolo11n-cls.pt epochs=100 imgsz=32
         ```
 
 For more details, refer to the model [Training](../../modes/train.md) page.

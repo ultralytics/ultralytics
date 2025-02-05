@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 from copy import copy
 
@@ -15,7 +15,7 @@ class OBBTrainer(yolo.detect.DetectionTrainer):
         ```python
         from ultralytics.models.yolo.obb import OBBTrainer
 
-        args = dict(model="yolov8n-obb.pt", data="dota8.yaml", epochs=3)
+        args = dict(model="yolo11n-obb.pt", data="dota8.yaml", epochs=3)
         trainer = OBBTrainer(overrides=args)
         trainer.train()
         ```
@@ -39,4 +39,6 @@ class OBBTrainer(yolo.detect.DetectionTrainer):
     def get_validator(self):
         """Return an instance of OBBValidator for validation of YOLO model."""
         self.loss_names = "box_loss", "cls_loss", "dfl_loss"
-        return yolo.obb.OBBValidator(self.test_loader, save_dir=self.save_dir, args=copy(self.args))
+        return yolo.obb.OBBValidator(
+            self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
+        )

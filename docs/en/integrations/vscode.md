@@ -125,7 +125,7 @@ These are the current snippet categories available to the Ultralytics-snippets e
 
 ### Learning with Examples
 
-The `ultra.examples` snippets are to useful for anyone looking to learn how to get started with the basics of working with Ultralytics YOLO. Example snippets are intended to run once inserted (some have dropdown options as well). An example of this is shown at the animation at the [top] of this page, where after the snippet is inserted, all code is selected and run interactively using <kbd>Shift ⇑</kbd>+<kbd>Enter ↵</kbd>.
+The `ultra.examples` snippets are very useful for anyone looking to learn how to get started with the basics of working with Ultralytics YOLO. Example snippets are intended to run once inserted (some have dropdown options as well). An example of this is shown at the animation at the [top] of this page, where after the snippet is inserted, all code is selected and run interactively using <kbd>Shift ⇑</kbd>+<kbd>Enter ↵</kbd>.
 
 !!! example
 
@@ -134,7 +134,7 @@ The `ultra.examples` snippets are to useful for anyone looking to learn how to g
     ```python
     from ultralytics import ASSETS, YOLO
 
-    model = YOLO("yolov8n.pt", task="detect")
+    model = YOLO("yolo11n.pt", task="detect")
     results = model(source=ASSETS / "bus.jpg")
 
     for result in results:
@@ -168,7 +168,7 @@ However, since Ultralytics supports numerous [tasks], when [working with inferen
 
 ### Keywords Arguments
 
-There are over 💯 keyword arguments for all of the various Ultralytics [tasks] and [modes]! That's a lot to remember and it can be easy to forget if the argument is `save_frame` or `save_frames` (it's definitely `save_frames` by the way). This is where the `ultra.kwargs` snippets can help out!
+There are over 💯 keyword arguments for all the various Ultralytics [tasks] and [modes]! That's a lot to remember, and it can be easy to forget if the argument is `save_frame` or `save_frames` (it's definitely `save_frames` by the way). This is where the `ultra.kwargs` snippets can help out!
 
 !!! example
 
@@ -181,7 +181,7 @@ There are over 💯 keyword arguments for all of the various Ultralytics [tasks]
         conf=0.25,  # (float) minimum confidence threshold
         iou=0.7,  # (float) intersection over union (IoU) threshold for NMS
         vid_stride=1,  # (int) video frame-rate stride
-        stream_buffer=False,  # (bool) buffer all streaming frames (True) or return the most recent frame (False)
+        stream_buffer=False,  # (bool) buffer incoming frames in a queue (True) or only keep the most recent frame (False)
         visualize=False,  # (bool) visualize model features
         augment=False,  # (bool) apply image augmentation to prediction sources
         agnostic_nms=False,  # (bool) class-agnostic NMS
@@ -229,7 +229,7 @@ If you use VS Code and have started to see a message prompting you to install th
 
 1. Install Ultralytics-snippets and the message will no longer be shown 😆!
 
-2. You can using `yolo settings vscode_msg False` to disable the message from showing without having to install the extension. You can learn more about the [Ultralytics Settings] on the [quickstart] page if you're unfamiliar.
+2. You can be using `yolo settings vscode_msg False` to disable the message from showing without having to install the extension. You can learn more about the [Ultralytics Settings] on the [quickstart] page if you're unfamiliar.
 
 ### I have an idea for a new Ultralytics code snippet, how can I get one added?
 
@@ -259,7 +259,7 @@ Like any other VS Code extension, you can uninstall it by navigating to the Exte
 [working with inference results]: ../modes/predict.md#working-with-results
 [inference arguments]: ../modes/predict.md#inference-arguments
 [Simple Utilities page]: ../usage/simple-utilities.md
-[Ultralytics Settings]: ../quickstart.md/#ultralytics-settings
+[Ultralytics Settings]: ../quickstart.md#ultralytics-settings
 [quickstart]: ../quickstart.md
 [Discord]: https://ultralytics.com/discord
 [Discourse]: https://community.ultralytics.com

@@ -1,7 +1,7 @@
 ---
 comments: true
 description: Discover the Signature Detection Dataset for training models to identify and verify human signatures in various documents. Perfect for document verification and fraud prevention.
-keywords: Signature Detection Dataset, document verification, fraud detection, computer vision, YOLOv8, Ultralytics, annotated signatures, training dataset
+keywords: Signature Detection Dataset, document verification, fraud detection, computer vision, YOLO11, Ultralytics, annotated signatures, training dataset
 ---
 
 # Signature Detection Dataset
@@ -31,7 +31,7 @@ A YAML (Yet Another Markup Language) file defines the dataset configuration, inc
 
 ## Usage
 
-To train a YOLOv8n model on the signature detection dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, use the provided code samples. For a comprehensive list of available parameters, refer to the model's [Training](../../modes/train.md) page.
+To train a YOLO11n model on the signature detection dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, use the provided code samples. For a comprehensive list of available parameters, refer to the model's [Training](../../modes/train.md) page.
 
 !!! example "Train Example"
 
@@ -41,7 +41,7 @@ To train a YOLOv8n model on the signature detection dataset for 100 [epochs](htt
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="signature.yaml", epochs=100, imgsz=640)
@@ -51,7 +51,7 @@ To train a YOLOv8n model on the signature detection dataset for 100 [epochs](htt
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=signature.yaml model=yolov8n.pt epochs=100 imgsz=640
+        yolo detect train data=signature.yaml model=yolo11n.pt epochs=100 imgsz=640
         ```
 
 !!! example "Inference Example"
@@ -95,9 +95,9 @@ The dataset has been released available under the [AGPL-3.0 License](https://git
 
 The Signature Detection Dataset is a collection of annotated images aimed at detecting human signatures within various document types. It can be applied in computer vision tasks such as [object detection](https://www.ultralytics.com/glossary/object-detection) and tracking, primarily for document verification, fraud detection, and archival research. This dataset helps train models to recognize signatures in different contexts, making it valuable for both research and practical applications.
 
-### How do I train a YOLOv8n model on the Signature Detection Dataset?
+### How do I train a YOLO11n model on the Signature Detection Dataset?
 
-To train a YOLOv8n model on the Signature Detection Dataset, follow these steps:
+To train a YOLO11n model on the Signature Detection Dataset, follow these steps:
 
 1. Download the `signature.yaml` dataset configuration file from [signature.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/signature.yaml).
 2. Use the following Python script or CLI command to start training:
@@ -110,7 +110,7 @@ To train a YOLOv8n model on the Signature Detection Dataset, follow these steps:
         from ultralytics import YOLO
 
         # Load a pretrained model
-        model = YOLO("yolov8n.pt")
+        model = YOLO("yolo11n.pt")
 
         # Train the model
         results = model.train(data="signature.yaml", epochs=100, imgsz=640)
@@ -119,7 +119,7 @@ To train a YOLOv8n model on the Signature Detection Dataset, follow these steps:
     === "CLI"
 
         ```bash
-        yolo detect train data=signature.yaml model=yolov8n.pt epochs=100 imgsz=640
+        yolo detect train data=signature.yaml model=yolo11n.pt epochs=100 imgsz=640
         ```
 
 For more details, refer to the [Training](../../modes/train.md) page.

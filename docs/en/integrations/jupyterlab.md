@@ -1,14 +1,14 @@
 ---
 comments: true
-description: Explore our integration guide that explains how you can use JupyterLab to train a YOLOv8 model. We'll also cover key features and tips for common issues.
-keywords: JupyterLab, What is JupyterLab, How to Use JupyterLab, JupyterLab How to Use, YOLOv8, Ultralytics, Model Training, GPU, TPU, cloud computing
+description: Explore our integration guide that explains how you can use JupyterLab to train a YOLO11 model. We'll also cover key features and tips for common issues.
+keywords: JupyterLab, What is JupyterLab, How to Use JupyterLab, JupyterLab How to Use, YOLO11, Ultralytics, Model Training, GPU, TPU, cloud computing
 ---
 
-# A Guide on How to Use JupyterLab to Train Your YOLOv8 Models
+# A Guide on How to Use JupyterLab to Train Your YOLO11 Models
 
 Building [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models can be tough, especially when you don't have the right tools or environment to work with. If you are facing this issue, JupyterLab might be the right solution for you. JupyterLab is a user-friendly, web-based platform that makes coding more flexible and interactive. You can use it to handle big datasets, create complex models, and even collaborate with others, all in one place.
 
-You can use JupyterLab to [work on projects](../guides/steps-of-a-cv-project.md) related to [Ultralytics YOLOv8 models](https://github.com/ultralytics/ultralytics). JupyterLab is a great option for efficient model development and experimentation. It makes it easy to start experimenting with and [training YOLOv8 models](../modes/train.md) right from your computer. Let's dive deeper into JupyterLab, its key features, and how you can use it to train YOLOv8 models.
+You can use JupyterLab to [work on projects](../guides/steps-of-a-cv-project.md) related to [Ultralytics YOLO11 models](https://github.com/ultralytics/ultralytics). JupyterLab is a great option for efficient model development and experimentation. It makes it easy to start experimenting with and [training YOLO11 models](../modes/train.md) right from your computer. Let's dive deeper into JupyterLab, its key features, and how you can use it to train YOLO11 models.
 
 ## What is JupyterLab?
 
@@ -26,7 +26,7 @@ Here are some of the key features that make JupyterLab a great option for model 
 - **Markdown Preview**: Working with Markdown files is more efficient in JupyterLab, thanks to its simultaneous preview feature. As you write or edit your Markdown file, you can see the formatted output in real-time. It makes it easier to double-check that your documentation looks perfect, saving you from having to switch back and forth between editing and preview modes.
 - **Run Code from Text Files**: If you're sharing a text file with code, JupyterLab makes it easy to run it directly within the platform. You can highlight the code and press Shift + Enter to execute it. It is great for verifying code snippets quickly and helps guarantee that the code you share is functional and error-free.
 
-## Why Should You Use JupyterLab for Your YOLOv8 Projects?
+## Why Should You Use JupyterLab for Your YOLO11 Projects?
 
 There are multiple platforms for developing and evaluating machine learning models, so what makes JupyterLab stand out? Let's explore some of the unique aspects that JupyterLab offers for your machine-learning projects:
 
@@ -46,9 +46,9 @@ When working with Kaggle, you might come across some common issues. Here are som
 - **Installing JupyterLab Extensions**: JupyterLab supports various extensions to enhance functionality. You can install and customize these extensions to suit your needs. For detailed instructions, refer to [JupyterLab Extensions Guide](https://jupyterlab.readthedocs.io/en/latest/user/extensions.html) for more information.
 - **Using Multiple Versions of Python**: If you need to work with different versions of Python, you can use Jupyter kernels configured with different Python versions.
 
-## How to Use JupyterLab to Try Out YOLOv8
+## How to Use JupyterLab to Try Out YOLO11
 
-JupyterLab makes it easy to experiment with YOLOv8. To get started, follow these simple steps.
+JupyterLab makes it easy to experiment with YOLO11. To get started, follow these simple steps.
 
 ### Step 1: Install JupyterLab
 
@@ -63,7 +63,7 @@ First, you need to install JupyterLab. Open your terminal and run the command:
         pip install jupyterlab
         ```
 
-### Step 2: Download the YOLOv8 Tutorial Notebook
+### Step 2: Download the YOLO11 Tutorial Notebook
 
 Next, download the [tutorial.ipynb](https://github.com/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb) file from the Ultralytics GitHub repository. Save this file to any directory on your local machine.
 
@@ -85,13 +85,13 @@ Once you've run this command, it will open JupyterLab in your default web browse
 
 ### Step 4: Start Experimenting
 
-In JupyterLab, open the tutorial.ipynb notebook. You can now start running the cells to explore and experiment with YOLOv8.
+In JupyterLab, open the tutorial.ipynb notebook. You can now start running the cells to explore and experiment with YOLO11.
 
-![Image Showing Opened YOLOv8 Notebook in JupyterLab](https://github.com/ultralytics/docs/releases/download/0/opened-yolov8-notebook-jupyterlab.avif)
+![Image Showing Opened YOLO11 Notebook in JupyterLab](https://github.com/ultralytics/docs/releases/download/0/opened-yolov8-notebook-jupyterlab.avif)
 
-JupyterLab's interactive environment allows you to modify code, visualize outputs, and document your findings all in one place. You can try out different configurations and understand how YOLOv8 works.
+JupyterLab's interactive environment allows you to modify code, visualize outputs, and document your findings all in one place. You can try out different configurations and understand how YOLO11 works.
 
-For a detailed understanding of the model training process and best practices, refer to the [YOLOv8 Model Training guide](../modes/train.md). This guide will help you get the most out of your experiments and ensure you're using YOLOv8 effectively.
+For a detailed understanding of the model training process and best practices, refer to the [YOLO11 Model Training guide](../modes/train.md). This guide will help you get the most out of your experiments and ensure you're using YOLO11 effectively.
 
 ## Keep Learning about Jupyterlab
 
@@ -103,17 +103,17 @@ If you're excited to learn more about JupyterLab, here are some great resources 
 
 ## Summary
 
-We've explored how JupyterLab can be a powerful tool for experimenting with Ultralytics YOLOv8 models. Using its flexible and interactive environment, you can easily set up JupyterLab on your local machine and start working with YOLOv8. JupyterLab makes it simple to [train](../guides/model-training-tips.md) and [evaluate](../guides/model-testing.md) your models, visualize outputs, and [document your findings](../guides/model-monitoring-and-maintenance.md) all in one place.
+We've explored how JupyterLab can be a powerful tool for experimenting with Ultralytics YOLO11 models. Using its flexible and interactive environment, you can easily set up JupyterLab on your local machine and start working with YOLO11. JupyterLab makes it simple to [train](../guides/model-training-tips.md) and [evaluate](../guides/model-testing.md) your models, visualize outputs, and [document your findings](../guides/model-monitoring-and-maintenance.md) all in one place.
 
 For more details, visit the [JupyterLab FAQ Page](https://jupyterlab.readthedocs.io/en/stable/getting_started/faq.html).
 
-Interested in more YOLOv8 integrations? Check out the [Ultralytics integration guide](./index.md) to explore additional tools and capabilities for your machine learning projects.
+Interested in more YOLO11 integrations? Check out the [Ultralytics integration guide](./index.md) to explore additional tools and capabilities for your machine learning projects.
 
 ## FAQ
 
-### How do I use JupyterLab to train a YOLOv8 model?
+### How do I use JupyterLab to train a YOLO11 model?
 
-To train a YOLOv8 model using JupyterLab:
+To train a YOLO11 model using JupyterLab:
 
 1. Install JupyterLab and the Ultralytics package:
 
@@ -128,7 +128,7 @@ To train a YOLOv8 model using JupyterLab:
     ```python
     from ultralytics import YOLO
 
-    model = YOLO("yolov8n.pt")
+    model = YOLO("yolo11n.pt")
     ```
 
 4. Train the model on your custom dataset:
@@ -147,22 +147,22 @@ To train a YOLOv8 model using JupyterLab:
 
 JupyterLab's interactive environment allows you to easily modify parameters, visualize results, and iterate on your model training process.
 
-### What are the key features of JupyterLab that make it suitable for YOLOv8 projects?
+### What are the key features of JupyterLab that make it suitable for YOLO11 projects?
 
-JupyterLab offers several features that make it ideal for YOLOv8 projects:
+JupyterLab offers several features that make it ideal for YOLO11 projects:
 
-1. Interactive code execution: Test and debug YOLOv8 code snippets in real-time.
+1. Interactive code execution: Test and debug YOLO11 code snippets in real-time.
 2. Integrated file browser: Easily manage datasets, model weights, and configuration files.
 3. Flexible layout: Arrange multiple notebooks, terminals, and output windows side-by-side for efficient workflow.
-4. Rich output display: Visualize YOLOv8 detection results, training curves, and model performance metrics inline.
-5. Markdown support: Document your YOLOv8 experiments and findings with rich text and images.
+4. Rich output display: Visualize YOLO11 detection results, training curves, and model performance metrics inline.
+5. Markdown support: Document your YOLO11 experiments and findings with rich text and images.
 6. Extension ecosystem: Enhance functionality with extensions for version control, [remote computing](google-colab.md), and more.
 
-These features allow for a seamless development experience when working with YOLOv8 models, from data preparation to [model deployment](https://www.ultralytics.com/glossary/model-deployment).
+These features allow for a seamless development experience when working with YOLO11 models, from data preparation to [model deployment](https://www.ultralytics.com/glossary/model-deployment).
 
-### How can I optimize YOLOv8 model performance using JupyterLab?
+### How can I optimize YOLO11 model performance using JupyterLab?
 
-To optimize YOLOv8 model performance in JupyterLab:
+To optimize YOLO11 model performance in JupyterLab:
 
 1. Use the autobatch feature to determine the optimal batch size:
 
@@ -190,11 +190,11 @@ To optimize YOLOv8 model performance in JupyterLab:
 
 4. Experiment with different model architectures and [export formats](../modes/export.md) to find the best balance of speed and [accuracy](https://www.ultralytics.com/glossary/accuracy) for your specific use case.
 
-JupyterLab's interactive environment allows for quick iterations and real-time feedback, making it easier to optimize your YOLOv8 models efficiently.
+JupyterLab's interactive environment allows for quick iterations and real-time feedback, making it easier to optimize your YOLO11 models efficiently.
 
-### How do I handle common issues when working with JupyterLab and YOLOv8?
+### How do I handle common issues when working with JupyterLab and YOLO11?
 
-When working with JupyterLab and YOLOv8, you might encounter some common issues. Here's how to handle them:
+When working with JupyterLab and YOLO11, you might encounter some common issues. Here's how to handle them:
 
 1. GPU memory issues:
 
@@ -203,7 +203,7 @@ When working with JupyterLab and YOLOv8, you might encounter some common issues.
 
 2. Package conflicts:
 
-    - Create a separate conda environment for your YOLOv8 projects to avoid conflicts.
+    - Create a separate conda environment for your YOLO11 projects to avoid conflicts.
     - Use `!pip install package_name` in a notebook cell to install missing packages.
 
 3. Kernel crashes:

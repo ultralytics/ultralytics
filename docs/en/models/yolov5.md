@@ -4,7 +4,7 @@ description: Explore YOLOv5u, an advanced object detection model with optimized 
 keywords: YOLOv5, YOLOv5u, object detection, Ultralytics, anchor-free, pre-trained models, accuracy, speed, real-time detection
 ---
 
-# YOLOv5
+# Ultralytics YOLOv5
 
 ## Overview
 
@@ -31,6 +31,11 @@ The YOLOv5u models, with various pre-trained weights, excel in [Object Detection
 This table provides a detailed overview of the YOLOv5u model variants, highlighting their applicability in object detection tasks and support for various operational modes such as [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md). This comprehensive support ensures that users can fully leverage the capabilities of YOLOv5u models in a wide range of object detection scenarios.
 
 ## Performance Metrics
+
+<script async src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<script defer src="../../javascript/benchmark.js"></script>
+
+<canvas id="modelComparisonChart" width="1024" height="400" active-models='["YOLOv5"]'></canvas>
 
 !!! performance
 
@@ -91,6 +96,10 @@ This example provides simple YOLOv5 training and inference examples. For full do
         ```
 
 ## Citations and Acknowledgements
+
+!!! tip "Ultralytics YOLOv5 Publication"
+
+    Ultralytics has not published a formal research paper for YOLOv5 due to the rapidly evolving nature of the models. We focus on advancing the technology and making it easier to use, rather than producing static documentation. For the most up-to-date information on YOLO architecture, features, and usage, please refer to our [GitHub repository](https://github.com/ultralytics/ultralytics) and [documentation](https://docs.ultralytics.com/).
 
 If you use YOLOv5 or YOLOv5u in your research, please cite the Ultralytics YOLOv5 repository as follows:
 

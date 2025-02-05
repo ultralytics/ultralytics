@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """Module defines the base classes and structures for object tracking in YOLO."""
 
 from collections import OrderedDict
@@ -44,7 +44,7 @@ class BaseTrack:
         start_frame (int): The frame number where tracking started.
         frame_id (int): The most recent frame ID processed by the track.
         time_since_update (int): Frames passed since the last update.
-        location (Tuple): The location of the object in the context of multi-camera tracking.
+        location (tuple): The location of the object in the context of multi-camera tracking.
 
     Methods:
         end_frame: Returns the ID of the last frame where the object was tracked.

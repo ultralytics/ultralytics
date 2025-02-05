@@ -14,7 +14,7 @@ This FAQ section addresses common questions and issues users might encounter whi
 
 Ultralytics is a [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) AI company specializing in state-of-the-art object detection and [image segmentation](https://www.ultralytics.com/glossary/image-segmentation) models, with a focus on the YOLO (You Only Look Once) family. Their offerings include:
 
-- Open-source implementations of [YOLOv5](https://docs.ultralytics.com/models/yolov5/) and [YOLOv8](https://docs.ultralytics.com/models/yolov8/)
+- Open-source implementations of [YOLO11](https://docs.ultralytics.com/models/yolov8/) and [YOLO11](https://docs.ultralytics.com/models/yolo11/)
 - A wide range of [pre-trained models](https://docs.ultralytics.com/models/) for various computer vision tasks
 - A comprehensive [Python package](https://docs.ultralytics.com/usage/python/) for seamless integration of YOLO models into projects
 - Versatile [tools](https://docs.ultralytics.com/modes/) for training, testing, and deploying models
@@ -54,9 +54,9 @@ Recommended setup:
 
 For troubleshooting common issues, visit the [YOLO Common Issues](https://docs.ultralytics.com/guides/yolo-common-issues/) page.
 
-### How can I train a custom YOLOv8 model on my own dataset?
+### How can I train a custom YOLO11 model on my own dataset?
 
-To train a custom YOLOv8 model:
+To train a custom YOLO11 model:
 
 1. Prepare your dataset in YOLO format (images and corresponding label txt files).
 2. Create a YAML file describing your dataset structure and classes.
@@ -77,11 +77,11 @@ For a more in-depth guide, including data preparation and advanced training opti
 
 ### What pretrained models are available in Ultralytics?
 
-Ultralytics offers a diverse range of pretrained YOLOv8 models for various tasks:
+Ultralytics offers a diverse range of pretrained YOLO11 models for various tasks:
 
-- Object Detection: YOLOv8n, YOLOv8s, YOLOv8m, YOLOv8l, YOLOv8x
-- [Instance Segmentation](https://www.ultralytics.com/glossary/instance-segmentation): YOLOv8n-seg, YOLOv8s-seg, YOLOv8m-seg, YOLOv8l-seg, YOLOv8x-seg
-- Classification: YOLOv8n-cls, YOLOv8s-cls, YOLOv8m-cls, YOLOv8l-cls, YOLOv8x-cls
+- Object Detection: YOLO11n, YOLO11s, YOLO11m, YOLO11l, YOLO11x
+- [Instance Segmentation](https://www.ultralytics.com/glossary/instance-segmentation): YOLO11n-seg, YOLO11s-seg, YOLO11m-seg, YOLO11l-seg, YOLO11x-seg
+- Classification: YOLO11n-cls, YOLO11s-cls, YOLO11m-cls, YOLO11l-cls, YOLO11x-cls
 
 These models vary in size and complexity, offering different trade-offs between speed and [accuracy](https://www.ultralytics.com/glossary/accuracy). Explore the full range of [pretrained models](https://docs.ultralytics.com/models/yolov8/) to find the best fit for your project.
 
@@ -118,17 +118,17 @@ Absolutely! Ultralytics models are designed for versatile deployment across vari
 
 Ultralytics provides export functions to convert models to various formats for deployment. Explore the wide range of [deployment options](https://docs.ultralytics.com/guides/model-deployment-options/) to find the best solution for your use case.
 
-### What's the difference between YOLOv5 and YOLOv8?
+### What's the difference between YOLOv8 and YOLO11?
 
 Key distinctions include:
 
-- Architecture: YOLOv8 features an improved backbone and head design for enhanced performance.
-- Performance: YOLOv8 generally offers superior accuracy and speed compared to YOLOv5.
-- Tasks: YOLOv8 natively supports [object detection](https://www.ultralytics.com/glossary/object-detection), instance segmentation, and classification in a unified framework.
-- Codebase: YOLOv8 is implemented with a more modular and extensible architecture, facilitating easier customization and extension.
-- Training: YOLOv8 incorporates advanced training techniques like multi-dataset training and hyperparameter evolution for improved results.
+- Architecture: YOLO11 features an improved backbone and head design for enhanced performance.
+- Performance: YOLO11 generally offers superior accuracy and speed compared to YOLOv8.
+- Tasks: YOLO11 natively supports [object detection](https://www.ultralytics.com/glossary/object-detection), instance segmentation, and classification in a unified framework.
+- Codebase: YOLO11 is implemented with a more modular and extensible architecture, facilitating easier customization and extension.
+- Training: YOLO11 incorporates advanced training techniques like multi-dataset training and hyperparameter evolution for improved results.
 
-For an in-depth comparison of features and performance metrics, visit the [YOLOv5 vs YOLOv8](https://www.ultralytics.com/yolo) comparison page.
+For an in-depth comparison of features and performance metrics, visit the [YOLO](https://www.ultralytics.com/yolo) comparison page.
 
 ### How can I contribute to the Ultralytics open-source project?
 
@@ -176,7 +176,7 @@ Enhancing your YOLO model's performance can be achieved through several techniqu
 
 1. [Hyperparameter Tuning](https://www.ultralytics.com/glossary/hyperparameter-tuning): Experiment with different hyperparameters using the [Hyperparameter Tuning Guide](https://docs.ultralytics.com/guides/hyperparameter-tuning/) to optimize model performance.
 2. [Data Augmentation](https://www.ultralytics.com/glossary/data-augmentation): Implement techniques like flip, scale, rotate, and color adjustments to enhance your training dataset and improve model generalization.
-3. [Transfer Learning](https://www.ultralytics.com/glossary/transfer-learning): Leverage pre-trained models and fine-tune them on your specific dataset using the [Train YOLOv8](https://docs.ultralytics.com/modes/train/) guide.
+3. [Transfer Learning](https://www.ultralytics.com/glossary/transfer-learning): Leverage pre-trained models and fine-tune them on your specific dataset using the [Train YOLO11](https://docs.ultralytics.com/modes/train/) guide.
 4. Export to Efficient Formats: Convert your model to optimized formats like TensorRT or ONNX for faster inference using the [Export guide](../modes/export.md).
 5. Benchmarking: Utilize the [Benchmark Mode](https://docs.ultralytics.com/modes/benchmark/) to measure and improve inference speed and accuracy systematically.
 
@@ -195,22 +195,22 @@ Performing inference with a trained Ultralytics YOLO model is straightforward:
 
 1. Load the Model:
 
-```python
-from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-model = YOLO("path/to/your/model.pt")
-```
+    model = YOLO("path/to/your/model.pt")
+    ```
 
 2. Run Inference:
 
-```python
-results = model("path/to/image.jpg")
+    ```python
+    results = model("path/to/image.jpg")
 
-for r in results:
-    print(r.boxes)  # print bounding box predictions
-    print(r.masks)  # print mask predictions
-    print(r.probs)  # print class probabilities
-```
+    for r in results:
+        print(r.boxes)  # print bounding box predictions
+        print(r.masks)  # print mask predictions
+        print(r.probs)  # print class probabilities
+    ```
 
 For advanced inference techniques, including batch processing, video inference, and custom preprocessing, refer to the detailed [prediction guide](https://docs.ultralytics.com/modes/predict/).
 

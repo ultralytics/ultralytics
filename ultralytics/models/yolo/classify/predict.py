@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import cv2
 import torch
@@ -21,7 +21,7 @@ class ClassificationPredictor(BasePredictor):
         from ultralytics.utils import ASSETS
         from ultralytics.models.yolo.classify import ClassificationPredictor
 
-        args = dict(model="yolov8n-cls.pt", source=ASSETS)
+        args = dict(model="yolo11n-cls.pt", source=ASSETS)
         predictor = ClassificationPredictor(overrides=args)
         predictor.predict_cli()
         ```
@@ -53,6 +53,7 @@ class ClassificationPredictor(BasePredictor):
         if not isinstance(orig_imgs, list):  # input images are a torch.Tensor, not a list
             orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)
 
+        preds = preds[0] if isinstance(preds, (list, tuple)) else preds
         return [
             Results(orig_img, path=img_path, names=self.model.names, probs=pred)
             for pred, orig_img, img_path in zip(preds, orig_imgs, self.batch[0])

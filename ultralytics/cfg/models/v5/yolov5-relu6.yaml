@@ -11,7 +11,7 @@ scales: # model compound scaling constants, i.e. 'model=yolov5n.yaml' will call 
   l: [1.00, 1.00, 1024]
   x: [1.33, 1.25, 1024]
 
-activation: nn.ReLU6()
+activation: torch.nn.ReLU6()
 
 # YOLOv5 v6.0 backbone
 backbone:

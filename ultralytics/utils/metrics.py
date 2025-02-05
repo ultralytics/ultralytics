@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """Model validation metrics."""
 
 import math
@@ -74,11 +74,16 @@ def box_iou(box1, box2, eps=1e-7):
 
 def bbox_iou(box1, box2, xywh=True, GIoU=False, DIoU=False, CIoU=False, eps=1e-7):
     """
-    Calculate Intersection over Union (IoU) of box1(1, 4) to box2(n, 4).
+    Calculates the Intersection over Union (IoU) between bounding boxes.
+
+    This function supports various shapes for `box1` and `box2` as long as the last dimension is 4.
+    For instance, you may pass tensors shaped like (4,), (N, 4), (B, N, 4), or (B, N, 1, 4).
+    Internally, the code will split the last dimension into (x, y, w, h) if `xywh=True`,
+    or (x1, y1, x2, y2) if `xywh=False`.
 
     Args:
-        box1 (torch.Tensor): A tensor representing a single bounding box with shape (1, 4).
-        box2 (torch.Tensor): A tensor representing n bounding boxes with shape (n, 4).
+        box1 (torch.Tensor): A tensor representing one or more bounding boxes, with the last dimension being 4.
+        box2 (torch.Tensor): A tensor representing one or more bounding boxes, with the last dimension being 4.
         xywh (bool, optional): If True, input boxes are in (x, y, w, h) format. If False, input boxes are in
                                (x1, y1, x2, y2) format. Defaults to True.
         GIoU (bool, optional): If True, calculate Generalized IoU. Defaults to False.
@@ -271,7 +276,7 @@ def batch_probiou(obb1, obb2, eps=1e-7):
     return 1 - hd
 
 
-def smooth_BCE(eps=0.1):
+def smooth_bce(eps=0.1):
     """
     Computes smoothed positive and negative Binary Cross-Entropy targets.
 
@@ -373,10 +378,9 @@ class ConfusionMatrix:
             else:
                 self.matrix[self.nc, gc] += 1  # true background
 
-        if n:
-            for i, dc in enumerate(detection_classes):
-                if not any(m1 == i):
-                    self.matrix[dc, self.nc] += 1  # predicted background
+        for i, dc in enumerate(detection_classes):
+            if not any(m1 == i):
+                self.matrix[dc, self.nc] += 1  # predicted background
 
     def matrix(self):
         """Returns the confusion matrix."""
@@ -429,7 +433,7 @@ class ConfusionMatrix:
         ax.set_xlabel("True")
         ax.set_ylabel("Predicted")
         ax.set_title(title)
-        plot_fname = Path(save_dir) / f'{title.lower().replace(" ", "_")}.png'
+        plot_fname = Path(save_dir) / f"{title.lower().replace(' ', '_')}.png"
         fig.savefig(plot_fname, dpi=250)
         plt.close(fig)
         if on_plot:
@@ -550,19 +554,18 @@ def ap_per_class(
         prefix (str, optional): A prefix string for saving the plot files. Defaults to an empty string.
 
     Returns:
-        (tuple): A tuple of six arrays and one array of unique classes, where:
-            tp (np.ndarray): True positive counts at threshold given by max F1 metric for each class.Shape: (nc,).
-            fp (np.ndarray): False positive counts at threshold given by max F1 metric for each class. Shape: (nc,).
-            p (np.ndarray): Precision values at threshold given by max F1 metric for each class. Shape: (nc,).
-            r (np.ndarray): Recall values at threshold given by max F1 metric for each class. Shape: (nc,).
-            f1 (np.ndarray): F1-score values at threshold given by max F1 metric for each class. Shape: (nc,).
-            ap (np.ndarray): Average precision for each class at different IoU thresholds. Shape: (nc, 10).
-            unique_classes (np.ndarray): An array of unique classes that have data. Shape: (nc,).
-            p_curve (np.ndarray): Precision curves for each class. Shape: (nc, 1000).
-            r_curve (np.ndarray): Recall curves for each class. Shape: (nc, 1000).
-            f1_curve (np.ndarray): F1-score curves for each class. Shape: (nc, 1000).
-            x (np.ndarray): X-axis values for the curves. Shape: (1000,).
-            prec_values: Precision values at mAP@0.5 for each class. Shape: (nc, 1000).
+        tp (np.ndarray): True positive counts at threshold given by max F1 metric for each class.Shape: (nc,).
+        fp (np.ndarray): False positive counts at threshold given by max F1 metric for each class. Shape: (nc,).
+        p (np.ndarray): Precision values at threshold given by max F1 metric for each class. Shape: (nc,).
+        r (np.ndarray): Recall values at threshold given by max F1 metric for each class. Shape: (nc,).
+        f1 (np.ndarray): F1-score values at threshold given by max F1 metric for each class. Shape: (nc,).
+        ap (np.ndarray): Average precision for each class at different IoU thresholds. Shape: (nc, 10).
+        unique_classes (np.ndarray): An array of unique classes that have data. Shape: (nc,).
+        p_curve (np.ndarray): Precision curves for each class. Shape: (nc, 1000).
+        r_curve (np.ndarray): Recall curves for each class. Shape: (nc, 1000).
+        f1_curve (np.ndarray): F1-score curves for each class. Shape: (nc, 1000).
+        x (np.ndarray): X-axis values for the curves. Shape: (1000,).
+        prec_values (np.ndarray): Precision values at mAP@0.5 for each class. Shape: (nc, 1000).
     """
     # Sort by objectness
     i = np.argsort(-conf)
@@ -599,7 +602,7 @@ def ap_per_class(
         # AP from recall-precision curve
         for j in range(tp.shape[1]):
             ap[ci, j], mpre, mrec = compute_ap(recall[:, j], precision[:, j])
-            if plot and j == 0:
+            if j == 0:
                 prec_values.append(np.interp(x, mrec, mpre))  # precision at mAP@0.5
 
     prec_values = np.array(prec_values)  # (nc, 1000)

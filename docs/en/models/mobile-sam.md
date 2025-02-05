@@ -4,13 +4,24 @@ description: Discover MobileSAM, a lightweight and fast image segmentation model
 keywords: MobileSAM, image segmentation, lightweight model, fast segmentation, mobile applications, SAM, ViT encoder, Tiny-ViT, Ultralytics
 ---
 
-![MobileSAM Logo](https://github.com/ChaoningZhang/MobileSAM/blob/master/assets/logo2.png)
+![MobileSAM Logo](https://raw.githubusercontent.com/ChaoningZhang/MobileSAM/master/assets/logo2.png)
 
 # Mobile Segment Anything (MobileSAM)
 
-The MobileSAM paper is now available on [arXiv](https://arxiv.org/pdf/2306.14289.pdf).
+The MobileSAM paper is now available on [arXiv](https://arxiv.org/pdf/2306.14289).
 
 A demonstration of MobileSAM running on a CPU can be accessed at this [demo link](https://huggingface.co/spaces/dhkim2810/MobileSAM). The performance on a Mac i5 CPU takes approximately 3 seconds. On the Hugging Face demo, the interface and lower-performance CPUs contribute to a slower response, but it continues to function effectively.
+
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/yXQPLMrNX2s"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to Run Inference with MobileSAM using Ultralytics | Step-by-Step Guide 🎉
+</p>
 
 MobileSAM is implemented in various projects including [Grounding-SAM](https://github.com/IDEA-Research/Grounded-Segment-Anything), [AnyLabeling](https://github.com/vietanhdev/anylabeling), and [Segment Anything in 3D](https://github.com/Jumpat/SegmentAnythingin3D).
 
@@ -79,8 +90,17 @@ You can download the model [here](https://github.com/ChaoningZhang/MobileSAM/blo
         # Load the model
         model = SAM("mobile_sam.pt")
 
-        # Predict a segment based on a point prompt
+        # Predict a segment based on a single point prompt
         model.predict("ultralytics/assets/zidane.jpg", points=[900, 370], labels=[1])
+
+        # Predict multiple segments based on multiple points prompt
+        model.predict("ultralytics/assets/zidane.jpg", points=[[400, 370], [900, 370]], labels=[1, 1])
+
+        # Predict a segment based on multiple points prompt per object
+        model.predict("ultralytics/assets/zidane.jpg", points=[[[400, 370], [900, 370]]], labels=[[1, 1]])
+
+        # Predict a segment using both positive and negative prompts.
+        model.predict("ultralytics/assets/zidane.jpg", points=[[[400, 370], [900, 370]]], labels=[[1, 0]])
         ```
 
 ### Box Prompt
@@ -95,11 +115,36 @@ You can download the model [here](https://github.com/ChaoningZhang/MobileSAM/blo
         # Load the model
         model = SAM("mobile_sam.pt")
 
-        # Predict a segment based on a box prompt
-        model.predict("ultralytics/assets/zidane.jpg", bboxes=[439, 437, 524, 709])
+        # Predict a segment based on a single point prompt
+        model.predict("ultralytics/assets/zidane.jpg", points=[900, 370], labels=[1])
+
+        # Predict multiple segments based on multiple points prompt
+        model.predict("ultralytics/assets/zidane.jpg", points=[[400, 370], [900, 370]], labels=[1, 1])
+
+        # Predict a segment based on multiple points prompt per object
+        model.predict("ultralytics/assets/zidane.jpg", points=[[[400, 370], [900, 370]]], labels=[[1, 1]])
+
+        # Predict a segment using both positive and negative prompts.
+        model.predict("ultralytics/assets/zidane.jpg", points=[[[400, 370], [900, 370]]], labels=[[1, 0]])
         ```
 
 We have implemented `MobileSAM` and `SAM` using the same API. For more usage information, please see the [SAM page](sam.md).
+
+### Automatically Build Segmentation Datasets Leveraging a Detection Model
+
+To automatically annotate your dataset using the Ultralytics framework, utilize the `auto_annotate` function as demonstrated below:
+
+!!! example
+
+    === "Python"
+
+        ```python
+        from ultralytics.data.annotator import auto_annotate
+
+        auto_annotate(data="path/to/images", det_model="yolo11x.pt", sam_model="mobile_sam.pt")
+        ```
+
+{% include "macros/sam-auto-annotate.md" %}
 
 ## Citations and Acknowledgements
 

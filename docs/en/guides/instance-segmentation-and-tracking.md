@@ -1,14 +1,14 @@
 ---
 comments: true
-description: Master instance segmentation and tracking with Ultralytics YOLOv8. Learn techniques for precise object identification and tracking.
-keywords: instance segmentation, tracking, YOLOv8, Ultralytics, object detection, machine learning, computer vision, python
+description: Master instance segmentation and tracking with Ultralytics YOLO11. Learn techniques for precise object identification and tracking.
+keywords: instance segmentation, tracking, YOLO11, Ultralytics, object detection, machine learning, computer vision, python
 ---
 
-# Instance Segmentation and Tracking using Ultralytics YOLOv8 🚀
+# Instance Segmentation and Tracking using Ultralytics YOLO11 🚀
 
 ## What is [Instance Segmentation](https://www.ultralytics.com/glossary/instance-segmentation)?
 
-[Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics/) instance segmentation involves identifying and outlining individual objects in an image, providing a detailed understanding of spatial distribution. Unlike [semantic segmentation](https://www.ultralytics.com/glossary/semantic-segmentation), it uniquely labels and precisely delineates each object, crucial for tasks like [object detection](https://www.ultralytics.com/glossary/object-detection) and medical imaging.
+[Ultralytics YOLO11](https://github.com/ultralytics/ultralytics/) instance segmentation involves identifying and outlining individual objects in an image, providing a detailed understanding of spatial distribution. Unlike [semantic segmentation](https://www.ultralytics.com/glossary/semantic-segmentation), it uniquely labels and precisely delineates each object, crucial for tasks like [object detection](https://www.ultralytics.com/glossary/object-detection) and medical imaging.
 
 There are two types of instance segmentation tracking available in the Ultralytics package:
 
@@ -24,7 +24,7 @@ There are two types of instance segmentation tracking available in the Ultralyti
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Instance Segmentation with Object Tracking using Ultralytics YOLOv8
+  <strong>Watch:</strong> Instance Segmentation with Object Tracking using Ultralytics YOLO11
 </p>
 
 ## Samples
@@ -44,7 +44,7 @@ There are two types of instance segmentation tracking available in the Ultralyti
         from ultralytics import YOLO
         from ultralytics.utils.plotting import Annotator, colors
 
-        model = YOLO("yolov8n-seg.pt")  # segmentation model
+        model = YOLO("yolo11n-seg.pt")  # segmentation model
         names = model.model.names
         cap = cv2.VideoCapture("path/to/video/file.mp4")
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
@@ -82,16 +82,12 @@ There are two types of instance segmentation tracking available in the Ultralyti
     === "Instance Segmentation with Object Tracking"
 
         ```python
-        from collections import defaultdict
-
         import cv2
 
         from ultralytics import YOLO
         from ultralytics.utils.plotting import Annotator, colors
 
-        track_history = defaultdict(lambda: [])
-
-        model = YOLO("yolov8n-seg.pt")  # segmentation model
+        model = YOLO("yolo11n-seg.pt")  # segmentation model
         cap = cv2.VideoCapture("path/to/video/file.mp4")
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 
@@ -142,9 +138,9 @@ For any inquiries, feel free to post your questions in the [Ultralytics Issue Se
 
 ## FAQ
 
-### How do I perform instance segmentation using Ultralytics YOLOv8?
+### How do I perform instance segmentation using Ultralytics YOLO11?
 
-To perform instance segmentation using Ultralytics YOLOv8, initialize the YOLO model with a segmentation version of YOLOv8 and process video frames through it. Here's a simplified code example:
+To perform instance segmentation using Ultralytics YOLO11, initialize the YOLO model with a segmentation version of YOLO11 and process video frames through it. Here's a simplified code example:
 
 !!! example
 
@@ -156,7 +152,7 @@ To perform instance segmentation using Ultralytics YOLOv8, initialize the YOLO m
         from ultralytics import YOLO
         from ultralytics.utils.plotting import Annotator, colors
 
-        model = YOLO("yolov8n-seg.pt")  # segmentation model
+        model = YOLO("yolo11n-seg.pt")  # segmentation model
         cap = cv2.VideoCapture("path/to/video/file.mp4")
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 
@@ -186,17 +182,17 @@ To perform instance segmentation using Ultralytics YOLOv8, initialize the YOLO m
         cv2.destroyAllWindows()
         ```
 
-Learn more about instance segmentation in the [Ultralytics YOLOv8 guide](#what-is-instance-segmentation).
+Learn more about instance segmentation in the [Ultralytics YOLO11 guide](#what-is-instance-segmentation).
 
-### What is the difference between instance segmentation and object tracking in Ultralytics YOLOv8?
+### What is the difference between instance segmentation and object tracking in Ultralytics YOLO11?
 
-Instance segmentation identifies and outlines individual objects within an image, giving each object a unique label and mask. Object tracking extends this by assigning consistent labels to objects across video frames, facilitating continuous tracking of the same objects over time. Learn more about the distinctions in the [Ultralytics YOLOv8 documentation](#samples).
+Instance segmentation identifies and outlines individual objects within an image, giving each object a unique label and mask. Object tracking extends this by assigning consistent labels to objects across video frames, facilitating continuous tracking of the same objects over time. Learn more about the distinctions in the [Ultralytics YOLO11 documentation](#samples).
 
-### Why should I use Ultralytics YOLOv8 for instance segmentation and tracking over other models like Mask R-CNN or Faster R-CNN?
+### Why should I use Ultralytics YOLO11 for instance segmentation and tracking over other models like Mask R-CNN or Faster R-CNN?
 
-Ultralytics YOLOv8 offers real-time performance, superior [accuracy](https://www.ultralytics.com/glossary/accuracy), and ease of use compared to other models like Mask R-CNN or Faster R-CNN. YOLOv8 provides a seamless integration with Ultralytics HUB, allowing users to manage models, datasets, and training pipelines efficiently. Discover more about the benefits of YOLOv8 in the [Ultralytics blog](https://www.ultralytics.com/blog/introducing-ultralytics-yolov8).
+Ultralytics YOLO11 offers real-time performance, superior [accuracy](https://www.ultralytics.com/glossary/accuracy), and ease of use compared to other models like Mask R-CNN or Faster R-CNN. YOLO11 provides a seamless integration with Ultralytics HUB, allowing users to manage models, datasets, and training pipelines efficiently. Discover more about the benefits of YOLO11 in the [Ultralytics blog](https://www.ultralytics.com/blog/introducing-ultralytics-yolov8).
 
-### How can I implement object tracking using Ultralytics YOLOv8?
+### How can I implement object tracking using Ultralytics YOLO11?
 
 To implement object tracking, use the `model.track` method and ensure that each object's ID is consistently assigned across frames. Below is a simple example:
 
@@ -205,16 +201,12 @@ To implement object tracking, use the `model.track` method and ensure that each 
     === "Python"
 
         ```python
-        from collections import defaultdict
-
         import cv2
 
         from ultralytics import YOLO
         from ultralytics.utils.plotting import Annotator, colors
 
-        track_history = defaultdict(lambda: [])
-
-        model = YOLO("yolov8n-seg.pt")  # segmentation model
+        model = YOLO("yolo11n-seg.pt")  # segmentation model
         cap = cv2.VideoCapture("path/to/video/file.mp4")
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 
@@ -247,6 +239,6 @@ To implement object tracking, use the `model.track` method and ensure that each 
 
 Find more in the [Instance Segmentation and Tracking section](#samples).
 
-### Are there any datasets provided by Ultralytics suitable for training YOLOv8 models for instance segmentation and tracking?
+### Are there any datasets provided by Ultralytics suitable for training YOLO11 models for instance segmentation and tracking?
 
-Yes, Ultralytics offers several datasets suitable for training YOLOv8 models, including segmentation and tracking datasets. Dataset examples, structures, and instructions for use can be found in the [Ultralytics Datasets documentation](https://docs.ultralytics.com/datasets/).
+Yes, Ultralytics offers several datasets suitable for training YOLO11 models, including segmentation and tracking datasets. Dataset examples, structures, and instructions for use can be found in the [Ultralytics Datasets documentation](https://docs.ultralytics.com/datasets/).

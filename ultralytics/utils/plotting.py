@@ -1,6 +1,5 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-import contextlib
 import math
 import warnings
 from pathlib import Path
@@ -13,7 +12,7 @@ import torch
 from PIL import Image, ImageDraw, ImageFont
 from PIL import __version__ as pil_version
 
-from ultralytics.utils import LOGGER, TryExcept, ops, plt_settings, threaded
+from ultralytics.utils import IS_COLAB, IS_KAGGLE, LOGGER, TryExcept, ops, plt_settings, threaded
 from ultralytics.utils.checks import check_font, check_version, is_ascii
 from ultralytics.utils.files import increment_path
 
@@ -215,7 +214,16 @@ class Annotator:
         self.kpt_color = colors.pose_palette[[16, 16, 16, 16, 16, 0, 0, 0, 0, 0, 0, 9, 9, 9, 9, 9, 9]]
 
     def get_txt_color(self, color=(128, 128, 128), txt_color=(255, 255, 255)):
-        """Assign text color based on background color."""
+        """
+        Assign text color based on background color.
+
+        Args:
+            color (tuple, optional): The background color of the rectangle for text (B, G, R).
+            txt_color (tuple, optional): The color of the text (R, G, B).
+
+        Returns:
+            txt_color (tuple): Text color for label
+        """
         if color in self.dark_colors:
             return 104, 31, 17
         elif color in self.light_colors:
@@ -500,13 +508,21 @@ class Annotator:
 
     def show(self, title=None):
         """Show the annotated image."""
-        Image.fromarray(np.asarray(self.im)[..., ::-1]).show(title)
+        im = Image.fromarray(np.asarray(self.im)[..., ::-1])  # Convert numpy array to PIL Image with RGB to BGR
+        if IS_COLAB or IS_KAGGLE:  # can not use IS_JUPYTER as will run for all ipython environments
+            try:
+                display(im)  # noqa - display() function only available in ipython environments
+            except ImportError as e:
+                LOGGER.warning(f"Unable to display image in Jupyter notebooks: {e}")
+        else:
+            im.show(title=title)
 
     def save(self, filename="image.jpg"):
         """Save the annotated image to 'filename'."""
         cv2.imwrite(filename, np.asarray(self.im))
 
-    def get_bbox_dimension(self, bbox=None):
+    @staticmethod
+    def get_bbox_dimension(bbox=None):
         """
         Calculate the area of a bounding box.
 
@@ -514,7 +530,9 @@ class Annotator:
             bbox (tuple): Bounding box coordinates in the format (x_min, y_min, x_max, y_max).
 
         Returns:
-            angle (degree): Degree value of angle between three points
+            width (float): Width of the bounding box.
+            height (float): Height of the bounding box.
+            area (float): Area enclosed by the bounding box.
         """
         x_min, y_min, x_max, y_max = bbox
         width = x_max - x_min
@@ -554,10 +572,10 @@ class Annotator:
         Displays queue counts on an image centered at the points with customizable font size and colors.
 
         Args:
-            label (str): queue counts label
-            points (tuple): region points for center point calculation to display text
-            region_color (RGB): queue region color
-            txt_color (RGB): text display color
+            label (str): Queue counts label.
+            points (tuple): Region points for center point calculation to display text.
+            region_color (tuple): RGB queue region color.
+            txt_color (tuple): RGB text display color.
         """
         x_values = [point[0] for point in points]
         y_values = [point[1] for point in points]
@@ -594,13 +612,13 @@ class Annotator:
         Display the bounding boxes labels in parking management app.
 
         Args:
-            im0 (ndarray): inference image
-            text (str): object/class name
-            txt_color (bgr color): display color for text foreground
-            bg_color (bgr color): display color for text background
-            x_center (float): x position center point for bounding box
-            y_center (float): y position center point for bounding box
-            margin (int): gap between text and rectangle for better display
+            im0 (ndarray): Inference image.
+            text (str): Object/class name.
+            txt_color (tuple): Display color for text foreground.
+            bg_color (tuple): Display color for text background.
+            x_center (float): The x position center point for bounding box.
+            y_center (float): The y position center point for bounding box.
+            margin (int): The gap between text and rectangle for better display.
         """
         text_size = cv2.getTextSize(text, 0, fontScale=self.sf, thickness=self.tf)[0]
         text_x = x_center - text_size[0] // 2
@@ -618,11 +636,11 @@ class Annotator:
         Display the overall statistics for parking lots.
 
         Args:
-            im0 (ndarray): inference image
-            text (dict): labels dictionary
-            txt_color (bgr color): display color for text foreground
-            bg_color (bgr color): display color for text background
-            margin (int): gap between text and rectangle for better display
+            im0 (ndarray): Inference image.
+            text (dict): Labels dictionary.
+            txt_color (tuple): Display color for text foreground.
+            bg_color (tuple): Display color for text background.
+            margin (int): Gap between text and rectangle for better display.
         """
         horizontal_gap = int(im0.shape[1] * 0.02)
         vertical_gap = int(im0.shape[0] * 0.01)
@@ -662,14 +680,13 @@ class Annotator:
             angle = 360 - angle
         return angle
 
-    def draw_specific_points(self, keypoints, indices=None, shape=(640, 640), radius=2, conf_thres=0.25):
+    def draw_specific_points(self, keypoints, indices=None, radius=2, conf_thres=0.25):
         """
         Draw specific keypoints for gym steps counting.
 
         Args:
             keypoints (list): Keypoints data to be plotted.
             indices (list, optional): Keypoint indices to be plotted. Defaults to [2, 5, 7].
-            shape (tuple, optional): Image size for model inference. Defaults to (640, 640).
             radius (int, optional): Keypoint radius. Defaults to 2.
             conf_thres (float, optional): Confidence threshold for keypoints. Defaults to 0.25.
 
@@ -680,142 +697,157 @@ class Annotator:
             Keypoint format: [x, y] or [x, y, confidence].
             Modifies self.im in-place.
         """
-        if indices is None:
-            indices = [2, 5, 7]
-        for i, k in enumerate(keypoints):
-            if i in indices:
-                x_coord, y_coord = k[0], k[1]
-                if x_coord % shape[1] != 0 and y_coord % shape[0] != 0:
-                    if len(k) == 3:
-                        conf = k[2]
-                        if conf < conf_thres:
-                            continue
-                    cv2.circle(self.im, (int(x_coord), int(y_coord)), radius, (0, 255, 0), -1, lineType=cv2.LINE_AA)
+        indices = indices or [2, 5, 7]
+        points = [(int(k[0]), int(k[1])) for i, k in enumerate(keypoints) if i in indices and k[2] >= conf_thres]
+
+        # Draw lines between consecutive points
+        for start, end in zip(points[:-1], points[1:]):
+            cv2.line(self.im, start, end, (0, 255, 0), 2, lineType=cv2.LINE_AA)
+
+        # Draw circles for keypoints
+        for pt in points:
+            cv2.circle(self.im, pt, radius, (0, 0, 255), -1, lineType=cv2.LINE_AA)
+
         return self.im
+
+    def plot_workout_information(self, display_text, position, color=(104, 31, 17), txt_color=(255, 255, 255)):
+        """
+        Draw text with a background on the image.
+
+        Args:
+            display_text (str): The text to be displayed.
+            position (tuple): Coordinates (x, y) on the image where the text will be placed.
+            color (tuple, optional): Text background color
+            txt_color (tuple, optional): Text foreground color
+        """
+        (text_width, text_height), _ = cv2.getTextSize(display_text, 0, self.sf, self.tf)
+
+        # Draw background rectangle
+        cv2.rectangle(
+            self.im,
+            (position[0], position[1] - text_height - 5),
+            (position[0] + text_width + 10, position[1] - text_height - 5 + text_height + 10 + self.tf),
+            color,
+            -1,
+        )
+        # Draw text
+        cv2.putText(self.im, display_text, position, 0, self.sf, txt_color, self.tf)
+
+        return text_height
 
     def plot_angle_and_count_and_stage(
         self, angle_text, count_text, stage_text, center_kpt, color=(104, 31, 17), txt_color=(255, 255, 255)
     ):
         """
-        Plot the pose angle, count value and step stage.
+        Plot the pose angle, count value, and step stage.
 
         Args:
-            angle_text (str): angle value for workout monitoring
-            count_text (str): counts value for workout monitoring
-            stage_text (str): stage decision for workout monitoring
-            center_kpt (list): centroid pose index for workout monitoring
-            color (tuple): text background color for workout monitoring
-            txt_color (tuple): text foreground color for workout monitoring
+            angle_text (str): Angle value for workout monitoring
+            count_text (str): Counts value for workout monitoring
+            stage_text (str): Stage decision for workout monitoring
+            center_kpt (list): Centroid pose index for workout monitoring
+            color (tuple, optional): Text background color
+            txt_color (tuple, optional): Text foreground color
         """
-        angle_text, count_text, stage_text = (f" {angle_text:.2f}", f"Steps : {count_text}", f" {stage_text}")
+        # Format text
+        angle_text, count_text, stage_text = f" {angle_text:.2f}", f"Steps : {count_text}", f" {stage_text}"
 
-        # Draw angle
-        (angle_text_width, angle_text_height), _ = cv2.getTextSize(angle_text, 0, self.sf, self.tf)
-        angle_text_position = (int(center_kpt[0]), int(center_kpt[1]))
-        angle_background_position = (angle_text_position[0], angle_text_position[1] - angle_text_height - 5)
-        angle_background_size = (angle_text_width + 2 * 5, angle_text_height + 2 * 5 + (self.tf * 2))
-        cv2.rectangle(
-            self.im,
-            angle_background_position,
-            (
-                angle_background_position[0] + angle_background_size[0],
-                angle_background_position[1] + angle_background_size[1],
-            ),
-            color,
-            -1,
+        # Draw angle, count and stage text
+        angle_height = self.plot_workout_information(
+            angle_text, (int(center_kpt[0]), int(center_kpt[1])), color, txt_color
         )
-        cv2.putText(self.im, angle_text, angle_text_position, 0, self.sf, txt_color, self.tf)
-
-        # Draw Counts
-        (count_text_width, count_text_height), _ = cv2.getTextSize(count_text, 0, self.sf, self.tf)
-        count_text_position = (angle_text_position[0], angle_text_position[1] + angle_text_height + 20)
-        count_background_position = (
-            angle_background_position[0],
-            angle_background_position[1] + angle_background_size[1] + 5,
+        count_height = self.plot_workout_information(
+            count_text, (int(center_kpt[0]), int(center_kpt[1]) + angle_height + 20), color, txt_color
         )
-        count_background_size = (count_text_width + 10, count_text_height + 10 + self.tf)
-
-        cv2.rectangle(
-            self.im,
-            count_background_position,
-            (
-                count_background_position[0] + count_background_size[0],
-                count_background_position[1] + count_background_size[1],
-            ),
-            color,
-            -1,
+        self.plot_workout_information(
+            stage_text, (int(center_kpt[0]), int(center_kpt[1]) + angle_height + count_height + 40), color, txt_color
         )
-        cv2.putText(self.im, count_text, count_text_position, 0, self.sf, txt_color, self.tf)
-
-        # Draw Stage
-        (stage_text_width, stage_text_height), _ = cv2.getTextSize(stage_text, 0, self.sf, self.tf)
-        stage_text_position = (int(center_kpt[0]), int(center_kpt[1]) + angle_text_height + count_text_height + 40)
-        stage_background_position = (stage_text_position[0], stage_text_position[1] - stage_text_height - 5)
-        stage_background_size = (stage_text_width + 10, stage_text_height + 10)
-
-        cv2.rectangle(
-            self.im,
-            stage_background_position,
-            (
-                stage_background_position[0] + stage_background_size[0],
-                stage_background_position[1] + stage_background_size[1],
-            ),
-            color,
-            -1,
-        )
-        cv2.putText(self.im, stage_text, stage_text_position, 0, self.sf, txt_color, self.tf)
 
     def seg_bbox(self, mask, mask_color=(255, 0, 255), label=None, txt_color=(255, 255, 255)):
         """
         Function for drawing segmented object in bounding box shape.
 
         Args:
-            mask (list): masks data list for instance segmentation area plotting
-            mask_color (RGB): mask foreground color
-            label (str): Detection label text
-            txt_color (RGB): text color
+            mask (np.ndarray): A 2D array of shape (N, 2) containing the contour points of the segmented object.
+            mask_color (tuple): RGB color for the contour and label background.
+            label (str, optional): Text label for the object. If None, no label is drawn.
+            txt_color (tuple): RGB color for the label text.
         """
+        if mask.size == 0:  # no masks to plot
+            return
+
         cv2.polylines(self.im, [np.int32([mask])], isClosed=True, color=mask_color, thickness=2)
-        text_size, _ = cv2.getTextSize(label, 0, self.sf, self.tf)
-
-        cv2.rectangle(
-            self.im,
-            (int(mask[0][0]) - text_size[0] // 2 - 10, int(mask[0][1]) - text_size[1] - 10),
-            (int(mask[0][0]) + text_size[0] // 2 + 10, int(mask[0][1] + 10)),
-            mask_color,
-            -1,
-        )
-
         if label:
+            text_size, _ = cv2.getTextSize(label, 0, self.sf, self.tf)
+            cv2.rectangle(
+                self.im,
+                (int(mask[0][0]) - text_size[0] // 2 - 10, int(mask[0][1]) - text_size[1] - 10),
+                (int(mask[0][0]) + text_size[0] // 2 + 10, int(mask[0][1] + 10)),
+                mask_color,
+                -1,
+            )
             cv2.putText(
                 self.im, label, (int(mask[0][0]) - text_size[0] // 2, int(mask[0][1])), 0, self.sf, txt_color, self.tf
             )
 
-    def plot_distance_and_line(self, pixels_distance, centroids, line_color, centroid_color):
+    def sweep_annotator(self, line_x=0, line_y=0, label=None, color=(221, 0, 186), txt_color=(255, 255, 255)):
+        """
+        Function for drawing a sweep annotation line and an optional label.
+
+        Args:
+            line_x (int): The x-coordinate of the sweep line.
+            line_y (int): The y-coordinate limit of the sweep line.
+            label (str, optional): Text label to be drawn in center of sweep line. If None, no label is drawn.
+            color (tuple): RGB color for the line and label background.
+            txt_color (tuple): RGB color for the label text.
+        """
+        # Draw the sweep line
+        cv2.line(self.im, (line_x, 0), (line_x, line_y), color, self.tf * 2)
+
+        # Draw label, if provided
+        if label:
+            (text_width, text_height), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, self.sf, self.tf)
+            cv2.rectangle(
+                self.im,
+                (line_x - text_width // 2 - 10, line_y // 2 - text_height // 2 - 10),
+                (line_x + text_width // 2 + 10, line_y // 2 + text_height // 2 + 10),
+                color,
+                -1,
+            )
+            cv2.putText(
+                self.im,
+                label,
+                (line_x - text_width // 2, line_y // 2 + text_height // 2),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                self.sf,
+                txt_color,
+                self.tf,
+            )
+
+    def plot_distance_and_line(
+        self, pixels_distance, centroids, line_color=(104, 31, 17), centroid_color=(255, 0, 255)
+    ):
         """
         Plot the distance and line on frame.
 
         Args:
             pixels_distance (float): Pixels distance between two bbox centroids.
             centroids (list): Bounding box centroids data.
-            line_color (RGB): Distance line color.
-            centroid_color (RGB): Bounding box centroid color.
+            line_color (tuple, optional): Distance line color.
+            centroid_color (tuple, optional): Bounding box centroid color.
         """
         # Get the text size
-        (text_width_m, text_height_m), _ = cv2.getTextSize(
-            f"Pixels Distance: {pixels_distance:.2f}", 0, self.sf, self.tf
-        )
+        text = f"Pixels Distance: {pixels_distance:.2f}"
+        (text_width_m, text_height_m), _ = cv2.getTextSize(text, 0, self.sf, self.tf)
 
         # Define corners with 10-pixel margin and draw rectangle
-        top_left = (15, 25)
-        bottom_right = (15 + text_width_m + 20, 25 + text_height_m + 20)
-        cv2.rectangle(self.im, top_left, bottom_right, centroid_color, -1)
+        cv2.rectangle(self.im, (15, 25), (15 + text_width_m + 20, 25 + text_height_m + 20), line_color, -1)
 
         # Calculate the position for the text with a 10-pixel margin and draw text
-        text_position = (top_left[0] + 10, top_left[1] + text_height_m + 10)
+        text_position = (25, 25 + text_height_m + 10)
         cv2.putText(
             self.im,
-            f"Pixels Distance: {pixels_distance:.2f}",
+            text,
             text_position,
             0,
             self.sf,
@@ -1101,10 +1133,12 @@ def plot_images(
                             mask = mask.astype(bool)
                         else:
                             mask = image_masks[j].astype(bool)
-                        with contextlib.suppress(Exception):
+                        try:
                             im[y : y + h, x : x + w, :][mask] = (
                                 im[y : y + h, x : x + w, :][mask] * 0.4 + np.array(color) * 0.6
                             )
+                        except Exception:
+                            pass
                 annotator.fromarray(im)
     if not save:
         return np.asarray(annotator.im)
@@ -1141,19 +1175,19 @@ def plot_results(file="path/to/results.csv", dir="", segment=False, pose=False, 
     save_dir = Path(file).parent if file else Path(dir)
     if classify:
         fig, ax = plt.subplots(2, 2, figsize=(6, 6), tight_layout=True)
-        index = [1, 4, 2, 3]
+        index = [2, 5, 3, 4]
     elif segment:
         fig, ax = plt.subplots(2, 8, figsize=(18, 6), tight_layout=True)
-        index = [1, 2, 3, 4, 5, 6, 9, 10, 13, 14, 15, 16, 7, 8, 11, 12]
+        index = [2, 3, 4, 5, 6, 7, 10, 11, 14, 15, 16, 17, 8, 9, 12, 13]
     elif pose:
         fig, ax = plt.subplots(2, 9, figsize=(21, 6), tight_layout=True)
-        index = [1, 2, 3, 4, 5, 6, 7, 10, 11, 14, 15, 16, 17, 18, 8, 9, 12, 13]
+        index = [2, 3, 4, 5, 6, 7, 8, 11, 12, 15, 16, 17, 18, 19, 9, 10, 13, 14]
     elif regress:
         fig, ax = plt.subplots(2, 2, figsize=(6, 6), tight_layout=True)
         index = [1, 4, 2, 3]
     else:
         fig, ax = plt.subplots(2, 5, figsize=(12, 6), tight_layout=True)
-        index = [1, 2, 3, 4, 5, 8, 9, 10, 6, 7]
+        index = [2, 3, 4, 5, 6, 9, 10, 11, 7, 8]
     ax = ax.ravel()
     files = list(save_dir.glob("results*.csv"))
     assert len(files), f"No results.csv files found in {save_dir.resolve()}, nothing to plot."
@@ -1213,7 +1247,7 @@ def plt_color_scatter(v, f, bins=20, cmap="viridis", alpha=0.8, edgecolors="none
 
 def plot_tune_results(csv_file="tune_results.csv"):
     """
-    Plot the evolution results stored in an 'tune_results.csv' file. The function generates a scatter plot for each key
+    Plot the evolution results stored in a 'tune_results.csv' file. The function generates a scatter plot for each key
     in the CSV, color-coded based on fitness scores. The best-performing configurations are highlighted on the plots.
 
     Args:

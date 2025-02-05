@@ -12,7 +12,7 @@ scales: # model compound scaling constants, i.e. 'model=yolov8n-pose.yaml' will 
   l: [1.00, 1.00, 512]
   x: [1.00, 1.25, 512]
 
-activation: nn.ReLU6()
+activation: torch.nn.ReLU6()
 
 # YOLOv8.0n backbone
 backbone:

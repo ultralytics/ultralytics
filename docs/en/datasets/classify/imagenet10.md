@@ -35,7 +35,7 @@ To test a deep learning model on the ImageNet10 dataset with an image size of 22
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n-cls.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n-cls.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="imagenet10", epochs=5, imgsz=224)
@@ -45,7 +45,7 @@ To test a deep learning model on the ImageNet10 dataset with an image size of 22
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo classify train data=imagenet10 model=yolov8n-cls.pt epochs=5 imgsz=224
+        yolo classify train data=imagenet10 model=yolo11n-cls.pt epochs=5 imgsz=224
         ```
 
 ## Sample Images and Annotations
@@ -94,7 +94,7 @@ To test your deep learning model on the ImageNet10 dataset with an image size of
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n-cls.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n-cls.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="imagenet10", epochs=5, imgsz=224)
@@ -104,7 +104,7 @@ To test your deep learning model on the ImageNet10 dataset with an image size of
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo classify train data=imagenet10 model=yolov8n-cls.pt epochs=5 imgsz=224
+        yolo classify train data=imagenet10 model=yolo11n-cls.pt epochs=5 imgsz=224
         ```
 
 Refer to the [Training](../../modes/train.md) page for a comprehensive list of available arguments.

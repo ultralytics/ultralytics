@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import requests
 
@@ -68,7 +68,7 @@ class Auth:
             if verbose:
                 LOGGER.info(f"{PREFIX}New authentication successful ✅")
         elif verbose:
-            LOGGER.info(f"{PREFIX}Get API key from {API_KEY_URL} and then run 'yolo hub login API_KEY'")
+            LOGGER.info(f"{PREFIX}Get API key from {API_KEY_URL} and then run 'yolo login API_KEY'")
 
     def request_api_key(self, max_attempts=3):
         """

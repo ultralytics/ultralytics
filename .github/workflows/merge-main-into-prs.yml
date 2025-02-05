@@ -1,4 +1,5 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 # Automatically merges repository 'main' branch into all open PRs to keep them up-to-date
 # Action runs on updates to main branch so when one PR merges to main all others update
 
@@ -33,7 +34,7 @@ jobs:
           import os
           import time
 
-          g = Github("${{ secrets.PERSONAL_ACCESS_TOKEN }}")
+          g = Github("${{ secrets._GITHUB_TOKEN }}")
           repo = g.get_repo("${{ github.repository }}")
 
           # Fetch the default branch name

@@ -1,4 +1,5 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 import torch
 from PIL import Image
 
@@ -64,6 +65,9 @@ class FastSAMPredictor(SegmentationPredictor):
         if not isinstance(results, list):
             results = [results]
         for result in results:
+            if len(result) == 0:
+                prompt_results.append(result)
+                continue
             masks = result.masks.data
             if masks.shape[1:] != result.orig_shape:
                 masks = scale_masks(masks[None], result.orig_shape)[0]
@@ -84,9 +88,9 @@ class FastSAMPredictor(SegmentationPredictor):
                 if labels is None:
                     labels = torch.ones(points.shape[0])
                 labels = torch.as_tensor(labels, dtype=torch.int32, device=self.device)
-                assert len(labels) == len(
-                    points
-                ), f"Excepted `labels` got same size as `point`, but got {len(labels)} and {len(points)}"
+                assert len(labels) == len(points), (
+                    f"Excepted `labels` got same size as `point`, but got {len(labels)} and {len(points)}"
+                )
                 point_idx = (
                     torch.ones(len(result), dtype=torch.bool, device=self.device)
                     if labels.sum() == 0  # all negative points

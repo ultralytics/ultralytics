@@ -27,7 +27,7 @@ It's also important to follow best practices when deploying a model because depl
 
 Often times, once a model is [trained](./model-training-tips.md), [evaluated](./model-evaluation-insights.md), and [tested](./model-testing.md), it needs to be converted into specific formats to be deployed effectively in various environments, such as cloud, edge, or local devices.
 
-With respect to YOLOv8, you can [export your model](../modes/export.md) to different formats. For example, when you need to transfer your model between different frameworks, ONNX is an excellent tool and [exporting to YOLOv8 to ONNX](../integrations/onnx.md) is easy. You can check out more options about integrating your model into different environments smoothly and effectively [here](../integrations/index.md).
+With respect to YOLO11, you can [export your model](../modes/export.md) to different formats. For example, when you need to transfer your model between different frameworks, ONNX is an excellent tool and [exporting to YOLO11 to ONNX](../integrations/onnx.md) is easy. You can check out more options about integrating your model into different environments smoothly and effectively [here](../integrations/index.md).
 
 ### Choosing a Deployment Environment
 
@@ -94,7 +94,7 @@ Experiencing a drop in your model's accuracy after deployment can be frustrating
 - **Review Model Export and Conversion:** Re-export the model and make sure that the conversion process maintains the integrity of the model weights and architecture.
 - **Test with a Controlled Dataset:** Deploy the model in a test environment with a dataset you control and compare the results with the training phase. You can identify if the issue is with the deployment environment or the data.
 
-When deploying YOLOv8, several factors can affect model accuracy. Converting models to formats like [TensorRT](../integrations/tensorrt.md) involves optimizations such as weight quantization and layer fusion, which can cause minor precision losses. Using FP16 (half-precision) instead of FP32 (full-precision) can speed up inference but may introduce numerical precision errors. Also, hardware constraints, like those on the [Jetson Nano](./nvidia-jetson.md), with lower CUDA core counts and reduced memory bandwidth, can impact performance.
+When deploying YOLO11, several factors can affect model accuracy. Converting models to formats like [TensorRT](../integrations/tensorrt.md) involves optimizations such as weight quantization and layer fusion, which can cause minor precision losses. Using FP16 (half-precision) instead of FP32 (full-precision) can speed up inference but may introduce numerical precision errors. Also, hardware constraints, like those on the [Jetson Nano](./nvidia-jetson.md), with lower CUDA core counts and reduced memory bandwidth, can impact performance.
 
 ### Inferences Are Taking Longer Than You Expected
 
@@ -106,7 +106,7 @@ When deploying [machine learning](https://www.ultralytics.com/glossary/machine-l
 - **Profile the Inference Pipeline:** Identifying bottlenecks in the inference pipeline can help pinpoint the source of delays. Use profiling tools to analyze each step of the inference process, identifying and addressing any stages that cause significant delays, such as inefficient layers or data transfer issues.
 - **Use Appropriate Precision:** Using higher precision than necessary can slow down inference times. Experiment with using lower precision, such as FP16 (half-precision), instead of FP32 (full-precision). While FP16 can reduce inference time, also keep in mind that it can impact model accuracy.
 
-If you are facing this issue while deploying YOLOv8, consider that YOLOv8 offers [various model sizes](../models/yolov8.md), such as YOLOv8n (nano) for devices with lower memory capacity and YOLOv8x (extra-large) for more powerful GPUs. Choosing the right model variant for your hardware can help balance memory usage and processing time.
+If you are facing this issue while deploying YOLO11, consider that YOLO11 offers [various model sizes](../models/yolo11.md), such as YOLO11n (nano) for devices with lower memory capacity and YOLO11x (extra-large) for more powerful GPUs. Choosing the right model variant for your hardware can help balance memory usage and processing time.
 
 Also keep in mind that the size of the input images directly impacts memory usage and processing time. Lower resolutions reduce memory usage and speed up inference, while higher resolutions improve accuracy but require more memory and processing power.
 
@@ -132,12 +132,12 @@ Being part of a community of computer vision enthusiasts can help you solve prob
 
 ### Community Resources
 
-- **GitHub Issues:** Explore the [YOLOv8 GitHub repository](https://github.com/ultralytics/ultralytics/issues) and use the Issues tab to ask questions, report bugs, and suggest new features. The community and maintainers are very active and ready to help.
+- **GitHub Issues:** Explore the [YOLO11 GitHub repository](https://github.com/ultralytics/ultralytics/issues) and use the Issues tab to ask questions, report bugs, and suggest new features. The community and maintainers are very active and ready to help.
 - **Ultralytics Discord Server:** Join the [Ultralytics Discord server](https://discord.com/invite/ultralytics) to chat with other users and developers, get support, and share your experiences.
 
 ### Official Documentation
 
-- **Ultralytics YOLOv8 Documentation:** Visit the [official YOLOv8 documentation](./index.md) for detailed guides and helpful tips on various computer vision projects.
+- **Ultralytics YOLO11 Documentation:** Visit the [official YOLO11 documentation](./index.md) for detailed guides and helpful tips on various computer vision projects.
 
 Using these resources will help you solve challenges and stay up-to-date with the latest trends and practices in the computer vision community.
 
@@ -149,22 +149,22 @@ After deploying your model, the next step would be monitoring, maintaining, and 
 
 ## FAQ
 
-### What are the best practices for deploying a machine learning model using Ultralytics YOLOv8?
+### What are the best practices for deploying a machine learning model using Ultralytics YOLO11?
 
-Deploying a machine learning model, particularly with Ultralytics YOLOv8, involves several best practices to ensure efficiency and reliability. First, choose the deployment environment that suits your needs—cloud, edge, or local. Optimize your model through techniques like [pruning, quantization, and knowledge distillation](#model-optimization-techniques) for efficient deployment in resource-constrained environments. Lastly, ensure data consistency and preprocessing steps align with the training phase to maintain performance. You can also refer to [model deployment options](./model-deployment-options.md) for more detailed guidelines.
+Deploying a machine learning model, particularly with Ultralytics YOLO11, involves several best practices to ensure efficiency and reliability. First, choose the deployment environment that suits your needs—cloud, edge, or local. Optimize your model through techniques like [pruning, quantization, and knowledge distillation](#model-optimization-techniques) for efficient deployment in resource-constrained environments. Lastly, ensure data consistency and preprocessing steps align with the training phase to maintain performance. You can also refer to [model deployment options](./model-deployment-options.md) for more detailed guidelines.
 
-### How can I troubleshoot common deployment issues with Ultralytics YOLOv8 models?
+### How can I troubleshoot common deployment issues with Ultralytics YOLO11 models?
 
 Troubleshooting deployment issues can be broken down into a few key steps. If your model's accuracy drops after deployment, check for data consistency, validate preprocessing steps, and ensure the hardware/software environment matches what you used during training. For slow inference times, perform warm-up runs, optimize your inference engine, use asynchronous processing, and profile your inference pipeline. Refer to [troubleshooting deployment issues](#troubleshooting-deployment-issues) for a detailed guide on these best practices.
 
-### How does Ultralytics YOLOv8 optimization enhance model performance on edge devices?
+### How does Ultralytics YOLO11 optimization enhance model performance on edge devices?
 
-Optimizing Ultralytics YOLOv8 models for edge devices involves using techniques like pruning to reduce the model size, quantization to convert weights to lower precision, and knowledge distillation to train smaller models that mimic larger ones. These techniques ensure the model runs efficiently on devices with limited computational power. Tools like [TensorFlow Lite](../integrations/tflite.md) and [NVIDIA Jetson](./nvidia-jetson.md) are particularly useful for these optimizations. Learn more about these techniques in our section on [model optimization](#model-optimization-techniques).
+Optimizing Ultralytics YOLO11 models for edge devices involves using techniques like pruning to reduce the model size, quantization to convert weights to lower precision, and knowledge distillation to train smaller models that mimic larger ones. These techniques ensure the model runs efficiently on devices with limited computational power. Tools like [TensorFlow Lite](../integrations/tflite.md) and [NVIDIA Jetson](./nvidia-jetson.md) are particularly useful for these optimizations. Learn more about these techniques in our section on [model optimization](#model-optimization-techniques).
 
-### What are the security considerations for deploying machine learning models with Ultralytics YOLOv8?
+### What are the security considerations for deploying machine learning models with Ultralytics YOLO11?
 
 Security is paramount when deploying machine learning models. Ensure secure data transmission using encryption protocols like TLS. Implement robust access controls, including strong authentication and role-based access control (RBAC). Model obfuscation techniques, such as encrypting model parameters and serving models in a secure environment like a trusted execution environment (TEE), offer additional protection. For detailed practices, refer to [security considerations](#security-considerations-in-model-deployment).
 
-### How do I choose the right deployment environment for my Ultralytics YOLOv8 model?
+### How do I choose the right deployment environment for my Ultralytics YOLO11 model?
 
-Selecting the optimal deployment environment for your Ultralytics YOLOv8 model depends on your application's specific needs. Cloud deployment offers scalability and ease of access, making it ideal for applications with high data volumes. Edge deployment is best for low-latency applications requiring real-time responses, using tools like [TensorFlow Lite](../integrations/tflite.md). Local deployment suits scenarios needing stringent data privacy and control. For a comprehensive overview of each environment, check out our section on [choosing a deployment environment](#choosing-a-deployment-environment).
+Selecting the optimal deployment environment for your Ultralytics YOLO11 model depends on your application's specific needs. Cloud deployment offers scalability and ease of access, making it ideal for applications with high data volumes. Edge deployment is best for low-latency applications requiring real-time responses, using tools like [TensorFlow Lite](../integrations/tflite.md). Local deployment suits scenarios needing stringent data privacy and control. For a comprehensive overview of each environment, check out our section on [choosing a deployment environment](#choosing-a-deployment-environment).

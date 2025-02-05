@@ -37,7 +37,7 @@ This guide provides a comprehensive introduction to setting up a Conda environme
 First, let's create a new Conda environment. Open your terminal and run the following command:
 
 ```bash
-conda create --name ultralytics-env python=3.8 -y
+conda create --name ultralytics-env python=3.11 -y
 ```
 
 Activate the new environment:
@@ -73,7 +73,7 @@ With Ultralytics installed, you can now start using its robust features for [obj
 ```python
 from ultralytics import YOLO
 
-model = YOLO("yolov8n.pt")  # initialize model
+model = YOLO("yolo11n.pt")  # initialize model
 results = model("path/to/image.jpg")  # perform inference
 results[0].show()  # display results for the first image
 ```
@@ -135,7 +135,7 @@ Congratulations! You have successfully set up a Conda environment, installed the
 Setting up a Conda environment for Ultralytics projects is straightforward and ensures smooth package management. First, create a new Conda environment using the following command:
 
 ```bash
-conda create --name ultralytics-env python=3.8 -y
+conda create --name ultralytics-env python=3.11 -y
 ```
 
 Then, activate the new environment with:

@@ -1,9 +1,9 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """
 Run prediction on images, videos, directories, globs, YouTube, webcam, streams, etc.
 
 Usage - sources:
-    $ yolo mode=predict model=yolov8n.pt source=0                               # webcam
+    $ yolo mode=predict model=yolo11n.pt source=0                               # webcam
                                                 img.jpg                         # image
                                                 vid.mp4                         # video
                                                 screen                          # screenshot
@@ -15,18 +15,21 @@ Usage - sources:
                                                 'rtsp://example.com/media.mp4'  # RTSP, RTMP, HTTP, TCP stream
 
 Usage - formats:
-    $ yolo mode=predict model=yolov8n.pt                 # PyTorch
-                              yolov8n.torchscript        # TorchScript
-                              yolov8n.onnx               # ONNX Runtime or OpenCV DNN with dnn=True
-                              yolov8n_openvino_model     # OpenVINO
-                              yolov8n.engine             # TensorRT
-                              yolov8n.mlpackage          # CoreML (macOS-only)
-                              yolov8n_saved_model        # TensorFlow SavedModel
-                              yolov8n.pb                 # TensorFlow GraphDef
-                              yolov8n.tflite             # TensorFlow Lite
-                              yolov8n_edgetpu.tflite     # TensorFlow Edge TPU
-                              yolov8n_paddle_model       # PaddlePaddle
-                              yolov8n_ncnn_model         # NCNN
+    $ yolo mode=predict model=yolo11n.pt                 # PyTorch
+                              yolo11n.torchscript        # TorchScript
+                              yolo11n.onnx               # ONNX Runtime or OpenCV DNN with dnn=True
+                              yolo11n_openvino_model     # OpenVINO
+                              yolo11n.engine             # TensorRT
+                              yolo11n.mlpackage          # CoreML (macOS-only)
+                              yolo11n_saved_model        # TensorFlow SavedModel
+                              yolo11n.pb                 # TensorFlow GraphDef
+                              yolo11n.tflite             # TensorFlow Lite
+                              yolo11n_edgetpu.tflite     # TensorFlow Edge TPU
+                              yolo11n_paddle_model       # PaddlePaddle
+                              yolo11n.mnn                # MNN
+                              yolo11n_ncnn_model         # NCNN
+                              yolo11n_imx_model          # Sony IMX
+                              yolo11n_rknn_model         # Rockchip RKNN
 """
 
 import platform
@@ -153,7 +156,11 @@ class BasePredictor:
             (list): A list of transformed images.
         """
         same_shapes = len({x.shape for x in im}) == 1
-        letterbox = LetterBox(self.imgsz, auto=self.args.rect and same_shapes and self.model.pt, stride=self.model.stride)
+        letterbox = LetterBox(
+            self.imgsz,
+            auto=self.args.rect and same_shapes and (self.model.pt or (getattr(self.model, "dynamic", False) and not self.model.imx)),
+            stride=self.model.stride,
+        )
         return [letterbox(image=x) for x in im]
 
     def postprocess(self, preds, img, orig_imgs):
@@ -365,7 +372,7 @@ class BasePredictor:
         # Save videos and streams
         if self.dataset.mode in {"stream", "video"}:
             fps = self.dataset.fps if self.dataset.mode == "video" else 30
-            frames_path = f'{save_path.split(".", 1)[0]}_frames/'
+            frames_path = f"{save_path.split('.', 1)[0]}_frames/"
             if save_path not in self.vid_writer:  # new video
                 if self.args.save_frames:
                     Path(frames_path).mkdir(parents=True, exist_ok=True)
@@ -384,7 +391,7 @@ class BasePredictor:
 
         # Save images
         else:
-            cv2.imwrite(save_path, im)
+            cv2.imwrite(str(Path(save_path).with_suffix(".jpg")), im)  # save to JPG for best support
 
     def show(self, p=""):
         """Display an image in a window using the OpenCV imshow function."""

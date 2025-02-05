@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """Monkey patches to update/extend functionality of existing functions."""
 
 import time
@@ -86,25 +86,15 @@ def torch_load(*args, **kwargs):
     return _torch_load(*args, **kwargs)
 
 
-def torch_save(*args, use_dill=True, **kwargs):
+def torch_save(*args, **kwargs):
     """
     Optionally use dill to serialize lambda functions where pickle does not, adding robustness with 3 retries and
     exponential standoff in case of save failure.
 
     Args:
         *args (tuple): Positional arguments to pass to torch.save.
-        use_dill (bool): Whether to try using dill for serialization if available. Defaults to True.
         **kwargs (Any): Keyword arguments to pass to torch.save.
     """
-    try:
-        assert use_dill
-        import dill as pickle
-    except (AssertionError, ImportError):
-        import pickle
-
-    if "pickle_module" not in kwargs:
-        kwargs["pickle_module"] = pickle
-
     for i in range(4):  # 3 retries
         try:
             return _torch_save(*args, **kwargs)

@@ -1,10 +1,13 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
-# Default YOLO tracker settings for ByteTrack tracker https://github.com/ifzhang/ByteTrack
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# Default Ultralytics settings for ByteTrack tracker when using mode="track"
+# For documentation and examples see https://docs.ultralytics.com/modes/track/
+# For ByteTrack source code see https://github.com/ifzhang/ByteTrack
 
 tracker_type: bytetrack # tracker type, ['botsort', 'bytetrack']
-track_high_thresh: 0.5 # threshold for the first association
+track_high_thresh: 0.25 # threshold for the first association
 track_low_thresh: 0.1 # threshold for the second association
-new_track_thresh: 0.6 # threshold for init new track if the detection does not match any tracks
+new_track_thresh: 0.25 # threshold for init new track if the detection does not match any tracks
 track_buffer: 30 # buffer to calculate the time when to remove tracks
 match_thresh: 0.8 # threshold for matching tracks
 fuse_score: True # Whether to fuse confidence scores with the iou distances before matching

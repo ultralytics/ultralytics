@@ -10,6 +10,17 @@ keywords: Overfitting and Underfitting in Machine Learning, Model Testing, Data 
 
 After [training](./model-training-tips.md) and [evaluating](./model-evaluation-insights.md) your model, it's time to test it. Model testing involves assessing how well it performs in real-world scenarios. Testing considers factors like accuracy, reliability, fairness, and how easy it is to understand the model's decisions. The goal is to make sure the model performs as intended, delivers the expected results, and fits into the [overall objective of your application](./defining-project-goals.md) or project.
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/SyyCUvxw9BM"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to Test Machine Learning Models | Avoid Data Leakage in Computer Vision 🚀
+</p>
+
 Model testing is quite similar to model evaluation, but they are two distinct [steps in a computer vision project](./steps-of-a-cv-project.md). Model evaluation involves metrics and plots to assess the model's accuracy. On the other hand, model testing checks if the model's learned behavior is the same as expectations. In this guide, we'll explore strategies for testing your [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models.
 
 ## Model Testing Vs. Model Evaluation
@@ -44,22 +55,22 @@ Next, the testing results can be analyzed:
 - **Error Analysis:** Perform a thorough error analysis to understand the types of errors (e.g., false positives vs. false negatives) and their potential causes.
 - **Bias and Fairness:** Check for any biases in the model's predictions. Ensure that the model performs equally well across different subsets of the data, especially if it includes sensitive attributes like race, gender, or age.
 
-## Testing Your YOLOv8 Model
+## Testing Your YOLO11 Model
 
-To test your YOLOv8 model, you can use the validation mode. It's a straightforward way to understand the model's strengths and areas that need improvement. Also, you'll need to format your test dataset correctly for YOLOv8. For more details on how to use the validation mode, check out the [Model Validation](../modes/val.md) docs page.
+To test your YOLO11 model, you can use the validation mode. It's a straightforward way to understand the model's strengths and areas that need improvement. Also, you'll need to format your test dataset correctly for YOLO11. For more details on how to use the validation mode, check out the [Model Validation](../modes/val.md) docs page.
 
-## Using YOLOv8 to Predict on Multiple Test Images
+## Using YOLO11 to Predict on Multiple Test Images
 
-If you want to test your trained YOLOv8 model on multiple images stored in a folder, you can easily do so in one go. Instead of using the validation mode, which is typically used to evaluate model performance on a validation set and provide detailed metrics, you might just want to see predictions on all images in your test set. For this, you can use the [prediction mode](../modes/predict.md).
+If you want to test your trained YOLO11 model on multiple images stored in a folder, you can easily do so in one go. Instead of using the validation mode, which is typically used to evaluate model performance on a validation set and provide detailed metrics, you might just want to see predictions on all images in your test set. For this, you can use the [prediction mode](../modes/predict.md).
 
 ### Difference Between Validation and Prediction Modes
 
 - **[Validation Mode](../modes/val.md):** Used to evaluate the model's performance by comparing predictions against known labels (ground truth). It provides detailed metrics such as accuracy, precision, recall, and F1 score.
 - **[Prediction Mode](../modes/predict.md):** Used to run the model on new, unseen data to generate predictions. It does not provide detailed performance metrics but allows you to see how the model performs on real-world images.
 
-## Running YOLOv8 Predictions Without Custom Training
+## Running YOLO11 Predictions Without Custom Training
 
-If you are interested in testing the basic YOLOv8 model to understand whether it can be used for your application without custom training, you can use the prediction mode. While the model is pre-trained on datasets like COCO, running predictions on your own dataset can give you a quick sense of how well it might perform in your specific context.
+If you are interested in testing the basic YOLO11 model to understand whether it can be used for your application without custom training, you can use the prediction mode. While the model is pre-trained on datasets like COCO, running predictions on your own dataset can give you a quick sense of how well it might perform in your specific context.
 
 ## Overfitting and [Underfitting](https://www.ultralytics.com/glossary/underfitting) in [Machine Learning](https://www.ultralytics.com/glossary/machine-learning-ml)
 
@@ -81,7 +92,7 @@ Underfitting occurs when your model can't capture the underlying patterns in the
 #### Signs of Underfitting
 
 - **Low Training Accuracy:** If your model can't achieve high accuracy on the training set, it might be underfitting.
-- **Visual Misclassification:** Consistent failure to recognize obvious features or objects suggests underfitting.
+- **Visual Mis-classification:** Consistent failure to recognize obvious features or objects suggests underfitting.
 
 ### Balancing Overfitting and Underfitting
 
@@ -128,12 +139,12 @@ Becoming part of a community of computer vision enthusiasts can aid in solving p
 
 ### Community Resources
 
-- **GitHub Issues:** Explore the [YOLOv8 GitHub repository](https://github.com/ultralytics/ultralytics/issues) and use the Issues tab to ask questions, report bugs, and suggest new features. The community and maintainers are very active and ready to help.
+- **GitHub Issues:** Explore the [YOLO11 GitHub repository](https://github.com/ultralytics/ultralytics/issues) and use the Issues tab to ask questions, report bugs, and suggest new features. The community and maintainers are very active and ready to help.
 - **Ultralytics Discord Server:** Join the [Ultralytics Discord server](https://discord.com/invite/ultralytics) to chat with other users and developers, get support, and share your experiences.
 
 ### Official Documentation
 
-- **Ultralytics YOLOv8 Documentation:** Check out the [official YOLOv8 documentation](./index.md) for detailed guides and helpful tips on various computer vision projects.
+- **Ultralytics YOLO11 Documentation:** Check out the [official YOLO11 documentation](./index.md) for detailed guides and helpful tips on various computer vision projects.
 
 These resources will help you navigate challenges and remain updated on the latest trends and practices within the computer vision community.
 
@@ -147,9 +158,9 @@ Building trustworthy computer vision models relies on rigorous model testing. By
 
 Model evaluation and model testing are distinct steps in a computer vision project. Model evaluation involves using a labeled dataset to compute metrics such as [accuracy](https://www.ultralytics.com/glossary/accuracy), precision, recall, and [F1 score](https://www.ultralytics.com/glossary/f1-score), providing insights into the model's performance with a controlled dataset. Model testing, on the other hand, assesses the model's performance in real-world scenarios by applying it to new, unseen data, ensuring the model's learned behavior aligns with expectations outside the evaluation environment. For a detailed guide, refer to the [steps in a computer vision project](./steps-of-a-cv-project.md).
 
-### How can I test my Ultralytics YOLOv8 model on multiple images?
+### How can I test my Ultralytics YOLO11 model on multiple images?
 
-To test your Ultralytics YOLOv8 model on multiple images, you can use the [prediction mode](../modes/predict.md). This mode allows you to run the model on new, unseen data to generate predictions without providing detailed metrics. This is ideal for real-world performance testing on larger image sets stored in a folder. For evaluating performance metrics, use the [validation mode](../modes/val.md) instead.
+To test your Ultralytics YOLO11 model on multiple images, you can use the [prediction mode](../modes/predict.md). This mode allows you to run the model on new, unseen data to generate predictions without providing detailed metrics. This is ideal for real-world performance testing on larger image sets stored in a folder. For evaluating performance metrics, use the [validation mode](../modes/val.md) instead.
 
 ### What should I do if my computer vision model shows signs of overfitting or underfitting?
 
@@ -195,6 +206,6 @@ Post-testing, if the model performance meets the project goals, proceed with dep
 
 Gain insights from the [Model Testing Vs. Model Evaluation](#model-testing-vs-model-evaluation) section to refine and enhance model effectiveness in real-world applications.
 
-### How do I run YOLOv8 predictions without custom training?
+### How do I run YOLO11 predictions without custom training?
 
-You can run predictions using the pre-trained YOLOv8 model on your dataset to see if it suits your application needs. Utilize the [prediction mode](../modes/predict.md) to get a quick sense of performance results without diving into custom training.
+You can run predictions using the pre-trained YOLO11 model on your dataset to see if it suits your application needs. Utilize the [prediction mode](../modes/predict.md) to get a quick sense of performance results without diving into custom training.

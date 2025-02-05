@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 from pathlib import Path
 
@@ -12,7 +12,7 @@ from ultralytics.utils import ROOT, yaml_load
 class YOLO(Model):
     """YOLO (You Only Look Once) object detection model."""
 
-    def __init__(self, model="yolov8n.pt", task=None, verbose=False):
+    def __init__(self, model="yolo11n.pt", task=None, verbose=False):
         """Initialize YOLO model, switching to YOLOWorld if model filename contains '-world'."""
         path = Path(model)
         if "-world" in path.stem and path.suffix in {".pt", ".yaml", ".yml"}:  # if YOLOWorld PyTorch model

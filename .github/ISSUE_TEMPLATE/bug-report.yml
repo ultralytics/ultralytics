@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 name: 🐛 Bug Report
 # title: " "
@@ -14,7 +14,7 @@ body:
     attributes:
       label: Search before asking
       description: >
-        Please search the Ultralytics [Docs](https://docs.ultralytics.com) and [issues](https://github.com/ultralytics/ultralytics/issues) to see if a similar bug report already exists.
+        Please search the Ultralytics [Docs](https://docs.ultralytics.com/) and [issues](https://github.com/ultralytics/ultralytics/issues) to see if a similar bug report already exists.
       options:
         - label: >
             I have searched the Ultralytics YOLO [issues](https://github.com/ultralytics/ultralytics/issues) and found no similar bug report.
@@ -43,7 +43,7 @@ body:
   - type: textarea
     attributes:
       label: Bug
-      description: Please provide as much information as possible. Copy and paste console output and error messages. Use [Markdown](https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax) to format text, code and logs. If necessary, include screenshots for visual elements only. Providing detailed information will help us resolve the issue more efficiently.
+      description: Please provide as much information as possible. Copy and paste console output and error messages including the _full_ traceback. Use [Markdown](https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax) to format text, code and logs. If necessary, include screenshots for visual elements only. Providing detailed information will help us resolve the issue more efficiently.
       placeholder: |
         💡 ProTip! Include as much information as possible (logs, tracebacks, screenshots, etc.) to receive the most helpful response.
     validations:
@@ -52,11 +52,11 @@ body:
   - type: textarea
     attributes:
       label: Environment
-      description: Many issues are often related to dependency versions and hardware. Please provide the output of `yolo checks` or `ultralytics.checks()` command to help us diagnose the problem.
+      description: Try the latest version (`pip install -U ultralytics`) before reporting a bug. If it's still present, please provide the output of `yolo checks` (CLI) or `ultralytics.utils.checks.collect_system_info()` (Python) command to help us diagnose the problem.
       placeholder: |
-        Paste output of `yolo checks` or `ultralytics.checks()` command, i.e.:
+        Paste output of `yolo checks` (CLI) or `ultralytics.utils.checks.collect_system_info()` (Python) command, i.e.:
         ```
-        Ultralytics YOLOv8.0.181 🚀 Python-3.11.2 torch-2.0.1 CPU (Apple M2)
+        Ultralytics 8.3.2 🚀 Python-3.11.2 torch-2.4.1 CPU (Apple M3)
         Setup complete ✅ (8 CPUs, 16.0 GB RAM, 266.5/460.4 GB disk)
 
         OS                  macOS-13.5.2
@@ -64,7 +64,7 @@ body:
         Python              3.11.2
         Install             git
         RAM                 16.00 GB
-        CPU                 Apple M2
+        CPU                 Apple M3
         CUDA                None
         ```
     validations:
@@ -74,7 +74,7 @@ body:
     attributes:
       label: Minimal Reproducible Example
       description: >
-        When asking a question, people will be better able to provide help if you provide code that they can easily understand and use to **reproduce** the problem. This is referred to by community members as creating a [minimal reproducible example](https://docs.ultralytics.com/help/minimum_reproducible_example/).
+        When asking a question, people will be better able to provide help if you provide code that they can easily understand and use to **reproduce** the problem. This is referred to by community members as creating a [minimal reproducible example](https://docs.ultralytics.com/help/minimum-reproducible-example/).
       placeholder: |
         ```
         # Code to reproduce your issue here
@@ -92,6 +92,6 @@ body:
       label: Are you willing to submit a PR?
       description: >
         (Optional) We encourage you to submit a [Pull Request](https://github.com/ultralytics/ultralytics/pulls) (PR) to help improve Ultralytics YOLO for everyone, especially if you have a good understanding of how to implement a fix or feature.
-        See the Ultralytics YOLO [Contributing Guide](https://docs.ultralytics.com/help/contributing) to get started.
+        See the Ultralytics YOLO [Contributing Guide](https://docs.ultralytics.com/help/contributing/) to get started.
       options:
         - label: Yes I'd like to help by submitting a PR!

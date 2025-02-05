@@ -7,7 +7,7 @@ keywords: Ultralytics HUB, YOLO models, train YOLO, YOLOv5, YOLOv8, object detec
 # Ultralytics HUB
 
 <div align="center">
-<a href="https://ultralytics.com/hub" target="_blank"><img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/ultralytics-hub.avif"></a>
+<a href="https://www.ultralytics.com/hub" target="_blank"><img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/ultralytics-hub.avif" alt="Ultralytics HUB banner"></a>
 <a href="https://docs.ultralytics.com/zh/hub/">中文</a> |
 <a href="https://docs.ultralytics.com/ko/hub/">한국어</a> |
 <a href="https://docs.ultralytics.com/ja/hub/">日本語</a> |
@@ -22,13 +22,13 @@ keywords: Ultralytics HUB, YOLO models, train YOLO, YOLOv5, YOLOv8, object detec
 <br>
 <br>
 
-<a href="https://github.com/ultralytics/hub/actions/workflows/ci.yaml"><img src="https://github.com/ultralytics/hub/actions/workflows/ci.yaml/badge.svg" alt="CI CPU"></a> <a href="https://colab.research.google.com/github/ultralytics/hub/blob/main/hub.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> <a href="https://ultralytics.com/discord"><img alt="Discord" src="https://img.shields.io/discord/1089800235347353640?logo=discord&logoColor=white&label=Discord&color=blue"></a> <a href="https://community.ultralytics.com"><img alt="Ultralytics Forums" src="https://img.shields.io/discourse/users?server=https%3A%2F%2Fcommunity.ultralytics.com&logo=discourse&label=Forums&color=blue"></a> <a href="https://reddit.com/r/ultralytics"><img alt="Ultralytics Reddit" src="https://img.shields.io/reddit/subreddit-subscribers/ultralytics?style=flat&logo=reddit&logoColor=white&label=Reddit&color=blue"></a>
+<a href="https://github.com/ultralytics/hub/actions/workflows/ci.yml"><img src="https://github.com/ultralytics/hub/actions/workflows/ci.yml/badge.svg" alt="CI CPU"></a> <a href="https://colab.research.google.com/github/ultralytics/hub/blob/main/hub.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> <a href="https://discord.com/invite/ultralytics"><img alt="Discord" src="https://img.shields.io/discord/1089800235347353640?logo=discord&logoColor=white&label=Discord&color=blue"></a> <a href="https://community.ultralytics.com/"><img alt="Ultralytics Forums" src="https://img.shields.io/discourse/users?server=https%3A%2F%2Fcommunity.ultralytics.com&logo=discourse&label=Forums&color=blue"></a> <a href="https://reddit.com/r/ultralytics"><img alt="Ultralytics Reddit" src="https://img.shields.io/reddit/subreddit-subscribers/ultralytics?style=flat&logo=reddit&logoColor=white&label=Reddit&color=blue"></a>
 
 </div>
 
 👋 Hello from the [Ultralytics](https://www.ultralytics.com/) Team! We've been working hard these last few months to launch [Ultralytics HUB](https://www.ultralytics.com/hub), a new web tool for training and deploying all your YOLOv5 and YOLOv8 🚀 models from one spot!
 
-We hope that the resources here will help you get the most out of HUB. Please browse the HUB <a href="https://docs.ultralytics.com/">Docs</a> for details, raise an issue on <a href="https://github.com/ultralytics/hub/issues/new/choose">GitHub</a> for support, and join our <a href="https://ultralytics.com/discord">Discord</a> community for questions and discussions!
+We hope that the resources here will help you get the most out of HUB. Please browse the HUB <a href="https://docs.ultralytics.com/">Docs</a> for details, raise an issue on <a href="https://github.com/ultralytics/hub/issues/new/choose">GitHub</a> for support, and join our <a href="https://discord.com/invite/ultralytics">Discord</a> community for questions and discussions!
 
 <div align="center">
   <br>
@@ -44,7 +44,7 @@ We hope that the resources here will help you get the most out of HUB. Please br
   <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="3%" alt="space">
   <a href="https://ultralytics.com/bilibili"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-bilibili.png" width="3%" alt="Ultralytics BiliBili"></a>
   <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="3%" alt="space">
-  <a href="https://ultralytics.com/discord"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-discord.png" width="3%" alt="Ultralytics Discord"></a>
+  <a href="https://discord.com/invite/ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-discord.png" width="3%" alt="Ultralytics Discord"></a>
 </div>
 
 ## Introduction
@@ -52,16 +52,16 @@ We hope that the resources here will help you get the most out of HUB. Please br
 [Ultralytics HUB](https://www.ultralytics.com/hub) is designed to be user-friendly and intuitive, allowing users to quickly upload their datasets and train new YOLO models. It also offers a range of pre-trained models to choose from, making it extremely easy for users to get started. Once a model is trained, it can be effortlessly previewed in the [Ultralytics HUB App](app/index.md) before being deployed for real-time classification, [object detection](https://www.ultralytics.com/glossary/object-detection), and [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation) tasks.
 
 <p align="center">
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/lveF9iCMIzc?si=_Q4WB5kMB5qNe7q6"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/qE-dfbB5Sis"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Train Your Custom YOLO Models In A Few Clicks with Ultralytics HUB
+  <strong>Watch:</strong> How to train Ultralytics YOLO11 on Custom Dataset using Ultralytics HUB | HUB Datasets 🚀
 </p>
 
-We hope that the resources here will help you get the most out of HUB. Please browse the HUB <a href="https://docs.ultralytics.com/hub">Docs</a> for details, raise an issue on <a href="https://github.com/ultralytics/hub/issues/new/choose">GitHub</a> for support, and join our <a href="https://ultralytics.com/discord">Discord</a> community for questions and discussions!
+We hope that the resources here will help you get the most out of HUB. Please browse the HUB <a href="https://docs.ultralytics.com/hub/">Docs</a> for details, raise an issue on <a href="https://github.com/ultralytics/hub/issues/new/choose">GitHub</a> for support, and join our <a href="https://discord.com/invite/ultralytics">Discord</a> community for questions and discussions!
 
 - [**Quickstart**](quickstart.md): Start training and deploying models in seconds.
 - [**Datasets**](datasets.md): Learn how to prepare and upload your datasets.

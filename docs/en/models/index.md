@@ -8,6 +8,8 @@ keywords: Ultralytics, supported models, YOLOv3, YOLOv4, YOLOv5, YOLOv6, YOLOv7,
 
 Welcome to Ultralytics' model documentation! We offer support for a wide range of models, each tailored to specific tasks like [object detection](../tasks/detect.md), [instance segmentation](../tasks/segment.md), [image classification](../tasks/classify.md), [pose estimation](../tasks/pose.md), and [multi-object tracking](../modes/track.md). If you're interested in contributing your model architecture to Ultralytics, check out our [Contributing Guide](../help/contributing.md).
 
+![Ultralytics YOLO11 Comparison Plots](https://raw.githubusercontent.com/ultralytics/assets/refs/heads/main/yolo/performance-comparison.png)
+
 ## Featured Models
 
 Here are some of the key models supported:
@@ -15,12 +17,12 @@ Here are some of the key models supported:
 1. **[YOLOv3](yolov3.md)**: The third iteration of the YOLO model family, originally by Joseph Redmon, known for its efficient real-time object detection capabilities.
 2. **[YOLOv4](yolov4.md)**: A darknet-native update to YOLOv3, released by Alexey Bochkovskiy in 2020.
 3. **[YOLOv5](yolov5.md)**: An improved version of the YOLO architecture by Ultralytics, offering better performance and speed trade-offs compared to previous versions.
-4. **[YOLOv6](yolov6.md)**: Released by [Meituan](https://about.meituan.com/) in 2022, and in use in many of the company's autonomous delivery robots.
+4. **[YOLOv6](yolov6.md)**: Released by [Meituan](https://www.meituan.com/) in 2022, and in use in many of the company's autonomous delivery robots.
 5. **[YOLOv7](yolov7.md)**: Updated YOLO models released in 2022 by the authors of YOLOv4.
 6. **[YOLOv8](yolov8.md)**: The latest version of the YOLO family, featuring enhanced capabilities such as [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation), pose/keypoints estimation, and classification.
 7. **[YOLOv9](yolov9.md)**: An experimental model trained on the Ultralytics [YOLOv5](yolov5.md) codebase implementing Programmable Gradient Information (PGI).
 8. **[YOLOv10](yolov10.md)**: By Tsinghua University, featuring NMS-free training and efficiency-accuracy driven architecture, delivering state-of-the-art performance and latency.
-9. **[YOLO11](yolo11.md) NEW 🚀**: Ultralytics' latest YOLO models delivering state-of-the-art (SOTA) performance across multiple tasks.
+9. **[YOLO11](yolo11.md) 🚀 NEW**: Ultralytics' latest YOLO models delivering state-of-the-art (SOTA) performance across multiple tasks.
 10. **[Segment Anything Model (SAM)](sam.md)**: Meta's original Segment Anything Model (SAM).
 11. **[Segment Anything Model 2 (SAM2)](sam-2.md)**: The next generation of Meta's Segment Anything Model (SAM) for videos and images.
 12. **[Mobile Segment Anything Model (MobileSAM)](mobile-sam.md)**: MobileSAM for mobile applications, by Kyung Hee University.

@@ -16,7 +16,7 @@ The [Caltech-256](https://data.caltech.edu/records/nyy15-4j048) dataset is an ex
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Train [Image Classification](https://www.ultralytics.com/glossary/image-classification) Model using Caltech-256 Dataset with Ultralytics HUB
+  <strong>Watch:</strong> How to Train <a href="https://www.ultralytics.com/glossary/image-classification">Image Classification</a> Model using Caltech-256 Dataset with Ultralytics HUB
 </p>
 
 ## Key Features
@@ -47,7 +47,7 @@ To train a YOLO model on the Caltech-256 dataset for 100 epochs, you can use the
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n-cls.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n-cls.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="caltech256", epochs=100, imgsz=416)
@@ -57,7 +57,7 @@ To train a YOLO model on the Caltech-256 dataset for 100 epochs, you can use the
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo classify train data=caltech256 model=yolov8n-cls.pt epochs=100 imgsz=416
+        yolo classify train data=caltech256 model=yolo11n-cls.pt epochs=100 imgsz=416
         ```
 
 ## Sample Images and Annotations
@@ -106,7 +106,7 @@ To train a YOLO model on the Caltech-256 dataset for 100 [epochs](https://www.ul
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n-cls.pt")  # load a pretrained model
+        model = YOLO("yolo11n-cls.pt")  # load a pretrained model
 
         # Train the model
         results = model.train(data="caltech256", epochs=100, imgsz=416)
@@ -116,7 +116,7 @@ To train a YOLO model on the Caltech-256 dataset for 100 [epochs](https://www.ul
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo classify train data=caltech256 model=yolov8n-cls.pt epochs=100 imgsz=416
+        yolo classify train data=caltech256 model=yolo11n-cls.pt epochs=100 imgsz=416
         ```
 
 ### What are the most common use cases for the Caltech-256 dataset?
@@ -141,6 +141,6 @@ Ultralytics YOLO models offer several advantages for training on the Caltech-256
 - **High Accuracy**: YOLO models are known for their state-of-the-art performance in object detection tasks.
 - **Speed**: They provide real-time inference capabilities, making them suitable for applications requiring quick predictions.
 - **Ease of Use**: With Ultralytics HUB, users can train, validate, and deploy models without extensive coding.
-- **Pretrained Models**: Starting from pretrained models, like `yolov8n-cls.pt`, can significantly reduce training time and improve model [accuracy](https://www.ultralytics.com/glossary/accuracy).
+- **Pretrained Models**: Starting from pretrained models, like `yolo11n-cls.pt`, can significantly reduce training time and improve model [accuracy](https://www.ultralytics.com/glossary/accuracy).
 
 For more details, explore our [comprehensive training guide](../../modes/train.md).

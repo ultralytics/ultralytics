@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import requests
 
@@ -63,13 +63,13 @@ def login(api_key: str = None, save=True) -> bool:
         return True
     else:
         # Failed to authenticate with HUB
-        LOGGER.info(f"{PREFIX}Get API key from {api_key_url} and then run 'yolo hub login API_KEY'")
+        LOGGER.info(f"{PREFIX}Get API key from {api_key_url} and then run 'yolo login API_KEY'")
         return False
 
 
 def logout():
     """
-    Log out of Ultralytics HUB by removing the API key from the settings file. To log in again, use 'yolo hub login'.
+    Log out of Ultralytics HUB by removing the API key from the settings file. To log in again, use 'yolo login'.
 
     Example:
         ```python
@@ -79,7 +79,7 @@ def logout():
         ```
     """
     SETTINGS["api_key"] = ""
-    LOGGER.info(f"{PREFIX}logged out ✅. To log in again, use 'yolo hub login'.")
+    LOGGER.info(f"{PREFIX}logged out ✅. To log in again, use 'yolo login'.")
 
 
 def reset_model(model_id=""):

@@ -1,4 +1,5 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 # Publish pip package to PyPI https://pypi.org/project/ultralytics/
 
 name: Publish to PyPI
@@ -13,129 +14,112 @@ on:
         description: Publish to PyPI
 
 jobs:
-  publish:
+  check:
     if: github.repository == 'ultralytics/ultralytics' && github.actor == 'glenn-jocher'
-    name: Publish
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      increment: ${{ steps.check_pypi.outputs.increment }}
+      current_tag: ${{ steps.check_pypi.outputs.current_tag }}
+      previous_tag: ${{ steps.check_pypi.outputs.previous_tag }}
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.PERSONAL_ACCESS_TOKEN || secrets.GITHUB_TOKEN }} # use your PAT here
-      - name: Git config
-        run: |
-          git config --global user.name "UltralyticsAssistant"
-          git config --global user.email "web@ultralytics.com"
-      - name: Set up Python environment
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.x"
-          cache: "pip" # caching pip dependencies
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip wheel
-          pip install requests build twine toml
-      - name: Check PyPI version
+      - uses: astral-sh/setup-uv@v5
+      - run: uv pip install --system --no-cache ultralytics-actions
+      - id: check_pypi
         shell: python
         run: |
           import os
-          import requests
-          import toml
-
-          # Load version and package name from pyproject.toml
-          pyproject = toml.load('pyproject.toml')
-          package_name = pyproject['project']['name']
-          local_version = pyproject['project'].get('version', 'dynamic')
-
-          # If version is dynamic, extract it from the specified file
-          if local_version == 'dynamic':
-              version_attr = pyproject['tool']['setuptools']['dynamic']['version']['attr']
-              module_path, attr_name = version_attr.rsplit('.', 1)
-              with open(f"{module_path.replace('.', '/')}/__init__.py") as f:
-                  local_version = next(line.split('=')[1].strip().strip("'\"") for line in f if line.startswith(attr_name))
-
-          print(f"Local Version: {local_version}")
-
-          # Get online version from PyPI
-          response = requests.get(f"https://pypi.org/pypi/{package_name}/json")
-          online_version = response.json()['info']['version'] if response.status_code == 200 else None
-          print(f"Online Version: {online_version or 'Not Found'}")
-
-          # Determine if a new version should be published
-          publish = False
-          if online_version:
-              local_ver = tuple(map(int, local_version.split('.')))
-              online_ver = tuple(map(int, online_version.split('.')))
-              major_diff = local_ver[0] - online_ver[0]
-              minor_diff = local_ver[1] - online_ver[1]
-              patch_diff = local_ver[2] - online_ver[2]
-
-              publish = (
-                  (major_diff == 0 and minor_diff == 0 and 0 < patch_diff <= 2) or
-                  (major_diff == 0 and minor_diff == 1 and local_ver[2] == 0) or
-                  (major_diff == 1 and local_ver[1] == 0 and local_ver[2] == 0)
-              )
-          else:
-              publish = True  # First release
-
+          from actions.utils import check_pypi_version
+          local_version, online_version, publish = check_pypi_version()
           os.system(f'echo "increment={publish}" >> $GITHUB_OUTPUT')
           os.system(f'echo "current_tag=v{local_version}" >> $GITHUB_OUTPUT')
           os.system(f'echo "previous_tag=v{online_version}" >> $GITHUB_OUTPUT')
-
           if publish:
               print('Ready to publish new version to PyPI ✅.')
-        id: check_pypi
-      - name: Publish to PyPI
-        continue-on-error: true
-        if: (github.event_name == 'push' || github.event.inputs.pypi == 'true')  && steps.check_pypi.outputs.increment == 'True'
-        run: |
-          python -m build
-          python -m twine upload dist/* -u __token__ -p ${{ secrets.PYPI_TOKEN }}
-      - name: Publish new tag
-        if: (github.event_name == 'push' || github.event.inputs.pypi == 'true')  && steps.check_pypi.outputs.increment == 'True'
-        run: |
-          git tag -a "${{ steps.check_pypi.outputs.current_tag }}" -m "$(git log -1 --pretty=%B)"  # i.e. "v0.1.2 commit message"
-          git push origin "${{ steps.check_pypi.outputs.current_tag }}"
-      - name: Publish new release
-        if: (github.event_name == 'push' || github.event.inputs.pypi == 'true')  && steps.check_pypi.outputs.increment == 'True'
+      - name: Tag and Release
+        if: steps.check_pypi.outputs.increment == 'True'
         env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN || secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CURRENT_TAG: ${{ steps.check_pypi.outputs.current_tag }}
           PREVIOUS_TAG: ${{ steps.check_pypi.outputs.previous_tag }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
-          curl -s "https://raw.githubusercontent.com/ultralytics/actions/main/utils/summarize_release.py" | python -
-        shell: bash
+          git config --global user.name "UltralyticsAssistant"
+          git config --global user.email "web@ultralytics.com"
+          git tag -a "$CURRENT_TAG" -m "$(git log -1 --pretty=%B)"
+          git push origin "$CURRENT_TAG"
+          ultralytics-actions-summarize-release
+          uv cache prune --ci
+
+  build:
+    needs: check
+    if: needs.check.outputs.increment == 'True'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - uses: astral-sh/setup-uv@v5
+      - run: uv pip install --system --no-cache build
+      - run: python -m build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - run: uv cache prune --ci
+
+  publish:
+    needs: [check, build]
+    if: needs.check.outputs.increment == 'True'
+    runs-on: ubuntu-latest
+    environment: # for GitHub Deployments tab
+      name: Release - PyPI
+      url: https://pypi.org/p/ultralytics
+    permissions:
+      id-token: write # for PyPI trusted publishing
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@release/v1
+
+  notify:
+    needs: [check, publish]
+    if: always() && needs.check.outputs.increment == 'True'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
       - name: Extract PR Details
         env:
-          GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN || secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Check if the event is a pull request or pull_request_target
-          if [ "${{ github.event_name }}" = "pull_request" ] || [ "${{ github.event_name }}" = "pull_request_target" ]; then
-            PR_NUMBER=${{ github.event.pull_request.number }}
-            PR_TITLE=$(gh pr view $PR_NUMBER --json title --jq '.title')
-          else
-            # Use gh to find the PR associated with the commit
-            COMMIT_SHA=${{ github.event.after }}
-            PR_JSON=$(gh pr list --search "${COMMIT_SHA}" --state merged --json number,title --jq '.[0]')
-            PR_NUMBER=$(echo $PR_JSON | jq -r '.number')
-            PR_TITLE=$(echo $PR_JSON | jq -r '.title')
-          fi
-          echo "PR_NUMBER=$PR_NUMBER" >> $GITHUB_ENV
-          echo "PR_TITLE=$PR_TITLE" >> $GITHUB_ENV
-      - name: Notify on Slack (Success)
-        if: success() && github.event_name == 'push' && steps.check_pypi.outputs.increment == 'True'
-        uses: slackapi/slack-github-action@v1.27.0
+          PR_JSON=$(gh pr list --search "${GITHUB_SHA}" --state merged --json number,title --jq '.[0]')
+          PR_NUMBER=$(echo "${PR_JSON}" | jq -r '.number')
+          PR_TITLE=$(echo "${PR_JSON}" | jq -r '.title')
+          echo "PR_NUMBER=${PR_NUMBER}" >> "${GITHUB_ENV}"
+          echo "PR_TITLE=${PR_TITLE}" >> "${GITHUB_ENV}"
+      - name: Notify Success
+        if: needs.publish.result == 'success' && github.event_name == 'push'
+        uses: slackapi/slack-github-action@v2.0.0
         with:
+          webhook-type: incoming-webhook
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL_YOLO }}
           payload: |
-            {"text": "<!channel> GitHub Actions success for ${{ github.workflow }} ✅\n\n\n*Repository:* https://github.com/${{ github.repository }}\n*Action:* https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\n*Author:* ${{ github.actor }}\n*Event:* NEW '${{ github.repository }} ${{ steps.check_pypi.outputs.current_tag }}' pip package published 😃\n*Job Status:* ${{ job.status }}\n*Pull Request:* <https://github.com/${{ github.repository }}/pull/${{ env.PR_NUMBER }}> ${{ env.PR_TITLE }}\n"}
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_YOLO }}
-      - name: Notify on Slack (Failure)
-        if: failure()
-        uses: slackapi/slack-github-action@v1.27.0
+            text: "<!channel> GitHub Actions success for ${{ github.workflow }} ✅\n\n\n*Repository:* https://github.com/${{ github.repository }}\n*Action:* https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\n*Author:* ${{ github.actor }}\n*Event:* NEW `${{ github.repository }} ${{ needs.check.outputs.current_tag }}` pip package published 😃\n*Job Status:* ${{ job.status }}\n*Pull Request:* <https://github.com/${{ github.repository }}/pull/${{ env.PR_NUMBER }}> ${{ env.PR_TITLE }}\n"
+      - name: Notify Failure
+        if: needs.publish.result != 'success'
+        uses: slackapi/slack-github-action@v2.0.0
         with:
+          webhook-type: incoming-webhook
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL_YOLO }}
           payload: |
-            {"text": "<!channel> GitHub Actions error for ${{ github.workflow }} ❌\n\n\n*Repository:* https://github.com/${{ github.repository }}\n*Action:* https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\n*Author:* ${{ github.actor }}\n*Event:* ${{ github.event_name }}\n*Job Status:* ${{ job.status }}\n*Pull Request:* <https://github.com/${{ github.repository }}/pull/${{ env.PR_NUMBER }}> ${{ env.PR_TITLE }}\n"}
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_YOLO }}
+            text: "<!channel> GitHub Actions error for ${{ github.workflow }} ❌\n\n\n*Repository:* https://github.com/${{ github.repository }}\n*Action:* https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\n*Author:* ${{ github.actor }}\n*Event:* ${{ github.event_name }}\n*Job Status:* ${{ job.status }}\n*Pull Request:* <https://github.com/${{ github.repository }}/pull/${{ env.PR_NUMBER }}> ${{ env.PR_TITLE }}\n"

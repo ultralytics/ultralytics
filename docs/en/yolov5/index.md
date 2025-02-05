@@ -8,7 +8,7 @@ keywords: YOLOv5, Ultralytics, object detection, computer vision, deep learning,
 
 <div align="center">
   <p>
-    <a href="https://ultralytics.com/yolov5" target="_blank">
+    <a href="https://www.ultralytics.com/yolo" target="_blank">
     <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/ultralytics-yolov5-splash.avif" alt="Ultralytics YOLOv5 v7.0 banner"></a>
   </p>
 
@@ -18,15 +18,15 @@ keywords: YOLOv5, Ultralytics, object detection, computer vision, deep learning,
 <br>
 <a href="https://bit.ly/yolov5-paperspace-notebook"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run on Gradient"></a>
 <a href="https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a>
-<a href="https://www.kaggle.com/ultralytics/yolov5"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
+<a href="https://www.kaggle.com/models/ultralytics/yolov5"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
 <br>
 <br>
 
-Welcome to the Ultralytics' <a href="https://github.com/ultralytics/yolov5">YOLOv5</a>🚀 Documentation! YOLOv5, the fifth iteration of the revolutionary "You Only Look Once" [object detection](https://www.ultralytics.com/glossary/object-detection) model, is designed to deliver high-speed, high-accuracy results in real-time.
+Welcome to the Ultralytics' <a href="https://github.com/ultralytics/yolov5">YOLOv5</a>🚀 Documentation! YOLOv5, the fifth iteration of the revolutionary "You Only Look Once" <a href="https://www.ultralytics.com/glossary/object-detection">object detection</a> model, is designed to deliver high-speed, high-accuracy results in real-time.
 
 <br><br>
 
-Built on PyTorch, this powerful [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) framework has garnered immense popularity for its versatility, ease of use, and high performance. Our documentation guides you through the installation process, explains the architectural nuances of the model, showcases various use-cases, and provides a series of detailed tutorials. These resources will help you harness the full potential of YOLOv5 for your [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) projects. Let's get started!
+Built on PyTorch, this powerful <a href="https://www.ultralytics.com/glossary/deep-learning-dl">deep learning</a> framework has garnered immense popularity for its versatility, ease of use, and high performance. Our documentation guides you through the installation process, explains the architectural nuances of the model, showcases various use-cases, and provides a series of detailed tutorials. These resources will help you harness the full potential of YOLOv5 for your <a href="https://www.ultralytics.com/glossary/computer-vision-cv">computer vision</a> projects. Let's get started!
 
 </div>
 
@@ -54,7 +54,7 @@ Here's a compilation of comprehensive tutorials that will guide you through diff
 
 Ultralytics provides a range of ready-to-use environments, each pre-installed with essential dependencies such as [CUDA](https://developer.nvidia.com/cuda-zone), [CUDNN](https://developer.nvidia.com/cudnn), [Python](https://www.python.org/), and [PyTorch](https://pytorch.org/), to kickstart your projects.
 
-- **Free GPU Notebooks**: <a href="https://bit.ly/yolov5-paperspace-notebook"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run on Gradient"></a> <a href="https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> <a href="https://www.kaggle.com/ultralytics/yolov5"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
+- **Free GPU Notebooks**: <a href="https://bit.ly/yolov5-paperspace-notebook"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run on Gradient"></a> <a href="https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> <a href="https://www.kaggle.com/models/ultralytics/yolov5"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
 - **Google Cloud**: [GCP Quickstart Guide](environments/google_cloud_quickstart_tutorial.md)
 - **Amazon**: [AWS Quickstart Guide](environments/aws_quickstart_tutorial.md)
 - **Azure**: [AzureML Quickstart Guide](environments/azureml_quickstart_tutorial.md)
@@ -80,14 +80,14 @@ This badge indicates that all [YOLOv5 GitHub Actions](https://github.com/ultraly
   <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="3%" alt="space">
   <a href="https://ultralytics.com/bilibili"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-bilibili.png" width="3%" alt="Ultralytics BiliBili"></a>
   <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="3%" alt="space">
-  <a href="https://ultralytics.com/discord"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-discord.png" width="3%" alt="Ultralytics Discord"></a>
+  <a href="https://discord.com/invite/ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-discord.png" width="3%" alt="Ultralytics Discord"></a>
 </div>
 
 ## Connect and Contribute
 
 Your journey with YOLOv5 doesn't have to be a solitary one. Join our vibrant community on [GitHub](https://github.com/ultralytics/yolov5), connect with professionals on [LinkedIn](https://www.linkedin.com/company/ultralytics/), share your results on [Twitter](https://twitter.com/ultralytics), and find educational resources on [YouTube](https://www.youtube.com/ultralytics?sub_confirmation=1). Follow us on [TikTok](https://www.tiktok.com/@ultralytics) and [BiliBili](https://ultralytics.com/bilibili) for more engaging content.
 
-Interested in contributing? We welcome contributions of all forms; from code improvements and bug reports to documentation updates. Check out our [contributing guidelines](../help/contributing.md/) for more information.
+Interested in contributing? We welcome contributions of all forms; from code improvements and bug reports to documentation updates. Check out our [contributing guidelines](../help/contributing.md) for more information.
 
 We're excited to see the innovative ways you'll use YOLOv5. Dive in, experiment, and revolutionize your computer vision projects! 🚀
 

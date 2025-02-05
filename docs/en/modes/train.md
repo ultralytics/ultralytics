@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn how to efficiently train object detection models using YOLOv8 with comprehensive instructions on settings, augmentation, and hardware utilization.
-keywords: Ultralytics, YOLOv8, model training, deep learning, object detection, GPU training, dataset augmentation, hyperparameter tuning, model performance, M1 M2 training
+description: Learn how to efficiently train object detection models using YOLO11 with comprehensive instructions on settings, augmentation, and hardware utilization.
+keywords: Ultralytics, YOLO11, model training, deep learning, object detection, GPU training, dataset augmentation, hyperparameter tuning, model performance, apple silicon training
 ---
 
 # Model Training with Ultralytics YOLO
@@ -10,7 +10,7 @@ keywords: Ultralytics, YOLOv8, model training, deep learning, object detection, 
 
 ## Introduction
 
-Training a [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) model involves feeding it data and adjusting its parameters so that it can make accurate predictions. Train mode in Ultralytics YOLOv8 is engineered for effective and efficient training of object detection models, fully utilizing modern hardware capabilities. This guide aims to cover all the details you need to get started with training your own models using YOLOv8's robust set of features.
+Training a [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) model involves feeding it data and adjusting its parameters so that it can make accurate predictions. Train mode in Ultralytics YOLO11 is engineered for effective and efficient training of object detection models, fully utilizing modern hardware capabilities. This guide aims to cover all the details you need to get started with training your own models using YOLO11's robust set of features.
 
 <p align="center">
   <br>
@@ -20,12 +20,12 @@ Training a [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Train a YOLOv8 model on Your Custom Dataset in Google Colab.
+  <strong>Watch:</strong> How to Train a YOLO model on Your Custom Dataset in Google Colab.
 </p>
 
 ## Why Choose Ultralytics YOLO for Training?
 
-Here are some compelling reasons to opt for YOLOv8's Train mode:
+Here are some compelling reasons to opt for YOLO11's Train mode:
 
 - **Efficiency:** Make the most out of your hardware, whether you're on a single-GPU setup or scaling across multiple GPUs.
 - **Versatility:** Train on custom datasets in addition to readily available ones like COCO, VOC, and ImageNet.
@@ -34,7 +34,7 @@ Here are some compelling reasons to opt for YOLOv8's Train mode:
 
 ### Key Features of Train Mode
 
-The following are some notable features of YOLOv8's Train mode:
+The following are some notable features of YOLO11's Train mode:
 
 - **Automatic Dataset Download:** Standard datasets like COCO, VOC, and ImageNet are downloaded automatically on first use.
 - **Multi-GPU Support:** Scale your training efforts seamlessly across multiple GPUs to expedite the process.
@@ -43,11 +43,15 @@ The following are some notable features of YOLOv8's Train mode:
 
 !!! tip
 
-    * YOLOv8 datasets like COCO, VOC, ImageNet and many others automatically download on first use, i.e. `yolo train data=coco.yaml`
+    * YOLO11 datasets like COCO, VOC, ImageNet and many others automatically download on first use, i.e. `yolo train data=coco.yaml`
 
 ## Usage Examples
 
-Train YOLOv8n on the COCO8 dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) at image size 640. The training device can be specified using the `device` argument. If no argument is passed GPU `device=0` will be used if available, otherwise `device='cpu'` will be used. See Arguments section below for a full list of training arguments.
+Train YOLO11n on the COCO8 dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) at image size 640. The training device can be specified using the `device` argument. If no argument is passed GPU `device=0` will be used if available, otherwise `device='cpu'` will be used. See Arguments section below for a full list of training arguments.
+
+!!! warning "Windows Multi-Processing Error"
+
+    On Windows, you may receive a `RuntimeError` when launching the training as a script. Add a `if __name__ == "__main__":` block before your training code to resolve it.
 
 !!! example "Single-GPU and CPU Training Example"
 
@@ -59,9 +63,9 @@ Train YOLOv8n on the COCO8 dataset for 100 [epochs](https://www.ultralytics.com/
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n.yaml")  # build a new model from YAML
-        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
-        model = YOLO("yolov8n.yaml").load("yolov8n.pt")  # build from YAML and transfer weights
+        model = YOLO("yolo11n.yaml")  # build a new model from YAML
+        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n.yaml").load("yolo11n.pt")  # build from YAML and transfer weights
 
         # Train the model
         results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
@@ -71,13 +75,13 @@ Train YOLOv8n on the COCO8 dataset for 100 [epochs](https://www.ultralytics.com/
 
         ```bash
         # Build a new model from YAML and start training from scratch
-        yolo detect train data=coco8.yaml model=yolov8n.yaml epochs=100 imgsz=640
+        yolo detect train data=coco8.yaml model=yolo11n.yaml epochs=100 imgsz=640
 
         # Start training from a pretrained *.pt model
-        yolo detect train data=coco8.yaml model=yolov8n.pt epochs=100 imgsz=640
+        yolo detect train data=coco8.yaml model=yolo11n.pt epochs=100 imgsz=640
 
         # Build a new model from YAML, transfer pretrained weights to it and start training
-        yolo detect train data=coco8.yaml model=yolov8n.yaml pretrained=yolov8n.pt epochs=100 imgsz=640
+        yolo detect train data=coco8.yaml model=yolo11n.yaml pretrained=yolo11n.pt epochs=100 imgsz=640
         ```
 
 ### Multi-GPU Training
@@ -94,7 +98,7 @@ Multi-GPU training allows for more efficient utilization of available hardware r
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model with 2 GPUs
         results = model.train(data="coco8.yaml", epochs=100, imgsz=640, device=[0, 1])
@@ -104,14 +108,14 @@ Multi-GPU training allows for more efficient utilization of available hardware r
 
         ```bash
         # Start training from a pretrained *.pt model using GPUs 0 and 1
-        yolo detect train data=coco8.yaml model=yolov8n.pt epochs=100 imgsz=640 device=0,1
+        yolo detect train data=coco8.yaml model=yolo11n.pt epochs=100 imgsz=640 device=0,1
         ```
 
-### Apple M1 and M2 MPS Training
+### Apple Silicon MPS Training
 
-With the support for Apple M1 and M2 chips integrated in the Ultralytics YOLO models, it's now possible to train your models on devices utilizing the powerful Metal Performance Shaders (MPS) framework. The MPS offers a high-performance way of executing computation and image processing tasks on Apple's custom silicon.
+With the support for Apple silicon chips integrated in the Ultralytics YOLO models, it's now possible to train your models on devices utilizing the powerful Metal Performance Shaders (MPS) framework. The MPS offers a high-performance way of executing computation and image processing tasks on Apple's custom silicon.
 
-To enable training on Apple M1 and M2 chips, you should specify 'mps' as your device when initiating the training process. Below is an example of how you could do this in Python and via the command line:
+To enable training on Apple silicon chips, you should specify 'mps' as your device when initiating the training process. Below is an example of how you could do this in Python and via the command line:
 
 !!! example "MPS Training Example"
 
@@ -121,7 +125,7 @@ To enable training on Apple M1 and M2 chips, you should specify 'mps' as your de
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model with MPS
         results = model.train(data="coco8.yaml", epochs=100, imgsz=640, device="mps")
@@ -131,10 +135,10 @@ To enable training on Apple M1 and M2 chips, you should specify 'mps' as your de
 
         ```bash
         # Start training from a pretrained *.pt model using MPS
-        yolo detect train data=coco8.yaml model=yolov8n.pt epochs=100 imgsz=640 device=mps
+        yolo detect train data=coco8.yaml model=yolo11n.pt epochs=100 imgsz=640 device=mps
         ```
 
-While leveraging the computational power of the M1/M2 chips, this enables more efficient processing of the training tasks. For more detailed guidance and advanced configuration options, please refer to the [PyTorch MPS documentation](https://pytorch.org/docs/stable/notes/mps.html).
+While leveraging the computational power of the Apple silicon chips, this enables more efficient processing of the training tasks. For more detailed guidance and advanced configuration options, please refer to the [PyTorch MPS documentation](https://pytorch.org/docs/stable/notes/mps.html).
 
 ### Resuming Interrupted Trainings
 
@@ -199,7 +203,7 @@ These settings can be adjusted to meet the specific requirements of the dataset 
 
 ## Logging
 
-In training a YOLOv8 model, you might find it valuable to keep track of the model's performance over time. This is where logging comes into play. Ultralytics' YOLO provides support for three types of loggers - Comet, ClearML, and TensorBoard.
+In training a YOLO11 model, you might find it valuable to keep track of the model's performance over time. This is where logging comes into play. Ultralytics' YOLO provides support for three types of loggers - Comet, ClearML, and TensorBoard.
 
 To use a logger, select it from the dropdown menu in the code snippet above and run it. The chosen logger will be installed and initialized.
 
@@ -272,9 +276,9 @@ After setting up your logger, you can then proceed with your model training. All
 
 ## FAQ
 
-### How do I train an [object detection](https://www.ultralytics.com/glossary/object-detection) model using Ultralytics YOLOv8?
+### How do I train an [object detection](https://www.ultralytics.com/glossary/object-detection) model using Ultralytics YOLO11?
 
-To train an object detection model using Ultralytics YOLOv8, you can either use the Python API or the CLI. Below is an example for both:
+To train an object detection model using Ultralytics YOLO11, you can either use the Python API or the CLI. Below is an example for both:
 
 !!! example "Single-GPU and CPU Training Example"
 
@@ -284,7 +288,7 @@ To train an object detection model using Ultralytics YOLOv8, you can either use 
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
@@ -293,14 +297,14 @@ To train an object detection model using Ultralytics YOLOv8, you can either use 
     === "CLI"
 
         ```bash
-        yolo detect train data=coco8.yaml model=yolov8n.pt epochs=100 imgsz=640
+        yolo detect train data=coco8.yaml model=yolo11n.pt epochs=100 imgsz=640
         ```
 
 For more details, refer to the [Train Settings](#train-settings) section.
 
-### What are the key features of Ultralytics YOLOv8's Train mode?
+### What are the key features of Ultralytics YOLO11's Train mode?
 
-The key features of Ultralytics YOLOv8's Train mode include:
+The key features of Ultralytics YOLO11's Train mode include:
 
 - **Automatic Dataset Download:** Automatically downloads standard datasets like COCO, VOC, and ImageNet.
 - **Multi-GPU Support:** Scale training across multiple GPUs for faster processing.
@@ -309,7 +313,7 @@ The key features of Ultralytics YOLOv8's Train mode include:
 
 These features make training efficient and customizable to your needs. For more details, see the [Key Features of Train Mode](#key-features-of-train-mode) section.
 
-### How do I resume training from an interrupted session in Ultralytics YOLOv8?
+### How do I resume training from an interrupted session in Ultralytics YOLO11?
 
 To resume training from an interrupted session, set the `resume` argument to `True` and specify the path to the last saved checkpoint.
 
@@ -335,9 +339,9 @@ To resume training from an interrupted session, set the `resume` argument to `Tr
 
 Check the section on [Resuming Interrupted Trainings](#resuming-interrupted-trainings) for more information.
 
-### Can I train YOLOv8 models on Apple M1 and M2 chips?
+### Can I train YOLO11 models on Apple silicon chips?
 
-Yes, Ultralytics YOLOv8 supports training on Apple M1 and M2 chips utilizing the Metal Performance Shaders (MPS) framework. Specify 'mps' as your training device.
+Yes, Ultralytics YOLO11 supports training on Apple silicon chips utilizing the Metal Performance Shaders (MPS) framework. Specify 'mps' as your training device.
 
 !!! example "MPS Training Example"
 
@@ -347,23 +351,23 @@ Yes, Ultralytics YOLOv8 supports training on Apple M1 and M2 chips utilizing the
         from ultralytics import YOLO
 
         # Load a pretrained model
-        model = YOLO("yolov8n.pt")
+        model = YOLO("yolo11n.pt")
 
-        # Train the model on M1/M2 chip
+        # Train the model on Apple silicon chip (M1/M2/M3/M4)
         results = model.train(data="coco8.yaml", epochs=100, imgsz=640, device="mps")
         ```
 
     === "CLI"
 
         ```bash
-        yolo detect train data=coco8.yaml model=yolov8n.pt epochs=100 imgsz=640 device=mps
+        yolo detect train data=coco8.yaml model=yolo11n.pt epochs=100 imgsz=640 device=mps
         ```
 
-For more details, refer to the [Apple M1 and M2 MPS Training](#apple-m1-and-m2-mps-training) section.
+For more details, refer to the [Apple Silicon MPS Training](#apple-silicon-mps-training) section.
 
 ### What are the common training settings, and how do I configure them?
 
-Ultralytics YOLOv8 allows you to configure a variety of training settings such as batch size, learning rate, epochs, and more through arguments. Here's a brief overview:
+Ultralytics YOLO11 allows you to configure a variety of training settings such as batch size, learning rate, epochs, and more through arguments. Here's a brief overview:
 
 | Argument | Default | Description                                                            |
 | -------- | ------- | ---------------------------------------------------------------------- |

@@ -1,4 +1,5 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 # Continuous Integration (CI) GitHub Actions tests broken link checker using https://github.com/lycheeverse/lychee
 # Ignores the following status codes to reduce false positives:
 #   - 401(Vimeo, 'unauthorized')
@@ -24,17 +25,15 @@ jobs:
       - name: Download and install lychee
         run: |
           LYCHEE_URL=$(curl -s https://api.github.com/repos/lycheeverse/lychee/releases/latest | grep "browser_download_url" | grep "x86_64-unknown-linux-gnu.tar.gz" | cut -d '"' -f 4)
-          curl -L $LYCHEE_URL -o lychee.tar.gz
-          tar xzf lychee.tar.gz
-          sudo mv lychee /usr/local/bin
+          curl -L $LYCHEE_URL | tar xz -C /usr/local/bin
 
       - name: Test Markdown and HTML links with retry
-        uses: nick-invision/retry@v3
+        uses: ultralytics/actions/retry@main
         with:
-          timeout_minutes: 5
-          retry_wait_seconds: 60
-          max_attempts: 3
-          command: |
+          timeout_minutes: 60
+          retry_delay_seconds: 900
+          retries: 2
+          run: |
             lychee \
             --scheme https \
             --timeout 60 \
@@ -55,16 +54,16 @@ jobs:
             --github-token ${{ secrets.GITHUB_TOKEN }} \
             --header "User-Agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.6478.183 Safari/537.36" \
             './**/*.md' \
-            './**/*.html'
+            './**/*.html' | tee -a $GITHUB_STEP_SUMMARY
 
       - name: Test Markdown, HTML, YAML, Python and Notebook links with retry
         if: github.event_name == 'workflow_dispatch'
-        uses: nick-invision/retry@v3
+        uses: ultralytics/actions/retry@main
         with:
-          timeout_minutes: 5
-          retry_wait_seconds: 60
-          max_attempts: 3
-          command: |
+          timeout_minutes: 60
+          retry_delay_seconds: 900
+          retries: 2
+          run: |
             lychee \
             --scheme https \
             --timeout 60 \
@@ -72,7 +71,7 @@ jobs:
             --accept 401,403,429,500,502,999 \
             --exclude-all-private \
             --exclude 'https?://(www\.)?(linkedin\.com|twitter\.com|instagram\.com|kaggle\.com|fonts\.gstatic\.com|url\.com)' \
-            --exclude-path '**/ci.yaml' \
+            --exclude-path '**/ci.yml' \
             --exclude-path docs/zh \
             --exclude-path docs/es \
             --exclude-path docs/ru \
@@ -90,4 +89,4 @@ jobs:
             './**/*.yml' \
             './**/*.yaml' \
             './**/*.py' \
-            './**/*.ipynb'
+            './**/*.ipynb' | tee -a $GITHUB_STEP_SUMMARY

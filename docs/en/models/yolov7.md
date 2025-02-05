@@ -12,7 +12,14 @@ YOLOv7 is a state-of-the-art real-time object detector that surpasses all known 
 
 ## Comparison of SOTA object detectors
 
-From the results in the YOLO comparison table we know that the proposed method has the best speed-accuracy trade-off comprehensively. If we compare YOLOv7-tiny-SiLU with YOLOv5-N (r6.1), our method is 127 fps faster and 10.7% more accurate on AP. In addition, YOLOv7 has 51.4% AP at frame rate of 161 fps, while PPYOLOE-L with the same AP has only 78 fps frame rate. In terms of parameter usage, YOLOv7 is 41% less than PPYOLOE-L. If we compare YOLOv7-X with 114 fps inference speed to YOLOv5-L (r6.1) with 99 fps inference speed, YOLOv7-X can improve AP by 3.9%. If YOLOv7-X is compared with YOLOv5-X (r6.1) of similar scale, the inference speed of YOLOv7-X is 31 fps faster. In addition, in terms the amount of parameters and computation, YOLOv7-X reduces 22% of parameters and 8% of computation compared to YOLOv5-X (r6.1), but improves AP by 2.2% ([Source](https://arxiv.org/pdf/2207.02696.pdf)).
+From the results in the YOLO comparison table we know that the proposed method has the best speed-accuracy trade-off comprehensively. If we compare YOLOv7-tiny-SiLU with YOLOv5-N (r6.1), our method is 127 fps faster and 10.7% more accurate on AP. In addition, YOLOv7 has 51.4% AP at frame rate of 161 fps, while PPYOLOE-L with the same AP has only 78 fps frame rate. In terms of parameter usage, YOLOv7 is 41% less than PPYOLOE-L.
+
+<script async src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<script defer src="../../javascript/benchmark.js"></script>
+
+<canvas id="modelComparisonChart" width="1024" height="400" active-models='["YOLOv7"]'></canvas>
+
+If we compare YOLOv7-X with 114 fps inference speed to YOLOv5-L (r6.1) with 99 fps inference speed, YOLOv7-X can improve AP by 3.9%. If YOLOv7-X is compared with YOLOv5-X (r6.1) of similar scale, the inference speed of YOLOv7-X is 31 fps faster. In addition, in terms the amount of parameters and computation, YOLOv7-X reduces 22% of parameters and 8% of computation compared to YOLOv5-X (r6.1), but improves AP by 2.2% ([Source](https://arxiv.org/pdf/2207.02696)).
 
 | Model                 | Params<br><sup>(M) | FLOPs<br><sup>(G) | Size<br><sup>(pixels) | FPS     | AP<sup>test / val<br>50-95 | AP<sup>test<br>50 | AP<sup>test<br>75 | AP<sup>test<br>S | AP<sup>test<br>M | AP<sup>test<br>L |
 | --------------------- | ------------------ | ----------------- | --------------------- | ------- | -------------------------- | ----------------- | ----------------- | ---------------- | ---------------- | ---------------- |
@@ -111,13 +118,13 @@ We would like to acknowledge the YOLOv7 authors for their significant contributi
         }
         ```
 
-The original YOLOv7 paper can be found on [arXiv](https://arxiv.org/pdf/2207.02696.pdf). The authors have made their work publicly available, and the codebase can be accessed on [GitHub](https://github.com/WongKinYiu/yolov7). We appreciate their efforts in advancing the field and making their work accessible to the broader community.
+The original YOLOv7 paper can be found on [arXiv](https://arxiv.org/pdf/2207.02696). The authors have made their work publicly available, and the codebase can be accessed on [GitHub](https://github.com/WongKinYiu/yolov7). We appreciate their efforts in advancing the field and making their work accessible to the broader community.
 
 ## FAQ
 
 ### What is YOLOv7 and why is it considered a breakthrough in real-time [object detection](https://www.ultralytics.com/glossary/object-detection)?
 
-YOLOv7 is a cutting-edge real-time object detection model that achieves unparalleled speed and accuracy. It surpasses other models, such as YOLOX, YOLOv5, and PPYOLOE, in both parameters usage and inference speed. YOLOv7's distinguishing features include its model re-parameterization and dynamic label assignment, which optimize its performance without increasing inference costs. For more technical details about its architecture and comparison metrics with other state-of-the-art object detectors, refer to the [YOLOv7 paper](https://arxiv.org/pdf/2207.02696.pdf).
+YOLOv7 is a cutting-edge real-time object detection model that achieves unparalleled speed and accuracy. It surpasses other models, such as YOLOX, YOLOv5, and PPYOLOE, in both parameters usage and inference speed. YOLOv7's distinguishing features include its model re-parameterization and dynamic label assignment, which optimize its performance without increasing inference costs. For more technical details about its architecture and comparison metrics with other state-of-the-art object detectors, refer to the [YOLOv7 paper](https://arxiv.org/pdf/2207.02696).
 
 ### How does YOLOv7 improve on previous YOLO models like YOLOv4 and YOLOv5?
 
@@ -151,4 +158,5 @@ YOLOv7 offers several key features that revolutionize real-time object detection
 - **Dynamic Label Assignment**: Uses a coarse-to-fine lead guided method to assign dynamic targets for outputs across different branches, improving accuracy.
 - **Extended and Compound Scaling**: Efficiently utilizes parameters and computation to scale the model for various real-time applications.
 - **Efficiency**: Reduces parameter count by 40% and computation by 50% compared to other state-of-the-art models while achieving faster inference speeds.
-    For further details on these features, see the [YOLOv7 Overview](#overview) section.
+
+For further details on these features, see the [YOLOv7 Overview](#overview) section.

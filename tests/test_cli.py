@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import subprocess
 
@@ -59,7 +59,8 @@ def test_rtdetr(task="detect", model="yolov8n-rtdetr.yaml", data="coco8.yaml"):
     run(f"yolo train {task} model={model} data={data} --imgsz= 160 epochs =1, cache = disk fraction=0.25")
     run(f"yolo predict {task} model={model} source={ASSETS / 'bus.jpg'} imgsz=160 save save_crop save_txt")
     if TORCH_1_9:
-        run(f"yolo predict {task} model='rtdetr-l.pt' source={ASSETS / 'bus.jpg'} imgsz=160 save save_crop save_txt")
+        weights = WEIGHTS_DIR / "rtdetr-l.pt"
+        run(f"yolo predict {task} model={weights} source={ASSETS / 'bus.jpg'} imgsz=160 save save_crop save_txt")
 
 
 @pytest.mark.skipif(checks.IS_PYTHON_3_12, reason="MobileSAM with CLIP is not supported in Python 3.12")
@@ -97,8 +98,11 @@ def test_mobilesam():
     # Source
     source = ASSETS / "zidane.jpg"
 
-    # Predict a segment based on a point prompt
+    # Predict a segment based on a 1D point prompt and 1D labels.
     model.predict(source, points=[900, 370], labels=[1])
+
+    # Predict a segment based on 3D points and 2D labels (multiple points per object).
+    model.predict(source, points=[[[900, 370], [1000, 100]]], labels=[[1, 1]])
 
     # Predict a segment based on a box prompt
     model.predict(source, bboxes=[439, 437, 524, 709], save=True)

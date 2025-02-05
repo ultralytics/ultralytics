@@ -1,8 +1,9 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import torch
 import torch.nn as nn
 
+from . import LOGGER
 from .checks import check_version
 from .metrics import bbox_iou, probiou
 from .ops import xywhr2xyxyxyxy
@@ -58,17 +59,46 @@ class TaskAlignedAssigner(nn.Module):
         """
         self.bs = pd_scores.shape[0]
         self.n_max_boxes = gt_bboxes.shape[1]
+        device = gt_bboxes.device
 
         if self.n_max_boxes == 0:
-            device = gt_bboxes.device
             return (
-                torch.full_like(pd_scores[..., 0], self.bg_idx).to(device),
-                torch.zeros_like(pd_bboxes).to(device),
-                torch.zeros_like(pd_scores).to(device),
-                torch.zeros_like(pd_scores[..., 0]).to(device),
-                torch.zeros_like(pd_scores[..., 0]).to(device),
+                torch.full_like(pd_scores[..., 0], self.bg_idx),
+                torch.zeros_like(pd_bboxes),
+                torch.zeros_like(pd_scores),
+                torch.zeros_like(pd_scores[..., 0]),
+                torch.zeros_like(pd_scores[..., 0]),
             )
 
+        try:
+            return self._forward(pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt)
+        except torch.OutOfMemoryError:
+            # Move tensors to CPU, compute, then move back to original device
+            LOGGER.warning("WARNING: CUDA OutOfMemoryError in TaskAlignedAssigner, using CPU")
+            cpu_tensors = [t.cpu() for t in (pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt)]
+            result = self._forward(*cpu_tensors)
+            return tuple(t.to(device) for t in result)
+
+    def _forward(self, pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt):
+        """
+        Compute the task-aligned assignment. Reference code is available at
+        https://github.com/Nioolek/PPYOLOE_pytorch/blob/master/ppyoloe/assigner/tal_assigner.py.
+
+        Args:
+            pd_scores (Tensor): shape(bs, num_total_anchors, num_classes)
+            pd_bboxes (Tensor): shape(bs, num_total_anchors, 4)
+            anc_points (Tensor): shape(num_total_anchors, 2)
+            gt_labels (Tensor): shape(bs, n_max_boxes, 1)
+            gt_bboxes (Tensor): shape(bs, n_max_boxes, 4)
+            mask_gt (Tensor): shape(bs, n_max_boxes, 1)
+
+        Returns:
+            target_labels (Tensor): shape(bs, num_total_anchors)
+            target_bboxes (Tensor): shape(bs, num_total_anchors, 4)
+            target_scores (Tensor): shape(bs, num_total_anchors, num_classes)
+            fg_mask (Tensor): shape(bs, num_total_anchors)
+            target_gt_idx (Tensor): shape(bs, num_total_anchors)
+        """
         mask_pos, align_metric, overlaps = self.get_pos_mask(
             pd_scores, pd_bboxes, gt_labels, gt_bboxes, anc_points, mask_gt
         )
@@ -306,7 +336,7 @@ def make_anchors(feats, strides, grid_cell_offset=0.5):
     assert feats is not None
     dtype, device = feats[0].dtype, feats[0].device
     for i, stride in enumerate(strides):
-        _, _, h, w = feats[i].shape
+        h, w = feats[i].shape[2:] if isinstance(feats, list) else (int(feats[i][0]), int(feats[i][1]))
         sx = torch.arange(end=w, device=device, dtype=dtype) + grid_cell_offset  # shift x
         sy = torch.arange(end=h, device=device, dtype=dtype) + grid_cell_offset  # shift y
         sy, sx = torch.meshgrid(sy, sx, indexing="ij") if TORCH_1_10 else torch.meshgrid(sy, sx)

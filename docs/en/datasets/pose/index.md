@@ -42,7 +42,7 @@ The Ultralytics framework uses a YAML file format to define the dataset and mode
 
 ```yaml
 # Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
-path: ../datasets/coco8-pose # dataset root dir
+path: ../datasets/coco8-pose # dataset root dir (absolute or relative; if relative, it's relative to default datasets_dir)
 train: images/train # train images (relative to 'path') 4 images
 val: images/val # val images (relative to 'path') 4 images
 test: # test images (optional)
@@ -72,7 +72,7 @@ The `train` and `val` fields specify the paths to the directories containing the
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n-pose.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n-pose.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="coco8-pose.yaml", epochs=100, imgsz=640)
@@ -82,7 +82,7 @@ The `train` and `val` fields specify the paths to the directories containing the
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo pose train data=coco8-pose.yaml model=yolov8n-pose.pt epochs=100 imgsz=640
+        yolo pose train data=coco8-pose.yaml model=yolo11n-pose.pt epochs=100 imgsz=640
         ```
 
 ## Supported Datasets
@@ -126,6 +126,15 @@ This section outlines the datasets that are compatible with Ultralytics YOLO for
 - **Keypoints**: 21 keypoints.
 - **Usage**: Great for human hand pose estimation.
 - [Read more about Hand Keypoints](hand-keypoints.md)
+
+### Dog-Pose
+
+- **Description**: The Dog Pose dataset contains approximately 6,000 images, providing a diverse and extensive resource for training and validation of dog pose estimation models.
+- **Label Format**: Follows the Ultralytics YOLO format, with annotations for multiple keypoints specific to dog anatomy.
+- **Number of Classes**: 1 (Dog).
+- **Keypoints**: Includes 24 keypoints tailored to dog poses, such as limbs, joints, and head positions.
+- **Usage**: Ideal for training models to estimate dog poses in various scenarios, from research to real-world applications.
+- [Read more about Dog-Pose](dog-pose.md)
 
 ### Adding your own dataset
 
@@ -171,7 +180,7 @@ To use the COCO-Pose dataset with Ultralytics YOLO:
     ```python
     from ultralytics import YOLO
 
-    model = YOLO("yolov8n-pose.pt")  # load pretrained model
+    model = YOLO("yolo11n-pose.pt")  # load pretrained model
     results = model.train(data="coco-pose.yaml", epochs=100, imgsz=640)
     ```
 
@@ -188,7 +197,7 @@ To add your dataset:
     ```python
     from ultralytics import YOLO
 
-    model = YOLO("yolov8n-pose.pt")
+    model = YOLO("yolo11n-pose.pt")
     results = model.train(data="your-dataset.yaml", epochs=100, imgsz=640)
     ```
 

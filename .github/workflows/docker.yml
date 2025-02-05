@@ -1,0 +1,221 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# Builds ultralytics/ultralytics:latest images on DockerHub https://hub.docker.com/r/ultralytics
+
+name: Publish Docker Images
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "docs/**"
+      - "mkdocs.yml"
+  workflow_dispatch:
+    inputs:
+      Dockerfile:
+        type: boolean
+        description: Use Dockerfile
+        default: true
+      Dockerfile-cpu:
+        type: boolean
+        description: Use Dockerfile-cpu
+        default: true
+      Dockerfile-arm64:
+        type: boolean
+        description: Use Dockerfile-arm64
+        default: true
+      Dockerfile-jetson-jetpack6:
+        type: boolean
+        description: Use Dockerfile-jetson-jetpack6
+        default: true
+      Dockerfile-jetson-jetpack5:
+        type: boolean
+        description: Use Dockerfile-jetson-jetpack5
+        default: true
+      Dockerfile-jetson-jetpack4:
+        type: boolean
+        description: Use Dockerfile-jetson-jetpack4
+        default: true
+      Dockerfile-python:
+        type: boolean
+        description: Use Dockerfile-python
+        default: true
+      Dockerfile-conda:
+        type: boolean
+        description: Use Dockerfile-conda
+        default: true
+      push:
+        type: boolean
+        description: Publish all Images to Docker Hub
+
+jobs:
+  docker:
+    if: github.repository == 'ultralytics/ultralytics'
+    name: Push
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      max-parallel: 10
+      matrix:
+        include:
+          - dockerfile: "Dockerfile"
+            tags: "latest"
+            platforms: "linux/amd64"
+          - dockerfile: "Dockerfile-cpu"
+            tags: "latest-cpu"
+            platforms: "linux/amd64"
+          - dockerfile: "Dockerfile-arm64"
+            tags: "latest-arm64"
+            platforms: "linux/arm64"
+          - dockerfile: "Dockerfile-jetson-jetpack6"
+            tags: "latest-jetson-jetpack6"
+            platforms: "linux/arm64"
+          - dockerfile: "Dockerfile-jetson-jetpack5"
+            tags: "latest-jetson-jetpack5"
+            platforms: "linux/arm64"
+          - dockerfile: "Dockerfile-jetson-jetpack4"
+            tags: "latest-jetson-jetpack4"
+            platforms: "linux/arm64"
+          - dockerfile: "Dockerfile-python"
+            tags: "latest-python"
+            platforms: "linux/amd64"
+          # - dockerfile: "Dockerfile-conda"
+          #   tags: "latest-conda"
+          #   platforms: "linux/amd64"
+    outputs:
+      new_release: ${{ steps.check_tag.outputs.new_release }}
+    steps:
+      - name: Cleanup disk space
+        uses: ultralytics/actions/cleanup-disk@main
+
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # copy full .git directory to access full git history in Docker images
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Retrieve Ultralytics version
+        id: get_version
+        run: |
+          VERSION=$(grep "^__version__ =" ultralytics/__init__.py | awk -F'"' '{print $2}')
+          echo "Retrieved Ultralytics version: $VERSION"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          VERSION_TAG=$(echo "${{ matrix.tags }}" | sed "s/latest/${VERSION}/")
+          echo "Intended version tag: $VERSION_TAG"
+          echo "version_tag=$VERSION_TAG" >> $GITHUB_OUTPUT
+
+      - name: Check if version tag exists on DockerHub
+        id: check_tag
+        run: |
+          RESPONSE=$(curl -s https://hub.docker.com/v2/repositories/ultralytics/ultralytics/tags/$VERSION_TAG)
+          MESSAGE=$(echo $RESPONSE | jq -r '.message')
+          if [[ "$MESSAGE" == "null" ]]; then
+              echo "Tag $VERSION_TAG already exists on DockerHub."
+              echo "new_release=false" >> $GITHUB_OUTPUT
+          elif [[ "$MESSAGE" == *"404"* ]]; then
+              echo "Tag $VERSION_TAG does not exist on DockerHub."
+              echo "new_release=true" >> $GITHUB_OUTPUT
+          else
+              echo "Unexpected response from DockerHub. Please check manually."
+              echo "new_release=false" >> $GITHUB_OUTPUT
+          fi
+        env:
+          VERSION_TAG: ${{ steps.get_version.outputs.version_tag }}
+
+      - name: Build Image
+        if: github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true'
+        uses: ultralytics/actions/retry@main
+        with:
+          timeout_minutes: 120
+          retry_delay_seconds: 60
+          retries: 2
+          run: |
+            docker build \
+            --platform ${{ matrix.platforms }} \
+            -f docker/${{ matrix.dockerfile }} \
+            -t ultralytics/ultralytics:${{ matrix.tags }} \
+            -t ultralytics/ultralytics:${{ steps.get_version.outputs.version_tag }} \
+            .
+
+      - name: Run Tests
+        if: (github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true') && matrix.platforms == 'linux/amd64' && matrix.dockerfile != 'Dockerfile-conda' # arm64 images not supported on GitHub CI runners
+        run: docker run ultralytics/ultralytics:${{ matrix.tags }} /bin/bash -c "pip install pytest && pytest tests"
+
+      - name: Run Benchmarks
+        # WARNING: Dockerfile (GPU) error on TF.js export 'module 'numpy' has no attribute 'object'.
+        if: (github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true') && matrix.platforms == 'linux/amd64' && matrix.dockerfile != 'Dockerfile' && matrix.dockerfile != 'Dockerfile-conda' # arm64 images not supported on GitHub CI runners
+        run: docker run ultralytics/ultralytics:${{ matrix.tags }} yolo benchmark model=yolo11n.pt imgsz=160 verbose=0.309
+
+      - name: Push Docker Image with Ultralytics version tag
+        if: (github.event_name == 'push' || (github.event.inputs[matrix.dockerfile] == 'true' && github.event.inputs.push == 'true')) && steps.check_tag.outputs.new_release == 'true' && matrix.dockerfile != 'Dockerfile-conda'
+        uses: ultralytics/actions/retry@main
+        with:
+          timeout_minutes: 15
+          retry_delay_seconds: 300
+          retries: 2
+          run: |
+            docker push ultralytics/ultralytics:${{ steps.get_version.outputs.version_tag }}
+
+      - name: Push Docker Image with latest tag
+        if: github.event_name == 'push' || (github.event.inputs[matrix.dockerfile] == 'true' && github.event.inputs.push == 'true')
+        uses: ultralytics/actions/retry@main
+        with:
+          timeout_minutes: 15
+          retry_delay_seconds: 300
+          retries: 2
+          run: |
+            docker push ultralytics/ultralytics:${{ matrix.tags }}
+            if [[ "${{ matrix.tags }}" == "latest" ]]; then
+              t=ultralytics/ultralytics:latest-runner
+              docker build -f docker/Dockerfile-runner -t $t .
+              docker push $t
+            fi
+            if [[ "${{ matrix.tags }}" == "latest-python" ]]; then
+              t=ultralytics/ultralytics:latest-jupyter
+              v=ultralytics/ultralytics:${{ steps.get_version.outputs.version }}-jupyter
+              docker build -f docker/Dockerfile-jupyter -t $t -t $v .
+              docker push $t
+              if [[ "${{ steps.check_tag.outputs.new_release }}" == "true" ]]; then
+                docker push $v
+              fi
+            fi
+
+  trigger-actions:
+    runs-on: ubuntu-latest
+    needs: docker
+    # Only trigger actions on new Ultralytics releases
+    if: success() && github.repository == 'ultralytics/ultralytics' && github.event_name == 'push' && needs.docker.outputs.new_release == 'true'
+    steps:
+      - name: Trigger Additional GitHub Actions
+        env:
+          GH_TOKEN: ${{ secrets._GITHUB_TOKEN }}
+        run: |
+          sleep 60
+          gh workflow run deploy_cloud_run.yml \
+            --repo ultralytics/assistant \
+            --ref main
+
+  notify:
+    runs-on: ubuntu-latest
+    needs: [docker, trigger-actions]
+    if: always()
+    steps:
+      - name: Check for failure and notify
+        if: needs.docker.result == 'failure' && github.repository == 'ultralytics/ultralytics' && github.event_name == 'push' && github.run_attempt == '1'
+        uses: slackapi/slack-github-action@v2.0.0
+        with:
+          webhook-type: incoming-webhook
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL_YOLO }}
+          payload: |
+            text: "<!channel> GitHub Actions error for ${{ github.workflow }} ❌\n\n\n*Repository:* https://github.com/${{ github.repository }}\n*Action:* https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\n*Author:* ${{ github.actor }}\n*Event:* ${{ github.event_name }}\n"

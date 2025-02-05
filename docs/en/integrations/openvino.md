@@ -59,14 +59,19 @@ Export a YOLOv8n model to OpenVINO format and run inference with the exported mo
 
 ## Arguments
 
-| Key       | Value        | Description                                                                 |
-| --------- | ------------ | --------------------------------------------------------------------------- |
-| `format`  | `'openvino'` | format to export to                                                         |
-| `imgsz`   | `640`        | image size as scalar or (h, w) list, i.e. (640, 480)                        |
-| `half`    | `False`      | FP16 quantization                                                           |
-| `int8`    | `False`      | INT8 quantization                                                           |
-| `batch`   | `1`          | [batch size](https://www.ultralytics.com/glossary/batch-size) for inference |
-| `dynamic` | `False`      | allows dynamic input sizes                                                  |
+| Key       | Value        | Description                                                                                 |
+| --------- | ------------ | ------------------------------------------------------------------------------------------- |
+| `format`  | `'openvino'` | format to export to                                                                         |
+| `imgsz`   | `640`        | image size as scalar or (h, w) list, i.e. (640, 480)                                        |
+| `half`    | `False`      | FP16 quantization                                                                           |
+| `int8`    | `False`      | INT8 quantization                                                                           |
+| `batch`   | `1`          | [batch size](https://www.ultralytics.com/glossary/batch-size) for inference                 |
+| `dynamic` | `False`      | allows dynamic input sizes                                                                  |
+| `data`    | `coco8.yaml` | Path to the dataset configuration file (default: `coco8.yaml`), essential for quantization. |
+
+!!! note
+
+    When using `data` argument for quantization, please check [Dataset Guide](https://docs.ultralytics.com/datasets/detect) to learn more about the dataset format.
 
 ## Benefits of OpenVINO
 
@@ -148,7 +153,7 @@ This table represents the benchmark results for five different models (YOLOv8n, 
 
 ### Intel Arc GPU
 
-Intel® Arc™ represents Intel's foray into the dedicated GPU market. The Arc™ series, designed to compete with leading GPU manufacturers like AMD and Nvidia, caters to both the laptop and desktop markets. The series includes mobile versions for compact devices like laptops, and larger, more powerful versions for desktop computers.
+Intel® Arc™ represents Intel's foray into the dedicated GPU market. The Arc™ series, designed to compete with leading GPU manufacturers like AMD and NVIDIA, caters to both the laptop and desktop markets. The series includes mobile versions for compact devices like laptops, and larger, more powerful versions for desktop computers.
 
 The Arc™ series is divided into three categories: Arc™ 3, Arc™ 5, and Arc™ 7, with each number indicating the performance level. Each category includes several models, and the 'M' in the GPU model name signifies a mobile, integrated variant.
 
@@ -352,7 +357,7 @@ To reproduce the Ultralytics benchmarks above on all export [formats](../modes/e
         model = YOLO("yolov8n.pt")
 
         # Benchmark YOLOv8n speed and accuracy on the COCO8 dataset for all export formats
-        results = model.benchmarks(data="coco8.yaml")
+        results = model.benchmark(data="coco8.yaml")
         ```
 
     === "CLI"
@@ -466,7 +471,7 @@ Yes, you can benchmark YOLOv8 models in various formats including PyTorch, Torch
         model = YOLO("yolov8n.pt")
 
         # Benchmark YOLOv8n speed and [accuracy](https://www.ultralytics.com/glossary/accuracy) on the COCO8 dataset for all export formats
-        results = model.benchmarks(data="coco8.yaml")
+        results = model.benchmark(data="coco8.yaml")
         ```
 
     === "CLI"

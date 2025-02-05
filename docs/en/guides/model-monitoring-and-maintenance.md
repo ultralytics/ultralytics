@@ -10,6 +10,17 @@ keywords: Computer Vision Models, AI Model Monitoring, Data Drift Detection, Ano
 
 If you are here, we can assume you've completed many [steps in your computer vision project](./steps-of-a-cv-project.md): from [gathering requirements](./defining-project-goals.md), [annotating data](./data-collection-and-annotation.md), and [training the model](./model-training-tips.md) to finally [deploying](./model-deployment-practices.md) it. Your application is now running in production, but your project doesn't end here. The most important part of a computer vision project is making sure your model continues to fulfill your [project's objectives](./defining-project-goals.md) over time, and that's where monitoring, maintaining, and documenting your computer vision model enters the picture.
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/zCupPHqSLTI"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to Maintain Computer Vision Models after Deployment | Data Drift Detection
+</p>
+
 In this guide, we'll take a closer look at how you can maintain your computer vision models after deployment. We'll explore how model monitoring can help you catch problems early on, how to keep your model accurate and up-to-date, and why documentation is important for troubleshooting.
 
 ## Model Monitoring is Key
@@ -23,7 +34,7 @@ Regular model monitoring helps developers track the [model's performance](./mode
 Here are some best practices to keep in mind while monitoring your computer vision model in production:
 
 - **Track Performance Regularly**: Continuously monitor the model's performance to detect changes over time.
-- **Double Check the Data Quality**: Check for missing values or anomalies in the data.
+- **Double-Check the Data Quality**: Check for missing values or anomalies in the data.
 - **Use Diverse Data Sources**: Monitor data from various sources to get a comprehensive view of the model's performance.
 - **Combine Monitoring Techniques**: Use a mix of drift detection algorithms and rule-based approaches to identify a wide range of issues.
 - **Monitor Inputs and Outputs**: Keep an eye on both the data the model processes and the results it produces to make sure everything is functioning correctly.
@@ -123,12 +134,12 @@ Joining a community of computer vision enthusiasts can help you solve problems a
 
 ### Community Resources
 
-- **GitHub Issues:** Check out the [YOLOv8 GitHub repository](https://github.com/ultralytics/ultralytics/issues) and use the Issues tab to ask questions, report bugs, and suggest new features. The community and maintainers are highly active and supportive.
+- **GitHub Issues:** Check out the [YOLO11 GitHub repository](https://github.com/ultralytics/ultralytics/issues) and use the Issues tab to ask questions, report bugs, and suggest new features. The community and maintainers are highly active and supportive.
 - **Ultralytics Discord Server:** Join the [Ultralytics Discord server](https://discord.com/invite/ultralytics) to chat with other users and developers, get support, and share your experiences.
 
 ### Official Documentation
 
-- **Ultralytics YOLOv8 Documentation:** Visit the [official YOLOv8 documentation](./index.md) for detailed guides and helpful tips on various computer vision projects.
+- **Ultralytics YOLO11 Documentation:** Visit the [official YOLO11 documentation](./index.md) for detailed guides and helpful tips on various computer vision projects.
 
 Using these resources will help you solve challenges and stay up-to-date with the latest trends and practices in the computer vision community.
 

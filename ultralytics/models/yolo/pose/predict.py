@@ -1,5 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
-
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 import torch
 
 from ultralytics.engine.results import Results
@@ -17,7 +16,7 @@ class PosePredictor(DetectionPredictor):
         from ultralytics.utils import ASSETS
         from ultralytics.models.yolo.pose import PosePredictor
 
-        args = dict(model="yolov8n-pose.pt", source=ASSETS)
+        args = dict(model="yolo11n-pose.pt", source=ASSETS)
         predictor = PosePredictor(overrides=args)
         predictor.predict_cli()
         ```
@@ -82,3 +81,25 @@ class PosePredictor(DetectionPredictor):
                 Results(orig_img, path=img_path, names=self.model.names, boxes=pred[:, :6], keypoints=pred_kpts)
             )
         return results
+
+    def construct_result(self, pred, img, orig_img, img_path):
+        """
+        Constructs the result object from the prediction.
+
+        Args:
+            pred (torch.Tensor): The predicted bounding boxes, scores, and keypoints.
+            img (torch.Tensor): The image after preprocessing.
+            orig_img (np.ndarray): The original image before preprocessing.
+            img_path (str): The path to the original image.
+        Returns:
+            (Results): The result object containing the original image, image path, class names, bounding boxes, and keypoints.
+        """
+
+        result = super().construct_result(pred, img, orig_img, img_path)
+        if self.separate_outputs:
+            pred_kpts = pred[:, 6:].view(len(pred), *kpt_shape) if len(pred) else pred[:, 6:]
+        else:
+            pred_kpts = pred[:, 6:].view(len(pred), *self.model.kpt_shape) if len(pred) else pred[:, 6:]
+        pred_kpts = ops.scale_coords(img.shape[2:], pred_kpts, orig_img.shape)
+        result.update(keypoints=pred_kpts)
+        return result

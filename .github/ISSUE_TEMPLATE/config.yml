@@ -1,10 +1,10 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 blank_issues_enabled: true
 contact_links:
   - name: 📄 Docs
     url: https://docs.ultralytics.com/
-    about: Full Ultralytics YOLOv8 Documentation
+    about: Full Ultralytics YOLO Documentation
   - name: 💬 Forum
     url: https://community.ultralytics.com/
     about: Ask on Ultralytics Community Forum

@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 from collections import abc
 from itertools import repeat
@@ -7,7 +7,7 @@ from typing import List
 
 import numpy as np
 
-from .ops import ltwh2xywh, ltwh2xyxy, xywh2ltwh, xywh2xyxy, xyxy2ltwh, xyxy2xywh
+from .ops import ltwh2xywh, ltwh2xyxy, resample_segments, xywh2ltwh, xywh2xyxy, xyxy2ltwh, xyxy2xywh
 
 
 def _ntuple(n):
@@ -28,7 +28,7 @@ to_4tuple = _ntuple(4)
 # `ltwh` means left top and width, height(COCO format)
 _formats = ["xyxy", "xywh", "ltwh"]
 
-__all__ = ("Bboxes",)  # tuple or list
+__all__ = ("Bboxes", "Instances")  # tuple or list
 
 
 class Bboxes:
@@ -176,7 +176,7 @@ class Bboxes:
             length as the number of bounding boxes.
         """
         if isinstance(index, int):
-            return Bboxes(self.bboxes[index].view(1, -1))
+            return Bboxes(self.bboxes[index].reshape(1, -1))
         b = self.bboxes[index]
         assert b.ndim == 2, f"Indexing on Bboxes with {index} failed to return a matrix!"
         return Bboxes(b)
@@ -406,7 +406,20 @@ class Instances:
         normalized = instances_list[0].normalized
 
         cat_boxes = np.concatenate([ins.bboxes for ins in instances_list], axis=axis)
-        cat_segments = np.concatenate([b.segments for b in instances_list], axis=axis)
+        seg_len = [b.segments.shape[1] for b in instances_list]
+        if len(frozenset(seg_len)) > 1:  # resample segments if there's different length
+            max_len = max(seg_len)
+            cat_segments = np.concatenate(
+                [
+                    resample_segments(list(b.segments), max_len)
+                    if len(b.segments)
+                    else np.zeros((0, max_len, 2), dtype=np.float32)  # re-generating empty segments
+                    for b in instances_list
+                ],
+                axis=axis,
+            )
+        else:
+            cat_segments = np.concatenate([b.segments for b in instances_list], axis=axis)
         cat_keypoints = np.concatenate([b.keypoints for b in instances_list], axis=axis) if use_keypoint else None
         return cls(cat_boxes, cat_segments, cat_keypoints, bbox_format, normalized)
 

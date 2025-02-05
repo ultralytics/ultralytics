@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import glob
 import math
@@ -90,12 +90,14 @@ class BaseDataset(Dataset):
         self.ims, self.im_hw0, self.im_hw = [None] * self.ni, [None] * self.ni, [None] * self.ni
         self.npy_files = [Path(f).with_suffix(".npy") for f in self.im_files]
         self.cache = cache.lower() if isinstance(cache, str) else "ram" if cache is True else None
-        if (self.cache == "ram" and self.check_cache_ram()) or self.cache == "disk":
-            if self.cache == "ram" and hyp.deterministic:
+        if self.cache == "ram" and self.check_cache_ram():
+            if hyp.deterministic:
                 LOGGER.warning(
                     "WARNING ⚠️ cache='ram' may produce non-deterministic training results. "
                     "Consider cache='disk' as a deterministic alternative if your disk space allows."
                 )
+            self.cache_images()
+        elif self.cache == "disk" and self.check_cache_disk():
             self.cache_images()
 
         # Transforms
@@ -206,25 +208,55 @@ class BaseDataset(Dataset):
         if not f.exists():
             np.save(f.as_posix(), cv2.imread(self.im_files[i]), allow_pickle=False)
 
+    def check_cache_disk(self, safety_margin=0.5):
+        """Check image caching requirements vs available disk space."""
+        import shutil
+
+        b, gb = 0, 1 << 30  # bytes of cached images, bytes per gigabytes
+        n = min(self.ni, 30)  # extrapolate from 30 random images
+        for _ in range(n):
+            im_file = random.choice(self.im_files)
+            im = cv2.imread(im_file)
+            if im is None:
+                continue
+            b += im.nbytes
+            if not os.access(Path(im_file).parent, os.W_OK):
+                self.cache = None
+                LOGGER.info(f"{self.prefix}Skipping caching images to disk, directory not writeable ⚠️")
+                return False
+        disk_required = b * self.ni / n * (1 + safety_margin)  # bytes required to cache dataset to disk
+        total, used, free = shutil.disk_usage(Path(self.im_files[0]).parent)
+        if disk_required > free:
+            self.cache = None
+            LOGGER.info(
+                f"{self.prefix}{disk_required / gb:.1f}GB disk space required, "
+                f"with {int(safety_margin * 100)}% safety margin but only "
+                f"{free / gb:.1f}/{total / gb:.1f}GB free, not caching images to disk ⚠️"
+            )
+            return False
+        return True
+
     def check_cache_ram(self, safety_margin=0.5):
         """Check image caching requirements vs available memory."""
         b, gb = 0, 1 << 30  # bytes of cached images, bytes per gigabytes
         n = min(self.ni, 30)  # extrapolate from 30 random images
         for _ in range(n):
             im = cv2.imread(random.choice(self.im_files))  # sample image
+            if im is None:
+                continue
             ratio = self.imgsz / max(im.shape[0], im.shape[1])  # max(h, w)  # ratio
             b += im.nbytes * ratio**2
         mem_required = b * self.ni / n * (1 + safety_margin)  # GB required to cache dataset into RAM
         mem = psutil.virtual_memory()
-        success = mem_required < mem.available  # to cache or not to cache, that is the question
-        if not success:
+        if mem_required > mem.available:
             self.cache = None
             LOGGER.info(
                 f"{self.prefix}{mem_required / gb:.1f}GB RAM required to cache images "
                 f"with {int(safety_margin * 100)}% safety margin but only "
                 f"{mem.available / gb:.1f}/{mem.total / gb:.1f}GB available, not caching images ⚠️"
             )
-        return success
+            return False
+        return True
 
     def set_rectangle(self):
         """Sets the shape of bounding boxes for YOLO detections as rectangles."""

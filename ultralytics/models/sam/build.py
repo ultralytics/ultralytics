@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 # Copyright (c) Meta Platforms, Inc. and affiliates.
 # All rights reserved.
@@ -210,8 +210,6 @@ def _build_sam(
             state_dict = torch.load(f)
         sam.load_state_dict(state_dict)
     sam.eval()
-    # sam.load_state_dict(torch.load(checkpoint), strict=True)
-    # sam.eval()
     return sam
 
 
@@ -265,6 +263,7 @@ def _build_sam2(
     memory_attention = MemoryAttention(d_model=256, pos_enc_at_input=True, num_layers=4, layer=MemoryAttentionLayer())
     memory_encoder = MemoryEncoder(out_dim=64)
 
+    is_sam2_1 = checkpoint is not None and "sam2.1" in checkpoint
     sam2 = SAM2Model(
         image_encoder=image_encoder,
         memory_attention=memory_attention,
@@ -290,6 +289,9 @@ def _build_sam2(
         multimask_max_pt_num=1,
         use_mlp_for_obj_ptr_proj=True,
         compile_image_encoder=False,
+        no_obj_embed_spatial=is_sam2_1,
+        proj_tpos_enc_in_obj_ptrs=is_sam2_1,
+        use_signed_tpos_enc_to_obj_ptrs=is_sam2_1,
         sam_mask_decoder_extra_args=dict(
             dynamic_multimask_via_stability=True,
             dynamic_multimask_stability_delta=0.05,
@@ -315,6 +317,10 @@ sam_model_map = {
     "sam2_s.pt": build_sam2_s,
     "sam2_b.pt": build_sam2_b,
     "sam2_l.pt": build_sam2_l,
+    "sam2.1_t.pt": build_sam2_t,
+    "sam2.1_s.pt": build_sam2_s,
+    "sam2.1_b.pt": build_sam2_b,
+    "sam2.1_l.pt": build_sam2_l,
 }
 
 

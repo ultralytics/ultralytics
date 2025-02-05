@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import os
 from pathlib import Path
@@ -22,7 +22,7 @@ class PoseValidator(DetectionValidator):
         ```python
         from ultralytics.models.yolo.pose import PoseValidator
 
-        args = dict(model="yolov8n-pose.pt", data="coco8-pose.yaml")
+        args = dict(model="yolo11n-pose.pt", data="coco8-pose.yaml")
         validator = PoseValidator(args=args)
         validator()
         ```
@@ -151,8 +151,8 @@ class PoseValidator(DetectionValidator):
             if nl:
                 stat["tp"] = self._process_batch(predn, bbox, cls)
                 stat["tp_p"] = self._process_batch(predn, bbox, cls, pred_kpts, pbatch["kpts"])
-                if self.args.plots:
-                    self.confusion_matrix.process_batch(predn, bbox, cls)
+            if self.args.plots:
+                self.confusion_matrix.process_batch(predn, bbox, cls)
 
             for k in self.stats.keys():
                 self.stats[k].append(stat[k])
@@ -166,7 +166,7 @@ class PoseValidator(DetectionValidator):
                     pred_kpts,
                     self.args.save_conf,
                     pbatch["ori_shape"],
-                    self.save_dir / "labels" / f'{Path(batch["im_file"][si]).stem}.txt',
+                    self.save_dir / "labels" / f"{Path(batch['im_file'][si]).stem}.txt",
                 )
 
     def _process_batch(self, detections, gt_bboxes, gt_cls, pred_kpts=None, gt_kpts=None):
@@ -184,7 +184,7 @@ class PoseValidator(DetectionValidator):
             gt_kpts (torch.Tensor | None): Optional tensor with shape (N, 51) representing ground truth keypoints.
 
         Returns:
-            torch.Tensor: A tensor with shape (N, 10) representing the correct prediction matrix for 10 IoU levels,
+            (torch.Tensor): A tensor with shape (N, 10) representing the correct prediction matrix for 10 IoU levels,
                 where N is the number of detections.
 
         Example:

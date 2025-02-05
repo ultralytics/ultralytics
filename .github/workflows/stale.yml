@@ -1,9 +1,13 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 name: Close stale issues
 on:
   schedule:
     - cron: "0 0 * * *" # Runs at 00:00 UTC every day
+
+permissions:
+  pull-requests: write
+  issues: write
 
 jobs:
   stale:

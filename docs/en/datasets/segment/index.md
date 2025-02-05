@@ -44,7 +44,7 @@ The Ultralytics framework uses a YAML file format to define the dataset and mode
 
 ```yaml
 # Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
-path: ../datasets/coco8-seg # dataset root dir
+path: ../datasets/coco8-seg # dataset root dir (absolute or relative; if relative, it's relative to default datasets_dir)
 train: images/train # train images (relative to 'path') 4 images
 val: images/val # val images (relative to 'path') 4 images
 test: # test images (optional)
@@ -74,7 +74,7 @@ The `train` and `val` fields specify the paths to the directories containing the
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n-seg.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n-seg.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="coco8-seg.yaml", epochs=100, imgsz=640)
@@ -84,7 +84,7 @@ The `train` and `val` fields specify the paths to the directories containing the
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo segment train data=coco8-seg.yaml model=yolov8n-seg.pt epochs=100 imgsz=640
+        yolo segment train data=coco8-seg.yaml model=yolo11n-seg.pt epochs=100 imgsz=640
         ```
 
 ## Supported Datasets
@@ -137,18 +137,12 @@ To auto-annotate your dataset using the Ultralytics framework, you can use the `
         ```python
         from ultralytics.data.annotator import auto_annotate
 
-        auto_annotate(data="path/to/images", det_model="yolov8x.pt", sam_model="sam_b.pt")
+        auto_annotate(data="path/to/images", det_model="yolo11x.pt", sam_model="sam_b.pt")
         ```
 
-| Argument     | Type                    | Description                                                                                                 | Default        |
-| ------------ | ----------------------- | ----------------------------------------------------------------------------------------------------------- | -------------- |
-| `data`       | `str`                   | Path to a folder containing images to be annotated.                                                         | `None`         |
-| `det_model`  | `str, optional`         | Pre-trained YOLO detection model. Defaults to `'yolov8x.pt'`.                                               | `'yolov8x.pt'` |
-| `sam_model`  | `str, optional`         | Pre-trained SAM segmentation model. Defaults to `'sam_b.pt'`.                                               | `'sam_b.pt'`   |
-| `device`     | `str, optional`         | Device to run the models on. Defaults to an empty string (CPU or GPU, if available).                        | `''`           |
-| `output_dir` | `str or None, optional` | Directory to save the annotated results. Defaults to a `'labels'` folder in the same directory as `'data'`. | `None`         |
+{% include "macros/sam-auto-annotate.md" %}
 
-The `auto_annotate` function takes the path to your images, along with optional arguments for specifying the pre-trained detection and [SAM segmentation models](../../models/sam.md), the device to run the models on, and the output directory for saving the annotated results.
+The `auto_annotate` function takes the path to your images, along with optional arguments for specifying the pre-trained detection models i.e. [YOLO11](../../models/yolo11.md), [YOLOv8](../../models/yolov8.md) or other [models](../../models/index.md) and segmentation models i.e, [SAM](../../models/sam.md), [SAM2](../../models/sam-2.md) or [MobileSAM](../../models/mobile-sam.md), the device to run the models on, and the output directory for saving the annotated results.
 
 By leveraging the power of pre-trained models, auto-annotation can significantly reduce the time and effort required for creating high-quality segmentation datasets. This feature is particularly useful for researchers and developers working with large image collections, as it allows them to focus on model development and evaluation rather than manual annotation.
 
@@ -195,7 +189,7 @@ Auto-annotation in Ultralytics YOLO allows you to generate segmentation annotati
 ```python
 from ultralytics.data.annotator import auto_annotate
 
-auto_annotate(data="path/to/images", det_model="yolov8x.pt", sam_model="sam_b.pt")
+auto_annotate(data="path/to/images", det_model="yolo11x.pt", sam_model="sam_b.pt")  # or sam_model="mobile_sam.pt"
 ```
 
-This function automates the annotation process, making it faster and more efficient. For more details, explore the [Auto-Annotation](#auto-annotation) section.
+This function automates the annotation process, making it faster and more efficient. For more details, explore the [Auto-Annotate Reference](https://docs.ultralytics.com/reference/data/annotator/#ultralytics.data.annotator.auto_annotate).

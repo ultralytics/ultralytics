@@ -53,6 +53,11 @@ YOLOv10 comes in various model scales to cater to different application needs:
 
 ## Performance
 
+<script async src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<script defer src="../../javascript/benchmark.js"></script>
+
+<canvas id="modelComparisonChart" width="1024" height="400" active-models='["YOLOv10"]'></canvas>
+
 YOLOv10 outperforms previous YOLO versions and other state-of-the-art models in terms of accuracy and efficiency. For example, YOLOv10-S is 1.8x faster than RT-DETR-R18 with similar AP on the COCO dataset, and YOLOv10-B has 46% less latency and 25% fewer parameters than YOLOv9-C with the same performance.
 
 | Model          | Input Size | AP<sup>val</sup> | FLOPs (G) | Latency (ms) |

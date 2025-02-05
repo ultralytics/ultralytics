@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import contextlib
 import glob
@@ -183,7 +183,7 @@ def get_latest_run(search_dir="."):
     return max(last_list, key=os.path.getctime) if last_list else ""
 
 
-def update_models(model_names=("yolov8n.pt",), source_dir=Path("."), update_names=False):
+def update_models(model_names=("yolo11n.pt",), source_dir=Path("."), update_names=False):
     """
     Updates and re-saves specified YOLO models in an 'updated_models' subdirectory.
 
@@ -195,7 +195,7 @@ def update_models(model_names=("yolov8n.pt",), source_dir=Path("."), update_name
     Examples:
         Update specified YOLO models and save them in 'updated_models' subdirectory:
         >>> from ultralytics.utils.files import update_models
-        >>> model_names = ("yolov8n.pt", "yolov8s.pt")
+        >>> model_names = ("yolo11n.pt", "yolov8s.pt")
         >>> update_models(model_names, source_dir=Path("/models"), update_names=True)
     """
     from ultralytics import YOLO
@@ -219,4 +219,4 @@ def update_models(model_names=("yolov8n.pt",), source_dir=Path("."), update_name
 
         # Save model using model.save()
         print(f"Re-saving {model_name} model to {save_path}")
-        model.save(save_path, use_dill=False)
+        model.save(save_path)

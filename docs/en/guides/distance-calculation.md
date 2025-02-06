@@ -35,60 +35,70 @@ Measuring the gap between two objects is known as distance calculation within a 
 ???+ tip "Distance Calculation"
 
     - Click on any two bounding boxes with Left Mouse click for distance calculation
-
-!!! example "Distance Calculation using YOLO11 Example"
-
-    === "Video Stream"
-
-        ```python
-        import cv2
-
-        from ultralytics import solutions
-
-        cap = cv2.VideoCapture("Path/to/video/file.mp4")
-        assert cap.isOpened(), "Error reading video file"
-        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-
-        # Video writer
-        video_writer = cv2.VideoWriter("distance_calculation.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
-
-        # Init distance-calculation obj
-        distance = solutions.DistanceCalculation(model="yolo11n.pt", show=True)
-
-        # Process video
-        while cap.isOpened():
-            success, im0 = cap.read()
-            if not success:
-                print("Video frame is empty or video processing has been successfully completed.")
-                break
-            im0 = distance.calculate(im0)
-            video_writer.write(im0)
-
-        cap.release()
-        video_writer.release()
-        cv2.destroyAllWindows()
-        ```
-
-???+ note
-
     - Mouse Right Click will delete all drawn points
     - Mouse Left Click can be used to draw points
 
 ???+ warning "Distance is Estimate"
 
-        Distance will be an estimate and may not be fully accurate, as it is calculated using 2-dimensional data, which lacks information about the object's depth.
+        Distance will be an estimate and may not be fully accurate, as it is calculated using 2-dimensional data,
+        which lacks information about the object's depth.
+
+## Code
+
+```python
+import cv2
+
+from ultralytics import solutions
+
+cap = cv2.VideoCapture("Path/to/video/file.mp4")
+assert cap.isOpened(), "Error reading video file"
+
+# Video writer
+w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
+video_writer = cv2.VideoWriter("distance_calculation.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
+
+# Init DistanceCalculation
+distance = solutions.DistanceCalculation(
+    model="yolo11n.pt",  # path to the YOLO11 model file.
+    show=True,  # display the output
+)
+
+# Process video
+while cap.isOpened():
+    success, im0 = cap.read()
+
+    if not success:
+        print("Video frame is empty or processing is complete.")
+        break
+
+    results = distance.calculate(im0)
+
+    # Access the output
+    # print(f"Pexels distance: , {results['pixels_distance']}")
+    # print(f"Total tracks: , {results['total_tracks']}")
+
+    video_writer.write(results["im0"])  # write the processed frame.
+
+cap.release()
+video_writer.release()
+cv2.destroyAllWindows()  # destroy all opened windows
+```
 
 ### Arguments `DistanceCalculation()`
 
-| `Name`       | `Type` | `Default` | Description                                          |
-| ------------ | ------ | --------- | ---------------------------------------------------- |
-| `model`      | `str`  | `None`    | Path to Ultralytics YOLO Model File                  |
-| `line_width` | `int`  | `2`       | Line thickness for bounding boxes.                   |
-| `show`       | `bool` | `False`   | Flag to control whether to display the video stream. |
+Here's a table with the `DistanceCalculation` arguments:
 
-### Arguments `model.track`
-
-{% include "macros/track-args.md" %}
+| `Name`       | `Type`  | `Default`      | Description                                                                                                                                                                  |
+| ------------ | ------- | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `model`      | `str`   | `None`         | Path to Ultralytics YOLO Model File                                                                                                                                          |
+| `line_width` | `int`   | `2`            | Line thickness for bounding boxes.                                                                                                                                           |
+| `show`       | `bool`  | `False`        | Flag to control whether to display the video stream.                                                                                                                         |
+| `tracker`    | `str`   | `botsort.yaml` | Specifies the tracking algorithm to use, e.g., `bytetrack.yaml` or `botsort.yaml`.                                                                                           |
+| `conf`       | `float` | `0.3`          | Sets the confidence threshold for detections; lower values allow more objects to be tracked but may include false positives.                                                 |
+| `iou`        | `float` | `0.5`          | Sets the [Intersection over Union](https://www.ultralytics.com/glossary/intersection-over-union-iou) (IoU) threshold for filtering overlapping detections.                   |
+| `classes`    | `list`  | `None`         | Filters results by class index. For example, `classes=[0, 2, 3]` only tracks the specified classes.                                                                          |
+| `max_det`    | `int`   | `300`          | Maximum number of detections allowed per image. Limits the total number of objects the model can detect in a single inference, preventing excessive outputs in dense scenes. |
+| `verbose`    | `bool`  | `True`         | Controls the display of solutions results, providing a visual output of tracked objects.                                                                                     |
 
 ## FAQ
 
@@ -117,7 +127,5 @@ To delete points drawn during distance calculation with Ultralytics YOLO11, you 
 The key arguments for initializing the `DistanceCalculation` class in Ultralytics YOLO11 include:
 
 - `model`: Model file path.
-- `show`: Flag to indicate if the video stream should be displayed.
-- `line_width`: Thickness of bounding box and the lines drawn on the image.
 
 For an exhaustive list and default values, see the [arguments of DistanceCalculation](#arguments-distancecalculation).

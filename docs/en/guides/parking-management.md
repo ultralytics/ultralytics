@@ -49,15 +49,11 @@ Parking management with [Ultralytics YOLO11](https://github.com/ultralytics/ultr
 
     Max Image Size of 1920 * 1080 supported
 
-!!! example "Parking slots Annotator Ultralytics YOLO11"
+```python
+from ultralytics import solutions
 
-    === "Parking Annotator"
-
-        ```python
-        from ultralytics import solutions
-
-        solutions.ParkingPtsSelection()
-        ```
+solutions.ParkingPtsSelection()
+```
 
 - After defining the parking areas with polygons, click `save` to store a JSON file with the data in your working directory.
 
@@ -65,51 +61,59 @@ Parking management with [Ultralytics YOLO11](https://github.com/ultralytics/ultr
 
 ### Python Code for Parking Management
 
-!!! example "Parking management using YOLO11 Example"
+```python
+import cv2
 
-    === "Parking Management"
+from ultralytics import solutions
 
-        ```python
-        import cv2
+# Video capture
+cap = cv2.VideoCapture("Path/to/video/file.mp4")
+assert cap.isOpened(), "Error reading video file"
 
-        from ultralytics import solutions
+# Video writer
+w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
+video_writer = cv2.VideoWriter("parking management.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
-        # Video capture
-        cap = cv2.VideoCapture("Path/to/video/file.mp4")
-        assert cap.isOpened(), "Error reading video file"
-        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
+# Initialize ParkingManagement
+parking_manager = solutions.ParkingManagement(
+    model="yolo11n.pt",  # path to model file
+    json_file="bounding_boxes.json",  # path to parking annotations file
+)
 
-        # Video writer
-        video_writer = cv2.VideoWriter("parking management.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
+while cap.isOpened():
+    ret, im0 = cap.read()
+    if not ret:
+        break
 
-        # Initialize parking management object
-        parking_manager = solutions.ParkingManagement(
-            model="yolo11n.pt",  # path to model file
-            json_file="bounding_boxes.json",  # path to parking annotations file
-        )
+    results = parking_manager.process_data(im0)
 
-        while cap.isOpened():
-            ret, im0 = cap.read()
-            if not ret:
-                break
-            im0 = parking_manager.process_data(im0)
-            video_writer.write(im0)
+    # Access the output
+    # print(f"Available slots: , {results['available_slots']}")
+    # print(f"Filled slots: , {results['filled_slots']}")
 
-        cap.release()
-        video_writer.release()
-        cv2.destroyAllWindows()
-        ```
+    video_writer.write(results["im0"])  # write the processed frame.
 
-### Optional Arguments `ParkingManagement`
+cap.release()
+video_writer.release()
+cv2.destroyAllWindows()  # destroy all opened windows
+```
 
-| Name        | Type  | Default | Description                                                    |
-| ----------- | ----- | ------- | -------------------------------------------------------------- |
-| `model`     | `str` | `None`  | Path to the YOLO11 model.                                      |
-| `json_file` | `str` | `None`  | Path to the JSON file, that have all parking coordinates data. |
+### Arguments `ParkingManagement`
 
-### Arguments `model.track`
+Here's a table with the `ParkingManagement` arguments:
 
-{% include "macros/track-args.md" %}
+| Name         | Type    | Default        | Description                                                                                                                                                                  |
+| ------------ | ------- | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `model`      | `str`   | `None`         | Path to the YOLO11 model file.                                                                                                                                               |
+| `json_file`  | `str`   | `None`         | Path to the JSON file, that have all parking coordinates data.                                                                                                               |
+| `line_width` | `int`   | `2`            | Line thickness for bounding boxes.                                                                                                                                           |
+| `show`       | `bool`  | `False`        | Flag to control whether to display the video stream.                                                                                                                         |
+| `tracker`    | `str`   | `botsort.yaml` | Specifies the tracking algorithm to use, e.g., `bytetrack.yaml` or `botsort.yaml`.                                                                                           |
+| `conf`       | `float` | `0.3`          | Sets the confidence threshold for detections; lower values allow more objects to be tracked but may include false positives.                                                 |
+| `iou`        | `float` | `0.5`          | Sets the [Intersection over Union](https://www.ultralytics.com/glossary/intersection-over-union-iou) (IoU) threshold for filtering overlapping detections.                   |
+| `classes`    | `list`  | `None`         | Filters results by class index. For example, `classes=[0, 2, 3]` only tracks the specified classes.                                                                          |
+| `max_det`    | `int`   | `300`          | Maximum number of detections allowed per image. Limits the total number of objects the model can detect in a single inference, preventing excessive outputs in dense scenes. |
+| `verbose`    | `bool`  | `True`         | Controls the display of solutions results, providing a visual output of tracked objects.                                                                                     |
 
 ## FAQ
 
@@ -135,7 +139,7 @@ Defining parking spaces is straightforward with Ultralytics YOLO11:
 
 ### Can I customize the YOLO11 model for specific parking management needs?
 
-Yes, Ultralytics YOLO11 allows customization for specific parking management needs. You can adjust parameters such as the **occupied and available region colors**, margins for text display, and much more. Utilizing the `ParkingManagement` class's [optional arguments](#optional-arguments-parkingmanagement), you can tailor the model to suit your particular requirements, ensuring maximum efficiency and effectiveness.
+Yes, Ultralytics YOLO11 allows customization for specific parking management needs. You can adjust parameters such as the **occupied and available region colors**, margins for text display, and much more. Utilizing the `ParkingManagement` class's [arguments](#arguments-parkingmanagement), you can tailor the model to suit your particular requirements, ensuring maximum efficiency and effectiveness.
 
 ### What are some real-world applications of Ultralytics YOLO11 in parking lot management?
 

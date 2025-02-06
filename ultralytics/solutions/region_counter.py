@@ -1,8 +1,8 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-from ultralytics.solutions.solutions import BaseSolution
+from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
 from ultralytics.utils import LOGGER
-from ultralytics.utils.plotting import Annotator, colors
+from ultralytics.utils.plotting import colors
 
 
 class RegionCounter(BaseSolution):
@@ -68,9 +68,9 @@ class RegionCounter(BaseSolution):
             im0 (numpy.ndarray): Input image frame where objects and regions are annotated.
 
         Returns:
-           im0 (numpy.ndarray): Processed image frame with annotated counting information.
+            results (dict): Contains processed image `im0`, 'total_tracks' (int, total number of tracked objects).
         """
-        self.annotator = Annotator(im0, line_width=self.line_width)
+        self.annotator = SolutionAnnotator(im0, line_width=self.line_width)
         self.extract_tracks(im0)
 
         # Region initialization and conversion
@@ -102,6 +102,7 @@ class RegionCounter(BaseSolution):
                 if region["prepared_polygon"].contains(self.Point(bbox_center)):
                     region["counts"] += 1
 
+        region_counts = {}
         # Display counts in each region
         for region in self.counting_regions:
             self.annotator.text_label(
@@ -110,7 +111,13 @@ class RegionCounter(BaseSolution):
                 color=region["region_color"],
                 txt_color=region["text_color"],
             )
-            region["counts"] = 0  # Reset count for next frame
+            region_counts[region["name"]] = region["counts"]  # Store counts in the dictionary
+
+        region["counts"] = 0  # Reset count for next frame
 
         self.display_output(im0)
-        return im0
+
+        # return output dictionary with summary for more usage
+        return SolutionResults(im0=im0, total_tracks=len(self.track_ids), region_counts=region_counts).summary(
+            verbose=self.verbose
+        )

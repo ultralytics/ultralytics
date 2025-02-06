@@ -989,8 +989,8 @@ class Results(SimpleClass):
                     item.get("name"),
                     item.get("confidence"),
                     json.dumps(item.get("box", {})),
-                    json.dumps(item.get("segments", {}).get("x", [])),
-                    json.dumps(item.get("keypoints", {}).get("x", [])),
+                    json.dumps(item.get("segments", {})),
+                    json.dumps(item.get("keypoints", {})),
                 ),
             )
 

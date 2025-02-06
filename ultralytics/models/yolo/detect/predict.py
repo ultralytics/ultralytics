@@ -40,7 +40,7 @@ class DetectionPredictor(BasePredictor):
 
         return self.construct_results(preds, img, orig_imgs, soft_label, **kwargs)
 
-    def construct_results(self, preds, img, orig_imgs, soft_label=Falss):
+    def construct_results(self, preds, img, orig_imgs, soft_label=False):
         """
         Constructs a list of result objects from the predictions.
 

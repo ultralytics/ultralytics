@@ -242,7 +242,7 @@ class Results(SimpleClass):
         keypoints=None,
         obb=None,
         speed=None,
-        is_soft: bool = False,
+        is_soft=False,
     ) -> None:
         """
         Initialize the Results class for storing and manipulating inference results.
@@ -257,6 +257,7 @@ class Results(SimpleClass):
             keypoints (torch.Tensor | None): A 2D tensor of keypoint coordinates for each detection.
             obb (torch.Tensor | None): A 2D tensor of oriented bounding box coordinates for each detection.
             speed (Dict | None): A dictionary containing preprocess, inference, and postprocess speeds (ms/image).
+            is_soft (bool): Whether confidences for all the classes are retained.
 
         Examples:
             >>> results = model("path/to/image.jpg")
@@ -1070,7 +1071,7 @@ class Boxes(BaseTensor):
         >>> print(boxes.xywhn)
     """
 
-    def __init__(self, boxes, orig_shape, is_track: bool = False, soft_labels: bool = False) -> None:
+    def __init__(self, boxes, orig_shape, is_track=False, soft_labels=False) -> None:
         """
         Initialize the Boxes class with detection box data and the original image shape.
 
@@ -1088,6 +1089,7 @@ class Boxes(BaseTensor):
             data (torch.Tensor): The raw tensor containing detection boxes and their associated data.
             orig_shape (Tuple[int, int]): The original image size, used for normalization.
             is_track (bool): Indicates whether tracking IDs are included in the box data.
+            soft_labels (bool): Whether confidences of all classes are retained.
 
         Examples:
             >>> import torch

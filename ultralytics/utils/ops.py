@@ -185,7 +185,7 @@ def non_max_suppression(
     classes=None,
     agnostic=False,
     multi_label=False,
-    soft_label: bool = False,
+    soft_label=False,
     labels=(),
     max_det=300,
     nc=0,  # number of classes (optional)

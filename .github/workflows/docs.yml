@@ -48,8 +48,7 @@ jobs:
           python-version: "3.x"
       - uses: astral-sh/setup-uv@v5
       - name: Install Dependencies
-        # Note "beautifulsoup4<=4.12.3" required due to errors errors with >=4.13 in https://github.com/ultralytics/ultralytics/pull/19067
-        run: uv pip install --system "beautifulsoup4<=4.12.3" ruff black tqdm mkdocs-material "mkdocstrings[python]" mkdocs-redirects mkdocs-ultralytics-plugin mkdocs-macros-plugin
+        run: uv pip install --system ruff black tqdm mkdocs-material "mkdocstrings[python]" mkdocs-redirects mkdocs-ultralytics-plugin mkdocs-macros-plugin
       - name: Ruff fixes
         continue-on-error: true
         run: ruff check --fix --unsafe-fixes --select D --ignore=D100,D104,D203,D205,D212,D213,D401,D406,D407,D413 .

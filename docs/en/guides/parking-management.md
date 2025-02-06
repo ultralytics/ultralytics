@@ -49,15 +49,12 @@ Parking management with [Ultralytics YOLO11](https://github.com/ultralytics/ultr
 
     Max Image Size of 1920 * 1080 supported
 
-!!! example "Parking slots Annotator Ultralytics YOLO11"
 
-    === "Parking Annotator"
+```python
+from ultralytics import solutions
 
-        ```python
-        from ultralytics import solutions
-
-        solutions.ParkingPtsSelection()
-        ```
+solutions.ParkingPtsSelection()
+```
 
 - After defining the parking areas with polygons, click `save` to store a JSON file with the data in your working directory.
 
@@ -65,46 +62,43 @@ Parking management with [Ultralytics YOLO11](https://github.com/ultralytics/ultr
 
 ### Python Code for Parking Management
 
-!!! example "Parking management using YOLO11 Example"
 
-    === "Parking Management"
+```python
+import cv2
 
-        ```python
-        import cv2
+from ultralytics import solutions
 
-        from ultralytics import solutions
+# Video capture
+cap = cv2.VideoCapture("Path/to/video/file.mp4")
+assert cap.isOpened(), "Error reading video file"
 
-        # Video capture
-        cap = cv2.VideoCapture("Path/to/video/file.mp4")
-        assert cap.isOpened(), "Error reading video file"
+# Video writer
+w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
+video_writer = cv2.VideoWriter("parking management.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
-        # Video writer
-        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-        video_writer = cv2.VideoWriter("parking management.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
+# Initialize ParkingManagement
+parking_manager = solutions.ParkingManagement(
+    model="yolo11n.pt",  # path to model file
+    json_file="bounding_boxes.json",  # path to parking annotations file
+)
 
-        # Initialize ParkingManagement
-        parking_manager = solutions.ParkingManagement(
-            model="yolo11n.pt",  # path to model file
-            json_file="bounding_boxes.json",  # path to parking annotations file
-        )
+while cap.isOpened():
+    ret, im0 = cap.read()
+    if not ret:
+        break
 
-        while cap.isOpened():
-            ret, im0 = cap.read()
-            if not ret:
-                break
+    results = parking_manager.process_data(im0)
 
-            results = parking_manager.process_data(im0)
+    # Access the output
+    # print(f"Available slots: , {results['available_slots']}")
+    # print(f"Filled slots: , {results['filled_slots']}")
 
-            # Access the output
-            # print(f"Available slots: , {results['available_slots']}")
-            # print(f"Filled slots: , {results['filled_slots']}")
+    video_writer.write(results["im0"])  # write the processed frame.
 
-            video_writer.write(results["im0"])  # write the processed frame.
-
-        cap.release()
-        video_writer.release()
-        cv2.destroyAllWindows()  # destroy all opened windows
-        ```
+cap.release()
+video_writer.release()
+cv2.destroyAllWindows()  # destroy all opened windows
+```
 
 ### Arguments `ParkingManagement`
 

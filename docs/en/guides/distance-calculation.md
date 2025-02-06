@@ -43,48 +43,46 @@ Measuring the gap between two objects is known as distance calculation within a 
         Distance will be an estimate and may not be fully accurate, as it is calculated using 2-dimensional data,
         which lacks information about the object's depth.
 
-!!! example "Distance Calculation using YOLO11 Example"
+## Code
 
-    === "Video Stream"
+```python
+import cv2
 
-        ```python
-        import cv2
+from ultralytics import solutions
 
-        from ultralytics import solutions
+cap = cv2.VideoCapture("Path/to/video/file.mp4")
+assert cap.isOpened(), "Error reading video file"
 
-        cap = cv2.VideoCapture("Path/to/video/file.mp4")
-        assert cap.isOpened(), "Error reading video file"
+# Video writer
+w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
+video_writer = cv2.VideoWriter("distance_calculation.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
-        # Video writer
-        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-        video_writer = cv2.VideoWriter("distance_calculation.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
+# Init DistanceCalculation
+distance = solutions.DistanceCalculation(
+    model="yolo11n.pt",  # path to the YOLO11 model file.
+    show=True,  # display the output
+)
 
-        # Init DistanceCalculation
-        distance = solutions.DistanceCalculation(
-            model="yolo11n.pt",  # path to the YOLO11 model file.
-            show=True,  # display the output
-        )
+# Process video
+while cap.isOpened():
+    success, im0 = cap.read()
 
-        # Process video
-        while cap.isOpened():
-            success, im0 = cap.read()
+    if not success:
+        print("Video frame is empty or processing is complete.")
+        break
 
-            if not success:
-                print("Video frame is empty or processing is complete.")
-                break
+    results = distance.calculate(im0)
 
-            results = distance.calculate(im0)
+    # Access the output
+    # print(f"Pexels distance: , {results['pixels_distance']}")
+    # print(f"Total tracks: , {results['total_tracks']}")
 
-            # Access the output
-            # print(f"Pexels distance: , {results['pixels_distance']}")
-            # print(f"Total tracks: , {results['total_tracks']}")
+    video_writer.write(results["im0"])  # write the processed frame.
 
-            video_writer.write(results["im0"])  # write the processed frame.
-
-        cap.release()
-        video_writer.release()
-        cv2.destroyAllWindows()  # destroy all opened windows
-        ```
+cap.release()
+video_writer.release()
+cv2.destroyAllWindows()  # destroy all opened windows
+```
 
 ### Arguments `DistanceCalculation()`
 

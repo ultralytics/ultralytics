@@ -34,42 +34,40 @@ Object cropping with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
 | ![Conveyor Belt at Airport Suitcases Cropping using Ultralytics YOLO11](https://github.com/ultralytics/docs/releases/download/0/suitcases-cropping-airport-conveyor-belt.avif) |
 |                                                      Suitcases Cropping at airport conveyor belt using Ultralytics YOLO11                                                      |
 
-!!! example "Object Cropping using YOLO11 Example"
+## Code
 
-    === "Object Cropping"
+```python
+import cv2
 
-        ```python
-        import cv2
+from ultralytics import solutions
 
-        from ultralytics import solutions
+cap = cv2.VideoCapture("Path/to/video/file.mp4")
+assert cap.isOpened(), "Error reading video file"
 
-        cap = cv2.VideoCapture("Path/to/video/file.mp4")
-        assert cap.isOpened(), "Error reading video file"
+# Init ObjectCropper
+cropper = solutions.ObjectCropper(
+    show=True,  # display the output
+    model="yolo11n.pt",  # model for object cropping i.e yolo11x.pt.
+    classes=[0, 2],  # crop specific classes i.e. person and car with COCO pretrained model.
+    # conf=0.5  # adjust confidence threshold for the objects.
+)
 
-        # Init ObjectCropper
-        cropper = solutions.ObjectCropper(
-            show=True,  # display the output
-            model="yolo11n.pt",  # model for object cropping i.e yolo11x.pt.
-            classes=[0, 2],  # crop specific classes i.e. person and car with COCO pretrained model.
-            # conf=0.5                  # adjust confidence threshold for the objects.
-        )
+# Process video
+while cap.isOpened():
+    success, im0 = cap.read()
 
-        # Process video
-        while cap.isOpened():
-            success, im0 = cap.read()
+    if not success:
+        print("Video frame is empty or processing is complete.")
+        break
 
-            if not success:
-                print("Video frame is empty or processing is complete.")
-                break
+    results = cropper.crop(im0)
 
-            results = cropper.crop(im0)
+    # Access the output
+    # print(f"Total cropped objects: , {results['total_crop_objects']}")
 
-            # Access the output
-            # print(f"Total cropped objects: , {results['total_crop_objects']}")
-
-        cap.release()
-        cv2.destroyAllWindows()  # destroy all opened windows
-        ```
+cap.release()
+cv2.destroyAllWindows()  # destroy all opened windows
+```
 
 ### Argument `ObjectCropper`
 

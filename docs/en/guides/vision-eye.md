@@ -14,48 +14,46 @@ keywords: VisionEye, YOLO11, Ultralytics, object mapping, object tracking, dista
   <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/visioneye-object-mapping-with-tracking.avif" alt="VisionEye View Object Mapping with Object Tracking using Ultralytics YOLO11">
 </p>
 
-!!! example "VisionEye Object Mapping using YOLO11"
+## Code
 
-    === "VisionEye Object Mapping with Object Tracking"
+```python
+import cv2
 
-        ```python
-        import cv2
+from ultralytics import solutions
 
-        from ultralytics import solutions
+cap = cv2.VideoCapture("path/to/video/file.mp4")
+assert cap.isOpened(), "Error reading video file"
 
-        cap = cv2.VideoCapture("path/to/video/file.mp4")
-        assert cap.isOpened(), "Error reading video file"
+# Video writer
+w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
+video_writer = cv2.VideoWriter("vision-eye-mapping.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
-        # Video writer
-        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-        video_writer = cv2.VideoWriter("vision-eye-mapping.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
+# Init VisionEye
+visioneye = solutions.VisionEye(
+    show=True,  # display the output
+    model="yolo11n.pt",  # use any model that Ultralytics support, i.e, YOLOv10
+    classes=[0, 2],  # generate visioneye view for specific classes
+)
 
-        # Init VisionEye
-        visioneye = solutions.VisionEye(
-            show=True,  # display the output
-            model="yolo11n.pt",  # use any model that Ultralytics support, i.e, YOLOv10
-            classes=[0, 2],  # generate visioneye view for specific classes
-        )
+# Process video
+while cap.isOpened():
+    success, im0 = cap.read()
 
-        # Process video
-        while cap.isOpened():
-            success, im0 = cap.read()
+    if not success:
+        print("Video frame is empty or video processing has been successfully completed.")
+        break
 
-            if not success:
-                print("Video frame is empty or video processing has been successfully completed.")
-                break
+    results = visioneye.mapping(im0)
 
-            results = visioneye.mapping(im0)
+    # Access the output
+    print(f"Total tracks: , {results['total_tracks']}")
 
-            # Access the output
-            print(f"Total tracks: , {results['total_tracks']}")
+    video_writer.write(results["im0"])  # write the video file
 
-            video_writer.write(results["im0"])  # write the video file
-
-        cap.release()
-        video_writer.release()
-        cv2.destroyAllWindows()  # destroy all opened windows
-        ```
+cap.release()
+video_writer.release()
+cv2.destroyAllWindows()  # destroy all opened windows
+```
 
 ### `VisionEye` Arguments
 

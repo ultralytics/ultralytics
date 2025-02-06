@@ -27,50 +27,48 @@ Object blurring with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
 - **Selective Focus**: YOLO11 allows for selective blurring, enabling users to target specific objects, ensuring a balance between privacy and retaining relevant visual information.
 - **Real-time Processing**: YOLO11's efficiency enables object blurring in real-time, making it suitable for applications requiring on-the-fly privacy enhancements in dynamic environments.
 
-!!! example "Object Blurring using YOLO11 Example"
+## Code
 
-    === "Object Blurring"
+```python
+import cv2
 
-        ```python
-        import cv2
+from ultralytics import solutions
 
-        from ultralytics import solutions
+cap = cv2.VideoCapture("Path/to/video/file.mp4")
+assert cap.isOpened(), "Error reading video file"
 
-        cap = cv2.VideoCapture("Path/to/video/file.mp4")
-        assert cap.isOpened(), "Error reading video file"
+# Video writer
+w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
+video_writer = cv2.VideoWriter("object_blurring_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
-        # Video writer
-        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-        video_writer = cv2.VideoWriter("object_blurring_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
+# Init ObjectBlurrer
+blurrer = solutions.ObjectBlurrer(
+    show=True,  # display the output
+    model="yolo11n.pt",  # model for object blurring i.e yolo11m.pt
+    blur_ratio=0.5,  # set blur percentage i.e 0.7 for 70% blurred detected objects
+    # line_width=2,   # width of bounding box.
+    # classes=[0, 2], # count specific classes i.e, person and car with COCO pretrained model.
+)
 
-        # Init ObjectBlurrer
-        blurrer = solutions.ObjectBlurrer(
-            show=True,  # display the output
-            model="yolo11n.pt",  # model for object blurring i.e yolo11m.pt
-            blur_ratio=0.5,  # set blur percentage i.e 0.7 for 70% blurred detected objects
-            # line_width=2,         # width of bounding box.
-            # classes=[0, 2],       # count specific classes i.e, person and car with COCO pretrained model.
-        )
+# Process video
+while cap.isOpened():
+    success, im0 = cap.read()
 
-        # Process video
-        while cap.isOpened():
-            success, im0 = cap.read()
+    if not success:
+        print("Video frame is empty or processing is complete.")
+        break
 
-            if not success:
-                print("Video frame is empty or processing is complete.")
-                break
+    results = blurrer.blur(im0)
 
-            results = blurrer.blur(im0)
+    # Access the output
+    # print(f"Total tracks: , {results['total_tracks']}")
 
-            # Access the output
-            # print(f"Total tracks: , {results['total_tracks']}")
+    video_writer.write(results["im0"])  # write the processed frame.
 
-            video_writer.write(results["im0"])  # write the processed frame.
-
-        cap.release()
-        video_writer.release()
-        cv2.destroyAllWindows()  # destroy all opened windows
-        ```
+cap.release()
+video_writer.release()
+cv2.destroyAllWindows()  # destroy all opened windows
+```
 
 ### Argument `ObjectBlurrer`
 

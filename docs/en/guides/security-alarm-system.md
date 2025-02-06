@@ -24,64 +24,60 @@ The Security Alarm System Project utilizing Ultralytics YOLO11 integrates advanc
   <br>
   <strong>Watch:</strong> Security Alarm System Project with Ultralytics YOLO11 <a href="https://www.ultralytics.com/glossary/object-detection">Object Detection</a>
 </p>
-
-### Code
-
+ 
 ???+ note
 
     App Password Generation is necessary
 
 - Navigate to [App Password Generator](https://myaccount.google.com/apppasswords), designate an app name such as "security project," and obtain a 16-digit password. Copy this password and paste it into the designated `password` field in the code below.
 
-!!! example "Security Alarm System using YOLO11 Example"
+## Code
 
-    === "Python"
+```python
+import cv2
 
-        ```python
-        import cv2
+from ultralytics import solutions
 
-        from ultralytics import solutions
+cap = cv2.VideoCapture("Path/to/video/file.mp4")
+assert cap.isOpened(), "Error reading video file"
 
-        cap = cv2.VideoCapture("Path/to/video/file.mp4")
-        assert cap.isOpened(), "Error reading video file"
+# Video writer
+w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
+video_writer = cv2.VideoWriter("security_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
-        # Video writer
-        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-        video_writer = cv2.VideoWriter("security_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
+from_email = "abc@gmail.com"  # the sender email address
+password = "---- ---- ---- ----"  # 16-digits password generated via: https://myaccount.google.com/apppasswords
+to_email = "xyz@gmail.com"  # the receiver email address
 
-        from_email = "abc@gmail.com"  # the sender email address
-        password = "---- ---- ---- ----"  # 16-digits password generated via: https://myaccount.google.com/apppasswords
-        to_email = "xyz@gmail.com"  # the receiver email address
+# Init SecurityAlarm
+security = solutions.SecurityAlarm(
+    show=True,  # display the output
+    model="yolo11n.pt",  # i.e. yolo11s.pt, yolo11m.pt
+    records=1,  # Total detections count to send an email
+)
 
-        # Init SecurityAlarm
-        security = solutions.SecurityAlarm(
-            show=True,  # display the output
-            model="yolo11n.pt",  # i.e. yolo11s.pt, yolo11m.pt
-            records=1,  # Total detections count to send an email
-        )
+security.authenticate(from_email, password, to_email)  # Authenticate the email server
 
-        security.authenticate(from_email, password, to_email)  # Authenticate the email server
+# Process video
+while cap.isOpened():
+    success, im0 = cap.read()
 
-        # Process video
-        while cap.isOpened():
-            success, im0 = cap.read()
+    if not success:
+        print("Video frame is empty or video processing has been successfully completed.")
+        break
 
-            if not success:
-                print("Video frame is empty or video processing has been successfully completed.")
-                break
+    results = security.monitor(im0)
 
-            results = security.monitor(im0)
+    # Access the output
+    # print(f"Total tracks: , {results['total_tracks']}")
+    # print(f"Email sent status: , {results['email_sent']}")
 
-            # Access the output
-            # print(f"Total tracks: , {results['total_tracks']}")
-            # print(f"Email sent status: , {results['email_sent']}")
+    video_writer.write(results["im0"])  # write the processed frame.
 
-            video_writer.write(results["im0"])  # write the processed frame.
-
-        cap.release()
-        video_writer.release()
-        cv2.destroyAllWindows()  # destroy all opened windows
-        ```
+cap.release()
+video_writer.release()
+cv2.destroyAllWindows()  # destroy all opened windows
+```
 
 That's it! When you execute the code, you'll receive a single notification on your email if any object is detected. The notification is sent immediately, not repeatedly. However, feel free to customize the code to suit your project requirements.
 

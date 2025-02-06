@@ -44,11 +44,13 @@ video_writer = cv2.VideoWriter("object_blurring_output.avi", cv2.VideoWriter_fou
 # Init ObjectBlurrer
 blurrer = solutions.ObjectBlurrer(
     show=True,  # display the output
-    model="yolo11n.pt",  # model for object blurring i.e yolo11m.pt
-    blur_ratio=0.5,  # set blur percentage i.e 0.7 for 70% blurred detected objects
+    model="yolo11n.pt",  # model for object blurring i.e. yolo11m.pt
     # line_width=2,   # width of bounding box.
     # classes=[0, 2], # count specific classes i.e, person and car with COCO pretrained model.
 )
+
+# Adjust percentage of blur intensity
+blurrer.set_blur_ratio(0.6)     # the value in range 0.1 - 1.0
 
 # Process video
 while cap.isOpened():

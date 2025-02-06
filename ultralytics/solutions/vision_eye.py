@@ -30,8 +30,20 @@ class VisionEye(BaseSolution):
         Attributes are inherited from the BaseSolution class and initialized using the provided configuration.
         """
         super().__init__(**kwargs)
-        self.vision_point = ast.literal_eval(self.CFG["vision_point"])
-        print(self.vision_point)
+        self.vision_point = (20, 20)
+
+    def set_vision_point(self, vision_point):
+        """
+        Adjust vision eye point values
+
+        Args:
+            vision_point (tuple[int, int]): visioneye point value, the point, where vision will view objects and draw tracks
+
+        Examples:
+            >>> vision_eye = VisionEye()
+            >>> vision_eye.set_vision_point((30, 30))
+        """
+        self.vision_point = vision_point  # Percentage of blur
 
     def mapping(self, im0):
         """

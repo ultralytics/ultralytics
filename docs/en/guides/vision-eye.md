@@ -35,6 +35,9 @@ visioneye = solutions.VisionEye(
     classes=[0, 2],  # generate visioneye view for specific classes
 )
 
+# Adjust visioneye monitoring point explicitly
+visioneye.set_vision_point((50, 50))
+
 # Process video
 while cap.isOpened():
     success, im0 = cap.read()

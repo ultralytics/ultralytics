@@ -37,7 +37,23 @@ class ObjectBlurrer(BaseSolution):
         """
         super().__init__(**kwargs)
 
-        self.blur_ratio = int(self.CFG["blur_ratio"] * 100)  # Blur intensity multiplier
+        self.blur_ratio = 50   # Blur intensity multiplier
+
+    def set_blur_ratio(self, blur_ratio=0.5):
+        """
+        Adjust percentage of blur intensity, the value between 0.0 - 1.0
+
+        Args:
+            blur_ratio (float): Percentage of blur intensity, the value between 0.0 - 1.0
+
+        Examples:
+            >>> blur_obj = ObjectBlurrer()
+            >>> blur_obj.set_blur_ratio(0.5)
+        """
+        if blur_ratio<=0:   # If user pass blur ratio 0, use default blur ratio
+            return
+        self.blur_ratio = int(blur_ratio * 100)     # Percentage of blur
+
 
     def blur(self, im0):
         """
@@ -60,7 +76,6 @@ class ObjectBlurrer(BaseSolution):
         annotator = SolutionAnnotator(im0, self.line_width)
 
         self.extract_tracks(im0)  # Extract tracks
-
         # Iterate over bounding boxes and classes
         for box, cls in zip(self.boxes, self.clss):
             # Crop and blur the detected object

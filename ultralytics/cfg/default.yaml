@@ -126,3 +126,6 @@ cfg: # (str, optional) for overriding defaults.yaml
 
 # Tracker settings ------------------------------------------------------------------------------------------------------
 tracker: botsort.yaml # (str) tracker type, choices=[botsort.yaml, bytetrack.yaml]
+
+# Privacy setting
+privacy_mode: False # (bool) control if to upload model and mosaic images to visualization tools like ClearML

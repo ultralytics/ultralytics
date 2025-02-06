@@ -66,7 +66,7 @@ def on_train_epoch_end(trainer):
     """Callback function called at end of each training epoch."""
     _log_scalars(trainer.label_loss_items(trainer.tloss, prefix="train"), trainer.epoch + 1)
     _log_scalars(trainer.lr, trainer.epoch + 1)
-    if trainer.epoch == 1:
+    if trainer.epoch == 1 and not trainer.args.privacy_mode:
         _log_images({f.stem: str(f) for f in trainer.save_dir.glob("train_batch*.jpg")}, "Mosaic")
 
 
@@ -100,7 +100,8 @@ def on_train_end(trainer):
         for f in files:
             _log_plot(title=f.stem, plot_path=f)
         # Log the final model
-        run[f"weights/{trainer.args.name or trainer.args.task}/{trainer.best.name}"].upload(File(str(trainer.best)))
+        if not trainer.args.privacy_mode:
+            run[f"weights/{trainer.args.name or trainer.args.task}/{trainer.best.name}"].upload(File(str(trainer.best)))
 
 
 callbacks = (

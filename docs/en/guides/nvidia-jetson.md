@@ -289,10 +289,13 @@ The YOLO11n model in PyTorch format is converted to TensorRT to run inference wi
 
 The following Jetson devices are equipped with DLA hardware:
 
-- Jetson Orin NX 16GB
-- Jetson AGX Orin Series
-- Jetson AGX Xavier Series
-- Jetson Xavier NX Series
+| Jetson Device            | DLA Cores | DLA Max Frequency |
+| ------------------------ | --------- | ----------------- |
+| Jetson AGX Orin Series   | 2         | 1.6 GHz           |
+| Jetson Orin NX 16GB      | 2         | 614 MHz           |
+| Jetson Orin NX 8GB       | 1         | 614 MHz           |
+| Jetson AGX Xavier Series | 2         | 1.4 GHz           |
+| Jetson Xavier NX Series  | 2         | 1.1 GHz           |
 
 !!! example
 
@@ -318,6 +321,7 @@ The following Jetson devices are equipped with DLA hardware:
 
         ```bash
         # Export a YOLO11n PyTorch model to TensorRT format with DLA enabled (only works with FP16 or INT8)
+        # Once DLA core number is specified at export, it will use the same core at inference
         yolo export model=yolo11n.pt format=engine device="dla:0" half=True  # dla:0 or dla:1 corresponds to the DLA cores
 
         # Run inference with the exported model on the DLA

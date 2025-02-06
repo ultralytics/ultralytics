@@ -49,8 +49,8 @@ assert cap.isOpened(), "Error reading video file"
 
 # Pass region as dictionary
 region_points = {
-   "region-01": [(50, 50), (250, 50), (250, 250), (50, 250)],
-   "region-02": [(640, 640), (780, 640), (780, 720), (640, 720)],
+    "region-01": [(50, 50), (250, 50), (250, 250), (50, 250)],
+    "region-02": [(640, 640), (780, 640), (780, 720), (640, 720)],
 }
 
 # Video writer
@@ -59,26 +59,26 @@ video_writer = cv2.VideoWriter("region_counting.avi", cv2.VideoWriter_fourcc(*"m
 
 # Init RegionCounter
 region = solutions.RegionCounter(
-   show=True,  # display the frame
-   region=region_points,  # pass region points
-   model="yolo11n.pt",  # model for counting in regions i.e yolo11s.pt
+    show=True,  # display the frame
+    region=region_points,  # pass region points
+    model="yolo11n.pt",  # model for counting in regions i.e yolo11s.pt
 )
 
 # Process video
 while cap.isOpened():
-   success, im0 = cap.read()
+    success, im0 = cap.read()
 
-   if not success:
-       print("Video frame is empty or processing is complete.")
-       break
+    if not success:
+        print("Video frame is empty or processing is complete.")
+        break
 
-   results = region.count(im0)
+    results = region.count(im0)
 
-   # Access the output
-   # print(f"Region counts: , {results['region_counts']}")
-   # print(f"Total tracks: , {results['total_tracks']}")
+    # Access the output
+    # print(f"Region counts: , {results['region_counts']}")
+    # print(f"Total tracks: , {results['total_tracks']}")
 
-   video_writer.write(results["im0"])
+    video_writer.write(results["im0"])
 
 cap.release()
 video_writer.release()

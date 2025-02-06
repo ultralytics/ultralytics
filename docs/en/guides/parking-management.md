@@ -49,7 +49,6 @@ Parking management with [Ultralytics YOLO11](https://github.com/ultralytics/ultr
 
     Max Image Size of 1920 * 1080 supported
 
-
 ```python
 from ultralytics import solutions
 
@@ -61,7 +60,6 @@ solutions.ParkingPtsSelection()
 ![Ultralytics YOLO11 Points Selection Demo](https://github.com/ultralytics/docs/releases/download/0/ultralytics-yolov8-points-selection-demo.avif)
 
 ### Python Code for Parking Management
-
 
 ```python
 import cv2

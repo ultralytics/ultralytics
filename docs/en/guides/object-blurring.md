@@ -50,7 +50,7 @@ blurrer = solutions.ObjectBlurrer(
 )
 
 # Adjust percentage of blur intensity
-blurrer.set_blur_ratio(0.6)     # the value in range 0.1 - 1.0
+blurrer.set_blur_ratio(0.6)  # the value in range 0.1 - 1.0
 
 # Process video
 while cap.isOpened():

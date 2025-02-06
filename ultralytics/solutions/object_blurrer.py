@@ -37,7 +37,7 @@ class ObjectBlurrer(BaseSolution):
         """
         super().__init__(**kwargs)
 
-        self.blur_ratio = 50   # Blur intensity multiplier
+        self.blur_ratio = 50  # Blur intensity multiplier
 
     def set_blur_ratio(self, blur_ratio=0.5):
         """
@@ -50,10 +50,9 @@ class ObjectBlurrer(BaseSolution):
             >>> blur_obj = ObjectBlurrer()
             >>> blur_obj.set_blur_ratio(0.5)
         """
-        if blur_ratio<=0:   # If user pass blur ratio 0, use default blur ratio
+        if blur_ratio <= 0:  # If user pass blur ratio 0, use default blur ratio
             return
-        self.blur_ratio = int(blur_ratio * 100)     # Percentage of blur
-
+        self.blur_ratio = int(blur_ratio * 100)  # Percentage of blur
 
     def blur(self, im0):
         """

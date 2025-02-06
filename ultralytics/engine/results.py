@@ -977,28 +977,20 @@ class Results(SimpleClass):
 
         # Create table if it doesn't exist
         columns = (
-            "id INTEGER PRIMARY KEY AUTOINCREMENT, class_name TEXT, confidence REAL, "
-            "box TEXT, masks TEXT, kpts TEXT, obb TEXT"
+            "id INTEGER PRIMARY KEY AUTOINCREMENT, class_name TEXT, confidence REAL, box TEXT, masks TEXT, kpts TEXT"
         )
         cursor.execute(f"CREATE TABLE IF NOT EXISTS {table_name} ({columns})")
 
         # Insert data into the table
-        is_obb = self.obb is not None
         for item in data:
-            class_name = item.get("name")
-            box = json.dumps(item.get("box", {}))
-            obb = box if is_obb else None
-            detect = box if not is_obb else None
-
             cursor.execute(
-                f"INSERT INTO {table_name} (class_name, confidence, box, masks, kpts, obb) VALUES (?, ?, ?, ?, ?, ?)",
+                f"INSERT INTO {table_name} (class_name, confidence, box, masks, kpts) VALUES (?, ?, ?, ?, ?)",
                 (
-                    class_name,
+                    item.get("name"),
                     item.get("confidence"),
-                    detect,
+                    json.dumps(item.get("box", {})),
                     json.dumps(item.get("segments", {}).get("x", [])),
                     json.dumps(item.get("keypoints", {}).get("x", [])),
-                    obb,
                 ),
             )
 

@@ -499,13 +499,13 @@ class Annotator:
         if self.pil:
             text = text.split("\n") if "\n" in text else [text]
             for idx, text in enumerate(text):
-                color = colors(idx, True)
+                w, h = self.font.getsize(text)
                 if box_style:
-                    w, h = self.font.getsize(text)
+                    color = colors(idx, True)
                     self.draw.rectangle((xy[0], xy[1], xy[0] + w + 1, xy[1] + h + 1), fill=color)
                     # Using `color` for background and draw fg with white color
-                    color = (255, 255, 255)
-                self.draw.text(xy, text, fill=self.get_txt_color(color), font=self.font)
+                    txt_color = self.get_txt_color(color, txt_color)
+                self.draw.text(xy, text, fill=txt_color, font=self.font)
                 xy[1] += h
         else:
             if box_style:

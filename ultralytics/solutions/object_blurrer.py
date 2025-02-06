@@ -41,7 +41,7 @@ class ObjectBlurrer(BaseSolution):
 
     def set_blur_ratio(self, blur_ratio=0.5):
         """
-        Adjust percentage of blur intensity, the value between 0.0 - 1.0
+        Adjust percentage of blur intensity, the value between 0.0 - 1.0.
 
         Args:
             blur_ratio (float): Percentage of blur intensity, the value between 0.0 - 1.0

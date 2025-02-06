@@ -34,7 +34,7 @@ class VisionEye(BaseSolution):
 
     def set_vision_point(self, vision_point):
         """
-        Adjust vision eye point values
+        Adjust vision eye point values.
 
         Args:
             vision_point (tuple[int, int]): visioneye point value, the point, where vision will view objects and draw tracks

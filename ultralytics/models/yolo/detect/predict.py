@@ -73,4 +73,4 @@ class DetectionPredictor(BasePredictor):
             (Results): The result object containing the original image, image path, class names, and bounding boxes.
         """
         pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], orig_img.shape)
-        return Results(orig_img, path=img_path, names=self.model.names, boxes=pred[:, :6], is_soft=soft_label)
+        return Results(orig_img, path=img_path, names=self.model.names, boxes=pred, is_soft=soft_label)

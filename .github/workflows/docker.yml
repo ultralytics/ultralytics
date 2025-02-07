@@ -148,7 +148,7 @@ jobs:
           retry_delay_seconds: 60
           retries: 2
           run: |
-            docker buildx build \
+            docker build \
               --platform ${{ matrix.platforms }} \
               --label "org.opencontainers.image.source=https://github.com/ultralytics/ultralytics" \
               --label "org.opencontainers.image.description=Ultralytics image" \

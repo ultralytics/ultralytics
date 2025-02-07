@@ -150,6 +150,9 @@ jobs:
           run: |
             docker buildx build \
               --platform ${{ matrix.platforms }} \
+              --label "org.opencontainers.image.source=https://github.com/ultralytics/ultralytics" \
+              --label "org.opencontainers.image.description=Ultralytics image" \
+              --label "org.opencontainers.image.licenses=AGPL-3.0-or-later" \
               -f docker/${{ matrix.dockerfile }} \
               -t ultralytics/ultralytics:${{ matrix.tags }} \
               -t ultralytics/ultralytics:${{ steps.get_version.outputs.version_tag }} \
@@ -192,7 +195,11 @@ jobs:
 
             if [[ "${{ matrix.tags }}" == "latest" ]]; then
               t="ultralytics/ultralytics:latest-runner"
-              docker build -f docker/Dockerfile-runner -t $t -t ghcr.io/$t .
+              docker build -f docker/Dockerfile-runner -t $t -t ghcr.io/$t \
+                --label "org.opencontainers.image.source=https://github.com/ultralytics/ultralytics" \
+                --label "org.opencontainers.image.description=Ultralytics runner image" \
+                --label "org.opencontainers.image.licenses=AGPL-3.0-or-later" \
+                .
               docker push $t
               docker push ghcr.io/$t
             fi
@@ -200,7 +207,11 @@ jobs:
             if [[ "${{ matrix.tags }}" == "latest-python" ]]; then
               t="ultralytics/ultralytics:latest-jupyter"
               v="ultralytics/ultralytics:${{ steps.get_version.outputs.version }}-jupyter"
-              docker build -f docker/Dockerfile-jupyter -t $t -t ghcr.io/$t -t $v -t ghcr.io/$v .
+              docker build -f docker/Dockerfile-jupyter -t $t -t ghcr.io/$t -t $v -t ghcr.io/$v \
+                --label "org.opencontainers.image.source=https://github.com/ultralytics/ultralytics" \
+                --label "org.opencontainers.image.description=Ultralytics Jupyter image" \
+                --label "org.opencontainers.image.licenses=AGPL-3.0-or-later" \
+                .
               docker push $t
               docker push ghcr.io/$t
               if [[ "${{ steps.check_tag_dockerhub.outputs.new_release }}" == "true" ]]; then

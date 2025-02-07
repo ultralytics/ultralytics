@@ -213,11 +213,11 @@ The above ultralytics installation will install Torch and Torchvision. However, 
     pip uninstall torch torchvision
     ```
 
-2. Install `torch 2.1.0` and `torchvision 0.16.2` according to JP5.1.2
+2. Install `torch 2.2.0` and `torchvision 0.17.2` according to JP5.1.2
 
     ```bash
-    pip install https://github.com/ultralytics/assets/releases/download/v0.0.0/torch-2.1.0a0+41361538.nv23.06-cp38-cp38-linux_aarch64.whl
-    pip install https://github.com/ultralytics/assets/releases/download/v0.0.0/torchvision-0.16.2+c6f3977-cp38-cp38-linux_aarch64.whl
+    pip install https://github.com/ultralytics/assets/releases/download/v0.0.0/torch-2.2.0-cp38-cp38-linux_aarch64.whl
+    pip install https://github.com/ultralytics/assets/releases/download/v0.0.0/torchvision-0.17.2+c1d70fe-cp38-cp38-linux_aarch64.whl
     ```
 
 !!! note

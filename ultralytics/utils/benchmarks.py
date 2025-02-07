@@ -152,7 +152,9 @@ def benchmark(
                 filename = model.pt_path or model.ckpt_path or model.model_name
                 exported_model = model  # PyTorch format
             else:
-                filename = model.export(imgsz=imgsz, format=format, half=half, int8=int8, data=data, device=device, verbose=False)
+                filename = model.export(
+                    imgsz=imgsz, format=format, half=half, int8=int8, data=data, device=device, verbose=False
+                )
                 exported_model = YOLO(filename, task=model.task)
                 assert suffix in str(filename), "export failed"
             emoji = "❎"  # indicates export succeeded

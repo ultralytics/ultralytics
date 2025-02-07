@@ -280,7 +280,7 @@ class DetectionValidator(BaseValidator):
             np.zeros((shape[0], shape[1]), dtype=np.uint8),
             path=None,
             names=self.names,
-            boxes=predn[:, :6],
+            boxes=predn,
             is_soft=self.args.soft_label,
         ).save_txt(file, save_conf=save_conf)
 

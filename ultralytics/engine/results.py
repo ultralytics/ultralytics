@@ -1084,6 +1084,8 @@ class Boxes(BaseTensor):
                 (num_boxes, 6) or (num_boxes, 7). Columns should contain
                 [x1, y1, x2, y2, confidence, class, (optional) track_id].
             orig_shape (Tuple[int, int]): The original image shape as (height, width). Used for normalization.
+            is_track (bool): Indicates whether tracking IDs are included in the box data.
+            soft_labels (bool): Whether confidences of all classes are retained.
 
         Attributes:
             data (torch.Tensor): The raw tensor containing detection boxes and their associated data.

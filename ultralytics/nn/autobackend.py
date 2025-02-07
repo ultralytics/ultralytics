@@ -242,8 +242,7 @@ class AutoBackend(nn.Module):
 
         # OpenVINO
         elif xml:
-            LOGGER.info(f"Loading {w} for OpenVINO inference...")
-            check_requirements("openvino>=2024.0.0")
+            check_requirements("openvino>=2025.0")
             import openvino as ov
 
             core = ov.Core()
@@ -599,7 +598,7 @@ class AutoBackend(nn.Module):
                     results[userdata] = request.results
 
                 # Create AsyncInferQueue, set the callback and start asynchronous inference for each input image
-                async_queue = self.ov.runtime.AsyncInferQueue(self.ov_compiled_model)
+                async_queue = self.ov.AsyncInferQueue(self.ov_compiled_model)
                 async_queue.set_callback(callback)
                 for i in range(n):
                     # Start async inference with userdata=i to specify the position in results list
@@ -763,7 +762,6 @@ class AutoBackend(nn.Module):
             imgsz (tuple): The shape of the dummy input tensor in the format (batch_size, channels, height, width)
         """
         import torchvision  # noqa (import here so torchvision import time not recorded in postprocess time)
-
         warmup_types = self.pt, self.jit, self.onnx, self.engine, self.saved_model, self.pb, self.triton, self.nn_module
         if any(warmup_types) and (self.device.type != "cpu" or self.triton):
             im = torch.empty(*imgsz, dtype=torch.half if self.fp16 else torch.float, device=self.device)  # input

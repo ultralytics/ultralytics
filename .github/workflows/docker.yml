@@ -46,7 +46,7 @@ on:
         default: true
       push:
         type: boolean
-        description: Publish all Images to Docker Hub
+        description: Publish all Images
 
 jobs:
   docker:
@@ -105,6 +105,13 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Retrieve Ultralytics version
         id: get_version
         run: |
@@ -141,12 +148,14 @@ jobs:
           retry_delay_seconds: 60
           retries: 2
           run: |
-            docker build \
-            --platform ${{ matrix.platforms }} \
-            -f docker/${{ matrix.dockerfile }} \
-            -t ultralytics/ultralytics:${{ matrix.tags }} \
-            -t ultralytics/ultralytics:${{ steps.get_version.outputs.version_tag }} \
-            .
+            docker buildx build \
+              --platform ${{ matrix.platforms }} \
+              -f docker/${{ matrix.dockerfile }} \
+              --tag ultralytics/ultralytics:${{ matrix.tags }} \
+              --tag ultralytics/ultralytics:${{ steps.get_version.outputs.version_tag }} \
+              --tag ghcr.io/ultralytics/ultralytics:${{ matrix.tags }} \
+              --tag ghcr.io/ultralytics/ultralytics:${{ steps.get_version.outputs.version_tag }} \
+              .
 
       - name: Run Tests
         if: (github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true') && matrix.platforms == 'linux/amd64' && matrix.dockerfile != 'Dockerfile-conda' # arm64 images not supported on GitHub CI runners
@@ -166,8 +175,9 @@ jobs:
           retries: 2
           run: |
             docker push ultralytics/ultralytics:${{ steps.get_version.outputs.version_tag }}
+            docker push ghcr.io/ultralytics/ultralytics:${{ steps.get_version.outputs.version_tag }}
 
-      - name: Push Docker Image with latest tag
+      - name: Build and Push Additional Images (latest-runner and latest-jupyter)
         if: github.event_name == 'push' || (github.event.inputs[matrix.dockerfile] == 'true' && github.event.inputs.push == 'true')
         uses: ultralytics/actions/retry@main
         with:

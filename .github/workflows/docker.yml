@@ -151,10 +151,10 @@ jobs:
             docker buildx build \
               --platform ${{ matrix.platforms }} \
               -f docker/${{ matrix.dockerfile }} \
-              --tag ultralytics/ultralytics:${{ matrix.tags }} \
-              --tag ultralytics/ultralytics:${{ steps.get_version.outputs.version_tag }} \
-              --tag ghcr.io/ultralytics/ultralytics:${{ matrix.tags }} \
-              --tag ghcr.io/ultralytics/ultralytics:${{ steps.get_version.outputs.version_tag }} \
+              -t ultralytics/ultralytics:${{ matrix.tags }} \
+              -t ultralytics/ultralytics:${{ steps.get_version.outputs.version_tag }} \
+              -t ghcr.io/ultralytics/ultralytics:${{ matrix.tags }} \
+              -t ghcr.io/ultralytics/ultralytics:${{ steps.get_version.outputs.version_tag }} \
               .
 
       - name: Run Tests
@@ -174,8 +174,9 @@ jobs:
           retry_delay_seconds: 300
           retries: 2
           run: |
-            docker push ultralytics/ultralytics:${{ steps.get_version.outputs.version_tag }}
-            docker push ghcr.io/ultralytics/ultralytics:${{ steps.get_version.outputs.version_tag }}
+            t="ultralytics/ultralytics:${{ steps.get_version.outputs.version_tag }}"
+            docker push $t
+            docker push ghcr.io/$t
 
       - name: Build and Push Additional Images (latest-runner and latest-jupyter)
         if: github.event_name == 'push' || (github.event.inputs[matrix.dockerfile] == 'true' && github.event.inputs.push == 'true')
@@ -185,25 +186,26 @@ jobs:
           retry_delay_seconds: 300
           retries: 2
           run: |
-            docker push ultralytics/ultralytics:${{ matrix.tags }}
-            docker push ghcr.io/ultralytics/ultralytics:${{ matrix.tags }}
+            t="ultralytics/ultralytics:${{ matrix.tags }}"
+            docker push $t
+            docker push ghcr.io/$t
 
             if [[ "${{ matrix.tags }}" == "latest" ]]; then
               t="ultralytics/ultralytics:latest-runner"
-              docker build -f docker/Dockerfile-runner -t $t -t "ghcr.io/$t" .
+              docker build -f docker/Dockerfile-runner -t $t -t ghcr.io/$t .
               docker push $t
-              docker push "ghcr.io/$t"
+              docker push ghcr.io/$t
             fi
 
             if [[ "${{ matrix.tags }}" == "latest-python" ]]; then
               t="ultralytics/ultralytics:latest-jupyter"
               v="ultralytics/ultralytics:${{ steps.get_version.outputs.version }}-jupyter"
-              docker build -f docker/Dockerfile-jupyter -t $t -t "ghcr.io/$t" -t $v -t "ghcr.io/$v" .
+              docker build -f docker/Dockerfile-jupyter -t $t -t ghcr.io/$t -t $v -t ghcr.io/$v .
               docker push $t
-              docker push "ghcr.io/$t"
+              docker push ghcr.io/$t
               if [[ "${{ steps.check_tag_dockerhub.outputs.new_release }}" == "true" ]]; then
                 docker push $v
-                docker push "ghcr.io/$v"
+                docker push ghcr.io/$v
               fi
             fi
 

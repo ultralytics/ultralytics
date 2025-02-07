@@ -93,6 +93,8 @@ def benchmark(
     if isinstance(model, (str, Path)):
         model = YOLO(model)
     is_end2end = getattr(model.model.model[-1], "end2end", False)
+    data = data or TASK2DATA[model.task]  # task to dataset, i.e. coco8.yaml for task=detect
+    key = TASK2METRIC[model.task]  # task to metric, i.e. metrics/mAP50-95(B) for task=detect
 
     y = []
     t0 = time.time()
@@ -161,14 +163,12 @@ def benchmark(
             assert i != 5 or platform.system() == "Darwin", "inference only supported on macOS>=10.13"  # CoreML
             if i in {13}:
                 assert not is_end2end, "End-to-end torch.topk operation is not supported for NCNN prediction yet"
-            exported_model.predict(ASSETS / "bus.jpg", imgsz=imgsz, device=device, half=half, verbose=False)
+            exported_model.predict(ASSETS / "bus.jpg", imgsz=imgsz, device=device, half=half, data=data, verbose=False)
 
             # Validate
-            data = data or TASK2DATA[model.task]  # task to dataset, i.e. coco8.yaml for task=detect
             results = exported_model.val(
                 data=data, batch=1, imgsz=imgsz, plots=False, device=device, half=half, int8=int8, verbose=False
             )
-            key = TASK2METRIC[model.task]  # task to metric, i.e. metrics/mAP50-95(B) for task=detect
             metric, speed = results.results_dict[key], results.speed["inference"]
             fps = round(1000 / (speed + eps), 2)  # frames per second
             y.append([name, "✅", round(file_size(filename), 1), round(metric, 4), round(speed, 2), fps])

@@ -403,16 +403,21 @@ def get_save_dir(args, name=None):
         >>> print(save_dir)
         my_project/detect/train
     """
-    if getattr(args, "save_dir", None):
-        save_dir = args.save_dir
+    from ultralytics.utils.files import increment_path
+
+    # Ensure RUNS_DIR takes precedence, but fall back to args.project if it's not set
+    if TESTS_RUNNING:
+        base_dir = ROOT.parent / "tests/tmp/runs"
     else:
-        from ultralytics.utils.files import increment_path
+        base_dir = RUNS_DIR if RUNS_DIR else args.project  # RUNS_DIR has priority
 
-        project = args.project or (ROOT.parent / "tests/tmp/runs" if TESTS_RUNNING else RUNS_DIR) / args.task
-        name = name or args.name or f"{args.mode}"
-        save_dir = increment_path(Path(project) / name, exist_ok=args.exist_ok if RANK in {-1, 0} else True)
+    project = Path(base_dir) / args.project if args.project else Path(base_dir) / args.task
+    name = name or args.name or f"{args.mode}"
 
-    return Path(save_dir)
+    # Ensure only RANK -1 or 0 affect exist_ok behavior
+    exist_ok = args.exist_ok if RANK in {-1, 0} else True
+
+    return increment_path(project / name, exist_ok=exist_ok)
 
 
 def _handle_deprecation(custom):

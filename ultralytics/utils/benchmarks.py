@@ -152,7 +152,9 @@ def benchmark(
                 filename = model.pt_path or model.ckpt_path or model.model_name
                 exported_model = model  # PyTorch format
             else:
-                filename = model.export(imgsz=imgsz, format=format, half=half, int8=int8, device=device, verbose=False)
+                filename = model.export(
+                    imgsz=imgsz, format=format, half=half, int8=int8, data=data, device=device, verbose=False
+                )
                 exported_model = YOLO(filename, task=model.task)
                 assert suffix in str(filename), "export failed"
             emoji = "❎"  # indicates export succeeded
@@ -163,7 +165,7 @@ def benchmark(
             assert i != 5 or platform.system() == "Darwin", "inference only supported on macOS>=10.13"  # CoreML
             if i in {13}:
                 assert not is_end2end, "End-to-end torch.topk operation is not supported for NCNN prediction yet"
-            exported_model.predict(ASSETS / "bus.jpg", imgsz=imgsz, device=device, half=half, data=data, verbose=False)
+            exported_model.predict(ASSETS / "bus.jpg", imgsz=imgsz, device=device, half=half, verbose=False)
 
             # Validate
             results = exported_model.val(

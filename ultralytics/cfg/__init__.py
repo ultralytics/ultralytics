@@ -413,10 +413,10 @@ def get_save_dir(args, name=None):
 
     project = Path(base_dir) / args.project if args.project else Path(base_dir) / args.task
     name = name or args.name or f"{args.mode}"
-    
+
     # Ensure only RANK -1 or 0 affect exist_ok behavior
     exist_ok = args.exist_ok if RANK in {-1, 0} else True
-    
+
     return increment_path(project / name, exist_ok=exist_ok)
 
 

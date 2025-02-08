@@ -61,7 +61,6 @@ def torch_distributed_zero_first(local_rank: int):
 
 def smart_inference_mode():
     """Applies torch.inference_mode() decorator if torch>=1.9.0 else torch.no_grad() decorator."""
-
     def decorate(fn):
         """Applies appropriate torch decorator for inference mode based on torch version."""
         if TORCH_1_9 and torch.is_inference_mode_enabled():
@@ -490,6 +489,8 @@ def init_seeds(seed=0, deterministic=False):
     else:
         torch.use_deterministic_algorithms(False)
         torch.backends.cudnn.deterministic = False
+        os.environ.pop("CUBLAS_WORKSPACE_CONFIG", None)
+        os.environ.pop("PYTHONHASHSEED", None)
 
 
 class ModelEMA:

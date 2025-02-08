@@ -3,8 +3,8 @@
 import cv2
 import numpy as np
 
-from ultralytics.solutions.solutions import BaseSolution
-from ultralytics.utils.plotting import Annotator, colors
+from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
+from ultralytics.utils.plotting import colors
 
 
 class TrackZone(BaseSolution):
@@ -45,24 +45,28 @@ class TrackZone(BaseSolution):
             im0 (numpy.ndarray): The input image or frame to be processed.
 
         Returns:
-            (numpy.ndarray): The processed image with tracking id and bounding boxes annotations.
+            results (dict): Contains processed image `im0`, 'total_tracks' (int, total number of tracked objects within the defined region).
 
         Examples:
             >>> tracker = TrackZone()
             >>> frame = cv2.imread("path/to/image.jpg")
             >>> tracker.trackzone(frame)
         """
-        self.annotator = Annotator(im0, line_width=self.line_width)  # Initialize annotator
+        plot_im = im0  # For plotting the results
+        self.annotator = SolutionAnnotator(plot_im, line_width=self.line_width)  # Initialize annotator
         # Create a mask for the region and extract tracks from the masked image
-        masked_frame = cv2.bitwise_and(im0, im0, mask=cv2.fillPoly(np.zeros_like(im0[:, :, 0]), [self.region], 255))
+        masked_frame = cv2.bitwise_and(
+            plot_im, plot_im, mask=cv2.fillPoly(np.zeros_like(plot_im[:, :, 0]), [self.region], 255)
+        )
         self.extract_tracks(masked_frame)
 
-        cv2.polylines(im0, [self.region], isClosed=True, color=(255, 255, 255), thickness=self.line_width * 2)
+        cv2.polylines(plot_im, [self.region], isClosed=True, color=(255, 255, 255), thickness=self.line_width * 2)
 
         # Iterate over boxes, track ids, classes indexes list and draw bounding boxes
         for box, track_id, cls in zip(self.boxes, self.track_ids, self.clss):
             self.annotator.box_label(box, label=f"{self.names[cls]}:{track_id}", color=colors(track_id, True))
 
-        self.display_output(im0)  # display output with base class function
+        self.display_output(plot_im)  # display output with base class function
 
-        return im0  # return output image for more usage
+        # return output dictionary with summary for more usage
+        return SolutionResults(plot_im=plot_im, total_tracks=len(self.track_ids)).summary(verbose=self.verbose)

@@ -63,57 +63,66 @@ A heatmap generated with [Ultralytics YOLO11](https://github.com/ultralytics/ult
 
         cap = cv2.VideoCapture("Path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
-        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 
         # Video writer
+        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
         video_writer = cv2.VideoWriter("heatmap_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
-        # In case you want to apply object counting + heatmaps, you can pass region points.
-        # region_points = [(20, 400), (1080, 400)]  # Define line points
-        # region_points = [(20, 400), (1080, 400), (1080, 360), (20, 360)]  # Define region points
-        # region_points = [(20, 400), (1080, 400), (1080, 360), (20, 360), (20, 400)]  # Define polygon points
+        # For object counting with heatmap, you can pass region points.
+        # region_points = [(20, 400), (1080, 400)]                                      # line points
+        # region_points = [(20, 400), (1080, 400), (1080, 360), (20, 360)]              # rectangle region
+        # region_points = [(20, 400), (1080, 400), (1080, 360), (20, 360), (20, 400)]   # polygon points
 
         # Init heatmap
         heatmap = solutions.Heatmap(
             show=True,  # Display the output
             model="yolo11n.pt",  # Path to the YOLO11 model file
             colormap=cv2.COLORMAP_PARULA,  # Colormap of heatmap
-            # region=region_points,  # If you want to do object counting with heatmaps, you can pass region_points
-            # classes=[0, 2],  # If you want to generate heatmap for specific classes i.e person and car.
-            # show_in=True,  # Display in counts
-            # show_out=True,  # Display out counts
-            # line_width=2,  # Adjust the line width for bounding boxes and text display
+            # region=region_points,         # object counting with heatmaps, you can pass region_points
+            # classes=[0, 2],               # generate heatmap for specific classes i.e person and car.
         )
 
         # Process video
         while cap.isOpened():
             success, im0 = cap.read()
+
             if not success:
-                print("Video frame is empty or video processing has been successfully completed.")
+                print("Video frame is empty or processing is complete.")
                 break
-            im0 = heatmap.generate_heatmap(im0)
-            video_writer.write(im0)
+
+            results = heatmap.generate_heatmap(im0)
+
+            # Access the output
+            # print(f"Total tracks: , {results['total_tracks']}")
+            # print(f"In count: , {results['in_count']}")
+            # print(f"Out count: , {results['out_count']}")
+
+            video_writer.write(results["plot_im"])  # write the processed frame.
 
         cap.release()
         video_writer.release()
-        cv2.destroyAllWindows()
+        cv2.destroyAllWindows()  # destroy all opened windows
         ```
 
 ### Arguments `Heatmap()`
 
-| Name         | Type   | Default            | Description                                                       |
-| ------------ | ------ | ------------------ | ----------------------------------------------------------------- |
-| `model`      | `str`  | `None`             | Path to Ultralytics YOLO Model File                               |
-| `colormap`   | `int`  | `cv2.COLORMAP_JET` | Colormap to use for the heatmap.                                  |
-| `show`       | `bool` | `False`            | Whether to display the image with the heatmap overlay.            |
-| `show_in`    | `bool` | `True`             | Whether to display the count of objects entering the region.      |
-| `show_out`   | `bool` | `True`             | Whether to display the count of objects exiting the region.       |
-| `region`     | `list` | `None`             | Points defining the counting region (either a line or a polygon). |
-| `line_width` | `int`  | `2`                | Thickness of the lines used in drawing.                           |
+Here's a table with the `Heatmap` arguments:
 
-### Arguments `model.track`
-
-{% include "macros/track-args.md" %}
+| Name         | Type    | Default            | Description                                                                                                                                                                  |
+| ------------ | ------- | ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `model`      | `str`   | `None`             | Path to Ultralytics YOLO Model File                                                                                                                                          |
+| `colormap`   | `int`   | `cv2.COLORMAP_JET` | Colormap to use for the heatmap.                                                                                                                                             |
+| `show`       | `bool`  | `False`            | Whether to display the image with the heatmap overlay.                                                                                                                       |
+| `show_in`    | `bool`  | `True`             | Whether to display the count of objects entering the region.                                                                                                                 |
+| `show_out`   | `bool`  | `True`             | Whether to display the count of objects exiting the region.                                                                                                                  |
+| `region`     | `list`  | `None`             | Points defining the counting region (either a line or a polygon).                                                                                                            |
+| `line_width` | `int`   | `2`                | Thickness of the lines used in drawing.                                                                                                                                      |
+| `tracker`    | `str`   | `botsort.yaml`     | Specifies the tracking algorithm to use, e.g., `bytetrack.yaml` or `botsort.yaml`.                                                                                           |
+| `conf`       | `float` | `0.3`              | Sets the confidence threshold for detections; lower values allow more objects to be tracked but may include false positives.                                                 |
+| `iou`        | `float` | `0.5`              | Sets the [Intersection over Union](https://www.ultralytics.com/glossary/intersection-over-union-iou) (IoU) threshold for filtering overlapping detections.                   |
+| `classes`    | `list`  | `None`             | Filters results by class index. For example, `classes=[0, 2, 3]` only tracks the specified classes.                                                                          |
+| `max_det`    | `int`   | `300`              | Maximum number of detections allowed per image. Limits the total number of objects the model can detect in a single inference, preventing excessive outputs in dense scenes. |
+| `verbose`    | `bool`  | `True`             | Controls the display of solutions results, providing a visual output of tracked objects.                                                                                     |
 
 ### Heatmap COLORMAPs
 
@@ -166,8 +175,8 @@ while cap.isOpened():
     success, im0 = cap.read()
     if not success:
         break
-    im0 = heatmap.generate_heatmap(im0)
-    cv2.imshow("Heatmap", im0)
+    results = heatmap.generate_heatmap(im0)
+    cv2.imshow("Heatmap", results["im0"])
     if cv2.waitKey(1) & 0xFF == ord("q"):
         break
 
@@ -197,8 +206,8 @@ while cap.isOpened():
     success, im0 = cap.read()
     if not success:
         break
-    im0 = heatmap.generate_heatmap(im0)
-    cv2.imshow("Heatmap", im0)
+    results = heatmap.generate_heatmap(im0)
+    cv2.imshow("Heatmap", results["im0"])
     if cv2.waitKey(1) & 0xFF == ord("q"):
         break
 

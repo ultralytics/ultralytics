@@ -237,10 +237,6 @@ class v8DetectionLoss:
         targets = self.preprocess(targets.to(self.device), batch_size, scale_tensor=imgsz[[1, 0, 1, 0]])
         gt_labels, gt_bboxes = targets.split((1, 4), 2)  # cls, xyxy
         mask_gt = gt_bboxes.sum(2, keepdim=True).gt_(0.0)
-        
-        # Compute target_labels based on fg_mask and gt_labels
-        target_labels = torch.zeros_like(target_scores, dtype=torch.long)  # Initialize as background (0)
-        target_labels[fg_mask] = gt_labels.squeeze(-1).long()  # Assign foreground labels
 
         # Pboxes
         pred_bboxes = self.bbox_decode(anchor_points, pred_distri)  # xyxy, (b, h*w, 4)
@@ -256,6 +252,10 @@ class v8DetectionLoss:
             gt_bboxes,
             mask_gt,
         )
+
+        # Compute target_labels based on fg_mask and gt_labels
+        target_labels = torch.zeros_like(target_scores, dtype=torch.long)  # Initialize as background (0)
+        target_labels[fg_mask] = gt_labels.squeeze(-1).long()  # Assign foreground labels
 
         # Ensure no zero division
         target_scores_sum = target_scores.sum().clamp(min=1.0)

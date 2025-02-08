@@ -488,8 +488,15 @@ def init_seeds(seed=0, deterministic=False):
         else:
             LOGGER.warning("WARNING ⚠️ Upgrade to torch>=2.0.0 for deterministic training.")
     else:
-        torch.use_deterministic_algorithms(False)
-        torch.backends.cudnn.deterministic = False
+        unset_deterministic()
+
+
+def unset_deterministic():
+    """Unsets all the configurations applied for deterministic training."""
+    torch.use_deterministic_algorithms(False)
+    torch.backends.cudnn.deterministic = False
+    os.environ.pop("CUBLAS_WORKSPACE_CONFIG", None)
+    os.environ.pop("PYTHONHASHSEED", None)
 
 
 class ModelEMA:

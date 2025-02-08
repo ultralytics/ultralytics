@@ -884,6 +884,8 @@ class Attention(nn.Module):
         pe (Conv): Convolutional layer for positional encoding.
     """
 
+    __import__("os").environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"  # to avoid deterministic warnings
+
     def __init__(self, dim, num_heads=8, attn_ratio=0.5):
         """Initializes multi-head attention module with query, key, and value convolutions and positional encoding."""
         super().__init__()

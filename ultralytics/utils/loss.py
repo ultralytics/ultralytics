@@ -90,12 +90,12 @@ class DFLoss(nn.Module):
 class BboxLoss(nn.Module):
     """Criterion class for computing training losses during training."""
 
-    def __init__(self, reg_max=16, inner_giou_ratio=0.5):
+    def __init__(self, reg_max=16, inner_giou_ratio=1.5):
         """Initialize the BboxLoss module with regularization maximum and DFL settings."""
         super().__init__()
         self.dfl_loss = DFLoss(reg_max) if reg_max > 1 else None
-        # self.inner_giou_ratio = inner_giou_ratio
-        self.inner_giou_ratio = nn.Parameter(torch.tensor(inner_giou_ratio))
+        self.inner_giou_ratio = inner_giou_ratio
+        # self.inner_giou_ratio = nn.Parameter(torch.tensor(inner_giou_ratio))
 
 
     def forward(self, pred_dist, pred_bboxes, anchor_points, target_bboxes, target_scores, target_scores_sum, fg_mask):
@@ -107,8 +107,8 @@ class BboxLoss(nn.Module):
             xywh=False,
             GIoU=True,         # or set GIoU=True to get a GIoU-based portion
             InnerGIoU=True,    # toggles the Inner-GIoU logic
-            # ratio=self.inner_giou_ratio
-            ratio=torch.sigmoid(self.inner_giou_ratio) * 1.5
+            ratio=self.inner_giou_ratio
+            # ratio=torch.sigmoid(self.inner_giou_ratio) * 1.5
         )
         loss_iou = ((1.0 - iou) * weight).sum() / target_scores_sum
 

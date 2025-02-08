@@ -1,17 +1,3 @@
-# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
-
-# Test and publish docs to https://docs.ultralytics.com
-# Ignores the following Docs rules to match Google-style docstrings:
-# D100: Missing docstring in public module
-# D104: Missing docstring in public package
-# D203: 1 blank line required before class docstring
-# D205: 1 blank line required between summary line and description
-# D212: Multi-line docstring summary should start at the first line
-# D213: Multi-line docstring summary should start at the second line
-# D401: First line of docstring should be in imperative mood
-# D406: Section name should end with a newline
-# D407: Missing dashed underline after section
-# D413: Missing blank line after last section
 
 name: Publish Docs
 

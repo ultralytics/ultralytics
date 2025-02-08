@@ -883,6 +883,7 @@ class Attention(nn.Module):
         proj (Conv): Convolutional layer for projecting the attended values.
         pe (Conv): Convolutional layer for positional encoding.
     """
+
     __import__("os").environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"  # to avoid deterministic warnings
 
     def __init__(self, dim, num_heads=8, attn_ratio=0.5):

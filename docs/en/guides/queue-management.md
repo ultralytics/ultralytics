@@ -84,7 +84,7 @@ Queue management using [Ultralytics YOLO11](https://github.com/ultralytics/ultra
             # Access the output
             # print(f"Queue counts: , {results['queue_count']}")
 
-            video_writer.write(results["im0"])  # write the processed frame.
+            video_writer.write(results["plot_im"])  # write the processed frame.
 
         cap.release()
         video_writer.release()

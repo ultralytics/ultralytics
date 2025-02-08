@@ -65,6 +65,7 @@ class BaseSolution:
         self.clss = []
         self.track_ids = []
         self.track_line = None
+        self.masks = None
         self.r_s = None
 
         self.LOGGER = LOGGER  # Store logger object to be used in multiple solution classes
@@ -162,7 +163,7 @@ class BaseSolution:
             self.Polygon(self.region) if len(self.region) >= 3 else self.LineString(self.region)
         )  # region or line
 
-    def display_output(self, im0):
+    def display_output(self, plot_im):
         """
         Display the results of the processing, which could involve showing frames, printing counts, or saving results.
 
@@ -170,7 +171,7 @@ class BaseSolution:
         the processed frame with annotations, and allows for user interaction to close the display.
 
         Args:
-            im0 (numpy.ndarray): The input image or frame that has been processed and annotated.
+            plot_im (numpy.ndarray): The image or frame that has been processed and annotated.
 
         Examples:
             >>> solution = BaseSolution()
@@ -183,7 +184,7 @@ class BaseSolution:
             - The display can be closed by pressing the 'q' key.
         """
         if self.CFG.get("show") and self.env_check:
-            cv2.imshow("Ultralytics Solutions", im0)
+            cv2.imshow("Ultralytics Solutions", plot_im)
             if cv2.waitKey(1) & 0xFF == ord("q"):
                 return
 
@@ -347,7 +348,7 @@ class SolutionAnnotator(Annotator):
             angle = 360 - angle
         return angle
 
-    def draw_specific_points(self, keypoints, indices=None, radius=2, conf_thres=0.25):
+    def draw_specific_points(self, keypoints, indices=None, radius=2, conf_thresh=0.25):
         """
         Draw specific keypoints for gym steps counting.
 
@@ -355,7 +356,7 @@ class SolutionAnnotator(Annotator):
             keypoints (list): Keypoints data to be plotted.
             indices (list, optional): Keypoint indices to be plotted. Defaults to [2, 5, 7].
             radius (int, optional): Keypoint radius. Defaults to 2.
-            conf_thres (float, optional): Confidence threshold for keypoints. Defaults to 0.25.
+            conf_thresh (float, optional): Confidence threshold for keypoints. Defaults to 0.25.
 
         Returns:
             (numpy.ndarray): Image with drawn keypoints.
@@ -365,7 +366,7 @@ class SolutionAnnotator(Annotator):
             Modifies self.im in-place.
         """
         indices = indices or [2, 5, 7]
-        points = [(int(k[0]), int(k[1])) for i, k in enumerate(keypoints) if i in indices and k[2] >= conf_thres]
+        points = [(int(k[0]), int(k[1])) for i, k in enumerate(keypoints) if i in indices and k[2] >= conf_thresh]
 
         # Draw lines between consecutive points
         for start, end in zip(points[:-1], points[1:]):
@@ -487,10 +488,22 @@ class SolutionAnnotator(Annotator):
         rect_y1 = text_y - text_size[1] - margin
         rect_x2 = text_x + text_size[0] + margin
         rect_y2 = text_y + margin
-        cv2.rectangle(im0, (rect_x1, rect_y1), (rect_x2, rect_y2), bg_color, -1)
-        cv2.putText(im0, text, (text_x, text_y), 0, self.sf, txt_color, self.tf, lineType=cv2.LINE_AA)
+        cv2.rectangle(im0,
+                      (int(rect_x1), int(rect_y1)),
+                      (int(rect_x2), int(rect_y2)),
+                      tuple(map(int, bg_color)),  # Ensure color values are int
+                      -1)
 
-    def seg_bbox(self, mask, mask_color=(255, 0, 255), label=None, txt_color=(255, 255, 255)):
+        cv2.putText(im0,
+                    text,
+                    (int(text_x), int(text_y)),
+                    0,
+                    self.sf,
+                    tuple(map(int, txt_color)),  # Ensure color values are int
+                    self.tf,
+                    lineType=cv2.LINE_AA)
+
+    def seg_bbox(self, mask, mask_color=(255, 0, 255), label=None):
         """
         Function for drawing segmented object in bounding box shape.
 
@@ -498,7 +511,6 @@ class SolutionAnnotator(Annotator):
             mask (np.ndarray): A 2D array of shape (N, 2) containing the contour points of the segmented object.
             mask_color (tuple): RGB color for the contour and label background.
             label (str, optional): Text label for the object. If None, no label is drawn.
-            txt_color (tuple): RGB color for the label text.
         """
         txt_color = self.get_txt_color(mask_color)
         if mask.size == 0:  # no masks to plot
@@ -659,7 +671,7 @@ class SolutionResults:
         summary: Returns the summary of Ultralytics Solutions: https://docs.ultralytics.com/solutions/
 
     Attributes:
-        im0 (ndarray): Preprocessed image with counts, blurred or other effect from solutions.
+        plot_im (ndarray): Processed image with counts, blurred or other effect from solutions.
         in_count (int, optional): The total number of "in" counts in a video stream. Default is 0.
         out_count (int, optional): The total number of "out" counts in a video stream. Default is 0.
         classwise_count (Dict[str, int], optional): A dictionary containing counts of objects categorized by class. Default is None.
@@ -686,7 +698,7 @@ class SolutionResults:
 
         Examples:
             >>> results = SolutionResults(
-            ...     im0=np.zeros((256, 256, 3), dtype=np.uint8),
+            ...     plot_im=np.zeros((256, 256, 3), dtype=np.uint8),
             ...     in_count=5,
             ...     out_count=3,
             ...     classwise_count={"person": 10, "car": 2},
@@ -705,7 +717,7 @@ class SolutionResults:
             ... )
         """
         defaults = {
-            "im0": None,
+            "plot_im": None,
             "in_count": 0,
             "out_count": 0,
             "classwise_count": None,
@@ -722,7 +734,7 @@ class SolutionResults:
             "speed_dict": None,
             "total_crop_objects": 0,
         }
-        self.__dict__.update({**defaults, **kwargs})
+        # self.__dict__.update({**defaults, **kwargs})
 
     def summary(self, verbose=False):
         """
@@ -735,11 +747,11 @@ class SolutionResults:
             summary (dict): A dictionary containing key-value pairs representing the current state of all attributes in the object.
         """
         # Get the dictionary of the attributes, convert im0 large array to ndarray string for Logging
-        self.result_summary = {
+        result_summary = {
             k: ("np.ndarray" if isinstance(v, np.ndarray) else v) for k, v in self.__dict__.items() if k != "summary"
         }
 
         if verbose:
-            LOGGER.info(f"Ultralytics Solutions: {self.result_summary}")
+            LOGGER.info(f"Ultralytics Solutions: {result_summary}")
 
         return {k: v for k, v in self.__dict__.items() if k != "summary"}

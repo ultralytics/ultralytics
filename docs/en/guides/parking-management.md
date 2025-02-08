@@ -91,7 +91,7 @@ while cap.isOpened():
     # print(f"Available slots: , {results['available_slots']}")
     # print(f"Filled slots: , {results['filled_slots']}")
 
-    video_writer.write(results["im0"])  # write the processed frame.
+    video_writer.write(results["plot_im"])  # write the processed frame.
 
 cap.release()
 video_writer.release()

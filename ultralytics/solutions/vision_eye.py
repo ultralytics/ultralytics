@@ -63,16 +63,16 @@ class VisionEye(BaseSolution):
             >>> summary = vision_eye.mapping(frame)
             >>> print(summary)
         """
-        annotator = SolutionAnnotator(im0, self.line_width)
-
         self.extract_tracks(im0)  # Extract tracks (bounding boxes, classes, and masks)
+        plot_im = im0  # For plotting the results
+        annotator = SolutionAnnotator(plot_im, self.line_width)
 
         for cls, t_id, box in zip(self.clss, self.track_ids, self.boxes):
             # Annotate the image with bounding boxes, labels, and vision mapping
             annotator.box_label(box, label=self.names[cls], color=colors(int(t_id), True))
             annotator.visioneye(box, self.vision_point)
 
-        self.display_output(im0)  # Display the annotated output using the base class function
+        self.display_output(plot_im)  # Display the annotated output using the base class function
 
         # Return a summary dictionary with the total count of tracks
-        return SolutionResults(im0=im0, total_tracks=len(self.track_ids)).summary(verbose=self.verbose)
+        return SolutionResults(plot_im=plot_im, total_tracks=len(self.track_ids)).summary(verbose=self.verbose)

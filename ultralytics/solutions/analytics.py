@@ -59,7 +59,7 @@ class Analytics(BaseSolution):
         self.title = "Ultralytics Solutions"  # window name
         self.max_points = 45  # maximum points to be drawn on window
         self.fontsize = 25  # text font size for display
-        figsize = (19.2, 10.8)  # Set output image size 1920 * 1080
+        figsize = (12.8, 7.2)  # Set output image size 1280 * 720
         self.color_cycle = cycle(["#DD00BA", "#042AFF", "#FF4447", "#7D24FF", "#BD00FF"])
 
         self.total_counts = 0  # count variable for storing total counts i.e. for line
@@ -104,11 +104,10 @@ class Analytics(BaseSolution):
             >>> processed_frame = analytics.process_data(frame, frame_number=1)
         """
         self.extract_tracks(im0)  # Extract tracks
-
         if self.type == "line":
             for _ in self.boxes:
                 self.total_counts += 1
-            _ = self.update_graph(frame_number=frame_number)
+            plot_im = self.update_graph(frame_number=frame_number)
             self.total_counts = 0
         elif self.type in {"pie", "bar", "area"}:
             self.clswise_count = {}
@@ -117,12 +116,12 @@ class Analytics(BaseSolution):
                     self.clswise_count[self.names[int(cls)]] += 1
                 else:
                     self.clswise_count[self.names[int(cls)]] = 1
-            _ = self.update_graph(frame_number=frame_number, count_dict=self.clswise_count, plot=self.type)
+            plot_im = self.update_graph(frame_number=frame_number, count_dict=self.clswise_count, plot=self.type)
         else:
             raise ModuleNotFoundError(f"{self.type} chart is not supported ❌")
 
         # return output dictionary with summary for more usage
-        return SolutionResults(im0=im0, total_tracks=len(self.track_ids), classwise_count=self.clswise_count).summary(
+        return SolutionResults(plot_im=plot_im, total_tracks=len(self.track_ids), classwise_count=self.clswise_count).summary(
             verbose=self.verbose
         )
 
@@ -141,9 +140,9 @@ class Analytics(BaseSolution):
 
         Examples:
             >>> analytics = Analytics()
-            >>> frame_number = 10
-            >>> count_dict = {"person": 5, "car": 3}
-            >>> updated_image = analytics.update_graph(frame_number, count_dict, plot="bar")
+            >>> frame_num = 10
+            >>> results_dict = {"person": 5, "car": 3}
+            >>> updated_image = analytics.update_graph(frame_num, results_dict, plot="bar")
         """
         if count_dict is None:
             # Single line update

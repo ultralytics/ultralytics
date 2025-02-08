@@ -46,9 +46,10 @@ class InstanceSegmentation(BaseSolution):
             >>> summary = segmenter.segment(frame)
             >>> print(summary)
         """
-        annotator = SolutionAnnotator(im0, self.line_width)
-
         self.extract_tracks(im0)  # Extract tracks (bounding boxes, classes, and masks)
+        plot_im = im0  # For plotting the results
+        annotator = SolutionAnnotator(plot_im, self.line_width)
+
 
         # Iterate over detected classes, track IDs, and segmentation masks
         if self.masks is None:
@@ -58,7 +59,7 @@ class InstanceSegmentation(BaseSolution):
                 # Annotate the image with segmentation mask, mask color, and label
                 annotator.seg_bbox(mask=mask, mask_color=colors(t_id, True), label=self.names[cls])
 
-        self.display_output(im0)  # Display the annotated output using the base class function
+        self.display_output(plot_im)  # Display the annotated output using the base class function
 
         # Return a summary dictionary with the total count of tracks
-        return SolutionResults(im0=im0, total_tracks=len(self.track_ids)).summary(verbose=self.verbose)
+        return SolutionResults(plot_im=plot_im, total_tracks=len(self.track_ids)).summary(verbose=self.verbose)

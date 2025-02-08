@@ -93,7 +93,7 @@ Object counting with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
             # print(f"Out count: , {results['out_count']}")
             # print(f"Class wise count: , {results['classwise_count']}")
 
-            video_writer.write(results["im0"])  # write the processed frame.
+            video_writer.write(results["plot_im"])  # write the processed frame.
 
         cap.release()
         video_writer.release()

@@ -63,7 +63,7 @@ Monitoring workouts through pose estimation with [Ultralytics YOLO11](https://gi
 
         # Video writer
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-        video_writer = cv2.VideoWriter("workouts.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
+        video_writer = cv2.VideoWriter("workouts_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
         # Init AIGym
         gym = solutions.AIGym(
@@ -88,7 +88,7 @@ Monitoring workouts through pose estimation with [Ultralytics YOLO11](https://gi
             # print(f"Workout angle: , {results['workout_angle']}")
             # print(f"Workout stage: , {results['workout_stage']}")
 
-            video_writer.write(results["im0"])  # write the processed frame.
+            video_writer.write(results["plot_im"])  # write the processed frame.
 
         cap.release()
         video_writer.release()

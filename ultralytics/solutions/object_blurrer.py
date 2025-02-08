@@ -72,21 +72,22 @@ class ObjectBlurrer(BaseSolution):
             >>> summary = blurrer.blur(frame)
             >>> print(summary)
         """
-        annotator = SolutionAnnotator(im0, self.line_width)
-
         self.extract_tracks(im0)  # Extract tracks
+        plot_im = im0  # For plotting the results
+        annotator = SolutionAnnotator(plot_im, self.line_width)
+
         # Iterate over bounding boxes and classes
         for box, cls in zip(self.boxes, self.clss):
             # Crop and blur the detected object
             blur_obj = cv2.blur(
-                im0[int(box[1]) : int(box[3]), int(box[0]) : int(box[2])],
+                plot_im[int(box[1]) : int(box[3]), int(box[0]) : int(box[2])],
                 (self.blur_ratio, self.blur_ratio),
             )
             # Update the blurred area in the original image
-            im0[int(box[1]) : int(box[3]), int(box[0]) : int(box[2])] = blur_obj
+            plot_im[int(box[1]) : int(box[3]), int(box[0]) : int(box[2])] = blur_obj
             annotator.box_label(box, label=self.names[cls], color=colors(cls, True))  # Annotate bounding box
 
-        self.display_output(im0)  # Display the output using the base class function
+        self.display_output(plot_im)  # Display the output using the base class function
 
         # Return a summary dictionary for usage
-        return SolutionResults(im0=im0, total_tracks=len(self.track_ids)).summary(verbose=self.verbose)
+        return SolutionResults(plot_im=plot_im, total_tracks=len(self.track_ids)).summary(verbose=self.verbose)

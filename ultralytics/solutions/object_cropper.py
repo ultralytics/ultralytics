@@ -65,24 +65,25 @@ class ObjectCropper(BaseSolution):
             >>> summary = cropper.crop(frame)
             >>> print(summary)
         """
-        annotator = SolutionAnnotator(im0)
-
         results = self.model.predict(im0, classes=self.classes, conf=self.conf, iou=self.iou, device="cpu")[0]
+        plot_im = im0  # For plotting the results
+        annotator = SolutionAnnotator(plot_im)
+
         boxes = results.boxes.xyxy.cpu().tolist()  # Detected bounding boxes list
         clss = results.boxes.cls.cpu().tolist()  # Detected classes list
 
         for box, cls in zip(boxes, clss):
             self.crop_idx += 1
-            crop_object = im0[int(box[1]) : int(box[3]), int(box[0]) : int(box[2])]  # Crop the detected object
+            crop_obj = plot_im[int(box[1]) : int(box[3]), int(box[0]) : int(box[2])]  # Crop the detected object
             cv2.imwrite(
-                os.path.join(self.crop_directory, f"crop-{self.crop_idx}.jpg"), crop_object
+                os.path.join(self.crop_directory, f"crop-{self.crop_idx}.jpg"), crop_obj
             )  # Save cropped image
             annotator.box_label(box, label=self.names[cls], color=colors(cls, True))  # Bounding box plot
 
-        self.display_output(im0)  # display output with base class function
+        self.display_output(plot_im)  # display output with base class function
 
         # Return output dictionary with summary for usage
         return SolutionResults(
-            im0=im0,
+            plot_im=plot_im,
             total_crop_objects=self.crop_idx,
         ).summary(verbose=self.verbose)

@@ -78,7 +78,7 @@ while cap.isOpened():
     # print(f"Region counts: , {results['region_counts']}")
     # print(f"Total tracks: , {results['total_tracks']}")
 
-    video_writer.write(results["im0"])
+    video_writer.write(results["plot_im"])
 
 cap.release()
 video_writer.release()

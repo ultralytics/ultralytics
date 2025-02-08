@@ -70,8 +70,9 @@ class RegionCounter(BaseSolution):
         Returns:
             results (dict): Contains processed image `im0`, 'total_tracks' (int, total number of tracked objects).
         """
-        self.annotator = SolutionAnnotator(im0, line_width=self.line_width)
         self.extract_tracks(im0)
+        plot_im = im0  # For plotting the results
+        self.annotator = SolutionAnnotator(plot_im, line_width=self.line_width)
 
         # Region initialization and conversion
         if self.region is None:
@@ -113,11 +114,11 @@ class RegionCounter(BaseSolution):
             )
             region_counts[region["name"]] = region["counts"]  # Store counts in the dictionary
 
-        region["counts"] = 0  # Reset count for next frame
+            region["counts"] = 0  # Reset count for next frame
 
-        self.display_output(im0)
+        self.display_output(plot_im)
 
         # return output dictionary with summary for more usage
-        return SolutionResults(im0=im0, total_tracks=len(self.track_ids), region_counts=region_counts).summary(
+        return SolutionResults(plot_im=plot_im, total_tracks=len(self.track_ids), region_counts=region_counts).summary(
             verbose=self.verbose
         )

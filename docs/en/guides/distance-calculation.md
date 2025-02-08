@@ -55,7 +55,7 @@ assert cap.isOpened(), "Error reading video file"
 
 # Video writer
 w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-video_writer = cv2.VideoWriter("distance_calculation.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
+video_writer = cv2.VideoWriter("distance_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
 # Init DistanceCalculation
 distance = solutions.DistanceCalculation(
@@ -77,7 +77,7 @@ while cap.isOpened():
     # print(f"Pexels distance: , {results['pixels_distance']}")
     # print(f"Total tracks: , {results['total_tracks']}")
 
-    video_writer.write(results["im0"])  # write the processed frame.
+    video_writer.write(results["plot_im"])  # write the processed frame.
 
 cap.release()
 video_writer.release()

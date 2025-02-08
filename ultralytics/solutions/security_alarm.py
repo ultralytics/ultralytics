@@ -126,8 +126,9 @@ class SecurityAlarm(BaseSolution):
             >>> frame = cv2.imread("path/to/image.jpg")
             >>> processed_frame = alarm.monitor(frame)
         """
-        self.annotator = SolutionAnnotator(im0, line_width=self.line_width)  # Initialize annotator
         self.extract_tracks(im0)  # Extract tracks
+        plot_im = im0   # For plotting the results
+        self.annotator = SolutionAnnotator(plot_im, line_width=self.line_width)  # Initialize annotator
 
         # Iterate over bounding boxes, track ids and classes index
         for box, cls in zip(self.boxes, self.clss):
@@ -139,9 +140,9 @@ class SecurityAlarm(BaseSolution):
             self.send_email(im0, total_det)
             self.email_sent = True
 
-        self.display_output(im0)  # display output with base class function
+        self.display_output(plot_im)  # display output with base class function
 
         # return output dictionary with summary for more usage
-        return SolutionResults(im0=im0, total_tracks=len(self.track_ids), email_sent=self.email_sent).summary(
+        return SolutionResults(plot_im=plot_im, total_tracks=len(self.track_ids), email_sent=self.email_sent).summary(
             verbose=self.verbose
         )

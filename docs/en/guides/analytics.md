@@ -66,10 +66,10 @@ This guide provides a comprehensive overview of three fundamental types of [data
         # Video writer
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
         out = cv2.VideoWriter(
-            "analytics.avi",
+            "analytics_output.avi",
             cv2.VideoWriter_fourcc(*"MJPG"),
             fps,
-            (1920, 1080),  # This is fixed
+            (1280, 720),  # This is fixed
         )
 
         # Init Analytics
@@ -91,7 +91,7 @@ This guide provides a comprehensive overview of three fundamental types of [data
                 # Access the output
                 print(f"Total tracks: , {results['total_tracks']}")
 
-                out.write(results["im0"])  # write the video file
+                out.write(results["plot_im"])  # write the video file
             else:
                 break
 
@@ -105,8 +105,8 @@ This guide provides a comprehensive overview of three fundamental types of [data
 Here's a table with the `Analytics` arguments:
 
 | Name             | Type    | Default        | Description                                                                                                                                                                  |
-| ---------------- | ------- | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `analytics_type` | `str`   | `line`         | Type of graph i.e "line", "bar", "area", "pie"                                                                                                                               |
+| ---------------- | ------- | -------------- |------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `analytics_type` | `str`   | `line`         | Type of graph i.e `line`, `bar`, `area` or `pie`                                                                                                                             |
 | `model`          | `str`   | `None`         | Path to Ultralytics YOLO Model File                                                                                                                                          |
 | `line_width`     | `int`   | `2`            | Line thickness for bounding boxes.                                                                                                                                           |
 | `show`           | `bool`  | `False`        | Flag to control whether to display the video stream.                                                                                                                         |

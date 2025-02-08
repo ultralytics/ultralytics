@@ -94,8 +94,10 @@ class DistanceCalculation(BaseSolution):
             >>> frame = np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8)
             >>> processed_frame = dc.calculate(frame)
         """
-        self.annotator = SolutionAnnotator(im0, line_width=self.line_width)  # Initialize annotator
         self.extract_tracks(im0)  # Extract tracks
+        plot_im = im0  # For plotting the results
+        self.annotator = SolutionAnnotator(plot_im, line_width=self.line_width)  # Initialize annotator
+
 
         pixels_distance = 0
         # Iterate over bounding boxes, track ids and classes index
@@ -120,10 +122,10 @@ class DistanceCalculation(BaseSolution):
 
         self.centroids = []
 
-        self.display_output(im0)  # display output with base class function
+        self.display_output(plot_im)  # display output with base class function
         cv2.setMouseCallback("Ultralytics Solutions", self.mouse_event_for_distance)
 
         # return output dictionary with summary for more usage
-        return SolutionResults(im0=im0, pixels_distance=pixels_distance, total_tracks=len(self.track_ids)).summary(
+        return SolutionResults(plot_im=plot_im, pixels_distance=pixels_distance, total_tracks=len(self.track_ids)).summary(
             verbose=self.verbose
         )

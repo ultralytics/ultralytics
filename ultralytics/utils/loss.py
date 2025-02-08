@@ -175,6 +175,7 @@ class v8DetectionLoss:
 
         m = model.model[-1]  # Detect() module
         self.bce = nn.BCEWithLogitsLoss(reduction="none")
+        self.varifocal_loss = VarifocalLoss()
         self.hyp = h
         self.stride = m.stride  # model strides
         self.nc = m.nc  # number of classes
@@ -206,12 +207,6 @@ class v8DetectionLoss:
             out[..., 1:5] = xywh2xyxy(out[..., 1:5].mul_(scale_tensor))
         return out
     
-    def varifocal_loss(pred_scores, target_scores, alpha=0.75, gamma=2.0):
-        pred_scores = pred_scores.sigmoid()
-        weight = alpha * (pred_scores - target_scores).abs().pow(gamma)
-        loss = weight * nn.functional.binary_cross_entropy_with_logits(pred_scores, target_scores, reduction="none")
-        return loss.sum()
-    
     def bbox_decode(self, anchor_points, pred_dist):
         """Decode predicted object bounding box coordinates from anchor points and distribution."""
         if self.use_dfl:
@@ -242,6 +237,10 @@ class v8DetectionLoss:
         targets = self.preprocess(targets.to(self.device), batch_size, scale_tensor=imgsz[[1, 0, 1, 0]])
         gt_labels, gt_bboxes = targets.split((1, 4), 2)  # cls, xyxy
         mask_gt = gt_bboxes.sum(2, keepdim=True).gt_(0.0)
+        
+        # Compute target_labels based on fg_mask and gt_labels
+        target_labels = torch.zeros_like(target_scores, dtype=torch.long)  # Initialize as background (0)
+        target_labels[fg_mask] = gt_labels.squeeze(-1).long()  # Assign foreground labels
 
         # Pboxes
         pred_bboxes = self.bbox_decode(anchor_points, pred_distri)  # xyxy, (b, h*w, 4)
@@ -262,9 +261,8 @@ class v8DetectionLoss:
         target_scores_sum = target_scores.sum().clamp(min=1.0)
 
         # Cls loss
-        # loss[1] = self.varifocal_loss(pred_scores, target_scores, target_labels) / target_scores_sum  # VFL way
+        loss[1] = self.varifocal_loss(pred_scores, target_scores, target_labels) / target_scores_sum  # VFL way
         # loss[1] = self.bce(pred_scores, target_scores.to(dtype)).sum() / target_scores_sum  # BCE
-        loss[1] = self.varifocal_loss(pred_scores, target_scores.to(dtype)) / target_scores_sum
 
         # Bbox loss
         if fg_mask.sum():

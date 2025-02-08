@@ -61,8 +61,6 @@ def torch_distributed_zero_first(local_rank: int):
 
 def smart_inference_mode():
     """Applies torch.inference_mode() decorator if torch>=1.9.0 else torch.no_grad() decorator."""
-    os.environ.pop("CUBLAS_WORKSPACE_CONFIG", None)  # decreases speed if set
-
     def decorate(fn):
         """Applies appropriate torch decorator for inference mode based on torch version."""
         if TORCH_1_9 and torch.is_inference_mode_enabled():
@@ -214,8 +212,6 @@ def select_device(device="", batch=0, newline=False, verbose=True):
         for i, d in enumerate(devices):
             s += f"{'' if i == 0 else space}CUDA:{d} ({get_gpu_info(i)})\n"  # bytes to MB
         arg = "cuda:0"
-        os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"  # for deterministic training to avoid CUDA warning
-        torch.cuda.init()  # init CUDA context
     elif mps and TORCH_2_0 and torch.backends.mps.is_available():
         # Prefer MPS if available
         s += f"MPS ({get_cpu_info()})\n"

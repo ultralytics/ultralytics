@@ -91,11 +91,12 @@ class DFLoss(nn.Module):
 class BboxLoss(nn.Module):
     """Criterion class for computing training losses during training."""
 
-    def __init__(self, reg_max=16, inner_giou_ratio=0.1):
+    def __init__(self, reg_max=16, inner_giou_ratio=0.5):
         """Initialize the BboxLoss module with regularization maximum and DFL settings."""
         super().__init__()
         self.dfl_loss = DFLoss(reg_max) if reg_max > 1 else None
-        self.inner_giou_ratio = inner_giou_ratio
+        # self.inner_giou_ratio = inner_giou_ratio
+        self.inner_giou_ratio = nn.Parameter(torch.tensor(inner_giou_ratio))
 
 
     def forward(self, pred_dist, pred_bboxes, anchor_points, target_bboxes, target_scores, target_scores_sum, fg_mask):
@@ -107,7 +108,8 @@ class BboxLoss(nn.Module):
             xywh=False,
             GIoU=True,         # or set GIoU=True to get a GIoU-based portion
             InnerGIoU=True,    # toggles the Inner-GIoU logic
-            ratio=self.inner_giou_ratio
+            # ratio=self.inner_giou_ratio
+            ratio=torch.sigmoid(self.inner_giou_ratio) * 1.5
         )
         loss_iou = ((1.0 - iou) * weight).sum() / target_scores_sum
 
@@ -203,7 +205,13 @@ class v8DetectionLoss:
                     out[j, :n] = targets[matches, 1:]
             out[..., 1:5] = xywh2xyxy(out[..., 1:5].mul_(scale_tensor))
         return out
-
+    
+    def varifocal_loss(pred_scores, target_scores, alpha=0.75, gamma=2.0):
+        pred_scores = pred_scores.sigmoid()
+        weight = alpha * (pred_scores - target_scores).abs().pow(gamma)
+        loss = weight * nn.functional.binary_cross_entropy_with_logits(pred_scores, target_scores, reduction="none")
+        return loss.sum()
+    
     def bbox_decode(self, anchor_points, pred_dist):
         """Decode predicted object bounding box coordinates from anchor points and distribution."""
         if self.use_dfl:
@@ -255,7 +263,8 @@ class v8DetectionLoss:
 
         # Cls loss
         # loss[1] = self.varifocal_loss(pred_scores, target_scores, target_labels) / target_scores_sum  # VFL way
-        loss[1] = self.bce(pred_scores, target_scores.to(dtype)).sum() / target_scores_sum  # BCE
+        # loss[1] = self.bce(pred_scores, target_scores.to(dtype)).sum() / target_scores_sum  # BCE
+        loss[1] = self.varifocal_loss(pred_scores, target_scores.to(dtype)) / target_scores_sum
 
         # Bbox loss
         if fg_mask.sum():

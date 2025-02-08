@@ -488,20 +488,24 @@ class SolutionAnnotator(Annotator):
         rect_y1 = text_y - text_size[1] - margin
         rect_x2 = text_x + text_size[0] + margin
         rect_y2 = text_y + margin
-        cv2.rectangle(im0,
-                      (int(rect_x1), int(rect_y1)),
-                      (int(rect_x2), int(rect_y2)),
-                      tuple(map(int, bg_color)),  # Ensure color values are int
-                      -1)
+        cv2.rectangle(
+            im0,
+            (int(rect_x1), int(rect_y1)),
+            (int(rect_x2), int(rect_y2)),
+            tuple(map(int, bg_color)),  # Ensure color values are int
+            -1,
+        )
 
-        cv2.putText(im0,
-                    text,
-                    (int(text_x), int(text_y)),
-                    0,
-                    self.sf,
-                    tuple(map(int, txt_color)),  # Ensure color values are int
-                    self.tf,
-                    lineType=cv2.LINE_AA)
+        cv2.putText(
+            im0,
+            text,
+            (int(text_x), int(text_y)),
+            0,
+            self.sf,
+            tuple(map(int, txt_color)),  # Ensure color values are int
+            self.tf,
+            lineType=cv2.LINE_AA,
+        )
 
     def seg_bbox(self, mask, mask_color=(255, 0, 255), label=None):
         """
@@ -716,24 +720,6 @@ class SolutionResults:
             ...     total_crop_objects=5,
             ... )
         """
-        defaults = {
-            "plot_im": None,
-            "in_count": 0,
-            "out_count": 0,
-            "classwise_count": None,
-            "queue_count": 0,
-            "workout_count": 0,
-            "workout_angle": 0,
-            "workout_stage": None,
-            "pixels_distance": 0,
-            "available_slots": 0,
-            "filled_slots": 0,
-            "email_sent": False,
-            "total_tracks": 0,
-            "region_counts": {},
-            "speed_dict": None,
-            "total_crop_objects": 0,
-        }
         # self.__dict__.update({**defaults, **kwargs})
 
     def summary(self, verbose=False):

@@ -75,9 +75,7 @@ class ObjectCropper(BaseSolution):
         for box, cls in zip(boxes, clss):
             self.crop_idx += 1
             crop_obj = plot_im[int(box[1]) : int(box[3]), int(box[0]) : int(box[2])]  # Crop the detected object
-            cv2.imwrite(
-                os.path.join(self.crop_directory, f"crop-{self.crop_idx}.jpg"), crop_obj
-            )  # Save cropped image
+            cv2.imwrite(os.path.join(self.crop_directory, f"crop-{self.crop_idx}.jpg"), crop_obj)  # Save cropped image
             annotator.box_label(box, label=self.names[cls], color=colors(cls, True))  # Bounding box plot
 
         self.display_output(plot_im)  # display output with base class function

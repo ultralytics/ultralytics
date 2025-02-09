@@ -38,6 +38,10 @@ keywords: Ultralytics YOLO11, speed estimation, object tracking, computer vision
 | ![Speed Estimation on Road using Ultralytics YOLO11](https://github.com/ultralytics/docs/releases/download/0/speed-estimation-on-road-using-ultralytics-yolov8.avif) | ![Speed Estimation on Bridge using Ultralytics YOLO11](https://github.com/ultralytics/docs/releases/download/0/speed-estimation-on-bridge-using-ultralytics-yolov8.avif) |
 |                                                          Speed Estimation on Road using Ultralytics YOLO11                                                           |                                                           Speed Estimation on Bridge using Ultralytics YOLO11                                                            |
 
+???+ warning "Speed is Estimate"
+
+    Speed will be an estimate and may not be completely accurate. Additionally, the estimation can vary depending on GPU speed.
+
 !!! example "Speed Estimation using YOLO11 Example"
 
     === "CLI"
@@ -62,52 +66,58 @@ keywords: Ultralytics YOLO11, speed estimation, object tracking, computer vision
 
         cap = cv2.VideoCapture("Path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
-        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 
         # Video writer
+        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
         video_writer = cv2.VideoWriter("speed_management.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
-        # Define speed region points
+        # speed region points
         speed_region = [(20, 400), (1080, 400), (1080, 360), (20, 360)]
 
         speed = solutions.SpeedEstimator(
-            show=True,  # Display the output
-            model="yolo11n.pt",  # Path to the YOLO11 model file.
-            region=speed_region,  # Pass region points
-            # classes=[0, 2],  # If you want to estimate speed of specific classes.
-            # line_width=2,  # Adjust the line width for bounding boxes and text display
+            show=True,  # display the output
+            model="yolo11n.pt",  # path to the YOLO11 model file.
+            region=speed_region,  # pass region points
+            # classes=[0, 2],           # estimate speed of specific classes.
+            # line_width=2,             # Adjust the line width for bounding boxes
         )
 
         # Process video
         while cap.isOpened():
             success, im0 = cap.read()
+
             if not success:
-                print("Video frame is empty or video processing has been successfully completed.")
+                print("Video frame is empty or processing is complete.")
                 break
-            out = speed.estimate_speed(im0)
-            video_writer.write(im0)
+
+            results = speed.estimate_speed(im0)
+
+            # Access the output
+            # print(f"Total tracks: , {results['total_tracks']}")
+
+            video_writer.write(results["plot_im"])  # write the processed frame.
 
         cap.release()
         video_writer.release()
-        cv2.destroyAllWindows()
+        cv2.destroyAllWindows()  # destroy all opened windows
         ```
-
-???+ warning "Speed is Estimate"
-
-    Speed will be an estimate and may not be completely accurate. Additionally, the estimation can vary depending on GPU speed.
 
 ### Arguments `SpeedEstimator`
 
-| Name         | Type   | Default                    | Description                                          |
-| ------------ | ------ | -------------------------- | ---------------------------------------------------- |
-| `model`      | `str`  | `None`                     | Path to Ultralytics YOLO Model File                  |
-| `region`     | `list` | `[(20, 400), (1260, 400)]` | List of points defining the counting region.         |
-| `line_width` | `int`  | `2`                        | Line thickness for bounding boxes.                   |
-| `show`       | `bool` | `False`                    | Flag to control whether to display the video stream. |
+Here's a table with the `SpeedEstimator` arguments:
 
-### Arguments `model.track`
-
-{% include "macros/track-args.md" %}
+| Name         | Type    | Default                    | Description                                                                                                                                                                  |
+| ------------ | ------- | -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `model`      | `str`   | `None`                     | Path to Ultralytics YOLO Model File                                                                                                                                          |
+| `region`     | `list`  | `[(20, 400), (1260, 400)]` | List of points defining the counting region.                                                                                                                                 |
+| `line_width` | `int`   | `2`                        | Line thickness for bounding boxes.                                                                                                                                           |
+| `show`       | `bool`  | `False`                    | Flag to control whether to display the video stream.                                                                                                                         |
+| `tracker`    | `str`   | `botsort.yaml`             | Specifies the tracking algorithm to use, e.g., `bytetrack.yaml` or `botsort.yaml`.                                                                                           |
+| `conf`       | `float` | `0.3`                      | Sets the confidence threshold for detections; lower values allow more objects to be tracked but may include false positives.                                                 |
+| `iou`        | `float` | `0.5`                      | Sets the [Intersection over Union](https://www.ultralytics.com/glossary/intersection-over-union-iou) (IoU) threshold for filtering overlapping detections.                   |
+| `classes`    | `list`  | `None`                     | Filters results by class index. For example, `classes=[0, 2, 3]` only tracks the specified classes.                                                                          |
+| `max_det`    | `int`   | `300`                      | Maximum number of detections allowed per image. Limits the total number of objects the model can detect in a single inference, preventing excessive outputs in dense scenes. |
+| `verbose`    | `bool`  | `True`                     | Controls the display of solutions results, providing a visual output of tracked objects.                                                                                     |
 
 ## FAQ
 
@@ -137,8 +147,8 @@ while cap.isOpened():
     success, im0 = cap.read()
     if not success:
         break
-    im0 = speed_obj.estimate_speed(im0)
-    video_writer.write(im0)
+    results = speed_obj.estimate_speed(im0)
+    video_writer.write(results["im0"])
 
 cap.release()
 video_writer.release()

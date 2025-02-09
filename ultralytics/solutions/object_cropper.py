@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import os
 
@@ -80,8 +80,9 @@ class ObjectCropper(BaseSolution):
 
         self.display_output(plot_im)  # display output with base class function
 
-        # Return output dictionary with summary for usage
+        # Return SolutionResults
         return SolutionResults(
             plot_im=plot_im,
             total_crop_objects=self.crop_idx,
-        ).summary(verbose=self.verbose)
+            verbose=self.verbose,
+        )

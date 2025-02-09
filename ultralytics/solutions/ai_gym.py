@@ -92,7 +92,7 @@ class AIGym(BaseSolution):
                 # Get keypoints and estimate the angle
                 kpts = [k[int(self.kpts[i])].cpu() for i in range(3)]
                 self.angle[ind] = self.annotator.estimate_pose_angle(*kpts)
-                im0 = self.annotator.draw_specific_points(k, self.kpts, radius=self.line_width * 3)
+                plot_im = self.annotator.draw_specific_points(k, self.kpts, radius=self.line_width * 3)
 
                 # Determine stage and count logic based on angle thresholds
                 if self.angle[ind] < self.down_angle:
@@ -112,11 +112,12 @@ class AIGym(BaseSolution):
 
         self.display_output(plot_im)  # Display output image, if environment support display
 
-        # return output dictionary with summary for more usage
+        # Return SolutionResults
         return SolutionResults(
             plot_im=plot_im,
             workout_count=self.count,
             workout_stage=self.stage,
             workout_angle=self.angle,
             total_tracks=len(self.track_ids),
-        ).summary(verbose=self.verbose)
+            verbose=self.verbose
+        )

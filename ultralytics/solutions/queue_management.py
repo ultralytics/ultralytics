@@ -91,7 +91,8 @@ class QueueManager(BaseSolution):
         )
         self.display_output(plot_im)  # display output with base class function
 
-        # return output dictionary with summary for more usage
-        return SolutionResults(plot_im=plot_im, queue_count=self.counts, total_tracks=len(self.track_ids)).summary(
-            verbose=self.verbose
-        )
+        # Return a SolutionResults
+        return SolutionResults(plot_im=plot_im,
+                               queue_count=self.counts,
+                               total_tracks=len(self.track_ids),
+                               verbose=self.verbose)

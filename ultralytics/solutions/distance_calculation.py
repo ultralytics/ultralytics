@@ -124,7 +124,9 @@ class DistanceCalculation(BaseSolution):
         self.display_output(plot_im)  # display output with base class function
         cv2.setMouseCallback("Ultralytics Solutions", self.mouse_event_for_distance)
 
-        # return output dictionary with summary for more usage
+        # Return SolutionResults
         return SolutionResults(
-            plot_im=plot_im, pixels_distance=pixels_distance, total_tracks=len(self.track_ids)
-        ).summary(verbose=self.verbose)
+            plot_im=plot_im,
+            pixels_distance=pixels_distance,
+            total_tracks=len(self.track_ids),
+            verbose=self.verbose)

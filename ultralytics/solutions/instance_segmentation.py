@@ -60,5 +60,7 @@ class InstanceSegmentation(BaseSolution):
 
         self.display_output(plot_im)  # Display the annotated output using the base class function
 
-        # Return a summary dictionary with the total count of tracks
-        return SolutionResults(plot_im=plot_im, total_tracks=len(self.track_ids)).summary(verbose=self.verbose)
+        # Return SolutionResults
+        return SolutionResults(plot_im=plot_im,
+                               total_tracks=len(self.track_ids),
+                               verbose=self.verbose)

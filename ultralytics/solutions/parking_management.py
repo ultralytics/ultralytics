@@ -249,10 +249,10 @@ class ParkingManagement(BaseSolution):
 
         self.display_output(plot_im)  # display output with base class function
 
-        # return output dictionary with summary for more usage
+        # Return SolutionResults
         return SolutionResults(
             plot_im=plot_im,
             filled_slots=self.pr_info["Occupancy"],
             available_slots=self.pr_info["Available"],
             total_tracks=len(self.track_ids),
-        ).summary(verbose=self.verbose)
+            verbose=self.verbose)

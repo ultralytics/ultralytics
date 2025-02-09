@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 
 from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
@@ -74,5 +74,7 @@ class VisionEye(BaseSolution):
 
         self.display_output(plot_im)  # Display the annotated output using the base class function
 
-        # Return a summary dictionary with the total count of tracks
-        return SolutionResults(plot_im=plot_im, total_tracks=len(self.track_ids)).summary(verbose=self.verbose)
+        # Return a SolutionResults
+        return SolutionResults(plot_im=plot_im,
+                               total_tracks=len(self.track_ids),
+                               verbose=self.verbose)

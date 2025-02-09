@@ -129,11 +129,11 @@ class Heatmap(ObjectCounter):
 
         self.display_output(plot_im)  # display output with base class function
 
-        # return output dictionary with summary for more usage
+        # Return SolutionResults
         return SolutionResults(
             plot_im=plot_im,
             in_count=self.in_count,
             out_count=self.out_count,
             classwise_count=self.classwise_counts,
             total_tracks=len(self.track_ids),
-        ).summary(verbose=self.verbose)
+            verbose=self.verbose)

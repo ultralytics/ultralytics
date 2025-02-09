@@ -122,10 +122,8 @@ class Analytics(BaseSolution):
 
         # return output dictionary with summary for more usage
         return SolutionResults(
-            plot_im=plot_im,
-            total_tracks=len(self.track_ids),
-            classwise_count=self.clswise_count,
-            verbose=self.verbose)
+            plot_im=plot_im, total_tracks=len(self.track_ids), classwise_count=self.clswise_count, verbose=self.verbose
+        )
 
     def update_graph(self, frame_number, count_dict=None, plot="line"):
         """

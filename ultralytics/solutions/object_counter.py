@@ -206,5 +206,5 @@ class ObjectCounter(BaseSolution):
             out_count=self.out_count,
             classwise_count=self.classwise_counts,
             total_tracks=len(self.track_ids),
-            verbose=self.verbose
+            verbose=self.verbose,
         )

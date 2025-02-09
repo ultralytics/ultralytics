@@ -255,4 +255,5 @@ class ParkingManagement(BaseSolution):
             filled_slots=self.pr_info["Occupancy"],
             available_slots=self.pr_info["Available"],
             total_tracks=len(self.track_ids),
-            verbose=self.verbose)
+            verbose=self.verbose,
+        )

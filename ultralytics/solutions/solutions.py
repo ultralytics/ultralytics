@@ -488,20 +488,24 @@ class SolutionAnnotator(Annotator):
         rect_y1 = text_y - text_size[1] - margin
         rect_x2 = text_x + text_size[0] + margin
         rect_y2 = text_y + margin
-        cv2.rectangle(im0,
-                      (int(rect_x1), int(rect_y1)),
-                      (int(rect_x2), int(rect_y2)),
-                      tuple(map(int, bg_color)),  # Ensure color values are int
-                      -1)
+        cv2.rectangle(
+            im0,
+            (int(rect_x1), int(rect_y1)),
+            (int(rect_x2), int(rect_y2)),
+            tuple(map(int, bg_color)),  # Ensure color values are int
+            -1,
+        )
 
-        cv2.putText(im0,
-                    text,
-                    (int(text_x), int(text_y)),
-                    0,
-                    self.sf,
-                    tuple(map(int, txt_color)),  # Ensure color values are int
-                    self.tf,
-                    lineType=cv2.LINE_AA)
+        cv2.putText(
+            im0,
+            text,
+            (int(text_x), int(text_y)),
+            0,
+            self.sf,
+            tuple(map(int, txt_color)),  # Ensure color values are int
+            self.tf,
+            lineType=cv2.LINE_AA,
+        )
 
     def seg_bbox(self, mask, mask_color=(255, 0, 255), label=None):
         """
@@ -688,6 +692,7 @@ class SolutionResults:
     def __init__(self, **kwargs):
         """
         Initializes a SolutionResults object with default or user-specified values for its attributes.
+
         Allows flexible initialization with optional arguments, enabling customization for specific use cases.
         """
         self.plot_im = None

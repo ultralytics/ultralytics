@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import torch
 import torch.nn as nn
@@ -172,7 +172,7 @@ def get_cdn_group(
             bounding boxes, attention mask and meta information for denoising. If not in training mode or 'num_dn'
             is less than or equal to 0, the function returns None for all elements in the tuple.
     """
-    if (not training) or num_dn <= 0:
+    if (not training) or num_dn <= 0 or batch is None:
         return None, None, None, None
     gt_groups = batch["gt_groups"]
     total_num = sum(gt_groups)

@@ -85,15 +85,16 @@ yolov8n_imx_model
 └── yolov8n_imx500_model.pbtxt
 ```
 
-## Arguments
+## Export Arguments
 
-When exporting a model to IMX500 format, you can specify various arguments:
+| Argument | Type             | Default      | Description                                                                                                                                                                                   |
+| -------- | ---------------- | ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `format` | `str`            | `imx`        | Target format for the exported model, defining compatibility with various deployment environments.                                                                                            |
+| `imgsz`  | `int` or `tuple` | `640`        | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                                                             |
+| `int8`   | `bool`           | `True`       | Activates INT8 quantization, further compressing the model and speeding up inference with minimal [accuracy](https://www.ultralytics.com/glossary/accuracy) loss, primarily for edge devices. |
+| `data`   | `str`            | `coco8.yaml` | Path to the [dataset](https://docs.ultralytics.com/datasets) configuration file (default: `coco8.yaml`), essential for quantization.                                                          |
 
-| Key      | Value  | Description                                              |
-| -------- | ------ | -------------------------------------------------------- |
-| `format` | `imx`  | Format to export to (imx)                                |
-| `int8`   | `True` | Enable INT8 quantization for the model (default: `True`) |
-| `imgsz`  | `640`  | Image size for the model input (default: `640`)          |
+For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
 
 ## Using IMX500 Export in Deployment
 
@@ -153,7 +154,7 @@ The above will generate a `network.rpk` file inside the specified output folder.
 Step 2: Clone `picamera2` repository, install it and navigate to the imx500 examples
 
 ```bash
-git clone -b next https://github.com/raspberrypi/picamera2
+git clone https://github.com/raspberrypi/picamera2
 cd picamera2
 pip install -e .  --break-system-packages
 cd examples/imx500
@@ -314,7 +315,7 @@ After exporting to IMX500 format:
 2. Clone and install picamera2:
 
     ```bash
-    git clone -b next https://github.com/raspberrypi/picamera2
+    git clone https://github.com/raspberrypi/picamera2
     cd picamera2 && pip install -e . --break-system-packages
     ```
 

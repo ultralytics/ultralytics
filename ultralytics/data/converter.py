@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import json
 import random
@@ -242,7 +242,9 @@ def convert_coco(
         from ultralytics.data.converter import convert_coco
 
         convert_coco("../datasets/coco/annotations/", use_segments=True, use_keypoints=False, cls91to80=False)
-        convert_coco("../datasets/lvis/annotations/", use_segments=True, use_keypoints=False, cls91to80=False, lvis=True)
+        convert_coco(
+            "../datasets/lvis/annotations/", use_segments=True, use_keypoints=False, cls91to80=False, lvis=True
+        )
         ```
 
     Output:
@@ -270,7 +272,7 @@ def convert_coco(
             data = json.load(f)
 
         # Create image dict
-        images = {f'{x["id"]:d}': x for x in data["images"]}
+        images = {f"{x['id']:d}": x for x in data["images"]}
         # Create image-annotations dict
         imgToAnns = defaultdict(list)
         for ann in data["annotations"]:

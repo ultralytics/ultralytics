@@ -52,7 +52,7 @@ Here's our curated list of Ultralytics solutions that can be used to create awes
 
 ### Usage of SolutionAnnotator
 
-All Ultralytics Solutions use the separate class [`SolutionAnnotator`](../reference/solutions/solutions/#ultralytics.solutions.solutions.SolutionAnnotator), that extends the main [`Annotator`](../reference/utils/plotting/#ultralytics.utils.plotting.Annotator) class, and have the following methods:
+All Ultralytics Solutions use the separate class [`SolutionAnnotator`](https://docs.ultralytics.com/reference/solutions/solutions/#ultralytics.solutions.solutions.SolutionAnnotator), that extends the main [`Annotator`](https://docs.ultralytics.com/reference/utils/plotting/#ultralytics.utils.plotting.Annotator) class, and have the following methods:
 
 | Method                             | Return Type | Description                                                            |
 | ---------------------------------- | ----------- | ---------------------------------------------------------------------- |
@@ -778,7 +778,7 @@ All Solutions calls will return a list of `SolutionResults` objects:
 | `speed_dict`         | `dict, optional`  | Dictionary storing object speeds.                 |
 | `total_crop_objects` | `int, optional`   | Number of cropped detected objects.               |
 
-For more details see the [`SolutionResults` class documentation](../reference/solutions/solutions/#ultralytics.solutions.solutions.SolutionResults).
+For more details see the [`SolutionResults` class documentation](https://docs.ultralytics.com/reference/solutions/solutions/#ultralytics.solutions.solutions.SolutionAnnotator).
 
 ### Solutions Usage via CLI
 

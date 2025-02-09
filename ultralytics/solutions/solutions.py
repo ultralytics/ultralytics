@@ -716,6 +716,23 @@ class SolutionResults:
             ...     total_crop_objects=5,
             ... )
         """
+        self.plot_im = None
+        self.in_count = 0
+        self.out_count = 0
+        self.classwise_count = 0
+        self.queue_count = 0
+        self.workout_count = 0
+        self.workout_angle = 0
+        self.workout_stage = None
+        self.pixels_distance = 0
+        self.available_slots = 0
+        self.filled_slots = 0
+        self.email_sent = False
+        self.total_tracks = 0
+        self.region_counts = 0
+        self.speed_dict = None
+        self.total_cropped_objects = 0
+
         defaults = {
             "plot_im": None,
             "in_count": 0,

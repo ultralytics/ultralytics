@@ -256,9 +256,11 @@ class v8DetectionLoss:
         target_scores_sum = target_scores.sum().clamp(min=1.0)
 
         # Cls loss
-        loss[1] = self.varifocal_loss(pred_scores, target_scores, target_labels) / target_scores_sum  # VFL way
+        # loss[1] = self.varifocal_loss(pred_scores, target_scores, target_labels) / target_scores_sum  # VFL way
         # loss[1] = self.bce(pred_scores, target_scores.to(dtype)).sum() / target_scores_sum  # BCE
-
+        target_labels_one_hot = F.one_hot(target_labels.squeeze(-1), self.nc).to(device=pred_scores.device, dtype=target_scores.dtype)
+        loss[1] = self.varifocal_loss(pred_scores, target_scores, target_labels_one_hot) / target_scores_sum
+        
         # Bbox loss
         if fg_mask.sum():
             target_bboxes /= stride_tensor

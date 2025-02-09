@@ -242,7 +242,7 @@ class v8DetectionLoss:
         # dfl_conf = pred_distri.view(batch_size, -1, 4, self.reg_max).detach().softmax(-1)
         # dfl_conf = (dfl_conf.amax(-1).mean(-1) + dfl_conf.amax(-1).amin(-1)) / 2
 
-        _, target_bboxes, target_scores, fg_mask, _ = self.assigner(
+        target_labels, target_bboxes, target_scores, fg_mask, _ = self.assigner(
             # pred_scores.detach().sigmoid() * 0.8 + dfl_conf.unsqueeze(-1) * 0.2,
             pred_scores.detach().sigmoid(),
             (pred_bboxes.detach() * stride_tensor).type(gt_bboxes.dtype),
@@ -252,16 +252,12 @@ class v8DetectionLoss:
             mask_gt,
         )
 
-        # Compute target_labels based on fg_mask and gt_labels
-        # target_labels = torch.zeros_like(target_scores, dtype=torch.long)  # Initialize as background (0)
-        # target_labels[fg_mask] = gt_labels.squeeze(-1).long()  # Assign foreground labels
-
         # Ensure no zero division
         target_scores_sum = target_scores.sum().clamp(min=1.0)
 
         # Cls loss
-        # loss[1] = self.varifocal_loss(pred_scores, target_scores, target_labels) / target_scores_sum  # VFL way
-        loss[1] = self.bce(pred_scores, target_scores.to(dtype)).sum() / target_scores_sum  # BCE
+        loss[1] = self.varifocal_loss(pred_scores, target_scores, target_labels) / target_scores_sum  # VFL way
+        # loss[1] = self.bce(pred_scores, target_scores.to(dtype)).sum() / target_scores_sum  # BCE
 
         # Bbox loss
         if fg_mask.sum():

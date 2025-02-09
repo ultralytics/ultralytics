@@ -103,19 +103,19 @@ Monitoring workouts through pose estimation with [Ultralytics YOLO11](https://gi
 
 Here's a table with the `AIGym` arguments:
 
-| Name         | Type    | Default        | Description                                                                                                                                                |
-| ------------ | ------- | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `kpts`       | `list`  | `None`         | List of three keypoints index, for counting specific workout, followed by keypoint Map                                                                     |
-| `line_width` | `int`   | `2`            | Thickness of the lines drawn.                                                                                                                              |
-| `show`       | `bool`  | `False`        | Flag to display the image.                                                                                                                                 |
-| `up_angle`   | `float` | `145.0`        | Angle threshold for the 'up' pose.                                                                                                                         |
-| `down_angle` | `float` | `90.0`         | Angle threshold for the 'down' pose.                                                                                                                       |
-| `model`      | `str`   | `None`         | Path to Ultralytics YOLO Pose Model File                                                                                                                   |
-| `tracker`    | `str`   | `botsort.yaml` | Specifies the tracking algorithm to use, e.g., `bytetrack.yaml` or `botsort.yaml`.                                                                         |
-| `conf`       | `float` | `0.3`          | Sets the confidence threshold for detections; lower values allow more objects to be tracked but may include false positives.                               |
-| `iou`        | `float` | `0.5`          | Sets the [Intersection over Union](https://www.ultralytics.com/glossary/intersection-over-union-iou) (IoU) threshold for filtering overlapping detections. |
-| `verbose`    | `bool`  | `True`         | Controls the display of solutions results, providing a visual output of tracked objects.                                                                   |
-| `device`        | `str`            | `None`                 | Specifies the device for inference (e.g., `cpu`, `cuda:0` or `0`). Allows users to select between CPU, a specific GPU, or other compute devices for model execution.                                                                                                                                            |
+| Name         | Type    | Default        | Description                                                                                                                                                          |
+| ------------ | ------- | -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `kpts`       | `list`  | `None`         | List of three keypoints index, for counting specific workout, followed by keypoint Map                                                                               |
+| `line_width` | `int`   | `2`            | Thickness of the lines drawn.                                                                                                                                        |
+| `show`       | `bool`  | `False`        | Flag to display the image.                                                                                                                                           |
+| `up_angle`   | `float` | `145.0`        | Angle threshold for the 'up' pose.                                                                                                                                   |
+| `down_angle` | `float` | `90.0`         | Angle threshold for the 'down' pose.                                                                                                                                 |
+| `model`      | `str`   | `None`         | Path to Ultralytics YOLO Pose Model File                                                                                                                             |
+| `tracker`    | `str`   | `botsort.yaml` | Specifies the tracking algorithm to use, e.g., `bytetrack.yaml` or `botsort.yaml`.                                                                                   |
+| `conf`       | `float` | `0.3`          | Sets the confidence threshold for detections; lower values allow more objects to be tracked but may include false positives.                                         |
+| `iou`        | `float` | `0.5`          | Sets the [Intersection over Union](https://www.ultralytics.com/glossary/intersection-over-union-iou) (IoU) threshold for filtering overlapping detections.           |
+| `verbose`    | `bool`  | `True`         | Controls the display of solutions results, providing a visual output of tracked objects.                                                                             |
+| `device`     | `str`   | `None`         | Specifies the device for inference (e.g., `cpu`, `cuda:0` or `0`). Allows users to select between CPU, a specific GPU, or other compute devices for model execution. |
 
 ## FAQ
 

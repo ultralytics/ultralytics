@@ -73,25 +73,25 @@ Here's our curated list of Ultralytics solutions that can be used to create awes
 All Ultralytics Solutions calls will return a list of `SolutionResults` objects:
 
 !!! example
-    
+
     === "Count"
 
         ```python
         import cv2
-        
+
         from ultralytics import solutions
-        
+
         cap = cv2.VideoCapture("path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
-        
+
         # region_points = [(20, 400), (1080, 400)]                                      # line counting
         region_points = [(20, 400), (1080, 400), (1080, 360), (20, 360)]  # rectangle region
         # region_points = [(20, 400), (1080, 400), (1080, 360), (20, 360), (20, 400)]   # polygon region
-        
+
         # Video writer
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
         video_writer = cv2.VideoWriter("object_counting_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
-        
+
         # Init ObjectCounter
         counter = solutions.ObjectCounter(
             show=True,  # display the output
@@ -100,39 +100,39 @@ All Ultralytics Solutions calls will return a list of `SolutionResults` objects:
             # classes=[0, 2],           # count specific classes i.e person and car with COCO pretrained model.
             # tracker="botsort.yaml"    # Choose trackers i.e "bytetrack.yaml"
         )
-        
+
         # Process video
         while cap.isOpened():
             success, im0 = cap.read()
-        
+
             if not success:
                 print("Video frame is empty or processing is complete.")
                 break
-        
+
             results = counter.count(im0)
-        
+
             # Access the output
             # print(f"In count: , {results['in_count']}")
             # print(f"Out count: , {results['out_count']}")
             # print(f"Class wise count: , {results['classwise_count']}")
-        
+
             video_writer.write(results["plot_im"])  # write the processed frame.
-        
+
         cap.release()
         video_writer.release()
         cv2.destroyAllWindows()  # destroy all opened windows
         ```
-    
+
     === "Blur"
 
         ```python
         import cv2
-        
+
         from ultralytics import solutions
-        
+
         cap = cv2.VideoCapture("Path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
-        
+
         # Init ObjectCropper
         cropper = solutions.ObjectCropper(
             show=True,  # display the output
@@ -140,34 +140,34 @@ All Ultralytics Solutions calls will return a list of `SolutionResults` objects:
             classes=[0, 2],  # crop specific classes i.e. person and car with COCO pretrained model.
             # conf=0.5  # adjust confidence threshold for the objects.
         )
-        
+
         # Process video
         while cap.isOpened():
             success, im0 = cap.read()
-        
+
             if not success:
                 print("Video frame is empty or processing is complete.")
                 break
-        
+
             results = cropper.crop(im0)
-        
+
             # Access the output
             # print(f"Total cropped objects: , {results['total_crop_objects']}")
-        
+
         cap.release()
-        cv2.destroyAllWindows()  # destroy all opened windows        
+        cv2.destroyAllWindows()  # destroy all opened windows
         ```
-    
+
     === "Crop"
 
         ```python
         import cv2
-        
+
         from ultralytics import solutions
-        
+
         cap = cv2.VideoCapture("Path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
-        
+
         # Init ObjectCropper
         cropper = solutions.ObjectCropper(
             show=True,  # display the output
@@ -175,82 +175,38 @@ All Ultralytics Solutions calls will return a list of `SolutionResults` objects:
             classes=[0, 2],  # crop specific classes i.e. person and car with COCO pretrained model.
             # conf=0.5  # adjust confidence threshold for the objects.
         )
-        
+
         # Process video
         while cap.isOpened():
             success, im0 = cap.read()
-        
+
             if not success:
                 print("Video frame is empty or processing is complete.")
                 break
-        
+
             results = cropper.crop(im0)
-        
+
             # Access the output
             # print(f"Total cropped objects: , {results['total_crop_objects']}")
-        
+
         cap.release()
         cv2.destroyAllWindows()  # destroy all opened windows
         ```
-    
+
     === "Workout"
 
         ```python
         import cv2
-        
-        from ultralytics import solutions
-        
-        cap = cv2.VideoCapture("path/to/video/file.mp4")
-        assert cap.isOpened(), "Error reading video file"
-        
-        # Video writer
-        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-        video_writer = cv2.VideoWriter("workouts_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
-        
-        # Init AIGym
-        gym = solutions.AIGym(
-            show=True,  # display the frame
-            kpts=[6, 8, 10],  # keypoints for monitoring specific exercise, by default it's for pushup
-            model="yolo11n-pose.pt",  # path to the YOLO11 pose estimation model file
-            # line_width=2,             # adjust the line width for bounding boxes and text display
-        )
-        
-        # Process video
-        while cap.isOpened():
-            success, im0 = cap.read()
-        
-            if not success:
-                print("Video frame is empty or processing is complete.")
-                break
-        
-            results = gym.monitor(im0)
-        
-            # Access the output
-            # print(f"Workout count: , {results['workout_count']}")
-            # print(f"Workout angle: , {results['workout_angle']}")
-            # print(f"Workout stage: , {results['workout_stage']}")
-        
-            video_writer.write(results["plot_im"])  # write the processed frame.
-        
-        cap.release()
-        video_writer.release()
-        cv2.destroyAllWindows()  # destroy all opened windows
-        ```
-    
-    === "ZoneCounting"
-        ```python
 
-        import cv2
-        
         from ultralytics import solutions
-        
+
         cap = cv2.VideoCapture("path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
-        
+
         # Video writer
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
         video_writer = cv2.VideoWriter("workouts_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
-        
+
         # Init AIGym
         gym = solutions.AIGym(
             show=True,  # display the frame
@@ -258,95 +214,140 @@ All Ultralytics Solutions calls will return a list of `SolutionResults` objects:
             model="yolo11n-pose.pt",  # path to the YOLO11 pose estimation model file
             # line_width=2,             # adjust the line width for bounding boxes and text display
         )
-        
+
         # Process video
         while cap.isOpened():
             success, im0 = cap.read()
-        
+
             if not success:
                 print("Video frame is empty or processing is complete.")
                 break
-        
+
             results = gym.monitor(im0)
-        
+
             # Access the output
             # print(f"Workout count: , {results['workout_count']}")
             # print(f"Workout angle: , {results['workout_angle']}")
             # print(f"Workout stage: , {results['workout_stage']}")
-        
+
             video_writer.write(results["plot_im"])  # write the processed frame.
-        
+
         cap.release()
         video_writer.release()
         cv2.destroyAllWindows()  # destroy all opened windows
         ```
-    
+
+    === "ZoneCounting"
+
+        ```python
+        import cv2
+
+        from ultralytics import solutions
+
+        cap = cv2.VideoCapture("path/to/video/file.mp4")
+        assert cap.isOpened(), "Error reading video file"
+
+        # Video writer
+        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
+        video_writer = cv2.VideoWriter("workouts_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
+
+        # Init AIGym
+        gym = solutions.AIGym(
+            show=True,  # display the frame
+            kpts=[6, 8, 10],  # keypoints for monitoring specific exercise, by default it's for pushup
+            model="yolo11n-pose.pt",  # path to the YOLO11 pose estimation model file
+            # line_width=2,             # adjust the line width for bounding boxes and text display
+        )
+
+        # Process video
+        while cap.isOpened():
+            success, im0 = cap.read()
+
+            if not success:
+                print("Video frame is empty or processing is complete.")
+                break
+
+            results = gym.monitor(im0)
+
+            # Access the output
+            # print(f"Workout count: , {results['workout_count']}")
+            # print(f"Workout angle: , {results['workout_angle']}")
+            # print(f"Workout stage: , {results['workout_stage']}")
+
+            video_writer.write(results["plot_im"])  # write the processed frame.
+
+        cap.release()
+        video_writer.release()
+        cv2.destroyAllWindows()  # destroy all opened windows
+        ```
+
     === "AlarmSystem"
 
         ```python
         import cv2
-        
+
         from ultralytics import solutions
-        
+
         cap = cv2.VideoCapture("Path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
-        
-        # Video writer 
+
+        # Video writer
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
         video_writer = cv2.VideoWriter("security_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
-        
+
         from_email = "abc@gmail.com"  # the sender email address
         password = "---- ---- ---- ----"  # 16-digits password generated via: https://myaccount.google.com/apppasswords
         to_email = "xyz@gmail.com"  # the receiver email address
-        
+
         # Init SecurityAlarm
         security = solutions.SecurityAlarm(
             show=True,  # display the output
             model="yolo11n.pt",  # i.e. yolo11s.pt, yolo11m.pt
             records=1,  # Total detections count to send an email
         )
-        
+
         security.authenticate(from_email, password, to_email)  # Authenticate the email server
-        
+
         # Process video
         while cap.isOpened():
             success, im0 = cap.read()
-        
+
             if not success:
                 print("Video frame is empty or video processing has been successfully completed.")
                 break
-        
+
             results = security.monitor(im0)
-        
+
             # Access the output
             # print(f"Total tracks: , {results['total_tracks']}")
             # print(f"Email sent status: , {results['email_sent']}")
-        
+
             video_writer.write(results["plot_im"])  # write the processed frame.
-        
+
         cap.release()
         video_writer.release()
         cv2.destroyAllWindows()  # destroy all opened windows
         ```
-    
+
     === "Heatmap"
+
         ```python
         import cv2
-        
+
         from ultralytics import solutions
-        
+
         cap = cv2.VideoCapture("Path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
-        
+
         # Video writer
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
         video_writer = cv2.VideoWriter("heatmap_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
-        
+
         # For object counting with heatmap, you can pass region points.
         # region_points = [(20, 400), (1080, 400)]                                      # line points
         # region_points = [(20, 400), (1080, 400), (1080, 360), (20, 360)]              # rectangle region
         # region_points = [(20, 400), (1080, 400), (1080, 360), (20, 360), (20, 400)]   # polygon points
-        
+
         # Init heatmap
         heatmap = solutions.Heatmap(
             show=True,  # Display the output
@@ -355,24 +356,24 @@ All Ultralytics Solutions calls will return a list of `SolutionResults` objects:
             # region=region_points,         # object counting with heatmaps, you can pass region_points
             # classes=[0, 2],               # generate heatmap for specific classes i.e person and car.
         )
-        
+
         # Process video
         while cap.isOpened():
             success, im0 = cap.read()
-        
+
             if not success:
                 print("Video frame is empty or processing is complete.")
                 break
-        
+
             results = heatmap.generate_heatmap(im0)
-        
+
             # Access the output
             # print(f"Total tracks: , {results['total_tracks']}")
             # print(f"In count: , {results['in_count']}")
             # print(f"Out count: , {results['out_count']}")
-        
+
             video_writer.write(results["plot_im"])  # write the processed frame.
-        
+
         cap.release()
         video_writer.release()
         cv2.destroyAllWindows()  # destroy all opened windows
@@ -382,104 +383,105 @@ All Ultralytics Solutions calls will return a list of `SolutionResults` objects:
 
         ```python
         import cv2
-        
+
         from ultralytics import solutions
-        
+
         cap = cv2.VideoCapture("Path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
-        
+
         # Video writer
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
         video_writer = cv2.VideoWriter("isegment_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
-        
+
         # Init InstanceSegmentation
         isegment = solutions.InstanceSegmentation(
             show=True,  # display the output
             model="yolo11n-seg.pt",  # model="yolo11n-seg.pt" for object segmentation using YOLO11.
             # classes=[0, 2],                   # segment specific classes i.e, person and car with pretrained model.
         )
-        
+
         # Process video
         while cap.isOpened():
             success, im0 = cap.read()
-        
+
             if not success:
                 print("Video frame is empty or video processing has been successfully completed.")
                 break
-        
+
             results = isegment.segment(im0)
-        
+
             # Access the output
             # Access the output
             # print(f"Total tracks: , {results['total_tracks']}")
-        
+
             video_writer.write(results["plot_im"])  # write the processed frame.
-        
+
         cap.release()
         video_writer.release()
         cv2.destroyAllWindows()  # destroy all opened windows
         ```
-    
+
     === "VisionEye"
+
         ```python
         import cv2
-        
+
         from ultralytics import solutions
-        
+
         cap = cv2.VideoCapture("path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
-        
+
         # Video writer
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
         video_writer = cv2.VideoWriter("visioneye_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
-        
+
         # Init VisionEye
         visioneye = solutions.VisionEye(
             show=True,  # display the output
             model="yolo11n.pt",  # use any model that Ultralytics support, i.e, YOLOv10
             classes=[0, 2],  # generate visioneye view for specific classes
         )
-        
+
         # Adjust visioneye monitoring point explicitly
         visioneye.set_vision_point((50, 50))
-        
+
         # Process video
         while cap.isOpened():
             success, im0 = cap.read()
-        
+
             if not success:
                 print("Video frame is empty or video processing has been successfully completed.")
                 break
-        
+
             results = visioneye.mapping(im0)
-        
+
             # Access the output
             print(f"Total tracks: , {results['total_tracks']}")
-        
+
             video_writer.write(results["plot_im"])  # write the video file
-        
+
         cap.release()
         video_writer.release()
-        cv2.destroyAllWindows()  # destroy all opened windows        
+        cv2.destroyAllWindows()  # destroy all opened windows
         ```
-    
+
     === "Speed"
 
         ```python
         import cv2
-        
+
         from ultralytics import solutions
-        
+
         cap = cv2.VideoCapture("Path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
-        
+
         # Video writer
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
         video_writer = cv2.VideoWriter("speed_management.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
-        
+
         # speed region points
         speed_region = [(20, 400), (1080, 400), (1080, 360), (20, 360)]
-        
+
         speed = solutions.SpeedEstimator(
             show=True,  # display the output
             model="yolo11n.pt",  # path to the YOLO11 model file.
@@ -487,92 +489,93 @@ All Ultralytics Solutions calls will return a list of `SolutionResults` objects:
             # classes=[0, 2],           # estimate speed of specific classes.
             # line_width=2,             # Adjust the line width for bounding boxes
         )
-        
+
         # Process video
         while cap.isOpened():
             success, im0 = cap.read()
-        
+
             if not success:
                 print("Video frame is empty or processing is complete.")
                 break
-        
+
             results = speed.estimate_speed(im0)
-        
+
             # Access the output
             # print(f"Total tracks: , {results['total_tracks']}")
-        
+
             video_writer.write(results["plot_im"])  # write the processed frame.
-        
+
         cap.release()
         video_writer.release()
         cv2.destroyAllWindows()  # destroy all opened windows
         ```
-    
+
     === "Distance"
 
         ```python
         import cv2
-        
+
         from ultralytics import solutions
-        
+
         cap = cv2.VideoCapture("Path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
-        
+
         # Video writer
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
         video_writer = cv2.VideoWriter("distance_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
-        
+
         # Init DistanceCalculation
         distance = solutions.DistanceCalculation(
             model="yolo11n.pt",  # path to the YOLO11 model file.
             show=True,  # display the output
         )
-        
+
         # Process video
         while cap.isOpened():
             success, im0 = cap.read()
-        
+
             if not success:
                 print("Video frame is empty or processing is complete.")
                 break
-        
+
             results = distance.calculate(im0)
-        
+
             # Access the output
             # print(f"Pexels distance: , {results['pixels_distance']}")
             # print(f"Total tracks: , {results['total_tracks']}")
-        
+
             video_writer.write(results["plot_im"])  # write the processed frame.
-        
+
         cap.release()
         video_writer.release()
         cv2.destroyAllWindows()  # destroy all opened windows
         ```
-    
+
     === "Queue"
+
         ```python
         import cv2
-        
+
         from ultralytics import solutions
-        
+
         cap = cv2.VideoCapture("Path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
-        
+
         # Video writer
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
         video_writer = cv2.VideoWriter("queue_management.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
-        
+
         # Define queue points
         queue_region = [(20, 400), (1080, 400), (1080, 360), (20, 360)]  # region points
         # queue_region = [(20, 400), (1080, 400), (1080, 360), (20, 360), (20, 400)]    # polygon points
-        
+
         # Init QueueManager
         queue = solutions.QueueManager(
             show=True,  # display the output
             model="yolo11n.pt",  # path to the YOLO11 model file
             region=queue_region,  # pass queue region points
         )
-        
+
         # Process video
         while cap.isOpened():
             success, im0 = cap.read()
@@ -580,65 +583,66 @@ All Ultralytics Solutions calls will return a list of `SolutionResults` objects:
                 print("Video frame is empty or processing is complete.")
                 break
             results = queue.process_queue(im0)
-        
+
             # Access the output
             # print(f"Queue counts: , {results['queue_count']}")
-        
+
             video_writer.write(results["plot_im"])  # write the processed frame.
-        
+
         cap.release()
         video_writer.release()
         cv2.destroyAllWindows()  # destroy all opened windows
         ```
 
     === "ParkingManagement"
+
         ```python
         import cv2
-        
+
         from ultralytics import solutions
-        
+
         # Video capture
         cap = cv2.VideoCapture("Path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
-        
+
         # Video writer
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
         video_writer = cv2.VideoWriter("parking management.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
-        
+
         # Initialize ParkingManagement
         parking_manager = solutions.ParkingManagement(
             model="yolo11n.pt",  # path to model file
             json_file="bounding_boxes.json",  # path to parking annotations file
         )
-        
+
         while cap.isOpened():
             ret, im0 = cap.read()
             if not ret:
                 break
-        
+
             results = parking_manager.process_data(im0)
-        
+
             # Access the output
             # print(f"Available slots: , {results['available_slots']}")
             # print(f"Filled slots: , {results['filled_slots']}")
-        
+
             video_writer.write(results["plot_im"])  # write the processed frame.
-        
+
         cap.release()
         video_writer.release()
         cv2.destroyAllWindows()  # destroy all opened windows
         ```
-    
+
     === "AnalyticalGraphs"
-        
+
         ```python
         import cv2
-        
+
         from ultralytics import solutions
-        
+
         cap = cv2.VideoCapture("Path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
-        
+
         # Video writer
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
         out = cv2.VideoWriter(
@@ -647,7 +651,7 @@ All Ultralytics Solutions calls will return a list of `SolutionResults` objects:
             fps,
             (1280, 720),  # This is fixed
         )
-        
+
         # Init Analytics
         analytics = solutions.Analytics(
             show=True,  # display the output
@@ -655,7 +659,7 @@ All Ultralytics Solutions calls will return a list of `SolutionResults` objects:
             model="yolo11n.pt",  # path to the YOLO11 model file
             # classes=[0, 2],           # display analytics for specific detection classes
         )
-        
+
         # Process video
         frame_count = 0
         while cap.isOpened():
@@ -663,30 +667,30 @@ All Ultralytics Solutions calls will return a list of `SolutionResults` objects:
             if success:
                 frame_count += 1
                 results = analytics.process_data(im0, frame_count)  # update analytics graph every frame
-        
+
                 # Access the output
                 print(f"Total tracks: , {results['total_tracks']}")
-        
+
                 out.write(results["plot_im"])  # write the video file
             else:
                 break
-        
+
         cap.release()
         out.release()
         cv2.destroyAllWindows()  # destroy all opened windows
         ```
-    
+
     === "Web Inference"
 
         ```python
         from ultralytics import solutions
-        
+
         inf = solutions.Inference(
             model="yolo11n.pt",  # You can use any model that Ultralytics support, i.e. YOLO11, or custom trained model
         )
-        
+
         inf.inference()
-        
+
         ### Make sure to run the file using command `streamlit run <file-name.py>`
         ```
 
@@ -694,19 +698,19 @@ All Ultralytics Solutions calls will return a list of `SolutionResults` objects:
 
         ```python
         import cv2
-        
+
         from ultralytics import solutions
-        
+
         cap = cv2.VideoCapture("path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
-        
+
         # Define region points
         region_points = [(150, 150), (1130, 150), (1130, 570), (150, 570)]
-        
+
         # Video writer
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
         video_writer = cv2.VideoWriter("trackzone_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
-        
+
         # Init TrackZone (Object Tracking in Zones, not complete frame)
         trackzone = solutions.TrackZone(
             show=True,  # display the output
@@ -714,30 +718,30 @@ All Ultralytics Solutions calls will return a list of `SolutionResults` objects:
             model="yolo11n.pt",  # use any model that Ultralytics support, i.e. YOLOv9, YOLOv10
             # line_width=2,             # Adjust the line width for bounding boxes and text display
         )
-        
+
         # Process video
         while cap.isOpened():
             success, im0 = cap.read()
             if not success:
                 print("Video frame is empty or processing is complete.")
                 break
-        
+
             results = trackzone.trackzone(im0)
-        
+
             # Access the output
             # print(f"Total tracks: , {results['total_tracks']}")
-        
+
             video_writer.write(results["plot_im"])  # write the video file
-        
+
         cap.release()
         video_writer.release()
         cv2.destroyAllWindows()  # destroy all opened windows
         ```
-    
+
 `SolutionResults` objects have the following attributes:
 
 | Attribute      | Type                  | Description                                                                              |
-|----------------| --------------------- |------------------------------------------------------------------------------------------|
+| -------------- | --------------------- | ---------------------------------------------------------------------------------------- |
 | `plot_im`      | `numpy.ndarray`       | The processed image as a numpy array.                                                    |
 | `orig_shaaspe` | `tuple`               | The original image shape in (height, width) format.                                      |
 | `boxes`        | `Boxes, optional`     | A Boxes object containing the detection bounding boxes.                                  |
@@ -748,8 +752,6 @@ All Ultralytics Solutions calls will return a list of `SolutionResults` objects:
 | `speed`        | `dict`                | A dictionary of preprocess, inference, and postprocess speeds in milliseconds per image. |
 | `names`        | `dict`                | A dictionary of class names.                                                             |
 | `path`         | `str`                 | The path to the image file.                                                              |
-
-
 
 ### Contribute to Our Solutions
 

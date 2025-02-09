@@ -238,6 +238,7 @@ All Ultralytics Solutions calls will return a list of `SolutionResults` objects:
         ```
 
     === "ZoneCounting"
+
         ```python
         import cv2
 
@@ -329,6 +330,7 @@ All Ultralytics Solutions calls will return a list of `SolutionResults` objects:
         ```
 
     === "Heatmap"
+
         ```python
         import cv2
 
@@ -420,6 +422,7 @@ All Ultralytics Solutions calls will return a list of `SolutionResults` objects:
         ```
 
     === "VisionEye"
+
         ```python
         import cv2
 
@@ -549,6 +552,7 @@ All Ultralytics Solutions calls will return a list of `SolutionResults` objects:
         ```
 
     === "Queue"
+
         ```python
         import cv2
 
@@ -591,6 +595,7 @@ All Ultralytics Solutions calls will return a list of `SolutionResults` objects:
         ```
 
     === "ParkingManagement"
+
         ```python
         import cv2
 

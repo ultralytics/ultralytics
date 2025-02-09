@@ -13,29 +13,28 @@ from .metrics import bbox_iou, probiou
 from .tal import bbox2dist
 
 class VarifocalLoss(nn.Module):
+    """
+    Varifocal loss by Zhang et al.
+
+    https://arxiv.org/abs/2008.13367.
+    """
+
     def __init__(self):
+        """Initialize the VarifocalLoss class."""
         super().__init__()
 
     @staticmethod
-    def forward(pred_scores, target_scores, target_labels, alpha=0.75, gamma=2.0):
-        # Ensure compatible shapes
-        assert pred_scores.shape == target_scores.shape == target_labels.shape, \
-            f"Shape mismatch: pred_scores={pred_scores.shape}, target_scores={target_scores.shape}, target_labels={target_labels.shape}"
-
-        # Compute sigmoid and clamp for numerical stability
-        pred_scores_sigmoid = pred_scores.sigmoid().clamp(min=1e-4, max=1 - 1e-4)
-
-        # Compute weights
-        weight = alpha * pred_scores_sigmoid.pow(gamma) * (1 - target_labels) + target_scores * target_labels
-
-        # Ensure no NaN or Inf in weights
-        assert not torch.isnan(weight).any(), "NaN detected in weight"
-        assert not torch.isinf(weight).any(), "Inf detected in weight"
-
-        # Compute loss
-        loss = F.binary_cross_entropy_with_logits(pred_scores, target_scores, reduction="none") * weight
-        return loss.mean(1).sum()
-
+    def forward(pred_score, gt_score, label, alpha=0.75, gamma=2.0):
+        """Computes varfocal loss."""
+        weight = alpha * pred_score.sigmoid().pow(gamma) * (1 - label) + gt_score * label
+        with autocast(enabled=False):
+            loss = (
+                (F.binary_cross_entropy_with_logits(pred_score.float(), gt_score.float(), reduction="none") * weight)
+                .mean(1)
+                .sum()
+            )
+        return loss
+    
 class FocalLoss(nn.Module):
     """Wraps focal loss around existing loss_fcn(), i.e. criteria = FocalLoss(nn.BCEWithLogitsLoss(), gamma=1.5)."""
 

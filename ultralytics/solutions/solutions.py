@@ -90,7 +90,7 @@ class BaseSolution:
         self.verbose = self.CFG["verbose"]
 
         self.track_add_args = {  # Tracker additional arguments for advance configuration
-            k: self.CFG[k] for k in ["iou", "conf", "device", "max_det", "half", "tracker"]
+            k: self.CFG[k] for k in ["iou", "conf", "device", "max_det", "half", "tracker", "verbose", "device"]
         }
 
         if IS_CLI and self.CFG["source"] is None:

@@ -84,11 +84,11 @@ Monitoring workouts through pose estimation with [Ultralytics YOLO11](https://gi
             results = gym.monitor(im0)
 
             # Access the output
-            # print(f"Workout count: , {results['workout_count']}")
-            # print(f"Workout angle: , {results['workout_angle']}")
-            # print(f"Workout stage: , {results['workout_stage']}")
+            # print(f"Workout count: , {results.workout_count}")
+            # print(f"Workout angle: , {results.workout_angle}")
+            # print(f"Workout stage: , {results.workout_stage}")
 
-            video_writer.write(results["plot_im"])  # write the processed frame.
+            video_writer.write(results.plot_im)  # write the processed frame.
 
         cap.release()
         video_writer.release()
@@ -115,6 +115,7 @@ Here's a table with the `AIGym` arguments:
 | `conf`       | `float` | `0.3`          | Sets the confidence threshold for detections; lower values allow more objects to be tracked but may include false positives.                               |
 | `iou`        | `float` | `0.5`          | Sets the [Intersection over Union](https://www.ultralytics.com/glossary/intersection-over-union-iou) (IoU) threshold for filtering overlapping detections. |
 | `verbose`    | `bool`  | `True`         | Controls the display of solutions results, providing a visual output of tracked objects.                                                                   |
+| `device`        | `str`            | `None`                 | Specifies the device for inference (e.g., `cpu`, `cuda:0` or `0`). Allows users to select between CPU, a specific GPU, or other compute devices for model execution.                                                                                                                                            |
 
 ## FAQ
 
@@ -208,7 +209,7 @@ while cap.isOpened():
         print("Video frame is empty or processing is complete.")
         break
     results = gym.monitor(im0)
-    video_writer.write(results["im0"])
+    video_writer.write(results.plot_im)
 
 cv2.destroyAllWindows()
 video_writer.release()

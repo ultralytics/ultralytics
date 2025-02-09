@@ -63,9 +63,9 @@ while cap.isOpened():
     results = blurrer.blur(im0)
 
     # Access the output
-    # print(f"Total tracks: , {results['total_tracks']}")
+    # print(f"Total tracks: , {results.total_tracks}")
 
-    video_writer.write(results["plot_im"])  # write the processed frame.
+    video_writer.write(results.plot_im)  # write the processed frame.
 
 cap.release()
 video_writer.release()
@@ -87,6 +87,7 @@ Here's a table with the `ObjectBlurrer` arguments:
 | `max_det`    | `int`   | `300`          | Maximum number of detections allowed per image. Limits the total number of objects the model can detect in a single inference, preventing excessive outputs in dense scenes. |
 | `verbose`    | `bool`  | `True`         | Controls the display of solutions results, providing a visual output of tracked objects.                                                                                     |
 | `tracker`    | `str`   | `botsort.yaml` | Specifies the tracking algorithm to use, e.g., `bytetrack.yaml` or `botsort.yaml`.                                                                                           |
+| `device`        | `str`            | `None`                 | Specifies the device for inference (e.g., `cpu`, `cuda:0` or `0`). Allows users to select between CPU, a specific GPU, or other compute devices for model execution.                                                                                                                                            |
 
 ## FAQ
 
@@ -126,7 +127,7 @@ while cap.isOpened():
         print("Video frame is empty or processing is complete.")
         break
     results = blurrer.blur(im0)
-    video_writer.write(results["im0"])
+    video_writer.write(results.plot_im)
 
 cap.release()
 video_writer.release()

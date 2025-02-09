@@ -66,10 +66,9 @@ while cap.isOpened():
     results = isegment.segment(im0)
 
     # Access the output
-    # Access the output
-    # print(f"Total tracks: , {results['total_tracks']}")
+    # print(f"Total tracks: , {results.total_tracks}")
 
-    video_writer.write(results["plot_im"])  # write the processed frame.
+    video_writer.write(results.plot_im)  # write the processed frame.
 
 cap.release()
 video_writer.release()
@@ -92,6 +91,7 @@ Here's a table with the `InstanceSegmentation` arguments:
 | `classes`    | `list`  | `None`                     | Filters results by class index. For example, `classes=[0, 2, 3]` only tracks the specified classes.                                                                          |
 | `max_det`    | `int`   | `300`                      | Maximum number of detections allowed per image. Limits the total number of objects the model can detect in a single inference, preventing excessive outputs in dense scenes. |
 | `verbose`    | `bool`  | `True`                     | Controls the display of solutions results, providing a visual output of tracked objects.                                                                                     |
+| `device`        | `str`            | `None`                 | Specifies the device for inference (e.g., `cpu`, `cuda:0` or `0`). Allows users to select between CPU, a specific GPU, or other compute devices for model execution.                                                                                                                                            |
 
 ## Note
 
@@ -103,41 +103,38 @@ For any inquiries, feel free to post your questions in the [Ultralytics Issue Se
 
 To perform instance segmentation using Ultralytics YOLO11, initialize the YOLO model with a segmentation version of YOLO11 and process video frames through it. Here's a simplified code example:
 
-!!! example
 
-    === "Python"
+```python
+import cv2
 
-        ```python
-        import cv2
+from ultralytics import solutions
 
-        from ultralytics import solutions
+cap = cv2.VideoCapture("Path/to/video/file.mp4")
+assert cap.isOpened(), "Error reading video file"
 
-        cap = cv2.VideoCapture("Path/to/video/file.mp4")
-        assert cap.isOpened(), "Error reading video file"
+# Video writer
+w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
+video_writer = cv2.VideoWriter("instance-segmentation.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
-        # Video writer
-        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-        video_writer = cv2.VideoWriter("instance-segmentation.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
+# Init InstanceSegmentation
+isegment = solutions.InstanceSegmentation(
+    show=True,  # Display the output
+    model="yolo11n-seg.pt",  # model="yolo11n-seg.pt" for object segmentation using YOLO11.
+)
 
-        # Init InstanceSegmentation
-        isegment = solutions.InstanceSegmentation(
-            show=True,  # Display the output
-            model="yolo11n-seg.pt",  # model="yolo11n-seg.pt" for object segmentation using YOLO11.
-        )
+# Process video
+while cap.isOpened():
+    success, im0 = cap.read()
+    if not success:
+        print("Video frame is empty or processing is complete.")
+        break
+    results = isegment.segment(im0)
+    video_writer.write(results.plot_im)
 
-        # Process video
-        while cap.isOpened():
-            success, im0 = cap.read()
-            if not success:
-                print("Video frame is empty or processing is complete.")
-                break
-            results = isegment.segment(im0)
-            video_writer.write(results["im0"])
-
-        cap.release()
-        video_writer.release()
-        cv2.destroyAllWindows()
-        ```
+cap.release()
+video_writer.release()
+cv2.destroyAllWindows()
+```
 
 Learn more about instance segmentation in the [Ultralytics YOLO11 guide](#what-is-instance-segmentation).
 

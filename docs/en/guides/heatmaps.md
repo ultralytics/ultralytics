@@ -93,11 +93,11 @@ A heatmap generated with [Ultralytics YOLO11](https://github.com/ultralytics/ult
             results = heatmap.generate_heatmap(im0)
 
             # Access the output
-            # print(f"Total tracks: , {results['total_tracks']}")
-            # print(f"In count: , {results['in_count']}")
-            # print(f"Out count: , {results['out_count']}")
+            # print(f"Total tracks: , {results.total_tracks}")
+            # print(f"In count: , {results.in_count}")
+            # print(f"Out count: , {results.out_count}")
 
-            video_writer.write(results["plot_im"])  # write the processed frame.
+            video_writer.write(results.plot_im)  # write the processed frame.
 
         cap.release()
         video_writer.release()
@@ -123,6 +123,7 @@ Here's a table with the `Heatmap` arguments:
 | `classes`    | `list`  | `None`             | Filters results by class index. For example, `classes=[0, 2, 3]` only tracks the specified classes.                                                                          |
 | `max_det`    | `int`   | `300`              | Maximum number of detections allowed per image. Limits the total number of objects the model can detect in a single inference, preventing excessive outputs in dense scenes. |
 | `verbose`    | `bool`  | `True`             | Controls the display of solutions results, providing a visual output of tracked objects.                                                                                     |
+| `device`        | `str`            | `None`                 | Specifies the device for inference (e.g., `cpu`, `cuda:0` or `0`). Allows users to select between CPU, a specific GPU, or other compute devices for model execution.                                                                                                                                            |
 
 ### Heatmap COLORMAPs
 
@@ -176,7 +177,7 @@ while cap.isOpened():
     if not success:
         break
     results = heatmap.generate_heatmap(im0)
-    cv2.imshow("Heatmap", results["im0"])
+    cv2.imshow("Heatmap", results.plot_im)
     if cv2.waitKey(1) & 0xFF == ord("q"):
         break
 
@@ -207,7 +208,7 @@ while cap.isOpened():
     if not success:
         break
     results = heatmap.generate_heatmap(im0)
-    cv2.imshow("Heatmap", results["im0"])
+    cv2.imshow("Heatmap", results.plot_im)
     if cv2.waitKey(1) & 0xFF == ord("q"):
         break
 

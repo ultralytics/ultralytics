@@ -74,7 +74,7 @@ Object counting with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
             show=True,  # display the output
             region=region_points,  # pass region points
             model="yolo11n.pt",  # model="yolo11n-obb.pt" for object counting with OBB model.
-            # classes=[0, 2],           # count specific classes i.e person and car with COCO pretrained model.
+            # classes=[0, 2],           # count specific classes i.e. person and car with COCO pretrained model.
             # tracker="botsort.yaml"    # Choose trackers i.e "bytetrack.yaml"
         )
 
@@ -89,11 +89,11 @@ Object counting with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
             results = counter.count(im0)
 
             # Access the output
-            # print(f"In count: , {results['in_count']}")
-            # print(f"Out count: , {results['out_count']}")
-            # print(f"Class wise count: , {results['classwise_count']}")
+            # print(f"In count: , {results.in_count}")
+            # print(f"Out count: , {results.out_count}")
+            # print(f"Class wise count: , {results.classwise_count}")
 
-            video_writer.write(results["plot_im"])  # write the processed frame.
+            video_writer.write(results.plot_im)  # write the processed frame.
 
         cap.release()
         video_writer.release()
@@ -118,6 +118,7 @@ Here's a table with the `ObjectCounter` arguments:
 | `classes`    | `list`  | `None`                     | Filters results by class index. For example, `classes=[0, 2, 3]` only tracks the specified classes.                                                                          |
 | `max_det`    | `int`   | `300`                      | Maximum number of detections allowed per image. Limits the total number of objects the model can detect in a single inference, preventing excessive outputs in dense scenes. |
 | `verbose`    | `bool`  | `True`                     | Controls the display of solutions results, providing a visual output of tracked objects.                                                                                     |
+| `device`        | `str`            | `None`                 | Specifies the device for inference (e.g., `cpu`, `cuda:0` or `0`). Allows users to select between CPU, a specific GPU, or other compute devices for model execution.                                                                                                                                            |
 
 ## FAQ
 
@@ -154,7 +155,7 @@ def count_objects_in_region(video_path, output_video_path, model_path):
             print("Video frame is empty or processing is complete.")
             break
         results = counter.count(im0)
-        video_writer.write(results["im0"])
+        video_writer.write(results.plot_im)
 
     cap.release()
     video_writer.release()
@@ -202,7 +203,7 @@ def count_specific_classes(video_path, output_video_path, model_path, classes_to
             print("Video frame is empty or processing is complete.")
             break
         results = counter.count(im0)
-        video_writer.write(results["im0"])
+        video_writer.write(results.plot_im)
 
     cap.release()
     video_writer.release()

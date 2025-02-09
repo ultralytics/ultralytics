@@ -735,8 +735,8 @@ def handle_yolo_solutions(args: List[str]) -> None:
                 success, frame = cap.read()
                 if not success:
                     break
-                frame = process(frame, f_n := f_n + 1) if s_n == "analytics" else process(frame)
-                vw.write(frame)
+                results = process(frame, f_n := f_n + 1) if s_n == "analytics" else process(frame)
+                vw.write(results.plot_im)
                 if cv2.waitKey(1) & 0xFF == ord("q"):
                     break
         finally:

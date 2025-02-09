@@ -82,9 +82,9 @@ Queue management using [Ultralytics YOLO11](https://github.com/ultralytics/ultra
             results = queue.process_queue(im0)
 
             # Access the output
-            # print(f"Queue counts: , {results['queue_count']}")
+            # print(f"Queue counts: , {results.queue_count}")
 
-            video_writer.write(results["plot_im"])  # write the processed frame.
+            video_writer.write(results.plot_im)  # write the processed frame.
 
         cap.release()
         video_writer.release()
@@ -107,6 +107,7 @@ Here's a table with the `QueueManager` arguments:
 | `classes`    | `list`  | `None`                     | Filters results by class index. For example, `classes=[0, 2, 3]` only tracks the specified classes.                                                                          |
 | `max_det`    | `int`   | `300`                      | Maximum number of detections allowed per image. Limits the total number of objects the model can detect in a single inference, preventing excessive outputs in dense scenes. |
 | `verbose`    | `bool`  | `True`                     | Controls the display of solutions results, providing a visual output of tracked objects.                                                                                     |
+| `device`        | `str`            | `None`                 | Specifies the device for inference (e.g., `cpu`, `cuda:0` or `0`). Allows users to select between CPU, a specific GPU, or other compute devices for model execution.                                                                                                                                            |
 
 ## FAQ
 
@@ -133,15 +134,13 @@ queue = solutions.QueueManager(
     model="yolo11n.pt",
     region=queue_region,
     line_width=3,
+    show=True,
 )
 
 while cap.isOpened():
     success, im0 = cap.read()
     if success:
         results = queue.process_queue(im0)
-        cv2.imshow("Queue Management", results["im0"])
-        if cv2.waitKey(1) & 0xFF == ord("q"):
-            break
 
 cap.release()
 cv2.destroyAllWindows()

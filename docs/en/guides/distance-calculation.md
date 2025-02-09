@@ -74,10 +74,10 @@ while cap.isOpened():
     results = distance.calculate(im0)
 
     # Access the output
-    # print(f"Pexels distance: , {results['pixels_distance']}")
-    # print(f"Total tracks: , {results['total_tracks']}")
+    # print(f"Pexels distance: , {results.pixels_distance}")
+    # print(f"Total tracks: , {results.total_tracks}")
 
-    video_writer.write(results["plot_im"])  # write the processed frame.
+    video_writer.write(results.plot_im)  # write the processed frame.
 
 cap.release()
 video_writer.release()
@@ -99,6 +99,7 @@ Here's a table with the `DistanceCalculation` arguments:
 | `classes`    | `list`  | `None`         | Filters results by class index. For example, `classes=[0, 2, 3]` only tracks the specified classes.                                                                          |
 | `max_det`    | `int`   | `300`          | Maximum number of detections allowed per image. Limits the total number of objects the model can detect in a single inference, preventing excessive outputs in dense scenes. |
 | `verbose`    | `bool`  | `True`         | Controls the display of solutions results, providing a visual output of tracked objects.                                                                                     |
+| `device`        | `str`            | `None`                 | Specifies the device for inference (e.g., `cpu`, `cuda:0` or `0`). Allows users to select between CPU, a specific GPU, or other compute devices for model execution.                                                                                                                                            |
 
 ## FAQ
 

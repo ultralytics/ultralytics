@@ -98,7 +98,6 @@ class DistanceCalculation(BaseSolution):
         plot_im = im0  # For plotting the results
         self.annotator = SolutionAnnotator(plot_im, line_width=self.line_width)  # Initialize annotator
 
-
         pixels_distance = 0
         # Iterate over bounding boxes, track ids and classes index
         for box, track_id, cls in zip(self.boxes, self.track_ids, self.clss):
@@ -126,6 +125,6 @@ class DistanceCalculation(BaseSolution):
         cv2.setMouseCallback("Ultralytics Solutions", self.mouse_event_for_distance)
 
         # return output dictionary with summary for more usage
-        return SolutionResults(plot_im=plot_im, pixels_distance=pixels_distance, total_tracks=len(self.track_ids)).summary(
-            verbose=self.verbose
-        )
+        return SolutionResults(
+            plot_im=plot_im, pixels_distance=pixels_distance, total_tracks=len(self.track_ids)
+        ).summary(verbose=self.verbose)

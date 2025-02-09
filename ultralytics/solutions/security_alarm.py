@@ -127,7 +127,7 @@ class SecurityAlarm(BaseSolution):
             >>> processed_frame = alarm.monitor(frame)
         """
         self.extract_tracks(im0)  # Extract tracks
-        plot_im = im0   # For plotting the results
+        plot_im = im0  # For plotting the results
         self.annotator = SolutionAnnotator(plot_im, line_width=self.line_width)  # Initialize annotator
 
         # Iterate over bounding boxes, track ids and classes index

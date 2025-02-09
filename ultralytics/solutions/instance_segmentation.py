@@ -50,7 +50,6 @@ class InstanceSegmentation(BaseSolution):
         plot_im = im0  # For plotting the results
         annotator = SolutionAnnotator(plot_im, self.line_width)
 
-
         # Iterate over detected classes, track IDs, and segmentation masks
         if self.masks is None:
             self.LOGGER.warning("⚠️ No masks detected! Ensure you're using a supported Ultralytics segmentation model.")

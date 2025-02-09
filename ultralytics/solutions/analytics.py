@@ -121,9 +121,9 @@ class Analytics(BaseSolution):
             raise ModuleNotFoundError(f"{self.type} chart is not supported ❌")
 
         # return output dictionary with summary for more usage
-        return SolutionResults(plot_im=plot_im, total_tracks=len(self.track_ids), classwise_count=self.clswise_count).summary(
-            verbose=self.verbose
-        )
+        return SolutionResults(
+            plot_im=plot_im, total_tracks=len(self.track_ids), classwise_count=self.clswise_count
+        ).summary(verbose=self.verbose)
 
     def update_graph(self, frame_number, count_dict=None, plot="line"):
         """

@@ -155,7 +155,9 @@ class TaskAlignedAssigner(nn.Module):
 
     def iou_calculation(self, gt_bboxes, pd_bboxes):
         """IoU calculation for horizontal bounding boxes."""
-        return bbox_iou(gt_bboxes, pd_bboxes, xywh=False, CIoU=True).squeeze(-1).clamp_(0)
+        iou = bbox_iou(gt_bboxes, pd_bboxes, xywh=False, CIoU=True).squeeze(-1)
+        iou = torch.nan_to_num(iou, nan=0.0)  # Replace NaNs with 0
+        return iou.clamp_(0)
 
     def select_topk_candidates(self, metrics, largest=True, topk_mask=None):
         """

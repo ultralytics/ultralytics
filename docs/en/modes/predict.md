@@ -474,7 +474,9 @@ All Ultralytics `predict()` calls will return a list of `Results` objects:
 
     # Run inference on an image
     results = model("https://ultralytics.com/images/bus.jpg")  # list of 1 Results object
-    results = model(["https://ultralytics.com/images/bus.jpg", "https://ultralytics.com/images/zidane.jpg"])  # list of 2 Results objects
+    results = model(
+        ["https://ultralytics.com/images/bus.jpg", "https://ultralytics.com/images/zidane.jpg"]
+    )  # list of 2 Results objects
     ```
 
 `Results` objects have the following attributes:
@@ -495,7 +497,7 @@ All Ultralytics `predict()` calls will return a list of `Results` objects:
 `Results` objects have the following methods:
 
 | Method        | Return Type     | Description                                                                              |
-|---------------|-----------------|------------------------------------------------------------------------------------------|
+| ------------- | --------------- | ---------------------------------------------------------------------------------------- |
 | `update()`    | `None`          | Update the boxes, masks, and probs attributes of the Results object.                     |
 | `cpu()`       | `Results`       | Return a copy of the Results object with all tensors on CPU memory.                      |
 | `numpy()`     | `Results`       | Return a copy of the Results object with all tensors as numpy arrays.                    |

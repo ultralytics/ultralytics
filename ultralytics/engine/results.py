@@ -1028,7 +1028,7 @@ class Results(SimpleClass):
             >>>     html_result = result.to_html()
             >>>     print(html_result)
         """
-        import pandas as pd # scope for faster 'import ultralytics'
+        import pandas as pd  # scope for faster 'import ultralytics'
 
         return pd.DataFrame(self.summary(normalize=normalize, decimals=decimals)).to_html(index=False)
 

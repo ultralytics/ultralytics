@@ -488,8 +488,15 @@ def init_seeds(seed=0, deterministic=False):
         else:
             LOGGER.warning("WARNING ⚠️ Upgrade to torch>=2.0.0 for deterministic training.")
     else:
-        torch.use_deterministic_algorithms(False)
-        torch.backends.cudnn.deterministic = False
+        unset_deterministic()
+
+
+def unset_deterministic():
+    """Unsets all the configurations applied for deterministic training."""
+    torch.use_deterministic_algorithms(False)
+    torch.backends.cudnn.deterministic = False
+    os.environ.pop("CUBLAS_WORKSPACE_CONFIG", None)
+    os.environ.pop("PYTHONHASHSEED", None)
 
 
 class ModelEMA:
@@ -667,7 +674,7 @@ def profile(input, ops, n=10, device=None, max_num_obj=0):
             m = m.half() if hasattr(m, "half") and isinstance(x, torch.Tensor) and x.dtype is torch.float16 else m
             tf, tb, t = 0, 0, [0, 0, 0]  # dt forward, backward
             try:
-                flops = thop.profile(m, inputs=[x], verbose=False)[0] / 1e9 * 2  # GFLOPs
+                flops = thop.profile(deepcopy(m), inputs=[x], verbose=False)[0] / 1e9 * 2  # GFLOPs
             except Exception:
                 flops = 0
 

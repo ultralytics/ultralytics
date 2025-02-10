@@ -292,6 +292,9 @@ class AutoBackend(nn.Module):
                     metadata = json.loads(f.read(meta_len).decode("utf-8"))  # read metadata
                 except UnicodeDecodeError:
                     f.seek(0)  # engine file may lack embedded Ultralytics metadata
+                dla = metadata.get("dla", None)
+                if dla is not None:
+                    runtime.DLA_core = int(dla)
                 model = runtime.deserialize_cuda_engine(f.read())  # read engine
 
             # Model context
@@ -774,7 +777,7 @@ class AutoBackend(nn.Module):
         saved_model, pb, tflite, edgetpu, tfjs, ncnn or paddle.
 
         Args:
-            p: path to the model file. Defaults to path/to/model.pt
+            p (str): path to the model file. Defaults to path/to/model.pt
 
         Examples:
             >>> model = AutoBackend(weights="path/to/model.onnx")

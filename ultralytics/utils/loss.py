@@ -25,14 +25,17 @@ class VarifocalLoss(nn.Module):
         # Compute sigmoid and clamp for numerical stability
         pred_scores_sigmoid = pred_scores.sigmoid().clamp(min=1e-4, max=1 - 1e-4)
 
-        # Debug: Print shapes and values
-        print(f"pred_scores: {pred_scores.shape}, min={pred_scores.min()}, max={pred_scores.max()}")
-        print(f"target_scores: {target_scores.shape}, min={target_scores.min()}, max={target_scores.max()}")
-        print(f"target_labels: {target_labels.shape}, min={target_labels.min()}, max={target_labels.max()}")
-
         # Compute weights
         weight = alpha * pred_scores_sigmoid.pow(gamma) * (1 - target_labels) + target_scores * target_labels
-        weight = weight.clamp(min=1e-4, max=1 - 1e-4)  # Clamp weights to avoid NaNs
+        # weight = weight.clamp(min=1e-4, max=1 - 1e-4)  # Clamp weights to avoid NaNs
+
+        # Debug: Print weight values if NaN is detected
+        if torch.isnan(weight).any():
+            print(f"Debug: weight contains NaN values. weight={weight}")
+            print(f"Debug: pred_scores_sigmoid={pred_scores_sigmoid}")
+            print(f"Debug: target_scores={target_scores}")
+            print(f"Debug: target_labels={target_labels}")
+            print(f"Debug: alpha={alpha}, gamma={gamma}")
         
         # Ensure no NaN or Inf in weights
         assert not torch.isnan(weight).any(), "NaN detected in weight"

@@ -289,7 +289,9 @@ class Exporter:
             self.args.conf = self.args.conf or 0.25  # set conf default value for nms export
         if edgetpu:
             if ARM64 and not LINUX:
-                raise SystemError("Edge TPU export only supported on non-aarch64 Linux. See https://coral.ai/docs/edgetpu/compiler")
+                raise SystemError(
+                    "Edge TPU export only supported on non-aarch64 Linux. See https://coral.ai/docs/edgetpu/compiler"
+                )
             elif self.args.batch != 1:  # see github.com/ultralytics/ultralytics/pull/13420
                 LOGGER.warning("WARNING ⚠️ Edge TPU export requires batch size 1, setting batch=1.")
                 self.args.batch = 1

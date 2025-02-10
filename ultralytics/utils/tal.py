@@ -149,6 +149,10 @@ class TaskAlignedAssigner(nn.Module):
         pd_boxes = pd_bboxes.unsqueeze(1).expand(-1, self.n_max_boxes, -1, -1)[mask_gt]
         gt_boxes = gt_bboxes.unsqueeze(2).expand(-1, -1, na, -1)[mask_gt]
         overlaps[mask_gt] = self.iou_calculation(gt_boxes, pd_boxes)
+        
+        # Debug: Print overlaps and bbox_scores
+        print(f"overlaps: {overlaps.shape}, min={overlaps.min()}, max={overlaps.max()}")
+        print(f"bbox_scores: {bbox_scores.shape}, min={bbox_scores.min()}, max={bbox_scores.max()}")
 
         align_metric = bbox_scores.pow(self.alpha) * overlaps.pow(self.beta)
         return align_metric, overlaps

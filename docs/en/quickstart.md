@@ -161,7 +161,6 @@ The Ultralytics command line interface (CLI) allows for simple single-line comma
         ```bash
         yolo TASK MODE ARGS
         ```
-
         - `TASK` (optional) is one of ([detect](tasks/detect.md), [segment](tasks/segment.md), [classify](tasks/classify.md), [pose](tasks/pose.md), [obb](tasks/obb.md))
         - `MODE` (required) is one of ([train](modes/train.md), [val](modes/val.md), [predict](modes/predict.md), [export](modes/export.md), [track](modes/track.md), [benchmark](modes/benchmark.md))
         - `ARGS` (optional) are `arg=value` pairs like `imgsz=640` that override defaults.
@@ -194,6 +193,43 @@ The Ultralytics command line interface (CLI) allows for simple single-line comma
         Export a yolo11n classification model to ONNX format at image size 224 by 128 (no TASK required)
         ```bash
         yolo export model=yolo11n-cls.pt format=onnx imgsz=224,128
+        ```
+    
+    === "Count"
+        
+        Count the objects in a video or live stream using Ultralytics YOLO11.
+        ```bash
+        yolo solutions count source="path/to/video/file.mp4"  # specify video file path
+        ```
+    
+    === "Workout"
+        
+        Monitor the pushups using YOLO11 pose model.
+        ```bash
+        # Pass a video source
+        yolo solutions workout source="path/to/video/file.mp4"  
+
+        # Use keypoints for ab-workouts 
+        yolo solutions workout kpts=[5, 11, 13]     # left side
+        yolo solutions workout kpts=[6, 12, 14]     # right side
+        ```
+    
+    === "Queue"
+        
+        Count the objects in specific queue/region using YOLO11.
+        ```bash
+        # Pass a video source
+        yolo solutions queue source="path/to/video/file.mp4"
+        
+        # Configure queue/region coordinates
+        yolo solutions queue region=[(20, 400), (1080, 400), (1080, 360), (20, 360)]
+        ```
+    
+    === "Inference with Streamlit"
+        
+        Perform object detection, instance segmentation or even pose estimation in web browser using Streamlit.
+        ```bash
+        yolo solutions inference
         ```
 
     === "Special"

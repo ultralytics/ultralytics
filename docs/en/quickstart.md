@@ -219,13 +219,13 @@ The Ultralytics command line interface (CLI) allows for simple single-line comma
     
     === "Queue"
         
-        Count the objects in specific queue/region using YOLO11.
+        Use YOLO11 to count objects in a designated queue or region.
         ```bash
         yolo solutions queue show=True
 
         yolo solutions queue source="path/to/video/file.mp4"  # specify video file path
 
-        yolo solutions queue region=[(20, 400), (1080, 400), (1080, 360), (20, 360)]    # Configure queue coordinates
+        yolo solutions queue region=[(20, 400), (1080, 400), (1080, 360), (20, 360)]    # configure queue coordinates
         ```
     
     === "Inference with Streamlit"
@@ -234,7 +234,7 @@ The Ultralytics command line interface (CLI) allows for simple single-line comma
         ```bash
         yolo solutions inference
         
-        yolo solutions inference model="path/to/model.pt"   # Use model fine-tuned with Ultralytics Python package
+        yolo solutions inference model="path/to/model.pt"   # use model fine-tuned with Ultralytics Python package
         ```
 
     === "Special"
@@ -258,6 +258,7 @@ The Ultralytics command line interface (CLI) allows for simple single-line comma
     - `yolo predict model yolo11n.pt imgsz 640 conf 0.25`  ❌ (missing `=`)
     - `yolo predict model=yolo11n.pt, imgsz=640, conf=0.25`  ❌ (do not use `,`)
     - `yolo predict --model yolo11n.pt --imgsz 640 --conf 0.25`  ❌ (do not use `--`)
+    - `yolo solution model=yolo11n.pt imgsz=640 conf=0.25` ❌ (use `solutions`, not `solution`)
 
 [CLI Guide](usage/cli.md){ .md-button }
 

@@ -197,17 +197,20 @@ The Ultralytics command line interface (CLI) allows for simple single-line comma
     
     === "Count"
         
-        Count the objects in a video or live stream using Ultralytics YOLO11.
+        Count the objects in a video or live stream using YOLO11.
         ```bash
+        yolo solutions count show=True
+
         yolo solutions count source="path/to/video/file.mp4"  # specify video file path
         ```
     
     === "Workout"
         
-        Monitor the pushups using YOLO11 pose model.
+        Monitor the workout exercises using YOLO11 pose model.
         ```bash
-        # Pass a video source
-        yolo solutions workout source="path/to/video/file.mp4"  
+        yolo solutions workout show=True
+
+        yolo solutions workout source="path/to/video/file.mp4"  # specify video file path
 
         # Use keypoints for ab-workouts 
         yolo solutions workout kpts=[5, 11, 13]     # left side
@@ -218,11 +221,11 @@ The Ultralytics command line interface (CLI) allows for simple single-line comma
         
         Count the objects in specific queue/region using YOLO11.
         ```bash
-        # Pass a video source
-        yolo solutions queue source="path/to/video/file.mp4"
-        
-        # Configure queue/region coordinates
-        yolo solutions queue region=[(20, 400), (1080, 400), (1080, 360), (20, 360)]
+        yolo solutions queue show=True
+
+        yolo solutions queue source="path/to/video/file.mp4"  # specify video file path
+
+        yolo solutions queue region=[(20, 400), (1080, 400), (1080, 360), (20, 360)]    # Configure queue coordinates
         ```
     
     === "Inference with Streamlit"
@@ -230,6 +233,8 @@ The Ultralytics command line interface (CLI) allows for simple single-line comma
         Perform object detection, instance segmentation or even pose estimation in web browser using Streamlit.
         ```bash
         yolo solutions inference
+        
+        yolo solutions inference model="path/to/model.pt"   # Use model fine-tuned with Ultralytics Python package
         ```
 
     === "Special"

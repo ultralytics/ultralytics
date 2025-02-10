@@ -221,7 +221,7 @@ class Results(SimpleClass):
         to_df: Return the results in the Pandas Dataframe.
         to_csv: Return the results in the CSV (comma separated values) format.
         to_xml: Return the results to XML (extensible markup language) format.
-        to_json: Return the results to JSOn format.
+        to_json: Return the results to JSON format.
         to_sql: Store the results in the SQL database.
 
     Examples:

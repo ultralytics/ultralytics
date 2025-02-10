@@ -205,19 +205,24 @@ class Results(SimpleClass):
         _keys (Tuple[str, ...]): Tuple of attribute names for internal use.
 
     Methods:
-        update: Updates object attributes with new detection results.
+        update: Updates object attributes with new results.
         cpu: Returns a copy of the Results object with all tensors on CPU memory.
         numpy: Returns a copy of the Results object with all tensors as numpy arrays.
         cuda: Returns a copy of the Results object with all tensors on GPU memory.
         to: Returns a copy of the Results object with tensors on a specified device and dtype.
         new: Returns a new Results object with the same image, path, and names.
-        plot: Plots detection results on an input image, returning an annotated image.
+        plot: Plots results on an input image, returning an annotated image.
         show: Shows annotated results on screen.
         save: Saves annotated results to file.
-        verbose: Returns a log string for each task, detailing detections and classifications.
-        save_txt: Saves detection results to a text file.
+        verbose: Returns a log string for each task, detailing detections, classifications, pose and OBB.
+        save_txt: Saves results to a text file.
         save_crop: Saves cropped detection images.
-        tojson: Converts detection results to JSON format.
+        summary: A list of dictionaries, each containing summarized information for results
+        to_df: Return the results in the Pandas Dataframe.
+        to_csv: Return the results in the CSV (comma separated values) format.
+        to_xml: Return the results to XML (extensible markup language) format.
+        to_json: Return the results to JSOn format.
+        to_sql: Store the results in the SQL database.
 
     Examples:
         >>> results = model("path/to/image.jpg")

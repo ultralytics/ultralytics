@@ -339,3 +339,32 @@ class DetectionValidator(BaseValidator):
             except Exception as e:
                 LOGGER.warning(f"{pkg} unable to run: {e}")
         return stats
+
+    def save_results_csv(self):
+        """Saves training/validation metrics to CSV."""
+        import pandas as pd
+
+        # Create main results row
+        main_row = {
+            "class": "all",
+            "images_seen": self.seen,
+            "total_labels": self.nt_per_class.sum(),
+            **{k: v for k, v in zip(self.metrics.keys, self.metrics.mean_results())},
+        }
+
+        rows = [main_row]
+
+        # Add per-class results
+        if self.nc > 1 and len(self.stats):
+            for i, c in enumerate(self.metrics.ap_class_index):
+                class_row = {
+                    "class": self.names[c],
+                    "images_seen": self.nt_per_image[c],
+                    "total_labels": self.nt_per_class[c],
+                    **{k: v for k, v in zip(self.metrics.keys, self.metrics.class_result(i))},
+                }
+                rows.append(class_row)
+
+        # Create and save DataFrame
+        df = pd.DataFrame(rows)
+        df.to_csv(f"{self.save_dir}/classwise_results.csv", index=False)

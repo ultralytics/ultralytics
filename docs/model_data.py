@@ -129,6 +129,13 @@ data = {
         "l": {"size": 640, "map": 53.4, "cpu": "", "t4": 9.76, "params": 42, "flops": 136},
         "x": {"size": 640, "map": 54.6, "cpu": "", "t4": 15.03, "params": 76, "flops": 259},
     },
+    "LWDETR": {
+        "t": {"size": 640, "map": 42.6, "cpu": "", "t4": 2.56, "params": 12.1, "flops": 11.2},
+        "s": {"size": 640, "map": 48.0, "cpu": "", "t4": 3.72, "params": 14.6, "flops": 16.6},
+        "m": {"size": 640, "map": 52.5, "cpu": "", "t4": 6.59, "params": 28.2, "flops": 42.8},
+        "l": {"size": 640, "map": 56.1, "cpu": "", "t4": 10.57, "params": 46.8, "flops": 71.6},
+        "x": {"size": 640, "map": 58.3, "cpu": "", "t4": 22.29, "params": 118.0, "flops": 174.1},
+    },
 }
 
 if __name__ == "__main__":

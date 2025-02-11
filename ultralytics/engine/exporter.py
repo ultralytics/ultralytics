@@ -762,8 +762,6 @@ class Exporter:
             model = self.model
         elif self.args.nms:
             model = NMSModel(self.model, self.args)
-            if self.model.task == "detect":
-                model = IOSDetectModel(self.model, self.im)
         else:
             model = self.model
 

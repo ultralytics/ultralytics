@@ -18,6 +18,11 @@ class VarifocalLoss(nn.Module):
 
     @staticmethod
     def forward(pred_scores, target_scores, target_labels, alpha=0.75, gamma=2.0):
+        # Convert to float32 to avoid precision issues in fp16
+        pred_scores = pred_scores.float()
+        target_scores = target_scores.float()
+        target_labels = target_labels.float()
+        
         # Ensure compatible shapes
         assert pred_scores.shape == target_scores.shape == target_labels.shape, \
             f"Shape mismatch: pred_scores={pred_scores.shape}, target_scores={target_scores.shape}, target_labels={target_labels.shape}"
@@ -27,7 +32,8 @@ class VarifocalLoss(nn.Module):
 
         # Compute weights
         weight = alpha * pred_scores_sigmoid.pow(gamma) * (1 - target_labels) + target_scores * target_labels
-        # weight = weight.clamp(min=1e-4, max=1 - 1e-4)  # Clamp weights to avoid NaNs
+        # Optionally, you can clamp the weight if you want:
+        # weight = weight.clamp(min=1e-4, max=1 - 1e-4)
 
         # Debug: Print weight values if NaN is detected
         if torch.isnan(weight).any():
@@ -41,7 +47,7 @@ class VarifocalLoss(nn.Module):
         assert not torch.isnan(weight).any(), "NaN detected in weight"
         assert not torch.isinf(weight).any(), "Inf detected in weight"
 
-        # Compute loss
+        # Compute loss (the loss is computed in float32)
         loss = F.binary_cross_entropy_with_logits(pred_scores, target_scores, reduction="none") * weight
         return loss.mean(1).sum()
 

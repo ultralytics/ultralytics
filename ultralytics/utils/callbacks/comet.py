@@ -77,8 +77,11 @@ def _should_log_image_predictions():
 
 
 def _resume_or_create_experiment(args: SimpleNamespace) -> None:
-    """Resumes CometML experiment or creates a new experiment based on args.
-    Ensures that the experiment object is only created in a single process during distributed training."""
+    """
+    Resumes CometML experiment or creates a new experiment based on args.
+
+    Ensures that the experiment object is only created in a single process during distributed training.
+    """
     if RANK not in {-1, 0}:
         return
 

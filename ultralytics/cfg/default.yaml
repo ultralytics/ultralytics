@@ -72,7 +72,7 @@ save_frames: False # (bool) save predicted individual video frames
 save_txt: False # (bool) save results as .txt file
 save_conf: False # (bool) save results with confidence scores
 save_crop: False # (bool) save cropped images with results
-show_labels: True # (bool) show prediction labels, i.e. 'person'
+show_labels: True # (bool | list[str]) Include detection labels in annotations as track_id, cls_id, cls_name, conf separated by space in order unless disabled otherwise. True enables all labels; False disables all. If passed as list, choose any combination from ['track_id','cls_id', 'cls_name'] to visualize them only.
 show_conf: True # (bool) show prediction confidence, i.e. '0.99'
 show_boxes: True # (bool) show prediction boxes
 line_width: # (int, optional) line width of the bounding boxes. Scaled to image size if None.

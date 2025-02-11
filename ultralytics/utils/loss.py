@@ -16,40 +16,43 @@ class VarifocalLoss(nn.Module):
     def __init__(self):
         super().__init__()
 
-    @staticmethod
-    def forward(pred_scores, target_scores, target_labels, alpha=0.75, gamma=2.0):
-        # Convert to float32 to avoid precision issues in fp16
-        pred_scores = pred_scores.float()
-        target_scores = target_scores.float()
-        target_labels = target_labels.float()
-        
-        # Ensure compatible shapes
-        assert pred_scores.shape == target_scores.shape == target_labels.shape, \
-            f"Shape mismatch: pred_scores={pred_scores.shape}, target_scores={target_scores.shape}, target_labels={target_labels.shape}"
+    def forward(self, pred_scores, target_scores, target_labels, alpha=0.75, gamma=2.0):
+        # Force loss calculation in full precision even under AMP
+        with torch.cuda.amp.autocast(enabled=False):
+            # Convert inputs to float32
+            pred_scores = pred_scores.float()
+            target_scores = target_scores.float()
+            target_labels = target_labels.float()
+            
+            # Ensure compatible shapes
+            assert pred_scores.shape == target_scores.shape == target_labels.shape, (
+                f"Shape mismatch: pred_scores={pred_scores.shape}, "
+                f"target_scores={target_scores.shape}, target_labels={target_labels.shape}"
+            )
 
-        # Compute sigmoid and clamp for numerical stability
-        pred_scores_sigmoid = pred_scores.sigmoid().clamp(min=1e-4, max=1 - 1e-4)
+            # Compute sigmoid and clamp for numerical stability
+            pred_scores_sigmoid = pred_scores.sigmoid().clamp(min=1e-4, max=1 - 1e-4)
+            
+            # Compute weights
+            weight = alpha * pred_scores_sigmoid.pow(gamma) * (1 - target_labels) + target_scores * target_labels
+            
+            # Debug: Print weight values if NaN is detected
+            if torch.isnan(weight).any():
+                print(f"Debug: weight contains NaN values. weight={weight}")
+                print(f"Debug: pred_scores_sigmoid={pred_scores_sigmoid}")
+                print(f"Debug: target_scores={target_scores}")
+                print(f"Debug: target_labels={target_labels}")
+                print(f"Debug: alpha={alpha}, gamma={gamma}")
+            
+            # Ensure no NaN or Inf in weights
+            assert not torch.isnan(weight).any(), "NaN detected in weight"
+            assert not torch.isinf(weight).any(), "Inf detected in weight"
+            
+            # Compute loss in float32
+            loss = F.binary_cross_entropy_with_logits(pred_scores, target_scores, reduction="none") * weight
+            
+            return loss.mean(1).sum()
 
-        # Compute weights
-        weight = alpha * pred_scores_sigmoid.pow(gamma) * (1 - target_labels) + target_scores * target_labels
-        # Optionally, you can clamp the weight if you want:
-        # weight = weight.clamp(min=1e-4, max=1 - 1e-4)
-
-        # Debug: Print weight values if NaN is detected
-        if torch.isnan(weight).any():
-            print(f"Debug: weight contains NaN values. weight={weight}")
-            print(f"Debug: pred_scores_sigmoid={pred_scores_sigmoid}")
-            print(f"Debug: target_scores={target_scores}")
-            print(f"Debug: target_labels={target_labels}")
-            print(f"Debug: alpha={alpha}, gamma={gamma}")
-        
-        # Ensure no NaN or Inf in weights
-        assert not torch.isnan(weight).any(), "NaN detected in weight"
-        assert not torch.isinf(weight).any(), "Inf detected in weight"
-
-        # Compute loss (the loss is computed in float32)
-        loss = F.binary_cross_entropy_with_logits(pred_scores, target_scores, reduction="none") * weight
-        return loss.mean(1).sum()
 
 class FocalLoss(nn.Module):
     """Wraps focal loss around existing loss_fcn(), i.e. criteria = FocalLoss(nn.BCEWithLogitsLoss(), gamma=1.5)."""
